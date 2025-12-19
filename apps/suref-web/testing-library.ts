@@ -8,13 +8,7 @@ expect.extend(matchers)
 // Suppress known act() warnings from router/UI library internal components
 // These are async transitions that don't affect test correctness
 const originalError = console.error
-const knownComponents = [
-  'Transitioner',
-  'MatchesInner',
-  'TabsRoot',
-  'SheetInput',
-  'PilotLiveSheet',
-]
+const knownComponents = ['Transitioner', 'MatchesInner', 'TabsRoot', 'SheetInput', 'PilotLiveSheet']
 
 console.error = (...args: unknown[]) => {
   // Convert all arguments to a single string to check for patterns
