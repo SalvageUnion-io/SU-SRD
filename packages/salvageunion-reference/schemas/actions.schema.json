@@ -403,7 +403,7 @@
                     "type": "object",
                     "properties": {
                       "1": {
-                        "type": "string"
+                        "$ref": "#/definitions/actions/allOf/0/properties/table/anyOf/0/properties/1"
                       },
                       "type": {
                         "type": "string",

@@ -169,7 +169,7 @@
                 "type": "object",
                 "properties": {
                   "1": {
-                    "type": "string"
+                    "$ref": "#/definitions/roll-tables/properties/table/anyOf/0/properties/1"
                   },
                   "type": {
                     "type": "string",
@@ -386,7 +386,7 @@
             ]
           }
         },
-        "required": ["id", "name", "source", "page", "table"],
+        "required": ["id", "name", "source", "table"],
         "additionalProperties": false
       }
     },

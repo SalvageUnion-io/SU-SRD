@@ -356,7 +356,7 @@
                 "type": "object",
                 "properties": {
                   "1": {
-                    "type": "string"
+                    "$ref": "#/definitions/crawler-bays/properties/table/anyOf/0/properties/1"
                   },
                   "type": {
                     "type": "string",
@@ -571,6 +571,10 @@
                 "additionalProperties": false
               }
             ]
+          },
+          "tableName": {
+            "type": "string",
+            "description": "Reference to a roll table name"
           }
         },
         "required": ["id", "name", "source", "page", "damagedEffect", "npc"],
