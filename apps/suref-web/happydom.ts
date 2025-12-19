@@ -1,5 +1,9 @@
 import { GlobalRegistrator } from '@happy-dom/global-registrator'
 
+declare global {
+  var IS_REACT_ACT_ENVIRONMENT: boolean
+}
+
 GlobalRegistrator.register()
 
 // Set test environment variables for Supabase

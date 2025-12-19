@@ -15,6 +15,21 @@ import type { DataValue } from '../types/common'
 import { getActivationCurrency } from '../components/entity/entityDisplayHelpers'
 
 /**
+ * Type alias for action properties accessed directly on SURefMetaAction
+ * Used for type-safe property access in the else branches
+ */
+type ActionWithProperties = {
+  activationCost?: number | string
+  actionType?: string
+  range?: string[] | string
+  damage?: {
+    damageType: string
+    amount: number | string
+  }
+  traits?: SURefObjectTrait[]
+}
+
+/**
  * Format action type for display by appending " Action" where needed
  * - "Turn" → "Turn Action"
  * - "Long" → "Long Action"
@@ -54,7 +69,7 @@ function extractActivationCostDetail(
     activationCost = getActivationCost(data as SURefMetaEntity)
   } else {
     // For SURefMetaAction, access directly
-    activationCost = data.activationCost
+    activationCost = (data as ActionWithProperties).activationCost
   }
 
   if (activationCost === undefined) return null
@@ -102,7 +117,7 @@ function extractActionTypes(
     }
   } else {
     // For SURefMetaAction, access directly
-    actionType = data.actionType
+    actionType = (data as ActionWithProperties).actionType
     if (actionType) {
       details.push({ label: formatActionType(actionType), type: 'keyword' })
     }
@@ -122,7 +137,7 @@ function extractRangeDetail(data: SURefMetaEntity | SURefMetaAction): DataValue[
     range = getRange(data as SURefMetaEntity)
   } else {
     // For SURefMetaAction, access directly
-    range = data.range
+    range = (data as ActionWithProperties).range
   }
 
   if (!range) return null
@@ -147,7 +162,7 @@ function extractDamageDetail(data: SURefMetaEntity | SURefMetaAction): DataValue
     damage = getDamage(data as SURefMetaEntity)
   } else {
     // For SURefMetaAction, access directly
-    damage = data.damage
+    damage = (data as ActionWithProperties).damage
   }
 
   if (!damage) return null
@@ -168,7 +183,7 @@ function extractTraitDetails(data: SURefMetaEntity | SURefMetaAction): DataValue
     traits = getTraits(data as SURefMetaEntity)
   } else {
     // For SURefMetaAction, access directly
-    traits = data.traits
+    traits = (data as ActionWithProperties).traits
   }
 
   if (!traits || traits.length === 0) return []
