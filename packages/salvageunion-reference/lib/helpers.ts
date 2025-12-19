@@ -25,7 +25,7 @@ import type { ModelWithMetadata } from './BaseModel.js'
  * @returns The display name or the schema name if not found
  */
 export function getDisplayName(schemaName: SURefEnumSchemaName): string {
-  return SchemaToDisplayName[schemaName] || schemaName
+  return (SchemaToDisplayName as Record<string, string>)[schemaName] || schemaName
 }
 
 /**
@@ -61,7 +61,7 @@ export function getModel(
   schemaName: string | SURefEnumSchemaName
 ): ModelWithMetadata<SURefEntity> | undefined {
   const normalized = normalizeSchemaName(schemaName)
-  const modelName = SchemaToModelMap[normalized]
+  const modelName = (SchemaToModelMap as Record<string, string>)[normalized]
   if (!modelName) return undefined
   return (SalvageUnionReference as unknown as Record<string, ModelWithMetadata<SURefEntity>>)[
     modelName

@@ -43,7 +43,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "tsc --project tsconfig.build.json && bun run format && bun run lint",
+    "build": "tsc --project tsconfig.build.json && bun run generate:json-schemas && bun run format && bun run lint",
     "build:ci": "tsc --project tsconfig.build.json",
     "prepare": "tsc --project tsconfig.build.json",
     "prepublishOnly": "bun run build && bun run typecheck",
@@ -59,6 +59,7 @@
     "generate:typeIndex": "tsx tools/generateTypeIndex.ts",
     "generate:types": "bun run generate:enums && bun run generate:common && bun run generate:objects && bun run generate:schemas",
     "generate:index": "tsx tools/generateIndexFile.ts",
+    "generate:json-schemas": "tsx tools/generateJsonSchemas.ts",
     "generate": "bun run generate:types && bun run generate:typeIndex && bun run generate:index && bun run generate:utilities && bun run lint -- --fix && bun run format",
     "validate:references": "tsx tools/validateReferences.ts",
     "validate:actions": "tsx tools/validateActionReferences.ts",
@@ -96,6 +97,9 @@
     "url": "https://github.com/alxjrvs/salvageunion-data/issues"
   },
   "homepage": "https://github.com/alxjrvs/salvageunion-data#readme",
+  "dependencies": {
+    "zod": "^3.23.8"
+  },
   "devDependencies": {
     "netlify-cli": "^23.12.0",
     "@eslint/js": "^9.39.1",
@@ -111,7 +115,8 @@
     "tsx": "^4.20.6",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.48.0",
-    "vitest": "^4.0.14"
+    "vitest": "^4.0.14",
+    "zod-to-json-schema": "^3.23.4"
   },
   "engines": {
     "node": ">=18.0.0"

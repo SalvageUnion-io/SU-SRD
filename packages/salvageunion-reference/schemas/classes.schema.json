@@ -2,75 +2,251 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://salvageunion.com/schemas/classes.schema.json",
   "title": "classes",
-  "description": "Character classes in Salvage Union (base, advanced, and hybrid)",
+  "description": "",
   "type": "array",
   "items": {
-    "type": "object",
-    "oneOf": [
-      {
-        "type": "object",
-        "description": "Base character class",
-        "required": ["maxAbilities", "advanceable", "coreTrees"],
-        "properties": {
-          "asset_url": {
-            "$ref": "shared/common.schema.json#/definitions/asset_url"
+    "$ref": "#/definitions/classes",
+    "definitions": {
+      "classes": {
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "asset_url": {
+                "type": "string",
+                "format": "uri"
+              },
+              "content": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": ["paragraph", "heading", "list-item", "label", "datavalues", "hint"],
+                      "default": "paragraph"
+                    },
+                    "value": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "label": {
+                                "type": ["string", "number"]
+                              },
+                              "value": {
+                                "type": ["string", "number"]
+                              },
+                              "type": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["label"],
+                            "additionalProperties": false
+                          },
+                          "description": "Array of data values when type is 'datavalues'"
+                        }
+                      ]
+                    },
+                    "label": {
+                      "type": "string"
+                    },
+                    "level": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 6
+                    },
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "$ref": "#/definitions/classes/anyOf/0/properties/content/items/properties/type",
+                            "default": "paragraph"
+                          },
+                          "value": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "array",
+                                "items": {
+                                  "$ref": "#/definitions/classes/anyOf/0/properties/content/items/properties/value/anyOf/1/items"
+                                },
+                                "description": "Array of data values when type is 'datavalues'"
+                              }
+                            ]
+                          },
+                          "label": {
+                            "type": "string"
+                          },
+                          "level": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 6
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "id": {
+                "type": "string"
+              },
+              "indexable": {
+                "type": "boolean",
+                "default": true
+              },
+              "blackMarket": {
+                "type": "boolean",
+                "default": false
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "source": {
+                "type": "string",
+                "enum": [
+                  "Salvage Union Workshop Manual",
+                  "Mech Monday",
+                  "We Were Here First!",
+                  "Rainmaker",
+                  "False Flag"
+                ]
+              },
+              "page": {
+                "type": "integer",
+                "exclusiveMinimum": 0
+              },
+              "maxAbilities": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "description": "Maximum number of abilities this class can have"
+              },
+              "advanceable": {
+                "type": "boolean",
+                "description": "Whether this class can advance to hybrid classes"
+              },
+              "coreTrees": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "Advanced Engineer",
+                    "Advanced Hacking",
+                    "Advanced Hauler",
+                    "Advanced Scout",
+                    "Advanced Soldier",
+                    "Augmentation",
+                    "Cyborg",
+                    "Electronics",
+                    "Fabricator",
+                    "Forging",
+                    "Generic",
+                    "Gladitorial Combat",
+                    "Hacking",
+                    "Leadership",
+                    "Legendary Cyborg",
+                    "Legendary Engineer",
+                    "Legendary Fabricator",
+                    "Legendary Hacker",
+                    "Legendary Hauler",
+                    "Legendary Ranger",
+                    "Legendary Scout",
+                    "Legendary Smuggler",
+                    "Legendary Soldier",
+                    "Legendary Union Rep",
+                    "Mech-Tech",
+                    "Mechanical Knowledge",
+                    "Ranger",
+                    "Recon",
+                    "Salvaging",
+                    "Sleuth",
+                    "Smuggler",
+                    "Sniper",
+                    "Survivalist",
+                    "Tactical Warfare",
+                    "Trading",
+                    "Union Rep"
+                  ]
+                },
+                "description": "Core ability trees available to this class"
+              },
+              "advancedTree": {
+                "$ref": "#/definitions/classes/anyOf/0/properties/coreTrees/items",
+                "description": "Advanced ability tree for this class (only for advanceable base classes)"
+              },
+              "legendaryTree": {
+                "$ref": "#/definitions/classes/anyOf/0/properties/coreTrees/items",
+                "description": "Legendary ability tree for this class (only for advanceable base classes)"
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "source",
+              "page",
+              "maxAbilities",
+              "advanceable",
+              "coreTrees"
+            ],
+            "additionalProperties": false
           },
-          "content": {
-            "$ref": "shared/objects.schema.json#/definitions/content"
-          },
-          "id": {
-            "$ref": "shared/common.schema.json#/definitions/id"
-          },
-          "indexable": {
-            "type": "boolean",
-            "default": true
-          },
-          "blackMarket": {
-            "type": "boolean",
-            "default": false
-          },
-          "name": {
-            "$ref": "shared/common.schema.json#/definitions/name"
-          },
-          "source": {
-            "$ref": "shared/enums.schema.json#/definitions/source"
-          },
-          "page": {
-            "$ref": "shared/common.schema.json#/definitions/positiveInteger"
-          },
-          "maxAbilities": {
-            "type": "integer",
-            "minimum": 1,
-            "description": "Maximum number of abilities this class can have"
-          },
-          "advanceable": {
-            "type": "boolean",
-            "description": "Whether this class can advance to hybrid classes"
-          },
-          "coreTrees": {
-            "type": "array",
-            "description": "Core ability trees available to this class",
-            "items": {
-              "$ref": "shared/enums.schema.json#/definitions/tree"
-            }
-          },
-          "advancedTree": {
-            "$ref": "shared/enums.schema.json#/definitions/tree",
-            "description": "Advanced ability tree for this class (only for advanceable base classes)"
-          },
-          "legendaryTree": {
-            "$ref": "shared/enums.schema.json#/definitions/tree",
-            "description": "Legendary ability tree for this class (only for advanceable base classes)"
-          },
-          "content": {
-            "$ref": "shared/objects.schema.json#/definitions/content"
+          {
+            "type": "object",
+            "properties": {
+              "asset_url": {
+                "$ref": "#/definitions/classes/anyOf/0/properties/asset_url"
+              },
+              "content": {
+                "$ref": "#/definitions/classes/anyOf/0/properties/content"
+              },
+              "id": {
+                "$ref": "#/definitions/classes/anyOf/0/properties/id"
+              },
+              "indexable": {
+                "$ref": "#/definitions/classes/anyOf/0/properties/indexable"
+              },
+              "blackMarket": {
+                "$ref": "#/definitions/classes/anyOf/0/properties/blackMarket"
+              },
+              "name": {
+                "$ref": "#/definitions/classes/anyOf/0/properties/name"
+              },
+              "source": {
+                "$ref": "#/definitions/classes/anyOf/0/properties/source"
+              },
+              "page": {
+                "$ref": "#/definitions/classes/anyOf/0/properties/page"
+              },
+              "hybrid": {
+                "type": "boolean",
+                "description": "Whether this is a hybrid class (cannot be selected as initial class)"
+              },
+              "advancedTree": {
+                "$ref": "#/definitions/classes/anyOf/0/properties/coreTrees/items"
+              },
+              "legendaryTree": {
+                "$ref": "#/definitions/classes/anyOf/0/properties/coreTrees/items"
+              }
+            },
+            "required": ["id", "name", "source", "page", "advancedTree", "legendaryTree"],
+            "additionalProperties": false
           }
-        },
-        "additionalProperties": false
-      },
-      {
-        "$ref": "shared/objects.schema.json#/definitions/advancedClass"
+        ]
       }
-    ]
+    },
+    "$schema": "http://json-schema.org/draft-07/schema#"
   }
 }

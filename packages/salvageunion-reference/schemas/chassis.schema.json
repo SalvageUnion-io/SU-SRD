@@ -2,90 +2,413 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://salvageunion.com/schemas/chassis.schema.json",
   "title": "chassis",
-  "description": "Mech chassis definitions in Salvage Union",
+  "description": "",
   "type": "array",
   "items": {
-    "type": "object",
-    "required": [
-      "chassisAbilities",
-      "patterns",
-      "structurePoints",
-      "energyPoints",
-      "heatCapacity",
-      "systemSlots",
-      "moduleSlots",
-      "cargoCapacity",
-      "techLevel",
-      "salvageValue"
-    ],
-    "properties": {
-      "asset_url": {
-        "$ref": "shared/common.schema.json#/definitions/asset_url"
-      },
-      "content": {
-        "$ref": "shared/objects.schema.json#/definitions/content"
-      },
-      "id": {
-        "$ref": "shared/common.schema.json#/definitions/id"
-      },
-      "indexable": {
-        "type": "boolean",
-        "default": true
-      },
-      "blackMarket": {
-        "type": "boolean",
-        "default": false
-      },
-      "name": {
-        "$ref": "shared/common.schema.json#/definitions/name"
-      },
-      "source": {
-        "$ref": "shared/enums.schema.json#/definitions/source"
-      },
-      "page": {
-        "$ref": "shared/common.schema.json#/definitions/positiveInteger"
-      },
-      "structurePoints": {
-        "$ref": "shared/common.schema.json#/definitions/nonNegativeInteger"
-      },
-      "energyPoints": {
-        "$ref": "shared/common.schema.json#/definitions/nonNegativeInteger"
-      },
-      "heatCapacity": {
-        "$ref": "shared/common.schema.json#/definitions/nonNegativeInteger"
-      },
-      "systemSlots": {
-        "$ref": "shared/common.schema.json#/definitions/nonNegativeInteger"
-      },
-      "moduleSlots": {
-        "$ref": "shared/common.schema.json#/definitions/nonNegativeInteger"
-      },
-      "cargoCapacity": {
-        "$ref": "shared/common.schema.json#/definitions/nonNegativeInteger"
-      },
-      "techLevel": {
-        "$ref": "shared/common.schema.json#/definitions/techLevel"
-      },
-      "salvageValue": {
-        "$ref": "shared/common.schema.json#/definitions/salvageValue"
-      },
-      "chassisAbilities": {
-        "type": "array",
-        "items": {
-          "type": "string"
+    "$ref": "#/definitions/chassis",
+    "definitions": {
+      "chassis": {
+        "type": "object",
+        "properties": {
+          "asset_url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "content": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": ["paragraph", "heading", "list-item", "label", "datavalues", "hint"],
+                  "default": "paragraph"
+                },
+                "value": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "label": {
+                            "type": ["string", "number"]
+                          },
+                          "value": {
+                            "type": ["string", "number"]
+                          },
+                          "type": {
+                            "type": "string"
+                          }
+                        },
+                        "required": ["label"],
+                        "additionalProperties": false
+                      },
+                      "description": "Array of data values when type is 'datavalues'"
+                    }
+                  ]
+                },
+                "label": {
+                  "type": "string"
+                },
+                "level": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 6
+                },
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "$ref": "#/definitions/chassis/properties/content/items/properties/type",
+                        "default": "paragraph"
+                      },
+                      "value": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/definitions/chassis/properties/content/items/properties/value/anyOf/1/items"
+                            },
+                            "description": "Array of data values when type is 'datavalues'"
+                          }
+                        ]
+                      },
+                      "label": {
+                        "type": "string"
+                      },
+                      "level": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 6
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "id": {
+            "type": "string"
+          },
+          "indexable": {
+            "type": "boolean",
+            "default": true
+          },
+          "blackMarket": {
+            "type": "boolean",
+            "default": false
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "Salvage Union Workshop Manual",
+              "Mech Monday",
+              "We Were Here First!",
+              "Rainmaker",
+              "False Flag"
+            ]
+          },
+          "page": {
+            "type": "integer",
+            "exclusiveMinimum": 0
+          },
+          "structurePoints": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "energyPoints": {
+            "$ref": "#/definitions/chassis/properties/structurePoints"
+          },
+          "heatCapacity": {
+            "$ref": "#/definitions/chassis/properties/structurePoints"
+          },
+          "systemSlots": {
+            "$ref": "#/definitions/chassis/properties/structurePoints"
+          },
+          "moduleSlots": {
+            "$ref": "#/definitions/chassis/properties/structurePoints"
+          },
+          "cargoCapacity": {
+            "$ref": "#/definitions/chassis/properties/structurePoints"
+          },
+          "techLevel": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0
+              },
+              {
+                "type": "string",
+                "const": "B"
+              },
+              {
+                "type": "string",
+                "const": "N"
+              }
+            ]
+          },
+          "salvageValue": {
+            "$ref": "#/definitions/chassis/properties/structurePoints"
+          },
+          "chassisAbilities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Array of chassis ability names that reference actions.json"
+          },
+          "patterns": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "$ref": "#/definitions/chassis/properties/name"
+                },
+                "content": {
+                  "$ref": "#/definitions/chassis/properties/content"
+                },
+                "legalStarting": {
+                  "type": "boolean"
+                },
+                "systems": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "$ref": "#/definitions/chassis/properties/name"
+                      },
+                      "count": {
+                        "$ref": "#/definitions/chassis/properties/structurePoints"
+                      },
+                      "preselectedChoices": {
+                        "type": "object",
+                        "additionalProperties": {
+                          "$ref": "#/definitions/chassis/properties/name"
+                        },
+                        "description": "Preselected choices for this system or module, keyed by choice ID"
+                      }
+                    },
+                    "required": ["name"],
+                    "additionalProperties": false
+                  }
+                },
+                "modules": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/chassis/properties/patterns/items/properties/systems/items"
+                  }
+                },
+                "drone": {
+                  "type": "object",
+                  "properties": {
+                    "systems": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "modules": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": ["systems", "modules"],
+                  "additionalProperties": false
+                }
+              },
+              "required": ["name", "systems", "modules"],
+              "additionalProperties": false
+            }
+          },
+          "npc": {
+            "type": "object",
+            "properties": {
+              "position": {
+                "$ref": "#/definitions/chassis/properties/name"
+              },
+              "content": {
+                "$ref": "#/definitions/chassis/properties/content"
+              },
+              "hitPoints": {
+                "$ref": "#/definitions/chassis/properties/structurePoints"
+              },
+              "choices": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "$ref": "#/definitions/chassis/properties/id"
+                    },
+                    "name": {
+                      "$ref": "#/definitions/chassis/properties/name"
+                    },
+                    "content": {
+                      "$ref": "#/definitions/chassis/properties/content"
+                    },
+                    "rollTable": {
+                      "type": "string"
+                    },
+                    "schemaEntities": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "schema": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "abilities",
+                          "ability-tree-requirements",
+                          "bio-titans",
+                          "chassis",
+                          "classes",
+                          "crawler-bays",
+                          "crawler-tech-levels",
+                          "crawlers",
+                          "creatures",
+                          "distances",
+                          "drones",
+                          "equipment",
+                          "keywords",
+                          "factions",
+                          "meld",
+                          "modules",
+                          "npcs",
+                          "roll-tables",
+                          "squads",
+                          "systems",
+                          "traits",
+                          "vehicles"
+                        ]
+                      }
+                    },
+                    "customSystemOptions": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "structurePoints": {
+                            "$ref": "#/definitions/chassis/properties/structurePoints"
+                          },
+                          "energyPoints": {
+                            "$ref": "#/definitions/chassis/properties/structurePoints"
+                          },
+                          "heatCapacity": {
+                            "$ref": "#/definitions/chassis/properties/structurePoints"
+                          },
+                          "systemSlots": {
+                            "$ref": "#/definitions/chassis/properties/structurePoints"
+                          },
+                          "moduleSlots": {
+                            "$ref": "#/definitions/chassis/properties/structurePoints"
+                          },
+                          "cargoCapacity": {
+                            "$ref": "#/definitions/chassis/properties/structurePoints"
+                          },
+                          "techLevel": {
+                            "$ref": "#/definitions/chassis/properties/techLevel"
+                          },
+                          "salvageValue": {
+                            "$ref": "#/definitions/chassis/properties/structurePoints"
+                          },
+                          "slotsRequired": {
+                            "$ref": "#/definitions/chassis/properties/structurePoints"
+                          },
+                          "recommended": {
+                            "type": "boolean"
+                          },
+                          "count": {
+                            "$ref": "#/definitions/chassis/properties/structurePoints"
+                          },
+                          "actions": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "required": ["techLevel", "salvageValue", "slotsRequired", "actions"],
+                        "additionalProperties": false
+                      }
+                    },
+                    "setIndexable": {
+                      "type": "boolean"
+                    },
+                    "multiSelect": {
+                      "type": "boolean",
+                      "description": "If true, this choice can be selected multiple times"
+                    },
+                    "choiceOptions": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "label": {
+                            "type": "string"
+                          },
+                          "value": {
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string"
+                          }
+                        },
+                        "required": ["label", "value"],
+                        "additionalProperties": false
+                      },
+                      "description": "Structured options for this choice (similar to actionOptions)"
+                    },
+                    "constraints": {
+                      "type": "object",
+                      "properties": {
+                        "field": {
+                          "type": "string"
+                        },
+                        "min": {
+                          "$ref": "#/definitions/chassis/properties/structurePoints"
+                        },
+                        "max": {
+                          "$ref": "#/definitions/chassis/properties/structurePoints"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": ["id", "name"],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": ["position", "hitPoints"],
+            "additionalProperties": false
+          }
         },
-        "description": "Array of chassis ability names that reference actions.json"
-      },
-      "patterns": {
-        "type": "array",
-        "items": {
-          "$ref": "shared/objects.schema.json#/definitions/pattern"
-        }
-      },
-      "npc": {
-        "$ref": "shared/objects.schema.json#/definitions/npc"
+        "required": ["id", "name", "source", "page", "chassisAbilities", "patterns"],
+        "additionalProperties": false
       }
     },
-    "additionalProperties": false
+    "$schema": "http://json-schema.org/draft-07/schema#"
   }
 }

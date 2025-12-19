@@ -361,7 +361,8 @@ export class SalvageUnionReference {
     const schemaName = parts[0]
     const id = parts[1]
     if (!schemaName || !id) return null
-    if (!SchemaToModelMap[schemaName as SURefEnumSchemaName]) return null
+    if (!(SchemaToModelMap as Record<string, string>)[schemaName as SURefEnumSchemaName])
+      return null
 
     return { schemaName: schemaName as SURefEnumSchemaName, id }
   }

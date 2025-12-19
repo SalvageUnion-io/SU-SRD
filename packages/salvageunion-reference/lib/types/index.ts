@@ -1,8 +1,14 @@
 /**
  * TypeScript type exports
+ *
+ * NOTE: All types are now inferred from Zod schemas in lib/schemas/
+ * This file re-exports them for backward compatibility
  */
 
-// Import types for use in union types
+// Re-export all types from the new schemas directory
+export type * from '../schemas/index.js'
+
+// Import types for use in union types (for compatibility)
 import type {
   SURefAbility,
   SURefBioTitan,
@@ -27,71 +33,10 @@ import type {
   SURefSystem,
   SURefTrait,
   SURefVehicle,
-} from './schemas.js'
+} from '../schemas/index.js'
 
-// Export all enum types
-export type * from './enums.js'
-
-// Export all common types
-export type * from './common.js'
-
-// Export all object types
-export type * from './objects.js'
-
-// Export all schema types
-export type * from './schemas.js'
-
-// Re-export specific commonly used types for convenience
-export type {
-  SURefEnumSchemaName,
-  SURefEnumTree,
-  SURefEnumActionType,
-  SURefEnumDamageType,
-  SURefEnumRange,
-  SURefEnumSource,
-  SURefEnumClassType,
-  SURefEnumContentType,
-} from './enums.js'
-
-export type {
-  SURefCommonId,
-  SURefCommonName,
-  SURefCommonTechLevel,
-  SURefCommonSalvageValue,
-  SURefCommonHitPoints,
-  SURefCommonStructurePoints,
-  SURefCommonPositiveInteger,
-  SURefCommonNonNegativeInteger,
-  SURefCommonActivationCost,
-  SURefCommonAssetUrl,
-} from './common.js'
-
-export type {
-  SURefObjectTrait,
-  SURefObjectStats,
-  SURefObjectChassisStats,
-  SURefObjectEquipmentStats,
-  SURefObjectDataValue,
-  SURefObjectChoice,
-  SURefObjectNpc,
-  SURefObjectSystemModule,
-  SURefObjectTable,
-  SURefObjectTableContent,
-  SURefObjectAdvancedClass,
-  SURefObjectAction,
-  SURefObjectGrant,
-  SURefObjectChoices,
-  SURefObjectContent,
-  SURefObjectContentBlock,
-  SURefObjectPattern,
-  SURefObjectSystems,
-  SURefObjectModules,
-  SURefObjectTraits,
-  SURefObjectBaseEntity,
-  SURefObjectCombatEntity,
-  SURefObjectMechanicalEntity,
-  SURefObjectSchemaName,
-} from './objects.js'
+// All types are already exported from '../schemas/index.js' above
+// This file just re-exports them for backward compatibility
 
 // Union type of all entity types (excludes meta schemas and non-entities)
 export type SURefEntity =

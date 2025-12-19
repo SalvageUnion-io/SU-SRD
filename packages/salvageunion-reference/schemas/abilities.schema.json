@@ -2,81 +2,259 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://salvageunion.com/schemas/abilities.schema.json",
   "title": "abilities",
-  "description": "Pilot abilities and skills in Salvage Union",
+  "description": "",
   "type": "array",
   "items": {
-    "type": "object",
-    "required": ["tree", "level"],
-    "properties": {
-      "asset_url": {
-        "$ref": "shared/common.schema.json#/definitions/asset_url"
-      },
-      "content": {
-        "$ref": "shared/objects.schema.json#/definitions/content"
-      },
-      "id": {
-        "$ref": "shared/common.schema.json#/definitions/id"
-      },
-      "indexable": {
-        "type": "boolean",
-        "default": true
-      },
-      "blackMarket": {
-        "type": "boolean",
-        "default": false
-      },
-      "name": {
-        "$ref": "shared/common.schema.json#/definitions/name"
-      },
-      "source": {
-        "$ref": "shared/enums.schema.json#/definitions/source"
-      },
-      "page": {
-        "$ref": "shared/common.schema.json#/definitions/positiveInteger"
-      },
-      "description": {
-        "type": "string"
-      },
-      "tree": {
-        "$ref": "shared/enums.schema.json#/definitions/tree"
-      },
-      "level": {
-        "oneOf": [
-          {
+    "$ref": "#/definitions/abilities",
+    "definitions": {
+      "abilities": {
+        "type": "object",
+        "properties": {
+          "asset_url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "content": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": ["paragraph", "heading", "list-item", "label", "datavalues", "hint"],
+                  "default": "paragraph"
+                },
+                "value": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "label": {
+                            "type": ["string", "number"]
+                          },
+                          "value": {
+                            "type": ["string", "number"]
+                          },
+                          "type": {
+                            "type": "string"
+                          }
+                        },
+                        "required": ["label"],
+                        "additionalProperties": false
+                      },
+                      "description": "Array of data values when type is 'datavalues'"
+                    }
+                  ]
+                },
+                "label": {
+                  "type": "string"
+                },
+                "level": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 6
+                },
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "$ref": "#/definitions/abilities/properties/content/items/properties/type",
+                        "default": "paragraph"
+                      },
+                      "value": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/definitions/abilities/properties/content/items/properties/value/anyOf/1/items"
+                            },
+                            "description": "Array of data values when type is 'datavalues'"
+                          }
+                        ]
+                      },
+                      "label": {
+                        "type": "string"
+                      },
+                      "level": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 6
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "id": {
+            "type": "string"
+          },
+          "indexable": {
+            "type": "boolean",
+            "default": true
+          },
+          "blackMarket": {
+            "type": "boolean",
+            "default": false
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "Salvage Union Workshop Manual",
+              "Mech Monday",
+              "We Were Here First!",
+              "Rainmaker",
+              "False Flag"
+            ]
+          },
+          "page": {
             "type": "integer",
-            "minimum": 1,
-            "maximum": 3
+            "exclusiveMinimum": 0
           },
-          {
-            "type": "string",
-            "const": "L"
+          "description": {
+            "type": "string"
           },
-          {
+          "tree": {
             "type": "string",
-            "const": "G"
+            "enum": [
+              "Advanced Engineer",
+              "Advanced Hacking",
+              "Advanced Hauler",
+              "Advanced Scout",
+              "Advanced Soldier",
+              "Augmentation",
+              "Cyborg",
+              "Electronics",
+              "Fabricator",
+              "Forging",
+              "Generic",
+              "Gladitorial Combat",
+              "Hacking",
+              "Leadership",
+              "Legendary Cyborg",
+              "Legendary Engineer",
+              "Legendary Fabricator",
+              "Legendary Hacker",
+              "Legendary Hauler",
+              "Legendary Ranger",
+              "Legendary Scout",
+              "Legendary Smuggler",
+              "Legendary Soldier",
+              "Legendary Union Rep",
+              "Mech-Tech",
+              "Mechanical Knowledge",
+              "Ranger",
+              "Recon",
+              "Salvaging",
+              "Sleuth",
+              "Smuggler",
+              "Sniper",
+              "Survivalist",
+              "Tactical Warfare",
+              "Trading",
+              "Union Rep"
+            ]
+          },
+          "level": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 3
+              },
+              {
+                "type": "string",
+                "const": "L"
+              },
+              {
+                "type": "string",
+                "const": "G"
+              }
+            ]
+          },
+          "mechActionType": {
+            "type": "string",
+            "enum": ["Passive", "Free", "Reaction", "Turn", "Short", "Long", "DownTime"]
+          },
+          "grants": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "enum": [
+                        "abilities",
+                        "ability-tree-requirements",
+                        "bio-titans",
+                        "chassis",
+                        "classes",
+                        "crawler-bays",
+                        "crawler-tech-levels",
+                        "crawlers",
+                        "creatures",
+                        "distances",
+                        "drones",
+                        "equipment",
+                        "keywords",
+                        "factions",
+                        "meld",
+                        "modules",
+                        "npcs",
+                        "roll-tables",
+                        "squads",
+                        "systems",
+                        "traits",
+                        "vehicles"
+                      ]
+                    },
+                    {
+                      "type": "string",
+                      "const": "choice"
+                    }
+                  ]
+                },
+                "name": {
+                  "$ref": "#/definitions/abilities/properties/name"
+                }
+              },
+              "required": ["schema", "name"],
+              "additionalProperties": false
+            }
+          },
+          "activationCurrency": {
+            "type": "string",
+            "enum": ["Variable", "EP or AP", "SP or HP"]
+          },
+          "actions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
-        ]
-      },
-      "mechActionType": {
-        "$ref": "shared/enums.schema.json#/definitions/actionType"
-      },
-      "grants": {
-        "type": "array",
-        "items": {
-          "$ref": "shared/objects.schema.json#/definitions/grant"
-        }
-      },
-      "activationCurrency": {
-        "type": "string",
-        "enum": ["Variable", "EP or AP", "SP or HP"]
-      },
-      "actions": {
-        "type": "array",
-        "items": {
-          "type": "string"
-        }
+        },
+        "required": ["id", "name", "source", "page", "tree", "level"],
+        "additionalProperties": false
       }
     },
-    "additionalProperties": false
+    "$schema": "http://json-schema.org/draft-07/schema#"
   }
 }

@@ -8,6 +8,32 @@
  */
 import { BaseModel } from './BaseModel.js'
 import schemaIndex from '../schemas/index.json' with { type: 'json' }
+import { z } from 'zod'
+import {
+  AbilitySchema,
+  AbilityTreeRequirementSchema,
+  MetaActionSchema,
+  BioTitanSchema,
+  ChassisSchema,
+  ClassSchema,
+  CrawlerBaySchema,
+  CrawlerTechLevelSchema,
+  CrawlerSchema,
+  CreatureSchema,
+  DistanceSchema,
+  DroneSchema,
+  EquipmentSchema,
+  FactionSchema,
+  KeywordSchema,
+  MeldSchema,
+  ModuleSchema,
+  NPCSchema,
+  RollTableSchema,
+  SquadSchema,
+  SystemSchema,
+  TraitEntitySchema,
+  VehicleSchema,
+} from './schemas/index.js'
 
 // Import all data files
 import abilitiesData from '../data/abilities.json' with { type: 'json' }
@@ -89,7 +115,36 @@ const dataMap: Record<string, unknown[]> = {
 }
 
 /**
- * Static schema map - all schemas indexed by schema ID
+ * Zod schema map - all Zod schemas indexed by schema ID
+ */
+const zodSchemaMap: Record<string, z.ZodType<unknown>> = {
+  abilities: AbilitySchema,
+  'ability-tree-requirements': AbilityTreeRequirementSchema,
+  actions: MetaActionSchema,
+  'bio-titans': BioTitanSchema,
+  chassis: ChassisSchema,
+  classes: ClassSchema,
+  'crawler-bays': CrawlerBaySchema,
+  'crawler-tech-levels': CrawlerTechLevelSchema,
+  crawlers: CrawlerSchema,
+  creatures: CreatureSchema,
+  distances: DistanceSchema,
+  drones: DroneSchema,
+  equipment: EquipmentSchema,
+  factions: FactionSchema,
+  keywords: KeywordSchema,
+  meld: MeldSchema,
+  modules: ModuleSchema,
+  npcs: NPCSchema,
+  'roll-tables': RollTableSchema,
+  squads: SquadSchema,
+  systems: SystemSchema,
+  traits: TraitEntitySchema,
+  vehicles: VehicleSchema,
+}
+
+/**
+ * Static schema map - all schemas indexed by schema ID (JSON Schema, kept for backward compatibility)
  */
 const schemaMap: Record<string, Record<string, unknown>> = {
   abilities: abilitiesSchema,
@@ -152,6 +207,27 @@ export function toPascalCase(id: string): string {
 }
 
 /**
+ * Validate and parse data using Zod schema
+ */
+function validateAndParseData<T>(
+  schemaId: string,
+  rawData: unknown[],
+  zodSchema: z.ZodType<T>
+): T[] {
+  try {
+    return z.array(zodSchema).parse(rawData)
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      console.error(`Validation error for schema ${schemaId}:`, error.errors)
+      throw new Error(
+        `Data validation failed for ${schemaId}: ${error.errors.map((e) => e.message).join(', ')}`
+      )
+    }
+    throw error
+  }
+}
+
+/**
  * Create a model instance for a given schema entry (synchronous)
  * Returns an object with instance methods and readonly metadata properties
  */
@@ -159,16 +235,20 @@ function createModel<T>(schemaId: string): BaseModel<T> & {
   readonly schemaName: string
   readonly displayName: string
 } {
-  const data = dataMap[schemaId]
+  const rawData = dataMap[schemaId]
   const schema = schemaMap[schemaId]
+  const zodSchema = zodSchemaMap[schemaId]
 
-  if (!data || !schema) {
+  if (!rawData || !schema || !zodSchema) {
     throw new Error(`No data or schema found for schema ID: ${schemaId}`)
   }
 
+  // Validate and parse data using Zod
+  const validatedData = validateAndParseData(schemaId, rawData, zodSchema as z.ZodType<T>)
+
   const displayNameValue = schemaDisplayNames[schemaId]?.plural || schemaId
 
-  const model = new BaseModel<T>(data as T[], schema, schemaId, displayNameValue)
+  const model = new BaseModel<T>(validatedData, schema, schemaId, displayNameValue)
 
   // Add readonly metadata properties directly to the instance
   Object.defineProperties(model, {
