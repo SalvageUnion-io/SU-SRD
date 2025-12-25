@@ -18,9 +18,9 @@ import { LiveSheetLoadingState } from '../shared/LiveSheetLoadingState'
 import { LiveSheetNotFoundState } from '../shared/LiveSheetNotFoundState'
 import { LiveSheetErrorState } from '../shared/LiveSheetErrorState'
 import { useUpdatePilot, useHydratedPilot, useDeletePilot } from '../../hooks/pilot'
-import { useCurrentUser } from '../../hooks/useCurrentUser'
 import { useImageUpload } from '../../hooks/useImageUpload'
-import { isOwner } from '../../lib/permissions'
+import { useIsEditable } from '../../hooks/useIsEditable'
+import { LiveSheetStateGuard } from '../shared/LiveSheetStateGuard'
 
 interface PilotLiveSheetProps {
   id: string
@@ -35,9 +35,7 @@ export default function PilotLiveSheet({ id }: PilotLiveSheetProps) {
   const updatePilot = useUpdatePilot()
   const deletePilot = useDeletePilot()
 
-  const { userId } = useCurrentUser()
-
-  const isEditable = isLocal || (pilot ? isOwner(pilot.user_id, userId) : false)
+  const isEditable = useIsEditable(pilot, isLocal)
 
   const selectedClassRef = selectedClass?.ref as SURefClass | undefined
   const selectedAdvancedClassRef = selectedAdvancedClass?.ref as SURefClass | undefined
@@ -54,19 +52,9 @@ export default function PilotLiveSheet({ id }: PilotLiveSheetProps) {
     queryKey: ['pilots', id],
   })
 
-  if (!pilot && !loading) {
-    return <LiveSheetNotFoundState entityType="Pilot" />
-  }
-
-  if (loading) {
-    return <LiveSheetLoadingState entityType="Pilot" />
-  }
-
-  if (error) {
-    return <LiveSheetErrorState entityType="Pilot" error={error} />
-  }
   return (
-    <LiveSheetLayout>
+    <LiveSheetStateGuard entityType="Pilot" entity={pilot} loading={loading} error={error}>
+      <LiveSheetLayout>
       {!isLocal && (
         <LiveSheetControlBar
           bg="su.orange"
@@ -199,6 +187,7 @@ export default function PilotLiveSheet({ id }: PilotLiveSheetProps) {
           />
         </Box>
       )}
-    </LiveSheetLayout>
+      </LiveSheetLayout>
+    </LiveSheetStateGuard>
   )
 }

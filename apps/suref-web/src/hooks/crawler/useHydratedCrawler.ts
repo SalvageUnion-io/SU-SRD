@@ -17,6 +17,7 @@ import type { Tables } from '../../types/database-generated.types'
 import { isLocalId } from '../../lib/cacheHelpers'
 import { useMemo } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import { combineQueryStates } from '../../lib/queryHelpers'
 
 export interface HydratedCrawler {
   crawler: Tables<'crawlers'> | undefined
@@ -95,11 +96,11 @@ export function useHydratedCrawler(id: string | undefined): HydratedCrawler {
     return techLevelData?.structurePoints ?? 0
   }, [selectedCrawlerType?.ref, crawler?.tech_level, allTechLevels])
 
-  const loading = crawlerLoading || cargoLoading || entitiesLoading
-  const error =
-    (crawlerError ? String(crawlerError) : null) ||
-    (cargoError ? String(cargoError) : null) ||
-    (entitiesError ? String(entitiesError) : null)
+  const { loading, error } = combineQueryStates(
+    { isLoading: crawlerLoading, error: crawlerError },
+    { isLoading: cargoLoading, error: cargoError },
+    { isLoading: entitiesLoading, error: entitiesError }
+  )
 
   const storageBay = useMemo(() => bays.find((b) => b.ref.name === 'Storage Bay'), [bays])
 

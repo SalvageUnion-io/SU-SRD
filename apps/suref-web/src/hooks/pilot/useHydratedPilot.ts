@@ -16,6 +16,7 @@ import { useEntitiesFor } from '../suentity/useSUEntities'
 import type { HydratedEntity } from '../../types/hydrated'
 import type { Tables } from '../../types/database-generated.types'
 import { isLocalId } from '../../lib/cacheHelpers'
+import { combineQueryStates } from '../../lib/queryHelpers'
 
 export interface HydratedPilot {
   pilot: Tables<'pilots'> | undefined
@@ -92,9 +93,10 @@ export function useHydratedPilot(id: string | undefined): HydratedPilot {
     })
   }, [entities])
 
-  const loading = pilotLoading || entitiesLoading
-  const error =
-    (pilotError ? String(pilotError) : null) || (entitiesError ? String(entitiesError) : null)
+  const { loading, error } = combineQueryStates(
+    { isLoading: pilotLoading, error: pilotError },
+    { isLoading: entitiesLoading, error: entitiesError }
+  )
 
   return {
     isLocal,

@@ -18,6 +18,7 @@ import type { HydratedEntity, HydratedCargo } from '../../types/hydrated'
 import type { Tables } from '../../types/database-generated.types'
 import { getSlotsRequired, getSalvageValue } from 'salvageunion-reference'
 import { isLocalId } from '../../lib/cacheHelpers'
+import { combineQueryStates } from '../../lib/queryHelpers'
 
 export interface HydratedMech {
   mech: Tables<'mechs'> | undefined
@@ -77,11 +78,11 @@ export function useHydratedMech(id: string | undefined): HydratedMech {
     [entities]
   )
 
-  const loading = mechLoading || entitiesLoading || cargoLoading
-  const error =
-    (mechError ? String(mechError) : null) ||
-    (entitiesError ? String(entitiesError) : null) ||
-    (cargoError ? String(cargoError) : null)
+  const { loading, error } = combineQueryStates(
+    { isLoading: mechLoading, error: mechError },
+    { isLoading: entitiesLoading, error: entitiesError },
+    { isLoading: cargoLoading, error: cargoError }
+  )
 
   const usedSystemSlots = useMemo(
     () =>

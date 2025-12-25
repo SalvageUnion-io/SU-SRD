@@ -1,7 +1,7 @@
 import { Box } from '@chakra-ui/react'
 import type { SURefObjectContentBlock } from 'salvageunion-reference'
 import { useParseTraitReferences } from '../../utils/parseTraitReferences'
-import { parseContentBlockString } from '../../utils/contentBlockHelpers'
+import { parseContentBlockString } from '../../lib/contentBlockHelpers'
 
 interface InlineContentBlockProps {
   block: SURefObjectContentBlock

@@ -14,7 +14,7 @@ interface ClassSelectionStepProps {
 }
 
 export function ClassSelectionStep({ wizardState, onComplete }: ClassSelectionStepProps) {
-  const { state, setSelectedClassId, setSelectedAbilityId } = wizardState
+  const { state, updateField } = wizardState
   // Use a ref to track the latest selected ability ID to avoid stale closures
   const selectedAbilityIdRef = useRef<string | null>(state.selectedAbilityId)
 
@@ -59,28 +59,28 @@ export function ClassSelectionStep({ wizardState, onComplete }: ClassSelectionSt
     if (!selectedClass) return
     // Use the ref to get the latest ability ID value to avoid stale closures
     if (selectedAbilityIdRef.current) {
-      setSelectedClassId(selectedClass.id)
+      updateField('selectedClassId', selectedClass.id)
       onComplete()
     }
-  }, [selectedClass, setSelectedClassId, onComplete])
+  }, [selectedClass, updateField, onComplete])
 
   const handleAbilitySelect = useCallback(
     (abilityId: string) => {
       if (state.selectedAbilityId === abilityId) {
-        setSelectedAbilityId(null)
+        updateField('selectedAbilityId', null)
       } else {
-        setSelectedAbilityId(abilityId)
+        updateField('selectedAbilityId', abilityId)
       }
     },
-    [state.selectedAbilityId, setSelectedAbilityId]
+    [state.selectedAbilityId, updateField]
   )
 
   const handleTabChange = useCallback(
     (classId: string) => {
       setSelectedTab(classId)
-      setSelectedAbilityId(null)
+      updateField('selectedAbilityId', null)
     },
-    [setSelectedAbilityId]
+    [updateField]
   )
 
   return (

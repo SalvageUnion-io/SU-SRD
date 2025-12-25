@@ -1,7 +1,7 @@
+import { useCallback } from 'react'
 import type { WizardState } from './utils'
 import { validateWizardStep } from './utils'
 import { useBaseWizardState } from '../../hooks/useBaseWizardState'
-import { useWizardSetter } from '../../utils/wizardHelpers'
 
 export interface UseMechWizardStateReturn {
   state: WizardState
@@ -12,13 +12,7 @@ export interface UseMechWizardStateReturn {
   goToStep: (step: number) => void
   goToNextStep: () => void
   goToPreviousStep: () => void
-  setSelectedChassisId: (chassisId: string | null) => void
-  setSelectedSystemIds: (systemIds: string[]) => void
-  setSelectedModuleIds: (moduleIds: string[]) => void
-  setSelectedPatternName: (patternName: string | null) => void
-  setAppearance: (appearance: string) => void
-  setQuirk: (quirk: string) => void
-  setPatternName: (patternName: string) => void
+  updateField: <K extends keyof WizardState>(field: K, value: WizardState[K]) => void
   reset: () => void
 }
 
@@ -41,6 +35,13 @@ export function useMechWizardState(): UseMechWizardStateReturn {
 
   const { state, setState } = baseWizard
 
+  const updateField = useCallback(
+    <K extends keyof WizardState>(field: K, value: WizardState[K]) => {
+      setState((prev) => ({ ...prev, [field]: value }))
+    },
+    [setState]
+  )
+
   return {
     state,
     currentStep: baseWizard.currentStep,
@@ -50,19 +51,7 @@ export function useMechWizardState(): UseMechWizardStateReturn {
     goToStep: baseWizard.goToStep,
     goToNextStep: baseWizard.goToNextStep,
     goToPreviousStep: baseWizard.goToPreviousStep,
-    setSelectedChassisId: useWizardSetter<WizardState, string | null>(
-      setState,
-      'selectedChassisId'
-    ),
-    setSelectedSystemIds: useWizardSetter<WizardState, string[]>(setState, 'selectedSystemIds'),
-    setSelectedModuleIds: useWizardSetter<WizardState, string[]>(setState, 'selectedModuleIds'),
-    setSelectedPatternName: useWizardSetter<WizardState, string | null>(
-      setState,
-      'selectedPatternName'
-    ),
-    setAppearance: useWizardSetter<WizardState, string>(setState, 'appearance'),
-    setQuirk: useWizardSetter<WizardState, string>(setState, 'quirk'),
-    setPatternName: useWizardSetter<WizardState, string>(setState, 'patternName'),
+    updateField,
     reset: baseWizard.reset,
   }
 }

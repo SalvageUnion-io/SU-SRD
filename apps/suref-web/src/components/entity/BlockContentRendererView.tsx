@@ -2,7 +2,7 @@ import { Box, Flex } from '@chakra-ui/react'
 import type { SURefObjectContentBlock } from 'salvageunion-reference'
 import { Text } from '../base/Text'
 import { useParseTraitReferences } from '../../utils/parseTraitReferences'
-import { parseContentBlockString } from '../../utils/contentBlockHelpers'
+import { parseContentBlockString } from '../../lib/contentBlockHelpers'
 import { DataValueDisplayView } from './DataValueDisplayView'
 
 interface BlockContentRendererViewProps {

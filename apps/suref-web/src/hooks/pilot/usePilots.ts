@@ -12,24 +12,13 @@
  * persist to the database.
  */
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import type { TablesInsert, TablesUpdate } from '../../types/database-generated.types'
-import { fetchEntity, createEntity, updateEntity, deleteEntity } from '../../lib/api'
-import { LOCAL_ID, isLocalId } from '../../lib/cacheHelpers'
+import { createEntityHooks } from '../createEntityHooks'
+import { LOCAL_ID } from '../../lib/cacheHelpers'
 import type { Tables } from '../../types/database-generated.types'
 
 export { LOCAL_ID }
 
 type Pilot = Tables<'pilots'>
-
-/**
- * Query key factory for pilots
- * Ensures consistent cache keys across the app
- */
-export const pilotsKeys = {
-  all: ['pilots'] as const,
-  byId: (id: string) => [...pilotsKeys.all, id] as const,
-}
 
 const defaultPilot: Pilot = {
   id: LOCAL_ID,
@@ -58,6 +47,18 @@ const defaultPilot: Pilot = {
   updated_at: new Date().toISOString(),
 }
 
+const { keys: pilotsKeys, useEntity, useCreateEntity, useUpdateEntity, useDeleteEntity } =
+  createEntityHooks<Pilot>({
+    tableName: 'pilots',
+    defaultEntity: defaultPilot,
+  })
+
+/**
+ * Query key factory for pilots
+ * Ensures consistent cache keys across the app
+ */
+export { pilotsKeys }
+
 /**
  * Hook to fetch a single pilot by ID
  *
@@ -77,16 +78,7 @@ const defaultPilot: Pilot = {
  * const { data: localPilot } = usePilot(LOCAL_ID)
  * ```
  */
-export function usePilot(id: string | undefined) {
-  const isLocal = isLocalId(id)
-
-  return useQuery({
-    queryKey: pilotsKeys.byId(id!),
-    queryFn: isLocal ? async () => defaultPilot : () => fetchEntity<Pilot>('pilots', id!),
-    enabled: !!id,
-    initialData: isLocal ? defaultPilot : undefined,
-  })
-}
+export const usePilot = useEntity
 
 /**
  * Hook to create a new pilot
@@ -115,30 +107,7 @@ export function usePilot(id: string | undefined) {
  * })
  * ```
  */
-export function useCreatePilot() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: async (data: TablesInsert<'pilots'>) => {
-      const pilotId = data.id
-
-      if (pilotId && isLocalId(pilotId)) {
-        queryClient.setQueryData(pilotsKeys.byId(pilotId), defaultPilot)
-
-        return defaultPilot
-      }
-
-      return createEntity<Pilot>('pilots', data as Pilot)
-    },
-    onSuccess: (newPilot) => {
-      if (isLocalId(newPilot.id)) return
-
-      queryClient.invalidateQueries({
-        queryKey: pilotsKeys.byId(newPilot.id),
-      })
-    },
-  })
-}
+export const useCreatePilot = useCreateEntity
 
 /**
  * Hook to update a pilot
@@ -158,65 +127,7 @@ export function useCreatePilot() {
  * })
  * ```
  */
-export function useUpdatePilot() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: TablesUpdate<'pilots'> }) => {
-      if (isLocalId(id)) {
-        const currentPilot = queryClient.getQueryData<Pilot>(pilotsKeys.byId(id))
-        if (!currentPilot) {
-          throw new Error('Pilot not found in cache')
-        }
-
-        const updatedPilot: Pilot = {
-          ...currentPilot,
-          ...updates,
-          updated_at: new Date().toISOString(),
-        }
-
-        queryClient.setQueryData(pilotsKeys.byId(id), updatedPilot)
-        return updatedPilot
-      }
-
-      await updateEntity<Pilot>('pilots', id, updates)
-
-      return fetchEntity<Pilot>('pilots', id)
-    },
-
-    onMutate: async ({ id, updates }) => {
-      if (isLocalId(id)) return
-
-      await queryClient.cancelQueries({ queryKey: pilotsKeys.byId(id) })
-
-      const previousPilot = queryClient.getQueryData<Pilot>(pilotsKeys.byId(id))
-
-      if (previousPilot) {
-        queryClient.setQueryData<Pilot>(pilotsKeys.byId(id), {
-          ...previousPilot,
-          ...updates,
-          updated_at: new Date().toISOString(),
-        })
-      }
-
-      return { previousPilot, id }
-    },
-
-    onError: (_err, _variables, context) => {
-      if (context?.previousPilot) {
-        queryClient.setQueryData(pilotsKeys.byId(context.id), context.previousPilot)
-      }
-    },
-
-    onSuccess: (_updatedPilot, variables) => {
-      if (isLocalId(variables.id)) return
-
-      queryClient.invalidateQueries({
-        queryKey: pilotsKeys.byId(variables.id),
-      })
-    },
-  })
-}
+export const useUpdatePilot = useUpdateEntity
 
 /**
  * Hook to delete a pilot
@@ -232,29 +143,4 @@ export function useUpdatePilot() {
  * deletePilot.mutate(pilotId)
  * ```
  */
-export function useDeletePilot() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: async (id: string) => {
-      if (isLocalId(id)) {
-        queryClient.removeQueries({ queryKey: pilotsKeys.byId(id) })
-        return
-      }
-
-      await deleteEntity('pilots', id)
-    },
-    onSuccess: (_, id) => {
-      if (isLocalId(id)) {
-        queryClient.invalidateQueries({
-          queryKey: pilotsKeys.all,
-        })
-        return
-      }
-
-      queryClient.invalidateQueries({
-        queryKey: pilotsKeys.all,
-      })
-    },
-  })
-}
+export const useDeletePilot = useDeleteEntity

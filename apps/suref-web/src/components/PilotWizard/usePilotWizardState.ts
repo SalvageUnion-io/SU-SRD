@@ -1,7 +1,7 @@
+import { useCallback } from 'react'
 import type { WizardState } from './utils'
 import { validateWizardStep } from './utils'
 import { useBaseWizardState } from '../../hooks/useBaseWizardState'
-import { useWizardSetter } from '../../utils/wizardHelpers'
 
 export interface UsePilotWizardStateReturn {
   state: WizardState
@@ -12,14 +12,7 @@ export interface UsePilotWizardStateReturn {
   goToStep: (step: number) => void
   goToNextStep: () => void
   goToPreviousStep: () => void
-  setSelectedClassId: (classId: string | null) => void
-  setSelectedAbilityId: (abilityId: string | null) => void
-  setSelectedEquipmentIds: (equipmentIds: string[]) => void
-  setCallsign: (callsign: string) => void
-  setBackground: (background: string) => void
-  setMotto: (motto: string) => void
-  setKeepsake: (keepsake: string) => void
-  setAppearance: (appearance: string) => void
+  updateField: <K extends keyof WizardState>(field: K, value: WizardState[K]) => void
   reset: () => void
 }
 
@@ -43,6 +36,13 @@ export function usePilotWizardState(): UsePilotWizardStateReturn {
 
   const { state, setState } = baseWizard
 
+  const updateField = useCallback(
+    <K extends keyof WizardState>(field: K, value: WizardState[K]) => {
+      setState((prev) => ({ ...prev, [field]: value }))
+    },
+    [setState]
+  )
+
   return {
     state,
     currentStep: baseWizard.currentStep,
@@ -52,20 +52,7 @@ export function usePilotWizardState(): UsePilotWizardStateReturn {
     goToStep: baseWizard.goToStep,
     goToNextStep: baseWizard.goToNextStep,
     goToPreviousStep: baseWizard.goToPreviousStep,
-    setSelectedClassId: useWizardSetter<WizardState, string | null>(setState, 'selectedClassId'),
-    setSelectedAbilityId: useWizardSetter<WizardState, string | null>(
-      setState,
-      'selectedAbilityId'
-    ),
-    setSelectedEquipmentIds: useWizardSetter<WizardState, string[]>(
-      setState,
-      'selectedEquipmentIds'
-    ),
-    setCallsign: useWizardSetter<WizardState, string>(setState, 'callsign'),
-    setBackground: useWizardSetter<WizardState, string>(setState, 'background'),
-    setMotto: useWizardSetter<WizardState, string>(setState, 'motto'),
-    setKeepsake: useWizardSetter<WizardState, string>(setState, 'keepsake'),
-    setAppearance: useWizardSetter<WizardState, string>(setState, 'appearance'),
+    updateField,
     reset: baseWizard.reset,
   }
 }

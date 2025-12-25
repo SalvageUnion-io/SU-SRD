@@ -12,7 +12,7 @@ interface EquipmentSelectionStepProps {
 }
 
 export function EquipmentSelectionStep({ wizardState, onComplete }: EquipmentSelectionStepProps) {
-  const { state, setSelectedEquipmentIds } = wizardState
+  const { state, updateField } = wizardState
 
   const availableEquipment = useMemo(() => {
     const allEquipment = getTL1Equipment()
@@ -35,12 +35,12 @@ export function EquipmentSelectionStep({ wizardState, onComplete }: EquipmentSel
     (equipmentId: string) => {
       const currentIds = state.selectedEquipmentIds
       if (currentIds.includes(equipmentId)) {
-        setSelectedEquipmentIds(currentIds.filter((id) => id !== equipmentId))
+        updateField('selectedEquipmentIds', currentIds.filter((id) => id !== equipmentId))
       } else if (currentIds.length < 2) {
-        setSelectedEquipmentIds([...currentIds, equipmentId])
+        updateField('selectedEquipmentIds', [...currentIds, equipmentId])
       }
     },
-    [state.selectedEquipmentIds, setSelectedEquipmentIds]
+    [state.selectedEquipmentIds, updateField]
   )
 
   const handleNext = useCallback(() => {

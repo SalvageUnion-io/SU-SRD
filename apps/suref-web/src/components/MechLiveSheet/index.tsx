@@ -21,10 +21,10 @@ import { LiveSheetNotFoundState } from '../shared/LiveSheetNotFoundState'
 import { LiveSheetErrorState } from '../shared/LiveSheetErrorState'
 import { useUpdateMech, useHydratedMech, useDeleteMech } from '../../hooks/mech'
 import { useCreatePilotForMech } from '../../hooks/usePilotAssignment'
-import { useCurrentUser } from '../../hooks/useCurrentUser'
 import { useImageUpload } from '../../hooks/useImageUpload'
 import { useEntityRelationships } from '../../hooks/useEntityRelationships'
-import { isOwner } from '../../lib/permissions'
+import { useIsEditable } from '../../hooks/useIsEditable'
+import { LiveSheetStateGuard } from '../shared/LiveSheetStateGuard'
 import { MainMechDisplay } from './MainMechDisplay'
 import { LiveSheetAssetDisplay } from '../shared/LiveSheetAssetDisplay'
 import { SalvageUnionReference } from 'salvageunion-reference'
@@ -45,9 +45,7 @@ export default function MechLiveSheet({ id, flat = false }: MechLiveSheetProps) 
   const mutatingCount = useIsMutating()
   const hasPendingChanges = mutatingCount > 0
 
-  const { userId } = useCurrentUser()
-
-  const isEditable = isLocal || (mech ? isOwner(mech.user_id, userId) : false)
+  const isEditable = useIsEditable(mech, isLocal)
 
   const { handleUpload, handleRemove, isUploading, isRemoving } = useImageUpload({
     entityType: 'mechs',
@@ -76,18 +74,6 @@ export default function MechLiveSheet({ id, flat = false }: MechLiveSheetProps) 
     if (pilotId) {
       navigate({ to: `/dashboard/pilots/${pilotId}` })
     }
-  }
-
-  if (!mech && !loading) {
-    return <LiveSheetNotFoundState entityType="Mech" />
-  }
-
-  if (loading) {
-    return <LiveSheetLoadingState entityType="Mech" />
-  }
-
-  if (error) {
-    return <LiveSheetErrorState entityType="Mech" error={error} />
   }
 
   const commonContent = (
@@ -202,10 +188,11 @@ export default function MechLiveSheet({ id, flat = false }: MechLiveSheetProps) 
     </Card>
   )
 
-  if (flat) {
-    return (
-      <>
-        {commonContent}
+  return (
+    <LiveSheetStateGuard entityType="Mech" entity={mech} loading={loading} error={error}>
+      {flat ? (
+        <>
+          {commonContent}
         <VStack gap={6} alignItems="stretch" mt={6}>
           {/* Chassis Abilities Section */}
           <Box>
@@ -279,12 +266,9 @@ export default function MechLiveSheet({ id, flat = false }: MechLiveSheetProps) 
             disabled={!isEditable || !id || updateMech.isPending}
           />
         )}
-      </>
-    )
-  }
-
-  return (
-    <LiveSheetLayout>
+        </>
+      ) : (
+        <LiveSheetLayout>
       {commonContent}
 
       <Tabs.Root defaultValue="abilities">
@@ -368,6 +352,8 @@ export default function MechLiveSheet({ id, flat = false }: MechLiveSheetProps) 
           disabled={!isEditable || !id || updateMech.isPending}
         />
       )}
-    </LiveSheetLayout>
+        </LiveSheetLayout>
+      )}
+    </LiveSheetStateGuard>
   )
 }

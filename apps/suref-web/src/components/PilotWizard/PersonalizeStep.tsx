@@ -11,7 +11,7 @@ interface PersonalizeStepProps {
 }
 
 export function PersonalizeStep({ wizardState, onCreatePilot }: PersonalizeStepProps) {
-  const { state, setCallsign, setBackground, setMotto, setKeepsake, setAppearance } = wizardState
+  const { state, updateField } = wizardState
 
   const isComplete =
     !!state.callsign.trim() &&
@@ -49,7 +49,7 @@ export function PersonalizeStep({ wizardState, onCreatePilot }: PersonalizeStepP
               <SheetInput
                 label=""
                 value={state.callsign}
-                onChange={setCallsign}
+                onChange={(value) => updateField('callsign', value)}
                 placeholder="Enter callsign"
               />
             </VStack>
@@ -72,7 +72,7 @@ export function PersonalizeStep({ wizardState, onCreatePilot }: PersonalizeStepP
               <SheetTextarea
                 label=""
                 value={state.background}
-                onChange={setBackground}
+                onChange={(value) => updateField('background', value)}
                 placeholder="Enter background"
                 rows={4}
               />
@@ -96,7 +96,7 @@ export function PersonalizeStep({ wizardState, onCreatePilot }: PersonalizeStepP
               <SheetTextarea
                 label=""
                 value={state.motto}
-                onChange={setMotto}
+                onChange={(value) => updateField('motto', value)}
                 placeholder="Enter motto"
                 rows={3}
               />
@@ -121,7 +121,7 @@ export function PersonalizeStep({ wizardState, onCreatePilot }: PersonalizeStepP
               <SheetTextarea
                 label=""
                 value={state.keepsake}
-                onChange={setKeepsake}
+                onChange={(value) => updateField('keepsake', value)}
                 placeholder="Enter keepsake"
                 rows={3}
               />
@@ -145,7 +145,7 @@ export function PersonalizeStep({ wizardState, onCreatePilot }: PersonalizeStepP
               <SheetTextarea
                 label=""
                 value={state.appearance}
-                onChange={setAppearance}
+                onChange={(value) => updateField('appearance', value)}
                 placeholder="Enter appearance"
                 rows={5}
               />

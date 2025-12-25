@@ -12,15 +12,14 @@
  * persist to the database.
  */
 
-import { useQuery, useMutation, useQueryClient, type QueryClient } from '@tanstack/react-query'
-import type { TablesInsert, TablesUpdate } from '../../types/database-generated.types'
-import { fetchEntity, createEntity, updateEntity, deleteEntity } from '../../lib/api'
+import { createEntityHooks } from '../createEntityHooks'
+import { LOCAL_ID, isLocalId, generateLocalId } from '../../lib/cacheHelpers'
 import type { Tables } from '../../types/database-generated.types'
-import { isLocalId, LOCAL_ID, generateLocalId } from '../../lib/cacheHelpers'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { createNormalizedEntity } from '../../lib/api/normalizedEntities'
 import { entitiesKeys } from '../suentity/useSUEntities'
 import type { HydratedEntity } from '../../types/hydrated'
+import type { QueryClient } from '@tanstack/react-query'
 
 type Crawler = Tables<'crawlers'>
 
@@ -85,15 +84,6 @@ async function createCrawlerBays(crawlerId: string, queryClient: QueryClient): P
   }
 }
 
-/**
- * Query key factory for crawlers
- * Ensures consistent cache keys across the app
- */
-export const crawlersKeys = {
-  all: ['crawlers'] as const,
-  byId: (id: string) => [...crawlersKeys.all, id] as const,
-}
-
 const defaultCrawler: Crawler = {
   id: LOCAL_ID,
   name: 'New Crawler',
@@ -117,6 +107,21 @@ const defaultCrawler: Crawler = {
   scrap_tl_six: 0,
 }
 
+const { keys: crawlersKeys, useEntity, useCreateEntity, useUpdateEntity, useDeleteEntity } =
+  createEntityHooks<Crawler>({
+    tableName: 'crawlers',
+    defaultEntity: defaultCrawler,
+    onCreateSuccess: async (newCrawler, queryClient) => {
+      await createCrawlerBays(newCrawler.id, queryClient)
+    },
+  })
+
+/**
+ * Query key factory for crawlers
+ * Ensures consistent cache keys across the app
+ */
+export { crawlersKeys }
+
 /**
  * Hook to fetch a single crawler by ID
  *
@@ -136,17 +141,7 @@ const defaultCrawler: Crawler = {
  * const { data: localCrawler } = useCrawler(LOCAL_ID)
  * ```
  */
-export function useCrawler(id: string | undefined) {
-  const isLocal = isLocalId(id)
-
-  return useQuery({
-    queryKey: crawlersKeys.byId(id!),
-    queryFn: isLocal ? async () => defaultCrawler : () => fetchEntity<Crawler>('crawlers', id!),
-    enabled: !!id,
-
-    initialData: isLocal ? defaultCrawler : undefined,
-  })
-}
+export const useCrawler = useEntity
 
 /**
  * Hook to create a new crawler
@@ -155,7 +150,7 @@ export function useCrawler(id: string | undefined) {
  * - API-backed: Creates in Supabase, returns database row
  * - Cache-only: Adds to cache only, uses LOCAL_ID
  *
- * Automatically invalidates the crawler cache on success.
+ * Automatically creates crawler bays and invalidates the crawler cache on success.
  *
  * @returns Mutation object with mutate/mutateAsync functions
  *
@@ -175,55 +170,7 @@ export function useCrawler(id: string | undefined) {
  * })
  * ```
  */
-export function useCreateCrawler() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: async (data: TablesInsert<'crawlers'>) => {
-      const crawlerId = data.id
-
-      if (crawlerId && isLocalId(crawlerId)) {
-        const localCrawler: Crawler = {
-          id: crawlerId,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          user_id: 'local',
-          name: data.name || '',
-          tech_level: data.tech_level || null,
-          upgrade: data.upgrade || null,
-          current_damage: data.current_damage || null,
-          notes: data.notes || null,
-          active: data.active ?? false,
-          private: data.private ?? true,
-          description: data.description || null,
-          game_id: data.game_id || null,
-          npc: data.npc || null,
-          scrap_tl_one: data.scrap_tl_one || null,
-          scrap_tl_two: data.scrap_tl_two || null,
-          scrap_tl_three: data.scrap_tl_three || null,
-          scrap_tl_four: data.scrap_tl_four || null,
-          scrap_tl_five: data.scrap_tl_five || null,
-          scrap_tl_six: data.scrap_tl_six || null,
-        }
-
-        queryClient.setQueryData(crawlersKeys.byId(crawlerId), localCrawler)
-
-        return localCrawler
-      }
-
-      return createEntity<Crawler>('crawlers', data as Crawler)
-    },
-    onSuccess: async (newCrawler) => {
-      await createCrawlerBays(newCrawler.id, queryClient)
-
-      if (isLocalId(newCrawler.id)) return
-
-      queryClient.invalidateQueries({
-        queryKey: crawlersKeys.byId(newCrawler.id),
-      })
-    },
-  })
-}
+export const useCreateCrawler = useCreateEntity
 
 /**
  * Hook to update a crawler
@@ -243,65 +190,7 @@ export function useCreateCrawler() {
  * })
  * ```
  */
-export function useUpdateCrawler() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: TablesUpdate<'crawlers'> }) => {
-      if (isLocalId(id)) {
-        const currentCrawler = queryClient.getQueryData<Crawler>(crawlersKeys.byId(id))
-        if (!currentCrawler) {
-          throw new Error('Crawler not found in cache')
-        }
-
-        const updatedCrawler: Crawler = {
-          ...currentCrawler,
-          ...updates,
-          updated_at: new Date().toISOString(),
-        }
-
-        queryClient.setQueryData(crawlersKeys.byId(id), updatedCrawler)
-        return updatedCrawler
-      }
-
-      await updateEntity<Crawler>('crawlers', id, updates)
-
-      return fetchEntity<Crawler>('crawlers', id)
-    },
-
-    onMutate: async ({ id, updates }) => {
-      if (isLocalId(id)) return
-
-      await queryClient.cancelQueries({ queryKey: crawlersKeys.byId(id) })
-
-      const previousCrawler = queryClient.getQueryData<Crawler>(crawlersKeys.byId(id))
-
-      if (previousCrawler) {
-        queryClient.setQueryData<Crawler>(crawlersKeys.byId(id), {
-          ...previousCrawler,
-          ...updates,
-          updated_at: new Date().toISOString(),
-        })
-      }
-
-      return { previousCrawler, id }
-    },
-
-    onError: (_err, _variables, context) => {
-      if (context?.previousCrawler) {
-        queryClient.setQueryData(crawlersKeys.byId(context.id), context.previousCrawler)
-      }
-    },
-
-    onSuccess: (_updatedCrawler, variables) => {
-      if (isLocalId(variables.id)) return
-
-      queryClient.invalidateQueries({
-        queryKey: crawlersKeys.byId(variables.id),
-      })
-    },
-  })
-}
+export const useUpdateCrawler = useUpdateEntity
 
 /**
  * Hook to delete a crawler
@@ -317,29 +206,4 @@ export function useUpdateCrawler() {
  * await deleteCrawler.mutate(crawlerId)
  * ```
  */
-export function useDeleteCrawler() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: async (id: string) => {
-      if (isLocalId(id)) {
-        queryClient.removeQueries({ queryKey: crawlersKeys.byId(id) })
-        return
-      }
-
-      await deleteEntity('crawlers', id)
-    },
-    onSuccess: (_, id) => {
-      if (isLocalId(id)) {
-        queryClient.invalidateQueries({
-          queryKey: crawlersKeys.all,
-        })
-        return
-      }
-
-      queryClient.invalidateQueries({
-        queryKey: crawlersKeys.all,
-      })
-    },
-  })
-}
+export const useDeleteCrawler = useDeleteEntity

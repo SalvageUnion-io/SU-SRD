@@ -19,8 +19,8 @@ import { LiveSheetNotFoundState } from '../shared/LiveSheetNotFoundState'
 import { LiveSheetErrorState } from '../shared/LiveSheetErrorState'
 import { useUpdateCrawler, useHydratedCrawler, useDeleteCrawler } from '../../hooks/crawler'
 import { useInitializeCrawlerBays } from '../../hooks/crawler/useInitializeCrawlerBays'
-import { useCurrentUser } from '../../hooks/useCurrentUser'
-import { isOwner } from '../../lib/permissions'
+import { useIsEditable } from '../../hooks/useIsEditable'
+import { LiveSheetStateGuard } from '../shared/LiveSheetStateGuard'
 import { fetchCrawlerPilots, fetchPilotsMechs } from '../../lib/api'
 
 interface CrawlerLiveSheetProps {
@@ -57,21 +57,7 @@ export default function CrawlerLiveSheet({ id, flat = false }: CrawlerLiveSheetP
   const mutatingCount = useIsMutating()
   const hasPendingChanges = mutatingCount > 0
 
-  const { userId } = useCurrentUser()
-
-  const isEditable = isLocal || (crawler ? isOwner(crawler.user_id, userId) : false)
-
-  if (!crawler && !loading) {
-    return <LiveSheetNotFoundState entityType="Crawler" />
-  }
-
-  if (loading) {
-    return <LiveSheetLoadingState entityType="Crawler" />
-  }
-
-  if (error) {
-    return <LiveSheetErrorState entityType="Crawler" error={error} />
-  }
+  const isEditable = useIsEditable(crawler, isLocal)
 
   const storageBay = bays.find((bay) => bay.ref.name === 'Storage Bay')
   const regularBays = bays.filter((bay) => bay.ref.name !== 'Storage Bay')
@@ -130,8 +116,9 @@ export default function CrawlerLiveSheet({ id, flat = false }: CrawlerLiveSheetP
 
   if (flat) {
     return (
-      <>
-        {commonContent}
+      <LiveSheetStateGuard entityType="Crawler" entity={crawler} loading={loading} error={error}>
+        <>
+          {commonContent}
         <VStack gap={6} alignItems="stretch" mt={6}>
           {/* Abilities Section */}
           <Box>
@@ -238,12 +225,14 @@ export default function CrawlerLiveSheet({ id, flat = false }: CrawlerLiveSheetP
             disabled={!isEditable || !id || updateCrawler.isPending}
           />
         )}
-      </>
+        </>
+      </LiveSheetStateGuard>
     )
   }
 
   return (
-    <LiveSheetLayout>
+    <LiveSheetStateGuard entityType="Crawler" entity={crawler} loading={loading} error={error}>
+      <LiveSheetLayout>
       {commonContent}
 
       <Tabs.Root defaultValue="abilities">
@@ -355,6 +344,7 @@ export default function CrawlerLiveSheet({ id, flat = false }: CrawlerLiveSheetP
           disabled={!isEditable || !id || updateCrawler.isPending}
         />
       )}
-    </LiveSheetLayout>
+      </LiveSheetLayout>
+    </LiveSheetStateGuard>
   )
 }
