@@ -16,9 +16,6 @@ import { Card } from '../shared/Card'
 import { LiveSheetLayout } from '../shared/LiveSheetLayout'
 import { DeleteEntity } from '../shared/DeleteEntity'
 import { LiveSheetControlBar } from '../shared/LiveSheetControlBar'
-import { LiveSheetLoadingState } from '../shared/LiveSheetLoadingState'
-import { LiveSheetNotFoundState } from '../shared/LiveSheetNotFoundState'
-import { LiveSheetErrorState } from '../shared/LiveSheetErrorState'
 import { useUpdateMech, useHydratedMech, useDeleteMech } from '../../hooks/mech'
 import { useCreatePilotForMech } from '../../hooks/usePilotAssignment'
 import { useImageUpload } from '../../hooks/useImageUpload'
@@ -193,165 +190,159 @@ export default function MechLiveSheet({ id, flat = false }: MechLiveSheetProps) 
       {flat ? (
         <>
           {commonContent}
-        <VStack gap={6} alignItems="stretch" mt={6}>
-          {/* Chassis Abilities Section */}
-          <Box>
-            <Text variant="pseudoheader" fontSize="lg" mb={4}>
-              Chassis Abilities
-            </Text>
-            <ChassisAbilities
-              totalSalvageValue={totalSalvageValue}
-              chassis={chassisRef}
-              disabled={!selectedChassis}
-            />
-          </Box>
-
-          {/* Systems & Modules Section */}
-          <Box>
-            <Text variant="pseudoheader" fontSize="lg" mb={4}>
-              Systems & Modules
-            </Text>
-            <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, 1fr)' }} gap={6}>
-              <SystemsList id={id} disabled={!selectedChassis} readOnly={!isEditable} />
-              <ModulesList id={id} disabled={!selectedChassis} readOnly={!isEditable} />
-            </Grid>
-          </Box>
-
-          {/* Storage Section */}
-          <Box>
-            <Text variant="pseudoheader" fontSize="lg" mb={4}>
-              Storage
-            </Text>
-            <CargoList id={id} disabled={!selectedChassis} readOnly={!isEditable} />
-          </Box>
-
-          {/* Notes Section */}
-          <Box>
-            <Text variant="pseudoheader" fontSize="lg" mb={4}>
-              Notes
-            </Text>
-            <Notes
-              notes={mech?.notes ?? ''}
-              onChange={(value) => updateMech.mutate({ id, updates: { notes: value } })}
-              disabled={!isEditable}
-              incomplete={!selectedChassis}
-              backgroundColor="bg.builder.mech"
-              placeholder="Add notes about your mech..."
-            />
-          </Box>
-
-          {/* Pilot Section */}
-          {!isLocal && (
+          <VStack gap={6} alignItems="stretch" mt={6}>
+            {/* Chassis Abilities Section */}
             <Box>
               <Text variant="pseudoheader" fontSize="lg" mb={4}>
-                Pilot
+                Chassis Abilities
               </Text>
-              <VStack gap={6} align="stretch">
-                {pilotContent}
-              </VStack>
+              <ChassisAbilities
+                totalSalvageValue={totalSalvageValue}
+                chassis={chassisRef}
+                disabled={!selectedChassis}
+              />
             </Box>
-          )}
-        </VStack>
 
-        {!isLocal && (
-          <DeleteEntity
-            entityName="Mech"
-            onConfirmDelete={() =>
-              deleteMech.mutate(id, {
-                onSuccess: () => {
-                  navigate({ to: '/dashboard/mechs' })
-                },
-              })
-            }
-            disabled={!isEditable || !id || updateMech.isPending}
-          />
-        )}
+            {/* Systems & Modules Section */}
+            <Box>
+              <Text variant="pseudoheader" fontSize="lg" mb={4}>
+                Systems & Modules
+              </Text>
+              <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, 1fr)' }} gap={6}>
+                <SystemsList id={id} disabled={!selectedChassis} readOnly={!isEditable} />
+                <ModulesList id={id} disabled={!selectedChassis} readOnly={!isEditable} />
+              </Grid>
+            </Box>
+
+            {/* Storage Section */}
+            <Box>
+              <Text variant="pseudoheader" fontSize="lg" mb={4}>
+                Storage
+              </Text>
+              <CargoList id={id} disabled={!selectedChassis} readOnly={!isEditable} />
+            </Box>
+
+            {/* Notes Section */}
+            <Box>
+              <Text variant="pseudoheader" fontSize="lg" mb={4}>
+                Notes
+              </Text>
+              <Notes
+                notes={mech?.notes ?? ''}
+                onChange={(value) => updateMech.mutate({ id, updates: { notes: value } })}
+                disabled={!isEditable}
+                incomplete={!selectedChassis}
+                backgroundColor="bg.builder.mech"
+                placeholder="Add notes about your mech..."
+              />
+            </Box>
+
+            {/* Pilot Section */}
+            {!isLocal && (
+              <Box>
+                <Text variant="pseudoheader" fontSize="lg" mb={4}>
+                  Pilot
+                </Text>
+                <VStack gap={6} align="stretch">
+                  {pilotContent}
+                </VStack>
+              </Box>
+            )}
+          </VStack>
+
+          {!isLocal && (
+            <DeleteEntity
+              entityName="Mech"
+              onConfirmDelete={async () => {
+                await deleteMech.mutateAsync(id)
+                navigate({ to: '/dashboard/mechs' })
+              }}
+              disabled={!isEditable || !id || updateMech.isPending}
+            />
+          )}
         </>
       ) : (
         <LiveSheetLayout>
-      {commonContent}
+          {commonContent}
 
-      <Tabs.Root defaultValue="abilities">
-        <Tabs.List borderColor="border.default">
-          <Tabs.Trigger value="abilities" color="fg.default">
-            Chassis Abilities
-          </Tabs.Trigger>
-          <Tabs.Trigger value="systems-modules" color="fg.default">
-            Systems & Modules
-          </Tabs.Trigger>
-          <Tabs.Trigger value="storage" color="fg.default">
-            Storage
-          </Tabs.Trigger>
-          <Tabs.Trigger value="notes" color="fg.default">
-            Notes
-          </Tabs.Trigger>
-          <Box flex="1" />
+          <Tabs.Root defaultValue="abilities">
+            <Tabs.List borderColor="border.default">
+              <Tabs.Trigger value="abilities" color="fg.default">
+                Chassis Abilities
+              </Tabs.Trigger>
+              <Tabs.Trigger value="systems-modules" color="fg.default">
+                Systems & Modules
+              </Tabs.Trigger>
+              <Tabs.Trigger value="storage" color="fg.default">
+                Storage
+              </Tabs.Trigger>
+              <Tabs.Trigger value="notes" color="fg.default">
+                Notes
+              </Tabs.Trigger>
+              <Box flex="1" />
+              {!isLocal && (
+                <Tabs.Trigger value="pilot" color="fg.default">
+                  Pilot
+                </Tabs.Trigger>
+              )}
+            </Tabs.List>
+
+            <Tabs.Content value="abilities">
+              <Box mt={6}>
+                <ChassisAbilities
+                  totalSalvageValue={totalSalvageValue}
+                  chassis={chassisRef}
+                  disabled={!selectedChassis}
+                />
+              </Box>
+            </Tabs.Content>
+
+            <Tabs.Content value="systems-modules">
+              <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, 1fr)' }} gap={6} mt={6}>
+                <SystemsList id={id} disabled={!selectedChassis} readOnly={!isEditable} />
+
+                <ModulesList id={id} disabled={!selectedChassis} readOnly={!isEditable} />
+              </Grid>
+            </Tabs.Content>
+
+            <Tabs.Content value="storage">
+              <Box mt={6}>
+                <CargoList id={id} disabled={!selectedChassis} readOnly={!isEditable} />
+              </Box>
+            </Tabs.Content>
+
+            <Tabs.Content value="notes">
+              <Box mt={6}>
+                <Notes
+                  notes={mech?.notes ?? ''}
+                  onChange={(value) => updateMech.mutate({ id, updates: { notes: value } })}
+                  disabled={!isEditable}
+                  incomplete={!selectedChassis}
+                  backgroundColor="bg.builder.mech"
+                  placeholder="Add notes about your mech..."
+                />
+              </Box>
+            </Tabs.Content>
+
+            {!isLocal && (
+              <Tabs.Content value="pilot">
+                <VStack gap={6} align="stretch" mt={6}>
+                  {pilotContent}
+                </VStack>
+              </Tabs.Content>
+            )}
+          </Tabs.Root>
+
           {!isLocal && (
-            <Tabs.Trigger value="pilot" color="fg.default">
-              Pilot
-            </Tabs.Trigger>
-          )}
-        </Tabs.List>
-
-        <Tabs.Content value="abilities">
-          <Box mt={6}>
-            <ChassisAbilities
-              totalSalvageValue={totalSalvageValue}
-              chassis={chassisRef}
-              disabled={!selectedChassis}
-            />
-          </Box>
-        </Tabs.Content>
-
-        <Tabs.Content value="systems-modules">
-          <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, 1fr)' }} gap={6} mt={6}>
-            <SystemsList id={id} disabled={!selectedChassis} readOnly={!isEditable} />
-
-            <ModulesList id={id} disabled={!selectedChassis} readOnly={!isEditable} />
-          </Grid>
-        </Tabs.Content>
-
-        <Tabs.Content value="storage">
-          <Box mt={6}>
-            <CargoList id={id} disabled={!selectedChassis} readOnly={!isEditable} />
-          </Box>
-        </Tabs.Content>
-
-        <Tabs.Content value="notes">
-          <Box mt={6}>
-            <Notes
-              notes={mech?.notes ?? ''}
-              onChange={(value) => updateMech.mutate({ id, updates: { notes: value } })}
-              disabled={!isEditable}
-              incomplete={!selectedChassis}
-              backgroundColor="bg.builder.mech"
-              placeholder="Add notes about your mech..."
-            />
-          </Box>
-        </Tabs.Content>
-
-        {!isLocal && (
-          <Tabs.Content value="pilot">
-            <VStack gap={6} align="stretch" mt={6}>
-              {pilotContent}
-            </VStack>
-          </Tabs.Content>
-        )}
-      </Tabs.Root>
-
-      {!isLocal && (
-        <DeleteEntity
-          entityName="Mech"
-          onConfirmDelete={() =>
-            deleteMech.mutate(id, {
-              onSuccess: () => {
+            <DeleteEntity
+              entityName="Mech"
+              onConfirmDelete={async () => {
+                await deleteMech.mutateAsync(id)
                 navigate({ to: '/dashboard/mechs' })
-              },
-            })
-          }
-          disabled={!isEditable || !id || updateMech.isPending}
-        />
-      )}
+              }}
+              disabled={!isEditable || !id || updateMech.isPending}
+            />
+          )}
         </LiveSheetLayout>
       )}
     </LiveSheetStateGuard>

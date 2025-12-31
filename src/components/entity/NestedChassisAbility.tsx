@@ -1,9 +1,5 @@
 import { Box, Flex, VStack } from '@chakra-ui/react'
-import type {
-  SURefMetaAction,
-  SURefObjectChoice,
-  SURefObjectContentBlock,
-} from '../../reference'
+import type { SURefMetaAction, SURefObjectChoice, SURefObjectContentBlock } from '../../reference'
 import { Text } from '../base/Text'
 import { BlockContentRendererView } from './BlockContentRendererView'
 import { EntityChoice } from './EntityDisplay/EntityChoice'

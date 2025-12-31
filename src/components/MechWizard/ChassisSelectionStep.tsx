@@ -12,7 +12,7 @@ interface ChassisSelectionStepProps {
 }
 
 export function ChassisSelectionStep({ wizardState, onComplete }: ChassisSelectionStepProps) {
-  const { state, setSelectedChassisId } = wizardState
+  const { state, updateField } = wizardState
   const [selectedTechLevel, setSelectedTechLevel] = useState<number | 'B' | 'N' | null>(() => {
     // If a chassis is already selected, use its tech level
     if (state.selectedChassisId) {
@@ -63,9 +63,9 @@ export function ChassisSelectionStep({ wizardState, onComplete }: ChassisSelecti
 
   const handleChassisSelect = useCallback(() => {
     if (selectedChassis) {
-      setSelectedChassisId(selectedChassis.id)
+      updateField('selectedChassisId', selectedChassis.id)
     }
-  }, [selectedChassis, setSelectedChassisId])
+  }, [selectedChassis, updateField])
 
   const handleNext = useCallback(() => {
     if (state.selectedChassisId) {
@@ -77,9 +77,9 @@ export function ChassisSelectionStep({ wizardState, onComplete }: ChassisSelecti
     (techLevel: number | 'B' | 'N' | null) => {
       setSelectedTechLevel(techLevel)
       setSelectedChassisTab('')
-      setSelectedChassisId(null)
+      updateField('selectedChassisId', null)
     },
-    [setSelectedChassisId]
+    [updateField]
   )
 
   const handleChassisTabChange = useCallback((chassisId: string) => {

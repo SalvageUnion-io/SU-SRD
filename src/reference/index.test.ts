@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test'
-import { SalvageUnionReference, SURefEntity } from './index.js'
+import { SalvageUnionReference, type SURefEntity } from './index.js'
 import { BaseModel } from './BaseModel.js'
 import {
   isAbility,
@@ -69,8 +69,8 @@ describe('SalvageUnionReference static properties', () => {
       const allData = (prop as BaseModel<unknown>).all()
       expect(Array.isArray(allData)).toBe(true)
 
-      // Log for debugging
-      console.log(`✓ ${propName}: ${allData.length} items`)
+      // Log for debugging (using console.warn which is allowed)
+      console.warn(`✓ ${propName}: ${allData.length} items`)
     }
   })
 

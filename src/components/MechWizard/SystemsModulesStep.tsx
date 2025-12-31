@@ -24,13 +24,7 @@ interface SystemsModulesStepProps {
 }
 
 export function SystemsModulesStep({ wizardState, onComplete }: SystemsModulesStepProps) {
-  const {
-    state,
-    setSelectedSystemIds,
-    setSelectedModuleIds,
-    setSelectedPatternName,
-    setPatternName,
-  } = wizardState
+  const { state, updateField } = wizardState
   const [isSystemModalOpen, setIsSystemModalOpen] = useState(false)
   const [isModuleModalOpen, setIsModuleModalOpen] = useState(false)
 
@@ -97,35 +91,41 @@ export function SystemsModulesStep({ wizardState, onComplete }: SystemsModulesSt
   const handleAddSystem = useCallback(
     (systemId: string) => {
       if (!state.selectedSystemIds.includes(systemId)) {
-        setSelectedSystemIds([...state.selectedSystemIds, systemId])
+        updateField('selectedSystemIds', [...state.selectedSystemIds, systemId])
       }
       setIsSystemModalOpen(false)
     },
-    [state.selectedSystemIds, setSelectedSystemIds]
+    [state.selectedSystemIds, updateField]
   )
 
   const handleRemoveSystem = useCallback(
     (systemId: string) => {
-      setSelectedSystemIds(state.selectedSystemIds.filter((id) => id !== systemId))
+      updateField(
+        'selectedSystemIds',
+        state.selectedSystemIds.filter((id) => id !== systemId)
+      )
     },
-    [state.selectedSystemIds, setSelectedSystemIds]
+    [state.selectedSystemIds, updateField]
   )
 
   const handleAddModule = useCallback(
     (moduleId: string) => {
       if (!state.selectedModuleIds.includes(moduleId)) {
-        setSelectedModuleIds([...state.selectedModuleIds, moduleId])
+        updateField('selectedModuleIds', [...state.selectedModuleIds, moduleId])
       }
       setIsModuleModalOpen(false)
     },
-    [state.selectedModuleIds, setSelectedModuleIds]
+    [state.selectedModuleIds, updateField]
   )
 
   const handleRemoveModule = useCallback(
     (moduleId: string) => {
-      setSelectedModuleIds(state.selectedModuleIds.filter((id) => id !== moduleId))
+      updateField(
+        'selectedModuleIds',
+        state.selectedModuleIds.filter((id) => id !== moduleId)
+      )
     },
-    [state.selectedModuleIds, setSelectedModuleIds]
+    [state.selectedModuleIds, updateField]
   )
 
   const handleSelectPattern = useCallback(
@@ -136,8 +136,8 @@ export function SystemsModulesStep({ wizardState, onComplete }: SystemsModulesSt
       if (!pattern) return
 
       // Clear existing systems and modules
-      setSelectedSystemIds([])
-      setSelectedModuleIds([])
+      updateField('selectedSystemIds', [])
+      updateField('selectedModuleIds', [])
 
       // Apply pattern systems
       const systemIds: string[] = []
@@ -165,20 +165,20 @@ export function SystemsModulesStep({ wizardState, onComplete }: SystemsModulesSt
         }
       })
 
-      setSelectedSystemIds(systemIds)
-      setSelectedModuleIds(moduleIds)
-      setSelectedPatternName(patternName)
-      setPatternName(patternName)
+      updateField('selectedSystemIds', systemIds)
+      updateField('selectedModuleIds', moduleIds)
+      updateField('selectedPatternName', patternName)
+      updateField('patternName', patternName)
     },
-    [chassisRef, setSelectedSystemIds, setSelectedModuleIds, setSelectedPatternName, setPatternName]
+    [chassisRef, updateField]
   )
 
   const handleClearAll = useCallback(() => {
-    setSelectedSystemIds([])
-    setSelectedModuleIds([])
-    setSelectedPatternName(null)
-    setPatternName('')
-  }, [setSelectedSystemIds, setSelectedModuleIds, setSelectedPatternName, setPatternName])
+    updateField('selectedSystemIds', [])
+    updateField('selectedModuleIds', [])
+    updateField('selectedPatternName', null)
+    updateField('patternName', '')
+  }, [updateField])
 
   if (!selectedChassis) {
     return (

@@ -53,6 +53,7 @@ bun run dev
 ### Making Changes
 
 1. **Create a branch** from `main`
+
    ```bash
    git checkout -b feature/your-feature
    ```
@@ -62,6 +63,7 @@ bun run dev
    - Pre-commit hooks will run automatically on commit
 
 3. **Run quality checks**
+
    ```bash
    bun run sanity        # Run lint, format, typecheck
    bun run test          # Run tests
@@ -110,6 +112,7 @@ import { PilotWizard } from '../components/PilotWizard'
 ```
 
 **Avoid path aliases:**
+
 ```ts
 // ❌ Avoid - path aliases hide file structure
 import { useHydratedPilot } from '@/hooks/pilot'
@@ -129,6 +132,7 @@ Relative imports make file relationships explicit and clear. This applies to ALL
 ### TanStack Query Hooks
 
 **Query Key Factory:**
+
 ```ts
 export const pilotsKeys = {
   all: ['pilots'] as const,
@@ -137,6 +141,7 @@ export const pilotsKeys = {
 ```
 
 **Query Hook:**
+
 ```ts
 export function usePilot(id: string | undefined) {
   return useQuery({
@@ -148,6 +153,7 @@ export function usePilot(id: string | undefined) {
 ```
 
 **Mutation Hook:**
+
 ```ts
 export function useUpdatePilot() {
   const queryClient = useQueryClient()
@@ -206,6 +212,7 @@ export function useUpdatePilot() {
 ### Before Committing
 
 Pre-commit hooks automatically run:
+
 - Lint fix on staged files
 - Format fix on staged files
 - Type check
@@ -232,6 +239,7 @@ bun run test:coverage
 ### Type Errors
 
 If TypeScript can't resolve types:
+
 1. Ensure reference package is built: `bun run build:package:quick`
 2. Restart TypeScript server in editor
 3. Check `tsconfig.json` paths configuration
@@ -239,6 +247,7 @@ If TypeScript can't resolve types:
 ### Build Errors
 
 If build fails:
+
 1. Clean build artifacts: `bun run clean`
 2. Reinstall dependencies: `bun install`
 3. Rebuild package: `bun run build:package`
@@ -253,10 +262,12 @@ If build fails:
 ## Environment Variables
 
 Required variables (see `.env.example`):
+
 - `VITE_SUPABASE_URL` - Supabase project URL
 - `VITE_SUPABASE_ANON_KEY` - Supabase anonymous key
 
 Optional variables:
+
 - `VITE_SITE_URL` - Site URL for sitemap
 - `VITE_SHOW_DISCORD_SIGNIN` - Enable Discord sign-in
 - `VITE_GA_MEASUREMENT_ID` - Google Analytics ID
@@ -294,4 +305,3 @@ bun run test:coverage
 ## Troubleshooting
 
 See [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) for common issues and solutions.
-

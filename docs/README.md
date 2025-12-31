@@ -126,6 +126,7 @@ bun --filter "*" <script>
 ### TypeScript can't find salvageunion-reference
 
 **Solution**: Build the package first:
+
 ```bash
 bun run build:package:quick
 ```
@@ -133,6 +134,7 @@ bun run build:package:quick
 ### Workspace not linking correctly
 
 **Solution**: Reinstall dependencies:
+
 ```bash
 bun install
 ```
@@ -140,6 +142,7 @@ bun install
 ### Build fails with lint errors
 
 The package build includes linting. Fix lint errors or run quick build:
+
 ```bash
 bun run build:package:quick  # Skips lint
 ```

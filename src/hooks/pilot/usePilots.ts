@@ -47,11 +47,16 @@ const defaultPilot: Pilot = {
   updated_at: new Date().toISOString(),
 }
 
-const { keys: pilotsKeys, useEntity, useCreateEntity, useUpdateEntity, useDeleteEntity } =
-  createEntityHooks<Pilot>({
-    tableName: 'pilots',
-    defaultEntity: defaultPilot,
-  })
+const {
+  keys: pilotsKeys,
+  useEntity,
+  useCreateEntity,
+  useUpdateEntity,
+  useDeleteEntity,
+} = createEntityHooks<Pilot>({
+  tableName: 'pilots',
+  defaultEntity: defaultPilot,
+})
 
 /**
  * Query key factory for pilots

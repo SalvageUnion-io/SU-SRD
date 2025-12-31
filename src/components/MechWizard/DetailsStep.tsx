@@ -12,14 +12,14 @@ interface DetailsStepProps {
 }
 
 export function DetailsStep({ wizardState, onCreateMech }: DetailsStepProps) {
-  const { state, setAppearance, setQuirk, setPatternName } = wizardState
+  const { state, updateField } = wizardState
 
   // Pre-fill pattern name if a pattern was selected
   useEffect(() => {
     if (state.selectedPatternName && !state.patternName) {
-      setPatternName(state.selectedPatternName)
+      updateField('patternName', state.selectedPatternName)
     }
-  }, [state.selectedPatternName, state.patternName, setPatternName])
+  }, [state.selectedPatternName, state.patternName, updateField])
 
   // Create placeholder from normalized pattern name
   const patternPlaceholder = useMemo(() => {
@@ -58,7 +58,7 @@ export function DetailsStep({ wizardState, onCreateMech }: DetailsStepProps) {
               <SheetInput
                 label=""
                 value={state.patternName}
-                onChange={setPatternName}
+                onChange={(value) => updateField('patternName', value)}
                 placeholder={patternPlaceholder}
               />
             </VStack>
@@ -78,7 +78,7 @@ export function DetailsStep({ wizardState, onCreateMech }: DetailsStepProps) {
               <SheetTextarea
                 label=""
                 value={state.appearance}
-                onChange={setAppearance}
+                onChange={(value) => updateField('appearance', value)}
                 placeholder="Enter mech appearance"
                 rows={4}
               />
@@ -99,7 +99,7 @@ export function DetailsStep({ wizardState, onCreateMech }: DetailsStepProps) {
               <SheetTextarea
                 label=""
                 value={state.quirk}
-                onChange={setQuirk}
+                onChange={(value) => updateField('quirk', value)}
                 placeholder="Enter mech quirk"
                 rows={3}
               />

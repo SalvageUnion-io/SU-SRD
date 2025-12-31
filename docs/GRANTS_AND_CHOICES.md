@@ -43,8 +43,8 @@ The `grants` property is defined in the `salvageunion-reference` package schema 
 ```typescript
 // packages/salvageunion-reference/lib/types/objects.ts
 export interface SURefMetaGrant {
-  schema: SURefSchemaName | "choice";
-  name: SURefName;
+  schema: SURefSchemaName | 'choice'
+  name: SURefName
 }
 ```
 
@@ -71,24 +71,19 @@ When a player adds an entity (ability, equipment, etc.) to their sheet:
 
 ```typescript
 onSuccess: async (newEntity) => {
-  const ref = newEntity.ref;
-  if (
-    ref &&
-    "grants" in ref &&
-    Array.isArray(ref.grants) &&
-    ref.grants.length > 0
-  ) {
+  const ref = newEntity.ref
+  if (ref && 'grants' in ref && Array.isArray(ref.grants) && ref.grants.length > 0) {
     for (const grant of ref.grants) {
-      const grantSchema = grant.schema as SURefSchemaName;
-      const grantName = grant.name as string;
+      const grantSchema = grant.schema as SURefSchemaName
+      const grantName = grant.name as string
 
       const grantedItem = SalvageUnionReference.findIn(
         grantSchema,
         (item) => item.name === grantName
-      );
+      )
 
       if (grantedItem) {
-        const grantedEntityData: TablesInsert<"suentities"> = {
+        const grantedEntityData: TablesInsert<'suentities'> = {
           pilot_id: newEntity.pilot_id,
           mech_id: newEntity.mech_id,
           crawler_id: newEntity.crawler_id,
@@ -96,12 +91,12 @@ onSuccess: async (newEntity) => {
           schema_name: grantSchema,
           schema_ref_id: grantedItem.id,
           metadata: null,
-        };
-        await createNormalizedEntity(grantedEntityData);
+        }
+        await createNormalizedEntity(grantedEntityData)
       }
     }
   }
-};
+}
 ```
 
 ### Example: Auto-Turret Ability
@@ -192,21 +187,21 @@ The `choices` property is defined in the `salvageunion-reference` package and ap
 ```typescript
 // packages/salvageunion-reference/lib/types/objects.ts
 export interface SURefMetaChoice {
-  id: SURefId;
-  name: SURefName;
-  content?: SURefMetaContent;
-  rollTable?: string;
-  schemaEntities?: string[];
-  schema?: SURefSchemaName[];
-  customSystemOptions?: SURefMetaSystemModule[];
+  id: SURefId
+  name: SURefName
+  content?: SURefMetaContent
+  rollTable?: string
+  schemaEntities?: string[]
+  schema?: SURefSchemaName[]
+  customSystemOptions?: SURefMetaSystemModule[]
   constraints?: {
-    field?: string;
-    min?: SURefNonNegativeInteger;
-    max?: SURefNonNegativeInteger;
-  };
+    field?: string
+    min?: SURefNonNegativeInteger
+    max?: SURefNonNegativeInteger
+  }
 }
 
-export type SURefMetaChoices = SURefMetaChoice[];
+export type SURefMetaChoices = SURefMetaChoice[]
 ```
 
 ### Package Location
@@ -243,18 +238,16 @@ export function SheetEntityChoiceDisplay({
   onUpdateChoice,
   entityId,
 }: {
-  choice: SURefMetaChoice;
-  onUpdateChoice?: (choiceId: string, value: string | undefined) => void;
-  entityId: string | undefined;
+  choice: SURefMetaChoice
+  onUpdateChoice?: (choiceId: string, value: string | undefined) => void
+  entityId: string | undefined
 }) {
-  const { data: playerChoices } = usePlayerChoices(entityId);
+  const { data: playerChoices } = usePlayerChoices(entityId)
 
   const selectedValue = useMemo(() => {
-    const playerChoice = playerChoices?.find(
-      (pc) => pc.choice_ref_id === choice.id
-    );
-    return playerChoice?.value || null;
-  }, [playerChoices, choice.id]);
+    const playerChoice = playerChoices?.find((pc) => pc.choice_ref_id === choice.id)
+    return playerChoice?.value || null
+  }, [playerChoices, choice.id])
 
   // Renders choice UI and handles selection
 }
@@ -268,18 +261,18 @@ export function useManageEntityChoices(entityId: string | undefined) {
     (choiceRefId: string, value: string | undefined) => {
       if (value === undefined) {
         // Delete choice
-        deleteChoice.mutate({ id: existingChoice.id, entityId });
+        deleteChoice.mutate({ id: existingChoice.id, entityId })
       } else {
         // Create/update choice
         upsertChoice.mutate({
           entity_id: entityId,
           choice_ref_id: choiceRefId,
           value,
-        });
+        })
       }
     },
     [entityId, upsertChoice, deleteChoice]
-  );
+  )
 }
 ```
 
@@ -513,37 +506,33 @@ VALUES ('level-2-choice-id', 'name-choice-id', 'Eagle Eye');
 
 ```typescript
 // Fetch choices for an entity
-export async function fetchChoicesForEntity(
-  entityId: string
-): Promise<Tables<"player_choices">[]>;
+export async function fetchChoicesForEntity(entityId: string): Promise<Tables<'player_choices'>[]>
 
 // Fetch nested choices for a choice
-export async function fetchChoicesForChoice(
-  choiceId: string
-): Promise<Tables<"player_choices">[]>;
+export async function fetchChoicesForChoice(choiceId: string): Promise<Tables<'player_choices'>[]>
 
 // Upsert a choice (creates or updates)
 export async function upsertPlayerChoice(
-  data: TablesInsert<"player_choices">
-): Promise<Tables<"player_choices">>;
+  data: TablesInsert<'player_choices'>
+): Promise<Tables<'player_choices'>>
 ```
 
 **Hooks**: `apps/suref-web/src/hooks/suentity/usePlayerChoices.ts`
 
 ```typescript
 // Fetch choices for entity
-const { data: choices } = usePlayerChoices(entityId);
+const { data: choices } = usePlayerChoices(entityId)
 
 // Fetch nested choices
-const { data: nestedChoices } = useNestedChoices(choiceId);
+const { data: nestedChoices } = useNestedChoices(choiceId)
 
 // Upsert choice
-const upsertChoice = useUpsertPlayerChoice();
+const upsertChoice = useUpsertPlayerChoice()
 upsertChoice.mutate({
   entity_id: entityId,
-  choice_ref_id: "choice-id",
-  value: "systems::laser-rifle",
-});
+  choice_ref_id: 'choice-id',
+  value: 'systems::laser-rifle',
+})
 ```
 
 ---
@@ -651,11 +640,11 @@ The live sheet components:
 **Hydrated Entity Type**: `apps/suref-web/src/types/hydrated.ts`
 
 ```typescript
-export type HydratedEntity = Tables<"suentities"> & {
-  ref: SURefEntity; // Reference data from package
-  choices: Tables<"player_choices">[]; // Player's selections
-  parentEntity?: HydratedEntity; // If granted, link to grantor
-};
+export type HydratedEntity = Tables<'suentities'> & {
+  ref: SURefEntity // Reference data from package
+  choices: Tables<'player_choices'>[] // Player's selections
+  parentEntity?: HydratedEntity // If granted, link to grantor
+}
 ```
 
 ---
@@ -843,23 +832,15 @@ player_choices: {
 **Key Code**:
 
 ```typescript
-if (
-  ref &&
-  "grants" in ref &&
-  Array.isArray(ref.grants) &&
-  ref.grants.length > 0
-) {
+if (ref && 'grants' in ref && Array.isArray(ref.grants) && ref.grants.length > 0) {
   for (const grant of ref.grants) {
-    const grantSchema = grant.schema as SURefSchemaName;
-    const grantName = grant.name as string;
+    const grantSchema = grant.schema as SURefSchemaName
+    const grantName = grant.name as string
 
-    const grantedItem = SalvageUnionReference.findIn(
-      grantSchema,
-      (item) => item.name === grantName
-    );
+    const grantedItem = SalvageUnionReference.findIn(grantSchema, (item) => item.name === grantName)
 
     if (grantedItem) {
-      const grantedEntityData: TablesInsert<"suentities"> = {
+      const grantedEntityData: TablesInsert<'suentities'> = {
         pilot_id: newEntity.pilot_id,
         mech_id: newEntity.mech_id,
         crawler_id: newEntity.crawler_id,
@@ -867,8 +848,8 @@ if (
         schema_name: grantSchema,
         schema_ref_id: grantedItem.id,
         metadata: null,
-      };
-      await createNormalizedEntity(grantedEntityData);
+      }
+      await createNormalizedEntity(grantedEntityData)
     }
   }
 }
@@ -890,23 +871,21 @@ if (
 
 ```typescript
 export function useManageEntityChoices(entityId: string | undefined) {
-  const upsertChoice = useUpsertPlayerChoice();
-  const deleteChoice = useDeletePlayerChoice();
+  const upsertChoice = useUpsertPlayerChoice()
+  const deleteChoice = useDeletePlayerChoice()
 
   return useCallback(
     (choiceRefId: string, value: string | undefined) => {
-      if (!entityId) return;
+      if (!entityId) return
 
       if (value === undefined) {
         // Delete choice
-        const choices = queryClient.getQueryData<Tables<"player_choices">[]>(
+        const choices = queryClient.getQueryData<Tables<'player_choices'>[]>(
           playerChoicesKeys.forEntity(entityId)
-        );
-        const existingChoice = choices?.find(
-          (c) => c.choice_ref_id === choiceRefId
-        );
+        )
+        const existingChoice = choices?.find((c) => c.choice_ref_id === choiceRefId)
         if (existingChoice) {
-          deleteChoice.mutate({ id: existingChoice.id, entityId });
+          deleteChoice.mutate({ id: existingChoice.id, entityId })
         }
       } else {
         // Upsert choice
@@ -914,11 +893,11 @@ export function useManageEntityChoices(entityId: string | undefined) {
           entity_id: entityId,
           choice_ref_id: choiceRefId,
           value,
-        });
+        })
       }
     },
     [entityId, queryClient, upsertChoice, deleteChoice]
-  );
+  )
 }
 ```
 
@@ -940,16 +919,16 @@ export function useManageEntityChoices(entityId: string | undefined) {
 // Entity choice
 upsertChoice.mutate({
   entity_id: entityId,
-  choice_ref_id: "choice-id",
-  value: "systems::laser-rifle",
-});
+  choice_ref_id: 'choice-id',
+  value: 'systems::laser-rifle',
+})
 
 // Nested choice (belongs to another choice)
 upsertChoice.mutate({
   player_choice_id: parentChoiceId,
-  choice_ref_id: "nested-choice-id",
-  value: "modules::targeting-computer",
-});
+  choice_ref_id: 'nested-choice-id',
+  value: 'modules::targeting-computer',
+})
 ```
 
 ### Hydrated Entities
@@ -963,10 +942,10 @@ upsertChoice.mutate({
 ```typescript
 const entity: HydratedEntity = {
   // Database row
-  id: "entity-uuid",
-  pilot_id: "pilot-uuid",
-  schema_name: "abilities",
-  schema_ref_id: "ability-id",
+  id: 'entity-uuid',
+  pilot_id: 'pilot-uuid',
+  schema_name: 'abilities',
+  schema_ref_id: 'ability-id',
 
   // Hydrated data
   ref: abilityReferenceData, // From SalvageUnionReference.get()
@@ -974,13 +953,13 @@ const entity: HydratedEntity = {
     /* player choices */
   ],
   parentEntity: parentEntity, // If granted
-};
+}
 
 // Access in component
-entity.ref.name; // "Auto-Turret"
-entity.ref.grants; // [{ name: "Auto-Turret", schema: "equipment" }]
-entity.ref.choices; // [{ id: "...", name: "Personality" }]
-entity.choices; // Player's selections
+entity.ref.name // "Auto-Turret"
+entity.ref.grants // [{ name: "Auto-Turret", schema: "equipment" }]
+entity.ref.choices // [{ id: "...", name: "Personality" }]
+entity.choices // Player's selections
 ```
 
 ---
@@ -1001,7 +980,8 @@ entity.choices; // Player's selections
 - **Recommendation**: Add `grants: [{ name: "Holo Companion", schema: "equipment" }]`
 - **Rationale**: The ability explicitly states to add the companion to inventory, indicating it should be granted equipment
 
-**Summary**: 
+**Summary**:
+
 - Total abilities with grants: 3 (Auto-Turret, Custom Sniper Rifle, Holo Companion)
 - Pattern: Abilities that create/acquire equipment grant that equipment automatically
 
@@ -1034,16 +1014,19 @@ entity.choices; // Player's selections
 **New Discovery**: All NPCs should have Name choices, not just metadata storage
 
 **Affected Entities**:
+
 - **Crawler NPCs** (5 entities): Augmented, Battle, Engineering, Exploratory, Trade Caravan
 - **Crawler Bay NPCs** (10 entities): All bay types (Command, Mech, Storage, Armament, Crafting, Trading, Med, Pilot, Armoury, Cantina)
 
-**Rule Reference**: 
+**Rule Reference**:
+
 - Crawlers: Page 216-217 - "Name them and give them a Keepsake and Motto"
 - Bays: Standard NPC pattern - all NPCs should be named
 
 **Recommendation**: Add `Name` choice to `npc.choices` array for all crawler and bay NPCs
 
-**Rationale**: 
+**Rationale**:
+
 - Names are player customization choices, not game state
 - Names should be stored in `player_choices`, not `metadata.npc.name` or `crawlers.npc.name`
 - Migration planned in Phase 4 to move names from metadata to choices
@@ -1055,6 +1038,7 @@ entity.choices; // Player's selections
 **New Discovery**: Modules that represent A.I. entities should have personality choices
 
 **Entity**: Auto-Repair Droid (Module)
+
 - **Rule Reference**: Modules with A.I. should allow personality selection
 - **Recommendation**: Add A.I. Personality choice (roll table)
 - **Rationale**: Consistent with other A.I. entities (Auto-Turret, crawler A.I.)
@@ -1066,6 +1050,7 @@ entity.choices; // Player's selections
 #### Pattern: Stat Blocks Don't Need Grants/Choices
 
 **Confirmed**: Reference data that represents stat blocks (not player-selectable entities) correctly don't have grants/choices:
+
 - Creatures, Bio-titans, Meld, Squads, NPCs (templates)
 - Vehicles, Distances, Roll Tables
 - Ability Tree Requirements, Crawler Tech Levels
@@ -1087,11 +1072,13 @@ entity.choices; // Player's selections
 ### Implementation Status
 
 **Completed**:
+
 - ✅ Audit of all 22 data files
 - ✅ Identification of missing grants/choices
 - ✅ Documentation of patterns and rationale
 
 **Pending Implementation**:
+
 - ⚠️ Add grants to Holo Companion ability
 - ⚠️ Add choices to Custom Sniper Rifle equipment
 - ⚠️ Add choices to Holo Companion equipment
@@ -1100,6 +1087,7 @@ entity.choices; // Player's selections
 - ⚠️ Add A.I. Personality choice to Auto-Repair Droid module
 
 **Total Entities Needing Updates**: 19
+
 - 1 grant addition
 - 18 choices additions
 
@@ -1149,16 +1137,19 @@ entity.choices; // Player's selections
 ### Reference Guide for Future Additions
 
 **When to Add Grants**:
+
 - Entity automatically provides another entity when selected
 - Game rules say "grants", "gives", "provides", or "add to inventory"
 - Example: Ability that creates equipment grants that equipment
 
 **When to Add Choices**:
+
 - Entity requires player selection/customization
 - Game rules say "choose", "select", "name", "roll", or require player input
 - Examples: Name NPC, choose weapon type, roll for personality, select modification
 
 **When NOT to Add Grants/Choices**:
+
 - Entity is a stat block or reference data (creatures, vehicles, NPC templates)
 - Entity is selected at character creation (classes, chassis)
 - Entity is metadata or lookup data (distances, roll tables, ability tree requirements)
