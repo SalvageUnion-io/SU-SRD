@@ -1,20 +1,21 @@
 ---
-description: Patterns for developing the salvageunion-reference package
+description: Patterns for developing the reference module (formerly salvageunion-reference package)
 globs:
-  - 'packages/salvageunion-reference/**/*.ts'
+  - 'src/reference/**/*.ts'
+  - 'tools/**/*.ts'
 alwaysApply: false
 ---
 
-Patterns for developing the salvageunion-reference package with code generation.
+Patterns for developing the reference module with code generation.
 
-- Package structure: `lib/` for TypeScript files, `data/` for JSON data files, `schemas/` for JSON Schema files, `tools/` for code generation scripts, `dist/` for compiled output (generated, don't edit)
+- Module structure: `src/reference/` for TypeScript files, `src/reference/data/` for JSON data files, `src/reference/schemas/` for JSON Schema files, `tools/` for code generation scripts
 - Always run generation after schema/data changes: `bun run generate`
-- NEVER manually edit auto-generated files: `lib/utilities-generated.ts`, `lib/types/schemas.ts`, `lib/types/enums.ts`, `lib/types/common.ts`, `lib/types/objects.ts`, `lib/types/index.ts`, `lib/index.ts` (generated from `lib/index.template.ts`)
-- To modify generated code: edit generator scripts in `tools/` directory or template files (e.g., `lib/index.template.ts`), then run `bun run generate`
-- Manual overrides: `lib/utilities.ts`, `lib/ModelFactory.ts`, `lib/BaseModel.ts` (not generated)
+- NEVER manually edit auto-generated files: `src/reference/utilities-generated.ts`, `src/reference/types/schemas.ts`, `src/reference/types/enums.ts`, `src/reference/types/common.ts`, `src/reference/types/objects.ts`, `src/reference/types/index.ts`, `src/reference/index.ts` (generated from template files)
+- To modify generated code: edit generator scripts in `tools/` directory or template files, then run `bun run generate`
+- Manual overrides: `src/reference/utilities.ts`, `src/reference/ModelFactory.ts`, `src/reference/BaseModel.ts` (not generated)
 - All models extend `BaseModel<T>`, created via `ModelFactory`, use `SalvageUnionReference` static properties to access models, models provide: `all()`, `find()`, `findAll()` methods
 - Tests use Bun's built-in test runner: test files `*.test.ts`, run tests with `bun test`, tests validate schema compliance and data integrity
-- Build process: Generate (`bun run generate`), Type Check (`tsc --project tsconfig.build.json`), Test (`bun test`), Format/Lint, full build: `bun run build`, quick build: `bun run build:quick` (generates and compiles only)
-- All data files must match their JSON schemas, use `validateGenerated.ts` to check generated code, use `validateReferences.ts` to check cross-references
-- Adding new data: Add JSON file to `data/` directory, add corresponding schema to `schemas/` directory, update `tools/schemaNameMap.ts` if needed, run `bun run generate`, run `bun test` to verify
-- Using the package: `import { SalvageUnionReference, type SURefChassis } from 'salvageunion-reference'; const chassis = SalvageUnionReference.Chassis.find((c) => c.id === 'some-id')`
+- Build process: Generate (`bun run generate`), Type Check (`bun run typecheck`), Test (`bun test`), Format/Lint, full build: `bun run build`
+- All data files must match their JSON schemas, use `tools/validateGenerated.ts` to check generated code, use `tools/validateReferences.ts` to check cross-references
+- Adding new data: Add JSON file to `src/reference/data/` directory, add corresponding schema to `src/reference/schemas/` directory, update `tools/schemaNameMap.ts` if needed, run `bun run generate`, run `bun test` to verify
+- Using the module: `import { SalvageUnionReference, type SURefChassis } from '../reference'; const chassis = SalvageUnionReference.Chassis.find((c) => c.id === 'some-id')`
