@@ -1,6 +1,6 @@
-# SURef Monorepo
+# SURef
 
-A Bun monorepo containing the SURef web application and the Salvage Union Reference package.
+A Bun application containing the SURef web application with integrated Salvage Union Reference data.
 
 > **Note**: For detailed documentation, see [docs/README.md](docs/README.md)
 
@@ -9,21 +9,17 @@ A Bun monorepo containing the SURef web application and the Salvage Union Refere
 ### First Time Setup
 
 ```bash
-# Install all dependencies (sets up workspace links)
+# Install dependencies
 bun install
 
-# Build the reference package (required for types)
-bun run build:package
+# Start development server
+bun run dev
 ```
 
 ### Daily Development
 
 ```bash
-# Start development server (builds package and starts app)
-bun run dev
-
-# Or work on a specific package
-cd apps/suref-web
+# Start development server
 bun run dev
 ```
 
@@ -31,14 +27,22 @@ bun run dev
 
 ```
 .
-├── apps/
-│   └── suref-web/              # Main web application
-├── packages/
-│   └── salvageunion-reference/ # Salvage Union game data package
-├── package.json                # Root workspace configuration
-├── .prettierrc.json            # Shared Prettier config
-├── eslint.config.base.js      # Shared ESLint base config
-└── tsconfig.base.json          # Shared TypeScript base config
+├── src/
+│   ├── components/          # React components
+│   ├── hooks/              # TanStack Query hooks
+│   ├── lib/                # Utilities and API clients
+│   ├── routes/             # TanStack Router routes
+│   ├── types/              # TypeScript types
+│   ├── reference/          # Reference data module (formerly package)
+│   │   ├── data/           # JSON data files
+│   │   ├── schemas/        # JSON schemas
+│   │   └── ...             # TypeScript ORM and utilities
+│   └── ...
+├── tools/                  # Code generation scripts
+├── package.json            # Root configuration
+├── .prettierrc.json        # Prettier config
+├── eslint.config.js        # ESLint config
+└── tsconfig.json           # TypeScript config
 ```
 
 ## Common Commands
@@ -46,94 +50,76 @@ bun run dev
 ### Development
 
 ```bash
-# Start dev server (builds package + starts app)
+# Start dev server
 bun run dev
 
-# Build package only (quick, skips tests/lint)
-bun run build:package:quick
+# Type check
+bun run typecheck
 
-# Build package (full, includes tests/lint)
-bun run build:package
+# Build for production
+bun run build
 ```
 
 ### Quality Checks
 
 ```bash
-# Run all checks on all packages
-bun run lint:all
-bun run format:check:all
-bun run test:all
-bun run sanity:all
+# Run all checks
+bun run check:all
 
-# Run checks on specific package
-bun --filter suref-web lint
-bun --filter salvageunion-reference test
+# Individual checks
+bun run lint
+bun run format:check
+bun run typecheck
+bun run test
+bun run validate:all
 ```
 
-### Building
+### Code Generation
 
 ```bash
-# Build everything (package + app)
-bun run build
+# Generate JSON schemas
+bun run generate:json-schemas
 
-# Build specific package
-bun --filter salvageunion-reference build
-bun --filter suref-web build
+# Generate database types
+bun run gen:types
+
+# Generate Zod schemas
+bun run gen:zod
+
+# Generate all types
+bun run gen:all
 ```
 
-## Workspace Scripts
+## Making Changes to Reference Data
 
-All root scripts use `bun --filter` to target specific packages. You can also run scripts directly:
-
-```bash
-# Run scripts in suref-web app
-bun --filter suref-web <script>
-
-# Run scripts in salvageunion-reference package
-bun --filter salvageunion-reference <script>
-
-# Run scripts in all packages
-bun --filter "*" <script>
-```
-
-### Available Root Scripts
-
-- `dev` - Start development server
-- `build` - Build package and app
-- `build:package` - Build reference package (full)
-- `build:package:quick` - Build reference package (quick, dev mode)
-- `lint` / `lint:all` - Lint suref-web / all packages
-- `format` / `format:all` - Format suref-web / all packages
-- `format:check` / `format:check:all` - Check formatting
-- `test` / `test:all` - Test suref-web / all packages
-- `typecheck` - Type check suref-web
-- `sanity` / `sanity:all` - Run lint, format, and typecheck
-- `publish:package` - Publish salvageunion-reference to npm
-
-## Making Changes to salvageunion-reference
-
-1. Edit files in `packages/salvageunion-reference/lib/` or `data/`
-2. Rebuild the package:
+1. Edit files in `src/reference/data/` or `src/reference/schemas/`
+2. Run code generation if needed:
    ```bash
-   bun run build:package:quick  # Quick rebuild (dev)
-   # or
-   bun run build:package        # Full rebuild (includes tests/lint)
+   bun run generate:json-schemas
    ```
-3. Changes are immediately available to `suref-web` via workspace linking
+3. Changes are immediately available in the application
 
-**Note**: The package must be built for TypeScript types to resolve correctly.
+**Note**: TypeScript types are generated automatically from schemas.
 
 ## Troubleshooting
 
-### TypeScript can't find salvageunion-reference
+### TypeScript can't find types
 
-**Solution**: Build the package first:
+**Solution**: Run type generation:
 
 ```bash
-bun run build:package:quick
+bun run gen:all
 ```
 
-### Workspace not linking correctly
+### Build fails with lint errors
+
+**Solution**: Fix lint errors:
+
+```bash
+bun run lint -- --fix
+```
+
+### Dependencies not found
 
 **Solution**: Reinstall dependencies:
 
@@ -141,45 +127,28 @@ bun run build:package:quick
 bun install
 ```
 
-### Build fails with lint errors
-
-The package build includes linting. Fix lint errors or run quick build:
-
-```bash
-bun run build:package:quick  # Skips lint
-```
-
-### Dependencies not found
-
-**Solution**: Ensure you've run `bun install` from the root directory. Workspace dependencies are hoisted to root.
-
-## Apps
+## Application
 
 ### suref-web
 
 The main web application for viewing and exploring Salvage Union game data.
 
-- **Dynamic Schema Loading**: Automatically reads all schemas from the reference package
+- **Dynamic Schema Loading**: Automatically reads all schemas from the reference module
 - **Search**: Search items by name or description
 - **Filtering**: Filter data by any field with multiple values
 - **Sorting**: Click column headers to sort data
 - **Detail View**: Click "View Details" to see all fields for any item
 
-## Packages
+## Reference Module
 
-### salvageunion-reference
+The reference module (`src/reference/`) provides:
 
-Comprehensive, schema-validated JSON dataset and TypeScript ORM for the Salvage Union tabletop RPG.
+- Comprehensive, schema-validated JSON dataset for the Salvage Union tabletop RPG
+- TypeScript ORM for type-safe data access
+- Code generation from schemas
+- Search and filtering utilities
 
-See [packages/salvageunion-reference/README.md](packages/salvageunion-reference/README.md) for details.
-
-## Monorepo Best Practices
-
-- **Shared Configs**: Prettier, ESLint base, and TypeScript base configs are at root
-- **Hoisted Dependencies**: Shared dev dependencies (prettier, eslint, typescript) are in root `package.json`
-- **Workspace Protocol**: Packages use `workspace:*` to reference each other
-- **Filter Commands**: Use `bun --filter` instead of `cd` for better monorepo support
-- **Single Lockfile**: Only `bun.lock` at root (no package-lock.json files)
+Access via: `import { SalvageUnionReference } from './reference'`
 
 ## Documentation
 
@@ -188,4 +157,3 @@ For more detailed documentation, see:
 - [docs/README.md](docs/README.md) - Full documentation
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) - Architecture overview
 - [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) - Development guide
-- [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) - Troubleshooting guide

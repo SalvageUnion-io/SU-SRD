@@ -1,8 +1,8 @@
 ---
 description: TanStack Query hook patterns and conventions
 globs:
-  - 'apps/suref-web/src/hooks/**/*.ts'
-  - 'apps/suref-web/src/hooks/**/*.tsx'
+  - 'src/hooks/**/*.ts'
+  - 'src/hooks/**/*.tsx'
 alwaysApply: false
 ---
 

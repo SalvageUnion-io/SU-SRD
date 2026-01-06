@@ -1,4 +1,4 @@
-#!/usr/bin/env tsx
+#!/usr/bin/env bun
 
 /**
  * Check all data files for unique UUIDs
@@ -8,7 +8,6 @@
  * 3. All IDs are unique across all files
  */
 
-import { readFileSync } from 'fs'
 import { join } from 'path'
 
 // UUID v4 regex pattern
@@ -102,9 +101,10 @@ function validateUUID(id: string): boolean {
   return UUID_PATTERN.test(id)
 }
 
-function checkFile(filename: string): FileResult {
-  const filePath = join(process.cwd(), 'src', 'reference', 'data', filename)
-  const data = JSON.parse(readFileSync(filePath, 'utf-8')) as DataItem[]
+async function checkFile(filename: string): Promise<FileResult> {
+  const filePath = join(import.meta.dir, '..', '..', 'src', 'reference', 'data', filename)
+  const file = Bun.file(filePath)
+  const data = (await file.json()) as DataItem[]
 
   const result: FileResult = {
     file: filename,
@@ -206,7 +206,7 @@ function checkFile(filename: string): FileResult {
   return result
 }
 
-function checkAllFiles(): ValidationResult {
+async function checkAllFiles(): Promise<ValidationResult> {
   console.log('🔍 Checking all data files for unique UUIDs...\n')
 
   const fileResults: FileResult[] = []
@@ -214,12 +214,13 @@ function checkAllFiles(): ValidationResult {
 
   // Check each file
   for (const filename of dataFiles) {
-    const result = checkFile(filename)
+    const result = await checkFile(filename)
     fileResults.push(result)
 
     // Build global ID map
-    const filePath = join(process.cwd(), 'src', 'reference', 'data', filename)
-    const data = JSON.parse(readFileSync(filePath, 'utf-8')) as DataItem[]
+    const filePath = join(import.meta.dir, '..', '..', 'src', 'reference', 'data', filename)
+    const file = Bun.file(filePath)
+    const data = (await file.json()) as DataItem[]
 
     const addToGlobalMap = (id: string, index: number) => {
       const locations = globalIdMap.get(id) || []
@@ -386,6 +387,17 @@ function printResults(results: ValidationResult): void {
   }
 }
 
-// Run the check
-const results = checkAllFiles()
-printResults(results)
+async function main() {
+  const results = await checkAllFiles()
+  printResults(results)
+  return results.invalidIds === 0 && results.duplicateIds === 0 ? 0 : 1
+}
+
+// Export for use in unified runner
+export default main
+
+// Run directly if called as script
+if (import.meta.main) {
+  const exitCode = await main()
+  process.exit(exitCode)
+}

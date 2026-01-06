@@ -1,17 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { readFileSync } from 'fs'
-import { join, dirname } from 'path'
-import { fileURLToPath } from 'url'
+import { join } from 'path'
 
 // Get the project root directory
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
-const projectRoot = join(__dirname, '..')
+const projectRoot = join(import.meta.dir, '..')
 
-function loadJson(filePath: string): unknown {
+async function loadJson(filePath: string): Promise<unknown> {
   const fullPath = join(projectRoot, filePath)
-  const content = readFileSync(fullPath, 'utf-8')
-  return JSON.parse(content)
+  const file = Bun.file(fullPath)
+  return await file.json()
 }
 
 interface Choice {
@@ -51,8 +47,8 @@ interface Chassis {
 }
 
 describe('Preselected Choices Validation', () => {
-  it('should ensure all choices have an ID', () => {
-    const systemsData = loadJson('data/systems.json') as System[]
+  it('should ensure all choices have an ID', async () => {
+    const systemsData = (await loadJson('data/systems.json')) as System[]
     const errors: string[] = []
 
     for (const system of systemsData) {
@@ -72,10 +68,10 @@ describe('Preselected Choices Validation', () => {
     expect(errors.length).toBe(0)
   })
 
-  it('should ensure all preselectedChoices reference valid choice IDs', () => {
-    const systemsData = loadJson('data/systems.json') as System[]
-    const chassisData = loadJson('data/chassis.json') as Chassis[]
-    const actionsData = loadJson('data/actions.json') as Action[]
+  it('should ensure all preselectedChoices reference valid choice IDs', async () => {
+    const systemsData = (await loadJson('data/systems.json')) as System[]
+    const chassisData = (await loadJson('data/chassis.json')) as Chassis[]
+    const actionsData = (await loadJson('data/actions.json')) as Action[]
 
     // Build a set of all valid choice IDs
     // This includes both the choice IDs themselves and any customSystemOption IDs

@@ -1,8 +1,8 @@
 ---
-description: React component patterns and conventions for suref-web
+description: React component patterns and conventions
 globs:
-  - 'apps/suref-web/src/components/**/*.tsx'
-  - 'apps/suref-web/src/routes/**/*.tsx'
+  - 'src/components/**/*.tsx'
+  - 'src/routes/**/*.tsx'
 alwaysApply: false
 ---
 

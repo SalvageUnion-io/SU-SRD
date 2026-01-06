@@ -15,12 +15,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import type { TablesInsert, TablesUpdate } from '../../types/database-generated.types'
 import { fetchCargoForParent, createCargo, updateCargo, deleteCargo } from '../../lib/api/cargo'
-import { LOCAL_ID, isLocalId, generateLocalId, addToCache } from '../../lib/cacheHelpers'
+import { isLocalId, generateLocalId, addToCache } from '../../lib/cacheHelpers'
 import type { HydratedCargo } from '../../types/hydrated'
 import { SalvageUnionReference } from '../../reference'
 import type { SURefEnumSchemaName } from '../../reference'
-
-export { LOCAL_ID }
 
 /**
  * Query key factory for cargo

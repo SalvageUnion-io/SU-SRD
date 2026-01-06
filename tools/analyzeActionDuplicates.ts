@@ -5,7 +5,6 @@
  * and determine how to handle them.
  */
 
-import { readFileSync, writeFileSync } from 'fs'
 import { join } from 'path'
 
 interface Action {
@@ -25,9 +24,10 @@ function hasNumberSuffix(name: string): boolean {
   return /\(\d+\)$/.test(name)
 }
 
-function analyzeDuplicates() {
+async function analyzeDuplicates() {
   const actionsPath = join(import.meta.dir, '..', 'data', 'actions.json')
-  const actions: Action[] = JSON.parse(readFileSync(actionsPath, 'utf-8'))
+  const actionsFile = Bun.file(actionsPath)
+  const actions: Action[] = (await actionsFile.json()) as Action[]
 
   // Group actions by base name
   const baseNameGroups = new Map<string, Action[]>()
@@ -179,9 +179,12 @@ function analyzeDuplicates() {
   for (const schema of schemas) {
     try {
       const schemaPath = join(import.meta.dir, '..', 'data', `${schema}.json`)
-      const entities: Array<{ name: string; actions?: string[] }> = JSON.parse(
-        readFileSync(schemaPath, 'utf-8')
-      )
+      const schemaFile = Bun.file(schemaPath)
+      const entities: Array<{ name: string; actions?: string[] }> =
+        (await schemaFile.json()) as Array<{
+          name: string
+          actions?: string[]
+        }>
 
       for (const entity of entities) {
         if (entity.actions) {
@@ -234,7 +237,7 @@ function analyzeDuplicates() {
     references: Object.fromEntries(actionReferences),
   }
 
-  writeFileSync(
+  await Bun.write(
     join(import.meta.dir, '..', 'action-duplicates-analysis.json'),
     JSON.stringify(analysis, null, 2)
   )

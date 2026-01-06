@@ -1,5 +1,6 @@
-import fs from 'fs'
-import path from 'path'
+#!/usr/bin/env bun
+
+import { join } from 'path'
 
 interface SchemaInfo {
   id: string
@@ -14,10 +15,11 @@ interface SchemaInfo {
 }
 
 // Get version from package.json
-function getPackageVersion(): string {
+async function getPackageVersion(): Promise<string> {
   try {
-    const packageJsonPath = path.join(process.cwd(), 'package.json')
-    const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'))
+    const packageJsonPath = join(import.meta.dir, '..', '..', 'package.json')
+    const file = Bun.file(packageJsonPath)
+    const packageJson = (await file.json()) as { version?: string }
     return packageJson.version || '1.0.0'
   } catch {
     console.warn('⚠️  Could not read package.json version, using default')
@@ -26,19 +28,19 @@ function getPackageVersion(): string {
 }
 
 // Get all schema files
-function getSchemaFiles(): string[] {
-  const schemasDir = path.join(process.cwd(), 'src', 'reference', 'schemas')
-  return fs
-    .readdirSync(schemasDir)
-    .filter((file) => file.endsWith('.schema.json') && file !== 'index.json')
-    .sort()
+async function getSchemaFiles(): Promise<string[]> {
+  const schemasDir = join(import.meta.dir, '..', '..', 'src', 'reference', 'schemas')
+  const { readdir } = await import('fs/promises')
+  const files = await readdir(schemasDir)
+  return files.filter((file) => file.endsWith('.schema.json') && file !== 'index.json').sort()
 }
 
 // Get item count from data file
-function getItemCount(dataFile: string): number {
+async function getItemCount(dataFile: string): Promise<number> {
   try {
-    const fullPath = path.join(process.cwd(), dataFile)
-    const data = JSON.parse(fs.readFileSync(fullPath, 'utf-8'))
+    const fullPath = join(import.meta.dir, '..', '..', dataFile)
+    const file = Bun.file(fullPath)
+    const data = (await file.json()) as unknown[]
     return Array.isArray(data) ? data.length : 0
   } catch {
     return 0
@@ -90,10 +92,17 @@ function getRequiredFields(schema: JSONSchema, schemaId: string): string[] {
   return []
 }
 
-function parseSchemaFile(schemaFile: string): SchemaInfo | null {
+async function parseSchemaFile(schemaFile: string): Promise<SchemaInfo | null> {
   try {
-    const fullPath = path.join(process.cwd(), 'src', 'reference', 'schemas', schemaFile)
-    const schema = JSON.parse(fs.readFileSync(fullPath, 'utf-8'))
+    const fullPath = join(import.meta.dir, '..', '..', 'src', 'reference', 'schemas', schemaFile)
+    const file = Bun.file(fullPath)
+    const schema = (await file.json()) as {
+      title?: string
+      description?: string
+      $comment?: string
+      items?: { required?: string[]; oneOf?: Array<{ required?: string[] }> }
+      required?: string[]
+    }
 
     const id = schemaFile.replace('.schema.json', '')
     const dataFile = `data/${id}.json`
@@ -131,7 +140,7 @@ function parseSchemaFile(schemaFile: string): SchemaInfo | null {
       description: schema.description || '',
       dataFile,
       schemaFile: `schemas/${schemaFile}`,
-      itemCount: getItemCount(dataFile),
+      itemCount: await getItemCount(dataFile),
       requiredFields: getRequiredFields(schema, id),
       displayName,
     }
@@ -168,20 +177,21 @@ interface SchemaIndex {
   }>
 }
 
-function generateSchemaIndex(schemas: SchemaInfo[]): void {
-  const outputPath = path.join(process.cwd(), 'src', 'reference', 'schemas', 'index.json')
+async function generateSchemaIndex(schemas: SchemaInfo[]): Promise<void> {
+  const outputPath = join(import.meta.dir, '..', '..', 'src', 'reference', 'schemas', 'index.json')
 
   // Read existing index if it exists
   let existingIndex: SchemaIndex | null = null
-  if (fs.existsSync(outputPath)) {
-    existingIndex = JSON.parse(fs.readFileSync(outputPath, 'utf-8')) as SchemaIndex
+  const outputFile = Bun.file(outputPath)
+  if (await outputFile.exists()) {
+    existingIndex = (await outputFile.json()) as SchemaIndex
   }
 
   const newIndex: SchemaIndex = {
     $schema: 'http://json-schema.org/draft-07/schema#',
     title: 'Salvage Union Data Schema Catalog',
     description: 'Catalog of all available schemas in the salvageunion-data repository',
-    version: getPackageVersion(),
+    version: await getPackageVersion(),
     generated: new Date().toISOString(),
     schemas: schemas.map((s) => {
       // Find existing entry to preserve meta property
@@ -220,12 +230,12 @@ function generateSchemaIndex(schemas: SchemaInfo[]): void {
     }
   }
 
-  fs.writeFileSync(outputPath, JSON.stringify(newIndex, null, 2) + '\n')
+  await Bun.write(outputPath, JSON.stringify(newIndex, null, 2) + '\n')
   console.log(`✅ Generated schemas/index.json (${schemas.length} schemas)`)
 }
 
 // Generate VSCode settings
-function generateVSCodeSettings(schemas: SchemaInfo[]): void {
+async function generateVSCodeSettings(schemas: SchemaInfo[]): Promise<void> {
   const settings = {
     'json.schemas': schemas.map((s) => ({
       fileMatch: [s.dataFile],
@@ -239,29 +249,37 @@ function generateVSCodeSettings(schemas: SchemaInfo[]): void {
     },
   }
 
-  const outputPath = path.join(process.cwd(), '.vscode', 'settings.json')
-  fs.mkdirSync(path.dirname(outputPath), { recursive: true })
-  fs.writeFileSync(outputPath, JSON.stringify(settings, null, 2) + '\n')
+  const outputPath = join(import.meta.dir, '..', '..', '.vscode', 'settings.json')
+  // Bun.write will create directories automatically
+  await Bun.write(outputPath, JSON.stringify(settings, null, 2) + '\n')
   console.log(`✅ Generated .vscode/settings.json (${schemas.length} mappings)`)
 }
 
 // Main function
-function main() {
+async function main() {
   console.log('📝 Generating documentation from schemas...\n')
 
-  const schemaFiles = getSchemaFiles()
-  const schemas = schemaFiles.map(parseSchemaFile).filter((s): s is SchemaInfo => s !== null)
+  const schemaFiles = await getSchemaFiles()
+  const schemas = (await Promise.all(schemaFiles.map(parseSchemaFile))).filter(
+    (s): s is SchemaInfo => s !== null
+  )
 
   console.log(`Found ${schemas.length} schema files\n`)
 
   // Generate schema index
-  generateSchemaIndex(schemas)
+  await generateSchemaIndex(schemas)
 
   // Generate VSCode settings
-  generateVSCodeSettings(schemas)
+  await generateVSCodeSettings(schemas)
 
   console.log('\n✨ Documentation generation complete!')
   console.log('\n💡 Tip: Use the snippets in .docs-snippets/ to update documentation files')
 }
 
-main()
+// Export for use as module
+export default main
+
+// Run directly if called as script
+if (import.meta.main) {
+  await main()
+}

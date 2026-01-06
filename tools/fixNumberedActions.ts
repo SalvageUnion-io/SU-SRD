@@ -1,3 +1,4 @@
+#!/usr/bin/env bun
 /**
  * Fix actions with numbers in parenthesis by:
  * 1. Finding all actions with names like "Bar (2)"
@@ -7,62 +8,58 @@
  * 5. Updating the caller to reference the new name
  */
 
-import fs from 'fs'
-import path from 'path'
-import { fileURLToPath } from 'url'
+import { join } from 'path'
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
+async function main() {
+  const dataDir = join(import.meta.dir, '..', 'src', 'reference', 'data')
 
-const dataDir = path.join(__dirname, '..', 'src', 'reference', 'data')
-
-interface Action {
-  id: string
-  name: string
-  displayName?: string
-  [key: string]: unknown
-}
-
-interface Entity {
-  id: string
-  name: string
-  actions?: string[]
-  [key: string]: unknown
-}
-
-function findActionsWithNumbers(actions: Action[]): Action[] {
-  const numberPattern = /^(.+?)\s*\((\d+)\)$/
-  return actions.filter((action) => numberPattern.test(action.name))
-}
-
-function extractBaseName(actionName: string): string {
-  const match = actionName.match(/^(.+?)\s*\(\d+\)$/)
-  return match && match[1] ? match[1].trim() : actionName
-}
-
-function findCallers(
-  actionName: string,
-  entities: Entity[]
-): Array<{ entity: Entity; actionIndex: number }> {
-  const callers: Array<{ entity: Entity; actionIndex: number }> = []
-
-  for (const entity of entities) {
-    if (!entity.actions || !Array.isArray(entity.actions)) continue
-
-    for (let i = 0; i < entity.actions.length; i++) {
-      if (entity.actions[i] === actionName) {
-        callers.push({ entity, actionIndex: i })
-      }
-    }
+  interface Action {
+    id: string
+    name: string
+    displayName?: string
+    [key: string]: unknown
   }
 
-  return callers
-}
+  interface Entity {
+    id: string
+    name: string
+    actions?: string[]
+    [key: string]: unknown
+  }
 
-function main() {
+  function findActionsWithNumbers(actions: Action[]): Action[] {
+    const numberPattern = /^(.+?)\s*\((\d+)\)$/
+    return actions.filter((action) => numberPattern.test(action.name))
+  }
+
+  function extractBaseName(actionName: string): string {
+    const match = actionName.match(/^(.+?)\s*\(\d+\)$/)
+    return match && match[1] ? match[1].trim() : actionName
+  }
+
+  function findCallers(
+    actionName: string,
+    entities: Entity[]
+  ): Array<{ entity: Entity; actionIndex: number }> {
+    const callers: Array<{ entity: Entity; actionIndex: number }> = []
+
+    for (const entity of entities) {
+      if (!entity.actions || !Array.isArray(entity.actions)) continue
+
+      for (let i = 0; i < entity.actions.length; i++) {
+        if (entity.actions[i] === actionName) {
+          callers.push({ entity, actionIndex: i })
+        }
+      }
+    }
+
+    return callers
+  }
+
   // Read actions
-  const actionsPath = path.join(dataDir, 'actions.json')
-  const actions: Action[] = JSON.parse(fs.readFileSync(actionsPath, 'utf-8'))
+  const actionsPath = join(dataDir, 'actions.json')
+  const actionsFile = Bun.file(actionsPath)
+  const actions: Action[] = (await actionsFile.json()) as Action[]
 
   // Read all entity files that might reference actions
   const entityFiles = [
@@ -80,9 +77,10 @@ function main() {
 
   const allEntities: Entity[] = []
   for (const file of entityFiles) {
-    const filePath = path.join(dataDir, file)
-    if (fs.existsSync(filePath)) {
-      const entities: Entity[] = JSON.parse(fs.readFileSync(filePath, 'utf-8'))
+    const filePath = join(dataDir, file)
+    const fileHandle = Bun.file(filePath)
+    if (await fileHandle.exists()) {
+      const entities: Entity[] = (await fileHandle.json()) as Entity[]
       allEntities.push(...entities)
     }
   }
@@ -152,10 +150,11 @@ function main() {
 
   // Update entities
   for (const file of entityFiles) {
-    const filePath = path.join(dataDir, file)
-    if (!fs.existsSync(filePath)) continue
+    const filePath = join(dataDir, file)
+    const fileHandle = Bun.file(filePath)
+    if (!(await fileHandle.exists())) continue
 
-    const entities: Entity[] = JSON.parse(fs.readFileSync(filePath, 'utf-8'))
+    const entities: Entity[] = (await fileHandle.json()) as Entity[]
     let changed = false
 
     for (const entity of entities) {
@@ -171,13 +170,13 @@ function main() {
     }
 
     if (changed) {
-      fs.writeFileSync(filePath, JSON.stringify(entities, null, 2) + '\n', 'utf-8')
+      await Bun.write(filePath, JSON.stringify(entities, null, 2) + '\n')
       console.log(`Updated ${file}`)
     }
   }
 
   // Write updated actions
-  fs.writeFileSync(actionsPath, JSON.stringify(actions, null, 2) + '\n', 'utf-8')
+  await Bun.write(actionsPath, JSON.stringify(actions, null, 2) + '\n')
   console.log(`Updated actions.json`)
 
   console.log(`\nDone! Updated ${actionUpdates.size} actions and their callers.`)

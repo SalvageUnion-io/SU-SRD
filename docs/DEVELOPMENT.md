@@ -16,37 +16,19 @@ This guide covers the development workflow, common tasks, and best practices for
 git clone <repository-url>
 cd SU-SRD
 
-# Install dependencies for all workspaces (sets up workspace links)
-# This installs dependencies for both apps/ and packages/
+# Install dependencies
 bun install
-
-# Build the reference package (required for types)
-bun run build:package
 
 # Start development server
 bun run dev
 ```
-
-### Bun Workspace Structure
-
-This is a Bun workspace monorepo following [Bun workspace best practices](https://bun.com/docs/guides/install/workspaces):
-
-- Root `package.json` is marked `"private": true` to prevent accidental publishing
-- Each package/app is self-contained with its own dependencies
-- Workspace dependencies use `workspace:*` protocol
-- Run `bun install` from root to install dependencies for all workspaces
-- Add dependencies to specific workspaces by `cd`ing into the package directory
 
 ## Development Workflow
 
 ### Daily Development
 
 ```bash
-# Start dev server (builds package + starts app)
-bun run dev
-
-# Or work on a specific package
-cd apps/suref-web
+# Start dev server
 bun run dev
 ```
 
@@ -65,8 +47,11 @@ bun run dev
 3. **Run quality checks**
 
    ```bash
-   bun run sanity        # Run lint, format, typecheck
-   bun run test          # Run tests
+   bun run check:all        # Run all checks
+   bun run lint            # Lint code
+   bun run format:check    # Check formatting
+   bun run typecheck       # Type check
+   bun run test            # Run tests
    ```
 
 4. **Commit your changes**
@@ -76,20 +61,18 @@ bun run dev
    # Pre-commit hooks run automatically
    ```
 
-### Working with the Reference Package
+### Working with the Reference Module
 
-When modifying `salvageunion-reference`:
+When modifying reference data:
 
-1. Edit files in `packages/salvageunion-reference/lib/` or `data/`
-2. Rebuild the package:
+1. Edit files in `src/reference/data/` or `src/reference/schemas/`
+2. Run code generation if needed:
    ```bash
-   bun run build:package:quick  # Quick rebuild (dev)
-   # or
-   bun run build:package        # Full rebuild (includes tests/lint)
+   bun run generate:json-schemas
    ```
-3. Changes are immediately available to `suref-web` via workspace linking
+3. Changes are immediately available in the application
 
-**Note**: The package must be built for TypeScript types to resolve correctly.
+**Note**: TypeScript types are generated automatically from schemas.
 
 ## Code Style
 
@@ -173,13 +156,14 @@ export function useUpdatePilot() {
 - API clients: `src/lib/api/`
 - Utilities: `src/utils/`
 - Types: `src/types/`
+- Reference data: `src/reference/`
 
 ## Common Tasks
 
 ### Adding a New Component
 
 1. Create component file in appropriate directory
-2. Use path aliases for imports
+2. Use relative imports
 3. Export from component directory's `index.ts` if part of feature
 
 ### Adding a New Hook
@@ -196,16 +180,16 @@ export function useUpdatePilot() {
 
 ### Updating Database Schema
 
-1. Create migration in `apps/suref-web/supabase/migrations/`
+1. Create migration in `supabase/migrations/`
 2. Apply migration to database
 3. Regenerate types: `bun run gen:types`
 
 ### Adding Reference Data
 
-1. Add JSON file to `packages/salvageunion-reference/data/`
-2. Add schema to `packages/salvageunion-reference/schemas/`
-3. Run `bun run generate` in reference package
-4. Rebuild package: `bun run build:package`
+1. Add JSON file to `src/reference/data/`
+2. Add schema to `src/reference/schemas/`
+3. Run `bun run generate:json-schemas`
+4. Types are generated automatically
 
 ## Quality Checks
 
@@ -222,7 +206,7 @@ Pre-commit hooks automatically run:
 
 ```bash
 # Run all checks
-bun run sanity
+bun run check:all
 
 # Individual checks
 bun run lint
@@ -240,9 +224,9 @@ bun run test:coverage
 
 If TypeScript can't resolve types:
 
-1. Ensure reference package is built: `bun run build:package:quick`
+1. Run type generation: `bun run gen:all`
 2. Restart TypeScript server in editor
-3. Check `tsconfig.json` paths configuration
+3. Check `tsconfig.json` configuration
 
 ### Build Errors
 
@@ -250,7 +234,7 @@ If build fails:
 
 1. Clean build artifacts: `bun run clean`
 2. Reinstall dependencies: `bun install`
-3. Rebuild package: `bun run build:package`
+3. Rebuild: `bun run build`
 
 ### Runtime Errors
 

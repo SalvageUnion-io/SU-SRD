@@ -2,7 +2,7 @@
  * Search functionality for Salvage Union data
  */
 
-import type { SURefEntity, SURefEnumSchemaName } from './types/index.js'
+import type { SURefEntity, SURefEnumSchemaName } from './schemas/index.js'
 import { getSchemaCatalog, getDataMaps } from './ModelFactory.js'
 import { extractActions } from './utilities.js'
 

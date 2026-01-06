@@ -14,7 +14,7 @@ import type {
   SURefObjectTrait,
   SURefObjectChoice,
   SURefObjectActionOptions,
-} from './types/index.js'
+} from './schemas/index.js'
 import type {
   SURefAbility,
   SURefBioTitan,
@@ -43,7 +43,7 @@ import type {
   SURefObjectFormationMech,
   SURefObjectNpc,
   SURefObjectPattern,
-} from './types/index.js'
+} from './schemas/index.js'
 import { getDataMaps } from './ModelFactory.js'
 import { getModel } from './helpers.js'
 

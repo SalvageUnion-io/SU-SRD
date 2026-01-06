@@ -21,12 +21,10 @@ import {
   updateNormalizedEntity,
   deleteNormalizedEntity,
 } from '../../lib/api/normalizedEntities'
-import { LOCAL_ID, isLocalId, generateLocalId, addToCache } from '../../lib/cacheHelpers'
+import { isLocalId, generateLocalId, addToCache } from '../../lib/cacheHelpers'
 import type { HydratedEntity } from '../../types/hydrated'
 import { SalvageUnionReference } from '../../reference'
 import type { SURefEnumSchemaName } from '../../reference'
-
-export { LOCAL_ID }
 
 /**
  * Query key factory for entities

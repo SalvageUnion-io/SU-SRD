@@ -1,17 +1,13 @@
+#!/usr/bin/env bun
 /**
  * Validate that generated files are up-to-date with schema files
  * Compares actual file content to detect stale generated code
  * This is more reliable than timestamp comparison, especially in CI environments
  */
 
-import fs from 'fs'
-import path from 'path'
-import { fileURLToPath } from 'url'
+import { join } from 'path'
+import { spawn } from 'bun'
 import { createHash } from 'crypto'
-import { spawnSync } from 'child_process'
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
 
 /**
  * Normalize file content for comparison
@@ -31,9 +27,10 @@ function normalizeContent(content: string): string {
 /**
  * Get file content hash for comparison
  */
-function getFileHash(filePath: string): string | null {
+async function getFileHash(filePath: string): Promise<string | null> {
   try {
-    const content = fs.readFileSync(filePath, 'utf-8')
+    const file = Bun.file(filePath)
+    const content = await file.text()
     const normalized = normalizeContent(content)
     return createHash('sha256').update(normalized).digest('hex')
   } catch {
@@ -45,13 +42,13 @@ function getFileHash(filePath: string): string | null {
  * Get all generated type files
  */
 function getGeneratedFiles(): string[] {
-  const libTypesDir = path.join(__dirname, '..', 'src', 'reference', '/types')
+  const libTypesDir = join(import.meta.dir, '..', '..', 'src', 'reference', '/types')
   return [
-    path.join(libTypesDir, 'enums.ts'),
-    path.join(libTypesDir, 'common.ts'),
-    path.join(libTypesDir, 'objects.ts'),
-    path.join(libTypesDir, 'schemas.ts'),
-    path.join(__dirname, '..', 'src', 'reference', '/index.ts'),
+    join(libTypesDir, 'enums.ts'),
+    join(libTypesDir, 'common.ts'),
+    join(libTypesDir, 'objects.ts'),
+    join(libTypesDir, 'schemas.ts'),
+    join(import.meta.dir, '..', '..', 'src', 'reference', '/index.ts'),
   ]
 }
 
@@ -59,8 +56,8 @@ function getGeneratedFiles(): string[] {
  * Generate files and return their content hashes
  * This temporarily overwrites the existing files, so we need to restore them
  */
-function generateAndGetHashes(): Map<string, string> {
-  const packageDir = path.join(__dirname, '..')
+async function generateAndGetHashes(): Promise<Map<string, string>> {
+  const packageDir = join(import.meta.dir, '..', '..')
   const generatedFiles = getGeneratedFiles()
 
   // Run generation (this will overwrite existing files)
@@ -74,17 +71,18 @@ function generateAndGetHashes(): Map<string, string> {
 
   for (const script of generateScripts) {
     // Use bun run for consistency and better compatibility in CI
-    const result = spawnSync('bun', ['run', script], {
+    const proc = spawn(['bun', 'run', script], {
       cwd: packageDir,
-      stdio: 'pipe',
-      shell: false,
+      stdio: ['inherit', 'pipe', 'pipe'],
       env: { ...process.env },
     })
 
-    if (result.status !== 0) {
+    const result = await proc.exited
+
+    if (result !== 0) {
       console.error(`❌ Failed to generate ${script}`)
-      const stderr = result.stderr?.toString() || ''
-      const stdout = result.stdout?.toString() || ''
+      const stderr = await new Response(proc.stderr).text()
+      const stdout = await new Response(proc.stdout).text()
       if (stderr) console.error('STDERR:', stderr)
       if (stdout) console.error('STDOUT:', stdout)
       throw new Error(`Generation failed for ${script}`)
@@ -94,7 +92,7 @@ function generateAndGetHashes(): Map<string, string> {
   // Get hashes of newly generated files
   const newHashes = new Map<string, string>()
   for (const file of generatedFiles) {
-    const hash = getFileHash(file)
+    const hash = await getFileHash(file)
     if (hash) {
       newHashes.set(file, hash)
     }
@@ -106,15 +104,16 @@ function generateAndGetHashes(): Map<string, string> {
 /**
  * Validate that generated files match what would be generated from current schemas
  */
-function validateGenerated(): boolean {
+async function validateGenerated(): Promise<boolean> {
   console.log('🔍 Validating generated files...\n')
 
   const generatedFiles = getGeneratedFiles()
 
   // Check that all files exist
   for (const file of generatedFiles) {
-    if (!fs.existsSync(file)) {
-      console.error(`❌ Generated file not found: ${path.basename(file)}`)
+    const fileHandle = Bun.file(file)
+    if (!(await fileHandle.exists())) {
+      console.error(`❌ Generated file not found: ${file.split('/').pop()}`)
       return false
     }
   }
@@ -123,9 +122,10 @@ function validateGenerated(): boolean {
   const originalContents = new Map<string, string>()
   for (const file of generatedFiles) {
     try {
-      originalContents.set(file, fs.readFileSync(file, 'utf-8'))
+      const fileHandle = Bun.file(file)
+      originalContents.set(file, await fileHandle.text())
     } catch {
-      console.error(`❌ Could not read file: ${path.basename(file)}`)
+      console.error(`❌ Could not read file: ${file.split('/').pop()}`)
       return false
     }
   }
@@ -133,17 +133,18 @@ function validateGenerated(): boolean {
   // Get original hashes
   const originalHashes = new Map<string, string>()
   for (const [file, content] of originalContents) {
-    originalHashes.set(file, createHash('sha256').update(content).digest('hex'))
+    const normalized = normalizeContent(content)
+    originalHashes.set(file, createHash('sha256').update(normalized).digest('hex'))
   }
 
   // Generate fresh files and get their hashes
   let newHashes: Map<string, string>
   try {
-    newHashes = generateAndGetHashes()
+    newHashes = await generateAndGetHashes()
   } catch {
     // Restore original files on error
     for (const [file, content] of originalContents) {
-      fs.writeFileSync(file, content, 'utf-8')
+      await Bun.write(file, content)
     }
     console.error('❌ Failed to generate comparison files')
     return false
@@ -158,17 +159,18 @@ function validateGenerated(): boolean {
     const newHash = newHashes.get(file)
 
     if (!originalHash || !newHash) {
-      console.error(`❌ Could not hash file: ${path.basename(file)}`)
+      console.error(`❌ Could not hash file: ${file.split('/').pop()}`)
       allValid = false
       staleFiles.push(file)
       continue
     }
 
     if (originalHash !== newHash) {
-      console.error(`❌ Stale: ${path.basename(file)}`)
+      console.error(`❌ Stale: ${file.split('/').pop()}`)
       // Show a sample of the difference for debugging
       const originalContent = originalContents.get(file) || ''
-      const newContent = fs.readFileSync(file, 'utf-8')
+      const fileHandle = Bun.file(file)
+      const newContent = await fileHandle.text()
       const originalNormalized = normalizeContent(originalContent)
       const newNormalized = normalizeContent(newContent)
 
@@ -197,14 +199,14 @@ function validateGenerated(): boolean {
       allValid = false
       staleFiles.push(file)
     } else {
-      console.log(`✅ Fresh: ${path.basename(file)}`)
+      console.log(`✅ Fresh: ${file.split('/').pop()}`)
     }
   }
 
   // Restore original files (always restore, even if validation passes,
   // to avoid modifying files during validation)
   for (const [file, content] of originalContents) {
-    fs.writeFileSync(file, content, 'utf-8')
+    await Bun.write(file, content)
   }
 
   console.log()
@@ -213,7 +215,7 @@ function validateGenerated(): boolean {
     console.error('❌ Some generated files are stale!')
     console.error('\n💡 Run `bun run generate` to update generated files\n')
     console.error('Stale files:')
-    staleFiles.forEach((f) => console.error(`  - ${path.relative(process.cwd(), f)}`))
+    staleFiles.forEach((f) => console.error(`  - ${f.replace(process.cwd() + '/', '')}`))
     return false
   }
 
@@ -221,6 +223,16 @@ function validateGenerated(): boolean {
   return true
 }
 
-// Run validation
-const isValid = validateGenerated()
-process.exit(isValid ? 0 : 1)
+async function main() {
+  const isValid = await validateGenerated()
+  return isValid ? 0 : 1
+}
+
+// Export for use in unified runner
+export default main
+
+// Run directly if called as script
+if (import.meta.main) {
+  const exitCode = await main()
+  process.exit(exitCode)
+}
