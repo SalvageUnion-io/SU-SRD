@@ -18,7 +18,11 @@
 import { useCurrentUser } from './useCurrentUser'
 import { isOwner } from '../lib/permissions'
 
-export function useIsEditable(entity: { user_id: string } | undefined, isLocal: boolean): boolean {
+export function useIsEditable(
+  entity: { user_id: string } | undefined,
+  isLocal: boolean
+): boolean {
   const { userId } = useCurrentUser()
   return isLocal || (entity ? isOwner(entity.user_id, userId) : false)
 }
+

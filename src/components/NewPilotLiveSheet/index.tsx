@@ -139,9 +139,10 @@ export default function NewPilotLiveSheet({ id }: NewPilotLiveSheetProps) {
             <Box mt={6}>
               <DeleteEntity
                 entityName="Pilot"
-                onConfirmDelete={async () => {
-                  await deletePilot.mutateAsync(id)
-                  navigate({ to: '/dashboard/pilots' })
+                onConfirmDelete={() => {
+                  deletePilot.mutate(id, {
+                    onSuccess: () => navigate({ to: '/dashboard/pilots' }),
+                  })
                 }}
                 disabled={!isEditable || !id || updatePilot.isPending}
               />

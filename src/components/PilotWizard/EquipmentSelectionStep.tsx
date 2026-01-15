@@ -35,10 +35,7 @@ export function EquipmentSelectionStep({ wizardState, onComplete }: EquipmentSel
     (equipmentId: string) => {
       const currentIds = state.selectedEquipmentIds
       if (currentIds.includes(equipmentId)) {
-        updateField(
-          'selectedEquipmentIds',
-          currentIds.filter((id) => id !== equipmentId)
-        )
+        updateField('selectedEquipmentIds', currentIds.filter((id) => id !== equipmentId))
       } else if (currentIds.length < 2) {
         updateField('selectedEquipmentIds', [...currentIds, equipmentId])
       }

@@ -107,19 +107,14 @@ const defaultCrawler: Crawler = {
   scrap_tl_six: 0,
 }
 
-const {
-  keys: crawlersKeys,
-  useEntity,
-  useCreateEntity,
-  useUpdateEntity,
-  useDeleteEntity,
-} = createEntityHooks<Crawler>({
-  tableName: 'crawlers',
-  defaultEntity: defaultCrawler,
-  onCreateSuccess: async (newCrawler, queryClient) => {
-    await createCrawlerBays(newCrawler.id, queryClient)
-  },
-})
+const { keys: crawlersKeys, useEntity, useCreateEntity, useUpdateEntity, useDeleteEntity } =
+  createEntityHooks<Crawler>({
+    tableName: 'crawlers',
+    defaultEntity: defaultCrawler,
+    onCreateSuccess: async (newCrawler, queryClient) => {
+      await createCrawlerBays(newCrawler.id, queryClient)
+    },
+  })
 
 /**
  * Query key factory for crawlers

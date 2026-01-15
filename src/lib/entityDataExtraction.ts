@@ -4,7 +4,13 @@ import type {
   SURefEnumSchemaName,
   SURefObjectTrait,
 } from '../reference'
-import { getActivationCost, getActionType, getRange, getDamage, getTraits } from '../reference'
+import {
+  getActivationCost,
+  getActionType,
+  getRange,
+  getDamage,
+  getTraits,
+} from '../reference'
 import type { DataValue } from '../types/common'
 import { getActivationCurrency } from '../components/entity/entityDisplayHelpers'
 

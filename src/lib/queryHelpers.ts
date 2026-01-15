@@ -16,13 +16,13 @@
  * )
  * ```
  */
-export function combineQueryStates(...queries: Array<{ isLoading: boolean; error: unknown }>): {
-  loading: boolean
-  error: string | null
-} {
+export function combineQueryStates(
+  ...queries: Array<{ isLoading: boolean; error: unknown }>
+): { loading: boolean; error: string | null } {
   const loading = queries.some((q) => q.isLoading)
   const errorQuery = queries.find((q) => q.error)
   const error = errorQuery?.error ? String(errorQuery.error) : null
 
   return { loading, error }
 }
+

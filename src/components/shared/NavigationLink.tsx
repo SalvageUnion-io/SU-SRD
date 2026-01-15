@@ -2,7 +2,8 @@ import { Button, type ButtonProps } from '@chakra-ui/react'
 import { Link, type LinkProps } from '@tanstack/react-router'
 
 interface NavigationLinkProps
-  extends Omit<ButtonProps, 'onClick'>, Pick<LinkProps, 'to' | 'params' | 'search'> {
+  extends Omit<ButtonProps, 'onClick'>,
+    Pick<LinkProps, 'to' | 'params' | 'search'> {
   /** Whether this link is currently active */
   isActive: boolean
   /** Link text */

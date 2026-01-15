@@ -245,11 +245,14 @@ export function CrawlerLiveSheetContent({ crawlerId, isLocal }: CrawlerLiveSheet
       {!isLocal && (
         <DeleteEntity
           entityName="Crawler"
-          onConfirmDelete={async () => {
-            await deleteCrawler.mutateAsync(crawlerId)
-            // Don't navigate, just refresh the tab
-            window.location.reload()
-          }}
+          onConfirmDelete={() =>
+            deleteCrawler.mutate(crawlerId, {
+              onSuccess: () => {
+                // Don't navigate, just refresh the tab
+                window.location.reload()
+              },
+            })
+          }
           disabled={!isCrawlerEditable || !crawlerId || updateCrawler.isPending}
         />
       )}

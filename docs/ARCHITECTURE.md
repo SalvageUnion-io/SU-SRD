@@ -28,7 +28,6 @@ This document provides a high-level overview of the SURef monorepo architecture,
 ### suref-web
 
 The main web application built with:
-
 - **React 19** - UI library
 - **TanStack Start** - Full-stack React framework
 - **TanStack Router** - Type-safe routing
@@ -39,27 +38,23 @@ The main web application built with:
 #### Key Patterns
 
 **Imports**
-
 - Prefer relative imports over path aliases for imports from `src/` directory
 - Example: `import { useHydratedPilot } from '../../hooks/pilot'`
 - Relative imports make file relationships explicit and clear
 - This applies to ALL files including route files, components, hooks, utilities, etc.
 
 **Data Fetching**
-
 - Use TanStack Query hooks in `src/hooks/`
 - Query key factories (e.g., `pilotsKeys`, `mechsKeys`)
 - Hydrated hooks for entities with related data (e.g., `useHydratedPilot`)
 
 **Component Organization**
-
 - `components/shared/` - Reusable UI components
 - `components/{Feature}/` - Feature-specific components
 - `components/entity/` - Entity display and selection
 - `components/base/` - Typography and foundational components
 
 **Routing**
-
 - File-based routing in `src/routes/`
 - Server-side rendering support via TanStack Start
 - Route loaders for data fetching
@@ -69,7 +64,6 @@ The main web application built with:
 ### salvageunion-reference
 
 TypeScript ORM for Salvage Union game data:
-
 - Schema-validated JSON data
 - Type-safe model access via `SalvageUnionReference` static methods (e.g., `SalvageUnionReference.Chassis.find(...)`)
 - Code generation from schemas
@@ -170,3 +164,4 @@ This monorepo follows [Bun workspace conventions](https://bun.com/docs/guides/in
 - Generated types from database (`database-generated.types.ts`)
 - Generated types from reference package schemas
 - Path aliases for cleaner imports
+

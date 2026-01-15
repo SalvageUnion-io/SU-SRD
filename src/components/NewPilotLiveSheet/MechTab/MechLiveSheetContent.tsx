@@ -266,11 +266,14 @@ export default function MechLiveSheetContent({ mechId }: MechLiveSheetContentPro
       {!isLocal && (
         <DeleteEntity
           entityName="Mech"
-          onConfirmDelete={async () => {
-            await deleteMech.mutateAsync(mechId)
-            // Don't navigate, just refresh the tab
-            window.location.reload()
-          }}
+          onConfirmDelete={() =>
+            deleteMech.mutate(mechId, {
+              onSuccess: () => {
+                // Don't navigate, just refresh the tab
+                window.location.reload()
+              },
+            })
+          }
           disabled={!isMechEditable || !mechId || updateMech.isPending}
         />
       )}

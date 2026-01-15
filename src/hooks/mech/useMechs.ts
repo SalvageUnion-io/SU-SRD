@@ -40,16 +40,11 @@ const defaultMech: Mech = {
   image_url: null,
 }
 
-const {
-  keys: mechsKeys,
-  useEntity,
-  useCreateEntity,
-  useUpdateEntity,
-  useDeleteEntity,
-} = createEntityHooks<Mech>({
-  tableName: 'mechs',
-  defaultEntity: defaultMech,
-})
+const { keys: mechsKeys, useEntity, useCreateEntity, useUpdateEntity, useDeleteEntity } =
+  createEntityHooks<Mech>({
+    tableName: 'mechs',
+    defaultEntity: defaultMech,
+  })
 
 /**
  * Query key factory for mechs

@@ -9,9 +9,8 @@ Extract all `actions` arrays from embedded locations across the codebase into a 
 ### Schemas with Actions Arrays
 
 **Required actions:**
-
 - `bio-titans` - required field
-- `crawlers` - required field
+- `crawlers` - required field  
 - `creatures` - required field
 - `equipment` - required field
 - `meld` - required field
@@ -21,11 +20,9 @@ Extract all `actions` arrays from embedded locations across the codebase into a 
 - `modules` - via `SURefMetaSystemModule` (required)
 
 **Optional actions:**
-
 - `abilities` - optional field
 
 **Reference pattern (chassis-abilities):**
-
 - Chassis have `chassisAbilities: string[]` (array of action names)
 - `getChassisAbilities()` resolves names to full `SURefMetaAction[]` objects
 - Front-end receives resolved action objects and renders normally
@@ -33,7 +30,6 @@ Extract all `actions` arrays from embedded locations across the codebase into a 
 ### Duplicate Actions Identified
 
 **High-frequency duplicates:**
-
 - "System Repair" - 12 occurrences (systems + equipment)
 - "Patch" - 11 occurrences (systems + equipment)
 - "Chassis Repair" - 11 occurrences (systems + equipment)
@@ -41,7 +37,6 @@ Extract all `actions` arrays from embedded locations across the codebase into a 
 - "Titanic Actions" - 7 occurrences (bio-titans + meld)
 
 **Identical content duplicates:**
-
 - Auto-Turret (abilities + equipment)
 - System Repair variants (systems + equipment)
 - Chassis Repair variants (systems + equipment)
@@ -140,31 +135,30 @@ Extract all `actions` arrays from embedded locations across the codebase into a 
 
 2. **Update `lib/utilities.ts`**
    - **Modify `extractActions()`** to resolve action names to action objects:
-
      ```typescript
      export function extractActions(entity: SURefMetaEntity): SURefMetaAction[] | undefined {
        // Check if entity has actions array (now string[])
        if (!('actions' in entity) || !Array.isArray(entity.actions)) {
          return undefined
        }
-
+       
        const actionNames = entity.actions as string[]
-
+       
        // Resolve each action name to its full action object from actions schema
        const { dataMap } = getDataMaps()
        const actionsData = dataMap['actions'] as SURefMetaAction[] | undefined
-
+       
        if (!actionsData) {
          console.warn('actions schema not found')
          return undefined
        }
-
+       
        // Create a map of action name to action object
        const actionMap = new Map<string, SURefMetaAction>()
        actionsData.forEach((action) => {
          actionMap.set(action.name, action)
        })
-
+       
        // Resolve each action name to its object
        const resolved: SURefMetaAction[] = []
        for (const actionName of actionNames) {
@@ -179,11 +173,10 @@ Extract all `actions` arrays from embedded locations across the codebase into a 
            console.warn(`Action "${actionName}" not found in actions schema`)
          }
        }
-
+       
        return resolved.length > 0 ? resolved : undefined
      }
      ```
-
    - **Update `extractVisibleActions()`** - no changes needed (uses `extractActions()` which now resolves)
    - **Update `hasActions()`** - update type guard to check for string array:
      ```typescript
@@ -251,13 +244,11 @@ Extract all `actions` arrays from embedded locations across the codebase into a 
 ## Key Files to Modify
 
 ### New Files
-
 - `packages/salvageunion-reference/schemas/actions.schema.json`
 - `packages/salvageunion-reference/data/actions.json`
 - `packages/salvageunion-reference/docs/schemas/actions.md`
 
 ### Modified Files
-
 - `packages/salvageunion-reference/schemas/index.json`
 - `packages/salvageunion-reference/schemas/shared/objects.schema.json`
 - `packages/salvageunion-reference/schemas/*.schema.json` (10 schema files)
@@ -297,3 +288,4 @@ The resolution happens transparently in the utilities layer, so the front-end ne
 - **Duplicate handling** - Document which duplicates were merged and why
 - **Hidden actions** - Preserve `hidden` flag in actions schema, filter in `extractVisibleActions()`
 - **Action properties** - All action properties (activationCost, range, damage, traits, content, etc.) remain in actions schema
+
