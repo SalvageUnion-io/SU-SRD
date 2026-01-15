@@ -15,7 +15,7 @@ import type {
   SURefEntity,
   SURefEnumSchemaName,
   SURefObjectAdvancedClass,
-} from './schemas/index.js'
+} from './types/index.js'
 import type { EntitySchemaName } from './index.js'
 import type { ModelWithMetadata } from './BaseModel.js'
 

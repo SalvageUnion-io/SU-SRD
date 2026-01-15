@@ -288,15 +288,13 @@ export function generateModels(): Record<string, BaseModel<unknown>> {
 
 /**
  * Schema display name mappings
- * Exported for use in other modules
  */
-export const schemaDisplayNames: Record<string, { singular: string; plural: string }> = {
+const schemaDisplayNames: Record<string, { singular: string; plural: string }> = {
   abilities: { singular: 'Ability', plural: 'Abilities' },
   'ability-tree-requirements': {
     singular: 'Ability Tree Requirement',
     plural: 'Ability Tree Requirements',
   },
-  actions: { singular: 'action', plural: 'actions' },
   'bio-titans': { singular: 'Bio-Titan', plural: 'Bio-Titans' },
   chassis: { singular: 'Chassis', plural: 'Chassis' },
   classes: { singular: 'Class', plural: 'Classes' },
@@ -320,15 +318,7 @@ export const schemaDisplayNames: Record<string, { singular: string; plural: stri
   systems: { singular: 'System', plural: 'Systems' },
   traits: { singular: 'Trait', plural: 'Traits' },
   vehicles: { singular: 'Vehicle', plural: 'Vehicles' },
-} as const
-
-/**
- * Computed mapping from schema names to display names (plural)
- * Derived from schemaDisplayNames for convenience
- */
-export const SchemaToDisplayName = Object.fromEntries(
-  Object.entries(schemaDisplayNames).map(([k, v]) => [k, v.plural])
-) as Record<string, string>
+}
 
 /**
  * Enhanced schema metadata interface

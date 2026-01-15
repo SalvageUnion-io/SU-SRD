@@ -1,8 +1,8 @@
 ---
 description: Supabase API patterns and database conventions
 globs:
-  - 'src/lib/api/**/*.ts'
-  - 'src/lib/supabase*.ts'
+  - 'apps/suref-web/src/lib/api/**/*.ts'
+  - 'apps/suref-web/src/lib/supabase*.ts'
 alwaysApply: false
 ---
 

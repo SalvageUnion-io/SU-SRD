@@ -1,4 +1,4 @@
-import type { SURefObjectTable, SURefObjectTableContent } from '../schemas/index.js'
+import type { SURefObjectTable, SURefObjectTableContent } from '../types/index.js'
 
 /**
  * Result type for table roll resolution

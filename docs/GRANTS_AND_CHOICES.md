@@ -41,7 +41,7 @@ The `grants` property is defined in the `salvageunion-reference` package schema 
 ### Schema Definition
 
 ```typescript
-// src/reference/types/objects.ts
+// packages/salvageunion-reference/lib/types/objects.ts
 export interface SURefMetaGrant {
   schema: SURefSchemaName | 'choice'
   name: SURefName
@@ -50,9 +50,9 @@ export interface SURefMetaGrant {
 
 ### Package Location
 
-- **Schema**: `src/reference/schemas/shared/objects.schema.json`
-- **Type**: `src/reference/types/objects.ts`
-- **Utility**: `src/reference/utilities-generated.ts` - `getGrants()`
+- **Schema**: `packages/salvageunion-reference/schemas/shared/objects.schema.json`
+- **Type**: `packages/salvageunion-reference/lib/types/objects.ts`
+- **Utility**: `packages/salvageunion-reference/lib/utilities-generated.ts` - `getGrants()`
 
 ### How It Works in the App
 
@@ -67,7 +67,7 @@ When a player adds an entity (ability, equipment, etc.) to their sheet:
 
 ### Implementation
 
-**Location**: `src/hooks/suentity/useSUEntities.ts`
+**Location**: `apps/suref-web/src/hooks/suentity/useSUEntities.ts`
 
 ```typescript
 onSuccess: async (newEntity) => {
@@ -101,7 +101,7 @@ onSuccess: async (newEntity) => {
 
 ### Example: Auto-Turret Ability
 
-**Reference Data** (`src/reference/data/abilities.json`):
+**Reference Data** (`packages/salvageunion-reference/data/abilities.json`):
 
 ```json
 {
@@ -185,7 +185,7 @@ The `choices` property is defined in the `salvageunion-reference` package and ap
 ### Schema Definition
 
 ```typescript
-// src/reference/types/objects.ts
+// packages/salvageunion-reference/lib/types/objects.ts
 export interface SURefMetaChoice {
   id: SURefId
   name: SURefName
@@ -206,8 +206,8 @@ export type SURefMetaChoices = SURefMetaChoice[]
 
 ### Package Location
 
-- **Schema**: `src/reference/schemas/shared/objects.schema.json`
-- **Type**: `src/reference/types/objects.ts`
+- **Schema**: `packages/salvageunion-reference/schemas/shared/objects.schema.json`
+- **Type**: `packages/salvageunion-reference/lib/types/objects.ts`
 - **Used in**: `abilities`, `equipment`, `systems`, `modules`, `crawler-bays`, and `actions` (nested)
 
 ### Choice Types
@@ -230,7 +230,7 @@ export type SURefMetaChoices = SURefMetaChoice[]
 
 ### Implementation
 
-**Component**: `src/components/CrawlerLiveSheet/SheetEntityChoiceDisplay.tsx`
+**Component**: `apps/suref-web/src/components/CrawlerLiveSheet/SheetEntityChoiceDisplay.tsx`
 
 ```typescript
 export function SheetEntityChoiceDisplay({
@@ -253,7 +253,7 @@ export function SheetEntityChoiceDisplay({
 }
 ```
 
-**Hook**: `src/hooks/suentity/useManageEntityChoices.ts`
+**Hook**: `apps/suref-web/src/hooks/suentity/useManageEntityChoices.ts`
 
 ```typescript
 export function useManageEntityChoices(entityId: string | undefined) {
@@ -278,7 +278,7 @@ export function useManageEntityChoices(entityId: string | undefined) {
 
 ### Example: System with Chassis Choice
 
-**Reference Data** (`src/reference/data/systems.json`):
+**Reference Data** (`packages/salvageunion-reference/data/systems.json`):
 
 ```json
 {
@@ -502,7 +502,7 @@ VALUES ('level-2-choice-id', 'name-choice-id', 'Eagle Eye');
 
 ### Implementation
 
-**API**: `src/lib/api/playerChoices.ts`
+**API**: `apps/suref-web/src/lib/api/playerChoices.ts`
 
 ```typescript
 // Fetch choices for an entity
@@ -517,7 +517,7 @@ export async function upsertPlayerChoice(
 ): Promise<Tables<'player_choices'>>
 ```
 
-**Hooks**: `src/hooks/suentity/usePlayerChoices.ts`
+**Hooks**: `apps/suref-web/src/hooks/suentity/usePlayerChoices.ts`
 
 ```typescript
 // Fetch choices for entity
@@ -627,7 +627,7 @@ Pilot/Mech/Crawler
 
 ### Live Sheet Integration
 
-**Component**: `src/components/CrawlerLiveSheet/SheetEntityChoiceDisplay.tsx`
+**Component**: `apps/suref-web/src/components/CrawlerLiveSheet/SheetEntityChoiceDisplay.tsx`
 
 The live sheet components:
 
@@ -637,7 +637,7 @@ The live sheet components:
 4. Display choices with current selections
 5. Allow players to update choices
 
-**Hydrated Entity Type**: `src/types/hydrated.ts`
+**Hydrated Entity Type**: `apps/suref-web/src/types/hydrated.ts`
 
 ```typescript
 export type HydratedEntity = Tables<'suentities'> & {
@@ -817,7 +817,7 @@ player_choices: {
 
 ### Grant Processing
 
-**Location**: `src/hooks/suentity/useSUEntities.ts`
+**Location**: `apps/suref-web/src/hooks/suentity/useSUEntities.ts`
 
 **Flow**:
 
@@ -857,7 +857,7 @@ if (ref && 'grants' in ref && Array.isArray(ref.grants) && ref.grants.length > 0
 
 ### Choice Management
 
-**Location**: `src/hooks/suentity/useManageEntityChoices.ts`
+**Location**: `apps/suref-web/src/hooks/suentity/useManageEntityChoices.ts`
 
 **Flow**:
 
@@ -903,7 +903,7 @@ export function useManageEntityChoices(entityId: string | undefined) {
 
 ### Nested Choice Support
 
-**Migration**: `supabase/migrations/20250131_nested_choices.sql`
+**Migration**: `apps/suref-web/supabase/migrations/20250131_nested_choices.sql`
 
 **Key Features**:
 
@@ -933,7 +933,7 @@ upsertChoice.mutate({
 
 ### Hydrated Entities
 
-**Type**: `src/types/hydrated.ts`
+**Type**: `apps/suref-web/src/types/hydrated.ts`
 
 **Purpose**: Combines database rows with reference data and choices for easy access in components.
 

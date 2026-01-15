@@ -16,6 +16,8 @@ import { createEntityHooks } from '../createEntityHooks'
 import { LOCAL_ID } from '../../lib/cacheHelpers'
 import type { Tables } from '../../types/database-generated.types'
 
+export { LOCAL_ID }
+
 type Mech = Tables<'mechs'>
 
 const defaultMech: Mech = {

@@ -22,6 +22,7 @@ core
 
 # Vite
 .vite
+apps/suref-web/.vite
 
 # TanStack Router temporary files
 .tanstack
@@ -46,7 +47,7 @@ core
 # Local Netlify folder
 .netlify
 # App-specific env files
-.env.local
+apps/suref-web/.env.local
 netlify/functions
 
 .rules

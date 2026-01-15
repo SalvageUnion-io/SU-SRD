@@ -33,17 +33,11 @@ import type {
   SURefMetaCrawlerTechLevel,
   SURefEntity,
   SURefEnumSchemaName,
-} from './schemas/index.js'
+} from './types/index.js'
 
 export { BaseModel, type ModelWithMetadata } from './BaseModel.js'
 
-export {
-  getDataMaps,
-  getSchemaCatalog,
-  type EnhancedSchemaMetadata,
-  schemaDisplayNames,
-  SchemaToDisplayName,
-} from './ModelFactory.js'
+export { getDataMaps, getSchemaCatalog, type EnhancedSchemaMetadata } from './ModelFactory.js'
 
 export { resultForTable, type TableRollResult } from './utils/resultForTable.js'
 
@@ -70,7 +64,7 @@ import {
   type SearchResult,
 } from './search.js'
 
-export type * from './schemas/index.js'
+export type * from './types/index.js'
 
 // Type mapping from schema names to entity types (includes entity schemas and meta schemas)
 export type SchemaToEntityMap = {
@@ -156,7 +150,32 @@ export const SchemaToModelMap = {
   vehicles: 'Vehicles',
 } as const
 
-// SchemaToDisplayName is now exported from ModelFactory.ts
+// Runtime mapping from schema names to display names
+export const SchemaToDisplayName = {
+  abilities: 'Abilities',
+  'ability-tree-requirements': 'Ability Tree Requirements',
+  actions: 'actions',
+  'bio-titans': 'Bio-Titans',
+  chassis: 'Chassis',
+  classes: 'Classes',
+  'crawler-bays': 'Crawler Bays',
+  'crawler-tech-levels': 'Crawler Tech Levels',
+  crawlers: 'Crawlers',
+  creatures: 'Creatures',
+  distances: 'Distances',
+  drones: 'Drones',
+  equipment: 'Equipment',
+  factions: 'factions',
+  keywords: 'Keywords',
+  meld: 'Meld',
+  modules: 'Modules',
+  npcs: 'NPCs',
+  'roll-tables': 'Roll Tables',
+  squads: 'Squads',
+  systems: 'Systems',
+  traits: 'Traits',
+  vehicles: 'Vehicles',
+} as const
 
 // Auto-generate models from schema catalog (synchronous)
 const models = generateModels()

@@ -1,8 +1,8 @@
 ---
 description: TanStack Router patterns and conventions
 globs:
-  - 'src/routes/**/*.tsx'
-  - 'src/router.tsx'
+  - 'apps/suref-web/src/routes/**/*.tsx'
+  - 'apps/suref-web/src/router.tsx'
 alwaysApply: false
 ---
 

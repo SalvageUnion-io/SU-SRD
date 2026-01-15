@@ -7,6 +7,7 @@
  * 3. Setting displayName to the base name (without numbers)
  */
 
+import { readFileSync, writeFileSync } from 'fs'
 import { join } from 'path'
 
 interface Action {
@@ -39,20 +40,12 @@ function isSuperset(superset: Action, subset: Action): boolean {
   return true
 }
 
-async function fixDuplicates() {
+function fixDuplicates() {
   const actionsPath = join(import.meta.dir, '..', 'data', 'actions.json')
-  const actionsFile = Bun.file(actionsPath)
-  const actions: Action[] = (await actionsFile.json()) as Action[]
+  const actions: Action[] = JSON.parse(readFileSync(actionsPath, 'utf-8'))
 
   const analysisPath = join(import.meta.dir, '..', 'action-duplicates-analysis.json')
-  const analysisFile = Bun.file(analysisPath)
-  const analysis = (await analysisFile.json()) as {
-    duplicates: Array<{
-      baseName: string
-      unnumbered: Array<{ name: string }>
-      numbered: Array<{ name: string }>
-    }>
-  }
+  const analysis = JSON.parse(readFileSync(analysisPath, 'utf-8'))
 
   // Create maps for quick lookup
   const actionMap = new Map<string, Action>()
@@ -74,12 +67,8 @@ async function fixDuplicates() {
 
     // Check if we can merge (one is superset)
     if (unnumbered.length === 1 && numbered.length === 1) {
-      const unNumberedAction = unnumbered[0]
-      const numberedAction = numbered[0]
-      if (!unNumberedAction || !numberedAction) continue
-      const un = actionMap.get(unNumberedAction.name)
-      const num = actionMap.get(numberedAction.name)
-      if (!un || !num) continue
+      const un = actionMap.get(unnumbered[0].name)!
+      const num = actionMap.get(numbered[0].name)!
 
       const unIsSuperset = isSuperset(un, num)
       const numIsSuperset = isSuperset(num, un)
@@ -144,8 +133,7 @@ async function fixDuplicates() {
   for (const schema of schemas) {
     try {
       const schemaPath = join(import.meta.dir, '..', 'data', `${schema}.json`)
-      const schemaFile = Bun.file(schemaPath)
-      const entities: Entity[] = (await schemaFile.json()) as Entity[]
+      const entities: Entity[] = JSON.parse(readFileSync(schemaPath, 'utf-8'))
 
       for (const entity of entities) {
         if (entity.actions) {
@@ -180,7 +168,7 @@ async function fixDuplicates() {
       if (refs.length > 0) {
         // Use first entity as context
         const firstRef = refs[0]
-        if (!firstRef) continue
+        if (!firstRef) return
         const entityName = firstRef.entityName
         const newName = `${entityName} ${baseName}`
 
@@ -194,15 +182,12 @@ async function fixDuplicates() {
 
     // Process unnumbered variant if it exists
     if (unnumbered.length > 0) {
-      const unNumberedAction = unnumbered[0]
-      if (!unNumberedAction) continue
-      const unAction = actionMap.get(unNumberedAction.name)
-      if (!unAction) continue
-      const refs = entityActionMap.get(unNumberedAction.name) || []
+      const unAction = actionMap.get(unnumbered[0].name)!
+      const refs = entityActionMap.get(unnumbered[0].name) || []
 
       if (refs.length > 0) {
         const firstRef = refs[0]
-        if (!firstRef) continue
+        if (!firstRef) return
         const entityName = firstRef.entityName
         const newName = `${entityName} ${baseName}`
 
@@ -239,8 +224,7 @@ async function fixDuplicates() {
   ]) {
     try {
       const schemaPath = join(import.meta.dir, '..', 'data', `${schema}.json`)
-      const schemaFile = Bun.file(schemaPath)
-      const entities: Entity[] = (await schemaFile.json()) as Entity[]
+      const entities: Entity[] = JSON.parse(readFileSync(schemaPath, 'utf-8'))
       let updated = false
 
       for (const entity of entities) {
@@ -258,7 +242,7 @@ async function fixDuplicates() {
       }
 
       if (updated) {
-        await Bun.write(schemaPath, JSON.stringify(entities, null, 2) + '\n')
+        writeFileSync(schemaPath, JSON.stringify(entities, null, 2) + '\n')
         console.log(`  Updated ${schema}.json`)
       }
     } catch (e) {
@@ -267,12 +251,12 @@ async function fixDuplicates() {
   }
 
   // Write updated actions
-  await Bun.write(actionsPath, JSON.stringify(updatedActions, null, 2) + '\n')
+  writeFileSync(actionsPath, JSON.stringify(updatedActions, null, 2) + '\n')
   console.log(`\nUpdated actions.json (removed ${actionsToRemove.length} actions)`)
 
   // Write name mappings for reference
   const mappingsPath = join(import.meta.dir, '..', 'action-name-mappings.json')
-  await Bun.write(mappingsPath, JSON.stringify(Object.fromEntries(nameMappings), null, 2) + '\n')
+  writeFileSync(mappingsPath, JSON.stringify(Object.fromEntries(nameMappings), null, 2) + '\n')
   console.log(`Saved name mappings to action-name-mappings.json`)
 }
 
