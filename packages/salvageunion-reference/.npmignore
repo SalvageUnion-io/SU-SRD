@@ -1,0 +1,29 @@
+# Source files
+lib/
+tools/
+examples/
+
+# Config files
+tsconfig.json
+tsconfig.build.json
+.vscode/
+.legacy/
+
+# Development files
+*.test.ts
+*.spec.ts
+
+# Build artifacts
+*.tsbuildinfo
+
+# Git
+.git/
+.gitignore
+
+# Node
+node_modules/
+
+# Misc
+.DS_Store
+*.log
+

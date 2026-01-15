@@ -1,7 +1,4 @@
 [test]
-preload = ["./happydom.ts", "./testing-library.ts"]
+# Preload happydom for app tests - paths are relative to workspace root
+preload = ["./apps/suref-web/happydom.ts", "./apps/suref-web/testing-library.ts"]
 
-[test.env]
-NODE_ENV = "test"
-VITE_SUPABASE_URL = "https://test.supabase.co"
-VITE_SUPABASE_ANON_KEY = "test-anon-key"

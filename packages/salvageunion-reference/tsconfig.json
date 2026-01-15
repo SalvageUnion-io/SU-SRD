@@ -1,0 +1,19 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "composite": true,
+    "incremental": true,
+    "target": "ES2020",
+    "module": "NodeNext",
+    "lib": ["ES2020"],
+    "moduleResolution": "nodenext",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "types": ["node", "bun-types"],
+    "declaration": true,
+    "declarationMap": true
+  },
+  "include": ["lib/**/*.ts", "tools/**/*.ts"],
+  "exclude": ["node_modules", "dist", "**/*.template.ts"]
+}

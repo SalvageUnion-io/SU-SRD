@@ -1,0 +1,102 @@
+{
+  "json.schemas": [
+    {
+      "fileMatch": ["data/abilities.json"],
+      "url": "./schemas/abilities.schema.json"
+    },
+    {
+      "fileMatch": ["data/ability-tree-requirements.json"],
+      "url": "./schemas/ability-tree-requirements.schema.json"
+    },
+    {
+      "fileMatch": ["data/actions.json"],
+      "url": "./schemas/actions.schema.json"
+    },
+    {
+      "fileMatch": ["data/bio-titans.json"],
+      "url": "./schemas/bio-titans.schema.json"
+    },
+    {
+      "fileMatch": ["data/chassis.json"],
+      "url": "./schemas/chassis.schema.json"
+    },
+    {
+      "fileMatch": ["data/classes.json"],
+      "url": "./schemas/classes.schema.json"
+    },
+    {
+      "fileMatch": ["data/crawler-bays.json"],
+      "url": "./schemas/crawler-bays.schema.json"
+    },
+    {
+      "fileMatch": ["data/crawler-tech-levels.json"],
+      "url": "./schemas/crawler-tech-levels.schema.json"
+    },
+    {
+      "fileMatch": ["data/crawlers.json"],
+      "url": "./schemas/crawlers.schema.json"
+    },
+    {
+      "fileMatch": ["data/creatures.json"],
+      "url": "./schemas/creatures.schema.json"
+    },
+    {
+      "fileMatch": ["data/distances.json"],
+      "url": "./schemas/distances.schema.json"
+    },
+    {
+      "fileMatch": ["data/drones.json"],
+      "url": "./schemas/drones.schema.json"
+    },
+    {
+      "fileMatch": ["data/equipment.json"],
+      "url": "./schemas/equipment.schema.json"
+    },
+    {
+      "fileMatch": ["data/factions.json"],
+      "url": "./schemas/factions.schema.json"
+    },
+    {
+      "fileMatch": ["data/keywords.json"],
+      "url": "./schemas/keywords.schema.json"
+    },
+    {
+      "fileMatch": ["data/meld.json"],
+      "url": "./schemas/meld.schema.json"
+    },
+    {
+      "fileMatch": ["data/modules.json"],
+      "url": "./schemas/modules.schema.json"
+    },
+    {
+      "fileMatch": ["data/npcs.json"],
+      "url": "./schemas/npcs.schema.json"
+    },
+    {
+      "fileMatch": ["data/roll-tables.json"],
+      "url": "./schemas/roll-tables.schema.json"
+    },
+    {
+      "fileMatch": ["data/squads.json"],
+      "url": "./schemas/squads.schema.json"
+    },
+    {
+      "fileMatch": ["data/systems.json"],
+      "url": "./schemas/systems.schema.json"
+    },
+    {
+      "fileMatch": ["data/traits.json"],
+      "url": "./schemas/traits.schema.json"
+    },
+    {
+      "fileMatch": ["data/vehicles.json"],
+      "url": "./schemas/vehicles.schema.json"
+    }
+  ],
+  "json.format.enable": true,
+  "editor.formatOnSave": true,
+  "[json]": {
+    "editor.defaultFormatter": "vscode.json-language-features",
+    "editor.tabSize": 2
+  }
+}

@@ -1,0 +1,7 @@
+[test]
+preload = ["./happydom.ts", "./testing-library.ts"]
+
+[test.env]
+NODE_ENV = "test"
+VITE_SUPABASE_URL = "https://test.supabase.co"
+VITE_SUPABASE_ANON_KEY = "test-anon-key"
