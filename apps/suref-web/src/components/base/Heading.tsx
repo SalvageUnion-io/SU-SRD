@@ -1,5 +1,3 @@
-'use client'
-
 import { chakra } from '@chakra-ui/react'
 import { headingRecipe } from '../../recipes/heading.recipe'
 

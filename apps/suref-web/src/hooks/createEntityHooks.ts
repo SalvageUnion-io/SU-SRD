@@ -9,10 +9,16 @@
  * - Support for both API-backed and cache-only (local) data
  */
 
-import { useQuery, useMutation, useQueryClient, type QueryClient } from '@tanstack/react-query'
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  type QueryClient,
+  type UseMutateFunction,
+} from '@tanstack/react-query'
 import type { TablesInsert, TablesUpdate } from '../types/database-generated.types'
 import { fetchEntity, createEntity, updateEntity, deleteEntity } from '../lib/api'
-import { LOCAL_ID, isLocalId } from '../lib/cacheHelpers'
+import { isLocalId } from '../lib/cacheHelpers'
 import type { ValidTable } from '../types/common'
 
 export interface CreateEntityHooksOptions<T extends { id: string }> {
@@ -57,7 +63,7 @@ export interface EntityHooks<T extends { id: string }> {
    * Supports both API-backed and cache-only (local) data
    */
   useCreateEntity: () => {
-    mutate: (data: TablesInsert<ValidTable>) => void
+    mutate: UseMutateFunction<T, Error, TablesInsert<ValidTable>>
     mutateAsync: (data: TablesInsert<ValidTable>) => Promise<T>
     isPending: boolean
   }
@@ -68,7 +74,7 @@ export interface EntityHooks<T extends { id: string }> {
    * Includes optimistic updates for better UX
    */
   useUpdateEntity: () => {
-    mutate: (variables: { id: string; updates: TablesUpdate<ValidTable> }) => void
+    mutate: UseMutateFunction<T, Error, { id: string; updates: TablesUpdate<ValidTable> }>
     mutateAsync: (variables: { id: string; updates: TablesUpdate<ValidTable> }) => Promise<T>
     isPending: boolean
   }
@@ -78,7 +84,7 @@ export interface EntityHooks<T extends { id: string }> {
    * Automatically invalidates cache on success
    */
   useDeleteEntity: () => {
-    mutate: (id: string) => void
+    mutate: UseMutateFunction<void, Error, string>
     mutateAsync: (id: string) => Promise<void>
     isPending: boolean
   }
@@ -122,14 +128,14 @@ export function createEntityHooks<T extends { id: string }>({
 
     return useMutation({
       mutationFn: async (data: TablesInsert<ValidTable>) => {
-        const entityId = (data as T).id
+        const entityId = (data as unknown as T).id
 
         if (entityId && isLocalId(entityId)) {
           queryClient.setQueryData(keys.byId(entityId), defaultEntity)
           return defaultEntity
         }
 
-        return createEntity<T>(tableName, data as T)
+        return createEntity<T>(tableName, data as unknown as T)
       },
       onSuccess: async (newEntity) => {
         if (onCreateSuccess) {
@@ -166,7 +172,7 @@ export function createEntityHooks<T extends { id: string }>({
           return updatedEntity
         }
 
-        await updateEntity<T>(tableName, id, updates)
+        await updateEntity<T>(tableName, id, updates as unknown as Partial<T>)
 
         return fetchEntity<T>(tableName, id)
       },
@@ -217,7 +223,7 @@ export function createEntityHooks<T extends { id: string }>({
 
         await deleteEntity(tableName, id)
       },
-      onSuccess: (_, id) => {
+      onSuccess: () => {
         queryClient.invalidateQueries({
           queryKey: keys.all,
         })
@@ -233,4 +239,3 @@ export function createEntityHooks<T extends { id: string }>({
     useDeleteEntity,
   }
 }
-

@@ -14,9 +14,6 @@ import { LiveSheetControlBar } from '../shared/LiveSheetControlBar'
 import { CrawlerNPC } from './CrawlerNPC'
 import { DeleteEntity } from '../shared/DeleteEntity'
 import { PilotMechCell } from '../Dashboard/PilotMechCell'
-import { LiveSheetLoadingState } from '../shared/LiveSheetLoadingState'
-import { LiveSheetNotFoundState } from '../shared/LiveSheetNotFoundState'
-import { LiveSheetErrorState } from '../shared/LiveSheetErrorState'
 import { useUpdateCrawler, useHydratedCrawler, useDeleteCrawler } from '../../hooks/crawler'
 import { useInitializeCrawlerBays } from '../../hooks/crawler/useInitializeCrawlerBays'
 import { useIsEditable } from '../../hooks/useIsEditable'
@@ -119,25 +116,154 @@ export default function CrawlerLiveSheet({ id, flat = false }: CrawlerLiveSheetP
       <LiveSheetStateGuard entityType="Crawler" entity={crawler} loading={loading} error={error}>
         <>
           {commonContent}
-        <VStack gap={6} alignItems="stretch" mt={6}>
-          {/* Abilities Section */}
-          <Box>
-            <Text variant="pseudoheader" fontSize="lg" mb={4}>
+          <VStack gap={6} alignItems="stretch" mt={6}>
+            {/* Abilities Section */}
+            <Box>
+              <Text variant="pseudoheader" fontSize="lg" mb={4}>
+                Abilities
+              </Text>
+              <Flex gap={6} w="full">
+                <CrawlerAbilities id={id} disabled={!selectedCrawlerType} readOnly={!isEditable} />
+                <CrawlerNPC id={id} disabled={!selectedCrawlerType} readOnly={!isEditable} />
+              </Flex>
+            </Box>
+
+            {/* Bays Section */}
+            {regularBays.length > 0 && (
+              <Box>
+                <Text variant="pseudoheader" fontSize="lg" mb={4}>
+                  Bays
+                </Text>
+                <Grid gridTemplateColumns="repeat(3, 1fr)" gap={4}>
+                  {regularBays.map((bay) => (
+                    <BayCard
+                      key={bay.id}
+                      mode="entity"
+                      bay={bay}
+                      disabled={!selectedCrawlerType}
+                      readOnly={!isEditable}
+                    />
+                  ))}
+                </Grid>
+              </Box>
+            )}
+
+            {/* Storage Bay Section */}
+            <Box>
+              <Text variant="pseudoheader" fontSize="lg" mb={4}>
+                Storage Bay
+              </Text>
+              <VStack gap="0" alignItems="stretch">
+                {storageBay && (
+                  <BayCard
+                    mode="entity"
+                    bay={storageBay}
+                    disabled={!selectedCrawlerType}
+                    readOnly={!isEditable}
+                  />
+                )}
+
+                <StorageCargoBay id={id} disabled={!selectedCrawlerType} readOnly={!isEditable} />
+              </VStack>
+            </Box>
+
+            {/* Notes Section */}
+            <Box>
+              <Text variant="pseudoheader" fontSize="lg" mb={4}>
+                Notes
+              </Text>
+              <Notes
+                notes={crawler?.notes ?? ''}
+                onChange={(value) => updateCrawler.mutate({ id, updates: { notes: value } })}
+                backgroundColor="bg.builder.crawler"
+                placeholder="Add notes about your crawler..."
+                disabled={!isEditable}
+                incomplete={!selectedCrawlerType}
+              />
+            </Box>
+
+            {/* Pilots & Mechs Section */}
+            {!isLocal && (
+              <Box>
+                <Text variant="pseudoheader" fontSize="lg" mb={4}>
+                  Pilots & Mechs
+                </Text>
+                <VStack gap={4} align="stretch">
+                  {pilotsWithMechs.length === 0 ? (
+                    <Card bg="su.grey">
+                      <Text variant="pseudoheader" textAlign="center">
+                        No pilots assigned to this crawler
+                      </Text>
+                    </Card>
+                  ) : (
+                    <Grid gridTemplateColumns="repeat(2, 1fr)" gap={4}>
+                      {pilotsWithMechs.map(({ pilot }) => (
+                        <PilotMechCell key={pilot.id} crawlerId={id} memberId={pilot.user_id} />
+                      ))}
+                    </Grid>
+                  )}
+                </VStack>
+              </Box>
+            )}
+          </VStack>
+
+          {downgradeButton}
+
+          {!isLocal && (
+            <DeleteEntity
+              entityName="Crawler"
+              onConfirmDelete={() =>
+                deleteCrawler.mutate(id, {
+                  onSuccess: () => {
+                    navigate({ to: '/dashboard/crawlers' })
+                  },
+                })
+              }
+              disabled={!isEditable || !id || updateCrawler.isPending}
+            />
+          )}
+        </>
+      </LiveSheetStateGuard>
+    )
+  }
+
+  return (
+    <LiveSheetStateGuard entityType="Crawler" entity={crawler} loading={loading} error={error}>
+      <LiveSheetLayout>
+        {commonContent}
+
+        <Tabs.Root defaultValue="abilities">
+          <Tabs.List borderColor="border.default">
+            <Tabs.Trigger value="abilities" color="fg.default">
               Abilities
-            </Text>
-            <Flex gap={6} w="full">
+            </Tabs.Trigger>
+            <Tabs.Trigger value="bays" color="fg.default">
+              Bays
+            </Tabs.Trigger>
+            <Tabs.Trigger value="storage" color="fg.default">
+              Storage Bay
+            </Tabs.Trigger>
+            <Tabs.Trigger value="notes" color="fg.default">
+              Notes
+            </Tabs.Trigger>
+            <Box flex="1" />
+            {!isLocal && (
+              <Tabs.Trigger value="pilots" color="fg.default">
+                Pilots & Mechs
+              </Tabs.Trigger>
+            )}
+          </Tabs.List>
+
+          <Tabs.Content value="abilities">
+            <Flex gap={6} w="full" mt={6}>
               <CrawlerAbilities id={id} disabled={!selectedCrawlerType} readOnly={!isEditable} />
               <CrawlerNPC id={id} disabled={!selectedCrawlerType} readOnly={!isEditable} />
             </Flex>
-          </Box>
+          </Tabs.Content>
 
-          {/* Bays Section */}
-          {regularBays.length > 0 && (
-            <Box>
-              <Text variant="pseudoheader" fontSize="lg" mb={4}>
-                Bays
-              </Text>
-              <Grid gridTemplateColumns="repeat(3, 1fr)" gap={4}>
+          <Tabs.Content value="bays">
+            {regularBays.length > 0 && (
+              <Grid gridTemplateColumns="repeat(3, 1fr)" gap={4} mt={6}>
                 {regularBays.map((bay) => (
                   <BayCard
                     key={bay.id}
@@ -148,15 +274,11 @@ export default function CrawlerLiveSheet({ id, flat = false }: CrawlerLiveSheetP
                   />
                 ))}
               </Grid>
-            </Box>
-          )}
+            )}
+          </Tabs.Content>
 
-          {/* Storage Bay Section */}
-          <Box>
-            <Text variant="pseudoheader" fontSize="lg" mb={4}>
-              Storage Bay
-            </Text>
-            <VStack gap="0" alignItems="stretch">
+          <Tabs.Content value="storage">
+            <VStack gap="0" alignItems="stretch" mt={6}>
               {storageBay && (
                 <BayCard
                   mode="entity"
@@ -168,30 +290,24 @@ export default function CrawlerLiveSheet({ id, flat = false }: CrawlerLiveSheetP
 
               <StorageCargoBay id={id} disabled={!selectedCrawlerType} readOnly={!isEditable} />
             </VStack>
-          </Box>
+          </Tabs.Content>
 
-          {/* Notes Section */}
-          <Box>
-            <Text variant="pseudoheader" fontSize="lg" mb={4}>
-              Notes
-            </Text>
-            <Notes
-              notes={crawler?.notes ?? ''}
-              onChange={(value) => updateCrawler.mutate({ id, updates: { notes: value } })}
-              backgroundColor="bg.builder.crawler"
-              placeholder="Add notes about your crawler..."
-              disabled={!isEditable}
-              incomplete={!selectedCrawlerType}
-            />
-          </Box>
+          <Tabs.Content value="notes">
+            <Box mt={6}>
+              <Notes
+                notes={crawler?.notes ?? ''}
+                onChange={(value) => updateCrawler.mutate({ id, updates: { notes: value } })}
+                backgroundColor="bg.builder.crawler"
+                placeholder="Add notes about your crawler..."
+                disabled={!isEditable}
+                incomplete={!selectedCrawlerType}
+              />
+            </Box>
+          </Tabs.Content>
 
-          {/* Pilots & Mechs Section */}
           {!isLocal && (
-            <Box>
-              <Text variant="pseudoheader" fontSize="lg" mb={4}>
-                Pilots & Mechs
-              </Text>
-              <VStack gap={4} align="stretch">
+            <Tabs.Content value="pilots">
+              <VStack gap={4} align="stretch" mt={6}>
                 {pilotsWithMechs.length === 0 ? (
                   <Card bg="su.grey">
                     <Text variant="pseudoheader" textAlign="center">
@@ -206,9 +322,9 @@ export default function CrawlerLiveSheet({ id, flat = false }: CrawlerLiveSheetP
                   </Grid>
                 )}
               </VStack>
-            </Box>
+            </Tabs.Content>
           )}
-        </VStack>
+        </Tabs.Root>
 
         {downgradeButton}
 
@@ -225,125 +341,6 @@ export default function CrawlerLiveSheet({ id, flat = false }: CrawlerLiveSheetP
             disabled={!isEditable || !id || updateCrawler.isPending}
           />
         )}
-        </>
-      </LiveSheetStateGuard>
-    )
-  }
-
-  return (
-    <LiveSheetStateGuard entityType="Crawler" entity={crawler} loading={loading} error={error}>
-      <LiveSheetLayout>
-      {commonContent}
-
-      <Tabs.Root defaultValue="abilities">
-        <Tabs.List borderColor="border.default">
-          <Tabs.Trigger value="abilities" color="fg.default">
-            Abilities
-          </Tabs.Trigger>
-          <Tabs.Trigger value="bays" color="fg.default">
-            Bays
-          </Tabs.Trigger>
-          <Tabs.Trigger value="storage" color="fg.default">
-            Storage Bay
-          </Tabs.Trigger>
-          <Tabs.Trigger value="notes" color="fg.default">
-            Notes
-          </Tabs.Trigger>
-          <Box flex="1" />
-          {!isLocal && (
-            <Tabs.Trigger value="pilots" color="fg.default">
-              Pilots & Mechs
-            </Tabs.Trigger>
-          )}
-        </Tabs.List>
-
-        <Tabs.Content value="abilities">
-          <Flex gap={6} w="full" mt={6}>
-            <CrawlerAbilities id={id} disabled={!selectedCrawlerType} readOnly={!isEditable} />
-            <CrawlerNPC id={id} disabled={!selectedCrawlerType} readOnly={!isEditable} />
-          </Flex>
-        </Tabs.Content>
-
-        <Tabs.Content value="bays">
-          {regularBays.length > 0 && (
-            <Grid gridTemplateColumns="repeat(3, 1fr)" gap={4} mt={6}>
-              {regularBays.map((bay) => (
-                <BayCard
-                  key={bay.id}
-                  mode="entity"
-                  bay={bay}
-                  disabled={!selectedCrawlerType}
-                  readOnly={!isEditable}
-                />
-              ))}
-            </Grid>
-          )}
-        </Tabs.Content>
-
-        <Tabs.Content value="storage">
-          <VStack gap="0" alignItems="stretch" mt={6}>
-            {storageBay && (
-              <BayCard
-                mode="entity"
-                bay={storageBay}
-                disabled={!selectedCrawlerType}
-                readOnly={!isEditable}
-              />
-            )}
-
-            <StorageCargoBay id={id} disabled={!selectedCrawlerType} readOnly={!isEditable} />
-          </VStack>
-        </Tabs.Content>
-
-        <Tabs.Content value="notes">
-          <Box mt={6}>
-            <Notes
-              notes={crawler?.notes ?? ''}
-              onChange={(value) => updateCrawler.mutate({ id, updates: { notes: value } })}
-              backgroundColor="bg.builder.crawler"
-              placeholder="Add notes about your crawler..."
-              disabled={!isEditable}
-              incomplete={!selectedCrawlerType}
-            />
-          </Box>
-        </Tabs.Content>
-
-        {!isLocal && (
-          <Tabs.Content value="pilots">
-            <VStack gap={4} align="stretch" mt={6}>
-              {pilotsWithMechs.length === 0 ? (
-                <Card bg="su.grey">
-                  <Text variant="pseudoheader" textAlign="center">
-                    No pilots assigned to this crawler
-                  </Text>
-                </Card>
-              ) : (
-                <Grid gridTemplateColumns="repeat(2, 1fr)" gap={4}>
-                  {pilotsWithMechs.map(({ pilot }) => (
-                    <PilotMechCell key={pilot.id} crawlerId={id} memberId={pilot.user_id} />
-                  ))}
-                </Grid>
-              )}
-            </VStack>
-          </Tabs.Content>
-        )}
-      </Tabs.Root>
-
-      {downgradeButton}
-
-      {!isLocal && (
-        <DeleteEntity
-          entityName="Crawler"
-          onConfirmDelete={() =>
-            deleteCrawler.mutate(id, {
-              onSuccess: () => {
-                navigate({ to: '/dashboard/crawlers' })
-              },
-            })
-          }
-          disabled={!isEditable || !id || updateCrawler.isPending}
-        />
-      )}
       </LiveSheetLayout>
     </LiveSheetStateGuard>
   )
