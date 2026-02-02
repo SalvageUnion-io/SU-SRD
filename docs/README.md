@@ -1,6 +1,6 @@
 # SURef Monorepo
 
-A Bun monorepo containing the SURef web application and the Salvage Union Reference package.
+A Bun monorepo containing the SURef web application, Discord bot, and the Salvage Union Reference package.
 
 ## Quick Start
 
@@ -30,9 +30,11 @@ bun run dev
 ```
 .
 ├── apps/
-│   └── suref-web/              # Main web application
+│   ├── suref-web/              # Main web application
+│   └── discord-bot/            # Discord bot for roll tables
 ├── packages/
 │   └── salvageunion-reference/ # Salvage Union game data package
+├── render.yaml                 # Render deployment blueprint (discord-bot)
 ├── package.json                # Root workspace configuration
 ├── .prettierrc.json            # Shared Prettier config
 ├── eslint.config.base.js      # Shared ESLint base config
@@ -71,12 +73,15 @@ bun --filter salvageunion-reference test
 ### Building
 
 ```bash
-# Build everything (package + app)
+# Build everything (package + web app)
 bun run build
 
-# Build specific package
+# Build specific package/app
 bun --filter salvageunion-reference build
 bun --filter suref-web build
+bun --filter @suref/discord-bot build
+# Or use shorthand:
+bun run build:bot
 ```
 
 ## Workspace Scripts
@@ -159,6 +164,24 @@ The main web application for viewing and exploring Salvage Union game data.
 - **Filtering**: Filter data by any field with multiple values
 - **Sorting**: Click column headers to sort data
 - **Detail View**: Click "View Details" to see all fields for any item
+
+### discord-bot
+
+Discord bot for rolling on Salvage Union tables.
+
+- **Roll Tables**: `/roll [table]` command with autocomplete
+- **Deployed via Render**: Worker service configured in `render.yaml`
+
+```bash
+# Start the bot locally
+bun run dev:bot
+
+# Deploy slash commands
+bun run deploy-commands         # To test guild
+bun run deploy-commands:global  # To all guilds (production)
+```
+
+See [apps/discord-bot/README.md](../apps/discord-bot/README.md) for setup instructions.
 
 ## Packages
 
