@@ -16,6 +16,24 @@ jobs:
       - name: Set up Bun
         uses: oven-sh/setup-bun@v1
 
+      - name: Cache Bun dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ hashFiles('**/bun.lockb') }}
+          restore-keys: |
+            bun-${{ runner.os }}-
+
+      - name: Cache TypeScript build info
+        uses: actions/cache@v4
+        with:
+          path: |
+            **/*.tsbuildinfo
+            packages/*/dist
+          key: tsbuild-${{ runner.os }}-${{ hashFiles('**/*.ts', '**/*.tsx', '!**/node_modules/**') }}
+          restore-keys: |
+            tsbuild-${{ runner.os }}-
+
       - name: Install dependencies
         run: bun install --frozen-lockfile
 

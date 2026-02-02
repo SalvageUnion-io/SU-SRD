@@ -38,4 +38,4 @@ Use TanStack Query v5 for all server state management with:
 **References:**
 - `src/hooks/` directory structure
 - `src/lib/queryClient.ts`
-- `.cursor/rules/tanstack-query-hooks.mdc`
+- `.ai/rules/tanstack-query-hooks.md`

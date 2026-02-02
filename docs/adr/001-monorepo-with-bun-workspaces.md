@@ -38,4 +38,4 @@ Use a Bun workspace monorepo structure with:
 **References:**
 - [Bun Workspace Documentation](https://bun.com/docs/guides/install/workspaces)
 - Root `package.json` workspaces configuration
-- `.cursor/rules/monorepo-patterns.mdc`
+- `.ai/rules/monorepo-patterns.md`

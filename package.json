@@ -37,5 +37,8 @@
     "clean": "bun --filter \"*\" clean || true",
     "check:all": "bun run lint && bun run format:check && bun --filter salvageunion-reference typecheck && bun --filter suref-web typecheck && bun run test && bun run validate:ids && bun run validate:references && bun run validate:actions",
     "fix:all": "bun run lint -- --fix && bun run format"
+  },
+  "dependencies": {
+    "zustand": "5.0.11"
   }
 }

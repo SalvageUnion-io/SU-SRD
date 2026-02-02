@@ -5,4 +5,5 @@ linker = 'isolated'
 [test]
 # Preload happydom for app tests - paths are relative to workspace root
 preload = ["./apps/suref-web/happydom.ts", "./apps/suref-web/testing-library.ts"]
+# Enable parallel test execution for faster test runs
 

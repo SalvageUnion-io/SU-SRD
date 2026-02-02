@@ -1,6 +1,4 @@
-import { useContext } from 'react'
-import { EntityViewerModalContext } from './EntityViewerModalContext'
-import type { EntityViewerModalContextValue } from './EntityViewerModalContext'
+import { useEntityViewerStore } from '../stores/entityViewerStore'
 
 /**
  * Hook to access the entity viewer modal.
@@ -10,10 +8,9 @@ import type { EntityViewerModalContextValue } from './EntityViewerModalContext'
  * const { openEntityModal } = useEntityModal()
  * openEntityModal('abilities', 'some-ability-id')
  */
-export function useEntityModal(): EntityViewerModalContextValue {
-  const context = useContext(EntityViewerModalContext)
-  if (!context) {
-    throw new Error('useEntityModal must be used within EntityViewerModalProvider')
-  }
-  return context
+export function useEntityModal() {
+  const openEntityModal = useEntityViewerStore((state) => state.openEntityModal)
+  const closeEntityModal = useEntityViewerStore((state) => state.closeEntityModal)
+
+  return { openEntityModal, closeEntityModal }
 }

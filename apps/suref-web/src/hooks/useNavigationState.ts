@@ -1,7 +1,8 @@
-import { useState, useCallback } from 'react'
+import { useCallback } from 'react'
 import { useNavigate, useLocation } from '@tanstack/react-router'
 import { signOut } from '../lib/api'
 import { logger } from '../lib/logger'
+import { useNavigationStore } from '../stores/navigationStore'
 
 /**
  * Shared navigation state and handlers
@@ -10,15 +11,20 @@ import { logger } from '../lib/logger'
 export function useNavigationState() {
   const navigate = useNavigate()
   const location = useLocation()
-  const [isOpen, setIsOpen] = useState(false)
-  const [signingOut, setSigningOut] = useState(false)
+
+  // Use Zustand store for shared state
+  const isOpen = useNavigationStore((state) => state.isMenuOpen)
+  const signingOut = useNavigationStore((state) => state.signingOut)
+  const toggleMenu = useNavigationStore((state) => state.toggleMenu)
+  const closeMenu = useNavigationStore((state) => state.closeMenu)
+  const setSigningOut = useNavigationStore((state) => state.setSigningOut)
 
   const handleNavigate = useCallback(
     (path: string) => {
       navigate({ to: path })
-      setIsOpen(false)
+      closeMenu()
     },
-    [navigate]
+    [navigate, closeMenu]
   )
 
   const handleSignOut = useCallback(async () => {
@@ -30,7 +36,7 @@ export function useNavigationState() {
     } finally {
       setSigningOut(false)
     }
-  }, [])
+  }, [setSigningOut])
 
   const isActive = useCallback(
     (path: string, exact = false) => {
@@ -41,10 +47,6 @@ export function useNavigationState() {
     },
     [location.pathname]
   )
-
-  const toggleMenu = useCallback(() => {
-    setIsOpen((prev) => !prev)
-  }, [])
 
   return {
     isOpen,

@@ -6,6 +6,10 @@ import { getModel } from 'salvageunion-reference'
 import type { SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
 import { act } from '@testing-library/react'
 
+// In CI, test all entities exhaustively. Locally, sample 5 per schema for speed.
+const IS_CI = process.env.CI === 'true'
+const SAMPLE_SIZE = IS_CI ? Infinity : 5
+
 const schemaCatalog = getSchemaCatalog()
 
 // Automatically exclude meta schemas (schemas marked with meta: true)
@@ -90,12 +94,14 @@ describe('Schema Entity Display Tests', () => {
   for (const schemaId of SCHEMAS_TO_TEST) {
     describe(`Schema: ${schemaId}`, () => {
       const allEntities = getSchemaEntities(schemaId)
+      // Sample entities for local development, all entities in CI
+      const entitiesToTest = allEntities.slice(0, SAMPLE_SIZE)
 
-      if (allEntities.length === 0) {
+      if (entitiesToTest.length === 0) {
         test.skip(`No entities found for ${schemaId}`, () => {})
       }
 
-      for (const entity of allEntities) {
+      for (const entity of entitiesToTest) {
         test(`displays all properties for: ${entity.name}`, async () => {
           let result: Awaited<ReturnType<typeof render>>
           await act(async () => {
