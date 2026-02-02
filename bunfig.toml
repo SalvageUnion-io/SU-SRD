@@ -1,3 +1,7 @@
+[install]
+# Use isolated linker for better dependency isolation and security
+linker = 'isolated'
+
 [test]
 # Preload happydom for app tests - paths are relative to workspace root
 preload = ["./apps/suref-web/happydom.ts", "./apps/suref-web/testing-library.ts"]
