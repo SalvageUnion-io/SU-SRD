@@ -175,11 +175,11 @@ export interface FileRoutesByFullPath {
   '/dashboard/mechs/new': typeof DashboardMechsNewRoute
   '/dashboard/pilots/$id': typeof DashboardPilotsIdRoute
   '/dashboard/pilots/new': typeof DashboardPilotsNewRoute
-  '/dashboard/crawlers': typeof DashboardCrawlersIndexRoute
-  '/dashboard/games': typeof DashboardGamesIndexRoute
-  '/dashboard/mechs': typeof DashboardMechsIndexRoute
-  '/dashboard/pilots': typeof DashboardPilotsIndexRoute
-  '/schema/$schemaId': typeof SchemaSchemaIdIndexRoute
+  '/dashboard/crawlers/': typeof DashboardCrawlersIndexRoute
+  '/dashboard/games/': typeof DashboardGamesIndexRoute
+  '/dashboard/mechs/': typeof DashboardMechsIndexRoute
+  '/dashboard/pilots/': typeof DashboardPilotsIndexRoute
+  '/schema/$schemaId/': typeof SchemaSchemaIdIndexRoute
   '/schema/$schemaId/item/$itemId': typeof SchemaSchemaIdItemItemIdRoute
 }
 export interface FileRoutesByTo {
@@ -255,11 +255,11 @@ export interface FileRouteTypes {
     | '/dashboard/mechs/new'
     | '/dashboard/pilots/$id'
     | '/dashboard/pilots/new'
-    | '/dashboard/crawlers'
-    | '/dashboard/games'
-    | '/dashboard/mechs'
-    | '/dashboard/pilots'
-    | '/schema/$schemaId'
+    | '/dashboard/crawlers/'
+    | '/dashboard/games/'
+    | '/dashboard/mechs/'
+    | '/dashboard/pilots/'
+    | '/schema/$schemaId/'
     | '/schema/$schemaId/item/$itemId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -410,35 +410,35 @@ declare module '@tanstack/react-router' {
     '/schema/$schemaId/': {
       id: '/schema/$schemaId/'
       path: '/schema/$schemaId'
-      fullPath: '/schema/$schemaId'
+      fullPath: '/schema/$schemaId/'
       preLoaderRoute: typeof SchemaSchemaIdIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard/pilots/': {
       id: '/dashboard/pilots/'
       path: '/pilots'
-      fullPath: '/dashboard/pilots'
+      fullPath: '/dashboard/pilots/'
       preLoaderRoute: typeof DashboardPilotsIndexRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/dashboard/mechs/': {
       id: '/dashboard/mechs/'
       path: '/mechs'
-      fullPath: '/dashboard/mechs'
+      fullPath: '/dashboard/mechs/'
       preLoaderRoute: typeof DashboardMechsIndexRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/dashboard/games/': {
       id: '/dashboard/games/'
       path: '/games'
-      fullPath: '/dashboard/games'
+      fullPath: '/dashboard/games/'
       preLoaderRoute: typeof DashboardGamesIndexRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/dashboard/crawlers/': {
       id: '/dashboard/crawlers/'
       path: '/crawlers'
-      fullPath: '/dashboard/crawlers'
+      fullPath: '/dashboard/crawlers/'
       preLoaderRoute: typeof DashboardCrawlersIndexRouteImport
       parentRoute: typeof DashboardRoute
     }

@@ -48,6 +48,10 @@ export function render(ui: ReactNode): RenderResult & { queryClient: QueryClient
     }),
   })
 
+  // Trigger the router load - required in TanStack Router v1.157+
+  // Without this, the router stays in "idle" status and doesn't render route content
+  router.load()
+
   const result = rtlRender(
     <QueryClientProvider client={queryClient}>
       <ChakraProvider value={system}>
