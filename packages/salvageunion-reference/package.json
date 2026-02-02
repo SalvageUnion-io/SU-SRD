@@ -45,7 +45,7 @@
   "scripts": {
     "build": "tsc --project tsconfig.build.json && bun run generate:json-schemas && bun run format && bun run lint",
     "build:ci": "tsc --project tsconfig.build.json",
-    "prepare": "tsc --project tsconfig.build.json",
+    "prepare": "[ -z \"$CI\" ] && tsc --project tsconfig.build.json || true",
     "prepublishOnly": "bun run build && bun run typecheck",
     "validate:ids": "tsx tools/checkUniqueIds.ts",
     "fix:ids": "tsx tools/generateMissingIds.ts",
