@@ -12,7 +12,7 @@
     "lefthook": "^1.6.0"
   },
   "scripts": {
-    "prepare": "lefthook install",
+    "prepare": "[ -d .git ] && lefthook install || true",
     "dev": "bun run build:package && bun --filter suref-web dev",
     "dev:watch": "bun --filter salvageunion-reference watch & bun --filter suref-web dev",
     "dev:bot": "bun run build:package && bun --filter @suref/discord-bot dev",
