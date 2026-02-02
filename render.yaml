@@ -3,7 +3,7 @@ services:
     name: suref-discord-bot
     runtime: node
     region: oregon
-    plan: free
+    plan: starter
     buildCommand: "bun install && bun run build:package && bun --filter @suref/discord-bot build"
     startCommand: "node apps/discord-bot/dist/index.js"
     envVars:
