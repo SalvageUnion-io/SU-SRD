@@ -9,10 +9,10 @@
     "packages/*"
   ],
   "devDependencies": {
-    "lefthook": "^1.6.0"
+    "lefthook": "2.0.16"
   },
   "scripts": {
-    "prepare": "[ -d .git ] && lefthook install || true",
+    "prepare": "[ -d .git ] && command -v lefthook >/dev/null && lefthook install || true",
     "dev": "bun run build:package && bun --filter suref-web dev",
     "dev:watch": "bun --filter salvageunion-reference watch & bun --filter suref-web dev",
     "dev:bot": "bun run build:package && bun --filter @suref/discord-bot dev",
