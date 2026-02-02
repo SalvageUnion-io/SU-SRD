@@ -8,6 +8,7 @@ import { QueryClient } from '@tanstack/react-query'
 import { generateLocalId, LOCAL_ID, isLocalId } from '../lib/cacheHelpers'
 import { pilotsKeys } from '../hooks/pilot'
 import { mechsKeys } from '../hooks/mech/useMechs'
+import { crawlersKeys } from '../hooks/crawler/useCrawlers'
 import { entitiesKeys } from '../hooks/suentity/useSUEntities'
 import type { Tables, Json } from '../types/database-generated.types'
 import type { HydratedEntity } from '../types/hydrated'
@@ -87,6 +88,43 @@ export function createLocalMech(
 
   queryClient.setQueryData(mechsKeys.byId(id), mech)
   return mech
+}
+
+/**
+ * Create a local crawler in cache with default or custom values
+ */
+export function createLocalCrawler(
+  queryClient: QueryClient,
+  id: string = generateLocalId(),
+  overrides?: Partial<Tables<'crawlers'>>
+): Tables<'crawlers'> {
+  const now = new Date().toISOString()
+  const crawler: Tables<'crawlers'> = {
+    id,
+    name: 'Test Crawler',
+    description: null,
+    tech_level: 1,
+    upgrade: 0,
+    scrap_tl_one: 100,
+    scrap_tl_two: 0,
+    scrap_tl_three: 0,
+    scrap_tl_four: 0,
+    scrap_tl_five: 0,
+    scrap_tl_six: 0,
+    current_damage: 0,
+    notes: null,
+    npc: null,
+    active: false,
+    private: true,
+    user_id: 'local',
+    game_id: null,
+    created_at: now,
+    updated_at: now,
+    ...overrides,
+  }
+
+  queryClient.setQueryData(crawlersKeys.byId(id), crawler)
+  return crawler
 }
 
 /**

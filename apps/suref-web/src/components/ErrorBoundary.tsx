@@ -3,6 +3,7 @@ import { Box, Flex, Text, Link } from '@chakra-ui/react'
 import { Button } from '@chakra-ui/react'
 import type { ReactNode } from 'react'
 import { Heading } from './base/Heading'
+import { logger } from '../lib/logger'
 
 interface ErrorBoundaryProps {
   children: ReactNode
@@ -21,6 +22,49 @@ interface ErrorContext {
   url: string
   timestamp: string
   userId?: string
+}
+
+/**
+ * Report error to console with structured format
+ * Includes error message, component stack, URL, timestamp, and user agent
+ *
+ * @param context - Error context including error, errorInfo, and environment details
+ */
+function reportError(context: ErrorContext): void {
+  const { error, errorInfo, userAgent, url, timestamp } = context
+
+  // Log structured error information
+  logger.error('=== Error Boundary Caught Error ===')
+  logger.error('Timestamp:', timestamp)
+  logger.error('URL:', url)
+  logger.error('User Agent:', userAgent)
+  logger.error('Error Message:', error.message)
+  logger.error('Error Stack:', error.stack)
+
+  if (errorInfo) {
+    logger.error('Component Stack:', errorInfo.componentStack)
+  }
+
+  // Log full error object for debugging
+  logger.error('Full Error Context:', {
+    error: {
+      name: error.name,
+      message: error.message,
+      stack: error.stack,
+    },
+    errorInfo: errorInfo
+      ? {
+          componentStack: errorInfo.componentStack,
+        }
+      : null,
+    environment: {
+      userAgent,
+      url,
+      timestamp,
+    },
+  })
+
+  logger.error('=== End Error Report ===')
 }
 
 export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
