@@ -748,11 +748,11 @@ export function hasTraits(
   const resolvedActions = extractActions(entity)
   const hasActionTraits = Boolean(
     resolvedActions &&
-      resolvedActions.length > 0 &&
-      resolvedActions[0] !== null &&
-      typeof resolvedActions[0] === 'object' &&
-      'traits' in resolvedActions[0] &&
-      (resolvedActions[0].traits === undefined || Array.isArray(resolvedActions[0].traits))
+    resolvedActions.length > 0 &&
+    resolvedActions[0] !== null &&
+    typeof resolvedActions[0] === 'object' &&
+    'traits' in resolvedActions[0] &&
+    (resolvedActions[0].traits === undefined || Array.isArray(resolvedActions[0].traits))
   )
 
   return hasBaseTraits || hasActionTraits
