@@ -8,7 +8,7 @@ import type { Tables } from '../../../types/database-generated.types'
 describe('MechLiveSheet - Resource Management', () => {
   describe('Common Cases', () => {
     test('SP stepper displays and updates current damage correctly', async () => {
-      render(<MechLiveSheet id={LOCAL_ID} />)
+      await render(<MechLiveSheet id={LOCAL_ID} />)
 
       await waitFor(() => {
         const spElements = screen.getAllByText(/sp|structure/i)
@@ -17,7 +17,7 @@ describe('MechLiveSheet - Resource Management', () => {
     })
 
     test('EP stepper displays and updates current EP', async () => {
-      render(<MechLiveSheet id={LOCAL_ID} />)
+      await render(<MechLiveSheet id={LOCAL_ID} />)
 
       await waitFor(() => {
         const epElements = screen.getAllByText(/ep|energy/i)
@@ -26,7 +26,7 @@ describe('MechLiveSheet - Resource Management', () => {
     })
 
     test('Heat stepper displays and updates current heat', async () => {
-      render(<MechLiveSheet id={LOCAL_ID} />)
+      await render(<MechLiveSheet id={LOCAL_ID} />)
 
       await waitFor(() => {
         const heatElements = screen.queryAllByText(/heat/i)
@@ -38,7 +38,7 @@ describe('MechLiveSheet - Resource Management', () => {
     })
 
     test('SP cannot go below 0', async () => {
-      const { queryClient } = render(<MechLiveSheet id={LOCAL_ID} />)
+      const { queryClient } = await render(<MechLiveSheet id={LOCAL_ID} />)
 
       if (queryClient) {
         createLocalMech(queryClient, LOCAL_ID, {
@@ -64,7 +64,7 @@ describe('MechLiveSheet - Resource Management', () => {
     })
 
     test('EP cannot go below 0', async () => {
-      const { queryClient } = render(<MechLiveSheet id={LOCAL_ID} />)
+      const { queryClient } = await render(<MechLiveSheet id={LOCAL_ID} />)
 
       if (queryClient) {
         createLocalMech(queryClient, LOCAL_ID, {
@@ -91,7 +91,7 @@ describe('MechLiveSheet - Resource Management', () => {
 
   describe('Corner Cases', () => {
     test('set SP damage to 0', async () => {
-      const { queryClient } = render(<MechLiveSheet id={LOCAL_ID} />)
+      const { queryClient } = await render(<MechLiveSheet id={LOCAL_ID} />)
 
       if (queryClient) {
         createLocalMech(queryClient, LOCAL_ID, {
@@ -108,7 +108,7 @@ describe('MechLiveSheet - Resource Management', () => {
     })
 
     test('set EP to 0', async () => {
-      const { queryClient } = render(<MechLiveSheet id={LOCAL_ID} />)
+      const { queryClient } = await render(<MechLiveSheet id={LOCAL_ID} />)
 
       if (queryClient) {
         createLocalMech(queryClient, LOCAL_ID, {

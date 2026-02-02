@@ -34,7 +34,9 @@ export function createTestQueryClient(): QueryClient {
  * Note: The render function from test/render.tsx creates its own QueryClient
  * For tests that need to pre-populate cache, use render with setup helpers separately
  */
-export function renderPilotLiveSheet(id: string = LOCAL_ID): RenderResult {
+export async function renderPilotLiveSheet(
+  id: string = LOCAL_ID
+): Promise<RenderResult & { queryClient: QueryClient }> {
   return render(<PilotLiveSheet id={id} />)
 }
 

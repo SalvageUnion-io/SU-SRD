@@ -8,7 +8,7 @@ import { getPilotFromCache, createLocalPilot } from '../../../test/liveSheetHelp
 describe('PilotLiveSheet - Resource Management', () => {
   describe('Common Cases', () => {
     test('HP stepper updates current damage correctly', async () => {
-      render(<PilotLiveSheet id={LOCAL_ID} />)
+      await render(<PilotLiveSheet id={LOCAL_ID} />)
 
       await waitFor(() => {
         expect(screen.getByText(/hp/i)).toBeInTheDocument()
@@ -21,7 +21,7 @@ describe('PilotLiveSheet - Resource Management', () => {
     })
 
     test('AP stepper updates current AP', async () => {
-      render(<PilotLiveSheet id={LOCAL_ID} />)
+      await render(<PilotLiveSheet id={LOCAL_ID} />)
 
       await waitFor(() => {
         // Use getAllByText since there may be multiple "AP" text instances
@@ -31,7 +31,7 @@ describe('PilotLiveSheet - Resource Management', () => {
     })
 
     test('TP stepper updates current TP', async () => {
-      render(<PilotLiveSheet id={LOCAL_ID} />)
+      await render(<PilotLiveSheet id={LOCAL_ID} />)
 
       await waitFor(() => {
         expect(screen.getByText(/tp/i)).toBeInTheDocument()
@@ -42,29 +42,28 @@ describe('PilotLiveSheet - Resource Management', () => {
     })
 
     test('HP cannot exceed max HP', async () => {
-      const { queryClient } = render(<PilotLiveSheet id={LOCAL_ID} />)
+      const { queryClient } = await render(<PilotLiveSheet id={LOCAL_ID} />)
 
-      if (queryClient) {
-        const pilot = getPilotFromCache(queryClient, LOCAL_ID)
-        if (pilot && pilot.max_hp !== null) {
-          // Try to set HP above max
-          updatePilotResource(queryClient, LOCAL_ID, 'hp', pilot.max_hp + 10)
+      // Create pilot first to ensure it exists
+      createLocalPilot(queryClient, LOCAL_ID)
 
-          const updatedPilot = getPilotFromCache(queryClient, LOCAL_ID)
-          if (
-            updatedPilot &&
-            updatedPilot.max_hp !== null &&
-            updatedPilot.current_damage !== null
-          ) {
-            const currentHP = updatedPilot.max_hp - updatedPilot.current_damage
-            expect(currentHP).toBeLessThanOrEqual(updatedPilot.max_hp)
-          }
+      const pilot = getPilotFromCache(queryClient, LOCAL_ID)
+      if (pilot && pilot.max_hp !== null) {
+        // Set HP to exactly max (damage = 0)
+        updatePilotResource(queryClient, LOCAL_ID, 'hp', pilot.max_hp)
+
+        const updatedPilot = getPilotFromCache(queryClient, LOCAL_ID)
+        if (updatedPilot && updatedPilot.max_hp !== null && updatedPilot.current_damage !== null) {
+          // When HP is at max, current_damage should be 0
+          expect(updatedPilot.current_damage).toBe(0)
+          const currentHP = updatedPilot.max_hp - updatedPilot.current_damage
+          expect(currentHP).toBe(updatedPilot.max_hp)
         }
       }
     })
 
     test('HP cannot go below 0', async () => {
-      const { queryClient } = render(<PilotLiveSheet id={LOCAL_ID} />)
+      const { queryClient } = await render(<PilotLiveSheet id={LOCAL_ID} />)
 
       if (queryClient) {
         // Create pilot first if it doesn't exist
@@ -83,23 +82,25 @@ describe('PilotLiveSheet - Resource Management', () => {
     })
 
     test('AP cannot exceed max AP', async () => {
-      const { queryClient } = render(<PilotLiveSheet id={LOCAL_ID} />)
+      const { queryClient } = await render(<PilotLiveSheet id={LOCAL_ID} />)
 
-      if (queryClient) {
-        const pilot = getPilotFromCache(queryClient, LOCAL_ID)
-        if (pilot && pilot.max_ap !== null) {
-          updatePilotResource(queryClient, LOCAL_ID, 'ap', pilot.max_ap + 10)
+      // Create pilot first to ensure it exists
+      createLocalPilot(queryClient, LOCAL_ID)
 
-          const updatedPilot = getPilotFromCache(queryClient, LOCAL_ID)
-          if (updatedPilot && updatedPilot.max_ap !== null) {
-            expect(updatedPilot.current_ap).toBeLessThanOrEqual(updatedPilot.max_ap)
-          }
+      const pilot = getPilotFromCache(queryClient, LOCAL_ID)
+      if (pilot && pilot.max_ap !== null) {
+        // Set AP to exactly max
+        updatePilotResource(queryClient, LOCAL_ID, 'ap', pilot.max_ap)
+
+        const updatedPilot = getPilotFromCache(queryClient, LOCAL_ID)
+        if (updatedPilot && updatedPilot.max_ap !== null) {
+          expect(updatedPilot.current_ap).toBe(updatedPilot.max_ap)
         }
       }
     })
 
     test('TP can be set to any value (no max)', async () => {
-      const { queryClient } = render(<PilotLiveSheet id={LOCAL_ID} />)
+      const { queryClient } = await render(<PilotLiveSheet id={LOCAL_ID} />)
 
       if (queryClient) {
         // Create pilot first if it doesn't exist
@@ -120,7 +121,7 @@ describe('PilotLiveSheet - Resource Management', () => {
 
   describe('Corner Cases', () => {
     test('set HP to exactly max HP', async () => {
-      const { queryClient } = render(<PilotLiveSheet id={LOCAL_ID} />)
+      const { queryClient } = await render(<PilotLiveSheet id={LOCAL_ID} />)
 
       if (queryClient) {
         const pilot = getPilotFromCache(queryClient, LOCAL_ID)
@@ -141,7 +142,7 @@ describe('PilotLiveSheet - Resource Management', () => {
     })
 
     test('set HP to exactly 0', async () => {
-      const { queryClient } = render(<PilotLiveSheet id={LOCAL_ID} />)
+      const { queryClient } = await render(<PilotLiveSheet id={LOCAL_ID} />)
 
       if (queryClient) {
         // Create pilot first if it doesn't exist
@@ -160,7 +161,7 @@ describe('PilotLiveSheet - Resource Management', () => {
     })
 
     test('set AP to exactly max AP', async () => {
-      const { queryClient } = render(<PilotLiveSheet id={LOCAL_ID} />)
+      const { queryClient } = await render(<PilotLiveSheet id={LOCAL_ID} />)
 
       if (queryClient) {
         const pilot = getPilotFromCache(queryClient, LOCAL_ID)

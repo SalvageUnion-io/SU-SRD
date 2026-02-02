@@ -10,7 +10,7 @@ describe('PilotLiveSheet - Advanced & Legendary Trees', () => {
   describe('Common Cases', () => {
     test('advanced tree appears after 6 abilities and requirements met', async () => {
       const baseClass = getBaseClass()
-      const { queryClient } = render(<PilotLiveSheet id={LOCAL_ID} />)
+      const { queryClient } = await render(<PilotLiveSheet id={LOCAL_ID} />)
 
       if (queryClient && 'advancedTree' in baseClass && baseClass.advancedTree) {
         setupPilotWithClass(queryClient, LOCAL_ID, baseClass.id)
@@ -40,7 +40,7 @@ describe('PilotLiveSheet - Advanced & Legendary Trees', () => {
 
     test('legendary tree shows abilities sorted alphabetically', async () => {
       const baseClass = getBaseClass()
-      const { queryClient } = render(<PilotLiveSheet id={LOCAL_ID} />)
+      const { queryClient } = await render(<PilotLiveSheet id={LOCAL_ID} />)
 
       if (
         queryClient &&
@@ -62,7 +62,7 @@ describe('PilotLiveSheet - Advanced & Legendary Trees', () => {
       // This test would require selecting a hybrid class
       // The advanced tree should not appear when hybrid is selected
       const baseClass = getBaseClass()
-      render(<PilotLiveSheet id={LOCAL_ID} />)
+      await render(<PilotLiveSheet id={LOCAL_ID} />)
 
       // Simplified test - verify structure exists
       expect(baseClass).toBeDefined()

@@ -49,7 +49,7 @@ describe('MechLiveSheet - Initialization', () => {
     })
 
     test('handles rapid mount/unmount cycles', async () => {
-      const { unmount: firstUnmount } = render(<MechLiveSheet id={LOCAL_ID} />)
+      const { unmount: firstUnmount } = await render(<MechLiveSheet id={LOCAL_ID} />)
 
       await waitFor(
         () => {
@@ -61,7 +61,7 @@ describe('MechLiveSheet - Initialization', () => {
 
       firstUnmount()
 
-      const { unmount: secondUnmount } = render(<MechLiveSheet id={LOCAL_ID} />)
+      const { unmount: secondUnmount } = await render(<MechLiveSheet id={LOCAL_ID} />)
       await waitFor(
         () => {
           const elements = screen.queryAllByText(/mech|chassis/i)

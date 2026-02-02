@@ -97,9 +97,9 @@ describe('Schema Entity Display Tests', () => {
 
       for (const entity of allEntities) {
         test(`displays all properties for: ${entity.name}`, async () => {
-          let result: ReturnType<typeof render>
+          let result: Awaited<ReturnType<typeof render>>
           await act(async () => {
-            result = render(
+            result = await render(
               <EntityDisplay data={entity as SURefEntity} compact={false} collapsible={false} />
             )
           })

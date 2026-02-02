@@ -10,7 +10,7 @@ describe('PilotLiveSheet - Class Selection', () => {
   describe('Common Cases', () => {
     test('select base class from dropdown', async () => {
       const baseClass = getBaseClass()
-      const { queryClient } = render(<PilotLiveSheet id={LOCAL_ID} />)
+      const { queryClient } = await render(<PilotLiveSheet id={LOCAL_ID} />)
 
       if (queryClient) {
         // Test that setting up a class works via cache
@@ -31,7 +31,7 @@ describe('PilotLiveSheet - Class Selection', () => {
 
     test('class name appears in pseudo-header', async () => {
       const baseClass = getBaseClass()
-      const { queryClient } = render(<PilotLiveSheet id={LOCAL_ID} />)
+      const { queryClient } = await render(<PilotLiveSheet id={LOCAL_ID} />)
 
       if (queryClient) {
         setupPilotWithClass(queryClient, LOCAL_ID, baseClass.id)
@@ -49,7 +49,7 @@ describe('PilotLiveSheet - Class Selection', () => {
 
     test('core trees display after class selection', async () => {
       const baseClass = getBaseClass()
-      const { queryClient } = render(<PilotLiveSheet id={LOCAL_ID} />)
+      const { queryClient } = await render(<PilotLiveSheet id={LOCAL_ID} />)
 
       if (queryClient && 'coreTrees' in baseClass && Array.isArray(baseClass.coreTrees)) {
         setupPilotWithClass(queryClient, LOCAL_ID, baseClass.id)
@@ -83,7 +83,7 @@ describe('PilotLiveSheet - Class Selection', () => {
         return
       }
 
-      const { queryClient } = render(<PilotLiveSheet id={LOCAL_ID} />)
+      const { queryClient } = await render(<PilotLiveSheet id={LOCAL_ID} />)
 
       if (queryClient) {
         // Test that setting up a non-advanceable class works
@@ -104,7 +104,7 @@ describe('PilotLiveSheet - Class Selection', () => {
 
     test('change class after abilities selected', async () => {
       const baseClass1 = getBaseClass()
-      const { queryClient } = render(<PilotLiveSheet id={LOCAL_ID} />)
+      const { queryClient } = await render(<PilotLiveSheet id={LOCAL_ID} />)
 
       if (queryClient) {
         // Test changing class via cache

@@ -17,7 +17,7 @@ import {
 describe('PilotLiveSheet - Entity Hydration', () => {
   describe('Common Cases', () => {
     test('pilot hydrates with all entities correctly', async () => {
-      const { queryClient } = render(<PilotLiveSheet id={LOCAL_ID} />)
+      const { queryClient } = await render(<PilotLiveSheet id={LOCAL_ID} />)
 
       if (queryClient) {
         const baseClass = getBaseClass()
@@ -33,7 +33,7 @@ describe('PilotLiveSheet - Entity Hydration', () => {
 
     test('selected class appears in hydrated pilot', async () => {
       const baseClass = getBaseClass()
-      const { queryClient } = render(<PilotLiveSheet id={LOCAL_ID} />)
+      const { queryClient } = await render(<PilotLiveSheet id={LOCAL_ID} />)
 
       if (queryClient) {
         setupPilotWithClass(queryClient, LOCAL_ID, baseClass.id)
@@ -56,7 +56,7 @@ describe('PilotLiveSheet - Entity Hydration', () => {
         return
       }
 
-      const { queryClient } = render(<PilotLiveSheet id={LOCAL_ID} />)
+      const { queryClient } = await render(<PilotLiveSheet id={LOCAL_ID} />)
 
       if (queryClient) {
         setupPilotWithClass(queryClient, LOCAL_ID, baseClass.id)
@@ -76,7 +76,7 @@ describe('PilotLiveSheet - Entity Hydration', () => {
         return
       }
 
-      const { queryClient } = render(<PilotLiveSheet id={LOCAL_ID} />)
+      const { queryClient } = await render(<PilotLiveSheet id={LOCAL_ID} />)
 
       if (queryClient) {
         addEquipmentToPilot(queryClient, LOCAL_ID, equipment.id)
@@ -92,7 +92,7 @@ describe('PilotLiveSheet - Entity Hydration', () => {
 
   describe('Corner Cases', () => {
     test('hydrate pilot with no entities', async () => {
-      const { queryClient } = render(<PilotLiveSheet id={LOCAL_ID} />)
+      const { queryClient } = await render(<PilotLiveSheet id={LOCAL_ID} />)
 
       if (queryClient) {
         const entities = getEntitiesFromCache(queryClient, 'pilot', LOCAL_ID)

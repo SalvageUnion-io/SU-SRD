@@ -9,7 +9,7 @@ import { crawlersKeys } from '../../../hooks/crawler/useCrawlers'
 describe('CrawlerLiveSheet - Resource Management', () => {
   describe('Common Cases', () => {
     test('scrap stepper displays scrap resources', async () => {
-      render(<CrawlerLiveSheet id={LOCAL_ID} />)
+      await render(<CrawlerLiveSheet id={LOCAL_ID} />)
 
       await waitFor(() => {
         const scrapElements = screen.getAllByText(/scrap/i)
@@ -18,7 +18,7 @@ describe('CrawlerLiveSheet - Resource Management', () => {
     })
 
     test('scrap values can be set per tech level', async () => {
-      const { queryClient } = render(<CrawlerLiveSheet id={LOCAL_ID} />)
+      const { queryClient } = await render(<CrawlerLiveSheet id={LOCAL_ID} />)
 
       if (queryClient) {
         createLocalCrawler(queryClient, LOCAL_ID, {
@@ -38,7 +38,7 @@ describe('CrawlerLiveSheet - Resource Management', () => {
     })
 
     test('scrap can be set to high values', async () => {
-      const { queryClient } = render(<CrawlerLiveSheet id={LOCAL_ID} />)
+      const { queryClient } = await render(<CrawlerLiveSheet id={LOCAL_ID} />)
 
       if (queryClient) {
         createLocalCrawler(queryClient, LOCAL_ID, {
@@ -57,7 +57,7 @@ describe('CrawlerLiveSheet - Resource Management', () => {
 
   describe('Corner Cases', () => {
     test('set scrap to exactly 0', async () => {
-      const { queryClient } = render(<CrawlerLiveSheet id={LOCAL_ID} />)
+      const { queryClient } = await render(<CrawlerLiveSheet id={LOCAL_ID} />)
 
       if (queryClient) {
         createLocalCrawler(queryClient, LOCAL_ID, {
@@ -74,7 +74,7 @@ describe('CrawlerLiveSheet - Resource Management', () => {
     })
 
     test('handles null scrap values', async () => {
-      const { queryClient } = render(<CrawlerLiveSheet id={LOCAL_ID} />)
+      const { queryClient } = await render(<CrawlerLiveSheet id={LOCAL_ID} />)
 
       if (queryClient) {
         createLocalCrawler(queryClient, LOCAL_ID, {

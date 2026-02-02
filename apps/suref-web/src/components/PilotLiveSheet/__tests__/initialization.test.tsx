@@ -72,7 +72,7 @@ describe('PilotLiveSheet - Initialization', () => {
     test('initializes with pre-existing local data in cache', async () => {
       const pilotId = LOCAL_ID
 
-      const { queryClient } = render(<PilotLiveSheet id={pilotId} />)
+      const { queryClient } = await render(<PilotLiveSheet id={pilotId} />)
 
       // Pre-populate cache after render (component will pick it up)
       if (queryClient) {
@@ -105,7 +105,7 @@ describe('PilotLiveSheet - Initialization', () => {
     })
 
     test('handles rapid mount/unmount cycles', async () => {
-      const { unmount: firstUnmount } = render(<PilotLiveSheet id={LOCAL_ID} />)
+      const { unmount: firstUnmount } = await render(<PilotLiveSheet id={LOCAL_ID} />)
 
       await waitFor(() => {
         expect(screen.getByText(/callsign/i)).toBeInTheDocument()
@@ -113,7 +113,7 @@ describe('PilotLiveSheet - Initialization', () => {
 
       firstUnmount()
 
-      const { unmount: secondUnmount } = render(<PilotLiveSheet id={LOCAL_ID} />)
+      const { unmount: secondUnmount } = await render(<PilotLiveSheet id={LOCAL_ID} />)
       await waitFor(() => {
         expect(screen.getByText(/callsign/i)).toBeInTheDocument()
       })

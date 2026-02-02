@@ -14,7 +14,7 @@ describe('PilotLiveSheet - Systems & Modules on Equipment', () => {
         return
       }
 
-      const { queryClient } = render(<PilotLiveSheet id={LOCAL_ID} />)
+      const { queryClient } = await render(<PilotLiveSheet id={LOCAL_ID} />)
 
       if (queryClient) {
         addEquipmentToPilot(queryClient, LOCAL_ID, equipment.id)
@@ -38,7 +38,7 @@ describe('PilotLiveSheet - Systems & Modules on Equipment', () => {
         return
       }
 
-      const { queryClient } = render(<PilotLiveSheet id={LOCAL_ID} />)
+      const { queryClient } = await render(<PilotLiveSheet id={LOCAL_ID} />)
 
       if (queryClient) {
         addEquipmentToPilot(queryClient, LOCAL_ID, equipment.id)
@@ -66,7 +66,7 @@ describe('PilotLiveSheet - Systems & Modules on Equipment', () => {
       }
 
       // Test with equipment that has no system slots
-      render(<PilotLiveSheet id={LOCAL_ID} />)
+      await render(<PilotLiveSheet id={LOCAL_ID} />)
 
       await waitFor(() => {
         const inventoryTab = screen.getByRole('tab', { name: /inventory/i })
@@ -76,7 +76,7 @@ describe('PilotLiveSheet - Systems & Modules on Equipment', () => {
 
     test('equipment with 0 module slots (module section hidden)', async () => {
       // Similar to system slots test
-      render(<PilotLiveSheet id={LOCAL_ID} />)
+      await render(<PilotLiveSheet id={LOCAL_ID} />)
 
       await waitFor(() => {
         const inventoryTab = screen.getByRole('tab', { name: /inventory/i })

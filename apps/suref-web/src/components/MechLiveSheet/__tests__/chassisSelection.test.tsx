@@ -6,7 +6,7 @@ import MechLiveSheet from '../index'
 describe('MechLiveSheet - Chassis Selection', () => {
   describe('Common Cases', () => {
     test('displays chassis selector', async () => {
-      render(<MechLiveSheet id={LOCAL_ID} />)
+      await render(<MechLiveSheet id={LOCAL_ID} />)
 
       await waitFor(
         () => {
@@ -18,7 +18,7 @@ describe('MechLiveSheet - Chassis Selection', () => {
     })
 
     test('displays chassis abilities tab', async () => {
-      render(<MechLiveSheet id={LOCAL_ID} />)
+      await render(<MechLiveSheet id={LOCAL_ID} />)
 
       await waitFor(
         () => {
@@ -33,7 +33,7 @@ describe('MechLiveSheet - Chassis Selection', () => {
 
   describe('Corner Cases', () => {
     test('handles mech without chassis gracefully', async () => {
-      render(<MechLiveSheet id={LOCAL_ID} />)
+      await render(<MechLiveSheet id={LOCAL_ID} />)
 
       await waitFor(
         () => {

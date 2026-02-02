@@ -10,7 +10,7 @@ import { entitiesKeys } from '../../../hooks/suentity/useSUEntities'
 describe('CrawlerLiveSheet - NPC Management', () => {
   describe('Common Cases', () => {
     test('displays NPC assignment interface for bays', async () => {
-      const { queryClient } = render(<CrawlerLiveSheet id={LOCAL_ID} />)
+      const { queryClient } = await render(<CrawlerLiveSheet id={LOCAL_ID} />)
 
       const crawlerType = SalvageUnionReference.Crawlers.find((c) => c.name === 'Fortress')
       const bay = SalvageUnionReference.CrawlerBays.find((b) => b.name !== 'Storage Bay')
@@ -57,7 +57,7 @@ describe('CrawlerLiveSheet - NPC Management', () => {
     })
 
     test('can assign NPC to bay', async () => {
-      const { queryClient } = render(<CrawlerLiveSheet id={LOCAL_ID} />)
+      const { queryClient } = await render(<CrawlerLiveSheet id={LOCAL_ID} />)
 
       const crawlerType = SalvageUnionReference.Crawlers.find((c) => c.name === 'Fortress')
       const bay = SalvageUnionReference.CrawlerBays.find((b) => b.name !== 'Storage Bay')
@@ -81,7 +81,7 @@ describe('CrawlerLiveSheet - NPC Management', () => {
 
   describe('Corner Cases', () => {
     test('handles bays without NPCs', async () => {
-      const { queryClient } = render(<CrawlerLiveSheet id={LOCAL_ID} />)
+      const { queryClient } = await render(<CrawlerLiveSheet id={LOCAL_ID} />)
 
       const crawlerType = SalvageUnionReference.Crawlers.find((c) => c.name === 'Fortress')
       const bay = SalvageUnionReference.CrawlerBays.find((b) => b.name !== 'Storage Bay')

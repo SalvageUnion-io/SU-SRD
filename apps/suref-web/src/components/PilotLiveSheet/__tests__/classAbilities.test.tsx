@@ -11,7 +11,7 @@ describe('PilotLiveSheet - Class Abilities', () => {
   describe('Common Cases', () => {
     test('displays all core trees for selected class', async () => {
       const baseClass = getBaseClass()
-      const { queryClient } = render(<PilotLiveSheet id={LOCAL_ID} />)
+      const { queryClient } = await render(<PilotLiveSheet id={LOCAL_ID} />)
 
       if (queryClient && 'coreTrees' in baseClass && Array.isArray(baseClass.coreTrees)) {
         setupPilotWithClass(queryClient, LOCAL_ID, baseClass.id)
@@ -37,7 +37,7 @@ describe('PilotLiveSheet - Class Abilities', () => {
 
     test('shows abilities in each core tree, sorted by level', async () => {
       const baseClass = getBaseClass()
-      const { queryClient } = render(<PilotLiveSheet id={LOCAL_ID} />)
+      const { queryClient } = await render(<PilotLiveSheet id={LOCAL_ID} />)
 
       if (queryClient && 'coreTrees' in baseClass && Array.isArray(baseClass.coreTrees)) {
         setupPilotWithClass(queryClient, LOCAL_ID, baseClass.id)
@@ -70,7 +70,7 @@ describe('PilotLiveSheet - Class Abilities', () => {
         return
       }
 
-      const { queryClient } = render(<PilotLiveSheet id={LOCAL_ID} />)
+      const { queryClient } = await render(<PilotLiveSheet id={LOCAL_ID} />)
 
       if (queryClient) {
         setupPilotWithClass(queryClient, LOCAL_ID, baseClass.id)
@@ -95,7 +95,7 @@ describe('PilotLiveSheet - Class Abilities', () => {
         return
       }
 
-      const { queryClient } = render(<PilotLiveSheet id={LOCAL_ID} />)
+      const { queryClient } = await render(<PilotLiveSheet id={LOCAL_ID} />)
 
       if (queryClient) {
         setupPilotWithClass(queryClient, LOCAL_ID, baseClass.id)
@@ -125,7 +125,7 @@ describe('PilotLiveSheet - Class Abilities', () => {
         return
       }
 
-      const { queryClient } = render(<PilotLiveSheet id={LOCAL_ID} />)
+      const { queryClient } = await render(<PilotLiveSheet id={LOCAL_ID} />)
 
       if (queryClient) {
         setupPilotWithClass(queryClient, LOCAL_ID, baseClass.id)

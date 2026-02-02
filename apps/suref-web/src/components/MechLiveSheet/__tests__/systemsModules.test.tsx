@@ -6,7 +6,7 @@ import MechLiveSheet from '../index'
 describe('MechLiveSheet - Systems and Modules', () => {
   describe('Common Cases', () => {
     test('displays systems and modules tab', async () => {
-      render(<MechLiveSheet id={LOCAL_ID} />)
+      await render(<MechLiveSheet id={LOCAL_ID} />)
 
       await waitFor(
         () => {
@@ -19,7 +19,7 @@ describe('MechLiveSheet - Systems and Modules', () => {
     })
 
     test('displays storage tab', async () => {
-      render(<MechLiveSheet id={LOCAL_ID} />)
+      await render(<MechLiveSheet id={LOCAL_ID} />)
 
       await waitFor(
         () => {
@@ -33,7 +33,7 @@ describe('MechLiveSheet - Systems and Modules', () => {
 
   describe('Corner Cases', () => {
     test('handles empty systems and modules', async () => {
-      render(<MechLiveSheet id={LOCAL_ID} />)
+      await render(<MechLiveSheet id={LOCAL_ID} />)
 
       await waitFor(
         () => {

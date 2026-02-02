@@ -8,7 +8,7 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 describe('CrawlerLiveSheet - Bay Management', () => {
   describe('Common Cases', () => {
     test('displays bays when crawler type is selected', async () => {
-      const { queryClient } = render(<CrawlerLiveSheet id={LOCAL_ID} />)
+      const { queryClient } = await render(<CrawlerLiveSheet id={LOCAL_ID} />)
 
       const crawlerType = SalvageUnionReference.Crawlers.find((c) => c.name === 'Fortress')
       if (crawlerType && queryClient) {
@@ -30,7 +30,7 @@ describe('CrawlerLiveSheet - Bay Management', () => {
     })
 
     test('displays storage bay separately', async () => {
-      const { queryClient } = render(<CrawlerLiveSheet id={LOCAL_ID} />)
+      const { queryClient } = await render(<CrawlerLiveSheet id={LOCAL_ID} />)
 
       const crawlerType = SalvageUnionReference.Crawlers.find((c) => c.name === 'Fortress')
       if (crawlerType && queryClient) {
@@ -57,7 +57,7 @@ describe('CrawlerLiveSheet - Bay Management', () => {
     })
 
     test('displays regular bays', async () => {
-      const { queryClient } = render(<CrawlerLiveSheet id={LOCAL_ID} />)
+      const { queryClient } = await render(<CrawlerLiveSheet id={LOCAL_ID} />)
 
       const crawlerType = SalvageUnionReference.Crawlers.find((c) => c.name === 'Fortress')
       if (crawlerType && queryClient) {
@@ -86,7 +86,7 @@ describe('CrawlerLiveSheet - Bay Management', () => {
 
   describe('Corner Cases', () => {
     test('handles empty bays list', async () => {
-      render(<CrawlerLiveSheet id={LOCAL_ID} />)
+      await render(<CrawlerLiveSheet id={LOCAL_ID} />)
 
       await waitFor(() => {
         // Should show bay section even if empty

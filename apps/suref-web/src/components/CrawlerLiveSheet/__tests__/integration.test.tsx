@@ -6,7 +6,7 @@ import CrawlerLiveSheet from '../index'
 describe('CrawlerLiveSheet - Integration', () => {
   describe('Common Cases', () => {
     test('renders crawler components', async () => {
-      render(<CrawlerLiveSheet id={LOCAL_ID} />)
+      await render(<CrawlerLiveSheet id={LOCAL_ID} />)
 
       await waitFor(
         () => {
@@ -19,7 +19,7 @@ describe('CrawlerLiveSheet - Integration', () => {
     })
 
     test('control bar not shown for local crawlers', async () => {
-      render(<CrawlerLiveSheet id={LOCAL_ID} />)
+      await render(<CrawlerLiveSheet id={LOCAL_ID} />)
 
       await waitFor(
         () => {
@@ -32,7 +32,7 @@ describe('CrawlerLiveSheet - Integration', () => {
     })
 
     test('displays crawler with bays section', async () => {
-      render(<CrawlerLiveSheet id={LOCAL_ID} />)
+      await render(<CrawlerLiveSheet id={LOCAL_ID} />)
 
       await waitFor(
         () => {

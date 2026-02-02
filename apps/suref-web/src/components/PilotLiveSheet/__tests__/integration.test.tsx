@@ -26,7 +26,7 @@ describe('PilotLiveSheet - Integration', () => {
         return
       }
 
-      const { queryClient } = render(<PilotLiveSheet id={LOCAL_ID} />)
+      const { queryClient } = await render(<PilotLiveSheet id={LOCAL_ID} />)
 
       if (queryClient) {
         // 1. Select class
@@ -83,7 +83,7 @@ describe('PilotLiveSheet - Integration', () => {
     })
 
     test('all tabs render and switch correctly', async () => {
-      render(<PilotLiveSheet id={LOCAL_ID} />)
+      await render(<PilotLiveSheet id={LOCAL_ID} />)
 
       await waitFor(() => {
         // Check that tabs exist
@@ -108,7 +108,7 @@ describe('PilotLiveSheet - Integration', () => {
     })
 
     test('control bar not shown for local pilots', async () => {
-      render(<PilotLiveSheet id={LOCAL_ID} />)
+      await render(<PilotLiveSheet id={LOCAL_ID} />)
 
       await waitFor(() => {
         // Control bar should not be present for local pilots

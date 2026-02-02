@@ -62,7 +62,7 @@ describe('CrawlerLiveSheet - Initialization', () => {
     })
 
     test('handles rapid mount/unmount cycles', async () => {
-      const { unmount: firstUnmount } = render(<CrawlerLiveSheet id={LOCAL_ID} />)
+      const { unmount: firstUnmount } = await render(<CrawlerLiveSheet id={LOCAL_ID} />)
 
       await waitFor(
         () => {
@@ -74,7 +74,7 @@ describe('CrawlerLiveSheet - Initialization', () => {
 
       firstUnmount()
 
-      const { unmount: secondUnmount } = render(<CrawlerLiveSheet id={LOCAL_ID} />)
+      const { unmount: secondUnmount } = await render(<CrawlerLiveSheet id={LOCAL_ID} />)
       await waitFor(
         () => {
           const elements = screen.queryAllByText(/crawler|name/i)

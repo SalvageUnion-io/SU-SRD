@@ -14,7 +14,7 @@ describe('PilotLiveSheet - Equipment Inventory', () => {
         return
       }
 
-      const { queryClient } = render(<PilotLiveSheet id={LOCAL_ID} />)
+      const { queryClient } = await render(<PilotLiveSheet id={LOCAL_ID} />)
 
       if (queryClient) {
         addEquipmentToPilot(queryClient, LOCAL_ID, equipment.id)
@@ -38,7 +38,7 @@ describe('PilotLiveSheet - Equipment Inventory', () => {
     })
 
     test('equipment counter shows current/max slots', async () => {
-      render(<PilotLiveSheet id={LOCAL_ID} />)
+      await render(<PilotLiveSheet id={LOCAL_ID} />)
 
       await waitFor(() => {
         const inventoryTab = screen.getByRole('tab', { name: /inventory/i })
@@ -62,7 +62,7 @@ describe('PilotLiveSheet - Equipment Inventory', () => {
         return
       }
 
-      const { queryClient } = render(<PilotLiveSheet id={LOCAL_ID} />)
+      const { queryClient } = await render(<PilotLiveSheet id={LOCAL_ID} />)
 
       if (queryClient) {
         // Add 6 equipment items

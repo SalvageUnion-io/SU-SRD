@@ -6,7 +6,7 @@ import MechLiveSheet from '../index'
 describe('MechLiveSheet - Integration', () => {
   describe('Common Cases', () => {
     test('all tabs render correctly', async () => {
-      render(<MechLiveSheet id={LOCAL_ID} />)
+      await render(<MechLiveSheet id={LOCAL_ID} />)
 
       await waitFor(
         () => {
@@ -21,7 +21,7 @@ describe('MechLiveSheet - Integration', () => {
     })
 
     test('tabs can be clicked', async () => {
-      render(<MechLiveSheet id={LOCAL_ID} />)
+      await render(<MechLiveSheet id={LOCAL_ID} />)
 
       await waitFor(
         () => {
@@ -42,7 +42,7 @@ describe('MechLiveSheet - Integration', () => {
     })
 
     test('control bar not shown for local mechs', async () => {
-      render(<MechLiveSheet id={LOCAL_ID} />)
+      await render(<MechLiveSheet id={LOCAL_ID} />)
 
       await waitFor(
         () => {

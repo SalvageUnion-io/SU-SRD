@@ -10,7 +10,7 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 describe('PilotLiveSheet - Player Choices', () => {
   describe('Common Cases', () => {
     test('single-select choice displays current selection', async () => {
-      const { queryClient } = render(<PilotLiveSheet id={LOCAL_ID} />)
+      const { queryClient } = await render(<PilotLiveSheet id={LOCAL_ID} />)
 
       if (queryClient) {
         // Get a real ability ID from the reference data
@@ -39,7 +39,7 @@ describe('PilotLiveSheet - Player Choices', () => {
     })
 
     test('update single-select choice (replaces existing)', async () => {
-      const { queryClient } = render(<PilotLiveSheet id={LOCAL_ID} />)
+      const { queryClient } = await render(<PilotLiveSheet id={LOCAL_ID} />)
 
       if (queryClient) {
         // Get a real ability ID
@@ -79,7 +79,7 @@ describe('PilotLiveSheet - Player Choices', () => {
     })
 
     test('multi-select choice displays all selections', async () => {
-      const { queryClient } = render(<PilotLiveSheet id={LOCAL_ID} />)
+      const { queryClient } = await render(<PilotLiveSheet id={LOCAL_ID} />)
 
       if (queryClient) {
         // Get a real ability ID
@@ -106,7 +106,7 @@ describe('PilotLiveSheet - Player Choices', () => {
 
   describe('Corner Cases', () => {
     test('rapidly change choice selections', async () => {
-      const { queryClient } = render(<PilotLiveSheet id={LOCAL_ID} />)
+      const { queryClient } = await render(<PilotLiveSheet id={LOCAL_ID} />)
 
       if (queryClient) {
         // Get a real ability ID
