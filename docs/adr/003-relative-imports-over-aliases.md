@@ -27,6 +27,6 @@ This convention applies to ALL files including route files, components, hooks, u
 - Requires counting `../` levels when writing imports
 
 **References:**
-- `.cursor/rules/typescript-style.mdc`
-- `.cursor/rules/monorepo-patterns.mdc`
+- `.ai/rules/typescript-style.md`
+- `.ai/rules/monorepo-patterns.md`
 - `docs/DEVELOPMENT.md` - Imports section

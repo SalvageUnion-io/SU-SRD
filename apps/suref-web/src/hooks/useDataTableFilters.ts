@@ -1,4 +1,4 @@
-import { useReducer } from 'react'
+import { useDataTableStore } from '../stores/dataTableStore'
 
 export interface DataTableFilterState {
   searchTerm: string
@@ -17,64 +17,55 @@ export type DataTableFilterAction =
   | { type: 'SET_SORT'; payload: { field: string; direction: 'asc' | 'desc' } }
   | { type: 'RESET' }
 
-const initialState: DataTableFilterState = {
-  searchTerm: '',
-  filters: {},
-  techLevelFilters: new Set(),
-  sortField: 'name',
-  sortDirection: 'asc',
-}
+/**
+ * Hook for data table filter state.
+ * Returns [state, dispatch] tuple for backwards compatibility.
+ */
+export function useDataTableFilters(): [
+  DataTableFilterState,
+  (action: DataTableFilterAction) => void,
+] {
+  const state = useDataTableStore((s) => ({
+    searchTerm: s.searchTerm,
+    filters: s.filters,
+    techLevelFilters: s.techLevelFilters,
+    sortField: s.sortField,
+    sortDirection: s.sortDirection,
+  }))
 
-function filterReducer(
-  state: DataTableFilterState,
-  action: DataTableFilterAction
-): DataTableFilterState {
-  switch (action.type) {
-    case 'SET_SEARCH':
-      return { ...state, searchTerm: action.payload }
+  const setSearch = useDataTableStore((s) => s.setSearch)
+  const setFilter = useDataTableStore((s) => s.setFilter)
+  const clearFilter = useDataTableStore((s) => s.clearFilter)
+  const setTechLevelFilters = useDataTableStore((s) => s.setTechLevelFilters)
+  const toggleTechLevel = useDataTableStore((s) => s.toggleTechLevel)
+  const setSort = useDataTableStore((s) => s.setSort)
+  const reset = useDataTableStore((s) => s.reset)
 
-    case 'SET_FILTER':
-      return {
-        ...state,
-        filters: { ...state.filters, [action.payload.field]: action.payload.value },
-      }
-
-    case 'CLEAR_FILTER':
-      return {
-        ...state,
-        filters: Object.fromEntries(
-          Object.entries(state.filters).filter(([key]) => key !== action.payload)
-        ),
-      }
-
-    case 'SET_techLevel_FILTERS':
-      return { ...state, techLevelFilters: action.payload }
-
-    case 'TOGGLE_techLevel': {
-      const newFilters = new Set(state.techLevelFilters)
-      if (newFilters.has(action.payload)) {
-        newFilters.delete(action.payload)
-      } else {
-        newFilters.add(action.payload)
-      }
-      return { ...state, techLevelFilters: newFilters }
+  const dispatch = (action: DataTableFilterAction) => {
+    switch (action.type) {
+      case 'SET_SEARCH':
+        setSearch(action.payload)
+        break
+      case 'SET_FILTER':
+        setFilter(action.payload.field, action.payload.value)
+        break
+      case 'CLEAR_FILTER':
+        clearFilter(action.payload)
+        break
+      case 'SET_techLevel_FILTERS':
+        setTechLevelFilters(action.payload)
+        break
+      case 'TOGGLE_techLevel':
+        toggleTechLevel(action.payload)
+        break
+      case 'SET_SORT':
+        setSort(action.payload.field, action.payload.direction)
+        break
+      case 'RESET':
+        reset()
+        break
     }
-
-    case 'SET_SORT':
-      return {
-        ...state,
-        sortField: action.payload.field,
-        sortDirection: action.payload.direction,
-      }
-
-    case 'RESET':
-      return initialState
-
-    default:
-      return state
   }
-}
 
-export function useDataTableFilters() {
-  return useReducer(filterReducer, initialState)
+  return [state, dispatch]
 }

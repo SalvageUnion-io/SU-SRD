@@ -10,7 +10,8 @@ import { getSchemaCatalog } from 'salvageunion-reference'
 import { getSession, onAuthStateChange } from '../lib/api'
 import type { User } from '@supabase/supabase-js'
 import { Toaster } from '../components/ui/ToasterComponent'
-import { EntityViewerModalProvider } from '../providers/EntityViewerModalProvider'
+import { EntityDisplayModal } from '../components/entity/EntityDisplayModal'
+import { useEntityViewerStore } from '../stores/entityViewerStore'
 import { ThemeProvider } from '../providers/ThemeProvider'
 import { fetchCurrentUser } from '../lib/supabase.server'
 import { system } from '../theme'
@@ -21,6 +22,22 @@ import { Text } from '../components/base/Text'
 import { initPerformanceMonitoring } from '../lib/performance'
 
 const schemaIndexData = getSchemaCatalog()
+
+/**
+ * Global entity viewer modal connected to Zustand store.
+ * Renders the modal without needing a Context provider.
+ */
+function GlobalEntityModal() {
+  const { isOpen, schemaName, entityId, closeEntityModal } = useEntityViewerStore()
+  return (
+    <EntityDisplayModal
+      isOpen={isOpen}
+      onClose={closeEntityModal}
+      schemaName={schemaName}
+      entityId={entityId}
+    />
+  )
+}
 
 export const Route = createRootRoute({
   component: RootComponent,
@@ -115,21 +132,20 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <body>
         <Providers>
           <ErrorBoundary>
-            <EntityViewerModalProvider>
-              <GlobalLoadingBar />
-              <Flex flexDirection="column" h="100vh" bg="bg.canvas">
-                <TopNavigation
-                  user={user}
-                  userLoading={userLoading}
-                  schemas={schemaIndexData.schemas.filter((s) => !s.meta)}
-                />
-                <Box as="main" flex="1" display="flex" bg="bg.landing" flexDirection="column">
-                  {children}
-                </Box>
-                <Footer />
-              </Flex>
-              <Toaster />
-            </EntityViewerModalProvider>
+            <GlobalLoadingBar />
+            <Flex flexDirection="column" h="100vh" bg="bg.canvas">
+              <TopNavigation
+                user={user}
+                userLoading={userLoading}
+                schemas={schemaIndexData.schemas.filter((s) => !s.meta)}
+              />
+              <Box as="main" flex="1" display="flex" bg="bg.landing" flexDirection="column">
+                {children}
+              </Box>
+              <Footer />
+            </Flex>
+            <Toaster />
+            <GlobalEntityModal />
           </ErrorBoundary>
         </Providers>
         <Scripts />

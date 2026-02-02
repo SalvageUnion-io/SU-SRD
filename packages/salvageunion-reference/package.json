@@ -43,8 +43,10 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "tsc --project tsconfig.build.json && bun run generate:json-schemas && bun run format && bun run lint",
+    "build": "tsc --project tsconfig.build.json && bun run generate:json-schemas",
+    "build:full": "bun run build && bun run format && bun run lint",
     "build:ci": "tsc --project tsconfig.build.json",
+    "watch": "tsc --project tsconfig.build.json --watch",
     "prepare": "tsc --project tsconfig.build.json",
     "prepublishOnly": "bun run build && bun run typecheck",
     "validate:ids": "tsx tools/checkUniqueIds.ts",

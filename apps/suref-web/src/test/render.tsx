@@ -1,4 +1,4 @@
-import { render as rtlRender, cleanup, type RenderResult } from '@testing-library/react'
+import { render as rtlRender, type RenderResult } from '@testing-library/react'
 import { ChakraProvider } from '@chakra-ui/react'
 import {
   createMemoryHistory,
@@ -52,7 +52,7 @@ afterEach(() => {
     currentHistory = null
   }
   currentQueryClient = null
-  cleanup()
+  // Note: cleanup() is handled by testing-library.ts preload with act() wrapper
 })
 
 /**

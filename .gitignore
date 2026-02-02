@@ -36,6 +36,9 @@ apps/suref-web/.vite
 # Claude Code
 .claude/settings.local.json
 
+# Cursor IDE
+.cursor/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
