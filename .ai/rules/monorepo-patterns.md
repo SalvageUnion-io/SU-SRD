@@ -1,7 +1,6 @@
----
-description: Monorepo workspace patterns and conventions
-alwaysApply: true
----
+# Monorepo Patterns
+
+> **Always active** - These conventions apply to the entire monorepo.
 
 Bun workspace monorepo with apps/suref-web and packages/salvageunion-reference.
 
@@ -36,13 +35,13 @@ Following [Bun workspace conventions](https://bun.com/docs/guides/install/worksp
 
 **Prefer relative imports over path aliases:**
 
-```ts
-// ✅ Correct - use relative imports
+```typescript
+// Correct - use relative imports
 import { useHydratedPilot } from '../../hooks/pilot'
 import { supabase } from '../lib/supabase'
 import { PilotWizard } from '../components/PilotWizard'
 
-// ❌ Avoid - path aliases hide file structure
+// Avoid - path aliases hide file structure
 import { useHydratedPilot } from '@/hooks/pilot'
 import { supabase } from '@/lib/supabase'
 import { PilotWizard } from '@/components/PilotWizard'

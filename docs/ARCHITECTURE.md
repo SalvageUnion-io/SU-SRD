@@ -71,6 +71,35 @@ TypeScript ORM for Salvage Union game data:
 
 ## Data Flow
 
+The following diagram illustrates the high-level data flow through the application:
+
+```mermaid
+flowchart TD
+    subgraph frontend [Frontend Layer]
+        UI[React Components]
+        TQ[TanStack Query Hooks]
+        API[API Clients]
+    end
+    
+    subgraph data [Data Layer]
+        SUP[Supabase Client]
+        REF[salvageunion-reference]
+    end
+    
+    subgraph backend [Backend Layer]
+        DB[(PostgreSQL + RLS)]
+        AUTH[Supabase Auth]
+    end
+    
+    UI --> TQ
+    TQ --> API
+    API --> SUP
+    SUP --> DB
+    SUP --> AUTH
+    REF --> UI
+    API --> REF
+```
+
 ### Reference Data Flow
 
 1. JSON data files in `packages/salvageunion-reference/data/`

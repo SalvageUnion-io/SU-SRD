@@ -1,0 +1,15 @@
+services:
+  - type: worker
+    name: suref-discord-bot
+    runtime: node
+    region: oregon
+    plan: free
+    buildCommand: "bun install && bun run build:package && bun --filter @suref/discord-bot build"
+    startCommand: "node apps/discord-bot/dist/index.js"
+    envVars:
+      - key: DISCORD_TOKEN
+        sync: false
+      - key: DISCORD_CLIENT_ID
+        sync: false
+      - key: DISCORD_GUILD_ID
+        sync: false
