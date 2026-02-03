@@ -39,10 +39,25 @@ const modules = loadData('modules.json')
 const chassis = loadData('chassis.json')
 const vehicles = loadData('vehicles.json')
 const drones = loadData('drones.json')
+const actions = loadData('actions.json')
+const equipment = loadData('equipment.json')
+const abilities = loadData('abilities.json')
+const traits = loadData('traits.json')
+const keywords = loadData('keywords.json')
 
 // Create lookup sets for fast validation
 const systemNames = new Set(systems.map((s) => s.name as string))
 const moduleNames = new Set(modules.map((m) => m.name as string))
+
+// Schema name to entity names mapping for schemaEntities validation
+const schemaEntityNames: Record<string, Set<string>> = {
+  systems: systemNames,
+  modules: moduleNames,
+  abilities: new Set(abilities.map((a) => a.name as string)),
+  traits: new Set(traits.map((t) => t.name as string)),
+  keywords: new Set(keywords.map((k) => k.name as string)),
+  equipment: new Set(equipment.map((e) => e.name as string)),
+}
 
 console.log(`Loaded ${systemNames.size} systems and ${moduleNames.size} modules`)
 
@@ -154,6 +169,112 @@ for (const drone of drones) {
           referencedName: systemName,
           message: `"${systemName}" not found in systems.json or modules.json`,
         })
+      }
+    }
+  }
+}
+
+// Helper to validate choices recursively (actions can contain nested choices)
+interface Choice {
+  id?: string
+  name?: string
+  schemaEntities?: string[]
+  schema?: string[]
+  choices?: Choice[]
+}
+
+interface EntityWithChoices {
+  name?: string
+  choices?: Choice[]
+  actions?: Array<{ name?: string; choices?: Choice[] }>
+}
+
+function validateChoicesSchemaEntities(
+  entity: EntityWithChoices,
+  sourceFile: string,
+  entityName: string,
+  choicePath: string,
+  choices: Choice[]
+) {
+  for (const choice of choices) {
+    const choiceId = choice.id || choice.name || 'unknown'
+    const currentPath = `${choicePath}.${choiceId}`
+
+    // Check if this choice has schemaEntities and schema
+    if (choice.schemaEntities && choice.schemaEntities.length > 0) {
+      const targetSchemas = choice.schema || []
+
+      if (targetSchemas.length === 0) {
+        // schemaEntities without schema - can't validate target
+        errors.push({
+          file: sourceFile,
+          entityName,
+          field: `${currentPath}.schemaEntities`,
+          referencedName: choice.schemaEntities.join(', '),
+          message: `schemaEntities defined but no schema specified to validate against`,
+        })
+      } else {
+        // Build a set of all valid entity names from the target schemas
+        const validNames = new Set<string>()
+        for (const schemaName of targetSchemas) {
+          const schemaEntities = schemaEntityNames[schemaName]
+          if (schemaEntities) {
+            for (const name of schemaEntities) {
+              validNames.add(name)
+            }
+          }
+        }
+
+        // Validate each schemaEntity
+        for (const entityRef of choice.schemaEntities) {
+          if (!validNames.has(entityRef)) {
+            errors.push({
+              file: sourceFile,
+              entityName,
+              field: `${currentPath}.schemaEntities`,
+              referencedName: entityRef,
+              message: `Entity "${entityRef}" not found in schemas: ${targetSchemas.join(', ')}`,
+            })
+          }
+        }
+      }
+    }
+
+    // Recursively validate nested choices
+    if (choice.choices && Array.isArray(choice.choices)) {
+      validateChoicesSchemaEntities(entity, sourceFile, entityName, currentPath, choice.choices)
+    }
+  }
+}
+
+// Validate schemaEntities in actions.json
+console.log('Validating schemaEntities in actions...')
+for (const action of actions as EntityWithChoices[]) {
+  const actionName = String(action.name ?? 'unknown')
+
+  // Check top-level choices
+  if (action.choices && Array.isArray(action.choices)) {
+    validateChoicesSchemaEntities(action, 'actions.json', actionName, 'choices', action.choices)
+  }
+}
+
+// Validate schemaEntities in equipment.json
+console.log('Validating schemaEntities in equipment...')
+for (const item of equipment as EntityWithChoices[]) {
+  const itemName = String(item.name ?? 'unknown')
+
+  // Check choices in actions
+  if (item.actions && Array.isArray(item.actions)) {
+    for (const action of item.actions) {
+      if (action.choices && Array.isArray(action.choices)) {
+        const actionName = action.name || 'unknown'
+        validateChoicesSchemaEntities(
+          item,
+          'equipment.json',
+          itemName,
+          `actions.${actionName}.choices`,
+          action.choices
+        )
       }
     }
   }

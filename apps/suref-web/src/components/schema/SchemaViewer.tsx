@@ -11,6 +11,8 @@ import type { SURefEntity } from 'salvageunion-reference'
 import { getTechLevel } from 'salvageunion-reference'
 import { getEntitySlug } from '../../utils/slug'
 import { EntityDisplay } from '../entity/EntityDisplay'
+import { SchemaViewerSkeleton } from '../skeleton/SchemaViewerSkeleton'
+import { EntityCardSkeleton } from '../skeleton/EntityCardSkeleton'
 
 interface SchemaViewerProps {
   schemas: SchemaInfo[]
@@ -91,11 +93,7 @@ export default function SchemaViewer({ schemas, data: prefetchedData }: SchemaVi
   }, [data, search, techLevelFilters, sourceFilters])
 
   if (loading) {
-    return (
-      <Flex alignItems="center" justifyContent="center" h="100%">
-        <Text fontSize="xl">Loading data...</Text>
-      </Flex>
-    )
+    return <SchemaViewerSkeleton />
   }
 
   if (error || !currentSchema) {
@@ -284,7 +282,7 @@ export default function SchemaViewer({ schemas, data: prefetchedData }: SchemaVi
                 })
               }
             >
-              <Suspense fallback={<Box h="200px" bg="su.lightBlue" borderRadius="md" />}>
+              <Suspense fallback={<EntityCardSkeleton compact />}>
                 <EntityDisplay hideActions hideChoices data={item} compact collapsible={false} />
               </Suspense>
             </Box>
