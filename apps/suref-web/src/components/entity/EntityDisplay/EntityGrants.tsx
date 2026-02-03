@@ -37,7 +37,7 @@ export function EntityGrants() {
   }
 
   return (
-    <VStack gap={spacing.smallGap} alignItems="stretch" px="2">
+    <VStack gap={spacing.smallGap} alignItems="stretch" px={spacing.contentPaddingX}>
       <Box mb={spacing.minimalGap}>
         <EntitySubheader disabled={true} label="Grants:" />
       </Box>

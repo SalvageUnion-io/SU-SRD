@@ -62,11 +62,11 @@ export function StatDisplay({
   if (value === undefined) return null
 
   const commonProps = {
-    w: compact ? 7 : 16,
-    h: compact ? 7 : 16,
+    w: compact ? 8 : 12,
+    h: compact ? 8 : 12,
     borderRadius: 0,
     bg: trueBg,
-    borderWidth: compact ? '1px' : '2px',
+    borderWidth: compact ? '1px' : '1.5px',
     borderColor: trueBorderColor,
     display: 'flex' as const,
     alignItems: 'center' as const,
@@ -123,7 +123,9 @@ export function StatDisplay({
           maxW="full"
           w="full"
           css={{
-            fontSize: compact ? 'clamp(0.3rem, 4.5cqw, 0.75rem)' : 'clamp(0.5rem, 4.5cqw, 1rem)',
+            fontSize: compact
+              ? 'clamp(0.35rem, 4.5cqw, 0.75rem)'
+              : 'clamp(0.4rem, 4.5cqw, 0.85rem)',
             containerType: 'inline-size',
           }}
         >

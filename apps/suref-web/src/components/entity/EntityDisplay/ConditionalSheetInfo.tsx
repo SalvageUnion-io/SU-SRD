@@ -49,7 +49,7 @@ export function ConditionalSheetInfo({
   // Special handling for damagedEffect - render with content block styling
   if (propertyName === 'damagedEffect') {
     return (
-      <Box p={spacing.contentPadding}>
+      <Box px={spacing.contentPaddingX} py={spacing.contentPadding}>
         <Box
           transform={damaged ? `rotate(${valueRotation}deg)` : undefined}
           transition="transform 0.3s ease"
@@ -84,7 +84,7 @@ export function ConditionalSheetInfo({
   }
 
   return (
-    <Flex p={spacing.contentPadding}>
+    <Flex px={spacing.contentPaddingX} py={spacing.contentPadding}>
       <Box
         transform={damaged ? `rotate(${valueRotation}deg)` : undefined}
         transition="transform 0.3s ease"

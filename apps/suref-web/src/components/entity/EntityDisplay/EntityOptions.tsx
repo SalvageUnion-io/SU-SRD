@@ -21,7 +21,8 @@ export function EntityOptions() {
 
   return (
     <VStack
-      p={spacing.contentPadding}
+      px={spacing.contentPaddingX}
+      py={spacing.contentPadding}
       gap={spacing.smallGap}
       alignItems="stretch"
       borderRadius="md"

@@ -154,7 +154,8 @@ export function EntityDisplayContent({ children }: { children?: React.ReactNode 
           {hasTopMatterContent && (
             <>
               <Box
-                p={spacing.contentPadding}
+                px={spacing.contentPaddingX}
+                py={spacing.contentPadding}
                 pt={
                   source !== 'Salvage Union Workshop Manual' && hasTopMatterContent
                     ? `calc(${spacing.contentPadding * 0.25}rem + 5px)`
@@ -193,7 +194,13 @@ export function EntityDisplayContent({ children }: { children?: React.ReactNode 
           <EntityRequirementDisplay />
           {/* Always show table in compact mode, regardless of schema */}
           {table && (
-            <Box p={spacing.contentPadding} borderRadius="md" position="relative" zIndex={10}>
+            <Box
+              px={spacing.contentPaddingX}
+              py={spacing.contentPadding}
+              borderRadius="md"
+              position="relative"
+              zIndex={10}
+            >
               <RollTable
                 disabled={disabled}
                 table={table}
@@ -225,7 +232,7 @@ export function EntityDisplayContent({ children }: { children?: React.ReactNode 
             </>
           )}
           {buttonConfig && (
-            <Flex p={spacing.contentPadding}>
+            <Flex px={spacing.contentPaddingX} py={spacing.contentPadding}>
               <ButtonWithConfig buttonConfig={buttonConfig} />
             </Flex>
           )}

@@ -21,7 +21,8 @@ export function EntityChassisAbilities() {
       gap={spacing.smallGap}
       alignItems="stretch"
       borderRadius="md"
-      p={spacing.contentPadding}
+      px={spacing.contentPaddingX}
+      py={spacing.contentPadding}
     >
       <Text fontSize="xl" variant="pseudoheader">
         Chassis Abilities

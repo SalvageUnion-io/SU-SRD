@@ -128,13 +128,13 @@ export function Card({
           onClick={onHeaderClick}
           alignItems="center"
           data-testid={headerTestId}
-          p={compact ? 1 : 2}
+          p={compact ? 1 : 1.5}
           borderTopRadius="xs"
           borderBottomRadius={headerBottomRadius}
           bg={actualHeaderBg}
           opacity={headerOpacity}
-          h={compact ? '70px' : 'auto'}
-          minH={compact ? '70px' : '100px'}
+          h={compact ? '60px' : 'auto'}
+          minH={compact ? '60px' : '80px'}
           borderBottomWidth="0"
           overflow="visible"
           css={{
@@ -162,9 +162,10 @@ export function Card({
                   whiteSpace={compact ? 'normal' : 'nowrap'}
                   overflow={compact ? 'visible' : 'hidden'}
                   textOverflow={compact ? 'clip' : 'ellipsis'}
-                  fontSize={compact ? '1rem' : '2rem'}
+                  fontSize={compact ? '1rem' : '1.75rem'}
                   lineHeight={compact ? '1.2' : 'normal'}
                   textAlign={reverse ? 'right' : 'left'}
+                  letterSpacing="-0.02em"
                 >
                   {title}
                 </Text>
@@ -191,7 +192,7 @@ export function Card({
           direction="column"
           alignItems="center"
           w="full"
-          p={bodyPadding ?? 4}
+          p={bodyPadding ?? 3}
           flex="1"
           borderBottomRadius="md"
         >

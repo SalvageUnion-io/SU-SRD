@@ -11,7 +11,7 @@ export function EntityRequirementDisplay() {
   if (!requirement || requirement.length === 0) return null
 
   return (
-    <Flex p={spacing.contentPadding}>
+    <Flex px={spacing.contentPaddingX} py={spacing.contentPadding}>
       <SheetDisplay compact={compact} label="Requirements" labelColor="brand.srd">
         {requirement.map((req, index) => (
           <Fragment key={req + '-' + index}>

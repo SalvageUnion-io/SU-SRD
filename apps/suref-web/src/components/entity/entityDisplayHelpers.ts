@@ -245,28 +245,28 @@ export function getSourceStyles(
       // Add speckled su.brick background pattern styled after dirt
       const baseStyles = {
         position: 'relative' as const,
-        // Speckled dirt texture overlay - always visible
+        // Speckled dirt texture overlay - subtler opacity for refined look
         backgroundImage: `
-          radial-gradient(circle at 10% 20%, rgba(168, 89, 71, 0.5) 1px, transparent 1px),
-          radial-gradient(circle at 30% 45%, rgba(168, 89, 71, 0.45) 0.5px, transparent 0.5px),
-          radial-gradient(circle at 50% 15%, rgba(168, 89, 71, 0.55) 1.5px, transparent 1.5px),
-          radial-gradient(circle at 70% 60%, rgba(168, 89, 71, 0.4) 1px, transparent 1px),
-          radial-gradient(circle at 85% 30%, rgba(168, 89, 71, 0.5) 0.8px, transparent 0.8px),
-          radial-gradient(circle at 15% 70%, rgba(168, 89, 71, 0.45) 1.2px, transparent 1.2px),
-          radial-gradient(circle at 40% 80%, rgba(168, 89, 71, 0.5) 1px, transparent 1px),
-          radial-gradient(circle at 60% 50%, rgba(168, 89, 71, 0.4) 0.6px, transparent 0.6px),
-          radial-gradient(circle at 90% 75%, rgba(168, 89, 71, 0.55) 1.3px, transparent 1.3px),
-          radial-gradient(circle at 25% 55%, rgba(168, 89, 71, 0.45) 1px, transparent 1px),
-          radial-gradient(circle at 55% 25%, rgba(168, 89, 71, 0.5) 0.9px, transparent 0.9px),
-          radial-gradient(circle at 75% 10%, rgba(168, 89, 71, 0.4) 1.1px, transparent 1.1px),
-          radial-gradient(circle at 5% 90%, rgba(168, 89, 71, 0.5) 1px, transparent 1px),
-          radial-gradient(circle at 95% 40%, rgba(168, 89, 71, 0.45) 0.7px, transparent 0.7px),
-          radial-gradient(circle at 20% 5%, rgba(168, 89, 71, 0.55) 1.4px, transparent 1.4px),
-          radial-gradient(circle at 45% 65%, rgba(168, 89, 71, 0.4) 1px, transparent 1px),
-          radial-gradient(circle at 65% 85%, rgba(168, 89, 71, 0.5) 0.8px, transparent 0.8px),
-          radial-gradient(circle at 80% 20%, rgba(168, 89, 71, 0.45) 1.2px, transparent 1.2px),
-          radial-gradient(circle at 35% 35%, rgba(168, 89, 71, 0.5) 1px, transparent 1px),
-          radial-gradient(circle at 12% 95%, rgba(168, 89, 71, 0.4) 0.9px, transparent 0.9px)
+          radial-gradient(circle at 10% 20%, rgba(168, 89, 71, 0.35) 1px, transparent 1px),
+          radial-gradient(circle at 30% 45%, rgba(168, 89, 71, 0.3) 0.5px, transparent 0.5px),
+          radial-gradient(circle at 50% 15%, rgba(168, 89, 71, 0.4) 1.5px, transparent 1.5px),
+          radial-gradient(circle at 70% 60%, rgba(168, 89, 71, 0.28) 1px, transparent 1px),
+          radial-gradient(circle at 85% 30%, rgba(168, 89, 71, 0.35) 0.8px, transparent 0.8px),
+          radial-gradient(circle at 15% 70%, rgba(168, 89, 71, 0.3) 1.2px, transparent 1.2px),
+          radial-gradient(circle at 40% 80%, rgba(168, 89, 71, 0.35) 1px, transparent 1px),
+          radial-gradient(circle at 60% 50%, rgba(168, 89, 71, 0.28) 0.6px, transparent 0.6px),
+          radial-gradient(circle at 90% 75%, rgba(168, 89, 71, 0.4) 1.3px, transparent 1.3px),
+          radial-gradient(circle at 25% 55%, rgba(168, 89, 71, 0.3) 1px, transparent 1px),
+          radial-gradient(circle at 55% 25%, rgba(168, 89, 71, 0.35) 0.9px, transparent 0.9px),
+          radial-gradient(circle at 75% 10%, rgba(168, 89, 71, 0.28) 1.1px, transparent 1.1px),
+          radial-gradient(circle at 5% 90%, rgba(168, 89, 71, 0.35) 1px, transparent 1px),
+          radial-gradient(circle at 95% 40%, rgba(168, 89, 71, 0.3) 0.7px, transparent 0.7px),
+          radial-gradient(circle at 20% 5%, rgba(168, 89, 71, 0.4) 1.4px, transparent 1.4px),
+          radial-gradient(circle at 45% 65%, rgba(168, 89, 71, 0.28) 1px, transparent 1px),
+          radial-gradient(circle at 65% 85%, rgba(168, 89, 71, 0.35) 0.8px, transparent 0.8px),
+          radial-gradient(circle at 80% 20%, rgba(168, 89, 71, 0.3) 1.2px, transparent 1.2px),
+          radial-gradient(circle at 35% 35%, rgba(168, 89, 71, 0.35) 1px, transparent 1px),
+          radial-gradient(circle at 12% 95%, rgba(168, 89, 71, 0.28) 0.9px, transparent 0.9px)
         `,
         backgroundSize:
           '200px 200px, 150px 150px, 180px 180px, 160px 160px, 170px 170px, 190px 190px, 140px 140px, 165px 165px, 175px 175px, 155px 155px, 185px 185px, 145px 145px, 195px 195px, 135px 135px, 200px 200px, 148px 148px, 162px 162px, 178px 178px, 152px 152px, 188px 188px',
@@ -285,7 +285,7 @@ export function getSourceStyles(
             left: 0,
             bottom: 0,
             width: '100%',
-            height: '7px',
+            height: '5px',
             background: 'inherit',
             clipPath: `polygon(
               0% 0%,
@@ -336,7 +336,7 @@ export function getSourceStyles(
             left: 0,
             top: 0,
             width: '100%',
-            height: '7px',
+            height: '5px',
             background: 'inherit',
             clipPath: `polygon(
               0% 0%,
@@ -388,11 +388,11 @@ export function getSourceStyles(
       // Classic raised button look: dark bottom/right
       // Add inner grey border and horizontal lines mimicking old computer UI
       const baseStyles = {
-        borderBottom: '1px solid rgba(128, 128, 128, 0.6)',
-        borderRight: '1px solid rgba(128, 128, 128, 0.6)',
+        borderBottom: '1px solid rgba(128, 128, 128, 0.45)',
+        borderRight: '1px solid rgba(128, 128, 128, 0.45)',
         position: 'relative' as const,
-        // Inner grey border (inset)
-        boxShadow: 'inset 0 0 0 1px rgba(150, 150, 150, 0.4)',
+        // Inner grey border (inset) - subtler
+        boxShadow: 'inset 0 0 0 1px rgba(150, 150, 150, 0.3)',
       }
 
       if (variant === 'header') {
@@ -405,7 +405,7 @@ export function getSourceStyles(
             left: 0,
             bottom: 0,
             width: '100%',
-            height: '7px',
+            height: '5px',
             background: 'inherit',
             // Horizontal lines pattern - same thickness, same length (full width)
             clipPath: `polygon(
@@ -627,7 +627,7 @@ export function getSourceStyles(
             left: 0,
             top: 0,
             width: '100%',
-            height: '7px',
+            height: '5px',
             background: 'inherit',
             // Horizontal lines pattern - same thickness, same length (full width)
             clipPath: `polygon(
@@ -851,8 +851,8 @@ export function getSourceStyles(
             90deg,
             transparent,
             transparent 1px,
-            rgba(255, 255, 255, 0.5) 1px,
-            rgba(255, 255, 255, 0.5) 2px
+            rgba(255, 255, 255, 0.35) 1px,
+            rgba(255, 255, 255, 0.35) 2px
           )
         `,
         backgroundSize: '3px 100%',
@@ -868,7 +868,7 @@ export function getSourceStyles(
             left: 0,
             bottom: 0,
             width: '100%',
-            height: '7px',
+            height: '5px',
             background: 'inherit',
             // Thin vertical bars pattern - rain drops of varying lengths and widths
             clipPath: `polygon(
@@ -1058,7 +1058,7 @@ export function getSourceStyles(
             left: 0,
             top: 0,
             width: '100%',
-            height: '7px',
+            height: '5px',
             background: 'inherit',
             // Thin vertical bars pattern - rain drops of varying lengths and widths
             clipPath: `polygon(
