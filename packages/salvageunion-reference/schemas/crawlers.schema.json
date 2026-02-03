@@ -10,10 +10,7 @@
       "crawlers": {
         "type": "object",
         "properties": {
-          "asset_url": {
-            "type": "string",
-            "format": "uri"
-          },
+          "asset_url": { "type": "string", "format": "uri" },
           "content": {
             "type": "array",
             "items": {
@@ -26,23 +23,15 @@
                 },
                 "value": {
                   "anyOf": [
-                    {
-                      "type": "string"
-                    },
+                    { "type": "string" },
                     {
                       "type": "array",
                       "items": {
                         "type": "object",
                         "properties": {
-                          "label": {
-                            "type": ["string", "number"]
-                          },
-                          "value": {
-                            "type": ["string", "number"]
-                          },
-                          "type": {
-                            "type": "string"
-                          }
+                          "label": { "type": ["string", "number"] },
+                          "value": { "type": ["string", "number"] },
+                          "type": { "type": "string" }
                         },
                         "required": ["label"],
                         "additionalProperties": false
@@ -51,14 +40,8 @@
                     }
                   ]
                 },
-                "label": {
-                  "type": "string"
-                },
-                "level": {
-                  "type": "integer",
-                  "minimum": 1,
-                  "maximum": 6
-                },
+                "label": { "type": "string" },
+                "level": { "type": "integer", "minimum": 1, "maximum": 6 },
                 "items": {
                   "type": "array",
                   "items": {
@@ -70,9 +53,7 @@
                       },
                       "value": {
                         "anyOf": [
-                          {
-                            "type": "string"
-                          },
+                          { "type": "string" },
                           {
                             "type": "array",
                             "items": {
@@ -82,14 +63,8 @@
                           }
                         ]
                       },
-                      "label": {
-                        "type": "string"
-                      },
-                      "level": {
-                        "type": "integer",
-                        "minimum": 1,
-                        "maximum": 6
-                      }
+                      "label": { "type": "string" },
+                      "level": { "type": "integer", "minimum": 1, "maximum": 6 }
                     },
                     "additionalProperties": false
                   }
@@ -98,21 +73,10 @@
               "additionalProperties": false
             }
           },
-          "id": {
-            "type": "string"
-          },
-          "indexable": {
-            "type": "boolean",
-            "default": true
-          },
-          "blackMarket": {
-            "type": "boolean",
-            "default": false
-          },
-          "name": {
-            "type": "string",
-            "minLength": 1
-          },
+          "id": { "type": "string" },
+          "indexable": { "type": "boolean", "default": true },
+          "blackMarket": { "type": "boolean", "default": false },
+          "name": { "type": "string", "minLength": 1 },
           "source": {
             "type": "string",
             "enum": [
@@ -123,46 +87,23 @@
               "False Flag"
             ]
           },
-          "page": {
-            "type": "integer",
-            "exclusiveMinimum": 0
-          },
+          "page": { "type": "integer", "exclusiveMinimum": 0 },
           "npc": {
             "type": "object",
             "properties": {
-              "position": {
-                "$ref": "#/definitions/crawlers/properties/name"
-              },
-              "content": {
-                "$ref": "#/definitions/crawlers/properties/content"
-              },
-              "hitPoints": {
-                "type": "integer",
-                "minimum": 0
-              },
+              "position": { "$ref": "#/definitions/crawlers/properties/name" },
+              "content": { "$ref": "#/definitions/crawlers/properties/content" },
+              "hitPoints": { "type": "integer", "minimum": 0 },
               "choices": {
                 "type": "array",
                 "items": {
                   "type": "object",
                   "properties": {
-                    "id": {
-                      "$ref": "#/definitions/crawlers/properties/id"
-                    },
-                    "name": {
-                      "$ref": "#/definitions/crawlers/properties/name"
-                    },
-                    "content": {
-                      "$ref": "#/definitions/crawlers/properties/content"
-                    },
-                    "rollTable": {
-                      "type": "string"
-                    },
-                    "schemaEntities": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
-                    },
+                    "id": { "$ref": "#/definitions/crawlers/properties/id" },
+                    "name": { "$ref": "#/definitions/crawlers/properties/name" },
+                    "content": { "$ref": "#/definitions/crawlers/properties/content" },
+                    "rollTable": { "type": "string" },
+                    "schemaEntities": { "type": "array", "items": { "type": "string" } },
                     "schema": {
                       "type": "array",
                       "items": {
@@ -218,18 +159,9 @@
                           },
                           "techLevel": {
                             "anyOf": [
-                              {
-                                "type": "integer",
-                                "minimum": 0
-                              },
-                              {
-                                "type": "string",
-                                "const": "B"
-                              },
-                              {
-                                "type": "string",
-                                "const": "N"
-                              }
+                              { "type": "integer", "minimum": 0 },
+                              { "type": "string", "const": "B" },
+                              { "type": "string", "const": "N" }
                             ]
                           },
                           "salvageValue": {
@@ -238,26 +170,17 @@
                           "slotsRequired": {
                             "$ref": "#/definitions/crawlers/properties/npc/properties/hitPoints"
                           },
-                          "recommended": {
-                            "type": "boolean"
-                          },
+                          "recommended": { "type": "boolean" },
                           "count": {
                             "$ref": "#/definitions/crawlers/properties/npc/properties/hitPoints"
                           },
-                          "actions": {
-                            "type": "array",
-                            "items": {
-                              "type": "string"
-                            }
-                          }
+                          "actions": { "type": "array", "items": { "type": "string" } }
                         },
                         "required": ["techLevel", "salvageValue", "slotsRequired", "actions"],
                         "additionalProperties": false
                       }
                     },
-                    "setIndexable": {
-                      "type": "boolean"
-                    },
+                    "setIndexable": { "type": "boolean" },
                     "multiSelect": {
                       "type": "boolean",
                       "description": "If true, this choice can be selected multiple times"
@@ -267,15 +190,9 @@
                       "items": {
                         "type": "object",
                         "properties": {
-                          "label": {
-                            "type": "string"
-                          },
-                          "value": {
-                            "type": "string"
-                          },
-                          "description": {
-                            "type": "string"
-                          }
+                          "label": { "type": "string" },
+                          "value": { "type": "string" },
+                          "description": { "type": "string" }
                         },
                         "required": ["label", "value"],
                         "additionalProperties": false
@@ -285,9 +202,7 @@
                     "constraints": {
                       "type": "object",
                       "properties": {
-                        "field": {
-                          "type": "string"
-                        },
+                        "field": { "type": "string" },
                         "min": {
                           "$ref": "#/definitions/crawlers/properties/npc/properties/hitPoints"
                         },
@@ -306,12 +221,7 @@
             "required": ["position", "hitPoints"],
             "additionalProperties": false
           },
-          "actions": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
+          "actions": { "type": "array", "items": { "type": "string" } }
         },
         "required": ["id", "name", "source", "page", "npc", "actions"],
         "additionalProperties": false

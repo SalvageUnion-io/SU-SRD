@@ -10,10 +10,7 @@
       "chassis": {
         "type": "object",
         "properties": {
-          "asset_url": {
-            "type": "string",
-            "format": "uri"
-          },
+          "asset_url": { "type": "string", "format": "uri" },
           "content": {
             "type": "array",
             "items": {
@@ -26,23 +23,15 @@
                 },
                 "value": {
                   "anyOf": [
-                    {
-                      "type": "string"
-                    },
+                    { "type": "string" },
                     {
                       "type": "array",
                       "items": {
                         "type": "object",
                         "properties": {
-                          "label": {
-                            "type": ["string", "number"]
-                          },
-                          "value": {
-                            "type": ["string", "number"]
-                          },
-                          "type": {
-                            "type": "string"
-                          }
+                          "label": { "type": ["string", "number"] },
+                          "value": { "type": ["string", "number"] },
+                          "type": { "type": "string" }
                         },
                         "required": ["label"],
                         "additionalProperties": false
@@ -51,14 +40,8 @@
                     }
                   ]
                 },
-                "label": {
-                  "type": "string"
-                },
-                "level": {
-                  "type": "integer",
-                  "minimum": 1,
-                  "maximum": 6
-                },
+                "label": { "type": "string" },
+                "level": { "type": "integer", "minimum": 1, "maximum": 6 },
                 "items": {
                   "type": "array",
                   "items": {
@@ -70,9 +53,7 @@
                       },
                       "value": {
                         "anyOf": [
-                          {
-                            "type": "string"
-                          },
+                          { "type": "string" },
                           {
                             "type": "array",
                             "items": {
@@ -82,14 +63,8 @@
                           }
                         ]
                       },
-                      "label": {
-                        "type": "string"
-                      },
-                      "level": {
-                        "type": "integer",
-                        "minimum": 1,
-                        "maximum": 6
-                      }
+                      "label": { "type": "string" },
+                      "level": { "type": "integer", "minimum": 1, "maximum": 6 }
                     },
                     "additionalProperties": false
                   }
@@ -98,21 +73,10 @@
               "additionalProperties": false
             }
           },
-          "id": {
-            "type": "string"
-          },
-          "indexable": {
-            "type": "boolean",
-            "default": true
-          },
-          "blackMarket": {
-            "type": "boolean",
-            "default": false
-          },
-          "name": {
-            "type": "string",
-            "minLength": 1
-          },
+          "id": { "type": "string" },
+          "indexable": { "type": "boolean", "default": true },
+          "blackMarket": { "type": "boolean", "default": false },
+          "name": { "type": "string", "minLength": 1 },
           "source": {
             "type": "string",
             "enum": [
@@ -123,53 +87,24 @@
               "False Flag"
             ]
           },
-          "page": {
-            "type": "integer",
-            "exclusiveMinimum": 0
-          },
-          "structurePoints": {
-            "type": "integer",
-            "minimum": 0
-          },
-          "energyPoints": {
-            "$ref": "#/definitions/chassis/properties/structurePoints"
-          },
-          "heatCapacity": {
-            "$ref": "#/definitions/chassis/properties/structurePoints"
-          },
-          "systemSlots": {
-            "$ref": "#/definitions/chassis/properties/structurePoints"
-          },
-          "moduleSlots": {
-            "$ref": "#/definitions/chassis/properties/structurePoints"
-          },
-          "cargoCapacity": {
-            "$ref": "#/definitions/chassis/properties/structurePoints"
-          },
+          "page": { "type": "integer", "exclusiveMinimum": 0 },
+          "structurePoints": { "type": "integer", "minimum": 0 },
+          "energyPoints": { "$ref": "#/definitions/chassis/properties/structurePoints" },
+          "heatCapacity": { "$ref": "#/definitions/chassis/properties/structurePoints" },
+          "systemSlots": { "$ref": "#/definitions/chassis/properties/structurePoints" },
+          "moduleSlots": { "$ref": "#/definitions/chassis/properties/structurePoints" },
+          "cargoCapacity": { "$ref": "#/definitions/chassis/properties/structurePoints" },
           "techLevel": {
             "anyOf": [
-              {
-                "type": "integer",
-                "minimum": 0
-              },
-              {
-                "type": "string",
-                "const": "B"
-              },
-              {
-                "type": "string",
-                "const": "N"
-              }
+              { "type": "integer", "minimum": 0 },
+              { "type": "string", "const": "B" },
+              { "type": "string", "const": "N" }
             ]
           },
-          "salvageValue": {
-            "$ref": "#/definitions/chassis/properties/structurePoints"
-          },
+          "salvageValue": { "$ref": "#/definitions/chassis/properties/structurePoints" },
           "chassisAbilities": {
             "type": "array",
-            "items": {
-              "type": "string"
-            },
+            "items": { "type": "string" },
             "description": "Array of chassis ability names that reference actions.json"
           },
           "patterns": {
@@ -177,31 +112,19 @@
             "items": {
               "type": "object",
               "properties": {
-                "name": {
-                  "$ref": "#/definitions/chassis/properties/name"
-                },
-                "content": {
-                  "$ref": "#/definitions/chassis/properties/content"
-                },
-                "legalStarting": {
-                  "type": "boolean"
-                },
+                "name": { "$ref": "#/definitions/chassis/properties/name" },
+                "content": { "$ref": "#/definitions/chassis/properties/content" },
+                "legalStarting": { "type": "boolean" },
                 "systems": {
                   "type": "array",
                   "items": {
                     "type": "object",
                     "properties": {
-                      "name": {
-                        "$ref": "#/definitions/chassis/properties/name"
-                      },
-                      "count": {
-                        "$ref": "#/definitions/chassis/properties/structurePoints"
-                      },
+                      "name": { "$ref": "#/definitions/chassis/properties/name" },
+                      "count": { "$ref": "#/definitions/chassis/properties/structurePoints" },
                       "preselectedChoices": {
                         "type": "object",
-                        "additionalProperties": {
-                          "$ref": "#/definitions/chassis/properties/name"
-                        },
+                        "additionalProperties": { "$ref": "#/definitions/chassis/properties/name" },
                         "description": "Preselected choices for this system or module, keyed by choice ID"
                       }
                     },
@@ -218,18 +141,8 @@
                 "drone": {
                   "type": "object",
                   "properties": {
-                    "systems": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
-                    },
-                    "modules": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
-                    }
+                    "systems": { "type": "array", "items": { "type": "string" } },
+                    "modules": { "type": "array", "items": { "type": "string" } }
                   },
                   "required": ["systems", "modules"],
                   "additionalProperties": false
@@ -242,38 +155,19 @@
           "npc": {
             "type": "object",
             "properties": {
-              "position": {
-                "$ref": "#/definitions/chassis/properties/name"
-              },
-              "content": {
-                "$ref": "#/definitions/chassis/properties/content"
-              },
-              "hitPoints": {
-                "$ref": "#/definitions/chassis/properties/structurePoints"
-              },
+              "position": { "$ref": "#/definitions/chassis/properties/name" },
+              "content": { "$ref": "#/definitions/chassis/properties/content" },
+              "hitPoints": { "$ref": "#/definitions/chassis/properties/structurePoints" },
               "choices": {
                 "type": "array",
                 "items": {
                   "type": "object",
                   "properties": {
-                    "id": {
-                      "$ref": "#/definitions/chassis/properties/id"
-                    },
-                    "name": {
-                      "$ref": "#/definitions/chassis/properties/name"
-                    },
-                    "content": {
-                      "$ref": "#/definitions/chassis/properties/content"
-                    },
-                    "rollTable": {
-                      "type": "string"
-                    },
-                    "schemaEntities": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
-                    },
+                    "id": { "$ref": "#/definitions/chassis/properties/id" },
+                    "name": { "$ref": "#/definitions/chassis/properties/name" },
+                    "content": { "$ref": "#/definitions/chassis/properties/content" },
+                    "rollTable": { "type": "string" },
+                    "schemaEntities": { "type": "array", "items": { "type": "string" } },
                     "schema": {
                       "type": "array",
                       "items": {
@@ -327,35 +221,22 @@
                           "cargoCapacity": {
                             "$ref": "#/definitions/chassis/properties/structurePoints"
                           },
-                          "techLevel": {
-                            "$ref": "#/definitions/chassis/properties/techLevel"
-                          },
+                          "techLevel": { "$ref": "#/definitions/chassis/properties/techLevel" },
                           "salvageValue": {
                             "$ref": "#/definitions/chassis/properties/structurePoints"
                           },
                           "slotsRequired": {
                             "$ref": "#/definitions/chassis/properties/structurePoints"
                           },
-                          "recommended": {
-                            "type": "boolean"
-                          },
-                          "count": {
-                            "$ref": "#/definitions/chassis/properties/structurePoints"
-                          },
-                          "actions": {
-                            "type": "array",
-                            "items": {
-                              "type": "string"
-                            }
-                          }
+                          "recommended": { "type": "boolean" },
+                          "count": { "$ref": "#/definitions/chassis/properties/structurePoints" },
+                          "actions": { "type": "array", "items": { "type": "string" } }
                         },
                         "required": ["techLevel", "salvageValue", "slotsRequired", "actions"],
                         "additionalProperties": false
                       }
                     },
-                    "setIndexable": {
-                      "type": "boolean"
-                    },
+                    "setIndexable": { "type": "boolean" },
                     "multiSelect": {
                       "type": "boolean",
                       "description": "If true, this choice can be selected multiple times"
@@ -365,15 +246,9 @@
                       "items": {
                         "type": "object",
                         "properties": {
-                          "label": {
-                            "type": "string"
-                          },
-                          "value": {
-                            "type": "string"
-                          },
-                          "description": {
-                            "type": "string"
-                          }
+                          "label": { "type": "string" },
+                          "value": { "type": "string" },
+                          "description": { "type": "string" }
                         },
                         "required": ["label", "value"],
                         "additionalProperties": false
@@ -383,15 +258,9 @@
                     "constraints": {
                       "type": "object",
                       "properties": {
-                        "field": {
-                          "type": "string"
-                        },
-                        "min": {
-                          "$ref": "#/definitions/chassis/properties/structurePoints"
-                        },
-                        "max": {
-                          "$ref": "#/definitions/chassis/properties/structurePoints"
-                        }
+                        "field": { "type": "string" },
+                        "min": { "$ref": "#/definitions/chassis/properties/structurePoints" },
+                        "max": { "$ref": "#/definitions/chassis/properties/structurePoints" }
                       },
                       "additionalProperties": false
                     }

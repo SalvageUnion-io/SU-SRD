@@ -10,10 +10,7 @@
       "vehicles": {
         "type": "object",
         "properties": {
-          "asset_url": {
-            "type": "string",
-            "format": "uri"
-          },
+          "asset_url": { "type": "string", "format": "uri" },
           "content": {
             "type": "array",
             "items": {
@@ -26,23 +23,15 @@
                 },
                 "value": {
                   "anyOf": [
-                    {
-                      "type": "string"
-                    },
+                    { "type": "string" },
                     {
                       "type": "array",
                       "items": {
                         "type": "object",
                         "properties": {
-                          "label": {
-                            "type": ["string", "number"]
-                          },
-                          "value": {
-                            "type": ["string", "number"]
-                          },
-                          "type": {
-                            "type": "string"
-                          }
+                          "label": { "type": ["string", "number"] },
+                          "value": { "type": ["string", "number"] },
+                          "type": { "type": "string" }
                         },
                         "required": ["label"],
                         "additionalProperties": false
@@ -51,14 +40,8 @@
                     }
                   ]
                 },
-                "label": {
-                  "type": "string"
-                },
-                "level": {
-                  "type": "integer",
-                  "minimum": 1,
-                  "maximum": 6
-                },
+                "label": { "type": "string" },
+                "level": { "type": "integer", "minimum": 1, "maximum": 6 },
                 "items": {
                   "type": "array",
                   "items": {
@@ -70,9 +53,7 @@
                       },
                       "value": {
                         "anyOf": [
-                          {
-                            "type": "string"
-                          },
+                          { "type": "string" },
                           {
                             "type": "array",
                             "items": {
@@ -82,14 +63,8 @@
                           }
                         ]
                       },
-                      "label": {
-                        "type": "string"
-                      },
-                      "level": {
-                        "type": "integer",
-                        "minimum": 1,
-                        "maximum": 6
-                      }
+                      "label": { "type": "string" },
+                      "level": { "type": "integer", "minimum": 1, "maximum": 6 }
                     },
                     "additionalProperties": false
                   }
@@ -98,21 +73,10 @@
               "additionalProperties": false
             }
           },
-          "id": {
-            "type": "string"
-          },
-          "indexable": {
-            "type": "boolean",
-            "default": true
-          },
-          "blackMarket": {
-            "type": "boolean",
-            "default": false
-          },
-          "name": {
-            "type": "string",
-            "minLength": 1
-          },
+          "id": { "type": "string" },
+          "indexable": { "type": "boolean", "default": true },
+          "blackMarket": { "type": "boolean", "default": false },
+          "name": { "type": "string", "minLength": 1 },
           "source": {
             "type": "string",
             "enum": [
@@ -123,39 +87,17 @@
               "False Flag"
             ]
           },
-          "page": {
-            "type": "integer",
-            "exclusiveMinimum": 0
-          },
-          "structurePoints": {
-            "$ref": "#/definitions/vehicles/properties/page"
-          },
+          "page": { "type": "integer", "exclusiveMinimum": 0 },
+          "structurePoints": { "$ref": "#/definitions/vehicles/properties/page" },
           "techLevel": {
             "anyOf": [
-              {
-                "type": "integer",
-                "minimum": 0
-              },
-              {
-                "type": "string",
-                "const": "B"
-              },
-              {
-                "type": "string",
-                "const": "N"
-              }
+              { "type": "integer", "minimum": 0 },
+              { "type": "string", "const": "B" },
+              { "type": "string", "const": "N" }
             ]
           },
-          "salvageValue": {
-            "type": "integer",
-            "minimum": 0
-          },
-          "systems": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
+          "salvageValue": { "type": "integer", "minimum": 0 },
+          "systems": { "type": "array", "items": { "type": "string" } },
           "traits": {
             "type": "array",
             "items": {
@@ -163,37 +105,21 @@
               "properties": {
                 "amount": {
                   "anyOf": [
-                    {
-                      "$ref": "#/definitions/vehicles/properties/salvageValue"
-                    },
-                    {
-                      "type": "string"
-                    }
+                    { "$ref": "#/definitions/vehicles/properties/salvageValue" },
+                    { "type": "string" }
                   ]
                 },
-                "type": {
-                  "type": "string"
-                }
+                "type": { "type": "string" }
               },
               "required": ["type"],
               "additionalProperties": false
             }
           },
-          "energyPoints": {
-            "$ref": "#/definitions/vehicles/properties/salvageValue"
-          },
-          "heatCapacity": {
-            "$ref": "#/definitions/vehicles/properties/salvageValue"
-          },
-          "systemSlots": {
-            "$ref": "#/definitions/vehicles/properties/salvageValue"
-          },
-          "moduleSlots": {
-            "$ref": "#/definitions/vehicles/properties/salvageValue"
-          },
-          "cargoCapacity": {
-            "$ref": "#/definitions/vehicles/properties/salvageValue"
-          }
+          "energyPoints": { "$ref": "#/definitions/vehicles/properties/salvageValue" },
+          "heatCapacity": { "$ref": "#/definitions/vehicles/properties/salvageValue" },
+          "systemSlots": { "$ref": "#/definitions/vehicles/properties/salvageValue" },
+          "moduleSlots": { "$ref": "#/definitions/vehicles/properties/salvageValue" },
+          "cargoCapacity": { "$ref": "#/definitions/vehicles/properties/salvageValue" }
         },
         "required": ["id", "name", "source", "page"],
         "additionalProperties": false

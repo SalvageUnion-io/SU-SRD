@@ -12,13 +12,8 @@
           {
             "type": "object",
             "properties": {
-              "id": {
-                "type": "string"
-              },
-              "name": {
-                "type": "string",
-                "minLength": 1
-              },
+              "id": { "type": "string" },
+              "name": { "type": "string", "minLength": 1 },
               "content": {
                 "type": "array",
                 "items": {
@@ -31,23 +26,15 @@
                     },
                     "value": {
                       "anyOf": [
-                        {
-                          "type": "string"
-                        },
+                        { "type": "string" },
                         {
                           "type": "array",
                           "items": {
                             "type": "object",
                             "properties": {
-                              "label": {
-                                "type": ["string", "number"]
-                              },
-                              "value": {
-                                "type": ["string", "number"]
-                              },
-                              "type": {
-                                "type": "string"
-                              }
+                              "label": { "type": ["string", "number"] },
+                              "value": { "type": ["string", "number"] },
+                              "type": { "type": "string" }
                             },
                             "required": ["label"],
                             "additionalProperties": false
@@ -56,14 +43,8 @@
                         }
                       ]
                     },
-                    "label": {
-                      "type": "string"
-                    },
-                    "level": {
-                      "type": "integer",
-                      "minimum": 1,
-                      "maximum": 6
-                    },
+                    "label": { "type": "string" },
+                    "level": { "type": "integer", "minimum": 1, "maximum": 6 },
                     "items": {
                       "type": "array",
                       "items": {
@@ -75,9 +56,7 @@
                           },
                           "value": {
                             "anyOf": [
-                              {
-                                "type": "string"
-                              },
+                              { "type": "string" },
                               {
                                 "type": "array",
                                 "items": {
@@ -87,14 +66,8 @@
                               }
                             ]
                           },
-                          "label": {
-                            "type": "string"
-                          },
-                          "level": {
-                            "type": "integer",
-                            "minimum": 1,
-                            "maximum": 6
-                          }
+                          "label": { "type": "string" },
+                          "level": { "type": "integer", "minimum": 1, "maximum": 6 }
                         },
                         "additionalProperties": false
                       }
@@ -103,64 +76,30 @@
                   "additionalProperties": false
                 }
               },
-              "structurePoints": {
-                "type": "number"
-              },
-              "energyPoints": {
-                "type": "number"
-              },
-              "heatCapacity": {
-                "type": "number"
-              },
-              "systemSlots": {
-                "type": "number"
-              },
-              "moduleSlots": {
-                "type": "number"
-              },
-              "cargoCapacity": {
-                "type": "number"
-              },
+              "structurePoints": { "type": "number" },
+              "energyPoints": { "type": "number" },
+              "heatCapacity": { "type": "number" },
+              "systemSlots": { "type": "number" },
+              "moduleSlots": { "type": "number" },
+              "cargoCapacity": { "type": "number" },
               "techLevel": {
                 "anyOf": [
-                  {
-                    "type": "integer",
-                    "minimum": 0
-                  },
-                  {
-                    "type": "string",
-                    "const": "B"
-                  },
-                  {
-                    "type": "string",
-                    "const": "N"
-                  }
+                  { "type": "integer", "minimum": 0 },
+                  { "type": "string", "const": "B" },
+                  { "type": "string", "const": "N" }
                 ]
               },
-              "salvageValue": {
-                "type": "number"
-              },
-              "displayName": {
-                "$ref": "#/definitions/actions/allOf/0/properties/name"
-              },
+              "salvageValue": { "type": "number" },
+              "displayName": { "$ref": "#/definitions/actions/allOf/0/properties/name" },
               "activationCost": {
                 "anyOf": [
-                  {
-                    "type": "integer",
-                    "minimum": 0
-                  },
-                  {
-                    "type": "string",
-                    "const": "X"
-                  }
+                  { "type": "integer", "minimum": 0 },
+                  { "type": "string", "const": "X" }
                 ]
               },
               "range": {
                 "type": "array",
-                "items": {
-                  "type": "string",
-                  "enum": ["Close", "Medium", "Long", "Far"]
-                },
+                "items": { "type": "string", "enum": ["Close", "Medium", "Long", "Far"] },
                 "minItems": 1
               },
               "actionType": {
@@ -173,19 +112,9 @@
                   "type": "object",
                   "properties": {
                     "amount": {
-                      "anyOf": [
-                        {
-                          "type": "integer",
-                          "minimum": 0
-                        },
-                        {
-                          "type": "string"
-                        }
-                      ]
+                      "anyOf": [{ "type": "integer", "minimum": 0 }, { "type": "string" }]
                     },
-                    "type": {
-                      "type": "string"
-                    }
+                    "type": { "type": "string" }
                   },
                   "required": ["type"],
                   "additionalProperties": false
@@ -194,18 +123,13 @@
               "damage": {
                 "type": "object",
                 "properties": {
-                  "damageType": {
-                    "type": "string",
-                    "enum": ["HP", "SP"]
-                  },
+                  "damageType": { "type": "string", "enum": ["HP", "SP"] },
                   "amount": {
                     "anyOf": [
                       {
                         "$ref": "#/definitions/actions/allOf/0/properties/traits/items/properties/amount/anyOf/0"
                       },
-                      {
-                        "type": "string"
-                      }
+                      { "type": "string" }
                     ]
                   }
                 },
@@ -217,24 +141,11 @@
                 "items": {
                   "type": "object",
                   "properties": {
-                    "id": {
-                      "$ref": "#/definitions/actions/allOf/0/properties/id"
-                    },
-                    "name": {
-                      "$ref": "#/definitions/actions/allOf/0/properties/name"
-                    },
-                    "content": {
-                      "$ref": "#/definitions/actions/allOf/0/properties/content"
-                    },
-                    "rollTable": {
-                      "type": "string"
-                    },
-                    "schemaEntities": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
-                    },
+                    "id": { "$ref": "#/definitions/actions/allOf/0/properties/id" },
+                    "name": { "$ref": "#/definitions/actions/allOf/0/properties/name" },
+                    "content": { "$ref": "#/definitions/actions/allOf/0/properties/content" },
+                    "rollTable": { "type": "string" },
+                    "schemaEntities": { "type": "array", "items": { "type": "string" } },
                     "schema": {
                       "type": "array",
                       "items": {
@@ -297,26 +208,17 @@
                           "slotsRequired": {
                             "$ref": "#/definitions/actions/allOf/0/properties/traits/items/properties/amount/anyOf/0"
                           },
-                          "recommended": {
-                            "type": "boolean"
-                          },
+                          "recommended": { "type": "boolean" },
                           "count": {
                             "$ref": "#/definitions/actions/allOf/0/properties/traits/items/properties/amount/anyOf/0"
                           },
-                          "actions": {
-                            "type": "array",
-                            "items": {
-                              "type": "string"
-                            }
-                          }
+                          "actions": { "type": "array", "items": { "type": "string" } }
                         },
                         "required": ["techLevel", "salvageValue", "slotsRequired", "actions"],
                         "additionalProperties": false
                       }
                     },
-                    "setIndexable": {
-                      "type": "boolean"
-                    },
+                    "setIndexable": { "type": "boolean" },
                     "multiSelect": {
                       "type": "boolean",
                       "description": "If true, this choice can be selected multiple times"
@@ -326,15 +228,9 @@
                       "items": {
                         "type": "object",
                         "properties": {
-                          "label": {
-                            "type": "string"
-                          },
-                          "value": {
-                            "type": "string"
-                          },
-                          "description": {
-                            "type": "string"
-                          }
+                          "label": { "type": "string" },
+                          "value": { "type": "string" },
+                          "description": { "type": "string" }
                         },
                         "required": ["label", "value"],
                         "additionalProperties": false
@@ -344,9 +240,7 @@
                     "constraints": {
                       "type": "object",
                       "properties": {
-                        "field": {
-                          "type": "string"
-                        },
+                        "field": { "type": "string" },
                         "min": {
                           "$ref": "#/definitions/actions/allOf/0/properties/traits/items/properties/amount/anyOf/0"
                         },
@@ -369,12 +263,8 @@
                       "1": {
                         "type": "object",
                         "properties": {
-                          "label": {
-                            "type": "string"
-                          },
-                          "value": {
-                            "type": "string"
-                          }
+                          "label": { "type": "string" },
+                          "value": { "type": "string" }
                         },
                         "required": ["value"],
                         "additionalProperties": false
@@ -382,10 +272,7 @@
                       "20": {
                         "$ref": "#/definitions/actions/allOf/0/properties/table/anyOf/0/properties/1"
                       },
-                      "type": {
-                        "type": "string",
-                        "const": "standard"
-                      },
+                      "type": { "type": "string", "const": "standard" },
                       "11-19": {
                         "$ref": "#/definitions/actions/allOf/0/properties/table/anyOf/0/properties/1"
                       },
@@ -405,10 +292,7 @@
                       "1": {
                         "$ref": "#/definitions/actions/allOf/0/properties/table/anyOf/0/properties/1"
                       },
-                      "type": {
-                        "type": "string",
-                        "const": "alternate"
-                      },
+                      "type": { "type": "string", "const": "alternate" },
                       "19-20": {
                         "$ref": "#/definitions/actions/allOf/0/properties/table/anyOf/0/properties/1"
                       },
@@ -488,10 +372,7 @@
                       "20": {
                         "$ref": "#/definitions/actions/allOf/0/properties/table/anyOf/0/properties/1"
                       },
-                      "type": {
-                        "type": "string",
-                        "const": "flat"
-                      }
+                      "type": { "type": "string", "const": "flat" }
                     },
                     "required": [
                       "1",
@@ -524,10 +405,7 @@
                       "20": {
                         "$ref": "#/definitions/actions/allOf/0/properties/table/anyOf/0/properties/1"
                       },
-                      "type": {
-                        "type": "string",
-                        "const": "dramatic"
-                      }
+                      "type": { "type": "string", "const": "dramatic" }
                     },
                     "required": ["20", "type"],
                     "additionalProperties": false
@@ -535,10 +413,7 @@
                   {
                     "type": "object",
                     "properties": {
-                      "type": {
-                        "type": "string",
-                        "const": "duos"
-                      },
+                      "type": { "type": "string", "const": "duos" },
                       "1-2": {
                         "$ref": "#/definitions/actions/allOf/0/properties/table/anyOf/0/properties/1"
                       },
@@ -594,10 +469,7 @@
                       "20": {
                         "$ref": "#/definitions/actions/allOf/0/properties/table/anyOf/0/properties/1"
                       },
-                      "type": {
-                        "type": "string",
-                        "const": "bio-chassis"
-                      },
+                      "type": { "type": "string", "const": "bio-chassis" },
                       "2-3": {
                         "$ref": "#/definitions/actions/allOf/0/properties/table/anyOf/0/properties/1"
                       },
@@ -637,10 +509,7 @@
                   "False Flag"
                 ]
               },
-              "page": {
-                "type": "integer",
-                "exclusiveMinimum": 0
-              },
+              "page": { "type": "integer", "exclusiveMinimum": 0 },
               "actionSource": {
                 "$ref": "#/definitions/actions/allOf/0/properties/choices/items/properties/schema/items"
               }
@@ -650,10 +519,7 @@
           {
             "type": "object",
             "properties": {
-              "displayName": {
-                "type": "string",
-                "minLength": 1
-              },
+              "displayName": { "type": "string", "minLength": 1 },
               "activationCurrency": {
                 "type": "string",
                 "enum": ["Variable", "EP or AP", "SP or HP"]

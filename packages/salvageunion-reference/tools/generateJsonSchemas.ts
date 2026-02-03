@@ -9,6 +9,7 @@ import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 import { zodToJsonSchema } from 'zod-to-json-schema'
 import { z } from 'zod'
+import * as prettier from 'prettier'
 
 // Import all entity schemas
 import {
@@ -79,39 +80,50 @@ function schemaIdToFilename(schemaId: string): string {
 }
 
 // Generate JSON Schema for each entity schema
-console.log('Generating JSON Schema files from Zod schemas...\n')
+async function generateSchemas() {
+  console.log('Generating JSON Schema files from Zod schemas...\n')
 
-for (const [schemaId, zodSchema] of Object.entries(entitySchemaMap)) {
-  try {
-    console.log(`Generating ${schemaId}...`)
+  // Resolve Prettier config from project root
+  const prettierConfig = await prettier.resolveConfig(schemasDir)
 
-    // Convert Zod schema to JSON Schema
-    const jsonSchema = zodToJsonSchema(zodSchema, {
-      name: schemaId,
-      target: 'jsonSchema7',
-      strictUnions: false,
-    })
+  for (const [schemaId, zodSchema] of Object.entries(entitySchemaMap)) {
+    try {
+      console.log(`Generating ${schemaId}...`)
 
-    // Wrap in array schema (all entity schemas are arrays)
-    const arraySchema = {
-      $schema: 'http://json-schema.org/draft-07/schema#',
-      $id: `https://salvageunion.com/schemas/${schemaIdToFilename(schemaId)}`,
-      title: schemaId,
-      description: (jsonSchema as { description?: string })?.description || '',
-      type: 'array' as const,
-      items: jsonSchema,
+      // Convert Zod schema to JSON Schema
+      const jsonSchema = zodToJsonSchema(zodSchema, {
+        name: schemaId,
+        target: 'jsonSchema7',
+        strictUnions: false,
+      })
+
+      // Wrap in array schema (all entity schemas are arrays)
+      const arraySchema = {
+        $schema: 'http://json-schema.org/draft-07/schema#',
+        $id: `https://salvageunion.com/schemas/${schemaIdToFilename(schemaId)}`,
+        title: schemaId,
+        description: (jsonSchema as { description?: string })?.description || '',
+        type: 'array' as const,
+        items: jsonSchema,
+      }
+
+      // Format with Prettier using project config and write to file
+      const filename = schemaIdToFilename(schemaId)
+      const filepath = join(schemasDir, filename)
+      const formatted = await prettier.format(JSON.stringify(arraySchema), {
+        ...prettierConfig,
+        parser: 'json',
+      })
+      writeFileSync(filepath, formatted)
+
+      console.log(`✓ Generated ${filename}`)
+    } catch (error) {
+      console.error(`✗ Error generating ${schemaId}:`, error)
+      throw error
     }
-
-    // Write to file
-    const filename = schemaIdToFilename(schemaId)
-    const filepath = join(schemasDir, filename)
-    writeFileSync(filepath, JSON.stringify(arraySchema, null, 2) + '\n')
-
-    console.log(`✓ Generated ${filename}`)
-  } catch (error) {
-    console.error(`✗ Error generating ${schemaId}:`, error)
-    throw error
   }
+
+  console.log('\n✓ All JSON Schema files generated successfully!')
 }
 
-console.log('\n✓ All JSON Schema files generated successfully!')
+generateSchemas()

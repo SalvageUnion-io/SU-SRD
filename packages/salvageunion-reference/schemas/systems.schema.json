@@ -10,10 +10,7 @@
       "systems": {
         "type": "object",
         "properties": {
-          "asset_url": {
-            "type": "string",
-            "format": "uri"
-          },
+          "asset_url": { "type": "string", "format": "uri" },
           "content": {
             "type": "array",
             "items": {
@@ -26,23 +23,15 @@
                 },
                 "value": {
                   "anyOf": [
-                    {
-                      "type": "string"
-                    },
+                    { "type": "string" },
                     {
                       "type": "array",
                       "items": {
                         "type": "object",
                         "properties": {
-                          "label": {
-                            "type": ["string", "number"]
-                          },
-                          "value": {
-                            "type": ["string", "number"]
-                          },
-                          "type": {
-                            "type": "string"
-                          }
+                          "label": { "type": ["string", "number"] },
+                          "value": { "type": ["string", "number"] },
+                          "type": { "type": "string" }
                         },
                         "required": ["label"],
                         "additionalProperties": false
@@ -51,14 +40,8 @@
                     }
                   ]
                 },
-                "label": {
-                  "type": "string"
-                },
-                "level": {
-                  "type": "integer",
-                  "minimum": 1,
-                  "maximum": 6
-                },
+                "label": { "type": "string" },
+                "level": { "type": "integer", "minimum": 1, "maximum": 6 },
                 "items": {
                   "type": "array",
                   "items": {
@@ -70,9 +53,7 @@
                       },
                       "value": {
                         "anyOf": [
-                          {
-                            "type": "string"
-                          },
+                          { "type": "string" },
                           {
                             "type": "array",
                             "items": {
@@ -82,14 +63,8 @@
                           }
                         ]
                       },
-                      "label": {
-                        "type": "string"
-                      },
-                      "level": {
-                        "type": "integer",
-                        "minimum": 1,
-                        "maximum": 6
-                      }
+                      "label": { "type": "string" },
+                      "level": { "type": "integer", "minimum": 1, "maximum": 6 }
                     },
                     "additionalProperties": false
                   }
@@ -98,21 +73,10 @@
               "additionalProperties": false
             }
           },
-          "id": {
-            "type": "string"
-          },
-          "indexable": {
-            "type": "boolean",
-            "default": true
-          },
-          "blackMarket": {
-            "type": "boolean",
-            "default": false
-          },
-          "name": {
-            "type": "string",
-            "minLength": 1
-          },
+          "id": { "type": "string" },
+          "indexable": { "type": "boolean", "default": true },
+          "blackMarket": { "type": "boolean", "default": false },
+          "name": { "type": "string", "minLength": 1 },
           "source": {
             "type": "string",
             "enum": [
@@ -123,63 +87,25 @@
               "False Flag"
             ]
           },
-          "page": {
-            "type": "integer",
-            "exclusiveMinimum": 0
-          },
-          "structurePoints": {
-            "type": "integer",
-            "minimum": 0
-          },
-          "energyPoints": {
-            "$ref": "#/definitions/systems/properties/structurePoints"
-          },
-          "heatCapacity": {
-            "$ref": "#/definitions/systems/properties/structurePoints"
-          },
-          "systemSlots": {
-            "$ref": "#/definitions/systems/properties/structurePoints"
-          },
-          "moduleSlots": {
-            "$ref": "#/definitions/systems/properties/structurePoints"
-          },
-          "cargoCapacity": {
-            "$ref": "#/definitions/systems/properties/structurePoints"
-          },
+          "page": { "type": "integer", "exclusiveMinimum": 0 },
+          "structurePoints": { "type": "integer", "minimum": 0 },
+          "energyPoints": { "$ref": "#/definitions/systems/properties/structurePoints" },
+          "heatCapacity": { "$ref": "#/definitions/systems/properties/structurePoints" },
+          "systemSlots": { "$ref": "#/definitions/systems/properties/structurePoints" },
+          "moduleSlots": { "$ref": "#/definitions/systems/properties/structurePoints" },
+          "cargoCapacity": { "$ref": "#/definitions/systems/properties/structurePoints" },
           "techLevel": {
             "anyOf": [
-              {
-                "type": "integer",
-                "minimum": 0
-              },
-              {
-                "type": "string",
-                "const": "B"
-              },
-              {
-                "type": "string",
-                "const": "N"
-              }
+              { "type": "integer", "minimum": 0 },
+              { "type": "string", "const": "B" },
+              { "type": "string", "const": "N" }
             ]
           },
-          "salvageValue": {
-            "$ref": "#/definitions/systems/properties/structurePoints"
-          },
-          "slotsRequired": {
-            "$ref": "#/definitions/systems/properties/structurePoints"
-          },
-          "recommended": {
-            "type": "boolean"
-          },
-          "count": {
-            "$ref": "#/definitions/systems/properties/structurePoints"
-          },
-          "actions": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
+          "salvageValue": { "$ref": "#/definitions/systems/properties/structurePoints" },
+          "slotsRequired": { "$ref": "#/definitions/systems/properties/structurePoints" },
+          "recommended": { "type": "boolean" },
+          "count": { "$ref": "#/definitions/systems/properties/structurePoints" },
+          "actions": { "type": "array", "items": { "type": "string" } }
         },
         "required": [
           "id",

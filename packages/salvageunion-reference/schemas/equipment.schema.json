@@ -10,10 +10,7 @@
       "equipment": {
         "type": "object",
         "properties": {
-          "asset_url": {
-            "type": "string",
-            "format": "uri"
-          },
+          "asset_url": { "type": "string", "format": "uri" },
           "content": {
             "type": "array",
             "items": {
@@ -26,23 +23,15 @@
                 },
                 "value": {
                   "anyOf": [
-                    {
-                      "type": "string"
-                    },
+                    { "type": "string" },
                     {
                       "type": "array",
                       "items": {
                         "type": "object",
                         "properties": {
-                          "label": {
-                            "type": ["string", "number"]
-                          },
-                          "value": {
-                            "type": ["string", "number"]
-                          },
-                          "type": {
-                            "type": "string"
-                          }
+                          "label": { "type": ["string", "number"] },
+                          "value": { "type": ["string", "number"] },
+                          "type": { "type": "string" }
                         },
                         "required": ["label"],
                         "additionalProperties": false
@@ -51,14 +40,8 @@
                     }
                   ]
                 },
-                "label": {
-                  "type": "string"
-                },
-                "level": {
-                  "type": "integer",
-                  "minimum": 1,
-                  "maximum": 6
-                },
+                "label": { "type": "string" },
+                "level": { "type": "integer", "minimum": 1, "maximum": 6 },
                 "items": {
                   "type": "array",
                   "items": {
@@ -70,9 +53,7 @@
                       },
                       "value": {
                         "anyOf": [
-                          {
-                            "type": "string"
-                          },
+                          { "type": "string" },
                           {
                             "type": "array",
                             "items": {
@@ -82,14 +63,8 @@
                           }
                         ]
                       },
-                      "label": {
-                        "type": "string"
-                      },
-                      "level": {
-                        "type": "integer",
-                        "minimum": 1,
-                        "maximum": 6
-                      }
+                      "label": { "type": "string" },
+                      "level": { "type": "integer", "minimum": 1, "maximum": 6 }
                     },
                     "additionalProperties": false
                   }
@@ -98,21 +73,10 @@
               "additionalProperties": false
             }
           },
-          "id": {
-            "type": "string"
-          },
-          "indexable": {
-            "type": "boolean",
-            "default": true
-          },
-          "blackMarket": {
-            "type": "boolean",
-            "default": false
-          },
-          "name": {
-            "type": "string",
-            "minLength": 1
-          },
+          "id": { "type": "string" },
+          "indexable": { "type": "boolean", "default": true },
+          "blackMarket": { "type": "boolean", "default": false },
+          "name": { "type": "string", "minLength": 1 },
           "source": {
             "type": "string",
             "enum": [
@@ -123,81 +87,33 @@
               "False Flag"
             ]
           },
-          "page": {
-            "type": "integer",
-            "exclusiveMinimum": 0
-          },
-          "structurePoints": {
-            "type": "integer",
-            "minimum": 0
-          },
-          "energyPoints": {
-            "$ref": "#/definitions/equipment/properties/structurePoints"
-          },
-          "heatCapacity": {
-            "$ref": "#/definitions/equipment/properties/structurePoints"
-          },
-          "systemSlots": {
-            "$ref": "#/definitions/equipment/properties/structurePoints"
-          },
-          "moduleSlots": {
-            "$ref": "#/definitions/equipment/properties/structurePoints"
-          },
-          "cargoCapacity": {
-            "$ref": "#/definitions/equipment/properties/structurePoints"
-          },
+          "page": { "type": "integer", "exclusiveMinimum": 0 },
+          "structurePoints": { "type": "integer", "minimum": 0 },
+          "energyPoints": { "$ref": "#/definitions/equipment/properties/structurePoints" },
+          "heatCapacity": { "$ref": "#/definitions/equipment/properties/structurePoints" },
+          "systemSlots": { "$ref": "#/definitions/equipment/properties/structurePoints" },
+          "moduleSlots": { "$ref": "#/definitions/equipment/properties/structurePoints" },
+          "cargoCapacity": { "$ref": "#/definitions/equipment/properties/structurePoints" },
           "techLevel": {
             "anyOf": [
-              {
-                "type": "integer",
-                "minimum": 0
-              },
-              {
-                "type": "string",
-                "const": "B"
-              },
-              {
-                "type": "string",
-                "const": "N"
-              }
+              { "type": "integer", "minimum": 0 },
+              { "type": "string", "const": "B" },
+              { "type": "string", "const": "N" }
             ]
           },
-          "salvageValue": {
-            "$ref": "#/definitions/equipment/properties/structurePoints"
-          },
-          "actions": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
+          "salvageValue": { "$ref": "#/definitions/equipment/properties/structurePoints" },
+          "actions": { "type": "array", "items": { "type": "string" } },
           "bonusPerTechLevel": {
             "type": "object",
             "properties": {
-              "structurePoints": {
-                "$ref": "#/definitions/equipment/properties/structurePoints"
-              },
-              "energyPoints": {
-                "$ref": "#/definitions/equipment/properties/energyPoints"
-              },
-              "heatCapacity": {
-                "$ref": "#/definitions/equipment/properties/heatCapacity"
-              },
-              "systemSlots": {
-                "$ref": "#/definitions/equipment/properties/systemSlots"
-              },
-              "moduleSlots": {
-                "$ref": "#/definitions/equipment/properties/moduleSlots"
-              },
-              "cargoCapacity": {
-                "$ref": "#/definitions/equipment/properties/cargoCapacity"
-              },
-              "techLevel": {
-                "$ref": "#/definitions/equipment/properties/techLevel"
-              },
-              "salvageValue": {
-                "$ref": "#/definitions/equipment/properties/salvageValue"
-              }
+              "structurePoints": { "$ref": "#/definitions/equipment/properties/structurePoints" },
+              "energyPoints": { "$ref": "#/definitions/equipment/properties/energyPoints" },
+              "heatCapacity": { "$ref": "#/definitions/equipment/properties/heatCapacity" },
+              "systemSlots": { "$ref": "#/definitions/equipment/properties/systemSlots" },
+              "moduleSlots": { "$ref": "#/definitions/equipment/properties/moduleSlots" },
+              "cargoCapacity": { "$ref": "#/definitions/equipment/properties/cargoCapacity" },
+              "techLevel": { "$ref": "#/definitions/equipment/properties/techLevel" },
+              "salvageValue": { "$ref": "#/definitions/equipment/properties/salvageValue" }
             },
             "additionalProperties": false
           },
@@ -206,24 +122,11 @@
             "items": {
               "type": "object",
               "properties": {
-                "id": {
-                  "$ref": "#/definitions/equipment/properties/id"
-                },
-                "name": {
-                  "$ref": "#/definitions/equipment/properties/name"
-                },
-                "content": {
-                  "$ref": "#/definitions/equipment/properties/content"
-                },
-                "rollTable": {
-                  "type": "string"
-                },
-                "schemaEntities": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                },
+                "id": { "$ref": "#/definitions/equipment/properties/id" },
+                "name": { "$ref": "#/definitions/equipment/properties/name" },
+                "content": { "$ref": "#/definitions/equipment/properties/content" },
+                "rollTable": { "type": "string" },
+                "schemaEntities": { "type": "array", "items": { "type": "string" } },
                 "schema": {
                   "type": "array",
                   "items": {
@@ -262,50 +165,29 @@
                       "structurePoints": {
                         "$ref": "#/definitions/equipment/properties/structurePoints"
                       },
-                      "energyPoints": {
-                        "$ref": "#/definitions/equipment/properties/energyPoints"
-                      },
-                      "heatCapacity": {
-                        "$ref": "#/definitions/equipment/properties/heatCapacity"
-                      },
-                      "systemSlots": {
-                        "$ref": "#/definitions/equipment/properties/systemSlots"
-                      },
-                      "moduleSlots": {
-                        "$ref": "#/definitions/equipment/properties/moduleSlots"
-                      },
+                      "energyPoints": { "$ref": "#/definitions/equipment/properties/energyPoints" },
+                      "heatCapacity": { "$ref": "#/definitions/equipment/properties/heatCapacity" },
+                      "systemSlots": { "$ref": "#/definitions/equipment/properties/systemSlots" },
+                      "moduleSlots": { "$ref": "#/definitions/equipment/properties/moduleSlots" },
                       "cargoCapacity": {
                         "$ref": "#/definitions/equipment/properties/cargoCapacity"
                       },
-                      "techLevel": {
-                        "$ref": "#/definitions/equipment/properties/techLevel"
-                      },
+                      "techLevel": { "$ref": "#/definitions/equipment/properties/techLevel" },
                       "salvageValue": {
                         "$ref": "#/definitions/equipment/properties/structurePoints"
                       },
                       "slotsRequired": {
                         "$ref": "#/definitions/equipment/properties/structurePoints"
                       },
-                      "recommended": {
-                        "type": "boolean"
-                      },
-                      "count": {
-                        "$ref": "#/definitions/equipment/properties/structurePoints"
-                      },
-                      "actions": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      }
+                      "recommended": { "type": "boolean" },
+                      "count": { "$ref": "#/definitions/equipment/properties/structurePoints" },
+                      "actions": { "type": "array", "items": { "type": "string" } }
                     },
                     "required": ["techLevel", "salvageValue", "slotsRequired", "actions"],
                     "additionalProperties": false
                   }
                 },
-                "setIndexable": {
-                  "type": "boolean"
-                },
+                "setIndexable": { "type": "boolean" },
                 "multiSelect": {
                   "type": "boolean",
                   "description": "If true, this choice can be selected multiple times"
@@ -315,15 +197,9 @@
                   "items": {
                     "type": "object",
                     "properties": {
-                      "label": {
-                        "type": "string"
-                      },
-                      "value": {
-                        "type": "string"
-                      },
-                      "description": {
-                        "type": "string"
-                      }
+                      "label": { "type": "string" },
+                      "value": { "type": "string" },
+                      "description": { "type": "string" }
                     },
                     "required": ["label", "value"],
                     "additionalProperties": false
@@ -333,15 +209,9 @@
                 "constraints": {
                   "type": "object",
                   "properties": {
-                    "field": {
-                      "type": "string"
-                    },
-                    "min": {
-                      "$ref": "#/definitions/equipment/properties/structurePoints"
-                    },
-                    "max": {
-                      "$ref": "#/definitions/equipment/properties/structurePoints"
-                    }
+                    "field": { "type": "string" },
+                    "min": { "$ref": "#/definitions/equipment/properties/structurePoints" },
+                    "max": { "$ref": "#/definitions/equipment/properties/structurePoints" }
                   },
                   "additionalProperties": false
                 }

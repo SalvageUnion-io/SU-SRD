@@ -12,10 +12,7 @@
           {
             "type": "object",
             "properties": {
-              "asset_url": {
-                "type": "string",
-                "format": "uri"
-              },
+              "asset_url": { "type": "string", "format": "uri" },
               "content": {
                 "type": "array",
                 "items": {
@@ -28,23 +25,15 @@
                     },
                     "value": {
                       "anyOf": [
-                        {
-                          "type": "string"
-                        },
+                        { "type": "string" },
                         {
                           "type": "array",
                           "items": {
                             "type": "object",
                             "properties": {
-                              "label": {
-                                "type": ["string", "number"]
-                              },
-                              "value": {
-                                "type": ["string", "number"]
-                              },
-                              "type": {
-                                "type": "string"
-                              }
+                              "label": { "type": ["string", "number"] },
+                              "value": { "type": ["string", "number"] },
+                              "type": { "type": "string" }
                             },
                             "required": ["label"],
                             "additionalProperties": false
@@ -53,14 +42,8 @@
                         }
                       ]
                     },
-                    "label": {
-                      "type": "string"
-                    },
-                    "level": {
-                      "type": "integer",
-                      "minimum": 1,
-                      "maximum": 6
-                    },
+                    "label": { "type": "string" },
+                    "level": { "type": "integer", "minimum": 1, "maximum": 6 },
                     "items": {
                       "type": "array",
                       "items": {
@@ -72,9 +55,7 @@
                           },
                           "value": {
                             "anyOf": [
-                              {
-                                "type": "string"
-                              },
+                              { "type": "string" },
                               {
                                 "type": "array",
                                 "items": {
@@ -84,14 +65,8 @@
                               }
                             ]
                           },
-                          "label": {
-                            "type": "string"
-                          },
-                          "level": {
-                            "type": "integer",
-                            "minimum": 1,
-                            "maximum": 6
-                          }
+                          "label": { "type": "string" },
+                          "level": { "type": "integer", "minimum": 1, "maximum": 6 }
                         },
                         "additionalProperties": false
                       }
@@ -100,21 +75,10 @@
                   "additionalProperties": false
                 }
               },
-              "id": {
-                "type": "string"
-              },
-              "indexable": {
-                "type": "boolean",
-                "default": true
-              },
-              "blackMarket": {
-                "type": "boolean",
-                "default": false
-              },
-              "name": {
-                "type": "string",
-                "minLength": 1
-              },
+              "id": { "type": "string" },
+              "indexable": { "type": "boolean", "default": true },
+              "blackMarket": { "type": "boolean", "default": false },
+              "name": { "type": "string", "minLength": 1 },
               "source": {
                 "type": "string",
                 "enum": [
@@ -125,10 +89,7 @@
                   "False Flag"
                 ]
               },
-              "page": {
-                "type": "integer",
-                "exclusiveMinimum": 0
-              },
+              "page": { "type": "integer", "exclusiveMinimum": 0 },
               "maxAbilities": {
                 "type": "integer",
                 "exclusiveMinimum": 0,
@@ -206,30 +167,14 @@
           {
             "type": "object",
             "properties": {
-              "asset_url": {
-                "$ref": "#/definitions/classes/anyOf/0/properties/asset_url"
-              },
-              "content": {
-                "$ref": "#/definitions/classes/anyOf/0/properties/content"
-              },
-              "id": {
-                "$ref": "#/definitions/classes/anyOf/0/properties/id"
-              },
-              "indexable": {
-                "$ref": "#/definitions/classes/anyOf/0/properties/indexable"
-              },
-              "blackMarket": {
-                "$ref": "#/definitions/classes/anyOf/0/properties/blackMarket"
-              },
-              "name": {
-                "$ref": "#/definitions/classes/anyOf/0/properties/name"
-              },
-              "source": {
-                "$ref": "#/definitions/classes/anyOf/0/properties/source"
-              },
-              "page": {
-                "$ref": "#/definitions/classes/anyOf/0/properties/page"
-              },
+              "asset_url": { "$ref": "#/definitions/classes/anyOf/0/properties/asset_url" },
+              "content": { "$ref": "#/definitions/classes/anyOf/0/properties/content" },
+              "id": { "$ref": "#/definitions/classes/anyOf/0/properties/id" },
+              "indexable": { "$ref": "#/definitions/classes/anyOf/0/properties/indexable" },
+              "blackMarket": { "$ref": "#/definitions/classes/anyOf/0/properties/blackMarket" },
+              "name": { "$ref": "#/definitions/classes/anyOf/0/properties/name" },
+              "source": { "$ref": "#/definitions/classes/anyOf/0/properties/source" },
+              "page": { "$ref": "#/definitions/classes/anyOf/0/properties/page" },
               "hybrid": {
                 "type": "boolean",
                 "description": "Whether this is a hybrid class (cannot be selected as initial class)"

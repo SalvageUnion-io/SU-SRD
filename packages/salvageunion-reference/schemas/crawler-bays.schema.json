@@ -10,10 +10,7 @@
       "crawler-bays": {
         "type": "object",
         "properties": {
-          "asset_url": {
-            "type": "string",
-            "format": "uri"
-          },
+          "asset_url": { "type": "string", "format": "uri" },
           "content": {
             "type": "array",
             "items": {
@@ -26,23 +23,15 @@
                 },
                 "value": {
                   "anyOf": [
-                    {
-                      "type": "string"
-                    },
+                    { "type": "string" },
                     {
                       "type": "array",
                       "items": {
                         "type": "object",
                         "properties": {
-                          "label": {
-                            "type": ["string", "number"]
-                          },
-                          "value": {
-                            "type": ["string", "number"]
-                          },
-                          "type": {
-                            "type": "string"
-                          }
+                          "label": { "type": ["string", "number"] },
+                          "value": { "type": ["string", "number"] },
+                          "type": { "type": "string" }
                         },
                         "required": ["label"],
                         "additionalProperties": false
@@ -51,14 +40,8 @@
                     }
                   ]
                 },
-                "label": {
-                  "type": "string"
-                },
-                "level": {
-                  "type": "integer",
-                  "minimum": 1,
-                  "maximum": 6
-                },
+                "label": { "type": "string" },
+                "level": { "type": "integer", "minimum": 1, "maximum": 6 },
                 "items": {
                   "type": "array",
                   "items": {
@@ -70,9 +53,7 @@
                       },
                       "value": {
                         "anyOf": [
-                          {
-                            "type": "string"
-                          },
+                          { "type": "string" },
                           {
                             "type": "array",
                             "items": {
@@ -82,14 +63,8 @@
                           }
                         ]
                       },
-                      "label": {
-                        "type": "string"
-                      },
-                      "level": {
-                        "type": "integer",
-                        "minimum": 1,
-                        "maximum": 6
-                      }
+                      "label": { "type": "string" },
+                      "level": { "type": "integer", "minimum": 1, "maximum": 6 }
                     },
                     "additionalProperties": false
                   }
@@ -98,21 +73,10 @@
               "additionalProperties": false
             }
           },
-          "id": {
-            "type": "string"
-          },
-          "indexable": {
-            "type": "boolean",
-            "default": true
-          },
-          "blackMarket": {
-            "type": "boolean",
-            "default": false
-          },
-          "name": {
-            "type": "string",
-            "minLength": 1
-          },
+          "id": { "type": "string" },
+          "indexable": { "type": "boolean", "default": true },
+          "blackMarket": { "type": "boolean", "default": false },
+          "name": { "type": "string", "minLength": 1 },
           "source": {
             "type": "string",
             "enum": [
@@ -123,50 +87,24 @@
               "False Flag"
             ]
           },
-          "page": {
-            "type": "integer",
-            "exclusiveMinimum": 0
-          },
-          "damagedEffect": {
-            "type": "string",
-            "description": "Effect when this bay is damaged"
-          },
+          "page": { "type": "integer", "exclusiveMinimum": 0 },
+          "damagedEffect": { "type": "string", "description": "Effect when this bay is damaged" },
           "npc": {
             "type": "object",
             "properties": {
-              "position": {
-                "$ref": "#/definitions/crawler-bays/properties/name"
-              },
-              "content": {
-                "$ref": "#/definitions/crawler-bays/properties/content"
-              },
-              "hitPoints": {
-                "type": "integer",
-                "minimum": 0
-              },
+              "position": { "$ref": "#/definitions/crawler-bays/properties/name" },
+              "content": { "$ref": "#/definitions/crawler-bays/properties/content" },
+              "hitPoints": { "type": "integer", "minimum": 0 },
               "choices": {
                 "type": "array",
                 "items": {
                   "type": "object",
                   "properties": {
-                    "id": {
-                      "$ref": "#/definitions/crawler-bays/properties/id"
-                    },
-                    "name": {
-                      "$ref": "#/definitions/crawler-bays/properties/name"
-                    },
-                    "content": {
-                      "$ref": "#/definitions/crawler-bays/properties/content"
-                    },
-                    "rollTable": {
-                      "type": "string"
-                    },
-                    "schemaEntities": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
-                    },
+                    "id": { "$ref": "#/definitions/crawler-bays/properties/id" },
+                    "name": { "$ref": "#/definitions/crawler-bays/properties/name" },
+                    "content": { "$ref": "#/definitions/crawler-bays/properties/content" },
+                    "rollTable": { "type": "string" },
+                    "schemaEntities": { "type": "array", "items": { "type": "string" } },
                     "schema": {
                       "type": "array",
                       "items": {
@@ -222,18 +160,9 @@
                           },
                           "techLevel": {
                             "anyOf": [
-                              {
-                                "type": "integer",
-                                "minimum": 0
-                              },
-                              {
-                                "type": "string",
-                                "const": "B"
-                              },
-                              {
-                                "type": "string",
-                                "const": "N"
-                              }
+                              { "type": "integer", "minimum": 0 },
+                              { "type": "string", "const": "B" },
+                              { "type": "string", "const": "N" }
                             ]
                           },
                           "salvageValue": {
@@ -242,26 +171,17 @@
                           "slotsRequired": {
                             "$ref": "#/definitions/crawler-bays/properties/npc/properties/hitPoints"
                           },
-                          "recommended": {
-                            "type": "boolean"
-                          },
+                          "recommended": { "type": "boolean" },
                           "count": {
                             "$ref": "#/definitions/crawler-bays/properties/npc/properties/hitPoints"
                           },
-                          "actions": {
-                            "type": "array",
-                            "items": {
-                              "type": "string"
-                            }
-                          }
+                          "actions": { "type": "array", "items": { "type": "string" } }
                         },
                         "required": ["techLevel", "salvageValue", "slotsRequired", "actions"],
                         "additionalProperties": false
                       }
                     },
-                    "setIndexable": {
-                      "type": "boolean"
-                    },
+                    "setIndexable": { "type": "boolean" },
                     "multiSelect": {
                       "type": "boolean",
                       "description": "If true, this choice can be selected multiple times"
@@ -271,15 +191,9 @@
                       "items": {
                         "type": "object",
                         "properties": {
-                          "label": {
-                            "type": "string"
-                          },
-                          "value": {
-                            "type": "string"
-                          },
-                          "description": {
-                            "type": "string"
-                          }
+                          "label": { "type": "string" },
+                          "value": { "type": "string" },
+                          "description": { "type": "string" }
                         },
                         "required": ["label", "value"],
                         "additionalProperties": false
@@ -289,9 +203,7 @@
                     "constraints": {
                       "type": "object",
                       "properties": {
-                        "field": {
-                          "type": "string"
-                        },
+                        "field": { "type": "string" },
                         "min": {
                           "$ref": "#/definitions/crawler-bays/properties/npc/properties/hitPoints"
                         },
@@ -321,24 +233,14 @@
                 "properties": {
                   "1": {
                     "type": "object",
-                    "properties": {
-                      "label": {
-                        "type": "string"
-                      },
-                      "value": {
-                        "type": "string"
-                      }
-                    },
+                    "properties": { "label": { "type": "string" }, "value": { "type": "string" } },
                     "required": ["value"],
                     "additionalProperties": false
                   },
                   "20": {
                     "$ref": "#/definitions/crawler-bays/properties/table/anyOf/0/properties/1"
                   },
-                  "type": {
-                    "type": "string",
-                    "const": "standard"
-                  },
+                  "type": { "type": "string", "const": "standard" },
                   "11-19": {
                     "$ref": "#/definitions/crawler-bays/properties/table/anyOf/0/properties/1"
                   },
@@ -358,10 +260,7 @@
                   "1": {
                     "$ref": "#/definitions/crawler-bays/properties/table/anyOf/0/properties/1"
                   },
-                  "type": {
-                    "type": "string",
-                    "const": "alternate"
-                  },
+                  "type": { "type": "string", "const": "alternate" },
                   "19-20": {
                     "$ref": "#/definitions/crawler-bays/properties/table/anyOf/0/properties/1"
                   },
@@ -441,10 +340,7 @@
                   "20": {
                     "$ref": "#/definitions/crawler-bays/properties/table/anyOf/0/properties/1"
                   },
-                  "type": {
-                    "type": "string",
-                    "const": "flat"
-                  }
+                  "type": { "type": "string", "const": "flat" }
                 },
                 "required": [
                   "1",
@@ -477,10 +373,7 @@
                   "20": {
                     "$ref": "#/definitions/crawler-bays/properties/table/anyOf/0/properties/1"
                   },
-                  "type": {
-                    "type": "string",
-                    "const": "dramatic"
-                  }
+                  "type": { "type": "string", "const": "dramatic" }
                 },
                 "required": ["20", "type"],
                 "additionalProperties": false
@@ -488,10 +381,7 @@
               {
                 "type": "object",
                 "properties": {
-                  "type": {
-                    "type": "string",
-                    "const": "duos"
-                  },
+                  "type": { "type": "string", "const": "duos" },
                   "1-2": {
                     "$ref": "#/definitions/crawler-bays/properties/table/anyOf/0/properties/1"
                   },
@@ -547,10 +437,7 @@
                   "20": {
                     "$ref": "#/definitions/crawler-bays/properties/table/anyOf/0/properties/1"
                   },
-                  "type": {
-                    "type": "string",
-                    "const": "bio-chassis"
-                  },
+                  "type": { "type": "string", "const": "bio-chassis" },
                   "2-3": {
                     "$ref": "#/definitions/crawler-bays/properties/table/anyOf/0/properties/1"
                   },
@@ -572,10 +459,7 @@
               }
             ]
           },
-          "tableName": {
-            "type": "string",
-            "description": "Reference to a roll table name"
-          }
+          "tableName": { "type": "string", "description": "Reference to a roll table name" }
         },
         "required": ["id", "name", "source", "page", "damagedEffect", "npc"],
         "additionalProperties": false

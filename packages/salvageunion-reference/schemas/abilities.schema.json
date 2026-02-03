@@ -10,10 +10,7 @@
       "abilities": {
         "type": "object",
         "properties": {
-          "asset_url": {
-            "type": "string",
-            "format": "uri"
-          },
+          "asset_url": { "type": "string", "format": "uri" },
           "content": {
             "type": "array",
             "items": {
@@ -26,23 +23,15 @@
                 },
                 "value": {
                   "anyOf": [
-                    {
-                      "type": "string"
-                    },
+                    { "type": "string" },
                     {
                       "type": "array",
                       "items": {
                         "type": "object",
                         "properties": {
-                          "label": {
-                            "type": ["string", "number"]
-                          },
-                          "value": {
-                            "type": ["string", "number"]
-                          },
-                          "type": {
-                            "type": "string"
-                          }
+                          "label": { "type": ["string", "number"] },
+                          "value": { "type": ["string", "number"] },
+                          "type": { "type": "string" }
                         },
                         "required": ["label"],
                         "additionalProperties": false
@@ -51,14 +40,8 @@
                     }
                   ]
                 },
-                "label": {
-                  "type": "string"
-                },
-                "level": {
-                  "type": "integer",
-                  "minimum": 1,
-                  "maximum": 6
-                },
+                "label": { "type": "string" },
+                "level": { "type": "integer", "minimum": 1, "maximum": 6 },
                 "items": {
                   "type": "array",
                   "items": {
@@ -70,9 +53,7 @@
                       },
                       "value": {
                         "anyOf": [
-                          {
-                            "type": "string"
-                          },
+                          { "type": "string" },
                           {
                             "type": "array",
                             "items": {
@@ -82,14 +63,8 @@
                           }
                         ]
                       },
-                      "label": {
-                        "type": "string"
-                      },
-                      "level": {
-                        "type": "integer",
-                        "minimum": 1,
-                        "maximum": 6
-                      }
+                      "label": { "type": "string" },
+                      "level": { "type": "integer", "minimum": 1, "maximum": 6 }
                     },
                     "additionalProperties": false
                   }
@@ -98,21 +73,10 @@
               "additionalProperties": false
             }
           },
-          "id": {
-            "type": "string"
-          },
-          "indexable": {
-            "type": "boolean",
-            "default": true
-          },
-          "blackMarket": {
-            "type": "boolean",
-            "default": false
-          },
-          "name": {
-            "type": "string",
-            "minLength": 1
-          },
+          "id": { "type": "string" },
+          "indexable": { "type": "boolean", "default": true },
+          "blackMarket": { "type": "boolean", "default": false },
+          "name": { "type": "string", "minLength": 1 },
           "source": {
             "type": "string",
             "enum": [
@@ -123,13 +87,8 @@
               "False Flag"
             ]
           },
-          "page": {
-            "type": "integer",
-            "exclusiveMinimum": 0
-          },
-          "description": {
-            "type": "string"
-          },
+          "page": { "type": "integer", "exclusiveMinimum": 0 },
+          "description": { "type": "string" },
           "tree": {
             "type": "string",
             "enum": [
@@ -173,19 +132,9 @@
           },
           "level": {
             "anyOf": [
-              {
-                "type": "integer",
-                "minimum": 1,
-                "maximum": 3
-              },
-              {
-                "type": "string",
-                "const": "L"
-              },
-              {
-                "type": "string",
-                "const": "G"
-              }
+              { "type": "integer", "minimum": 1, "maximum": 3 },
+              { "type": "string", "const": "L" },
+              { "type": "string", "const": "G" }
             ]
           },
           "mechActionType": {
@@ -226,30 +175,17 @@
                         "vehicles"
                       ]
                     },
-                    {
-                      "type": "string",
-                      "const": "choice"
-                    }
+                    { "type": "string", "const": "choice" }
                   ]
                 },
-                "name": {
-                  "$ref": "#/definitions/abilities/properties/name"
-                }
+                "name": { "$ref": "#/definitions/abilities/properties/name" }
               },
               "required": ["schema", "name"],
               "additionalProperties": false
             }
           },
-          "activationCurrency": {
-            "type": "string",
-            "enum": ["Variable", "EP or AP", "SP or HP"]
-          },
-          "actions": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
+          "activationCurrency": { "type": "string", "enum": ["Variable", "EP or AP", "SP or HP"] },
+          "actions": { "type": "array", "items": { "type": "string" } }
         },
         "required": ["id", "name", "source", "page", "tree", "level"],
         "additionalProperties": false
