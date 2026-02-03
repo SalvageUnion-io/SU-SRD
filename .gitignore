@@ -28,6 +28,9 @@ apps/suref-web/.vite
 .tanstack
 **/.tanstack
 
+# Supabase CLI cache
+**/supabase/.temp/
+
 # Environment variables
 .env
 .env.local
