@@ -307,6 +307,10 @@ const ChoiceConstraintsSchema = z
     max: NonNegativeIntegerSchema.optional(),
   })
   .strict()
+  .refine((data) => data.min === undefined || data.max === undefined || data.min <= data.max, {
+    message: 'min must be less than or equal to max',
+    path: ['min'],
+  })
 
 /**
  * Choice schema (using z.lazy() for recursive reference to ContentSchema)

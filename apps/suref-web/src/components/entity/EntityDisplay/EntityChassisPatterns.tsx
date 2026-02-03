@@ -32,7 +32,7 @@ export function EntityChassisPatterns() {
   const selectedPattern = patternParam || defaultPattern
 
   return (
-    <VStack p={spacing.contentPadding} gap={4} alignItems="stretch">
+    <VStack px={spacing.contentPaddingX} py={spacing.contentPadding} gap={4} alignItems="stretch">
       <EntitySubheader label="Patterns" />
 
       <Tabs.Root value={selectedPattern} onValueChange={(e) => handlePatternChange(e.value)}>

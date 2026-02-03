@@ -1170,7 +1170,7 @@
         "name": "Black Market Modules",
         "schema": ["modules"],
         "setIndexable": true,
-        "schemaEntities": ["Goflow Plant Growing System", "Corrupted Neuralink"]
+        "schemaEntities": ["Goflow Plant Growing System", "Corrupted Neuralink Module"]
       },
       {
         "id": "ae51286a-64c8-416f-a052-81ef0869d4cc",

@@ -15,12 +15,14 @@ import type { getEffects } from 'salvageunion-reference'
  * Spacing helpers based on compact mode
  */
 export const getEntitySpacing = (compact: boolean) => ({
-  /** Gap between small elements: 2 (compact) or 3 (normal) */
-  smallGap: compact ? 2 : 3,
-  /** Gap for minimal spacing: 0.5 (compact) or 1 (normal) */
-  minimalGap: compact ? 0.5 : 1,
-  /** Gap for single spacing: 0.5 (compact) or 1 (normal) */
-  contentPadding: compact ? 0.5 : 1,
+  /** Gap between small elements: 1.5 (compact) or 2 (normal) */
+  smallGap: compact ? 1.5 : 2,
+  /** Gap for minimal spacing: 0.25 (compact) or 0.5 (normal) */
+  minimalGap: compact ? 0.25 : 0.5,
+  /** Vertical padding for content: 0.5 (compact) or 0.75 (normal) */
+  contentPadding: compact ? 0.5 : 0.75,
+  /** Horizontal padding for content: 1 (compact) or 1.5 (normal) */
+  contentPaddingX: compact ? 1 : 1.5,
 })
 
 /**

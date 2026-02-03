@@ -1,4 +1,4 @@
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { SalvageUnionReference, getModel } from 'salvageunion-reference'
 import type { SURefEnumSchemaName } from 'salvageunion-reference'
 import {
   DialogRoot,
@@ -8,6 +8,7 @@ import {
   DialogPositioner,
 } from '@chakra-ui/react'
 import { EntityDisplay } from './EntityDisplay'
+import { NotFoundDisplay } from './NotFoundDisplay'
 
 interface EntityDisplayModalProps {
   isOpen: boolean
@@ -29,9 +30,13 @@ export function EntityDisplayModal({
   const hasValidData = schemaName && entityId
   const entity = hasValidData ? SalvageUnionReference.get(schemaName, entityId) : null
 
-  if (!hasValidData || !entity || !schemaName) {
+  // Don't render anything if modal is closed
+  if (!isOpen) {
     return null
   }
+
+  // Get display name for the schema type
+  const schemaDisplayName = schemaName ? getModel(schemaName)?.displayName : undefined
 
   return (
     <DialogRoot
@@ -57,7 +62,15 @@ export function EntityDisplayModal({
             w={10}
             h={10}
           />
-          <EntityDisplay data={entity} collapsible={false} />
+          {entity ? (
+            <EntityDisplay data={entity} collapsible={false} />
+          ) : (
+            <NotFoundDisplay
+              entityType={schemaDisplayName}
+              entityId={entityId || undefined}
+              onClose={onClose}
+            />
+          )}
         </DialogContent>
       </DialogPositioner>
     </DialogRoot>
