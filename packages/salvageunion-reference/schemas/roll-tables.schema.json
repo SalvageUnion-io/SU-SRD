@@ -322,7 +322,7 @@
             ]
           }
         },
-        "required": ["id", "name", "source", "table"],
+        "required": ["id", "name", "source", "page", "table"],
         "additionalProperties": false
       }
     },

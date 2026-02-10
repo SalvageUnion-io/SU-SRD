@@ -14,6 +14,7 @@ import type { Tables, Json } from '../types/database-generated.types'
 import type { HydratedEntity } from '../types/hydrated'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEnumSchemaName, SURefEntity } from 'salvageunion-reference'
+import { act } from '@testing-library/react'
 
 /**
  * Create a local pilot in cache with default or custom values
@@ -52,7 +53,9 @@ export function createLocalPilot(
     ...overrides,
   }
 
-  queryClient.setQueryData(pilotsKeys.byId(id), pilot)
+  act(() => {
+    queryClient.setQueryData(pilotsKeys.byId(id), pilot)
+  })
   return pilot
 }
 
@@ -86,7 +89,9 @@ export function createLocalMech(
     ...overrides,
   }
 
-  queryClient.setQueryData(mechsKeys.byId(id), mech)
+  act(() => {
+    queryClient.setQueryData(mechsKeys.byId(id), mech)
+  })
   return mech
 }
 
@@ -123,7 +128,9 @@ export function createLocalCrawler(
     ...overrides,
   }
 
-  queryClient.setQueryData(crawlersKeys.byId(id), crawler)
+  act(() => {
+    queryClient.setQueryData(crawlersKeys.byId(id), crawler)
+  })
   return crawler
 }
 
@@ -166,7 +173,9 @@ export function createLocalEntity(
   const parentTypeKey = pilotId ? 'pilot' : mechId ? 'mech' : 'crawler'
   const queryKey = entitiesKeys.forParent(parentTypeKey, parentId)
   const currentEntities = queryClient.getQueryData<HydratedEntity[]>(queryKey) || []
-  queryClient.setQueryData(queryKey, [...currentEntities, entity])
+  act(() => {
+    queryClient.setQueryData(queryKey, [...currentEntities, entity])
+  })
 
   return entity
 }

@@ -236,10 +236,8 @@ export const NPCSchema = BaseEntitySchema.merge(CombatEntitySchema)
 
 /**
  * Random tables and roll tables in Salvage Union
- * Note: page is optional since some roll tables are generated from actions
  */
 export const RollTableSchema = BaseEntitySchema.extend({
-  page: z.number().int().positive().optional(),
   table: TableSchema,
   content: ContentSchema.optional(),
 }).strict()

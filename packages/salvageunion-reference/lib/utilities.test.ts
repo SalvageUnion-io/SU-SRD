@@ -380,6 +380,47 @@ describe('Property Extractors', () => {
       expect(page).toBeDefined()
       expect(typeof page).toBe('number')
     })
+
+    const schemasWithPages = [
+      'Abilities',
+      'AbilityTreeRequirements',
+      'BioTitans',
+      'Chassis',
+      'Classes',
+      'CrawlerBays',
+      'CrawlerTechLevels',
+      'Crawlers',
+      'Creatures',
+      'Distances',
+      'Drones',
+      'Equipment',
+      'Factions',
+      'Keywords',
+      'Meld',
+      'Modules',
+      'NPCs',
+      'RollTables',
+      'Squads',
+      'Systems',
+      'Traits',
+      'Vehicles',
+    ] as const
+
+    for (const schemaName of schemasWithPages) {
+      it(`every ${schemaName} entity should have a valid page number`, () => {
+        const ref = getReference()
+        const model = ref[schemaName]
+        const entities = model.all()
+        expect(entities.length).toBeGreaterThan(0)
+
+        for (const entity of entities) {
+          const page = getPageReference(entity)
+          expect(page).toBeDefined()
+          expect(typeof page).toBe('number')
+          expect(page).toBeGreaterThan(0)
+        }
+      })
+    }
   })
 
   describe('extractActions', () => {

@@ -6,7 +6,9 @@ import { getSourceStyles } from '../entity/entityDisplayHelpers'
 
 export function EntityDisplayFooter({ bg }: { bg?: string }) {
   const { data, schemaName, compact, source, disabled, isExpanded } = useEntityDisplayContext()
-  if (!('page' in data) || !data.page) return null
+  const hasPage = 'page' in data && !!data.page
+  const hasSource = 'source' in data && !!data.source
+  if (!hasPage && !hasSource) return null
   const displayName = getDisplayName(schemaName)
 
   // Get tree name for abilities
@@ -62,19 +64,23 @@ export function EntityDisplayFooter({ bg }: { bg?: string }) {
       </Flex>
 
       <Flex>
-        <Text
-          variant="pseudoheader"
-          as="span"
-          mr={4}
-          fontSize="xs"
-          fontWeight={fontWeightSemibold}
-          textTransform="uppercase"
-        >
-          {data.source}
-        </Text>
-        <Text variant="pseudoheader" as="span" fontSize="xs" fontWeight={fontWeightBold}>
-          Page {data.page}
-        </Text>
+        {hasSource && (
+          <Text
+            variant="pseudoheader"
+            as="span"
+            mr={hasPage ? 4 : 0}
+            fontSize="xs"
+            fontWeight={fontWeightSemibold}
+            textTransform="uppercase"
+          >
+            {data.source}
+          </Text>
+        )}
+        {hasPage && (
+          <Text variant="pseudoheader" as="span" fontSize="xs" fontWeight={fontWeightBold}>
+            Page {data.page}
+          </Text>
+        )}
       </Flex>
     </Flex>
   )

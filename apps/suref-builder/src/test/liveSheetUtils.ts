@@ -12,6 +12,7 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import type { Tables } from '../types/database-generated.types'
 import { entitiesKeys } from '../hooks/suentity/useSUEntities'
 import type { HydratedEntity } from '../types/hydrated'
+import { act } from '@testing-library/react'
 
 /**
  * Set up a local pilot with a class selected
@@ -50,16 +51,18 @@ export function addAbilityToPilot(
       | { level?: number | string }
       | undefined
     const cost = ability?.level === 1 ? 1 : ability?.level === 2 ? 2 : ability?.level === 3 ? 3 : 1
-    queryClient.setQueryData(
-      queryClient.getQueryCache().find({ queryKey: ['pilots', pilotId] })?.queryKey || [
-        'pilots',
-        pilotId,
-      ],
-      {
-        ...pilot,
-        current_tp: (pilot.current_tp || 0) - cost,
-      }
-    )
+    act(() => {
+      queryClient.setQueryData(
+        queryClient.getQueryCache().find({ queryKey: ['pilots', pilotId] })?.queryKey || [
+          'pilots',
+          pilotId,
+        ],
+        {
+          ...pilot,
+          current_tp: (pilot.current_tp || 0) - cost,
+        }
+      )
+    })
   }
 
   return abilityEntity.id
@@ -79,26 +82,30 @@ export function removeAbilityFromPilot(
 
   if (abilityEntity) {
     // Remove the entity
-    queryClient.setQueryData(
-      queryKey,
-      entities.filter((e) => e.id !== abilityEntityId)
-    )
+    act(() => {
+      queryClient.setQueryData(
+        queryKey,
+        entities.filter((e) => e.id !== abilityEntityId)
+      )
+    })
 
     // Refund TP
     const pilot = getPilotFromCache(queryClient, pilotId)
     if (pilot && abilityEntity.ref) {
       const ability = abilityEntity.ref as { level?: number | string }
       const cost = ability.level === 1 ? 1 : ability.level === 2 ? 2 : ability.level === 3 ? 3 : 1
-      queryClient.setQueryData(
-        queryClient.getQueryCache().find({ queryKey: ['pilots', pilotId] })?.queryKey || [
-          'pilots',
-          pilotId,
-        ],
-        {
-          ...pilot,
-          current_tp: (pilot.current_tp || 0) + cost,
-        }
-      )
+      act(() => {
+        queryClient.setQueryData(
+          queryClient.getQueryCache().find({ queryKey: ['pilots', pilotId] })?.queryKey || [
+            'pilots',
+            pilotId,
+          ],
+          {
+            ...pilot,
+            current_tp: (pilot.current_tp || 0) + cost,
+          }
+        )
+      })
     }
   }
 }
@@ -127,17 +134,19 @@ export function updatePilotResource(
     updates.current_tp = value
   }
 
-  queryClient.setQueryData(
-    queryClient.getQueryCache().find({ queryKey: ['pilots', pilotId] })?.queryKey || [
-      'pilots',
-      pilotId,
-    ],
-    {
-      ...pilot,
-      ...updates,
-      updated_at: new Date().toISOString(),
-    }
-  )
+  act(() => {
+    queryClient.setQueryData(
+      queryClient.getQueryCache().find({ queryKey: ['pilots', pilotId] })?.queryKey || [
+        'pilots',
+        pilotId,
+      ],
+      {
+        ...pilot,
+        ...updates,
+        updated_at: new Date().toISOString(),
+      }
+    )
+  })
 }
 
 /**
@@ -161,10 +170,12 @@ export function removeEquipmentFromPilot(
 ): void {
   const queryKey = entitiesKeys.forParent('pilot', pilotId)
   const entities = queryClient.getQueryData<HydratedEntity[]>(queryKey) || []
-  queryClient.setQueryData(
-    queryKey,
-    entities.filter((e) => e.id !== equipmentEntityId)
-  )
+  act(() => {
+    queryClient.setQueryData(
+      queryKey,
+      entities.filter((e) => e.id !== equipmentEntityId)
+    )
+  })
 }
 
 /**
@@ -196,10 +207,14 @@ export function makePlayerChoice(
     // Replace existing choice
     const updated = [...currentChoices]
     updated[existingIndex] = newChoice
-    queryClient.setQueryData(choiceKey, updated)
+    act(() => {
+      queryClient.setQueryData(choiceKey, updated)
+    })
   } else {
     // Add new choice
-    queryClient.setQueryData(choiceKey, [...currentChoices, newChoice])
+    act(() => {
+      queryClient.setQueryData(choiceKey, [...currentChoices, newChoice])
+    })
   }
 
   // Also update the entity's choices in the hydrated entities cache
@@ -231,7 +246,9 @@ export function makePlayerChoice(
             }
             return e
           })
-          queryClient.setQueryData(queryKey, updatedEntities)
+          act(() => {
+            queryClient.setQueryData(queryKey, updatedEntities)
+          })
         }
       }
     }

@@ -117,6 +117,14 @@ describe('Schema Entity Display Tests', () => {
 
           const textContent = result!.container.textContent || ''
           verifyEntityProperties(textContent, entity, schemaId)
+
+          // Verify footer renders page number and source for all entities
+          if ('page' in entity && entity.page) {
+            expect(textContent).toContain(`Page ${entity.page}`)
+          }
+          if ('source' in entity && entity.source) {
+            expect(textContent).toContain(entity.source as string)
+          }
         })
       }
     })
