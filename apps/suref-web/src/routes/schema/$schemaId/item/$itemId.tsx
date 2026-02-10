@@ -3,7 +3,7 @@ import { getSchemaCatalog, SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEnumSchemaName } from 'salvageunion-reference'
 import ItemShowPage from '../../../../components/ItemShowPage'
 import { ReferenceError } from '../../../../components/errors/ReferenceError'
-import { findEntityBySlug, getEntitySlug } from '../../../../utils/slug'
+import { findEntityBySlug, getEntitySlug } from 'suref-react'
 
 const schemaIndexData = getSchemaCatalog()
 

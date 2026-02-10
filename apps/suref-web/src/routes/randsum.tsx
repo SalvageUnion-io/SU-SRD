@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { Box, Container, Flex, Image, Link, VStack, Button } from '@chakra-ui/react'
-import { Text } from '../components/base/Text'
-import { Heading } from '../components/base/Heading'
+import { Text } from 'suref-react'
+import { Heading } from 'suref-react'
 
 export const Route = createFileRoute('/randsum')({
   component: RandsumPage,

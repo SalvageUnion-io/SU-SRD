@@ -1,7 +1,7 @@
 import { Box, Flex, Text } from '@chakra-ui/react'
 import { Button } from '@chakra-ui/react'
 import { useNavigate, useRouter, type ErrorComponentProps } from '@tanstack/react-router'
-import { Heading } from '../base/Heading'
+import { Heading } from 'suref-react'
 
 /**
  * Error component for reference/schema routes

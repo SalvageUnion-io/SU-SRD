@@ -1,7 +1,7 @@
 import { getSchemaCatalog, SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEnumSchemaName } from 'salvageunion-reference'
-import { getEntitySlug } from './utils/slug'
-import { logger } from './lib/logger'
+import { getEntitySlug } from 'suref-react'
+import { logger } from 'suref-react'
 
 /**
  * Generate all static paths for prerendering

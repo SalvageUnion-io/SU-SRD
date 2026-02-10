@@ -1,5 +1,5 @@
 import { Box, Flex, Link } from '@chakra-ui/react'
-import { Text } from '../base/Text'
+import { Text } from 'suref-react'
 
 export function RulesReferenceLanding() {
   return (

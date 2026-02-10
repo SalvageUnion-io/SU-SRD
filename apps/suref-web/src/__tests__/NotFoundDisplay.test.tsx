@@ -1,6 +1,6 @@
 import { describe, test, expect, mock } from 'bun:test'
 import { render, screen, fireEvent } from '../test/render'
-import { NotFoundDisplay } from '../components/entity/NotFoundDisplay'
+import { NotFoundDisplay } from 'suref-react'
 import { act } from '@testing-library/react'
 
 describe('NotFoundDisplay', () => {

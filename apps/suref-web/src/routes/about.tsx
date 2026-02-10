@@ -14,7 +14,7 @@ import {
   DialogCloseTrigger,
   DialogPositioner,
 } from '@chakra-ui/react'
-import { Text } from '../components/base/Text'
+import { Text } from 'suref-react'
 
 function AboutPage() {
   const search = useSearch({ strict: false })

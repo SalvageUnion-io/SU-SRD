@@ -1,6 +1,6 @@
 import { describe, test, expect } from 'bun:test'
 import { render, waitFor } from '../test/render'
-import { EntityDisplay } from '../components/entity/EntityDisplay'
+import { EntityDisplay } from 'suref-react'
 import { getSchemaCatalog } from 'salvageunion-reference'
 import { getModel } from 'salvageunion-reference'
 import type { SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'

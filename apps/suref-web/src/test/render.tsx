@@ -7,33 +7,13 @@ import {
   RouterProvider,
   type RouterHistory,
 } from '@tanstack/react-router'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { system } from '../theme'
+import { system } from 'suref-react'
 import type { ReactNode } from 'react'
 import { afterEach, beforeEach } from 'bun:test'
 
 // eslint-disable-next-line react-refresh/only-export-components
 export * from '@testing-library/react'
 
-/**
- * Create a new QueryClient for each test with retries disabled
- * Following TanStack Query testing best practices:
- * https://tkdodo.eu/blog/testing-react-query
- */
-function createTestQueryClient() {
-  return new QueryClient({
-    defaultOptions: {
-      queries: {
-        retry: false,
-      },
-      mutations: {
-        retry: false,
-      },
-    },
-  })
-}
-
-let currentQueryClient: QueryClient | null = null
 let currentHistory: RouterHistory | null = null
 
 /**
@@ -51,7 +31,6 @@ afterEach(() => {
     currentHistory.destroy()
     currentHistory = null
   }
-  currentQueryClient = null
   // Note: cleanup() is handled by testing-library.ts preload with act() wrapper
 })
 
@@ -66,10 +45,7 @@ afterEach(() => {
  * We don't explicitly wrap in act() to avoid React 19's stricter
  * environment checks that can cause spurious warnings.
  */
-export async function render(ui: ReactNode): Promise<RenderResult & { queryClient: QueryClient }> {
-  const queryClient = createTestQueryClient()
-  currentQueryClient = queryClient
-
+export async function render(ui: ReactNode): Promise<RenderResult> {
   const rootRoute = createRootRoute({
     component: () => <>{ui}</>,
   })
@@ -90,22 +66,12 @@ export async function render(ui: ReactNode): Promise<RenderResult & { queryClien
 
   // RTL's render wraps in act() internally
   const result = rtlRender(
-    <QueryClientProvider client={queryClient}>
-      <ChakraProvider value={system}>
-        <div style={{ width: '1920px', minWidth: '1920px' }}>
-          <RouterProvider router={router} />
-        </div>
-      </ChakraProvider>
-    </QueryClientProvider>
+    <ChakraProvider value={system}>
+      <div style={{ width: '1920px', minWidth: '1920px' }}>
+        <RouterProvider router={router} />
+      </div>
+    </ChakraProvider>
   )
 
-  return { ...result, queryClient }
-}
-
-/**
- * Get the current QueryClient from the last render call
- * Useful for test helpers that need to manipulate cache
- */
-export function getCurrentQueryClient(): QueryClient | null {
-  return currentQueryClient
+  return result
 }

@@ -5,10 +5,10 @@ import { useSchemaData } from './schema/useSchemaData'
 import { useSchemaParams } from '../hooks/useSchemaParams'
 import type { SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
 import { getModel } from 'salvageunion-reference'
-import { findEntityBySlug } from '../utils/slug'
-import { EntityDisplay } from './entity/EntityDisplay'
-import { NotFoundDisplay } from './entity/NotFoundDisplay'
-import { EntityCardSkeleton } from './skeleton/EntityCardSkeleton'
+import { findEntityBySlug } from 'suref-react'
+import { EntityDisplay } from 'suref-react'
+import { NotFoundDisplay } from 'suref-react'
+import { EntityCardSkeleton } from 'suref-react'
 
 interface ItemShowPageProps {
   prefetchedItem?: SURefEntity | null

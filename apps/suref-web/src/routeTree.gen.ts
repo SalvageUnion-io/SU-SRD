@@ -10,38 +10,15 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as RandsumRouteImport } from './routes/randsum'
-import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as R404RouteImport } from './routes/404'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
-import { Route as SheetsPilotRouteImport } from './routes/sheets/pilot'
-import { Route as SheetsMechRouteImport } from './routes/sheets/mech'
-import { Route as SheetsCrawlerRouteImport } from './routes/sheets/crawler'
-import { Route as DashboardJoinRouteImport } from './routes/dashboard/join'
-import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
 import { Route as SchemaSchemaIdIndexRouteImport } from './routes/schema/$schemaId/index'
-import { Route as DashboardPilotsIndexRouteImport } from './routes/dashboard/pilots/index'
-import { Route as DashboardMechsIndexRouteImport } from './routes/dashboard/mechs/index'
-import { Route as DashboardGamesIndexRouteImport } from './routes/dashboard/games/index'
-import { Route as DashboardCrawlersIndexRouteImport } from './routes/dashboard/crawlers/index'
-import { Route as DashboardPilotsNewRouteImport } from './routes/dashboard/pilots/new'
-import { Route as DashboardPilotsIdRouteImport } from './routes/dashboard/pilots/$id'
-import { Route as DashboardMechsNewRouteImport } from './routes/dashboard/mechs/new'
-import { Route as DashboardMechsIdRouteImport } from './routes/dashboard/mechs/$id'
-import { Route as DashboardGamesGameIdRouteImport } from './routes/dashboard/games/$gameId'
-import { Route as DashboardCrawlersNewRouteImport } from './routes/dashboard/crawlers/new'
-import { Route as DashboardCrawlersIdRouteImport } from './routes/dashboard/crawlers/$id'
 import { Route as SchemaSchemaIdItemItemIdRouteImport } from './routes/schema/$schemaId/item/$itemId'
 
 const RandsumRoute = RandsumRouteImport.update({
   id: '/randsum',
   path: '/randsum',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -59,95 +36,10 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DashboardIndexRoute = DashboardIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const SheetsPilotRoute = SheetsPilotRouteImport.update({
-  id: '/sheets/pilot',
-  path: '/sheets/pilot',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SheetsMechRoute = SheetsMechRouteImport.update({
-  id: '/sheets/mech',
-  path: '/sheets/mech',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SheetsCrawlerRoute = SheetsCrawlerRouteImport.update({
-  id: '/sheets/crawler',
-  path: '/sheets/crawler',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DashboardJoinRoute = DashboardJoinRouteImport.update({
-  id: '/join',
-  path: '/join',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const AuthCallbackRoute = AuthCallbackRouteImport.update({
-  id: '/auth/callback',
-  path: '/auth/callback',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const SchemaSchemaIdIndexRoute = SchemaSchemaIdIndexRouteImport.update({
   id: '/schema/$schemaId/',
   path: '/schema/$schemaId/',
   getParentRoute: () => rootRouteImport,
-} as any)
-const DashboardPilotsIndexRoute = DashboardPilotsIndexRouteImport.update({
-  id: '/pilots/',
-  path: '/pilots/',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardMechsIndexRoute = DashboardMechsIndexRouteImport.update({
-  id: '/mechs/',
-  path: '/mechs/',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardGamesIndexRoute = DashboardGamesIndexRouteImport.update({
-  id: '/games/',
-  path: '/games/',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardCrawlersIndexRoute = DashboardCrawlersIndexRouteImport.update({
-  id: '/crawlers/',
-  path: '/crawlers/',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardPilotsNewRoute = DashboardPilotsNewRouteImport.update({
-  id: '/pilots/new',
-  path: '/pilots/new',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardPilotsIdRoute = DashboardPilotsIdRouteImport.update({
-  id: '/pilots/$id',
-  path: '/pilots/$id',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardMechsNewRoute = DashboardMechsNewRouteImport.update({
-  id: '/mechs/new',
-  path: '/mechs/new',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardMechsIdRoute = DashboardMechsIdRouteImport.update({
-  id: '/mechs/$id',
-  path: '/mechs/$id',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardGamesGameIdRoute = DashboardGamesGameIdRouteImport.update({
-  id: '/games/$gameId',
-  path: '/games/$gameId',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardCrawlersNewRoute = DashboardCrawlersNewRouteImport.update({
-  id: '/crawlers/new',
-  path: '/crawlers/new',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardCrawlersIdRoute = DashboardCrawlersIdRouteImport.update({
-  id: '/crawlers/$id',
-  path: '/crawlers/$id',
-  getParentRoute: () => DashboardRoute,
 } as any)
 const SchemaSchemaIdItemItemIdRoute =
   SchemaSchemaIdItemItemIdRouteImport.update({
@@ -160,25 +52,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/404': typeof R404Route
   '/about': typeof AboutRoute
-  '/dashboard': typeof DashboardRouteWithChildren
   '/randsum': typeof RandsumRoute
-  '/auth/callback': typeof AuthCallbackRoute
-  '/dashboard/join': typeof DashboardJoinRoute
-  '/sheets/crawler': typeof SheetsCrawlerRoute
-  '/sheets/mech': typeof SheetsMechRoute
-  '/sheets/pilot': typeof SheetsPilotRoute
-  '/dashboard/': typeof DashboardIndexRoute
-  '/dashboard/crawlers/$id': typeof DashboardCrawlersIdRoute
-  '/dashboard/crawlers/new': typeof DashboardCrawlersNewRoute
-  '/dashboard/games/$gameId': typeof DashboardGamesGameIdRoute
-  '/dashboard/mechs/$id': typeof DashboardMechsIdRoute
-  '/dashboard/mechs/new': typeof DashboardMechsNewRoute
-  '/dashboard/pilots/$id': typeof DashboardPilotsIdRoute
-  '/dashboard/pilots/new': typeof DashboardPilotsNewRoute
-  '/dashboard/crawlers/': typeof DashboardCrawlersIndexRoute
-  '/dashboard/games/': typeof DashboardGamesIndexRoute
-  '/dashboard/mechs/': typeof DashboardMechsIndexRoute
-  '/dashboard/pilots/': typeof DashboardPilotsIndexRoute
   '/schema/$schemaId/': typeof SchemaSchemaIdIndexRoute
   '/schema/$schemaId/item/$itemId': typeof SchemaSchemaIdItemItemIdRoute
 }
@@ -187,23 +61,6 @@ export interface FileRoutesByTo {
   '/404': typeof R404Route
   '/about': typeof AboutRoute
   '/randsum': typeof RandsumRoute
-  '/auth/callback': typeof AuthCallbackRoute
-  '/dashboard/join': typeof DashboardJoinRoute
-  '/sheets/crawler': typeof SheetsCrawlerRoute
-  '/sheets/mech': typeof SheetsMechRoute
-  '/sheets/pilot': typeof SheetsPilotRoute
-  '/dashboard': typeof DashboardIndexRoute
-  '/dashboard/crawlers/$id': typeof DashboardCrawlersIdRoute
-  '/dashboard/crawlers/new': typeof DashboardCrawlersNewRoute
-  '/dashboard/games/$gameId': typeof DashboardGamesGameIdRoute
-  '/dashboard/mechs/$id': typeof DashboardMechsIdRoute
-  '/dashboard/mechs/new': typeof DashboardMechsNewRoute
-  '/dashboard/pilots/$id': typeof DashboardPilotsIdRoute
-  '/dashboard/pilots/new': typeof DashboardPilotsNewRoute
-  '/dashboard/crawlers': typeof DashboardCrawlersIndexRoute
-  '/dashboard/games': typeof DashboardGamesIndexRoute
-  '/dashboard/mechs': typeof DashboardMechsIndexRoute
-  '/dashboard/pilots': typeof DashboardPilotsIndexRoute
   '/schema/$schemaId': typeof SchemaSchemaIdIndexRoute
   '/schema/$schemaId/item/$itemId': typeof SchemaSchemaIdItemItemIdRoute
 }
@@ -212,25 +69,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/404': typeof R404Route
   '/about': typeof AboutRoute
-  '/dashboard': typeof DashboardRouteWithChildren
   '/randsum': typeof RandsumRoute
-  '/auth/callback': typeof AuthCallbackRoute
-  '/dashboard/join': typeof DashboardJoinRoute
-  '/sheets/crawler': typeof SheetsCrawlerRoute
-  '/sheets/mech': typeof SheetsMechRoute
-  '/sheets/pilot': typeof SheetsPilotRoute
-  '/dashboard/': typeof DashboardIndexRoute
-  '/dashboard/crawlers/$id': typeof DashboardCrawlersIdRoute
-  '/dashboard/crawlers/new': typeof DashboardCrawlersNewRoute
-  '/dashboard/games/$gameId': typeof DashboardGamesGameIdRoute
-  '/dashboard/mechs/$id': typeof DashboardMechsIdRoute
-  '/dashboard/mechs/new': typeof DashboardMechsNewRoute
-  '/dashboard/pilots/$id': typeof DashboardPilotsIdRoute
-  '/dashboard/pilots/new': typeof DashboardPilotsNewRoute
-  '/dashboard/crawlers/': typeof DashboardCrawlersIndexRoute
-  '/dashboard/games/': typeof DashboardGamesIndexRoute
-  '/dashboard/mechs/': typeof DashboardMechsIndexRoute
-  '/dashboard/pilots/': typeof DashboardPilotsIndexRoute
   '/schema/$schemaId/': typeof SchemaSchemaIdIndexRoute
   '/schema/$schemaId/item/$itemId': typeof SchemaSchemaIdItemItemIdRoute
 }
@@ -240,25 +79,7 @@ export interface FileRouteTypes {
     | '/'
     | '/404'
     | '/about'
-    | '/dashboard'
     | '/randsum'
-    | '/auth/callback'
-    | '/dashboard/join'
-    | '/sheets/crawler'
-    | '/sheets/mech'
-    | '/sheets/pilot'
-    | '/dashboard/'
-    | '/dashboard/crawlers/$id'
-    | '/dashboard/crawlers/new'
-    | '/dashboard/games/$gameId'
-    | '/dashboard/mechs/$id'
-    | '/dashboard/mechs/new'
-    | '/dashboard/pilots/$id'
-    | '/dashboard/pilots/new'
-    | '/dashboard/crawlers/'
-    | '/dashboard/games/'
-    | '/dashboard/mechs/'
-    | '/dashboard/pilots/'
     | '/schema/$schemaId/'
     | '/schema/$schemaId/item/$itemId'
   fileRoutesByTo: FileRoutesByTo
@@ -267,23 +88,6 @@ export interface FileRouteTypes {
     | '/404'
     | '/about'
     | '/randsum'
-    | '/auth/callback'
-    | '/dashboard/join'
-    | '/sheets/crawler'
-    | '/sheets/mech'
-    | '/sheets/pilot'
-    | '/dashboard'
-    | '/dashboard/crawlers/$id'
-    | '/dashboard/crawlers/new'
-    | '/dashboard/games/$gameId'
-    | '/dashboard/mechs/$id'
-    | '/dashboard/mechs/new'
-    | '/dashboard/pilots/$id'
-    | '/dashboard/pilots/new'
-    | '/dashboard/crawlers'
-    | '/dashboard/games'
-    | '/dashboard/mechs'
-    | '/dashboard/pilots'
     | '/schema/$schemaId'
     | '/schema/$schemaId/item/$itemId'
   id:
@@ -291,25 +95,7 @@ export interface FileRouteTypes {
     | '/'
     | '/404'
     | '/about'
-    | '/dashboard'
     | '/randsum'
-    | '/auth/callback'
-    | '/dashboard/join'
-    | '/sheets/crawler'
-    | '/sheets/mech'
-    | '/sheets/pilot'
-    | '/dashboard/'
-    | '/dashboard/crawlers/$id'
-    | '/dashboard/crawlers/new'
-    | '/dashboard/games/$gameId'
-    | '/dashboard/mechs/$id'
-    | '/dashboard/mechs/new'
-    | '/dashboard/pilots/$id'
-    | '/dashboard/pilots/new'
-    | '/dashboard/crawlers/'
-    | '/dashboard/games/'
-    | '/dashboard/mechs/'
-    | '/dashboard/pilots/'
     | '/schema/$schemaId/'
     | '/schema/$schemaId/item/$itemId'
   fileRoutesById: FileRoutesById
@@ -318,12 +104,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   R404Route: typeof R404Route
   AboutRoute: typeof AboutRoute
-  DashboardRoute: typeof DashboardRouteWithChildren
   RandsumRoute: typeof RandsumRoute
-  AuthCallbackRoute: typeof AuthCallbackRoute
-  SheetsCrawlerRoute: typeof SheetsCrawlerRoute
-  SheetsMechRoute: typeof SheetsMechRoute
-  SheetsPilotRoute: typeof SheetsPilotRoute
   SchemaSchemaIdIndexRoute: typeof SchemaSchemaIdIndexRoute
   SchemaSchemaIdItemItemIdRoute: typeof SchemaSchemaIdItemItemIdRoute
 }
@@ -335,13 +116,6 @@ declare module '@tanstack/react-router' {
       path: '/randsum'
       fullPath: '/randsum'
       preLoaderRoute: typeof RandsumRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/about': {
@@ -365,131 +139,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/dashboard/': {
-      id: '/dashboard/'
-      path: '/'
-      fullPath: '/dashboard/'
-      preLoaderRoute: typeof DashboardIndexRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/sheets/pilot': {
-      id: '/sheets/pilot'
-      path: '/sheets/pilot'
-      fullPath: '/sheets/pilot'
-      preLoaderRoute: typeof SheetsPilotRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/sheets/mech': {
-      id: '/sheets/mech'
-      path: '/sheets/mech'
-      fullPath: '/sheets/mech'
-      preLoaderRoute: typeof SheetsMechRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/sheets/crawler': {
-      id: '/sheets/crawler'
-      path: '/sheets/crawler'
-      fullPath: '/sheets/crawler'
-      preLoaderRoute: typeof SheetsCrawlerRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard/join': {
-      id: '/dashboard/join'
-      path: '/join'
-      fullPath: '/dashboard/join'
-      preLoaderRoute: typeof DashboardJoinRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/auth/callback': {
-      id: '/auth/callback'
-      path: '/auth/callback'
-      fullPath: '/auth/callback'
-      preLoaderRoute: typeof AuthCallbackRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/schema/$schemaId/': {
       id: '/schema/$schemaId/'
       path: '/schema/$schemaId'
       fullPath: '/schema/$schemaId/'
       preLoaderRoute: typeof SchemaSchemaIdIndexRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/dashboard/pilots/': {
-      id: '/dashboard/pilots/'
-      path: '/pilots'
-      fullPath: '/dashboard/pilots/'
-      preLoaderRoute: typeof DashboardPilotsIndexRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/mechs/': {
-      id: '/dashboard/mechs/'
-      path: '/mechs'
-      fullPath: '/dashboard/mechs/'
-      preLoaderRoute: typeof DashboardMechsIndexRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/games/': {
-      id: '/dashboard/games/'
-      path: '/games'
-      fullPath: '/dashboard/games/'
-      preLoaderRoute: typeof DashboardGamesIndexRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/crawlers/': {
-      id: '/dashboard/crawlers/'
-      path: '/crawlers'
-      fullPath: '/dashboard/crawlers/'
-      preLoaderRoute: typeof DashboardCrawlersIndexRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/pilots/new': {
-      id: '/dashboard/pilots/new'
-      path: '/pilots/new'
-      fullPath: '/dashboard/pilots/new'
-      preLoaderRoute: typeof DashboardPilotsNewRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/pilots/$id': {
-      id: '/dashboard/pilots/$id'
-      path: '/pilots/$id'
-      fullPath: '/dashboard/pilots/$id'
-      preLoaderRoute: typeof DashboardPilotsIdRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/mechs/new': {
-      id: '/dashboard/mechs/new'
-      path: '/mechs/new'
-      fullPath: '/dashboard/mechs/new'
-      preLoaderRoute: typeof DashboardMechsNewRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/mechs/$id': {
-      id: '/dashboard/mechs/$id'
-      path: '/mechs/$id'
-      fullPath: '/dashboard/mechs/$id'
-      preLoaderRoute: typeof DashboardMechsIdRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/games/$gameId': {
-      id: '/dashboard/games/$gameId'
-      path: '/games/$gameId'
-      fullPath: '/dashboard/games/$gameId'
-      preLoaderRoute: typeof DashboardGamesGameIdRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/crawlers/new': {
-      id: '/dashboard/crawlers/new'
-      path: '/crawlers/new'
-      fullPath: '/dashboard/crawlers/new'
-      preLoaderRoute: typeof DashboardCrawlersNewRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/crawlers/$id': {
-      id: '/dashboard/crawlers/$id'
-      path: '/crawlers/$id'
-      fullPath: '/dashboard/crawlers/$id'
-      preLoaderRoute: typeof DashboardCrawlersIdRouteImport
-      parentRoute: typeof DashboardRoute
     }
     '/schema/$schemaId/item/$itemId': {
       id: '/schema/$schemaId/item/$itemId'
@@ -501,52 +156,11 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface DashboardRouteChildren {
-  DashboardJoinRoute: typeof DashboardJoinRoute
-  DashboardIndexRoute: typeof DashboardIndexRoute
-  DashboardCrawlersIdRoute: typeof DashboardCrawlersIdRoute
-  DashboardCrawlersNewRoute: typeof DashboardCrawlersNewRoute
-  DashboardGamesGameIdRoute: typeof DashboardGamesGameIdRoute
-  DashboardMechsIdRoute: typeof DashboardMechsIdRoute
-  DashboardMechsNewRoute: typeof DashboardMechsNewRoute
-  DashboardPilotsIdRoute: typeof DashboardPilotsIdRoute
-  DashboardPilotsNewRoute: typeof DashboardPilotsNewRoute
-  DashboardCrawlersIndexRoute: typeof DashboardCrawlersIndexRoute
-  DashboardGamesIndexRoute: typeof DashboardGamesIndexRoute
-  DashboardMechsIndexRoute: typeof DashboardMechsIndexRoute
-  DashboardPilotsIndexRoute: typeof DashboardPilotsIndexRoute
-}
-
-const DashboardRouteChildren: DashboardRouteChildren = {
-  DashboardJoinRoute: DashboardJoinRoute,
-  DashboardIndexRoute: DashboardIndexRoute,
-  DashboardCrawlersIdRoute: DashboardCrawlersIdRoute,
-  DashboardCrawlersNewRoute: DashboardCrawlersNewRoute,
-  DashboardGamesGameIdRoute: DashboardGamesGameIdRoute,
-  DashboardMechsIdRoute: DashboardMechsIdRoute,
-  DashboardMechsNewRoute: DashboardMechsNewRoute,
-  DashboardPilotsIdRoute: DashboardPilotsIdRoute,
-  DashboardPilotsNewRoute: DashboardPilotsNewRoute,
-  DashboardCrawlersIndexRoute: DashboardCrawlersIndexRoute,
-  DashboardGamesIndexRoute: DashboardGamesIndexRoute,
-  DashboardMechsIndexRoute: DashboardMechsIndexRoute,
-  DashboardPilotsIndexRoute: DashboardPilotsIndexRoute,
-}
-
-const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
-  DashboardRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   R404Route: R404Route,
   AboutRoute: AboutRoute,
-  DashboardRoute: DashboardRouteWithChildren,
   RandsumRoute: RandsumRoute,
-  AuthCallbackRoute: AuthCallbackRoute,
-  SheetsCrawlerRoute: SheetsCrawlerRoute,
-  SheetsMechRoute: SheetsMechRoute,
-  SheetsPilotRoute: SheetsPilotRoute,
   SchemaSchemaIdIndexRoute: SchemaSchemaIdIndexRoute,
   SchemaSchemaIdItemItemIdRoute: SchemaSchemaIdItemItemIdRoute,
 }

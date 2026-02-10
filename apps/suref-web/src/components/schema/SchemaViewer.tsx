@@ -9,10 +9,10 @@ import { useNavigate } from '@tanstack/react-router'
 import { Route } from '../../routes/schema/$schemaId/index'
 import type { SURefEntity } from 'salvageunion-reference'
 import { getTechLevel } from 'salvageunion-reference'
-import { getEntitySlug } from '../../utils/slug'
-import { EntityDisplay } from '../entity/EntityDisplay'
-import { SchemaViewerSkeleton } from '../skeleton/SchemaViewerSkeleton'
-import { EntityCardSkeleton } from '../skeleton/EntityCardSkeleton'
+import { getEntitySlug } from 'suref-react'
+import { EntityDisplay } from 'suref-react'
+import { SchemaViewerSkeleton } from 'suref-react'
+import { EntityCardSkeleton } from 'suref-react'
 
 interface SchemaViewerProps {
   schemas: SchemaInfo[]
