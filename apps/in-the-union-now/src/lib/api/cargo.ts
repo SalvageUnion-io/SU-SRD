@@ -1,5 +1,6 @@
 import { supabase } from '../supabase'
 import { createCargoSchema, updateCargoSchema } from '../validation'
+import type { UpdateCargoInput } from '../validation'
 import type { Cargo, ParentType } from '../../types/common'
 import type { Json } from '../../types/database-generated.types'
 
@@ -38,7 +39,7 @@ export async function createCargoItem(
   return data
 }
 
-export async function updateCargoItem(id: string, input: Record<string, unknown>): Promise<Cargo> {
+export async function updateCargoItem(id: string, input: UpdateCargoInput): Promise<Cargo> {
   const validated = updateCargoSchema.parse(input)
   const { data, error } = await supabase
     .from('cargo')

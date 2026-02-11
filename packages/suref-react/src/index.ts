@@ -125,6 +125,6 @@ export { ActionFilterChips } from './components/shared/ActionFilterChips'
 export { EntityCardSkeleton } from './components/skeleton/EntityCardSkeleton'
 export { SchemaViewerSkeleton } from './components/skeleton/SchemaViewerSkeleton'
 
-// ShadCN-specific utilities
+// Utilities
 export { cn } from './utils/cn'
 export { useParseTraitReferences } from './utils/parseTraitReferences'

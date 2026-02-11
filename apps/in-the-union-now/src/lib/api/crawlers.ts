@@ -1,5 +1,6 @@
 import { supabase } from '../supabase'
 import { createCrawlerSchema, updateCrawlerSchema } from '../validation'
+import type { UpdateCrawlerInput } from '../validation'
 import type { Crawler } from '../../types/common'
 
 export async function fetchCrawler(id: string): Promise<Crawler> {
@@ -34,7 +35,7 @@ export async function createCrawler(
   return data
 }
 
-export async function updateCrawler(id: string, input: Record<string, unknown>): Promise<Crawler> {
+export async function updateCrawler(id: string, input: UpdateCrawlerInput): Promise<Crawler> {
   const validated = updateCrawlerSchema.parse(input)
   const { data, error } = await supabase
     .from('crawlers')

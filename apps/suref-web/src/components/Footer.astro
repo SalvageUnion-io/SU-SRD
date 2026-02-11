@@ -1,4 +1,6 @@
 ---
+import { Image } from 'astro:assets'
+import poweredBySalvage from '../assets/Powered_by_Salvage_Black.webp'
 ---
 
 <footer class="border-t border-su-grey-light bg-su-white py-3 lg:shadow-sm">
@@ -40,7 +42,7 @@
       </p>
     </div>
     <div class="inline-block shrink-0 rounded-md p-2">
-      <img src="/Powered_by_Salvage_Black.webp" alt="Powered by Salvage" class="h-12 w-auto" />
+      <Image src={poweredBySalvage} alt="Powered by Salvage" class="h-12 w-auto" width={120} height={48} />
     </div>
   </div>
 </footer>

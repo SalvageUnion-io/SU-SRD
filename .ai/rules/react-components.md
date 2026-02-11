@@ -1,13 +1,13 @@
 # React Components
 
-> **Applies to:** `apps/suref-web/src/components/**/*.tsx`, `apps/suref-web/src/routes/**/*.tsx`
+> **Applies to:** `apps/suref-web/` (Chakra UI v3), `apps/in-the-union-now/` (ShadCN + Tailwind v4), `packages/suref-react/` (shared components)
 
-React component patterns using functional components, TypeScript, and Chakra UI v3.
+React component patterns using functional components and TypeScript.
 
 ## Component Structure
 
 - Use functional components with TypeScript
-- Define props interfaces at the top of the file
+- Define props types at the top of the file (use `type` over `interface`)
 - Use named exports for components (not default exports)
 - Exception: Route components in `src/routes/` can use default exports for TanStack Router
 
@@ -18,21 +18,24 @@ React component patterns using functional components, TypeScript, and Chakra UI 
 - `src/components/base/` - Typography and foundational components
 - `src/components/entity/` - Entity display and selection components
 
-## Chakra UI v3
+## UI Frameworks
 
-- Use Chakra UI v3 components from `@chakra-ui/react`
-- Use the theme system defined in `src/theme.ts`
-- Prefer Chakra's `VStack`, `HStack`, `Flex`, `Box` for layout
+**suref-web** uses Chakra UI v3:
+- Use Chakra components from `@chakra-ui/react`
+- Use theme system defined in suref-react theme
 - Use theme colors: `su.green`, `su.lightBlue`, `su.mediumGrey`, etc.
 
-## Live Sheet Components
+**in-the-union-now** uses ShadCN + Tailwind v4:
+- Use ShadCN components from `src/components/ui/`
+- Custom Tailwind theme in `src/index.css` with `@theme` block (SU brand colors)
+- State management via Zustand stores + TanStack Query (no React Context)
+- Validation via Zod schemas in `src/lib/validation.ts`
 
-Live sheet components (PilotLiveSheet, MechLiveSheet, CrawlerLiveSheet):
-
-- Use `LiveSheetLayout` wrapper
-- Use `LiveSheetControlBar` for actions
-- Use `LiveSheetLoadingState`, `LiveSheetNotFoundState`, `LiveSheetErrorState` for states
-- Implement realtime subscriptions via `useLiveSheetSubscriptions`
+**suref-react** (shared components):
+- No build step — exports TypeScript source directly
+- Uses Tailwind + `cn()` utility for styling
+- Entity display system with render prop pattern
+- No Supabase dependency — agnostic to data source
 
 ## Entity Display Components
 
@@ -44,8 +47,8 @@ Live sheet components (PilotLiveSheet, MechLiveSheet, CrawlerLiveSheet):
 
 - Prefer props over context when possible
 - Use TanStack Query hooks for server state
+- Use Zustand stores for shared client state (ITUN)
 - Use React state for local UI state
-- Use `useHydrated*` hooks (e.g., `useHydratedPilot`, `useHydratedMech`) for entity data
 
 ## Import Conventions
 
@@ -53,10 +56,10 @@ Prefer relative imports for all imports:
 
 ```typescript
 // Correct
-import { useHydratedPilot } from '../../hooks/pilot'
+import { MyComponent } from '../../components/MyComponent'
 
 // Avoid
-import { useHydratedPilot } from '@/hooks/pilot'
+import { MyComponent } from '@/components/MyComponent'
 ```
 
 ## Examples
@@ -64,13 +67,12 @@ import { useHydratedPilot } from '@/hooks/pilot'
 **Component with props:**
 
 ```typescript
-interface MyComponentProps {
+type MyComponentProps = {
   id: string
   isEditable?: boolean
 }
 
 export function MyComponent({ id, isEditable = false }: MyComponentProps) {
-  const { mech } = useHydratedMech(id)
   // ...
 }
 ```

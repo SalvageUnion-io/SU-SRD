@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import type { SURefEnumSchemaName } from 'salvageunion-reference'
 
-interface EntityViewerState {
+type EntityViewerState = {
   isOpen: boolean
   schemaName: SURefEnumSchemaName | null
   entityId: string | null

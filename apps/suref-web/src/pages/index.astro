@@ -1,5 +1,9 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro'
+import { getSchemaCatalog } from 'salvageunion-reference'
+
+const catalog = getSchemaCatalog()
+const schemas = catalog.schemas.filter((s) => !s.meta)
 ---
 
 <BaseLayout
@@ -12,26 +16,63 @@ import BaseLayout from '../layouts/BaseLayout.astro'
     url: 'https://salvageunion.io',
   }}
 >
-  <div class="flex h-full w-full flex-1 items-center justify-center">
-    <div class="m-auto flex flex-col items-center justify-center gap-2 rounded-md bg-su-white p-4 shadow-lg">
-      <span class="inline-block self-center text-center text-2xl font-semibold text-su-black">
-        Salvage Union
-      </span>
-      <span class="text-center text-2xl font-medium text-su-orange-dark">
-        System Reference Document
-      </span>
-      <p class="text-center text-sm text-su-orange-dark">
-        An SRD for the{' '}
-        <a
-          href="https://leyline.press/collections/salvage-union"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="underline hover:text-su-orange"
-        >
-          Salvage Union
-        </a>{' '}
-        TTRPG
-      </p>
+  <div class="flex w-full flex-1 flex-col justify-center py-12">
+    <div class="mx-auto flex w-full max-w-4xl flex-col gap-8 px-6">
+      <!-- Header -->
+      <div class="text-center">
+        <h1 class="text-3xl font-semibold text-su-black">Salvage Union</h1>
+        <p class="mt-1 text-2xl font-medium text-su-orange-dark">System Reference Document</p>
+        <p class="mt-3 text-sm text-su-black">
+          Complete reference for the{' '}
+          <a
+            href="https://leyline.press/collections/salvage-union"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="underline hover:text-su-orange"
+          >
+            Salvage Union
+          </a>{' '}
+          TTRPG — chassis, systems, modules, abilities, and more.
+        </p>
+      </div>
+
+      <!-- Schema list -->
+      <div class="grid gap-3 sm:grid-cols-2">
+        {schemas.map((schema) => (
+          <a
+            href={`/schema/${schema.id}`}
+            class="group flex flex-col gap-1 rounded-md border border-su-grey-light bg-su-white p-4 shadow-sm transition-colors hover:border-su-orange hover:bg-su-blue-pale"
+          >
+            <div class="flex items-baseline justify-between gap-2">
+              <span class="font-semibold text-su-black group-hover:text-su-orange-dark">
+                {schema.displayName}
+              </span>
+              <span class="shrink-0 text-xs text-su-grey-dark">
+                {schema.itemCount} {schema.itemCount === 1 ? 'entry' : 'entries'}
+              </span>
+            </div>
+            <p class="text-xs leading-relaxed text-su-grey-dark">
+              {schema.description}
+            </p>
+          </a>
+        ))}
+      </div>
+
+      <!-- Attribution -->
+      <div class="text-center">
+        <p class="text-sm text-su-orange-dark">
+          An SRD for the{' '}
+          <a
+            href="https://leyline.press/collections/salvage-union"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="underline hover:text-su-orange"
+          >
+            Salvage Union
+          </a>{' '}
+          TTRPG
+        </p>
+      </div>
     </div>
   </div>
 </BaseLayout>

@@ -33,13 +33,12 @@
     "zustand": "^5.0.11"
   },
   "devDependencies": {
-    "netlify-cli": "^23.12.0",
     "@eslint/js": "^9.39.1",
     "@happy-dom/global-registrator": "^20.0.10",
+    "@tailwindcss/vite": "^4.1.4",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
-    "@tailwindcss/vite": "^4.1.4",
     "@types/node": "^24.10.1",
     "@types/react": "^19.2.4",
     "@types/react-dom": "^19.2.3",
@@ -49,8 +48,10 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
+    "netlify-cli": "^23.12.0",
     "prettier": "^3.6.2",
     "prettier-plugin-astro": "^0.14.0",
+    "sharp": "0.34.5",
     "tailwindcss": "^4.1.4",
     "typescript": "5.9.3",
     "typescript-eslint": "^8.46.4"

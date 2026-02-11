@@ -1,5 +1,6 @@
 import { supabase } from '../supabase'
 import { createEntityRefSchema, updateEntityRefSchema } from '../validation'
+import type { UpdateEntityRefInput } from '../validation'
 import type { EntityRef, ParentType } from '../../types/common'
 import type { Json } from '../../types/database-generated.types'
 
@@ -42,10 +43,7 @@ export async function createEntityRef(
   return data
 }
 
-export async function updateEntityRef(
-  id: string,
-  input: Record<string, unknown>
-): Promise<EntityRef> {
+export async function updateEntityRef(id: string, input: UpdateEntityRefInput): Promise<EntityRef> {
   const validated = updateEntityRefSchema.parse(input)
   const { data, error } = await supabase
     .from('entity_refs')

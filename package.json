@@ -9,6 +9,9 @@
     "packages/*"
   ],
   "devDependencies": {
+    "@happy-dom/global-registrator": "20.6.1",
+    "@testing-library/jest-dom": "6.9.1",
+    "@testing-library/react": "16.3.2",
     "lefthook": "2.0.16"
   },
   "scripts": {
@@ -16,7 +19,7 @@
     "dev": "bun run build:package && bun --filter suref-web dev",
     "dev:watch": "bun --filter salvageunion-reference watch & bun --filter suref-web dev",
     "dev:bot": "bun run build:package && bun --filter @suref/discord-bot dev",
-    "build": "bun run build:package && bun run build:web",
+    "build": "bun run build:package && bun run build:web && bun run build:itun && bun run build:bot",
     "build:web": "bun --filter suref-web build",
     "build:bot": "bun run build:package && bun --filter @suref/discord-bot build",
     "build:package": "bun --filter salvageunion-reference build",
@@ -35,7 +38,7 @@
     "lint:react": "bun --filter suref-react lint",
     "lint:web": "bun --filter suref-web lint",
     "format": "bun --filter \"*\" format",
-    "format:check": "bun --filter suref-web format:check",
+    "format:check": "bun --filter \"*\" format:check",
     "test": "bun --filter \"*\" test",
     "test:all": "bun run test",
     "test:package": "bun --filter salvageunion-reference test",
@@ -57,12 +60,6 @@
     "ladle:itun": "bun --filter in-the-union-now ladle",
     "typecheck:itun": "bun --filter in-the-union-now typecheck",
     "lint:itun": "bun --filter in-the-union-now lint",
-    "test:itun": "bun --filter in-the-union-now test",
-    "typecheck:react-shadcn": "bun --filter suref-react typecheck",
-    "lint:react-shadcn": "bun --filter suref-react lint",
-    "test:react-shadcn": "bun --filter suref-react test"
-  },
-  "dependencies": {
-    "zustand": "5.0.11"
+    "test:itun": "bun --filter in-the-union-now test"
   }
 }

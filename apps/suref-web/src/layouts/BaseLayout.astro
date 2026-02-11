@@ -1,4 +1,5 @@
 ---
+import { ClientRouter } from 'astro:transitions'
 import '../styles/global.css'
 import TopNavigation from '../components/TopNavigation.astro'
 import Footer from '../components/Footer.astro'
@@ -10,9 +11,11 @@ type Props = {
   description?: string
   canonical?: string
   ogType?: string
+  ogImage?: string
   structuredData?: Record<string, unknown>
   noindex?: boolean
   preloadImage?: string
+  hasEntityViewer?: boolean
 }
 
 const {
@@ -20,13 +23,16 @@ const {
   description = 'System Reference Document (SRD) for the Salvage Union TTRPG. Complete reference guide with chassis, systems, modules, abilities, and more.',
   canonical,
   ogType = 'website',
+  ogImage = '/og-image.png',
   structuredData,
   noindex = false,
   preloadImage,
+  hasEntityViewer = false,
 } = Astro.props
 
 const siteUrl = 'https://salvageunion.io'
 const canonicalUrl = canonical || new URL(Astro.url.pathname, siteUrl).href
+const ogImageUrl = new URL(ogImage, siteUrl).href
 ---
 
 <!doctype html>
@@ -43,11 +49,15 @@ const canonicalUrl = canonical || new URL(Astro.url.pathname, siteUrl).href
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonicalUrl} />
     <meta property="og:type" content={ogType} />
+    <meta property="og:image" content={ogImageUrl} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
 
     <!-- Twitter -->
-    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageUrl} />
 
     {noindex && <meta name="robots" content="noindex, nofollow" />}
 
@@ -59,6 +69,8 @@ const canonicalUrl = canonical || new URL(Astro.url.pathname, siteUrl).href
     {structuredData && (
       <script is:inline type="application/ld+json" set:html={JSON.stringify(structuredData)} />
     )}
+
+    <ClientRouter />
   </head>
   <body>
     <div class="flex min-h-screen flex-col bg-su-white">
@@ -69,6 +81,6 @@ const canonicalUrl = canonical || new URL(Astro.url.pathname, siteUrl).href
       <Footer />
     </div>
     <Toaster client:idle />
-    <EntityModalIsland client:idle />
+    {hasEntityViewer && <EntityModalIsland client:idle />}
   </body>
 </html>

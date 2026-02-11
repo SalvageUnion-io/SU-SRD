@@ -1,5 +1,6 @@
 import { supabase } from '../supabase'
 import { createPilotSchema, updatePilotSchema } from '../validation'
+import type { UpdatePilotInput } from '../validation'
 import type { Pilot, PilotWithActiveMech } from '../../types/common'
 
 export async function fetchPilotRoster(): Promise<PilotWithActiveMech[]> {
@@ -50,7 +51,7 @@ export async function createPilot(
   return data
 }
 
-export async function updatePilot(id: string, input: Record<string, unknown>): Promise<Pilot> {
+export async function updatePilot(id: string, input: UpdatePilotInput): Promise<Pilot> {
   const validated = updatePilotSchema.parse(input)
   const { data, error } = await supabase
     .from('pilots')

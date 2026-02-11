@@ -30,7 +30,9 @@ export function ActivationCostBox({
         style={{
           borderTop: compact ? '0.4em solid transparent' : '7px solid transparent',
           borderBottom: compact ? '0.4em solid transparent' : '7px solid transparent',
-          borderLeft: compact ? '6px solid rgb(40, 32, 25)' : '7px solid rgb(40, 32, 25)',
+          borderLeft: compact
+            ? '6px solid var(--color-su-black)'
+            : '7px solid var(--color-su-black)',
         }}
       />
     </span>

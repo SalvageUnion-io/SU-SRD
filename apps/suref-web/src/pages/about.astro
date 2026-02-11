@@ -1,5 +1,7 @@
 ---
+import { Image } from 'astro:assets'
 import BaseLayout from '../layouts/BaseLayout.astro'
+import eldridgeCoastMap from '../assets/eldridge-coast-map.png'
 
 const imageAlt = 'Created using Shmeppy.com'
 const havenParam = Astro.url.searchParams.get('HAVEN')?.toUpperCase() === 'TRUE'
@@ -28,9 +30,12 @@ const havenParam = Astro.url.searchParams.get('HAVEN')?.toUpperCase() === 'TRUE'
           <div class="w-full max-w-full flex-1 lg:max-w-[50%]">
             <div class="flex flex-col items-stretch">
               <div class="overflow-hidden rounded-t-md border-2 border-su-black">
-                <img
-                  src="/eldridge-coast-map.png"
+                <Image
+                  src={eldridgeCoastMap}
                   alt={imageAlt}
+                  widths={[400, 800, 1200]}
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  loading="lazy"
                   class="h-auto w-full cursor-pointer object-contain transition-opacity hover:opacity-90"
                   id="map-image"
                 />
@@ -236,9 +241,12 @@ const havenParam = Astro.url.searchParams.get('HAVEN')?.toUpperCase() === 'TRUE'
         &times;
       </button>
       <div class="flex flex-col items-stretch gap-4">
-        <img
-          src="/eldridge-coast-map.png"
+        <Image
+          src={eldridgeCoastMap}
           alt={imageAlt}
+          widths={[1200, 1800]}
+          sizes="90vw"
+          loading="lazy"
           class="h-auto max-h-[85vh] w-full object-contain"
         />
         <p class="text-center text-sm text-su-white">{imageAlt}</p>
@@ -246,9 +254,9 @@ const havenParam = Astro.url.searchParams.get('HAVEN')?.toUpperCase() === 'TRUE'
     </div>
   </dialog>
 
-  <script>
+  <script is:inline data-astro-rerun>
     const mapImage = document.getElementById('map-image')
-    const modal = document.getElementById('image-modal') as HTMLDialogElement
+    const modal = document.getElementById('image-modal')
     const closeBtn = document.getElementById('close-modal')
 
     mapImage?.addEventListener('click', () => modal?.showModal())

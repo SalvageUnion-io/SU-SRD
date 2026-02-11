@@ -1,5 +1,5 @@
 # Netlify configuration for InTheUnionNow
-# Separate Netlify site from suref-web and suref-builder
+# Separate Netlify site from suref-web
 
 [build]
   command = "bun install --frozen-lockfile && bun run build:package:ci && bun --filter in-the-union-now build"

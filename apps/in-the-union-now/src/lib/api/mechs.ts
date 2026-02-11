@@ -1,5 +1,6 @@
 import { supabase } from '../supabase'
 import { createMechSchema, updateMechSchema } from '../validation'
+import type { UpdateMechInput } from '../validation'
 import type { Mech } from '../../types/common'
 
 export async function fetchMech(id: string): Promise<Mech> {
@@ -46,7 +47,7 @@ export async function createMech(
   return data
 }
 
-export async function updateMech(id: string, input: Record<string, unknown>): Promise<Mech> {
+export async function updateMech(id: string, input: UpdateMechInput): Promise<Mech> {
   const validated = updateMechSchema.parse(input)
   const { data, error } = await supabase
     .from('mechs')

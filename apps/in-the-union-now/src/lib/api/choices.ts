@@ -12,7 +12,7 @@ export async function fetchChoicesByEntityRef(entityRefId: string): Promise<Play
   return data ?? []
 }
 
-export async function createChoice(
+async function createChoice(
   input: {
     entity_ref_id?: string | null
     parent_choice_id?: string | null

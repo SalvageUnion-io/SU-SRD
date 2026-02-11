@@ -162,15 +162,6 @@ export function getSlotsRequired(entity: SURefMetaEntity): number | undefined {
 }
 
 /**
- * Extract required slots from an entity (alias for getSlotsRequired)
- * @param entity - The entity to extract from
- * @returns The required slots or undefined
- */
-export function getRequiredSlots(entity: SURefMetaEntity): number | undefined {
-  return getSlotsRequired(entity)
-}
-
-/**
  * Extract page reference from an entity
  * @param entity - The entity to extract from
  * @returns The page number or undefined
@@ -397,17 +388,6 @@ export function getBlackMarket(entity: SURefMetaEntity): boolean | undefined {
 // ============================================================================
 // ADDITIONAL PROPERTY EXTRACTORS
 // ============================================================================
-
-/**
- * Extract asset_url from an entity
- * @param entity - The entity to extract from
- * @returns The asset_url or undefined
- */
-export function getAsset_url(entity: SURefMetaEntity): string | undefined {
-  return 'asset_url' in entity && typeof entity.asset_url === 'string'
-    ? entity.asset_url
-    : undefined
-}
 
 /**
  * Extract content from an entity
@@ -1581,7 +1561,7 @@ export function getGrants(entity: SURefMetaEntity): SURefObjectGrant[] | undefin
 /**
  * Represents a parsed trait reference from text
  */
-export interface ParsedTraitReference {
+export type ParsedTraitReference = {
   /** The full matched text including brackets */
   fullMatch: string
   /** The trait name (e.g., "Hot", "Burn", "Explosive") */

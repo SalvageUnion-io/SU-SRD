@@ -46,8 +46,6 @@ export function NestedChassisAbility({
 
   const fontSize = compact ? 'text-xs' : 'text-sm'
   const titleFontSize = compact ? 'text-sm' : 'text-base'
-  const spacingValue = compact ? 1 : 2
-
   const hasContent = data.content && data.content.length > 0
   const actionChoices: SURefObjectChoice[] = data.choices || []
   const hasChoices = actionChoices.length > 0
@@ -189,7 +187,9 @@ export function NestedChassisAbility({
               ? 'pt-0'
               : details.length > 0 && !renderDetailsInline
                 ? 'pt-0'
-                : `pt-${spacingValue}`
+                : compact
+                  ? 'pt-1'
+                  : 'pt-2'
           )}
         >
           <RollTable
@@ -214,7 +214,9 @@ export function NestedChassisAbility({
                 ? 'pt-0'
                 : details.length > 0 && !renderDetailsInline
                   ? 'pt-0'
-                  : `pt-${spacingValue}`
+                  : compact
+                    ? 'pt-1'
+                    : 'pt-2'
           )}
         >
           {actionChoices.map((choice) => (

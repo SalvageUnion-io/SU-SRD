@@ -2,7 +2,15 @@
 
 > **Always active** - These conventions apply to the entire monorepo.
 
-Bun workspace monorepo with apps/suref-web and packages/salvageunion-reference.
+Bun workspace monorepo with multiple apps and shared packages.
+
+## Workspace Structure
+
+- `apps/suref-web/` - Static SRD reference site (React, TanStack Start/Router, Chakra UI v3)
+- `apps/in-the-union-now/` - Character builder & game manager (React, TanStack Router/Query, ShadCN + Tailwind v4, Supabase)
+- `apps/discord-bot/` - Discord.js bot for rolling on Salvage Union tables
+- `packages/suref-react/` - Shared React component library (no build step, exports TypeScript source)
+- `packages/salvageunion-reference/` - TypeScript ORM + schema-validated JSON dataset for game data
 
 ## Bun Workspace Best Practices
 
@@ -19,17 +27,16 @@ Following [Bun workspace conventions](https://bun.com/docs/guides/install/worksp
 - Use `bun` as package manager (not npm/yarn)
 - Root scripts use `bun --filter` to target packages
 - Package builds must run before app builds: `bun run build:package && bun --filter suref-web build`
-- Quick dev: `bun run dev` (builds package quickly, then starts app)
+- Dev commands: `bun run dev` (suref-web), `bun run dev:itun` (ITUN), `bun run dev:bot` (Discord bot)
 - Watch mode: `bun run dev:watch` (watches package changes and app)
 - Type checking: `bun run typecheck` (checks all packages)
-- Linting: `bun run lint` (app only) or `bun run lint:all` (all packages)
+- Linting: `bun run lint` (all packages)
 
 ## Workspace Packages
 
-- `salvageunion-reference` is a workspace package imported as `salvageunion-reference`
-- Always build the package before importing in the app during development
-- Package exports: main entry (`./lib/index.ts`), data files (`./data/*.json`), schemas (`./schemas/*.json`)
-- Workspace packages resolve automatically via Bun workspace protocol
+- `salvageunion-reference` is built before apps can resolve types (`bun run build:package`)
+- `suref-react` has no build step — exports TypeScript source directly via `src/index.ts` barrel
+- Both are imported via workspace protocol in consuming apps
 
 ## Import Conventions
 
@@ -37,14 +44,12 @@ Following [Bun workspace conventions](https://bun.com/docs/guides/install/worksp
 
 ```typescript
 // Correct - use relative imports
-import { useHydratedPilot } from '../../hooks/pilot'
+import { MyComponent } from '../../components/MyComponent'
 import { supabase } from '../lib/supabase'
-import { PilotWizard } from '../components/PilotWizard'
 
 // Avoid - path aliases hide file structure
-import { useHydratedPilot } from '@/hooks/pilot'
+import { MyComponent } from '@/components/MyComponent'
 import { supabase } from '@/lib/supabase'
-import { PilotWizard } from '@/components/PilotWizard'
 ```
 
 - Use relative imports to make file relationships explicit

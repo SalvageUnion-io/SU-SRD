@@ -41,8 +41,6 @@ export function NestedActionDisplay({
   const fontSize = compact ? 'text-xs' : 'text-sm'
   const titleFontSize = compact ? 'text-sm' : 'text-xl'
   const verticalSpacing = compact ? 'py-1 gap-1' : 'py-2 gap-2'
-  const spacingValue = compact ? 1 : 2
-
   const hasContent = data.content && data.content.length > 0
   const actionChoices: SURefObjectChoice[] = data.choices || []
   const hasChoices = actionChoices.length > 0
@@ -112,7 +110,9 @@ export function NestedActionDisplay({
                 ? 'pt-0'
                 : details.length > 0
                   ? 'pt-0'
-                  : `pt-${spacingValue}`
+                  : compact
+                    ? 'pt-1'
+                    : 'pt-2'
             )}
           >
             <RollTable
@@ -137,7 +137,9 @@ export function NestedActionDisplay({
                   ? 'pt-0'
                   : details.length > 0
                     ? 'pt-0'
-                    : `pt-${spacingValue}`
+                    : compact
+                      ? 'pt-1'
+                      : 'pt-2'
             )}
           >
             {actionChoices.map((choice) => (

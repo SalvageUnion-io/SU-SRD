@@ -64,9 +64,9 @@ export function SearchIsland() {
         setSelectedIndex((prev) => Math.max(prev - 1, -1))
       } else if (e.key === 'Enter' && selectedIndex >= 0) {
         e.preventDefault()
-        const result = results[selectedIndex]
-        if (result?.url) {
-          window.location.href = result.url
+        const el = document.getElementById(`search-result-${selectedIndex}`)
+        if (el instanceof HTMLAnchorElement) {
+          el.click()
         }
       } else if (e.key === 'Escape') {
         setIsOpen(false)
