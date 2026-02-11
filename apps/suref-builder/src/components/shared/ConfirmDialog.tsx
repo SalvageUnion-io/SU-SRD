@@ -9,7 +9,7 @@ import {
   DialogPositioner,
   Button,
 } from '@chakra-ui/react'
-import { Text } from 'suref-react'
+import { Text } from '../../chakra'
 
 type ConfirmDialogState = {
   isOpen: boolean

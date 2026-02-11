@@ -1,6 +1,5 @@
 import { Box, Flex } from '@chakra-ui/react'
-import { Heading } from 'suref-react'
-import { Text } from 'suref-react'
+import { Heading, Text } from '../../chakra'
 
 export function DashboardContent() {
   return (

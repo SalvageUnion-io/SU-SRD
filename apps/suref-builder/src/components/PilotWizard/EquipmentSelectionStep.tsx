@@ -1,8 +1,7 @@
 import { useMemo, useCallback } from 'react'
 import { VStack, Button } from '@chakra-ui/react'
 import { getIndexable } from 'salvageunion-reference'
-import { Text } from 'suref-react'
-import { EntityDisplay } from 'suref-react'
+import { Text, EntityDisplay } from '../../chakra'
 import { getTL1Equipment } from './utils'
 import type { UsePilotWizardStateReturn } from './usePilotWizardState'
 

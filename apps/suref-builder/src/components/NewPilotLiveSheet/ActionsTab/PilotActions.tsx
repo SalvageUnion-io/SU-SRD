@@ -1,6 +1,6 @@
 import { VStack } from '@chakra-ui/react'
 import type { SURefMetaAction } from 'salvageunion-reference'
-import { NestedActionDisplay } from 'suref-react'
+import { NestedActionDisplay } from '../../../chakra'
 
 interface PilotActionsProps {
   actions: SURefMetaAction[]

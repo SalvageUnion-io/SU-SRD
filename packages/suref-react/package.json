@@ -6,7 +6,8 @@
   "license": "Salvage Union Open Game Licence 1.0b",
   "exports": {
     ".": "./src/index.ts",
-    "./test": "./src/test/render.tsx"
+    "./shared": "./src/shared/index.ts",
+    "./styles/theme.css": "./src/shadcn/styles/theme.css"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
@@ -19,27 +20,36 @@
     "ladle:build": "ladle build"
   },
   "peerDependencies": {
-    "@chakra-ui/react": "^3.29.0",
-    "@emotion/react": "^11.14.0",
+    "@radix-ui/react-accordion": "^1.2.3",
+    "@radix-ui/react-dialog": "^1.1.6",
+    "@radix-ui/react-hover-card": "^1.1.15",
+    "@radix-ui/react-popover": "^1.1.6",
+    "@radix-ui/react-tooltip": "^1.1.8",
     "@randsum/roller": "^0.27.0",
     "@randsum/salvageunion": "^0.37.0",
-    "@tanstack/react-router": "^1.136.1",
     "@tanstack/react-virtual": "^3.13.12",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.474.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "salvageunion-reference": "workspace:*"
+    "salvageunion-reference": "workspace:*",
+    "sonner": "^2.0.3",
+    "tailwind-merge": "^3.0.2"
   },
   "devDependencies": {
     "@ladle/react": "^4.1.0",
     "@vitejs/plugin-react": "^4.5.2",
-    "@chakra-ui/react": "^3.29.0",
-    "@emotion/react": "^11.14.0",
     "@eslint/js": "^9.39.1",
     "@happy-dom/global-registrator": "^20.0.10",
+    "@radix-ui/react-accordion": "^1.2.3",
+    "@radix-ui/react-dialog": "^1.1.6",
+    "@radix-ui/react-hover-card": "^1.1.15",
+    "@radix-ui/react-popover": "^1.1.6",
+    "@radix-ui/react-tooltip": "^1.1.8",
     "@randsum/roller": "^0.27.0",
     "@randsum/salvageunion": "^0.37.0",
     "@tanstack/react-query": "^5.90.9",
-    "@tanstack/react-router": "^1.136.1",
     "@tanstack/react-virtual": "^3.13.12",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
@@ -48,17 +58,25 @@
     "@types/react": "^19.2.4",
     "@types/react-dom": "^19.2.3",
     "bun-types": "^1.3.2",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
+    "lucide-react": "^0.474.0",
     "prettier": "^3.6.2",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "salvageunion-reference": "workspace:*",
+    "sonner": "^2.0.3",
+    "tailwind-merge": "^3.0.2",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.46.4",
+    "@tailwindcss/vite": "^4.1.4",
+    "tailwindcss": "^4.1.4",
     "vite": "^7.2.2"
-  }
+  },
+  "dependencies": {}
 }

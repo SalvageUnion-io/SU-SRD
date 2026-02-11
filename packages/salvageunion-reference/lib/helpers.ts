@@ -18,6 +18,16 @@ import type {
 } from './types/index.js'
 import type { EntitySchemaName } from './index.js'
 import type { ModelWithMetadata } from './BaseModel.js'
+import { getSchemaCatalog, type EnhancedSchemaMetadata } from './ModelFactory.js'
+import {
+  getName,
+  getDescription,
+  getSource,
+  getPageReference,
+  getTechLevel,
+  getAssetUrl,
+} from './utilities.js'
+import { getEntitySlug } from './slug.js'
 
 /**
  * Get the display name for a schema
@@ -442,3 +452,93 @@ export const MECH_DEFAULTS = {
   startingDamage: 0,
   startingHeat: 0,
 } as const
+
+// ============================================================================
+// SCHEMA HELPERS
+// ============================================================================
+
+/**
+ * Get all entity schemas (non-meta schemas)
+ * Filters out meta schemas like actions, crawler-tech-levels, etc.
+ * @returns Array of entity schema metadata
+ */
+export function getEntitySchemas(): EnhancedSchemaMetadata[] {
+  return getSchemaCatalog().schemas.filter((s) => !s.meta)
+}
+
+// ============================================================================
+// FACET EXTRACTION HELPERS
+// ============================================================================
+
+/**
+ * Get unique tech levels from an array of entities, sorted correctly
+ * Numeric levels ascending, then 'B', then 'N'
+ * @param entities - Array of entities to extract tech levels from
+ * @returns Sorted array of unique tech levels
+ */
+export function getUniqueTechLevels(entities: SURefEntity[]): (number | 'B' | 'N')[] {
+  const levels = new Set<number | 'B' | 'N'>()
+  for (const entity of entities) {
+    const tl = getTechLevel(entity)
+    if (tl !== undefined) levels.add(tl)
+  }
+  return Array.from(levels).sort((a, b) => {
+    if (typeof a === 'number' && typeof b === 'number') return a - b
+    if (typeof a === 'number') return -1
+    if (typeof b === 'number') return 1
+    if (a === 'B' && b === 'N') return -1
+    if (a === 'N' && b === 'B') return 1
+    return 0
+  })
+}
+
+/**
+ * Get unique source strings from an array of entities, sorted alphabetically
+ * @param entities - Array of entities to extract sources from
+ * @returns Sorted array of unique source strings
+ */
+export function getUniqueSources(entities: SURefEntity[]): string[] {
+  const sourceSet = new Set<string>()
+  for (const entity of entities) {
+    const source = getSource(entity)
+    if (source) sourceSet.add(source)
+  }
+  return Array.from(sourceSet).sort()
+}
+
+// ============================================================================
+// ENTITY DISPLAY DATA
+// ============================================================================
+
+/**
+ * Aggregate display data extracted from an entity
+ */
+export type EntityDisplayData = {
+  id: string
+  name: string
+  slug: string
+  description: string | undefined
+  source: string | undefined
+  page: number | undefined
+  techLevel: number | 'B' | 'N' | undefined
+  assetUrl: string | undefined
+}
+
+/**
+ * Extract common display data from an entity in one call
+ * Eliminates repeated defensive field extraction across consumers
+ * @param entity - The entity to extract display data from
+ * @returns Aggregated display data
+ */
+export function getEntityDisplayData(entity: SURefEntity): EntityDisplayData {
+  return {
+    id: entity.id,
+    name: getName(entity) ?? entity.id,
+    slug: getEntitySlug(entity),
+    description: getDescription(entity),
+    source: getSource(entity),
+    page: getPageReference(entity),
+    techLevel: getTechLevel(entity),
+    assetUrl: getAssetUrl(entity),
+  }
+}

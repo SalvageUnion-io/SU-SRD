@@ -1,6 +1,6 @@
 import { describe, test, expect, mock } from 'bun:test'
 import { render, screen, waitFor, fireEvent } from '../test/render'
-import { EntityDisplayModal } from 'suref-react'
+import { EntityDisplayModal } from '../chakra'
 import { act } from '@testing-library/react'
 import type { SURefEnumSchemaName } from 'salvageunion-reference'
 

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { uploadImage, deleteImage, updateEntityImage } from '../lib/api/storage'
-import { toaster } from 'suref-react'
+import { toaster } from '../chakra'
 import { logger } from 'suref-react'
 
 interface UseImageUploadOptions {

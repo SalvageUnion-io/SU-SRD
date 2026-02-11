@@ -4,14 +4,12 @@ import type { SURefCrawlerBay } from 'salvageunion-reference'
 
 import type { HydratedBay } from '../../types/hydrated'
 import type { BayNPCData } from '../CrawlerWizard/utils'
-import { Card } from 'suref-react'
+import { Card, StatDisplay } from '../../chakra'
 import { NPCCard } from './NPCCard'
 import { BayInfo } from './BayInfo'
-import { StatDisplay } from 'suref-react'
 import { DamagedEffectDisplay } from './DamagedEffectDisplay'
-import { getTiltRotation } from 'suref-react'
+import { getTiltRotation, getParagraphString } from 'suref-react'
 import { useUpdateEntity, useManageEntityChoices } from '../../hooks/suentity'
-import { getParagraphString } from 'suref-react'
 
 type EntityModeProps = {
   mode: 'entity'

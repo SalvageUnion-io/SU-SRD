@@ -1,8 +1,6 @@
 import { useState } from 'react'
 import { Box, Button, Flex, HStack, VStack } from '@chakra-ui/react'
-import { Heading } from 'suref-react'
-import { Text } from 'suref-react'
-import { SheetInput } from 'suref-react'
+import { Heading, Text, SheetInput } from '../../chakra'
 import { SheetTextarea } from '../shared/SheetTextarea'
 
 interface GameInfoProps {

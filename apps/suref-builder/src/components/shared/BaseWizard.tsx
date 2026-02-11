@@ -1,5 +1,5 @@
 import { Box, VStack, Button, Flex } from '@chakra-ui/react'
-import { Text } from 'suref-react'
+import { Text } from '../../chakra'
 import { WizardBreadcrumbs } from './WizardBreadcrumbs'
 import type { ReactNode } from 'react'
 

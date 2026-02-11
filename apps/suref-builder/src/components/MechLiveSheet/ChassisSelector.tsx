@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import { Button, Flex } from '@chakra-ui/react'
 import type { SURefChassis } from 'salvageunion-reference'
-import { Text } from 'suref-react'
-import { EntitySelectionModal } from 'suref-react'
+import { Text, EntitySelectionModal } from '../../chakra'
 
 interface ChassisSelectorProps {
   chassisId: string | null

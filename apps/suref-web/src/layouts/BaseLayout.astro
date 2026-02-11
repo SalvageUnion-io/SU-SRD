@@ -1,0 +1,74 @@
+---
+import '../styles/global.css'
+import TopNavigation from '../components/TopNavigation.astro'
+import Footer from '../components/Footer.astro'
+import { Toaster } from 'suref-react'
+import { EntityModalIsland } from '../components/islands/EntityModalIsland'
+
+type Props = {
+  title?: string
+  description?: string
+  canonical?: string
+  ogType?: string
+  structuredData?: Record<string, unknown>
+  noindex?: boolean
+  preloadImage?: string
+}
+
+const {
+  title = 'Salvage Union System Reference Document',
+  description = 'System Reference Document (SRD) for the Salvage Union TTRPG. Complete reference guide with chassis, systems, modules, abilities, and more.',
+  canonical,
+  ogType = 'website',
+  structuredData,
+  noindex = false,
+  preloadImage,
+} = Astro.props
+
+const siteUrl = 'https://salvageunion.io'
+const canonicalUrl = canonical || new URL(Astro.url.pathname, siteUrl).href
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalUrl} />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:type" content={ogType} />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+
+    <!-- Preload critical font -->
+    <link rel="preload" href="/fonts/FiraCode-Variable.woff2" as="font" type="font/woff2" crossorigin />
+
+    {preloadImage && <link rel="preload" href={preloadImage} as="image" />}
+
+    {structuredData && (
+      <script type="application/ld+json" set:html={JSON.stringify(structuredData)} />
+    )}
+  </head>
+  <body>
+    <div class="flex min-h-screen flex-col bg-su-white">
+      <TopNavigation />
+      <main class="flex flex-1 flex-col bg-su-blue-pale">
+        <slot />
+      </main>
+      <Footer />
+    </div>
+    <Toaster client:idle />
+    <EntityModalIsland client:idle />
+  </body>
+</html>

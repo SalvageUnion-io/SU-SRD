@@ -1,7 +1,6 @@
 import { Box, Button, Grid, VStack } from '@chakra-ui/react'
 import { useQuery } from '@tanstack/react-query'
-import { Text } from 'suref-react'
-import { Card } from 'suref-react'
+import { Text, Card } from '../../chakra'
 import { MechSmallDisplay } from '../Dashboard/MechSmallDisplay'
 import { useUpdateMech } from '../../hooks/mech'
 import { supabase } from '../../lib/supabase'

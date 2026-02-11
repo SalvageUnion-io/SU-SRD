@@ -2,7 +2,7 @@ import React from 'react'
 import { Box, Flex, Text, Link } from '@chakra-ui/react'
 import { Button } from '@chakra-ui/react'
 import type { ReactNode } from 'react'
-import { Heading } from 'suref-react'
+import { Heading } from '../chakra'
 import { logger } from 'suref-react'
 
 interface ErrorBoundaryProps {

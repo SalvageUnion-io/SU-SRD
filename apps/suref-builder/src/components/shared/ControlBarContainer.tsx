@@ -1,6 +1,6 @@
 import { type ReactNode } from 'react'
 import { Box, HStack, Spinner } from '@chakra-ui/react'
-import { Card } from 'suref-react'
+import { Card } from '../../chakra'
 
 interface ControlBarContainerProps {
   backgroundColor: string

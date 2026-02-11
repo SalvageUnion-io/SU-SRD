@@ -3,10 +3,8 @@ import { useState, useMemo, useCallback } from 'react'
 import { useConfirmDialog } from './ConfirmDialog'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefObjectChoice, SURefEnumSchemaName, SURefEntity } from 'salvageunion-reference'
-import { EntityDisplay } from 'suref-react'
-import { EntitySelectionModal } from 'suref-react'
+import { EntityDisplay, EntitySelectionModal, Text } from '../../chakra'
 import { usePlayerChoices, getSelectionsForChoice } from '../../hooks/suentity'
-import { Text } from 'suref-react'
 
 type EntityModeProps = {
   mode: 'entity'

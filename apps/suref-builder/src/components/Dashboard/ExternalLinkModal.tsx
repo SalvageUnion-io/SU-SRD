@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Box, Flex, Input, Text, VStack } from '@chakra-ui/react'
 import { Button } from '@chakra-ui/react'
-import { Modal } from 'suref-react'
+import { Modal } from '../../chakra'
 
 interface ExternalLinkModalProps {
   isOpen: boolean

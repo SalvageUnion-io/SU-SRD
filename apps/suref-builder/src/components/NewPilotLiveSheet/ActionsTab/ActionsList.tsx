@@ -1,5 +1,5 @@
 import { Grid, VStack } from '@chakra-ui/react'
-import { Text } from 'suref-react'
+import { Text } from '../../../chakra'
 import { PilotActions } from './PilotActions'
 import { MechActions } from './MechActions'
 import { CrawlerActions } from './CrawlerActions'

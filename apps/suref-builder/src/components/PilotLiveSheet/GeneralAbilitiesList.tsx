@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { Box } from '@chakra-ui/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { EntityDisplay } from 'suref-react'
+import { EntityDisplay } from '../../chakra'
 
 export function GeneralAbilitiesList() {
   const genericAbilities = useMemo(() => {

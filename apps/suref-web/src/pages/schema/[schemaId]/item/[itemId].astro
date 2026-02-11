@@ -1,0 +1,84 @@
+---
+import BaseLayout from '../../../../layouts/BaseLayout.astro'
+import { getItemStaticPaths } from '../../../../lib/staticPaths'
+import { EntityIsland } from '../../../../components/islands/EntityIsland'
+import { getEntityDisplayData } from 'salvageunion-reference'
+
+export function getStaticPaths() {
+  return getItemStaticPaths()
+}
+
+const { item, schema, itemName, itemDescription } = Astro.props
+const { schemaId, itemId } = Astro.params
+
+const schemaName = schema.displayName || 'Item'
+const canonicalUrl = `https://salvageunion.io/schema/${schemaId}/item/${itemId}`
+
+const metaDescription =
+  itemDescription ||
+  `Detailed information about ${itemName} from ${schemaName} in Salvage Union TTRPG.`
+
+const displayData = item ? getEntityDisplayData(item) : null
+
+const structuredData: Record<string, unknown> = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: itemName,
+  description: metaDescription,
+  url: canonicalUrl,
+  keywords: [
+    'Salvage Union',
+    'TTRPG',
+    'SRD',
+    'System Reference Document',
+    schemaName,
+    itemName,
+  ],
+  author: {
+    '@type': 'Organization',
+    name: 'Salvage Union SRD',
+  },
+}
+
+if (displayData?.source) {
+  structuredData.isPartOf = {
+    '@type': 'Book',
+    name: displayData.source,
+  }
+}
+
+if (displayData?.page) {
+  structuredData.pagination = `Page ${displayData.page}`
+}
+
+if (displayData?.techLevel != null) {
+  structuredData.additionalProperty = {
+    '@type': 'PropertyValue',
+    name: 'Tech Level',
+    value: displayData.techLevel,
+  }
+}
+
+// Extract tech level and source for Pagefind filters
+const techLevelDisplay = displayData?.techLevel != null ? String(displayData.techLevel) : ''
+const sourceDisplay = displayData?.source ?? ''
+const preloadImage = displayData?.assetUrl
+---
+
+<BaseLayout
+  title={`${itemName} - ${schemaName} - Salvage Union System Reference Document`}
+  description={metaDescription}
+  canonical={canonicalUrl}
+  ogType="article"
+  structuredData={structuredData}
+  preloadImage={preloadImage}
+>
+  <article class="flex min-h-full flex-1 flex-col items-center justify-center p-4" data-pagefind-body>
+    <h1 data-pagefind-meta="title" class="sr-only">{itemName}</h1>
+    {schemaName && <span data-pagefind-filter="schema" class="hidden">{schemaName}</span>}
+    {techLevelDisplay && <span data-pagefind-filter="tech-level" class="hidden">{techLevelDisplay}</span>}
+    {sourceDisplay && <span data-pagefind-filter="source" class="hidden">{sourceDisplay}</span>}
+
+    <EntityIsland client:load item={item} />
+  </article>
+</BaseLayout>

@@ -1,0 +1,260 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro'
+
+const imageAlt = 'Created using Shmeppy.com'
+const havenParam = Astro.url.searchParams.get('HAVEN')?.toUpperCase() === 'TRUE'
+  || Astro.url.searchParams.get('haven')?.toUpperCase() === 'TRUE'
+---
+
+<BaseLayout
+  title="About - Salvage Union System Reference Document"
+  description="About the Salvage Union SRD (System Reference Document) project and its creators."
+>
+  <div class="flex w-full flex-1 flex-col justify-center pt-12">
+    <div class="mx-auto flex h-full max-w-6xl flex-col items-stretch justify-center px-6">
+      <div class="flex flex-col gap-8 items-stretch">
+        <!-- Quote section -->
+        <div class="text-center">
+          <p class="text-base italic text-su-black">
+            "You're in the union, now!" - Lester{' '}
+            <span class="font-semibold italic">"STUMPY"</span>{' '}
+            Owens
+          </p>
+        </div>
+
+        <!-- Main content row -->
+        <div class="flex flex-col items-center gap-8 lg:flex-row lg:items-center">
+          <!-- Left: Image -->
+          <div class="w-full max-w-full flex-1 lg:max-w-[50%]">
+            <div class="flex flex-col items-stretch">
+              <div class="overflow-hidden rounded-t-md border-2 border-su-black">
+                <img
+                  src="/eldridge-coast-map.png"
+                  alt={imageAlt}
+                  class="h-auto w-full cursor-pointer object-contain transition-opacity hover:opacity-90"
+                  id="map-image"
+                />
+              </div>
+              <div class="w-full bg-su-black px-2 py-1 text-center">
+                <p class="text-[10px] lowercase text-su-white">
+                  created using{' '}
+                  <a
+                    href="https://shmeppy.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="underline hover:opacity-80"
+                  >
+                    shmeppy.com
+                  </a>
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Text -->
+          <div class="w-full max-w-full flex-1 lg:max-w-[50%]">
+            <div class="flex flex-col items-center gap-4 text-center">
+              <p class="text-lg leading-relaxed">
+                WRITTEN BY{' '}
+                <a
+                  href="https://github.com/alxjrvs"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="font-semibold hover:opacity-80"
+                >
+                  JRVS
+                </a>{' '}
+                AND INSPIRED BY THE PILOTS OF{' '}
+                <span class="font-semibold">#812 HAVEN</span>{' '}
+                OF{' '}
+                <span class="font-semibold">THE ELDRIDGE COAST</span>
+              </p>
+
+              <div class="flex flex-col items-center gap-2">
+                <div class="flex items-center justify-center gap-2">
+                  <span class="font-semibold text-lg">STUMPY</span>
+                  <span class="text-lg">//</span>
+                  <span class="font-semibold text-lg">ROACH BOY</span>
+                  <span class="text-lg">//</span>
+                  <span class="font-semibold text-lg">NELL</span>
+                  <span class="text-lg">//</span>
+                  <span class="font-semibold text-lg">PART</span>
+                </div>
+                <div class="flex items-center justify-center gap-2">
+                  <span class="font-semibold text-lg">PARCEL</span>
+                  <span class="text-lg">//</span>
+                  <span class="font-semibold text-lg">CALI</span>
+                </div>
+              </div>
+
+              <p class="text-lg leading-relaxed">AND UNION CRAWLERS EVERYWHERE</p>
+              <p class="text-lg font-semibold">WE GET BY WITH A LITTLE HELP FROM OUR FRIENDS</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Haven Episodes -->
+        {havenParam && (
+          <div>
+            <div class="flex flex-col gap-4">
+              <div class="text-center">
+                <p class="text-lg font-semibold">SEASON 1</p>
+              </div>
+              <div class="flex flex-col gap-2">
+                <p class="text-center text-base">EPISODE 1: HE WHO IS TRANSPLANTED</p>
+                <p class="text-center text-base">EPISODE 2: WHERE THERE'S SMOKE</p>
+                <p class="text-center text-base">EPISODE 3: DUST IN THE WIND</p>
+                <p class="text-center text-base">EPISODE 4: A PLACE, A PART</p>
+                <p class="text-center text-base">EPISODE 5: WORTH A SHOT (Now you get to meet boss hog)</p>
+                <p class="text-center text-base">EPISODE 6: I'M IN THE UNION NOW</p>
+                <p class="text-center text-base">EPISODE 7: HEY THERE DELILAH (A near-beth experience)</p>
+                <p class="text-center text-base">EPISODE 8: HOW MUCH WOULD</p>
+                <p class="text-center text-base">EPISODE 9: TIPPY-TOE FIVE FIFTY</p>
+                <p class="text-center text-base">EPISODE 10: THAT WAS EASY</p>
+                <p class="text-center text-base">EPISODE 11: MY DINNER WITH RB</p>
+                <p class="text-center text-base">EPISODE 12: GET AWAY FROM MY SLIPPERY BOYFRIEND</p>
+                <p class="text-center text-base">EPISODE 13: LET ME TASTE THAT STEW</p>
+                <p class="text-center text-base">EPISODE 14: ONE STUART RICHER</p>
+                <p class="text-center text-base">EPISODE 15: THIS ONE ALSO HAS A THING THAT KILLS YOU IN ONE HIT (THIS SHOULDN'T HAPPEN)</p>
+                <p class="text-center text-base">EPISODE 16: HOT FUZZ FOR TWO</p>
+                <p class="text-center text-base">EPISODE 17: THEY BOTH TURNED LEFT</p>
+                <p class="text-center text-base">EPISODE 18: AND THEN I PUNCH HIM RIGHT IN THE DICK</p>
+                <p class="text-center text-base">EPISODE 19: ANTI BULLY TECH</p>
+                <p class="text-center text-base">EPISODE 20: GIVE PAPA A HUG</p>
+                <p class="text-center text-base">EPISODE 21: ITS ONLY GAY IF THE MECHS TOUCH</p>
+                <p class="text-center text-base">EPISODE 22: MEATBALL MEDICINE</p>
+                <p class="text-center text-base">EPISODE 22: IN TATTERS I: WHAT HAPPENED TO YOUR ACCENT</p>
+                <p class="text-center text-base">EPISODE 23: IN TATTERS II: IT'S A FEATURE</p>
+              </div>
+
+              <div class="mt-4 text-center">
+                <p class="text-lg font-semibold">SEASON 2</p>
+              </div>
+              <div class="flex flex-col gap-2">
+                <p class="text-center text-base">EPISODE 1: PARTING WAYS (JASON STATHAM CUM GUTTERS MIDRIFF EXPOSED)</p>
+                <p class="text-center text-base">EPISODE 2 (S2E2): DIAL UP NOISESz</p>
+                <p class="text-center text-base">EPISODE 3: THANK YOU FOR RESPECTING OUR CULTURE</p>
+                <p class="text-center text-base">EPISODE 4: WE'RE COMPARING BOSS HOGS</p>
+              </div>
+
+              <div class="mt-4 text-right">
+                <p class="text-lg font-semibold">THE ADVENTURE CONTINUES....</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <!-- Thanks section -->
+        <div class="text-center">
+          <p class="text-sm text-su-black">
+            Many thanks to{' '}
+            <a
+              href="https://bsky.app/profile/unpanny-valley.bsky.social/"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="font-semibold hover:opacity-80"
+            >
+              Panny
+            </a>{' '}
+            and the fine folks at{' '}
+            <a
+              href="https://leyline.press"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="font-semibold hover:opacity-80"
+            >
+              Leyline Press
+            </a>{' '}
+            for their Support.
+          </p>
+        </div>
+
+        <!-- GitHub -->
+        <div class="text-center">
+          <div class="inline-flex items-center gap-2">
+            <span class="text-sm text-su-black">development ongoing at</span>
+            <a
+              href="https://github.com/alxjrvs/SU-SRD"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-block hover:opacity-80"
+            >
+              <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  fill-rule="evenodd"
+                  d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
+                  clip-rule="evenodd"
+                ></path>
+              </svg>
+            </a>
+          </div>
+        </div>
+
+        <!-- Feedback -->
+        <div class="text-center pb-8">
+          <p class="text-sm text-su-black">
+            Feedback? Bug Report? File an issue in{' '}
+            <a
+              href="https://github.com/alxjrvs/SU-SRD/issues"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="underline hover:opacity-80"
+            >
+              Github
+            </a>{' '}
+            or file a report in the{' '}
+            <a
+              href="https://discord.com/channels/874613501124042793/1442144225469796382"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="underline hover:opacity-80"
+            >
+              #salvage-union-io
+            </a>{' '}
+            channel in the{' '}
+            <a
+              href="https://discord.gg/kMwD2bWgtC"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="underline hover:opacity-80"
+            >
+              Salvage Union Discord
+            </a>!
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Image lightbox with native dialog -->
+  <dialog id="image-modal" class="bg-transparent backdrop:bg-black/70 p-0 max-w-[90vw]">
+    <div class="relative">
+      <button
+        class="absolute right-2 top-2 z-10 rounded-md bg-su-black px-3 py-1 text-2xl font-bold text-su-white hover:bg-su-orange-dark"
+        id="close-modal"
+      >
+        &times;
+      </button>
+      <div class="flex flex-col items-stretch gap-4">
+        <img
+          src="/eldridge-coast-map.png"
+          alt={imageAlt}
+          class="h-auto max-h-[85vh] w-full object-contain"
+        />
+        <p class="text-center text-sm text-su-white">{imageAlt}</p>
+      </div>
+    </div>
+  </dialog>
+
+  <script>
+    const mapImage = document.getElementById('map-image')
+    const modal = document.getElementById('image-modal') as HTMLDialogElement
+    const closeBtn = document.getElementById('close-modal')
+
+    mapImage?.addEventListener('click', () => modal?.showModal())
+    closeBtn?.addEventListener('click', () => modal?.close())
+    modal?.addEventListener('click', (e) => {
+      if (e.target === modal) modal.close()
+    })
+  </script>
+</BaseLayout>

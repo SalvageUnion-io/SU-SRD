@@ -1,6 +1,6 @@
 import { HStack, VStack, IconButton } from '@chakra-ui/react'
 import { useCallback, useMemo } from 'react'
-import { StatDisplay } from 'suref-react'
+import { StatDisplay } from '../chakra'
 
 interface NumericStepperProps {
   label: string

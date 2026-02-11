@@ -1,7 +1,6 @@
 import { Flex } from '@chakra-ui/react'
 import { getDisplayName, isAbility } from 'salvageunion-reference'
-import { Text } from 'suref-react'
-import { useEntityDisplayContext } from 'suref-react'
+import { Text, useEntityDisplayContext } from '../../chakra'
 
 export function EntityDisplayFooter({ bg }: { bg?: string }) {
   const { data, schemaName, spacing, compact } = useEntityDisplayContext()

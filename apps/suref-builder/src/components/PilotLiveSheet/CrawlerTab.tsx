@@ -1,6 +1,5 @@
 import { Box, VStack, HStack } from '@chakra-ui/react'
-import { Text } from 'suref-react'
-import { Card } from 'suref-react'
+import { Text, Card } from '../../chakra'
 import { SheetSelect } from '../shared/SheetSelect'
 import { CrawlerSmallDisplay } from '../Dashboard/CrawlerSmallDisplay'
 import { AddStatButton } from '../shared/AddStatButton'

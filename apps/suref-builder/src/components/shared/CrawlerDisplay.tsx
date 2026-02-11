@@ -1,6 +1,5 @@
 import { Box, Flex, HStack } from '@chakra-ui/react'
-import { Text } from 'suref-react'
-import { StatDisplay } from 'suref-react'
+import { Text, StatDisplay } from '../../chakra'
 import { useHydratedCrawler } from '../../hooks/crawler'
 
 interface CrawlerDisplayProps {

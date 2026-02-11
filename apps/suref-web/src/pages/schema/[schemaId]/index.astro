@@ -1,0 +1,64 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro'
+import { getSchemaStaticPaths } from '../../../lib/staticPaths'
+import { SchemaViewerIsland } from '../../../components/islands/SchemaViewerIsland'
+import { getUniqueTechLevels, getUniqueSources } from 'salvageunion-reference'
+
+export function getStaticPaths() {
+  return getSchemaStaticPaths()
+}
+
+const { schema, data } = Astro.props
+const { schemaId } = Astro.params
+
+const schemaName = schema.displayName || 'Schema'
+const capitalizedTitle =
+  schema.displayNamePlural ||
+  schema.title.charAt(0).toUpperCase() + schema.title.slice(1)
+const canonicalUrl = `https://salvageunion.io/schema/${schemaId}`
+
+// Pre-compute filter facets at build time
+const techLevels = getUniqueTechLevels(data)
+const sources = getUniqueSources(data)
+
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'Dataset',
+  name: schemaName,
+  description: `Salvage Union ${schemaName} System Reference Document (SRD) data`,
+  url: canonicalUrl,
+  keywords: ['Salvage Union', 'TTRPG', 'SRD', 'System Reference Document', schemaName],
+  creator: {
+    '@type': 'Organization',
+    name: 'Salvage Union SRD',
+  },
+}
+---
+
+<BaseLayout
+  title={`${schemaName} - Salvage Union System Reference Document`}
+  description={`Browse all ${schemaName} in the Salvage Union SRD (System Reference Document). Complete reference with stats, abilities, and details.`}
+  canonical={canonicalUrl}
+  structuredData={structuredData}
+>
+  <div class="flex min-h-full flex-col" data-pagefind-ignore>
+    <!-- Static header -->
+    <div class="flex flex-0 flex-col items-center bg-su-blue-pale p-8">
+      <h1 class="mb-2 text-center text-3xl font-bold text-su-black">
+        {capitalizedTitle}
+      </h1>
+      <p class="mb-3 max-w-[800px] text-center text-su-black">
+        {schema.description}
+      </p>
+
+      <!-- Island handles search + filters + grid -->
+      <SchemaViewerIsland
+        client:load
+        initialData={data}
+        schemaId={schemaId!}
+        techLevels={techLevels}
+        sources={sources}
+      />
+    </div>
+  </div>
+</BaseLayout>

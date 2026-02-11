@@ -1,5 +1,5 @@
 import { Flex, Textarea } from '@chakra-ui/react'
-import { Text } from 'suref-react'
+import { Text } from '../../chakra'
 import { useState, useEffect } from 'react'
 import { DEBOUNCE_TIMINGS } from 'suref-react'
 

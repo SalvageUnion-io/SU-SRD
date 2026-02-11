@@ -1,5 +1,5 @@
 import { Box, Flex } from '@chakra-ui/react'
-import { Text } from 'suref-react'
+import { Text } from '../../chakra'
 
 interface DataCellProps {
   leftBg: string

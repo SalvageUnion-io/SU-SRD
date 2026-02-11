@@ -39,6 +39,7 @@ apps/suref-web/.vite
 
 # Claude Code
 .claude/settings.local.json
+.mcp.json
 
 # Cursor IDE
 .cursor/

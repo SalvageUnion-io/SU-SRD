@@ -19,9 +19,9 @@ export default [
       '.git',
       'coverage',
       'build',
-      '.vite',
-      'src/types/database-generated.types.ts',
-      'src/routeTree.gen.ts',
+      '.astro',
+      '*.astro',
+      'src/**/*.astro',
     ],
   },
   js.configs.recommended,
@@ -35,7 +35,7 @@ export default [
   },
   {
     files: ['**/*.{ts,tsx}'],
-    ignores: ['happydom.ts', 'testing-library.ts', 'src/lib/logger.ts'],
+    ignores: ['happydom.ts', 'testing-library.ts'],
     plugins: {
       'react-hooks': reactHooks,
       'react-refresh': reactRefresh,
@@ -51,14 +51,12 @@ export default [
     rules: {
       ...reactHooks.configs.recommended.rules,
       ...reactRefresh.configs.recommended.rules,
-      // Prevent direct console usage - use logger utility instead
       'no-console': [
         'warn',
         {
           allow: ['warn', 'error'],
         },
       ],
-      // Disallow any types - use unknown or proper types instead
       '@typescript-eslint/no-explicit-any': 'error',
     },
   },

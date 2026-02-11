@@ -1,0 +1,88 @@
+---
+import { getSchemaCatalog } from 'salvageunion-reference'
+import { MobileNavIsland } from './islands/MobileNavIsland'
+import { SearchIsland } from './islands/SearchIsland'
+
+const catalog = getSchemaCatalog()
+const schemas = catalog.schemas.filter((s) => !s.meta)
+const currentPath = Astro.url.pathname
+
+function isActive(path: string) {
+  return currentPath.startsWith(path)
+}
+---
+
+<nav class="flex h-20 items-center justify-between bg-su-white px-6 py-3 z-50">
+  <!-- Logo -->
+  <a href="/" class="flex items-center gap-1 rounded-md p-2 hover:bg-su-blue-pale transition-colors">
+    <span class="font-semibold text-xl text-su-black">Salvage Union</span>
+    <span class="text-xs text-su-orange-dark font-medium">SRD</span>
+  </a>
+
+  <!-- Desktop nav -->
+  <div class="hidden md:flex items-center gap-2">
+    <!-- Schema dropdown -->
+    <div class="relative group">
+      <button
+        class:list={[
+          'px-4 py-2 rounded-md font-medium transition-colors',
+          isActive('/schema')
+            ? 'bg-su-orange text-su-white font-semibold'
+            : 'bg-su-blue-pale hover:bg-su-blue-light',
+        ]}
+      >
+        Reference
+      </button>
+      <div class="absolute left-0 top-full z-50 hidden group-hover:block pt-1">
+        <div class="max-h-[300px] min-w-[200px] overflow-y-auto rounded-md border border-su-grey-light bg-su-white shadow-lg">
+          {schemas.map((schema) => (
+            <a
+              href={`/schema/${schema.id}`}
+              class="block px-4 py-2 text-sm text-su-black hover:bg-su-blue-pale transition-colors"
+            >
+              {schema.displayName || schema.title.replace('Salvage Union ', '')}
+            </a>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    <a
+      href="/randsum"
+      class:list={[
+        'px-4 py-2 rounded-md font-medium transition-colors',
+        isActive('/randsum')
+          ? 'bg-su-orange text-su-white font-semibold'
+          : 'bg-su-blue-pale hover:bg-su-blue-light',
+      ]}
+    >
+      Discord Bot
+    </a>
+
+    <a
+      href="/about"
+      class:list={[
+        'px-4 py-2 rounded-md font-medium transition-colors',
+        isActive('/about')
+          ? 'bg-su-orange text-su-white font-semibold'
+          : 'bg-su-blue-pale hover:bg-su-blue-light',
+      ]}
+    >
+      About
+    </a>
+
+    <div class="ml-2">
+      <SearchIsland client:idle />
+    </div>
+  </div>
+
+  <!-- Mobile: search + hamburger -->
+  <div class="flex md:hidden items-center gap-2">
+    <SearchIsland client:idle />
+    <MobileNavIsland
+      client:idle
+      schemas={schemas.map((s) => ({ id: s.id, displayName: s.displayName || s.title.replace('Salvage Union ', '') }))}
+      currentPath={currentPath}
+    />
+  </div>
+</nav>

@@ -8,7 +8,7 @@ import {
   type RouterHistory,
 } from '@tanstack/react-router'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { system } from 'suref-react'
+import { system } from '../chakra'
 import type { ReactNode } from 'react'
 import { afterEach, beforeEach } from 'bun:test'
 

@@ -1,7 +1,7 @@
 import { type ReactNode } from 'react'
 import { Box, Flex, Spinner, VStack, Text } from '@chakra-ui/react'
 import { Button } from '@chakra-ui/react'
-import { Heading } from 'suref-react'
+import { Heading } from '../../chakra'
 
 interface CreateButtonConfig {
   onClick: () => void

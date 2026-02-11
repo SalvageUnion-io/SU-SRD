@@ -1,4 +1,4 @@
-import { ValueDisplay } from 'suref-react'
+import { ValueDisplay } from '../../chakra'
 import { Link } from '@tanstack/react-router'
 
 export function ValueDisplayLink({

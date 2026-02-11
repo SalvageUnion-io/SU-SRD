@@ -1,6 +1,5 @@
 import { Box } from '@chakra-ui/react'
-import { Text } from 'suref-react'
-import { useParseTraitReferences } from 'suref-react'
+import { Text, useParseTraitReferences } from '../../chakra'
 
 interface DamagedEffectDisplayProps {
   damagedEffect: string

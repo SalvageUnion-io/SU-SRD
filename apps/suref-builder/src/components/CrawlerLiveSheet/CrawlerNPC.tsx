@@ -1,6 +1,6 @@
 import type { SURefCrawler } from 'salvageunion-reference'
 
-import { Card } from 'suref-react'
+import { Card } from '../../chakra'
 import type { CrawlerNPC as CrawlerNPCType } from '../../types/common'
 import type { Json } from '../../types/database-generated.types'
 import { NPCCard } from '../shared/NPCCard'

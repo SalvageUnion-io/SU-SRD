@@ -1,5 +1,5 @@
 import { Box } from '@chakra-ui/react'
-import { SheetInput } from 'suref-react'
+import { SheetInput } from '../../chakra'
 import { rollTable } from '@randsum/salvageunion'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefObjectChoice } from 'salvageunion-reference'

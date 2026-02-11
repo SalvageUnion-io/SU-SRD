@@ -1,5 +1,5 @@
 import { rollTable } from '@randsum/salvageunion'
-import { SheetInput } from 'suref-react'
+import { SheetInput } from '../../chakra'
 import { useHydratedMech, useUpdateMech } from '../../hooks/mech'
 
 export function QuirkInput({ disabled, id }: { disabled: boolean; id: string }) {

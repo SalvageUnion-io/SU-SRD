@@ -1,5 +1,5 @@
 import { SheetTextarea } from './SheetTextarea'
-import { Card } from 'suref-react'
+import { Card } from '../../chakra'
 
 interface NotesProps {
   notes: string

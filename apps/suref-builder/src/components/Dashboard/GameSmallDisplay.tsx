@@ -1,5 +1,5 @@
 import { VStack, Box, Flex } from '@chakra-ui/react'
-import { Text } from 'suref-react'
+import { Text } from '../../chakra'
 import { type LinkProps } from '@tanstack/react-router'
 import { UserEntitySmallDisplay } from './UserEntitySmallDisplay'
 import { useGame, useGameCrawler, useDeleteGame } from '../../hooks/game/useGames'

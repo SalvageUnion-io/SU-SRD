@@ -1,4 +1,4 @@
-import { Text } from 'suref-react'
+import { Text } from '../../chakra'
 import type { SURefEntity } from 'salvageunion-reference'
 
 interface EntityDescriptionProps {

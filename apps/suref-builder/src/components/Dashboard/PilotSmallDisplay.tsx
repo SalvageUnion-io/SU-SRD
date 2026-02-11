@@ -1,5 +1,5 @@
 import { VStack, Box } from '@chakra-ui/react'
-import { Text } from 'suref-react'
+import { Text } from '../../chakra'
 import { UserEntitySmallDisplay } from './UserEntitySmallDisplay'
 import { useHydratedPilot, useDeletePilot } from '../../hooks/pilot'
 import { useQuery, useQueryClient } from '@tanstack/react-query'

@@ -2,7 +2,7 @@ import { VStack } from '@chakra-ui/react'
 import type { SURefChassis } from 'salvageunion-reference'
 import { getStructurePoints, getEnergyPoints, getHeatCapacity } from 'salvageunion-reference'
 import NumericStepper from '../NumericStepper'
-import { Card } from 'suref-react'
+import { Card } from '../../chakra'
 import { useHydratedMech, useUpdateMech } from '../../hooks/mech'
 
 interface MechResourceSteppersProps {

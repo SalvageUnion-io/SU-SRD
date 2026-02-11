@@ -1,4 +1,4 @@
-import { Card } from 'suref-react'
+import { Card } from '../../chakra'
 import { DynamicBay } from '../shared/DynamicBay'
 import { useState } from 'react'
 import { getTiltRotation } from 'suref-react'

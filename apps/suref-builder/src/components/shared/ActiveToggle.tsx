@@ -1,5 +1,5 @@
 import { Flex, Switch } from '@chakra-ui/react'
-import { Text } from 'suref-react'
+import { Text } from '../../chakra'
 
 interface ActiveToggleProps {
   active: boolean

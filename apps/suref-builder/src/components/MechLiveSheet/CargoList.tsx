@@ -1,5 +1,4 @@
-import { StatDisplay } from 'suref-react'
-import { Card } from 'suref-react'
+import { StatDisplay, Card } from '../../chakra'
 import { DynamicBay } from '../shared/DynamicBay'
 import { CargoModal } from '../shared/CargoModal'
 import { useConfirmDialog } from '../shared/ConfirmDialog'

@@ -1,5 +1,5 @@
 import { Flex, Text, VStack } from '@chakra-ui/react'
-import { Card } from 'suref-react'
+import { Card } from '../../chakra'
 import { SheetSelect } from '../shared/SheetSelect'
 import { LinkButton } from '../shared/LinkButton'
 import { useEntityRelationships } from '../../hooks/useEntityRelationships'

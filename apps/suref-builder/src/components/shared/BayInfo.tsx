@@ -4,7 +4,7 @@ import type { SURefCrawlerBay } from 'salvageunion-reference'
 
 import { EntityChoiceDisplay } from './EntityChoiceDisplay'
 import { useManageEntityChoices } from '../../hooks/suentity'
-import { useParseTraitReferences } from 'suref-react'
+import { useParseTraitReferences } from '../../chakra'
 import { getParagraphString } from 'suref-react'
 
 type EntityModeProps = {

@@ -47,6 +47,16 @@ export * from './utilities.js'
 // Export helper functions for common operations
 export * from './helpers.js'
 
+// Export slug utilities
+export { nameToSlug, getEntitySlug, findEntityBySlug } from './slug.js'
+
+// Export content block helpers
+export {
+  getParagraphString,
+  replaceChassisPlaceholder,
+  parseContentBlockString,
+} from './contentBlockHelpers.js'
+
 export {
   search,
   searchIn,

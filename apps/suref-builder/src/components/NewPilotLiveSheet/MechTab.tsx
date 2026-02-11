@@ -1,7 +1,6 @@
 import { Box, VStack, HStack } from '@chakra-ui/react'
 import { useQuery } from '@tanstack/react-query'
-import { Text } from 'suref-react'
-import { Card } from 'suref-react'
+import { Text, Card } from '../../chakra'
 import { AddStatButton } from '../shared/AddStatButton'
 import { SheetSelect } from '../shared/SheetSelect'
 import { useCreateMechForPilot, useAssignMechToPilot } from '../../hooks/useMechAssignment'

@@ -10,12 +10,8 @@ import {
   type SURefSystem,
   type SURefModule,
 } from 'salvageunion-reference'
-import { Text } from 'suref-react'
-import { Card } from 'suref-react'
-import { StatDisplay } from 'suref-react'
+import { Text, Card, StatDisplay, EntityDisplay, EntitySelectionModal } from '../../chakra'
 import { AddStatButton } from '../shared/AddStatButton'
-import { EntityDisplay } from 'suref-react'
-import { EntitySelectionModal } from 'suref-react'
 import type { UseMechWizardStateReturn } from './useMechWizardState'
 
 interface SystemsModulesStepProps {

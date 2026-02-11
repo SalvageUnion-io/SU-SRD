@@ -1,0 +1,37 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro'
+---
+
+<BaseLayout
+  title="Salvage Union System Reference Document"
+  description="System Reference Document (SRD) for the Salvage Union TTRPG. Complete reference guide with chassis, systems, modules, abilities, and more."
+  structuredData={{
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'Salvage Union System Reference Document',
+    url: 'https://salvageunion.io',
+  }}
+>
+  <div class="flex h-full w-full flex-1 items-center justify-center">
+    <div class="m-auto flex flex-col items-center justify-center gap-2 rounded-md bg-su-white p-4 shadow-lg">
+      <span class="inline-block self-center text-center text-2xl font-semibold text-su-black">
+        Salvage Union
+      </span>
+      <span class="text-center text-2xl font-medium text-su-orange-dark">
+        System Reference Document
+      </span>
+      <p class="text-center text-sm text-su-orange-dark">
+        An SRD for the{' '}
+        <a
+          href="https://leyline.press/collections/salvage-union"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="underline hover:text-su-orange"
+        >
+          Salvage Union
+        </a>{' '}
+        TTRPG
+      </p>
+    </div>
+  </div>
+</BaseLayout>

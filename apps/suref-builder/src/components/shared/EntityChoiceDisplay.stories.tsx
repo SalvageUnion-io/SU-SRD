@@ -1,7 +1,7 @@
 import type { Story } from '@ladle/react'
 import { EntityChoiceDisplay } from './EntityChoiceDisplay'
 import { Box, VStack } from '@chakra-ui/react'
-import { Text } from 'suref-react'
+import { Text } from '../../chakra'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { SURefObjectChoice } from 'salvageunion-reference'
 

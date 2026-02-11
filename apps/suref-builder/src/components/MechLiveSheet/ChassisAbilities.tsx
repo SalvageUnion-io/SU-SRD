@@ -6,9 +6,7 @@ import {
   getModuleSlots,
   getCargoCapacity,
 } from 'salvageunion-reference'
-import { Card } from 'suref-react'
-import { StatDisplay } from 'suref-react'
-import { NestedChassisAbility } from 'suref-react'
+import { Card, StatDisplay, NestedChassisAbility } from '../../chakra'
 
 interface ChassisAbilitiesProps {
   chassis: SURefChassis | undefined

@@ -1,8 +1,7 @@
 import { useMemo, useState, useCallback } from 'react'
 import { Box, VStack, Button, Tabs, Flex } from '@chakra-ui/react'
 import { SalvageUnionReference, getTechLevel } from 'salvageunion-reference'
-import { Text } from 'suref-react'
-import { EntityDisplay } from 'suref-react'
+import { Text, EntityDisplay } from '../../chakra'
 import type { UseMechWizardStateReturn } from './useMechWizardState'
 import { getWorkshopManualChassis, getChassisByTechLevel } from './utils'
 

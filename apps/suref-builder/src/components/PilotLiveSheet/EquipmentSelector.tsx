@@ -1,4 +1,4 @@
-import { EntitySelectionModal } from 'suref-react'
+import { EntitySelectionModal } from '../../chakra'
 
 interface EquipmentSelectorProps {
   isOpen: boolean

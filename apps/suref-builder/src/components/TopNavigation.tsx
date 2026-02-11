@@ -11,7 +11,7 @@ import {
 } from '@chakra-ui/react'
 import type { User } from '@supabase/supabase-js'
 import { Link } from '@tanstack/react-router'
-import { Heading } from 'suref-react'
+import { Heading } from '../chakra'
 import { useNavigationState } from '../hooks/useNavigationState'
 import { DiscordSignInButton } from './DiscordSignInButton'
 

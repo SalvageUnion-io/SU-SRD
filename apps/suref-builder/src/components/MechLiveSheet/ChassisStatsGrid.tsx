@@ -1,8 +1,7 @@
 import { Flex } from '@chakra-ui/react'
-import { StatDisplay } from 'suref-react'
+import { StatDisplay, Card } from '../../chakra'
 import type { SURefChassis } from 'salvageunion-reference'
 import { getSystemSlots, getModuleSlots, getCargoCapacity } from 'salvageunion-reference'
-import { Card } from 'suref-react'
 
 interface ChassisStatsGridProps {
   chassis: SURefChassis | undefined

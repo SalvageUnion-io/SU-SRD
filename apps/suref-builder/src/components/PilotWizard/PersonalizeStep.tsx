@@ -1,7 +1,6 @@
 import { useCallback } from 'react'
 import { Box, VStack, Button, Separator } from '@chakra-ui/react'
-import { Text } from 'suref-react'
-import { SheetInput } from 'suref-react'
+import { Text, SheetInput } from '../../chakra'
 import { SheetTextarea } from '../shared/SheetTextarea'
 import type { UsePilotWizardStateReturn } from './usePilotWizardState'
 

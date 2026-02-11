@@ -1,7 +1,6 @@
 import { Box, Flex, HStack, VStack } from '@chakra-ui/react'
 import { getTechLevel, type SURefChassis } from 'salvageunion-reference'
-import { Text } from 'suref-react'
-import { StatDisplay } from 'suref-react'
+import { Text, StatDisplay } from '../../chakra'
 import { MechResourceSteppers } from '../MechLiveSheet/MechResourceSteppers'
 import { useHydratedMech } from '../../hooks/mech'
 

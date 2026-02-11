@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
 import { Box, Image, Button, Input } from '@chakra-ui/react'
-import { Card } from 'suref-react'
+import { Card } from '../../chakra'
 
 interface LiveSheetAssetDisplayProps {
   url?: string

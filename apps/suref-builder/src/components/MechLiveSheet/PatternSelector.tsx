@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import { VStack, Flex, Badge, Text } from '@chakra-ui/react'
 import { Button } from '@chakra-ui/react'
 import { rollTable } from '@randsum/salvageunion'
-import { SheetInput } from 'suref-react'
+import { SheetInput } from '../../chakra'
 import type { SURefChassis } from 'salvageunion-reference'
 import type { HydratedEntity } from '../../types/hydrated'
 

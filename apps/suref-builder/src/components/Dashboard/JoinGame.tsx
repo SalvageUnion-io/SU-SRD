@@ -4,7 +4,7 @@ import { Box, Input, Text, VStack } from '@chakra-ui/react'
 import { Button } from '@chakra-ui/react'
 import { useForm } from '@tanstack/react-form'
 import { z } from 'zod'
-import { Heading } from 'suref-react'
+import { Heading } from '../../chakra'
 import { redeemInviteCode } from '../../lib/api'
 import { logger } from 'suref-react'
 

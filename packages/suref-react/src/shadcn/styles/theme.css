@@ -1,0 +1,228 @@
+/*
+ * Salvage Union Design System - Tailwind v4 Theme
+ * Colors ported from the official Salvage Union aesthetic
+ */
+@theme {
+  /* === Typography === */
+  --font-mono: 'Fira Code', Monaco, Consolas, 'Ubuntu Mono', monospace;
+  --font-sans: 'Fira Code', Monaco, Consolas, 'Ubuntu Mono', monospace;
+
+  /* === Brand Colors === */
+  --color-su-orange: rgb(239, 137, 79);
+  --color-su-orange-dark: rgb(200, 100, 50);
+  --color-su-orange-light: rgb(245, 193, 163);
+  --color-su-green: rgb(122, 151, 138);
+  --color-su-green-dark: rgb(92, 121, 108);
+  --color-su-pink: rgb(206, 88, 152);
+  --color-su-blue: rgb(143, 195, 216);
+  --color-su-blue-game: rgb(125, 206, 235);
+  --color-su-blue-light: rgb(199, 223, 231);
+  --color-su-blue-pale: rgb(230, 240, 245);
+  --color-su-brick: rgb(168, 89, 71);
+  --color-su-brick-pale: rgb(210, 160, 140);
+  --color-su-black: rgb(40, 32, 25);
+  --color-su-white: rgb(251, 248, 243);
+  --color-su-grey: rgb(150, 150, 150);
+  --color-su-grey-light: rgb(199, 199, 199);
+  --color-su-grey-medium: rgb(130, 130, 130);
+  --color-su-grey-dark: rgb(80, 80, 80);
+  --color-su-input-bg: rgb(232, 229, 216);
+  --color-su-input-text: rgb(45, 62, 54);
+  --color-su-peach: rgb(245, 193, 163);
+  --color-su-sickly-yellow: rgb(215, 195, 125);
+  --color-su-silver: rgb(192, 192, 192);
+
+  /* Tech Level Blues */
+  --color-tl-1: rgb(115, 201, 230);
+  --color-tl-2: rgb(87, 169, 200);
+  --color-tl-3: rgb(68, 135, 162);
+  --color-tl-4: rgb(48, 107, 128);
+  --color-tl-5: rgb(30, 83, 100);
+  --color-tl-6: rgb(6, 52, 65);
+
+  /* Discord */
+  --color-discord: rgb(88, 101, 242);
+  --color-discord-hover: rgb(71, 82, 196);
+
+  /* Entity colors (semantic) */
+  --color-pilot: var(--color-su-orange);
+  --color-pilot-light: var(--color-su-orange-light);
+  --color-mech: var(--color-su-green);
+  --color-mech-dark: var(--color-su-green-dark);
+  --color-crawler: var(--color-su-pink);
+
+  /* Heat severity */
+  --color-heat-low: rgb(76, 175, 80);
+  --color-heat-rising: rgb(255, 193, 7);
+  --color-heat-critical: rgb(255, 152, 0);
+  --color-heat-cap: rgb(244, 67, 54);
+
+  /* Condition */
+  --color-intact: rgb(76, 175, 80);
+  --color-damaged: rgb(255, 193, 7);
+  --color-destroyed: rgb(244, 67, 54);
+
+  /* Roll result tiers */
+  --color-roll-cascade: rgb(244, 67, 54);
+  --color-roll-failure: rgb(255, 152, 0);
+  --color-roll-tough: rgb(255, 193, 7);
+  --color-roll-success: rgb(76, 175, 80);
+  --color-roll-nailed: rgb(33, 150, 243);
+}
+
+/*
+ * CSS custom properties for light/dark theming
+ * ShadCN convention: use CSS variables for background, foreground, etc.
+ */
+:root {
+  --background: var(--color-su-white);
+  --foreground: var(--color-su-black);
+  --card: var(--color-su-blue-light);
+  --card-foreground: var(--color-su-black);
+  --popover: var(--color-su-white);
+  --popover-foreground: var(--color-su-black);
+  --primary: var(--color-su-orange);
+  --primary-foreground: var(--color-su-white);
+  --secondary: var(--color-su-green);
+  --secondary-foreground: var(--color-su-white);
+  --muted: var(--color-su-blue-pale);
+  --muted-foreground: var(--color-su-grey-dark);
+  --accent: var(--color-su-blue-light);
+  --accent-foreground: var(--color-su-black);
+  --destructive: rgb(220, 38, 38);
+  --destructive-foreground: white;
+  --border: var(--color-su-grey-light);
+  --input: var(--color-su-input-bg);
+  --input-foreground: var(--color-su-input-text);
+  --ring: var(--color-su-orange);
+  --radius: 0.5rem;
+}
+
+/* === Expansion Source Effects === */
+/* All effects use background:inherit / background-color:inherit so they
+   match the header/footer color of whatever entity they're applied to. */
+
+/* We Were Here First! - Beast Fangs (clip-path, inherits bg color)
+   Dense, thin teeth with organic variation */
+.expansion-fangs-down {
+  position: relative;
+}
+.expansion-fangs-down::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 8px;
+  background: inherit;
+  clip-path: polygon(
+    0% 0%, 1% 60%, 2% 0%, 3% 80%, 4% 0%, 5.5% 100%, 7% 0%,
+    8% 45%, 9% 0%, 10% 70%, 11% 0%, 12.5% 90%, 14% 0%,
+    15% 55%, 16% 0%, 17% 100%, 18% 0%, 19% 40%, 20% 0%,
+    21% 75%, 22% 0%, 23.5% 95%, 25% 0%, 26% 50%, 27% 0%,
+    28% 85%, 29% 0%, 30% 60%, 31% 0%, 32.5% 100%, 34% 0%,
+    35% 45%, 36% 0%, 37% 70%, 38% 0%, 39.5% 90%, 41% 0%,
+    42% 55%, 43% 0%, 44% 100%, 45% 0%, 46% 35%, 47% 0%,
+    48% 80%, 49% 0%, 50.5% 95%, 52% 0%, 53% 50%, 54% 0%,
+    55% 75%, 56% 0%, 57% 60%, 58% 0%, 59.5% 100%, 61% 0%,
+    62% 40%, 63% 0%, 64% 85%, 65% 0%, 66.5% 90%, 68% 0%,
+    69% 55%, 70% 0%, 71% 100%, 72% 0%, 73% 45%, 74% 0%,
+    75% 70%, 76% 0%, 77.5% 95%, 79% 0%, 80% 60%, 81% 0%,
+    82% 80%, 83% 0%, 84.5% 100%, 86% 0%, 87% 50%, 88% 0%,
+    89% 75%, 90% 0%, 91% 90%, 92% 0%, 93.5% 65%, 95% 0%,
+    96% 85%, 97% 0%, 98% 55%, 99% 0%, 100% 0%
+  );
+  transform: translateY(100%);
+  pointer-events: none;
+  z-index: 10;
+}
+
+.expansion-fangs-up {
+  position: relative;
+}
+.expansion-fangs-up::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 8px;
+  background: inherit;
+  clip-path: polygon(
+    0% 100%, 1% 40%, 2% 100%, 3% 20%, 4% 100%, 5.5% 0%, 7% 100%,
+    8% 55%, 9% 100%, 10% 30%, 11% 100%, 12.5% 10%, 14% 100%,
+    15% 45%, 16% 100%, 17% 0%, 18% 100%, 19% 60%, 20% 100%,
+    21% 25%, 22% 100%, 23.5% 5%, 25% 100%, 26% 50%, 27% 100%,
+    28% 15%, 29% 100%, 30% 40%, 31% 100%, 32.5% 0%, 34% 100%,
+    35% 55%, 36% 100%, 37% 30%, 38% 100%, 39.5% 10%, 41% 100%,
+    42% 45%, 43% 100%, 44% 0%, 45% 100%, 46% 65%, 47% 100%,
+    48% 20%, 49% 100%, 50.5% 5%, 52% 100%, 53% 50%, 54% 100%,
+    55% 25%, 56% 100%, 57% 40%, 58% 100%, 59.5% 0%, 61% 100%,
+    62% 60%, 63% 100%, 64% 15%, 65% 100%, 66.5% 10%, 68% 100%,
+    69% 45%, 70% 100%, 71% 0%, 72% 100%, 73% 55%, 74% 100%,
+    75% 30%, 76% 100%, 77.5% 5%, 79% 100%, 80% 40%, 81% 100%,
+    82% 20%, 83% 100%, 84.5% 0%, 86% 100%, 87% 50%, 88% 100%,
+    89% 25%, 90% 100%, 91% 10%, 92% 100%, 93.5% 35%, 95% 100%,
+    96% 15%, 97% 100%, 98% 45%, 99% 100%, 100% 100%
+  );
+  transform: translateY(-100%);
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Rainmaker - Falling Raindrops (SVG mask + inherited bg color) */
+.expansion-rain-down {
+  position: relative;
+}
+.expansion-rain-down::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 10px;
+  background-color: inherit;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='10'%3E%3Crect x='2' y='0' width='3' height='7' fill='white'/%3E%3Crect x='9' y='0' width='2.5' height='5' fill='white'/%3E%3Crect x='16' y='0' width='3.5' height='9' fill='white'/%3E%3Crect x='24' y='0' width='2.5' height='6' fill='white'/%3E%3Crect x='31' y='0' width='3' height='4' fill='white'/%3E%3Crect x='38' y='0' width='2.5' height='8' fill='white'/%3E%3Crect x='46' y='0' width='3' height='5' fill='white'/%3E%3Crect x='53' y='0' width='3.5' height='10' fill='white'/%3E%3Crect x='61' y='0' width='2.5' height='4' fill='white'/%3E%3Crect x='68' y='0' width='3' height='7' fill='white'/%3E%3Crect x='76' y='0' width='3.5' height='9' fill='white'/%3E%3Crect x='84' y='0' width='2.5' height='5' fill='white'/%3E%3Crect x='91' y='0' width='3' height='6' fill='white'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='10'%3E%3Crect x='2' y='0' width='3' height='7' fill='white'/%3E%3Crect x='9' y='0' width='2.5' height='5' fill='white'/%3E%3Crect x='16' y='0' width='3.5' height='9' fill='white'/%3E%3Crect x='24' y='0' width='2.5' height='6' fill='white'/%3E%3Crect x='31' y='0' width='3' height='4' fill='white'/%3E%3Crect x='38' y='0' width='2.5' height='8' fill='white'/%3E%3Crect x='46' y='0' width='3' height='5' fill='white'/%3E%3Crect x='53' y='0' width='3.5' height='10' fill='white'/%3E%3Crect x='61' y='0' width='2.5' height='4' fill='white'/%3E%3Crect x='68' y='0' width='3' height='7' fill='white'/%3E%3Crect x='76' y='0' width='3.5' height='9' fill='white'/%3E%3Crect x='84' y='0' width='2.5' height='5' fill='white'/%3E%3Crect x='91' y='0' width='3' height='6' fill='white'/%3E%3C/svg%3E");
+  -webkit-mask-repeat: repeat-x;
+  mask-repeat: repeat-x;
+  -webkit-mask-size: 100px 10px;
+  mask-size: 100px 10px;
+  transform: translateY(100%);
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Rainmaker footer - content-colored drops falling into the footer */
+.expansion-rain-into-footer {
+  position: relative;
+}
+.expansion-rain-into-footer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 10px;
+  background-color: var(--background);
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='10'%3E%3Crect x='2' y='0' width='3' height='7' fill='white'/%3E%3Crect x='9' y='0' width='2.5' height='5' fill='white'/%3E%3Crect x='16' y='0' width='3.5' height='9' fill='white'/%3E%3Crect x='24' y='0' width='2.5' height='6' fill='white'/%3E%3Crect x='31' y='0' width='3' height='4' fill='white'/%3E%3Crect x='38' y='0' width='2.5' height='8' fill='white'/%3E%3Crect x='46' y='0' width='3' height='5' fill='white'/%3E%3Crect x='53' y='0' width='3.5' height='10' fill='white'/%3E%3Crect x='61' y='0' width='2.5' height='4' fill='white'/%3E%3Crect x='68' y='0' width='3' height='7' fill='white'/%3E%3Crect x='76' y='0' width='3.5' height='9' fill='white'/%3E%3Crect x='84' y='0' width='2.5' height='5' fill='white'/%3E%3Crect x='91' y='0' width='3' height='6' fill='white'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='10'%3E%3Crect x='2' y='0' width='3' height='7' fill='white'/%3E%3Crect x='9' y='0' width='2.5' height='5' fill='white'/%3E%3Crect x='16' y='0' width='3.5' height='9' fill='white'/%3E%3Crect x='24' y='0' width='2.5' height='6' fill='white'/%3E%3Crect x='31' y='0' width='3' height='4' fill='white'/%3E%3Crect x='38' y='0' width='2.5' height='8' fill='white'/%3E%3Crect x='46' y='0' width='3' height='5' fill='white'/%3E%3Crect x='53' y='0' width='3.5' height='10' fill='white'/%3E%3Crect x='61' y='0' width='2.5' height='4' fill='white'/%3E%3Crect x='68' y='0' width='3' height='7' fill='white'/%3E%3Crect x='76' y='0' width='3.5' height='9' fill='white'/%3E%3Crect x='84' y='0' width='2.5' height='5' fill='white'/%3E%3Crect x='91' y='0' width='3' height='6' fill='white'/%3E%3C/svg%3E");
+  -webkit-mask-repeat: repeat-x;
+  mask-repeat: repeat-x;
+  -webkit-mask-size: 100px 10px;
+  mask-size: 100px 10px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Mobile-first touch targets */
+@media (pointer: coarse) {
+  button,
+  [role='button'],
+  input,
+  select,
+  textarea {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}

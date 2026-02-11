@@ -1,12 +1,11 @@
 import type { SURefCrawler, SURefMetaAction } from 'salvageunion-reference'
 import { extractActions } from 'salvageunion-reference'
 
-import { Card } from 'suref-react'
+import { Card, NestedChassisAbility } from '../../chakra'
 import { VStack } from '@chakra-ui/react'
 import { SheetEntityChoiceDisplay } from './SheetEntityChoiceDisplay'
 import { useHydratedCrawler } from '../../hooks/crawler'
 import { useManageEntityChoices } from '../../hooks/suentity'
-import { NestedChassisAbility } from 'suref-react'
 
 export function CrawlerAbilities({
   id,

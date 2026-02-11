@@ -1,0 +1,64 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro'
+import { getSchemaCatalog } from 'salvageunion-reference'
+
+const catalog = getSchemaCatalog()
+const schemas = catalog.schemas.filter((s) => !s.meta).slice(0, 6)
+---
+
+<BaseLayout
+  title="404 - Page Not Found - Salvage Union System Reference Document"
+  description="The page you are looking for could not be found."
+  noindex
+>
+  <div class="flex min-h-[80vh] items-center justify-center p-4">
+    <div class="w-full max-w-2xl rounded-md border-2 border-su-orange-dark bg-su-white p-8 shadow-lg">
+      <div class="flex flex-col items-center gap-6">
+        <h1 class="text-6xl font-bold text-su-orange-dark">404</h1>
+        <h2 class="text-center text-2xl font-bold text-su-black">
+          SALVAGE OPERATION FAILED
+        </h2>
+        <p class="text-center text-lg text-su-black">
+          The page you're looking for has been lost to the wastes. It might have been scrapped,
+          relocated, or never existed in the first place.
+        </p>
+
+        <div class="mt-4 w-full">
+          <p class="mb-2 font-semibold text-su-orange-dark">
+            Try one of these instead:
+          </p>
+          <div class="flex flex-col gap-2 items-stretch">
+            <a
+              href="/"
+              class="w-full rounded-md bg-su-orange px-4 py-2 text-center font-medium text-su-white transition-colors hover:bg-su-orange-dark"
+            >
+              Return to Home
+            </a>
+            <a
+              href={`/schema/${schemas[0]?.id || 'chassis'}`}
+              class="w-full rounded-md bg-su-green px-4 py-2 text-center font-medium text-su-white transition-colors hover:bg-su-green-dark"
+            >
+              Browse Reference Data
+            </a>
+          </div>
+        </div>
+
+        <div class="mt-6 w-full border-t-2 border-su-grey-light pt-6">
+          <p class="mb-3 text-sm font-semibold text-su-orange-dark">
+            Popular Schemas:
+          </p>
+          <div class="flex flex-wrap gap-2">
+            {schemas.map((schema) => (
+              <a
+                href={`/schema/${schema.id}`}
+                class="rounded-md bg-su-blue-pale px-3 py-1 text-xs text-su-black transition-colors hover:bg-su-orange hover:text-su-white"
+              >
+                {schema.displayName}
+              </a>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</BaseLayout>

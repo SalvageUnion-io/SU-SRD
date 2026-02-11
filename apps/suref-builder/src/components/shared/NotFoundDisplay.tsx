@@ -1,7 +1,6 @@
 import { Box, Flex, VStack, Button } from '@chakra-ui/react'
 import { Link } from '@tanstack/react-router'
-import { Heading } from 'suref-react'
-import { Text } from 'suref-react'
+import { Heading, Text } from '../../chakra'
 
 export function NotFoundDisplay() {
   return (

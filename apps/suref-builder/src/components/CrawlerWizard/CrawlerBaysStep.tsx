@@ -1,7 +1,7 @@
 import { useMemo, useCallback } from 'react'
 import { VStack, Button, Grid } from '@chakra-ui/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { Text } from 'suref-react'
+import { Text } from '../../chakra'
 import { BayCard } from '../shared/BayCard'
 import type { UseCrawlerWizardStateReturn } from './useCrawlerWizardState'
 import type { BayNPCData } from './utils'

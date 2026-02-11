@@ -1,5 +1,5 @@
 import { Flex } from '@chakra-ui/react'
-import { Text } from 'suref-react'
+import { Text } from '../../chakra'
 
 export interface WizardBreadcrumbsProps {
   labels: readonly string[]

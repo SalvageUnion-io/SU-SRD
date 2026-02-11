@@ -4,7 +4,7 @@ import { PilotSmallDisplay } from './PilotSmallDisplay'
 import { MechSmallDisplay } from './MechSmallDisplay'
 import { useHydratedMech } from '../../hooks/mech'
 import { supabase } from '../../lib/supabase'
-import { SheetDisplay } from 'suref-react'
+import { SheetDisplay } from '../../chakra'
 import { fetchCrawlerPilots } from '../../lib/api/pilots'
 import { fetchPilotsMechs } from '../../lib/api/mechs'
 

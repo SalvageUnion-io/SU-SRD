@@ -1,6 +1,5 @@
 import { Box, Flex } from '@chakra-ui/react'
-import { SheetDisplay } from 'suref-react'
-import { Text } from 'suref-react'
+import { SheetDisplay, Text } from '../../chakra'
 import { calculateRemainingBudget, STARTING_BUDGET } from './utils'
 import type { WizardState } from './utils'
 

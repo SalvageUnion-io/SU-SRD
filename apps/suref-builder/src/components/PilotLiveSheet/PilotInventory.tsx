@@ -10,12 +10,9 @@ import {
   getSlotsRequired,
   getTechLevelNumber,
 } from 'salvageunion-reference'
-import { StatDisplay } from 'suref-react'
+import { StatDisplay, Card, EntityDisplay, EntitySelectionModal } from '../../chakra'
 import { AddStatButton } from '../shared/AddStatButton'
-import { Card } from 'suref-react'
 import { useConfirmDialog } from '../shared/ConfirmDialog'
-import { EntityDisplay } from 'suref-react'
-import { EntitySelectionModal } from 'suref-react'
 import { EquipmentSelector } from './EquipmentSelector'
 import { useManagePilotInventory } from '../../hooks/pilot/useManagePilotInventory'
 import { useHydratedPilot } from '../../hooks/pilot'

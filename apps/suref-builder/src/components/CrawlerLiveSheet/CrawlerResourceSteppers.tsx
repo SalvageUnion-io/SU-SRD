@@ -1,8 +1,7 @@
 import { useState, useMemo } from 'react'
 import { Button, Flex, Grid } from '@chakra-ui/react'
 import NumericStepper from '../NumericStepper'
-import { Card } from 'suref-react'
-import { StatDisplay } from 'suref-react'
+import { Card, StatDisplay } from '../../chakra'
 import { ScrapConversionModal } from './ScrapConversionModal'
 import { useHydratedCrawler, useUpdateCrawler } from '../../hooks/crawler'
 

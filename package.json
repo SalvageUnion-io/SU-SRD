@@ -57,7 +57,16 @@
     "ladle": "bun --filter suref-react ladle",
     "ladle:react": "bun --filter suref-react ladle",
     "ladle:web": "bun --filter suref-web ladle",
-    "ladle:builder": "bun --filter suref-builder ladle"
+    "ladle:builder": "bun --filter suref-builder ladle",
+    "dev:itun": "bun run build:package && bun --filter in-the-union-now dev",
+    "build:itun": "bun --filter in-the-union-now build",
+    "ladle:itun": "bun --filter in-the-union-now ladle",
+    "typecheck:itun": "bun --filter in-the-union-now typecheck",
+    "lint:itun": "bun --filter in-the-union-now lint",
+    "test:itun": "bun --filter in-the-union-now test",
+    "typecheck:react-shadcn": "bun --filter suref-react typecheck",
+    "lint:react-shadcn": "bun --filter suref-react lint",
+    "test:react-shadcn": "bun --filter suref-react test"
   },
   "dependencies": {
     "zustand": "5.0.11"
