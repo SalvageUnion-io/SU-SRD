@@ -57,7 +57,7 @@ const canonicalUrl = canonical || new URL(Astro.url.pathname, siteUrl).href
     {preloadImage && <link rel="preload" href={preloadImage} as="image" />}
 
     {structuredData && (
-      <script type="application/ld+json" set:html={JSON.stringify(structuredData)} />
+      <script is:inline type="application/ld+json" set:html={JSON.stringify(structuredData)} />
     )}
   </head>
   <body>
