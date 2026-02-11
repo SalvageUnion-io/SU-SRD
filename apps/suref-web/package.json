@@ -20,15 +20,16 @@
     "check": "bun run lint && bun run format:check && bun run typecheck"
   },
   "dependencies": {
-    "astro": "^5.5.0",
+    "@astrojs/check": "0.9.6",
     "@astrojs/react": "^4.2.0",
     "@astrojs/sitemap": "^3.3.0",
+    "@randsum/roller": "^0.27.0",
+    "@randsum/salvageunion": "^0.37.0",
+    "astro": "^5.5.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "salvageunion-reference": "workspace:*",
     "suref-react": "workspace:*",
-    "@randsum/roller": "^0.27.0",
-    "@randsum/salvageunion": "^0.37.0",
     "zustand": "^5.0.11"
   },
   "devDependencies": {
@@ -51,7 +52,7 @@
     "prettier": "^3.6.2",
     "prettier-plugin-astro": "^0.14.0",
     "tailwindcss": "^4.1.4",
-    "typescript": "~5.9.3",
+    "typescript": "5.9.3",
     "typescript-eslint": "^8.46.4"
   }
 }
