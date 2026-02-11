@@ -192,7 +192,8 @@ export function getSourceStyles(
   variant: 'header' | 'footer' = 'header',
   isExpanded: boolean = true
 ): { className: string; style: React.CSSProperties } {
-  if (!source || disabled || !isExpanded) return { className: '', style: {} }
+  if (!source || disabled) return { className: '', style: {} }
+  if (!isExpanded && variant === 'footer') return { className: '', style: {} }
 
   switch (source) {
     case 'We Were Here First!': {

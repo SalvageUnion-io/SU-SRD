@@ -91,19 +91,19 @@ export const DimHeader: Story = () => (
 
 export const ExpansionRainmaker: Story = () => (
   <div className="w-[600px] py-6">
-    <EntityDisplay data={rainmakerEntity} showFooter />
+    <EntityDisplay data={rainmakerEntity} showFooter collapsible defaultExpanded />
   </div>
 )
 
 export const ExpansionWeWereHereFirst: Story = () => (
   <div className="w-[600px] py-6">
-    <EntityDisplay data={wwhfEntity} showFooter />
+    <EntityDisplay data={wwhfEntity} showFooter collapsible defaultExpanded />
   </div>
 )
 
 export const ExpansionFalseFlag: Story = () => (
   <div className="w-[600px]">
-    <EntityDisplay data={falseFlagEntity} showFooter />
+    <EntityDisplay data={falseFlagEntity} showFooter collapsible defaultExpanded />
   </div>
 )
 
@@ -111,23 +111,23 @@ export const AllExpansions: Story = () => (
   <div className="flex w-[600px] flex-col gap-8 py-6">
     <div>
       <p className="mb-2 text-xs font-bold uppercase tracking-wide text-su-grey-dark">Rainmaker</p>
-      <EntityDisplay data={rainmakerEntity} showFooter />
+      <EntityDisplay data={rainmakerEntity} showFooter collapsible defaultExpanded />
     </div>
     <div>
       <p className="mb-2 text-xs font-bold uppercase tracking-wide text-su-grey-dark">
         We Were Here First!
       </p>
-      <EntityDisplay data={wwhfEntity} showFooter />
+      <EntityDisplay data={wwhfEntity} showFooter collapsible defaultExpanded />
     </div>
     <div>
       <p className="mb-2 text-xs font-bold uppercase tracking-wide text-su-grey-dark">False Flag</p>
-      <EntityDisplay data={falseFlagEntity} showFooter />
+      <EntityDisplay data={falseFlagEntity} showFooter collapsible defaultExpanded />
     </div>
     <div>
       <p className="mb-2 text-xs font-bold uppercase tracking-wide text-su-grey-dark">
         No Expansion (Core)
       </p>
-      <EntityDisplay data={system} showFooter />
+      <EntityDisplay data={system} showFooter collapsible defaultExpanded />
     </div>
   </div>
 )

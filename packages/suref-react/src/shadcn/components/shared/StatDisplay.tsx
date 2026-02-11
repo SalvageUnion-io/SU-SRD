@@ -66,7 +66,10 @@ export function StatDisplay({
       <Text
         variant="pseudoheader"
         as="span"
-        className={cn('z-[1] -mb-2 self-center uppercase', compact ? 'text-[10px]' : 'text-xs')}
+        className={cn(
+          'z-[1] -mb-2 self-center whitespace-nowrap uppercase',
+          compact ? 'text-[10px]' : 'text-xs'
+        )}
         id={labelId}
       >
         {label}
