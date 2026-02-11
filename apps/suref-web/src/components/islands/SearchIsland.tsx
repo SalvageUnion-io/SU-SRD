@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { search } from 'salvageunion-reference'
 import type { SearchResult } from 'salvageunion-reference'
-import { getEntitySlug } from 'suref-react/shared'
+import { getEntitySlug } from 'suref-react'
 
 type DisplayResult = {
   id: string

@@ -16,16 +16,16 @@ cd SU-SRD && bun install && bun run build:package
 
 # Development
 bun run dev              # Build package + start reference site dev server
-bun run dev:builder      # Build package + start builder app dev server
 bun run dev:watch        # Watch package changes + start reference site
 bun run dev:bot          # Start Discord bot locally
+bun run dev:itun         # Build package + start ITUN app dev server
 
 # Testing
 bun test                 # Run all tests (Bun test runner)
 bun --filter salvageunion-reference test   # Test package only
 bun --filter suref-react test              # Test shared components only
 bun --filter suref-web test                # Test reference site only
-bun --filter suref-builder test            # Test builder app only
+bun --filter in-the-union-now test         # Test ITUN app only
 
 # Code quality
 bun run lint             # Lint all packages
@@ -40,16 +40,13 @@ cd packages/salvageunion-reference && bun run generate
 bun run validate:all     # Check IDs, cross-references, action references
 bun run validate:ids     # Unique ID check only
 
-# Supabase type generation (after DB schema changes)
-bun --filter suref-builder gen:all     # Generate TS types + Zod schemas
-
 # Discord bot commands
 bun run deploy-commands          # Deploy slash commands to test guild
 bun run deploy-commands:global   # Deploy globally (production)
 
 # Building
 bun run build            # Full build (package + reference site)
-bun run build:builder    # Build builder app
+bun run build:itun       # Build ITUN app
 bun run build:bot        # Build Discord bot
 ```
 
@@ -57,9 +54,9 @@ bun run build:bot        # Build Discord bot
 
 **Workspace structure:**
 - `apps/suref-web/` - Static SRD reference site (React 19, TanStack Start/Router, Chakra UI v3, Vite). No auth, no Supabase.
-- `apps/suref-builder/` - Character builder & game manager (React 19, TanStack Start/Router/Query, Chakra UI v3, Supabase, Vite). Has auth, dashboard, live sheets.
+- `apps/in-the-union-now/` - Character builder & game manager (React 19, TanStack Router/Query, ShadCN + Tailwind v4, Supabase, Vite). Has auth, dashboard, live sheets.
 - `apps/discord-bot/` - Discord.js bot for rolling on Salvage Union tables
-- `packages/suref-react/` - Shared React component library (theme, entity display system, base typography, UI primitives). No build step, exports TypeScript source.
+- `packages/suref-react/` - Shared React component library (ShadCN + Tailwind, entity display system, base typography, UI primitives). No build step, exports TypeScript source.
 - `packages/salvageunion-reference/` - TypeScript ORM + schema-validated JSON dataset for game data
 
 **Dependency graph:**
@@ -67,11 +64,9 @@ bun run build:bot        # Build Discord bot
 salvageunion-reference (game data ORM)
   └── suref-react (shared UI components)
         ├── suref-web (static reference site)
-        └── suref-builder (character builder + game manager)
+        └── in-the-union-now (character builder + game manager)
 discord-bot (standalone, depends on salvageunion-reference)
 ```
-
-**Data flow (builder):** React components -> TanStack Query hooks (`src/hooks/`) -> API clients (`src/lib/api/`) -> Supabase client -> PostgreSQL with RLS. Reference data comes from `salvageunion-reference` package imported directly.
 
 **Key dependency:** The `salvageunion-reference` package must be built before the apps can resolve types. Run `bun run build:package` after cloning or after changes to `packages/salvageunion-reference/`.
 
@@ -110,17 +105,6 @@ Models extend `BaseModel<T>`, created via `ModelFactory`, accessed via `SalvageU
 - **No auth, no Supabase, no user data.** Pure static reference site.
 - **UI:** Chakra UI v3 with theme from `suref-react`. Components import from `suref-react` for shared UI.
 - **Testing:** Bun test runner with React Testing Library + happy-dom. No Supabase env vars needed.
-- **Deployment:** Netlify
-
-### suref-builder App (Character Builder)
-
-- **Routing:** File-based routing. Routes: `/dashboard/**` (pilots, mechs, crawlers, games), `/sheets/**` (playgrounds), `/auth/callback`.
-- **State:** TanStack Query for server state with query key factories (e.g., `pilotsKeys`, `mechsKeys`). Local UI state with React hooks.
-- **UI:** Chakra UI v3 with theme from `suref-react`. Components import from `suref-react` for shared UI.
-- **Hydrated hooks:** `useHydrated*` hooks combine entity data with related data (choices, references)
-- **Auth:** Discord OAuth via Supabase Auth. Client: `src/lib/supabase.ts`. Server: `src/lib/supabase.server.ts`.
-- **Database:** Supabase PostgreSQL with RLS. Generated types in `src/types/database-generated.types.ts`. Migrations in `supabase/migrations/`.
-- **Testing:** Bun test runner with React Testing Library + happy-dom. Supabase env vars set in `bunfig.toml`.
 - **Deployment:** Netlify
 
 ### Pre-commit Hooks (Lefthook)

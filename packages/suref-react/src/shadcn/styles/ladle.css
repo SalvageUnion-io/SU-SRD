@@ -1,5 +1,0 @@
-@layer reset;
-@import 'tailwindcss';
-@import './theme.css';
-
-@source "../../shadcn";

@@ -2,7 +2,7 @@
  * Tests for utility functions (type guards and property extractors)
  */
 
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect } from 'bun:test'
 import {
   hasTechLevel,
   hasSalvageValue,

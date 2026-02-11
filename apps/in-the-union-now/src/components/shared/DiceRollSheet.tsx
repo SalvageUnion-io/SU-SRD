@@ -20,7 +20,7 @@ export function DiceRollSheet({
     if (!canPush) return
 
     const newHeat = currentHeat + 2
-    push(currentHeat, heatCapacity)
+    push()
 
     // Apply +2 heat
     onHeatChange?.(Math.min(newHeat, heatCapacity))
