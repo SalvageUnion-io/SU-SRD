@@ -171,6 +171,8 @@ export function RollTable({
             <div
               ref={isHighlighted ? highlightedRowRef : null}
               key={key + label + index}
+              role={isHighlighted ? 'button' : undefined}
+              tabIndex={isHighlighted ? 0 : undefined}
               className={cn(
                 'relative flex flex-row flex-wrap transition-all duration-200',
                 bgColor,
@@ -179,6 +181,16 @@ export function RollTable({
                 compact ? 'gap-1' : 'gap-2'
               )}
               onClick={isHighlighted ? handleClearHighlight : undefined}
+              onKeyDown={
+                isHighlighted
+                  ? (e: React.KeyboardEvent) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        handleClearHighlight()
+                      }
+                    }
+                  : undefined
+              }
             >
               {isHighlighted && (
                 <button

@@ -64,13 +64,12 @@ export function CreatePilotDialog() {
                 onChange={(e) => setCallsign(e.target.value)}
                 placeholder="Enter callsign..."
                 className="w-full rounded-lg border border-[var(--border)] bg-[var(--input)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pilot"
-                autoFocus
                 onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
               />
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-medium">Class</label>
+              <span className="mb-1 block text-sm font-medium">Class</span>
               <div className="grid grid-cols-2 gap-2">
                 {classes.map((cls) => (
                   <button

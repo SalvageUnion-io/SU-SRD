@@ -128,6 +128,8 @@ export type EntityDisplayContextValue = {
   matchingAction?: SURefMetaAction
   /** Source book for source-based styling */
   source?: SURefEnumSource
+  /** Optional label rendered above the card */
+  label?: string
   /** Optional renderer for class abilities (provided by consuming app) */
   classAbilitiesRenderer?: ClassAbilitiesRenderer
 }

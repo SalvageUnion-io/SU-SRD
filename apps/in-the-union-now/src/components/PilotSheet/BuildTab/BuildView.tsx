@@ -59,7 +59,7 @@ export function BuildView({ pilot, onUpdate }: BuildViewProps) {
         <div className="space-y-3">
           <div>
             <div className="flex items-center gap-2">
-              <label className="text-xs font-medium text-su-grey-dark">Background</label>
+              <span className="text-xs font-medium text-su-grey-dark">Background</span>
               <label className="flex items-center gap-1 text-xs">
                 <input
                   type="checkbox"
@@ -79,7 +79,7 @@ export function BuildView({ pilot, onUpdate }: BuildViewProps) {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <label className="text-xs font-medium text-su-grey-dark">Keepsake</label>
+              <span className="text-xs font-medium text-su-grey-dark">Keepsake</span>
               <label className="flex items-center gap-1 text-xs">
                 <input
                   type="checkbox"
@@ -98,7 +98,7 @@ export function BuildView({ pilot, onUpdate }: BuildViewProps) {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <label className="text-xs font-medium text-su-grey-dark">Motto</label>
+              <span className="text-xs font-medium text-su-grey-dark">Motto</span>
               <label className="flex items-center gap-1 text-xs">
                 <input
                   type="checkbox"
@@ -116,7 +116,7 @@ export function BuildView({ pilot, onUpdate }: BuildViewProps) {
             />
           </div>
           <div>
-            <label className="text-xs font-medium text-su-grey-dark">Appearance</label>
+            <span className="text-xs font-medium text-su-grey-dark">Appearance</span>
             <InlineEdit
               value={pilot.appearance}
               onSave={(v) => onUpdate('appearance', v)}
@@ -125,7 +125,7 @@ export function BuildView({ pilot, onUpdate }: BuildViewProps) {
             />
           </div>
           <div>
-            <label className="text-xs font-medium text-su-grey-dark">Notes</label>
+            <span className="text-xs font-medium text-su-grey-dark">Notes</span>
             <InlineEdit
               value={pilot.notes}
               onSave={(v) => onUpdate('notes', v)}

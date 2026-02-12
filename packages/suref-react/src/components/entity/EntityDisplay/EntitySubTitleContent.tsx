@@ -1,5 +1,4 @@
-import { getActivationCurrency } from '../entityDisplayHelpers'
-import { extractEntityDetails } from '../../../lib/entityDataExtraction'
+import { extractEntityDetails, getActivationCurrency } from '../../../lib/entityDataExtraction'
 import { useEntityDisplayContext } from './useEntityDisplayContext'
 import { SharedDetailItem } from './sharedDetailItem'
 import { cn } from '../../../utils/cn'

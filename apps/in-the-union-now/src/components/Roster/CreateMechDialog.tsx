@@ -96,14 +96,13 @@ export function CreateMechDialog() {
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Enter mech name..."
                 className="w-full rounded-lg border border-[var(--border)] bg-[var(--input)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-mech"
-                autoFocus
                 onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
               />
             </div>
 
             <div>
               <div className="mb-2 flex items-center justify-between">
-                <label className="text-sm font-medium">Chassis</label>
+                <span className="text-sm font-medium">Chassis</span>
                 <div className="relative">
                   <select
                     value={techFilter}

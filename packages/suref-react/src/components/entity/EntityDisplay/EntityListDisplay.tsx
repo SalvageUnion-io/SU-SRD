@@ -64,10 +64,7 @@ export function EntityListDisplay({
     if (visibleOptions.length === 0) return null
 
     return (
-      <div
-        className="flex flex-col items-start"
-        style={{ gap: `${spacing.contentPadding + 1}rem` }}
-      >
+      <div style={{ marginTop: `${spacing.contentPadding + 1}rem` }} className="space-y-4">
         {visibleOptions.map((option, idx) => {
           const isSelected = isMultiSelect
             ? userChoices?.[choice.id] === option.value
@@ -129,7 +126,7 @@ export function EntityListDisplay({
   if (visibleEntities.length === 0) return null
 
   return (
-    <div className="flex flex-col items-start" style={{ gap: `${spacing.contentPadding + 1}rem` }}>
+    <div style={{ marginTop: `${spacing.contentPadding + 1}rem` }} className="space-y-4">
       {visibleEntities.map((entity, idx) => {
         const entityName = resolveEntityName(entity as SURefMetaEntity | SURefObjectSystemModule)
 

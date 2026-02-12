@@ -1,3 +1,4 @@
+import { useCallback } from 'react'
 import type { ReactNode } from 'react'
 import type { SURefEnumSource } from 'salvageunion-reference'
 import { cn } from '../../utils/cn'
@@ -57,6 +58,16 @@ export function Card({
 
   const sourceStyles = getSourceStyles(source, disabled, 'header', isExpanded)
 
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLDivElement>) => {
+      if (onHeaderClick && (e.key === 'Enter' || e.key === ' ')) {
+        e.preventDefault()
+        onHeaderClick()
+      }
+    },
+    [onHeaderClick]
+  )
+
   return (
     <div
       className={cn(
@@ -80,6 +91,8 @@ export function Card({
       )}
       {hasHeader && (
         <div
+          role={onHeaderClick ? 'button' : undefined}
+          tabIndex={onHeaderClick ? 0 : undefined}
           className={cn(
             'flex w-full items-center justify-between gap-2 overflow-visible rounded-t-sm',
             reverse ? 'flex-row-reverse' : 'flex-row',
@@ -91,6 +104,7 @@ export function Card({
           )}
           style={{ opacity: headerOpacity, ...sourceStyles.style }}
           onClick={onHeaderClick}
+          onKeyDown={onHeaderClick ? handleKeyDown : undefined}
           data-testid={headerTestId}
         >
           <div className={cn('flex items-center', compact ? 'gap-0.5' : 'gap-1')}>

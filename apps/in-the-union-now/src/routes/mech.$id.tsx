@@ -200,7 +200,7 @@ function MechSheetPage() {
       {/* Quirk + Appearance */}
       <div className="space-y-3 px-4">
         <div>
-          <label className="text-xs font-medium text-su-grey-dark">Quirk</label>
+          <span className="text-xs font-medium text-su-grey-dark">Quirk</span>
           <InlineEdit
             value={mech.quirk}
             onSave={(v) => handleUpdate('quirk', v)}
@@ -209,7 +209,7 @@ function MechSheetPage() {
           />
         </div>
         <div>
-          <label className="text-xs font-medium text-su-grey-dark">Appearance</label>
+          <span className="text-xs font-medium text-su-grey-dark">Appearance</span>
           <InlineEdit
             value={mech.appearance}
             onSave={(v) => handleUpdate('appearance', v)}
@@ -316,7 +316,7 @@ function MechSheetPage() {
 
       {/* Notes */}
       <div className="px-4 pt-6 pb-4">
-        <label className="text-xs font-medium text-su-grey-dark">Notes</label>
+        <span className="text-xs font-medium text-su-grey-dark">Notes</span>
         <InlineEdit
           value={mech.notes}
           onSave={(v) => handleUpdate('notes', v)}

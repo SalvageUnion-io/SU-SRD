@@ -31,17 +31,6 @@ function getHybridTreeNames(): Set<string> {
 
 type SURefMetaSchemaName = SURefEnumSchemaName | 'actions'
 
-export function getActivationCurrency(
-  schemaName: SURefMetaSchemaName | undefined,
-  variable: boolean = false
-): 'AP' | 'EP' | 'XP' {
-  if (variable) return 'XP'
-  if (schemaName === 'systems' || schemaName === 'modules') {
-    return 'EP'
-  }
-  return 'AP'
-}
-
 export function extractName(
   data: SURefMetaEntity | SURefObjectBonusPerTechLevel,
   schemaName: SURefEnumSchemaName

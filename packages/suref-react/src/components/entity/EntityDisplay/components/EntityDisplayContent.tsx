@@ -9,7 +9,6 @@ import { EntitySubTitleElement } from '../EntitySubTitleContent'
 import { EntityLeftContent } from '../EntityLeftContent'
 import { EntityRightHeaderContent } from '../EntityRightHeaderContent'
 import { EntityChassisPatterns } from '../EntityChassisPatterns'
-import { EntityOptions } from '../EntityOptions'
 import { EntityChassisAbilitiesContent } from '../EntityChassisAbilitiesContent'
 import { EntityRequirementDisplay } from '../EntityRequirementDisplay'
 import { EntityChoices } from '../EntityChoices'
@@ -79,6 +78,7 @@ export function EntityDisplayContent({ children }: { children?: React.ReactNode 
     actionsToDisplay,
     matchingAction,
     source,
+    label,
     classAbilitiesRenderer,
   } = useEntityDisplayContext()
 
@@ -135,6 +135,7 @@ export function EntityDisplayContent({ children }: { children?: React.ReactNode 
   return (
     <Card
       bg="bg-su-blue-light"
+      label={label}
       headerBg={headerBg}
       headerOpacity={opacity.header}
       leftContent={<EntityLeftContent />}
@@ -210,7 +211,6 @@ export function EntityDisplayContent({ children }: { children?: React.ReactNode 
             {shouldShowExtraContent && (
               <>
                 {!hidePatterns && <EntityChassisPatterns />}
-                <EntityOptions />
                 {'damagedEffect' in data && data.damagedEffect && (
                   <ConditionalSheetInfo
                     propertyName="damagedEffect"

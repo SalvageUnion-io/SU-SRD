@@ -1,6 +1,5 @@
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefChassis, SURefModule, SURefSystem } from 'salvageunion-reference'
-import { Text } from '../../base/Text'
 import { SheetDisplay } from '../../shared/SheetDisplay'
 import { EntityDisplay } from './index'
 import { getParagraphString } from '../../../lib/contentBlockHelpers'
@@ -45,7 +44,7 @@ export function EntityChassisPattern({ pattern }: EntityChassisPatternProps) {
   const isLegalStarting = 'legalStarting' in pattern && pattern.legalStarting
 
   return (
-    <div className="flex flex-col items-stretch gap-4 px-2">
+    <div className="space-y-4 px-2">
       {isLegalStarting && (
         <div className="bg-su-green px-4 py-2 text-center font-bold text-su-white">
           LEGAL STARTING PATTERN
@@ -54,46 +53,30 @@ export function EntityChassisPattern({ pattern }: EntityChassisPatternProps) {
 
       <SheetDisplay compact={false}>{getParagraphString(pattern.content)}</SheetDisplay>
 
-      <div className="flex flex-col items-stretch gap-4">
-        {systems.length > 0 && (
-          <div className="flex flex-col items-stretch gap-2">
-            <Text variant="pseudoheader" className="text-center text-lg">
-              SYSTEMS
-            </Text>
-            <div className="flex flex-col items-stretch gap-2">
-              {systems.map((system, idx) => (
-                <EntityDisplay
-                  key={`${system.entity.id}-${idx}`}
-                  data={system.entity}
-                  compact
-                  userChoices={system.preselectedChoices}
-                  collapsible
-                  defaultExpanded={false}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {modules.length > 0 && (
-          <div className="flex flex-col items-stretch gap-2">
-            <Text variant="pseudoheader" className="text-center text-lg">
-              MODULES
-            </Text>
-            <div className="flex flex-col items-stretch gap-2">
-              {modules.map((module, idx) => (
-                <EntityDisplay
-                  key={`${module.entity.id}-${idx}`}
-                  data={module.entity}
-                  compact
-                  userChoices={module.preselectedChoices}
-                  collapsible
-                  defaultExpanded={false}
-                />
-              ))}
-            </div>
-          </div>
-        )}
+      <div className="space-y-2">
+        {systems.map((system, idx) => (
+          <EntityDisplay
+            key={`${system.entity.id}-${idx}`}
+            data={system.entity}
+            label={idx === 0 ? 'Systems' : undefined}
+            compact
+            userChoices={system.preselectedChoices}
+            collapsible
+            defaultExpanded={false}
+          />
+        ))}
+        {modules.length > 0 && systems.length > 0 && <div className="pt-4" />}
+        {modules.map((module, idx) => (
+          <EntityDisplay
+            key={`${module.entity.id}-${idx}`}
+            data={module.entity}
+            label={idx === 0 ? 'Modules' : undefined}
+            compact
+            userChoices={module.preselectedChoices}
+            collapsible
+            defaultExpanded={false}
+          />
+        ))}
       </div>
     </div>
   )

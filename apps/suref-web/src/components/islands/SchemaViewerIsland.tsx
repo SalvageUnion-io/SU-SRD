@@ -100,6 +100,7 @@ export function SchemaViewerIsland({
         <input
           type="text"
           placeholder="Search by name or description..."
+          aria-label="Search entities by name or description"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="w-full rounded-md border border-su-grey-light bg-su-white px-4 py-2 text-su-input-text focus:outline-none focus:ring-2 focus:ring-su-orange"

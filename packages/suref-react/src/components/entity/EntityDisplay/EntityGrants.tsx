@@ -41,7 +41,7 @@ export function EntityGrants() {
       <div style={{ marginBottom: `${spacing.minimalGap}rem` }}>
         <EntitySubheader disabled={true} label="Grants:" />
       </div>
-      <div className="flex flex-col items-start" style={{ gap: `${spacing.contentPadding}rem` }}>
+      <div style={{ marginTop: `${spacing.contentPadding}rem` }} className="space-y-2">
         {grantedEntities.map((entity, idx) => (
           <EntityDisplay
             key={idx}

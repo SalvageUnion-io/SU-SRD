@@ -1,22 +1,10 @@
 // Constants
 export {
   TECH_LEVELS,
-  MIN_TECH_LEVEL,
   MAX_TECH_LEVEL,
   getMaxTechLevel,
-  CARGO_GRID_CONFIGS,
-  getCargoGridConfig,
-  PILOT_DEFAULTS,
-  CRAWLER_DEFAULTS,
-  MECH_DEFAULTS,
   DEBOUNCE_TIMINGS,
-  MODAL_SIZES,
-  ACTIVATION_CURRENCIES,
   SCRAP_CONVERSION_RATES,
-  LEGENDARY_ABILITY_COST,
-  ADVANCED_ABILITY_COST,
-  CORE_ABILITY_COST,
-  DEFAULT_ABILITY_COST,
   UPKEEP_STEP,
   MAX_UPGRADE,
 } from './constants/gameRules'
@@ -24,24 +12,7 @@ export type { TechLevel } from './constants/gameRules'
 
 // Types
 export type { DataValue, ItemCondition } from './types/common'
-
-// Lib helpers
-export {
-  getParagraphString,
-  replaceChassisPlaceholder,
-  parseContentBlockString,
-} from './lib/contentBlockHelpers'
-export {
-  extractEntityDetails,
-  formatActionType,
-  getActivationCurrency,
-} from './lib/entityDataExtraction'
-export { logger } from './lib/logger'
-
-// Utilities
-export { nameToSlug, findEntityBySlug, getEntitySlug } from './utils/slug'
-export { getTiltRotation } from './utils/tiltUtils'
-export { extractMatchSnippet, highlightMatch } from './utils/searchHighlight'
+export type { ClassAbilitiesRenderer } from './components/entity/EntityDisplay/entityDisplayContext'
 
 // Base typography
 export { Heading } from './components/base/Heading'
@@ -62,46 +33,9 @@ export {
 
 // Entity display system
 export { EntityDisplay } from './components/entity/EntityDisplay/index'
-export { EntityDisplayProvider } from './components/entity/EntityDisplay/EntityDisplayProvider'
-export {
-  EntityDisplayContext,
-  getEntitySpacing,
-  getEntityFontSizes,
-} from './components/entity/EntityDisplay/entityDisplayContext'
-export type {
-  EntityDisplayContextValue,
-  ClassAbilitiesRenderer,
-  EntityButtonConfig,
-} from './components/entity/EntityDisplay/entityDisplayContext'
-export { useEntityDisplayContext } from './components/entity/EntityDisplay/useEntityDisplayContext'
-export { EntityDisplayContent } from './components/entity/EntityDisplay/components/EntityDisplayContent'
 export { EntityDisplayModal } from './components/entity/EntityDisplayModal'
 export { EntityDisplayTooltip } from './components/entity/EntityDisplayTooltip'
 export { EntitySelectionModal } from './components/entity/EntitySelectionModal'
-export { DataValueDisplayView } from './components/entity/DataValueDisplayView'
-export { TraitKeywordDisplayView } from './components/entity/TraitKeywordDisplayView'
-export { BlockContentRendererView } from './components/entity/BlockContentRendererView'
-export { InlineContentBlock } from './components/entity/InlineContentBlock'
-export { NestedActionDisplay } from './components/entity/NestedActionDisplay'
-export { NestedChassisAbility } from './components/entity/NestedChassisAbility'
-export { NotFoundDisplay } from './components/entity/NotFoundDisplay'
-export { EntityDetailDisplay } from './components/entity/EntityDetailDisplay'
-
-// Entity display helpers (returns Tailwind classes)
-export {
-  extractName,
-  calculateBackgroundColor,
-  calculateOpacity,
-  createHeaderClickHandler,
-  shouldShowExtraContent,
-  getEntityDisplayName,
-  resolveEntityName,
-  getSourceStyles,
-} from './components/entity/entityDisplayHelpers'
-
-// Entity display sub-components (for direct import when needed)
-export { PreselectedEntityDisplay } from './components/entity/EntityDisplay/PreselectedEntityDisplay'
-export { EntityListDisplay } from './components/entity/EntityDisplay/EntityListDisplay'
 
 // Shared components
 export { Card } from './components/shared/Card'
@@ -126,5 +60,5 @@ export { EntityCardSkeleton } from './components/skeleton/EntityCardSkeleton'
 export { SchemaViewerSkeleton } from './components/skeleton/SchemaViewerSkeleton'
 
 // Utilities
+export { getEntitySlug } from './utils/slug'
 export { cn } from './utils/cn'
-export { useParseTraitReferences } from './utils/parseTraitReferences'

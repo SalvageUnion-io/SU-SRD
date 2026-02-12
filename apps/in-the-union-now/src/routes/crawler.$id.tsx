@@ -335,7 +335,7 @@ function CrawlerSheetPage() {
       {/* Description + Notes */}
       <div className="space-y-3 px-4 pt-6 pb-4">
         <div>
-          <label className="text-xs font-medium text-su-grey-dark">Description</label>
+          <span className="text-xs font-medium text-su-grey-dark">Description</span>
           <InlineEdit
             value={crawler.description}
             onSave={(v) => handleUpdate('description', v)}
@@ -345,7 +345,7 @@ function CrawlerSheetPage() {
           />
         </div>
         <div>
-          <label className="text-xs font-medium text-su-grey-dark">Notes</label>
+          <span className="text-xs font-medium text-su-grey-dark">Notes</span>
           <InlineEdit
             value={crawler.notes}
             onSave={(v) => handleUpdate('notes', v)}

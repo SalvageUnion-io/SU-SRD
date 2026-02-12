@@ -46,6 +46,8 @@ type EntityDisplayProps = {
   userChoices?: Record<string, string> | null
   /** Custom width for the image (e.g., '40%') */
   imageWidth?: string
+  /** Optional label rendered above the card (absolute-positioned pseudoheader) */
+  label?: string
   /** Optional renderer for class abilities section */
   classAbilitiesRenderer?: ClassAbilitiesRenderer
 }
@@ -71,6 +73,7 @@ export const EntityDisplay = memo(function EntityDisplay({
   compact = false,
   userChoices,
   imageWidth,
+  label,
   classAbilitiesRenderer,
 }: EntityDisplayProps) {
   if (!data) return null
@@ -107,6 +110,7 @@ export const EntityDisplay = memo(function EntityDisplay({
       buttonConfig={buttonConfig}
       userChoices={userChoices}
       imageWidth={imageWidth}
+      label={label}
       classAbilitiesRenderer={classAbilitiesRenderer}
     >
       <EntityDisplayContent>{children}</EntityDisplayContent>

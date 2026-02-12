@@ -63,6 +63,7 @@ type EntityDisplayProviderProps = {
   userChoices?: Record<string, string> | null
   children?: ReactNode
   imageWidth?: string
+  label?: string
   classAbilitiesRenderer?: ClassAbilitiesRenderer
 }
 
@@ -88,6 +89,7 @@ export function EntityDisplayProvider({
   userChoices,
   children,
   imageWidth,
+  label,
   classAbilitiesRenderer,
 }: EntityDisplayProviderProps) {
   const hasButtonConfig = !!buttonConfig
@@ -184,6 +186,7 @@ export function EntityDisplayProvider({
     actionsToDisplay,
     matchingAction,
     source,
+    label,
     classAbilitiesRenderer,
   }
 

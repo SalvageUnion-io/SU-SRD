@@ -38,7 +38,7 @@ export function MechLoadout({ mech }: MechLoadoutProps) {
       {/* Quirk + Appearance */}
       <div className="space-y-2">
         <div>
-          <label className="text-xs font-medium text-su-grey-dark">Quirk</label>
+          <span className="text-xs font-medium text-su-grey-dark">Quirk</span>
           <InlineEdit
             value={mech.quirk}
             onSave={(v) => updateMech.mutate({ quirk: v })}
@@ -47,7 +47,7 @@ export function MechLoadout({ mech }: MechLoadoutProps) {
           />
         </div>
         <div>
-          <label className="text-xs font-medium text-su-grey-dark">Appearance</label>
+          <span className="text-xs font-medium text-su-grey-dark">Appearance</span>
           <InlineEdit
             value={mech.appearance}
             onSave={(v) => updateMech.mutate({ appearance: v })}

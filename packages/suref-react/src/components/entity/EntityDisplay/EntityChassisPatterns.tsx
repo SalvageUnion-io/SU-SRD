@@ -25,11 +25,11 @@ export function EntityChassisPatterns() {
   const activePattern = patterns.find((p) => normalizePatternName(p.name) === selectedPattern)
 
   return (
-    <div className="space-y-4">
+    <div className="clear-both space-y-4">
       <EntitySubheader label="Patterns" />
 
       {/* Tab navigation */}
-      <div className="flex border-b-[3px] border-gray-200">
+      <div role="tablist" className="flex border-b-[3px] border-gray-200">
         {patterns.map((pattern) => {
           const displayName = normalizePatternName(pattern.name)
           const isActive = selectedPattern === displayName
@@ -38,6 +38,9 @@ export function EntityChassisPatterns() {
           return (
             <button
               key={pattern.name}
+              role="tab"
+              aria-selected={isActive}
+              tabIndex={isActive ? 0 : -1}
               onClick={() => handlePatternChange(displayName)}
               className={cn(
                 'cursor-pointer px-3 py-2 text-lg font-bold',
@@ -56,7 +59,11 @@ export function EntityChassisPatterns() {
       </div>
 
       {/* Active pattern content */}
-      {activePattern && <EntityChassisPattern pattern={activePattern} />}
+      {activePattern && (
+        <div role="tabpanel">
+          <EntityChassisPattern pattern={activePattern} />
+        </div>
+      )}
     </div>
   )
 }

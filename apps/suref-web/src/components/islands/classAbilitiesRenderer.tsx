@@ -1,7 +1,7 @@
-import { useMemo } from 'react'
+import { Fragment, useMemo } from 'react'
 import type { SURefAbility } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { EntityDisplay, Text } from 'suref-react'
+import { EntityDisplay } from 'suref-react'
 import type { ClassAbilitiesRenderer } from 'suref-react'
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -46,24 +46,20 @@ function ClassAbilities({
 
   return (
     <div className="space-y-1.5">
-      {abilitiesByTree.map(({ tree, abilities }) => (
-        <div key={tree} className="space-y-1.5 pt-2">
-          <div>
-            <Text variant="pseudoheader" as="span" className="py-0.5 text-sm">
-              {tree} Tree
-            </Text>
-          </div>
-          {abilities.map((ability) => (
+      {abilitiesByTree.map(({ tree, abilities }, treeIndex) =>
+        abilities.map((ability, index) => (
+          <Fragment key={ability.id}>
+            {index === 0 && treeIndex > 0 && <div className="pt-4" />}
             <EntityDisplay
-              key={ability.id}
               data={ability}
+              label={index === 0 ? `${tree} Tree` : undefined}
               compact
               collapsible
               defaultExpanded={false}
             />
-          ))}
-        </div>
-      ))}
+          </Fragment>
+        ))
+      )}
     </div>
   )
 }
