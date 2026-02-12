@@ -1,11 +1,12 @@
 # Netlify configuration for suref-web (Astro static site)
 
 [build]
-  command = "bun install --frozen-lockfile --production && bun run build:package:ci && bun --filter suref-web build"
+  command = "bun install --frozen-lockfile && bun run build:package:ci && bun --filter suref-web build"
   publish = "apps/suref-web/dist"
 
 [build.environment]
   BUN_VERSION = "1.3.9"
+  BUN_FLAGS = "--no-optional"
   NODE_ENV = "production"
 
 # Skip Netlify post-processing - Astro/Vite already handles bundling and minification

@@ -2,11 +2,12 @@
 # Separate Netlify site from suref-web
 
 [build]
-  command = "bun install --frozen-lockfile --production && bun run build:package:ci && bun --filter in-the-union-now build"
+  command = "bun install --frozen-lockfile && bun run build:package:ci && bun --filter in-the-union-now build"
   publish = "apps/in-the-union-now/dist/client"
 
 [build.environment]
   BUN_VERSION = "1.1.38"
+  BUN_FLAGS = "--no-optional"
   NODE_ENV = "production"
 
 [build.processing]
