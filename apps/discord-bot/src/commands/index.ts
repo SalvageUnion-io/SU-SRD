@@ -8,7 +8,7 @@ import {
 
 import { rollCommand } from './roll.js'
 
-export interface Command {
+export type Command = {
   data: SlashCommandBuilder | SlashCommandOptionsOnlyBuilder
   execute: (interaction: ChatInputCommandInteraction) => Promise<void>
   autocomplete?: (interaction: AutocompleteInteraction) => Promise<void>

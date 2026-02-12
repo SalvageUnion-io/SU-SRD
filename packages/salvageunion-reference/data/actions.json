@@ -5445,11 +5445,8 @@
         "value": "You have formed symbiotically with the Meld. You have all of the strengths and weaknesses of Meld as detailed in the Meld Section p. 288."
       },
       {
-        "type": "paragraph",
-        "value": "You are able to make the following Meld Tendril Attack:"
-      },
-      {
         "type": "datavalues",
+        "label": "You are able to make the following Meld Tendril Attack:",
         "value": [
           {
             "label": "Damage",
@@ -9522,11 +9519,6 @@
         "value": "The Cortex Bio-Titan can take three Titanic Actions, choosing from the options below. Only one Titanic Action may be chosen at a time and only at the end of another Pilot's or NPC's turn. The Cortex Bio-Titan regains spent Titanic Actions at the start of its turn."
       },
       {
-        "type": "heading",
-        "level": 3,
-        "value": "Titanic Actions"
-      },
-      {
         "type": "list-item",
         "value": "The Cortex Bio-Titan makes a Proboscis Attack. If it is already attached to a target, it kills them on a hit. (Costs 3 Titanic Actions)"
       },
@@ -11452,11 +11444,6 @@
         "value": "Apophis can take three Titanic Actions, choosing from the options below. Only one Titanic Action may be chosen at a time and only at the end of another Pilot's or NPC's turn. Apophis regains spent Titanic Actions at the start of their turn."
       },
       {
-        "type": "heading",
-        "level": 3,
-        "value": "Titanic Actions"
-      },
-      {
         "type": "list-item",
         "value": "Apophis moves a Range Band."
       },
@@ -11571,11 +11558,6 @@
       {
         "type": "paragraph",
         "value": "Physalis can take three Titanic Actions, choosing from the options below. Only one Titanic Action may be chosen at a time and only at the end of another Pilot's or NPC's turn. Physalis regains spent Titanic Actions at the start of their turn."
-      },
-      {
-        "type": "heading",
-        "level": 3,
-        "value": "Titanic Actions"
       },
       {
         "type": "list-item",

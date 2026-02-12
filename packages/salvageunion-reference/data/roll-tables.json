@@ -1666,7 +1666,8 @@
         "value": "THE MODULE FAILS TO ACTIVATE"
       },
       "type": "standard"
-    }
+    },
+    "page": 202
   },
   {
     "id": "ff63e8a7-35db-40f3-b270-7c2246597760",
@@ -1694,7 +1695,8 @@
         "value": "One of the Mech's Systems, chosen at random or by the Mediator, has overheated and is inoperable for 10 minutes."
       },
       "type": "standard"
-    }
+    },
+    "page": 202
   },
   {
     "id": "9b341b6c-6df1-4851-aafe-cfde86547c97",
@@ -1717,7 +1719,8 @@
         "value": "The targets avoid the mines and they explode to no effect."
       },
       "type": "standard"
-    }
+    },
+    "page": 178
   },
   {
     "id": "9da02a5a-3769-4410-8e49-a12aca8731b7",
@@ -1740,7 +1743,8 @@
         "value": "The attack breaks through your Armoured Shield, it hits as normal, and your Armoured Shield is damaged."
       },
       "type": "standard"
-    }
+    },
+    "page": 168
   },
   {
     "id": "fde7907f-1ea4-44cf-be1a-d84cb6209bfc",
@@ -1763,7 +1767,8 @@
         "value": "They stand strong in the face of you, ready to fight, and do not retreat or acquiesce."
       },
       "type": "standard"
-    }
+    },
+    "page": 41
   },
   {
     "id": "ae120942-4723-455c-9413-d12d86bdd7a7",
@@ -1774,7 +1779,8 @@
         "value": "The target suffers a Major Injury of permanent blindness."
       },
       "type": "dramatic"
-    }
+    },
+    "page": 71
   },
   {
     "id": "76535e17-f868-470f-86ec-72675281d90f",
@@ -1797,7 +1803,8 @@
         "value": "Your counter hacking attempt fails"
       },
       "type": "standard"
-    }
+    },
+    "page": 36
   },
   {
     "id": "d84c92a6-b75d-4ea4-86d0-8623a241e2bb",
@@ -1820,12 +1827,13 @@
         "value": "The hacking attempt fails."
       },
       "type": "standard"
-    }
+    },
+    "page": 34
   },
   {
     "id": "941a7496-50a0-4c78-811e-fa6f756d5e4b",
     "source": "Salvage Union Workshop Manual",
-    "name": "Hack",
+    "name": "Eggs Mayhem",
     "table": {
       "1": {
         "value": "The hack fails and the target is alerted to your hacking attempt. They can retaliate as appropriate."
@@ -1843,7 +1851,8 @@
         "value": "The hacking attempt fails. The Mediator may choose an appropriate Setback."
       },
       "type": "standard"
-    }
+    },
+    "page": 190
   },
   {
     "id": "43baa6cc-7a80-4c2b-bbc4-78d9a7b1b79d",
@@ -1866,7 +1875,8 @@
         "value": "The Ejection System fails to trigger and is damaged in the process."
       },
       "type": "standard"
-    }
+    },
+    "page": 173
   },
   {
     "id": "7edaefa5-e0d7-466d-aa8f-8b6681c8cd2c",
@@ -1889,7 +1899,8 @@
         "value": "The Ejector Pod fails to trigger. You may not attempt to use it again until your next turn."
       },
       "type": "standard"
-    }
+    },
+    "page": 182
   },
   {
     "id": "09dee811-d665-4529-89fe-7cf16dba42c0",
@@ -1912,7 +1923,8 @@
         "value": "The attack hits as normal."
       },
       "type": "standard"
-    }
+    },
+    "page": 174
   },
   {
     "id": "c5657a7a-e877-4158-8472-3701643e5dd4",
@@ -1935,7 +1947,8 @@
         "value": "The Escape Hatch fails to trigger and is damaged in the process, it must be repaired to Intact Condition to be used again."
       },
       "type": "standard"
-    }
+    },
+    "page": 164
   },
   {
     "id": "6fa35aec-3691-4f64-afad-f184984515d2",
@@ -1958,7 +1971,8 @@
         "value": "Teleport Successful!"
       },
       "type": "standard"
-    }
+    },
+    "page": 185
   },
   {
     "id": "e2956852-d8b0-4aa2-9e5e-616f1139f5c3",
@@ -1981,7 +1995,8 @@
         "value": "You fail to block the hack, and it has full effect."
       },
       "type": "standard"
-    }
+    },
+    "page": 191
   },
   {
     "id": "cce68e98-6a69-4ce5-b480-f195be845579",
@@ -2004,7 +2019,8 @@
         "value": "Everything slows to a crawl. For the next 10 minutes you must choose between moving or taking an action on your turn. You also cannot Push rolls."
       },
       "type": "standard"
-    }
+    },
+    "page": 60
   },
   {
     "id": "e1b0a8d8-59a5-4436-98a0-e2fe52924475",
@@ -2027,7 +2043,8 @@
         "value": "An Intact System and an Intact Module are available for trade."
       },
       "type": "standard"
-    }
+    },
+    "page": 217
   },
   {
     "id": "952a9c83-0812-471f-8af3-6e9f5324e51e",
@@ -2050,7 +2067,8 @@
         "value": "The target narrowly avoids being killed, but is reduced to 0 HP and must roll on the Critical Injury Table."
       },
       "type": "standard"
-    }
+    },
+    "page": 331
   },
   {
     "id": "579d82ab-fb44-4c4e-9b30-6ecf97df9f76",
@@ -2073,7 +2091,8 @@
         "value": "The deal is rejected."
       },
       "type": "standard"
-    }
+    },
+    "page": 40
   },
   {
     "id": "e29fa949-f62f-4d5d-98b8-3862c25a264f",
@@ -2096,7 +2115,8 @@
         "value": "The target activates a random Module. You decide a Tough Choice related to it that the target must resolve."
       },
       "type": "standard"
-    }
+    },
+    "page": 204
   },
   {
     "id": "06d27b02-4bf4-42ad-83c8-3eef0c9fec7c",
@@ -2164,7 +2184,8 @@
         "value": "A dense ball of concentrated scrap hits the target with catastrophic force dealing SP damage equal to 6× the Tech Level of the Scrap."
       },
       "type": "flat"
-    }
+    },
+    "page": 166
   },
   {
     "id": "cb215f2c-31c2-4c25-a3e9-5456b52565dc",
@@ -2187,7 +2208,8 @@
         "value": "The attack hits as normal."
       },
       "type": "standard"
-    }
+    },
+    "page": 184
   },
   {
     "id": "6b9d2fdf-89ff-431b-9650-7b9245f8584b",
@@ -2210,7 +2232,8 @@
         "value": "The hacking attempt fails. The Mediator may choose an appropriate Setback."
       },
       "type": "standard"
-    }
+    },
+    "page": 201
   },
   {
     "id": "92e68ef8-fd6b-4312-9715-1fa13845bda8",
@@ -2233,7 +2256,8 @@
         "value": "The force field fails and the attack hits as normal."
       },
       "type": "standard"
-    }
+    },
+    "page": 85
   },
   {
     "id": "958972ab-3236-41e7-a544-adbaa353fe84",
@@ -2256,7 +2280,8 @@
         "value": "You find 2 Scrap of the Tech Level of the area."
       },
       "type": "standard"
-    }
+    },
+    "page": 175
   },
   {
     "id": "c93113c2-ac19-4c1b-abf3-76513366f6ad",
@@ -2279,7 +2304,8 @@
         "value": "The Probing Proboscis fails to penetrate the target."
       },
       "type": "standard"
-    }
+    },
+    "page": 70
   },
   {
     "id": "b682a43f-e853-4e59-86cb-304eac9c338f",
@@ -2307,7 +2333,8 @@
         "value": "One of the Systems on your Mech, chosen at random or by the Mediator, has overheated and is damaged."
       },
       "type": "standard"
-    }
+    },
+    "page": 197
   },
   {
     "id": "8bd4dcf0-43a4-4ef8-9195-2c51e2b8d563",
@@ -2330,7 +2357,8 @@
         "value": "The shielding fails and you are hit by the attack as normal."
       },
       "type": "standard"
-    }
+    },
+    "page": 184
   },
   {
     "id": "9460c816-0113-48dd-8911-463c0969c65b",
@@ -2353,7 +2381,8 @@
         "value": "The attack hits as normal."
       },
       "type": "standard"
-    }
+    },
+    "page": 171
   },
   {
     "id": "38b46715-4f82-493f-9a9a-17594f0b56ef",
@@ -2376,7 +2405,8 @@
         "value": "As per 11-19, but a random System on the Jackhammer is also Damaged."
       },
       "type": "standard"
-    }
+    },
+    "page": 116
   },
   {
     "id": "7422a070-9b49-46df-969f-65ad7985839d",
@@ -2399,7 +2429,8 @@
         "value": "The shield fails and the attack hits as normal."
       },
       "type": "standard"
-    }
+    },
+    "page": 186
   },
   {
     "id": "77662019-6419-497b-9b5b-9dd9836e09cf",
@@ -2422,7 +2453,8 @@
         "value": "The targets manage to resist the effect and are unharmed beyond some mild nausea."
       },
       "type": "standard"
-    }
+    },
+    "page": 201
   },
   {
     "id": "34b27d48-9b19-4a74-9884-6a7c897ce026",
@@ -2445,7 +2477,8 @@
         "value": "Your scan fails to find any useful information about the area."
       },
       "type": "standard"
-    }
+    },
+    "page": 194
   },
   {
     "id": "117faf24-a910-4625-93bb-71572ff32cf6",
@@ -2468,7 +2501,8 @@
         "value": "The hacking attempt fails."
       },
       "type": "standard"
-    }
+    },
+    "page": 34
   },
   {
     "id": "f82a16a7-3d51-45e9-8c07-0750a725b94e",
@@ -2491,7 +2525,8 @@
         "value": "The teleporter fails to trigger. You may try again on your next turn."
       },
       "type": "standard"
-    }
+    },
+    "page": 187
   },
   {
     "id": "3cbe87a9-1c80-4209-bb85-af089d3e7542",
@@ -2514,7 +2549,8 @@
         "value": "You wait two weeks and realise the mission is not completed. You may post the mission offer again or choose a different one."
       },
       "type": "standard"
-    }
+    },
+    "page": 75
   },
   {
     "id": "8b64a87b-258a-4917-acbb-3ad6c349d3fd",
@@ -2537,7 +2573,8 @@
         "value": "You do not actually know, and must make up a convincing answer to save your pride."
       },
       "type": "standard"
-    }
+    },
+    "page": 34
   },
   {
     "id": "28e23b1b-3529-4188-b494-91e20fffb30e",
@@ -2560,7 +2597,8 @@
         "value": "You hit one enemy in Range of the weapon, then your weapon is damaged."
       },
       "type": "alternate"
-    }
+    },
+    "page": 56
   },
   {
     "id": "0ae408ae-f7c1-4a5f-8220-ce083c2ea61d",
@@ -2583,7 +2621,8 @@
         "value": "A System or Module on one targeted Mech of your choice is damaged."
       },
       "type": "standard"
-    }
+    },
+    "page": 36
   },
   {
     "id": "cc5aed4e-c782-4996-9472-ffb35e64d66c",
@@ -2594,7 +2633,8 @@
         "value": "A System or Appendage on the target is destroyed."
       },
       "type": "dramatic"
-    }
+    },
+    "page": 74
   },
   {
     "id": "8c107425-8ddf-49dd-9882-7559a4fda62b",
@@ -2622,7 +2662,8 @@
         "value": "Roll on the Critical Damage Table as normal."
       },
       "type": "standard"
-    }
+    },
+    "page": 70
   },
   {
     "id": "b2eb603f-036a-4984-b79b-330e745554d3",
@@ -2645,7 +2686,8 @@
         "value": "It's mangled beyond comprehension and considered destroyed."
       },
       "type": "standard"
-    }
+    },
+    "page": 70
   },
   {
     "id": "12a6fcf2-2eda-492e-b9f5-f86a340c9fb3",

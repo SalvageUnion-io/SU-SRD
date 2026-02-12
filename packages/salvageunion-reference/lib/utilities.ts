@@ -47,6 +47,17 @@ import type {
 import { getDataMaps } from './ModelFactory.js'
 import { getModel } from './helpers.js'
 
+// Cached action map - built once since action data is static
+let _actionMap: Map<string, SURefMetaAction> | null = null
+function getActionMap(): Map<string, SURefMetaAction> {
+  if (_actionMap) return _actionMap
+  const { dataMap } = getDataMaps()
+  const actionsData = dataMap['actions'] as SURefMetaAction[] | undefined
+  if (!actionsData) return new Map()
+  _actionMap = new Map(actionsData.map((a) => [a.name, a]))
+  return _actionMap
+}
+
 // ============================================================================
 // TYPE UTILITIES
 // ============================================================================
@@ -151,15 +162,6 @@ export function getSlotsRequired(entity: SURefMetaEntity): number | undefined {
 }
 
 /**
- * Extract required slots from an entity (alias for getSlotsRequired)
- * @param entity - The entity to extract from
- * @returns The required slots or undefined
- */
-export function getRequiredSlots(entity: SURefMetaEntity): number | undefined {
-  return getSlotsRequired(entity)
-}
-
-/**
  * Extract page reference from an entity
  * @param entity - The entity to extract from
  * @returns The page number or undefined
@@ -181,20 +183,11 @@ export function extractActions(entity: SURefMetaEntity): SURefMetaAction[] | und
 
   const actionNames = entity.actions as string[]
 
-  // Resolve each action name to its full action object from actions schema
-  const { dataMap } = getDataMaps()
-  const actionsData = dataMap['actions'] as SURefMetaAction[] | undefined
-
-  if (!actionsData) {
+  const actionMap = getActionMap()
+  if (actionMap.size === 0) {
     console.warn('actions schema not found')
     return undefined
   }
-
-  // Create a map of action name to action object
-  const actionMap = new Map<string, SURefMetaAction>()
-  actionsData.forEach((action) => {
-    actionMap.set(action.name, action)
-  })
 
   // Resolve each action name to its object
   const resolved: SURefMetaAction[] = []
@@ -259,21 +252,11 @@ export function getChassisAbilities(entity: SURefMetaEntity): SURefMetaAction[] 
 
   const chassisAbilities = entity.chassisAbilities
 
-  // Chassis abilities are now stored as an array of ability names (strings)
-  // Resolve each name to its full ability object from the actions schema
-  const { dataMap } = getDataMaps()
-  const actionsData = dataMap['actions'] as SURefMetaAction[] | undefined
-
-  if (!actionsData) {
+  const abilityMap = getActionMap()
+  if (abilityMap.size === 0) {
     console.warn('actions schema not found')
     return undefined
   }
-
-  // Create a map of ability name to ability object
-  const abilityMap = new Map<string, SURefMetaAction>()
-  actionsData.forEach((ability) => {
-    abilityMap.set(ability.name, ability)
-  })
 
   // Resolve each ability name to its object
   // Use a Set to track IDs to prevent duplicates (in case same ability is referenced multiple times)
@@ -407,17 +390,6 @@ export function getBlackMarket(entity: SURefMetaEntity): boolean | undefined {
 // ============================================================================
 
 /**
- * Extract asset_url from an entity
- * @param entity - The entity to extract from
- * @returns The asset_url or undefined
- */
-export function getAsset_url(entity: SURefMetaEntity): string | undefined {
-  return 'asset_url' in entity && typeof entity.asset_url === 'string'
-    ? entity.asset_url
-    : undefined
-}
-
-/**
  * Extract content from an entity
  * @param entity - The entity to extract from
  * @returns The content or undefined
@@ -460,8 +432,8 @@ export function getName(entity: SURefMetaEntity): string | undefined {
  * @param entity - The entity to extract from
  * @returns The source or undefined
  */
-export function getSource(entity: SURefMetaEntity): unknown | undefined {
-  return 'source' in entity ? entity.source : undefined
+export function getSource(entity: SURefMetaEntity): string | undefined {
+  return 'source' in entity && typeof entity.source === 'string' ? entity.source : undefined
 }
 
 /**
@@ -678,6 +650,22 @@ export function getSection(entity: SURefMetaEntity): string | undefined {
  */
 export function getDamageType(entity: SURefMetaEntity): unknown | undefined {
   return 'damageType' in entity ? entity.damageType : undefined
+}
+
+// ============================================================================
+// TYPE GUARDS - Data shape
+// ============================================================================
+
+/**
+ * Type guard to distinguish SURefEntity (structured data with id/name/source/page)
+ * from SURefMetaAction or other object types (which lack these fields)
+ * @param data - Entity, action, or other object to check
+ * @returns True if the data has id, name, source, and page fields
+ */
+export function isEntityData<T extends object>(
+  data: T
+): data is T & SURefEntity & { id: string; name: string; source: string; page: number } {
+  return 'id' in data && 'name' in data && 'source' in data && 'page' in data
 }
 
 // ============================================================================
@@ -1573,7 +1561,7 @@ export function getGrants(entity: SURefMetaEntity): SURefObjectGrant[] | undefin
 /**
  * Represents a parsed trait reference from text
  */
-export interface ParsedTraitReference {
+export type ParsedTraitReference = {
   /** The full matched text including brackets */
   fullMatch: string
   /** The trait name (e.g., "Hot", "Burn", "Explosive") */

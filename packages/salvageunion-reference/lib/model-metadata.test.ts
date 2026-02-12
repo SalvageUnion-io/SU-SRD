@@ -2,7 +2,7 @@
  * Test model metadata properties (schemaName and displayName)
  */
 
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'bun:test'
 import { SchemaToDisplayName } from './index.js'
 
 // Import SalvageUnionReference - use lazy getter to avoid initialization issues
@@ -134,7 +134,9 @@ describe('Model Metadata', () => {
       const schemaName = getReference().Abilities.schemaName
       const displayName = getReference().Abilities.displayName
 
-      expect(SchemaToDisplayName[schemaName as keyof typeof SchemaToDisplayName]).toBe(displayName)
+      expect(SchemaToDisplayName[schemaName as keyof typeof SchemaToDisplayName] as string).toBe(
+        displayName
+      )
     })
 
     it('should work for all models', () => {
@@ -153,7 +155,7 @@ describe('Model Metadata', () => {
         const schemaName = model.schemaName
         const displayName = model.displayName
 
-        expect(SchemaToDisplayName[schemaName as keyof typeof SchemaToDisplayName]).toBe(
+        expect(SchemaToDisplayName[schemaName as keyof typeof SchemaToDisplayName] as string).toBe(
           displayName
         )
       }

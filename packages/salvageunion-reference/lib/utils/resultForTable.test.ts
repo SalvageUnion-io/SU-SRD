@@ -1,6 +1,6 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect } from 'bun:test'
 import { resultForTable } from './resultForTable.js'
-import { SURefObjectTable, SURefRollTable } from '../index.js'
+import type { SURefObjectTable, SURefRollTable } from '../index.js'
 
 const mockStandardTable: SURefRollTable = {
   id: 'test-standard',

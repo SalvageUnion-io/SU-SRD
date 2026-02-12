@@ -1,26 +1,17 @@
 {
-  "extends": "../../tsconfig.json",
+  "extends": "astro/tsconfigs/strict",
   "compilerOptions": {
-    "composite": true,
-    "incremental": true,
     "target": "ES2022",
-    "useDefineForClassFields": true,
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
-    "types": ["vite/client", "node", "bun-types"],
-
-    /* Bundler mode */
     "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
-    "moduleDetection": "force",
-    "declaration": true,
-    "emitDeclarationOnly": true,
     "jsx": "react-jsx",
-
-    /* Linting */
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
-  }
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
+    "types": ["node", "bun-types"]
+  },
+  "include": ["src/**/*", "astro.config.mjs", ".astro/types.d.ts"]
 }

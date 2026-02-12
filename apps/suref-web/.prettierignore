@@ -1,14 +1,7 @@
-# Generated files
-src/routeTree.gen.ts
-src/types/database-generated.types.ts
-src/types/database-generated.zod.ts
-
 # Build outputs
 dist/
 node_modules/
-*.tsbuildinfo
-.vite/
+.astro/
 
-# Package files (may have specific formatting requirements)
+# Package files
 package.json
-

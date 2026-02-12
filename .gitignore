@@ -16,6 +16,7 @@ node_modules
 dist
 dist-ssr
 **/dist
+build-ladle
 *.local
 *.tsbuildinfo
 core
@@ -38,6 +39,7 @@ apps/suref-web/.vite
 
 # Claude Code
 .claude/settings.local.json
+.mcp.json
 
 # Cursor IDE
 .cursor/
@@ -58,5 +60,3 @@ apps/suref-web/.vite
 # App-specific env files
 apps/suref-web/.env.local
 netlify/functions
-
-.rules
