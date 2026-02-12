@@ -3,7 +3,11 @@ import type { ReactNode } from 'react'
 import type { SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
 import { EntityDisplayContent } from './components/EntityDisplayContent'
 import { EntityDisplayProvider } from './EntityDisplayProvider'
-import type { ClassAbilitiesRenderer, EntityButtonConfig } from './entityDisplayContext'
+import type {
+  ClassAbilitiesRenderer,
+  EntityButtonConfig,
+  EntityImageComponent,
+} from './entityDisplayContext'
 
 type EntityDisplayProps = {
   /** Entity data to display - only accepts SURefEntity (not SURefMetaAction or SURefObjectSystemModule) */
@@ -50,6 +54,8 @@ type EntityDisplayProps = {
   label?: string
   /** Optional renderer for class abilities section */
   classAbilitiesRenderer?: ClassAbilitiesRenderer
+  /** Optional custom image component (defaults to native img) */
+  imageComponent?: EntityImageComponent
 }
 
 export const EntityDisplay = memo(function EntityDisplay({
@@ -75,6 +81,7 @@ export const EntityDisplay = memo(function EntityDisplay({
   imageWidth,
   label,
   classAbilitiesRenderer,
+  imageComponent,
 }: EntityDisplayProps) {
   if (!data) return null
 
@@ -112,6 +119,7 @@ export const EntityDisplay = memo(function EntityDisplay({
       imageWidth={imageWidth}
       label={label}
       classAbilitiesRenderer={classAbilitiesRenderer}
+      imageComponent={imageComponent}
     >
       <EntityDisplayContent>{children}</EntityDisplayContent>
     </EntityDisplayProvider>

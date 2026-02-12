@@ -25,6 +25,19 @@ export type EntityButtonConfig = React.ButtonHTMLAttributes<HTMLButtonElement> &
   className?: string
 }
 
+export type EntityImageComponentProps = {
+  src: string
+  alt: string
+  className?: string
+  style?: React.CSSProperties
+  loading?: 'lazy' | 'eager'
+  decoding?: 'async' | 'auto' | 'sync'
+  onLoad?: () => void
+  onError?: () => void
+}
+
+export type EntityImageComponent = React.ComponentType<EntityImageComponentProps>
+
 /**
  * Spacing helpers based on compact mode.
  * Returns Tailwind-friendly class strings instead of numeric Chakra spacing.
@@ -136,6 +149,8 @@ export type EntityDisplayContextValue = {
   label?: string
   /** Optional renderer for class abilities (provided by consuming app) */
   classAbilitiesRenderer?: ClassAbilitiesRenderer
+  /** Optional custom image component (defaults to native img) */
+  imageComponent?: EntityImageComponent
 }
 
 export const EntityDisplayContext = createContext<EntityDisplayContextValue | null>(null)

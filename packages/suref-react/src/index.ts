@@ -12,7 +12,11 @@ export type { TechLevel } from './constants/gameRules'
 
 // Types
 export type { DataValue, ItemCondition } from './types/common'
-export type { ClassAbilitiesRenderer } from './components/entity/EntityDisplay/entityDisplayContext'
+export type {
+  ClassAbilitiesRenderer,
+  EntityImageComponent,
+  EntityImageComponentProps,
+} from './components/entity/EntityDisplay/entityDisplayContext'
 
 // Base typography
 export { Heading } from './components/base/Heading'

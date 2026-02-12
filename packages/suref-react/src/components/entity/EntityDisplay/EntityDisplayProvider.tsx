@@ -27,6 +27,7 @@ import type {
   EntityDisplayContextValue,
   ClassAbilitiesRenderer,
   EntityButtonConfig,
+  EntityImageComponent,
 } from './entityDisplayContext'
 
 /**
@@ -65,6 +66,7 @@ type EntityDisplayProviderProps = {
   imageWidth?: string
   label?: string
   classAbilitiesRenderer?: ClassAbilitiesRenderer
+  imageComponent?: EntityImageComponent
 }
 
 export function EntityDisplayProvider({
@@ -91,6 +93,7 @@ export function EntityDisplayProvider({
   imageWidth,
   label,
   classAbilitiesRenderer,
+  imageComponent,
 }: EntityDisplayProviderProps) {
   const hasButtonConfig = !!buttonConfig
   const [internalExpanded, setInternalExpanded] = useState(defaultExpanded)
@@ -188,6 +191,7 @@ export function EntityDisplayProvider({
     source,
     label,
     classAbilitiesRenderer,
+    imageComponent,
   }
 
   return <EntityDisplayContext.Provider value={value}>{children}</EntityDisplayContext.Provider>
