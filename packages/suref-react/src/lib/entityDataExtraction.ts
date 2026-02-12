@@ -163,7 +163,7 @@ function extractRangeDetail(data: SURefMetaEntity | SURefMetaAction): DataValue[
   if (!range) return null
 
   const ranges = Array.isArray(range) ? range : [range]
-  return ranges.map((r) => ({ label: 'Range', value: r, type: 'keyword' }))
+  return ranges.map((r) => ({ label: 'Range', value: r, type: 'range' }))
 }
 
 /**

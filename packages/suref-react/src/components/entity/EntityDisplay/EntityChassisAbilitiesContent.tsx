@@ -11,7 +11,7 @@ export function EntityChassisAbilitiesContent() {
   const chassisName = 'name' in data ? data.name : undefined
 
   return (
-    <div className={cn(spacing.smallGap <= 1.5 ? 'space-y-1.5' : 'space-y-2')}>
+    <div className={cn(spacing.smallSpaceYClass)}>
       {chassisAbilities.map((ability) => {
         return (
           <NestedChassisAbility

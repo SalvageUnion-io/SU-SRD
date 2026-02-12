@@ -5,6 +5,7 @@ import { useParseTraitReferences } from '../../../utils/parseTraitReferences'
 import { useMemo } from 'react'
 import { getTiltRotation } from '../../../utils/tiltUtils'
 import { Text } from '../../base/Text'
+import { borderColorFromHeaderBg } from '../entityDisplayHelpers'
 import { cn } from '../../../utils/cn'
 
 type ConditionalSheetInfoProps = {
@@ -71,7 +72,7 @@ export function ConditionalSheetInfo({
             )}
             style={{
               overflowWrap: 'break-word',
-              borderLeft: `3px solid var(--color-${headerBg.replace('bg-', '')})`,
+              borderLeft: `3px solid ${borderColorFromHeaderBg(headerBg)}`,
             }}
           >
             {children || parsedContent}

@@ -177,9 +177,13 @@ export function resolveEntityName(
 }
 
 /**
- * Get source-specific styles for entity display.
- * Returns { className, style } for use with Tailwind + inline styles.
+ * Derive a CSS color value from a Tailwind bg class (e.g. 'bg-su-orange' → 'var(--color-su-orange)').
+ * Returns undefined when headerBg is falsy so callers can skip border styling.
  */
+export function borderColorFromHeaderBg(headerBg: string | undefined): string | undefined {
+  return headerBg ? `var(--color-${headerBg.replace('bg-', '')})` : undefined
+}
+
 /**
  * Get source-specific styles for entity display.
  * Returns { className, style } for use with Tailwind + inline styles.

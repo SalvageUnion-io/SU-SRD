@@ -9,7 +9,7 @@ export function EntityBonusPerTechLevel() {
   if (!showBPTL) return null
 
   return (
-    <div className={cn('rounded-md', spacing.smallGap <= 1.5 ? 'space-y-1.5' : 'space-y-2')}>
+    <div className={cn('rounded-md', spacing.smallSpaceYClass)}>
       {data.bonusPerTechLevel && (
         <EntityStats label="Bonus Per Tech Level" prefix="+" data={data.bonusPerTechLevel} />
       )}

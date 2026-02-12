@@ -40,7 +40,7 @@ export function EntityChoices({ userChoices, onChoiceSelection }: EntityChoicesP
   }
 
   return (
-    <div className={cn(spacing.smallGap <= 1.5 ? 'space-y-1.5' : 'space-y-2')}>
+    <div className={cn(spacing.smallSpaceYClass)}>
       {entityChoices.map((choice) => {
         return (
           <EntityChoice

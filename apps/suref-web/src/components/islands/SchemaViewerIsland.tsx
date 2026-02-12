@@ -148,7 +148,7 @@ export function SchemaViewerIsland({
             <a
               key={item.id}
               href={`/schema/${schemaId}/item/${getEntitySlug(item)}`}
-              className="block cursor-pointer transition-all duration-200 md:hover:scale-105 md:hover:-translate-y-1 md:hover:z-10 md:hover:shadow-lg"
+              className="relative block cursor-pointer transition-all duration-200 md:hover:z-10 md:hover:scale-105 md:hover:-translate-y-1 md:hover:shadow-lg"
             >
               <Suspense fallback={<EntityCardSkeleton compact />}>
                 <EntityDisplay

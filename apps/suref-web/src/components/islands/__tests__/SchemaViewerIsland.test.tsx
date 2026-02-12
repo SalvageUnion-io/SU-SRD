@@ -33,7 +33,7 @@ describe('SchemaViewerIsland', () => {
     })
   }
 
-  it('renders search input', () => {
+  it('renders filter buttons when multiple tech levels exist', () => {
     const firstSchema = entitySchemas[0]!
     const model = getModel(firstSchema.id)!
     const entities = model.all()
@@ -42,12 +42,12 @@ describe('SchemaViewerIsland', () => {
       <SchemaViewerIsland
         initialData={entities}
         schemaId={firstSchema.id}
-        techLevels={getUniqueTechLevels(entities)}
-        sources={getUniqueSources(entities)}
+        techLevels={[1, 2, 3]}
+        sources={['Core']}
       />
     )
 
-    const searchInput = container.querySelector('input[type="text"]')
-    expect(searchInput).not.toBeNull()
+    const filterButtons = container.querySelectorAll('button[aria-pressed]')
+    expect(filterButtons.length).toBeGreaterThan(0)
   })
 })

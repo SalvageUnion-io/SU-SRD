@@ -20,7 +20,7 @@ export function EntityActions() {
   if (!actionsToDisplay || actionsToDisplay.length === 0) return null
 
   return (
-    <div className={cn('rounded-md', spacing.smallGap <= 1.5 ? 'space-y-1.5' : 'space-y-2')}>
+    <div className={cn('rounded-md', spacing.smallSpaceYClass)}>
       {actionsToDisplay.map((action) => {
         return (
           <NestedActionDisplay

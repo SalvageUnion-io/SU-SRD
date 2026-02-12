@@ -37,7 +37,7 @@ export function EntityGrants() {
   }
 
   return (
-    <div className={cn(spacing.smallGap <= 1.5 ? 'space-y-1.5' : 'space-y-2')}>
+    <div className={cn(spacing.smallSpaceYClass)}>
       <div style={{ marginBottom: `${spacing.minimalGap}rem` }}>
         <EntitySubheader disabled={true} label="Grants:" />
       </div>

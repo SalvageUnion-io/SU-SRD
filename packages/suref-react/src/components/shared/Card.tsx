@@ -82,8 +82,10 @@ export function Card({
           variant="pseudoheader"
           as="span"
           className={cn(
-            'absolute ml-3 -mt-2 text-sm uppercase',
-            compact && 'max-w-[80%] scale-x-[0.85] origin-left whitespace-nowrap'
+            'absolute ml-3 uppercase',
+            compact
+              ? '-mt-1.5 text-xs max-w-[80%] scale-x-[0.85] origin-left whitespace-nowrap'
+              : '-mt-2 text-sm'
           )}
         >
           {label}
@@ -97,7 +99,8 @@ export function Card({
             'flex w-full items-center justify-between gap-2 overflow-visible rounded-t-sm',
             reverse ? 'flex-row-reverse' : 'flex-row',
             actualHeaderBg,
-            compact ? 'h-[60px] min-h-[60px] px-1 py-1' : 'min-h-[80px] px-1.5 py-1.5',
+            compact ? 'min-h-[60px] px-1 py-1' : 'min-h-[80px] px-1.5 py-1.5',
+            label && (compact ? 'pt-3 pb-3' : 'pt-4 pb-4'),
             !children && 'rounded-b-sm',
             onHeaderClick && 'cursor-pointer',
             sourceStyles.className
@@ -111,29 +114,34 @@ export function Card({
             {leftContent}
             <div
               className={cn(
-                'flex min-w-0 flex-col justify-center overflow-visible',
+                'flex flex-col justify-center overflow-visible',
                 compact ? 'gap-0.5' : 'gap-1',
                 reverse ? 'items-end' : 'items-start'
               )}
             >
               {title && (
-                <Text
-                  variant="pseudoheader"
-                  as="span"
+                <div
                   className={cn(
-                    'uppercase tracking-[-0.02em] transition-transform duration-300',
-                    compact
-                      ? 'text-base leading-[1.2]'
-                      : 'overflow-hidden text-ellipsis whitespace-nowrap text-[1.75rem] leading-[normal]',
-                    reverse && 'text-right',
-                    disabled && 'opacity-50'
+                    compact ? '' : 'overflow-hidden text-ellipsis whitespace-nowrap',
+                    reverse && 'text-right'
                   )}
                   style={
                     titleRotation !== 0 ? { transform: `rotate(${titleRotation}deg)` } : undefined
                   }
                 >
-                  {title}
-                </Text>
+                  <Text
+                    variant="pseudoheader"
+                    as="span"
+                    className={cn(
+                      'relative z-10 uppercase tracking-[-0.02em] transition-transform duration-300',
+                      compact ? 'text-base py-[3px]' : 'text-[1.75rem]',
+                      disabled && 'opacity-50'
+                    )}
+                    style={compact ? { lineHeight: 1 } : undefined}
+                  >
+                    {title}
+                  </Text>
+                </div>
               )}
               {subTitleContent && (
                 <div

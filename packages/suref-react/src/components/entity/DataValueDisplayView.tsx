@@ -2,6 +2,7 @@ import type { DataValue } from '../../types/common'
 import type { SURefObjectDataValue } from 'salvageunion-reference'
 import { ActivationCostBox } from '../shared/ActivationCostBox'
 import { TraitKeywordDisplayView } from './TraitKeywordDisplayView'
+import { RangeValueDisplay } from './RangeValueDisplay'
 import { ValueDisplay } from '../shared/ValueDisplay'
 import { Text } from '../base/Text'
 import { cn } from '../../utils/cn'
@@ -67,6 +68,18 @@ export function DataValueDisplayView({
         schemaName="keywords"
         inline={false}
         damaged={damaged}
+      />
+    )
+  }
+
+  if (item.type === 'range') {
+    return (
+      <RangeValueDisplay
+        label={item.label}
+        value={item.value}
+        compact={compact}
+        damaged={damaged}
+        rotation={valueRotation}
       />
     )
   }

@@ -29,22 +29,22 @@ function isActive(path: string) {
     <a
       href="/randsum"
       class:list={[
-        'px-4 py-2 rounded-md font-medium transition-colors',
+        'px-4 py-2 rounded-md font-medium text-su-white transition-colors',
         isActive('/randsum')
-          ? 'bg-su-blue-pale font-semibold'
-          : 'bg-su-orange text-su-white hover:bg-su-blue-pale hover:text-su-black',
+          ? 'bg-su-pink'
+          : 'bg-su-pink brightness-[0.85] hover:brightness-100',
       ]}
     >
-      Randsum
+      RANDSUM
     </a>
 
     <a
       href="/about"
       class:list={[
-        'px-4 py-2 rounded-md font-medium transition-colors',
+        'px-4 py-2 rounded-md font-medium text-su-white transition-colors',
         isActive('/about')
-          ? 'bg-su-blue-pale font-semibold'
-          : 'bg-su-orange text-su-white hover:bg-su-blue-pale hover:text-su-black',
+          ? 'bg-su-pink'
+          : 'bg-su-pink brightness-[0.85] hover:brightness-100',
       ]}
     >
       About

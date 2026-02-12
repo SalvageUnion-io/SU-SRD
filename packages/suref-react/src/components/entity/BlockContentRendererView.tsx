@@ -3,6 +3,7 @@ import { Text } from '../base/Text'
 import { useParseTraitReferences } from '../../utils/parseTraitReferences'
 import { parseContentBlockString } from '../../lib/contentBlockHelpers'
 import { DataValueDisplayView } from './DataValueDisplayView'
+import { borderColorFromHeaderBg } from './entityDisplayHelpers'
 import { cn } from '../../utils/cn'
 
 type BlockContentRendererViewProps = {
@@ -45,7 +46,7 @@ export function BlockContentRendererView({
     return null
   }
 
-  const borderColor = headerBg ? `var(--color-${headerBg.replace('bg-', '')})` : undefined
+  const borderColor = borderColorFromHeaderBg(headerBg)
 
   // Group content blocks into sections: blocks before any heading/datavalues are ungrouped,
   // each heading or datavalues block starts a new bordered section
@@ -199,8 +200,6 @@ function ContentBlock({
       )
 
     case 'heading': {
-      // Render as bold Text, not true HTML heading
-      // Level 1: larger, Level 2: slightly smaller, Level 3: same as paragraph but bold
       const level = block.level || 3
       let headingFontSize: string
       if (level === 1) {
@@ -208,15 +207,11 @@ function ContentBlock({
       } else if (level === 2) {
         headingFontSize = compact ? 'text-base' : 'text-lg'
       } else {
-        // Level 3: same size as paragraph
         headingFontSize = fontSize
       }
 
       return (
-        <Text
-          as="span"
-          className={cn('block font-bold leading-relaxed text-su-black', headingFontSize)}
-        >
+        <Text as="span" variant="pseudoheader" className={cn('mb-1', headingFontSize)}>
           {parsedValue}
         </Text>
       )

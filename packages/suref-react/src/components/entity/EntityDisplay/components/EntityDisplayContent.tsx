@@ -19,7 +19,7 @@ import { ConditionalSheetInfo } from '../ConditionalSheetInfo'
 import { EntityPopulationRange } from '../EntityPopulationRange'
 import { EntityActions } from '../EntityActions'
 import { EntityImage } from '../EntityImage'
-import { ContentBlockRenderer } from '../ContentBlockRenderer'
+import { BlockContentRendererView } from '../../BlockContentRendererView'
 import type { EntityButtonConfig } from '../entityDisplayContext'
 import { cn } from '../../../../utils/cn'
 import { Text } from '../../../base/Text'
@@ -90,13 +90,20 @@ export function EntityDisplayContent({ children }: { children?: React.ReactNode 
     contentBlocks = matchingAction.content
   }
 
+  // In compact list view (hideActions), only show content before the first heading
+  if (contentBlocks && compact && hideActions) {
+    const firstHeadingIndex = contentBlocks.findIndex((block) => block.type === 'heading')
+    if (firstHeadingIndex > 0) {
+      contentBlocks = contentBlocks.slice(0, firstHeadingIndex)
+    }
+  }
+
   // Show content if entity has content blocks
   const showContent = contentBlocks && contentBlocks.length > 0
 
   // Consolidate chassis abilities logic
   const hasChassisAbilities =
     schemaName === 'chassis' && !!chassisAbilities && chassisAbilities.length > 0
-  const hasChassisAbilitiesInTopMatter = hasChassisAbilities && !hideActions && !compact
 
   // Check if entity has actions that will be displayed (after filtering)
   const hasDisplayableActions =
@@ -156,7 +163,7 @@ export function EntityDisplayContent({ children }: { children?: React.ReactNode 
         >
           {/* Float zone: block flow so image float propagates to all children */}
           <div
-            className={cn(spacing.smallGap <= 1.5 ? 'space-y-1.5' : 'space-y-2')}
+            className={cn(spacing.smallSpaceYClass)}
             style={{
               paddingLeft: `${spacing.contentPaddingX}rem`,
               paddingRight: `${spacing.contentPaddingX}rem`,
@@ -169,7 +176,7 @@ export function EntityDisplayContent({ children }: { children?: React.ReactNode 
           >
             {assetUrl && <EntityImage customWidth={imageWidth} />}
             {showContent && (
-              <ContentBlockRenderer
+              <BlockContentRendererView
                 content={contentBlocks!}
                 fontSize={fontSize.sm}
                 compact={compact}
@@ -179,9 +186,10 @@ export function EntityDisplayContent({ children }: { children?: React.ReactNode 
             )}
             {children}
 
-            {hasChassisAbilitiesInTopMatter && <EntityChassisAbilitiesContent />}
+            {/* Non-compact: chassis abilities render before actions */}
+            {!compact && hasChassisAbilities && !hideActions && <EntityChassisAbilitiesContent />}
             {(!hideActions || (compact && schemaName !== 'bio-titans')) && <EntityActions />}
-
+            {/* Compact: chassis abilities render after actions */}
             {compact && hasChassisAbilities && <EntityChassisAbilitiesContent />}
 
             <EntityPopulationRange />

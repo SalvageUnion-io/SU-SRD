@@ -6,6 +6,7 @@ import { EntityChoice } from './EntityDisplay/EntityChoice'
 import { extractEntityDetails } from '../../lib/entityDataExtraction'
 import { DataValueDisplayView } from './DataValueDisplayView'
 import { RollTable } from '../shared/RollTable'
+import { borderColorFromHeaderBg } from './entityDisplayHelpers'
 import { cn } from '../../utils/cn'
 
 type NestedActionDisplayProps = {
@@ -50,7 +51,7 @@ export function NestedActionDisplay({
 
   const displayName = getEntityDisplayName(data) || data.name
 
-  const borderColor = headerBg ? `var(--color-${headerBg.replace('bg-', '')})` : undefined
+  const borderColor = borderColorFromHeaderBg(headerBg)
 
   return (
     <div className="overflow-hidden bg-transparent">

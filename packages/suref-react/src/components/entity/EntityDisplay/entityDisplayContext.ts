@@ -32,6 +32,10 @@ export type EntityButtonConfig = React.ButtonHTMLAttributes<HTMLButtonElement> &
 export const getEntitySpacing = (compact: boolean) => ({
   /** Gap between small elements: 1.5 (compact) or 2 (normal) */
   smallGap: compact ? 1.5 : 2,
+  /** Tailwind gap class: 'gap-1.5' (compact) or 'gap-2' (normal) */
+  smallGapClass: compact ? 'gap-1.5' : ('gap-2' as const),
+  /** Tailwind space-y class: 'space-y-1.5' (compact) or 'space-y-2' (normal) */
+  smallSpaceYClass: compact ? 'space-y-1.5' : ('space-y-2' as const),
   /** Gap for minimal spacing: 0.25 (compact) or 0.5 (normal) */
   minimalGap: compact ? 0.25 : 0.5,
   /** Vertical padding for content: 0.5 (compact) or 0.75 (normal) */

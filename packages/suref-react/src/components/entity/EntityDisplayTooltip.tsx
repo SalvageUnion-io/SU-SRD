@@ -1,8 +1,9 @@
 import type { ReactNode } from 'react'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { SalvageUnionReference, isKeyword } from 'salvageunion-reference'
 import type { SURefEnumSchemaName } from 'salvageunion-reference'
 import * as HoverCard from '@radix-ui/react-hover-card'
 import { EntityDisplay } from './EntityDisplay'
+import { Tooltip } from '../ui/tooltip'
 
 type EntityDisplayTooltipProps = {
   schemaName: SURefEnumSchemaName
@@ -18,9 +19,24 @@ type EntityDisplayTooltipProps = {
   fullWidth?: boolean
 }
 
+function getKeywordDescription(entity: unknown): string | null {
+  if (
+    typeof entity === 'object' &&
+    entity !== null &&
+    'content' in entity &&
+    Array.isArray((entity as { content: unknown }).content)
+  ) {
+    const content = (entity as { content: { type: string; value: string }[] }).content
+    const paragraphs = content.filter((block) => block.type === 'paragraph')
+    return paragraphs.map((block) => block.value).join(' ') || null
+  }
+  return null
+}
+
 /**
  * EntityDisplayTooltip - Shows EntityDisplay content in a hover card
  * Wraps children and displays entity details on hover
+ * Keywords render as a simple text tooltip; other entities render as a full card.
  *
  * @example
  * <EntityDisplayTooltip schemaName="systems" entityId="laser-cannon-id">
@@ -40,6 +56,29 @@ export function EntityDisplayTooltip({
 
   if (!entity) {
     return <>{children}</>
+  }
+
+  if (isKeyword(entity)) {
+    const description = getKeywordDescription(entity)
+    if (description) {
+      return (
+        <Tooltip content={description} delayDuration={openDelay}>
+          <span
+            style={{
+              margin: 0,
+              lineHeight: 1,
+              cursor: 'help',
+              display: fullWidth ? 'block' : 'inline-flex',
+              flexShrink: 0,
+              flexGrow: 0,
+              width: fullWidth ? '100%' : 'auto',
+            }}
+          >
+            {children}
+          </span>
+        </Tooltip>
+      )
+    }
   }
 
   return (

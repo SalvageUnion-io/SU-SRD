@@ -92,26 +92,25 @@ export function MobileNavIsland({ schemas, currentPath }: MobileNavIslandProps) 
               ))}
             </div>
 
-            <a
-              href="/randsum"
-              className={`rounded-md px-4 py-2 text-center font-medium transition-colors ${
-                isActive('/randsum')
-                  ? 'border-b-2 border-su-orange font-semibold'
-                  : 'hover:bg-su-blue-pale'
-              }`}
-              onClick={() => setOpen(false)}
-            >
-              Randsum
-            </a>
-
             {/* Bottom links */}
-            <div className="mt-auto border-t border-su-grey-light pt-4">
+            <div className="mt-auto flex flex-col gap-2 border-t border-su-grey-light pt-4">
+              <a
+                href="/randsum"
+                className={`block rounded-md px-4 py-2 text-sm font-medium text-su-white transition-colors ${
+                  isActive('/randsum')
+                    ? 'bg-su-pink'
+                    : 'bg-su-pink brightness-[0.85] hover:brightness-100'
+                }`}
+                onClick={() => setOpen(false)}
+              >
+                RANDSUM
+              </a>
               <a
                 href="/about"
-                className={`block rounded-md px-4 py-2 text-center font-medium transition-colors ${
+                className={`block rounded-md px-4 py-2 text-sm font-medium text-su-white transition-colors ${
                   isActive('/about')
-                    ? 'border-b-2 border-su-orange font-semibold'
-                    : 'hover:bg-su-blue-pale'
+                    ? 'bg-su-pink'
+                    : 'bg-su-pink brightness-[0.85] hover:brightness-100'
                 }`}
                 onClick={() => setOpen(false)}
               >
