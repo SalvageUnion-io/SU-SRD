@@ -100,7 +100,10 @@ export function EntityDisplayContent({ children }: { children?: React.ReactNode 
 
   // Check if entity has actions that will be displayed (after filtering)
   const hasDisplayableActions =
-    !!actionsToDisplay && actionsToDisplay.length > 0 && (!hideActions || compact)
+    !!actionsToDisplay &&
+    actionsToDisplay.length > 0 &&
+    (!hideActions || compact) &&
+    !(compact && schemaName === 'bio-titans')
 
   const hasTopMatterContent =
     !!showContent || hasChassisAbilities || !!assetUrl || hasDisplayableActions
@@ -132,7 +135,6 @@ export function EntityDisplayContent({ children }: { children?: React.ReactNode 
   return (
     <Card
       bg="bg-su-blue-light"
-      className="w-full"
       headerBg={headerBg}
       headerOpacity={opacity.header}
       leftContent={<EntityLeftContent />}
@@ -178,7 +180,7 @@ export function EntityDisplayContent({ children }: { children?: React.ReactNode 
             {children}
 
             {hasChassisAbilitiesInTopMatter && <EntityChassisAbilitiesContent />}
-            {(!hideActions || compact) && <EntityActions />}
+            {(!hideActions || (compact && schemaName !== 'bio-titans')) && <EntityActions />}
 
             {compact && hasChassisAbilities && <EntityChassisAbilitiesContent />}
 

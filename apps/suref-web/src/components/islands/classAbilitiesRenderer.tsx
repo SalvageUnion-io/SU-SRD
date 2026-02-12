@@ -45,26 +45,23 @@ function ClassAbilities({
   if (!cls || abilitiesByTree.length === 0) return null
 
   return (
-    <div className="flex flex-col gap-2 px-4 py-3">
-      <Text as="span" className="block text-lg font-bold text-su-black">
-        Ability Trees
-      </Text>
+    <div className="space-y-1.5">
       {abilitiesByTree.map(({ tree, abilities }) => (
-        <div key={tree} className="flex flex-col gap-1.5">
-          <Text as="span" className="block text-sm font-bold uppercase text-su-grey-dark">
-            {tree}
-          </Text>
-          <div className="flex flex-col gap-1.5">
-            {abilities.map((ability) => (
-              <EntityDisplay
-                key={ability.id}
-                data={ability}
-                compact
-                collapsible
-                defaultExpanded={false}
-              />
-            ))}
+        <div key={tree} className="space-y-1.5 pt-2">
+          <div>
+            <Text variant="pseudoheader" as="span" className="py-0.5 text-sm">
+              {tree} Tree
+            </Text>
           </div>
+          {abilities.map((ability) => (
+            <EntityDisplay
+              key={ability.id}
+              data={ability}
+              compact
+              collapsible
+              defaultExpanded={false}
+            />
+          ))}
         </div>
       ))}
     </div>
