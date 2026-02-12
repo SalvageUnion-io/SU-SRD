@@ -13,9 +13,6 @@
     "@testing-library/jest-dom": "6.9.1",
     "@testing-library/react": "16.3.2"
   },
-  "optionalDependencies": {
-    "lefthook": "2.0.16"
-  },
   "scripts": {
     "prepare": "[ -z \"$CI\" ] && [ -d .git ] && command -v lefthook >/dev/null && lefthook install || true",
     "dev": "bun run build:package && bun --filter suref-web dev",
