@@ -6,9 +6,9 @@ const textVariants = cva('font-mono', {
     variant: {
       default: 'text-[var(--foreground)]',
       pseudoheader:
-        'inline self-start bg-su-black text-su-white px-0.5 font-bold uppercase leading-none tracking-tight',
+        'inline self-start bg-su-black text-su-white px-1.5 font-bold uppercase leading-none tracking-tight',
       pseudoheaderInverse:
-        'inline self-start bg-su-white text-su-black px-0.5 font-bold uppercase leading-none tracking-tight',
+        'inline self-start bg-su-white text-su-black px-1.5 font-bold uppercase leading-none tracking-tight',
     },
   },
   defaultVariants: {

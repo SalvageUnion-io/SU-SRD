@@ -4,6 +4,23 @@ import { getSchemaCatalog } from 'salvageunion-reference'
 
 const catalog = getSchemaCatalog()
 const schemas = catalog.schemas.filter((s) => !s.meta)
+
+const invariantNouns = new Set(['Chassis', 'Equipment'])
+
+function pluralize(name: string, count: number) {
+  if (count <= 1 || invariantNouns.has(name)) return name
+  const spaceIdx = name.lastIndexOf(' ')
+  if (spaceIdx >= 0) {
+    return name.slice(0, spaceIdx + 1) + pluralizeWord(name.slice(spaceIdx + 1))
+  }
+  return pluralizeWord(name)
+}
+
+function pluralizeWord(word: string) {
+  if (/[^aeiou]y$/i.test(word)) return word.slice(0, -1) + 'ies'
+  if (/(?:s|sh|ch|x|z)$/i.test(word)) return word + 'es'
+  return word + 's'
+}
 ---
 
 <BaseLayout
@@ -41,19 +58,14 @@ const schemas = catalog.schemas.filter((s) => !s.meta)
         {schemas.map((schema) => (
           <a
             href={`/schema/${schema.id}`}
-            class="group flex flex-col gap-1 rounded-md border border-su-grey-light bg-su-white p-4 shadow-sm transition-colors hover:border-su-orange hover:bg-su-blue-pale"
+            class="group flex items-baseline justify-between gap-2 rounded-md border border-su-grey-light bg-su-white p-4 shadow-sm transition-colors hover:border-su-orange hover:bg-su-blue-pale"
           >
-            <div class="flex items-baseline justify-between gap-2">
-              <span class="font-semibold text-su-black group-hover:text-su-orange-dark">
-                {schema.displayName}
-              </span>
-              <span class="shrink-0 text-xs text-su-grey-dark">
-                {schema.itemCount} {schema.itemCount === 1 ? 'entry' : 'entries'}
-              </span>
-            </div>
-            <p class="text-xs leading-relaxed text-su-grey-dark">
-              {schema.description}
-            </p>
+            <span class="font-semibold text-su-black group-hover:text-su-orange-dark">
+              {pluralize(schema.displayName, schema.itemCount)}
+            </span>
+            <span class="shrink-0 text-xs text-su-grey-dark">
+              {schema.itemCount} {schema.itemCount === 1 ? 'entry' : 'entries'}
+            </span>
           </a>
         ))}
       </div>

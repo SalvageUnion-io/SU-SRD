@@ -2,6 +2,7 @@ import { SalvageUnionReference, getModel } from 'salvageunion-reference'
 import type { SURefEnumSchemaName } from 'salvageunion-reference'
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '../ui/dialog'
 import { EntityDisplay } from './EntityDisplay'
+import type { ClassAbilitiesRenderer } from './EntityDisplay/entityDisplayContext'
 import { NotFoundDisplay } from './NotFoundDisplay'
 
 type EntityDisplayModalProps = {
@@ -9,6 +10,7 @@ type EntityDisplayModalProps = {
   onClose: () => void
   schemaName: SURefEnumSchemaName | null
   entityId: string | null
+  classAbilitiesRenderer?: ClassAbilitiesRenderer
 }
 
 /**
@@ -20,6 +22,7 @@ export function EntityDisplayModal({
   onClose,
   schemaName,
   entityId,
+  classAbilitiesRenderer,
 }: EntityDisplayModalProps) {
   const hasValidData = schemaName && entityId
   const entity = hasValidData ? SalvageUnionReference.get(schemaName, entityId) : null
@@ -40,7 +43,11 @@ export function EntityDisplayModal({
         </DialogTitle>
         <DialogDescription className="sr-only">Entity display details</DialogDescription>
         {entity ? (
-          <EntityDisplay data={entity} collapsible={false} />
+          <EntityDisplay
+            data={entity}
+            collapsible={false}
+            classAbilitiesRenderer={classAbilitiesRenderer}
+          />
         ) : (
           <NotFoundDisplay
             entityType={schemaDisplayName}

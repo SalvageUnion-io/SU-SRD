@@ -105,7 +105,7 @@ export function BlockContentRendererView({
         const contentBlocks = isLeadingHeading ? section.blocks.slice(1) : section.blocks
 
         return (
-          <div key={`section-${sIdx}`} className="mt-4">
+          <div key={`section-${sIdx}`} className="mt-2">
             {headingBlock && (
               <ContentBlock
                 block={headingBlock.block}

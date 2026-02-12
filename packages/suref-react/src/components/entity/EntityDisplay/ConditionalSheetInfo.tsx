@@ -31,7 +31,7 @@ export function ConditionalSheetInfo({
   labelBgColor,
   children,
 }: ConditionalSheetInfoProps) {
-  const { data, spacing, compact, damaged, fontSize } = useEntityDisplayContext()
+  const { data, spacing, compact, damaged, fontSize, headerBg } = useEntityDisplayContext()
 
   let displayValue: string | undefined
   if (explicitValue !== undefined) {
@@ -73,9 +73,13 @@ export function ConditionalSheetInfo({
           <div
             className={cn(
               'mb-2 break-words font-medium leading-relaxed whitespace-normal text-su-black',
+              compact ? 'pl-2' : 'pl-3',
               fontSize.sm
             )}
-            style={{ overflowWrap: 'break-word' }}
+            style={{
+              overflowWrap: 'break-word',
+              borderLeft: `3px solid var(--color-${headerBg.replace('bg-', '')})`,
+            }}
           >
             {children || parsedContent}
           </div>

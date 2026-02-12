@@ -12,7 +12,22 @@ import {
   getEntityNameFromSystemModule,
   extractVisibleActions,
   isEntityData,
+  getHybridClasses,
 } from 'salvageunion-reference'
+
+/** Set of tree names that belong to hybrid classes (e.g. "Fabricator", "Cyborg") */
+let _hybridTreeNames: Set<string> | null = null
+function getHybridTreeNames(): Set<string> {
+  if (!_hybridTreeNames) {
+    _hybridTreeNames = new Set<string>()
+    for (const cls of getHybridClasses()) {
+      if ('advancedTree' in cls && cls.advancedTree) {
+        _hybridTreeNames.add(String(cls.advancedTree))
+      }
+    }
+  }
+  return _hybridTreeNames
+}
 
 type SURefMetaSchemaName = SURefEnumSchemaName | 'actions'
 
@@ -78,9 +93,8 @@ export function calculateBackgroundColor(
     const isLegendary =
       ('level' in data && String(data.level).toUpperCase() === 'L') ||
       ('tree' in data && String(data.tree).includes('Legendary'))
-    const isAdvancedOrHybrid =
-      'tree' in data &&
-      (String(data.tree).includes('Advanced') || String(data.tree).includes('Hybrid'))
+    const treeName = 'tree' in data ? String(data.tree) : ''
+    const isAdvancedOrHybrid = treeName.includes('Advanced') || getHybridTreeNames().has(treeName)
 
     if (isLegendary) {
       return 'bg-su-pink'

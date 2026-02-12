@@ -5,6 +5,7 @@ import type {
   SURefObjectTrait,
 } from 'salvageunion-reference'
 import {
+  SalvageUnionReference,
   getActivationCost,
   getActionType,
   getRange,
@@ -247,6 +248,28 @@ export function extractEntityDetails(
 
   // Extract traits
   details.push(...extractTraitDetails(data))
+
+  // Add class type label and prerequisite trees for classes
+  if (schemaName === 'classes') {
+    const isHybrid = 'hybrid' in data && data.hybrid
+
+    details.push({
+      label: isHybrid ? 'Hybrid Class' : 'Base Class',
+      type: 'meta',
+    })
+
+    if (isHybrid && 'advancedTree' in data) {
+      const treeName = String(data.advancedTree)
+      const req = SalvageUnionReference.AbilityTreeRequirements.find((r) => r.name === treeName)
+      if (req && 'requirement' in req && Array.isArray(req.requirement)) {
+        details.push({
+          label: 'Requires',
+          value: (req.requirement as string[]).join('||'),
+          type: 'requirement',
+        })
+      }
+    }
+  }
 
   return details
 }

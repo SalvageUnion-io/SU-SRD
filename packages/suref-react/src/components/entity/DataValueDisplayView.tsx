@@ -3,6 +3,8 @@ import type { SURefObjectDataValue } from 'salvageunion-reference'
 import { ActivationCostBox } from '../shared/ActivationCostBox'
 import { TraitKeywordDisplayView } from './TraitKeywordDisplayView'
 import { ValueDisplay } from '../shared/ValueDisplay'
+import { Text } from '../base/Text'
+import { cn } from '../../utils/cn'
 import { useMemo } from 'react'
 import { getTiltRotation } from '../../utils/tiltUtils'
 
@@ -66,6 +68,55 @@ export function DataValueDisplayView({
         inline={false}
         damaged={damaged}
       />
+    )
+  }
+
+  if (item.type === 'requirement') {
+    const trees = String(item.value ?? '').split('||')
+    const fontSize = compact ? 'text-xs' : 'text-base'
+    const fontWeight = compact ? 'font-normal' : 'font-semibold'
+    return (
+      <span
+        className={cn(
+          'shrink-0 grow-0 cursor-default whitespace-nowrap border border-su-black',
+          'inline-flex items-stretch w-fit'
+        )}
+      >
+        <Text
+          variant="pseudoheader"
+          as="span"
+          className={cn('!self-auto uppercase', fontSize, fontWeight)}
+        >
+          {item.label}
+        </Text>
+        {trees.map((tree, i) => (
+          <span key={i} className="contents">
+            <Text
+              variant="pseudoheaderInverse"
+              as="span"
+              className={cn('!self-auto uppercase', fontSize, fontWeight)}
+            >
+              {tree.trim()}
+            </Text>
+            {i < trees.length - 1 && (
+              <Text
+                variant="pseudoheader"
+                as="span"
+                className={cn('!self-auto uppercase', fontSize, fontWeight)}
+              >
+                OR
+              </Text>
+            )}
+          </span>
+        ))}
+        <Text
+          variant="pseudoheader"
+          as="span"
+          className={cn('!self-auto uppercase', fontSize, fontWeight)}
+        >
+          Tree
+        </Text>
+      </span>
     )
   }
 
