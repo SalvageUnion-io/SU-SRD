@@ -70,7 +70,7 @@ discord-bot (standalone, depends on salvageunion-reference)
 
 **Key dependency:** The `salvageunion-reference` package must be built before the apps can resolve types. Run `bun run build:package` after cloning or after changes to `packages/salvageunion-reference/`.
 
-### Code Conventions (from `.ai/rules/`)
+### Code Conventions (from `.claude/rules/`)
 
 - **Always use relative imports** (never `@/` path aliases)
 - **Use `type` over `interface`** for object types (unless extending)

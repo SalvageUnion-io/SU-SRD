@@ -1,6 +1,10 @@
-# Testing Patterns
+---
+paths:
+  - "**/*.test.ts"
+  - "**/*.test.tsx"
+---
 
-> **Applies to:** `**/*.test.ts`, `**/*.test.tsx`, `**/__tests__/**/*`
+# Testing Patterns
 
 Testing patterns using Bun's test runner and Testing Library for component tests.
 

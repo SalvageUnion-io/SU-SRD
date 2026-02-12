@@ -1,8 +1,10 @@
-# TypeScript Style
+---
+paths:
+  - "**/*.ts"
+  - "**/*.tsx"
+---
 
-> **Applies to:** `**/*.ts`, `**/*.tsx`
->
-> **Always active** - These conventions apply to all TypeScript files.
+# TypeScript Style
 
 TypeScript style conventions for type safety, imports, and code style.
 
@@ -16,7 +18,7 @@ TypeScript style conventions for type safety, imports, and code style.
 ## Import Conventions
 
 - Import types with `import type` syntax: `import type { Tables, TablesInsert } from '../types/database-generated.types'`
-- Prefer relative imports when importing from `src/` directory: `import type { HydratedEntity } from '../types/hydrated'`
+- Always use relative imports - never use `@/` path aliases
 - Use relative imports to make file relationships explicit and clear
 
 ## Generated Types

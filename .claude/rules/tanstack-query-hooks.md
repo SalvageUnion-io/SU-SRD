@@ -1,6 +1,9 @@
-# TanStack Query Hooks
+---
+paths:
+  - "apps/*/src/hooks/**"
+---
 
-> **Applies to:** `apps/suref-web/src/hooks/**/*.ts`, `apps/suref-web/src/hooks/**/*.tsx`
+# TanStack Query Hooks
 
 TanStack Query hook patterns for data fetching with query key factories, local data support, and mutations.
 
@@ -32,13 +35,6 @@ export const pilotsKeys = {
 - `useHydrated*` for hydrated entities with related data (e.g., `useHydratedPilot`)
 - `useUpdate*`, `useCreate*`, `useDelete*` for mutations
 - `use*Keys` for query key factories (exported, not hooks)
-
-## Local Data Support
-
-- Use `LOCAL_ID` constant for cache-only data that doesn't persist
-- Check `isLocalId(id)` before making API calls
-- Use `generateLocalId()` for new local entities
-- Use `addToCache()`, `updateInCache()`, `removeFromCache()` helpers
 
 ## Mutation Best Practices
 
@@ -74,11 +70,3 @@ export function useUpdatePilot() {
   })
 }
 ```
-
-## Hydrated Hooks
-
-Hydrated hooks combine entity data with related data (choices, references):
-
-- Return a custom interface (e.g., `HydratedPilot`, `HydratedMech`)
-- Include the base entity plus hydrated relationships
-- Use `useQuery` to fetch base entity, then hydrate with related data

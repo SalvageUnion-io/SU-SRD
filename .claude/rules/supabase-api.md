@@ -1,6 +1,9 @@
-# Supabase API
+---
+paths:
+  - "apps/in-the-union-now/src/lib/api/**"
+---
 
-> **Applies to:** `apps/suref-web/src/lib/api/**/*.ts`, `apps/suref-web/src/lib/supabase*.ts`
+# Supabase API
 
 Supabase API patterns for client setup, queries, validation, and hydration.
 
@@ -26,23 +29,21 @@ Supabase API patterns for client setup, queries, validation, and hydration.
 
 ## Validation
 
-- Use Zod schemas for input validation (in `src/lib/validation/`)
+- Use Zod schemas for input validation (in `src/lib/validation.ts`)
 - Validate before database operations
 - Export schemas for reuse in forms
 
-## Entity Hydration
-
-For normalized entities (`suentities` table):
-
-- Use `hydrateEntity()` or `hydrateEntities()` from `src/lib/api/hydration.ts`
-- Fetch related `player_choices` and merge into hydrated entity
-- Return `HydratedEntity` type which includes choices array
-
 ## Error Handling
 
-- Throw errors (don't return error objects)
+- Throw errors for upstream code to handle
 - Use descriptive error messages
 - Let TanStack Query handle error states in components
+
+## Mutation Patterns
+
+- Mutations use optimistic updates via `onMutate` for immediate UI feedback
+- Mutations invalidate queries via `onSuccess` to ensure fresh data after API calls
+- Mutations rollback on error via `onError` to restore previous state
 
 ## Examples
 
@@ -71,9 +72,3 @@ const { data: entity, error } = await supabase
 if (error) throw new Error(`Failed to create entity: ${error.message}`)
 return hydrateEntity(entity, [])
 ```
-
-## Mutation Patterns
-
-- Mutations use optimistic updates via `onMutate` for immediate UI feedback
-- Mutations invalidate queries via `onSuccess` to ensure fresh data after API calls
-- Mutations rollback on error via `onError` to restore previous state

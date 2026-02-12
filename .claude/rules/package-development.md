@@ -1,6 +1,9 @@
-# Package Development
+---
+paths:
+  - "packages/salvageunion-reference/**"
+---
 
-> **Applies to:** `packages/salvageunion-reference/**/*.ts`
+# Package Development
 
 Patterns for developing the salvageunion-reference package with code generation.
 
@@ -42,6 +45,7 @@ These files are NOT generated and can be edited directly:
 - `lib/utilities.ts`
 - `lib/ModelFactory.ts`
 - `lib/BaseModel.ts`
+- `lib/search.ts`
 
 ## Model Structure
 
@@ -56,21 +60,6 @@ These files are NOT generated and can be edited directly:
 - Test files: `*.test.ts`
 - Run tests with `bun test`
 - Tests validate schema compliance and data integrity
-
-## Build Process
-
-1. Generate: `bun run generate`
-2. Type Check: `tsc --project tsconfig.build.json`
-3. Test: `bun test`
-4. Format/Lint
-5. Full build: `bun run build`
-6. Quick build: `bun run build:quick` (generates and compiles only)
-
-## Data Validation
-
-- All data files must match their JSON schemas
-- Use `validateGenerated.ts` to check generated code
-- Use `validateReferences.ts` to check cross-references
 
 ## Adding New Data
 

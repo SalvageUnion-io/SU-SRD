@@ -60,5 +60,3 @@ apps/suref-web/.vite
 # App-specific env files
 apps/suref-web/.env.local
 netlify/functions
-
-.rules

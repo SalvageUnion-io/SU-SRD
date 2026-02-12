@@ -1,6 +1,9 @@
-# React Components
+---
+paths:
+  - "**/*.tsx"
+---
 
-> **Applies to:** `apps/suref-web/` (Chakra UI v3), `apps/in-the-union-now/` (ShadCN + Tailwind v4), `packages/suref-react/` (shared components)
+# React Components
 
 React component patterns using functional components and TypeScript.
 
@@ -20,10 +23,10 @@ React component patterns using functional components and TypeScript.
 
 ## UI Frameworks
 
-**suref-web** uses Chakra UI v3:
-- Use Chakra components from `@chakra-ui/react`
-- Use theme system defined in suref-react theme
-- Use theme colors: `su.green`, `su.lightBlue`, `su.mediumGrey`, etc.
+**suref-web** uses Astro 5 with React 19 islands:
+- Shared components imported from `suref-react` package
+- Tailwind v4 with theme from suref-react
+- React islands hydrated via `client:load` or `client:visible` directives
 
 **in-the-union-now** uses ShadCN + Tailwind v4:
 - Use ShadCN components from `src/components/ui/`
@@ -32,16 +35,10 @@ React component patterns using functional components and TypeScript.
 - Validation via Zod schemas in `src/lib/validation.ts`
 
 **suref-react** (shared components):
-- No build step — exports TypeScript source directly
+- No build step - exports TypeScript source directly
 - Uses Tailwind + `cn()` utility for styling
 - Entity display system with render prop pattern
-- No Supabase dependency — agnostic to data source
-
-## Entity Display Components
-
-- Use `EntityDisplay` for showing reference data
-- Use `EntitySelectionModal` for selecting entities
-- Support pattern selection via URL query params when applicable
+- No Supabase dependency - agnostic to data source
 
 ## State Management
 
@@ -49,18 +46,6 @@ React component patterns using functional components and TypeScript.
 - Use TanStack Query hooks for server state
 - Use Zustand stores for shared client state (ITUN)
 - Use React state for local UI state
-
-## Import Conventions
-
-Prefer relative imports for all imports:
-
-```typescript
-// Correct
-import { MyComponent } from '../../components/MyComponent'
-
-// Avoid
-import { MyComponent } from '@/components/MyComponent'
-```
 
 ## Examples
 

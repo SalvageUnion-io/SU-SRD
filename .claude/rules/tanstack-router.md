@@ -1,8 +1,11 @@
+---
+paths:
+  - "apps/*/src/routes/**"
+---
+
 # TanStack Router
 
-> **Applies to:** `apps/suref-web/src/routes/**/*.tsx`, `apps/suref-web/src/router.tsx`
-
-TanStack Router patterns for file-based routing in the web app.
+TanStack Router patterns for file-based routing.
 
 ## File-Based Routing
 
@@ -44,17 +47,14 @@ Access route context via `useRouteContext()`:
 const { pilotId } = useRouteContext({ from: '/pilots/$id' })
 ```
 
-- Root route provides `serverUser` in context
-- Use context for shared data across route tree
-
 ## Import Conventions
 
-Prefer relative imports for all imports:
+Always use relative imports:
 
 ```typescript
 // Correct
 import('../../../components/PilotWizard')
 
-// Avoid
+// Never
 import('@/components/PilotWizard')
 ```

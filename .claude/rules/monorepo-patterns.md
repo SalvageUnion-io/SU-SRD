@@ -1,12 +1,10 @@
 # Monorepo Patterns
 
-> **Always active** - These conventions apply to the entire monorepo.
-
 Bun workspace monorepo with multiple apps and shared packages.
 
 ## Workspace Structure
 
-- `apps/suref-web/` - Static SRD reference site (React, TanStack Start/Router, Chakra UI v3)
+- `apps/suref-web/` - Static SRD reference site (Astro 5, React 19 islands, Tailwind v4)
 - `apps/in-the-union-now/` - Character builder & game manager (React, TanStack Router/Query, ShadCN + Tailwind v4, Supabase)
 - `apps/discord-bot/` - Discord.js bot for rolling on Salvage Union tables
 - `packages/suref-react/` - Shared React component library (no build step, exports TypeScript source)
@@ -35,26 +33,22 @@ Following [Bun workspace conventions](https://bun.com/docs/guides/install/worksp
 ## Workspace Packages
 
 - `salvageunion-reference` is built before apps can resolve types (`bun run build:package`)
-- `suref-react` has no build step — exports TypeScript source directly via `src/index.ts` barrel
+- `suref-react` has no build step - exports TypeScript source directly via `src/index.ts` barrel
 - Both are imported via workspace protocol in consuming apps
 
 ## Import Conventions
 
-**Prefer relative imports over path aliases:**
+**Always use relative imports over path aliases:**
 
 ```typescript
 // Correct - use relative imports
 import { MyComponent } from '../../components/MyComponent'
 import { supabase } from '../lib/supabase'
 
-// Avoid - path aliases hide file structure
+// Never - path aliases hide file structure
 import { MyComponent } from '@/components/MyComponent'
 import { supabase } from '@/lib/supabase'
 ```
-
-- Use relative imports to make file relationships explicit
-- Relative imports make it clear where files are located relative to each other
-- This applies to ALL files, including route files, components, hooks, utilities, etc.
 
 ## Generated Files
 

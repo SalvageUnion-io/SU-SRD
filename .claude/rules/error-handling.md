@@ -1,6 +1,10 @@
-# Error Handling
+---
+paths:
+  - "**/*.ts"
+  - "**/*.tsx"
+---
 
-> **Applies to:** `**/*.ts`, `**/*.tsx`
+# Error Handling
 
 Error handling patterns using PermissionError class, ErrorBoundary component, TanStack Query error states, and logger utility.
 
@@ -26,8 +30,6 @@ Use native Error class for other errors:
 
 ### ErrorBoundary
 
-React error boundary for component tree errors:
-
 - Located in `src/components/ErrorBoundary.tsx`
 - Catches React rendering errors
 - Calls `reportError()` to log errors
@@ -35,15 +37,11 @@ React error boundary for component tree errors:
 
 ### LiveSheetErrorState
 
-Error state for live sheet components:
-
 - Use when TanStack Query returns `isError` state
 - Display in place of loading/content states
 - Show error message from query error
 
 ### DashboardError
-
-Error state for dashboard pages:
 
 - Use for route-level errors
 - Display full-page error UI
@@ -71,14 +69,11 @@ const mutation = useMutation({
   mutationFn: updatePilot,
   onError: (error) => {
     logger.error('Failed to update pilot:', error)
-    // Show toast notification or inline error
   },
 })
 ```
 
-## Logging Errors
-
-### Logger Utility
+## Logging
 
 Use logger utility from `src/lib/logger.ts`:
 
@@ -86,15 +81,9 @@ Use logger utility from `src/lib/logger.ts`:
 - `logger.warn()` - Development only
 - `logger.debug()` - Development only
 
-### Error Reporting
-
-- `reportError()` function in `ErrorBoundary.tsx` logs to console
-- Includes error message, component stack, URL, timestamp, user agent
-- Structured format for debugging
-
 ## Permission Checks
 
-### Synchronous Checks (Client-Side)
+### Synchronous (Client-Side)
 
 ```typescript
 import { isOwner, isGameMediator } from '../lib/permissions'
@@ -103,7 +92,7 @@ const canEdit = isOwner(entity.user_id, currentUserId)
 const isMediator = isGameMediator(gameMembers, currentUserId)
 ```
 
-### Async Checks (Server-Side or API)
+### Async (Server-Side or API)
 
 ```typescript
 import { assertCanViewGame, PermissionError } from '../lib/permissions'
@@ -117,7 +106,7 @@ try {
 }
 ```
 
-## Error Handling Patterns
+## Patterns
 
 ### In API Clients
 
@@ -136,52 +125,3 @@ try {
 - Catch React rendering errors
 - Report errors with `reportError()`
 - Display fallback UI that doesn't depend on broken components
-
-## Examples
-
-### Query with Error Handling
-
-```typescript
-function PilotLiveSheet({ id }: { id: string }) {
-  const { data: pilot, error, isError } = useHydratedPilot(id)
-
-  if (isError) {
-    return <LiveSheetErrorState error={error} />
-  }
-
-  // ... rest of component
-}
-```
-
-### Mutation with Error Handling
-
-```typescript
-function useUpdatePilot() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: updatePilot,
-    onError: (error) => {
-      logger.error('Pilot update failed:', error)
-      // Error UI handled by component state
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: pilotsKeys.all })
-    },
-  })
-}
-```
-
-### Permission Error Handling
-
-```typescript
-async function loadGameData(gameId: string) {
-  const { data: game, error } = await fetchGame(gameId)
-
-  if (error) {
-    throw new PermissionError('You do not have access to this game')
-  }
-
-  // ... continue with game data
-}
-```
