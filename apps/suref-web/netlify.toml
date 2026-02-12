@@ -1,7 +1,7 @@
 # Netlify configuration for suref-web (Astro static site)
 
 [build]
-  command = "bun install --frozen-lockfile && bun run build:package:ci && bun --filter suref-web build"
+  command = "bun install --frozen-lockfile --production && bun run build:package:ci && bun --filter suref-web build"
   publish = "apps/suref-web/dist"
 
 [build.environment]
