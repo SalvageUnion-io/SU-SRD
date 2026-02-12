@@ -168,10 +168,15 @@ export function EntityDisplayContent({ children }: { children?: React.ReactNode 
               paddingLeft: `${spacing.contentPaddingX}rem`,
               paddingRight: `${spacing.contentPaddingX}rem`,
               paddingTop:
-                source !== 'Salvage Union Workshop Manual' && hasTopMatterContent
-                  ? `calc(${spacing.contentPadding * 0.25}rem + 5px)`
+                source === 'We Were Here First!' || source === 'Rainmaker'
+                  ? `calc(${spacing.contentPadding}rem + 10px)`
+                  : source !== 'Salvage Union Workshop Manual' && hasTopMatterContent
+                    ? `calc(${spacing.contentPadding * 0.25}rem + 5px)`
+                    : `${spacing.contentPadding}rem`,
+              paddingBottom:
+                source === 'We Were Here First!' || source === 'Rainmaker'
+                  ? `calc(${spacing.contentPadding}rem + 10px)`
                   : `${spacing.contentPadding}rem`,
-              paddingBottom: `${spacing.contentPadding}rem`,
             }}
           >
             {assetUrl && <EntityImage customWidth={imageWidth} />}
