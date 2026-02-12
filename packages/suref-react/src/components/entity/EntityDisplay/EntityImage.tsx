@@ -12,10 +12,10 @@ export function EntityImage({ customWidth }: { customWidth?: string }) {
 
   return (
     <div
-      className="mr-4 mb-2 shrink-0 bg-su-white align-top"
+      className="mb-4 shrink-0 bg-su-white align-top md:float-left md:mr-4 md:mb-2"
       style={{
         width,
-        float: 'left',
+        maxWidth: '100%',
         shapeOutside: 'margin-box',
       }}
     >

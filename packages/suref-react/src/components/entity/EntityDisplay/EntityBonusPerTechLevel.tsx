@@ -9,18 +9,7 @@ export function EntityBonusPerTechLevel() {
   if (!showBPTL) return null
 
   return (
-    <div
-      className={cn(
-        'flex flex-col items-stretch rounded-md',
-        spacing.smallGap <= 1.5 ? 'gap-1.5' : 'gap-2'
-      )}
-      style={{
-        paddingLeft: `${spacing.contentPaddingX}rem`,
-        paddingRight: `${spacing.contentPaddingX}rem`,
-        paddingTop: `${spacing.contentPadding}rem`,
-        paddingBottom: `${spacing.contentPadding}rem`,
-      }}
-    >
+    <div className={cn('rounded-md', spacing.smallGap <= 1.5 ? 'space-y-1.5' : 'space-y-2')}>
       {data.bonusPerTechLevel && (
         <EntityStats label="Bonus Per Tech Level" prefix="+" data={data.bonusPerTechLevel} />
       )}

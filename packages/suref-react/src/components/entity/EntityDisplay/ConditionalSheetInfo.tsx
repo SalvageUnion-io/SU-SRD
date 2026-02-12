@@ -31,7 +31,7 @@ export function ConditionalSheetInfo({
   labelBgColor,
   children,
 }: ConditionalSheetInfoProps) {
-  const { data, spacing, compact, damaged, fontSize, headerBg } = useEntityDisplayContext()
+  const { data, compact, damaged, fontSize, headerBg } = useEntityDisplayContext()
 
   let displayValue: string | undefined
   if (explicitValue !== undefined) {
@@ -50,14 +50,7 @@ export function ConditionalSheetInfo({
   // Special handling for damagedEffect - render with content block styling
   if (propertyName === 'damagedEffect') {
     return (
-      <div
-        style={{
-          paddingLeft: `${spacing.contentPaddingX}rem`,
-          paddingRight: `${spacing.contentPaddingX}rem`,
-          paddingTop: `${spacing.contentPadding}rem`,
-          paddingBottom: `${spacing.contentPadding}rem`,
-        }}
-      >
+      <div>
         <div
           className="transition-transform duration-300"
           style={damaged ? { transform: `rotate(${valueRotation}deg)` } : undefined}
@@ -89,15 +82,7 @@ export function ConditionalSheetInfo({
   }
 
   return (
-    <div
-      className="flex"
-      style={{
-        paddingLeft: `${spacing.contentPaddingX}rem`,
-        paddingRight: `${spacing.contentPaddingX}rem`,
-        paddingTop: `${spacing.contentPadding}rem`,
-        paddingBottom: `${spacing.contentPadding}rem`,
-      }}
-    >
+    <div className="flex">
       <div
         className="transition-transform duration-300"
         style={damaged ? { transform: `rotate(${valueRotation}deg)` } : undefined}

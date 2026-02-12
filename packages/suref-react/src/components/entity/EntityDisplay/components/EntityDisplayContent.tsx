@@ -149,112 +149,91 @@ export function EntityDisplayContent({ children }: { children?: React.ReactNode 
     >
       {(!collapsible || isExpanded) && (
         <div
-          className={cn(
-            'flex min-w-0 flex-1 flex-col items-stretch p-0',
-            contentBg,
-            spacing.smallGap <= 1.5 ? 'gap-1.5' : 'gap-2'
-          )}
+          className={cn('min-w-0 p-0', contentBg)}
           style={{ opacity: opacity.content, width: '100%' }}
         >
-          {hasTopMatterContent && (
-            <>
-              <div
-                style={{
-                  paddingLeft: `${spacing.contentPaddingX}rem`,
-                  paddingRight: `${spacing.contentPaddingX}rem`,
-                  paddingTop:
-                    source !== 'Salvage Union Workshop Manual' && hasTopMatterContent
-                      ? `calc(${spacing.contentPadding * 0.25}rem + 5px)`
-                      : `${spacing.contentPadding}rem`,
-                  paddingBottom: `${spacing.contentPadding}rem`,
-                }}
-              >
-                {assetUrl && <EntityImage customWidth={imageWidth} />}
-                {showContent && (
-                  <ContentBlockRenderer
-                    content={contentBlocks!}
-                    fontSize={fontSize.sm}
-                    compact={compact}
-                    damaged={damaged}
-                    headerBg={headerBg}
+          {/* Float zone: block flow so image float propagates to all children */}
+          <div
+            className={cn(spacing.smallGap <= 1.5 ? 'space-y-1.5' : 'space-y-2')}
+            style={{
+              paddingLeft: `${spacing.contentPaddingX}rem`,
+              paddingRight: `${spacing.contentPaddingX}rem`,
+              paddingTop:
+                source !== 'Salvage Union Workshop Manual' && hasTopMatterContent
+                  ? `calc(${spacing.contentPadding * 0.25}rem + 5px)`
+                  : `${spacing.contentPadding}rem`,
+              paddingBottom: `${spacing.contentPadding}rem`,
+            }}
+          >
+            {assetUrl && <EntityImage customWidth={imageWidth} />}
+            {showContent && (
+              <ContentBlockRenderer
+                content={contentBlocks!}
+                fontSize={fontSize.sm}
+                compact={compact}
+                damaged={damaged}
+                headerBg={headerBg}
+              />
+            )}
+            {children}
+
+            {hasChassisAbilitiesInTopMatter && <EntityChassisAbilitiesContent />}
+            {(!hideActions || compact) && <EntityActions />}
+
+            {compact && hasChassisAbilities && <EntityChassisAbilitiesContent />}
+
+            <EntityPopulationRange />
+            <EntityBonusPerTechLevel />
+            {effects?.map((effect, index) => (
+              <ConditionalSheetInfo
+                key={index}
+                propertyName="effects"
+                label={effect.label}
+                value={effect.value}
+              />
+            ))}
+
+            <EntityRequirementDisplay />
+            {table && (
+              <div className="relative z-10 rounded-md">
+                <RollTable
+                  disabled={disabled}
+                  table={table}
+                  showCommand
+                  compact
+                  tableName={'name' in data ? String(data.name) : undefined}
+                />
+              </div>
+            )}
+            {shouldShowExtraContent && (
+              <>
+                {!hidePatterns && <EntityChassisPatterns />}
+                <EntityOptions />
+                {'damagedEffect' in data && data.damagedEffect && (
+                  <ConditionalSheetInfo
+                    propertyName="damagedEffect"
+                    labelBgColor="text-brand-srd"
+                    label="Damaged Effect"
                   />
                 )}
-                {children}
+                {schemaName === 'classes' &&
+                  classAbilitiesRenderer?.({
+                    compact,
+                    selectedClass,
+                    selectedAdvancedClass,
+                  })}
+                <EntityGrants />
+              </>
+            )}
+            {buttonConfig && (
+              <div className="clear-both flex">
+                <ButtonWithConfig buttonConfig={buttonConfig} />
               </div>
-              {hasChassisAbilitiesInTopMatter && <EntityChassisAbilitiesContent />}
-              {(!hideActions || compact) && <EntityActions />}
-            </>
-          )}
-
-          {compact && hasChassisAbilities && <EntityChassisAbilitiesContent />}
-
-          <EntityPopulationRange />
-          <EntityBonusPerTechLevel />
-          {effects?.map((effect, index) => (
-            <ConditionalSheetInfo
-              key={index}
-              propertyName="effects"
-              label={effect.label}
-              value={effect.value}
-            />
-          ))}
-
-          <EntityRequirementDisplay />
-          {/* Always show table in compact mode, regardless of schema */}
-          {table && (
-            <div
-              className="relative z-10 rounded-md"
-              style={{
-                paddingLeft: `${spacing.contentPaddingX}rem`,
-                paddingRight: `${spacing.contentPaddingX}rem`,
-                paddingTop: `${spacing.contentPadding}rem`,
-                paddingBottom: `${spacing.contentPadding}rem`,
-              }}
-            >
-              <RollTable
-                disabled={disabled}
-                table={table}
-                showCommand
-                compact
-                tableName={'name' in data ? String(data.name) : undefined}
-              />
-            </div>
-          )}
-          {shouldShowExtraContent && (
-            <>
-              {!hidePatterns && <EntityChassisPatterns />}
-              <EntityOptions />
-              {'damagedEffect' in data && data.damagedEffect && (
-                <ConditionalSheetInfo
-                  propertyName="damagedEffect"
-                  labelBgColor="text-brand-srd"
-                  label="Damaged Effect"
-                />
-              )}
-              {schemaName === 'classes' &&
-                classAbilitiesRenderer?.({
-                  compact,
-                  selectedClass,
-                  selectedAdvancedClass,
-                })}
-              <EntityGrants />
-            </>
-          )}
-          {buttonConfig && (
-            <div
-              className="flex"
-              style={{
-                paddingLeft: `${spacing.contentPaddingX}rem`,
-                paddingRight: `${spacing.contentPaddingX}rem`,
-                paddingTop: `${spacing.contentPadding}rem`,
-                paddingBottom: `${spacing.contentPadding}rem`,
-              }}
-            >
-              <ButtonWithConfig buttonConfig={buttonConfig} />
-            </div>
-          )}
-          <EntityChoices userChoices={userChoices} onChoiceSelection={undefined} />
-          {/* Inline footer (replaces context-dependent EntityDisplayFooter from Chakra) */}
+            )}
+            <EntityChoices userChoices={userChoices} onChoiceSelection={undefined} />
+            <div className="clear-both" />
+          </div>
+          {/* Footer — always full-width, outside float zone */}
           {(showFooter ?? (compact || !hideActions)) && (hasPage || hasSource) && (
             <div
               className={cn(

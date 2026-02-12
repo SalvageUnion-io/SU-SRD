@@ -5,20 +5,12 @@ import { useEntityDisplayContext } from './useEntityDisplayContext'
 import { getRequirement } from 'salvageunion-reference'
 
 export function EntityRequirementDisplay() {
-  const { data, spacing, compact } = useEntityDisplayContext()
+  const { data, compact } = useEntityDisplayContext()
   const requirement = getRequirement(data)
   if (!requirement || requirement.length === 0) return null
 
   return (
-    <div
-      className="flex"
-      style={{
-        paddingLeft: `${spacing.contentPaddingX}rem`,
-        paddingRight: `${spacing.contentPaddingX}rem`,
-        paddingTop: `${spacing.contentPadding}rem`,
-        paddingBottom: `${spacing.contentPadding}rem`,
-      }}
-    >
+    <div className="flex">
       <SheetDisplay compact={compact} label="Requirements" labelColor="text-brand-srd">
         {requirement.map((req, index) => (
           <Fragment key={req + '-' + index}>

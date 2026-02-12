@@ -37,13 +37,7 @@ export function EntityGrants() {
   }
 
   return (
-    <div
-      className={cn('flex flex-col items-stretch', spacing.smallGap <= 1.5 ? 'gap-1.5' : 'gap-2')}
-      style={{
-        paddingLeft: `${spacing.contentPaddingX}rem`,
-        paddingRight: `${spacing.contentPaddingX}rem`,
-      }}
-    >
+    <div className={cn(spacing.smallGap <= 1.5 ? 'space-y-1.5' : 'space-y-2')}>
       <div style={{ marginBottom: `${spacing.minimalGap}rem` }}>
         <EntitySubheader disabled={true} label="Grants:" />
       </div>

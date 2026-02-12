@@ -53,7 +53,7 @@ export function NestedActionDisplay({
   const borderColor = headerBg ? `var(--color-${headerBg.replace('bg-', '')})` : undefined
 
   return (
-    <div className="overflow-hidden bg-transparent mt-4">
+    <div className="overflow-hidden bg-transparent">
       <div className={cn('flex flex-wrap items-center bg-transparent', verticalSpacing)}>
         <Text
           variant="pseudoheader"

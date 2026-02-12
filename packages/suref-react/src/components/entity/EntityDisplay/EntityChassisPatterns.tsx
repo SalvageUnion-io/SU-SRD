@@ -7,7 +7,7 @@ import { useEntityDisplayContext } from './useEntityDisplayContext'
 import { cn } from '../../../utils/cn'
 
 export function EntityChassisPatterns() {
-  const { data, spacing } = useEntityDisplayContext()
+  const { data } = useEntityDisplayContext()
 
   const patterns = 'patterns' in data ? data.patterns : undefined
   const firstPattern = patterns?.[0]
@@ -25,15 +25,7 @@ export function EntityChassisPatterns() {
   const activePattern = patterns.find((p) => normalizePatternName(p.name) === selectedPattern)
 
   return (
-    <div
-      className="flex flex-col items-stretch gap-4"
-      style={{
-        paddingLeft: `${spacing.contentPaddingX}rem`,
-        paddingRight: `${spacing.contentPaddingX}rem`,
-        paddingTop: `${spacing.contentPadding}rem`,
-        paddingBottom: `${spacing.contentPadding}rem`,
-      }}
-    >
+    <div className="space-y-4">
       <EntitySubheader label="Patterns" />
 
       {/* Tab navigation */}

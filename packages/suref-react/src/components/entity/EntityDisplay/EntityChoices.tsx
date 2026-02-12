@@ -31,15 +31,7 @@ export function EntityChoices({ userChoices, onChoiceSelection }: EntityChoicesP
 
   if (!isSchemaPageMode) {
     return (
-      <div
-        className="rounded-md bg-su-white"
-        style={{
-          paddingLeft: `${spacing.contentPaddingX}rem`,
-          paddingRight: `${spacing.contentPaddingX}rem`,
-          paddingTop: `${spacing.contentPadding}rem`,
-          paddingBottom: `${spacing.contentPadding}rem`,
-        }}
-      >
+      <div className="rounded-md bg-su-white">
         <Text className={cn('font-bold text-su-black', fontSize.md)}>
           WIP - Live sheet choices will be displayed here
         </Text>
@@ -48,14 +40,7 @@ export function EntityChoices({ userChoices, onChoiceSelection }: EntityChoicesP
   }
 
   return (
-    <div
-      className={cn('flex flex-col items-stretch', spacing.smallGap <= 1.5 ? 'gap-1.5' : 'gap-2')}
-      style={{
-        paddingLeft: `${spacing.contentPaddingX}rem`,
-        paddingRight: `${spacing.contentPaddingX}rem`,
-        paddingBottom: `${spacing.contentPadding * 2}rem`,
-      }}
-    >
+    <div className={cn(spacing.smallGap <= 1.5 ? 'space-y-1.5' : 'space-y-2')}>
       {entityChoices.map((choice) => {
         return (
           <EntityChoice

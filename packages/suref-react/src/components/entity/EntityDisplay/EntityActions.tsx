@@ -20,16 +20,7 @@ export function EntityActions() {
   if (!actionsToDisplay || actionsToDisplay.length === 0) return null
 
   return (
-    <div
-      className={cn(
-        'flex flex-col items-stretch rounded-md',
-        spacing.smallGap <= 1.5 ? 'gap-1.5' : 'gap-2'
-      )}
-      style={{
-        paddingLeft: `${spacing.contentPaddingX}rem`,
-        paddingRight: `${spacing.contentPaddingX}rem`,
-      }}
-    >
+    <div className={cn('rounded-md', spacing.smallGap <= 1.5 ? 'space-y-1.5' : 'space-y-2')}>
       {actionsToDisplay.map((action) => {
         return (
           <NestedActionDisplay
