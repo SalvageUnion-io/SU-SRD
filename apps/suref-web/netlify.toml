@@ -5,20 +5,20 @@
   publish = "apps/suref-web/dist"
 
 [build.environment]
-  BUN_VERSION = "1.1.38"
+  BUN_VERSION = "1.3.9"
   NODE_ENV = "production"
 
-# Asset optimization and processing
+# Skip Netlify post-processing - Astro/Vite already handles bundling and minification
 [build.processing]
   skip_processing = false
 
 [build.processing.css]
-  bundle = true
-  minify = true
+  bundle = false
+  minify = false
 
 [build.processing.js]
-  bundle = true
-  minify = true
+  bundle = false
+  minify = false
 
 [build.processing.html]
   pretty_urls = true
@@ -26,7 +26,11 @@
 [build.processing.images]
   compress = true
 
-# No SPA fallback needed - Astro generates real HTML for every route
+# 404 fallback
+[[redirects]]
+  from = "/*"
+  to = "/404"
+  status = 404
 
 # Security and performance headers
 [[headers]]
@@ -45,12 +49,6 @@
   for = "/_astro/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
-
-# Pagefind index - 24-hour cache
-[[headers]]
-  for = "/pagefind/*"
-  [headers.values]
-    Cache-Control = "public, max-age=86400"
 
 # Self-hosted fonts - immutable cache
 [[headers]]
@@ -76,6 +74,12 @@
 
 [[headers]]
   for = "/*.webp"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# SVG caching (favicon)
+[[headers]]
+  for = "/*.svg"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 

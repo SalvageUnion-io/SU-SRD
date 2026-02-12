@@ -1,52 +1,26 @@
 import { useState, useMemo, Suspense } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
-import {
-  getTechLevel,
-  getName,
-  getDescription,
-  getSource,
-  getUniqueTechLevels,
-  getUniqueSources,
-  getEntitySlug,
-} from 'salvageunion-reference'
+import { getTechLevel, getSource, getEntitySlug, isAbility } from 'salvageunion-reference'
 import { EntityDisplay, EntityCardSkeleton } from 'suref-react'
 
 type SchemaViewerIslandProps = {
   initialData: SURefEntity[]
   schemaId: string
-  techLevels?: (number | 'B' | 'N')[]
-  sources?: string[]
+  techLevels: (number | 'B' | 'N')[]
+  sources: string[]
 }
 
 export function SchemaViewerIsland({
   initialData,
   schemaId,
-  techLevels: precomputedTechLevels,
-  sources: precomputedSources,
+  techLevels,
+  sources,
 }: SchemaViewerIslandProps) {
-  const [search, setSearch] = useState('')
   const [techLevelFilters, setTechLevelFilters] = useState<Set<string>>(new Set())
   const [sourceFilters, setSourceFilters] = useState<Set<string>>(new Set())
 
-  const techLevels = useMemo(
-    () => precomputedTechLevels ?? getUniqueTechLevels(initialData),
-    [initialData, precomputedTechLevels]
-  )
-
-  const sources = useMemo(
-    () => precomputedSources ?? getUniqueSources(initialData),
-    [initialData, precomputedSources]
-  )
-
   const filteredData = useMemo(() => {
     return initialData.filter((item) => {
-      if (search) {
-        const searchLower = search.toLowerCase()
-        const nameMatch = getName(item)?.toLowerCase().includes(searchLower)
-        const descMatch = getDescription(item)?.toLowerCase().includes(searchLower)
-        if (!nameMatch && !descMatch) return false
-      }
-
       if (techLevelFilters.size > 0) {
         const techLevel = getTechLevel(item)
         const itemTechLevel = techLevel?.toString()
@@ -64,7 +38,7 @@ export function SchemaViewerIsland({
 
       return true
     })
-  }, [initialData, search, techLevelFilters, sourceFilters])
+  }, [initialData, techLevelFilters, sourceFilters])
 
   const toggleTechLevel = (level: number | 'B' | 'N') => {
     setTechLevelFilters((prev) => {
@@ -95,24 +69,13 @@ export function SchemaViewerIsland({
 
   return (
     <>
-      {/* Search + Filters */}
-      <div className={`w-full max-w-[600px] mx-auto ${hasFilters ? 'mb-3' : 'mb-2'}`}>
-        <input
-          type="text"
-          placeholder="Search by name or description..."
-          aria-label="Search entities by name or description"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full rounded-md border border-su-grey-light bg-su-white px-4 py-2 text-su-input-text focus:outline-none focus:ring-2 focus:ring-su-orange"
-        />
-      </div>
-
       {hasFilters && (
         <div className="flex w-full max-w-[1200px] mx-auto flex-col gap-3">
           {techLevels.length > 1 && (
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setTechLevelFilters(new Set())}
+                aria-pressed={techLevelFilters.size === 0}
                 className={`rounded-md px-4 py-2 font-medium transition-colors ${
                   techLevelFilters.size === 0
                     ? 'bg-su-orange text-su-white'
@@ -129,6 +92,7 @@ export function SchemaViewerIsland({
                   <button
                     key={String(level)}
                     onClick={() => toggleTechLevel(level)}
+                    aria-pressed={isSelected}
                     className={`rounded-md px-4 py-2 font-medium transition-colors ${
                       isSelected
                         ? 'bg-su-orange text-su-white'
@@ -146,6 +110,7 @@ export function SchemaViewerIsland({
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setSourceFilters(new Set())}
+                aria-pressed={sourceFilters.size === 0}
                 className={`rounded-md px-4 py-2 font-medium transition-colors ${
                   sourceFilters.size === 0
                     ? 'bg-su-orange text-su-white'
@@ -160,6 +125,7 @@ export function SchemaViewerIsland({
                   <button
                     key={source}
                     onClick={() => toggleSource(source)}
+                    aria-pressed={isSelected}
                     className={`rounded-md px-4 py-2 font-medium transition-colors ${
                       isSelected
                         ? 'bg-su-orange text-su-white'
@@ -177,7 +143,7 @@ export function SchemaViewerIsland({
 
       {/* Entity Grid */}
       <div className="flex-1 p-6">
-        <div className="mx-auto max-w-[1400px] columns-1 gap-4 md:columns-2 lg:columns-3 [&>*]:mb-4 [&>*]:break-inside-avoid">
+        <div className="mx-auto max-w-[1400px] columns-1 gap-4 lg:columns-2 xl:columns-3 [&>*]:mb-4 [&>*]:break-inside-avoid">
           {filteredData.map((item: SURefEntity) => (
             <a
               key={item.id}
@@ -185,7 +151,14 @@ export function SchemaViewerIsland({
               className="block cursor-pointer transition-all duration-200 md:hover:scale-105 md:hover:-translate-y-1 md:hover:z-10 md:hover:shadow-lg"
             >
               <Suspense fallback={<EntityCardSkeleton compact />}>
-                <EntityDisplay hideActions hideChoices data={item} compact collapsible={false} />
+                <EntityDisplay
+                  hideActions
+                  hideChoices
+                  data={item}
+                  compact
+                  collapsible={false}
+                  label={isAbility(item) && item.tree ? `${item.tree} tree` : undefined}
+                />
               </Suspense>
             </a>
           ))}

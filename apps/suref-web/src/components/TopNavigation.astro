@@ -13,50 +13,29 @@ function isActive(path: string) {
 ---
 
 <nav class="flex h-20 items-center justify-between bg-su-white px-6 py-3 z-50">
-  <!-- Logo -->
-  <a href="/" class="flex items-center gap-1 rounded-md p-2 hover:bg-su-blue-pale transition-colors">
-    <span class="font-semibold text-xl text-su-black">Salvage Union</span>
-    <span class="text-xs text-su-orange-dark font-medium">SRD</span>
-  </a>
+  <!-- Logo + Search -->
+  <div class="flex items-center gap-2">
+    <a href="/" class="flex items-center gap-1 rounded-md p-2 hover:bg-su-blue-pale transition-colors">
+      <span class="font-semibold text-xl text-su-black">Salvage Union</span>
+      <span class="text-xs text-su-orange-dark font-medium">SRD</span>
+    </a>
+    <div class="hidden lg:block">
+      <SearchIsland client:idle />
+    </div>
+  </div>
 
   <!-- Desktop nav -->
-  <div class="hidden md:flex items-center gap-2">
-    <!-- Schema dropdown -->
-    <div class="relative group">
-      <button
-        class:list={[
-          'px-4 py-2 rounded-md font-medium transition-colors',
-          isActive('/schema')
-            ? 'bg-su-orange text-su-white font-semibold'
-            : 'bg-su-blue-pale group-hover:bg-su-orange group-hover:text-su-white group-hover:font-semibold',
-        ]}
-      >
-        Reference
-      </button>
-      <div class="absolute left-0 top-full z-50 hidden group-hover:block pt-1">
-        <div class="max-h-[300px] min-w-[200px] overflow-y-auto rounded-md border border-su-grey-light bg-su-white shadow-lg">
-          {schemas.map((schema) => (
-            <a
-              href={`/schema/${schema.id}`}
-              class="block px-4 py-2 text-sm text-su-black hover:bg-su-blue-pale transition-colors"
-            >
-              {schema.displayName || schema.title.replace('Salvage Union ', '')}
-            </a>
-          ))}
-        </div>
-      </div>
-    </div>
-
+  <div class="hidden lg:flex items-center gap-2">
     <a
       href="/randsum"
       class:list={[
         'px-4 py-2 rounded-md font-medium transition-colors',
         isActive('/randsum')
-          ? 'bg-su-orange text-su-white font-semibold'
-          : 'bg-su-blue-pale hover:bg-su-blue-light',
+          ? 'bg-su-blue-pale font-semibold'
+          : 'bg-su-orange text-su-white hover:bg-su-blue-pale hover:text-su-black',
       ]}
     >
-      Discord Bot
+      Randsum
     </a>
 
     <a
@@ -64,21 +43,16 @@ function isActive(path: string) {
       class:list={[
         'px-4 py-2 rounded-md font-medium transition-colors',
         isActive('/about')
-          ? 'bg-su-orange text-su-white font-semibold'
-          : 'bg-su-blue-pale hover:bg-su-blue-light',
+          ? 'bg-su-blue-pale font-semibold'
+          : 'bg-su-orange text-su-white hover:bg-su-blue-pale hover:text-su-black',
       ]}
     >
       About
     </a>
-
-    <div class="ml-2">
-      <SearchIsland client:idle />
-    </div>
   </div>
 
-  <!-- Mobile: search + hamburger -->
-  <div class="flex md:hidden items-center gap-2">
-    <SearchIsland client:idle />
+  <!-- Mobile: hamburger -->
+  <div class="flex lg:hidden items-center gap-2">
     <MobileNavIsland
       client:idle
       schemas={schemas.map((s) => ({ id: s.id, displayName: s.displayName || s.title.replace('Salvage Union ', '') }))}

@@ -53,7 +53,7 @@ bun run build:bot        # Build Discord bot
 ### Architecture
 
 **Workspace structure:**
-- `apps/suref-web/` - Static SRD reference site (React 19, TanStack Start/Router, Chakra UI v3, Vite). No auth, no Supabase.
+- `apps/suref-web/` - Static SRD reference site (Astro 5, React 19 islands, Tailwind v4, Vite). No auth, no Supabase.
 - `apps/in-the-union-now/` - Character builder & game manager (React 19, TanStack Router/Query, ShadCN + Tailwind v4, Supabase, Vite). Has auth, dashboard, live sheets.
 - `apps/discord-bot/` - Discord.js bot for rolling on Salvage Union tables
 - `packages/suref-react/` - Shared React component library (ShadCN + Tailwind, entity display system, base typography, UI primitives). No build step, exports TypeScript source.
@@ -101,11 +101,13 @@ Models extend `BaseModel<T>`, created via `ModelFactory`, accessed via `SalvageU
 
 ### suref-web App (Static Reference Site)
 
-- **Routing:** File-based routing in `src/routes/` via TanStack Router. Routes: `/` (landing), `/schema/$schemaId`, `/schema/$schemaId/item/$itemId`, `/about`, `/randsum`, `/404`.
+- **Framework:** Astro 5 with React 19 islands architecture. Static output, no SSR.
+- **Routing:** File-based routing in `src/pages/` via Astro. Routes: `/` (landing), `/schema/[schemaId]`, `/schema/[schemaId]/item/[itemId]`, `/about`, `/randsum`, `/404`.
 - **No auth, no Supabase, no user data.** Pure static reference site.
-- **UI:** Chakra UI v3 with theme from `suref-react`. Components import from `suref-react` for shared UI.
+- **UI:** Tailwind v4 with theme from `suref-react`. React islands for interactive components (search, schema viewer, entity display). Components import from `suref-react` for shared UI.
+- **Search:** In-memory search via `salvageunion-reference` package `search()` function. Cmd+K/Ctrl+K shortcut to focus.
 - **Testing:** Bun test runner with React Testing Library + happy-dom. No Supabase env vars needed.
-- **Deployment:** Netlify
+- **Deployment:** Netlify (static site, no server functions)
 
 ### Pre-commit Hooks (Lefthook)
 

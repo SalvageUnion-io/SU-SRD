@@ -4,7 +4,6 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import { EntityDisplay } from 'suref-react'
 import type { ClassAbilitiesRenderer } from 'suref-react'
 
-// eslint-disable-next-line react-refresh/only-export-components
 function ClassAbilities({
   selectedClass,
   selectedAdvancedClass,
@@ -52,7 +51,7 @@ function ClassAbilities({
             {index === 0 && treeIndex > 0 && <div className="pt-4" />}
             <EntityDisplay
               data={ability}
-              label={index === 0 ? `${tree} Tree` : undefined}
+              label={index === 0 ? `${tree} tree` : undefined}
               compact
               collapsible
               defaultExpanded={false}

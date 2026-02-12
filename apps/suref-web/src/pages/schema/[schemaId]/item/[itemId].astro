@@ -59,9 +59,6 @@ if (displayData?.techLevel != null) {
   }
 }
 
-// Extract tech level and source for Pagefind filters
-const techLevelDisplay = displayData?.techLevel != null ? String(displayData.techLevel) : ''
-const sourceDisplay = displayData?.source ?? ''
 const preloadImage = displayData?.assetUrl
 ---
 
@@ -72,14 +69,9 @@ const preloadImage = displayData?.assetUrl
   ogType="article"
   structuredData={structuredData}
   preloadImage={preloadImage}
-  hasEntityViewer
 >
-  <article class="flex min-h-full flex-1 flex-col items-center justify-center p-4" data-pagefind-body>
-    <h1 data-pagefind-meta="title" class="sr-only">{itemName}</h1>
-    {schemaName && <span data-pagefind-filter="schema" class="hidden">{schemaName}</span>}
-    {techLevelDisplay && <span data-pagefind-filter="tech-level" class="hidden">{techLevelDisplay}</span>}
-    {sourceDisplay && <span data-pagefind-filter="source" class="hidden">{sourceDisplay}</span>}
-
+  <article class="flex min-h-full flex-1 flex-col items-center justify-center p-4">
+    <h1 class="sr-only">{itemName}</h1>
     <EntityIsland client:load item={item} />
   </article>
 </BaseLayout>

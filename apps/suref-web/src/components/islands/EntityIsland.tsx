@@ -1,5 +1,6 @@
 import { Suspense } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
+import { isAbility } from 'salvageunion-reference'
 import { EntityDisplay, EntityCardSkeleton } from 'suref-react'
 import { classAbilitiesRenderer } from './classAbilitiesRenderer'
 
@@ -16,6 +17,7 @@ export function EntityIsland({ item, compact = false }: EntityIslandProps) {
           data={item}
           compact={compact}
           classAbilitiesRenderer={classAbilitiesRenderer}
+          label={isAbility(item) && item.tree ? `${item.tree} tree` : undefined}
         />
       </Suspense>
     </div>

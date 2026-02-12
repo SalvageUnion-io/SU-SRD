@@ -2,7 +2,7 @@ import { useCallback, useMemo } from 'react'
 import type { ReactNode } from 'react'
 import { getTiltRotation } from '../../../../utils/tiltUtils'
 import type { SURefClass } from 'salvageunion-reference'
-import { getDisplayName, isAbility } from 'salvageunion-reference'
+import { getDisplayName } from 'salvageunion-reference'
 import { RollTable } from '../../../shared/RollTable'
 import { Card } from '../../../shared/Card'
 import { EntitySubTitleElement } from '../EntitySubTitleContent'
@@ -129,7 +129,6 @@ export function EntityDisplayContent({ children }: { children?: React.ReactNode 
   const hasPage = 'page' in data && !!data.page
   const hasSource = 'source' in data && !!data.source
   const footerDisplayName = getDisplayName(schemaName)
-  const treeName = isAbility(data) && 'tree' in data && data.tree ? String(data.tree) : undefined
   const sourceFooterStyles = getSourceStyles(source, disabled ?? false, 'footer', isExpanded)
 
   return (
@@ -260,15 +259,6 @@ export function EntityDisplayContent({ children }: { children?: React.ReactNode 
                     )}
                   >
                     {footerDisplayName}
-                  </Text>
-                )}
-                {treeName && (
-                  <Text
-                    variant="pseudoheader"
-                    as="span"
-                    className="min-w-0 shrink overflow-hidden text-ellipsis whitespace-nowrap text-xs font-semibold uppercase"
-                  >
-                    {treeName}
                   </Text>
                 )}
               </div>

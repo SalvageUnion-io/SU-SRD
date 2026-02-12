@@ -4,7 +4,6 @@ import '../styles/global.css'
 import TopNavigation from '../components/TopNavigation.astro'
 import Footer from '../components/Footer.astro'
 import { Toaster } from 'suref-react'
-import { EntityModalIsland } from '../components/islands/EntityModalIsland'
 
 type Props = {
   title?: string
@@ -15,7 +14,6 @@ type Props = {
   structuredData?: Record<string, unknown>
   noindex?: boolean
   preloadImage?: string
-  hasEntityViewer?: boolean
 }
 
 const {
@@ -27,7 +25,6 @@ const {
   structuredData,
   noindex = false,
   preloadImage,
-  hasEntityViewer = false,
 } = Astro.props
 
 const siteUrl = 'https://salvageunion.io'
@@ -43,12 +40,14 @@ const ogImageUrl = new URL(ogImage, siteUrl).href
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonicalUrl} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
     <!-- Open Graph -->
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonicalUrl} />
     <meta property="og:type" content={ogType} />
+    <meta property="og:site_name" content="Salvage Union SRD" />
     <meta property="og:image" content={ogImageUrl} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
@@ -81,6 +80,5 @@ const ogImageUrl = new URL(ogImage, siteUrl).href
       <Footer />
     </div>
     <Toaster client:idle />
-    {hasEntityViewer && <EntityModalIsland client:idle />}
   </body>
 </html>

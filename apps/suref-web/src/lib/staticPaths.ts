@@ -4,8 +4,6 @@ import {
   getModel,
   getEntitySchemas,
   getEntityDisplayData,
-  getEntitySlug,
-  findEntityBySlug,
 } from 'salvageunion-reference'
 import type { SURefEnumSchemaName, SURefEntity } from 'salvageunion-reference'
 
@@ -61,5 +59,3 @@ export function getItemStaticPaths() {
 
   return paths
 }
-
-export { findEntityBySlug, getEntitySlug, catalog }

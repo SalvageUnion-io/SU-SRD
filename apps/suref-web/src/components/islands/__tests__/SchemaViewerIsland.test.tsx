@@ -1,6 +1,11 @@
 import { describe, it, expect } from 'bun:test'
 import { render } from '@testing-library/react'
-import { getEntitySchemas, getModel } from 'salvageunion-reference'
+import {
+  getEntitySchemas,
+  getModel,
+  getUniqueTechLevels,
+  getUniqueSources,
+} from 'salvageunion-reference'
 import { SchemaViewerIsland } from '../SchemaViewerIsland'
 
 const entitySchemas = getEntitySchemas()
@@ -15,7 +20,12 @@ describe('SchemaViewerIsland', () => {
 
     it(`renders all ${entities.length} entities for "${schema.displayName}" (${schema.id})`, () => {
       const { container } = render(
-        <SchemaViewerIsland initialData={entities} schemaId={schema.id} />
+        <SchemaViewerIsland
+          initialData={entities}
+          schemaId={schema.id}
+          techLevels={getUniqueTechLevels(entities)}
+          sources={getUniqueSources(entities)}
+        />
       )
 
       const links = container.querySelectorAll('a')
@@ -29,7 +39,12 @@ describe('SchemaViewerIsland', () => {
     const entities = model.all()
 
     const { container } = render(
-      <SchemaViewerIsland initialData={entities} schemaId={firstSchema.id} />
+      <SchemaViewerIsland
+        initialData={entities}
+        schemaId={firstSchema.id}
+        techLevels={getUniqueTechLevels(entities)}
+        sources={getUniqueSources(entities)}
+      />
     )
 
     const searchInput = container.querySelector('input[type="text"]')
