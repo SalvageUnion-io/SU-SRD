@@ -2,9 +2,19 @@
 import BaseLayout from '../layouts/BaseLayout.astro'
 import { getSchemaCatalog } from 'salvageunion-reference'
 import { getCatalogBg } from '../lib/catalogColors'
+import { schemaCategories } from '../lib/schema-categories'
 
 const catalog = getSchemaCatalog()
 const schemas = catalog.schemas.filter((s) => !s.meta)
+const schemaMap = new Map(schemas.map((s) => [s.id, s]))
+
+const categories = schemaCategories.map((cat) => ({
+  label: cat.label,
+  schemas: cat.schemaIds.flatMap((id) => {
+    const s = schemaMap.get(id)
+    return s ? [s] : []
+  }),
+}))
 
 const invariantNouns = new Set(['Chassis', 'Equipment', 'Meld'])
 
@@ -38,30 +48,39 @@ function pluralizeWord(word: string) {
     <div class="mx-auto flex w-full max-w-4xl flex-col gap-8 px-6">
       <!-- Attribution -->
       <div class="text-center">
-        <p class="text-sm text-su-orange-dark">
-          An SRD for the{' '}
-          <a
+        <p class="text-sm text-su-grey-dark">
+          A System Reference Document for the
+          {' '}<a
             href="https://leyline.press/collections/salvage-union"
             target="_blank"
             rel="noopener noreferrer"
             class="underline hover:text-su-orange"
-          >
-            Salvage Union
-          </a>{' '}
+          >Salvage Union</a>{' '}
           TTRPG
         </p>
       </div>
 
       <!-- Schema list -->
-      <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {schemas.map((schema) => (
-          <a
-            href={`/schema/${schema.id}`}
-            class:list={['btn text-center catalog-item']}
-            style={`--catalog-bg: ${getCatalogBg(schema.id)}`}
-          >
-            {pluralize(schema.displayName, schema.itemCount)}
-          </a>
+      <div class="flex flex-col gap-6">
+        {categories.map((cat) => (
+          <div>
+            <div class="catalog-header mb-2">
+              <span class="bg-su-black px-1 font-mono font-bold uppercase tracking-tight text-su-white" style="line-height: 1;">
+                {cat.label}
+              </span>
+            </div>
+            <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {cat.schemas.map((schema) => (
+                <a
+                  href={`/schema/${schema.id}`}
+                  class:list={['btn text-center catalog-item']}
+                  style={`--catalog-bg: ${getCatalogBg(schema.id)}`}
+                >
+                  {pluralize(schema.displayName, schema.itemCount)}
+                </a>
+              ))}
+            </div>
+          </div>
         ))}
       </div>
     </div>

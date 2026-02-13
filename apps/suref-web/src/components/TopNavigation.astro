@@ -4,10 +4,20 @@ import { MobileNavIsland } from './islands/MobileNavIsland'
 import { SearchIsland } from './islands/SearchIsland'
 import Logo from './Logo.astro'
 import { getCatalogBg } from '../lib/catalogColors'
+import { schemaCategories } from '../lib/schema-categories'
 
 const catalog = getSchemaCatalog()
 const schemas = catalog.schemas.filter((s) => !s.meta)
+const schemaMap = new Map(schemas.map((s) => [s.id, s]))
 const currentPath = Astro.url.pathname
+
+const categories = schemaCategories.map((cat) => ({
+  label: cat.label,
+  schemas: cat.schemaIds.flatMap((id) => {
+    const s = schemaMap.get(id)
+    return s ? [{ id: s.id, displayName: s.displayName || s.title.replace('Salvage Union ', ''), catalogBg: getCatalogBg(s.id) }] : []
+  }),
+}))
 
 function isActive(path: string) {
   return currentPath.startsWith(path)
@@ -44,7 +54,7 @@ function isActive(path: string) {
   <div class="flex lg:hidden items-center gap-2">
     <MobileNavIsland
       client:idle
-      schemas={schemas.map((s) => ({ id: s.id, displayName: s.displayName || s.title.replace('Salvage Union ', ''), catalogBg: getCatalogBg(s.id) }))}
+      categories={categories}
       currentPath={currentPath}
     />
   </div>
