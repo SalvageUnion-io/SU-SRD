@@ -33,13 +33,7 @@ export const CompactMode: Story = () => (
 
 export const Collapsible: Story = () => (
   <div className="w-[600px]">
-    <EntityDisplay data={system} collapsible defaultExpanded={false} />
-  </div>
-)
-
-export const CollapsibleExpanded: Story = () => (
-  <div className="w-[600px]">
-    <EntityDisplay data={system} collapsible defaultExpanded />
+    <EntityDisplay data={system} collapsible />
   </div>
 )
 
@@ -69,7 +63,7 @@ export const HiddenActions: Story = () => (
 
 export const WithFooter: Story = () => (
   <div className="w-[600px]">
-    <EntityDisplay data={system} showFooter />
+    <EntityDisplay data={system} />
   </div>
 )
 
@@ -91,19 +85,19 @@ export const DimHeader: Story = () => (
 
 export const ExpansionRainmaker: Story = () => (
   <div className="w-[600px] py-6">
-    <EntityDisplay data={rainmakerEntity} showFooter collapsible defaultExpanded />
+    <EntityDisplay data={rainmakerEntity} />
   </div>
 )
 
 export const ExpansionWeWereHereFirst: Story = () => (
   <div className="w-[600px] py-6">
-    <EntityDisplay data={wwhfEntity} showFooter collapsible defaultExpanded />
+    <EntityDisplay data={wwhfEntity} />
   </div>
 )
 
 export const ExpansionFalseFlag: Story = () => (
   <div className="w-[600px]">
-    <EntityDisplay data={falseFlagEntity} showFooter collapsible defaultExpanded />
+    <EntityDisplay data={falseFlagEntity} />
   </div>
 )
 
@@ -111,23 +105,23 @@ export const AllExpansions: Story = () => (
   <div className="flex w-[600px] flex-col gap-8 py-6">
     <div>
       <p className="mb-2 text-xs font-bold uppercase tracking-wide text-su-grey-dark">Rainmaker</p>
-      <EntityDisplay data={rainmakerEntity} showFooter collapsible defaultExpanded />
+      <EntityDisplay data={rainmakerEntity} />
     </div>
     <div>
       <p className="mb-2 text-xs font-bold uppercase tracking-wide text-su-grey-dark">
         We Were Here First!
       </p>
-      <EntityDisplay data={wwhfEntity} showFooter collapsible defaultExpanded />
+      <EntityDisplay data={wwhfEntity} />
     </div>
     <div>
       <p className="mb-2 text-xs font-bold uppercase tracking-wide text-su-grey-dark">False Flag</p>
-      <EntityDisplay data={falseFlagEntity} showFooter collapsible defaultExpanded />
+      <EntityDisplay data={falseFlagEntity} />
     </div>
     <div>
       <p className="mb-2 text-xs font-bold uppercase tracking-wide text-su-grey-dark">
         No Expansion (Core)
       </p>
-      <EntityDisplay data={system} showFooter collapsible defaultExpanded />
+      <EntityDisplay data={system} />
     </div>
   </div>
 )

@@ -1,4 +1,3 @@
-import { createContext } from 'react'
 import type { ReactNode } from 'react'
 import type {
   SURefClass,
@@ -49,6 +48,8 @@ export const getEntitySpacing = (compact: boolean) => ({
   smallGapClass: compact ? 'gap-1.5' : ('gap-2' as const),
   /** Tailwind space-y class: 'space-y-1.5' (compact) or 'space-y-2' (normal) */
   smallSpaceYClass: compact ? 'space-y-1.5' : ('space-y-2' as const),
+  /** Tailwind space-y class for section-level gaps: 'space-y-3' (compact) or 'space-y-4' (normal) */
+  sectionSpaceYClass: compact ? 'space-y-3' : ('space-y-4' as const),
   /** Gap for minimal spacing: 0.25 (compact) or 0.5 (normal) */
   minimalGap: compact ? 0.25 : 0.5,
   /** Vertical padding for content: 0.5 (compact) or 0.75 (normal) */
@@ -72,7 +73,7 @@ export const getEntityFontSizes = (compact: boolean) => ({
   lg: compact ? 'text-base' : 'text-lg',
 })
 
-export type EntityDisplayContextValue = {
+export type EntityDisplayState = {
   /** Entity data - only SURefEntity (not SURefMetaAction or SURefObjectSystemModule) */
   data: SURefEntity
   /** Schema name */
@@ -95,8 +96,8 @@ export type EntityDisplayContextValue = {
   opacity: { header: number; content: number }
   /** Whether to show extra content sections */
   shouldShowExtraContent: boolean
-  /** Header click handler */
-  handleHeaderClick: () => void
+  /** Header click handler (undefined when no onClick is provided) */
+  handleHeaderClick: (() => void) | undefined
   /** Whether the component is expanded */
   isExpanded: boolean
   /** Whether the component is collapsible */
@@ -107,8 +108,6 @@ export type EntityDisplayContextValue = {
   hidePatterns: boolean
   /** Whether to hide choices */
   hideChoices: boolean
-  /** Whether to show the footer (page reference). Defaults to !hideActions */
-  showFooter?: boolean
   /** Whether to hide tech level */
   hideLevel: boolean
   /** Custom right content for header */
@@ -121,12 +120,8 @@ export type EntityDisplayContextValue = {
   buttonConfig?: EntityButtonConfig
   /** User choices for entity options */
   userChoices?: Record<string, string> | null
-  /** Children to render in the content area */
-  children?: ReactNode
   /** Custom width for the image (e.g., '40%') */
   imageWidth?: string
-  /** Computed entity display name */
-  entityName: string
   /** Whether entity has actions */
   hasActions: boolean
   /** Array of chassis abilities (or undefined) */
@@ -137,8 +132,6 @@ export type EntityDisplayContextValue = {
   table?: SURefObjectTable
   /** Asset URL string (or undefined) */
   assetUrl?: string
-  /** Array of visible actions (or undefined) */
-  visibleActions?: SURefMetaAction[]
   /** Filtered actions excluding entity name (or undefined) */
   actionsToDisplay?: SURefMetaAction[]
   /** Action with matching name for content replacement (or undefined) */
@@ -152,5 +145,3 @@ export type EntityDisplayContextValue = {
   /** Optional custom image component (defaults to native img) */
   imageComponent?: EntityImageComponent
 }
-
-export const EntityDisplayContext = createContext<EntityDisplayContextValue | null>(null)

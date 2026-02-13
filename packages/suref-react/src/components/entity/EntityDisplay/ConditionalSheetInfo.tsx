@@ -1,12 +1,13 @@
 import type { ReactNode } from 'react'
+import type { SURefEntity } from 'salvageunion-reference'
 import { SheetDisplay } from '../../shared/SheetDisplay'
-import { useEntityDisplayContext } from './useEntityDisplayContext'
 import { useParseTraitReferences } from '../../../utils/parseTraitReferences'
 import { useMemo } from 'react'
 import { getTiltRotation } from '../../../utils/tiltUtils'
 import { Text } from '../../base/Text'
 import { borderColorFromHeaderBg } from '../entityDisplayHelpers'
 import { cn } from '../../../utils/cn'
+import type { getEntityFontSizes } from './entityDisplayTypes'
 
 type ConditionalSheetInfoProps = {
   /** Property name to check in data (for backwards compatibility) */
@@ -19,6 +20,16 @@ type ConditionalSheetInfoProps = {
   labelBgColor?: string
   /** Optional children to render */
   children?: ReactNode
+  /** Entity data */
+  data: SURefEntity
+  /** Compact mode */
+  compact: boolean
+  /** Whether entity is damaged */
+  damaged: boolean
+  /** Font sizes */
+  fontSize: ReturnType<typeof getEntityFontSizes>
+  /** Header background color */
+  headerBg: string
 }
 
 /**
@@ -31,9 +42,12 @@ export function ConditionalSheetInfo({
   label,
   labelBgColor,
   children,
+  data,
+  compact,
+  damaged,
+  fontSize,
+  headerBg,
 }: ConditionalSheetInfoProps) {
-  const { data, compact, damaged, fontSize, headerBg } = useEntityDisplayContext()
-
   let displayValue: string | undefined
   if (explicitValue !== undefined) {
     displayValue = explicitValue

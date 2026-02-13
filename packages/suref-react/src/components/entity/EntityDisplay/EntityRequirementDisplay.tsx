@@ -1,11 +1,15 @@
+import type { SURefEntity } from 'salvageunion-reference'
+import { getRequirement } from 'salvageunion-reference'
 import { SheetDisplay } from '../../shared/SheetDisplay'
 import { Text } from '../../base/Text'
 import { Fragment } from 'react/jsx-runtime'
-import { useEntityDisplayContext } from './useEntityDisplayContext'
-import { getRequirement } from 'salvageunion-reference'
 
-export function EntityRequirementDisplay() {
-  const { data, compact } = useEntityDisplayContext()
+type EntityRequirementDisplayProps = {
+  data: SURefEntity
+  compact: boolean
+}
+
+export function EntityRequirementDisplay({ data, compact }: EntityRequirementDisplayProps) {
   const requirement = getRequirement(data)
   if (!requirement || requirement.length === 0) return null
 

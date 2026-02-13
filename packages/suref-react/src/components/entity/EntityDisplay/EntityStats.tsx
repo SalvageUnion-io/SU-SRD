@@ -3,18 +3,23 @@ import type { SURefObjectBonusPerTechLevel, SURefMetaEntity } from 'salvageunion
 import { getSalvageValue } from 'salvageunion-reference'
 import { Text } from '../../base/Text'
 import { ENTITY_STATS_CONFIG, applyStatLabel } from './entityStatsConfig'
-import { useEntityDisplayContext } from './useEntityDisplayContext'
 import { cn } from '../../../utils/cn'
 
 export type EntityStatsProps = {
   data: SURefMetaEntity | SURefObjectBonusPerTechLevel
+  compact: boolean
+  techLevel?: number | 'B' | 'N'
   label?: string
   prefix?: string
 }
 
-export function EntityStats({ data, label = '', prefix = '' }: EntityStatsProps) {
-  const { compact, techLevel } = useEntityDisplayContext()
-
+export function EntityStats({
+  data,
+  compact,
+  techLevel,
+  label = '',
+  prefix = '',
+}: EntityStatsProps) {
   const entityData = data as SURefMetaEntity
   const isBioTechLevel = techLevel === 'B'
   const salvageValue = getSalvageValue(entityData)

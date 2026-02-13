@@ -20,5 +20,5 @@ export function PreselectedEntityDisplay({
   const entity = model.find((e) => e.name === selectedChoice)
   if (!entity) return null
 
-  return <EntityDisplay hideActions data={entity} collapsible={false} />
+  return <EntityDisplay hideActions data={entity} />
 }

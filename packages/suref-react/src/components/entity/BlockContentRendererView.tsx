@@ -89,6 +89,7 @@ export function BlockContentRendererView({
               compact={compact}
               chassisName={chassisName}
               damaged={damaged}
+              borderColor={borderColor}
             />
           ))
         }
@@ -156,12 +157,14 @@ function ContentBlock({
   compact,
   chassisName,
   damaged,
+  borderColor,
 }: {
   block: SURefObjectContentBlock
   fontSize: string
   compact: boolean
   chassisName?: string
   damaged: boolean
+  borderColor?: string
 }) {
   const type = block.type || 'paragraph'
   const blockValue = block.value
@@ -219,16 +222,37 @@ function ContentBlock({
 
     case 'list-item':
       return (
-        <div className={cn('pl-2 font-medium leading-relaxed text-su-black', fontSize)}>
-          <Text as="span" className="mr-1 font-bold">
-            -
-          </Text>
-          {block.label && (
-            <Text as="span" className="font-bold">
-              {block.label}:
-            </Text>
+        <div
+          className={cn('mb-2 pl-2 font-medium leading-relaxed text-su-black', fontSize)}
+          style={
+            borderColor
+              ? {
+                  borderLeft: `3px solid ${borderColor}`,
+                  paddingLeft: compact ? '0.5rem' : '0.75rem',
+                }
+              : undefined
+          }
+        >
+          {block.label ? (
+            <>
+              <Text as="span" className="font-bold">
+                - {block.label}:
+              </Text>
+              <div className="mt-1 mb-2 pl-4">
+                <Text as="span" className="mr-1 font-bold">
+                  &#8226;
+                </Text>
+                {parsedValue}
+              </div>
+            </>
+          ) : (
+            <>
+              <Text as="span" className="mr-1 font-bold">
+                -
+              </Text>
+              {parsedValue}
+            </>
           )}
-          {parsedValue}
         </div>
       )
     case 'hint':

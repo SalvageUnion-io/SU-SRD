@@ -1,17 +1,25 @@
-import { useEntityDisplayContext } from './useEntityDisplayContext'
+import type { SURefMetaAction } from 'salvageunion-reference'
 import { NestedChassisAbility } from '../NestedChassisAbility'
 import { cn } from '../../../utils/cn'
+import type { getEntitySpacing } from './entityDisplayTypes'
 
-export function EntityChassisAbilitiesContent() {
-  const { data, spacing, compact, chassisAbilities } = useEntityDisplayContext()
+type EntityChassisAbilitiesContentProps = {
+  chassisName?: string
+  spacing: ReturnType<typeof getEntitySpacing>
+  compact: boolean
+  chassisAbilities?: SURefMetaAction[]
+}
 
+export function EntityChassisAbilitiesContent({
+  chassisName,
+  spacing,
+  compact,
+  chassisAbilities,
+}: EntityChassisAbilitiesContentProps) {
   if (!chassisAbilities || chassisAbilities.length === 0) return null
 
-  // Get chassis name from data
-  const chassisName = 'name' in data ? data.name : undefined
-
   return (
-    <div className={cn(spacing.smallSpaceYClass)}>
+    <div className={cn('mt-4', spacing.smallSpaceYClass)}>
       {chassisAbilities.map((ability) => {
         return (
           <NestedChassisAbility

@@ -1,18 +1,32 @@
+import type { SURefObjectBonusPerTechLevel } from 'salvageunion-reference'
 import { EntityStats } from './EntityStats'
-import { useEntityDisplayContext } from './useEntityDisplayContext'
 import { cn } from '../../../utils/cn'
+import type { getEntitySpacing } from './entityDisplayTypes'
 
-export function EntityBonusPerTechLevel() {
-  const { data, spacing } = useEntityDisplayContext()
-  const showBPTL = 'bonusPerTechLevel' in data && data.bonusPerTechLevel && data.bonusPerTechLevel
+type EntityBonusPerTechLevelProps = {
+  bonusPerTechLevel?: SURefObjectBonusPerTechLevel
+  spacing: ReturnType<typeof getEntitySpacing>
+  compact: boolean
+  techLevel?: number | 'B' | 'N'
+}
 
-  if (!showBPTL) return null
+export function EntityBonusPerTechLevel({
+  bonusPerTechLevel,
+  spacing,
+  compact,
+  techLevel,
+}: EntityBonusPerTechLevelProps) {
+  if (!bonusPerTechLevel) return null
 
   return (
     <div className={cn('rounded-md', spacing.smallSpaceYClass)}>
-      {data.bonusPerTechLevel && (
-        <EntityStats label="Bonus Per Tech Level" prefix="+" data={data.bonusPerTechLevel} />
-      )}
+      <EntityStats
+        label="Bonus Per Tech Level"
+        prefix="+"
+        data={bonusPerTechLevel}
+        compact={compact}
+        techLevel={techLevel}
+      />
     </div>
   )
 }

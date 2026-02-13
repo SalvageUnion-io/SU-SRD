@@ -7,6 +7,7 @@ import { extractEntityDetails } from '../../lib/entityDataExtraction'
 import { DataValueDisplayView } from './DataValueDisplayView'
 import { RollTable } from '../shared/RollTable'
 import { borderColorFromHeaderBg } from './entityDisplayHelpers'
+import { getEntityFontSizes, getEntitySpacing } from './EntityDisplay/entityDisplayTypes'
 import { cn } from '../../utils/cn'
 
 type NestedActionDisplayProps = {
@@ -97,7 +98,6 @@ export function NestedActionDisplay({
               fontSize={fontSize}
               compact={compact}
               damaged={false}
-              headerBg={headerBg}
             />
           </div>
         )}
@@ -149,6 +149,8 @@ export function NestedActionDisplay({
                 choice={choice}
                 userChoices={undefined}
                 onChoiceSelection={undefined}
+                fontSize={getEntityFontSizes(compact)}
+                spacing={getEntitySpacing(compact)}
               />
             ))}
           </div>

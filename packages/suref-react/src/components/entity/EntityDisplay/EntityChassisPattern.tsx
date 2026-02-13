@@ -62,7 +62,6 @@ export function EntityChassisPattern({ pattern }: EntityChassisPatternProps) {
             compact
             userChoices={system.preselectedChoices}
             collapsible
-            defaultExpanded={false}
           />
         ))}
         {modules.length > 0 && systems.length > 0 && <div className="pt-4" />}
@@ -74,7 +73,6 @@ export function EntityChassisPattern({ pattern }: EntityChassisPatternProps) {
             compact
             userChoices={module.preselectedChoices}
             collapsible
-            defaultExpanded={false}
           />
         ))}
       </div>

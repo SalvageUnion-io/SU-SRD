@@ -1,9 +1,22 @@
 import { useCallback, useState } from 'react'
-import { useEntityDisplayContext } from './useEntityDisplayContext'
+import type { EntityImageComponent } from './entityDisplayTypes'
 import { logger } from '../../../lib/logger'
 
-export function EntityImage({ customWidth }: { customWidth?: string }) {
-  const { title, compact, assetUrl, imageComponent } = useEntityDisplayContext()
+type EntityImageProps = {
+  title: string
+  compact: boolean
+  assetUrl: string
+  imageComponent?: EntityImageComponent
+  customWidth?: string
+}
+
+export function EntityImage({
+  title,
+  compact,
+  assetUrl,
+  imageComponent,
+  customWidth,
+}: EntityImageProps) {
   const [showImage, setShowImage] = useState(true)
   const [loaded, setLoaded] = useState(false)
 
@@ -16,7 +29,7 @@ export function EntityImage({ customWidth }: { customWidth?: string }) {
 
   if (!showImage || !assetUrl) return null
 
-  const width = customWidth || (compact ? '200px' : '300px')
+  const width = customWidth || (compact ? '120px' : '300px')
   const ImageComp = imageComponent || 'img'
 
   // Only pass ref for native img elements (custom components manage their own rendering)
@@ -24,7 +37,7 @@ export function EntityImage({ customWidth }: { customWidth?: string }) {
 
   return (
     <div
-      className="mb-4 shrink-0 bg-su-white align-top md:float-left md:mr-4 md:mb-2"
+      className="shrink-0 bg-su-white align-top md:float-left md:mr-4"
       style={{
         width,
         maxWidth: '100%',

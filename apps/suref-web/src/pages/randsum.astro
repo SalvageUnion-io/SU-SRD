@@ -8,63 +8,65 @@ import roboSuExample from '../assets/robo-su-example.png'
   title="RANDSUM.dev Discord Bot - Salvage Union SRD"
   description="Roll on all Salvage Union Roll Tables with the RANDSUM.dev Discord bot."
 >
-  <div class="flex w-full flex-1 flex-col justify-center">
-    <div class="mx-auto flex h-full max-w-6xl flex-col items-stretch justify-center px-6 py-8">
-      <div class="flex flex-col gap-8 items-stretch">
-        <div class="text-center">
-          <h1 class="mb-4 text-3xl font-bold text-su-black">RANDSUM.dev Discord Bot</h1>
-          <p class="text-lg font-semibold text-su-black">
-            With Special Sauce for Salvage Union!
-          </p>
+  <div class="flex w-full flex-1 flex-col justify-center py-12">
+    <div class="mx-auto flex w-full max-w-5xl flex-col gap-8 px-6">
+
+      <!-- Main content card -->
+      <div class="rounded-md border-2 border-discord bg-su-white shadow-lg">
+        <!-- Card header -->
+        <div class="bg-discord px-6 py-4">
+          <span class="inline-block box-decoration-clone bg-su-black px-1 font-mono font-bold uppercase leading-none text-su-white text-[1.75rem]" style="line-height: 1;">
+            Unofficial Salvage Union Discord Bot
+          </span>
         </div>
 
-        <!-- Main content -->
-        <div class="flex flex-col items-center gap-8 lg:flex-row lg:items-start">
-          <!-- Left: Image -->
-          <div class="w-full max-w-full flex-1 lg:max-w-[50%]">
-            <div class="overflow-hidden rounded-md border-2 border-su-grey-light">
-              <Image
-                src={roboSuExample}
-                alt="Randsum Robo Discord Bot example"
-                widths={[400, 600]}
-                sizes="(max-width: 1024px) 100vw, 50vw"
-                loading="lazy"
-                class="h-auto w-full object-contain"
-              />
+        <div class="flex flex-col gap-8 p-6 lg:p-8">
+          <!-- Two-column layout -->
+          <div class="flex flex-col items-center gap-8 lg:flex-row lg:items-start">
+            <!-- Left: Screenshot -->
+            <div class="w-full flex-1 lg:max-w-[50%]">
+              <div class="overflow-hidden rounded-md border-2 border-su-grey-light">
+                <Image
+                  src={roboSuExample}
+                  alt="Randsum Robo Discord Bot example"
+                  widths={[400, 600]}
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  loading="lazy"
+                  class="h-auto w-full object-contain"
+                />
+              </div>
             </div>
-          </div>
 
-          <!-- Right: Description -->
-          <div class="w-full max-w-full flex-1 lg:max-w-[50%]">
-            <div class="flex flex-col gap-6 items-stretch">
-              <div>
-                <p class="mb-4 text-base font-semibold leading-relaxed text-su-black">
+            <!-- Right: Description + CTA -->
+            <div class="w-full flex-1 lg:max-w-[50%]">
+              <div class="flex flex-col gap-6">
+                <p class="text-base font-medium leading-relaxed">
                   Roll on all Salvage Union Roll Tables with contextual results tailored to your
                   Salvage Union sessions with the RANDSUM.dev Discord bot!
                 </p>
-                <p class="text-base leading-relaxed text-su-black">
+                <p class="text-base leading-relaxed">
                   Visit{' '}
                   <a
                     href="https://randsum.dev/packages/robo/"
                     target="_blank"
                     rel="noopener noreferrer"
-                    class="font-semibold underline hover:text-su-orange-dark"
+                    class="font-bold text-discord hover:underline"
                   >
                     randsum.dev
                   </a>{' '}
                   to learn more about the RANDSUM.dev ecosystem of tools!
                 </p>
-              </div>
 
-              <!-- Add to Discord -->
-              <a
-                href="https://discord.com/oauth2/authorize?client_id=1290434147159904276&permissions=274877906944&scope=bot%20applications.commands"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="block w-full rounded-md border-3 border-su-grey-light bg-discord px-8 py-4 text-center text-lg font-bold text-su-white transition-colors hover:bg-discord-hover"
-              >
-                + Add RANDSUM.dev to Discord
-              </a>
+                <!-- Add to Discord CTA -->
+                <a
+                  href="https://discord.com/oauth2/authorize?client_id=1290434147159904276&permissions=274877906944&scope=bot%20applications.commands"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="block w-full rounded-md bg-discord px-8 py-4 text-center font-mono text-lg font-bold uppercase text-su-white transition-colors hover:bg-discord-hover"
+                >
+                  + Add to Discord
+                </a>
+              </div>
             </div>
           </div>
         </div>

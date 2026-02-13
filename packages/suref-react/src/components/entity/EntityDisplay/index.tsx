@@ -2,12 +2,11 @@ import { memo } from 'react'
 import type { ReactNode } from 'react'
 import type { SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
 import { EntityDisplayContent } from './components/EntityDisplayContent'
-import { EntityDisplayProvider } from './EntityDisplayProvider'
 import type {
   ClassAbilitiesRenderer,
   EntityButtonConfig,
   EntityImageComponent,
-} from './entityDisplayContext'
+} from './entityDisplayTypes'
 
 type EntityDisplayProps = {
   /** Entity data to display - only accepts SURefEntity (not SURefMetaAction or SURefObjectSystemModule) */
@@ -24,10 +23,6 @@ type EntityDisplayProps = {
   disabled?: boolean
   /** Whether the entity can be collapsed/expanded */
   collapsible?: boolean
-  /** Default expanded state (only used if expanded is not controlled) */
-  defaultExpanded?: boolean
-  /** Controlled expanded state */
-  expanded?: boolean
   /** Optional button configuration - if provided, renders a button at the bottom of the entity */
   buttonConfig?: EntityButtonConfig
   /** Optional custom content displayed in the top-right corner */
@@ -38,14 +33,12 @@ type EntityDisplayProps = {
   compact?: boolean
   /** Whether to hide the level display */
   hideLevel?: boolean
-  /** Whether or not to show the actions */
+  /** Whether to hide the actions section */
   hideActions?: boolean
   /** Whether to hide chassis patterns */
   hidePatterns?: boolean
   /** Whether to hide choices */
   hideChoices?: boolean
-  /** Whether to show the footer (page reference). Defaults to !hideActions */
-  showFooter?: boolean
   /** User choices object matching the format sent to the API: Record<choiceId, "schemaName||entityId"> */
   userChoices?: Record<string, string> | null
   /** Custom width for the image (e.g., '40%') */
@@ -69,13 +62,10 @@ export const EntityDisplay = memo(function EntityDisplay({
   onClick,
   disabled = false,
   collapsible = false,
-  defaultExpanded = true,
-  expanded,
   buttonConfig,
   hideActions = false,
   hidePatterns = false,
   hideChoices = false,
-  showFooter,
   compact = false,
   userChoices,
   imageWidth,
@@ -96,10 +86,8 @@ export const EntityDisplay = memo(function EntityDisplay({
   }
 
   return (
-    <EntityDisplayProvider
+    <EntityDisplayContent
       data={data}
-      defaultExpanded={defaultExpanded}
-      expanded={expanded}
       schemaName={schemaName}
       compact={compact}
       headerColor={headerColor}
@@ -108,7 +96,6 @@ export const EntityDisplay = memo(function EntityDisplay({
       hideActions={hideActions}
       hidePatterns={hidePatterns}
       hideChoices={hideChoices}
-      showFooter={showFooter}
       collapsible={collapsible}
       onClick={onClick}
       hideLevel={hideLevel}
@@ -121,7 +108,7 @@ export const EntityDisplay = memo(function EntityDisplay({
       classAbilitiesRenderer={classAbilitiesRenderer}
       imageComponent={imageComponent}
     >
-      <EntityDisplayContent>{children}</EntityDisplayContent>
-    </EntityDisplayProvider>
+      {children}
+    </EntityDisplayContent>
   )
 })

@@ -64,11 +64,16 @@ export function calculateBackgroundColor(
   if (schemaName === 'crawlers') return headerColor || 'bg-su-pink'
   if (schemaName === 'crawler-tech-levels') return headerColor || 'bg-su-pink'
   if (schemaName === 'crawler-bays') return headerColor || 'bg-su-pink'
-  if (schemaName === 'creatures') return headerColor || 'bg-su-orange'
-  if (schemaName === 'bio-titans') return headerColor || 'bg-su-orange'
-  if (schemaName === 'keywords') return headerColor || 'bg-su-orange'
-  if (schemaName === 'traits') return headerColor || 'bg-su-orange'
-  if (schemaName === 'roll-tables') return headerColor || 'bg-su-orange'
+  if (schemaName === 'creatures') return headerColor || 'bg-su-rust'
+  if (schemaName === 'bio-titans') return headerColor || 'bg-su-rust'
+  if (schemaName === 'factions') return headerColor || 'bg-su-rust'
+  if (schemaName === 'npcs') return headerColor || 'bg-su-rust'
+  if (schemaName === 'meld') return headerColor || 'bg-su-rust'
+  if (schemaName === 'squads') return headerColor || 'bg-su-rust'
+  if (schemaName === 'keywords') return headerColor || 'bg-su-black'
+  if (schemaName === 'distances') return headerColor || 'bg-su-black'
+  if (schemaName === 'traits') return headerColor || 'bg-su-black'
+  if (schemaName === 'roll-tables') return headerColor || 'bg-su-black'
   if (schemaName === 'classes' && !headerColor) {
     if (isEntityData(data)) {
       const isHybrid = isHybridClass(data)
@@ -117,25 +122,16 @@ export function calculateOpacity(dimHeader: boolean, disabled: boolean) {
 }
 
 export function createHeaderClickHandler(
-  hasButtonConfig: boolean,
-  collapsible: boolean,
   onClick: (() => void) | undefined,
-  disabled: boolean,
-  onToggle: () => void
-): () => void {
+  disabled: boolean
+): (() => void) | undefined {
+  if (!onClick) {
+    return undefined
+  }
+
   return () => {
-    if (hasButtonConfig && collapsible) {
-      onToggle()
-      return
-    }
-
-    if (onClick && !disabled) {
+    if (!disabled) {
       onClick()
-      return
-    }
-
-    if (collapsible) {
-      onToggle()
     }
   }
 }

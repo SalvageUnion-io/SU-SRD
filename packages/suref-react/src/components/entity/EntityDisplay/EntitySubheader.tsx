@@ -1,19 +1,17 @@
 import { Text } from '../../base/Text'
-import { useEntityDisplayContext } from './useEntityDisplayContext'
 import { cn } from '../../../utils/cn'
 
-export function EntitySubheader({
-  disabled = false,
-  label,
-}: {
+type EntitySubheaderProps = {
   label: string
   disabled?: boolean
-}) {
-  const { fontSize } = useEntityDisplayContext()
+  headerFontSize?: string
+}
+
+export function EntitySubheader({ disabled = false, label, headerFontSize }: EntitySubheaderProps) {
   return (
     <Text
       variant="pseudoheader"
-      className={cn(fontSize.lg, disabled && 'bg-gray-600 text-gray-300')}
+      className={cn(headerFontSize ?? 'text-lg', disabled && 'bg-gray-600 text-gray-300')}
     >
       {label}
     </Text>

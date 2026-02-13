@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useMemo } from 'react'
 import type { ReactNode } from 'react'
 import type { SURefEntity, SURefEnumSchemaName, SURefEnumSource } from 'salvageunion-reference'
 import {
@@ -22,13 +22,13 @@ import {
   createHeaderClickHandler,
   getEntityDisplayName,
 } from '../entityDisplayHelpers'
-import { EntityDisplayContext, getEntityFontSizes, getEntitySpacing } from './entityDisplayContext'
+import { getEntityFontSizes, getEntitySpacing } from './entityDisplayTypes'
 import type {
-  EntityDisplayContextValue,
+  EntityDisplayState,
   ClassAbilitiesRenderer,
   EntityButtonConfig,
   EntityImageComponent,
-} from './entityDisplayContext'
+} from './entityDisplayTypes'
 
 /**
  * Tech level to Tailwind bg class mapping
@@ -42,7 +42,7 @@ const techLevelColors: Record<number, string> = {
   6: 'bg-tl-6',
 }
 
-type EntityDisplayProviderProps = {
+export type EntityDisplayStateInput = {
   data: SURefEntity
   schemaName: SURefEnumSchemaName
   compact: boolean
@@ -52,24 +52,20 @@ type EntityDisplayProviderProps = {
   hideActions: boolean
   hidePatterns: boolean
   hideChoices: boolean
-  showFooter?: boolean
   collapsible: boolean
-  defaultExpanded: boolean
   onClick?: () => void
   hideLevel: boolean
-  expanded?: boolean
   rightContent?: ReactNode
   damaged?: boolean
   buttonConfig?: EntityButtonConfig
   userChoices?: Record<string, string> | null
-  children?: ReactNode
   imageWidth?: string
   label?: string
   classAbilitiesRenderer?: ClassAbilitiesRenderer
   imageComponent?: EntityImageComponent
 }
 
-export function EntityDisplayProvider({
+export function useEntityDisplayState({
   data,
   schemaName,
   compact,
@@ -79,33 +75,22 @@ export function EntityDisplayProvider({
   hideActions,
   hidePatterns,
   hideChoices,
-  showFooter,
   collapsible,
-  expanded,
-  defaultExpanded,
   onClick,
   hideLevel,
   rightContent,
   damaged = false,
   buttonConfig,
   userChoices,
-  children,
   imageWidth,
   label,
   classAbilitiesRenderer,
   imageComponent,
-}: EntityDisplayProviderProps) {
-  const hasButtonConfig = !!buttonConfig
-  const [internalExpanded, setInternalExpanded] = useState(defaultExpanded)
-  const isExpanded = expanded !== undefined ? expanded : internalExpanded
+}: EntityDisplayStateInput): EntityDisplayState {
+  const isExpanded = !collapsible
 
-  const onToggle = () => {
-    setInternalExpanded(!internalExpanded)
-  }
   const title = extractName(data, schemaName)
-  // Get tech level for display (preserves "B" and "N")
   const techLevel = getTechLevel(data)
-  // Get numeric tech level for calculations (converts "B" and "N" to 1)
   const techLevelNumeric = getTechLevelNumber(data)
   const source = getSource(data) as SURefEnumSource | undefined
   const calculatedHeaderBg = calculateBackgroundColor(
@@ -120,15 +105,8 @@ export function EntityDisplayProvider({
   const fontSize = getEntityFontSizes(compact)
   const opacity = calculateOpacity(dimHeader, disabled)
   const shouldShowExtraContent = calculateShouldShowExtraContent(compact, hideActions)
-  const handleHeaderClick = createHeaderClickHandler(
-    hasButtonConfig,
-    collapsible,
-    onClick,
-    disabled,
-    onToggle
-  )
+  const handleHeaderClick = createHeaderClickHandler(onClick, disabled)
 
-  // Memoize expensive computations
   const entityName = useMemo(() => getEntityDisplayName(data, title), [data, title])
 
   const hasActionsValue = useMemo(() => hasActions(data), [data])
@@ -153,7 +131,7 @@ export function EntityDisplayProvider({
     return findActionByName(data, entityName)
   }, [hasActionsValue, data, entityName])
 
-  const value: EntityDisplayContextValue = {
+  return {
     data,
     schemaName,
     compact,
@@ -171,7 +149,6 @@ export function EntityDisplayProvider({
     hideActions,
     hidePatterns,
     hideChoices,
-    showFooter,
     hideLevel,
     rightContent,
     damaged,
@@ -179,13 +156,11 @@ export function EntityDisplayProvider({
     buttonConfig,
     userChoices,
     imageWidth,
-    entityName,
     hasActions: hasActionsValue,
     chassisAbilities,
     effects,
     table,
     assetUrl,
-    visibleActions,
     actionsToDisplay,
     matchingAction,
     source,
@@ -193,6 +168,4 @@ export function EntityDisplayProvider({
     classAbilitiesRenderer,
     imageComponent,
   }
-
-  return <EntityDisplayContext.Provider value={value}>{children}</EntityDisplayContext.Provider>
 }

@@ -105,7 +105,7 @@ export function EntityDisplayTooltip({
           align="start"
         >
           {showArrow && <HoverCard.Arrow />}
-          <EntityDisplay data={entity} collapsible={false} compact />
+          <EntityDisplay data={entity} compact />
         </HoverCard.Content>
       </HoverCard.Portal>
     </HoverCard.Root>

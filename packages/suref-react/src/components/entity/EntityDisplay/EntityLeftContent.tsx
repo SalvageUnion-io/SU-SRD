@@ -1,16 +1,24 @@
 import { StatDisplay } from '../../shared/StatDisplay'
 import { LevelDisplay } from '../../shared/LevelDisplay'
-import { useEntityDisplayContext } from './useEntityDisplayContext'
 import { cn } from '../../../utils/cn'
 
-export function EntityLeftContent() {
-  const { techLevel, compact, data, hideLevel } = useEntityDisplayContext()
-  const level = 'level' in data ? data.level : undefined
+type EntityLeftContentProps = {
+  techLevel: number | 'B' | 'N' | undefined
+  compact: boolean
+  level?: number | string
+  hideLevel: boolean
+}
 
+export function EntityLeftContent({
+  techLevel,
+  compact,
+  level,
+  hideLevel,
+}: EntityLeftContentProps) {
   const hasTechLevel = !!techLevel
   const hasLevel = !!level && !hideLevel
-  const isBioTechLevel = ('techLevel' in data && data.techLevel === 'B') || techLevel === 'B'
-  const isNTechLevel = ('techLevel' in data && data.techLevel === 'N') || techLevel === 'N'
+  const isBioTechLevel = techLevel === 'B'
+  const isNTechLevel = techLevel === 'N'
 
   if (!hasTechLevel && !hasLevel) return null
   return (
