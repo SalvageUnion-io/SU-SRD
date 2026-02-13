@@ -98,7 +98,6 @@ export function NestedActionDisplay({
               fontSize={fontSize}
               compact={compact}
               damaged={false}
-              headerBg={headerBg}
             />
           </div>
         )}
