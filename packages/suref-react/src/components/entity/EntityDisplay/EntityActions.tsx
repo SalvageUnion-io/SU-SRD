@@ -1,17 +1,25 @@
-import { useEntityDisplayContext } from './useEntityDisplayContext'
+import type { SURefEnumSchemaName, SURefMetaAction } from 'salvageunion-reference'
 import { NestedActionDisplay } from '../NestedActionDisplay'
 import { cn } from '../../../utils/cn'
+import type { getEntitySpacing } from './entityDisplayTypes'
 
-export function EntityActions() {
-  const {
-    schemaName,
-    spacing,
-    compact,
-    hasActions: hasActionsValue,
-    actionsToDisplay,
-    headerBg,
-  } = useEntityDisplayContext()
+type EntityActionsProps = {
+  schemaName: SURefEnumSchemaName
+  spacing: ReturnType<typeof getEntitySpacing>
+  compact: boolean
+  hasActions: boolean
+  actionsToDisplay?: SURefMetaAction[]
+  headerBg: string
+}
 
+export function EntityActions({
+  schemaName,
+  spacing,
+  compact,
+  hasActions: hasActionsValue,
+  actionsToDisplay,
+  headerBg,
+}: EntityActionsProps) {
   // Chassis now use chassisAbilities instead of actions
   if (schemaName === 'chassis') return null
 

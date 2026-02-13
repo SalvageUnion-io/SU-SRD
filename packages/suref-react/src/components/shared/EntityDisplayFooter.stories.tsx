@@ -19,7 +19,7 @@ const falseFlagEntity =
 
 export const WithinEntityDisplay: Story = () => (
   <div className="w-[500px]">
-    <EntityDisplay data={systemEntity} showFooter>
+    <EntityDisplay data={systemEntity}>
       <div className="p-2 text-sm">Footer is shown at the bottom of this entity display.</div>
     </EntityDisplay>
   </div>
@@ -27,7 +27,7 @@ export const WithinEntityDisplay: Story = () => (
 
 export const Compact: Story = () => (
   <div className="w-[400px]">
-    <EntityDisplay data={systemEntity} showFooter compact>
+    <EntityDisplay data={systemEntity} compact>
       <div className="p-2 text-sm">Compact entity with footer.</div>
     </EntityDisplay>
   </div>
@@ -35,7 +35,7 @@ export const Compact: Story = () => (
 
 export const RainmakerExpansion: Story = () => (
   <div className="w-[500px] py-6">
-    <EntityDisplay data={rainmakerEntity} showFooter>
+    <EntityDisplay data={rainmakerEntity}>
       <div className="p-2 text-sm">Rainmaker - raindrops on header and footer edges.</div>
     </EntityDisplay>
   </div>
@@ -43,7 +43,7 @@ export const RainmakerExpansion: Story = () => (
 
 export const WeWereHereFirstExpansion: Story = () => (
   <div className="w-[500px] py-6">
-    <EntityDisplay data={wwhfEntity} showFooter>
+    <EntityDisplay data={wwhfEntity}>
       <div className="p-2 text-sm">We Were Here First! - beast fangs on header and footer.</div>
     </EntityDisplay>
   </div>
@@ -51,7 +51,7 @@ export const WeWereHereFirstExpansion: Story = () => (
 
 export const FalseFlagExpansion: Story = () => (
   <div className="w-[500px]">
-    <EntityDisplay data={falseFlagEntity} showFooter>
+    <EntityDisplay data={falseFlagEntity}>
       <div className="p-2 text-sm">False Flag - Windows 95 beveled border.</div>
     </EntityDisplay>
   </div>

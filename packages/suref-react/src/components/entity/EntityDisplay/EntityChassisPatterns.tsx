@@ -1,14 +1,18 @@
 import { useCallback, useState } from 'react'
-import { Text } from '../../base/Text'
+import type { SURefEntity } from 'salvageunion-reference'
 import { normalizePatternName } from 'salvageunion-reference'
+import { Text } from '../../base/Text'
 import { EntitySubheader } from './EntitySubheader'
 import { EntityChassisPattern } from './EntityChassisPattern'
-import { useEntityDisplayContext } from './useEntityDisplayContext'
 import { cn } from '../../../utils/cn'
+import type { getEntityFontSizes } from './entityDisplayTypes'
 
-export function EntityChassisPatterns() {
-  const { data } = useEntityDisplayContext()
+type EntityChassisPatternsProps = {
+  data: SURefEntity
+  fontSize: ReturnType<typeof getEntityFontSizes>
+}
 
+export function EntityChassisPatterns({ data, fontSize }: EntityChassisPatternsProps) {
   const patterns = 'patterns' in data ? data.patterns : undefined
   const firstPattern = patterns?.[0]
   const defaultPattern = firstPattern ? normalizePatternName(firstPattern.name) : ''
@@ -26,7 +30,7 @@ export function EntityChassisPatterns() {
 
   return (
     <div className="clear-both space-y-4">
-      <EntitySubheader label="Patterns" />
+      <EntitySubheader label="Patterns" fontSize={fontSize} />
 
       {/* Tab navigation */}
       <div role="tablist" className="flex border-b-[3px] border-gray-200">

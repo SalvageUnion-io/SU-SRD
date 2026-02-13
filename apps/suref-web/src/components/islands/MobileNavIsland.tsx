@@ -1,10 +1,12 @@
 import { useState, useCallback } from 'react'
 import * as DialogPrimitive from '@radix-ui/react-dialog'
 import { SearchIsland } from './SearchIsland'
+import { Button } from '../Button'
 
 type SchemaLink = {
   id: string
   displayName: string
+  catalogBg: string
 }
 
 type MobileNavIslandProps = {
@@ -20,7 +22,7 @@ export function MobileNavIsland({ schemas, currentPath }: MobileNavIslandProps) 
   return (
     <DialogPrimitive.Root open={open} onOpenChange={setOpen}>
       <DialogPrimitive.Trigger asChild>
-        <button className="rounded-md bg-su-orange p-2 text-su-white" aria-label="Open menu">
+        <Button aria-label="Open menu">
           <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"
@@ -29,7 +31,7 @@ export function MobileNavIsland({ schemas, currentPath }: MobileNavIslandProps) 
               d="M4 6h16M4 12h16M4 18h16"
             />
           </svg>
-        </button>
+        </Button>
       </DialogPrimitive.Trigger>
 
       <DialogPrimitive.Portal>
@@ -39,10 +41,7 @@ export function MobileNavIsland({ schemas, currentPath }: MobileNavIslandProps) 
 
           {/* Close button */}
           <DialogPrimitive.Close asChild>
-            <button
-              className="absolute right-4 top-4 rounded-md p-2 hover:bg-su-blue-pale"
-              aria-label="Close menu"
-            >
+            <Button className="absolute right-4 top-4" aria-label="Close menu">
               <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
@@ -51,17 +50,19 @@ export function MobileNavIsland({ schemas, currentPath }: MobileNavIslandProps) 
                   d="M6 18L18 6M6 6l12 12"
                 />
               </svg>
-            </button>
+            </Button>
           </DialogPrimitive.Close>
 
           {/* Logo */}
           <a
             href="/"
-            className="mb-4 flex items-center justify-center gap-1 rounded-md p-2 hover:bg-su-blue-pale"
+            className="mb-4 flex items-center justify-center p-2"
             onClick={() => setOpen(false)}
           >
-            <span className="text-xl font-semibold text-su-black">Salvage Union</span>
-            <span className="text-xs font-medium text-su-orange-dark">SRD</span>
+            <span className="inline-flex shrink-0 cursor-pointer border border-su-black font-mono text-base font-bold uppercase leading-none tracking-tight">
+              <span className="bg-su-black px-1 py-0.5 text-su-white">SU</span>
+              <span className="bg-su-white px-1 py-0.5 text-su-black">SRD</span>
+            </span>
           </a>
 
           {/* Search */}
@@ -80,11 +81,8 @@ export function MobileNavIsland({ schemas, currentPath }: MobileNavIslandProps) 
                 <a
                   key={schema.id}
                   href={`/schema/${schema.id}`}
-                  className={`block rounded-md px-4 py-2 text-sm font-medium text-su-white transition-colors ${
-                    isActive(`/schema/${schema.id}`)
-                      ? 'bg-su-orange-dark'
-                      : 'bg-su-orange hover:bg-su-orange-dark'
-                  }`}
+                  className="btn catalog-item block text-center text-sm"
+                  style={{ '--catalog-bg': schema.catalogBg } as React.CSSProperties}
                   onClick={() => setOpen(false)}
                 >
                   {schema.displayName}
@@ -94,28 +92,22 @@ export function MobileNavIsland({ schemas, currentPath }: MobileNavIslandProps) 
 
             {/* Bottom links */}
             <div className="mt-auto flex flex-col gap-2 border-t border-su-grey-light pt-4">
-              <a
+              <Button
                 href="/randsum"
-                className={`block rounded-md px-4 py-2 text-sm font-medium text-su-white transition-colors ${
-                  isActive('/randsum')
-                    ? 'bg-su-pink'
-                    : 'bg-su-pink brightness-[0.85] hover:brightness-100'
-                }`}
+                active={isActive('/randsum')}
+                className="block text-sm"
                 onClick={() => setOpen(false)}
               >
                 RANDSUM
-              </a>
-              <a
+              </Button>
+              <Button
                 href="/about"
-                className={`block rounded-md px-4 py-2 text-sm font-medium text-su-white transition-colors ${
-                  isActive('/about')
-                    ? 'bg-su-pink'
-                    : 'bg-su-pink brightness-[0.85] hover:brightness-100'
-                }`}
+                active={isActive('/about')}
+                className="block text-sm"
                 onClick={() => setOpen(false)}
               >
-                About
-              </a>
+                ABOUT
+              </Button>
             </div>
           </div>
         </DialogPrimitive.Content>

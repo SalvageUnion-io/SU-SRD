@@ -141,7 +141,6 @@ export function ActionsView({ pilotId, mechId }: ActionsViewProps) {
               data={ability as unknown as SURefEntity}
               compact
               collapsible
-              defaultExpanded={false}
               hidePatterns
               hideActions
             />

@@ -1,6 +1,5 @@
 import type { DataValue } from '../../../types/common'
 import type { SURefObjectDataValue } from 'salvageunion-reference'
-import { useEntityDisplayContext } from './useEntityDisplayContext'
 import { DataValueDisplayView } from '../DataValueDisplayView'
 
 /**
@@ -11,11 +10,11 @@ import { DataValueDisplayView } from '../DataValueDisplayView'
 export function SharedDetailItem({
   item,
   compact = false,
+  damaged = false,
 }: {
   item: DataValue | SURefObjectDataValue
   compact?: boolean
+  damaged?: boolean
 }) {
-  const { damaged } = useEntityDisplayContext()
-
   return <DataValueDisplayView item={item} compact={compact} damaged={damaged} />
 }

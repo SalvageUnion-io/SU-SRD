@@ -6,7 +6,12 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   site: 'https://salvageunion.io',
   output: 'static',
-  integrations: [react(), sitemap()],
+  integrations: [
+    react(),
+    sitemap({
+      filter: (page) => !page.includes('/image'),
+    }),
+  ],
   prefetch: {
     prefetchAll: true,
     defaultStrategy: 'hover',

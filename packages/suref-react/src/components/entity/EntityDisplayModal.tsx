@@ -2,7 +2,7 @@ import { SalvageUnionReference, getModel } from 'salvageunion-reference'
 import type { SURefEnumSchemaName } from 'salvageunion-reference'
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '../ui/dialog'
 import { EntityDisplay } from './EntityDisplay'
-import type { ClassAbilitiesRenderer } from './EntityDisplay/entityDisplayContext'
+import type { ClassAbilitiesRenderer } from './EntityDisplay/entityDisplayTypes'
 import { NotFoundDisplay } from './NotFoundDisplay'
 
 type EntityDisplayModalProps = {
@@ -43,11 +43,7 @@ export function EntityDisplayModal({
         </DialogTitle>
         <DialogDescription className="sr-only">Entity display details</DialogDescription>
         {entity ? (
-          <EntityDisplay
-            data={entity}
-            collapsible={false}
-            classAbilitiesRenderer={classAbilitiesRenderer}
-          />
+          <EntityDisplay data={entity} classAbilitiesRenderer={classAbilitiesRenderer} />
         ) : (
           <NotFoundDisplay
             entityType={schemaDisplayName}

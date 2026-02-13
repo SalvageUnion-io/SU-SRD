@@ -1,11 +1,12 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro'
 import { getSchemaCatalog } from 'salvageunion-reference'
+import { getCatalogBg, isHollowCatalog } from '../lib/catalogColors'
 
 const catalog = getSchemaCatalog()
 const schemas = catalog.schemas.filter((s) => !s.meta)
 
-const invariantNouns = new Set(['Chassis', 'Equipment'])
+const invariantNouns = new Set(['Chassis', 'Equipment', 'Meld'])
 
 function pluralize(name: string, count: number) {
   if (count <= 1 || invariantNouns.has(name)) return name
@@ -35,41 +36,6 @@ function pluralizeWord(word: string) {
 >
   <div class="flex w-full flex-1 flex-col justify-center py-12">
     <div class="mx-auto flex w-full max-w-4xl flex-col gap-8 px-6">
-      <!-- Header -->
-      <div class="text-center">
-        <h1 class="text-3xl font-semibold text-su-black">Salvage Union</h1>
-        <p class="mt-1 text-2xl font-medium text-su-orange-dark">System Reference Document</p>
-        <p class="mt-3 text-sm text-su-black">
-          Complete reference for the{' '}
-          <a
-            href="https://leyline.press/collections/salvage-union"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="underline hover:text-su-orange"
-          >
-            Salvage Union
-          </a>{' '}
-          TTRPG — chassis, systems, modules, abilities, and more.
-        </p>
-      </div>
-
-      <!-- Schema list -->
-      <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {schemas.map((schema) => (
-          <a
-            href={`/schema/${schema.id}`}
-            class="group flex items-baseline justify-between gap-2 rounded-md border border-su-grey-light bg-su-white p-4 shadow-sm transition-colors hover:border-su-orange hover:bg-su-blue-pale"
-          >
-            <span class="font-semibold text-su-black group-hover:text-su-orange-dark">
-              {pluralize(schema.displayName, schema.itemCount)}
-            </span>
-            <span class="shrink-0 text-xs text-su-grey-dark">
-              {schema.itemCount} {schema.itemCount === 1 ? 'entry' : 'entries'}
-            </span>
-          </a>
-        ))}
-      </div>
-
       <!-- Attribution -->
       <div class="text-center">
         <p class="text-sm text-su-orange-dark">
@@ -84,6 +50,19 @@ function pluralizeWord(word: string) {
           </a>{' '}
           TTRPG
         </p>
+      </div>
+
+      <!-- Schema list -->
+      <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {schemas.map((schema) => (
+          <a
+            href={`/schema/${schema.id}`}
+            class:list={['btn text-center', isHollowCatalog(schema.id) ? 'catalog-item-hollow' : 'catalog-item']}
+            style={`--catalog-bg: ${getCatalogBg(schema.id)}`}
+          >
+            {pluralize(schema.displayName, schema.itemCount)}
+          </a>
+        ))}
       </div>
     </div>
   </div>

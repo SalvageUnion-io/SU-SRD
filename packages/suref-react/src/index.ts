@@ -16,7 +16,7 @@ export type {
   ClassAbilitiesRenderer,
   EntityImageComponent,
   EntityImageComponentProps,
-} from './components/entity/EntityDisplay/entityDisplayContext'
+} from './components/entity/EntityDisplay/entityDisplayTypes'
 
 // Base typography
 export { Heading } from './components/base/Heading'

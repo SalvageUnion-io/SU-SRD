@@ -7,7 +7,7 @@ export default {
   title: 'Entity/EntityDetailDisplay',
 }
 
-// EntityDetailDisplay uses useEntityDisplayContext, so it must be rendered within an EntityDisplay
+// EntityDetailDisplay is typically rendered as a child of EntityDisplay
 const system = SalvageUnionReference.Systems.all()[0]
 
 export const WithinEntityDisplay: Story = () => (

@@ -8,10 +8,10 @@ import type {
 import { getModel, extractActions, isSystemModule } from 'salvageunion-reference'
 import { EntityDisplay } from './index'
 import { NestedActionDisplay } from '../NestedActionDisplay'
-import { useEntityDisplayContext } from './useEntityDisplayContext'
 import { resolveEntityName } from '../entityDisplayHelpers'
 import { createChoiceButtonConfig } from './buttonConfigHelpers'
 import { cn } from '../../../utils/cn'
+import type { getEntitySpacing } from './entityDisplayTypes'
 
 export type EntityListDisplayProps = {
   choice: SURefObjectChoice
@@ -19,6 +19,7 @@ export type EntityListDisplayProps = {
   userChoices?: Record<string, string> | null
   onChoiceSelection?: (choiceId: string, value: string | undefined) => void
   isMultiSelect?: boolean
+  spacing: ReturnType<typeof getEntitySpacing>
 }
 
 /**
@@ -32,9 +33,8 @@ export function EntityListDisplay({
   userChoices,
   onChoiceSelection,
   isMultiSelect = false,
+  spacing,
 }: EntityListDisplayProps) {
-  const { spacing } = useEntityDisplayContext()
-
   // Handle choiceOptions (structured options like Custom Sniper Rifle modifications)
   const choiceOptions =
     'choiceOptions' in choice && choice.choiceOptions ? choice.choiceOptions : []
@@ -172,7 +172,6 @@ export function EntityListDisplay({
             data={entity as SURefEntity}
             compact
             collapsible
-            defaultExpanded={false}
             buttonConfig={buttonConfig}
           />
         )

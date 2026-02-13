@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { getTiltRotation } from '../../../../utils/tiltUtils'
 import type { SURefClass } from 'salvageunion-reference'
@@ -14,17 +14,19 @@ import { EntityRequirementDisplay } from '../EntityRequirementDisplay'
 import { EntityChoices } from '../EntityChoices'
 import { EntityGrants } from '../EntityGrants'
 import { EntityBonusPerTechLevel } from '../EntityBonusPerTechLevel'
-import { useEntityDisplayContext } from '../useEntityDisplayContext'
 import { ConditionalSheetInfo } from '../ConditionalSheetInfo'
 import { EntityPopulationRange } from '../EntityPopulationRange'
 import { EntityActions } from '../EntityActions'
 import { EntityImage } from '../EntityImage'
 import { BlockContentRendererView } from '../../BlockContentRendererView'
-import type { EntityButtonConfig } from '../entityDisplayContext'
+import * as DialogPrimitive from '@radix-ui/react-dialog'
+import { X } from 'lucide-react'
+import type { EntityButtonConfig } from '../entityDisplayTypes'
 import { cn } from '../../../../utils/cn'
 import { Text } from '../../../base/Text'
 import { getSourceStyles } from '../../entityDisplayHelpers'
-
+import { useEntityDisplayState } from '../useEntityDisplayState'
+import type { EntityDisplayStateInput } from '../useEntityDisplayState'
 function ButtonWithConfig({
   buttonConfig,
 }: {
@@ -48,7 +50,12 @@ function ButtonWithConfig({
   )
 }
 
-export function EntityDisplayContent({ children }: { children?: React.ReactNode }) {
+export type EntityDisplayContentProps = EntityDisplayStateInput & {
+  children?: ReactNode
+}
+
+export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayContentProps) {
+  const state = useEntityDisplayState(inputProps)
   const {
     data,
     schemaName,
@@ -64,7 +71,7 @@ export function EntityDisplayContent({ children }: { children?: React.ReactNode 
     collapsible,
     hideActions,
     hidePatterns,
-    showFooter,
+    hideChoices,
     damaged,
     disabled,
     buttonConfig,
@@ -80,7 +87,12 @@ export function EntityDisplayContent({ children }: { children?: React.ReactNode 
     source,
     label,
     classAbilitiesRenderer,
-  } = useEntityDisplayContext()
+    techLevel,
+    hideLevel,
+    rightContent,
+    imageComponent,
+    hasActions: hasActionsValue,
+  } = state
 
   // Determine which content to render (from EntityTopMatter)
   let contentBlocks = 'content' in data ? data.content : undefined
@@ -138,32 +150,59 @@ export function EntityDisplayContent({ children }: { children?: React.ReactNode 
   const footerDisplayName = getDisplayName(schemaName)
   const sourceFooterStyles = getSourceStyles(source, disabled ?? false, 'footer', isExpanded)
 
-  return (
+  const [modalOpen, setModalOpen] = useState(false)
+  const handleDetailClick = () => setModalOpen(true)
+
+  const card = (
     <Card
       bg="bg-su-blue-light"
       label={label}
       headerBg={headerBg}
       headerOpacity={opacity.header}
-      leftContent={<EntityLeftContent />}
-      subTitleContent={<EntitySubTitleElement />}
-      rightContent={<EntityRightHeaderContent isExpanded={isExpanded} collapsible={collapsible} />}
+      leftContent={
+        <EntityLeftContent
+          techLevel={techLevel}
+          compact={compact}
+          data={data}
+          hideLevel={hideLevel}
+        />
+      }
+      subTitleContent={
+        <EntitySubTitleElement
+          data={data}
+          schemaName={schemaName}
+          spacing={spacing}
+          compact={compact}
+          damaged={damaged}
+        />
+      }
+      rightContent={
+        <EntityRightHeaderContent
+          data={data}
+          compact={compact}
+          fontSize={fontSize}
+          rightContent={rightContent}
+          collapsible={collapsible}
+          onDetailClick={collapsible ? handleDetailClick : undefined}
+        />
+      }
       compact={compact}
       title={title}
       titleRotation={useMemo(() => (damaged ? getTiltRotation() : 0), [damaged])}
       bodyPadding="p-0"
-      onHeaderClick={handleHeaderClick}
+      onHeaderClick={collapsible ? handleDetailClick : handleHeaderClick}
       headerTestId="frame-header-container"
       source={source}
       isExpanded={isExpanded}
     >
-      {(!collapsible || isExpanded) && (
+      {!collapsible && (
         <div
           className={cn('min-w-0 p-0', contentBg)}
           style={{ opacity: opacity.content, width: '100%' }}
         >
           {/* Float zone: block flow so image float propagates to all children */}
           <div
-            className={cn(spacing.smallSpaceYClass)}
+            className={cn(spacing.sectionSpaceYClass)}
             style={{
               paddingLeft: `${spacing.contentPaddingX}rem`,
               paddingRight: `${spacing.contentPaddingX}rem`,
@@ -179,7 +218,15 @@ export function EntityDisplayContent({ children }: { children?: React.ReactNode 
                   : `${spacing.contentPadding}rem`,
             }}
           >
-            {assetUrl && <EntityImage customWidth={imageWidth} />}
+            {assetUrl && (
+              <EntityImage
+                title={title}
+                compact={compact}
+                assetUrl={assetUrl}
+                imageComponent={imageComponent}
+                customWidth={imageWidth}
+              />
+            )}
             {showContent && (
               <BlockContentRendererView
                 content={contentBlocks!}
@@ -192,23 +239,56 @@ export function EntityDisplayContent({ children }: { children?: React.ReactNode 
             {children}
 
             {/* Non-compact: chassis abilities render before actions */}
-            {!compact && hasChassisAbilities && !hideActions && <EntityChassisAbilitiesContent />}
-            {(!hideActions || (compact && schemaName !== 'bio-titans')) && <EntityActions />}
+            {!compact && hasChassisAbilities && !hideActions && (
+              <EntityChassisAbilitiesContent
+                data={data}
+                spacing={spacing}
+                compact={compact}
+                chassisAbilities={chassisAbilities}
+              />
+            )}
+            {(!hideActions || (compact && schemaName !== 'bio-titans')) && (
+              <EntityActions
+                schemaName={schemaName}
+                spacing={spacing}
+                compact={compact}
+                hasActions={hasActionsValue}
+                actionsToDisplay={actionsToDisplay}
+                headerBg={headerBg}
+              />
+            )}
             {/* Compact: chassis abilities render after actions */}
-            {compact && hasChassisAbilities && <EntityChassisAbilitiesContent />}
+            {compact && hasChassisAbilities && (
+              <EntityChassisAbilitiesContent
+                data={data}
+                spacing={spacing}
+                compact={compact}
+                chassisAbilities={chassisAbilities}
+              />
+            )}
 
-            <EntityPopulationRange />
-            <EntityBonusPerTechLevel />
+            <EntityPopulationRange data={data} schemaName={schemaName} spacing={spacing} />
+            <EntityBonusPerTechLevel
+              data={data}
+              spacing={spacing}
+              compact={compact}
+              techLevel={techLevel}
+            />
             {effects?.map((effect, index) => (
               <ConditionalSheetInfo
                 key={index}
                 propertyName="effects"
                 label={effect.label}
                 value={effect.value}
+                data={data}
+                compact={compact}
+                damaged={damaged}
+                fontSize={fontSize}
+                headerBg={headerBg}
               />
             ))}
 
-            <EntityRequirementDisplay />
+            <EntityRequirementDisplay data={data} compact={compact} />
             {table && (
               <div className="relative z-10 rounded-md">
                 <RollTable
@@ -222,12 +302,17 @@ export function EntityDisplayContent({ children }: { children?: React.ReactNode 
             )}
             {shouldShowExtraContent && (
               <>
-                {!hidePatterns && <EntityChassisPatterns />}
+                {!hidePatterns && <EntityChassisPatterns data={data} fontSize={fontSize} />}
                 {'damagedEffect' in data && data.damagedEffect && (
                   <ConditionalSheetInfo
                     propertyName="damagedEffect"
                     labelBgColor="text-brand-srd"
                     label="Damaged Effect"
+                    data={data}
+                    compact={compact}
+                    damaged={damaged}
+                    fontSize={fontSize}
+                    headerBg={headerBg}
                   />
                 )}
                 {schemaName === 'classes' &&
@@ -236,7 +321,7 @@ export function EntityDisplayContent({ children }: { children?: React.ReactNode 
                     selectedClass,
                     selectedAdvancedClass,
                   })}
-                <EntityGrants />
+                <EntityGrants data={data} spacing={spacing} />
               </>
             )}
             {buttonConfig && (
@@ -244,11 +329,18 @@ export function EntityDisplayContent({ children }: { children?: React.ReactNode 
                 <ButtonWithConfig buttonConfig={buttonConfig} />
               </div>
             )}
-            <EntityChoices userChoices={userChoices} onChoiceSelection={undefined} />
+            <EntityChoices
+              data={data}
+              spacing={spacing}
+              fontSize={fontSize}
+              hideChoices={hideChoices}
+              userChoices={userChoices}
+              onChoiceSelection={undefined}
+            />
             <div className="clear-both" />
           </div>
           {/* Footer — always full-width, outside float zone */}
-          {(showFooter ?? (compact || !hideActions)) && (hasPage || hasSource) && (
+          {(hasPage || hasSource) && (
             <div
               className={cn(
                 'flex w-full items-center justify-between gap-4 py-3 text-su-black',
@@ -308,4 +400,44 @@ export function EntityDisplayContent({ children }: { children?: React.ReactNode 
       )}
     </Card>
   )
+
+  if (collapsible) {
+    return (
+      <>
+        {card}
+        <DialogPrimitive.Root open={modalOpen} onOpenChange={setModalOpen}>
+          <DialogPrimitive.Portal>
+            <DialogPrimitive.Overlay className="fixed inset-0 z-50 overflow-y-auto bg-black/60 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0">
+              <div className="flex min-h-full items-center justify-center px-4 py-8">
+                <DialogPrimitive.Close className="fixed top-4 right-4 z-[60] rounded-full bg-su-black/70 p-2 text-su-white opacity-70 transition-opacity hover:opacity-100">
+                  <X className="h-6 w-6" />
+                  <span className="sr-only">Close</span>
+                </DialogPrimitive.Close>
+                <DialogPrimitive.Content className="relative w-full max-w-6xl bg-transparent outline-none">
+                  <DialogPrimitive.Title className="sr-only">{title}</DialogPrimitive.Title>
+                  <DialogPrimitive.Description className="sr-only">
+                    Entity display details
+                  </DialogPrimitive.Description>
+                  <EntityDisplayContent
+                    data={data}
+                    schemaName={schemaName}
+                    compact={false}
+                    collapsible={false}
+                    dimHeader={false}
+                    disabled={false}
+                    hideActions={false}
+                    hidePatterns={false}
+                    hideChoices={false}
+                    hideLevel={false}
+                  />
+                </DialogPrimitive.Content>
+              </div>
+            </DialogPrimitive.Overlay>
+          </DialogPrimitive.Portal>
+        </DialogPrimitive.Root>
+      </>
+    )
+  }
+
+  return card
 }

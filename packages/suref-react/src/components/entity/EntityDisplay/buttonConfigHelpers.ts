@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import type { EntityButtonConfig } from './entityDisplayContext'
+import type { EntityButtonConfig } from './entityDisplayTypes'
 
 export type CreateChoiceButtonConfigParams = {
   /** Whether the choice is currently selected */

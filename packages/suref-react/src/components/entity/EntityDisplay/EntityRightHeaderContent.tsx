@@ -1,20 +1,39 @@
-import { Text } from '../../base/Text'
+import { useCallback } from 'react'
+import type { ReactNode } from 'react'
+import type { SURefEntity } from 'salvageunion-reference'
 import { isAbility } from 'salvageunion-reference'
 import { EntityStats } from './EntityStats'
-import { useEntityDisplayContext } from './useEntityDisplayContext'
 import { useParseTraitReferences } from '../../../utils/parseTraitReferences'
 import { cn } from '../../../utils/cn'
+import type { getEntityFontSizes } from './entityDisplayTypes'
+
+type EntityRightHeaderContentProps = {
+  data: SURefEntity
+  compact: boolean
+  fontSize: ReturnType<typeof getEntityFontSizes>
+  rightContent?: ReactNode
+  collapsible: boolean
+  onDetailClick?: () => void
+}
 
 export function EntityRightHeaderContent({
+  data,
+  compact,
+  fontSize,
+  rightContent,
   collapsible,
-  isExpanded,
-}: {
-  isExpanded: boolean
-  collapsible: boolean
-}) {
-  const { data, compact, fontSize, rightContent } = useEntityDisplayContext()
+  onDetailClick,
+}: EntityRightHeaderContentProps) {
   const description = 'description' in data ? data.description : undefined
   const parsedDescription = useParseTraitReferences(description)
+
+  const handleDetailClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation()
+      onDetailClick?.()
+    },
+    [onDetailClick]
+  )
 
   const abilityContent = description && isAbility(data) && (
     <div
@@ -33,12 +52,36 @@ export function EntityRightHeaderContent({
   return (
     <div className="flex gap-2">
       {abilityContent}
-      <EntityStats data={data} />
+      <EntityStats data={data} compact={compact} />
       {rightContent}
       {collapsible && (
-        <div className="flex min-w-[25px] shrink-0 items-center justify-center self-center">
-          <Text className="text-lg text-su-white">{isExpanded ? '\u25BC' : '\u25B6'}</Text>
-        </div>
+        <button
+          type="button"
+          className="flex min-w-[25px] shrink-0 cursor-pointer items-center justify-center self-center rounded p-1 opacity-60 transition-opacity hover:bg-white/20 hover:opacity-100"
+          title="View details"
+          onClick={handleDetailClick}
+        >
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="text-su-white">
+            <rect
+              x="1"
+              y="1"
+              width="12"
+              height="12"
+              rx="2"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              fill="none"
+            />
+            <path
+              d="M6 3h5v5"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <path d="M11 3L6 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+        </button>
       )}
     </div>
   )

@@ -1,11 +1,24 @@
+import type { SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
 import { extractEntityDetails, getActivationCurrency } from '../../../lib/entityDataExtraction'
-import { useEntityDisplayContext } from './useEntityDisplayContext'
 import { SharedDetailItem } from './sharedDetailItem'
 import { cn } from '../../../utils/cn'
+import type { getEntitySpacing } from './entityDisplayTypes'
 
-export function EntitySubTitleElement() {
-  const { data, schemaName, spacing, compact } = useEntityDisplayContext()
+type EntitySubTitleElementProps = {
+  data: SURefEntity
+  schemaName: SURefEnumSchemaName
+  spacing: ReturnType<typeof getEntitySpacing>
+  compact: boolean
+  damaged: boolean
+}
 
+export function EntitySubTitleElement({
+  data,
+  schemaName,
+  spacing,
+  compact,
+  damaged,
+}: EntitySubTitleElementProps) {
   // Determine currency for activation cost
   const variableCost = 'activationCurrency' in data && schemaName === 'abilities'
   const currency = getActivationCurrency(schemaName, variableCost)
@@ -21,7 +34,7 @@ export function EntitySubTitleElement() {
       )}
     >
       {values.map((item, index) => (
-        <SharedDetailItem key={index} item={item} compact={compact} />
+        <SharedDetailItem key={index} item={item} compact={compact} damaged={damaged} />
       ))}
     </div>
   )

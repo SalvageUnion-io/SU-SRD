@@ -2,6 +2,8 @@
 import { getSchemaCatalog } from 'salvageunion-reference'
 import { MobileNavIsland } from './islands/MobileNavIsland'
 import { SearchIsland } from './islands/SearchIsland'
+import Logo from './Logo.astro'
+import { getCatalogBg } from '../lib/catalogColors'
 
 const catalog = getSchemaCatalog()
 const schemas = catalog.schemas.filter((s) => !s.meta)
@@ -12,12 +14,11 @@ function isActive(path: string) {
 }
 ---
 
-<nav class="flex h-20 items-center justify-between bg-su-white px-6 py-3 z-50">
+<nav class="flex h-20 items-center justify-between bg-su-white px-6 py-3 z-50" transition:persist transition:name="nav" transition:animate="none">
   <!-- Logo + Search -->
   <div class="flex items-center gap-2">
-    <a href="/" class="flex items-center gap-1 rounded-md p-2 hover:bg-su-blue-pale transition-colors">
-      <span class="font-semibold text-xl text-su-black">Salvage Union</span>
-      <span class="text-xs text-su-orange-dark font-medium">SRD</span>
+    <a href="/" class="p-2">
+      <Logo />
     </a>
     <div class="hidden lg:block">
       <SearchIsland client:idle />
@@ -26,28 +27,16 @@ function isActive(path: string) {
 
   <!-- Desktop nav -->
   <div class="hidden lg:flex items-center gap-2">
-    <a
-      href="/randsum"
-      class:list={[
-        'px-4 py-2 rounded-md font-medium text-su-white transition-colors',
-        isActive('/randsum')
-          ? 'bg-su-pink'
-          : 'bg-su-pink brightness-[0.85] hover:brightness-100',
-      ]}
-    >
+    <a href="/" class:list={['btn', isActive('/schema') || currentPath === '/' ? 'btn-active' : 'btn-inactive']}>
+      SRD
+    </a>
+
+    <a href="/randsum" class:list={['btn', isActive('/randsum') ? 'btn-active' : 'btn-inactive']}>
       RANDSUM
     </a>
 
-    <a
-      href="/about"
-      class:list={[
-        'px-4 py-2 rounded-md font-medium text-su-white transition-colors',
-        isActive('/about')
-          ? 'bg-su-pink'
-          : 'bg-su-pink brightness-[0.85] hover:brightness-100',
-      ]}
-    >
-      About
+    <a href="/about" class:list={['btn', isActive('/about') ? 'btn-active' : 'btn-inactive']}>
+      ABOUT
     </a>
   </div>
 
@@ -55,7 +44,7 @@ function isActive(path: string) {
   <div class="flex lg:hidden items-center gap-2">
     <MobileNavIsland
       client:idle
-      schemas={schemas.map((s) => ({ id: s.id, displayName: s.displayName || s.title.replace('Salvage Union ', '') }))}
+      schemas={schemas.map((s) => ({ id: s.id, displayName: s.displayName || s.title.replace('Salvage Union ', ''), catalogBg: getCatalogBg(s.id) }))}
       currentPath={currentPath}
     />
   </div>

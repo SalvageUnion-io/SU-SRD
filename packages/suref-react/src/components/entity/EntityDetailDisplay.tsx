@@ -1,5 +1,4 @@
 import type { SURefEnumSchemaName } from 'salvageunion-reference'
-import { useEntityDisplayContext } from './EntityDisplay/useEntityDisplayContext'
 import { TraitKeywordDisplayView } from './TraitKeywordDisplayView'
 
 export function EntityDetailDisplay({
@@ -8,6 +7,7 @@ export function EntityDetailDisplay({
   schemaName,
   compact = false,
   inline = true,
+  damaged = false,
 }: {
   value?: number | string
   label: number | string
@@ -15,9 +15,9 @@ export function EntityDetailDisplay({
   schemaName: SURefEnumSchemaName
   /** Whether to display inline (default: true). Set to false for flex container contexts. */
   inline?: boolean
+  /** Whether the entity is damaged (default: false) */
+  damaged?: boolean
 }) {
-  const { damaged } = useEntityDisplayContext()
-
   return (
     <TraitKeywordDisplayView
       label={label}

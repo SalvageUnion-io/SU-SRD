@@ -326,7 +326,6 @@ export function EntitySelectionModal({
                         compact
                         hidePatterns={hidePatterns}
                         data={entity}
-                        collapsible={false}
                         disabled={isDisabled}
                         buttonConfig={{
                           className: cn(

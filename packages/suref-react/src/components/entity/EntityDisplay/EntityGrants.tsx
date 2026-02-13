@@ -2,12 +2,15 @@ import type { SURefObjectGrant, SURefEnumSchemaName, SURefEntity } from 'salvage
 import { getGrants, getModel } from 'salvageunion-reference'
 import { EntityDisplay } from './index'
 import { EntitySubheader } from './EntitySubheader'
-import { useEntityDisplayContext } from './useEntityDisplayContext'
 import { cn } from '../../../utils/cn'
+import type { getEntitySpacing } from './entityDisplayTypes'
 
-export function EntityGrants() {
-  const { data, spacing } = useEntityDisplayContext()
+type EntityGrantsProps = {
+  data: SURefEntity
+  spacing: ReturnType<typeof getEntitySpacing>
+}
 
+export function EntityGrants({ data, spacing }: EntityGrantsProps) {
   // Get grants from entity
   const entityGrants = getGrants(data) || []
 
@@ -37,20 +40,11 @@ export function EntityGrants() {
   }
 
   return (
-    <div className={cn(spacing.smallSpaceYClass)}>
-      <div style={{ marginBottom: `${spacing.minimalGap}rem` }}>
-        <EntitySubheader disabled={true} label="Grants:" />
-      </div>
-      <div style={{ marginTop: `${spacing.contentPadding}rem` }} className="space-y-2">
+    <div className={cn(spacing.sectionSpaceYClass)}>
+      <EntitySubheader disabled={true} label="Grants:" />
+      <div className={cn(spacing.smallSpaceYClass)}>
         {grantedEntities.map((entity, idx) => (
-          <EntityDisplay
-            key={idx}
-            hideActions
-            data={entity}
-            compact
-            collapsible
-            defaultExpanded={false}
-          />
+          <EntityDisplay key={idx} hideActions data={entity} compact collapsible />
         ))}
       </div>
     </div>

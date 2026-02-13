@@ -1,22 +1,28 @@
-import { Text } from '../../base/Text'
 import type { SURefObjectChoice } from 'salvageunion-reference'
-
+import { Text } from '../../base/Text'
 import { SheetInput } from '../../shared/SheetInput'
 import { EntitySubheader } from './EntitySubheader'
 import { EntityListDisplay } from './EntityListDisplay'
 import { PreselectedEntityDisplay } from './PreselectedEntityDisplay'
-import { useEntityDisplayContext } from './useEntityDisplayContext'
 import { getParagraphString } from '../../../lib/contentBlockHelpers'
 import { cn } from '../../../utils/cn'
+import type { getEntityFontSizes, getEntitySpacing } from './entityDisplayTypes'
 
 type EntityChoiceProps = {
   choice: SURefObjectChoice
   userChoices?: Record<string, string> | null
   onChoiceSelection?: (choiceId: string, value: string | undefined) => void
+  fontSize: ReturnType<typeof getEntityFontSizes>
+  spacing: ReturnType<typeof getEntitySpacing>
 }
 
-export function EntityChoice({ choice, userChoices, onChoiceSelection }: EntityChoiceProps) {
-  const { fontSize } = useEntityDisplayContext()
+export function EntityChoice({
+  choice,
+  userChoices,
+  onChoiceSelection,
+  fontSize,
+  spacing,
+}: EntityChoiceProps) {
   const hasSchemaEntities = 'schemaEntities' in choice && choice.schemaEntities
   const hasCustomSystemOptions = 'customSystemOptions' in choice && choice.customSystemOptions
   const hasChoiceOptions = 'choiceOptions' in choice && choice.choiceOptions
@@ -35,7 +41,7 @@ export function EntityChoice({ choice, userChoices, onChoiceSelection }: EntityC
     <div>
       {!isSimpleChoice && (
         <div className="mb-2 flex items-center gap-2">
-          <EntitySubheader disabled={isSchemaPageMode} label={choice.name} />
+          <EntitySubheader disabled={isSchemaPageMode} label={choice.name} fontSize={fontSize} />
           {hasLimitedChoices && !selectedChoice && !isSetIndexable && (
             <Text className={cn('text-su-black opacity-70', fontSize.sm)}>
               {isMultiSelect ? '(choose multiple)' : '(choose one)'}
@@ -59,6 +65,7 @@ export function EntityChoice({ choice, userChoices, onChoiceSelection }: EntityC
           userChoices={userChoices}
           onChoiceSelection={onChoiceSelection}
           isMultiSelect={isMultiSelect}
+          spacing={spacing}
         />
       )}
 

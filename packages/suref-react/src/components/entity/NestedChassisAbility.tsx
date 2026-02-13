@@ -11,6 +11,7 @@ import type { DataValue } from '../../types/common'
 import { extractEntityDetails } from '../../lib/entityDataExtraction'
 import { DataValueDisplayView } from './DataValueDisplayView'
 import { RollTable } from '../shared/RollTable'
+import { getEntityFontSizes, getEntitySpacing } from './EntityDisplay/entityDisplayTypes'
 import { cn } from '../../utils/cn'
 
 type NestedChassisAbilityProps = {
@@ -225,6 +226,8 @@ export function NestedChassisAbility({
               choice={choice}
               userChoices={undefined}
               onChoiceSelection={undefined}
+              fontSize={getEntityFontSizes(compact)}
+              spacing={getEntitySpacing(compact)}
             />
           ))}
         </div>

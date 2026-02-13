@@ -1,20 +1,29 @@
-import { Text } from '../../base/Text'
-import type { SURefObjectChoice } from 'salvageunion-reference'
+import type { SURefEntity, SURefObjectChoice } from 'salvageunion-reference'
 import { getChoices } from 'salvageunion-reference'
+import { Text } from '../../base/Text'
 import { EntityChoice } from './EntityChoice'
-import { useEntityDisplayContext } from './useEntityDisplayContext'
 import { cn } from '../../../utils/cn'
+import type { getEntitySpacing, getEntityFontSizes } from './entityDisplayTypes'
 
 export type EntityChoicesProps = {
+  data: SURefEntity
+  spacing: ReturnType<typeof getEntitySpacing>
+  fontSize: ReturnType<typeof getEntityFontSizes>
+  hideChoices: boolean
   /** User choices object matching the format sent to the API: Record<choiceId, "schemaName||entityId"> */
   userChoices?: Record<string, string> | null
   /** Callback when a choice is selected - if undefined, we're in schema page mode (not a live sheet) */
   onChoiceSelection?: (choiceId: string, value: string | undefined) => void
 }
 
-export function EntityChoices({ userChoices, onChoiceSelection }: EntityChoicesProps) {
-  const { data, spacing, fontSize, hideChoices } = useEntityDisplayContext()
-
+export function EntityChoices({
+  data,
+  spacing,
+  fontSize,
+  hideChoices,
+  userChoices,
+  onChoiceSelection,
+}: EntityChoicesProps) {
   // Get choices using the utility function (checks single action first, then root-level)
   const entityChoices: SURefObjectChoice[] = getChoices(data) || []
 
@@ -48,6 +57,8 @@ export function EntityChoices({ userChoices, onChoiceSelection }: EntityChoicesP
             choice={choice}
             userChoices={userChoices}
             onChoiceSelection={onChoiceSelection}
+            fontSize={fontSize}
+            spacing={spacing}
           />
         )
       })}

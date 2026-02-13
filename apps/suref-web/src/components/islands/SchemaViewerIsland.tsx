@@ -2,6 +2,7 @@ import { useState, useMemo, Suspense } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { getTechLevel, getSource, getEntitySlug, isAbility } from 'salvageunion-reference'
 import { EntityDisplay, EntityCardSkeleton } from 'suref-react'
+import { Button } from '../Button'
 
 type SchemaViewerIslandProps = {
   initialData: SURefEntity[]
@@ -73,34 +74,26 @@ export function SchemaViewerIsland({
         <div className="flex w-full max-w-[1200px] mx-auto flex-col gap-3">
           {techLevels.length > 1 && (
             <div className="flex flex-wrap gap-2">
-              <button
+              <Button
+                active={techLevelFilters.size === 0}
                 onClick={() => setTechLevelFilters(new Set())}
                 aria-pressed={techLevelFilters.size === 0}
-                className={`rounded-md px-4 py-2 font-medium transition-colors ${
-                  techLevelFilters.size === 0
-                    ? 'bg-su-orange text-su-white'
-                    : 'border border-su-grey-light bg-su-white text-su-black hover:bg-su-blue-pale'
-                }`}
               >
                 All
-              </button>
+              </Button>
               {techLevels.map((level) => {
                 const isSelected = techLevelFilters.has(String(level))
                 const displayLabel =
                   typeof level === 'number' ? `T${level}` : level === 'B' ? 'Bio' : 'N'
                 return (
-                  <button
+                  <Button
                     key={String(level)}
+                    active={isSelected}
                     onClick={() => toggleTechLevel(level)}
                     aria-pressed={isSelected}
-                    className={`rounded-md px-4 py-2 font-medium transition-colors ${
-                      isSelected
-                        ? 'bg-su-orange text-su-white'
-                        : 'border border-su-grey-light bg-su-white text-su-black hover:bg-su-blue-pale'
-                    }`}
                   >
                     {displayLabel}
-                  </button>
+                  </Button>
                 )
               })}
             </div>
@@ -108,32 +101,24 @@ export function SchemaViewerIsland({
 
           {sources.length > 1 && (
             <div className="flex flex-wrap gap-2">
-              <button
+              <Button
+                active={sourceFilters.size === 0}
                 onClick={() => setSourceFilters(new Set())}
                 aria-pressed={sourceFilters.size === 0}
-                className={`rounded-md px-4 py-2 font-medium transition-colors ${
-                  sourceFilters.size === 0
-                    ? 'bg-su-orange text-su-white'
-                    : 'border border-su-grey-light bg-su-white text-su-black hover:bg-su-blue-pale'
-                }`}
               >
                 All
-              </button>
+              </Button>
               {sources.map((source) => {
                 const isSelected = sourceFilters.has(source)
                 return (
-                  <button
+                  <Button
                     key={source}
+                    active={isSelected}
                     onClick={() => toggleSource(source)}
                     aria-pressed={isSelected}
-                    className={`rounded-md px-4 py-2 font-medium transition-colors ${
-                      isSelected
-                        ? 'bg-su-orange text-su-white'
-                        : 'border border-su-grey-light bg-su-white text-su-black hover:bg-su-blue-pale'
-                    }`}
                   >
                     {source}
-                  </button>
+                  </Button>
                 )
               })}
             </div>
@@ -156,7 +141,6 @@ export function SchemaViewerIsland({
                   hideChoices
                   data={item}
                   compact
-                  collapsible={false}
                   label={isAbility(item) && item.tree ? `${item.tree} tree` : undefined}
                 />
               </Suspense>
