@@ -1,4 +1,3 @@
-import type { SURefEntity } from 'salvageunion-reference'
 import { StatDisplay } from '../../shared/StatDisplay'
 import { LevelDisplay } from '../../shared/LevelDisplay'
 import { cn } from '../../../utils/cn'
@@ -6,17 +5,20 @@ import { cn } from '../../../utils/cn'
 type EntityLeftContentProps = {
   techLevel: number | 'B' | 'N' | undefined
   compact: boolean
-  data: SURefEntity
+  level?: number | string
   hideLevel: boolean
 }
 
-export function EntityLeftContent({ techLevel, compact, data, hideLevel }: EntityLeftContentProps) {
-  const level = 'level' in data ? data.level : undefined
-
+export function EntityLeftContent({
+  techLevel,
+  compact,
+  level,
+  hideLevel,
+}: EntityLeftContentProps) {
   const hasTechLevel = !!techLevel
   const hasLevel = !!level && !hideLevel
-  const isBioTechLevel = ('techLevel' in data && data.techLevel === 'B') || techLevel === 'B'
-  const isNTechLevel = ('techLevel' in data && data.techLevel === 'N') || techLevel === 'N'
+  const isBioTechLevel = techLevel === 'B'
+  const isNTechLevel = techLevel === 'N'
 
   if (!hasTechLevel && !hasLevel) return null
   return (

@@ -41,7 +41,11 @@ export function EntityChoice({
     <div>
       {!isSimpleChoice && (
         <div className="mb-2 flex items-center gap-2">
-          <EntitySubheader disabled={isSchemaPageMode} label={choice.name} fontSize={fontSize} />
+          <EntitySubheader
+            disabled={isSchemaPageMode}
+            label={choice.name}
+            headerFontSize={fontSize.lg}
+          />
           {hasLimitedChoices && !selectedChoice && !isSetIndexable && (
             <Text className={cn('text-su-black opacity-70', fontSize.sm)}>
               {isMultiSelect ? '(choose multiple)' : '(choose one)'}

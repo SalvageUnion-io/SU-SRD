@@ -11,6 +11,7 @@ type EntityRightHeaderContentProps = {
   data: SURefEntity
   compact: boolean
   fontSize: ReturnType<typeof getEntityFontSizes>
+  techLevel?: number | 'B' | 'N'
   rightContent?: ReactNode
   collapsible: boolean
   onDetailClick?: () => void
@@ -20,6 +21,7 @@ export function EntityRightHeaderContent({
   data,
   compact,
   fontSize,
+  techLevel,
   rightContent,
   collapsible,
   onDetailClick,
@@ -52,7 +54,7 @@ export function EntityRightHeaderContent({
   return (
     <div className="flex gap-2">
       {abilityContent}
-      <EntityStats data={data} compact={compact} />
+      <EntityStats data={data} compact={compact} techLevel={techLevel} />
       {rightContent}
       {collapsible && (
         <button

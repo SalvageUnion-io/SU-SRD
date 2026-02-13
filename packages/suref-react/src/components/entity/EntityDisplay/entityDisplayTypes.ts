@@ -122,8 +122,6 @@ export type EntityDisplayState = {
   userChoices?: Record<string, string> | null
   /** Custom width for the image (e.g., '40%') */
   imageWidth?: string
-  /** Computed entity display name */
-  entityName: string
   /** Whether entity has actions */
   hasActions: boolean
   /** Array of chassis abilities (or undefined) */
@@ -134,8 +132,6 @@ export type EntityDisplayState = {
   table?: SURefObjectTable
   /** Asset URL string (or undefined) */
   assetUrl?: string
-  /** Array of visible actions (or undefined) */
-  visibleActions?: SURefMetaAction[]
   /** Filtered actions excluding entity name (or undefined) */
   actionsToDisplay?: SURefMetaAction[]
   /** Action with matching name for content replacement (or undefined) */

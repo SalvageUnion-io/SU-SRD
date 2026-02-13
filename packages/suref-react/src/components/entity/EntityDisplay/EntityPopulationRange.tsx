@@ -1,28 +1,20 @@
-import type { SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
 import { cn } from '../../../utils/cn'
 import type { getEntitySpacing } from './entityDisplayTypes'
 
 type EntityPopulationRangeProps = {
-  data: SURefEntity
-  schemaName: SURefEnumSchemaName
+  populationMin: number
+  populationMax: number
   spacing: ReturnType<typeof getEntitySpacing>
 }
 
 /**
  * Displays population range for crawler-tech-levels schema
  */
-export function EntityPopulationRange({ data, schemaName, spacing }: EntityPopulationRangeProps) {
-  if (schemaName !== 'crawler-tech-levels') return null
-
-  if (
-    !('populationMin' in data) ||
-    !('populationMax' in data) ||
-    typeof data.populationMin !== 'number' ||
-    typeof data.populationMax !== 'number'
-  ) {
-    return null
-  }
-
+export function EntityPopulationRange({
+  populationMin,
+  populationMax,
+  spacing,
+}: EntityPopulationRangeProps) {
   return (
     <div
       className={cn('rounded-md border-2 border-su-black bg-su-white')}
@@ -30,7 +22,7 @@ export function EntityPopulationRange({ data, schemaName, spacing }: EntityPopul
     >
       <p className="text-su-black">
         <span className="font-bold text-brand-srd">Population Range: </span>
-        {data.populationMin.toLocaleString()} - {data.populationMax.toLocaleString()}
+        {populationMin.toLocaleString()} - {populationMax.toLocaleString()}
       </p>
     </div>
   )

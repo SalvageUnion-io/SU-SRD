@@ -59,7 +59,6 @@ export type EntityDisplayStateInput = {
   damaged?: boolean
   buttonConfig?: EntityButtonConfig
   userChoices?: Record<string, string> | null
-  children?: ReactNode
   imageWidth?: string
   label?: string
   classAbilitiesRenderer?: ClassAbilitiesRenderer
@@ -157,13 +156,11 @@ export function useEntityDisplayState({
     buttonConfig,
     userChoices,
     imageWidth,
-    entityName,
     hasActions: hasActionsValue,
     chassisAbilities,
     effects,
     table,
     assetUrl,
-    visibleActions,
     actionsToDisplay,
     matchingAction,
     source,

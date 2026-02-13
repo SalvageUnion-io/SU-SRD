@@ -91,7 +91,6 @@ export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayC
     hideLevel,
     rightContent,
     imageComponent,
-    hasActions: hasActionsValue,
   } = state
 
   // Determine which content to render (from EntityTopMatter)
@@ -163,7 +162,7 @@ export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayC
         <EntityLeftContent
           techLevel={techLevel}
           compact={compact}
-          data={data}
+          level={'level' in data ? data.level : undefined}
           hideLevel={hideLevel}
         />
       }
@@ -181,6 +180,7 @@ export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayC
           data={data}
           compact={compact}
           fontSize={fontSize}
+          techLevel={techLevel}
           rightContent={rightContent}
           collapsible={collapsible}
           onDetailClick={collapsible ? handleDetailClick : undefined}
@@ -241,7 +241,7 @@ export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayC
             {/* Non-compact: chassis abilities render before actions */}
             {!compact && hasChassisAbilities && !hideActions && (
               <EntityChassisAbilitiesContent
-                data={data}
+                chassisName={'name' in data ? data.name : undefined}
                 spacing={spacing}
                 compact={compact}
                 chassisAbilities={chassisAbilities}
@@ -252,7 +252,6 @@ export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayC
                 schemaName={schemaName}
                 spacing={spacing}
                 compact={compact}
-                hasActions={hasActionsValue}
                 actionsToDisplay={actionsToDisplay}
                 headerBg={headerBg}
               />
@@ -260,16 +259,26 @@ export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayC
             {/* Compact: chassis abilities render after actions */}
             {compact && hasChassisAbilities && (
               <EntityChassisAbilitiesContent
-                data={data}
+                chassisName={'name' in data ? data.name : undefined}
                 spacing={spacing}
                 compact={compact}
                 chassisAbilities={chassisAbilities}
               />
             )}
 
-            <EntityPopulationRange data={data} schemaName={schemaName} spacing={spacing} />
+            {schemaName === 'crawler-tech-levels' &&
+              'populationMin' in data &&
+              typeof data.populationMin === 'number' &&
+              'populationMax' in data &&
+              typeof data.populationMax === 'number' && (
+                <EntityPopulationRange
+                  populationMin={data.populationMin}
+                  populationMax={data.populationMax}
+                  spacing={spacing}
+                />
+              )}
             <EntityBonusPerTechLevel
-              data={data}
+              bonusPerTechLevel={'bonusPerTechLevel' in data ? data.bonusPerTechLevel : undefined}
               spacing={spacing}
               compact={compact}
               techLevel={techLevel}
@@ -302,7 +311,12 @@ export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayC
             )}
             {shouldShowExtraContent && (
               <>
-                {!hidePatterns && <EntityChassisPatterns data={data} fontSize={fontSize} />}
+                {!hidePatterns && (
+                  <EntityChassisPatterns
+                    patterns={'patterns' in data ? data.patterns : undefined}
+                    headerFontSize={fontSize.lg}
+                  />
+                )}
                 {'damagedEffect' in data && data.damagedEffect && (
                   <ConditionalSheetInfo
                     propertyName="damagedEffect"
