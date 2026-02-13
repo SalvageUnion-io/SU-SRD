@@ -7,6 +7,7 @@ type SchemaLink = {
   id: string
   displayName: string
   catalogBg: string
+  catalogLabel?: string
 }
 
 type SchemaCategory = {
@@ -89,10 +90,19 @@ export function MobileNavIsland({ categories, currentPath }: MobileNavIslandProp
                     key={schema.id}
                     href={`/schema/${schema.id}`}
                     className="btn catalog-item block text-center text-sm"
-                    style={{ '--catalog-bg': schema.catalogBg } as React.CSSProperties}
+                    style={
+                      {
+                        '--catalog-bg': schema.catalogBg,
+                        ...(schema.catalogLabel ? { '--catalog-label': schema.catalogLabel } : {}),
+                      } as React.CSSProperties
+                    }
                     onClick={() => setOpen(false)}
                   >
-                    {schema.displayName}
+                    {schema.catalogLabel ? (
+                      <span className="catalog-item-label">{schema.displayName}</span>
+                    ) : (
+                      schema.displayName
+                    )}
                   </a>
                 ))}
               </div>

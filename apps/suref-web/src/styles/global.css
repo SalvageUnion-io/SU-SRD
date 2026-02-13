@@ -62,10 +62,15 @@
 /* Catalog items */
 .catalog-item {
   justify-content: center;
-  border-width: 0;
+  border: 0;
   background: var(--catalog-bg);
   color: var(--color-su-white);
   transition: transform 0.15s ease;
+}
+
+.catalog-item-label {
+  background: var(--catalog-label);
+  padding: 0.125rem 0.5rem;
 }
 
 .catalog-item:hover {

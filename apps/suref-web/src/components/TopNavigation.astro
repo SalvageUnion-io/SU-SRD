@@ -3,7 +3,7 @@ import { getSchemaCatalog } from 'salvageunion-reference'
 import { MobileNavIsland } from './islands/MobileNavIsland'
 import { SearchIsland } from './islands/SearchIsland'
 import Logo from './Logo.astro'
-import { getCatalogBg } from '../lib/catalogColors'
+import { getCatalogBg, getCatalogLabel } from '../lib/catalogColors'
 import { schemaCategories } from '../lib/schema-categories'
 
 const catalog = getSchemaCatalog()
@@ -15,7 +15,7 @@ const categories = schemaCategories.map((cat) => ({
   label: cat.label,
   schemas: cat.schemaIds.flatMap((id) => {
     const s = schemaMap.get(id)
-    return s ? [{ id: s.id, displayName: s.displayName || s.title.replace('Salvage Union ', ''), catalogBg: getCatalogBg(s.id) }] : []
+    return s ? [{ id: s.id, displayName: s.displayName || s.title.replace('Salvage Union ', ''), catalogBg: getCatalogBg(s.id), catalogLabel: getCatalogLabel(s.id) }] : []
   }),
 }))
 

@@ -85,7 +85,10 @@ export function StatDisplay({
   const boxSize = compact ? 'h-8 w-8' : 'h-12 w-12'
 
   const content = (
-    <div className="flex flex-col items-center gap-0" aria-label={combinedAriaLabel}>
+    <div
+      className={cn('flex flex-col items-center gap-0 overflow-visible', compact ? 'w-8' : 'w-12')}
+      aria-label={combinedAriaLabel}
+    >
       <Text
         ref={topLabelRef}
         variant="pseudoheader"

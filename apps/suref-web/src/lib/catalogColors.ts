@@ -41,3 +41,15 @@ export function getCatalogBg(schemaId: string): string {
   if (schemaId === 'abilities') return abilityGradient
   return schemaColors[schemaId] || 'var(--color-su-orange)'
 }
+
+const schemaLabelColors: Record<string, string> = {
+  equipment: 'var(--color-su-orange)',
+  systems: 'var(--color-su-green)',
+  modules: 'var(--color-su-green)',
+  drones: 'var(--color-su-rust)',
+  vehicles: 'var(--color-su-rust)',
+}
+
+export function getCatalogLabel(schemaId: string): string | undefined {
+  return schemaLabelColors[schemaId]
+}
