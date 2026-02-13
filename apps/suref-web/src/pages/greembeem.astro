@@ -31,18 +31,30 @@ function parseCsv(raw: string) {
 
 const [, ...rows] = parseCsv(csvRaw)
 
-const seasonMap = new Map<number, { number: number; year: string; episodes: { num: number; title: string; date: string }[] }>()
+const seasonMap = new Map<number, { number: number; year: string; theme: string; artist: string; remix: string; episodes: { num: number; title: string; date: string }[] }>()
 
-for (const [season, num, title, date] of rows) {
+for (const [season, num, title, date, theme, artist, remix] of rows) {
   const s = Number(season)
   if (!seasonMap.has(s)) {
     const year = s === 1 ? '2024\u201325' : '2025\u201326'
-    seasonMap.set(s, { number: s, year, episodes: [] })
+    seasonMap.set(s, { number: s, year, theme: theme || '', artist: artist || '', remix: remix || '', episodes: [] })
   }
   seasonMap.get(s)!.episodes.push({ num: Number(num), title, date })
 }
 
 const seasons = [...seasonMap.values()]
+
+const wikiLinks: Record<string, string> = {
+  'Get by with a Little Help from Our Friends': 'https://en.wikipedia.org/wiki/With_a_Little_Help_from_My_Friends',
+  'Helter Skelter': 'https://en.wikipedia.org/wiki/Helter_Skelter_(song)',
+  'Joe Cocker': 'https://en.wikipedia.org/wiki/Joe_Cocker',
+  'The Beatles': 'https://en.wikipedia.org/wiki/The_Beatles',
+  'Son Lux': 'https://en.wikipedia.org/wiki/Son_Lux',
+}
+
+function wikiHref(name: string): string {
+  return wikiLinks[name] || '#'
+}
 ---
 
 <html lang="en">
@@ -219,7 +231,7 @@ const seasons = [...seasonMap.values()]
         <dl>
           <div class="infobox-pair">
             <dt>Genre</dt>
-            <dd><a href="#">Science fiction</a><br /><a href="#">Post-apocalyptic</a><br /><a href="#">Drama</a></dd>
+            <dd><a href="https://en.wikipedia.org/wiki/Science_fiction">Science fiction</a><br /><a href="https://en.wikipedia.org/wiki/Apocalyptic_and_post-apocalyptic_fiction">Post-apocalyptic</a><br /><a href="https://en.wikipedia.org/wiki/Drama_(film_and_television)">Drama</a></dd>
           </div>
           <div class="infobox-pair">
             <dt>Created by</dt>
@@ -250,12 +262,12 @@ const seasons = [...seasonMap.values()]
 
       <div class="wiki-body" style="padding-top: 4px;">
         <p>
-          following the hospitalization and subsequent imprisonment of series' original author, <a href="#" class="wiki-redlink">Alex Jarvis</a>.<sup class="reference"><a href="#">[1]</a></sup>
+          following the hospitalization and subsequent imprisonment of the series author, <a href="#" class="wiki-redlink">Alex Jarvis</a>.<sup class="reference"><a href="#">[1]</a></sup>
         </p>
         <p>
-          A second season was officially announced at <a href="#">New York Comic Con</a> 2025 on October 11, with showrunner <a href="#">Leeroy Trenchcoat</a> confirming that the <a href="#">Beatles</a> track "<a href="#">Helter Skelter</a>" would serve as the opening theme and "thematic throughline" for season two.<sup class="reference"><a href="#">[2]</a></sup>
-          Within days of the announcement, "Helter Skelter" trended across all major streaming platforms, including <a href="#">Spotify</a>, <a href="#">Apple Music</a>, and <a href="#">YouTube Music</a>, with streams of the song increasing by over 4,000% in the week following the panel.<sup class="reference"><a href="#">[3]</a></sup><sup class="reference"><a href="#">[4]</a></sup>
-          The surge prompted <a href="#">Universal Music Group</a> to issue a limited remastered single, crediting the show's cultural impact,<sup class="reference"><a href="#">[5]</a></sup> angering <a href="#">Sony Pictures Group</a>, the rights-holder.<sup class="reference"><a href="#">[6]</a></sup>
+          A second season was officially announced at <a href="https://en.wikipedia.org/wiki/New_York_Comic_Con">New York Comic Con</a> 2025 on October 11, with showrunner <a href="#">Leeroy Trenchcoat</a> confirming that the <a href="https://en.wikipedia.org/wiki/The_Beatles">Beatles</a> track "<a href="https://en.wikipedia.org/wiki/Helter_Skelter_(song)">Helter Skelter</a>" (again remixed by <a href="https://en.wikipedia.org/wiki/Son_Lux">Son Lux</a>) would serve as the opening theme and "thematic throughline" for season two.<sup class="reference"><a href="#">[2]</a></sup>
+          Within days of the announcement, "Helter Skelter" trended across all major streaming platforms, including <a href="https://en.wikipedia.org/wiki/Spotify">Spotify</a>, <a href="https://en.wikipedia.org/wiki/Apple_Music">Apple Music</a>, and <a href="https://en.wikipedia.org/wiki/YouTube_Music">YouTube Music</a>, with streams of the song increasing by over 4,000% in the week following the panel.<sup class="reference"><a href="#">[3]</a></sup><sup class="reference"><a href="#">[4]</a></sup>
+          The surge prompted <a href="https://en.wikipedia.org/wiki/Universal_Music_Group">Universal Music Group</a> to issue a limited remastered single,<sup class="reference"><a href="#">[5]</a></sup> angering <a href="https://en.wikipedia.org/wiki/Sony_Pictures">Sony Pictures Group</a>, the rights-holder.<sup class="reference"><a href="#">[6]</a></sup>
         </p>
       </div>
 
@@ -269,6 +281,11 @@ const seasons = [...seasonMap.values()]
           <h3 class="season-heading" id={`season${season.number}`}>
             Season {season.number} ({season.year})
           </h3>
+          {season.theme && (
+            <p style="font-size: 13px; color: #54595d; margin: -4px 0 8px; font-style: italic;">
+              Theme song: "<a href={wikiHref(season.theme)}>{season.theme}</a>" by <a href={wikiHref(season.artist)}>{season.artist}</a>{season.remix && <> (<a href={wikiHref(season.remix)}>{season.remix}</a> Remix)</>}
+            </p>
+          )}
           <table class="episode-table">
             <thead>
               <tr>
@@ -299,7 +316,7 @@ const seasons = [...seasonMap.values()]
           The television adaptation is widely considered a faithful rendering of the original <i>Eldridge Coast</i> book series by eccentric author <a href="#" class="wiki-redlink">Alex Jarvis</a>. Critics and fans alike have praised showrunner <a href="#">Leeroy Trenchcoat</a> for preserving the novels' overtly leftist political themes.<sup class="reference"><a href="#">[7]</a></sup> In a 2024 interview, Trenchcoat stated that maintaining the source material's political identity was "non-negotiable from day one."<sup class="reference"><a href="#">[8]</a></sup>
         </p>
         <p>
-          The most notable difference is the omission of much-maligned <a href="#" class="wiki-redlink">Scrappy</a>, a central pilot in Jarvis's novels, who was demoted from the main cast entirely in the television adaptation. Scrappy appears in Season 1, Episode 18 ("<a href="#">And Then I Punch Him Right in the Dick</a>") as the maintainer of a parking lot, and is later implied to have joined the crawler,<sup class="reference"><a href="#">[10]</a></sup> but has not appeared since. The episode holds the distinction of being the lowest-rated installment in the show's history on <a href="#">Rotten Tomatoes</a>, with an audience score of 12%, the result of a coordinated review-bombing campaign organized by former U.S. President <a href="#">Barack Obama</a>.<sup class="reference"><a href="#">[12]</a></sup><sup class="reference"><a href="#">[13]</a></sup> Obama, a self-described "Scrappy hater", was known to post late-night
+          The most notable difference is the omission of much-maligned <a href="#" class="wiki-redlink">Scrappy</a>, a central pilot in Jarvis's novels, who was removed from the main cast entirely in the television adaptation. Scrappy cameos in Season 1, Episode 18 ("<a href="#">And Then I Punch Him Right in the Dick</a>") as the maintainer of a parking lot, and is later implied to have joined the crawler,<sup class="reference"><a href="#">[10]</a></sup> but has not appeared since. The episode holds the distinction of being the lowest-rated installment in the show's history on <a href="https://en.wikipedia.org/wiki/Rotten_Tomatoes">Rotten Tomatoes</a>, with an audience score of 12%, the result of a coordinated review-bombing campaign organized by former U.S. President <a href="https://en.wikipedia.org/wiki/Barack_Obama">Barack Obama</a>.<sup class="reference"><a href="#">[12]</a></sup><sup class="reference"><a href="#">[13]</a></sup> Obama, a self-described "Scrappy hater", was known to post late-night
         </p>
       </div>
     </main>

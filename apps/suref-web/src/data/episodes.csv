@@ -1,35 +1,35 @@
-season,num,title,date
-1,1,He Who Is Transplanted,August 12 2024
-1,2,Where There's Smoke,August 26 2024
-1,3,Dust in the Wind,September 9 2024
-1,4,"A Place, a Part",September 23 2024
-1,5,Worth a Shot (Now You Get to Meet Boss Hog),October 7 2024
-1,6,I'm in the Union Now,October 21 2024
-1,7,Hey There Delilah (A Near-Beth Experience),November 4 2024
-1,8,How Much Would,November 25 2024
-1,9,Tippy-Toe Five Fifty,December 9 2024
-1,10,That Was Easy,December 23 2024
-1,11,My Dinner with RB,January 13 2025
-1,12,Get Away from My Slippery Boyfriend,January 27 2025
-1,13,Let Me Taste That Stew,February 10 2025
-1,14,One Stuart Richer,March 3 2025
-1,15,This One Also Has a Thing That Kills You in One Hit (This Shouldn't Happen),March 17 2025
-1,16,Hot Fuzz for Two,April 7 2025
-1,17,They Both Turned Left,April 21 2025
-1,18,And Then I Punch Him Right in the Dick,May 5 2025
-1,19,Anti Bully Tech,May 26 2025
-1,20,Give Papa a Hug,June 9 2025
-1,21,Its Only Gay if the Mechs Touch,June 23 2025
-1,22,Meatball Medicine,July 7 2025
-1,22,In Tatters I: What Happened to Your Accent,July 21 2025
-1,23,"In Tatters II: It's a Feature",August 11 2025
-2,1,Parting Ways (Jason Statham Cum Gutters Midriff Exposed),September 1 2025
-2,2,Dial Up Noisesz,September 15 2025
-2,3,Thank You for Respecting Our Culture,October 6 2025
-2,4,We're Comparing Boss Hogs,October 27 2025
-2,5,The Wonder of It All,November 10 2025
-2,6,Greem Beam,December 1 2025
-2,7,Not the Boy Stew,December 15 2025
-2,8,Rekjet's Surrender / Inky's First Stand,January 5 2026
-2,9,Live Action Role Play,January 26 2026
-2,10,Big Bear Billy Quizboy,February 9 2026
+season,num,title,date,theme,artist,remix
+1,1,He Who Is Transplanted,August 12 2024,Get by with a Little Help from Our Friends,Joe Cocker,Son Lux
+1,2,Where There's Smoke,August 26 2024,Get by with a Little Help from Our Friends,Joe Cocker,Son Lux
+1,3,Dust in the Wind,September 9 2024,Get by with a Little Help from Our Friends,Joe Cocker,Son Lux
+1,4,"A Place, a Part",September 23 2024,Get by with a Little Help from Our Friends,Joe Cocker,Son Lux
+1,5,Worth a Shot (Now You Get to Meet Boss Hog),October 7 2024,Get by with a Little Help from Our Friends,Joe Cocker,Son Lux
+1,6,I'm in the Union Now,October 21 2024,Get by with a Little Help from Our Friends,Joe Cocker,Son Lux
+1,7,Hey There Delilah (A Near-Beth Experience),November 4 2024,Get by with a Little Help from Our Friends,Joe Cocker,Son Lux
+1,8,How Much Would,November 25 2024,Get by with a Little Help from Our Friends,Joe Cocker,Son Lux
+1,9,Tippy-Toe Five Fifty,December 9 2024,Get by with a Little Help from Our Friends,Joe Cocker,Son Lux
+1,10,That Was Easy,December 23 2024,Get by with a Little Help from Our Friends,Joe Cocker,Son Lux
+1,11,My Dinner with RB,January 13 2025,Get by with a Little Help from Our Friends,Joe Cocker,Son Lux
+1,12,Get Away from My Slippery Boyfriend,January 27 2025,Get by with a Little Help from Our Friends,Joe Cocker,Son Lux
+1,13,Let Me Taste That Stew,February 10 2025,Get by with a Little Help from Our Friends,Joe Cocker,Son Lux
+1,14,One Stuart Richer,March 3 2025,Get by with a Little Help from Our Friends,Joe Cocker,Son Lux
+1,15,This One Also Has a Thing That Kills You in One Hit (This Shouldn't Happen),March 17 2025,Get by with a Little Help from Our Friends,Joe Cocker,Son Lux
+1,16,Hot Fuzz for Two,April 7 2025,Get by with a Little Help from Our Friends,Joe Cocker,Son Lux
+1,17,They Both Turned Left,April 21 2025,Get by with a Little Help from Our Friends,Joe Cocker,Son Lux
+1,18,And Then I Punch Him Right in the Dick,May 5 2025,Get by with a Little Help from Our Friends,Joe Cocker,Son Lux
+1,19,Anti Bully Tech,May 26 2025,Get by with a Little Help from Our Friends,Joe Cocker,Son Lux
+1,20,Give Papa a Hug,June 9 2025,Get by with a Little Help from Our Friends,Joe Cocker,Son Lux
+1,21,Its Only Gay if the Mechs Touch,June 23 2025,Get by with a Little Help from Our Friends,Joe Cocker,Son Lux
+1,22,Meatball Medicine,July 7 2025,Get by with a Little Help from Our Friends,Joe Cocker,Son Lux
+1,22,In Tatters I: What Happened to Your Accent,July 21 2025,Get by with a Little Help from Our Friends,Joe Cocker,Son Lux
+1,23,"In Tatters II: It's a Feature",August 11 2025,Get by with a Little Help from Our Friends,Joe Cocker,Son Lux
+2,1,Parting Ways (Jason Statham Cum Gutters Midriff Exposed),September 1 2025,Helter Skelter,The Beatles,Son Lux
+2,2,Dial Up Noisesz,September 15 2025,Helter Skelter,The Beatles,Son Lux
+2,3,Thank You for Respecting Our Culture,October 6 2025,Helter Skelter,The Beatles,Son Lux
+2,4,We're Comparing Boss Hogs,October 27 2025,Helter Skelter,The Beatles,Son Lux
+2,5,The Wonder of It All,November 10 2025,Helter Skelter,The Beatles,Son Lux
+2,6,Greem Beam,December 1 2025,Helter Skelter,The Beatles,Son Lux
+2,7,Not the Boy Stew,December 15 2025,Helter Skelter,The Beatles,Son Lux
+2,8,Rekjet's Surrender / Inky's First Stand,January 5 2026,Helter Skelter,The Beatles,Son Lux
+2,9,Live Action Role Play,January 26 2026,Helter Skelter,The Beatles,Son Lux
+2,10,Big Bear Billy Quizboy,February 9 2026,Helter Skelter,The Beatles,Son Lux
