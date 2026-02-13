@@ -208,8 +208,11 @@
 
 /* Engraved text on metal — worn paint effect */
 .engraved-text {
-  color: #000;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.06);
+  color: #1a1510;
+  text-shadow:
+    0 -1px 1px rgba(0, 0, 0, 0.4),
+    0 1px 0 rgba(255, 255, 255, 0.1),
+    0 2px 3px rgba(0, 0, 0, 0.15);
   filter: url(#paint-peel);
 }
 
