@@ -25,21 +25,10 @@ export { Text } from './components/base/Text'
 // UI primitives
 export { Tooltip } from './components/ui/tooltip'
 export { toast, Toaster } from './components/ui/toaster'
-export {
-  Dialog,
-  DialogTrigger,
-  DialogClose,
-  DialogOverlay,
-  DialogContent,
-  DialogTitle,
-  DialogDescription,
-} from './components/ui/dialog'
 
 // Entity display system
 export { EntityDisplay } from './components/entity/EntityDisplay/index'
-export { EntityDisplayModal } from './components/entity/EntityDisplayModal'
 export { EntityDisplayTooltip } from './components/entity/EntityDisplayTooltip'
-export { EntitySelectionModal } from './components/entity/EntitySelectionModal'
 
 // Shared components
 export { Card } from './components/shared/Card'
@@ -49,7 +38,6 @@ export { ActivationCostBox } from './components/shared/ActivationCostBox'
 export { LevelDisplay } from './components/shared/LevelDisplay'
 export { SheetDisplay } from './components/shared/SheetDisplay'
 export { SheetInput } from './components/shared/SheetInput'
-export { EntityDisplayFooter } from './components/shared/EntityDisplayFooter'
 export { RollTable } from './components/shared/RollTable'
 export { ResourceStepper } from './components/shared/ResourceStepper'
 export { ResourceBar } from './components/shared/ResourceBar'
@@ -61,7 +49,6 @@ export { ActionFilterChips } from './components/shared/ActionFilterChips'
 
 // Skeletons
 export { EntityCardSkeleton } from './components/skeleton/EntityCardSkeleton'
-export { SchemaViewerSkeleton } from './components/skeleton/SchemaViewerSkeleton'
 
 // Utilities
 export { getEntitySlug } from './utils/slug'

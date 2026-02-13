@@ -1,7 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro'
 import { getSchemaCatalog } from 'salvageunion-reference'
-import { getCatalogBg, isHollowCatalog } from '../lib/catalogColors'
+import { getCatalogBg } from '../lib/catalogColors'
 
 const catalog = getSchemaCatalog()
 const schemas = catalog.schemas.filter((s) => !s.meta)
@@ -57,7 +57,7 @@ function pluralizeWord(word: string) {
         {schemas.map((schema) => (
           <a
             href={`/schema/${schema.id}`}
-            class:list={['btn text-center', isHollowCatalog(schema.id) ? 'catalog-item-hollow' : 'catalog-item']}
+            class:list={['btn text-center catalog-item']}
             style={`--catalog-bg: ${getCatalogBg(schema.id)}`}
           >
             {pluralize(schema.displayName, schema.itemCount)}

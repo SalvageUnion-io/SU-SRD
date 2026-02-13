@@ -32,16 +32,12 @@ const schemaColors: Record<string, string> = {
   meld: 'var(--color-su-rust)',
   squads: 'var(--color-su-rust)',
   'roll-tables': 'var(--color-su-black)',
-}
-
-const hollowSchemas = new Set(['keywords', 'distances', 'traits'])
-
-export function isHollowCatalog(schemaId: string): boolean {
-  return hollowSchemas.has(schemaId)
+  keywords: 'var(--color-su-black)',
+  distances: 'var(--color-su-black)',
+  traits: 'var(--color-su-black)',
 }
 
 export function getCatalogBg(schemaId: string): string {
-  if (hollowSchemas.has(schemaId)) return 'transparent'
   if (schemaId === 'abilities') return abilityGradient
   return schemaColors[schemaId] || 'var(--color-su-orange)'
 }

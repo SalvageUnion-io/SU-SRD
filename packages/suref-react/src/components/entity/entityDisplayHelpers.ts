@@ -70,9 +70,9 @@ export function calculateBackgroundColor(
   if (schemaName === 'npcs') return headerColor || 'bg-su-rust'
   if (schemaName === 'meld') return headerColor || 'bg-su-rust'
   if (schemaName === 'squads') return headerColor || 'bg-su-rust'
-  if (schemaName === 'keywords') return headerColor || 'bg-su-grey-light'
-  if (schemaName === 'distances') return headerColor || 'bg-su-grey-light'
-  if (schemaName === 'traits') return headerColor || 'bg-su-grey-light'
+  if (schemaName === 'keywords') return headerColor || 'bg-su-black'
+  if (schemaName === 'distances') return headerColor || 'bg-su-black'
+  if (schemaName === 'traits') return headerColor || 'bg-su-black'
   if (schemaName === 'roll-tables') return headerColor || 'bg-su-black'
   if (schemaName === 'classes' && !headerColor) {
     if (isEntityData(data)) {
