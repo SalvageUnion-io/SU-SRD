@@ -35,7 +35,6 @@
 }
 
 .btn-inactive {
-  border: 1px solid var(--color-su-black);
   color: var(--color-su-black);
 }
 
