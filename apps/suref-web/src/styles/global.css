@@ -57,7 +57,6 @@
   transform: scale(1.05);
 }
 
-
 /* Shadow wrapper — clip-path kills box-shadow, so shadow lives here */
 .pilot-panel-shadow {
   filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.45)) drop-shadow(0 1px 3px rgba(0, 0, 0, 0.3))
