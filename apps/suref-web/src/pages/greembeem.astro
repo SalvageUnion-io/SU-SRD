@@ -92,21 +92,6 @@ const seasons = [...seasonMap.values()]
         font-size: 14px;
         font-style: italic;
       }
-      .infobox-row {
-        display: flex;
-        border-top: 1px solid #a2a9b1;
-      }
-      .infobox-label {
-        width: 90px;
-        padding: 4px 8px;
-        font-weight: bold;
-        background: #f8f9fa;
-        flex-shrink: 0;
-      }
-      .infobox-value {
-        padding: 4px 8px;
-        flex: 1;
-      }
       .infobox-clipped {
         margin-top: -180px;
         clip-path: inset(180px 0 0 0);
@@ -192,42 +177,76 @@ const seasons = [...seasonMap.values()]
 
       .comparison-clip { overflow: hidden; max-height: 160px; }
       @media (min-width: 768px) { .comparison-clip { max-height: 230px; } }
+
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+
+      .infobox dl { margin: 0; }
+      .infobox dt {
+        width: 90px;
+        padding: 4px 8px;
+        font-weight: bold;
+        background: #f8f9fa;
+        flex-shrink: 0;
+      }
+      .infobox dd {
+        padding: 4px 8px;
+        margin: 0;
+        flex: 1;
+      }
+      .infobox-pair {
+        display: flex;
+        border-top: 1px solid #a2a9b1;
+      }
     </style>
   </head>
   <body>
-    <div class="wiki-content">
+    <main class="wiki-content">
+      <h1 class="sr-only">The Eldridge Coast</h1>
+
       <!-- Infobox - clipped to simulate scrolled past -->
-      <div class="infobox infobox-clipped">
+      <aside class="infobox infobox-clipped" aria-label="Show information">
         <div class="infobox-header">The Eldridge Coast</div>
-        <div class="infobox-row">
-          <div class="infobox-label">Genre</div>
-          <div class="infobox-value"><a href="#">Science fiction</a><br /><a href="#">Post-apocalyptic</a><br /><a href="#">Drama</a></div>
-        </div>
-        <div class="infobox-row">
-          <div class="infobox-label">Created by</div>
-          <div class="infobox-value">A. Jarvis</div>
-        </div>
-        <div class="infobox-row">
-          <div class="infobox-label">Based on</div>
-          <div class="infobox-value"><i><a href="#">Salvage Union</a></i> by <a href="#">Leyline Press</a></div>
-        </div>
-        <div class="infobox-row">
-          <div class="infobox-label">No. of seasons</div>
-          <div class="infobox-value">{seasons.length}</div>
-        </div>
-        <div class="infobox-row">
-          <div class="infobox-label">No. of episodes</div>
-          <div class="infobox-value">{rows.length}</div>
-        </div>
-        <div class="infobox-row">
-          <div class="infobox-label">Network</div>
-          <div class="infobox-value">Local Distribution</div>
-        </div>
-        <div class="infobox-row">
-          <div class="infobox-label">Original release</div>
-          <div class="infobox-value">August 12, 2024 &ndash;<br />present</div>
-        </div>
-      </div>
+        <dl>
+          <div class="infobox-pair">
+            <dt>Genre</dt>
+            <dd><a href="#">Science fiction</a><br /><a href="#">Post-apocalyptic</a><br /><a href="#">Drama</a></dd>
+          </div>
+          <div class="infobox-pair">
+            <dt>Created by</dt>
+            <dd>A. Jarvis</dd>
+          </div>
+          <div class="infobox-pair">
+            <dt>Based on</dt>
+            <dd><i><a href="#">Salvage Union</a></i> by <a href="#">Leyline Press</a></dd>
+          </div>
+          <div class="infobox-pair">
+            <dt>No. of seasons</dt>
+            <dd>{seasons.length}</dd>
+          </div>
+          <div class="infobox-pair">
+            <dt>No. of episodes</dt>
+            <dd>{rows.length}</dd>
+          </div>
+          <div class="infobox-pair">
+            <dt>Network</dt>
+            <dd>Local Distribution</dd>
+          </div>
+          <div class="infobox-pair">
+            <dt>Original release</dt>
+            <dd>August 12, 2024 &ndash;<br />present</dd>
+          </div>
+        </dl>
+      </aside>
 
       <div class="wiki-body" style="padding-top: 4px;">
         <p>
@@ -242,7 +261,7 @@ const seasons = [...seasonMap.values()]
 
       <h2 class="section-heading" id="episodes">
         Episodes
-        <span class="edit-link">[<a href="#">edit</a>]</span>
+        <span class="edit-link">[<a href="#" role="button">edit</a>]</span>
       </h2>
 
       {seasons.map((season) => (
@@ -253,9 +272,9 @@ const seasons = [...seasonMap.values()]
           <table class="episode-table">
             <thead>
               <tr>
-                <th class="ep-num">No.</th>
-                <th class="ep-title">Title</th>
-                <th class="ep-date">Original air date</th>
+                <th scope="col" class="ep-num">No.</th>
+                <th scope="col" class="ep-title">Title</th>
+                <th scope="col" class="ep-date">Original air date</th>
               </tr>
             </thead>
             <tbody>
@@ -273,7 +292,7 @@ const seasons = [...seasonMap.values()]
 
       <h2 class="section-heading" id="comparison">
         Comparison to book series
-        <span class="edit-link">[<a href="#">edit</a>]</span>
+        <span class="edit-link">[<a href="#" role="button">edit</a>]</span>
       </h2>
       <div class="wiki-body" style="padding-bottom: 0;">
         <p>
@@ -283,10 +302,10 @@ const seasons = [...seasonMap.values()]
           The most notable difference is the omission of much-maligned <a href="#" class="wiki-redlink">Scrappy</a>, a central pilot in Jarvis's novels, who was demoted from the main cast entirely in the television adaptation. Scrappy appears in Season 1, Episode 18 ("<a href="#">And Then I Punch Him Right in the Dick</a>") as the maintainer of a parking lot, and is later implied to have joined the crawler,<sup class="reference"><a href="#">[10]</a></sup> but has not appeared since. The episode holds the distinction of being the lowest-rated installment in the show's history on <a href="#">Rotten Tomatoes</a>, with an audience score of 12%, the result of a coordinated review-bombing campaign organized by former U.S. President <a href="#">Barack Obama</a>.<sup class="reference"><a href="#">[12]</a></sup><sup class="reference"><a href="#">[13]</a></sup> Obama, a self-described "Scrappy hater", was known to post late-night
         </p>
       </div>
-    </div>
+    </main>
 
     <!-- Toast -->
-    <div id="edit-toast" style="
+    <div id="edit-toast" role="status" aria-live="polite" style="
       position: fixed;
       bottom: 24px;
       right: 24px;
