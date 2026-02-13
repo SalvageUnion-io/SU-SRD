@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { cn } from '../../utils/cn'
 import { Text } from '../base/Text'
 import { Tooltip } from '../ui/tooltip'
@@ -57,6 +57,29 @@ export function StatDisplay({
     }
   }, [flash])
 
+  const boxRef = useRef<HTMLDivElement>(null)
+  const topLabelRef = useRef<HTMLSpanElement>(null)
+  const bottomLabelRef = useRef<HTMLSpanElement>(null)
+
+  const scaleLabels = useCallback(() => {
+    const box = boxRef.current
+    if (!box) return
+    const boxWidth = box.offsetWidth
+    for (const ref of [topLabelRef, bottomLabelRef]) {
+      const el = ref.current
+      if (!el) continue
+      el.style.transform = ''
+      const labelWidth = el.scrollWidth
+      if (labelWidth > boxWidth) {
+        el.style.transform = `scaleX(${boxWidth / labelWidth})`
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    scaleLabels()
+  }, [label, bottomLabel, compact, scaleLabels])
+
   if (value === undefined) return null
 
   const boxSize = compact ? 'h-8 w-8' : 'h-12 w-12'
@@ -64,10 +87,11 @@ export function StatDisplay({
   const content = (
     <div className="flex flex-col items-center gap-0" aria-label={combinedAriaLabel}>
       <Text
+        ref={topLabelRef}
         variant="pseudoheader"
         as="span"
         className={cn(
-          'z-[1] -mb-2 self-center whitespace-nowrap uppercase',
+          'z-[1] -mb-2 origin-center self-center whitespace-nowrap uppercase',
           compact ? 'text-[10px]' : 'text-xs'
         )}
         id={labelId}
@@ -76,6 +100,7 @@ export function StatDisplay({
       </Text>
       {onClick ? (
         <button
+          ref={boxRef as React.Ref<HTMLButtonElement>}
           onClick={onClick}
           disabled={disabled}
           className={cn(
@@ -101,6 +126,7 @@ export function StatDisplay({
         </button>
       ) : (
         <div
+          ref={boxRef}
           className={cn(
             'flex items-center justify-center border',
             boxSize,
@@ -122,10 +148,11 @@ export function StatDisplay({
         </div>
       )}
       <Text
+        ref={bottomLabelRef}
         variant="pseudoheader"
         as="span"
         className={cn(
-          'z-[1] -mt-2 self-center uppercase',
+          'z-[1] -mt-2 origin-center self-center whitespace-nowrap uppercase',
           compact ? 'text-[10px]' : 'text-xs',
           !bottomLabel && 'invisible'
         )}

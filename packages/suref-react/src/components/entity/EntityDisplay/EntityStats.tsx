@@ -26,7 +26,7 @@ export function EntityStats({
   const hasBioSalvage = isBioTechLevel && salvageValue !== undefined
 
   return (
-    <div className="flex items-center justify-end gap-1">
+    <div className="flex items-center justify-end gap-2">
       {label && (
         <Text variant="pseudoheader" as="span" className={cn(compact ? 'text-xs' : 'text-sm')}>
           {label}

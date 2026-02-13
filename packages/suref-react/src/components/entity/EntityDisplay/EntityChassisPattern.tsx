@@ -52,30 +52,41 @@ export function EntityChassisPattern({ pattern }: EntityChassisPatternProps) {
       )}
 
       <SheetDisplay compact={false}>{getParagraphString(pattern.content)}</SheetDisplay>
+      <div className="pt-2" />
 
-      <div className="space-y-2">
-        {systems.map((system, idx) => (
-          <EntityDisplay
-            key={`${system.entity.id}-${idx}`}
-            data={system.entity}
-            label={idx === 0 ? 'Systems' : undefined}
-            compact
-            userChoices={system.preselectedChoices}
-            collapsible
-          />
-        ))}
-        {modules.length > 0 && systems.length > 0 && <div className="pt-4" />}
-        {modules.map((module, idx) => (
-          <EntityDisplay
-            key={`${module.entity.id}-${idx}`}
-            data={module.entity}
-            label={idx === 0 ? 'Modules' : undefined}
-            compact
-            userChoices={module.preselectedChoices}
-            collapsible
-          />
-        ))}
-      </div>
+      {systems.length > 0 && (
+        <div className="space-y-2">
+          <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
+            {systems.map((system, idx) => (
+              <EntityDisplay
+                key={`${system.entity.id}-${idx}`}
+                data={system.entity}
+                label={idx === 0 ? 'Systems' : undefined}
+                compact
+                userChoices={system.preselectedChoices}
+                collapsible
+              />
+            ))}
+          </div>
+        </div>
+      )}
+      {modules.length > 0 && systems.length > 0 && <div className="pt-4" />}
+      {modules.length > 0 && (
+        <div className="space-y-2">
+          <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
+            {modules.map((module, idx) => (
+              <EntityDisplay
+                key={`${module.entity.id}-${idx}`}
+                data={module.entity}
+                label={idx === 0 ? 'Modules' : undefined}
+                compact
+                userChoices={module.preselectedChoices}
+                collapsible
+              />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

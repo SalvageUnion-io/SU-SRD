@@ -82,7 +82,7 @@ export function Card({
           variant="pseudoheader"
           as="span"
           className={cn(
-            'absolute ml-3 uppercase',
+            'absolute z-10 ml-3 uppercase',
             compact
               ? '-mt-1.5 text-xs max-w-[80%] scale-x-[0.85] origin-left whitespace-nowrap'
               : '-mt-2 text-sm'

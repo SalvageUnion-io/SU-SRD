@@ -9,8 +9,8 @@ export function EntityCardSkeleton({ compact = false, className }: EntityCardSke
   return (
     <div
       className={cn(
-        'animate-pulse rounded-md shadow-lg',
-        compact ? 'h-[60px]' : 'h-[120px]',
+        'w-full animate-pulse rounded-md shadow-lg',
+        compact ? 'min-h-[120px]' : 'min-h-[200px]',
         'bg-su-grey-light/30',
         className
       )}

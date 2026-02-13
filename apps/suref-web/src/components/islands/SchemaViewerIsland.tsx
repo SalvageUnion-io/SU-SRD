@@ -129,23 +129,26 @@ export function SchemaViewerIsland({
       {/* Entity Grid */}
       <div className="flex-1 p-6">
         <div className="mx-auto max-w-[1400px] columns-1 gap-4 lg:columns-2 xl:columns-3 [&>*]:mb-4 [&>*]:break-inside-avoid">
-          {filteredData.map((item: SURefEntity) => (
-            <a
-              key={item.id}
-              href={`/schema/${schemaId}/item/${getEntitySlug(item)}`}
-              className="relative block cursor-pointer transition-all duration-200 md:hover:z-10 md:hover:scale-105 md:hover:-translate-y-1 md:hover:shadow-lg"
-            >
-              <Suspense fallback={<EntityCardSkeleton compact />}>
-                <EntityDisplay
-                  hideActions
-                  hideChoices
-                  data={item}
-                  compact
-                  label={isAbility(item) && item.tree ? `${item.tree} tree` : undefined}
-                />
-              </Suspense>
-            </a>
-          ))}
+          {filteredData.map((item: SURefEntity) => {
+            const hasLabel = isAbility(item) && !!item.tree
+            return (
+              <a
+                key={item.id}
+                href={`/schema/${schemaId}/item/${getEntitySlug(item)}`}
+                className={`relative block cursor-pointer transition-all duration-200 md:hover:z-10 md:hover:scale-105 md:hover:-translate-y-1 md:hover:shadow-lg ${hasLabel ? 'pt-2' : ''}`}
+              >
+                <Suspense fallback={<EntityCardSkeleton compact />}>
+                  <EntityDisplay
+                    hideActions
+                    hideChoices
+                    data={item}
+                    compact
+                    label={isAbility(item) && item.tree ? `${item.tree} tree` : undefined}
+                  />
+                </Suspense>
+              </a>
+            )
+          })}
         </div>
       </div>
     </>

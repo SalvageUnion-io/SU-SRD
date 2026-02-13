@@ -1,12 +1,8 @@
-import type {
-  SURefMetaAction,
-  SURefObjectChoice,
-  SURefObjectContentBlock,
-} from 'salvageunion-reference'
+import type { SURefMetaAction, SURefObjectChoice } from 'salvageunion-reference'
+import { getTable } from 'salvageunion-reference'
 import { Text } from '../base/Text'
 import { BlockContentRendererView } from './BlockContentRendererView'
 import { EntityChoice } from './EntityDisplay/EntityChoice'
-import { InlineContentBlock } from './InlineContentBlock'
 import type { DataValue } from '../../types/common'
 import { extractEntityDetails } from '../../lib/entityDataExtraction'
 import { DataValueDisplayView } from './DataValueDisplayView'
@@ -31,9 +27,9 @@ type NestedChassisAbilityProps = {
  * NestedChassisAbility - Renders chassis abilities with white background and black border
  *
  * Special rendering rules:
+ * - Title renders as a pseudoheader (dark bg, white text)
  * - Data items (activation cost, keywords) render inline with title when there's no content or only one content block
- * - When there are no data items, the first content block renders inline with the title
- * - Content blocks render below the title/details line
+ * - Content blocks always render below the title/details line
  */
 export function NestedChassisAbility({
   data,
@@ -50,7 +46,8 @@ export function NestedChassisAbility({
   const hasContent = data.content && data.content.length > 0
   const actionChoices: SURefObjectChoice[] = data.choices || []
   const hasChoices = actionChoices.length > 0
-  const hasTable = data.table !== undefined && data.table !== null
+  const resolvedTable = getTable(data)
+  const hasTable = resolvedTable !== undefined
 
   // If there's a content block that's a datavalues type, extract those values
   let contentToRender: typeof data.content | undefined = data.content
@@ -85,45 +82,18 @@ export function NestedChassisAbility({
     }
   }
 
-  const remainingContentBlockCount = contentToRender?.length ?? 0
-  const hasDataItems = details.length > 0
+  const remainingContent = contentToRender
 
-  let firstContentBlock: SURefObjectContentBlock | null = null
-  let remainingContent: typeof data.content | undefined = undefined
-  let renderDetailsInline = false
-  let renderFirstContentInline = false
-
-  if (!hasDataItems && hasContent && contentToRender && contentToRender.length > 0) {
-    renderFirstContentInline = true
-    firstContentBlock = contentToRender[0] ?? null
-    if (contentToRender.length > 1) {
-      remainingContent = contentToRender.slice(1) as typeof data.content
-    }
-  } else if (hasDataItems && hasContent && contentToRender && contentToRender.length > 0) {
-    if (remainingContentBlockCount > 1) {
-      renderFirstContentInline = true
-      firstContentBlock = contentToRender[0] ?? null
-      remainingContent = contentToRender.slice(1) as typeof data.content
-      renderDetailsInline = false
-    } else {
-      renderDetailsInline = true
-      remainingContent = contentToRender
-    }
-  } else if (hasDataItems && !hasContent) {
-    renderDetailsInline = true
-  }
-
-  const hasBottomContent =
-    (details.length > 0 && !renderDetailsInline) || remainingContent || hasTable || hasChoices
+  const hasBottomContent = details.length > 0 || remainingContent || hasTable || hasChoices
 
   return (
     <div
       className={cn(
-        'overflow-hidden border-2 border-su-black bg-white text-left',
+        'overflow-visible border-2 border-su-black bg-white text-left',
         compact ? 'p-1' : 'p-2'
       )}
     >
-      {/* Name, details, and/or first content block on same line - wraps inline */}
+      {/* Name and optional inline details */}
       <div
         className={cn(
           'flex flex-row flex-wrap items-center font-medium leading-relaxed text-su-black',
@@ -132,36 +102,21 @@ export function NestedChassisAbility({
           hasBottomContent ? (compact ? 'mb-1' : 'mb-2') : 'mb-0'
         )}
       >
-        <Text as="span" className={cn('font-bold', titleFontSize)}>
-          {data.name}:
+        <Text as="span" variant="pseudoheader" className={titleFontSize}>
+          {data.name}
         </Text>
-        {/* Render details inline with title if condition is met */}
-        {renderDetailsInline &&
-          details.length > 0 &&
-          details.map((item, index) => (
-            <DataValueDisplayView key={index} item={item} compact={compact} damaged={false} />
-          ))}
-        {/* Render first content block inline when condition is met */}
-        {renderFirstContentInline && firstContentBlock && (
-          <InlineContentBlock
-            block={firstContentBlock}
-            fontSize={fontSize}
-            chassisName={chassisName}
-          />
-        )}
       </div>
 
-      {/* Detail row below name (only if not rendered inline) */}
-      {details.length > 0 && !renderDetailsInline && (
+      {/* Detail row below name (always compact) */}
+      {details.length > 0 && (
         <div
           className={cn(
-            'flex flex-row flex-wrap items-center',
-            compact ? 'gap-0.5' : 'gap-1',
+            'flex flex-row flex-wrap items-center gap-0.5',
             remainingContent || hasTable || hasChoices ? (compact ? 'mb-1' : 'mb-2') : 'mb-0'
           )}
         >
           {details.map((item, index) => (
-            <DataValueDisplayView key={index} item={item} compact={compact} damaged={false} />
+            <DataValueDisplayView key={index} item={item} compact damaged={false} />
           ))}
         </div>
       )}
@@ -186,7 +141,7 @@ export function NestedChassisAbility({
             'relative z-10 rounded-md',
             remainingContent && remainingContent.length > 0
               ? 'pt-0'
-              : details.length > 0 && !renderDetailsInline
+              : details.length > 0
                 ? 'pt-0'
                 : compact
                   ? 'pt-1'
@@ -195,7 +150,7 @@ export function NestedChassisAbility({
         >
           <RollTable
             disabled={false}
-            table={data.table!}
+            table={resolvedTable!}
             showCommand
             compact
             tableName={data.name}
@@ -213,7 +168,7 @@ export function NestedChassisAbility({
               ? 'pt-0'
               : remainingContent && remainingContent.length > 0
                 ? 'pt-0'
-                : details.length > 0 && !renderDetailsInline
+                : details.length > 0
                   ? 'pt-0'
                   : compact
                     ? 'pt-1'

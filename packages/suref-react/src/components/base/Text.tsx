@@ -1,3 +1,4 @@
+import { forwardRef } from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '../../utils/cn'
 
@@ -24,14 +25,22 @@ type TextProps = {
 } & VariantProps<typeof textVariants> &
   Omit<React.HTMLAttributes<HTMLElement>, 'children' | 'style'>
 
-export function Text({ variant, children, className, style, as: Tag = 'p', ...props }: TextProps) {
+export const Text = forwardRef<HTMLElement, TextProps>(function Text(
+  { variant, children, className, style, as: Tag = 'p', ...props },
+  ref
+) {
   // Inline lineHeight overrides Chakra's @layer reset { * { font: inherit } }
   // which can override Tailwind utility classes due to CSS layer ordering
   const isPseudoheader = variant === 'pseudoheader' || variant === 'pseudoheaderInverse'
   const textStyle = isPseudoheader ? { lineHeight: 1, ...style } : style
   return (
-    <Tag className={cn(textVariants({ variant }), className)} style={textStyle} {...props}>
+    <Tag
+      ref={ref as React.Ref<never>}
+      className={cn(textVariants({ variant }), className)}
+      style={textStyle}
+      {...props}
+    >
       {children}
     </Tag>
   )
-}
+})

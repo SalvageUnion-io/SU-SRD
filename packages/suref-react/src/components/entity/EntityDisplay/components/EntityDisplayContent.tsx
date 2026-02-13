@@ -218,34 +218,68 @@ export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayC
                   : `${spacing.contentPadding}rem`,
             }}
           >
-            {assetUrl && (
-              <EntityImage
-                title={title}
-                compact={compact}
-                assetUrl={assetUrl}
-                imageComponent={imageComponent}
-                customWidth={imageWidth}
-              />
-            )}
-            {showContent && (
-              <BlockContentRendererView
-                content={contentBlocks!}
-                fontSize={fontSize.sm}
-                compact={compact}
-                damaged={damaged}
-                headerBg={headerBg}
-              />
-            )}
-            {children}
-
-            {/* Non-compact: chassis abilities render before actions */}
-            {!compact && hasChassisAbilities && !hideActions && (
-              <EntityChassisAbilitiesContent
-                chassisName={'name' in data ? data.name : undefined}
-                spacing={spacing}
-                compact={compact}
-                chassisAbilities={chassisAbilities}
-              />
+            {assetUrl && hasChassisAbilities && !compact && !hideActions ? (
+              // Grid layout for chassis with images: ability anchored to bottom of image
+              <div className="md:grid md:grid-cols-[auto_1fr]">
+                <EntityImage
+                  title={title}
+                  compact={compact}
+                  assetUrl={assetUrl}
+                  imageComponent={imageComponent}
+                  customWidth={imageWidth}
+                />
+                <div className="flex flex-col justify-evenly">
+                  <div>
+                    {showContent && (
+                      <BlockContentRendererView
+                        content={contentBlocks!}
+                        fontSize={fontSize.sm}
+                        compact={compact}
+                        damaged={damaged}
+                        headerBg={headerBg}
+                      />
+                    )}
+                    {children}
+                  </div>
+                  <EntityChassisAbilitiesContent
+                    chassisName={'name' in data ? data.name : undefined}
+                    spacing={spacing}
+                    compact={compact}
+                    chassisAbilities={chassisAbilities}
+                  />
+                </div>
+              </div>
+            ) : (
+              <>
+                {assetUrl && (
+                  <EntityImage
+                    title={title}
+                    compact={compact}
+                    assetUrl={assetUrl}
+                    imageComponent={imageComponent}
+                    customWidth={imageWidth}
+                  />
+                )}
+                {showContent && (
+                  <BlockContentRendererView
+                    content={contentBlocks!}
+                    fontSize={fontSize.sm}
+                    compact={compact}
+                    damaged={damaged}
+                    headerBg={headerBg}
+                  />
+                )}
+                {children}
+                {/* Non-compact: chassis abilities render before actions */}
+                {!compact && hasChassisAbilities && !hideActions && (
+                  <EntityChassisAbilitiesContent
+                    chassisName={'name' in data ? data.name : undefined}
+                    spacing={spacing}
+                    compact={compact}
+                    chassisAbilities={chassisAbilities}
+                  />
+                )}
+              </>
             )}
             {(!hideActions || (compact && schemaName !== 'bio-titans')) && (
               <EntityActions
