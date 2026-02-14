@@ -132,52 +132,56 @@ export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayC
     return patterns.find((p) => normalizePatternName(p.name) === patternOverride.name)
   }, [schemaName, data, patternOverride])
 
-  // Pre-built blocks for reuse at multiple render positions
-  const chassisAbilitiesBlock = hasChassisAbilities ? (
-    <EntityChassisAbilitiesContent
-      chassisName={chassisName}
-      spacing={spacing}
-      compact={compact}
-      chassisAbilities={chassisAbilities}
-      droneEquipment={overridePatternData?.drone}
-    />
-  ) : null
-
-  const overridePatternDataBlock = overridePatternData ? (
-    <div className={spacing.smallSpaceYClass}>
-      <div className="flex items-center gap-2">
-        <Text
-          variant="pseudoheader"
-          as="span"
-          className={cn(compact ? 'text-xs' : 'text-sm', 'font-bold uppercase')}
-        >
-          {normalizePatternName(overridePatternData.name)} Pattern
-        </Text>
-        {overridePatternData.page && (
-          <Text variant="pseudoheader" as="span" className="text-xs font-semibold uppercase">
-            Page {overridePatternData.page}
-          </Text>
+  // Pre-built block for pattern info + chassis abilities (reused at multiple render positions)
+  const chassisAbilitiesBlock =
+    hasChassisAbilities || overridePatternData ? (
+      <div className={spacing.sectionSpaceYClass}>
+        {overridePatternData && (
+          <div className={spacing.smallSpaceYClass}>
+            <div className="flex items-center gap-2">
+              <Text
+                variant="pseudoheader"
+                as="span"
+                className={cn(compact ? 'text-xs' : 'text-sm', 'font-bold uppercase')}
+              >
+                {normalizePatternName(overridePatternData.name)} Pattern
+              </Text>
+              {overridePatternData.page && (
+                <Text variant="pseudoheader" as="span" className="text-xs font-semibold uppercase">
+                  Page {overridePatternData.page}
+                </Text>
+              )}
+              {!compact && overridePatternData.source && (
+                <Text
+                  variant="pseudoheader"
+                  as="span"
+                  className="text-xs font-semibold uppercase opacity-70"
+                >
+                  {overridePatternData.source}
+                </Text>
+              )}
+            </div>
+            {overridePatternData.content && overridePatternData.content.length > 0 && (
+              <BlockContentRendererView
+                content={overridePatternData.content}
+                fontSize={fontSize.sm}
+                compact={compact}
+                damaged={damaged}
+              />
+            )}
+          </div>
         )}
-        {!compact && overridePatternData.source && (
-          <Text
-            variant="pseudoheader"
-            as="span"
-            className="text-xs font-semibold uppercase opacity-70"
-          >
-            {overridePatternData.source}
-          </Text>
+        {hasChassisAbilities && (
+          <EntityChassisAbilitiesContent
+            chassisName={chassisName}
+            spacing={spacing}
+            compact={compact}
+            chassisAbilities={chassisAbilities}
+            droneEquipment={overridePatternData?.drone}
+          />
         )}
       </div>
-      {overridePatternData.content && overridePatternData.content.length > 0 && (
-        <BlockContentRendererView
-          content={overridePatternData.content}
-          fontSize={fontSize.sm}
-          compact={compact}
-          damaged={damaged}
-        />
-      )}
-    </div>
-  ) : null
+    ) : null
 
   // Faction strategic data (Goals, Assets, Weaknesses)
   const factionData = [
@@ -331,7 +335,6 @@ export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayC
                 )}
                 {/* Non-compact: chassis abilities + pattern data render before actions */}
                 {!compact && !hideActions && chassisAbilitiesBlock}
-                {!compact && overridePatternDataBlock}
               </>
             )}
             {(!hideActions || (compact && schemaName !== 'bio-titans')) && (
@@ -343,9 +346,8 @@ export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayC
                 headerBg={headerBg}
               />
             )}
-            {/* Compact: chassis abilities + pattern data render after actions */}
+            {/* Compact: pattern data + chassis abilities render after actions */}
             {compact && chassisAbilitiesBlock}
-            {compact && overridePatternDataBlock}
 
             {schemaName === 'crawler-tech-levels' &&
               'populationMin' in data &&
