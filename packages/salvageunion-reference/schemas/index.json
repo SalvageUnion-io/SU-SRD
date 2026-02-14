@@ -96,8 +96,7 @@
       "schemaFile": "schemas/crawler-tech-levels.schema.json",
       "itemCount": 6,
       "requiredFields": ["techLevel", "structurePoints", "populationMin", "populationMax"],
-      "displayName": "Crawler Tech Levels",
-      "meta": true
+      "displayName": "Crawler Tech Levels"
     },
     {
       "id": "crawlers",

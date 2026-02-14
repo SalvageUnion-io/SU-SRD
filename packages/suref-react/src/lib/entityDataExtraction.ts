@@ -12,6 +12,7 @@ import {
   getDamage,
   getTraits,
   getRecommended,
+  getBlackMarket,
   isEntityData,
 } from 'salvageunion-reference'
 import type { DataValue } from '../types/common'
@@ -238,6 +239,16 @@ export function extractEntityDetails(
     })
   }
 
+  // Add black market tag
+  if (isEntityData(data) && getBlackMarket(data) === true) {
+    details.push({ label: 'Black Market', type: 'meta' })
+  }
+
+  // Add ability tree name
+  if (schemaName === 'abilities' && 'tree' in data && data.tree) {
+    details.push({ label: String(data.tree), type: 'meta' })
+  }
+
   // Extract activation cost
   const activationCost = extractActivationCostDetail(data, schemaName, currency || 'AP')
   if (activationCost) details.push(activationCost)
@@ -267,6 +278,14 @@ export function extractEntityDetails(
       type: 'meta',
     })
 
+    if ('maxAbilities' in data && typeof data.maxAbilities === 'number') {
+      details.push({ label: 'Max Abilities', value: data.maxAbilities })
+    }
+
+    if (!isHybrid && 'advanceable' in data && data.advanceable) {
+      details.push({ label: 'Advanceable', type: 'meta' })
+    }
+
     if (isHybrid && 'advancedTree' in data) {
       const treeName = String(data.advancedTree)
       const req = SalvageUnionReference.AbilityTreeRequirements.find((r) => r.name === treeName)
@@ -278,6 +297,12 @@ export function extractEntityDetails(
         })
       }
     }
+  }
+
+  // Add squad damage type
+  if (schemaName === 'squads' && 'damageType' in data) {
+    const dt = String(data.damageType)
+    details.push({ label: `${dt} Damage`, type: 'meta' })
   }
 
   return details

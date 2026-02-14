@@ -209,12 +209,11 @@ export function getSourceStyles(
       return {
         className: 'relative',
         style: {
-          borderTop: '2px solid rgba(255, 255, 255, 0.5)',
-          borderLeft: '2px solid rgba(255, 255, 255, 0.5)',
-          borderBottom: '2px solid rgba(0, 0, 0, 0.3)',
-          borderRight: '2px solid rgba(0, 0, 0, 0.3)',
-          boxShadow:
-            'inset 1px 1px 0 0 rgba(255, 255, 255, 0.3), inset -1px -1px 0 0 rgba(0, 0, 0, 0.2)',
+          borderTop: '3px solid #dfdfdf',
+          borderLeft: '3px solid #dfdfdf',
+          borderBottom: '3px solid #404040',
+          borderRight: '3px solid #404040',
+          boxShadow: 'inset 2px 2px 0 0 #fff, inset -2px -2px 0 0 #808080, 1px 1px 0 0 #000',
         },
       }
     }

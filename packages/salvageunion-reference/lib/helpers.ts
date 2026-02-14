@@ -459,7 +459,7 @@ export const MECH_DEFAULTS = {
 
 /**
  * Get all entity schemas (non-meta schemas)
- * Filters out meta schemas like actions, crawler-tech-levels, etc.
+ * Filters out meta schemas like actions, ability-tree-requirements, etc.
  * @returns Array of entity schema metadata
  */
 export function getEntitySchemas(): EnhancedSchemaMetadata[] {
