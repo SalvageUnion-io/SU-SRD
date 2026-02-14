@@ -6,17 +6,11 @@ type EntityLeftContentProps = {
   techLevel: number | 'B' | 'N' | undefined
   compact: boolean
   level?: number | string
-  hideLevel: boolean
 }
 
-export function EntityLeftContent({
-  techLevel,
-  compact,
-  level,
-  hideLevel,
-}: EntityLeftContentProps) {
+export function EntityLeftContent({ techLevel, compact, level }: EntityLeftContentProps) {
   const hasTechLevel = !!techLevel
-  const hasLevel = !!level && !hideLevel
+  const hasLevel = !!level
   const isBioTechLevel = techLevel === 'B'
   const isNTechLevel = techLevel === 'N'
 

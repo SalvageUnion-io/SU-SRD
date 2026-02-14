@@ -8278,7 +8278,8 @@
         "value": "The Sestra Drone acts separately to [(CHASSIS)] on its own turn, and is controlled by the Pilot. It functions effectively as a Mech, but cannot Push. It can be installed with Systems and Modules and restores its SP and EP in a T3 or higher Mech Bay during Downtime. If the Drone is damaged it can be repaired as though it was a Mech. If it is destroyed you may craft a new Sestra Drone for 2 Tech 3 Scrap as per the crafting rules. [(CHASSIS)] may have one active Sestra Drone at a time. Sestra Drone Stats: 7 SP, 8 EP, 6 Heat Cap, 7 System Slots, 2 Module Slots, 3 Cargo Cap, Tech Level 3, Salvage Value 2. Integrated Hover Locomotion System."
       }
     ],
-    "actionSource": "chassis"
+    "actionSource": "chassis",
+    "drone": "Sestra Drone"
   },
   {
     "name": "Shield",
@@ -11981,7 +11982,8 @@
         "value": "The Big Brother Drones act separately to [(CHASSIS)] on their own turn, and are controlled by the Pilot. They function effectively as Mechs, but cannot Push. They can be installed with Systems and Modules and restore their SP and EP in a T3 or higher Mech Bay during Downtime. If the Drones are damaged they can be repaired as though they were Mechs. If they are destroyed you may craft new Big Brother Drones for 2 Tech 5 Scrap as per the crafting rules. [(CHASSIS)] may have up to 4 active Big Brother Drones at a time. Big Brother Drone Stats: 3 SP, 4 EP, 4 Heat Cap, 4 System Slots, 1 Module Slot, 2 Cargo Cap, Tech Level 5, Salvage Value 1. Integrated Hover Locomotion System."
       }
     ],
-    "actionSource": "chassis"
+    "actionSource": "chassis",
+    "drone": "Big Brother Drone"
   },
   {
     "name": "MELD",

@@ -31,9 +31,9 @@ export const CompactMode: Story = () => (
   </div>
 )
 
-export const Collapsible: Story = () => (
+export const Listing: Story = () => (
   <div className="w-[600px]">
-    <EntityDisplay data={system} collapsible />
+    <EntityDisplay data={system} listing />
   </div>
 )
 
@@ -51,7 +51,7 @@ export const Damaged: Story = () => (
 
 export const CustomHeaderColor: Story = () => (
   <div className="w-[600px]">
-    <EntityDisplay data={system} headerColor="su.pink" />
+    <EntityDisplay data={system} headerColor="bg-su-pink" />
   </div>
 )
 

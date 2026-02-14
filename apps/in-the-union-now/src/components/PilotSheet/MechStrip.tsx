@@ -1,12 +1,13 @@
 import { Cog, ChevronDown } from 'lucide-react'
 import { ResourceStepper, HeatBar } from 'suref-react'
 import { getNameById } from 'salvageunion-reference'
-import type { Mech } from '../../types/common'
+import type { Mech, EntityUpdateHandler } from '../../types/common'
+import type { UpdateMechInput } from '../../lib/validation'
 
 type MechStripProps = {
   mech: Mech
   allMechs: Mech[]
-  onUpdate: (field: string, value: unknown) => void
+  onUpdate: EntityUpdateHandler<UpdateMechInput>
   onSwitchMech: (mechId: string) => void
 }
 

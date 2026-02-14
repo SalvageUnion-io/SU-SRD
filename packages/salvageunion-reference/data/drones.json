@@ -144,5 +144,47 @@
         "value": "A miniaturised corpo stealth drone developed for black ops and wetwork."
       }
     ]
+  },
+  {
+    "id": "d8d4b416-1003-4373-bdf1-34bcbac79a95",
+    "source": "Salvage Union Workshop Manual",
+    "name": "Sestra Drone",
+    "systems": ["Hover Locomotion System"],
+    "structurePoints": 7,
+    "energyPoints": 8,
+    "heatCapacity": 6,
+    "systemSlots": 7,
+    "moduleSlots": 2,
+    "cargoCapacity": 3,
+    "techLevel": 3,
+    "salvageValue": 2,
+    "page": 128,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A drone companion controlled by the Little Sestra chassis."
+      }
+    ]
+  },
+  {
+    "id": "60b451ac-af8c-48dd-ad96-8d0fb2189c50",
+    "source": "False Flag",
+    "name": "Big Brother Drone",
+    "systems": ["Hover Locomotion System"],
+    "structurePoints": 3,
+    "energyPoints": 4,
+    "heatCapacity": 4,
+    "systemSlots": 4,
+    "moduleSlots": 1,
+    "cargoCapacity": 2,
+    "techLevel": 5,
+    "salvageValue": 1,
+    "page": 62,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A support drone controlled by the Big Brother chassis."
+      }
+    ]
   }
 ]

@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { getTiltRotation } from '../../../../utils/tiltUtils'
 import type { SURefClass } from 'salvageunion-reference'
@@ -31,34 +31,11 @@ import { EntityImage } from '../EntityImage'
 import { BlockContentRendererView } from '../../BlockContentRendererView'
 import * as DialogPrimitive from '@radix-ui/react-dialog'
 import { X } from 'lucide-react'
-import type { EntityButtonConfig } from '../entityDisplayTypes'
 import { cn } from '../../../../utils/cn'
 import { Text } from '../../../base/Text'
 import { borderColorFromHeaderBg, getSourceStyles } from '../../entityDisplayHelpers'
 import { useEntityDisplayState } from '../useEntityDisplayState'
 import type { EntityDisplayStateInput } from '../useEntityDisplayState'
-function ButtonWithConfig({
-  buttonConfig,
-}: {
-  buttonConfig: EntityButtonConfig & { children: ReactNode }
-}) {
-  const handleClick = useCallback(
-    (e: React.MouseEvent<HTMLButtonElement>) => {
-      e.stopPropagation()
-      buttonConfig.onClick?.(e)
-    },
-    [buttonConfig]
-  )
-
-  return (
-    <button
-      className={cn('mt-3 w-full cursor-pointer rounded-md px-4 py-2', buttonConfig.className)}
-      onClick={handleClick}
-    >
-      {buttonConfig.children}
-    </button>
-  )
-}
 
 export type EntityDisplayContentProps = EntityDisplayStateInput & {
   children?: ReactNode
@@ -73,21 +50,15 @@ export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayC
     title,
     headerBg,
     spacing,
-    contentBg,
     opacity,
     shouldShowExtraContent,
-    handleHeaderClick,
-    isExpanded,
-    collapsible,
+    listing,
     hideActions,
     hidePatterns,
     hideChoices,
     damaged,
     disabled,
-    buttonConfig,
-    userChoices,
     fontSize,
-    imageWidth,
     assetUrl,
     chassisAbilities,
     effects,
@@ -98,9 +69,6 @@ export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayC
     label,
     classAbilitiesRenderer,
     techLevel,
-    hideLevel,
-    rightContent,
-    imageComponent,
     patternOverride,
     hideStats,
   } = state
@@ -125,6 +93,7 @@ export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayC
   const showContent = contentBlocks && contentBlocks.length > 0
 
   // Consolidate chassis abilities logic
+  const chassisName = 'name' in data ? data.name : undefined
   const hasChassisAbilities =
     schemaName === 'chassis' && !!chassisAbilities && chassisAbilities.length > 0
 
@@ -163,11 +132,65 @@ export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayC
     return patterns.find((p) => normalizePatternName(p.name) === patternOverride.name)
   }, [schemaName, data, patternOverride])
 
+  // Pre-built blocks for reuse at multiple render positions
+  const chassisAbilitiesBlock = hasChassisAbilities ? (
+    <EntityChassisAbilitiesContent
+      chassisName={chassisName}
+      spacing={spacing}
+      compact={compact}
+      chassisAbilities={chassisAbilities}
+      droneEquipment={overridePatternData?.drone}
+    />
+  ) : null
+
+  const overridePatternDataBlock = overridePatternData ? (
+    <div className={spacing.smallSpaceYClass}>
+      <div className="flex items-center gap-2">
+        <Text
+          variant="pseudoheader"
+          as="span"
+          className={cn(compact ? 'text-xs' : 'text-sm', 'font-bold uppercase')}
+        >
+          {normalizePatternName(overridePatternData.name)} Pattern
+        </Text>
+        {overridePatternData.page && (
+          <Text variant="pseudoheader" as="span" className="text-xs font-semibold uppercase">
+            Page {overridePatternData.page}
+          </Text>
+        )}
+        {!compact && overridePatternData.source && (
+          <Text
+            variant="pseudoheader"
+            as="span"
+            className="text-xs font-semibold uppercase opacity-70"
+          >
+            {overridePatternData.source}
+          </Text>
+        )}
+      </div>
+      {overridePatternData.content && overridePatternData.content.length > 0 && (
+        <BlockContentRendererView
+          content={overridePatternData.content}
+          fontSize={fontSize.sm}
+          compact={compact}
+          damaged={damaged}
+        />
+      )}
+    </div>
+  ) : null
+
+  // Faction strategic data (Goals, Assets, Weaknesses)
+  const factionData = [
+    { label: 'Goals', value: getGoals(data) },
+    { label: 'Assets', value: getAssets(data) },
+    { label: 'Weaknesses', value: getWeaknesses(data) },
+  ]
+
   // Footer data
   const hasPage = 'page' in data && !!data.page
   const hasSource = 'source' in data && !!data.source
   const footerDisplayName = getDisplayName(schemaName)
-  const sourceFooterStyles = getSourceStyles(source, disabled ?? false, 'footer', isExpanded)
+  const sourceFooterStyles = getSourceStyles(source, disabled ?? false, 'footer', !listing)
 
   const [modalOpen, setModalOpen] = useState(false)
   const handleDetailClick = () => setModalOpen(true)
@@ -183,7 +206,6 @@ export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayC
           techLevel={techLevel}
           compact={compact}
           level={'level' in data ? data.level : undefined}
-          hideLevel={hideLevel}
         />
       }
       subTitleContent={
@@ -203,9 +225,8 @@ export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayC
             compact={compact}
             fontSize={fontSize}
             techLevel={techLevel}
-            rightContent={rightContent}
-            collapsible={collapsible}
-            onDetailClick={collapsible ? handleDetailClick : undefined}
+            listing={listing}
+            onDetailClick={listing ? handleDetailClick : undefined}
           />
         )
       }
@@ -213,14 +234,14 @@ export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayC
       title={title}
       titleRotation={useMemo(() => (damaged ? getTiltRotation() : 0), [damaged])}
       bodyPadding="p-0"
-      onHeaderClick={collapsible ? handleDetailClick : handleHeaderClick}
+      onHeaderClick={listing ? handleDetailClick : undefined}
       headerTestId="frame-header-container"
       source={source}
-      isExpanded={isExpanded}
+      isExpanded={!listing}
     >
-      {!collapsible && (
+      {!listing && (
         <div
-          className={cn('min-w-0 p-0', contentBg)}
+          className="min-w-0 bg-su-white p-0"
           style={{ opacity: opacity.content, width: '100%' }}
         >
           {/* Float zone: block flow so image float propagates to all children */}
@@ -244,13 +265,7 @@ export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayC
             {assetUrl && hasChassisAbilities && !compact && !hideActions ? (
               // Grid layout for chassis with images: ability anchored to bottom of image
               <div className="md:grid md:grid-cols-[auto_1fr]">
-                <EntityImage
-                  title={title}
-                  compact={compact}
-                  assetUrl={assetUrl}
-                  imageComponent={imageComponent}
-                  customWidth={imageWidth}
-                />
+                <EntityImage title={title} compact={compact} assetUrl={assetUrl} />
                 <div className="flex flex-col justify-evenly">
                   <div>
                     {showContent && (
@@ -264,25 +279,12 @@ export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayC
                     )}
                     {children}
                   </div>
-                  <EntityChassisAbilitiesContent
-                    chassisName={'name' in data ? data.name : undefined}
-                    spacing={spacing}
-                    compact={compact}
-                    chassisAbilities={chassisAbilities}
-                  />
+                  {chassisAbilitiesBlock}
                 </div>
               </div>
             ) : (
               <>
-                {assetUrl && (
-                  <EntityImage
-                    title={title}
-                    compact={compact}
-                    assetUrl={assetUrl}
-                    imageComponent={imageComponent}
-                    customWidth={imageWidth}
-                  />
-                )}
+                {assetUrl && <EntityImage title={title} compact={compact} assetUrl={assetUrl} />}
                 {showContent && (
                   <BlockContentRendererView
                     content={contentBlocks!}
@@ -294,147 +296,42 @@ export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayC
                 )}
                 {children}
                 {/* Faction strategic data */}
-                {getGoals(data) && (
-                  <div className="mt-2">
-                    <h5
-                      className={cn(
-                        'font-mono inline self-start box-decoration-clone bg-su-black text-su-white px-1 font-bold uppercase leading-none tracking-tight mb-1',
-                        fontSize.sm
-                      )}
-                      style={{ lineHeight: 1 }}
-                    >
-                      Goals
-                    </h5>
-                    <div
-                      className={compact ? 'pl-2' : 'pl-3'}
-                      style={
-                        borderColorFromHeaderBg(headerBg)
-                          ? { borderLeft: `3px solid ${borderColorFromHeaderBg(headerBg)}` }
-                          : undefined
-                      }
-                    >
-                      <div
+                {factionData.map(({ label: sectionLabel, value }) =>
+                  value ? (
+                    <div key={sectionLabel} className="mt-2">
+                      <h5
                         className={cn(
-                          'mb-2 break-words font-medium leading-relaxed whitespace-normal text-su-black',
+                          'font-mono inline self-start box-decoration-clone bg-su-black text-su-white px-1 font-bold uppercase leading-none tracking-tight mb-1',
                           fontSize.sm
                         )}
-                        style={{ overflowWrap: 'break-word' }}
+                        style={{ lineHeight: 1 }}
                       >
-                        {getGoals(data)}
-                      </div>
-                    </div>
-                  </div>
-                )}
-                {getAssets(data) && (
-                  <div className="mt-2">
-                    <h5
-                      className={cn(
-                        'font-mono inline self-start box-decoration-clone bg-su-black text-su-white px-1 font-bold uppercase leading-none tracking-tight mb-1',
-                        fontSize.sm
-                      )}
-                      style={{ lineHeight: 1 }}
-                    >
-                      Assets
-                    </h5>
-                    <div
-                      className={compact ? 'pl-2' : 'pl-3'}
-                      style={
-                        borderColorFromHeaderBg(headerBg)
-                          ? { borderLeft: `3px solid ${borderColorFromHeaderBg(headerBg)}` }
-                          : undefined
-                      }
-                    >
+                        {sectionLabel}
+                      </h5>
                       <div
-                        className={cn(
-                          'mb-2 break-words font-medium leading-relaxed whitespace-normal text-su-black',
-                          fontSize.sm
-                        )}
-                        style={{ overflowWrap: 'break-word' }}
+                        className={compact ? 'pl-2' : 'pl-3'}
+                        style={
+                          borderColorFromHeaderBg(headerBg)
+                            ? { borderLeft: `3px solid ${borderColorFromHeaderBg(headerBg)}` }
+                            : undefined
+                        }
                       >
-                        {getAssets(data)}
-                      </div>
-                    </div>
-                  </div>
-                )}
-                {getWeaknesses(data) && (
-                  <div className="mt-2">
-                    <h5
-                      className={cn(
-                        'font-mono inline self-start box-decoration-clone bg-su-black text-su-white px-1 font-bold uppercase leading-none tracking-tight mb-1',
-                        fontSize.sm
-                      )}
-                      style={{ lineHeight: 1 }}
-                    >
-                      Weaknesses
-                    </h5>
-                    <div
-                      className={compact ? 'pl-2' : 'pl-3'}
-                      style={
-                        borderColorFromHeaderBg(headerBg)
-                          ? { borderLeft: `3px solid ${borderColorFromHeaderBg(headerBg)}` }
-                          : undefined
-                      }
-                    >
-                      <div
-                        className={cn(
-                          'mb-2 break-words font-medium leading-relaxed whitespace-normal text-su-black',
-                          fontSize.sm
-                        )}
-                        style={{ overflowWrap: 'break-word' }}
-                      >
-                        {getWeaknesses(data)}
-                      </div>
-                    </div>
-                  </div>
-                )}
-                {/* Non-compact: chassis abilities render before actions */}
-                {!compact && hasChassisAbilities && !hideActions && (
-                  <EntityChassisAbilitiesContent
-                    chassisName={'name' in data ? data.name : undefined}
-                    spacing={spacing}
-                    compact={compact}
-                    chassisAbilities={chassisAbilities}
-                  />
-                )}
-                {!compact && overridePatternData && (
-                  <div className={spacing.smallSpaceYClass}>
-                    <div className="flex items-center gap-2">
-                      <Text
-                        variant="pseudoheader"
-                        as="span"
-                        className="text-sm font-bold uppercase"
-                      >
-                        {normalizePatternName(overridePatternData.name)} Pattern
-                      </Text>
-                      {overridePatternData.page && (
-                        <Text
-                          variant="pseudoheader"
-                          as="span"
-                          className="text-xs font-semibold uppercase"
+                        <div
+                          className={cn(
+                            'mb-2 break-words font-medium leading-relaxed whitespace-normal text-su-black',
+                            fontSize.sm
+                          )}
+                          style={{ overflowWrap: 'break-word' }}
                         >
-                          Page {overridePatternData.page}
-                        </Text>
-                      )}
-                      {overridePatternData.source && (
-                        <Text
-                          variant="pseudoheader"
-                          as="span"
-                          className="text-xs font-semibold uppercase opacity-70"
-                        >
-                          {overridePatternData.source}
-                        </Text>
-                      )}
+                          {value}
+                        </div>
+                      </div>
                     </div>
-                    {overridePatternData.content && overridePatternData.content.length > 0 && (
-                      <BlockContentRendererView
-                        content={overridePatternData.content}
-                        fontSize={fontSize.sm}
-                        compact={compact}
-                        damaged={damaged}
-                      />
-                    )}
-                  </div>
+                  ) : null
                 )}
+                {/* Non-compact: chassis abilities + pattern data render before actions */}
+                {!compact && !hideActions && chassisAbilitiesBlock}
+                {!compact && overridePatternDataBlock}
               </>
             )}
             {(!hideActions || (compact && schemaName !== 'bio-titans')) && (
@@ -446,41 +343,9 @@ export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayC
                 headerBg={headerBg}
               />
             )}
-            {/* Compact: chassis abilities render after actions */}
-            {compact && hasChassisAbilities && (
-              <EntityChassisAbilitiesContent
-                chassisName={'name' in data ? data.name : undefined}
-                spacing={spacing}
-                compact={compact}
-                chassisAbilities={chassisAbilities}
-              />
-            )}
-            {compact && overridePatternData && (
-              <div className={spacing.smallSpaceYClass}>
-                <div className="flex items-center gap-2">
-                  <Text variant="pseudoheader" as="span" className="text-xs font-bold uppercase">
-                    {normalizePatternName(overridePatternData.name)} Pattern
-                  </Text>
-                  {overridePatternData.page && (
-                    <Text
-                      variant="pseudoheader"
-                      as="span"
-                      className="text-xs font-semibold uppercase"
-                    >
-                      Page {overridePatternData.page}
-                    </Text>
-                  )}
-                </div>
-                {overridePatternData.content && overridePatternData.content.length > 0 && (
-                  <BlockContentRendererView
-                    content={overridePatternData.content}
-                    fontSize={fontSize.sm}
-                    compact={compact}
-                    damaged={damaged}
-                  />
-                )}
-              </div>
-            )}
+            {/* Compact: chassis abilities + pattern data render after actions */}
+            {compact && chassisAbilitiesBlock}
+            {compact && overridePatternDataBlock}
 
             {schemaName === 'crawler-tech-levels' &&
               'populationMin' in data &&
@@ -521,18 +386,12 @@ export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayC
                   table={table}
                   showCommand
                   compact
-                  tableName={'name' in data ? String(data.name) : undefined}
+                  tableName={chassisName != null ? String(chassisName) : undefined}
                 />
               </div>
             )}
             <EntityFormation data={data} headerFontSize={fontSize.lg} compact={compact} />
-            <EntityNpcDisplay
-              data={data}
-              headerFontSize={fontSize.lg}
-              compact={compact}
-              fontSize={fontSize}
-              spacing={spacing}
-            />
+            <EntityNpcDisplay data={data} compact={compact} fontSize={fontSize} spacing={spacing} />
             {shouldShowExtraContent && patternOverride && (
               <EntityChassisPattern
                 pattern={{
@@ -548,6 +407,7 @@ export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayC
                   <EntityChassisPatterns
                     patterns={'patterns' in data ? data.patterns : undefined}
                     headerFontSize={fontSize.lg}
+                    chassisEntity={data}
                   />
                 )}
                 {'damagedEffect' in data && data.damagedEffect && (
@@ -571,17 +431,11 @@ export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayC
                 <EntityGrants data={data} spacing={spacing} />
               </>
             )}
-            {buttonConfig && (
-              <div className="clear-both flex">
-                <ButtonWithConfig buttonConfig={buttonConfig} />
-              </div>
-            )}
             <EntityChoices
               data={data}
               spacing={spacing}
               fontSize={fontSize}
               hideChoices={hideChoices}
-              userChoices={userChoices}
               onChoiceSelection={undefined}
             />
             <div className="clear-both" />
@@ -648,7 +502,7 @@ export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayC
     </Card>
   )
 
-  if (collapsible) {
+  if (listing) {
     return (
       <>
         {card}
@@ -669,15 +523,16 @@ export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayC
                     data={data}
                     schemaName={schemaName}
                     compact={false}
-                    collapsible={false}
+                    listing={false}
                     dimHeader={false}
                     disabled={false}
                     hideActions={false}
                     hidePatterns={!!patternOverride}
                     hideChoices={false}
-                    hideLevel={false}
                     patternOverride={patternOverride}
-                  />
+                  >
+                    {children}
+                  </EntityDisplayContent>
                 </DialogPrimitive.Content>
               </div>
             </DialogPrimitive.Overlay>

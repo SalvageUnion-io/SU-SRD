@@ -1,11 +1,12 @@
 import { InlineEdit } from 'suref-react'
 import { getNameById } from 'salvageunion-reference'
 import { useEntityRefs } from '../../../hooks/useEntityRefs'
-import type { Pilot } from '../../../types/common'
+import type { Pilot, EntityUpdateHandler } from '../../../types/common'
+import type { UpdatePilotInput } from '../../../lib/validation'
 
 type BuildViewProps = {
   pilot: Pilot
-  onUpdate: (field: string, value: unknown) => void
+  onUpdate: EntityUpdateHandler<UpdatePilotInput>
 }
 
 export function BuildView({ pilot, onUpdate }: BuildViewProps) {

@@ -48,7 +48,7 @@ export function EntityFormation({ data, headerFontSize, compact = false }: Entit
                 key={`${resolved.entity.id}-${mechIdx}-${copyIdx}`}
                 data={resolved.entity}
                 compact
-                collapsible
+                listing
                 hideStats
                 patternOverride={patternOverride}
               />

@@ -9,105 +9,119 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as PilotIdRouteImport } from './routes/pilot.$id'
-import { Route as MechIdRouteImport } from './routes/mech.$id'
-import { Route as CrawlerIdRouteImport } from './routes/crawler.$id'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
+import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
+import { Route as AuthenticatedPilotIdRouteImport } from './routes/_authenticated/pilot.$id'
+import { Route as AuthenticatedMechIdRouteImport } from './routes/_authenticated/mech.$id'
+import { Route as AuthenticatedCrawlerIdRouteImport } from './routes/_authenticated/crawler.$id'
 
-const IndexRoute = IndexRouteImport.update({
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRoute = AuthenticatedRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PilotIdRoute = PilotIdRouteImport.update({
-  id: '/pilot/$id',
-  path: '/pilot/$id',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MechIdRoute = MechIdRouteImport.update({
-  id: '/mech/$id',
-  path: '/mech/$id',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CrawlerIdRoute = CrawlerIdRouteImport.update({
-  id: '/crawler/$id',
-  path: '/crawler/$id',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthCallbackRoute = AuthCallbackRouteImport.update({
   id: '/auth/callback',
   path: '/auth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedPilotIdRoute = AuthenticatedPilotIdRouteImport.update({
+  id: '/pilot/$id',
+  path: '/pilot/$id',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedMechIdRoute = AuthenticatedMechIdRouteImport.update({
+  id: '/mech/$id',
+  path: '/mech/$id',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedCrawlerIdRoute = AuthenticatedCrawlerIdRouteImport.update({
+  id: '/crawler/$id',
+  path: '/crawler/$id',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '/': typeof AuthenticatedIndexRoute
+  '/login': typeof LoginRoute
   '/auth/callback': typeof AuthCallbackRoute
-  '/crawler/$id': typeof CrawlerIdRoute
-  '/mech/$id': typeof MechIdRoute
-  '/pilot/$id': typeof PilotIdRoute
+  '/crawler/$id': typeof AuthenticatedCrawlerIdRoute
+  '/mech/$id': typeof AuthenticatedMechIdRoute
+  '/pilot/$id': typeof AuthenticatedPilotIdRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
+  '/login': typeof LoginRoute
   '/auth/callback': typeof AuthCallbackRoute
-  '/crawler/$id': typeof CrawlerIdRoute
-  '/mech/$id': typeof MechIdRoute
-  '/pilot/$id': typeof PilotIdRoute
+  '/': typeof AuthenticatedIndexRoute
+  '/crawler/$id': typeof AuthenticatedCrawlerIdRoute
+  '/mech/$id': typeof AuthenticatedMechIdRoute
+  '/pilot/$id': typeof AuthenticatedPilotIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/login': typeof LoginRoute
   '/auth/callback': typeof AuthCallbackRoute
-  '/crawler/$id': typeof CrawlerIdRoute
-  '/mech/$id': typeof MechIdRoute
-  '/pilot/$id': typeof PilotIdRoute
+  '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/crawler/$id': typeof AuthenticatedCrawlerIdRoute
+  '/_authenticated/mech/$id': typeof AuthenticatedMechIdRoute
+  '/_authenticated/pilot/$id': typeof AuthenticatedPilotIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth/callback' | '/crawler/$id' | '/mech/$id' | '/pilot/$id'
+  fullPaths: '/' | '/login' | '/auth/callback' | '/crawler/$id' | '/mech/$id' | '/pilot/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth/callback' | '/crawler/$id' | '/mech/$id' | '/pilot/$id'
-  id: '__root__' | '/' | '/auth/callback' | '/crawler/$id' | '/mech/$id' | '/pilot/$id'
+  to: '/login' | '/auth/callback' | '/' | '/crawler/$id' | '/mech/$id' | '/pilot/$id'
+  id:
+    | '__root__'
+    | '/_authenticated'
+    | '/login'
+    | '/auth/callback'
+    | '/_authenticated/'
+    | '/_authenticated/crawler/$id'
+    | '/_authenticated/mech/$id'
+    | '/_authenticated/pilot/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
+  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  LoginRoute: typeof LoginRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
-  CrawlerIdRoute: typeof CrawlerIdRoute
-  MechIdRoute: typeof MechIdRoute
-  PilotIdRoute: typeof PilotIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/': {
+      id: '/_authenticated/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/pilot/$id': {
-      id: '/pilot/$id'
-      path: '/pilot/$id'
-      fullPath: '/pilot/$id'
-      preLoaderRoute: typeof PilotIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/mech/$id': {
-      id: '/mech/$id'
-      path: '/mech/$id'
-      fullPath: '/mech/$id'
-      preLoaderRoute: typeof MechIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/crawler/$id': {
-      id: '/crawler/$id'
-      path: '/crawler/$id'
-      fullPath: '/crawler/$id'
-      preLoaderRoute: typeof CrawlerIdRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/auth/callback': {
       id: '/auth/callback'
@@ -116,15 +130,52 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/pilot/$id': {
+      id: '/_authenticated/pilot/$id'
+      path: '/pilot/$id'
+      fullPath: '/pilot/$id'
+      preLoaderRoute: typeof AuthenticatedPilotIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/mech/$id': {
+      id: '/_authenticated/mech/$id'
+      path: '/mech/$id'
+      fullPath: '/mech/$id'
+      preLoaderRoute: typeof AuthenticatedMechIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/crawler/$id': {
+      id: '/_authenticated/crawler/$id'
+      path: '/crawler/$id'
+      fullPath: '/crawler/$id'
+      preLoaderRoute: typeof AuthenticatedCrawlerIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
+interface AuthenticatedRouteChildren {
+  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedCrawlerIdRoute: typeof AuthenticatedCrawlerIdRoute
+  AuthenticatedMechIdRoute: typeof AuthenticatedMechIdRoute
+  AuthenticatedPilotIdRoute: typeof AuthenticatedPilotIdRoute
+}
+
+const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+  AuthenticatedCrawlerIdRoute: AuthenticatedCrawlerIdRoute,
+  AuthenticatedMechIdRoute: AuthenticatedMechIdRoute,
+  AuthenticatedPilotIdRoute: AuthenticatedPilotIdRoute,
+}
+
+const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
+  AuthenticatedRouteChildren
+)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  LoginRoute: LoginRoute,
   AuthCallbackRoute: AuthCallbackRoute,
-  CrawlerIdRoute: CrawlerIdRoute,
-  MechIdRoute: MechIdRoute,
-  PilotIdRoute: PilotIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

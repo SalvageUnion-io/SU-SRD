@@ -1,69 +1,79 @@
-const requiredEnvVars = {
-  VITE_SUPABASE_URL: {
-    name: 'VITE_SUPABASE_URL',
-    description: 'Supabase project URL',
-    example: 'https://your-project.supabase.co',
-  },
-  VITE_SUPABASE_ANON_KEY: {
-    name: 'VITE_SUPABASE_ANON_KEY',
-    description: 'Supabase anonymous key',
-    example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
-  },
-} as const
+import { z } from 'zod'
 
-function getEnvVar(key: string, required = true): string | undefined {
-  const isTest = typeof process !== 'undefined' && process.env.NODE_ENV === 'test'
-  const value = isTest ? process.env[key] : import.meta.env[key]
+const envSchema = z.object({
+  VITE_SUPABASE_URL: z.string().url(),
+  VITE_SUPABASE_ANON_KEY: z.string().min(1),
+  VITE_SITE_URL: z.string().url().optional(),
+})
 
-  if (required && !value) {
-    const varInfo = requiredEnvVars[key as keyof typeof requiredEnvVars]
-    const errorMessage = varInfo
-      ? `Missing required environment variable: ${varInfo.name}\n` +
-        `Description: ${varInfo.description}\n` +
-        `Example: ${varInfo.example}\n` +
-        `See .env.example for more information.`
-      : `Missing required environment variable: ${key}`
+type Env = z.infer<typeof envSchema>
 
-    throw new Error(errorMessage)
+function isTestEnv(): boolean {
+  return typeof process !== 'undefined' && process.env.NODE_ENV === 'test'
+}
+
+function getRawEnv(): Record<string, string | undefined> {
+  if (isTestEnv()) {
+    return {
+      VITE_SUPABASE_URL: process.env.VITE_SUPABASE_URL,
+      VITE_SUPABASE_ANON_KEY: process.env.VITE_SUPABASE_ANON_KEY,
+      VITE_SITE_URL: process.env.VITE_SITE_URL,
+    }
   }
 
-  return value
+  return {
+    VITE_SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL,
+    VITE_SUPABASE_ANON_KEY: import.meta.env.VITE_SUPABASE_ANON_KEY,
+    VITE_SITE_URL: import.meta.env.VITE_SITE_URL,
+  }
+}
+
+const testFallbacks: Env = {
+  VITE_SUPABASE_URL: 'https://test.supabase.co',
+  VITE_SUPABASE_ANON_KEY: 'test-anon-key',
+}
+
+let _env: Env | null = null
+
+function getEnv(): Env {
+  if (_env) return _env
+
+  const raw = getRawEnv()
+
+  if (isTestEnv()) {
+    // In test: use real values if available, otherwise fall back
+    _env = {
+      VITE_SUPABASE_URL: raw.VITE_SUPABASE_URL || testFallbacks.VITE_SUPABASE_URL,
+      VITE_SUPABASE_ANON_KEY: raw.VITE_SUPABASE_ANON_KEY || testFallbacks.VITE_SUPABASE_ANON_KEY,
+      VITE_SITE_URL: raw.VITE_SITE_URL,
+    }
+    return _env
+  }
+
+  const result = envSchema.safeParse(raw)
+  if (!result.success) {
+    const issues = result.error.issues.map((i) => `  ${i.path.join('.')}: ${i.message}`).join('\n')
+    throw new Error(
+      `Missing or invalid environment variables:\n${issues}\nSee .env.example for more information.`
+    )
+  }
+
+  _env = result.data
+  return _env
 }
 
 export function getSupabaseUrl(): string {
-  const isTest = typeof process !== 'undefined' && process.env.NODE_ENV === 'test'
-  const url = getEnvVar('VITE_SUPABASE_URL', !isTest)
-
-  if (isTest && !url) {
-    return 'https://test.supabase.co'
-  }
-
-  return url!
+  return getEnv().VITE_SUPABASE_URL
 }
 
 export function getSupabaseAnonKey(): string {
-  const isTest = typeof process !== 'undefined' && process.env.NODE_ENV === 'test'
-  const key = getEnvVar('VITE_SUPABASE_ANON_KEY', !isTest)
-
-  if (isTest && !key) {
-    return 'test-anon-key'
-  }
-
-  return key!
+  return getEnv().VITE_SUPABASE_ANON_KEY
 }
 
 export function getSiteUrl(): string | undefined {
-  return getEnvVar('VITE_SITE_URL', false)
+  return getEnv().VITE_SITE_URL
 }
 
 export function validateEnvVars(): void {
-  try {
-    getSupabaseUrl()
-    getSupabaseAnonKey()
-  } catch (error) {
-    if (typeof process !== 'undefined' && process.env.NODE_ENV !== 'test') {
-      console.error('Environment variable validation failed:', error)
-      throw error
-    }
-  }
+  getEnv()
 }

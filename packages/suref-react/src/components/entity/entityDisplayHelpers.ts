@@ -2,15 +2,11 @@ import type {
   SURefMetaEntity,
   SURefEnumSchemaName,
   SURefObjectBonusPerTechLevel,
-  SURefObjectSystemModule,
   SURefEnumSource,
 } from 'salvageunion-reference'
 import {
   getBlackMarket,
   isHybridClass,
-  isSystemModule,
-  getEntityNameFromSystemModule,
-  extractVisibleActions,
   isEntityData,
   getHybridClasses,
 } from 'salvageunion-reference'
@@ -30,20 +26,6 @@ function getHybridTreeNames(): Set<string> {
 }
 
 type SURefMetaSchemaName = SURefEnumSchemaName | 'actions'
-
-export function extractName(
-  data: SURefMetaEntity | SURefObjectBonusPerTechLevel,
-  schemaName: SURefEnumSchemaName
-): string {
-  if (!('name' in data)) {
-    return ''
-  }
-
-  if (schemaName === 'ability-tree-requirements') {
-    return data.name + ' Tree Requirements'
-  }
-  return data.name ?? ''
-}
 
 /**
  * Calculate Tailwind bg class for entity display based on schema, tech level, and entity data
@@ -112,64 +94,6 @@ export function calculateBackgroundColor(
   if (headerColor) return headerColor
   if (techLevel) return techLevelColors[techLevel] ?? 'bg-su-orange'
   return 'bg-su-orange'
-}
-
-export function calculateOpacity(dimHeader: boolean, disabled: boolean) {
-  return {
-    header: dimHeader ? 0.5 : 1,
-    content: disabled ? 0.5 : 1,
-  }
-}
-
-export function createHeaderClickHandler(
-  onClick: (() => void) | undefined,
-  disabled: boolean
-): (() => void) | undefined {
-  if (!onClick) {
-    return undefined
-  }
-
-  return () => {
-    if (!disabled) {
-      onClick()
-    }
-  }
-}
-
-export function shouldShowExtraContent(compact: boolean, hideActions: boolean): boolean {
-  return compact ? !hideActions : true
-}
-
-export function getEntityDisplayName(data: SURefMetaEntity, title?: string): string {
-  return title || ('name' in data ? String(data.name) : '')
-}
-
-export function resolveEntityName(
-  entity: SURefMetaEntity | SURefObjectSystemModule,
-  title?: string
-): string | undefined {
-  if (title) {
-    return title
-  }
-
-  if ('name' in entity && typeof entity.name === 'string') {
-    return entity.name
-  }
-
-  if ('value' in entity && typeof entity.value === 'string') {
-    return entity.value
-  }
-
-  if (isSystemModule(entity as SURefMetaEntity)) {
-    return getEntityNameFromSystemModule(entity as SURefObjectSystemModule)
-  }
-
-  const visibleActions = extractVisibleActions(entity as SURefMetaEntity)
-  if (visibleActions && visibleActions.length > 0) {
-    return visibleActions[0]?.name
-  }
-
-  return undefined
 }
 
 /**

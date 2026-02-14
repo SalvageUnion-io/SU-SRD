@@ -1,8 +1,9 @@
 import type { SURefMetaAction, SURefObjectChoice } from 'salvageunion-reference'
-import { getTable } from 'salvageunion-reference'
+import { SalvageUnionReference, getTable } from 'salvageunion-reference'
 import { Text } from '../base/Text'
 import { BlockContentRendererView } from './BlockContentRendererView'
 import { EntityChoice } from './EntityDisplay/EntityChoice'
+import { EntityDisplay } from './EntityDisplay/index'
 import type { DataValue } from '../../types/common'
 import { extractEntityDetails } from '../../lib/entityDataExtraction'
 import { DataValueDisplayView } from './DataValueDisplayView'
@@ -21,6 +22,8 @@ type NestedChassisAbilityProps = {
   hideChoices?: boolean
   /** Chassis name to replace [(CHASSIS)] placeholder with */
   chassisName?: string
+  /** Drone equipment from pattern (pre-baked mode only) */
+  droneEquipment?: { systems: string[]; modules: string[] }
 }
 
 /**
@@ -37,6 +40,7 @@ export function NestedChassisAbility({
   hideContent = false,
   hideChoices = false,
   chassisName,
+  droneEquipment,
 }: NestedChassisAbilityProps) {
   // Chassis abilities use EP currency
   const details = extractEntityDetails(data, undefined, 'EP')
@@ -187,6 +191,76 @@ export function NestedChassisAbility({
           ))}
         </div>
       )}
+
+      {/* Drone entity */}
+      {data.drone && (
+        <DroneSection droneName={data.drone} compact={compact} droneEquipment={droneEquipment} />
+      )}
+    </div>
+  )
+}
+
+function DroneSection({
+  droneName,
+  compact,
+  droneEquipment,
+}: {
+  droneName: string
+  compact: boolean
+  droneEquipment?: { systems: string[]; modules: string[] }
+}) {
+  const droneEntity = SalvageUnionReference.findIn('drones', (d) => d.name === droneName)
+  if (!droneEntity) return null
+
+  const resolvedSystems = droneEquipment?.systems
+    ? droneEquipment.systems.flatMap((name) => {
+        const found = SalvageUnionReference.findIn('systems', (s) => s.name === name)
+        return found ? [found] : []
+      })
+    : []
+
+  const resolvedModules = droneEquipment?.modules
+    ? droneEquipment.modules.flatMap((name) => {
+        const found = SalvageUnionReference.findIn('modules', (m) => m.name === name)
+        return found ? [found] : []
+      })
+    : []
+
+  return (
+    <div className={cn('flex flex-col', compact ? 'gap-1 pt-1' : 'gap-2 pt-2')}>
+      <EntityDisplay data={droneEntity} compact hideActions hidePatterns listing>
+        {resolvedSystems.length > 0 && (
+          <div className="space-y-2">
+            <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
+              {resolvedSystems.map((system, idx) => (
+                <EntityDisplay
+                  key={`drone-sys-${system.id}-${idx}`}
+                  data={system}
+                  label={idx === 0 ? 'Systems' : undefined}
+                  compact
+                  listing
+                />
+              ))}
+            </div>
+          </div>
+        )}
+        {resolvedModules.length > 0 && resolvedSystems.length > 0 && <div className="pt-4" />}
+        {resolvedModules.length > 0 && (
+          <div className="space-y-2">
+            <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
+              {resolvedModules.map((module, idx) => (
+                <EntityDisplay
+                  key={`drone-mod-${module.id}-${idx}`}
+                  data={module}
+                  label={idx === 0 ? 'Modules' : undefined}
+                  compact
+                  listing
+                />
+              ))}
+            </div>
+          </div>
+        )}
+      </EntityDisplay>
     </div>
   )
 }

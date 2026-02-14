@@ -1,4 +1,5 @@
 import { supabase } from '../supabase'
+import { handleSupabaseError } from '../errors'
 import { createMechSchema, updateMechSchema } from '../validation'
 import type { UpdateMechInput } from '../validation'
 import type { Mech } from '../../types/common'
@@ -6,7 +7,7 @@ import type { Mech } from '../../types/common'
 export async function fetchMech(id: string): Promise<Mech> {
   const { data, error } = await supabase.from('mechs').select('*').eq('id', id).single()
 
-  if (error) throw error
+  if (error) handleSupabaseError(error)
   return data
 }
 
@@ -16,7 +17,7 @@ export async function fetchUserMechs(): Promise<Mech[]> {
     .select('*')
     .order('created_at', { ascending: false })
 
-  if (error) throw error
+  if (error) handleSupabaseError(error)
   return data ?? []
 }
 
@@ -28,7 +29,7 @@ export async function fetchMechsByPilot(pilotId: string): Promise<Mech[]> {
     .order('active', { ascending: false })
     .order('created_at', { ascending: false })
 
-  if (error) throw error
+  if (error) handleSupabaseError(error)
   return data ?? []
 }
 
@@ -43,7 +44,7 @@ export async function createMech(
     .select()
     .single()
 
-  if (error) throw error
+  if (error) handleSupabaseError(error)
   return data
 }
 
@@ -56,7 +57,7 @@ export async function updateMech(id: string, input: UpdateMechInput): Promise<Me
     .select()
     .single()
 
-  if (error) throw error
+  if (error) handleSupabaseError(error)
   return data
 }
 
@@ -67,7 +68,7 @@ export async function setActiveMech(pilotId: string, mechId: string): Promise<vo
     .update({ active: false })
     .eq('pilot_id', pilotId)
 
-  if (deactivateError) throw deactivateError
+  if (deactivateError) handleSupabaseError(deactivateError)
 
   // Activate the selected mech
   const { error: activateError } = await supabase
@@ -75,10 +76,10 @@ export async function setActiveMech(pilotId: string, mechId: string): Promise<vo
     .update({ active: true })
     .eq('id', mechId)
 
-  if (activateError) throw activateError
+  if (activateError) handleSupabaseError(activateError)
 }
 
 export async function deleteMech(id: string): Promise<void> {
   const { error } = await supabase.from('mechs').delete().eq('id', id)
-  if (error) throw error
+  if (error) handleSupabaseError(error)
 }

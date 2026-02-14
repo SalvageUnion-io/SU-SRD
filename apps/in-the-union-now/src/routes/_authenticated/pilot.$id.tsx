@@ -2,20 +2,21 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { useCallback, useRef } from 'react'
 import * as Tabs from '@radix-ui/react-tabs'
 import { ArrowLeft, Swords, Cog, Wrench, Truck } from 'lucide-react'
-import { usePilot, useUpdatePilot } from '../hooks/usePilot'
-import { useMechsByPilot, useSetActiveMech, useUpdateMech } from '../hooks/useMech'
-import { useCrawler } from '../hooks/useCrawler'
-import { PilotHeader } from '../components/PilotSheet/PilotHeader'
-import { MechStrip } from '../components/PilotSheet/MechStrip'
-import { ActionsView } from '../components/PilotSheet/ActionsTab/ActionsView'
-import { MechLoadout } from '../components/PilotSheet/MechTab/MechLoadout'
-import { BuildView } from '../components/PilotSheet/BuildTab/BuildView'
-import { CrawlerOverview } from '../components/PilotSheet/CrawlerTab/CrawlerOverview'
-import { DiceRollFAB } from '../components/shared/DiceRollFAB'
-import { DiceRollSheet } from '../components/shared/DiceRollSheet'
+import { usePilot, useUpdatePilot } from '../../hooks/usePilot'
+import { useMechsByPilot, useSetActiveMech, useUpdateMech } from '../../hooks/useMech'
+import { useCrawler } from '../../hooks/useCrawler'
+import { PilotHeader } from '../../components/PilotSheet/PilotHeader'
+import { MechStrip } from '../../components/PilotSheet/MechStrip'
+import { ActionsView } from '../../components/PilotSheet/ActionsTab/ActionsView'
+import { MechLoadout } from '../../components/PilotSheet/MechTab/MechLoadout'
+import { BuildView } from '../../components/PilotSheet/BuildTab/BuildView'
+import { CrawlerOverview } from '../../components/PilotSheet/CrawlerTab/CrawlerOverview'
+import { DiceRollFAB } from '../../components/shared/DiceRollFAB'
+import { DiceRollSheet } from '../../components/shared/DiceRollSheet'
 import { DEBOUNCE_TIMINGS } from 'suref-react'
+import type { UpdatePilotInput, UpdateMechInput } from '../../lib/validation'
 
-export const Route = createFileRoute('/pilot/$id')({
+export const Route = createFileRoute('/_authenticated/pilot/$id')({
   component: PilotSheetPage,
 })
 
@@ -34,10 +35,10 @@ function PilotSheetPage() {
   // Debounced pilot update
   const debounceTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
   const handlePilotUpdate = useCallback(
-    (field: string, value: unknown) => {
+    <K extends keyof UpdatePilotInput>(field: K, value: UpdatePilotInput[K]) => {
       clearTimeout(debounceTimer.current)
       debounceTimer.current = setTimeout(() => {
-        updatePilot.mutate({ [field]: value })
+        updatePilot.mutate({ [field]: value } as UpdatePilotInput)
       }, DEBOUNCE_TIMINGS.autoSave)
     },
     [updatePilot]
@@ -46,10 +47,10 @@ function PilotSheetPage() {
   // Debounced mech update
   const mechDebounce = useRef<ReturnType<typeof setTimeout>>(undefined)
   const handleMechUpdate = useCallback(
-    (field: string, value: unknown) => {
+    <K extends keyof UpdateMechInput>(field: K, value: UpdateMechInput[K]) => {
       clearTimeout(mechDebounce.current)
       mechDebounce.current = setTimeout(() => {
-        updateMech.mutate({ [field]: value })
+        updateMech.mutate({ [field]: value } as UpdateMechInput)
       }, DEBOUNCE_TIMINGS.autoSave)
     },
     [updateMech]

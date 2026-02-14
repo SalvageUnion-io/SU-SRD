@@ -992,6 +992,10 @@
         "actionSource": {
           "$ref": "enums.schema.json#/definitions/schemaName",
           "description": "The schema name that this action is used in (e.g., 'chassis', 'systems', 'modules')"
+        },
+        "drone": {
+          "type": "string",
+          "description": "Name of the drone entity this action controls"
         }
       }
     },

@@ -18,27 +18,6 @@ export type ClassAbilitiesRenderer = (props: {
 }) => ReactNode
 
 /**
- * Button props type for ShadCN version (replaces Chakra ButtonProps)
- */
-export type EntityButtonConfig = React.ButtonHTMLAttributes<HTMLButtonElement> & {
-  children: ReactNode
-  className?: string
-}
-
-export type EntityImageComponentProps = {
-  src: string
-  alt: string
-  className?: string
-  style?: React.CSSProperties
-  loading?: 'lazy' | 'eager'
-  decoding?: 'async' | 'auto' | 'sync'
-  onLoad?: () => void
-  onError?: () => void
-}
-
-export type EntityImageComponent = React.ComponentType<EntityImageComponentProps>
-
-/**
  * Spacing helpers based on compact mode.
  * Returns Tailwind-friendly class strings instead of numeric Chakra spacing.
  */
@@ -91,40 +70,22 @@ export type EntityDisplayState = {
   spacing: ReturnType<typeof getEntitySpacing>
   /** Font size values */
   fontSize: ReturnType<typeof getEntityFontSizes>
-  /** Content background color */
-  contentBg: string
   /** Computed opacity values */
   opacity: { header: number; content: number }
   /** Whether to show extra content sections */
   shouldShowExtraContent: boolean
-  /** Header click handler (undefined when no onClick is provided) */
-  handleHeaderClick: (() => void) | undefined
-  /** Whether the component is expanded */
-  isExpanded: boolean
-  /** Whether the component is collapsible */
-  collapsible: boolean
+  /** Whether only the header is shown (click opens detail modal) */
+  listing: boolean
   /** Whether to hide actions */
   hideActions: boolean
   /** Whether to hide chassis patterns */
   hidePatterns: boolean
   /** Whether to hide choices */
   hideChoices: boolean
-  /** Whether to hide tech level */
-  hideLevel: boolean
-  /** Custom right content for header */
-  rightContent?: ReactNode
   /** Whether the entity is damaged */
   damaged: boolean
   /** Whether the component is disabled */
   disabled: boolean
-  /** Button configuration */
-  buttonConfig?: EntityButtonConfig
-  /** User choices for entity options */
-  userChoices?: Record<string, string> | null
-  /** Custom width for the image (e.g., '40%') */
-  imageWidth?: string
-  /** Whether entity has actions */
-  hasActions: boolean
   /** Array of chassis abilities (or undefined) */
   chassisAbilities?: SURefMetaAction[]
   /** Array of effects (or undefined) */
@@ -143,8 +104,6 @@ export type EntityDisplayState = {
   label?: string
   /** Optional renderer for class abilities (provided by consuming app) */
   classAbilitiesRenderer?: ClassAbilitiesRenderer
-  /** Optional custom image component (defaults to native img) */
-  imageComponent?: EntityImageComponent
   /** Optional pattern override for patterned chassis display */
   patternOverride?: {
     name: string

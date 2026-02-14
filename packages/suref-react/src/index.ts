@@ -12,11 +12,7 @@ export type { TechLevel } from './constants/gameRules'
 
 // Types
 export type { DataValue, ItemCondition } from './types/common'
-export type {
-  ClassAbilitiesRenderer,
-  EntityImageComponent,
-  EntityImageComponentProps,
-} from './components/entity/EntityDisplay/entityDisplayTypes'
+export type { ClassAbilitiesRenderer } from './components/entity/EntityDisplay/entityDisplayTypes'
 
 // Base typography
 export { Heading } from './components/base/Heading'
@@ -28,8 +24,6 @@ export { toast, Toaster } from './components/ui/toaster'
 
 // Entity display system
 export { EntityDisplay } from './components/entity/EntityDisplay/index'
-export { EntityDisplayTooltip } from './components/entity/EntityDisplayTooltip'
-export { EntityFormation } from './components/entity/EntityDisplay/EntityFormation'
 
 // Shared components
 export { Card } from './components/shared/Card'

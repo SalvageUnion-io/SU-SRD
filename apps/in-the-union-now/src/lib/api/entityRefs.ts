@@ -1,4 +1,5 @@
 import { supabase } from '../supabase'
+import { handleSupabaseError } from '../errors'
 import { createEntityRefSchema, updateEntityRefSchema } from '../validation'
 import type { UpdateEntityRefInput } from '../validation'
 import type { EntityRef, ParentType } from '../../types/common'
@@ -15,7 +16,7 @@ export async function fetchEntityRefs(
     .eq('parent_id', parentId)
     .order('sort_order', { ascending: true })
 
-  if (error) throw error
+  if (error) handleSupabaseError(error)
   return data ?? []
 }
 
@@ -39,7 +40,7 @@ export async function createEntityRef(
     .select()
     .single()
 
-  if (error) throw error
+  if (error) handleSupabaseError(error)
   return data
 }
 
@@ -52,13 +53,13 @@ export async function updateEntityRef(id: string, input: UpdateEntityRefInput): 
     .select()
     .single()
 
-  if (error) throw error
+  if (error) handleSupabaseError(error)
   return data
 }
 
 export async function deleteEntityRef(id: string): Promise<void> {
   const { error } = await supabase.from('entity_refs').delete().eq('id', id)
-  if (error) throw error
+  if (error) handleSupabaseError(error)
 }
 
 export async function reorderEntityRefs(
@@ -70,5 +71,5 @@ export async function reorderEntityRefs(
 
   const results = await Promise.all(promises)
   const firstError = results.find((r) => r.error)
-  if (firstError?.error) throw firstError.error
+  if (firstError?.error) handleSupabaseError(firstError.error)
 }

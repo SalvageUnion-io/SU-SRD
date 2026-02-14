@@ -1,4 +1,5 @@
 import { supabase } from '../supabase'
+import { handleSupabaseError } from '../errors'
 import { createCrawlerSchema, updateCrawlerSchema } from '../validation'
 import type { UpdateCrawlerInput } from '../validation'
 import type { Crawler } from '../../types/common'
@@ -6,7 +7,7 @@ import type { Crawler } from '../../types/common'
 export async function fetchCrawler(id: string): Promise<Crawler> {
   const { data, error } = await supabase.from('crawlers').select('*').eq('id', id).single()
 
-  if (error) throw error
+  if (error) handleSupabaseError(error)
   return data
 }
 
@@ -16,7 +17,7 @@ export async function fetchUserCrawlers(): Promise<Crawler[]> {
     .select('*')
     .order('created_at', { ascending: false })
 
-  if (error) throw error
+  if (error) handleSupabaseError(error)
   return data ?? []
 }
 
@@ -31,7 +32,7 @@ export async function createCrawler(
     .select()
     .single()
 
-  if (error) throw error
+  if (error) handleSupabaseError(error)
   return data
 }
 
@@ -44,11 +45,11 @@ export async function updateCrawler(id: string, input: UpdateCrawlerInput): Prom
     .select()
     .single()
 
-  if (error) throw error
+  if (error) handleSupabaseError(error)
   return data
 }
 
 export async function deleteCrawler(id: string): Promise<void> {
   const { error } = await supabase.from('crawlers').delete().eq('id', id)
-  if (error) throw error
+  if (error) handleSupabaseError(error)
 }

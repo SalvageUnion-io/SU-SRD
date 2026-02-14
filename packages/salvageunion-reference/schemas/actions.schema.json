@@ -512,7 +512,8 @@
               "page": { "type": "integer", "exclusiveMinimum": 0 },
               "actionSource": {
                 "$ref": "#/definitions/actions/allOf/0/properties/choices/items/properties/schema/items"
-              }
+              },
+              "drone": { "type": "string" }
             },
             "required": ["id", "name"]
           },

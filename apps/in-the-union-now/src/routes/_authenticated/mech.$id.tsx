@@ -1,9 +1,9 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useCallback, useRef, useState } from 'react'
 import { ArrowLeft, Cog, Minus, Plus, Package, Trash2 } from 'lucide-react'
-import { useMech, useUpdateMech } from '../hooks/useMech'
-import { useEntityRefs, useUpdateEntityRef } from '../hooks/useEntityRefs'
-import { useCargo, useCreateCargoItem, useDeleteCargoItem } from '../hooks/useCargo'
+import { useMech, useUpdateMech } from '../../hooks/useMech'
+import { useEntityRefs, useUpdateEntityRef } from '../../hooks/useEntityRefs'
+import { useCargo, useCreateCargoItem, useDeleteCargoItem } from '../../hooks/useCargo'
 import {
   ResourceStepper,
   InlineEdit,
@@ -12,11 +12,12 @@ import {
   DEBOUNCE_TIMINGS,
 } from 'suref-react'
 import { getNameById } from 'salvageunion-reference'
-import { DiceRollFAB } from '../components/shared/DiceRollFAB'
-import { DiceRollSheet } from '../components/shared/DiceRollSheet'
-import type { ItemCondition } from '../types/common'
+import { DiceRollFAB } from '../../components/shared/DiceRollFAB'
+import { DiceRollSheet } from '../../components/shared/DiceRollSheet'
+import type { ItemCondition } from '../../types/common'
+import type { UpdateMechInput } from '../../lib/validation'
 
-export const Route = createFileRoute('/mech/$id')({
+export const Route = createFileRoute('/_authenticated/mech/$id')({
   component: MechSheetPage,
 })
 
@@ -35,10 +36,10 @@ function MechSheetPage() {
   // Debounced mech update
   const debounceTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
   const handleUpdate = useCallback(
-    (field: string, value: unknown) => {
+    <K extends keyof UpdateMechInput>(field: K, value: UpdateMechInput[K]) => {
       clearTimeout(debounceTimer.current)
       debounceTimer.current = setTimeout(() => {
-        updateMech.mutate({ [field]: value })
+        updateMech.mutate({ [field]: value } as UpdateMechInput)
       }, DEBOUNCE_TIMINGS.autoSave)
     },
     [updateMech]
@@ -46,8 +47,8 @@ function MechSheetPage() {
 
   // Immediate update (for steppers - no debounce needed since user clicks discretely)
   const handleImmediateUpdate = useCallback(
-    (field: string, value: unknown) => {
-      updateMech.mutate({ [field]: value })
+    <K extends keyof UpdateMechInput>(field: K, value: UpdateMechInput[K]) => {
+      updateMech.mutate({ [field]: value } as UpdateMechInput)
     },
     [updateMech]
   )

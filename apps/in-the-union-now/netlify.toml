@@ -13,13 +13,14 @@
 [build.processing]
   skip_processing = false
 
+# Skip CSS/JS processing - Vite already handles bundling and minification
 [build.processing.css]
-  bundle = true
-  minify = true
+  bundle = false
+  minify = false
 
 [build.processing.js]
-  bundle = true
-  minify = true
+  bundle = false
+  minify = false
 
 [build.processing.html]
   pretty_urls = true

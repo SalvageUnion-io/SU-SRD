@@ -1,9 +1,9 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useCallback, useRef, useState } from 'react'
 import { ArrowLeft, Truck, Plus, Package, Trash2 } from 'lucide-react'
-import { useCrawler, useUpdateCrawler } from '../hooks/useCrawler'
-import { useEntityRefs, useUpdateEntityRef } from '../hooks/useEntityRefs'
-import { useCargo, useCreateCargoItem, useDeleteCargoItem } from '../hooks/useCargo'
+import { useCrawler, useUpdateCrawler } from '../../hooks/useCrawler'
+import { useEntityRefs, useUpdateEntityRef } from '../../hooks/useEntityRefs'
+import { useCargo, useCreateCargoItem, useDeleteCargoItem } from '../../hooks/useCargo'
 import {
   ResourceStepper,
   InlineEdit,
@@ -16,9 +16,10 @@ import {
 } from 'suref-react'
 import { getNameById } from 'salvageunion-reference'
 import type { TechLevel } from 'suref-react'
-import type { Crawler, ItemCondition } from '../types/common'
+import type { Crawler, ItemCondition } from '../../types/common'
+import type { UpdateCrawlerInput } from '../../lib/validation'
 
-export const Route = createFileRoute('/crawler/$id')({
+export const Route = createFileRoute('/_authenticated/crawler/$id')({
   component: CrawlerSheetPage,
 })
 
@@ -37,10 +38,10 @@ function CrawlerSheetPage() {
   // Debounced crawler update
   const debounceTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
   const handleUpdate = useCallback(
-    (field: string, value: unknown) => {
+    <K extends keyof UpdateCrawlerInput>(field: K, value: UpdateCrawlerInput[K]) => {
       clearTimeout(debounceTimer.current)
       debounceTimer.current = setTimeout(() => {
-        updateCrawler.mutate({ [field]: value })
+        updateCrawler.mutate({ [field]: value } as UpdateCrawlerInput)
       }, DEBOUNCE_TIMINGS.autoSave)
     },
     [updateCrawler]
@@ -48,8 +49,8 @@ function CrawlerSheetPage() {
 
   // Immediate update (for steppers)
   const handleImmediateUpdate = useCallback(
-    (field: string, value: unknown) => {
-      updateCrawler.mutate({ [field]: value })
+    <K extends keyof UpdateCrawlerInput>(field: K, value: UpdateCrawlerInput[K]) => {
+      updateCrawler.mutate({ [field]: value } as UpdateCrawlerInput)
     },
     [updateCrawler]
   )

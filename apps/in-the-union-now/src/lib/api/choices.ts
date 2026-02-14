@@ -1,4 +1,5 @@
 import { supabase } from '../supabase'
+import { handleSupabaseError } from '../errors'
 import { createPlayerChoiceSchema } from '../validation'
 import type { PlayerChoice } from '../../types/common'
 
@@ -8,7 +9,7 @@ export async function fetchChoicesByEntityRef(entityRefId: string): Promise<Play
     .select('*')
     .eq('entity_ref_id', entityRefId)
 
-  if (error) throw error
+  if (error) handleSupabaseError(error)
   return data ?? []
 }
 
@@ -28,7 +29,7 @@ async function createChoice(
     .select()
     .single()
 
-  if (error) throw error
+  if (error) handleSupabaseError(error)
   return data
 }
 
@@ -54,7 +55,7 @@ export async function upsertChoice(
       .select()
       .single()
 
-    if (error) throw error
+    if (error) handleSupabaseError(error)
     return data
   }
 
@@ -63,5 +64,5 @@ export async function upsertChoice(
 
 export async function deleteChoice(id: string): Promise<void> {
   const { error } = await supabase.from('player_choices').delete().eq('id', id)
-  if (error) throw error
+  if (error) handleSupabaseError(error)
 }

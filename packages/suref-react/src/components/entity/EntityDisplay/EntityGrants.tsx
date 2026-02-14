@@ -44,7 +44,7 @@ export function EntityGrants({ data, spacing }: EntityGrantsProps) {
       <EntitySubheader disabled={true} label="Grants:" />
       <div className={cn(spacing.smallSpaceYClass)}>
         {grantedEntities.map((entity, idx) => (
-          <EntityDisplay key={idx} hideActions data={entity} compact collapsible />
+          <EntityDisplay key={idx} hideActions data={entity} compact listing />
         ))}
       </div>
     </div>

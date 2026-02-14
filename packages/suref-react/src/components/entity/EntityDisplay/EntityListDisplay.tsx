@@ -5,13 +5,45 @@ import type {
   SURefMetaEntity,
   SURefEntity,
 } from 'salvageunion-reference'
-import { getModel, extractActions, isSystemModule } from 'salvageunion-reference'
+import {
+  getModel,
+  extractActions,
+  isSystemModule,
+  getEntityNameFromSystemModule,
+  extractVisibleActions,
+} from 'salvageunion-reference'
 import { EntityDisplay } from './index'
 import { NestedActionDisplay } from '../NestedActionDisplay'
-import { resolveEntityName } from '../entityDisplayHelpers'
-import { createChoiceButtonConfig } from './buttonConfigHelpers'
 import { cn } from '../../../utils/cn'
 import type { getEntitySpacing } from './entityDisplayTypes'
+
+function resolveEntityName(
+  entity: SURefMetaEntity | SURefObjectSystemModule,
+  title?: string
+): string | undefined {
+  if (title) {
+    return title
+  }
+
+  if ('name' in entity && typeof entity.name === 'string') {
+    return entity.name
+  }
+
+  if ('value' in entity && typeof entity.value === 'string') {
+    return entity.value
+  }
+
+  if (isSystemModule(entity as SURefMetaEntity)) {
+    return getEntityNameFromSystemModule(entity as SURefObjectSystemModule)
+  }
+
+  const visibleActions = extractVisibleActions(entity as SURefMetaEntity)
+  if (visibleActions && visibleActions.length > 0) {
+    return visibleActions[0]?.name
+  }
+
+  return undefined
+}
 
 export type EntityListDisplayProps = {
   choice: SURefObjectChoice
@@ -25,13 +57,11 @@ export type EntityListDisplayProps = {
 /**
  * Unified component for rendering lists of entities from either schemaEntities or customSystemOptions.
  * Filters to show only the selected entity if selectedChoice is provided.
- * Renders in a vertical stack with collapsible entities.
+ * Renders in a vertical stack with header-only entities.
  */
 export function EntityListDisplay({
   choice,
   selectedChoice,
-  userChoices,
-  onChoiceSelection,
   isMultiSelect = false,
   spacing,
 }: EntityListDisplayProps) {
@@ -65,49 +95,25 @@ export function EntityListDisplay({
 
     return (
       <div style={{ marginTop: `${spacing.contentPadding + 1}rem` }} className="space-y-4">
-        {visibleOptions.map((option, idx) => {
-          const isSelected = isMultiSelect
-            ? userChoices?.[choice.id] === option.value
-            : userChoices?.[choice.id] === option.value
-
-          const buttonConfig = onChoiceSelection
-            ? createChoiceButtonConfig({
-                isSelected,
-                isMultiSelect,
-                choiceId: choice.id,
-                entityValue: option.value,
-                onChoiceSelection,
-              })
-            : undefined
-
-          return (
-            <div
-              key={idx}
-              className="w-full rounded-md bg-su-white"
-              style={{
-                paddingLeft: `${spacing.contentPaddingX}rem`,
-                paddingRight: `${spacing.contentPaddingX}rem`,
-                paddingTop: `${spacing.contentPadding}rem`,
-                paddingBottom: `${spacing.contentPadding}rem`,
-              }}
-            >
-              <Text className={cn('font-bold text-base', option.description ? 'mb-2' : '')}>
-                {option.label}
-              </Text>
-              {option.description && (
-                <Text className="mb-2 text-sm text-su-black opacity-80">{option.description}</Text>
-              )}
-              {buttonConfig && (
-                <button
-                  {...buttonConfig}
-                  className={cn('mt-2 w-full rounded-md px-4 py-2', buttonConfig.className)}
-                >
-                  {buttonConfig.children}
-                </button>
-              )}
-            </div>
-          )
-        })}
+        {visibleOptions.map((option, idx) => (
+          <div
+            key={idx}
+            className="w-full rounded-md bg-su-white"
+            style={{
+              paddingLeft: `${spacing.contentPaddingX}rem`,
+              paddingRight: `${spacing.contentPaddingX}rem`,
+              paddingTop: `${spacing.contentPadding}rem`,
+              paddingBottom: `${spacing.contentPadding}rem`,
+            }}
+          >
+            <Text className={cn('font-bold text-base', option.description ? 'mb-2' : '')}>
+              {option.label}
+            </Text>
+            {option.description && (
+              <Text className="mb-2 text-sm text-su-black opacity-80">{option.description}</Text>
+            )}
+          </div>
+        ))}
       </div>
     )
   }
@@ -128,25 +134,6 @@ export function EntityListDisplay({
   return (
     <div style={{ marginTop: `${spacing.contentPadding + 1}rem` }} className="space-y-4">
       {visibleEntities.map((entity, idx) => {
-        const entityName = resolveEntityName(entity as SURefMetaEntity | SURefObjectSystemModule)
-
-        // For multi-select, check if this specific value is selected
-        // For single-select, check if any value is selected for this choice
-        const isSelected = isMultiSelect
-          ? entityName !== undefined && userChoices?.[choice.id] === entityName
-          : userChoices?.[choice.id] !== undefined
-
-        const buttonConfig =
-          onChoiceSelection && entityName
-            ? createChoiceButtonConfig({
-                isSelected,
-                isMultiSelect,
-                choiceId: choice.id,
-                entityValue: entityName,
-                onChoiceSelection,
-              })
-            : undefined
-
         const entityIsSystemModule = isSystemModule(entity as SURefMetaEntity)
 
         if (entityIsSystemModule) {
@@ -165,16 +152,7 @@ export function EntityListDisplay({
         if (!('id' in entity)) {
           return null
         }
-        return (
-          <EntityDisplay
-            key={idx}
-            hideActions
-            data={entity as SURefEntity}
-            compact
-            collapsible
-            buttonConfig={buttonConfig}
-          />
-        )
+        return <EntityDisplay key={idx} hideActions data={entity as SURefEntity} compact listing />
       })}
     </div>
   )

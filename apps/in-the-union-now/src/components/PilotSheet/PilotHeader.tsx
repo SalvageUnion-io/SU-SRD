@@ -2,10 +2,12 @@ import { User } from 'lucide-react'
 import { ResourceStepper, InlineEdit } from 'suref-react'
 import { getNameById } from 'salvageunion-reference'
 import type { Pilot } from '../../types/common'
+import type { UpdatePilotInput } from '../../lib/validation'
+import type { EntityUpdateHandler } from '../../types/common'
 
 type PilotHeaderProps = {
   pilot: Pilot
-  onUpdate: (field: string, value: unknown) => void
+  onUpdate: EntityUpdateHandler<UpdatePilotInput>
 }
 
 export function PilotHeader({ pilot, onUpdate }: PilotHeaderProps) {

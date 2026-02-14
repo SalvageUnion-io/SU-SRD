@@ -6,56 +6,28 @@ on:
   pull_request:
     branches: ["main"]
 
+env:
+  BUN_VERSION: "1.3.9"
+
 jobs:
-  setup:
+  lint:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v5
 
       - name: Set up Bun
-        uses: oven-sh/setup-bun@v1
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
 
       - name: Cache Bun dependencies
         uses: actions/cache@v4
-        id: bun-cache
         with:
           path: ~/.bun/install/cache
-          key: bun-${{ runner.os }}-${{ hashFiles('**/bun.lockb') }}
+          key: bun-${{ runner.os }}-${{ hashFiles('**/bun.lock') }}
           restore-keys: |
             bun-${{ runner.os }}-
-
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
-
-      - name: Cache TypeScript build info
-        uses: actions/cache@v4
-        with:
-          path: |
-            **/*.tsbuildinfo
-            packages/*/dist
-          key: tsbuild-${{ runner.os }}-${{ hashFiles('**/*.ts', '**/*.tsx', '!**/node_modules/**') }}
-          restore-keys: |
-            tsbuild-${{ runner.os }}-
-
-      - name: Build package
-        run: bun run build:package
-
-  lint:
-    needs: setup
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-
-      - name: Set up Bun
-        uses: oven-sh/setup-bun@v1
-
-      - name: Restore Bun cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.bun/install/cache
-          key: bun-${{ runner.os }}-${{ hashFiles('**/bun.lockb') }}
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
@@ -66,87 +38,120 @@ jobs:
       - name: Format check
         run: bun run format:check
 
-  typecheck:
-    needs: setup
+  build-package:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v5
 
       - name: Set up Bun
-        uses: oven-sh/setup-bun@v1
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
 
-      - name: Restore Bun cache
+      - name: Cache Bun dependencies
         uses: actions/cache@v4
         with:
           path: ~/.bun/install/cache
-          key: bun-${{ runner.os }}-${{ hashFiles('**/bun.lockb') }}
-
-      - name: Restore TypeScript build info
-        uses: actions/cache@v4
-        with:
-          path: |
-            **/*.tsbuildinfo
-            packages/*/dist
-          key: tsbuild-${{ runner.os }}-${{ hashFiles('**/*.ts', '**/*.tsx', '!**/node_modules/**') }}
+          key: bun-${{ runner.os }}-${{ hashFiles('**/bun.lock') }}
+          restore-keys: |
+            bun-${{ runner.os }}-
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
       - name: Build package
         run: bun run build:package
+
+      - name: Upload package dist
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-dist
+          path: packages/salvageunion-reference/dist/
+          retention-days: 1
+
+  typecheck:
+    needs: [build-package]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Cache Bun dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ hashFiles('**/bun.lock') }}
+          restore-keys: |
+            bun-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Download package dist
+        uses: actions/download-artifact@v4
+        with:
+          name: package-dist
+          path: packages/salvageunion-reference/dist/
 
       - name: Typecheck
         run: bun run typecheck
 
   test:
-    needs: setup
+    needs: [build-package]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v5
 
       - name: Set up Bun
-        uses: oven-sh/setup-bun@v1
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
 
-      - name: Restore Bun cache
+      - name: Cache Bun dependencies
         uses: actions/cache@v4
         with:
           path: ~/.bun/install/cache
-          key: bun-${{ runner.os }}-${{ hashFiles('**/bun.lockb') }}
-
-      - name: Restore TypeScript build info
-        uses: actions/cache@v4
-        with:
-          path: |
-            **/*.tsbuildinfo
-            packages/*/dist
-          key: tsbuild-${{ runner.os }}-${{ hashFiles('**/*.ts', '**/*.tsx', '!**/node_modules/**') }}
+          key: bun-${{ runner.os }}-${{ hashFiles('**/bun.lock') }}
+          restore-keys: |
+            bun-${{ runner.os }}-
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Build package
-        run: bun run build:package
+      - name: Download package dist
+        uses: actions/download-artifact@v4
+        with:
+          name: package-dist
+          path: packages/salvageunion-reference/dist/
 
       - name: Test
         run: bun test
 
   validate:
-    needs: setup
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v5
 
       - name: Set up Bun
-        uses: oven-sh/setup-bun@v1
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
 
-      - name: Restore Bun cache
+      - name: Cache Bun dependencies
         uses: actions/cache@v4
         with:
           path: ~/.bun/install/cache
-          key: bun-${{ runner.os }}-${{ hashFiles('**/bun.lockb') }}
+          key: bun-${{ runner.os }}-${{ hashFiles('**/bun.lock') }}
+          restore-keys: |
+            bun-${{ runner.os }}-
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
@@ -162,24 +167,114 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Set up Bun
-        uses: oven-sh/setup-bun@v1
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
 
-      - name: Restore Bun cache
+      - name: Cache Bun dependencies
         uses: actions/cache@v4
         with:
           path: ~/.bun/install/cache
-          key: bun-${{ runner.os }}-${{ hashFiles('**/bun.lockb') }}
-
-      - name: Restore TypeScript build info
-        uses: actions/cache@v4
-        with:
-          path: |
-            **/*.tsbuildinfo
-            packages/*/dist
-          key: tsbuild-${{ runner.os }}-${{ hashFiles('**/*.ts', '**/*.tsx', '!**/node_modules/**') }}
+          key: bun-${{ runner.os }}-${{ hashFiles('**/bun.lock') }}
+          restore-keys: |
+            bun-${{ runner.os }}-
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
+      - name: Download package dist
+        uses: actions/download-artifact@v4
+        with:
+          name: package-dist
+          path: packages/salvageunion-reference/dist/
+
       - name: Build
-        run: bun run build
+        run: bun --filter suref-web build && bun --filter in-the-union-now build && bun --filter @suref/discord-bot build
+
+  bundle-size:
+    if: github.event_name == 'pull_request'
+    needs: [build-package]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Cache Bun dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ hashFiles('**/bun.lock') }}
+          restore-keys: |
+            bun-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Download package dist
+        uses: actions/download-artifact@v4
+        with:
+          name: package-dist
+          path: packages/salvageunion-reference/dist/
+
+      - name: Build ITUN
+        run: bun --filter in-the-union-now build
+
+      - name: Measure bundle size
+        id: size
+        run: |
+          ITUN_DIR="apps/in-the-union-now/dist/client"
+          if [ ! -d "$ITUN_DIR" ]; then
+            ITUN_DIR="apps/in-the-union-now/.output/public"
+          fi
+          TOTAL=$(du -sh "$ITUN_DIR" 2>/dev/null | cut -f1 || echo "N/A")
+          JS_FILES=$(find "$ITUN_DIR" -name "*.js" 2>/dev/null)
+          JS_RAW=$(echo "$JS_FILES" | xargs cat 2>/dev/null | wc -c | tr -d ' ')
+          JS_GZ=$(echo "$JS_FILES" | xargs cat 2>/dev/null | gzip -c | wc -c | tr -d ' ')
+          JS_RAW_KB=$(echo "scale=1; $JS_RAW / 1024" | bc)
+          JS_GZ_KB=$(echo "scale=1; $JS_GZ / 1024" | bc)
+          echo "total=$TOTAL" >> $GITHUB_OUTPUT
+          echo "js_raw=${JS_RAW_KB}KB" >> $GITHUB_OUTPUT
+          echo "js_gz=${JS_GZ_KB}KB" >> $GITHUB_OUTPUT
+
+      - name: Comment bundle size on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = `## Bundle Size Report (ITUN)
+
+            | Metric | Size |
+            |--------|------|
+            | Total assets | ${{ steps.size.outputs.total }} |
+            | JS (raw) | ${{ steps.size.outputs.js_raw }} |
+            | JS (gzipped) | ${{ steps.size.outputs.js_gz }} |
+
+            _Generated by CI_`;
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const existing = comments.find(c =>
+              c.user.type === 'Bot' && c.body.includes('Bundle Size Report (ITUN)')
+            );
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }

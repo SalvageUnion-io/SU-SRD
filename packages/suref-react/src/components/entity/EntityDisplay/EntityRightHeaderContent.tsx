@@ -1,5 +1,4 @@
 import { useCallback } from 'react'
-import type { ReactNode } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { isAbility } from 'salvageunion-reference'
 import { EntityStats } from './EntityStats'
@@ -12,8 +11,7 @@ type EntityRightHeaderContentProps = {
   compact: boolean
   fontSize: ReturnType<typeof getEntityFontSizes>
   techLevel?: number | 'B' | 'N'
-  rightContent?: ReactNode
-  collapsible: boolean
+  listing: boolean
   onDetailClick?: () => void
 }
 
@@ -22,8 +20,7 @@ export function EntityRightHeaderContent({
   compact,
   fontSize,
   techLevel,
-  rightContent,
-  collapsible,
+  listing,
   onDetailClick,
 }: EntityRightHeaderContentProps) {
   const description = 'description' in data ? data.description : undefined
@@ -55,8 +52,7 @@ export function EntityRightHeaderContent({
     <div className="flex gap-2">
       {abilityContent}
       <EntityStats data={data} compact={compact} techLevel={techLevel} />
-      {rightContent}
-      {collapsible && (
+      {listing && (
         <button
           type="button"
           className="flex min-w-[25px] shrink-0 cursor-pointer items-center justify-center self-center rounded p-1 opacity-60 transition-opacity hover:bg-white/20 hover:opacity-100"

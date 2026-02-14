@@ -1,15 +1,25 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 import { useState } from 'react'
-import { useAuthStore } from '../stores/authStore'
-import { RosterView } from '../components/Roster/RosterView'
 import { LogIn } from 'lucide-react'
+import { useAuthStore } from '../stores/authStore'
 
-export const Route = createFileRoute('/')({
-  component: IndexPage,
+export const Route = createFileRoute('/login')({
+  beforeLoad: () => {
+    const { user, loading } = useAuthStore.getState()
+    if (!loading && user) {
+      throw redirect({ to: '/' })
+    }
+  },
+  component: LoginPage,
 })
 
-function IndexPage() {
-  const { user, loading } = useAuthStore()
+function LoginPage() {
+  const { signIn, signUp, loading } = useAuthStore()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [isSignUp, setIsSignUp] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [submitting, setSubmitting] = useState(false)
 
   if (loading) {
     return (
@@ -18,21 +28,6 @@ function IndexPage() {
       </div>
     )
   }
-
-  if (!user) {
-    return <LoginView />
-  }
-
-  return <RosterView />
-}
-
-function LoginView() {
-  const { signIn, signUp } = useAuthStore()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [isSignUp, setIsSignUp] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [submitting, setSubmitting] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

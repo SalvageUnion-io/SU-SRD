@@ -1,22 +1,13 @@
 import { useCallback, useState } from 'react'
-import type { EntityImageComponent } from './entityDisplayTypes'
 import { logger } from '../../../lib/logger'
 
 type EntityImageProps = {
   title: string
   compact: boolean
   assetUrl: string
-  imageComponent?: EntityImageComponent
-  customWidth?: string
 }
 
-export function EntityImage({
-  title,
-  compact,
-  assetUrl,
-  imageComponent,
-  customWidth,
-}: EntityImageProps) {
+export function EntityImage({ title, compact, assetUrl }: EntityImageProps) {
   const [showImage, setShowImage] = useState(true)
   const [loaded, setLoaded] = useState(false)
 
@@ -29,11 +20,7 @@ export function EntityImage({
 
   if (!showImage || !assetUrl) return null
 
-  const width = customWidth || (compact ? '120px' : '300px')
-  const ImageComp = imageComponent || 'img'
-
-  // Only pass ref for native img elements (custom components manage their own rendering)
-  const refProps = !imageComponent ? { ref: imgRef } : {}
+  const width = compact ? '120px' : '300px'
 
   return (
     <div
@@ -44,7 +31,8 @@ export function EntityImage({
         shapeOutside: 'margin-box',
       }}
     >
-      <ImageComp
+      <img
+        ref={imgRef}
         src={assetUrl}
         alt={title}
         className="block h-auto w-full object-contain transition-opacity duration-300"
@@ -56,7 +44,6 @@ export function EntityImage({
           logger.error(`Failed to load image: ${assetUrl}`)
           setShowImage(false)
         }}
-        {...refProps}
       />
     </div>
   )

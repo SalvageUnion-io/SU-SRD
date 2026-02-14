@@ -24,9 +24,11 @@ export type EntityRefUpdate = TablesUpdate<'entity_refs'>
 export type PlayerChoiceUpdate = TablesUpdate<'player_choices'>
 export type CargoUpdate = TablesUpdate<'cargo'>
 
-// Enum types
-export type ParentType = 'pilot' | 'mech' | 'crawler'
-export type ItemCondition = 'intact' | 'damaged' | 'destroyed'
+// Enum types - canonical definitions in salvageunion-reference
+export type { ParentType, ItemCondition } from 'salvageunion-reference'
+
+// Typed update handler - constrains field names and value types
+export type EntityUpdateHandler<T> = <K extends keyof T>(field: K, value: T[K]) => void
 
 // Roster view - pilot with active mech preview
 export type PilotWithActiveMech = Pilot & {

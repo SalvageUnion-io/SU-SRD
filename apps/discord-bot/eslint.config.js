@@ -1,19 +1,13 @@
-import js from '@eslint/js'
-import tseslint from 'typescript-eslint'
-import prettier from 'eslint-config-prettier'
 import globals from 'globals'
+import { base } from '../../eslint.base.js'
 import { fileURLToPath } from 'url'
 import { dirname } from 'path'
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 export default [
-  {
-    ignores: ['dist', 'node_modules'],
-  },
-  js.configs.recommended,
-  ...tseslint.configs.recommended,
+  { ignores: ['dist', 'node_modules'] },
+  ...base,
   {
     files: ['**/*.ts'],
     languageOptions: {
@@ -25,11 +19,7 @@ export default [
       },
     },
     rules: {
-      semi: ['error', 'never'],
-      'no-extra-semi': 'error',
       'no-console': 'off',
-      '@typescript-eslint/no-explicit-any': 'error',
     },
   },
-  prettier,
 ]

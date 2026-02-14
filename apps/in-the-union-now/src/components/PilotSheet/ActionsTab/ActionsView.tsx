@@ -2,8 +2,8 @@ import { useState, useMemo } from 'react'
 import { ActionFilterChips, EntityDisplay } from 'suref-react'
 import { ActionCard } from './ActionCard'
 import { useEntityRefs, useUpdateEntityRef } from '../../../hooks/useEntityRefs'
-import { SalvageUnionReference } from 'salvageunion-reference'
-import type { SURefEnumSchemaName, SURefAbility, SURefEntity } from 'salvageunion-reference'
+import { SalvageUnionReference, extractProperty } from 'salvageunion-reference'
+import type { SURefEnumSchemaName, SURefMetaEntity } from 'salvageunion-reference'
 import type { EntityRef, ItemCondition } from '../../../types/common'
 
 type ActionsViewProps = {
@@ -25,6 +25,10 @@ type HydratedAction = {
   condition?: ItemCondition
 }
 
+function getField<T>(entity: SURefMetaEntity, field: string): T | undefined {
+  return field in entity ? ((entity as Record<string, unknown>)[field] as T) : undefined
+}
+
 function hydrateEntityRef(ref: EntityRef): HydratedAction | null {
   const entity = SalvageUnionReference.get(
     ref.schema_name as SURefEnumSchemaName,
@@ -32,30 +36,27 @@ function hydrateEntityRef(ref: EntityRef): HydratedAction | null {
   )
   if (!entity) return null
 
-  // Cast to Record for dynamic property access - entity types vary by schema
-  const e = entity as Record<string, unknown>
-
-  const activationCost = e.activationCost as { type?: string; amount?: number } | undefined
-  const traits = e.traits as Array<{ name?: string; id?: string }> | undefined
+  const activationCost = getField<{ type?: string; amount?: number }>(entity, 'activationCost')
+  const traits = getField<Array<{ name?: string; id?: string }>>(entity, 'traits')
 
   return {
     entityRef: ref,
-    name: (e.name as string) ?? ref.schema_ref_id,
-    description: (e.description as string) ?? '',
-    actionType: activationCost?.type ?? (e.actionType as string) ?? '',
+    name: extractProperty(entity, 'name') ?? ref.schema_ref_id,
+    description: getField<string>(entity, 'description') ?? '',
+    actionType: activationCost?.type ?? getField<string>(entity, 'actionType') ?? '',
     source: `${ref.schema_name} - ${ref.schema_ref_id}`,
     apCost: activationCost?.amount,
-    epCost: e.energyCost as number | undefined,
-    range: e.range as string | undefined,
-    damage: e.damage as string | undefined,
+    epCost: getField<number>(entity, 'energyCost'),
+    range: getField<string>(entity, 'range'),
+    damage: getField<string>(entity, 'damage'),
     traits: traits?.map((t) => t.name ?? t.id ?? ''),
     condition: ref.condition,
   }
 }
 
-const genericAbilities = SalvageUnionReference.Abilities.findAll(
-  (a) => (a as SURefAbility).level === 'G'
-) as (SURefAbility & { schemaName: string })[]
+// findAll returns (SURefAbility & { schemaName: string })[] — the extra schemaName
+// property is added by BaseModel but doesn't affect EntityDisplay rendering
+const genericAbilities = SalvageUnionReference.Abilities.findAll((a) => a.level === 'G')
 
 export function ActionsView({ pilotId, mechId }: ActionsViewProps) {
   const [filter, setFilter] = useState('all')
@@ -138,9 +139,9 @@ export function ActionsView({ pilotId, mechId }: ActionsViewProps) {
           {filteredGenerics.map((ability) => (
             <EntityDisplay
               key={ability.id}
-              data={ability as unknown as SURefEntity}
+              data={ability}
               compact
-              collapsible
+              listing
               hidePatterns
               hideActions
             />

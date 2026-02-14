@@ -3,6 +3,7 @@ import { fetchCargo, createCargoItem, updateCargoItem, deleteCargoItem } from '.
 import { cargoKeys } from './queryKeys'
 import { useAuthStore } from '../stores/authStore'
 import type { ParentType } from '../types/common'
+import type { UpdateCargoInput } from '../lib/validation'
 
 export function useCargo(parentType: ParentType, parentId: string) {
   return useQuery({
@@ -38,7 +39,7 @@ export function useUpdateCargoItem(parentType: ParentType, parentId: string) {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({ id, input }: { id: string; input: Record<string, unknown> }) =>
+    mutationFn: ({ id, input }: { id: string; input: UpdateCargoInput }) =>
       updateCargoItem(id, input),
     onSuccess: () => {
       queryClient.invalidateQueries({

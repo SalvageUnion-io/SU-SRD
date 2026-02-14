@@ -3,6 +3,5 @@ node_modules
 .git
 *.tsbuildinfo
 core
-src/types/database-generated.types.ts
-src/routeTree.gen.ts
-
+**/database-generated.types.ts
+**/routeTree.gen.ts

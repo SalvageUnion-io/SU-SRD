@@ -4,4 +4,4 @@ export type DataValue = {
   type?: string
 }
 
-export type ItemCondition = 'intact' | 'damaged' | 'destroyed'
+export type { ItemCondition } from 'salvageunion-reference'

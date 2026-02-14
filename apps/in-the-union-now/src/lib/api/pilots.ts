@@ -1,4 +1,5 @@
 import { supabase } from '../supabase'
+import { handleSupabaseError } from '../errors'
 import { createPilotSchema, updatePilotSchema } from '../validation'
 import type { UpdatePilotInput } from '../validation'
 import type { Pilot, PilotWithActiveMech } from '../../types/common'
@@ -9,7 +10,7 @@ export async function fetchPilotRoster(): Promise<PilotWithActiveMech[]> {
     .select('*')
     .order('created_at', { ascending: false })
 
-  if (pilotsError) throw pilotsError
+  if (pilotsError) handleSupabaseError(pilotsError)
   if (!pilots?.length) return []
 
   const pilotIds = pilots.map((p) => p.id)
@@ -19,7 +20,7 @@ export async function fetchPilotRoster(): Promise<PilotWithActiveMech[]> {
     .in('pilot_id', pilotIds)
     .eq('active', true)
 
-  if (mechsError) throw mechsError
+  if (mechsError) handleSupabaseError(mechsError)
 
   const mechByPilot = new Map(mechs?.map((m) => [m.pilot_id, m]))
 
@@ -32,7 +33,7 @@ export async function fetchPilotRoster(): Promise<PilotWithActiveMech[]> {
 export async function fetchPilot(id: string): Promise<Pilot> {
   const { data, error } = await supabase.from('pilots').select('*').eq('id', id).single()
 
-  if (error) throw error
+  if (error) handleSupabaseError(error)
   return data
 }
 
@@ -47,7 +48,7 @@ export async function createPilot(
     .select()
     .single()
 
-  if (error) throw error
+  if (error) handleSupabaseError(error)
   return data
 }
 
@@ -60,11 +61,11 @@ export async function updatePilot(id: string, input: UpdatePilotInput): Promise<
     .select()
     .single()
 
-  if (error) throw error
+  if (error) handleSupabaseError(error)
   return data
 }
 
 export async function deletePilot(id: string): Promise<void> {
   const { error } = await supabase.from('pilots').delete().eq('id', id)
-  if (error) throw error
+  if (error) handleSupabaseError(error)
 }

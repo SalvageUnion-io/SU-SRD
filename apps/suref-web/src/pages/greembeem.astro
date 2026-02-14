@@ -33,13 +33,14 @@ const [, ...rows] = parseCsv(csvRaw)
 
 const seasonMap = new Map<number, { number: number; year: string; theme: string; artist: string; remix: string; episodes: { num: number; title: string; date: string }[] }>()
 
-for (const [season, num, title, date, theme, artist, remix] of rows) {
+for (const row of rows) {
+  const [season, num, title, date, theme, artist, remix] = row
   const s = Number(season)
   if (!seasonMap.has(s)) {
     const year = s === 1 ? '2024\u201325' : '2025\u201326'
-    seasonMap.set(s, { number: s, year, theme: theme || '', artist: artist || '', remix: remix || '', episodes: [] })
+    seasonMap.set(s, { number: s, year, theme: theme ?? '', artist: artist ?? '', remix: remix ?? '', episodes: [] })
   }
-  seasonMap.get(s)!.episodes.push({ num: Number(num), title, date })
+  seasonMap.get(s)!.episodes.push({ num: Number(num), title: title ?? '', date: date ?? '' })
 }
 
 const seasons = [...seasonMap.values()]
@@ -53,7 +54,7 @@ const wikiLinks: Record<string, string> = {
 }
 
 function wikiHref(name: string): string {
-  return wikiLinks[name] || '#'
+  return wikiLinks[name] ?? '#'
 }
 ---
 

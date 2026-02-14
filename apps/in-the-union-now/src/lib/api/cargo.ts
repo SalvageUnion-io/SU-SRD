@@ -1,4 +1,5 @@
 import { supabase } from '../supabase'
+import { handleSupabaseError } from '../errors'
 import { createCargoSchema, updateCargoSchema } from '../validation'
 import type { UpdateCargoInput } from '../validation'
 import type { Cargo, ParentType } from '../../types/common'
@@ -12,7 +13,7 @@ export async function fetchCargo(parentType: ParentType, parentId: string): Prom
     .eq('parent_id', parentId)
     .order('created_at', { ascending: true })
 
-  if (error) throw error
+  if (error) handleSupabaseError(error)
   return data ?? []
 }
 
@@ -35,7 +36,7 @@ export async function createCargoItem(
     .select()
     .single()
 
-  if (error) throw error
+  if (error) handleSupabaseError(error)
   return data
 }
 
@@ -48,11 +49,11 @@ export async function updateCargoItem(id: string, input: UpdateCargoInput): Prom
     .select()
     .single()
 
-  if (error) throw error
+  if (error) handleSupabaseError(error)
   return data
 }
 
 export async function deleteCargoItem(id: string): Promise<void> {
   const { error } = await supabase.from('cargo').delete().eq('id', id)
-  if (error) throw error
+  if (error) handleSupabaseError(error)
 }

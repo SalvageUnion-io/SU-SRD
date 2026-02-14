@@ -454,6 +454,7 @@ export const ActionSchema: z.ZodType<{
   source?: z.infer<typeof SourceSchema>
   page?: z.infer<typeof PositiveIntegerSchema>
   actionSource?: z.infer<typeof SchemaNameSchema>
+  drone?: string
 }> = z.lazy(() =>
   z.object({
     id: IdSchema,
@@ -483,6 +484,7 @@ export const ActionSchema: z.ZodType<{
     source: SourceSchema.optional(),
     page: PositiveIntegerSchema.optional(),
     actionSource: SchemaNameSchema.optional(),
+    drone: z.string().optional(),
   })
 )
 

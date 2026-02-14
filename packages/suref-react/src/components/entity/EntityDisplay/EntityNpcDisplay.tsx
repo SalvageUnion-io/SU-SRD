@@ -7,7 +7,6 @@ import type { getEntityFontSizes, getEntitySpacing } from './entityDisplayTypes'
 
 type EntityNpcDisplayProps = {
   data: SURefMetaEntity
-  headerFontSize?: string
   compact: boolean
   fontSize: ReturnType<typeof getEntityFontSizes>
   spacing: ReturnType<typeof getEntitySpacing>

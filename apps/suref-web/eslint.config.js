@@ -1,14 +1,11 @@
-import js from '@eslint/js'
-import tseslint from 'typescript-eslint'
 import globals from 'globals'
 import reactHooks from 'eslint-plugin-react-hooks'
 import jsxA11y from 'eslint-plugin-jsx-a11y'
-import prettier from 'eslint-config-prettier'
+import { base } from '../../eslint.base.js'
 import { fileURLToPath } from 'url'
 import { dirname } from 'path'
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 export default [
   {
@@ -24,15 +21,7 @@ export default [
       'src/**/*.astro',
     ],
   },
-  js.configs.recommended,
-  ...tseslint.configs.recommended,
-  {
-    files: ['**/*.ts', '**/*.tsx'],
-    rules: {
-      semi: ['error', 'never'],
-      'no-extra-semi': 'error',
-    },
-  },
+  ...base,
   {
     files: ['**/*.{ts,tsx}'],
     ignores: ['happydom.ts', 'testing-library.ts'],
@@ -57,8 +46,6 @@ export default [
           allow: ['warn', 'error'],
         },
       ],
-      '@typescript-eslint/no-explicit-any': 'error',
     },
   },
-  prettier,
 ]

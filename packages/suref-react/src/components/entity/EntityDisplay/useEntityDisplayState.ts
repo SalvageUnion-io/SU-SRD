@@ -1,5 +1,4 @@
 import { useMemo } from 'react'
-import type { ReactNode } from 'react'
 import type {
   SURefEntity,
   SURefEnumSchemaName,
@@ -9,31 +8,17 @@ import type {
 import {
   getTechLevel,
   getTechLevelNumber,
-  hasActions,
   getChassisAbilities,
   getEffects,
   getTable,
   getAssetUrl,
   extractVisibleActions,
   filterActionsExcludingName,
-  findActionByName,
   getSource,
 } from 'salvageunion-reference'
-import {
-  calculateBackgroundColor,
-  extractName,
-  calculateOpacity,
-  shouldShowExtraContent as calculateShouldShowExtraContent,
-  createHeaderClickHandler,
-  getEntityDisplayName,
-} from '../entityDisplayHelpers'
+import { calculateBackgroundColor } from '../entityDisplayHelpers'
 import { getEntityFontSizes, getEntitySpacing } from './entityDisplayTypes'
-import type {
-  EntityDisplayState,
-  ClassAbilitiesRenderer,
-  EntityButtonConfig,
-  EntityImageComponent,
-} from './entityDisplayTypes'
+import type { EntityDisplayState, ClassAbilitiesRenderer } from './entityDisplayTypes'
 
 /**
  * Tech level to Tailwind bg class mapping
@@ -57,17 +42,10 @@ export type EntityDisplayStateInput = {
   hideActions: boolean
   hidePatterns: boolean
   hideChoices: boolean
-  collapsible: boolean
-  onClick?: () => void
-  hideLevel: boolean
-  rightContent?: ReactNode
+  listing: boolean
   damaged?: boolean
-  buttonConfig?: EntityButtonConfig
-  userChoices?: Record<string, string> | null
-  imageWidth?: string
   label?: string
   classAbilitiesRenderer?: ClassAbilitiesRenderer
-  imageComponent?: EntityImageComponent
   patternOverride?: {
     name: string
     systems: SURefObjectPatternSystemModule[]
@@ -86,25 +64,20 @@ export function useEntityDisplayState({
   hideActions,
   hidePatterns,
   hideChoices,
-  collapsible,
-  onClick,
-  hideLevel,
-  rightContent,
+  listing,
   damaged = false,
-  buttonConfig,
-  userChoices,
-  imageWidth,
   label,
   classAbilitiesRenderer,
-  imageComponent,
   patternOverride,
   hideStats = false,
 }: EntityDisplayStateInput): EntityDisplayState {
-  const isExpanded = !collapsible
-
   const title = patternOverride
     ? `\u201C${patternOverride.name}\u201D`
-    : extractName(data, schemaName)
+    : !('name' in data)
+      ? ''
+      : schemaName === 'ability-tree-requirements'
+        ? data.name + ' Tree Requirements'
+        : (data.name ?? '')
   const techLevel = getTechLevel(data)
   const techLevelNumeric = getTechLevelNumber(data)
   const source = getSource(data) as SURefEnumSource | undefined
@@ -118,21 +91,16 @@ export function useEntityDisplayState({
   const headerBg = damaged ? 'bg-su-grey' : calculatedHeaderBg
   const spacing = getEntitySpacing(compact)
   const fontSize = getEntityFontSizes(compact)
-  const opacity = calculateOpacity(dimHeader, disabled)
-  const shouldShowExtraContent = calculateShouldShowExtraContent(compact, hideActions)
-  const handleHeaderClick = createHeaderClickHandler(onClick, disabled)
+  const opacity = { header: dimHeader ? 0.5 : 1, content: disabled ? 0.5 : 1 }
+  const shouldShowExtraContent = compact ? !hideActions : true
 
-  const entityName = useMemo(() => getEntityDisplayName(data, title), [data, title])
-
-  const hasActionsValue = useMemo(() => hasActions(data), [data])
+  const entityName = title || ('name' in data ? String(data.name) : '')
 
   const chassisAbilities = useMemo(() => getChassisAbilities(data), [data])
 
-  const effects = useMemo(() => getEffects(data), [data])
-
-  const table = useMemo(() => getTable(data), [data])
-
-  const assetUrl = useMemo(() => getAssetUrl(data), [data])
+  const effects = getEffects(data)
+  const table = getTable(data)
+  const assetUrl = getAssetUrl(data)
 
   const visibleActions = useMemo(() => extractVisibleActions(data), [data])
 
@@ -142,9 +110,9 @@ export function useEntityDisplayState({
   }, [visibleActions, entityName])
 
   const matchingAction = useMemo(() => {
-    if (!hasActionsValue) return undefined
-    return findActionByName(data, entityName)
-  }, [hasActionsValue, data, entityName])
+    if (!visibleActions || visibleActions.length === 0) return undefined
+    return visibleActions.find((a) => a.name === entityName || a.displayName === entityName)
+  }, [visibleActions, entityName])
 
   return {
     data,
@@ -155,23 +123,14 @@ export function useEntityDisplayState({
     headerBg,
     spacing,
     fontSize,
-    contentBg: 'bg-su-white',
     opacity,
     shouldShowExtraContent,
-    handleHeaderClick,
-    isExpanded,
-    collapsible,
+    listing,
     hideActions,
     hidePatterns,
     hideChoices,
-    hideLevel,
-    rightContent,
     damaged,
     disabled,
-    buttonConfig,
-    userChoices,
-    imageWidth,
-    hasActions: hasActionsValue,
     chassisAbilities,
     effects,
     table,
@@ -181,7 +140,6 @@ export function useEntityDisplayState({
     source,
     label,
     classAbilitiesRenderer,
-    imageComponent,
     patternOverride,
     hideStats,
   }

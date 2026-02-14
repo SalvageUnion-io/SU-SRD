@@ -8,21 +8,20 @@ pre-commit:
       glob: "*.{ts,tsx,js,jsx}"
       run: bun run lint -- --fix
       stage_fixed: true
-    
+
     format:
       glob: "*.{ts,tsx,js,jsx,json,md,yml,yaml}"
       run: bun run format
       stage_fixed: true
-    
-    typecheck:
-      run: bun run typecheck
 
-# Optional: Run tests on pre-push instead of pre-commit for speed
 pre-push:
   parallel: true
   commands:
+    typecheck:
+      run: bun run typecheck
+
     test:
       run: bun run test
-    
+
     validate:
       run: bun run validate:all

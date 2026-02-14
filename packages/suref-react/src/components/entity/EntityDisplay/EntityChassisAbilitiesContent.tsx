@@ -8,6 +8,8 @@ type EntityChassisAbilitiesContentProps = {
   spacing: ReturnType<typeof getEntitySpacing>
   compact: boolean
   chassisAbilities?: SURefMetaAction[]
+  /** Drone equipment from pattern (pre-baked mode only) */
+  droneEquipment?: { systems: string[]; modules: string[] }
 }
 
 export function EntityChassisAbilitiesContent({
@@ -15,6 +17,7 @@ export function EntityChassisAbilitiesContent({
   spacing,
   compact,
   chassisAbilities,
+  droneEquipment,
 }: EntityChassisAbilitiesContentProps) {
   if (!chassisAbilities || chassisAbilities.length === 0) return null
 
@@ -27,6 +30,7 @@ export function EntityChassisAbilitiesContent({
             key={ability.id}
             data={ability}
             chassisName={chassisName}
+            droneEquipment={ability.drone ? droneEquipment : undefined}
           />
         )
       })}

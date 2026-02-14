@@ -7,9 +7,11 @@ import { getParagraphString } from '../../../lib/contentBlockHelpers'
 
 type EntityChassisPatternProps = {
   pattern: SURefChassis['patterns'][0]
+  /** Drone entity name to resolve and render as header above drone equipment */
+  droneEntityName?: string
 }
 
-export function EntityChassisPattern({ pattern }: EntityChassisPatternProps) {
+export function EntityChassisPattern({ pattern, droneEntityName }: EntityChassisPatternProps) {
   const systems = pattern.systems
     ? pattern.systems.flatMap((system) => {
         const found = SalvageUnionReference.findIn('systems', (s) => s.name === system.name)
@@ -92,8 +94,7 @@ export function EntityChassisPattern({ pattern }: EntityChassisPatternProps) {
                 data={system.entity}
                 label={idx === 0 ? 'Systems' : undefined}
                 compact
-                userChoices={system.preselectedChoices}
-                collapsible
+                listing
               />
             ))}
           </div>
@@ -109,16 +110,39 @@ export function EntityChassisPattern({ pattern }: EntityChassisPatternProps) {
                 data={module.entity}
                 label={idx === 0 ? 'Modules' : undefined}
                 compact
-                userChoices={module.preselectedChoices}
-                collapsible
+                listing
               />
             ))}
           </div>
         </div>
       )}
-      {droneSystems.length > 0 && (modules.length > 0 || systems.length > 0) && (
-        <div className="pt-4" />
+      {(droneSystems.length > 0 || droneModules.length > 0) &&
+        (modules.length > 0 || systems.length > 0) && <div className="pt-4" />}
+      {(droneSystems.length > 0 || droneModules.length > 0) && droneEntityName && (
+        <DroneWithEquipment
+          droneName={droneEntityName}
+          droneSystems={droneSystems}
+          droneModules={droneModules}
+        />
       )}
+    </div>
+  )
+}
+
+function DroneWithEquipment({
+  droneName,
+  droneSystems,
+  droneModules,
+}: {
+  droneName: string
+  droneSystems: SURefSystem[]
+  droneModules: SURefModule[]
+}) {
+  const droneEntity = SalvageUnionReference.findIn('drones', (d) => d.name === droneName)
+  if (!droneEntity) return null
+
+  return (
+    <EntityDisplay data={droneEntity} compact hideActions hidePatterns listing>
       {droneSystems.length > 0 && (
         <div className="space-y-2">
           <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
@@ -126,9 +150,9 @@ export function EntityChassisPattern({ pattern }: EntityChassisPatternProps) {
               <EntityDisplay
                 key={`drone-sys-${system.id}-${idx}`}
                 data={system}
-                label={idx === 0 ? 'Drone Systems' : undefined}
+                label={idx === 0 ? 'Systems' : undefined}
                 compact
-                collapsible
+                listing
               />
             ))}
           </div>
@@ -142,14 +166,14 @@ export function EntityChassisPattern({ pattern }: EntityChassisPatternProps) {
               <EntityDisplay
                 key={`drone-mod-${module.id}-${idx}`}
                 data={module}
-                label={idx === 0 ? 'Drone Modules' : undefined}
+                label={idx === 0 ? 'Modules' : undefined}
                 compact
-                collapsible
+                listing
               />
             ))}
           </div>
         </div>
       )}
-    </div>
+    </EntityDisplay>
   )
 }

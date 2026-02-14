@@ -53,7 +53,7 @@ function ClassAbilities({
               data={ability}
               label={index === 0 ? `${tree} tree` : undefined}
               compact
-              collapsible
+              listing
             />
           </Fragment>
         ))
