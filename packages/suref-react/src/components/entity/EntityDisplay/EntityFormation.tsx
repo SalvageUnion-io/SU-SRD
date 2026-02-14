@@ -7,9 +7,10 @@ import { cn } from '../../../utils/cn'
 type EntityFormationProps = {
   data: SURefMetaEntity
   headerFontSize?: string
+  compact?: boolean
 }
 
-export function EntityFormation({ data, headerFontSize }: EntityFormationProps) {
+export function EntityFormation({ data, headerFontSize, compact = false }: EntityFormationProps) {
   const formation = getFormation(data)
   if (!formation || formation.length === 0) return null
 
@@ -22,7 +23,7 @@ export function EntityFormation({ data, headerFontSize }: EntityFormationProps) 
         </Text>
         <div className="h-px flex-1 bg-su-grey-light" aria-hidden="true" />
       </div>
-      <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
+      <div className={cn('grid grid-cols-1 gap-2', !compact && 'lg:grid-cols-2')}>
         {formation.flatMap((mech, mechIdx) => {
           const count = mech.quantity ?? 1
           const resolved = resolveFormationMember(mech)

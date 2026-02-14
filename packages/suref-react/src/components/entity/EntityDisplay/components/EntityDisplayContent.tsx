@@ -525,7 +525,7 @@ export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayC
                 />
               </div>
             )}
-            <EntityFormation data={data} headerFontSize={fontSize.lg} />
+            <EntityFormation data={data} headerFontSize={fontSize.lg} compact={compact} />
             <EntityNpcDisplay
               data={data}
               headerFontSize={fontSize.lg}
