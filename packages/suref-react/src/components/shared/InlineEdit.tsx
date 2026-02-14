@@ -63,12 +63,17 @@ export function InlineEdit({
       ),
     }
 
-    return multiline ? <textarea {...shared} rows={3} /> : <input {...shared} type="text" />
+    return multiline ? (
+      <textarea {...shared} rows={3} aria-label={`Edit ${placeholder}`} />
+    ) : (
+      <input {...shared} type="text" aria-label={`Edit ${placeholder}`} />
+    )
   }
 
   return (
     <button
       onClick={() => setEditing(true)}
+      aria-label={`Edit ${value || placeholder}`}
       className={cn(
         'group flex items-center gap-1 rounded-md px-1 py-0.5 text-left transition-colors hover:bg-su-grey-light/20',
         !value && 'italic text-su-grey',
@@ -76,7 +81,10 @@ export function InlineEdit({
       )}
     >
       <span className="truncate">{value || placeholder}</span>
-      <Pencil className="h-3 w-3 shrink-0 opacity-0 transition-opacity group-hover:opacity-50" />
+      <Pencil
+        className="h-3 w-3 shrink-0 opacity-0 transition-opacity group-hover:opacity-50"
+        aria-hidden="true"
+      />
     </button>
   )
 }

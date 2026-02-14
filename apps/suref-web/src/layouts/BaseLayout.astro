@@ -75,9 +75,12 @@ const ogImageUrl = new URL(ogImage, siteUrl).href
     <ClientRouter />
   </head>
   <body>
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-md focus:bg-su-orange-dark focus:px-4 focus:py-2 focus:text-su-white focus:outline-none">
+      Skip to content
+    </a>
     <div class="flex min-h-screen flex-col bg-su-white">
       <TopNavigation />
-      <main class="flex flex-1 flex-col bg-su-blue-pale" transition:animate="fade">
+      <main id="main-content" class="flex flex-1 flex-col bg-su-blue-pale" transition:animate="fade">
         <slot />
       </main>
       <Footer />

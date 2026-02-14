@@ -382,6 +382,8 @@ export const PatternSchema: z.ZodType<{
   name: string
   content?: z.infer<typeof ContentSchema>
   legalStarting?: boolean
+  source?: z.infer<typeof SourceSchema>
+  page?: z.infer<typeof PositiveIntegerSchema>
   systems: z.infer<typeof PatternSystemModuleSchema>[]
   modules: z.infer<typeof PatternSystemModuleSchema>[]
   drone?: {
@@ -394,6 +396,8 @@ export const PatternSchema: z.ZodType<{
       name: NameSchema,
       content: ContentSchema.optional(),
       legalStarting: z.boolean().optional(),
+      source: SourceSchema.optional(),
+      page: PositiveIntegerSchema.optional(),
       systems: z.array(PatternSystemModuleSchema),
       modules: z.array(PatternSystemModuleSchema),
       drone: z
@@ -514,12 +518,14 @@ export const AdvancedClassSchema = BaseEntitySchema.extend({
 }).strict()
 
 /**
- * Formation mech schema
+ * Formation member schema
+ * Supports chassis+pattern combos and standalone entities (vehicles, drones, squads, npcs)
  */
 export const FormationMechSchema = z
   .object({
     chassis: z.string(),
-    pattern: z.string(),
+    pattern: z.string().optional(),
+    schema: SchemaNameSchema.optional(),
     source: SourceSchema,
     page: PositiveIntegerSchema,
     quantity: z.number().int().positive().optional(),

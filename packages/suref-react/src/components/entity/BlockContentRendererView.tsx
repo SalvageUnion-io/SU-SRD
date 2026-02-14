@@ -27,7 +27,7 @@ type BlockContentRendererViewProps = {
  *
  * Handles different content block types:
  * - paragraph: Regular text with trait reference parsing
- * - heading: Bold styled text (not true HTML headers) with level-based sizing
+ * - heading: Semantic heading elements (h3-h5) with pseudoheader styling and level-based sizing
  * - list-item: Bulleted list item
  * - list-item-naked: List item without bullet
  * - label: Labeled content
@@ -213,10 +213,19 @@ function ContentBlock({
         headingFontSize = fontSize
       }
 
+      // Map content block level to heading elements (offset by 2 since h1/h2 used by page)
+      const HeadingTag: 'h3' | 'h4' | 'h5' = level === 1 ? 'h3' : level === 2 ? 'h4' : 'h5'
       return (
-        <Text as="span" variant="pseudoheader" className={cn('mb-1', headingFontSize)}>
+        <HeadingTag
+          className={cn(
+            'font-mono inline self-start box-decoration-clone bg-su-black text-su-white px-1 font-bold uppercase leading-none tracking-tight',
+            'mb-1',
+            headingFontSize
+          )}
+          style={{ lineHeight: 1 }}
+        >
           {parsedValue}
-        </Text>
+        </HeadingTag>
       )
     }
 

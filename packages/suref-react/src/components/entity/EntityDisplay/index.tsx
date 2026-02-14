@@ -1,6 +1,10 @@
 import { memo } from 'react'
 import type { ReactNode } from 'react'
-import type { SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
+import type {
+  SURefEntity,
+  SURefEnumSchemaName,
+  SURefObjectPatternSystemModule,
+} from 'salvageunion-reference'
 import { EntityDisplayContent } from './components/EntityDisplayContent'
 import type {
   ClassAbilitiesRenderer,
@@ -49,6 +53,14 @@ type EntityDisplayProps = {
   classAbilitiesRenderer?: ClassAbilitiesRenderer
   /** Optional custom image component (defaults to native img) */
   imageComponent?: EntityImageComponent
+  /** Optional pattern override — when set, display uses this pattern name as title and renders its systems/modules */
+  patternOverride?: {
+    name: string
+    systems: SURefObjectPatternSystemModule[]
+    modules: SURefObjectPatternSystemModule[]
+  }
+  /** Whether to hide the stats/right content in the header */
+  hideStats?: boolean
 }
 
 export const EntityDisplay = memo(function EntityDisplay({
@@ -72,6 +84,8 @@ export const EntityDisplay = memo(function EntityDisplay({
   label,
   classAbilitiesRenderer,
   imageComponent,
+  patternOverride,
+  hideStats = false,
 }: EntityDisplayProps) {
   if (!data) return null
 
@@ -107,6 +121,8 @@ export const EntityDisplay = memo(function EntityDisplay({
       label={label}
       classAbilitiesRenderer={classAbilitiesRenderer}
       imageComponent={imageComponent}
+      patternOverride={patternOverride}
+      hideStats={hideStats}
     >
       {children}
     </EntityDisplayContent>

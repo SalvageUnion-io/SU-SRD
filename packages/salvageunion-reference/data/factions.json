@@ -33,7 +33,7 @@
         "page": 121
       },
       {
-        "chassis": "Mirror Ball",
+        "chassis": "Mirrorball",
         "pattern": "Reclaimer",
         "source": "Salvage Union Workshop Manual",
         "page": 123
@@ -233,8 +233,8 @@
         "quantity": 2
       },
       {
-        "chassis": "Wheel",
-        "pattern": "Fighting Box",
+        "chassis": "Fighting Box Wheel",
+        "schema": "vehicles",
         "source": "Salvage Union Workshop Manual",
         "page": 293,
         "quantity": 4
@@ -299,7 +299,7 @@
         "page": 76
       },
       {
-        "chassis": "Scuttler",
+        "chassis": "Scuttler Bio-Mech",
         "pattern": "Harvester",
         "source": "We Were Here First!",
         "page": 77
@@ -381,7 +381,7 @@
         "page": 135
       },
       {
-        "chassis": "Sestra",
+        "chassis": "Little Sestra",
         "pattern": "Scrounger",
         "source": "Salvage Union Workshop Manual",
         "page": 129

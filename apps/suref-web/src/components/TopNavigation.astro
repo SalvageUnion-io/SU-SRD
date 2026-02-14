@@ -24,7 +24,7 @@ function isActive(path: string) {
 }
 ---
 
-<nav class="flex h-20 items-center justify-between bg-su-white px-6 py-3 z-50" transition:name="nav" transition:animate="none">
+<nav aria-label="Main navigation" class="flex h-20 items-center justify-between bg-su-white px-6 py-3 z-50" transition:name="nav" transition:animate="none">
   <!-- Logo + Search -->
   <div class="flex items-center gap-2">
     <a href="/" class="p-2">
@@ -37,15 +37,15 @@ function isActive(path: string) {
 
   <!-- Desktop nav -->
   <div class="hidden lg:flex items-center gap-2">
-    <a href="/" class:list={['btn', isActive('/schema') || currentPath === '/' ? 'btn-active' : 'btn-inactive']}>
+    <a href="/" class:list={['btn', isActive('/schema') || currentPath === '/' ? 'btn-active' : 'btn-inactive']} aria-current={isActive('/schema') || currentPath === '/' ? 'page' : undefined}>
       SRD
     </a>
 
-    <a href="/randsum" class:list={['btn', isActive('/randsum') ? 'btn-active' : 'btn-inactive']}>
+    <a href="/randsum" class:list={['btn', isActive('/randsum') ? 'btn-active' : 'btn-inactive']} aria-current={isActive('/randsum') ? 'page' : undefined}>
       RANDSUM
     </a>
 
-    <a href="/about" class:list={['btn', isActive('/about') ? 'btn-active' : 'btn-inactive']}>
+    <a href="/about" class:list={['btn', isActive('/about') ? 'btn-active' : 'btn-inactive']} aria-current={isActive('/about') ? 'page' : undefined}>
       ABOUT
     </a>
   </div>

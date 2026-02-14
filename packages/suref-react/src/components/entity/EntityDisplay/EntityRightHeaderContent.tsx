@@ -61,9 +61,17 @@ export function EntityRightHeaderContent({
           type="button"
           className="flex min-w-[25px] shrink-0 cursor-pointer items-center justify-center self-center rounded p-1 opacity-60 transition-opacity hover:bg-white/20 hover:opacity-100"
           title="View details"
+          aria-label="View details"
           onClick={handleDetailClick}
         >
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="text-su-white">
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 14 14"
+            fill="none"
+            className="text-su-white"
+            aria-hidden="true"
+          >
             <rect
               x="1"
               y="1"

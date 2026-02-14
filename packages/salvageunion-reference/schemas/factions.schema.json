@@ -104,11 +104,38 @@
               "properties": {
                 "chassis": { "type": "string" },
                 "pattern": { "type": "string" },
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "abilities",
+                    "ability-tree-requirements",
+                    "bio-titans",
+                    "chassis",
+                    "classes",
+                    "crawler-bays",
+                    "crawler-tech-levels",
+                    "crawlers",
+                    "creatures",
+                    "distances",
+                    "drones",
+                    "equipment",
+                    "keywords",
+                    "factions",
+                    "meld",
+                    "modules",
+                    "npcs",
+                    "roll-tables",
+                    "squads",
+                    "systems",
+                    "traits",
+                    "vehicles"
+                  ]
+                },
                 "source": { "$ref": "#/definitions/factions/properties/source" },
                 "page": { "$ref": "#/definitions/factions/properties/page" },
                 "quantity": { "type": "integer", "exclusiveMinimum": 0 }
               },
-              "required": ["chassis", "pattern", "source", "page"],
+              "required": ["chassis", "source", "page"],
               "additionalProperties": false
             },
             "description": "The mechs that make up this faction formation"

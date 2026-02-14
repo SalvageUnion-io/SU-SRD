@@ -85,6 +85,8 @@ export function EntityDisplayTooltip({
     <HoverCard.Root openDelay={openDelay} closeDelay={closeDelay}>
       <HoverCard.Trigger asChild>
         <span
+          role="button"
+          tabIndex={0}
           style={{
             margin: 0,
             lineHeight: 1,

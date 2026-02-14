@@ -493,7 +493,8 @@ export function getUniqueTechLevels(entities: SURefEntity[]): (number | 'B' | 'N
 }
 
 /**
- * Get unique source strings from an array of entities, sorted alphabetically
+ * Get unique source strings from an array of entities.
+ * "Salvage Union Workshop Manual" is always first; the rest are sorted alphabetically.
  * @param entities - Array of entities to extract sources from
  * @returns Sorted array of unique source strings
  */
@@ -503,7 +504,12 @@ export function getUniqueSources(entities: SURefEntity[]): string[] {
     const source = getSource(entity)
     if (source) sourceSet.add(source)
   }
-  return Array.from(sourceSet).sort()
+  const PRIMARY_SOURCE = 'Salvage Union Workshop Manual'
+  const sorted = Array.from(sourceSet).sort()
+  if (sorted.includes(PRIMARY_SOURCE)) {
+    return [PRIMARY_SOURCE, ...sorted.filter((s) => s !== PRIMARY_SOURCE)]
+  }
+  return sorted
 }
 
 // ============================================================================

@@ -1881,6 +1881,40 @@
             "value": "Terrifying when you consider this is not even intended to be a combat Mech. Evantis utilises these as a 'cost effective' defensive measure in their numerous field bases in the Arid Steppes."
           }
         ]
+      },
+      {
+        "name": "Throne Pattern",
+        "source": "We Were Here First!",
+        "page": 47,
+        "systems": [
+          {
+            "name": "FM-3 Flamethrower",
+            "count": 2
+          },
+          {
+            "name": "120mm Cannon"
+          },
+          {
+            "name": "Hover Locomotion System"
+          },
+          {
+            "name": "Armour Plating"
+          },
+          {
+            "name": "Loudspeakers"
+          }
+        ],
+        "modules": [
+          {
+            "name": "Multi-Targeter"
+          }
+        ],
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "A colossal throne of scrap, festooned with weapons. Ridden into battle by raider lord Julius the Immortal, inspiring his followers with fire and thunder."
+          }
+        ]
       }
     ],
     "structurePoints": 30,

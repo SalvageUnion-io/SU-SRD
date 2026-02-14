@@ -46,6 +46,7 @@ function pluralizeWord(word: string) {
 >
   <div class="flex w-full flex-1 flex-col justify-center py-6">
     <div class="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4">
+      <h1 class="sr-only">Salvage Union System Reference Document</h1>
       <!-- Attribution -->
       <div class="text-center">
         <p class="text-sm text-su-grey-dark">
@@ -65,9 +66,9 @@ function pluralizeWord(word: string) {
         {categories.map((cat) => (
           <div>
             <div class="catalog-header mb-2">
-              <span class="bg-su-black px-1 font-mono font-bold uppercase tracking-tight text-su-white" style="line-height: 1;">
+              <h2 class="bg-su-black px-1 font-mono font-bold uppercase tracking-tight text-su-white" style="line-height: 1; font-size: inherit;">
                 {cat.label}
-              </span>
+              </h2>
             </div>
             <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {cat.schemas.map((schema) => (

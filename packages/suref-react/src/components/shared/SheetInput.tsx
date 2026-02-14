@@ -88,6 +88,7 @@ export function SheetInput({
           onBlur={onBlur}
           disabled={disabled}
           placeholder={placeholder}
+          aria-label={label || placeholder}
           className={cn(
             'min-w-[120px] flex-1 rounded-md border-2 border-su-black bg-su-white p-3 font-semibold text-su-black',
             showDisabledStyling && 'cursor-not-allowed bg-gray-100 text-gray-500 opacity-50',

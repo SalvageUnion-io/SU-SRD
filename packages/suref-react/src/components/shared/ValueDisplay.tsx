@@ -9,6 +9,9 @@ type ValueDisplayProps = {
   inline?: boolean
   damaged?: boolean
   rotation?: number
+  bgColor?: string
+  textColor?: string
+  borderColor?: string
 }
 
 export function ValueDisplay({
@@ -19,6 +22,9 @@ export function ValueDisplay({
   inline = true,
   damaged = false,
   rotation = 0,
+  bgColor,
+  textColor,
+  borderColor,
 }: ValueDisplayProps) {
   const fontSize = compact ? 'text-xs' : 'text-base'
   const mainVariant = inverse ? 'pseudoheaderInverse' : 'pseudoheader'
@@ -32,11 +38,13 @@ export function ValueDisplay({
         inline ? 'inline-flex' : 'flex',
         'w-fit'
       )}
+      style={borderColor ? { borderColor } : undefined}
     >
       <Text
         variant={mainVariant}
         as="span"
         className={cn('uppercase', fontSize, compact ? 'font-normal' : 'font-semibold')}
+        style={bgColor || textColor ? { backgroundColor: bgColor, color: textColor } : undefined}
       >
         {label}
       </Text>

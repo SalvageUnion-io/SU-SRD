@@ -23,25 +23,32 @@ export function ConditionControl({ condition, onChange, compact = false }: Condi
           const idx = conditions.findIndex((c) => c.value === condition)
           onChange(conditions[(idx + 1) % conditions.length]!.value)
         }}
-        className={cn('h-3 w-3 rounded-full', current.dotClass)}
+        className="relative flex items-center justify-center p-2"
         title={current.label}
-        aria-label={`Condition: ${current.label}`}
-      />
+        aria-label={`Condition: ${current.label}, click to cycle`}
+      >
+        <span className={cn('h-3 w-3 rounded-full', current.dotClass)} aria-hidden="true" />
+      </button>
     )
   }
 
   return (
-    <div className="flex rounded-lg border border-[var(--border)] p-0.5">
+    <div
+      role="group"
+      aria-label="Item condition"
+      className="flex rounded-lg border border-[var(--border)] p-0.5"
+    >
       {conditions.map((c) => (
         <button
           key={c.value}
           onClick={() => onChange(c.value)}
+          aria-pressed={condition === c.value}
           className={cn(
             'flex items-center gap-1 rounded-md px-2 py-1 text-xs transition-colors',
             condition === c.value ? 'bg-su-grey-light/30 font-medium' : 'hover:bg-su-grey-light/10'
           )}
         >
-          <span className={cn('h-2 w-2 rounded-full', c.dotClass)} />
+          <span className={cn('h-2 w-2 rounded-full', c.dotClass)} aria-hidden="true" />
           {c.label}
         </button>
       ))}

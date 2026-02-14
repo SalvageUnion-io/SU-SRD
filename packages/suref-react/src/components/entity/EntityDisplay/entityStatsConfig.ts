@@ -2,6 +2,7 @@ import type { SURefMetaEntity } from 'salvageunion-reference'
 import {
   getSlotsRequired,
   getSalvageValue,
+  getBioSalvageValue,
   getStructurePoints,
   getEnergyPoints,
   getHeatCapacity,
@@ -74,6 +75,15 @@ export const ENTITY_STATS_CONFIG: StatConfig[] = [
     normalBottomLabel: 'Value',
     tooltip:
       "Salvage Value represents the sum of a Mech, System, or Module's material components. As such it's the amount of Scrap you receive when breaking down a Chassis, System, or Module, as well as the amount of Scrap required to craft a Mech, System, or Module.",
+  },
+  {
+    getter: getBioSalvageValue,
+    compactLabel: 'Bio',
+    normalLabel: 'Bio',
+    compactBottomLabel: 'SV',
+    normalBottomLabel: 'SV',
+    tooltip:
+      'Bio Salvage Value represents the biological material that can be harvested from this creature or NPC.',
   },
   {
     getter: getSystemSlots,

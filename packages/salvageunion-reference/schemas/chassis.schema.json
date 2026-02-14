@@ -115,6 +115,8 @@
                 "name": { "$ref": "#/definitions/chassis/properties/name" },
                 "content": { "$ref": "#/definitions/chassis/properties/content" },
                 "legalStarting": { "type": "boolean" },
+                "source": { "$ref": "#/definitions/chassis/properties/source" },
+                "page": { "$ref": "#/definitions/chassis/properties/page" },
                 "systems": {
                   "type": "array",
                   "items": {

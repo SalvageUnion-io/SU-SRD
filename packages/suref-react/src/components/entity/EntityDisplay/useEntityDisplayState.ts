@@ -1,6 +1,11 @@
 import { useMemo } from 'react'
 import type { ReactNode } from 'react'
-import type { SURefEntity, SURefEnumSchemaName, SURefEnumSource } from 'salvageunion-reference'
+import type {
+  SURefEntity,
+  SURefEnumSchemaName,
+  SURefEnumSource,
+  SURefObjectPatternSystemModule,
+} from 'salvageunion-reference'
 import {
   getTechLevel,
   getTechLevelNumber,
@@ -63,6 +68,12 @@ export type EntityDisplayStateInput = {
   label?: string
   classAbilitiesRenderer?: ClassAbilitiesRenderer
   imageComponent?: EntityImageComponent
+  patternOverride?: {
+    name: string
+    systems: SURefObjectPatternSystemModule[]
+    modules: SURefObjectPatternSystemModule[]
+  }
+  hideStats?: boolean
 }
 
 export function useEntityDisplayState({
@@ -86,10 +97,14 @@ export function useEntityDisplayState({
   label,
   classAbilitiesRenderer,
   imageComponent,
+  patternOverride,
+  hideStats = false,
 }: EntityDisplayStateInput): EntityDisplayState {
   const isExpanded = !collapsible
 
-  const title = extractName(data, schemaName)
+  const title = patternOverride
+    ? `\u201C${patternOverride.name}\u201D`
+    : extractName(data, schemaName)
   const techLevel = getTechLevel(data)
   const techLevelNumeric = getTechLevelNumber(data)
   const source = getSource(data) as SURefEnumSource | undefined
@@ -167,5 +182,7 @@ export function useEntityDisplayState({
     label,
     classAbilitiesRenderer,
     imageComponent,
+    patternOverride,
+    hideStats,
   }
 }

@@ -73,7 +73,7 @@ export function SchemaViewerIsland({
       {hasFilters && (
         <div className="flex w-full max-w-[1200px] mx-auto flex-col gap-3">
           {techLevels.length > 1 && (
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2" role="group" aria-label="Filter by tech level">
               <Button
                 active={techLevelFilters.size === 0}
                 onClick={() => setTechLevelFilters(new Set())}
@@ -100,7 +100,7 @@ export function SchemaViewerIsland({
           )}
 
           {sources.length > 1 && (
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2" role="group" aria-label="Filter by source">
               <Button
                 active={sourceFilters.size === 0}
                 onClick={() => setSourceFilters(new Set())}
@@ -135,6 +135,7 @@ export function SchemaViewerIsland({
               <a
                 key={item.id}
                 href={`/schema/${schemaId}/item/${getEntitySlug(item)}`}
+                aria-label={item.name}
                 className={`relative block cursor-pointer transition-all duration-200 md:hover:z-10 md:hover:scale-105 md:hover:-translate-y-1 md:hover:shadow-lg ${hasLabel ? 'pt-2' : ''}`}
               >
                 <Suspense fallback={<EntityCardSkeleton compact />}>

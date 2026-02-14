@@ -95,13 +95,15 @@ export function Card({
         <div
           role={onHeaderClick ? 'button' : undefined}
           tabIndex={onHeaderClick ? 0 : undefined}
+          aria-label={onHeaderClick && title ? title : undefined}
+          aria-expanded={onHeaderClick ? isExpanded : undefined}
           className={cn(
-            'flex w-full items-center justify-between gap-2 overflow-visible rounded-t-sm',
+            'flex w-full items-center justify-between gap-2 overflow-visible',
+            children ? 'rounded-t-sm' : 'rounded-md',
             reverse ? 'flex-row-reverse' : 'flex-row',
             actualHeaderBg,
             compact ? 'min-h-[60px] px-1 py-1' : 'min-h-[80px] px-1.5 py-1.5',
             label && (compact ? 'pt-3 pb-3' : 'pt-4 pb-4'),
-            !children && 'rounded-b-sm',
             onHeaderClick && 'cursor-pointer',
             sourceStyles.className
           )}

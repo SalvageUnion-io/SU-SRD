@@ -29,7 +29,14 @@ export function MobileNavIsland({ categories, currentPath }: MobileNavIslandProp
     <DialogPrimitive.Root open={open} onOpenChange={setOpen}>
       <DialogPrimitive.Trigger asChild>
         <button className="rounded-md p-2" aria-label="Open menu">
-          <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg
+            width="24"
+            height="24"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -55,7 +62,14 @@ export function MobileNavIsland({ categories, currentPath }: MobileNavIslandProp
             </a>
             <DialogPrimitive.Close asChild>
               <button className="rounded-md p-1" aria-label="Close menu">
-                <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg
+                  width="24"
+                  height="24"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"

@@ -27,6 +27,7 @@ export function ActivationCostBox({
       </span>
       <span
         className="z-[1] ml-0 h-0 w-0 self-center"
+        aria-hidden="true"
         style={{
           borderTop: compact ? '0.4em solid transparent' : '7px solid transparent',
           borderBottom: compact ? '0.4em solid transparent' : '7px solid transparent',

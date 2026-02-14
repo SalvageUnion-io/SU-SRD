@@ -8,6 +8,8 @@ type EntityCardSkeletonProps = {
 export function EntityCardSkeleton({ compact = false, className }: EntityCardSkeletonProps) {
   return (
     <div
+      role="status"
+      aria-label="Loading entity"
       className={cn(
         'w-full animate-pulse rounded-md shadow-lg',
         compact ? 'min-h-[120px]' : 'min-h-[200px]',
@@ -22,8 +24,8 @@ export function EntityCardSkeleton({ compact = false, className }: EntityCardSke
         )}
       >
         <div className="flex items-center gap-2">
-          <div className={cn('rounded bg-su-grey/30', compact ? 'h-4 w-24' : 'h-6 w-32')} />
-          <div className={cn('rounded bg-su-grey/20', compact ? 'h-3 w-16' : 'h-4 w-20')} />
+          <div className={cn('rounded bg-su-grey/30', compact ? 'h-4 w-2/5' : 'h-6 w-2/5')} />
+          <div className={cn('rounded bg-su-grey/20', compact ? 'h-3 w-1/4' : 'h-4 w-1/4')} />
         </div>
       </div>
     </div>

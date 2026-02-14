@@ -46,6 +46,7 @@ import type {
 } from './types/index.js'
 import { getDataMaps } from './ModelFactory.js'
 import { getModel } from './helpers.js'
+import { SalvageUnionReference } from './index.js'
 
 // Cached action map - built once since action data is static
 let _actionMap: Map<string, SURefMetaAction> | null = null
@@ -632,6 +633,101 @@ export function getBioSalvageValue(entity: SURefMetaEntity): number | undefined 
   return 'bioSalvageValue' in entity && typeof entity.bioSalvageValue === 'number'
     ? entity.bioSalvageValue
     : undefined
+}
+
+/**
+ * Extract recommended flag from an entity
+ * @param entity - The entity to extract from
+ * @returns True if the entity is recommended, false if not, undefined if not present
+ */
+export function getRecommended(entity: SURefMetaEntity): boolean | undefined {
+  return 'recommended' in entity && typeof entity.recommended === 'boolean'
+    ? entity.recommended
+    : undefined
+}
+
+/**
+ * Resolve a creature trait type string (e.g., "burrower") to its full SURefTrait entity
+ * @param typeName - The trait type name to look up
+ * @returns The matching trait entity or undefined
+ */
+export function resolveTraitByType(
+  typeName: string
+): (SURefTrait & { schemaName: 'traits' }) | undefined {
+  return SalvageUnionReference.findIn(
+    'traits',
+    (t) => t.name.toLowerCase() === typeName.toLowerCase()
+  )
+}
+
+/**
+ * Resolve a formation mech's chassis name to a full chassis entity
+ * @param chassisName - The chassis name to look up
+ * @returns The matching chassis entity or undefined
+ */
+export function resolveFormationChassis(
+  chassisName: string
+): (SURefChassis & { schemaName: 'chassis' }) | undefined {
+  return SalvageUnionReference.findIn('chassis', (c) => c.name === chassisName)
+}
+
+/**
+ * Resolve a formation mech's chassis + pattern name to full chassis entity and pattern data
+ * @param chassisName - The chassis name (e.g., "Atlas")
+ * @param patternName - The pattern name (e.g., "Bastion" or "Bastion Pattern")
+ * @returns The chassis entity and matching pattern, or undefined if not found
+ */
+export function resolveFormationPattern(
+  chassisName: string,
+  patternName: string
+): { chassis: SURefChassis & { schemaName: 'chassis' }; pattern: SURefObjectPattern } | undefined {
+  const chassis = resolveFormationChassis(chassisName)
+  if (!chassis) return undefined
+
+  const patterns = getPatterns(chassis)
+  if (!patterns) return undefined
+
+  const normalizedInput = normalizePatternName(patternName)
+  const pattern = patterns.find((p) => normalizePatternName(p.name) === normalizedInput)
+  if (!pattern) return undefined
+
+  return { chassis, pattern }
+}
+
+/**
+ * Resolve a formation member to its entity, supporting chassis+pattern and standalone entity types.
+ * For chassis: resolves chassis and optionally its pattern.
+ * For other schemas (vehicles, drones, squads, npcs): resolves by name.
+ * @param member - The formation member from faction data
+ * @returns The resolved entity (with optional pattern for chassis), or undefined
+ */
+export function resolveFormationMember(
+  member: SURefObjectFormationMech
+): { entity: SURefEntity; pattern?: SURefObjectPattern } | undefined {
+  const schemaName = member.schema ?? 'chassis'
+
+  if (schemaName === 'chassis') {
+    const chassis = resolveFormationChassis(member.chassis)
+    if (!chassis) return undefined
+
+    if (member.pattern) {
+      const patterns = getPatterns(chassis)
+      if (patterns) {
+        const normalizedInput = normalizePatternName(member.pattern)
+        const pattern = patterns.find((p) => normalizePatternName(p.name) === normalizedInput)
+        if (pattern) return { entity: chassis, pattern }
+      }
+    }
+    // Chassis found but pattern missing or not matched — still return the chassis
+    return { entity: chassis }
+  }
+
+  // Non-chassis entity types: look up by name in the given schema
+  const found = SalvageUnionReference.findIn(
+    schemaName as SURefEnumSchemaName,
+    (e) => 'name' in e && (e as { name: string }).name === member.chassis
+  )
+  return found ? { entity: found } : undefined
 }
 
 /**

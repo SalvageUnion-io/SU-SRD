@@ -170,6 +170,30 @@ function matchesQuery(
     }
   }
 
+  // Check goals field if it exists (factions)
+  if ('goals' in entity && typeof entity.goals === 'string') {
+    const goals = caseSensitive ? entity.goals : entity.goals.toLowerCase()
+    if (goals.includes(searchQuery)) {
+      matchedFields.push('goals')
+    }
+  }
+
+  // Check assets field if it exists (factions)
+  if ('assets' in entity && typeof entity.assets === 'string') {
+    const assets = caseSensitive ? entity.assets : entity.assets.toLowerCase()
+    if (assets.includes(searchQuery)) {
+      matchedFields.push('assets')
+    }
+  }
+
+  // Check weaknesses field if it exists (factions)
+  if ('weaknesses' in entity && typeof entity.weaknesses === 'string') {
+    const weaknesses = caseSensitive ? entity.weaknesses : entity.weaknesses.toLowerCase()
+    if (weaknesses.includes(searchQuery)) {
+      matchedFields.push('weaknesses')
+    }
+  }
+
   // Check content blocks if they exist
   if ('content' in entity && entity.content) {
     const contentText = extractContentText(entity.content)

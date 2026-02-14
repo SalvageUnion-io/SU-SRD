@@ -29,6 +29,7 @@ export { toast, Toaster } from './components/ui/toaster'
 // Entity display system
 export { EntityDisplay } from './components/entity/EntityDisplay/index'
 export { EntityDisplayTooltip } from './components/entity/EntityDisplayTooltip'
+export { EntityFormation } from './components/entity/EntityDisplay/EntityFormation'
 
 // Shared components
 export { Card } from './components/shared/Card'

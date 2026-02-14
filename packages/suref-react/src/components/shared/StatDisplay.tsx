@@ -86,6 +86,7 @@ export function StatDisplay({
 
   const content = (
     <div
+      role="group"
       className={cn('flex flex-col items-center gap-0 overflow-visible', compact ? 'w-8' : 'w-12')}
       aria-label={combinedAriaLabel}
     >
@@ -113,7 +114,7 @@ export function StatDisplay({
             trueBorderColor,
             compact ? 'border' : 'border-[1.5px]',
             disabled ? 'pointer-events-none' : 'cursor-pointer hover:opacity-80',
-            isFlashing && 'animate-[growShrink_3s_ease-out]'
+            isFlashing && 'animate-[growShrink_3s_ease-out] motion-reduce:animate-none'
           )}
           aria-label={combinedAriaLabel}
         >
@@ -136,7 +137,7 @@ export function StatDisplay({
             trueBg,
             trueBorderColor,
             compact ? 'border' : 'border-[1.5px]',
-            isFlashing && 'animate-[growShrink_3s_ease-out]'
+            isFlashing && 'animate-[growShrink_3s_ease-out] motion-reduce:animate-none'
           )}
         >
           <span

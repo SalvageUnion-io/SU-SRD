@@ -11,6 +11,7 @@ import {
   getRange,
   getDamage,
   getTraits,
+  getRecommended,
   isEntityData,
 } from 'salvageunion-reference'
 import type { DataValue } from '../types/common'
@@ -228,6 +229,14 @@ export function extractEntityDetails(
   currency?: 'AP' | 'EP' | 'XP'
 ): DataValue[] {
   const details: DataValue[] = []
+
+  // Add recommended tag first for systems/modules
+  if (isEntityData(data) && getRecommended(data)) {
+    details.push({
+      label: 'Recommended',
+      type: 'meta',
+    })
+  }
 
   // Extract activation cost
   const activationCost = extractActivationCostDetail(data, schemaName, currency || 'AP')

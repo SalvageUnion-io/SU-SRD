@@ -108,7 +108,8 @@ export function RollTable({
 }: RollTableDisplayProps) {
   const digestedTable = digestRollTable(table)
   const [highlightedKey, setHighlightedKey] = useState<string | null>(null)
-  const highlightedRowRef = useRef<HTMLDivElement>(null)
+  const [rollAnnouncement, setRollAnnouncement] = useState('')
+  const highlightedRowRef = useRef<HTMLTableRowElement>(null)
 
   useEffect(() => {
     if (highlightedKey && highlightedRowRef.current) {
@@ -118,16 +119,31 @@ export function RollTable({
 
   const handleRoll = () => {
     setHighlightedKey(null)
+    setRollAnnouncement('')
     const { key } = resultForTable(table as SURefObjectTable, roll('1d20').total)
-    setTimeout(() => setHighlightedKey(key), 300)
+    setTimeout(() => {
+      setHighlightedKey(key)
+      const entry = digestedTable.find((d) => d.key === key)
+      if (entry) {
+        setRollAnnouncement(
+          `Rolled ${key}: ${entry.label ? `${entry.label} - ` : ''}${entry.value}`
+        )
+      }
+    }, 300)
   }
 
   const handleClearHighlight = () => {
     setHighlightedKey(null)
+    setRollAnnouncement('')
   }
 
   return (
     <div className="relative overflow-visible">
+      {/* Screen reader announcement for roll results */}
+      <div className="sr-only" aria-live="assertive" role="status">
+        {rollAnnouncement}
+      </div>
+
       <div className="overflow-visible transition-opacity duration-200">
         {showCommand && (
           <div
@@ -155,6 +171,7 @@ export function RollTable({
                   viewBox="0 -960 960 960"
                   width={compact ? '16' : '20'}
                   fill="currentColor"
+                  aria-hidden="true"
                 >
                   <path d="M240-120q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm480 0q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35ZM240-600q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm240 240q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm240-240q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Z" />
                 </svg>
@@ -162,85 +179,100 @@ export function RollTable({
             )}
           </div>
         )}
-        {digestedTable.map(({ label, value, key }, index) => {
-          if (key === 'type') return null
-          const isHighlighted = highlightedKey === key
-          const bgColor = index % 2 === 0 ? 'bg-su-orange-light' : 'bg-su-white'
+        <table className="w-full border-collapse">
+          <caption className="sr-only">{tableName || 'Roll table'}</caption>
+          <thead className="sr-only">
+            <tr>
+              <th scope="col">Roll</th>
+              <th scope="col">Result</th>
+            </tr>
+          </thead>
+          <tbody>
+            {digestedTable.map(({ label, value, key }, index) => {
+              if (key === 'type') return null
+              const isHighlighted = highlightedKey === key
+              const bgColor = index % 2 === 0 ? 'bg-su-orange-light' : 'bg-su-white'
 
-          return (
-            <div
-              ref={isHighlighted ? highlightedRowRef : null}
-              key={key + label + index}
-              role={isHighlighted ? 'button' : undefined}
-              tabIndex={isHighlighted ? 0 : undefined}
-              className={cn(
-                'relative flex flex-row flex-wrap transition-all duration-200',
-                bgColor,
-                isHighlighted &&
-                  'z-[1] scale-[1.04] cursor-pointer shadow-[0_0_0_4px_rgba(0,0,0,0.9),0_14px_40px_rgba(0,0,0,0.85)]',
-                compact ? 'gap-1' : 'gap-2'
-              )}
-              onClick={isHighlighted ? handleClearHighlight : undefined}
-              onKeyDown={
-                isHighlighted
-                  ? (e: React.KeyboardEvent) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault()
-                        handleClearHighlight()
-                      }
-                    }
-                  : undefined
-              }
-            >
-              {isHighlighted && (
-                <button
-                  onClick={(e: React.MouseEvent) => {
-                    e.stopPropagation()
-                    handleRoll()
-                  }}
+              return (
+                <tr
+                  ref={isHighlighted ? highlightedRowRef : null}
+                  key={key + label + index}
+                  aria-selected={isHighlighted || undefined}
+                  tabIndex={isHighlighted ? 0 : undefined}
                   className={cn(
-                    'absolute bottom-[-26px] left-1/2 z-[2] flex -translate-x-1/2 cursor-pointer items-center gap-1 bg-su-black font-bold text-su-white hover:bg-brand-srd',
-                    compact ? 'px-2 text-xs' : 'px-3 text-sm'
+                    'relative flex flex-row flex-wrap transition-all duration-200',
+                    bgColor,
+                    isHighlighted &&
+                      'z-[1] scale-[1.04] cursor-pointer shadow-[0_0_0_4px_rgba(0,0,0,0.9),0_14px_40px_rgba(0,0,0,0.85)]',
+                    compact ? 'gap-1' : 'gap-2'
                   )}
+                  onClick={isHighlighted ? handleClearHighlight : undefined}
+                  onKeyDown={
+                    isHighlighted
+                      ? (e: React.KeyboardEvent) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault()
+                            handleClearHighlight()
+                          }
+                        }
+                      : undefined
+                  }
                 >
-                  Reroll
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    height={compact ? '14' : '16'}
-                    viewBox="0 -960 960 960"
-                    width={compact ? '14' : '16'}
-                    fill="currentColor"
+                  {isHighlighted && (
+                    <td className="contents">
+                      <button
+                        onClick={(e: React.MouseEvent) => {
+                          e.stopPropagation()
+                          handleRoll()
+                        }}
+                        className={cn(
+                          'absolute bottom-[-26px] left-1/2 z-[2] flex -translate-x-1/2 cursor-pointer items-center gap-1 bg-su-black font-bold text-su-white hover:bg-brand-srd',
+                          compact ? 'px-2 text-xs' : 'px-3 text-sm'
+                        )}
+                      >
+                        Reroll
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          height={compact ? '14' : '16'}
+                          viewBox="0 -960 960 960"
+                          width={compact ? '14' : '16'}
+                          fill="currentColor"
+                          aria-hidden="true"
+                        >
+                          <path d="M240-120q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm480 0q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35ZM240-600q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm240 240q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm240-240q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Z" />
+                        </svg>
+                      </button>
+                    </td>
+                  )}
+                  <th
+                    scope="row"
+                    className={cn(
+                      'flex flex-1 flex-col items-center justify-center self-stretch font-normal',
+                      compact ? 'py-1' : 'py-2'
+                    )}
                   >
-                    <path d="M240-120q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm480 0q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35ZM240-600q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm240 240q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm240-240q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Z" />
-                  </svg>
-                </button>
-              )}
-              <div
-                className={cn(
-                  'flex flex-1 flex-col items-center justify-center self-stretch',
-                  compact ? 'py-1' : 'py-2'
-                )}
-              >
-                <Text
-                  className={cn(
-                    'text-center font-bold text-su-black',
-                    compact ? 'text-base' : 'text-xl'
-                  )}
-                >
-                  {key}
-                </Text>
-              </div>
-              <div
-                className={cn(
-                  'flex flex-[4] flex-row flex-wrap items-center',
-                  compact ? 'py-0.5' : 'py-1'
-                )}
-              >
-                <RollTableDescription label={label} value={value} compact={compact} />
-              </div>
-            </div>
-          )
-        })}
+                    <Text
+                      className={cn(
+                        'text-center font-bold text-su-black',
+                        compact ? 'text-base' : 'text-xl'
+                      )}
+                    >
+                      {key}
+                    </Text>
+                  </th>
+                  <td
+                    className={cn(
+                      'flex flex-[4] flex-row flex-wrap items-center',
+                      compact ? 'py-0.5' : 'py-1'
+                    )}
+                  >
+                    <RollTableDescription label={label} value={value} compact={compact} />
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
       </div>
     </div>
   )

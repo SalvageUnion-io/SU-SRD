@@ -5,6 +5,7 @@ import type {
   SURefEnumSchemaName,
   SURefEnumSource,
   SURefMetaAction,
+  SURefObjectPatternSystemModule,
   SURefObjectTable,
 } from 'salvageunion-reference'
 // Import functions for type extraction (typeof requires actual values, not types)
@@ -144,4 +145,12 @@ export type EntityDisplayState = {
   classAbilitiesRenderer?: ClassAbilitiesRenderer
   /** Optional custom image component (defaults to native img) */
   imageComponent?: EntityImageComponent
+  /** Optional pattern override for patterned chassis display */
+  patternOverride?: {
+    name: string
+    systems: SURefObjectPatternSystemModule[]
+    modules: SURefObjectPatternSystemModule[]
+  }
+  /** Whether to hide the stats/right content in the header */
+  hideStats: boolean
 }

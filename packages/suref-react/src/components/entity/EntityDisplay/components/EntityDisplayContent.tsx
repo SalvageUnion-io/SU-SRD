@@ -2,13 +2,23 @@ import { useCallback, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { getTiltRotation } from '../../../../utils/tiltUtils'
 import type { SURefClass } from 'salvageunion-reference'
-import { getDisplayName } from 'salvageunion-reference'
+import {
+  getDisplayName,
+  getGoals,
+  getAssets,
+  getWeaknesses,
+  getPatterns,
+  normalizePatternName,
+} from 'salvageunion-reference'
 import { RollTable } from '../../../shared/RollTable'
 import { Card } from '../../../shared/Card'
 import { EntitySubTitleElement } from '../EntitySubTitleContent'
 import { EntityLeftContent } from '../EntityLeftContent'
 import { EntityRightHeaderContent } from '../EntityRightHeaderContent'
 import { EntityChassisPatterns } from '../EntityChassisPatterns'
+import { EntityChassisPattern } from '../EntityChassisPattern'
+import { EntityFormation } from '../EntityFormation'
+import { EntityNpcDisplay } from '../EntityNpcDisplay'
 import { EntityChassisAbilitiesContent } from '../EntityChassisAbilitiesContent'
 import { EntityRequirementDisplay } from '../EntityRequirementDisplay'
 import { EntityChoices } from '../EntityChoices'
@@ -24,7 +34,7 @@ import { X } from 'lucide-react'
 import type { EntityButtonConfig } from '../entityDisplayTypes'
 import { cn } from '../../../../utils/cn'
 import { Text } from '../../../base/Text'
-import { getSourceStyles } from '../../entityDisplayHelpers'
+import { borderColorFromHeaderBg, getSourceStyles } from '../../entityDisplayHelpers'
 import { useEntityDisplayState } from '../useEntityDisplayState'
 import type { EntityDisplayStateInput } from '../useEntityDisplayState'
 function ButtonWithConfig({
@@ -91,6 +101,8 @@ export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayC
     hideLevel,
     rightContent,
     imageComponent,
+    patternOverride,
+    hideStats,
   } = state
 
   // Determine which content to render (from EntityTopMatter)
@@ -143,6 +155,14 @@ export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayC
     return undefined
   }, [schemaName, data])
 
+  // Pattern override: resolve the full pattern data for page/source info
+  const overridePatternData = useMemo(() => {
+    if (schemaName !== 'chassis' || !patternOverride) return undefined
+    const patterns = getPatterns(data)
+    if (!patterns) return undefined
+    return patterns.find((p) => normalizePatternName(p.name) === patternOverride.name)
+  }, [schemaName, data, patternOverride])
+
   // Footer data
   const hasPage = 'page' in data && !!data.page
   const hasSource = 'source' in data && !!data.source
@@ -173,18 +193,21 @@ export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayC
           spacing={spacing}
           compact={compact}
           damaged={damaged}
+          hasPatternOverride={!!patternOverride}
         />
       }
       rightContent={
-        <EntityRightHeaderContent
-          data={data}
-          compact={compact}
-          fontSize={fontSize}
-          techLevel={techLevel}
-          rightContent={rightContent}
-          collapsible={collapsible}
-          onDetailClick={collapsible ? handleDetailClick : undefined}
-        />
+        hideStats ? undefined : (
+          <EntityRightHeaderContent
+            data={data}
+            compact={compact}
+            fontSize={fontSize}
+            techLevel={techLevel}
+            rightContent={rightContent}
+            collapsible={collapsible}
+            onDetailClick={collapsible ? handleDetailClick : undefined}
+          />
+        )
       }
       compact={compact}
       title={title}
@@ -270,6 +293,100 @@ export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayC
                   />
                 )}
                 {children}
+                {/* Faction strategic data */}
+                {getGoals(data) && (
+                  <div className="mt-2">
+                    <h5
+                      className={cn(
+                        'font-mono inline self-start box-decoration-clone bg-su-black text-su-white px-1 font-bold uppercase leading-none tracking-tight mb-1',
+                        fontSize.sm
+                      )}
+                      style={{ lineHeight: 1 }}
+                    >
+                      Goals
+                    </h5>
+                    <div
+                      className={compact ? 'pl-2' : 'pl-3'}
+                      style={
+                        borderColorFromHeaderBg(headerBg)
+                          ? { borderLeft: `3px solid ${borderColorFromHeaderBg(headerBg)}` }
+                          : undefined
+                      }
+                    >
+                      <div
+                        className={cn(
+                          'mb-2 break-words font-medium leading-relaxed whitespace-normal text-su-black',
+                          fontSize.sm
+                        )}
+                        style={{ overflowWrap: 'break-word' }}
+                      >
+                        {getGoals(data)}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {getAssets(data) && (
+                  <div className="mt-2">
+                    <h5
+                      className={cn(
+                        'font-mono inline self-start box-decoration-clone bg-su-black text-su-white px-1 font-bold uppercase leading-none tracking-tight mb-1',
+                        fontSize.sm
+                      )}
+                      style={{ lineHeight: 1 }}
+                    >
+                      Assets
+                    </h5>
+                    <div
+                      className={compact ? 'pl-2' : 'pl-3'}
+                      style={
+                        borderColorFromHeaderBg(headerBg)
+                          ? { borderLeft: `3px solid ${borderColorFromHeaderBg(headerBg)}` }
+                          : undefined
+                      }
+                    >
+                      <div
+                        className={cn(
+                          'mb-2 break-words font-medium leading-relaxed whitespace-normal text-su-black',
+                          fontSize.sm
+                        )}
+                        style={{ overflowWrap: 'break-word' }}
+                      >
+                        {getAssets(data)}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {getWeaknesses(data) && (
+                  <div className="mt-2">
+                    <h5
+                      className={cn(
+                        'font-mono inline self-start box-decoration-clone bg-su-black text-su-white px-1 font-bold uppercase leading-none tracking-tight mb-1',
+                        fontSize.sm
+                      )}
+                      style={{ lineHeight: 1 }}
+                    >
+                      Weaknesses
+                    </h5>
+                    <div
+                      className={compact ? 'pl-2' : 'pl-3'}
+                      style={
+                        borderColorFromHeaderBg(headerBg)
+                          ? { borderLeft: `3px solid ${borderColorFromHeaderBg(headerBg)}` }
+                          : undefined
+                      }
+                    >
+                      <div
+                        className={cn(
+                          'mb-2 break-words font-medium leading-relaxed whitespace-normal text-su-black',
+                          fontSize.sm
+                        )}
+                        style={{ overflowWrap: 'break-word' }}
+                      >
+                        {getWeaknesses(data)}
+                      </div>
+                    </div>
+                  </div>
+                )}
                 {/* Non-compact: chassis abilities render before actions */}
                 {!compact && hasChassisAbilities && !hideActions && (
                   <EntityChassisAbilitiesContent
@@ -278,6 +395,45 @@ export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayC
                     compact={compact}
                     chassisAbilities={chassisAbilities}
                   />
+                )}
+                {!compact && overridePatternData && (
+                  <div className={spacing.smallSpaceYClass}>
+                    <div className="flex items-center gap-2">
+                      <Text
+                        variant="pseudoheader"
+                        as="span"
+                        className="text-sm font-bold uppercase"
+                      >
+                        {normalizePatternName(overridePatternData.name)} Pattern
+                      </Text>
+                      {overridePatternData.page && (
+                        <Text
+                          variant="pseudoheader"
+                          as="span"
+                          className="text-xs font-semibold uppercase"
+                        >
+                          Page {overridePatternData.page}
+                        </Text>
+                      )}
+                      {overridePatternData.source && (
+                        <Text
+                          variant="pseudoheader"
+                          as="span"
+                          className="text-xs font-semibold uppercase opacity-70"
+                        >
+                          {overridePatternData.source}
+                        </Text>
+                      )}
+                    </div>
+                    {overridePatternData.content && overridePatternData.content.length > 0 && (
+                      <BlockContentRendererView
+                        content={overridePatternData.content}
+                        fontSize={fontSize.sm}
+                        compact={compact}
+                        damaged={damaged}
+                      />
+                    )}
+                  </div>
                 )}
               </>
             )}
@@ -298,6 +454,32 @@ export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayC
                 compact={compact}
                 chassisAbilities={chassisAbilities}
               />
+            )}
+            {compact && overridePatternData && (
+              <div className={spacing.smallSpaceYClass}>
+                <div className="flex items-center gap-2">
+                  <Text variant="pseudoheader" as="span" className="text-xs font-bold uppercase">
+                    {normalizePatternName(overridePatternData.name)} Pattern
+                  </Text>
+                  {overridePatternData.page && (
+                    <Text
+                      variant="pseudoheader"
+                      as="span"
+                      className="text-xs font-semibold uppercase"
+                    >
+                      Page {overridePatternData.page}
+                    </Text>
+                  )}
+                </div>
+                {overridePatternData.content && overridePatternData.content.length > 0 && (
+                  <BlockContentRendererView
+                    content={overridePatternData.content}
+                    fontSize={fontSize.sm}
+                    compact={compact}
+                    damaged={damaged}
+                  />
+                )}
+              </div>
             )}
 
             {schemaName === 'crawler-tech-levels' &&
@@ -343,7 +525,24 @@ export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayC
                 />
               </div>
             )}
-            {shouldShowExtraContent && (
+            <EntityFormation data={data} headerFontSize={fontSize.lg} />
+            <EntityNpcDisplay
+              data={data}
+              headerFontSize={fontSize.lg}
+              compact={compact}
+              fontSize={fontSize}
+              spacing={spacing}
+            />
+            {shouldShowExtraContent && patternOverride && (
+              <EntityChassisPattern
+                pattern={{
+                  name: patternOverride.name,
+                  systems: patternOverride.systems,
+                  modules: patternOverride.modules,
+                }}
+              />
+            )}
+            {shouldShowExtraContent && !patternOverride && (
               <>
                 {!hidePatterns && (
                   <EntityChassisPatterns
@@ -457,11 +656,11 @@ export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayC
           <DialogPrimitive.Portal>
             <DialogPrimitive.Overlay className="fixed inset-0 z-50 overflow-y-auto bg-black/60 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0">
               <div className="flex min-h-full items-center justify-center px-4 py-8">
-                <DialogPrimitive.Close className="fixed top-4 right-4 z-[60] rounded-full bg-su-black/70 p-2 text-su-white opacity-70 transition-opacity hover:opacity-100">
-                  <X className="h-6 w-6" />
-                  <span className="sr-only">Close</span>
-                </DialogPrimitive.Close>
                 <DialogPrimitive.Content className="relative w-full max-w-6xl bg-transparent outline-none">
+                  <DialogPrimitive.Close className="fixed top-4 right-4 z-[60] rounded-full bg-su-black/70 p-2 text-su-white opacity-70 transition-opacity hover:opacity-100">
+                    <X className="h-6 w-6" aria-hidden="true" />
+                    <span className="sr-only">Close</span>
+                  </DialogPrimitive.Close>
                   <DialogPrimitive.Title className="sr-only">{title}</DialogPrimitive.Title>
                   <DialogPrimitive.Description className="sr-only">
                     Entity display details
@@ -474,9 +673,10 @@ export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayC
                     dimHeader={false}
                     disabled={false}
                     hideActions={false}
-                    hidePatterns={false}
+                    hidePatterns={!!patternOverride}
                     hideChoices={false}
                     hideLevel={false}
+                    patternOverride={patternOverride}
                   />
                 </DialogPrimitive.Content>
               </div>

@@ -134,6 +134,7 @@ export function DataValueDisplayView({
   }
 
   if (item.type === 'meta') {
+    const isRecommended = item.label === 'Recommended'
     return (
       <ValueDisplay
         label={item.label}
@@ -141,6 +142,9 @@ export function DataValueDisplayView({
         inline={false}
         damaged={damaged}
         rotation={valueRotation}
+        bgColor={isRecommended ? 'var(--color-su-rust)' : undefined}
+        textColor={isRecommended ? 'var(--color-su-white)' : undefined}
+        borderColor={isRecommended ? 'var(--color-su-rust)' : undefined}
       />
     )
   }

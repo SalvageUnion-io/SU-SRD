@@ -10,6 +10,8 @@ type EntitySubTitleElementProps = {
   spacing: ReturnType<typeof getEntitySpacing>
   compact: boolean
   damaged: boolean
+  /** When set, prepends a "<entity.name> Chassis" tag to the subtitle */
+  hasPatternOverride?: boolean
 }
 
 export function EntitySubTitleElement({
@@ -18,12 +20,19 @@ export function EntitySubTitleElement({
   spacing,
   compact,
   damaged,
+  hasPatternOverride,
 }: EntitySubTitleElementProps) {
   // Determine currency for activation cost
   const variableCost = 'activationCurrency' in data && schemaName === 'abilities'
   const currency = getActivationCurrency(schemaName, variableCost)
 
   const values = extractEntityDetails(data, schemaName, currency)
+
+  // In patterned mode, prepend a "Chassis Name Chassis" tag
+  if (hasPatternOverride && 'name' in data && typeof data.name === 'string') {
+    values.unshift({ label: `${data.name} Chassis`, type: 'meta' })
+  }
+
   if (values.length === 0) return null
 
   return (

@@ -18,6 +18,7 @@ export function LevelDisplay({ level, compact = false, inline = false }: LevelDi
           size,
           fontSize
         )}
+        aria-label={`Level ${level}`}
       >
         {level}
       </div>
@@ -31,6 +32,7 @@ export function LevelDisplay({ level, compact = false, inline = false }: LevelDi
         size,
         fontSize
       )}
+      aria-label={`Level ${level}`}
     >
       {level}
     </div>
