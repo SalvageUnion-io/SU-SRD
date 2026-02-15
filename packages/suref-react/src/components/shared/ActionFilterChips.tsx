@@ -1,14 +1,13 @@
+import { getActionTypes } from 'salvageunion-reference'
 import { cn } from '../../utils/cn'
 
 const ACTION_TYPES = [
   { value: 'all', label: 'All' },
   { value: 'generic', label: 'Generic' },
-  { value: 'reaction', label: 'Reaction' },
-  { value: 'free', label: 'Free' },
-  { value: 'turn', label: 'Turn' },
-  { value: 'short', label: 'Short' },
-  { value: 'long', label: 'Long' },
-  { value: 'downtime', label: 'Downtime' },
+  ...getActionTypes().map((t) => ({
+    value: t.toLowerCase(),
+    label: t === 'DownTime' ? 'Downtime' : t,
+  })),
 ] as const
 
 type ActionFilterChipsProps = {

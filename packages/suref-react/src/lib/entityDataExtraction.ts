@@ -14,27 +14,14 @@ import {
   getRecommended,
   getBlackMarket,
   isEntityData,
+  resolveActivationCurrency,
 } from 'salvageunion-reference'
 import type { DataValue } from '../types/common'
 
 /**
- * Local type that extends SURefEnumSchemaName to include meta schemas like 'actions'
+ * Re-export resolveActivationCurrency as getActivationCurrency for consumers
  */
-type SURefMetaSchemaName = SURefEnumSchemaName | 'actions'
-
-/**
- * Get activation currency based on schema name
- */
-export function getActivationCurrency(
-  schemaName: SURefMetaSchemaName | undefined,
-  variable: boolean = false
-): 'AP' | 'EP' | 'XP' {
-  if (variable) return 'XP'
-  if (schemaName === 'systems' || schemaName === 'modules') {
-    return 'EP'
-  }
-  return 'AP'
-}
+export const getActivationCurrency = resolveActivationCurrency
 
 /**
  * Type alias for action properties accessed directly on SURefMetaAction

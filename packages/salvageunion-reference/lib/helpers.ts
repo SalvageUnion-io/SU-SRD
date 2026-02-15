@@ -28,6 +28,7 @@ import {
   getAssetUrl,
 } from './utilities.js'
 import { getEntitySlug } from './slug.js'
+import { ActionTypeSchema } from './schemas/enums.js'
 
 /**
  * Get the display name for a schema
@@ -452,6 +453,36 @@ export const MECH_DEFAULTS = {
   startingDamage: 0,
   startingHeat: 0,
 } as const
+
+/**
+ * Crawler upkeep and upgrade rules
+ * Upkeep cost increases by `step` scrap per tech level; max upgrade cap.
+ */
+export const UPKEEP_RULES = {
+  step: 5,
+  maxUpgrade: 25,
+} as const
+
+/**
+ * Resolve the activation currency for a given schema/entity category.
+ * Systems and modules cost EP; variable-cost abilities cost XP; everything else costs AP.
+ */
+export function resolveActivationCurrency(
+  schemaName: SURefEnumSchemaName | 'actions' | undefined,
+  variable: boolean = false
+): 'AP' | 'EP' | 'XP' {
+  if (variable) return 'XP'
+  if (schemaName === 'systems' || schemaName === 'modules') return 'EP'
+  return 'AP'
+}
+
+/**
+ * Get the list of action types from the ActionType enum schema.
+ * Returns the canonical values: Passive, Free, Reaction, Turn, Short, Long, DownTime.
+ */
+export function getActionTypes(): readonly [string, ...string[]] {
+  return ActionTypeSchema.options
+}
 
 // ============================================================================
 // SCHEMA HELPERS

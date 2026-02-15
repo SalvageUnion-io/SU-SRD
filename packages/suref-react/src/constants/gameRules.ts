@@ -8,7 +8,12 @@
  * to ensure a single source of truth.
  */
 
-import { getTechLevels, getMaxTechLevel, getScrapConversionRates } from 'salvageunion-reference'
+import {
+  getTechLevels,
+  getMaxTechLevel,
+  getScrapConversionRates,
+  UPKEEP_RULES,
+} from 'salvageunion-reference'
 
 /**
  * Tech Level Constants
@@ -41,6 +46,6 @@ export const DEBOUNCE_TIMINGS = {
 export const SCRAP_CONVERSION_RATES: Record<TechLevel, number> =
   getScrapConversionRates() as Record<TechLevel, number>
 
-export const UPKEEP_STEP = 5
+export const UPKEEP_STEP = UPKEEP_RULES.step
 
-export const MAX_UPGRADE = 25
+export const MAX_UPGRADE = UPKEEP_RULES.maxUpgrade
