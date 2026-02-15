@@ -126,6 +126,7 @@ export const ENTITY_STATS_CONFIG: StatConfig[] = [
     normalBottomLabel: 'Capacity',
     tooltip:
       'Your Mech generates Heat when you activate some Systems and Modules or when you Push your reactor, its Heat Capacity represents its ability to operate under these conditions. If you reach your Heat Capacity your reactor will be at risk of overloading, with potentially catastrophic results.',
+    primary: true,
   },
 ]
 

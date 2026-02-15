@@ -43,10 +43,16 @@ type EntityDisplayProps = {
   }
   /** Whether to hide the stats/right content in the header */
   hideStats?: boolean
+  /** Whether to hide the entity's own content blocks (description) */
+  hideContent?: boolean
   /** Optional delete handler — when set, renders a trash icon in the listing header */
   onDelete?: () => void
   /** Optional add handler — when set, renders a + icon in the header */
   onAdd?: () => void
+  /** Optional edit handler — when set, renders an edit button next to the detail button in listing mode */
+  onEdit?: () => void
+  /** Optional open handler — when set, overrides the default listing click behavior (opening modal) */
+  onOpen?: () => void
 }
 
 export const EntityDisplay = memo(function EntityDisplay({
@@ -65,8 +71,11 @@ export const EntityDisplay = memo(function EntityDisplay({
   classAbilitiesRenderer,
   patternOverride,
   hideStats = false,
+  hideContent = false,
   onDelete,
   onAdd,
+  onEdit,
+  onOpen,
 }: EntityDisplayProps) {
   if (!data) return null
 
@@ -97,8 +106,11 @@ export const EntityDisplay = memo(function EntityDisplay({
       classAbilitiesRenderer={classAbilitiesRenderer}
       patternOverride={patternOverride}
       hideStats={hideStats}
+      hideContent={hideContent}
       onDelete={onDelete}
       onAdd={onAdd}
+      onEdit={onEdit}
+      onOpen={onOpen}
     >
       {children}
     </EntityDisplayContent>

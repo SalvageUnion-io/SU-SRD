@@ -52,6 +52,7 @@ export type EntityDisplayStateInput = {
     modules: SURefObjectPatternSystemModule[]
   }
   hideStats?: boolean
+  hideContent?: boolean
 }
 
 export function useEntityDisplayState({
@@ -70,6 +71,7 @@ export function useEntityDisplayState({
   classAbilitiesRenderer,
   patternOverride,
   hideStats = false,
+  hideContent = false,
 }: EntityDisplayStateInput): EntityDisplayState {
   const title = patternOverride
     ? `\u201C${patternOverride.name}\u201D`
@@ -147,5 +149,6 @@ export function useEntityDisplayState({
     classAbilitiesRenderer,
     patternOverride,
     hideStats,
+    hideContent,
   }
 }

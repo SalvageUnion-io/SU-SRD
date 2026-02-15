@@ -1,7 +1,7 @@
 import { useCallback } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { isAbility } from 'salvageunion-reference'
-import { Plus, Trash2 } from 'lucide-react'
+import { Pencil, Plus, Trash2 } from 'lucide-react'
 import { EntityStats } from './EntityStats'
 import { useParseTraitReferences } from '../../../utils/parseTraitReferences'
 import { cn } from '../../../utils/cn'
@@ -17,6 +17,7 @@ type EntityRightHeaderContentProps = {
   onDetailClick?: () => void
   onDelete?: () => void
   onAdd?: () => void
+  onEdit?: () => void
 }
 
 export function EntityRightHeaderContent({
@@ -29,6 +30,7 @@ export function EntityRightHeaderContent({
   onDetailClick,
   onDelete,
   onAdd,
+  onEdit,
 }: EntityRightHeaderContentProps) {
   const description = 'description' in data ? data.description : undefined
   const parsedDescription = useParseTraitReferences(description)
@@ -55,6 +57,14 @@ export function EntityRightHeaderContent({
       onDelete?.()
     },
     [onDelete]
+  )
+
+  const handleEdit = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation()
+      onEdit?.()
+    },
+    [onEdit]
   )
 
   const abilityContent = description && isAbility(data) && (
@@ -101,6 +111,17 @@ export function EntityRightHeaderContent({
           onClick={handleDelete}
         >
           <Trash2 className="h-3.5 w-3.5" />
+        </button>
+      )}
+      {listing && onEdit && (
+        <button
+          type="button"
+          className="flex min-w-[25px] shrink-0 cursor-pointer items-center justify-center self-center rounded p-1 opacity-60 transition-opacity hover:bg-white/20 hover:opacity-100"
+          title="Edit"
+          aria-label="Edit"
+          onClick={handleEdit}
+        >
+          <Pencil className="h-3.5 w-3.5 text-su-white" />
         </button>
       )}
       {listing && onDetailClick && (

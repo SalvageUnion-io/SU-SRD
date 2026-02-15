@@ -1,37 +1,32 @@
 import { useState } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { toast } from 'sonner'
-import { Trash2 } from 'lucide-react'
 import { useAuthStore } from '../../../stores/authStore'
-import { usePattern, useUpdatePattern, useDeletePattern } from '../../../hooks/usePatterns'
+import {
+  usePattern,
+  useCreatePattern,
+  useUpdatePattern,
+  useDeletePattern,
+} from '../../../hooks/usePatterns'
 import { MechBuilder } from '../../../components/patterns/MechBuilder'
 import { DeletePatternDialog } from '../../../components/patterns/DeletePatternDialog'
 import { Button } from '../../../components/ui/button'
 import { Skeleton } from '../../../components/ui/skeleton'
 import { getErrorMessage } from '../../../lib/errors'
-import type { BuilderState } from '../../../lib/builderUtils'
-import type { CreatePatternInput, TypedPatternRow } from '../../../types/common'
+import { getPatternAccess } from '../../../lib/patternAccess'
+import { patternToBuilderState } from '../../../lib/builderUtils'
+import type { CreatePatternInput } from '../../../types/common'
 
 export const Route = createFileRoute('/_authenticated/patterns/$patternId')({
   component: EditPatternPage,
 })
-
-function patternToBuilderState(pattern: TypedPatternRow): BuilderState {
-  return {
-    name: pattern.name,
-    chassisRef: pattern.chassis_ref,
-    description: pattern.description ?? '',
-    visible: pattern.visible,
-    customImageUrl: null,
-    items: pattern.pattern_items,
-  }
-}
 
 function EditPatternPage() {
   const { patternId } = Route.useParams()
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
   const { data: pattern, isLoading, error } = usePattern(patternId)
+  const createPattern = useCreatePattern()
   const updatePattern = useUpdatePattern()
   const deletePattern = useDeletePattern()
   const [showDelete, setShowDelete] = useState(false)
@@ -45,8 +40,8 @@ function EditPatternPage() {
         onSuccess: () => {
           toast.success('Pattern updated')
         },
-        onError: (err) => {
-          toast.error(getErrorMessage(err))
+        onError: (error) => {
+          toast.error(getErrorMessage(error))
         },
       }
     )
@@ -54,6 +49,31 @@ function EditPatternPage() {
 
   function handleCancel() {
     navigate({ to: '/' })
+  }
+
+  function handleCopy() {
+    if (!user || !pattern) return
+
+    const copyInput: CreatePatternInput = {
+      name: `Copy of ${pattern.name}`,
+      chassis_ref: pattern.chassis_ref,
+      description: pattern.description ?? '',
+      visible: false,
+      pattern_items: pattern.pattern_items,
+    }
+
+    createPattern.mutate(
+      { userId: user.id, input: copyInput },
+      {
+        onSuccess: (newPattern) => {
+          toast.success('Pattern copied')
+          navigate({ to: '/patterns/$patternId', params: { patternId: newPattern.id } })
+        },
+        onError: (error) => {
+          toast.error(getErrorMessage(error))
+        },
+      }
+    )
   }
 
   function handleDelete() {
@@ -66,8 +86,8 @@ function EditPatternPage() {
           toast.success('Pattern deleted')
           navigate({ to: '/' })
         },
-        onError: (err) => {
-          toast.error(getErrorMessage(err))
+        onError: (error) => {
+          toast.error(getErrorMessage(error))
         },
       }
     )
@@ -82,7 +102,9 @@ function EditPatternPage() {
     )
   }
 
-  if (error || !pattern) {
+  const access = pattern ? getPatternAccess(pattern, user?.id) : undefined
+
+  if (error || !pattern || !access?.canView) {
     return (
       <div className="flex flex-col items-center gap-4 py-12">
         <p className="text-su-grey-dark">Pattern not found.</p>
@@ -93,25 +115,25 @@ function EditPatternPage() {
     )
   }
 
+  if (!access.canEdit) {
+    return (
+      <div className="flex flex-col gap-4">
+        <MechBuilder initialState={patternToBuilderState(pattern)} readOnly />
+      </div>
+    )
+  }
+
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-su-orange">Edit Pattern</h1>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="text-su-grey-dark hover:text-su-rust"
-          onClick={() => setShowDelete(true)}
-        >
-          <Trash2 className="mr-1 h-4 w-4" />
-          Delete
-        </Button>
-      </div>
       <MechBuilder
         initialState={patternToBuilderState(pattern)}
         onSave={handleSave}
         onCancel={handleCancel}
+        onDelete={() => setShowDelete(true)}
+        onCopy={handleCopy}
         isSaving={updatePattern.isPending}
+        isDeleting={deletePattern.isPending}
+        isCopying={createPattern.isPending}
       />
       <DeletePatternDialog
         open={showDelete}

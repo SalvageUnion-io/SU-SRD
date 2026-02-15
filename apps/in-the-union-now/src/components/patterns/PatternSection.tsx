@@ -1,11 +1,13 @@
-import { Link } from '@tanstack/react-router'
+import { useCallback, useMemo } from 'react'
+import { Link, useNavigate } from '@tanstack/react-router'
 import { Plus } from 'lucide-react'
-import { SectionSeparator } from 'suref-react'
+import { SalvageUnionReference } from 'salvageunion-reference'
+import { EntityDisplay, SectionSeparator } from 'suref-react'
 import { useAuthStore } from '../../stores/authStore'
 import { usePatterns } from '../../hooks/usePatterns'
-import { PatternCard } from './PatternCard'
 import { Skeleton } from '../ui/skeleton'
-import { Button } from '../ui/button'
+import { EMPTY_SLOT_CLASSES } from './emptySlotClasses'
+import type { TypedPatternRow } from '../../types/common'
 
 export function PatternSection() {
   const user = useAuthStore((s) => s.user)
@@ -13,42 +15,60 @@ export function PatternSection() {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex items-center justify-between">
-        <div className="flex-1">
-          <SectionSeparator label="Patterns" fontSize="text-sm" />
-        </div>
-        {patterns && patterns.length > 0 && (
-          <Button variant="ghost" size="sm" asChild>
-            <Link to="/patterns/new" className="text-su-orange">
-              <Plus className="mr-1 h-3 w-3" />
-              New
-            </Link>
-          </Button>
-        )}
-      </div>
+      <SectionSeparator label="Patterns" fontSize="text-sm" />
 
       {isLoading ? (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <Skeleton className="h-24 rounded-md" />
-          <Skeleton className="h-24 rounded-md" />
-          <Skeleton className="h-24 rounded-md" />
-        </div>
-      ) : !patterns || patterns.length === 0 ? (
-        <div className="rounded-md border border-su-grey-light/30 p-4">
-          <p className="mb-3 text-sm text-su-grey-dark">
-            No mech patterns yet. Build your first pattern to get started.
-          </p>
-          <Button variant="outline" size="sm" asChild>
-            <Link to="/patterns/new">Create a Pattern</Link>
-          </Button>
+        <div className="flex flex-col gap-2">
+          <Skeleton className="h-[40px] rounded-md" />
+          <Skeleton className="h-[40px] rounded-md" />
+          <Skeleton className="h-[40px] rounded-md" />
         </div>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {patterns.map((pattern) => (
-            <PatternCard key={pattern.id} pattern={pattern} />
+        <div className="flex flex-col gap-2">
+          {patterns?.map((pattern) => (
+            <PatternListing key={pattern.id} pattern={pattern} />
           ))}
+          <NewPatternSlot />
         </div>
       )}
     </div>
+  )
+}
+
+function PatternListing({ pattern }: { pattern: TypedPatternRow }) {
+  const navigate = useNavigate()
+
+  const chassis = useMemo(
+    () => SalvageUnionReference.Chassis.find((c) => c.id === pattern.chassis_ref),
+    [pattern.chassis_ref]
+  )
+
+  const handleNavigate = useCallback(() => {
+    navigate({ to: '/patterns/$patternId', params: { patternId: pattern.id } })
+  }, [navigate, pattern.id])
+
+  return (
+    <EntityDisplay
+      data={chassis}
+      listing
+      compact
+      patternOverride={{
+        name: pattern.name,
+        systems: [],
+        modules: [],
+      }}
+      onOpen={handleNavigate}
+    />
+  )
+}
+
+function NewPatternSlot() {
+  return (
+    <Link to="/patterns/new" className="block">
+      <div className={EMPTY_SLOT_CLASSES}>
+        <Plus className="h-4 w-4" />
+        <span className="font-mono text-sm font-semibold uppercase">New Pattern</span>
+      </div>
+    </Link>
   )
 }

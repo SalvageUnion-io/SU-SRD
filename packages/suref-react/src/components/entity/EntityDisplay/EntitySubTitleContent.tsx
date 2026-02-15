@@ -12,6 +12,8 @@ type EntitySubTitleElementProps = {
   damaged: boolean
   /** When set, prepends a "<entity.name> Chassis" tag to the subtitle */
   hasPatternOverride?: boolean
+  /** When true, appends a "Legal Starting Mech" tag */
+  isLegalStartingMech?: boolean
 }
 
 export function EntitySubTitleElement({
@@ -21,6 +23,7 @@ export function EntitySubTitleElement({
   compact,
   damaged,
   hasPatternOverride,
+  isLegalStartingMech,
 }: EntitySubTitleElementProps) {
   // Determine currency for activation cost
   const variableCost = 'activationCurrency' in data && schemaName === 'abilities'
@@ -31,6 +34,11 @@ export function EntitySubTitleElement({
   // In patterned mode, prepend a "Chassis Name Chassis" tag
   if (hasPatternOverride && 'name' in data && typeof data.name === 'string') {
     values.unshift({ label: `${data.name} Chassis`, type: 'meta' })
+  }
+
+  // Append "Legal Starting Mech" tag when pattern qualifies
+  if (isLegalStartingMech) {
+    values.push({ label: 'Legal Starting Mech', type: 'meta' })
   }
 
   if (values.length === 0) return null

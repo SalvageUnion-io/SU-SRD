@@ -114,4 +114,6 @@ export type EntityDisplayState = {
   }
   /** Whether to hide the stats/right content in the header */
   hideStats: boolean
+  /** Whether to hide the entity's own content blocks (description) */
+  hideContent: boolean
 }

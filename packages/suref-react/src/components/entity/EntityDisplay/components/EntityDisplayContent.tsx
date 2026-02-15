@@ -3,11 +3,13 @@ import type { ReactNode } from 'react'
 import { getTiltRotation } from '../../../../utils/tiltUtils'
 import type { SURefClass } from 'salvageunion-reference'
 import {
+  SalvageUnionReference,
   getDisplayName,
   getGoals,
   getAssets,
   getWeaknesses,
   getPatterns,
+  getSalvageValue,
   normalizePatternName,
 } from 'salvageunion-reference'
 import { RollTable } from '../../../shared/RollTable'
@@ -43,12 +45,18 @@ export type EntityDisplayContentProps = EntityDisplayStateInput & {
   onDelete?: () => void
   /** Optional add handler — when set, renders a + icon in the header */
   onAdd?: () => void
+  /** Optional edit handler — when set, renders an edit button next to the detail button in listing mode */
+  onEdit?: () => void
+  /** Optional open handler — when set, overrides the default listing click behavior (opening modal) */
+  onOpen?: () => void
 }
 
 export function EntityDisplayContent({
   children,
   onDelete,
   onAdd,
+  onEdit,
+  onOpen,
   ...inputProps
 }: EntityDisplayContentProps) {
   const state = useEntityDisplayState(inputProps)
@@ -81,10 +89,11 @@ export function EntityDisplayContent({
     techLevel,
     patternOverride,
     hideStats,
+    hideContent,
   } = state
 
   // Determine which content to render (from EntityTopMatter)
-  let contentBlocks = 'content' in data ? data.content : undefined
+  let contentBlocks = hideContent ? undefined : 'content' in data ? data.content : undefined
 
   // Check if any action name matches the entity name - if so, use that action's content
   if (matchingAction && matchingAction.content && matchingAction.content.length > 0) {
@@ -139,7 +148,24 @@ export function EntityDisplayContent({
     if (schemaName !== 'chassis' || !patternOverride) return undefined
     const patterns = getPatterns(data)
     if (!patterns) return undefined
-    return patterns.find((p) => normalizePatternName(p.name) === patternOverride.name)
+    const normalizedOverride = normalizePatternName(patternOverride.name)
+    return patterns.find((p) => normalizePatternName(p.name) === normalizedOverride)
+  }, [schemaName, data, patternOverride])
+
+  // Compute whether a pattern override qualifies as a legal starting mech (total SV <= 20)
+  const isLegalStartingMech = useMemo(() => {
+    if (schemaName !== 'chassis' || !patternOverride) return false
+    const STARTING_MECH_BUDGET = 20
+    let total = getSalvageValue(data) ?? 0
+    for (const sys of patternOverride.systems) {
+      const entity = SalvageUnionReference.Systems.find((s) => s.name === sys.name)
+      if (entity) total += getSalvageValue(entity) ?? 0
+    }
+    for (const mod of patternOverride.modules) {
+      const entity = SalvageUnionReference.Modules.find((m) => m.name === mod.name)
+      if (entity) total += getSalvageValue(entity) ?? 0
+    }
+    return total <= STARTING_MECH_BUDGET
   }, [schemaName, data, patternOverride])
 
   // Pre-built block for pattern info + chassis abilities (reused at multiple render positions)
@@ -278,7 +304,7 @@ export function EntityDisplayContent({
   ) : null
 
   const [modalOpen, setModalOpen] = useState(false)
-  const handleDetailClick = () => setModalOpen(true)
+  const handleDetailClick = onOpen ?? (() => setModalOpen(true))
 
   // Compose header content (previously assembled by Card internally)
   const titleRotation = useMemo(() => (damaged ? getTiltRotation() : 0), [damaged])
@@ -324,22 +350,33 @@ export function EntityDisplayContent({
             compact={compact}
             damaged={damaged}
             hasPatternOverride={!!patternOverride}
+            isLegalStartingMech={isLegalStartingMech}
           />
         </div>
       </div>
-      {!hideStats && (
+      {!hideStats ? (
         <EntityRightHeaderContent
           data={data}
           compact={compact}
           fontSize={fontSize}
           techLevel={techLevel}
           listing={listing}
-          primaryStatsOnly={compact && listing && schemaName === 'chassis'}
+          primaryStatsOnly={compact && schemaName === 'chassis' && (listing || !!patternOverride)}
           onDetailClick={listing ? handleDetailClick : undefined}
           onDelete={listing ? onDelete : undefined}
           onAdd={onAdd}
+          onEdit={listing ? onEdit : undefined}
         />
-      )}
+      ) : onAdd ? (
+        <EntityRightHeaderContent
+          data={data}
+          compact={compact}
+          fontSize={fontSize}
+          techLevel={techLevel}
+          listing={listing}
+          onAdd={onAdd}
+        />
+      ) : null}
     </>
   )
 

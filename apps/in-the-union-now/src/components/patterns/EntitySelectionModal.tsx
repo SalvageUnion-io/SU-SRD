@@ -12,22 +12,23 @@ import {
 import * as DialogPrimitive from '@radix-ui/react-dialog'
 import { X } from 'lucide-react'
 import { Input } from '../ui/input'
+import { filterAndSplitEntities, ALL_TECH_LEVELS } from '../../lib/entitySelectionUtils'
+import type { TechLevelValue } from '../../lib/entitySelectionUtils'
 
-type SchemaName = 'chassis' | 'systems' | 'modules'
-
-type TechLevelValue = number | 'B' | 'N'
+export type BuilderSchemaName = 'chassis' | 'systems' | 'modules'
 
 type EntitySelectionModalProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   title: string
-  schemaName: SchemaName
+  schemaName: BuilderSchemaName
   onSelect: (entityId: string) => void
   filter?: (entity: { id: string; name: string }) => boolean
   remainingSlots?: number
+  remainingBudget?: number
 }
 
-function getEntities(schemaName: SchemaName): SURefEntity[] {
+function getEntities(schemaName: BuilderSchemaName): SURefEntity[] {
   switch (schemaName) {
     case 'chassis':
       return SalvageUnionReference.Chassis.all()
@@ -38,12 +39,9 @@ function getEntities(schemaName: SchemaName): SURefEntity[] {
   }
 }
 
-function getSlotsRequired(entity: SURefEntity): number | undefined {
-  if ('slotsRequired' in entity) return entity.slotsRequired as number
-  return undefined
+function getEntityId(entity: SURefEntity): string {
+  return 'id' in entity ? (entity.id as string) : ''
 }
-
-const ALL_TECH_LEVELS: TechLevelValue[] = [1, 2, 3, 4, 5, 6, 'B', 'N']
 
 export function EntitySelectionModal({
   open,
@@ -53,6 +51,7 @@ export function EntitySelectionModal({
   onSelect,
   filter,
   remainingSlots,
+  remainingBudget,
 }: EntitySelectionModalProps) {
   const [search, setSearch] = useState('')
   const [activeTechLevels, setActiveTechLevels] = useState<Set<TechLevelValue>>(
@@ -119,70 +118,27 @@ export function EntitySelectionModal({
     })
   }, [])
 
-  const { selectable, overCapacity } = useMemo(() => {
-    let filtered = allEntities
-
-    // External filter
-    if (filter) {
-      filtered = filtered.filter((e) =>
-        filter({
-          id: 'id' in e ? (e.id as string) : '',
-          name: 'name' in e ? (e.name as string) : '',
-        })
-      )
-    }
-
-    // Search filter
-    if (search.trim()) {
-      const q = search.trim().toLowerCase()
-      filtered = filtered.filter((e) => {
-        const name = 'name' in e ? (e.name as string) : ''
-        return name.toLowerCase().includes(q)
-      })
-    }
-
-    // Tech level filter
-    filtered = filtered.filter((e) => {
-      const tl = getTechLevel(e)
-      if (tl === undefined) return true
-      return activeTechLevels.has(tl as TechLevelValue)
-    })
-
-    // Source filter
-    if (activeSourceFilters.size > 0) {
-      filtered = filtered.filter((e) => {
-        const src = getSource(e)
-        if (!src) return true
-        return activeSourceFilters.has(src)
-      })
-    }
-
-    // Sort alphabetically
-    filtered.sort((a, b) => {
-      const nameA = 'name' in a ? (a.name as string) : ''
-      const nameB = 'name' in b ? (b.name as string) : ''
-      return nameA.localeCompare(nameB)
-    })
-
-    // Split by capacity
-    if (remainingSlots === undefined) {
-      return { selectable: filtered, overCapacity: [] }
-    }
-
-    const selectableItems: SURefEntity[] = []
-    const overCapacityItems: SURefEntity[] = []
-
-    for (const entity of filtered) {
-      const slots = getSlotsRequired(entity)
-      if (slots !== undefined && slots > remainingSlots) {
-        overCapacityItems.push(entity)
-      } else {
-        selectableItems.push(entity)
-      }
-    }
-
-    return { selectable: selectableItems, overCapacity: overCapacityItems }
-  }, [allEntities, filter, search, activeTechLevels, activeSourceFilters, remainingSlots])
+  const { selectable, overCapacity, overBudget } = useMemo(
+    () =>
+      filterAndSplitEntities({
+        entities: allEntities,
+        search,
+        activeTechLevels,
+        activeSourceFilters,
+        remainingSlots,
+        remainingBudget,
+        filter,
+      }),
+    [
+      allEntities,
+      filter,
+      search,
+      activeTechLevels,
+      activeSourceFilters,
+      remainingSlots,
+      remainingBudget,
+    ]
+  )
 
   const handleSelect = useCallback(
     (entityId: string) => {
@@ -297,14 +253,16 @@ export function EntitySelectionModal({
                     className="flex flex-col gap-2 overflow-y-auto px-1 pr-3 [&>*]:ring-1 [&>*]:ring-su-black"
                     style={{ scrollbarGutter: 'stable' }}
                   >
-                    {selectable.length === 0 && overCapacity.length === 0 ? (
+                    {selectable.length === 0 &&
+                    overCapacity.length === 0 &&
+                    overBudget.length === 0 ? (
                       <p className="py-4 text-center text-sm text-su-grey-dark">
                         No results found.
                       </p>
                     ) : (
                       <>
                         {selectable.map((entity) => {
-                          const id = 'id' in entity ? (entity.id as string) : ''
+                          const id = getEntityId(entity)
                           return (
                             <EntityDisplay
                               key={id}
@@ -320,7 +278,25 @@ export function EntitySelectionModal({
                               Over capacity ({overCapacity.length})
                             </p>
                             {overCapacity.map((entity) => {
-                              const id = 'id' in entity ? (entity.id as string) : ''
+                              const id = getEntityId(entity)
+                              return (
+                                <div
+                                  key={id}
+                                  className="pointer-events-none rounded-md opacity-50 ring-2 ring-su-rust/50"
+                                >
+                                  <EntityDisplay data={entity} compact disabled />
+                                </div>
+                              )
+                            })}
+                          </>
+                        )}
+                        {overBudget.length > 0 && (
+                          <>
+                            <p className="mt-2 text-center text-xs font-medium text-su-grey-dark">
+                              Over budget ({overBudget.length})
+                            </p>
+                            {overBudget.map((entity) => {
+                              const id = getEntityId(entity)
                               return (
                                 <div
                                   key={id}
