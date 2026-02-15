@@ -5,7 +5,6 @@
 @theme {
   /* === Typography === */
   --font-mono: 'Fira Code', Monaco, Consolas, 'Ubuntu Mono', monospace;
-  --font-sans: 'Fira Code', Monaco, Consolas, 'Ubuntu Mono', monospace;
 
   /* === Brand Colors === */
   --color-su-orange: rgb(239, 137, 79);
@@ -52,17 +51,6 @@
   --color-mech-dark: var(--color-su-green-dark);
   --color-crawler: var(--color-su-pink);
 
-  /* Heat severity */
-  --color-heat-low: rgb(76, 175, 80);
-  --color-heat-rising: rgb(255, 193, 7);
-  --color-heat-critical: rgb(255, 152, 0);
-  --color-heat-cap: rgb(244, 67, 54);
-
-  /* Condition */
-  --color-intact: rgb(76, 175, 80);
-  --color-damaged: rgb(255, 193, 7);
-  --color-destroyed: rgb(244, 67, 54);
-
   /* Roll result tiers */
   --color-roll-cascade: rgb(244, 67, 54);
   --color-roll-failure: rgb(255, 152, 0);
@@ -72,31 +60,12 @@
 }
 
 /*
- * CSS custom properties for light/dark theming
- * ShadCN convention: use CSS variables for background, foreground, etc.
+ * Base CSS custom properties used by body styles and components.
+ * Keep minimal — only define variables that are actually referenced.
  */
 :root {
   --background: var(--color-su-white);
   --foreground: var(--color-su-black);
-  --card: var(--color-su-blue-light);
-  --card-foreground: var(--color-su-black);
-  --popover: var(--color-su-white);
-  --popover-foreground: var(--color-su-black);
-  --primary: var(--color-su-orange);
-  --primary-foreground: var(--color-su-white);
-  --secondary: var(--color-su-green);
-  --secondary-foreground: var(--color-su-white);
-  --muted: var(--color-su-blue-pale);
-  --muted-foreground: var(--color-su-grey-dark);
-  --accent: var(--color-su-blue-light);
-  --accent-foreground: var(--color-su-black);
-  --destructive: rgb(220, 38, 38);
-  --destructive-foreground: white;
-  --border: var(--color-su-grey-light);
-  --input: var(--color-su-input-bg);
-  --input-foreground: var(--color-su-input-text);
-  --ring: var(--color-su-orange);
-  --radius: 0.5rem;
 }
 
 /* === Expansion Source Effects === */

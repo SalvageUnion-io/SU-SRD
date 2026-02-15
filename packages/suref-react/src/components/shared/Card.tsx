@@ -105,8 +105,8 @@ export function Card({
             children ? 'rounded-t-sm' : 'rounded-md flex-1',
             reverse ? 'flex-row-reverse' : 'flex-row',
             actualHeaderBg,
-            compact ? 'min-h-[60px] px-1 py-1' : 'min-h-[80px] px-1.5 py-1.5',
-            label && (compact ? 'pt-3 pb-3' : 'pt-4 pb-4'),
+            compact ? 'min-h-[44px] px-1 py-1' : 'min-h-[80px] px-1.5 py-1.5',
+            label && (compact ? 'pt-2 pb-1' : 'pt-4 pb-4'),
             onHeaderClick && 'cursor-pointer',
             sourceStyles.className
           )}
