@@ -65,6 +65,17 @@
         "name": "Choose your first Ability",
         "stepType": "select-one",
         "schema": ["abilities"],
+        "filters": [
+          {
+            "field": "level",
+            "value": 1
+          },
+          {
+            "field": "tree",
+            "operator": "ne",
+            "value": "Generic"
+          }
+        ],
         "contextFrom": "801d291b-c684-4560-9ead-e047786f207b",
         "dependsOn": ["801d291b-c684-4560-9ead-e047786f207b"],
         "content": [

@@ -1,7 +1,7 @@
 import { resolveFormationMember, normalizePatternName, getFormation } from 'salvageunion-reference'
 import type { SURefMetaEntity } from 'salvageunion-reference'
 import { EntityDisplay } from './index'
-import { Text } from '../../base/Text'
+import { SectionSeparator } from './SectionSeparator'
 import { cn } from '../../../utils/cn'
 
 type EntityFormationProps = {
@@ -16,13 +16,7 @@ export function EntityFormation({ data, headerFontSize, compact = false }: Entit
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-3">
-        <div className="h-px flex-1 bg-su-grey-light" aria-hidden="true" />
-        <Text variant="pseudoheader" className={cn(headerFontSize ?? 'text-lg')}>
-          Formation
-        </Text>
-        <div className="h-px flex-1 bg-su-grey-light" aria-hidden="true" />
-      </div>
+      <SectionSeparator label="Formation" fontSize={headerFontSize} />
       <div className={cn('grid grid-cols-1 gap-2', !compact && 'lg:grid-cols-2')}>
         {formation.flatMap((mech, mechIdx) => {
           const count = mech.quantity ?? 1

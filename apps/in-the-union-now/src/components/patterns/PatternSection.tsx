@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router'
-import { Wrench, Plus } from 'lucide-react'
-import { Text } from 'suref-react'
+import { Plus } from 'lucide-react'
+import { SectionSeparator } from 'suref-react'
 import { useAuthStore } from '../../stores/authStore'
 import { usePatterns } from '../../hooks/usePatterns'
 import { PatternCard } from './PatternCard'
@@ -14,11 +14,8 @@ export function PatternSection() {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Wrench className="h-4 w-4 text-su-orange" />
-          <Text variant="pseudoheader" as="span" className="text-sm text-su-white uppercase">
-            Patterns
-          </Text>
+        <div className="flex-1">
+          <SectionSeparator label="Patterns" fontSize="text-sm" />
         </div>
         {patterns && patterns.length > 0 && (
           <Button variant="ghost" size="sm" asChild>

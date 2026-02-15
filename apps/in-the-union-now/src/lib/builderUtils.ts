@@ -24,6 +24,7 @@ export type BuilderState = {
   name: string
   chassisRef: string | null
   description: string
+  visible: boolean
   items: PatternItem[]
 }
 
@@ -101,6 +102,7 @@ export function builderToCreateInput(state: BuilderState): CreatePatternInput | 
     name: state.name.trim(),
     chassis_ref: state.chassisRef,
     description: state.description.trim() || undefined,
+    visible: state.visible,
     pattern_items: state.items,
   }
 }

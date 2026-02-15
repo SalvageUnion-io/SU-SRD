@@ -21,6 +21,7 @@ function patternToBuilderState(pattern: TypedPatternRow): BuilderState {
     name: pattern.name,
     chassisRef: pattern.chassis_ref,
     description: pattern.description ?? '',
+    visible: pattern.visible,
     items: pattern.pattern_items,
   }
 }

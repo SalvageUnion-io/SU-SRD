@@ -17,11 +17,20 @@ export function getStepNumbers(steps: SURefObjectGuideStep[]): number[] {
  *  If the field doesn't exist on the entity the filter is skipped. */
 export function matchesFilter(
   entity: Record<string, unknown>,
-  filter: { field: string; value?: string | number | boolean; min?: number; max?: number }
+  filter: {
+    field: string
+    operator?: 'eq' | 'ne'
+    value?: string | number | boolean
+    min?: number
+    max?: number
+  }
 ): boolean {
   const fieldValue = entity[filter.field]
   if (fieldValue === undefined) return true
-  if (filter.value !== undefined) return fieldValue === filter.value
+  if (filter.value !== undefined) {
+    const op = filter.operator ?? 'eq'
+    return op === 'ne' ? fieldValue !== filter.value : fieldValue === filter.value
+  }
   if (filter.min !== undefined && (typeof fieldValue !== 'number' || fieldValue < filter.min))
     return false
   if (filter.max !== undefined && (typeof fieldValue !== 'number' || fieldValue > filter.max))

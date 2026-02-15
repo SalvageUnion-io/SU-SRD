@@ -3,6 +3,7 @@ import type { SURefChassis, SURefModule, SURefSystem } from 'salvageunion-refere
 import { SheetDisplay } from '../../shared/SheetDisplay'
 import { EntityDisplay } from './index'
 import { Text } from '../../base/Text'
+import { SectionSeparator } from './SectionSeparator'
 import { getParagraphString } from '../../../lib/contentBlockHelpers'
 
 type EntityChassisPatternProps = {
@@ -87,12 +88,12 @@ export function EntityChassisPattern({ pattern, droneEntityName }: EntityChassis
 
       {systems.length > 0 && (
         <div className="space-y-2">
+          <SectionSeparator label="Systems" fontSize="text-xs" />
           <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
             {systems.map((system, idx) => (
               <EntityDisplay
                 key={`${system.entity.id}-${idx}`}
                 data={system.entity}
-                label={idx === 0 ? 'Systems' : undefined}
                 compact
                 listing
               />
@@ -103,12 +104,12 @@ export function EntityChassisPattern({ pattern, droneEntityName }: EntityChassis
       {modules.length > 0 && systems.length > 0 && <div className="pt-4" />}
       {modules.length > 0 && (
         <div className="space-y-2">
+          <SectionSeparator label="Modules" fontSize="text-xs" />
           <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
             {modules.map((module, idx) => (
               <EntityDisplay
                 key={`${module.entity.id}-${idx}`}
                 data={module.entity}
-                label={idx === 0 ? 'Modules' : undefined}
                 compact
                 listing
               />
@@ -145,15 +146,10 @@ function DroneWithEquipment({
     <EntityDisplay data={droneEntity} compact hideActions hidePatterns listing>
       {droneSystems.length > 0 && (
         <div className="space-y-2">
+          <SectionSeparator label="Systems" fontSize="text-xs" />
           <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
             {droneSystems.map((system, idx) => (
-              <EntityDisplay
-                key={`drone-sys-${system.id}-${idx}`}
-                data={system}
-                label={idx === 0 ? 'Systems' : undefined}
-                compact
-                listing
-              />
+              <EntityDisplay key={`drone-sys-${system.id}-${idx}`} data={system} compact listing />
             ))}
           </div>
         </div>
@@ -161,15 +157,10 @@ function DroneWithEquipment({
       {droneModules.length > 0 && droneSystems.length > 0 && <div className="pt-4" />}
       {droneModules.length > 0 && (
         <div className="space-y-2">
+          <SectionSeparator label="Modules" fontSize="text-xs" />
           <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
             {droneModules.map((module, idx) => (
-              <EntityDisplay
-                key={`drone-mod-${module.id}-${idx}`}
-                data={module}
-                label={idx === 0 ? 'Modules' : undefined}
-                compact
-                listing
-              />
+              <EntityDisplay key={`drone-mod-${module.id}-${idx}`} data={module} compact listing />
             ))}
           </div>
         </div>

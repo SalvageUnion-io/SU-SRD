@@ -199,9 +199,14 @@
                         "type": "string",
                         "description": "Field name on the target entity to filter by"
                       },
+                      "operator": {
+                        "type": "string",
+                        "enum": ["eq", "ne"],
+                        "description": "Comparison operator: eq (default) or ne (not equal)"
+                      },
                       "value": {
                         "type": ["string", "number", "boolean"],
-                        "description": "Exact value the field must match"
+                        "description": "Value to compare the field against"
                       },
                       "min": { "type": "integer", "minimum": 0 },
                       "max": {

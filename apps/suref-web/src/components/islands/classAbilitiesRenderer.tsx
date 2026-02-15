@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import type { SURefAbility } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { EntityDisplay, Text } from 'suref-react'
+import { EntityDisplay, SectionSeparator } from 'suref-react'
 import type { ClassAbilitiesRenderer } from 'suref-react'
 
 type TreeGroup = { tree: string; abilities: SURefAbility[] }
@@ -9,12 +9,8 @@ type TreeGroup = { tree: string; abilities: SURefAbility[] }
 function TreeSection({ tree, abilities }: TreeGroup) {
   return (
     <div className="space-y-1.5">
-      <div className="flex items-center gap-3 pt-2">
-        <div className="h-px flex-1 bg-su-grey-light" aria-hidden="true" />
-        <Text variant="pseudoheader" className="text-lg">
-          {tree} Tree
-        </Text>
-        <div className="h-px flex-1 bg-su-grey-light" aria-hidden="true" />
+      <div className="pt-2">
+        <SectionSeparator label={`${tree} Tree`} />
       </div>
       {abilities.map((ability) => (
         <EntityDisplay key={ability.id} data={ability} compact listing />

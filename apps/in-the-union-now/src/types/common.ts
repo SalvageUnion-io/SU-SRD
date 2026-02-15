@@ -45,6 +45,7 @@ export type CreatePatternInput = {
   name: string
   chassis_ref: string
   description?: string
+  visible?: boolean
   pattern_items: PatternItem[]
 }
 

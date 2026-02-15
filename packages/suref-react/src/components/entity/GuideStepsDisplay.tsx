@@ -119,6 +119,8 @@ export function GuideStepsDisplay({
             ? step.content.filter((block) => block.type !== 'hint')
             : step.content
 
+        const isRight = !compact && stepNumbers[index]! % 2 === 0
+
         return (
           <div key={step.id} className="overflow-hidden bg-transparent">
             {step.section && (
@@ -126,7 +128,8 @@ export function GuideStepsDisplay({
                 variant="pseudoheader"
                 className={cn(
                   'w-fit',
-                  compact ? 'text-base px-0.5 py-[1px] mt-2' : 'text-2xl px-1 py-1 mt-4'
+                  compact ? 'text-base px-0.5 py-[1px] mt-2' : 'text-2xl px-1 py-1 mt-4',
+                  isRight && 'ml-auto'
                 )}
                 style={{ backgroundColor: 'var(--color-su-black)', color: 'var(--color-su-white)' }}
               >
@@ -137,7 +140,8 @@ export function GuideStepsDisplay({
               <div
                 className={cn(
                   'flex flex-wrap items-center gap-2 bg-transparent',
-                  compact ? 'py-1' : 'py-2'
+                  compact ? 'py-1' : 'py-2',
+                  isRight && 'justify-end'
                 )}
               >
                 <Text
@@ -153,7 +157,12 @@ export function GuideStepsDisplay({
               </div>
             )}
             {isSidebarLayout ? (
-              <div className="flex flex-col md:flex-row gap-4 mt-1">
+              <div
+                className={cn(
+                  'flex flex-col md:flex-row gap-4 mt-1',
+                  isRight && 'md:flex-row-reverse'
+                )}
+              >
                 <div className="flex flex-col items-center md:flex-1 min-w-0">
                   {resolvedEntities.map(({ data, schemaName }, i) => (
                     <div key={(data as { id: string }).id} className="w-full">
@@ -170,8 +179,17 @@ export function GuideStepsDisplay({
                 </div>
                 {stepContent && stepContent.length > 0 && (
                   <div
-                    className={cn('flex-1 min-w-0', compact ? 'pl-2' : 'pl-3')}
-                    style={borderColor ? { borderLeft: `3px solid ${borderColor}` } : undefined}
+                    className={cn(
+                      'flex-1 min-w-0',
+                      isRight ? (compact ? 'pr-2' : 'pr-3') : compact ? 'pl-2' : 'pl-3'
+                    )}
+                    style={
+                      borderColor
+                        ? isRight
+                          ? { borderRight: `3px solid ${borderColor}` }
+                          : { borderLeft: `3px solid ${borderColor}` }
+                        : undefined
+                    }
                   >
                     <BlockContentRendererView
                       content={stepContent}
@@ -186,8 +204,14 @@ export function GuideStepsDisplay({
               </div>
             ) : (
               <div
-                className={compact ? 'pl-2' : 'pl-3'}
-                style={borderColor ? { borderLeft: `3px solid ${borderColor}` } : undefined}
+                className={cn(isRight ? (compact ? 'pr-2' : 'pr-3') : compact ? 'pl-2' : 'pl-3')}
+                style={
+                  borderColor
+                    ? isRight
+                      ? { borderRight: `3px solid ${borderColor}` }
+                      : { borderLeft: `3px solid ${borderColor}` }
+                    : undefined
+                }
               >
                 {stepContent && stepContent.length > 0 && (
                   <BlockContentRendererView

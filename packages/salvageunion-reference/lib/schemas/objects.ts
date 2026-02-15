@@ -607,9 +607,13 @@ export const SchemaNameWithActionsSchema = z.union([SchemaNameSchema, z.literal(
 const GuideStepFilterSchema = z
   .object({
     field: z.string().describe('Field name on the target entity to filter by'),
+    operator: z
+      .enum(['eq', 'ne'])
+      .optional()
+      .describe('Comparison operator: eq (default) or ne (not equal)'),
     value: z
       .union([z.string(), z.number(), z.boolean()])
-      .describe('Exact value the field must match')
+      .describe('Value to compare the field against')
       .optional(),
     min: NonNegativeIntegerSchema.optional(),
     max: NonNegativeIntegerSchema.optional(),
