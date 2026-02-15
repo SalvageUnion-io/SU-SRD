@@ -11,7 +11,7 @@ import {
   normalizePatternName,
 } from 'salvageunion-reference'
 import { RollTable } from '../../../shared/RollTable'
-import { Card } from '../../../shared/Card'
+import { DisplayCard } from '../../../shared/DisplayCard'
 import { EntitySubTitleElement } from '../EntitySubTitleContent'
 import { EntityLeftContent } from '../EntityLeftContent'
 import { EntityRightHeaderContent } from '../EntityRightHeaderContent'
@@ -271,52 +271,81 @@ export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayC
   const [modalOpen, setModalOpen] = useState(false)
   const handleDetailClick = () => setModalOpen(true)
 
-  const card = (
-    <Card
-      bg="bg-su-blue-light"
-      label={label}
-      headerBg={headerBg}
-      headerBgColor={headerBgColor}
-      headerOpacity={opacity.header}
-      leftContent={
+  // Compose header content (previously assembled by Card internally)
+  const titleRotation = useMemo(() => (damaged ? getTiltRotation() : 0), [damaged])
+
+  const headerContent = (
+    <>
+      <div className={cn('flex min-w-0 items-center', compact ? 'gap-0.5' : 'gap-1')}>
         <EntityLeftContent
           techLevel={techLevel}
           compact={compact}
           listing={listing}
           level={'level' in data ? data.level : undefined}
         />
-      }
-      subTitleContent={
-        <EntitySubTitleElement
-          data={data}
-          schemaName={schemaName}
-          spacing={spacing}
-          compact={compact}
-          damaged={damaged}
-          hasPatternOverride={!!patternOverride}
-        />
-      }
-      rightContent={
-        hideStats ? undefined : (
-          <EntityRightHeaderContent
+        <div
+          className={cn(
+            'flex min-w-0 flex-col justify-center overflow-visible',
+            compact ? 'gap-0.5' : 'gap-1'
+          )}
+        >
+          {title && (
+            <div
+              className={cn(compact ? '' : 'overflow-hidden text-ellipsis whitespace-nowrap')}
+              style={titleRotation !== 0 ? { transform: `rotate(${titleRotation}deg)` } : undefined}
+            >
+              <Text
+                variant="pseudoheader"
+                as="span"
+                className={cn(
+                  'relative z-10 uppercase tracking-[-0.02em] transition-transform duration-300',
+                  compact ? 'py-[3px] text-base' : 'text-[1.75rem]',
+                  disabled && 'opacity-50'
+                )}
+                style={compact ? { lineHeight: 1 } : undefined}
+              >
+                {title}
+              </Text>
+            </div>
+          )}
+          <EntitySubTitleElement
             data={data}
+            schemaName={schemaName}
+            spacing={spacing}
             compact={compact}
-            fontSize={fontSize}
-            techLevel={techLevel}
-            listing={listing}
-            primaryStatsOnly={compact && listing && schemaName === 'chassis'}
-            onDetailClick={listing ? handleDetailClick : undefined}
+            damaged={damaged}
+            hasPatternOverride={!!patternOverride}
           />
-        )
-      }
-      compact={compact}
-      title={title}
-      titleRotation={useMemo(() => (damaged ? getTiltRotation() : 0), [damaged])}
-      bodyPadding="p-0"
-      onHeaderClick={listing ? handleDetailClick : undefined}
+        </div>
+      </div>
+      {!hideStats && (
+        <EntityRightHeaderContent
+          data={data}
+          compact={compact}
+          fontSize={fontSize}
+          techLevel={techLevel}
+          listing={listing}
+          primaryStatsOnly={compact && listing && schemaName === 'chassis'}
+          onDetailClick={listing ? handleDetailClick : undefined}
+        />
+      )}
+    </>
+  )
+
+  const card = (
+    <DisplayCard
+      headerBg={headerBg}
+      headerBgColor={headerBgColor}
+      headerOpacity={opacity.header}
+      headerContent={headerContent}
+      footerContent={!hasBodyContent ? footer : undefined}
+      label={label}
+      mode={listing ? 'listing' : compact ? 'compact' : 'full'}
+      onClick={listing ? handleDetailClick : undefined}
       headerTestId="frame-header-container"
       source={source}
       isExpanded={!listing}
+      bodyPadding="p-0"
     >
       {!listing && hasBodyContent && (
         <div
@@ -547,9 +576,7 @@ export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayC
           {footer}
         </div>
       )}
-      {/* Footer without body content — rendered directly in Card */}
-      {!listing && !hasBodyContent && footer}
-    </Card>
+    </DisplayCard>
   )
 
   if (listing) {
@@ -580,6 +607,11 @@ export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayC
                     hidePatterns={!!patternOverride}
                     hideChoices={false}
                     patternOverride={patternOverride}
+                    label={
+                      schemaName === 'abilities' && 'tree' in data && data.tree
+                        ? `${data.tree} Tree`
+                        : undefined
+                    }
                   >
                     {children}
                   </EntityDisplayContent>

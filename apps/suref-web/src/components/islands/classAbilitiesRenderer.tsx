@@ -1,8 +1,27 @@
-import { Fragment, useMemo } from 'react'
+import { useMemo } from 'react'
 import type { SURefAbility } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { EntityDisplay } from 'suref-react'
+import { EntityDisplay, Text } from 'suref-react'
 import type { ClassAbilitiesRenderer } from 'suref-react'
+
+type TreeGroup = { tree: string; abilities: SURefAbility[] }
+
+function TreeSection({ tree, abilities }: TreeGroup) {
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center gap-3 pt-2">
+        <div className="h-px flex-1 bg-su-grey-light" aria-hidden="true" />
+        <Text variant="pseudoheader" className="text-lg">
+          {tree} Tree
+        </Text>
+        <div className="h-px flex-1 bg-su-grey-light" aria-hidden="true" />
+      </div>
+      {abilities.map((ability) => (
+        <EntityDisplay key={ability.id} data={ability} compact listing />
+      ))}
+    </div>
+  )
+}
 
 function ClassAbilities({
   selectedClass,
@@ -10,53 +29,65 @@ function ClassAbilities({
 }: Parameters<ClassAbilitiesRenderer>[0]) {
   const cls = selectedClass || selectedAdvancedClass
 
-  const treeNames = useMemo(() => {
+  const coreTreeNames = useMemo(() => {
     if (!cls) return []
-    const trees: string[] = []
     if ('coreTrees' in cls && Array.isArray(cls.coreTrees)) {
-      trees.push(...cls.coreTrees)
+      return cls.coreTrees as string[]
     }
-    if ('advancedTree' in cls && cls.advancedTree) {
-      trees.push(cls.advancedTree as string)
-    }
-    if ('legendaryTree' in cls && cls.legendaryTree) {
-      trees.push(cls.legendaryTree as string)
-    }
-    return trees
+    return []
   }, [cls])
 
-  const abilitiesByTree = useMemo(() => {
-    const allAbilities = SalvageUnionReference.Abilities.all()
-    const grouped: { tree: string; abilities: SURefAbility[] }[] = []
-    for (const tree of treeNames) {
-      const levelOrder = (l: number | 'L' | 'G') =>
-        typeof l === 'number' ? l : l === 'L' ? 90 : 99
-      const matching = allAbilities
-        .filter((a) => a.tree === tree)
-        .sort((a, b) => levelOrder(a.level) - levelOrder(b.level))
-      if (matching.length > 0) {
-        grouped.push({ tree, abilities: matching })
-      }
-    }
-    return grouped
-  }, [treeNames])
+  const advancedTreeName = useMemo(() => {
+    if (!cls) return undefined
+    return 'advancedTree' in cls && cls.advancedTree ? (cls.advancedTree as string) : undefined
+  }, [cls])
 
-  if (!cls || abilitiesByTree.length === 0) return null
+  const legendaryTreeName = useMemo(() => {
+    if (!cls) return undefined
+    return 'legendaryTree' in cls && cls.legendaryTree ? (cls.legendaryTree as string) : undefined
+  }, [cls])
+
+  const resolveTree = useMemo(() => {
+    const allAbilities = SalvageUnionReference.Abilities.all()
+    const levelOrder = (l: number | 'L' | 'G') => (typeof l === 'number' ? l : l === 'L' ? 90 : 99)
+    return (treeName: string): TreeGroup | null => {
+      const matching = allAbilities
+        .filter((a) => a.tree === treeName)
+        .sort((a, b) => levelOrder(a.level) - levelOrder(b.level))
+      return matching.length > 0 ? { tree: treeName, abilities: matching } : null
+    }
+  }, [])
+
+  const coreTrees = useMemo(
+    () => coreTreeNames.map(resolveTree).filter(Boolean) as TreeGroup[],
+    [coreTreeNames, resolveTree]
+  )
+
+  const advancedTree = useMemo(
+    () => (advancedTreeName ? resolveTree(advancedTreeName) : null),
+    [advancedTreeName, resolveTree]
+  )
+
+  const legendaryTree = useMemo(
+    () => (legendaryTreeName ? resolveTree(legendaryTreeName) : null),
+    [legendaryTreeName, resolveTree]
+  )
+
+  if (!cls) return null
+  const hasCoreTrees = coreTrees.length > 0
+  const hasSpecialTrees = !!advancedTree || !!legendaryTree
+  if (!hasCoreTrees && !hasSpecialTrees) return null
 
   return (
     <div className="space-y-1.5">
-      {abilitiesByTree.map(({ tree, abilities }, treeIndex) =>
-        abilities.map((ability, index) => (
-          <Fragment key={ability.id}>
-            {index === 0 && treeIndex > 0 && <div className="pt-4" />}
-            <EntityDisplay
-              data={ability}
-              label={index === 0 ? `${tree} tree` : undefined}
-              compact
-              listing
-            />
-          </Fragment>
-        ))
+      {coreTrees.map((group) => (
+        <TreeSection key={group.tree} {...group} />
+      ))}
+      {hasSpecialTrees && (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          {advancedTree && <TreeSection {...advancedTree} />}
+          {legendaryTree && <TreeSection {...legendaryTree} />}
+        </div>
       )}
     </div>
   )

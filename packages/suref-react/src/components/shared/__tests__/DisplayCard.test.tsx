@@ -131,4 +131,119 @@ describe('DisplayCard', () => {
     )
     expect(container.querySelector('.bg-su-white')).toBeNull()
   })
+
+  test('headerOpacity applies opacity style to header', () => {
+    render(
+      <DisplayCard
+        headerBg="bg-su-green"
+        headerContent={<span>Dimmed</span>}
+        headerOpacity={0.5}
+        headerTestId="test-header"
+      >
+        <p>Body</p>
+      </DisplayCard>
+    )
+    const header = screen.getByTestId('test-header')
+    expect(header.style.opacity).toBe('0.5')
+  })
+
+  test('disabled state applies grey header background', () => {
+    render(
+      <DisplayCard
+        headerBg="bg-su-green"
+        headerContent={<span>Disabled</span>}
+        disabled
+        headerTestId="test-header"
+      >
+        <p>Body</p>
+      </DisplayCard>
+    )
+    const header = screen.getByTestId('test-header')
+    expect(header.className).toContain('bg-su-grey')
+    expect(header.className).not.toContain('bg-su-green')
+  })
+
+  test('bodyPadding overrides default padding', () => {
+    const { container } = render(
+      <DisplayCard headerBg="bg-su-green" headerContent={<span>Header</span>} bodyPadding="p-0">
+        <p>Body</p>
+      </DisplayCard>
+    )
+    const body = container.querySelector('.p-0')
+    expect(body).toBeTruthy()
+    expect(container.querySelector('.p-3')).toBeNull()
+  })
+
+  test('headerTestId passes data-testid to header div', () => {
+    render(
+      <DisplayCard
+        headerBg="bg-su-green"
+        headerContent={<span>Header</span>}
+        headerTestId="my-header"
+      >
+        <p>Body</p>
+      </DisplayCard>
+    )
+    expect(screen.getByTestId('my-header')).toBeTruthy()
+  })
+
+  test('absoluteElements renders inside the wrapper', () => {
+    render(
+      <DisplayCard
+        headerBg="bg-su-green"
+        headerContent={<span>Header</span>}
+        absoluteElements={<div data-testid="absolute-el">Overlay</div>}
+      >
+        <p>Body</p>
+      </DisplayCard>
+    )
+    expect(screen.getByTestId('absolute-el')).toBeTruthy()
+    expect(screen.getByText('Overlay')).toBeTruthy()
+  })
+
+  test('source applies expansion CSS class to header', () => {
+    render(
+      <DisplayCard
+        headerBg="bg-su-green"
+        headerContent={<span>Fangs</span>}
+        source="We Were Here First!"
+        headerTestId="test-header"
+      >
+        <p>Body</p>
+      </DisplayCard>
+    )
+    const header = screen.getByTestId('test-header')
+    expect(header.className).toContain('expansion-fangs-down')
+  })
+
+  test('footer gets source styling applied', () => {
+    const { container } = render(
+      <DisplayCard
+        headerBg="bg-su-green"
+        headerContent={<span>Header</span>}
+        footerContent={<span>Footer</span>}
+        source="We Were Here First!"
+      >
+        <p>Body</p>
+      </DisplayCard>
+    )
+    const footer = container.querySelector('.expansion-fangs-up')
+    expect(footer).toBeTruthy()
+  })
+
+  test('disabled state suppresses source styling', () => {
+    render(
+      <DisplayCard
+        headerBg="bg-su-green"
+        headerContent={<span>Header</span>}
+        source="We Were Here First!"
+        disabled
+        headerTestId="test-header"
+      >
+        <p>Body</p>
+      </DisplayCard>
+    )
+    const header = screen.getByTestId('test-header')
+    expect(header.className).not.toContain('expansion-fangs-down')
+  })
 })

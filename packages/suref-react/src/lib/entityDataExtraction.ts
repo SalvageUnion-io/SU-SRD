@@ -231,11 +231,6 @@ export function extractEntityDetails(
     details.push({ label: 'Black Market', type: 'meta' })
   }
 
-  // Add ability tree name
-  if (schemaName === 'abilities' && 'tree' in data && data.tree) {
-    details.push({ label: String(data.tree), type: 'meta' })
-  }
-
   // Extract activation cost
   const activationCost = extractActivationCostDetail(data, schemaName, currency || 'AP')
   if (activationCost) details.push(activationCost)

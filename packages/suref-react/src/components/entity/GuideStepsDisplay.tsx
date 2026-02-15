@@ -213,7 +213,7 @@ export function GuideStepsDisplay({
                   <div
                     className={cn(
                       'grid gap-2 mt-2',
-                      compact ? 'grid-cols-1' : 'grid-cols-2 lg:grid-cols-3'
+                      compact ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
                     )}
                   >
                     {resolvedEntities.map(({ data, schemaName }) =>
