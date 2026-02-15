@@ -14,7 +14,7 @@
     "sanity": "bun run lint -- --fix && bun run format && bun run typecheck",
     "format:check": "prettier --check .",
     "gen:types": "bunx supabase gen types typescript --project-id dshtuchbleipwqacyokz --schema public > src/types/database-generated.types.ts",
-    "test": "echo 'No tests configured'",
+    "test": "bun test",
     "test:coverage": "bun test --coverage",
     "test:watch": "bun test --watch",
     "ladle": "ladle serve",

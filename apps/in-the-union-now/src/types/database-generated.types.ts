@@ -285,6 +285,7 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          image_path: string | null
           name: string
           pattern_items: Json
           updated_at: string
@@ -296,6 +297,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          image_path?: string | null
           name: string
           pattern_items?: Json
           updated_at?: string
@@ -307,6 +309,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          image_path?: string | null
           name?: string
           pattern_items?: Json
           updated_at?: string
@@ -326,6 +329,7 @@ export type Database = {
           current_sp: number
           heat_capacity: number
           id: string
+          image_path: string | null
           max_ep: number
           max_sp: number
           notes: string | null
@@ -343,6 +347,7 @@ export type Database = {
           current_sp?: number
           heat_capacity?: number
           id?: string
+          image_path?: string | null
           max_ep?: number
           max_sp?: number
           notes?: string | null
@@ -360,6 +365,7 @@ export type Database = {
           current_sp?: number
           heat_capacity?: number
           id?: string
+          image_path?: string | null
           max_ep?: number
           max_sp?: number
           notes?: string | null
@@ -379,6 +385,7 @@ export type Database = {
           created_at: string
           hp: number
           id: string
+          image_path: string | null
           max_ap: number
           max_hp: number
           mech_id: string | null
@@ -397,6 +404,7 @@ export type Database = {
           created_at?: string
           hp?: number
           id?: string
+          image_path?: string | null
           max_ap?: number
           max_hp?: number
           mech_id?: string | null
@@ -415,6 +423,7 @@ export type Database = {
           created_at?: string
           hp?: number
           id?: string
+          image_path?: string | null
           max_ap?: number
           max_hp?: number
           mech_id?: string | null

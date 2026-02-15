@@ -13,6 +13,8 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
+import { Route as AuthenticatedPatternsNewRouteImport } from './routes/_authenticated/patterns/new'
+import { Route as AuthenticatedPatternsPatternIdRouteImport } from './routes/_authenticated/patterns/$patternId'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -33,16 +35,32 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
   path: '/auth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedPatternsNewRoute =
+  AuthenticatedPatternsNewRouteImport.update({
+    id: '/patterns/new',
+    path: '/patterns/new',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedPatternsPatternIdRoute =
+  AuthenticatedPatternsPatternIdRouteImport.update({
+    id: '/patterns/$patternId',
+    path: '/patterns/$patternId',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/login': typeof LoginRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/patterns/$patternId': typeof AuthenticatedPatternsPatternIdRoute
+  '/patterns/new': typeof AuthenticatedPatternsNewRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/': typeof AuthenticatedIndexRoute
+  '/patterns/$patternId': typeof AuthenticatedPatternsPatternIdRoute
+  '/patterns/new': typeof AuthenticatedPatternsNewRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -50,13 +68,32 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/patterns/$patternId': typeof AuthenticatedPatternsPatternIdRoute
+  '/_authenticated/patterns/new': typeof AuthenticatedPatternsNewRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/auth/callback'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/auth/callback'
+    | '/patterns/$patternId'
+    | '/patterns/new'
   fileRoutesByTo: FileRoutesByTo
-  to: '/login' | '/auth/callback' | '/'
-  id: '__root__' | '/_authenticated' | '/login' | '/auth/callback' | '/_authenticated/'
+  to:
+    | '/login'
+    | '/auth/callback'
+    | '/'
+    | '/patterns/$patternId'
+    | '/patterns/new'
+  id:
+    | '__root__'
+    | '/_authenticated'
+    | '/login'
+    | '/auth/callback'
+    | '/_authenticated/'
+    | '/_authenticated/patterns/$patternId'
+    | '/_authenticated/patterns/new'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -95,19 +132,37 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/patterns/new': {
+      id: '/_authenticated/patterns/new'
+      path: '/patterns/new'
+      fullPath: '/patterns/new'
+      preLoaderRoute: typeof AuthenticatedPatternsNewRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/patterns/$patternId': {
+      id: '/_authenticated/patterns/$patternId'
+      path: '/patterns/$patternId'
+      fullPath: '/patterns/$patternId'
+      preLoaderRoute: typeof AuthenticatedPatternsPatternIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
 interface AuthenticatedRouteChildren {
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedPatternsPatternIdRoute: typeof AuthenticatedPatternsPatternIdRoute
+  AuthenticatedPatternsNewRoute: typeof AuthenticatedPatternsNewRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+  AuthenticatedPatternsPatternIdRoute: AuthenticatedPatternsPatternIdRoute,
+  AuthenticatedPatternsNewRoute: AuthenticatedPatternsNewRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
-  AuthenticatedRouteChildren
+  AuthenticatedRouteChildren,
 )
 
 const rootRouteChildren: RootRouteChildren = {

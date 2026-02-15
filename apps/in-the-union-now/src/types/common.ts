@@ -33,3 +33,23 @@ export type EntityRefUpdate = Database['public']['Tables']['entity_refs']['Updat
 
 // Typed update handler - constrains field names and value types
 export type EntityUpdateHandler<T> = <K extends keyof T>(field: K, value: T[K]) => void
+
+// Pattern builder types
+export type PatternItem = {
+  schema_name: 'systems' | 'modules'
+  schema_ref_id: string
+  sort_order: number
+}
+
+export type CreatePatternInput = {
+  name: string
+  chassis_ref: string
+  description?: string
+  pattern_items: PatternItem[]
+}
+
+export type UpdatePatternInput = Partial<CreatePatternInput>
+
+export type TypedPatternRow = Omit<MechPatternRow, 'pattern_items'> & {
+  pattern_items: PatternItem[]
+}

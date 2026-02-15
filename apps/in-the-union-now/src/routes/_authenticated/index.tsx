@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { Text } from 'suref-react'
-import { Wrench, User, Truck } from 'lucide-react'
+import { User, Truck } from 'lucide-react'
+import { PatternSection } from '../../components/patterns/PatternSection'
 
 export const Route = createFileRoute('/_authenticated/')({
   component: Dashboard,
@@ -36,12 +37,9 @@ function Dashboard() {
         <p className="mt-1 text-sm text-su-grey-dark">Your Salvage Union roster at a glance.</p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <DashboardSection
-          title="Patterns"
-          icon={Wrench}
-          description="No mech patterns yet. Build your first pattern to get started."
-        />
+      <PatternSection />
+
+      <div className="grid gap-4 sm:grid-cols-2">
         <DashboardSection
           title="Pilots"
           icon={User}
