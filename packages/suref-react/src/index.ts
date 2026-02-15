@@ -13,6 +13,9 @@ export { Toaster } from './components/ui/toaster'
 export { EntityDisplay } from './components/entity/EntityDisplay/index'
 
 // Shared components
+export { DisplayCard } from './components/shared/DisplayCard'
+export { InteractiveStatDisplay } from './components/shared/InteractiveStatDisplay'
+export { Footer } from './components/shared/Footer'
 export { Card } from './components/shared/Card'
 export { ValueDisplay } from './components/shared/ValueDisplay'
 export { StatDisplay } from './components/shared/StatDisplay'

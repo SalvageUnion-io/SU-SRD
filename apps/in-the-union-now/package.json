@@ -22,9 +22,12 @@
     "check": "bun run lint && bun run format:check && bun run typecheck"
   },
   "dependencies": {
-    "@radix-ui/react-dialog": "^1.1.15",
+    "@radix-ui/react-dialog": "1.1.15",
+    "@radix-ui/react-dropdown-menu": "2.1.16",
+    "@radix-ui/react-separator": "1.1.8",
+    "@radix-ui/react-slot": "1.2.4",
     "@radix-ui/react-tabs": "^1.1.3",
-    "@radix-ui/react-tooltip": "^1.1.8",
+    "@radix-ui/react-tooltip": "1.2.8",
     "@randsum/roller": "^0.27.0",
     "@randsum/salvageunion": "^0.37.0",
     "@supabase/supabase-js": "^2.81.1",
@@ -38,8 +41,8 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "salvageunion-reference": "workspace:*",
-    "suref-react": "workspace:*",
     "sonner": "^2.0.3",
+    "suref-react": "workspace:*",
     "tailwind-merge": "^3.0.2",
     "zod": "^3.23.8",
     "zustand": "^5.0.11"
