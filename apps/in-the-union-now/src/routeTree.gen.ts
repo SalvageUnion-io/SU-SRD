@@ -11,11 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
-import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
-import { Route as AuthenticatedPilotIdRouteImport } from './routes/_authenticated/pilot.$id'
-import { Route as AuthenticatedMechIdRouteImport } from './routes/_authenticated/mech.$id'
-import { Route as AuthenticatedCrawlerIdRouteImport } from './routes/_authenticated/crawler.$id'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -26,76 +22,38 @@ const AuthenticatedRoute = AuthenticatedRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
 const AuthCallbackRoute = AuthCallbackRouteImport.update({
   id: '/auth/callback',
   path: '/auth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedPilotIdRoute = AuthenticatedPilotIdRouteImport.update({
-  id: '/pilot/$id',
-  path: '/pilot/$id',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedMechIdRoute = AuthenticatedMechIdRouteImport.update({
-  id: '/mech/$id',
-  path: '/mech/$id',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedCrawlerIdRoute = AuthenticatedCrawlerIdRouteImport.update({
-  id: '/crawler/$id',
-  path: '/crawler/$id',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof AuthenticatedIndexRoute
+  '/': typeof AuthenticatedRoute
   '/login': typeof LoginRoute
   '/auth/callback': typeof AuthCallbackRoute
-  '/crawler/$id': typeof AuthenticatedCrawlerIdRoute
-  '/mech/$id': typeof AuthenticatedMechIdRoute
-  '/pilot/$id': typeof AuthenticatedPilotIdRoute
 }
 export interface FileRoutesByTo {
+  '/': typeof AuthenticatedRoute
   '/login': typeof LoginRoute
   '/auth/callback': typeof AuthCallbackRoute
-  '/': typeof AuthenticatedIndexRoute
-  '/crawler/$id': typeof AuthenticatedCrawlerIdRoute
-  '/mech/$id': typeof AuthenticatedMechIdRoute
-  '/pilot/$id': typeof AuthenticatedPilotIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/_authenticated': typeof AuthenticatedRoute
   '/login': typeof LoginRoute
   '/auth/callback': typeof AuthCallbackRoute
-  '/_authenticated/': typeof AuthenticatedIndexRoute
-  '/_authenticated/crawler/$id': typeof AuthenticatedCrawlerIdRoute
-  '/_authenticated/mech/$id': typeof AuthenticatedMechIdRoute
-  '/_authenticated/pilot/$id': typeof AuthenticatedPilotIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/auth/callback' | '/crawler/$id' | '/mech/$id' | '/pilot/$id'
+  fullPaths: '/' | '/login' | '/auth/callback'
   fileRoutesByTo: FileRoutesByTo
-  to: '/login' | '/auth/callback' | '/' | '/crawler/$id' | '/mech/$id' | '/pilot/$id'
-  id:
-    | '__root__'
-    | '/_authenticated'
-    | '/login'
-    | '/auth/callback'
-    | '/_authenticated/'
-    | '/_authenticated/crawler/$id'
-    | '/_authenticated/mech/$id'
-    | '/_authenticated/pilot/$id'
+  to: '/' | '/login' | '/auth/callback'
+  id: '__root__' | '/_authenticated' | '/login' | '/auth/callback'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  AuthenticatedRoute: typeof AuthenticatedRoute
   LoginRoute: typeof LoginRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
 }
@@ -116,13 +74,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/': {
-      id: '/_authenticated/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedIndexRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/auth/callback': {
       id: '/auth/callback'
       path: '/auth/callback'
@@ -130,50 +81,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/pilot/$id': {
-      id: '/_authenticated/pilot/$id'
-      path: '/pilot/$id'
-      fullPath: '/pilot/$id'
-      preLoaderRoute: typeof AuthenticatedPilotIdRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/mech/$id': {
-      id: '/_authenticated/mech/$id'
-      path: '/mech/$id'
-      fullPath: '/mech/$id'
-      preLoaderRoute: typeof AuthenticatedMechIdRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/crawler/$id': {
-      id: '/_authenticated/crawler/$id'
-      path: '/crawler/$id'
-      fullPath: '/crawler/$id'
-      preLoaderRoute: typeof AuthenticatedCrawlerIdRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
   }
 }
 
-interface AuthenticatedRouteChildren {
-  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
-  AuthenticatedCrawlerIdRoute: typeof AuthenticatedCrawlerIdRoute
-  AuthenticatedMechIdRoute: typeof AuthenticatedMechIdRoute
-  AuthenticatedPilotIdRoute: typeof AuthenticatedPilotIdRoute
-}
-
-const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
-  AuthenticatedIndexRoute: AuthenticatedIndexRoute,
-  AuthenticatedCrawlerIdRoute: AuthenticatedCrawlerIdRoute,
-  AuthenticatedMechIdRoute: AuthenticatedMechIdRoute,
-  AuthenticatedPilotIdRoute: AuthenticatedPilotIdRoute,
-}
-
-const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
-  AuthenticatedRouteChildren
-)
-
 const rootRouteChildren: RootRouteChildren = {
-  AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  AuthenticatedRoute: AuthenticatedRoute,
   LoginRoute: LoginRoute,
   AuthCallbackRoute: AuthCallbackRoute,
 }
