@@ -1,20 +1,13 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro'
-import { getSchemaCatalog } from 'salvageunion-reference'
+import { getSchemaCatalog, SalvageUnionReference, getEntityDisplayData } from 'salvageunion-reference'
+import type { SURefGuide } from 'salvageunion-reference'
 import { getCatalogBg, getCatalogLabel } from '../lib/catalogColors'
-import { schemaCategories } from '../lib/schema-categories'
 
 const catalog = getSchemaCatalog()
 const schemas = catalog.schemas.filter((s) => !s.meta)
 const schemaMap = new Map(schemas.map((s) => [s.id, s]))
-
-const categories = schemaCategories.map((cat) => ({
-  label: cat.label,
-  schemas: cat.schemaIds.flatMap((id) => {
-    const s = schemaMap.get(id)
-    return s ? [s] : []
-  }),
-}))
+const catalogCategories = SalvageUnionReference.CatalogCategories.all()
 
 const invariantNouns = new Set(['Chassis', 'Equipment', 'Meld'])
 
@@ -32,6 +25,52 @@ function pluralizeWord(word: string) {
   if (/(?:s|sh|ch|x|z)$/i.test(word)) return word + 'es'
   return word + 's'
 }
+
+type CatalogCard = {
+  id: string
+  href: string
+  label: string
+  catalogBg: string
+  catalogLabel?: string
+}
+
+type CatalogSection = {
+  label: string
+  cards: CatalogCard[]
+}
+
+const categories: CatalogSection[] = catalogCategories.map((cat) => {
+  if (cat.flat) {
+    const schemaName = cat.schemas[0]!
+    const items = SalvageUnionReference.findAllIn(schemaName, () => true)
+    return {
+      label: cat.name.toUpperCase(),
+      cards: items.map((item) => {
+        const display = getEntityDisplayData(item)
+        return {
+          id: item.id,
+          href: `/schema/${schemaName}/item/${display.slug}`,
+          label: item.name,
+          catalogBg: (item as SURefGuide).guideColor || getCatalogBg(schemaName),
+        }
+      }),
+    }
+  }
+  return {
+    label: cat.name.toUpperCase(),
+    cards: cat.schemas.flatMap((id) => {
+      const s = schemaMap.get(id)
+      if (!s) return []
+      return [{
+        id: s.id,
+        href: `/schema/${s.id}`,
+        label: pluralize(s.displayName, s.itemCount),
+        catalogBg: getCatalogBg(s.id),
+        catalogLabel: getCatalogLabel(s.id),
+      }]
+    }),
+  }
+})
 ---
 
 <BaseLayout
@@ -47,19 +86,6 @@ function pluralizeWord(word: string) {
   <div class="flex w-full flex-1 flex-col justify-center py-6">
     <div class="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4">
       <h1 class="sr-only">Salvage Union System Reference Document</h1>
-      <!-- Attribution -->
-      <div class="text-center">
-        <p class="text-sm text-su-grey-dark">
-          A System Reference Document for the
-          {' '}<a
-            href="https://leyline.press/collections/salvage-union"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="underline hover:text-su-orange"
-          >Salvage Union</a>{' '}
-          TTRPG
-        </p>
-      </div>
 
       <!-- Schema list -->
       <div class="flex flex-col gap-6">
@@ -71,15 +97,15 @@ function pluralizeWord(word: string) {
               </h2>
             </div>
             <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {cat.schemas.map((schema) => (
+              {cat.cards.map((card) => (
                 <a
-                  href={`/schema/${schema.id}`}
+                  href={card.href}
                   class:list={['btn text-center catalog-item']}
-                  style={`--catalog-bg: ${getCatalogBg(schema.id)}${getCatalogLabel(schema.id) ? `; --catalog-label: ${getCatalogLabel(schema.id)}` : ''}`}
+                  style={`--catalog-bg: ${card.catalogBg}${card.catalogLabel ? `; --catalog-label: ${card.catalogLabel}` : ''}`}
                 >
-                  {getCatalogLabel(schema.id)
-                    ? <span class="catalog-item-label">{pluralize(schema.displayName, schema.itemCount)}</span>
-                    : pluralize(schema.displayName, schema.itemCount)}
+                  {card.catalogLabel
+                    ? <span class="catalog-item-label">{card.label}</span>
+                    : card.label}
                 </a>
               ))}
             </div>

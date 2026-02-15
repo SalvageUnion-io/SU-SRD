@@ -1,23 +1,42 @@
 ---
-import { getSchemaCatalog } from 'salvageunion-reference'
+import { getSchemaCatalog, SalvageUnionReference, getEntityDisplayData } from 'salvageunion-reference'
+import type { SURefGuide } from 'salvageunion-reference'
 import { MobileNavIsland } from './islands/MobileNavIsland'
 import { SearchIsland } from './islands/SearchIsland'
 import Logo from './Logo.astro'
 import { getCatalogBg, getCatalogLabel } from '../lib/catalogColors'
-import { schemaCategories } from '../lib/schema-categories'
 
 const catalog = getSchemaCatalog()
 const schemas = catalog.schemas.filter((s) => !s.meta)
 const schemaMap = new Map(schemas.map((s) => [s.id, s]))
 const currentPath = Astro.url.pathname
+const catalogCategories = SalvageUnionReference.CatalogCategories.all()
 
-const categories = schemaCategories.map((cat) => ({
-  label: cat.label,
-  schemas: cat.schemaIds.flatMap((id) => {
-    const s = schemaMap.get(id)
-    return s ? [{ id: s.id, displayName: s.displayName || s.title.replace('Salvage Union ', ''), catalogBg: getCatalogBg(s.id), catalogLabel: getCatalogLabel(s.id) }] : []
-  }),
-}))
+const categories = catalogCategories.map((cat) => {
+  if (cat.flat) {
+    const schemaName = cat.schemas[0]!
+    const items = SalvageUnionReference.findAllIn(schemaName, () => true)
+    return {
+      label: cat.name.toUpperCase(),
+      schemas: items.map((item) => {
+        const display = getEntityDisplayData(item)
+        return {
+          id: item.id,
+          displayName: item.name,
+          catalogBg: (item as SURefGuide).guideColor || getCatalogBg(schemaName),
+          href: `/schema/${schemaName}/item/${display.slug}`,
+        }
+      }),
+    }
+  }
+  return {
+    label: cat.name.toUpperCase(),
+    schemas: cat.schemas.flatMap((id) => {
+      const s = schemaMap.get(id)
+      return s ? [{ id: s.id, displayName: s.displayName || s.title.replace('Salvage Union ', ''), catalogBg: getCatalogBg(s.id), catalogLabel: getCatalogLabel(s.id) }] : []
+    }),
+  }
+})
 
 function isActive(path: string) {
   return currentPath.startsWith(path)
@@ -47,6 +66,10 @@ function isActive(path: string) {
 
     <a href="/about" class:list={['btn', isActive('/about') ? 'btn-active' : 'btn-inactive']} aria-current={isActive('/about') ? 'page' : undefined}>
       ABOUT
+    </a>
+
+    <a href="https://leyline.press/collections/salvage-union" target="_blank" rel="noopener noreferrer" class="btn btn-inactive">
+      BUY THE GAME
     </a>
   </div>
 

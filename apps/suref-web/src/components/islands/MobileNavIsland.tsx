@@ -8,6 +8,7 @@ type SchemaLink = {
   displayName: string
   catalogBg: string
   catalogLabel?: string
+  href?: string
 }
 
 type SchemaCategory = {
@@ -102,7 +103,7 @@ export function MobileNavIsland({ categories, currentPath }: MobileNavIslandProp
                 {cat.schemas.map((schema) => (
                   <a
                     key={schema.id}
-                    href={`/schema/${schema.id}`}
+                    href={schema.href || `/schema/${schema.id}`}
                     className="btn catalog-item block text-center text-sm"
                     style={
                       {
@@ -140,6 +141,15 @@ export function MobileNavIsland({ categories, currentPath }: MobileNavIslandProp
               >
                 ABOUT
               </Button>
+              <a
+                href="https://leyline.press/collections/salvage-union"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-inactive block text-center text-sm"
+                onClick={() => setOpen(false)}
+              >
+                BUY THE GAME
+              </a>
             </div>
           </div>
         </DialogPrimitive.Content>

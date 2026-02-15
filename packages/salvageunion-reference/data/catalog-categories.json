@@ -1,0 +1,42 @@
+[
+  {
+    "id": "pilot",
+    "name": "Pilot",
+    "schemas": ["classes", "abilities", "equipment"]
+  },
+  {
+    "id": "mech",
+    "name": "Mech",
+    "schemas": ["chassis", "systems", "modules"]
+  },
+  {
+    "id": "crawler",
+    "name": "Crawler",
+    "schemas": ["crawlers", "crawler-bays", "crawler-tech-levels"]
+  },
+  {
+    "id": "denizens",
+    "name": "Denizens",
+    "schemas": [
+      "bio-titans",
+      "creatures",
+      "drones",
+      "factions",
+      "meld",
+      "npcs",
+      "squads",
+      "vehicles"
+    ]
+  },
+  {
+    "id": "reference",
+    "name": "Reference",
+    "schemas": ["distances", "keywords", "roll-tables", "traits"]
+  },
+  {
+    "id": "guides",
+    "name": "Guides",
+    "schemas": ["guides"],
+    "flat": true
+  }
+]

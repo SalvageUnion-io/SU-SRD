@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Core Rules
+
+Do NOT add features, schema changes, categories, or UI elements that were not explicitly requested. Stay strictly within the scope of what the user asks for.
+
 ## Repository Overview
 
 Bun monorepo ("SURef") for Salvage Union (tabletop RPG) tools, located in the `SU-SRD/` subdirectory. Contains a static reference site, a character builder app, a Discord bot, and shared packages.
@@ -105,6 +109,24 @@ Models extend `BaseModel<T>`, created via `ModelFactory`, accessed via `SalvageU
 - **Search:** In-memory search via `salvageunion-reference` package `search()` function. Cmd+K/Ctrl+K shortcut to focus.
 - **Testing:** Bun test runner with React Testing Library + happy-dom. No Supabase env vars needed.
 - **Deployment:** Netlify (static site, no server functions)
+
+### Data Conventions
+
+- Entity links must use slugs, never UUIDs. Example: `/chassis/iron-mongrel` not `/chassis/550e8400-e29b...`
+- When modifying JSON data files (especially crawler output), never use automated formatters like `json.dump` that reformat arrays. Use text-level insertion to preserve original formatting.
+
+### UI Rendering Conventions
+
+- When rendering lists of entities (roll tables, equipment, drones, etc.), default to compact header-only clickable listings unless explicitly asked for full inline displays. Never render nested entities as separate grids — always render them inside their parent's expanded/modal view.
+- Reuse existing UI components (e.g., pseudoheader components with black backgrounds) before creating new CSS-based alternatives. Check the component library first.
+
+### Development Workflow
+
+After making component changes, always verify all props are passed through to child/nested components (e.g., fontSize, spacing, damaged). Run typecheck immediately after edits to catch missing props before moving on.
+
+### Debugging
+
+For styling bugs, check Tailwind configuration (@source paths, plugin setup) early before diving into component/data logic. Many visual bugs trace back to Tailwind config rather than application code.
 
 ### Pre-commit Hooks (Lefthook)
 

@@ -648,6 +648,7 @@ export const GuideStepSchema: z.ZodType<{
   contextFrom?: string
   guideRef?: string
   optional?: boolean
+  paperOnly?: boolean
   entityLayout?: 'sidebar'
 }> = z.lazy(() =>
   z
@@ -690,6 +691,10 @@ export const GuideStepSchema: z.ZodType<{
         .optional(),
       guideRef: z.string().describe('ID of another guide to execute as a sub-guide').optional(),
       optional: z.boolean().optional(),
+      paperOnly: z
+        .boolean()
+        .describe('Step only applies to paper play (e.g. writing down stats on a character sheet)')
+        .optional(),
       entityLayout: z
         .enum(['sidebar'])
         .describe('Layout for entity displays: sidebar places entities in a left column')

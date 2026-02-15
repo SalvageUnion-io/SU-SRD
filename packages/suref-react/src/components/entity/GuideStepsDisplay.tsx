@@ -4,6 +4,7 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import { Text } from '../base/Text'
 import { BlockContentRendererView } from './BlockContentRendererView'
 import { borderColorFromHeaderBg } from './entityDisplayHelpers'
+import { getStepNumbers, matchesFilter } from './guideStepsHelpers'
 import type { getEntityFontSizes, getEntitySpacing } from './EntityDisplay/entityDisplayTypes'
 import { cn } from '../../utils/cn'
 
@@ -24,38 +25,54 @@ type GuideStepsDisplayProps = {
   ) => ReactNode
 }
 
-/** Compute per-step display numbers, resetting when a step has a `section` value */
-function getStepNumbers(steps: SURefObjectGuideStep[]): number[] {
-  const numbers: number[] = []
-  let counter = 0
-  for (const step of steps) {
-    if (step.section) counter = 0
-    counter++
-    numbers.push(counter)
-  }
-  return numbers
-}
-
 /** Resolve a roll table entity by name */
 function resolveRollTableEntity(name: string) {
   return SalvageUnionReference.RollTables.find((rt) => rt.name === name) ?? null
 }
 
+/** Enrich an entity with computed fields for filtering.
+ *  For systems/modules, computes `hasDamage` from resolved actions. */
+function enrichForFiltering(
+  entity: Record<string, unknown>,
+  schemaName: string
+): Record<string, unknown> {
+  if ((schemaName === 'systems' || schemaName === 'modules') && Array.isArray(entity.actions)) {
+    const hasDamage = (entity.actions as string[]).some((name) => {
+      const action = SalvageUnionReference.Actions.find((a) => a.name === name)
+      return action?.damage !== undefined
+    })
+    return { ...entity, hasDamage }
+  }
+  return entity
+}
+
 /** Resolve schema entities by name from the first schema in the step's schema list.
- *  If schemaEntities is not specified, returns all entities from the schema. */
+ *  If schemaEntities is not specified, returns all entities from the schema.
+ *  Applies step.filters when present. */
 function resolveSchemaEntities(step: SURefObjectGuideStep) {
   if (!step.schema) return []
   const schemaName = step.schema[0]
   if (!schemaName || schemaName === 'actions') return []
 
-  // No explicit entity list — return all entities from the schema
+  const filters = step.filters
+
+  // No explicit entity list — return all entities from the schema (with filters)
   if (!step.schemaEntities || step.schemaEntities.length === 0) {
-    const model = SalvageUnionReference.findAllIn(schemaName, () => true)
+    const model = SalvageUnionReference.findAllIn(schemaName, (e) => {
+      if (!filters || filters.length === 0) return true
+      const enriched = enrichForFiltering(e as Record<string, unknown>, schemaName)
+      return filters.every((f) => matchesFilter(enriched, f))
+    })
     return model.map((entity) => ({ data: entity, schemaName }))
   }
 
   const nameSet = new Set(step.schemaEntities)
-  const entities = SalvageUnionReference.findAllIn(schemaName, (e) => nameSet.has(e.name))
+  const entities = SalvageUnionReference.findAllIn(schemaName, (e) => {
+    if (!nameSet.has(e.name)) return false
+    if (!filters || filters.length === 0) return true
+    const enriched = enrichForFiltering(e as Record<string, unknown>, schemaName)
+    return filters.every((f) => matchesFilter(enriched, f))
+  })
   // Preserve the order from schemaEntities
   const byName = new Map(entities.map((e) => [e.name, e]))
   return step.schemaEntities
@@ -102,6 +119,7 @@ export function GuideStepsDisplay({
 
   const borderColor = borderColorFromHeaderBg(headerBg, headerBgColor)
   const stepNumbers = getStepNumbers(steps)
+  const showStepNumbers = !compact || stepNumbers.some((n) => n > 1)
 
   return (
     <div className={spacing.sectionSpaceYClass}>
@@ -145,46 +163,32 @@ export function GuideStepsDisplay({
                     compact ? 'text-sm px-0.5 py-[1px]' : 'text-xl px-1 py-0.5'
                   )}
                 >
-                  {stepNumbers[index]}. {step.name}
+                  {showStepNumbers ? `${stepNumbers[index]}. ` : ''}
+                  {step.name}
                 </Text>
               </div>
             )}
-            <div
-              className={compact ? 'pl-2' : 'pl-3'}
-              style={borderColor ? { borderLeft: `3px solid ${borderColor}` } : undefined}
-            >
-              {isSidebarLayout ? (
-                <div className="flex flex-col md:flex-row gap-4 mt-1">
-                  <div className="flex flex-col items-center md:flex-1 min-w-0">
-                    {resolvedEntities.map(({ data, schemaName }, i) => (
-                      <div key={(data as { id: string }).id} className="w-full">
-                        {renderEntityListing(
-                          data,
-                          schemaName,
-                          `${step.id}-${schemaName}-${(data as { id: string }).id}`,
-                          true,
-                          true
-                        )}
-                        {i < resolvedEntities.length - 1 && <SidebarArrow />}
-                      </div>
-                    ))}
-                  </div>
-                  {stepContent && stepContent.length > 0 && (
-                    <div className="flex-1 min-w-0">
-                      <BlockContentRendererView
-                        content={stepContent}
-                        fontSize={fontSize.sm}
-                        compact={compact}
-                        damaged={false}
-                        headerBg={headerBg}
-                        headerBgColor={headerBgColor}
-                      />
+            {isSidebarLayout ? (
+              <div className="flex flex-col md:flex-row gap-4 mt-1">
+                <div className="flex flex-col items-center md:flex-1 min-w-0">
+                  {resolvedEntities.map(({ data, schemaName }, i) => (
+                    <div key={(data as { id: string }).id} className="w-full">
+                      {renderEntityListing(
+                        data,
+                        schemaName,
+                        `${step.id}-${schemaName}-${(data as { id: string }).id}`,
+                        true,
+                        true
+                      )}
+                      {i < resolvedEntities.length - 1 && <SidebarArrow />}
                     </div>
-                  )}
+                  ))}
                 </div>
-              ) : (
-                <>
-                  {stepContent && stepContent.length > 0 && (
+                {stepContent && stepContent.length > 0 && (
+                  <div
+                    className={cn('flex-1 min-w-0', compact ? 'pl-2' : 'pl-3')}
+                    style={borderColor ? { borderLeft: `3px solid ${borderColor}` } : undefined}
+                  >
                     <BlockContentRendererView
                       content={stepContent}
                       fontSize={fontSize.sm}
@@ -193,37 +197,53 @@ export function GuideStepsDisplay({
                       headerBg={headerBg}
                       headerBgColor={headerBgColor}
                     />
-                  )}
-                  {rollTableEntity && renderEntityListing && (
-                    <div className="mt-2">
-                      {renderEntityListing(
-                        rollTableEntity,
-                        'roll-tables',
-                        `${step.id}-roll-table-${rollTableEntity.id}`,
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div
+                className={compact ? 'pl-2' : 'pl-3'}
+                style={borderColor ? { borderLeft: `3px solid ${borderColor}` } : undefined}
+              >
+                {stepContent && stepContent.length > 0 && (
+                  <BlockContentRendererView
+                    content={stepContent}
+                    fontSize={fontSize.sm}
+                    compact={compact}
+                    damaged={false}
+                    headerBg={headerBg}
+                    headerBgColor={headerBgColor}
+                  />
+                )}
+                {rollTableEntity && renderEntityListing && (
+                  <div className="mt-2">
+                    {renderEntityListing(
+                      rollTableEntity,
+                      'roll-tables',
+                      `${step.id}-roll-table-${rollTableEntity.id}`,
+                      true
+                    )}
+                  </div>
+                )}
+                {resolvedEntities.length > 0 && renderEntityListing && (
+                  <div
+                    className={cn(
+                      'grid gap-2 mt-2',
+                      compact ? 'grid-cols-1' : 'grid-cols-2 lg:grid-cols-3'
+                    )}
+                  >
+                    {resolvedEntities.map(({ data, schemaName }) =>
+                      renderEntityListing(
+                        data,
+                        schemaName,
+                        `${step.id}-${schemaName}-${(data as { id: string }).id}`,
                         true
-                      )}
-                    </div>
-                  )}
-                  {resolvedEntities.length > 0 && renderEntityListing && (
-                    <div
-                      className={cn(
-                        'grid gap-2 mt-2',
-                        compact ? 'grid-cols-1' : 'grid-cols-2 lg:grid-cols-3'
-                      )}
-                    >
-                      {resolvedEntities.map(({ data, schemaName }) =>
-                        renderEntityListing(
-                          data,
-                          schemaName,
-                          `${step.id}-${schemaName}-${(data as { id: string }).id}`,
-                          true
-                        )
-                      )}
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
+                      )
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )
       })}

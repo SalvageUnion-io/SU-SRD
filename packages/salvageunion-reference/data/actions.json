@@ -5593,6 +5593,7 @@
     "id": "93c1da61-7e1a-49c2-bdc2-20ed230f7556",
     "actionType": "Turn",
     "range": ["Long"],
+    "damage": { "damageType": "SP", "amount": "X" },
     "name": "Mechapult",
     "content": [
       {

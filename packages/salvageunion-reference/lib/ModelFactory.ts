@@ -34,6 +34,7 @@ import {
   TraitEntitySchema,
   VehicleSchema,
   GuideSchema,
+  CatalogCategorySchema,
 } from './schemas/index.js'
 
 // Import all data files
@@ -61,6 +62,7 @@ import squadsData from '../data/squads.json' with { type: 'json' }
 import systemsData from '../data/systems.json' with { type: 'json' }
 import traitsData from '../data/traits.json' with { type: 'json' }
 import vehiclesData from '../data/vehicles.json' with { type: 'json' }
+import catalogCategoriesData from '../data/catalog-categories.json' with { type: 'json' }
 
 // Import all schema files
 import abilitiesSchema from '../schemas/abilities.schema.json' with { type: 'json' }
@@ -87,6 +89,7 @@ import squadsSchema from '../schemas/squads.schema.json' with { type: 'json' }
 import systemsSchema from '../schemas/systems.schema.json' with { type: 'json' }
 import traitsSchema from '../schemas/traits.schema.json' with { type: 'json' }
 import vehiclesSchema from '../schemas/vehicles.schema.json' with { type: 'json' }
+import catalogCategoriesSchema from '../schemas/catalog-categories.schema.json' with { type: 'json' }
 
 /**
  * Static data map - all data files indexed by schema ID
@@ -116,6 +119,7 @@ const dataMap: Record<string, unknown[]> = {
   systems: systemsData,
   traits: traitsData,
   vehicles: vehiclesData,
+  'catalog-categories': catalogCategoriesData,
 }
 
 /**
@@ -146,6 +150,7 @@ const zodSchemaMap: Record<string, z.ZodType<unknown>> = {
   systems: SystemSchema,
   traits: TraitEntitySchema,
   vehicles: VehicleSchema,
+  'catalog-categories': CatalogCategorySchema,
 }
 
 /**
@@ -176,6 +181,7 @@ const schemaMap: Record<string, Record<string, unknown>> = {
   systems: systemsSchema,
   traits: traitsSchema,
   vehicles: vehiclesSchema,
+  'catalog-categories': catalogCategoriesSchema,
 }
 
 /**
@@ -325,6 +331,7 @@ const schemaDisplayNames: Record<string, { singular: string; plural: string }> =
   systems: { singular: 'System', plural: 'Systems' },
   traits: { singular: 'Trait', plural: 'Traits' },
   vehicles: { singular: 'Vehicle', plural: 'Vehicles' },
+  'catalog-categories': { singular: 'Catalog Category', plural: 'Catalog Categories' },
 }
 
 /**

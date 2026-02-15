@@ -17,6 +17,7 @@
         "id": "c8d41f23-7e56-4a19-b3c2-1e8f5d9a0b74",
         "name": "Fill out your Stats",
         "stepType": "info",
+        "paperOnly": true,
         "content": [
           {
             "type": "paragraph",
@@ -244,6 +245,7 @@
         "id": "a2b3c4d5-e6f7-4890-1234-56789abcdef0",
         "name": "Note down your Mech's statistics",
         "stepType": "info",
+        "paperOnly": true,
         "dependsOn": ["5d0d53e1-d2a5-4929-893c-01413b059450"],
         "content": [
           {
@@ -426,6 +428,7 @@
         "id": "d5e6f7a8-b9c0-4123-4567-89abcdef0123",
         "name": "Note down your Crawler statistics",
         "stepType": "info",
+        "paperOnly": true,
         "dependsOn": ["7719034d-b2af-4e4b-a782-a951f43e0576"],
         "content": [
           {
@@ -453,8 +456,8 @@
             "value": 1
           },
           {
-            "field": "type",
-            "value": "Weapon"
+            "field": "hasDamage",
+            "value": true
           }
         ],
         "content": [
@@ -476,6 +479,7 @@
         "id": "f7a8b9c0-d1e2-4345-6789-abcdef012345",
         "name": "Name the Crawler's NPCs",
         "stepType": "freeform",
+        "schema": ["crawler-bays"],
         "content": [
           {
             "type": "paragraph",
@@ -535,7 +539,7 @@
   },
   {
     "id": "5b57c66c-ad03-4184-b081-366c98c44fbe",
-    "name": "Union Crawler Downtime Procedure",
+    "name": "Crawler Downtime",
     "source": "Salvage Union Workshop Manual",
     "page": 227,
     "guideType": "downtime",

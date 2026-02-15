@@ -243,6 +243,10 @@
                   "description": "ID of another guide to execute as a sub-guide"
                 },
                 "optional": { "type": "boolean" },
+                "paperOnly": {
+                  "type": "boolean",
+                  "description": "Step only applies to paper play (e.g. writing down stats on a character sheet)"
+                },
                 "entityLayout": {
                   "type": "string",
                   "enum": ["sidebar"],

@@ -90,6 +90,7 @@ import {
   TraitEntitySchema,
   VehicleSchema,
   GuideSchema,
+  CatalogCategorySchema,
 } from './entities.js'
 
 // Export inferred types with SURef prefix for backward compatibility
@@ -174,6 +175,7 @@ export type SURefSystem = z.infer<typeof SystemSchema>
 export type SURefTrait = z.infer<typeof TraitEntitySchema>
 export type SURefVehicle = z.infer<typeof VehicleSchema>
 export type SURefGuide = z.infer<typeof GuideSchema>
+export type SURefCatalogCategory = z.infer<typeof CatalogCategorySchema>
 
 // Union types
 export type SURefEntity =

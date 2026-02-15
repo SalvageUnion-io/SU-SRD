@@ -32,6 +32,7 @@ import type {
   SURefMetaAction,
   SURefMetaCrawlerTechLevel,
   SURefGuide,
+  SURefCatalogCategory,
   SURefEntity,
   SURefEnumSchemaName,
 } from './types/index.js'
@@ -109,6 +110,7 @@ export type SchemaToEntityMap = {
   systems: SURefSystem
   traits: SURefTrait
   vehicles: SURefVehicle
+  'catalog-categories': SURefCatalogCategory
 }
 
 // Type for entity schema names (includes entity schemas and meta schemas, excludes non-entity schemas)
@@ -168,6 +170,7 @@ export const SchemaToModelMap = {
   systems: 'Systems',
   traits: 'Traits',
   vehicles: 'Vehicles',
+  'catalog-categories': 'CatalogCategories',
 } as const
 
 // Runtime mapping from schema names to display names
@@ -196,6 +199,7 @@ export const SchemaToDisplayName = {
   systems: 'Systems',
   traits: 'Traits',
   vehicles: 'Vehicles',
+  'catalog-categories': 'Catalog Categories',
 } as const
 
 // Auto-generate models from schema catalog (synchronous)
@@ -232,6 +236,7 @@ export class SalvageUnionReference {
   static Systems = models.Systems as ModelWithMetadata<SchemaToEntityMap['systems']>
   static Traits = models.Traits as ModelWithMetadata<SchemaToEntityMap['traits']>
   static Vehicles = models.Vehicles as ModelWithMetadata<SchemaToEntityMap['vehicles']>
+  static CatalogCategories = models.CatalogCategories as ModelWithMetadata<SURefCatalogCategory>
 
   /**
    * Find a single entity in a specific schema

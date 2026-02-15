@@ -37,6 +37,7 @@ import {
   TraitEntitySchema,
   VehicleSchema,
   GuideSchema,
+  CatalogCategorySchema,
 } from '../lib/schemas/entities.js'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -74,6 +75,7 @@ const entitySchemaMap: Record<string, z.ZodType<unknown>> = {
   systems: SystemSchema,
   traits: TraitEntitySchema,
   vehicles: VehicleSchema,
+  'catalog-categories': CatalogCategorySchema,
 }
 
 // Convert schema ID to schema filename

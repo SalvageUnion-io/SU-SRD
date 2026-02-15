@@ -124,6 +124,7 @@ function parseSchemaFile(schemaFile: string): SchemaInfo | null {
     else if (displayName === 'systems') displayName = 'Systems'
     else if (displayName === 'traits') displayName = 'Traits'
     else if (displayName === 'vehicles') displayName = 'Vehicles'
+    else if (displayName === 'catalog-categories') displayName = 'Catalog Categories'
 
     const info: SchemaInfo = {
       id,

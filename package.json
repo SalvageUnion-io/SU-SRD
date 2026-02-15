@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "license": "Salvage Union Open Game Licence 1.0b",
+  "license": "https://leyline.press/pages/salvage-union-open-game-licence-1-0b",
   "workspaces": [
     "apps/*",
     "packages/*"

@@ -191,11 +191,82 @@ export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayC
     { label: 'Weaknesses', value: getWeaknesses(data) },
   ]
 
+  // Determine if there is any body content to render (to avoid empty padding)
+  const hasFactionContent = factionData.some(({ value }) => !!value)
+  const hasGuideSteps =
+    schemaName === 'guides' && 'steps' in data && Array.isArray(data.steps) && data.steps.length > 0
+  const hasBodyContent =
+    hasTopMatterContent ||
+    !!children ||
+    !!chassisAbilitiesBlock ||
+    hasFactionContent ||
+    hasGuideSteps ||
+    ('bonusPerTechLevel' in data && !!data.bonusPerTechLevel) ||
+    (effects && effects.length > 0) ||
+    !!table ||
+    shouldShowExtraContent
+
   // Footer data
   const hasPage = 'page' in data && !!data.page
   const hasSource = 'source' in data && !!data.source
   const footerDisplayName = getDisplayName(schemaName)
   const sourceFooterStyles = getSourceStyles(source, disabled ?? false, 'footer', !listing)
+  const hasFooter = hasPage || hasSource
+
+  const footer = hasFooter ? (
+    <div
+      className={cn(
+        'flex w-full items-center justify-between gap-4 py-3 text-su-black',
+        headerBg || 'bg-su-white',
+        sourceFooterStyles.className
+      )}
+      style={{
+        paddingLeft: `${spacing.contentPaddingX}rem`,
+        paddingRight: `${spacing.contentPaddingX}rem`,
+        ...(headerBgColor ? { backgroundColor: headerBgColor } : {}),
+        ...sourceFooterStyles.style,
+      }}
+    >
+      <div className="flex min-w-0 shrink items-center gap-2">
+        {footerDisplayName && (
+          <Text
+            variant="pseudoheader"
+            as="span"
+            className={cn(
+              'shrink-0 overflow-hidden text-ellipsis whitespace-nowrap text-xs uppercase',
+              compact ? 'font-semibold' : 'font-bold'
+            )}
+          >
+            {footerDisplayName}
+          </Text>
+        )}
+      </div>
+
+      <div className="flex shrink-0">
+        {hasSource && (
+          <Text
+            variant="pseudoheader"
+            as="span"
+            className={cn('whitespace-nowrap text-xs font-semibold uppercase', hasPage && 'mr-4')}
+          >
+            {data.source}
+          </Text>
+        )}
+        {hasPage && (
+          <Text
+            variant="pseudoheader"
+            as="span"
+            className={cn(
+              'whitespace-nowrap text-xs uppercase',
+              compact ? 'font-semibold' : 'font-bold'
+            )}
+          >
+            Page {data.page}
+          </Text>
+        )}
+      </div>
+    </div>
+  ) : null
 
   const [modalOpen, setModalOpen] = useState(false)
   const handleDetailClick = () => setModalOpen(true)
@@ -247,7 +318,7 @@ export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayC
       source={source}
       isExpanded={!listing}
     >
-      {!listing && (
+      {!listing && hasBodyContent && (
         <div
           className="min-w-0 bg-su-white p-0"
           style={{ opacity: opacity.content, width: '100%' }}
@@ -473,66 +544,11 @@ export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayC
             />
             <div className="clear-both" />
           </div>
-          {/* Footer — always full-width, outside float zone */}
-          {(hasPage || hasSource) && (
-            <div
-              className={cn(
-                'flex w-full items-center justify-between gap-4 py-3 text-su-black',
-                headerBg || 'bg-su-white',
-                sourceFooterStyles.className
-              )}
-              style={{
-                paddingLeft: `${spacing.contentPaddingX}rem`,
-                paddingRight: `${spacing.contentPaddingX}rem`,
-                ...(headerBgColor ? { backgroundColor: headerBgColor } : {}),
-                ...sourceFooterStyles.style,
-              }}
-            >
-              <div className="flex min-w-0 shrink items-center gap-2">
-                {footerDisplayName && (
-                  <Text
-                    variant="pseudoheader"
-                    as="span"
-                    className={cn(
-                      'shrink-0 overflow-hidden text-ellipsis whitespace-nowrap text-xs uppercase',
-                      compact ? 'font-semibold' : 'font-bold'
-                    )}
-                  >
-                    {footerDisplayName}
-                  </Text>
-                )}
-              </div>
-
-              <div className="flex shrink-0">
-                {hasSource && (
-                  <Text
-                    variant="pseudoheader"
-                    as="span"
-                    className={cn(
-                      'whitespace-nowrap text-xs font-semibold uppercase',
-                      hasPage && 'mr-4'
-                    )}
-                  >
-                    {data.source}
-                  </Text>
-                )}
-                {hasPage && (
-                  <Text
-                    variant="pseudoheader"
-                    as="span"
-                    className={cn(
-                      'whitespace-nowrap text-xs uppercase',
-                      compact ? 'font-semibold' : 'font-bold'
-                    )}
-                  >
-                    Page {data.page}
-                  </Text>
-                )}
-              </div>
-            </div>
-          )}
+          {footer}
         </div>
       )}
+      {/* Footer without body content — rendered directly in Card */}
+      {!listing && !hasBodyContent && footer}
     </Card>
   )
 

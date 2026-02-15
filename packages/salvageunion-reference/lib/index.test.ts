@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test'
-import { SalvageUnionReference, SURefEntity } from './index.js'
+import { SalvageUnionReference, SURefEntity, EntitySchemaNames, SchemaToModelMap } from './index.js'
 import { BaseModel } from './BaseModel.js'
 import {
   isAbility,
@@ -93,6 +93,107 @@ describe('SalvageUnionReference static properties', () => {
       expect(model).toBeInstanceOf(BaseModel)
       expect((model as BaseModel<unknown>).all().length).toBeGreaterThan(0)
     }
+  })
+})
+
+describe('SalvageUnionReference.Guides', () => {
+  it('should have the Guides model defined', () => {
+    expect(SalvageUnionReference.Guides).toBeDefined()
+    expect(SalvageUnionReference.Guides).toBeInstanceOf(BaseModel)
+  })
+
+  it('should return all guides', () => {
+    const guides = SalvageUnionReference.Guides.all()
+    expect(Array.isArray(guides)).toBe(true)
+    expect(guides.length).toBeGreaterThan(0)
+  })
+
+  it('should find a guide by name', () => {
+    const guide = SalvageUnionReference.Guides.find((g) => g.name === 'Create a Pilot')
+    expect(guide).toBeDefined()
+    expect(guide?.name).toBe('Create a Pilot')
+    expect(guide?.guideType).toBe('character-creation')
+  })
+
+  it('should have valid guideType on all guides', () => {
+    const validTypes = [
+      'character-creation',
+      'mech-creation',
+      'crawler-creation',
+      'progression',
+      'downtime',
+      'gameplay',
+    ]
+    const guides = SalvageUnionReference.Guides.all()
+    for (const guide of guides) {
+      expect(validTypes).toContain(guide.guideType)
+    }
+  })
+
+  it('should have valid guideColor hex format on all guides', () => {
+    const guides = SalvageUnionReference.Guides.all()
+    for (const guide of guides) {
+      expect(guide.guideColor).toMatch(/^#[0-9a-fA-F]{6}$/)
+    }
+  })
+
+  it('should have non-empty steps array on all guides', () => {
+    const guides = SalvageUnionReference.Guides.all()
+    for (const guide of guides) {
+      expect(Array.isArray(guide.steps)).toBe(true)
+      expect(guide.steps.length).toBeGreaterThan(0)
+    }
+  })
+
+  it('should have valid step types on all guide steps', () => {
+    const validStepTypes = [
+      'select-one',
+      'select-many',
+      'freeform',
+      'roll-table',
+      'info',
+      'sub-guide',
+    ]
+    const guides = SalvageUnionReference.Guides.all()
+    for (const guide of guides) {
+      for (const step of guide.steps) {
+        expect(validStepTypes).toContain(step.stepType)
+      }
+    }
+  })
+
+  it('should have unique step IDs within each guide', () => {
+    const guides = SalvageUnionReference.Guides.all()
+    for (const guide of guides) {
+      const stepIds = guide.steps.map((s) => s.id)
+      const uniqueIds = new Set(stepIds)
+      expect(uniqueIds.size).toBe(stepIds.length)
+    }
+  })
+
+  it('should be accessible via findIn and findAllIn', () => {
+    const guide = SalvageUnionReference.findIn(
+      'guides',
+      (g) => g.guideType === 'character-creation'
+    )
+    expect(guide).toBeDefined()
+    expect(guide?.guideType).toBe('character-creation')
+
+    const allGuides = SalvageUnionReference.findAllIn('guides', () => true)
+    expect(allGuides.length).toBe(SalvageUnionReference.Guides.all().length)
+  })
+
+  it('should be accessible via get by ID', () => {
+    const guides = SalvageUnionReference.Guides.all()
+    const firstGuide = guides[0]!
+    const fetched = SalvageUnionReference.get('guides', firstGuide.id)
+    expect(fetched).toBeDefined()
+    expect(fetched?.id).toBe(firstGuide.id)
+    expect(fetched?.name).toBe(firstGuide.name)
+  })
+
+  it('should include guides in EntitySchemaNames', () => {
+    expect(EntitySchemaNames.has('guides')).toBe(true)
   })
 })
 
@@ -495,6 +596,58 @@ describe('getSalvageValue', () => {
     const salvageValue = getSalvageValue(ability)
 
     expect(salvageValue).toBeUndefined()
+  })
+})
+
+describe('SalvageUnionReference.CatalogCategories', () => {
+  it('should have the CatalogCategories model defined', () => {
+    expect(SalvageUnionReference.CatalogCategories).toBeDefined()
+    expect(SalvageUnionReference.CatalogCategories).toBeInstanceOf(BaseModel)
+  })
+
+  it('should return all catalog categories', () => {
+    const categories = SalvageUnionReference.CatalogCategories.all()
+    expect(Array.isArray(categories)).toBe(true)
+    expect(categories.length).toBe(6)
+  })
+
+  it('should have correct category IDs in order', () => {
+    const categories = SalvageUnionReference.CatalogCategories.all()
+    const ids = categories.map((c) => c.id)
+    expect(ids).toEqual(['pilot', 'mech', 'crawler', 'denizens', 'reference', 'guides'])
+  })
+
+  it('should have valid SchemaName references in all categories', () => {
+    const validSchemaNames = new Set(Object.keys(SchemaToModelMap))
+    const categories = SalvageUnionReference.CatalogCategories.all()
+    for (const cat of categories) {
+      for (const schemaName of cat.schemas) {
+        expect(validSchemaNames.has(schemaName)).toBe(true)
+      }
+    }
+  })
+
+  it('should only have flat=true on guides category', () => {
+    const categories = SalvageUnionReference.CatalogCategories.all()
+    for (const cat of categories) {
+      if (cat.id === 'guides') {
+        expect(cat.flat).toBe(true)
+      } else {
+        expect(cat.flat).toBe(false)
+      }
+    }
+  })
+
+  it('should have nonflat categories before flat categories', () => {
+    const categories = SalvageUnionReference.CatalogCategories.all()
+    const firstFlatIndex = categories.findIndex((c) => c.flat)
+    const lastNonflatIndex =
+      categories.length - 1 - [...categories].reverse().findIndex((c) => !c.flat)
+    expect(firstFlatIndex).toBeGreaterThan(lastNonflatIndex)
+  })
+
+  it('should not be in EntitySchemaNames', () => {
+    expect(EntitySchemaNames.has('catalog-categories')).toBe(false)
   })
 })
 

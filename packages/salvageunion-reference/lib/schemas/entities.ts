@@ -23,8 +23,10 @@ import {
   GuideStepSchema,
   GuideTypeSchema,
 } from './objects.js'
-import { TreeSchema, ActionTypeSchema, DamageTypeSchema } from './enums.js'
+import { TreeSchema, ActionTypeSchema, DamageTypeSchema, SchemaNameSchema } from './enums.js'
 import {
+  IdSchema,
+  NameSchema,
   NonNegativeIntegerSchema,
   PositiveIntegerSchema,
   HitPointsSchema,
@@ -297,3 +299,15 @@ export const GuideSchema = BaseEntitySchema.extend({
   steps: z.array(GuideStepSchema).describe('Ordered sequence of steps'),
   repeatable: z.boolean().optional().describe('Whether this guide can be executed multiple times'),
 }).strict()
+
+/**
+ * Catalog categories for organizing schemas in the UI (meta schema, not a game entity)
+ */
+export const CatalogCategorySchema = z
+  .object({
+    id: IdSchema,
+    name: NameSchema,
+    schemas: z.array(SchemaNameSchema),
+    flat: z.boolean().default(false),
+  })
+  .strict()
