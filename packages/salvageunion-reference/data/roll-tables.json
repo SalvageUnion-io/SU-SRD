@@ -1005,7 +1005,13 @@
       },
       "type": "flat"
     },
-    "page": 208
+    "page": 208,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "In addition to the Systems and Modules you have installed in your Mech, you can also give it a unique Quirk that will make it stand out from other Mechs. For example, their comms and sensor array could look like rabbit ears or they might make beeping noises when being operated. Either roll on the Quirks Table below or create one yourself."
+      }
+    ]
   },
   {
     "id": "f6a7b8c9-daeb-4cfd-a4b5-c6d7e8f9a0b1",
@@ -1074,7 +1080,13 @@
       },
       "type": "flat"
     },
-    "page": 94
+    "page": 94,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Describe the appearance of your Mech. The Mech Chassis is simply an example of the Mech in its stock form before a salvager gets their hands on it. Your Mech can take on any appearance that you can imagine."
+      }
+    ]
   },
   {
     "id": "a7b8c9da-ebfc-4dfe-b5c6-d7e8f9a0b1c2",
@@ -1143,7 +1155,13 @@
       },
       "type": "flat"
     },
-    "page": 209
+    "page": 209,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Finally give your Mech a unique pattern name that marks it as your own creation. This could be something like 'Butcher', 'Slinky', 'Bullseye', or 'Roach'. For example: if you built a Mule with Zoom Optics and a Red Laser, you might want to call it a 'Bullseye Pattern Mule'."
+      }
+    ]
   },
   {
     "id": "ea4227a6-8c57-4018-86b0-338bbf5a151f",
