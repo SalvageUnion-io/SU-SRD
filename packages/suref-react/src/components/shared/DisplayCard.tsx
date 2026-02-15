@@ -89,6 +89,7 @@ export function DisplayCard({
     <div
       className={cn(
         'relative flex shrink-0 flex-col overflow-visible rounded-md shadow-lg',
+        isListing && 'h-full',
         className
       )}
       style={borderColor && !isListing ? { borderBottom: `3px solid ${borderColor}` } : undefined}
@@ -119,7 +120,7 @@ export function DisplayCard({
         tabIndex={onClick ? 0 : undefined}
         className={cn(
           'flex w-full items-center justify-between gap-2 overflow-visible',
-          isListing ? 'min-h-[40px] rounded-md px-2 py-1' : 'rounded-t-sm',
+          isListing ? 'min-h-[40px] flex-1 rounded-md px-2 py-1' : 'rounded-t-sm',
           !isListing && (isCompact ? 'min-h-[60px] px-1.5 py-1' : 'min-h-[80px] px-1.5 py-1.5'),
           !isListing && !isCompact && label && 'pb-4 pt-4',
           actualHeaderBg,

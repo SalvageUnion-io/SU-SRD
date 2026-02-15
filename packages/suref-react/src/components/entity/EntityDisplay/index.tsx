@@ -43,6 +43,10 @@ type EntityDisplayProps = {
   }
   /** Whether to hide the stats/right content in the header */
   hideStats?: boolean
+  /** Optional delete handler — when set, renders a trash icon in the listing header */
+  onDelete?: () => void
+  /** Optional add handler — when set, renders a + icon in the header */
+  onAdd?: () => void
 }
 
 export const EntityDisplay = memo(function EntityDisplay({
@@ -61,6 +65,8 @@ export const EntityDisplay = memo(function EntityDisplay({
   classAbilitiesRenderer,
   patternOverride,
   hideStats = false,
+  onDelete,
+  onAdd,
 }: EntityDisplayProps) {
   if (!data) return null
 
@@ -91,6 +97,8 @@ export const EntityDisplay = memo(function EntityDisplay({
       classAbilitiesRenderer={classAbilitiesRenderer}
       patternOverride={patternOverride}
       hideStats={hideStats}
+      onDelete={onDelete}
+      onAdd={onAdd}
     >
       {children}
     </EntityDisplayContent>

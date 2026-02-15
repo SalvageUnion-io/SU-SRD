@@ -93,7 +93,7 @@ export function NestedChassisAbility({
   return (
     <div
       className={cn(
-        'overflow-visible border-2 border-su-black bg-white text-left',
+        'overflow-hidden border-2 border-su-black bg-white text-left',
         compact ? 'p-1' : 'p-2'
       )}
     >

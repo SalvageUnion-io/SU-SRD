@@ -38,8 +38,22 @@ export function matchesFilter(
   return true
 }
 
+/** Lazily computed set of core ability tree names from class data */
+let _coreTreeNames: Set<string> | null = null
+function getCoreTreeNames(): Set<string> {
+  if (!_coreTreeNames) {
+    _coreTreeNames = new Set(
+      SalvageUnionReference.Classes.all().flatMap(
+        (c) => ((c as Record<string, unknown>).coreTrees as string[]) ?? []
+      )
+    )
+  }
+  return _coreTreeNames
+}
+
 /** Enrich an entity with computed fields for filtering.
- *  For systems/modules, computes `hasDamage` from resolved actions. */
+ *  For systems/modules, computes `hasDamage` from resolved actions.
+ *  For abilities, computes `treeType` (core/advanced/legendary/generic). */
 export function enrichForFiltering(
   entity: Record<string, unknown>,
   schemaName: string
@@ -50,6 +64,15 @@ export function enrichForFiltering(
       return action?.damage !== undefined
     })
     return { ...entity, hasDamage }
+  }
+  if (schemaName === 'abilities' && typeof entity.tree === 'string') {
+    const tree = entity.tree
+    let treeType: string
+    if (tree === 'Generic') treeType = 'generic'
+    else if (getCoreTreeNames().has(tree)) treeType = 'core'
+    else if (tree.startsWith('Legendary')) treeType = 'legendary'
+    else treeType = 'advanced'
+    return { ...entity, treeType }
   }
   return entity
 }

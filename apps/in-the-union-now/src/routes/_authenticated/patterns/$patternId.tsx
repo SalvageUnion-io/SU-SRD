@@ -22,6 +22,7 @@ function patternToBuilderState(pattern: TypedPatternRow): BuilderState {
     chassisRef: pattern.chassis_ref,
     description: pattern.description ?? '',
     visible: pattern.visible,
+    customImageUrl: null,
     items: pattern.pattern_items,
   }
 }

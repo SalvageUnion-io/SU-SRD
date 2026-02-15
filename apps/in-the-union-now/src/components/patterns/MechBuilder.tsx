@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
-import { SalvageUnionReference, getChassisAbilities } from 'salvageunion-reference'
+import { SalvageUnionReference, getChassisAbilities, getAssetUrl } from 'salvageunion-reference'
+import type { SURefChassis } from 'salvageunion-reference'
 import {
   DisplayCard,
   EntityDisplay,
@@ -10,7 +11,7 @@ import {
   EntityChassisAbilitiesContent,
   getEntitySpacing,
 } from 'suref-react'
-import { Plus, Trash2, ImageOff, Eye, EyeOff } from 'lucide-react'
+import { Plus, ImageOff, Eye, EyeOff, ImagePlus, Replace, X } from 'lucide-react'
 import { Button } from '../ui/button'
 import { EntitySelectionModal } from './EntitySelectionModal'
 import type { BuilderState, ResolvedItem } from '../../lib/builderUtils'
@@ -37,6 +38,7 @@ const emptyState: BuilderState = {
   chassisRef: null,
   description: '',
   visible: true,
+  customImageUrl: null,
   items: [],
 }
 
@@ -100,6 +102,10 @@ export function MechBuilder({ initialState, onSave, onCancel, isSaving }: MechBu
     setState((s) => ({ ...s, chassisRef: chassisId }))
   }
 
+  function setCustomImage(url: string | null) {
+    setState((s) => ({ ...s, customImageUrl: url }))
+  }
+
   function addItem(schemaName: 'systems' | 'modules', entityId: string) {
     setState((s) => ({
       ...s,
@@ -130,13 +136,11 @@ export function MechBuilder({ initialState, onSave, onCancel, isSaving }: MechBu
     setModalTarget(null)
   }
 
-  const systemEmptySlots = Math.max(0, capacity.systemSlotsTotal - capacity.systemSlotsUsed)
-  const moduleEmptySlots = Math.max(0, capacity.moduleSlotsTotal - capacity.moduleSlotsUsed)
-
   return (
     <>
       <DisplayCard
         headerBg="bg-su-green"
+        bodyPadding="p-0"
         headerContent={
           chassis ? (
             <>
@@ -224,74 +228,66 @@ export function MechBuilder({ initialState, onSave, onCancel, isSaving }: MechBu
           </div>
         }
       >
-        <div className="p-4">
-          <div className="md:grid md:grid-cols-[300px_1fr] md:gap-4">
-            <MechBuilderImageSlot />
-            <div className="space-y-4">
-              {/* Chassis Abilities */}
-              {chassis && chassisAbilities && chassisAbilities.length > 0 && (
-                <div>
-                  <SectionSeparator label="Chassis Abilities" />
-                  <EntityChassisAbilitiesContent
-                    chassisName={chassis.name}
-                    spacing={getEntitySpacing(false)}
-                    compact={false}
-                    chassisAbilities={chassisAbilities}
-                  />
-                </div>
-              )}
+        <div className="px-4 pt-3 pb-4">
+          {/* Floated image — content flows around it */}
+          <MechBuilderImageSlot
+            chassis={chassis}
+            customImageUrl={state.customImageUrl}
+            onSetCustomImage={setCustomImage}
+          />
 
-              {/* Systems */}
-              <section>
-                <SectionSeparator
-                  label={`Systems (${capacity.systemSlotsUsed}/${capacity.systemSlotsTotal})`}
-                />
-                <div className="mt-2 grid grid-cols-1 gap-2 xl:grid-cols-2">
-                  {systemItems.map((item) => (
-                    <RemovableEntityCard
-                      key={item.sort_order}
-                      entity={item.entity}
-                      onRemove={() => removeItem(item.sort_order)}
-                    />
-                  ))}
-                  {Array.from({ length: systemEmptySlots }, (_, i) => (
-                    <EmptySlotCard
-                      key={`sys-empty-${i}`}
-                      onClick={() => setModalTarget('systems')}
-                    />
-                  ))}
-                  {systemEmptySlots === 0 && chassis && (
-                    <EmptySlotCard onClick={() => setModalTarget('systems')} />
-                  )}
-                </div>
-              </section>
-
-              {/* Modules */}
-              <section>
-                <SectionSeparator
-                  label={`Modules (${capacity.moduleSlotsUsed}/${capacity.moduleSlotsTotal})`}
-                />
-                <div className="mt-2 grid grid-cols-1 gap-2 xl:grid-cols-2">
-                  {moduleItems.map((item) => (
-                    <RemovableEntityCard
-                      key={item.sort_order}
-                      entity={item.entity}
-                      onRemove={() => removeItem(item.sort_order)}
-                    />
-                  ))}
-                  {Array.from({ length: moduleEmptySlots }, (_, i) => (
-                    <EmptySlotCard
-                      key={`mod-empty-${i}`}
-                      onClick={() => setModalTarget('modules')}
-                    />
-                  ))}
-                  {moduleEmptySlots === 0 && chassis && (
-                    <EmptySlotCard onClick={() => setModalTarget('modules')} />
-                  )}
-                </div>
-              </section>
+          {/* Chassis Abilities */}
+          {chassis && chassisAbilities && chassisAbilities.length > 0 && (
+            <div className="-mt-4 mb-4 overflow-hidden">
+              <EntityChassisAbilitiesContent
+                chassisName={chassis.name}
+                spacing={getEntitySpacing(false)}
+                compact={false}
+                chassisAbilities={chassisAbilities}
+              />
             </div>
-          </div>
+          )}
+
+          {/* Systems */}
+          <section className="mb-4">
+            <SectionSeparator
+              label={`Systems (${capacity.systemSlotsUsed}/${capacity.systemSlotsTotal})`}
+            />
+            <div className="mt-2 space-y-2">
+              {systemItems.map((item) => (
+                <RemovableEntityCard
+                  key={item.sort_order}
+                  entity={item.entity}
+                  onRemove={() => removeItem(item.sort_order)}
+                />
+              ))}
+              {chassis && capacity.systemSlotsUsed < capacity.systemSlotsTotal && (
+                <EmptySlotCard label="Add System" onClick={() => setModalTarget('systems')} />
+              )}
+            </div>
+          </section>
+
+          {/* Modules */}
+          <section className="mb-2">
+            <SectionSeparator
+              label={`Modules (${capacity.moduleSlotsUsed}/${capacity.moduleSlotsTotal})`}
+            />
+            <div className="mt-2 space-y-2">
+              {moduleItems.map((item) => (
+                <RemovableEntityCard
+                  key={item.sort_order}
+                  entity={item.entity}
+                  onRemove={() => removeItem(item.sort_order)}
+                />
+              ))}
+              {chassis && capacity.moduleSlotsUsed < capacity.moduleSlotsTotal && (
+                <EmptySlotCard label="Add Module" onClick={() => setModalTarget('modules')} />
+              )}
+            </div>
+          </section>
+
+          {/* Clear float */}
+          <div className="clear-both" />
         </div>
       </DisplayCard>
 
@@ -311,6 +307,13 @@ export function MechBuilder({ initialState, onSave, onCancel, isSaving }: MechBu
           }
           schemaName={modalTarget}
           onSelect={handleModalSelect}
+          remainingSlots={
+            modalTarget === 'systems'
+              ? capacity.systemSlotsTotal - capacity.systemSlotsUsed
+              : modalTarget === 'modules'
+                ? capacity.moduleSlotsTotal - capacity.moduleSlotsUsed
+                : undefined
+          }
         />
       )}
     </>
@@ -324,32 +327,21 @@ function RemovableEntityCard({
   entity: ResolvedItem['entity']
   onRemove: () => void
 }) {
-  return (
-    <div className="group relative">
-      <EntityDisplay data={entity} listing />
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation()
-          onRemove()
-        }}
-        className="absolute right-1 top-1 z-20 rounded bg-su-rust/90 p-0.5 text-su-white opacity-0 transition-opacity group-hover:opacity-100"
-      >
-        <Trash2 className="h-3.5 w-3.5" />
-      </button>
-    </div>
-  )
+  return <EntityDisplay data={entity} listing compact onDelete={onRemove} />
 }
 
-function EmptySlotCard({ onClick }: { onClick: () => void }) {
+function EmptySlotCard({ label, onClick }: { label: string; onClick: () => void }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="flex min-h-[40px] w-full items-center justify-center rounded border border-dashed border-su-grey-light/50 text-su-grey-dark/50 hover:border-su-grey-dark/50 hover:text-su-grey-dark"
-    >
-      <Plus className="h-4 w-4" />
-    </button>
+    <div className="flex shrink-0 flex-col overflow-visible rounded-md">
+      <button
+        type="button"
+        onClick={onClick}
+        className="flex min-h-[40px] cursor-pointer items-center justify-center gap-1.5 rounded-md border border-dashed border-su-grey-light/50 px-2 py-1 text-su-grey-dark/50 hover:border-su-grey-dark/50 hover:text-su-grey-dark"
+      >
+        <Plus className="h-4 w-4" />
+        <span className="font-mono text-sm font-semibold uppercase">{label}</span>
+      </button>
+    </div>
   )
 }
 
@@ -400,10 +392,88 @@ function PatternNameInput({
   )
 }
 
-function MechBuilderImageSlot() {
+function MechBuilderImageSlot({
+  chassis,
+  customImageUrl,
+  onSetCustomImage,
+}: {
+  chassis: SURefChassis | undefined
+  customImageUrl: string | null
+  onSetCustomImage: (url: string | null) => void
+}) {
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const chassisAssetUrl = chassis ? getAssetUrl(chassis) : undefined
+  const displayUrl = customImageUrl ?? chassisAssetUrl
+  const hasCustomImage = !!customImageUrl
+
+  function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    // Create a local object URL for preview (future: upload to Supabase Storage)
+    const url = URL.createObjectURL(file)
+    onSetCustomImage(url)
+    e.target.value = ''
+  }
+
   return (
-    <div className="flex aspect-square max-h-[300px] items-center justify-center rounded border border-dashed border-su-grey-light/50 bg-su-grey-light/10 text-su-grey-dark/30">
-      <ImageOff className="h-12 w-12" />
+    <div
+      className="shrink-0 align-top md:float-left md:mr-4 md:mb-4"
+      style={{ width: '300px', maxWidth: '100%', shapeOutside: 'margin-box' }}
+    >
+      <div className="group relative aspect-square overflow-hidden rounded border border-dashed border-su-grey-light/50 bg-su-grey-light/10">
+        {displayUrl ? (
+          <img
+            src={displayUrl}
+            alt={chassis?.name ?? 'Pattern image'}
+            className="h-full w-full object-contain"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center text-su-grey-dark/30">
+            <ImageOff className="h-12 w-12" />
+          </div>
+        )}
+
+        {/* Hover overlay */}
+        <div className="absolute inset-0 flex items-center justify-center gap-2 bg-su-black/50 opacity-0 transition-opacity group-hover:opacity-100">
+          {hasCustomImage ? (
+            <>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="inline-flex items-center gap-1 border border-su-black bg-su-white px-1.5 py-0.5 font-mono text-xs font-semibold uppercase leading-none text-su-black transition-opacity hover:opacity-80"
+              >
+                <Replace className="h-3 w-3" />
+                Change
+              </button>
+              <button
+                type="button"
+                onClick={() => onSetCustomImage(null)}
+                className="inline-flex items-center gap-1 border border-su-black bg-su-rust px-1.5 py-0.5 font-mono text-xs font-semibold uppercase leading-none text-su-white transition-opacity hover:opacity-80"
+              >
+                <X className="h-3 w-3" />
+                Remove
+              </button>
+            </>
+          ) : (
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="inline-flex items-center gap-1 border border-su-black bg-su-white px-1.5 py-0.5 font-mono text-xs font-semibold uppercase leading-none text-su-black transition-opacity hover:opacity-80"
+            >
+              <ImagePlus className="h-3 w-3" />
+              Add Image
+            </button>
+          )}
+        </div>
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleFileSelect}
+          className="hidden"
+        />
+      </div>
     </div>
   )
 }

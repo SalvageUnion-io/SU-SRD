@@ -104,6 +104,7 @@ describe('builderToCreateInput', () => {
       chassisRef: 'iron-mongrel',
       description: '',
       visible: true,
+      customImageUrl: null,
       items: [],
     }
     expect(builderToCreateInput(state)).toBeNull()
@@ -115,6 +116,7 @@ describe('builderToCreateInput', () => {
       chassisRef: null,
       description: '',
       visible: true,
+      customImageUrl: null,
       items: [],
     }
     expect(builderToCreateInput(state)).toBeNull()
@@ -126,6 +128,7 @@ describe('builderToCreateInput', () => {
       chassisRef: 'iron-mongrel',
       description: 'A test pattern',
       visible: true,
+      customImageUrl: null,
       items: [{ schema_name: 'systems', schema_ref_id: 'laser', sort_order: 0 }],
     }
     const result = builderToCreateInput(state)
@@ -144,6 +147,7 @@ describe('builderToCreateInput', () => {
       chassisRef: 'iron-mongrel',
       description: '  ',
       visible: true,
+      customImageUrl: null,
       items: [],
     }
     const result = builderToCreateInput(state)

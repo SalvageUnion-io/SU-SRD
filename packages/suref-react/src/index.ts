@@ -30,6 +30,8 @@ export { LevelDisplay } from './components/shared/LevelDisplay'
 export { SheetDisplay } from './components/shared/SheetDisplay'
 export { SheetInput } from './components/shared/SheetInput'
 export { RollTable } from './components/shared/RollTable'
+export { FilterChip } from './components/shared/FilterChip'
+export { TECH_LEVEL_STYLES, techLevelLabel } from './components/shared/techLevelStyles'
 
 // Skeletons
 export { EntityCardSkeleton } from './components/skeleton/EntityCardSkeleton'

@@ -1,6 +1,7 @@
 import { useCallback } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { isAbility } from 'salvageunion-reference'
+import { Plus, Trash2 } from 'lucide-react'
 import { EntityStats } from './EntityStats'
 import { useParseTraitReferences } from '../../../utils/parseTraitReferences'
 import { cn } from '../../../utils/cn'
@@ -14,6 +15,8 @@ type EntityRightHeaderContentProps = {
   listing: boolean
   primaryStatsOnly?: boolean
   onDetailClick?: () => void
+  onDelete?: () => void
+  onAdd?: () => void
 }
 
 export function EntityRightHeaderContent({
@@ -24,6 +27,8 @@ export function EntityRightHeaderContent({
   listing,
   primaryStatsOnly = false,
   onDetailClick,
+  onDelete,
+  onAdd,
 }: EntityRightHeaderContentProps) {
   const description = 'description' in data ? data.description : undefined
   const parsedDescription = useParseTraitReferences(description)
@@ -34,6 +39,22 @@ export function EntityRightHeaderContent({
       onDetailClick?.()
     },
     [onDetailClick]
+  )
+
+  const handleAdd = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation()
+      onAdd?.()
+    },
+    [onAdd]
+  )
+
+  const handleDelete = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation()
+      onDelete?.()
+    },
+    [onDelete]
   )
 
   const abilityContent = description && isAbility(data) && (
@@ -60,7 +81,29 @@ export function EntityRightHeaderContent({
         techLevel={techLevel}
         primaryOnly={primaryStatsOnly}
       />
-      {listing && (
+      {onAdd && (
+        <button
+          type="button"
+          className="flex min-w-[25px] shrink-0 cursor-pointer items-center justify-center self-center rounded bg-su-green p-1 text-su-white transition-colors hover:bg-emerald-600"
+          title="Add"
+          aria-label="Add"
+          onClick={handleAdd}
+        >
+          <Plus className="h-3.5 w-3.5" />
+        </button>
+      )}
+      {listing && onDelete && (
+        <button
+          type="button"
+          className="flex min-w-[25px] shrink-0 cursor-pointer items-center justify-center self-center rounded p-1 text-su-white/60 transition-colors hover:bg-su-rust/80 hover:text-su-white"
+          title="Delete"
+          aria-label="Delete"
+          onClick={handleDelete}
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+        </button>
+      )}
+      {listing && onDetailClick && (
         <button
           type="button"
           className="flex min-w-[25px] shrink-0 cursor-pointer items-center justify-center self-center rounded p-1 opacity-60 transition-opacity hover:bg-white/20 hover:opacity-100"

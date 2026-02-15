@@ -71,9 +71,8 @@
             "value": 1
           },
           {
-            "field": "tree",
-            "operator": "ne",
-            "value": "Generic"
+            "field": "treeType",
+            "value": "core"
           }
         ],
         "contextFrom": "801d291b-c684-4560-9ead-e047786f207b",

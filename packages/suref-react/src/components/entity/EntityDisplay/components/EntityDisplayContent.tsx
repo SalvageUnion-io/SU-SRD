@@ -39,9 +39,18 @@ import type { EntityDisplayStateInput } from '../useEntityDisplayState'
 
 export type EntityDisplayContentProps = EntityDisplayStateInput & {
   children?: ReactNode
+  /** Optional delete handler — when set, renders a trash icon in the listing header */
+  onDelete?: () => void
+  /** Optional add handler — when set, renders a + icon in the header */
+  onAdd?: () => void
 }
 
-export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayContentProps) {
+export function EntityDisplayContent({
+  children,
+  onDelete,
+  onAdd,
+  ...inputProps
+}: EntityDisplayContentProps) {
   const state = useEntityDisplayState(inputProps)
   const {
     data,
@@ -327,6 +336,8 @@ export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayC
           listing={listing}
           primaryStatsOnly={compact && listing && schemaName === 'chassis'}
           onDetailClick={listing ? handleDetailClick : undefined}
+          onDelete={listing ? onDelete : undefined}
+          onAdd={onAdd}
         />
       )}
     </>
@@ -341,7 +352,6 @@ export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayC
       footerContent={!hasBodyContent ? footer : undefined}
       label={label}
       mode={listing ? 'listing' : compact ? 'compact' : 'full'}
-      onClick={listing ? handleDetailClick : undefined}
       headerTestId="frame-header-container"
       source={source}
       isExpanded={!listing}

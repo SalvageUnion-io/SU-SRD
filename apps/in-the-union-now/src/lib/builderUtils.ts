@@ -25,6 +25,7 @@ export type BuilderState = {
   chassisRef: string | null
   description: string
   visible: boolean
+  customImageUrl: string | null
   items: PatternItem[]
 }
 

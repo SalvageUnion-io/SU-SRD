@@ -1,8 +1,13 @@
 import { useState, useMemo, Suspense } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { getTechLevel, getSource, getEntitySlug } from 'salvageunion-reference'
-import { EntityDisplay, EntityCardSkeleton } from 'suref-react'
-import { Button } from '../Button'
+import {
+  EntityDisplay,
+  EntityCardSkeleton,
+  FilterChip,
+  TECH_LEVEL_STYLES,
+  techLevelLabel,
+} from 'suref-react'
 
 type SchemaViewerIslandProps = {
   initialData: SURefEntity[]
@@ -71,56 +76,41 @@ export function SchemaViewerIsland({
   return (
     <>
       {hasFilters && (
-        <div className="flex w-full max-w-[1200px] mx-auto flex-col gap-3">
+        <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-3">
           {techLevels.length > 1 && (
-            <div className="flex flex-wrap gap-2" role="group" aria-label="Filter by tech level">
-              <Button
+            <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filter by tech level">
+              <FilterChip
+                label="All"
                 active={techLevelFilters.size === 0}
                 onClick={() => setTechLevelFilters(new Set())}
-                aria-pressed={techLevelFilters.size === 0}
-              >
-                All
-              </Button>
-              {techLevels.map((level) => {
-                const isSelected = techLevelFilters.has(String(level))
-                const displayLabel =
-                  typeof level === 'number' ? `T${level}` : level === 'B' ? 'Bio' : 'N'
-                return (
-                  <Button
-                    key={String(level)}
-                    active={isSelected}
-                    onClick={() => toggleTechLevel(level)}
-                    aria-pressed={isSelected}
-                  >
-                    {displayLabel}
-                  </Button>
-                )
-              })}
+              />
+              {techLevels.map((level) => (
+                <FilterChip
+                  key={String(level)}
+                  label={techLevelLabel(level)}
+                  active={techLevelFilters.has(String(level))}
+                  onClick={() => toggleTechLevel(level)}
+                  colorClass={TECH_LEVEL_STYLES[String(level)]}
+                />
+              ))}
             </div>
           )}
 
           {sources.length > 1 && (
-            <div className="flex flex-wrap gap-2" role="group" aria-label="Filter by source">
-              <Button
+            <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filter by source">
+              <FilterChip
+                label="All"
                 active={sourceFilters.size === 0}
                 onClick={() => setSourceFilters(new Set())}
-                aria-pressed={sourceFilters.size === 0}
-              >
-                All
-              </Button>
-              {sources.map((source) => {
-                const isSelected = sourceFilters.has(source)
-                return (
-                  <Button
-                    key={source}
-                    active={isSelected}
-                    onClick={() => toggleSource(source)}
-                    aria-pressed={isSelected}
-                  >
-                    {source}
-                  </Button>
-                )
-              })}
+              />
+              {sources.map((source) => (
+                <FilterChip
+                  key={source}
+                  label={source}
+                  active={sourceFilters.has(source)}
+                  onClick={() => toggleSource(source)}
+                />
+              ))}
             </div>
           )}
         </div>
@@ -128,7 +118,7 @@ export function SchemaViewerIsland({
 
       {/* Entity Grid */}
       <div className="flex-1 p-6">
-        <div className="mx-auto max-w-[1400px] columns-1 gap-4 lg:columns-2 xl:columns-3 [&>*]:mb-4 [&>*]:break-inside-avoid">
+        <div className="mx-auto max-w-[1400px] columns-1 gap-4 md:columns-2 lg:columns-3 [&>*]:mb-4 [&>*]:break-inside-avoid">
           {filteredData.map((item: SURefEntity) => {
             return (
               <a

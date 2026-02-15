@@ -151,8 +151,9 @@ export function GuideStepsDisplay({
                     compact ? 'text-sm px-0.5 py-[1px]' : 'text-xl px-1 py-0.5'
                   )}
                 >
-                  {showStepNumbers ? `${stepNumbers[index]}. ` : ''}
+                  {showStepNumbers && !isRight ? `${stepNumbers[index]}. ` : ''}
                   {step.name}
+                  {showStepNumbers && isRight ? ` .${stepNumbers[index]}` : ''}
                 </Text>
               </div>
             )}
