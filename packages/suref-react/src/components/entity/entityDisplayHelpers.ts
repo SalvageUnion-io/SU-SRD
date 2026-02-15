@@ -55,7 +55,7 @@ export function calculateBackgroundColor(
   if (schemaName === 'keywords') return headerColor || 'bg-su-black'
   if (schemaName === 'distances') return headerColor || 'bg-su-black'
   if (schemaName === 'traits') return headerColor || 'bg-su-black'
-  if (schemaName === 'downtime-activities') return headerColor || 'bg-su-black'
+  if (schemaName === 'guides') return headerColor || 'bg-su-black'
   if (schemaName === 'roll-tables') return headerColor || 'bg-su-black'
   if (schemaName === 'classes' && !headerColor) {
     if (isEntityData(data)) {
@@ -101,7 +101,11 @@ export function calculateBackgroundColor(
  * Derive a CSS color value from a Tailwind bg class (e.g. 'bg-su-orange' → 'var(--color-su-orange)').
  * Returns undefined when headerBg is falsy so callers can skip border styling.
  */
-export function borderColorFromHeaderBg(headerBg: string | undefined): string | undefined {
+export function borderColorFromHeaderBg(
+  headerBg: string | undefined,
+  headerBgColor?: string
+): string | undefined {
+  if (headerBgColor) return headerBgColor
   return headerBg ? `var(--color-${headerBg.replace('bg-', '')})` : undefined
 }
 
@@ -113,6 +117,7 @@ export function borderColorFromHeaderBg(headerBg: string | undefined): string | 
  * - We Were Here First!: Beast-like fangs (CSS pseudo-elements via theme.css)
  * - Rainmaker: Falling raindrops (CSS pseudo-elements via theme.css)
  * - False Flag: Windows 95-esque beveled border (inline styles)
+ * - Mech Monday: Digital scanlines (CSS pseudo-elements via theme.css)
  */
 export function getSourceStyles(
   source: SURefEnumSource | undefined,
@@ -145,6 +150,12 @@ export function getSourceStyles(
     case 'Rainmaker': {
       return {
         className: variant === 'header' ? 'expansion-rain-down' : 'expansion-rain-into-footer',
+        style: {},
+      }
+    }
+    case 'Mech Monday': {
+      return {
+        className: variant === 'header' ? 'expansion-scanlines-down' : 'expansion-scanlines-up',
         style: {},
       }
     }

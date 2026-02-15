@@ -66,6 +66,8 @@ export type EntityDisplayState = {
   techLevel: number | 'B' | 'N' | undefined
   /** Computed header background color */
   headerBg: string
+  /** Raw CSS color for header/footer background (e.g. guide's guideColor hex) */
+  headerBgColor?: string
   /** Spacing values */
   spacing: ReturnType<typeof getEntitySpacing>
   /** Font size values */

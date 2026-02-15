@@ -34,7 +34,6 @@ const schemaColors: Record<string, string> = {
   'roll-tables': 'var(--color-su-black)',
   keywords: 'var(--color-su-black)',
   distances: 'var(--color-su-black)',
-  'downtime-activities': 'var(--color-su-black)',
   traits: 'var(--color-su-black)',
 }
 

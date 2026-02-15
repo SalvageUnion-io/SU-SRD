@@ -19,6 +19,8 @@ type BlockContentRendererViewProps = {
   damaged: boolean
   /** Header background class (e.g. 'bg-su-orange') for heading section left border */
   headerBg?: string
+  /** Raw CSS color for borders (overrides headerBg-derived color when set) */
+  headerBgColor?: string
 }
 
 /**
@@ -41,12 +43,13 @@ export function BlockContentRendererView({
   chassisName,
   damaged,
   headerBg,
+  headerBgColor,
 }: BlockContentRendererViewProps) {
   if (!content || content.length === 0) {
     return null
   }
 
-  const borderColor = borderColorFromHeaderBg(headerBg)
+  const borderColor = borderColorFromHeaderBg(headerBg, headerBgColor)
 
   // Group content blocks into sections: blocks before any heading/datavalues are ungrouped,
   // each heading or datavalues block starts a new bordered section
@@ -193,7 +196,7 @@ function ContentBlock({
       return (
         <div
           className={cn(
-            'mb-2 break-words font-medium leading-relaxed whitespace-normal text-su-black',
+            'mb-1 break-words font-medium leading-relaxed whitespace-normal text-su-black',
             fontSize
           )}
           style={{ overflowWrap: 'break-word' }}

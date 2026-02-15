@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test'
-import { resultForTable } from './resultForTable.js'
+import { resultForTable, resultForColumnsTable, isColumnsTable } from './resultForTable.js'
 import type { SURefObjectTable, SURefRollTable } from '../index.js'
 
 const mockStandardTable: SURefRollTable = {
@@ -316,6 +316,137 @@ describe('resultForTable', () => {
       if (result20.success) {
         expect(result20.result.label).toBeUndefined()
         expect(result20.result.value).toBe('Just a value')
+      }
+    })
+  })
+})
+
+// Helper to build a column with 20 entries
+function buildColumn(prefix: string): Record<string, { value: string }> {
+  const col: Record<string, { value: string }> = {}
+  for (let i = 1; i <= 20; i++) {
+    col[i.toString()] = { value: `${prefix}${i}` }
+  }
+  return col
+}
+
+const mockColumnsTable: SURefObjectTable = {
+  type: 'columns',
+  '1-4': buildColumn('A'),
+  '5-8': buildColumn('B'),
+  '9-12': buildColumn('C'),
+  '13-16': buildColumn('D'),
+  '17-20': buildColumn('E'),
+} as unknown as SURefObjectTable
+
+describe('isColumnsTable', () => {
+  it('should return true for columns-type tables', () => {
+    expect(isColumnsTable(mockColumnsTable)).toBe(true)
+  })
+
+  it('should return false for standard tables', () => {
+    expect(isColumnsTable(mockStandardTable.table)).toBe(false)
+  })
+
+  it('should return false for flat tables', () => {
+    expect(isColumnsTable(mockFlatTable.table)).toBe(false)
+  })
+
+  it('should return false for undefined', () => {
+    expect(isColumnsTable(undefined)).toBe(false)
+  })
+})
+
+describe('resultForColumnsTable', () => {
+  describe('Error Handling', () => {
+    it('should return error when table is undefined', () => {
+      const result = resultForColumnsTable(undefined, 1, 1)
+      expect(result.success).toBe(false)
+      expect(result.result.value).toContain('undefined')
+    })
+
+    it('should return error when table is not columns type', () => {
+      const result = resultForColumnsTable(mockStandardTable.table, 1, 1)
+      expect(result.success).toBe(false)
+      expect(result.result.value).toContain('not a columns-type')
+    })
+
+    it('should return error when columnRoll is out of range', () => {
+      expect(resultForColumnsTable(mockColumnsTable, 0, 1).success).toBe(false)
+      expect(resultForColumnsTable(mockColumnsTable, 21, 1).success).toBe(false)
+      expect(resultForColumnsTable(mockColumnsTable, -1, 1).success).toBe(false)
+    })
+
+    it('should return error when entryRoll is out of range', () => {
+      expect(resultForColumnsTable(mockColumnsTable, 1, 0).success).toBe(false)
+      expect(resultForColumnsTable(mockColumnsTable, 1, 21).success).toBe(false)
+      expect(resultForColumnsTable(mockColumnsTable, 1, -1).success).toBe(false)
+    })
+  })
+
+  describe('Column Selection', () => {
+    it('should select column 1-4 for rolls 1-4', () => {
+      for (let roll = 1; roll <= 4; roll++) {
+        const result = resultForColumnsTable(mockColumnsTable, roll, 1)
+        expect(result.success).toBe(true)
+        expect(result.columnKey).toBe('1-4')
+        expect(result.result.value).toBe('A1')
+      }
+    })
+
+    it('should select column 5-8 for rolls 5-8', () => {
+      for (let roll = 5; roll <= 8; roll++) {
+        const result = resultForColumnsTable(mockColumnsTable, roll, 1)
+        expect(result.success).toBe(true)
+        expect(result.columnKey).toBe('5-8')
+        expect(result.result.value).toBe('B1')
+      }
+    })
+
+    it('should select column 9-12 for rolls 9-12', () => {
+      for (let roll = 9; roll <= 12; roll++) {
+        const result = resultForColumnsTable(mockColumnsTable, roll, 1)
+        expect(result.success).toBe(true)
+        expect(result.columnKey).toBe('9-12')
+        expect(result.result.value).toBe('C1')
+      }
+    })
+
+    it('should select column 13-16 for rolls 13-16', () => {
+      for (let roll = 13; roll <= 16; roll++) {
+        const result = resultForColumnsTable(mockColumnsTable, roll, 1)
+        expect(result.success).toBe(true)
+        expect(result.columnKey).toBe('13-16')
+        expect(result.result.value).toBe('D1')
+      }
+    })
+
+    it('should select column 17-20 for rolls 17-20', () => {
+      for (let roll = 17; roll <= 20; roll++) {
+        const result = resultForColumnsTable(mockColumnsTable, roll, 1)
+        expect(result.success).toBe(true)
+        expect(result.columnKey).toBe('17-20')
+        expect(result.result.value).toBe('E1')
+      }
+    })
+  })
+
+  describe('Entry Selection', () => {
+    it('should resolve correct entry within a column', () => {
+      const result = resultForColumnsTable(mockColumnsTable, 3, 7)
+      expect(result.success).toBe(true)
+      expect(result.columnKey).toBe('1-4')
+      expect(result.entryKey).toBe('7')
+      expect(result.result.value).toBe('A7')
+    })
+
+    it('should resolve all 20 entries within a column', () => {
+      for (let entry = 1; entry <= 20; entry++) {
+        const result = resultForColumnsTable(mockColumnsTable, 6, entry)
+        expect(result.success).toBe(true)
+        expect(result.columnKey).toBe('5-8')
+        expect(result.entryKey).toBe(entry.toString())
+        expect(result.result.value).toBe(`B${entry}`)
       }
     })
   })

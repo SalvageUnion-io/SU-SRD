@@ -5,10 +5,16 @@ import { cn } from '../../../utils/cn'
 type EntityLeftContentProps = {
   techLevel: number | 'B' | 'N' | undefined
   compact: boolean
+  listing?: boolean
   level?: number | string
 }
 
-export function EntityLeftContent({ techLevel, compact, level }: EntityLeftContentProps) {
+export function EntityLeftContent({
+  techLevel,
+  compact,
+  listing = false,
+  level,
+}: EntityLeftContentProps) {
   const hasTechLevel = !!techLevel
   const hasLevel = !!level
   const isBioTechLevel = techLevel === 'B'
@@ -27,7 +33,11 @@ export function EntityLeftContent({ techLevel, compact, level }: EntityLeftConte
           bottomLabel={compact ? '' : 'Level'}
           value={techLevel}
           compact={compact}
-          hoverText="A Mech's Tech Level broadly represents how advanced it is. There are 6 Tech Levels, and Mechs of higher Tech Levels tend to be more powerful with higher statistics in one or multiple areas. Consequently, higher Tech Mechs are more expensive to build, upkeep, and repair."
+          hoverText={
+            compact && listing
+              ? undefined
+              : "A Mech's Tech Level broadly represents how advanced it is. There are 6 Tech Levels, and Mechs of higher Tech Levels tend to be more powerful with higher statistics in one or multiple areas. Consequently, higher Tech Mechs are more expensive to build, upkeep, and repair."
+          }
         />
       )}
     </div>

@@ -33,8 +33,8 @@ bun run format           # Format all packages with Prettier
 bun run typecheck        # TypeScript check all packages
 bun run check:all        # Full CI check (lint, format, typecheck, test, validate)
 
-# Package code generation (after schema/data changes)
-cd packages/salvageunion-reference && bun run generate
+# Build package (compiles TypeScript + generates JSON schemas from Zod)
+bun run build:package
 
 # Data validation
 bun run validate:all     # Check IDs, cross-references, action references
@@ -82,12 +82,9 @@ discord-bot (standalone, depends on salvageunion-reference)
 
 ### salvageunion-reference Package
 
-Code generation is central to this package. **Never manually edit** auto-generated files:
-- `lib/index.ts`, `lib/utilities-generated.ts`, `lib/types/*.ts`
+All TypeScript source in `lib/` is hand-written (Zod schemas in `lib/schemas/`, models in `lib/index.ts`, etc.). The only auto-generated files are `schemas/*.schema.json` (from Zod schemas) and `dist/` (from TypeScript compilation) — both produced by `bun run build:package`.
 
-To modify generated code, edit generator scripts in `tools/` or template files (e.g., `lib/index.template.ts`), then run `bun run generate`.
-
-Manually editable files: `lib/utilities.ts`, `lib/ModelFactory.ts`, `lib/BaseModel.ts`, `lib/search.ts`.
+**Do not manually edit** `schemas/*.schema.json` or `dist/`. To change JSON Schema output, edit Zod schemas in `lib/schemas/` and rebuild.
 
 Models extend `BaseModel<T>`, created via `ModelFactory`, accessed via `SalvageUnionReference.{SchemaName}` static properties (e.g., `SalvageUnionReference.Chassis.find(...)`).
 

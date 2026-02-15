@@ -133,6 +133,38 @@ export function DataValueDisplayView({
     )
   }
 
+  if (item.type === 'segmented') {
+    const segments = String(item.value ?? '').split('||')
+    const fontSize = compact ? 'text-xs' : 'text-base'
+    const fontWeight = compact ? 'font-normal' : 'font-semibold'
+    return (
+      <span
+        className={cn(
+          'shrink-0 grow-0 cursor-default whitespace-nowrap border border-su-black',
+          'inline-flex items-stretch w-fit'
+        )}
+      >
+        <Text
+          variant="pseudoheader"
+          as="span"
+          className={cn('!self-auto uppercase', fontSize, fontWeight)}
+        >
+          {item.label}
+        </Text>
+        {segments.map((seg, i) => (
+          <Text
+            key={i}
+            variant={i % 2 === 0 ? 'pseudoheaderInverse' : 'pseudoheader'}
+            as="span"
+            className={cn('!self-auto uppercase', fontSize, fontWeight)}
+          >
+            {seg.trim()}
+          </Text>
+        ))}
+      </span>
+    )
+  }
+
   if (item.type === 'meta') {
     const isRecommended = item.label === 'Recommended'
     return (

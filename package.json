@@ -45,7 +45,6 @@
     "build:package": "bun --filter salvageunion-reference build",
     "build:package:ci": "bun --filter salvageunion-reference build:ci",
     "build:package:watch": "bun --filter salvageunion-reference watch",
-    "generate": "bun --filter salvageunion-reference generate",
     "deploy-commands": "bun --filter @suref/discord-bot deploy-commands",
     "deploy-commands:global": "bun --filter @suref/discord-bot deploy-commands:global",
     "typecheck": "bun --filter salvageunion-reference typecheck && bun --filter suref-react typecheck && bun --filter suref-web typecheck && bun --filter in-the-union-now typecheck",

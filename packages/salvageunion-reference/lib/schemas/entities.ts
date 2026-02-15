@@ -20,8 +20,8 @@ import {
   CombatEntitySchema,
   MechanicalEntitySchema,
   AdvancedClassSchema,
-  FlowStepSchema,
-  FlowTypeSchema,
+  GuideStepSchema,
+  GuideTypeSchema,
 } from './objects.js'
 import { TreeSchema, ActionTypeSchema, DamageTypeSchema } from './enums.js'
 import {
@@ -138,6 +138,19 @@ export const CrawlerBaySchema = BaseEntitySchema.extend({
 export const CrawlerTechLevelSchema = BaseEntitySchema.extend({
   techLevel: z.number().int().positive().describe('Tech level (1-6)'),
   structurePoints: z.number().int().nonnegative(),
+  upkeepCost: z
+    .number()
+    .int()
+    .positive()
+    .describe('Scrap multiplier for upkeep (e.g. 5 means 5× Tech N Scrap)'),
+  upgradeCost: z
+    .number()
+    .int()
+    .positive()
+    .nullable()
+    .describe(
+      'Scrap multiplier for upgrade (e.g. 30 means 30× Tech N Scrap), null if max tech level'
+    ),
   populationMin: z.number().int().nonnegative().describe('Minimum approximate population'),
   populationMax: z
     .number()
@@ -168,14 +181,6 @@ export const CreatureSchema = BaseEntitySchema.merge(CombatEntitySchema)
  */
 export const DistanceSchema = BaseEntitySchema.extend({
   content: ContentSchema.optional(),
-}).strict()
-
-/**
- * Downtime activities available to Pilots during a week of Downtime
- */
-export const DowntimeActivitySchema = BaseEntitySchema.extend({
-  content: ContentSchema.optional(),
-  tableName: z.string().optional().describe('Reference to a roll table name'),
 }).strict()
 
 /**
@@ -280,10 +285,15 @@ export const TraitEntitySchema = BaseEntitySchema.extend({
 export const VehicleSchema = BaseEntitySchema.merge(MechanicalEntitySchema).strict()
 
 /**
- * Player-facing flows and processes in Salvage Union (character creation, progression, downtime)
+ * Player-facing guides and processes in Salvage Union (character creation, progression, downtime)
  */
-export const FlowSchema = BaseEntitySchema.extend({
-  flowType: FlowTypeSchema.describe('Category of this flow'),
-  steps: z.array(FlowStepSchema).describe('Ordered sequence of steps'),
-  repeatable: z.boolean().optional().describe('Whether this flow can be executed multiple times'),
+export const GuideSchema = BaseEntitySchema.extend({
+  guideType: GuideTypeSchema.describe('Category of this guide'),
+  guideColor: z
+    .string()
+    .regex(/^#[0-9a-fA-F]{6}$/)
+    .default('#000000')
+    .describe('Hex color for entity display header/footer'),
+  steps: z.array(GuideStepSchema).describe('Ordered sequence of steps'),
+  repeatable: z.boolean().optional().describe('Whether this guide can be executed multiple times'),
 }).strict()

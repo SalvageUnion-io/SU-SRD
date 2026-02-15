@@ -2,39 +2,40 @@
 
 TypeScript ORM + schema-validated JSON dataset for Salvage Union game data.
 
-## Code Generation
+## Build & JSON Schema Generation
 
-Code generation is central to this package. Run after any schema/data changes:
+Building the package compiles TypeScript and generates JSON Schema files from Zod schemas:
 
 ```bash
-bun run generate
+bun run build:package   # from repo root
 ```
+
+This runs `tsc` followed by `generate:json-schemas` (which converts Zod schemas in `lib/schemas/` to JSON Schema files in `schemas/`).
 
 ### Auto-Generated Files (DO NOT EDIT)
 
-- `lib/utilities-generated.ts`
-- `lib/types/schemas.ts`
-- `lib/types/enums.ts`
-- `lib/types/common.ts`
-- `lib/types/objects.ts`
-- `lib/types/index.ts`
+- `schemas/*.schema.json` - Generated from Zod schemas via `tools/generateJsonSchemas.ts`
+- `dist/` - TypeScript compilation output
 
-To change generated output, edit scripts in `tools/`.
+To change JSON Schema output, edit the Zod schemas in `lib/schemas/` and rebuild.
 
 ### Manually Editable Files
 
-- `lib/index.ts`
-- `lib/utilities.ts`
-- `lib/ModelFactory.ts`
-- `lib/BaseModel.ts`
-- `lib/search.ts`
+All TypeScript source in `lib/` is hand-written and safe to edit directly:
+
+- `lib/schemas/` - Zod schema definitions (entities, enums, objects, common)
+- `lib/index.ts` - Main entry point and model definitions
+- `lib/types/index.ts` - Type re-exports for backward compatibility
+- `lib/BaseModel.ts`, `lib/ModelFactory.ts` - ORM infrastructure
+- `lib/utilities.ts`, `lib/search.ts`, `lib/helpers.ts`, `lib/slug.ts`, `lib/contentBlockHelpers.ts`
 
 ## Package Structure
 
-- `lib/` - TypeScript source
+- `lib/` - TypeScript source (all hand-written)
+- `lib/schemas/` - Zod schema definitions
 - `data/` - JSON data files
-- `schemas/` - JSON Schema definitions
-- `tools/` - Code generation scripts
+- `schemas/` - JSON Schema files (generated from Zod schemas)
+- `tools/` - Validation and generation scripts
 - `dist/` - Compiled output (don't edit)
 
 ## Model Access Pattern
@@ -50,10 +51,11 @@ const allWeapons = SalvageUnionReference.Equipment.all()
 ## Adding New Data
 
 1. Add JSON file to `data/`
-2. Add corresponding schema to `schemas/`
-3. Update `tools/schemaNameMap.ts` if needed
-4. Run `bun run generate`
-5. Run `bun test` to verify
+2. Add Zod schema to `lib/schemas/entities.ts`
+3. Add schema to the map in `tools/generateJsonSchemas.ts`
+4. Add model to `lib/index.ts`
+5. Run `bun run build:package` to compile and generate JSON schemas
+6. Run `bun test` to verify
 
 ## Validation
 

@@ -89,6 +89,10 @@ export function useEntityDisplayState({
     techLevelColors
   )
   const headerBg = damaged ? 'bg-su-grey' : calculatedHeaderBg
+  const headerBgColor =
+    schemaName === 'guides' && 'guideColor' in data && typeof data.guideColor === 'string'
+      ? data.guideColor
+      : undefined
   const spacing = getEntitySpacing(compact)
   const fontSize = getEntityFontSizes(compact)
   const opacity = { header: dimHeader ? 0.5 : 1, content: disabled ? 0.5 : 1 }
@@ -121,6 +125,7 @@ export function useEntityDisplayState({
     title,
     techLevel,
     headerBg,
+    headerBgColor,
     spacing,
     fontSize,
     opacity,

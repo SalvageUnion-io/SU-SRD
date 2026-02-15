@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
-import { resultForTable } from 'salvageunion-reference'
-import type { SURefObjectTable } from 'salvageunion-reference'
+import { resultForTable, resultForColumnsTable, isColumnsTable } from 'salvageunion-reference'
+import type { SURefObjectTable, SURefObjectTableContent } from 'salvageunion-reference'
 import { roll } from '@randsum/roller'
 import { useParseTraitReferences } from '../../utils/parseTraitReferences'
 import { Text } from '../base/Text'
@@ -18,6 +18,8 @@ type TableContent = string | { label?: string; value: string }
 type RollTableType =
   | SURefObjectTable
   | { type: 'standard' | 'alternate' | 'flat' | 'full'; [key: string]: TableContent }
+
+type ColumnsTableData = Extract<SURefObjectTable, { type: 'columns' }>
 
 type RollTableDisplayProps = {
   table: RollTableType
@@ -99,7 +101,207 @@ function RollTableDescription({
   )
 }
 
-export function RollTable({
+const COLUMN_KEYS = ['1-4', '5-8', '9-12', '13-16', '17-20'] as const
+
+type ColumnsRollResult = {
+  columnKey: string
+  entryKey: string
+  value: string
+}
+
+function getColumnEntry(
+  tableData: ColumnsTableData,
+  colKey: (typeof COLUMN_KEYS)[number],
+  entryNum: string
+): SURefObjectTableContent | undefined {
+  return tableData[colKey][entryNum as keyof ColumnsTableData['1-4']]
+}
+
+function ColumnsRollTable({
+  compact,
+  disabled,
+  table,
+  showCommand = false,
+  tableName,
+}: RollTableDisplayProps) {
+  const [result, setResult] = useState<ColumnsRollResult | null>(null)
+  const [rollAnnouncement, setRollAnnouncement] = useState('')
+  const highlightedRef = useRef<HTMLTableCellElement>(null)
+
+  useEffect(() => {
+    if (result && highlightedRef.current) {
+      highlightedRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  }, [result])
+
+  const tableData = table as ColumnsTableData
+
+  const handleRoll = () => {
+    setResult(null)
+    setRollAnnouncement('')
+    const colRoll = roll('1d20').total
+    const entryRoll = roll('1d20').total
+    const res = resultForColumnsTable(table as SURefObjectTable, colRoll, entryRoll)
+    setTimeout(() => {
+      if (res.success) {
+        setResult({
+          columnKey: res.columnKey,
+          entryKey: res.entryKey,
+          value: res.result.value,
+        })
+        setRollAnnouncement(`Column ${res.columnKey}, Roll ${res.entryKey}: ${res.result.value}`)
+      }
+    }, 300)
+  }
+
+  const handleClear = () => {
+    setResult(null)
+    setRollAnnouncement('')
+  }
+
+  return (
+    <div className="relative overflow-visible">
+      <div className="sr-only" aria-live="assertive" role="status">
+        {rollAnnouncement}
+      </div>
+
+      {showCommand && (
+        <div
+          className={cn(
+            'flex items-center justify-center bg-su-black font-bold uppercase text-su-white',
+            compact ? 'mb-1 gap-1 p-1' : 'mb-2 gap-2 p-2'
+          )}
+        >
+          <Text as="span" className={cn('text-su-white', compact ? 'text-xs' : 'text-base')}>
+            ROLL THE DIE:
+          </Text>
+          {tableName && !disabled && (
+            <button
+              onClick={handleRoll}
+              className={cn(
+                'cursor-pointer rounded-md bg-transparent text-su-white hover:bg-brand-srd',
+                compact ? 'p-0.5' : 'p-1'
+              )}
+              aria-label="Roll on this table"
+              title="Roll on this table"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                height={compact ? '16' : '20'}
+                viewBox="0 -960 960 960"
+                width={compact ? '16' : '20'}
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path d="M240-120q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm480 0q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35ZM240-600q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm240 240q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm240-240q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Z" />
+              </svg>
+            </button>
+          )}
+        </div>
+      )}
+
+      <div className="overflow-visible">
+        <table className="w-full border-collapse">
+          <caption className="sr-only">{tableName || 'Columns roll table'}</caption>
+          <thead>
+            <tr>
+              {COLUMN_KEYS.map((colKey) => (
+                <th
+                  key={colKey}
+                  scope="col"
+                  className={cn(
+                    'text-left font-bold text-su-black',
+                    compact ? 'px-2 py-1 text-lg' : 'px-3 py-2 text-2xl'
+                  )}
+                >
+                  ({colKey.replace('-', ' - ')})
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {Array.from({ length: 20 }, (_, i) => {
+              const entryNum = (i + 1).toString()
+              return (
+                <tr
+                  key={entryNum}
+                  className={cn(i % 2 === 0 ? 'bg-su-orange-light' : 'bg-su-white')}
+                >
+                  {COLUMN_KEYS.map((colKey) => {
+                    const entry = getColumnEntry(tableData, colKey, entryNum)
+                    const isHighlighted =
+                      result?.columnKey === colKey && result?.entryKey === entryNum
+
+                    return (
+                      <td
+                        key={colKey + entryNum}
+                        ref={isHighlighted ? highlightedRef : null}
+                        className={cn(
+                          'relative text-left text-su-black transition-all duration-200',
+                          compact ? 'px-2 py-0.5 text-xs' : 'px-3 py-1 text-base',
+                          isHighlighted &&
+                            'z-[1] scale-[1.04] cursor-pointer outline-4 outline-su-black shadow-[0_14px_40px_rgba(0,0,0,0.85)]'
+                        )}
+                        onClick={isHighlighted ? handleClear : undefined}
+                        onKeyDown={
+                          isHighlighted
+                            ? (e: React.KeyboardEvent) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault()
+                                  handleClear()
+                                }
+                              }
+                            : undefined
+                        }
+                        aria-selected={isHighlighted || undefined}
+                        tabIndex={isHighlighted ? 0 : undefined}
+                      >
+                        <span className="font-bold">{entryNum}:</span> {entry?.value}
+                        {isHighlighted && (
+                          <button
+                            onClick={(e: React.MouseEvent) => {
+                              e.stopPropagation()
+                              handleRoll()
+                            }}
+                            className={cn(
+                              'absolute bottom-[-26px] left-1/2 z-[2] flex -translate-x-1/2 cursor-pointer items-center gap-1 bg-su-black font-bold text-su-white hover:bg-brand-srd',
+                              compact ? 'px-2 text-xs' : 'px-3 text-sm'
+                            )}
+                          >
+                            Reroll
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              height={compact ? '14' : '16'}
+                              viewBox="0 -960 960 960"
+                              width={compact ? '14' : '16'}
+                              fill="currentColor"
+                              aria-hidden="true"
+                            >
+                              <path d="M240-120q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm480 0q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35ZM240-600q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm240 240q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm240-240q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Z" />
+                            </svg>
+                          </button>
+                        )}
+                      </td>
+                    )
+                  })}
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+}
+
+export function RollTable(props: RollTableDisplayProps) {
+  if (isColumnsTable(props.table as SURefObjectTable)) {
+    return <ColumnsRollTable {...props} />
+  }
+  return <StandardRollTable {...props} />
+}
+
+function StandardRollTable({
   compact,
   disabled,
   table,

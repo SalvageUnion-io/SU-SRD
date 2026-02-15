@@ -94,6 +94,15 @@
             "description": "Tech level (1-6)"
           },
           "structurePoints": { "type": "integer", "minimum": 0 },
+          "upkeepCost": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "description": "Scrap multiplier for upkeep (e.g. 5 means 5× Tech N Scrap)"
+          },
+          "upgradeCost": {
+            "anyOf": [{ "type": "integer", "exclusiveMinimum": 0 }, { "type": "null" }],
+            "description": "Scrap multiplier for upgrade (e.g. 30 means 30× Tech N Scrap), null if max tech level"
+          },
           "populationMin": {
             "type": "integer",
             "minimum": 0,
@@ -112,6 +121,8 @@
           "page",
           "techLevel",
           "structurePoints",
+          "upkeepCost",
+          "upgradeCost",
           "populationMin",
           "populationMax"
         ],

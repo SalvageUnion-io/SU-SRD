@@ -12,6 +12,7 @@ type EntityRightHeaderContentProps = {
   fontSize: ReturnType<typeof getEntityFontSizes>
   techLevel?: number | 'B' | 'N'
   listing: boolean
+  primaryStatsOnly?: boolean
   onDetailClick?: () => void
 }
 
@@ -21,6 +22,7 @@ export function EntityRightHeaderContent({
   fontSize,
   techLevel,
   listing,
+  primaryStatsOnly = false,
   onDetailClick,
 }: EntityRightHeaderContentProps) {
   const description = 'description' in data ? data.description : undefined
@@ -51,7 +53,13 @@ export function EntityRightHeaderContent({
   return (
     <div className="flex gap-2">
       {abilityContent}
-      <EntityStats data={data} compact={compact} techLevel={techLevel} />
+      <EntityStats
+        data={data}
+        compact={compact}
+        listing={listing}
+        techLevel={techLevel}
+        primaryOnly={primaryStatsOnly}
+      />
       {listing && (
         <button
           type="button"

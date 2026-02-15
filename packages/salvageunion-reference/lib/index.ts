@@ -16,7 +16,6 @@ import type {
   SURefCrawler,
   SURefCreature,
   SURefDistance,
-  SURefDowntimeActivity,
   SURefDrone,
   SURefEquipment,
   SURefFaction,
@@ -32,7 +31,7 @@ import type {
   SURefMetaAbilityTreeRequirement,
   SURefMetaAction,
   SURefMetaCrawlerTechLevel,
-  SURefMetaFlow,
+  SURefGuide,
   SURefEntity,
   SURefEnumSchemaName,
 } from './types/index.js'
@@ -41,7 +40,13 @@ export { BaseModel, type ModelWithMetadata } from './BaseModel.js'
 
 export { getDataMaps, getSchemaCatalog, type EnhancedSchemaMetadata } from './ModelFactory.js'
 
-export { resultForTable, type TableRollResult } from './utils/resultForTable.js'
+export {
+  resultForTable,
+  resultForColumnsTable,
+  isColumnsTable,
+  type TableRollResult,
+  type ColumnsTableRollResult,
+} from './utils/resultForTable.js'
 
 // Export utility functions (type guards and property extractors)
 export * from './utilities.js'
@@ -91,11 +96,10 @@ export type SchemaToEntityMap = {
   crawlers: SURefCrawler
   creatures: SURefCreature
   distances: SURefDistance
-  'downtime-activities': SURefDowntimeActivity
   drones: SURefDrone
   equipment: SURefEquipment
   factions: SURefFaction
-  flows: SURefMetaFlow
+  guides: SURefGuide
   keywords: SURefKeyword
   meld: SURefMeld
   modules: SURefModule
@@ -123,11 +127,10 @@ export const EntitySchemaNames = new Set<EntitySchemaName>([
   'crawlers',
   'creatures',
   'distances',
-  'downtime-activities',
   'drones',
   'equipment',
   'factions',
-  'flows',
+  'guides',
   'keywords',
   'meld',
   'modules',
@@ -152,11 +155,10 @@ export const SchemaToModelMap = {
   crawlers: 'Crawlers',
   creatures: 'Creatures',
   distances: 'Distances',
-  'downtime-activities': 'DowntimeActivities',
   drones: 'Drones',
   equipment: 'Equipment',
   factions: 'Factions',
-  flows: 'Flows',
+  guides: 'Guides',
   keywords: 'Keywords',
   meld: 'Meld',
   modules: 'Modules',
@@ -181,11 +183,10 @@ export const SchemaToDisplayName = {
   crawlers: 'Crawlers',
   creatures: 'Creatures',
   distances: 'Distances',
-  'downtime-activities': 'Downtime Activities',
   drones: 'Drones',
   equipment: 'Equipment',
   factions: 'factions',
-  flows: 'Flows',
+  guides: 'Guides',
   keywords: 'Keywords',
   meld: 'Meld',
   modules: 'Modules',
@@ -218,13 +219,10 @@ export class SalvageUnionReference {
   static Crawlers = models.Crawlers as ModelWithMetadata<SchemaToEntityMap['crawlers']>
   static Creatures = models.Creatures as ModelWithMetadata<SchemaToEntityMap['creatures']>
   static Distances = models.Distances as ModelWithMetadata<SchemaToEntityMap['distances']>
-  static DowntimeActivities = models.DowntimeActivities as ModelWithMetadata<
-    SchemaToEntityMap['downtime-activities']
-  >
   static Drones = models.Drones as ModelWithMetadata<SchemaToEntityMap['drones']>
   static Equipment = models.Equipment as ModelWithMetadata<SchemaToEntityMap['equipment']>
   static Factions = models.Factions as ModelWithMetadata<SchemaToEntityMap['factions']>
-  static Flows = models.Flows as ModelWithMetadata<SURefMetaFlow>
+  static Guides = models.Guides as ModelWithMetadata<SURefGuide>
   static Keywords = models.Keywords as ModelWithMetadata<SchemaToEntityMap['keywords']>
   static Meld = models.Meld as ModelWithMetadata<SchemaToEntityMap['meld']>
   static Modules = models.Modules as ModelWithMetadata<SchemaToEntityMap['modules']>

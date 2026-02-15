@@ -136,7 +136,7 @@ export function SchemaViewerIsland({
                 key={item.id}
                 href={`/schema/${schemaId}/item/${getEntitySlug(item)}`}
                 aria-label={item.name}
-                className={`relative block cursor-pointer transition-all duration-200 md:hover:z-10 md:hover:scale-105 md:hover:-translate-y-1 md:hover:shadow-lg ${hasLabel ? 'pt-2' : ''}`}
+                className={`relative block transition-all duration-200 md:hover:z-10 md:hover:scale-[1.02] md:hover:-translate-y-0.5 md:hover:shadow-lg ${hasLabel ? 'pt-2' : ''}`}
               >
                 <Suspense fallback={<EntityCardSkeleton compact />}>
                   <EntityDisplay

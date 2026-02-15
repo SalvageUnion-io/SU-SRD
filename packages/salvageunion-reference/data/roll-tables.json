@@ -711,7 +711,13 @@
       },
       "type": "flat"
     },
-    "page": 24
+    "page": 24,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Your Pilot's Keepsake is an item that is personal and important to them. It could be an old photograph, a childhood bobblehead toy, or a music mixtape from an old sweetheart. Consider why this Keepsake is important and what it means to your Pilot. If a Pilot takes an action that aligns with why their Keepsake is important to them, they may re-roll the dice on the action, accepting the second result. This Ability can be used once, a Pilot regains the use of this Ability following Downtime."
+      }
+    ]
   },
   {
     "id": "e5317ec5-241c-4bed-97cc-b8d9764e011f",
@@ -780,7 +786,13 @@
       },
       "type": "flat"
     },
-    "page": 24
+    "page": 24,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Your Pilot's Motto is a phrase they happen to be fond of using. They may say this phrase, as a Free Action or Reaction, at a time during the game that feels appropriate, and another Pilot may re-roll the dice, accepting the second result. This Ability can be used once, a Pilot regains the use of this Ability following Downtime."
+      }
+    ]
   },
   {
     "id": "d07e8fbf-0750-45ad-9cb8-faa95d8cbaf3",
@@ -849,7 +861,13 @@
       },
       "type": "flat"
     },
-    "page": 332
+    "page": 332,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Briefly describe the appearance of your Pilot, and consider their gender and pronouns. Are they alluring, fancy, glamorous, tall, stocky, sloppy, or intimidating? Do they have any iconic features such as scars, wildly spiked hair, a mischievous grin, or crooked teeth? What type of clothing do they wear? Do they go by she, he, they, or something else?"
+      }
+    ]
   },
   {
     "id": "d65de78f-3131-40fd-bd40-018e858c723b",
@@ -2712,5 +2730,226 @@
       }
     },
     "page": 222
+  },
+  {
+    "id": "3ea86f23-1c17-4236-a772-47d0e0f7c165",
+    "source": "Salvage Union Workshop Manual",
+    "name": "Background",
+    "table": {
+      "1": {
+        "label": "Wastelander",
+        "value": "You used to live in the wastelands, in one of the many scattered settlements."
+      },
+      "2": {
+        "label": "Corpo Worker",
+        "value": "You worked for one of the corpos, perhaps in an arcology or satellite base."
+      },
+      "3": {
+        "label": "Raider",
+        "value": "You used to be part of a raider band in the wastelands."
+      },
+      "4": {
+        "label": "Born Salvager",
+        "value": "You were born on the Union Crawler, and it is all you've ever known."
+      },
+      "5": {
+        "label": "Colonial War Veteran",
+        "value": "You fought in the colonial wars between the TDA and the corpo colonies."
+      },
+      "6": {
+        "label": "Corpo Exile",
+        "value": "You were a prominent corpo who was exiled from your arcology for some digression."
+      },
+      "7": {
+        "label": "Freelancer",
+        "value": "You were a worker who roamed the wastes, looking for any work you could."
+      },
+      "8": {
+        "label": "Trader",
+        "value": "You were a trader, perhaps you worked alone, for your own crew, or as part of a corpo."
+      },
+      "9": {
+        "label": "Survivor",
+        "value": "You survived a traumatic experience at an early age that shaped you, perhaps a raider attack or a corpo forced labour raid."
+      },
+      "10": {
+        "label": "Mercenary",
+        "value": "You were a fighter for hire who worked for salvagers, corpos, and anyone else who would pay."
+      },
+      "11": {
+        "label": "Corpo Exec",
+        "value": "You were a corpo exec at the top of its hierarchy, but something caused you to abandon the corpo and the luxurious life it gave you."
+      },
+      "12": {
+        "label": "Researcher",
+        "value": "You were a scientist who studied old tech, alien tech, and other mysteries of the wastes hoping to develop new blueprints and make amazing discoveries."
+      },
+      "13": {
+        "label": "Miner",
+        "value": "You were a pit worker, labouring deep in the mines, probably for a corpo."
+      },
+      "14": {
+        "label": "Cultist",
+        "value": "You were part of a fanatical religious group in the wastelands, such as the Cult of Ascension."
+      },
+      "15": {
+        "label": "VIP",
+        "value": "You are a very important person, perhaps a famous video reel star or an ace pilot."
+      },
+      "16": {
+        "label": "Entertainer",
+        "value": "You were an entertainer, perhaps you worked in a corpo nightclub or travelled with a troupe around the wastes."
+      },
+      "17": {
+        "label": "Hermit",
+        "value": "You are a wasteland loner who has managed to survive on your own. Until now."
+      },
+      "18": {
+        "label": "Criminal",
+        "value": "You were part of the criminal underworld, perhaps as part of the corpo undercity or a criminal network of wasteland settlements."
+      },
+      "19": {
+        "label": "Tech-Head",
+        "value": "You grew up with a passion and aptitude for all things technological, which you may have honed in a wasteland settlement or as part of a corpo, until you joined the Union."
+      },
+      "20": {
+        "label": "Prodigy",
+        "value": "You were blessed at a young age with exceptional skill and talent, and have chosen to offer that to the Union."
+      },
+      "type": "flat"
+    },
+    "page": 89,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Your Pilot's Background is where they came from before they joined the Union Crawler. They may have been a wastelander, a member of the corpos, a wanderer, or even a born salvager. If a Pilot takes an action that aligns with their Background they may re-roll the dice on the action, accepting the second result. This Ability can be used once. A Pilot regains the use of this Ability following Downtime."
+      }
+    ]
+  },
+  {
+    "id": "c4e7a1d2-9f3b-4e8c-b5a6-2d1f0e3c7b9a",
+    "source": "Salvage Union Workshop Manual",
+    "name": "Callsign Table",
+    "table": {
+      "type": "columns",
+      "1-4": {
+        "1": { "value": "Sparkles" },
+        "2": { "value": "Apex" },
+        "3": { "value": "Boomer" },
+        "4": { "value": "Doctor" },
+        "5": { "value": "Poptop" },
+        "6": { "value": "Flatline" },
+        "7": { "value": "Oilslick" },
+        "8": { "value": "Poacher" },
+        "9": { "value": "Redbeard" },
+        "10": { "value": "Taxman" },
+        "11": { "value": "Bingo" },
+        "12": { "value": "Goose" },
+        "13": { "value": "Trigger" },
+        "14": { "value": "Socrates" },
+        "15": { "value": "Emu" },
+        "16": { "value": "Zipline" },
+        "17": { "value": "Scorpion" },
+        "18": { "value": "Jester" },
+        "19": { "value": "Smudge" },
+        "20": { "value": "Redeye" }
+      },
+      "5-8": {
+        "1": { "value": "Candyman" },
+        "2": { "value": "Gremlin" },
+        "3": { "value": "Pyro" },
+        "4": { "value": "T-BAR" },
+        "5": { "value": "Whipsaw" },
+        "6": { "value": "Swamp Fox" },
+        "7": { "value": "Tickles" },
+        "8": { "value": "Teapot" },
+        "9": { "value": "Hotdog" },
+        "10": { "value": "Slippy" },
+        "11": { "value": "Roughhouse" },
+        "12": { "value": "Spitfire" },
+        "13": { "value": "Blackjack" },
+        "14": { "value": "Bunny-Ears" },
+        "15": { "value": "Sandman" },
+        "16": { "value": "Laserburn" },
+        "17": { "value": "Warbird" },
+        "18": { "value": "Dipstick" },
+        "19": { "value": "Wingnut" },
+        "20": { "value": "Roulette" }
+      },
+      "9-12": {
+        "1": { "value": "Vapour" },
+        "2": { "value": "Urchin" },
+        "3": { "value": "Commodore" },
+        "4": { "value": "Viper" },
+        "5": { "value": "Shinji" },
+        "6": { "value": "Roach" },
+        "7": { "value": "Silverback" },
+        "8": { "value": "Chuckles" },
+        "9": { "value": "Fingers" },
+        "10": { "value": "Voodoo" },
+        "11": { "value": "Stumpy" },
+        "12": { "value": "Fencepost" },
+        "13": { "value": "Casper" },
+        "14": { "value": "Whistler" },
+        "15": { "value": "Pickle" },
+        "16": { "value": "Starbuck" },
+        "17": { "value": "Fatcat" },
+        "18": { "value": "Ruffles" },
+        "19": { "value": "Maverick" },
+        "20": { "value": "Thumper" }
+      },
+      "13-16": {
+        "1": { "value": "Curly" },
+        "2": { "value": "FANG" },
+        "3": { "value": "Driftwood" },
+        "4": { "value": "Turtle" },
+        "5": { "value": "Coyote" },
+        "6": { "value": "Warlock" },
+        "7": { "value": "Scarecrow" },
+        "8": { "value": "Husker" },
+        "9": { "value": "Codebreaker" },
+        "10": { "value": "Doughboy" },
+        "11": { "value": "Ironsides" },
+        "12": { "value": "Highlander" },
+        "13": { "value": "Stainer" },
+        "14": { "value": "Bone-Saw" },
+        "15": { "value": "Biscuit" },
+        "16": { "value": "Catfish" },
+        "17": { "value": "Big Dusty" },
+        "18": { "value": "Dingle" },
+        "19": { "value": "Sidewinder" },
+        "20": { "value": "Lumpy" }
+      },
+      "17-20": {
+        "1": { "value": "Twitch" },
+        "2": { "value": "Airtime" },
+        "3": { "value": "Bubbles" },
+        "4": { "value": "Razor" },
+        "5": { "value": "Sandbag" },
+        "6": { "value": "Judge" },
+        "7": { "value": "Momma Bear" },
+        "8": { "value": "Pumpkin" },
+        "9": { "value": "Kujo" },
+        "10": { "value": "Aurora" },
+        "11": { "value": "Ducky" },
+        "12": { "value": "Flea" },
+        "13": { "value": "Big Nasty" },
+        "14": { "value": "Coma" },
+        "15": { "value": "Wedge" },
+        "16": { "value": "Widowmaker" },
+        "17": { "value": "Meatpie" },
+        "18": { "value": "Rattler" },
+        "19": { "value": "Neutron" },
+        "20": { "value": "Iceman" }
+      }
+    },
+    "page": 88,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Your Pilot's Callsign is the name everyone on the Union Crawler refers to them as. It's how you are known to the world. You might pick your own Callsign or you might earn one through some memorable act. Roll on the Column first (d20 to select a column), then roll within that column (d20 to select a Callsign), or pick any Callsign you like."
+      }
+    ],
+    "indexable": true
   }
 ]

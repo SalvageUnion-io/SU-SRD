@@ -49,7 +49,6 @@ export function EntityFormation({ data, headerFontSize, compact = false }: Entit
                 data={resolved.entity}
                 compact
                 listing
-                hideStats
                 patternOverride={patternOverride}
               />
             )

@@ -1,6 +1,84 @@
 import type { SURefObjectTable, SURefObjectTableContent } from '../types/index.js'
 
 /**
+ * Column range keys for columns-type tables
+ */
+const COLUMN_RANGE_KEYS = ['1-4', '5-8', '9-12', '13-16', '17-20'] as const
+
+/**
+ * Result type for columns table roll resolution (two d20 rolls)
+ */
+export type ColumnsTableRollResult = {
+  success: boolean
+  columnKey: string
+  entryKey: string
+  result: SURefObjectTableContent
+}
+
+/**
+ * Checks whether a table is a columns-type table (multi-column, two-roll)
+ */
+export function isColumnsTable(table: SURefObjectTable | undefined): boolean {
+  if (!table) return false
+  return (table as Record<string, unknown>).type === 'columns'
+}
+
+/**
+ * Resolves two d20 rolls against a columns-type table
+ *
+ * @param table - The roll table data
+ * @param columnRoll - First d20 roll to select a column (1-20)
+ * @param entryRoll - Second d20 roll to select an entry within the column (1-20)
+ * @returns Object with success flag, column key, entry key, and result
+ */
+export function resultForColumnsTable(
+  table: SURefObjectTable | undefined,
+  columnRoll: number,
+  entryRoll: number
+): ColumnsTableRollResult {
+  const fail = (message: string): ColumnsTableRollResult => ({
+    success: false,
+    columnKey: '',
+    entryKey: '',
+    result: { value: message },
+  })
+
+  if (!table) return fail('Table data is undefined')
+  if (!isColumnsTable(table)) return fail('Table is not a columns-type table')
+  if (columnRoll < 1 || columnRoll > 20)
+    return fail(`Column roll must be between 1 and 20, got ${columnRoll}`)
+  if (entryRoll < 1 || entryRoll > 20)
+    return fail(`Entry roll must be between 1 and 20, got ${entryRoll}`)
+
+  const tableData = table as Record<string, unknown>
+
+  // Find which column the columnRoll falls in
+  let columnKey: string | undefined
+  for (const rangeKey of COLUMN_RANGE_KEYS) {
+    if (rollInRange(columnRoll, rangeKey)) {
+      columnKey = rangeKey
+      break
+    }
+  }
+
+  if (!columnKey) return fail(`No column found for roll ${columnRoll}`)
+
+  const column = tableData[columnKey] as Record<string, unknown> | undefined
+  if (!column) return fail(`Column ${columnKey} not found in table`)
+
+  const entryKey = entryRoll.toString()
+  const entry = column[entryKey] as SURefObjectTableContent | undefined
+  if (!entry) return fail(`Entry ${entryKey} not found in column ${columnKey}`)
+
+  return {
+    success: true,
+    columnKey,
+    entryKey,
+    result: entry,
+  }
+}
+
+/**
  * Result type for table roll resolution
  */
 export type TableRollResult = {

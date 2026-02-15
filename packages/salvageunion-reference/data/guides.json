@@ -1,0 +1,696 @@
+[
+  {
+    "id": "27bddcdb-edba-41b6-81ad-482026cae261",
+    "name": "Create a Pilot",
+    "source": "Salvage Union Workshop Manual",
+    "page": 18,
+    "guideType": "character-creation",
+    "guideColor": "#D46A30",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Follow these steps to create your Pilot character for Salvage Union."
+      }
+    ],
+    "steps": [
+      {
+        "id": "c8d41f23-7e56-4a19-b3c2-1e8f5d9a0b74",
+        "name": "Fill out your Stats",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Make a copy of the Character Sheet on p. 24; your Pilot starts with 10 Hit Points, 5 Ability Points, and 6 Inventory Slots."
+          },
+          {
+            "type": "hint",
+            "value": "Full details on Pilot Stats can be found on p. 20."
+          }
+        ]
+      },
+      {
+        "id": "801d291b-c684-4560-9ead-e047786f207b",
+        "name": "Choose your Pilot Class",
+        "stepType": "select-one",
+        "schema": ["classes"],
+        "filters": [
+          {
+            "field": "hybrid",
+            "value": false
+          }
+        ],
+        "schemaEntities": ["Engineer", "Hacker", "Hauler", "Salvager", "Scout", "Soldier"],
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "There are six core Pilot classes; Engineer, Hacker, Hauler, Salvager, Scout, and Soldier."
+          },
+          {
+            "type": "paragraph",
+            "value": "Each is differentiated by the different Ability trees they can pick from. Abilities are the unique actions a pilot can make in the game. Your Pilot starts with 1 Ability of your choice."
+          },
+          {
+            "type": "paragraph",
+            "value": "The Salvager is an exception. As a 'jack of all trades' Class, they can pick from any of the Core Ability trees. However, they can never advance beyond them."
+          },
+          {
+            "type": "hint",
+            "value": "Pilot Classes can be found from p. 26 to p. 77."
+          }
+        ]
+      },
+      {
+        "id": "662d9643-c9bc-4246-9f9e-66fe5f9a9e15",
+        "name": "Choose your first Ability",
+        "stepType": "select-one",
+        "schema": ["abilities"],
+        "contextFrom": "801d291b-c684-4560-9ead-e047786f207b",
+        "dependsOn": ["801d291b-c684-4560-9ead-e047786f207b"],
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "You may choose one Ability from your Pilot's trees during character creation. Abilities must be chosen in consecutive order, so you cannot choose a second level Ability unless you have the first Ability in the tree."
+          }
+        ]
+      },
+      {
+        "id": "3a7e9d12-5f84-4c6b-a1e9-7b2c4d8f6e31",
+        "name": "Select Two Pilot Equipment",
+        "stepType": "select-many",
+        "schema": ["equipment"],
+        "filters": [
+          {
+            "field": "techLevel",
+            "value": 1
+          }
+        ],
+        "constraints": {
+          "max": 2
+        },
+        "schemaEntities": [
+          "First Aid Kit",
+          "Handheld Riveting Gun",
+          "Heavy Duty Torch",
+          "High Tensile Wire",
+          "Improvised Explosive Device",
+          "Improvised Firearm",
+          "Improvised Melee Weapon",
+          "Portable Comms Unit",
+          "Salvaging Tools",
+          "Auto-Turret",
+          "Camo Suit",
+          "WingSuit",
+          "Hacking Kit",
+          "Teleport Beacon",
+          "Stealth Field Generator",
+          "Knife Missle",
+          "Custom Missle Launcher",
+          "Survey Drone",
+          "Chimerium Salvaging Tools",
+          "Bio-Scanner",
+          "Epoxy Gun"
+        ],
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "You may choose two pieces of Tech 1 Pilot Equipment from the list. Note these in your inventory."
+          },
+          {
+            "type": "hint",
+            "value": "Pilot Equipment can be found from p. 78 to p. 87."
+          }
+        ]
+      },
+      {
+        "id": "bce6df59-d455-47fb-9005-56e921587cd5",
+        "name": "Choose your Callsign",
+        "stepType": "roll-table",
+        "rollTable": "Callsign Table",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Your Pilot's Callsign is the name everyone on the Union Crawler refers to them as. It is typically a nickname, but can be their actual name. Pick or roll on the Callsign Table, or have everyone else at the table choose one for your Pilot based on their impression of them. Callsigns may also change in play in this manner."
+          }
+        ]
+      },
+      {
+        "id": "ab942d95-0d84-44ad-9f5b-11d28ad9a9d3",
+        "name": "Choose your Background",
+        "stepType": "roll-table",
+        "rollTable": "Background",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Your Pilot's Background is where they came from before they joined the Union Crawler. They may have been a wastelander, a member of the corpos, a wanderer, or even a born salvager. If a Pilot takes an action that aligns with their Background they may re-roll the dice on the action, accepting the second result. This Ability can be used once, a Pilot regains the use of this Ability following Downtime."
+          }
+        ]
+      },
+      {
+        "id": "f68fe49f-2d10-4abe-91ca-64423457e0ab",
+        "name": "Choose your Motto",
+        "stepType": "roll-table",
+        "rollTable": "Motto",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Your Pilot's Motto is a phrase they happen to be fond of using. They may say this phrase, as a Free Action or Reaction, at a time during the game that feels appropriate, and another Pilot may re-roll the dice, accepting the second result. This Ability can be used once, a Pilot regains the use of this Ability following Downtime."
+          }
+        ]
+      },
+      {
+        "id": "2150dfdd-9f64-4dca-a8a2-3820e74c7da3",
+        "name": "Choose your Keepsake",
+        "stepType": "roll-table",
+        "rollTable": "Keepsake",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Your Pilot's Keepsake is an item that is personal and important to them. It could be an old photograph, a childhood bobblehead toy, or a music mixtape from an old sweetheart. Consider why this Keepsake is important and what it means to your Pilot. If a Pilot takes an action that aligns with why their Keepsake is important to them, they may re-roll the dice on the action, accepting the second result. This Ability can be used once, a Pilot regains the use of this Ability following Downtime."
+          }
+        ]
+      },
+      {
+        "id": "4f06a901-ed7e-4dc7-a1bb-b11d7582780d",
+        "name": "Choose your Appearance",
+        "stepType": "roll-table",
+        "rollTable": "Pilot Appearance",
+        "optional": true,
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Briefly describe the appearance of your Pilot, and consider their gender and pronouns. Are they alluring, fancy, glamorous, tall, stocky, sloppy, or intimidating? Do they have any iconic features such as scars, wildly spiked hair, a mischievous grin, or crooked teeth? What type of clothing do they wear? Do they go by she, he, they, or something else?"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "9eb49f05-da37-453c-9a2a-d8f2c25e6b74",
+    "name": "Create a Mech",
+    "source": "Salvage Union Workshop Manual",
+    "page": 94,
+    "guideType": "mech-creation",
+    "guideColor": "#7A978A",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Follow these steps to build your starting Mech in the Mech Workshop."
+      }
+    ],
+    "steps": [
+      {
+        "id": "f1a2b3c4-d5e6-4f78-9012-3456789abcde",
+        "name": "Gain Scrap",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "You start with 20 Tech 1 Scrap. You will use this Scrap to craft your first Mech. This is built out of a Tech 1 Mech Chassis and any number of Tech 1 Systems and Modules installed on the Mech Chassis."
+          },
+          {
+            "type": "paragraph",
+            "value": "Any spare Scrap you have after this can be stored in your Union Crawler and be used later on in the game."
+          },
+          {
+            "type": "hint",
+            "value": "Full details on The Union Crawler can be found on p. 212."
+          }
+        ]
+      },
+      {
+        "id": "5d0d53e1-d2a5-4929-893c-01413b059450",
+        "name": "Craft your Mech Chassis",
+        "stepType": "select-one",
+        "schema": ["chassis"],
+        "filters": [
+          {
+            "field": "techLevel",
+            "value": 1
+          }
+        ],
+        "schemaEntities": ["Mule", "Mazona", "Scrapper", "Spectrum", "Thresher", "Kelpie", "Wader"],
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Craft a Tech 1 Mech Chassis of your choice from the Mech Chassis Blueprints list. This costs an amount of Tech 1 Scrap equal to its Salvage Value as per the normal crafting rules. For example, a Mule has a Salvage Value of 7 so would cost 7 Tech 1 Scrap to craft."
+          },
+          {
+            "type": "hint",
+            "value": "Mech Chassis can be found from p. 100 to p. 159."
+          }
+        ]
+      },
+      {
+        "id": "a2b3c4d5-e6f7-4890-1234-56789abcdef0",
+        "name": "Note down your Mech's statistics",
+        "stepType": "info",
+        "dependsOn": ["5d0d53e1-d2a5-4929-893c-01413b059450"],
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Your Mech has a set of statistics unique to its Chassis. This includes its Structure Points, Heat Capacity, Energy Points, System Slots, Module Slots, Salvage Value, Type, and Chassis Ability."
+          },
+          {
+            "type": "paragraph",
+            "value": "Note these down on your Mech Sheet."
+          },
+          {
+            "type": "hint",
+            "value": "Details on these can be found on p. 96."
+          }
+        ]
+      },
+      {
+        "id": "b3c4d5e6-f7a8-4901-2345-6789abcdef01",
+        "name": "Craft your Systems",
+        "stepType": "select-many",
+        "schema": ["systems"],
+        "filters": [
+          {
+            "field": "techLevel",
+            "value": 1
+          }
+        ],
+        "schemaEntities": [
+          ".50 Cal Machine Gun",
+          "Armour Plating",
+          "Cargo Pod",
+          "Escape Hatch",
+          "Chainsaw Arm",
+          "Floodlights",
+          "FM-3 Flamethrower",
+          "High Pressure Hose",
+          "Hydraulic Crusher",
+          "Locomotion System",
+          "Loudspeakers",
+          "Mechapult",
+          "Mini Mortar",
+          "Mining Rig",
+          "Red Laser",
+          "Rigging Arm",
+          "Transport Hold",
+          "Sandblaster",
+          "Riveting Gun"
+        ],
+        "contextFrom": "5d0d53e1-d2a5-4929-893c-01413b059450",
+        "dependsOn": ["5d0d53e1-d2a5-4929-893c-01413b059450"],
+        "constraints": {
+          "scalesWithField": "systemSlots"
+        },
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "You now craft Tech 1 Systems from the System Blueprints list to install on your Mech. Each System costs its Salvage Value in Tech 1 Scrap to craft, as per the normal crafting rules. For example, a Locomotion System has a Salvage Value of 2, so costs 2 Tech 1 Scrap to craft. A Mech can only install as many Systems as it has System slots. Note these down on your Mech Sheet."
+          },
+          {
+            "type": "hint",
+            "value": "The System list can be found on p. 162."
+          }
+        ]
+      },
+      {
+        "id": "c4d5e6f7-a8b9-4012-3456-789abcdef012",
+        "name": "Craft your Modules",
+        "stepType": "select-many",
+        "schema": ["modules"],
+        "filters": [
+          {
+            "field": "techLevel",
+            "value": 1
+          }
+        ],
+        "schemaEntities": [
+          "Comms Module",
+          "Equipment Locker",
+          "Eggs Mayhem",
+          "Firewall",
+          "Personal Recreation Device",
+          "Reactor Flare",
+          "Self-Destruct",
+          "Survey Scanner",
+          "Weapon Link",
+          "Zoom Optics",
+          "Heating Unit"
+        ],
+        "contextFrom": "5d0d53e1-d2a5-4929-893c-01413b059450",
+        "dependsOn": ["5d0d53e1-d2a5-4929-893c-01413b059450"],
+        "constraints": {
+          "scalesWithField": "moduleSlots"
+        },
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Next, you may craft Tech 1 Modules from the Module Blueprints list to install on your Mech. Each Module costs its Salvage Value in Tech 1 Scrap to craft, as per the normal crafting rules. For example, a Comms Module has a Salvage Value of 1, so costs 1 Tech 1 Scrap to craft. A Mech can only install as many Modules as it has Module Slots. Note these down on your Mech Sheet."
+          },
+          {
+            "type": "hint",
+            "value": "The Modules list can be found on p. 188."
+          }
+        ]
+      },
+      {
+        "id": "09bd8668-7739-467d-ac6b-85fda9951d50",
+        "name": "Choose your Quirk",
+        "stepType": "roll-table",
+        "rollTable": "Quirks",
+        "optional": true,
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "In addition to the Systems and Modules you have installed in your Mech, you can also give it a unique Quirk that will make it stand out from other Mechs. For example, their comms and sensor array could look like rabbit ears or they might make beeping noises when being operated. Either roll on the Quirks Table below or create one yourself."
+          }
+        ]
+      },
+      {
+        "id": "06844a83-139b-4db5-8c44-1c12cbc1bdc2",
+        "name": "Describe your Mech's Appearance",
+        "stepType": "roll-table",
+        "rollTable": "Mech Appearance",
+        "optional": true,
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Describe the appearance of your Mech. The Mech Chassis is simply an example of the Mech in its stock form before a salvager gets their hands on it. Your Mech can take on any appearance that you can imagine."
+          }
+        ]
+      },
+      {
+        "id": "e6afa346-6102-41d6-b359-6b7a21bf7b9d",
+        "name": "Give your Mech a Pattern Name",
+        "stepType": "roll-table",
+        "rollTable": "Mech Pattern Names",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Finally give your Mech a unique pattern name that marks it as your own creation. This could be something like 'Butcher', 'Slinky', 'Bullseye', or 'Roach'. For example: if you built a Mule with Zoom Optics and a Red Laser, you might want to call it a 'Bullseye Pattern Mule'."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "1c4aa920-919e-454b-806c-bddd760b35c2",
+    "name": "Create a Crawler",
+    "source": "Salvage Union Workshop Manual",
+    "page": 212,
+    "guideType": "crawler-creation",
+    "guideColor": "#D14B8A",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Once all players have created their Pilot and Mech, the final step is for everyone to create the Union Crawler they share."
+      },
+      {
+        "type": "paragraph",
+        "value": "Your Union Crawler is a huge and sprawling Mech, effectively a walking settlement. A Tech 1 starting Union Crawler is about the size of a small village whilst the largest Crawlers are the size of cities."
+      }
+    ],
+    "steps": [
+      {
+        "id": "7719034d-b2af-4e4b-a782-a951f43e0576",
+        "name": "Choose a Crawler Type",
+        "stepType": "select-one",
+        "schema": ["crawlers"],
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Your Crawler type provides a unique Ability that only it can do, as well as a special NPC who resides on the Crawler and confers their own bonuses. You can choose from the following list."
+          },
+          {
+            "type": "hint",
+            "value": "Crawler types can be found from p. 216 to p. 217."
+          }
+        ]
+      },
+      {
+        "id": "d5e6f7a8-b9c0-4123-4567-89abcdef0123",
+        "name": "Note down your Crawler statistics",
+        "stepType": "info",
+        "dependsOn": ["7719034d-b2af-4e4b-a782-a951f43e0576"],
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Your Crawler has a set of statistics based on its Tech Level. This includes its Structure Points, Upkeep, and Upgrade cost."
+          },
+          {
+            "type": "paragraph",
+            "value": "Note these down on your Crawler Sheet."
+          },
+          {
+            "type": "hint",
+            "value": "Details on Crawler Stats can be found on p. 218."
+          }
+        ]
+      },
+      {
+        "id": "e6f7a8b9-c0d1-4234-5678-9abcdef01234",
+        "name": "Choose a Weapons System",
+        "stepType": "select-one",
+        "schema": ["systems"],
+        "filters": [
+          {
+            "field": "techLevel",
+            "value": 1
+          },
+          {
+            "field": "type",
+            "value": "Weapon"
+          }
+        ],
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "A Union Crawler can mount a single Weapons System in its Armament Bay. To start, this can be any Tech 1 Weapons System of the players' choice."
+          },
+          {
+            "type": "paragraph",
+            "value": "Note this down on your Crawler Sheet."
+          },
+          {
+            "type": "hint",
+            "value": "The System list can be found on p. 162."
+          }
+        ]
+      },
+      {
+        "id": "f7a8b9c0-d1e2-4345-6789-abcdef012345",
+        "name": "Name the Crawler's NPCs",
+        "stepType": "freeform",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "The Crawler is made of a number of Bays. Each Bay has an NPC assigned to it based on their experience and skill in operating the Bay. You can flesh them out with a Name, Background, Keepsake, and Motto. Each has 4 HP."
+          },
+          {
+            "type": "hint",
+            "value": "The Crawler Bay list can be found on p. 221."
+          }
+        ]
+      },
+      {
+        "id": "4f91fd50-bf04-4aaf-8c63-702e32cbd987",
+        "name": "Give your Crawler a Name and Number",
+        "stepType": "roll-table",
+        "rollTable": "Crawler Name",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Provide your Union Crawler with a unique name and tag. For example, Crawler #132 is also known as 'Tin Lizzy'. Note these down on your Crawler Sheet."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "13c29610-f20e-4b69-921c-f806d274d713",
+    "name": "Upgrading your Union Crawler",
+    "source": "Salvage Union Workshop Manual",
+    "page": 218,
+    "guideType": "progression",
+    "guideColor": "#D14B8A",
+    "repeatable": true,
+    "steps": [
+      {
+        "id": "5de3a137-4844-4bec-b894-8be617222b23",
+        "name": "Union Crawler Tech Levels",
+        "stepType": "info",
+        "schema": ["crawler-tech-levels"],
+        "entityLayout": "sidebar",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "If you pay the Upkeep on your Union Crawler in full, the amount of Upkeep you spend goes towards your Upgrade Pool. When the Upgrade Pool reaches the Upgrade Value of your Union Crawler, you may choose to upgrade it. When upgraded, it will boost the Tech Level of Union Crawler to the next Tech Level, and give it all of the new statistics. Many of your Bays will now be able to support wider functions based on the new Tech Level of your Union Crawler, for example, your Crafting Bay may craft anything of its current Tech Level or lower."
+          },
+          {
+            "type": "paragraph",
+            "value": "You may also spend additional Scrap towards your Upgrade Pool during Downtime if you wish to accelerate the process. However, be careful, as upgraded Union Crawlers cost more Upkeep to maintain."
+          },
+          {
+            "type": "paragraph",
+            "value": "The upgrade process takes one week. At the end of that week your Union Crawler is upgraded to the next Tech Level. This is intended to make it ready for your next Downtime."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "5b57c66c-ad03-4184-b081-366c98c44fbe",
+    "name": "Union Crawler Downtime Procedure",
+    "source": "Salvage Union Workshop Manual",
+    "page": 227,
+    "guideType": "downtime",
+    "guideColor": "#D14B8A",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "When Pilots return to the Union Crawler, this begins Downtime. Everything you do within Downtime on your Union Crawler is assumed to be happening at different times, and overlapping with one another within the narrative. However, for the sake of simplicity at the table, follow these steps to structure Downtime so you do not miss anything crucial."
+      },
+      {
+        "type": "paragraph",
+        "value": "In terms of session structure, split these into post-session and pre-session procedures."
+      }
+    ],
+    "steps": [
+      {
+        "id": "b8ef9784-3967-4f7d-8e8c-b8d487788a39",
+        "name": "Tally Salvage",
+        "stepType": "info",
+        "section": "Post-Session",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "When you return back to the Union Crawler the first thing you should do is tally your salvage."
+          },
+          {
+            "type": "paragraph",
+            "value": "If you want to keep any Mech Chassis, Systems, or Modules that you return from the wasteland with, note these down on your Union Crawler Sheet."
+          },
+          {
+            "type": "paragraph",
+            "value": "You may also store any Pilot Equipment you wish to keep in your Armoury. Note these down on your Union Crawler Sheet."
+          },
+          {
+            "type": "paragraph",
+            "value": "All other Mech Chassis, Systems, and Modules are converted into Scrap equal to their Salvage Value of their Tech Level. Note down this Scrap total on your Union Crawler Sheet. As Scrap can be used to craft Mech Chassis, Systems, or Modules on a one-to-one basis you are effectively creating a pool to build from."
+          }
+        ]
+      },
+      {
+        "id": "a1c2d3e4-f5a6-4b7c-8d9e-0f1a2b3c4d5e",
+        "name": "Upkeep & Upgrade",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Next, pay the Upkeep Cost of your Union Crawler and resolve any effects of not paying Upkeep from your Scrap pool."
+          },
+          {
+            "type": "paragraph",
+            "value": "Then update your Upgrade Pool with the amount you paid in Upkeep. You may choose to add additional Scrap to the Upgrade Pool at this stage as well. You can also do this later as fits."
+          },
+          {
+            "type": "hint",
+            "value": "In the Union, paying Upkeep is also called 'paying your dues'."
+          }
+        ]
+      },
+      {
+        "id": "b2d3e4f5-a6b7-4c8d-9e0f-1a2b3c4d5e6f",
+        "name": "Restore your Mech & Pilot",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Your Mech's Structure Points and Energy are fully restored during Downtime. Your Mech's Heat also reduces to 0. Note this down on your Mech Sheets. If any Mech Chassis, Systems, or Modules are damaged, they are repaired to the Intact Condition during Downtime as long as they are of a Tech Level equal to or lower than your Union Crawler."
+          },
+          {
+            "type": "paragraph",
+            "value": "During Downtime, your Pilot heals their HP and Ability Points to full. If you have access to a higher Tech Level Med Bay, your Minor and Major Injuries can heal as well. Note this down on your Pilot Sheet."
+          }
+        ]
+      },
+      {
+        "id": "c3e4f5a6-b7c8-4d9e-0f1a-2b3c4d5e6f7a",
+        "name": "Trade",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Roll to find out what is available to trade this Downtime. You can also trade scrap in your Trading Bay."
+          }
+        ]
+      },
+      {
+        "id": "d4f5a6b7-c8d9-4e0f-1a2b-3c4d5e6f7a8b",
+        "name": "Craft Mech Chassis, Systems, and Modules",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "You can craft new Mech Chassis, Systems, and Modules in your Crafting Bay during Downtime. There are no restrictions, except for the amount of Scrap you have, on how much you can build during Downtime."
+          }
+        ]
+      },
+      {
+        "id": "e5a6b7c8-d9e0-4f1a-2b3c-4d5e6f7a8b9c",
+        "name": "Customise your Mech",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "You can Mount or Dismount any number of Systems and Modules onto your Mech Chassis, or replace your Mech Chassis with a new Mech Chassis. Anything you do not use goes into the Storage Bay."
+          }
+        ]
+      },
+      {
+        "id": "f6b7c8d9-e0f1-4a2b-3c4d-5e6f7a8b9c0d",
+        "name": "Train your Pilot",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Your Pilot gains a Training Point through training during Downtime. They may choose to spend Training Points to train a new Pilot Ability. If they have taken all their Core Class Ability, they may choose from their Advanced Abilities or train into one of the Advanced Pilot Classes."
+          },
+          {
+            "type": "hint",
+            "value": "Full details on the Crawler Pilot Bay can be found on p. 223."
+          }
+        ]
+      },
+      {
+        "id": "a7c8d9e0-f1a2-4b3c-4d5e-6f7a8b9c0d1e",
+        "name": "Obtain Pilot Equipment",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Each Pilot may choose a piece of Pilot Equipment from the Armoury during Downtime of the Tech Level of the Crawler or lower. You may only pick one piece each."
+          }
+        ]
+      },
+      {
+        "id": "b8d9e0f1-a2b3-4c4d-5e6f-7a8b9c0d1e2f",
+        "name": "Gather Cantina Rumours",
+        "stepType": "info",
+        "section": "Pre-Session",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "You can use your Cantina to find out information about the wider wastelands. Unique NPCs on board may be useful as well, to tell you about what is happening in the world. Each Pilot may gather a single rumour each which will be provided by the Mediator."
+          }
+        ]
+      },
+      {
+        "id": "c9e0f1a2-b3c4-4d5e-6f7a-8b9c0d1e2f3a",
+        "name": "Prepare for the next Salvage Run",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "As a group, you choose the direction you want the Union Crawler to travel in for your next expedition into the wastelands. In addition, you can use your Command Bay to find out more information about the intended destination and prepare your Mechs and Pilots for the next foray. At this point, you can also choose the Mech you want to take into your next journey into the wastes."
+          }
+        ]
+      }
+    ]
+  }
+]

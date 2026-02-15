@@ -305,5 +305,27 @@ export function extractEntityDetails(
     details.push({ label: `${dt} Damage`, type: 'meta' })
   }
 
+  // Add crawler tech level details: population range, upkeep, upgrade cost
+  if (schemaName === 'crawler-tech-levels') {
+    if (
+      'populationMin' in data &&
+      typeof data.populationMin === 'number' &&
+      'populationMax' in data &&
+      typeof data.populationMax === 'number'
+    ) {
+      const rangeText =
+        data.populationMax === 0
+          ? `${data.populationMin.toLocaleString()}+`
+          : `${data.populationMin.toLocaleString()} - ${data.populationMax.toLocaleString()}`
+      details.push({ label: 'Population', value: rangeText })
+    }
+    if ('upkeepCost' in data && typeof data.upkeepCost === 'number') {
+      details.push({ label: 'Upkeep', value: `${data.upkeepCost} Scrap` })
+    }
+    if ('upgradeCost' in data && typeof data.upgradeCost === 'number') {
+      details.push({ label: 'Upgrade', value: `${data.upgradeCost} Scrap` })
+    }
+  }
+
   return details
 }

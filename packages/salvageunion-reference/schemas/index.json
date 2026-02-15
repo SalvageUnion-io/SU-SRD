@@ -130,16 +130,6 @@
       "comment": "For example, they may rule that a Pilot standing in front of a door would open it before a Mech in Close Range could reach them.\n When activating a System, Module, or Ability with a Range band, you may choose any Range within the band. For example, a Medium Range Module could be activated to affect targets within Close Range or Medium Range."
     },
     {
-      "id": "downtime-activities",
-      "title": "downtime-activities",
-      "description": "Downtime activities available to Pilots during a week of Downtime",
-      "dataFile": "data/downtime-activities.json",
-      "schemaFile": "schemas/downtime-activities.schema.json",
-      "itemCount": 6,
-      "requiredFields": [],
-      "displayName": "Downtime Activities"
-    },
-    {
       "id": "drones",
       "title": "drones",
       "description": "Autonomous drones in Salvage Union",
@@ -170,15 +160,14 @@
       "displayName": "factions"
     },
     {
-      "id": "flows",
-      "title": "flows",
-      "description": "Player-facing flows and processes in Salvage Union (character creation, progression, downtime)",
-      "dataFile": "data/flows.json",
-      "schemaFile": "schemas/flows.schema.json",
+      "id": "guides",
+      "title": "guides",
+      "description": "Player-facing guides and processes in Salvage Union (character creation, progression, downtime)",
+      "dataFile": "data/guides.json",
+      "schemaFile": "schemas/guides.schema.json",
       "itemCount": 7,
-      "requiredFields": ["flowType", "steps"],
-      "displayName": "Flows",
-      "meta": true
+      "requiredFields": ["guideType", "steps"],
+      "displayName": "Guides"
     },
     {
       "id": "keywords",
@@ -226,7 +215,7 @@
       "description": "Random tables and roll tables in Salvage Union",
       "dataFile": "data/roll-tables.json",
       "schemaFile": "schemas/roll-tables.schema.json",
-      "itemCount": 77,
+      "itemCount": 78,
       "requiredFields": ["table"],
       "displayName": "Roll Tables"
     },

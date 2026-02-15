@@ -25,10 +25,10 @@ import { EntityChoices } from '../EntityChoices'
 import { EntityGrants } from '../EntityGrants'
 import { EntityBonusPerTechLevel } from '../EntityBonusPerTechLevel'
 import { ConditionalSheetInfo } from '../ConditionalSheetInfo'
-import { EntityPopulationRange } from '../EntityPopulationRange'
 import { EntityActions } from '../EntityActions'
 import { EntityImage } from '../EntityImage'
 import { BlockContentRendererView } from '../../BlockContentRendererView'
+import { GuideStepsDisplay } from '../../GuideStepsDisplay'
 import * as DialogPrimitive from '@radix-ui/react-dialog'
 import { X } from 'lucide-react'
 import { cn } from '../../../../utils/cn'
@@ -49,6 +49,7 @@ export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayC
     compact,
     title,
     headerBg,
+    headerBgColor,
     spacing,
     opacity,
     shouldShowExtraContent,
@@ -204,11 +205,13 @@ export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayC
       bg="bg-su-blue-light"
       label={label}
       headerBg={headerBg}
+      headerBgColor={headerBgColor}
       headerOpacity={opacity.header}
       leftContent={
         <EntityLeftContent
           techLevel={techLevel}
           compact={compact}
+          listing={listing}
           level={'level' in data ? data.level : undefined}
         />
       }
@@ -230,6 +233,7 @@ export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayC
             fontSize={fontSize}
             techLevel={techLevel}
             listing={listing}
+            primaryStatsOnly={compact && listing && schemaName === 'chassis'}
             onDetailClick={listing ? handleDetailClick : undefined}
           />
         )
@@ -279,6 +283,7 @@ export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayC
                         compact={compact}
                         damaged={damaged}
                         headerBg={headerBg}
+                        headerBgColor={headerBgColor}
                       />
                     )}
                     {children}
@@ -296,6 +301,7 @@ export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayC
                     compact={compact}
                     damaged={damaged}
                     headerBg={headerBg}
+                    headerBgColor={headerBgColor}
                   />
                 )}
                 {children}
@@ -315,8 +321,10 @@ export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayC
                       <div
                         className={compact ? 'pl-2' : 'pl-3'}
                         style={
-                          borderColorFromHeaderBg(headerBg)
-                            ? { borderLeft: `3px solid ${borderColorFromHeaderBg(headerBg)}` }
+                          borderColorFromHeaderBg(headerBg, headerBgColor)
+                            ? {
+                                borderLeft: `3px solid ${borderColorFromHeaderBg(headerBg, headerBgColor)}`,
+                              }
                             : undefined
                         }
                       >
@@ -333,6 +341,40 @@ export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayC
                     </div>
                   ) : null
                 )}
+                {/* Guide steps */}
+                {schemaName === 'guides' &&
+                  'steps' in data &&
+                  Array.isArray(data.steps) &&
+                  data.steps.length > 0 && (
+                    <GuideStepsDisplay
+                      steps={data.steps}
+                      compact={compact}
+                      headerBg={headerBg}
+                      headerBgColor={headerBgColor}
+                      fontSize={fontSize}
+                      spacing={spacing}
+                      renderEntityListing={(
+                        entityData,
+                        entitySchemaName,
+                        key,
+                        isListing,
+                        forceCompact
+                      ) => (
+                        <EntityDisplayContent
+                          key={key}
+                          data={entityData as typeof data}
+                          schemaName={entitySchemaName as typeof schemaName}
+                          compact={forceCompact ?? isListing}
+                          listing={isListing}
+                          dimHeader={false}
+                          disabled={false}
+                          hideActions={isListing}
+                          hidePatterns
+                          hideChoices
+                        />
+                      )}
+                    />
+                  )}
                 {/* Non-compact: chassis abilities + pattern data render before actions */}
                 {!compact && !hideActions && chassisAbilitiesBlock}
               </>
@@ -349,17 +391,6 @@ export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayC
             {/* Compact: pattern data + chassis abilities render after actions */}
             {compact && chassisAbilitiesBlock}
 
-            {schemaName === 'crawler-tech-levels' &&
-              'populationMin' in data &&
-              typeof data.populationMin === 'number' &&
-              'populationMax' in data &&
-              typeof data.populationMax === 'number' && (
-                <EntityPopulationRange
-                  populationMin={data.populationMin}
-                  populationMax={data.populationMax}
-                  spacing={spacing}
-                />
-              )}
             <EntityBonusPerTechLevel
               bonusPerTechLevel={'bonusPerTechLevel' in data ? data.bonusPerTechLevel : undefined}
               spacing={spacing}
@@ -453,6 +484,7 @@ export function EntityDisplayContent({ children, ...inputProps }: EntityDisplayC
               style={{
                 paddingLeft: `${spacing.contentPaddingX}rem`,
                 paddingRight: `${spacing.contentPaddingX}rem`,
+                ...(headerBgColor ? { backgroundColor: headerBgColor } : {}),
                 ...sourceFooterStyles.style,
               }}
             >

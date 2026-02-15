@@ -25,6 +25,8 @@ export type StatConfig = {
   normalBottomLabel: string
   /** Tooltip text explaining what this stat represents */
   tooltip?: string
+  /** When true, this stat is shown even when primaryOnly filtering is active */
+  primary?: boolean
 }
 
 /**
@@ -48,6 +50,7 @@ export const ENTITY_STATS_CONFIG: StatConfig[] = [
     normalBottomLabel: 'Points',
     tooltip:
       'Structure Points represent how tough and sturdy your Mech is, and how much damage it can take. This is an abstract measure representing a broad range of factors ranging from sheer bulk and armour to wider defensive capabilities.',
+    primary: true,
   },
   {
     getter: getHitPoints,
@@ -66,6 +69,7 @@ export const ENTITY_STATS_CONFIG: StatConfig[] = [
     normalBottomLabel: 'Points',
     tooltip:
       'Energy Points abstractly represents the energy output and efficiency of your Mechs reactor as well as its stored power. You can spend these points to activate your Systems, Modules, and Chassis Abilities.',
+    primary: true,
   },
   {
     getter: getSalvageValue,
@@ -75,6 +79,7 @@ export const ENTITY_STATS_CONFIG: StatConfig[] = [
     normalBottomLabel: 'Value',
     tooltip:
       "Salvage Value represents the sum of a Mech, System, or Module's material components. As such it's the amount of Scrap you receive when breaking down a Chassis, System, or Module, as well as the amount of Scrap required to craft a Mech, System, or Module.",
+    primary: true,
   },
   {
     getter: getBioSalvageValue,
@@ -84,6 +89,7 @@ export const ENTITY_STATS_CONFIG: StatConfig[] = [
     normalBottomLabel: 'SV',
     tooltip:
       'Bio Salvage Value represents the biological material that can be harvested from this creature or NPC.',
+    primary: true,
   },
   {
     getter: getSystemSlots,

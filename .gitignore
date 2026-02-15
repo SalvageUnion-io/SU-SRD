@@ -54,3 +54,5 @@ apps/suref-web/.vite
 
 # Netlify
 .netlify
+
+rules/*

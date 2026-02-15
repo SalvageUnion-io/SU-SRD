@@ -4,7 +4,12 @@ import {
   type ChatInputCommandInteraction,
   type AutocompleteInteraction,
 } from 'discord.js'
-import { SalvageUnionReference, resultForTable } from 'salvageunion-reference'
+import {
+  SalvageUnionReference,
+  resultForTable,
+  resultForColumnsTable,
+  isColumnsTable,
+} from 'salvageunion-reference'
 
 // Get all roll table names for autocomplete
 const rollTables = SalvageUnionReference.RollTables.all()
@@ -61,6 +66,39 @@ export const rollCommand = {
         content: `Could not find table: "${tableName}". Use autocomplete to see available tables.`,
         ephemeral: true,
       })
+      return
+    }
+
+    // Handle columns-type tables (two d20 rolls)
+    if (isColumnsTable(table.table)) {
+      const columnRoll = rollD20()
+      const entryRoll = rollD20()
+      const { success, result, columnKey, entryKey } = resultForColumnsTable(
+        table.table,
+        columnRoll,
+        entryRoll
+      )
+
+      if (!success) {
+        await interaction.reply({
+          content: `Error rolling on table "${table.name}": ${result.value}`,
+          ephemeral: true,
+        })
+        return
+      }
+
+      const embed = new EmbedBuilder()
+        .setTitle(result.value)
+        .setColor(getColor(entryRoll))
+        .addFields(
+          { name: 'Table', value: table.name, inline: true },
+          { name: 'Column Roll', value: `${columnRoll} (${columnKey})`, inline: true },
+          { name: 'Entry Roll', value: `${entryRoll} (#${entryKey})`, inline: true }
+        )
+        .setFooter({ text: 'Salvage Union Reference' })
+        .setTimestamp()
+
+      await interaction.reply({ embeds: [embed] })
       return
     }
 

@@ -5,47 +5,53 @@ paths:
 
 # Package Development
 
-Patterns for developing the salvageunion-reference package with code generation.
+Patterns for developing the salvageunion-reference package.
+
+## Data-First Principle
+
+When encoding any game data, **always start by modeling it in this package first**. Define the Zod schemas, add the JSON data, and implement any resolution logic here before building UI components or consumers in other packages/apps. The reference package is the single source of truth for all game data.
 
 ## Package Structure
 
-- `lib/` - TypeScript files
+- `lib/` - TypeScript source (all hand-written)
+- `lib/schemas/` - Zod schema definitions (entities, enums, objects, common)
 - `data/` - JSON data files
-- `schemas/` - JSON Schema files
-- `tools/` - Code generation scripts
+- `schemas/` - JSON Schema files (generated from Zod schemas during build)
+- `tools/` - Validation and generation scripts
 - `dist/` - Compiled output (generated, don't edit)
 
-## Code Generation
+## Build & JSON Schema Generation
 
-Always run generation after schema/data changes:
+Building the package compiles TypeScript and generates JSON Schema files:
 
 ```bash
-bun run generate
+bun run build:package   # from repo root
 ```
 
-**NEVER manually edit auto-generated files:**
+This runs `tsc` followed by `generate:json-schemas`. There is no standalone `generate` command.
 
-- `lib/utilities-generated.ts`
-- `lib/types/schemas.ts`
-- `lib/types/enums.ts`
-- `lib/types/common.ts`
-- `lib/types/objects.ts`
-- `lib/types/index.ts`
-- `lib/index.ts` (generated from `lib/index.template.ts`)
+**Auto-generated files (DO NOT EDIT):**
 
-To modify generated code:
+- `schemas/*.schema.json` - Generated from Zod schemas via `tools/generateJsonSchemas.ts`
+- `dist/` - TypeScript compilation output
 
-1. Edit generator scripts in `tools/` directory or template files (e.g., `lib/index.template.ts`)
-2. Run `bun run generate`
+To change generated output:
 
-## Manual Override Files
+1. Edit Zod schemas in `lib/schemas/`
+2. Run `bun run build:package`
 
-These files are NOT generated and can be edited directly:
+## All TypeScript Source is Hand-Written
 
-- `lib/utilities.ts`
-- `lib/ModelFactory.ts`
-- `lib/BaseModel.ts`
-- `lib/search.ts`
+All files in `lib/` are manually maintained. Key files:
+
+- `lib/schemas/entities.ts` - Zod schema definitions for all entity types
+- `lib/schemas/enums.ts` - Enum definitions
+- `lib/schemas/objects.ts` - Shared object schemas
+- `lib/schemas/common.ts` - Common schema utilities
+- `lib/index.ts` - Main entry point, model definitions
+- `lib/types/index.ts` - Type re-exports for backward compatibility
+- `lib/BaseModel.ts`, `lib/ModelFactory.ts` - ORM infrastructure
+- `lib/utilities.ts`, `lib/search.ts`, `lib/helpers.ts`
 
 ## Model Structure
 
@@ -64,10 +70,11 @@ These files are NOT generated and can be edited directly:
 ## Adding New Data
 
 1. Add JSON file to `data/` directory
-2. Add corresponding schema to `schemas/` directory
-3. Update `tools/schemaNameMap.ts` if needed
-4. Run `bun run generate`
-5. Run `bun test` to verify
+2. Add Zod schema to `lib/schemas/entities.ts`
+3. Add schema to the map in `tools/generateJsonSchemas.ts`
+4. Add model to `lib/index.ts`
+5. Run `bun run build:package`
+6. Run `bun test` to verify
 
 ## Usage
 

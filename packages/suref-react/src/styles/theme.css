@@ -118,8 +118,7 @@
   background: inherit;
   clip-path: polygon(
     0% 0%,
-    1% 60%,
-    2% 0%,
+    3% 0%,
     3% 80%,
     4% 0%,
     5.5% 100%,
@@ -226,8 +225,7 @@
   background: inherit;
   clip-path: polygon(
     0% 100%,
-    1% 40%,
-    2% 100%,
+    3% 100%,
     3% 20%,
     4% 100%,
     5.5% 0%,
@@ -362,6 +360,51 @@
   mask-repeat: repeat-x;
   -webkit-mask-size: 100px 10px;
   mask-size: 100px 10px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Mech Monday - Digital Scanlines (pixel-dissolve edge, newsletter/screen feel) */
+.expansion-scanlines-down {
+  position: relative;
+}
+.expansion-scanlines-down::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background-color: inherit;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='6'%3E%3Crect x='0' y='0' width='8' height='1' fill='white'/%3E%3Crect x='0' y='2' width='5' height='1' fill='white'/%3E%3Crect x='6' y='2' width='2' height='1' fill='white'/%3E%3Crect x='0' y='4' width='2' height='1' fill='white'/%3E%3Crect x='4' y='4' width='1' height='1' fill='white'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='6'%3E%3Crect x='0' y='0' width='8' height='1' fill='white'/%3E%3Crect x='0' y='2' width='5' height='1' fill='white'/%3E%3Crect x='6' y='2' width='2' height='1' fill='white'/%3E%3Crect x='0' y='4' width='2' height='1' fill='white'/%3E%3Crect x='4' y='4' width='1' height='1' fill='white'/%3E%3C/svg%3E");
+  -webkit-mask-repeat: repeat-x;
+  mask-repeat: repeat-x;
+  -webkit-mask-size: 8px 6px;
+  mask-size: 8px 6px;
+  transform: translateY(100%);
+  pointer-events: none;
+  z-index: 10;
+}
+
+.expansion-scanlines-up {
+  position: relative;
+}
+.expansion-scanlines-up::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background-color: inherit;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='6'%3E%3Crect x='0' y='5' width='8' height='1' fill='white'/%3E%3Crect x='0' y='3' width='5' height='1' fill='white'/%3E%3Crect x='6' y='3' width='2' height='1' fill='white'/%3E%3Crect x='0' y='1' width='2' height='1' fill='white'/%3E%3Crect x='4' y='1' width='1' height='1' fill='white'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='6'%3E%3Crect x='0' y='5' width='8' height='1' fill='white'/%3E%3Crect x='0' y='3' width='5' height='1' fill='white'/%3E%3Crect x='6' y='3' width='2' height='1' fill='white'/%3E%3Crect x='0' y='1' width='2' height='1' fill='white'/%3E%3Crect x='4' y='1' width='1' height='1' fill='white'/%3E%3C/svg%3E");
+  -webkit-mask-repeat: repeat-x;
+  mask-repeat: repeat-x;
+  -webkit-mask-size: 8px 6px;
+  mask-size: 8px 6px;
+  transform: translateY(-100%);
   pointer-events: none;
   z-index: 10;
 }

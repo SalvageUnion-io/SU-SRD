@@ -14,19 +14,14 @@ fi
 
 # Auto-generated files that must not be manually edited
 PROTECTED_PATTERNS=(
-  "packages/salvageunion-reference/lib/utilities-generated.ts"
-  "packages/salvageunion-reference/lib/types/schemas.ts"
-  "packages/salvageunion-reference/lib/types/enums.ts"
-  "packages/salvageunion-reference/lib/types/common.ts"
-  "packages/salvageunion-reference/lib/types/objects.ts"
-  "packages/salvageunion-reference/lib/types/index.ts"
+  "packages/salvageunion-reference/schemas/*.schema.json"
   "packages/salvageunion-reference/dist/"
   "routeTree.gen.ts"
 )
 
 for pattern in "${PROTECTED_PATTERNS[@]}"; do
   if [[ "$FILE_PATH" == *"$pattern"* ]]; then
-    echo "BLOCKED: $FILE_PATH is auto-generated. Edit the generator scripts in tools/ or template files instead, then run 'bun run generate'." >&2
+    echo "BLOCKED: $FILE_PATH is auto-generated. For JSON schemas, edit the Zod schemas in lib/schemas/ and run 'bun run build:package'. For dist/, run 'bun run build:package'. For routeTree.gen.ts, TanStack Router generates this automatically." >&2
     exit 2
   fi
 done

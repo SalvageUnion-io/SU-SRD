@@ -8,6 +8,8 @@ import { getSourceStyles } from '../entity/entityDisplayHelpers'
 type CardProps = {
   bg?: string
   headerBg?: string
+  /** Raw CSS color for header background (overrides headerBg Tailwind class) */
+  headerBgColor?: string
   headerOpacity?: number
   title?: string
   leftContent?: ReactNode
@@ -34,6 +36,7 @@ export function Card({
   compact = false,
   bg = 'bg-su-blue-light',
   headerBg,
+  headerBgColor,
   headerOpacity = 1,
   title,
   leftContent,
@@ -99,7 +102,7 @@ export function Card({
           aria-expanded={onHeaderClick ? isExpanded : undefined}
           className={cn(
             'flex w-full items-center justify-between gap-2 overflow-visible',
-            children ? 'rounded-t-sm' : 'rounded-md',
+            children ? 'rounded-t-sm' : 'rounded-md flex-1',
             reverse ? 'flex-row-reverse' : 'flex-row',
             actualHeaderBg,
             compact ? 'min-h-[60px] px-1 py-1' : 'min-h-[80px] px-1.5 py-1.5',
@@ -107,7 +110,11 @@ export function Card({
             onHeaderClick && 'cursor-pointer',
             sourceStyles.className
           )}
-          style={{ opacity: headerOpacity, ...sourceStyles.style }}
+          style={{
+            opacity: headerOpacity,
+            ...(headerBgColor ? { backgroundColor: headerBgColor } : {}),
+            ...sourceStyles.style,
+          }}
           onClick={onHeaderClick}
           onKeyDown={onHeaderClick ? handleKeyDown : undefined}
           data-testid={headerTestId}

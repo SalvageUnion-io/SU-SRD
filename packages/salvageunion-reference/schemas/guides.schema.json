@@ -1,13 +1,13 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://salvageunion.com/schemas/flows.schema.json",
-  "title": "flows",
+  "$id": "https://salvageunion.com/schemas/guides.schema.json",
+  "title": "guides",
   "description": "",
   "type": "array",
   "items": {
-    "$ref": "#/definitions/flows",
+    "$ref": "#/definitions/guides",
     "definitions": {
-      "flows": {
+      "guides": {
         "type": "object",
         "properties": {
           "asset_url": { "type": "string", "format": "uri" },
@@ -48,7 +48,7 @@
                     "type": "object",
                     "properties": {
                       "type": {
-                        "$ref": "#/definitions/flows/properties/content/items/properties/type",
+                        "$ref": "#/definitions/guides/properties/content/items/properties/type",
                         "default": "paragraph"
                       },
                       "value": {
@@ -57,7 +57,7 @@
                           {
                             "type": "array",
                             "items": {
-                              "$ref": "#/definitions/flows/properties/content/items/properties/value/anyOf/1/items"
+                              "$ref": "#/definitions/guides/properties/content/items/properties/value/anyOf/1/items"
                             },
                             "description": "Array of data values when type is 'datavalues'"
                           }
@@ -88,7 +88,7 @@
             ]
           },
           "page": { "type": "integer", "exclusiveMinimum": 0 },
-          "flowType": {
+          "guideType": {
             "type": "string",
             "enum": [
               "character-creation",
@@ -98,15 +98,21 @@
               "downtime",
               "gameplay"
             ],
-            "description": "Category of this flow"
+            "description": "Category of this guide"
+          },
+          "guideColor": {
+            "type": "string",
+            "pattern": "^#[0-9a-fA-F]{6}$",
+            "default": "#000000",
+            "description": "Hex color for entity display header/footer"
           },
           "steps": {
             "type": "array",
             "items": {
               "type": "object",
               "properties": {
-                "id": { "$ref": "#/definitions/flows/properties/id" },
-                "name": { "$ref": "#/definitions/flows/properties/name" },
+                "id": { "$ref": "#/definitions/guides/properties/id" },
+                "name": { "$ref": "#/definitions/guides/properties/name" },
                 "stepType": {
                   "type": "string",
                   "enum": [
@@ -115,10 +121,14 @@
                     "freeform",
                     "roll-table",
                     "info",
-                    "sub-flow"
+                    "sub-guide"
                   ]
                 },
-                "content": { "$ref": "#/definitions/flows/properties/content" },
+                "section": {
+                  "type": "string",
+                  "description": "Section label; starts a new numbered group when present"
+                },
+                "content": { "$ref": "#/definitions/guides/properties/content" },
                 "schema": {
                   "type": "array",
                   "items": {
@@ -136,9 +146,9 @@
                           "crawlers",
                           "creatures",
                           "distances",
-                          "downtime-activities",
                           "drones",
                           "equipment",
+                          "guides",
                           "keywords",
                           "factions",
                           "meld",
@@ -195,7 +205,7 @@
                       },
                       "min": { "type": "integer", "minimum": 0 },
                       "max": {
-                        "$ref": "#/definitions/flows/properties/steps/items/properties/filters/items/properties/min"
+                        "$ref": "#/definitions/guides/properties/steps/items/properties/filters/items/properties/min"
                       }
                     },
                     "required": ["field"],
@@ -207,10 +217,10 @@
                   "properties": {
                     "field": { "type": "string" },
                     "min": {
-                      "$ref": "#/definitions/flows/properties/steps/items/properties/filters/items/properties/min"
+                      "$ref": "#/definitions/guides/properties/steps/items/properties/filters/items/properties/min"
                     },
                     "max": {
-                      "$ref": "#/definitions/flows/properties/steps/items/properties/filters/items/properties/min"
+                      "$ref": "#/definitions/guides/properties/steps/items/properties/filters/items/properties/min"
                     },
                     "scalesWithField": {
                       "type": "string",
@@ -228,11 +238,16 @@
                   "type": "string",
                   "description": "Step ID whose result provides context (e.g., chassis selection provides patterns)"
                 },
-                "flowRef": {
+                "guideRef": {
                   "type": "string",
-                  "description": "ID of another flow to execute as a sub-flow"
+                  "description": "ID of another guide to execute as a sub-guide"
                 },
-                "optional": { "type": "boolean" }
+                "optional": { "type": "boolean" },
+                "entityLayout": {
+                  "type": "string",
+                  "enum": ["sidebar"],
+                  "description": "Layout for entity displays: sidebar places entities in a left column"
+                }
               },
               "required": ["id", "name", "stepType"],
               "additionalProperties": false
@@ -241,10 +256,10 @@
           },
           "repeatable": {
             "type": "boolean",
-            "description": "Whether this flow can be executed multiple times"
+            "description": "Whether this guide can be executed multiple times"
           }
         },
-        "required": ["id", "name", "source", "page", "flowType", "steps"],
+        "required": ["id", "name", "source", "page", "guideType", "steps"],
         "additionalProperties": false
       }
     },

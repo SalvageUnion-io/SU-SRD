@@ -171,6 +171,34 @@ export const TableContentSchema = z
   .strict()
 
 /**
+ * Column entries: flat 1-20 mapping used in multi-column roll tables (e.g. Callsign Table)
+ */
+const ColumnEntriesSchema = z
+  .object({
+    '1': TableContentSchema,
+    '2': TableContentSchema,
+    '3': TableContentSchema,
+    '4': TableContentSchema,
+    '5': TableContentSchema,
+    '6': TableContentSchema,
+    '7': TableContentSchema,
+    '8': TableContentSchema,
+    '9': TableContentSchema,
+    '10': TableContentSchema,
+    '11': TableContentSchema,
+    '12': TableContentSchema,
+    '13': TableContentSchema,
+    '14': TableContentSchema,
+    '15': TableContentSchema,
+    '16': TableContentSchema,
+    '17': TableContentSchema,
+    '18': TableContentSchema,
+    '19': TableContentSchema,
+    '20': TableContentSchema,
+  })
+  .strict()
+
+/**
  * Roll table discriminated union for random outcomes based on d20 rolls
  */
 export const TableSchema = z.discriminatedUnion('type', [
@@ -256,6 +284,17 @@ export const TableSchema = z.discriminatedUnion('type', [
       '9-10': TableContentSchema,
       '11-19': TableContentSchema,
       '20': TableContentSchema,
+    })
+    .strict(),
+  // Multi-column roll table (two d20 rolls: column then entry)
+  z
+    .object({
+      type: z.literal('columns'),
+      '1-4': ColumnEntriesSchema,
+      '5-8': ColumnEntriesSchema,
+      '9-12': ColumnEntriesSchema,
+      '13-16': ColumnEntriesSchema,
+      '17-20': ColumnEntriesSchema,
     })
     .strict(),
 ])
@@ -563,9 +602,9 @@ export const GrantSchema = z
 export const SchemaNameWithActionsSchema = z.union([SchemaNameSchema, z.literal('actions')])
 
 /**
- * Filter criteria for selecting entities in a flow step
+ * Filter criteria for selecting entities in a guide step
  */
-const FlowStepFilterSchema = z
+const GuideStepFilterSchema = z
   .object({
     field: z.string().describe('Field name on the target entity to filter by'),
     value: z
@@ -578,42 +617,48 @@ const FlowStepFilterSchema = z
   .strict()
 
 /**
- * Type of decision a flow step represents
+ * Type of decision a guide step represents
  */
-const FlowStepTypeSchema = z.enum([
+const GuideStepTypeSchema = z.enum([
   'select-one',
   'select-many',
   'freeform',
   'roll-table',
   'info',
-  'sub-flow',
+  'sub-guide',
 ])
 
 /**
- * A single step in a flow
+ * A single step in a guide
  */
-export const FlowStepSchema: z.ZodType<{
+export const GuideStepSchema: z.ZodType<{
   id: string
   name: string
-  stepType: z.infer<typeof FlowStepTypeSchema>
+  stepType: z.infer<typeof GuideStepTypeSchema>
+  section?: string
   content?: z.infer<typeof ContentSchema>
   schema?: z.infer<typeof SchemaNameWithActionsSchema>[]
   schemaEntities?: string[]
   schemaField?: string
   rollTable?: string
   choiceOptions?: z.infer<typeof ChoiceOptionSchema>[]
-  filters?: z.infer<typeof FlowStepFilterSchema>[]
+  filters?: z.infer<typeof GuideStepFilterSchema>[]
   constraints?: z.infer<typeof ChoiceConstraintsSchema>
   dependsOn?: string[]
   contextFrom?: string
-  flowRef?: string
+  guideRef?: string
   optional?: boolean
+  entityLayout?: 'sidebar'
 }> = z.lazy(() =>
   z
     .object({
       id: IdSchema,
       name: NameSchema,
-      stepType: FlowStepTypeSchema,
+      stepType: GuideStepTypeSchema,
+      section: z
+        .string()
+        .describe('Section label; starts a new numbered group when present')
+        .optional(),
       content: ContentSchema.optional(),
       schema: z.array(SchemaNameWithActionsSchema).describe('Schema(s) to select from').optional(),
       schemaEntities: z
@@ -631,7 +676,7 @@ export const FlowStepSchema: z.ZodType<{
         .array(ChoiceOptionSchema)
         .describe('Static options for this step')
         .optional(),
-      filters: z.array(FlowStepFilterSchema).optional(),
+      filters: z.array(GuideStepFilterSchema).optional(),
       constraints: ChoiceConstraintsSchema.optional(),
       dependsOn: z
         .array(z.string())
@@ -643,16 +688,20 @@ export const FlowStepSchema: z.ZodType<{
           'Step ID whose result provides context (e.g., chassis selection provides patterns)'
         )
         .optional(),
-      flowRef: z.string().describe('ID of another flow to execute as a sub-flow').optional(),
+      guideRef: z.string().describe('ID of another guide to execute as a sub-guide').optional(),
       optional: z.boolean().optional(),
+      entityLayout: z
+        .enum(['sidebar'])
+        .describe('Layout for entity displays: sidebar places entities in a left column')
+        .optional(),
     })
     .strict()
 )
 
 /**
- * Category of a flow
+ * Category of a guide
  */
-export const FlowTypeSchema = z.enum([
+export const GuideTypeSchema = z.enum([
   'character-creation',
   'mech-creation',
   'crawler-creation',

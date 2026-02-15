@@ -17,6 +17,6 @@ export const schemaCategories = [
   },
   {
     label: 'RULES',
-    schemaIds: ['distances', 'downtime-activities', 'keywords', 'roll-tables', 'traits'],
+    schemaIds: ['distances', 'guides', 'keywords', 'roll-tables', 'traits'],
   },
 ]

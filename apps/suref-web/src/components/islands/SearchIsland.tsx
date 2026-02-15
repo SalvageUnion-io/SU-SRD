@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
-import { search } from 'salvageunion-reference'
+import { search, getEntitySchemas } from 'salvageunion-reference'
 import type { SearchResult } from 'salvageunion-reference'
 import { getEntitySlug } from 'salvageunion-reference'
 
@@ -20,6 +20,25 @@ function toDisplayResult(result: SearchResult): DisplayResult {
   }
 }
 
+function matchSchemas(query: string): DisplayResult[] {
+  const q = query.toLowerCase().trim()
+  if (!q) return []
+
+  return getEntitySchemas()
+    .filter(
+      (s) =>
+        s.displayName.toLowerCase().includes(q) ||
+        s.displayNamePlural.toLowerCase().includes(q) ||
+        s.id.includes(q)
+    )
+    .map((s) => ({
+      id: `schema:${s.id}`,
+      url: `/schema/${s.id}`,
+      title: s.displayNamePlural,
+      schema: 'Category',
+    }))
+}
+
 export function SearchIsland() {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<DisplayResult[]>([])
@@ -38,8 +57,9 @@ export function SearchIsland() {
       return
     }
 
-    const hits = search({ query: searchQuery, limit: 10 })
-    const displayResults = hits.map(toDisplayResult)
+    const schemaResults = matchSchemas(searchQuery)
+    const hits = search({ query: searchQuery, limit: 10 - schemaResults.length })
+    const displayResults = [...schemaResults, ...hits.map(toDisplayResult)]
     setResults(displayResults)
     setIsOpen(true)
     setHasSearched(true)
