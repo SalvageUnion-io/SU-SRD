@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test'
-import { getStepNumbers, matchesFilter } from '../guideStepsHelpers'
+import { getStepNumbers, matchesFilter, enrichForFiltering } from '../guideStepsHelpers'
 import type { SURefObjectGuideStep } from 'salvageunion-reference'
 
 /** Helper to create a minimal step for testing */
@@ -115,5 +115,51 @@ describe('matchesFilter', () => {
   it('should fail max check when field is not a number', () => {
     const entity = { name: 'test' }
     expect(matchesFilter(entity, { field: 'name', max: 10 })).toBe(false)
+  })
+})
+
+describe('enrichForFiltering', () => {
+  it('should add hasDamage=true for systems with damage actions', () => {
+    const entity = { name: '.50 Cal Machine Gun', actions: ['.50 Cal Machine Gun'] }
+    const enriched = enrichForFiltering(entity, 'systems')
+    expect(enriched.hasDamage).toBe(true)
+  })
+
+  it('should add hasDamage=false for systems without damage actions', () => {
+    const entity = { name: 'Armour Plating', actions: ['Armour Plating'] }
+    const enriched = enrichForFiltering(entity, 'systems')
+    expect(enriched.hasDamage).toBe(false)
+  })
+
+  it('should work for modules schema', () => {
+    const entity = { name: 'Test Module', actions: ['.50 Cal Machine Gun'] }
+    const enriched = enrichForFiltering(entity, 'modules')
+    expect(enriched.hasDamage).toBe(true)
+  })
+
+  it('should return entity unchanged for non-systems/modules schemas', () => {
+    const entity = { name: 'Test', actions: ['.50 Cal Machine Gun'] }
+    const enriched = enrichForFiltering(entity, 'chassis')
+    expect(enriched).toBe(entity)
+    expect(enriched).not.toHaveProperty('hasDamage')
+  })
+
+  it('should return entity unchanged when no actions array', () => {
+    const entity = { name: 'No Actions' }
+    const enriched = enrichForFiltering(entity, 'systems')
+    expect(enriched).toBe(entity)
+    expect(enriched).not.toHaveProperty('hasDamage')
+  })
+
+  it('should handle empty actions array', () => {
+    const entity = { name: 'Empty Actions', actions: [] }
+    const enriched = enrichForFiltering(entity, 'systems')
+    expect(enriched.hasDamage).toBe(false)
+  })
+
+  it('should handle unrecognized action names', () => {
+    const entity = { name: 'Unknown', actions: ['Nonexistent Action XYZ'] }
+    const enriched = enrichForFiltering(entity, 'systems')
+    expect(enriched.hasDamage).toBe(false)
   })
 })

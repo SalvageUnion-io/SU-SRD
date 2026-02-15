@@ -4,7 +4,7 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import { Text } from '../base/Text'
 import { BlockContentRendererView } from './BlockContentRendererView'
 import { borderColorFromHeaderBg } from './entityDisplayHelpers'
-import { getStepNumbers, matchesFilter } from './guideStepsHelpers'
+import { getStepNumbers, matchesFilter, enrichForFiltering } from './guideStepsHelpers'
 import type { getEntityFontSizes, getEntitySpacing } from './EntityDisplay/entityDisplayTypes'
 import { cn } from '../../utils/cn'
 
@@ -28,22 +28,6 @@ type GuideStepsDisplayProps = {
 /** Resolve a roll table entity by name */
 function resolveRollTableEntity(name: string) {
   return SalvageUnionReference.RollTables.find((rt) => rt.name === name) ?? null
-}
-
-/** Enrich an entity with computed fields for filtering.
- *  For systems/modules, computes `hasDamage` from resolved actions. */
-function enrichForFiltering(
-  entity: Record<string, unknown>,
-  schemaName: string
-): Record<string, unknown> {
-  if ((schemaName === 'systems' || schemaName === 'modules') && Array.isArray(entity.actions)) {
-    const hasDamage = (entity.actions as string[]).some((name) => {
-      const action = SalvageUnionReference.Actions.find((a) => a.name === name)
-      return action?.damage !== undefined
-    })
-    return { ...entity, hasDamage }
-  }
-  return entity
 }
 
 /** Resolve schema entities by name from the first schema in the step's schema list.

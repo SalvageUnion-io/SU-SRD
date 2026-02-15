@@ -195,6 +195,21 @@ describe('SalvageUnionReference.Guides', () => {
   it('should include guides in EntitySchemaNames', () => {
     expect(EntitySchemaNames.has('guides')).toBe(true)
   })
+
+  it('should support paperOnly on guide steps', () => {
+    const guide = SalvageUnionReference.Guides.find((g) => g.name === 'Create a Pilot')!
+    expect(guide).toBeDefined()
+    const paperOnlySteps = guide.steps!.filter((s) => s.paperOnly)
+    expect(paperOnlySteps.length).toBeGreaterThan(0)
+    expect(paperOnlySteps[0]!.paperOnly).toBe(true)
+  })
+
+  it('should default paperOnly to undefined when not set', () => {
+    const guide = SalvageUnionReference.Guides.find((g) => g.name === 'Create a Pilot')!
+    const nonPaperStep = guide.steps!.find((s) => !s.paperOnly)
+    expect(nonPaperStep).toBeDefined()
+    expect(nonPaperStep!.paperOnly).toBeUndefined()
+  })
 })
 
 describe('SalvageUnionReference.findIn', () => {
