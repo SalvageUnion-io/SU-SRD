@@ -12,6 +12,7 @@
         {
           "id": "b8cee691-8fc9-4f0b-8e37-84c600a529f4",
           "name": "Name",
+          "choiceType": "freeform",
           "content": [
             {
               "type": "paragraph",
@@ -22,6 +23,7 @@
         {
           "id": "f99d2c89-3bd5-4573-a7d0-1b608f93467b",
           "name": "Keepsake",
+          "choiceType": "freeform",
           "content": [
             {
               "type": "paragraph",
@@ -32,6 +34,7 @@
         {
           "id": "f64fd72a-ae30-4712-b36b-3c690c98ccb0",
           "name": "Motto",
+          "choiceType": "freeform",
           "content": [
             {
               "type": "paragraph",
@@ -75,6 +78,7 @@
         {
           "id": "e654b6ee-7df9-48b6-bda6-fe13e6b815b7",
           "name": "Name",
+          "choiceType": "freeform",
           "content": [
             {
               "type": "paragraph",
@@ -85,6 +89,7 @@
         {
           "id": "f94dcbf5-5fa4-4a77-9fe1-1c96ff4a4a32",
           "name": "Keepsake",
+          "choiceType": "freeform",
           "content": [
             {
               "type": "paragraph",
@@ -95,6 +100,7 @@
         {
           "id": "aced717b-0856-4c79-adea-fd3f071c9e3c",
           "name": "Motto",
+          "choiceType": "freeform",
           "content": [
             {
               "type": "paragraph",
@@ -150,6 +156,7 @@
         {
           "id": "e02612be-ea88-4a78-95f7-c80473d5dc15",
           "name": "Name",
+          "choiceType": "freeform",
           "content": [
             {
               "type": "paragraph",
@@ -160,6 +167,7 @@
         {
           "id": "0d51ae6a-e98d-4696-bb17-52b220e4459b",
           "name": "Keepsake",
+          "choiceType": "freeform",
           "content": [
             {
               "type": "paragraph",
@@ -170,6 +178,7 @@
         {
           "id": "4f73538b-dbad-474a-8303-f0c4cb1d80d2",
           "name": "Motto",
+          "choiceType": "freeform",
           "content": [
             {
               "type": "paragraph",
@@ -200,6 +209,7 @@
       {
         "id": "383de916-bbd6-4e34-9cfc-1b37e12178c8",
         "name": "Armament Bay Weapons System",
+        "choiceType": "permanent",
         "schema": ["systems"],
         "content": [
           {
@@ -217,6 +227,7 @@
         {
           "id": "bc5f243f-d4da-4b5b-adf8-d2644256ebc8",
           "name": "Name",
+          "choiceType": "freeform",
           "content": [
             {
               "type": "paragraph",
@@ -227,6 +238,7 @@
         {
           "id": "937d3b47-62ce-4325-8ec8-6c17d87214d6",
           "name": "Keepsake",
+          "choiceType": "freeform",
           "content": [
             {
               "type": "paragraph",
@@ -237,6 +249,7 @@
         {
           "id": "8c492816-24f1-4f92-b7ed-43005d4356cf",
           "name": "Motto",
+          "choiceType": "freeform",
           "content": [
             {
               "type": "paragraph",
@@ -276,6 +289,7 @@
         {
           "id": "5f0c5c0e-dbc0-4986-9b5f-15dcfcd449c6",
           "name": "Name",
+          "choiceType": "freeform",
           "content": [
             {
               "type": "paragraph",
@@ -286,6 +300,7 @@
         {
           "id": "1c5d1210-e24e-4a59-8fd9-959ead68ecfc",
           "name": "Keepsake",
+          "choiceType": "freeform",
           "content": [
             {
               "type": "paragraph",
@@ -296,6 +311,7 @@
         {
           "id": "6ef37fd2-b0f4-4fc8-852a-ff6cf4b9d41f",
           "name": "Motto",
+          "choiceType": "freeform",
           "content": [
             {
               "type": "paragraph",
@@ -343,6 +359,7 @@
         {
           "id": "bbb0c746-bc4e-437b-b0bd-7e4fcf41db5c",
           "name": "Name",
+          "choiceType": "freeform",
           "content": [
             {
               "type": "paragraph",
@@ -353,6 +370,7 @@
         {
           "id": "b2c50eed-15b2-461a-8bbe-0e88a8064a30",
           "name": "Keepsake",
+          "choiceType": "freeform",
           "content": [
             {
               "type": "paragraph",
@@ -363,6 +381,7 @@
         {
           "id": "915e31d0-b796-4686-9550-b6d1d0b20a68",
           "name": "Motto",
+          "choiceType": "freeform",
           "content": [
             {
               "type": "paragraph",
@@ -442,6 +461,7 @@
         {
           "id": "1037371d-8cb5-405b-9012-002bbbb6b593",
           "name": "Name",
+          "choiceType": "freeform",
           "content": [
             {
               "type": "paragraph",
@@ -452,6 +472,7 @@
         {
           "id": "996ccad4-076e-4fba-948d-012fa1e3ae12",
           "name": "Keepsake",
+          "choiceType": "freeform",
           "content": [
             {
               "type": "paragraph",
@@ -462,6 +483,7 @@
         {
           "id": "df6503ae-9e91-4caf-9d2b-af3d3a91f65f",
           "name": "Motto",
+          "choiceType": "freeform",
           "content": [
             {
               "type": "paragraph",
@@ -516,6 +538,7 @@
         {
           "id": "f2b3bb80-66a4-40a7-898e-f5277cc3bbc3",
           "name": "Name",
+          "choiceType": "freeform",
           "content": [
             {
               "type": "paragraph",
@@ -526,6 +549,7 @@
         {
           "id": "4f0b6a75-252e-474a-a253-8f06b0e48c19",
           "name": "Keepsake",
+          "choiceType": "freeform",
           "content": [
             {
               "type": "paragraph",
@@ -536,6 +560,7 @@
         {
           "id": "cb86391d-6013-4263-a46c-1a47434b36dd",
           "name": "Motto",
+          "choiceType": "freeform",
           "content": [
             {
               "type": "paragraph",
@@ -703,6 +728,7 @@
         {
           "id": "ac8644f0-057e-495f-a2ae-6f7b969a8b96",
           "name": "Name",
+          "choiceType": "freeform",
           "content": [
             {
               "type": "paragraph",
@@ -713,6 +739,7 @@
         {
           "id": "9781ac99-9355-4bf8-b4f7-31180175518b",
           "name": "Keepsake",
+          "choiceType": "freeform",
           "content": [
             {
               "type": "paragraph",
@@ -723,6 +750,7 @@
         {
           "id": "ff881e9b-344e-4cd4-83aa-48defd4132a5",
           "name": "Motto",
+          "choiceType": "freeform",
           "content": [
             {
               "type": "paragraph",
@@ -766,6 +794,7 @@
         {
           "id": "fc65d681-22b8-44bc-a72d-cc4cf33d1c0b",
           "name": "Name",
+          "choiceType": "freeform",
           "content": [
             {
               "type": "paragraph",
@@ -776,6 +805,7 @@
         {
           "id": "f20e995b-a503-4689-b64c-49c26f5bbadd",
           "name": "Keepsake",
+          "choiceType": "freeform",
           "content": [
             {
               "type": "paragraph",
@@ -786,6 +816,7 @@
         {
           "id": "71d45c7a-2865-40c9-8ff0-cff86665c300",
           "name": "Motto",
+          "choiceType": "freeform",
           "content": [
             {
               "type": "paragraph",

@@ -143,6 +143,11 @@
                   "properties": {
                     "id": { "$ref": "#/definitions/actions/allOf/0/properties/id" },
                     "name": { "$ref": "#/definitions/actions/allOf/0/properties/name" },
+                    "choiceType": {
+                      "type": "string",
+                      "enum": ["permanent", "session", "freeform"],
+                      "description": "permanent: recorded on sheet; session: made during gameplay; freeform: arbitrary text"
+                    },
                     "content": { "$ref": "#/definitions/actions/allOf/0/properties/content" },
                     "rollTable": { "type": "string" },
                     "schemaEntities": { "type": "array", "items": { "type": "string" } },
@@ -161,6 +166,7 @@
                           "crawlers",
                           "creatures",
                           "distances",
+                          "downtime-activities",
                           "drones",
                           "equipment",
                           "keywords",
@@ -246,6 +252,10 @@
                         },
                         "max": {
                           "$ref": "#/definitions/actions/allOf/0/properties/traits/items/properties/amount/anyOf/0"
+                        },
+                        "scalesWithField": {
+                          "type": "string",
+                          "description": "Dynamic max: resolve this field name from the parent entity to use as max"
                         }
                       },
                       "additionalProperties": false

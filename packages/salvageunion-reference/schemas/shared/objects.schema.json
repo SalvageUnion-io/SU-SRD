@@ -209,6 +209,11 @@
         "name": {
           "$ref": "common.schema.json#/definitions/name"
         },
+        "choiceType": {
+          "type": "string",
+          "enum": ["permanent", "session", "freeform"],
+          "description": "permanent: recorded on sheet; session: made during gameplay; freeform: arbitrary text"
+        },
         "content": {
           "$ref": "#/definitions/content"
         },
@@ -275,6 +280,10 @@
             },
             "max": {
               "$ref": "common.schema.json#/definitions/nonNegativeInteger"
+            },
+            "scalesWithField": {
+              "type": "string",
+              "description": "Dynamic max: resolve this field name from the parent entity to use as max"
             }
           }
         }

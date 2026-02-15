@@ -1,13 +1,13 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://salvageunion.com/schemas/factions.schema.json",
-  "title": "factions",
+  "$id": "https://salvageunion.com/schemas/downtime-activities.schema.json",
+  "title": "downtime-activities",
   "description": "",
   "type": "array",
   "items": {
-    "$ref": "#/definitions/factions",
+    "$ref": "#/definitions/downtime-activities",
     "definitions": {
-      "factions": {
+      "downtime-activities": {
         "type": "object",
         "properties": {
           "asset_url": { "type": "string", "format": "uri" },
@@ -48,7 +48,7 @@
                     "type": "object",
                     "properties": {
                       "type": {
-                        "$ref": "#/definitions/factions/properties/content/items/properties/type",
+                        "$ref": "#/definitions/downtime-activities/properties/content/items/properties/type",
                         "default": "paragraph"
                       },
                       "value": {
@@ -57,7 +57,7 @@
                           {
                             "type": "array",
                             "items": {
-                              "$ref": "#/definitions/factions/properties/content/items/properties/value/anyOf/1/items"
+                              "$ref": "#/definitions/downtime-activities/properties/content/items/properties/value/anyOf/1/items"
                             },
                             "description": "Array of data values when type is 'datavalues'"
                           }
@@ -88,61 +88,9 @@
             ]
           },
           "page": { "type": "integer", "exclusiveMinimum": 0 },
-          "goals": { "type": "string", "description": "The goals and motivations of this faction" },
-          "assets": {
-            "type": "string",
-            "description": "The assets and resources controlled by this faction"
-          },
-          "weaknesses": {
-            "type": "string",
-            "description": "The weaknesses and vulnerabilities of this faction"
-          },
-          "formation": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "chassis": { "type": "string" },
-                "pattern": { "type": "string" },
-                "schema": {
-                  "type": "string",
-                  "enum": [
-                    "abilities",
-                    "ability-tree-requirements",
-                    "bio-titans",
-                    "chassis",
-                    "classes",
-                    "crawler-bays",
-                    "crawler-tech-levels",
-                    "crawlers",
-                    "creatures",
-                    "distances",
-                    "downtime-activities",
-                    "drones",
-                    "equipment",
-                    "keywords",
-                    "factions",
-                    "meld",
-                    "modules",
-                    "npcs",
-                    "roll-tables",
-                    "squads",
-                    "systems",
-                    "traits",
-                    "vehicles"
-                  ]
-                },
-                "source": { "$ref": "#/definitions/factions/properties/source" },
-                "page": { "$ref": "#/definitions/factions/properties/page" },
-                "quantity": { "type": "integer", "exclusiveMinimum": 0 }
-              },
-              "required": ["chassis", "source", "page"],
-              "additionalProperties": false
-            },
-            "description": "The mechs that make up this faction formation"
-          }
+          "tableName": { "type": "string", "description": "Reference to a roll table name" }
         },
-        "required": ["id", "name", "source", "page", "goals", "assets", "weaknesses"],
+        "required": ["id", "name", "source", "page"],
         "additionalProperties": false
       }
     },

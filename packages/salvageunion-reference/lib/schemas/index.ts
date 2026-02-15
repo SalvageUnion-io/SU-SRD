@@ -62,6 +62,7 @@ import {
   FormationMechSchema,
   GrantSchema,
   SchemaNameWithActionsSchema,
+  FlowStepSchema,
 } from './objects.js'
 
 import {
@@ -76,6 +77,7 @@ import {
   CrawlerSchema,
   CreatureSchema,
   DistanceSchema,
+  DowntimeActivitySchema,
   DroneSchema,
   EquipmentSchema,
   FactionSchema,
@@ -88,6 +90,7 @@ import {
   SystemSchema,
   TraitEntitySchema,
   VehicleSchema,
+  FlowSchema,
 } from './entities.js'
 
 // Export inferred types with SURef prefix for backward compatibility
@@ -141,6 +144,7 @@ export type SURefObjectAdvancedClass = z.infer<typeof AdvancedClassSchema>
 export type SURefObjectFormationMech = z.infer<typeof FormationMechSchema>
 export type SURefObjectGrant = z.infer<typeof GrantSchema>
 export type SURefObjectSchemaName = z.infer<typeof SchemaNameWithActionsSchema>
+export type SURefObjectFlowStep = z.infer<typeof FlowStepSchema>
 export type SURefObjectTraits = SURefObjectTrait[]
 export type SURefObjectSystems = string[]
 export type SURefObjectModules = string[]
@@ -158,6 +162,7 @@ export type SURefMetaCrawlerTechLevel = z.infer<typeof CrawlerTechLevelSchema>
 export type SURefCrawler = z.infer<typeof CrawlerSchema>
 export type SURefCreature = z.infer<typeof CreatureSchema>
 export type SURefDistance = z.infer<typeof DistanceSchema>
+export type SURefDowntimeActivity = z.infer<typeof DowntimeActivitySchema>
 export type SURefDrone = z.infer<typeof DroneSchema>
 export type SURefEquipment = z.infer<typeof EquipmentSchema>
 export type SURefFaction = z.infer<typeof FactionSchema>
@@ -170,6 +175,7 @@ export type SURefSquad = z.infer<typeof SquadSchema>
 export type SURefSystem = z.infer<typeof SystemSchema>
 export type SURefTrait = z.infer<typeof TraitEntitySchema>
 export type SURefVehicle = z.infer<typeof VehicleSchema>
+export type SURefMetaFlow = z.infer<typeof FlowSchema>
 
 // Union types
 export type SURefEntity =
@@ -181,6 +187,7 @@ export type SURefEntity =
   | SURefCrawlerBay
   | SURefCreature
   | SURefDistance
+  | SURefDowntimeActivity
   | SURefDrone
   | SURefEquipment
   | SURefFaction
@@ -203,6 +210,7 @@ export type SURefMetaEntity =
   | SURefCrawlerBay
   | SURefCreature
   | SURefDistance
+  | SURefDowntimeActivity
   | SURefDrone
   | SURefEquipment
   | SURefFaction
@@ -211,6 +219,7 @@ export type SURefMetaEntity =
   | SURefMetaAbilityTreeRequirement
   | SURefMetaAction
   | SURefMetaCrawlerTechLevel
+  | SURefMetaFlow
   | SURefModule
   | SURefNPC
   | SURefRollTable

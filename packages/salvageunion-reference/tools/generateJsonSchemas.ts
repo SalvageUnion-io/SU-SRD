@@ -24,6 +24,7 @@ import {
   CrawlerSchema,
   CreatureSchema,
   DistanceSchema,
+  DowntimeActivitySchema,
   DroneSchema,
   EquipmentSchema,
   FactionSchema,
@@ -36,6 +37,7 @@ import {
   SystemSchema,
   TraitEntitySchema,
   VehicleSchema,
+  FlowSchema,
 } from '../lib/schemas/entities.js'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -60,9 +62,11 @@ const entitySchemaMap: Record<string, z.ZodType<unknown>> = {
   crawlers: CrawlerSchema,
   creatures: CreatureSchema,
   distances: DistanceSchema,
+  'downtime-activities': DowntimeActivitySchema,
   drones: DroneSchema,
   equipment: EquipmentSchema,
   factions: FactionSchema,
+  flows: FlowSchema,
   keywords: KeywordSchema,
   meld: MeldSchema,
   modules: ModuleSchema,

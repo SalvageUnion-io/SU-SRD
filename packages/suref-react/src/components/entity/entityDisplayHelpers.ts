@@ -55,6 +55,7 @@ export function calculateBackgroundColor(
   if (schemaName === 'keywords') return headerColor || 'bg-su-black'
   if (schemaName === 'distances') return headerColor || 'bg-su-black'
   if (schemaName === 'traits') return headerColor || 'bg-su-black'
+  if (schemaName === 'downtime-activities') return headerColor || 'bg-su-black'
   if (schemaName === 'roll-tables') return headerColor || 'bg-su-black'
   if (schemaName === 'classes' && !headerColor) {
     if (isEntityData(data)) {

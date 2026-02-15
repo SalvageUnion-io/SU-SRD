@@ -126,6 +126,7 @@
       {
         "id": "a8b9c0d1-e2f3-4a5b-8c9d-0e1f2a3b4c5d",
         "name": "Name",
+        "choiceType": "freeform",
         "content": [
           {
             "type": "paragraph",
@@ -136,6 +137,7 @@
       {
         "id": "982fcebc-0a02-4ae6-8454-3cc451307218",
         "name": "Appearance",
+        "choiceType": "freeform",
         "content": [
           {
             "type": "paragraph",
@@ -434,6 +436,7 @@
       {
         "name": "Weapon Type",
         "id": "d2e3f4a5-b6c7-4d8e-9f0a-1b2c3d4e5f6a",
+        "choiceType": "permanent",
         "content": [
           {
             "type": "paragraph",
@@ -445,6 +448,7 @@
       {
         "name": "Modification",
         "id": "8688eb63-550c-4d06-9b50-e1649c442da6",
+        "choiceType": "permanent",
         "content": [
           {
             "type": "paragraph",
@@ -452,6 +456,7 @@
           }
         ],
         "multiSelect": true,
+        "constraints": { "scalesWithField": "techLevel" },
         "choiceOptions": [
           {
             "label": "Rangefinder",
@@ -542,6 +547,7 @@
       {
         "id": "b9c0d1e2-f3a4-4b5c-9d0e-1f2a3b4c5d6e",
         "name": "Name",
+        "choiceType": "freeform",
         "content": [
           {
             "type": "paragraph",
@@ -552,6 +558,7 @@
       {
         "id": "b1dae587-1448-41df-9194-97d5dd3a23d8",
         "name": "A.I. Personality",
+        "choiceType": "permanent",
         "rollTable": "A.I. Personality",
         "content": [
           {
@@ -634,6 +641,7 @@
       {
         "name": "Modification",
         "id": "d097ed5d-d7d9-46f5-8bda-ba902f09ebc8",
+        "choiceType": "permanent",
         "content": [
           {
             "type": "paragraph",
@@ -641,6 +649,7 @@
           }
         ],
         "multiSelect": true,
+        "constraints": { "scalesWithField": "techLevel" },
         "choiceOptions": [
           {
             "label": "Rangefinder",
@@ -748,6 +757,7 @@
       {
         "id": "c0d1e2f3-a4b5-4c6d-9e0f-1a2b3c4d5e6f",
         "name": "Name",
+        "choiceType": "freeform",
         "content": [
           {
             "type": "paragraph",
@@ -758,6 +768,7 @@
       {
         "id": "a901dcdc-8c95-4bea-90ee-3c02cd695d93",
         "name": "Appearance",
+        "choiceType": "freeform",
         "content": [
           {
             "type": "paragraph",

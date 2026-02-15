@@ -1,0 +1,253 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://salvageunion.com/schemas/flows.schema.json",
+  "title": "flows",
+  "description": "",
+  "type": "array",
+  "items": {
+    "$ref": "#/definitions/flows",
+    "definitions": {
+      "flows": {
+        "type": "object",
+        "properties": {
+          "asset_url": { "type": "string", "format": "uri" },
+          "content": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": ["paragraph", "heading", "list-item", "label", "datavalues", "hint"],
+                  "default": "paragraph"
+                },
+                "value": {
+                  "anyOf": [
+                    { "type": "string" },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "label": { "type": ["string", "number"] },
+                          "value": { "type": ["string", "number"] },
+                          "type": { "type": "string" }
+                        },
+                        "required": ["label"],
+                        "additionalProperties": false
+                      },
+                      "description": "Array of data values when type is 'datavalues'"
+                    }
+                  ]
+                },
+                "label": { "type": "string" },
+                "level": { "type": "integer", "minimum": 1, "maximum": 6 },
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "$ref": "#/definitions/flows/properties/content/items/properties/type",
+                        "default": "paragraph"
+                      },
+                      "value": {
+                        "anyOf": [
+                          { "type": "string" },
+                          {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/definitions/flows/properties/content/items/properties/value/anyOf/1/items"
+                            },
+                            "description": "Array of data values when type is 'datavalues'"
+                          }
+                        ]
+                      },
+                      "label": { "type": "string" },
+                      "level": { "type": "integer", "minimum": 1, "maximum": 6 }
+                    },
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "id": { "type": "string" },
+          "indexable": { "type": "boolean", "default": true },
+          "blackMarket": { "type": "boolean", "default": false },
+          "name": { "type": "string", "minLength": 1 },
+          "source": {
+            "type": "string",
+            "enum": [
+              "Salvage Union Workshop Manual",
+              "Mech Monday",
+              "We Were Here First!",
+              "Rainmaker",
+              "False Flag"
+            ]
+          },
+          "page": { "type": "integer", "exclusiveMinimum": 0 },
+          "flowType": {
+            "type": "string",
+            "enum": [
+              "character-creation",
+              "mech-creation",
+              "crawler-creation",
+              "progression",
+              "downtime",
+              "gameplay"
+            ],
+            "description": "Category of this flow"
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": { "$ref": "#/definitions/flows/properties/id" },
+                "name": { "$ref": "#/definitions/flows/properties/name" },
+                "stepType": {
+                  "type": "string",
+                  "enum": [
+                    "select-one",
+                    "select-many",
+                    "freeform",
+                    "roll-table",
+                    "info",
+                    "sub-flow"
+                  ]
+                },
+                "content": { "$ref": "#/definitions/flows/properties/content" },
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": [
+                          "abilities",
+                          "ability-tree-requirements",
+                          "bio-titans",
+                          "chassis",
+                          "classes",
+                          "crawler-bays",
+                          "crawler-tech-levels",
+                          "crawlers",
+                          "creatures",
+                          "distances",
+                          "downtime-activities",
+                          "drones",
+                          "equipment",
+                          "keywords",
+                          "factions",
+                          "meld",
+                          "modules",
+                          "npcs",
+                          "roll-tables",
+                          "squads",
+                          "systems",
+                          "traits",
+                          "vehicles"
+                        ]
+                      },
+                      { "type": "string", "const": "actions" }
+                    ]
+                  },
+                  "description": "Schema(s) to select from"
+                },
+                "schemaEntities": {
+                  "type": "array",
+                  "items": { "type": "string" },
+                  "description": "Specific entity names within the schema"
+                },
+                "schemaField": {
+                  "type": "string",
+                  "description": "Field on the parent entity whose values are the options (e.g., \"patterns\" on chassis)"
+                },
+                "rollTable": { "type": "string", "description": "Roll table name to use" },
+                "choiceOptions": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "label": { "type": "string" },
+                      "value": { "type": "string" },
+                      "description": { "type": "string" }
+                    },
+                    "required": ["label", "value"],
+                    "additionalProperties": false
+                  },
+                  "description": "Static options for this step"
+                },
+                "filters": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "field": {
+                        "type": "string",
+                        "description": "Field name on the target entity to filter by"
+                      },
+                      "value": {
+                        "type": ["string", "number", "boolean"],
+                        "description": "Exact value the field must match"
+                      },
+                      "min": { "type": "integer", "minimum": 0 },
+                      "max": {
+                        "$ref": "#/definitions/flows/properties/steps/items/properties/filters/items/properties/min"
+                      }
+                    },
+                    "required": ["field"],
+                    "additionalProperties": false
+                  }
+                },
+                "constraints": {
+                  "type": "object",
+                  "properties": {
+                    "field": { "type": "string" },
+                    "min": {
+                      "$ref": "#/definitions/flows/properties/steps/items/properties/filters/items/properties/min"
+                    },
+                    "max": {
+                      "$ref": "#/definitions/flows/properties/steps/items/properties/filters/items/properties/min"
+                    },
+                    "scalesWithField": {
+                      "type": "string",
+                      "description": "Dynamic max: resolve this field name from the parent entity to use as max"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "dependsOn": {
+                  "type": "array",
+                  "items": { "type": "string" },
+                  "description": "Step IDs that must be completed before this step"
+                },
+                "contextFrom": {
+                  "type": "string",
+                  "description": "Step ID whose result provides context (e.g., chassis selection provides patterns)"
+                },
+                "flowRef": {
+                  "type": "string",
+                  "description": "ID of another flow to execute as a sub-flow"
+                },
+                "optional": { "type": "boolean" }
+              },
+              "required": ["id", "name", "stepType"],
+              "additionalProperties": false
+            },
+            "description": "Ordered sequence of steps"
+          },
+          "repeatable": {
+            "type": "boolean",
+            "description": "Whether this flow can be executed multiple times"
+          }
+        },
+        "required": ["id", "name", "source", "page", "flowType", "steps"],
+        "additionalProperties": false
+      }
+    },
+    "$schema": "http://json-schema.org/draft-07/schema#"
+  }
+}

@@ -167,6 +167,11 @@
                   "properties": {
                     "id": { "$ref": "#/definitions/chassis/properties/id" },
                     "name": { "$ref": "#/definitions/chassis/properties/name" },
+                    "choiceType": {
+                      "type": "string",
+                      "enum": ["permanent", "session", "freeform"],
+                      "description": "permanent: recorded on sheet; session: made during gameplay; freeform: arbitrary text"
+                    },
                     "content": { "$ref": "#/definitions/chassis/properties/content" },
                     "rollTable": { "type": "string" },
                     "schemaEntities": { "type": "array", "items": { "type": "string" } },
@@ -185,6 +190,7 @@
                           "crawlers",
                           "creatures",
                           "distances",
+                          "downtime-activities",
                           "drones",
                           "equipment",
                           "keywords",
@@ -262,7 +268,11 @@
                       "properties": {
                         "field": { "type": "string" },
                         "min": { "$ref": "#/definitions/chassis/properties/structurePoints" },
-                        "max": { "$ref": "#/definitions/chassis/properties/structurePoints" }
+                        "max": { "$ref": "#/definitions/chassis/properties/structurePoints" },
+                        "scalesWithField": {
+                          "type": "string",
+                          "description": "Dynamic max: resolve this field name from the parent entity to use as max"
+                        }
                       },
                       "additionalProperties": false
                     }

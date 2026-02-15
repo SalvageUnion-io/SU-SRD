@@ -21,6 +21,7 @@ import {
   CrawlerSchema,
   CreatureSchema,
   DistanceSchema,
+  DowntimeActivitySchema,
   DroneSchema,
   EquipmentSchema,
   FactionSchema,
@@ -33,6 +34,7 @@ import {
   SystemSchema,
   TraitEntitySchema,
   VehicleSchema,
+  FlowSchema,
 } from './schemas/index.js'
 
 // Import all data files
@@ -47,8 +49,10 @@ import crawlerTechLevelsData from '../data/crawler-tech-levels.json' with { type
 import crawlersData from '../data/crawlers.json' with { type: 'json' }
 import creaturesData from '../data/creatures.json' with { type: 'json' }
 import distancesData from '../data/distances.json' with { type: 'json' }
+import downtimeActivitiesData from '../data/downtime-activities.json' with { type: 'json' }
 import dronesData from '../data/drones.json' with { type: 'json' }
 import equipmentData from '../data/equipment.json' with { type: 'json' }
+import flowsData from '../data/flows.json' with { type: 'json' }
 import keywordsData from '../data/keywords.json' with { type: 'json' }
 import factionsData from '../data/factions.json' with { type: 'json' }
 import meldData from '../data/meld.json' with { type: 'json' }
@@ -72,8 +76,10 @@ import crawlerTechLevelsSchema from '../schemas/crawler-tech-levels.schema.json'
 import crawlersSchema from '../schemas/crawlers.schema.json' with { type: 'json' }
 import creaturesSchema from '../schemas/creatures.schema.json' with { type: 'json' }
 import distancesSchema from '../schemas/distances.schema.json' with { type: 'json' }
+import downtimeActivitiesSchema from '../schemas/downtime-activities.schema.json' with { type: 'json' }
 import dronesSchema from '../schemas/drones.schema.json' with { type: 'json' }
 import equipmentSchema from '../schemas/equipment.schema.json' with { type: 'json' }
+import flowsSchema from '../schemas/flows.schema.json' with { type: 'json' }
 import keywordsSchema from '../schemas/keywords.schema.json' with { type: 'json' }
 import factionsSchema from '../schemas/factions.schema.json' with { type: 'json' }
 import meldSchema from '../schemas/meld.schema.json' with { type: 'json' }
@@ -100,8 +106,10 @@ const dataMap: Record<string, unknown[]> = {
   crawlers: crawlersData,
   creatures: creaturesData,
   distances: distancesData,
+  'downtime-activities': downtimeActivitiesData,
   drones: dronesData,
   equipment: equipmentData,
+  flows: flowsData,
   keywords: keywordsData,
   factions: factionsData,
   meld: meldData,
@@ -129,9 +137,11 @@ const zodSchemaMap: Record<string, z.ZodType<unknown>> = {
   crawlers: CrawlerSchema,
   creatures: CreatureSchema,
   distances: DistanceSchema,
+  'downtime-activities': DowntimeActivitySchema,
   drones: DroneSchema,
   equipment: EquipmentSchema,
   factions: FactionSchema,
+  flows: FlowSchema,
   keywords: KeywordSchema,
   meld: MeldSchema,
   modules: ModuleSchema,
@@ -158,10 +168,12 @@ const schemaMap: Record<string, Record<string, unknown>> = {
   crawlers: crawlersSchema,
   creatures: creaturesSchema,
   distances: distancesSchema,
+  'downtime-activities': downtimeActivitiesSchema,
   drones: dronesSchema,
   equipment: equipmentSchema,
-  keywords: keywordsSchema,
   factions: factionsSchema,
+  flows: flowsSchema,
+  keywords: keywordsSchema,
   meld: meldSchema,
   modules: modulesSchema,
   npcs: npcsSchema,
@@ -306,8 +318,10 @@ const schemaDisplayNames: Record<string, { singular: string; plural: string }> =
   crawlers: { singular: 'Crawler', plural: 'Crawlers' },
   creatures: { singular: 'Creature', plural: 'Creatures' },
   distances: { singular: 'Distance', plural: 'Distances' },
+  'downtime-activities': { singular: 'Downtime Activity', plural: 'Downtime Activities' },
   drones: { singular: 'Drone', plural: 'Drones' },
   equipment: { singular: 'Equipment', plural: 'Equipment' },
+  flows: { singular: 'Flow', plural: 'Flows' },
   keywords: { singular: 'Keyword', plural: 'Keywords' },
   factions: { singular: 'Faction', plural: 'Factions' },
   meld: { singular: 'Meld', plural: 'Meld' },

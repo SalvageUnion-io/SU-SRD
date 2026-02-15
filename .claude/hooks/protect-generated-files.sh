@@ -14,7 +14,6 @@ fi
 
 # Auto-generated files that must not be manually edited
 PROTECTED_PATTERNS=(
-  "packages/salvageunion-reference/lib/index.ts"
   "packages/salvageunion-reference/lib/utilities-generated.ts"
   "packages/salvageunion-reference/lib/types/schemas.ts"
   "packages/salvageunion-reference/lib/types/enums.ts"

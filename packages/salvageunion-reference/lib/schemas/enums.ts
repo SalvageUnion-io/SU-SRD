@@ -116,6 +116,7 @@ export const SchemaNameSchema = z.enum([
   'crawlers',
   'creatures',
   'distances',
+  'downtime-activities',
   'drones',
   'equipment',
   'keywords',

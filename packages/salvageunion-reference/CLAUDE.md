@@ -12,7 +12,6 @@ bun run generate
 
 ### Auto-Generated Files (DO NOT EDIT)
 
-- `lib/index.ts` (generated from `lib/index.template.ts`)
 - `lib/utilities-generated.ts`
 - `lib/types/schemas.ts`
 - `lib/types/enums.ts`
@@ -20,10 +19,11 @@ bun run generate
 - `lib/types/objects.ts`
 - `lib/types/index.ts`
 
-To change generated output, edit scripts in `tools/` or templates like `lib/index.template.ts`.
+To change generated output, edit scripts in `tools/`.
 
 ### Manually Editable Files
 
+- `lib/index.ts`
 - `lib/utilities.ts`
 - `lib/ModelFactory.ts`
 - `lib/BaseModel.ts`

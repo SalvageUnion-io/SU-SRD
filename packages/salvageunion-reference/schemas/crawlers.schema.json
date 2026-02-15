@@ -101,6 +101,11 @@
                   "properties": {
                     "id": { "$ref": "#/definitions/crawlers/properties/id" },
                     "name": { "$ref": "#/definitions/crawlers/properties/name" },
+                    "choiceType": {
+                      "type": "string",
+                      "enum": ["permanent", "session", "freeform"],
+                      "description": "permanent: recorded on sheet; session: made during gameplay; freeform: arbitrary text"
+                    },
                     "content": { "$ref": "#/definitions/crawlers/properties/content" },
                     "rollTable": { "type": "string" },
                     "schemaEntities": { "type": "array", "items": { "type": "string" } },
@@ -119,6 +124,7 @@
                           "crawlers",
                           "creatures",
                           "distances",
+                          "downtime-activities",
                           "drones",
                           "equipment",
                           "keywords",
@@ -208,6 +214,10 @@
                         },
                         "max": {
                           "$ref": "#/definitions/crawlers/properties/npc/properties/hitPoints"
+                        },
+                        "scalesWithField": {
+                          "type": "string",
+                          "description": "Dynamic max: resolve this field name from the parent entity to use as max"
                         }
                       },
                       "additionalProperties": false

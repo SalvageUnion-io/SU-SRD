@@ -305,6 +305,10 @@ const ChoiceConstraintsSchema = z
     field: z.string().optional(),
     min: NonNegativeIntegerSchema.optional(),
     max: NonNegativeIntegerSchema.optional(),
+    scalesWithField: z
+      .string()
+      .describe('Dynamic max: resolve this field name from the parent entity to use as max')
+      .optional(),
   })
   .strict()
   .refine((data) => data.min === undefined || data.max === undefined || data.min <= data.max, {
@@ -313,11 +317,17 @@ const ChoiceConstraintsSchema = z
   })
 
 /**
+ * Choice type enum
+ */
+const ChoiceTypeSchema = z.enum(['permanent', 'session', 'freeform'])
+
+/**
  * Choice schema (using z.lazy() for recursive reference to ContentSchema)
  */
 export const ChoiceSchema: z.ZodType<{
   id: string
   name: string
+  choiceType?: 'permanent' | 'session' | 'freeform'
   content?: z.infer<typeof ContentSchema>
   rollTable?: string
   schemaEntities?: string[]
@@ -332,6 +342,9 @@ export const ChoiceSchema: z.ZodType<{
     .object({
       id: IdSchema,
       name: NameSchema,
+      choiceType: ChoiceTypeSchema.describe(
+        'permanent: recorded on sheet; session: made during gameplay; freeform: arbitrary text'
+      ).optional(),
       content: ContentSchema.optional(),
       rollTable: z.string().optional(),
       schemaEntities: z.array(z.string()).optional(),
@@ -548,3 +561,102 @@ export const GrantSchema = z
  * Schema name (includes 'actions' as special case)
  */
 export const SchemaNameWithActionsSchema = z.union([SchemaNameSchema, z.literal('actions')])
+
+/**
+ * Filter criteria for selecting entities in a flow step
+ */
+const FlowStepFilterSchema = z
+  .object({
+    field: z.string().describe('Field name on the target entity to filter by'),
+    value: z
+      .union([z.string(), z.number(), z.boolean()])
+      .describe('Exact value the field must match')
+      .optional(),
+    min: NonNegativeIntegerSchema.optional(),
+    max: NonNegativeIntegerSchema.optional(),
+  })
+  .strict()
+
+/**
+ * Type of decision a flow step represents
+ */
+const FlowStepTypeSchema = z.enum([
+  'select-one',
+  'select-many',
+  'freeform',
+  'roll-table',
+  'info',
+  'sub-flow',
+])
+
+/**
+ * A single step in a flow
+ */
+export const FlowStepSchema: z.ZodType<{
+  id: string
+  name: string
+  stepType: z.infer<typeof FlowStepTypeSchema>
+  content?: z.infer<typeof ContentSchema>
+  schema?: z.infer<typeof SchemaNameWithActionsSchema>[]
+  schemaEntities?: string[]
+  schemaField?: string
+  rollTable?: string
+  choiceOptions?: z.infer<typeof ChoiceOptionSchema>[]
+  filters?: z.infer<typeof FlowStepFilterSchema>[]
+  constraints?: z.infer<typeof ChoiceConstraintsSchema>
+  dependsOn?: string[]
+  contextFrom?: string
+  flowRef?: string
+  optional?: boolean
+}> = z.lazy(() =>
+  z
+    .object({
+      id: IdSchema,
+      name: NameSchema,
+      stepType: FlowStepTypeSchema,
+      content: ContentSchema.optional(),
+      schema: z.array(SchemaNameWithActionsSchema).describe('Schema(s) to select from').optional(),
+      schemaEntities: z
+        .array(z.string())
+        .describe('Specific entity names within the schema')
+        .optional(),
+      schemaField: z
+        .string()
+        .describe(
+          'Field on the parent entity whose values are the options (e.g., "patterns" on chassis)'
+        )
+        .optional(),
+      rollTable: z.string().describe('Roll table name to use').optional(),
+      choiceOptions: z
+        .array(ChoiceOptionSchema)
+        .describe('Static options for this step')
+        .optional(),
+      filters: z.array(FlowStepFilterSchema).optional(),
+      constraints: ChoiceConstraintsSchema.optional(),
+      dependsOn: z
+        .array(z.string())
+        .describe('Step IDs that must be completed before this step')
+        .optional(),
+      contextFrom: z
+        .string()
+        .describe(
+          'Step ID whose result provides context (e.g., chassis selection provides patterns)'
+        )
+        .optional(),
+      flowRef: z.string().describe('ID of another flow to execute as a sub-flow').optional(),
+      optional: z.boolean().optional(),
+    })
+    .strict()
+)
+
+/**
+ * Category of a flow
+ */
+export const FlowTypeSchema = z.enum([
+  'character-creation',
+  'mech-creation',
+  'crawler-creation',
+  'progression',
+  'downtime',
+  'gameplay',
+])

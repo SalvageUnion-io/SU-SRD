@@ -20,6 +20,8 @@ import {
   CombatEntitySchema,
   MechanicalEntitySchema,
   AdvancedClassSchema,
+  FlowStepSchema,
+  FlowTypeSchema,
 } from './objects.js'
 import { TreeSchema, ActionTypeSchema, DamageTypeSchema } from './enums.js'
 import {
@@ -169,6 +171,14 @@ export const DistanceSchema = BaseEntitySchema.extend({
 }).strict()
 
 /**
+ * Downtime activities available to Pilots during a week of Downtime
+ */
+export const DowntimeActivitySchema = BaseEntitySchema.extend({
+  content: ContentSchema.optional(),
+  tableName: z.string().optional().describe('Reference to a roll table name'),
+}).strict()
+
+/**
  * Autonomous drones in Salvage Union
  */
 export const DroneSchema = BaseEntitySchema.merge(MechanicalEntitySchema).strict()
@@ -268,3 +278,12 @@ export const TraitEntitySchema = BaseEntitySchema.extend({
  * Conventional vehicles in Salvage Union
  */
 export const VehicleSchema = BaseEntitySchema.merge(MechanicalEntitySchema).strict()
+
+/**
+ * Player-facing flows and processes in Salvage Union (character creation, progression, downtime)
+ */
+export const FlowSchema = BaseEntitySchema.extend({
+  flowType: FlowTypeSchema.describe('Category of this flow'),
+  steps: z.array(FlowStepSchema).describe('Ordered sequence of steps'),
+  repeatable: z.boolean().optional().describe('Whether this flow can be executed multiple times'),
+}).strict()

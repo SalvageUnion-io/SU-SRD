@@ -15,5 +15,8 @@ export const schemaCategories = [
       'vehicles',
     ],
   },
-  { label: 'RULES', schemaIds: ['distances', 'keywords', 'roll-tables', 'traits'] },
+  {
+    label: 'RULES',
+    schemaIds: ['distances', 'downtime-activities', 'keywords', 'roll-tables', 'traits'],
+  },
 ]

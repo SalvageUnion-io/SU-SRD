@@ -16,6 +16,7 @@ import type {
   SURefCrawler,
   SURefCreature,
   SURefDistance,
+  SURefDowntimeActivity,
   SURefDrone,
   SURefEquipment,
   SURefFaction,
@@ -31,6 +32,7 @@ import type {
   SURefMetaAbilityTreeRequirement,
   SURefMetaAction,
   SURefMetaCrawlerTechLevel,
+  SURefMetaFlow,
   SURefEntity,
   SURefEnumSchemaName,
 } from './types/index.js'
@@ -89,9 +91,11 @@ export type SchemaToEntityMap = {
   crawlers: SURefCrawler
   creatures: SURefCreature
   distances: SURefDistance
+  'downtime-activities': SURefDowntimeActivity
   drones: SURefDrone
   equipment: SURefEquipment
   factions: SURefFaction
+  flows: SURefMetaFlow
   keywords: SURefKeyword
   meld: SURefMeld
   modules: SURefModule
@@ -119,9 +123,11 @@ export const EntitySchemaNames = new Set<EntitySchemaName>([
   'crawlers',
   'creatures',
   'distances',
+  'downtime-activities',
   'drones',
   'equipment',
   'factions',
+  'flows',
   'keywords',
   'meld',
   'modules',
@@ -146,9 +152,11 @@ export const SchemaToModelMap = {
   crawlers: 'Crawlers',
   creatures: 'Creatures',
   distances: 'Distances',
+  'downtime-activities': 'DowntimeActivities',
   drones: 'Drones',
   equipment: 'Equipment',
   factions: 'Factions',
+  flows: 'Flows',
   keywords: 'Keywords',
   meld: 'Meld',
   modules: 'Modules',
@@ -173,9 +181,11 @@ export const SchemaToDisplayName = {
   crawlers: 'Crawlers',
   creatures: 'Creatures',
   distances: 'Distances',
+  'downtime-activities': 'Downtime Activities',
   drones: 'Drones',
   equipment: 'Equipment',
   factions: 'factions',
+  flows: 'Flows',
   keywords: 'Keywords',
   meld: 'Meld',
   modules: 'Modules',
@@ -208,9 +218,13 @@ export class SalvageUnionReference {
   static Crawlers = models.Crawlers as ModelWithMetadata<SchemaToEntityMap['crawlers']>
   static Creatures = models.Creatures as ModelWithMetadata<SchemaToEntityMap['creatures']>
   static Distances = models.Distances as ModelWithMetadata<SchemaToEntityMap['distances']>
+  static DowntimeActivities = models.DowntimeActivities as ModelWithMetadata<
+    SchemaToEntityMap['downtime-activities']
+  >
   static Drones = models.Drones as ModelWithMetadata<SchemaToEntityMap['drones']>
   static Equipment = models.Equipment as ModelWithMetadata<SchemaToEntityMap['equipment']>
   static Factions = models.Factions as ModelWithMetadata<SchemaToEntityMap['factions']>
+  static Flows = models.Flows as ModelWithMetadata<SURefMetaFlow>
   static Keywords = models.Keywords as ModelWithMetadata<SchemaToEntityMap['keywords']>
   static Meld = models.Meld as ModelWithMetadata<SchemaToEntityMap['meld']>
   static Modules = models.Modules as ModelWithMetadata<SchemaToEntityMap['modules']>
