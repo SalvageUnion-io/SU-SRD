@@ -43,24 +43,33 @@ import {
 } from '../../lib/builderUtils'
 import type { SURefObjectPattern } from 'salvageunion-reference'
 import type { CreatePatternInput } from '../../types/common'
+import type { SaveStatus } from '../../hooks/useSaveStatus'
 
 type MechBuilderProps = {
   initialState?: BuilderState
+  // Legacy explicit-save mode (creation flow)
   onSave?: (input: CreatePatternInput) => void
   onCancel?: () => void
+  isSaving?: boolean
+  // Autosave mode
+  onChange?: (state: BuilderState) => void
+  saveStatus?: SaveStatus
+  // Shared
   onDelete?: () => void
   onCopy?: () => void
-  isSaving?: boolean
   isDeleting?: boolean
   isCopying?: boolean
   readOnly?: boolean
+  compact?: boolean
+  hideFooterToggles?: boolean
+  hideFooter?: boolean
 }
 
 const TAG_BUTTON_BASE =
-  'inline-flex items-center gap-1 border border-su-black font-mono font-semibold uppercase leading-none transition-opacity hover:opacity-80'
-const TAG_BUTTON = `${TAG_BUTTON_BASE} bg-su-white px-1 text-base text-su-black`
-const TAG_BUTTON_SM = `${TAG_BUTTON_BASE} bg-su-white px-1.5 py-0.5 text-xs text-su-black`
-const TAG_BUTTON_SM_DANGER = `${TAG_BUTTON_BASE} bg-su-rust px-1.5 py-0.5 text-xs text-su-white`
+  'inline-flex items-center gap-1 border border-su-black font-mono font-bold uppercase leading-none transition-opacity hover:opacity-80'
+const TAG_BUTTON = `${TAG_BUTTON_BASE} bg-su-white px-1 py-0 text-base text-su-black`
+const TAG_BUTTON_SM = `${TAG_BUTTON_BASE} bg-su-white px-1 py-0 text-xs text-su-black`
+const TAG_BUTTON_SM_DANGER = `${TAG_BUTTON_BASE} bg-su-rust px-1 py-0 text-xs text-su-white`
 
 const emptyState: BuilderState = {
   name: '',
@@ -77,17 +86,32 @@ export function MechBuilder({
   initialState,
   onSave,
   onCancel,
+  onChange,
+  saveStatus,
   onDelete,
   onCopy,
   isSaving,
   isDeleting,
   isCopying,
   readOnly,
+  compact,
+  hideFooterToggles,
+  hideFooter,
 }: MechBuilderProps) {
   const [state, setState] = useState<BuilderState>(initialState ?? emptyState)
   const [modalTarget, setModalTarget] = useState<ModalTarget>(null)
   const [showPatternModal, setShowPatternModal] = useState(false)
   const [startingMechMode, setStartingMechMode] = useState(false)
+  const isFirstStateChange = useRef(true)
+
+  // Fire onChange on every state change after initial mount (autosave mode)
+  useEffect(() => {
+    if (isFirstStateChange.current) {
+      isFirstStateChange.current = false
+      return
+    }
+    onChange?.(state)
+  }, [state]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const chassis = useMemo(
     () =>
@@ -194,42 +218,53 @@ export function MechBuilder({
       <DisplayCard
         headerBg="bg-su-green"
         bodyPadding="p-0"
+        mode={compact ? 'compact' : undefined}
         headerContent={
           chassis ? (
             <>
               {/* LEFT: TL + pattern name + chassis value */}
-              <div className="flex min-w-0 items-center gap-1">
-                <StatDisplay label="TL" value={chassis.techLevel} inverse />
-                <div className="flex min-w-0 flex-col gap-0.5 py-1">
+              <div className={`flex min-w-0 items-center ${compact ? 'gap-0.5' : 'gap-1'}`}>
+                <StatDisplay label="TL" value={chassis.techLevel} inverse compact={compact} />
+                <div className={`flex min-w-0 flex-col ${compact ? 'gap-0.5' : 'gap-0.5'} py-1`}>
                   {readOnly ? (
-                    <Text variant="pseudoheader" as="span" className="text-[1.75rem]">
+                    <Text
+                      variant="pseudoheader"
+                      as="span"
+                      className={compact ? 'text-base' : 'text-[1.75rem]'}
+                      style={compact ? { lineHeight: 1 } : undefined}
+                    >
                       {state.name ? `\u201C${state.name}\u201D` : ''}
                     </Text>
                   ) : (
-                    <PatternNameInput value={state.name} onChange={setName} />
+                    <PatternNameInput value={state.name} onChange={setName} compact={compact} />
                   )}
-                  <div className="flex flex-wrap items-center gap-1">
-                    <ValueDisplay label={`${chassis.name} Chassis`} />
-                    {salvageValue.isLegalStartingMech && (
-                      <ValueDisplay label="Legal Starting Mech" />
-                    )}
+                  <div className={`flex flex-wrap items-center ${compact ? 'gap-0.5' : 'gap-1'}`}>
+                    <ValueDisplay label={`${chassis.name} Chassis`} compact={compact} />
                     {!readOnly && (
                       <>
                         <button
                           type="button"
                           onClick={() => setModalTarget('chassis')}
-                          className={TAG_BUTTON}
+                          className={compact ? TAG_BUTTON_SM : TAG_BUTTON}
                         >
                           Change
                         </button>
                         <button
                           type="button"
                           onClick={() => setShowPatternModal(true)}
-                          className={TAG_BUTTON}
+                          className={compact ? TAG_BUTTON_SM : TAG_BUTTON}
                         >
                           Apply Pattern
                         </button>
                       </>
+                    )}
+                    {salvageValue.isLegalStartingMech && (
+                      <ValueDisplay
+                        label="Legal Starting Mech"
+                        compact={compact}
+                        bgColor="rgb(140, 75, 56)"
+                        textColor="rgb(255, 255, 255)"
+                      />
                     )}
                   </div>
                 </div>
@@ -237,50 +272,70 @@ export function MechBuilder({
               {/* RIGHT: Stats */}
               <div className="flex shrink-0 items-center gap-0.5">
                 <StatDisplay
-                  label="Structure"
+                  label={compact ? 'SP' : 'Structure'}
                   value={chassis.structurePoints}
-                  bottomLabel="Points"
+                  bottomLabel={compact ? '' : 'Points'}
+                  compact={compact}
                 />
-                <StatDisplay label="Energy" value={chassis.energyPoints} bottomLabel="Points" />
-                <StatDisplay label="Heat" value={chassis.heatCapacity} bottomLabel="Capacity" />
                 <StatDisplay
-                  label="System"
-                  bottomLabel="Slots"
+                  label={compact ? 'EP' : 'Energy'}
+                  value={chassis.energyPoints}
+                  bottomLabel={compact ? '' : 'Points'}
+                  compact={compact}
+                />
+                <StatDisplay
+                  label="Heat"
+                  value={chassis.heatCapacity}
+                  bottomLabel={compact ? 'Cap' : 'Capacity'}
+                  compact={compact}
+                />
+                <StatDisplay
+                  label={compact ? 'Sys' : 'System'}
+                  bottomLabel={compact ? 'Slts' : 'Slots'}
                   value={capacity.systemSlotsUsed}
                   outOfMax={capacity.systemSlotsTotal}
                   isOverMax={capacity.isOverSystemCapacity}
+                  compact={compact}
                 />
                 <StatDisplay
-                  label="Module"
-                  bottomLabel="Slots"
+                  label={compact ? 'Mod' : 'Module'}
+                  bottomLabel={compact ? 'Slts' : 'Slots'}
                   value={capacity.moduleSlotsUsed}
                   outOfMax={capacity.moduleSlotsTotal}
                   isOverMax={capacity.isOverModuleCapacity}
+                  compact={compact}
                 />
                 <StatDisplay
-                  label="Cargo"
+                  label={compact ? 'Crgo' : 'Cargo'}
                   value={chassis.cargoCapacity ?? 0}
-                  bottomLabel="Capacity"
+                  bottomLabel={compact ? 'Cap' : 'Capacity'}
+                  compact={compact}
                 />
                 <StatDisplay
-                  label="Salvage"
+                  label={compact ? 'SV' : 'Salvage'}
                   value={salvageValue.totalCost}
                   outOfMax={startingMechMode ? STARTING_MECH_BUDGET : undefined}
                   isOverMax={startingMechMode ? !salvageValue.isLegalStartingMech : undefined}
-                  bottomLabel="Value"
+                  bottomLabel={compact ? '' : 'Value'}
+                  compact={compact}
                 />
               </div>
             </>
           ) : (
             <div className="flex w-full items-center gap-2 px-2 py-2">
-              <Text as="span" variant="pseudoheader" className="text-[1.75rem] text-su-white">
+              <Text
+                as="span"
+                variant="pseudoheader"
+                className={`${compact ? 'text-base' : 'text-[1.75rem]'} text-su-white`}
+                style={compact ? { lineHeight: 1 } : undefined}
+              >
                 {readOnly ? 'NO CHASSIS' : 'SELECT A CHASSIS'}
               </Text>
               {!readOnly && (
                 <button
                   type="button"
                   onClick={() => setModalTarget('chassis')}
-                  className={TAG_BUTTON}
+                  className={compact ? TAG_BUTTON_SM : TAG_BUTTON}
                 >
                   Select
                 </button>
@@ -289,27 +344,89 @@ export function MechBuilder({
           )
         }
         footerContent={
-          readOnly ? undefined : (
+          readOnly || hideFooter ? undefined : onChange && saveStatus ? (
+            // Autosave footer
             <div className="flex w-full items-center justify-between px-2 py-1">
               <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={toggleVisible}
-                  className={`flex cursor-pointer items-center gap-1.5 text-xs transition-colors hover:text-su-white ${state.visible ? 'text-su-white' : 'text-su-white/70'}`}
-                  title={state.visible ? 'Pattern is visible' : 'Pattern is hidden'}
-                >
-                  {state.visible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                  <span>{state.visible ? 'Visible' : 'Hidden'}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setStartingMechMode((v) => !v)}
-                  className={`flex cursor-pointer items-center gap-1.5 text-xs transition-colors hover:text-su-white ${startingMechMode ? 'text-su-white' : 'text-su-white/70'}`}
-                  title={startingMechMode ? 'Starting mech mode on' : 'Starting mech mode off'}
-                >
-                  <Crosshair className="h-4 w-4" />
-                  <span>Starting Mech</span>
-                </button>
+                {!hideFooterToggles && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={toggleVisible}
+                      className={`flex cursor-pointer items-center gap-1.5 text-xs transition-colors hover:text-su-white ${state.visible ? 'text-su-white' : 'text-su-white/70'}`}
+                      title={state.visible ? 'Pattern is visible' : 'Pattern is hidden'}
+                    >
+                      {state.visible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                      <span>{state.visible ? 'Visible' : 'Hidden'}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setStartingMechMode((v) => !v)}
+                      className={`flex cursor-pointer items-center gap-1.5 text-xs transition-colors hover:text-su-white ${startingMechMode ? 'text-su-white' : 'text-su-white/70'}`}
+                      title={startingMechMode ? 'Starting mech mode on' : 'Starting mech mode off'}
+                    >
+                      <Crosshair className="h-4 w-4" />
+                      <span>Starting Mech</span>
+                    </button>
+                  </>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                {saveStatus.statusText && (
+                  <span className="font-mono text-xs text-su-white/70">
+                    {saveStatus.statusText}
+                  </span>
+                )}
+                {onDelete && (
+                  <button
+                    type="button"
+                    onClick={onDelete}
+                    disabled={isDeleting}
+                    className="inline-flex cursor-pointer items-center gap-1.5 rounded-md bg-su-rust px-3 py-1.5 font-mono text-sm font-semibold uppercase text-su-white transition-colors hover:bg-red-700 disabled:pointer-events-none disabled:opacity-50"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    {isDeleting ? 'Deleting...' : 'Delete'}
+                  </button>
+                )}
+                {onCopy && (
+                  <button
+                    type="button"
+                    onClick={onCopy}
+                    disabled={isCopying}
+                    className="inline-flex cursor-pointer items-center gap-1.5 rounded-md bg-su-green px-3 py-1.5 font-mono text-sm font-semibold uppercase text-su-white transition-colors hover:bg-emerald-600 disabled:pointer-events-none disabled:opacity-50"
+                  >
+                    <Copy className="h-3.5 w-3.5" />
+                    {isCopying ? 'Copying...' : 'Copy'}
+                  </button>
+                )}
+              </div>
+            </div>
+          ) : (
+            // Legacy explicit-save footer
+            <div className="flex w-full items-center justify-between px-2 py-1">
+              <div className="flex items-center gap-3">
+                {!hideFooterToggles && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={toggleVisible}
+                      className={`flex cursor-pointer items-center gap-1.5 text-xs transition-colors hover:text-su-white ${state.visible ? 'text-su-white' : 'text-su-white/70'}`}
+                      title={state.visible ? 'Pattern is visible' : 'Pattern is hidden'}
+                    >
+                      {state.visible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                      <span>{state.visible ? 'Visible' : 'Hidden'}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setStartingMechMode((v) => !v)}
+                      className={`flex cursor-pointer items-center gap-1.5 text-xs transition-colors hover:text-su-white ${startingMechMode ? 'text-su-white' : 'text-su-white/70'}`}
+                      title={startingMechMode ? 'Starting mech mode on' : 'Starting mech mode off'}
+                    >
+                      <Crosshair className="h-4 w-4" />
+                      <span>Starting Mech</span>
+                    </button>
+                  </>
+                )}
               </div>
               <div className="flex items-center gap-2">
                 {onDelete ? (
@@ -358,13 +475,14 @@ export function MechBuilder({
           )
         }
       >
-        <div className="px-4 pt-3 pb-4">
+        <div className={compact ? 'px-2 pt-2 pb-2' : 'px-4 pt-3 pb-4'}>
           {/* Floated image — content flows around it */}
           <MechBuilderImageSlot
             chassis={chassis}
             customImageUrl={state.customImageUrl}
             onSetCustomImage={setCustomImage}
             readOnly={readOnly}
+            compact={compact}
           />
 
           {/* Chassis Abilities */}
@@ -372,8 +490,8 @@ export function MechBuilder({
             <div className="-mt-4 mb-4 overflow-hidden">
               <EntityChassisAbilitiesContent
                 chassisName={chassis.name}
-                spacing={getEntitySpacing(false)}
-                compact={false}
+                spacing={getEntitySpacing(!!compact)}
+                compact={!!compact}
                 chassisAbilities={chassisAbilities}
               />
             </div>
@@ -389,6 +507,7 @@ export function MechBuilder({
             hasChassis={!!chassis}
             onRemove={removeItem}
             onAdd={setModalTarget}
+            compact={compact}
             className="mb-4"
           />
 
@@ -402,6 +521,7 @@ export function MechBuilder({
             hasChassis={!!chassis}
             onRemove={removeItem}
             onAdd={setModalTarget}
+            compact={compact}
             className="mb-2"
           />
 
@@ -466,6 +586,7 @@ function ItemSlotSection({
   hasChassis,
   onRemove,
   onAdd,
+  compact,
   className,
 }: {
   label: string
@@ -477,14 +598,18 @@ function ItemSlotSection({
   hasChassis: boolean
   onRemove: (sortOrder: number) => void
   onAdd: (target: BuilderSchemaName) => void
+  compact?: boolean
   className?: string
 }) {
   const addLabel = slotType === 'systems' ? 'Add System' : 'Add Module'
 
   return (
     <section className={className}>
-      <SectionSeparator label={`${label} (${slotsUsed}/${slotsTotal})`} />
-      <div className="mt-2 space-y-2">
+      <SectionSeparator
+        label={`${label} (${slotsUsed}/${slotsTotal})`}
+        fontSize={compact ? 'text-sm' : undefined}
+      />
+      <div className={compact ? 'mt-1.5 space-y-1.5' : 'mt-2 space-y-2'}>
         {items.map((item) => (
           <ItemSlotListing
             key={item.sort_order}
@@ -526,9 +651,11 @@ function ItemSlotListing({
 function PatternNameInput({
   value,
   onChange,
+  compact,
 }: {
   value: string
   onChange: (value: string) => void
+  compact?: boolean
 }) {
   const measureRef = useRef<HTMLSpanElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -542,6 +669,7 @@ function PatternNameInput({
 
   const hasValue = value.length > 0
   const placeholder = 'Pattern name...'
+  const fontClass = compact ? 'text-base' : 'text-[1.75rem]'
 
   return (
     <span className="relative inline-flex items-baseline">
@@ -549,19 +677,25 @@ function PatternNameInput({
       <span
         ref={measureRef}
         aria-hidden
-        className="pointer-events-none invisible absolute whitespace-pre font-mono text-[1.75rem] font-bold uppercase leading-none"
+        className={`pointer-events-none invisible absolute whitespace-pre font-mono ${fontClass} font-bold uppercase leading-none`}
       >
         {value || placeholder}
       </span>
-      <Text variant="pseudoheader" as="span" className="inline-flex items-center text-[1.75rem]">
+      <Text
+        variant="pseudoheader"
+        as="span"
+        className={`inline-flex items-center ${fontClass}`}
+        style={compact ? { lineHeight: 1 } : undefined}
+      >
         {hasValue && <span className="select-none">&ldquo;</span>}
         <input
           ref={inputRef}
           type="text"
+          size={1}
           placeholder={placeholder}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="border-none bg-transparent p-0 font-mono text-[1.75rem] font-bold uppercase leading-none text-su-white outline-none placeholder:normal-case placeholder:text-su-white/50"
+          className={`border-none bg-transparent p-0 font-mono ${fontClass} font-bold uppercase leading-none text-su-white outline-none placeholder:normal-case placeholder:text-su-white/50`}
           style={{ width: inputWidth || undefined }}
         />
         {hasValue && <span className="select-none">&rdquo;</span>}
@@ -575,11 +709,13 @@ function MechBuilderImageSlot({
   customImageUrl,
   onSetCustomImage,
   readOnly,
+  compact,
 }: {
   chassis: SURefChassis | undefined
   customImageUrl: string | null
   onSetCustomImage: (url: string | null) => void
   readOnly?: boolean
+  compact?: boolean
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const chassisAssetUrl = chassis ? getAssetUrl(chassis) : undefined
@@ -598,7 +734,7 @@ function MechBuilderImageSlot({
   return (
     <div
       className="shrink-0 align-top md:float-left md:mr-4 md:mb-4"
-      style={{ width: '300px', maxWidth: '100%', shapeOutside: 'margin-box' }}
+      style={{ width: compact ? '180px' : '300px', maxWidth: '100%', shapeOutside: 'margin-box' }}
     >
       <div className="group relative aspect-square overflow-hidden rounded border border-dashed border-su-grey-light/50 bg-su-grey-light/10">
         {displayUrl ? (

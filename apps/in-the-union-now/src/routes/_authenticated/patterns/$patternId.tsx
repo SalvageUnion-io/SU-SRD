@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { toast } from 'sonner'
 import { useAuthStore } from '../../../stores/authStore'
@@ -8,14 +8,16 @@ import {
   useUpdatePattern,
   useDeletePattern,
 } from '../../../hooks/usePatterns'
+import { useAutosave } from '../../../hooks/useAutosave'
+import { useSaveStatus } from '../../../hooks/useSaveStatus'
 import { MechBuilder } from '../../../components/patterns/MechBuilder'
 import { DeletePatternDialog } from '../../../components/patterns/DeletePatternDialog'
 import { Button } from '../../../components/ui/button'
 import { Skeleton } from '../../../components/ui/skeleton'
 import { getErrorMessage } from '../../../lib/errors'
 import { getPatternAccess } from '../../../lib/patternAccess'
-import { patternToBuilderState } from '../../../lib/builderUtils'
-import type { CreatePatternInput } from '../../../types/common'
+import { patternToBuilderState, builderToCreateInput } from '../../../lib/builderUtils'
+import type { BuilderState } from '../../../lib/builderUtils'
 
 export const Route = createFileRoute('/_authenticated/patterns/$patternId')({
   component: EditPatternPage,
@@ -30,47 +32,56 @@ function EditPatternPage() {
   const updatePattern = useUpdatePattern()
   const deletePattern = useDeletePattern()
   const [showDelete, setShowDelete] = useState(false)
+  const [builderState, setBuilderState] = useState<BuilderState | null>(null)
 
-  function handleSave(input: CreatePatternInput) {
-    if (!user) return
+  const canAutosave = !!user && builderState !== null && builderToCreateInput(builderState) !== null
 
-    updatePattern.mutate(
-      { patternId, input, userId: user.id },
-      {
-        onSuccess: () => {
-          toast.success('Pattern updated')
-        },
-        onError: (error) => {
-          toast.error(getErrorMessage(error))
-        },
-      }
-    )
-  }
+  const handleAutosave = useCallback(
+    (state: BuilderState | null) => {
+      if (!user || !state) return
+      const input = builderToCreateInput(state)
+      if (!input) return
 
-  function handleCancel() {
-    navigate({ to: '/' })
-  }
+      updatePattern.mutate(
+        { patternId, input, userId: user.id },
+        {
+          onSuccess: () => {
+            toast.success('Changes saved', { id: 'autosave' })
+          },
+          onError: (err) => {
+            toast.error(getErrorMessage(err))
+          },
+        }
+      )
+    },
+    [user, patternId, updatePattern]
+  )
+
+  useAutosave({
+    value: builderState,
+    onSave: handleAutosave,
+    enabled: canAutosave,
+  })
+
+  const saveStatus = useSaveStatus({ isSaving: updatePattern.isPending })
 
   function handleCopy() {
     if (!user || !pattern) return
 
-    const copyInput: CreatePatternInput = {
-      name: `Copy of ${pattern.name}`,
-      chassis_ref: pattern.chassis_ref,
-      description: pattern.description ?? '',
-      visible: false,
-      pattern_items: pattern.pattern_items,
-    }
+    // Use current builder state if available, otherwise fall back to pattern data
+    const source = builderState ?? patternToBuilderState(pattern)
+    const input = builderToCreateInput(source)
+    if (!input) return
 
     createPattern.mutate(
-      { userId: user.id, input: copyInput },
+      { userId: user.id, input: { ...input, name: `Copy of ${input.name}`, visible: false } },
       {
         onSuccess: (newPattern) => {
           toast.success('Pattern copied')
           navigate({ to: '/patterns/$patternId', params: { patternId: newPattern.id } })
         },
-        onError: (error) => {
-          toast.error(getErrorMessage(error))
+        onError: (err) => {
+          toast.error(getErrorMessage(err))
         },
       }
     )
@@ -86,8 +97,8 @@ function EditPatternPage() {
           toast.success('Pattern deleted')
           navigate({ to: '/' })
         },
-        onError: (error) => {
-          toast.error(getErrorMessage(error))
+        onError: (err) => {
+          toast.error(getErrorMessage(err))
         },
       }
     )
@@ -127,11 +138,10 @@ function EditPatternPage() {
     <div className="flex flex-col gap-4">
       <MechBuilder
         initialState={patternToBuilderState(pattern)}
-        onSave={handleSave}
-        onCancel={handleCancel}
+        onChange={setBuilderState}
+        saveStatus={saveStatus}
         onDelete={() => setShowDelete(true)}
         onCopy={handleCopy}
-        isSaving={updatePattern.isPending}
         isDeleting={deletePattern.isPending}
         isCopying={createPattern.isPending}
       />

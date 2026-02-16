@@ -44,26 +44,30 @@ const AuthenticatedPilotsNewRoute = AuthenticatedPilotsNewRouteImport.update({
   path: '/pilots/new',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedPilotsPilotIdRoute = AuthenticatedPilotsPilotIdRouteImport.update({
-  id: '/pilots/$pilotId',
-  path: '/pilots/$pilotId',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedPatternsNewRoute = AuthenticatedPatternsNewRouteImport.update({
-  id: '/patterns/new',
-  path: '/patterns/new',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedPatternsPatternIdRoute = AuthenticatedPatternsPatternIdRouteImport.update({
-  id: '/patterns/$patternId',
-  path: '/patterns/$patternId',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedPilotsPilotIdIndexRoute = AuthenticatedPilotsPilotIdIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AuthenticatedPilotsPilotIdRoute,
-} as any)
+const AuthenticatedPilotsPilotIdRoute =
+  AuthenticatedPilotsPilotIdRouteImport.update({
+    id: '/pilots/$pilotId',
+    path: '/pilots/$pilotId',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedPatternsNewRoute =
+  AuthenticatedPatternsNewRouteImport.update({
+    id: '/patterns/new',
+    path: '/patterns/new',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedPatternsPatternIdRoute =
+  AuthenticatedPatternsPatternIdRouteImport.update({
+    id: '/patterns/$patternId',
+    path: '/patterns/$patternId',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedPilotsPilotIdIndexRoute =
+  AuthenticatedPilotsPilotIdIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedPilotsPilotIdRoute,
+  } as any)
 const AuthenticatedPilotsPilotIdCreateMechRoute =
   AuthenticatedPilotsPilotIdCreateMechRouteImport.update({
     id: '/create-mech',
@@ -227,13 +231,17 @@ interface AuthenticatedPilotsPilotIdRouteChildren {
   AuthenticatedPilotsPilotIdIndexRoute: typeof AuthenticatedPilotsPilotIdIndexRoute
 }
 
-const AuthenticatedPilotsPilotIdRouteChildren: AuthenticatedPilotsPilotIdRouteChildren = {
-  AuthenticatedPilotsPilotIdCreateMechRoute: AuthenticatedPilotsPilotIdCreateMechRoute,
-  AuthenticatedPilotsPilotIdIndexRoute: AuthenticatedPilotsPilotIdIndexRoute,
-}
+const AuthenticatedPilotsPilotIdRouteChildren: AuthenticatedPilotsPilotIdRouteChildren =
+  {
+    AuthenticatedPilotsPilotIdCreateMechRoute:
+      AuthenticatedPilotsPilotIdCreateMechRoute,
+    AuthenticatedPilotsPilotIdIndexRoute: AuthenticatedPilotsPilotIdIndexRoute,
+  }
 
 const AuthenticatedPilotsPilotIdRouteWithChildren =
-  AuthenticatedPilotsPilotIdRoute._addFileChildren(AuthenticatedPilotsPilotIdRouteChildren)
+  AuthenticatedPilotsPilotIdRoute._addFileChildren(
+    AuthenticatedPilotsPilotIdRouteChildren,
+  )
 
 interface AuthenticatedRouteChildren {
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
@@ -252,7 +260,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
-  AuthenticatedRouteChildren
+  AuthenticatedRouteChildren,
 )
 
 const rootRouteChildren: RootRouteChildren = {

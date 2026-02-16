@@ -9,7 +9,7 @@ import type { EntityControl, EntityControlVariant } from './entityControlTypes'
 
 const VARIANT_STYLES: Record<EntityControlVariant, string> = {
   primary: 'bg-su-green text-su-white hover:bg-emerald-600',
-  danger: 'text-su-white/60 hover:bg-su-rust/80 hover:text-su-white',
+  danger: 'opacity-60 hover:bg-su-rust/80 hover:opacity-100',
   ghost: 'opacity-60 hover:bg-white/20 hover:opacity-100',
 }
 

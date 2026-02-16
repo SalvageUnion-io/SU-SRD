@@ -54,7 +54,22 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       >
         <QueryClientProvider client={queryClient}>
           {children}
-          <Toaster position="bottom-center" richColors />
+          <Toaster
+            position="bottom-right"
+            toastOptions={{
+              style: {
+                background: 'rgb(40, 32, 25)',
+                border: '1px solid rgb(80, 80, 80)',
+                color: 'rgb(255, 255, 255)',
+                fontFamily: "'Fira Code', Monaco, Consolas, monospace",
+                fontSize: '0.8125rem',
+              },
+              classNames: {
+                success: '[&>[data-icon]]:text-su-green',
+                error: '[&>[data-icon]]:text-su-rust',
+              },
+            }}
+          />
         </QueryClientProvider>
         <Scripts />
       </body>
