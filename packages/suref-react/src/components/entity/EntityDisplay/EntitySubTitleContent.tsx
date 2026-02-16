@@ -31,14 +31,15 @@ export function EntitySubTitleElement({
 
   const values = extractEntityDetails(data, schemaName, currency)
 
-  // In patterned mode, prepend a "Chassis Name Chassis" tag
-  if (hasPatternOverride && 'name' in data && typeof data.name === 'string') {
-    values.unshift({ label: `${data.name} Chassis`, type: 'meta' })
+  // Prepend "Legal Starting Mech" tag first when pattern qualifies
+  if (isLegalStartingMech) {
+    values.unshift({ label: 'Legal Starting Mech', type: 'meta' })
   }
 
-  // Append "Legal Starting Mech" tag when pattern qualifies
-  if (isLegalStartingMech) {
-    values.push({ label: 'Legal Starting Mech', type: 'meta' })
+  // In patterned mode, prepend a "Chassis Name Chassis" tag (after Legal Starting Mech)
+  if (hasPatternOverride && 'name' in data && typeof data.name === 'string') {
+    const insertIndex = isLegalStartingMech ? 1 : 0
+    values.splice(insertIndex, 0, { label: `${data.name} Chassis`, type: 'meta' })
   }
 
   if (values.length === 0) return null
