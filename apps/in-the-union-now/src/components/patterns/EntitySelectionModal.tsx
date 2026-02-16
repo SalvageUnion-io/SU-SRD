@@ -95,29 +95,48 @@ export function EntitySelectionModal({
     setActiveTechLevels(allTechActive ? new Set() : new Set(ALL_TECH_LEVELS))
   }, [allTechActive])
 
-  const toggleTechLevel = useCallback((tl: TechLevelValue) => {
-    setActiveTechLevels((prev) => {
-      const next = new Set(prev)
-      if (next.has(tl)) {
-        next.delete(tl)
-      } else {
-        next.add(tl)
-      }
-      return next
-    })
-  }, [])
+  const toggleTechLevel = useCallback(
+    (tl: TechLevelValue) => {
+      setActiveTechLevels((prev) => {
+        // If all are active, switch to only the clicked one
+        const allActive = availableTechLevels.every((t) => prev.has(t))
+        if (allActive) {
+          return new Set([tl])
+        }
+        const next = new Set(prev)
+        if (next.has(tl)) {
+          next.delete(tl)
+        } else {
+          next.add(tl)
+        }
+        return next
+      })
+    },
+    [availableTechLevels]
+  )
 
-  const toggleSource = useCallback((source: string) => {
-    setActiveSourceFilters((prev) => {
-      const next = new Set(prev)
-      if (next.has(source)) {
-        next.delete(source)
-      } else {
-        next.add(source)
-      }
-      return next
-    })
-  }, [])
+  const toggleSource = useCallback(
+    (source: string) => {
+      setActiveSourceFilters((prev) => {
+        // If all active (empty set), switch to only the clicked one
+        if (prev.size === 0) {
+          return new Set([source])
+        }
+        const next = new Set(prev)
+        if (next.has(source)) {
+          next.delete(source)
+        } else {
+          next.add(source)
+        }
+        // If all available sources are now selected, reset to "All"
+        if (availableSources.every((s) => next.has(s))) {
+          return new Set()
+        }
+        return next
+      })
+    },
+    [availableSources]
+  )
 
   const { selectable, overCapacity, overBudget } = useMemo(
     () =>

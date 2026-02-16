@@ -87,7 +87,7 @@ export const BioTitanSchema = BaseEntitySchema.extend({
 /**
  * Mech chassis definitions in Salvage Union
  */
-export const ChassisSchema = BaseEntitySchema.merge(ChassisStatsSchema)
+export const ChassisSchema = BaseEntitySchema.extend({ ...ChassisStatsSchema.shape })
   .extend({
     chassisAbilities: z
       .array(z.string())
@@ -172,7 +172,7 @@ export const CrawlerSchema = BaseEntitySchema.extend({
 /**
  * Creatures and wildlife in Salvage Union
  */
-export const CreatureSchema = BaseEntitySchema.merge(CombatEntitySchema)
+export const CreatureSchema = BaseEntitySchema.extend({ ...CombatEntitySchema.shape })
   .extend({
     hitPoints: HitPointsSchema,
   })
@@ -188,12 +188,12 @@ export const DistanceSchema = BaseEntitySchema.extend({
 /**
  * Autonomous drones in Salvage Union
  */
-export const DroneSchema = BaseEntitySchema.merge(MechanicalEntitySchema).strict()
+export const DroneSchema = BaseEntitySchema.extend({ ...MechanicalEntitySchema.shape }).strict()
 
 /**
  * Pilot equipment and gear in Salvage Union
  */
-export const EquipmentSchema = BaseEntitySchema.merge(StatsSchema)
+export const EquipmentSchema = BaseEntitySchema.extend({ ...StatsSchema.shape })
   .extend({
     techLevel: TechLevelSchema,
     actions: z.array(z.string()),
@@ -237,12 +237,12 @@ export const MeldSchema = BaseEntitySchema.extend({
 /**
  * Mech modules in Salvage Union
  */
-export const ModuleSchema = BaseEntitySchema.merge(SystemModuleSchema).strict()
+export const ModuleSchema = BaseEntitySchema.extend({ ...SystemModuleSchema.shape }).strict()
 
 /**
  * Non-player characters and people in Salvage Union
  */
-export const NPCSchema = BaseEntitySchema.merge(CombatEntitySchema)
+export const NPCSchema = BaseEntitySchema.extend({ ...CombatEntitySchema.shape })
   .extend({
     hitPoints: HitPointsSchema,
     bioSalvageValue: NonNegativeIntegerSchema.optional().describe(
@@ -272,7 +272,7 @@ export const SquadSchema = BaseEntitySchema.extend({
 /**
  * Mech systems in Salvage Union
  */
-export const SystemSchema = BaseEntitySchema.merge(SystemModuleSchema).strict()
+export const SystemSchema = BaseEntitySchema.extend({ ...SystemModuleSchema.shape }).strict()
 
 /**
  * Traits and special properties in Salvage Union
@@ -284,7 +284,7 @@ export const TraitEntitySchema = BaseEntitySchema.extend({
 /**
  * Conventional vehicles in Salvage Union
  */
-export const VehicleSchema = BaseEntitySchema.merge(MechanicalEntitySchema).strict()
+export const VehicleSchema = BaseEntitySchema.extend({ ...MechanicalEntitySchema.shape }).strict()
 
 /**
  * Player-facing guides and processes in Salvage Union (character creation, progression, downtime)

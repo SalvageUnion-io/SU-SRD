@@ -301,10 +301,109 @@ Post-implementation cleanup addressing dead code, DRY violations, and structural
 - `src/lib/patternAccess.test.ts` (renamed to `entityAccess.test.ts`)
 - `src/components/pilots/InteractiveGuideSteps.tsx` (moved to hooks/)
 
+## Action Use System
+
+Added a complete action use system to the pilot detail page: Use button on action cards, AP cost tracking, limited use tracking, required trait validation, and autosave integration.
+
+### Game Data: `requiredTraits` on Actions
+
+Moved required trait information from hint content blocks to a structured field on the action schema.
+
+- **Schema** (`packages/salvageunion-reference/lib/schemas/objects.ts`): Added `requiredTraits?: string[]` to `ActionSchema`
+- **Data** (`packages/salvageunion-reference/data/actions.json`): Added `requiredTraits` field and removed hint content blocks on 7 actions (Area Salvage, Mech Salvage, Scrap → `["salvaging"]`; Load, Mount, Patch Up, Repair → `["rigging"]`)
+- **Utility** (`packages/salvageunion-reference/lib/utilities.ts`): Added `getRequiredTraits(action)` → `string[]`
+
+### suref-react Exports
+
+- Exported `EntityDisplayTooltip` from barrel (`packages/suref-react/src/index.ts`)
+- Added required traits rendering to `NestedActionDisplay.tsx` (italicized "Requires the **TRAIT** Trait." above content)
+
+### Pure Utilities — Action Use Logic
+
+**`src/lib/actionUsesUtils.ts`** (NEW) — Pure functions, no React/Supabase:
+- `getActionActivationCost(action)` → `number | null` — numeric AP cost, null for undefined/0/X
+- `getActionMaxUses(action)` → `number | null` — from `{ type: "uses", amount: N }` trait
+- `getRemainingUses(actionName, refMetadata)` → `number | null` — from `metadata.actionUses[name]`
+- `decrementActionUses(actionName, maxUses, currentMetadata)` → new metadata JSON (lazy-inits from maxUses)
+- `getActionDisabledReason(opts)` → `string | null` — checks: required traits → AP → uses
+- `getPilotTraits(refs)` → `Set<string>` — collects all trait types from pilot entity refs
+
+**`src/lib/actionUsesUtils.test.ts`** (NEW) — 23 tests covering all functions
+
+### Data Threading — ActionDisplayData
+
+Extended `ActionDisplayData` in `src/lib/pilotActionUtils.ts`:
+- Added fields: `actionName`, `entityRefId`, `activationCost`, `maxUses`, `usesRemaining`, `requiredTraits`
+- `buildActionItems` accepts `entityRefId`/`refMetadata`, computes use tracking fields, transforms "Uses" DataValue to `"N/M"` format
+- `extractPilotActions` passes `ref.id` and `ref.metadata` through
+- `getGeneralActions` passes `null` for entityRefId (no use tracking, still gets Use button)
+
+### DB Infrastructure
+
+- **API** (`src/lib/api/pilotApi.ts`): Added `updateEntityRef(refId, input)` for metadata updates
+- **Hook** (`src/hooks/usePilots.ts`): Added `useUpdateEntityRef()` mutation, invalidates entity refs on success
+
+### ActionDisplay Component
+
+**`src/components/pilots/ActionDisplay.tsx`** (NEW):
+- Renders action cards with pale background, border color, data values, content blocks
+- Props: `controls?: EntityControl[]`, `disabled?: boolean`, `footerMessage?: ReactNode`
+- Disabled state: `opacity-50` on wrapper, content blocks hidden
+- Footer: source entity chip (links to parent entity detail modal) + optional message
+
+### PilotActionsSection — Use Button + Validation
+
+**`src/components/pilots/PilotActionsSection.tsx`** (NEW):
+- Renders three sections: Actions (from abilities/equipment), Passives (compact EntityDisplay), General Actions (generic abilities)
+- **Use button** on all actions (not just those with entityRefId) — Play icon + "Use" label
+- **Disabled validation**: checks required traits → AP → uses. Disabled button shows `cursor-not-allowed opacity-30`
+- **Sorting**: enabled actions render before disabled ones via `sortEnabledFirst()`
+- **Structured footer messages**: "Requires Trait: **SALVAGING**" with trait name as pseudoheader wrapped in `EntityDisplayTooltip` (hover shows trait rules text). Plain text for AP/uses reasons.
+- **Use toast**: `toast("Callsign used Action Name")` with 2px border matching the action's color
+- **Autosave integration**: AP changes via `onUpdatePilot`, use tracking via `onUpdateEntityRef` — both callbacks flow to parent page
+
+### Pilot Detail Page Integration
+
+**`src/routes/_authenticated/pilots/$pilotId/index.tsx`:**
+- Lifted `useUpdateEntityRef` to page level
+- `useSaveStatus` tracks both `updatePilot.isPending || updateEntityRef.isPending`
+- Removed per-save `toast.success('Pilot updated')` — footer status handles feedback ("Saving..."/"Saved just now")
+- Passes `pilot`, `readOnly`, `onUpdatePilot`, `onUpdateEntityRef` to PilotActionsSection
+
+### Metadata Schema
+
+Stored in `entity_refs.metadata` (JSON column):
+```json
+{ "actionUses": { "Area Salvage": 3 } }
+```
+Lazy init: null = full uses. First "Use" writes `maxUses - 1`.
+
+### New Files (4)
+| File | Purpose |
+|------|---------|
+| `src/lib/actionUsesUtils.ts` | Pure utilities for AP cost, uses tracking, trait validation |
+| `src/lib/actionUsesUtils.test.ts` | 23 tests for action use utilities |
+| `src/lib/pilotActionUtils.ts` | Action extraction, color computation, display data threading |
+| `src/lib/pilotActionUtils.test.ts` | 16 tests for pilot action utilities |
+| `src/components/pilots/ActionDisplay.tsx` | Action card component with controls, disabled state, footer |
+| `src/components/pilots/PilotActionsSection.tsx` | Action sections with Use button, validation, sorting, toasts |
+
+### Modified Files
+| File | Change |
+|------|--------|
+| `packages/salvageunion-reference/lib/schemas/objects.ts` | `requiredTraits?: string[]` on ActionSchema |
+| `packages/salvageunion-reference/data/actions.json` | requiredTraits field on 7 actions, removed hint blocks |
+| `packages/salvageunion-reference/lib/utilities.ts` | `getRequiredTraits()` utility |
+| `packages/suref-react/src/index.ts` | Exported `EntityDisplayTooltip` |
+| `packages/suref-react/src/components/entity/NestedActionDisplay.tsx` | Required traits italicized rendering |
+| `src/lib/api/pilotApi.ts` | `updateEntityRef()` function |
+| `src/hooks/usePilots.ts` | `useUpdateEntityRef()` hook |
+| `src/routes/_authenticated/pilots/$pilotId/index.tsx` | Autosave integration, lifted entity ref mutation |
+
 ## Verification
 
-- `bun run typecheck` - 0 errors across all packages
-- `bun --filter in-the-union-now test` - 217 tests passing, 0 failures
+- `bun run typecheck` - 0 source errors across all packages (pre-existing vite.config.ts version mismatch only)
+- `bun --filter in-the-union-now test` - 258 tests passing, 0 failures
 - `bun --filter suref-react test` - 86 tests passing, 0 failures
 - `bun --filter suref-web test` - 783 tests passing, 0 failures
 - `bun run lint` - 0 warnings

@@ -480,7 +480,7 @@ export function resolveActivationCurrency(
  * Get the list of action types from the ActionType enum schema.
  * Returns the canonical values: Passive, Free, Reaction, Turn, Short, Long, DownTime.
  */
-export function getActionTypes(): readonly [string, ...string[]] {
+export function getActionTypes(): string[] {
   return ActionTypeSchema.options
 }
 

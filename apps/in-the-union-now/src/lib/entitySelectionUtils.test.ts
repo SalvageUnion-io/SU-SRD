@@ -9,6 +9,20 @@ const allChassis = SalvageUnionReference.Chassis.all() as SURefEntity[]
 
 const ALL_TECH_LEVELS = new Set<number | 'B' | 'N'>([1, 2, 3, 4, 5, 6, 'B', 'N'])
 
+function techLevelOrder(tl: number | string | undefined): number {
+  if (tl === undefined) return 0
+  if (tl === 'B') return 7
+  if (tl === 'N') return 8
+  return Number(tl)
+}
+
+function findLastIndex<T>(arr: T[], predicate: (item: T) => boolean): number {
+  for (let i = arr.length - 1; i >= 0; i--) {
+    if (predicate(arr[i]!)) return i
+  }
+  return -1
+}
+
 function defaultOpts(overrides: Partial<Parameters<typeof filterAndSplitEntities>[0]> = {}) {
   return {
     entities: allSystems,
@@ -152,20 +166,55 @@ describe('filterAndSplitEntities', () => {
     })
   })
 
-  describe('alphabetical sorting', () => {
-    test('results are sorted alphabetically by name', () => {
+  describe('tech level sorting', () => {
+    test('results are sorted by tech level (1-6, B, N) then alphabetically', () => {
       const result = filterAndSplitEntities(defaultOpts())
-      const names = result.selectable.map((e) => ('name' in e ? (e.name as string) : ''))
-      const sorted = [...names].sort((a, b) => a.localeCompare(b))
-      expect(names).toEqual(sorted)
+      const entities = result.selectable
+      for (let i = 1; i < entities.length; i++) {
+        const prevTl = getTechLevel(entities[i - 1]!)
+        const currTl = getTechLevel(entities[i]!)
+        const prevOrder = techLevelOrder(prevTl)
+        const currOrder = techLevelOrder(currTl)
+        if (prevOrder === currOrder) {
+          const prevName = 'name' in entities[i - 1]! ? (entities[i - 1]!.name as string) : ''
+          const currName = 'name' in entities[i]! ? (entities[i]!.name as string) : ''
+          expect(prevName.localeCompare(currName) <= 0).toBe(true)
+        } else {
+          expect(prevOrder <= currOrder).toBe(true)
+        }
+      }
     })
 
-    test('over-capacity results are also sorted alphabetically', () => {
+    test('TL1 entities appear before TL2 entities', () => {
+      const result = filterAndSplitEntities(defaultOpts())
+      const tl1Last = findLastIndex(result.selectable, (e) => getTechLevel(e) === 1)
+      const tl2First = result.selectable.findIndex((e) => getTechLevel(e) === 2)
+      if (tl1Last >= 0 && tl2First >= 0) {
+        expect(tl1Last).toBeLessThan(tl2First)
+      }
+    })
+
+    test('B and N tech levels appear after TL6', () => {
+      const result = filterAndSplitEntities(defaultOpts())
+      const tl6Last = findLastIndex(result.selectable, (e) => getTechLevel(e) === 6)
+      const bioFirst = result.selectable.findIndex((e) => getTechLevel(e) === 'B')
+      const npcFirst = result.selectable.findIndex((e) => getTechLevel(e) === 'N')
+      if (tl6Last >= 0 && bioFirst >= 0) {
+        expect(tl6Last).toBeLessThan(bioFirst)
+      }
+      if (tl6Last >= 0 && npcFirst >= 0) {
+        expect(tl6Last).toBeLessThan(npcFirst)
+      }
+    })
+
+    test('over-capacity results are also sorted by tech level', () => {
       const result = filterAndSplitEntities(defaultOpts({ remainingSlots: 1 }))
       expect(result.overCapacity.length).toBeGreaterThan(0)
-      const names = result.overCapacity.map((e) => ('name' in e ? (e.name as string) : ''))
-      const sorted = [...names].sort((a, b) => a.localeCompare(b))
-      expect(names).toEqual(sorted)
+      for (let i = 1; i < result.overCapacity.length; i++) {
+        const prevOrder = techLevelOrder(getTechLevel(result.overCapacity[i - 1]!))
+        const currOrder = techLevelOrder(getTechLevel(result.overCapacity[i]!))
+        expect(prevOrder <= currOrder).toBe(true)
+      }
     })
   })
 

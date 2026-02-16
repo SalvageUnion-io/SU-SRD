@@ -5,6 +5,24 @@ export type TechLevelValue = number | 'B' | 'N'
 
 export const ALL_TECH_LEVELS: TechLevelValue[] = [1, 2, 3, 4, 5, 6, 'B', 'N']
 
+// Sort order: TL 1-6 first, then B and N (treated as > 6)
+const TECH_LEVEL_SORT_ORDER: Record<string, number> = {
+  '1': 1,
+  '2': 2,
+  '3': 3,
+  '4': 4,
+  '5': 5,
+  '6': 6,
+  B: 7,
+  N: 8,
+}
+
+function techLevelSortValue(entity: SURefEntity): number {
+  const tl = getTechLevel(entity)
+  if (tl === undefined) return 0
+  return TECH_LEVEL_SORT_ORDER[String(tl)] ?? 99
+}
+
 function getEntityName(entity: SURefEntity): string {
   return 'name' in entity ? (entity.name as string) : ''
 }
@@ -76,8 +94,13 @@ export function filterAndSplitEntities({
     })
   }
 
-  // Sort alphabetically
-  filtered.sort((a, b) => getEntityName(a).localeCompare(getEntityName(b)))
+  // Sort by tech level (1-6, B, N), then alphabetically within each level
+  filtered.sort((a, b) => {
+    const tlA = techLevelSortValue(a)
+    const tlB = techLevelSortValue(b)
+    if (tlA !== tlB) return tlA - tlB
+    return getEntityName(a).localeCompare(getEntityName(b))
+  })
 
   // Split by capacity
   if (remainingSlots === undefined && remainingBudget === undefined) {

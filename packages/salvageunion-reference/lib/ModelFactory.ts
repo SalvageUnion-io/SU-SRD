@@ -230,9 +230,9 @@ function validateAndParseData<T>(
     return z.array(zodSchema).parse(rawData)
   } catch (error) {
     if (error instanceof z.ZodError) {
-      console.error(`Validation error for schema ${schemaId}:`, error.errors)
+      console.error(`Validation error for schema ${schemaId}:`, error.issues)
       throw new Error(
-        `Data validation failed for ${schemaId}: ${error.errors.map((e) => e.message).join(', ')}`
+        `Data validation failed for ${schemaId}: ${error.issues.map((e: { message: string }) => e.message).join(', ')}`
       )
     }
     throw error

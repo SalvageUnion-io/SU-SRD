@@ -1,5 +1,5 @@
 import type { SURefMetaAction, SURefObjectChoice } from 'salvageunion-reference'
-import { getEntityDisplayName } from 'salvageunion-reference'
+import { getEntityDisplayName, getRequiredTraits } from 'salvageunion-reference'
 import { Text } from '../base/Text'
 import { BlockContentRendererView } from './BlockContentRendererView'
 import { EntityChoice } from './EntityDisplay/EntityChoice'
@@ -49,6 +49,7 @@ export function NestedActionDisplay({
   const hasTable = data.table !== undefined && data.table !== null
 
   const hasContentToRender = hasContent && !hideContent
+  const requiredTraits = getRequiredTraits(data)
 
   const displayName = getEntityDisplayName(data) || data.name
 
@@ -84,13 +85,23 @@ export function NestedActionDisplay({
           </div>
         )}
 
+        {requiredTraits.length > 0 && (
+          <p className={cn('italic text-gray-500', fontSize, compact ? 'py-0.5' : 'py-1')}>
+            Requires the{' '}
+            <strong className="font-semibold uppercase">
+              {requiredTraits.map((t) => t.charAt(0).toUpperCase() + t.slice(1)).join(', ')}
+            </strong>{' '}
+            Trait.
+          </p>
+        )}
+
         {hasContentToRender && (
           <div
             className={cn(
               'flex flex-col items-stretch',
               compact ? 'gap-1' : 'gap-2',
               compact ? 'py-1' : 'py-2',
-              details.length > 0 ? 'pt-0' : ''
+              details.length > 0 || requiredTraits.length > 0 ? 'pt-0' : ''
             )}
           >
             <BlockContentRendererView

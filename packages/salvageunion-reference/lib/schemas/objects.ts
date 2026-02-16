@@ -307,7 +307,7 @@ export const PatternSystemModuleSchema = z
     name: NameSchema,
     count: NonNegativeIntegerSchema.optional(),
     preselectedChoices: z
-      .record(NameSchema)
+      .record(z.string(), NameSchema)
       .describe('Preselected choices for this system or module, keyed by choice ID')
       .optional(),
   })
@@ -507,6 +507,7 @@ export const ActionSchema: z.ZodType<{
   page?: z.infer<typeof PositiveIntegerSchema>
   actionSource?: z.infer<typeof SchemaNameSchema>
   drone?: string
+  requiredTraits?: string[]
 }> = z.lazy(() =>
   z.object({
     id: IdSchema,
@@ -537,6 +538,7 @@ export const ActionSchema: z.ZodType<{
     page: PositiveIntegerSchema.optional(),
     actionSource: SchemaNameSchema.optional(),
     drone: z.string().optional(),
+    requiredTraits: z.array(z.string()).optional(),
   })
 )
 

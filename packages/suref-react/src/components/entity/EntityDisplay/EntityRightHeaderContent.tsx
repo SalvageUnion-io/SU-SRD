@@ -8,7 +8,7 @@ import type { getEntityFontSizes } from './entityDisplayTypes'
 import type { EntityControl, EntityControlVariant } from './entityControlTypes'
 
 const VARIANT_STYLES: Record<EntityControlVariant, string> = {
-  primary: 'bg-su-green text-su-white hover:bg-emerald-600',
+  primary: 'bg-su-black text-su-white hover:bg-su-grey-dark',
   danger: 'opacity-60 hover:bg-su-rust/80 hover:opacity-100',
   ghost: 'opacity-60 hover:bg-white/20 hover:opacity-100',
 }
@@ -72,7 +72,7 @@ export function EntityRightHeaderContent({
             key={control.key}
             type="button"
             className={cn(
-              'flex min-w-[25px] shrink-0 cursor-pointer items-center justify-center self-center rounded p-1 transition-colors',
+              'flex min-w-[25px] shrink-0 cursor-pointer items-center justify-center gap-1 self-center rounded p-1 transition-colors',
               VARIANT_STYLES[variant],
               control.className
             )}
@@ -81,6 +81,11 @@ export function EntityRightHeaderContent({
             onClick={(e) => handleClick(e, control.onClick)}
           >
             <Icon className="h-4.5 w-4.5" />
+            {control.label && (
+              <span className="font-mono text-xs font-bold uppercase leading-none">
+                {control.label}
+              </span>
+            )}
           </button>
         )
       })}

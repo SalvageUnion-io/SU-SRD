@@ -1662,6 +1662,18 @@ export function getGrants(entity: SURefMetaEntity): SURefObjectGrant[] | undefin
 }
 
 /**
+ * Get required traits from an action
+ * @param action - The action to extract required traits from
+ * @returns Array of required trait type strings, or empty array if none
+ */
+export function getRequiredTraits(action: SURefMetaAction): string[] {
+  if ('requiredTraits' in action && Array.isArray(action.requiredTraits)) {
+    return action.requiredTraits as string[]
+  }
+  return []
+}
+
+/**
  * Represents a parsed trait reference from text
  */
 export type ParsedTraitReference = {

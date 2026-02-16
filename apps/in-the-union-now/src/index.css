@@ -5,7 +5,7 @@
 
 /* Base styles */
 body {
-  background-color: var(--background);
+  background-color: var(--color-su-sand);
   color: var(--foreground);
   font-family: var(--font-mono);
   -webkit-font-smoothing: antialiased;

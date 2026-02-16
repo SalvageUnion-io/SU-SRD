@@ -18,6 +18,7 @@ export { Toaster } from './components/ui/toaster'
 
 // Entity display system
 export { EntityDisplay } from './components/entity/EntityDisplay/index'
+export { EntityDisplayTooltip } from './components/entity/EntityDisplayTooltip'
 export { SectionSeparator } from './components/entity/EntityDisplay/SectionSeparator'
 export { EntityChassisAbilitiesContent } from './components/entity/EntityDisplay/EntityChassisAbilitiesContent'
 export { NestedChassisAbility } from './components/entity/NestedChassisAbility'
@@ -67,7 +68,13 @@ export {
   matchesFilter,
   enrichForFiltering,
 } from './components/entity/guideStepsHelpers'
-export { borderColorFromHeaderBg } from './components/entity/entityDisplayHelpers'
+export {
+  borderColorFromHeaderBg,
+  calculateBackgroundColor,
+} from './components/entity/entityDisplayHelpers'
+export { extractEntityDetails, getActivationCurrency } from './lib/entityDataExtraction'
+export { DataValueDisplayView } from './components/entity/DataValueDisplayView'
+export { techLevelColors } from './components/entity/EntityDisplay/useEntityDisplayState'
 
 // Utilities
 export { cn } from './utils/cn'

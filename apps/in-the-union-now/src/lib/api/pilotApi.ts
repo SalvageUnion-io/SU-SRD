@@ -2,7 +2,7 @@ import { PILOT_DEFAULTS } from 'salvageunion-reference'
 import { supabase } from '../supabase'
 import { handleSupabaseError } from '../errors'
 import { abilityToEntityRef, equipmentToEntityRefs } from '../entityRefUtils'
-import type { PilotRow, EntityRefRow, PilotUpdate } from '../../types/common'
+import type { PilotRow, EntityRefRow, EntityRefUpdate, PilotUpdate } from '../../types/common'
 import type { CreatePilotInput } from '../../types/common'
 
 export async function listPilots(userId: string): Promise<PilotRow[]> {
@@ -94,6 +94,21 @@ export async function listAbilityCountsByPilotIds(
     counts[ref.parent_id] = (counts[ref.parent_id] ?? 0) + 1
   }
   return counts
+}
+
+export async function updateEntityRef(
+  refId: string,
+  input: EntityRefUpdate
+): Promise<EntityRefRow> {
+  const { data, error } = await supabase
+    .from('entity_refs')
+    .update(input)
+    .eq('id', refId)
+    .select()
+    .single()
+
+  if (error) handleSupabaseError(error)
+  return data!
 }
 
 export async function getPilotEntityRefs(pilotId: string): Promise<EntityRefRow[]> {

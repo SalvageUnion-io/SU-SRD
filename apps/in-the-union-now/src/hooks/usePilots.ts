@@ -7,8 +7,9 @@ import {
   deletePilot,
   getPilotEntityRefs,
   listAbilityCountsByPilotIds,
+  updateEntityRef,
 } from '../lib/api/pilotApi'
-import type { CreatePilotInput, PilotRow, PilotUpdate } from '../types/common'
+import type { CreatePilotInput, EntityRefUpdate, PilotRow, PilotUpdate } from '../types/common'
 
 export const pilotKeys = {
   all: ['pilots'] as const,
@@ -73,6 +74,18 @@ export function useUpdatePilot() {
     onSuccess: (data: PilotRow, { userId }) => {
       queryClient.invalidateQueries({ queryKey: pilotKeys.list(userId) })
       queryClient.setQueryData(pilotKeys.detail(data.id), data)
+    },
+  })
+}
+
+export function useUpdateEntityRef() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ refId, input }: { refId: string; input: EntityRefUpdate; pilotId: string }) =>
+      updateEntityRef(refId, input),
+    onSuccess: (_data, { pilotId }) => {
+      queryClient.invalidateQueries({ queryKey: pilotKeys.entityRefs(pilotId) })
     },
   })
 }

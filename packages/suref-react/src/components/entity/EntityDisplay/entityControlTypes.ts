@@ -9,4 +9,5 @@ export type EntityControl = {
   ariaLabel: string
   variant?: EntityControlVariant
   className?: string
+  label?: string
 }

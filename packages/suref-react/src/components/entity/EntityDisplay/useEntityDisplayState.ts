@@ -22,7 +22,7 @@ import type {
 /**
  * Tech level to Tailwind bg class mapping
  */
-const techLevelColors: Record<number, string> = {
+export const techLevelColors: Record<number, string> = {
   1: 'bg-tl-1',
   2: 'bg-tl-2',
   3: 'bg-tl-3',

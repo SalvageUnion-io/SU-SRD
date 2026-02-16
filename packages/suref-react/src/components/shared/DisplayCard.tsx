@@ -109,7 +109,7 @@ export function DisplayCard({
         <Text
           variant="pseudoheader"
           as="span"
-          className="ml-3 max-w-[80%] origin-left scale-x-[0.85] whitespace-nowrap text-xs uppercase"
+          className="absolute top-0 z-10 ml-3 -translate-y-1/2 whitespace-nowrap text-xs uppercase"
         >
           {label}
         </Text>
@@ -124,6 +124,7 @@ export function DisplayCard({
           isListing ? 'min-h-[40px] flex-1 rounded-md px-2 py-1' : 'rounded-t-sm',
           !isListing && (isCompact ? 'min-h-[60px] px-1.5 py-1' : 'min-h-[80px] px-1.5 py-1.5'),
           !isListing && !isCompact && label && 'pb-4 pt-4',
+          !isListing && isCompact && label && 'pt-2',
           actualHeaderBg,
           onClick && 'cursor-pointer',
           headerSourceStyles.className

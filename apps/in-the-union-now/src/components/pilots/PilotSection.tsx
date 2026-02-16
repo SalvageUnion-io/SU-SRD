@@ -84,12 +84,13 @@ function PilotListing({ pilot, abilityCount }: { pilot: PilotRow; abilityCount: 
     return cls?.name ?? 'Unknown'
   }, [pilot.class_ref])
 
-  const mechLabel = useMemo(() => {
+  const chassisName = useMemo(() => {
     if (!mech) return undefined
     const chassis = findChassisById(mech.chassis_ref)
-    if (!chassis) return undefined
-    return `${chassis.name} \u201C${mech.pattern_name ?? 'Unnamed'}\u201D`
+    return chassis?.name
   }, [mech])
+
+  const patternName = mech?.pattern_name ? `\u201C${mech.pattern_name}\u201D` : undefined
 
   const handleNavigate = useCallback(() => {
     navigate({ to: '/pilots/$pilotId', params: { pilotId: pilot.id } })
@@ -111,12 +112,21 @@ function PilotListing({ pilot, abilityCount }: { pilot: PilotRow; abilityCount: 
         <div className="flex flex-wrap items-center gap-1">
           <ValueDisplay label="Class" value={pilotClassName} compact />
           <ValueDisplay label="Abilities" value={abilityCount} compact />
-          {mechLabel && (
-            <span
-              className="inline-flex shrink-0 cursor-default whitespace-nowrap border border-su-black px-1 font-mono text-xs font-normal uppercase leading-none text-su-white"
-              style={{ backgroundColor: 'rgb(122, 151, 138)' }}
-            >
-              {mechLabel}
+          {chassisName && (
+            <span className="inline-flex shrink-0 cursor-default whitespace-nowrap border border-su-black">
+              <Text
+                variant="pseudoheader"
+                as="span"
+                className="text-xs font-normal uppercase"
+                style={{ backgroundColor: 'rgb(122, 151, 138)' }}
+              >
+                {chassisName}
+              </Text>
+              {patternName && (
+                <Text variant="pseudoheader" as="span" className="text-xs font-normal uppercase">
+                  {patternName}
+                </Text>
+              )}
             </span>
           )}
         </div>

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { SalvageUnionReference, isHybridClass, getAssetUrl } from 'salvageunion-reference'
 import { DisplayCard, Text, ValueDisplay } from 'suref-react'
@@ -10,6 +10,7 @@ import {
   usePilotEntityRefs,
   useUpdatePilot,
   useDeletePilot,
+  useUpdateEntityRef,
 } from '../../../../hooks/usePilots'
 import { useMech } from '../../../../hooks/useMechs'
 import { useSaveStatus } from '../../../../hooks/useSaveStatus'
@@ -33,7 +34,8 @@ import { PilotStatControl } from '../../../../components/pilots/PilotStatControl
 import { PilotPersonalInfo } from '../../../../components/pilots/PilotPersonalInfo'
 import { PilotEntityRefs } from '../../../../components/pilots/PilotEntityRefs'
 import { PilotMechSection } from '../../../../components/pilots/PilotMechSection'
-import type { PilotUpdate } from '../../../../types/common'
+import { PilotActionsSection } from '../../../../components/pilots/PilotActionsSection'
+import type { EntityRefUpdate, PilotUpdate } from '../../../../types/common'
 
 export const Route = createFileRoute('/_authenticated/pilots/$pilotId/')({
   component: PilotDetailPage,
@@ -46,12 +48,15 @@ function PilotDetailPage() {
   const { data: pilot, isLoading, error } = usePilot(pilotId)
   const { data: pilotRefs } = usePilotEntityRefs(pilotId)
   const updatePilot = useUpdatePilot()
+  const updateEntityRef = useUpdateEntityRef()
   const deletePilot = useDeletePilot()
   const [showDelete, setShowDelete] = useState(false)
 
   const { data: mech, isLoading: mechLoading } = useMech(pilot?.mech_id ?? undefined)
 
-  const pilotSaveStatus = useSaveStatus({ isSaving: updatePilot.isPending })
+  const pilotSaveStatus = useSaveStatus({
+    isSaving: updatePilot.isPending || updateEntityRef.isPending,
+  })
 
   const pilotClass = useMemo(
     () => (pilot ? SalvageUnionReference.get('classes', pilot.class_ref) : undefined),
@@ -65,9 +70,19 @@ function PilotDetailPage() {
   )
 
   const mechChassis = useMemo(() => (mech ? findChassisById(mech.chassis_ref) : undefined), [mech])
-  const mechLabel = mechChassis
-    ? `${mechChassis.name} \u201C${mech!.pattern_name ?? 'Unnamed'}\u201D`
-    : undefined
+  const chassisName = mechChassis?.name
+  const patternName = mech?.pattern_name ? `\u201C${mech.pattern_name}\u201D` : undefined
+
+  const handleUpdateEntityRef = useCallback(
+    (refId: string, input: EntityRefUpdate) => {
+      if (!pilot) return
+      updateEntityRef.mutate(
+        { refId, input, pilotId: pilot.id },
+        { onError: (err) => toast.error(getErrorMessage(err)) }
+      )
+    },
+    [pilot, updateEntityRef]
+  )
 
   if (isLoading) return <PageSkeleton />
 
@@ -85,10 +100,7 @@ function PilotDetailPage() {
     if (!user) return
     updatePilot.mutate(
       { pilotId: pilot!.id, input, userId: user.id },
-      {
-        onSuccess: () => toast.success('Pilot updated'),
-        onError: (err) => toast.error(getErrorMessage(err)),
-      }
+      { onError: (err) => toast.error(getErrorMessage(err)) }
     )
   }
 
@@ -126,16 +138,30 @@ function PilotDetailPage() {
                 {pilot.callsign}
               </Text>
               <div className="flex flex-wrap items-center gap-1">
-                <ValueDisplay label="Class" value={pilotClassName} compact />
-                <ValueDisplay label="Abilities" value={abilityCount} compact />
-                {mechLabel && (
+                <ValueDisplay label="Class" value={pilotClassName} />
+                <ValueDisplay label="Abilities" value={abilityCount} />
+                {chassisName && (
                   <span className="inline-flex shrink-0 cursor-default whitespace-nowrap border border-su-black">
-                    <span className="bg-su-black px-1 font-mono text-xs font-normal uppercase leading-none text-su-white">
-                      {mechLabel}
-                    </span>
+                    <Text
+                      variant="pseudoheader"
+                      as="span"
+                      className="text-base font-semibold uppercase"
+                      style={{ backgroundColor: 'rgb(122, 151, 138)' }}
+                    >
+                      {chassisName}
+                    </Text>
+                    {patternName && (
+                      <Text
+                        variant="pseudoheader"
+                        as="span"
+                        className="text-base font-semibold uppercase"
+                      >
+                        {patternName}
+                      </Text>
+                    )}
                     <button
                       type="button"
-                      className="cursor-pointer px-1 font-mono text-xs font-normal uppercase leading-none text-su-white transition-opacity hover:opacity-80"
+                      className="cursor-pointer px-1 font-mono text-base font-semibold uppercase leading-none text-su-white transition-opacity hover:opacity-80"
                       style={{ backgroundColor: 'rgb(122, 151, 138)' }}
                     >
                       Load in
@@ -212,9 +238,18 @@ function PilotDetailPage() {
               mechChassis={mechChassis}
               mechLoading={mechLoading}
             />
-            <PilotEntityRefs refs={pilotRefs ?? []} />
           </div>
           <div className="clear-both" />
+          <div className="space-y-4">
+            <PilotActionsSection
+              refs={pilotRefs ?? []}
+              pilot={pilot}
+              readOnly={!canEdit}
+              onUpdatePilot={handlePilotUpdate}
+              onUpdateEntityRef={handleUpdateEntityRef}
+            />
+            <PilotEntityRefs refs={pilotRefs ?? []} />
+          </div>
         </div>
       </DisplayCard>
 

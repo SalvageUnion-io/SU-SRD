@@ -5,21 +5,280 @@
   "description": "",
   "type": "array",
   "items": {
-    "$ref": "#/definitions/chassis",
-    "definitions": {
-      "chassis": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {
+      "asset_url": { "type": "string", "format": "uri" },
+      "content": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "default": "paragraph",
+              "type": "string",
+              "enum": ["paragraph", "heading", "list-item", "label", "datavalues", "hint"]
+            },
+            "value": {
+              "anyOf": [
+                { "type": "string" },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "label": { "anyOf": [{ "type": "string" }, { "type": "number" }] },
+                      "value": { "anyOf": [{ "type": "string" }, { "type": "number" }] },
+                      "type": { "type": "string" }
+                    },
+                    "required": ["label"],
+                    "additionalProperties": false
+                  },
+                  "description": "Array of data values when type is 'datavalues'"
+                }
+              ]
+            },
+            "label": { "type": "string" },
+            "level": { "type": "integer", "minimum": 1, "maximum": 6 },
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "default": "paragraph",
+                    "type": "string",
+                    "enum": ["paragraph", "heading", "list-item", "label", "datavalues", "hint"]
+                  },
+                  "value": {
+                    "anyOf": [
+                      { "type": "string" },
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "label": { "anyOf": [{ "type": "string" }, { "type": "number" }] },
+                            "value": { "anyOf": [{ "type": "string" }, { "type": "number" }] },
+                            "type": { "type": "string" }
+                          },
+                          "required": ["label"],
+                          "additionalProperties": false
+                        },
+                        "description": "Array of data values when type is 'datavalues'"
+                      }
+                    ]
+                  },
+                  "label": { "type": "string" },
+                  "level": { "type": "integer", "minimum": 1, "maximum": 6 }
+                },
+                "required": ["type"],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": ["type"],
+          "additionalProperties": false
+        }
+      },
+      "id": { "type": "string" },
+      "indexable": { "default": true, "type": "boolean" },
+      "blackMarket": { "default": false, "type": "boolean" },
+      "name": { "type": "string", "minLength": 1 },
+      "source": {
+        "type": "string",
+        "enum": [
+          "Salvage Union Workshop Manual",
+          "Mech Monday",
+          "We Were Here First!",
+          "Rainmaker",
+          "False Flag"
+        ]
+      },
+      "page": { "type": "integer", "exclusiveMinimum": 0, "maximum": 9007199254740991 },
+      "structurePoints": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+      "energyPoints": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+      "heatCapacity": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+      "systemSlots": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+      "moduleSlots": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+      "cargoCapacity": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+      "techLevel": {
+        "anyOf": [
+          { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+          { "type": "string", "const": "B" },
+          { "type": "string", "const": "N" }
+        ]
+      },
+      "salvageValue": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+      "chassisAbilities": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "Array of chassis ability names that reference actions.json"
+      },
+      "patterns": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "name": { "type": "string", "minLength": 1 },
+            "content": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "default": "paragraph",
+                    "type": "string",
+                    "enum": ["paragraph", "heading", "list-item", "label", "datavalues", "hint"]
+                  },
+                  "value": {
+                    "anyOf": [
+                      { "type": "string" },
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "label": { "anyOf": [{ "type": "string" }, { "type": "number" }] },
+                            "value": { "anyOf": [{ "type": "string" }, { "type": "number" }] },
+                            "type": { "type": "string" }
+                          },
+                          "required": ["label"],
+                          "additionalProperties": false
+                        },
+                        "description": "Array of data values when type is 'datavalues'"
+                      }
+                    ]
+                  },
+                  "label": { "type": "string" },
+                  "level": { "type": "integer", "minimum": 1, "maximum": 6 },
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "default": "paragraph",
+                          "type": "string",
+                          "enum": [
+                            "paragraph",
+                            "heading",
+                            "list-item",
+                            "label",
+                            "datavalues",
+                            "hint"
+                          ]
+                        },
+                        "value": {
+                          "anyOf": [
+                            { "type": "string" },
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "label": {
+                                    "anyOf": [{ "type": "string" }, { "type": "number" }]
+                                  },
+                                  "value": {
+                                    "anyOf": [{ "type": "string" }, { "type": "number" }]
+                                  },
+                                  "type": { "type": "string" }
+                                },
+                                "required": ["label"],
+                                "additionalProperties": false
+                              },
+                              "description": "Array of data values when type is 'datavalues'"
+                            }
+                          ]
+                        },
+                        "label": { "type": "string" },
+                        "level": { "type": "integer", "minimum": 1, "maximum": 6 }
+                      },
+                      "required": ["type"],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": ["type"],
+                "additionalProperties": false
+              }
+            },
+            "legalStarting": { "type": "boolean" },
+            "source": {
+              "type": "string",
+              "enum": [
+                "Salvage Union Workshop Manual",
+                "Mech Monday",
+                "We Were Here First!",
+                "Rainmaker",
+                "False Flag"
+              ]
+            },
+            "page": { "type": "integer", "exclusiveMinimum": 0, "maximum": 9007199254740991 },
+            "systems": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string", "minLength": 1 },
+                  "count": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+                  "preselectedChoices": {
+                    "type": "object",
+                    "propertyNames": { "type": "string" },
+                    "additionalProperties": { "type": "string", "minLength": 1 },
+                    "description": "Preselected choices for this system or module, keyed by choice ID"
+                  }
+                },
+                "required": ["name"],
+                "additionalProperties": false
+              }
+            },
+            "modules": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string", "minLength": 1 },
+                  "count": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+                  "preselectedChoices": {
+                    "type": "object",
+                    "propertyNames": { "type": "string" },
+                    "additionalProperties": { "type": "string", "minLength": 1 },
+                    "description": "Preselected choices for this system or module, keyed by choice ID"
+                  }
+                },
+                "required": ["name"],
+                "additionalProperties": false
+              }
+            },
+            "drone": {
+              "type": "object",
+              "properties": {
+                "systems": { "type": "array", "items": { "type": "string" } },
+                "modules": { "type": "array", "items": { "type": "string" } }
+              },
+              "required": ["systems", "modules"],
+              "additionalProperties": false
+            }
+          },
+          "required": ["name", "systems", "modules"],
+          "additionalProperties": false
+        }
+      },
+      "npc": {
         "type": "object",
         "properties": {
-          "asset_url": { "type": "string", "format": "uri" },
+          "position": { "type": "string", "minLength": 1 },
           "content": {
             "type": "array",
             "items": {
               "type": "object",
               "properties": {
                 "type": {
+                  "default": "paragraph",
                   "type": "string",
-                  "enum": ["paragraph", "heading", "list-item", "label", "datavalues", "hint"],
-                  "default": "paragraph"
+                  "enum": ["paragraph", "heading", "list-item", "label", "datavalues", "hint"]
                 },
                 "value": {
                   "anyOf": [
@@ -29,8 +288,8 @@
                       "items": {
                         "type": "object",
                         "properties": {
-                          "label": { "type": ["string", "number"] },
-                          "value": { "type": ["string", "number"] },
+                          "label": { "anyOf": [{ "type": "string" }, { "type": "number" }] },
+                          "value": { "anyOf": [{ "type": "string" }, { "type": "number" }] },
                           "type": { "type": "string" }
                         },
                         "required": ["label"],
@@ -48,8 +307,9 @@
                     "type": "object",
                     "properties": {
                       "type": {
-                        "$ref": "#/definitions/chassis/properties/content/items/properties/type",
-                        "default": "paragraph"
+                        "default": "paragraph",
+                        "type": "string",
+                        "enum": ["paragraph", "heading", "list-item", "label", "datavalues", "hint"]
                       },
                       "value": {
                         "anyOf": [
@@ -57,7 +317,14 @@
                           {
                             "type": "array",
                             "items": {
-                              "$ref": "#/definitions/chassis/properties/content/items/properties/value/anyOf/1/items"
+                              "type": "object",
+                              "properties": {
+                                "label": { "anyOf": [{ "type": "string" }, { "type": "number" }] },
+                                "value": { "anyOf": [{ "type": "string" }, { "type": "number" }] },
+                                "type": { "type": "string" }
+                              },
+                              "required": ["label"],
+                              "additionalProperties": false
                             },
                             "description": "Array of data values when type is 'datavalues'"
                           }
@@ -66,230 +333,256 @@
                       "label": { "type": "string" },
                       "level": { "type": "integer", "minimum": 1, "maximum": 6 }
                     },
+                    "required": ["type"],
                     "additionalProperties": false
                   }
                 }
               },
+              "required": ["type"],
               "additionalProperties": false
             }
           },
-          "id": { "type": "string" },
-          "indexable": { "type": "boolean", "default": true },
-          "blackMarket": { "type": "boolean", "default": false },
-          "name": { "type": "string", "minLength": 1 },
-          "source": {
-            "type": "string",
-            "enum": [
-              "Salvage Union Workshop Manual",
-              "Mech Monday",
-              "We Were Here First!",
-              "Rainmaker",
-              "False Flag"
-            ]
-          },
-          "page": { "type": "integer", "exclusiveMinimum": 0 },
-          "structurePoints": { "type": "integer", "minimum": 0 },
-          "energyPoints": { "$ref": "#/definitions/chassis/properties/structurePoints" },
-          "heatCapacity": { "$ref": "#/definitions/chassis/properties/structurePoints" },
-          "systemSlots": { "$ref": "#/definitions/chassis/properties/structurePoints" },
-          "moduleSlots": { "$ref": "#/definitions/chassis/properties/structurePoints" },
-          "cargoCapacity": { "$ref": "#/definitions/chassis/properties/structurePoints" },
-          "techLevel": {
-            "anyOf": [
-              { "type": "integer", "minimum": 0 },
-              { "type": "string", "const": "B" },
-              { "type": "string", "const": "N" }
-            ]
-          },
-          "salvageValue": { "$ref": "#/definitions/chassis/properties/structurePoints" },
-          "chassisAbilities": {
-            "type": "array",
-            "items": { "type": "string" },
-            "description": "Array of chassis ability names that reference actions.json"
-          },
-          "patterns": {
+          "hitPoints": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+          "choices": {
             "type": "array",
             "items": {
               "type": "object",
               "properties": {
-                "name": { "$ref": "#/definitions/chassis/properties/name" },
-                "content": { "$ref": "#/definitions/chassis/properties/content" },
-                "legalStarting": { "type": "boolean" },
-                "source": { "$ref": "#/definitions/chassis/properties/source" },
-                "page": { "$ref": "#/definitions/chassis/properties/page" },
-                "systems": {
+                "id": { "type": "string" },
+                "name": { "type": "string", "minLength": 1 },
+                "choiceType": {
+                  "type": "string",
+                  "enum": ["permanent", "session", "freeform"],
+                  "description": "permanent: recorded on sheet; session: made during gameplay; freeform: arbitrary text"
+                },
+                "content": {
                   "type": "array",
                   "items": {
                     "type": "object",
                     "properties": {
-                      "name": { "$ref": "#/definitions/chassis/properties/name" },
-                      "count": { "$ref": "#/definitions/chassis/properties/structurePoints" },
-                      "preselectedChoices": {
-                        "type": "object",
-                        "additionalProperties": { "$ref": "#/definitions/chassis/properties/name" },
-                        "description": "Preselected choices for this system or module, keyed by choice ID"
+                      "type": {
+                        "default": "paragraph",
+                        "type": "string",
+                        "enum": ["paragraph", "heading", "list-item", "label", "datavalues", "hint"]
+                      },
+                      "value": {
+                        "anyOf": [
+                          { "type": "string" },
+                          {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "label": { "anyOf": [{ "type": "string" }, { "type": "number" }] },
+                                "value": { "anyOf": [{ "type": "string" }, { "type": "number" }] },
+                                "type": { "type": "string" }
+                              },
+                              "required": ["label"],
+                              "additionalProperties": false
+                            },
+                            "description": "Array of data values when type is 'datavalues'"
+                          }
+                        ]
+                      },
+                      "label": { "type": "string" },
+                      "level": { "type": "integer", "minimum": 1, "maximum": 6 },
+                      "items": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "default": "paragraph",
+                              "type": "string",
+                              "enum": [
+                                "paragraph",
+                                "heading",
+                                "list-item",
+                                "label",
+                                "datavalues",
+                                "hint"
+                              ]
+                            },
+                            "value": {
+                              "anyOf": [
+                                { "type": "string" },
+                                {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "label": {
+                                        "anyOf": [{ "type": "string" }, { "type": "number" }]
+                                      },
+                                      "value": {
+                                        "anyOf": [{ "type": "string" }, { "type": "number" }]
+                                      },
+                                      "type": { "type": "string" }
+                                    },
+                                    "required": ["label"],
+                                    "additionalProperties": false
+                                  },
+                                  "description": "Array of data values when type is 'datavalues'"
+                                }
+                              ]
+                            },
+                            "label": { "type": "string" },
+                            "level": { "type": "integer", "minimum": 1, "maximum": 6 }
+                          },
+                          "required": ["type"],
+                          "additionalProperties": false
+                        }
                       }
                     },
-                    "required": ["name"],
+                    "required": ["type"],
                     "additionalProperties": false
                   }
                 },
-                "modules": {
+                "rollTable": { "type": "string" },
+                "schemaEntities": { "type": "array", "items": { "type": "string" } },
+                "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/definitions/chassis/properties/patterns/items/properties/systems/items"
+                    "type": "string",
+                    "enum": [
+                      "abilities",
+                      "ability-tree-requirements",
+                      "bio-titans",
+                      "chassis",
+                      "classes",
+                      "crawler-bays",
+                      "crawler-tech-levels",
+                      "crawlers",
+                      "creatures",
+                      "distances",
+                      "drones",
+                      "equipment",
+                      "guides",
+                      "keywords",
+                      "factions",
+                      "meld",
+                      "modules",
+                      "npcs",
+                      "roll-tables",
+                      "squads",
+                      "systems",
+                      "traits",
+                      "vehicles"
+                    ]
                   }
                 },
-                "drone": {
+                "customSystemOptions": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "structurePoints": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      "energyPoints": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      "heatCapacity": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      "systemSlots": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      "moduleSlots": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      "cargoCapacity": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      "techLevel": {
+                        "anyOf": [
+                          { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+                          { "type": "string", "const": "B" },
+                          { "type": "string", "const": "N" }
+                        ]
+                      },
+                      "salvageValue": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      "slotsRequired": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      "recommended": { "type": "boolean" },
+                      "count": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+                      "actions": { "type": "array", "items": { "type": "string" } }
+                    },
+                    "required": ["techLevel", "salvageValue", "slotsRequired", "actions"],
+                    "additionalProperties": false
+                  }
+                },
+                "setIndexable": { "type": "boolean" },
+                "multiSelect": {
+                  "type": "boolean",
+                  "description": "If true, this choice can be selected multiple times"
+                },
+                "choiceOptions": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "label": { "type": "string" },
+                      "value": { "type": "string" },
+                      "description": { "type": "string" }
+                    },
+                    "required": ["label", "value"],
+                    "additionalProperties": false
+                  },
+                  "description": "Structured options for this choice (similar to actionOptions)"
+                },
+                "constraints": {
                   "type": "object",
                   "properties": {
-                    "systems": { "type": "array", "items": { "type": "string" } },
-                    "modules": { "type": "array", "items": { "type": "string" } }
+                    "field": { "type": "string" },
+                    "min": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+                    "max": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+                    "scalesWithField": {
+                      "type": "string",
+                      "description": "Dynamic max: resolve this field name from the parent entity to use as max"
+                    }
                   },
-                  "required": ["systems", "modules"],
                   "additionalProperties": false
                 }
               },
-              "required": ["name", "systems", "modules"],
+              "required": ["id", "name"],
               "additionalProperties": false
             }
-          },
-          "npc": {
-            "type": "object",
-            "properties": {
-              "position": { "$ref": "#/definitions/chassis/properties/name" },
-              "content": { "$ref": "#/definitions/chassis/properties/content" },
-              "hitPoints": { "$ref": "#/definitions/chassis/properties/structurePoints" },
-              "choices": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "id": { "$ref": "#/definitions/chassis/properties/id" },
-                    "name": { "$ref": "#/definitions/chassis/properties/name" },
-                    "choiceType": {
-                      "type": "string",
-                      "enum": ["permanent", "session", "freeform"],
-                      "description": "permanent: recorded on sheet; session: made during gameplay; freeform: arbitrary text"
-                    },
-                    "content": { "$ref": "#/definitions/chassis/properties/content" },
-                    "rollTable": { "type": "string" },
-                    "schemaEntities": { "type": "array", "items": { "type": "string" } },
-                    "schema": {
-                      "type": "array",
-                      "items": {
-                        "type": "string",
-                        "enum": [
-                          "abilities",
-                          "ability-tree-requirements",
-                          "bio-titans",
-                          "chassis",
-                          "classes",
-                          "crawler-bays",
-                          "crawler-tech-levels",
-                          "crawlers",
-                          "creatures",
-                          "distances",
-                          "drones",
-                          "equipment",
-                          "guides",
-                          "keywords",
-                          "factions",
-                          "meld",
-                          "modules",
-                          "npcs",
-                          "roll-tables",
-                          "squads",
-                          "systems",
-                          "traits",
-                          "vehicles"
-                        ]
-                      }
-                    },
-                    "customSystemOptions": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "structurePoints": {
-                            "$ref": "#/definitions/chassis/properties/structurePoints"
-                          },
-                          "energyPoints": {
-                            "$ref": "#/definitions/chassis/properties/structurePoints"
-                          },
-                          "heatCapacity": {
-                            "$ref": "#/definitions/chassis/properties/structurePoints"
-                          },
-                          "systemSlots": {
-                            "$ref": "#/definitions/chassis/properties/structurePoints"
-                          },
-                          "moduleSlots": {
-                            "$ref": "#/definitions/chassis/properties/structurePoints"
-                          },
-                          "cargoCapacity": {
-                            "$ref": "#/definitions/chassis/properties/structurePoints"
-                          },
-                          "techLevel": { "$ref": "#/definitions/chassis/properties/techLevel" },
-                          "salvageValue": {
-                            "$ref": "#/definitions/chassis/properties/structurePoints"
-                          },
-                          "slotsRequired": {
-                            "$ref": "#/definitions/chassis/properties/structurePoints"
-                          },
-                          "recommended": { "type": "boolean" },
-                          "count": { "$ref": "#/definitions/chassis/properties/structurePoints" },
-                          "actions": { "type": "array", "items": { "type": "string" } }
-                        },
-                        "required": ["techLevel", "salvageValue", "slotsRequired", "actions"],
-                        "additionalProperties": false
-                      }
-                    },
-                    "setIndexable": { "type": "boolean" },
-                    "multiSelect": {
-                      "type": "boolean",
-                      "description": "If true, this choice can be selected multiple times"
-                    },
-                    "choiceOptions": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "label": { "type": "string" },
-                          "value": { "type": "string" },
-                          "description": { "type": "string" }
-                        },
-                        "required": ["label", "value"],
-                        "additionalProperties": false
-                      },
-                      "description": "Structured options for this choice (similar to actionOptions)"
-                    },
-                    "constraints": {
-                      "type": "object",
-                      "properties": {
-                        "field": { "type": "string" },
-                        "min": { "$ref": "#/definitions/chassis/properties/structurePoints" },
-                        "max": { "$ref": "#/definitions/chassis/properties/structurePoints" },
-                        "scalesWithField": {
-                          "type": "string",
-                          "description": "Dynamic max: resolve this field name from the parent entity to use as max"
-                        }
-                      },
-                      "additionalProperties": false
-                    }
-                  },
-                  "required": ["id", "name"],
-                  "additionalProperties": false
-                }
-              }
-            },
-            "required": ["position", "hitPoints"],
-            "additionalProperties": false
           }
         },
-        "required": ["id", "name", "source", "page", "chassisAbilities", "patterns"],
+        "required": ["position", "hitPoints"],
         "additionalProperties": false
       }
     },
-    "$schema": "http://json-schema.org/draft-07/schema#"
+    "required": [
+      "id",
+      "indexable",
+      "blackMarket",
+      "name",
+      "source",
+      "page",
+      "chassisAbilities",
+      "patterns"
+    ],
+    "additionalProperties": false
   }
 }

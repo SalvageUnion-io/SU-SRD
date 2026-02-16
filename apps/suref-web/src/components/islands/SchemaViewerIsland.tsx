@@ -1,6 +1,6 @@
 import { useState, useMemo, Suspense } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
-import { getTechLevel, getSource, getEntitySlug } from 'salvageunion-reference'
+import { getTechLevel, getSource, getEntitySlug, getTree } from 'salvageunion-reference'
 import {
   EntityDisplay,
   EntityCardSkeleton,
@@ -120,6 +120,7 @@ export function SchemaViewerIsland({
       <div className="flex-1 p-6">
         <div className="mx-auto max-w-[1400px] columns-1 gap-4 md:columns-2 lg:columns-3 [&>*]:mb-4 [&>*]:break-inside-avoid">
           {filteredData.map((item: SURefEntity) => {
+            const tree = schemaId === 'abilities' ? (getTree(item) as string) : undefined
             return (
               <a
                 key={item.id}
@@ -128,7 +129,7 @@ export function SchemaViewerIsland({
                 className="relative block transition-all duration-200 md:hover:z-10 md:hover:scale-[1.02] md:hover:-translate-y-0.5 md:hover:shadow-lg"
               >
                 <Suspense fallback={<EntityCardSkeleton compact />}>
-                  <EntityDisplay hideActions hideChoices data={item} compact />
+                  <EntityDisplay hideActions hideChoices data={item} compact label={tree} />
                 </Suspense>
               </a>
             )
