@@ -147,8 +147,8 @@ describe('DisplayCard', () => {
     expect(header.style.opacity).toBe('0.5')
   })
 
-  test('disabled state applies grey header background', () => {
-    render(
+  test('disabled state keeps original header background and applies opacity', () => {
+    const { container } = render(
       <DisplayCard
         headerBg="bg-su-green"
         headerContent={<span>Disabled</span>}
@@ -159,8 +159,10 @@ describe('DisplayCard', () => {
       </DisplayCard>
     )
     const header = screen.getByTestId('test-header')
-    expect(header.className).toContain('bg-su-grey')
-    expect(header.className).not.toContain('bg-su-green')
+    expect(header.className).toContain('bg-su-green')
+    // Outer wrapper gets opacity-50
+    const wrapper = container.firstElementChild as HTMLElement
+    expect(wrapper.className).toContain('opacity-50')
   })
 
   test('bodyPadding overrides default padding', () => {
@@ -231,8 +233,8 @@ describe('DisplayCard', () => {
     expect(footer).toBeTruthy()
   })
 
-  test('disabled state suppresses source styling', () => {
-    render(
+  test('disabled state preserves source styling with opacity', () => {
+    const { container } = render(
       <DisplayCard
         headerBg="bg-su-green"
         headerContent={<span>Header</span>}
@@ -244,6 +246,8 @@ describe('DisplayCard', () => {
       </DisplayCard>
     )
     const header = screen.getByTestId('test-header')
-    expect(header.className).not.toContain('expansion-fangs-down')
+    expect(header.className).toContain('expansion-fangs-down')
+    const wrapper = container.firstElementChild as HTMLElement
+    expect(wrapper.className).toContain('opacity-50')
   })
 })

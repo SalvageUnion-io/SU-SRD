@@ -13,7 +13,9 @@ export function AppShell({ children }: AppShellProps) {
   return (
     <div className="flex min-h-dvh flex-col">
       <AppNav user={user} />
-      <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-6">{children}</main>
+      <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col justify-center px-4 py-6">
+        {children}
+      </main>
       <Footer poweredBySalvageUrl="/Powered_by_Salvage_Black.webp" />
     </div>
   )

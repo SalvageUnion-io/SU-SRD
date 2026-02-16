@@ -1,11 +1,17 @@
 import { useCallback } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { isAbility } from 'salvageunion-reference'
-import { Pencil, Plus, Trash2 } from 'lucide-react'
 import { EntityStats } from './EntityStats'
 import { useParseTraitReferences } from '../../../utils/parseTraitReferences'
 import { cn } from '../../../utils/cn'
 import type { getEntityFontSizes } from './entityDisplayTypes'
+import type { EntityControl, EntityControlVariant } from './entityControlTypes'
+
+const VARIANT_STYLES: Record<EntityControlVariant, string> = {
+  primary: 'bg-su-green text-su-white hover:bg-emerald-600',
+  danger: 'text-su-white/60 hover:bg-su-rust/80 hover:text-su-white',
+  ghost: 'opacity-60 hover:bg-white/20 hover:opacity-100',
+}
 
 type EntityRightHeaderContentProps = {
   data: SURefEntity
@@ -14,10 +20,7 @@ type EntityRightHeaderContentProps = {
   techLevel?: number | 'B' | 'N'
   listing: boolean
   primaryStatsOnly?: boolean
-  onDetailClick?: () => void
-  onDelete?: () => void
-  onAdd?: () => void
-  onEdit?: () => void
+  controls?: EntityControl[]
 }
 
 export function EntityRightHeaderContent({
@@ -27,45 +30,15 @@ export function EntityRightHeaderContent({
   techLevel,
   listing,
   primaryStatsOnly = false,
-  onDetailClick,
-  onDelete,
-  onAdd,
-  onEdit,
+  controls,
 }: EntityRightHeaderContentProps) {
   const description = 'description' in data ? data.description : undefined
   const parsedDescription = useParseTraitReferences(description)
 
-  const handleDetailClick = useCallback(
-    (e: React.MouseEvent) => {
-      e.stopPropagation()
-      onDetailClick?.()
-    },
-    [onDetailClick]
-  )
-
-  const handleAdd = useCallback(
-    (e: React.MouseEvent) => {
-      e.stopPropagation()
-      onAdd?.()
-    },
-    [onAdd]
-  )
-
-  const handleDelete = useCallback(
-    (e: React.MouseEvent) => {
-      e.stopPropagation()
-      onDelete?.()
-    },
-    [onDelete]
-  )
-
-  const handleEdit = useCallback(
-    (e: React.MouseEvent) => {
-      e.stopPropagation()
-      onEdit?.()
-    },
-    [onEdit]
-  )
+  const handleClick = useCallback((e: React.MouseEvent, onClick: () => void) => {
+    e.stopPropagation()
+    onClick()
+  }, [])
 
   const abilityContent = description && isAbility(data) && (
     <div
@@ -91,76 +64,26 @@ export function EntityRightHeaderContent({
         techLevel={techLevel}
         primaryOnly={primaryStatsOnly}
       />
-      {onAdd && (
-        <button
-          type="button"
-          className="flex min-w-[25px] shrink-0 cursor-pointer items-center justify-center self-center rounded bg-su-green p-1 text-su-white transition-colors hover:bg-emerald-600"
-          title="Add"
-          aria-label="Add"
-          onClick={handleAdd}
-        >
-          <Plus className="h-3.5 w-3.5" />
-        </button>
-      )}
-      {listing && onDelete && (
-        <button
-          type="button"
-          className="flex min-w-[25px] shrink-0 cursor-pointer items-center justify-center self-center rounded p-1 text-su-white/60 transition-colors hover:bg-su-rust/80 hover:text-su-white"
-          title="Delete"
-          aria-label="Delete"
-          onClick={handleDelete}
-        >
-          <Trash2 className="h-3.5 w-3.5" />
-        </button>
-      )}
-      {listing && onEdit && (
-        <button
-          type="button"
-          className="flex min-w-[25px] shrink-0 cursor-pointer items-center justify-center self-center rounded p-1 opacity-60 transition-opacity hover:bg-white/20 hover:opacity-100"
-          title="Edit"
-          aria-label="Edit"
-          onClick={handleEdit}
-        >
-          <Pencil className="h-3.5 w-3.5 text-su-white" />
-        </button>
-      )}
-      {listing && onDetailClick && (
-        <button
-          type="button"
-          className="flex min-w-[25px] shrink-0 cursor-pointer items-center justify-center self-center rounded p-1 opacity-60 transition-opacity hover:bg-white/20 hover:opacity-100"
-          title="View details"
-          aria-label="View details"
-          onClick={handleDetailClick}
-        >
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 14 14"
-            fill="none"
-            className="text-su-white"
-            aria-hidden="true"
+      {controls?.map((control) => {
+        const variant = control.variant ?? 'ghost'
+        const Icon = control.icon
+        return (
+          <button
+            key={control.key}
+            type="button"
+            className={cn(
+              'flex min-w-[25px] shrink-0 cursor-pointer items-center justify-center self-center rounded p-1 transition-colors',
+              VARIANT_STYLES[variant],
+              control.className
+            )}
+            title={control.ariaLabel}
+            aria-label={control.ariaLabel}
+            onClick={(e) => handleClick(e, control.onClick)}
           >
-            <rect
-              x="1"
-              y="1"
-              width="12"
-              height="12"
-              rx="2"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              fill="none"
-            />
-            <path
-              d="M6 3h5v5"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path d="M11 3L6 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-          </svg>
-        </button>
-      )}
+            <Icon className="h-4.5 w-4.5" />
+          </button>
+        )
+      })}
     </div>
   )
 }

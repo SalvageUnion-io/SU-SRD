@@ -45,6 +45,8 @@ type DisplayCardProps = {
   headerTestId?: string
   /** Positioned absolutely inside wrapper div */
   absoluteElements?: ReactNode
+  /** Whether the card is selected (green ring indicator) */
+  selected?: boolean
 }
 
 export function DisplayCard({
@@ -68,10 +70,10 @@ export function DisplayCard({
   const isCompact = mode === 'compact'
   const isListing = mode === 'listing'
 
-  const actualHeaderBg = disabled ? 'bg-su-grey' : headerBg
+  const actualHeaderBg = headerBg
   const borderColor = borderColorFromHeaderBg(actualHeaderBg, headerBgColor)
-  const headerSourceStyles = getSourceStyles(source, disabled, 'header', isExpanded)
-  const footerSourceStyles = getSourceStyles(source, disabled, 'footer', isExpanded)
+  const headerSourceStyles = getSourceStyles(source, false, 'header', isExpanded)
+  const footerSourceStyles = getSourceStyles(source, false, 'footer', isExpanded)
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -90,6 +92,7 @@ export function DisplayCard({
       className={cn(
         'relative flex shrink-0 flex-col overflow-visible rounded-md shadow-lg',
         isListing && 'h-full',
+        disabled && 'opacity-50',
         className
       )}
       style={borderColor && !isListing ? { borderBottom: `3px solid ${borderColor}` } : undefined}

@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { SectionSeparator } from 'suref-react'
 import { PatternSection } from '../../components/patterns/PatternSection'
+import { PilotSection } from '../../components/pilots/PilotSection'
 
 export const Route = createFileRoute('/_authenticated/')({
   component: Dashboard,
@@ -25,18 +26,14 @@ function Dashboard() {
         <p className="mt-1 text-sm text-su-grey-dark">Your Salvage Union roster at a glance.</p>
       </div>
 
+      <PilotSection />
+
       <PatternSection />
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <DashboardSection
-          title="Pilots"
-          description="No pilots created yet. Create a pilot after building a mech pattern."
-        />
-        <DashboardSection
-          title="Crawlers"
-          description="No crawlers yet. Crawlers are created when starting a campaign."
-        />
-      </div>
+      <DashboardSection
+        title="Crawlers"
+        description="No crawlers yet. Crawlers are created when starting a campaign."
+      />
     </div>
   )
 }

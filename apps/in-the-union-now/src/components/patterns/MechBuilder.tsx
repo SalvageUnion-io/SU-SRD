@@ -10,6 +10,8 @@ import {
   SectionSeparator,
   EntityChassisAbilitiesContent,
   getEntitySpacing,
+  deleteControl,
+  useDetailModal,
 } from 'suref-react'
 import {
   ImageOff,
@@ -293,7 +295,7 @@ export function MechBuilder({
                 <button
                   type="button"
                   onClick={toggleVisible}
-                  className="flex cursor-pointer items-center gap-1.5 text-xs text-su-white/70 hover:text-su-white"
+                  className={`flex cursor-pointer items-center gap-1.5 text-xs transition-colors hover:text-su-white ${state.visible ? 'text-su-white' : 'text-su-white/70'}`}
                   title={state.visible ? 'Pattern is visible' : 'Pattern is hidden'}
                 >
                   {state.visible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
@@ -302,7 +304,7 @@ export function MechBuilder({
                 <button
                   type="button"
                   onClick={() => setStartingMechMode((v) => !v)}
-                  className={`flex cursor-pointer items-center gap-1.5 text-xs transition-colors hover:text-su-white ${startingMechMode ? 'text-su-orange' : 'text-su-white/70'}`}
+                  className={`flex cursor-pointer items-center gap-1.5 text-xs transition-colors hover:text-su-white ${startingMechMode ? 'text-su-white' : 'text-su-white/70'}`}
                   title={startingMechMode ? 'Starting mech mode on' : 'Starting mech mode off'}
                 >
                   <Crosshair className="h-4 w-4" />
@@ -484,12 +486,11 @@ function ItemSlotSection({
       <SectionSeparator label={`${label} (${slotsUsed}/${slotsTotal})`} />
       <div className="mt-2 space-y-2">
         {items.map((item) => (
-          <EntityDisplay
+          <ItemSlotListing
             key={item.sort_order}
-            data={item.entity}
-            listing
-            compact
-            onDelete={readOnly ? undefined : () => onRemove(item.sort_order)}
+            item={item}
+            readOnly={readOnly}
+            onRemove={onRemove}
           />
         ))}
         {!readOnly && hasChassis && slotsUsed < slotsTotal && (
@@ -497,6 +498,28 @@ function ItemSlotSection({
         )}
       </div>
     </section>
+  )
+}
+
+function ItemSlotListing({
+  item,
+  readOnly,
+  onRemove,
+}: {
+  item: ResolvedItem
+  readOnly?: boolean
+  onRemove: (sortOrder: number) => void
+}) {
+  const detailModal = useDetailModal(item.entity)
+  const controls = readOnly
+    ? [detailModal.control]
+    : [deleteControl(() => onRemove(item.sort_order)), detailModal.control]
+
+  return (
+    <>
+      <EntityDisplay data={item.entity} listing compact controls={controls} />
+      {detailModal.modal}
+    </>
   )
 }
 

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefObjectPattern } from 'salvageunion-reference'
-import { DisplayCard, EntityDisplay, Text } from 'suref-react'
+import { DisplayCard, EntityDisplay, Text, addControl } from 'suref-react'
 import * as DialogPrimitive from '@radix-ui/react-dialog'
 import { X } from 'lucide-react'
 import { Button } from '../ui/button'
@@ -129,7 +129,7 @@ export function PatternSelectionModal({
                             systems: pattern.systems,
                             modules: pattern.modules,
                           }}
-                          onAdd={() => setPendingPattern(pattern)}
+                          controls={[addControl(() => setPendingPattern(pattern))]}
                         />
                       ))
                     )}

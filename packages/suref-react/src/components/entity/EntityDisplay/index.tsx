@@ -7,6 +7,8 @@ import type {
 } from 'salvageunion-reference'
 import { EntityDisplayContent } from './components/EntityDisplayContent'
 import type { ClassAbilitiesRenderer } from './entityDisplayTypes'
+import type { GuideStepsInteractiveConfig } from '../GuideStepsDisplay'
+import type { EntityControl } from './entityControlTypes'
 
 type EntityDisplayProps = {
   /** Entity data to display - only accepts SURefEntity (not SURefMetaAction or SURefObjectSystemModule) */
@@ -45,14 +47,12 @@ type EntityDisplayProps = {
   hideStats?: boolean
   /** Whether to hide the entity's own content blocks (description) */
   hideContent?: boolean
-  /** Optional delete handler — when set, renders a trash icon in the listing header */
-  onDelete?: () => void
-  /** Optional add handler — when set, renders a + icon in the header */
-  onAdd?: () => void
-  /** Optional edit handler — when set, renders an edit button next to the detail button in listing mode */
-  onEdit?: () => void
-  /** Optional open handler — when set, overrides the default listing click behavior (opening modal) */
-  onOpen?: () => void
+  /** Controls to render in the header (add, delete, detail, etc.) */
+  controls?: EntityControl[]
+  /** Whether the entity is selected (green ring on card) */
+  selected?: boolean
+  /** Interactive config for guide entities — threads through to GuideStepsDisplay */
+  interactive?: GuideStepsInteractiveConfig
 }
 
 export const EntityDisplay = memo(function EntityDisplay({
@@ -72,10 +72,9 @@ export const EntityDisplay = memo(function EntityDisplay({
   patternOverride,
   hideStats = false,
   hideContent = false,
-  onDelete,
-  onAdd,
-  onEdit,
-  onOpen,
+  controls,
+  selected,
+  interactive,
 }: EntityDisplayProps) {
   if (!data) return null
 
@@ -107,10 +106,9 @@ export const EntityDisplay = memo(function EntityDisplay({
       patternOverride={patternOverride}
       hideStats={hideStats}
       hideContent={hideContent}
-      onDelete={onDelete}
-      onAdd={onAdd}
-      onEdit={onEdit}
-      onOpen={onOpen}
+      controls={controls}
+      selected={selected}
+      interactive={interactive}
     >
       {children}
     </EntityDisplayContent>

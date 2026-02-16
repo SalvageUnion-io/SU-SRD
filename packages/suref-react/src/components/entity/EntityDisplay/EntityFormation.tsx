@@ -1,7 +1,12 @@
 import { resolveFormationMember, normalizePatternName, getFormation } from 'salvageunion-reference'
-import type { SURefMetaEntity } from 'salvageunion-reference'
+import type {
+  SURefMetaEntity,
+  SURefEntity,
+  SURefObjectPatternSystemModule,
+} from 'salvageunion-reference'
 import { EntityDisplay } from './index'
 import { SectionSeparator } from './SectionSeparator'
+import { useDetailModal } from './useDetailModal'
 import { cn } from '../../../utils/cn'
 
 type EntityFormationProps = {
@@ -38,11 +43,9 @@ export function EntityFormation({ data, headerFontSize, compact = false }: Entit
                 }
               : undefined
             return (
-              <EntityDisplay
+              <FormationMechListing
                 key={`${resolved.entity.id}-${mechIdx}-${copyIdx}`}
-                data={resolved.entity}
-                compact
-                listing
+                entity={resolved.entity}
                 patternOverride={patternOverride}
               />
             )
@@ -50,5 +53,32 @@ export function EntityFormation({ data, headerFontSize, compact = false }: Entit
         })}
       </div>
     </div>
+  )
+}
+
+function FormationMechListing({
+  entity,
+  patternOverride,
+}: {
+  entity: SURefEntity
+  patternOverride?: {
+    name: string
+    systems: SURefObjectPatternSystemModule[]
+    modules: SURefObjectPatternSystemModule[]
+  }
+}) {
+  const detailModal = useDetailModal(entity, { patternOverride })
+
+  return (
+    <>
+      <EntityDisplay
+        data={entity}
+        compact
+        listing
+        patternOverride={patternOverride}
+        controls={[detailModal.control]}
+      />
+      {detailModal.modal}
+    </>
   )
 }

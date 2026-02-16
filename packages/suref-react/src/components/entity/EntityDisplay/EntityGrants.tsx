@@ -2,6 +2,7 @@ import type { SURefObjectGrant, SURefEnumSchemaName, SURefEntity } from 'salvage
 import { getGrants, getModel } from 'salvageunion-reference'
 import { EntityDisplay } from './index'
 import { EntitySubheader } from './EntitySubheader'
+import { useDetailModal } from './useDetailModal'
 import { cn } from '../../../utils/cn'
 import type { getEntitySpacing } from './entityDisplayTypes'
 
@@ -44,9 +45,20 @@ export function EntityGrants({ data, spacing }: EntityGrantsProps) {
       <EntitySubheader disabled={true} label="Grants:" />
       <div className={cn(spacing.smallSpaceYClass)}>
         {grantedEntities.map((entity, idx) => (
-          <EntityDisplay key={idx} hideActions data={entity} compact listing />
+          <GrantedEntityListing key={idx} entity={entity} />
         ))}
       </div>
     </div>
+  )
+}
+
+function GrantedEntityListing({ entity }: { entity: SURefEntity }) {
+  const detailModal = useDetailModal(entity)
+
+  return (
+    <>
+      <EntityDisplay hideActions data={entity} compact listing controls={[detailModal.control]} />
+      {detailModal.modal}
+    </>
   )
 }

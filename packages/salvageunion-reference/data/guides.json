@@ -276,6 +276,7 @@
         "id": "b3c4d5e6-f7a8-4901-2345-6789abcdef01",
         "name": "Craft your Systems",
         "stepType": "select-many",
+        "optional": true,
         "schema": ["systems"],
         "filters": [
           {
@@ -324,6 +325,7 @@
         "id": "c4d5e6f7-a8b9-4012-3456-789abcdef012",
         "name": "Craft your Modules",
         "stepType": "select-many",
+        "optional": true,
         "schema": ["modules"],
         "filters": [
           {

@@ -379,6 +379,9 @@ export type Database = {
         Row: {
           active: boolean
           ap: number
+          appearance: string | null
+          background: string | null
+          background_used: boolean | null
           callsign: string
           class_ref: string
           crawler_id: string | null
@@ -386,9 +389,13 @@ export type Database = {
           hp: number
           id: string
           image_path: string | null
+          keepsake: string | null
+          keepsake_used: boolean | null
           max_ap: number
           max_hp: number
           mech_id: string | null
+          motto: string | null
+          motto_used: boolean | null
           notes: string | null
           tp: number
           updated_at: string
@@ -398,6 +405,9 @@ export type Database = {
         Insert: {
           active?: boolean
           ap?: number
+          appearance?: string | null
+          background?: string | null
+          background_used?: boolean | null
           callsign: string
           class_ref: string
           crawler_id?: string | null
@@ -405,9 +415,13 @@ export type Database = {
           hp?: number
           id?: string
           image_path?: string | null
+          keepsake?: string | null
+          keepsake_used?: boolean | null
           max_ap?: number
           max_hp?: number
           mech_id?: string | null
+          motto?: string | null
+          motto_used?: boolean | null
           notes?: string | null
           tp?: number
           updated_at?: string
@@ -417,6 +431,9 @@ export type Database = {
         Update: {
           active?: boolean
           ap?: number
+          appearance?: string | null
+          background?: string | null
+          background_used?: boolean | null
           callsign?: string
           class_ref?: string
           crawler_id?: string | null
@@ -424,9 +441,13 @@ export type Database = {
           hp?: number
           id?: string
           image_path?: string | null
+          keepsake?: string | null
+          keepsake_used?: boolean | null
           max_ap?: number
           max_hp?: number
           mech_id?: string | null
+          motto?: string | null
+          motto_used?: boolean | null
           notes?: string | null
           tp?: number
           updated_at?: string

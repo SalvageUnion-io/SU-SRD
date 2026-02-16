@@ -54,3 +54,22 @@ export type UpdatePatternInput = Partial<CreatePatternInput>
 export type TypedPatternRow = Omit<MechPatternRow, 'pattern_items'> & {
   pattern_items: PatternItem[]
 }
+
+// Pilot creation input (from wizard → API)
+export type CreatePilotInput = {
+  callsign: string
+  class_ref: string
+  ability_ref: { schema_name: 'abilities'; schema_ref_id: string }
+  equipment_refs: { schema_name: string; schema_ref_id: string }[]
+  background?: string
+  motto?: string
+  keepsake?: string
+  appearance?: string
+}
+
+// Mech instantiation input (from pattern → live mech)
+export type InstantiateMechInput = {
+  chassis_ref: string
+  pattern_name?: string
+  pattern_items: PatternItem[]
+}

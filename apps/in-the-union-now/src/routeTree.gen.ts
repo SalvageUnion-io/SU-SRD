@@ -13,8 +13,12 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
+import { Route as AuthenticatedPilotsNewRouteImport } from './routes/_authenticated/pilots/new'
+import { Route as AuthenticatedPilotsPilotIdRouteImport } from './routes/_authenticated/pilots/$pilotId'
 import { Route as AuthenticatedPatternsNewRouteImport } from './routes/_authenticated/patterns/new'
 import { Route as AuthenticatedPatternsPatternIdRouteImport } from './routes/_authenticated/patterns/$patternId'
+import { Route as AuthenticatedPilotsPilotIdIndexRouteImport } from './routes/_authenticated/pilots/$pilotId/index'
+import { Route as AuthenticatedPilotsPilotIdCreateMechRouteImport } from './routes/_authenticated/pilots/$pilotId/create-mech'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -35,6 +39,16 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
   path: '/auth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedPilotsNewRoute = AuthenticatedPilotsNewRouteImport.update({
+  id: '/pilots/new',
+  path: '/pilots/new',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedPilotsPilotIdRoute = AuthenticatedPilotsPilotIdRouteImport.update({
+  id: '/pilots/$pilotId',
+  path: '/pilots/$pilotId',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedPatternsNewRoute = AuthenticatedPatternsNewRouteImport.update({
   id: '/patterns/new',
   path: '/patterns/new',
@@ -45,6 +59,17 @@ const AuthenticatedPatternsPatternIdRoute = AuthenticatedPatternsPatternIdRouteI
   path: '/patterns/$patternId',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedPilotsPilotIdIndexRoute = AuthenticatedPilotsPilotIdIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedPilotsPilotIdRoute,
+} as any)
+const AuthenticatedPilotsPilotIdCreateMechRoute =
+  AuthenticatedPilotsPilotIdCreateMechRouteImport.update({
+    id: '/create-mech',
+    path: '/create-mech',
+    getParentRoute: () => AuthenticatedPilotsPilotIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
@@ -52,6 +77,10 @@ export interface FileRoutesByFullPath {
   '/auth/callback': typeof AuthCallbackRoute
   '/patterns/$patternId': typeof AuthenticatedPatternsPatternIdRoute
   '/patterns/new': typeof AuthenticatedPatternsNewRoute
+  '/pilots/$pilotId': typeof AuthenticatedPilotsPilotIdRouteWithChildren
+  '/pilots/new': typeof AuthenticatedPilotsNewRoute
+  '/pilots/$pilotId/create-mech': typeof AuthenticatedPilotsPilotIdCreateMechRoute
+  '/pilots/$pilotId/': typeof AuthenticatedPilotsPilotIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
@@ -59,6 +88,9 @@ export interface FileRoutesByTo {
   '/': typeof AuthenticatedIndexRoute
   '/patterns/$patternId': typeof AuthenticatedPatternsPatternIdRoute
   '/patterns/new': typeof AuthenticatedPatternsNewRoute
+  '/pilots/new': typeof AuthenticatedPilotsNewRoute
+  '/pilots/$pilotId/create-mech': typeof AuthenticatedPilotsPilotIdCreateMechRoute
+  '/pilots/$pilotId': typeof AuthenticatedPilotsPilotIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -68,12 +100,33 @@ export interface FileRoutesById {
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/patterns/$patternId': typeof AuthenticatedPatternsPatternIdRoute
   '/_authenticated/patterns/new': typeof AuthenticatedPatternsNewRoute
+  '/_authenticated/pilots/$pilotId': typeof AuthenticatedPilotsPilotIdRouteWithChildren
+  '/_authenticated/pilots/new': typeof AuthenticatedPilotsNewRoute
+  '/_authenticated/pilots/$pilotId/create-mech': typeof AuthenticatedPilotsPilotIdCreateMechRoute
+  '/_authenticated/pilots/$pilotId/': typeof AuthenticatedPilotsPilotIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/auth/callback' | '/patterns/$patternId' | '/patterns/new'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/auth/callback'
+    | '/patterns/$patternId'
+    | '/patterns/new'
+    | '/pilots/$pilotId'
+    | '/pilots/new'
+    | '/pilots/$pilotId/create-mech'
+    | '/pilots/$pilotId/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/login' | '/auth/callback' | '/' | '/patterns/$patternId' | '/patterns/new'
+  to:
+    | '/login'
+    | '/auth/callback'
+    | '/'
+    | '/patterns/$patternId'
+    | '/patterns/new'
+    | '/pilots/new'
+    | '/pilots/$pilotId/create-mech'
+    | '/pilots/$pilotId'
   id:
     | '__root__'
     | '/_authenticated'
@@ -82,6 +135,10 @@ export interface FileRouteTypes {
     | '/_authenticated/'
     | '/_authenticated/patterns/$patternId'
     | '/_authenticated/patterns/new'
+    | '/_authenticated/pilots/$pilotId'
+    | '/_authenticated/pilots/new'
+    | '/_authenticated/pilots/$pilotId/create-mech'
+    | '/_authenticated/pilots/$pilotId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -120,6 +177,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/pilots/new': {
+      id: '/_authenticated/pilots/new'
+      path: '/pilots/new'
+      fullPath: '/pilots/new'
+      preLoaderRoute: typeof AuthenticatedPilotsNewRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/pilots/$pilotId': {
+      id: '/_authenticated/pilots/$pilotId'
+      path: '/pilots/$pilotId'
+      fullPath: '/pilots/$pilotId'
+      preLoaderRoute: typeof AuthenticatedPilotsPilotIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/patterns/new': {
       id: '/_authenticated/patterns/new'
       path: '/patterns/new'
@@ -134,19 +205,50 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPatternsPatternIdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/pilots/$pilotId/': {
+      id: '/_authenticated/pilots/$pilotId/'
+      path: '/'
+      fullPath: '/pilots/$pilotId/'
+      preLoaderRoute: typeof AuthenticatedPilotsPilotIdIndexRouteImport
+      parentRoute: typeof AuthenticatedPilotsPilotIdRoute
+    }
+    '/_authenticated/pilots/$pilotId/create-mech': {
+      id: '/_authenticated/pilots/$pilotId/create-mech'
+      path: '/create-mech'
+      fullPath: '/pilots/$pilotId/create-mech'
+      preLoaderRoute: typeof AuthenticatedPilotsPilotIdCreateMechRouteImport
+      parentRoute: typeof AuthenticatedPilotsPilotIdRoute
+    }
   }
 }
+
+interface AuthenticatedPilotsPilotIdRouteChildren {
+  AuthenticatedPilotsPilotIdCreateMechRoute: typeof AuthenticatedPilotsPilotIdCreateMechRoute
+  AuthenticatedPilotsPilotIdIndexRoute: typeof AuthenticatedPilotsPilotIdIndexRoute
+}
+
+const AuthenticatedPilotsPilotIdRouteChildren: AuthenticatedPilotsPilotIdRouteChildren = {
+  AuthenticatedPilotsPilotIdCreateMechRoute: AuthenticatedPilotsPilotIdCreateMechRoute,
+  AuthenticatedPilotsPilotIdIndexRoute: AuthenticatedPilotsPilotIdIndexRoute,
+}
+
+const AuthenticatedPilotsPilotIdRouteWithChildren =
+  AuthenticatedPilotsPilotIdRoute._addFileChildren(AuthenticatedPilotsPilotIdRouteChildren)
 
 interface AuthenticatedRouteChildren {
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedPatternsPatternIdRoute: typeof AuthenticatedPatternsPatternIdRoute
   AuthenticatedPatternsNewRoute: typeof AuthenticatedPatternsNewRoute
+  AuthenticatedPilotsPilotIdRoute: typeof AuthenticatedPilotsPilotIdRouteWithChildren
+  AuthenticatedPilotsNewRoute: typeof AuthenticatedPilotsNewRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedPatternsPatternIdRoute: AuthenticatedPatternsPatternIdRoute,
   AuthenticatedPatternsNewRoute: AuthenticatedPatternsNewRoute,
+  AuthenticatedPilotsPilotIdRoute: AuthenticatedPilotsPilotIdRouteWithChildren,
+  AuthenticatedPilotsNewRoute: AuthenticatedPilotsNewRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(

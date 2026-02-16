@@ -27,6 +27,8 @@ type RollTableDisplayProps = {
   disabled?: boolean
   compact?: boolean
   tableName?: string
+  /** Called with the result text when the built-in roll button is used */
+  onRollResult?: (text: string) => void
 }
 
 function digestRollTable(table: RollTableType): DigestedRollTable[] {
@@ -123,6 +125,7 @@ function ColumnsRollTable({
   table,
   showCommand = false,
   tableName,
+  onRollResult,
 }: RollTableDisplayProps) {
   const [result, setResult] = useState<ColumnsRollResult | null>(null)
   const [rollAnnouncement, setRollAnnouncement] = useState('')
@@ -150,6 +153,7 @@ function ColumnsRollTable({
           value: res.result.value,
         })
         setRollAnnouncement(`Column ${res.columnKey}, Roll ${res.entryKey}: ${res.result.value}`)
+        onRollResult?.(res.result.value)
       }
     }, 300)
   }
@@ -307,6 +311,7 @@ function StandardRollTable({
   table,
   showCommand = false,
   tableName,
+  onRollResult,
 }: RollTableDisplayProps) {
   const digestedTable = digestRollTable(table)
   const [highlightedKey, setHighlightedKey] = useState<string | null>(null)
@@ -327,9 +332,11 @@ function StandardRollTable({
       setHighlightedKey(key)
       const entry = digestedTable.find((d) => d.key === key)
       if (entry) {
+        const text = entry.label ? `${entry.label}: ${entry.value}` : entry.value
         setRollAnnouncement(
           `Rolled ${key}: ${entry.label ? `${entry.label} - ` : ''}${entry.value}`
         )
+        onRollResult?.(text)
       }
     }, 300)
   }

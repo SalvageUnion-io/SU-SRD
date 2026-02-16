@@ -2,7 +2,7 @@ import { useCallback, useMemo } from 'react'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { Plus } from 'lucide-react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { EntityDisplay, SectionSeparator } from 'suref-react'
+import { EntityDisplay, SectionSeparator, navigateControl } from 'suref-react'
 import { useAuthStore } from '../../stores/authStore'
 import { usePatterns } from '../../hooks/usePatterns'
 import { Skeleton } from '../ui/skeleton'
@@ -57,7 +57,7 @@ function PatternListing({ pattern }: { pattern: TypedPatternRow }) {
         systems: [],
         modules: [],
       }}
-      onOpen={handleNavigate}
+      controls={[navigateControl(handleNavigate)]}
     />
   )
 }

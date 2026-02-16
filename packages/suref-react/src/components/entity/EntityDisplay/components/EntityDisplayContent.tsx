@@ -1,7 +1,7 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import type { ReactNode } from 'react'
 import { getTiltRotation } from '../../../../utils/tiltUtils'
-import type { SURefClass } from 'salvageunion-reference'
+import type { SURefClass, SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
 import {
   SalvageUnionReference,
   getDisplayName,
@@ -31,32 +31,30 @@ import { EntityActions } from '../EntityActions'
 import { EntityImage } from '../EntityImage'
 import { BlockContentRendererView } from '../../BlockContentRendererView'
 import { GuideStepsDisplay } from '../../GuideStepsDisplay'
-import * as DialogPrimitive from '@radix-ui/react-dialog'
-import { X } from 'lucide-react'
+import type { GuideStepsInteractiveConfig } from '../../GuideStepsDisplay'
 import { cn } from '../../../../utils/cn'
 import { Text } from '../../../base/Text'
 import { borderColorFromHeaderBg, getSourceStyles } from '../../entityDisplayHelpers'
 import { useEntityDisplayState } from '../useEntityDisplayState'
 import type { EntityDisplayStateInput } from '../useEntityDisplayState'
+import type { EntityControl } from '../entityControlTypes'
+import { useDetailModal } from '../useDetailModal'
 
 export type EntityDisplayContentProps = EntityDisplayStateInput & {
   children?: ReactNode
-  /** Optional delete handler — when set, renders a trash icon in the listing header */
-  onDelete?: () => void
-  /** Optional add handler — when set, renders a + icon in the header */
-  onAdd?: () => void
-  /** Optional edit handler — when set, renders an edit button next to the detail button in listing mode */
-  onEdit?: () => void
-  /** Optional open handler — when set, overrides the default listing click behavior (opening modal) */
-  onOpen?: () => void
+  /** Controls to render in the header (add, delete, detail, etc.) */
+  controls?: EntityControl[]
+  /** Whether the entity is selected (green ring on card) */
+  selected?: boolean
+  /** Interactive config for guide entities — threads through to GuideStepsDisplay */
+  interactive?: GuideStepsInteractiveConfig
 }
 
 export function EntityDisplayContent({
   children,
-  onDelete,
-  onAdd,
-  onEdit,
-  onOpen,
+  controls,
+  selected,
+  interactive,
   ...inputProps
 }: EntityDisplayContentProps) {
   const state = useEntityDisplayState(inputProps)
@@ -303,9 +301,6 @@ export function EntityDisplayContent({
     </div>
   ) : null
 
-  const [modalOpen, setModalOpen] = useState(false)
-  const handleDetailClick = onOpen ?? (() => setModalOpen(true))
-
   // Compose header content (previously assembled by Card internally)
   const titleRotation = useMemo(() => (damaged ? getTiltRotation() : 0), [damaged])
 
@@ -361,20 +356,21 @@ export function EntityDisplayContent({
           fontSize={fontSize}
           techLevel={techLevel}
           listing={listing}
-          primaryStatsOnly={compact && schemaName === 'chassis' && (listing || !!patternOverride)}
-          onDetailClick={listing ? handleDetailClick : undefined}
-          onDelete={listing ? onDelete : undefined}
-          onAdd={onAdd}
-          onEdit={listing ? onEdit : undefined}
+          primaryStatsOnly={
+            compact &&
+            (listing || !!patternOverride) &&
+            (schemaName === 'chassis' || schemaName === 'equipment')
+          }
+          controls={controls}
         />
-      ) : onAdd ? (
+      ) : controls && controls.length > 0 ? (
         <EntityRightHeaderContent
           data={data}
           compact={compact}
           fontSize={fontSize}
           techLevel={techLevel}
           listing={listing}
-          onAdd={onAdd}
+          controls={controls}
         />
       ) : null}
     </>
@@ -393,6 +389,8 @@ export function EntityDisplayContent({
       source={source}
       isExpanded={!listing}
       bodyPadding="p-0"
+      selected={selected}
+      disabled={disabled}
     >
       {!listing && hasBodyContent && (
         <div
@@ -500,24 +498,26 @@ export function EntityDisplayContent({
                       headerBgColor={headerBgColor}
                       fontSize={fontSize}
                       spacing={spacing}
+                      interactive={interactive}
                       renderEntityListing={(
                         entityData,
                         entitySchemaName,
                         key,
                         isListing,
-                        forceCompact
+                        forceCompact,
+                        entityControls,
+                        entityDisabled,
+                        isSelected
                       ) => (
-                        <EntityDisplayContent
+                        <GuideEntityListing
                           key={key}
-                          data={entityData as typeof data}
-                          schemaName={entitySchemaName as typeof schemaName}
+                          data={entityData as SURefEntity}
+                          schemaName={entitySchemaName as SURefEnumSchemaName}
                           compact={forceCompact ?? isListing}
                           listing={isListing}
-                          dimHeader={false}
-                          disabled={false}
-                          hideActions={isListing}
-                          hidePatterns
-                          hideChoices
+                          disabled={!!entityDisabled}
+                          selected={isSelected}
+                          controls={entityControls}
                         />
                       )}
                     />
@@ -620,56 +620,69 @@ export function EntityDisplayContent({
             />
             <div className="clear-both" />
           </div>
-          {footer}
+          {interactive?.renderFooter ? (
+            <div
+              className={cn('w-full py-3', headerBg || 'bg-su-white', sourceFooterStyles.className)}
+              style={{
+                paddingLeft: `${spacing.contentPaddingX}rem`,
+                paddingRight: `${spacing.contentPaddingX}rem`,
+                ...(headerBgColor ? { backgroundColor: headerBgColor } : {}),
+                ...sourceFooterStyles.style,
+              }}
+            >
+              {interactive.renderFooter()}
+            </div>
+          ) : (
+            footer
+          )}
         </div>
       )}
     </DisplayCard>
   )
 
-  if (listing) {
-    return (
-      <>
-        {card}
-        <DialogPrimitive.Root open={modalOpen} onOpenChange={setModalOpen}>
-          <DialogPrimitive.Portal>
-            <DialogPrimitive.Overlay className="fixed inset-0 z-50 overflow-y-auto bg-black/60 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0">
-              <div className="flex min-h-full items-center justify-center px-4 py-8">
-                <DialogPrimitive.Content className="relative w-full max-w-6xl bg-transparent outline-none">
-                  <DialogPrimitive.Close className="fixed top-4 right-4 z-[60] rounded-full bg-su-black/70 p-2 text-su-white opacity-70 transition-opacity hover:opacity-100">
-                    <X className="h-6 w-6" aria-hidden="true" />
-                    <span className="sr-only">Close</span>
-                  </DialogPrimitive.Close>
-                  <DialogPrimitive.Title className="sr-only">{title}</DialogPrimitive.Title>
-                  <DialogPrimitive.Description className="sr-only">
-                    Entity display details
-                  </DialogPrimitive.Description>
-                  <EntityDisplayContent
-                    data={data}
-                    schemaName={schemaName}
-                    compact={false}
-                    listing={false}
-                    dimHeader={false}
-                    disabled={false}
-                    hideActions={false}
-                    hidePatterns={!!patternOverride}
-                    hideChoices={false}
-                    patternOverride={patternOverride}
-                    label={
-                      schemaName === 'abilities' && 'tree' in data && data.tree
-                        ? `${data.tree} Tree`
-                        : undefined
-                    }
-                  >
-                    {children}
-                  </EntityDisplayContent>
-                </DialogPrimitive.Content>
-              </div>
-            </DialogPrimitive.Overlay>
-          </DialogPrimitive.Portal>
-        </DialogPrimitive.Root>
-      </>
-    )
-  }
-
   return card
+}
+
+/**
+ * Wrapper for guide step entity listings that provides a detail modal.
+ * Needed because the renderEntityListing callback can't call hooks directly.
+ */
+function GuideEntityListing({
+  data,
+  schemaName,
+  compact,
+  listing,
+  disabled,
+  selected,
+  controls,
+}: {
+  data: SURefEntity
+  schemaName: SURefEnumSchemaName
+  compact: boolean
+  listing: boolean
+  disabled: boolean
+  selected?: boolean
+  controls?: EntityControl[]
+}) {
+  const detailModal = useDetailModal(data, { modalControls: controls })
+  const allControls = listing ? [...(controls ?? []), detailModal.control] : controls
+
+  return (
+    <>
+      <EntityDisplayContent
+        data={data}
+        schemaName={schemaName}
+        compact={compact}
+        listing={listing}
+        dimHeader={false}
+        disabled={disabled}
+        hideActions={listing}
+        hidePatterns
+        hideChoices
+        selected={selected}
+        controls={allControls}
+      />
+      {listing && detailModal.modal}
+    </>
+  )
 }

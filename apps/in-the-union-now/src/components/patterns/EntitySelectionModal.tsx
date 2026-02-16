@@ -8,6 +8,7 @@ import {
   FilterChip,
   TECH_LEVEL_STYLES,
   techLevelLabel,
+  addControl,
 } from 'suref-react'
 import * as DialogPrimitive from '@radix-ui/react-dialog'
 import { X } from 'lucide-react'
@@ -268,7 +269,7 @@ export function EntitySelectionModal({
                               key={id}
                               data={entity}
                               compact
-                              onAdd={() => handleSelect(id)}
+                              controls={[addControl(() => handleSelect(id))]}
                             />
                           )
                         })}
