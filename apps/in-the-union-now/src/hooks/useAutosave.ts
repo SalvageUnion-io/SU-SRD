@@ -34,11 +34,15 @@ export function useAutosave<T>({
     enabledRef.current = enabled
   })
 
-  const flush = useCallback(() => {
+  function clearTimer() {
     if (timerRef.current !== null) {
       clearTimeout(timerRef.current)
       timerRef.current = null
     }
+  }
+
+  const flush = useCallback(() => {
+    clearTimer()
     const currentSerialized = JSON.stringify(valueRef.current)
     if (currentSerialized !== lastSavedRef.current && enabledRef.current) {
       lastSavedRef.current = currentSerialized
@@ -54,27 +58,18 @@ export function useAutosave<T>({
     }
 
     if (!enabled) {
-      // Clear any pending timer when disabled
-      if (timerRef.current !== null) {
-        clearTimeout(timerRef.current)
-        timerRef.current = null
-      }
+      clearTimer()
       return
     }
 
     // Skip no-op saves (value changed back to last saved)
     if (serialized === lastSavedRef.current) {
-      if (timerRef.current !== null) {
-        clearTimeout(timerRef.current)
-        timerRef.current = null
-      }
+      clearTimer()
       return
     }
 
     // Restart debounce timer
-    if (timerRef.current !== null) {
-      clearTimeout(timerRef.current)
-    }
+    clearTimer()
 
     timerRef.current = setTimeout(() => {
       timerRef.current = null

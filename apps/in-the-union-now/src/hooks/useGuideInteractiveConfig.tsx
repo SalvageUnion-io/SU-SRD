@@ -8,9 +8,9 @@ import {
   resolveConstraintMax,
   rollOnTable,
   validateStep,
-} from '../../lib/pilotUtils'
-import type { WizardState, WizardAction } from '../../lib/pilotUtils'
-import { Input } from '../ui/input'
+} from '../lib/pilotUtils'
+import type { WizardState, WizardAction } from '../lib/pilotUtils'
+import { Input } from '../components/ui/input'
 
 export type WizardBudgetConfig = {
   /** Max budget (e.g. 20) */

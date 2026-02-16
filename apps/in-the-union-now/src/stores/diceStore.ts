@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { rollD20 } from '../lib/pilotUtils'
 
 type RollResult = {
   value: number
@@ -26,10 +27,6 @@ function getTier(value: number): { tier: string; tierColor: string } {
   if (value <= 10) return { tier: 'Tough Choice', tierColor: 'text-roll-tough' }
   if (value <= 19) return { tier: 'Success', tierColor: 'text-roll-success' }
   return { tier: 'Nailed It', tierColor: 'text-roll-nailed' }
-}
-
-function rollD20(): number {
-  return Math.floor(Math.random() * 20) + 1
 }
 
 export const useDiceStore = create<DiceState>((set, get) => ({

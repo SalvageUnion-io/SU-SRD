@@ -2,6 +2,7 @@ import { useCallback, useMemo } from 'react'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { Plus } from 'lucide-react'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import { findChassisById } from '../../lib/entityHelpers'
 import { DisplayCard, ValueDisplay, SectionSeparator, Text, navigateControl } from 'suref-react'
 import type { EntityControl } from 'suref-react'
 import { useAuthStore } from '../../stores/authStore'
@@ -85,7 +86,7 @@ function PilotListing({ pilot, abilityCount }: { pilot: PilotRow; abilityCount: 
 
   const mechLabel = useMemo(() => {
     if (!mech) return undefined
-    const chassis = SalvageUnionReference.Chassis.find((c) => c.id === mech.chassis_ref)
+    const chassis = findChassisById(mech.chassis_ref)
     if (!chassis) return undefined
     return `${chassis.name} \u201C${mech.pattern_name ?? 'Unnamed'}\u201D`
   }, [mech])

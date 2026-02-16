@@ -1,5 +1,6 @@
 import { useRef } from 'react'
 import { ImageOff, ImagePlus, Replace, X } from 'lucide-react'
+import { TAG_BUTTON_SM, TAG_BUTTON_SM_DANGER } from '../shared/tagButtonClasses'
 
 type PatternImageSlotProps = {
   defaultImageUrl?: string
@@ -9,11 +10,6 @@ type PatternImageSlotProps = {
   compact?: boolean
   readOnly?: boolean
 }
-
-const TAG_BUTTON_BASE =
-  'inline-flex items-center gap-1 border border-su-black font-mono font-bold uppercase leading-none transition-opacity hover:opacity-80'
-const TAG_BUTTON_SM = `${TAG_BUTTON_BASE} bg-su-white px-1 py-0 text-xs text-su-black`
-const TAG_BUTTON_SM_DANGER = `${TAG_BUTTON_BASE} bg-su-rust px-1 py-0 text-xs text-su-white`
 
 export function PatternImageSlot({
   defaultImageUrl,

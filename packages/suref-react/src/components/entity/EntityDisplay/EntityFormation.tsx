@@ -1,12 +1,9 @@
 import { resolveFormationMember, normalizePatternName, getFormation } from 'salvageunion-reference'
-import type {
-  SURefMetaEntity,
-  SURefEntity,
-  SURefObjectPatternSystemModule,
-} from 'salvageunion-reference'
+import type { SURefMetaEntity, SURefEntity } from 'salvageunion-reference'
 import { EntityDisplay } from './index'
 import { SectionSeparator } from './SectionSeparator'
 import { useDetailModal } from './useDetailModal'
+import type { PatternOverrideData } from './entityDisplayTypes'
 import { cn } from '../../../utils/cn'
 
 type EntityFormationProps = {
@@ -61,11 +58,7 @@ function FormationMechListing({
   patternOverride,
 }: {
   entity: SURefEntity
-  patternOverride?: {
-    name: string
-    systems: SURefObjectPatternSystemModule[]
-    modules: SURefObjectPatternSystemModule[]
-  }
+  patternOverride?: PatternOverrideData
 }) {
   const detailModal = useDetailModal(entity, { patternOverride })
 

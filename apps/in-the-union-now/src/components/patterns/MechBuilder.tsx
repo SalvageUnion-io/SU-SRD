@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
-import { SalvageUnionReference, getChassisAbilities, getAssetUrl } from 'salvageunion-reference'
+import { getChassisAbilities, getAssetUrl } from 'salvageunion-reference'
 import {
   DisplayCard,
   EntityDisplay,
@@ -33,6 +33,9 @@ import {
 import type { SURefObjectPattern } from 'salvageunion-reference'
 import type { CreatePatternInput } from '../../types/common'
 import type { SaveStatus } from '../../hooks/useSaveStatus'
+import { actionButtonClasses } from '../shared/actionButtonClasses'
+import { TAG_BUTTON, TAG_BUTTON_SM } from '../shared/tagButtonClasses'
+import { findChassisById } from '../../lib/entityHelpers'
 
 type MechBuilderProps = {
   initialState?: BuilderState
@@ -55,11 +58,6 @@ type MechBuilderProps = {
   hideFooterToggles?: boolean
   hideFooter?: boolean
 }
-
-const TAG_BUTTON_BASE =
-  'inline-flex items-center gap-1 border border-su-black font-mono font-bold uppercase leading-none transition-opacity hover:opacity-80'
-const TAG_BUTTON = `${TAG_BUTTON_BASE} bg-su-white px-1 py-0 text-base text-su-black`
-const TAG_BUTTON_SM = `${TAG_BUTTON_BASE} bg-su-white px-1 py-0 text-xs text-su-black`
 
 const emptyState: BuilderState = {
   name: '',
@@ -106,10 +104,7 @@ export function MechBuilder({
   }, [state]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const chassis = useMemo(
-    () =>
-      state.chassisRef
-        ? SalvageUnionReference.Chassis.find((c) => c.id === state.chassisRef)
-        : undefined,
+    () => (state.chassisRef ? findChassisById(state.chassisRef) : undefined),
     [state.chassisRef]
   )
 
@@ -336,8 +331,7 @@ export function MechBuilder({
           )
         }
         footerContent={
-          readOnly || hideFooter ? undefined : onChange && saveStatus ? (
-            // Autosave footer
+          readOnly || hideFooter ? undefined : (
             <div className="flex w-full items-center justify-between px-2 py-1">
               <div className="flex items-center gap-3">
                 {!hideFooterToggles && (
@@ -364,28 +358,38 @@ export function MechBuilder({
                 )}
               </div>
               <div className="flex items-center gap-2">
-                {saveStatus.statusText && (
+                {saveStatus?.statusText && (
                   <span className="font-mono text-xs text-su-white/70">
                     {saveStatus.statusText}
                   </span>
                 )}
-                {onDelete && (
+                {onDelete ? (
                   <button
                     type="button"
                     onClick={onDelete}
                     disabled={isDeleting}
-                    className="inline-flex cursor-pointer items-center gap-1.5 rounded-md bg-su-rust px-3 py-1.5 font-mono text-sm font-semibold uppercase text-su-white transition-colors hover:bg-red-700 disabled:pointer-events-none disabled:opacity-50"
+                    className={actionButtonClasses('rust')}
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                     {isDeleting ? 'Deleting...' : 'Delete'}
                   </button>
-                )}
+                ) : onCancel ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="cursor-pointer"
+                    onClick={onCancel}
+                    disabled={isSaving}
+                  >
+                    Cancel
+                  </Button>
+                ) : null}
                 {onCopy && (
                   <button
                     type="button"
                     onClick={onCopy}
                     disabled={isCopying}
-                    className="inline-flex cursor-pointer items-center gap-1.5 rounded-md bg-su-green px-3 py-1.5 font-mono text-sm font-semibold uppercase text-su-white transition-colors hover:bg-emerald-600 disabled:pointer-events-none disabled:opacity-50"
+                    className={actionButtonClasses('green')}
                   >
                     <Copy className="h-3.5 w-3.5" />
                     {isCopying ? 'Copying...' : 'Copy'}
@@ -396,83 +400,23 @@ export function MechBuilder({
                     type="button"
                     onClick={onSaveToPatterns}
                     disabled={isSavingToPatterns}
-                    className="inline-flex cursor-pointer items-center gap-1.5 rounded-md bg-su-green px-3 py-1.5 font-mono text-sm font-semibold uppercase text-su-white transition-colors hover:bg-emerald-600 disabled:pointer-events-none disabled:opacity-50"
+                    className={actionButtonClasses('green')}
                   >
                     <Save className="h-3.5 w-3.5" />
                     {isSavingToPatterns ? 'Saving...' : 'Save to My Patterns'}
                   </button>
                 )}
-              </div>
-            </div>
-          ) : (
-            // Legacy explicit-save footer
-            <div className="flex w-full items-center justify-between px-2 py-1">
-              <div className="flex items-center gap-3">
-                {!hideFooterToggles && (
-                  <>
-                    <button
-                      type="button"
-                      onClick={toggleVisible}
-                      className={`flex cursor-pointer items-center gap-1.5 text-xs transition-colors hover:text-su-white ${state.visible ? 'text-su-white' : 'text-su-white/70'}`}
-                      title={state.visible ? 'Pattern is visible' : 'Pattern is hidden'}
-                    >
-                      {state.visible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                      <span>{state.visible ? 'Visible' : 'Hidden'}</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setStartingMechMode((v) => !v)}
-                      className={`flex cursor-pointer items-center gap-1.5 text-xs transition-colors hover:text-su-white ${startingMechMode ? 'text-su-white' : 'text-su-white/70'}`}
-                      title={startingMechMode ? 'Starting mech mode on' : 'Starting mech mode off'}
-                    >
-                      <Crosshair className="h-4 w-4" />
-                      <span>Starting Mech</span>
-                    </button>
-                  </>
-                )}
-              </div>
-              <div className="flex items-center gap-2">
-                {onDelete ? (
+                {onSave && (
                   <button
                     type="button"
-                    onClick={onDelete}
-                    disabled={isDeleting}
-                    className="inline-flex cursor-pointer items-center gap-1.5 rounded-md bg-su-rust px-3 py-1.5 font-mono text-sm font-semibold uppercase text-su-white transition-colors hover:bg-red-700 disabled:pointer-events-none disabled:opacity-50"
+                    onClick={handleSave}
+                    disabled={!canSave || isSaving}
+                    className={actionButtonClasses('orange')}
                   >
-                    <Trash2 className="h-3.5 w-3.5" />
-                    {isDeleting ? 'Deleting...' : 'Delete'}
-                  </button>
-                ) : (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="cursor-pointer"
-                    onClick={onCancel}
-                    disabled={isSaving}
-                  >
-                    Cancel
-                  </Button>
-                )}
-                {onCopy && (
-                  <button
-                    type="button"
-                    onClick={onCopy}
-                    disabled={isCopying}
-                    className="inline-flex cursor-pointer items-center gap-1.5 rounded-md bg-su-green px-3 py-1.5 font-mono text-sm font-semibold uppercase text-su-white transition-colors hover:bg-emerald-600 disabled:pointer-events-none disabled:opacity-50"
-                  >
-                    <Copy className="h-3.5 w-3.5" />
-                    {isCopying ? 'Copying...' : 'Copy'}
+                    <Save className="h-3.5 w-3.5" />
+                    {isSaving ? 'Saving...' : 'Save'}
                   </button>
                 )}
-                <button
-                  type="button"
-                  onClick={handleSave}
-                  disabled={!canSave || isSaving}
-                  className="inline-flex cursor-pointer items-center gap-1.5 rounded-md bg-su-orange px-3 py-1.5 font-mono text-sm font-semibold uppercase text-su-white transition-colors hover:bg-orange-700 disabled:pointer-events-none disabled:opacity-50"
-                >
-                  <Save className="h-3.5 w-3.5" />
-                  {isSaving ? 'Saving...' : 'Save'}
-                </button>
               </div>
             </div>
           )

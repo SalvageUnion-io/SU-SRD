@@ -4,10 +4,11 @@ import { SalvageUnionReference, getSalvageValue } from 'salvageunion-reference'
 import type { SURefGuide, EntitySchemaName } from 'salvageunion-reference'
 import { EntityDisplay } from 'suref-react'
 import { toast } from 'sonner'
+import { actionButtonClasses } from '../../../../components/shared/actionButtonClasses'
 import { useAuthStore } from '../../../../stores/authStore'
 import { useInstantiateMech } from '../../../../hooks/useMechs'
-import { useGuideInteractiveConfig } from '../../../../components/pilots/InteractiveGuideSteps'
-import type { WizardBudgetConfig } from '../../../../components/pilots/InteractiveGuideSteps'
+import { useGuideInteractiveConfig } from '../../../../hooks/useGuideInteractiveConfig'
+import type { WizardBudgetConfig } from '../../../../hooks/useGuideInteractiveConfig'
 import { STARTING_MECH_BUDGET } from '../../../../lib/builderUtils'
 import {
   getDigitalSteps,
@@ -95,7 +96,7 @@ function CreateMechPage() {
           type="button"
           onClick={handleSubmit}
           disabled={!isSubmittable || instantiateMech.isPending}
-          className="inline-flex cursor-pointer items-center gap-1.5 rounded-md bg-su-green px-3 py-1.5 font-mono text-sm font-semibold uppercase text-su-white transition-colors hover:bg-emerald-600 disabled:pointer-events-none disabled:opacity-50"
+          className={actionButtonClasses('green')}
         >
           {instantiateMech.isPending ? 'Creating...' : 'Create Mech'}
         </button>

@@ -44,8 +44,6 @@ export type EntityDisplayContentProps = EntityDisplayStateInput & {
   children?: ReactNode
   /** Controls to render in the header (add, delete, detail, etc.) */
   controls?: EntityControl[]
-  /** Whether the entity is selected (green ring on card) */
-  selected?: boolean
   /** Interactive config for guide entities — threads through to GuideStepsDisplay */
   interactive?: GuideStepsInteractiveConfig
 }
@@ -53,7 +51,6 @@ export type EntityDisplayContentProps = EntityDisplayStateInput & {
 export function EntityDisplayContent({
   children,
   controls,
-  selected,
   interactive,
   ...inputProps
 }: EntityDisplayContentProps) {
@@ -389,7 +386,6 @@ export function EntityDisplayContent({
       source={source}
       isExpanded={!listing}
       bodyPadding="p-0"
-      selected={selected}
       disabled={disabled}
     >
       {!listing && hasBodyContent && (
@@ -506,8 +502,7 @@ export function EntityDisplayContent({
                         isListing,
                         forceCompact,
                         entityControls,
-                        entityDisabled,
-                        isSelected
+                        entityDisabled
                       ) => (
                         <GuideEntityListing
                           key={key}
@@ -516,7 +511,6 @@ export function EntityDisplayContent({
                           compact={forceCompact ?? isListing}
                           listing={isListing}
                           disabled={!!entityDisabled}
-                          selected={isSelected}
                           controls={entityControls}
                         />
                       )}
@@ -653,7 +647,6 @@ function GuideEntityListing({
   compact,
   listing,
   disabled,
-  selected,
   controls,
 }: {
   data: SURefEntity
@@ -661,7 +654,6 @@ function GuideEntityListing({
   compact: boolean
   listing: boolean
   disabled: boolean
-  selected?: boolean
   controls?: EntityControl[]
 }) {
   const detailModal = useDetailModal(data, { modalControls: controls })
@@ -679,7 +671,6 @@ function GuideEntityListing({
         hideActions={listing}
         hidePatterns
         hideChoices
-        selected={selected}
         controls={allControls}
       />
       {listing && detailModal.modal}

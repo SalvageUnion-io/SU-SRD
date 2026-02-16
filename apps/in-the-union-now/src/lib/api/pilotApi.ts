@@ -1,7 +1,7 @@
 import { PILOT_DEFAULTS } from 'salvageunion-reference'
 import { supabase } from '../supabase'
 import { handleSupabaseError } from '../errors'
-import { abilityToEntityRef, equipmentToEntityRefs } from '../mechUtils'
+import { abilityToEntityRef, equipmentToEntityRefs } from '../entityRefUtils'
 import type { PilotRow, EntityRefRow, PilotUpdate } from '../../types/common'
 import type { CreatePilotInput } from '../../types/common'
 

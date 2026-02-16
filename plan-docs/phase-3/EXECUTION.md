@@ -40,7 +40,7 @@ Exported from `packages/suref-react/src/index.ts`:
 - `entityRefsToBuilderState` - mech + entity_refs to BuilderState for MechBuilder reuse
 - `builderStateToPatchOps` - diff old entity_refs vs new BuilderState for patch operations
 
-**Tests:** 159 tests passing across `pilotUtils.test.ts` (~100 assertions) and `mechUtils.test.ts` (~30 assertions).
+**Tests:** 217 tests passing across `pilotUtils.test.ts`, `mechUtils.test.ts`, `entityRefUtils.test.ts`, `entityAccess.test.ts`, and `builderUtils.test.ts`.
 
 ### 4. API Layer
 
@@ -175,7 +175,7 @@ This ensures disabled entities retain their visual identity (class colors, expan
 
 ### Selected Card Ring Removed
 
-Removed the green `ring-2 ring-green-500 ring-offset-1` from `DisplayCard` when `selected` is true. The `selected` prop remains in the type but has no visual effect.
+Removed the green `ring-2 ring-green-500 ring-offset-1` from `DisplayCard` when `selected` is true. The `selected` prop was subsequently fully removed from the DisplayCard type and the entire EntityDisplay chain during Phase 3 cleanup.
 
 ### SectionSeparator Children Prop
 
@@ -186,7 +186,7 @@ Added optional `children?: ReactNode` to `SectionSeparator` — renders between 
 ### New Files (14)
 | File | Purpose |
 |------|---------|
-| `src/components/pilots/InteractiveGuideSteps.tsx` | Interactive guide step rendering with budget config + dynamic constraints |
+| `src/hooks/useGuideInteractiveConfig.tsx` | Interactive guide step rendering with budget config + dynamic constraints (moved from components/pilots/) |
 | `src/components/pilots/PilotSection.tsx` | Dashboard pilot section |
 | `src/lib/pilotUtils.ts` | Wizard logic, entity resolution, roll tables, constraint resolution |
 | `src/lib/pilotUtils.test.ts` | Wizard tests (203 tests) |
@@ -199,9 +199,27 @@ Added optional `children?: ReactNode` to `SectionSeparator` — renders between 
 | `src/routes/_authenticated/pilots/new.tsx` | Pilot creation route |
 | `src/routes/_authenticated/pilots/$pilotId.tsx` | Pilot detail/edit route |
 | `src/routes/_authenticated/pilots/$pilotId/create-mech.tsx` | Mech creation wizard route with budget computation |
+| `src/hooks/useAutosave.ts` | Debounced autosave hook |
+| `src/hooks/useSaveStatus.ts` | Save status tracking hook |
+| `src/routes/_authenticated/pilots/$pilotId/index.tsx` | Pilot detail/edit route |
+| `src/routes/_authenticated/pilots/$pilotId/mech-bay.tsx` | Mech bay editing route |
+| `src/components/patterns/PatternImageSlot.tsx` | Pattern/pilot image slot |
+| `src/lib/entityAccess.ts` | Entity access control (view/edit) for patterns, pilots, mechs |
+| `src/lib/entityAccess.test.ts` | Entity access tests |
+| `src/lib/entityHelpers.ts` | Shared entity lookup helpers (findChassisById) |
+| `src/lib/entityRefUtils.ts` | Pilot entity_ref generation (split from mechUtils) |
+| `src/lib/entityRefUtils.test.ts` | Entity ref utils tests |
+| `src/components/shared/PageSkeleton.tsx` | Shared loading skeleton |
+| `src/components/shared/NotFoundState.tsx` | Shared not-found state |
+| `src/components/shared/actionButtonClasses.ts` | Shared action button Tailwind classes |
+| `src/components/shared/tagButtonClasses.ts` | Shared tag button Tailwind classes |
+| `src/components/pilots/PilotStatControl.tsx` | Stat badge with +/- controls (extracted from route) |
+| `src/components/pilots/PilotPersonalInfo.tsx` | Personal info fields with autosave (extracted from route) |
+| `src/components/pilots/PilotEntityRefs.tsx` | Pilot abilities/equipment listings (extracted from route) |
+| `src/components/pilots/PilotMechSection.tsx` | Mech section with create/navigate (extracted from route) |
 | `plan-docs/phase-3/EXECUTION.md` | This document |
 
-### Modified Files (8)
+### Modified Files (8+)
 | File | Change |
 |------|--------|
 | `packages/suref-react/src/index.ts` | Added guide system exports |
@@ -239,9 +257,55 @@ Added optional `children?: ReactNode` to `SectionSeparator` — renders between 
 - Disabled state preserves original header background with opacity
 - Disabled state preserves source styling (expansion effects) with opacity
 
+## Phase 3 Cleanup
+
+Post-implementation cleanup addressing dead code, DRY violations, and structural improvements.
+
+### Dead Code & Bug Fixes (Phase A)
+- Removed `selected` prop from DisplayCard and entire EntityDisplay chain (was accepted but silently dropped)
+- Removed dead `customPilotImage` state from pilot detail page
+- Removed duplicate `useMech()` call in PilotMechSection (passed as props from parent)
+- Removed dead `_userId` parameter from `updateMechEntityRefs`
+- Removed orphaned `PILOT_DEFAULTS` re-export from pilotUtils
+- Fixed mid-file import in mechUtils, merged duplicate imports in useMechs
+- Removed unnecessary `useCallback` in useSaveStatus (replaced with direct ternary)
+- Fixed unnecessary BuilderState round-trip in mech-bay autosave
+- Fixed ambient React type reference in entityControlTypes.ts
+
+### DRY Extractions (Phase B)
+- Extracted `PageSkeleton` component (eliminated 4 identical skeleton blocks)
+- Extracted `NotFoundState` component (eliminated 4 identical not-found blocks)
+- Extracted `actionButtonClasses()` utility (eliminated 10 duplicated 80+ char Tailwind strings)
+- Extracted shared `tagButtonClasses` constants (eliminated duplicates in MechBuilder/PatternImageSlot)
+- Exported `getEntityId` from entitySelectionUtils (removed local copy in EntitySelectionModal)
+- Imported `rollD20` from pilotUtils in diceStore (removed duplicate)
+- Extracted `findChassisById` helper (eliminated 5 `Chassis.find()` duplications)
+- Extracted `clearTimer` helper in useAutosave (replaced 3 identical clearTimeout blocks)
+- Extracted `formatRollResult` helper in pilotUtils
+- Extracted `PatternOverrideData` type (eliminated 6 inline duplications across EntityDisplay files)
+- Moved `abilityToEntityRef`/`equipmentToEntityRefs` from mechUtils to entityRefUtils
+- Renamed `patternAccess` to `entityAccess` (used for patterns, pilots, and mechs)
+- Extracted `isMechEquipmentRef` predicate in mechUtils
+
+### Structural Refactors (Phase C)
+- Split `$pilotId/index.tsx` from 567 to 250 lines by extracting 4 components (PilotStatControl, PilotPersonalInfo, PilotEntityRefs, PilotMechSection)
+- Unified MechBuilder footer from two 70-line branches to single 60-line block
+- Extracted `computeEntityInteractionState()` helper in GuideStepsDisplay (eliminated duplicated selection/greying logic)
+- Extracted `StepRollSection` component in GuideStepsDisplay (eliminated ~80 duplicated lines)
+- Moved `InteractiveGuideSteps.tsx` to `hooks/useGuideInteractiveConfig.tsx` (exports only hook + type)
+- Aligned `mechKeys` query key factory with `pilotKeys`/`patternKeys` structure
+- Extracted wizard step name constants in pilotUtils
+
+### Deleted Files
+- `src/lib/patternAccess.ts` (renamed to `entityAccess.ts`)
+- `src/lib/patternAccess.test.ts` (renamed to `entityAccess.test.ts`)
+- `src/components/pilots/InteractiveGuideSteps.tsx` (moved to hooks/)
+
 ## Verification
 
 - `bun run typecheck` - 0 errors across all packages
-- `bun --filter in-the-union-now test` - 203 tests passing, 0 failures
+- `bun --filter in-the-union-now test` - 217 tests passing, 0 failures
 - `bun --filter suref-react test` - 86 tests passing, 0 failures
-- `bun --filter salvageunion-reference test` - 304 tests passing, 0 failures
+- `bun --filter suref-web test` - 783 tests passing, 0 failures
+- `bun run lint` - 0 warnings
+- `bun run format -- --check` - all files formatted

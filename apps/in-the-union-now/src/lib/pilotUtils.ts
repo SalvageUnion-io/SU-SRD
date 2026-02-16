@@ -3,11 +3,22 @@ import {
   resultForTable,
   resultForColumnsTable,
   isColumnsTable,
-  PILOT_DEFAULTS,
 } from 'salvageunion-reference'
 import type { SURefObjectGuideStep, SURefGuide, EntitySchemaName } from 'salvageunion-reference'
 import { matchesFilter, enrichForFiltering } from 'suref-react'
 import type { CreatePilotInput, InstantiateMechInput, PatternItem } from '../types/common'
+
+// ---------------------------------------------------------------------------
+// Wizard Step Name Constants
+// ---------------------------------------------------------------------------
+
+/** Roll table names used for step lookups in wizard → API conversion */
+const ROLL_TABLE_CALLSIGN = 'Callsign Table'
+const ROLL_TABLE_BACKGROUND = 'Background'
+const ROLL_TABLE_MOTTO = 'Motto'
+const ROLL_TABLE_KEEPSAKE = 'Keepsake'
+const ROLL_TABLE_APPEARANCE = 'Pilot Appearance'
+const ROLL_TABLE_MECH_NAMES = 'Mech Pattern Names'
 
 // ---------------------------------------------------------------------------
 // Wizard State
@@ -157,6 +168,10 @@ export function rollD20(): number {
   return Math.floor(Math.random() * 20) + 1
 }
 
+function formatRollResult(entry: { label?: string; value: string }): string {
+  return entry.label ? `${entry.label}: ${entry.value}` : entry.value
+}
+
 /** Roll on a named roll table and return the text result */
 export function rollOnTable(tableName: string): { text: string; roll: number } {
   const rollTable = SalvageUnionReference.RollTables.find((rt) => rt.name === tableName)
@@ -169,9 +184,7 @@ export function rollOnTable(tableName: string): { text: string; roll: number } {
     const entryRoll = rollD20()
     const result = resultForColumnsTable(rollTable.table, colRoll, entryRoll)
     if (result.success) {
-      const content = result.result
-      const text = content.label ? `${content.label}: ${content.value}` : content.value
-      return { text, roll: colRoll * 100 + entryRoll }
+      return { text: formatRollResult(result.result), roll: colRoll * 100 + entryRoll }
     }
     return { text: '', roll: 0 }
   }
@@ -179,10 +192,7 @@ export function rollOnTable(tableName: string): { text: string; roll: number } {
   const roll = rollD20()
   const result = resultForTable(rollTable.table, roll)
   if (result.success) {
-    const text = result.result.label
-      ? `${result.result.label}: ${result.result.value}`
-      : result.result.value
-    return { text, roll }
+    return { text: formatRollResult(result.result), roll }
   }
   return { text: '', roll }
 }
@@ -411,15 +421,19 @@ export function wizardToCreateInput(
     (s) => s.stepType === 'select-many' && s.schema?.[0] === 'equipment'
   )
   const callsignStep = steps.find(
-    (s) => s.stepType === 'roll-table' && s.rollTable === 'Callsign Table'
+    (s) => s.stepType === 'roll-table' && s.rollTable === ROLL_TABLE_CALLSIGN
   )
   const backgroundStep = steps.find(
-    (s) => s.stepType === 'roll-table' && s.rollTable === 'Background'
+    (s) => s.stepType === 'roll-table' && s.rollTable === ROLL_TABLE_BACKGROUND
   )
-  const mottoStep = steps.find((s) => s.stepType === 'roll-table' && s.rollTable === 'Motto')
-  const keepsakeStep = steps.find((s) => s.stepType === 'roll-table' && s.rollTable === 'Keepsake')
+  const mottoStep = steps.find(
+    (s) => s.stepType === 'roll-table' && s.rollTable === ROLL_TABLE_MOTTO
+  )
+  const keepsakeStep = steps.find(
+    (s) => s.stepType === 'roll-table' && s.rollTable === ROLL_TABLE_KEEPSAKE
+  )
   const appearanceStep = steps.find(
-    (s) => s.stepType === 'roll-table' && s.rollTable === 'Pilot Appearance'
+    (s) => s.stepType === 'roll-table' && s.rollTable === ROLL_TABLE_APPEARANCE
   )
 
   const classRef = classStep ? state.selections[classStep.id]?.selectedIds[0] : undefined
@@ -456,7 +470,7 @@ export function mechWizardToInstantiateInput(
   const chassisStep = steps.find((s) => s.stepType === 'select-one' && s.schema?.[0] === 'chassis')
   const systemsStep = steps.find((s) => s.stepType === 'select-many' && s.schema?.[0] === 'systems')
   const modulesStep = steps.find((s) => s.stepType === 'select-many' && s.schema?.[0] === 'modules')
-  const nameStep = steps.find((s) => s.rollTable === 'Mech Pattern Names')
+  const nameStep = steps.find((s) => s.rollTable === ROLL_TABLE_MECH_NAMES)
 
   const chassisRef = chassisStep ? state.selections[chassisStep.id]?.selectedIds[0] : undefined
   if (!chassisRef) return null
@@ -485,5 +499,3 @@ export function mechWizardToInstantiateInput(
     pattern_items,
   }
 }
-
-export { PILOT_DEFAULTS }

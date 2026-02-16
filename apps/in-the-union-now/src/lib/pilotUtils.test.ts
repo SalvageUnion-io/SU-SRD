@@ -12,7 +12,6 @@ import {
   createWizardReducer,
   wizardToCreateInput,
   mechWizardToInstantiateInput,
-  PILOT_DEFAULTS,
 } from './pilotUtils'
 import type { WizardState } from './pilotUtils'
 
@@ -1129,17 +1128,5 @@ describe('mechWizardToInstantiateInput', () => {
     const input = mechWizardToInstantiateInput(state, mechDigitalSteps)!
     expect(input.pattern_items[0]!.schema_name).toBe('systems')
     expect(input.pattern_items[1]!.schema_name).toBe('modules')
-  })
-})
-
-// ---------------------------------------------------------------------------
-// PILOT_DEFAULTS
-// ---------------------------------------------------------------------------
-
-describe('PILOT_DEFAULTS', () => {
-  test('has expected values', () => {
-    expect(PILOT_DEFAULTS.maxHP).toBe(10)
-    expect(PILOT_DEFAULTS.maxAP).toBe(5)
-    expect(PILOT_DEFAULTS.startingTP).toBe(0)
   })
 })

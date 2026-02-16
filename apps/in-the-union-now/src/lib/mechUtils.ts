@@ -1,5 +1,5 @@
 import { SalvageUnionReference, type SURefChassis } from 'salvageunion-reference'
-import type { PatternItem, EntityRefInsert } from '../types/common'
+import type { PatternItem, EntityRefInsert, EntityRefRow, MechRow } from '../types/common'
 import type { BuilderState } from './builderUtils'
 
 // ---------------------------------------------------------------------------
@@ -50,48 +50,19 @@ export function patternItemsToEntityRefs(
   }))
 }
 
-/** Create an entity_ref for a pilot's ability */
-export function abilityToEntityRef(
-  pilotId: string,
-  userId: string,
-  abilityRef: { schema_name: string; schema_ref_id: string }
-): EntityRefInsert {
-  return {
-    parent_id: pilotId,
-    parent_type: 'pilot' as const,
-    schema_name: abilityRef.schema_name,
-    schema_ref_id: abilityRef.schema_ref_id,
-    sort_order: 0,
-    user_id: userId,
-  }
-}
-
-/** Create entity_refs for a pilot's equipment */
-export function equipmentToEntityRefs(
-  pilotId: string,
-  userId: string,
-  refs: { schema_name: string; schema_ref_id: string }[]
-): EntityRefInsert[] {
-  return refs.map((ref, index) => ({
-    parent_id: pilotId,
-    parent_type: 'pilot' as const,
-    schema_name: ref.schema_name,
-    schema_ref_id: ref.schema_ref_id,
-    sort_order: index + 1, // ability is sort_order 0
-    user_id: userId,
-  }))
-}
-
 // ---------------------------------------------------------------------------
 // BuilderState Bridge (for inline mech editing)
 // ---------------------------------------------------------------------------
 
-import type { EntityRefRow, MechRow } from '../types/common'
+/** Check if an entity_ref is a mech equipment ref (system or module) */
+function isMechEquipmentRef(ref: EntityRefRow): boolean {
+  return ref.schema_name === 'systems' || ref.schema_name === 'modules'
+}
 
 /** Convert a mech + its entity_refs into a BuilderState for MechBuilder reuse */
 export function entityRefsToBuilderState(mech: MechRow, entityRefs: EntityRefRow[]): BuilderState {
   const items: PatternItem[] = entityRefs
-    .filter((ref) => ref.schema_name === 'systems' || ref.schema_name === 'modules')
+    .filter(isMechEquipmentRef)
     .sort((a, b) => a.sort_order - b.sort_order)
     .map((ref) => ({
       schema_name: ref.schema_name as 'systems' | 'modules',
@@ -117,9 +88,7 @@ export function builderStateToPatchOps(
   userId: string
 ): { inserts: EntityRefInsert[]; deleteIds: string[] } {
   // Only consider system/module refs (not other types that might be on the mech)
-  const mechRefs = oldRefs.filter(
-    (ref) => ref.schema_name === 'systems' || ref.schema_name === 'modules'
-  )
+  const mechRefs = oldRefs.filter(isMechEquipmentRef)
 
   // Build a frequency map of old refs: "schema_name::schema_ref_id" → [ref ids]
   const oldMap = new Map<string, string[]>()

@@ -6,11 +6,12 @@ import {
   updateMechEntityRefs,
 } from '../lib/api/mechApi'
 import { pilotKeys } from './usePilots'
-import type { EntityRefInsert } from '../types/common'
-import type { InstantiateMechInput } from '../types/common'
+import type { EntityRefInsert, InstantiateMechInput } from '../types/common'
 
 export const mechKeys = {
   all: ['mechs'] as const,
+  lists: () => [...mechKeys.all, 'list'] as const,
+  list: (userId: string) => [...mechKeys.lists(), userId] as const,
   details: () => [...mechKeys.all, 'detail'] as const,
   detail: (id: string) => [...mechKeys.details(), id] as const,
   entityRefs: (mechId: string) => [...mechKeys.all, 'entityRefs', mechId] as const,
@@ -59,15 +60,13 @@ export function useUpdateMechLoadout() {
   return useMutation({
     mutationFn: ({
       mechId,
-      userId,
       inserts,
       deleteIds,
     }: {
       mechId: string
-      userId: string
       inserts: EntityRefInsert[]
       deleteIds: string[]
-    }) => updateMechEntityRefs(mechId, userId, inserts, deleteIds),
+    }) => updateMechEntityRefs(mechId, inserts, deleteIds),
     onSuccess: (_data, { mechId }) => {
       queryClient.invalidateQueries({ queryKey: mechKeys.entityRefs(mechId) })
     },

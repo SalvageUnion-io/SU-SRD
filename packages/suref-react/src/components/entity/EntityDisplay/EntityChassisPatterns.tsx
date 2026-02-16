@@ -1,12 +1,9 @@
-import type {
-  SURefChassis,
-  SURefEntity,
-  SURefObjectPatternSystemModule,
-} from 'salvageunion-reference'
+import type { SURefChassis, SURefEntity } from 'salvageunion-reference'
 import { normalizePatternName } from 'salvageunion-reference'
 import { EntityDisplay } from './index'
 import { SectionSeparator } from './SectionSeparator'
 import { useDetailModal } from './useDetailModal'
+import type { PatternOverrideData } from './entityDisplayTypes'
 
 type EntityChassisPatternsProps = {
   patterns?: SURefChassis['patterns']
@@ -39,11 +36,7 @@ function PatternListing({
   pattern,
 }: {
   chassisEntity: SURefEntity
-  pattern: {
-    name: string
-    systems: SURefObjectPatternSystemModule[]
-    modules: SURefObjectPatternSystemModule[]
-  }
+  pattern: PatternOverrideData
 }) {
   const displayName = normalizePatternName(pattern.name)
   const patternOverride = {

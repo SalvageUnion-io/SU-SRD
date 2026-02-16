@@ -12,10 +12,10 @@ import { useAutosave } from '../../../hooks/useAutosave'
 import { useSaveStatus } from '../../../hooks/useSaveStatus'
 import { MechBuilder } from '../../../components/patterns/MechBuilder'
 import { DeletePatternDialog } from '../../../components/patterns/DeletePatternDialog'
-import { Button } from '../../../components/ui/button'
-import { Skeleton } from '../../../components/ui/skeleton'
+import { PageSkeleton } from '../../../components/shared/PageSkeleton'
+import { NotFoundState } from '../../../components/shared/NotFoundState'
 import { getErrorMessage } from '../../../lib/errors'
-import { getPatternAccess } from '../../../lib/patternAccess'
+import { getEntityAccess } from '../../../lib/entityAccess'
 import { patternToBuilderState, builderToCreateInput } from '../../../lib/builderUtils'
 import type { BuilderState } from '../../../lib/builderUtils'
 
@@ -104,26 +104,12 @@ function EditPatternPage() {
     )
   }
 
-  if (isLoading) {
-    return (
-      <div className="flex flex-col gap-4">
-        <Skeleton className="h-8 w-48" />
-        <Skeleton className="h-64 w-full" />
-      </div>
-    )
-  }
+  if (isLoading) return <PageSkeleton />
 
-  const access = pattern ? getPatternAccess(pattern, user?.id) : undefined
+  const access = pattern ? getEntityAccess(pattern, user?.id) : undefined
 
   if (error || !pattern || !access?.canView) {
-    return (
-      <div className="flex flex-col items-center gap-4 py-12">
-        <p className="text-su-grey-dark">Pattern not found.</p>
-        <Button variant="outline" onClick={() => navigate({ to: '/' })}>
-          Back to Dashboard
-        </Button>
-      </div>
-    )
+    return <NotFoundState message="Pattern not found." />
   }
 
   if (!access.canEdit) {

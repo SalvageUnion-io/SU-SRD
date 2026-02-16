@@ -4,9 +4,10 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefGuide } from 'salvageunion-reference'
 import { EntityDisplay } from 'suref-react'
 import { toast } from 'sonner'
+import { actionButtonClasses } from '../../../components/shared/actionButtonClasses'
 import { useAuthStore } from '../../../stores/authStore'
 import { useCreatePilot } from '../../../hooks/usePilots'
-import { useGuideInteractiveConfig } from '../../../components/pilots/InteractiveGuideSteps'
+import { useGuideInteractiveConfig } from '../../../hooks/useGuideInteractiveConfig'
 import {
   getDigitalSteps,
   createWizardReducer,
@@ -70,7 +71,7 @@ function NewPilotPage() {
           type="button"
           onClick={handleSubmit}
           disabled={!isSubmittable || createPilot.isPending}
-          className="inline-flex cursor-pointer items-center gap-1.5 rounded-md bg-su-green px-3 py-1.5 font-mono text-sm font-semibold uppercase text-su-white transition-colors hover:bg-emerald-600 disabled:pointer-events-none disabled:opacity-50"
+          className={actionButtonClasses('green')}
         >
           {createPilot.isPending ? 'Creating...' : 'Create Pilot'}
         </button>

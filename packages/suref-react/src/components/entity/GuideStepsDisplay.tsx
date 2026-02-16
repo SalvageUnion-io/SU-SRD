@@ -71,8 +71,7 @@ type GuideStepsDisplayProps = {
     listing: boolean,
     compact?: boolean,
     controls?: EntityControl[],
-    disabled?: boolean,
-    selected?: boolean
+    disabled?: boolean
   ) => ReactNode
   interactive?: GuideStepsInteractiveConfig
 }
@@ -134,6 +133,110 @@ function resolveSchemaEntities(
       return entity ? { data: entity, schemaName } : null
     })
     .filter(Boolean) as { data: unknown; schemaName: string; disabled?: boolean }[]
+}
+
+/** Compute the interaction state for a single entity within a step */
+function computeEntityInteractionState(
+  step: SURefObjectGuideStep,
+  entityId: string,
+  schemaName: string,
+  entityDisabled: boolean | undefined,
+  selectionState: GuideStepSelectionState | null,
+  interactive: GuideStepsInteractiveConfig | undefined
+): { isGreyedOut: boolean; entityControls: EntityControl[] | undefined } {
+  const isSelected = selectionState?.selectedIds.has(entityId) ?? false
+  const hasSelection = (selectionState?.selectedIds.size ?? 0) > 0
+  const isAtMax = selectionState?.countBadge
+    ? selectionState.countBadge.current >= selectionState.countBadge.max
+    : false
+  const isGreyedOut =
+    !entityDisabled &&
+    !isSelected &&
+    ((step.stepType === 'select-one' && hasSelection) ||
+      (step.stepType === 'select-many' && isAtMax))
+  const entityControls =
+    !entityDisabled && interactive?.onEntityToggle
+      ? [
+          selectControl(
+            () => interactive.onEntityToggle!(step.id, entityId, schemaName),
+            isSelected
+          ),
+        ]
+      : undefined
+  return { isGreyedOut, entityControls }
+}
+
+/** Shared roll section: roll table + freeform input */
+function StepRollSection({
+  step,
+  rollTableEntity,
+  rollState,
+  isRollStep,
+  interactive,
+}: {
+  step: SURefObjectGuideStep
+  rollTableEntity: { name: string; table?: SURefObjectTable } | null
+  rollState: GuideStepRollState | null
+  isRollStep: boolean
+  interactive: GuideStepsInteractiveConfig | undefined
+}) {
+  return (
+    <>
+      {rollTableEntity && 'table' in rollTableEntity && rollTableEntity.table && (
+        <div className="mt-2">
+          {rollState && isRollStep && (
+            <div className="mb-2">
+              {interactive?.renderRollInteraction ? (
+                interactive.renderRollInteraction(
+                  step,
+                  rollState,
+                  () => interactive.onRoll?.(step.id),
+                  (value) => interactive.onTextChange?.(step.id, value)
+                )
+              ) : (
+                <input
+                  type="text"
+                  value={rollState.textValue}
+                  onChange={(e) => interactive?.onTextChange?.(step.id, e.target.value)}
+                  placeholder={`Roll or type your ${step.name.toLowerCase()}...`}
+                  className="h-9 w-full rounded-md border border-su-grey-light/30 px-3 text-sm"
+                />
+              )}
+            </div>
+          )}
+          <RollTable
+            table={rollTableEntity.table as SURefObjectTable}
+            compact
+            showCommand
+            tableName={rollTableEntity.name}
+            onRollResult={
+              interactive ? (text) => interactive.onTextChange?.(step.id, text) : undefined
+            }
+          />
+        </div>
+      )}
+      {rollState && isRollStep && !rollTableEntity && (
+        <div className="mt-2">
+          {interactive?.renderRollInteraction ? (
+            interactive.renderRollInteraction(
+              step,
+              rollState,
+              () => interactive.onRoll?.(step.id),
+              (value) => interactive.onTextChange?.(step.id, value)
+            )
+          ) : (
+            <input
+              type="text"
+              value={rollState.textValue}
+              onChange={(e) => interactive?.onTextChange?.(step.id, e.target.value)}
+              placeholder={`Enter your ${step.name.toLowerCase()}...`}
+              className="h-9 w-full rounded-md border border-su-grey-light/30 px-3 text-sm"
+            />
+          )}
+        </div>
+      )}
+    </>
+  )
 }
 
 function SidebarArrow() {
@@ -285,25 +388,14 @@ export function GuideStepsDisplay({
                     {sortDisabledAfterEnabled(resolvedEntities).map(
                       ({ data, schemaName, disabled: entityDisabled }, i) => {
                         const entityId = (data as { id: string }).id
-                        const isSelected = selectionState?.selectedIds.has(entityId) ?? false
-                        const hasSelection = (selectionState?.selectedIds.size ?? 0) > 0
-                        const isAtMax = selectionState?.countBadge
-                          ? selectionState.countBadge.current >= selectionState.countBadge.max
-                          : false
-                        const isGreyedOut =
-                          !entityDisabled &&
-                          !isSelected &&
-                          ((step.stepType === 'select-one' && hasSelection) ||
-                            (step.stepType === 'select-many' && isAtMax))
-                        const entityControls =
-                          !entityDisabled && interactive?.onEntityToggle
-                            ? [
-                                selectControl(
-                                  () => interactive.onEntityToggle!(step.id, entityId, schemaName),
-                                  isSelected
-                                ),
-                              ]
-                            : undefined
+                        const { isGreyedOut, entityControls } = computeEntityInteractionState(
+                          step,
+                          entityId,
+                          schemaName,
+                          entityDisabled,
+                          selectionState,
+                          interactive
+                        )
                         return (
                           <div key={entityId} className="w-full">
                             {renderEntityListing!(
@@ -313,8 +405,7 @@ export function GuideStepsDisplay({
                               true,
                               true,
                               entityControls,
-                              entityDisabled || isGreyedOut || isInactiveStep,
-                              isSelected
+                              entityDisabled || isGreyedOut || isInactiveStep
                             )}
                             {i < resolvedEntities.length - 1 && <SidebarArrow />}
                           </div>
@@ -348,63 +439,13 @@ export function GuideStepsDisplay({
                   )}
                 </div>
 
-                {/* Roll table — shown in both static and interactive modes */}
-                {rollTableEntity && 'table' in rollTableEntity && rollTableEntity.table && (
-                  <div className="mt-2">
-                    {rollState && isRollStep && (
-                      <div className="mb-2">
-                        {interactive?.renderRollInteraction ? (
-                          interactive.renderRollInteraction(
-                            step,
-                            rollState,
-                            () => interactive.onRoll?.(step.id),
-                            (value) => interactive.onTextChange?.(step.id, value)
-                          )
-                        ) : (
-                          <input
-                            type="text"
-                            value={rollState.textValue}
-                            onChange={(e) => interactive?.onTextChange?.(step.id, e.target.value)}
-                            placeholder={`Roll or type your ${step.name.toLowerCase()}...`}
-                            className="h-9 w-full rounded-md border border-su-grey-light/30 px-3 text-sm"
-                          />
-                        )}
-                      </div>
-                    )}
-                    <RollTable
-                      table={rollTableEntity.table as SURefObjectTable}
-                      compact
-                      showCommand
-                      tableName={rollTableEntity.name}
-                      onRollResult={
-                        interactive
-                          ? (text) => interactive.onTextChange?.(step.id, text)
-                          : undefined
-                      }
-                    />
-                  </div>
-                )}
-                {/* Freeform text input (no roll table) — interactive only */}
-                {rollState && isRollStep && !rollTableEntity && (
-                  <div className="mt-2">
-                    {interactive?.renderRollInteraction ? (
-                      interactive.renderRollInteraction(
-                        step,
-                        rollState,
-                        () => interactive.onRoll?.(step.id),
-                        (value) => interactive.onTextChange?.(step.id, value)
-                      )
-                    ) : (
-                      <input
-                        type="text"
-                        value={rollState.textValue}
-                        onChange={(e) => interactive?.onTextChange?.(step.id, e.target.value)}
-                        placeholder={`Enter your ${step.name.toLowerCase()}...`}
-                        className="h-9 w-full rounded-md border border-su-grey-light/30 px-3 text-sm"
-                      />
-                    )}
-                  </div>
-                )}
+                <StepRollSection
+                  step={step}
+                  rollTableEntity={rollTableEntity}
+                  rollState={rollState}
+                  isRollStep={isRollStep}
+                  interactive={interactive}
+                />
               </>
             ) : (
               <div
@@ -437,25 +478,14 @@ export function GuideStepsDisplay({
                     {sortDisabledAfterEnabled(resolvedEntities).map(
                       ({ data, schemaName, disabled: entityDisabled }) => {
                         const entityId = (data as { id: string }).id
-                        const isSelected = selectionState?.selectedIds.has(entityId) ?? false
-                        const hasSelection = (selectionState?.selectedIds.size ?? 0) > 0
-                        const isAtMax = selectionState?.countBadge
-                          ? selectionState.countBadge.current >= selectionState.countBadge.max
-                          : false
-                        const isGreyedOut =
-                          !entityDisabled &&
-                          !isSelected &&
-                          ((step.stepType === 'select-one' && hasSelection) ||
-                            (step.stepType === 'select-many' && isAtMax))
-                        const entityControls =
-                          !entityDisabled && interactive?.onEntityToggle
-                            ? [
-                                selectControl(
-                                  () => interactive.onEntityToggle!(step.id, entityId, schemaName),
-                                  isSelected
-                                ),
-                              ]
-                            : undefined
+                        const { isGreyedOut, entityControls } = computeEntityInteractionState(
+                          step,
+                          entityId,
+                          schemaName,
+                          entityDisabled,
+                          selectionState,
+                          interactive
+                        )
                         return renderEntityListing(
                           data,
                           schemaName,
@@ -463,71 +493,20 @@ export function GuideStepsDisplay({
                           true,
                           undefined,
                           entityControls,
-                          entityDisabled || isGreyedOut,
-                          isSelected
+                          entityDisabled || isGreyedOut
                         )
                       }
                     )}
                   </div>
                 )}
 
-                {/* Roll table — shown in both static and interactive modes */}
-                {rollTableEntity && 'table' in rollTableEntity && rollTableEntity.table && (
-                  <div className="mt-2">
-                    {rollState && isRollStep && (
-                      <div className="mb-2">
-                        {interactive?.renderRollInteraction ? (
-                          interactive.renderRollInteraction(
-                            step,
-                            rollState,
-                            () => interactive.onRoll?.(step.id),
-                            (value) => interactive.onTextChange?.(step.id, value)
-                          )
-                        ) : (
-                          <input
-                            type="text"
-                            value={rollState.textValue}
-                            onChange={(e) => interactive?.onTextChange?.(step.id, e.target.value)}
-                            placeholder={`Roll or type your ${step.name.toLowerCase()}...`}
-                            className="h-9 w-full rounded-md border border-su-grey-light/30 px-3 text-sm"
-                          />
-                        )}
-                      </div>
-                    )}
-                    <RollTable
-                      table={rollTableEntity.table as SURefObjectTable}
-                      compact
-                      showCommand
-                      tableName={rollTableEntity.name}
-                      onRollResult={
-                        interactive
-                          ? (text) => interactive.onTextChange?.(step.id, text)
-                          : undefined
-                      }
-                    />
-                  </div>
-                )}
-                {/* Freeform text input (no roll table) — interactive only */}
-                {rollState && isRollStep && !rollTableEntity && (
-                  <div className="mt-2">
-                    {interactive?.renderRollInteraction ? (
-                      interactive.renderRollInteraction(
-                        step,
-                        rollState,
-                        () => interactive.onRoll?.(step.id),
-                        (value) => interactive.onTextChange?.(step.id, value)
-                      )
-                    ) : (
-                      <input
-                        type="text"
-                        value={rollState.textValue}
-                        onChange={(e) => interactive?.onTextChange?.(step.id, e.target.value)}
-                        placeholder={`Enter your ${step.name.toLowerCase()}...`}
-                        className="h-9 w-full rounded-md border border-su-grey-light/30 px-3 text-sm"
-                      />
-                    )}
-                  </div>
-                )}
+                <StepRollSection
+                  step={step}
+                  rollTableEntity={rollTableEntity}
+                  rollState={rollState}
+                  isRollStep={isRollStep}
+                  interactive={interactive}
+                />
               </div>
             )}
           </div>

@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from 'react'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { Plus } from 'lucide-react'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { findChassisById } from '../../lib/entityHelpers'
 import { EntityDisplay, SectionSeparator, navigateControl } from 'suref-react'
 import { useAuthStore } from '../../stores/authStore'
 import { usePatterns } from '../../hooks/usePatterns'
@@ -38,10 +38,7 @@ export function PatternSection() {
 function PatternListing({ pattern }: { pattern: TypedPatternRow }) {
   const navigate = useNavigate()
 
-  const chassis = useMemo(
-    () => SalvageUnionReference.Chassis.find((c) => c.id === pattern.chassis_ref),
-    [pattern.chassis_ref]
-  )
+  const chassis = useMemo(() => findChassisById(pattern.chassis_ref), [pattern.chassis_ref])
 
   const handleNavigate = useCallback(() => {
     navigate({ to: '/patterns/$patternId', params: { patternId: pattern.id } })

@@ -13,7 +13,11 @@ import {
 import * as DialogPrimitive from '@radix-ui/react-dialog'
 import { X } from 'lucide-react'
 import { Input } from '../ui/input'
-import { filterAndSplitEntities, ALL_TECH_LEVELS } from '../../lib/entitySelectionUtils'
+import {
+  filterAndSplitEntities,
+  ALL_TECH_LEVELS,
+  getEntityId,
+} from '../../lib/entitySelectionUtils'
 import type { TechLevelValue } from '../../lib/entitySelectionUtils'
 
 export type BuilderSchemaName = 'chassis' | 'systems' | 'modules'
@@ -38,10 +42,6 @@ function getEntities(schemaName: BuilderSchemaName): SURefEntity[] {
     case 'modules':
       return SalvageUnionReference.Modules.all()
   }
-}
-
-function getEntityId(entity: SURefEntity): string {
-  return 'id' in entity ? (entity.id as string) : ''
 }
 
 export function EntitySelectionModal({

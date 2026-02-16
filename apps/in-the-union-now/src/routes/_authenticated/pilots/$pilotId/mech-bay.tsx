@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
 import { toast } from 'sonner'
 import { useAuthStore } from '../../../../stores/authStore'
 import { usePilot } from '../../../../hooks/usePilots'
@@ -7,13 +7,13 @@ import { useMech, useMechEntityRefs, useUpdateMechLoadout } from '../../../../ho
 import { useAutosave } from '../../../../hooks/useAutosave'
 import { useSaveStatus } from '../../../../hooks/useSaveStatus'
 import { entityRefsToBuilderState, builderStateToPatchOps } from '../../../../lib/mechUtils'
-import { patternToBuilderState, builderToCreateInput } from '../../../../lib/builderUtils'
+import { builderToCreateInput } from '../../../../lib/builderUtils'
 import type { BuilderState } from '../../../../lib/builderUtils'
 import { MechBuilder } from '../../../../components/patterns/MechBuilder'
-import { Button } from '../../../../components/ui/button'
-import { Skeleton } from '../../../../components/ui/skeleton'
+import { PageSkeleton } from '../../../../components/shared/PageSkeleton'
+import { NotFoundState } from '../../../../components/shared/NotFoundState'
 import { getErrorMessage } from '../../../../lib/errors'
-import { getPatternAccess } from '../../../../lib/patternAccess'
+import { getEntityAccess } from '../../../../lib/entityAccess'
 
 export const Route = createFileRoute('/_authenticated/pilots/$pilotId/mech-bay')({
   component: MechBayPage,
@@ -21,7 +21,6 @@ export const Route = createFileRoute('/_authenticated/pilots/$pilotId/mech-bay')
 
 function MechBayPage() {
   const { pilotId } = Route.useParams()
-  const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
   const { data: pilot, isLoading: pilotLoading } = usePilot(pilotId)
   const { data: mech, isLoading: mechLoading } = useMech(pilot?.mech_id ?? undefined)
@@ -39,18 +38,10 @@ function MechBayPage() {
   const handleAutosave = useCallback(
     (state: BuilderState | null) => {
       if (!user || !mech || !mechRefs || !state) return
-      const newState = patternToBuilderState({
-        name: state.name,
-        chassis_ref: state.chassisRef!,
-        description: state.description || null,
-        visible: state.visible,
-        pattern_items: state.items,
-      })
-      const ops = builderStateToPatchOps(mechRefs, newState, mech.id, user.id)
+      const ops = builderStateToPatchOps(mechRefs, state, mech.id, user.id)
       updateLoadout.mutate(
         {
           mechId: mech.id,
-          userId: user.id,
           inserts: ops.inserts,
           deleteIds: ops.deleteIds,
         },
@@ -73,50 +64,25 @@ function MechBayPage() {
 
   const isLoading = pilotLoading || mechLoading || refsLoading
 
-  if (isLoading) {
-    return (
-      <div className="flex flex-col gap-4">
-        <Skeleton className="h-8 w-48" />
-        <Skeleton className="h-64 w-full" />
-      </div>
-    )
-  }
+  if (isLoading) return <PageSkeleton />
 
   if (!pilot || !pilot.mech_id) {
     return (
-      <div className="flex flex-col items-center gap-4 py-12">
-        <p className="text-su-grey-dark">No mech found for this pilot.</p>
-        <Button
-          variant="outline"
-          onClick={() => navigate({ to: '/pilots/$pilotId', params: { pilotId } })}
-        >
-          Back to Pilot
-        </Button>
-      </div>
+      <NotFoundState
+        message="No mech found for this pilot."
+        backTo={`/pilots/${pilotId}`}
+        backLabel="Back to Pilot"
+      />
     )
   }
 
-  const access = getPatternAccess(pilot, user?.id)
+  const access = getEntityAccess(pilot, user?.id)
 
   if (!access.canView) {
-    return (
-      <div className="flex flex-col items-center gap-4 py-12">
-        <p className="text-su-grey-dark">You don't have access to this mech.</p>
-        <Button variant="outline" onClick={() => navigate({ to: '/' })}>
-          Back to Dashboard
-        </Button>
-      </div>
-    )
+    return <NotFoundState message="You don't have access to this mech." />
   }
 
-  if (!mech || !mechRefs) {
-    return (
-      <div className="flex flex-col gap-4">
-        <Skeleton className="h-8 w-48" />
-        <Skeleton className="h-64 w-full" />
-      </div>
-    )
-  }
+  if (!mech || !mechRefs) return <PageSkeleton />
 
   const initialState = entityRefsToBuilderState(mech, mechRefs)
 

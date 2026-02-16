@@ -1,10 +1,5 @@
 import { useMemo } from 'react'
-import type {
-  SURefEntity,
-  SURefEnumSchemaName,
-  SURefEnumSource,
-  SURefObjectPatternSystemModule,
-} from 'salvageunion-reference'
+import type { SURefEntity, SURefEnumSchemaName, SURefEnumSource } from 'salvageunion-reference'
 import {
   getTechLevel,
   getTechLevelNumber,
@@ -18,7 +13,11 @@ import {
 } from 'salvageunion-reference'
 import { calculateBackgroundColor } from '../entityDisplayHelpers'
 import { getEntityFontSizes, getEntitySpacing } from './entityDisplayTypes'
-import type { EntityDisplayState, ClassAbilitiesRenderer } from './entityDisplayTypes'
+import type {
+  EntityDisplayState,
+  ClassAbilitiesRenderer,
+  PatternOverrideData,
+} from './entityDisplayTypes'
 
 /**
  * Tech level to Tailwind bg class mapping
@@ -46,11 +45,7 @@ export type EntityDisplayStateInput = {
   damaged?: boolean
   label?: string
   classAbilitiesRenderer?: ClassAbilitiesRenderer
-  patternOverride?: {
-    name: string
-    systems: SURefObjectPatternSystemModule[]
-    modules: SURefObjectPatternSystemModule[]
-  }
+  patternOverride?: PatternOverrideData
   hideStats?: boolean
   hideContent?: boolean
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 
 export type SaveStatus = {
   statusText: string
@@ -44,14 +44,10 @@ export function useSaveStatus({ isSaving }: { isSaving: boolean }): SaveStatus {
     return () => clearInterval(interval)
   }, [lastSavedAt])
 
-  const getStatusText = useCallback((): string => {
-    if (isSaving) return 'Saving...'
-    if (lastSavedAt) return formatRelativeTime(lastSavedAt)
-    return ''
-  }, [isSaving, lastSavedAt])
+  const statusText = isSaving ? 'Saving...' : lastSavedAt ? formatRelativeTime(lastSavedAt) : ''
 
   return {
-    statusText: getStatusText(),
+    statusText,
     isSaving,
     lastSavedAt,
   }

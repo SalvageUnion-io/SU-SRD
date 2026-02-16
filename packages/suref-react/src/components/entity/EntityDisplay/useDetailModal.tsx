@@ -1,18 +1,15 @@
 import { useState } from 'react'
 import type { ReactNode } from 'react'
-import type { SURefEntity, SURefObjectPatternSystemModule } from 'salvageunion-reference'
+import type { SURefEntity } from 'salvageunion-reference'
 import * as DialogPrimitive from '@radix-ui/react-dialog'
 import { X } from 'lucide-react'
 import { EntityDisplayContent } from './components/EntityDisplayContent'
 import { DetailIcon } from './DetailIcon'
 import type { EntityControl } from './entityControlTypes'
+import type { PatternOverrideData } from './entityDisplayTypes'
 
 type UseDetailModalOptions = {
-  patternOverride?: {
-    name: string
-    systems: SURefObjectPatternSystemModule[]
-    modules: SURefObjectPatternSystemModule[]
-  }
+  patternOverride?: PatternOverrideData
   children?: ReactNode
   label?: string
   /** Controls to render in the modal's entity header */

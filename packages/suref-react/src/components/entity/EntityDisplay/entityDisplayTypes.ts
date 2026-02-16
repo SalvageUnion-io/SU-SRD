@@ -53,6 +53,13 @@ export const getEntityFontSizes = (compact: boolean) => ({
   lg: compact ? 'text-base' : 'text-lg',
 })
 
+/** Pattern override data for patterned chassis display */
+export type PatternOverrideData = {
+  name: string
+  systems: SURefObjectPatternSystemModule[]
+  modules: SURefObjectPatternSystemModule[]
+}
+
 export type EntityDisplayState = {
   /** Entity data - only SURefEntity (not SURefMetaAction or SURefObjectSystemModule) */
   data: SURefEntity
@@ -107,11 +114,7 @@ export type EntityDisplayState = {
   /** Optional renderer for class abilities (provided by consuming app) */
   classAbilitiesRenderer?: ClassAbilitiesRenderer
   /** Optional pattern override for patterned chassis display */
-  patternOverride?: {
-    name: string
-    systems: SURefObjectPatternSystemModule[]
-    modules: SURefObjectPatternSystemModule[]
-  }
+  patternOverride?: PatternOverrideData
   /** Whether to hide the stats/right content in the header */
   hideStats: boolean
   /** Whether to hide the entity's own content blocks (description) */

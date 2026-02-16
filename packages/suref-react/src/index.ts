@@ -1,6 +1,9 @@
 // Types
 export type { DataValue, ItemCondition } from './types/common'
-export type { ClassAbilitiesRenderer } from './components/entity/EntityDisplay/entityDisplayTypes'
+export type {
+  ClassAbilitiesRenderer,
+  PatternOverrideData,
+} from './components/entity/EntityDisplay/entityDisplayTypes'
 export type {
   EntityControl,
   EntityControlVariant,

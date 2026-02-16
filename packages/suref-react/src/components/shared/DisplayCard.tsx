@@ -45,8 +45,6 @@ type DisplayCardProps = {
   headerTestId?: string
   /** Positioned absolutely inside wrapper div */
   absoluteElements?: ReactNode
-  /** Whether the card is selected (green ring indicator) */
-  selected?: boolean
 }
 
 export function DisplayCard({

@@ -71,7 +71,6 @@ export async function getMechEntityRefs(mechId: string): Promise<EntityRefRow[]>
 
 export async function updateMechEntityRefs(
   mechId: string,
-  _userId: string,
   inserts: EntityRefInsert[],
   deleteIds: string[]
 ): Promise<void> {

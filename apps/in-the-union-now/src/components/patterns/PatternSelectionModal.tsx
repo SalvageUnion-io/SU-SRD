@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { findChassisById } from '../../lib/entityHelpers'
 import type { SURefObjectPattern } from 'salvageunion-reference'
 import { DisplayCard, EntityDisplay, Text, addControl } from 'suref-react'
 import * as DialogPrimitive from '@radix-ui/react-dialog'
 import { X } from 'lucide-react'
 import { Button } from '../ui/button'
+import { actionButtonClasses } from '../shared/actionButtonClasses'
 
 type PatternSelectionModalProps = {
   open: boolean
@@ -21,10 +22,7 @@ export function PatternSelectionModal({
 }: PatternSelectionModalProps) {
   const [pendingPattern, setPendingPattern] = useState<SURefObjectPattern | null>(null)
 
-  const chassis = useMemo(
-    () => SalvageUnionReference.Chassis.find((c) => c.id === chassisRef),
-    [chassisRef]
-  )
+  const chassis = useMemo(() => findChassisById(chassisRef), [chassisRef])
 
   const patterns = chassis?.patterns ?? []
   const chassisName = chassis?.name ?? 'Unknown'
@@ -100,7 +98,7 @@ export function PatternSelectionModal({
                         <button
                           type="button"
                           onClick={handleConfirm}
-                          className="inline-flex cursor-pointer items-center gap-1.5 rounded-md bg-su-orange px-3 py-1.5 font-mono text-sm font-semibold uppercase text-su-white transition-colors hover:bg-orange-700"
+                          className={actionButtonClasses('orange')}
                         >
                           Apply
                         </button>

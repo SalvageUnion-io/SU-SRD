@@ -9,7 +9,7 @@ function getEntityName(entity: SURefEntity): string {
   return 'name' in entity ? (entity.name as string) : ''
 }
 
-function getEntityId(entity: SURefEntity): string {
+export function getEntityId(entity: SURefEntity): string {
   return 'id' in entity ? (entity.id as string) : ''
 }
 

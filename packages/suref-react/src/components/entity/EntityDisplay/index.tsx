@@ -1,12 +1,8 @@
 import { memo } from 'react'
 import type { ReactNode } from 'react'
-import type {
-  SURefEntity,
-  SURefEnumSchemaName,
-  SURefObjectPatternSystemModule,
-} from 'salvageunion-reference'
+import type { SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
 import { EntityDisplayContent } from './components/EntityDisplayContent'
-import type { ClassAbilitiesRenderer } from './entityDisplayTypes'
+import type { ClassAbilitiesRenderer, PatternOverrideData } from './entityDisplayTypes'
 import type { GuideStepsInteractiveConfig } from '../GuideStepsDisplay'
 import type { EntityControl } from './entityControlTypes'
 
@@ -38,19 +34,13 @@ type EntityDisplayProps = {
   /** Optional renderer for class abilities section */
   classAbilitiesRenderer?: ClassAbilitiesRenderer
   /** Optional pattern override — when set, display uses this pattern name as title and renders its systems/modules */
-  patternOverride?: {
-    name: string
-    systems: SURefObjectPatternSystemModule[]
-    modules: SURefObjectPatternSystemModule[]
-  }
+  patternOverride?: PatternOverrideData
   /** Whether to hide the stats/right content in the header */
   hideStats?: boolean
   /** Whether to hide the entity's own content blocks (description) */
   hideContent?: boolean
   /** Controls to render in the header (add, delete, detail, etc.) */
   controls?: EntityControl[]
-  /** Whether the entity is selected (green ring on card) */
-  selected?: boolean
   /** Interactive config for guide entities — threads through to GuideStepsDisplay */
   interactive?: GuideStepsInteractiveConfig
 }
@@ -73,7 +63,6 @@ export const EntityDisplay = memo(function EntityDisplay({
   hideStats = false,
   hideContent = false,
   controls,
-  selected,
   interactive,
 }: EntityDisplayProps) {
   if (!data) return null
@@ -107,7 +96,6 @@ export const EntityDisplay = memo(function EntityDisplay({
       hideStats={hideStats}
       hideContent={hideContent}
       controls={controls}
-      selected={selected}
       interactive={interactive}
     >
       {children}
