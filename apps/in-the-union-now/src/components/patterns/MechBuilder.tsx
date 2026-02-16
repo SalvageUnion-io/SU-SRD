@@ -1,6 +1,5 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
 import { SalvageUnionReference, getChassisAbilities, getAssetUrl } from 'salvageunion-reference'
-import type { SURefChassis } from 'salvageunion-reference'
 import {
   DisplayCard,
   EntityDisplay,
@@ -13,23 +12,13 @@ import {
   deleteControl,
   useDetailModal,
 } from 'suref-react'
-import {
-  ImageOff,
-  Eye,
-  EyeOff,
-  ImagePlus,
-  Replace,
-  X,
-  Save,
-  Trash2,
-  Copy,
-  Crosshair,
-} from 'lucide-react'
+import { Eye, EyeOff, Save, Trash2, Copy, Crosshair } from 'lucide-react'
 import { Button } from '../ui/button'
 import { EntitySelectionModal } from './EntitySelectionModal'
 import type { BuilderSchemaName } from './EntitySelectionModal'
 import { PatternSelectionModal } from './PatternSelectionModal'
 import { EmptySlotCard } from './EmptySlotCard'
+import { PatternImageSlot } from './PatternImageSlot'
 import type { BuilderState, ResolvedItem } from '../../lib/builderUtils'
 import {
   resolvePatternItems,
@@ -57,8 +46,10 @@ type MechBuilderProps = {
   // Shared
   onDelete?: () => void
   onCopy?: () => void
+  onSaveToPatterns?: () => void
   isDeleting?: boolean
   isCopying?: boolean
+  isSavingToPatterns?: boolean
   readOnly?: boolean
   compact?: boolean
   hideFooterToggles?: boolean
@@ -69,7 +60,6 @@ const TAG_BUTTON_BASE =
   'inline-flex items-center gap-1 border border-su-black font-mono font-bold uppercase leading-none transition-opacity hover:opacity-80'
 const TAG_BUTTON = `${TAG_BUTTON_BASE} bg-su-white px-1 py-0 text-base text-su-black`
 const TAG_BUTTON_SM = `${TAG_BUTTON_BASE} bg-su-white px-1 py-0 text-xs text-su-black`
-const TAG_BUTTON_SM_DANGER = `${TAG_BUTTON_BASE} bg-su-rust px-1 py-0 text-xs text-su-white`
 
 const emptyState: BuilderState = {
   name: '',
@@ -90,9 +80,11 @@ export function MechBuilder({
   saveStatus,
   onDelete,
   onCopy,
+  onSaveToPatterns,
   isSaving,
   isDeleting,
   isCopying,
+  isSavingToPatterns,
   readOnly,
   compact,
   hideFooterToggles,
@@ -239,6 +231,14 @@ export function MechBuilder({
                     <PatternNameInput value={state.name} onChange={setName} compact={compact} />
                   )}
                   <div className={`flex flex-wrap items-center ${compact ? 'gap-0.5' : 'gap-1'}`}>
+                    {salvageValue.isLegalStartingMech && (
+                      <span
+                        className={`inline-flex shrink-0 whitespace-nowrap border border-su-black bg-su-rust px-1 font-mono font-bold uppercase tracking-tight text-white ${compact ? 'text-xs font-normal' : 'text-base font-semibold'}`}
+                        style={{ lineHeight: 1 }}
+                      >
+                        Legal Starting Mech
+                      </span>
+                    )}
                     <ValueDisplay label={`${chassis.name} Chassis`} compact={compact} />
                     {!readOnly && (
                       <>
@@ -257,14 +257,6 @@ export function MechBuilder({
                           Apply Pattern
                         </button>
                       </>
-                    )}
-                    {salvageValue.isLegalStartingMech && (
-                      <ValueDisplay
-                        label="Legal Starting Mech"
-                        compact={compact}
-                        bgColor="rgb(140, 75, 56)"
-                        textColor="rgb(255, 255, 255)"
-                      />
                     )}
                   </div>
                 </div>
@@ -399,6 +391,17 @@ export function MechBuilder({
                     {isCopying ? 'Copying...' : 'Copy'}
                   </button>
                 )}
+                {onSaveToPatterns && (
+                  <button
+                    type="button"
+                    onClick={onSaveToPatterns}
+                    disabled={isSavingToPatterns}
+                    className="inline-flex cursor-pointer items-center gap-1.5 rounded-md bg-su-green px-3 py-1.5 font-mono text-sm font-semibold uppercase text-su-white transition-colors hover:bg-emerald-600 disabled:pointer-events-none disabled:opacity-50"
+                  >
+                    <Save className="h-3.5 w-3.5" />
+                    {isSavingToPatterns ? 'Saving...' : 'Save to My Patterns'}
+                  </button>
+                )}
               </div>
             </div>
           ) : (
@@ -477,10 +480,11 @@ export function MechBuilder({
       >
         <div className={compact ? 'px-2 pt-2 pb-2' : 'px-4 pt-3 pb-4'}>
           {/* Floated image — content flows around it */}
-          <MechBuilderImageSlot
-            chassis={chassis}
+          <PatternImageSlot
+            defaultImageUrl={chassis ? getAssetUrl(chassis) : undefined}
             customImageUrl={state.customImageUrl}
             onSetCustomImage={setCustomImage}
+            alt={chassis?.name}
             readOnly={readOnly}
             compact={compact}
           />
@@ -701,99 +705,5 @@ function PatternNameInput({
         {hasValue && <span className="select-none">&rdquo;</span>}
       </Text>
     </span>
-  )
-}
-
-function MechBuilderImageSlot({
-  chassis,
-  customImageUrl,
-  onSetCustomImage,
-  readOnly,
-  compact,
-}: {
-  chassis: SURefChassis | undefined
-  customImageUrl: string | null
-  onSetCustomImage: (url: string | null) => void
-  readOnly?: boolean
-  compact?: boolean
-}) {
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const chassisAssetUrl = chassis ? getAssetUrl(chassis) : undefined
-  const displayUrl = customImageUrl ?? chassisAssetUrl
-  const hasCustomImage = !!customImageUrl
-
-  function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-    // Create a local object URL for preview (future: upload to Supabase Storage)
-    const url = URL.createObjectURL(file)
-    onSetCustomImage(url)
-    e.target.value = ''
-  }
-
-  return (
-    <div
-      className="shrink-0 align-top md:float-left md:mr-4 md:mb-4"
-      style={{ width: compact ? '180px' : '300px', maxWidth: '100%', shapeOutside: 'margin-box' }}
-    >
-      <div className="group relative aspect-square overflow-hidden rounded border border-dashed border-su-grey-light/50 bg-su-grey-light/10">
-        {displayUrl ? (
-          <img
-            src={displayUrl}
-            alt={chassis?.name ?? 'Pattern image'}
-            className="h-full w-full object-contain"
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center text-su-grey-dark/30">
-            <ImageOff className="h-12 w-12" />
-          </div>
-        )}
-
-        {/* Hover overlay */}
-        {!readOnly && (
-          <div className="absolute inset-0 flex items-center justify-center gap-2 bg-su-black/50 opacity-0 transition-opacity group-hover:opacity-100">
-            {hasCustomImage ? (
-              <>
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className={TAG_BUTTON_SM}
-                >
-                  <Replace className="h-3 w-3" />
-                  Change
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onSetCustomImage(null)}
-                  className={TAG_BUTTON_SM_DANGER}
-                >
-                  <X className="h-3 w-3" />
-                  Remove
-                </button>
-              </>
-            ) : (
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className={TAG_BUTTON_SM}
-              >
-                <ImagePlus className="h-3 w-3" />
-                Add Image
-              </button>
-            )}
-          </div>
-        )}
-
-        {!readOnly && (
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleFileSelect}
-            className="hidden"
-          />
-        )}
-      </div>
-    </div>
   )
 }

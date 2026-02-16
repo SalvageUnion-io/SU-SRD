@@ -166,7 +166,7 @@ export function DataValueDisplayView({
   }
 
   if (item.type === 'meta') {
-    const isRecommended = item.label === 'Recommended'
+    const useRustBg = item.label === 'Recommended' || item.label === 'Legal Starting Mech'
     return (
       <ValueDisplay
         label={item.label}
@@ -174,9 +174,9 @@ export function DataValueDisplayView({
         inline={false}
         damaged={damaged}
         rotation={valueRotation}
-        bgColor={isRecommended ? 'var(--color-su-rust)' : undefined}
-        textColor={isRecommended ? 'var(--color-su-white)' : undefined}
-        borderColor={isRecommended ? 'var(--color-su-rust)' : undefined}
+        bgColor={useRustBg ? 'var(--color-su-rust)' : undefined}
+        textColor={useRustBg ? 'var(--color-su-white)' : undefined}
+        borderColor={useRustBg ? 'var(--color-su-rust)' : undefined}
       />
     )
   }

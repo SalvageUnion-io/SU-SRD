@@ -18,6 +18,7 @@ import { Route as AuthenticatedPilotsPilotIdRouteImport } from './routes/_authen
 import { Route as AuthenticatedPatternsNewRouteImport } from './routes/_authenticated/patterns/new'
 import { Route as AuthenticatedPatternsPatternIdRouteImport } from './routes/_authenticated/patterns/$patternId'
 import { Route as AuthenticatedPilotsPilotIdIndexRouteImport } from './routes/_authenticated/pilots/$pilotId/index'
+import { Route as AuthenticatedPilotsPilotIdMechBayRouteImport } from './routes/_authenticated/pilots/$pilotId/mech-bay'
 import { Route as AuthenticatedPilotsPilotIdCreateMechRouteImport } from './routes/_authenticated/pilots/$pilotId/create-mech'
 
 const LoginRoute = LoginRouteImport.update({
@@ -68,6 +69,12 @@ const AuthenticatedPilotsPilotIdIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedPilotsPilotIdRoute,
   } as any)
+const AuthenticatedPilotsPilotIdMechBayRoute =
+  AuthenticatedPilotsPilotIdMechBayRouteImport.update({
+    id: '/mech-bay',
+    path: '/mech-bay',
+    getParentRoute: () => AuthenticatedPilotsPilotIdRoute,
+  } as any)
 const AuthenticatedPilotsPilotIdCreateMechRoute =
   AuthenticatedPilotsPilotIdCreateMechRouteImport.update({
     id: '/create-mech',
@@ -84,6 +91,7 @@ export interface FileRoutesByFullPath {
   '/pilots/$pilotId': typeof AuthenticatedPilotsPilotIdRouteWithChildren
   '/pilots/new': typeof AuthenticatedPilotsNewRoute
   '/pilots/$pilotId/create-mech': typeof AuthenticatedPilotsPilotIdCreateMechRoute
+  '/pilots/$pilotId/mech-bay': typeof AuthenticatedPilotsPilotIdMechBayRoute
   '/pilots/$pilotId/': typeof AuthenticatedPilotsPilotIdIndexRoute
 }
 export interface FileRoutesByTo {
@@ -94,6 +102,7 @@ export interface FileRoutesByTo {
   '/patterns/new': typeof AuthenticatedPatternsNewRoute
   '/pilots/new': typeof AuthenticatedPilotsNewRoute
   '/pilots/$pilotId/create-mech': typeof AuthenticatedPilotsPilotIdCreateMechRoute
+  '/pilots/$pilotId/mech-bay': typeof AuthenticatedPilotsPilotIdMechBayRoute
   '/pilots/$pilotId': typeof AuthenticatedPilotsPilotIdIndexRoute
 }
 export interface FileRoutesById {
@@ -107,6 +116,7 @@ export interface FileRoutesById {
   '/_authenticated/pilots/$pilotId': typeof AuthenticatedPilotsPilotIdRouteWithChildren
   '/_authenticated/pilots/new': typeof AuthenticatedPilotsNewRoute
   '/_authenticated/pilots/$pilotId/create-mech': typeof AuthenticatedPilotsPilotIdCreateMechRoute
+  '/_authenticated/pilots/$pilotId/mech-bay': typeof AuthenticatedPilotsPilotIdMechBayRoute
   '/_authenticated/pilots/$pilotId/': typeof AuthenticatedPilotsPilotIdIndexRoute
 }
 export interface FileRouteTypes {
@@ -120,6 +130,7 @@ export interface FileRouteTypes {
     | '/pilots/$pilotId'
     | '/pilots/new'
     | '/pilots/$pilotId/create-mech'
+    | '/pilots/$pilotId/mech-bay'
     | '/pilots/$pilotId/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -130,6 +141,7 @@ export interface FileRouteTypes {
     | '/patterns/new'
     | '/pilots/new'
     | '/pilots/$pilotId/create-mech'
+    | '/pilots/$pilotId/mech-bay'
     | '/pilots/$pilotId'
   id:
     | '__root__'
@@ -142,6 +154,7 @@ export interface FileRouteTypes {
     | '/_authenticated/pilots/$pilotId'
     | '/_authenticated/pilots/new'
     | '/_authenticated/pilots/$pilotId/create-mech'
+    | '/_authenticated/pilots/$pilotId/mech-bay'
     | '/_authenticated/pilots/$pilotId/'
   fileRoutesById: FileRoutesById
 }
@@ -216,6 +229,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPilotsPilotIdIndexRouteImport
       parentRoute: typeof AuthenticatedPilotsPilotIdRoute
     }
+    '/_authenticated/pilots/$pilotId/mech-bay': {
+      id: '/_authenticated/pilots/$pilotId/mech-bay'
+      path: '/mech-bay'
+      fullPath: '/pilots/$pilotId/mech-bay'
+      preLoaderRoute: typeof AuthenticatedPilotsPilotIdMechBayRouteImport
+      parentRoute: typeof AuthenticatedPilotsPilotIdRoute
+    }
     '/_authenticated/pilots/$pilotId/create-mech': {
       id: '/_authenticated/pilots/$pilotId/create-mech'
       path: '/create-mech'
@@ -228,6 +248,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedPilotsPilotIdRouteChildren {
   AuthenticatedPilotsPilotIdCreateMechRoute: typeof AuthenticatedPilotsPilotIdCreateMechRoute
+  AuthenticatedPilotsPilotIdMechBayRoute: typeof AuthenticatedPilotsPilotIdMechBayRoute
   AuthenticatedPilotsPilotIdIndexRoute: typeof AuthenticatedPilotsPilotIdIndexRoute
 }
 
@@ -235,6 +256,8 @@ const AuthenticatedPilotsPilotIdRouteChildren: AuthenticatedPilotsPilotIdRouteCh
   {
     AuthenticatedPilotsPilotIdCreateMechRoute:
       AuthenticatedPilotsPilotIdCreateMechRoute,
+    AuthenticatedPilotsPilotIdMechBayRoute:
+      AuthenticatedPilotsPilotIdMechBayRoute,
     AuthenticatedPilotsPilotIdIndexRoute: AuthenticatedPilotsPilotIdIndexRoute,
   }
 

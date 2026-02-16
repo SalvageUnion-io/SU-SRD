@@ -6,6 +6,7 @@ import { DisplayCard, ValueDisplay, SectionSeparator, Text, navigateControl } fr
 import type { EntityControl } from 'suref-react'
 import { useAuthStore } from '../../stores/authStore'
 import { usePilots, usePilotAbilityCounts } from '../../hooks/usePilots'
+import { useMech } from '../../hooks/useMechs'
 import { Skeleton } from '../ui/skeleton'
 import { EMPTY_SLOT_CLASSES } from '../patterns/emptySlotClasses'
 import type { PilotRow } from '../../types/common'
@@ -75,11 +76,19 @@ export function PilotSection() {
 
 function PilotListing({ pilot, abilityCount }: { pilot: PilotRow; abilityCount: number }) {
   const navigate = useNavigate()
+  const { data: mech } = useMech(pilot.mech_id ?? undefined)
 
   const pilotClassName = useMemo(() => {
     const cls = SalvageUnionReference.get('classes', pilot.class_ref)
     return cls?.name ?? 'Unknown'
   }, [pilot.class_ref])
+
+  const mechLabel = useMemo(() => {
+    if (!mech) return undefined
+    const chassis = SalvageUnionReference.Chassis.find((c) => c.id === mech.chassis_ref)
+    if (!chassis) return undefined
+    return `${chassis.name} \u201C${mech.pattern_name ?? 'Unnamed'}\u201D`
+  }, [mech])
 
   const handleNavigate = useCallback(() => {
     navigate({ to: '/pilots/$pilotId', params: { pilotId: pilot.id } })
@@ -101,6 +110,14 @@ function PilotListing({ pilot, abilityCount }: { pilot: PilotRow; abilityCount: 
         <div className="flex flex-wrap items-center gap-1">
           <ValueDisplay label="Class" value={pilotClassName} compact />
           <ValueDisplay label="Abilities" value={abilityCount} compact />
+          {mechLabel && (
+            <span
+              className="inline-flex shrink-0 cursor-default whitespace-nowrap border border-su-black px-1 font-mono text-xs font-normal uppercase leading-none text-su-white"
+              style={{ backgroundColor: 'rgb(122, 151, 138)' }}
+            >
+              {mechLabel}
+            </span>
+          )}
         </div>
       </div>
       <ControlButtons controls={controls} />

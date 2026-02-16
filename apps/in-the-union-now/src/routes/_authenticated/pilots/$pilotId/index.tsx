@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { SalvageUnionReference, isHybridClass } from 'salvageunion-reference'
+import { SalvageUnionReference, isHybridClass, getAssetUrl } from 'salvageunion-reference'
 import type { EntitySchemaName, SURefEntity } from 'salvageunion-reference'
 import {
   DisplayCard,
@@ -9,6 +9,7 @@ import {
   StatDisplay,
   Text,
   ValueDisplay,
+  navigateControl,
   useDetailModal,
 } from 'suref-react'
 import { toast } from 'sonner'
@@ -20,14 +21,11 @@ import {
   useUpdatePilot,
   useDeletePilot,
 } from '../../../../hooks/usePilots'
-import { useMech, useMechEntityRefs, useUpdateMechLoadout } from '../../../../hooks/useMechs'
+import { useMech } from '../../../../hooks/useMechs'
 import { useAutosave } from '../../../../hooks/useAutosave'
 import { useSaveStatus } from '../../../../hooks/useSaveStatus'
-import { entityRefsToBuilderState, builderStateToPatchOps } from '../../../../lib/mechUtils'
-import { patternToBuilderState, builderToCreateInput } from '../../../../lib/builderUtils'
-import type { BuilderState } from '../../../../lib/builderUtils'
 import { getPatternAccess } from '../../../../lib/patternAccess'
-import { MechBuilder } from '../../../../components/patterns/MechBuilder'
+import { PatternImageSlot } from '../../../../components/patterns/PatternImageSlot'
 import { Button } from '../../../../components/ui/button'
 import { Input } from '../../../../components/ui/input'
 import { Skeleton } from '../../../../components/ui/skeleton'
@@ -55,54 +53,11 @@ function PilotDetailPage() {
   const updatePilot = useUpdatePilot()
   const deletePilot = useDeletePilot()
   const [showDelete, setShowDelete] = useState(false)
+  const [customPilotImage, setCustomPilotImage] = useState<string | null>(null)
 
-  // Mech autosave — lifted from PilotMechSection
   const { data: mech } = useMech(pilot?.mech_id ?? undefined)
-  const { data: mechRefs } = useMechEntityRefs(pilot?.mech_id ?? undefined)
-  const updateLoadout = useUpdateMechLoadout()
-  const [mechBuilderState, setMechBuilderState] = useState<BuilderState | null>(null)
 
-  const canMechAutosave =
-    !!user &&
-    !!mech &&
-    !!mechRefs &&
-    mechBuilderState !== null &&
-    builderToCreateInput(mechBuilderState) !== null
-
-  const handleMechAutosave = useCallback(
-    (state: BuilderState | null) => {
-      if (!user || !mech || !mechRefs || !state) return
-      const newState = patternToBuilderState({
-        name: state.name,
-        chassis_ref: state.chassisRef!,
-        description: state.description || null,
-        visible: state.visible,
-        pattern_items: state.items,
-      })
-      const ops = builderStateToPatchOps(mechRefs, newState, mech.id, user.id)
-      updateLoadout.mutate(
-        {
-          mechId: mech.id,
-          userId: user.id,
-          inserts: ops.inserts,
-          deleteIds: ops.deleteIds,
-        },
-        {
-          onSuccess: () => toast.success('Mech loadout saved', { id: 'mech-autosave' }),
-          onError: (err) => toast.error(getErrorMessage(err)),
-        }
-      )
-    },
-    [user, mech, mechRefs, updateLoadout]
-  )
-
-  useAutosave({
-    value: mechBuilderState,
-    onSave: handleMechAutosave,
-    enabled: canMechAutosave,
-  })
-
-  const mechSaveStatus = useSaveStatus({ isSaving: updateLoadout.isPending })
+  const pilotSaveStatus = useSaveStatus({ isSaving: updatePilot.isPending })
 
   const pilotClass = useMemo(
     () => (pilot ? SalvageUnionReference.get('classes', pilot.class_ref) : undefined),
@@ -115,10 +70,13 @@ function PilotDetailPage() {
     [pilotRefs]
   )
 
-  const mechInitialState = useMemo(() => {
-    if (!mech || !mechRefs) return null
-    return entityRefsToBuilderState(mech, mechRefs)
-  }, [mech, mechRefs])
+  const mechChassis = useMemo(
+    () => (mech ? SalvageUnionReference.Chassis.find((c) => c.id === mech.chassis_ref) : undefined),
+    [mech]
+  )
+  const mechLabel = mechChassis
+    ? `${mechChassis.name} \u201C${mech!.pattern_name ?? 'Unnamed'}\u201D`
+    : undefined
 
   if (isLoading) {
     return (
@@ -145,12 +103,21 @@ function PilotDetailPage() {
 
   const canEdit = access.canEdit
 
-  function handleStatChange(field: 'hp' | 'ap' | 'tp', newValue: number) {
+  const saveStatusText = pilotSaveStatus.statusText
+
+  function handlePilotUpdate(input: Partial<PilotUpdate>) {
     if (!user) return
     updatePilot.mutate(
-      { pilotId: pilot!.id, input: { [field]: newValue }, userId: user.id },
-      { onError: (err) => toast.error(getErrorMessage(err)) }
+      { pilotId: pilot!.id, input, userId: user.id },
+      {
+        onSuccess: () => toast.success('Pilot updated'),
+        onError: (err) => toast.error(getErrorMessage(err)),
+      }
     )
+  }
+
+  function handleStatChange(field: 'hp' | 'ap' | 'tp', newValue: number) {
+    handlePilotUpdate({ [field]: newValue })
   }
 
   function handleDelete() {
@@ -168,11 +135,7 @@ function PilotDetailPage() {
   }
 
   function handleToggleVisibility() {
-    if (!user) return
-    updatePilot.mutate(
-      { pilotId: pilot!.id, input: { visible: !pilot!.visible }, userId: user.id },
-      { onError: (err) => toast.error(getErrorMessage(err)) }
-    )
+    handlePilotUpdate({ visible: !pilot!.visible })
   }
 
   return (
@@ -189,6 +152,20 @@ function PilotDetailPage() {
               <div className="flex flex-wrap items-center gap-1">
                 <ValueDisplay label="Class" value={pilotClassName} compact />
                 <ValueDisplay label="Abilities" value={abilityCount} compact />
+                {mechLabel && (
+                  <span className="inline-flex shrink-0 cursor-default whitespace-nowrap border border-su-black">
+                    <span className="bg-su-black px-1 font-mono text-xs font-normal uppercase leading-none text-su-white">
+                      {mechLabel}
+                    </span>
+                    <button
+                      type="button"
+                      className="cursor-pointer px-1 font-mono text-xs font-normal uppercase leading-none text-su-white transition-opacity hover:opacity-80"
+                      style={{ backgroundColor: 'rgb(122, 151, 138)' }}
+                    >
+                      Load in
+                    </button>
+                  </span>
+                )}
               </div>
             </div>
             <div className="flex items-center gap-1">
@@ -228,10 +205,8 @@ function PilotDetailPage() {
                   {pilot.visible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                   <span>{pilot.visible ? 'Visible' : 'Hidden'}</span>
                 </button>
-                {mechSaveStatus.statusText && (
-                  <span className="font-mono text-xs text-su-white/70">
-                    {mechSaveStatus.statusText}
-                  </span>
+                {saveStatusText && (
+                  <span className="font-mono text-xs text-su-white/70">{saveStatusText}</span>
                 )}
               </div>
               <button
@@ -246,15 +221,19 @@ function PilotDetailPage() {
           ) : undefined
         }
       >
-        <div className="flex flex-col gap-4 p-4">
-          <PilotPersonalInfo pilot={pilot} readOnly={!canEdit} />
-          <PilotEntityRefs refs={pilotRefs ?? []} />
-          <PilotMechSection
-            pilot={pilot}
-            readOnly={!canEdit}
-            mechInitialState={mechInitialState}
-            onMechChange={setMechBuilderState}
+        <div className="p-4">
+          <PatternImageSlot
+            defaultImageUrl={pilotClass ? getAssetUrl(pilotClass) : undefined}
+            customImageUrl={customPilotImage}
+            onSetCustomImage={setCustomPilotImage}
+            alt={pilot.callsign}
           />
+          <div className="space-y-4">
+            <PilotPersonalInfo pilot={pilot} readOnly={!canEdit} onUpdate={handlePilotUpdate} />
+            <PilotMechSection pilot={pilot} readOnly={!canEdit} />
+            <PilotEntityRefs refs={pilotRefs ?? []} />
+          </div>
+          <div className="clear-both" />
         </div>
       </DisplayCard>
 
@@ -345,32 +324,29 @@ function PilotStatControl({
 // Personal Info (editable inline or read-only)
 // ---------------------------------------------------------------------------
 
-function PilotPersonalInfo({ pilot, readOnly }: { pilot: PilotRow; readOnly?: boolean }) {
-  const updatePilot = useUpdatePilot()
-  const user = useAuthStore((s) => s.user)
-
+function PilotPersonalInfo({
+  pilot,
+  readOnly,
+  onUpdate,
+}: {
+  pilot: PilotRow
+  readOnly?: boolean
+  onUpdate: (input: Partial<PilotUpdate>) => void
+}) {
   const handleFieldBlur = useCallback(
     (field: keyof PilotUpdate, value: string) => {
-      if (!user) return
       const currentValue = pilot[field as keyof PilotRow] ?? ''
       if (value === currentValue) return
-      updatePilot.mutate(
-        { pilotId: pilot.id, input: { [field]: value || null }, userId: user.id },
-        { onError: (err) => toast.error(getErrorMessage(err)) }
-      )
+      onUpdate({ [field]: value || null })
     },
-    [pilot, user, updatePilot]
+    [pilot, onUpdate]
   )
 
   const handleToggleUsed = useCallback(
     (field: 'background_used' | 'motto_used' | 'keepsake_used', currentValue: boolean | null) => {
-      if (!user) return
-      updatePilot.mutate(
-        { pilotId: pilot.id, input: { [field]: !currentValue }, userId: user.id },
-        { onError: (err) => toast.error(getErrorMessage(err)) }
-      )
+      onUpdate({ [field]: !currentValue })
     },
-    [pilot.id, user, updatePilot]
+    [onUpdate]
   )
 
   return (
@@ -382,7 +358,7 @@ function PilotPersonalInfo({ pilot, readOnly }: { pilot: PilotRow; readOnly?: bo
           value={pilot.background ?? ''}
           used={pilot.background_used}
           readOnly={readOnly}
-          onBlur={(v) => handleFieldBlur('background', v)}
+          onSave={(v) => handleFieldBlur('background', v)}
           onToggleUsed={() => handleToggleUsed('background_used', pilot.background_used)}
         />
         <PersonalField
@@ -390,7 +366,7 @@ function PilotPersonalInfo({ pilot, readOnly }: { pilot: PilotRow; readOnly?: bo
           value={pilot.motto ?? ''}
           used={pilot.motto_used}
           readOnly={readOnly}
-          onBlur={(v) => handleFieldBlur('motto', v)}
+          onSave={(v) => handleFieldBlur('motto', v)}
           onToggleUsed={() => handleToggleUsed('motto_used', pilot.motto_used)}
         />
         <PersonalField
@@ -398,14 +374,14 @@ function PilotPersonalInfo({ pilot, readOnly }: { pilot: PilotRow; readOnly?: bo
           value={pilot.keepsake ?? ''}
           used={pilot.keepsake_used}
           readOnly={readOnly}
-          onBlur={(v) => handleFieldBlur('keepsake', v)}
+          onSave={(v) => handleFieldBlur('keepsake', v)}
           onToggleUsed={() => handleToggleUsed('keepsake_used', pilot.keepsake_used)}
         />
         <PersonalField
           label="Appearance"
           value={pilot.appearance ?? ''}
           readOnly={readOnly}
-          onBlur={(v) => handleFieldBlur('appearance', v)}
+          onSave={(v) => handleFieldBlur('appearance', v)}
         />
       </div>
     </div>
@@ -417,17 +393,22 @@ function PersonalField({
   value,
   used,
   readOnly,
-  onBlur,
+  onSave,
   onToggleUsed,
 }: {
   label: string
   value: string
   used?: boolean | null
   readOnly?: boolean
-  onBlur: (value: string) => void
+  onSave: (value: string) => void
   onToggleUsed?: () => void
 }) {
   const [localValue, setLocalValue] = useState(value)
+  const { flush } = useAutosave({
+    value: localValue,
+    onSave,
+    delay: 1000,
+  })
 
   if (readOnly) {
     return (
@@ -450,19 +431,21 @@ function PersonalField({
           <button
             type="button"
             onClick={onToggleUsed}
-            className="flex items-center gap-1 text-xs text-su-grey-dark hover:text-su-orange transition-colors"
+            className="inline-flex shrink-0 cursor-pointer border border-su-black"
           >
-            <div
-              className={`h-3 w-3 rounded-full border ${used ? 'border-green-500 bg-green-500' : 'border-su-grey-dark'}`}
-            />
-            {used ? 'Used' : 'Unused'}
+            <span className="inline-flex h-full w-[1.1em] items-center justify-center bg-su-white font-mono text-xs font-bold leading-none text-su-black">
+              {used ? 'X' : '\u00A0'}
+            </span>
+            <span className="bg-su-black px-1 font-mono text-xs font-bold uppercase leading-none text-su-white">
+              Used
+            </span>
           </button>
         )}
       </div>
       <Input
         value={localValue}
         onChange={(e) => setLocalValue(e.target.value)}
-        onBlur={() => onBlur(localValue)}
+        onBlur={flush}
         placeholder={`Enter ${label.toLowerCase()}...`}
         className="h-8 text-sm"
       />
@@ -527,21 +510,21 @@ function PilotEntityRefListing({ entity }: { entity: SURefEntity }) {
 }
 
 // ---------------------------------------------------------------------------
-// Mech Section (inline editing with autosave via parent)
+// Mech Section (compact listing like dashboard)
 // ---------------------------------------------------------------------------
 
-function PilotMechSection({
-  pilot,
-  readOnly,
-  mechInitialState,
-  onMechChange,
-}: {
-  pilot: PilotRow
-  readOnly?: boolean
-  mechInitialState: BuilderState | null
-  onMechChange: (state: BuilderState) => void
-}) {
+function PilotMechSection({ pilot, readOnly }: { pilot: PilotRow; readOnly?: boolean }) {
   const navigate = useNavigate()
+  const { data: mech, isLoading: mechLoading } = useMech(pilot.mech_id ?? undefined)
+
+  const chassis = useMemo(
+    () => (mech ? SalvageUnionReference.Chassis.find((c) => c.id === mech.chassis_ref) : undefined),
+    [mech]
+  )
+
+  const handleNavigateToMechBay = useCallback(() => {
+    navigate({ to: '/pilots/$pilotId/mech-bay', params: { pilotId: pilot.id } })
+  }, [navigate, pilot.id])
 
   return (
     <div className="space-y-3">
@@ -565,24 +548,21 @@ function PilotMechSection({
             </Button>
           </div>
         )
-      ) : mechInitialState ? (
-        readOnly ? (
-          <MechBuilder initialState={mechInitialState} readOnly compact hideFooterToggles />
-        ) : (
-          <MechBuilder
-            initialState={mechInitialState}
-            onChange={onMechChange}
-            hideFooter
-            compact
-            hideFooterToggles
-          />
-        )
-      ) : (
-        <div className="flex flex-col gap-2">
-          <Skeleton className="h-8 w-48" />
-          <Skeleton className="h-48 w-full" />
-        </div>
-      )}
+      ) : mechLoading ? (
+        <Skeleton className="h-[40px] rounded-md" />
+      ) : mech && chassis ? (
+        <EntityDisplay
+          data={chassis}
+          listing
+          compact
+          patternOverride={{
+            name: mech.pattern_name ?? 'Unnamed Mech',
+            systems: [],
+            modules: [],
+          }}
+          controls={[navigateControl(handleNavigateToMechBay)]}
+        />
+      ) : null}
     </div>
   )
 }
