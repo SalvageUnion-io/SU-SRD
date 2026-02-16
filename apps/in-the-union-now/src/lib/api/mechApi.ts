@@ -1,7 +1,7 @@
 import { supabase } from '../supabase'
 import { handleSupabaseError } from '../errors'
 import { computeMechStatsFromRef, patternItemsToEntityRefs } from '../mechUtils'
-import type { MechRow, EntityRefRow, EntityRefInsert } from '../../types/common'
+import type { MechRow, MechUpdate, EntityRefRow, EntityRefInsert } from '../../types/common'
 import type { InstantiateMechInput } from '../../types/common'
 
 export async function instantiateMechFromPattern(
@@ -48,6 +48,18 @@ export async function instantiateMechFromPattern(
   if (linkError) handleSupabaseError(linkError)
 
   return mech!
+}
+
+export async function updateMech(mechId: string, input: MechUpdate): Promise<MechRow> {
+  const { data, error } = await supabase
+    .from('mechs')
+    .update(input)
+    .eq('id', mechId)
+    .select()
+    .single()
+
+  if (error) handleSupabaseError(error)
+  return data!
 }
 
 export async function getMechById(mechId: string): Promise<MechRow> {

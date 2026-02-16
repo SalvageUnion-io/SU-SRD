@@ -3207,6 +3207,8 @@
   },
   {
     "id": "907d2ca2-f355-458f-9852-8923f19ab1af",
+    "actionType": "Turn",
+    "activationCost": 2,
     "traits": [
       {
         "type": "uses",

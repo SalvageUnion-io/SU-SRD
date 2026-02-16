@@ -10,7 +10,7 @@ import {
   useDetailModal,
 } from 'suref-react'
 import type { EntityControl } from 'suref-react'
-import { Play } from 'lucide-react'
+import { Play, RotateCcw } from 'lucide-react'
 import { toast } from 'sonner'
 import { extractPilotActions, getGeneralActions } from '../../lib/pilotActionUtils'
 import type { ActionDisplayData } from '../../lib/pilotActionUtils'
@@ -19,6 +19,7 @@ import {
   getActionDisabledReason,
   getPilotTraits,
   decrementActionUses,
+  refillActionUses,
 } from '../../lib/actionUsesUtils'
 import type { EntityRefRow, EntityRefUpdate, PilotRow, PilotUpdate } from '../../types/common'
 
@@ -73,6 +74,20 @@ export function PilotActionsSection({
     [pilot.callsign, pilot.ap, refs, onUpdatePilot, onUpdateEntityRef]
   )
 
+  const handleRefillAction = useCallback(
+    (action: ActionDisplayData) => {
+      if (action.maxUses === null || !action.entityRefId) return
+      const ref = refs.find((r) => r.id === action.entityRefId)
+      if (!ref) return
+      const newMetadata = refillActionUses(action.actionName, action.maxUses, ref.metadata)
+      onUpdateEntityRef(action.entityRefId, { metadata: newMetadata })
+      toast(`Refilled ${action.name}`, {
+        style: { borderColor: action.borderColor, borderWidth: '2px' },
+      })
+    },
+    [refs, onUpdateEntityRef]
+  )
+
   if (sortedActions.length === 0 && passives.length === 0 && sortedGeneralActions.length === 0) {
     return null
   }
@@ -91,6 +106,7 @@ export function PilotActionsSection({
                 pilotTraits={pilotTraits}
                 readOnly={readOnly}
                 onUse={handleUseAction}
+                onRefill={handleRefillAction}
               />
             ))}
           </div>
@@ -102,7 +118,12 @@ export function PilotActionsSection({
           <SectionSeparator label="Passives" fontSize="text-sm" />
           <div className="mt-2 flex flex-col gap-2">
             {passives.map((passive) => (
-              <PassiveListing key={passive.entity.id} entity={passive.entity} />
+              <PassiveListing
+                key={passive.entity.id}
+                entity={passive.entity}
+                readOnly={readOnly}
+                callsign={pilot.callsign}
+              />
             ))}
           </div>
         </div>
@@ -120,6 +141,7 @@ export function PilotActionsSection({
                 pilotTraits={pilotTraits}
                 readOnly={readOnly}
                 onUse={handleUseAction}
+                onRefill={handleRefillAction}
               />
             ))}
           </div>
@@ -174,7 +196,11 @@ function findTraitEntity(
   return entity ? { id: entity.id, schemaName: 'traits' as SURefEnumSchemaName } : null
 }
 
-function buildFooterMessage(disabledReason: string, action: ActionDisplayData): ReactNode {
+function buildFooterMessage(
+  disabledReason: string,
+  action: ActionDisplayData,
+  onRefill?: () => void
+): ReactNode {
   const missingTrait = action.requiredTraits.find((trait) =>
     disabledReason.toLowerCase().includes(trait.toLowerCase())
   )
@@ -206,6 +232,23 @@ function buildFooterMessage(disabledReason: string, action: ActionDisplayData): 
     )
   }
 
+  if (onRefill) {
+    return (
+      <span className="flex items-center gap-1.5">
+        {disabledReason}
+        <button
+          type="button"
+          onClick={onRefill}
+          className="inline-flex cursor-pointer items-center gap-0.5 rounded bg-su-black px-1.5 py-0.5 font-mono text-xs text-su-white transition-opacity hover:opacity-80"
+          aria-label="Refill uses"
+        >
+          <RotateCcw className="h-3 w-3" />
+          Refill
+        </button>
+      </span>
+    )
+  }
+
   return disabledReason
 }
 
@@ -219,9 +262,10 @@ type ActionItemProps = {
   pilotTraits: Set<string>
   readOnly: boolean
   onUse: (action: ActionDisplayData) => void
+  onRefill: (action: ActionDisplayData) => void
 }
 
-function ActionItem({ action, pilot, pilotTraits, readOnly, onUse }: ActionItemProps) {
+function ActionItem({ action, pilot, pilotTraits, readOnly, onUse, onRefill }: ActionItemProps) {
   const disabledReason = computeDisabledReason(action, pilot, pilotTraits)
 
   const controls: EntityControl[] = []
@@ -239,7 +283,12 @@ function ActionItem({ action, pilot, pilotTraits, readOnly, onUse }: ActionItemP
     })
   }
 
-  const footerMessage = disabledReason ? buildFooterMessage(disabledReason, action) : undefined
+  const canRefill =
+    !readOnly && disabledReason === 'Out of uses' && action.entityRefId && action.maxUses !== null
+
+  const footerMessage = disabledReason
+    ? buildFooterMessage(disabledReason, action, canRefill ? () => onRefill(action) : undefined)
+    : undefined
 
   return (
     <div className="mb-2 break-inside-avoid">
@@ -253,12 +302,34 @@ function ActionItem({ action, pilot, pilotTraits, readOnly, onUse }: ActionItemP
   )
 }
 
-function PassiveListing({ entity }: { entity: SURefEntity }) {
+type PassiveListingProps = {
+  entity: SURefEntity
+  readOnly: boolean
+  callsign: string
+}
+
+function PassiveListing({ entity, readOnly, callsign }: PassiveListingProps) {
   const detailModal = useDetailModal(entity)
+  const name = 'name' in entity ? String(entity.name) : 'passive'
+
+  const controls: EntityControl[] = []
+  if (!readOnly) {
+    controls.push({
+      key: 'use',
+      icon: Play,
+      label: 'Use',
+      ariaLabel: 'Use passive',
+      variant: 'primary',
+      onClick: () => {
+        toast(`${callsign} used ${name}`)
+      },
+    })
+  }
+  controls.push(detailModal.control)
 
   return (
     <>
-      <EntityDisplay data={entity} listing compact controls={[detailModal.control]} />
+      <EntityDisplay data={entity} listing compact controls={controls} />
       {detailModal.modal}
     </>
   )

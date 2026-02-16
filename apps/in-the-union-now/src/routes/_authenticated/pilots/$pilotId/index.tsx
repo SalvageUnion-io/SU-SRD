@@ -12,7 +12,12 @@ import {
   useDeletePilot,
   useUpdateEntityRef,
 } from '../../../../hooks/usePilots'
-import { useMech } from '../../../../hooks/useMechs'
+import {
+  useMech,
+  useMechEntityRefs,
+  useUpdateMech,
+  useUpdateMechEntityRef,
+} from '../../../../hooks/useMechs'
 import { useSaveStatus } from '../../../../hooks/useSaveStatus'
 import { getEntityAccess } from '../../../../lib/entityAccess'
 import { findChassisById } from '../../../../lib/entityHelpers'
@@ -35,7 +40,8 @@ import { PilotPersonalInfo } from '../../../../components/pilots/PilotPersonalIn
 import { PilotEntityRefs } from '../../../../components/pilots/PilotEntityRefs'
 import { PilotMechSection } from '../../../../components/pilots/PilotMechSection'
 import { PilotActionsSection } from '../../../../components/pilots/PilotActionsSection'
-import type { EntityRefUpdate, PilotUpdate } from '../../../../types/common'
+import { MechActionsSection } from '../../../../components/pilots/MechActionsSection'
+import type { EntityRefUpdate, MechUpdate, PilotUpdate } from '../../../../types/common'
 
 export const Route = createFileRoute('/_authenticated/pilots/$pilotId/')({
   component: PilotDetailPage,
@@ -53,9 +59,16 @@ function PilotDetailPage() {
   const [showDelete, setShowDelete] = useState(false)
 
   const { data: mech, isLoading: mechLoading } = useMech(pilot?.mech_id ?? undefined)
+  const { data: mechRefs } = useMechEntityRefs(mech?.id)
+  const updateMech = useUpdateMech()
+  const updateMechEntityRef = useUpdateMechEntityRef()
 
   const pilotSaveStatus = useSaveStatus({
-    isSaving: updatePilot.isPending || updateEntityRef.isPending,
+    isSaving:
+      updatePilot.isPending ||
+      updateEntityRef.isPending ||
+      updateMech.isPending ||
+      updateMechEntityRef.isPending,
   })
 
   const pilotClass = useMemo(
@@ -73,15 +86,51 @@ function PilotDetailPage() {
   const chassisName = mechChassis?.name
   const patternName = mech?.pattern_name ? `\u201C${mech.pattern_name}\u201D` : undefined
 
+  // Deduplicated save toast — uses a fixed ID so rapid saves don't spam
+  const showSaveToast = useCallback(() => {
+    toast.success('Saved', { id: 'autosave', duration: 1500 })
+  }, [])
+
   const handleUpdateEntityRef = useCallback(
     (refId: string, input: EntityRefUpdate) => {
       if (!pilot) return
       updateEntityRef.mutate(
         { refId, input, pilotId: pilot.id },
-        { onError: (err) => toast.error(getErrorMessage(err)) }
+        {
+          onSuccess: showSaveToast,
+          onError: (err) => toast.error(getErrorMessage(err)),
+        }
       )
     },
-    [pilot, updateEntityRef]
+    [pilot, updateEntityRef, showSaveToast]
+  )
+
+  const handleUpdateMech = useCallback(
+    (input: Partial<MechUpdate>) => {
+      if (!mech) return
+      updateMech.mutate(
+        { mechId: mech.id, input },
+        {
+          onSuccess: showSaveToast,
+          onError: (err) => toast.error(getErrorMessage(err)),
+        }
+      )
+    },
+    [mech, updateMech, showSaveToast]
+  )
+
+  const handleUpdateMechEntityRef = useCallback(
+    (refId: string, input: EntityRefUpdate) => {
+      if (!mech) return
+      updateMechEntityRef.mutate(
+        { refId, input, mechId: mech.id },
+        {
+          onSuccess: showSaveToast,
+          onError: (err) => toast.error(getErrorMessage(err)),
+        }
+      )
+    },
+    [mech, updateMechEntityRef, showSaveToast]
   )
 
   if (isLoading) return <PageSkeleton />
@@ -100,7 +149,10 @@ function PilotDetailPage() {
     if (!user) return
     updatePilot.mutate(
       { pilotId: pilot!.id, input, userId: user.id },
-      { onError: (err) => toast.error(getErrorMessage(err)) }
+      {
+        onSuccess: showSaveToast,
+        onError: (err) => toast.error(getErrorMessage(err)),
+      }
     )
   }
 
@@ -248,6 +300,15 @@ function PilotDetailPage() {
               onUpdatePilot={handlePilotUpdate}
               onUpdateEntityRef={handleUpdateEntityRef}
             />
+            {mech && mechRefs && (
+              <MechActionsSection
+                mechRefs={mechRefs}
+                mech={mech}
+                readOnly={!canEdit}
+                onUpdateMech={handleUpdateMech}
+                onUpdateMechEntityRef={handleUpdateMechEntityRef}
+              />
+            )}
             <PilotEntityRefs refs={pilotRefs ?? []} />
           </div>
         </div>

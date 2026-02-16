@@ -8,6 +8,8 @@ import {
   getPilotEntityRefs,
   listAbilityCountsByPilotIds,
   updateEntityRef,
+  listPilotsByCrawlerId,
+  assignPilotToCrawler,
 } from '../lib/api/pilotApi'
 import type { CreatePilotInput, EntityRefUpdate, PilotRow, PilotUpdate } from '../types/common'
 
@@ -19,6 +21,7 @@ export const pilotKeys = {
   detail: (id: string) => [...pilotKeys.details(), id] as const,
   entityRefs: (pilotId: string) => [...pilotKeys.all, 'entityRefs', pilotId] as const,
   abilityCounts: (pilotIds: string[]) => [...pilotKeys.all, 'abilityCounts', ...pilotIds] as const,
+  forCrawler: (crawlerId: string) => [...pilotKeys.all, 'crawler', crawlerId] as const,
 }
 
 export function usePilots(userId: string | undefined) {
@@ -97,6 +100,40 @@ export function useDeletePilot() {
     mutationFn: ({ pilotId }: { pilotId: string; userId: string }) => deletePilot(pilotId),
     onSuccess: (_data, { userId }) => {
       queryClient.invalidateQueries({ queryKey: pilotKeys.list(userId) })
+    },
+  })
+}
+
+export function usePilotsForCrawler(crawlerId: string | undefined) {
+  return useQuery({
+    queryKey: pilotKeys.forCrawler(crawlerId ?? ''),
+    queryFn: () => listPilotsByCrawlerId(crawlerId!),
+    enabled: !!crawlerId,
+  })
+}
+
+export function useAssignPilotToCrawler() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({
+      pilotId,
+      crawlerId,
+    }: {
+      pilotId: string
+      crawlerId: string | null
+      userId: string
+      oldCrawlerId?: string
+    }) => assignPilotToCrawler(pilotId, crawlerId),
+    onSuccess: (data: PilotRow, { userId, crawlerId, oldCrawlerId }) => {
+      queryClient.invalidateQueries({ queryKey: pilotKeys.list(userId) })
+      queryClient.setQueryData(pilotKeys.detail(data.id), data)
+      if (crawlerId) {
+        queryClient.invalidateQueries({ queryKey: pilotKeys.forCrawler(crawlerId) })
+      }
+      if (oldCrawlerId) {
+        queryClient.invalidateQueries({ queryKey: pilotKeys.forCrawler(oldCrawlerId) })
+      }
     },
   })
 }

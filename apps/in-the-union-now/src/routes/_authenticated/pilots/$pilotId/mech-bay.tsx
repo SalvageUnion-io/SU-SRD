@@ -46,7 +46,7 @@ function MechBayPage() {
           deleteIds: ops.deleteIds,
         },
         {
-          onSuccess: () => toast.success('Mech loadout saved', { id: 'mech-autosave' }),
+          onSuccess: () => toast.success('Saved', { id: 'autosave', duration: 1500 }),
           onError: (err) => toast.error(getErrorMessage(err)),
         }
       )

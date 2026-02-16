@@ -5,7 +5,7 @@ import {
   getRequiredTraits,
 } from 'salvageunion-reference'
 import type { Json } from '../types/database-generated.types'
-import type { EntityRefRow, PilotRow } from '../types/common'
+import type { EntityRefRow, MechRow, PilotRow } from '../types/common'
 
 /**
  * Get the numeric AP activation cost from an action.
@@ -50,6 +50,25 @@ export function getRemainingUses(actionName: string, refMetadata: Json | null): 
   if (!parsed.actionUses) return null
   const remaining = parsed.actionUses[actionName]
   return typeof remaining === 'number' ? remaining : null
+}
+
+/**
+ * Compute new metadata JSON after refilling an action's uses back to max.
+ * Preserves other metadata keys.
+ */
+export function refillActionUses(
+  actionName: string,
+  maxUses: number,
+  currentMetadata: Json | null
+): Json {
+  const parsed = parseMetadata(currentMetadata)
+  return {
+    ...parsed,
+    actionUses: {
+      ...parsed.actionUses,
+      [actionName]: maxUses,
+    },
+  } as unknown as Json
 }
 
 /**
@@ -102,6 +121,36 @@ export function getActionDisabledReason(opts: DisabledReasonOptions): string | n
   const cost = getActionActivationCost(action)
   if (cost !== null && pilot.ap < cost) {
     return 'Not enough AP'
+  }
+
+  // Check uses
+  const effectiveRemaining = usesRemaining ?? maxUses
+  if (effectiveRemaining !== null && effectiveRemaining <= 0) {
+    return 'Out of uses'
+  }
+
+  return null
+}
+
+type MechDisabledReasonOptions = {
+  action: SURefMetaAction
+  mech: MechRow
+  usesRemaining: number | null
+  maxUses: number | null
+}
+
+/**
+ * Determine why a mech action can't be used, or null if it can.
+ * Checks EP cost against mech.current_ep and uses remaining.
+ * No trait checks — mech actions don't require pilot traits.
+ */
+export function getMechActionDisabledReason(opts: MechDisabledReasonOptions): string | null {
+  const { action, mech, usesRemaining, maxUses } = opts
+
+  // Check EP cost
+  const cost = getActionActivationCost(action)
+  if (cost !== null && mech.current_ep < cost) {
+    return 'Not enough EP'
   }
 
   // Check uses

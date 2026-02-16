@@ -1,22 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { SectionSeparator } from 'suref-react'
 import { PatternSection } from '../../components/patterns/PatternSection'
 import { PilotSection } from '../../components/pilots/PilotSection'
+import { GameSection } from '../../components/games/GameSection'
 
 export const Route = createFileRoute('/_authenticated/')({
   component: Dashboard,
 })
-
-function DashboardSection({ title, description }: { title: string; description: string }) {
-  return (
-    <div className="rounded-md border border-su-grey-light/30 p-4">
-      <div className="mb-2">
-        <SectionSeparator label={title} fontSize="text-sm" />
-      </div>
-      <p className="text-sm text-su-grey-dark">{description}</p>
-    </div>
-  )
-}
 
 function Dashboard() {
   return (
@@ -30,10 +19,7 @@ function Dashboard() {
 
       <PatternSection />
 
-      <DashboardSection
-        title="Crawlers"
-        description="No crawlers yet. Crawlers are created when starting a campaign."
-      />
+      <GameSection />
     </div>
   )
 }

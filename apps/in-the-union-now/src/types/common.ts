@@ -73,3 +73,25 @@ export type InstantiateMechInput = {
   pattern_name?: string
   pattern_items: PatternItem[]
 }
+
+// Campaign insert/update types
+export type CampaignInsert = Database['public']['Tables']['campaigns']['Insert']
+export type CampaignUpdate = Database['public']['Tables']['campaigns']['Update']
+export type CampaignMemberInsert = Database['public']['Tables']['campaign_members']['Insert']
+
+// Bay NPC data for crawler JSONB field
+export type BayNpcData = {
+  name?: string
+  background?: string
+  motto?: string
+  keepsake?: string
+}
+
+// Crawler creation input (from wizard → API)
+export type CreateCrawlerInput = {
+  crawler_ref: string
+  name?: string
+  tag?: string
+  weapon_ref?: { schema_name: 'systems'; schema_ref_id: string }
+  bay_npcs?: Record<string, BayNpcData>
+}

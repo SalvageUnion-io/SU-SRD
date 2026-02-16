@@ -24,18 +24,26 @@ type ActionDisplayProps = {
   footerMessage?: ReactNode
 }
 
+const DISABLED_PALE_BG = 'rgb(220, 220, 220)'
+const DISABLED_BORDER = 'rgb(150, 150, 150)'
+
 export function ActionDisplay({ data, controls, disabled, footerMessage }: ActionDisplayProps) {
   return (
     <div
-      className={cn('overflow-hidden rounded-md', disabled && 'opacity-50')}
-      style={{ border: `2px solid ${data.borderColor}` }}
+      className="overflow-hidden rounded-md"
+      style={{ border: `2px solid ${disabled ? DISABLED_BORDER : data.borderColor}` }}
     >
       <DisplayCard
         headerBg=""
-        headerBgColor={data.paleBackgroundColor}
+        headerBgColor={disabled ? DISABLED_PALE_BG : data.paleBackgroundColor}
         mode="compact"
         headerContent={
-          <div className="flex w-full items-start justify-between gap-2">
+          <div
+            className={cn(
+              'flex w-full items-start justify-between gap-2',
+              disabled && 'opacity-50'
+            )}
+          >
             <div className="flex min-w-0 flex-col gap-0.5">
               <Text variant="pseudoheader" as="span" className="text-base uppercase">
                 {data.name}
@@ -85,28 +93,30 @@ export function ActionDisplay({ data, controls, disabled, footerMessage }: Actio
         footerContent={
           <div className="flex w-full items-center justify-between">
             {footerMessage ? (
-              <span className="text-xs italic text-su-grey-dark">{footerMessage}</span>
+              <span className="text-xs italic text-su-black">{footerMessage}</span>
             ) : (
               <span />
             )}
-            <SourceEntityChip entity={data.sourceEntity} />
+            <SourceEntityChip entity={data.sourceEntity} dimmed={disabled} />
           </div>
         }
       >
-        {!disabled && data.content && data.content.length > 0 && (
-          <BlockContentRendererView
-            content={data.content}
-            fontSize="text-xs"
-            compact
-            damaged={false}
-          />
+        {data.content && data.content.length > 0 && (
+          <div className={cn(disabled && 'opacity-50')}>
+            <BlockContentRendererView
+              content={data.content}
+              fontSize="text-xs"
+              compact
+              damaged={false}
+            />
+          </div>
         )}
       </DisplayCard>
     </div>
   )
 }
 
-function SourceEntityChip({ entity }: { entity: SURefEntity }) {
+function SourceEntityChip({ entity, dimmed }: { entity: SURefEntity; dimmed?: boolean }) {
   const { control, modal } = useDetailModal(entity)
   const name = 'name' in entity ? String(entity.name) : 'Source'
 
@@ -115,7 +125,10 @@ function SourceEntityChip({ entity }: { entity: SURefEntity }) {
       <button
         type="button"
         onClick={control.onClick}
-        className="cursor-pointer rounded-sm bg-su-black px-2 py-0.5 font-mono text-xs text-su-white transition-opacity hover:opacity-80"
+        className={cn(
+          'cursor-pointer rounded-sm bg-su-black px-2 py-0.5 font-mono text-xs text-su-white transition-opacity hover:opacity-80',
+          dimmed && 'opacity-40'
+        )}
       >
         {name}{' '}
         <span aria-hidden="true" className="leading-none">

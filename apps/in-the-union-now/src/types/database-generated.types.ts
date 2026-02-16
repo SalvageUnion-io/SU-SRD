@@ -171,6 +171,7 @@ export type Database = {
       crawlers: {
         Row: {
           active: boolean
+          bay_npcs: Json
           crawler_ref: string
           created_at: string
           current_sp: number
@@ -193,6 +194,7 @@ export type Database = {
         }
         Insert: {
           active?: boolean
+          bay_npcs?: Json
           crawler_ref: string
           created_at?: string
           current_sp?: number
@@ -215,6 +217,7 @@ export type Database = {
         }
         Update: {
           active?: boolean
+          bay_npcs?: Json
           crawler_ref?: string
           created_at?: string
           current_sp?: number

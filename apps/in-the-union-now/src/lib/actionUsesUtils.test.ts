@@ -8,6 +8,7 @@ import {
   getActionMaxUses,
   getRemainingUses,
   decrementActionUses,
+  refillActionUses,
   getActionDisabledReason,
   getPilotTraits,
 } from './actionUsesUtils'
@@ -163,6 +164,40 @@ describe('decrementActionUses', () => {
     const actionUses = result.actionUses as Record<string, number>
     expect(actionUses['Other Action']).toBe(2)
     expect(actionUses['Area Salvage']).toBe(4)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// refillActionUses
+// ---------------------------------------------------------------------------
+describe('refillActionUses', () => {
+  test('sets uses back to max from zero', () => {
+    const metadata = { actionUses: { 'Area Salvage': 0 } } as unknown as Json
+    const result = refillActionUses('Area Salvage', 5, metadata)
+    expect(result).toEqual({ actionUses: { 'Area Salvage': 5 } })
+  })
+
+  test('sets uses back to max from partial', () => {
+    const metadata = { actionUses: { 'Area Salvage': 2 } } as unknown as Json
+    const result = refillActionUses('Area Salvage', 5, metadata)
+    expect(result).toEqual({ actionUses: { 'Area Salvage': 5 } })
+  })
+
+  test('works with null metadata', () => {
+    const result = refillActionUses('Area Salvage', 5, null)
+    expect(result).toEqual({ actionUses: { 'Area Salvage': 5 } })
+  })
+
+  test('preserves other metadata keys', () => {
+    const metadata = {
+      someOtherKey: 'value',
+      actionUses: { 'Other Action': 2, 'Area Salvage': 0 },
+    } as unknown as Json
+    const result = refillActionUses('Area Salvage', 5, metadata) as Record<string, unknown>
+    expect(result.someOtherKey).toBe('value')
+    const actionUses = result.actionUses as Record<string, number>
+    expect(actionUses['Other Action']).toBe(2)
+    expect(actionUses['Area Salvage']).toBe(5)
   })
 })
 

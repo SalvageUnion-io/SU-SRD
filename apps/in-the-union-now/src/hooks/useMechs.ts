@@ -4,9 +4,17 @@ import {
   getMechById,
   getMechEntityRefs,
   updateMechEntityRefs,
+  updateMech,
 } from '../lib/api/mechApi'
+import { updateEntityRef } from '../lib/api/pilotApi'
 import { pilotKeys } from './usePilots'
-import type { EntityRefInsert, InstantiateMechInput } from '../types/common'
+import type {
+  EntityRefInsert,
+  EntityRefUpdate,
+  InstantiateMechInput,
+  MechRow,
+  MechUpdate,
+} from '../types/common'
 
 export const mechKeys = {
   all: ['mechs'] as const,
@@ -50,6 +58,30 @@ export function useInstantiateMech() {
       // Invalidate pilot detail (now has mech_id)
       queryClient.invalidateQueries({ queryKey: pilotKeys.detail(pilotId) })
       queryClient.invalidateQueries({ queryKey: pilotKeys.list(userId) })
+    },
+  })
+}
+
+export function useUpdateMech() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ mechId, input }: { mechId: string; input: MechUpdate }) =>
+      updateMech(mechId, input),
+    onSuccess: (data: MechRow) => {
+      queryClient.setQueryData(mechKeys.detail(data.id), data)
+    },
+  })
+}
+
+export function useUpdateMechEntityRef() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ refId, input }: { refId: string; input: EntityRefUpdate; mechId: string }) =>
+      updateEntityRef(refId, input),
+    onSuccess: (_data, { mechId }) => {
+      queryClient.invalidateQueries({ queryKey: mechKeys.entityRefs(mechId) })
     },
   })
 }

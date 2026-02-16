@@ -112,7 +112,9 @@ function buildActionItems(
   const resolved = extractVisibleActions(entity)
   if (!resolved) return []
 
-  return resolved.map((action) => {
+  const usableActions = resolved.filter((a) => 'actionType' in a && a.actionType)
+
+  return usableActions.map((action) => {
     const currency = deriveActionCurrency(action, entity, schemaName)
     const dataValues = extractEntityDetails(action, 'actions' as SURefEnumSchemaName, currency)
     const activationCost = getActionActivationCost(action)
@@ -154,6 +156,42 @@ function buildActionItems(
       requiredTraits,
     }
   })
+}
+
+/**
+ * Extract mech actions from entity refs (systems + modules only).
+ * These actions cost EP instead of AP — currency is derived automatically
+ * by buildActionItems → deriveActionCurrency.
+ */
+export function extractMechActions(refs: EntityRefRow[]): ActionDisplayData[] {
+  const actions: ActionDisplayData[] = []
+
+  for (const ref of refs) {
+    const schemaName = ref.schema_name as SURefEnumSchemaName
+    if (schemaName !== 'systems' && schemaName !== 'modules') continue
+
+    const entity = SalvageUnionReference.get(schemaName, ref.schema_ref_id) as
+      | SURefEntity
+      | undefined
+    if (!entity) continue
+
+    const paleColor = computePaleColor(entity, schemaName)
+    const border = computeBorderColor(entity, schemaName)
+
+    actions.push(
+      ...buildActionItems(
+        entity,
+        schemaName,
+        `mech-${schemaName}-${ref.schema_ref_id}`,
+        paleColor,
+        border,
+        ref.id,
+        ref.metadata
+      )
+    )
+  }
+
+  return actions
 }
 
 /**

@@ -122,3 +122,29 @@ export async function getPilotEntityRefs(pilotId: string): Promise<EntityRefRow[
   if (error) handleSupabaseError(error)
   return data ?? []
 }
+
+export async function listPilotsByCrawlerId(crawlerId: string): Promise<PilotRow[]> {
+  const { data, error } = await supabase
+    .from('pilots')
+    .select('*')
+    .eq('crawler_id', crawlerId)
+    .order('callsign', { ascending: true })
+
+  if (error) handleSupabaseError(error)
+  return data ?? []
+}
+
+export async function assignPilotToCrawler(
+  pilotId: string,
+  crawlerId: string | null
+): Promise<PilotRow> {
+  const { data, error } = await supabase
+    .from('pilots')
+    .update({ crawler_id: crawlerId })
+    .eq('id', pilotId)
+    .select()
+    .single()
+
+  if (error) handleSupabaseError(error)
+  return data!
+}

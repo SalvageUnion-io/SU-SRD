@@ -46,7 +46,7 @@ function EditPatternPage() {
         { patternId, input, userId: user.id },
         {
           onSuccess: () => {
-            toast.success('Changes saved', { id: 'autosave' })
+            toast.success('Saved', { id: 'autosave', duration: 1500 })
           },
           onError: (err) => {
             toast.error(getErrorMessage(err))
