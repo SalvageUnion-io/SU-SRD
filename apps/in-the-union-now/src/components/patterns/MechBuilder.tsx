@@ -300,10 +300,10 @@ export function MechBuilder({
                 />
                 <StatDisplay
                   label={compact ? 'SV' : 'Salvage'}
-                  value={salvageValue.totalCost}
+                  value={salvageValue.totalTL1Cost}
                   outOfMax={startingMechMode ? STARTING_MECH_BUDGET : undefined}
                   isOverMax={startingMechMode ? !salvageValue.isLegalStartingMech : undefined}
-                  bottomLabel={compact ? '' : 'Value'}
+                  bottomLabel="TL1"
                   compact={compact}
                 />
               </div>

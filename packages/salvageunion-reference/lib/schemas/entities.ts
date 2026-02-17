@@ -22,6 +22,7 @@ import {
   AdvancedClassSchema,
   GuideStepSchema,
   GuideTypeSchema,
+  CrawlerMutationSchema,
 } from './objects.js'
 import { TreeSchema, ActionTypeSchema, DamageTypeSchema, SchemaNameSchema } from './enums.js'
 import {
@@ -167,6 +168,7 @@ export const CrawlerTechLevelSchema = BaseEntitySchema.extend({
 export const CrawlerSchema = BaseEntitySchema.extend({
   npc: NpcSchema,
   actions: z.array(z.string()),
+  mutations: z.array(CrawlerMutationSchema).optional(),
 }).strict()
 
 /**

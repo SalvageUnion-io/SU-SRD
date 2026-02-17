@@ -5,7 +5,13 @@ import { Text } from '../base/Text'
 import { BlockContentRendererView } from './BlockContentRendererView'
 import { RollTable } from '../shared/RollTable'
 import { borderColorFromHeaderBg } from './entityDisplayHelpers'
-import { getStepNumbers, matchesFilter, enrichForFiltering } from './guideStepsHelpers'
+import {
+  getStepNumbers,
+  matchesFilter,
+  enrichForFiltering,
+  sortGuideEntities,
+  balancedTwoColumnSplit,
+} from './guideStepsHelpers'
 import type { getEntityFontSizes, getEntitySpacing } from './EntityDisplay/entityDisplayTypes'
 import type { EntityControl } from './EntityDisplay/entityControlTypes'
 import { selectControl } from './EntityDisplay/entityControls'
@@ -51,6 +57,8 @@ export type GuideStepsInteractiveConfig = {
   ) => ReactNode
   renderFooter?: () => ReactNode
   renderStepHeaderExtra?: (step: SURefObjectGuideStep, index: number) => ReactNode
+  /** Render custom content for a step, replacing the entity grid + roll section */
+  renderStepContent?: (step: SURefObjectGuideStep, index: number) => ReactNode | undefined
 }
 
 // ---------------------------------------------------------------------------
@@ -79,23 +87,6 @@ type GuideStepsDisplayProps = {
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-/** Sort entities disabled by choice filtering (contextFrom) after enabled ones. */
-function sortDisabledAfterEnabled(
-  entities: { data: unknown; schemaName: string; disabled?: boolean }[]
-): { data: unknown; schemaName: string; disabled?: boolean }[] {
-  if (!entities.some((e) => e.disabled)) return entities
-  const enabled: typeof entities = []
-  const disabled: typeof entities = []
-  for (const entry of entities) {
-    if (entry.disabled) {
-      disabled.push(entry)
-    } else {
-      enabled.push(entry)
-    }
-  }
-  return [...enabled, ...disabled]
-}
 
 function resolveRollTableEntity(name: string) {
   return SalvageUnionReference.RollTables.find((rt) => rt.name === name) ?? null
@@ -185,7 +176,7 @@ function StepRollSection({
       {rollTableEntity && 'table' in rollTableEntity && rollTableEntity.table && (
         <div className="mt-2">
           {rollState && isRollStep && (
-            <div className="mb-2">
+            <div className={interactive?.renderRollInteraction ? '' : 'mb-2'}>
               {interactive?.renderRollInteraction ? (
                 interactive.renderRollInteraction(
                   step,
@@ -204,15 +195,17 @@ function StepRollSection({
               )}
             </div>
           )}
-          <RollTable
-            table={rollTableEntity.table as SURefObjectTable}
-            compact
-            showCommand
-            tableName={rollTableEntity.name}
-            onRollResult={
-              interactive ? (text) => interactive.onTextChange?.(step.id, text) : undefined
-            }
-          />
+          {!interactive?.renderRollInteraction && (
+            <RollTable
+              table={rollTableEntity.table as SURefObjectTable}
+              compact
+              showCommand
+              tableName={rollTableEntity.name}
+              onRollResult={
+                interactive ? (text) => interactive.onTextChange?.(step.id, text) : undefined
+              }
+            />
+          )}
         </div>
       )}
       {rollState && isRollStep && !rollTableEntity && (
@@ -293,7 +286,6 @@ export function GuideStepsDisplay({
         const selectionState = interactive?.getStepSelectionState?.(step) ?? null
         const rollState = interactive?.getStepRollState?.(step) ?? null
         const isRollStep = step.stepType === 'roll-table' || step.stepType === 'freeform'
-
         // --- Entity / content resolution ---
         const rollTableEntity = step.rollTable ? resolveRollTableEntity(step.rollTable) : null
         const resolvedEntities =
@@ -368,7 +360,13 @@ export function GuideStepsDisplay({
                   )}
                 >
                   {showStepNumbers && !isRight ? `${stepNumbers[index]}. ` : ''}
+                  {selectionState?.countBadge && isRight
+                    ? `[${selectionState.countBadge.current}/${selectionState.countBadge.max}] `
+                    : ''}
                   {step.name}
+                  {selectionState?.countBadge && !isRight
+                    ? ` [${selectionState.countBadge.current}/${selectionState.countBadge.max}]`
+                    : ''}
                   {showStepNumbers && isRight ? ` .${stepNumbers[index]}` : ''}
                 </Text>
                 {!isRight && interactive?.renderStepHeaderExtra?.(step, index)}
@@ -385,7 +383,7 @@ export function GuideStepsDisplay({
                   )}
                 >
                   <div className="flex flex-col items-center md:flex-1 min-w-0">
-                    {sortDisabledAfterEnabled(resolvedEntities).map(
+                    {sortGuideEntities(resolvedEntities).map(
                       ({ data, schemaName, disabled: entityDisabled }, i) => {
                         const entityId = (data as { id: string }).id
                         const { isGreyedOut, entityControls } = computeEntityInteractionState(
@@ -402,7 +400,7 @@ export function GuideStepsDisplay({
                               data,
                               schemaName,
                               `${step.id}-${schemaName}-${entityId}`,
-                              true,
+                              false,
                               true,
                               entityControls,
                               entityDisabled || isGreyedOut || isInactiveStep
@@ -448,65 +446,89 @@ export function GuideStepsDisplay({
                 />
               </>
             ) : (
-              <div
-                className={cn(isRight ? (compact ? 'pr-2' : 'pr-3') : compact ? 'pl-2' : 'pl-3')}
-                style={
-                  borderColor
-                    ? isRight
-                      ? { borderRight: `3px solid ${borderColor}` }
-                      : { borderLeft: `3px solid ${borderColor}` }
-                    : undefined
-                }
-              >
+              <div>
                 {stepContent && stepContent.length > 0 && (
-                  <BlockContentRendererView
-                    content={stepContent}
-                    fontSize={fontSize.sm}
-                    compact={compact}
-                    damaged={false}
-                    headerBg={headerBg}
-                    headerBgColor={headerBgColor}
-                  />
-                )}
-                {resolvedEntities.length > 0 && renderEntityListing && (
                   <div
                     className={cn(
-                      'grid gap-2 mt-2',
-                      compact ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+                      isRight ? (compact ? 'pr-2' : 'pr-3') : compact ? 'pl-2' : 'pl-3'
                     )}
+                    style={
+                      borderColor
+                        ? isRight
+                          ? { borderRight: `3px solid ${borderColor}` }
+                          : { borderLeft: `3px solid ${borderColor}` }
+                        : undefined
+                    }
                   >
-                    {sortDisabledAfterEnabled(resolvedEntities).map(
-                      ({ data, schemaName, disabled: entityDisabled }) => {
-                        const entityId = (data as { id: string }).id
-                        const { isGreyedOut, entityControls } = computeEntityInteractionState(
-                          step,
-                          entityId,
-                          schemaName,
-                          entityDisabled,
-                          selectionState,
-                          interactive
-                        )
-                        return renderEntityListing(
-                          data,
-                          schemaName,
-                          `${step.id}-${schemaName}-${entityId}`,
-                          true,
-                          undefined,
-                          entityControls,
-                          entityDisabled || isGreyedOut
-                        )
-                      }
-                    )}
+                    <BlockContentRendererView
+                      content={stepContent}
+                      fontSize={fontSize.sm}
+                      compact={compact}
+                      damaged={false}
+                      headerBg={headerBg}
+                      headerBgColor={headerBgColor}
+                    />
                   </div>
                 )}
+                {(() => {
+                  const customStepContent = interactive?.renderStepContent?.(step, index)
+                  if (customStepContent !== undefined) return customStepContent
+                  return (
+                    <>
+                      {resolvedEntities.length > 0 &&
+                        renderEntityListing &&
+                        (() => {
+                          const sorted = sortGuideEntities(resolvedEntities)
+                          const enriched = sorted.map((entity) => {
+                            const entityId = (entity.data as { id: string }).id
+                            const { isGreyedOut, entityControls } = computeEntityInteractionState(
+                              step,
+                              entityId,
+                              entity.schemaName,
+                              entity.disabled,
+                              selectionState,
+                              interactive
+                            )
+                            return { ...entity, entityId, isGreyedOut, entityControls }
+                          })
+                          const [left, right] = balancedTwoColumnSplit(enriched, () => false)
 
-                <StepRollSection
-                  step={step}
-                  rollTableEntity={rollTableEntity}
-                  rollState={rollState}
-                  isRollStep={isRollStep}
-                  interactive={interactive}
-                />
+                          const renderColumn = (items: typeof enriched) =>
+                            items.map((e) => (
+                              <div
+                                key={`${step.id}-${e.schemaName}-${e.entityId}`}
+                                className="mb-2"
+                              >
+                                {renderEntityListing(
+                                  e.data,
+                                  e.schemaName,
+                                  `${step.id}-${e.schemaName}-${e.entityId}`,
+                                  false,
+                                  true,
+                                  e.entityControls,
+                                  e.disabled || e.isGreyedOut
+                                )}
+                              </div>
+                            ))
+
+                          return (
+                            <div className="mt-2 flex gap-2">
+                              <div className="flex flex-1 flex-col">{renderColumn(left)}</div>
+                              <div className="flex flex-1 flex-col">{renderColumn(right)}</div>
+                            </div>
+                          )
+                        })()}
+
+                      <StepRollSection
+                        step={step}
+                        rollTableEntity={rollTableEntity}
+                        rollState={rollState}
+                        isRollStep={isRollStep}
+                        interactive={interactive}
+                      />
+                    </>
+                  )
+                })()}
               </div>
             )}
           </div>

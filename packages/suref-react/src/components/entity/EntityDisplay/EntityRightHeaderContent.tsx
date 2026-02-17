@@ -2,6 +2,7 @@ import { useCallback } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { isAbility } from 'salvageunion-reference'
 import { EntityStats } from './EntityStats'
+import type { SvOverride } from './EntityStats'
 import { useParseTraitReferences } from '../../../utils/parseTraitReferences'
 import { cn } from '../../../utils/cn'
 import type { getEntityFontSizes } from './entityDisplayTypes'
@@ -21,6 +22,7 @@ type EntityRightHeaderContentProps = {
   listing: boolean
   primaryStatsOnly?: boolean
   controls?: EntityControl[]
+  svOverride?: SvOverride
 }
 
 export function EntityRightHeaderContent({
@@ -31,6 +33,7 @@ export function EntityRightHeaderContent({
   listing,
   primaryStatsOnly = false,
   controls,
+  svOverride,
 }: EntityRightHeaderContentProps) {
   const description = 'description' in data ? data.description : undefined
   const parsedDescription = useParseTraitReferences(description)
@@ -55,7 +58,7 @@ export function EntityRightHeaderContent({
   )
 
   return (
-    <div className="flex gap-2">
+    <div className="flex gap-1">
       {abilityContent}
       <EntityStats
         data={data}
@@ -63,6 +66,7 @@ export function EntityRightHeaderContent({
         listing={listing}
         techLevel={techLevel}
         primaryOnly={primaryStatsOnly}
+        svOverride={svOverride}
       />
       {controls?.map((control) => {
         const variant = control.variant ?? 'ghost'

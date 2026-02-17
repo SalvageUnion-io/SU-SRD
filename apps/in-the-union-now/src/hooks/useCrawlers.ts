@@ -78,12 +78,14 @@ export function useUpdateCrawlerWeapon() {
       userId,
       oldRefId,
       newRef,
+      sortOrder,
     }: {
       crawlerId: string
       userId: string
       oldRefId: string | null
       newRef: { schema_name: 'systems'; schema_ref_id: string }
-    }) => updateCrawlerWeapon(crawlerId, userId, oldRefId, newRef),
+      sortOrder?: number
+    }) => updateCrawlerWeapon(crawlerId, userId, oldRefId, newRef, sortOrder),
     onSuccess: (_data, { crawlerId }) => {
       queryClient.invalidateQueries({ queryKey: crawlerKeys.entityRefs(crawlerId) })
     },

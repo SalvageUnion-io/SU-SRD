@@ -1,10 +1,92 @@
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { SalvageUnionReference, getWeaponSlotCount, getMaxSpBonus } from 'salvageunion-reference'
 import type { SURefObjectGuideStep } from 'salvageunion-reference'
-import type { WizardState } from './pilotUtils'
-import type { CreateCrawlerInput } from '../types/common'
+import { canSubmitWizard } from './pilotUtils'
+import type { WizardState, ConstraintOverride } from './pilotUtils'
+import type { BayNpcData, CreateCrawlerInput } from '../types/common'
 
 /** Roll table name used for crawler name step */
 const ROLL_TABLE_CRAWLER_NAME = 'Crawler Name'
+
+/** Choice field names mapped to BayNpcData keys */
+const CHOICE_NAME_TO_FIELD: Record<string, keyof BayNpcData> = {
+  Name: 'name',
+  Background: 'background',
+  Motto: 'motto',
+  Keepsake: 'keepsake',
+  'A.I. Personality': 'personality',
+}
+
+/**
+ * Constraint override for the crawler creation wizard.
+ * Resolves weapon step min/max from the selected crawler type's mutations.
+ */
+export const crawlerConstraintOverride: ConstraintOverride = (step, state, steps) => {
+  // Only override for the weapons (systems) step
+  if (step.schema?.[0] !== 'systems') return undefined
+  const crawlerTypeStep = steps.find(
+    (s) => s.stepType === 'select-one' && s.schema?.[0] === 'crawlers'
+  )
+  const crawlerRef = crawlerTypeStep
+    ? state.selections[crawlerTypeStep.id]?.selectedIds[0]
+    : undefined
+  const slotCount = crawlerRef ? getWeaponSlotCount(crawlerRef) : 1
+  return { min: slotCount, max: slotCount }
+}
+
+/** Check if all required steps are complete, including weapon slot validation. */
+export function canSubmitCrawlerWizard(state: WizardState, steps: SURefObjectGuideStep[]): boolean {
+  return canSubmitWizard(state, steps, crawlerConstraintOverride)
+}
+
+/**
+ * Extract bay_npcs from choiceValues.
+ * Maps choice UUIDs back to their parent entity (bay or crawler type)
+ * and builds BayNpcData records keyed by entity ID.
+ */
+export function extractBayNpcs(
+  choiceValues: Record<string, string>,
+  crawlerTypeId?: string
+): Record<string, BayNpcData> {
+  // Build a lookup: choiceId → { parentId, fieldKey }
+  const choiceMap = new Map<string, { parentId: string; field: keyof BayNpcData }>()
+
+  // Crawler type NPC
+  if (crawlerTypeId) {
+    const crawlerType = SalvageUnionReference.Crawlers.find((c) => c.id === crawlerTypeId)
+    if (crawlerType?.npc?.choices) {
+      for (const choice of crawlerType.npc.choices) {
+        const field = CHOICE_NAME_TO_FIELD[choice.name]
+        if (field) {
+          choiceMap.set(choice.id, { parentId: crawlerType.id, field })
+        }
+      }
+    }
+  }
+
+  // All bay NPCs
+  for (const bay of SalvageUnionReference.CrawlerBays.all()) {
+    if (bay.npc?.choices) {
+      for (const choice of bay.npc.choices) {
+        const field = CHOICE_NAME_TO_FIELD[choice.name]
+        if (field) {
+          choiceMap.set(choice.id, { parentId: bay.id, field })
+        }
+      }
+    }
+  }
+
+  // Build the result
+  const result: Record<string, BayNpcData> = {}
+  for (const [choiceId, value] of Object.entries(choiceValues)) {
+    const mapping = choiceMap.get(choiceId)
+    if (!mapping || !value.trim()) continue
+    const entry = result[mapping.parentId] ?? {}
+    entry[mapping.field] = value.trim()
+    result[mapping.parentId] = entry
+  }
+
+  return result
+}
 
 /**
  * Convert crawler wizard state → CreateCrawlerInput for the API layer.
@@ -18,7 +100,11 @@ export function crawlerWizardToCreateInput(
   const crawlerTypeStep = steps.find(
     (s) => s.stepType === 'select-one' && s.schema?.[0] === 'crawlers'
   )
-  const weaponStep = steps.find((s) => s.stepType === 'select-one' && s.schema?.[0] === 'systems')
+  const weaponStep = steps.find(
+    (s) =>
+      (s.stepType === 'select-one' || s.stepType === 'select-many') && s.schema?.[0] === 'systems'
+  )
+  const npcStep = steps.find((s) => s.stepType === 'freeform' && s.schema?.[0] === 'crawler-bays')
   const nameStep = steps.find(
     (s) => s.stepType === 'roll-table' && s.rollTable === ROLL_TABLE_CRAWLER_NAME
   )
@@ -28,7 +114,7 @@ export function crawlerWizardToCreateInput(
     : undefined
   if (!crawlerRef) return null
 
-  const weaponRef = weaponStep ? state.selections[weaponStep.id]?.selectedIds[0] : undefined
+  const weaponIds = weaponStep ? (state.selections[weaponStep.id]?.selectedIds ?? []) : []
 
   const nameText = nameStep ? state.selections[nameStep.id]?.textValue : undefined
 
@@ -52,29 +138,50 @@ export function crawlerWizardToCreateInput(
     }
   }
 
+  // Extract NPC choice values
+  const choiceValues = npcStep ? state.selections[npcStep.id]?.choiceValues : undefined
+  const bayNpcs = choiceValues ? extractBayNpcs(choiceValues, crawlerRef) : undefined
+
+  const weaponRefs =
+    weaponIds.length > 0
+      ? weaponIds.map((id) => ({ schema_name: 'systems' as const, schema_ref_id: id }))
+      : undefined
+
   return {
     crawler_ref: crawlerRef,
     name,
     tag,
-    weapon_ref: weaponRef
-      ? { schema_name: 'systems' as const, schema_ref_id: weaponRef }
-      : undefined,
+    weapon_ref: weaponRefs?.[0],
+    weapon_refs: weaponRefs,
+    bay_npcs: bayNpcs && Object.keys(bayNpcs).length > 0 ? bayNpcs : undefined,
   }
 }
 
-/** Get TL1 stats from the reference data */
-export function computeCrawlerStatsFromTechLevel(techLevel: number): {
+/** Get stats from the reference data for a given tech level, with optional crawler type SP bonus */
+export function computeCrawlerStatsFromTechLevel(
+  techLevel: number,
+  crawlerRef?: string
+): {
   max_sp: number
   upkeep: number
   upgrade_cost: number | null
 } {
   const tl = SalvageUnionReference.CrawlerTechLevels.find((t) => t.techLevel === techLevel)
+  const spBonus = crawlerRef ? getMaxSpBonus(crawlerRef) : 0
   return {
-    max_sp: tl?.structurePoints ?? 20,
+    max_sp: (tl?.structurePoints ?? 20) + spBonus,
     upkeep: tl?.upkeepCost ?? 5,
     upgrade_cost: tl?.upgradeCost ?? null,
   }
 }
+
+/** Check whether all available weapon slots are filled */
+export function areWeaponSlotsFilled(crawlerRef: string, weaponCount: number): boolean {
+  return weaponCount >= getWeaponSlotCount(crawlerRef)
+}
+
+// Re-export for convenience
+export { getWeaponSlotCount, getMaxSpBonus }
 
 /**
  * Compute scrap translation between tech levels.

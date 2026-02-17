@@ -22,6 +22,7 @@
           "id": "c7e2b66a-6b62-446d-90ff-11873089bfe0",
           "name": "A.I. Personality",
           "choiceType": "permanent",
+          "rollTable": "A.I. Personality",
           "content": [
             {
               "type": "paragraph",
@@ -104,6 +105,10 @@
       ]
     },
     "actions": ["Improved Armour and Armaments"],
+    "mutations": [
+      { "type": "weapon_slots", "value": 1 },
+      { "type": "max_sp_bonus", "value": 5 }
+    ],
     "page": 216,
     "content": [
       {

@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 import type { SURefEnumSource } from 'salvageunion-reference'
 import { cn } from '../../utils/cn'
 import { Text } from '../base/Text'
-import { borderColorFromHeaderBg, getSourceStyles } from '../entity/entityDisplayHelpers'
+import { getSourceStyles } from '../entity/entityDisplayHelpers'
 
 type DisplayCardMode = 'full' | 'compact' | 'listing'
 
@@ -69,7 +69,6 @@ export function DisplayCard({
   const isListing = mode === 'listing'
 
   const actualHeaderBg = headerBg
-  const borderColor = borderColorFromHeaderBg(actualHeaderBg, headerBgColor)
   const headerSourceStyles = getSourceStyles(source, false, 'header', isExpanded)
   const footerSourceStyles = getSourceStyles(source, false, 'footer', isExpanded)
 
@@ -84,6 +83,7 @@ export function DisplayCard({
   )
 
   const defaultBodyPadding = isCompact ? 'p-2' : 'p-3'
+  const borderWidth = isCompact || isListing ? 2 : 3
 
   return (
     <div
@@ -93,7 +93,9 @@ export function DisplayCard({
         disabled && 'opacity-50',
         className
       )}
-      style={borderColor && !isListing ? { borderBottom: `3px solid ${borderColor}` } : undefined}
+      style={
+        actualHeaderBg ? { border: `${isCompact || isListing ? 2 : 3}px solid black` } : undefined
+      }
     >
       {absoluteElements}
       {label && !isCompact && !isListing && (
@@ -115,60 +117,66 @@ export function DisplayCard({
         </Text>
       )}
 
-      {/* Header */}
+      {/* Inner wrapper clips backgrounds to border-radius */}
       <div
-        role={onClick ? 'button' : undefined}
-        tabIndex={onClick ? 0 : undefined}
-        className={cn(
-          'flex w-full items-center justify-between gap-2 overflow-visible',
-          isListing ? 'min-h-[40px] flex-1 rounded-md px-2 py-1' : 'rounded-t-sm',
-          !isListing && (isCompact ? 'min-h-[60px] px-1.5 py-1' : 'min-h-[80px] px-1.5 py-1.5'),
-          !isListing && !isCompact && label && 'pb-4 pt-4',
-          !isListing && isCompact && label && 'pt-2',
-          actualHeaderBg,
-          onClick && 'cursor-pointer',
-          headerSourceStyles.className
-        )}
-        style={{
-          opacity: headerOpacity,
-          ...(headerBgColor ? { backgroundColor: headerBgColor } : {}),
-          ...headerSourceStyles.style,
-        }}
-        onClick={onClick}
-        onKeyDown={onClick ? handleKeyDown : undefined}
-        data-testid={headerTestId}
+        className="flex flex-1 flex-col overflow-hidden"
+        style={{ borderRadius: `calc(0.375rem - ${borderWidth}px)` }}
       >
-        {headerContent}
-      </div>
-
-      {/* Body — hidden in listing mode */}
-      {!isListing && children && (
+        {/* Header */}
         <div
+          role={onClick ? 'button' : undefined}
+          tabIndex={onClick ? 0 : undefined}
           className={cn(
-            'flex w-full flex-1 flex-col bg-su-white',
-            bodyPadding || defaultBodyPadding
-          )}
-        >
-          {children}
-        </div>
-      )}
-
-      {/* Footer — hidden in listing mode */}
-      {!isListing && footerContent && (
-        <div
-          className={cn(
-            'flex w-full items-center justify-between rounded-b-sm px-3 py-2',
+            'flex w-full items-center justify-between gap-2 overflow-visible',
+            isListing ? 'min-h-[40px] flex-1 px-2 py-1' : '',
+            !isListing && (isCompact ? 'min-h-[60px] px-1.5 py-1' : 'min-h-[80px] px-1.5 py-1.5'),
+            !isListing && !isCompact && label && 'pb-4 pt-4',
+            !isListing && isCompact && label && 'pt-2',
             actualHeaderBg,
-            footerSourceStyles.className
+            onClick && 'cursor-pointer',
+            headerSourceStyles.className
           )}
           style={{
+            opacity: headerOpacity,
             ...(headerBgColor ? { backgroundColor: headerBgColor } : {}),
-            ...footerSourceStyles.style,
+            ...headerSourceStyles.style,
           }}
+          onClick={onClick}
+          onKeyDown={onClick ? handleKeyDown : undefined}
+          data-testid={headerTestId}
         >
-          {footerContent}
+          {headerContent}
         </div>
-      )}
+
+        {/* Body — hidden in listing mode */}
+        {!isListing && children && (
+          <div
+            className={cn(
+              'flex w-full flex-1 flex-col bg-su-white',
+              bodyPadding || defaultBodyPadding
+            )}
+          >
+            {children}
+          </div>
+        )}
+
+        {/* Footer — hidden in listing mode */}
+        {!isListing && footerContent && (
+          <div
+            className={cn(
+              'flex w-full items-center justify-between px-3 py-2',
+              actualHeaderBg,
+              footerSourceStyles.className
+            )}
+            style={{
+              ...(headerBgColor ? { backgroundColor: headerBgColor } : {}),
+              ...footerSourceStyles.style,
+            }}
+          >
+            {footerContent}
+          </div>
+        )}
+      </div>
     </div>
   )
 }

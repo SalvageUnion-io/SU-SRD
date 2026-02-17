@@ -599,6 +599,21 @@ export const GrantSchema = z
   .strict()
 
 /**
+ * Mutation type for crawler type bonuses (e.g. Battle crawler's extra weapon slot + SP)
+ */
+const CrawlerMutationTypeSchema = z.enum(['weapon_slots', 'max_sp_bonus'])
+
+/**
+ * A mutation applied by a crawler type that modifies game rules
+ */
+export const CrawlerMutationSchema = z
+  .object({
+    type: CrawlerMutationTypeSchema,
+    value: z.number().int(),
+  })
+  .strict()
+
+/**
  * Schema name (includes 'actions' as special case)
  */
 export const SchemaNameWithActionsSchema = z.union([SchemaNameSchema, z.literal('actions')])

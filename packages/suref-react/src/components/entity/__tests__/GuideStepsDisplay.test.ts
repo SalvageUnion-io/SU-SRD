@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'bun:test'
-import { getStepNumbers, matchesFilter, enrichForFiltering } from '../guideStepsHelpers'
+import {
+  getStepNumbers,
+  matchesFilter,
+  enrichForFiltering,
+  sortGuideEntities,
+} from '../guideStepsHelpers'
 import type { SURefObjectGuideStep } from 'salvageunion-reference'
 
 /** Helper to create a minimal step for testing */
@@ -161,5 +166,73 @@ describe('enrichForFiltering', () => {
     const entity = { name: 'Unknown', actions: ['Nonexistent Action XYZ'] }
     const enriched = enrichForFiltering(entity, 'systems')
     expect(enriched.hasDamage).toBe(false)
+  })
+})
+
+describe('sortGuideEntities', () => {
+  const makeEntity = (name: string, opts: { recommended?: boolean; disabled?: boolean } = {}) => ({
+    data: { name, ...(opts.recommended ? { recommended: true } : {}) },
+    schemaName: 'systems',
+    ...(opts.disabled ? { disabled: true } : {}),
+  })
+
+  it('should return the same array when no recommended or disabled entities', () => {
+    const entities = [makeEntity('A'), makeEntity('B'), makeEntity('C')]
+    const result = sortGuideEntities(entities)
+    expect(result).toBe(entities) // same reference, no copy
+  })
+
+  it('should sort recommended+active before active', () => {
+    const entities = [makeEntity('Normal'), makeEntity('Recommended', { recommended: true })]
+    const result = sortGuideEntities(entities)
+    const names = result.map((e) => (e.data as { name: string }).name)
+    expect(names).toEqual(['Recommended', 'Normal'])
+  })
+
+  it('should sort disabled after active', () => {
+    const entities = [makeEntity('Disabled', { disabled: true }), makeEntity('Active')]
+    const result = sortGuideEntities(entities)
+    const names = result.map((e) => (e.data as { name: string }).name)
+    expect(names).toEqual(['Active', 'Disabled'])
+  })
+
+  it('should sort recommended+active > active > disabled', () => {
+    const entities = [
+      makeEntity('Disabled', { disabled: true }),
+      makeEntity('Active'),
+      makeEntity('Recommended', { recommended: true }),
+    ]
+    const result = sortGuideEntities(entities)
+    expect(result.map((e) => (e.data as { name: string }).name)).toEqual([
+      'Recommended',
+      'Active',
+      'Disabled',
+    ])
+  })
+
+  it('should preserve relative order within the same tier (stable sort)', () => {
+    const entities = [
+      makeEntity('Rec-A', { recommended: true }),
+      makeEntity('Normal-A'),
+      makeEntity('Rec-B', { recommended: true }),
+      makeEntity('Normal-B'),
+    ]
+    const result = sortGuideEntities(entities)
+    expect(result.map((e) => (e.data as { name: string }).name)).toEqual([
+      'Rec-A',
+      'Rec-B',
+      'Normal-A',
+      'Normal-B',
+    ])
+  })
+
+  it('should treat disabled+recommended as disabled (disabled takes priority)', () => {
+    const entities = [
+      makeEntity('DisabledRec', { recommended: true, disabled: true }),
+      makeEntity('Active'),
+    ]
+    const result = sortGuideEntities(entities)
+    const names = result.map((e) => (e.data as { name: string }).name)
+    expect(names).toEqual(['Active', 'DisabledRec'])
   })
 })

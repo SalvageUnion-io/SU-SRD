@@ -459,9 +459,13 @@
       },
       {
         "id": "e6f7a8b9-c0d1-4234-5678-9abcdef01234",
-        "name": "Choose a Weapons System",
-        "stepType": "select-one",
+        "name": "Choose Weapons Systems",
+        "stepType": "select-many",
         "schema": ["systems"],
+        "dependsOn": ["7719034d-b2af-4e4b-a782-a951f43e0576"],
+        "constraints": {
+          "min": 1
+        },
         "filters": [
           {
             "field": "techLevel",
@@ -475,7 +479,7 @@
         "content": [
           {
             "type": "paragraph",
-            "value": "A Union Crawler can mount a single Weapons System in its Armament Bay. To start, this can be any Tech 1 Weapons System of the players' choice."
+            "value": "A Union Crawler can mount Weapons Systems in its Armament Bay. To start, these can be any Tech 1 Weapons System of the players' choice. Most crawlers mount one; the Battle crawler can mount two."
           },
           {
             "type": "paragraph",

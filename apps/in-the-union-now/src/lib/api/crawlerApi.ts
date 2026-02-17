@@ -1,4 +1,4 @@
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { SalvageUnionReference, getMaxSpBonus } from 'salvageunion-reference'
 import { supabase } from '../supabase'
 import { handleSupabaseError } from '../errors'
 import type {
@@ -9,11 +9,12 @@ import type {
   CreateCrawlerInput,
 } from '../../types/common'
 
-/** Compute crawler stats from TL1 tech level data */
-function getTL1Stats(): { max_sp: number; upkeep: number } {
+/** Compute crawler stats from TL1 tech level data, with optional crawler type SP bonus */
+function getTL1Stats(crawlerRef?: string): { max_sp: number; upkeep: number } {
   const tl1 = SalvageUnionReference.CrawlerTechLevels.find((tl) => tl.techLevel === 1)
+  const spBonus = crawlerRef ? getMaxSpBonus(crawlerRef) : 0
   return {
-    max_sp: tl1?.structurePoints ?? 20,
+    max_sp: (tl1?.structurePoints ?? 20) + spBonus,
     upkeep: tl1?.upkeepCost ?? 5,
   }
 }
@@ -23,7 +24,7 @@ export async function createCrawler(
   gameId: string,
   input: CreateCrawlerInput
 ): Promise<CrawlerRow> {
-  const stats = getTL1Stats()
+  const stats = getTL1Stats(input.crawler_ref)
 
   // 1. Insert the crawler row
   const { data: crawler, error: crawlerError } = await supabase
@@ -44,16 +45,18 @@ export async function createCrawler(
 
   if (crawlerError) handleSupabaseError(crawlerError)
 
-  // 2. Insert entity_ref for weapon (if selected)
-  if (input.weapon_ref) {
-    const { error: refError } = await supabase.from('entity_refs').insert({
+  // 2. Insert entity_refs for weapons (supports multiple via weapon_refs, falls back to weapon_ref)
+  const weaponRefs = input.weapon_refs ?? (input.weapon_ref ? [input.weapon_ref] : [])
+  if (weaponRefs.length > 0) {
+    const refs = weaponRefs.map((ref, index) => ({
       parent_id: crawler!.id,
       parent_type: 'crawler' as const,
-      schema_name: input.weapon_ref.schema_name,
-      schema_ref_id: input.weapon_ref.schema_ref_id,
-      sort_order: 0,
+      schema_name: ref.schema_name,
+      schema_ref_id: ref.schema_ref_id,
+      sort_order: index,
       user_id: userId,
-    })
+    }))
+    const { error: refError } = await supabase.from('entity_refs').insert(refs)
     if (refError) handleSupabaseError(refError)
   }
 
@@ -186,7 +189,8 @@ export async function updateCrawlerWeapon(
   crawlerId: string,
   userId: string,
   oldRefId: string | null,
-  newRef: { schema_name: 'systems'; schema_ref_id: string }
+  newRef: { schema_name: 'systems'; schema_ref_id: string },
+  sortOrder: number = 0
 ): Promise<void> {
   // Delete old weapon ref
   if (oldRefId) {
@@ -205,7 +209,7 @@ export async function updateCrawlerWeapon(
     parent_type: 'crawler' as const,
     schema_name: newRef.schema_name,
     schema_ref_id: newRef.schema_ref_id,
-    sort_order: 0,
+    sort_order: sortOrder,
     user_id: userId,
   })
 

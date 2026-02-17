@@ -114,7 +114,11 @@ function GameListing({ game }: { game: CampaignRow }) {
     </>
   )
 
-  return <DisplayCard headerBg="bg-su-pink" headerContent={headerContent} mode="listing" />
+  return (
+    <Link to="/games/$gameId" params={{ gameId: game.id }} className="block">
+      <DisplayCard headerBg="bg-su-pink" headerContent={headerContent} mode="listing" />
+    </Link>
+  )
 }
 
 function NewGameSlot() {

@@ -21,6 +21,17 @@
           ]
         },
         {
+          "id": "5118fa1c-a291-4bee-a91c-3e2a4fcc1730",
+          "name": "Description",
+          "choiceType": "freeform",
+          "content": [
+            {
+              "type": "paragraph",
+              "value": "A brief description of the NPC's appearance and personality."
+            }
+          ]
+        },
+        {
           "id": "f99d2c89-3bd5-4573-a7d0-1b608f93467b",
           "name": "Keepsake",
           "choiceType": "freeform",
@@ -83,6 +94,17 @@
             {
               "type": "paragraph",
               "value": "The name of the NPC."
+            }
+          ]
+        },
+        {
+          "id": "289d23bc-ecb9-47a4-841f-8e3df01ef521",
+          "name": "Description",
+          "choiceType": "freeform",
+          "content": [
+            {
+              "type": "paragraph",
+              "value": "A brief description of the NPC's appearance and personality."
             }
           ]
         },
@@ -165,6 +187,17 @@
           ]
         },
         {
+          "id": "3c457bb2-5f76-46b8-a3fa-2d13f01f116b",
+          "name": "Description",
+          "choiceType": "freeform",
+          "content": [
+            {
+              "type": "paragraph",
+              "value": "A brief description of the NPC's appearance and personality."
+            }
+          ]
+        },
+        {
           "id": "0d51ae6a-e98d-4696-bb17-52b220e4459b",
           "name": "Keepsake",
           "choiceType": "freeform",
@@ -187,7 +220,12 @@
           ]
         }
       ],
-      "content": []
+      "content": [
+        {
+          "type": "paragraph",
+          "value": "The Storage Bay is operated and maintained by Teamsters, the most experienced of whom is known as the Bullwhacker."
+        }
+      ]
     },
     "content": [
       {
@@ -232,6 +270,17 @@
             {
               "type": "paragraph",
               "value": "The name of the NPC."
+            }
+          ]
+        },
+        {
+          "id": "adbb0cca-17e5-4725-b3da-31b278be1b01",
+          "name": "Description",
+          "choiceType": "freeform",
+          "content": [
+            {
+              "type": "paragraph",
+              "value": "A brief description of the NPC's appearance and personality."
             }
           ]
         },
@@ -294,6 +343,17 @@
             {
               "type": "paragraph",
               "value": "The name of the NPC."
+            }
+          ]
+        },
+        {
+          "id": "f6fc2dc1-3cd0-4f06-b31b-5f8e7d5f3b64",
+          "name": "Description",
+          "choiceType": "freeform",
+          "content": [
+            {
+              "type": "paragraph",
+              "value": "A brief description of the NPC's appearance and personality."
             }
           ]
         },
@@ -364,6 +424,17 @@
             {
               "type": "paragraph",
               "value": "The name of the NPC."
+            }
+          ]
+        },
+        {
+          "id": "f3e057b2-4c10-45e2-8151-7a386d4a895e",
+          "name": "Description",
+          "choiceType": "freeform",
+          "content": [
+            {
+              "type": "paragraph",
+              "value": "A brief description of the NPC's appearance and personality."
             }
           ]
         },
@@ -470,6 +541,17 @@
           ]
         },
         {
+          "id": "47ee78a0-e4c5-4182-8406-6bb483c2d781",
+          "name": "Description",
+          "choiceType": "freeform",
+          "content": [
+            {
+              "type": "paragraph",
+              "value": "A brief description of the NPC's appearance and personality."
+            }
+          ]
+        },
+        {
           "id": "996ccad4-076e-4fba-948d-012fa1e3ae12",
           "name": "Keepsake",
           "choiceType": "freeform",
@@ -543,6 +625,17 @@
             {
               "type": "paragraph",
               "value": "The name of the NPC."
+            }
+          ]
+        },
+        {
+          "id": "f14a8731-3b7b-4c60-bc3c-6ad2cff0c1f1",
+          "name": "Description",
+          "choiceType": "freeform",
+          "content": [
+            {
+              "type": "paragraph",
+              "value": "A brief description of the NPC's appearance and personality."
             }
           ]
         },
@@ -737,6 +830,17 @@
           ]
         },
         {
+          "id": "8a58ed20-ee4c-4142-b6e3-66f0cde585ff",
+          "name": "Description",
+          "choiceType": "freeform",
+          "content": [
+            {
+              "type": "paragraph",
+              "value": "A brief description of the NPC's appearance and personality."
+            }
+          ]
+        },
+        {
           "id": "9781ac99-9355-4bf8-b4f7-31180175518b",
           "name": "Keepsake",
           "choiceType": "freeform",
@@ -803,6 +907,17 @@
           ]
         },
         {
+          "id": "2a9004f5-f493-413f-a6d3-bdbd4c8eb96c",
+          "name": "Description",
+          "choiceType": "freeform",
+          "content": [
+            {
+              "type": "paragraph",
+              "value": "A brief description of the NPC's appearance and personality."
+            }
+          ]
+        },
+        {
           "id": "f20e995b-a503-4689-b64c-49c26f5bbadd",
           "name": "Keepsake",
           "choiceType": "freeform",
@@ -825,7 +940,12 @@
           ]
         }
       ],
-      "content": []
+      "content": [
+        {
+          "type": "paragraph",
+          "value": "The Cantina is operated and maintained by the Cantina Crew, the most experienced of whom is known as the Chef."
+        }
+      ]
     },
     "content": [
       {

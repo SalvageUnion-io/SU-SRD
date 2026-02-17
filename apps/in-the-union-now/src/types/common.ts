@@ -85,6 +85,7 @@ export type BayNpcData = {
   background?: string
   motto?: string
   keepsake?: string
+  personality?: string
 }
 
 // Crawler creation input (from wizard → API)
@@ -92,6 +93,8 @@ export type CreateCrawlerInput = {
   crawler_ref: string
   name?: string
   tag?: string
+  /** @deprecated Use weapon_refs for multi-weapon support */
   weapon_ref?: { schema_name: 'systems'; schema_ref_id: string }
+  weapon_refs?: { schema_name: 'systems'; schema_ref_id: string }[]
   bay_npcs?: Record<string, BayNpcData>
 }

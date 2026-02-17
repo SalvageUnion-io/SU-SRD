@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { toast } from 'sonner'
-import { SectionSeparator } from 'suref-react'
+import { SectionSeparator, Text } from 'suref-react'
 import { actionButtonClasses } from '../../../components/shared/actionButtonClasses'
 import { useAuthStore } from '../../../stores/authStore'
 import { useCreateGame } from '../../../hooks/useGames'
@@ -45,8 +45,10 @@ function NewGamePage() {
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div className="flex flex-col gap-2">
-          <label htmlFor="game-name" className="text-sm font-medium text-su-white/70">
-            Game Name
+          <label htmlFor="game-name">
+            <Text variant="pseudoheader" as="span" className="w-fit text-sm">
+              Game Name
+            </Text>
           </label>
           <Input
             id="game-name"

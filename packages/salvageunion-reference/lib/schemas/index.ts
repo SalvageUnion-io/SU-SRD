@@ -61,6 +61,7 @@ import {
   AdvancedClassSchema,
   FormationMechSchema,
   GrantSchema,
+  CrawlerMutationSchema,
   SchemaNameWithActionsSchema,
   GuideStepSchema,
 } from './objects.js'
@@ -143,6 +144,7 @@ export type SURefObjectBonusPerTechLevel = z.infer<typeof BonusPerTechLevelSchem
 export type SURefObjectAdvancedClass = z.infer<typeof AdvancedClassSchema>
 export type SURefObjectFormationMech = z.infer<typeof FormationMechSchema>
 export type SURefObjectGrant = z.infer<typeof GrantSchema>
+export type SURefObjectCrawlerMutation = z.infer<typeof CrawlerMutationSchema>
 export type SURefObjectSchemaName = z.infer<typeof SchemaNameWithActionsSchema>
 export type SURefObjectGuideStep = z.infer<typeof GuideStepSchema>
 export type SURefObjectTraits = SURefObjectTrait[]

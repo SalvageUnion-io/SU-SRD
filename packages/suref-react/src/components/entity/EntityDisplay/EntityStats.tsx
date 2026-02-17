@@ -5,6 +5,11 @@ import { Text } from '../../base/Text'
 import { ENTITY_STATS_CONFIG, applyStatLabel } from './entityStatsConfig'
 import { cn } from '../../../utils/cn'
 
+export type SvOverride = {
+  value: number | string
+  bottomLabel: string
+}
+
 export type EntityStatsProps = {
   data: SURefMetaEntity | SURefObjectBonusPerTechLevel
   compact: boolean
@@ -13,6 +18,7 @@ export type EntityStatsProps = {
   label?: string
   prefix?: string
   primaryOnly?: boolean
+  svOverride?: SvOverride
 }
 
 export function EntityStats({
@@ -23,6 +29,7 @@ export function EntityStats({
   label = '',
   prefix = '',
   primaryOnly = false,
+  svOverride,
 }: EntityStatsProps) {
   const entityData = data as SURefMetaEntity
   const isBioTechLevel = techLevel === 'B'
@@ -39,9 +46,25 @@ export function EntityStats({
       )}
       {ENTITY_STATS_CONFIG.map((config, index) => {
         if (primaryOnly && !config.primary) return null
+        const isSalvageValue = config.getter === getSalvageValue
+
+        // Use svOverride for the SV stat when provided
+        if (isSalvageValue && svOverride) {
+          const overrideDisplay = svOverride.value === 0 ? '-' : `${prefix}${svOverride.value}`
+          return (
+            <StatDisplay
+              key={index}
+              label={compact ? config.compactLabel : config.normalLabel}
+              bottomLabel={svOverride.bottomLabel}
+              value={overrideDisplay}
+              compact={compact}
+              hoverText={suppressTooltips ? undefined : config.tooltip}
+            />
+          )
+        }
+
         const value = config.getter(entityData)
         const displayValue = applyStatLabel(value, prefix)
-        const isSalvageValue = config.getter === getSalvageValue
 
         // Special handling for bio salvage value
         if (isSalvageValue && hasBioSalvage) {

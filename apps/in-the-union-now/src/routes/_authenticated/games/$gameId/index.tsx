@@ -119,26 +119,34 @@ function CrawlerSection({ game, isMediator }: { game: CampaignRow; isMediator: b
 }
 
 function MembersSection({ members }: { members: CampaignMemberRow[] }) {
+  const user = useAuthStore((s) => s.user)
+
   return (
     <div className="flex flex-col gap-3">
-      <SectionSeparator label="Members" fontSize="text-sm" />
+      <SectionSeparator label="Players" fontSize="text-sm" />
       <div className="flex flex-col gap-2">
         {members.map((member) => (
-          <MemberRow key={member.id} member={member} />
+          <MemberRow key={member.id} member={member} isYou={member.user_id === user?.id} />
         ))}
-        {members.length === 0 && <p className="text-sm text-su-grey-dark">No members yet.</p>}
+        {members.length === 0 && <p className="text-sm text-su-grey-dark">No players yet.</p>}
       </div>
     </div>
   )
 }
 
-function MemberRow({ member }: { member: CampaignMemberRow }) {
+function MemberRow({ member, isYou }: { member: CampaignMemberRow; isYou: boolean }) {
+  const roleColor = member.role === 'mediator' ? 'bg-su-pink/80' : 'bg-su-grey-dark/50'
+
   return (
     <div className="flex items-center justify-between rounded-md border border-su-grey-light/20 px-3 py-2">
-      <Text variant="default" as="span" className="text-sm">
-        {member.user_id.slice(0, 8)}...
-      </Text>
-      <span className="rounded bg-su-grey-dark/50 px-2 py-0.5 font-mono text-xs uppercase text-su-white/70">
+      <div className="flex items-center gap-2">
+        <Text variant="pseudoheader" as="span" className="text-sm uppercase">
+          {isYou ? 'You' : `Player ${member.user_id.slice(0, 6)}`}
+        </Text>
+      </div>
+      <span
+        className={`rounded px-2 py-0.5 font-mono text-xs uppercase text-su-white/80 ${roleColor}`}
+      >
         {member.role}
       </span>
     </div>

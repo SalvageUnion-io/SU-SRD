@@ -10,6 +10,7 @@ import {
   getWeaknesses,
   getPatterns,
   getSalvageValue,
+  getTechLevelNumber,
   normalizePatternName,
 } from 'salvageunion-reference'
 import { RollTable } from '../../../shared/RollTable'
@@ -38,7 +39,6 @@ import { borderColorFromHeaderBg, getSourceStyles } from '../../entityDisplayHel
 import { useEntityDisplayState } from '../useEntityDisplayState'
 import type { EntityDisplayStateInput } from '../useEntityDisplayState'
 import type { EntityControl } from '../entityControlTypes'
-import { useDetailModal } from '../useDetailModal'
 
 export type EntityDisplayContentProps = EntityDisplayStateInput & {
   children?: ReactNode
@@ -161,6 +161,29 @@ export function EntityDisplayContent({
       if (entity) total += getSalvageValue(entity) ?? 0
     }
     return total <= STARTING_MECH_BUDGET
+  }, [schemaName, data, patternOverride])
+
+  // Compute TL1-equivalent salvage value for pattern overrides
+  const svOverride = useMemo(() => {
+    if (schemaName !== 'chassis' || !patternOverride) return undefined
+    const chassisSV = getSalvageValue(data) ?? 0
+    const chassisTL = getTechLevelNumber(data) ?? 1
+    let totalTL1 = chassisSV * chassisTL
+    for (const sys of patternOverride.systems) {
+      const entity = SalvageUnionReference.Systems.find((s) => s.name === sys.name)
+      if (entity) {
+        const count = sys.count ?? 1
+        totalTL1 += (getSalvageValue(entity) ?? 0) * (getTechLevelNumber(entity) ?? 1) * count
+      }
+    }
+    for (const mod of patternOverride.modules) {
+      const entity = SalvageUnionReference.Modules.find((m) => m.name === mod.name)
+      if (entity) {
+        const count = mod.count ?? 1
+        totalTL1 += (getSalvageValue(entity) ?? 0) * (getTechLevelNumber(entity) ?? 1) * count
+      }
+    }
+    return { value: totalTL1, bottomLabel: 'TL1' }
   }, [schemaName, data, patternOverride])
 
   // Pre-built block for pattern info + chassis abilities (reused at multiple render positions)
@@ -359,6 +382,7 @@ export function EntityDisplayContent({
             (schemaName === 'chassis' || schemaName === 'equipment')
           }
           controls={controls}
+          svOverride={svOverride}
         />
       ) : controls && controls.length > 0 ? (
         <EntityRightHeaderContent
@@ -372,6 +396,9 @@ export function EntityDisplayContent({
       ) : null}
     </>
   )
+
+  // Single control → entire header is clickable (button stopPropagation prevents double-fire)
+  const singleControlOnClick = controls?.length === 1 ? controls[0]!.onClick : undefined
 
   const card = (
     <DisplayCard
@@ -387,6 +414,7 @@ export function EntityDisplayContent({
       isExpanded={!listing}
       bodyPadding="p-0"
       disabled={disabled}
+      onClick={singleControlOnClick}
     >
       {!listing && hasBodyContent && (
         <div
@@ -638,7 +666,7 @@ export function EntityDisplayContent({
 }
 
 /**
- * Wrapper for guide step entity listings that provides a detail modal.
+ * Wrapper for guide step entity listings rendered as compact inline cards.
  * Needed because the renderEntityListing callback can't call hooks directly.
  */
 function GuideEntityListing({
@@ -656,24 +684,18 @@ function GuideEntityListing({
   disabled: boolean
   controls?: EntityControl[]
 }) {
-  const detailModal = useDetailModal(data, { modalControls: controls })
-  const allControls = listing ? [...(controls ?? []), detailModal.control] : controls
-
   return (
-    <>
-      <EntityDisplayContent
-        data={data}
-        schemaName={schemaName}
-        compact={compact}
-        listing={listing}
-        dimHeader={false}
-        disabled={disabled}
-        hideActions={listing}
-        hidePatterns
-        hideChoices
-        controls={allControls}
-      />
-      {listing && detailModal.modal}
-    </>
+    <EntityDisplayContent
+      data={data}
+      schemaName={schemaName}
+      compact={compact}
+      listing={listing}
+      dimHeader={false}
+      disabled={disabled}
+      hideActions={listing}
+      hidePatterns
+      hideChoices
+      controls={controls}
+    />
   )
 }

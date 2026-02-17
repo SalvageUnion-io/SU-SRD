@@ -3,7 +3,8 @@ import { createFileRoute } from '@tanstack/react-router'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
 import { DisplayCard, Text, ValueDisplay, SectionSeparator, EntityDisplay } from 'suref-react'
-import { Pencil, RefreshCw } from 'lucide-react'
+import { Pencil, Plus, RefreshCw } from 'lucide-react'
+import { getWeaponSlotCount } from '../../../../lib/crawlerUtils'
 import { toast } from 'sonner'
 import { useAuthStore } from '../../../../stores/authStore'
 import { useGame, useGameMembers } from '../../../../hooks/useGames'
@@ -46,7 +47,10 @@ function CrawlerDetailPage() {
 
   const [showTranslateDialog, setShowTranslateDialog] = useState(false)
   const [showEditDialog, setShowEditDialog] = useState(false)
-  const [showWeaponDialog, setShowWeaponDialog] = useState(false)
+  const [editingWeaponSlot, setEditingWeaponSlot] = useState<{
+    index: number
+    oldRefId: string | null
+  } | null>(null)
 
   // Pending update accumulator for autosave
   const [pendingUpdates, setPendingUpdates] = useState<Partial<CrawlerUpdate>>({})
@@ -111,25 +115,25 @@ function CrawlerDetailPage() {
 
   const handleWeaponChange = useCallback(
     (newRefId: string) => {
-      if (!crawler || !user) return
-      const weaponRef = crawlerRefs?.find((r) => r.schema_name === 'systems')
+      if (!crawler || !user || !editingWeaponSlot) return
       updateWeapon.mutate(
         {
           crawlerId: crawler.id,
           userId: user.id,
-          oldRefId: weaponRef?.id ?? null,
+          oldRefId: editingWeaponSlot.oldRefId,
           newRef: { schema_name: 'systems', schema_ref_id: newRefId },
+          sortOrder: editingWeaponSlot.index,
         },
         {
           onSuccess: () => {
             toast.success('Weapon system updated!')
-            setShowWeaponDialog(false)
+            setEditingWeaponSlot(null)
           },
           onError: (err) => toast.error(getErrorMessage(err)),
         }
       )
     },
-    [crawler, user, crawlerRefs, updateWeapon]
+    [crawler, user, editingWeaponSlot, updateWeapon]
   )
 
   const handleEditSave = useCallback(
@@ -162,15 +166,28 @@ function CrawlerDetailPage() {
     enabled: !!crawler && isMed,
   })
 
+  const weaponRefs = useMemo(
+    () =>
+      (crawlerRefs ?? [])
+        .filter((r) => r.schema_name === 'systems')
+        .sort((a, b) => a.sort_order - b.sort_order),
+    [crawlerRefs]
+  )
+
+  const weaponSystems = useMemo(
+    () =>
+      weaponRefs.map((ref) => ({
+        ref,
+        entity: SalvageUnionReference.get('systems', ref.schema_ref_id),
+      })),
+    [weaponRefs]
+  )
+
   if (gameLoading || crawlerLoading) return <PageSkeleton />
   if (!game?.crawler_id || !crawler) return <NotFoundState message="Crawler not found." />
 
   const crawlerType = SalvageUnionReference.get('crawlers', crawler.crawler_ref)
-
-  const weaponRef = crawlerRefs?.find((r) => r.schema_name === 'systems')
-  const weaponSystem = weaponRef
-    ? SalvageUnionReference.get('systems', weaponRef.schema_ref_id)
-    : undefined
+  const weaponSlotCount = getWeaponSlotCount(crawler.crawler_ref)
 
   return (
     <>
@@ -237,36 +254,47 @@ function CrawlerDetailPage() {
           )}
 
           <div className="flex flex-col gap-3">
-            <SectionSeparator label="Weapons System" fontSize="text-sm" />
-            {weaponSystem ? (
-              <div className="relative">
-                <EntityDisplay data={weaponSystem} listing compact />
-                {isMed && (
-                  <button
-                    type="button"
-                    onClick={() => setShowWeaponDialog(true)}
-                    className="absolute top-2 right-2 flex cursor-pointer items-center gap-1 rounded bg-su-grey-dark/80 px-2 py-1 text-xs text-su-white/60 transition-colors hover:text-su-white"
-                  >
-                    <Pencil className="h-3 w-3" />
-                    Change
-                  </button>
-                )}
-              </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <Text variant="default" as="p" className="text-sm text-su-white/40">
-                  No weapon system equipped.
+            <SectionSeparator
+              label={`Weapon Systems (${weaponRefs.length}/${weaponSlotCount})`}
+              fontSize="text-sm"
+            />
+            {weaponSystems.map(({ ref, entity }) =>
+              entity ? (
+                <div key={ref.id} className="relative">
+                  <EntityDisplay data={entity} listing compact />
+                  {isMed && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setEditingWeaponSlot({ index: ref.sort_order, oldRefId: ref.id })
+                      }
+                      className="absolute top-2 right-2 flex cursor-pointer items-center gap-1 rounded bg-su-grey-dark/80 px-2 py-1 text-xs text-su-white/60 transition-colors hover:text-su-white"
+                    >
+                      <Pencil className="h-3 w-3" />
+                      Change
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <Text key={ref.id} variant="default" as="p" className="text-sm text-su-white/40">
+                  Unknown system
                 </Text>
-                {isMed && (
-                  <button
-                    type="button"
-                    onClick={() => setShowWeaponDialog(true)}
-                    className="cursor-pointer text-xs text-su-green hover:underline"
-                  >
-                    Add one
-                  </button>
-                )}
-              </div>
+              )
+            )}
+            {weaponRefs.length === 0 && (
+              <Text variant="default" as="p" className="text-sm text-su-white/40">
+                No weapon systems equipped.
+              </Text>
+            )}
+            {isMed && weaponRefs.length < weaponSlotCount && (
+              <button
+                type="button"
+                onClick={() => setEditingWeaponSlot({ index: weaponRefs.length, oldRefId: null })}
+                className="flex cursor-pointer items-center gap-1.5 self-start rounded-md border border-su-green/30 px-3 py-1.5 font-mono text-xs font-semibold text-su-green transition-colors hover:border-su-green/60 hover:bg-su-green/10"
+              >
+                <Plus className="h-3 w-3" />
+                Add weapon system
+              </button>
             )}
           </div>
 
@@ -310,10 +338,16 @@ function CrawlerDetailPage() {
             isPending={updateCrawler.isPending}
           />
           <WeaponSelectionDialog
-            open={showWeaponDialog}
-            onOpenChange={setShowWeaponDialog}
+            open={editingWeaponSlot !== null}
+            onOpenChange={(open) => {
+              if (!open) setEditingWeaponSlot(null)
+            }}
             onSelect={handleWeaponChange}
-            currentWeaponId={weaponRef?.schema_ref_id}
+            currentWeaponId={
+              editingWeaponSlot?.oldRefId
+                ? weaponRefs.find((r) => r.id === editingWeaponSlot.oldRefId)?.schema_ref_id
+                : undefined
+            }
           />
         </>
       )}

@@ -10,7 +10,7 @@ type CrawlerStatsSectionProps = {
 }
 
 export function CrawlerStatsSection({ crawler, readOnly, onUpdate }: CrawlerStatsSectionProps) {
-  const tlStats = computeCrawlerStatsFromTechLevel(crawler.tech_level)
+  const tlStats = computeCrawlerStatsFromTechLevel(crawler.tech_level, crawler.crawler_ref)
 
   const handleStatChange = useCallback(
     (field: keyof CrawlerUpdate, delta: number) => {

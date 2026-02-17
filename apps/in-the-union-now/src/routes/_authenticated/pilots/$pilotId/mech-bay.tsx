@@ -4,12 +4,14 @@ import { toast } from 'sonner'
 import { useAuthStore } from '../../../../stores/authStore'
 import { usePilot } from '../../../../hooks/usePilots'
 import { useMech, useMechEntityRefs, useUpdateMechLoadout } from '../../../../hooks/useMechs'
+import { useCreatePattern } from '../../../../hooks/usePatterns'
 import { useAutosave } from '../../../../hooks/useAutosave'
 import { useSaveStatus } from '../../../../hooks/useSaveStatus'
 import { entityRefsToBuilderState, builderStateToPatchOps } from '../../../../lib/mechUtils'
 import { builderToCreateInput } from '../../../../lib/builderUtils'
 import type { BuilderState } from '../../../../lib/builderUtils'
 import { MechBuilder } from '../../../../components/patterns/MechBuilder'
+import { SavePatternDialog } from '../../../../components/patterns/SavePatternDialog'
 import { PageSkeleton } from '../../../../components/shared/PageSkeleton'
 import { NotFoundState } from '../../../../components/shared/NotFoundState'
 import { getErrorMessage } from '../../../../lib/errors'
@@ -26,7 +28,9 @@ function MechBayPage() {
   const { data: mech, isLoading: mechLoading } = useMech(pilot?.mech_id ?? undefined)
   const { data: mechRefs, isLoading: refsLoading } = useMechEntityRefs(pilot?.mech_id ?? undefined)
   const updateLoadout = useUpdateMechLoadout()
+  const createPatternMutation = useCreatePattern()
   const [builderState, setBuilderState] = useState<BuilderState | null>(null)
+  const [showSavePatternDialog, setShowSavePatternDialog] = useState(false)
 
   const canAutosave =
     !!user &&
@@ -59,6 +63,25 @@ function MechBayPage() {
     onSave: handleAutosave,
     enabled: canAutosave,
   })
+
+  const handleSaveToPatterns = useCallback(
+    (patternName: string) => {
+      if (!user || !builderState) return
+      const input = builderToCreateInput({ ...builderState, name: patternName })
+      if (!input) return
+      createPatternMutation.mutate(
+        { userId: user.id, input },
+        {
+          onSuccess: () => {
+            setShowSavePatternDialog(false)
+            toast.success('Pattern saved!')
+          },
+          onError: (err) => toast.error(getErrorMessage(err)),
+        }
+      )
+    },
+    [user, builderState, createPatternMutation]
+  )
 
   const saveStatus = useSaveStatus({ isSaving: updateLoadout.isPending })
 
@@ -101,7 +124,15 @@ function MechBayPage() {
         onChange={setBuilderState}
         saveStatus={saveStatus}
         hideFooterToggles
-        onSaveToPatterns={() => toast.success('Pattern saved! (coming soon)')}
+        onSaveToPatterns={() => setShowSavePatternDialog(true)}
+        isSavingToPatterns={createPatternMutation.isPending}
+      />
+      <SavePatternDialog
+        open={showSavePatternDialog}
+        onOpenChange={setShowSavePatternDialog}
+        defaultName={builderState?.name ?? initialState.name}
+        onConfirm={handleSaveToPatterns}
+        isSaving={createPatternMutation.isPending}
       />
     </div>
   )

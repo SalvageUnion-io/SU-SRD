@@ -1,6 +1,7 @@
 import {
   SalvageUnionReference,
   getSalvageValue,
+  getTechLevelNumber,
   type SURefChassis,
   type SURefSystem,
   type SURefModule,
@@ -92,6 +93,7 @@ export type SalvageValueInfo = {
   chassisCost: number
   itemsCost: number
   totalCost: number
+  totalTL1Cost: number
   remainingBudget: number
   isLegalStartingMech: boolean
 }
@@ -110,10 +112,22 @@ export function computeSalvageValue(
     itemsCost += getSalvageValue(item.entity) ?? 0
   }
   const totalCost = chassisCost + itemsCost
+
+  // Compute TL1-equivalent scrap value: each item's SV * its tech level
+  const chassisTL1 = chassisCost * (chassis ? (getTechLevelNumber(chassis) ?? 1) : 1)
+  let itemsTL1 = 0
+  for (const item of resolvedItems) {
+    const sv = getSalvageValue(item.entity) ?? 0
+    const tl = getTechLevelNumber(item.entity) ?? 1
+    itemsTL1 += sv * tl
+  }
+  const totalTL1Cost = chassisTL1 + itemsTL1
+
   return {
     chassisCost,
     itemsCost,
     totalCost,
+    totalTL1Cost,
     remainingBudget: STARTING_MECH_BUDGET - totalCost,
     isLegalStartingMech: totalCost <= STARTING_MECH_BUDGET,
   }

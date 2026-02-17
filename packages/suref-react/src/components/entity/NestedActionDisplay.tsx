@@ -1,13 +1,15 @@
-import type { SURefMetaAction, SURefObjectChoice } from 'salvageunion-reference'
-import { getEntityDisplayName, getRequiredTraits } from 'salvageunion-reference'
+import type { SURefMetaAction, SURefObjectTable } from 'salvageunion-reference'
+import {
+  getEntityDisplayName,
+  getRequiredTraits,
+  SalvageUnionReference,
+} from 'salvageunion-reference'
 import { Text } from '../base/Text'
 import { BlockContentRendererView } from './BlockContentRendererView'
-import { EntityChoice } from './EntityDisplay/EntityChoice'
 import { extractEntityDetails } from '../../lib/entityDataExtraction'
 import { DataValueDisplayView } from './DataValueDisplayView'
 import { RollTable } from '../shared/RollTable'
 import { borderColorFromHeaderBg } from './entityDisplayHelpers'
-import { getEntityFontSizes, getEntitySpacing } from './EntityDisplay/entityDisplayTypes'
 import { cn } from '../../utils/cn'
 
 type NestedActionDisplayProps = {
@@ -44,9 +46,13 @@ export function NestedActionDisplay({
   const titleFontSize = compact ? 'text-sm' : 'text-xl'
   const verticalSpacing = compact ? 'py-1 gap-1' : 'py-2 gap-2'
   const hasContent = data.content && data.content.length > 0
-  const actionChoices: SURefObjectChoice[] = data.choices || []
-  const hasChoices = actionChoices.length > 0
-  const hasTable = data.table !== undefined && data.table !== null
+  // Resolve table: direct property first, then look up roll table by action name
+  const resolvedTable: SURefObjectTable | undefined = (() => {
+    if (data.table !== undefined && data.table !== null) return data.table
+    const rollTable = SalvageUnionReference.RollTables.find((rt) => rt.name === data.name)
+    return rollTable?.table
+  })()
+  const hasTable = resolvedTable !== undefined
 
   const hasContentToRender = hasContent && !hideContent
   const requiredTraits = getRequiredTraits(data)
@@ -66,107 +72,69 @@ export function NestedActionDisplay({
         </Text>
       </div>
 
-      <div
-        className={compact ? 'pl-2' : 'pl-3'}
-        style={borderColor ? { borderLeft: `3px solid ${borderColor}` } : undefined}
-      >
-        {/* Detail row - always on new line for default variant */}
-        {details.length > 0 && (
-          <div
-            className={cn(
-              'flex flex-row flex-wrap items-center',
-              compact ? 'gap-0.5' : 'gap-1',
-              compact ? 'py-1 pt-0' : 'py-2 pt-0'
-            )}
-          >
-            {details.map((item, index) => (
-              <DataValueDisplayView key={index} item={item} compact={compact} damaged={false} />
-            ))}
-          </div>
-        )}
+      {/* Bordered section: text content only */}
+      {(details.length > 0 || requiredTraits.length > 0 || hasContentToRender) && (
+        <div
+          className={cn(compact ? 'pl-2' : 'pl-3', hasTable && (compact ? 'mb-1' : 'mb-2'))}
+          style={borderColor ? { borderLeft: `3px solid ${borderColor}` } : undefined}
+        >
+          {/* Detail row - always on new line for default variant */}
+          {details.length > 0 && (
+            <div
+              className={cn(
+                'flex flex-row flex-wrap items-center',
+                compact ? 'gap-0.5' : 'gap-1',
+                compact ? 'py-1 pt-0' : 'py-2 pt-0'
+              )}
+            >
+              {details.map((item, index) => (
+                <DataValueDisplayView key={index} item={item} compact={compact} damaged={false} />
+              ))}
+            </div>
+          )}
 
-        {requiredTraits.length > 0 && (
-          <p className={cn('italic text-gray-500', fontSize, compact ? 'py-0.5' : 'py-1')}>
-            Requires the{' '}
-            <strong className="font-semibold uppercase">
-              {requiredTraits.map((t) => t.charAt(0).toUpperCase() + t.slice(1)).join(', ')}
-            </strong>{' '}
-            Trait.
-          </p>
-        )}
+          {requiredTraits.length > 0 && (
+            <p className={cn('italic text-gray-500', fontSize, compact ? 'py-0.5' : 'py-1')}>
+              Requires the{' '}
+              <strong className="font-semibold uppercase">
+                {requiredTraits.map((t) => t.charAt(0).toUpperCase() + t.slice(1)).join(', ')}
+              </strong>{' '}
+              Trait.
+            </p>
+          )}
 
-        {hasContentToRender && (
-          <div
-            className={cn(
-              'flex flex-col items-stretch',
-              compact ? 'gap-1' : 'gap-2',
-              compact ? 'py-1' : 'py-2',
-              details.length > 0 || requiredTraits.length > 0 ? 'pt-0' : ''
-            )}
-          >
-            <BlockContentRendererView
-              content={data.content!}
-              fontSize={fontSize}
-              compact={compact}
-              damaged={false}
-            />
-          </div>
-        )}
-
-        {hasTable && (
-          <div
-            className={cn(
-              'relative z-10 rounded-md',
-              compact ? 'py-1' : 'py-2',
-              hasContentToRender && !hideContent
-                ? 'pt-0'
-                : details.length > 0
-                  ? 'pt-0'
-                  : compact
-                    ? 'pt-1'
-                    : 'pt-2'
-            )}
-          >
-            <RollTable
-              disabled={false}
-              table={data.table!}
-              showCommand
-              compact
-              tableName={displayName}
-            />
-          </div>
-        )}
-
-        {hasChoices && (
-          <div
-            className={cn(
-              'flex flex-col items-stretch',
-              compact ? 'gap-1' : 'gap-2',
-              compact ? 'py-1' : 'py-2',
-              hasContentToRender && !hideContent
-                ? 'pt-0'
-                : hasTable
-                  ? 'pt-0'
-                  : details.length > 0
-                    ? 'pt-0'
-                    : compact
-                      ? 'pt-1'
-                      : 'pt-2'
-            )}
-          >
-            {actionChoices.map((choice) => (
-              <EntityChoice
-                key={choice.id}
-                choice={choice}
-                userChoices={undefined}
-                onChoiceSelection={undefined}
-                fontSize={getEntityFontSizes(compact)}
-                spacing={getEntitySpacing(compact)}
+          {hasContentToRender && (
+            <div
+              className={cn(
+                'flex flex-col items-stretch',
+                compact ? 'gap-1' : 'gap-2',
+                compact ? 'py-1' : 'py-2',
+                details.length > 0 || requiredTraits.length > 0 ? 'pt-0' : ''
+              )}
+            >
+              <BlockContentRendererView
+                content={data.content!}
+                fontSize={fontSize}
+                compact={compact}
+                damaged={false}
               />
-            ))}
-          </div>
-        )}
-      </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Roll table: outside the border */}
+      {hasTable && (
+        <div className="relative z-10 rounded-md">
+          <RollTable
+            disabled={false}
+            table={resolvedTable!}
+            showCommand
+            compact
+            tableName={displayName}
+          />
+        </div>
+      )}
     </div>
   )
 }

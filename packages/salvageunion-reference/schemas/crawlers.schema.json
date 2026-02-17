@@ -402,7 +402,23 @@
         "required": ["position", "hitPoints"],
         "additionalProperties": false
       },
-      "actions": { "type": "array", "items": { "type": "string" } }
+      "actions": { "type": "array", "items": { "type": "string" } },
+      "mutations": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "type": { "type": "string", "enum": ["weapon_slots", "max_sp_bonus"] },
+            "value": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            }
+          },
+          "required": ["type", "value"],
+          "additionalProperties": false
+        }
+      }
     },
     "required": ["id", "indexable", "blackMarket", "name", "source", "page", "npc", "actions"],
     "additionalProperties": false

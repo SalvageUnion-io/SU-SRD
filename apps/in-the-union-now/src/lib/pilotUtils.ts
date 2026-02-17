@@ -33,6 +33,10 @@ export type StepSelection = {
   textValue?: string
   /** Roll value if rolled */
   rollValue?: number
+  /** Per-choice freeform values (keyed by choice UUID) */
+  choiceValues?: Record<string, string>
+  /** Choice IDs that are required for step completion (optional choices are excluded) */
+  requiredChoiceIds?: string[]
 }
 
 export type WizardState = {
@@ -47,6 +51,8 @@ export type WizardAction =
   | { type: 'DESELECT_ENTITY'; stepId: string; entityId: string }
   | { type: 'SET_TEXT'; stepId: string; value: string }
   | { type: 'SET_ROLL'; stepId: string; rollValue: number; textValue: string }
+  | { type: 'SET_CHOICE_VALUE'; stepId: string; choiceId: string; value: string }
+  | { type: 'INIT_REQUIRED_CHOICES'; stepId: string; requiredChoiceIds: string[] }
   | { type: 'GO_TO_STEP'; stepIndex: number }
   | { type: 'RESET' }
 
@@ -128,14 +134,48 @@ export function resolveStepEntities(
 // ---------------------------------------------------------------------------
 
 /**
+ * Optional callback to override min/max constraints for a step.
+ * Return an object with min/max to override, or undefined to use default resolution.
+ */
+export type ConstraintOverride = (
+  step: SURefObjectGuideStep,
+  state: WizardState,
+  steps: SURefObjectGuideStep[]
+) => { min?: number; max?: number } | undefined
+
+/**
+ * Resolve the effective min for a step.
+ * Checks override first, then falls back to static `constraints.min` or 1.
+ */
+export function resolveConstraintMin(
+  step: SURefObjectGuideStep,
+  state: WizardState,
+  steps: SURefObjectGuideStep[],
+  override?: ConstraintOverride
+): number {
+  if (override) {
+    const result = override(step, state, steps)
+    if (result?.min !== undefined) return result.min
+  }
+  return step.constraints?.min ?? 1
+}
+
+/**
  * Resolve the effective max for a step, handling both static `constraints.max`
  * and dynamic `constraints.scalesWithField` (e.g., systemSlots on chassis).
+ * Checks override first.
  */
 export function resolveConstraintMax(
   step: SURefObjectGuideStep,
   state: WizardState,
-  steps: SURefObjectGuideStep[]
+  steps: SURefObjectGuideStep[],
+  override?: ConstraintOverride
 ): number {
+  if (override) {
+    const result = override(step, state, steps)
+    if (result?.max !== undefined) return result.max
+  }
+
   // Static max takes priority
   if (step.constraints?.max !== undefined) return step.constraints.max
 
@@ -204,7 +244,8 @@ export function rollOnTable(tableName: string): { text: string; roll: number } {
 export function validateStep(
   step: SURefObjectGuideStep,
   state: WizardState,
-  steps?: SURefObjectGuideStep[]
+  steps?: SURefObjectGuideStep[],
+  constraintOverride?: ConstraintOverride
 ): { isComplete: boolean; canProceed: boolean } {
   const selection = state.selections[step.id]
 
@@ -230,9 +271,11 @@ export function validateStep(
     case 'select-many': {
       const count = selection?.selectedIds.length ?? 0
       const max = steps
-        ? resolveConstraintMax(step, state, steps)
+        ? resolveConstraintMax(step, state, steps, constraintOverride)
         : (step.constraints?.max ?? Infinity)
-      const min = step.constraints?.min ?? 1
+      const min = steps
+        ? resolveConstraintMin(step, state, steps, constraintOverride)
+        : (step.constraints?.min ?? 1)
       result = {
         isComplete: count >= min && count <= max,
         canProceed: count >= min && count <= max,
@@ -241,12 +284,25 @@ export function validateStep(
     }
 
     case 'roll-table':
-    case 'freeform':
-      result = {
-        isComplete: !!selection?.textValue?.trim(),
-        canProceed: !!selection?.textValue?.trim(),
+    case 'freeform': {
+      // If the step uses choiceValues (e.g. NPC naming), validate required ones are filled
+      const cv = selection?.choiceValues
+      const requiredIds = selection?.requiredChoiceIds
+      if (requiredIds && requiredIds.length > 0) {
+        // Only check required choice IDs (optional fields like Description are ignored)
+        const allRequiredFilled = requiredIds.every((id) => !!cv?.[id]?.trim())
+        result = { isComplete: allRequiredFilled, canProceed: allRequiredFilled }
+      } else if (cv && Object.keys(cv).length > 0) {
+        const allFilled = Object.values(cv).every((v) => !!v.trim())
+        result = { isComplete: allFilled, canProceed: allFilled }
+      } else {
+        result = {
+          isComplete: !!selection?.textValue?.trim(),
+          canProceed: !!selection?.textValue?.trim(),
+        }
       }
       break
+    }
 
     default:
       result = { isComplete: true, canProceed: true }
@@ -262,8 +318,12 @@ export function validateStep(
 }
 
 /** Check if all required steps are complete */
-export function canSubmitWizard(state: WizardState, steps: SURefObjectGuideStep[]): boolean {
-  return steps.every((step) => validateStep(step, state, steps).canProceed)
+export function canSubmitWizard(
+  state: WizardState,
+  steps: SURefObjectGuideStep[],
+  constraintOverride?: ConstraintOverride
+): boolean {
+  return steps.every((step) => validateStep(step, state, steps, constraintOverride).canProceed)
 }
 
 // ---------------------------------------------------------------------------
@@ -284,7 +344,10 @@ function findDependentStepIds(steps: SURefObjectGuideStep[], stepId: string): st
     .map((s) => s.id)
 }
 
-export function createWizardReducer(digitalSteps: SURefObjectGuideStep[]) {
+export function createWizardReducer(
+  digitalSteps: SURefObjectGuideStep[],
+  constraintOverride?: ConstraintOverride
+) {
   return function wizardReducer(state: WizardState, action: WizardAction): WizardState {
     switch (action.type) {
       case 'SELECT_ENTITY': {
@@ -303,7 +366,9 @@ export function createWizardReducer(digitalSteps: SURefObjectGuideStep[]) {
           if (currentIds.includes(action.entityId)) {
             newSelectedIds = currentIds.filter((id) => id !== action.entityId)
           } else {
-            const max = step ? resolveConstraintMax(step, state, digitalSteps) : Infinity
+            const max = step
+              ? resolveConstraintMax(step, state, digitalSteps, constraintOverride)
+              : Infinity
             if (currentIds.length >= max) {
               newSelectedIds = currentIds
             } else {
@@ -332,7 +397,12 @@ export function createWizardReducer(digitalSteps: SURefObjectGuideStep[]) {
         const intermediateState = { ...state, selections: newSelections }
         let nextIndex = state.currentStepIndex
         if (step) {
-          const { canProceed } = validateStep(step, intermediateState, digitalSteps)
+          const { canProceed } = validateStep(
+            step,
+            intermediateState,
+            digitalSteps,
+            constraintOverride
+          )
           if (canProceed) {
             nextIndex = Math.min(state.currentStepIndex + 1, digitalSteps.length - 1)
           }
@@ -384,6 +454,46 @@ export function createWizardReducer(digitalSteps: SURefObjectGuideStep[]) {
           // Auto-advance: rolling always completes the step
           currentStepIndex: Math.min(state.currentStepIndex + 1, digitalSteps.length - 1),
         }
+
+      case 'SET_CHOICE_VALUE': {
+        const existing = state.selections[action.stepId]
+        return {
+          ...state,
+          selections: {
+            ...state.selections,
+            [action.stepId]: {
+              ...existing,
+              selectedIds: existing?.selectedIds ?? [],
+              choiceValues: {
+                ...existing?.choiceValues,
+                [action.choiceId]: action.value,
+              },
+            },
+          },
+        }
+      }
+
+      case 'INIT_REQUIRED_CHOICES': {
+        const existing = state.selections[action.stepId]
+        const choiceValues = { ...existing?.choiceValues }
+        for (const id of action.requiredChoiceIds) {
+          if (!(id in choiceValues)) {
+            choiceValues[id] = ''
+          }
+        }
+        return {
+          ...state,
+          selections: {
+            ...state.selections,
+            [action.stepId]: {
+              ...existing,
+              selectedIds: existing?.selectedIds ?? [],
+              choiceValues,
+              requiredChoiceIds: action.requiredChoiceIds,
+            },
+          },
+        }
+      }
 
       case 'GO_TO_STEP':
         return {

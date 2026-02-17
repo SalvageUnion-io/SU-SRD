@@ -9,8 +9,8 @@ import {
   rollOnTable,
   validateStep,
 } from '../lib/pilotUtils'
-import type { WizardState, WizardAction } from '../lib/pilotUtils'
-import { Input } from '../components/ui/input'
+import type { WizardState, WizardAction, ConstraintOverride } from '../lib/pilotUtils'
+import { RollInput } from '../components/shared/RollInput'
 
 export type WizardBudgetConfig = {
   /** Max budget (e.g. 20) */
@@ -29,15 +29,25 @@ export function useGuideInteractiveConfig(
   steps: SURefObjectGuideStep[],
   state: WizardState,
   dispatch: Dispatch<WizardAction>,
-  budgetConfig?: WizardBudgetConfig
+  budgetConfig?: WizardBudgetConfig,
+  constraintOverride?: ConstraintOverride
 ): GuideStepsInteractiveConfig {
   const getStepState = useCallback(
     (step: SURefObjectGuideStep, index: number) => {
-      const validation = validateStep(step, state, steps)
+      const validation = validateStep(step, state, steps, constraintOverride)
       const isCurrent = index === state.currentStepIndex
-      const hasSelections = !!state.selections[step.id]
+      const selection = state.selections[step.id]
+      const hasSelections =
+        !!selection &&
+        (selection.selectedIds.length > 0 ||
+          !!selection.textValue?.trim() ||
+          (!!selection.choiceValues &&
+            Object.values(selection.choiceValues).some((v) => !!v.trim())))
       const allPreviousComplete =
-        index === 0 || steps.slice(0, index).every((s) => validateStep(s, state, steps).canProceed)
+        index === 0 ||
+        steps
+          .slice(0, index)
+          .every((s) => validateStep(s, state, steps, constraintOverride).canProceed)
       const isUnlocked = allPreviousComplete || hasSelections
 
       return {
@@ -47,22 +57,30 @@ export function useGuideInteractiveConfig(
         isActivated: hasSelections,
       }
     },
-    [state, steps]
+    [state, steps, constraintOverride]
   )
 
   const getStepSelectionState = useCallback(
     (step: SURefObjectGuideStep) => {
       const selection = state.selections[step.id]
-      if (!selection) return null
+      const isSelection = step.stepType === 'select-one' || step.stepType === 'select-many'
+      const selectedIds = selection?.selectedIds ?? []
+      const dynamicMax =
+        step.stepType === 'select-one'
+          ? 1
+          : resolveConstraintMax(step, state, steps, constraintOverride)
 
-      const dynamicMax = resolveConstraintMax(step, state, steps)
+      if (!selection && !isSelection) return null
+
       return {
-        selectedIds: new Set(selection.selectedIds),
+        selectedIds: new Set(selectedIds),
         countBadge:
-          dynamicMax < Infinity ? { current: selection.selectedIds.length, max: dynamicMax } : null,
+          isSelection && dynamicMax < Infinity
+            ? { current: selectedIds.length, max: dynamicMax }
+            : null,
       }
     },
-    [state, steps]
+    [state, steps, constraintOverride]
   )
 
   const getStepRollState = useCallback(
@@ -161,18 +179,19 @@ export function useGuideInteractiveConfig(
     (
       step: SURefObjectGuideStep,
       rollState: GuideStepRollState,
-      _handleRoll: () => void,
+      handleRoll: () => void,
       handleTextChange: (value: string) => void
     ) => (
-      <Input
+      <RollInput
         value={rollState.textValue}
-        onChange={(e) => handleTextChange(e.target.value)}
+        onChange={handleTextChange}
+        onRoll={handleRoll}
         placeholder={
           step.rollTable
             ? `Roll or type your ${step.name.toLowerCase()}...`
             : `Enter your ${step.name.toLowerCase()}...`
         }
-        className="h-9 text-sm"
+        rollTableName={step.rollTable}
       />
     ),
     []
@@ -203,6 +222,7 @@ export function useGuideInteractiveConfig(
       renderRollInteraction,
       budgetConfig,
       renderStepHeaderExtra,
+      constraintOverride,
     ]
   )
 }
