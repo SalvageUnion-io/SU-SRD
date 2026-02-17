@@ -2,7 +2,7 @@ import { useState, useCallback, useMemo } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
 import { DisplayCard, EntityDisplay, Text, deleteControl, useDetailModal } from 'suref-react'
-import { Package, Pencil } from 'lucide-react'
+import { Package, Pencil, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   useCrawlerCargo,
@@ -12,7 +12,6 @@ import {
 import { getErrorMessage } from '../../lib/errors'
 import { EMPTY_SLOT_CLASSES } from '../patterns/emptySlotClasses'
 import { EntityPickerModal } from '../shared/EntityPickerModal'
-import { getEntityId } from '../../lib/entitySelectionUtils'
 import {
   Dialog,
   DialogContent,
@@ -270,7 +269,7 @@ function CustomStorageItem({
               className="flex shrink-0 cursor-pointer items-center justify-center rounded p-1 text-su-white/40 transition-colors hover:text-su-rust"
               aria-label="Delete"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+              <Trash2 className="h-3.5 w-3.5" />
             </button>
           )}
         </div>

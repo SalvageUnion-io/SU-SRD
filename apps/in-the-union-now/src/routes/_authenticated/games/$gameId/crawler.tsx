@@ -236,7 +236,7 @@ function CrawlerDetailPage() {
             readOnly={!isMed}
             onSave={handleImmediateUpdate}
             onOpenScrapConversion={() => setShowTranslateDialog(true)}
-            armamentContent={
+            armamentContent={(bayDamaged) => (
               <div className="flex flex-col gap-2">
                 <SectionSeparator label="Weapon Systems" fontSize="text-xs" />
                 {weaponSystems.map(({ ref, entity }) =>
@@ -244,8 +244,9 @@ function CrawlerDetailPage() {
                     <WeaponListing
                       key={ref.id}
                       entity={entity}
+                      damaged={bayDamaged}
                       onEdit={
-                        isMed
+                        isMed && !bayDamaged
                           ? () =>
                               setEditingWeaponSlot({
                                 index: ref.sort_order,
@@ -276,24 +277,25 @@ function CrawlerDetailPage() {
                     onClick={() =>
                       setEditingWeaponSlot({ index: weaponRefs.length, oldRefId: null })
                     }
-                    className="flex cursor-pointer items-center gap-1.5 self-start rounded-md border border-su-green/30 px-3 py-1.5 font-mono text-xs font-semibold text-su-green transition-colors hover:border-su-green/60 hover:bg-su-green/10"
+                    disabled={bayDamaged}
+                    className="flex cursor-pointer items-center gap-1.5 self-start rounded-md border border-su-green/30 px-3 py-1.5 font-mono text-xs font-semibold text-su-green transition-colors hover:border-su-green/60 hover:bg-su-green/10 disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     <Plus className="h-3 w-3" />
                     Add weapon system
                   </button>
                 )}
               </div>
-            }
-            storageContent={
+            )}
+            storageContent={(bayDamaged) => (
               <>
                 <CrawlerScrapStats
                   crawler={crawler}
-                  readOnly={!isMed}
+                  readOnly={!isMed || bayDamaged}
                   onUpdate={handleImmediateUpdate}
                 />
-                <CrawlerStorageSection crawlerId={crawler.id} userId={user?.id ?? ''} readOnly={!isMed} />
+                <CrawlerStorageSection crawlerId={crawler.id} userId={user?.id ?? ''} readOnly={!isMed || bayDamaged} />
               </>
-            }
+            )}
           />
         </div>
       </DisplayCard>
@@ -329,9 +331,11 @@ function CrawlerDetailPage() {
 function WeaponListing({
   entity,
   onEdit,
+  damaged,
 }: {
   entity: SURefEntity
   onEdit?: () => void
+  damaged?: boolean
 }) {
   const detailModal = useDetailModal(entity)
   const controls = [
@@ -341,7 +345,7 @@ function WeaponListing({
 
   return (
     <>
-      <EntityDisplay data={entity} listing compact controls={controls} />
+      <EntityDisplay data={entity} listing compact controls={controls} damaged={damaged} disabled={damaged} />
       {detailModal.modal}
     </>
   )

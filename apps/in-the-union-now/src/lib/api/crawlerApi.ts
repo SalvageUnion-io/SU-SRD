@@ -8,6 +8,7 @@ import type {
   EntityRefRow,
   CreateCrawlerInput,
 } from '../../types/common'
+import type { Json } from '../../types/database-generated.types'
 
 /** Compute crawler stats from TL1 tech level data, with optional crawler type SP bonus */
 function getTL1Stats(crawlerRef?: string): { max_sp: number; upkeep: number } {

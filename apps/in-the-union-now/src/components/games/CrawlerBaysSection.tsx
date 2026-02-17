@@ -33,12 +33,12 @@ type CrawlerBaysSectionProps = {
   crawler: CrawlerRow
   readOnly: boolean
   onSave: (input: Partial<CrawlerUpdate>) => void
-  /** Content to render inside the Armament Bay (weapon systems) */
-  armamentContent?: ReactNode
+  /** Render function for Armament Bay content — receives bay damage state */
+  armamentContent?: (bayDamaged: boolean) => ReactNode
   /** Callback to open the scrap conversion dialog (shown inside Trading Bay) */
   onOpenScrapConversion?: () => void
-  /** Content to render in the right column of the Storage Bay (scrap stats) */
-  storageContent?: ReactNode
+  /** Render function for Storage Bay content — receives bay damage state */
+  storageContent?: (bayDamaged: boolean) => ReactNode
 }
 
 export function CrawlerBaysSection({ crawler, readOnly, onSave, armamentContent, onOpenScrapConversion, storageContent }: CrawlerBaysSectionProps) {
@@ -112,7 +112,7 @@ export function CrawlerBaysSection({ crawler, readOnly, onSave, armamentContent,
     []
   )
 
-  const renderBay = (bay: (typeof allBays)[number]) => {
+  const renderBay = (bay: (typeof allBays)[number], skipAfterContent = false) => {
     const npcData = localBayNpcs[bay.id] ?? {}
     const isDamaged = !!npcData.damaged
     const bayEntity = bay as unknown as SURefEntity
@@ -138,6 +138,7 @@ export function CrawlerBaysSection({ crawler, readOnly, onSave, armamentContent,
               onClick: () => handleToggleDamaged(bay.id),
               ariaLabel: isDamaged ? 'Restore to intact' : 'Mark as damaged',
               variant: isDamaged ? ('danger' as const) : ('ghost' as const),
+              className: isDamaged ? 'bg-red-700 opacity-100 text-white' : undefined,
             },
           ]
         : []),
@@ -243,13 +244,15 @@ export function CrawlerBaysSection({ crawler, readOnly, onSave, armamentContent,
         </button>
       ) : undefined
 
-    const afterContent = isArmamentBay
-      ? armamentContent
-      : isTradingBay
-        ? tradingBayContent
-        : isStorageBay
-          ? storageContent
-          : undefined
+    const afterContent = skipAfterContent
+      ? undefined
+      : isArmamentBay
+        ? armamentContent?.(isDamaged)
+        : isTradingBay
+          ? tradingBayContent
+          : isStorageBay
+            ? storageContent?.(isDamaged)
+            : undefined
 
     return (
       <div key={bay.id} className="mb-4 break-inside-avoid">
@@ -277,10 +280,11 @@ export function CrawlerBaysSection({ crawler, readOnly, onSave, armamentContent,
     <div className="flex flex-col gap-3">
       <SectionSeparator label="Crawler Bays" fontSize="text-sm" />
 
+      {storageBay && <div>{renderBay(storageBay)}</div>}
+
       <div className="columns-1 gap-4 sm:columns-2">
         {regularBays.map((bay) => renderBay(bay))}
       </div>
-      {storageBay && renderBay(storageBay)}
 
       <BayDetailOverlay
         open={bayOverlay !== null}
