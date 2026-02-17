@@ -11,7 +11,7 @@ import {
 import { useAutosave } from '../../../hooks/useAutosave'
 import { useSaveStatus } from '../../../hooks/useSaveStatus'
 import { MechBuilder } from '../../../components/patterns/MechBuilder'
-import { DeletePatternDialog } from '../../../components/patterns/DeletePatternDialog'
+import { DeleteConfirmDialog } from '../../../components/shared/DeleteConfirmDialog'
 import { PageSkeleton } from '../../../components/shared/PageSkeleton'
 import { NotFoundState } from '../../../components/shared/NotFoundState'
 import { getErrorMessage } from '../../../lib/errors'
@@ -131,10 +131,11 @@ function EditPatternPage() {
         isDeleting={deletePattern.isPending}
         isCopying={createPattern.isPending}
       />
-      <DeletePatternDialog
+      <DeleteConfirmDialog
         open={showDelete}
         onOpenChange={setShowDelete}
-        patternName={pattern.name}
+        entityType="Pattern"
+        entityName={pattern.name}
         onConfirm={handleDelete}
         isDeleting={deletePattern.isPending}
       />

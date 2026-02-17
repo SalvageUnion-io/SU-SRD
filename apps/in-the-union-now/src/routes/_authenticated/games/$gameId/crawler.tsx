@@ -4,6 +4,7 @@ import { SalvageUnionReference, findCrawlerTechLevel, getNpc } from 'salvageunio
 import type { SURefEntity } from 'salvageunion-reference'
 import {
   DisplayCard,
+  CardHeader,
   Text,
   ValueDisplay,
   SectionSeparator,
@@ -11,6 +12,7 @@ import {
   EntityNpcDisplay,
   StatDisplay,
   editControl,
+  navigateControl,
   useDetailModal,
   getEntityFontSizes,
   getEntitySpacing,
@@ -29,6 +31,8 @@ import {
   useUpdateCrawlerWeapon,
   useTranslateScrap,
 } from '../../../../hooks/useCrawlers'
+import { usePilotsForCrawler } from '../../../../hooks/usePilots'
+import { useMech } from '../../../../hooks/useMechs'
 import { useSaveStatus } from '../../../../hooks/useSaveStatus'
 import { isMediator } from '../../../../lib/gameUtils'
 import { getErrorMessage } from '../../../../lib/errors'
@@ -40,17 +44,12 @@ import { CrawlerBaysSection } from '../../../../components/games/CrawlerBaysSect
 import { CrawlerStorageSection } from '../../../../components/games/CrawlerStorageSection'
 import { ScrapTranslationDialog } from '../../../../components/games/ScrapTranslationDialog'
 import { WeaponSelectionDialog } from '../../../../components/games/WeaponSelectionDialog'
-import type { BayNpcData, CrawlerRow, CrawlerUpdate } from '../../../../types/common'
+import { findChassisById } from '../../../../lib/entityHelpers'
+import type { BayNpcData, CrawlerRow, CrawlerUpdate, PilotRow } from '../../../../types/common'
 import { useAutosave } from '../../../../hooks/useAutosave'
-import { Button } from '../../../../components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '../../../../components/ui/dialog'
+import { Skeleton } from '../../../../components/ui/skeleton'
+import { DeleteConfirmDialog } from '../../../../components/shared/DeleteConfirmDialog'
+import { actionButtonClasses } from '../../../../components/shared/actionButtonClasses'
 import { Input } from '../../../../components/ui/input'
 import { Textarea } from '../../../../components/ui/textarea'
 import { RollInput } from '../../../../components/shared/RollInput'
@@ -253,11 +252,10 @@ function CrawlerDetailPage() {
                 <button
                   type="button"
                   onClick={() => setShowDelete(true)}
-                  className="flex cursor-pointer items-center gap-1.5 text-xs text-su-white/70 transition-colors hover:text-su-rust"
-                  title="Delete crawler"
+                  className={actionButtonClasses('rust')}
                 >
-                  <Trash2 className="h-4 w-4" />
-                  <span>Delete</span>
+                  <Trash2 className="h-3.5 w-3.5" />
+                  Delete
                 </button>
               }
             />
@@ -265,14 +263,15 @@ function CrawlerDetailPage() {
         }
       >
         <div className="space-y-6 p-4">
+          <CrawlerPilotsSection crawlerId={crawler.id} />
+
           {crawlerType && (
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-              {'actions' in crawlerType &&
-                (crawlerType as { actions?: string[] }).actions && (
-                  <CrawlerAbilitySection
-                    crawlerType={crawlerType as { name: string; actions?: string[] }}
-                  />
-                )}
+              {'actions' in crawlerType && (crawlerType as { actions?: string[] }).actions && (
+                <CrawlerAbilitySection
+                  crawlerType={crawlerType as { name: string; actions?: string[] }}
+                />
+              )}
               {'npc' in crawlerType && !!(crawlerType as { npc?: unknown }).npc && (
                 <CrawlerTypeNpcSection
                   crawler={crawler}
@@ -340,17 +339,19 @@ function CrawlerDetailPage() {
               </div>
             )}
             storageContent={(bayDamaged) => (
-              <div className="flex flex-col gap-6">
+              <>
                 <CrawlerScrapStats
                   crawler={crawler}
                   readOnly={!isMed || bayDamaged}
                   onUpdate={handleImmediateUpdate}
                 />
-                <div className="flex flex-col gap-2">
-                  <SectionSeparator label="Storage" fontSize="text-xs" />
-                  <CrawlerStorageSection crawlerId={crawler.id} userId={user?.id ?? ''} readOnly={!isMed || bayDamaged} />
-                </div>
-              </div>
+                <SectionSeparator label="Storage" fontSize="text-xs" />
+                <CrawlerStorageSection
+                  crawlerId={crawler.id}
+                  userId={user?.id ?? ''}
+                  readOnly={!isMed || bayDamaged}
+                />
+              </>
             )}
           />
         </div>
@@ -378,36 +379,14 @@ function CrawlerDetailPage() {
                 : undefined
             }
           />
-          <Dialog open={showDelete} onOpenChange={setShowDelete}>
-            <DialogContent className="bg-su-dark sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle className="text-su-orange">Delete Crawler</DialogTitle>
-                <DialogDescription className="text-su-grey-dark">
-                  Are you sure you want to delete{' '}
-                  <strong className="text-su-white">
-                    {crawler.name || 'this crawler'}
-                  </strong>
-                  ? This will remove all associated data. This action cannot be undone.
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter>
-                <Button
-                  variant="outline"
-                  onClick={() => setShowDelete(false)}
-                  disabled={deleteCrawlerMutation.isPending}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  variant="destructive"
-                  onClick={handleDelete}
-                  disabled={deleteCrawlerMutation.isPending}
-                >
-                  {deleteCrawlerMutation.isPending ? 'Deleting...' : 'Delete'}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+          <DeleteConfirmDialog
+            open={showDelete}
+            onOpenChange={setShowDelete}
+            entityType="Crawler"
+            entityName={crawler.name || 'this crawler'}
+            onConfirm={handleDelete}
+            isDeleting={deleteCrawlerMutation.isPending}
+          />
         </>
       )}
     </>
@@ -424,14 +403,18 @@ function WeaponListing({
   damaged?: boolean
 }) {
   const detailModal = useDetailModal(entity)
-  const controls = [
-    ...(onEdit ? [editControl(onEdit)] : []),
-    detailModal.control,
-  ]
+  const controls = [...(onEdit ? [editControl(onEdit)] : []), detailModal.control]
 
   return (
     <>
-      <EntityDisplay data={entity} listing compact controls={controls} damaged={damaged} disabled={damaged} />
+      <EntityDisplay
+        data={entity}
+        listing
+        compact
+        controls={controls}
+        damaged={damaged}
+        disabled={damaged}
+      />
       {detailModal.modal}
     </>
   )
@@ -457,7 +440,12 @@ function CrawlerAbilitySection({
           )
         }
         return (
-          <EntityDisplay key={action.id} data={action as unknown as SURefEntity} compact />
+          <EntityDisplay
+            key={action.id}
+            data={action as unknown as SURefEntity}
+            compact
+            headerColor="bg-su-pink"
+          />
         )
       })}
     </div>
@@ -523,9 +511,8 @@ function CrawlerTypeNpcSection({
   }, [])
 
   const editableChoices = useMemo(() => {
-    const choices = npc?.choices?.filter((c) =>
-      NPC_EDITABLE_CHOICE_TYPES.has(c.choiceType ?? 'freeform')
-    ) ?? []
+    const choices =
+      npc?.choices?.filter((c) => NPC_EDITABLE_CHOICE_TYPES.has(c.choiceType ?? 'freeform')) ?? []
     return [...choices].sort((a, b) => {
       const aIdx = NPC_CHOICE_ORDER.indexOf(a.name)
       const bIdx = NPC_CHOICE_ORDER.indexOf(b.name)
@@ -560,16 +547,11 @@ function CrawlerTypeNpcSection({
       <div className="flex flex-col gap-2">
         {editableChoices.map((choice) => {
           const fieldKey = choice.name.toLowerCase() as BayNpcTextField
-          const rollTable =
-            choice.rollTable ?? NPC_ROLL_TABLE_FALLBACK[choice.name]
+          const rollTable = choice.rollTable ?? NPC_ROLL_TABLE_FALLBACK[choice.name]
 
           return (
             <div key={choice.id} className="flex flex-col gap-0.5">
-              <Text
-                variant="pseudoheader"
-                as="label"
-                className="ml-0.5 text-xs uppercase"
-              >
+              <Text variant="pseudoheader" as="label" className="ml-0.5 text-xs uppercase">
                 {choice.name}
               </Text>
               {readOnly ? (
@@ -620,6 +602,93 @@ function CrawlerTypeNpcSection({
         npcChildren={npcFieldsContent}
         hpSlot={hpSlot}
       />
+    </div>
+  )
+}
+
+function CrawlerPilotsSection({ crawlerId }: { crawlerId: string }) {
+  const { data: pilots, isLoading } = usePilotsForCrawler(crawlerId)
+
+  return (
+    <div className="flex flex-col gap-3">
+      <SectionSeparator label="Pilots" fontSize="text-sm" />
+      {isLoading ? (
+        <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+          <Skeleton className="h-[40px] rounded-md" />
+          <Skeleton className="h-[40px] rounded-md" />
+        </div>
+      ) : !pilots?.length ? (
+        <Text variant="default" as="p" className="text-sm text-su-white/40">
+          No pilots assigned to this crawler.
+        </Text>
+      ) : (
+        <div className="columns-1 gap-2 space-y-2 md:columns-2">
+          {pilots.map((pilot) => (
+            <CrawlerPilotListing key={pilot.id} pilot={pilot} />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function CrawlerPilotListing({ pilot }: { pilot: PilotRow }) {
+  const navigate = useNavigate()
+  const { data: mech } = useMech(pilot.mech_id ?? undefined)
+
+  const pilotClassName = useMemo(() => {
+    const cls = SalvageUnionReference.get('classes', pilot.class_ref)
+    return cls?.name ?? 'Unknown'
+  }, [pilot.class_ref])
+
+  const chassisName = useMemo(() => {
+    if (!mech) return undefined
+    const chassis = findChassisById(mech.chassis_ref)
+    return chassis?.name
+  }, [mech])
+
+  const patternName = mech?.pattern_name ? `\u201C${mech.pattern_name}\u201D` : undefined
+
+  const handleNavigate = useCallback(() => {
+    navigate({ to: '/pilots/$pilotId', params: { pilotId: pilot.id } })
+  }, [navigate, pilot.id])
+
+  const controls = useMemo(() => [navigateControl(handleNavigate)], [handleNavigate])
+
+  const headerContent = (
+    <CardHeader
+      title={pilot.callsign}
+      subtitle={
+        <div className="flex flex-wrap items-center gap-1">
+          <ValueDisplay label="Class" value={pilotClassName} compact />
+          {chassisName && (
+            <span className="inline-flex shrink-0 cursor-default whitespace-nowrap border border-su-black">
+              <Text
+                variant="pseudoheader"
+                as="span"
+                className="text-xs font-normal uppercase"
+                style={{ backgroundColor: 'rgb(122, 151, 138)' }}
+              >
+                {chassisName}
+              </Text>
+              {patternName && (
+                <Text variant="pseudoheader" as="span" className="text-xs font-normal uppercase">
+                  {patternName}
+                </Text>
+              )}
+            </span>
+          )}
+        </div>
+      }
+      controls={controls}
+      controlSize="sm"
+      compact
+    />
+  )
+
+  return (
+    <div className="break-inside-avoid">
+      <DisplayCard headerBg="bg-su-orange" headerContent={headerContent} mode="listing" />
     </div>
   )
 }

@@ -20,21 +20,10 @@ function getRangeDescription(rangeName: string): string | null {
   return paragraphs.map((block) => block.value).join(' ') || null
 }
 
-export function RangeValueDisplay({
-  label,
-  value,
-  compact = false,
-}: RangeValueDisplayProps) {
+export function RangeValueDisplay({ label, value, compact = false }: RangeValueDisplayProps) {
   const description = useMemo(() => (value ? getRangeDescription(String(value)) : null), [value])
 
-  const display = (
-    <ValueDisplay
-      label={label}
-      value={value}
-      compact={compact}
-      inline={false}
-    />
-  )
+  const display = <ValueDisplay label={label} value={value} compact={compact} inline={false} />
 
   if (!description) return display
 

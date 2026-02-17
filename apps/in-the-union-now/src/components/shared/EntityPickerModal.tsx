@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { getTechLevel, getSource } from 'salvageunion-reference'
 import {
@@ -54,13 +54,17 @@ export function EntityPickerModal({
   const [activeSourceFilters, setActiveSourceFilters] = useState<Set<string>>(new Set())
 
   // Reset filters when dialog closes
-  useEffect(() => {
-    if (!open) {
-      setSearch('')
-      setActiveTechLevels(new Set(ALL_TECH_LEVELS))
-      setActiveSourceFilters(new Set())
-    }
-  }, [open])
+  const handleOpenChange = useCallback(
+    (next: boolean) => {
+      if (!next) {
+        setSearch('')
+        setActiveTechLevels(new Set(ALL_TECH_LEVELS))
+        setActiveSourceFilters(new Set())
+      }
+      onOpenChange(next)
+    },
+    [onOpenChange]
+  )
 
   const availableTechLevels = useMemo(() => {
     const found = new Set<TechLevelValue>()
@@ -146,13 +150,13 @@ export function EntityPickerModal({
   const handleSelect = useCallback(
     (entityId: string) => {
       onSelect(entityId)
-      if (closeOnSelect) onOpenChange(false)
+      if (closeOnSelect) handleOpenChange(false)
     },
-    [onSelect, closeOnSelect, onOpenChange]
+    [onSelect, closeOnSelect, handleOpenChange]
   )
 
   return (
-    <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
+    <DialogPrimitive.Root open={open} onOpenChange={handleOpenChange}>
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay className="fixed inset-0 z-50 overflow-y-auto bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0">
           <div className="flex min-h-full items-start justify-center px-4 py-8">
@@ -176,11 +180,7 @@ export function EntityPickerModal({
                         {title}
                       </Text>
                       {subtitle && (
-                        <Text
-                          as="span"
-                          variant="pseudoheader"
-                          className="text-xs text-su-white/80"
-                        >
+                        <Text as="span" variant="pseudoheader" className="text-xs text-su-white/80">
                           {subtitle}
                         </Text>
                       )}
@@ -251,20 +251,14 @@ export function EntityPickerModal({
                       <>
                         {selectable.map((entity) => {
                           const id = getEntityId(entity)
-                          const isCurrent =
-                            currentEntityId !== undefined && id === currentEntityId
+                          const isCurrent = currentEntityId !== undefined && id === currentEntityId
                           return (
-                            <div
-                              key={id}
-                              className={isCurrent ? 'ring-2 ring-su-green/50' : ''}
-                            >
+                            <div key={id} className={isCurrent ? 'ring-2 ring-su-green/50' : ''}>
                               <EntityDisplay
                                 data={entity}
                                 compact
                                 controls={
-                                  isCurrent
-                                    ? undefined
-                                    : [addControl(() => handleSelect(id))]
+                                  isCurrent ? undefined : [addControl(() => handleSelect(id))]
                                 }
                               />
                             </div>

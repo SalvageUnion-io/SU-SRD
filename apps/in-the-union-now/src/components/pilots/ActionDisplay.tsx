@@ -69,11 +69,7 @@ export function ActionDisplay({ data, controls, disabled, footerMessage }: Actio
       >
         {data.content && data.content.length > 0 && (
           <div className={cn(disabled && 'opacity-50')}>
-            <BlockContentRendererView
-              content={data.content}
-              fontSize="text-xs"
-              compact
-            />
+            <BlockContentRendererView content={data.content} fontSize="text-xs" compact />
           </div>
         )}
       </DisplayCard>

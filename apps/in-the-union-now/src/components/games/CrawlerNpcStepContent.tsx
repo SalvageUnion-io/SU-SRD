@@ -138,11 +138,7 @@ function NpcCard({ entry, choiceValues, stepId, onChoiceValueChange, onRoll }: N
     >
       <div className="flex flex-col gap-2">
         {npcContent && npcContent.length > 0 && (
-          <BlockContentRendererView
-            content={npcContent}
-            fontSize="text-xs"
-            compact
-          />
+          <BlockContentRendererView content={npcContent} fontSize="text-xs" compact />
         )}
         {editableChoices.map((choice) => {
           const rollTable = choice.rollTable ?? CHOICE_ROLL_TABLE_FALLBACK[choice.name]

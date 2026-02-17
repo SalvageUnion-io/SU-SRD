@@ -63,13 +63,7 @@ export function DataValueDisplayView({
   }
 
   if (item.type === 'range') {
-    return (
-      <RangeValueDisplay
-        label={item.label}
-        value={item.value}
-        compact={compact}
-      />
-    )
+    return <RangeValueDisplay label={item.label} value={item.value} compact={compact} />
   }
 
   if (item.type === 'requirement') {
@@ -167,12 +161,5 @@ export function DataValueDisplayView({
     )
   }
 
-  return (
-    <ValueDisplay
-      label={item.label}
-      value={item.value}
-      compact={compact}
-      inline={false}
-    />
-  )
+  return <ValueDisplay label={item.label} value={item.value} compact={compact} inline={false} />
 }

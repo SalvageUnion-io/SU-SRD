@@ -34,24 +34,12 @@ export function TraitKeywordDisplayView({
   const id = entity?.id
 
   if (!id) {
-    return (
-      <ValueDisplay
-        label={label}
-        value={value}
-        compact={compact}
-        inline={inline}
-      />
-    )
+    return <ValueDisplay label={label} value={value} compact={compact} inline={inline} />
   }
 
   return (
     <EntityDisplayTooltip schemaName={schemaName} entityId={id} openDelay={300}>
-      <ValueDisplay
-        label={label}
-        value={value}
-        compact={compact}
-        inline={inline}
-      />
+      <ValueDisplay label={label} value={value} compact={compact} inline={inline} />
     </EntityDisplayTooltip>
   )
 }

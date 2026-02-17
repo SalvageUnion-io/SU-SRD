@@ -9,11 +9,7 @@ type CrawlerScrapStatsProps = {
   onUpdate: (input: Partial<CrawlerUpdate>) => void
 }
 
-export function CrawlerScrapStats({
-  crawler,
-  readOnly,
-  onUpdate,
-}: CrawlerScrapStatsProps) {
+export function CrawlerScrapStats({ crawler, readOnly, onUpdate }: CrawlerScrapStatsProps) {
   const handleChange = useCallback(
     (field: keyof CrawlerUpdate, newValue: number) => {
       if (readOnly) return

@@ -23,7 +23,16 @@ type EntityNpcDisplayProps = {
   damaged?: boolean
 }
 
-export function EntityNpcDisplay({ data, compact, fontSize, spacing, npcChildren, hpSlot, hideContent = false, damaged = false }: EntityNpcDisplayProps) {
+export function EntityNpcDisplay({
+  data,
+  compact,
+  fontSize,
+  spacing,
+  npcChildren,
+  hpSlot,
+  hideContent = false,
+  damaged = false,
+}: EntityNpcDisplayProps) {
   const npc = getNpc(data)
   if (!npc) return null
 
@@ -56,9 +65,7 @@ export function EntityNpcDisplay({ data, compact, fontSize, spacing, npcChildren
         </div>
       </div>
       {npc.hitPoints > 0 && (
-        <div>
-          {hpSlot ?? <StatDisplay label="HP" value={npc.hitPoints} compact={compact} />}
-        </div>
+        <div>{hpSlot ?? <StatDisplay label="HP" value={npc.hitPoints} compact={compact} />}</div>
       )}
     </>
   )

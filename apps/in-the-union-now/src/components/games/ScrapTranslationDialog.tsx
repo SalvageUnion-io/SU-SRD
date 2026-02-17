@@ -72,9 +72,7 @@ export function ScrapTranslationDialog({
         <DialogPrimitive.Overlay className="fixed inset-0 z-50 overflow-y-auto bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0">
           <div className="flex min-h-full items-start justify-center px-4 py-8">
             <DialogPrimitive.Content className="relative w-full max-w-lg bg-transparent outline-none">
-              <DialogPrimitive.Title className="sr-only">
-                Scrap Conversion
-              </DialogPrimitive.Title>
+              <DialogPrimitive.Title className="sr-only">Scrap Conversion</DialogPrimitive.Title>
               <DialogPrimitive.Description className="sr-only">
                 Convert scrap between tech levels.
               </DialogPrimitive.Description>
@@ -92,11 +90,7 @@ export function ScrapTranslationDialog({
                       >
                         Scrap Conversion
                       </Text>
-                      <Text
-                        as="span"
-                        variant="pseudoheader"
-                        className="text-xs text-su-white/80"
-                      >
+                      <Text as="span" variant="pseudoheader" className="text-xs text-su-white/80">
                         Rate: N TL1 = 1 TL N
                       </Text>
                     </div>
@@ -184,9 +178,7 @@ export function ScrapTranslationDialog({
                         max={available}
                         value={amount}
                         onChange={(e) =>
-                          setAmount(
-                            Math.max(1, Math.min(available, parseInt(e.target.value) || 1))
-                          )
+                          setAmount(Math.max(1, Math.min(available, parseInt(e.target.value) || 1)))
                         }
                         className="h-9 w-16 border-2 border-su-black/20 bg-su-white text-center font-mono text-sm text-su-black"
                       />
@@ -210,11 +202,7 @@ export function ScrapTranslationDialog({
                   {/* Preview */}
                   <div className="border-2 border-su-black/20 p-3">
                     {result ? (
-                      <Text
-                        variant="default"
-                        as="p"
-                        className="text-center text-sm text-su-black"
-                      >
+                      <Text variant="default" as="p" className="text-center text-sm text-su-black">
                         <span className="font-mono font-bold text-su-pink">
                           {result.sourceConsumed} TL{fromTL}
                         </span>

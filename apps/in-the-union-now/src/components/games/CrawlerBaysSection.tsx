@@ -41,7 +41,14 @@ type CrawlerBaysSectionProps = {
   storageContent?: (bayDamaged: boolean) => ReactNode
 }
 
-export function CrawlerBaysSection({ crawler, readOnly, onSave, armamentContent, onOpenScrapConversion, storageContent }: CrawlerBaysSectionProps) {
+export function CrawlerBaysSection({
+  crawler,
+  readOnly,
+  onSave,
+  armamentContent,
+  onOpenScrapConversion,
+  storageContent,
+}: CrawlerBaysSectionProps) {
   const allBays = SalvageUnionReference.CrawlerBays.all()
   const regularBays = allBays.filter((b) => b.name !== 'Storage Bay')
   const storageBay = allBays.find((b) => b.name === 'Storage Bay')
@@ -63,18 +70,15 @@ export function CrawlerBaysSection({ crawler, readOnly, onSave, armamentContent,
     enabled: !readOnly,
   })
 
-  const handleFieldChange = useCallback(
-    (bayId: string, field: BayNpcTextField, value: string) => {
-      setLocalBayNpcs((prev) => ({
-        ...prev,
-        [bayId]: {
-          ...prev[bayId],
-          [field]: value || undefined,
-        },
-      }))
-    },
-    []
-  )
+  const handleFieldChange = useCallback((bayId: string, field: BayNpcTextField, value: string) => {
+    setLocalBayNpcs((prev) => ({
+      ...prev,
+      [bayId]: {
+        ...prev[bayId],
+        [field]: value || undefined,
+      },
+    }))
+  }, [])
 
   const handleRoll = useCallback(
     (bayId: string, fieldKey: BayNpcTextField, tableName: string) => {
@@ -86,31 +90,25 @@ export function CrawlerBaysSection({ crawler, readOnly, onSave, armamentContent,
     [handleFieldChange]
   )
 
-  const handleHpChange = useCallback(
-    (bayId: string, hp: number) => {
-      setLocalBayNpcs((prev) => ({
-        ...prev,
-        [bayId]: {
-          ...prev[bayId],
-          hp,
-        },
-      }))
-    },
-    []
-  )
+  const handleHpChange = useCallback((bayId: string, hp: number) => {
+    setLocalBayNpcs((prev) => ({
+      ...prev,
+      [bayId]: {
+        ...prev[bayId],
+        hp,
+      },
+    }))
+  }, [])
 
-  const handleToggleDamaged = useCallback(
-    (bayId: string) => {
-      setLocalBayNpcs((prev) => ({
-        ...prev,
-        [bayId]: {
-          ...prev[bayId],
-          damaged: !prev[bayId]?.damaged,
-        },
-      }))
-    },
-    []
-  )
+  const handleToggleDamaged = useCallback((bayId: string) => {
+    setLocalBayNpcs((prev) => ({
+      ...prev,
+      [bayId]: {
+        ...prev[bayId],
+        damaged: !prev[bayId]?.damaged,
+      },
+    }))
+  }, [])
 
   const renderBay = (bay: (typeof allBays)[number], skipAfterContent = false) => {
     const npcData = localBayNpcs[bay.id] ?? {}
@@ -156,16 +154,11 @@ export function CrawlerBaysSection({ crawler, readOnly, onSave, armamentContent,
         <div className="flex flex-col gap-2">
           {editableChoices.map((choice) => {
             const fieldKey = choice.name.toLowerCase() as BayNpcTextField
-            const rollTable =
-              choice.rollTable ?? CHOICE_ROLL_TABLE_FALLBACK[choice.name]
+            const rollTable = choice.rollTable ?? CHOICE_ROLL_TABLE_FALLBACK[choice.name]
 
             return (
               <div key={choice.id} className="flex flex-col gap-0.5">
-                <Text
-                  variant="pseudoheader"
-                  as="label"
-                  className="ml-0.5 text-xs uppercase"
-                >
+                <Text variant="pseudoheader" as="label" className="ml-0.5 text-xs uppercase">
                   {choice.name}
                 </Text>
                 {readOnly ? (
@@ -277,7 +270,7 @@ export function CrawlerBaysSection({ crawler, readOnly, onSave, armamentContent,
 
       {storageBay && <div>{renderBay(storageBay)}</div>}
 
-      <div className="columns-1 gap-4 sm:columns-2">
+      <div className="columns-1 gap-4 md:columns-2 lg:columns-3">
         {regularBays.map((bay) => renderBay(bay))}
       </div>
 
@@ -292,4 +285,3 @@ export function CrawlerBaysSection({ crawler, readOnly, onSave, armamentContent,
     </div>
   )
 }
-

@@ -8,7 +8,6 @@ import type {
   EntityRefRow,
   CreateCrawlerInput,
 } from '../../types/common'
-import type { Json } from '../../types/database-generated.types'
 
 /** Compute crawler stats from TL1 tech level data, with optional crawler type SP bonus */
 function getTL1Stats(crawlerRef?: string): { max_sp: number; upkeep: number } {
@@ -160,7 +159,13 @@ export async function listCargoForCrawler(crawlerId: string): Promise<CargoRow[]
 export async function addCargoToCrawler(
   crawlerId: string,
   userId: string,
-  input: { name: string; amount?: number; schema_name?: string; schema_ref_id?: string; metadata?: Record<string, unknown> }
+  input: {
+    name: string
+    amount?: number
+    schema_name?: string
+    schema_ref_id?: string
+    metadata?: Record<string, unknown>
+  }
 ): Promise<CargoRow> {
   const { data, error } = await supabase
     .from('cargo')

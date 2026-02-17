@@ -3,7 +3,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { SalvageUnionReference, isHybridClass, getAssetUrl } from 'salvageunion-reference'
 import { DisplayCard, Text, ValueDisplay } from 'suref-react'
 import { toast } from 'sonner'
-import { Trash2, Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff, Trash2 } from 'lucide-react'
 import { useAuthStore } from '../../../../stores/authStore'
 import {
   usePilot,
@@ -22,17 +22,9 @@ import { useSaveStatus } from '../../../../hooks/useSaveStatus'
 import { getEntityAccess } from '../../../../lib/entityAccess'
 import { findChassisById } from '../../../../lib/entityHelpers'
 import { PatternImageSlot } from '../../../../components/patterns/PatternImageSlot'
-import { Button } from '../../../../components/ui/button'
 import { PageSkeleton } from '../../../../components/shared/PageSkeleton'
 import { NotFoundState } from '../../../../components/shared/NotFoundState'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from '../../../../components/ui/dialog'
+import { DeleteConfirmDialog } from '../../../../components/shared/DeleteConfirmDialog'
 import { getErrorMessage } from '../../../../lib/errors'
 import { SheetFooter } from '../../../../components/shared/SheetFooter'
 import { actionButtonClasses } from '../../../../components/shared/actionButtonClasses'
@@ -315,30 +307,14 @@ function PilotDetailPage() {
         </div>
       </DisplayCard>
 
-      <Dialog open={showDelete} onOpenChange={setShowDelete}>
-        <DialogContent className="bg-su-dark sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-su-orange">Delete Pilot</DialogTitle>
-            <DialogDescription className="text-su-grey-dark">
-              Are you sure you want to delete{' '}
-              <strong className="text-su-white">{pilot.callsign}</strong>? This will also remove all
-              associated entity refs. This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setShowDelete(false)}
-              disabled={deletePilot.isPending}
-            >
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={handleDelete} disabled={deletePilot.isPending}>
-              {deletePilot.isPending ? 'Deleting...' : 'Delete'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DeleteConfirmDialog
+        open={showDelete}
+        onOpenChange={setShowDelete}
+        entityType="Pilot"
+        entityName={pilot.callsign}
+        onConfirm={handleDelete}
+        isDeleting={deletePilot.isPending}
+      />
     </>
   )
 }

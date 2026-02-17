@@ -141,12 +141,12 @@ Combines the remaining Phase 5 (Invites & Roles) and Phase 6 (Late Improvements)
 
 These items from the original Phase 6 PRD are explicitly deferred:
 
-| Item | Reason |
-| --- | --- |
-| Rollback UI | Adds significant complexity for marginal user value. change_log is sufficient as an audit trail. |
-| Crawler Downtime flow | 10-step interactive wizard touching every system. Too large for this phase. |
-| Action execution (AP/EP deduction on click) | Requires deep integration with every entity display. Better as a dedicated effort. |
-| Class advancement/hybridization UI | Prerequisite logic ships, but the class-change ceremony UX is deferred. |
+| Item                                        | Reason                                                                                           |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| Rollback UI                                 | Adds significant complexity for marginal user value. change_log is sufficient as an audit trail. |
+| Crawler Downtime flow                       | 10-step interactive wizard touching every system. Too large for this phase.                      |
+| Action execution (AP/EP deduction on click) | Requires deep integration with every entity display. Better as a dedicated effort.               |
+| Class advancement/hybridization UI          | Prerequisite logic ships, but the class-change ceremony UX is deferred.                          |
 
 ---
 

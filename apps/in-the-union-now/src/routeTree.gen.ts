@@ -50,53 +50,46 @@ const AuthenticatedPilotsNewRoute = AuthenticatedPilotsNewRouteImport.update({
   path: '/pilots/new',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedPilotsPilotIdRoute =
-  AuthenticatedPilotsPilotIdRouteImport.update({
-    id: '/pilots/$pilotId',
-    path: '/pilots/$pilotId',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedPatternsNewRoute =
-  AuthenticatedPatternsNewRouteImport.update({
-    id: '/patterns/new',
-    path: '/patterns/new',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedPatternsPatternIdRoute =
-  AuthenticatedPatternsPatternIdRouteImport.update({
-    id: '/patterns/$patternId',
-    path: '/patterns/$patternId',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
+const AuthenticatedPilotsPilotIdRoute = AuthenticatedPilotsPilotIdRouteImport.update({
+  id: '/pilots/$pilotId',
+  path: '/pilots/$pilotId',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedPatternsNewRoute = AuthenticatedPatternsNewRouteImport.update({
+  id: '/patterns/new',
+  path: '/patterns/new',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedPatternsPatternIdRoute = AuthenticatedPatternsPatternIdRouteImport.update({
+  id: '/patterns/$patternId',
+  path: '/patterns/$patternId',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedGamesNewRoute = AuthenticatedGamesNewRouteImport.update({
   id: '/games/new',
   path: '/games/new',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedGamesGameIdRoute =
-  AuthenticatedGamesGameIdRouteImport.update({
-    id: '/games/$gameId',
-    path: '/games/$gameId',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedPilotsPilotIdIndexRoute =
-  AuthenticatedPilotsPilotIdIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => AuthenticatedPilotsPilotIdRoute,
-  } as any)
-const AuthenticatedGamesGameIdIndexRoute =
-  AuthenticatedGamesGameIdIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => AuthenticatedGamesGameIdRoute,
-  } as any)
-const AuthenticatedPilotsPilotIdMechBayRoute =
-  AuthenticatedPilotsPilotIdMechBayRouteImport.update({
-    id: '/mech-bay',
-    path: '/mech-bay',
-    getParentRoute: () => AuthenticatedPilotsPilotIdRoute,
-  } as any)
+const AuthenticatedGamesGameIdRoute = AuthenticatedGamesGameIdRouteImport.update({
+  id: '/games/$gameId',
+  path: '/games/$gameId',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedPilotsPilotIdIndexRoute = AuthenticatedPilotsPilotIdIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedPilotsPilotIdRoute,
+} as any)
+const AuthenticatedGamesGameIdIndexRoute = AuthenticatedGamesGameIdIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedGamesGameIdRoute,
+} as any)
+const AuthenticatedPilotsPilotIdMechBayRoute = AuthenticatedPilotsPilotIdMechBayRouteImport.update({
+  id: '/mech-bay',
+  path: '/mech-bay',
+  getParentRoute: () => AuthenticatedPilotsPilotIdRoute,
+} as any)
 const AuthenticatedPilotsPilotIdCreateMechRoute =
   AuthenticatedPilotsPilotIdCreateMechRouteImport.update({
     id: '/create-mech',
@@ -109,12 +102,11 @@ const AuthenticatedGamesGameIdCreateCrawlerRoute =
     path: '/create-crawler',
     getParentRoute: () => AuthenticatedGamesGameIdRoute,
   } as any)
-const AuthenticatedGamesGameIdCrawlerRoute =
-  AuthenticatedGamesGameIdCrawlerRouteImport.update({
-    id: '/crawler',
-    path: '/crawler',
-    getParentRoute: () => AuthenticatedGamesGameIdRoute,
-  } as any)
+const AuthenticatedGamesGameIdCrawlerRoute = AuthenticatedGamesGameIdCrawlerRouteImport.update({
+  id: '/crawler',
+  path: '/crawler',
+  getParentRoute: () => AuthenticatedGamesGameIdRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
@@ -349,18 +341,15 @@ interface AuthenticatedGamesGameIdRouteChildren {
   AuthenticatedGamesGameIdIndexRoute: typeof AuthenticatedGamesGameIdIndexRoute
 }
 
-const AuthenticatedGamesGameIdRouteChildren: AuthenticatedGamesGameIdRouteChildren =
-  {
-    AuthenticatedGamesGameIdCrawlerRoute: AuthenticatedGamesGameIdCrawlerRoute,
-    AuthenticatedGamesGameIdCreateCrawlerRoute:
-      AuthenticatedGamesGameIdCreateCrawlerRoute,
-    AuthenticatedGamesGameIdIndexRoute: AuthenticatedGamesGameIdIndexRoute,
-  }
+const AuthenticatedGamesGameIdRouteChildren: AuthenticatedGamesGameIdRouteChildren = {
+  AuthenticatedGamesGameIdCrawlerRoute: AuthenticatedGamesGameIdCrawlerRoute,
+  AuthenticatedGamesGameIdCreateCrawlerRoute: AuthenticatedGamesGameIdCreateCrawlerRoute,
+  AuthenticatedGamesGameIdIndexRoute: AuthenticatedGamesGameIdIndexRoute,
+}
 
-const AuthenticatedGamesGameIdRouteWithChildren =
-  AuthenticatedGamesGameIdRoute._addFileChildren(
-    AuthenticatedGamesGameIdRouteChildren,
-  )
+const AuthenticatedGamesGameIdRouteWithChildren = AuthenticatedGamesGameIdRoute._addFileChildren(
+  AuthenticatedGamesGameIdRouteChildren
+)
 
 interface AuthenticatedPilotsPilotIdRouteChildren {
   AuthenticatedPilotsPilotIdCreateMechRoute: typeof AuthenticatedPilotsPilotIdCreateMechRoute
@@ -368,19 +357,14 @@ interface AuthenticatedPilotsPilotIdRouteChildren {
   AuthenticatedPilotsPilotIdIndexRoute: typeof AuthenticatedPilotsPilotIdIndexRoute
 }
 
-const AuthenticatedPilotsPilotIdRouteChildren: AuthenticatedPilotsPilotIdRouteChildren =
-  {
-    AuthenticatedPilotsPilotIdCreateMechRoute:
-      AuthenticatedPilotsPilotIdCreateMechRoute,
-    AuthenticatedPilotsPilotIdMechBayRoute:
-      AuthenticatedPilotsPilotIdMechBayRoute,
-    AuthenticatedPilotsPilotIdIndexRoute: AuthenticatedPilotsPilotIdIndexRoute,
-  }
+const AuthenticatedPilotsPilotIdRouteChildren: AuthenticatedPilotsPilotIdRouteChildren = {
+  AuthenticatedPilotsPilotIdCreateMechRoute: AuthenticatedPilotsPilotIdCreateMechRoute,
+  AuthenticatedPilotsPilotIdMechBayRoute: AuthenticatedPilotsPilotIdMechBayRoute,
+  AuthenticatedPilotsPilotIdIndexRoute: AuthenticatedPilotsPilotIdIndexRoute,
+}
 
 const AuthenticatedPilotsPilotIdRouteWithChildren =
-  AuthenticatedPilotsPilotIdRoute._addFileChildren(
-    AuthenticatedPilotsPilotIdRouteChildren,
-  )
+  AuthenticatedPilotsPilotIdRoute._addFileChildren(AuthenticatedPilotsPilotIdRouteChildren)
 
 interface AuthenticatedRouteChildren {
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
@@ -403,7 +387,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
-  AuthenticatedRouteChildren,
+  AuthenticatedRouteChildren
 )
 
 const rootRouteChildren: RootRouteChildren = {

@@ -10,12 +10,7 @@ type BayDetailOverlayProps = {
   mode: 'content' | 'damage'
 }
 
-export function BayDetailOverlay({
-  open,
-  onOpenChange,
-  entity,
-  mode,
-}: BayDetailOverlayProps) {
+export function BayDetailOverlay({ open, onOpenChange, entity, mode }: BayDetailOverlayProps) {
   if (!entity) return null
 
   return (

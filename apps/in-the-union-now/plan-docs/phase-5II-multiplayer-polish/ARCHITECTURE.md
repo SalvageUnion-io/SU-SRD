@@ -86,29 +86,31 @@ export const changeLogApi = {
 
 ```typescript
 // src/hooks/useRealtimeSubscription.ts
-export function useRealtimeSubscription(
-  table: string,
-  filter: string,
-  queryKeys: QueryKey[]
-) {
+export function useRealtimeSubscription(table: string, filter: string, queryKeys: QueryKey[]) {
   const queryClient = useQueryClient()
 
   useEffect(() => {
     const channel = supabase
       .channel(`${table}-${filter}`)
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table,
-        filter,
-      }, () => {
-        queryKeys.forEach((key) => {
-          queryClient.invalidateQueries({ queryKey: key })
-        })
-      })
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table,
+          filter,
+        },
+        () => {
+          queryKeys.forEach((key) => {
+            queryClient.invalidateQueries({ queryKey: key })
+          })
+        }
+      )
       .subscribe()
 
-    return () => { supabase.removeChannel(channel) }
+    return () => {
+      supabase.removeChannel(channel)
+    }
   }, [table, filter])
 }
 ```
@@ -209,13 +211,12 @@ CREATE POLICY "Pattern visibility" ON mech_patterns FOR SELECT
 // Generate a random 8-character invite code (no ambiguous chars)
 const generateInviteCode = (): string => {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
-  return Array.from({ length: 8 }, () =>
-    chars[Math.floor(Math.random() * chars.length)]
-  ).join('')
+  return Array.from({ length: 8 }, () => chars[Math.floor(Math.random() * chars.length)]).join('')
 }
 ```
 
 Join flow:
+
 1. User enters invite code
 2. Look up campaign by code (must not be archived)
 3. Insert campaign_member with 'player' role
@@ -374,18 +375,24 @@ export function useActivityFeed(campaignId: string, currentUserId: string) {
   useEffect(() => {
     const channel = supabase
       .channel(`campaign-activity-${campaignId}`)
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'change_log',
-      }, (payload) => {
-        if (payload.new.user_id !== currentUserId) {
-          toast(payload.new.description)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'change_log',
+        },
+        (payload) => {
+          if (payload.new.user_id !== currentUserId) {
+            toast(payload.new.description)
+          }
         }
-      })
+      )
       .subscribe()
 
-    return () => { supabase.removeChannel(channel) }
+    return () => {
+      supabase.removeChannel(channel)
+    }
   }, [campaignId, currentUserId])
 }
 ```

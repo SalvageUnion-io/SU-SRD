@@ -14,7 +14,14 @@ type RollInputProps = {
   rollTableName?: string
 }
 
-export function RollInput({ value, onChange, onRoll, onBlur, placeholder, rollTableName }: RollInputProps) {
+export function RollInput({
+  value,
+  onChange,
+  onRoll,
+  onBlur,
+  placeholder,
+  rollTableName,
+}: RollInputProps) {
   const rollTableEntity = rollTableName
     ? SalvageUnionReference.RollTables.find((rt) => rt.name === rollTableName)
     : null

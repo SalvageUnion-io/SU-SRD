@@ -33,10 +33,7 @@ const TL_COLOR_CATEGORIES = new Set(['systems', 'modules'])
  * Tech items with a tech level use TL-based blues.
  * Chassis always green, everything else orange.
  */
-export function getCustomItemHeaderBg(
-  category?: string,
-  techLevel?: string | number
-): string {
+export function getCustomItemHeaderBg(category?: string, techLevel?: string | number): string {
   if (!category || category === 'other') return 'bg-su-orange'
   if (category === 'chassis') return 'bg-su-green'
 

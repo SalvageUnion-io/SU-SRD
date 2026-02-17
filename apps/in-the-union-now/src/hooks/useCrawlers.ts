@@ -14,7 +14,12 @@ import {
 } from '../lib/api/crawlerApi'
 import { updateEntityRef } from '../lib/api/pilotApi'
 import { gameKeys } from './useGames'
-import type { CreateCrawlerInput, CrawlerRow, CrawlerUpdate, EntityRefUpdate } from '../types/common'
+import type {
+  CreateCrawlerInput,
+  CrawlerRow,
+  CrawlerUpdate,
+  EntityRefUpdate,
+} from '../types/common'
 
 export const crawlerKeys = {
   all: ['crawlers'] as const,
@@ -88,14 +93,8 @@ export function useUpdateCrawlerEntityRef() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({
-      refId,
-      input,
-    }: {
-      refId: string
-      input: EntityRefUpdate
-      crawlerId: string
-    }) => updateEntityRef(refId, input),
+    mutationFn: ({ refId, input }: { refId: string; input: EntityRefUpdate; crawlerId: string }) =>
+      updateEntityRef(refId, input),
     onSuccess: (_data, { crawlerId }) => {
       queryClient.invalidateQueries({ queryKey: crawlerKeys.entityRefs(crawlerId) })
     },
@@ -174,7 +173,13 @@ export function useAddCrawlerCargo() {
     }: {
       crawlerId: string
       userId: string
-      input: { name: string; amount?: number; schema_name?: string; schema_ref_id?: string; metadata?: Record<string, unknown> }
+      input: {
+        name: string
+        amount?: number
+        schema_name?: string
+        schema_ref_id?: string
+        metadata?: Record<string, unknown>
+      }
     }) => addCargoToCrawler(crawlerId, userId, input),
     onSuccess: (_data, { crawlerId }) => {
       queryClient.invalidateQueries({ queryKey: crawlerKeys.cargo(crawlerId) })

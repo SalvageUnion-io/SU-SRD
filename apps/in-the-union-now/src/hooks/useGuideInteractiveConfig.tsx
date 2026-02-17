@@ -222,7 +222,6 @@ export function useGuideInteractiveConfig(
       renderRollInteraction,
       budgetConfig,
       renderStepHeaderExtra,
-      constraintOverride,
     ]
   )
 }

@@ -66,9 +66,7 @@ export function CardHeader({
       {hasRightSide && (
         <div className="flex gap-1">
           {!lightweight && rightContent}
-          {hasControls && (
-            <ControlButtons controls={controls} size={controlSize} />
-          )}
+          {hasControls && <ControlButtons controls={controls} size={controlSize} />}
         </div>
       )}
     </>

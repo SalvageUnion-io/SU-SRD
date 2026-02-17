@@ -86,7 +86,6 @@ export function BlockContentRendererView({
               fontSize={fontSize}
               compact={compact}
               chassisName={chassisName}
-
               borderColor={borderColor}
             />
           ))
@@ -112,7 +111,6 @@ export function BlockContentRendererView({
                 fontSize={fontSize}
                 compact={compact}
                 chassisName={chassisName}
-  
               />
             )}
             {labelText && (
@@ -137,7 +135,6 @@ export function BlockContentRendererView({
                     fontSize={fontSize}
                     compact={compact}
                     chassisName={chassisName}
-      
                   />
                 ))}
               </div>

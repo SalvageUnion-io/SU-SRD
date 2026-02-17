@@ -19,11 +19,7 @@ import type { EntityControl } from 'suref-react'
 import * as DialogPrimitive from '@radix-ui/react-dialog'
 import { Package, Pencil, X } from 'lucide-react'
 import { toast } from 'sonner'
-import {
-  useCrawlerCargo,
-  useAddCrawlerCargo,
-  useDeleteCrawlerCargo,
-} from '../../hooks/useCrawlers'
+import { useCrawlerCargo, useAddCrawlerCargo, useDeleteCrawlerCargo } from '../../hooks/useCrawlers'
 import { getErrorMessage } from '../../lib/errors'
 import {
   CUSTOM_CARGO_CATEGORIES,
@@ -51,11 +47,12 @@ export function CrawlerStorageSection({ crawlerId, userId, readOnly }: CrawlerSt
   const [showCustomDialog, setShowCustomDialog] = useState(false)
 
   const storageEntities = useMemo(
-    () => [
-      ...SalvageUnionReference.Chassis.all(),
-      ...SalvageUnionReference.Systems.all(),
-      ...SalvageUnionReference.Modules.all(),
-    ] as SURefEntity[],
+    () =>
+      [
+        ...SalvageUnionReference.Chassis.all(),
+        ...SalvageUnionReference.Systems.all(),
+        ...SalvageUnionReference.Modules.all(),
+      ] as SURefEntity[],
     []
   )
 
@@ -117,17 +114,11 @@ export function CrawlerStorageSection({ crawlerId, userId, readOnly }: CrawlerSt
     [crawlerId, deleteCargo]
   )
 
-  const entityItems = useMemo(
-    () => (cargo ?? []).filter((c) => c.schema_ref_id),
-    [cargo]
-  )
-  const customItems = useMemo(
-    () => (cargo ?? []).filter((c) => !c.schema_ref_id),
-    [cargo]
-  )
+  const entityItems = useMemo(() => (cargo ?? []).filter((c) => c.schema_ref_id), [cargo])
+  const customItems = useMemo(() => (cargo ?? []).filter((c) => !c.schema_ref_id), [cargo])
 
   return (
-    <div className="flex flex-col gap-2">
+    <>
       {/* Add buttons */}
       {!readOnly && (
         <div className="flex gap-0">
@@ -150,22 +141,26 @@ export function CrawlerStorageSection({ crawlerId, userId, readOnly }: CrawlerSt
         </div>
       )}
 
-      {/* Storage items grid */}
+      {/* Storage items in a 2-column multi-column layout.
+          The columns wrapper is a BFC that auto-sizes beside the NPC float
+          and expands to full width below it. */}
       {(entityItems.length > 0 || customItems.length > 0) && (
-        <div className="grid grid-cols-1 gap-2">
+        <div className="columns-2 gap-2 space-y-2">
           {entityItems.map((item) => (
-            <EntityStorageItem
-              key={item.id}
-              item={item}
-              onDelete={readOnly ? undefined : () => handleDelete(item.id)}
-            />
+            <div key={item.id} className="break-inside-avoid">
+              <EntityStorageItem
+                item={item}
+                onDelete={readOnly ? undefined : () => handleDelete(item.id)}
+              />
+            </div>
           ))}
           {customItems.map((item) => (
-            <CustomStorageItem
-              key={item.id}
-              item={item}
-              onDelete={readOnly ? undefined : () => handleDelete(item.id)}
-            />
+            <div key={item.id} className="break-inside-avoid">
+              <CustomStorageItem
+                item={item}
+                onDelete={readOnly ? undefined : () => handleDelete(item.id)}
+              />
+            </div>
           ))}
         </div>
       )}
@@ -188,18 +183,12 @@ export function CrawlerStorageSection({ crawlerId, userId, readOnly }: CrawlerSt
         onAdd={handleCustomAdd}
         isPending={addCargo.isPending}
       />
-    </div>
+    </>
   )
 }
 
 /** Renders a cargo item that has a schema reference — uses EntityDisplay listing compact */
-function EntityStorageItem({
-  item,
-  onDelete,
-}: {
-  item: CargoRow
-  onDelete?: () => void
-}) {
+function EntityStorageItem({ item, onDelete }: { item: CargoRow; onDelete?: () => void }) {
   const entity = useMemo(
     () =>
       item.schema_name && item.schema_ref_id
@@ -214,12 +203,7 @@ function EntityStorageItem({
   const detailModal = useDetailModal(entity as SURefEntity | undefined)
 
   if (!entity) {
-    return (
-      <CustomStorageItem
-        item={item}
-        onDelete={onDelete}
-      />
-    )
+    return <CustomStorageItem item={item} onDelete={onDelete} />
   }
 
   const controls = [
@@ -229,26 +213,14 @@ function EntityStorageItem({
 
   return (
     <>
-      <EntityDisplay
-        data={entity as SURefEntity}
-        listing
-        compact
-        lightweight
-        controls={controls}
-      />
+      <EntityDisplay data={entity as SURefEntity} listing compact lightweight controls={controls} />
       {detailModal.modal}
     </>
   )
 }
 
 /** Renders a custom cargo item as an entity-like listing with category-colored header */
-function CustomStorageItem({
-  item,
-  onDelete,
-}: {
-  item: CargoRow
-  onDelete?: () => void
-}) {
+function CustomStorageItem({ item, onDelete }: { item: CargoRow; onDelete?: () => void }) {
   const [showDetail, setShowDetail] = useState(false)
   const metadata = item.metadata as Record<string, unknown> | null
   const category = (metadata?.category as string) ?? undefined
@@ -263,23 +235,30 @@ function CustomStorageItem({
     variant: 'ghost',
   }
 
-  const controls = [
-    ...(onDelete ? [deleteControl(onDelete)] : []),
-    detailControl,
-  ]
+  const controls = [...(onDelete ? [deleteControl(onDelete)] : []), detailControl]
 
   // Build title with optional amount badge and CUSTOM ITEM tag
   const titleContent = (
     <div className="flex flex-col gap-0.5">
       <div className="flex items-center gap-1.5">
-        <Text variant="pseudoheader" as="span" className="truncate py-[3px] text-base uppercase tracking-[-0.02em]" style={{ lineHeight: 1 }}>
+        <Text
+          variant="pseudoheader"
+          as="span"
+          className="truncate py-[3px] text-base uppercase tracking-[-0.02em]"
+          style={{ lineHeight: 1 }}
+        >
           {item.name}
         </Text>
         {item.amount > 1 && (
           <span className="shrink-0 font-mono text-xs text-su-white/50">x{item.amount}</span>
         )}
       </div>
-      <ValueDisplay label="Custom Item" compact bgColor="var(--color-su-rust)" textColor="var(--color-su-white)" />
+      <ValueDisplay
+        label="Custom Item"
+        compact
+        bgColor="var(--color-su-rust)"
+        textColor="var(--color-su-white)"
+      />
     </div>
   )
 
@@ -288,14 +267,7 @@ function CustomStorageItem({
       <DisplayCard
         mode="listing"
         headerBg={headerBg}
-        headerContent={
-          <CardHeader
-            title={titleContent}
-            controls={controls}
-            compact
-            lightweight
-          />
-        }
+        headerContent={<CardHeader title={titleContent} controls={controls} compact lightweight />}
         onClick={detailControl.onClick}
       />
       <CustomItemDetailModal
@@ -334,12 +306,18 @@ function CustomItemDetailModal({
 
   // Build stat badges from metadata
   const stats: { label: string; value: number }[] = []
-  if (metadata?.salvage_value !== undefined) stats.push({ label: 'SV', value: metadata.salvage_value as number })
-  if (metadata?.slots_required !== undefined) stats.push({ label: 'Slots', value: metadata.slots_required as number })
-  if (metadata?.structure_points !== undefined) stats.push({ label: 'SP', value: metadata.structure_points as number })
-  if (metadata?.energy_points !== undefined) stats.push({ label: 'EP', value: metadata.energy_points as number })
-  if (metadata?.heat_capacity !== undefined) stats.push({ label: 'Heat', value: metadata.heat_capacity as number })
-  if (metadata?.hit_points !== undefined) stats.push({ label: 'HP', value: metadata.hit_points as number })
+  if (metadata?.salvage_value !== undefined)
+    stats.push({ label: 'SV', value: metadata.salvage_value as number })
+  if (metadata?.slots_required !== undefined)
+    stats.push({ label: 'Slots', value: metadata.slots_required as number })
+  if (metadata?.structure_points !== undefined)
+    stats.push({ label: 'SP', value: metadata.structure_points as number })
+  if (metadata?.energy_points !== undefined)
+    stats.push({ label: 'EP', value: metadata.energy_points as number })
+  if (metadata?.heat_capacity !== undefined)
+    stats.push({ label: 'Heat', value: metadata.heat_capacity as number })
+  if (metadata?.hit_points !== undefined)
+    stats.push({ label: 'HP', value: metadata.hit_points as number })
 
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
@@ -361,15 +339,26 @@ function CustomItemDetailModal({
                 headerContent={
                   <CardHeader
                     title={
-                      <Text variant="pseudoheader" as="span" className="text-[1.75rem] uppercase tracking-[-0.02em]">
+                      <Text
+                        variant="pseudoheader"
+                        as="span"
+                        className="text-[1.75rem] uppercase tracking-[-0.02em]"
+                      >
                         {item.name}
                       </Text>
                     }
                     subtitle={
                       <div className="flex flex-wrap items-center gap-1">
-                        <ValueDisplay label="Custom Item" compact bgColor="var(--color-su-rust)" textColor="var(--color-su-white)" />
+                        <ValueDisplay
+                          label="Custom Item"
+                          compact
+                          bgColor="var(--color-su-rust)"
+                          textColor="var(--color-su-white)"
+                        />
                         <ValueDisplay label="Category" value={categoryLabel} compact />
-                        {item.amount > 1 && <ValueDisplay label="Qty" value={item.amount} compact />}
+                        {item.amount > 1 && (
+                          <ValueDisplay label="Qty" value={item.amount} compact />
+                        )}
                       </div>
                     }
                     leftContent={
@@ -518,11 +507,7 @@ function CustomStorageDialog({
                       >
                         Add Custom Item
                       </Text>
-                      <Text
-                        as="span"
-                        variant="pseudoheader"
-                        className="text-xs text-su-white/80"
-                      >
+                      <Text as="span" variant="pseudoheader" className="text-xs text-su-white/80">
                         Add a custom item to crawler storage.
                       </Text>
                     </div>
@@ -536,7 +521,9 @@ function CustomStorageDialog({
                 <form onSubmit={handleSubmit} className="flex flex-col gap-4 bg-su-white p-4">
                   {/* Category selector */}
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-bold uppercase tracking-wide text-su-black/70">Category</label>
+                    <span className="text-xs font-bold uppercase tracking-wide text-su-black/70">
+                      Category
+                    </span>
                     <div className="flex flex-wrap gap-1">
                       {CUSTOM_CARGO_CATEGORIES.map((cat) => (
                         <FilterChip
@@ -552,7 +539,10 @@ function CustomStorageDialog({
 
                   {/* Name */}
                   <div className="flex flex-col gap-1.5">
-                    <label htmlFor="custom-name" className="text-xs font-bold uppercase tracking-wide text-su-black/70">
+                    <label
+                      htmlFor="custom-name"
+                      className="text-xs font-bold uppercase tracking-wide text-su-black/70"
+                    >
                       Name *
                     </label>
                     <Input
@@ -561,7 +551,6 @@ function CustomStorageDialog({
                       onChange={(e) => setName(e.target.value)}
                       placeholder="Item name"
                       className={inputClasses}
-                      autoFocus
                     />
                   </div>
 
@@ -569,7 +558,9 @@ function CustomStorageDialog({
                   <div
                     className={`flex flex-col gap-1.5 ${!fields.techLevel ? 'pointer-events-none opacity-30' : ''}`}
                   >
-                    <label className="text-xs font-bold uppercase tracking-wide text-su-black/70">Tech Level</label>
+                    <span className="text-xs font-bold uppercase tracking-wide text-su-black/70">
+                      Tech Level
+                    </span>
                     <div className="flex flex-wrap gap-1">
                       {TL_OPTIONS.map((tl) => {
                         const key = String(tl)
@@ -682,7 +673,10 @@ function CustomStorageDialog({
 
                   {/* Description */}
                   <div className="flex flex-col gap-1.5">
-                    <label htmlFor="custom-desc" className="text-xs font-bold uppercase tracking-wide text-su-black/70">
+                    <label
+                      htmlFor="custom-desc"
+                      className="text-xs font-bold uppercase tracking-wide text-su-black/70"
+                    >
                       Description
                     </label>
                     <Textarea

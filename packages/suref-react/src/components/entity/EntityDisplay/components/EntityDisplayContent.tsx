@@ -348,9 +348,7 @@ export function EntityDisplayContent({
 
   // Compose header content (previously assembled by Card internally)
   const titleNode = title ? (
-    <div
-      className={cn(compact ? '' : 'overflow-hidden text-ellipsis whitespace-nowrap')}
-    >
+    <div className={cn(compact ? '' : 'overflow-hidden text-ellipsis whitespace-nowrap')}>
       <Text
         variant="pseudoheader"
         as="span"
@@ -604,16 +602,40 @@ export function EntityDisplayContent({
               </div>
             )}
             <EntityFormation data={data} headerFontSize={fontSize.lg} compact={compact} />
-            {rightContent && (
-              <div
-                className="md:float-right md:ml-4 md:w-1/2"
-                style={{ shapeOutside: 'margin-box' }}
-              >
+            {rightContent ? (
+              <>
+                <div
+                  className="md:float-left md:mr-4 md:w-1/2"
+                  style={{ shapeOutside: 'margin-box' }}
+                >
+                  <EntityNpcDisplay
+                    data={data}
+                    compact
+                    fontSize={fontSize}
+                    spacing={spacing}
+                    npcChildren={npcChildren}
+                    hpSlot={npcHpSlot}
+                    damaged={npcDamaged ?? damaged}
+                  />
+                  {afterNpcContent}
+                </div>
                 {rightContent}
-              </div>
+                <div className="clear-both !mt-0" />
+              </>
+            ) : (
+              <>
+                <EntityNpcDisplay
+                  data={data}
+                  compact
+                  fontSize={fontSize}
+                  spacing={spacing}
+                  npcChildren={npcChildren}
+                  hpSlot={npcHpSlot}
+                  damaged={npcDamaged ?? damaged}
+                />
+                {afterNpcContent}
+              </>
             )}
-            <EntityNpcDisplay data={data} compact fontSize={fontSize} spacing={spacing} npcChildren={npcChildren} hpSlot={npcHpSlot} damaged={npcDamaged ?? damaged} />
-            {afterNpcContent}
             {shouldShowExtraContent && patternOverride && (
               <EntityChassisPattern
                 pattern={{

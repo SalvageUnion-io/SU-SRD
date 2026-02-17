@@ -8,29 +8,31 @@ import {
 } from '../ui/dialog'
 import { Button } from '../ui/button'
 
-type DeletePatternDialogProps = {
+type DeleteConfirmDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
-  patternName: string
+  entityType: string
+  entityName: string
   onConfirm: () => void
   isDeleting?: boolean
 }
 
-export function DeletePatternDialog({
+export function DeleteConfirmDialog({
   open,
   onOpenChange,
-  patternName,
+  entityType,
+  entityName,
   onConfirm,
   isDeleting,
-}: DeletePatternDialogProps) {
+}: DeleteConfirmDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-su-dark sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-su-orange">Delete Pattern</DialogTitle>
+          <DialogTitle className="text-su-orange">Delete {entityType}</DialogTitle>
           <DialogDescription className="text-su-grey-dark">
-            Are you sure you want to delete <strong className="text-su-white">{patternName}</strong>
-            ? This action cannot be undone.
+            Are you sure you want to delete <strong className="text-su-white">{entityName}</strong>?
+            This will remove all associated data. This action cannot be undone.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
