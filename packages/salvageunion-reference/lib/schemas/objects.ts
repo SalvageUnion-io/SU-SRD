@@ -501,6 +501,7 @@ export const ActionSchema: z.ZodType<{
   damage?: z.infer<typeof DamageSchema>
   choices?: z.infer<typeof ChoiceSchema>[]
   table?: z.infer<typeof TableSchema>
+  tableName?: string
   hidden?: boolean
   activationCurrency?: z.infer<typeof ActivationCurrencySchema>
   source?: z.infer<typeof SourceSchema>
@@ -529,6 +530,7 @@ export const ActionSchema: z.ZodType<{
     damage: DamageSchema.optional(),
     choices: z.array(ChoiceSchema).optional(),
     table: TableSchema.optional(),
+    tableName: z.string().optional().describe('Reference to a roll table name'),
     hidden: z
       .boolean()
       .describe('If true, this action will not affect the rendering of the entity display')

@@ -40,6 +40,7 @@ export type EntityDisplayStateInput = {
   disabled: boolean
   hideActions: boolean
   hidePatterns: boolean
+  hideDamagedEffect: boolean
   hideChoices: boolean
   listing: boolean
   damaged?: boolean
@@ -48,6 +49,7 @@ export type EntityDisplayStateInput = {
   patternOverride?: PatternOverrideData
   hideStats?: boolean
   hideContent?: boolean
+  hideRollTable?: boolean
 }
 
 export function useEntityDisplayState({
@@ -59,6 +61,7 @@ export function useEntityDisplayState({
   disabled,
   hideActions,
   hidePatterns,
+  hideDamagedEffect,
   hideChoices,
   listing,
   damaged = false,
@@ -67,6 +70,7 @@ export function useEntityDisplayState({
   patternOverride,
   hideStats = false,
   hideContent = false,
+  hideRollTable = false,
 }: EntityDisplayStateInput): EntityDisplayState {
   const title = patternOverride
     ? `\u201C${patternOverride.name}\u201D`
@@ -130,6 +134,7 @@ export function useEntityDisplayState({
     listing,
     hideActions,
     hidePatterns,
+    hideDamagedEffect,
     hideChoices,
     damaged,
     disabled,
@@ -145,5 +150,6 @@ export function useEntityDisplayState({
     patternOverride,
     hideStats,
     hideContent,
+    hideRollTable,
   }
 }

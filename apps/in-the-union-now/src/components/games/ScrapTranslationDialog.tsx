@@ -1,15 +1,8 @@
 import { useState, useMemo, useCallback } from 'react'
-import { Text } from 'suref-react'
+import { DisplayCard, Text } from 'suref-react'
+import * as DialogPrimitive from '@radix-ui/react-dialog'
+import { X } from 'lucide-react'
 import { computeScrapTranslation } from '../../lib/crawlerUtils'
-import { Button } from '../ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '../ui/dialog'
 import type { CrawlerRow } from '../../types/common'
 
 type ScrapTranslationDialogProps = {
@@ -48,7 +41,6 @@ export function ScrapTranslationDialog({
     (tl: number) => {
       setFromTL(tl)
       if (tl === toTL) {
-        // Auto-pick a different target
         setToTL(tl === 1 ? 2 : 1)
       }
       setAmount(1)
@@ -72,137 +64,204 @@ export function ScrapTranslationDialog({
     setAmount(1)
   }, [fromTL, toTL, result, onTranslate])
 
+  const canSubmit = !!result && !isPending && amount <= available
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="border-su-grey-dark bg-su-grey-dark sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="text-su-white">Translate Scrap</DialogTitle>
-          <DialogDescription className="text-su-white/60">
-            Convert scrap between tech levels. Rate: N TL1 = 1 TL N.
-          </DialogDescription>
-        </DialogHeader>
+    <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
+      <DialogPrimitive.Portal>
+        <DialogPrimitive.Overlay className="fixed inset-0 z-50 overflow-y-auto bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0">
+          <div className="flex min-h-full items-start justify-center px-4 py-8">
+            <DialogPrimitive.Content className="relative w-full max-w-lg bg-transparent outline-none">
+              <DialogPrimitive.Title className="sr-only">
+                Scrap Conversion
+              </DialogPrimitive.Title>
+              <DialogPrimitive.Description className="sr-only">
+                Convert scrap between tech levels.
+              </DialogPrimitive.Description>
 
-        <div className="flex flex-col gap-4">
-          {/* From TL */}
-          <div className="flex flex-col gap-1.5">
-            <span className="text-xs font-medium text-su-white/50">From</span>
-            <div className="flex gap-1.5">
-              {TECH_LEVELS.map((tl) => (
-                <button
-                  key={tl}
-                  type="button"
-                  onClick={() => handleFromChange(tl)}
-                  className={`flex h-10 flex-1 cursor-pointer flex-col items-center justify-center rounded border text-xs font-mono transition-colors ${
-                    fromTL === tl
-                      ? 'border-su-pink bg-su-pink/20 text-su-pink'
-                      : 'border-su-grey-light/20 text-su-white/60 hover:border-su-white/30'
-                  }`}
-                >
-                  <span className="font-bold">TL{tl}</span>
-                  <span className="text-[10px] opacity-70">{getScrapField(crawler, tl)}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* To TL */}
-          <div className="flex flex-col gap-1.5">
-            <span className="text-xs font-medium text-su-white/50">To</span>
-            <div className="flex gap-1.5">
-              {TECH_LEVELS.filter((tl) => tl !== fromTL).map((tl) => (
-                <button
-                  key={tl}
-                  type="button"
-                  onClick={() => handleToChange(tl)}
-                  className={`flex h-10 flex-1 cursor-pointer flex-col items-center justify-center rounded border text-xs font-mono transition-colors ${
-                    toTL === tl
-                      ? 'border-su-green bg-su-green/20 text-su-green'
-                      : 'border-su-grey-light/20 text-su-white/60 hover:border-su-white/30'
-                  }`}
-                >
-                  <span className="font-bold">TL{tl}</span>
-                  <span className="text-[10px] opacity-70">{getScrapField(crawler, tl)}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Amount */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-medium text-su-white/50">
-              Amount of TL{fromTL} to convert (have: {available})
-            </label>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setAmount((a) => Math.max(1, a - 1))}
-                className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded bg-su-grey-dark/80 font-mono text-sm font-bold text-su-white/70 transition-colors hover:bg-su-rust/80"
-              >
-                -
-              </button>
-              <input
-                type="number"
-                min={1}
-                max={available}
-                value={amount}
-                onChange={(e) =>
-                  setAmount(Math.max(1, Math.min(available, parseInt(e.target.value) || 1)))
+              <DisplayCard
+                headerBg="bg-su-pink"
+                bodyPadding="p-0"
+                headerContent={
+                  <div className="flex w-full items-center justify-between gap-2">
+                    <div className="flex min-w-0 flex-col gap-0.5">
+                      <Text
+                        as="span"
+                        variant="pseudoheader"
+                        className="text-[1.75rem] text-su-white"
+                      >
+                        Scrap Conversion
+                      </Text>
+                      <Text
+                        as="span"
+                        variant="pseudoheader"
+                        className="text-xs text-su-white/80"
+                      >
+                        Rate: N TL1 = 1 TL N
+                      </Text>
+                    </div>
+                    <DialogPrimitive.Close className="flex shrink-0 cursor-pointer items-center justify-center rounded p-1 text-su-black/60 transition-colors hover:bg-su-black/20 hover:text-su-black">
+                      <X className="h-5 w-5" />
+                      <span className="sr-only">Close</span>
+                    </DialogPrimitive.Close>
+                  </div>
                 }
-                className="h-8 w-16 rounded border border-su-grey-light/20 bg-transparent text-center font-mono text-sm text-su-white"
-              />
-              <button
-                type="button"
-                onClick={() => setAmount((a) => Math.min(available, a + 1))}
-                className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded bg-su-grey-dark/80 font-mono text-sm font-bold text-su-white/70 transition-colors hover:bg-su-green/80"
               >
-                +
-              </button>
-              <button
-                type="button"
-                onClick={() => setAmount(available)}
-                className="rounded px-2 py-1 text-xs text-su-white/50 transition-colors hover:text-su-white cursor-pointer"
-              >
-                Max
-              </button>
-            </div>
-          </div>
+                <div className="flex flex-col gap-4 bg-su-white p-4">
+                  {/* From TL */}
+                  <div className="flex flex-col gap-1.5">
+                    <Text variant="pseudoheader" as="span" className="text-xs text-su-white">
+                      From
+                    </Text>
+                    <div className="flex gap-1.5">
+                      {TECH_LEVELS.map((tl) => {
+                        const scrap = getScrapField(crawler, tl)
+                        const isEmpty = scrap === 0
+                        return (
+                          <button
+                            key={tl}
+                            type="button"
+                            onClick={() => handleFromChange(tl)}
+                            disabled={isEmpty}
+                            className={`flex h-12 flex-1 flex-col items-center justify-center border-2 font-mono text-xs transition-colors ${
+                              isEmpty
+                                ? 'pointer-events-none border-su-black/10 text-su-black/25'
+                                : fromTL === tl
+                                  ? 'cursor-pointer border-su-pink bg-su-pink/10 text-su-pink'
+                                  : 'cursor-pointer border-su-black/20 text-su-black/60 hover:border-su-black/40'
+                            }`}
+                          >
+                            <span className="font-bold">TL{tl}</span>
+                            <span className="text-[10px] opacity-70">{scrap}</span>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
 
-          {/* Preview */}
-          <div className="rounded border border-su-grey-light/20 p-3">
-            {result ? (
-              <Text variant="default" as="p" className="text-center text-sm text-su-white">
-                <span className="font-mono font-bold text-su-pink">
-                  {result.sourceConsumed} TL{fromTL}
-                </span>
-                {' → '}
-                <span className="font-mono font-bold text-su-green">
-                  {result.targetAmount} TL{toTL}
-                </span>
-              </Text>
-            ) : (
-              <Text variant="default" as="p" className="text-center text-sm text-su-white/40">
-                {amount > available
-                  ? 'Not enough scrap'
-                  : 'Not enough to convert (need more source scrap)'}
-              </Text>
-            )}
-          </div>
-        </div>
+                  {/* To TL */}
+                  <div className="flex flex-col gap-1.5">
+                    <Text variant="pseudoheader" as="span" className="text-xs text-su-white">
+                      To
+                    </Text>
+                    <div className="flex gap-1.5">
+                      {TECH_LEVELS.filter((tl) => tl !== fromTL).map((tl) => (
+                        <button
+                          key={tl}
+                          type="button"
+                          onClick={() => handleToChange(tl)}
+                          className={`flex h-12 flex-1 cursor-pointer flex-col items-center justify-center border-2 font-mono text-xs transition-colors ${
+                            toTL === tl
+                              ? 'border-su-green bg-su-green/10 text-su-green'
+                              : 'border-su-black/20 text-su-black/60 hover:border-su-black/40'
+                          }`}
+                        >
+                          <span className="font-bold">TL{tl}</span>
+                          <span className="text-[10px] opacity-70">
+                            {getScrapField(crawler, tl)}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
-        <DialogFooter className="gap-2">
-          <Button variant="ghost" onClick={() => onOpenChange(false)} className="text-su-white/70">
-            Cancel
-          </Button>
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={!result || isPending || amount > available}
-            className="inline-flex cursor-pointer items-center gap-1.5 rounded-md bg-su-green px-3 py-1.5 font-mono text-sm font-semibold uppercase text-su-white transition-colors hover:bg-emerald-600 disabled:pointer-events-none disabled:opacity-50"
-          >
-            {isPending ? 'Translating...' : 'Translate'}
-          </button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+                  {/* Amount */}
+                  <div className="flex flex-col gap-1.5">
+                    <Text variant="pseudoheader" as="span" className="text-xs text-su-white">
+                      Amount of TL{fromTL} to convert (have: {available})
+                    </Text>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setAmount((a) => Math.max(1, a - 1))}
+                        className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center border-2 border-su-black bg-su-black font-mono text-sm font-bold text-su-white transition-opacity hover:opacity-80"
+                      >
+                        -
+                      </button>
+                      <input
+                        type="number"
+                        min={1}
+                        max={available}
+                        value={amount}
+                        onChange={(e) =>
+                          setAmount(
+                            Math.max(1, Math.min(available, parseInt(e.target.value) || 1))
+                          )
+                        }
+                        className="h-9 w-16 border-2 border-su-black/20 bg-su-white text-center font-mono text-sm text-su-black"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setAmount((a) => Math.min(available, a + 1))}
+                        className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center border-2 border-su-black bg-su-black font-mono text-sm font-bold text-su-white transition-opacity hover:opacity-80"
+                      >
+                        +
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setAmount(available)}
+                        className="cursor-pointer px-2 py-1 font-mono text-xs font-bold text-su-black/50 transition-colors hover:text-su-black"
+                      >
+                        Max
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Preview */}
+                  <div className="border-2 border-su-black/20 p-3">
+                    {result ? (
+                      <Text
+                        variant="default"
+                        as="p"
+                        className="text-center text-sm text-su-black"
+                      >
+                        <span className="font-mono font-bold text-su-pink">
+                          {result.sourceConsumed} TL{fromTL}
+                        </span>
+                        {' → '}
+                        <span className="font-mono font-bold text-su-green">
+                          {result.targetAmount} TL{toTL}
+                        </span>
+                      </Text>
+                    ) : (
+                      <Text
+                        variant="default"
+                        as="p"
+                        className="text-center text-sm text-su-black/40"
+                      >
+                        {amount > available
+                          ? 'Not enough scrap'
+                          : 'Not enough to convert (need more source scrap)'}
+                      </Text>
+                    )}
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex items-center justify-end gap-3">
+                    <button
+                      type="button"
+                      onClick={() => onOpenChange(false)}
+                      className="cursor-pointer px-3 py-2 font-mono text-sm text-su-black/50 transition-colors hover:text-su-black"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSubmit}
+                      disabled={!canSubmit}
+                      className="cursor-pointer bg-su-black px-4 py-2 transition-opacity hover:opacity-80 disabled:pointer-events-none disabled:opacity-40"
+                    >
+                      <Text variant="pseudoheader" as="span" className="text-sm text-su-white">
+                        {isPending ? 'Converting...' : 'Convert'}
+                      </Text>
+                    </button>
+                  </div>
+                </div>
+              </DisplayCard>
+            </DialogPrimitive.Content>
+          </div>
+        </DialogPrimitive.Overlay>
+      </DialogPrimitive.Portal>
+    </DialogPrimitive.Root>
   )
 }

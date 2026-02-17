@@ -3,19 +3,14 @@ import type { SURefEntity } from 'salvageunion-reference'
 import {
   DisplayCard,
   Text,
+  ControlButtons,
   DataValueDisplayView,
   BlockContentRendererView,
   useDetailModal,
   cn,
 } from 'suref-react'
-import type { EntityControl, EntityControlVariant } from 'suref-react'
+import type { EntityControl } from 'suref-react'
 import type { ActionDisplayData } from '../../lib/pilotActionUtils'
-
-const VARIANT_STYLES: Record<EntityControlVariant, string> = {
-  primary: 'bg-su-black text-su-white hover:bg-su-grey-dark',
-  danger: 'opacity-60 hover:bg-su-rust/80 hover:opacity-100',
-  ghost: 'opacity-60 hover:bg-white/20 hover:opacity-100',
-}
 
 type ActionDisplayProps = {
   data: ActionDisplayData
@@ -57,36 +52,7 @@ export function ActionDisplay({ data, controls, disabled, footerMessage }: Actio
               )}
             </div>
             {controls && controls.length > 0 && (
-              <div className="flex shrink-0 gap-1">
-                {controls.map((control) => {
-                  const variant = control.variant ?? 'ghost'
-                  const Icon = control.icon
-                  return (
-                    <button
-                      key={control.key}
-                      type="button"
-                      className={cn(
-                        'flex min-w-[25px] shrink-0 cursor-pointer items-center justify-center gap-1 rounded p-1 transition-colors',
-                        VARIANT_STYLES[variant],
-                        control.className
-                      )}
-                      title={control.ariaLabel}
-                      aria-label={control.ariaLabel}
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        control.onClick()
-                      }}
-                    >
-                      <Icon className="h-4.5 w-4.5" />
-                      {control.label && (
-                        <span className="font-mono text-xs font-bold uppercase leading-none">
-                          {control.label}
-                        </span>
-                      )}
-                    </button>
-                  )
-                })}
-              </div>
+              <ControlButtons controls={controls} className="shrink-0" />
             )}
           </div>
         }

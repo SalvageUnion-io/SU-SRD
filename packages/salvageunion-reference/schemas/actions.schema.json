@@ -1792,6 +1792,7 @@
               }
             ]
           },
+          "tableName": { "description": "Reference to a roll table name", "type": "string" },
           "hidden": {
             "type": "boolean",
             "description": "If true, this action will not affect the rendering of the entity display"

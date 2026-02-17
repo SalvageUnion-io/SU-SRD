@@ -144,7 +144,7 @@ export async function listCargoForCrawler(crawlerId: string): Promise<CargoRow[]
 export async function addCargoToCrawler(
   crawlerId: string,
   userId: string,
-  input: { name: string; amount?: number; schema_name?: string; schema_ref_id?: string }
+  input: { name: string; amount?: number; schema_name?: string; schema_ref_id?: string; metadata?: Record<string, unknown> }
 ): Promise<CargoRow> {
   const { data, error } = await supabase
     .from('cargo')
@@ -156,6 +156,7 @@ export async function addCargoToCrawler(
       amount: input.amount ?? 1,
       schema_name: input.schema_name ?? null,
       schema_ref_id: input.schema_ref_id ?? null,
+      metadata: input.metadata ?? null,
     })
     .select()
     .single()

@@ -67,7 +67,7 @@
 /* Catalog items */
 .catalog-item {
   justify-content: center;
-  border: 0;
+  border: 2px solid var(--color-su-black);
   background: var(--catalog-bg);
   color: var(--color-su-white);
   transition: transform 0.15s ease;

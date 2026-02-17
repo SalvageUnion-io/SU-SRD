@@ -89,6 +89,8 @@ export type EntityDisplayState = {
   hideActions: boolean
   /** Whether to hide chassis patterns */
   hidePatterns: boolean
+  /** Whether to hide the damaged effect section */
+  hideDamagedEffect: boolean
   /** Whether to hide choices */
   hideChoices: boolean
   /** Whether the entity is damaged */
@@ -119,4 +121,6 @@ export type EntityDisplayState = {
   hideStats: boolean
   /** Whether to hide the entity's own content blocks (description) */
   hideContent: boolean
+  /** Whether to hide roll tables */
+  hideRollTable: boolean
 }

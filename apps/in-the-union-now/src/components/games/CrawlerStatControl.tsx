@@ -1,0 +1,56 @@
+import { StatDisplay } from 'suref-react'
+
+type CrawlerStatControlProps = {
+  label: string
+  value: number
+  max?: number
+  bottomLabel?: string
+  canEdit: boolean
+  onChange: (newValue: number) => void
+}
+
+export function CrawlerStatControl({
+  label,
+  value,
+  max,
+  bottomLabel,
+  canEdit,
+  onChange,
+}: CrawlerStatControlProps) {
+  const atMin = value <= 0
+  const atMax = max !== undefined && value >= max
+
+  return (
+    <div className="flex items-center gap-0.5">
+      <StatDisplay label={label} value={value} outOfMax={max} bottomLabel={bottomLabel} />
+      {canEdit && (
+        <div className="flex flex-col gap-0.5">
+          <button
+            type="button"
+            onClick={() => onChange(max !== undefined ? Math.min(max, value + 1) : value + 1)}
+            disabled={!!atMax}
+            className={`flex h-4 w-4 items-center justify-center border border-su-black bg-su-white font-mono text-xs font-bold leading-none text-su-black transition-colors ${
+              atMax
+                ? 'cursor-not-allowed opacity-30'
+                : 'cursor-pointer hover:bg-su-black hover:text-su-white'
+            }`}
+          >
+            +
+          </button>
+          <button
+            type="button"
+            onClick={() => onChange(Math.max(0, value - 1))}
+            disabled={atMin}
+            className={`flex h-4 w-4 items-center justify-center border border-su-black bg-su-white font-mono text-xs font-bold leading-none text-su-black transition-colors ${
+              atMin
+                ? 'cursor-not-allowed opacity-30'
+                : 'cursor-pointer hover:bg-su-black hover:text-su-white'
+            }`}
+          >
+            −
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}

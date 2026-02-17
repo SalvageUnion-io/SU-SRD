@@ -27,6 +27,8 @@ type EntityDisplayProps = {
   hideActions?: boolean
   /** Whether to hide chassis patterns */
   hidePatterns?: boolean
+  /** Whether to hide the damaged effect section */
+  hideDamagedEffect?: boolean
   /** Whether to hide choices */
   hideChoices?: boolean
   /** Optional label rendered above the card (absolute-positioned pseudoheader) */
@@ -39,10 +41,24 @@ type EntityDisplayProps = {
   hideStats?: boolean
   /** Whether to hide the entity's own content blocks (description) */
   hideContent?: boolean
+  /** Whether to hide roll tables */
+  hideRollTable?: boolean
+  /** Whether to hide the footer (page number, source) */
+  hideFooter?: boolean
   /** Controls to render in the header (add, delete, detail, etc.) */
   controls?: EntityControl[]
   /** Interactive config for guide entities — threads through to GuideStepsDisplay */
   interactive?: GuideStepsInteractiveConfig
+  /** Optional children to render inside the NPC card body (e.g. editable fields) */
+  npcChildren?: ReactNode
+  /** Optional slot to replace the default HP display in the NPC card */
+  npcHpSlot?: ReactNode
+  /** Optional content to render after the NPC display */
+  afterNpcContent?: ReactNode
+  /** Whether the NPC is in a damaged state (overrides inheriting from parent damaged) */
+  npcDamaged?: boolean
+  /** When set, renders a semi-translucent overlay over the body with this text in a danger box */
+  damageOverlayText?: string
 }
 
 export const EntityDisplay = memo(function EntityDisplay({
@@ -55,6 +71,7 @@ export const EntityDisplay = memo(function EntityDisplay({
   listing = false,
   hideActions = false,
   hidePatterns = false,
+  hideDamagedEffect = false,
   hideChoices = false,
   compact = false,
   label,
@@ -62,8 +79,15 @@ export const EntityDisplay = memo(function EntityDisplay({
   patternOverride,
   hideStats = false,
   hideContent = false,
+  hideRollTable = false,
+  hideFooter = false,
   controls,
   interactive,
+  npcChildren,
+  npcHpSlot,
+  afterNpcContent,
+  npcDamaged,
+  damageOverlayText,
 }: EntityDisplayProps) {
   if (!data) return null
 
@@ -87,6 +111,7 @@ export const EntityDisplay = memo(function EntityDisplay({
       disabled={disabled}
       hideActions={hideActions}
       hidePatterns={hidePatterns}
+      hideDamagedEffect={hideDamagedEffect}
       hideChoices={hideChoices}
       listing={listing}
       damaged={damaged}
@@ -95,8 +120,15 @@ export const EntityDisplay = memo(function EntityDisplay({
       patternOverride={patternOverride}
       hideStats={hideStats}
       hideContent={hideContent}
+      hideRollTable={hideRollTable}
+      hideFooter={hideFooter}
       controls={controls}
       interactive={interactive}
+      npcChildren={npcChildren}
+      npcHpSlot={npcHpSlot}
+      afterNpcContent={afterNpcContent}
+      npcDamaged={npcDamaged}
+      damageOverlayText={damageOverlayText}
     >
       {children}
     </EntityDisplayContent>

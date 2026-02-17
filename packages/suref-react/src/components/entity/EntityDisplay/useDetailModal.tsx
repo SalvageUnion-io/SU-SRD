@@ -65,6 +65,7 @@ export function useDetailModal(
                   disabled={false}
                   hideActions={false}
                   hidePatterns={!!options?.patternOverride}
+                  hideDamagedEffect={false}
                   hideChoices={false}
                   patternOverride={options?.patternOverride}
                   controls={options?.modalControls}

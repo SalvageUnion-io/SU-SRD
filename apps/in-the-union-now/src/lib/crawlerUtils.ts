@@ -7,8 +7,11 @@ import type { BayNpcData, CreateCrawlerInput } from '../types/common'
 /** Roll table name used for crawler name step */
 const ROLL_TABLE_CRAWLER_NAME = 'Crawler Name'
 
+/** String-only keys from BayNpcData (excludes `damaged` boolean and `hp` number) */
+type BayNpcTextField = Exclude<keyof BayNpcData, 'damaged' | 'hp'>
+
 /** Choice field names mapped to BayNpcData keys */
-const CHOICE_NAME_TO_FIELD: Record<string, keyof BayNpcData> = {
+const CHOICE_NAME_TO_FIELD: Record<string, BayNpcTextField> = {
   Name: 'name',
   Background: 'background',
   Motto: 'motto',
@@ -48,7 +51,7 @@ export function extractBayNpcs(
   crawlerTypeId?: string
 ): Record<string, BayNpcData> {
   // Build a lookup: choiceId → { parentId, fieldKey }
-  const choiceMap = new Map<string, { parentId: string; field: keyof BayNpcData }>()
+  const choiceMap = new Map<string, { parentId: string; field: BayNpcTextField }>()
 
   // Crawler type NPC
   if (crawlerTypeId) {

@@ -86,6 +86,8 @@ export type BayNpcData = {
   motto?: string
   keepsake?: string
   personality?: string
+  damaged?: boolean
+  hp?: number
 }
 
 // Crawler creation input (from wizard → API)

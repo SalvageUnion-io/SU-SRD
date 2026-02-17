@@ -8,12 +8,13 @@ type RollInputProps = {
   value: string
   onChange: (value: string) => void
   onRoll: () => void
+  onBlur?: () => void
   placeholder?: string
   /** Roll table name to look up from game data (shown in hover tooltip) */
   rollTableName?: string
 }
 
-export function RollInput({ value, onChange, onRoll, placeholder, rollTableName }: RollInputProps) {
+export function RollInput({ value, onChange, onRoll, onBlur, placeholder, rollTableName }: RollInputProps) {
   const rollTableEntity = rollTableName
     ? SalvageUnionReference.RollTables.find((rt) => rt.name === rollTableName)
     : null
@@ -27,6 +28,7 @@ export function RollInput({ value, onChange, onRoll, placeholder, rollTableName 
       <Input
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        onBlur={onBlur}
         placeholder={placeholder}
         className="h-9 rounded-r-none border-r-0 text-sm"
       />

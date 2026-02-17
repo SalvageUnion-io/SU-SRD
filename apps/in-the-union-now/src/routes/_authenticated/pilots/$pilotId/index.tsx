@@ -34,6 +34,7 @@ import {
   DialogFooter,
 } from '../../../../components/ui/dialog'
 import { getErrorMessage } from '../../../../lib/errors'
+import { SheetFooter } from '../../../../components/shared/SheetFooter'
 import { actionButtonClasses } from '../../../../components/shared/actionButtonClasses'
 import { PilotStatControl } from '../../../../components/pilots/PilotStatControl'
 import { PilotPersonalInfo } from '../../../../components/pilots/PilotPersonalInfo'
@@ -248,8 +249,9 @@ function PilotDetailPage() {
         }
         footerContent={
           canEdit ? (
-            <div className="flex w-full items-center justify-between px-2 py-1">
-              <div className="flex items-center gap-3">
+            <SheetFooter
+              saveStatusText={saveStatusText}
+              leftContent={
                 <button
                   type="button"
                   onClick={handleToggleVisibility}
@@ -259,19 +261,18 @@ function PilotDetailPage() {
                   {pilot.visible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                   <span>{pilot.visible ? 'Visible' : 'Hidden'}</span>
                 </button>
-                {saveStatusText && (
-                  <span className="font-mono text-xs text-su-white/70">{saveStatusText}</span>
-                )}
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowDelete(true)}
-                className={actionButtonClasses('rust')}
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-                Delete
-              </button>
-            </div>
+              }
+              rightContent={
+                <button
+                  type="button"
+                  onClick={() => setShowDelete(true)}
+                  className={actionButtonClasses('rust')}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  Delete
+                </button>
+              }
+            />
           ) : undefined
         }
       >

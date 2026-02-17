@@ -14,6 +14,7 @@ import {
   normalizePatternName,
 } from 'salvageunion-reference'
 import { RollTable } from '../../../shared/RollTable'
+import { CardHeader } from '../../../shared/CardHeader'
 import { DisplayCard } from '../../../shared/DisplayCard'
 import { EntitySubTitleElement } from '../EntitySubTitleContent'
 import { EntityLeftContent } from '../EntityLeftContent'
@@ -46,12 +47,30 @@ export type EntityDisplayContentProps = EntityDisplayStateInput & {
   controls?: EntityControl[]
   /** Interactive config for guide entities — threads through to GuideStepsDisplay */
   interactive?: GuideStepsInteractiveConfig
+  /** Optional children to render inside the NPC card body */
+  npcChildren?: ReactNode
+  /** Optional slot to replace the default HP display in NPC card */
+  npcHpSlot?: ReactNode
+  /** Optional content to render after the NPC display */
+  afterNpcContent?: ReactNode
+  /** Whether the NPC is in a damaged state (overrides inheriting from parent damaged) */
+  npcDamaged?: boolean
+  /** Whether to hide the footer (page number, source) */
+  hideFooter?: boolean
+  /** When set, renders a semi-translucent overlay over the body with this text in a danger box */
+  damageOverlayText?: string
 }
 
 export function EntityDisplayContent({
   children,
   controls,
   interactive,
+  npcChildren,
+  npcHpSlot,
+  afterNpcContent,
+  npcDamaged,
+  hideFooter = false,
+  damageOverlayText,
   ...inputProps
 }: EntityDisplayContentProps) {
   const state = useEntityDisplayState(inputProps)
@@ -68,6 +87,7 @@ export function EntityDisplayContent({
     listing,
     hideActions,
     hidePatterns,
+    hideDamagedEffect,
     hideChoices,
     damaged,
     disabled,
@@ -85,6 +105,7 @@ export function EntityDisplayContent({
     patternOverride,
     hideStats,
     hideContent,
+    hideRollTable,
   } = state
 
   // Determine which content to render (from EntityTopMatter)
@@ -264,7 +285,7 @@ export function EntityDisplayContent({
   const hasSource = 'source' in data && !!data.source
   const footerDisplayName = getDisplayName(schemaName)
   const sourceFooterStyles = getSourceStyles(source, disabled ?? false, 'footer', !listing)
-  const hasFooter = hasPage || hasSource
+  const hasFooter = !hideFooter && (hasPage || hasSource)
 
   const footer = hasFooter ? (
     <div
@@ -324,77 +345,68 @@ export function EntityDisplayContent({
   // Compose header content (previously assembled by Card internally)
   const titleRotation = useMemo(() => (damaged ? getTiltRotation() : 0), [damaged])
 
+  const titleNode = title ? (
+    <div
+      className={cn(compact ? '' : 'overflow-hidden text-ellipsis whitespace-nowrap')}
+      style={titleRotation !== 0 ? { transform: `rotate(${titleRotation}deg)` } : undefined}
+    >
+      <Text
+        variant="pseudoheader"
+        as="span"
+        className={cn(
+          'relative z-10 uppercase tracking-[-0.02em] transition-transform duration-300',
+          compact ? 'py-[3px] text-base' : 'text-[1.75rem]',
+          disabled && 'opacity-50'
+        )}
+        style={compact ? { lineHeight: 1 } : undefined}
+      >
+        {title}
+      </Text>
+    </div>
+  ) : null
+
   const headerContent = (
-    <>
-      <div className={cn('flex min-w-0 items-center', compact ? 'gap-0.5' : 'gap-1')}>
+    <CardHeader
+      title={titleNode ?? ''}
+      subtitle={
+        <EntitySubTitleElement
+          data={data}
+          schemaName={schemaName}
+          spacing={spacing}
+          compact={compact}
+          damaged={damaged}
+          hasPatternOverride={!!patternOverride}
+          isLegalStartingMech={isLegalStartingMech}
+        />
+      }
+      leftContent={
         <EntityLeftContent
           techLevel={techLevel}
           compact={compact}
           listing={listing}
           level={'level' in data ? data.level : undefined}
         />
-        <div
-          className={cn(
-            'flex min-w-0 flex-col justify-center overflow-visible',
-            compact ? 'gap-0.5' : 'gap-1'
-          )}
-        >
-          {title && (
-            <div
-              className={cn(compact ? '' : 'overflow-hidden text-ellipsis whitespace-nowrap')}
-              style={titleRotation !== 0 ? { transform: `rotate(${titleRotation}deg)` } : undefined}
-            >
-              <Text
-                variant="pseudoheader"
-                as="span"
-                className={cn(
-                  'relative z-10 uppercase tracking-[-0.02em] transition-transform duration-300',
-                  compact ? 'py-[3px] text-base' : 'text-[1.75rem]',
-                  disabled && 'opacity-50'
-                )}
-                style={compact ? { lineHeight: 1 } : undefined}
-              >
-                {title}
-              </Text>
-            </div>
-          )}
-          <EntitySubTitleElement
+      }
+      rightContent={
+        !hideStats ? (
+          <EntityRightHeaderContent
             data={data}
-            schemaName={schemaName}
-            spacing={spacing}
             compact={compact}
-            damaged={damaged}
-            hasPatternOverride={!!patternOverride}
-            isLegalStartingMech={isLegalStartingMech}
+            fontSize={fontSize}
+            techLevel={techLevel}
+            listing={listing}
+            primaryStatsOnly={
+              compact &&
+              (listing || !!patternOverride) &&
+              (schemaName === 'chassis' || schemaName === 'equipment')
+            }
+            svOverride={svOverride}
           />
-        </div>
-      </div>
-      {!hideStats ? (
-        <EntityRightHeaderContent
-          data={data}
-          compact={compact}
-          fontSize={fontSize}
-          techLevel={techLevel}
-          listing={listing}
-          primaryStatsOnly={
-            compact &&
-            (listing || !!patternOverride) &&
-            (schemaName === 'chassis' || schemaName === 'equipment')
-          }
-          controls={controls}
-          svOverride={svOverride}
-        />
-      ) : controls && controls.length > 0 ? (
-        <EntityRightHeaderContent
-          data={data}
-          compact={compact}
-          fontSize={fontSize}
-          techLevel={techLevel}
-          listing={listing}
-          controls={controls}
-        />
-      ) : null}
-    </>
+        ) : null
+      }
+      controls={controls}
+      compact={compact}
+    />
   )
 
   // Single control → entire header is clickable (button stopPropagation prevents double-fire)
@@ -418,7 +430,7 @@ export function EntityDisplayContent({
     >
       {!listing && hasBodyContent && (
         <div
-          className="min-w-0 bg-su-white p-0"
+          className={cn('min-w-0 bg-su-white p-0', damageOverlayText && 'relative')}
           style={{ opacity: opacity.content, width: '100%' }}
         >
           {/* Float zone: block flow so image float propagates to all children */}
@@ -581,7 +593,7 @@ export function EntityDisplayContent({
             ))}
 
             <EntityRequirementDisplay data={data} compact={compact} />
-            {table && (
+            {table && !hideRollTable && (
               <div className="relative z-10 rounded-md">
                 <RollTable
                   disabled={disabled}
@@ -593,7 +605,8 @@ export function EntityDisplayContent({
               </div>
             )}
             <EntityFormation data={data} headerFontSize={fontSize.lg} compact={compact} />
-            <EntityNpcDisplay data={data} compact={compact} fontSize={fontSize} spacing={spacing} />
+            <EntityNpcDisplay data={data} compact fontSize={fontSize} spacing={spacing} npcChildren={npcChildren} hpSlot={npcHpSlot} damaged={npcDamaged ?? damaged} />
+            {afterNpcContent}
             {shouldShowExtraContent && patternOverride && (
               <EntityChassisPattern
                 pattern={{
@@ -612,7 +625,7 @@ export function EntityDisplayContent({
                     chassisEntity={data}
                   />
                 )}
-                {'damagedEffect' in data && data.damagedEffect && (
+                {!hideDamagedEffect && 'damagedEffect' in data && data.damagedEffect && (
                   <ConditionalSheetInfo
                     propertyName="damagedEffect"
                     labelBgColor="text-brand-srd"
@@ -657,6 +670,18 @@ export function EntityDisplayContent({
           ) : (
             footer
           )}
+          {damageOverlayText && (
+            <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center rounded-b-md bg-black/50 p-4">
+              <div className="rounded border-2 border-red-500/60 bg-red-800/90 px-4 py-3 text-center shadow-lg">
+                <Text variant="pseudoheader" as="span" className="text-xs uppercase text-red-200">
+                  Damaged
+                </Text>
+                <Text variant="default" className="mt-1 text-sm leading-snug text-red-100">
+                  {damageOverlayText}
+                </Text>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </DisplayCard>
@@ -694,6 +719,7 @@ function GuideEntityListing({
       disabled={disabled}
       hideActions={listing}
       hidePatterns
+      hideDamagedEffect={false}
       hideChoices
       controls={controls}
     />

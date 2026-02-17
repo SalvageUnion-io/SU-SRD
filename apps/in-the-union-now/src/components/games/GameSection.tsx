@@ -1,8 +1,14 @@
 import { useCallback, useMemo, useState } from 'react'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { Plus, LogIn } from 'lucide-react'
-import { DisplayCard, SectionSeparator, Text, ValueDisplay, navigateControl } from 'suref-react'
-import type { EntityControl } from 'suref-react'
+import {
+  DisplayCard,
+  CardHeader,
+  SectionSeparator,
+  Text,
+  ValueDisplay,
+  navigateControl,
+} from 'suref-react'
 import { toast } from 'sonner'
 import { useAuthStore } from '../../stores/authStore'
 import { useGames, useJoinGame } from '../../hooks/useGames'
@@ -21,37 +27,6 @@ import {
   DialogTrigger,
 } from '../ui/dialog'
 import type { CampaignRow } from '../../types/common'
-
-const CONTROL_VARIANT_STYLES: Record<string, string> = {
-  primary: 'bg-su-green text-su-white hover:bg-emerald-600',
-  danger: 'text-su-white/60 hover:bg-su-rust/80 hover:text-su-white',
-  ghost: 'opacity-60 hover:bg-white/20 hover:opacity-100',
-}
-
-function ControlButtons({ controls }: { controls: EntityControl[] }) {
-  return (
-    <div className="flex gap-2">
-      {controls.map((control) => {
-        const Icon = control.icon
-        return (
-          <button
-            key={control.key}
-            type="button"
-            className={`flex min-w-[25px] shrink-0 cursor-pointer items-center justify-center self-center rounded p-1 transition-colors ${CONTROL_VARIANT_STYLES[control.variant ?? 'ghost'] ?? ''}`}
-            title={control.ariaLabel}
-            aria-label={control.ariaLabel}
-            onClick={(e) => {
-              e.stopPropagation()
-              control.onClick()
-            }}
-          >
-            <Icon className="h-3.5 w-3.5" />
-          </button>
-        )
-      })}
-    </div>
-  )
-}
 
 export function GameSection() {
   const user = useAuthStore((s) => s.user)
@@ -91,16 +66,9 @@ function GameListing({ game }: { game: CampaignRow }) {
   const controls = useMemo(() => [navigateControl(handleNavigate)], [handleNavigate])
 
   const headerContent = (
-    <>
-      <div className="flex min-w-0 flex-col justify-center gap-0.5">
-        <Text
-          variant="pseudoheader"
-          as="span"
-          className="py-[3px] text-base uppercase tracking-[-0.02em]"
-          style={{ lineHeight: 1 }}
-        >
-          {game.name}
-        </Text>
+    <CardHeader
+      title={game.name}
+      subtitle={
         <div className="flex flex-wrap items-center gap-1">
           {game.crawler_id && <ValueDisplay label="Crawler" value="Active" compact />}
           {!game.crawler_id && (
@@ -109,9 +77,11 @@ function GameListing({ game }: { game: CampaignRow }) {
             </Text>
           )}
         </div>
-      </div>
-      <ControlButtons controls={controls} />
-    </>
+      }
+      controls={controls}
+      controlSize="sm"
+      compact
+    />
   )
 
   return (

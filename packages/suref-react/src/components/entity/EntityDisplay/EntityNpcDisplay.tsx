@@ -1,3 +1,5 @@
+import { useMemo } from 'react'
+import type { ReactNode } from 'react'
 import { getNpc } from 'salvageunion-reference'
 import type { SURefMetaEntity } from 'salvageunion-reference'
 import { DisplayCard } from '../../shared/DisplayCard'
@@ -5,6 +7,7 @@ import { StatDisplay } from '../../shared/StatDisplay'
 import { BlockContentRendererView } from '../BlockContentRendererView'
 import { Text } from '../../base/Text'
 import { cn } from '../../../utils/cn'
+import { getTiltRotation } from '../../../utils/tiltUtils'
 import type { getEntityFontSizes, getEntitySpacing } from './entityDisplayTypes'
 
 type EntityNpcDisplayProps = {
@@ -12,13 +15,36 @@ type EntityNpcDisplayProps = {
   compact: boolean
   fontSize: ReturnType<typeof getEntityFontSizes>
   spacing: ReturnType<typeof getEntitySpacing>
+  /** Optional children to render inside the NPC card body (e.g. editable fields) */
+  npcChildren?: ReactNode
+  /** Optional slot to replace the default HP display (e.g. editable HP control) */
+  hpSlot?: ReactNode
+  /** Whether to hide the NPC's own content blocks */
+  hideContent?: boolean
+  /** Whether the NPC is in a damaged state (parent damaged or HP=0) */
+  damaged?: boolean
 }
 
-export function EntityNpcDisplay({ data, compact, fontSize, spacing }: EntityNpcDisplayProps) {
+/** Generate an array of independent tilt rotations for a disheveled damaged look */
+function useDamagedTilts(damaged: boolean, count: number) {
+  return useMemo(
+    () => (damaged ? Array.from({ length: count }, () => getTiltRotation()) : []),
+    [damaged, count]
+  )
+}
+
+function tiltStyle(tilts: number[], index: number) {
+  const deg = tilts[index]
+  return deg ? { transform: `rotate(${deg}deg)` } : undefined
+}
+
+export function EntityNpcDisplay({ data, compact, fontSize, spacing, npcChildren, hpSlot, hideContent = false, damaged = false }: EntityNpcDisplayProps) {
   const npc = getNpc(data)
   if (!npc) return null
 
-  const hasContent = npc.content && npc.content.length > 0
+  const hasContent = !hideContent && npc.content && npc.content.length > 0
+  // title, hp, content — each gets its own tilt
+  const tilts = useDamagedTilts(damaged, 3)
 
   const headerContent = (
     <>
@@ -30,7 +56,10 @@ export function EntityNpcDisplay({ data, compact, fontSize, spacing }: EntityNpc
           )}
         >
           {npc.position && (
-            <div className={cn(compact ? '' : 'overflow-hidden text-ellipsis whitespace-nowrap')}>
+            <div
+              className={cn(compact ? '' : 'overflow-hidden text-ellipsis whitespace-nowrap')}
+              style={tiltStyle(tilts, 0)}
+            >
               <Text
                 variant="pseudoheader"
                 as="span"
@@ -46,21 +75,25 @@ export function EntityNpcDisplay({ data, compact, fontSize, spacing }: EntityNpc
           )}
         </div>
       </div>
-      {npc.hitPoints > 0 && <StatDisplay label="HP" value={npc.hitPoints} compact={compact} />}
+      {npc.hitPoints > 0 && (
+        <div style={tiltStyle(tilts, 1)}>
+          {hpSlot ?? <StatDisplay label="HP" value={npc.hitPoints} compact={compact} />}
+        </div>
+      )}
     </>
   )
 
   return (
     <DisplayCard
-      headerBg="bg-su-rust"
+      headerBg={damaged ? 'bg-su-grey' : 'bg-su-rust'}
       headerContent={headerContent}
       label="NPC"
       mode={compact ? 'compact' : 'full'}
       bodyPadding="p-0"
     >
-      {hasContent && (
+      {(hasContent || npcChildren) && (
         <div
-          className="w-full"
+          className="flex w-full flex-col gap-2"
           style={{
             paddingLeft: `${spacing.contentPaddingX}rem`,
             paddingRight: `${spacing.contentPaddingX}rem`,
@@ -68,12 +101,17 @@ export function EntityNpcDisplay({ data, compact, fontSize, spacing }: EntityNpc
             paddingBottom: `${spacing.contentPadding}rem`,
           }}
         >
-          <BlockContentRendererView
-            content={npc.content!}
-            fontSize={fontSize.sm}
-            compact={compact}
-            damaged={false}
-          />
+          {hasContent && (
+            <div style={tiltStyle(tilts, 2)}>
+              <BlockContentRendererView
+                content={npc.content!}
+                fontSize={fontSize.sm}
+                compact={compact}
+                damaged={damaged}
+              />
+            </div>
+          )}
+          {npcChildren}
         </div>
       )}
     </DisplayCard>

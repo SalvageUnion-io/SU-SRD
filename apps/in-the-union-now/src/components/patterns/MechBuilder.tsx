@@ -33,6 +33,7 @@ import {
 import type { SURefObjectPattern } from 'salvageunion-reference'
 import type { CreatePatternInput } from '../../types/common'
 import type { SaveStatus } from '../../hooks/useSaveStatus'
+import { SheetFooter } from '../shared/SheetFooter'
 import { actionButtonClasses } from '../shared/actionButtonClasses'
 import { TAG_BUTTON, TAG_BUTTON_SM } from '../shared/tagButtonClasses'
 import { findChassisById } from '../../lib/entityHelpers'
@@ -332,9 +333,10 @@ export function MechBuilder({
         }
         footerContent={
           readOnly || hideFooter ? undefined : (
-            <div className="flex w-full items-center justify-between px-2 py-1">
-              <div className="flex items-center gap-3">
-                {!hideFooterToggles && (
+            <SheetFooter
+              saveStatusText={saveStatus?.statusText}
+              leftContent={
+                !hideFooterToggles ? (
                   <>
                     <button
                       type="button"
@@ -355,70 +357,67 @@ export function MechBuilder({
                       <span>Starting Mech</span>
                     </button>
                   </>
-                )}
-              </div>
-              <div className="flex items-center gap-2">
-                {saveStatus?.statusText && (
-                  <span className="font-mono text-xs text-su-white/70">
-                    {saveStatus.statusText}
-                  </span>
-                )}
-                {onDelete ? (
-                  <button
-                    type="button"
-                    onClick={onDelete}
-                    disabled={isDeleting}
-                    className={actionButtonClasses('rust')}
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                    {isDeleting ? 'Deleting...' : 'Delete'}
-                  </button>
-                ) : onCancel ? (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="cursor-pointer"
-                    onClick={onCancel}
-                    disabled={isSaving}
-                  >
-                    Cancel
-                  </Button>
-                ) : null}
-                {onCopy && (
-                  <button
-                    type="button"
-                    onClick={onCopy}
-                    disabled={isCopying}
-                    className={actionButtonClasses('green')}
-                  >
-                    <Copy className="h-3.5 w-3.5" />
-                    {isCopying ? 'Copying...' : 'Copy'}
-                  </button>
-                )}
-                {onSaveToPatterns && (
-                  <button
-                    type="button"
-                    onClick={onSaveToPatterns}
-                    disabled={isSavingToPatterns}
-                    className={actionButtonClasses('green')}
-                  >
-                    <Save className="h-3.5 w-3.5" />
-                    {isSavingToPatterns ? 'Saving...' : 'Save to My Patterns'}
-                  </button>
-                )}
-                {onSave && (
-                  <button
-                    type="button"
-                    onClick={handleSave}
-                    disabled={!canSave || isSaving}
-                    className={actionButtonClasses('orange')}
-                  >
-                    <Save className="h-3.5 w-3.5" />
-                    {isSaving ? 'Saving...' : 'Save'}
-                  </button>
-                )}
-              </div>
-            </div>
+                ) : undefined
+              }
+              rightContent={
+                <>
+                  {onDelete ? (
+                    <button
+                      type="button"
+                      onClick={onDelete}
+                      disabled={isDeleting}
+                      className={actionButtonClasses('rust')}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                      {isDeleting ? 'Deleting...' : 'Delete'}
+                    </button>
+                  ) : onCancel ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="cursor-pointer"
+                      onClick={onCancel}
+                      disabled={isSaving}
+                    >
+                      Cancel
+                    </Button>
+                  ) : null}
+                  {onCopy && (
+                    <button
+                      type="button"
+                      onClick={onCopy}
+                      disabled={isCopying}
+                      className={actionButtonClasses('green')}
+                    >
+                      <Copy className="h-3.5 w-3.5" />
+                      {isCopying ? 'Copying...' : 'Copy'}
+                    </button>
+                  )}
+                  {onSaveToPatterns && (
+                    <button
+                      type="button"
+                      onClick={onSaveToPatterns}
+                      disabled={isSavingToPatterns}
+                      className={actionButtonClasses('green')}
+                    >
+                      <Save className="h-3.5 w-3.5" />
+                      {isSavingToPatterns ? 'Saving...' : 'Save to My Patterns'}
+                    </button>
+                  )}
+                  {onSave && (
+                    <button
+                      type="button"
+                      onClick={handleSave}
+                      disabled={!canSave || isSaving}
+                      className={actionButtonClasses('orange')}
+                    >
+                      <Save className="h-3.5 w-3.5" />
+                      {isSaving ? 'Saving...' : 'Save'}
+                    </button>
+                  )}
+                </>
+              }
+            />
           )
         }
       >

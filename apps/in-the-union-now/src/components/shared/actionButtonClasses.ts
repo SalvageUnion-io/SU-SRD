@@ -1,5 +1,5 @@
 const ACTION_BUTTON_BASE =
-  'inline-flex cursor-pointer items-center gap-1.5 rounded-md px-3 py-1.5 font-mono text-sm font-semibold uppercase text-su-white transition-colors disabled:pointer-events-none disabled:opacity-50'
+  'inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-su-black px-3 py-1.5 font-mono text-sm font-semibold uppercase text-su-white transition-colors disabled:pointer-events-none disabled:opacity-50'
 
 const COLOR_MAP = {
   green: `${ACTION_BUTTON_BASE} bg-su-green hover:bg-emerald-600`,

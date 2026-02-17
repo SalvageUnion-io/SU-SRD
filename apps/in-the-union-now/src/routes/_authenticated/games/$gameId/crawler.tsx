@@ -1,10 +1,23 @@
 import { useMemo, useCallback, useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { SalvageUnionReference, findCrawlerTechLevel, getNpc } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
-import { DisplayCard, Text, ValueDisplay, SectionSeparator, EntityDisplay } from 'suref-react'
-import { Pencil, Plus, RefreshCw } from 'lucide-react'
-import { getWeaponSlotCount } from '../../../../lib/crawlerUtils'
+import {
+  DisplayCard,
+  Text,
+  ValueDisplay,
+  SectionSeparator,
+  EntityDisplay,
+  EntityNpcDisplay,
+  StatDisplay,
+  editControl,
+  useDetailModal,
+  getEntityFontSizes,
+  getEntitySpacing,
+} from 'suref-react'
+import { Plus } from 'lucide-react'
+import { getWeaponSlotCount, computeCrawlerStatsFromTechLevel } from '../../../../lib/crawlerUtils'
+import { CrawlerStatControl } from '../../../../components/games/CrawlerStatControl'
 import { toast } from 'sonner'
 import { useAuthStore } from '../../../../stores/authStore'
 import { useGame, useGameMembers } from '../../../../hooks/useGames'
@@ -15,19 +28,23 @@ import {
   useUpdateCrawlerWeapon,
   useTranslateScrap,
 } from '../../../../hooks/useCrawlers'
-import { useAutosave } from '../../../../hooks/useAutosave'
 import { useSaveStatus } from '../../../../hooks/useSaveStatus'
 import { isMediator } from '../../../../lib/gameUtils'
 import { getErrorMessage } from '../../../../lib/errors'
+import { SheetFooter } from '../../../../components/shared/SheetFooter'
 import { PageSkeleton } from '../../../../components/shared/PageSkeleton'
 import { NotFoundState } from '../../../../components/shared/NotFoundState'
-import { CrawlerStatsSection } from '../../../../components/games/CrawlerStatsSection'
+import { CrawlerScrapStats } from '../../../../components/games/CrawlerStatsSection'
 import { CrawlerBaysSection } from '../../../../components/games/CrawlerBaysSection'
 import { CrawlerStorageSection } from '../../../../components/games/CrawlerStorageSection'
 import { ScrapTranslationDialog } from '../../../../components/games/ScrapTranslationDialog'
-import { CrawlerEditDialog } from '../../../../components/games/CrawlerEditDialog'
 import { WeaponSelectionDialog } from '../../../../components/games/WeaponSelectionDialog'
-import type { CrawlerUpdate } from '../../../../types/common'
+import type { BayNpcData, CrawlerRow, CrawlerUpdate } from '../../../../types/common'
+import { useAutosave } from '../../../../hooks/useAutosave'
+import { Input } from '../../../../components/ui/input'
+import { Textarea } from '../../../../components/ui/textarea'
+import { RollInput } from '../../../../components/shared/RollInput'
+import { rollOnTable } from '../../../../lib/pilotUtils'
 
 export const Route = createFileRoute('/_authenticated/games/$gameId/crawler')({
   component: CrawlerDetailPage,
@@ -46,40 +63,14 @@ function CrawlerDetailPage() {
   const saveStatus = useSaveStatus({ isSaving: updateCrawler.isPending })
 
   const [showTranslateDialog, setShowTranslateDialog] = useState(false)
-  const [showEditDialog, setShowEditDialog] = useState(false)
   const [editingWeaponSlot, setEditingWeaponSlot] = useState<{
     index: number
     oldRefId: string | null
   } | null>(null)
 
-  // Pending update accumulator for autosave
-  const [pendingUpdates, setPendingUpdates] = useState<Partial<CrawlerUpdate>>({})
-
   const isMed = useMemo(
     () => (members ? isMediator(members, user?.id ?? '') : false),
     [members, user?.id]
-  )
-
-  const handleUpdate = useCallback(
-    (input: Partial<CrawlerUpdate>) => {
-      if (!crawler) return
-      setPendingUpdates((prev) => ({ ...prev, ...input }))
-    },
-    [crawler]
-  )
-
-  const handleSave = useCallback(
-    (updates: Partial<CrawlerUpdate>) => {
-      if (!crawler) return
-      updateCrawler.mutate(
-        { crawlerId: crawler.id, input: updates },
-        {
-          onSuccess: () => toast.success('Saved', { id: 'autosave', duration: 1500 }),
-          onError: (err) => toast.error(getErrorMessage(err)),
-        }
-      )
-    },
-    [crawler, updateCrawler]
   )
 
   const handleImmediateUpdate = useCallback(
@@ -136,36 +127,6 @@ function CrawlerDetailPage() {
     [crawler, user, editingWeaponSlot, updateWeapon]
   )
 
-  const handleEditSave = useCallback(
-    (input: Partial<CrawlerUpdate>) => {
-      if (!crawler) return
-      updateCrawler.mutate(
-        { crawlerId: crawler.id, input },
-        {
-          onSuccess: () => {
-            toast.success('Crawler updated!')
-            setShowEditDialog(false)
-          },
-          onError: (err) => toast.error(getErrorMessage(err)),
-        }
-      )
-    },
-    [crawler, updateCrawler]
-  )
-
-  // Autosave bay NPC changes (debounced)
-  useAutosave({
-    value: pendingUpdates,
-    onSave: (val) => {
-      if (Object.keys(val).length > 0) {
-        handleSave(val)
-        setPendingUpdates({})
-      }
-    },
-    delay: 1500,
-    enabled: !!crawler && isMed,
-  })
-
   const weaponRefs = useMemo(
     () =>
       (crawlerRefs ?? [])
@@ -188,6 +149,13 @@ function CrawlerDetailPage() {
 
   const crawlerType = SalvageUnionReference.get('crawlers', crawler.crawler_ref)
   const weaponSlotCount = getWeaponSlotCount(crawler.crawler_ref)
+  const tlStats = computeCrawlerStatsFromTechLevel(crawler.tech_level, crawler.crawler_ref)
+  const techLevelData = findCrawlerTechLevel(crawler.tech_level)
+  const populationStr = techLevelData
+    ? techLevelData.populationMax > 0
+      ? `${techLevelData.populationMin.toLocaleString()} - ${techLevelData.populationMax.toLocaleString()}`
+      : `${techLevelData.populationMin.toLocaleString()}+`
+    : undefined
 
   return (
     <>
@@ -196,128 +164,137 @@ function CrawlerDetailPage() {
         bodyPadding="p-0"
         headerContent={
           <div className="flex min-w-0 flex-1 items-start justify-between gap-2">
-            <div className="flex min-w-0 flex-col justify-center gap-0.5">
-              <div className="flex items-center gap-2">
-                <Text variant="pseudoheader" as="span" className="text-[1.75rem]">
-                  {crawler.name || 'Unnamed Crawler'}
-                </Text>
-                {crawler.tag && (
-                  <Text variant="pseudoheader" as="span" className="text-lg opacity-70">
-                    #{crawler.tag}
+            <div className="flex min-w-0 items-start gap-2">
+              <StatDisplay label="TL" value={crawler.tech_level} inverse />
+              <div className="flex min-w-0 flex-col justify-center gap-0.5">
+                <div className="flex items-center gap-2">
+                  <Text variant="pseudoheader" as="span" className="text-[1.75rem]">
+                    {crawler.name || 'Unnamed Crawler'}
                   </Text>
-                )}
-              </div>
-              <div className="flex flex-wrap items-center gap-1">
-                {crawlerType && <ValueDisplay label="Type" value={crawlerType.name} />}
-                <ValueDisplay label="SP" value={`${crawler.current_sp}/${crawler.max_sp}`} />
-                <ValueDisplay label="TL" value={crawler.tech_level} />
+                  {crawler.tag && (
+                    <Text variant="pseudoheader" as="span" className="text-lg opacity-70">
+                      #{crawler.tag}
+                    </Text>
+                  )}
+                </div>
+                <div className="flex flex-wrap items-center gap-1">
+                  {crawlerType && <ValueDisplay label="Type" value={crawlerType.name} />}
+                  {populationStr && <ValueDisplay label="Population" value={populationStr} />}
+                </div>
               </div>
             </div>
-            {isMed && (
-              <button
-                type="button"
-                onClick={() => setShowEditDialog(true)}
-                className="mt-1 flex shrink-0 cursor-pointer items-center gap-1 rounded px-2 py-1 text-xs text-su-black/60 transition-colors hover:bg-su-black/20 hover:text-su-black"
-              >
-                <Pencil className="h-3 w-3" />
-                Edit
-              </button>
-            )}
+            <div className="flex shrink-0 items-start gap-2">
+              <CrawlerStatControl
+                label="Upgrade"
+                bottomLabel="Pool"
+                value={crawler.upgrade_pool}
+                max={tlStats.upgrade_cost ?? undefined}
+                canEdit={isMed}
+                onChange={(v) => handleImmediateUpdate({ upgrade_pool: v })}
+              />
+              <StatDisplay
+                label="Upkeep"
+                value={tlStats.upkeep}
+                bottomLabel={`TL${crawler.tech_level}`}
+              />
+              <CrawlerStatControl
+                label="SP"
+                value={crawler.current_sp}
+                max={crawler.max_sp}
+                canEdit={isMed}
+                onChange={(v) => handleImmediateUpdate({ current_sp: v })}
+              />
+            </div>
           </div>
         }
         footerContent={
-          saveStatus.statusText ? (
-            <div className="flex w-full items-center justify-end px-2 py-1">
-              <span className="font-mono text-xs text-su-white/70">{saveStatus.statusText}</span>
-            </div>
-          ) : undefined
+          isMed ? <SheetFooter saveStatusText={saveStatus.statusText} /> : undefined
         }
       >
         <div className="space-y-6 p-4">
-          <CrawlerStatsSection
-            crawler={crawler}
-            readOnly={!isMed}
-            onUpdate={handleImmediateUpdate}
-          />
-
-          {isMed && (
-            <div className="flex justify-center">
-              <button
-                type="button"
-                onClick={() => setShowTranslateDialog(true)}
-                className="flex cursor-pointer items-center gap-1.5 rounded-md border border-su-grey-light/20 px-3 py-1.5 font-mono text-xs font-semibold uppercase text-su-white/60 transition-colors hover:border-su-pink/50 hover:text-su-pink"
-              >
-                <RefreshCw className="h-3 w-3" />
-                Translate Scrap
-              </button>
+          {crawlerType && (
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              {'actions' in crawlerType &&
+                (crawlerType as { actions?: string[] }).actions && (
+                  <CrawlerAbilitySection
+                    crawlerType={crawlerType as { name: string; actions?: string[] }}
+                  />
+                )}
+              {'npc' in crawlerType && !!(crawlerType as { npc?: unknown }).npc && (
+                <CrawlerTypeNpcSection
+                  crawler={crawler}
+                  crawlerTypeEntity={crawlerType as unknown as SURefEntity}
+                  readOnly={!isMed}
+                  onSave={handleImmediateUpdate}
+                />
+              )}
             </div>
           )}
-
-          <div className="flex flex-col gap-3">
-            <SectionSeparator
-              label={`Weapon Systems (${weaponRefs.length}/${weaponSlotCount})`}
-              fontSize="text-sm"
-            />
-            {weaponSystems.map(({ ref, entity }) =>
-              entity ? (
-                <div key={ref.id} className="relative">
-                  <EntityDisplay data={entity} listing compact />
-                  {isMed && (
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setEditingWeaponSlot({ index: ref.sort_order, oldRefId: ref.id })
-                      }
-                      className="absolute top-2 right-2 flex cursor-pointer items-center gap-1 rounded bg-su-grey-dark/80 px-2 py-1 text-xs text-su-white/60 transition-colors hover:text-su-white"
-                    >
-                      <Pencil className="h-3 w-3" />
-                      Change
-                    </button>
-                  )}
-                </div>
-              ) : (
-                <Text key={ref.id} variant="default" as="p" className="text-sm text-su-white/40">
-                  Unknown system
-                </Text>
-              )
-            )}
-            {weaponRefs.length === 0 && (
-              <Text variant="default" as="p" className="text-sm text-su-white/40">
-                No weapon systems equipped.
-              </Text>
-            )}
-            {isMed && weaponRefs.length < weaponSlotCount && (
-              <button
-                type="button"
-                onClick={() => setEditingWeaponSlot({ index: weaponRefs.length, oldRefId: null })}
-                className="flex cursor-pointer items-center gap-1.5 self-start rounded-md border border-su-green/30 px-3 py-1.5 font-mono text-xs font-semibold text-su-green transition-colors hover:border-su-green/60 hover:bg-su-green/10"
-              >
-                <Plus className="h-3 w-3" />
-                Add weapon system
-              </button>
-            )}
-          </div>
-
-          {crawlerType &&
-            'actions' in crawlerType &&
-            (crawlerType as { actions?: string[] }).actions && (
-              <CrawlerAbilitySection
-                crawlerType={crawlerType as { name: string; actions?: string[] }}
-              />
-            )}
 
           <CrawlerBaysSection
             crawler={crawler}
             readOnly={!isMed}
-            onUpdate={(input) => {
-              handleUpdate(input)
-              if (input.bay_npcs) {
-                handleSave(input)
-              }
-            }}
+            onSave={handleImmediateUpdate}
+            onOpenScrapConversion={() => setShowTranslateDialog(true)}
+            armamentContent={
+              <div className="flex flex-col gap-2">
+                <SectionSeparator label="Weapon Systems" fontSize="text-xs" />
+                {weaponSystems.map(({ ref, entity }) =>
+                  entity ? (
+                    <WeaponListing
+                      key={ref.id}
+                      entity={entity}
+                      onEdit={
+                        isMed
+                          ? () =>
+                              setEditingWeaponSlot({
+                                index: ref.sort_order,
+                                oldRefId: ref.id,
+                              })
+                          : undefined
+                      }
+                    />
+                  ) : (
+                    <Text
+                      key={ref.id}
+                      variant="default"
+                      as="p"
+                      className="text-sm text-su-white/40"
+                    >
+                      Unknown system
+                    </Text>
+                  )
+                )}
+                {weaponRefs.length === 0 && (
+                  <Text variant="default" as="p" className="text-sm text-su-white/40">
+                    No weapon systems equipped.
+                  </Text>
+                )}
+                {isMed && weaponRefs.length < weaponSlotCount && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setEditingWeaponSlot({ index: weaponRefs.length, oldRefId: null })
+                    }
+                    className="flex cursor-pointer items-center gap-1.5 self-start rounded-md border border-su-green/30 px-3 py-1.5 font-mono text-xs font-semibold text-su-green transition-colors hover:border-su-green/60 hover:bg-su-green/10"
+                  >
+                    <Plus className="h-3 w-3" />
+                    Add weapon system
+                  </button>
+                )}
+              </div>
+            }
+            storageContent={
+              <>
+                <CrawlerScrapStats
+                  crawler={crawler}
+                  readOnly={!isMed}
+                  onUpdate={handleImmediateUpdate}
+                />
+                <CrawlerStorageSection crawlerId={crawler.id} userId={user?.id ?? ''} readOnly={!isMed} />
+              </>
+            }
           />
-
-          <CrawlerStorageSection crawlerId={crawler.id} userId={user?.id ?? ''} readOnly={!isMed} />
         </div>
       </DisplayCard>
 
@@ -330,19 +307,13 @@ function CrawlerDetailPage() {
             onTranslate={handleTranslate}
             isPending={translateScrap.isPending}
           />
-          <CrawlerEditDialog
-            open={showEditDialog}
-            onOpenChange={setShowEditDialog}
-            crawler={crawler}
-            onSave={handleEditSave}
-            isPending={updateCrawler.isPending}
-          />
           <WeaponSelectionDialog
             open={editingWeaponSlot !== null}
             onOpenChange={(open) => {
               if (!open) setEditingWeaponSlot(null)
             }}
             onSelect={handleWeaponChange}
+            techLevel={crawler.tech_level}
             currentWeaponId={
               editingWeaponSlot?.oldRefId
                 ? weaponRefs.find((r) => r.id === editingWeaponSlot.oldRefId)?.schema_ref_id
@@ -351,6 +322,27 @@ function CrawlerDetailPage() {
           />
         </>
       )}
+    </>
+  )
+}
+
+function WeaponListing({
+  entity,
+  onEdit,
+}: {
+  entity: SURefEntity
+  onEdit?: () => void
+}) {
+  const detailModal = useDetailModal(entity)
+  const controls = [
+    ...(onEdit ? [editControl(onEdit)] : []),
+    detailModal.control,
+  ]
+
+  return (
+    <>
+      <EntityDisplay data={entity} listing compact controls={controls} />
+      {detailModal.modal}
     </>
   )
 }
@@ -375,9 +367,169 @@ function CrawlerAbilitySection({
           )
         }
         return (
-          <EntityDisplay key={action.id} data={action as unknown as SURefEntity} listing compact />
+          <EntityDisplay key={action.id} data={action as unknown as SURefEntity} compact />
         )
       })}
+    </div>
+  )
+}
+
+type BayNpcTextField = 'name' | 'background' | 'motto' | 'keepsake' | 'personality'
+
+const NPC_CHOICE_ORDER = ['Name', 'Description', 'Motto', 'Keepsake', 'A.I. Personality']
+
+const NPC_ROLL_TABLE_FALLBACK: Record<string, string> = {
+  Motto: 'Motto',
+  Keepsake: 'Keepsake',
+}
+
+const NPC_EDITABLE_CHOICE_TYPES = new Set(['freeform', 'permanent'])
+
+function CrawlerTypeNpcSection({
+  crawler,
+  crawlerTypeEntity,
+  readOnly,
+  onSave,
+}: {
+  crawler: CrawlerRow
+  crawlerTypeEntity: SURefEntity
+  readOnly: boolean
+  onSave: (input: Partial<CrawlerUpdate>) => void
+}) {
+  const npcKey = crawler.crawler_ref
+  const npc = getNpc(crawlerTypeEntity as Parameters<typeof getNpc>[0])
+
+  const [localNpc, setLocalNpc] = useState<BayNpcData>(
+    () => ((crawler.bay_npcs ?? {}) as Record<string, BayNpcData>)[npcKey] ?? {}
+  )
+
+  const { flush } = useAutosave({
+    value: localNpc,
+    onSave: (val) =>
+      onSave({
+        bay_npcs: {
+          ...((crawler.bay_npcs ?? {}) as Record<string, BayNpcData>),
+          [npcKey]: val,
+        },
+      }),
+    delay: 1000,
+    enabled: !readOnly,
+  })
+
+  const handleFieldChange = useCallback((field: BayNpcTextField, value: string) => {
+    setLocalNpc((prev) => ({ ...prev, [field]: value || undefined }))
+  }, [])
+
+  const handleRoll = useCallback(
+    (fieldKey: BayNpcTextField, tableName: string) => {
+      const { text } = rollOnTable(tableName)
+      if (text) handleFieldChange(fieldKey, text)
+    },
+    [handleFieldChange]
+  )
+
+  const handleHpChange = useCallback((hp: number) => {
+    setLocalNpc((prev) => ({ ...prev, hp }))
+  }, [])
+
+  const editableChoices = useMemo(() => {
+    const choices = npc?.choices?.filter((c) =>
+      NPC_EDITABLE_CHOICE_TYPES.has(c.choiceType ?? 'freeform')
+    ) ?? []
+    return [...choices].sort((a, b) => {
+      const aIdx = NPC_CHOICE_ORDER.indexOf(a.name)
+      const bIdx = NPC_CHOICE_ORDER.indexOf(b.name)
+      return (aIdx === -1 ? 999 : aIdx) - (bIdx === -1 ? 999 : bIdx)
+    })
+  }, [npc?.choices])
+
+  const fontSize = getEntityFontSizes(true)
+  const spacing = getEntitySpacing(true)
+
+  const maxHp = npc?.hitPoints ?? 0
+  const currentHp = localNpc.hp ?? maxHp
+  const hpSlot =
+    maxHp > 0 ? (
+      readOnly ? (
+        <Text as="span" variant="pseudoheader" className="text-sm">
+          HP {currentHp}/{maxHp}
+        </Text>
+      ) : (
+        <CrawlerStatControl
+          label="HP"
+          value={currentHp}
+          max={maxHp}
+          canEdit
+          onChange={handleHpChange}
+        />
+      )
+    ) : undefined
+
+  const npcFieldsContent =
+    editableChoices.length > 0 ? (
+      <div className="flex flex-col gap-2">
+        {editableChoices.map((choice) => {
+          const fieldKey = choice.name.toLowerCase() as BayNpcTextField
+          const rollTable =
+            choice.rollTable ?? NPC_ROLL_TABLE_FALLBACK[choice.name]
+
+          return (
+            <div key={choice.id} className="flex flex-col gap-0.5">
+              <Text
+                variant="pseudoheader"
+                as="label"
+                className="ml-0.5 text-xs uppercase"
+              >
+                {choice.name}
+              </Text>
+              {readOnly ? (
+                <Text variant="default" as="span" className="text-sm">
+                  {localNpc[fieldKey] || '-'}
+                </Text>
+              ) : choice.name === 'Description' ? (
+                <Textarea
+                  value={localNpc[fieldKey] ?? ''}
+                  onChange={(e) => handleFieldChange(fieldKey, e.target.value)}
+                  onBlur={flush}
+                  placeholder="Enter description..."
+                  className="min-h-[60px] text-sm"
+                  rows={2}
+                />
+              ) : rollTable ? (
+                <RollInput
+                  value={localNpc[fieldKey] ?? ''}
+                  onChange={(value) => handleFieldChange(fieldKey, value)}
+                  onRoll={() => handleRoll(fieldKey, rollTable)}
+                  onBlur={flush}
+                  placeholder={`Roll or type ${choice.name.toLowerCase()}...`}
+                  rollTableName={rollTable}
+                />
+              ) : (
+                <Input
+                  value={localNpc[fieldKey] ?? ''}
+                  onChange={(e) => handleFieldChange(fieldKey, e.target.value)}
+                  onBlur={flush}
+                  placeholder={choice.name}
+                  className="h-8 text-sm"
+                />
+              )}
+            </div>
+          )
+        })}
+      </div>
+    ) : undefined
+
+  return (
+    <div className="flex flex-col gap-3">
+      <SectionSeparator label="Crawler NPC" fontSize="text-sm" />
+      <EntityNpcDisplay
+        data={crawlerTypeEntity as Parameters<typeof getNpc>[0]}
+        compact
+        fontSize={fontSize}
+        spacing={spacing}
+        npcChildren={npcFieldsContent}
+        hpSlot={hpSlot}
+      />
     </div>
   )
 }

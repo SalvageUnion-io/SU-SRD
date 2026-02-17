@@ -3,45 +3,20 @@ import { Link, useNavigate } from '@tanstack/react-router'
 import { Plus } from 'lucide-react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { findChassisById } from '../../lib/entityHelpers'
-import { DisplayCard, ValueDisplay, SectionSeparator, Text, navigateControl } from 'suref-react'
-import type { EntityControl } from 'suref-react'
+import {
+  DisplayCard,
+  CardHeader,
+  ValueDisplay,
+  SectionSeparator,
+  Text,
+  navigateControl,
+} from 'suref-react'
 import { useAuthStore } from '../../stores/authStore'
 import { usePilots, usePilotAbilityCounts } from '../../hooks/usePilots'
 import { useMech } from '../../hooks/useMechs'
 import { Skeleton } from '../ui/skeleton'
 import { EMPTY_SLOT_CLASSES } from '../patterns/emptySlotClasses'
 import type { PilotRow } from '../../types/common'
-
-const CONTROL_VARIANT_STYLES: Record<string, string> = {
-  primary: 'bg-su-green text-su-white hover:bg-emerald-600',
-  danger: 'text-su-white/60 hover:bg-su-rust/80 hover:text-su-white',
-  ghost: 'opacity-60 hover:bg-white/20 hover:opacity-100',
-}
-
-function ControlButtons({ controls }: { controls: EntityControl[] }) {
-  return (
-    <div className="flex gap-2">
-      {controls.map((control) => {
-        const Icon = control.icon
-        return (
-          <button
-            key={control.key}
-            type="button"
-            className={`flex min-w-[25px] shrink-0 cursor-pointer items-center justify-center self-center rounded p-1 transition-colors ${CONTROL_VARIANT_STYLES[control.variant ?? 'ghost'] ?? ''}`}
-            title={control.ariaLabel}
-            aria-label={control.ariaLabel}
-            onClick={(e) => {
-              e.stopPropagation()
-              control.onClick()
-            }}
-          >
-            <Icon className="h-3.5 w-3.5" />
-          </button>
-        )
-      })}
-    </div>
-  )
-}
 
 export function PilotSection() {
   const user = useAuthStore((s) => s.user)
@@ -99,16 +74,9 @@ function PilotListing({ pilot, abilityCount }: { pilot: PilotRow; abilityCount: 
   const controls = useMemo(() => [navigateControl(handleNavigate)], [handleNavigate])
 
   const headerContent = (
-    <>
-      <div className="flex min-w-0 flex-col justify-center gap-0.5">
-        <Text
-          variant="pseudoheader"
-          as="span"
-          className="py-[3px] text-base uppercase tracking-[-0.02em]"
-          style={{ lineHeight: 1 }}
-        >
-          {pilot.callsign}
-        </Text>
+    <CardHeader
+      title={pilot.callsign}
+      subtitle={
         <div className="flex flex-wrap items-center gap-1">
           <ValueDisplay label="Class" value={pilotClassName} compact />
           <ValueDisplay label="Abilities" value={abilityCount} compact />
@@ -130,9 +98,11 @@ function PilotListing({ pilot, abilityCount }: { pilot: PilotRow; abilityCount: 
             </span>
           )}
         </div>
-      </div>
-      <ControlButtons controls={controls} />
-    </>
+      }
+      controls={controls}
+      controlSize="sm"
+      compact
+    />
   )
 
   return <DisplayCard headerBg="bg-su-orange" headerContent={headerContent} mode="listing" />
