@@ -8,6 +8,7 @@ import type {
   EntityRefRow,
   CreateCrawlerInput,
 } from '../../types/common'
+import type { Json } from '../../types/database-generated.types'
 
 /** Compute crawler stats from TL1 tech level data, with optional crawler type SP bonus */
 function getTL1Stats(crawlerRef?: string): { max_sp: number; upkeep: number } {
@@ -177,7 +178,7 @@ export async function addCargoToCrawler(
       amount: input.amount ?? 1,
       schema_name: input.schema_name ?? null,
       schema_ref_id: input.schema_ref_id ?? null,
-      metadata: input.metadata ?? null,
+      metadata: (input.metadata as Record<string, Json | undefined>) ?? null,
     })
     .select()
     .single()
