@@ -1,17 +1,38 @@
 import { useCallback, useMemo, useState } from 'react'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { Plus, Copy, Trash2 } from 'lucide-react'
+import {
+  Plus,
+  Copy,
+  Trash2,
+  RefreshCw,
+  ShieldCheck,
+  UserMinus,
+  ShieldMinus,
+  Archive,
+  ArchiveRestore,
+} from 'lucide-react'
 import { SectionSeparator, DisplayCard, Text, ValueDisplay } from 'suref-react'
 import { toast } from 'sonner'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { useAuthStore } from '../../../../stores/authStore'
-import { useGame, useGameMembers, useDeleteGame } from '../../../../hooks/useGames'
+import {
+  useGame,
+  useGameMembers,
+  useDeleteGame,
+  useRegenerateInviteCode,
+  useArchiveGame,
+} from '../../../../hooks/useGames'
 import { useCrawler } from '../../../../hooks/useCrawlers'
 import {
   usePilots,
   usePilotsForCrawler,
   useAssignPilotToCrawler,
 } from '../../../../hooks/usePilots'
+import {
+  usePromoteMember,
+  useSelfDemote,
+  useUninviteMember,
+} from '../../../../hooks/useCampaignMembers'
 import { isMediator, getMemberRole } from '../../../../lib/gameUtils'
 import { getErrorMessage } from '../../../../lib/errors'
 import { actionButtonClasses } from '../../../../components/shared/actionButtonClasses'
@@ -54,11 +75,16 @@ function GameShowPage() {
             {role}
           </span>
         )}
+        {game.archived && (
+          <span className="rounded bg-su-orange/80 px-2 py-0.5 font-mono text-xs uppercase text-su-white">
+            Archived
+          </span>
+        )}
       </div>
 
       <CrawlerSection game={game} isMediator={isMed} />
 
-      <MembersSection members={members ?? []} />
+      <MembersSection gameId={gameId} members={members ?? []} isMediator={isMed} />
 
       {game.crawler_id && <AssignedPilotsSection crawlerId={game.crawler_id} isMediator={isMed} />}
 
@@ -118,15 +144,70 @@ function CrawlerSection({ game, isMediator }: { game: CampaignRow; isMediator: b
   )
 }
 
-function MembersSection({ members }: { members: CampaignMemberRow[] }) {
+function MembersSection({
+  gameId,
+  members,
+  isMediator: isMed,
+}: {
+  gameId: string
+  members: CampaignMemberRow[]
+  isMediator: boolean
+}) {
   const user = useAuthStore((s) => s.user)
+  const promote = usePromoteMember()
+  const demote = useSelfDemote()
+  const uninvite = useUninviteMember()
+
+  const handlePromote = useCallback(
+    (userId: string) => {
+      promote.mutate(
+        { campaignId: gameId, userId },
+        {
+          onSuccess: () => toast.success('Promoted to Mediator.'),
+          onError: (err) => toast.error(getErrorMessage(err)),
+        }
+      )
+    },
+    [gameId, promote]
+  )
+
+  const handleSelfDemote = useCallback(() => {
+    demote.mutate(
+      { campaignId: gameId },
+      {
+        onSuccess: () => toast.success('Demoted to Player.'),
+        onError: (err) => toast.error(getErrorMessage(err)),
+      }
+    )
+  }, [gameId, demote])
+
+  const handleUninvite = useCallback(
+    (userId: string) => {
+      uninvite.mutate(
+        { campaignId: gameId, userId },
+        {
+          onSuccess: () => toast.success('Member removed.'),
+          onError: (err) => toast.error(getErrorMessage(err)),
+        }
+      )
+    },
+    [gameId, uninvite]
+  )
 
   return (
     <div className="flex flex-col gap-3">
       <SectionSeparator label="Players" fontSize="text-sm" />
       <div className="flex flex-col gap-2">
         {members.map((member) => (
-          <MemberRow key={member.id} member={member} isYou={member.user_id === user?.id} />
+          <MemberRow
+            key={member.id}
+            member={member}
+            isYou={member.user_id === user?.id}
+            isMediator={isMed}
+            onPromote={() => handlePromote(member.user_id)}
+            onUninvite={() => handleUninvite(member.user_id)}
+            onSelfDemote={handleSelfDemote}
+          />
         ))}
         {members.length === 0 && <p className="text-sm text-su-grey-dark">No players yet.</p>}
       </div>
@@ -134,8 +215,23 @@ function MembersSection({ members }: { members: CampaignMemberRow[] }) {
   )
 }
 
-function MemberRow({ member, isYou }: { member: CampaignMemberRow; isYou: boolean }) {
+function MemberRow({
+  member,
+  isYou,
+  isMediator: isMed,
+  onPromote,
+  onUninvite,
+  onSelfDemote,
+}: {
+  member: CampaignMemberRow
+  isYou: boolean
+  isMediator: boolean
+  onPromote: () => void
+  onUninvite: () => void
+  onSelfDemote: () => void
+}) {
   const roleColor = member.role === 'mediator' ? 'bg-su-pink/80' : 'bg-su-grey-dark/50'
+  const isMemberMediator = member.role === 'mediator'
 
   return (
     <div className="flex items-center justify-between rounded-md border border-su-grey-light/20 px-3 py-2">
@@ -143,12 +239,52 @@ function MemberRow({ member, isYou }: { member: CampaignMemberRow; isYou: boolea
         <Text variant="pseudoheader" as="span" className="text-sm uppercase">
           {isYou ? 'You' : `Player ${member.user_id.slice(0, 6)}`}
         </Text>
+        <span
+          className={`rounded px-1.5 py-0.5 font-mono text-xs uppercase text-su-white/80 ${roleColor}`}
+        >
+          {member.role}
+        </span>
       </div>
-      <span
-        className={`rounded px-2 py-0.5 font-mono text-xs uppercase text-su-white/80 ${roleColor}`}
-      >
-        {member.role}
-      </span>
+      {isMed && (
+        <div className="flex items-center gap-1">
+          {isYou && isMemberMediator && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onSelfDemote}
+              className="h-7 gap-1 text-xs text-su-orange hover:bg-su-orange/20"
+              title="Demote yourself to Player"
+            >
+              <ShieldMinus className="h-3 w-3" />
+              Demote
+            </Button>
+          )}
+          {!isYou && !isMemberMediator && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onPromote}
+              className="h-7 gap-1 text-xs text-su-green hover:bg-su-green/20"
+              title="Promote to Mediator"
+            >
+              <ShieldCheck className="h-3 w-3" />
+              Promote
+            </Button>
+          )}
+          {!isYou && !isMemberMediator && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onUninvite}
+              className="h-7 gap-1 text-xs text-su-rust hover:bg-su-rust/20"
+              title="Remove from campaign"
+            >
+              <UserMinus className="h-3 w-3" />
+              Remove
+            </Button>
+          )}
+        </div>
+      )}
     </div>
   )
 }
@@ -288,12 +424,24 @@ function PilotAssignmentRow({
 }
 
 function InviteCodeSection({ game }: { game: CampaignRow }) {
+  const regenerate = useRegenerateInviteCode()
+
   const handleCopy = useCallback(() => {
     if (game.invite_code) {
       navigator.clipboard.writeText(game.invite_code)
       toast.success('Invite code copied!')
     }
   }, [game.invite_code])
+
+  const handleRegenerate = useCallback(() => {
+    regenerate.mutate(
+      { gameId: game.id },
+      {
+        onSuccess: () => toast.success('Invite code regenerated.'),
+        onError: (err) => toast.error(getErrorMessage(err)),
+      }
+    )
+  }, [game.id, regenerate])
 
   return (
     <div className="flex flex-col gap-3">
@@ -307,8 +455,19 @@ function InviteCodeSection({ game }: { game: CampaignRow }) {
           size="sm"
           onClick={handleCopy}
           className="text-su-white/60 hover:text-su-white"
+          title="Copy invite code"
         >
           <Copy className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleRegenerate}
+          disabled={regenerate.isPending}
+          className="text-su-white/60 hover:text-su-white"
+          title="Generate new invite code"
+        >
+          <RefreshCw className={`h-4 w-4 ${regenerate.isPending ? 'animate-spin' : ''}`} />
         </Button>
       </div>
       <p className="text-xs text-su-grey-dark">
@@ -320,14 +479,25 @@ function InviteCodeSection({ game }: { game: CampaignRow }) {
 
 function DangerZone({ game }: { game: CampaignRow }) {
   const navigate = useNavigate()
-  const user = useAuthStore((s) => s.user)
   const deleteGameMutation = useDeleteGame()
+  const archiveGameMutation = useArchiveGame()
   const [showConfirm, setShowConfirm] = useState(false)
 
+  const handleArchiveToggle = useCallback(() => {
+    archiveGameMutation.mutate(
+      { gameId: game.id, archived: !game.archived },
+      {
+        onSuccess: (data) => {
+          toast.success(data.archived ? 'Game archived.' : 'Game restored.')
+        },
+        onError: (error) => toast.error(getErrorMessage(error)),
+      }
+    )
+  }, [game.id, game.archived, archiveGameMutation])
+
   const handleDelete = useCallback(() => {
-    if (!user) return
     deleteGameMutation.mutate(
-      { gameId: game.id, userId: user.id },
+      { gameId: game.id },
       {
         onSuccess: () => {
           toast.success(`Game "${game.name}" deleted.`)
@@ -338,20 +508,41 @@ function DangerZone({ game }: { game: CampaignRow }) {
         },
       }
     )
-  }, [user, game, deleteGameMutation, navigate])
+  }, [game, deleteGameMutation, navigate])
 
   return (
     <div className="flex flex-col gap-3">
       <SectionSeparator label="Danger Zone" fontSize="text-sm" />
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => setShowConfirm(true)}
-        className="w-fit gap-1.5 text-su-rust hover:bg-su-rust/20 hover:text-su-rust"
-      >
-        <Trash2 className="h-3.5 w-3.5" />
-        Delete Game
-      </Button>
+      <div className="flex flex-wrap gap-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleArchiveToggle}
+          disabled={archiveGameMutation.isPending}
+          className="w-fit gap-1.5 text-su-orange hover:bg-su-orange/20 hover:text-su-orange"
+        >
+          {game.archived ? (
+            <>
+              <ArchiveRestore className="h-3.5 w-3.5" />
+              Restore Game
+            </>
+          ) : (
+            <>
+              <Archive className="h-3.5 w-3.5" />
+              Archive Game
+            </>
+          )}
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setShowConfirm(true)}
+          className="w-fit gap-1.5 text-su-rust hover:bg-su-rust/20 hover:text-su-rust"
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+          Delete Game
+        </Button>
+      </div>
 
       <Dialog open={showConfirm} onOpenChange={setShowConfirm}>
         <DialogContent className="border-su-grey-dark bg-su-grey-dark sm:max-w-md">

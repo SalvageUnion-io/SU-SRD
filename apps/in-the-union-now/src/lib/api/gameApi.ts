@@ -3,7 +3,7 @@ import { handleSupabaseError } from '../errors'
 import { generateInviteCode } from '../gameUtils'
 import type { CampaignRow, CampaignMemberRow, CampaignUpdate } from '../../types/common'
 
-export async function listGames(userId: string): Promise<CampaignRow[]> {
+export async function listGames(userId: string, includeArchived = false): Promise<CampaignRow[]> {
   // Get campaigns where the user is a member
   const { data: memberships, error: memberError } = await supabase
     .from('campaign_members')
@@ -14,11 +14,13 @@ export async function listGames(userId: string): Promise<CampaignRow[]> {
   if (!memberships || memberships.length === 0) return []
 
   const campaignIds = memberships.map((m) => m.campaign_id)
-  const { data, error } = await supabase
-    .from('campaigns')
-    .select('*')
-    .in('id', campaignIds)
-    .order('updated_at', { ascending: false })
+  let query = supabase.from('campaigns').select('*').in('id', campaignIds)
+
+  if (!includeArchived) {
+    query = query.eq('archived', false)
+  }
+
+  const { data, error } = await query.order('updated_at', { ascending: false })
 
   if (error) handleSupabaseError(error)
   return data ?? []
@@ -128,4 +130,16 @@ export async function regenerateInviteCode(gameId: string): Promise<string> {
 
   if (error) handleSupabaseError(error)
   return newCode
+}
+
+export async function archiveGame(gameId: string, archived: boolean): Promise<CampaignRow> {
+  const { data, error } = await supabase
+    .from('campaigns')
+    .update({ archived })
+    .eq('id', gameId)
+    .select()
+    .single()
+
+  if (error) handleSupabaseError(error)
+  return data!
 }

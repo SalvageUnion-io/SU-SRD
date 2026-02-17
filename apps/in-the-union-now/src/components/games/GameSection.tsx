@@ -30,11 +30,22 @@ import type { CampaignRow } from '../../types/common'
 
 export function GameSection() {
   const user = useAuthStore((s) => s.user)
-  const { data: games, isLoading } = useGames(user?.id)
+  const [showArchived, setShowArchived] = useState(false)
+  const { data: games, isLoading } = useGames(user?.id, showArchived)
 
   return (
     <div className="flex flex-col gap-3">
-      <SectionSeparator label="Games" fontSize="text-sm" />
+      <div className="flex items-center justify-between">
+        <SectionSeparator label="Games" fontSize="text-sm" />
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setShowArchived((v) => !v)}
+          className="h-6 px-2 font-mono text-xs uppercase text-su-white/50 hover:text-su-white"
+        >
+          {showArchived ? 'Hide Archived' : 'Show Archived'}
+        </Button>
+      </div>
 
       {isLoading ? (
         <div className="flex flex-col gap-2">
@@ -70,6 +81,11 @@ function GameListing({ game }: { game: CampaignRow }) {
       title={game.name}
       subtitle={
         <div className="flex flex-wrap items-center gap-1">
+          {game.archived && (
+            <span className="rounded bg-su-orange/60 px-1.5 py-0.5 font-mono text-[10px] uppercase text-su-white">
+              Archived
+            </span>
+          )}
           {game.crawler_id && <ValueDisplay label="Crawler" value="Active" compact />}
           {!game.crawler_id && (
             <Text variant="default" as="span" className="text-xs text-su-white/50">
