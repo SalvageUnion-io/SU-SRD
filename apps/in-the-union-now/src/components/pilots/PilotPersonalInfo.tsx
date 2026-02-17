@@ -71,7 +71,8 @@ function UsedToggle({ used, onToggle }: { used?: boolean | null; onToggle: () =>
     <button
       type="button"
       onClick={onToggle}
-      className="inline-flex shrink-0 cursor-pointer border border-su-black"
+      className="mr-3 inline-flex shrink-0 cursor-pointer border border-su-black p-0"
+      style={{ alignSelf: 'flex-end' }}
     >
       <span className="inline-flex h-full w-[1.1em] items-center justify-center bg-su-white font-mono text-xs font-bold leading-none text-su-black">
         {used ? 'X' : '\u00A0'}

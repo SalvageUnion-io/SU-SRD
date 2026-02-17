@@ -60,14 +60,19 @@ export function LabeledInput({
 }: LabeledInputProps) {
   return (
     <div className={cn('relative flex flex-col', className)}>
-      <div className="z-[1] -mb-2 flex items-center justify-between">
-        <Text variant="pseudoheader" as="label" className="ml-3 text-xs uppercase">
+      <div className="z-[1] -mb-2 flex h-4 items-end justify-between">
+        <Text
+          variant="pseudoheader"
+          as="label"
+          className="ml-3 border border-su-black text-xs uppercase"
+          style={{ alignSelf: 'flex-end' }}
+        >
           {label}
           {optionalText && (
             <span className="ml-1 text-[10px] normal-case opacity-50">{optionalText}</span>
           )}
         </Text>
-        {rightHeaderContent && <div className="mr-3">{rightHeaderContent}</div>}
+        {rightHeaderContent}
       </div>
 
       {readOnly ? (
