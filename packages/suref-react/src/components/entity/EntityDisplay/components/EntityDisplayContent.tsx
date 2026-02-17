@@ -2,14 +2,10 @@ import { useMemo } from 'react'
 import type { ReactNode } from 'react'
 import type { SURefClass, SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
 import {
-  SalvageUnionReference,
   getDisplayName,
   getGoals,
   getAssets,
   getWeaknesses,
-  getPatterns,
-  getSalvageValue,
-  getTechLevelNumber,
   normalizePatternName,
 } from 'salvageunion-reference'
 import { RollTable } from '../../../shared/RollTable'
@@ -39,6 +35,13 @@ import { borderColorFromHeaderBg, getSourceStyles } from '../../entityDisplayHel
 import { useEntityDisplayState } from '../useEntityDisplayState'
 import type { EntityDisplayStateInput } from '../useEntityDisplayState'
 import type { EntityControl } from '../entityControlTypes'
+import {
+  resolvePatternOverride,
+  checkLegalStartingMech,
+  computeSvOverride,
+} from '../patternOverrideUtils'
+import { EntityFooter } from './EntityFooter'
+import { GuideEntityListing } from './GuideEntityListing'
 
 export type EntityDisplayContentProps = EntityDisplayStateInput & {
   children?: ReactNode
@@ -164,53 +167,21 @@ export function EntityDisplayContent({
     return undefined
   }, [schemaName, data])
 
-  // Pattern override: resolve the full pattern data for page/source info
-  const overridePatternData = useMemo(() => {
-    if (schemaName !== 'chassis' || !patternOverride) return undefined
-    const patterns = getPatterns(data)
-    if (!patterns) return undefined
-    const normalizedOverride = normalizePatternName(patternOverride.name)
-    return patterns.find((p) => normalizePatternName(p.name) === normalizedOverride)
-  }, [schemaName, data, patternOverride])
-
-  // Compute whether a pattern override qualifies as a legal starting mech (total SV <= 20)
-  const isLegalStartingMech = useMemo(() => {
-    if (schemaName !== 'chassis' || !patternOverride) return false
-    const STARTING_MECH_BUDGET = 20
-    let total = getSalvageValue(data) ?? 0
-    for (const sys of patternOverride.systems) {
-      const entity = SalvageUnionReference.Systems.find((s) => s.name === sys.name)
-      if (entity) total += getSalvageValue(entity) ?? 0
-    }
-    for (const mod of patternOverride.modules) {
-      const entity = SalvageUnionReference.Modules.find((m) => m.name === mod.name)
-      if (entity) total += getSalvageValue(entity) ?? 0
-    }
-    return total <= STARTING_MECH_BUDGET
-  }, [schemaName, data, patternOverride])
-
-  // Compute TL1-equivalent salvage value for pattern overrides
-  const svOverride = useMemo(() => {
-    if (schemaName !== 'chassis' || !patternOverride) return undefined
-    const chassisSV = getSalvageValue(data) ?? 0
-    const chassisTL = getTechLevelNumber(data) ?? 1
-    let totalTL1 = chassisSV * chassisTL
-    for (const sys of patternOverride.systems) {
-      const entity = SalvageUnionReference.Systems.find((s) => s.name === sys.name)
-      if (entity) {
-        const count = sys.count ?? 1
-        totalTL1 += (getSalvageValue(entity) ?? 0) * (getTechLevelNumber(entity) ?? 1) * count
-      }
-    }
-    for (const mod of patternOverride.modules) {
-      const entity = SalvageUnionReference.Modules.find((m) => m.name === mod.name)
-      if (entity) {
-        const count = mod.count ?? 1
-        totalTL1 += (getSalvageValue(entity) ?? 0) * (getTechLevelNumber(entity) ?? 1) * count
-      }
-    }
-    return { value: totalTL1, bottomLabel: 'TL1' }
-  }, [schemaName, data, patternOverride])
+  // Pattern override computations (pure utility functions)
+  const isChassis = schemaName === 'chassis'
+  const overridePatternData = useMemo(
+    () =>
+      isChassis && patternOverride ? resolvePatternOverride(data, patternOverride) : undefined,
+    [isChassis, data, patternOverride]
+  )
+  const isLegalStartingMech = useMemo(
+    () => (isChassis && patternOverride ? checkLegalStartingMech(data, patternOverride) : false),
+    [isChassis, data, patternOverride]
+  )
+  const svOverride = useMemo(
+    () => (isChassis && patternOverride ? computeSvOverride(data, patternOverride) : undefined),
+    [isChassis, data, patternOverride]
+  )
 
   // Pre-built block for pattern info + chassis abilities (reused at multiple render positions)
   const chassisAbilitiesBlock =
@@ -292,58 +263,16 @@ export function EntityDisplayContent({
   const hasFooter = !hideFooter && (hasPage || hasSource)
 
   const footer = hasFooter ? (
-    <div
-      className={cn(
-        'flex w-full items-center justify-between gap-4 py-3 text-su-black',
-        headerBg || 'bg-su-white',
-        sourceFooterStyles.className
-      )}
-      style={{
-        paddingLeft: `${spacing.contentPaddingX}rem`,
-        paddingRight: `${spacing.contentPaddingX}rem`,
-        ...(headerBgColor ? { backgroundColor: headerBgColor } : {}),
-        ...sourceFooterStyles.style,
-      }}
-    >
-      <div className="flex min-w-0 shrink items-center gap-2">
-        {footerDisplayName && (
-          <Text
-            variant="pseudoheader"
-            as="span"
-            className={cn(
-              'shrink-0 overflow-hidden text-ellipsis whitespace-nowrap text-xs uppercase',
-              compact ? 'font-semibold' : 'font-bold'
-            )}
-          >
-            {footerDisplayName}
-          </Text>
-        )}
-      </div>
-
-      <div className="flex shrink-0">
-        {hasSource && (
-          <Text
-            variant="pseudoheader"
-            as="span"
-            className={cn('whitespace-nowrap text-xs font-semibold uppercase', hasPage && 'mr-4')}
-          >
-            {data.source}
-          </Text>
-        )}
-        {hasPage && (
-          <Text
-            variant="pseudoheader"
-            as="span"
-            className={cn(
-              'whitespace-nowrap text-xs uppercase',
-              compact ? 'font-semibold' : 'font-bold'
-            )}
-          >
-            Page {data.page}
-          </Text>
-        )}
-      </div>
-    </div>
+    <EntityFooter
+      footerDisplayName={footerDisplayName}
+      source={hasSource ? data.source : undefined}
+      page={hasPage ? data.page : undefined}
+      compact={compact}
+      headerBg={headerBg}
+      headerBgColor={headerBgColor}
+      contentPaddingX={spacing.contentPaddingX}
+      sourceFooterStyles={sourceFooterStyles}
+    />
   ) : null
 
   // Compose header content (previously assembled by Card internally)
@@ -717,40 +646,4 @@ export function EntityDisplayContent({
   )
 
   return card
-}
-
-/**
- * Wrapper for guide step entity listings rendered as compact inline cards.
- * Needed because the renderEntityListing callback can't call hooks directly.
- */
-function GuideEntityListing({
-  data,
-  schemaName,
-  compact,
-  listing,
-  disabled,
-  controls,
-}: {
-  data: SURefEntity
-  schemaName: SURefEnumSchemaName
-  compact: boolean
-  listing: boolean
-  disabled: boolean
-  controls?: EntityControl[]
-}) {
-  return (
-    <EntityDisplayContent
-      data={data}
-      schemaName={schemaName}
-      compact={compact}
-      listing={listing}
-      dimHeader={false}
-      disabled={disabled}
-      hideActions={listing}
-      hidePatterns
-      hideDamagedEffect={false}
-      hideChoices
-      controls={controls}
-    />
-  )
 }
