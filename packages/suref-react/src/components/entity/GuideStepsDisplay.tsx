@@ -429,7 +429,6 @@ export function GuideStepsDisplay({
                         content={stepContent}
                         fontSize={fontSize.sm}
                         compact={compact}
-                        damaged={false}
                         headerBg={headerBg}
                         headerBgColor={headerBgColor}
                       />
@@ -464,7 +463,6 @@ export function GuideStepsDisplay({
                       content={stepContent}
                       fontSize={fontSize.sm}
                       compact={compact}
-                      damaged={false}
                       headerBg={headerBg}
                       headerBgColor={headerBgColor}
                     />

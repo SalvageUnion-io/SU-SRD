@@ -1,5 +1,5 @@
 import { useMemo, useCallback, useState } from 'react'
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { SalvageUnionReference, findCrawlerTechLevel, getNpc } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
 import {
@@ -15,7 +15,7 @@ import {
   getEntityFontSizes,
   getEntitySpacing,
 } from 'suref-react'
-import { Plus } from 'lucide-react'
+import { Eye, EyeOff, Plus, Trash2 } from 'lucide-react'
 import { getWeaponSlotCount, computeCrawlerStatsFromTechLevel } from '../../../../lib/crawlerUtils'
 import { CrawlerStatControl } from '../../../../components/games/CrawlerStatControl'
 import { toast } from 'sonner'
@@ -25,6 +25,7 @@ import {
   useCrawler,
   useCrawlerEntityRefs,
   useUpdateCrawler,
+  useDeleteCrawler,
   useUpdateCrawlerWeapon,
   useTranslateScrap,
 } from '../../../../hooks/useCrawlers'
@@ -41,6 +42,15 @@ import { ScrapTranslationDialog } from '../../../../components/games/ScrapTransl
 import { WeaponSelectionDialog } from '../../../../components/games/WeaponSelectionDialog'
 import type { BayNpcData, CrawlerRow, CrawlerUpdate } from '../../../../types/common'
 import { useAutosave } from '../../../../hooks/useAutosave'
+import { Button } from '../../../../components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '../../../../components/ui/dialog'
 import { Input } from '../../../../components/ui/input'
 import { Textarea } from '../../../../components/ui/textarea'
 import { RollInput } from '../../../../components/shared/RollInput'
@@ -52,16 +62,19 @@ export const Route = createFileRoute('/_authenticated/games/$gameId/crawler')({
 
 function CrawlerDetailPage() {
   const { gameId } = Route.useParams()
+  const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
   const { data: game, isLoading: gameLoading } = useGame(gameId)
   const { data: members } = useGameMembers(gameId)
   const { data: crawler, isLoading: crawlerLoading } = useCrawler(game?.crawler_id ?? undefined)
   const { data: crawlerRefs } = useCrawlerEntityRefs(crawler?.id)
   const updateCrawler = useUpdateCrawler()
+  const deleteCrawlerMutation = useDeleteCrawler()
   const updateWeapon = useUpdateCrawlerWeapon()
   const translateScrap = useTranslateScrap()
   const saveStatus = useSaveStatus({ isSaving: updateCrawler.isPending })
 
+  const [showDelete, setShowDelete] = useState(false)
   const [showTranslateDialog, setShowTranslateDialog] = useState(false)
   const [editingWeaponSlot, setEditingWeaponSlot] = useState<{
     index: number
@@ -126,6 +139,20 @@ function CrawlerDetailPage() {
     },
     [crawler, user, editingWeaponSlot, updateWeapon]
   )
+
+  const handleDelete = useCallback(() => {
+    if (!crawler) return
+    deleteCrawlerMutation.mutate(
+      { crawlerId: crawler.id, gameId },
+      {
+        onSuccess: () => {
+          toast.success('Crawler deleted')
+          navigate({ to: '/games/$gameId', params: { gameId } })
+        },
+        onError: (err) => toast.error(getErrorMessage(err)),
+      }
+    )
+  }, [crawler, gameId, deleteCrawlerMutation, navigate])
 
   const weaponRefs = useMemo(
     () =>
@@ -208,7 +235,33 @@ function CrawlerDetailPage() {
           </div>
         }
         footerContent={
-          isMed ? <SheetFooter saveStatusText={saveStatus.statusText} /> : undefined
+          isMed ? (
+            <SheetFooter
+              saveStatusText={saveStatus.statusText}
+              leftContent={
+                <button
+                  type="button"
+                  onClick={() => handleImmediateUpdate({ visible: !crawler.visible })}
+                  className={`flex cursor-pointer items-center gap-1.5 text-xs transition-colors hover:text-su-white ${crawler.visible ? 'text-su-white' : 'text-su-white/70'}`}
+                  title={crawler.visible ? 'Crawler is visible to others' : 'Crawler is hidden'}
+                >
+                  {crawler.visible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                  <span>{crawler.visible ? 'Visible' : 'Hidden'}</span>
+                </button>
+              }
+              rightContent={
+                <button
+                  type="button"
+                  onClick={() => setShowDelete(true)}
+                  className="flex cursor-pointer items-center gap-1.5 text-xs text-su-white/70 transition-colors hover:text-su-rust"
+                  title="Delete crawler"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  <span>Delete</span>
+                </button>
+              }
+            />
+          ) : undefined
         }
       >
         <div className="space-y-6 p-4">
@@ -287,14 +340,17 @@ function CrawlerDetailPage() {
               </div>
             )}
             storageContent={(bayDamaged) => (
-              <>
+              <div className="flex flex-col gap-6">
                 <CrawlerScrapStats
                   crawler={crawler}
                   readOnly={!isMed || bayDamaged}
                   onUpdate={handleImmediateUpdate}
                 />
-                <CrawlerStorageSection crawlerId={crawler.id} userId={user?.id ?? ''} readOnly={!isMed || bayDamaged} />
-              </>
+                <div className="flex flex-col gap-2">
+                  <SectionSeparator label="Storage" fontSize="text-xs" />
+                  <CrawlerStorageSection crawlerId={crawler.id} userId={user?.id ?? ''} readOnly={!isMed || bayDamaged} />
+                </div>
+              </div>
             )}
           />
         </div>
@@ -322,6 +378,36 @@ function CrawlerDetailPage() {
                 : undefined
             }
           />
+          <Dialog open={showDelete} onOpenChange={setShowDelete}>
+            <DialogContent className="bg-su-dark sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle className="text-su-orange">Delete Crawler</DialogTitle>
+                <DialogDescription className="text-su-grey-dark">
+                  Are you sure you want to delete{' '}
+                  <strong className="text-su-white">
+                    {crawler.name || 'this crawler'}
+                  </strong>
+                  ? This will remove all associated data. This action cannot be undone.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowDelete(false)}
+                  disabled={deleteCrawlerMutation.isPending}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={handleDelete}
+                  disabled={deleteCrawlerMutation.isPending}
+                >
+                  {deleteCrawlerMutation.isPending ? 'Deleting...' : 'Delete'}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </>
       )}
     </>

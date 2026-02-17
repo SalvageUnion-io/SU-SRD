@@ -1,8 +1,8 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback } from 'react'
 import type { ReactNode } from 'react'
 import { SalvageUnionReference, getNpc } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
-import { SectionSeparator, EntityDisplay, Text, DetailIcon, getTiltRotation } from 'suref-react'
+import { SectionSeparator, EntityDisplay, Text, DetailIcon } from 'suref-react'
 import type { EntityControl } from 'suref-react'
 import { Flame } from 'lucide-react'
 import { useAutosave } from '../../hooks/useAutosave'
@@ -161,48 +161,44 @@ export function CrawlerBaysSection({ crawler, readOnly, onSave, armamentContent,
 
             return (
               <div key={choice.id} className="flex flex-col gap-0.5">
-                <Tilted damaged={npcIsDamaged}>
-                  <Text
-                    variant="pseudoheader"
-                    as="label"
-                    className="ml-0.5 text-xs uppercase"
-                  >
-                    {choice.name}
+                <Text
+                  variant="pseudoheader"
+                  as="label"
+                  className="ml-0.5 text-xs uppercase"
+                >
+                  {choice.name}
+                </Text>
+                {readOnly ? (
+                  <Text variant="default" as="span" className="text-sm">
+                    {npcData[fieldKey] || '-'}
                   </Text>
-                </Tilted>
-                <Tilted damaged={npcIsDamaged}>
-                  {readOnly ? (
-                    <Text variant="default" as="span" className="text-sm">
-                      {npcData[fieldKey] || '-'}
-                    </Text>
-                  ) : choice.name === 'Description' ? (
-                    <Textarea
-                      value={npcData[fieldKey] ?? ''}
-                      onChange={(e) => handleFieldChange(bay.id, fieldKey, e.target.value)}
-                      onBlur={flush}
-                      placeholder="Enter description..."
-                      className="min-h-[60px] text-sm"
-                      rows={2}
-                    />
-                  ) : rollTable ? (
-                    <RollInput
-                      value={npcData[fieldKey] ?? ''}
-                      onChange={(value) => handleFieldChange(bay.id, fieldKey, value)}
-                      onRoll={() => handleRoll(bay.id, fieldKey, rollTable)}
-                      onBlur={flush}
-                      placeholder={`Roll or type ${choice.name.toLowerCase()}...`}
-                      rollTableName={rollTable}
-                    />
-                  ) : (
-                    <Input
-                      value={npcData[fieldKey] ?? ''}
-                      onChange={(e) => handleFieldChange(bay.id, fieldKey, e.target.value)}
-                      onBlur={flush}
-                      placeholder={choice.name}
-                      className="h-8 text-sm"
-                    />
-                  )}
-                </Tilted>
+                ) : choice.name === 'Description' ? (
+                  <Textarea
+                    value={npcData[fieldKey] ?? ''}
+                    onChange={(e) => handleFieldChange(bay.id, fieldKey, e.target.value)}
+                    onBlur={flush}
+                    placeholder="Enter description..."
+                    className="min-h-[60px] text-sm"
+                    rows={2}
+                  />
+                ) : rollTable ? (
+                  <RollInput
+                    value={npcData[fieldKey] ?? ''}
+                    onChange={(value) => handleFieldChange(bay.id, fieldKey, value)}
+                    onRoll={() => handleRoll(bay.id, fieldKey, rollTable)}
+                    onBlur={flush}
+                    placeholder={`Roll or type ${choice.name.toLowerCase()}...`}
+                    rollTableName={rollTable}
+                  />
+                ) : (
+                  <Input
+                    value={npcData[fieldKey] ?? ''}
+                    onChange={(e) => handleFieldChange(bay.id, fieldKey, e.target.value)}
+                    onBlur={flush}
+                    placeholder={choice.name}
+                    className="h-8 text-sm"
+                  />
+                )}
               </div>
             )
           })}
@@ -250,9 +246,7 @@ export function CrawlerBaysSection({ crawler, readOnly, onSave, armamentContent,
         ? armamentContent?.(isDamaged)
         : isTradingBay
           ? tradingBayContent
-          : isStorageBay
-            ? storageContent?.(isDamaged)
-            : undefined
+          : undefined
 
     return (
       <div key={bay.id} className="mb-4 break-inside-avoid">
@@ -270,6 +264,7 @@ export function CrawlerBaysSection({ crawler, readOnly, onSave, armamentContent,
           npcHpSlot={hpSlot}
           npcDamaged={npcIsDamaged}
           afterNpcContent={afterContent}
+          rightContent={isStorageBay && storageContent ? storageContent(isDamaged) : undefined}
           damageOverlayText={isDamaged ? bay.damagedEffect : undefined}
         />
       </div>
@@ -298,8 +293,3 @@ export function CrawlerBaysSection({ crawler, readOnly, onSave, armamentContent,
   )
 }
 
-/** Wraps children in a random tilt rotation when damaged, stable until damage state changes */
-function Tilted({ damaged, children }: { damaged: boolean; children: ReactNode }) {
-  const rotation = useMemo(() => (damaged ? getTiltRotation() : 0), [damaged])
-  return <div style={rotation !== 0 ? { transform: `rotate(${rotation}deg)` } : undefined}>{children}</div>
-}

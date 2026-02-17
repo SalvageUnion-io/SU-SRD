@@ -2,8 +2,6 @@ import type { ReactNode } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { SheetDisplay } from '../../shared/SheetDisplay'
 import { useParseTraitReferences } from '../../../utils/parseTraitReferences'
-import { useMemo } from 'react'
-import { getTiltRotation } from '../../../utils/tiltUtils'
 import { Text } from '../../base/Text'
 import { borderColorFromHeaderBg } from '../entityDisplayHelpers'
 import { cn } from '../../../utils/cn'
@@ -44,7 +42,6 @@ export function ConditionalSheetInfo({
   children,
   data,
   compact,
-  damaged,
   fontSize,
   headerBg,
 }: ConditionalSheetInfoProps) {
@@ -57,7 +54,6 @@ export function ConditionalSheetInfo({
   }
 
   const parsedContent = useParseTraitReferences(displayValue)
-  const valueRotation = useMemo(() => (damaged ? getTiltRotation() : 0), [damaged])
 
   if (!displayValue) return null
   if (!(propertyName in data) && explicitValue === undefined) return null
@@ -66,31 +62,26 @@ export function ConditionalSheetInfo({
   if (propertyName === 'damagedEffect') {
     return (
       <div>
-        <div
-          className="transition-transform duration-300"
-          style={damaged ? { transform: `rotate(${valueRotation}deg)` } : undefined}
-        >
-          {label && (
-            <Text
-              as="span"
-              className={cn('block font-bold leading-relaxed text-su-black', fontSize.lg)}
-            >
-              {label}
-            </Text>
-          )}
-          <div
-            className={cn(
-              'mb-2 break-words font-medium leading-relaxed whitespace-normal text-su-black',
-              compact ? 'pl-2' : 'pl-3',
-              fontSize.sm
-            )}
-            style={{
-              overflowWrap: 'break-word',
-              borderLeft: `3px solid ${borderColorFromHeaderBg(headerBg)}`,
-            }}
+        {label && (
+          <Text
+            as="span"
+            className={cn('block font-bold leading-relaxed text-su-black', fontSize.lg)}
           >
-            {children || parsedContent}
-          </div>
+            {label}
+          </Text>
+        )}
+        <div
+          className={cn(
+            'mb-2 break-words font-medium leading-relaxed whitespace-normal text-su-black',
+            compact ? 'pl-2' : 'pl-3',
+            fontSize.sm
+          )}
+          style={{
+            overflowWrap: 'break-word',
+            borderLeft: `3px solid ${borderColorFromHeaderBg(headerBg)}`,
+          }}
+        >
+          {children || parsedContent}
         </div>
       </div>
     )
@@ -98,14 +89,9 @@ export function ConditionalSheetInfo({
 
   return (
     <div className="flex">
-      <div
-        className="transition-transform duration-300"
-        style={damaged ? { transform: `rotate(${valueRotation}deg)` } : undefined}
-      >
-        <SheetDisplay compact={compact} label={label} labelColor={labelBgColor}>
-          {children || parsedContent}
-        </SheetDisplay>
-      </div>
+      <SheetDisplay compact={compact} label={label} labelColor={labelBgColor}>
+        {children || parsedContent}
+      </SheetDisplay>
     </div>
   )
 }

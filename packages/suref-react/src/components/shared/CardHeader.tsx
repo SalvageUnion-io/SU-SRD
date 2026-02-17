@@ -13,6 +13,8 @@ type CardHeaderProps = {
   rightContent?: ReactNode
   compact?: boolean
   disabled?: boolean
+  /** When true, renders only title and controls — no subtitle, leftContent, or rightContent */
+  lightweight?: boolean
 }
 
 export function CardHeader({
@@ -24,6 +26,7 @@ export function CardHeader({
   rightContent,
   compact = false,
   disabled = false,
+  lightweight = false,
 }: CardHeaderProps) {
   const titleElement =
     typeof title === 'string' ? (
@@ -43,12 +46,13 @@ export function CardHeader({
       title
     )
 
-  const hasRightSide = !!rightContent || (controls && controls.length > 0)
+  const hasControls = controls && controls.length > 0
+  const hasRightSide = lightweight ? hasControls : !!rightContent || hasControls
 
   return (
     <>
       <div className={cn('flex min-w-0 items-center', compact ? 'gap-0.5' : 'gap-1')}>
-        {leftContent}
+        {!lightweight && leftContent}
         <div
           className={cn(
             'flex min-w-0 flex-col justify-center overflow-visible',
@@ -56,13 +60,13 @@ export function CardHeader({
           )}
         >
           {titleElement}
-          {subtitle}
+          {!lightweight && subtitle}
         </div>
       </div>
       {hasRightSide && (
         <div className="flex gap-1">
-          {rightContent}
-          {controls && controls.length > 0 && (
+          {!lightweight && rightContent}
+          {hasControls && (
             <ControlButtons controls={controls} size={controlSize} />
           )}
         </div>

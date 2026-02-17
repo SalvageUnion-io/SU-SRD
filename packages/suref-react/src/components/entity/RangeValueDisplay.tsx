@@ -7,8 +7,6 @@ type RangeValueDisplayProps = {
   label: string | number
   value?: string | number
   compact?: boolean
-  damaged?: boolean
-  rotation?: number
 }
 
 function getRangeDescription(rangeName: string): string | null {
@@ -26,8 +24,6 @@ export function RangeValueDisplay({
   label,
   value,
   compact = false,
-  damaged = false,
-  rotation = 0,
 }: RangeValueDisplayProps) {
   const description = useMemo(() => (value ? getRangeDescription(String(value)) : null), [value])
 
@@ -37,8 +33,6 @@ export function RangeValueDisplay({
       value={value}
       compact={compact}
       inline={false}
-      damaged={damaged}
-      rotation={rotation}
     />
   )
 

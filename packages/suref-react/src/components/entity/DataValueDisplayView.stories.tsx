@@ -31,11 +31,3 @@ export const Compact: Story = () => (
     <DataValueDisplayView item={labelValue} compact />
   </div>
 )
-
-export const Damaged: Story = () => (
-  <div className="flex gap-3 flex-wrap">
-    <DataValueDisplayView item={labelValue} damaged />
-    <DataValueDisplayView item={metaItem} damaged />
-    <DataValueDisplayView item={labelOnly} damaged />
-  </div>
-)

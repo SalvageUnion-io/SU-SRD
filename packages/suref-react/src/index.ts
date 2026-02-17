@@ -82,4 +82,3 @@ export { techLevelColors } from './components/entity/EntityDisplay/useEntityDisp
 
 // Utilities
 export { cn } from './utils/cn'
-export { getTiltRotation } from './utils/tiltUtils'

@@ -10,11 +10,9 @@ import { DataValueDisplayView } from '../DataValueDisplayView'
 export function SharedDetailItem({
   item,
   compact = false,
-  damaged = false,
 }: {
   item: DataValue | SURefObjectDataValue
   compact?: boolean
-  damaged?: boolean
 }) {
-  return <DataValueDisplayView item={item} compact={compact} damaged={damaged} />
+  return <DataValueDisplayView item={item} compact={compact} />
 }

@@ -142,7 +142,6 @@ function NpcCard({ entry, choiceValues, stepId, onChoiceValueChange, onRoll }: N
             content={npcContent}
             fontSize="text-xs"
             compact
-            damaged={false}
           />
         )}
         {editableChoices.map((choice) => {

@@ -91,6 +91,21 @@ export async function getCrawlerEntityRefs(crawlerId: string): Promise<EntityRef
   return data ?? []
 }
 
+export async function deleteCrawler(crawlerId: string, gameId: string): Promise<void> {
+  // Unlink crawler from campaign first
+  const { error: unlinkError } = await supabase
+    .from('campaigns')
+    .update({ crawler_id: null })
+    .eq('id', gameId)
+    .eq('crawler_id', crawlerId)
+
+  if (unlinkError) handleSupabaseError(unlinkError)
+
+  // Delete the crawler (entity_refs, cargo, player_choices cascade via RLS or are orphaned)
+  const { error } = await supabase.from('crawlers').delete().eq('id', crawlerId)
+  if (error) handleSupabaseError(error)
+}
+
 export async function updateCrawler(crawlerId: string, input: CrawlerUpdate): Promise<CrawlerRow> {
   const { data, error } = await supabase
     .from('crawlers')

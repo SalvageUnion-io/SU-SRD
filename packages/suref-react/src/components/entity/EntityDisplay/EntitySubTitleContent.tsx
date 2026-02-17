@@ -9,7 +9,6 @@ type EntitySubTitleElementProps = {
   schemaName: SURefEnumSchemaName
   spacing: ReturnType<typeof getEntitySpacing>
   compact: boolean
-  damaged: boolean
   /** When set, prepends a "<entity.name> Chassis" tag to the subtitle */
   hasPatternOverride?: boolean
   /** When true, appends a "Legal Starting Mech" tag */
@@ -21,7 +20,6 @@ export function EntitySubTitleElement({
   schemaName,
   spacing,
   compact,
-  damaged,
   hasPatternOverride,
   isLegalStartingMech,
 }: EntitySubTitleElementProps) {
@@ -52,7 +50,7 @@ export function EntitySubTitleElement({
       )}
     >
       {values.map((item, index) => (
-        <SharedDetailItem key={index} item={item} compact={compact} damaged={damaged} />
+        <SharedDetailItem key={index} item={item} compact={compact} />
       ))}
     </div>
   )

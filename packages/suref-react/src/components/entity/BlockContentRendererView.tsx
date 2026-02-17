@@ -15,8 +15,6 @@ type BlockContentRendererViewProps = {
   compact?: boolean
   /** Chassis name to replace [(CHASSIS)] placeholder with */
   chassisName?: string
-  /** Whether the entity is damaged (affects visual styling) */
-  damaged: boolean
   /** Header background class (e.g. 'bg-su-orange') for heading section left border */
   headerBg?: string
   /** Raw CSS color for borders (overrides headerBg-derived color when set) */
@@ -25,8 +23,6 @@ type BlockContentRendererViewProps = {
 
 /**
  * View-only component for rendering an array of content blocks
- * Accepts damaged state as a required prop instead of reading from context
- *
  * Handles different content block types:
  * - paragraph: Regular text with trait reference parsing
  * - heading: Semantic heading elements (h3-h5) with pseudoheader styling and level-based sizing
@@ -41,7 +37,6 @@ export function BlockContentRendererView({
   fontSize = 'text-sm',
   compact = false,
   chassisName,
-  damaged,
   headerBg,
   headerBgColor,
 }: BlockContentRendererViewProps) {
@@ -91,7 +86,7 @@ export function BlockContentRendererView({
               fontSize={fontSize}
               compact={compact}
               chassisName={chassisName}
-              damaged={damaged}
+
               borderColor={borderColor}
             />
           ))
@@ -117,7 +112,7 @@ export function BlockContentRendererView({
                 fontSize={fontSize}
                 compact={compact}
                 chassisName={chassisName}
-                damaged={damaged}
+  
               />
             )}
             {labelText && (
@@ -142,7 +137,7 @@ export function BlockContentRendererView({
                     fontSize={fontSize}
                     compact={compact}
                     chassisName={chassisName}
-                    damaged={damaged}
+      
                   />
                 ))}
               </div>
@@ -159,14 +154,12 @@ function ContentBlock({
   fontSize,
   compact,
   chassisName,
-  damaged,
   borderColor,
 }: {
   block: SURefObjectContentBlock
   fontSize: string
   compact: boolean
   chassisName?: string
-  damaged: boolean
   borderColor?: string
 }) {
   const type = block.type || 'paragraph'
@@ -185,7 +178,7 @@ function ContentBlock({
     return (
       <div className="flex flex-row flex-wrap items-center gap-1">
         {blockValue.map((item, index) => (
-          <DataValueDisplayView key={index} item={item} compact={compact} damaged={damaged} />
+          <DataValueDisplayView key={index} item={item} compact={compact} />
         ))}
       </div>
     )

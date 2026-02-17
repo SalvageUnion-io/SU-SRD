@@ -73,7 +73,6 @@ export function ActionDisplay({ data, controls, disabled, footerMessage }: Actio
               content={data.content}
               fontSize="text-xs"
               compact
-              damaged={false}
             />
           </div>
         )}

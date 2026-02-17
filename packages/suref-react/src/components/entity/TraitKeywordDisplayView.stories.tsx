@@ -33,10 +33,3 @@ export const Inline: Story = () => (
     <TraitKeywordDisplayView label="Range" value={3} schemaName="traits" inline /> properties.
   </div>
 )
-
-export const Damaged: Story = () => (
-  <div className="flex gap-3">
-    <TraitKeywordDisplayView label="Blast" schemaName="traits" damaged />
-    <TraitKeywordDisplayView label="Range" value={2} schemaName="traits" damaged />
-  </div>
-)

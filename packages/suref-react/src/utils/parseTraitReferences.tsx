@@ -49,7 +49,6 @@ export function useParseTraitReferences(text: string | undefined): ReactNode {
             schemaName="traits"
             value={paramValue}
             compact
-            damaged={false}
           />
         )
       } else if (match[3] !== undefined) {
@@ -61,7 +60,6 @@ export function useParseTraitReferences(text: string | undefined): ReactNode {
             label={traitName}
             schemaName="traits"
             compact
-            damaged={false}
           />
         )
       }

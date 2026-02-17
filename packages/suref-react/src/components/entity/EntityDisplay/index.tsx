@@ -19,7 +19,7 @@ type EntityDisplayProps = {
   disabled?: boolean
   /** Whether to show only the header (click opens a detail modal) */
   listing?: boolean
-  /** Whether the entity is damaged (affects header color and tilts components) */
+  /** Whether the entity is damaged (affects header color and styling) */
   damaged?: boolean
   /** Whether to use compact styling */
   compact?: boolean
@@ -57,8 +57,12 @@ type EntityDisplayProps = {
   afterNpcContent?: ReactNode
   /** Whether the NPC is in a damaged state (overrides inheriting from parent damaged) */
   npcDamaged?: boolean
+  /** Content to render in a right column alongside the NPC section (creates a 2-column grid) */
+  rightContent?: ReactNode
   /** When set, renders a semi-translucent overlay over the body with this text in a danger box */
   damageOverlayText?: string
+  /** When true, header renders only title and controls — no subtitle, stats, or tech level */
+  lightweight?: boolean
 }
 
 export const EntityDisplay = memo(function EntityDisplay({
@@ -87,7 +91,9 @@ export const EntityDisplay = memo(function EntityDisplay({
   npcHpSlot,
   afterNpcContent,
   npcDamaged,
+  rightContent,
   damageOverlayText,
+  lightweight = false,
 }: EntityDisplayProps) {
   if (!data) return null
 
@@ -128,7 +134,9 @@ export const EntityDisplay = memo(function EntityDisplay({
       npcHpSlot={npcHpSlot}
       afterNpcContent={afterNpcContent}
       npcDamaged={npcDamaged}
+      rightContent={rightContent}
       damageOverlayText={damageOverlayText}
+      lightweight={lightweight}
     >
       {children}
     </EntityDisplayContent>

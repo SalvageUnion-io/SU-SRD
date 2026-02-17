@@ -3,11 +3,9 @@ import type { SURefEnumSchemaName, EntitySchemaName } from 'salvageunion-referen
 import { EntityDisplayTooltip } from './EntityDisplayTooltip'
 import { ValueDisplay } from '../shared/ValueDisplay'
 import { useMemo } from 'react'
-import { getTiltRotation } from '../../utils/tiltUtils'
 
 /**
  * View-only component for displaying trait or keyword details
- * Accepts damaged state as a prop instead of reading from context
  */
 export function TraitKeywordDisplayView({
   label,
@@ -15,7 +13,6 @@ export function TraitKeywordDisplayView({
   schemaName,
   compact = false,
   inline = true,
-  damaged = false,
 }: {
   value?: number | string
   label: number | string
@@ -23,11 +20,7 @@ export function TraitKeywordDisplayView({
   schemaName: SURefEnumSchemaName
   /** Whether to display inline (default: true). Set to false for flex container contexts. */
   inline?: boolean
-  /** Whether the entity is damaged (affects visual styling) */
-  damaged?: boolean
 }) {
-  const valueRotation = useMemo(() => (damaged ? getTiltRotation() : 0), [damaged])
-
   const entity = useMemo(() => {
     // Only search in entity schemas (not meta schemas)
     if (EntitySchemaNames.has(schemaName as EntitySchemaName)) {
@@ -47,8 +40,6 @@ export function TraitKeywordDisplayView({
         value={value}
         compact={compact}
         inline={inline}
-        damaged={damaged}
-        rotation={valueRotation}
       />
     )
   }
@@ -60,8 +51,6 @@ export function TraitKeywordDisplayView({
         value={value}
         compact={compact}
         inline={inline}
-        damaged={damaged}
-        rotation={valueRotation}
       />
     </EntityDisplayTooltip>
   )

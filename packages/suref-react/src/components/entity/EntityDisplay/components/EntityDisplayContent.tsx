@@ -1,6 +1,5 @@
 import { useMemo } from 'react'
 import type { ReactNode } from 'react'
-import { getTiltRotation } from '../../../../utils/tiltUtils'
 import type { SURefClass, SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
 import {
   SalvageUnionReference,
@@ -55,10 +54,14 @@ export type EntityDisplayContentProps = EntityDisplayStateInput & {
   afterNpcContent?: ReactNode
   /** Whether the NPC is in a damaged state (overrides inheriting from parent damaged) */
   npcDamaged?: boolean
+  /** Content to render in a right column alongside the NPC section (creates a 2-column grid) */
+  rightContent?: ReactNode
   /** Whether to hide the footer (page number, source) */
   hideFooter?: boolean
   /** When set, renders a semi-translucent overlay over the body with this text in a danger box */
   damageOverlayText?: string
+  /** When true, header renders only title and controls — no subtitle, stats, or tech level */
+  lightweight?: boolean
 }
 
 export function EntityDisplayContent({
@@ -69,8 +72,10 @@ export function EntityDisplayContent({
   npcHpSlot,
   afterNpcContent,
   npcDamaged,
+  rightContent,
   hideFooter = false,
   damageOverlayText,
+  lightweight = false,
   ...inputProps
 }: EntityDisplayContentProps) {
   const state = useEntityDisplayState(inputProps)
@@ -241,7 +246,6 @@ export function EntityDisplayContent({
                 content={overridePatternData.content}
                 fontSize={fontSize.sm}
                 compact={compact}
-                damaged={damaged}
               />
             )}
           </div>
@@ -343,12 +347,9 @@ export function EntityDisplayContent({
   ) : null
 
   // Compose header content (previously assembled by Card internally)
-  const titleRotation = useMemo(() => (damaged ? getTiltRotation() : 0), [damaged])
-
   const titleNode = title ? (
     <div
       className={cn(compact ? '' : 'overflow-hidden text-ellipsis whitespace-nowrap')}
-      style={titleRotation !== 0 ? { transform: `rotate(${titleRotation}deg)` } : undefined}
     >
       <Text
         variant="pseudoheader"
@@ -374,7 +375,6 @@ export function EntityDisplayContent({
           schemaName={schemaName}
           spacing={spacing}
           compact={compact}
-          damaged={damaged}
           hasPatternOverride={!!patternOverride}
           isLegalStartingMech={isLegalStartingMech}
         />
@@ -406,6 +406,7 @@ export function EntityDisplayContent({
       }
       controls={controls}
       compact={compact}
+      lightweight={lightweight}
     />
   )
 
@@ -462,7 +463,6 @@ export function EntityDisplayContent({
                         content={contentBlocks!}
                         fontSize={fontSize.sm}
                         compact={compact}
-                        damaged={damaged}
                         headerBg={headerBg}
                         headerBgColor={headerBgColor}
                       />
@@ -480,7 +480,6 @@ export function EntityDisplayContent({
                     content={contentBlocks!}
                     fontSize={fontSize.sm}
                     compact={compact}
-                    damaged={damaged}
                     headerBg={headerBg}
                     headerBgColor={headerBgColor}
                   />
@@ -605,6 +604,14 @@ export function EntityDisplayContent({
               </div>
             )}
             <EntityFormation data={data} headerFontSize={fontSize.lg} compact={compact} />
+            {rightContent && (
+              <div
+                className="md:float-right md:ml-4 md:w-1/2"
+                style={{ shapeOutside: 'margin-box' }}
+              >
+                {rightContent}
+              </div>
+            )}
             <EntityNpcDisplay data={data} compact fontSize={fontSize} spacing={spacing} npcChildren={npcChildren} hpSlot={npcHpSlot} damaged={npcDamaged ?? damaged} />
             {afterNpcContent}
             {shouldShowExtraContent && patternOverride && (
@@ -673,7 +680,7 @@ export function EntityDisplayContent({
           {damageOverlayText && (
             <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center rounded-b-md bg-black/50 p-4">
               <div className="rounded border-2 border-red-500/60 bg-red-800/90 px-4 py-3 text-center shadow-lg">
-                <Text variant="pseudoheader" as="span" className="text-xs uppercase text-red-200">
+                <Text variant="pseudoheader" as="span" className="text-xs uppercase text-white">
                   Damaged
                 </Text>
                 <Text variant="default" className="mt-1 text-sm leading-snug text-red-100">

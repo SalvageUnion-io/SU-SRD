@@ -6,26 +6,18 @@ import { RangeValueDisplay } from './RangeValueDisplay'
 import { ValueDisplay } from '../shared/ValueDisplay'
 import { Text } from '../base/Text'
 import { cn } from '../../utils/cn'
-import { useMemo } from 'react'
-import { getTiltRotation } from '../../utils/tiltUtils'
 
 /**
  * View-only component for rendering DataValue items
- * Accepts damaged state as a prop instead of reading from context
  * Accepts both DataValue (from types/common) and SURefObjectDataValue (from salvageunion-reference)
  */
 export function DataValueDisplayView({
   item,
   compact = false,
-  damaged = false,
 }: {
   item: DataValue | SURefObjectDataValue
   compact?: boolean
-  /** Whether the entity is damaged (affects visual styling) */
-  damaged?: boolean
 }) {
-  const valueRotation = useMemo(() => (damaged ? getTiltRotation() : 0), [damaged])
-
   if (item.type === 'cost') {
     // If value is provided, use it as currency; otherwise parse from label
     let cost = item.label
@@ -54,7 +46,6 @@ export function DataValueDisplayView({
         compact={compact}
         schemaName="traits"
         inline={false}
-        damaged={damaged}
       />
     )
   }
@@ -67,7 +58,6 @@ export function DataValueDisplayView({
         compact={compact}
         schemaName="keywords"
         inline={false}
-        damaged={damaged}
       />
     )
   }
@@ -78,8 +68,6 @@ export function DataValueDisplayView({
         label={item.label}
         value={item.value}
         compact={compact}
-        damaged={damaged}
-        rotation={valueRotation}
       />
     )
   }
@@ -172,8 +160,6 @@ export function DataValueDisplayView({
         label={item.label}
         compact={compact}
         inline={false}
-        damaged={damaged}
-        rotation={valueRotation}
         bgColor={useRustBg ? 'var(--color-su-rust)' : undefined}
         textColor={useRustBg ? 'var(--color-su-white)' : undefined}
         borderColor={useRustBg ? 'var(--color-su-rust)' : undefined}
@@ -187,8 +173,6 @@ export function DataValueDisplayView({
       value={item.value}
       compact={compact}
       inline={false}
-      damaged={damaged}
-      rotation={valueRotation}
     />
   )
 }

@@ -120,7 +120,7 @@ export function NestedChassisAbility({
           )}
         >
           {details.map((item, index) => (
-            <DataValueDisplayView key={index} item={item} compact damaged={false} />
+            <DataValueDisplayView key={index} item={item} compact />
           ))}
         </div>
       )}
@@ -133,7 +133,6 @@ export function NestedChassisAbility({
             fontSize={fontSize}
             compact={compact}
             chassisName={chassisName}
-            damaged={false}
           />
         </div>
       )}

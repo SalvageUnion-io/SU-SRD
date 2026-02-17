@@ -1,4 +1,3 @@
-import { useMemo } from 'react'
 import type { ReactNode } from 'react'
 import { getNpc } from 'salvageunion-reference'
 import type { SURefMetaEntity } from 'salvageunion-reference'
@@ -7,7 +6,6 @@ import { StatDisplay } from '../../shared/StatDisplay'
 import { BlockContentRendererView } from '../BlockContentRendererView'
 import { Text } from '../../base/Text'
 import { cn } from '../../../utils/cn'
-import { getTiltRotation } from '../../../utils/tiltUtils'
 import type { getEntityFontSizes, getEntitySpacing } from './entityDisplayTypes'
 
 type EntityNpcDisplayProps = {
@@ -25,26 +23,11 @@ type EntityNpcDisplayProps = {
   damaged?: boolean
 }
 
-/** Generate an array of independent tilt rotations for a disheveled damaged look */
-function useDamagedTilts(damaged: boolean, count: number) {
-  return useMemo(
-    () => (damaged ? Array.from({ length: count }, () => getTiltRotation()) : []),
-    [damaged, count]
-  )
-}
-
-function tiltStyle(tilts: number[], index: number) {
-  const deg = tilts[index]
-  return deg ? { transform: `rotate(${deg}deg)` } : undefined
-}
-
 export function EntityNpcDisplay({ data, compact, fontSize, spacing, npcChildren, hpSlot, hideContent = false, damaged = false }: EntityNpcDisplayProps) {
   const npc = getNpc(data)
   if (!npc) return null
 
   const hasContent = !hideContent && npc.content && npc.content.length > 0
-  // title, hp, content — each gets its own tilt
-  const tilts = useDamagedTilts(damaged, 3)
 
   const headerContent = (
     <>
@@ -56,10 +39,7 @@ export function EntityNpcDisplay({ data, compact, fontSize, spacing, npcChildren
           )}
         >
           {npc.position && (
-            <div
-              className={cn(compact ? '' : 'overflow-hidden text-ellipsis whitespace-nowrap')}
-              style={tiltStyle(tilts, 0)}
-            >
+            <div className={cn(compact ? '' : 'overflow-hidden text-ellipsis whitespace-nowrap')}>
               <Text
                 variant="pseudoheader"
                 as="span"
@@ -76,7 +56,7 @@ export function EntityNpcDisplay({ data, compact, fontSize, spacing, npcChildren
         </div>
       </div>
       {npc.hitPoints > 0 && (
-        <div style={tiltStyle(tilts, 1)}>
+        <div>
           {hpSlot ?? <StatDisplay label="HP" value={npc.hitPoints} compact={compact} />}
         </div>
       )}
@@ -102,14 +82,11 @@ export function EntityNpcDisplay({ data, compact, fontSize, spacing, npcChildren
           }}
         >
           {hasContent && (
-            <div style={tiltStyle(tilts, 2)}>
-              <BlockContentRendererView
-                content={npc.content!}
-                fontSize={fontSize.sm}
-                compact={compact}
-                damaged={damaged}
-              />
-            </div>
+            <BlockContentRendererView
+              content={npc.content!}
+              fontSize={fontSize.sm}
+              compact={compact}
+            />
           )}
           {npcChildren}
         </div>

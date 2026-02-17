@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   createCrawler,
+  deleteCrawler,
   getCrawlerById,
   getCrawlerEntityRefs,
   updateCrawler,
@@ -53,6 +54,19 @@ export function useCreateCrawler() {
       input: CreateCrawlerInput
     }) => createCrawler(userId, gameId, input),
     onSuccess: (_data, { gameId }) => {
+      queryClient.invalidateQueries({ queryKey: gameKeys.detail(gameId) })
+    },
+  })
+}
+
+export function useDeleteCrawler() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ crawlerId, gameId }: { crawlerId: string; gameId: string }) =>
+      deleteCrawler(crawlerId, gameId),
+    onSuccess: (_data, { crawlerId, gameId }) => {
+      queryClient.removeQueries({ queryKey: crawlerKeys.detail(crawlerId) })
       queryClient.invalidateQueries({ queryKey: gameKeys.detail(gameId) })
     },
   })

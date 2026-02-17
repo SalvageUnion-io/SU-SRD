@@ -88,7 +88,7 @@ export function NestedActionDisplay({
               )}
             >
               {details.map((item, index) => (
-                <DataValueDisplayView key={index} item={item} compact={compact} damaged={false} />
+                <DataValueDisplayView key={index} item={item} compact={compact} />
               ))}
             </div>
           )}
@@ -116,7 +116,6 @@ export function NestedActionDisplay({
                 content={data.content!}
                 fontSize={fontSize}
                 compact={compact}
-                damaged={false}
               />
             </div>
           )}

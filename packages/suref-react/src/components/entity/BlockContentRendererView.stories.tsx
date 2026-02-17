@@ -35,30 +35,24 @@ const labelBlocks: SURefObjectContentBlock[] = [
 
 export const Paragraphs: Story = () => (
   <div className="w-[500px] bg-su-white p-3">
-    <BlockContentRendererView content={paragraphBlocks} damaged={false} />
+    <BlockContentRendererView content={paragraphBlocks} />
   </div>
 )
 
 export const MixedContent: Story = () => (
   <div className="w-[500px] bg-su-white p-3">
-    <BlockContentRendererView content={mixedBlocks} damaged={false} />
+    <BlockContentRendererView content={mixedBlocks} />
   </div>
 )
 
 export const Labels: Story = () => (
   <div className="w-[500px] bg-su-white p-3">
-    <BlockContentRendererView content={labelBlocks} damaged={false} />
+    <BlockContentRendererView content={labelBlocks} />
   </div>
 )
 
 export const Compact: Story = () => (
   <div className="w-[400px] bg-su-white p-2">
-    <BlockContentRendererView content={mixedBlocks} compact damaged={false} />
-  </div>
-)
-
-export const Damaged: Story = () => (
-  <div className="w-[500px] bg-su-white p-3">
-    <BlockContentRendererView content={paragraphBlocks} damaged />
+    <BlockContentRendererView content={mixedBlocks} compact />
   </div>
 )
