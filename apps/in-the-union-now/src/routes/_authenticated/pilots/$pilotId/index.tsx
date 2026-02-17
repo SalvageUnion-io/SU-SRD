@@ -28,7 +28,7 @@ import { DeleteConfirmDialog } from '../../../../components/shared/DeleteConfirm
 import { getErrorMessage } from '../../../../lib/errors'
 import { SheetFooter } from '../../../../components/shared/SheetFooter'
 import { actionButtonClasses } from '../../../../components/shared/actionButtonClasses'
-import { PilotStatControl } from '../../../../components/pilots/PilotStatControl'
+import { StatControl } from '../../../../components/shared/StatControl'
 import { PilotPersonalInfo } from '../../../../components/pilots/PilotPersonalInfo'
 import { PilotEntityRefs } from '../../../../components/pilots/PilotEntityRefs'
 import { PilotMechSection } from '../../../../components/pilots/PilotMechSection'
@@ -216,21 +216,21 @@ function PilotDetailPage() {
               </div>
             </div>
             <div className="flex items-center gap-1">
-              <PilotStatControl
+              <StatControl
                 label="HP"
                 value={pilot.hp}
                 max={pilot.max_hp}
                 canEdit={canEdit}
                 onChange={(v) => handleStatChange('hp', v)}
               />
-              <PilotStatControl
+              <StatControl
                 label="AP"
                 value={pilot.ap}
                 max={pilot.max_ap}
                 canEdit={canEdit}
                 onChange={(v) => handleStatChange('ap', v)}
               />
-              <PilotStatControl
+              <StatControl
                 label="TP"
                 value={pilot.tp}
                 canEdit={canEdit}

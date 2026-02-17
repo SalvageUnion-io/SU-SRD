@@ -37,7 +37,7 @@ export function RollInput({
         onChange={(e) => onChange(e.target.value)}
         onBlur={onBlur}
         placeholder={placeholder}
-        className="h-9 rounded-r-none border-r-0 text-sm"
+        className="h-9 border-r-0 text-sm"
       />
       {rollTableName && (
         <TooltipProvider delayDuration={300}>

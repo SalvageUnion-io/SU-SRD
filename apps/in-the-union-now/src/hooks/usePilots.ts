@@ -7,10 +7,10 @@ import {
   deletePilot,
   getPilotEntityRefs,
   listAbilityCountsByPilotIds,
-  updateEntityRef,
   listPilotsByCrawlerId,
   assignPilotToCrawler,
 } from '../lib/api/pilotApi'
+import { updateEntityRef } from '../lib/api/entityRefApi'
 import type { CreatePilotInput, EntityRefUpdate, PilotRow, PilotUpdate } from '../types/common'
 
 export const pilotKeys = {

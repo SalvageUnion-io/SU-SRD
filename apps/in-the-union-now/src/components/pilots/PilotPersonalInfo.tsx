@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
-import { SectionSeparator, Text } from 'suref-react'
+import { SectionSeparator } from 'suref-react'
 import { useAutosave } from '../../hooks/useAutosave'
-import { Input } from '../ui/input'
+import { LabeledInput } from '../shared/LabeledInput'
 import type { PilotRow, PilotUpdate } from '../../types/common'
 
 type PilotPersonalInfoProps = {
@@ -66,6 +66,23 @@ export function PilotPersonalInfo({ pilot, readOnly, onUpdate }: PilotPersonalIn
   )
 }
 
+function UsedToggle({ used, onToggle }: { used?: boolean | null; onToggle: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      className="inline-flex shrink-0 cursor-pointer border border-su-black"
+    >
+      <span className="inline-flex h-full w-[1.1em] items-center justify-center bg-su-white font-mono text-xs font-bold leading-none text-su-black">
+        {used ? 'X' : '\u00A0'}
+      </span>
+      <span className="bg-su-black px-1 font-mono text-xs font-bold uppercase leading-none text-su-white">
+        Used
+      </span>
+    </button>
+  )
+}
+
 function PersonalField({
   label,
   value,
@@ -88,45 +105,18 @@ function PersonalField({
     delay: 1000,
   })
 
-  if (readOnly) {
-    return (
-      <div className="space-y-1">
-        <Text variant="pseudoheader" className="text-xs">
-          {label}
-        </Text>
-        <p className="text-sm text-su-grey-light">{value || '\u2014'}</p>
-      </div>
-    )
-  }
-
   return (
-    <div className="space-y-1">
-      <div className="flex items-center justify-between">
-        <Text variant="pseudoheader" className="text-xs">
-          {label}
-        </Text>
-        {onToggleUsed !== undefined && (
-          <button
-            type="button"
-            onClick={onToggleUsed}
-            className="inline-flex shrink-0 cursor-pointer border border-su-black"
-          >
-            <span className="inline-flex h-full w-[1.1em] items-center justify-center bg-su-white font-mono text-xs font-bold leading-none text-su-black">
-              {used ? 'X' : '\u00A0'}
-            </span>
-            <span className="bg-su-black px-1 font-mono text-xs font-bold uppercase leading-none text-su-white">
-              Used
-            </span>
-          </button>
-        )}
-      </div>
-      <Input
-        value={localValue}
-        onChange={(e) => setLocalValue(e.target.value)}
-        onBlur={flush}
-        placeholder={`Enter ${label.toLowerCase()}...`}
-        className="h-8 text-sm"
-      />
-    </div>
+    <LabeledInput
+      label={label}
+      value={localValue}
+      onChange={setLocalValue}
+      onBlur={flush}
+      readOnly={readOnly}
+      readOnlyValue={value || undefined}
+      placeholder={`Enter ${label.toLowerCase()}...`}
+      rightHeaderContent={
+        !readOnly && onToggleUsed ? <UsedToggle used={used} onToggle={onToggleUsed} /> : undefined
+      }
+    />
   )
 }

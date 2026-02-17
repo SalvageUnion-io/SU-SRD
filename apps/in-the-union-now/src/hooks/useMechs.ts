@@ -6,7 +6,7 @@ import {
   updateMechEntityRefs,
   updateMech,
 } from '../lib/api/mechApi'
-import { updateEntityRef } from '../lib/api/pilotApi'
+import { updateEntityRef } from '../lib/api/entityRefApi'
 import { pilotKeys } from './usePilots'
 import type {
   EntityRefInsert,

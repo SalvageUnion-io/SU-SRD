@@ -12,7 +12,7 @@ import {
   updateCargoItem,
   deleteCargoItem,
 } from '../lib/api/crawlerApi'
-import { updateEntityRef } from '../lib/api/pilotApi'
+import { updateEntityRef } from '../lib/api/entityRefApi'
 import { gameKeys } from './useGames'
 import type {
   CreateCrawlerInput,

@@ -1,6 +1,6 @@
 import { StatDisplay } from 'suref-react'
 
-type CrawlerStatControlProps = {
+type StatControlProps = {
   label: string
   value: number
   max?: number
@@ -9,14 +9,14 @@ type CrawlerStatControlProps = {
   onChange: (newValue: number) => void
 }
 
-export function CrawlerStatControl({
+export function StatControl({
   label,
   value,
   max,
   bottomLabel,
   canEdit,
   onChange,
-}: CrawlerStatControlProps) {
+}: StatControlProps) {
   const atMin = value <= 0
   const atMax = max !== undefined && value >= max
 

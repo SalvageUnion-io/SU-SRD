@@ -125,24 +125,17 @@ export async function translateScrap(
   sourceConsumed: number,
   targetAmount: number
 ): Promise<CrawlerRow> {
-  // Use RPC or two-step update. Since we need atomic read-modify-write,
-  // fetch current values first then update both fields.
-  const crawler = await getCrawlerById(crawlerId)
-
-  const fromValue = (crawler[fromField as keyof CrawlerRow] as number) - sourceConsumed
-  const toValue = (crawler[toField as keyof CrawlerRow] as number) + targetAmount
-
-  if (fromValue < 0) throw new Error('Not enough scrap to translate')
-
-  const { data, error } = await supabase
-    .from('crawlers')
-    .update({ [fromField]: fromValue, [toField]: toValue })
-    .eq('id', crawlerId)
-    .select()
-    .single()
+  const { error } = await supabase.rpc('translate_scrap', {
+    p_crawler_id: crawlerId,
+    p_from_field: fromField,
+    p_to_field: toField,
+    p_source_consumed: sourceConsumed,
+    p_target_amount: targetAmount,
+  })
 
   if (error) handleSupabaseError(error)
-  return data!
+
+  return getCrawlerById(crawlerId)
 }
 
 export async function listCargoForCrawler(crawlerId: string): Promise<CargoRow[]> {

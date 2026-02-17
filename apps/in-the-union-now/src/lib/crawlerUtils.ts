@@ -178,13 +178,8 @@ export function computeCrawlerStatsFromTechLevel(
   }
 }
 
-/** Check whether all available weapon slots are filled */
-export function areWeaponSlotsFilled(crawlerRef: string, weaponCount: number): boolean {
-  return weaponCount >= getWeaponSlotCount(crawlerRef)
-}
-
 // Re-export for convenience
-export { getWeaponSlotCount, getMaxSpBonus }
+export { getWeaponSlotCount }
 
 /**
  * Compute scrap translation between tech levels.

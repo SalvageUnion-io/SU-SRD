@@ -19,7 +19,7 @@ import {
 } from 'suref-react'
 import { Eye, EyeOff, Plus, Trash2 } from 'lucide-react'
 import { getWeaponSlotCount, computeCrawlerStatsFromTechLevel } from '../../../../lib/crawlerUtils'
-import { CrawlerStatControl } from '../../../../components/games/CrawlerStatControl'
+import { StatControl } from '../../../../components/shared/StatControl'
 import { toast } from 'sonner'
 import { useAuthStore } from '../../../../stores/authStore'
 import { useGame, useGameMembers } from '../../../../hooks/useGames'
@@ -50,9 +50,7 @@ import { useAutosave } from '../../../../hooks/useAutosave'
 import { Skeleton } from '../../../../components/ui/skeleton'
 import { DeleteConfirmDialog } from '../../../../components/shared/DeleteConfirmDialog'
 import { actionButtonClasses } from '../../../../components/shared/actionButtonClasses'
-import { Input } from '../../../../components/ui/input'
-import { Textarea } from '../../../../components/ui/textarea'
-import { RollInput } from '../../../../components/shared/RollInput'
+import { LabeledInput } from '../../../../components/shared/LabeledInput'
 import { rollOnTable } from '../../../../lib/pilotUtils'
 
 export const Route = createFileRoute('/_authenticated/games/$gameId/crawler')({
@@ -210,7 +208,7 @@ function CrawlerDetailPage() {
               </div>
             </div>
             <div className="flex shrink-0 items-start gap-2">
-              <CrawlerStatControl
+              <StatControl
                 label="Upgrade"
                 bottomLabel="Pool"
                 value={crawler.upgrade_pool}
@@ -223,7 +221,7 @@ function CrawlerDetailPage() {
                 value={tlStats.upkeep}
                 bottomLabel={`TL${crawler.tech_level}`}
               />
-              <CrawlerStatControl
+              <StatControl
                 label="SP"
                 value={crawler.current_sp}
                 max={crawler.max_sp}
@@ -532,13 +530,7 @@ function CrawlerTypeNpcSection({
           HP {currentHp}/{maxHp}
         </Text>
       ) : (
-        <CrawlerStatControl
-          label="HP"
-          value={currentHp}
-          max={maxHp}
-          canEdit
-          onChange={handleHpChange}
-        />
+        <StatControl label="HP" value={currentHp} max={maxHp} canEdit onChange={handleHpChange} />
       )
     ) : undefined
 
@@ -550,42 +542,25 @@ function CrawlerTypeNpcSection({
           const rollTable = choice.rollTable ?? NPC_ROLL_TABLE_FALLBACK[choice.name]
 
           return (
-            <div key={choice.id} className="flex flex-col gap-0.5">
-              <Text variant="pseudoheader" as="label" className="ml-0.5 text-xs uppercase">
-                {choice.name}
-              </Text>
-              {readOnly ? (
-                <Text variant="default" as="span" className="text-sm">
-                  {localNpc[fieldKey] || '-'}
-                </Text>
-              ) : choice.name === 'Description' ? (
-                <Textarea
-                  value={localNpc[fieldKey] ?? ''}
-                  onChange={(e) => handleFieldChange(fieldKey, e.target.value)}
-                  onBlur={flush}
-                  placeholder="Enter description..."
-                  className="min-h-[60px] text-sm"
-                  rows={2}
-                />
-              ) : rollTable ? (
-                <RollInput
-                  value={localNpc[fieldKey] ?? ''}
-                  onChange={(value) => handleFieldChange(fieldKey, value)}
-                  onRoll={() => handleRoll(fieldKey, rollTable)}
-                  onBlur={flush}
-                  placeholder={`Roll or type ${choice.name.toLowerCase()}...`}
-                  rollTableName={rollTable}
-                />
-              ) : (
-                <Input
-                  value={localNpc[fieldKey] ?? ''}
-                  onChange={(e) => handleFieldChange(fieldKey, e.target.value)}
-                  onBlur={flush}
-                  placeholder={choice.name}
-                  className="h-8 text-sm"
-                />
-              )}
-            </div>
+            <LabeledInput
+              key={choice.id}
+              label={choice.name}
+              value={localNpc[fieldKey] ?? ''}
+              onChange={(value) => handleFieldChange(fieldKey, value)}
+              onBlur={flush}
+              readOnly={readOnly}
+              readOnlyValue={localNpc[fieldKey] || '-'}
+              variant={choice.name === 'Description' ? 'textarea' : rollTable ? 'roll' : 'input'}
+              rollTableName={rollTable}
+              onRoll={rollTable ? () => handleRoll(fieldKey, rollTable) : undefined}
+              placeholder={
+                choice.name === 'Description'
+                  ? 'Enter description...'
+                  : rollTable
+                    ? `Roll or type ${choice.name.toLowerCase()}...`
+                    : choice.name
+              }
+            />
           )
         })}
       </div>

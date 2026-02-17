@@ -5,7 +5,6 @@ import {
   extractBayNpcs,
   computeCrawlerStatsFromTechLevel,
   computeScrapTranslation,
-  areWeaponSlotsFilled,
   getWeaponSlotCount,
   canSubmitCrawlerWizard,
 } from './crawlerUtils'
@@ -251,29 +250,6 @@ describe('getWeaponSlotCount (re-exported)', () => {
 
   test('Engineering crawler has 1 weapon slot', () => {
     expect(getWeaponSlotCount(engineeringCrawlerId)).toBe(1)
-  })
-})
-
-describe('areWeaponSlotsFilled', () => {
-  const battleCrawlerId = SalvageUnionReference.Crawlers.find((c) => c.name === 'Battle')!.id
-  const engineeringCrawlerId = SalvageUnionReference.Crawlers.find(
-    (c) => c.name === 'Engineering'
-  )!.id
-
-  test('Battle crawler not filled with 1 weapon', () => {
-    expect(areWeaponSlotsFilled(battleCrawlerId, 1)).toBe(false)
-  })
-
-  test('Battle crawler filled with 2 weapons', () => {
-    expect(areWeaponSlotsFilled(battleCrawlerId, 2)).toBe(true)
-  })
-
-  test('Engineering crawler filled with 1 weapon', () => {
-    expect(areWeaponSlotsFilled(engineeringCrawlerId, 1)).toBe(true)
-  })
-
-  test('Engineering crawler not filled with 0 weapons', () => {
-    expect(areWeaponSlotsFilled(engineeringCrawlerId, 0)).toBe(false)
   })
 })
 

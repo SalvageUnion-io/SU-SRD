@@ -58,7 +58,7 @@ function computeBorderColor(entity: SURefEntity, schemaName: SURefEnumSchemaName
  * Compute a pale (35% mix with white) background color for an entity.
  * Chains: entity -> calculateBackgroundColor() -> borderColorFromHeaderBg() -> color-mix
  */
-export function computePaleColor(entity: SURefEntity, schemaName: SURefEnumSchemaName): string {
+function computePaleColor(entity: SURefEntity, schemaName: SURefEnumSchemaName): string {
   const cssVar = computeBorderColor(entity, schemaName)
   return `color-mix(in srgb, ${cssVar} 35%, white)`
 }

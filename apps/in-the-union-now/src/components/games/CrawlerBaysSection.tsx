@@ -6,11 +6,9 @@ import { SectionSeparator, EntityDisplay, Text, DetailIcon } from 'suref-react'
 import type { EntityControl } from 'suref-react'
 import { Flame } from 'lucide-react'
 import { useAutosave } from '../../hooks/useAutosave'
-import { Input } from '../ui/input'
-import { Textarea } from '../ui/textarea'
-import { RollInput } from '../shared/RollInput'
+import { LabeledInput } from '../shared/LabeledInput'
 import { rollOnTable } from '../../lib/pilotUtils'
-import { CrawlerStatControl } from './CrawlerStatControl'
+import { StatControl } from '../shared/StatControl'
 import { BayDetailOverlay } from './BayDetailOverlay'
 import type { BayNpcData, CrawlerRow, CrawlerUpdate } from '../../types/common'
 
@@ -157,42 +155,25 @@ export function CrawlerBaysSection({
             const rollTable = choice.rollTable ?? CHOICE_ROLL_TABLE_FALLBACK[choice.name]
 
             return (
-              <div key={choice.id} className="flex flex-col gap-0.5">
-                <Text variant="pseudoheader" as="label" className="ml-0.5 text-xs uppercase">
-                  {choice.name}
-                </Text>
-                {readOnly ? (
-                  <Text variant="default" as="span" className="text-sm">
-                    {npcData[fieldKey] || '-'}
-                  </Text>
-                ) : choice.name === 'Description' ? (
-                  <Textarea
-                    value={npcData[fieldKey] ?? ''}
-                    onChange={(e) => handleFieldChange(bay.id, fieldKey, e.target.value)}
-                    onBlur={flush}
-                    placeholder="Enter description..."
-                    className="min-h-[60px] text-sm"
-                    rows={2}
-                  />
-                ) : rollTable ? (
-                  <RollInput
-                    value={npcData[fieldKey] ?? ''}
-                    onChange={(value) => handleFieldChange(bay.id, fieldKey, value)}
-                    onRoll={() => handleRoll(bay.id, fieldKey, rollTable)}
-                    onBlur={flush}
-                    placeholder={`Roll or type ${choice.name.toLowerCase()}...`}
-                    rollTableName={rollTable}
-                  />
-                ) : (
-                  <Input
-                    value={npcData[fieldKey] ?? ''}
-                    onChange={(e) => handleFieldChange(bay.id, fieldKey, e.target.value)}
-                    onBlur={flush}
-                    placeholder={choice.name}
-                    className="h-8 text-sm"
-                  />
-                )}
-              </div>
+              <LabeledInput
+                key={choice.id}
+                label={choice.name}
+                value={npcData[fieldKey] ?? ''}
+                onChange={(value) => handleFieldChange(bay.id, fieldKey, value)}
+                onBlur={flush}
+                readOnly={readOnly}
+                readOnlyValue={npcData[fieldKey] || '-'}
+                variant={choice.name === 'Description' ? 'textarea' : rollTable ? 'roll' : 'input'}
+                rollTableName={rollTable}
+                onRoll={rollTable ? () => handleRoll(bay.id, fieldKey, rollTable) : undefined}
+                placeholder={
+                  choice.name === 'Description'
+                    ? 'Enter description...'
+                    : rollTable
+                      ? `Roll or type ${choice.name.toLowerCase()}...`
+                      : choice.name
+                }
+              />
             )
           })}
         </div>
@@ -209,7 +190,7 @@ export function CrawlerBaysSection({
             HP {currentHp}/{maxHp}
           </Text>
         ) : (
-          <CrawlerStatControl
+          <StatControl
             label="HP"
             value={currentHp}
             max={maxHp}

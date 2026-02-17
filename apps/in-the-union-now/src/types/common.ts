@@ -9,11 +9,9 @@ export type MechRow = Database['public']['Tables']['mechs']['Row']
 export type CrawlerRow = Database['public']['Tables']['crawlers']['Row']
 export type MechPatternRow = Database['public']['Tables']['mech_patterns']['Row']
 export type EntityRefRow = Database['public']['Tables']['entity_refs']['Row']
-export type PlayerChoiceRow = Database['public']['Tables']['player_choices']['Row']
 export type CargoRow = Database['public']['Tables']['cargo']['Row']
 export type CampaignRow = Database['public']['Tables']['campaigns']['Row']
 export type CampaignMemberRow = Database['public']['Tables']['campaign_members']['Row']
-export type ChangeLogRow = Database['public']['Tables']['change_log']['Row']
 
 // Insert types (for create operations)
 export type MechPatternInsert = Database['public']['Tables']['mech_patterns']['Insert']
@@ -21,8 +19,6 @@ export type PilotInsert = Database['public']['Tables']['pilots']['Insert']
 export type MechInsert = Database['public']['Tables']['mechs']['Insert']
 export type CrawlerInsert = Database['public']['Tables']['crawlers']['Insert']
 export type EntityRefInsert = Database['public']['Tables']['entity_refs']['Insert']
-export type PlayerChoiceInsert = Database['public']['Tables']['player_choices']['Insert']
-export type CargoInsert = Database['public']['Tables']['cargo']['Insert']
 
 // Update types (for edit operations)
 export type MechPatternUpdate = Database['public']['Tables']['mech_patterns']['Update']
@@ -77,8 +73,6 @@ export type InstantiateMechInput = {
 // Campaign insert/update types
 export type CampaignInsert = Database['public']['Tables']['campaigns']['Insert']
 export type CampaignUpdate = Database['public']['Tables']['campaigns']['Update']
-export type CampaignMemberInsert = Database['public']['Tables']['campaign_members']['Insert']
-
 // Bay NPC data for crawler JSONB field
 export type BayNpcData = {
   name?: string

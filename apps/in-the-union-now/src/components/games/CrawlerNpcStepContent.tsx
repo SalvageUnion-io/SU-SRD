@@ -6,9 +6,7 @@ import type {
   SURefObjectChoice,
 } from 'salvageunion-reference'
 import { DisplayCard, Text, StatDisplay, ValueDisplay, BlockContentRendererView } from 'suref-react'
-import { Input } from '../ui/input'
-import { Textarea } from '../ui/textarea'
-import { RollInput } from '../shared/RollInput'
+import { LabeledInput } from '../shared/LabeledInput'
 import { rollOnTable } from '../../lib/pilotUtils'
 
 /** Display order for NPC choices */
@@ -143,38 +141,23 @@ function NpcCard({ entry, choiceValues, stepId, onChoiceValueChange, onRoll }: N
         {editableChoices.map((choice) => {
           const rollTable = choice.rollTable ?? CHOICE_ROLL_TABLE_FALLBACK[choice.name]
           return (
-            <div key={choice.id} className="flex flex-col gap-0.5">
-              <Text variant="pseudoheader" as="label" className="ml-0.5 text-xs uppercase">
-                {choice.name}
-                {OPTIONAL_CHOICES.has(choice.name) && (
-                  <span className="ml-1 text-[10px] normal-case opacity-50">(Optional)</span>
-                )}
-              </Text>
-              {choice.name === 'Description' ? (
-                <Textarea
-                  value={choiceValues[choice.id] ?? ''}
-                  onChange={(e) => onChoiceValueChange(stepId, choice.id, e.target.value)}
-                  placeholder="Enter description..."
-                  className="min-h-[60px] text-sm"
-                  rows={2}
-                />
-              ) : rollTable ? (
-                <RollInput
-                  value={choiceValues[choice.id] ?? ''}
-                  onChange={(value) => onChoiceValueChange(stepId, choice.id, value)}
-                  onRoll={() => onRoll(choice.id, rollTable)}
-                  placeholder={`Roll or type ${choice.name.toLowerCase()}...`}
-                  rollTableName={rollTable}
-                />
-              ) : (
-                <Input
-                  value={choiceValues[choice.id] ?? ''}
-                  onChange={(e) => onChoiceValueChange(stepId, choice.id, e.target.value)}
-                  placeholder={`Enter ${choice.name.toLowerCase()}...`}
-                  className="h-8 text-sm"
-                />
-              )}
-            </div>
+            <LabeledInput
+              key={choice.id}
+              label={choice.name}
+              value={choiceValues[choice.id] ?? ''}
+              onChange={(value) => onChoiceValueChange(stepId, choice.id, value)}
+              optionalText={OPTIONAL_CHOICES.has(choice.name) ? '(Optional)' : undefined}
+              variant={choice.name === 'Description' ? 'textarea' : rollTable ? 'roll' : 'input'}
+              rollTableName={rollTable}
+              onRoll={rollTable ? () => onRoll(choice.id, rollTable) : undefined}
+              placeholder={
+                choice.name === 'Description'
+                  ? 'Enter description...'
+                  : rollTable
+                    ? `Roll or type ${choice.name.toLowerCase()}...`
+                    : `Enter ${choice.name.toLowerCase()}...`
+              }
+            />
           )
         })}
       </div>

@@ -73,7 +73,3 @@ export function getSupabaseAnonKey(): string {
 export function getSiteUrl(): string | undefined {
   return getEnv().VITE_SITE_URL
 }
-
-export function validateEnvVars(): void {
-  getEnv()
-}

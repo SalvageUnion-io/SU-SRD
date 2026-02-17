@@ -1,6 +1,6 @@
 import { useCallback } from 'react'
 import { SectionSeparator } from 'suref-react'
-import { CrawlerStatControl } from './CrawlerStatControl'
+import { StatControl } from '../shared/StatControl'
 import type { CrawlerRow, CrawlerUpdate } from '../../types/common'
 
 type CrawlerScrapStatsProps = {
@@ -26,7 +26,7 @@ export function CrawlerScrapStats({ crawler, readOnly, onUpdate }: CrawlerScrapS
           const field = `scrap_tl${tl}` as keyof CrawlerUpdate
           const value = crawler[field as keyof CrawlerRow] as number
           return (
-            <CrawlerStatControl
+            <StatControl
               key={tl}
               label={`TL${tl}`}
               value={value}

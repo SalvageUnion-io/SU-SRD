@@ -1,7 +1,7 @@
 import { describe, test, expect } from 'bun:test'
 import { SalvageUnionReference, getActionType, extractVisibleActions } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
-import { computePaleColor, extractPilotActions, getGeneralActions } from './pilotActionUtils'
+import { extractPilotActions, getGeneralActions } from './pilotActionUtils'
 import type { EntityRefRow } from '../types/common'
 
 // ---------------------------------------------------------------------------
@@ -24,33 +24,6 @@ function makeRef(
     ...overrides,
   } as EntityRefRow
 }
-
-// ---------------------------------------------------------------------------
-// computePaleColor
-// ---------------------------------------------------------------------------
-describe('computePaleColor', () => {
-  test('returns a color-mix string for an ability', () => {
-    const ability = SalvageUnionReference.Abilities.all()[0] as SURefEntity
-    const result = computePaleColor(ability, 'abilities')
-    expect(result).toContain('color-mix')
-    expect(result).toContain('35%')
-    expect(result).toContain('white')
-  })
-
-  test('returns a color-mix string for equipment', () => {
-    const equipment = SalvageUnionReference.Equipment.all()[0] as SURefEntity
-    const result = computePaleColor(equipment, 'equipment')
-    expect(result).toContain('color-mix')
-    expect(result).toContain('35%')
-  })
-
-  test('returns a color-mix string for chassis', () => {
-    const chassis = SalvageUnionReference.Chassis.all()[0] as SURefEntity
-    const result = computePaleColor(chassis, 'chassis')
-    expect(result).toContain('color-mix')
-    expect(result).toContain('var(--color-su-green)')
-  })
-})
 
 // ---------------------------------------------------------------------------
 // extractPilotActions

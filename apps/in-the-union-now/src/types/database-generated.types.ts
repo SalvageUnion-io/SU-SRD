@@ -549,6 +549,16 @@ export type Database = {
     }
     Functions: {
       is_campaign_member: { Args: { campaign_uuid: string }; Returns: boolean }
+      translate_scrap: {
+        Args: {
+          p_crawler_id: string
+          p_from_field: string
+          p_source_consumed: number
+          p_target_amount: number
+          p_to_field: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       item_condition: 'intact' | 'damaged' | 'destroyed'
