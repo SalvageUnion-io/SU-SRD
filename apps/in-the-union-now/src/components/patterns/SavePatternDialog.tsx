@@ -1,14 +1,6 @@
 import { useState } from 'react'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from '../ui/dialog'
-import { Button } from '../ui/button'
 import { Input } from '../ui/input'
+import { ModalShell } from '../shared/ModalShell'
 
 type SavePatternDialogProps = {
   open: boolean
@@ -33,45 +25,44 @@ export function SavePatternDialog({
     onConfirm(name.trim())
   }
 
+  function handleOpenChange(v: boolean) {
+    if (!v) setName(defaultName)
+    onOpenChange(v)
+  }
+
   return (
-    <Dialog
+    <ModalShell
       open={open}
-      onOpenChange={(v) => {
-        if (!v) setName(defaultName)
-        onOpenChange(v)
-      }}
+      onOpenChange={handleOpenChange}
+      title="Save to My Patterns"
+      subtitle="Save this mech's current loadout as a reusable pattern."
+      maxWidth="max-w-md"
     >
-      <DialogContent className="bg-su-dark sm:max-w-md">
-        <form onSubmit={handleSubmit}>
-          <DialogHeader>
-            <DialogTitle className="text-su-orange">Save to My Patterns</DialogTitle>
-            <DialogDescription className="text-su-grey-dark">
-              Save this mech&rsquo;s current loadout as a reusable pattern.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            <Input
-              placeholder="Pattern name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="bg-su-dark-lighter text-su-white"
-            />
-          </div>
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={isSaving}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={!name.trim() || isSaving}>
-              {isSaving ? 'Saving...' : 'Save Pattern'}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4 bg-su-white p-4">
+        <Input
+          placeholder="Pattern name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="border-su-grey-dark/40 bg-su-white text-su-black placeholder:text-su-grey-dark"
+        />
+        <div className="flex items-center justify-end gap-2 border-t border-su-grey-light/30 pt-3">
+          <button
+            type="button"
+            onClick={() => onOpenChange(false)}
+            disabled={isSaving}
+            className="cursor-pointer px-3 py-1.5 font-mono text-sm font-semibold uppercase text-su-black/50 transition-colors hover:text-su-black disabled:pointer-events-none disabled:opacity-50"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={!name.trim() || isSaving}
+            className="inline-flex cursor-pointer items-center gap-1.5 rounded-md bg-su-green px-3 py-1.5 font-mono text-sm font-semibold uppercase text-su-white transition-colors hover:bg-emerald-600 disabled:pointer-events-none disabled:opacity-50"
+          >
+            {isSaving ? 'Saving...' : 'Save Pattern'}
+          </button>
+        </div>
+      </form>
+    </ModalShell>
   )
 }

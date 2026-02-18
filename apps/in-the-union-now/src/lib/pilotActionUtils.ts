@@ -2,11 +2,13 @@ import type {
   SURefMetaAction,
   SURefEnumSchemaName,
   SURefEntity,
+  SURefChassis,
   SURefObjectContentBlock,
 } from 'salvageunion-reference'
 import {
   SalvageUnionReference,
   getActionType,
+  getChassisAbilities,
   getTechLevelNumber,
   extractVisibleActions,
   getRequiredTraits,
@@ -23,6 +25,8 @@ import type { EntityRefRow } from '../types/common'
 import type { Json } from '../types/database-generated.types'
 import { getActionActivationCost, getActionMaxUses, getRemainingUses } from './actionUsesUtils'
 
+export type ActionSource = 'pilot' | 'mech' | 'general'
+
 export type ActionDisplayData = {
   key: string
   name: string
@@ -38,11 +42,9 @@ export type ActionDisplayData = {
   maxUses: number | null
   usesRemaining: number | null
   requiredTraits: string[]
-}
-
-export type PassiveDisplayData = {
-  entity: SURefEntity
-  schemaName: SURefEnumSchemaName
+  actionType: string
+  source: ActionSource
+  hasDamage: boolean
 }
 
 /**
@@ -108,12 +110,15 @@ function buildActionItems(
   paleColor: string,
   border: string,
   entityRefId: string | null,
-  refMetadata: Json | null
+  refMetadata: Json | null,
+  source: ActionSource
 ): ActionDisplayData[] {
   const resolved = extractVisibleActions(entity)
   if (!resolved) return []
 
-  const usableActions = resolved.filter((a) => 'actionType' in a && a.actionType)
+  const usableActions = resolved.filter(
+    (a) => ('actionType' in a && a.actionType) || ('damage' in a && a.damage != null)
+  )
 
   return usableActions.map((action) => {
     const currency = deriveActionCurrency(action, entity, schemaName)
@@ -159,6 +164,10 @@ function buildActionItems(
       maxUses,
       usesRemaining,
       requiredTraits,
+      actionType:
+        'actionType' in action && typeof action.actionType === 'string' ? action.actionType : '',
+      source,
+      hasDamage: 'damage' in action && action.damage != null,
     }
   })
 }
@@ -191,7 +200,8 @@ export function extractMechActions(refs: EntityRefRow[]): ActionDisplayData[] {
         paleColor,
         border,
         ref.id,
-        ref.metadata
+        ref.metadata,
+        'mech'
       )
     )
   }
@@ -200,17 +210,13 @@ export function extractMechActions(refs: EntityRefRow[]): ActionDisplayData[] {
 }
 
 /**
- * Extract pilot actions and passives from entity refs.
+ * Extract pilot actions from entity refs.
  * - Abilities with actionType -> resolve actions from actions.json -> ActionDisplayData[]
- * - Abilities without actionType -> passives (rendered as compact ReferenceEntityDisplay)
+ * - Abilities without actionType -> passive ActionDisplayData entries (actionType 'Passive')
  * - Equipment -> resolve actions from actions.json -> ActionDisplayData[]
  */
-export function extractPilotActions(refs: EntityRefRow[]): {
-  actions: ActionDisplayData[]
-  passives: PassiveDisplayData[]
-} {
+export function extractPilotActions(refs: EntityRefRow[]): ActionDisplayData[] {
   const actions: ActionDisplayData[] = []
-  const passives: PassiveDisplayData[] = []
 
   for (const ref of refs) {
     const schemaName = ref.schema_name as SURefEnumSchemaName
@@ -233,11 +239,32 @@ export function extractPilotActions(refs: EntityRefRow[]): {
             paleColor,
             border,
             ref.id,
-            ref.metadata
+            ref.metadata,
+            'pilot'
           )
         )
       } else {
-        passives.push({ entity, schemaName })
+        // Passive ability — no resolved actions, build from entity directly
+        const name = 'name' in entity ? String(entity.name) : 'Passive'
+        actions.push({
+          key: `passive-${ref.schema_ref_id}`,
+          name,
+          actionName: name,
+          sourceEntity: entity,
+          sourceSchemaName: schemaName,
+          paleBackgroundColor: paleColor,
+          borderColor: border,
+          dataValues: extractReferenceEntityDetails(entity, schemaName),
+          content: getContentBlocks(entity),
+          entityRefId: ref.id,
+          activationCost: null,
+          maxUses: null,
+          usesRemaining: null,
+          requiredTraits: [],
+          actionType: 'Passive',
+          source: 'pilot',
+          hasDamage: false,
+        })
       }
     } else if (schemaName === 'equipment') {
       actions.push(
@@ -248,13 +275,14 @@ export function extractPilotActions(refs: EntityRefRow[]): {
           paleColor,
           border,
           ref.id,
-          ref.metadata
+          ref.metadata,
+          'pilot'
         )
       )
     }
   }
 
-  return { actions, passives }
+  return actions
 }
 
 /**
@@ -280,9 +308,59 @@ export function getGeneralActions(): ActionDisplayData[] {
         paleColor,
         border,
         null,
-        null
+        null,
+        'general'
       )
     )
   }
   return results
+}
+
+/**
+ * Extract chassis ability actions from a mech's chassis.
+ * These are intrinsic abilities defined on the chassis itself (not entity refs).
+ */
+export function extractChassisActions(chassis: SURefChassis): ActionDisplayData[] {
+  const resolved = getChassisAbilities(chassis)
+  if (!resolved || resolved.length === 0) return []
+
+  const entity = chassis as SURefEntity
+  const schemaName = 'chassis' as SURefEnumSchemaName
+  const paleColor = computePaleColor(entity, schemaName)
+  const border = computeBorderColor(entity, schemaName)
+
+  return resolved
+    .filter((a) => ('actionType' in a && a.actionType) || ('damage' in a && a.damage != null))
+    .map((action) => {
+      const currency = deriveActionCurrency(action, entity, schemaName)
+      const dataValues = extractReferenceEntityDetails(
+        action,
+        'actions' as SURefEnumSchemaName,
+        currency
+      )
+      const activationCost = getActionActivationCost(action)
+      const maxUses = getActionMaxUses(action)
+      const requiredTraits = getRequiredTraits(action)
+
+      return {
+        key: `chassis-${chassis.id}-${action.name}`,
+        name: action.displayName || action.name,
+        actionName: action.name,
+        sourceEntity: entity,
+        sourceSchemaName: schemaName,
+        paleBackgroundColor: paleColor,
+        borderColor: border,
+        dataValues,
+        content: getContentBlocks(action),
+        entityRefId: null,
+        activationCost,
+        maxUses,
+        usesRemaining: null,
+        requiredTraits,
+        actionType:
+          'actionType' in action && typeof action.actionType === 'string' ? action.actionType : '',
+        source: 'mech' as ActionSource,
+        hasDamage: 'damage' in action && action.damage != null,
+      }
+    })
 }

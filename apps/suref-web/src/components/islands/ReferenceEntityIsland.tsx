@@ -24,9 +24,7 @@ export function ReferenceEntityIsland({ item, compact = false }: ReferenceEntity
           data={item}
           compact={compact}
           afterExtraContent={
-            classEntity ? (
-              <ClassAbilityTreeDisplay classEntity={classEntity} />
-            ) : undefined
+            classEntity ? <ClassAbilityTreeDisplay classEntity={classEntity} /> : undefined
           }
           label={isAbility(item) && item.tree ? `${item.tree} tree` : undefined}
         />

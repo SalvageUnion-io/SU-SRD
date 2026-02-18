@@ -1801,7 +1801,7 @@
     ],
     "actionType": "Free",
     "range": ["Long"],
-    "name": "Comms",
+    "name": "Comms Module",
     "content": [
       {
         "type": "paragraph",

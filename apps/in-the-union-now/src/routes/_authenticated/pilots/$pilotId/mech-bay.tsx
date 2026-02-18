@@ -4,11 +4,20 @@ import { toast } from 'sonner'
 import { showSaveToast } from '../../../../lib/toastUtils'
 import { useAuthStore } from '../../../../stores/authStore'
 import { usePilot } from '../../../../hooks/usePilots'
-import { useMech, useMechEntityRefs, useUpdateMech, useUpdateMechLoadout } from '../../../../hooks/useMechs'
+import {
+  useMech,
+  useMechEntityRefs,
+  useUpdateMech,
+  useUpdateMechLoadout,
+} from '../../../../hooks/useMechs'
 import { useCreatePattern, usePattern } from '../../../../hooks/usePatterns'
 import { useAutosave } from '../../../../hooks/useAutosave'
 import { useSaveStatus } from '../../../../hooks/useSaveStatus'
-import { entityRefsToBuilderState, builderStateToPatchOps, getMechSourcePattern } from '../../../../lib/mechUtils'
+import {
+  entityRefsToBuilderState,
+  builderStateToPatchOps,
+  getMechSourcePattern,
+} from '../../../../lib/mechUtils'
 import { builderToCreateInput } from '../../../../lib/builderUtils'
 import { hasDeviated, resolveSourcePatternItems } from '../../../../lib/deviationUtils'
 import type { BuilderState } from '../../../../lib/builderUtils'
@@ -16,6 +25,7 @@ import type { SelectedPattern, PatternItem } from '../../../../types/common'
 import { MechBuilder } from '../../../../components/patterns/MechBuilder'
 import { SavePatternDialog } from '../../../../components/patterns/SavePatternDialog'
 import { RefPatternViewModal } from '../../../../components/patterns/RefPatternViewModal'
+import { PlayerPilotDisplay } from '../../../../components/pilots/PlayerPilotDisplay'
 import { PageSkeleton } from '../../../../components/shared/PageSkeleton'
 import { NotFoundState } from '../../../../components/shared/NotFoundState'
 import { getErrorMessage } from '../../../../lib/errors'
@@ -174,12 +184,10 @@ function MechBayPage() {
 
   const initialState = entityRefsToBuilderState(mech, mechRefs)
 
+  const pilotListing = <PlayerPilotDisplay pilot={pilot} listing compact mech={mech} />
+
   if (!access.canEdit) {
-    return (
-      <div className="flex flex-col gap-4">
-        <MechBuilder initialState={initialState} readOnly />
-      </div>
-    )
+    return <MechBuilder initialState={initialState} readOnly pilotContent={pilotListing} />
   }
 
   return (
@@ -196,6 +204,7 @@ function MechBayPage() {
         onSaveToPatterns={sourcePattern ? undefined : () => setShowSavePatternDialog(true)}
         isSavingToPatterns={createPatternMutation.isPending}
         userId={user?.id}
+        pilotContent={pilotListing}
       />
       <SavePatternDialog
         open={showSavePatternDialog}

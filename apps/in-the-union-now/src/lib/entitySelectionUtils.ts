@@ -78,12 +78,14 @@ export function filterAndSplitEntities({
     filtered = filtered.filter((e) => getEntityName(e).toLowerCase().includes(q))
   }
 
-  // Tech level filter
-  filtered = filtered.filter((e) => {
-    const tl = getTechLevel(e)
-    if (tl === undefined) return true
-    return activeTechLevels.has(tl as TechLevelValue)
-  })
+  // Tech level filter (empty set = all)
+  if (activeTechLevels.size > 0) {
+    filtered = filtered.filter((e) => {
+      const tl = getTechLevel(e)
+      if (tl === undefined) return true
+      return activeTechLevels.has(tl as TechLevelValue)
+    })
+  }
 
   // Source filter
   if (activeSourceFilters.size > 0) {

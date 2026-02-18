@@ -29,10 +29,9 @@ function makeRef(
 // extractPilotActions
 // ---------------------------------------------------------------------------
 describe('extractPilotActions', () => {
-  test('returns empty arrays for empty refs', () => {
+  test('returns empty array for empty refs', () => {
     const result = extractPilotActions([])
-    expect(result.actions).toEqual([])
-    expect(result.passives).toEqual([])
+    expect(result).toEqual([])
   })
 
   test('resolves active abilities to actions from actions.json', () => {
@@ -47,19 +46,20 @@ describe('extractPilotActions', () => {
 
     const refs = [makeRef('abilities', activeAbility.id)]
     const result = extractPilotActions(refs)
-    expect(result.actions.length).toBeGreaterThan(0)
+    const actions = result.filter((a) => a.actionType !== 'Passive')
+    expect(actions.length).toBeGreaterThan(0)
 
     // Action names should come from the resolved actions, not the ability
     const resolvedActions = extractVisibleActions(activeAbility)
     if (resolvedActions && resolvedActions.length > 0) {
       const resolvedNames = resolvedActions.map((a) => a.displayName || a.name)
-      for (const action of result.actions) {
+      for (const action of actions) {
         expect(resolvedNames).toContain(action.name)
       }
     }
 
     // Source entity should be the ability
-    for (const action of result.actions) {
+    for (const action of actions) {
       expect(action.sourceEntity).toEqual(activeAbility)
       expect(action.sourceSchemaName).toBe('abilities')
     }
@@ -75,10 +75,11 @@ describe('extractPilotActions', () => {
 
     const refs = [makeRef('abilities', readAPerson.id)]
     const result = extractPilotActions(refs)
-    expect(result.actions.length).toBeGreaterThan(0)
+    const actions = result.filter((a) => a.actionType !== 'Passive')
+    expect(actions.length).toBeGreaterThan(0)
     // The resolved action should have content from actions.json
-    expect(result.actions[0]!.content).toBeDefined()
-    expect(result.actions[0]!.content!.length).toBeGreaterThan(0)
+    expect(actions[0]!.content).toBeDefined()
+    expect(actions[0]!.content!.length).toBeGreaterThan(0)
   })
 
   test('classifies abilities without actionType as passives', () => {
@@ -92,9 +93,11 @@ describe('extractPilotActions', () => {
 
     const refs = [makeRef('abilities', passiveAbility.id)]
     const result = extractPilotActions(refs)
-    expect(result.passives.length).toBeGreaterThan(0)
-    expect(result.passives[0]!.entity).toEqual(passiveAbility)
-    expect(result.passives[0]!.schemaName).toBe('abilities')
+    const passives = result.filter((a) => a.actionType === 'Passive')
+    expect(passives.length).toBeGreaterThan(0)
+    expect(passives[0]!.sourceEntity).toEqual(passiveAbility)
+    expect(passives[0]!.sourceSchemaName).toBe('abilities')
+    expect(passives[0]!.source).toBe('pilot')
   })
 
   test('extracts equipment sub-actions into actions', () => {
@@ -108,9 +111,10 @@ describe('extractPilotActions', () => {
 
     const refs = [makeRef('equipment', equipment.id)]
     const result = extractPilotActions(refs)
-    expect(result.actions.length).toBeGreaterThan(0)
+    const actions = result.filter((a) => a.actionType !== 'Passive')
+    expect(actions.length).toBeGreaterThan(0)
     // Sub-actions should reference the equipment as source
-    for (const action of result.actions) {
+    for (const action of actions) {
       expect(action.sourceEntity).toEqual(equipment)
       expect(action.sourceSchemaName).toBe('equipment')
     }
@@ -128,7 +132,7 @@ describe('extractPilotActions', () => {
 
     const refs = [makeRef('abilities', activeAbility.id), makeRef('equipment', equipment.id)]
     const result = extractPilotActions(refs)
-    expect(result.actions.length).toBeGreaterThanOrEqual(2)
+    expect(result.length).toBeGreaterThanOrEqual(2)
   })
 
   test('generates unique keys for all action items', () => {
@@ -145,9 +149,25 @@ describe('extractPilotActions', () => {
     if (equipment) refs.push(makeRef('equipment', equipment.id))
 
     const result = extractPilotActions(refs)
-    const allKeys = result.actions.map((a) => a.key)
+    const allKeys = result.map((a) => a.key)
     const uniqueKeys = new Set(allKeys)
     expect(uniqueKeys.size).toBe(allKeys.length)
+  })
+
+  test('actions have actionType, source, and hasDamage fields', () => {
+    const activeAbility = SalvageUnionReference.Abilities.all().find(
+      (a) => 'actionType' in a && a.actionType && a.level !== 'G'
+    ) as SURefEntity | undefined
+
+    if (!activeAbility) return
+
+    const refs = [makeRef('abilities', activeAbility.id)]
+    const result = extractPilotActions(refs)
+    for (const action of result) {
+      expect(typeof action.actionType).toBe('string')
+      expect(action.source).toBe('pilot')
+      expect(typeof action.hasDamage).toBe('boolean')
+    }
   })
 })
 
@@ -170,6 +190,7 @@ describe('getGeneralActions', () => {
       expect(item.sourceSchemaName).toBe('abilities')
       expect(item.paleBackgroundColor).toContain('color-mix')
       expect(Array.isArray(item.dataValues)).toBe(true)
+      expect(item.source).toBe('general')
     }
   })
 

@@ -8,6 +8,8 @@ type ReferenceEntityListingItemProps = {
   disabled?: boolean
   damaged?: boolean
   lightweight?: boolean
+  /** Show a visible detail button instead of making the whole card clickable */
+  showDetailButton?: boolean
 }
 
 export function ReferenceEntityListingItem({
@@ -16,9 +18,13 @@ export function ReferenceEntityListingItem({
   disabled,
   damaged,
   lightweight,
+  showDetailButton,
 }: ReferenceEntityListingItemProps) {
   const detailModal = useDetailModal(entity)
-  const allControls = [...(controls ?? []), detailModal.control]
+  const detailControl = showDetailButton
+    ? { ...detailModal.control, hidden: false, cardClick: false }
+    : detailModal.control
+  const allControls = [...(controls ?? []), detailControl]
 
   return (
     <>

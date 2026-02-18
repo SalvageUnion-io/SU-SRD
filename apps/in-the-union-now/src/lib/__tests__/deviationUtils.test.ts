@@ -9,9 +9,21 @@ import type { MechSourcePattern } from '../mechUtils'
 // ---------------------------------------------------------------------------
 
 describe('hasDeviated', () => {
-  const itemA: PatternItem = { schema_name: 'systems', schema_ref_id: 'laser-cutter', sort_order: 0 }
-  const itemB: PatternItem = { schema_name: 'modules', schema_ref_id: 'reinforced-armour', sort_order: 1 }
-  const itemC: PatternItem = { schema_name: 'systems', schema_ref_id: 'welding-torch', sort_order: 2 }
+  const itemA: PatternItem = {
+    schema_name: 'systems',
+    schema_ref_id: 'laser-cutter',
+    sort_order: 0,
+  }
+  const itemB: PatternItem = {
+    schema_name: 'modules',
+    schema_ref_id: 'reinforced-armour',
+    sort_order: 1,
+  }
+  const itemC: PatternItem = {
+    schema_name: 'systems',
+    schema_ref_id: 'welding-torch',
+    sort_order: 2,
+  }
 
   test('identical sets → no deviation', () => {
     expect(hasDeviated([itemA, itemB], [itemA, itemB])).toBe(false)
@@ -90,7 +102,10 @@ describe('resolveSourcePatternItems', () => {
     // Look up a real chassis with patterns from the reference data
     const mule = SalvageUnionReference.Chassis.find((c) => c.name === 'Mule')!
     const haulerPattern = mule.patterns!.find((p) => p.name === 'Hauler Pattern')!
-    const source: MechSourcePattern = { kind: 'reference', refPatternId: `${mule.id}::${haulerPattern.name}` }
+    const source: MechSourcePattern = {
+      kind: 'reference',
+      refPatternId: `${mule.id}::${haulerPattern.name}`,
+    }
     const result = resolveSourcePatternItems(source)
     expect(result).not.toBeNull()
     expect(result!.length).toBeGreaterThan(0)
@@ -101,13 +116,19 @@ describe('resolveSourcePatternItems', () => {
   })
 
   test('reference source with invalid chassisRef returns null', () => {
-    const source: MechSourcePattern = { kind: 'reference', refPatternId: 'nonexistent-uuid::Balanced' }
+    const source: MechSourcePattern = {
+      kind: 'reference',
+      refPatternId: 'nonexistent-uuid::Balanced',
+    }
     expect(resolveSourcePatternItems(source)).toBeNull()
   })
 
   test('reference source with invalid patternName returns null', () => {
     const mule = SalvageUnionReference.Chassis.find((c) => c.name === 'Mule')!
-    const source: MechSourcePattern = { kind: 'reference', refPatternId: `${mule.id}::NonexistentPattern` }
+    const source: MechSourcePattern = {
+      kind: 'reference',
+      refPatternId: `${mule.id}::NonexistentPattern`,
+    }
     expect(resolveSourcePatternItems(source)).toBeNull()
   })
 

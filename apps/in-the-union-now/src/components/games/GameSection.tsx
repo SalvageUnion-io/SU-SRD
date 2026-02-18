@@ -33,7 +33,7 @@ export function GameSection() {
           variant="ghost"
           size="sm"
           onClick={() => setShowArchived((v) => !v)}
-          className="h-6 px-2 font-mono text-xs uppercase text-su-white/50 hover:text-su-white"
+          className="h-auto cursor-pointer rounded-none bg-su-black px-1 py-0 font-mono text-xs font-bold uppercase leading-none tracking-tight text-su-white hover:bg-su-black hover:text-su-white/70"
         >
           {showArchived ? 'Hide Archived' : 'Show Archived'}
         </Button>

@@ -13,7 +13,12 @@ type PilotEquipmentSectionProps = {
   onConditionChange?: (refId: string, condition: ItemCondition) => void
 }
 
-export function PilotEquipmentSection({ refs, compact, canEdit, onConditionChange }: PilotEquipmentSectionProps) {
+export function PilotEquipmentSection({
+  refs,
+  compact,
+  canEdit,
+  onConditionChange,
+}: PilotEquipmentSectionProps) {
   const equipmentRefs = useMemo(() => refs.filter((r) => r.schema_name === 'equipment'), [refs])
 
   if (equipmentRefs.length === 0) return null
@@ -34,15 +39,10 @@ export function PilotEquipmentSection({ refs, compact, canEdit, onConditionChang
               entity={entity as SURefEntity}
               disabled={condition === 'destroyed'}
               damaged={condition != null && condition !== 'intact'}
+              showDetailButton
               controls={
                 condition && onConditionChange
-                  ? [
-                      makeConditionControl(
-                        condition,
-                        (c) => onConditionChange(ref.id, c),
-                        !canEdit
-                      ),
-                    ]
+                  ? [makeConditionControl(condition, (c) => onConditionChange(ref.id, c), !canEdit)]
                   : undefined
               }
             />

@@ -242,9 +242,7 @@ export function ReferenceEntityDisplayContent({
 
   // In non-listing mode, controls go to CardHeader for button rendering.
   // Extract cardClick handler separately so DisplayCard can apply card-level click + hover.
-  const cardClickFromControls = !listing
-    ? controls?.find((c) => c.cardClick)?.onClick
-    : undefined
+  const cardClickFromControls = !listing ? controls?.find((c) => c.cardClick)?.onClick : undefined
 
   const card = (
     <DisplayCard
@@ -323,9 +321,7 @@ export function ReferenceEntityDisplayContent({
                   </div>
                 ) : (
                   <>
-                    {assetUrl && (
-                      <CardImage url={assetUrl} alt={title} compact={compact} />
-                    )}
+                    {assetUrl && <CardImage url={assetUrl} alt={title} compact={compact} />}
                     {showContent && (
                       <BlockContentRendererView
                         content={contentBlocks!}

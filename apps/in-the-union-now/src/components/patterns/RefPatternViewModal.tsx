@@ -11,7 +11,11 @@ type RefPatternViewModalProps = {
   onOpenChange: (open: boolean) => void
 }
 
-export function RefPatternViewModal({ refPatternId, open, onOpenChange }: RefPatternViewModalProps) {
+export function RefPatternViewModal({
+  refPatternId,
+  open,
+  onOpenChange,
+}: RefPatternViewModalProps) {
   const resolved = useMemo(() => {
     const separatorIndex = refPatternId.indexOf('::')
     if (separatorIndex === -1) return null
@@ -42,7 +46,13 @@ export function RefPatternViewModal({ refPatternId, open, onOpenChange }: RefPat
   )
 }
 
-function RefPatternContent({ chassis, pattern }: { chassis: SURefChassis; pattern: SURefObjectPattern }) {
+function RefPatternContent({
+  chassis,
+  pattern,
+}: {
+  chassis: SURefChassis
+  pattern: SURefObjectPattern
+}) {
   const patternOverride: PatternOverrideData = useMemo(
     () => ({ name: pattern.name, systems: pattern.systems, modules: pattern.modules }),
     [pattern.name, pattern.systems, pattern.modules]

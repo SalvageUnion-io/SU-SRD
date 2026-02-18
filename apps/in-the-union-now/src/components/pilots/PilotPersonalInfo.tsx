@@ -71,7 +71,15 @@ export function PilotPersonalInfo({ pilot, compact, readOnly, onUpdate }: PilotP
   )
 }
 
-function UsedToggle({ used, onToggle, compact }: { used?: boolean | null; onToggle: () => void; compact?: boolean }) {
+function UsedToggle({
+  used,
+  onToggle,
+  compact,
+}: {
+  used?: boolean | null
+  onToggle: () => void
+  compact?: boolean
+}) {
   const textSize = compact ? 'text-xs' : 'text-sm'
   const checkSize = compact ? 'w-[1.1em]' : 'w-[1.3em]'
   const margin = compact ? 'mr-3' : 'mr-4'
@@ -83,10 +91,14 @@ function UsedToggle({ used, onToggle, compact }: { used?: boolean | null; onTogg
       className={`${margin} inline-flex shrink-0 cursor-pointer border border-su-black p-0`}
       style={{ alignSelf: 'flex-end' }}
     >
-      <span className={`inline-flex h-full ${checkSize} items-center justify-center bg-su-white font-mono ${textSize} font-bold leading-none text-su-black`}>
+      <span
+        className={`inline-flex h-full ${checkSize} items-center justify-center bg-su-white font-mono ${textSize} font-bold leading-none text-su-black`}
+      >
         {used ? 'X' : '\u00A0'}
       </span>
-      <span className={`bg-su-black px-1 font-mono ${textSize} font-bold uppercase leading-none text-su-white`}>
+      <span
+        className={`bg-su-black px-1 font-mono ${textSize} font-bold uppercase leading-none text-su-white`}
+      >
         Used
       </span>
     </button>
@@ -128,7 +140,9 @@ function PersonalField({
       placeholder={`Enter ${label.toLowerCase()}...`}
       compact={compact}
       rightHeaderContent={
-        !readOnly && onToggleUsed ? <UsedToggle used={used} onToggle={onToggleUsed} compact={compact} /> : undefined
+        !readOnly && onToggleUsed ? (
+          <UsedToggle used={used} onToggle={onToggleUsed} compact={compact} />
+        ) : undefined
       }
     />
   )

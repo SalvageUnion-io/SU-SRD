@@ -17,21 +17,29 @@ type ActionDisplayProps = {
   controls?: ReferenceEntityControl[]
   disabled?: boolean
   footerMessage?: ReactNode
+  borderColorOverride?: string
 }
 
 const DISABLED_PALE_BG = 'rgb(220, 220, 220)'
 const DISABLED_BORDER = 'rgb(150, 150, 150)'
 
-export function ActionDisplay({ data, controls, disabled, footerMessage }: ActionDisplayProps) {
+export function ActionDisplay({
+  data,
+  controls,
+  disabled,
+  footerMessage,
+  borderColorOverride,
+}: ActionDisplayProps) {
+  const outerBorder = borderColorOverride ?? (disabled ? DISABLED_BORDER : data.borderColor)
+  const headerBg = disabled ? DISABLED_PALE_BG : data.paleBackgroundColor
+  const innerBorder = borderColorOverride ?? (disabled ? DISABLED_BORDER : data.borderColor)
+
   return (
-    <div
-      className="overflow-hidden rounded-md"
-      style={{ border: `2px solid ${disabled ? DISABLED_BORDER : data.borderColor}` }}
-    >
+    <div className="overflow-hidden rounded-md" style={{ border: `2px solid ${outerBorder}` }}>
       <DisplayCard
         headerBg=""
-        headerBgColor={disabled ? DISABLED_PALE_BG : data.paleBackgroundColor}
-        borderColor={disabled ? DISABLED_BORDER : data.borderColor}
+        headerBgColor={headerBg}
+        borderColor={innerBorder}
         mode="compact"
         headerContent={
           <div

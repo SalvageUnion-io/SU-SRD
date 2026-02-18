@@ -51,13 +51,7 @@ function resolveClassTrees(classEntity: SURefClass): ResolvedTrees {
   return { coreTrees: [], advancedTree: null, legendaryTree: null }
 }
 
-function AbilityTreeListing({
-  ability,
-  disabled,
-}: {
-  ability: SURefAbility
-  disabled: boolean
-}) {
+function AbilityTreeListing({ ability, disabled }: { ability: SURefAbility; disabled: boolean }) {
   const detailModal = useDetailModal(ability)
 
   return (
@@ -82,7 +76,7 @@ function TreeSection({
   return (
     <div className="space-y-1.5">
       <div className="pt-2">
-        <SectionSeparator label={`${tree} Tree`} />
+        <SectionSeparator label={`${tree} Tree`} compact />
       </div>
       {abilities.map((ability) => (
         <AbilityTreeListing

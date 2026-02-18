@@ -9,6 +9,7 @@ import {
   addControl,
 } from 'suref-react'
 import { Input } from '../ui/input'
+import { FilterRow } from './FilterRow'
 import {
   filterAndSplitEntities,
   ALL_TECH_LEVELS,
@@ -45,9 +46,7 @@ export function ReferenceEntityPickerModal({
   closeOnSelect,
 }: ReferenceEntityPickerModalProps) {
   const [search, setSearch] = useState('')
-  const [activeTechLevels, setActiveTechLevels] = useState<Set<TechLevelValue>>(
-    () => new Set(ALL_TECH_LEVELS)
-  )
+  const [activeTechLevels, setActiveTechLevels] = useState<Set<TechLevelValue>>(new Set())
   const [activeSourceFilters, setActiveSourceFilters] = useState<Set<string>>(new Set())
 
   // Reset filters when dialog closes
@@ -55,7 +54,7 @@ export function ReferenceEntityPickerModal({
     (next: boolean) => {
       if (!next) {
         setSearch('')
-        setActiveTechLevels(new Set(ALL_TECH_LEVELS))
+        setActiveTechLevels(new Set())
         setActiveSourceFilters(new Set())
       }
       onOpenChange(next)
@@ -87,21 +86,17 @@ export function ReferenceEntityPickerModal({
     return sorted
   }, [entities])
 
-  const allTechActive = availableTechLevels.every((tl) => activeTechLevels.has(tl))
+  const allTechActive = activeTechLevels.size === 0
   const allSourcesActive = activeSourceFilters.size === 0
-
-  const toggleAllTech = useCallback(() => {
-    setActiveTechLevels(allTechActive ? new Set() : new Set(ALL_TECH_LEVELS))
-  }, [allTechActive])
 
   const toggleTechLevel = useCallback(
     (tl: TechLevelValue) => {
       setActiveTechLevels((prev) => {
-        const allActive = availableTechLevels.every((t) => prev.has(t))
-        if (allActive) return new Set([tl])
+        if (prev.size === 0) return new Set([tl])
         const next = new Set(prev)
         if (next.has(tl)) next.delete(tl)
         else next.add(tl)
+        if (availableTechLevels.every((t) => next.has(t))) return new Set()
         return next
       })
     },
@@ -171,8 +166,12 @@ export function ReferenceEntityPickerModal({
           />
 
           {availableTechLevels.length > 1 && (
-            <div className="flex flex-wrap gap-1.5">
-              <FilterChip label="All" active={allTechActive} onClick={toggleAllTech} />
+            <FilterRow label="Tech Level" gap="gap-1.5">
+              <FilterChip
+                label="All"
+                active={allTechActive}
+                onClick={() => setActiveTechLevels(new Set())}
+              />
               {availableTechLevels.map((tl) => (
                 <FilterChip
                   key={String(tl)}
@@ -182,11 +181,11 @@ export function ReferenceEntityPickerModal({
                   colorClass={TECH_LEVEL_STYLES[String(tl)]}
                 />
               ))}
-            </div>
+            </FilterRow>
           )}
 
           {availableSources.length > 1 && (
-            <div className="flex flex-wrap gap-1.5">
+            <FilterRow label="Source" gap="gap-1.5">
               <FilterChip
                 label="All"
                 active={allSourcesActive}
@@ -200,13 +199,13 @@ export function ReferenceEntityPickerModal({
                   onClick={() => toggleSource(source)}
                 />
               ))}
-            </div>
+            </FilterRow>
           )}
         </div>
 
         {/* Entity list */}
         <div
-          className="flex flex-col gap-2 overflow-y-auto px-1 pr-3 [&>*]:ring-1 [&>*]:ring-su-black"
+          className="flex flex-col gap-2 overflow-y-auto px-1 py-1 pr-3"
           style={{ scrollbarGutter: 'stable' }}
         >
           {selectable.length === 0 && overCapacity.length === 0 && overBudget.length === 0 ? (

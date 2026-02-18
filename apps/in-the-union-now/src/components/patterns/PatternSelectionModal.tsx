@@ -4,10 +4,17 @@ import { patternItemsToOverride } from '../../lib/builderUtils'
 import { usePatterns } from '../../hooks/usePatterns'
 import type { SURefEntity, SURefObjectPattern } from 'salvageunion-reference'
 import type { SelectedPattern, TypedPatternRow } from '../../types/common'
-import { ReferenceEntityDisplay, Text, FilterChip, addControl, useChassisPatternConfig } from 'suref-react'
+import {
+  ReferenceEntityDisplay,
+  Text,
+  FilterChip,
+  addControl,
+  useChassisPatternConfig,
+} from 'suref-react'
 import type { PatternOverrideData } from 'suref-react'
 import { Button } from '../ui/button'
 import { actionButtonClasses } from '../shared/actionButtonClasses'
+import { FilterRow } from '../shared/FilterRow'
 import { ModalShell } from '../shared/ModalShell'
 
 type SourceFilter = 'reference' | 'player'
@@ -77,8 +84,8 @@ export function PatternSelectionModal({
         {pendingSelection && (
           <div className="flex items-center justify-between gap-3 rounded-md border border-su-orange bg-su-orange/10 px-3 py-2">
             <Text as="span" className="text-sm font-medium text-su-black">
-              Apply <strong>&ldquo;{pendingName}&rdquo;</strong>? This will replace all
-              current systems and modules.
+              Apply <strong>&ldquo;{pendingName}&rdquo;</strong>? This will replace all current
+              systems and modules.
             </Text>
             <div className="flex shrink-0 items-center gap-2">
               <Button variant="outline" size="sm" className="cursor-pointer" onClick={handleCancel}>
@@ -97,7 +104,7 @@ export function PatternSelectionModal({
 
         {/* Filter chips — only show if user has player patterns */}
         {hasPlayerPatterns && (
-          <div className="flex gap-1.5">
+          <FilterRow label="Source" gap="gap-1.5">
             <FilterChip
               label="Reference"
               active={sourceFilter === 'reference'}
@@ -108,11 +115,11 @@ export function PatternSelectionModal({
               active={sourceFilter === 'player'}
               onClick={() => setSourceFilter('player')}
             />
-          </div>
+          </FilterRow>
         )}
 
         <div
-          className="flex flex-col gap-2 overflow-y-auto px-1 pr-3 [&>*]:ring-1 [&>*]:ring-su-black"
+          className="flex flex-col gap-2 overflow-y-auto px-1 py-1 pr-3 [&>*]:ring-1 [&>*]:ring-su-black"
           style={{ scrollbarGutter: 'stable' }}
         >
           {sourceFilter === 'reference' ? (
@@ -197,19 +204,13 @@ function PlayerPatternOption({
   pattern: TypedPatternRow
   onSelect: (selection: SelectedPattern) => void
 }) {
-  const overrideData: PatternOverrideData = useMemo(
-    () => {
-      const override = patternItemsToOverride(pattern.pattern_items)
-      return { name: pattern.name, systems: override.systems, modules: override.modules }
-    },
-    [pattern.name, pattern.pattern_items]
-  )
+  const overrideData: PatternOverrideData = useMemo(() => {
+    const override = patternItemsToOverride(pattern.pattern_items)
+    return { name: pattern.name, systems: override.systems, modules: override.modules }
+  }, [pattern.name, pattern.pattern_items])
   const patternConfig = useChassisPatternConfig(chassis, overrideData, true)
 
-  const selection: SelectedPattern = useMemo(
-    () => ({ source: 'player', pattern }),
-    [pattern]
-  )
+  const selection: SelectedPattern = useMemo(() => ({ source: 'player', pattern }), [pattern])
 
   return (
     <ReferenceEntityDisplay

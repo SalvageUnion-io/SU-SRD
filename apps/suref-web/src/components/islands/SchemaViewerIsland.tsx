@@ -48,25 +48,23 @@ export function SchemaViewerIsland({
 
   const toggleTechLevel = (level: number | 'B' | 'N') => {
     setTechLevelFilters((prev) => {
+      if (prev.size === 0) return new Set([String(level)])
       const next = new Set(prev)
       const key = String(level)
-      if (next.has(key)) {
-        next.delete(key)
-      } else {
-        next.add(key)
-      }
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      if (techLevels.every((tl) => next.has(String(tl)))) return new Set()
       return next
     })
   }
 
   const toggleSource = (source: string) => {
     setSourceFilters((prev) => {
+      if (prev.size === 0) return new Set([source])
       const next = new Set(prev)
-      if (next.has(source)) {
-        next.delete(source)
-      } else {
-        next.add(source)
-      }
+      if (next.has(source)) next.delete(source)
+      else next.add(source)
+      if (sources.every((s) => next.has(s))) return new Set()
       return next
     })
   }

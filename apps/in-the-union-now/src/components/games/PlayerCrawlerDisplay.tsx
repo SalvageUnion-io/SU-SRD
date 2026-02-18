@@ -82,7 +82,11 @@ export function PlayerCrawlerDisplay({
           }
           subtitle={
             <div className="flex flex-wrap items-center gap-1">
-              <ValueDisplay label="SP" value={`${crawler.current_sp}/${crawler.max_sp}`} compact={compact} />
+              <ValueDisplay
+                label="SP"
+                value={`${crawler.current_sp}/${crawler.max_sp}`}
+                compact={compact}
+              />
               <ValueDisplay label="TL" value={crawler.tech_level} compact={compact} />
               <ValueDisplay label="Upkeep" value={crawler.upkeep} compact={compact} />
             </div>
@@ -152,6 +156,7 @@ export function PlayerCrawlerDisplay({
   return (
     <>
       <DisplayCard
+        stickyHeader
         headerBg="bg-su-pink"
         bodyPadding="p-0"
         headerContent={

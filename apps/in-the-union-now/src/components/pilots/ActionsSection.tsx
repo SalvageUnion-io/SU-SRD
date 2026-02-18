@@ -91,12 +91,12 @@ export function ActionsSection({
     const types = filters.getAvailableTypes(allActions)
     types.add('Passive') // Always show Passive filter
     return types
-  }, [filters.getAvailableTypes, allActions])
+  }, [filters, allActions])
   const availableCategories = useMemo(() => {
     const cats = filters.getAvailableCategories(allActions)
     if (mechRefs) cats.add('Mech')
     return cats
-  }, [filters.getAvailableCategories, allActions, mechRefs])
+  }, [filters, allActions, mechRefs])
 
   // Sort: filter-matched first, then enabled before disabled, mech actions last
   const sortedActions = useMemo(

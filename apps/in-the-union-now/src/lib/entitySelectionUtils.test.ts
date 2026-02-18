@@ -7,7 +7,8 @@ const allSystems = SalvageUnionReference.Systems.all() as SURefEntity[]
 const allModules = SalvageUnionReference.Modules.all() as SURefEntity[]
 const allChassis = SalvageUnionReference.Chassis.all() as SURefEntity[]
 
-const ALL_TECH_LEVELS = new Set<number | 'B' | 'N'>([1, 2, 3, 4, 5, 6, 'B', 'N'])
+// Empty set = all tech levels selected (matches component convention)
+const ALL_TECH_LEVELS = new Set<number | 'B' | 'N'>()
 
 function techLevelOrder(tl: number | string | undefined): number {
   if (tl === undefined) return 0
@@ -91,11 +92,11 @@ describe('filterAndSplitEntities', () => {
       }
     })
 
-    test('empty tech level set returns no entities', () => {
+    test('empty tech level set returns all entities (all selected)', () => {
       const result = filterAndSplitEntities(
         defaultOpts({ activeTechLevels: new Set<number | 'B' | 'N'>() })
       )
-      expect(result.selectable.length).toBe(0)
+      expect(result.selectable.length).toBe(allSystems.length)
     })
 
     test('all tech levels selected returns all entities', () => {

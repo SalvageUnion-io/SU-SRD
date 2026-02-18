@@ -98,53 +98,53 @@
       rgba(25, 20, 10, 0.14) 17px,
       transparent 17px,
       transparent 19px,
-      rgba(25, 20, 10, 0.10) 19px,
+      rgba(25, 20, 10, 0.1) 19px,
       rgba(25, 20, 10, 0.12) 22px,
       transparent 22px,
       transparent 25px,
       rgba(25, 20, 10, 0.08) 25px,
-      rgba(25, 20, 10, 0.10) 27px,
+      rgba(25, 20, 10, 0.1) 27px,
       transparent 27px,
       transparent 48px
     ),
     /* Crossing slashes — thinner marks at different rhythm, NW→SE */
     repeating-linear-gradient(
-      44deg,
-      transparent 0px,
-      transparent 22px,
-      rgba(25, 20, 10, 0.07) 22px,
-      rgba(25, 20, 10, 0.09) 24px,
-      transparent 24px,
-      transparent 27px,
-      rgba(25, 20, 10, 0.05) 27px,
-      rgba(25, 20, 10, 0.07) 28.5px,
-      transparent 28.5px,
-      transparent 55px
-    ),
+        44deg,
+        transparent 0px,
+        transparent 22px,
+        rgba(25, 20, 10, 0.07) 22px,
+        rgba(25, 20, 10, 0.09) 24px,
+        transparent 24px,
+        transparent 27px,
+        rgba(25, 20, 10, 0.05) 27px,
+        rgba(25, 20, 10, 0.07) 28.5px,
+        transparent 28.5px,
+        transparent 55px
+      ),
     /* Erratic scratches — shallow near-horizontal drag marks */
     repeating-linear-gradient(
-      -12deg,
-      transparent 0px,
-      transparent 32px,
-      rgba(25, 20, 10, 0.04) 32px,
-      rgba(25, 20, 10, 0.06) 33.5px,
-      transparent 33.5px,
-      transparent 38px,
-      rgba(25, 20, 10, 0.03) 38px,
-      rgba(25, 20, 10, 0.05) 39px,
-      transparent 39px,
-      transparent 70px
-    ),
+        -12deg,
+        transparent 0px,
+        transparent 32px,
+        rgba(25, 20, 10, 0.04) 32px,
+        rgba(25, 20, 10, 0.06) 33.5px,
+        transparent 33.5px,
+        transparent 38px,
+        rgba(25, 20, 10, 0.03) 38px,
+        rgba(25, 20, 10, 0.05) 39px,
+        transparent 39px,
+        transparent 70px
+      ),
     /* Stray deep mark — single thick steep slash */
     repeating-linear-gradient(
-      -78deg,
-      transparent 0px,
-      transparent 40px,
-      rgba(25, 20, 10, 0.10) 40px,
-      rgba(25, 20, 10, 0.13) 44px,
-      transparent 44px,
-      transparent 120px
-    );
+        -78deg,
+        transparent 0px,
+        transparent 40px,
+        rgba(25, 20, 10, 0.1) 40px,
+        rgba(25, 20, 10, 0.13) 44px,
+        transparent 44px,
+        transparent 120px
+      );
   pointer-events: none;
 }
 
@@ -206,7 +206,7 @@
 .expansion-beast-card {
   box-shadow:
     3px 5px 10px -2px rgba(25, 20, 10, 0.35),
-    -2px 3px 8px -3px rgba(25, 20, 10, 0.20),
+    -2px 3px 8px -3px rgba(25, 20, 10, 0.2),
     0 1px 3px 0 rgba(25, 20, 10, 0.12);
 }
 
@@ -214,13 +214,13 @@
 .expansion-falseflag-card {
   box-shadow:
     3px 3px 0 0 rgba(0, 0, 0, 0.25),
-    0 1px 4px 0 rgba(0, 0, 0, 0.10);
+    0 1px 4px 0 rgba(0, 0, 0, 0.1);
 }
 
 /* Rainmaker — deep storm diffusion */
 .expansion-rain-card {
   box-shadow:
-    0 4px 16px -2px rgba(40, 55, 70, 0.30),
+    0 4px 16px -2px rgba(40, 55, 70, 0.3),
     0 2px 6px -1px rgba(40, 55, 70, 0.15);
 }
 
@@ -228,7 +228,7 @@
 .expansion-scanline-card {
   box-shadow:
     0 0 8px 1px rgba(25, 55, 30, 0.18),
-    0 2px 8px -1px rgba(0, 0, 0, 0.20);
+    0 2px 8px -1px rgba(0, 0, 0, 0.2);
 }
 
 /* Mobile-first touch targets */
