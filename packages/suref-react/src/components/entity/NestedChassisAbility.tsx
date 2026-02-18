@@ -227,7 +227,7 @@ function DroneSection({
 
   return (
     <div className={cn('flex flex-col', compact ? 'gap-1 pt-1' : 'gap-2 pt-2')}>
-      <EntityDisplay data={droneEntity} compact hideActions hidePatterns listing>
+      <EntityDisplay data={droneEntity} compact hide={{ actions: true, patterns: true }} listing>
         {resolvedSystems.length > 0 && (
           <div className="space-y-2">
             <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">

@@ -2,7 +2,12 @@ import { memo } from 'react'
 import type { ReactNode } from 'react'
 import type { SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
 import { EntityDisplayContent } from './components/EntityDisplayContent'
-import type { ClassAbilitiesRenderer, PatternOverrideData } from './entityDisplayTypes'
+import type {
+  ClassAbilitiesRenderer,
+  EntityHideConfig,
+  NpcConfig,
+  PatternOverrideData,
+} from './entityDisplayTypes'
 import type { GuideStepsInteractiveConfig } from '../GuideStepsDisplay'
 import type { EntityControl } from './entityControlTypes'
 
@@ -23,40 +28,20 @@ type EntityDisplayProps = {
   damaged?: boolean
   /** Whether to use compact styling */
   compact?: boolean
-  /** Whether to hide the actions section */
-  hideActions?: boolean
-  /** Whether to hide chassis patterns */
-  hidePatterns?: boolean
-  /** Whether to hide the damaged effect section */
-  hideDamagedEffect?: boolean
-  /** Whether to hide choices */
-  hideChoices?: boolean
+  /** Visibility toggles — which sections to hide */
+  hide?: EntityHideConfig
   /** Optional label rendered above the card (absolute-positioned pseudoheader) */
   label?: string
   /** Optional renderer for class abilities section */
   classAbilitiesRenderer?: ClassAbilitiesRenderer
   /** Optional pattern override — when set, display uses this pattern name as title and renders its systems/modules */
   patternOverride?: PatternOverrideData
-  /** Whether to hide the stats/right content in the header */
-  hideStats?: boolean
-  /** Whether to hide the entity's own content blocks (description) */
-  hideContent?: boolean
-  /** Whether to hide roll tables */
-  hideRollTable?: boolean
-  /** Whether to hide the footer (page number, source) */
-  hideFooter?: boolean
   /** Controls to render in the header (add, delete, detail, etc.) */
   controls?: EntityControl[]
   /** Interactive config for guide entities — threads through to GuideStepsDisplay */
   interactive?: GuideStepsInteractiveConfig
-  /** Optional children to render inside the NPC card body (e.g. editable fields) */
-  npcChildren?: ReactNode
-  /** Optional slot to replace the default HP display in the NPC card */
-  npcHpSlot?: ReactNode
-  /** Optional content to render after the NPC display */
-  afterNpcContent?: ReactNode
-  /** Whether the NPC is in a damaged state (overrides inheriting from parent damaged) */
-  npcDamaged?: boolean
+  /** Grouped NPC configuration (children, hp slot, name editing, etc.) */
+  npcConfig?: NpcConfig
   /** Content to render in a right column alongside the NPC section (creates a 2-column grid) */
   rightContent?: ReactNode
   /** When set, renders a semi-translucent overlay over the body with this text in a danger box */
@@ -73,24 +58,14 @@ export const EntityDisplay = memo(function EntityDisplay({
   children,
   disabled = false,
   listing = false,
-  hideActions = false,
-  hidePatterns = false,
-  hideDamagedEffect = false,
-  hideChoices = false,
+  hide,
   compact = false,
   label,
   classAbilitiesRenderer,
   patternOverride,
-  hideStats = false,
-  hideContent = false,
-  hideRollTable = false,
-  hideFooter = false,
   controls,
   interactive,
-  npcChildren,
-  npcHpSlot,
-  afterNpcContent,
-  npcDamaged,
+  npcConfig,
   rightContent,
   damageOverlayText,
   lightweight = false,
@@ -115,25 +90,15 @@ export const EntityDisplay = memo(function EntityDisplay({
       headerColor={headerColor}
       dimHeader={dimHeader}
       disabled={disabled}
-      hideActions={hideActions}
-      hidePatterns={hidePatterns}
-      hideDamagedEffect={hideDamagedEffect}
-      hideChoices={hideChoices}
+      hide={hide}
       listing={listing}
       damaged={damaged}
       label={label}
       classAbilitiesRenderer={classAbilitiesRenderer}
       patternOverride={patternOverride}
-      hideStats={hideStats}
-      hideContent={hideContent}
-      hideRollTable={hideRollTable}
-      hideFooter={hideFooter}
       controls={controls}
       interactive={interactive}
-      npcChildren={npcChildren}
-      npcHpSlot={npcHpSlot}
-      afterNpcContent={afterNpcContent}
-      npcDamaged={npcDamaged}
+      npcConfig={npcConfig}
       rightContent={rightContent}
       damageOverlayText={damageOverlayText}
       lightweight={lightweight}

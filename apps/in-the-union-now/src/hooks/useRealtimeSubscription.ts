@@ -19,9 +19,12 @@ export function useRealtimeSubscription(
   queryKeys: QueryKey[]
 ) {
   const queryClient = useQueryClient()
+  const serializedKeys = JSON.stringify(queryKeys)
 
   useEffect(() => {
     if (!filter) return
+
+    const keys: QueryKey[] = JSON.parse(serializedKeys)
 
     const channel = supabase
       .channel(`${table}-${filter}`)
@@ -34,7 +37,7 @@ export function useRealtimeSubscription(
           filter,
         },
         () => {
-          queryKeys.forEach((key) => {
+          keys.forEach((key) => {
             queryClient.invalidateQueries({ queryKey: key })
           })
         }
@@ -44,5 +47,5 @@ export function useRealtimeSubscription(
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [table, filter, queryClient, queryKeys])
+  }, [table, filter, queryClient, serializedKeys])
 }

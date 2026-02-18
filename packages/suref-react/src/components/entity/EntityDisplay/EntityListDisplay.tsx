@@ -152,7 +152,15 @@ export function EntityListDisplay({
         if (!('id' in entity)) {
           return null
         }
-        return <EntityDisplay key={idx} hideActions data={entity as SURefEntity} compact listing />
+        return (
+          <EntityDisplay
+            key={idx}
+            hide={{ actions: true }}
+            data={entity as SURefEntity}
+            compact
+            listing
+          />
+        )
       })}
     </div>
   )

@@ -35,6 +35,7 @@ import { borderColorFromHeaderBg, getSourceStyles } from '../../entityDisplayHel
 import { useEntityDisplayState } from '../useEntityDisplayState'
 import type { EntityDisplayStateInput } from '../useEntityDisplayState'
 import type { EntityControl } from '../entityControlTypes'
+import type { NpcConfig } from '../entityDisplayTypes'
 import {
   resolvePatternOverride,
   checkLegalStartingMech,
@@ -45,22 +46,11 @@ import { GuideEntityListing } from './GuideEntityListing'
 
 export type EntityDisplayContentProps = EntityDisplayStateInput & {
   children?: ReactNode
-  /** Controls to render in the header (add, delete, detail, etc.) */
   controls?: EntityControl[]
-  /** Interactive config for guide entities — threads through to GuideStepsDisplay */
   interactive?: GuideStepsInteractiveConfig
-  /** Optional children to render inside the NPC card body */
-  npcChildren?: ReactNode
-  /** Optional slot to replace the default HP display in NPC card */
-  npcHpSlot?: ReactNode
-  /** Optional content to render after the NPC display */
-  afterNpcContent?: ReactNode
-  /** Whether the NPC is in a damaged state (overrides inheriting from parent damaged) */
-  npcDamaged?: boolean
+  npcConfig?: NpcConfig
   /** Content to render in a right column alongside the NPC section (creates a 2-column grid) */
   rightContent?: ReactNode
-  /** Whether to hide the footer (page number, source) */
-  hideFooter?: boolean
   /** When set, renders a semi-translucent overlay over the body with this text in a danger box */
   damageOverlayText?: string
   /** When true, header renders only title and controls — no subtitle, stats, or tech level */
@@ -71,12 +61,8 @@ export function EntityDisplayContent({
   children,
   controls,
   interactive,
-  npcChildren,
-  npcHpSlot,
-  afterNpcContent,
-  npcDamaged,
+  npcConfig,
   rightContent,
-  hideFooter = false,
   damageOverlayText,
   lightweight = false,
   ...inputProps
@@ -93,10 +79,7 @@ export function EntityDisplayContent({
     opacity,
     shouldShowExtraContent,
     listing,
-    hideActions,
-    hidePatterns,
-    hideDamagedEffect,
-    hideChoices,
+    hide,
     damaged,
     disabled,
     fontSize,
@@ -111,21 +94,18 @@ export function EntityDisplayContent({
     classAbilitiesRenderer,
     techLevel,
     patternOverride,
-    hideStats,
-    hideContent,
-    hideRollTable,
   } = state
 
   // Determine which content to render (from EntityTopMatter)
-  let contentBlocks = hideContent ? undefined : 'content' in data ? data.content : undefined
+  let contentBlocks = hide.content ? undefined : 'content' in data ? data.content : undefined
 
   // Check if any action name matches the entity name - if so, use that action's content
   if (matchingAction && matchingAction.content && matchingAction.content.length > 0) {
     contentBlocks = matchingAction.content
   }
 
-  // In compact list view (hideActions), only show content before the first heading
-  if (contentBlocks && compact && hideActions) {
+  // In compact list view (hide.actions), only show content before the first heading
+  if (contentBlocks && compact && hide.actions) {
     const firstHeadingIndex = contentBlocks.findIndex((block) => block.type === 'heading')
     if (firstHeadingIndex > 0) {
       contentBlocks = contentBlocks.slice(0, firstHeadingIndex)
@@ -144,7 +124,7 @@ export function EntityDisplayContent({
   const hasDisplayableActions =
     !!actionsToDisplay &&
     actionsToDisplay.length > 0 &&
-    (!hideActions || compact) &&
+    (!hide.actions || compact) &&
     !(compact && schemaName === 'bio-titans')
 
   const hasTopMatterContent =
@@ -260,7 +240,7 @@ export function EntityDisplayContent({
   const hasSource = 'source' in data && !!data.source
   const footerDisplayName = getDisplayName(schemaName)
   const sourceFooterStyles = getSourceStyles(source, disabled ?? false, 'footer', !listing)
-  const hasFooter = !hideFooter && (hasPage || hasSource)
+  const hasFooter = !hide.footer && (hasPage || hasSource)
 
   const footer = hasFooter ? (
     <EntityFooter
@@ -315,7 +295,7 @@ export function EntityDisplayContent({
         />
       }
       rightContent={
-        !hideStats ? (
+        !hide.stats ? (
           <EntityRightHeaderContent
             data={data}
             compact={compact}
@@ -379,7 +359,7 @@ export function EntityDisplayContent({
                   : `${spacing.contentPadding}rem`,
             }}
           >
-            {assetUrl && hasChassisAbilities && !compact && !hideActions ? (
+            {assetUrl && hasChassisAbilities && !compact && !hide.actions ? (
               // Grid layout for chassis with images: ability anchored to bottom of image
               <div className="md:grid md:grid-cols-[auto_1fr]">
                 <EntityImage title={title} compact={compact} assetUrl={assetUrl} />
@@ -483,10 +463,10 @@ export function EntityDisplayContent({
                     />
                   )}
                 {/* Non-compact: chassis abilities + pattern data render before actions */}
-                {!compact && !hideActions && chassisAbilitiesBlock}
+                {!compact && !hide.actions && chassisAbilitiesBlock}
               </>
             )}
-            {(!hideActions || (compact && schemaName !== 'bio-titans')) && (
+            {(!hide.actions || (compact && schemaName !== 'bio-titans')) && (
               <EntityActions
                 schemaName={schemaName}
                 spacing={spacing}
@@ -519,7 +499,7 @@ export function EntityDisplayContent({
             ))}
 
             <EntityRequirementDisplay data={data} compact={compact} />
-            {table && !hideRollTable && (
+            {table && !hide.rollTable && (
               <div className="relative z-10 rounded-md">
                 <RollTable
                   disabled={disabled}
@@ -531,40 +511,43 @@ export function EntityDisplayContent({
               </div>
             )}
             <EntityFormation data={data} headerFontSize={fontSize.lg} compact={compact} />
-            {rightContent ? (
-              <>
-                <div
-                  className="md:float-left md:mr-4 md:w-1/2"
-                  style={{ shapeOutside: 'margin-box' }}
-                >
+            {(() => {
+              const npcBlock = (
+                <>
                   <EntityNpcDisplay
                     data={data}
                     compact
+                    embedded
                     fontSize={fontSize}
                     spacing={spacing}
-                    npcChildren={npcChildren}
-                    hpSlot={npcHpSlot}
-                    damaged={npcDamaged ?? damaged}
+                    npcChildren={npcConfig?.children}
+                    hpSlot={npcConfig?.hpSlot}
+                    damaged={npcConfig?.damaged ?? damaged}
+                    headerBg={headerBg}
+                    headerBgColor={headerBgColor}
+                    npcName={npcConfig?.name}
+                    onNpcNameChange={npcConfig?.onNameChange}
+                    onNpcNameBlur={npcConfig?.onNameBlur}
+                    readOnly={npcConfig?.readOnly}
                   />
-                  {afterNpcContent}
-                </div>
-                {rightContent}
-                <div className="clear-both !mt-0" />
-              </>
-            ) : (
-              <>
-                <EntityNpcDisplay
-                  data={data}
-                  compact
-                  fontSize={fontSize}
-                  spacing={spacing}
-                  npcChildren={npcChildren}
-                  hpSlot={npcHpSlot}
-                  damaged={npcDamaged ?? damaged}
-                />
-                {afterNpcContent}
-              </>
-            )}
+                  {npcConfig?.afterContent}
+                </>
+              )
+              return rightContent ? (
+                <>
+                  <div
+                    className="md:float-left md:mr-4 md:w-1/2 md:border-r md:border-su-grey-light md:pr-4"
+                    style={{ shapeOutside: 'margin-box' }}
+                  >
+                    {npcBlock}
+                  </div>
+                  {rightContent}
+                  <div className="clear-both !mt-0" />
+                </>
+              ) : (
+                npcBlock
+              )
+            })()}
             {shouldShowExtraContent && patternOverride && (
               <EntityChassisPattern
                 pattern={{
@@ -576,14 +559,14 @@ export function EntityDisplayContent({
             )}
             {shouldShowExtraContent && !patternOverride && (
               <>
-                {!hidePatterns && (
+                {!hide.patterns && (
                   <EntityChassisPatterns
                     patterns={'patterns' in data ? data.patterns : undefined}
                     headerFontSize={fontSize.lg}
                     chassisEntity={data}
                   />
                 )}
-                {!hideDamagedEffect && 'damagedEffect' in data && data.damagedEffect && (
+                {!hide.damagedEffect && 'damagedEffect' in data && data.damagedEffect && (
                   <ConditionalSheetInfo
                     propertyName="damagedEffect"
                     labelBgColor="text-brand-srd"
@@ -608,7 +591,7 @@ export function EntityDisplayContent({
               data={data}
               spacing={spacing}
               fontSize={fontSize}
-              hideChoices={hideChoices}
+              hideChoices={hide.choices}
               onChoiceSelection={undefined}
             />
             <div className="clear-both" />

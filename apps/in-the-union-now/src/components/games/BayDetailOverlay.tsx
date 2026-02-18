@@ -36,8 +36,7 @@ export function BayDetailOverlay({ open, onOpenChange, entity, mode }: BayDetail
                   data={entity}
                   compact={false}
                   damaged={mode === 'damage'}
-                  hideActions={mode === 'damage'}
-                  hideContent={mode === 'damage'}
+                  hide={mode === 'damage' ? { actions: true, content: true } : undefined}
                 />
               </div>
             </DialogPrimitive.Content>

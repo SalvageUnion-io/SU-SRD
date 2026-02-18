@@ -29,10 +29,7 @@ export function GuideEntityListing({
       listing={listing}
       dimHeader={false}
       disabled={disabled}
-      hideActions={listing}
-      hidePatterns
-      hideDamagedEffect={false}
-      hideChoices
+      hide={{ actions: listing, patterns: true, choices: true }}
       controls={controls}
     />
   )

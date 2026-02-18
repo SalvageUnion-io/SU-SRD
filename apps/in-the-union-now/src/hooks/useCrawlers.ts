@@ -6,6 +6,7 @@ import {
   getCrawlerEntityRefs,
   updateCrawler,
   updateCrawlerWeapon,
+  upgradeTechLevel,
   translateScrap,
   listCargoForCrawler,
   addCargoToCrawler,
@@ -120,6 +121,17 @@ export function useUpdateCrawlerWeapon() {
     }) => updateCrawlerWeapon(crawlerId, userId, oldRefId, newRef, sortOrder),
     onSuccess: (_data, { crawlerId }) => {
       queryClient.invalidateQueries({ queryKey: crawlerKeys.entityRefs(crawlerId) })
+    },
+  })
+}
+
+export function useUpgradeTechLevel() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ crawlerId }: { crawlerId: string }) => upgradeTechLevel(crawlerId),
+    onSuccess: (data: CrawlerRow) => {
+      queryClient.setQueryData(crawlerKeys.detail(data.id), data)
     },
   })
 }

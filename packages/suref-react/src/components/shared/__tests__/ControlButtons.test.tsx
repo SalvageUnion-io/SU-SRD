@@ -90,4 +90,41 @@ describe('ControlButtons', () => {
     const { container } = render(<ControlButtons controls={[]} />)
     expect(container.innerHTML).toBe('')
   })
+
+  test('hidden controls are not rendered', () => {
+    const controls = [
+      makeControl({ key: 'visible', ariaLabel: 'Visible' }),
+      makeControl({ key: 'hidden', ariaLabel: 'Hidden', hidden: true }),
+    ]
+    render(<ControlButtons controls={controls} />)
+    expect(screen.getByLabelText('Visible')).toBeTruthy()
+    expect(screen.queryByLabelText('Hidden')).toBeNull()
+  })
+
+  test('all-hidden controls renders nothing', () => {
+    const { container } = render(<ControlButtons controls={[makeControl({ hidden: true })]} />)
+    expect(container.innerHTML).toBe('')
+  })
+
+  test('control with hoverContent still renders button', () => {
+    render(
+      <ControlButtons
+        controls={[
+          makeControl({
+            hoverContent: <div data-testid="hover-content">Weapon details</div>,
+          }),
+        ]}
+      />
+    )
+    // Button should be rendered (hover content is portaled, not visible without hover)
+    expect(screen.getByRole('button')).toBeTruthy()
+    expect(screen.getByLabelText('Test action')).toBeTruthy()
+  })
+
+  test('control without hoverContent renders plain button', () => {
+    render(<ControlButtons controls={[makeControl()]} />)
+    const button = screen.getByRole('button')
+    expect(button).toBeTruthy()
+    expect(button.tagName).toBe('BUTTON')
+  })
 })

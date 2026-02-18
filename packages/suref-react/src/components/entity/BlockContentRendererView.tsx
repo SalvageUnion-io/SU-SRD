@@ -5,6 +5,7 @@ import { parseContentBlockString } from '../../lib/contentBlockHelpers'
 import { DataValueDisplayView } from './DataValueDisplayView'
 import { borderColorFromHeaderBg } from './entityDisplayHelpers'
 import { cn } from '../../utils/cn'
+import { SectionSeparator } from './EntityDisplay/SectionSeparator'
 
 type BlockContentRendererViewProps = {
   /** Content blocks to render */
@@ -199,27 +200,14 @@ function ContentBlock({
       const level = block.level || 3
       let headingFontSize: string
       if (level === 1) {
-        headingFontSize = compact ? 'text-lg' : 'text-xl'
-      } else if (level === 2) {
         headingFontSize = compact ? 'text-base' : 'text-lg'
+      } else if (level === 2) {
+        headingFontSize = compact ? 'text-sm' : 'text-base'
       } else {
-        headingFontSize = fontSize
+        headingFontSize = compact ? 'text-xs' : 'text-sm'
       }
 
-      // Map content block level to heading elements (offset by 2 since h1/h2 used by page)
-      const HeadingTag: 'h3' | 'h4' | 'h5' = level === 1 ? 'h3' : level === 2 ? 'h4' : 'h5'
-      return (
-        <HeadingTag
-          className={cn(
-            'font-mono inline self-start box-decoration-clone bg-su-black text-su-white px-1 font-bold uppercase leading-none tracking-tight',
-            'mb-1',
-            headingFontSize
-          )}
-          style={{ lineHeight: 1 }}
-        >
-          {parsedValue}
-        </HeadingTag>
-      )
+      return <SectionSeparator label={stringValue} fontSize={headingFontSize} />
     }
 
     case 'list-item':

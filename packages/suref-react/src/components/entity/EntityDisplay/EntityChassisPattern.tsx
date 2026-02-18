@@ -143,7 +143,7 @@ function DroneWithEquipment({
   if (!droneEntity) return null
 
   return (
-    <EntityDisplay data={droneEntity} compact hideActions hidePatterns listing>
+    <EntityDisplay data={droneEntity} compact hide={{ actions: true, patterns: true }} listing>
       {droneSystems.length > 0 && (
         <div className="space-y-2">
           <SectionSeparator label="Systems" fontSize="text-xs" />

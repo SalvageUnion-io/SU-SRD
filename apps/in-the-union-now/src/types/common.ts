@@ -76,7 +76,7 @@ export type CampaignUpdate = Database['public']['Tables']['campaigns']['Update']
 // Bay NPC data for crawler JSONB field
 export type BayNpcData = {
   name?: string
-  background?: string
+  description?: string
   motto?: string
   keepsake?: string
   personality?: string

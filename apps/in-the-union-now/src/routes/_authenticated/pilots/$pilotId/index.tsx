@@ -34,6 +34,11 @@ import { PilotEntityRefs } from '../../../../components/pilots/PilotEntityRefs'
 import { PilotMechSection } from '../../../../components/pilots/PilotMechSection'
 import { PilotActionsSection } from '../../../../components/pilots/PilotActionsSection'
 import { MechActionsSection } from '../../../../components/pilots/MechActionsSection'
+import { MechLoadoutSection } from '../../../../components/pilots/MechLoadoutSection'
+import { changeLogApi } from '../../../../lib/api/changeLogApi'
+import { useRealtimeSubscription } from '../../../../hooks/useRealtimeSubscription'
+import { pilotKeys } from '../../../../hooks/usePilots'
+import { mechKeys } from '../../../../hooks/useMechs'
 import type { EntityRefUpdate, MechUpdate, PilotUpdate } from '../../../../types/common'
 
 export const Route = createFileRoute('/_authenticated/pilots/$pilotId/')({
@@ -55,6 +60,16 @@ function PilotDetailPage() {
   const { data: mechRefs } = useMechEntityRefs(mech?.id)
   const updateMech = useUpdateMech()
   const updateMechEntityRef = useUpdateMechEntityRef()
+
+  // Realtime: sync pilot, entity refs, mech, and mech entity refs across clients
+  useRealtimeSubscription('pilots', `id=eq.${pilotId}`, [pilotKeys.detail(pilotId)])
+  useRealtimeSubscription('entity_refs', `parent_id=eq.${pilotId}`, [pilotKeys.entityRefs(pilotId)])
+  useRealtimeSubscription('mechs', pilot?.mech_id ? `id=eq.${pilot.mech_id}` : undefined, [
+    mechKeys.detail(pilot?.mech_id ?? ''),
+  ])
+  useRealtimeSubscription('entity_refs', mech ? `parent_id=eq.${mech.id}` : undefined, [
+    mechKeys.entityRefs(mech?.id ?? ''),
+  ])
 
   const pilotSaveStatus = useSaveStatus({
     isSaving:
@@ -86,44 +101,92 @@ function PilotDetailPage() {
 
   const handleUpdateEntityRef = useCallback(
     (refId: string, input: EntityRefUpdate) => {
-      if (!pilot) return
+      if (!pilot || !user) return
+      const ref = (pilotRefs ?? []).find((r) => r.id === refId)
       updateEntityRef.mutate(
         { refId, input, pilotId: pilot.id },
         {
-          onSuccess: showSaveToast,
+          onSuccess: () => {
+            showSaveToast()
+            if (input.condition && ref) {
+              changeLogApi
+                .log(user.id, {
+                  targetId: refId,
+                  targetType: 'entity_ref',
+                  action: 'update',
+                  field: 'condition',
+                  oldValue: ref.condition,
+                  newValue: input.condition,
+                  description: `${pilot.callsign} equipment → ${input.condition}`,
+                })
+                .catch(() => {})
+            }
+          },
           onError: (err) => toast.error(getErrorMessage(err)),
         }
       )
     },
-    [pilot, updateEntityRef, showSaveToast]
+    [pilot, user, pilotRefs, updateEntityRef, showSaveToast]
   )
 
   const handleUpdateMech = useCallback(
     (input: Partial<MechUpdate>) => {
-      if (!mech) return
+      if (!mech || !user) return
       updateMech.mutate(
         { mechId: mech.id, input },
         {
-          onSuccess: showSaveToast,
+          onSuccess: () => {
+            showSaveToast()
+            for (const [field, newValue] of Object.entries(input)) {
+              const oldValue = mech[field as keyof typeof mech]
+              changeLogApi
+                .log(user.id, {
+                  targetId: mech.id,
+                  targetType: 'mech',
+                  action: 'update',
+                  field,
+                  oldValue: oldValue as unknown,
+                  newValue,
+                  description: `Mech ${field} ${oldValue} → ${newValue}`,
+                })
+                .catch(() => {})
+            }
+          },
           onError: (err) => toast.error(getErrorMessage(err)),
         }
       )
     },
-    [mech, updateMech, showSaveToast]
+    [mech, user, updateMech, showSaveToast]
   )
 
   const handleUpdateMechEntityRef = useCallback(
     (refId: string, input: EntityRefUpdate) => {
-      if (!mech) return
+      if (!mech || !user) return
+      const ref = (mechRefs ?? []).find((r) => r.id === refId)
       updateMechEntityRef.mutate(
         { refId, input, mechId: mech.id },
         {
-          onSuccess: showSaveToast,
+          onSuccess: () => {
+            showSaveToast()
+            if (input.condition && ref) {
+              changeLogApi
+                .log(user.id, {
+                  targetId: refId,
+                  targetType: 'entity_ref',
+                  action: 'update',
+                  field: 'condition',
+                  oldValue: ref.condition,
+                  newValue: input.condition,
+                  description: `Mech loadout → ${input.condition}`,
+                })
+                .catch(() => {})
+            }
+          },
           onError: (err) => toast.error(getErrorMessage(err)),
         }
       )
     },
-    [mech, updateMechEntityRef, showSaveToast]
+    [mech, user, mechRefs, updateMechEntityRef, showSaveToast]
   )
 
   if (isLoading) return <PageSkeleton />
@@ -150,7 +213,21 @@ function PilotDetailPage() {
   }
 
   function handleStatChange(field: 'hp' | 'ap' | 'tp', newValue: number) {
+    const oldValue = pilot![field]
     handlePilotUpdate({ [field]: newValue })
+    if (user) {
+      changeLogApi
+        .log(user.id, {
+          targetId: pilot!.id,
+          targetType: 'pilot',
+          action: 'update',
+          field,
+          oldValue,
+          newValue,
+          description: `${pilot!.callsign} ${field.toUpperCase()} ${oldValue} → ${newValue}`,
+        })
+        .catch(() => {})
+    }
   }
 
   function handleDelete() {
@@ -283,6 +360,31 @@ function PilotDetailPage() {
               mechChassis={mechChassis}
               mechLoading={mechLoading}
             />
+            {mech && (
+              <div className="flex flex-wrap items-center gap-2">
+                <StatControl
+                  label="SP"
+                  value={mech.current_sp}
+                  max={mech.max_sp}
+                  canEdit={canEdit}
+                  onChange={(v) => handleUpdateMech({ current_sp: v })}
+                />
+                <StatControl
+                  label="EP"
+                  value={mech.current_ep}
+                  max={mech.max_ep}
+                  canEdit={canEdit}
+                  onChange={(v) => handleUpdateMech({ current_ep: v })}
+                />
+                <StatControl
+                  label="Heat"
+                  value={mech.current_heat}
+                  max={mech.heat_capacity}
+                  canEdit={canEdit}
+                  onChange={(v) => handleUpdateMech({ current_heat: v })}
+                />
+              </div>
+            )}
           </div>
           <div className="clear-both" />
           <div className="space-y-4">
@@ -294,15 +396,28 @@ function PilotDetailPage() {
               onUpdateEntityRef={handleUpdateEntityRef}
             />
             {mech && mechRefs && (
-              <MechActionsSection
-                mechRefs={mechRefs}
-                mech={mech}
-                readOnly={!canEdit}
-                onUpdateMech={handleUpdateMech}
-                onUpdateMechEntityRef={handleUpdateMechEntityRef}
-              />
+              <>
+                <MechLoadoutSection
+                  mechRefs={mechRefs}
+                  canEdit={canEdit}
+                  onConditionChange={(refId, condition) =>
+                    handleUpdateMechEntityRef(refId, { condition })
+                  }
+                />
+                <MechActionsSection
+                  mechRefs={mechRefs}
+                  mech={mech}
+                  readOnly={!canEdit}
+                  onUpdateMech={handleUpdateMech}
+                  onUpdateMechEntityRef={handleUpdateMechEntityRef}
+                />
+              </>
             )}
-            <PilotEntityRefs refs={pilotRefs ?? []} />
+            <PilotEntityRefs
+              refs={pilotRefs ?? []}
+              canEdit={canEdit}
+              onConditionChange={(refId, condition) => handleUpdateEntityRef(refId, { condition })}
+            />
           </div>
         </div>
       </DisplayCard>

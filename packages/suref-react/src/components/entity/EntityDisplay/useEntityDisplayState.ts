@@ -15,6 +15,7 @@ import { calculateBackgroundColor } from '../entityDisplayHelpers'
 import { getEntityFontSizes, getEntitySpacing } from './entityDisplayTypes'
 import type {
   EntityDisplayState,
+  EntityHideConfig,
   ClassAbilitiesRenderer,
   PatternOverrideData,
 } from './entityDisplayTypes'
@@ -38,18 +39,12 @@ export type EntityDisplayStateInput = {
   headerColor?: string
   dimHeader: boolean
   disabled: boolean
-  hideActions: boolean
-  hidePatterns: boolean
-  hideDamagedEffect: boolean
-  hideChoices: boolean
+  hide?: EntityHideConfig
   listing: boolean
   damaged?: boolean
   label?: string
   classAbilitiesRenderer?: ClassAbilitiesRenderer
   patternOverride?: PatternOverrideData
-  hideStats?: boolean
-  hideContent?: boolean
-  hideRollTable?: boolean
 }
 
 export function useEntityDisplayState({
@@ -59,19 +54,22 @@ export function useEntityDisplayState({
   headerColor,
   dimHeader,
   disabled,
-  hideActions,
-  hidePatterns,
-  hideDamagedEffect,
-  hideChoices,
+  hide,
   listing,
   damaged = false,
   label,
   classAbilitiesRenderer,
   patternOverride,
-  hideStats = false,
-  hideContent = false,
-  hideRollTable = false,
 }: EntityDisplayStateInput): EntityDisplayState {
+  const hideActions = hide?.actions ?? false
+  const hidePatterns = hide?.patterns ?? false
+  const hideDamagedEffect = hide?.damagedEffect ?? false
+  const hideChoices = hide?.choices ?? false
+  const hideStats = hide?.stats ?? false
+  const hideContent = hide?.content ?? false
+  const hideRollTable = hide?.rollTable ?? false
+  const hideFooter = hide?.footer ?? false
+
   const title = patternOverride
     ? `\u201C${patternOverride.name}\u201D`
     : !('name' in data)
@@ -132,10 +130,16 @@ export function useEntityDisplayState({
     opacity,
     shouldShowExtraContent,
     listing,
-    hideActions,
-    hidePatterns,
-    hideDamagedEffect,
-    hideChoices,
+    hide: {
+      actions: hideActions,
+      patterns: hidePatterns,
+      damagedEffect: hideDamagedEffect,
+      choices: hideChoices,
+      stats: hideStats,
+      content: hideContent,
+      rollTable: hideRollTable,
+      footer: hideFooter,
+    },
     damaged,
     disabled,
     chassisAbilities,
@@ -148,8 +152,5 @@ export function useEntityDisplayState({
     label,
     classAbilitiesRenderer,
     patternOverride,
-    hideStats,
-    hideContent,
-    hideRollTable,
   }
 }

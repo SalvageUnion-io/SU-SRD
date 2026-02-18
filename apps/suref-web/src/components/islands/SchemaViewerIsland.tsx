@@ -129,7 +129,12 @@ export function SchemaViewerIsland({
                 className="relative block transition-all duration-200 md:hover:z-10 md:hover:scale-[1.02] md:hover:-translate-y-0.5 md:hover:shadow-lg"
               >
                 <Suspense fallback={<EntityCardSkeleton compact />}>
-                  <EntityDisplay hideActions hideChoices data={item} compact label={tree} />
+                  <EntityDisplay
+                    hide={{ actions: true, choices: true }}
+                    data={item}
+                    compact
+                    label={tree}
+                  />
                 </Suspense>
               </a>
             )

@@ -48,6 +48,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '../../../../components/ui/dialog'
+import { useRealtimeSubscription } from '../../../../hooks/useRealtimeSubscription'
+import { useActivityFeed } from '../../../../hooks/useActivityFeed'
+import { gameKeys } from '../../../../hooks/useGames'
 import type { CampaignMemberRow, CampaignRow, PilotRow } from '../../../../types/common'
 
 export const Route = createFileRoute('/_authenticated/games/$gameId/')({
@@ -59,6 +62,15 @@ function GameShowPage() {
   const user = useAuthStore((s) => s.user)
   const { data: game, isLoading: gameLoading } = useGame(gameId)
   const { data: members, isLoading: membersLoading } = useGameMembers(gameId)
+
+  // Activity feed: toast notifications for other users' actions
+  useActivityFeed(user?.id)
+
+  // Realtime: sync campaign members and game data across clients
+  useRealtimeSubscription('campaign_members', `campaign_id=eq.${gameId}`, [
+    gameKeys.members(gameId),
+  ])
+  useRealtimeSubscription('campaigns', `id=eq.${gameId}`, [gameKeys.detail(gameId)])
 
   if (gameLoading || membersLoading) return <PageSkeleton />
   if (!game) return <NotFoundState message="Game not found." />

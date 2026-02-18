@@ -57,7 +57,13 @@ function GrantedEntityListing({ entity }: { entity: SURefEntity }) {
 
   return (
     <>
-      <EntityDisplay hideActions data={entity} compact listing controls={[detailModal.control]} />
+      <EntityDisplay
+        hide={{ actions: true }}
+        data={entity}
+        compact
+        listing
+        controls={[detailModal.control]}
+      />
       {detailModal.modal}
     </>
   )

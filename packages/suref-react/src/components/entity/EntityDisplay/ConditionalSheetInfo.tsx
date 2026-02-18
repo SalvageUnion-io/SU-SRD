@@ -2,10 +2,10 @@ import type { ReactNode } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { SheetDisplay } from '../../shared/SheetDisplay'
 import { useParseTraitReferences } from '../../../utils/parseTraitReferences'
-import { Text } from '../../base/Text'
 import { borderColorFromHeaderBg } from '../entityDisplayHelpers'
 import { cn } from '../../../utils/cn'
 import type { getEntityFontSizes } from './entityDisplayTypes'
+import { SectionSeparator } from './SectionSeparator'
 
 type ConditionalSheetInfoProps = {
   /** Property name to check in data (for backwards compatibility) */
@@ -62,14 +62,7 @@ export function ConditionalSheetInfo({
   if (propertyName === 'damagedEffect') {
     return (
       <div>
-        {label && (
-          <Text
-            as="span"
-            className={cn('block font-bold leading-relaxed text-su-black', fontSize.lg)}
-          >
-            {label}
-          </Text>
-        )}
+        {label && <SectionSeparator label={label} fontSize="text-sm" />}
         <div
           className={cn(
             'mb-2 break-words font-medium leading-relaxed whitespace-normal text-su-black',

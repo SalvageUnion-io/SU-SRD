@@ -201,6 +201,39 @@ export async function deleteCargoItem(cargoId: string): Promise<void> {
   if (error) handleSupabaseError(error)
 }
 
+export async function upgradeTechLevel(crawlerId: string): Promise<CrawlerRow> {
+  // Fetch current crawler to get tech_level and crawler_ref
+  const crawler = await getCrawlerById(crawlerId)
+  const currentTL = SalvageUnionReference.CrawlerTechLevels.find(
+    (tl) => tl.techLevel === crawler.tech_level
+  )
+  if (!currentTL?.upgradeCost) throw new Error('Crawler is at maximum tech level')
+  if (crawler.upgrade_pool < currentTL.upgradeCost) throw new Error('Insufficient upgrade pool')
+
+  const newTL = crawler.tech_level + 1
+  const spBonus = crawler.crawler_ref ? getMaxSpBonus(crawler.crawler_ref) : 0
+  const nextTLData = SalvageUnionReference.CrawlerTechLevels.find((tl) => tl.techLevel === newTL)
+  if (!nextTLData) throw new Error('Invalid tech level')
+
+  const newMaxSp = nextTLData.structurePoints + spBonus
+
+  const { data, error } = await supabase
+    .from('crawlers')
+    .update({
+      tech_level: newTL,
+      upgrade_pool: 0,
+      max_sp: newMaxSp,
+      current_sp: Math.min(crawler.current_sp, newMaxSp),
+      upkeep: nextTLData.upkeepCost,
+    })
+    .eq('id', crawlerId)
+    .select()
+    .single()
+
+  if (error) handleSupabaseError(error)
+  return data!
+}
+
 export async function updateCrawlerWeapon(
   crawlerId: string,
   userId: string,

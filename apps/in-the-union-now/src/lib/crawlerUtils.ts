@@ -13,7 +13,7 @@ type BayNpcTextField = Exclude<keyof BayNpcData, 'damaged' | 'hp'>
 /** Choice field names mapped to BayNpcData keys */
 const CHOICE_NAME_TO_FIELD: Record<string, BayNpcTextField> = {
   Name: 'name',
-  Background: 'background',
+  Description: 'description',
   Motto: 'motto',
   Keepsake: 'keepsake',
   'A.I. Personality': 'personality',

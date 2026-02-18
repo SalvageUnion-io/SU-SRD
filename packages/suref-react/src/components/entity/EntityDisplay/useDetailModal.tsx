@@ -63,10 +63,7 @@ export function useDetailModal(
                   listing={false}
                   dimHeader={false}
                   disabled={false}
-                  hideActions={false}
-                  hidePatterns={!!options?.patternOverride}
-                  hideDamagedEffect={false}
-                  hideChoices={false}
+                  hide={options?.patternOverride ? { patterns: true } : undefined}
                   patternOverride={options?.patternOverride}
                   controls={options?.modalControls}
                   label={

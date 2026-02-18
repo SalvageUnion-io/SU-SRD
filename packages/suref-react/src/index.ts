@@ -1,6 +1,10 @@
 // Types
 export type { DataValue } from './types/common'
-export type { ClassAbilitiesRenderer } from './components/entity/EntityDisplay/entityDisplayTypes'
+export type {
+  ClassAbilitiesRenderer,
+  NpcConfig,
+  EntityHideConfig,
+} from './components/entity/EntityDisplay/entityDisplayTypes'
 export type { EntityControl } from './components/entity/EntityDisplay/entityControlTypes'
 
 // Base typography

@@ -2,7 +2,6 @@ import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
 import { getChassisAbilities, getAssetUrl } from 'salvageunion-reference'
 import {
   DisplayCard,
-  EntityDisplay,
   StatDisplay,
   Text,
   ValueDisplay,
@@ -10,7 +9,6 @@ import {
   EntityChassisAbilitiesContent,
   getEntitySpacing,
   deleteControl,
-  useDetailModal,
 } from 'suref-react'
 import { Eye, EyeOff, Save, Trash2, Copy, Crosshair } from 'lucide-react'
 import { Button } from '../ui/button'
@@ -33,6 +31,7 @@ import {
 import type { SURefObjectPattern } from 'salvageunion-reference'
 import type { CreatePatternInput } from '../../types/common'
 import type { SaveStatus } from '../../hooks/useSaveStatus'
+import { EntityListingItem } from '../shared/EntityListingItem'
 import { SheetFooter } from '../shared/SheetFooter'
 import { actionButtonClasses } from '../shared/actionButtonClasses'
 import { TAG_BUTTON, TAG_BUTTON_SM } from '../shared/tagButtonClasses'
@@ -558,11 +557,10 @@ function ItemSlotSection({
       />
       <div className={compact ? 'mt-1.5 space-y-1.5' : 'mt-2 space-y-2'}>
         {items.map((item) => (
-          <ItemSlotListing
+          <EntityListingItem
             key={item.sort_order}
-            item={item}
-            readOnly={readOnly}
-            onRemove={onRemove}
+            entity={item.entity}
+            controls={readOnly ? undefined : [deleteControl(() => onRemove(item.sort_order))]}
           />
         ))}
         {!readOnly && hasChassis && slotsUsed < slotsTotal && (
@@ -570,28 +568,6 @@ function ItemSlotSection({
         )}
       </div>
     </section>
-  )
-}
-
-function ItemSlotListing({
-  item,
-  readOnly,
-  onRemove,
-}: {
-  item: ResolvedItem
-  readOnly?: boolean
-  onRemove: (sortOrder: number) => void
-}) {
-  const detailModal = useDetailModal(item.entity)
-  const controls = readOnly
-    ? [detailModal.control]
-    : [deleteControl(() => onRemove(item.sort_order)), detailModal.control]
-
-  return (
-    <>
-      <EntityDisplay data={item.entity} listing compact controls={controls} />
-      {detailModal.modal}
-    </>
   )
 }
 
@@ -624,7 +600,7 @@ function PatternNameInput({
       <span
         ref={measureRef}
         aria-hidden
-        className={`pointer-events-none invisible absolute whitespace-pre font-mono ${fontClass} font-bold uppercase leading-none`}
+        className={`pointer-events-none invisible absolute whitespace-pre font-mono ${fontClass} font-bold uppercase leading-none tracking-tight`}
       >
         {value || placeholder}
       </span>
@@ -642,7 +618,7 @@ function PatternNameInput({
           placeholder={placeholder}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className={`border-none bg-transparent p-0 font-mono ${fontClass} font-bold uppercase leading-none text-su-white outline-none placeholder:normal-case placeholder:text-su-white/50`}
+          className={`border-none bg-transparent p-0 font-mono ${fontClass} font-bold uppercase leading-none tracking-tight text-su-white outline-none placeholder:normal-case placeholder:text-su-white/50`}
           style={{ width: inputWidth || undefined }}
         />
         {hasValue && <span className="select-none">&rdquo;</span>}

@@ -1,10 +1,9 @@
 import { useState, useCallback } from 'react'
-import type { ReactNode } from 'react'
 import { SalvageUnionReference, getNpc } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
 import { SectionSeparator, EntityDisplay, Text, DetailIcon } from 'suref-react'
 import type { EntityControl } from 'suref-react'
-import { Flame } from 'lucide-react'
+import { ArrowLeftRight, Flame } from 'lucide-react'
 import { useAutosave } from '../../hooks/useAutosave'
 import { LabeledInput } from '../shared/LabeledInput'
 import { rollOnTable } from '../../lib/pilotUtils'
@@ -13,7 +12,7 @@ import { BayDetailOverlay } from './BayDetailOverlay'
 import type { BayNpcData, CrawlerRow, CrawlerUpdate } from '../../types/common'
 
 /** String-only keys from BayNpcData (excludes `damaged` boolean) */
-type BayNpcTextField = 'name' | 'background' | 'motto' | 'keepsake' | 'personality'
+type BayNpcTextField = 'name' | 'description' | 'motto' | 'keepsake' | 'personality'
 
 /** Choices we render as fields */
 const EDITABLE_CHOICE_TYPES = new Set(['freeform', 'permanent'])
@@ -31,19 +30,19 @@ type CrawlerBaysSectionProps = {
   crawler: CrawlerRow
   readOnly: boolean
   onSave: (input: Partial<CrawlerUpdate>) => void
-  /** Render function for Armament Bay content — receives bay damage state */
-  armamentContent?: (bayDamaged: boolean) => ReactNode
+  /** EntityControl[] for armament bay weapon slot buttons */
+  armamentControls?: EntityControl[]
   /** Callback to open the scrap conversion dialog (shown inside Trading Bay) */
   onOpenScrapConversion?: () => void
   /** Render function for Storage Bay content — receives bay damage state */
-  storageContent?: (bayDamaged: boolean) => ReactNode
+  storageContent?: (bayDamaged: boolean) => React.ReactNode
 }
 
 export function CrawlerBaysSection({
   crawler,
   readOnly,
   onSave,
-  armamentContent,
+  armamentControls,
   onOpenScrapConversion,
   storageContent,
 }: CrawlerBaysSectionProps) {
@@ -108,12 +107,12 @@ export function CrawlerBaysSection({
     }))
   }, [])
 
-  const renderBay = (bay: (typeof allBays)[number], skipAfterContent = false) => {
+  const renderBay = (bay: (typeof allBays)[number]) => {
     const npcData = localBayNpcs[bay.id] ?? {}
     const isDamaged = !!npcData.damaged
     const bayEntity = bay as unknown as SURefEntity
     const editableChoices = [...(bay.npc?.choices ?? [])]
-      .filter((c) => EDITABLE_CHOICE_TYPES.has(c.choiceType ?? 'freeform'))
+      .filter((c) => EDITABLE_CHOICE_TYPES.has(c.choiceType ?? 'freeform') && c.name !== 'Name')
       .sort((a, b) => {
         const aIdx = CHOICE_ORDER.indexOf(a.name)
         const bIdx = CHOICE_ORDER.indexOf(b.name)
@@ -124,6 +123,41 @@ export function CrawlerBaysSection({
     const maxHp = npc?.hitPoints ?? 0
     const currentHp = npcData.hp ?? maxHp
     const npcIsDamaged = isDamaged || currentHp === 0
+
+    const isArmamentBay = bay.name === 'Armament Bay'
+    const isTradingBay = bay.name === 'Trading Bay'
+    const isStorageBay = bay.name === 'Storage Bay'
+
+    // Build controls: damage toggle + bay-specific controls + detail button
+    const baySpecificControls: EntityControl[] = []
+
+    if (isArmamentBay && armamentControls) {
+      if (isDamaged) {
+        // When bay is damaged, show greyed-out no-op controls without hoverContent
+        baySpecificControls.push(
+          ...armamentControls.map((c) => ({
+            ...c,
+            key: `${c.key}-disabled`,
+            onClick: () => {},
+            hoverContent: undefined,
+            className: 'opacity-30 cursor-not-allowed',
+          }))
+        )
+      } else {
+        baySpecificControls.push(...armamentControls)
+      }
+    }
+
+    if (isTradingBay && !readOnly && onOpenScrapConversion) {
+      baySpecificControls.push({
+        key: 'trade-scrap',
+        icon: ArrowLeftRight,
+        onClick: isDamaged ? () => {} : onOpenScrapConversion,
+        ariaLabel: 'Trade Scrap',
+        variant: 'ghost',
+        className: isDamaged ? 'opacity-30 cursor-not-allowed' : undefined,
+      })
+    }
 
     const controls: EntityControl[] = [
       ...(!readOnly
@@ -138,6 +172,7 @@ export function CrawlerBaysSection({
             },
           ]
         : []),
+      ...baySpecificControls,
       {
         key: 'show-content',
         icon: DetailIcon,
@@ -179,10 +214,6 @@ export function CrawlerBaysSection({
         </div>
       ) : undefined
 
-    const isArmamentBay = bay.name === 'Armament Bay'
-    const isTradingBay = bay.name === 'Trading Bay'
-    const isStorageBay = bay.name === 'Storage Bay'
-
     const hpSlot =
       maxHp > 0 ? (
         readOnly ? (
@@ -200,44 +231,29 @@ export function CrawlerBaysSection({
         )
       ) : undefined
 
-    const tradingBayContent =
-      isTradingBay && !readOnly && onOpenScrapConversion ? (
-        <button
-          type="button"
-          onClick={onOpenScrapConversion}
-          disabled={isDamaged}
-          className="w-full cursor-pointer bg-su-black px-4 py-2 transition-opacity hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          <Text variant="pseudoheader" as="span" className="text-sm text-su-white">
-            Trade Scrap
-          </Text>
-        </button>
-      ) : undefined
-
-    const afterContent = skipAfterContent
-      ? undefined
-      : isArmamentBay
-        ? armamentContent?.(isDamaged)
-        : isTradingBay
-          ? tradingBayContent
-          : undefined
-
     return (
       <div key={bay.id} className="mb-4 break-inside-avoid">
         <EntityDisplay
           data={bayEntity}
           compact
-          hideContent
-          hideDamagedEffect
-          hideRollTable
-          hideFooter
-          hideChoices={isArmamentBay}
+          hide={{
+            content: true,
+            damagedEffect: true,
+            rollTable: true,
+            footer: true,
+            choices: isArmamentBay,
+          }}
           damaged={isDamaged}
           controls={controls}
-          npcChildren={npcFieldsContent}
-          npcHpSlot={hpSlot}
-          npcDamaged={npcIsDamaged}
-          afterNpcContent={afterContent}
+          npcConfig={{
+            children: npcFieldsContent,
+            hpSlot: hpSlot,
+            damaged: npcIsDamaged,
+            name: npcData.name ?? '',
+            onNameChange: (name) => handleFieldChange(bay.id, 'name', name),
+            onNameBlur: flush,
+            readOnly: readOnly,
+          }}
           rightContent={isStorageBay && storageContent ? storageContent(isDamaged) : undefined}
           damageOverlayText={isDamaged ? bay.damagedEffect : undefined}
         />

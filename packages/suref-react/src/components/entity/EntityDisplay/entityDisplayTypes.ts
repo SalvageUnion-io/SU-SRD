@@ -53,6 +53,30 @@ export const getEntityFontSizes = (compact: boolean) => ({
   lg: compact ? 'text-base' : 'text-lg',
 })
 
+/** Grouped NPC configuration props */
+export type NpcConfig = {
+  children?: ReactNode
+  hpSlot?: ReactNode
+  afterContent?: ReactNode
+  damaged?: boolean
+  name?: string
+  onNameChange?: (name: string) => void
+  onNameBlur?: () => void
+  readOnly?: boolean
+}
+
+/** Grouped visibility toggle props */
+export type EntityHideConfig = {
+  actions?: boolean
+  patterns?: boolean
+  damagedEffect?: boolean
+  choices?: boolean
+  stats?: boolean
+  content?: boolean
+  rollTable?: boolean
+  footer?: boolean
+}
+
 /** Pattern override data for patterned chassis display */
 export type PatternOverrideData = {
   name: string
@@ -61,66 +85,29 @@ export type PatternOverrideData = {
 }
 
 export type EntityDisplayState = {
-  /** Entity data - only SURefEntity (not SURefMetaAction or SURefObjectSystemModule) */
   data: SURefEntity
-  /** Schema name */
   schemaName: SURefEnumSchemaName
-  /** Compact mode flag */
   compact: boolean
-  /** Computed entity name */
   title: string
-  /** Computed tech level (can be number, 'B' for Bio, 'N' for N tech level, or undefined) */
   techLevel: number | 'B' | 'N' | undefined
-  /** Computed header background color */
   headerBg: string
-  /** Raw CSS color for header/footer background (e.g. guide's guideColor hex) */
   headerBgColor?: string
-  /** Spacing values */
   spacing: ReturnType<typeof getEntitySpacing>
-  /** Font size values */
   fontSize: ReturnType<typeof getEntityFontSizes>
-  /** Computed opacity values */
   opacity: { header: number; content: number }
-  /** Whether to show extra content sections */
   shouldShowExtraContent: boolean
-  /** Whether only the header is shown (click opens detail modal) */
   listing: boolean
-  /** Whether to hide actions */
-  hideActions: boolean
-  /** Whether to hide chassis patterns */
-  hidePatterns: boolean
-  /** Whether to hide the damaged effect section */
-  hideDamagedEffect: boolean
-  /** Whether to hide choices */
-  hideChoices: boolean
-  /** Whether the entity is damaged */
+  hide: Required<EntityHideConfig>
   damaged: boolean
-  /** Whether the component is disabled */
   disabled: boolean
-  /** Array of chassis abilities (or undefined) */
   chassisAbilities?: SURefMetaAction[]
-  /** Array of effects (or undefined) */
   effects?: ReturnType<typeof getEffects>
-  /** Table data (or undefined) */
   table?: SURefObjectTable
-  /** Asset URL string (or undefined) */
   assetUrl?: string
-  /** Filtered actions excluding entity name (or undefined) */
   actionsToDisplay?: SURefMetaAction[]
-  /** Action with matching name for content replacement (or undefined) */
   matchingAction?: SURefMetaAction
-  /** Source book for source-based styling */
   source?: SURefEnumSource
-  /** Optional label rendered above the card */
   label?: string
-  /** Optional renderer for class abilities (provided by consuming app) */
   classAbilitiesRenderer?: ClassAbilitiesRenderer
-  /** Optional pattern override for patterned chassis display */
   patternOverride?: PatternOverrideData
-  /** Whether to hide the stats/right content in the header */
-  hideStats: boolean
-  /** Whether to hide the entity's own content blocks (description) */
-  hideContent: boolean
-  /** Whether to hide roll tables */
-  hideRollTable: boolean
 }

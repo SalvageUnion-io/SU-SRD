@@ -57,7 +57,7 @@ export const CustomHeaderColor: Story = () => (
 
 export const HiddenActions: Story = () => (
   <div className="w-[600px]">
-    <EntityDisplay data={system} hideActions />
+    <EntityDisplay data={system} hide={{ actions: true }} />
   </div>
 )
 

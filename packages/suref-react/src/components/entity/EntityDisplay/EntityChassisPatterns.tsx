@@ -52,8 +52,7 @@ function PatternListing({
         data={chassisEntity}
         listing
         compact
-        hideActions
-        hidePatterns
+        hide={{ actions: true, patterns: true }}
         patternOverride={patternOverride}
         controls={[detailModal.control]}
       />
