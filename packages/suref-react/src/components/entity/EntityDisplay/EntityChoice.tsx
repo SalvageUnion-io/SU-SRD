@@ -3,7 +3,7 @@ import { Text } from '../../base/Text'
 import { SheetInput } from '../../shared/SheetInput'
 import { EntitySubheader } from './EntitySubheader'
 import { EntityListDisplay } from './EntityListDisplay'
-import { getParagraphString } from '../../../lib/contentBlockHelpers'
+import { getParagraphString } from 'salvageunion-reference'
 import { cn } from '../../../utils/cn'
 import type { getEntityFontSizes, getEntitySpacing } from './entityDisplayTypes'
 

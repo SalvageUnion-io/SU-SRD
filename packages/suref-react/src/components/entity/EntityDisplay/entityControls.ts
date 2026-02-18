@@ -1,4 +1,4 @@
-import { Circle, CircleCheck, Pencil, Plus, Trash2 } from 'lucide-react'
+import { Circle, CircleCheck, Plus, Trash2 } from 'lucide-react'
 import { DetailIcon } from './DetailIcon'
 import type { EntityControl } from './entityControlTypes'
 
@@ -30,16 +30,6 @@ export function deleteControl(onClick: () => void): EntityControl {
     onClick,
     ariaLabel: 'Delete',
     variant: 'danger',
-  }
-}
-
-export function editControl(onClick: () => void): EntityControl {
-  return {
-    key: 'edit',
-    icon: Pencil,
-    onClick,
-    ariaLabel: 'Edit',
-    variant: 'ghost',
   }
 }
 

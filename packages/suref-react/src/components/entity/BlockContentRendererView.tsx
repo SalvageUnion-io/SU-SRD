@@ -1,7 +1,7 @@
 import type { SURefObjectContentBlock } from 'salvageunion-reference'
 import { Text } from '../base/Text'
 import { useParseTraitReferences } from '../../utils/parseTraitReferences'
-import { parseContentBlockString } from '../../lib/contentBlockHelpers'
+import { parseContentBlockString } from 'salvageunion-reference'
 import { DataValueDisplayView } from './DataValueDisplayView'
 import { borderColorFromHeaderBg } from './entityDisplayHelpers'
 import { cn } from '../../utils/cn'

@@ -1,9 +1,6 @@
 // Types
 export type { DataValue } from './types/common'
-export type {
-  PatternOverrideData,
-  EntityHideConfig,
-} from './components/entity/EntityDisplay/entityDisplayTypes'
+export type { PatternOverrideData } from './components/entity/EntityDisplay/entityDisplayTypes'
 export type { EntityControl } from './components/entity/EntityDisplay/entityControlTypes'
 
 // Base typography
@@ -14,15 +11,11 @@ export { Toaster } from './components/ui/toaster'
 
 // Entity display system
 export { EntityDisplay } from './components/entity/EntityDisplay/index'
-export { EntityNpcDisplay } from './components/entity/EntityDisplay/EntityNpcDisplay'
 export { EntityDisplayTooltip } from './components/entity/EntityDisplayTooltip'
 export { SectionSeparator } from './components/entity/EntityDisplay/SectionSeparator'
 export { EntityChassisAbilitiesContent } from './components/entity/EntityDisplay/EntityChassisAbilitiesContent'
 export { NestedActionDisplay } from './components/entity/NestedActionDisplay'
-export {
-  getEntitySpacing,
-  getEntityFontSizes,
-} from './components/entity/EntityDisplay/entityDisplayTypes'
+export { getEntitySpacing } from './components/entity/EntityDisplay/entityDisplayTypes'
 
 // Entity controls
 export {
@@ -63,6 +56,3 @@ export {
 export { extractEntityDetails, getActivationCurrency } from './lib/entityDataExtraction'
 export { DataValueDisplayView } from './components/entity/DataValueDisplayView'
 export { techLevelColors } from './components/entity/EntityDisplay/useEntityDisplayState'
-
-// Utilities
-export { cn } from './utils/cn'

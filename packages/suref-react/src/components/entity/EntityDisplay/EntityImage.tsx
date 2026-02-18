@@ -1,5 +1,4 @@
 import { useCallback, useState } from 'react'
-import { logger } from '../../../lib/logger'
 
 type EntityImageProps = {
   title: string
@@ -41,7 +40,7 @@ export function EntityImage({ title, compact, assetUrl }: EntityImageProps) {
         decoding="async"
         onLoad={() => setLoaded(true)}
         onError={() => {
-          logger.error(`Failed to load image: ${assetUrl}`)
+          console.error(`Failed to load image: ${assetUrl}`)
           setShowImage(false)
         }}
       />

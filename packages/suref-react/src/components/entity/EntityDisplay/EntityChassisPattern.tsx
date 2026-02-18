@@ -4,7 +4,7 @@ import { SheetDisplay } from '../../shared/SheetDisplay'
 import { EntityDisplay } from './index'
 import { Text } from '../../base/Text'
 import { SectionSeparator } from './SectionSeparator'
-import { getParagraphString } from '../../../lib/contentBlockHelpers'
+import { getParagraphString } from 'salvageunion-reference'
 
 type EntityChassisPatternProps = {
   pattern: SURefChassis['patterns'][0]

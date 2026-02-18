@@ -1,7 +1,7 @@
 import { useState, useEffect, type ReactNode } from 'react'
 import { cn } from '../../utils/cn'
 import { Text } from '../base/Text'
-import { DEBOUNCE_TIMINGS } from '../../constants/gameRules'
+const AUTO_SAVE_DELAY = 300
 
 type SheetInputProps = {
   label?: string
@@ -49,7 +49,7 @@ export function SheetInput({
       if (localValue !== value && onChange) {
         onChange(localValue)
       }
-    }, DEBOUNCE_TIMINGS.autoSave)
+    }, AUTO_SAVE_DELAY)
     return () => clearTimeout(timer)
   }, [localValue, value, onChange])
 

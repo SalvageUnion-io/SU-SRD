@@ -7,8 +7,8 @@ import {
   DataValueDisplayView,
   BlockContentRendererView,
   useDetailModal,
-  cn,
 } from 'suref-react'
+import { cn } from '../../lib/utils'
 import type { EntityControl } from 'suref-react'
 import type { ActionDisplayData } from '../../lib/pilotActionUtils'
 
