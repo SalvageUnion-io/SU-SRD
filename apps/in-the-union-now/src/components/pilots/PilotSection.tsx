@@ -4,6 +4,7 @@ import { Plus } from 'lucide-react'
 import { SectionSeparator } from 'suref-react'
 import { useAuthStore } from '../../stores/authStore'
 import { usePilots, usePilotAbilityCounts } from '../../hooks/usePilots'
+import { useMechMap } from '../../hooks/useMechMap'
 import { Skeleton } from '../ui/skeleton'
 import { EMPTY_SLOT_CLASSES } from '../patterns/emptySlotClasses'
 import { PlayerPilotDisplay } from './PlayerPilotDisplay'
@@ -14,6 +15,12 @@ export function PilotSection() {
 
   const pilotIds = useMemo(() => pilots?.map((p) => p.id) ?? [], [pilots])
   const { data: abilityCounts } = usePilotAbilityCounts(pilotIds)
+
+  const mechIds = useMemo(
+    () => (pilots ?? []).map((p) => p.mech_id).filter((id): id is string => !!id),
+    [pilots]
+  )
+  const { mechMap } = useMechMap(mechIds)
 
   return (
     <div className="flex flex-col gap-3">
@@ -32,6 +39,7 @@ export function PilotSection() {
               pilot={pilot}
               compact={false}
               abilityCount={abilityCounts?.[pilot.id] ?? 0}
+              mech={pilot.mech_id ? (mechMap.get(pilot.mech_id) ?? null) : null}
             />
           ))}
           <NewPilotSlot />

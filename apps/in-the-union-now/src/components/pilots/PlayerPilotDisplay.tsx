@@ -11,7 +11,6 @@ import {
 import type { ReferenceEntityControl, DisplayCardTab } from 'suref-react'
 import { Eye, EyeOff, Trash2 } from 'lucide-react'
 import { findChassisById, findClassName } from '../../lib/entityHelpers'
-import { useMech } from '../../hooks/useMechs'
 import { StatControl } from '../shared/StatControl'
 import { SheetFooter } from '../shared/SheetFooter'
 import { actionButtonClasses } from '../shared/actionButtonClasses'
@@ -74,7 +73,7 @@ export function PlayerPilotDisplay({
   compact = true,
   controls: controlsProp,
   abilityCount: abilityCountProp,
-  mech: mechProp,
+  mech,
   pilotClass,
   pilotRefs,
   mechRefs,
@@ -88,12 +87,6 @@ export function PlayerPilotDisplay({
 }: PlayerPilotDisplayProps) {
   const navigate = useNavigate()
   const [showDelete, setShowDelete] = useState(false)
-
-  // Listing mode: fetch mech for chassis display if not provided
-  const { data: fetchedMech } = useMech(
-    listing && !mechProp ? (pilot.mech_id ?? undefined) : undefined
-  )
-  const mech = mechProp ?? fetchedMech
 
   const pilotClassName = pilotClassNameProp ?? findClassName(pilot.class_ref)
 
@@ -113,61 +106,98 @@ export function PlayerPilotDisplay({
   const defaultControls = useMemo(() => [navigateControl(handleNavigate)], [handleNavigate])
   const controls = controlsProp ?? (listing ? defaultControls : undefined)
 
-  // --- LISTING MODE ---
-  if (listing) {
-    const badgeTextClass = compact
-      ? 'text-xs font-normal uppercase'
-      : 'text-base font-semibold uppercase'
-
-    const headerContent = (
-      <CardHeader
-        title={pilot.callsign}
-        subtitle={
-          <div className="flex flex-wrap items-center gap-1">
-            <ValueDisplay label="The" value={pilotClassName} compact={compact} />
-            {compact && abilityCountProp !== undefined && (
-              <ValueDisplay label="Abilities" value={abilityCountProp} compact={compact} />
-            )}
-            {compact && chassisName && (
-              <span className="inline-flex shrink-0 cursor-default whitespace-nowrap border border-su-black">
-                <Text
-                  variant="pseudoheader"
-                  as="span"
-                  className={badgeTextClass}
-                  style={{ backgroundColor: 'rgb(122, 151, 138)' }}
-                >
-                  {chassisName}
-                </Text>
-                {patternName && (
-                  <Text variant="pseudoheader" as="span" className={badgeTextClass}>
-                    {patternName}
-                  </Text>
-                )}
-              </span>
-            )}
-          </div>
-        }
-        compact={compact}
-      />
-    )
-
-    return (
-      <DisplayCard
-        headerBg="bg-su-orange"
-        headerContent={headerContent}
-        mode="listing"
-        controls={controls}
-      />
-    )
-  }
-
-  // --- SHEET MODE ---
-
+  // --- Mode mapping ---
+  const mode = listing ? 'listing' : compact ? 'compact' : ('full' as const)
   const canEdit = editConfig?.canEdit ?? false
-  const badgeTextClass = compact
-    ? 'text-sm font-semibold uppercase'
-    : 'text-base font-semibold uppercase'
 
+  const badgeTextClass =
+    listing && compact ? 'text-xs font-normal uppercase' : 'text-sm font-semibold uppercase'
+
+  // --- Chassis/pattern badge (shared between listing and sheet) ---
+  const chassisBadge = chassisName ? (
+    <span className="inline-flex shrink-0 cursor-default whitespace-nowrap border border-su-black">
+      <Text
+        variant="pseudoheader"
+        as="span"
+        className={badgeTextClass}
+        style={{ backgroundColor: 'rgb(122, 151, 138)' }}
+      >
+        {chassisName}
+      </Text>
+      {patternName && (
+        <Text variant="pseudoheader" as="span" className={badgeTextClass}>
+          {patternName}
+        </Text>
+      )}
+      {!listing && (
+        <button
+          type="button"
+          className={`cursor-pointer px-1 font-mono ${compact ? 'text-sm' : 'text-base'} font-semibold uppercase leading-none text-su-white transition-opacity hover:opacity-80`}
+          style={{ backgroundColor: 'rgb(122, 151, 138)' }}
+        >
+          Load in
+        </button>
+      )}
+    </span>
+  ) : null
+
+  // --- Header content ---
+  const headerContent = listing ? (
+    <CardHeader
+      title={pilot.callsign}
+      subtitle={
+        <div className="flex flex-wrap items-center gap-1">
+          <ValueDisplay label="The" value={pilotClassName} compact={compact} />
+          {compact && abilityCountProp !== undefined && (
+            <ValueDisplay label="Abilities" value={abilityCountProp} compact={compact} />
+          )}
+          {compact && chassisBadge}
+        </div>
+      }
+      compact={compact}
+    />
+  ) : (
+    <>
+      <div className="flex min-w-0 flex-col justify-center gap-0.5">
+        <Text variant="pseudoheader" as="span" className={compact ? 'text-xl' : 'text-[1.75rem]'}>
+          {pilot.callsign}
+        </Text>
+        <div className="flex flex-wrap items-center gap-1">
+          <ValueDisplay label="The" value={pilotClassName} compact={compact} />
+          {compact && abilityCountProp !== undefined && (
+            <ValueDisplay label="Abilities" value={abilityCountProp} compact={compact} />
+          )}
+          {compact && chassisBadge}
+        </div>
+      </div>
+      {editConfig && (
+        <div className="flex shrink-0 items-center gap-1">
+          <StatControl
+            label="HP"
+            value={pilot.hp}
+            max={pilot.max_hp}
+            canEdit={canEdit}
+            onChange={(v) => editConfig.onStatChange('hp', v)}
+          />
+          <StatControl
+            label="AP"
+            value={pilot.ap}
+            max={pilot.max_ap}
+            canEdit={canEdit}
+            onChange={(v) => editConfig.onStatChange('ap', v)}
+          />
+          <StatControl
+            label="TP"
+            value={pilot.tp}
+            canEdit={canEdit}
+            onChange={(v) => editConfig.onStatChange('tp', v)}
+          />
+        </div>
+      )}
+    </>
+  )
+
+  // --- Tabs (only used in non-listing mode, DisplayCard hides in listing) ---
   const tabs: DisplayCardTab[] = [
     {
       key: 'abilities',
@@ -218,109 +248,47 @@ export function PlayerPilotDisplay({
     },
   ]
 
+  // --- Footer (only used in non-listing mode, DisplayCard hides in listing) ---
+  const footerContent =
+    canEdit && editConfig ? (
+      <SheetFooter
+        saveStatusText={editConfig.saveStatusText}
+        leftContent={
+          <button
+            type="button"
+            onClick={editConfig.onToggleVisibility}
+            className={`flex cursor-pointer items-center gap-1.5 text-xs font-semibold transition-colors hover:text-su-white ${pilot.visible ? 'text-su-white' : 'text-su-white/70'}`}
+            title={pilot.visible ? 'Pilot is visible' : 'Pilot is hidden'}
+          >
+            {pilot.visible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+            <span>{pilot.visible ? 'Visible' : 'Hidden'}</span>
+          </button>
+        }
+        rightContent={
+          <button
+            type="button"
+            onClick={() => setShowDelete(true)}
+            className={actionButtonClasses('rust')}
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            Delete
+          </button>
+        }
+      />
+    ) : undefined
+
   return (
     <>
       <DisplayCard
-        stickyHeader
+        stickyHeader={!listing}
         headerBg={cardColorProp ?? 'bg-su-orange'}
         bodyPadding="p-0"
-        image={{ url: pilotClassAssetUrl, alt: pilot.callsign }}
+        mode={mode}
+        headerContent={headerContent}
+        image={listing ? undefined : { url: pilotClassAssetUrl, alt: pilot.callsign }}
         tabs={tabs}
-        headerContent={
-          <>
-            <div className="flex min-w-0 flex-col justify-center gap-0.5">
-              <Text
-                variant="pseudoheader"
-                as="span"
-                className={compact ? 'text-xl' : 'text-[1.75rem]'}
-              >
-                {pilot.callsign}
-              </Text>
-              <div className="flex flex-wrap items-center gap-1">
-                <ValueDisplay label="The" value={pilotClassName} compact={compact} />
-                {compact && abilityCountProp !== undefined && (
-                  <ValueDisplay label="Abilities" value={abilityCountProp} compact={compact} />
-                )}
-                {compact && chassisName && (
-                  <span className="inline-flex shrink-0 cursor-default whitespace-nowrap border border-su-black">
-                    <Text
-                      variant="pseudoheader"
-                      as="span"
-                      className={badgeTextClass}
-                      style={{ backgroundColor: 'rgb(122, 151, 138)' }}
-                    >
-                      {chassisName}
-                    </Text>
-                    {patternName && (
-                      <Text variant="pseudoheader" as="span" className={badgeTextClass}>
-                        {patternName}
-                      </Text>
-                    )}
-                    <button
-                      type="button"
-                      className={`cursor-pointer px-1 font-mono ${compact ? 'text-sm' : 'text-base'} font-semibold uppercase leading-none text-su-white transition-opacity hover:opacity-80`}
-                      style={{ backgroundColor: 'rgb(122, 151, 138)' }}
-                    >
-                      Load in
-                    </button>
-                  </span>
-                )}
-              </div>
-            </div>
-            {editConfig && (
-              <div className="flex shrink-0 items-center gap-1">
-                <StatControl
-                  label="HP"
-                  value={pilot.hp}
-                  max={pilot.max_hp}
-                  canEdit={canEdit}
-                  onChange={(v) => editConfig.onStatChange('hp', v)}
-                />
-                <StatControl
-                  label="AP"
-                  value={pilot.ap}
-                  max={pilot.max_ap}
-                  canEdit={canEdit}
-                  onChange={(v) => editConfig.onStatChange('ap', v)}
-                />
-                <StatControl
-                  label="TP"
-                  value={pilot.tp}
-                  canEdit={canEdit}
-                  onChange={(v) => editConfig.onStatChange('tp', v)}
-                />
-              </div>
-            )}
-          </>
-        }
-        footerContent={
-          canEdit && editConfig ? (
-            <SheetFooter
-              saveStatusText={editConfig.saveStatusText}
-              leftContent={
-                <button
-                  type="button"
-                  onClick={editConfig.onToggleVisibility}
-                  className={`flex cursor-pointer items-center gap-1.5 text-xs font-semibold transition-colors hover:text-su-white ${pilot.visible ? 'text-su-white' : 'text-su-white/70'}`}
-                  title={pilot.visible ? 'Pilot is visible' : 'Pilot is hidden'}
-                >
-                  {pilot.visible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                  <span>{pilot.visible ? 'Visible' : 'Hidden'}</span>
-                </button>
-              }
-              rightContent={
-                <button
-                  type="button"
-                  onClick={() => setShowDelete(true)}
-                  className={actionButtonClasses('rust')}
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                  Delete
-                </button>
-              }
-            />
-          ) : undefined
-        }
+        controls={controls}
+        footerContent={footerContent}
       >
         <div className={compact ? 'p-3' : 'p-4'}>
           <div className={compact ? 'space-y-3' : 'space-y-4'}>
