@@ -1,7 +1,7 @@
 // Types
 export type { DataValue } from './types/common'
-export type { PatternOverrideData } from './components/entity/EntityDisplay/entityDisplayTypes'
-export type { EntityControl } from './components/entity/EntityDisplay/entityControlTypes'
+export type { PatternOverrideData } from './components/referenceEntity/ReferenceEntityDisplay/referenceEntityDisplayTypes'
+export type { ReferenceEntityControl } from './components/referenceEntity/ReferenceEntityDisplay/referenceEntityControlTypes'
 
 // Base typography
 export { Text } from './components/base/Text'
@@ -10,23 +10,23 @@ export { Text } from './components/base/Text'
 export { Toaster } from './components/ui/toaster'
 
 // Entity display system
-export { EntityDisplay } from './components/entity/EntityDisplay/index'
-export { EntityDisplayTooltip } from './components/entity/EntityDisplayTooltip'
-export { SectionSeparator } from './components/entity/EntityDisplay/SectionSeparator'
-export { EntityChassisAbilitiesContent } from './components/entity/EntityDisplay/EntityChassisAbilitiesContent'
-export { NestedActionDisplay } from './components/entity/NestedActionDisplay'
-export { getEntitySpacing } from './components/entity/EntityDisplay/entityDisplayTypes'
+export { ReferenceEntityDisplay } from './components/referenceEntity/ReferenceEntityDisplay/index'
+export { ReferenceEntityDisplayTooltip } from './components/referenceEntity/ReferenceEntityDisplayTooltip'
+export { SectionSeparator } from './components/referenceEntity/ReferenceEntityDisplay/SectionSeparator'
+export { ReferenceEntityChassisAbilitiesContent } from './components/referenceEntity/ReferenceEntityDisplay/ReferenceEntityChassisAbilitiesContent'
+export { NestedActionDisplay } from './components/referenceEntity/NestedActionDisplay'
+export { getReferenceEntitySpacing } from './components/referenceEntity/ReferenceEntityDisplay/referenceEntityDisplayTypes'
 
 // Entity controls
 export {
   addControl,
   deleteControl,
   navigateControl,
-} from './components/entity/EntityDisplay/entityControls'
-export { DetailIcon } from './components/entity/EntityDisplay/DetailIcon'
-export { useDetailModal } from './components/entity/EntityDisplay/useDetailModal'
-export { useChassisPatternConfig } from './components/entity/EntityDisplay/useChassisPatternConfig'
-export { getClassSelections } from './components/entity/EntityDisplay/classSelectionUtils'
+} from './components/referenceEntity/ReferenceEntityDisplay/referenceEntityControls'
+export { DetailIcon } from './components/referenceEntity/ReferenceEntityDisplay/DetailIcon'
+export { useDetailModal } from './components/referenceEntity/ReferenceEntityDisplay/useDetailModal'
+export { useChassisPatternConfig } from './components/referenceEntity/ReferenceEntityDisplay/useChassisPatternConfig'
+export { getClassSelections } from './components/referenceEntity/ReferenceEntityDisplay/classSelectionUtils'
 
 // Shared components
 export { DisplayCard } from './components/shared/DisplayCard'
@@ -40,19 +40,22 @@ export { CardHeader } from './components/shared/CardHeader'
 export { TECH_LEVEL_STYLES, techLevelLabel } from './components/shared/techLevelStyles'
 
 // Skeletons
-export { EntityCardSkeleton } from './components/skeleton/EntityCardSkeleton'
+export { ReferenceEntityCardSkeleton } from './components/skeleton/ReferenceEntityCardSkeleton'
 
 // Guide display system
 export type {
   GuideStepsInteractiveConfig,
   GuideStepRollState,
-} from './components/entity/GuideStepsDisplay'
-export { BlockContentRendererView } from './components/entity/BlockContentRendererView'
-export { matchesFilter, enrichForFiltering } from './components/entity/guideStepsHelpers'
+} from './components/referenceEntity/GuideStepsDisplay'
+export { BlockContentRendererView } from './components/referenceEntity/BlockContentRendererView'
+export { matchesFilter, enrichForFiltering } from './components/referenceEntity/guideStepsHelpers'
 export {
   borderColorFromHeaderBg,
   calculateBackgroundColor,
-} from './components/entity/entityDisplayHelpers'
-export { extractEntityDetails, getActivationCurrency } from './lib/entityDataExtraction'
-export { DataValueDisplayView } from './components/entity/DataValueDisplayView'
-export { techLevelColors } from './components/entity/EntityDisplay/useEntityDisplayState'
+} from './components/referenceEntity/referenceEntityHelpers'
+export {
+  extractReferenceEntityDetails,
+  getActivationCurrency,
+} from './lib/referenceEntityDataExtraction'
+export { DataValueDisplayView } from './components/referenceEntity/DataValueDisplayView'
+export { techLevelColors } from './components/referenceEntity/ReferenceEntityDisplay/useReferenceEntityDisplayState'

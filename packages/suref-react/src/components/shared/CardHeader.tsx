@@ -2,12 +2,12 @@ import type { ReactNode } from 'react'
 import { cn } from '../../utils/cn'
 import { Text } from '../base/Text'
 import { ControlButtons } from './ControlButtons'
-import type { EntityControl } from '../entity/EntityDisplay/entityControlTypes'
+import type { ReferenceEntityControl } from '../referenceEntity/ReferenceEntityDisplay/referenceEntityControlTypes'
 
 type CardHeaderProps = {
   title: string | ReactNode
   subtitle?: ReactNode
-  controls?: EntityControl[]
+  controls?: ReferenceEntityControl[]
   controlSize?: 'sm' | 'default'
   leftContent?: ReactNode
   rightContent?: ReactNode

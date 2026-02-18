@@ -9,16 +9,14 @@ import {
 import type { SURefEntity, SURefMetaAction } from 'salvageunion-reference'
 import {
   DisplayCard,
-  CardHeader,
   Text,
   ValueDisplay,
   SectionSeparator,
-  EntityDisplay,
+  ReferenceEntityDisplay,
   NestedActionDisplay,
   StatDisplay,
-  navigateControl,
 } from 'suref-react'
-import type { EntityControl } from 'suref-react'
+import type { ReferenceEntityControl } from 'suref-react'
 import { ArrowUp, Crosshair, Eye, EyeOff, Plus, Trash2 } from 'lucide-react'
 import { computeCrawlerStatsFromTechLevel } from '../../../../lib/crawlerUtils'
 import {
@@ -41,8 +39,7 @@ import {
   useUpgradeTechLevel,
   useTranslateScrap,
 } from '../../../../hooks/useCrawlers'
-import { usePilotsForCrawler } from '../../../../hooks/usePilots'
-import { useMech } from '../../../../hooks/useMechs'
+import { usePilotsForCrawler, usePilotAbilityCounts } from '../../../../hooks/usePilots'
 import { useSaveStatus } from '../../../../hooks/useSaveStatus'
 import { isMediator } from '../../../../lib/gameUtils'
 import { getErrorMessage } from '../../../../lib/errors'
@@ -54,12 +51,12 @@ import { CrawlerBaysSection } from '../../../../components/games/CrawlerBaysSect
 import { CrawlerStorageSection } from '../../../../components/games/CrawlerStorageSection'
 import { ScrapTranslationDialog } from '../../../../components/games/ScrapTranslationDialog'
 import { WeaponSelectionDialog } from '../../../../components/games/WeaponSelectionDialog'
-import { findChassisById, findClassName } from '../../../../lib/entityHelpers'
+import { PlayerPilotDisplay } from '../../../../components/pilots/PlayerPilotDisplay'
 import { useRealtimeSubscription } from '../../../../hooks/useRealtimeSubscription'
 import { useActivityFeed } from '../../../../hooks/useActivityFeed'
 import { crawlerKeys } from '../../../../hooks/useCrawlers'
 import { pilotKeys } from '../../../../hooks/usePilots'
-import type { BayNpcData, CrawlerRow, CrawlerUpdate, PilotRow } from '../../../../types/common'
+import type { BayNpcData, CrawlerRow, CrawlerUpdate } from '../../../../types/common'
 import { useAutosave } from '../../../../hooks/useAutosave'
 import { Skeleton } from '../../../../components/ui/skeleton'
 import { DeleteConfirmDialog } from '../../../../components/shared/DeleteConfirmDialog'
@@ -215,15 +212,15 @@ function CrawlerDetailPage() {
 
   const weaponSlotCount = getWeaponSlotCount(crawler?.crawler_ref ?? '')
 
-  const weaponSlotControls = useMemo((): EntityControl[] => {
+  const weaponSlotControls = useMemo((): ReferenceEntityControl[] => {
     if (!isMed) return []
-    const controls: EntityControl[] = weaponSystems.map(({ ref, entity }) => ({
+    const controls: ReferenceEntityControl[] = weaponSystems.map(({ ref, entity }) => ({
       key: `weapon-${ref.sort_order}`,
       icon: Crosshair,
       onClick: () => setEditingWeaponSlot({ index: ref.sort_order, oldRefId: ref.id }),
       ariaLabel: entity?.name ?? 'Unknown weapon',
       variant: 'ghost' as const,
-      hoverContent: entity ? <EntityDisplay data={entity} compact /> : undefined,
+      hoverContent: entity ? <ReferenceEntityDisplay data={entity} compact /> : undefined,
     }))
     // Add empty slot controls for remaining capacity
     for (let i = weaponRefs.length; i < weaponSlotCount; i++) {
@@ -566,7 +563,7 @@ function CrawlerTypeSection({
   return (
     <div className="flex flex-col gap-3">
       <SectionSeparator label="Crawler Type" fontSize="text-sm" />
-      <EntityDisplay
+      <ReferenceEntityDisplay
         data={crawlerType}
         compact
         npcConfig={npcConfig}
@@ -581,6 +578,9 @@ function CrawlerTypeSection({
 
 function CrawlerPilotsSection({ crawlerId }: { crawlerId: string }) {
   const { data: pilots, isLoading } = usePilotsForCrawler(crawlerId)
+
+  const pilotIds = useMemo(() => pilots?.map((p) => p.id) ?? [], [pilots])
+  const { data: abilityCounts } = usePilotAbilityCounts(pilotIds)
 
   return (
     <div className="flex flex-col gap-3">
@@ -597,70 +597,12 @@ function CrawlerPilotsSection({ crawlerId }: { crawlerId: string }) {
       ) : (
         <div className="columns-1 gap-2 space-y-2 md:columns-2">
           {pilots.map((pilot) => (
-            <CrawlerPilotListing key={pilot.id} pilot={pilot} />
+            <div key={pilot.id} className="break-inside-avoid">
+              <PlayerPilotDisplay pilot={pilot} abilityCount={abilityCounts?.[pilot.id] ?? 0} />
+            </div>
           ))}
         </div>
       )}
-    </div>
-  )
-}
-
-function CrawlerPilotListing({ pilot }: { pilot: PilotRow }) {
-  const navigate = useNavigate()
-  const { data: mech } = useMech(pilot.mech_id ?? undefined)
-
-  const pilotClassName = useMemo(() => {
-    return findClassName(pilot.class_ref)
-  }, [pilot.class_ref])
-
-  const chassisName = useMemo(() => {
-    if (!mech) return undefined
-    const chassis = findChassisById(mech.chassis_ref)
-    return chassis?.name
-  }, [mech])
-
-  const patternName = mech?.pattern_name ? `\u201C${mech.pattern_name}\u201D` : undefined
-
-  const handleNavigate = useCallback(() => {
-    navigate({ to: '/pilots/$pilotId', params: { pilotId: pilot.id } })
-  }, [navigate, pilot.id])
-
-  const controls = useMemo(() => [navigateControl(handleNavigate)], [handleNavigate])
-
-  const headerContent = (
-    <CardHeader
-      title={pilot.callsign}
-      subtitle={
-        <div className="flex flex-wrap items-center gap-1">
-          <ValueDisplay label="The" value={pilotClassName} compact />
-          {chassisName && (
-            <span className="inline-flex shrink-0 cursor-default whitespace-nowrap border border-su-black">
-              <Text
-                variant="pseudoheader"
-                as="span"
-                className="text-xs font-normal uppercase"
-                style={{ backgroundColor: 'rgb(122, 151, 138)' }}
-              >
-                {chassisName}
-              </Text>
-              {patternName && (
-                <Text variant="pseudoheader" as="span" className="text-xs font-normal uppercase">
-                  {patternName}
-                </Text>
-              )}
-            </span>
-          )}
-        </div>
-      }
-      controls={controls}
-      controlSize="sm"
-      compact
-    />
-  )
-
-  return (
-    <div className="break-inside-avoid">
-      <DisplayCard headerBg="bg-su-orange" headerContent={headerContent} mode="listing" />
     </div>
   )
 }

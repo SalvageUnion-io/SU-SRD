@@ -2,8 +2,8 @@ import { useState, useMemo, Suspense } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { getTechLevel, getSource, getEntitySlug, getTree } from 'salvageunion-reference'
 import {
-  EntityDisplay,
-  EntityCardSkeleton,
+  ReferenceEntityDisplay,
+  ReferenceEntityCardSkeleton,
   FilterChip,
   TECH_LEVEL_STYLES,
   techLevelLabel,
@@ -128,8 +128,8 @@ export function SchemaViewerIsland({
                 aria-label={item.name}
                 className="relative block transition-all duration-200 md:hover:z-10 md:hover:scale-[1.02] md:hover:-translate-y-0.5 md:hover:shadow-lg"
               >
-                <Suspense fallback={<EntityCardSkeleton compact />}>
-                  <EntityDisplay
+                <Suspense fallback={<ReferenceEntityCardSkeleton compact />}>
+                  <ReferenceEntityDisplay
                     hide={{ actions: true, choices: true }}
                     data={item}
                     compact

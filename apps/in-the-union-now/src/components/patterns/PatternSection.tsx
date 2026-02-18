@@ -1,18 +1,11 @@
-import { useCallback, useMemo } from 'react'
-import { Link, useNavigate } from '@tanstack/react-router'
+import { Link } from '@tanstack/react-router'
 import { Plus } from 'lucide-react'
-import { findChassisById } from '../../lib/entityHelpers'
-import {
-  EntityDisplay,
-  SectionSeparator,
-  navigateControl,
-  useChassisPatternConfig,
-} from 'suref-react'
+import { SectionSeparator } from 'suref-react'
 import { useAuthStore } from '../../stores/authStore'
 import { usePatterns } from '../../hooks/usePatterns'
 import { Skeleton } from '../ui/skeleton'
 import { EMPTY_SLOT_CLASSES } from './emptySlotClasses'
-import type { TypedPatternRow } from '../../types/common'
+import { PlayerPatternDisplay } from './PlayerPatternDisplay'
 
 export function PatternSection() {
   const user = useAuthStore((s) => s.user)
@@ -31,44 +24,12 @@ export function PatternSection() {
       ) : (
         <div className="flex flex-col gap-2">
           {patterns?.map((pattern) => (
-            <PatternListing key={pattern.id} pattern={pattern} />
+            <PlayerPatternDisplay key={pattern.id} pattern={pattern} />
           ))}
           <NewPatternSlot />
         </div>
       )}
     </div>
-  )
-}
-
-function PatternListing({ pattern }: { pattern: TypedPatternRow }) {
-  const navigate = useNavigate()
-
-  const chassis = useMemo(() => findChassisById(pattern.chassis_ref), [pattern.chassis_ref])
-
-  const patternOverride = useMemo(
-    () => ({ name: pattern.name, systems: [] as [], modules: [] as [] }),
-    [pattern.name]
-  )
-
-  const patternConfig = useChassisPatternConfig(chassis!, patternOverride, true)
-
-  const handleNavigate = useCallback(() => {
-    navigate({ to: '/patterns/$patternId', params: { patternId: pattern.id } })
-  }, [navigate, pattern.id])
-
-  if (!chassis) return null
-
-  return (
-    <EntityDisplay
-      data={chassis}
-      listing
-      compact
-      titleOverride={patternConfig?.titleOverride}
-      subtitleExtra={patternConfig?.subtitleExtra}
-      statsOverride={patternConfig?.statsOverride}
-      primaryStatsOnly={patternConfig?.primaryStatsOnly}
-      controls={[navigateControl(handleNavigate)]}
-    />
   )
 }
 

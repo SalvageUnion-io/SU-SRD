@@ -2,8 +2,8 @@ import { useMemo } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { EntitySchemaName, ItemCondition, SURefEntity } from 'salvageunion-reference'
 import { ConditionToggle } from '../shared/ConditionToggle'
-import { EntityListingItem } from '../shared/EntityListingItem'
-import { EntityRefSection } from '../shared/EntityRefSection'
+import { ReferenceEntityListingItem } from '../shared/ReferenceEntityListingItem'
+import { ReferenceEntityRefSection } from '../shared/ReferenceEntityRefSection'
 import type { EntityRefRow } from '../../types/common'
 
 type PilotEntityRefsProps = {
@@ -19,20 +19,20 @@ export function PilotEntityRefs({ refs, canEdit, onConditionChange }: PilotEntit
   return (
     <div className="space-y-3">
       {abilityRefs.length > 0 && (
-        <EntityRefSection label="Abilities">
+        <ReferenceEntityRefSection label="Abilities">
           {abilityRefs.map((ref) => {
             const entity = SalvageUnionReference.get(
               ref.schema_name as EntitySchemaName,
               ref.schema_ref_id
             )
             if (!entity) return null
-            return <EntityListingItem key={ref.id} entity={entity as SURefEntity} />
+            return <ReferenceEntityListingItem key={ref.id} entity={entity as SURefEntity} />
           })}
-        </EntityRefSection>
+        </ReferenceEntityRefSection>
       )}
 
       {equipmentRefs.length > 0 && (
-        <EntityRefSection label="Equipment">
+        <ReferenceEntityRefSection label="Equipment">
           {equipmentRefs.map((ref) => {
             const entity = SalvageUnionReference.get(
               ref.schema_name as EntitySchemaName,
@@ -40,7 +40,7 @@ export function PilotEntityRefs({ refs, canEdit, onConditionChange }: PilotEntit
             )
             if (!entity) return null
             return (
-              <EntityListingItem
+              <ReferenceEntityListingItem
                 key={ref.id}
                 entity={entity as SURefEntity}
                 trailing={
@@ -55,7 +55,7 @@ export function PilotEntityRefs({ refs, canEdit, onConditionChange }: PilotEntit
               />
             )
           })}
-        </EntityRefSection>
+        </ReferenceEntityRefSection>
       )}
     </div>
   )

@@ -24,7 +24,7 @@ export type WizardBudgetConfig = {
 }
 
 /** Builds a GuideStepsInteractiveConfig from wizard state + dispatch.
- *  Pass the returned config to `<EntityDisplay interactive={config} />`. */
+ *  Pass the returned config to `<ReferenceEntityDisplay interactive={config} />`. */
 export function useGuideInteractiveConfig(
   steps: SURefObjectGuideStep[],
   state: WizardState,

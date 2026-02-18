@@ -1,8 +1,8 @@
 import { useCallback, useMemo } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import type { SURefEntity } from 'salvageunion-reference'
-import { EntityDisplay, SectionSeparator, useChassisPatternConfig } from 'suref-react'
-import type { EntityControl } from 'suref-react'
+import { ReferenceEntityDisplay, SectionSeparator, useChassisPatternConfig } from 'suref-react'
+import type { ReferenceEntityControl } from 'suref-react'
 import { Plus, Wrench } from 'lucide-react'
 import { Button } from '../ui/button'
 import { Skeleton } from '../ui/skeleton'
@@ -80,7 +80,7 @@ function MechListing({
   const patternConfig = useChassisPatternConfig(mechChassis, patternOverride, true)
 
   return (
-    <EntityDisplay
+    <ReferenceEntityDisplay
       data={mechChassis}
       listing
       compact
@@ -95,7 +95,7 @@ function MechListing({
           onClick: onNavigate,
           ariaLabel: 'Open Mech Bay',
           variant: 'ghost' as const,
-        } satisfies EntityControl,
+        } satisfies ReferenceEntityControl,
       ]}
     />
   )

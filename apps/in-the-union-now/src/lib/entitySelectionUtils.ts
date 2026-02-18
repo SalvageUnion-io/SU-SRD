@@ -54,7 +54,7 @@ type FilterAndSplitResult = {
 
 /**
  * Filters, sorts, and splits entities into selectable vs over-capacity groups.
- * Extracted from EntitySelectionModal for testability.
+ * Extracted from ReferenceEntitySelectionModal for testability.
  */
 export function filterAndSplitEntities({
   entities,

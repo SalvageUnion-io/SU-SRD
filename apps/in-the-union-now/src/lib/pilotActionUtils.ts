@@ -14,7 +14,7 @@ import {
 import {
   calculateBackgroundColor,
   borderColorFromHeaderBg,
-  extractEntityDetails,
+  extractReferenceEntityDetails,
   getActivationCurrency,
   techLevelColors,
 } from 'suref-react'
@@ -116,7 +116,11 @@ function buildActionItems(
 
   return usableActions.map((action) => {
     const currency = deriveActionCurrency(action, entity, schemaName)
-    const dataValues = extractEntityDetails(action, 'actions' as SURefEnumSchemaName, currency)
+    const dataValues = extractReferenceEntityDetails(
+      action,
+      'actions' as SURefEnumSchemaName,
+      currency
+    )
     const activationCost = getActionActivationCost(action)
     const maxUses = getActionMaxUses(action)
     const usesRemaining = entityRefId ? getRemainingUses(action.name, refMetadata) : null
@@ -197,7 +201,7 @@ export function extractMechActions(refs: EntityRefRow[]): ActionDisplayData[] {
 /**
  * Extract pilot actions and passives from entity refs.
  * - Abilities with actionType -> resolve actions from actions.json -> ActionDisplayData[]
- * - Abilities without actionType -> passives (rendered as compact EntityDisplay)
+ * - Abilities without actionType -> passives (rendered as compact ReferenceEntityDisplay)
  * - Equipment -> resolve actions from actions.json -> ActionDisplayData[]
  */
 export function extractPilotActions(refs: EntityRefRow[]): {

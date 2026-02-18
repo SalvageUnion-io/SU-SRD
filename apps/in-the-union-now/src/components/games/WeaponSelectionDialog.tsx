@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { SalvageUnionReference, getTechLevel, getDamage } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
-import { EntityPickerModal } from '../shared/EntityPickerModal'
+import { ReferenceEntityPickerModal } from '../shared/ReferenceEntityPickerModal'
 
 type WeaponSelectionDialogProps = {
   open: boolean
@@ -27,7 +27,7 @@ export function WeaponSelectionDialog({
   }, [techLevel])
 
   return (
-    <EntityPickerModal
+    <ReferenceEntityPickerModal
       open={open}
       onOpenChange={onOpenChange}
       title="Weapon System"

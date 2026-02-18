@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import type { SURefAbility, SURefClass } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { EntityDisplay, SectionSeparator, useDetailModal } from 'suref-react'
+import { ReferenceEntityDisplay, SectionSeparator, useDetailModal } from 'suref-react'
 
 type TreeGroup = { tree: string; abilities: SURefAbility[] }
 
@@ -16,7 +16,7 @@ function AbilityListing({ ability }: { ability: SURefAbility }) {
 
   return (
     <>
-      <EntityDisplay data={ability} compact listing controls={[detailModal.control]} />
+      <ReferenceEntityDisplay data={ability} compact listing controls={[detailModal.control]} />
       {detailModal.modal}
     </>
   )

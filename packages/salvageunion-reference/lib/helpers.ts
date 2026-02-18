@@ -585,7 +585,7 @@ export function getUniqueSources(entities: SURefEntity[]): string[] {
 /**
  * Aggregate display data extracted from an entity
  */
-export type EntityDisplayData = {
+export type ReferenceEntityData = {
   id: string
   name: string
   slug: string
@@ -602,7 +602,7 @@ export type EntityDisplayData = {
  * @param entity - The entity to extract display data from
  * @returns Aggregated display data
  */
-export function getEntityDisplayData(entity: SURefEntity): EntityDisplayData {
+export function getReferenceEntityData(entity: SURefEntity): ReferenceEntityData {
   return {
     id: entity.id,
     name: getName(entity) ?? entity.id,

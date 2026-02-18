@@ -1228,7 +1228,7 @@ export function isSystemOrModule(entity: SURefMetaEntity): entity is SURefSystem
  * @param entity - The entity to extract display name from
  * @returns The display name or name, or undefined if neither is present
  */
-export function getEntityDisplayName(entity: SURefMetaEntity): string | undefined {
+export function getReferenceEntityName(entity: SURefMetaEntity): string | undefined {
   // Check for displayName first (for actions)
   if ('displayName' in entity && typeof entity.displayName === 'string') {
     return entity.displayName

@@ -1,5 +1,5 @@
 import type { SURefEntity } from 'salvageunion-reference'
-import { EntityDisplay } from 'suref-react'
+import { ReferenceEntityDisplay } from 'suref-react'
 import * as DialogPrimitive from '@radix-ui/react-dialog'
 import { X } from 'lucide-react'
 
@@ -32,7 +32,7 @@ export function BayDetailOverlay({ open, onOpenChange, entity, mode }: BayDetail
                   <span className="sr-only">Close</span>
                 </DialogPrimitive.Close>
 
-                <EntityDisplay
+                <ReferenceEntityDisplay
                   data={entity}
                   compact={false}
                   damaged={mode === 'damage'}

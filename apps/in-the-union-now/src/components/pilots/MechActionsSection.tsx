@@ -1,6 +1,6 @@
 import { useMemo, useCallback } from 'react'
 import { SectionSeparator } from 'suref-react'
-import type { EntityControl } from 'suref-react'
+import type { ReferenceEntityControl } from 'suref-react'
 import { Play } from 'lucide-react'
 import { toast } from 'sonner'
 import { extractMechActions } from '../../lib/pilotActionUtils'
@@ -110,7 +110,7 @@ type MechActionItemProps = {
 function MechActionItem({ action, mech, readOnly, onUse }: MechActionItemProps) {
   const disabledReason = computeDisabledReason(action, mech)
 
-  const controls: EntityControl[] = []
+  const controls: ReferenceEntityControl[] = []
   if (!readOnly) {
     controls.push({
       key: 'use',

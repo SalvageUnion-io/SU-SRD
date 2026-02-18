@@ -9,12 +9,12 @@ import {
   useDetailModal,
 } from 'suref-react'
 import { cn } from '../../lib/utils'
-import type { EntityControl } from 'suref-react'
+import type { ReferenceEntityControl } from 'suref-react'
 import type { ActionDisplayData } from '../../lib/pilotActionUtils'
 
 type ActionDisplayProps = {
   data: ActionDisplayData
-  controls?: EntityControl[]
+  controls?: ReferenceEntityControl[]
   disabled?: boolean
   footerMessage?: ReactNode
 }

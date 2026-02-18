@@ -3,11 +3,11 @@ import { useCallback } from 'react'
 import * as HoverCard from '@radix-ui/react-hover-card'
 import { cn } from '../../utils/cn'
 import type {
-  EntityControl,
-  EntityControlVariant,
-} from '../entity/EntityDisplay/entityControlTypes'
+  ReferenceEntityControl,
+  ReferenceEntityControlVariant,
+} from '../referenceEntity/ReferenceEntityDisplay/referenceEntityControlTypes'
 
-const VARIANT_STYLES: Record<EntityControlVariant, string> = {
+const VARIANT_STYLES: Record<ReferenceEntityControlVariant, string> = {
   primary: 'bg-su-black text-su-white hover:bg-su-grey-dark',
   danger: 'opacity-60 hover:bg-su-rust/80 hover:opacity-100',
   ghost: 'opacity-60 hover:bg-white/20 hover:opacity-100',
@@ -19,7 +19,7 @@ const ICON_SIZE: Record<'sm' | 'default', string> = {
 }
 
 type ControlButtonsProps = {
-  controls: EntityControl[]
+  controls: ReferenceEntityControl[]
   size?: 'sm' | 'default'
   className?: string
 }
@@ -29,7 +29,7 @@ function ControlButton({
   size,
   onClickWithStop,
 }: {
-  control: EntityControl
+  control: ReferenceEntityControl
   size: 'sm' | 'default'
   onClickWithStop: (e: React.MouseEvent, onClick: () => void) => void
 }) {
@@ -63,7 +63,7 @@ function ControlButtonWithHover({
   onClickWithStop,
   hoverContent,
 }: {
-  control: EntityControl
+  control: ReferenceEntityControl
   size: 'sm' | 'default'
   onClickWithStop: (e: React.MouseEvent, onClick: () => void) => void
   hoverContent: ReactNode

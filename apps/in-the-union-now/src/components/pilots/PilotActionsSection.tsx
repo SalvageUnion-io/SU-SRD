@@ -3,13 +3,13 @@ import type { ReactNode } from 'react'
 import type { SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import {
-  EntityDisplay,
-  EntityDisplayTooltip,
+  ReferenceEntityDisplay,
+  ReferenceEntityDisplayTooltip,
   SectionSeparator,
   Text,
   useDetailModal,
 } from 'suref-react'
-import type { EntityControl } from 'suref-react'
+import type { ReferenceEntityControl } from 'suref-react'
 import { Play, RotateCcw } from 'lucide-react'
 import { toast } from 'sonner'
 import { extractPilotActions, getGeneralActions } from '../../lib/pilotActionUtils'
@@ -218,13 +218,13 @@ function buildFooterMessage(
       <>
         Requires Trait:{' '}
         {traitEntity ? (
-          <EntityDisplayTooltip
+          <ReferenceEntityDisplayTooltip
             schemaName={traitEntity.schemaName}
             entityId={traitEntity.id}
             openDelay={300}
           >
             {traitLabel}
-          </EntityDisplayTooltip>
+          </ReferenceEntityDisplayTooltip>
         ) : (
           traitLabel
         )}
@@ -268,7 +268,7 @@ type ActionItemProps = {
 function ActionItem({ action, pilot, pilotTraits, readOnly, onUse, onRefill }: ActionItemProps) {
   const disabledReason = computeDisabledReason(action, pilot, pilotTraits)
 
-  const controls: EntityControl[] = []
+  const controls: ReferenceEntityControl[] = []
   if (!readOnly) {
     controls.push({
       key: 'use',
@@ -312,7 +312,7 @@ function PassiveListing({ entity, readOnly, callsign }: PassiveListingProps) {
   const detailModal = useDetailModal(entity)
   const name = 'name' in entity ? String(entity.name) : 'passive'
 
-  const controls: EntityControl[] = []
+  const controls: ReferenceEntityControl[] = []
   if (!readOnly) {
     controls.push({
       key: 'use',
@@ -329,7 +329,7 @@ function PassiveListing({ entity, readOnly, callsign }: PassiveListingProps) {
 
   return (
     <>
-      <EntityDisplay data={entity} listing compact controls={controls} />
+      <ReferenceEntityDisplay data={entity} listing compact controls={controls} />
       {detailModal.modal}
     </>
   )

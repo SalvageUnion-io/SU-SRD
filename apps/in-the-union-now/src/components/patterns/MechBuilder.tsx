@@ -6,14 +6,14 @@ import {
   Text,
   ValueDisplay,
   SectionSeparator,
-  EntityChassisAbilitiesContent,
-  getEntitySpacing,
+  ReferenceEntityChassisAbilitiesContent,
+  getReferenceEntitySpacing,
   deleteControl,
 } from 'suref-react'
 import { Eye, EyeOff, Save, Trash2, Copy, Crosshair } from 'lucide-react'
 import { Button } from '../ui/button'
-import { EntitySelectionModal } from './EntitySelectionModal'
-import type { BuilderSchemaName } from './EntitySelectionModal'
+import { ReferenceEntitySelectionModal } from './ReferenceEntitySelectionModal'
+import type { BuilderSchemaName } from './ReferenceEntitySelectionModal'
 import { PatternSelectionModal } from './PatternSelectionModal'
 import { EmptySlotCard } from './EmptySlotCard'
 import { PatternImageSlot } from './PatternImageSlot'
@@ -31,7 +31,7 @@ import {
 import type { SURefObjectPattern } from 'salvageunion-reference'
 import type { CreatePatternInput } from '../../types/common'
 import type { SaveStatus } from '../../hooks/useSaveStatus'
-import { EntityListingItem } from '../shared/EntityListingItem'
+import { ReferenceEntityListingItem } from '../shared/ReferenceEntityListingItem'
 import { SheetFooter } from '../shared/SheetFooter'
 import { actionButtonClasses } from '../shared/actionButtonClasses'
 import { TAG_BUTTON, TAG_BUTTON_SM } from '../shared/tagButtonClasses'
@@ -434,9 +434,9 @@ export function MechBuilder({
           {/* Chassis Abilities */}
           {chassis && chassisAbilities && chassisAbilities.length > 0 && (
             <div className="-mt-4 mb-4 overflow-hidden">
-              <EntityChassisAbilitiesContent
+              <ReferenceEntityChassisAbilitiesContent
                 chassisName={chassis.name}
-                spacing={getEntitySpacing(!!compact)}
+                spacing={getReferenceEntitySpacing(!!compact)}
                 compact={!!compact}
                 chassisAbilities={chassisAbilities}
               />
@@ -478,7 +478,7 @@ export function MechBuilder({
 
       {/* Entity Selection Modal */}
       {!readOnly && modalTarget && (
-        <EntitySelectionModal
+        <ReferenceEntitySelectionModal
           open={!!modalTarget}
           onOpenChange={(open) => {
             if (!open) setModalTarget(null)
@@ -557,7 +557,7 @@ function ItemSlotSection({
       />
       <div className={compact ? 'mt-1.5 space-y-1.5' : 'mt-2 space-y-2'}>
         {items.map((item) => (
-          <EntityListingItem
+          <ReferenceEntityListingItem
             key={item.sort_order}
             entity={item.entity}
             controls={readOnly ? undefined : [deleteControl(() => onRemove(item.sort_order))]}

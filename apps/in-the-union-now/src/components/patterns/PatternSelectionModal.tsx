@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { findChassisById } from '../../lib/entityHelpers'
 import type { SURefEntity, SURefObjectPattern } from 'salvageunion-reference'
-import { EntityDisplay, Text, addControl, useChassisPatternConfig } from 'suref-react'
+import { ReferenceEntityDisplay, Text, addControl, useChassisPatternConfig } from 'suref-react'
 import type { PatternOverrideData } from 'suref-react'
 import { Button } from '../ui/button'
 import { actionButtonClasses } from '../shared/actionButtonClasses'
@@ -113,7 +113,7 @@ function PatternOption({
   const patternConfig = useChassisPatternConfig(chassis, patternOverride, true)
 
   return (
-    <EntityDisplay
+    <ReferenceEntityDisplay
       data={chassis}
       compact
       hide={{ patterns: true, content: true }}

@@ -1,8 +1,8 @@
 import { useState, useCallback } from 'react'
 import { SalvageUnionReference, getNpc } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
-import { SectionSeparator, EntityDisplay, Text, DetailIcon } from 'suref-react'
-import type { EntityControl } from 'suref-react'
+import { SectionSeparator, ReferenceEntityDisplay, Text, DetailIcon } from 'suref-react'
+import type { ReferenceEntityControl } from 'suref-react'
 import { ArrowLeftRight, Flame } from 'lucide-react'
 import { useAutosave } from '../../hooks/useAutosave'
 import { LabeledInput } from '../shared/LabeledInput'
@@ -21,8 +21,8 @@ type CrawlerBaysSectionProps = {
   crawler: CrawlerRow
   readOnly: boolean
   onSave: (input: Partial<CrawlerUpdate>) => void
-  /** EntityControl[] for armament bay weapon slot buttons */
-  armamentControls?: EntityControl[]
+  /** ReferenceEntityControl[] for armament bay weapon slot buttons */
+  armamentControls?: ReferenceEntityControl[]
   /** Callback to open the scrap conversion dialog (shown inside Trading Bay) */
   onOpenScrapConversion?: () => void
   /** Render function for Storage Bay content — receives bay damage state */
@@ -120,7 +120,7 @@ export function CrawlerBaysSection({
     const isStorageBay = bay.name === 'Storage Bay'
 
     // Build controls: damage toggle + bay-specific controls + detail button
-    const baySpecificControls: EntityControl[] = []
+    const baySpecificControls: ReferenceEntityControl[] = []
 
     if (isArmamentBay && armamentControls) {
       if (isDamaged) {
@@ -150,7 +150,7 @@ export function CrawlerBaysSection({
       })
     }
 
-    const controls: EntityControl[] = [
+    const controls: ReferenceEntityControl[] = [
       ...(!readOnly
         ? [
             {
@@ -224,7 +224,7 @@ export function CrawlerBaysSection({
 
     return (
       <div key={bay.id} className="mb-4 break-inside-avoid">
-        <EntityDisplay
+        <ReferenceEntityDisplay
           data={bayEntity}
           compact
           hide={{

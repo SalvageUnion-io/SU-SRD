@@ -13,7 +13,7 @@ import {
   deleteControl,
   techLevelLabel,
 } from 'suref-react'
-import type { EntityControl } from 'suref-react'
+import type { ReferenceEntityControl } from 'suref-react'
 import * as DialogPrimitive from '@radix-ui/react-dialog'
 import { Package, Pencil, X } from 'lucide-react'
 import { toast } from 'sonner'
@@ -25,8 +25,8 @@ import {
   getCustomItemHeaderBg,
 } from '../../lib/customCargoCategories'
 import { EMPTY_SLOT_CLASSES } from '../patterns/emptySlotClasses'
-import { EntityListingItem } from '../shared/EntityListingItem'
-import { EntityPickerModal } from '../shared/EntityPickerModal'
+import { ReferenceEntityListingItem } from '../shared/ReferenceEntityListingItem'
+import { ReferenceEntityPickerModal } from '../shared/ReferenceEntityPickerModal'
 import { ModalShell } from '../shared/ModalShell'
 import { Input } from '../ui/input'
 import { Textarea } from '../ui/textarea'
@@ -166,7 +166,7 @@ export function CrawlerStorageSection({ crawlerId, userId, readOnly }: CrawlerSt
       )}
 
       {/* Entity picker modal */}
-      <EntityPickerModal
+      <ReferenceEntityPickerModal
         open={showEntityPicker}
         onOpenChange={setShowEntityPicker}
         title="Load Storage"
@@ -187,7 +187,7 @@ export function CrawlerStorageSection({ crawlerId, userId, readOnly }: CrawlerSt
   )
 }
 
-/** Renders a cargo item that has a schema reference — uses EntityListingItem */
+/** Renders a cargo item that has a schema reference — uses ReferenceEntityListingItem */
 function EntityStorageItem({ item, onDelete }: { item: CargoRow; onDelete?: () => void }) {
   const entity = useMemo(
     () =>
@@ -205,7 +205,7 @@ function EntityStorageItem({ item, onDelete }: { item: CargoRow; onDelete?: () =
   }
 
   return (
-    <EntityListingItem
+    <ReferenceEntityListingItem
       entity={entity as SURefEntity}
       lightweight
       controls={onDelete ? [deleteControl(onDelete)] : undefined}
@@ -221,7 +221,7 @@ function CustomStorageItem({ item, onDelete }: { item: CargoRow; onDelete?: () =
   const techLevel = metadata?.tech_level as string | number | undefined
   const headerBg = getCustomItemHeaderBg(category, techLevel)
 
-  const detailControl: EntityControl = {
+  const detailControl: ReferenceEntityControl = {
     key: 'detail',
     icon: DetailIcon,
     onClick: () => setShowDetail(true),

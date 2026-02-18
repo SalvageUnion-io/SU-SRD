@@ -2,8 +2,8 @@ import { useMemo } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { EntitySchemaName, ItemCondition, SURefEntity } from 'salvageunion-reference'
 import { ConditionToggle } from '../shared/ConditionToggle'
-import { EntityListingItem } from '../shared/EntityListingItem'
-import { EntityRefSection } from '../shared/EntityRefSection'
+import { ReferenceEntityListingItem } from '../shared/ReferenceEntityListingItem'
+import { ReferenceEntityRefSection } from '../shared/ReferenceEntityRefSection'
 import type { EntityRefRow } from '../../types/common'
 
 type MechLoadoutSectionProps = {
@@ -25,7 +25,7 @@ export function MechLoadoutSection({
   return (
     <div className="space-y-3">
       {systemRefs.length > 0 && (
-        <EntityRefSection label="Systems">
+        <ReferenceEntityRefSection label="Systems">
           {systemRefs.map((ref) => {
             const entity = SalvageUnionReference.get(
               ref.schema_name as EntitySchemaName,
@@ -34,7 +34,7 @@ export function MechLoadoutSection({
             if (!entity) return null
             const condition = ref.condition as ItemCondition
             return (
-              <EntityListingItem
+              <ReferenceEntityListingItem
                 key={ref.id}
                 entity={entity}
                 disabled={condition === 'destroyed'}
@@ -48,10 +48,10 @@ export function MechLoadoutSection({
               />
             )
           })}
-        </EntityRefSection>
+        </ReferenceEntityRefSection>
       )}
       {moduleRefs.length > 0 && (
-        <EntityRefSection label="Modules">
+        <ReferenceEntityRefSection label="Modules">
           {moduleRefs.map((ref) => {
             const entity = SalvageUnionReference.get(
               ref.schema_name as EntitySchemaName,
@@ -60,7 +60,7 @@ export function MechLoadoutSection({
             if (!entity) return null
             const condition = ref.condition as ItemCondition
             return (
-              <EntityListingItem
+              <ReferenceEntityListingItem
                 key={ref.id}
                 entity={entity}
                 disabled={condition === 'destroyed'}
@@ -74,7 +74,7 @@ export function MechLoadoutSection({
               />
             )
           })}
-        </EntityRefSection>
+        </ReferenceEntityRefSection>
       )}
     </div>
   )

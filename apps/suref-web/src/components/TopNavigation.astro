@@ -1,5 +1,5 @@
 ---
-import { getSchemaCatalog, SalvageUnionReference, getEntityDisplayData } from 'salvageunion-reference'
+import { getSchemaCatalog, SalvageUnionReference, getReferenceEntityData } from 'salvageunion-reference'
 import type { SURefGuide } from 'salvageunion-reference'
 import { MobileNavIsland } from './islands/MobileNavIsland'
 import { SearchIsland } from './islands/SearchIsland'
@@ -19,7 +19,7 @@ const categories = catalogCategories.map((cat) => {
     return {
       label: cat.name.toUpperCase(),
       schemas: items.map((item) => {
-        const display = getEntityDisplayData(item)
+        const display = getReferenceEntityData(item)
         return {
           id: item.id,
           displayName: item.name,

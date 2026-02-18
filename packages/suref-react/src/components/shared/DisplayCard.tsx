@@ -4,8 +4,8 @@ import type { SURefEnumSource } from 'salvageunion-reference'
 import { cn } from '../../utils/cn'
 import { Text } from '../base/Text'
 import { ControlButtons } from './ControlButtons'
-import { getSourceStyles } from '../entity/entityDisplayHelpers'
-import type { EntityControl } from '../entity/EntityDisplay/entityControlTypes'
+import { getSourceStyles } from '../referenceEntity/referenceEntityHelpers'
+import type { ReferenceEntityControl } from '../referenceEntity/ReferenceEntityDisplay/referenceEntityControlTypes'
 
 type DisplayCardMode = 'full' | 'compact' | 'listing'
 
@@ -36,7 +36,7 @@ type DisplayCardProps = {
   /** Controls rendered at the card level. In listing mode with a single control,
    * the button is auto-hidden and the entire row becomes clickable.
    * When provided, controls should NOT also be passed to CardHeader. */
-  controls?: EntityControl[]
+  controls?: ReferenceEntityControl[]
   /** Additional className on the outer wrapper */
   className?: string
   /** Grey header + reduced opacity for disabled state */

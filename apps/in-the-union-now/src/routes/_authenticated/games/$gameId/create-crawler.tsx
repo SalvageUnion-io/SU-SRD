@@ -2,7 +2,7 @@ import { useReducer, useMemo, useCallback, useEffect } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefGuide, SURefObjectGuideStep } from 'salvageunion-reference'
-import { EntityDisplay } from 'suref-react'
+import { ReferenceEntityDisplay } from 'suref-react'
 import { toast } from 'sonner'
 import { actionButtonClasses } from '../../../../components/shared/actionButtonClasses'
 import { useAuthStore } from '../../../../stores/authStore'
@@ -150,7 +150,7 @@ function CreateCrawlerPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <EntityDisplay data={interactiveGuide} interactive={interactive} />
+      <ReferenceEntityDisplay data={interactiveGuide} interactive={interactive} />
     </div>
   )
 }

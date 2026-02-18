@@ -2,7 +2,7 @@ import { useReducer, useMemo, useCallback } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { SalvageUnionReference, getSalvageValue } from 'salvageunion-reference'
 import type { SURefGuide, EntitySchemaName } from 'salvageunion-reference'
-import { EntityDisplay } from 'suref-react'
+import { ReferenceEntityDisplay } from 'suref-react'
 import { toast } from 'sonner'
 import { actionButtonClasses } from '../../../../components/shared/actionButtonClasses'
 import { useAuthStore } from '../../../../stores/authStore'
@@ -112,7 +112,7 @@ function CreateMechPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <EntityDisplay data={interactiveMechGuide} interactive={interactive} />
+      <ReferenceEntityDisplay data={interactiveMechGuide} interactive={interactive} />
     </div>
   )
 }

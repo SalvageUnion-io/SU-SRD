@@ -1,13 +1,13 @@
 import { describe, test, expect, afterEach, mock } from 'bun:test'
 import { render, screen, fireEvent, cleanup } from '@testing-library/react'
 import { CardHeader } from '../CardHeader'
-import type { EntityControl } from '../../entity/EntityDisplay/entityControlTypes'
+import type { ReferenceEntityControl } from '../../referenceEntity/ReferenceEntityDisplay/referenceEntityControlTypes'
 
 function MockIcon({ className }: { className?: string }) {
   return <svg data-testid="mock-icon" className={className} />
 }
 
-function makeControl(overrides: Partial<EntityControl> = {}): EntityControl {
+function makeControl(overrides: Partial<ReferenceEntityControl> = {}): ReferenceEntityControl {
   return {
     key: 'test',
     icon: MockIcon,
