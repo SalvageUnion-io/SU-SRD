@@ -1,10 +1,15 @@
 import { useMemo } from 'react'
-import type { SURefAbility } from 'salvageunion-reference'
+import type { SURefAbility, SURefClass } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { EntityDisplay, SectionSeparator, useDetailModal } from 'suref-react'
-import type { ClassAbilitiesRenderer } from 'suref-react'
 
 type TreeGroup = { tree: string; abilities: SURefAbility[] }
+
+type ClassAbilitiesContentProps = {
+  compact: boolean
+  selectedClass: SURefClass | undefined
+  selectedAdvancedClass: SURefClass | undefined
+}
 
 function AbilityListing({ ability }: { ability: SURefAbility }) {
   const detailModal = useDetailModal(ability)
@@ -30,10 +35,10 @@ function TreeSection({ tree, abilities }: TreeGroup) {
   )
 }
 
-function ClassAbilities({
+export function ClassAbilitiesContent({
   selectedClass,
   selectedAdvancedClass,
-}: Parameters<ClassAbilitiesRenderer>[0]) {
+}: ClassAbilitiesContentProps) {
   const cls = selectedClass || selectedAdvancedClass
 
   const coreTreeNames = useMemo(() => {
@@ -99,7 +104,3 @@ function ClassAbilities({
     </div>
   )
 }
-
-export const classAbilitiesRenderer: ClassAbilitiesRenderer = (props) => (
-  <ClassAbilities {...props} />
-)

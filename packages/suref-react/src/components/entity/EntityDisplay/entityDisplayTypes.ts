@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react'
 import type {
-  SURefClass,
   SURefEntity,
   SURefEnumSchemaName,
   SURefEnumSource,
@@ -9,12 +8,6 @@ import type {
   SURefObjectTable,
   getEffects,
 } from 'salvageunion-reference'
-
-export type ClassAbilitiesRenderer = (props: {
-  compact: boolean
-  selectedClass: SURefClass | undefined
-  selectedAdvancedClass: SURefClass | undefined
-}) => ReactNode
 
 /**
  * Spacing helpers based on compact mode.
@@ -114,12 +107,47 @@ export type EntityDisplayStateInput = {
   listing: boolean
   damaged?: boolean
   label?: string
-  classAbilitiesRenderer?: ClassAbilitiesRenderer
-  patternOverride?: PatternOverrideData
+  /** Overrides the computed title */
+  titleOverride?: string
+  /** Appended after the standard subtitle */
+  subtitleExtra?: ReactNode
+  /** Overrides the SV stat in the header */
+  statsOverride?: { value: number; bottomLabel: string }
+  /** Show only primary stats (SV) in header — replaces schema-specific check */
+  primaryStatsOnly?: boolean
+  /** Replaces the built-in chassis abilities block when provided */
+  abilitiesSection?: ReactNode
+  /** Renders after patterns/damagedEffect, before grants/choices */
+  afterExtraContent?: ReactNode
+  /** Replaces the computed footer */
+  footerOverride?: ReactNode
 }
 
 /** Computed state returned by useEntityDisplayState. Extends input with derived values. */
-export type EntityDisplayState = Omit<EntityDisplayStateInput, 'headerColor' | 'dimHeader'> & {
+export type EntityDisplayState = Omit<
+  EntityDisplayStateInput,
+  | 'headerColor'
+  | 'dimHeader'
+  | 'titleOverride'
+  | 'subtitleExtra'
+  | 'statsOverride'
+  | 'primaryStatsOnly'
+  | 'abilitiesSection'
+  | 'afterExtraContent'
+  | 'footerOverride'
+> & {
+  /** Subtitle extra content from caller */
+  subtitleExtra?: ReactNode
+  /** Overrides SV stat in header */
+  statsOverride?: { value: number; bottomLabel: string }
+  /** Show only primary stats in header */
+  primaryStatsOnly?: boolean
+  /** Replaces built-in chassis abilities block */
+  abilitiesSection?: ReactNode
+  /** Renders after patterns/damagedEffect */
+  afterExtraContent?: ReactNode
+  /** Replaces computed footer */
+  footerOverride?: ReactNode
   /** hide with all fields resolved to booleans (no undefined) */
   hide: Required<EntityHideConfig>
   /** Resolved to non-optional boolean */

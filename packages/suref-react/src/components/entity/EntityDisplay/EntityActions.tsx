@@ -1,25 +1,25 @@
-import type { SURefEnumSchemaName, SURefMetaAction } from 'salvageunion-reference'
+import type { SURefMetaAction } from 'salvageunion-reference'
 import { NestedActionDisplay } from '../NestedActionDisplay'
 import { cn } from '../../../utils/cn'
 import type { getEntitySpacing } from './entityDisplayTypes'
 
 type EntityActionsProps = {
-  schemaName: SURefEnumSchemaName
   spacing: ReturnType<typeof getEntitySpacing>
   compact: boolean
   actionsToDisplay?: SURefMetaAction[]
   headerBg: string
+  /** When true, suppresses action rendering (e.g. chassis uses chassisAbilities instead) */
+  suppressActions?: boolean
 }
 
 export function EntityActions({
-  schemaName,
   spacing,
   compact,
   actionsToDisplay,
   headerBg,
+  suppressActions,
 }: EntityActionsProps) {
-  // Chassis now use chassisAbilities instead of actions
-  if (schemaName === 'chassis') return null
+  if (suppressActions) return null
 
   if (!actionsToDisplay || actionsToDisplay.length === 0) return null
 

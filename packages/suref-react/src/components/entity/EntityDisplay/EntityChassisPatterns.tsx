@@ -3,6 +3,7 @@ import { normalizePatternName } from 'salvageunion-reference'
 import { EntityDisplay } from './index'
 import { SectionSeparator } from './SectionSeparator'
 import { useDetailModal } from './useDetailModal'
+import { useChassisPatternConfig } from './useChassisPatternConfig'
 import type { PatternOverrideData } from './entityDisplayTypes'
 
 type EntityChassisPatternsProps = {
@@ -44,7 +45,15 @@ function PatternListing({
     systems: pattern.systems,
     modules: pattern.modules,
   }
-  const detailModal = useDetailModal(chassisEntity, { patternOverride })
+  const patternConfig = useChassisPatternConfig(chassisEntity, patternOverride, true)
+  const detailModal = useDetailModal(chassisEntity, {
+    titleOverride: patternConfig?.titleOverride,
+    subtitleExtra: patternConfig?.subtitleExtra,
+    statsOverride: patternConfig?.statsOverride,
+    primaryStatsOnly: false,
+    abilitiesSection: patternConfig?.abilitiesSection,
+    hide: { patterns: true },
+  })
 
   return (
     <>
@@ -53,7 +62,11 @@ function PatternListing({
         listing
         compact
         hide={{ actions: true, patterns: true }}
-        patternOverride={patternOverride}
+        titleOverride={patternConfig?.titleOverride}
+        subtitleExtra={patternConfig?.subtitleExtra}
+        statsOverride={patternConfig?.statsOverride}
+        primaryStatsOnly={patternConfig?.primaryStatsOnly}
+        abilitiesSection={patternConfig?.abilitiesSection}
         controls={[detailModal.control]}
       />
       {detailModal.modal}

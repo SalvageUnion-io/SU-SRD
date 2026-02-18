@@ -137,9 +137,7 @@ export function EntityNpcDisplay({
 
     return (
       <div>
-        {(isStatic || showSeparator) && (
-          <SectionSeparator label="NPC" fontSize="text-sm" compact={compact} />
-        )}
+        {(isStatic || showSeparator) && <SectionSeparator label="NPC" compact={compact} />}
         {/* Header: editable name (large) + HP to the far right */}
         <div
           className={cn(
@@ -173,12 +171,12 @@ export function EntityNpcDisplay({
               </div>
             )}
             {npc.position && (
-              <ValueDisplay label="The" value={npc.position} compact={!!npcChildren} inverse />
+              <ValueDisplay label="The" value={npc.position} compact={compact} inverse />
             )}
           </div>
           {npc.hitPoints > 0 && (
             <div className="shrink-0">
-              {hpSlot ?? <StatDisplay label="HP" value={npc.hitPoints} compact />}
+              {hpSlot ?? <StatDisplay label="HP" value={npc.hitPoints} compact={compact} />}
             </div>
           )}
         </div>

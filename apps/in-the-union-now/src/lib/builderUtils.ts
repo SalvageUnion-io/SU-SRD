@@ -163,7 +163,7 @@ export function patternToBuilderState(pattern: {
 
 /**
  * Converts PatternItem[] into the { systems, modules } format expected by
- * EntityDisplay's patternOverride prop. Groups duplicate items by name with count.
+ * useChassisPatternConfig's patternOverride input. Groups duplicate items by name with count.
  */
 export function patternItemsToOverride(items: PatternItem[]): {
   systems: { name: string; count?: number }[]

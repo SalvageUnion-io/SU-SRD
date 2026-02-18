@@ -1,6 +1,9 @@
 // Types
 export type { DataValue } from './types/common'
-export type { ClassAbilitiesRenderer } from './components/entity/EntityDisplay/entityDisplayTypes'
+export type {
+  PatternOverrideData,
+  EntityHideConfig,
+} from './components/entity/EntityDisplay/entityDisplayTypes'
 export type { EntityControl } from './components/entity/EntityDisplay/entityControlTypes'
 
 // Base typography
@@ -29,6 +32,8 @@ export {
 } from './components/entity/EntityDisplay/entityControls'
 export { DetailIcon } from './components/entity/EntityDisplay/DetailIcon'
 export { useDetailModal } from './components/entity/EntityDisplay/useDetailModal'
+export { useChassisPatternConfig } from './components/entity/EntityDisplay/useChassisPatternConfig'
+export { getClassSelections } from './components/entity/EntityDisplay/classSelectionUtils'
 
 // Shared components
 export { DisplayCard } from './components/shared/DisplayCard'

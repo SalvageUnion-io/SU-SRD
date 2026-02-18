@@ -1,13 +1,6 @@
-import { useMemo } from 'react'
 import type { ReactNode } from 'react'
-import type { SURefClass, SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
-import {
-  getDisplayName,
-  getGoals,
-  getAssets,
-  getWeaknesses,
-  normalizePatternName,
-} from 'salvageunion-reference'
+import type { SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
+import { getDisplayName, getGoals, getAssets, getWeaknesses } from 'salvageunion-reference'
 import { RollTable } from '../../../shared/RollTable'
 import { CardHeader } from '../../../shared/CardHeader'
 import { DisplayCard } from '../../../shared/DisplayCard'
@@ -15,7 +8,6 @@ import { EntitySubTitleElement } from '../EntitySubTitleContent'
 import { EntityLeftContent } from '../EntityLeftContent'
 import { EntityRightHeaderContent } from '../EntityRightHeaderContent'
 import { EntityChassisPatterns } from '../EntityChassisPatterns'
-import { EntityChassisPattern } from '../EntityChassisPattern'
 import { EntityFormation } from '../EntityFormation'
 import { EntityNpcDisplay } from '../EntityNpcDisplay'
 import { EntityChassisAbilitiesContent } from '../EntityChassisAbilitiesContent'
@@ -36,11 +28,6 @@ import { useEntityDisplayState } from '../useEntityDisplayState'
 import type { EntityDisplayStateInput } from '../useEntityDisplayState'
 import type { EntityControl } from '../entityControlTypes'
 import type { NpcConfig } from '../entityDisplayTypes'
-import {
-  resolvePatternOverride,
-  checkLegalStartingMech,
-  computeSvOverride,
-} from '../patternOverrideUtils'
 import { EntityFooter } from './EntityFooter'
 import { EntityFactionData } from './EntityFactionData'
 import { GuideEntityListing } from './GuideEntityListing'
@@ -95,9 +82,13 @@ export function EntityDisplayContent({
     matchingAction,
     source,
     label,
-    classAbilitiesRenderer,
     techLevel,
-    patternOverride,
+    subtitleExtra,
+    statsOverride,
+    primaryStatsOnly: primaryStatsOnlyProp,
+    abilitiesSection,
+    afterExtraContent,
+    footerOverride,
   } = state
 
   // Determine which content to render (from EntityTopMatter)
@@ -119,10 +110,9 @@ export function EntityDisplayContent({
   // Show content if entity has content blocks
   const showContent = contentBlocks && contentBlocks.length > 0
 
-  // Consolidate chassis abilities logic
+  // Consolidate chassis abilities logic — data-shape driven
   const chassisName = 'name' in data ? data.name : undefined
-  const hasChassisAbilities =
-    schemaName === 'chassis' && !!chassisAbilities && chassisAbilities.length > 0
+  const hasChassisAbilities = !!chassisAbilities && chassisAbilities.length > 0
 
   // Check if entity has actions that will be displayed (after filtering)
   const hasDisplayableActions =
@@ -134,100 +124,30 @@ export function EntityDisplayContent({
   const hasTopMatterContent =
     !!showContent || hasChassisAbilities || !!assetUrl || hasDisplayableActions
 
-  // Memoize class selection logic
-  const selectedClass = useMemo(() => {
-    if (schemaName !== 'classes') return undefined
-    if ('coreTrees' in data && Array.isArray((data as { coreTrees: string[] }).coreTrees)) {
-      return data as SURefClass
-    }
-    return undefined
-  }, [schemaName, data])
-
-  const selectedAdvancedClass = useMemo(() => {
-    if (schemaName !== 'classes') return undefined
-    if ('hybrid' in data && (data as { hybrid?: boolean }).hybrid === true) {
-      return data as SURefClass
-    }
-    return undefined
-  }, [schemaName, data])
-
-  // Pattern override computations (pure utility functions)
-  const isChassis = schemaName === 'chassis'
-  const overridePatternData = useMemo(
-    () =>
-      isChassis && patternOverride ? resolvePatternOverride(data, patternOverride) : undefined,
-    [isChassis, data, patternOverride]
-  )
-  const isLegalStartingMech = useMemo(
-    () => (isChassis && patternOverride ? checkLegalStartingMech(data, patternOverride) : false),
-    [isChassis, data, patternOverride]
-  )
-  const svOverride = useMemo(
-    () => (isChassis && patternOverride ? computeSvOverride(data, patternOverride) : undefined),
-    [isChassis, data, patternOverride]
-  )
-
-  // Pre-built block for pattern info + chassis abilities (reused at multiple render positions)
-  const chassisAbilitiesBlock =
-    hasChassisAbilities || overridePatternData ? (
-      <div className={spacing.sectionSpaceYClass}>
-        {overridePatternData && (
-          <div className={spacing.smallSpaceYClass}>
-            <div className="flex items-center gap-2">
-              <Text
-                variant="pseudoheader"
-                as="span"
-                className={cn(compact ? 'text-xs' : 'text-sm', 'font-bold uppercase')}
-              >
-                {normalizePatternName(overridePatternData.name)} Pattern
-              </Text>
-              {overridePatternData.page && (
-                <Text variant="pseudoheader" as="span" className="text-xs font-semibold uppercase">
-                  Page {overridePatternData.page}
-                </Text>
-              )}
-              {!compact && overridePatternData.source && (
-                <Text
-                  variant="pseudoheader"
-                  as="span"
-                  className="text-xs font-semibold uppercase opacity-70"
-                >
-                  {overridePatternData.source}
-                </Text>
-              )}
-            </div>
-            {overridePatternData.content && overridePatternData.content.length > 0 && (
-              <BlockContentRendererView
-                content={overridePatternData.content}
-                fontSize={fontSize.sm}
-                compact={compact}
-              />
-            )}
-          </div>
-        )}
-        {hasChassisAbilities && (
-          <EntityChassisAbilitiesContent
-            chassisName={chassisName}
-            spacing={spacing}
-            compact={compact}
-            chassisAbilities={chassisAbilities}
-            droneEquipment={overridePatternData?.drone}
-          />
-        )}
-      </div>
-    ) : null
+  // Pre-built block for chassis abilities (reused at multiple render positions)
+  // When abilitiesSection is provided by the caller, it replaces the entire built-in block
+  const chassisAbilitiesBlock = abilitiesSection ? (
+    abilitiesSection
+  ) : hasChassisAbilities ? (
+    <EntityChassisAbilitiesContent
+      chassisName={chassisName}
+      spacing={spacing}
+      compact={compact}
+      chassisAbilities={chassisAbilities}
+    />
+  ) : null
 
   // Cache border color derivation (used in faction data and elsewhere)
   const borderColor = borderColorFromHeaderBg(headerBg, headerBgColor)
 
   // Determine if there is any body content to render (to avoid empty padding)
   const hasFactionContent = !!(getGoals(data) || getAssets(data) || getWeaknesses(data))
-  const hasGuideSteps =
-    schemaName === 'guides' && 'steps' in data && Array.isArray(data.steps) && data.steps.length > 0
+  const hasGuideSteps = 'steps' in data && Array.isArray(data.steps) && data.steps.length > 0
   const hasBodyContent =
     hasTopMatterContent ||
     !!children ||
     !!chassisAbilitiesBlock ||
+    !!afterExtraContent ||
     hasFactionContent ||
     hasGuideSteps ||
     ('bonusPerTechLevel' in data && !!data.bonusPerTechLevel) ||
@@ -242,7 +162,9 @@ export function EntityDisplayContent({
   const sourceFooterStyles = getSourceStyles(source, disabled ?? false, 'footer', !listing)
   const hasFooter = !hide.footer && (hasPage || hasSource)
 
-  const footer = hasFooter ? (
+  const footer = footerOverride ? (
+    footerOverride
+  ) : hasFooter ? (
     <EntityFooter
       footerDisplayName={footerDisplayName}
       source={hasSource ? data.source : undefined}
@@ -282,8 +204,7 @@ export function EntityDisplayContent({
           schemaName={schemaName}
           spacing={spacing}
           compact={compact}
-          hasPatternOverride={!!patternOverride}
-          isLegalStartingMech={isLegalStartingMech}
+          subtitleExtra={subtitleExtra}
         />
       }
       leftContent={
@@ -302,12 +223,8 @@ export function EntityDisplayContent({
             fontSize={fontSize}
             techLevel={techLevel}
             listing={listing}
-            primaryStatsOnly={
-              compact &&
-              (listing || !!patternOverride) &&
-              (schemaName === 'chassis' || schemaName === 'equipment')
-            }
-            svOverride={svOverride}
+            primaryStatsOnly={primaryStatsOnlyProp ?? false}
+            svOverride={statsOverride}
           />
         ) : null
       }
@@ -394,54 +311,51 @@ export function EntityDisplayContent({
                   fontSize={fontSize}
                   borderColor={borderColor}
                 />
-                {/* Guide steps */}
-                {schemaName === 'guides' &&
-                  'steps' in data &&
-                  Array.isArray(data.steps) &&
-                  data.steps.length > 0 && (
-                    <GuideStepsDisplay
-                      steps={data.steps}
-                      compact={compact}
-                      headerBg={headerBg}
-                      headerBgColor={headerBgColor}
-                      fontSize={fontSize}
-                      spacing={spacing}
-                      interactive={interactive}
-                      renderEntityListing={(
-                        entityData,
-                        entitySchemaName,
-                        key,
-                        isListing,
-                        forceCompact,
-                        entityControls,
-                        entityDisabled
-                      ) => (
-                        <GuideEntityListing
-                          key={key}
-                          data={entityData as SURefEntity}
-                          schemaName={entitySchemaName as SURefEnumSchemaName}
-                          compact={forceCompact ?? isListing}
-                          listing={isListing}
-                          disabled={!!entityDisabled}
-                          controls={entityControls}
-                        />
-                      )}
-                    />
-                  )}
-                {/* Non-compact: chassis abilities + pattern data render before actions */}
+                {/* Guide steps — data-shape driven */}
+                {'steps' in data && Array.isArray(data.steps) && data.steps.length > 0 && (
+                  <GuideStepsDisplay
+                    steps={data.steps}
+                    compact={compact}
+                    headerBg={headerBg}
+                    headerBgColor={headerBgColor}
+                    fontSize={fontSize}
+                    spacing={spacing}
+                    interactive={interactive}
+                    renderEntityListing={(
+                      entityData,
+                      entitySchemaName,
+                      key,
+                      isListing,
+                      forceCompact,
+                      entityControls,
+                      entityDisabled
+                    ) => (
+                      <GuideEntityListing
+                        key={key}
+                        data={entityData as SURefEntity}
+                        schemaName={entitySchemaName as SURefEnumSchemaName}
+                        compact={forceCompact ?? isListing}
+                        listing={isListing}
+                        disabled={!!entityDisabled}
+                        controls={entityControls}
+                      />
+                    )}
+                  />
+                )}
+                {/* Non-compact: chassis abilities render before actions */}
                 {!compact && !hide.actions && chassisAbilitiesBlock}
               </>
             )}
             {(!hide.actions || (compact && schemaName !== 'bio-titans' && !rightContent)) && (
               <EntityActions
-                schemaName={schemaName}
+                suppressActions={hasChassisAbilities}
                 spacing={spacing}
                 compact={compact}
                 actionsToDisplay={actionsToDisplay}
                 headerBg={headerBg}
               />
             )}
-            {/* Compact: pattern data + chassis abilities render after actions */}
+            {/* Compact: chassis abilities render after actions */}
             {compact && chassisAbilitiesBlock}
 
             <EntityBonusPerTechLevel
@@ -481,7 +395,7 @@ export function EntityDisplayContent({
                 <>
                   <EntityNpcDisplay
                     data={data}
-                    compact
+                    compact={compact}
                     embedded
                     fontSize={fontSize}
                     spacing={spacing}
@@ -518,16 +432,7 @@ export function EntityDisplayContent({
                 npcBlock
               )
             })()}
-            {shouldShowExtraContent && patternOverride && (
-              <EntityChassisPattern
-                pattern={{
-                  name: patternOverride.name,
-                  systems: patternOverride.systems,
-                  modules: patternOverride.modules,
-                }}
-              />
-            )}
-            {shouldShowExtraContent && !patternOverride && (
+            {shouldShowExtraContent && (
               <>
                 {!hide.patterns && (
                   <EntityChassisPatterns
@@ -547,12 +452,7 @@ export function EntityDisplayContent({
                     headerBg={headerBg}
                   />
                 )}
-                {schemaName === 'classes' &&
-                  classAbilitiesRenderer?.({
-                    compact,
-                    selectedClass,
-                    selectedAdvancedClass,
-                  })}
+                {afterExtraContent}
                 <EntityGrants data={data} spacing={spacing} />
               </>
             )}

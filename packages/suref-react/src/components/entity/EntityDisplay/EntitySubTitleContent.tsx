@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import type { SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
 import { extractEntityDetails, getActivationCurrency } from '../../../lib/entityDataExtraction'
 import { DataValueDisplayView } from '../DataValueDisplayView'
@@ -9,10 +10,8 @@ type EntitySubTitleElementProps = {
   schemaName: SURefEnumSchemaName
   spacing: ReturnType<typeof getEntitySpacing>
   compact: boolean
-  /** When set, prepends a "<entity.name> Chassis" tag to the subtitle */
-  hasPatternOverride?: boolean
-  /** When true, appends a "Legal Starting Mech" tag */
-  isLegalStartingMech?: boolean
+  /** Extra content appended after standard subtitle values */
+  subtitleExtra?: ReactNode
 }
 
 export function EntitySubTitleElement({
@@ -20,8 +19,7 @@ export function EntitySubTitleElement({
   schemaName,
   spacing,
   compact,
-  hasPatternOverride,
-  isLegalStartingMech,
+  subtitleExtra,
 }: EntitySubTitleElementProps) {
   // Determine currency for activation cost
   const variableCost = 'activationCurrency' in data && schemaName === 'abilities'
@@ -29,18 +27,7 @@ export function EntitySubTitleElement({
 
   const values = extractEntityDetails(data, schemaName, currency)
 
-  // Prepend "Legal Starting Mech" tag first when pattern qualifies
-  if (isLegalStartingMech) {
-    values.unshift({ label: 'Legal Starting Mech', type: 'meta' })
-  }
-
-  // In patterned mode, prepend a "Chassis Name Chassis" tag (after Legal Starting Mech)
-  if (hasPatternOverride && 'name' in data && typeof data.name === 'string') {
-    const insertIndex = isLegalStartingMech ? 1 : 0
-    values.splice(insertIndex, 0, { label: `${data.name} Chassis`, type: 'meta' })
-  }
-
-  if (values.length === 0) return null
+  if (values.length === 0 && !subtitleExtra) return null
 
   return (
     <div
@@ -52,6 +39,7 @@ export function EntitySubTitleElement({
       {values.map((item, index) => (
         <DataValueDisplayView key={index} item={item} compact={compact} />
       ))}
+      {subtitleExtra}
     </div>
   )
 }

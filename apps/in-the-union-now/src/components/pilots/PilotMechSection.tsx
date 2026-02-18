@@ -1,7 +1,7 @@
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import type { SURefEntity } from 'salvageunion-reference'
-import { EntityDisplay, SectionSeparator } from 'suref-react'
+import { EntityDisplay, SectionSeparator, useChassisPatternConfig } from 'suref-react'
 import type { EntityControl } from 'suref-react'
 import { Plus, Wrench } from 'lucide-react'
 import { Button } from '../ui/button'
@@ -54,26 +54,49 @@ export function PilotMechSection({
       ) : mechLoading ? (
         <Skeleton className="h-[40px] rounded-md" />
       ) : mech && mechChassis ? (
-        <EntityDisplay
-          data={mechChassis}
-          listing
-          compact
-          patternOverride={{
-            name: mech.pattern_name ?? 'Unnamed Mech',
-            systems: [],
-            modules: [],
-          }}
-          controls={[
-            {
-              key: 'mech-bay',
-              icon: Wrench,
-              onClick: handleNavigateToMechBay,
-              ariaLabel: 'Open Mech Bay',
-              variant: 'ghost' as const,
-            } satisfies EntityControl,
-          ]}
+        <MechListing
+          mechChassis={mechChassis}
+          patternName={mech.pattern_name ?? 'Unnamed Mech'}
+          onNavigate={handleNavigateToMechBay}
         />
       ) : null}
     </div>
+  )
+}
+
+function MechListing({
+  mechChassis,
+  patternName,
+  onNavigate,
+}: {
+  mechChassis: SURefEntity
+  patternName: string
+  onNavigate: () => void
+}) {
+  const patternOverride = useMemo(
+    () => ({ name: patternName, systems: [] as [], modules: [] as [] }),
+    [patternName]
+  )
+  const patternConfig = useChassisPatternConfig(mechChassis, patternOverride, true)
+
+  return (
+    <EntityDisplay
+      data={mechChassis}
+      listing
+      compact
+      titleOverride={patternConfig?.titleOverride}
+      subtitleExtra={patternConfig?.subtitleExtra}
+      statsOverride={patternConfig?.statsOverride}
+      primaryStatsOnly={patternConfig?.primaryStatsOnly}
+      controls={[
+        {
+          key: 'mech-bay',
+          icon: Wrench,
+          onClick: onNavigate,
+          ariaLabel: 'Open Mech Bay',
+          variant: 'ghost' as const,
+        } satisfies EntityControl,
+      ]}
+    />
   )
 }

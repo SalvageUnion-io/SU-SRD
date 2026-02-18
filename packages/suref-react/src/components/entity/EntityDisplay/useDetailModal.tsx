@@ -6,14 +6,22 @@ import { X } from 'lucide-react'
 import { EntityDisplayContent } from './components/EntityDisplayContent'
 import { DetailIcon } from './DetailIcon'
 import type { EntityControl } from './entityControlTypes'
-import type { PatternOverrideData } from './entityDisplayTypes'
+import type { EntityHideConfig } from './entityDisplayTypes'
 
 type UseDetailModalOptions = {
-  patternOverride?: PatternOverrideData
   children?: ReactNode
   label?: string
   /** Controls to render in the modal's entity header */
   modalControls?: EntityControl[]
+  /** Generic override props */
+  titleOverride?: string
+  subtitleExtra?: ReactNode
+  statsOverride?: { value: number; bottomLabel: string }
+  primaryStatsOnly?: boolean
+  abilitiesSection?: ReactNode
+  afterExtraContent?: ReactNode
+  footerOverride?: ReactNode
+  hide?: Partial<EntityHideConfig>
 }
 
 export function useDetailModal(
@@ -63,14 +71,20 @@ export function useDetailModal(
                   listing={false}
                   dimHeader={false}
                   disabled={false}
-                  hide={options?.patternOverride ? { patterns: true } : undefined}
-                  patternOverride={options?.patternOverride}
+                  hide={options?.hide}
                   controls={options?.modalControls}
                   label={
                     schemaName === 'abilities' && 'tree' in data && data.tree
                       ? `${data.tree} Tree`
                       : options?.label
                   }
+                  titleOverride={options?.titleOverride}
+                  subtitleExtra={options?.subtitleExtra}
+                  statsOverride={options?.statsOverride}
+                  primaryStatsOnly={options?.primaryStatsOnly}
+                  abilitiesSection={options?.abilitiesSection}
+                  afterExtraContent={options?.afterExtraContent}
+                  footerOverride={options?.footerOverride}
                 >
                   {options?.children}
                 </EntityDisplayContent>

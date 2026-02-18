@@ -3,6 +3,7 @@ import type { SURefMetaEntity, SURefEntity } from 'salvageunion-reference'
 import { EntityDisplay } from './index'
 import { SectionSeparator } from './SectionSeparator'
 import { useDetailModal } from './useDetailModal'
+import { useChassisPatternConfig } from './useChassisPatternConfig'
 import type { PatternOverrideData } from './entityDisplayTypes'
 import { cn } from '../../../utils/cn'
 
@@ -60,7 +61,15 @@ function FormationMechListing({
   entity: SURefEntity
   patternOverride?: PatternOverrideData
 }) {
-  const detailModal = useDetailModal(entity, { patternOverride })
+  const patternConfig = useChassisPatternConfig(entity, patternOverride, true)
+  const detailModal = useDetailModal(entity, {
+    titleOverride: patternConfig?.titleOverride,
+    subtitleExtra: patternConfig?.subtitleExtra,
+    statsOverride: patternConfig?.statsOverride,
+    primaryStatsOnly: false,
+    abilitiesSection: patternConfig?.abilitiesSection,
+    hide: patternConfig ? { patterns: true } : undefined,
+  })
 
   return (
     <>
@@ -68,7 +77,11 @@ function FormationMechListing({
         data={entity}
         compact
         listing
-        patternOverride={patternOverride}
+        titleOverride={patternConfig?.titleOverride}
+        subtitleExtra={patternConfig?.subtitleExtra}
+        statsOverride={patternConfig?.statsOverride}
+        primaryStatsOnly={patternConfig?.primaryStatsOnly}
+        abilitiesSection={patternConfig?.abilitiesSection}
         controls={[detailModal.control]}
       />
       {detailModal.modal}

@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react'
 import { findChassisById } from '../../lib/entityHelpers'
-import type { SURefObjectPattern } from 'salvageunion-reference'
-import { EntityDisplay, Text, addControl } from 'suref-react'
+import type { SURefEntity, SURefObjectPattern } from 'salvageunion-reference'
+import { EntityDisplay, Text, addControl, useChassisPatternConfig } from 'suref-react'
+import type { PatternOverrideData } from 'suref-react'
 import { Button } from '../ui/button'
 import { actionButtonClasses } from '../shared/actionButtonClasses'
 import { ModalShell } from '../shared/ModalShell'
@@ -82,22 +83,46 @@ export function PatternSelectionModal({
             </p>
           ) : (
             patterns.map((pattern) => (
-              <EntityDisplay
+              <PatternOption
                 key={pattern.name}
-                data={chassis!}
-                compact
-                hide={{ patterns: true, content: true }}
-                patternOverride={{
-                  name: pattern.name,
-                  systems: pattern.systems,
-                  modules: pattern.modules,
-                }}
-                controls={[addControl(() => setPendingPattern(pattern))]}
+                chassis={chassis!}
+                pattern={pattern}
+                onSelect={() => setPendingPattern(pattern)}
               />
             ))
           )}
         </div>
       </div>
     </ModalShell>
+  )
+}
+
+function PatternOption({
+  chassis,
+  pattern,
+  onSelect,
+}: {
+  chassis: SURefEntity
+  pattern: SURefObjectPattern
+  onSelect: () => void
+}) {
+  const patternOverride: PatternOverrideData = useMemo(
+    () => ({ name: pattern.name, systems: pattern.systems, modules: pattern.modules }),
+    [pattern.name, pattern.systems, pattern.modules]
+  )
+  const patternConfig = useChassisPatternConfig(chassis, patternOverride, true)
+
+  return (
+    <EntityDisplay
+      data={chassis}
+      compact
+      hide={{ patterns: true, content: true }}
+      titleOverride={patternConfig?.titleOverride}
+      subtitleExtra={patternConfig?.subtitleExtra}
+      statsOverride={patternConfig?.statsOverride}
+      primaryStatsOnly={patternConfig?.primaryStatsOnly}
+      abilitiesSection={patternConfig?.abilitiesSection}
+      controls={[addControl(onSelect)]}
+    />
   )
 }

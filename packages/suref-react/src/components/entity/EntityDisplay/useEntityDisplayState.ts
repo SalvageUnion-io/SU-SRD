@@ -41,8 +41,13 @@ export function useEntityDisplayState({
   listing,
   damaged = false,
   label,
-  classAbilitiesRenderer,
-  patternOverride,
+  titleOverride,
+  subtitleExtra,
+  statsOverride,
+  primaryStatsOnly,
+  abilitiesSection,
+  afterExtraContent,
+  footerOverride,
 }: EntityDisplayStateInput): EntityDisplayState {
   const hideActions = hide?.actions ?? false
   const hidePatterns = hide?.patterns ?? false
@@ -53,8 +58,8 @@ export function useEntityDisplayState({
   const hideRollTable = hide?.rollTable ?? false
   const hideFooter = hide?.footer ?? false
 
-  const title = patternOverride
-    ? `\u201C${patternOverride.name}\u201D`
+  const title = titleOverride
+    ? titleOverride
     : !('name' in data)
       ? ''
       : schemaName === 'ability-tree-requirements'
@@ -72,9 +77,7 @@ export function useEntityDisplayState({
   )
   const headerBg = damaged ? 'bg-su-grey' : calculatedHeaderBg
   const headerBgColor =
-    schemaName === 'guides' && 'guideColor' in data && typeof data.guideColor === 'string'
-      ? data.guideColor
-      : undefined
+    'guideColor' in data && typeof data.guideColor === 'string' ? data.guideColor : undefined
   const spacing = getEntitySpacing(compact)
   const fontSize = getEntityFontSizes(compact)
   const opacity = { header: dimHeader ? 0.5 : 1, content: disabled ? 0.5 : 1 }
@@ -133,7 +136,11 @@ export function useEntityDisplayState({
     matchingAction,
     source,
     label,
-    classAbilitiesRenderer,
-    patternOverride,
+    subtitleExtra,
+    statsOverride,
+    primaryStatsOnly,
+    abilitiesSection,
+    afterExtraContent,
+    footerOverride,
   }
 }

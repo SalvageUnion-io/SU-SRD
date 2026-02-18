@@ -2,7 +2,12 @@ import { useCallback, useMemo } from 'react'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { Plus } from 'lucide-react'
 import { findChassisById } from '../../lib/entityHelpers'
-import { EntityDisplay, SectionSeparator, navigateControl } from 'suref-react'
+import {
+  EntityDisplay,
+  SectionSeparator,
+  navigateControl,
+  useChassisPatternConfig,
+} from 'suref-react'
 import { useAuthStore } from '../../stores/authStore'
 import { usePatterns } from '../../hooks/usePatterns'
 import { Skeleton } from '../ui/skeleton'
@@ -40,20 +45,28 @@ function PatternListing({ pattern }: { pattern: TypedPatternRow }) {
 
   const chassis = useMemo(() => findChassisById(pattern.chassis_ref), [pattern.chassis_ref])
 
+  const patternOverride = useMemo(
+    () => ({ name: pattern.name, systems: [] as [], modules: [] as [] }),
+    [pattern.name]
+  )
+
+  const patternConfig = useChassisPatternConfig(chassis!, patternOverride, true)
+
   const handleNavigate = useCallback(() => {
     navigate({ to: '/patterns/$patternId', params: { patternId: pattern.id } })
   }, [navigate, pattern.id])
+
+  if (!chassis) return null
 
   return (
     <EntityDisplay
       data={chassis}
       listing
       compact
-      patternOverride={{
-        name: pattern.name,
-        systems: [],
-        modules: [],
-      }}
+      titleOverride={patternConfig?.titleOverride}
+      subtitleExtra={patternConfig?.subtitleExtra}
+      statsOverride={patternConfig?.statsOverride}
+      primaryStatsOnly={patternConfig?.primaryStatsOnly}
       controls={[navigateControl(handleNavigate)]}
     />
   )
