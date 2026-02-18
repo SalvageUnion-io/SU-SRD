@@ -10,6 +10,7 @@ import { DataValueDisplayView } from './DataValueDisplayView'
 import { RollTable } from '../shared/RollTable'
 import { borderColorFromHeaderBg } from './entityDisplayHelpers'
 import { SectionSeparator } from './EntityDisplay/SectionSeparator'
+import { Text } from '../base/Text'
 import { cn } from '../../utils/cn'
 
 type NestedActionDisplayProps = {
@@ -21,6 +22,8 @@ type NestedActionDisplayProps = {
   hideContent?: boolean
   /** Header background class (e.g. 'bg-su-orange') for left border color */
   headerBg?: string
+  /** When true, renders title as a SectionSeparator instead of a pseudoheader */
+  sectionHeader?: boolean
 }
 
 /**
@@ -37,6 +40,7 @@ export function NestedActionDisplay({
   compact = false,
   hideContent = false,
   headerBg,
+  sectionHeader = false,
 }: NestedActionDisplayProps) {
   // Regular actions use AP currency
   const details = extractEntityDetails(data, undefined, 'AP')
@@ -63,9 +67,17 @@ export function NestedActionDisplay({
 
   return (
     <div className="overflow-hidden bg-transparent">
-      <div className={verticalSpacing}>
-        <SectionSeparator label={displayName} fontSize={titleFontSize} />
-      </div>
+      {sectionHeader ? (
+        <div className={verticalSpacing}>
+          <SectionSeparator label={displayName} compact={compact} />
+        </div>
+      ) : (
+        <div className={cn('flex flex-row flex-wrap items-center', verticalSpacing)}>
+          <Text as="span" variant="pseudoheader" className={titleFontSize}>
+            {displayName}
+          </Text>
+        </div>
+      )}
 
       {/* Bordered section: text content only */}
       {(details.length > 0 || requiredTraits.length > 0 || hasContentToRender) && (

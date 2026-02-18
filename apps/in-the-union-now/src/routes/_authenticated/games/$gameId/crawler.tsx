@@ -543,6 +543,7 @@ function CrawlerTypeSection({
               data={action as SURefMetaAction}
               compact
               headerBg="bg-su-pink"
+              sectionHeader
             />
           )
         })}
@@ -571,7 +572,7 @@ function CrawlerTypeSection({
         npcConfig={npcConfig}
         rightContent={abilityContent}
         npcPosition="right"
-        hide={{ actions: true }}
+        hide={{ actions: true, footer: true }}
         headerColor="bg-su-pink"
       />
     </div>

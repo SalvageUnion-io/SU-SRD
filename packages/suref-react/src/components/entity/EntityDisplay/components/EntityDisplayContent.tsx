@@ -353,6 +353,7 @@ export function EntityDisplayContent({
                 compact={compact}
                 actionsToDisplay={actionsToDisplay}
                 headerBg={headerBg}
+                sectionHeaders={schemaName === 'crawlers'}
               />
             )}
             {/* Compact: chassis abilities render after actions */}

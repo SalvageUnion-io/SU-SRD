@@ -10,6 +10,8 @@ type EntityActionsProps = {
   headerBg: string
   /** When true, suppresses action rendering (e.g. chassis uses chassisAbilities instead) */
   suppressActions?: boolean
+  /** When true, renders action titles as SectionSeparators instead of pseudoheaders */
+  sectionHeaders?: boolean
 }
 
 export function EntityActions({
@@ -18,6 +20,7 @@ export function EntityActions({
   actionsToDisplay,
   headerBg,
   suppressActions,
+  sectionHeaders = false,
 }: EntityActionsProps) {
   if (suppressActions) return null
 
@@ -32,6 +35,7 @@ export function EntityActions({
             key={action.id}
             data={action}
             headerBg={headerBg}
+            sectionHeader={sectionHeaders}
           />
         )
       })}
