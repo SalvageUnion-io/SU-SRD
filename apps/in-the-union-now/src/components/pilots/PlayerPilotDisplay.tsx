@@ -8,7 +8,7 @@ import {
   navigateControl,
   ClassAbilityTreeDisplay,
 } from 'suref-react'
-import type { ReferenceEntityControl } from 'suref-react'
+import type { ReferenceEntityControl, DisplayCardTab } from 'suref-react'
 import { Eye, EyeOff, Trash2 } from 'lucide-react'
 import { findChassisById, findClassName } from '../../lib/entityHelpers'
 import { useMech } from '../../hooks/useMechs'
@@ -16,13 +16,10 @@ import { StatControl } from '../shared/StatControl'
 import { SheetFooter } from '../shared/SheetFooter'
 import { actionButtonClasses } from '../shared/actionButtonClasses'
 import { DeleteConfirmDialog } from '../shared/DeleteConfirmDialog'
-import { Skeleton } from '../ui/skeleton'
 import { PilotPersonalInfo } from './PilotPersonalInfo'
 import { PilotEquipmentSection } from './PilotEquipmentSection'
-import { PilotMechSection, MechListing } from './PilotMechSection'
-import { PilotActionsSection } from './PilotActionsSection'
-import { MechActionsSection } from './MechActionsSection'
-import { MechLoadoutSection } from './MechLoadoutSection'
+import { PilotMechTab } from './PilotMechTab'
+import { ActionsSection } from './ActionsSection'
 import type { PilotEditConfig } from '../../hooks/usePilotSheet'
 import type { PilotRow, MechRow, EntityRefRow } from '../../types/common'
 import type { SURefChassis, SURefClass } from 'salvageunion-reference'
@@ -82,7 +79,6 @@ export function PlayerPilotDisplay({
   pilotRefs,
   mechRefs,
   mechChassis: mechChassisProp,
-  mechLoading,
   cardColor: cardColorProp,
   pilotClassName: pilotClassNameProp,
   pilotClassAssetUrl,
@@ -112,10 +108,6 @@ export function PlayerPilotDisplay({
 
   const handleNavigate = useCallback(() => {
     navigate({ to: '/pilots/$pilotId', params: { pilotId: pilot.id } })
-  }, [navigate, pilot.id])
-
-  const handleNavigateToMechBay = useCallback(() => {
-    navigate({ to: '/pilots/$pilotId/mech-bay', params: { pilotId: pilot.id } })
   }, [navigate, pilot.id])
 
   const defaultControls = useMemo(() => [navigateControl(handleNavigate)], [handleNavigate])
@@ -170,17 +162,70 @@ export function PlayerPilotDisplay({
   }
 
   // --- SHEET MODE ---
+
   const canEdit = editConfig?.canEdit ?? false
   const badgeTextClass = compact
     ? 'text-sm font-semibold uppercase'
     : 'text-base font-semibold uppercase'
 
+  const tabs: DisplayCardTab[] = [
+    {
+      key: 'abilities',
+      label: 'Abilities',
+      content: pilotClass ? (
+        <div className={compact ? 'p-3' : 'p-4'}>
+          <PilotAbilityTrees
+            pilotClass={pilotClass}
+            pilotRefs={pilotRefs ?? []}
+            compact={compact}
+          />
+        </div>
+      ) : null,
+    },
+    {
+      key: 'mech',
+      label: 'Mech',
+      content: (
+        <PilotMechTab
+          pilot={pilot}
+          mech={mech}
+          mechRefs={mechRefs ?? []}
+          canEdit={canEdit}
+          compact
+        />
+      ),
+    },
+    {
+      key: 'actions',
+      label: 'Actions',
+      content: (
+        <div className={compact ? 'p-3' : 'p-4'}>
+          <ActionsSection
+            pilotRefs={pilotRefs ?? []}
+            pilot={pilot}
+            compact={compact}
+            readOnly={!canEdit}
+            onUpdatePilot={editConfig?.onPilotUpdate ?? (() => {})}
+            onUpdateEntityRef={editConfig?.onUpdateEntityRef ?? (() => {})}
+            mechRefs={mechRefs}
+            mech={mech}
+            mechChassis={mechChassisProp}
+            onUpdateMech={editConfig?.onUpdateMech}
+            onUpdateMechEntityRef={editConfig?.onUpdateMechEntityRef}
+          />
+        </div>
+      ),
+    },
+  ]
+
   return (
     <>
       <DisplayCard
+        stickyHeader
         headerBg={cardColorProp ?? 'bg-su-orange'}
         bodyPadding="p-0"
         image={{ url: pilotClassAssetUrl, alt: pilot.callsign }}
+        tabs={tabs}
         headerContent={
           <>
             <div className="flex min-w-0 flex-col justify-center gap-0.5">
@@ -223,7 +268,7 @@ export function PlayerPilotDisplay({
               </div>
             </div>
             {editConfig && (
-              <div className="flex items-center gap-1">
+              <div className="flex shrink-0 items-center gap-1">
                 <StatControl
                   label="HP"
                   value={pilot.hp}
@@ -277,23 +322,6 @@ export function PlayerPilotDisplay({
           ) : undefined
         }
       >
-        {/* Mech display attached to header — the "lump" */}
-        {pilot.mech_id && (
-          <div
-            className={`${compact ? 'px-3' : 'px-4'} mb-3 md:px-0 md:-mt-[3px] md:mr-3 md:ml-auto md:w-1/2 md:[&>div]:!rounded-t-none md:[&>div>div]:!rounded-t-none md:[&>div]:!border-t-0 md:[&>div]:!border-[3px]`}
-          >
-            {mechLoading ? (
-              <Skeleton className="h-[40px] rounded-md" />
-            ) : mech && mechChassisProp ? (
-              <MechListing
-                mechChassis={mechChassisProp}
-                patternName={mech.pattern_name ?? 'Unnamed Mech'}
-                onNavigate={handleNavigateToMechBay}
-              />
-            ) : null}
-          </div>
-        )}
-
         <div className={compact ? 'p-3' : 'p-4'}>
           <div className={compact ? 'space-y-3' : 'space-y-4'}>
             <PilotPersonalInfo
@@ -302,16 +330,6 @@ export function PlayerPilotDisplay({
               readOnly={!canEdit}
               onUpdate={editConfig?.onPilotUpdate ?? (() => {})}
             />
-            {!pilot.mech_id && (
-              <PilotMechSection
-                pilot={pilot}
-                compact={compact}
-                readOnly={!canEdit}
-                mech={null}
-                mechChassis={undefined}
-                mechLoading={false}
-              />
-            )}
             <PilotEquipmentSection
               refs={pilotRefs ?? []}
               compact={compact}
@@ -322,43 +340,6 @@ export function PlayerPilotDisplay({
             />
           </div>
           <div className="clear-both" />
-          {pilotClass && (
-            <PilotAbilityTrees
-              pilotClass={pilotClass}
-              pilotRefs={pilotRefs ?? []}
-              compact={compact}
-            />
-          )}
-          <div className={compact ? 'space-y-3' : 'space-y-4'}>
-            {mech && mechRefs && mechRefs.length > 0 && editConfig && (
-              <MechLoadoutSection
-                mechRefs={mechRefs}
-                compact={compact}
-                canEdit={canEdit}
-                onConditionChange={(refId, condition) =>
-                  editConfig.onUpdateMechEntityRef(refId, { condition })
-                }
-              />
-            )}
-            <PilotActionsSection
-              refs={pilotRefs ?? []}
-              pilot={pilot}
-              compact={compact}
-              readOnly={!canEdit}
-              onUpdatePilot={editConfig?.onPilotUpdate ?? (() => {})}
-              onUpdateEntityRef={editConfig?.onUpdateEntityRef ?? (() => {})}
-            />
-            {mech && mechRefs && mechRefs.length > 0 && editConfig && (
-              <MechActionsSection
-                mechRefs={mechRefs}
-                mech={mech}
-                compact={compact}
-                readOnly={!canEdit}
-                onUpdateMech={editConfig.onUpdateMech}
-                onUpdateMechEntityRef={editConfig.onUpdateMechEntityRef}
-              />
-            )}
-          </div>
         </div>
       </DisplayCard>
 

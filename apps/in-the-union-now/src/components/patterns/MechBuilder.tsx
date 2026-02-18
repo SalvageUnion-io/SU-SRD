@@ -63,6 +63,10 @@ type MechBuilderProps = {
   onViewPattern?: () => void
   onPatternApplied?: (selection: SelectedPattern) => void
   userId?: string
+  /** Content rendered inside the card body above chassis abilities (e.g. pilot listing) */
+  pilotContent?: React.ReactNode
+  /** Whether to make the DisplayCard header sticky (default: true) */
+  stickyHeader?: boolean
 }
 
 const emptyState: BuilderState = {
@@ -98,6 +102,8 @@ export function MechBuilder({
   onViewPattern,
   onPatternApplied,
   userId,
+  pilotContent,
+  stickyHeader = true,
 }: MechBuilderProps) {
   const [state, setState] = useState<BuilderState>(initialState ?? emptyState)
   const [modalTarget, setModalTarget] = useState<ModalTarget>(null)
@@ -207,7 +213,10 @@ export function MechBuilder({
   function handlePatternSelect(selection: SelectedPattern) {
     if (selection.source === 'reference') {
       setState((s) => ({
-        ...applyPatternItems(s, referencePatternToItems(selection.pattern.systems, selection.pattern.modules)),
+        ...applyPatternItems(
+          s,
+          referencePatternToItems(selection.pattern.systems, selection.pattern.modules)
+        ),
         name: selection.pattern.name,
       }))
     } else {
@@ -222,6 +231,7 @@ export function MechBuilder({
   return (
     <>
       <DisplayCard
+        stickyHeader={stickyHeader}
         headerBg="bg-su-green"
         bodyPadding="p-0"
         mode={compact ? 'compact' : undefined}
@@ -475,9 +485,17 @@ export function MechBuilder({
         }
       >
         <div className={compact ? 'px-2 pt-2 pb-2' : 'px-4 pt-3 pb-4'}>
+          {/* Pilot listing */}
+          {pilotContent && (
+            <div className="-mt-2 mb-4">
+              <SectionSeparator label="Pilot" compact={compact} />
+              <div className={compact ? 'mt-1.5' : 'mt-2'}>{pilotContent}</div>
+            </div>
+          )}
+
           {/* Chassis Abilities */}
           {chassis && chassisAbilities && chassisAbilities.length > 0 && (
-            <div className="-mt-4 mb-4 overflow-hidden">
+            <div className={pilotContent ? 'mb-4' : '-mt-4 mb-4 overflow-hidden'}>
               <ReferenceEntityChassisAbilitiesContent
                 chassisName={chassis.name}
                 spacing={getReferenceEntitySpacing(!!compact)}

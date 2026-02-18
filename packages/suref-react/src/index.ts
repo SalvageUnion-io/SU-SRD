@@ -2,6 +2,7 @@
 export type { DataValue } from './types/common'
 export type { PatternOverrideData } from './components/referenceEntity/ReferenceEntityDisplay/referenceEntityDisplayTypes'
 export type { ReferenceEntityControl } from './components/referenceEntity/ReferenceEntityDisplay/referenceEntityControlTypes'
+export type { DisplayCardTab } from './components/shared/DisplayCard'
 
 // Base typography
 export { Text } from './components/base/Text'

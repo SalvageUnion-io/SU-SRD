@@ -1,6 +1,7 @@
 import { describe, test, expect, afterEach, spyOn } from 'bun:test'
 import { render, screen, fireEvent, cleanup } from '@testing-library/react'
 import { DisplayCard } from '../DisplayCard'
+import type { DisplayCardTab } from '../DisplayCard'
 import type { ReferenceEntityControl } from '../../referenceEntity/ReferenceEntityDisplay/referenceEntityControlTypes'
 
 const Stub = () => null
@@ -271,7 +272,15 @@ describe('DisplayCard', () => {
         headerContent={<span>Row</span>}
         mode="listing"
         headerTestId="header"
-        controls={[makeTestControl({ cardClick: true, hidden: true, onClick: () => { clicked = true } })]}
+        controls={[
+          makeTestControl({
+            cardClick: true,
+            hidden: true,
+            onClick: () => {
+              clicked = true
+            },
+          }),
+        ]}
       />
     )
     const wrapper = container.firstElementChild as HTMLElement
@@ -287,7 +296,15 @@ describe('DisplayCard', () => {
         headerBg="bg-su-green"
         headerContent={<span>Full</span>}
         mode="full"
-        controls={[makeTestControl({ cardClick: true, hidden: true, onClick: () => { clicked = true } })]}
+        controls={[
+          makeTestControl({
+            cardClick: true,
+            hidden: true,
+            onClick: () => {
+              clicked = true
+            },
+          }),
+        ]}
       >
         <p>Body</p>
       </DisplayCard>
@@ -323,8 +340,22 @@ describe('DisplayCard', () => {
         headerContent={<span>Row</span>}
         mode="listing"
         controls={[
-          makeTestControl({ key: 'first', cardClick: true, hidden: true, onClick: () => { clickedKey = 'first' } }),
-          makeTestControl({ key: 'second', cardClick: true, hidden: true, onClick: () => { clickedKey = 'second' } }),
+          makeTestControl({
+            key: 'first',
+            cardClick: true,
+            hidden: true,
+            onClick: () => {
+              clickedKey = 'first'
+            },
+          }),
+          makeTestControl({
+            key: 'second',
+            cardClick: true,
+            hidden: true,
+            onClick: () => {
+              clickedKey = 'second'
+            },
+          }),
         ]}
       />
     )
@@ -341,8 +372,18 @@ describe('DisplayCard', () => {
         headerBg="bg-su-green"
         headerContent={<span>Row</span>}
         mode="listing"
-        onCardClick={() => { source = 'prop' }}
-        controls={[makeTestControl({ cardClick: true, hidden: true, onClick: () => { source = 'control' } })]}
+        onCardClick={() => {
+          source = 'prop'
+        }}
+        controls={[
+          makeTestControl({
+            cardClick: true,
+            hidden: true,
+            onClick: () => {
+              source = 'control'
+            },
+          }),
+        ]}
       />
     )
     fireEvent.click(container.firstElementChild as HTMLElement)
@@ -351,11 +392,7 @@ describe('DisplayCard', () => {
 
   test('cardClickable enables hover classes without click handler', () => {
     const { container } = render(
-      <DisplayCard
-        headerBg="bg-su-green"
-        headerContent={<span>Hoverable</span>}
-        cardClickable
-      >
+      <DisplayCard headerBg="bg-su-green" headerContent={<span>Hoverable</span>} cardClickable>
         <p>Body</p>
       </DisplayCard>
     )
@@ -376,5 +413,118 @@ describe('DisplayCard', () => {
     )
     const wrapper = container.firstElementChild as HTMLElement
     expect(wrapper.className).toContain('md:hover:scale-[1.02]')
+  })
+
+  // --- Tab tests ---
+
+  test('no tabs renders no tab bar', () => {
+    render(
+      <DisplayCard headerBg="bg-su-green" headerContent={<span>Header</span>}>
+        <p>Body</p>
+      </DisplayCard>
+    )
+    expect(screen.queryByRole('tablist')).toBeNull()
+    expect(screen.getByText('Body')).toBeTruthy()
+  })
+
+  test('tabs render tab bar with correct labels', () => {
+    const tabs: DisplayCardTab[] = [
+      { key: 'a', label: 'Alpha', content: <p>Alpha content</p> },
+      { key: 'b', label: 'Beta', content: <p>Beta content</p> },
+    ]
+    render(
+      <DisplayCard headerBg="bg-su-green" headerContent={<span>Header</span>} tabs={tabs}>
+        <p>Default content</p>
+      </DisplayCard>
+    )
+    const tablist = screen.getByRole('tablist')
+    expect(tablist).toBeTruthy()
+    const tabButtons = screen.getAllByRole('tab')
+    expect(tabButtons.length).toBe(3) // Info + Alpha + Beta
+    expect(tabButtons[0]!.textContent).toBe('Info')
+    expect(tabButtons[1]!.textContent).toBe('Alpha')
+    expect(tabButtons[2]!.textContent).toBe('Beta')
+  })
+
+  test('default tab shows children content', () => {
+    const tabs: DisplayCardTab[] = [{ key: 'a', label: 'Alpha', content: <p>Alpha content</p> }]
+    render(
+      <DisplayCard headerBg="bg-su-green" headerContent={<span>Header</span>} tabs={tabs}>
+        <p>Default body</p>
+      </DisplayCard>
+    )
+    expect(screen.getByText('Default body')).toBeTruthy()
+    expect(screen.queryByText('Alpha content')).toBeNull()
+  })
+
+  test('tab switching hides children and shows tab content', () => {
+    const tabs: DisplayCardTab[] = [{ key: 'a', label: 'Alpha', content: <p>Alpha content</p> }]
+    render(
+      <DisplayCard headerBg="bg-su-green" headerContent={<span>Header</span>} tabs={tabs}>
+        <p>Default body</p>
+      </DisplayCard>
+    )
+    // Click Alpha tab
+    fireEvent.click(screen.getByRole('tab', { name: 'Alpha' }))
+    expect(screen.queryByText('Default body')).toBeNull()
+    expect(screen.getByText('Alpha content')).toBeTruthy()
+
+    // Click back to default
+    fireEvent.click(screen.getByRole('tab', { name: 'Info' }))
+    expect(screen.getByText('Default body')).toBeTruthy()
+    expect(screen.queryByText('Alpha content')).toBeNull()
+  })
+
+  test('image hidden on non-default tab', () => {
+    const tabs: DisplayCardTab[] = [{ key: 'a', label: 'Alpha', content: <p>Alpha content</p> }]
+    const { container } = render(
+      <DisplayCard
+        headerBg="bg-su-green"
+        headerContent={<span>Header</span>}
+        tabs={tabs}
+        image={{ url: 'https://example.com/img.png', alt: 'Test image' }}
+      >
+        <p>Default body</p>
+      </DisplayCard>
+    )
+    // Image visible on default tab
+    expect(container.querySelector('img')).toBeTruthy()
+
+    // Switch to Alpha tab
+    fireEvent.click(screen.getByRole('tab', { name: 'Alpha' }))
+    expect(container.querySelector('img')).toBeNull()
+  })
+
+  test('defaultTabLabel customization', () => {
+    const tabs: DisplayCardTab[] = [{ key: 'a', label: 'Alpha', content: <p>Alpha content</p> }]
+    render(
+      <DisplayCard
+        headerBg="bg-su-green"
+        headerContent={<span>Header</span>}
+        tabs={tabs}
+        defaultTabLabel="Details"
+      >
+        <p>Body</p>
+      </DisplayCard>
+    )
+    expect(screen.getByRole('tab', { name: 'Details' })).toBeTruthy()
+    expect(screen.queryByRole('tab', { name: 'Info' })).toBeNull()
+  })
+
+  test('listing mode ignores tabs', () => {
+    const tabs: DisplayCardTab[] = [{ key: 'a', label: 'Alpha', content: <p>Alpha content</p> }]
+    render(
+      <DisplayCard
+        headerBg="bg-su-green"
+        headerContent={<span>Header</span>}
+        mode="listing"
+        tabs={tabs}
+      >
+        <p>Body</p>
+      </DisplayCard>
+    )
+    expect(screen.queryByRole('tablist')).toBeNull()
+    expect(screen.queryByText('Body')).toBeNull()
+    expect(screen.queryByText('Alpha content')).toBeNull()
   })
 })
