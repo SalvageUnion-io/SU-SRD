@@ -202,15 +202,26 @@ export function ScrapTranslationDialog({
                   {/* Preview */}
                   <div className="border-2 border-su-black/20 p-3">
                     {result ? (
-                      <Text variant="default" as="p" className="text-center text-sm text-su-black">
-                        <span className="font-mono font-bold text-su-pink">
-                          {result.sourceConsumed} TL{fromTL}
-                        </span>
-                        {' → '}
-                        <span className="font-mono font-bold text-su-green">
-                          {result.targetAmount} TL{toTL}
-                        </span>
-                      </Text>
+                      <div className="flex flex-col items-center gap-1">
+                        <Text variant="default" as="p" className="text-sm text-su-black">
+                          <span className="font-mono font-bold text-su-pink">
+                            {result.sourceConsumed} TL{fromTL}
+                          </span>
+                          {' → '}
+                          <span className="font-mono font-bold text-su-green">
+                            {result.targetAmount} TL{toTL}
+                          </span>
+                        </Text>
+                        {result.remainderTL1 > 0 && (
+                          <Text
+                            variant="default"
+                            as="p"
+                            className="font-mono text-xs text-su-black/50"
+                          >
+                            ({1} TL{result.remainderTL1} left over)
+                          </Text>
+                        )}
+                      </div>
                     ) : (
                       <Text
                         variant="default"

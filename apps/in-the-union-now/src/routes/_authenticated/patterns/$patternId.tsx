@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { toast } from 'sonner'
+import { showSaveToast } from '../../../lib/toastUtils'
 import { useAuthStore } from '../../../stores/authStore'
 import {
   usePattern,
@@ -46,7 +47,7 @@ function EditPatternPage() {
         { patternId, input, userId: user.id },
         {
           onSuccess: () => {
-            toast.success('Saved', { id: 'autosave', duration: 1500 })
+            showSaveToast()
           },
           onError: (err) => {
             toast.error(getErrorMessage(err))

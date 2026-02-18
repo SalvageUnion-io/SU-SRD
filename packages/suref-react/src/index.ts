@@ -1,10 +1,6 @@
 // Types
 export type { DataValue } from './types/common'
-export type {
-  ClassAbilitiesRenderer,
-  NpcConfig,
-  EntityHideConfig,
-} from './components/entity/EntityDisplay/entityDisplayTypes'
+export type { ClassAbilitiesRenderer } from './components/entity/EntityDisplay/entityDisplayTypes'
 export type { EntityControl } from './components/entity/EntityDisplay/entityControlTypes'
 
 // Base typography
@@ -19,6 +15,7 @@ export { EntityNpcDisplay } from './components/entity/EntityDisplay/EntityNpcDis
 export { EntityDisplayTooltip } from './components/entity/EntityDisplayTooltip'
 export { SectionSeparator } from './components/entity/EntityDisplay/SectionSeparator'
 export { EntityChassisAbilitiesContent } from './components/entity/EntityDisplay/EntityChassisAbilitiesContent'
+export { NestedActionDisplay } from './components/entity/NestedActionDisplay'
 export {
   getEntitySpacing,
   getEntityFontSizes,
@@ -28,7 +25,6 @@ export {
 export {
   addControl,
   deleteControl,
-  editControl,
   navigateControl,
 } from './components/entity/EntityDisplay/entityControls'
 export { DetailIcon } from './components/entity/EntityDisplay/DetailIcon'

@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import { toast } from 'sonner'
+import { showSaveToast } from '../../../../lib/toastUtils'
 import { useAuthStore } from '../../../../stores/authStore'
 import { usePilot } from '../../../../hooks/usePilots'
 import { useMech, useMechEntityRefs, useUpdateMechLoadout } from '../../../../hooks/useMechs'
@@ -50,7 +51,7 @@ function MechBayPage() {
           deleteIds: ops.deleteIds,
         },
         {
-          onSuccess: () => toast.success('Saved', { id: 'autosave', duration: 1500 }),
+          onSuccess: () => showSaveToast(),
           onError: (err) => toast.error(getErrorMessage(err)),
         }
       )

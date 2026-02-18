@@ -40,8 +40,7 @@ export function InteractiveStatDisplay({
       <Text
         variant="pseudoheader"
         as="span"
-        className={cn('uppercase', fontSize, 'font-semibold', color && color)}
-        style={color ? undefined : undefined}
+        className={cn('uppercase', fontSize, 'font-semibold', color)}
       >
         {label}
       </Text>
@@ -52,7 +51,7 @@ export function InteractiveStatDisplay({
             onClick={() => onChange(Math.max(min, value - 1))}
             disabled={atMin}
             className={cn(
-              'flex h-6 w-6 items-center justify-center rounded border border-su-black font-mono font-bold leading-none transition-colors',
+              'flex items-center justify-center rounded border border-su-black font-mono font-bold leading-none transition-colors',
               size === 'sm' ? 'h-5 w-5 text-xs' : 'h-6 w-6 text-sm',
               atMin
                 ? 'cursor-not-allowed opacity-30'

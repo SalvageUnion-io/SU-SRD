@@ -12,7 +12,7 @@ Shared React component library consumed by both `suref-web` and `in-the-union-no
 ## Contents
 
 - **Theme:** Colors, recipes, design tokens
-- **Base typography:** `Heading`, `Text` components
+- **Base typography:** `Text` component
 - **UI primitives:** `Tooltip`, `Toaster`, `Modal`
 - **Entity display system:** ~30 files for rendering game data entities
 - **Shared components:** `Card`, `ValueDisplay`, `SheetDisplay`, `RollTable`, etc.

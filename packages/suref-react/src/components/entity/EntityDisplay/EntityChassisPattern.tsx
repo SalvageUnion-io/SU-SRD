@@ -8,11 +8,9 @@ import { getParagraphString } from '../../../lib/contentBlockHelpers'
 
 type EntityChassisPatternProps = {
   pattern: SURefChassis['patterns'][0]
-  /** Drone entity name to resolve and render as header above drone equipment */
-  droneEntityName?: string
 }
 
-export function EntityChassisPattern({ pattern, droneEntityName }: EntityChassisPatternProps) {
+export function EntityChassisPattern({ pattern }: EntityChassisPatternProps) {
   const systems = pattern.systems
     ? pattern.systems.flatMap((system) => {
         const found = SalvageUnionReference.findIn('systems', (s) => s.name === system.name)
@@ -119,34 +117,9 @@ export function EntityChassisPattern({ pattern, droneEntityName }: EntityChassis
       )}
       {(droneSystems.length > 0 || droneModules.length > 0) &&
         (modules.length > 0 || systems.length > 0) && <div className="pt-4" />}
-      {(droneSystems.length > 0 || droneModules.length > 0) && droneEntityName && (
-        <DroneWithEquipment
-          droneName={droneEntityName}
-          droneSystems={droneSystems}
-          droneModules={droneModules}
-        />
-      )}
-    </div>
-  )
-}
-
-function DroneWithEquipment({
-  droneName,
-  droneSystems,
-  droneModules,
-}: {
-  droneName: string
-  droneSystems: SURefSystem[]
-  droneModules: SURefModule[]
-}) {
-  const droneEntity = SalvageUnionReference.findIn('drones', (d) => d.name === droneName)
-  if (!droneEntity) return null
-
-  return (
-    <EntityDisplay data={droneEntity} compact hide={{ actions: true, patterns: true }} listing>
       {droneSystems.length > 0 && (
         <div className="space-y-2">
-          <SectionSeparator label="Systems" fontSize="text-xs" />
+          <SectionSeparator label="Drone Systems" fontSize="text-xs" />
           <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
             {droneSystems.map((system, idx) => (
               <EntityDisplay key={`drone-sys-${system.id}-${idx}`} data={system} compact listing />
@@ -157,7 +130,7 @@ function DroneWithEquipment({
       {droneModules.length > 0 && droneSystems.length > 0 && <div className="pt-4" />}
       {droneModules.length > 0 && (
         <div className="space-y-2">
-          <SectionSeparator label="Modules" fontSize="text-xs" />
+          <SectionSeparator label="Drone Modules" fontSize="text-xs" />
           <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
             {droneModules.map((module, idx) => (
               <EntityDisplay key={`drone-mod-${module.id}-${idx}`} data={module} compact listing />
@@ -165,6 +138,6 @@ function DroneWithEquipment({
           </div>
         </div>
       )}
-    </EntityDisplay>
+    </div>
   )
 }

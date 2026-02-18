@@ -7,24 +7,15 @@ import { ArrowLeftRight, Flame } from 'lucide-react'
 import { useAutosave } from '../../hooks/useAutosave'
 import { LabeledInput } from '../shared/LabeledInput'
 import { rollOnTable } from '../../lib/pilotUtils'
+import {
+  NPC_CHOICE_ORDER,
+  NPC_EDITABLE_CHOICE_TYPES,
+  NPC_ROLL_TABLE_FALLBACK,
+} from '../../lib/npcChoiceConstants'
+import type { BayNpcTextField } from '../../lib/npcChoiceConstants'
 import { StatControl } from '../shared/StatControl'
 import { BayDetailOverlay } from './BayDetailOverlay'
 import type { BayNpcData, CrawlerRow, CrawlerUpdate } from '../../types/common'
-
-/** String-only keys from BayNpcData (excludes `damaged` boolean) */
-type BayNpcTextField = 'name' | 'description' | 'motto' | 'keepsake' | 'personality'
-
-/** Choices we render as fields */
-const EDITABLE_CHOICE_TYPES = new Set(['freeform', 'permanent'])
-
-/** Display order for NPC choices */
-const CHOICE_ORDER = ['Name', 'Description', 'Motto', 'Keepsake', 'A.I. Personality']
-
-/** Fallback roll table names for choices that don't have rollTable in the data */
-const CHOICE_ROLL_TABLE_FALLBACK: Record<string, string> = {
-  Motto: 'Motto',
-  Keepsake: 'Keepsake',
-}
 
 type CrawlerBaysSectionProps = {
   crawler: CrawlerRow
@@ -112,10 +103,10 @@ export function CrawlerBaysSection({
     const isDamaged = !!npcData.damaged
     const bayEntity = bay as unknown as SURefEntity
     const editableChoices = [...(bay.npc?.choices ?? [])]
-      .filter((c) => EDITABLE_CHOICE_TYPES.has(c.choiceType ?? 'freeform') && c.name !== 'Name')
+      .filter((c) => NPC_EDITABLE_CHOICE_TYPES.has(c.choiceType ?? 'freeform') && c.name !== 'Name')
       .sort((a, b) => {
-        const aIdx = CHOICE_ORDER.indexOf(a.name)
-        const bIdx = CHOICE_ORDER.indexOf(b.name)
+        const aIdx = NPC_CHOICE_ORDER.indexOf(a.name)
+        const bIdx = NPC_CHOICE_ORDER.indexOf(b.name)
         return (aIdx === -1 ? 999 : aIdx) - (bIdx === -1 ? 999 : bIdx)
       })
 
@@ -187,7 +178,7 @@ export function CrawlerBaysSection({
         <div className="flex flex-col gap-2">
           {editableChoices.map((choice) => {
             const fieldKey = choice.name.toLowerCase() as BayNpcTextField
-            const rollTable = choice.rollTable ?? CHOICE_ROLL_TABLE_FALLBACK[choice.name]
+            const rollTable = choice.rollTable ?? NPC_ROLL_TABLE_FALLBACK[choice.name]
 
             return (
               <LabeledInput
@@ -253,6 +244,7 @@ export function CrawlerBaysSection({
             onNameChange: (name) => handleFieldChange(bay.id, 'name', name),
             onNameBlur: flush,
             readOnly: readOnly,
+            showNpcSeparator: isStorageBay,
           }}
           rightContent={isStorageBay && storageContent ? storageContent(isDamaged) : undefined}
           damageOverlayText={isDamaged ? bay.damagedEffect : undefined}

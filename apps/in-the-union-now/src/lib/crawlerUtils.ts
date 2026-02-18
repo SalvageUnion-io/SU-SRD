@@ -2,22 +2,12 @@ import { SalvageUnionReference, getWeaponSlotCount, getMaxSpBonus } from 'salvag
 import type { SURefObjectGuideStep } from 'salvageunion-reference'
 import { canSubmitWizard } from './pilotUtils'
 import type { WizardState, ConstraintOverride } from './pilotUtils'
+import { CHOICE_NAME_TO_FIELD } from './npcChoiceConstants'
+import type { BayNpcTextField } from './npcChoiceConstants'
 import type { BayNpcData, CreateCrawlerInput } from '../types/common'
 
 /** Roll table name used for crawler name step */
 const ROLL_TABLE_CRAWLER_NAME = 'Crawler Name'
-
-/** String-only keys from BayNpcData (excludes `damaged` boolean and `hp` number) */
-type BayNpcTextField = Exclude<keyof BayNpcData, 'damaged' | 'hp'>
-
-/** Choice field names mapped to BayNpcData keys */
-const CHOICE_NAME_TO_FIELD: Record<string, BayNpcTextField> = {
-  Name: 'name',
-  Description: 'description',
-  Motto: 'motto',
-  Keepsake: 'keepsake',
-  'A.I. Personality': 'personality',
-}
 
 /**
  * Constraint override for the crawler creation wizard.
@@ -178,9 +168,6 @@ export function computeCrawlerStatsFromTechLevel(
   }
 }
 
-// Re-export for convenience
-export { getWeaponSlotCount }
-
 /**
  * Compute scrap translation between tech levels.
  * Conversion: N units of TL1 = 1 unit of TL N.
@@ -192,7 +179,7 @@ export function computeScrapTranslation(
   fromTL: number,
   toTL: number,
   sourceAmount: number
-): { targetAmount: number; sourceConsumed: number } | null {
+): { targetAmount: number; sourceConsumed: number; remainderTL1: number } | null {
   if (fromTL < 1 || fromTL > 6 || toTL < 1 || toTL > 6) return null
   if (fromTL === toTL) return null
   if (sourceAmount <= 0) return null
@@ -207,5 +194,8 @@ export function computeScrapTranslation(
   const tl1Used = targetAmount * toTL
   const sourceConsumed = Math.ceil(tl1Used / fromTL)
 
-  return { targetAmount, sourceConsumed }
+  // Value remainder: TL1-equivalent lost due to rounding
+  const remainderTL1 = sourceConsumed * fromTL - tl1Used
+
+  return { targetAmount, sourceConsumed, remainderTL1 }
 }

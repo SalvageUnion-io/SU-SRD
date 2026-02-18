@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import type { SURefEntity, SURefEnumSchemaName, SURefEnumSource } from 'salvageunion-reference'
+import type { SURefEnumSource } from 'salvageunion-reference'
 import {
   getTechLevel,
   getTechLevelNumber,
@@ -13,12 +13,10 @@ import {
 } from 'salvageunion-reference'
 import { calculateBackgroundColor } from '../entityDisplayHelpers'
 import { getEntityFontSizes, getEntitySpacing } from './entityDisplayTypes'
-import type {
-  EntityDisplayState,
-  EntityHideConfig,
-  ClassAbilitiesRenderer,
-  PatternOverrideData,
-} from './entityDisplayTypes'
+import type { EntityDisplayState, EntityDisplayStateInput } from './entityDisplayTypes'
+
+// Re-export for consumers that import from this file
+export type { EntityDisplayStateInput } from './entityDisplayTypes'
 
 /**
  * Tech level to Tailwind bg class mapping
@@ -30,21 +28,6 @@ export const techLevelColors: Record<number, string> = {
   4: 'bg-tl-4',
   5: 'bg-tl-5',
   6: 'bg-tl-6',
-}
-
-export type EntityDisplayStateInput = {
-  data: SURefEntity
-  schemaName: SURefEnumSchemaName
-  compact: boolean
-  headerColor?: string
-  dimHeader: boolean
-  disabled: boolean
-  hide?: EntityHideConfig
-  listing: boolean
-  damaged?: boolean
-  label?: string
-  classAbilitiesRenderer?: ClassAbilitiesRenderer
-  patternOverride?: PatternOverrideData
 }
 
 export function useEntityDisplayState({

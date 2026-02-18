@@ -1,7 +1,12 @@
 import { useMemo, useCallback, useState } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { SalvageUnionReference, findCrawlerTechLevel, getNpc } from 'salvageunion-reference'
-import type { SURefEntity } from 'salvageunion-reference'
+import {
+  SalvageUnionReference,
+  findCrawlerTechLevel,
+  getNpc,
+  getWeaponSlotCount,
+} from 'salvageunion-reference'
+import type { SURefEntity, SURefMetaAction } from 'salvageunion-reference'
 import {
   DisplayCard,
   CardHeader,
@@ -9,17 +14,22 @@ import {
   ValueDisplay,
   SectionSeparator,
   EntityDisplay,
-  EntityNpcDisplay,
+  NestedActionDisplay,
   StatDisplay,
   navigateControl,
-  getEntityFontSizes,
-  getEntitySpacing,
 } from 'suref-react'
 import type { EntityControl } from 'suref-react'
 import { ArrowUp, Crosshair, Eye, EyeOff, Plus, Trash2 } from 'lucide-react'
-import { getWeaponSlotCount, computeCrawlerStatsFromTechLevel } from '../../../../lib/crawlerUtils'
+import { computeCrawlerStatsFromTechLevel } from '../../../../lib/crawlerUtils'
+import {
+  NPC_CHOICE_ORDER,
+  NPC_EDITABLE_CHOICE_TYPES,
+  NPC_ROLL_TABLE_FALLBACK,
+} from '../../../../lib/npcChoiceConstants'
+import type { BayNpcTextField } from '../../../../lib/npcChoiceConstants'
 import { StatControl } from '../../../../components/shared/StatControl'
 import { toast } from 'sonner'
+import { showSaveToast } from '../../../../lib/toastUtils'
 import { useAuthStore } from '../../../../stores/authStore'
 import { useGame, useGameMembers } from '../../../../hooks/useGames'
 import {
@@ -44,7 +54,7 @@ import { CrawlerBaysSection } from '../../../../components/games/CrawlerBaysSect
 import { CrawlerStorageSection } from '../../../../components/games/CrawlerStorageSection'
 import { ScrapTranslationDialog } from '../../../../components/games/ScrapTranslationDialog'
 import { WeaponSelectionDialog } from '../../../../components/games/WeaponSelectionDialog'
-import { findChassisById } from '../../../../lib/entityHelpers'
+import { findChassisById, findClassName } from '../../../../lib/entityHelpers'
 import { useRealtimeSubscription } from '../../../../hooks/useRealtimeSubscription'
 import { useActivityFeed } from '../../../../hooks/useActivityFeed'
 import { crawlerKeys } from '../../../../hooks/useCrawlers'
@@ -111,7 +121,7 @@ function CrawlerDetailPage() {
       updateCrawler.mutate(
         { crawlerId: crawler.id, input },
         {
-          onSuccess: () => toast.success('Saved', { id: 'autosave', duration: 1500 }),
+          onSuccess: () => showSaveToast(),
           onError: (err) => toast.error(getErrorMessage(err)),
         }
       )
@@ -337,21 +347,12 @@ function CrawlerDetailPage() {
           <CrawlerPilotsSection crawlerId={crawler.id} />
 
           {crawlerType && (
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-              {'actions' in crawlerType && (crawlerType as { actions?: string[] }).actions && (
-                <CrawlerAbilitySection
-                  crawlerType={crawlerType as { name: string; actions?: string[] }}
-                />
-              )}
-              {'npc' in crawlerType && !!(crawlerType as { npc?: unknown }).npc && (
-                <CrawlerTypeNpcSection
-                  crawler={crawler}
-                  crawlerTypeEntity={crawlerType as unknown as SURefEntity}
-                  readOnly={!isMed}
-                  onSave={handleImmediateUpdate}
-                />
-              )}
-            </div>
+            <CrawlerTypeSection
+              crawler={crawler}
+              crawlerType={crawlerType}
+              readOnly={!isMed}
+              onSave={handleImmediateUpdate}
+            />
           )}
 
           <CrawlerBaysSection
@@ -415,62 +416,20 @@ function CrawlerDetailPage() {
   )
 }
 
-function CrawlerAbilitySection({
-  crawlerType,
-}: {
-  crawlerType: { name: string; actions?: string[] }
-}) {
-  const actions = crawlerType.actions ?? []
-
-  return (
-    <div className="flex flex-col gap-3">
-      <SectionSeparator label="Crawler Ability" fontSize="text-sm" />
-      {actions.map((actionName) => {
-        const action = SalvageUnionReference.Actions.find((a) => a.name === actionName)
-        if (!action) {
-          return (
-            <Text key={actionName} variant="default" className="text-sm text-su-white/60">
-              {actionName}
-            </Text>
-          )
-        }
-        return (
-          <EntityDisplay
-            key={action.id}
-            data={action as unknown as SURefEntity}
-            compact
-            headerColor="bg-su-pink"
-          />
-        )
-      })}
-    </div>
-  )
-}
-
-type BayNpcTextField = 'name' | 'description' | 'motto' | 'keepsake' | 'personality'
-
-const NPC_CHOICE_ORDER = ['Name', 'Description', 'Motto', 'Keepsake', 'A.I. Personality']
-
-const NPC_ROLL_TABLE_FALLBACK: Record<string, string> = {
-  Motto: 'Motto',
-  Keepsake: 'Keepsake',
-}
-
-const NPC_EDITABLE_CHOICE_TYPES = new Set(['freeform', 'permanent'])
-
-function CrawlerTypeNpcSection({
+function CrawlerTypeSection({
   crawler,
-  crawlerTypeEntity,
+  crawlerType,
   readOnly,
   onSave,
 }: {
   crawler: CrawlerRow
-  crawlerTypeEntity: SURefEntity
+  crawlerType: SURefEntity
   readOnly: boolean
   onSave: (input: Partial<CrawlerUpdate>) => void
 }) {
   const npcKey = crawler.crawler_ref
-  const npc = getNpc(crawlerTypeEntity as Parameters<typeof getNpc>[0])
+  const npc = getNpc(crawlerType as Parameters<typeof getNpc>[0])
+  const hasNpc = !!npc
 
   const [localNpc, setLocalNpc] = useState<BayNpcData>(
     () => ((crawler.bay_npcs ?? {}) as Record<string, BayNpcData>)[npcKey] ?? {}
@@ -486,7 +445,7 @@ function CrawlerTypeNpcSection({
         },
       }),
     delay: 1000,
-    enabled: !readOnly,
+    enabled: !readOnly && hasNpc,
   })
 
   const handleFieldChange = useCallback((field: BayNpcTextField, value: string) => {
@@ -505,20 +464,17 @@ function CrawlerTypeNpcSection({
     setLocalNpc((prev) => ({ ...prev, hp }))
   }, [])
 
-  const editableChoices = useMemo(() => {
-    const choices =
-      npc?.choices?.filter(
-        (c) => NPC_EDITABLE_CHOICE_TYPES.has(c.choiceType ?? 'freeform') && c.name !== 'Name'
-      ) ?? []
+  const editableChoices = (() => {
+    if (!npc?.choices) return []
+    const choices = npc.choices.filter(
+      (c) => NPC_EDITABLE_CHOICE_TYPES.has(c.choiceType ?? 'freeform') && c.name !== 'Name'
+    )
     return [...choices].sort((a, b) => {
       const aIdx = NPC_CHOICE_ORDER.indexOf(a.name)
       const bIdx = NPC_CHOICE_ORDER.indexOf(b.name)
       return (aIdx === -1 ? 999 : aIdx) - (bIdx === -1 ? 999 : bIdx)
     })
-  }, [npc?.choices])
-
-  const fontSize = getEntityFontSizes(true)
-  const spacing = getEntitySpacing(true)
+  })()
 
   const maxHp = npc?.hitPoints ?? 0
   const currentHp = localNpc.hp ?? maxHp
@@ -565,20 +521,58 @@ function CrawlerTypeNpcSection({
       </div>
     ) : undefined
 
+  // Build ability cards as rightContent
+  const abilityContent = useMemo(() => {
+    const ct = crawlerType as { actions?: string[] }
+    const actions = ct.actions ?? []
+    if (actions.length === 0) return undefined
+    return (
+      <div className="flex flex-col gap-3">
+        {actions.map((actionName) => {
+          const action = SalvageUnionReference.Actions.find((a) => a.name === actionName)
+          if (!action) {
+            return (
+              <Text key={actionName} variant="default" className="text-sm text-su-white/60">
+                {actionName}
+              </Text>
+            )
+          }
+          return (
+            <NestedActionDisplay
+              key={action.id}
+              data={action as SURefMetaAction}
+              compact
+              headerBg="bg-su-pink"
+            />
+          )
+        })}
+      </div>
+    )
+  }, [crawlerType])
+
+  const npcConfig = hasNpc
+    ? {
+        children: npcFieldsContent,
+        hpSlot,
+        name: localNpc.name ?? '',
+        onNameChange: (name: string) => handleFieldChange('name', name),
+        onNameBlur: flush,
+        readOnly,
+        showNpcSeparator: true,
+      }
+    : undefined
+
   return (
     <div className="flex flex-col gap-3">
-      <SectionSeparator label="Crawler NPC" fontSize="text-sm" />
-      <EntityNpcDisplay
-        data={crawlerTypeEntity as Parameters<typeof getNpc>[0]}
+      <SectionSeparator label="Crawler Type" fontSize="text-sm" />
+      <EntityDisplay
+        data={crawlerType}
         compact
-        fontSize={fontSize}
-        spacing={spacing}
-        npcChildren={npcFieldsContent}
-        hpSlot={hpSlot}
-        npcName={localNpc.name ?? ''}
-        onNpcNameChange={(name) => handleFieldChange('name', name)}
-        onNpcNameBlur={flush}
-        readOnly={readOnly}
+        npcConfig={npcConfig}
+        rightContent={abilityContent}
+        npcPosition="right"
+        hide={{ actions: true }}
+        headerColor="bg-su-pink"
       />
     </div>
   )
@@ -615,8 +609,7 @@ function CrawlerPilotListing({ pilot }: { pilot: PilotRow }) {
   const { data: mech } = useMech(pilot.mech_id ?? undefined)
 
   const pilotClassName = useMemo(() => {
-    const cls = SalvageUnionReference.get('classes', pilot.class_ref)
-    return cls?.name ?? 'Unknown'
+    return findClassName(pilot.class_ref)
   }, [pilot.class_ref])
 
   const chassisName = useMemo(() => {
@@ -638,7 +631,7 @@ function CrawlerPilotListing({ pilot }: { pilot: PilotRow }) {
       title={pilot.callsign}
       subtitle={
         <div className="flex flex-wrap items-center gap-1">
-          <ValueDisplay label="Class" value={pilotClassName} compact />
+          <ValueDisplay label="The" value={pilotClassName} compact />
           {chassisName && (
             <span className="inline-flex shrink-0 cursor-default whitespace-nowrap border border-su-black">
               <Text

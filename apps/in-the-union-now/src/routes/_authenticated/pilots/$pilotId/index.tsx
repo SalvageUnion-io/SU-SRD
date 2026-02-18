@@ -3,6 +3,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { SalvageUnionReference, isHybridClass, getAssetUrl } from 'salvageunion-reference'
 import { DisplayCard, Text, ValueDisplay } from 'suref-react'
 import { toast } from 'sonner'
+import { showSaveToast } from '../../../../lib/toastUtils'
 import { Eye, EyeOff, Trash2 } from 'lucide-react'
 import { useAuthStore } from '../../../../stores/authStore'
 import {
@@ -94,11 +95,6 @@ function PilotDetailPage() {
   const chassisName = mechChassis?.name
   const patternName = mech?.pattern_name ? `\u201C${mech.pattern_name}\u201D` : undefined
 
-  // Deduplicated save toast — uses a fixed ID so rapid saves don't spam
-  const showSaveToast = useCallback(() => {
-    toast.success('Saved', { id: 'autosave', duration: 1500 })
-  }, [])
-
   const handleUpdateEntityRef = useCallback(
     (refId: string, input: EntityRefUpdate) => {
       if (!pilot || !user) return
@@ -126,7 +122,7 @@ function PilotDetailPage() {
         }
       )
     },
-    [pilot, user, pilotRefs, updateEntityRef, showSaveToast]
+    [pilot, user, pilotRefs, updateEntityRef]
   )
 
   const handleUpdateMech = useCallback(
@@ -156,7 +152,7 @@ function PilotDetailPage() {
         }
       )
     },
-    [mech, user, updateMech, showSaveToast]
+    [mech, user, updateMech]
   )
 
   const handleUpdateMechEntityRef = useCallback(
@@ -186,7 +182,7 @@ function PilotDetailPage() {
         }
       )
     },
-    [mech, user, mechRefs, updateMechEntityRef, showSaveToast]
+    [mech, user, mechRefs, updateMechEntityRef]
   )
 
   if (isLoading) return <PageSkeleton />

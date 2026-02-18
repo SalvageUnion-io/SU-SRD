@@ -13,7 +13,7 @@ import {
 } from 'lucide-react'
 import { SectionSeparator, DisplayCard, Text, ValueDisplay } from 'suref-react'
 import { toast } from 'sonner'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { findClassName } from '../../../../lib/entityHelpers'
 import { useAuthStore } from '../../../../stores/authStore'
 import {
   useGame,
@@ -398,8 +398,7 @@ function PilotAssignmentRow({
   onUnassign?: () => void
 }) {
   const pilotClassName = useMemo(() => {
-    const cls = SalvageUnionReference.get('classes', pilot.class_ref)
-    return cls?.name ?? 'Unknown'
+    return findClassName(pilot.class_ref)
   }, [pilot.class_ref])
 
   return (

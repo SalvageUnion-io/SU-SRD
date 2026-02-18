@@ -35,8 +35,7 @@ export function GameSection() {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex items-center justify-between">
-        <SectionSeparator label="Games" fontSize="text-sm" />
+      <SectionSeparator label="Games" fontSize="text-sm">
         <Button
           variant="ghost"
           size="sm"
@@ -45,7 +44,7 @@ export function GameSection() {
         >
           {showArchived ? 'Hide Archived' : 'Show Archived'}
         </Button>
-      </div>
+      </SectionSeparator>
 
       {isLoading ? (
         <div className="flex flex-col gap-2">
@@ -94,16 +93,17 @@ function GameListing({ game }: { game: CampaignRow }) {
           )}
         </div>
       }
-      controls={controls}
-      controlSize="sm"
       compact
     />
   )
 
   return (
-    <Link to="/games/$gameId" params={{ gameId: game.id }} className="block">
-      <DisplayCard headerBg="bg-su-pink" headerContent={headerContent} mode="listing" />
-    </Link>
+    <DisplayCard
+      headerBg="bg-su-pink"
+      headerContent={headerContent}
+      mode="listing"
+      controls={controls}
+    />
   )
 }
 

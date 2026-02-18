@@ -1,8 +1,7 @@
 import { useCallback, useMemo } from 'react'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { Plus } from 'lucide-react'
-import { SalvageUnionReference } from 'salvageunion-reference'
-import { findChassisById } from '../../lib/entityHelpers'
+import { findChassisById, findClassName } from '../../lib/entityHelpers'
 import {
   DisplayCard,
   CardHeader,
@@ -54,10 +53,7 @@ function PilotListing({ pilot, abilityCount }: { pilot: PilotRow; abilityCount: 
   const navigate = useNavigate()
   const { data: mech } = useMech(pilot.mech_id ?? undefined)
 
-  const pilotClassName = useMemo(() => {
-    const cls = SalvageUnionReference.get('classes', pilot.class_ref)
-    return cls?.name ?? 'Unknown'
-  }, [pilot.class_ref])
+  const pilotClassName = useMemo(() => findClassName(pilot.class_ref), [pilot.class_ref])
 
   const chassisName = useMemo(() => {
     if (!mech) return undefined
@@ -99,13 +95,18 @@ function PilotListing({ pilot, abilityCount }: { pilot: PilotRow; abilityCount: 
           )}
         </div>
       }
-      controls={controls}
-      controlSize="sm"
       compact
     />
   )
 
-  return <DisplayCard headerBg="bg-su-orange" headerContent={headerContent} mode="listing" />
+  return (
+    <DisplayCard
+      headerBg="bg-su-orange"
+      headerContent={headerContent}
+      mode="listing"
+      controls={controls}
+    />
+  )
 }
 
 function NewPilotSlot() {

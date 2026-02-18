@@ -4,12 +4,12 @@ import {
   getRequiredTraits,
   SalvageUnionReference,
 } from 'salvageunion-reference'
-import { Text } from '../base/Text'
 import { BlockContentRendererView } from './BlockContentRendererView'
 import { extractEntityDetails } from '../../lib/entityDataExtraction'
 import { DataValueDisplayView } from './DataValueDisplayView'
 import { RollTable } from '../shared/RollTable'
 import { borderColorFromHeaderBg } from './entityDisplayHelpers'
+import { SectionSeparator } from './EntityDisplay/SectionSeparator'
 import { cn } from '../../utils/cn'
 
 type NestedActionDisplayProps = {
@@ -63,13 +63,8 @@ export function NestedActionDisplay({
 
   return (
     <div className="overflow-hidden bg-transparent">
-      <div className={cn('flex flex-wrap items-center bg-transparent', verticalSpacing)}>
-        <Text
-          variant="pseudoheader"
-          className={cn('w-fit', titleFontSize, compact ? 'px-0.5 py-[1px]' : 'px-1 py-0.5')}
-        >
-          {displayName}
-        </Text>
+      <div className={verticalSpacing}>
+        <SectionSeparator label={displayName} fontSize={titleFontSize} />
       </div>
 
       {/* Bordered section: text content only */}

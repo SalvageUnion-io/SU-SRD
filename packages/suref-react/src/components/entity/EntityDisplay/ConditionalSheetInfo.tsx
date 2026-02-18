@@ -22,8 +22,6 @@ type ConditionalSheetInfoProps = {
   data: SURefEntity
   /** Compact mode */
   compact: boolean
-  /** Whether entity is damaged */
-  damaged: boolean
   /** Font sizes */
   fontSize: ReturnType<typeof getEntityFontSizes>
   /** Header background color */
@@ -62,7 +60,7 @@ export function ConditionalSheetInfo({
   if (propertyName === 'damagedEffect') {
     return (
       <div>
-        {label && <SectionSeparator label={label} fontSize="text-sm" />}
+        {label && <SectionSeparator label={label} fontSize="text-sm" compact={compact} />}
         <div
           className={cn(
             'mb-2 break-words font-medium leading-relaxed whitespace-normal text-su-black',

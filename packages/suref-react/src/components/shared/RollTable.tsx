@@ -263,16 +263,7 @@ function ColumnsRollTable({
               aria-label="Roll on this table"
               title="Roll on this table"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                height={compact ? '16' : '20'}
-                viewBox="0 -960 960 960"
-                width={compact ? '16' : '20'}
-                fill="currentColor"
-                aria-hidden="true"
-              >
-                <path d="M240-120q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm480 0q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35ZM240-600q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm240 240q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm240-240q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Z" />
-              </svg>
+              <DiceIcon compact={false} />
             </button>
           )}
         </div>
@@ -431,16 +422,7 @@ function StandardRollTable({
                 aria-label="Roll on this table"
                 title="Roll on this table"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  height={compact ? '16' : '20'}
-                  viewBox="0 -960 960 960"
-                  width={compact ? '16' : '20'}
-                  fill="currentColor"
-                  aria-hidden="true"
-                >
-                  <path d="M240-120q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm480 0q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35ZM240-600q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm240 240q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm240-240q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Z" />
-                </svg>
+                <DiceIcon compact={false} />
               </button>
             )}
           </div>

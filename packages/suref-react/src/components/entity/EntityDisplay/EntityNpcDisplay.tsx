@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { getNpc } from 'salvageunion-reference'
 import type { SURefMetaEntity } from 'salvageunion-reference'
 import { DisplayCard } from '../../shared/DisplayCard'
+import { CardHeader } from '../../shared/CardHeader'
 import { StatDisplay } from '../../shared/StatDisplay'
 import { ValueDisplay } from '../../shared/ValueDisplay'
 import { BlockContentRendererView } from '../BlockContentRendererView'
@@ -39,6 +40,8 @@ type EntityNpcDisplayProps = {
   onNpcNameBlur?: () => void
   /** Whether the NPC fields are read-only */
   readOnly?: boolean
+  /** Show an "NPC" section separator above the NPC name/HP block */
+  showSeparator?: boolean
 }
 
 function NpcNameInput({
@@ -118,6 +121,7 @@ export function EntityNpcDisplay({
   onNpcNameChange,
   onNpcNameBlur,
   readOnly = false,
+  showSeparator = false,
 }: EntityNpcDisplayProps) {
   const npc = getNpc(data)
   if (!npc) return null
@@ -133,9 +137,16 @@ export function EntityNpcDisplay({
 
     return (
       <div>
-        {isStatic && <SectionSeparator label="NPC" fontSize="text-sm" />}
+        {(isStatic || showSeparator) && (
+          <SectionSeparator label="NPC" fontSize="text-sm" compact={compact} />
+        )}
         {/* Header: editable name (large) + HP to the far right */}
-        <div className={cn('flex items-start justify-between gap-2', isStatic && 'mt-2')}>
+        <div
+          className={cn(
+            'flex items-start justify-between gap-2',
+            (isStatic || showSeparator) && 'mt-2'
+          )}
+        >
           <div className="min-w-0">
             {hasName && (
               <div>
@@ -195,68 +206,35 @@ export function EntityNpcDisplay({
   // Full card framing for standalone NPC display
   const hasName = npcName !== undefined
 
+  // Build title: editable input or static name (falls back to position)
+  const titleContent = hasName
+    ? readOnly || !onNpcNameChange
+      ? npcName || '\u2014'
+      : ((
+          <NpcNameInput
+            value={npcName}
+            onChange={onNpcNameChange}
+            onBlur={onNpcNameBlur}
+            compact={compact}
+          />
+        ) as React.ReactNode)
+    : (npc.position ?? '')
+
   const headerContent = (
-    <>
-      <div className={cn('flex min-w-0 items-center', compact ? 'gap-0.5' : 'gap-1')}>
-        <div
-          className={cn(
-            'flex min-w-0 flex-col justify-center overflow-visible',
-            compact ? 'gap-0.5' : 'gap-1'
-          )}
-        >
-          {hasName ? (
-            <>
-              <div>
-                {readOnly || !onNpcNameChange ? (
-                  <Text
-                    variant="pseudoheader"
-                    as="span"
-                    className={cn(
-                      'relative z-10 uppercase tracking-[-0.02em] transition-transform duration-300',
-                      compact ? 'py-[3px] text-base' : 'text-[1.75rem]'
-                    )}
-                    style={compact ? { lineHeight: 1 } : undefined}
-                  >
-                    {npcName || '\u2014'}
-                  </Text>
-                ) : (
-                  <NpcNameInput
-                    value={npcName}
-                    onChange={onNpcNameChange}
-                    onBlur={onNpcNameBlur}
-                    compact={compact}
-                  />
-                )}
-              </div>
-              {npc.position && (
-                <div>
-                  <ValueDisplay label="The" value={npc.position} compact inverse />
-                </div>
-              )}
-            </>
-          ) : (
-            npc.position && (
-              <div className={cn(compact ? '' : 'overflow-hidden text-ellipsis whitespace-nowrap')}>
-                <Text
-                  variant="pseudoheader"
-                  as="span"
-                  className={cn(
-                    'relative z-10 uppercase tracking-[-0.02em] transition-transform duration-300',
-                    compact ? 'py-[3px] text-base' : 'text-[1.75rem]'
-                  )}
-                  style={compact ? { lineHeight: 1 } : undefined}
-                >
-                  {npc.position}
-                </Text>
-              </div>
-            )
-          )}
-        </div>
-      </div>
-      {npc.hitPoints > 0 && (
-        <div>{hpSlot ?? <StatDisplay label="HP" value={npc.hitPoints} compact={compact} />}</div>
-      )}
-    </>
+    <CardHeader
+      title={titleContent}
+      subtitle={
+        hasName && npc.position ? (
+          <ValueDisplay label="The" value={npc.position} compact inverse />
+        ) : undefined
+      }
+      rightContent={
+        npc.hitPoints > 0
+          ? (hpSlot ?? <StatDisplay label="HP" value={npc.hitPoints} compact={compact} />)
+          : undefined
+      }
+      compact={compact}
+    />
   )
 
   return (
@@ -268,15 +246,7 @@ export function EntityNpcDisplay({
       bodyPadding="p-0"
     >
       {(hasContent || npcChildren) && (
-        <div
-          className="flex w-full flex-col gap-2"
-          style={{
-            paddingLeft: `${spacing.contentPaddingX}rem`,
-            paddingRight: `${spacing.contentPaddingX}rem`,
-            paddingTop: `${spacing.contentPadding}rem`,
-            paddingBottom: `${spacing.contentPadding}rem`,
-          }}
-        >
+        <div className="flex w-full flex-col gap-2" style={spacing.contentPaddingStyle}>
           {hasContent && (
             <BlockContentRendererView
               content={npc.content!}

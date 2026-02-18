@@ -8,21 +8,12 @@ import type {
 import { DisplayCard, Text, StatDisplay, ValueDisplay, BlockContentRendererView } from 'suref-react'
 import { LabeledInput } from '../shared/LabeledInput'
 import { rollOnTable } from '../../lib/pilotUtils'
-
-/** Display order for NPC choices */
-const CHOICE_ORDER = ['Name', 'Description', 'Motto', 'Keepsake', 'A.I. Personality']
-
-/** Choice types we render as inputs */
-const EDITABLE_CHOICE_TYPES = new Set(['freeform', 'permanent'])
-
-/** Choices that are optional (not required for wizard submission) */
-const OPTIONAL_CHOICES = new Set(['Description'])
-
-/** Fallback roll table names for choices that don't have rollTable in the data */
-const CHOICE_ROLL_TABLE_FALLBACK: Record<string, string> = {
-  Motto: 'Motto',
-  Keepsake: 'Keepsake',
-}
+import {
+  NPC_CHOICE_ORDER,
+  NPC_EDITABLE_CHOICE_TYPES,
+  NPC_OPTIONAL_CHOICES,
+  NPC_ROLL_TABLE_FALLBACK,
+} from '../../lib/npcChoiceConstants'
 
 type NpcEntry = {
   parentName: string
@@ -71,8 +62,8 @@ export function getAllNpcChoiceIds(selectedCrawlerTypeId?: string): string[] {
     if (entry.npc.choices) {
       for (const choice of entry.npc.choices) {
         if (
-          EDITABLE_CHOICE_TYPES.has(choice.choiceType ?? 'freeform') &&
-          !OPTIONAL_CHOICES.has(choice.name)
+          NPC_EDITABLE_CHOICE_TYPES.has(choice.choiceType ?? 'freeform') &&
+          !NPC_OPTIONAL_CHOICES.has(choice.name)
         ) {
           ids.push(choice.id)
         }
@@ -85,15 +76,15 @@ export function getAllNpcChoiceIds(selectedCrawlerTypeId?: string): string[] {
 /** Sort choices by the preferred display order */
 function sortChoices<T extends { name: string }>(choices: T[]): T[] {
   return [...choices].sort((a, b) => {
-    const aIdx = CHOICE_ORDER.indexOf(a.name)
-    const bIdx = CHOICE_ORDER.indexOf(b.name)
+    const aIdx = NPC_CHOICE_ORDER.indexOf(a.name)
+    const bIdx = NPC_CHOICE_ORDER.indexOf(b.name)
     return (aIdx === -1 ? 999 : aIdx) - (bIdx === -1 ? 999 : bIdx)
   })
 }
 
 /** Get editable choices (freeform + permanent) from an NPC */
 function getEditableChoices(npc: SURefObjectNpc): SURefObjectChoice[] {
-  return npc.choices?.filter((c) => EDITABLE_CHOICE_TYPES.has(c.choiceType ?? 'freeform')) ?? []
+  return npc.choices?.filter((c) => NPC_EDITABLE_CHOICE_TYPES.has(c.choiceType ?? 'freeform')) ?? []
 }
 
 type NpcCardProps = {
@@ -139,14 +130,14 @@ function NpcCard({ entry, choiceValues, stepId, onChoiceValueChange, onRoll }: N
           <BlockContentRendererView content={npcContent} fontSize="text-xs" compact />
         )}
         {editableChoices.map((choice) => {
-          const rollTable = choice.rollTable ?? CHOICE_ROLL_TABLE_FALLBACK[choice.name]
+          const rollTable = choice.rollTable ?? NPC_ROLL_TABLE_FALLBACK[choice.name]
           return (
             <LabeledInput
               key={choice.id}
               label={choice.name}
               value={choiceValues[choice.id] ?? ''}
               onChange={(value) => onChoiceValueChange(stepId, choice.id, value)}
-              optionalText={OPTIONAL_CHOICES.has(choice.name) ? '(Optional)' : undefined}
+              optionalText={NPC_OPTIONAL_CHOICES.has(choice.name) ? '(Optional)' : undefined}
               variant={choice.name === 'Description' ? 'textarea' : rollTable ? 'roll' : 'input'}
               rollTableName={rollTable}
               onRoll={rollTable ? () => onRoll(choice.id, rollTable) : undefined}

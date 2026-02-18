@@ -1,11 +1,10 @@
 import { describe, expect, test } from 'bun:test'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { SalvageUnionReference, getWeaponSlotCount } from 'salvageunion-reference'
 import {
   crawlerWizardToCreateInput,
   extractBayNpcs,
   computeCrawlerStatsFromTechLevel,
   computeScrapTranslation,
-  getWeaponSlotCount,
   canSubmitCrawlerWizard,
 } from './crawlerUtils'
 import type { WizardState } from './pilotUtils'
@@ -238,7 +237,7 @@ describe('computeCrawlerStatsFromTechLevel', () => {
   })
 })
 
-describe('getWeaponSlotCount (re-exported)', () => {
+describe('getWeaponSlotCount', () => {
   const battleCrawlerId = SalvageUnionReference.Crawlers.find((c) => c.name === 'Battle')!.id
   const engineeringCrawlerId = SalvageUnionReference.Crawlers.find(
     (c) => c.name === 'Engineering'
@@ -256,27 +255,27 @@ describe('getWeaponSlotCount (re-exported)', () => {
 describe('computeScrapTranslation', () => {
   test('consolidate: 3 TL1 → 1 TL3', () => {
     const result = computeScrapTranslation(1, 3, 3)
-    expect(result).toEqual({ targetAmount: 1, sourceConsumed: 3 })
+    expect(result).toEqual({ targetAmount: 1, sourceConsumed: 3, remainderTL1: 0 })
   })
 
   test('consolidate: 6 TL1 → 3 TL2', () => {
     const result = computeScrapTranslation(1, 2, 6)
-    expect(result).toEqual({ targetAmount: 3, sourceConsumed: 6 })
+    expect(result).toEqual({ targetAmount: 3, sourceConsumed: 6, remainderTL1: 0 })
   })
 
   test('break down: 1 TL3 → 3 TL1', () => {
     const result = computeScrapTranslation(3, 1, 1)
-    expect(result).toEqual({ targetAmount: 3, sourceConsumed: 1 })
+    expect(result).toEqual({ targetAmount: 3, sourceConsumed: 1, remainderTL1: 0 })
   })
 
   test('break down: 2 TL3 → 3 TL2', () => {
     const result = computeScrapTranslation(3, 2, 2)
-    expect(result).toEqual({ targetAmount: 3, sourceConsumed: 2 })
+    expect(result).toEqual({ targetAmount: 3, sourceConsumed: 2, remainderTL1: 0 })
   })
 
   test('cross-conversion: 2 TL2 → 1 TL4', () => {
     const result = computeScrapTranslation(2, 4, 2)
-    expect(result).toEqual({ targetAmount: 1, sourceConsumed: 2 })
+    expect(result).toEqual({ targetAmount: 1, sourceConsumed: 2, remainderTL1: 0 })
   })
 
   test('returns null if insufficient source', () => {
@@ -298,7 +297,17 @@ describe('computeScrapTranslation', () => {
 
   test('partial consumption: 5 TL1 → 2 TL2 (1 leftover)', () => {
     const result = computeScrapTranslation(1, 2, 5)
-    expect(result).toEqual({ targetAmount: 2, sourceConsumed: 4 })
+    expect(result).toEqual({ targetAmount: 2, sourceConsumed: 4, remainderTL1: 0 })
+  })
+
+  test('remainder: 2 TL4 → 1 TL6 (2 TL1 left over)', () => {
+    const result = computeScrapTranslation(4, 6, 2)
+    expect(result).toEqual({ targetAmount: 1, sourceConsumed: 2, remainderTL1: 2 })
+  })
+
+  test('remainder: 2 TL5 → 1 TL6 (4 TL1 left over)', () => {
+    const result = computeScrapTranslation(5, 6, 2)
+    expect(result).toEqual({ targetAmount: 1, sourceConsumed: 2, remainderTL1: 4 })
   })
 })
 

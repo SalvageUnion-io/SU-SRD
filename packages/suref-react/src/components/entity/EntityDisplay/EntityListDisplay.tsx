@@ -48,8 +48,6 @@ function resolveEntityName(
 export type EntityListDisplayProps = {
   choice: SURefObjectChoice
   selectedChoice?: string
-  userChoices?: Record<string, string> | null
-  onChoiceSelection?: (choiceId: string, value: string | undefined) => void
   isMultiSelect?: boolean
   spacing: ReturnType<typeof getEntitySpacing>
 }
@@ -99,12 +97,7 @@ export function EntityListDisplay({
           <div
             key={idx}
             className="w-full rounded-md bg-su-white"
-            style={{
-              paddingLeft: `${spacing.contentPaddingX}rem`,
-              paddingRight: `${spacing.contentPaddingX}rem`,
-              paddingTop: `${spacing.contentPadding}rem`,
-              paddingBottom: `${spacing.contentPadding}rem`,
-            }}
+            style={spacing.contentPaddingStyle}
           >
             <Text className={cn('font-bold text-base', option.description ? 'mb-2' : '')}>
               {option.label}

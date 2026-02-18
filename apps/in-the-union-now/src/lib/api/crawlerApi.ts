@@ -1,6 +1,7 @@
 import { SalvageUnionReference, getMaxSpBonus } from 'salvageunion-reference'
 import { supabase } from '../supabase'
 import { handleSupabaseError } from '../errors'
+import { computeCrawlerStatsFromTechLevel } from '../crawlerUtils'
 import type {
   CargoRow,
   CrawlerRow,
@@ -10,22 +11,12 @@ import type {
 } from '../../types/common'
 import type { Json } from '../../types/database-generated.types'
 
-/** Compute crawler stats from TL1 tech level data, with optional crawler type SP bonus */
-function getTL1Stats(crawlerRef?: string): { max_sp: number; upkeep: number } {
-  const tl1 = SalvageUnionReference.CrawlerTechLevels.find((tl) => tl.techLevel === 1)
-  const spBonus = crawlerRef ? getMaxSpBonus(crawlerRef) : 0
-  return {
-    max_sp: (tl1?.structurePoints ?? 20) + spBonus,
-    upkeep: tl1?.upkeepCost ?? 5,
-  }
-}
-
 export async function createCrawler(
   userId: string,
   gameId: string,
   input: CreateCrawlerInput
 ): Promise<CrawlerRow> {
-  const stats = getTL1Stats(input.crawler_ref)
+  const stats = computeCrawlerStatsFromTechLevel(1, input.crawler_ref)
 
   // 1. Insert the crawler row
   const { data: crawler, error: crawlerError } = await supabase

@@ -7,9 +7,8 @@ import type {
   SURefMetaAction,
   SURefObjectPatternSystemModule,
   SURefObjectTable,
+  getEffects,
 } from 'salvageunion-reference'
-// Import functions for type extraction (typeof requires actual values, not types)
-import type { getEffects } from 'salvageunion-reference'
 
 export type ClassAbilitiesRenderer = (props: {
   compact: boolean
@@ -21,22 +20,39 @@ export type ClassAbilitiesRenderer = (props: {
  * Spacing helpers based on compact mode.
  * Returns Tailwind-friendly class strings instead of numeric Chakra spacing.
  */
-export const getEntitySpacing = (compact: boolean) => ({
-  /** Gap between small elements: 1.5 (compact) or 2 (normal) */
-  smallGap: compact ? 1.5 : 2,
-  /** Tailwind gap class: 'gap-1.5' (compact) or 'gap-2' (normal) */
-  smallGapClass: compact ? 'gap-1.5' : ('gap-2' as const),
-  /** Tailwind space-y class: 'space-y-1.5' (compact) or 'space-y-2' (normal) */
-  smallSpaceYClass: compact ? 'space-y-1.5' : ('space-y-2' as const),
-  /** Tailwind space-y class for section-level gaps: 'space-y-3' (compact) or 'space-y-4' (normal) */
-  sectionSpaceYClass: compact ? 'space-y-3' : ('space-y-4' as const),
-  /** Gap for minimal spacing: 0.25 (compact) or 0.5 (normal) */
-  minimalGap: compact ? 0.25 : 0.5,
-  /** Vertical padding for content: 0.5 (compact) or 0.75 (normal) */
-  contentPadding: compact ? 0.5 : 0.75,
-  /** Horizontal padding for content: 1 (compact) or 1.5 (normal) */
-  contentPaddingX: compact ? 1 : 1.5,
-})
+export const getEntitySpacing = (compact: boolean) => {
+  const contentPadding = compact ? 0.5 : 0.75
+  const contentPaddingX = compact ? 1 : 1.5
+
+  return {
+    /** Gap between small elements: 1.5 (compact) or 2 (normal) */
+    smallGap: compact ? 1.5 : 2,
+    /** Tailwind gap class: 'gap-1.5' (compact) or 'gap-2' (normal) */
+    smallGapClass: compact ? 'gap-1.5' : ('gap-2' as const),
+    /** Tailwind space-y class: 'space-y-1.5' (compact) or 'space-y-2' (normal) */
+    smallSpaceYClass: compact ? 'space-y-1.5' : ('space-y-2' as const),
+    /** Tailwind space-y class for section-level gaps: 'space-y-3' (compact) or 'space-y-4' (normal) */
+    sectionSpaceYClass: compact ? 'space-y-3' : ('space-y-4' as const),
+    /** Gap for minimal spacing: 0.25 (compact) or 0.5 (normal) */
+    minimalGap: compact ? 0.25 : 0.5,
+    /** Vertical padding for content (rem): 0.5 (compact) or 0.75 (normal) */
+    contentPadding,
+    /** Horizontal padding for content (rem): 1 (compact) or 1.5 (normal) */
+    contentPaddingX,
+    /** Inline style for horizontal padding only */
+    contentPaddingXStyle: {
+      paddingLeft: `${contentPaddingX}rem`,
+      paddingRight: `${contentPaddingX}rem`,
+    } as const,
+    /** Inline style for full content box padding (all 4 sides) */
+    contentPaddingStyle: {
+      paddingLeft: `${contentPaddingX}rem`,
+      paddingRight: `${contentPaddingX}rem`,
+      paddingTop: `${contentPadding}rem`,
+      paddingBottom: `${contentPadding}rem`,
+    } as const,
+  }
+}
 
 /**
  * Font size helpers based on compact mode.
@@ -63,6 +79,8 @@ export type NpcConfig = {
   onNameChange?: (name: string) => void
   onNameBlur?: () => void
   readOnly?: boolean
+  /** Show an "NPC" section separator above the NPC name/HP block */
+  showNpcSeparator?: boolean
 }
 
 /** Grouped visibility toggle props */
@@ -84,10 +102,28 @@ export type PatternOverrideData = {
   modules: SURefObjectPatternSystemModule[]
 }
 
-export type EntityDisplayState = {
+/** Props accepted by useEntityDisplayState */
+export type EntityDisplayStateInput = {
   data: SURefEntity
   schemaName: SURefEnumSchemaName
   compact: boolean
+  headerColor?: string
+  dimHeader: boolean
+  disabled: boolean
+  hide?: EntityHideConfig
+  listing: boolean
+  damaged?: boolean
+  label?: string
+  classAbilitiesRenderer?: ClassAbilitiesRenderer
+  patternOverride?: PatternOverrideData
+}
+
+/** Computed state returned by useEntityDisplayState. Extends input with derived values. */
+export type EntityDisplayState = Omit<EntityDisplayStateInput, 'headerColor' | 'dimHeader'> & {
+  /** hide with all fields resolved to booleans (no undefined) */
+  hide: Required<EntityHideConfig>
+  /** Resolved to non-optional boolean */
+  damaged: boolean
   title: string
   techLevel: number | 'B' | 'N' | undefined
   headerBg: string
@@ -96,10 +132,6 @@ export type EntityDisplayState = {
   fontSize: ReturnType<typeof getEntityFontSizes>
   opacity: { header: number; content: number }
   shouldShowExtraContent: boolean
-  listing: boolean
-  hide: Required<EntityHideConfig>
-  damaged: boolean
-  disabled: boolean
   chassisAbilities?: SURefMetaAction[]
   effects?: ReturnType<typeof getEffects>
   table?: SURefObjectTable
@@ -107,7 +139,4 @@ export type EntityDisplayState = {
   actionsToDisplay?: SURefMetaAction[]
   matchingAction?: SURefMetaAction
   source?: SURefEnumSource
-  label?: string
-  classAbilitiesRenderer?: ClassAbilitiesRenderer
-  patternOverride?: PatternOverrideData
 }

@@ -3,7 +3,9 @@ import type { ReactNode } from 'react'
 import type { SURefEnumSource } from 'salvageunion-reference'
 import { cn } from '../../utils/cn'
 import { Text } from '../base/Text'
+import { ControlButtons } from './ControlButtons'
 import { getSourceStyles } from '../entity/entityDisplayHelpers'
+import type { EntityControl } from '../entity/EntityDisplay/entityControlTypes'
 
 type DisplayCardMode = 'full' | 'compact' | 'listing'
 
@@ -31,6 +33,10 @@ type DisplayCardProps = {
   mode?: DisplayCardMode
   /** onClick handler (primarily used in listing mode for clickable rows) */
   onClick?: () => void
+  /** Controls rendered at the card level. In listing mode with a single control,
+   * the button is auto-hidden and the entire row becomes clickable.
+   * When provided, controls should NOT also be passed to CardHeader. */
+  controls?: EntityControl[]
   /** Additional className on the outer wrapper */
   className?: string
   /** Grey header + reduced opacity for disabled state */
@@ -57,6 +63,7 @@ export function DisplayCard({
   label,
   mode = 'full',
   onClick,
+  controls,
   className,
   disabled = false,
   bodyPadding,
@@ -68,18 +75,26 @@ export function DisplayCard({
   const isCompact = mode === 'compact'
   const isListing = mode === 'listing'
 
+  // Single control on listings → entire header is clickable; hide the redundant button
+  const listingOnClick =
+    isListing && !onClick && controls?.length === 1 ? controls[0]!.onClick : undefined
+  const resolvedOnClick = onClick ?? listingOnClick
+  const effectiveControls = listingOnClick
+    ? controls!.map((c) => ({ ...c, hidden: true }))
+    : controls
+
   const actualHeaderBg = headerBg
   const headerSourceStyles = getSourceStyles(source, false, 'header', isExpanded)
   const footerSourceStyles = getSourceStyles(source, false, 'footer', isExpanded)
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
-      if (onClick && (e.key === 'Enter' || e.key === ' ')) {
+      if (resolvedOnClick && (e.key === 'Enter' || e.key === ' ')) {
         e.preventDefault()
-        onClick()
+        resolvedOnClick()
       }
     },
-    [onClick]
+    [resolvedOnClick]
   )
 
   const defaultBodyPadding = isCompact ? 'p-2' : 'p-3'
@@ -93,9 +108,7 @@ export function DisplayCard({
         disabled && 'opacity-50',
         className
       )}
-      style={
-        actualHeaderBg ? { border: `${isCompact || isListing ? 2 : 3}px solid black` } : undefined
-      }
+      style={actualHeaderBg ? { border: `${borderWidth}px solid black` } : undefined}
     >
       {absoluteElements}
       {label && !isCompact && !isListing && (
@@ -124,8 +137,8 @@ export function DisplayCard({
       >
         {/* Header */}
         <div
-          role={onClick ? 'button' : undefined}
-          tabIndex={onClick ? 0 : undefined}
+          role={resolvedOnClick ? 'button' : undefined}
+          tabIndex={resolvedOnClick ? 0 : undefined}
           className={cn(
             'flex w-full items-center justify-between gap-2 overflow-visible',
             isListing ? 'min-h-[40px] flex-1 px-2 py-1' : '',
@@ -133,7 +146,7 @@ export function DisplayCard({
             !isListing && !isCompact && label && 'pb-4 pt-4',
             !isListing && isCompact && label && 'pt-2',
             actualHeaderBg,
-            onClick && 'cursor-pointer',
+            resolvedOnClick && 'cursor-pointer',
             headerSourceStyles.className
           )}
           style={{
@@ -141,11 +154,20 @@ export function DisplayCard({
             ...(headerBgColor ? { backgroundColor: headerBgColor } : {}),
             ...headerSourceStyles.style,
           }}
-          onClick={onClick}
-          onKeyDown={onClick ? handleKeyDown : undefined}
+          onClick={resolvedOnClick}
+          onKeyDown={resolvedOnClick ? handleKeyDown : undefined}
           data-testid={headerTestId}
         >
-          {headerContent}
+          {effectiveControls ? (
+            <>
+              <div className="flex min-w-0 flex-1 items-center justify-between gap-2 overflow-visible">
+                {headerContent}
+              </div>
+              <ControlButtons controls={effectiveControls} size="sm" />
+            </>
+          ) : (
+            headerContent
+          )}
         </div>
 
         {/* Body — hidden in listing mode */}

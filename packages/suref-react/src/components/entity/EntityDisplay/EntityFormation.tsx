@@ -18,7 +18,7 @@ export function EntityFormation({ data, headerFontSize, compact = false }: Entit
 
   return (
     <div className="space-y-4">
-      <SectionSeparator label="Formation" fontSize={headerFontSize} />
+      <SectionSeparator label="Formation" fontSize={headerFontSize} compact={compact} />
       <div className={cn('grid grid-cols-1 gap-2', !compact && 'lg:grid-cols-2')}>
         {formation.flatMap((mech, mechIdx) => {
           const count = mech.quantity ?? 1

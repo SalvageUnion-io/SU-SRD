@@ -1,6 +1,6 @@
 import type { SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
 import { extractEntityDetails, getActivationCurrency } from '../../../lib/entityDataExtraction'
-import { SharedDetailItem } from './sharedDetailItem'
+import { DataValueDisplayView } from '../DataValueDisplayView'
 import { cn } from '../../../utils/cn'
 import type { getEntitySpacing } from './entityDisplayTypes'
 
@@ -50,7 +50,7 @@ export function EntitySubTitleElement({
       )}
     >
       {values.map((item, index) => (
-        <SharedDetailItem key={index} item={item} compact={compact} />
+        <DataValueDisplayView key={index} item={item} compact={compact} />
       ))}
     </div>
   )

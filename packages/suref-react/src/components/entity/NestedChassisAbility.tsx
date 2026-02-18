@@ -120,7 +120,7 @@ export function NestedChassisAbility({
           )}
         >
           {details.map((item, index) => (
-            <DataValueDisplayView key={index} item={item} compact />
+            <DataValueDisplayView key={index} item={item} compact={compact} />
           ))}
         </div>
       )}
@@ -182,8 +182,6 @@ export function NestedChassisAbility({
             <EntityChoice
               key={choice.id}
               choice={choice}
-              userChoices={undefined}
-              onChoiceSelection={undefined}
               fontSize={getEntityFontSizes(compact)}
               spacing={getEntitySpacing(compact)}
             />

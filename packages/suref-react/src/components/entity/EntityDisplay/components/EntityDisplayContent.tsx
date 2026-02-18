@@ -42,6 +42,7 @@ import {
   computeSvOverride,
 } from '../patternOverrideUtils'
 import { EntityFooter } from './EntityFooter'
+import { EntityFactionData } from './EntityFactionData'
 import { GuideEntityListing } from './GuideEntityListing'
 
 export type EntityDisplayContentProps = EntityDisplayStateInput & {
@@ -51,6 +52,8 @@ export type EntityDisplayContentProps = EntityDisplayStateInput & {
   npcConfig?: NpcConfig
   /** Content to render in a right column alongside the NPC section (creates a 2-column grid) */
   rightContent?: ReactNode
+  /** Which side the NPC floats when rightContent is provided. Default 'left'. */
+  npcPosition?: 'left' | 'right'
   /** When set, renders a semi-translucent overlay over the body with this text in a danger box */
   damageOverlayText?: string
   /** When true, header renders only title and controls — no subtitle, stats, or tech level */
@@ -63,6 +66,7 @@ export function EntityDisplayContent({
   interactive,
   npcConfig,
   rightContent,
+  npcPosition = 'left',
   damageOverlayText,
   lightweight = false,
   ...inputProps
@@ -213,15 +217,11 @@ export function EntityDisplayContent({
       </div>
     ) : null
 
-  // Faction strategic data (Goals, Assets, Weaknesses)
-  const factionData = [
-    { label: 'Goals', value: getGoals(data) },
-    { label: 'Assets', value: getAssets(data) },
-    { label: 'Weaknesses', value: getWeaknesses(data) },
-  ]
+  // Cache border color derivation (used in faction data and elsewhere)
+  const borderColor = borderColorFromHeaderBg(headerBg, headerBgColor)
 
   // Determine if there is any body content to render (to avoid empty padding)
-  const hasFactionContent = factionData.some(({ value }) => !!value)
+  const hasFactionContent = !!(getGoals(data) || getAssets(data) || getWeaknesses(data))
   const hasGuideSteps =
     schemaName === 'guides' && 'steps' in data && Array.isArray(data.steps) && data.steps.length > 0
   const hasBodyContent =
@@ -311,14 +311,11 @@ export function EntityDisplayContent({
           />
         ) : null
       }
-      controls={controls}
+      controls={listing ? undefined : controls}
       compact={compact}
       lightweight={lightweight}
     />
   )
-
-  // Single control → entire header is clickable (button stopPropagation prevents double-fire)
-  const singleControlOnClick = controls?.length === 1 ? controls[0]!.onClick : undefined
 
   const card = (
     <DisplayCard
@@ -334,7 +331,7 @@ export function EntityDisplayContent({
       isExpanded={!listing}
       bodyPadding="p-0"
       disabled={disabled}
-      onClick={singleControlOnClick}
+      controls={listing ? controls : undefined}
     >
       {!listing && hasBodyContent && (
         <div
@@ -345,8 +342,7 @@ export function EntityDisplayContent({
           <div
             className={cn(spacing.sectionSpaceYClass)}
             style={{
-              paddingLeft: `${spacing.contentPaddingX}rem`,
-              paddingRight: `${spacing.contentPaddingX}rem`,
+              ...spacing.contentPaddingXStyle,
               paddingTop:
                 source === 'We Were Here First!' || source === 'Rainmaker'
                   ? `calc(${spacing.contentPadding}rem + 10px)`
@@ -392,42 +388,12 @@ export function EntityDisplayContent({
                   />
                 )}
                 {children}
-                {/* Faction strategic data */}
-                {factionData.map(({ label: sectionLabel, value }) =>
-                  value ? (
-                    <div key={sectionLabel} className="mt-2">
-                      <h5
-                        className={cn(
-                          'font-mono inline self-start box-decoration-clone bg-su-black text-su-white px-1 font-bold uppercase leading-none tracking-tight mb-1',
-                          fontSize.sm
-                        )}
-                        style={{ lineHeight: 1 }}
-                      >
-                        {sectionLabel}
-                      </h5>
-                      <div
-                        className={compact ? 'pl-2' : 'pl-3'}
-                        style={
-                          borderColorFromHeaderBg(headerBg, headerBgColor)
-                            ? {
-                                borderLeft: `3px solid ${borderColorFromHeaderBg(headerBg, headerBgColor)}`,
-                              }
-                            : undefined
-                        }
-                      >
-                        <div
-                          className={cn(
-                            'mb-2 break-words font-medium leading-relaxed whitespace-normal text-su-black',
-                            fontSize.sm
-                          )}
-                          style={{ overflowWrap: 'break-word' }}
-                        >
-                          {value}
-                        </div>
-                      </div>
-                    </div>
-                  ) : null
-                )}
+                <EntityFactionData
+                  data={data}
+                  compact={compact}
+                  fontSize={fontSize}
+                  borderColor={borderColor}
+                />
                 {/* Guide steps */}
                 {schemaName === 'guides' &&
                   'steps' in data &&
@@ -466,7 +432,7 @@ export function EntityDisplayContent({
                 {!compact && !hide.actions && chassisAbilitiesBlock}
               </>
             )}
-            {(!hide.actions || (compact && schemaName !== 'bio-titans')) && (
+            {(!hide.actions || (compact && schemaName !== 'bio-titans' && !rightContent)) && (
               <EntityActions
                 schemaName={schemaName}
                 spacing={spacing}
@@ -492,7 +458,6 @@ export function EntityDisplayContent({
                 value={effect.value}
                 data={data}
                 compact={compact}
-                damaged={damaged}
                 fontSize={fontSize}
                 headerBg={headerBg}
               />
@@ -529,6 +494,7 @@ export function EntityDisplayContent({
                     onNpcNameChange={npcConfig?.onNameChange}
                     onNpcNameBlur={npcConfig?.onNameBlur}
                     readOnly={npcConfig?.readOnly}
+                    showSeparator={npcConfig?.showNpcSeparator}
                   />
                   {npcConfig?.afterContent}
                 </>
@@ -536,7 +502,11 @@ export function EntityDisplayContent({
               return rightContent ? (
                 <>
                   <div
-                    className="md:float-left md:mr-4 md:w-1/2 md:border-r md:border-su-grey-light md:pr-4"
+                    className={
+                      npcPosition === 'right'
+                        ? 'md:float-right md:ml-4 md:w-1/2 md:border-l md:border-su-grey-light md:pl-4'
+                        : 'md:float-left md:mr-4 md:w-1/2 md:border-r md:border-su-grey-light md:pr-4'
+                    }
                     style={{ shapeOutside: 'margin-box' }}
                   >
                     {npcBlock}
@@ -573,7 +543,6 @@ export function EntityDisplayContent({
                     label="Damaged Effect"
                     data={data}
                     compact={compact}
-                    damaged={damaged}
                     fontSize={fontSize}
                     headerBg={headerBg}
                   />
@@ -592,7 +561,6 @@ export function EntityDisplayContent({
               spacing={spacing}
               fontSize={fontSize}
               hideChoices={hide.choices}
-              onChoiceSelection={undefined}
             />
             <div className="clear-both" />
           </div>
@@ -600,8 +568,7 @@ export function EntityDisplayContent({
             <div
               className={cn('w-full py-3', headerBg || 'bg-su-white', sourceFooterStyles.className)}
               style={{
-                paddingLeft: `${spacing.contentPaddingX}rem`,
-                paddingRight: `${spacing.contentPaddingX}rem`,
+                ...spacing.contentPaddingXStyle,
                 ...(headerBgColor ? { backgroundColor: headerBgColor } : {}),
                 ...sourceFooterStyles.style,
               }}
