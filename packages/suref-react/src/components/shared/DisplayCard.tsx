@@ -5,7 +5,7 @@ import { cn } from '../../utils/cn'
 import { Text } from '../base/Text'
 import { CardImage } from './CardImage'
 import { ControlButtons } from './ControlButtons'
-import { getSourceStyles } from '../referenceEntity/referenceEntityHelpers'
+import { getSourceStyles, getSourceBorderColor } from '../referenceEntity/referenceEntityHelpers'
 import type { ReferenceEntityControl } from '../referenceEntity/ReferenceEntityDisplay/referenceEntityControlTypes'
 
 type DisplayCardMode = 'full' | 'compact' | 'listing'
@@ -98,20 +98,18 @@ export function DisplayCard({
   const isListing = mode === 'listing'
 
   // Resolve card-level click: onCardClick prop → fallback to controls with cardClick
-  const cardClickControls = !onCardClick && controls
-    ? controls.filter((c) => c.cardClick)
-    : []
+  const cardClickControls = !onCardClick && controls ? controls.filter((c) => c.cardClick) : []
   if (cardClickControls.length > 1) {
     console.warn(
       'DisplayCard: multiple controls set cardClick — last one wins',
       cardClickControls.map((c) => c.key)
     )
   }
-  const resolvedCardClick = onCardClick ?? (
-    cardClickControls.length > 0
+  const resolvedCardClick =
+    onCardClick ??
+    (cardClickControls.length > 0
       ? cardClickControls[cardClickControls.length - 1]!.onClick
-      : undefined
-  )
+      : undefined)
 
   // Hover effect when card is clickable (via handler or boolean flag)
   const isCardHoverable = !!resolvedCardClick || cardClickable
@@ -119,6 +117,11 @@ export function DisplayCard({
   const actualHeaderBg = headerBg
   const headerSourceStyles = getSourceStyles(source, false, 'header', isExpanded)
   const footerSourceStyles = getSourceStyles(source, false, 'footer', isExpanded)
+  const cardSourceStyles = getSourceStyles(source, false, 'card', isExpanded)
+
+  // Expansion border color falls back when no explicit prop override
+  const effectiveBorderColor =
+    borderColorProp !== 'black' ? borderColorProp : (getSourceBorderColor(source) ?? 'black')
 
   const handleHeaderKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -148,13 +151,17 @@ export function DisplayCard({
       role={resolvedCardClick ? 'button' : undefined}
       tabIndex={resolvedCardClick ? 0 : undefined}
       className={cn(
-        'relative flex shrink-0 flex-col overflow-visible rounded-md shadow-lg',
+        'relative flex shrink-0 flex-col overflow-visible rounded-md',
+        cardSourceStyles.className || 'shadow-lg',
         disabled && 'opacity-50',
         isCardHoverable &&
           'cursor-pointer transition-all duration-200 md:hover:z-10 md:hover:-translate-y-0.5 md:hover:scale-[1.02]',
         className
       )}
-      style={actualHeaderBg ? { border: `${borderWidth}px solid ${borderColorProp}` } : undefined}
+      style={{
+        ...(actualHeaderBg ? { border: `${borderWidth}px solid ${effectiveBorderColor}` } : {}),
+        ...cardSourceStyles.style,
+      }}
       onClick={resolvedCardClick}
       onKeyDown={resolvedCardClick ? handleCardKeyDown : undefined}
     >
@@ -180,7 +187,7 @@ export function DisplayCard({
 
       {/* Inner wrapper clips backgrounds to border-radius */}
       <div
-        className="flex flex-1 flex-col overflow-hidden"
+        className={cn('flex flex-1 overflow-hidden', !isListing && 'flex-col')}
         style={{ borderRadius: `calc(0.375rem - ${borderWidth}px)` }}
       >
         {/* Header */}
@@ -202,7 +209,7 @@ export function DisplayCard({
             ...(headerBgColor ? { backgroundColor: headerBgColor } : {}),
             ...headerSourceStyles.style,
             ...(!isListing && (children || image || footerContent)
-              ? { borderBottom: `${borderWidth}px solid ${borderColorProp}` }
+              ? { borderBottom: `${borderWidth}px solid ${effectiveBorderColor}` }
               : {}),
           }}
           onClick={onClick}
@@ -254,7 +261,7 @@ export function DisplayCard({
             style={{
               ...(headerBgColor ? { backgroundColor: headerBgColor } : {}),
               ...footerSourceStyles.style,
-              borderTop: `${borderWidth}px solid black`,
+              borderTop: `${borderWidth}px solid ${effectiveBorderColor}`,
             }}
           >
             {footerContent}

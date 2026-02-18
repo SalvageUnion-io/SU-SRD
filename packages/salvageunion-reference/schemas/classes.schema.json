@@ -19,7 +19,15 @@
                 "type": {
                   "default": "paragraph",
                   "type": "string",
-                  "enum": ["paragraph", "heading", "list-item", "label", "datavalues", "hint"]
+                  "enum": [
+                    "paragraph",
+                    "heading",
+                    "list-item",
+                    "label",
+                    "datavalues",
+                    "hint",
+                    "flavor"
+                  ]
                 },
                 "value": {
                   "anyOf": [
@@ -50,7 +58,15 @@
                       "type": {
                         "default": "paragraph",
                         "type": "string",
-                        "enum": ["paragraph", "heading", "list-item", "label", "datavalues", "hint"]
+                        "enum": [
+                          "paragraph",
+                          "heading",
+                          "list-item",
+                          "label",
+                          "datavalues",
+                          "hint",
+                          "flavor"
+                        ]
                       },
                       "value": {
                         "anyOf": [
@@ -263,7 +279,15 @@
                 "type": {
                   "default": "paragraph",
                   "type": "string",
-                  "enum": ["paragraph", "heading", "list-item", "label", "datavalues", "hint"]
+                  "enum": [
+                    "paragraph",
+                    "heading",
+                    "list-item",
+                    "label",
+                    "datavalues",
+                    "hint",
+                    "flavor"
+                  ]
                 },
                 "value": {
                   "anyOf": [
@@ -294,7 +318,15 @@
                       "type": {
                         "default": "paragraph",
                         "type": "string",
-                        "enum": ["paragraph", "heading", "list-item", "label", "datavalues", "hint"]
+                        "enum": [
+                          "paragraph",
+                          "heading",
+                          "list-item",
+                          "label",
+                          "datavalues",
+                          "hint",
+                          "flavor"
+                        ]
                       },
                       "value": {
                         "anyOf": [

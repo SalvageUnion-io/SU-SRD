@@ -70,7 +70,8 @@ function getContentBlocks(
   data: SURefMetaAction | SURefEntity
 ): SURefObjectContentBlock[] | undefined {
   if ('content' in data && Array.isArray(data.content) && data.content.length > 0) {
-    return data.content as SURefObjectContentBlock[]
+    const blocks = (data.content as SURefObjectContentBlock[]).filter((b) => b.type !== 'flavor')
+    return blocks.length > 0 ? blocks : undefined
   }
   return undefined
 }

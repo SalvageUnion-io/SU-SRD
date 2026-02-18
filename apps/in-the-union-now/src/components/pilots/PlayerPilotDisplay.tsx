@@ -16,9 +16,10 @@ import { StatControl } from '../shared/StatControl'
 import { SheetFooter } from '../shared/SheetFooter'
 import { actionButtonClasses } from '../shared/actionButtonClasses'
 import { DeleteConfirmDialog } from '../shared/DeleteConfirmDialog'
+import { Skeleton } from '../ui/skeleton'
 import { PilotPersonalInfo } from './PilotPersonalInfo'
 import { PilotEquipmentSection } from './PilotEquipmentSection'
-import { PilotMechSection } from './PilotMechSection'
+import { PilotMechSection, MechListing } from './PilotMechSection'
 import { PilotActionsSection } from './PilotActionsSection'
 import { MechActionsSection } from './MechActionsSection'
 import { MechLoadoutSection } from './MechLoadoutSection'
@@ -59,9 +60,7 @@ function PilotAbilityTrees({
 }) {
   const activeAbilityIds = useMemo(
     () =>
-      new Set(
-        pilotRefs.filter((r) => r.schema_name === 'abilities').map((r) => r.schema_ref_id)
-      ),
+      new Set(pilotRefs.filter((r) => r.schema_name === 'abilities').map((r) => r.schema_ref_id)),
     [pilotRefs]
   )
 
@@ -113,6 +112,10 @@ export function PlayerPilotDisplay({
 
   const handleNavigate = useCallback(() => {
     navigate({ to: '/pilots/$pilotId', params: { pilotId: pilot.id } })
+  }, [navigate, pilot.id])
+
+  const handleNavigateToMechBay = useCallback(() => {
+    navigate({ to: '/pilots/$pilotId/mech-bay', params: { pilotId: pilot.id } })
   }, [navigate, pilot.id])
 
   const defaultControls = useMemo(() => [navigateControl(handleNavigate)], [handleNavigate])
@@ -274,6 +277,23 @@ export function PlayerPilotDisplay({
           ) : undefined
         }
       >
+        {/* Mech display attached to header — the "lump" */}
+        {pilot.mech_id && (
+          <div
+            className={`${compact ? 'px-3' : 'px-4'} mb-3 md:px-0 md:-mt-[3px] md:mr-3 md:ml-auto md:w-1/2 md:[&>div]:!rounded-t-none md:[&>div>div]:!rounded-t-none md:[&>div]:!border-t-0 md:[&>div]:!border-[3px]`}
+          >
+            {mechLoading ? (
+              <Skeleton className="h-[40px] rounded-md" />
+            ) : mech && mechChassisProp ? (
+              <MechListing
+                mechChassis={mechChassisProp}
+                patternName={mech.pattern_name ?? 'Unnamed Mech'}
+                onNavigate={handleNavigateToMechBay}
+              />
+            ) : null}
+          </div>
+        )}
+
         <div className={compact ? 'p-3' : 'p-4'}>
           <div className={compact ? 'space-y-3' : 'space-y-4'}>
             <PilotPersonalInfo
@@ -282,13 +302,23 @@ export function PlayerPilotDisplay({
               readOnly={!canEdit}
               onUpdate={editConfig?.onPilotUpdate ?? (() => {})}
             />
-            <PilotMechSection
-              pilot={pilot}
+            {!pilot.mech_id && (
+              <PilotMechSection
+                pilot={pilot}
+                compact={compact}
+                readOnly={!canEdit}
+                mech={null}
+                mechChassis={undefined}
+                mechLoading={false}
+              />
+            )}
+            <PilotEquipmentSection
+              refs={pilotRefs ?? []}
               compact={compact}
-              readOnly={!canEdit}
-              mech={mech}
-              mechChassis={mechChassisProp}
-              mechLoading={mechLoading ?? false}
+              canEdit={canEdit}
+              onConditionChange={(refId, condition) =>
+                editConfig?.onUpdateEntityRef(refId, { condition })
+              }
             />
           </div>
           <div className="clear-both" />
@@ -300,14 +330,6 @@ export function PlayerPilotDisplay({
             />
           )}
           <div className={compact ? 'space-y-3' : 'space-y-4'}>
-            <PilotEquipmentSection
-              refs={pilotRefs ?? []}
-              compact={compact}
-              canEdit={canEdit}
-              onConditionChange={(refId, condition) =>
-                editConfig?.onUpdateEntityRef(refId, { condition })
-              }
-            />
             {mech && mechRefs && mechRefs.length > 0 && editConfig && (
               <MechLoadoutSection
                 mechRefs={mechRefs}

@@ -31,6 +31,7 @@ export function ActionDisplay({ data, controls, disabled, footerMessage }: Actio
       <DisplayCard
         headerBg=""
         headerBgColor={disabled ? DISABLED_PALE_BG : data.paleBackgroundColor}
+        borderColor={disabled ? DISABLED_BORDER : data.borderColor}
         mode="compact"
         headerContent={
           <div

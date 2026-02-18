@@ -110,10 +110,33 @@ export function borderColorFromHeaderBg(
 }
 
 /**
+ * Get a themed border color for expansion-sourced entities.
+ * Returns undefined for core-book sources so the caller can fall back to defaults.
+ */
+export function getSourceBorderColor(source: SURefEnumSource | undefined): string | undefined {
+  switch (source) {
+    case 'We Were Here First!':
+      return 'rgb(55, 48, 35)'
+    case 'False Flag':
+      return 'rgb(128, 128, 128)'
+    case 'Rainmaker':
+      return 'rgb(55, 70, 85)'
+    case 'Mech Monday':
+      return 'rgb(25, 55, 30)'
+    default:
+      return undefined
+  }
+}
+
+/**
  * Get source-specific styles for entity display.
  * Returns { className, style } for use with Tailwind + inline styles.
  *
- * Effects by expansion (all contained within header/footer boundaries):
+ * Variants:
+ * - 'header' / 'footer': Textural overlays contained within header/footer boundaries
+ * - 'card': Card-level shadow class (replaces default shadow-lg)
+ *
+ * Effects by expansion:
  * - We Were Here First!: Beast claw-scratch crosshatch texture + inner border
  * - Rainmaker: Driving rain-streak diagonal texture + inner shadow
  * - False Flag: Windows 95-esque beveled border (inline styles)
@@ -122,11 +145,26 @@ export function borderColorFromHeaderBg(
 export function getSourceStyles(
   source: SURefEnumSource | undefined,
   disabled: boolean = false,
-  variant: 'header' | 'footer' = 'header',
+  variant: 'header' | 'footer' | 'card' = 'header',
   isExpanded: boolean = true
 ): { className: string; style: React.CSSProperties } {
   if (!source || disabled) return { className: '', style: {} }
   if (!isExpanded && variant === 'footer') return { className: '', style: {} }
+
+  if (variant === 'card') {
+    switch (source) {
+      case 'We Were Here First!':
+        return { className: 'expansion-beast-card', style: {} }
+      case 'False Flag':
+        return { className: 'expansion-falseflag-card', style: {} }
+      case 'Rainmaker':
+        return { className: 'expansion-rain-card', style: {} }
+      case 'Mech Monday':
+        return { className: 'expansion-scanline-card', style: {} }
+      default:
+        return { className: '', style: {} }
+    }
+  }
 
   switch (source) {
     case 'We Were Here First!': {

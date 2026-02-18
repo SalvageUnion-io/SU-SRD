@@ -3085,8 +3085,8 @@
         "value": "This Weapons System is designed to fire a high energy beam of subatomic particles which when they impact a target scramble its molecular structure rendering them into their component atoms. These blueprints were extracted from Sakura during a salvage run, and as far as we are aware are purely theoretical."
       },
       {
-        "type": "paragraph",
-        "value": "*Please report any findings of field use of this weapon to the Salvage Union Council*"
+        "type": "flavor",
+        "value": "Please report any findings of field use of this weapon to the Salvage Union Council"
       }
     ],
     "actionSource": "systems"
@@ -3227,8 +3227,8 @@
         "value": "A target creature of your choice in Range regains 3 Hit Points. If they were on 0 Hit Points this restores them to consciousness with 3 HP."
       },
       {
-        "type": "paragraph",
-        "value": "*Union Safety Guideline 305.15 recommends each Union Crawler salvage crew equip a First Aid Kit for all active field work.*"
+        "type": "flavor",
+        "value": "Union Safety Guideline 305.15 recommends each Union Crawler salvage crew equip a First Aid Kit for all active field work."
       }
     ],
     "actionSource": "equipment"
@@ -6335,8 +6335,8 @@
         "value": "Encampment: You find an encampment of some kind, this could be a raider base, a corpo forward outpost, or a den of animals."
       },
       {
-        "type": "paragraph",
-        "value": "*For their safety and mental well-being, Salvage Unions do not condone the changing of the Navigation Module's soothing electronic voice to anything that would irritate, upset, or enrage their Pilots. However funny it might seem at the time.*"
+        "type": "flavor",
+        "value": "For their safety and mental well-being, Salvage Unions do not condone the changing of the Navigation Module's soothing electronic voice to anything that would irritate, upset, or enrage their Pilots. However funny it might seem at the time."
       }
     ],
     "actionSource": "modules"
@@ -6864,8 +6864,8 @@
         "value": "When activated, a single Pilot may use the Personal Recreation Device to relax and get themselves into a flow state. The next time they or a Mech they are controlling roll the die, they may re-roll it. They must accept the result of the second roll."
       },
       {
-        "type": "paragraph",
-        "value": "*It is against Union Regulation to install a Mech with a Personal Recreation Device designed to do what you're thinking.*"
+        "type": "flavor",
+        "value": "It is against Union Regulation to install a Mech with a Personal Recreation Device designed to do what you're thinking."
       }
     ],
     "actionSource": "modules"
@@ -7859,8 +7859,8 @@
         "value": "You may place and set the Remote Mine as a Turn Action. It can be detonated remotely as a Turn Action from Medium Range. When it detonates, roll to make an attack as normal. On a hit all targets within Range take 4 SP damage."
       },
       {
-        "type": "paragraph",
-        "value": "*Whist use of Remote Mines is allowed under Corporate Council policy; Union Safety Regulation 402.36 bans their use in civilian occupied territory.*"
+        "type": "flavor",
+        "value": "Whist use of Remote Mines is allowed under Corporate Council policy; Union Safety Regulation 402.36 bans their use in civilian occupied territory."
       }
     ],
     "actionSource": "equipment"

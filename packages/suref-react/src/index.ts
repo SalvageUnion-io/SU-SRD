@@ -54,6 +54,7 @@ export { matchesFilter, enrichForFiltering } from './components/referenceEntity/
 export {
   borderColorFromHeaderBg,
   calculateBackgroundColor,
+  getSourceBorderColor,
 } from './components/referenceEntity/referenceEntityHelpers'
 export {
   extractReferenceEntityDetails,

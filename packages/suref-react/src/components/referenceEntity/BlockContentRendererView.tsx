@@ -258,6 +258,19 @@ function ContentBlock({
         </div>
       )
 
+    case 'flavor':
+      return (
+        <div
+          className={cn(
+            'mb-1 break-words font-normal italic leading-relaxed whitespace-normal text-su-grey-dark',
+            fontSize
+          )}
+          style={{ overflowWrap: 'break-word' }}
+        >
+          {parsedValue}
+        </div>
+      )
+
     case 'label':
       return (
         <div>

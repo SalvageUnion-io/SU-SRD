@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import type { SURefEntity } from 'salvageunion-reference'
-import { ReferenceEntityDisplay, SectionSeparator, useChassisPatternConfig } from 'suref-react'
+import { ReferenceEntityDisplay, useChassisPatternConfig } from 'suref-react'
 import type { ReferenceEntityControl } from 'suref-react'
 import { Plus, Wrench } from 'lucide-react'
 import { Button } from '../ui/button'
@@ -32,12 +32,12 @@ export function PilotMechSection({
   }, [navigate, pilot.id])
 
   return (
-    <div className={compact ? 'space-y-2' : 'space-y-3'}>
-      <SectionSeparator label="Mech" compact={compact} />
-
+    <div>
       {!pilot.mech_id ? (
         readOnly ? (
-          <p className={`${compact ? 'text-xs' : 'text-sm'} text-su-grey-dark`}>No mech assigned.</p>
+          <p className={`${compact ? 'text-xs' : 'text-sm'} text-su-grey-dark`}>
+            No mech assigned.
+          </p>
         ) : (
           <div className="flex flex-col items-center gap-3 rounded-md border border-dashed border-su-grey-light/50 p-6">
             <p className={`${compact ? 'text-xs' : 'text-sm'} text-su-grey-dark`}>
@@ -68,7 +68,7 @@ export function PilotMechSection({
   )
 }
 
-function MechListing({
+export function MechListing({
   mechChassis,
   patternName,
   onNavigate,
@@ -99,8 +99,6 @@ function MechListing({
           onClick: onNavigate,
           ariaLabel: 'Open Mech Bay',
           variant: 'ghost' as const,
-          hidden: true,
-          cardClick: true,
         } satisfies ReferenceEntityControl,
       ]}
     />

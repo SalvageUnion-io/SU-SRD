@@ -32,8 +32,6 @@ function getNextCondition(condition: ItemCondition): ItemCondition {
   return CONDITION_CYCLE[nextIndex] ?? 'intact'
 }
 
-const EmptyIcon = () => null
-
 export function makeConditionControl(
   condition: ItemCondition,
   onChange: (condition: ItemCondition) => void,
@@ -45,7 +43,7 @@ export function makeConditionControl(
 
   return {
     key: 'condition',
-    icon: EmptyIcon,
+    icon: () => null,
     onClick: disabled ? () => {} : () => onChange(next),
     ariaLabel: disabled ? `Condition: ${style.label}` : `Click to change to ${nextLabel}`,
     variant: 'primary',
