@@ -17,7 +17,7 @@ import { ReferenceEntityGrants } from '../ReferenceEntityGrants'
 import { ReferenceEntityBonusPerTechLevel } from '../ReferenceEntityBonusPerTechLevel'
 import { ConditionalSheetInfo } from '../ConditionalSheetInfo'
 import { ReferenceEntityActions } from '../ReferenceEntityActions'
-import { ReferenceEntityImage } from '../ReferenceEntityImage'
+import { CardImage } from '../../../shared/CardImage'
 import { BlockContentRendererView } from '../../BlockContentRendererView'
 import { GuideStepsDisplay } from '../../GuideStepsDisplay'
 import type { GuideStepsInteractiveConfig } from '../../GuideStepsDisplay'
@@ -45,6 +45,10 @@ export type ReferenceEntityDisplayContentProps = ReferenceEntityDisplayStateInpu
   damageOverlayText?: string
   /** When true, header renders only title and controls — no subtitle, stats, or tech level */
   lightweight?: boolean
+  /** Click handler for the entire card (adds hover enlarge effect) */
+  onCardClick?: () => void
+  /** Enable hover enlarge effect without a click handler (e.g., when wrapped in an <a>) */
+  cardClickable?: boolean
 }
 
 export function ReferenceEntityDisplayContent({
@@ -56,6 +60,8 @@ export function ReferenceEntityDisplayContent({
   npcPosition = 'left',
   damageOverlayText,
   lightweight = false,
+  onCardClick,
+  cardClickable,
   ...inputProps
 }: ReferenceEntityDisplayContentProps) {
   const state = useReferenceEntityDisplayState(inputProps)
@@ -234,6 +240,12 @@ export function ReferenceEntityDisplayContent({
     />
   )
 
+  // In non-listing mode, controls go to CardHeader for button rendering.
+  // Extract cardClick handler separately so DisplayCard can apply card-level click + hover.
+  const cardClickFromControls = !listing
+    ? controls?.find((c) => c.cardClick)?.onClick
+    : undefined
+
   const card = (
     <DisplayCard
       headerBg={headerBg}
@@ -249,6 +261,8 @@ export function ReferenceEntityDisplayContent({
       bodyPadding="p-0"
       disabled={disabled}
       controls={listing ? controls : undefined}
+      onCardClick={onCardClick ?? cardClickFromControls}
+      cardClickable={cardClickable}
     >
       {!listing && hasBodyContent && (
         <div
@@ -261,21 +275,16 @@ export function ReferenceEntityDisplayContent({
             style={{
               ...spacing.contentPaddingXStyle,
               paddingTop:
-                source === 'We Were Here First!' || source === 'Rainmaker'
-                  ? `calc(${spacing.contentPadding}rem + 10px)`
-                  : source !== 'Salvage Union Workshop Manual' && hasTopMatterContent
-                    ? `calc(${spacing.contentPadding * 0.25}rem + 5px)`
-                    : `${spacing.contentPadding}rem`,
-              paddingBottom:
-                source === 'We Were Here First!' || source === 'Rainmaker'
-                  ? `calc(${spacing.contentPadding}rem + 10px)`
+                source !== 'Salvage Union Workshop Manual' && hasTopMatterContent
+                  ? `calc(${spacing.contentPadding * 0.25}rem + 5px)`
                   : `${spacing.contentPadding}rem`,
+              paddingBottom: `${spacing.contentPadding}rem`,
             }}
           >
             {assetUrl && hasChassisAbilities && !compact && !hide.actions ? (
               // Grid layout for chassis with images: ability anchored to bottom of image
               <div className="md:grid md:grid-cols-[auto_1fr]">
-                <ReferenceEntityImage title={title} compact={compact} assetUrl={assetUrl} />
+                <CardImage url={assetUrl} alt={title} compact={compact} />
                 <div className="flex flex-col justify-evenly">
                   <div>
                     {showContent && (
@@ -294,19 +303,41 @@ export function ReferenceEntityDisplayContent({
               </div>
             ) : (
               <>
-                {assetUrl && (
-                  <ReferenceEntityImage title={title} compact={compact} assetUrl={assetUrl} />
+                {assetUrl && afterExtraContent && !compact ? (
+                  // Grid layout: vertically center content beside image when
+                  // afterExtraContent (e.g. class ability trees) will render below
+                  <div className="md:grid md:grid-cols-[auto_1fr] md:items-center">
+                    <CardImage url={assetUrl} alt={title} compact={compact} />
+                    <div>
+                      {showContent && (
+                        <BlockContentRendererView
+                          content={contentBlocks!}
+                          fontSize={fontSize.sm}
+                          compact={compact}
+                          headerBg={headerBg}
+                          headerBgColor={headerBgColor}
+                        />
+                      )}
+                      {children}
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    {assetUrl && (
+                      <CardImage url={assetUrl} alt={title} compact={compact} />
+                    )}
+                    {showContent && (
+                      <BlockContentRendererView
+                        content={contentBlocks!}
+                        fontSize={fontSize.sm}
+                        compact={compact}
+                        headerBg={headerBg}
+                        headerBgColor={headerBgColor}
+                      />
+                    )}
+                    {children}
+                  </>
                 )}
-                {showContent && (
-                  <BlockContentRendererView
-                    content={contentBlocks!}
-                    fontSize={fontSize.sm}
-                    compact={compact}
-                    headerBg={headerBg}
-                    headerBgColor={headerBgColor}
-                  />
-                )}
-                {children}
                 <ReferenceEntityFactionData
                   data={data}
                   compact={compact}
@@ -455,7 +486,12 @@ export function ReferenceEntityDisplayContent({
                     headerBg={headerBg}
                   />
                 )}
-                {afterExtraContent}
+                {afterExtraContent && (
+                  <>
+                    <div className="clear-both" />
+                    {afterExtraContent}
+                  </>
+                )}
                 <ReferenceEntityGrants data={data} spacing={spacing} />
               </>
             )}
@@ -474,6 +510,7 @@ export function ReferenceEntityDisplayContent({
                 ...spacing.contentPaddingXStyle,
                 ...(headerBgColor ? { backgroundColor: headerBgColor } : {}),
                 ...sourceFooterStyles.style,
+                borderTop: `${compact ? 2 : 3}px solid black`,
               }}
             >
               {interactive.renderFooter()}

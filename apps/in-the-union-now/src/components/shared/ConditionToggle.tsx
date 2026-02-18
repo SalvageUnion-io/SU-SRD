@@ -1,35 +1,55 @@
 import type { ItemCondition } from 'salvageunion-reference'
+import type { ReferenceEntityControl } from 'suref-react'
 
 const CONDITION_CYCLE: ItemCondition[] = ['intact', 'damaged', 'destroyed']
 
-const CONDITION_STYLES: Record<ItemCondition, { bg: string; text: string; label: string }> = {
-  intact: { bg: 'bg-su-green/80', text: 'text-su-white', label: 'Intact' },
-  damaged: { bg: 'bg-su-orange/80', text: 'text-su-white', label: 'Damaged' },
-  destroyed: { bg: 'bg-su-rust/80', text: 'text-su-white', label: 'Destroyed' },
+const CONDITION_STYLES: Record<
+  ItemCondition,
+  { bg: string; border: string; hover: string; label: string }
+> = {
+  intact: {
+    bg: 'bg-su-green/80',
+    border: 'border-su-green/80',
+    hover: 'hover:bg-su-green/60',
+    label: 'Intact',
+  },
+  damaged: {
+    bg: 'bg-su-orange/80',
+    border: 'border-su-orange/80',
+    hover: 'hover:bg-su-orange/60',
+    label: 'Damaged',
+  },
+  destroyed: {
+    bg: 'bg-su-rust/80',
+    border: 'border-su-rust/80',
+    hover: 'hover:bg-su-rust/60',
+    label: 'Destroyed',
+  },
 }
 
-type ConditionToggleProps = {
-  condition: ItemCondition
-  onChange: (condition: ItemCondition) => void
-  disabled?: boolean
-}
-
-export function ConditionToggle({ condition, onChange, disabled }: ConditionToggleProps) {
-  const style = CONDITION_STYLES[condition]
+function getNextCondition(condition: ItemCondition): ItemCondition {
   const nextIndex = (CONDITION_CYCLE.indexOf(condition) + 1) % CONDITION_CYCLE.length
-  const next = CONDITION_CYCLE[nextIndex] ?? 'intact'
+  return CONDITION_CYCLE[nextIndex] ?? 'intact'
+}
 
-  return (
-    <button
-      type="button"
-      onClick={() => onChange(next)}
-      disabled={disabled}
-      className={`rounded px-1.5 py-0.5 font-mono text-[10px] font-semibold uppercase transition-colors ${style.bg} ${style.text} ${
-        disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:opacity-80'
-      }`}
-      title={`Click to change to ${CONDITION_STYLES[next].label}`}
-    >
-      {style.label}
-    </button>
-  )
+const EmptyIcon = () => null
+
+export function makeConditionControl(
+  condition: ItemCondition,
+  onChange: (condition: ItemCondition) => void,
+  disabled?: boolean
+): ReferenceEntityControl {
+  const style = CONDITION_STYLES[condition]
+  const next = getNextCondition(condition)
+  const nextLabel = CONDITION_STYLES[next].label
+
+  return {
+    key: 'condition',
+    icon: EmptyIcon,
+    onClick: disabled ? () => {} : () => onChange(next),
+    ariaLabel: disabled ? `Condition: ${style.label}` : `Click to change to ${nextLabel}`,
+    variant: 'primary',
+    label: style.label,
+    className: `${style.bg} text-su-white ${style.border} ${style.hover}${disabled ? ' cursor-not-allowed opacity-50' : ''}`,
+  }
 }

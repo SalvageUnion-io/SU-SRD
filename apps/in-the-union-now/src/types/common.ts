@@ -68,7 +68,14 @@ export type InstantiateMechInput = {
   chassis_ref: string
   pattern_name?: string
   pattern_items: PatternItem[]
+  source_pattern_id?: string
+  source_ref_pattern_id?: string
 }
+
+// Discriminated union for pattern selection (reference vs player)
+export type SelectedPattern =
+  | { source: 'reference'; pattern: import('salvageunion-reference').SURefObjectPattern; refPatternId: string }
+  | { source: 'player'; pattern: TypedPatternRow }
 
 // Campaign insert/update types
 export type CampaignInsert = Database['public']['Tables']['campaigns']['Insert']

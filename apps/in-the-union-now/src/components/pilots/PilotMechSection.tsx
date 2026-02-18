@@ -10,6 +10,7 @@ import type { PilotRow } from '../../types/common'
 
 type PilotMechSectionProps = {
   pilot: PilotRow
+  compact?: boolean
   readOnly?: boolean
   mech?: { id: string; pattern_name: string | null } | null
   mechChassis?: SURefEntity
@@ -18,6 +19,7 @@ type PilotMechSectionProps = {
 
 export function PilotMechSection({
   pilot,
+  compact,
   readOnly,
   mech,
   mechChassis,
@@ -30,15 +32,17 @@ export function PilotMechSection({
   }, [navigate, pilot.id])
 
   return (
-    <div className="space-y-3">
-      <SectionSeparator label="Mech" fontSize="text-sm" />
+    <div className={compact ? 'space-y-2' : 'space-y-3'}>
+      <SectionSeparator label="Mech" compact={compact} />
 
       {!pilot.mech_id ? (
         readOnly ? (
-          <p className="text-sm text-su-grey-dark">No mech assigned.</p>
+          <p className={`${compact ? 'text-xs' : 'text-sm'} text-su-grey-dark`}>No mech assigned.</p>
         ) : (
           <div className="flex flex-col items-center gap-3 rounded-md border border-dashed border-su-grey-light/50 p-6">
-            <p className="text-sm text-su-grey-dark">No mech assigned yet.</p>
+            <p className={`${compact ? 'text-xs' : 'text-sm'} text-su-grey-dark`}>
+              No mech assigned yet.
+            </p>
             <Button
               size="sm"
               onClick={() =>
@@ -95,6 +99,8 @@ function MechListing({
           onClick: onNavigate,
           ariaLabel: 'Open Mech Bay',
           variant: 'ghost' as const,
+          hidden: true,
+          cardClick: true,
         } satisfies ReferenceEntityControl,
       ]}
     />

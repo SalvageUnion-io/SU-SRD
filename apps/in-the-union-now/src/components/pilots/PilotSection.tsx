@@ -17,7 +17,7 @@ export function PilotSection() {
 
   return (
     <div className="flex flex-col gap-3">
-      <SectionSeparator label="Pilots" fontSize="text-sm" />
+      <SectionSeparator label="Pilots" />
 
       {isLoading ? (
         <div className="flex flex-col gap-2">
@@ -30,6 +30,7 @@ export function PilotSection() {
             <PlayerPilotDisplay
               key={pilot.id}
               pilot={pilot}
+              compact={false}
               abilityCount={abilityCounts?.[pilot.id] ?? 0}
             />
           ))}

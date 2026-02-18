@@ -126,7 +126,7 @@ export function SchemaViewerIsland({
                 key={item.id}
                 href={`/schema/${schemaId}/item/${getEntitySlug(item)}`}
                 aria-label={item.name}
-                className="relative block transition-all duration-200 md:hover:z-10 md:hover:scale-[1.02] md:hover:-translate-y-0.5 md:hover:shadow-lg"
+                className="relative block"
               >
                 <Suspense fallback={<ReferenceEntityCardSkeleton compact />}>
                   <ReferenceEntityDisplay
@@ -134,6 +134,7 @@ export function SchemaViewerIsland({
                     data={item}
                     compact
                     label={tree}
+                    cardClickable
                   />
                 </Suspense>
               </a>

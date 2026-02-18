@@ -105,15 +105,15 @@ describe('borderColorFromHeaderBg', () => {
 })
 
 describe('getSourceStyles', () => {
-  it('should return scanlines classes for Mech Monday header', () => {
+  it('should return scanline texture class for Mech Monday header', () => {
     const result = getSourceStyles('Mech Monday', false, 'header', true)
-    expect(result.className).toBe('expansion-scanlines-down')
+    expect(result.className).toBe('expansion-scanline-texture')
     expect(result.style).toEqual({})
   })
 
-  it('should return scanlines classes for Mech Monday footer', () => {
+  it('should return scanline texture class for Mech Monday footer', () => {
     const result = getSourceStyles('Mech Monday', false, 'footer', true)
-    expect(result.className).toBe('expansion-scanlines-up')
+    expect(result.className).toBe('expansion-scanline-texture')
     expect(result.style).toEqual({})
   })
 
@@ -132,21 +132,21 @@ describe('getSourceStyles', () => {
     expect(result.className).toBe('')
   })
 
-  it('should return fangs for We Were Here First!', () => {
+  it('should return beast texture for We Were Here First!', () => {
     expect(getSourceStyles('We Were Here First!', false, 'header', true).className).toBe(
-      'expansion-fangs-down'
+      'expansion-beast-texture'
     )
     expect(getSourceStyles('We Were Here First!', false, 'footer', true).className).toBe(
-      'expansion-fangs-up'
+      'expansion-beast-texture'
     )
   })
 
-  it('should return rain for Rainmaker', () => {
+  it('should return rain texture for Rainmaker', () => {
     expect(getSourceStyles('Rainmaker', false, 'header', true).className).toBe(
-      'expansion-rain-down'
+      'expansion-rain-texture'
     )
     expect(getSourceStyles('Rainmaker', false, 'footer', true).className).toBe(
-      'expansion-rain-into-footer'
+      'expansion-rain-texture'
     )
   })
 

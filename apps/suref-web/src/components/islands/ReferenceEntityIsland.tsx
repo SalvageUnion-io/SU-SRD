@@ -5,8 +5,8 @@ import {
   ReferenceEntityDisplay,
   ReferenceEntityCardSkeleton,
   getClassSelections,
+  ClassAbilityTreeDisplay,
 } from 'suref-react'
-import { ClassAbilitiesContent } from './classAbilitiesRenderer'
 
 type ReferenceEntityIslandProps = {
   item: SURefEntity
@@ -15,7 +15,7 @@ type ReferenceEntityIslandProps = {
 
 export function ReferenceEntityIsland({ item, compact = false }: ReferenceEntityIslandProps) {
   const classSelections = useMemo(() => getClassSelections(item), [item])
-  const hasClassContent = !!(classSelections.selectedClass || classSelections.selectedAdvancedClass)
+  const classEntity = classSelections.selectedClass || classSelections.selectedAdvancedClass
 
   return (
     <div className="mx-auto w-full max-w-6xl p-4">
@@ -24,12 +24,8 @@ export function ReferenceEntityIsland({ item, compact = false }: ReferenceEntity
           data={item}
           compact={compact}
           afterExtraContent={
-            hasClassContent ? (
-              <ClassAbilitiesContent
-                compact={compact}
-                selectedClass={classSelections.selectedClass}
-                selectedAdvancedClass={classSelections.selectedAdvancedClass}
-              />
+            classEntity ? (
+              <ClassAbilityTreeDisplay classEntity={classEntity} />
             ) : undefined
           }
           label={isAbility(item) && item.tree ? `${item.tree} tree` : undefined}

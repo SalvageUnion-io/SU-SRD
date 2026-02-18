@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import type { SURefEnumSource } from 'salvageunion-reference'
 import { cn } from '../../utils/cn'
 import { Text } from '../base/Text'
+import { CardImage } from './CardImage'
 import { ControlButtons } from './ControlButtons'
 import { getSourceStyles } from '../referenceEntity/referenceEntityHelpers'
 import type { ReferenceEntityControl } from '../referenceEntity/ReferenceEntityDisplay/referenceEntityControlTypes'
@@ -31,10 +32,16 @@ type DisplayCardProps = {
    *    — body and footer are hidden; header is the entire card
    */
   mode?: DisplayCardMode
-  /** onClick handler (primarily used in listing mode for clickable rows) */
+  /** onClick handler applied to the header (for direct header-click use cases) */
   onClick?: () => void
-  /** Controls rendered at the card level. In listing mode with a single control,
-   * the button is auto-hidden and the entire row becomes clickable.
+  /** Click handler for the entire card. Adds hover enlarge effect + cursor-pointer.
+   * Controls with `cardClick: true` also contribute (fallback when this is not set). */
+  onCardClick?: () => void
+  /** Enable hover enlarge effect without a click handler (e.g., when wrapped in an <a>) */
+  cardClickable?: boolean
+  /** Controls rendered at the card level. Controls with `cardClick: true` make
+   * the entire card clickable with a hover enlarge effect (any mode).
+   * Controls with `hidden: true` are not rendered as buttons.
    * When provided, controls should NOT also be passed to CardHeader. */
   controls?: ReferenceEntityControl[]
   /** Additional className on the outer wrapper */
@@ -51,6 +58,17 @@ type DisplayCardProps = {
   headerTestId?: string
   /** Positioned absolutely inside wrapper div */
   absoluteElements?: ReactNode
+  /** CSS color for card borders (external + internal). Defaults to 'black'. */
+  borderColor?: string
+  /** Image rendered at the top of the body (floated left). Hidden in listing mode. */
+  image?: {
+    url?: string
+    alt?: string
+    editable?: {
+      customUrl?: string | null
+      onSetCustom: (url: string | null) => void
+    }
+  }
 }
 
 export function DisplayCard({
@@ -63,38 +81,63 @@ export function DisplayCard({
   label,
   mode = 'full',
   onClick,
+  onCardClick,
+  cardClickable = false,
   controls,
   className,
   disabled = false,
   bodyPadding,
   source,
   isExpanded = true,
+  borderColor: borderColorProp = 'black',
   headerTestId,
   absoluteElements,
+  image,
 }: DisplayCardProps) {
   const isCompact = mode === 'compact'
   const isListing = mode === 'listing'
 
-  // Single control on listings → entire header is clickable; hide the redundant button
-  const listingOnClick =
-    isListing && !onClick && controls?.length === 1 ? controls[0]!.onClick : undefined
-  const resolvedOnClick = onClick ?? listingOnClick
-  const effectiveControls = listingOnClick
-    ? controls!.map((c) => ({ ...c, hidden: true }))
-    : controls
+  // Resolve card-level click: onCardClick prop → fallback to controls with cardClick
+  const cardClickControls = !onCardClick && controls
+    ? controls.filter((c) => c.cardClick)
+    : []
+  if (cardClickControls.length > 1) {
+    console.warn(
+      'DisplayCard: multiple controls set cardClick — last one wins',
+      cardClickControls.map((c) => c.key)
+    )
+  }
+  const resolvedCardClick = onCardClick ?? (
+    cardClickControls.length > 0
+      ? cardClickControls[cardClickControls.length - 1]!.onClick
+      : undefined
+  )
+
+  // Hover effect when card is clickable (via handler or boolean flag)
+  const isCardHoverable = !!resolvedCardClick || cardClickable
 
   const actualHeaderBg = headerBg
   const headerSourceStyles = getSourceStyles(source, false, 'header', isExpanded)
   const footerSourceStyles = getSourceStyles(source, false, 'footer', isExpanded)
 
-  const handleKeyDown = useCallback(
+  const handleHeaderKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
-      if (resolvedOnClick && (e.key === 'Enter' || e.key === ' ')) {
+      if (onClick && (e.key === 'Enter' || e.key === ' ')) {
         e.preventDefault()
-        resolvedOnClick()
+        onClick()
       }
     },
-    [resolvedOnClick]
+    [onClick]
+  )
+
+  const handleCardKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLDivElement>) => {
+      if (resolvedCardClick && (e.key === 'Enter' || e.key === ' ')) {
+        e.preventDefault()
+        resolvedCardClick()
+      }
+    },
+    [resolvedCardClick]
   )
 
   const defaultBodyPadding = isCompact ? 'p-2' : 'p-3'
@@ -102,13 +145,18 @@ export function DisplayCard({
 
   return (
     <div
+      role={resolvedCardClick ? 'button' : undefined}
+      tabIndex={resolvedCardClick ? 0 : undefined}
       className={cn(
         'relative flex shrink-0 flex-col overflow-visible rounded-md shadow-lg',
-        isListing && 'h-full',
         disabled && 'opacity-50',
+        isCardHoverable &&
+          'cursor-pointer transition-all duration-200 md:hover:z-10 md:hover:-translate-y-0.5 md:hover:scale-[1.02]',
         className
       )}
-      style={actualHeaderBg ? { border: `${borderWidth}px solid black` } : undefined}
+      style={actualHeaderBg ? { border: `${borderWidth}px solid ${borderColorProp}` } : undefined}
+      onClick={resolvedCardClick}
+      onKeyDown={resolvedCardClick ? handleCardKeyDown : undefined}
     >
       {absoluteElements}
       {label && !isCompact && !isListing && (
@@ -137,33 +185,36 @@ export function DisplayCard({
       >
         {/* Header */}
         <div
-          role={resolvedOnClick ? 'button' : undefined}
-          tabIndex={resolvedOnClick ? 0 : undefined}
+          role={onClick ? 'button' : undefined}
+          tabIndex={onClick ? 0 : undefined}
           className={cn(
             'flex w-full items-center justify-between gap-2 overflow-visible',
-            isListing ? 'min-h-[40px] flex-1 px-2 py-1' : '',
+            isListing ? 'min-h-[40px] px-2 py-1' : '',
             !isListing && (isCompact ? 'min-h-[60px] px-1.5 py-1' : 'min-h-[80px] px-1.5 py-1.5'),
             !isListing && !isCompact && label && 'pb-4 pt-4',
             !isListing && isCompact && label && 'pt-2',
             actualHeaderBg,
-            resolvedOnClick && 'cursor-pointer',
+            onClick && 'cursor-pointer',
             headerSourceStyles.className
           )}
           style={{
             opacity: headerOpacity,
             ...(headerBgColor ? { backgroundColor: headerBgColor } : {}),
             ...headerSourceStyles.style,
+            ...(!isListing && (children || image || footerContent)
+              ? { borderBottom: `${borderWidth}px solid ${borderColorProp}` }
+              : {}),
           }}
-          onClick={resolvedOnClick}
-          onKeyDown={resolvedOnClick ? handleKeyDown : undefined}
+          onClick={onClick}
+          onKeyDown={onClick ? handleHeaderKeyDown : undefined}
           data-testid={headerTestId}
         >
-          {effectiveControls ? (
+          {controls ? (
             <>
               <div className="flex min-w-0 flex-1 items-center justify-between gap-2 overflow-visible">
                 {headerContent}
               </div>
-              <ControlButtons controls={effectiveControls} size="sm" />
+              <ControlButtons controls={controls} size="sm" />
             </>
           ) : (
             headerContent
@@ -171,14 +222,24 @@ export function DisplayCard({
         </div>
 
         {/* Body — hidden in listing mode */}
-        {!isListing && children && (
+        {!isListing && (children || image) && (
           <div
             className={cn(
-              'flex w-full flex-1 flex-col bg-su-white',
+              'w-full flex-1 bg-su-white',
+              image ? '' : 'flex flex-col',
               bodyPadding || defaultBodyPadding
             )}
           >
+            {image && (
+              <CardImage
+                url={image.url}
+                alt={image.alt}
+                compact={isCompact}
+                editable={image.editable}
+              />
+            )}
             {children}
+            {image && <div className="clear-both" />}
           </div>
         )}
 
@@ -193,6 +254,7 @@ export function DisplayCard({
             style={{
               ...(headerBgColor ? { backgroundColor: headerBgColor } : {}),
               ...footerSourceStyles.style,
+              borderTop: `${borderWidth}px solid black`,
             }}
           >
             {footerContent}

@@ -113,11 +113,11 @@ export function borderColorFromHeaderBg(
  * Get source-specific styles for entity display.
  * Returns { className, style } for use with Tailwind + inline styles.
  *
- * Effects by expansion:
- * - We Were Here First!: Beast-like fangs (CSS pseudo-elements via theme.css)
- * - Rainmaker: Falling raindrops (CSS pseudo-elements via theme.css)
+ * Effects by expansion (all contained within header/footer boundaries):
+ * - We Were Here First!: Beast claw-scratch crosshatch texture + inner border
+ * - Rainmaker: Driving rain-streak diagonal texture + inner shadow
  * - False Flag: Windows 95-esque beveled border (inline styles)
- * - Mech Monday: Digital scanlines (CSS pseudo-elements via theme.css)
+ * - Mech Monday: CRT horizontal scanline texture + double inner border
  */
 export function getSourceStyles(
   source: SURefEnumSource | undefined,
@@ -131,7 +131,7 @@ export function getSourceStyles(
   switch (source) {
     case 'We Were Here First!': {
       return {
-        className: variant === 'header' ? 'expansion-fangs-down' : 'expansion-fangs-up',
+        className: 'expansion-beast-texture',
         style: {},
       }
     }
@@ -149,13 +149,13 @@ export function getSourceStyles(
     }
     case 'Rainmaker': {
       return {
-        className: variant === 'header' ? 'expansion-rain-down' : 'expansion-rain-into-footer',
+        className: 'expansion-rain-texture',
         style: {},
       }
     }
     case 'Mech Monday': {
       return {
-        className: variant === 'header' ? 'expansion-scanlines-down' : 'expansion-scanlines-up',
+        className: 'expansion-scanline-texture',
         style: {},
       }
     }

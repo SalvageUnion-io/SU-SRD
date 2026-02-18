@@ -20,7 +20,7 @@ export function CrawlerScrapStats({ crawler, readOnly, onUpdate }: CrawlerScrapS
 
   return (
     <div className="flex flex-col gap-2">
-      <SectionSeparator label="Scrap" fontSize="text-sm" />
+      <SectionSeparator label="Scrap" />
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         {([1, 2, 3, 4, 5, 6] as const).map((tl) => {
           const field = `scrap_tl${tl}` as keyof CrawlerUpdate

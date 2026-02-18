@@ -1,10 +1,16 @@
-export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
 
 export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: '14.1'
+    PostgrestVersion: "14.1"
   }
   public: {
     Tables: {
@@ -32,11 +38,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'campaign_members_campaign_id_fkey'
-            columns: ['campaign_id']
+            foreignKeyName: "campaign_members_campaign_id_fkey"
+            columns: ["campaign_id"]
             isOneToOne: false
-            referencedRelation: 'campaigns'
-            referencedColumns: ['id']
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -73,11 +79,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'campaigns_crawler_id_fkey'
-            columns: ['crawler_id']
+            foreignKeyName: "campaigns_crawler_id_fkey"
+            columns: ["crawler_id"]
             isOneToOne: false
-            referencedRelation: 'crawlers'
-            referencedColumns: ['id']
+            referencedRelation: "crawlers"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -89,7 +95,7 @@ export type Database = {
           metadata: Json | null
           name: string
           parent_id: string
-          parent_type: Database['public']['Enums']['parent_type']
+          parent_type: Database["public"]["Enums"]["parent_type"]
           schema_name: string | null
           schema_ref_id: string | null
           updated_at: string
@@ -102,7 +108,7 @@ export type Database = {
           metadata?: Json | null
           name: string
           parent_id: string
-          parent_type: Database['public']['Enums']['parent_type']
+          parent_type: Database["public"]["Enums"]["parent_type"]
           schema_name?: string | null
           schema_ref_id?: string | null
           updated_at?: string
@@ -115,7 +121,7 @@ export type Database = {
           metadata?: Json | null
           name?: string
           parent_id?: string
-          parent_type?: Database['public']['Enums']['parent_type']
+          parent_type?: Database["public"]["Enums"]["parent_type"]
           schema_name?: string | null
           schema_ref_id?: string | null
           updated_at?: string
@@ -245,12 +251,12 @@ export type Database = {
       }
       entity_refs: {
         Row: {
-          condition: Database['public']['Enums']['item_condition']
+          condition: Database["public"]["Enums"]["item_condition"]
           created_at: string
           id: string
           metadata: Json | null
           parent_id: string
-          parent_type: Database['public']['Enums']['parent_type']
+          parent_type: Database["public"]["Enums"]["parent_type"]
           schema_name: string
           schema_ref_id: string
           sort_order: number
@@ -258,12 +264,12 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          condition?: Database['public']['Enums']['item_condition']
+          condition?: Database["public"]["Enums"]["item_condition"]
           created_at?: string
           id?: string
           metadata?: Json | null
           parent_id: string
-          parent_type: Database['public']['Enums']['parent_type']
+          parent_type: Database["public"]["Enums"]["parent_type"]
           schema_name: string
           schema_ref_id: string
           sort_order?: number
@@ -271,12 +277,12 @@ export type Database = {
           user_id: string
         }
         Update: {
-          condition?: Database['public']['Enums']['item_condition']
+          condition?: Database["public"]["Enums"]["item_condition"]
           created_at?: string
           id?: string
           metadata?: Json | null
           parent_id?: string
-          parent_type?: Database['public']['Enums']['parent_type']
+          parent_type?: Database["public"]["Enums"]["parent_type"]
           schema_name?: string
           schema_ref_id?: string
           sort_order?: number
@@ -340,6 +346,8 @@ export type Database = {
           max_sp: number
           notes: string | null
           pattern_name: string | null
+          source_pattern_id: string | null
+          source_ref_pattern_id: string | null
           updated_at: string
           user_id: string
         }
@@ -358,6 +366,8 @@ export type Database = {
           max_sp?: number
           notes?: string | null
           pattern_name?: string | null
+          source_pattern_id?: string | null
+          source_ref_pattern_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -376,10 +386,20 @@ export type Database = {
           max_sp?: number
           notes?: string | null
           pattern_name?: string | null
+          source_pattern_id?: string | null
+          source_ref_pattern_id?: string | null
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "mechs_source_pattern_id_fkey"
+            columns: ["source_pattern_id"]
+            isOneToOne: false
+            referencedRelation: "mech_patterns"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       pilots: {
         Row: {
@@ -462,18 +482,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'pilots_crawler_id_fkey'
-            columns: ['crawler_id']
+            foreignKeyName: "pilots_crawler_id_fkey"
+            columns: ["crawler_id"]
             isOneToOne: false
-            referencedRelation: 'crawlers'
-            referencedColumns: ['id']
+            referencedRelation: "crawlers"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'pilots_mech_id_fkey'
-            columns: ['mech_id']
+            foreignKeyName: "pilots_mech_id_fkey"
+            columns: ["mech_id"]
             isOneToOne: true
-            referencedRelation: 'mechs'
-            referencedColumns: ['id']
+            referencedRelation: "mechs"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -487,7 +507,7 @@ export type Database = {
           id: string
           parent_choice_id: string | null
           parent_id: string | null
-          parent_type: Database['public']['Enums']['parent_type'] | null
+          parent_type: Database["public"]["Enums"]["parent_type"] | null
           roll_value: number | null
           selected_value: string | null
           selected_values: Json | null
@@ -503,7 +523,7 @@ export type Database = {
           id?: string
           parent_choice_id?: string | null
           parent_id?: string | null
-          parent_type?: Database['public']['Enums']['parent_type'] | null
+          parent_type?: Database["public"]["Enums"]["parent_type"] | null
           roll_value?: number | null
           selected_value?: string | null
           selected_values?: Json | null
@@ -519,7 +539,7 @@ export type Database = {
           id?: string
           parent_choice_id?: string | null
           parent_id?: string | null
-          parent_type?: Database['public']['Enums']['parent_type'] | null
+          parent_type?: Database["public"]["Enums"]["parent_type"] | null
           roll_value?: number | null
           selected_value?: string | null
           selected_values?: Json | null
@@ -528,18 +548,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'player_choices_entity_ref_id_fkey'
-            columns: ['entity_ref_id']
+            foreignKeyName: "player_choices_entity_ref_id_fkey"
+            columns: ["entity_ref_id"]
             isOneToOne: false
-            referencedRelation: 'entity_refs'
-            referencedColumns: ['id']
+            referencedRelation: "entity_refs"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'player_choices_parent_choice_id_fkey'
-            columns: ['parent_choice_id']
+            foreignKeyName: "player_choices_parent_choice_id_fkey"
+            columns: ["parent_choice_id"]
             isOneToOne: false
-            referencedRelation: 'player_choices'
-            referencedColumns: ['id']
+            referencedRelation: "player_choices"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -548,7 +568,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      is_campaign_mediator: {
+        Args: { campaign_uuid: string }
+        Returns: boolean
+      }
       is_campaign_member: { Args: { campaign_uuid: string }; Returns: boolean }
+      shares_crawler: { Args: { target_crawler_id: string }; Returns: boolean }
       translate_scrap: {
         Args: {
           p_crawler_id: string
@@ -561,8 +586,8 @@ export type Database = {
       }
     }
     Enums: {
-      item_condition: 'intact' | 'damaged' | 'destroyed'
-      parent_type: 'pilot' | 'mech' | 'crawler'
+      item_condition: "intact" | "damaged" | "destroyed"
+      parent_type: "pilot" | "mech" | "crawler"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -570,31 +595,33 @@ export type Database = {
   }
 }
 
-type DatabaseWithoutInternals = Omit<Database, '__InternalSupabase'>
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
 
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, 'public'>]
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
-    | keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
-        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
-      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])[TableName] extends {
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
-    ? (DefaultSchema['Tables'] & DefaultSchema['Views'])[DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
         Row: infer R
       }
       ? R
@@ -603,23 +630,23 @@ export type Tables<
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema['Tables']
+    | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
-    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Insert: infer I
       }
       ? I
@@ -628,23 +655,23 @@ export type TablesInsert<
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema['Tables']
+    | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
-    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Update: infer U
       }
       ? U
@@ -653,43 +680,43 @@ export type TablesUpdate<
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema['Enums']
+    | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums']
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums'][EnumName]
-  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema['Enums']
-    ? DefaultSchema['Enums'][DefaultSchemaEnumNameOrOptions]
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema['CompositeTypes']
+    | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes'][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema['CompositeTypes']
-    ? DefaultSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
 
 export const Constants = {
   public: {
     Enums: {
-      item_condition: ['intact', 'damaged', 'destroyed'],
-      parent_type: ['pilot', 'mech', 'crawler'],
+      item_condition: ["intact", "damaged", "destroyed"],
+      parent_type: ["pilot", "mech", "crawler"],
     },
   },
 } as const

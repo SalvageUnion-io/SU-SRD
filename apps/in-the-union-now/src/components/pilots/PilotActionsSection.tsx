@@ -26,6 +26,7 @@ import type { EntityRefRow, EntityRefUpdate, PilotRow, PilotUpdate } from '../..
 type PilotActionsSectionProps = {
   refs: EntityRefRow[]
   pilot: PilotRow
+  compact?: boolean
   readOnly: boolean
   onUpdatePilot: (input: Partial<PilotUpdate>) => void
   onUpdateEntityRef: (refId: string, input: EntityRefUpdate) => void
@@ -34,6 +35,7 @@ type PilotActionsSectionProps = {
 export function PilotActionsSection({
   refs,
   pilot,
+  compact,
   readOnly,
   onUpdatePilot,
   onUpdateEntityRef,
@@ -93,11 +95,11 @@ export function PilotActionsSection({
   }
 
   return (
-    <div className="space-y-3">
+    <div className={compact ? 'space-y-2' : 'space-y-3'}>
       {sortedActions.length > 0 && (
         <div>
-          <SectionSeparator label="Actions" fontSize="text-sm" />
-          <div className="mt-2 columns-1 gap-2 sm:columns-2 lg:columns-3">
+          <SectionSeparator label="Actions" compact={compact} />
+          <div className={compact ? 'mt-1.5 columns-1 gap-1.5 sm:columns-2 lg:columns-3' : 'mt-2 columns-1 gap-2 sm:columns-2 lg:columns-3'}>
             {sortedActions.map((action) => (
               <ActionItem
                 key={action.key}
@@ -115,8 +117,8 @@ export function PilotActionsSection({
 
       {passives.length > 0 && (
         <div>
-          <SectionSeparator label="Passives" fontSize="text-sm" />
-          <div className="mt-2 flex flex-col gap-2">
+          <SectionSeparator label="Passives" compact={compact} />
+          <div className={compact ? 'mt-1.5 flex flex-col gap-1.5' : 'mt-2 flex flex-col gap-2'}>
             {passives.map((passive) => (
               <PassiveListing
                 key={passive.entity.id}
@@ -131,8 +133,8 @@ export function PilotActionsSection({
 
       {sortedGeneralActions.length > 0 && (
         <div>
-          <SectionSeparator label="General Actions" fontSize="text-sm" />
-          <div className="mt-2 columns-1 gap-2 sm:columns-2 lg:columns-3">
+          <SectionSeparator label="General Actions" compact={compact} />
+          <div className={compact ? 'mt-1.5 columns-1 gap-1.5 sm:columns-2 lg:columns-3' : 'mt-2 columns-1 gap-2 sm:columns-2 lg:columns-3'}>
             {sortedGeneralActions.map((action) => (
               <ActionItem
                 key={action.key}

@@ -26,6 +26,8 @@ export async function instantiateMechFromPattern(
       heat_capacity: stats.heat_capacity,
       current_heat: 0,
       cargo_capacity: stats.cargo_capacity,
+      source_pattern_id: input.source_pattern_id ?? null,
+      source_ref_pattern_id: input.source_ref_pattern_id ?? null,
     })
     .select()
     .single()

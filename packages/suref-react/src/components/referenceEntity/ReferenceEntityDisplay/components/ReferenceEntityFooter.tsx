@@ -34,6 +34,7 @@ export function ReferenceEntityFooter({
         paddingRight: `${contentPaddingX}rem`,
         ...(headerBgColor ? { backgroundColor: headerBgColor } : {}),
         ...sourceFooterStyles.style,
+        borderTop: `${compact ? 2 : 3}px solid black`,
       }}
     >
       <div className="flex min-w-0 shrink items-center gap-2">

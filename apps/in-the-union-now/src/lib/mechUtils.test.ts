@@ -105,6 +105,8 @@ describe('entityRefsToBuilderState', () => {
     cargo_capacity: 4,
     image_path: null,
     notes: null,
+    source_pattern_id: null,
+    source_ref_pattern_id: null,
     created_at: '2024-01-01',
     updated_at: '2024-01-01',
   }

@@ -11,7 +11,7 @@ import {
   Archive,
   ArchiveRestore,
 } from 'lucide-react'
-import { SectionSeparator, DisplayCard, Text, ValueDisplay } from 'suref-react'
+import { SectionSeparator, Text, ValueDisplay } from 'suref-react'
 import { toast } from 'sonner'
 import { findClassName } from '../../../../lib/entityHelpers'
 import { useAuthStore } from '../../../../stores/authStore'
@@ -23,6 +23,7 @@ import {
   useArchiveGame,
 } from '../../../../hooks/useGames'
 import { useCrawler } from '../../../../hooks/useCrawlers'
+import { PlayerCrawlerDisplay } from '../../../../components/games/PlayerCrawlerDisplay'
 import {
   usePilots,
   usePilotsForCrawler,
@@ -111,30 +112,10 @@ function CrawlerSection({ game, isMediator }: { game: CampaignRow; isMediator: b
   const { data: crawler } = useCrawler(game.crawler_id ?? undefined)
 
   if (game.crawler_id && crawler) {
-    const headerContent = (
-      <div className="flex min-w-0 flex-col justify-center gap-0.5">
-        <Text
-          variant="pseudoheader"
-          as="span"
-          className="py-[3px] text-base uppercase tracking-[-0.02em]"
-          style={{ lineHeight: 1 }}
-        >
-          {crawler.name || 'Unnamed Crawler'} {crawler.tag ? `#${crawler.tag}` : ''}
-        </Text>
-        <div className="flex flex-wrap items-center gap-1">
-          <ValueDisplay label="SP" value={`${crawler.current_sp}/${crawler.max_sp}`} compact />
-          <ValueDisplay label="TL" value={crawler.tech_level} compact />
-          <ValueDisplay label="Upkeep" value={crawler.upkeep} compact />
-        </div>
-      </div>
-    )
-
     return (
       <div className="flex flex-col gap-3">
         <SectionSeparator label="Crawler" fontSize="text-sm" />
-        <Link to="/games/$gameId/crawler" params={{ gameId: game.id }}>
-          <DisplayCard headerBg="bg-su-pink" headerContent={headerContent} mode="listing" />
-        </Link>
+        <PlayerCrawlerDisplay game={game} crawler={crawler} listing compact />
       </div>
     )
   }

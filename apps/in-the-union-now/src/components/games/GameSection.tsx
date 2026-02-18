@@ -19,7 +19,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '../ui/dialog'
-import { PlayerGameDisplay } from './PlayerGameDisplay'
+import { PlayerCrawlerDisplay } from './PlayerCrawlerDisplay'
 
 export function GameSection() {
   const user = useAuthStore((s) => s.user)
@@ -28,7 +28,7 @@ export function GameSection() {
 
   return (
     <div className="flex flex-col gap-3">
-      <SectionSeparator label="Games" fontSize="text-sm">
+      <SectionSeparator label="Games">
         <Button
           variant="ghost"
           size="sm"
@@ -47,7 +47,7 @@ export function GameSection() {
       ) : (
         <div className="flex flex-col gap-2">
           {games?.map((game) => (
-            <PlayerGameDisplay key={game.id} game={game} />
+            <PlayerCrawlerDisplay key={game.id} game={game} compact={false} />
           ))}
           <div className="flex gap-2">
             <NewGameSlot />

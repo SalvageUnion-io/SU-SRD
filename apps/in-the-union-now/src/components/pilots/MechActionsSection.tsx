@@ -12,6 +12,7 @@ import type { EntityRefRow, EntityRefUpdate, MechRow, MechUpdate } from '../../t
 type MechActionsSectionProps = {
   mechRefs: EntityRefRow[]
   mech: MechRow
+  compact?: boolean
   readOnly: boolean
   onUpdateMech: (input: Partial<MechUpdate>) => void
   onUpdateMechEntityRef: (refId: string, input: EntityRefUpdate) => void
@@ -20,6 +21,7 @@ type MechActionsSectionProps = {
 export function MechActionsSection({
   mechRefs,
   mech,
+  compact,
   readOnly,
   onUpdateMech,
   onUpdateMechEntityRef,
@@ -55,8 +57,8 @@ export function MechActionsSection({
 
   return (
     <div>
-      <SectionSeparator label="Mech Actions" fontSize="text-sm" />
-      <div className="mt-2 columns-1 gap-2 sm:columns-2 lg:columns-3">
+      <SectionSeparator label="Mech Actions" compact={compact} />
+      <div className={compact ? 'mt-1.5 columns-1 gap-1.5 sm:columns-2 lg:columns-3' : 'mt-2 columns-1 gap-2 sm:columns-2 lg:columns-3'}>
         {sortedActions.map((action) => (
           <MechActionItem
             key={action.key}

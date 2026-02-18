@@ -3,6 +3,21 @@ import type { PatternItem, EntityRefInsert, EntityRefRow, MechRow } from '../typ
 import type { BuilderState } from './builderUtils'
 
 // ---------------------------------------------------------------------------
+// Source Pattern Linking
+// ---------------------------------------------------------------------------
+
+export type MechSourcePattern =
+  | { kind: 'player'; patternId: string }
+  | { kind: 'reference'; refPatternId: string }
+
+/** Extract the source pattern link from a mech row (if any) */
+export function getMechSourcePattern(mech: MechRow): MechSourcePattern | null {
+  if (mech.source_pattern_id) return { kind: 'player', patternId: mech.source_pattern_id }
+  if (mech.source_ref_pattern_id) return { kind: 'reference', refPatternId: mech.source_ref_pattern_id }
+  return null
+}
+
+// ---------------------------------------------------------------------------
 // Mech Stats Computation
 // ---------------------------------------------------------------------------
 

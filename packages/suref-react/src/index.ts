@@ -14,6 +14,7 @@ export { ReferenceEntityDisplay } from './components/referenceEntity/ReferenceEn
 export { ReferenceEntityDisplayTooltip } from './components/referenceEntity/ReferenceEntityDisplayTooltip'
 export { SectionSeparator } from './components/referenceEntity/ReferenceEntityDisplay/SectionSeparator'
 export { ReferenceEntityChassisAbilitiesContent } from './components/referenceEntity/ReferenceEntityDisplay/ReferenceEntityChassisAbilitiesContent'
+export { ClassAbilityTreeDisplay } from './components/referenceEntity/ClassAbilityTreeDisplay'
 export { NestedActionDisplay } from './components/referenceEntity/NestedActionDisplay'
 export { getReferenceEntitySpacing } from './components/referenceEntity/ReferenceEntityDisplay/referenceEntityDisplayTypes'
 
@@ -29,6 +30,7 @@ export { useChassisPatternConfig } from './components/referenceEntity/ReferenceE
 export { getClassSelections } from './components/referenceEntity/ReferenceEntityDisplay/classSelectionUtils'
 
 // Shared components
+export { CardImage } from './components/shared/CardImage'
 export { DisplayCard } from './components/shared/DisplayCard'
 export { Footer } from './components/shared/Footer'
 export { ValueDisplay } from './components/shared/ValueDisplay'

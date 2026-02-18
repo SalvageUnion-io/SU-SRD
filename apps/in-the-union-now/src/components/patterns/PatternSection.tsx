@@ -13,7 +13,7 @@ export function PatternSection() {
 
   return (
     <div className="flex flex-col gap-3">
-      <SectionSeparator label="Patterns" fontSize="text-sm" />
+      <SectionSeparator label="Patterns" />
 
       {isLoading ? (
         <div className="flex flex-col gap-2">
@@ -24,7 +24,7 @@ export function PatternSection() {
       ) : (
         <div className="flex flex-col gap-2">
           {patterns?.map((pattern) => (
-            <PlayerPatternDisplay key={pattern.id} pattern={pattern} />
+            <PlayerPatternDisplay key={pattern.id} pattern={pattern} compact={false} />
           ))}
           <NewPatternSlot />
         </div>

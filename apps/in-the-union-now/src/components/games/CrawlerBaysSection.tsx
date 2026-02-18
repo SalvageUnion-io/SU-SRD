@@ -255,7 +255,7 @@ export function CrawlerBaysSection({
 
   return (
     <div className="flex flex-col gap-3">
-      <SectionSeparator label="Crawler Bays" fontSize="text-sm" />
+      <SectionSeparator label="Crawler Bays" />
 
       {storageBay && <div>{renderBay(storageBay)}</div>}
 

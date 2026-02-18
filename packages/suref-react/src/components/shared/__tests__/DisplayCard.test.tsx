@@ -1,6 +1,18 @@
-import { describe, test, expect, afterEach } from 'bun:test'
+import { describe, test, expect, afterEach, spyOn } from 'bun:test'
 import { render, screen, fireEvent, cleanup } from '@testing-library/react'
 import { DisplayCard } from '../DisplayCard'
+import type { ReferenceEntityControl } from '../../referenceEntity/ReferenceEntityDisplay/referenceEntityControlTypes'
+
+const Stub = () => null
+function makeTestControl(overrides: Partial<ReferenceEntityControl> = {}): ReferenceEntityControl {
+  return {
+    key: 'test',
+    icon: Stub,
+    onClick: () => {},
+    ariaLabel: 'Test',
+    ...overrides,
+  }
+}
 
 describe('DisplayCard', () => {
   afterEach(cleanup)
@@ -207,7 +219,7 @@ describe('DisplayCard', () => {
     render(
       <DisplayCard
         headerBg="bg-su-green"
-        headerContent={<span>Fangs</span>}
+        headerContent={<span>Beast</span>}
         source="We Were Here First!"
         headerTestId="test-header"
       >
@@ -215,7 +227,7 @@ describe('DisplayCard', () => {
       </DisplayCard>
     )
     const header = screen.getByTestId('test-header')
-    expect(header.className).toContain('expansion-fangs-down')
+    expect(header.className).toContain('expansion-beast-texture')
   })
 
   test('footer gets source styling applied', () => {
@@ -229,7 +241,7 @@ describe('DisplayCard', () => {
         <p>Body</p>
       </DisplayCard>
     )
-    const footer = container.querySelector('.expansion-fangs-up')
+    const footer = container.querySelector('.expansion-beast-texture')
     expect(footer).toBeTruthy()
   })
 
@@ -246,8 +258,123 @@ describe('DisplayCard', () => {
       </DisplayCard>
     )
     const header = screen.getByTestId('test-header')
-    expect(header.className).toContain('expansion-fangs-down')
+    expect(header.className).toContain('expansion-beast-texture')
     const wrapper = container.firstElementChild as HTMLElement
     expect(wrapper.className).toContain('opacity-50')
+  })
+
+  test('cardClick control makes entire card clickable in listing mode', () => {
+    let clicked = false
+    const { container } = render(
+      <DisplayCard
+        headerBg="bg-su-green"
+        headerContent={<span>Row</span>}
+        mode="listing"
+        headerTestId="header"
+        controls={[makeTestControl({ cardClick: true, hidden: true, onClick: () => { clicked = true } })]}
+      />
+    )
+    const wrapper = container.firstElementChild as HTMLElement
+    expect(wrapper.getAttribute('role')).toBe('button')
+    fireEvent.click(wrapper)
+    expect(clicked).toBe(true)
+  })
+
+  test('cardClick control makes entire card clickable in full mode', () => {
+    let clicked = false
+    const { container } = render(
+      <DisplayCard
+        headerBg="bg-su-green"
+        headerContent={<span>Full</span>}
+        mode="full"
+        controls={[makeTestControl({ cardClick: true, hidden: true, onClick: () => { clicked = true } })]}
+      >
+        <p>Body</p>
+      </DisplayCard>
+    )
+    const wrapper = container.firstElementChild as HTMLElement
+    expect(wrapper.getAttribute('role')).toBe('button')
+    expect(wrapper.className).toContain('cursor-pointer')
+    fireEvent.click(wrapper)
+    expect(clicked).toBe(true)
+  })
+
+  test('non-cardClick control does not make card clickable', () => {
+    const { container } = render(
+      <DisplayCard
+        headerBg="bg-su-green"
+        headerContent={<span>Row</span>}
+        mode="listing"
+        controls={[makeTestControl({ cardClick: false })]}
+      />
+    )
+    const wrapper = container.firstElementChild as HTMLElement
+    expect(wrapper.getAttribute('role')).toBeNull()
+    // The control button itself still renders
+    expect(screen.getByRole('button', { name: 'Test' })).toBeTruthy()
+  })
+
+  test('multiple cardClick controls: last one wins and warns', () => {
+    const warnSpy = spyOn(console, 'warn').mockImplementation(() => {})
+    let clickedKey = ''
+    const { container } = render(
+      <DisplayCard
+        headerBg="bg-su-green"
+        headerContent={<span>Row</span>}
+        mode="listing"
+        controls={[
+          makeTestControl({ key: 'first', cardClick: true, hidden: true, onClick: () => { clickedKey = 'first' } }),
+          makeTestControl({ key: 'second', cardClick: true, hidden: true, onClick: () => { clickedKey = 'second' } }),
+        ]}
+      />
+    )
+    expect(warnSpy).toHaveBeenCalled()
+    fireEvent.click(container.firstElementChild as HTMLElement)
+    expect(clickedKey).toBe('second')
+    warnSpy.mockRestore()
+  })
+
+  test('onCardClick prop takes priority over cardClick controls', () => {
+    let source = ''
+    const { container } = render(
+      <DisplayCard
+        headerBg="bg-su-green"
+        headerContent={<span>Row</span>}
+        mode="listing"
+        onCardClick={() => { source = 'prop' }}
+        controls={[makeTestControl({ cardClick: true, hidden: true, onClick: () => { source = 'control' } })]}
+      />
+    )
+    fireEvent.click(container.firstElementChild as HTMLElement)
+    expect(source).toBe('prop')
+  })
+
+  test('cardClickable enables hover classes without click handler', () => {
+    const { container } = render(
+      <DisplayCard
+        headerBg="bg-su-green"
+        headerContent={<span>Hoverable</span>}
+        cardClickable
+      >
+        <p>Body</p>
+      </DisplayCard>
+    )
+    const wrapper = container.firstElementChild as HTMLElement
+    expect(wrapper.className).toContain('cursor-pointer')
+    // No role=button since there's no click handler
+    expect(wrapper.getAttribute('role')).toBeNull()
+  })
+
+  test('cardClick adds hover scale classes to wrapper', () => {
+    const { container } = render(
+      <DisplayCard
+        headerBg="bg-su-green"
+        headerContent={<span>Row</span>}
+        mode="listing"
+        controls={[makeTestControl({ cardClick: true, hidden: true })]}
+      />
+    )
+    const wrapper = container.firstElementChild as HTMLElement
+    expect(wrapper.className).toContain('md:hover:scale-[1.02]')
   })
 })

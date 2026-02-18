@@ -9,6 +9,8 @@ export function addControl(onClick: () => void): ReferenceEntityControl {
     onClick,
     ariaLabel: 'Add',
     variant: 'primary',
+    hidden: true,
+    cardClick: true,
   }
 }
 
@@ -40,5 +42,7 @@ export function navigateControl(onClick: () => void): ReferenceEntityControl {
     onClick,
     ariaLabel: 'View details',
     variant: 'ghost',
+    hidden: true,
+    cardClick: true,
   }
 }

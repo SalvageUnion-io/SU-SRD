@@ -1,19 +1,21 @@
 import { useMemo } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { EntitySchemaName, ItemCondition, SURefEntity } from 'salvageunion-reference'
-import { ConditionToggle } from '../shared/ConditionToggle'
+import { makeConditionControl } from '../shared/ConditionToggle'
 import { ReferenceEntityListingItem } from '../shared/ReferenceEntityListingItem'
 import { ReferenceEntityRefSection } from '../shared/ReferenceEntityRefSection'
 import type { EntityRefRow } from '../../types/common'
 
 type MechLoadoutSectionProps = {
   mechRefs: EntityRefRow[]
+  compact?: boolean
   canEdit: boolean
   onConditionChange: (refId: string, condition: ItemCondition) => void
 }
 
 export function MechLoadoutSection({
   mechRefs,
+  compact,
   canEdit,
   onConditionChange,
 }: MechLoadoutSectionProps) {
@@ -23,9 +25,9 @@ export function MechLoadoutSection({
   if (systemRefs.length === 0 && moduleRefs.length === 0) return null
 
   return (
-    <div className="space-y-3">
+    <div className={compact ? 'space-y-2' : 'space-y-3'}>
       {systemRefs.length > 0 && (
-        <ReferenceEntityRefSection label="Systems">
+        <ReferenceEntityRefSection label="Systems" compact={compact}>
           {systemRefs.map((ref) => {
             const entity = SalvageUnionReference.get(
               ref.schema_name as EntitySchemaName,
@@ -38,20 +40,17 @@ export function MechLoadoutSection({
                 key={ref.id}
                 entity={entity}
                 disabled={condition === 'destroyed'}
-                trailing={
-                  <ConditionToggle
-                    condition={condition}
-                    onChange={(c) => onConditionChange(ref.id, c)}
-                    disabled={!canEdit}
-                  />
-                }
+                damaged={condition !== 'intact'}
+                controls={[
+                  makeConditionControl(condition, (c) => onConditionChange(ref.id, c), !canEdit),
+                ]}
               />
             )
           })}
         </ReferenceEntityRefSection>
       )}
       {moduleRefs.length > 0 && (
-        <ReferenceEntityRefSection label="Modules">
+        <ReferenceEntityRefSection label="Modules" compact={compact}>
           {moduleRefs.map((ref) => {
             const entity = SalvageUnionReference.get(
               ref.schema_name as EntitySchemaName,
@@ -64,13 +63,10 @@ export function MechLoadoutSection({
                 key={ref.id}
                 entity={entity}
                 disabled={condition === 'destroyed'}
-                trailing={
-                  <ConditionToggle
-                    condition={condition}
-                    onChange={(c) => onConditionChange(ref.id, c)}
-                    disabled={!canEdit}
-                  />
-                }
+                damaged={condition !== 'intact'}
+                controls={[
+                  makeConditionControl(condition, (c) => onConditionChange(ref.id, c), !canEdit),
+                ]}
               />
             )
           })}

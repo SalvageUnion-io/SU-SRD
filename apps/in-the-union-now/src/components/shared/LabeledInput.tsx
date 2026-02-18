@@ -34,6 +34,9 @@ type LabeledInputProps = {
   /** Fallback display text when readOnly (defaults to value or em dash) */
   readOnlyValue?: string
 
+  /** Compact mode — smaller labels, inputs, and spacing */
+  compact?: boolean
+
   id?: string
   autoFocus?: boolean
   maxLength?: number
@@ -54,29 +57,39 @@ export function LabeledInput({
   rightHeaderContent,
   readOnly,
   readOnlyValue,
+  compact,
   id,
   autoFocus,
   maxLength,
 }: LabeledInputProps) {
+  const labelSize = compact ? 'text-xs' : 'text-sm'
+  const optionalSize = compact ? 'text-[10px]' : 'text-xs'
+  const inputSize = compact ? 'h-8 text-sm' : 'h-10 text-base'
+  const textareaSize = compact ? 'min-h-[60px] text-sm' : 'min-h-[80px] text-base'
+  const readOnlySize = compact ? 'text-sm' : 'text-base'
+  const labelOffset = compact ? '-mb-2' : '-mb-2.5'
+  const labelHeight = compact ? 'h-4' : 'h-5'
+  const labelPadding = compact ? 'ml-3' : 'ml-4'
+
   return (
     <div className={cn('relative flex flex-col', className)}>
-      <div className="z-[1] -mb-2 flex h-4 items-end justify-between">
+      <div className={cn('z-[1] flex items-end justify-between', labelOffset, labelHeight)}>
         <Text
           variant="pseudoheader"
           as="label"
-          className="ml-3 border border-su-black text-xs uppercase"
+          className={cn(labelPadding, 'border border-su-black uppercase', labelSize)}
           style={{ alignSelf: 'flex-end' }}
         >
           {label}
           {optionalText && (
-            <span className="ml-1 text-[10px] normal-case opacity-50">{optionalText}</span>
+            <span className={cn('ml-1 normal-case opacity-50', optionalSize)}>{optionalText}</span>
           )}
         </Text>
         {rightHeaderContent}
       </div>
 
       {readOnly ? (
-        <p className="ml-3 pt-3 text-sm text-su-grey-light">
+        <p className={cn(labelPadding, 'pt-3 text-su-grey-light', readOnlySize)}>
           {readOnlyValue ?? (value || '\u2014')}
         </p>
       ) : variant === 'textarea' ? (
@@ -86,7 +99,7 @@ export function LabeledInput({
           onChange={(e) => onChange(e.target.value)}
           onBlur={onBlur}
           placeholder={placeholder}
-          className="min-h-[60px] text-sm"
+          className={textareaSize}
           rows={rows ?? 2}
         />
       ) : variant === 'roll' ? (
@@ -105,7 +118,7 @@ export function LabeledInput({
           onChange={(e) => onChange(e.target.value)}
           onBlur={onBlur}
           placeholder={placeholder}
-          className="h-8 text-sm"
+          className={inputSize}
           // eslint-disable-next-line jsx-a11y/no-autofocus
           autoFocus={autoFocus}
           maxLength={maxLength}

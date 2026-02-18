@@ -10,13 +10,13 @@ import {
   getReferenceEntitySpacing,
   deleteControl,
 } from 'suref-react'
-import { Eye, EyeOff, Save, Trash2, Copy, Crosshair } from 'lucide-react'
+import { Eye, EyeOff, Save, Trash2, Copy, Crosshair, AlertTriangle } from 'lucide-react'
 import { Button } from '../ui/button'
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '../ui/tooltip'
 import { ReferenceEntitySelectionModal } from './ReferenceEntitySelectionModal'
 import type { BuilderSchemaName } from './ReferenceEntitySelectionModal'
 import { PatternSelectionModal } from './PatternSelectionModal'
 import { EmptySlotCard } from './EmptySlotCard'
-import { PatternImageSlot } from './PatternImageSlot'
 import type { BuilderState, ResolvedItem } from '../../lib/builderUtils'
 import {
   resolvePatternItems,
@@ -28,8 +28,8 @@ import {
   nextSortOrder,
   builderToCreateInput,
 } from '../../lib/builderUtils'
-import type { SURefObjectPattern } from 'salvageunion-reference'
-import type { CreatePatternInput } from '../../types/common'
+import type { CreatePatternInput, SelectedPattern } from '../../types/common'
+import type { MechSourcePattern } from '../../lib/mechUtils'
 import type { SaveStatus } from '../../hooks/useSaveStatus'
 import { ReferenceEntityListingItem } from '../shared/ReferenceEntityListingItem'
 import { SheetFooter } from '../shared/SheetFooter'
@@ -57,6 +57,12 @@ type MechBuilderProps = {
   compact?: boolean
   hideFooterToggles?: boolean
   hideFooter?: boolean
+  // Source pattern linking
+  sourcePattern?: MechSourcePattern | null
+  isDeviated?: boolean
+  onViewPattern?: () => void
+  onPatternApplied?: (selection: SelectedPattern) => void
+  userId?: string
 }
 
 const emptyState: BuilderState = {
@@ -87,6 +93,11 @@ export function MechBuilder({
   compact,
   hideFooterToggles,
   hideFooter,
+  sourcePattern,
+  isDeviated,
+  onViewPattern,
+  onPatternApplied,
+  userId,
 }: MechBuilderProps) {
   const [state, setState] = useState<BuilderState>(initialState ?? emptyState)
   const [modalTarget, setModalTarget] = useState<ModalTarget>(null)
@@ -193,11 +204,19 @@ export function MechBuilder({
     setModalTarget(null)
   }
 
-  function handleApplyPattern(pattern: SURefObjectPattern) {
-    setState((s) => ({
-      ...applyPatternItems(s, referencePatternToItems(pattern.systems, pattern.modules)),
-      name: pattern.name,
-    }))
+  function handlePatternSelect(selection: SelectedPattern) {
+    if (selection.source === 'reference') {
+      setState((s) => ({
+        ...applyPatternItems(s, referencePatternToItems(selection.pattern.systems, selection.pattern.modules)),
+        name: selection.pattern.name,
+      }))
+    } else {
+      setState((s) => ({
+        ...applyPatternItems(s, selection.pattern.pattern_items),
+        name: selection.pattern.name,
+      }))
+    }
+    onPatternApplied?.(selection)
   }
 
   return (
@@ -206,6 +225,16 @@ export function MechBuilder({
         headerBg="bg-su-green"
         bodyPadding="p-0"
         mode={compact ? 'compact' : undefined}
+        image={{
+          url: chassis ? getAssetUrl(chassis) : undefined,
+          alt: chassis?.name,
+          editable: readOnly
+            ? undefined
+            : {
+                customUrl: state.customImageUrl,
+                onSetCustom: setCustomImage,
+              },
+        }}
         headerContent={
           chassis ? (
             <>
@@ -392,7 +421,32 @@ export function MechBuilder({
                       {isCopying ? 'Copying...' : 'Copy'}
                     </button>
                   )}
-                  {onSaveToPatterns && (
+                  {sourcePattern && onViewPattern ? (
+                    <TooltipProvider>
+                      <div className="flex items-center gap-1.5">
+                        {isDeviated && (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className="flex items-center text-su-orange">
+                                <AlertTriangle className="h-4 w-4" />
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              Loadout has changed since this pattern was applied
+                            </TooltipContent>
+                          </Tooltip>
+                        )}
+                        <button
+                          type="button"
+                          onClick={onViewPattern}
+                          className={actionButtonClasses('green')}
+                        >
+                          <Eye className="h-3.5 w-3.5" />
+                          View Pattern
+                        </button>
+                      </div>
+                    </TooltipProvider>
+                  ) : onSaveToPatterns ? (
                     <button
                       type="button"
                       onClick={onSaveToPatterns}
@@ -402,7 +456,7 @@ export function MechBuilder({
                       <Save className="h-3.5 w-3.5" />
                       {isSavingToPatterns ? 'Saving...' : 'Save to My Patterns'}
                     </button>
-                  )}
+                  ) : null}
                   {onSave && (
                     <button
                       type="button"
@@ -421,16 +475,6 @@ export function MechBuilder({
         }
       >
         <div className={compact ? 'px-2 pt-2 pb-2' : 'px-4 pt-3 pb-4'}>
-          {/* Floated image — content flows around it */}
-          <PatternImageSlot
-            defaultImageUrl={chassis ? getAssetUrl(chassis) : undefined}
-            customImageUrl={state.customImageUrl}
-            onSetCustomImage={setCustomImage}
-            alt={chassis?.name}
-            readOnly={readOnly}
-            compact={compact}
-          />
-
           {/* Chassis Abilities */}
           {chassis && chassisAbilities && chassisAbilities.length > 0 && (
             <div className="-mt-4 mb-4 overflow-hidden">
@@ -515,7 +559,8 @@ export function MechBuilder({
           open={showPatternModal}
           onOpenChange={setShowPatternModal}
           chassisRef={state.chassisRef}
-          onSelect={handleApplyPattern}
+          onSelect={handlePatternSelect}
+          userId={userId}
         />
       )}
     </>
@@ -551,10 +596,7 @@ function ItemSlotSection({
 
   return (
     <section className={className}>
-      <SectionSeparator
-        label={`${label} (${slotsUsed}/${slotsTotal})`}
-        fontSize={compact ? 'text-sm' : undefined}
-      />
+      <SectionSeparator label={`${label} (${slotsUsed}/${slotsTotal})`} compact={compact} />
       <div className={compact ? 'mt-1.5 space-y-1.5' : 'mt-2 space-y-2'}>
         {items.map((item) => (
           <ReferenceEntityListingItem

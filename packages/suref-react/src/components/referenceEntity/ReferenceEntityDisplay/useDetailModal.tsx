@@ -47,6 +47,8 @@ export function useDetailModal(
     onClick: () => setOpen(true),
     ariaLabel: 'View details',
     variant: 'ghost',
+    hidden: true,
+    cardClick: true,
   }
 
   const modal =
