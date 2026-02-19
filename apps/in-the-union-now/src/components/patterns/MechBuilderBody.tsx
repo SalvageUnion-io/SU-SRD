@@ -7,9 +7,12 @@ import {
 } from 'suref-react'
 import { RefreshCw } from 'lucide-react'
 import type { SURefChassis, SURefMetaAction } from 'salvageunion-reference'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import type { ResolvedItem, CapacityInfo } from '../../lib/builderUtils'
 import type { BuilderSchemaName } from './ReferenceEntitySelectionModal'
 import { ItemSlotSection } from '../shared/ItemSlotSection'
+import { SubEntityCard } from '../shared/SubEntityCard'
+import type { EntityRefRow } from '../../types/common'
 
 type MechBuilderBodyProps = {
   chassis: SURefChassis | undefined
@@ -23,6 +26,9 @@ type MechBuilderBodyProps = {
   onRemoveItem: (sortOrder: number) => void
   onAddItem: (target: BuilderSchemaName) => void
   hideEquipment?: boolean
+  mechId?: string
+  mechRefs?: EntityRefRow[]
+  userId?: string
   image?: {
     url?: string
     alt?: string
@@ -45,9 +51,19 @@ export function MechBuilderBody({
   onRemoveItem,
   onAddItem,
   hideEquipment,
+  mechId,
+  mechRefs,
+  userId,
   image,
 }: MechBuilderBodyProps) {
   const hasChassisAbilities = !!(chassis && chassisAbilities && chassisAbilities.length > 0)
+
+  // Resolve drone entity from chassis abilities
+  const droneAbility = chassisAbilities?.find((a) => a.drone)
+  const droneEntity = droneAbility?.drone
+    ? SalvageUnionReference.findIn('drones', (d) => d.name === droneAbility.drone)
+    : undefined
+  const showDrone = !!droneEntity && !hideEquipment
 
   return (
     <div>
@@ -97,6 +113,7 @@ export function MechBuilderBody({
                       spacing={getReferenceEntitySpacing(false)}
                       compact={false}
                       chassisAbilities={chassisAbilities!}
+                      hideDrone={showDrone}
                     />
                   </div>
                 )}
@@ -138,11 +155,27 @@ export function MechBuilderBody({
                     spacing={getReferenceEntitySpacing(!!compact)}
                     compact={!!compact}
                     chassisAbilities={chassisAbilities!}
+                    hideDrone={showDrone}
                   />
                 </div>
               )}
             </div>
           )}
+        </div>
+      )}
+
+      {showDrone && (
+        <div className="mb-4 space-y-2">
+          <SectionSeparator label="Drone" compact={compact} />
+          <SubEntityCard
+            entity={droneEntity}
+            mechId={mechId}
+            mechRefs={mechRefs}
+            userId={userId}
+            readOnly={readOnly}
+            compact
+            hide={{ actions: true, patterns: true }}
+          />
         </div>
       )}
 

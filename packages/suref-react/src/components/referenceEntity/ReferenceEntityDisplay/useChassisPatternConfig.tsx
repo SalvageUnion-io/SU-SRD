@@ -165,6 +165,7 @@ export function useChassisPatternConfig(
             compact={compact}
             chassisAbilities={chassisAbilities}
             droneEquipment={overridePatternData?.drone}
+            hideDrone
           />
         )}
       </div>

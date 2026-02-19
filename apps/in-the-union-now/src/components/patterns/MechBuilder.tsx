@@ -10,6 +10,7 @@ import { MechBuilderFooter } from './MechBuilderFooter'
 import { MechBuilderModals } from './MechBuilderModals'
 import type { BuilderState } from '../../lib/builderUtils'
 import type { CreatePatternInput, SelectedPattern } from '../../types/common'
+import type { EntityRefRow } from '../../types/common'
 import type { MechSourcePattern } from '../../lib/mechUtils'
 
 type MechBuilderProps = {
@@ -43,6 +44,10 @@ type MechBuilderProps = {
   stickyHeader?: boolean
   /** Controls rendered in the DisplayCard header */
   controls?: ReferenceEntityControl[]
+  /** Mech ID for drone choice inputs and modification slots */
+  mechId?: string
+  /** Entity refs for drone modification slots */
+  mechRefs?: EntityRefRow[]
 }
 
 export function MechBuilder({
@@ -70,6 +75,8 @@ export function MechBuilder({
   userId,
   stickyHeader = true,
   controls,
+  mechId,
+  mechRefs,
 }: MechBuilderProps) {
   const builder = useMechBuilderState({
     initialState,
@@ -151,6 +158,9 @@ export function MechBuilder({
           onSelectChassis={() => builder.setModalTarget('chassis')}
           onRemoveItem={builder.removeItem}
           onAddItem={builder.setModalTarget}
+          mechId={mechId}
+          mechRefs={mechRefs}
+          userId={userId}
           image={{
             url: builder.chassis ? getAssetUrl(builder.chassis) : undefined,
             alt: builder.chassis?.name,

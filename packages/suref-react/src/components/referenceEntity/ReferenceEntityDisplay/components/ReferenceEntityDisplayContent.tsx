@@ -1,6 +1,12 @@
 import type { ReactNode } from 'react'
 import type { SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
-import { getDisplayName, getGoals, getAssets, getWeaknesses } from 'salvageunion-reference'
+import {
+  getDisplayName,
+  getGoals,
+  getAssets,
+  getWeaknesses,
+  SalvageUnionReference,
+} from 'salvageunion-reference'
 import { RollTable } from '../../../shared/RollTable'
 import { CardHeader } from '../../../shared/CardHeader'
 import { DisplayCard } from '../../../shared/DisplayCard'
@@ -11,6 +17,8 @@ import { ReferenceEntityChassisPatterns } from '../ReferenceEntityChassisPattern
 import { ReferenceEntityFormation } from '../ReferenceEntityFormation'
 import { ReferenceEntityNpcDisplay } from '../ReferenceEntityNpcDisplay'
 import { ReferenceEntityChassisAbilitiesContent } from '../ReferenceEntityChassisAbilitiesContent'
+import { SectionSeparator } from '../SectionSeparator'
+import { ReferenceEntityDisplay } from '../index'
 import { ReferenceEntityRequirementDisplay } from '../ReferenceEntityRequirementDisplay'
 import { ReferenceEntityChoices } from '../ReferenceEntityChoices'
 import { ReferenceEntityGrants } from '../ReferenceEntityGrants'
@@ -53,6 +61,8 @@ export type ReferenceEntityDisplayContentProps = ReferenceEntityDisplayStateInpu
   cardClickable?: boolean
   /** Custom renderer for simple choice inputs (e.g., freeform text, roll tables) */
   choiceInputRenderer?: ChoiceInputRenderer
+  /** Replaces the built-in stats in the card header when provided */
+  headerStatsContent?: ReactNode
 }
 
 export function ReferenceEntityDisplayContent({
@@ -67,6 +77,7 @@ export function ReferenceEntityDisplayContent({
   onCardClick,
   cardClickable,
   choiceInputRenderer,
+  headerStatsContent,
   ...inputProps
 }: ReferenceEntityDisplayContentProps) {
   const state = useReferenceEntityDisplayState(inputProps)
@@ -136,6 +147,12 @@ export function ReferenceEntityDisplayContent({
   const hasTopMatterContent =
     !!showContent || hasChassisAbilities || !!assetUrl || hasDisplayableActions
 
+  // Resolve drone entity from chassis abilities (rendered below the fold)
+  const droneAbility = chassisAbilities?.find((a) => a.drone)
+  const droneEntity = droneAbility?.drone
+    ? SalvageUnionReference.findIn('drones', (d) => d.name === droneAbility.drone)
+    : undefined
+
   // Pre-built block for chassis abilities (reused at multiple render positions)
   // When abilitiesSection is provided by the caller, it replaces the entire built-in block
   const chassisAbilitiesBlock = abilitiesSection ? (
@@ -146,6 +163,7 @@ export function ReferenceEntityDisplayContent({
       spacing={spacing}
       compact={compact}
       chassisAbilities={chassisAbilities}
+      hideDrone={!!droneEntity}
     />
   ) : null
 
@@ -161,6 +179,7 @@ export function ReferenceEntityDisplayContent({
     !!chassisAbilitiesBlock ||
     !!afterExtraContent ||
     !!afterChoicesContent ||
+    !!droneEntity ||
     hasFactionContent ||
     hasGuideSteps ||
     ('bonusPerTechLevel' in data && !!data.bonusPerTechLevel) ||
@@ -229,7 +248,9 @@ export function ReferenceEntityDisplayContent({
         />
       }
       rightContent={
-        !hide.stats ? (
+        headerStatsContent ? (
+          headerStatsContent
+        ) : !hide.stats ? (
           <ReferenceEntityRightHeaderContent
             data={data}
             compact={compact}
@@ -394,6 +415,7 @@ export function ReferenceEntityDisplayContent({
             )}
             {/* Compact: chassis abilities render after actions */}
             {compact && chassisAbilitiesBlock}
+            <ReferenceEntityIntegratedSystems data={data} compact={compact} />
 
             <ReferenceEntityBonusPerTechLevel
               bonusPerTechLevel={'bonusPerTechLevel' in data ? data.bonusPerTechLevel : undefined}
@@ -471,6 +493,17 @@ export function ReferenceEntityDisplayContent({
             })()}
             {shouldShowExtraContent && (
               <>
+                {droneEntity && (
+                  <>
+                    <SectionSeparator label="Drone" compact={compact} />
+                    <ReferenceEntityDisplay
+                      data={droneEntity}
+                      compact
+                      hide={{ actions: true, patterns: true }}
+                      choiceInputRenderer={choiceInputRenderer}
+                    />
+                  </>
+                )}
                 {!hide.patterns && (
                   <ReferenceEntityChassisPatterns
                     patterns={'patterns' in data ? data.patterns : undefined}

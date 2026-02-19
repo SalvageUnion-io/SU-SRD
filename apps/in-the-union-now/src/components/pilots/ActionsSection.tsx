@@ -42,6 +42,7 @@ const CATEGORY_CHIP_COLORS: Record<CategoryFilter, string> = {
   Pilot: 'bg-su-orange text-su-white',
   Mech: 'bg-su-green text-su-white',
   Generic: 'bg-su-pink text-su-white',
+  Comrade: 'bg-su-rust text-su-white',
 }
 
 type ActionsSectionProps = {
@@ -76,19 +77,34 @@ export function ActionsSection({
     () => extractPilotActions(pilotRefs, isBoarded),
     [pilotRefs, isBoarded]
   )
+  const comrades = useMemo(
+    () => extractComrades(pilotRefs, mechRefs ?? [], mechChassis),
+    [pilotRefs, mechRefs, mechChassis]
+  )
+  const comradeEntityIds = useMemo(
+    () => new Set(comrades.map((c) => c.entity.id)),
+    [comrades]
+  )
   const mechActions = useMemo(
-    () => (mechRefs && mechRefs.length > 0 ? extractMechActions(mechRefs, isBoarded) : []),
-    [mechRefs, isBoarded]
+    () =>
+      mechRefs && mechRefs.length > 0
+        ? extractMechActions(mechRefs, isBoarded, comradeEntityIds)
+        : [],
+    [mechRefs, isBoarded, comradeEntityIds]
   )
   const chassisActions = useMemo(
     () => (mechChassis ? extractChassisActions(mechChassis, isBoarded) : []),
     [mechChassis, isBoarded]
   )
   const generalActions = useMemo(() => getGeneralActions(isBoarded), [isBoarded])
-  const comradeActions = useMemo(() => {
-    const comrades = extractComrades(pilotRefs, mechRefs ?? [], mechChassis)
-    return extractComradeActions(comrades, isBoarded)
-  }, [pilotRefs, mechRefs, mechChassis, isBoarded])
+  const visibleComrades = useMemo(
+    () => comrades.filter((c) => c.sourceParent === 'pilot' || isBoarded),
+    [comrades, isBoarded]
+  )
+  const comradeActions = useMemo(
+    () => extractComradeActions(comrades, isBoarded, mechRefs),
+    [comrades, isBoarded, mechRefs]
+  )
   // Separate trait sets by source — variable-currency actions use the set matching
   // their resolved cost type (mech traits when boarded/EP, pilot traits when not/AP)
   const pilotSourceTraits = useMemo(() => getPilotTraits(pilotRefs), [pilotRefs])
@@ -115,16 +131,6 @@ export function ActionsSection({
   )
 
   const filters = useActionFilters()
-  const availableTypes = useMemo(() => {
-    const types = filters.getAvailableTypes(allActions)
-    types.add('Passive') // Always show Passive filter
-    return types
-  }, [filters, allActions])
-  const availableCategories = useMemo(() => {
-    const cats = filters.getAvailableCategories(allActions)
-    if (mechRefs) cats.add('Mech')
-    return cats
-  }, [filters, allActions, mechRefs])
 
   // Sort: filter-matched first, then enabled before disabled, mech actions last
   const sortedActions = useMemo(
@@ -231,7 +237,7 @@ export function ActionsSection({
                 active={filters.activeTypes.size === 0}
                 onClick={filters.clearTypes}
               />
-              {ACTION_TYPES.filter((t) => availableTypes.has(t)).map((type) => (
+              {ACTION_TYPES.map((type) => (
                 <FilterChip
                   key={type}
                   label={type}
@@ -246,7 +252,7 @@ export function ActionsSection({
                 active={filters.activeCategories.size === 0}
                 onClick={filters.clearCategories}
               />
-              {CATEGORY_FILTERS.filter((c) => availableCategories.has(c)).map((cat) => (
+              {CATEGORY_FILTERS.map((cat) => (
                 <FilterChip
                   key={cat}
                   label={cat}
@@ -257,10 +263,31 @@ export function ActionsSection({
               ))}
             </FilterRow>
           </div>
-          {pilot.is_boarded && (
-            <SimpleDisplayContainer label="Pilot" className="shrink-0">
-              <StatDisplay label="AP" value={pilot.ap} outOfMax={pilot.max_ap} />
-            </SimpleDisplayContainer>
+          {(visibleComrades.length > 0 || pilot.is_boarded) && (
+            <div className="ml-auto flex shrink-0 items-start gap-2">
+              {visibleComrades.map((c) => (
+                <SimpleDisplayContainer
+                  key={c.entity.id}
+                  label={c.entity.name}
+                  bg="bg-su-rust"
+                  className="shrink-0"
+                >
+                  {'structurePoints' in c.entity &&
+                    typeof c.entity.structurePoints === 'number' && (
+                      <StatDisplay label="SP" value={c.entity.structurePoints} />
+                    )}
+                  {'energyPoints' in c.entity &&
+                    typeof c.entity.energyPoints === 'number' && (
+                      <StatDisplay label="EP" value={c.entity.energyPoints} />
+                    )}
+                </SimpleDisplayContainer>
+              ))}
+              {pilot.is_boarded && (
+                <SimpleDisplayContainer label="Pilot" className="shrink-0">
+                  <StatDisplay label="AP" value={pilot.ap} outOfMax={pilot.max_ap} />
+                </SimpleDisplayContainer>
+              )}
+            </div>
           )}
         </div>
 
@@ -492,7 +519,8 @@ function ActionItem({
   const isDisabled = !!disabledReason || !!filteredOut
 
   const controls: ReferenceEntityControl[] = []
-  if (!readOnly && !mechUnboarded && !filteredOut) {
+  const isPassive = action.actionType === 'Passive'
+  if (!readOnly && !mechUnboarded && !filteredOut && !isPassive) {
     controls.push({
       key: 'use',
       icon: Play,

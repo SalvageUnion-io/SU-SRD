@@ -268,7 +268,14 @@ function PilotMechTabInner({
   if (!canEdit) {
     return (
       <div className={compact ? 'p-3' : 'p-4'}>
-        <MechBuilder initialState={initialState} readOnly compact={compact} stickyHeader={false} />
+        <MechBuilder
+          initialState={initialState}
+          readOnly
+          compact={compact}
+          stickyHeader={false}
+          mechId={mech.id}
+          mechRefs={mechRefs}
+        />
       </div>
     )
   }
@@ -290,6 +297,8 @@ function PilotMechTabInner({
           onSaveToPatterns={sourcePattern ? undefined : () => setShowSavePatternDialog(true)}
           isSavingToPatterns={createPatternMutation.isPending}
           userId={user?.id}
+          mechId={mech.id}
+          mechRefs={mechRefs}
         />
       </div>
       <SavePatternDialog

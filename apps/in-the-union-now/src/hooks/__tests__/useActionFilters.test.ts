@@ -26,6 +26,7 @@ function makeAction(overrides: {
     source: overrides.source ?? 'pilot',
     costType: 'none',
     hasDamage: overrides.hasDamage ?? false,
+    isComrade: false,
   }
 }
 

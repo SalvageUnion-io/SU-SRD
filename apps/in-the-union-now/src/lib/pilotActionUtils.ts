@@ -4,6 +4,7 @@ import type {
   SURefEntity,
   SURefChassis,
   SURefObjectContentBlock,
+  ItemCondition,
 } from 'salvageunion-reference'
 import {
   SalvageUnionReference,
@@ -18,6 +19,7 @@ import type { EntityRefRow } from '../types/common'
 import type { Json } from '../types/database-generated.types'
 import { getActionActivationCost, getActionMaxUses, getRemainingUses } from './actionUsesUtils'
 import type { ComradeEntry } from './comradeUtils'
+import { isSlotOwnerRef } from './entityModificationUtils'
 
 export type ActionSource = 'pilot' | 'mech' | 'general'
 export type ActionCostType = 'ap' | 'ep' | 'variable' | 'none'
@@ -40,18 +42,20 @@ export type ActionDisplayData = {
   source: ActionSource
   costType: ActionCostType
   hasDamage: boolean
+  isComrade: boolean
+  condition: ItemCondition
+  sourceLabelOverride?: string
 }
 
 // ---------------------------------------------------------------------------
-// Color maps
+// Color maps — source-based (pilot/mech/general)
 // ---------------------------------------------------------------------------
 
-/** Uniform color = cost type (border, header, footer) */
-const COST_BORDER_COLORS: Record<ActionCostType, string> = {
-  ap: 'rgb(239, 137, 79)', // su-orange
-  ep: 'rgb(122, 151, 138)', // su-green
-  variable: 'rgb(239, 137, 79)', // fallback for non-gradient contexts (toasts)
-  none: 'rgb(206, 88, 152)', // su-pink
+/** Border color derived from action source (used for card border + toast styling) */
+function getSourceBorderColor(source: ActionSource): string {
+  if (source === 'pilot') return 'rgb(239, 137, 79)' // su-orange
+  if (source === 'mech') return 'rgb(122, 151, 138)' // su-green
+  return 'rgb(206, 88, 152)' // su-pink (general)
 }
 
 /**
@@ -115,7 +119,9 @@ function buildActionItems(
   entityRefId: string | null,
   refMetadata: Json | null,
   source: ActionSource,
-  isBoarded: boolean
+  isBoarded: boolean,
+  isComrade = false,
+  condition: ItemCondition = 'intact'
 ): ActionDisplayData[] {
   const resolved = extractVisibleActions(entity)
   if (!resolved) return []
@@ -186,7 +192,7 @@ function buildActionItems(
       actionName: action.name,
       sourceEntity: entity,
       sourceSchemaName: schemaName,
-      borderColor: COST_BORDER_COLORS[costType],
+      borderColor: getSourceBorderColor(source),
       dataValues,
       content: getContentBlocks(action),
       entityRefId,
@@ -199,6 +205,8 @@ function buildActionItems(
       source,
       costType,
       hasDamage: 'damage' in action && action.damage != null,
+      isComrade,
+      condition,
     }
   })
 }
@@ -208,12 +216,18 @@ function buildActionItems(
  * These actions cost EP instead of AP — currency is derived automatically
  * by buildActionItems → deriveActionCurrency.
  */
-export function extractMechActions(refs: EntityRefRow[], isBoarded: boolean): ActionDisplayData[] {
+export function extractMechActions(
+  refs: EntityRefRow[],
+  isBoarded: boolean,
+  comradeEntityIds?: Set<string>
+): ActionDisplayData[] {
   const actions: ActionDisplayData[] = []
 
   for (const ref of refs) {
     const schemaName = ref.schema_name as SURefEnumSchemaName
     if (schemaName !== 'systems' && schemaName !== 'modules') continue
+    // Skip refs owned by a comrade — those are handled by extractComradeActions
+    if (comradeEntityIds && comradeEntityIds.size > 0 && isSlotOwnerRef(ref)) continue
 
     const entity = SalvageUnionReference.get(schemaName, ref.schema_ref_id) as
       | SURefEntity
@@ -228,7 +242,9 @@ export function extractMechActions(refs: EntityRefRow[], isBoarded: boolean): Ac
         ref.id,
         ref.metadata,
         'mech',
-        isBoarded
+        isBoarded,
+        false,
+        (ref.condition as ItemCondition) ?? 'intact'
       )
     )
   }
@@ -252,6 +268,8 @@ export function extractPilotActions(refs: EntityRefRow[], isBoarded: boolean): A
       | undefined
     if (!entity) continue
 
+    const refCondition = (ref.condition as ItemCondition) ?? 'intact'
+
     if (schemaName === 'abilities') {
       // Always try to extract resolved actions first (captures all actions
       // with an explicit actionType or damage, including Passive ones)
@@ -262,7 +280,9 @@ export function extractPilotActions(refs: EntityRefRow[], isBoarded: boolean): A
         ref.id,
         ref.metadata,
         'pilot',
-        isBoarded
+        isBoarded,
+        false,
+        refCondition
       )
       if (extracted.length > 0) {
         actions.push(...extracted)
@@ -277,7 +297,7 @@ export function extractPilotActions(refs: EntityRefRow[], isBoarded: boolean): A
             actionName: name,
             sourceEntity: entity,
             sourceSchemaName: schemaName,
-            borderColor: COST_BORDER_COLORS.none,
+            borderColor: getSourceBorderColor('pilot'),
             dataValues: extractReferenceEntityDetails(entity, schemaName),
             content: getContentBlocks(entity),
             entityRefId: ref.id,
@@ -289,6 +309,8 @@ export function extractPilotActions(refs: EntityRefRow[], isBoarded: boolean): A
             source: 'pilot',
             costType: 'none' as ActionCostType,
             hasDamage: false,
+            isComrade: false,
+            condition: refCondition,
           })
         }
       }
@@ -301,7 +323,9 @@ export function extractPilotActions(refs: EntityRefRow[], isBoarded: boolean): A
           ref.id,
           ref.metadata,
           'pilot',
-          isBoarded
+          isBoarded,
+          false,
+          refCondition
         )
       )
     }
@@ -391,7 +415,7 @@ export function extractChassisActions(
         actionName: action.name,
         sourceEntity: entity,
         sourceSchemaName: schemaName,
-        borderColor: COST_BORDER_COLORS[costType],
+        borderColor: getSourceBorderColor('mech'),
         dataValues,
         content: getContentBlocks(action),
         entityRefId: null,
@@ -404,6 +428,7 @@ export function extractChassisActions(
         source: 'mech' as ActionSource,
         costType,
         hasDamage: 'damage' in action && action.damage != null,
+        isComrade: false,
       }
     })
 }
@@ -412,26 +437,67 @@ export function extractChassisActions(
  * Extract actions from comrades (drones/companions).
  * Pilot-sourced comrades get source 'pilot' (always usable).
  * Mech-sourced comrades get source 'mech' (gated by boarded state).
+ *
+ * Also extracts actions from systems/modules installed on comrades
+ * (identified by metadata.slot_owner_ref matching a comrade entity ID).
  */
 export function extractComradeActions(
   comrades: ComradeEntry[],
-  isBoarded: boolean
+  isBoarded: boolean,
+  mechRefs?: EntityRefRow[]
 ): ActionDisplayData[] {
   const actions: ActionDisplayData[] = []
+  const comradeIds = new Set(comrades.map((c) => c.entity.id))
+  const comradeById = new Map(comrades.map((c) => [c.entity.id, c]))
 
   for (const comrade of comrades) {
     const source: ActionSource = comrade.sourceParent === 'pilot' ? 'pilot' : 'mech'
-    actions.push(
-      ...buildActionItems(
-        comrade.entity,
-        comrade.entity.schemaName,
-        `comrade-${comrade.entity.id}`,
-        null,
-        null,
-        source,
-        isBoarded
-      )
+    const comradeName = comrade.entity.name
+    const items = buildActionItems(
+      comrade.entity,
+      comrade.entity.schemaName,
+      `comrade-${comrade.entity.id}`,
+      null,
+      null,
+      source,
+      isBoarded,
+      true
     )
+    for (const item of items) item.sourceLabelOverride = comradeName
+    actions.push(...items)
+  }
+
+  // Extract actions from systems/modules installed on comrades
+  if (mechRefs) {
+    for (const ref of mechRefs) {
+      const schemaName = ref.schema_name as SURefEnumSchemaName
+      if (schemaName !== 'systems' && schemaName !== 'modules') continue
+      if (!isSlotOwnerRef(ref)) continue
+      const meta = ref.metadata as Record<string, unknown>
+      const ownerId = meta.slot_owner_ref as string
+      if (!comradeIds.has(ownerId)) continue
+
+      const entity = SalvageUnionReference.get(schemaName, ref.schema_ref_id) as
+        | SURefEntity
+        | undefined
+      if (!entity) continue
+
+      const ownerComrade = comradeById.get(ownerId)!
+      const source: ActionSource = ownerComrade.sourceParent === 'pilot' ? 'pilot' : 'mech'
+      const comradeName = ownerComrade.entity.name
+      const items = buildActionItems(
+        entity,
+        schemaName,
+        `comrade-${ownerId}-${schemaName}-${ref.schema_ref_id}`,
+        ref.id,
+        ref.metadata,
+        source,
+        isBoarded,
+        true
+      )
+      for (const item of items) item.sourceLabelOverride = comradeName
+      actions.push(...items)
+    }
   }
 
   return actions

@@ -14,7 +14,7 @@ export const ACTION_TYPES = [
 ] as const
 export type ActionTypeFilter = (typeof ACTION_TYPES)[number]
 
-export const CATEGORY_FILTERS = ['Pilot', 'Mech', 'Generic'] as const
+export const CATEGORY_FILTERS = ['Pilot', 'Mech', 'Generic', 'Comrade'] as const
 export type CategoryFilter = (typeof CATEGORY_FILTERS)[number]
 
 function matchesTypeFilter(action: ActionDisplayData, activeTypes: Set<ActionTypeFilter>): boolean {
@@ -32,6 +32,7 @@ function matchesCategoryFilter(
     if (cat === 'Pilot' && action.source === 'pilot') return true
     if (cat === 'Mech' && action.source === 'mech') return true
     if (cat === 'Generic' && action.source === 'general') return true
+    if (cat === 'Comrade' && action.isComrade) return true
   }
   return false
 }
@@ -111,6 +112,7 @@ export function useActionFilters() {
         if (a.source === 'pilot') cats.add('Pilot')
         if (a.source === 'mech') cats.add('Mech')
         if (a.source === 'general') cats.add('Generic')
+        if (a.isComrade) cats.add('Comrade')
       }
       return cats
     },

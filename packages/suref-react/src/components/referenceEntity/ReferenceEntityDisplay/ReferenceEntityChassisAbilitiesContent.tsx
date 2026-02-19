@@ -14,6 +14,8 @@ type ReferenceEntityChassisAbilitiesContentProps = {
   chassisAbilities?: SURefMetaAction[]
   /** Drone equipment from pattern (pre-baked mode only) */
   droneEquipment?: { systems: string[]; modules: string[] }
+  /** When true, skip rendering the drone entity (consumer renders it separately) */
+  hideDrone?: boolean
 }
 
 export function ReferenceEntityChassisAbilitiesContent({
@@ -22,6 +24,7 @@ export function ReferenceEntityChassisAbilitiesContent({
   compact,
   chassisAbilities,
   droneEquipment,
+  hideDrone,
 }: ReferenceEntityChassisAbilitiesContentProps) {
   if (!chassisAbilities || chassisAbilities.length === 0) return null
 
@@ -54,7 +57,7 @@ export function ReferenceEntityChassisAbilitiesContent({
           chassisName={chassisName}
         />
       ))}
-      {droneEntity && (
+      {droneEntity && !hideDrone && (
         <ReferenceEntityDisplay data={droneEntity} compact hide={{ actions: true, patterns: true }}>
           {(resolvedSystems.length > 0 || resolvedModules.length > 0) && (
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">

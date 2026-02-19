@@ -1,8 +1,6 @@
 import type { SURefEntity } from 'salvageunion-reference'
-import { SectionSeparator } from 'suref-react'
 import { useEntityModifications } from '../../hooks/useEntityModifications'
 import { ItemSlotSection } from './ItemSlotSection'
-import { ReferenceEntityListingItem } from './ReferenceEntityListingItem'
 import { ReferenceEntitySelectionModal } from '../patterns/ReferenceEntitySelectionModal'
 import type { EntityRefRow } from '../../types/common'
 
@@ -24,7 +22,6 @@ export function EntityModificationSlots({
   readOnly,
 }: EntityModificationSlotsProps) {
   const {
-    builtInSystemItems,
     playerSystemItems,
     playerModuleItems,
     capacity,
@@ -39,7 +36,6 @@ export function EntityModificationSlots({
     'systemSlots' in entity && typeof entity.systemSlots === 'number' && entity.systemSlots > 0
   const hasModuleSlots =
     'moduleSlots' in entity && typeof entity.moduleSlots === 'number' && entity.moduleSlots > 0
-  const hasBuiltInSystems = builtInSystemItems.length > 0
 
   if (!hasSystemSlots && !hasModuleSlots) return null
 
@@ -54,20 +50,6 @@ export function EntityModificationSlots({
 
   return (
     <>
-      {/* Integrated Systems — always visible */}
-      {hasBuiltInSystems && (
-        <div className={compact ? 'space-y-1.5' : 'space-y-2'}>
-          <SectionSeparator label="Integrated Systems" compact={compact} />
-          {builtInSystemItems.map((item) => (
-            <ReferenceEntityListingItem
-              key={item.sort_order}
-              entity={item.entity}
-              showDetailButton
-            />
-          ))}
-        </div>
-      )}
-
       {/* Editable Systems & Modules — hidden in readOnly */}
       {!readOnly && (
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">

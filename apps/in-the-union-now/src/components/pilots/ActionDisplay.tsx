@@ -10,7 +10,7 @@ import {
 } from 'suref-react'
 import { cn } from '../../lib/utils'
 import type { ReferenceEntityControl } from 'suref-react'
-import type { ActionCostType, ActionDisplayData } from '../../lib/pilotActionUtils'
+import type { ActionDisplayData, ActionSource } from '../../lib/pilotActionUtils'
 
 type ActionDisplayProps = {
   data: ActionDisplayData
@@ -22,43 +22,48 @@ type ActionDisplayProps = {
 const DISABLED_PALE_BG = 'rgb(220, 220, 220)'
 const DISABLED_BORDER = 'rgb(150, 150, 150)'
 
-// Cost-type colors for border + header background
-const COST_COLORS: Record<ActionCostType, { border: string; paleBg: string }> = {
-  ap: {
+// Source-based colors: border color from source (pilot/mech/general), bg from source + comrade
+type SourceColorKey = 'pilot' | 'mech' | 'comrade-pilot' | 'comrade-mech' | 'general'
+
+const SOURCE_COLORS: Record<SourceColorKey, { border: string; paleBg: string }> = {
+  pilot: {
     border: 'rgb(239, 137, 79)', // su-orange
     paleBg: 'color-mix(in srgb, rgb(239, 137, 79) 35%, white)',
   },
-  ep: {
+  mech: {
     border: 'rgb(122, 151, 138)', // su-green
-    paleBg: 'color-mix(in srgb, rgb(122, 151, 138) 35%, white)',
+    paleBg: 'color-mix(in srgb, rgb(122, 151, 138) 45%, white)',
   },
-  variable: {
-    border: 'rgb(239, 137, 79)', // fallback (gradient used in rendering)
-    paleBg: '', // fallback (gradient used in rendering)
+  'comrade-pilot': {
+    border: 'rgb(239, 137, 79)', // su-orange
+    paleBg: 'color-mix(in srgb, rgb(140, 75, 56) 35%, white)', // su-rust
   },
-  none: {
+  'comrade-mech': {
+    border: 'rgb(122, 151, 138)', // su-green
+    paleBg: 'color-mix(in srgb, rgb(140, 75, 56) 35%, white)', // su-rust
+  },
+  general: {
     border: 'rgb(206, 88, 152)', // su-pink
     paleBg: 'color-mix(in srgb, rgb(206, 88, 152) 35%, white)',
   },
 }
 
-// Diagonal gradient strings for variable cost type
-const VARIABLE_BORDER_GRADIENT =
-  'linear-gradient(135deg, rgb(239, 137, 79) 50%, rgb(122, 151, 138) 50%)'
-const VARIABLE_PALE_GRADIENT =
-  'linear-gradient(135deg, color-mix(in srgb, rgb(239, 137, 79) 35%, white) 50%, color-mix(in srgb, rgb(122, 151, 138) 35%, white) 50%)'
+function getSourceColorKey(source: ActionSource, isComrade: boolean): SourceColorKey {
+  if (source === 'general') return 'general'
+  if (isComrade) return source === 'pilot' ? 'comrade-pilot' : 'comrade-mech'
+  return source
+}
 
 export function ActionDisplay({ data, controls, disabled, footerMessage }: ActionDisplayProps) {
-  const isVariable = data.costType === 'variable'
-  const colors = COST_COLORS[data.costType]
+  const colorKey = getSourceColorKey(data.source, data.isComrade)
+  const colors = SOURCE_COLORS[colorKey]
   const borderColor = disabled ? DISABLED_BORDER : colors.border
-  const headerBg = disabled ? DISABLED_PALE_BG : colors.paleBg || undefined
+  const headerBg = disabled ? DISABLED_PALE_BG : colors.paleBg
 
   const cardContent = (
     <DisplayCard
       headerBg=""
       headerBgColor={headerBg}
-      headerBgStyle={isVariable && !disabled ? { background: VARIABLE_PALE_GRADIENT } : undefined}
       borderColor={borderColor}
       mode="compact"
       headerContent={
@@ -89,7 +94,11 @@ export function ActionDisplay({ data, controls, disabled, footerMessage }: Actio
           ) : (
             <span />
           )}
-          <SourceEntityChip entity={data.sourceEntity} dimmed={disabled} />
+          <SourceEntityChip
+            entity={data.sourceEntity}
+            dimmed={disabled}
+            labelOverride={data.sourceLabelOverride ?? (data.source === 'general' ? 'Generic Action' : undefined)}
+          />
         </div>
       }
     >
@@ -101,18 +110,6 @@ export function ActionDisplay({ data, controls, disabled, footerMessage }: Actio
     </DisplayCard>
   )
 
-  // Variable cost type: use gradient background as border via padding trick
-  if (isVariable && !disabled) {
-    return (
-      <div
-        className="overflow-hidden rounded-md p-0.5"
-        style={{ background: VARIABLE_BORDER_GRADIENT }}
-      >
-        <div className="overflow-hidden rounded-[calc(0.375rem-2px)]">{cardContent}</div>
-      </div>
-    )
-  }
-
   return (
     <div className="overflow-hidden rounded-md" style={{ border: `2px solid ${borderColor}` }}>
       {cardContent}
@@ -120,9 +117,17 @@ export function ActionDisplay({ data, controls, disabled, footerMessage }: Actio
   )
 }
 
-function SourceEntityChip({ entity, dimmed }: { entity: SURefEntity; dimmed?: boolean }) {
+function SourceEntityChip({
+  entity,
+  dimmed,
+  labelOverride,
+}: {
+  entity: SURefEntity
+  dimmed?: boolean
+  labelOverride?: string
+}) {
   const { control, modal } = useDetailModal(entity)
-  const name = 'name' in entity ? String(entity.name) : 'Source'
+  const name = labelOverride ?? ('name' in entity ? String(entity.name) : 'Source')
 
   return (
     <>

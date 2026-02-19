@@ -113,5 +113,43 @@ export function useComradeChoices({ mechId, userId, readOnly }: UseComradeChoice
     [mechId, userId, readOnly, choiceMap, upsert]
   )
 
-  return { getLocalValue, setLocalValue, saveChoice }
+  const saveStat = useCallback(
+    (choiceId: string, value: string) => {
+      if (!mechId || !userId || readOnly) return
+      const serverValue = choiceMap.get(choiceId) ?? ''
+      if (value === serverValue) {
+        setLocalEdits((prev) => {
+          const next = { ...prev }
+          delete next[choiceId]
+          return next
+        })
+        return
+      }
+
+      upsert.mutate(
+        {
+          parent_id: mechId,
+          parent_type: 'mech' as const,
+          choice_id: choiceId,
+          choice_type: 'stat',
+          selected_value: value,
+          user_id: userId,
+        },
+        {
+          onSuccess: () => {
+            setLocalEdits((prev) => {
+              const next = { ...prev }
+              delete next[choiceId]
+              return next
+            })
+            showSaveToast()
+          },
+          onError: (err) => toast.error(getErrorMessage(err)),
+        }
+      )
+    },
+    [mechId, userId, readOnly, choiceMap, upsert]
+  )
+
+  return { getLocalValue, setLocalValue, saveChoice, saveStat }
 }

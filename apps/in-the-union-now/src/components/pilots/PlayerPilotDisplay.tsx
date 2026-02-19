@@ -420,6 +420,7 @@ export function PlayerPilotDisplay({
     comrades.length,
     mechChassisProp,
     editConfig,
+    isBoarded,
   ])
 
   // --- Footer (only used in non-listing mode, DisplayCard hides in listing) ---
