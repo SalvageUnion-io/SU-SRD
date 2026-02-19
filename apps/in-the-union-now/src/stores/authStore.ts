@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
+import { getSiteUrl } from '../lib/env'
 
 type AuthState = {
   user: User | null
@@ -8,6 +9,7 @@ type AuthState = {
   initialize: () => () => void
   signIn: (email: string, password: string) => Promise<{ error: string | null }>
   signUp: (email: string, password: string) => Promise<{ error: string | null }>
+  resetPassword: (email: string) => Promise<{ error: string | null }>
   signOut: () => Promise<void>
 }
 
@@ -36,6 +38,14 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   signUp: async (email, password) => {
     const { error } = await supabase.auth.signUp({ email, password })
+    return { error: error?.message ?? null }
+  },
+
+  resetPassword: async (email) => {
+    const redirectTo = getSiteUrl()
+      ? `${getSiteUrl()}/auth/callback`
+      : `${window.location.origin}/auth/callback`
+    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo })
     return { error: error?.message ?? null }
   },
 

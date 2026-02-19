@@ -307,7 +307,7 @@ export const PatternSystemModuleSchema = z
     name: NameSchema,
     count: NonNegativeIntegerSchema.optional(),
     preselectedChoices: z
-      .record(NameSchema)
+      .record(z.string(), NameSchema)
       .describe('Preselected choices for this system or module, keyed by choice ID')
       .optional(),
   })
@@ -501,12 +501,14 @@ export const ActionSchema: z.ZodType<{
   damage?: z.infer<typeof DamageSchema>
   choices?: z.infer<typeof ChoiceSchema>[]
   table?: z.infer<typeof TableSchema>
+  tableName?: string
   hidden?: boolean
   activationCurrency?: z.infer<typeof ActivationCurrencySchema>
   source?: z.infer<typeof SourceSchema>
   page?: z.infer<typeof PositiveIntegerSchema>
   actionSource?: z.infer<typeof SchemaNameSchema>
   drone?: string
+  requiredTraits?: string[]
 }> = z.lazy(() =>
   z.object({
     id: IdSchema,
@@ -528,6 +530,7 @@ export const ActionSchema: z.ZodType<{
     damage: DamageSchema.optional(),
     choices: z.array(ChoiceSchema).optional(),
     table: TableSchema.optional(),
+    tableName: z.string().optional().describe('Reference to a roll table name'),
     hidden: z
       .boolean()
       .describe('If true, this action will not affect the rendering of the entity display')
@@ -537,6 +540,7 @@ export const ActionSchema: z.ZodType<{
     page: PositiveIntegerSchema.optional(),
     actionSource: SchemaNameSchema.optional(),
     drone: z.string().optional(),
+    requiredTraits: z.array(z.string()).optional(),
   })
 )
 
@@ -597,6 +601,21 @@ export const GrantSchema = z
   .strict()
 
 /**
+ * Mutation type for crawler type bonuses (e.g. Battle crawler's extra weapon slot + SP)
+ */
+const CrawlerMutationTypeSchema = z.enum(['weapon_slots', 'max_sp_bonus'])
+
+/**
+ * A mutation applied by a crawler type that modifies game rules
+ */
+export const CrawlerMutationSchema = z
+  .object({
+    type: CrawlerMutationTypeSchema,
+    value: z.number().int(),
+  })
+  .strict()
+
+/**
  * Schema name (includes 'actions' as special case)
  */
 export const SchemaNameWithActionsSchema = z.union([SchemaNameSchema, z.literal('actions')])
@@ -607,9 +626,13 @@ export const SchemaNameWithActionsSchema = z.union([SchemaNameSchema, z.literal(
 const GuideStepFilterSchema = z
   .object({
     field: z.string().describe('Field name on the target entity to filter by'),
+    operator: z
+      .enum(['eq', 'ne'])
+      .optional()
+      .describe('Comparison operator: eq (default) or ne (not equal)'),
     value: z
       .union([z.string(), z.number(), z.boolean()])
-      .describe('Exact value the field must match')
+      .describe('Value to compare the field against')
       .optional(),
     min: NonNegativeIntegerSchema.optional(),
     max: NonNegativeIntegerSchema.optional(),

@@ -7,10 +7,16 @@ export function Toaster() {
     <SonnerToaster
       position="bottom-right"
       toastOptions={{
+        style: {
+          background: 'rgb(40, 32, 25)',
+          border: '1px solid rgb(80, 80, 80)',
+          color: 'rgb(255, 255, 255)',
+          fontFamily: "'Fira Code', Monaco, Consolas, monospace",
+          fontSize: '0.8125rem',
+        },
         classNames: {
-          toast: 'font-mono bg-su-white text-su-black border border-su-grey-light shadow-lg',
-          title: 'font-bold',
-          description: 'text-su-grey-dark',
+          success: '[&>[data-icon]]:text-su-green',
+          error: '[&>[data-icon]]:text-su-rust',
         },
       }}
     />

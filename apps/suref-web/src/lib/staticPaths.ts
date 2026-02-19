@@ -3,7 +3,7 @@ import {
   SalvageUnionReference,
   getModel,
   getEntitySchemas,
-  getEntityDisplayData,
+  getReferenceEntityData,
 } from 'salvageunion-reference'
 import type { SURefEnumSchemaName, SURefEntity } from 'salvageunion-reference'
 
@@ -39,7 +39,7 @@ export function getItemStaticPaths() {
       const items = SalvageUnionReference.findAllIn(schema.id as SURefEnumSchemaName, () => true)
       for (const item of items) {
         if ('id' in item && item.id) {
-          const displayData = getEntityDisplayData(item)
+          const displayData = getReferenceEntityData(item)
 
           paths.push({
             params: { schemaId: schema.id, itemId: displayData.slug },

@@ -8,13 +8,86 @@ export type Database = {
   }
   public: {
     Tables: {
+      campaign_members: {
+        Row: {
+          campaign_id: string
+          id: string
+          joined_at: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          campaign_id: string
+          id?: string
+          joined_at?: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          campaign_id?: string
+          id?: string
+          joined_at?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'campaign_members_campaign_id_fkey'
+            columns: ['campaign_id']
+            isOneToOne: false
+            referencedRelation: 'campaigns'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      campaigns: {
+        Row: {
+          archived: boolean
+          crawler_id: string | null
+          created_at: string
+          created_by: string
+          id: string
+          invite_code: string | null
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          archived?: boolean
+          crawler_id?: string | null
+          created_at?: string
+          created_by: string
+          id?: string
+          invite_code?: string | null
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          archived?: boolean
+          crawler_id?: string | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          invite_code?: string | null
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'campaigns_crawler_id_fkey'
+            columns: ['crawler_id']
+            isOneToOne: false
+            referencedRelation: 'crawlers'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       cargo: {
         Row: {
           amount: number
           created_at: string
           id: string
-          metadata: Json
-          name: string | null
+          metadata: Json | null
+          name: string
           parent_id: string
           parent_type: Database['public']['Enums']['parent_type']
           schema_name: string | null
@@ -26,8 +99,8 @@ export type Database = {
           amount?: number
           created_at?: string
           id?: string
-          metadata?: Json
-          name?: string | null
+          metadata?: Json | null
+          name: string
           parent_id: string
           parent_type: Database['public']['Enums']['parent_type']
           schema_name?: string | null
@@ -39,8 +112,8 @@ export type Database = {
           amount?: number
           created_at?: string
           id?: string
-          metadata?: Json
-          name?: string | null
+          metadata?: Json | null
+          name?: string
           parent_id?: string
           parent_type?: Database['public']['Enums']['parent_type']
           schema_name?: string | null
@@ -50,78 +123,123 @@ export type Database = {
         }
         Relationships: []
       }
+      change_log: {
+        Row: {
+          action: string
+          created_at: string
+          description: string | null
+          field: string | null
+          id: string
+          new_value: Json | null
+          old_value: Json | null
+          reversible: boolean
+          session_id: string | null
+          target_id: string
+          target_type: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          description?: string | null
+          field?: string | null
+          id?: string
+          new_value?: Json | null
+          old_value?: Json | null
+          reversible?: boolean
+          session_id?: string | null
+          target_id: string
+          target_type: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          description?: string | null
+          field?: string | null
+          id?: string
+          new_value?: Json | null
+          old_value?: Json | null
+          reversible?: boolean
+          session_id?: string | null
+          target_id?: string
+          target_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       crawlers: {
         Row: {
           active: boolean
-          crawler_ref: string | null
+          bay_npcs: Json
+          crawler_ref: string
           created_at: string
-          current_damage: number
-          description: string
+          current_sp: number
           id: string
-          image_url: string | null
           max_sp: number
-          name: string
-          notes: string
-          private: boolean
+          name: string | null
+          notes: string | null
           scrap_tl1: number
           scrap_tl2: number
           scrap_tl3: number
           scrap_tl4: number
           scrap_tl5: number
           scrap_tl6: number
+          tag: string | null
           tech_level: number
           updated_at: string
-          upgrade_level: number
+          upgrade_pool: number
           upkeep: number
           user_id: string
+          visible: boolean
         }
         Insert: {
           active?: boolean
-          crawler_ref?: string | null
+          bay_npcs?: Json
+          crawler_ref: string
           created_at?: string
-          current_damage?: number
-          description?: string
+          current_sp?: number
           id?: string
-          image_url?: string | null
           max_sp?: number
-          name?: string
-          notes?: string
-          private?: boolean
+          name?: string | null
+          notes?: string | null
           scrap_tl1?: number
           scrap_tl2?: number
           scrap_tl3?: number
           scrap_tl4?: number
           scrap_tl5?: number
           scrap_tl6?: number
+          tag?: string | null
           tech_level?: number
           updated_at?: string
-          upgrade_level?: number
+          upgrade_pool?: number
           upkeep?: number
           user_id: string
+          visible?: boolean
         }
         Update: {
           active?: boolean
-          crawler_ref?: string | null
+          bay_npcs?: Json
+          crawler_ref?: string
           created_at?: string
-          current_damage?: number
-          description?: string
+          current_sp?: number
           id?: string
-          image_url?: string | null
           max_sp?: number
-          name?: string
-          notes?: string
-          private?: boolean
+          name?: string | null
+          notes?: string | null
           scrap_tl1?: number
           scrap_tl2?: number
           scrap_tl3?: number
           scrap_tl4?: number
           scrap_tl5?: number
           scrap_tl6?: number
+          tag?: string | null
           tech_level?: number
           updated_at?: string
-          upgrade_level?: number
+          upgrade_pool?: number
           upkeep?: number
           user_id?: string
+          visible?: boolean
         }
         Relationships: []
       }
@@ -130,8 +248,7 @@ export type Database = {
           condition: Database['public']['Enums']['item_condition']
           created_at: string
           id: string
-          metadata: Json
-          parent_entity_ref_id: string | null
+          metadata: Json | null
           parent_id: string
           parent_type: Database['public']['Enums']['parent_type']
           schema_name: string
@@ -144,8 +261,7 @@ export type Database = {
           condition?: Database['public']['Enums']['item_condition']
           created_at?: string
           id?: string
-          metadata?: Json
-          parent_entity_ref_id?: string | null
+          metadata?: Json | null
           parent_id: string
           parent_type: Database['public']['Enums']['parent_type']
           schema_name: string
@@ -158,8 +274,7 @@ export type Database = {
           condition?: Database['public']['Enums']['item_condition']
           created_at?: string
           id?: string
-          metadata?: Json
-          parent_entity_ref_id?: string | null
+          metadata?: Json | null
           parent_id?: string
           parent_type?: Database['public']['Enums']['parent_type']
           schema_name?: string
@@ -168,89 +283,114 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: 'entity_refs_parent_entity_ref_id_fkey'
-            columns: ['parent_entity_ref_id']
-            isOneToOne: false
-            referencedRelation: 'entity_refs'
-            referencedColumns: ['id']
-          },
-        ]
+        Relationships: []
+      }
+      mech_patterns: {
+        Row: {
+          chassis_ref: string
+          created_at: string
+          description: string | null
+          id: string
+          image_path: string | null
+          name: string
+          pattern_items: Json
+          updated_at: string
+          user_id: string
+          visible: boolean
+        }
+        Insert: {
+          chassis_ref: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_path?: string | null
+          name: string
+          pattern_items?: Json
+          updated_at?: string
+          user_id: string
+          visible?: boolean
+        }
+        Update: {
+          chassis_ref?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_path?: string | null
+          name?: string
+          pattern_items?: Json
+          updated_at?: string
+          user_id?: string
+          visible?: boolean
+        }
+        Relationships: []
       }
       mechs: {
         Row: {
           active: boolean
-          appearance: string
-          chassis_ref: string | null
+          cargo_capacity: number
+          chassis_ref: string
           created_at: string
           current_ep: number
           current_heat: number
           current_sp: number
           heat_capacity: number
           id: string
-          image_url: string | null
+          image_path: string | null
           max_ep: number
           max_sp: number
-          name: string
-          notes: string
+          notes: string | null
           pattern_name: string | null
-          pilot_id: string | null
-          private: boolean
-          quirk: string
+          source_pattern_id: string | null
+          source_ref_pattern_id: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           active?: boolean
-          appearance?: string
-          chassis_ref?: string | null
+          cargo_capacity?: number
+          chassis_ref: string
           created_at?: string
           current_ep?: number
           current_heat?: number
           current_sp?: number
           heat_capacity?: number
           id?: string
-          image_url?: string | null
+          image_path?: string | null
           max_ep?: number
           max_sp?: number
-          name?: string
-          notes?: string
+          notes?: string | null
           pattern_name?: string | null
-          pilot_id?: string | null
-          private?: boolean
-          quirk?: string
+          source_pattern_id?: string | null
+          source_ref_pattern_id?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           active?: boolean
-          appearance?: string
-          chassis_ref?: string | null
+          cargo_capacity?: number
+          chassis_ref?: string
           created_at?: string
           current_ep?: number
           current_heat?: number
           current_sp?: number
           heat_capacity?: number
           id?: string
-          image_url?: string | null
+          image_path?: string | null
           max_ep?: number
           max_sp?: number
-          name?: string
-          notes?: string
+          notes?: string | null
           pattern_name?: string | null
-          pilot_id?: string | null
-          private?: boolean
-          quirk?: string
+          source_pattern_id?: string | null
+          source_ref_pattern_id?: string | null
           updated_at?: string
           user_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: 'mechs_pilot_id_fkey'
-            columns: ['pilot_id']
+            foreignKeyName: 'mechs_source_pattern_id_fkey'
+            columns: ['source_pattern_id']
             isOneToOne: false
-            referencedRelation: 'pilots'
+            referencedRelation: 'mech_patterns'
             referencedColumns: ['id']
           },
         ]
@@ -258,81 +398,81 @@ export type Database = {
       pilots: {
         Row: {
           active: boolean
-          advanced_class_ref: string | null
-          appearance: string
-          background: string
-          background_used: boolean
+          ap: number
+          appearance: string | null
+          background: string | null
+          background_used: boolean | null
           callsign: string
-          class_ref: string | null
+          class_ref: string
           crawler_id: string | null
           created_at: string
-          current_ap: number
-          current_hp: number
-          current_tp: number
+          hp: number
           id: string
-          image_url: string | null
-          keepsake: string
-          keepsake_used: boolean
+          image_path: string | null
+          keepsake: string | null
+          keepsake_used: boolean | null
           max_ap: number
           max_hp: number
-          motto: string
-          motto_used: boolean
-          notes: string
-          private: boolean
+          mech_id: string | null
+          motto: string | null
+          motto_used: boolean | null
+          notes: string | null
+          tp: number
           updated_at: string
           user_id: string
+          visible: boolean
         }
         Insert: {
           active?: boolean
-          advanced_class_ref?: string | null
-          appearance?: string
-          background?: string
-          background_used?: boolean
-          callsign?: string
-          class_ref?: string | null
+          ap?: number
+          appearance?: string | null
+          background?: string | null
+          background_used?: boolean | null
+          callsign: string
+          class_ref: string
           crawler_id?: string | null
           created_at?: string
-          current_ap?: number
-          current_hp?: number
-          current_tp?: number
+          hp?: number
           id?: string
-          image_url?: string | null
-          keepsake?: string
-          keepsake_used?: boolean
+          image_path?: string | null
+          keepsake?: string | null
+          keepsake_used?: boolean | null
           max_ap?: number
           max_hp?: number
-          motto?: string
-          motto_used?: boolean
-          notes?: string
-          private?: boolean
+          mech_id?: string | null
+          motto?: string | null
+          motto_used?: boolean | null
+          notes?: string | null
+          tp?: number
           updated_at?: string
           user_id: string
+          visible?: boolean
         }
         Update: {
           active?: boolean
-          advanced_class_ref?: string | null
-          appearance?: string
-          background?: string
-          background_used?: boolean
+          ap?: number
+          appearance?: string | null
+          background?: string | null
+          background_used?: boolean | null
           callsign?: string
-          class_ref?: string | null
+          class_ref?: string
           crawler_id?: string | null
           created_at?: string
-          current_ap?: number
-          current_hp?: number
-          current_tp?: number
+          hp?: number
           id?: string
-          image_url?: string | null
-          keepsake?: string
-          keepsake_used?: boolean
+          image_path?: string | null
+          keepsake?: string | null
+          keepsake_used?: boolean | null
           max_ap?: number
           max_hp?: number
-          motto?: string
-          motto_used?: boolean
-          notes?: string
-          private?: boolean
+          mech_id?: string | null
+          motto?: string | null
+          motto_used?: boolean | null
+          notes?: string | null
+          tp?: number
           updated_at?: string
           user_id?: string
+          visible?: boolean
         }
         Relationships: [
           {
@@ -342,38 +482,63 @@ export type Database = {
             referencedRelation: 'crawlers'
             referencedColumns: ['id']
           },
+          {
+            foreignKeyName: 'pilots_mech_id_fkey'
+            columns: ['mech_id']
+            isOneToOne: true
+            referencedRelation: 'mechs'
+            referencedColumns: ['id']
+          },
         ]
       }
       player_choices: {
         Row: {
-          choice_ref_id: string
+          choice_id: string
+          choice_type: string
           created_at: string
           entity_ref_id: string | null
+          guide_step_id: string | null
           id: string
           parent_choice_id: string | null
+          parent_id: string | null
+          parent_type: Database['public']['Enums']['parent_type'] | null
+          roll_value: number | null
+          selected_value: string | null
+          selected_values: Json | null
           updated_at: string
           user_id: string
-          value: string
         }
         Insert: {
-          choice_ref_id: string
+          choice_id: string
+          choice_type?: string
           created_at?: string
           entity_ref_id?: string | null
+          guide_step_id?: string | null
           id?: string
           parent_choice_id?: string | null
+          parent_id?: string | null
+          parent_type?: Database['public']['Enums']['parent_type'] | null
+          roll_value?: number | null
+          selected_value?: string | null
+          selected_values?: Json | null
           updated_at?: string
           user_id: string
-          value: string
         }
         Update: {
-          choice_ref_id?: string
+          choice_id?: string
+          choice_type?: string
           created_at?: string
           entity_ref_id?: string | null
+          guide_step_id?: string | null
           id?: string
           parent_choice_id?: string | null
+          parent_id?: string | null
+          parent_type?: Database['public']['Enums']['parent_type'] | null
+          roll_value?: number | null
+          selected_value?: string | null
+          selected_values?: Json | null
           updated_at?: string
           user_id?: string
-          value?: string
         }
         Relationships: [
           {
@@ -397,7 +562,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_campaign_mediator: {
+        Args: { campaign_uuid: string }
+        Returns: boolean
+      }
+      is_campaign_member: { Args: { campaign_uuid: string }; Returns: boolean }
+      shares_crawler: { Args: { target_crawler_id: string }; Returns: boolean }
+      translate_scrap: {
+        Args: {
+          p_crawler_id: string
+          p_from_field: string
+          p_source_consumed: number
+          p_target_amount: number
+          p_to_field: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       item_condition: 'intact' | 'damaged' | 'destroyed'

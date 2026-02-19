@@ -37,14 +37,6 @@ export const Inverse: Story = () => (
   </div>
 )
 
-export const Damaged: Story = () => (
-  <div className="flex gap-3">
-    <ValueDisplay label="SP" value={8} damaged rotation={-3} />
-    <ValueDisplay label="EP" value={3} damaged rotation={5} />
-    <ValueDisplay label="HEAT" value={4} damaged rotation={-7} />
-  </div>
-)
-
 export const Inline: Story = () => (
   <div>
     This system has <ValueDisplay label="SP" value={8} /> salvage points and costs{' '}

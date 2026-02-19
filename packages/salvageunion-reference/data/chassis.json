@@ -1030,8 +1030,8 @@
         "value": "The 'TC40' Gopher was originally designed as a battlefield cargo Mech by the Opus Institute. It was intended to rapidly shuttle supplies in the midst of active combat zones, whilst providing mobile support. It was utilised by the TDA during the Colonial Wars and has become a workhorse for the Salvage Unions thanks to its spacious cargo capacity, efficient design, and cheap cost."
       },
       {
-        "type": "paragraph",
-        "value": "*Following the Olympia Springs incident it is against Union Regulations to store raw meat in the Expanded Transport Hold.*"
+        "type": "flavor",
+        "value": "Following the Olympia Springs incident it is against Union Regulations to store raw meat in the Expanded Transport Hold."
       }
     ],
     "chassisAbilities": ["Integrated Expanded Transport Hold"]

@@ -7,8 +7,6 @@ type ValueDisplayProps = {
   compact?: boolean
   inverse?: boolean
   inline?: boolean
-  damaged?: boolean
-  rotation?: number
   bgColor?: string
   textColor?: string
   borderColor?: string
@@ -20,8 +18,6 @@ export function ValueDisplay({
   compact = false,
   inverse = false,
   inline = true,
-  damaged = false,
-  rotation = 0,
   bgColor,
   textColor,
   borderColor,
@@ -29,9 +25,8 @@ export function ValueDisplay({
   const fontSize = compact ? 'text-xs' : 'text-base'
   const mainVariant = inverse ? 'pseudoheaderInverse' : 'pseudoheader'
   const valueVariant = inverse ? 'pseudoheader' : 'pseudoheaderInverse'
-  const tiltRotation = damaged ? rotation : 0
 
-  const content = (
+  return (
     <span
       className={cn(
         'shrink-0 grow-0 cursor-default whitespace-nowrap border border-su-black',
@@ -59,17 +54,4 @@ export function ValueDisplay({
       )}
     </span>
   )
-
-  if (damaged && tiltRotation !== 0) {
-    return (
-      <span
-        className={cn('transition-transform duration-300', inline ? 'inline-block' : 'block')}
-        style={{ transform: `rotate(${tiltRotation}deg)` }}
-      >
-        {content}
-      </span>
-    )
-  }
-
-  return content
 }

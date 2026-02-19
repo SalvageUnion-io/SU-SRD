@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite'
+import type { PluginOption } from 'vite'
 import { tanstackStart } from '@tanstack/react-start/plugin/vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
@@ -21,7 +22,7 @@ export default defineConfig(({ mode }) => ({
         gzipSize: true,
         brotliSize: true,
       }),
-  ].filter(Boolean),
+  ].filter(Boolean) as PluginOption[],
   server: {
     watch: {
       ignored: ['**/routeTree.gen.ts'],

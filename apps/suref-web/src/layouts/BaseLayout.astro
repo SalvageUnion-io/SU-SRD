@@ -2,8 +2,7 @@
 import { ClientRouter } from 'astro:transitions'
 import '../styles/global.css'
 import TopNavigation from '../components/TopNavigation.astro'
-import Footer from '../components/Footer.astro'
-import { Toaster } from 'suref-react'
+import { Footer, Toaster } from 'suref-react'
 
 type Props = {
   title?: string
@@ -80,7 +79,7 @@ const ogImageUrl = new URL(ogImage, siteUrl).href
       <main class="flex flex-1 flex-col bg-su-blue-pale" transition:animate="fade">
         <slot />
       </main>
-      <Footer />
+      <Footer poweredBySalvageUrl="/Powered_by_Salvage_Black.webp" />
     </div>
     <Toaster client:idle />
   </body>

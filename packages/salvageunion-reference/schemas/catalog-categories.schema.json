@@ -5,50 +5,45 @@
   "description": "",
   "type": "array",
   "items": {
-    "$ref": "#/definitions/catalog-categories",
-    "definitions": {
-      "catalog-categories": {
-        "type": "object",
-        "properties": {
-          "id": { "type": "string" },
-          "name": { "type": "string", "minLength": 1 },
-          "schemas": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "enum": [
-                "abilities",
-                "ability-tree-requirements",
-                "bio-titans",
-                "chassis",
-                "classes",
-                "crawler-bays",
-                "crawler-tech-levels",
-                "crawlers",
-                "creatures",
-                "distances",
-                "drones",
-                "equipment",
-                "guides",
-                "keywords",
-                "factions",
-                "meld",
-                "modules",
-                "npcs",
-                "roll-tables",
-                "squads",
-                "systems",
-                "traits",
-                "vehicles"
-              ]
-            }
-          },
-          "flat": { "type": "boolean", "default": false }
-        },
-        "required": ["id", "name", "schemas"],
-        "additionalProperties": false
-      }
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {
+      "id": { "type": "string" },
+      "name": { "type": "string", "minLength": 1 },
+      "schemas": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "enum": [
+            "abilities",
+            "ability-tree-requirements",
+            "bio-titans",
+            "chassis",
+            "classes",
+            "crawler-bays",
+            "crawler-tech-levels",
+            "crawlers",
+            "creatures",
+            "distances",
+            "drones",
+            "equipment",
+            "guides",
+            "keywords",
+            "factions",
+            "meld",
+            "modules",
+            "npcs",
+            "roll-tables",
+            "squads",
+            "systems",
+            "traits",
+            "vehicles"
+          ]
+        }
+      },
+      "flat": { "default": false, "type": "boolean" }
     },
-    "$schema": "http://json-schema.org/draft-07/schema#"
+    "required": ["id", "name", "schemas", "flat"],
+    "additionalProperties": false
   }
 }

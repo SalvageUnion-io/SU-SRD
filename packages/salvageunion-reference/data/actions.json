@@ -407,11 +407,8 @@
     "activationCost": 1,
     "traits": [],
     "name": "Area Salvage",
+    "requiredTraits": ["salvaging"],
     "content": [
-      {
-        "type": "hint",
-        "value": "Requires the [[Salvaging]] Trait."
-      },
       {
         "type": "paragraph",
         "value": "You salvage an area for scrap. This could be an abandoned factory, a ruined settlement, or a crumbling research facility. The Mediator will tell you if an area can be Area Salvaged or not. It costs 1 AP for a Pilot or 1 EP in a Mech."
@@ -622,28 +619,6 @@
           {
             "type": "paragraph",
             "value": "Roll on the A.I. Personality Table or choose your own."
-          }
-        ]
-      },
-      {
-        "id": "12894b9b-a5a3-4b05-9977-c9bf69af1f83",
-        "name": "Repair Action",
-        "choiceType": "session",
-        "choiceOptions": [
-          {
-            "label": "Restore 6 SP",
-            "value": "Restore 6 SP",
-            "description": "You restore 6 SP to your Mech as long as it has at least 1 SP."
-          },
-          {
-            "label": "Repair System/Module (TL4 or lower)",
-            "value": "Repair System/Module (TL4 or lower)",
-            "description": "You repair a single, Tech 4 or lower, damaged System or Module mounted on your Mech to Intact Condition."
-          },
-          {
-            "label": "Reduce 2 Heat",
-            "value": "Reduce 2 Heat",
-            "description": "You reduce the Heat of your Mech by 2."
           }
         ]
       }
@@ -1045,25 +1020,6 @@
       {
         "type": "paragraph",
         "value": "This ability does not affect Meld or Bio-Titans."
-      }
-    ],
-    "choices": [
-      {
-        "id": "2daf15ff-5b62-4444-a832-bf57a125daa3",
-        "name": "Target",
-        "choiceType": "session",
-        "choiceOptions": [
-          {
-            "label": "Leg (immobilize)",
-            "value": "Leg (immobilize)",
-            "description": "The creature cannot move unless it takes a Turn Action to remove the spike, suffering an additional 1 HP damage."
-          },
-          {
-            "label": "Arm (disable attacks)",
-            "value": "Arm (disable attacks)",
-            "description": "The creature's arms are disabled, it cannot attack unless it takes a Turn Action to remove the spike, suffering an additional 1 HP damage."
-          }
-        ]
       }
     ],
     "actionSource": "equipment"
@@ -1845,7 +1801,7 @@
     ],
     "actionType": "Free",
     "range": ["Long"],
-    "name": "Comms",
+    "name": "Comms Module",
     "content": [
       {
         "type": "paragraph",
@@ -2927,35 +2883,6 @@
         "value": "Up to 5 of any Pilot Equipment you currently have stored in your Union Crawler."
       }
     ],
-    "choices": [
-      {
-        "id": "5d2a0945-4237-4883-bae0-f6a9b8eb43bb",
-        "name": "Salvage Drop Contents",
-        "choiceType": "session",
-        "choiceOptions": [
-          {
-            "label": "Mech Chassis",
-            "value": "Mech Chassis",
-            "description": "Any Mech Chassis you currently have stored in your Union Crawler."
-          },
-          {
-            "label": "System or Module",
-            "value": "System or Module",
-            "description": "Any System or Module you currently have stored in your Union Crawler."
-          },
-          {
-            "label": "Up to 10 Scrap",
-            "value": "Up to 10 Scrap",
-            "description": "Up to 10 Scrap of any type you have stored in your Union Crawler."
-          },
-          {
-            "label": "Up to 5 Pilot Equipment",
-            "value": "Up to 5 Pilot Equipment",
-            "description": "Up to 5 of any Pilot Equipment you currently have stored in your Union Crawler."
-          }
-        ]
-      }
-    ],
     "actionSource": "abilities"
   },
   {
@@ -3158,8 +3085,8 @@
         "value": "This Weapons System is designed to fire a high energy beam of subatomic particles which when they impact a target scramble its molecular structure rendering them into their component atoms. These blueprints were extracted from Sakura during a salvage run, and as far as we are aware are purely theoretical."
       },
       {
-        "type": "paragraph",
-        "value": "*Please report any findings of field use of this weapon to the Salvage Union Council*"
+        "type": "flavor",
+        "value": "Please report any findings of field use of this weapon to the Salvage Union Council"
       }
     ],
     "actionSource": "systems"
@@ -3234,25 +3161,6 @@
         "value": "You are able to use your intimate knowledge of Mech fabrication techniques to craft Mech parts and even entire Chassis in the field. System and Module Fabrication 1AP Short Action: You can craft a System or Module anywhere in the field. You can choose from any System or Module of a Tech Level equal to or lower than your Union Crawler. This follows the normal crafting rules. Chassis Fabrication 2AP Long Action: You can craft a Mech Chassis anywhere in the field. You can choose from any Mech Chassis of a Tech Level equal to or lower than your Union Crawler. This follows the normal crafting rules."
       }
     ],
-    "choices": [
-      {
-        "id": "1d4c9483-6c1b-4d74-8216-918280c2ebee",
-        "name": "Fabrication Type",
-        "choiceType": "session",
-        "choiceOptions": [
-          {
-            "label": "System/Module (1 AP Short)",
-            "value": "System/Module (1 AP Short)",
-            "description": "Craft a System or Module of a Tech Level equal to or lower than your Union Crawler."
-          },
-          {
-            "label": "Mech Chassis (2 AP Long)",
-            "value": "Mech Chassis (2 AP Long)",
-            "description": "Craft a Mech Chassis of a Tech Level equal to or lower than your Union Crawler."
-          }
-        ]
-      }
-    ],
     "actionSource": "abilities"
   },
   {
@@ -3299,6 +3207,8 @@
   },
   {
     "id": "907d2ca2-f355-458f-9852-8923f19ab1af",
+    "actionType": "Turn",
+    "activationCost": 2,
     "traits": [
       {
         "type": "uses",
@@ -3317,8 +3227,8 @@
         "value": "A target creature of your choice in Range regains 3 Hit Points. If they were on 0 Hit Points this restores them to consciousness with 3 HP."
       },
       {
-        "type": "paragraph",
-        "value": "*Union Safety Guideline 305.15 recommends each Union Crawler salvage crew equip a First Aid Kit for all active field work.*"
+        "type": "flavor",
+        "value": "Union Safety Guideline 305.15 recommends each Union Crawler salvage crew equip a First Aid Kit for all active field work."
       }
     ],
     "actionSource": "equipment"
@@ -3522,41 +3432,6 @@
         "type": "list-item",
         "value": "You exaggerate the truth by taking something that is true and blowing it well beyond the bounds of reality and this exaggeration is believed.",
         "label": "Exaggeration"
-      }
-    ],
-    "choices": [
-      {
-        "id": "e7c9fc80-eda4-4cfc-b59c-7e11a0944676",
-        "name": "Deception Technique",
-        "choiceType": "session",
-        "multiSelect": true,
-        "choiceOptions": [
-          {
-            "label": "Denial",
-            "value": "Denial",
-            "description": "You deny one fact, accusation, or event and your denial is believed to be true."
-          },
-          {
-            "label": "Omission",
-            "value": "Omission",
-            "description": "You carefully omit one fact and this omission is believed to be true."
-          },
-          {
-            "label": "Fabrication",
-            "value": "Fabrication",
-            "description": "You fabricate a fact and this fabrication is believed to be true."
-          },
-          {
-            "label": "Minimisation",
-            "value": "Minimisation",
-            "description": "You distort the truth by minimising something and this minimisation is taken to be true."
-          },
-          {
-            "label": "Exaggeration",
-            "value": "Exaggeration",
-            "description": "You exaggerate the truth beyond reality and this exaggeration is believed."
-          }
-        ]
       }
     ],
     "actionSource": "abilities"
@@ -5141,11 +5016,8 @@
     "actionType": "Short",
     "traits": [],
     "name": "Load",
+    "requiredTraits": ["rigging"],
     "content": [
-      {
-        "type": "hint",
-        "value": "Requires the [[Rigging]] Trait."
-      },
       {
         "type": "paragraph",
         "value": "You pick up and load a Mech Chassis, System, Module, or piece of Scrap in Range onto your Mech or an allied Mech. This takes up a number of Cargo Slots equal to its Salvage Value. Scrap takes up 1 Cargo Slot.\n\nAlternatively, a Pilot may use this action to pick up a Mech Chassis, System, Module, or Scrap, and carry it. Scrap takes up 3 Pilot Inventory Slots. Mech Chassis, Systems, and Modules take up a number of Inventory Slots equal to 3× their Salvage Value. This does make some things impossible for a Pilot to carry without help."
@@ -5456,11 +5328,8 @@
     "actionType": "Long",
     "traits": [],
     "name": "Mech Salvage",
+    "requiredTraits": ["salvaging"],
     "content": [
-      {
-        "type": "hint",
-        "value": "Requires the [[Salvaging]] Trait."
-      },
       {
         "type": "paragraph",
         "value": "You salvage a Mech, this could be one you have found in the wastelands or just downed in combat. This roll represents you finding what is usable on the Mech as not everything on the Mech will be salvageable."
@@ -6083,11 +5952,8 @@
     "actionType": "Long",
     "traits": [],
     "name": "Mount",
+    "requiredTraits": ["rigging"],
     "content": [
-      {
-        "type": "hint",
-        "value": "Requires the [[Rigging]] Trait."
-      },
       {
         "type": "paragraph",
         "value": "You Mount a System or Module onto a target Mech in Range. The Mech must have enough System or Module Slots to mount the new System or Module and the slots must be empty.\n\nAs part of this action you may dismount any number of Systems or Modules on the Mech to make room for the new System or Module. You may not Mount a damaged System or Module onto a Mech."
@@ -6469,8 +6335,8 @@
         "value": "Encampment: You find an encampment of some kind, this could be a raider base, a corpo forward outpost, or a den of animals."
       },
       {
-        "type": "paragraph",
-        "value": "*For their safety and mental well-being, Salvage Unions do not condone the changing of the Navigation Module's soothing electronic voice to anything that would irritate, upset, or enrage their Pilots. However funny it might seem at the time.*"
+        "type": "flavor",
+        "value": "For their safety and mental well-being, Salvage Unions do not condone the changing of the Navigation Module's soothing electronic voice to anything that would irritate, upset, or enrage their Pilots. However funny it might seem at the time."
       }
     ],
     "actionSource": "modules"
@@ -6946,11 +6812,8 @@
     "actionType": "Long",
     "traits": [],
     "name": "Patch Up",
+    "requiredTraits": ["rigging"],
     "content": [
-      {
-        "type": "hint",
-        "value": "Requires the [[Rigging]] Trait."
-      },
       {
         "type": "paragraph",
         "value": "You restore up to 3 + X Structure Points on a target Mech or Vehicle, where X is equal to the Tech Level of the Scrap you spend when you use this Ability.\n\nYou must spend 1 Scrap of the Mech or Vehicles Tech Level or higher to use this Ability. The Mech or Vehicle must have at least 1 SP to use this Ability on it."
@@ -6984,30 +6847,6 @@
         "label": "6 AP"
       }
     ],
-    "choices": [
-      {
-        "id": "457ece19-4461-4803-9fdd-0ce5b929a517",
-        "name": "Persona Level",
-        "choiceType": "session",
-        "choiceOptions": [
-          {
-            "label": "Average Wastelander (2 AP)",
-            "value": "Average Wastelander (2 AP)",
-            "description": "A wastelander of average means. You can effortlessly blend into crowds and travel unnoticed."
-          },
-          {
-            "label": "Person of Power (4 AP)",
-            "value": "Person of Power (4 AP)",
-            "description": "Someone in a formal position of power, wealth, or influence. You can mingle with such people and those 'beneath' you will treat you with deference."
-          },
-          {
-            "label": "Top of Hierarchy (6 AP)",
-            "value": "Top of Hierarchy (6 AP)",
-            "description": "Someone at the top of their social hierarchy. You are able to access the highest ranks of society."
-          }
-        ]
-      }
-    ],
     "actionSource": "abilities"
   },
   {
@@ -7025,8 +6864,8 @@
         "value": "When activated, a single Pilot may use the Personal Recreation Device to relax and get themselves into a flow state. The next time they or a Mech they are controlling roll the die, they may re-roll it. They must accept the result of the second roll."
       },
       {
-        "type": "paragraph",
-        "value": "*It is against Union Regulation to install a Mech with a Personal Recreation Device designed to do what you're thinking.*"
+        "type": "flavor",
+        "value": "It is against Union Regulation to install a Mech with a Personal Recreation Device designed to do what you're thinking."
       }
     ],
     "actionSource": "modules"
@@ -7759,46 +7598,6 @@
         "value": "You learn if the target is telling the truth or not."
       }
     ],
-    "choices": [
-      {
-        "id": "e33c26eb-5102-4c29-914c-518b7e097e8a",
-        "name": "Insight",
-        "choiceType": "session",
-        "multiSelect": true,
-        "choiceOptions": [
-          {
-            "label": "Intentions",
-            "value": "Intentions",
-            "description": "You learn something the target intends to do soon."
-          },
-          {
-            "label": "Wants",
-            "value": "Wants",
-            "description": "You learn something the target wants."
-          },
-          {
-            "label": "Current Feeling",
-            "value": "Current Feeling",
-            "description": "You learn what the target is currently feeling."
-          },
-          {
-            "label": "Internal Motivation",
-            "value": "Internal Motivation",
-            "description": "You learn what internally motivates the target."
-          },
-          {
-            "label": "Weakness/Flaw",
-            "value": "Weakness/Flaw",
-            "description": "You learn one of the target's weaknesses or flaws."
-          },
-          {
-            "label": "Truthfulness",
-            "value": "Truthfulness",
-            "description": "You learn if the target is telling the truth or not."
-          }
-        ]
-      }
-    ],
     "actionSource": "abilities"
   },
   {
@@ -8060,8 +7859,8 @@
         "value": "You may place and set the Remote Mine as a Turn Action. It can be detonated remotely as a Turn Action from Medium Range. When it detonates, roll to make an attack as normal. On a hit all targets within Range take 4 SP damage."
       },
       {
-        "type": "paragraph",
-        "value": "*Whist use of Remote Mines is allowed under Corporate Council policy; Union Safety Regulation 402.36 bans their use in civilian occupied territory.*"
+        "type": "flavor",
+        "value": "Whist use of Remote Mines is allowed under Corporate Council policy; Union Safety Regulation 402.36 bans their use in civilian occupied territory."
       }
     ],
     "actionSource": "equipment"
@@ -8097,11 +7896,8 @@
     "actionType": "Long",
     "traits": [],
     "name": "Repair",
+    "requiredTraits": ["rigging"],
     "content": [
-      {
-        "type": "hint",
-        "value": "Requires the [[Rigging]] Trait."
-      },
       {
         "type": "paragraph",
         "value": "You repair a damaged Mech Chassis, Vehicle, System, or Module in Range to the Intact Condition. This costs an amount of Scrap equal to half its Salvage Value to a minimum of 1. This Scrap must be of a Tech Level equal to or higher than the Mech Chassis, System, or Module. For example, to repair a damaged Brawler Mech Chassis which is Tech 3 with a Salvage Value of 5 you would need to spend 2 Tech 3 Scrap."
@@ -8438,11 +8234,8 @@
     "actionType": "Long",
     "traits": [],
     "name": "Scrap",
+    "requiredTraits": ["salvaging"],
     "content": [
-      {
-        "type": "hint",
-        "value": "Requires the [[Salvaging]] Trait."
-      },
       {
         "type": "paragraph",
         "value": "You break down an Intact or Damaged Mech Chassis, System, Module, or Vehicle in Range into Scrap. It is destroyed. You gain an amount of Scrap equal to its Salvage Value. This Scrap has a Tech Level equal to the Mech Chassis, System, Module, or Vehicle. For example, if you Scrap a Red Laser System which has a Tech Level of 1 and a Salvage Value of 3, you gain 3 Tech 1 Scrap. You may not use this Ability on active or in use Mechs, Systems or Modules. You must use the Mech Salvage Ability to determine what you find on a Mech before using this Ability."
@@ -8669,40 +8462,6 @@
       {
         "type": "paragraph",
         "value": "For 1 AP, the Mediator must offer you a narrative clue during the conversation that eliminates one of the incorrect choices. This can be something like, \"You overheard this person saying she wasn't afraid of the local raiders, even if they were dangerous.\""
-      }
-    ],
-    "choices": [
-      {
-        "id": "51dcd789-1da7-4b7f-9f8f-7ff99aa547dc",
-        "name": "Motivation Appeal",
-        "choiceType": "session",
-        "choiceOptions": [
-          {
-            "label": "Goodness",
-            "value": "Goodness",
-            "description": "They are motivated by an intrinsic desire to do good and treat others with kindness."
-          },
-          {
-            "label": "Wealth",
-            "value": "Wealth",
-            "description": "They are motivated by increasing their wealth in some manner."
-          },
-          {
-            "label": "Fear",
-            "value": "Fear",
-            "description": "They are motivated by fear of what might happen to them."
-          },
-          {
-            "label": "Power",
-            "value": "Power",
-            "description": "They are motivated by what power and influence they can attain."
-          },
-          {
-            "label": "Obligation",
-            "value": "Obligation",
-            "description": "They are motivated by social obligation, whether to family, community, or authority."
-          }
-        ]
       }
     ],
     "actionSource": "abilities"
@@ -9511,44 +9270,6 @@
         "type": "paragraph"
       }
     ],
-    "choices": [
-      {
-        "id": "84fa4d9c-af7b-40fa-abd7-bd2c600cfc2c",
-        "name": "Favour",
-        "choiceType": "session",
-        "multiSelect": true,
-        "constraints": {
-          "max": 3
-        },
-        "choiceOptions": [
-          {
-            "label": "Restore 4 SP",
-            "value": "Restore 4 SP",
-            "description": "Restore up to 4 SP on a single Mech or Vehicle with at least 1 SP."
-          },
-          {
-            "label": "Answer Questions",
-            "value": "Answer Questions",
-            "description": "Answer any question about the local area, Mechs, and mechanical & engineering topics."
-          },
-          {
-            "label": "Repair System/Module",
-            "value": "Repair System/Module",
-            "description": "Repair a single damaged System or Module to Intact Condition."
-          },
-          {
-            "label": "Provide Shelter",
-            "value": "Provide Shelter",
-            "description": "Provide food, shelter, and lodgings for you and the other salvagers in your crew."
-          },
-          {
-            "label": "Custom Favour",
-            "value": "Custom Favour",
-            "description": "Provide a favour within their power and ability to grant as adjudicated by the Mediator."
-          }
-        ]
-      }
-    ],
     "activationCost": 3,
     "actionType": "Turn",
     "name": "Talk Shop",
@@ -10338,45 +10059,6 @@
         "label": "Wasteland Mob"
       }
     ],
-    "choices": [
-      {
-        "id": "87325d3b-cf2d-454a-afe8-af6312688fc1",
-        "name": "Reinforcements",
-        "choiceType": "session",
-        "choiceOptions": [
-          {
-            "label": "Corpo Mercenary Lance",
-            "value": "Corpo Mercenary Lance",
-            "description": "4 Corpo Mechs of up to Tech Level 3 armed for combat."
-          },
-          {
-            "label": "Salvage Crew",
-            "value": "Salvage Crew",
-            "description": "4 Salvager Mechs of up to Tech Level 3 armed with salvaging and rigging tools."
-          },
-          {
-            "label": "Corpo Mercenary Squad",
-            "value": "Corpo Mercenary Squad",
-            "description": "4 Corpo Squads of up to Tech 3 armed for combat."
-          },
-          {
-            "label": "Pilot Salvage Crew",
-            "value": "Pilot Salvage Crew",
-            "description": "4 Salvager Squads of up to Tech 3 armed with salvaging and rigging tools."
-          },
-          {
-            "label": "Wasteland Mech Mob",
-            "value": "Wasteland Mech Mob",
-            "description": "10 Wasteland Mechs of up to Tech 1."
-          },
-          {
-            "label": "Wasteland Mob",
-            "value": "Wasteland Mob",
-            "description": "10 Wasteland Squads of up to Tech 1."
-          }
-        ]
-      }
-    ],
     "actionSource": "abilities"
   },
   {
@@ -10391,40 +10073,6 @@
       {
         "type": "paragraph",
         "value": "The modulator allows you to alter the pitch and tone of your voice, or choose from a variety of preset voice options such as robotic, sultry, intimidating, cartoonish, and animal-like. You may also choose any other option of your choice that you can think of."
-      }
-    ],
-    "choices": [
-      {
-        "id": "1bb781e6-1da3-4bcd-adad-3b3a45fa73fa",
-        "name": "Voice Preset",
-        "choiceType": "session",
-        "choiceOptions": [
-          {
-            "label": "Robotic",
-            "value": "Robotic"
-          },
-          {
-            "label": "Sultry",
-            "value": "Sultry"
-          },
-          {
-            "label": "Intimidating",
-            "value": "Intimidating"
-          },
-          {
-            "label": "Cartoonish",
-            "value": "Cartoonish"
-          },
-          {
-            "label": "Animal-like",
-            "value": "Animal-like"
-          },
-          {
-            "label": "Custom",
-            "value": "Custom",
-            "description": "Choose any other voice option of your choice."
-          }
-        ]
       }
     ],
     "actionSource": "modules"

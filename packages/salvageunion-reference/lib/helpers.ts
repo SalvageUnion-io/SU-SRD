@@ -15,6 +15,7 @@ import type {
   SURefEntity,
   SURefEnumSchemaName,
   SURefObjectAdvancedClass,
+  SURefObjectCrawlerMutation,
 } from './types/index.js'
 import type { EntitySchemaName } from './index.js'
 import type { ModelWithMetadata } from './BaseModel.js'
@@ -28,6 +29,7 @@ import {
   getAssetUrl,
 } from './utilities.js'
 import { getEntitySlug } from './slug.js'
+import { ActionTypeSchema } from './schemas/enums.js'
 
 /**
  * Get the display name for a schema
@@ -296,6 +298,40 @@ export function getCrawlerNameById(crawlerId: string | null, fallback = 'Unknown
 }
 
 /**
+ * Get all mutations for a crawler type by ID
+ * @param crawlerId - The crawler type ID
+ * @returns Array of mutations, or empty array if none
+ */
+export function getCrawlerMutations(crawlerId: string): SURefObjectCrawlerMutation[] {
+  const crawler = findCrawlerById(crawlerId)
+  return crawler?.mutations ?? []
+}
+
+/**
+ * Get the total weapon slot count for a crawler type.
+ * Base is 1 (from the Armament Bay) plus any weapon_slots mutations.
+ * @param crawlerId - The crawler type ID
+ * @returns Total weapon slots available
+ */
+export function getWeaponSlotCount(crawlerId: string): number {
+  const mutations = getCrawlerMutations(crawlerId)
+  const bonus = mutations
+    .filter((m) => m.type === 'weapon_slots')
+    .reduce((sum, m) => sum + m.value, 0)
+  return 1 + bonus
+}
+
+/**
+ * Get the max SP bonus from a crawler type's mutations.
+ * @param crawlerId - The crawler type ID
+ * @returns Sum of max_sp_bonus mutation values
+ */
+export function getMaxSpBonus(crawlerId: string): number {
+  const mutations = getCrawlerMutations(crawlerId)
+  return mutations.filter((m) => m.type === 'max_sp_bonus').reduce((sum, m) => sum + m.value, 0)
+}
+
+/**
  * Normalize tech level to a number for calculations
  * Treats "B" (Bio) and "N" (Nanite) as 1
  * @param techLevel - The tech level (number, 'B', or 'N')
@@ -453,6 +489,36 @@ export const MECH_DEFAULTS = {
   startingHeat: 0,
 } as const
 
+/**
+ * Crawler upkeep and upgrade rules
+ * Upkeep cost increases by `step` scrap per tech level; max upgrade cap.
+ */
+export const UPKEEP_RULES = {
+  step: 5,
+  maxUpgrade: 25,
+} as const
+
+/**
+ * Resolve the activation currency for a given schema/entity category.
+ * Systems and modules cost EP; variable-cost abilities cost XP; everything else costs AP.
+ */
+export function resolveActivationCurrency(
+  schemaName: SURefEnumSchemaName | 'actions' | undefined,
+  variable: boolean = false
+): 'AP' | 'EP' | 'XP' {
+  if (variable) return 'XP'
+  if (schemaName === 'systems' || schemaName === 'modules') return 'EP'
+  return 'AP'
+}
+
+/**
+ * Get the list of action types from the ActionType enum schema.
+ * Returns the canonical values: Passive, Free, Reaction, Turn, Short, Long, DownTime.
+ */
+export function getActionTypes(): string[] {
+  return ActionTypeSchema.options
+}
+
 // ============================================================================
 // SCHEMA HELPERS
 // ============================================================================
@@ -519,7 +585,7 @@ export function getUniqueSources(entities: SURefEntity[]): string[] {
 /**
  * Aggregate display data extracted from an entity
  */
-export type EntityDisplayData = {
+export type ReferenceEntityData = {
   id: string
   name: string
   slug: string
@@ -536,7 +602,7 @@ export type EntityDisplayData = {
  * @param entity - The entity to extract display data from
  * @returns Aggregated display data
  */
-export function getEntityDisplayData(entity: SURefEntity): EntityDisplayData {
+export function getReferenceEntityData(entity: SURefEntity): ReferenceEntityData {
   return {
     id: entity.id,
     name: getName(entity) ?? entity.id,

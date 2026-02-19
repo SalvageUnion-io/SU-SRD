@@ -1,8 +1,13 @@
 import { useState, useMemo, Suspense } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
-import { getTechLevel, getSource, getEntitySlug, isAbility } from 'salvageunion-reference'
-import { EntityDisplay, EntityCardSkeleton } from 'suref-react'
-import { Button } from '../Button'
+import { getTechLevel, getSource, getEntitySlug, getTree } from 'salvageunion-reference'
+import {
+  ReferenceEntityDisplay,
+  ReferenceEntityCardSkeleton,
+  FilterChip,
+  TECH_LEVEL_STYLES,
+  techLevelLabel,
+} from 'suref-react'
 
 type SchemaViewerIslandProps = {
   initialData: SURefEntity[]
@@ -43,25 +48,23 @@ export function SchemaViewerIsland({
 
   const toggleTechLevel = (level: number | 'B' | 'N') => {
     setTechLevelFilters((prev) => {
+      if (prev.size === 0) return new Set([String(level)])
       const next = new Set(prev)
       const key = String(level)
-      if (next.has(key)) {
-        next.delete(key)
-      } else {
-        next.add(key)
-      }
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      if (techLevels.every((tl) => next.has(String(tl)))) return new Set()
       return next
     })
   }
 
   const toggleSource = (source: string) => {
     setSourceFilters((prev) => {
+      if (prev.size === 0) return new Set([source])
       const next = new Set(prev)
-      if (next.has(source)) {
-        next.delete(source)
-      } else {
-        next.add(source)
-      }
+      if (next.has(source)) next.delete(source)
+      else next.add(source)
+      if (sources.every((s) => next.has(s))) return new Set()
       return next
     })
   }
@@ -71,56 +74,41 @@ export function SchemaViewerIsland({
   return (
     <>
       {hasFilters && (
-        <div className="flex w-full max-w-[1200px] mx-auto flex-col gap-3">
+        <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-3">
           {techLevels.length > 1 && (
-            <div className="flex flex-wrap gap-2" role="group" aria-label="Filter by tech level">
-              <Button
+            <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filter by tech level">
+              <FilterChip
+                label="All"
                 active={techLevelFilters.size === 0}
                 onClick={() => setTechLevelFilters(new Set())}
-                aria-pressed={techLevelFilters.size === 0}
-              >
-                All
-              </Button>
-              {techLevels.map((level) => {
-                const isSelected = techLevelFilters.has(String(level))
-                const displayLabel =
-                  typeof level === 'number' ? `T${level}` : level === 'B' ? 'Bio' : 'N'
-                return (
-                  <Button
-                    key={String(level)}
-                    active={isSelected}
-                    onClick={() => toggleTechLevel(level)}
-                    aria-pressed={isSelected}
-                  >
-                    {displayLabel}
-                  </Button>
-                )
-              })}
+              />
+              {techLevels.map((level) => (
+                <FilterChip
+                  key={String(level)}
+                  label={techLevelLabel(level)}
+                  active={techLevelFilters.has(String(level))}
+                  onClick={() => toggleTechLevel(level)}
+                  colorClass={TECH_LEVEL_STYLES[String(level)]}
+                />
+              ))}
             </div>
           )}
 
           {sources.length > 1 && (
-            <div className="flex flex-wrap gap-2" role="group" aria-label="Filter by source">
-              <Button
+            <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filter by source">
+              <FilterChip
+                label="All"
                 active={sourceFilters.size === 0}
                 onClick={() => setSourceFilters(new Set())}
-                aria-pressed={sourceFilters.size === 0}
-              >
-                All
-              </Button>
-              {sources.map((source) => {
-                const isSelected = sourceFilters.has(source)
-                return (
-                  <Button
-                    key={source}
-                    active={isSelected}
-                    onClick={() => toggleSource(source)}
-                    aria-pressed={isSelected}
-                  >
-                    {source}
-                  </Button>
-                )
-              })}
+              />
+              {sources.map((source) => (
+                <FilterChip
+                  key={source}
+                  label={source}
+                  active={sourceFilters.has(source)}
+                  onClick={() => toggleSource(source)}
+                />
+              ))}
             </div>
           )}
         </div>
@@ -128,23 +116,23 @@ export function SchemaViewerIsland({
 
       {/* Entity Grid */}
       <div className="flex-1 p-6">
-        <div className="mx-auto max-w-[1400px] columns-1 gap-4 lg:columns-2 xl:columns-3 [&>*]:mb-4 [&>*]:break-inside-avoid">
+        <div className="mx-auto max-w-[1400px] columns-1 gap-4 md:columns-2 lg:columns-3 [&>*]:mb-4 [&>*]:break-inside-avoid">
           {filteredData.map((item: SURefEntity) => {
-            const hasLabel = isAbility(item) && !!item.tree
+            const tree = schemaId === 'abilities' ? (getTree(item) as string) : undefined
             return (
               <a
                 key={item.id}
                 href={`/schema/${schemaId}/item/${getEntitySlug(item)}`}
                 aria-label={item.name}
-                className={`relative block transition-all duration-200 md:hover:z-10 md:hover:scale-[1.02] md:hover:-translate-y-0.5 md:hover:shadow-lg ${hasLabel ? 'pt-2' : ''}`}
+                className="relative block"
               >
-                <Suspense fallback={<EntityCardSkeleton compact />}>
-                  <EntityDisplay
-                    hideActions
-                    hideChoices
+                <Suspense fallback={<ReferenceEntityCardSkeleton compact />}>
+                  <ReferenceEntityDisplay
+                    hide={{ actions: true, choices: true }}
                     data={item}
                     compact
-                    label={isAbility(item) && item.tree ? `${item.tree} tree` : undefined}
+                    label={tree}
+                    cardClickable
                   />
                 </Suspense>
               </a>

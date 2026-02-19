@@ -1,5 +1,7 @@
-import { createFileRoute, Outlet, redirect } from '@tanstack/react-router'
+import { useEffect } from 'react'
+import { createFileRoute, Outlet, redirect, useNavigate } from '@tanstack/react-router'
 import { useAuthStore } from '../stores/authStore'
+import { AppShell } from '../components/shell/AppShell'
 
 export const Route = createFileRoute('/_authenticated')({
   beforeLoad: () => {
@@ -13,6 +15,13 @@ export const Route = createFileRoute('/_authenticated')({
 
 function AuthenticatedLayout() {
   const { user, loading } = useAuthStore()
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate({ to: '/login' })
+    }
+  }, [loading, user, navigate])
 
   if (loading) {
     return (
@@ -26,5 +35,9 @@ function AuthenticatedLayout() {
     return null
   }
 
-  return <Outlet />
+  return (
+    <AppShell>
+      <Outlet />
+    </AppShell>
+  )
 }

@@ -1,0 +1,111 @@
+import type { ReactNode } from 'react'
+import type { SURefEntity } from 'salvageunion-reference'
+import {
+  DisplayCard,
+  Text,
+  ControlButtons,
+  DataValueDisplayView,
+  BlockContentRendererView,
+  useDetailModal,
+} from 'suref-react'
+import { cn } from '../../lib/utils'
+import type { ReferenceEntityControl } from 'suref-react'
+import type { ActionDisplayData } from '../../lib/pilotActionUtils'
+
+type ActionDisplayProps = {
+  data: ActionDisplayData
+  controls?: ReferenceEntityControl[]
+  disabled?: boolean
+  footerMessage?: ReactNode
+  borderColorOverride?: string
+}
+
+const DISABLED_PALE_BG = 'rgb(220, 220, 220)'
+const DISABLED_BORDER = 'rgb(150, 150, 150)'
+
+export function ActionDisplay({
+  data,
+  controls,
+  disabled,
+  footerMessage,
+  borderColorOverride,
+}: ActionDisplayProps) {
+  const outerBorder = borderColorOverride ?? (disabled ? DISABLED_BORDER : data.borderColor)
+  const headerBg = disabled ? DISABLED_PALE_BG : data.paleBackgroundColor
+  const innerBorder = borderColorOverride ?? (disabled ? DISABLED_BORDER : data.borderColor)
+
+  return (
+    <div className="overflow-hidden rounded-md" style={{ border: `2px solid ${outerBorder}` }}>
+      <DisplayCard
+        headerBg=""
+        headerBgColor={headerBg}
+        borderColor={innerBorder}
+        mode="compact"
+        headerContent={
+          <div
+            className={cn(
+              'flex w-full items-start justify-between gap-2',
+              disabled && 'opacity-50'
+            )}
+          >
+            <div className="flex min-w-0 flex-col gap-0.5">
+              <Text variant="pseudoheader" as="span" className="text-base uppercase">
+                {data.name}
+              </Text>
+              {data.dataValues.length > 0 && (
+                <div className="flex flex-wrap gap-0.5">
+                  {data.dataValues.map((dv, i) => (
+                    <DataValueDisplayView key={`${dv.label}-${i}`} item={dv} compact />
+                  ))}
+                </div>
+              )}
+            </div>
+            {controls && controls.length > 0 && (
+              <ControlButtons controls={controls} className="shrink-0" />
+            )}
+          </div>
+        }
+        footerContent={
+          <div className="flex w-full items-center justify-between">
+            {footerMessage ? (
+              <span className="text-xs italic text-su-black">{footerMessage}</span>
+            ) : (
+              <span />
+            )}
+            <SourceEntityChip entity={data.sourceEntity} dimmed={disabled} />
+          </div>
+        }
+      >
+        {data.content && data.content.length > 0 && (
+          <div className={cn(disabled && 'opacity-50')}>
+            <BlockContentRendererView content={data.content} fontSize="text-xs" compact />
+          </div>
+        )}
+      </DisplayCard>
+    </div>
+  )
+}
+
+function SourceEntityChip({ entity, dimmed }: { entity: SURefEntity; dimmed?: boolean }) {
+  const { control, modal } = useDetailModal(entity)
+  const name = 'name' in entity ? String(entity.name) : 'Source'
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={control.onClick}
+        className={cn(
+          'cursor-pointer rounded-sm bg-su-black px-2 py-0.5 font-mono text-xs text-su-white transition-opacity hover:opacity-80',
+          dimmed && 'opacity-40'
+        )}
+      >
+        {name}{' '}
+        <span aria-hidden="true" className="leading-none">
+          &rarr;
+        </span>
+      </button>
+      {modal}
+    </>
+  )
+}

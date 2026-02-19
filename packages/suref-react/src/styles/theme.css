@@ -5,7 +5,6 @@
 @theme {
   /* === Typography === */
   --font-mono: 'Fira Code', Monaco, Consolas, 'Ubuntu Mono', monospace;
-  --font-sans: 'Fira Code', Monaco, Consolas, 'Ubuntu Mono', monospace;
 
   /* === Brand Colors === */
   --color-su-orange: rgb(239, 137, 79);
@@ -32,6 +31,7 @@
   --color-su-peach: rgb(245, 193, 163);
   --color-su-sickly-yellow: rgb(215, 195, 125);
   --color-su-silver: rgb(192, 192, 192);
+  --color-su-sand: rgb(235, 231, 222);
 
   /* Tech Level Blues */
   --color-tl-1: rgb(115, 201, 230);
@@ -52,17 +52,6 @@
   --color-mech-dark: var(--color-su-green-dark);
   --color-crawler: var(--color-su-pink);
 
-  /* Heat severity */
-  --color-heat-low: rgb(76, 175, 80);
-  --color-heat-rising: rgb(255, 193, 7);
-  --color-heat-critical: rgb(255, 152, 0);
-  --color-heat-cap: rgb(244, 67, 54);
-
-  /* Condition */
-  --color-intact: rgb(76, 175, 80);
-  --color-damaged: rgb(255, 193, 7);
-  --color-destroyed: rgb(244, 67, 54);
-
   /* Roll result tiers */
   --color-roll-cascade: rgb(244, 67, 54);
   --color-roll-failure: rgb(255, 152, 0);
@@ -72,341 +61,174 @@
 }
 
 /*
- * CSS custom properties for light/dark theming
- * ShadCN convention: use CSS variables for background, foreground, etc.
+ * Base CSS custom properties used by body styles and components.
+ * Keep minimal — only define variables that are actually referenced.
  */
 :root {
   --background: var(--color-su-white);
   --foreground: var(--color-su-black);
-  --card: var(--color-su-blue-light);
-  --card-foreground: var(--color-su-black);
-  --popover: var(--color-su-white);
-  --popover-foreground: var(--color-su-black);
-  --primary: var(--color-su-orange);
-  --primary-foreground: var(--color-su-white);
-  --secondary: var(--color-su-green);
-  --secondary-foreground: var(--color-su-white);
-  --muted: var(--color-su-blue-pale);
-  --muted-foreground: var(--color-su-grey-dark);
-  --accent: var(--color-su-blue-light);
-  --accent-foreground: var(--color-su-black);
-  --destructive: rgb(220, 38, 38);
-  --destructive-foreground: white;
-  --border: var(--color-su-grey-light);
-  --input: var(--color-su-input-bg);
-  --input-foreground: var(--color-su-input-text);
-  --ring: var(--color-su-orange);
-  --radius: 0.5rem;
 }
 
 /* === Expansion Source Effects === */
-/* All effects use background:inherit / background-color:inherit so they
-   match the header/footer color of whatever entity they're applied to. */
+/* Textural overlays contained within header/footer boundaries.
+   All use ::after pseudo-elements with inset:0 so they never bleed into content. */
 
-/* We Were Here First! - Beast Fangs (clip-path, inherits bg color)
-   Dense, thin teeth with organic variation */
-.expansion-fangs-down {
+/* We Were Here First! — Beast claw-scratch crosshatch
+   4 gradient layers: primary gouges, crossing slashes, erratic shallow drags,
+   and a single stray deep mark. Darker tones and higher opacity for a more
+   monstrous, inconsistent feel. Asymmetric inner shadows suggest organic damage. */
+.expansion-beast-texture {
   position: relative;
+  box-shadow:
+    inset 2px 1px 0 1px rgba(25, 20, 10, 0.14),
+    inset -1px 3px 0 1px rgba(25, 20, 10, 0.08),
+    inset 0 0 0 4px rgba(25, 20, 10, 0.04);
 }
-.expansion-fangs-down::after {
+.expansion-beast-texture::after {
   content: '';
   position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 8px;
-  background: inherit;
-  clip-path: polygon(
-    0% 0%,
-    3% 0%,
-    3% 80%,
-    4% 0%,
-    5.5% 100%,
-    7% 0%,
-    8% 45%,
-    9% 0%,
-    10% 70%,
-    11% 0%,
-    12.5% 90%,
-    14% 0%,
-    15% 55%,
-    16% 0%,
-    17% 100%,
-    18% 0%,
-    19% 40%,
-    20% 0%,
-    21% 75%,
-    22% 0%,
-    23.5% 95%,
-    25% 0%,
-    26% 50%,
-    27% 0%,
-    28% 85%,
-    29% 0%,
-    30% 60%,
-    31% 0%,
-    32.5% 100%,
-    34% 0%,
-    35% 45%,
-    36% 0%,
-    37% 70%,
-    38% 0%,
-    39.5% 90%,
-    41% 0%,
-    42% 55%,
-    43% 0%,
-    44% 100%,
-    45% 0%,
-    46% 35%,
-    47% 0%,
-    48% 80%,
-    49% 0%,
-    50.5% 95%,
-    52% 0%,
-    53% 50%,
-    54% 0%,
-    55% 75%,
-    56% 0%,
-    57% 60%,
-    58% 0%,
-    59.5% 100%,
-    61% 0%,
-    62% 40%,
-    63% 0%,
-    64% 85%,
-    65% 0%,
-    66.5% 90%,
-    68% 0%,
-    69% 55%,
-    70% 0%,
-    71% 100%,
-    72% 0%,
-    73% 45%,
-    74% 0%,
-    75% 70%,
-    76% 0%,
-    77.5% 95%,
-    79% 0%,
-    80% 60%,
-    81% 0%,
-    82% 80%,
-    83% 0%,
-    84.5% 100%,
-    86% 0%,
-    87% 50%,
-    88% 0%,
-    89% 75%,
-    90% 0%,
-    91% 90%,
-    92% 0%,
-    93.5% 65%,
-    95% 0%,
-    96% 85%,
-    97% 0%,
-    98% 55%,
-    99% 0%,
-    100% 0%
+  inset: 0;
+  background-image:
+    /* Primary gouges — 3 thick parallel gashes, steep NE→SW */
+    repeating-linear-gradient(
+      -52deg,
+      transparent 0px,
+      transparent 14px,
+      rgba(25, 20, 10, 0.12) 14px,
+      rgba(25, 20, 10, 0.14) 17px,
+      transparent 17px,
+      transparent 19px,
+      rgba(25, 20, 10, 0.1) 19px,
+      rgba(25, 20, 10, 0.12) 22px,
+      transparent 22px,
+      transparent 25px,
+      rgba(25, 20, 10, 0.08) 25px,
+      rgba(25, 20, 10, 0.1) 27px,
+      transparent 27px,
+      transparent 48px
+    ),
+    /* Crossing slashes — thinner marks at different rhythm, NW→SE */
+    repeating-linear-gradient(
+        44deg,
+        transparent 0px,
+        transparent 22px,
+        rgba(25, 20, 10, 0.07) 22px,
+        rgba(25, 20, 10, 0.09) 24px,
+        transparent 24px,
+        transparent 27px,
+        rgba(25, 20, 10, 0.05) 27px,
+        rgba(25, 20, 10, 0.07) 28.5px,
+        transparent 28.5px,
+        transparent 55px
+      ),
+    /* Erratic scratches — shallow near-horizontal drag marks */
+    repeating-linear-gradient(
+        -12deg,
+        transparent 0px,
+        transparent 32px,
+        rgba(25, 20, 10, 0.04) 32px,
+        rgba(25, 20, 10, 0.06) 33.5px,
+        transparent 33.5px,
+        transparent 38px,
+        rgba(25, 20, 10, 0.03) 38px,
+        rgba(25, 20, 10, 0.05) 39px,
+        transparent 39px,
+        transparent 70px
+      ),
+    /* Stray deep mark — single thick steep slash */
+    repeating-linear-gradient(
+        -78deg,
+        transparent 0px,
+        transparent 40px,
+        rgba(25, 20, 10, 0.1) 40px,
+        rgba(25, 20, 10, 0.13) 44px,
+        transparent 44px,
+        transparent 120px
+      );
+  pointer-events: none;
+}
+
+/* Rainmaker — Driving rain streaks
+   Steep diagonal lines at ~78° like wind-driven rain, varying thickness.
+   Subtle inner shadow at bottom edge for a wet/pooling feel. */
+.expansion-rain-texture {
+  position: relative;
+  box-shadow: inset 0 -3px 6px -2px rgba(0, 0, 0, 0.12);
+}
+.expansion-rain-texture::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    -78deg,
+    transparent 0px,
+    transparent 6px,
+    rgba(255, 255, 255, 0.12) 6px,
+    rgba(255, 255, 255, 0.12) 7px,
+    transparent 7px,
+    transparent 10px,
+    rgba(255, 255, 255, 0.08) 10px,
+    rgba(255, 255, 255, 0.08) 10.5px,
+    transparent 10.5px,
+    transparent 18px
   );
-  transform: translateY(100%);
   pointer-events: none;
-  z-index: 10;
 }
 
-.expansion-fangs-up {
+/* Mech Monday — CRT scanlines
+   Horizontal bands like an old monitor. Tight 1px lines every 3px.
+   Double-line inner border with gap for a digital display frame. */
+.expansion-scanline-texture {
   position: relative;
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.2),
+    inset 0 0 0 3px transparent,
+    inset 0 0 0 4px rgba(0, 0, 0, 0.08);
 }
-.expansion-fangs-up::before {
+.expansion-scanline-texture::after {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 8px;
-  background: inherit;
-  clip-path: polygon(
-    0% 100%,
-    3% 100%,
-    3% 20%,
-    4% 100%,
-    5.5% 0%,
-    7% 100%,
-    8% 55%,
-    9% 100%,
-    10% 30%,
-    11% 100%,
-    12.5% 10%,
-    14% 100%,
-    15% 45%,
-    16% 100%,
-    17% 0%,
-    18% 100%,
-    19% 60%,
-    20% 100%,
-    21% 25%,
-    22% 100%,
-    23.5% 5%,
-    25% 100%,
-    26% 50%,
-    27% 100%,
-    28% 15%,
-    29% 100%,
-    30% 40%,
-    31% 100%,
-    32.5% 0%,
-    34% 100%,
-    35% 55%,
-    36% 100%,
-    37% 30%,
-    38% 100%,
-    39.5% 10%,
-    41% 100%,
-    42% 45%,
-    43% 100%,
-    44% 0%,
-    45% 100%,
-    46% 65%,
-    47% 100%,
-    48% 20%,
-    49% 100%,
-    50.5% 5%,
-    52% 100%,
-    53% 50%,
-    54% 100%,
-    55% 25%,
-    56% 100%,
-    57% 40%,
-    58% 100%,
-    59.5% 0%,
-    61% 100%,
-    62% 60%,
-    63% 100%,
-    64% 15%,
-    65% 100%,
-    66.5% 10%,
-    68% 100%,
-    69% 45%,
-    70% 100%,
-    71% 0%,
-    72% 100%,
-    73% 55%,
-    74% 100%,
-    75% 30%,
-    76% 100%,
-    77.5% 5%,
-    79% 100%,
-    80% 40%,
-    81% 100%,
-    82% 20%,
-    83% 100%,
-    84.5% 0%,
-    86% 100%,
-    87% 50%,
-    88% 100%,
-    89% 25%,
-    90% 100%,
-    91% 10%,
-    92% 100%,
-    93.5% 35%,
-    95% 100%,
-    96% 15%,
-    97% 100%,
-    98% 45%,
-    99% 100%,
-    100% 100%
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.06) 0px,
+    rgba(0, 0, 0, 0.06) 1px,
+    transparent 1px,
+    transparent 3px
   );
-  transform: translateY(-100%);
   pointer-events: none;
-  z-index: 10;
 }
 
-/* Rainmaker - Falling Raindrops (SVG mask + inherited bg color) */
-.expansion-rain-down {
-  position: relative;
-}
-.expansion-rain-down::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 10px;
-  background-color: inherit;
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='10'%3E%3Crect x='2' y='0' width='3' height='7' fill='white'/%3E%3Crect x='9' y='0' width='2.5' height='5' fill='white'/%3E%3Crect x='16' y='0' width='3.5' height='9' fill='white'/%3E%3Crect x='24' y='0' width='2.5' height='6' fill='white'/%3E%3Crect x='31' y='0' width='3' height='4' fill='white'/%3E%3Crect x='38' y='0' width='2.5' height='8' fill='white'/%3E%3Crect x='46' y='0' width='3' height='5' fill='white'/%3E%3Crect x='53' y='0' width='3.5' height='10' fill='white'/%3E%3Crect x='61' y='0' width='2.5' height='4' fill='white'/%3E%3Crect x='68' y='0' width='3' height='7' fill='white'/%3E%3Crect x='76' y='0' width='3.5' height='9' fill='white'/%3E%3Crect x='84' y='0' width='2.5' height='5' fill='white'/%3E%3Crect x='91' y='0' width='3' height='6' fill='white'/%3E%3C/svg%3E");
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='10'%3E%3Crect x='2' y='0' width='3' height='7' fill='white'/%3E%3Crect x='9' y='0' width='2.5' height='5' fill='white'/%3E%3Crect x='16' y='0' width='3.5' height='9' fill='white'/%3E%3Crect x='24' y='0' width='2.5' height='6' fill='white'/%3E%3Crect x='31' y='0' width='3' height='4' fill='white'/%3E%3Crect x='38' y='0' width='2.5' height='8' fill='white'/%3E%3Crect x='46' y='0' width='3' height='5' fill='white'/%3E%3Crect x='53' y='0' width='3.5' height='10' fill='white'/%3E%3Crect x='61' y='0' width='2.5' height='4' fill='white'/%3E%3Crect x='68' y='0' width='3' height='7' fill='white'/%3E%3Crect x='76' y='0' width='3.5' height='9' fill='white'/%3E%3Crect x='84' y='0' width='2.5' height='5' fill='white'/%3E%3Crect x='91' y='0' width='3' height='6' fill='white'/%3E%3C/svg%3E");
-  -webkit-mask-repeat: repeat-x;
-  mask-repeat: repeat-x;
-  -webkit-mask-size: 100px 10px;
-  mask-size: 100px 10px;
-  transform: translateY(100%);
-  pointer-events: none;
-  z-index: 10;
+/* === Expansion Card-Level Shadows ===
+   Each replaces the default shadow-lg on the outer card wrapper. */
+
+/* We Were Here First! — heavy asymmetric organic shadow */
+.expansion-beast-card {
+  box-shadow:
+    3px 5px 10px -2px rgba(25, 20, 10, 0.35),
+    -2px 3px 8px -3px rgba(25, 20, 10, 0.2),
+    0 1px 3px 0 rgba(25, 20, 10, 0.12);
 }
 
-/* Rainmaker footer - content-colored drops falling into the footer */
-.expansion-rain-into-footer {
-  position: relative;
-}
-.expansion-rain-into-footer::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 10px;
-  background-color: var(--background);
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='10'%3E%3Crect x='2' y='0' width='3' height='7' fill='white'/%3E%3Crect x='9' y='0' width='2.5' height='5' fill='white'/%3E%3Crect x='16' y='0' width='3.5' height='9' fill='white'/%3E%3Crect x='24' y='0' width='2.5' height='6' fill='white'/%3E%3Crect x='31' y='0' width='3' height='4' fill='white'/%3E%3Crect x='38' y='0' width='2.5' height='8' fill='white'/%3E%3Crect x='46' y='0' width='3' height='5' fill='white'/%3E%3Crect x='53' y='0' width='3.5' height='10' fill='white'/%3E%3Crect x='61' y='0' width='2.5' height='4' fill='white'/%3E%3Crect x='68' y='0' width='3' height='7' fill='white'/%3E%3Crect x='76' y='0' width='3.5' height='9' fill='white'/%3E%3Crect x='84' y='0' width='2.5' height='5' fill='white'/%3E%3Crect x='91' y='0' width='3' height='6' fill='white'/%3E%3C/svg%3E");
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='10'%3E%3Crect x='2' y='0' width='3' height='7' fill='white'/%3E%3Crect x='9' y='0' width='2.5' height='5' fill='white'/%3E%3Crect x='16' y='0' width='3.5' height='9' fill='white'/%3E%3Crect x='24' y='0' width='2.5' height='6' fill='white'/%3E%3Crect x='31' y='0' width='3' height='4' fill='white'/%3E%3Crect x='38' y='0' width='2.5' height='8' fill='white'/%3E%3Crect x='46' y='0' width='3' height='5' fill='white'/%3E%3Crect x='53' y='0' width='3.5' height='10' fill='white'/%3E%3Crect x='61' y='0' width='2.5' height='4' fill='white'/%3E%3Crect x='68' y='0' width='3' height='7' fill='white'/%3E%3Crect x='76' y='0' width='3.5' height='9' fill='white'/%3E%3Crect x='84' y='0' width='2.5' height='5' fill='white'/%3E%3Crect x='91' y='0' width='3' height='6' fill='white'/%3E%3C/svg%3E");
-  -webkit-mask-repeat: repeat-x;
-  mask-repeat: repeat-x;
-  -webkit-mask-size: 100px 10px;
-  mask-size: 100px 10px;
-  pointer-events: none;
-  z-index: 10;
+/* False Flag — Win95 hard drop shadow */
+.expansion-falseflag-card {
+  box-shadow:
+    3px 3px 0 0 rgba(0, 0, 0, 0.25),
+    0 1px 4px 0 rgba(0, 0, 0, 0.1);
 }
 
-/* Mech Monday - Digital Scanlines (pixel-dissolve edge, newsletter/screen feel) */
-.expansion-scanlines-down {
-  position: relative;
-}
-.expansion-scanlines-down::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 6px;
-  background-color: inherit;
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='6'%3E%3Crect x='0' y='0' width='8' height='1' fill='white'/%3E%3Crect x='0' y='2' width='5' height='1' fill='white'/%3E%3Crect x='6' y='2' width='2' height='1' fill='white'/%3E%3Crect x='0' y='4' width='2' height='1' fill='white'/%3E%3Crect x='4' y='4' width='1' height='1' fill='white'/%3E%3C/svg%3E");
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='6'%3E%3Crect x='0' y='0' width='8' height='1' fill='white'/%3E%3Crect x='0' y='2' width='5' height='1' fill='white'/%3E%3Crect x='6' y='2' width='2' height='1' fill='white'/%3E%3Crect x='0' y='4' width='2' height='1' fill='white'/%3E%3Crect x='4' y='4' width='1' height='1' fill='white'/%3E%3C/svg%3E");
-  -webkit-mask-repeat: repeat-x;
-  mask-repeat: repeat-x;
-  -webkit-mask-size: 8px 6px;
-  mask-size: 8px 6px;
-  transform: translateY(100%);
-  pointer-events: none;
-  z-index: 10;
+/* Rainmaker — deep storm diffusion */
+.expansion-rain-card {
+  box-shadow:
+    0 4px 16px -2px rgba(40, 55, 70, 0.3),
+    0 2px 6px -1px rgba(40, 55, 70, 0.15);
 }
 
-.expansion-scanlines-up {
-  position: relative;
-}
-.expansion-scanlines-up::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 6px;
-  background-color: inherit;
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='6'%3E%3Crect x='0' y='5' width='8' height='1' fill='white'/%3E%3Crect x='0' y='3' width='5' height='1' fill='white'/%3E%3Crect x='6' y='3' width='2' height='1' fill='white'/%3E%3Crect x='0' y='1' width='2' height='1' fill='white'/%3E%3Crect x='4' y='1' width='1' height='1' fill='white'/%3E%3C/svg%3E");
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='6'%3E%3Crect x='0' y='5' width='8' height='1' fill='white'/%3E%3Crect x='0' y='3' width='5' height='1' fill='white'/%3E%3Crect x='6' y='3' width='2' height='1' fill='white'/%3E%3Crect x='0' y='1' width='2' height='1' fill='white'/%3E%3Crect x='4' y='1' width='1' height='1' fill='white'/%3E%3C/svg%3E");
-  -webkit-mask-repeat: repeat-x;
-  mask-repeat: repeat-x;
-  -webkit-mask-size: 8px 6px;
-  mask-size: 8px 6px;
-  transform: translateY(-100%);
-  pointer-events: none;
-  z-index: 10;
+/* Mech Monday — subtle CRT phosphor glow */
+.expansion-scanline-card {
+  box-shadow:
+    0 0 8px 1px rgba(25, 55, 30, 0.18),
+    0 2px 8px -1px rgba(0, 0, 0, 0.2);
 }
 
 /* Mobile-first touch targets */

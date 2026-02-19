@@ -25,6 +25,7 @@ export const ContentTypeSchema = z.enum([
   'label',
   'datavalues',
   'hint',
+  'flavor',
 ])
 
 /**

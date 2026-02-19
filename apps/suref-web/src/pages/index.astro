@@ -1,6 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro'
-import { getSchemaCatalog, SalvageUnionReference, getEntityDisplayData } from 'salvageunion-reference'
+import { getSchemaCatalog, SalvageUnionReference, getReferenceEntityData } from 'salvageunion-reference'
 import type { SURefGuide } from 'salvageunion-reference'
 import { getCatalogBg, getCatalogLabel } from '../lib/catalogColors'
 
@@ -46,7 +46,7 @@ const categories: CatalogSection[] = catalogCategories.map((cat) => {
     return {
       label: cat.name.toUpperCase(),
       cards: items.map((item) => {
-        const display = getEntityDisplayData(item)
+        const display = getReferenceEntityData(item)
         return {
           id: item.id,
           href: `/schema/${schemaName}/item/${display.slug}`,

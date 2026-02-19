@@ -29,8 +29,7 @@ export const Text = forwardRef<HTMLElement, TextProps>(function Text(
   { variant, children, className, style, as: Tag = 'p', ...props },
   ref
 ) {
-  // Inline lineHeight overrides Chakra's @layer reset { * { font: inherit } }
-  // which can override Tailwind utility classes due to CSS layer ordering
+  // Inline lineHeight ensures pseudoheader variants always get lineHeight: 1
   const isPseudoheader = variant === 'pseudoheader' || variant === 'pseudoheaderInverse'
   const textStyle = isPseudoheader ? { lineHeight: 1, ...style } : style
   return (

@@ -12,7 +12,7 @@ Shared React component library consumed by both `suref-web` and `in-the-union-no
 ## Contents
 
 - **Theme:** Colors, recipes, design tokens
-- **Base typography:** `Heading`, `Text` components
+- **Base typography:** `Text` component
 - **UI primitives:** `Tooltip`, `Toaster`, `Modal`
 - **Entity display system:** ~30 files for rendering game data entities
 - **Shared components:** `Card`, `ValueDisplay`, `SheetDisplay`, `RollTable`, etc.
@@ -22,7 +22,7 @@ Shared React component library consumed by both `suref-web` and `in-the-union-no
 
 ## Entity Display System
 
-The entity display uses a **render prop pattern** (`classAbilitiesRenderer`) so consuming apps can inject app-specific renderers without the shared library knowing about app-specific concerns.
+The entity display uses **generic slot props** (`afterExtraContent`, `abilitiesSection`, `footerOverride`, etc.) so consuming apps can inject app-specific renderers without the shared library knowing about app-specific concerns. Schema-specific logic is extracted into helper hooks (`useChassisPatternConfig`) and utilities (`getClassSelections`) that return generic override props.
 
 ## Testing
 

@@ -1,13 +1,12 @@
 #!/usr/bin/env tsx
 /**
  * Generate JSON Schema files from Zod schemas
- * Uses zod-to-json-schema to convert Zod schemas to JSON Schema format
+ * Uses Zod 4 native z.toJSONSchema() to convert Zod schemas to JSON Schema format
  */
 
 import { writeFileSync, mkdirSync } from 'fs'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
-import { zodToJsonSchema } from 'zod-to-json-schema'
 import { z } from 'zod'
 import * as prettier from 'prettier'
 
@@ -50,7 +49,7 @@ const sharedDir = join(schemasDir, 'shared')
 mkdirSync(sharedDir, { recursive: true })
 
 // Schema mapping: schema ID -> Zod schema
-const entitySchemaMap: Record<string, z.ZodType<unknown>> = {
+const entitySchemaMap: Record<string, z.ZodType> = {
   abilities: AbilitySchema,
   'ability-tree-requirements': AbilityTreeRequirementSchema,
   actions: MetaActionSchema,
@@ -94,11 +93,10 @@ async function generateSchemas() {
     try {
       console.log(`Generating ${schemaId}...`)
 
-      // Convert Zod schema to JSON Schema
-      const jsonSchema = zodToJsonSchema(zodSchema, {
-        name: schemaId,
-        target: 'jsonSchema7',
-        strictUnions: false,
+      // Convert Zod schema to JSON Schema using Zod 4 native API
+      const itemSchema = z.toJSONSchema(zodSchema, {
+        target: 'draft-07',
+        unrepresentable: 'any',
       })
 
       // Wrap in array schema (all entity schemas are arrays)
@@ -106,9 +104,9 @@ async function generateSchemas() {
         $schema: 'http://json-schema.org/draft-07/schema#',
         $id: `https://salvageunion.com/schemas/${schemaIdToFilename(schemaId)}`,
         title: schemaId,
-        description: (jsonSchema as { description?: string })?.description || '',
+        description: (itemSchema as { description?: string })?.description || '',
         type: 'array' as const,
-        items: jsonSchema,
+        items: itemSchema,
       }
 
       // Format with Prettier using project config and write to file

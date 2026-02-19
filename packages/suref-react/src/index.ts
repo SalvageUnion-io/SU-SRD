@@ -1,50 +1,65 @@
-// Constants
-export {
-  TECH_LEVELS,
-  MAX_TECH_LEVEL,
-  getMaxTechLevel,
-  DEBOUNCE_TIMINGS,
-  SCRAP_CONVERSION_RATES,
-  UPKEEP_STEP,
-  MAX_UPGRADE,
-} from './constants/gameRules'
-export type { TechLevel } from './constants/gameRules'
-
 // Types
-export type { DataValue, ItemCondition } from './types/common'
-export type { ClassAbilitiesRenderer } from './components/entity/EntityDisplay/entityDisplayTypes'
+export type { DataValue } from './types/common'
+export type { PatternOverrideData } from './components/referenceEntity/ReferenceEntityDisplay/referenceEntityDisplayTypes'
+export type { ReferenceEntityControl } from './components/referenceEntity/ReferenceEntityDisplay/referenceEntityControlTypes'
+export type { DisplayCardTab } from './components/shared/DisplayCard'
 
 // Base typography
-export { Heading } from './components/base/Heading'
 export { Text } from './components/base/Text'
 
 // UI primitives
-export { Tooltip } from './components/ui/tooltip'
-export { toast, Toaster } from './components/ui/toaster'
+export { Toaster } from './components/ui/toaster'
 
 // Entity display system
-export { EntityDisplay } from './components/entity/EntityDisplay/index'
+export { ReferenceEntityDisplay } from './components/referenceEntity/ReferenceEntityDisplay/index'
+export { ReferenceEntityDisplayTooltip } from './components/referenceEntity/ReferenceEntityDisplayTooltip'
+export { SectionSeparator } from './components/referenceEntity/ReferenceEntityDisplay/SectionSeparator'
+export { ReferenceEntityChassisAbilitiesContent } from './components/referenceEntity/ReferenceEntityDisplay/ReferenceEntityChassisAbilitiesContent'
+export { ClassAbilityTreeDisplay } from './components/referenceEntity/ClassAbilityTreeDisplay'
+export { NestedActionDisplay } from './components/referenceEntity/NestedActionDisplay'
+export { getReferenceEntitySpacing } from './components/referenceEntity/ReferenceEntityDisplay/referenceEntityDisplayTypes'
+
+// Entity controls
+export {
+  addControl,
+  deleteControl,
+  navigateControl,
+} from './components/referenceEntity/ReferenceEntityDisplay/referenceEntityControls'
+export { DetailIcon } from './components/referenceEntity/ReferenceEntityDisplay/DetailIcon'
+export { useDetailModal } from './components/referenceEntity/ReferenceEntityDisplay/useDetailModal'
+export { useChassisPatternConfig } from './components/referenceEntity/ReferenceEntityDisplay/useChassisPatternConfig'
+export { getClassSelections } from './components/referenceEntity/ReferenceEntityDisplay/classSelectionUtils'
 
 // Shared components
-export { Card } from './components/shared/Card'
+export { CardImage } from './components/shared/CardImage'
+export { DisplayCard } from './components/shared/DisplayCard'
+export { Footer } from './components/shared/Footer'
 export { ValueDisplay } from './components/shared/ValueDisplay'
 export { StatDisplay } from './components/shared/StatDisplay'
-export { ActivationCostBox } from './components/shared/ActivationCostBox'
-export { LevelDisplay } from './components/shared/LevelDisplay'
-export { SheetDisplay } from './components/shared/SheetDisplay'
-export { SheetInput } from './components/shared/SheetInput'
 export { RollTable } from './components/shared/RollTable'
-export { ResourceStepper } from './components/shared/ResourceStepper'
-export { ResourceBar } from './components/shared/ResourceBar'
-export { HeatBar } from './components/shared/HeatBar'
-export { InlineEdit } from './components/shared/InlineEdit'
-export { RollResult } from './components/shared/RollResult'
-export { ConditionControl } from './components/shared/ConditionControl'
-export { ActionFilterChips } from './components/shared/ActionFilterChips'
+export { FilterChip } from './components/shared/FilterChip'
+export { ControlButtons } from './components/shared/ControlButtons'
+export { CardHeader } from './components/shared/CardHeader'
+export { TECH_LEVEL_STYLES, techLevelLabel } from './components/shared/techLevelStyles'
 
 // Skeletons
-export { EntityCardSkeleton } from './components/skeleton/EntityCardSkeleton'
+export { ReferenceEntityCardSkeleton } from './components/skeleton/ReferenceEntityCardSkeleton'
 
-// Utilities
-export { getEntitySlug } from './utils/slug'
-export { cn } from './utils/cn'
+// Guide display system
+export type {
+  GuideStepsInteractiveConfig,
+  GuideStepRollState,
+} from './components/referenceEntity/GuideStepsDisplay'
+export { BlockContentRendererView } from './components/referenceEntity/BlockContentRendererView'
+export { matchesFilter, enrichForFiltering } from './components/referenceEntity/guideStepsHelpers'
+export {
+  borderColorFromHeaderBg,
+  calculateBackgroundColor,
+  getSourceBorderColor,
+} from './components/referenceEntity/referenceEntityHelpers'
+export {
+  extractReferenceEntityDetails,
+  getActivationCurrency,
+} from './lib/referenceEntityDataExtraction'
+export { DataValueDisplayView } from './components/referenceEntity/DataValueDisplayView'
+export { techLevelColors } from './components/referenceEntity/ReferenceEntityDisplay/useReferenceEntityDisplayState'

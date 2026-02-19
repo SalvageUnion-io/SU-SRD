@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { createRootRoute, Outlet, Scripts, HeadContent } from '@tanstack/react-router'
 import { QueryClientProvider } from '@tanstack/react-query'
-import { Toaster } from 'sonner'
+import { Toaster } from 'suref-react'
 import { queryClient } from '../lib/queryClient'
 import { useAuthStore } from '../stores/authStore'
 import { ErrorFallback } from '../components/shared/ErrorFallback'
@@ -30,7 +30,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
   }, [initialize])
 
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -48,10 +48,13 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         />
         <HeadContent />
       </head>
-      <body className="min-h-dvh bg-[var(--background)] font-mono text-[var(--foreground)] antialiased">
+      <body
+        className="min-h-dvh bg-[var(--background)] font-mono text-[var(--foreground)] antialiased"
+        suppressHydrationWarning
+      >
         <QueryClientProvider client={queryClient}>
           {children}
-          <Toaster position="bottom-center" richColors />
+          <Toaster />
         </QueryClientProvider>
         <Scripts />
       </body>

@@ -1,7 +1,9 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { resultForTable, resultForColumnsTable, isColumnsTable } from 'salvageunion-reference'
 import type { SURefObjectTable, SURefObjectTableContent } from 'salvageunion-reference'
 import { roll } from '@randsum/roller'
+import { Copy } from 'lucide-react'
+import { toast } from 'sonner'
 import { useParseTraitReferences } from '../../utils/parseTraitReferences'
 import { Text } from '../base/Text'
 import { cn } from '../../utils/cn'
@@ -27,6 +29,8 @@ type RollTableDisplayProps = {
   disabled?: boolean
   compact?: boolean
   tableName?: string
+  /** Called with the result text when the built-in roll button is used */
+  onRollResult?: (text: string) => void
 }
 
 function digestRollTable(table: RollTableType): DigestedRollTable[] {
@@ -101,6 +105,78 @@ function RollTableDescription({
   )
 }
 
+const DiceIcon = ({ compact }: { compact?: boolean }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    height={compact ? '14' : '16'}
+    viewBox="0 -960 960 960"
+    width={compact ? '14' : '16'}
+    fill="currentColor"
+    aria-hidden="true"
+  >
+    <path d="M240-120q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm480 0q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35ZM240-600q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm240 240q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm240-240q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Z" />
+  </svg>
+)
+
+function ResultActionBar({
+  compact,
+  resultText,
+  onReroll,
+}: {
+  compact?: boolean
+  resultText: string
+  onReroll: () => void
+}) {
+  const handleCopy = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation()
+      navigator.clipboard.writeText(resultText).then(() => {
+        toast.success('Copied', { id: 'clipboard-copy', duration: 1500 })
+      })
+    },
+    [resultText]
+  )
+
+  const handleReroll = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation()
+      onReroll()
+    },
+    [onReroll]
+  )
+
+  return (
+    <div
+      className={cn(
+        'absolute bottom-[-26px] left-1/2 z-[2] flex -translate-x-1/2 items-center',
+        compact ? 'gap-0.5' : 'gap-1'
+      )}
+    >
+      <button
+        onClick={handleCopy}
+        className={cn(
+          'flex cursor-pointer items-center gap-1 border border-su-black bg-su-grey-light font-bold text-su-black hover:bg-su-grey-light/80',
+          compact ? 'px-2 text-xs' : 'px-3 text-sm'
+        )}
+        aria-label="Copy result to clipboard"
+      >
+        Copy
+        <Copy className={compact ? 'h-3 w-3' : 'h-3.5 w-3.5'} />
+      </button>
+      <button
+        onClick={handleReroll}
+        className={cn(
+          'flex cursor-pointer items-center gap-1 bg-su-black font-bold text-su-white hover:bg-brand-srd',
+          compact ? 'px-2 text-xs' : 'px-3 text-sm'
+        )}
+      >
+        Reroll
+        <DiceIcon compact={compact} />
+      </button>
+    </div>
+  )
+}
+
 const COLUMN_KEYS = ['1-4', '5-8', '9-12', '13-16', '17-20'] as const
 
 type ColumnsRollResult = {
@@ -123,6 +199,7 @@ function ColumnsRollTable({
   table,
   showCommand = false,
   tableName,
+  onRollResult,
 }: RollTableDisplayProps) {
   const [result, setResult] = useState<ColumnsRollResult | null>(null)
   const [rollAnnouncement, setRollAnnouncement] = useState('')
@@ -150,6 +227,7 @@ function ColumnsRollTable({
           value: res.result.value,
         })
         setRollAnnouncement(`Column ${res.columnKey}, Roll ${res.entryKey}: ${res.result.value}`)
+        onRollResult?.(res.result.value)
       }
     }, 300)
   }
@@ -185,23 +263,14 @@ function ColumnsRollTable({
               aria-label="Roll on this table"
               title="Roll on this table"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                height={compact ? '16' : '20'}
-                viewBox="0 -960 960 960"
-                width={compact ? '16' : '20'}
-                fill="currentColor"
-                aria-hidden="true"
-              >
-                <path d="M240-120q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm480 0q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35ZM240-600q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm240 240q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm240-240q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Z" />
-              </svg>
+              <DiceIcon compact={false} />
             </button>
           )}
         </div>
       )}
 
       <div className="overflow-visible">
-        <table className="w-full border-collapse">
+        <table className="w-full border-collapse border-2 border-su-orange-light">
           <caption className="sr-only">{tableName || 'Columns roll table'}</caption>
           <thead>
             <tr>
@@ -258,28 +327,11 @@ function ColumnsRollTable({
                       >
                         <span className="font-bold">{entryNum}:</span> {entry?.value}
                         {isHighlighted && (
-                          <button
-                            onClick={(e: React.MouseEvent) => {
-                              e.stopPropagation()
-                              handleRoll()
-                            }}
-                            className={cn(
-                              'absolute bottom-[-26px] left-1/2 z-[2] flex -translate-x-1/2 cursor-pointer items-center gap-1 bg-su-black font-bold text-su-white hover:bg-brand-srd',
-                              compact ? 'px-2 text-xs' : 'px-3 text-sm'
-                            )}
-                          >
-                            Reroll
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              height={compact ? '14' : '16'}
-                              viewBox="0 -960 960 960"
-                              width={compact ? '14' : '16'}
-                              fill="currentColor"
-                              aria-hidden="true"
-                            >
-                              <path d="M240-120q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm480 0q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35ZM240-600q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm240 240q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm240-240q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Z" />
-                            </svg>
-                          </button>
+                          <ResultActionBar
+                            compact={compact}
+                            resultText={entry?.value ?? ''}
+                            onReroll={handleRoll}
+                          />
                         )}
                       </td>
                     )
@@ -307,6 +359,7 @@ function StandardRollTable({
   table,
   showCommand = false,
   tableName,
+  onRollResult,
 }: RollTableDisplayProps) {
   const digestedTable = digestRollTable(table)
   const [highlightedKey, setHighlightedKey] = useState<string | null>(null)
@@ -327,9 +380,11 @@ function StandardRollTable({
       setHighlightedKey(key)
       const entry = digestedTable.find((d) => d.key === key)
       if (entry) {
+        const text = entry.label ? `${entry.label}: ${entry.value}` : entry.value
         setRollAnnouncement(
           `Rolled ${key}: ${entry.label ? `${entry.label} - ` : ''}${entry.value}`
         )
+        onRollResult?.(text)
       }
     }, 300)
   }
@@ -367,21 +422,12 @@ function StandardRollTable({
                 aria-label="Roll on this table"
                 title="Roll on this table"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  height={compact ? '16' : '20'}
-                  viewBox="0 -960 960 960"
-                  width={compact ? '16' : '20'}
-                  fill="currentColor"
-                  aria-hidden="true"
-                >
-                  <path d="M240-120q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm480 0q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35ZM240-600q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm240 240q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm240-240q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Z" />
-                </svg>
+                <DiceIcon compact={false} />
               </button>
             )}
           </div>
         )}
-        <table className="w-full border-collapse">
+        <table className="w-full border-collapse border-2 border-su-orange-light">
           <caption className="sr-only">{tableName || 'Roll table'}</caption>
           <thead className="sr-only">
             <tr>
@@ -422,28 +468,11 @@ function StandardRollTable({
                 >
                   {isHighlighted && (
                     <td className="contents">
-                      <button
-                        onClick={(e: React.MouseEvent) => {
-                          e.stopPropagation()
-                          handleRoll()
-                        }}
-                        className={cn(
-                          'absolute bottom-[-26px] left-1/2 z-[2] flex -translate-x-1/2 cursor-pointer items-center gap-1 bg-su-black font-bold text-su-white hover:bg-brand-srd',
-                          compact ? 'px-2 text-xs' : 'px-3 text-sm'
-                        )}
-                      >
-                        Reroll
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          height={compact ? '14' : '16'}
-                          viewBox="0 -960 960 960"
-                          width={compact ? '14' : '16'}
-                          fill="currentColor"
-                          aria-hidden="true"
-                        >
-                          <path d="M240-120q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm480 0q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35ZM240-600q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm240 240q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm240-240q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Z" />
-                        </svg>
-                      </button>
+                      <ResultActionBar
+                        compact={compact}
+                        resultText={label ? `${label}: ${value}` : value}
+                        onReroll={handleRoll}
+                      />
                     </td>
                   )}
                   <th

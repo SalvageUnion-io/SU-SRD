@@ -1,16 +1,7 @@
-type SchemaCategory = { label: string; schemaIds: string[] }
-type ItemsFromCategory = { label: string; itemsFrom: string }
-
-export type CategoryEntry = SchemaCategory | ItemsFromCategory
-
-export function isItemsFromCategory(entry: CategoryEntry): entry is ItemsFromCategory {
-  return 'itemsFrom' in entry
-}
-
-export const schemaCategories: CategoryEntry[] = [
+export const schemaCategories = [
   { label: 'PILOT', schemaIds: ['classes', 'abilities', 'equipment'] },
   { label: 'MECH', schemaIds: ['chassis', 'systems', 'modules'] },
-  { label: 'CRAWLER', schemaIds: ['crawlers', 'crawler-bays', 'crawler-tech-levels'] },
+  { label: 'CRAWLER', schemaIds: ['crawlers', 'crawler-bays'] },
   {
     label: 'DENIZENS',
     schemaIds: [
@@ -24,9 +15,5 @@ export const schemaCategories: CategoryEntry[] = [
       'vehicles',
     ],
   },
-  {
-    label: 'REFERENCE',
-    schemaIds: ['distances', 'keywords', 'roll-tables', 'traits'],
-  },
-  { label: 'GUIDES', itemsFrom: 'guides' },
+  { label: 'RULES', schemaIds: ['distances', 'keywords', 'roll-tables', 'traits'] },
 ]

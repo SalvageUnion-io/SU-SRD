@@ -19,9 +19,21 @@
           ]
         },
         {
+          "id": "19f65af2-84ba-48f4-886f-e3847e257d23",
+          "name": "Description",
+          "choiceType": "freeform",
+          "content": [
+            {
+              "type": "paragraph",
+              "value": "A brief description of the NPC's appearance and personality."
+            }
+          ]
+        },
+        {
           "id": "c7e2b66a-6b62-446d-90ff-11873089bfe0",
           "name": "A.I. Personality",
           "choiceType": "permanent",
+          "rollTable": "A.I. Personality",
           "content": [
             {
               "type": "paragraph",
@@ -65,6 +77,17 @@
           ]
         },
         {
+          "id": "f416bd09-5ecd-45d4-9289-eb552ffa41e7",
+          "name": "Description",
+          "choiceType": "freeform",
+          "content": [
+            {
+              "type": "paragraph",
+              "value": "A brief description of the NPC's appearance and personality."
+            }
+          ]
+        },
+        {
           "id": "94e8204d-652c-47f4-93ca-271cebb16459",
           "name": "Keepsake",
           "choiceType": "freeform",
@@ -104,6 +127,10 @@
       ]
     },
     "actions": ["Improved Armour and Armaments"],
+    "mutations": [
+      { "type": "weapon_slots", "value": 1 },
+      { "type": "max_sp_bonus", "value": 5 }
+    ],
     "page": 216,
     "content": [
       {
@@ -128,6 +155,17 @@
             {
               "type": "paragraph",
               "value": "The name of the NPC."
+            }
+          ]
+        },
+        {
+          "id": "02895271-f9ff-40f2-bed1-4bc2965777e4",
+          "name": "Description",
+          "choiceType": "freeform",
+          "content": [
+            {
+              "type": "paragraph",
+              "value": "A brief description of the NPC's appearance and personality."
             }
           ]
         },
@@ -194,6 +232,17 @@
           ]
         },
         {
+          "id": "1c5311fb-5cac-4cf7-8642-11f3d64f5a68",
+          "name": "Description",
+          "choiceType": "freeform",
+          "content": [
+            {
+              "type": "paragraph",
+              "value": "A brief description of the NPC's appearance and personality."
+            }
+          ]
+        },
+        {
           "id": "235a2a03-b2f2-4fb3-8afb-a1e87155b4c6",
           "name": "Keepsake",
           "choiceType": "freeform",
@@ -248,6 +297,17 @@
             {
               "type": "paragraph",
               "value": "The name of the NPC."
+            }
+          ]
+        },
+        {
+          "id": "4c523002-9d55-4f59-b9f9-541407fd1bae",
+          "name": "Description",
+          "choiceType": "freeform",
+          "content": [
+            {
+              "type": "paragraph",
+              "value": "A brief description of the NPC's appearance and personality."
             }
           ]
         },

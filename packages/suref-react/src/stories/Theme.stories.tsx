@@ -47,19 +47,6 @@ const semanticColors: Record<string, string> = {
   crawler: 'var(--color-crawler)',
 }
 
-const heatColors: Record<string, string> = {
-  'heat-low': 'rgb(76, 175, 80)',
-  'heat-rising': 'rgb(255, 193, 7)',
-  'heat-critical': 'rgb(255, 152, 0)',
-  'heat-cap': 'rgb(244, 67, 54)',
-}
-
-const conditionColors: Record<string, string> = {
-  intact: 'rgb(76, 175, 80)',
-  damaged: 'rgb(255, 193, 7)',
-  destroyed: 'rgb(244, 67, 54)',
-}
-
 const rollColors: Record<string, string> = {
   'roll-cascade': 'rgb(244, 67, 54)',
   'roll-failure': 'rgb(255, 152, 0)',
@@ -71,22 +58,6 @@ const rollColors: Record<string, string> = {
 const cssVarMappings: Record<string, string> = {
   '--background': 'var(--color-su-white)',
   '--foreground': 'var(--color-su-black)',
-  '--card': 'var(--color-su-blue-light)',
-  '--card-foreground': 'var(--color-su-black)',
-  '--popover': 'var(--color-su-white)',
-  '--popover-foreground': 'var(--color-su-black)',
-  '--primary': 'var(--color-su-orange)',
-  '--primary-foreground': 'var(--color-su-white)',
-  '--secondary': 'var(--color-su-green)',
-  '--secondary-foreground': 'var(--color-su-white)',
-  '--muted': 'var(--color-su-blue-pale)',
-  '--muted-foreground': 'var(--color-su-grey-dark)',
-  '--accent': 'var(--color-su-blue-light)',
-  '--accent-foreground': 'var(--color-su-black)',
-  '--destructive': 'rgb(220, 38, 38)',
-  '--border': 'var(--color-su-grey-light)',
-  '--input': 'var(--color-su-input-bg)',
-  '--ring': 'var(--color-su-orange)',
 }
 
 function Swatch({ name, color }: { name: string; color: string }) {
@@ -196,8 +167,6 @@ export const SemanticColors: Story = () => (
     </h2>
 
     <ColorSection title="Entity Types" colors={semanticColors} />
-    <ColorSection title="Heat Severity" colors={heatColors} />
-    <ColorSection title="Item Condition" colors={conditionColors} />
     <ColorSection title="Roll Results" colors={rollColors} />
   </div>
 )

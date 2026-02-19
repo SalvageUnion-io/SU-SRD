@@ -1228,7 +1228,7 @@ export function isSystemOrModule(entity: SURefMetaEntity): entity is SURefSystem
  * @param entity - The entity to extract display name from
  * @returns The display name or name, or undefined if neither is present
  */
-export function getEntityDisplayName(entity: SURefMetaEntity): string | undefined {
+export function getReferenceEntityName(entity: SURefMetaEntity): string | undefined {
   // Check for displayName first (for actions)
   if ('displayName' in entity && typeof entity.displayName === 'string') {
     return entity.displayName
@@ -1659,6 +1659,18 @@ export function getGrants(entity: SURefMetaEntity): SURefObjectGrant[] | undefin
   }
 
   return undefined
+}
+
+/**
+ * Get required traits from an action
+ * @param action - The action to extract required traits from
+ * @returns Array of required trait type strings, or empty array if none
+ */
+export function getRequiredTraits(action: SURefMetaAction): string[] {
+  if ('requiredTraits' in action && Array.isArray(action.requiredTraits)) {
+    return action.requiredTraits as string[]
+  }
+  return []
 }
 
 /**

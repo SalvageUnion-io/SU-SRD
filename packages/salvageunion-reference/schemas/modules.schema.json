@@ -5,121 +5,136 @@
   "description": "",
   "type": "array",
   "items": {
-    "$ref": "#/definitions/modules",
-    "definitions": {
-      "modules": {
-        "type": "object",
-        "properties": {
-          "asset_url": { "type": "string", "format": "uri" },
-          "content": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "type": {
-                  "type": "string",
-                  "enum": ["paragraph", "heading", "list-item", "label", "datavalues", "hint"],
-                  "default": "paragraph"
-                },
-                "value": {
-                  "anyOf": [
-                    { "type": "string" },
-                    {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "label": { "type": ["string", "number"] },
-                          "value": { "type": ["string", "number"] },
-                          "type": { "type": "string" }
-                        },
-                        "required": ["label"],
-                        "additionalProperties": false
-                      },
-                      "description": "Array of data values when type is 'datavalues'"
-                    }
-                  ]
-                },
-                "label": { "type": "string" },
-                "level": { "type": "integer", "minimum": 1, "maximum": 6 },
-                "items": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {
+      "asset_url": { "type": "string", "format": "uri" },
+      "content": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "default": "paragraph",
+              "type": "string",
+              "enum": ["paragraph", "heading", "list-item", "label", "datavalues", "hint", "flavor"]
+            },
+            "value": {
+              "anyOf": [
+                { "type": "string" },
+                {
                   "type": "array",
                   "items": {
                     "type": "object",
                     "properties": {
-                      "type": {
-                        "$ref": "#/definitions/modules/properties/content/items/properties/type",
-                        "default": "paragraph"
-                      },
-                      "value": {
-                        "anyOf": [
-                          { "type": "string" },
-                          {
-                            "type": "array",
-                            "items": {
-                              "$ref": "#/definitions/modules/properties/content/items/properties/value/anyOf/1/items"
-                            },
-                            "description": "Array of data values when type is 'datavalues'"
-                          }
-                        ]
-                      },
-                      "label": { "type": "string" },
-                      "level": { "type": "integer", "minimum": 1, "maximum": 6 }
+                      "label": { "anyOf": [{ "type": "string" }, { "type": "number" }] },
+                      "value": { "anyOf": [{ "type": "string" }, { "type": "number" }] },
+                      "type": { "type": "string" }
                     },
+                    "required": ["label"],
                     "additionalProperties": false
-                  }
+                  },
+                  "description": "Array of data values when type is 'datavalues'"
                 }
-              },
-              "additionalProperties": false
+              ]
+            },
+            "label": { "type": "string" },
+            "level": { "type": "integer", "minimum": 1, "maximum": 6 },
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "default": "paragraph",
+                    "type": "string",
+                    "enum": [
+                      "paragraph",
+                      "heading",
+                      "list-item",
+                      "label",
+                      "datavalues",
+                      "hint",
+                      "flavor"
+                    ]
+                  },
+                  "value": {
+                    "anyOf": [
+                      { "type": "string" },
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "label": { "anyOf": [{ "type": "string" }, { "type": "number" }] },
+                            "value": { "anyOf": [{ "type": "string" }, { "type": "number" }] },
+                            "type": { "type": "string" }
+                          },
+                          "required": ["label"],
+                          "additionalProperties": false
+                        },
+                        "description": "Array of data values when type is 'datavalues'"
+                      }
+                    ]
+                  },
+                  "label": { "type": "string" },
+                  "level": { "type": "integer", "minimum": 1, "maximum": 6 }
+                },
+                "required": ["type"],
+                "additionalProperties": false
+              }
             }
           },
-          "id": { "type": "string" },
-          "indexable": { "type": "boolean", "default": true },
-          "blackMarket": { "type": "boolean", "default": false },
-          "name": { "type": "string", "minLength": 1 },
-          "source": {
-            "type": "string",
-            "enum": [
-              "Salvage Union Workshop Manual",
-              "Mech Monday",
-              "We Were Here First!",
-              "Rainmaker",
-              "False Flag"
-            ]
-          },
-          "page": { "type": "integer", "exclusiveMinimum": 0 },
-          "structurePoints": { "type": "integer", "minimum": 0 },
-          "energyPoints": { "$ref": "#/definitions/modules/properties/structurePoints" },
-          "heatCapacity": { "$ref": "#/definitions/modules/properties/structurePoints" },
-          "systemSlots": { "$ref": "#/definitions/modules/properties/structurePoints" },
-          "moduleSlots": { "$ref": "#/definitions/modules/properties/structurePoints" },
-          "cargoCapacity": { "$ref": "#/definitions/modules/properties/structurePoints" },
-          "techLevel": {
-            "anyOf": [
-              { "type": "integer", "minimum": 0 },
-              { "type": "string", "const": "B" },
-              { "type": "string", "const": "N" }
-            ]
-          },
-          "salvageValue": { "$ref": "#/definitions/modules/properties/structurePoints" },
-          "slotsRequired": { "$ref": "#/definitions/modules/properties/structurePoints" },
-          "recommended": { "type": "boolean" },
-          "count": { "$ref": "#/definitions/modules/properties/structurePoints" },
-          "actions": { "type": "array", "items": { "type": "string" } }
-        },
-        "required": [
-          "id",
-          "name",
-          "source",
-          "page",
-          "techLevel",
-          "salvageValue",
-          "slotsRequired",
-          "actions"
-        ],
-        "additionalProperties": false
-      }
+          "required": ["type"],
+          "additionalProperties": false
+        }
+      },
+      "id": { "type": "string" },
+      "indexable": { "default": true, "type": "boolean" },
+      "blackMarket": { "default": false, "type": "boolean" },
+      "name": { "type": "string", "minLength": 1 },
+      "source": {
+        "type": "string",
+        "enum": [
+          "Salvage Union Workshop Manual",
+          "Mech Monday",
+          "We Were Here First!",
+          "Rainmaker",
+          "False Flag"
+        ]
+      },
+      "page": { "type": "integer", "exclusiveMinimum": 0, "maximum": 9007199254740991 },
+      "structurePoints": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+      "energyPoints": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+      "heatCapacity": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+      "systemSlots": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+      "moduleSlots": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+      "cargoCapacity": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+      "techLevel": {
+        "anyOf": [
+          { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+          { "type": "string", "const": "B" },
+          { "type": "string", "const": "N" }
+        ]
+      },
+      "salvageValue": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+      "slotsRequired": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+      "recommended": { "type": "boolean" },
+      "count": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+      "actions": { "type": "array", "items": { "type": "string" } }
     },
-    "$schema": "http://json-schema.org/draft-07/schema#"
+    "required": [
+      "id",
+      "indexable",
+      "blackMarket",
+      "name",
+      "source",
+      "page",
+      "techLevel",
+      "salvageValue",
+      "slotsRequired",
+      "actions"
+    ],
+    "additionalProperties": false
   }
 }
