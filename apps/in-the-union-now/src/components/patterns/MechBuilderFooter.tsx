@@ -3,7 +3,6 @@ import { Button } from '../ui/button'
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '../ui/tooltip'
 import { SheetFooter } from '../shared/SheetFooter'
 import { actionButtonClasses } from '../shared/actionButtonClasses'
-import type { SaveStatus } from '../../hooks/useSaveStatus'
 import type { MechSourcePattern } from '../../lib/mechUtils'
 
 type MechBuilderFooterProps = {
@@ -12,7 +11,8 @@ type MechBuilderFooterProps = {
   startingMechMode: boolean
   canSave: boolean
   compact?: boolean
-  saveStatus?: SaveStatus
+  isDirty?: boolean
+  saveStatusText?: string
   isSaving?: boolean
   isDeleting?: boolean
   isCopying?: boolean
@@ -35,7 +35,8 @@ export function MechBuilderFooter({
   startingMechMode,
   canSave,
   compact,
-  saveStatus,
+  isDirty,
+  saveStatusText,
   isSaving,
   isDeleting,
   isCopying,
@@ -56,34 +57,35 @@ export function MechBuilderFooter({
   return (
     <SheetFooter
       compact={compact}
-      saveStatusText={saveStatus?.statusText}
+      saveStatusText={saveStatusText}
       leftContent={
-        !hideFooterToggles ? (
-          <>
-            <button
-              type="button"
-              onClick={onToggleVisible}
-              className={`flex cursor-pointer items-center gap-1 text-xs transition-colors hover:text-su-white ${visible ? 'text-su-white' : 'text-su-white/70'}`}
-              title={visible ? 'Pattern is visible' : 'Pattern is hidden'}
-            >
-              {visible ? <Eye className={toggleSize} /> : <EyeOff className={toggleSize} />}
-              <span>{visible ? 'Visible' : 'Hidden'}</span>
-            </button>
-            <button
-              type="button"
-              onClick={onToggleStartingMech}
-              className={`flex cursor-pointer items-center gap-1 text-xs transition-colors hover:text-su-white ${startingMechMode ? 'text-su-white' : 'text-su-white/70'}`}
-              title={startingMechMode ? 'Starting mech mode on' : 'Starting mech mode off'}
-            >
-              <Crosshair className={toggleSize} />
-              <span>Starting Mech</span>
-            </button>
-          </>
-        ) : undefined
-      }
-      rightContent={
         <>
-          {onDelete ? (
+          {!hideFooterToggles && (
+            <>
+              <button
+                type="button"
+                onClick={onToggleVisible}
+                className={`flex cursor-pointer items-center gap-1 text-xs transition-colors hover:text-su-white ${visible ? 'text-su-white' : 'text-su-white/70'}`}
+                title={visible ? 'Pattern is visible' : 'Pattern is hidden'}
+              >
+                {visible ? <Eye className={toggleSize} /> : <EyeOff className={toggleSize} />}
+                <span>{visible ? 'Visible' : 'Hidden'}</span>
+              </button>
+              <button
+                type="button"
+                onClick={onToggleStartingMech}
+                className={`flex cursor-pointer items-center gap-1 text-xs transition-colors hover:text-su-white ${startingMechMode ? 'text-su-white' : 'text-su-white/70'}`}
+                title={startingMechMode ? 'Starting mech mode on' : 'Starting mech mode off'}
+              >
+                <Crosshair className={toggleSize} />
+                <span>Starting Mech</span>
+              </button>
+            </>
+          )}
+          {!hideFooterToggles && (onDelete || onCopy) && (
+            <div className="mx-1 h-4 w-px bg-su-white/30" />
+          )}
+          {onDelete && (
             <button
               type="button"
               onClick={onDelete}
@@ -93,17 +95,7 @@ export function MechBuilderFooter({
               <Trash2 className={iconSize} />
               {isDeleting ? 'Deleting...' : 'Delete'}
             </button>
-          ) : onCancel ? (
-            <Button
-              variant="outline"
-              size="sm"
-              className="cursor-pointer"
-              onClick={onCancel}
-              disabled={isSaving}
-            >
-              Cancel
-            </Button>
-          ) : null}
+          )}
           {onCopy && (
             <button
               type="button"
@@ -151,12 +143,27 @@ export function MechBuilderFooter({
               {isSavingToPatterns ? 'Saving...' : 'Save to My Patterns'}
             </button>
           ) : null}
+        </>
+      }
+      rightContent={
+        <>
+          {onCancel && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="cursor-pointer"
+              onClick={onCancel}
+              disabled={isSaving}
+            >
+              Cancel
+            </Button>
+          )}
           {onSave && (
             <button
               type="button"
               onClick={onSave}
-              disabled={!canSave || isSaving}
-              className={actionButtonClasses('orange', compact)}
+              disabled={!canSave || (isDirty !== undefined && !isDirty) || isSaving}
+              className={actionButtonClasses('green', compact)}
             >
               <Save className={iconSize} />
               {isSaving ? 'Saving...' : 'Save'}

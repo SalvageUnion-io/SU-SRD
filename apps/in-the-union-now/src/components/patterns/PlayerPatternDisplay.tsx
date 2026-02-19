@@ -9,6 +9,7 @@ import { MechBuilderBody, ItemSlotSection } from './MechBuilderBody'
 import { MechBuilderFooter } from './MechBuilderFooter'
 import { MechBuilderModals } from './MechBuilderModals'
 import { DeleteConfirmDialog } from '../shared/DeleteConfirmDialog'
+import { DiscardChangesDialog } from '../shared/DiscardChangesDialog'
 import { patternToBuilderState } from '../../lib/builderUtils'
 import type { PatternEditConfig } from '../../hooks/usePatternSheet'
 import type { TypedPatternRow } from '../../types/common'
@@ -30,6 +31,7 @@ export function PlayerPatternDisplay({
 }: PlayerPatternDisplayProps) {
   const navigate = useNavigate()
   const [showDelete, setShowDelete] = useState(false)
+  const [showDiscard, setShowDiscard] = useState(false)
 
   const builder = useMechBuilderState({
     initialState: patternToBuilderState(pattern),
@@ -42,6 +44,20 @@ export function PlayerPatternDisplay({
 
   const defaultControls = useMemo(() => [navigateControl(handleNavigate)], [handleNavigate])
   const controls = controlsProp ?? (listing ? defaultControls : undefined)
+
+  const handleCancel = useCallback(() => {
+    if (editConfig?.isDirty) {
+      setShowDiscard(true)
+    } else {
+      editConfig?.onCancel()
+    }
+  }, [editConfig])
+
+  const handleDiscardConfirm = useCallback(() => {
+    builder.reset()
+    editConfig?.onCancel()
+    setShowDiscard(false)
+  }, [builder, editConfig])
 
   if (!builder.chassis) return null
 
@@ -78,13 +94,16 @@ export function PlayerPatternDisplay({
               visible={builder.state.visible}
               startingMechMode={builder.startingMechMode}
               canSave={builder.canSave}
-              saveStatus={editConfig?.saveStatus}
+              isDirty={editConfig?.isDirty}
+              isSaving={editConfig?.isSaving}
               isDeleting={editConfig?.isDeleting}
               isCopying={editConfig?.isCopying}
               onToggleVisible={builder.toggleVisible}
               onToggleStartingMech={() => builder.setStartingMechMode((v) => !v)}
               onDelete={() => setShowDelete(true)}
               onCopy={editConfig?.onCopy}
+              onSave={editConfig?.onSave}
+              onCancel={handleCancel}
             />
           )
         }
@@ -169,14 +188,21 @@ export function PlayerPatternDisplay({
       )}
 
       {editConfig && (
-        <DeleteConfirmDialog
-          open={showDelete}
-          onOpenChange={setShowDelete}
-          entityType="Pattern"
-          entityName={pattern.name}
-          onConfirm={editConfig.onDelete}
-          isDeleting={editConfig.isDeleting}
-        />
+        <>
+          <DeleteConfirmDialog
+            open={showDelete}
+            onOpenChange={setShowDelete}
+            entityType="Pattern"
+            entityName={pattern.name}
+            onConfirm={editConfig.onDelete}
+            isDeleting={editConfig.isDeleting}
+          />
+          <DiscardChangesDialog
+            open={showDiscard}
+            onOpenChange={setShowDiscard}
+            onConfirm={handleDiscardConfirm}
+          />
+        </>
       )}
     </>
   )

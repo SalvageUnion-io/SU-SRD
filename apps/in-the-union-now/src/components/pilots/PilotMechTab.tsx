@@ -249,7 +249,7 @@ function PilotMechTabInner({
         <MechBuilder
           initialState={initialState}
           onChange={setBuilderState}
-          saveStatus={saveStatus}
+          saveStatusText={saveStatus.statusText}
           compact={compact}
           stickyHeader={false}
           hideFooterToggles

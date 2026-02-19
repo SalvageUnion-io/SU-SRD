@@ -24,10 +24,11 @@ export function SectionSeparator({ label, fontSize, compact, children }: Section
       <Text variant="pseudoheader" className={cn(resolvedFontSize)}>
         {label}
       </Text>
-      {children ? (
-        <div className="flex shrink-0 items-center pl-2 pr-1">{children}</div>
-      ) : (
-        <div className="h-px flex-1 bg-su-grey-light" aria-hidden="true" />
+      <div className="h-px flex-1 bg-su-grey-light" aria-hidden="true" />
+      {children && (
+        <div className="absolute right-0 flex shrink-0 items-center bg-su-white pl-3">
+          {children}
+        </div>
       )}
     </div>
   )

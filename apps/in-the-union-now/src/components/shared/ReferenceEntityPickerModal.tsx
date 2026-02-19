@@ -220,7 +220,17 @@ export function ReferenceEntityPickerModal({
                     <ReferenceEntityDisplay
                       data={entity}
                       compact
-                      controls={isCurrent ? undefined : [addControl(() => handleSelect(id))]}
+                      controls={
+                        isCurrent
+                          ? undefined
+                          : [
+                              {
+                                ...addControl(() => handleSelect(id)),
+                                hidden: false,
+                                cardClick: false,
+                              },
+                            ]
+                      }
                     />
                   </div>
                 )

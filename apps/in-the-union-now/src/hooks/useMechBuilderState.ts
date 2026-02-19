@@ -65,6 +65,7 @@ type MechBuilderStateReturn = {
   handleModalSelect: (entityId: string) => void
   handlePatternSelect: (selection: SelectedPattern) => void
   handleSave: () => void
+  reset: () => void
 }
 
 export function useMechBuilderState({
@@ -78,6 +79,7 @@ export function useMechBuilderState({
   const [showPatternModal, setShowPatternModal] = useState(false)
   const [startingMechMode, setStartingMechMode] = useState(false)
   const isFirstStateChange = useRef(true)
+  const initialStateRef = useRef(initialState ?? emptyState)
 
   // Fire onChange on every state change after initial mount (autosave mode)
   useEffect(() => {
@@ -131,6 +133,11 @@ export function useMechBuilderState({
       onSave(input)
     }
   }, [state, capacity.isValid, onSave])
+
+  const reset = useCallback(() => {
+    isFirstStateChange.current = true
+    setState(initialStateRef.current)
+  }, [])
 
   function setName(name: string) {
     setState((s) => ({ ...s, name }))
@@ -221,6 +228,7 @@ export function useMechBuilderState({
     handleModalSelect,
     handlePatternSelect,
     handleSave,
+    reset,
   }
 }
 

@@ -1,12 +1,8 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { toast } from 'sonner'
-import { showSaveToast } from '../lib/toastUtils'
 import { useAuthStore } from '../stores/authStore'
 import { usePattern, useCreatePattern, useUpdatePattern, useDeletePattern } from './usePatterns'
-import { useAutosave } from './useAutosave'
-import { useSaveStatus } from './useSaveStatus'
-import type { SaveStatus } from './useSaveStatus'
 import { getEntityAccess } from '../lib/entityAccess'
 import { getErrorMessage } from '../lib/errors'
 import { patternToBuilderState, builderToCreateInput } from '../lib/builderUtils'
@@ -15,11 +11,13 @@ import type { BuilderState } from '../lib/builderUtils'
 export type PatternEditConfig = {
   canEdit: boolean
   readOnly: boolean
-  saveStatus: SaveStatus
-  builderState: BuilderState | null
   onBuilderChange: (s: BuilderState | null) => void
+  onSave: () => void
+  onCancel: () => void
   onCopy: () => void
   onDelete: () => void
+  isDirty: boolean
+  isSaving: boolean
   isCopying: boolean
   isDeleting: boolean
 }
@@ -34,32 +32,33 @@ export function usePatternSheet(patternId: string) {
   const [showDelete, setShowDelete] = useState(false)
   const [builderState, setBuilderState] = useState<BuilderState | null>(null)
 
-  const canAutosave = !!user && builderState !== null && builderToCreateInput(builderState) !== null
+  const isDirty = useMemo(() => {
+    if (!builderState || !pattern) return false
+    return JSON.stringify(builderState) !== JSON.stringify(patternToBuilderState(pattern))
+  }, [builderState, pattern])
 
-  const handleAutosave = useCallback(
-    (state: BuilderState | null) => {
-      if (!user || !state) return
-      const input = builderToCreateInput(state)
-      if (!input) return
+  const canSave = useMemo(() => {
+    if (!builderState) return false
+    return builderToCreateInput(builderState) !== null
+  }, [builderState])
 
-      updatePattern.mutate(
-        { patternId, input, userId: user.id },
-        {
-          onSuccess: () => showSaveToast(),
-          onError: (err) => toast.error(getErrorMessage(err)),
-        }
-      )
-    },
-    [user, patternId, updatePattern]
-  )
+  const handleSave = useCallback(() => {
+    if (!user || !builderState) return
+    const input = builderToCreateInput(builderState)
+    if (!input) return
 
-  useAutosave({
-    value: builderState,
-    onSave: handleAutosave,
-    enabled: canAutosave,
-  })
+    updatePattern.mutate(
+      { patternId, input, userId: user.id },
+      {
+        onSuccess: () => toast.success('Pattern saved'),
+        onError: (err) => toast.error(getErrorMessage(err)),
+      }
+    )
+  }, [user, builderState, patternId, updatePattern])
 
-  const saveStatus = useSaveStatus({ isSaving: updatePattern.isPending })
+  const handleCancel = useCallback(() => {
+    setBuilderState(null)
+  }, [])
 
   const access = pattern ? getEntityAccess(pattern, user?.id) : undefined
   const canEdit = access?.canView ? access.canEdit : false
@@ -100,11 +99,13 @@ export function usePatternSheet(patternId: string) {
     ? {
         canEdit,
         readOnly: !canEdit,
-        saveStatus,
-        builderState,
         onBuilderChange: setBuilderState,
+        onSave: handleSave,
+        onCancel: handleCancel,
         onCopy: handleCopy,
         onDelete: handleDelete,
+        isDirty,
+        isSaving: updatePattern.isPending,
         isCopying: createPattern.isPending,
         isDeleting: deletePattern.isPending,
       }
@@ -118,5 +119,6 @@ export function usePatternSheet(patternId: string) {
     editConfig,
     showDelete,
     setShowDelete,
+    canSave,
   }
 }

@@ -8,7 +8,6 @@ import { MechBuilderModals } from './MechBuilderModals'
 import type { BuilderState } from '../../lib/builderUtils'
 import type { CreatePatternInput, SelectedPattern } from '../../types/common'
 import type { MechSourcePattern } from '../../lib/mechUtils'
-import type { SaveStatus } from '../../hooks/useSaveStatus'
 
 type MechBuilderProps = {
   initialState?: BuilderState
@@ -16,9 +15,10 @@ type MechBuilderProps = {
   onSave?: (input: CreatePatternInput) => void
   onCancel?: () => void
   isSaving?: boolean
+  isDirty?: boolean
   // Autosave mode
   onChange?: (state: BuilderState) => void
-  saveStatus?: SaveStatus
+  saveStatusText?: string
   // Shared
   onDelete?: () => void
   onCopy?: () => void
@@ -44,8 +44,9 @@ export function MechBuilder({
   initialState,
   onSave,
   onCancel,
+  isDirty,
   onChange,
-  saveStatus,
+  saveStatusText,
   onDelete,
   onCopy,
   onSaveToPatterns,
@@ -99,7 +100,8 @@ export function MechBuilder({
               visible={builder.state.visible}
               startingMechMode={builder.startingMechMode}
               canSave={builder.canSave}
-              saveStatus={saveStatus}
+              isDirty={isDirty}
+              saveStatusText={saveStatusText}
               isSaving={isSaving}
               isDeleting={isDeleting}
               isCopying={isCopying}
