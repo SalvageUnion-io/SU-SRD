@@ -11,6 +11,7 @@ type MechBuilderFooterProps = {
   visible: boolean
   startingMechMode: boolean
   canSave: boolean
+  compact?: boolean
   saveStatus?: SaveStatus
   isSaving?: boolean
   isDeleting?: boolean
@@ -33,6 +34,7 @@ export function MechBuilderFooter({
   visible,
   startingMechMode,
   canSave,
+  compact,
   saveStatus,
   isSaving,
   isDeleting,
@@ -49,8 +51,11 @@ export function MechBuilderFooter({
   onSaveToPatterns,
   onViewPattern,
 }: MechBuilderFooterProps) {
+  const iconSize = compact ? 'h-3 w-3' : 'h-3.5 w-3.5'
+  const toggleSize = compact ? 'h-3.5 w-3.5' : 'h-4 w-4'
   return (
     <SheetFooter
+      compact={compact}
       saveStatusText={saveStatus?.statusText}
       leftContent={
         !hideFooterToggles ? (
@@ -58,19 +63,19 @@ export function MechBuilderFooter({
             <button
               type="button"
               onClick={onToggleVisible}
-              className={`flex cursor-pointer items-center gap-1.5 text-xs transition-colors hover:text-su-white ${visible ? 'text-su-white' : 'text-su-white/70'}`}
+              className={`flex cursor-pointer items-center gap-1 text-xs transition-colors hover:text-su-white ${visible ? 'text-su-white' : 'text-su-white/70'}`}
               title={visible ? 'Pattern is visible' : 'Pattern is hidden'}
             >
-              {visible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+              {visible ? <Eye className={toggleSize} /> : <EyeOff className={toggleSize} />}
               <span>{visible ? 'Visible' : 'Hidden'}</span>
             </button>
             <button
               type="button"
               onClick={onToggleStartingMech}
-              className={`flex cursor-pointer items-center gap-1.5 text-xs transition-colors hover:text-su-white ${startingMechMode ? 'text-su-white' : 'text-su-white/70'}`}
+              className={`flex cursor-pointer items-center gap-1 text-xs transition-colors hover:text-su-white ${startingMechMode ? 'text-su-white' : 'text-su-white/70'}`}
               title={startingMechMode ? 'Starting mech mode on' : 'Starting mech mode off'}
             >
-              <Crosshair className="h-4 w-4" />
+              <Crosshair className={toggleSize} />
               <span>Starting Mech</span>
             </button>
           </>
@@ -83,9 +88,9 @@ export function MechBuilderFooter({
               type="button"
               onClick={onDelete}
               disabled={isDeleting}
-              className={actionButtonClasses('rust')}
+              className={actionButtonClasses('rust', compact)}
             >
-              <Trash2 className="h-3.5 w-3.5" />
+              <Trash2 className={iconSize} />
               {isDeleting ? 'Deleting...' : 'Delete'}
             </button>
           ) : onCancel ? (
@@ -104,9 +109,9 @@ export function MechBuilderFooter({
               type="button"
               onClick={onCopy}
               disabled={isCopying}
-              className={actionButtonClasses('green')}
+              className={actionButtonClasses('green', compact)}
             >
-              <Copy className="h-3.5 w-3.5" />
+              <Copy className={iconSize} />
               {isCopying ? 'Copying...' : 'Copy'}
             </button>
           )}
@@ -117,7 +122,7 @@ export function MechBuilderFooter({
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <span className="flex items-center text-su-orange">
-                        <AlertTriangle className="h-4 w-4" />
+                        <AlertTriangle className={toggleSize} />
                       </span>
                     </TooltipTrigger>
                     <TooltipContent>
@@ -128,9 +133,9 @@ export function MechBuilderFooter({
                 <button
                   type="button"
                   onClick={onViewPattern}
-                  className={actionButtonClasses('green')}
+                  className={actionButtonClasses('green', compact)}
                 >
-                  <Eye className="h-3.5 w-3.5" />
+                  <Eye className={iconSize} />
                   View Pattern
                 </button>
               </div>
@@ -140,9 +145,9 @@ export function MechBuilderFooter({
               type="button"
               onClick={onSaveToPatterns}
               disabled={isSavingToPatterns}
-              className={actionButtonClasses('green')}
+              className={actionButtonClasses('green', compact)}
             >
-              <Save className="h-3.5 w-3.5" />
+              <Save className={iconSize} />
               {isSavingToPatterns ? 'Saving...' : 'Save to My Patterns'}
             </button>
           ) : null}
@@ -151,9 +156,9 @@ export function MechBuilderFooter({
               type="button"
               onClick={onSave}
               disabled={!canSave || isSaving}
-              className={actionButtonClasses('orange')}
+              className={actionButtonClasses('orange', compact)}
             >
-              <Save className="h-3.5 w-3.5" />
+              <Save className={iconSize} />
               {isSaving ? 'Saving...' : 'Save'}
             </button>
           )}

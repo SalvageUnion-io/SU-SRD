@@ -19,6 +19,8 @@ export type DisplayCardTab = {
   key: string
   label: string
   content: ReactNode
+  /** CSS color override for the active-tab background (defaults to header-derived tint) */
+  activeColor?: string
 }
 
 type DisplayCardProps = {
@@ -319,6 +321,9 @@ export function DisplayCard({
               </button>
               {tabs.map((tab) => {
                 const isActive = activeTabKey === tab.key
+                const tabBg = tab.activeColor
+                  ? `color-mix(in srgb, ${tab.activeColor} 35%, white)`
+                  : activeTabBg
                 return (
                   <button
                     key={tab.key}
@@ -331,7 +336,7 @@ export function DisplayCard({
                         ? 'text-su-black'
                         : 'bg-su-white text-su-black hover:bg-su-grey-light'
                     )}
-                    style={isActive && activeTabBg ? { backgroundColor: activeTabBg } : undefined}
+                    style={isActive && tabBg ? { backgroundColor: tabBg } : undefined}
                     onClick={() => setActiveTabKey(tab.key)}
                   >
                     {tab.label}

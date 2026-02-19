@@ -1,11 +1,11 @@
 import { useState, useCallback, useMemo } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { getAssetUrl } from 'salvageunion-reference'
-import { DisplayCard, navigateControl } from 'suref-react'
+import { DisplayCard, CardImage, navigateControl } from 'suref-react'
 import type { ReferenceEntityControl } from 'suref-react'
 import { useMechBuilderState } from '../../hooks/useMechBuilderState'
 import { MechBuilderHeader } from './MechBuilderHeader'
-import { MechBuilderBody } from './MechBuilderBody'
+import { MechBuilderBody, ItemSlotSection } from './MechBuilderBody'
 import { MechBuilderFooter } from './MechBuilderFooter'
 import { MechBuilderModals } from './MechBuilderModals'
 import { DeleteConfirmDialog } from '../shared/DeleteConfirmDialog'
@@ -54,29 +54,15 @@ export function PlayerPatternDisplay({
       <DisplayCard
         mode={mode}
         headerBg="bg-su-green"
-        bodyPadding="p-0"
+        bodyPadding="p-4"
         stickyHeader={!listing}
         controls={controls}
-        image={
-          listing
-            ? undefined
-            : {
-                url: builder.chassis ? getAssetUrl(builder.chassis) : undefined,
-                alt: builder.chassis?.name,
-                editable: readOnly
-                  ? undefined
-                  : {
-                      customUrl: builder.state.customImageUrl,
-                      onSetCustom: builder.setCustomImage,
-                    },
-              }
-        }
         headerContent={
           <MechBuilderHeader
             chassis={builder.chassis}
             name={builder.state.name}
             readOnly={readOnly}
-            compact={listing ? true : compact}
+            compact={compact}
             capacity={builder.capacity}
             salvageValue={builder.salvageValue}
             startingMechMode={builder.startingMechMode}
@@ -88,6 +74,7 @@ export function PlayerPatternDisplay({
         footerContent={
           listing || readOnly ? undefined : (
             <MechBuilderFooter
+              compact={compact}
               visible={builder.state.visible}
               startingMechMode={builder.startingMechMode}
               canSave={builder.canSave}
@@ -102,18 +89,67 @@ export function PlayerPatternDisplay({
           )
         }
       >
-        {/* Body: hidden in listing mode by DisplayCard */}
-        <MechBuilderBody
-          chassis={builder.chassis}
-          chassisAbilities={builder.chassisAbilities}
-          systemItems={builder.systemItems}
-          moduleItems={builder.moduleItems}
-          capacity={builder.capacity}
-          readOnly={readOnly}
-          compact={compact}
-          onRemoveItem={builder.removeItem}
-          onAddItem={builder.setModalTarget}
-        />
+        {/* Image + chassis abilities: vertically centered grid */}
+        {!listing && (
+          <div className="md:grid md:grid-cols-[auto_1fr] md:items-center">
+            <CardImage
+              url={builder.chassis ? getAssetUrl(builder.chassis) : undefined}
+              alt={builder.chassis?.name}
+              compact={compact}
+              editable={
+                readOnly
+                  ? undefined
+                  : {
+                      customUrl: builder.state.customImageUrl,
+                      onSetCustom: builder.setCustomImage,
+                    }
+              }
+            />
+            <MechBuilderBody
+              chassis={builder.chassis}
+              chassisAbilities={builder.chassisAbilities}
+              systemItems={builder.systemItems}
+              moduleItems={builder.moduleItems}
+              capacity={builder.capacity}
+              readOnly={readOnly}
+              compact={compact}
+              onRemoveItem={builder.removeItem}
+              onAddItem={builder.setModalTarget}
+              hideEquipment
+            />
+          </div>
+        )}
+        {/* Equipment grid: beneath the fold */}
+        <div>
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            <ItemSlotSection
+              label="Systems"
+              items={builder.systemItems}
+              slotsUsed={builder.capacity.systemSlotsUsed}
+              slotsTotal={builder.capacity.systemSlotsTotal}
+              slotType="systems"
+              readOnly={readOnly}
+              hasChassis={!!builder.chassis}
+              onRemove={builder.removeItem}
+              onAdd={builder.setModalTarget}
+              compact={compact}
+              showDetailButton
+            />
+            <ItemSlotSection
+              label="Modules"
+              items={builder.moduleItems}
+              slotsUsed={builder.capacity.moduleSlotsUsed}
+              slotsTotal={builder.capacity.moduleSlotsTotal}
+              slotType="modules"
+              readOnly={readOnly}
+              hasChassis={!!builder.chassis}
+              onRemove={builder.removeItem}
+              onAdd={builder.setModalTarget}
+              compact={compact}
+              showDetailButton
+            />
+          </div>
+        </div>
       </DisplayCard>
 
       {!listing && (

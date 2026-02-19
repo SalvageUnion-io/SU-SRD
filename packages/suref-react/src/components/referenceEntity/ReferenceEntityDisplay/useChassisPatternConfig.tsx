@@ -1,7 +1,11 @@
 import { useMemo } from 'react'
 import type { ReactNode } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
-import { normalizePatternName, getChassisAbilities } from 'salvageunion-reference'
+import {
+  normalizePatternName,
+  getChassisAbilities,
+  SalvageUnionReference,
+} from 'salvageunion-reference'
 import { cn } from '../../../utils/cn'
 import { Text } from '../../base/Text'
 import { BlockContentRendererView } from '../BlockContentRendererView'
@@ -17,6 +21,8 @@ import {
 } from './referenceEntityDisplayTypes'
 import type { PatternOverrideData, ReferenceEntityHideConfig } from './referenceEntityDisplayTypes'
 import { DataValueDisplayView } from '../DataValueDisplayView'
+import { SectionSeparator } from './SectionSeparator'
+import { PatternEquipmentItem } from './PatternEquipmentItem'
 
 type ChassisPatternConfig = {
   /** Override the title to the quoted pattern name */
@@ -62,6 +68,32 @@ export function useChassisPatternConfig(
     [data, patternOverride]
   )
   const chassisAbilities = useMemo(() => getChassisAbilities(data), [data])
+
+  const resolvedSystems = useMemo(
+    () =>
+      patternOverride
+        ? patternOverride.systems.flatMap((sys) => {
+            const found = SalvageUnionReference.Systems.find((s) => s.name === sys.name)
+            if (!found) return []
+            const count = sys.count ?? 1
+            return Array(count).fill(found) as SURefEntity[]
+          })
+        : [],
+    [patternOverride]
+  )
+
+  const resolvedModules = useMemo(
+    () =>
+      patternOverride
+        ? patternOverride.modules.flatMap((mod) => {
+            const found = SalvageUnionReference.Modules.find((m) => m.name === mod.name)
+            if (!found) return []
+            const count = mod.count ?? 1
+            return Array(count).fill(found) as SURefEntity[]
+          })
+        : [],
+    [patternOverride]
+  )
 
   if (!patternOverride) return null
 
@@ -138,13 +170,38 @@ export function useChassisPatternConfig(
       </div>
     ) : null
 
+  const hasSystems = resolvedSystems.length > 0
+  const hasModules = resolvedModules.length > 0
+
+  const afterExtraContent =
+    hasSystems || hasModules ? (
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        {hasSystems && (
+          <div className={spacing.smallSpaceYClass}>
+            <SectionSeparator label="Systems" fontSize="text-xs" />
+            {resolvedSystems.map((entity, idx) => (
+              <PatternEquipmentItem key={`pat-sys-${entity.id}-${idx}`} data={entity} />
+            ))}
+          </div>
+        )}
+        {hasModules && (
+          <div className={spacing.smallSpaceYClass}>
+            <SectionSeparator label="Modules" fontSize="text-xs" />
+            {resolvedModules.map((entity, idx) => (
+              <PatternEquipmentItem key={`pat-mod-${entity.id}-${idx}`} data={entity} />
+            ))}
+          </div>
+        )}
+      </div>
+    ) : null
+
   return {
     titleOverride,
     subtitleExtra,
     statsOverride,
     primaryStatsOnly,
     abilitiesSection,
-    afterExtraContent: null,
+    afterExtraContent,
     hide: { patterns: true },
   }
 }

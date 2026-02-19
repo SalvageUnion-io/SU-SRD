@@ -227,14 +227,14 @@ export function PlayerCrawlerDisplay({
       <DisplayCard
         stickyHeader={!listing}
         headerBg="bg-su-pink"
-        bodyPadding="p-0"
+        bodyPadding="p-4"
         mode={mode}
         headerContent={headerContent}
         controls={controls}
         footerContent={footerContent}
       >
         {!listing && crawler && editConfig && (
-          <div className="space-y-6 p-4">
+          <div className="space-y-6">
             <CrawlerPilotsSection crawlerId={crawler.id} />
 
             {crawlerType && (

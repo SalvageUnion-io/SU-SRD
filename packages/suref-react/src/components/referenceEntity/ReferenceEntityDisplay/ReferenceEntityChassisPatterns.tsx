@@ -45,13 +45,15 @@ function PatternListing({
     systems: pattern.systems,
     modules: pattern.modules,
   }
-  const patternConfig = useChassisPatternConfig(chassisEntity, patternOverride, true)
+  const listingConfig = useChassisPatternConfig(chassisEntity, patternOverride, true)
+  const modalConfig = useChassisPatternConfig(chassisEntity, patternOverride, false)
   const detailModal = useDetailModal(chassisEntity, {
-    titleOverride: patternConfig?.titleOverride,
-    subtitleExtra: patternConfig?.subtitleExtra,
-    statsOverride: patternConfig?.statsOverride,
+    titleOverride: modalConfig?.titleOverride,
+    subtitleExtra: modalConfig?.subtitleExtra,
+    statsOverride: modalConfig?.statsOverride,
     primaryStatsOnly: false,
-    abilitiesSection: patternConfig?.abilitiesSection,
+    abilitiesSection: modalConfig?.abilitiesSection,
+    afterExtraContent: modalConfig?.afterExtraContent,
     hide: { patterns: true },
   })
 
@@ -62,11 +64,11 @@ function PatternListing({
         listing
         compact
         hide={{ actions: true, patterns: true }}
-        titleOverride={patternConfig?.titleOverride}
-        subtitleExtra={patternConfig?.subtitleExtra}
-        statsOverride={patternConfig?.statsOverride}
-        primaryStatsOnly={patternConfig?.primaryStatsOnly}
-        abilitiesSection={patternConfig?.abilitiesSection}
+        titleOverride={listingConfig?.titleOverride}
+        subtitleExtra={listingConfig?.subtitleExtra}
+        statsOverride={listingConfig?.statsOverride}
+        primaryStatsOnly={listingConfig?.primaryStatsOnly}
+        abilitiesSection={listingConfig?.abilitiesSection}
         controls={[detailModal.control]}
       />
       {detailModal.modal}

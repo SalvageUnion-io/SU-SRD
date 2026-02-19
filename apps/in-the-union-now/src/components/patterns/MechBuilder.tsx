@@ -36,8 +36,6 @@ type MechBuilderProps = {
   onViewPattern?: () => void
   onPatternApplied?: (selection: SelectedPattern) => void
   userId?: string
-  /** Content rendered inside the card body above chassis abilities (e.g. pilot listing) */
-  pilotContent?: React.ReactNode
   /** Whether to make the DisplayCard header sticky (default: true) */
   stickyHeader?: boolean
 }
@@ -64,7 +62,6 @@ export function MechBuilder({
   onViewPattern,
   onPatternApplied,
   userId,
-  pilotContent,
   stickyHeader = true,
 }: MechBuilderProps) {
   const builder = useMechBuilderState({
@@ -79,18 +76,8 @@ export function MechBuilder({
       <DisplayCard
         stickyHeader={stickyHeader}
         headerBg="bg-su-green"
-        bodyPadding="p-0"
+        bodyPadding="p-4"
         mode={compact ? 'compact' : undefined}
-        image={{
-          url: builder.chassis ? getAssetUrl(builder.chassis) : undefined,
-          alt: builder.chassis?.name,
-          editable: readOnly
-            ? undefined
-            : {
-                customUrl: builder.state.customImageUrl,
-                onSetCustom: builder.setCustomImage,
-              },
-        }}
         headerContent={
           <MechBuilderHeader
             chassis={builder.chassis}
@@ -139,9 +126,18 @@ export function MechBuilder({
           capacity={builder.capacity}
           readOnly={readOnly}
           compact={compact}
-          pilotContent={pilotContent}
           onRemoveItem={builder.removeItem}
           onAddItem={builder.setModalTarget}
+          image={{
+            url: builder.chassis ? getAssetUrl(builder.chassis) : undefined,
+            alt: builder.chassis?.name,
+            editable: readOnly
+              ? undefined
+              : {
+                  customUrl: builder.state.customImageUrl,
+                  onSetCustom: builder.setCustomImage,
+                },
+          }}
         />
       </DisplayCard>
 

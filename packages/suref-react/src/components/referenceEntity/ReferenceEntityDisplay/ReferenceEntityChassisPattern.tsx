@@ -84,68 +84,65 @@ export function ReferenceEntityChassisPattern({ pattern }: ReferenceEntityChassi
       )}
       <div className="pt-2" />
 
-      {systems.length > 0 && (
-        <div className="space-y-2">
-          <SectionSeparator label="Systems" fontSize="text-xs" />
-          <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
-            {systems.map((system, idx) => (
-              <ReferenceEntityDisplay
-                key={`${system.entity.id}-${idx}`}
-                data={system.entity}
-                compact
-                listing
-              />
-            ))}
-          </div>
+      {(systems.length > 0 || modules.length > 0) && (
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          {systems.length > 0 && (
+            <div className="space-y-2">
+              <SectionSeparator label="Systems" fontSize="text-xs" />
+              {systems.map((system, idx) => (
+                <ReferenceEntityDisplay
+                  key={`${system.entity.id}-${idx}`}
+                  data={system.entity}
+                  compact
+                  listing
+                />
+              ))}
+            </div>
+          )}
+          {modules.length > 0 && (
+            <div className="space-y-2">
+              <SectionSeparator label="Modules" fontSize="text-xs" />
+              {modules.map((module, idx) => (
+                <ReferenceEntityDisplay
+                  key={`${module.entity.id}-${idx}`}
+                  data={module.entity}
+                  compact
+                  listing
+                />
+              ))}
+            </div>
+          )}
         </div>
       )}
-      {modules.length > 0 && systems.length > 0 && <div className="pt-4" />}
-      {modules.length > 0 && (
-        <div className="space-y-2">
-          <SectionSeparator label="Modules" fontSize="text-xs" />
-          <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
-            {modules.map((module, idx) => (
-              <ReferenceEntityDisplay
-                key={`${module.entity.id}-${idx}`}
-                data={module.entity}
-                compact
-                listing
-              />
-            ))}
-          </div>
-        </div>
-      )}
-      {(droneSystems.length > 0 || droneModules.length > 0) &&
-        (modules.length > 0 || systems.length > 0) && <div className="pt-4" />}
-      {droneSystems.length > 0 && (
-        <div className="space-y-2">
-          <SectionSeparator label="Drone Systems" fontSize="text-xs" />
-          <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
-            {droneSystems.map((system, idx) => (
-              <ReferenceEntityDisplay
-                key={`drone-sys-${system.id}-${idx}`}
-                data={system}
-                compact
-                listing
-              />
-            ))}
-          </div>
-        </div>
-      )}
-      {droneModules.length > 0 && droneSystems.length > 0 && <div className="pt-4" />}
-      {droneModules.length > 0 && (
-        <div className="space-y-2">
-          <SectionSeparator label="Drone Modules" fontSize="text-xs" />
-          <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
-            {droneModules.map((module, idx) => (
-              <ReferenceEntityDisplay
-                key={`drone-mod-${module.id}-${idx}`}
-                data={module}
-                compact
-                listing
-              />
-            ))}
-          </div>
+
+      {(droneSystems.length > 0 || droneModules.length > 0) && (
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          {droneSystems.length > 0 && (
+            <div className="space-y-2">
+              <SectionSeparator label="Drone Systems" fontSize="text-xs" />
+              {droneSystems.map((system, idx) => (
+                <ReferenceEntityDisplay
+                  key={`drone-sys-${system.id}-${idx}`}
+                  data={system}
+                  compact
+                  listing
+                />
+              ))}
+            </div>
+          )}
+          {droneModules.length > 0 && (
+            <div className="space-y-2">
+              <SectionSeparator label="Drone Modules" fontSize="text-xs" />
+              {droneModules.map((module, idx) => (
+                <ReferenceEntityDisplay
+                  key={`drone-mod-${module.id}-${idx}`}
+                  data={module}
+                  compact
+                  listing
+                />
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>

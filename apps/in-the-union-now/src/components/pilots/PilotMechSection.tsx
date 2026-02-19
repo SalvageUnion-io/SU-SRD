@@ -1,9 +1,5 @@
-import { useCallback, useMemo } from 'react'
 import { useNavigate } from '@tanstack/react-router'
-import type { SURefEntity } from 'salvageunion-reference'
-import { ReferenceEntityDisplay, useChassisPatternConfig } from 'suref-react'
-import type { ReferenceEntityControl } from 'suref-react'
-import { Plus, Wrench } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { Button } from '../ui/button'
 import { Skeleton } from '../ui/skeleton'
 import type { PilotRow } from '../../types/common'
@@ -13,7 +9,6 @@ type PilotMechSectionProps = {
   compact?: boolean
   readOnly?: boolean
   mech?: { id: string; pattern_name: string | null } | null
-  mechChassis?: SURefEntity
   mechLoading: boolean
 }
 
@@ -22,14 +17,9 @@ export function PilotMechSection({
   compact,
   readOnly,
   mech,
-  mechChassis,
   mechLoading,
 }: PilotMechSectionProps) {
   const navigate = useNavigate()
-
-  const handleNavigateToMechBay = useCallback(() => {
-    navigate({ to: '/pilots/$pilotId/mech-bay', params: { pilotId: pilot.id } })
-  }, [navigate, pilot.id])
 
   return (
     <div>
@@ -57,50 +47,11 @@ export function PilotMechSection({
         )
       ) : mechLoading ? (
         <Skeleton className="h-[40px] rounded-md" />
-      ) : mech && mechChassis ? (
-        <MechListing
-          mechChassis={mechChassis}
-          patternName={mech.pattern_name ?? 'Unnamed Mech'}
-          onNavigate={handleNavigateToMechBay}
-        />
+      ) : mech ? (
+        <p className={`${compact ? 'text-xs' : 'text-sm'} text-su-grey-dark`}>
+          Mech loaded — switch to the Mech tab.
+        </p>
       ) : null}
     </div>
-  )
-}
-
-export function MechListing({
-  mechChassis,
-  patternName,
-  onNavigate,
-}: {
-  mechChassis: SURefEntity
-  patternName: string
-  onNavigate: () => void
-}) {
-  const patternOverride = useMemo(
-    () => ({ name: patternName, systems: [] as [], modules: [] as [] }),
-    [patternName]
-  )
-  const patternConfig = useChassisPatternConfig(mechChassis, patternOverride, true)
-
-  return (
-    <ReferenceEntityDisplay
-      data={mechChassis}
-      listing
-      compact
-      titleOverride={patternConfig?.titleOverride}
-      subtitleExtra={patternConfig?.subtitleExtra}
-      statsOverride={patternConfig?.statsOverride}
-      primaryStatsOnly={patternConfig?.primaryStatsOnly}
-      controls={[
-        {
-          key: 'mech-bay',
-          icon: Wrench,
-          onClick: onNavigate,
-          ariaLabel: 'Open Mech Bay',
-          variant: 'ghost' as const,
-        } satisfies ReferenceEntityControl,
-      ]}
-    />
   )
 }

@@ -6,7 +6,6 @@ import { useAuthStore } from '../../stores/authStore'
 import { usePilots, usePilotAbilityCounts } from '../../hooks/usePilots'
 import { useMechMap } from '../../hooks/useMechMap'
 import { Skeleton } from '../ui/skeleton'
-import { EMPTY_SLOT_CLASSES } from '../patterns/emptySlotClasses'
 import { PlayerPilotDisplay } from './PlayerPilotDisplay'
 
 export function PilotSection() {
@@ -24,7 +23,15 @@ export function PilotSection() {
 
   return (
     <div className="flex flex-col gap-3">
-      <SectionSeparator label="Pilots" />
+      <SectionSeparator label="Pilots">
+        <Link
+          to="/pilots/new"
+          className="flex items-center gap-1 font-mono text-xs font-semibold uppercase text-su-fg-muted transition-colors hover:text-su-fg"
+        >
+          <Plus className="h-3.5 w-3.5" />
+          New
+        </Link>
+      </SectionSeparator>
 
       {isLoading ? (
         <div className="flex flex-col gap-2">
@@ -42,20 +49,8 @@ export function PilotSection() {
               mech={pilot.mech_id ? (mechMap.get(pilot.mech_id) ?? null) : null}
             />
           ))}
-          <NewPilotSlot />
         </div>
       )}
     </div>
-  )
-}
-
-function NewPilotSlot() {
-  return (
-    <Link to="/pilots/new" className="block">
-      <div className={EMPTY_SLOT_CLASSES}>
-        <Plus className="h-4 w-4" />
-        <span className="font-mono text-sm font-semibold uppercase">New Pilot</span>
-      </div>
-    </Link>
   )
 }

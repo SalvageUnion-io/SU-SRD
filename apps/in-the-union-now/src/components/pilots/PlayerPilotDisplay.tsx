@@ -215,6 +215,7 @@ export function PlayerPilotDisplay({
     {
       key: 'mech',
       label: 'Mech',
+      activeColor: 'rgb(122, 151, 138)',
       content: (
         <PilotMechTab
           pilot={pilot}
@@ -282,32 +283,42 @@ export function PlayerPilotDisplay({
       <DisplayCard
         stickyHeader={!listing}
         headerBg={cardColorProp ?? 'bg-su-orange'}
-        bodyPadding="p-0"
+        bodyPadding="p-4"
         mode={mode}
         headerContent={headerContent}
-        image={listing ? undefined : { url: pilotClassAssetUrl, alt: pilot.callsign }}
+        image={
+          listing
+            ? undefined
+            : {
+                url: pilot.image_path ?? pilotClassAssetUrl,
+                alt: pilot.callsign,
+                editable: canEdit
+                  ? {
+                      customUrl: pilot.image_path,
+                      onSetCustom: (url) => editConfig?.onPilotUpdate({ image_path: url }),
+                    }
+                  : undefined,
+              }
+        }
         tabs={tabs}
         controls={controls}
         footerContent={footerContent}
       >
-        <div className={compact ? 'p-3' : 'p-4'}>
-          <div className={compact ? 'space-y-3' : 'space-y-4'}>
-            <PilotPersonalInfo
-              pilot={pilot}
-              compact={compact}
-              readOnly={!canEdit}
-              onUpdate={editConfig?.onPilotUpdate ?? (() => {})}
-            />
-            <PilotEquipmentSection
-              refs={pilotRefs ?? []}
-              compact={compact}
-              canEdit={canEdit}
-              onConditionChange={(refId, condition) =>
-                editConfig?.onUpdateEntityRef(refId, { condition })
-              }
-            />
-          </div>
-          <div className="clear-both" />
+        <div className="space-y-4">
+          <PilotPersonalInfo
+            pilot={pilot}
+            compact={compact}
+            readOnly={!canEdit}
+            onUpdate={editConfig?.onPilotUpdate ?? (() => {})}
+          />
+          <PilotEquipmentSection
+            refs={pilotRefs ?? []}
+            compact={compact}
+            canEdit={canEdit}
+            onConditionChange={(refId, condition) =>
+              editConfig?.onUpdateEntityRef(refId, { condition })
+            }
+          />
         </div>
       </DisplayCard>
 

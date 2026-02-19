@@ -55,7 +55,6 @@ export function PilotMechTab({ pilot, mech, mechRefs, canEdit, compact }: PilotM
           compact={compact}
           readOnly={!canEdit}
           mech={null}
-          mechChassis={undefined}
           mechLoading={false}
         />
       </div>
