@@ -47,7 +47,6 @@
     "build:full": "bun run build && bun run format && bun run lint",
     "build:ci": "tsc --project tsconfig.build.json",
     "watch": "tsc --project tsconfig.build.json --watch",
-    "prepare": "tsc --project tsconfig.build.json",
     "prepublishOnly": "bun run build && bun run typecheck",
     "validate:ids": "tsx tools/checkUniqueIds.ts",
     "fix:ids": "tsx tools/generateMissingIds.ts",

@@ -1,2 +1,5 @@
 # Local Netlify folder
 .netlify
+
+# TanStack Router generated route tree
+src/routeTree.gen.ts
