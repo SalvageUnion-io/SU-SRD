@@ -233,42 +233,43 @@ export function PlayerCrawlerDisplay({
         controls={controls}
         footerContent={footerContent}
       >
-        {/* Body: only rendered in non-listing mode by DisplayCard */}
-        <div className="space-y-6 p-4">
-          <CrawlerPilotsSection crawlerId={crawler!.id} />
+        {!listing && crawler && editConfig && (
+          <div className="space-y-6 p-4">
+            <CrawlerPilotsSection crawlerId={crawler.id} />
 
-          {crawlerType && (
-            <CrawlerTypeSection
-              crawler={crawler!}
-              crawlerType={crawlerType}
-              readOnly={!editConfig!.isMed}
-              onSave={editConfig!.onImmediateUpdate}
-            />
-          )}
-
-          <CrawlerBaysSection
-            crawler={crawler!}
-            readOnly={!editConfig!.isMed}
-            onSave={editConfig!.onImmediateUpdate}
-            onOpenScrapConversion={() => editConfig!.setShowTranslateDialog(true)}
-            armamentControls={editConfig!.weaponSlotControls}
-            storageContent={(bayDamaged) => (
-              <>
-                <CrawlerScrapStats
-                  crawler={crawler!}
-                  readOnly={!editConfig!.isMed || bayDamaged}
-                  onUpdate={editConfig!.onImmediateUpdate}
-                />
-                <SectionSeparator label="Storage" compact={compact} />
-                <CrawlerStorageSection
-                  crawlerId={crawler!.id}
-                  userId={userId ?? ''}
-                  readOnly={!editConfig!.isMed || bayDamaged}
-                />
-              </>
+            {crawlerType && (
+              <CrawlerTypeSection
+                crawler={crawler}
+                crawlerType={crawlerType}
+                readOnly={!editConfig.isMed}
+                onSave={editConfig.onImmediateUpdate}
+              />
             )}
-          />
-        </div>
+
+            <CrawlerBaysSection
+              crawler={crawler}
+              readOnly={!editConfig.isMed}
+              onSave={editConfig.onImmediateUpdate}
+              onOpenScrapConversion={() => editConfig.setShowTranslateDialog(true)}
+              armamentControls={editConfig.weaponSlotControls}
+              storageContent={(bayDamaged) => (
+                <>
+                  <CrawlerScrapStats
+                    crawler={crawler}
+                    readOnly={!editConfig.isMed || bayDamaged}
+                    onUpdate={editConfig.onImmediateUpdate}
+                  />
+                  <SectionSeparator label="Storage" compact={compact} />
+                  <CrawlerStorageSection
+                    crawlerId={crawler.id}
+                    userId={userId ?? ''}
+                    readOnly={!editConfig.isMed || bayDamaged}
+                  />
+                </>
+              )}
+            />
+          </div>
+        )}
       </DisplayCard>
 
       {/* Dialogs (portaled, always outside DisplayCard) */}
