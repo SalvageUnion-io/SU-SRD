@@ -1,22 +1,31 @@
+import type { ReactNode } from 'react'
 import type { SURefObjectChoice } from 'salvageunion-reference'
 import { Text } from '../../base/Text'
-import { SheetInput } from '../../shared/SheetInput'
 import { ReferenceEntitySubheader } from './ReferenceEntitySubheader'
 import { ReferenceEntityListDisplay } from './ReferenceEntityListDisplay'
-import { getParagraphString } from 'salvageunion-reference'
 import { cn } from '../../../utils/cn'
 import type {
   getReferenceEntityFontSizes,
   getReferenceEntitySpacing,
 } from './referenceEntityDisplayTypes'
 
+export type ChoiceInputRenderer = (choice: SURefObjectChoice, compact: boolean) => ReactNode
+
 type ReferenceEntityChoiceProps = {
   choice: SURefObjectChoice
   fontSize: ReturnType<typeof getReferenceEntityFontSizes>
   spacing: ReturnType<typeof getReferenceEntitySpacing>
+  compact?: boolean
+  choiceInputRenderer?: ChoiceInputRenderer
 }
 
-export function ReferenceEntityChoice({ choice, fontSize, spacing }: ReferenceEntityChoiceProps) {
+export function ReferenceEntityChoice({
+  choice,
+  fontSize,
+  spacing,
+  compact,
+  choiceInputRenderer,
+}: ReferenceEntityChoiceProps) {
   const hasSchemaEntities = 'schemaEntities' in choice && choice.schemaEntities
   const hasCustomSystemOptions = 'customSystemOptions' in choice && choice.customSystemOptions
   const hasChoiceOptions = 'choiceOptions' in choice && choice.choiceOptions
@@ -50,14 +59,7 @@ export function ReferenceEntityChoice({ choice, fontSize, spacing }: ReferenceEn
         />
       )}
 
-      {isSimpleChoice && (
-        <SheetInput
-          label={choice.name}
-          value=""
-          placeholder={getParagraphString(choice.content) || 'Enter value...'}
-          disabled
-        />
-      )}
+      {isSimpleChoice && choiceInputRenderer && choiceInputRenderer(choice, compact ?? false)}
     </div>
   )
 }

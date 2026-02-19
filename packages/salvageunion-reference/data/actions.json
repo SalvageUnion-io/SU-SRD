@@ -669,6 +669,17 @@
     "name": "Auto-Turret",
     "choices": [
       {
+        "id": "e4c7a1d3-9f28-4b6e-8a15-3d7c2e9f0b1a",
+        "name": "Name",
+        "choiceType": "freeform",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "The name of your Auto-Turret."
+          }
+        ]
+      },
+      {
         "id": "a2a51b8e-c63d-4665-a4eb-19eefed59c2d",
         "name": "A.I. Personality",
         "choiceType": "permanent",
@@ -8309,7 +8320,7 @@
       },
       {
         "type": "paragraph",
-        "value": "The Sestra Drone acts separately to [(CHASSIS)] on its own turn, and is controlled by the Pilot. It functions effectively as a Mech, but cannot Push. It can be installed with Systems and Modules and restores its SP and EP in a T3 or higher Mech Bay during Downtime. If the Drone is damaged it can be repaired as though it was a Mech. If it is destroyed you may craft a new Sestra Drone for 2 Tech 3 Scrap as per the crafting rules. [(CHASSIS)] may have one active Sestra Drone at a time. Sestra Drone Stats: 7 SP, 8 EP, 6 Heat Cap, 7 System Slots, 2 Module Slots, 3 Cargo Cap, Tech Level 3, Salvage Value 2. Integrated Hover Locomotion System."
+        "value": "The Sestra Drone acts separately to [(CHASSIS)] on its own turn, and is controlled by the Pilot. It functions effectively as a Mech, but cannot Push. It can be installed with Systems and Modules and restores its SP and EP in a T3 or higher Mech Bay during Downtime. If the Drone is damaged it can be repaired as though it was a Mech. If it is destroyed you may craft a new Sestra Drone for 2 Tech 3 Scrap as per the crafting rules. [(CHASSIS)] may have one active Sestra Drone at a time."
       }
     ],
     "choices": [

@@ -119,6 +119,8 @@ export type ReferenceEntityDisplayStateInput = {
   abilitiesSection?: ReactNode
   /** Renders after patterns/damagedEffect, before grants/choices */
   afterExtraContent?: ReactNode
+  /** Renders after choices, before footer */
+  afterChoicesContent?: ReactNode
   /** Replaces the computed footer */
   footerOverride?: ReactNode
 }
@@ -134,6 +136,7 @@ export type ReferenceEntityDisplayState = Omit<
   | 'primaryStatsOnly'
   | 'abilitiesSection'
   | 'afterExtraContent'
+  | 'afterChoicesContent'
   | 'footerOverride'
 > & {
   /** Subtitle extra content from caller */
@@ -146,6 +149,8 @@ export type ReferenceEntityDisplayState = Omit<
   abilitiesSection?: ReactNode
   /** Renders after patterns/damagedEffect */
   afterExtraContent?: ReactNode
+  /** Renders after choices, before footer */
+  afterChoicesContent?: ReactNode
   /** Replaces computed footer */
   footerOverride?: ReactNode
   /** hide with all fields resolved to booleans (no undefined) */

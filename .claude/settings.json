@@ -19,7 +19,8 @@
     "deny": [
       "Bash(npm *)",
       "Bash(yarn *)",
-      "Bash(npx *)"
+      "Bash(npx *)",
+      "Bash(git stash*)"
     ]
   },
   "hooks": {

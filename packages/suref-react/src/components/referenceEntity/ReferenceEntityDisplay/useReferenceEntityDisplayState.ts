@@ -53,6 +53,7 @@ export function useReferenceEntityDisplayState({
   primaryStatsOnly,
   abilitiesSection,
   afterExtraContent,
+  afterChoicesContent,
   footerOverride,
 }: ReferenceEntityDisplayStateInput): ReferenceEntityDisplayState {
   const hideActions = hide?.actions ?? false
@@ -147,6 +148,7 @@ export function useReferenceEntityDisplayState({
     primaryStatsOnly,
     abilitiesSection,
     afterExtraContent,
+    afterChoicesContent,
     footerOverride,
   }
 }

@@ -1,11 +1,13 @@
 import { useState, useCallback, useMemo } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { getAssetUrl } from 'salvageunion-reference'
-import { DisplayCard, CardImage, navigateControl } from 'suref-react'
+import { Layers } from 'lucide-react'
+import { DisplayCard, navigateControl } from 'suref-react'
 import type { ReferenceEntityControl } from 'suref-react'
 import { useMechBuilderState } from '../../hooks/useMechBuilderState'
 import { MechBuilderHeader } from './MechBuilderHeader'
-import { MechBuilderBody, ItemSlotSection } from './MechBuilderBody'
+import { MechBuilderBody } from './MechBuilderBody'
+import { ItemSlotSection } from '../shared/ItemSlotSection'
 import { MechBuilderFooter } from './MechBuilderFooter'
 import { MechBuilderModals } from './MechBuilderModals'
 import { DeleteConfirmDialog } from '../shared/DeleteConfirmDialog'
@@ -43,7 +45,20 @@ export function PlayerPatternDisplay({
   }, [navigate, pattern.id])
 
   const defaultControls = useMemo(() => [navigateControl(handleNavigate)], [handleNavigate])
-  const controls = controlsProp ?? (listing ? defaultControls : undefined)
+  const applyPatternControl: ReferenceEntityControl | undefined = useMemo(() => {
+    if (listing || !editConfig?.canEdit) return undefined
+    return {
+      key: 'apply-pattern',
+      icon: Layers,
+      onClick: () => builder.setShowPatternModal(true),
+      ariaLabel: 'Apply pattern',
+      label: 'Pattern',
+      variant: 'ghost' as const,
+    }
+  }, [listing, editConfig?.canEdit, builder])
+  const controls =
+    controlsProp ??
+    (listing ? defaultControls : applyPatternControl ? [applyPatternControl] : undefined)
 
   const handleCancel = useCallback(() => {
     if (editConfig?.isDirty) {
@@ -83,8 +98,6 @@ export function PlayerPatternDisplay({
             salvageValue={builder.salvageValue}
             startingMechMode={builder.startingMechMode}
             onNameChange={builder.setName}
-            onSelectChassis={() => builder.setModalTarget('chassis')}
-            onApplyPattern={() => builder.setShowPatternModal(true)}
           />
         }
         footerContent={
@@ -108,35 +121,31 @@ export function PlayerPatternDisplay({
           )
         }
       >
-        {/* Image + chassis abilities: vertically centered grid */}
+        {/* Image + chassis + chassis abilities */}
         {!listing && (
-          <div className="md:grid md:grid-cols-[auto_1fr] md:items-center">
-            <CardImage
-              url={builder.chassis ? getAssetUrl(builder.chassis) : undefined}
-              alt={builder.chassis?.name}
-              compact={compact}
-              editable={
-                readOnly
-                  ? undefined
-                  : {
-                      customUrl: builder.state.customImageUrl,
-                      onSetCustom: builder.setCustomImage,
-                    }
-              }
-            />
-            <MechBuilderBody
-              chassis={builder.chassis}
-              chassisAbilities={builder.chassisAbilities}
-              systemItems={builder.systemItems}
-              moduleItems={builder.moduleItems}
-              capacity={builder.capacity}
-              readOnly={readOnly}
-              compact={compact}
-              onRemoveItem={builder.removeItem}
-              onAddItem={builder.setModalTarget}
-              hideEquipment
-            />
-          </div>
+          <MechBuilderBody
+            chassis={builder.chassis}
+            chassisAbilities={builder.chassisAbilities}
+            systemItems={builder.systemItems}
+            moduleItems={builder.moduleItems}
+            capacity={builder.capacity}
+            readOnly={readOnly}
+            compact={compact}
+            onSelectChassis={() => builder.setModalTarget('chassis')}
+            onRemoveItem={builder.removeItem}
+            onAddItem={builder.setModalTarget}
+            hideEquipment
+            image={{
+              url: builder.chassis ? getAssetUrl(builder.chassis) : undefined,
+              alt: builder.chassis?.name,
+              editable: readOnly
+                ? undefined
+                : {
+                    customUrl: builder.state.customImageUrl,
+                    onSetCustom: builder.setCustomImage,
+                  },
+            }}
+          />
         )}
         {/* Equipment grid: beneath the fold */}
         <div>

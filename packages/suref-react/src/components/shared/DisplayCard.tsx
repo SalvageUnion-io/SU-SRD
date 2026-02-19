@@ -28,6 +28,8 @@ type DisplayCardProps = {
   headerBg: string
   /** Optional CSS color for border derivation */
   headerBgColor?: string
+  /** Optional inline styles for the header (e.g., gradient backgrounds) */
+  headerBgStyle?: React.CSSProperties
   /** Opacity on header div (default: 1) */
   headerOpacity?: number
   /** Content rendered inside the header bar */
@@ -88,6 +90,10 @@ type DisplayCardProps = {
   tabs?: DisplayCardTab[]
   /** Label for the default (children) tab. Defaults to "Info". */
   defaultTabLabel?: string
+  /** CSS color override for the default tab's active background */
+  defaultTabActiveColor?: string
+  /** CSS class override for the footer background (overrides headerBg) */
+  footerBg?: string
 }
 
 const DEFAULT_TAB_KEY = '__default'
@@ -95,6 +101,7 @@ const DEFAULT_TAB_KEY = '__default'
 export function DisplayCard({
   headerBg,
   headerBgColor,
+  headerBgStyle,
   headerOpacity = 1,
   headerContent,
   footerContent,
@@ -117,6 +124,8 @@ export function DisplayCard({
   stickyHeader = false,
   tabs,
   defaultTabLabel = 'Info',
+  defaultTabActiveColor,
+  footerBg,
 }: DisplayCardProps) {
   const isCompact = mode === 'compact'
   const isListing = mode === 'listing'
@@ -267,7 +276,7 @@ export function DisplayCard({
             role={onClick ? 'button' : undefined}
             tabIndex={onClick ? 0 : undefined}
             className={cn(
-              'flex w-full items-center justify-between gap-2 overflow-visible',
+              'flex w-full flex-wrap items-center justify-between gap-2 overflow-visible',
               isListing ? 'min-h-[40px] px-2 py-1' : '',
               !isListing && (isCompact ? 'min-h-[60px] px-1.5 py-1' : 'min-h-[80px] px-1.5 py-1.5'),
               !isListing && !isCompact && label && 'pb-4 pt-4',
@@ -280,6 +289,7 @@ export function DisplayCard({
             style={{
               opacity: headerOpacity,
               ...(headerBgColor ? { backgroundColor: headerBgColor } : {}),
+              ...headerBgStyle,
               ...headerSourceStyles.style,
               ...(!isListing && (children || image || footerContent || hasTabs)
                 ? { borderBottom: `${borderWidth}px solid ${effectiveBorderColor}` }
@@ -291,7 +301,7 @@ export function DisplayCard({
           >
             {controls ? (
               <>
-                <div className="flex min-w-0 flex-1 items-center justify-between gap-2 overflow-visible">
+                <div className="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-2 overflow-visible">
                   {headerContent}
                 </div>
                 <ControlButtons controls={controls} size="sm" />
@@ -314,7 +324,15 @@ export function DisplayCard({
                     ? 'text-su-black'
                     : 'bg-su-white text-su-black hover:bg-su-grey-light'
                 )}
-                style={isDefaultTab && activeTabBg ? { backgroundColor: activeTabBg } : undefined}
+                style={
+                  isDefaultTab
+                    ? {
+                        backgroundColor: defaultTabActiveColor
+                          ? `color-mix(in srgb, ${defaultTabActiveColor} 35%, white)`
+                          : activeTabBg,
+                      }
+                    : undefined
+                }
                 onClick={() => setActiveTabKey(DEFAULT_TAB_KEY)}
               >
                 {defaultTabLabel}
@@ -353,7 +371,9 @@ export function DisplayCard({
             <div
               className={cn(
                 'w-full flex-1 bg-su-white',
-                isDefaultTab && image ? '' : 'flex flex-col',
+                isDefaultTab && image
+                  ? 'md:grid md:grid-cols-[auto_1fr] md:items-center'
+                  : 'flex flex-col',
                 bodyPadding || defaultBodyPadding
               )}
             >
@@ -367,8 +387,7 @@ export function DisplayCard({
                       editable={image.editable}
                     />
                   )}
-                  {children}
-                  {image && <div className="clear-both" />}
+                  {image ? <div>{children}</div> : children}
                 </>
               ) : (
                 activeTab?.content
@@ -382,11 +401,11 @@ export function DisplayCard({
           <div
             className={cn(
               'flex w-full items-center justify-between px-3 py-2',
-              actualHeaderBg,
+              footerBg ?? actualHeaderBg,
               footerSourceStyles.className
             )}
             style={{
-              ...(headerBgColor ? { backgroundColor: headerBgColor } : {}),
+              ...(headerBgColor && !footerBg ? { backgroundColor: headerBgColor } : {}),
               ...footerSourceStyles.style,
               borderTop: `${borderWidth}px solid ${effectiveBorderColor}`,
             }}

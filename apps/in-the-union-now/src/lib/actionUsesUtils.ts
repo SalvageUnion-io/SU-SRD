@@ -6,6 +6,7 @@ import {
 } from 'salvageunion-reference'
 import type { Json } from '../types/database-generated.types'
 import type { EntityRefRow, MechRow, PilotRow } from '../types/common'
+import type { ActionCostType } from './pilotActionUtils'
 
 /**
  * Get the numeric AP activation cost from an action.
@@ -99,14 +100,17 @@ type DisabledReasonOptions = {
   pilotTraits: Set<string>
   usesRemaining: number | null
   maxUses: number | null
+  costType?: ActionCostType
+  mech?: MechRow | null
 }
 
 /**
  * Determine why an action can't be used, or null if it can.
- * Checks in order: required traits → AP → uses.
+ * Checks in order: required traits → AP/EP cost → uses.
+ * When costType is 'ep', checks mech EP instead of pilot AP.
  */
 export function getActionDisabledReason(opts: DisabledReasonOptions): string | null {
-  const { action, pilot, pilotTraits, usesRemaining, maxUses } = opts
+  const { action, pilot, pilotTraits, usesRemaining, maxUses, costType, mech } = opts
 
   // Check required traits
   const required = getRequiredTraits(action)
@@ -117,10 +121,14 @@ export function getActionDisabledReason(opts: DisabledReasonOptions): string | n
     }
   }
 
-  // Check AP cost
+  // Check resource cost (EP for variable-currency-resolved-to-EP, AP otherwise)
   const cost = getActionActivationCost(action)
-  if (cost !== null && pilot.ap < cost) {
-    return 'Not enough AP'
+  if (cost !== null) {
+    if (costType === 'ep') {
+      if (mech && mech.current_ep < cost) return 'Not enough EP'
+    } else if (pilot.ap < cost) {
+      return 'Not enough AP'
+    }
   }
 
   // Check uses
@@ -163,8 +171,26 @@ export function getMechActionDisabledReason(opts: MechDisabledReasonOptions): st
 }
 
 /**
+ * Collect trait types from an array of resolved actions.
+ * Used for chassis abilities which are already resolved to action objects.
+ */
+export function getActionsTraits(actions: SURefMetaAction[]): Set<string> {
+  const traitSet = new Set<string>()
+  for (const action of actions) {
+    if (action.traits && Array.isArray(action.traits)) {
+      for (const trait of action.traits) {
+        if (trait && typeof trait.type === 'string') {
+          traitSet.add(trait.type.toLowerCase())
+        }
+      }
+    }
+  }
+  return traitSet
+}
+
+/**
  * Collect all trait types that a pilot "has" via their entity refs.
- * Iterates pilot equipment/ability refs, resolves each entity,
+ * Iterates equipment/ability/system/module refs, resolves each entity,
  * and collects trait types from all their traits arrays.
  */
 export function getPilotTraits(refs: EntityRefRow[]): Set<string> {

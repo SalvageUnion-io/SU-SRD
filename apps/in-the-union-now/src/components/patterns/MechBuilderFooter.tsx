@@ -53,7 +53,8 @@ export function MechBuilderFooter({
   onViewPattern,
 }: MechBuilderFooterProps) {
   const iconSize = compact ? 'h-3 w-3' : 'h-3.5 w-3.5'
-  const toggleSize = compact ? 'h-3.5 w-3.5' : 'h-4 w-4'
+  const toggleSize = compact ? 'h-3 w-3' : 'h-4 w-4'
+  const toggleTextClass = compact ? 'text-xs' : 'text-xs'
   return (
     <SheetFooter
       compact={compact}
@@ -65,7 +66,7 @@ export function MechBuilderFooter({
               <button
                 type="button"
                 onClick={onToggleVisible}
-                className={`flex cursor-pointer items-center gap-1 text-xs transition-colors hover:text-su-white ${visible ? 'text-su-white' : 'text-su-white/70'}`}
+                className={`flex cursor-pointer items-center gap-1 ${toggleTextClass} transition-colors hover:text-su-white ${visible ? 'text-su-white' : 'text-su-white/70'}`}
                 title={visible ? 'Pattern is visible' : 'Pattern is hidden'}
               >
                 {visible ? <Eye className={toggleSize} /> : <EyeOff className={toggleSize} />}
@@ -74,7 +75,7 @@ export function MechBuilderFooter({
               <button
                 type="button"
                 onClick={onToggleStartingMech}
-                className={`flex cursor-pointer items-center gap-1 text-xs transition-colors hover:text-su-white ${startingMechMode ? 'text-su-white' : 'text-su-white/70'}`}
+                className={`flex cursor-pointer items-center gap-1 ${toggleTextClass} transition-colors hover:text-su-white ${startingMechMode ? 'text-su-white' : 'text-su-white/70'}`}
                 title={startingMechMode ? 'Starting mech mode on' : 'Starting mech mode off'}
               >
                 <Crosshair className={toggleSize} />
@@ -137,7 +138,7 @@ export function MechBuilderFooter({
               type="button"
               onClick={onSaveToPatterns}
               disabled={isSavingToPatterns}
-              className={actionButtonClasses('green', compact)}
+              className={actionButtonClasses('green', compact, { noBorder: true })}
             >
               <Save className={iconSize} />
               {isSavingToPatterns ? 'Saving...' : 'Save to My Patterns'}
@@ -151,7 +152,7 @@ export function MechBuilderFooter({
             <Button
               variant="outline"
               size="sm"
-              className="cursor-pointer"
+              className={`cursor-pointer ${compact ? 'h-auto px-1 py-0 text-xs' : ''}`}
               onClick={onCancel}
               disabled={isSaving}
             >

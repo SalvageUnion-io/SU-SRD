@@ -4,14 +4,16 @@ import {
   DisplayCard,
   CardHeader,
   ValueDisplay,
+  StatDisplay,
   Text,
   navigateControl,
   ClassAbilityTreeDisplay,
 } from 'suref-react'
 import type { ReferenceEntityControl, DisplayCardTab } from 'suref-react'
-import { Eye, EyeOff, Trash2 } from 'lucide-react'
+import { Eye, EyeOff, LogIn, LogOut, Trash2 } from 'lucide-react'
 import { findChassisById, findClassName } from '../../lib/entityHelpers'
 import { StatControl } from '../shared/StatControl'
+import { SimpleDisplayContainer } from '../shared/SimpleDisplayContainer'
 import { SheetFooter } from '../shared/SheetFooter'
 import { actionButtonClasses } from '../shared/actionButtonClasses'
 import { DeleteConfirmDialog } from '../shared/DeleteConfirmDialog'
@@ -19,6 +21,8 @@ import { PilotPersonalInfo } from './PilotPersonalInfo'
 import { PilotEquipmentSection } from './PilotEquipmentSection'
 import { PilotMechTab } from './PilotMechTab'
 import { ActionsSection } from './ActionsSection'
+import { ComradesSection } from './ComradesSection'
+import { extractComrades } from '../../lib/comradeUtils'
 import type { PilotEditConfig } from '../../hooks/usePilotSheet'
 import type { PilotRow, MechRow, EntityRefRow } from '../../types/common'
 import type { SURefChassis, SURefClass } from 'salvageunion-reference'
@@ -104,14 +108,33 @@ export function PlayerPilotDisplay({
   }, [navigate, pilot.id])
 
   const defaultControls = useMemo(() => [navigateControl(handleNavigate)], [handleNavigate])
-  const controls = controlsProp ?? (listing ? defaultControls : undefined)
+
+  const boardControl: ReferenceEntityControl | undefined = useMemo(() => {
+    if (listing || !editConfig || !mech) return undefined
+    return {
+      key: 'board',
+      icon: pilot.is_boarded ? LogOut : LogIn,
+      onClick: editConfig.onToggleBoarded,
+      ariaLabel: pilot.is_boarded ? 'Disembark mech' : 'Board mech',
+      label: pilot.is_boarded ? 'Disembark' : 'Board',
+      variant: pilot.is_boarded ? ('danger' as const) : ('primary' as const),
+      className: pilot.is_boarded
+        ? 'min-w-[6rem] bg-su-rust text-su-white hover:bg-red-700'
+        : 'min-w-[6rem] bg-su-green text-su-white hover:bg-su-green/80',
+    }
+  }, [listing, editConfig, mech, pilot.is_boarded])
+
+  const controls =
+    controlsProp ?? (listing ? defaultControls : boardControl ? [boardControl] : undefined)
 
   // --- Mode mapping ---
   const mode = listing ? 'listing' : compact ? 'compact' : ('full' as const)
   const canEdit = editConfig?.canEdit ?? false
+  const isBoarded = !listing && pilot.is_boarded && !!mech
 
-  const badgeTextClass =
-    listing && compact ? 'text-xs font-normal uppercase' : 'text-sm font-semibold uppercase'
+  const badgeTextClass = compact
+    ? 'text-xs font-normal uppercase'
+    : 'text-base font-semibold uppercase'
 
   // --- Chassis/pattern badge (shared between listing and sheet) ---
   const chassisBadge = chassisName ? (
@@ -128,15 +151,6 @@ export function PlayerPilotDisplay({
         <Text variant="pseudoheader" as="span" className={badgeTextClass}>
           {patternName}
         </Text>
-      )}
-      {!listing && (
-        <button
-          type="button"
-          className={`cursor-pointer px-1 font-mono ${compact ? 'text-sm' : 'text-base'} font-semibold uppercase leading-none text-su-white transition-opacity hover:opacity-80`}
-          style={{ backgroundColor: 'rgb(122, 151, 138)' }}
-        >
-          Load in
-        </button>
       )}
     </span>
   ) : null
@@ -160,94 +174,253 @@ export function PlayerPilotDisplay({
     <>
       <div className="flex min-w-0 flex-col justify-center gap-0.5">
         <Text variant="pseudoheader" as="span" className={compact ? 'text-xl' : 'text-[1.75rem]'}>
-          {pilot.callsign}
+          {isBoarded ? `\u201C${mech.pattern_name || chassisName || 'Mech'}\u201D` : pilot.callsign}
         </Text>
         <div className="flex flex-wrap items-center gap-1">
-          <ValueDisplay label="The" value={pilotClassName} compact={compact} />
-          {compact && abilityCountProp !== undefined && (
-            <ValueDisplay label="Abilities" value={abilityCountProp} compact={compact} />
+          {isBoarded ? (
+            <>
+              {chassisName && (
+                <ValueDisplay label="Chassis" value={chassisName} compact={compact} />
+              )}
+              <span className="inline-flex shrink-0 cursor-default whitespace-nowrap border border-su-black">
+                <Text
+                  variant="pseudoheader"
+                  as="span"
+                  className={badgeTextClass}
+                  style={{ backgroundColor: 'var(--color-su-orange)' }}
+                >
+                  {pilotClassName}
+                </Text>
+                <Text variant="pseudoheader" as="span" className={badgeTextClass}>
+                  {`\u201C${pilot.callsign}\u201D`}
+                </Text>
+              </span>
+            </>
+          ) : (
+            <>
+              <ValueDisplay label="The" value={pilotClassName} compact={compact} />
+              {compact && abilityCountProp !== undefined && (
+                <ValueDisplay label="Abilities" value={abilityCountProp} compact={compact} />
+              )}
+              {chassisBadge}
+            </>
           )}
-          {compact && chassisBadge}
         </div>
       </div>
       {editConfig && (
         <div className="flex shrink-0 items-center gap-1">
-          <StatControl
-            label="HP"
-            value={pilot.hp}
-            max={pilot.max_hp}
-            canEdit={canEdit}
-            onChange={(v) => editConfig.onStatChange('hp', v)}
-          />
-          <StatControl
-            label="AP"
-            value={pilot.ap}
-            max={pilot.max_ap}
-            canEdit={canEdit}
-            onChange={(v) => editConfig.onStatChange('ap', v)}
-          />
-          <StatControl
-            label="TP"
-            value={pilot.tp}
-            canEdit={canEdit}
-            onChange={(v) => editConfig.onStatChange('tp', v)}
-          />
+          {isBoarded ? (
+            <>
+              <StatControl
+                label="SP"
+                value={mech.current_sp}
+                max={mech.max_sp}
+                canEdit={canEdit}
+                onChange={(v) => editConfig.onUpdateMech({ current_sp: v })}
+              />
+              <StatDisplay label="EP" value={mech.current_ep} outOfMax={mech.max_ep} />
+              <StatDisplay label="Heat" value={mech.current_heat} outOfMax={mech.heat_capacity} />
+            </>
+          ) : (
+            <>
+              <StatControl
+                label="HP"
+                value={pilot.hp}
+                max={pilot.max_hp}
+                canEdit={canEdit}
+                onChange={(v) => editConfig.onStatChange('hp', v)}
+              />
+              <StatDisplay label="AP" value={pilot.ap} outOfMax={pilot.max_ap} />
+              <StatDisplay label="TP" value={pilot.tp} />
+            </>
+          )}
         </div>
       )}
     </>
   )
 
+  // --- Comrades (conditionally shown if any equipped entity grants a drone/companion) ---
+  const comrades = useMemo(
+    () => extractComrades(pilotRefs ?? [], mechRefs ?? [], mechChassisProp),
+    [pilotRefs, mechRefs, mechChassisProp]
+  )
+
   // --- Tabs (only used in non-listing mode, DisplayCard hides in listing) ---
-  const tabs: DisplayCardTab[] = [
-    {
-      key: 'abilities',
-      label: 'Abilities',
-      content: pilotClass ? (
-        <div className={compact ? 'p-3' : 'p-4'}>
-          <PilotAbilityTrees
-            pilotClass={pilotClass}
-            pilotRefs={pilotRefs ?? []}
-            compact={compact}
-          />
-        </div>
-      ) : null,
-    },
-    {
-      key: 'mech',
-      label: 'Mech',
-      activeColor: 'rgb(122, 151, 138)',
-      content: (
-        <PilotMechTab
-          pilot={pilot}
-          mech={mech}
-          mechRefs={mechRefs ?? []}
-          canEdit={canEdit}
-          compact
-        />
-      ),
-    },
-    {
-      key: 'actions',
-      label: 'Actions',
-      content: (
-        <div className={compact ? 'p-3' : 'p-4'}>
-          <ActionsSection
-            pilotRefs={pilotRefs ?? []}
+  const tabs = useMemo(() => {
+    const result: DisplayCardTab[] = [
+      {
+        key: 'abilities',
+        label: 'Abilities',
+        activeColor: 'rgb(239, 137, 79)',
+        content: pilotClass ? (
+          <div className={compact ? 'p-3' : 'p-4'}>
+            <PilotAbilityTrees
+              pilotClass={pilotClass}
+              pilotRefs={pilotRefs ?? []}
+              compact={compact}
+            />
+          </div>
+        ) : null,
+      },
+      {
+        key: 'mech',
+        label: 'Mech',
+        activeColor: 'rgb(122, 151, 138)',
+        content: (
+          <PilotMechTab
             pilot={pilot}
-            compact={compact}
-            readOnly={!canEdit}
-            onUpdatePilot={editConfig?.onPilotUpdate ?? (() => {})}
-            onUpdateEntityRef={editConfig?.onUpdateEntityRef ?? (() => {})}
-            mechRefs={mechRefs}
             mech={mech}
-            mechChassis={mechChassisProp}
-            onUpdateMech={editConfig?.onUpdateMech}
-            onUpdateMechEntityRef={editConfig?.onUpdateMechEntityRef}
+            mechRefs={mechRefs ?? []}
+            canEdit={canEdit}
+            compact
           />
-        </div>
-      ),
-    },
-  ]
+        ),
+      },
+    ]
+
+    if (comrades.length > 0) {
+      result.push({
+        key: 'comrades',
+        label: 'Comrades',
+        activeColor: 'rgb(140, 75, 56)',
+        content: (
+          <div className={compact ? 'p-3' : 'p-4'}>
+            <ComradesSection
+              pilotRefs={pilotRefs ?? []}
+              mechRefs={mechRefs ?? []}
+              mechChassis={mechChassisProp}
+              compact={compact}
+              mechId={mech?.id}
+              userId={editConfig?.userId}
+              readOnly={!canEdit}
+            />
+          </div>
+        ),
+      })
+    }
+
+    result.push(
+      {
+        key: 'actions',
+        label: 'Actions',
+        activeColor: 'rgb(239, 137, 79)',
+        content: (
+          <div className={compact ? 'p-3' : 'p-4'}>
+            <ActionsSection
+              pilotRefs={pilotRefs ?? []}
+              pilot={pilot}
+              compact={compact}
+              readOnly={!canEdit}
+              onUpdatePilot={editConfig?.onPilotUpdate ?? (() => {})}
+              onUpdateEntityRef={editConfig?.onUpdateEntityRef ?? (() => {})}
+              mechRefs={mechRefs}
+              mech={mech}
+              mechChassis={mechChassisProp}
+              onUpdateMech={editConfig?.onUpdateMech}
+              onUpdateMechEntityRef={editConfig?.onUpdateMechEntityRef}
+            />
+          </div>
+        ),
+      },
+      {
+        key: 'settings',
+        label: 'Settings',
+        activeColor: 'rgb(160, 160, 160)',
+        content: editConfig ? (
+          <div className={compact ? 'space-y-4 p-3' : 'space-y-5 p-4'}>
+            <div>
+              <Text variant="pseudoheader" as="span" className="mb-2 block text-sm uppercase">
+                Pilot Stats
+              </Text>
+              <div className="flex flex-wrap items-start gap-3">
+                <StatControl
+                  label="HP"
+                  value={pilot.hp}
+                  max={pilot.max_hp}
+                  canEdit={canEdit}
+                  compact={compact}
+                  onChange={(v) => editConfig.onStatChange('hp', v)}
+                />
+                <StatControl
+                  label="Max HP"
+                  value={pilot.max_hp}
+                  canEdit={canEdit}
+                  compact={compact}
+                  onChange={(v) =>
+                    editConfig.onPilotUpdate({ max_hp: v }, `${pilot.callsign} Max HP → ${v}`)
+                  }
+                />
+                <StatControl
+                  label="AP"
+                  value={pilot.ap}
+                  max={pilot.max_ap}
+                  canEdit={canEdit}
+                  compact={compact}
+                  onChange={(v) => editConfig.onStatChange('ap', v)}
+                />
+                <StatControl
+                  label="TP"
+                  value={pilot.tp}
+                  canEdit={canEdit}
+                  compact={compact}
+                  onChange={(v) => editConfig.onStatChange('tp', v)}
+                />
+              </div>
+            </div>
+
+            {isBoarded && mech && (
+              <div>
+                <Text variant="pseudoheader" as="span" className="mb-2 block text-sm uppercase">
+                  Mech Stats
+                </Text>
+                <div className="flex flex-wrap items-start gap-3">
+                  <StatControl
+                    label="SP"
+                    value={mech.current_sp}
+                    max={mech.max_sp}
+                    canEdit={canEdit}
+                    compact={compact}
+                    onChange={(v) => editConfig.onUpdateMech({ current_sp: v })}
+                  />
+                  <StatControl
+                    label="EP"
+                    value={mech.current_ep}
+                    max={mech.max_ep}
+                    canEdit={canEdit}
+                    compact={compact}
+                    onChange={(v) => editConfig.onUpdateMech({ current_ep: v })}
+                  />
+                </div>
+              </div>
+            )}
+
+            <div>
+              <button
+                type="button"
+                className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-su-black bg-su-pink px-3 py-1.5 font-mono text-sm font-semibold uppercase text-su-white transition-colors hover:bg-su-pink/80"
+                onClick={() => {}}
+              >
+                Trigger Downtime
+              </button>
+            </div>
+          </div>
+        ) : null,
+      }
+    )
+
+    return result
+  }, [
+    pilotClass,
+    pilotRefs,
+    compact,
+    pilot,
+    mech,
+    mechRefs,
+    canEdit,
+    comrades.length,
+    mechChassisProp,
+    editConfig,
+  ])
 
   // --- Footer (only used in non-listing mode, DisplayCard hides in listing) ---
   const footerContent =
@@ -282,7 +455,7 @@ export function PlayerPilotDisplay({
     <>
       <DisplayCard
         stickyHeader={!listing}
-        headerBg={cardColorProp ?? 'bg-su-orange'}
+        headerBg={isBoarded ? 'bg-su-green' : (cardColorProp ?? 'bg-su-orange')}
         bodyPadding="p-4"
         mode={mode}
         headerContent={headerContent}
@@ -302,8 +475,21 @@ export function PlayerPilotDisplay({
         }
         tabs={tabs}
         controls={controls}
+        defaultTabActiveColor={isBoarded ? 'rgb(239, 137, 79)' : undefined}
+        footerBg={isBoarded ? 'bg-su-orange' : undefined}
         footerContent={footerContent}
       >
+        {isBoarded && editConfig && (
+          <SimpleDisplayContainer label="Pilot" className="mb-4 ml-auto w-fit">
+            <StatControl
+              label="HP"
+              value={pilot.hp}
+              max={pilot.max_hp}
+              canEdit={canEdit}
+              onChange={(v) => editConfig.onStatChange('hp', v)}
+            />
+          </SimpleDisplayContainer>
+        )}
         <div className="space-y-4">
           <PilotPersonalInfo
             pilot={pilot}
@@ -317,6 +503,15 @@ export function PlayerPilotDisplay({
             canEdit={canEdit}
             onConditionChange={(refId, condition) =>
               editConfig?.onUpdateEntityRef(refId, { condition })
+            }
+            onSwap={
+              canEdit && editConfig
+                ? (refId, newSchemaRefId) =>
+                    editConfig.onUpdateEntityRef(refId, {
+                      schema_ref_id: newSchemaRefId,
+                      condition: 'intact',
+                    })
+                : undefined
             }
           />
         </div>

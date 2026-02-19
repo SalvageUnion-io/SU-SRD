@@ -1,6 +1,7 @@
 import type { SURefEntity, SURefObjectChoice } from 'salvageunion-reference'
 import { getChoices } from 'salvageunion-reference'
 import { ReferenceEntityChoice } from './ReferenceEntityChoice'
+import type { ChoiceInputRenderer } from './ReferenceEntityChoice'
 import { cn } from '../../../utils/cn'
 import type {
   getReferenceEntitySpacing,
@@ -12,6 +13,8 @@ export type ReferenceEntityChoicesProps = {
   spacing: ReturnType<typeof getReferenceEntitySpacing>
   fontSize: ReturnType<typeof getReferenceEntityFontSizes>
   hideChoices: boolean
+  compact?: boolean
+  choiceInputRenderer?: ChoiceInputRenderer
 }
 
 export function ReferenceEntityChoices({
@@ -19,6 +22,8 @@ export function ReferenceEntityChoices({
   spacing,
   fontSize,
   hideChoices,
+  compact,
+  choiceInputRenderer,
 }: ReferenceEntityChoicesProps) {
   const entityChoices: SURefObjectChoice[] = getChoices(data) || []
 
@@ -34,6 +39,8 @@ export function ReferenceEntityChoices({
           choice={choice}
           fontSize={fontSize}
           spacing={spacing}
+          compact={compact}
+          choiceInputRenderer={choiceInputRenderer}
         />
       ))}
     </div>

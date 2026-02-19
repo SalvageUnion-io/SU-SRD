@@ -78,15 +78,13 @@ export function useMechBuilderState({
   const [modalTarget, setModalTarget] = useState<ModalTarget>(null)
   const [showPatternModal, setShowPatternModal] = useState(false)
   const [startingMechMode, setStartingMechMode] = useState(false)
-  const isFirstStateChange = useRef(true)
   const initialStateRef = useRef(initialState ?? emptyState)
+  const initialSerializedRef = useRef(JSON.stringify(initialState ?? emptyState))
 
-  // Fire onChange on every state change after initial mount (autosave mode)
+  // Fire onChange on every state change after initial mount (autosave mode).
+  // Compare against initial state instead of a ref flag to be Strict Mode safe.
   useEffect(() => {
-    if (isFirstStateChange.current) {
-      isFirstStateChange.current = false
-      return
-    }
+    if (JSON.stringify(state) === initialSerializedRef.current) return
     onChange?.(state)
   }, [state]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -135,7 +133,6 @@ export function useMechBuilderState({
   }, [state, capacity.isValid, onSave])
 
   const reset = useCallback(() => {
-    isFirstStateChange.current = true
     setState(initialStateRef.current)
   }, [])
 

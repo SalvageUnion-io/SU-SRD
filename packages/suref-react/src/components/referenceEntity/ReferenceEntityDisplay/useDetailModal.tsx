@@ -20,6 +20,7 @@ type UseDetailModalOptions = {
   primaryStatsOnly?: boolean
   abilitiesSection?: ReactNode
   afterExtraContent?: ReactNode
+  afterChoicesContent?: ReactNode
   footerOverride?: ReactNode
   hide?: Partial<ReferenceEntityHideConfig>
 }
@@ -86,6 +87,7 @@ export function useDetailModal(
                   primaryStatsOnly={options?.primaryStatsOnly}
                   abilitiesSection={options?.abilitiesSection}
                   afterExtraContent={options?.afterExtraContent}
+                  afterChoicesContent={options?.afterChoicesContent}
                   footerOverride={options?.footerOverride}
                 >
                   {options?.children}

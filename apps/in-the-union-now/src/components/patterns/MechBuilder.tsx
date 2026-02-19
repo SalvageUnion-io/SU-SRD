@@ -1,5 +1,8 @@
+import { useMemo } from 'react'
 import { getAssetUrl } from 'salvageunion-reference'
+import { Layers } from 'lucide-react'
 import { DisplayCard } from 'suref-react'
+import type { ReferenceEntityControl } from 'suref-react'
 import { useMechBuilderState } from '../../hooks/useMechBuilderState'
 import { MechBuilderHeader } from './MechBuilderHeader'
 import { MechBuilderBody } from './MechBuilderBody'
@@ -38,6 +41,8 @@ type MechBuilderProps = {
   userId?: string
   /** Whether to make the DisplayCard header sticky (default: true) */
   stickyHeader?: boolean
+  /** Controls rendered in the DisplayCard header */
+  controls?: ReferenceEntityControl[]
 }
 
 export function MechBuilder({
@@ -64,6 +69,7 @@ export function MechBuilder({
   onPatternApplied,
   userId,
   stickyHeader = true,
+  controls,
 }: MechBuilderProps) {
   const builder = useMechBuilderState({
     initialState,
@@ -72,6 +78,19 @@ export function MechBuilder({
     onPatternApplied,
   })
 
+  const mergedControls = useMemo(() => {
+    if (readOnly) return controls
+    const applyPatternControl: ReferenceEntityControl = {
+      key: 'apply-pattern',
+      icon: Layers,
+      onClick: () => builder.setShowPatternModal(true),
+      ariaLabel: 'Apply pattern',
+      label: 'Pattern',
+      variant: 'ghost',
+    }
+    return controls ? [applyPatternControl, ...controls] : [applyPatternControl]
+  }, [readOnly, controls, builder])
+
   return (
     <>
       <DisplayCard
@@ -79,6 +98,7 @@ export function MechBuilder({
         headerBg="bg-su-green"
         bodyPadding="p-4"
         mode={compact ? 'compact' : undefined}
+        controls={mergedControls}
         headerContent={
           <MechBuilderHeader
             chassis={builder.chassis}
@@ -90,12 +110,12 @@ export function MechBuilder({
             startingMechMode={builder.startingMechMode}
             onNameChange={builder.setName}
             onSelectChassis={() => builder.setModalTarget('chassis')}
-            onApplyPattern={() => builder.setShowPatternModal(true)}
           />
         }
         footerContent={
           readOnly || hideFooter ? undefined : (
             <MechBuilderFooter
+              compact={compact}
               hideFooterToggles={hideFooterToggles}
               visible={builder.state.visible}
               startingMechMode={builder.startingMechMode}
@@ -128,6 +148,7 @@ export function MechBuilder({
           capacity={builder.capacity}
           readOnly={readOnly}
           compact={compact}
+          onSelectChassis={() => builder.setModalTarget('chassis')}
           onRemoveItem={builder.removeItem}
           onAddItem={builder.setModalTarget}
           image={{

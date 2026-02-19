@@ -14,8 +14,7 @@ type MechBuilderHeaderProps = {
   salvageValue: SalvageValueInfo
   startingMechMode: boolean
   onNameChange: (name: string) => void
-  onSelectChassis: () => void
-  onApplyPattern: () => void
+  onSelectChassis?: () => void
 }
 
 export function MechBuilderHeader({
@@ -28,7 +27,6 @@ export function MechBuilderHeader({
   startingMechMode,
   onNameChange,
   onSelectChassis,
-  onApplyPattern,
 }: MechBuilderHeaderProps) {
   if (!chassis) {
     return (
@@ -41,7 +39,7 @@ export function MechBuilderHeader({
         >
           {readOnly ? 'NO CHASSIS' : 'SELECT A CHASSIS'}
         </Text>
-        {!readOnly && (
+        {!readOnly && onSelectChassis && (
           <button
             type="button"
             onClick={onSelectChassis}
@@ -55,7 +53,7 @@ export function MechBuilderHeader({
   }
 
   return (
-    <>
+    <div className="flex w-full flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
       {/* LEFT: TL + pattern name + chassis value */}
       <div className={`flex min-w-0 items-center ${compact ? 'gap-0.5' : 'gap-1'}`}>
         <StatDisplay label="TL" value={chassis.techLevel} inverse compact={compact} />
@@ -82,29 +80,11 @@ export function MechBuilderHeader({
               </span>
             )}
             <ValueDisplay label={`${chassis.name} Chassis`} compact={compact} />
-            {!readOnly && (
-              <>
-                <button
-                  type="button"
-                  onClick={onSelectChassis}
-                  className={compact ? TAG_BUTTON_SM : TAG_BUTTON}
-                >
-                  Change
-                </button>
-                <button
-                  type="button"
-                  onClick={onApplyPattern}
-                  className={compact ? TAG_BUTTON_SM : TAG_BUTTON}
-                >
-                  Apply Pattern
-                </button>
-              </>
-            )}
           </div>
         </div>
       </div>
       {/* RIGHT: Stats */}
-      <div className="flex shrink-0 items-center gap-0.5">
+      <div className="flex shrink-0 flex-wrap items-center gap-0.5">
         <StatDisplay
           label={compact ? 'SP' : 'Structure'}
           value={chassis.structurePoints}
@@ -154,7 +134,7 @@ export function MechBuilderHeader({
           compact={compact}
         />
       </div>
-    </>
+    </div>
   )
 }
 

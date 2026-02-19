@@ -137,7 +137,6 @@ export function applyStatLabel(
   value: number | string | undefined,
   prefix: string = ''
 ): string | undefined {
-  if (value === undefined) return undefined
-  if (value === 0) return '-'
+  if (value === undefined || value === 0) return undefined
   return `${prefix}${value}`
 }

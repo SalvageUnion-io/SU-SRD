@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { SalvageUnionReference, isHybridClass, getAssetUrl } from 'salvageunion-reference'
+import type { EntitySchemaName } from 'salvageunion-reference'
 import { toast } from 'sonner'
 import { showSaveToast } from '../lib/toastUtils'
 import { useAuthStore } from '../stores/authStore'
@@ -28,15 +29,17 @@ import { changeLogApi } from '../lib/api/changeLogApi'
 import type { EntityRefUpdate, MechUpdate, PilotUpdate } from '../types/common'
 
 export type PilotEditConfig = {
+  userId: string
   canEdit: boolean
   saveStatusText: string
-  onPilotUpdate: (input: Partial<PilotUpdate>) => void
+  onPilotUpdate: (input: Partial<PilotUpdate>, toastMessage?: string) => void
   onStatChange: (field: 'hp' | 'ap' | 'tp', value: number) => void
   onUpdateEntityRef: (refId: string, input: EntityRefUpdate) => void
   onUpdateMech: (input: Partial<MechUpdate>) => void
   onUpdateMechEntityRef: (refId: string, input: EntityRefUpdate) => void
   onDelete: () => void
   onToggleVisibility: () => void
+  onToggleBoarded: () => void
   isDeleting: boolean
 }
 
@@ -93,12 +96,12 @@ export function usePilotSheet(pilotId: string) {
   const canEdit = access?.canView ? access.canEdit : false
 
   const handlePilotUpdate = useCallback(
-    (input: Partial<PilotUpdate>) => {
+    (input: Partial<PilotUpdate>, toastMessage?: string) => {
       if (!user || !pilot) return
       updatePilot.mutate(
         { pilotId: pilot.id, input, userId: user.id },
         {
-          onSuccess: showSaveToast,
+          onSuccess: () => showSaveToast(toastMessage ?? `${pilot.callsign} updated`),
           onError: (err) => toast.error(getErrorMessage(err)),
         }
       )
@@ -110,7 +113,10 @@ export function usePilotSheet(pilotId: string) {
     (field: 'hp' | 'ap' | 'tp', newValue: number) => {
       if (!pilot || !user) return
       const oldValue = pilot[field]
-      handlePilotUpdate({ [field]: newValue })
+      handlePilotUpdate(
+        { [field]: newValue },
+        `${pilot.callsign} ${field.toUpperCase()} ${oldValue} → ${newValue}`
+      )
       changeLogApi
         .log(user.id, {
           targetId: pilot.id,
@@ -130,11 +136,26 @@ export function usePilotSheet(pilotId: string) {
     (refId: string, input: EntityRefUpdate) => {
       if (!pilot || !user) return
       const ref = (pilotRefs ?? []).find((r) => r.id === refId)
+      const refName = ref
+        ? SalvageUnionReference.get(ref.schema_name as EntitySchemaName, ref.schema_ref_id)?.name
+        : undefined
       updateEntityRef.mutate(
         { refId, input, pilotId: pilot.id },
         {
           onSuccess: () => {
-            showSaveToast()
+            if (input.condition) {
+              showSaveToast(`${refName ?? 'Equipment'} → ${input.condition}`)
+            } else if (input.schema_ref_id && ref) {
+              const newEntity = SalvageUnionReference.get(
+                ref.schema_name as EntitySchemaName,
+                input.schema_ref_id
+              )
+              showSaveToast(
+                `${pilot.callsign} swapped ${refName ?? 'item'} → ${newEntity?.name ?? 'item'}`
+              )
+            } else {
+              showSaveToast(`${pilot.callsign} updated`)
+            }
             if (input.condition && ref) {
               changeLogApi
                 .log(user.id, {
@@ -145,6 +166,27 @@ export function usePilotSheet(pilotId: string) {
                   oldValue: ref.condition,
                   newValue: input.condition,
                   description: `${pilot.callsign} equipment → ${input.condition}`,
+                })
+                .catch(() => {})
+            }
+            if (input.schema_ref_id && ref && input.schema_ref_id !== ref.schema_ref_id) {
+              const oldEntity = SalvageUnionReference.get(
+                ref.schema_name as EntitySchemaName,
+                ref.schema_ref_id
+              )
+              const newEntity = SalvageUnionReference.get(
+                ref.schema_name as EntitySchemaName,
+                input.schema_ref_id
+              )
+              changeLogApi
+                .log(user.id, {
+                  targetId: refId,
+                  targetType: 'entity_ref',
+                  action: 'update',
+                  field: 'schema_ref_id',
+                  oldValue: ref.schema_ref_id,
+                  newValue: input.schema_ref_id,
+                  description: `${pilot.callsign} swapped ${oldEntity?.name ?? ref.schema_ref_id} → ${newEntity?.name ?? input.schema_ref_id}`,
                 })
                 .catch(() => {})
             }
@@ -159,11 +201,17 @@ export function usePilotSheet(pilotId: string) {
   const handleUpdateMech = useCallback(
     (input: Partial<MechUpdate>) => {
       if (!mech || !user) return
+      const mechLabel = mech.pattern_name || chassisName || 'Mech'
       updateMech.mutate(
         { mechId: mech.id, input },
         {
           onSuccess: () => {
-            showSaveToast()
+            const fields = Object.keys(input)
+            const fieldLabel =
+              fields.length === 1 && fields[0]
+                ? fields[0].replace('current_', '').toUpperCase()
+                : 'stats'
+            showSaveToast(`${mechLabel} ${fieldLabel} updated`)
             for (const [field, newValue] of Object.entries(input)) {
               const oldValue = mech[field as keyof typeof mech]
               changeLogApi
@@ -183,18 +231,26 @@ export function usePilotSheet(pilotId: string) {
         }
       )
     },
-    [mech, user, updateMech]
+    [mech, user, chassisName, updateMech]
   )
 
   const handleUpdateMechEntityRef = useCallback(
     (refId: string, input: EntityRefUpdate) => {
       if (!mech || !user) return
       const ref = (mechRefs ?? []).find((r) => r.id === refId)
+      const mechLabel = mech.pattern_name || chassisName || 'Mech'
+      const refName = ref
+        ? SalvageUnionReference.get(ref.schema_name as EntitySchemaName, ref.schema_ref_id)?.name
+        : undefined
       updateMechEntityRef.mutate(
         { refId, input, mechId: mech.id },
         {
           onSuccess: () => {
-            showSaveToast()
+            if (input.condition) {
+              showSaveToast(`${refName ?? 'Equipment'} → ${input.condition}`)
+            } else {
+              showSaveToast(`${mechLabel} loadout updated`)
+            }
             if (input.condition && ref) {
               changeLogApi
                 .log(user.id, {
@@ -213,7 +269,7 @@ export function usePilotSheet(pilotId: string) {
         }
       )
     },
-    [mech, user, mechRefs, updateMechEntityRef]
+    [mech, user, chassisName, mechRefs, updateMechEntityRef]
   )
 
   const handleDelete = useCallback(() => {
@@ -232,23 +288,38 @@ export function usePilotSheet(pilotId: string) {
 
   const handleToggleVisibility = useCallback(() => {
     if (!pilot) return
-    handlePilotUpdate({ visible: !pilot.visible })
+    const msg = pilot.visible
+      ? `${pilot.callsign} is now hidden`
+      : `${pilot.callsign} is now visible`
+    handlePilotUpdate({ visible: !pilot.visible }, msg)
   }, [pilot, handlePilotUpdate])
 
-  const editConfig: PilotEditConfig | undefined = access?.canView
-    ? {
-        canEdit,
-        saveStatusText: pilotSaveStatus.statusText,
-        onPilotUpdate: handlePilotUpdate,
-        onStatChange: handleStatChange,
-        onUpdateEntityRef: handleUpdateEntityRef,
-        onUpdateMech: handleUpdateMech,
-        onUpdateMechEntityRef: handleUpdateMechEntityRef,
-        onDelete: handleDelete,
-        onToggleVisibility: handleToggleVisibility,
-        isDeleting: deletePilot.isPending,
-      }
-    : undefined
+  const handleToggleBoarded = useCallback(() => {
+    if (!pilot) return
+    const mechLabel = mech?.pattern_name || chassisName || 'mech'
+    const msg = pilot.is_boarded
+      ? `${pilot.callsign} has disembarked ${mechLabel}`
+      : `${pilot.callsign} has boarded ${mechLabel}`
+    handlePilotUpdate({ is_boarded: !pilot.is_boarded }, msg)
+  }, [pilot, mech, chassisName, handlePilotUpdate])
+
+  const editConfig: PilotEditConfig | undefined =
+    access?.canView && user
+      ? {
+          userId: user.id,
+          canEdit,
+          saveStatusText: pilotSaveStatus.statusText,
+          onPilotUpdate: handlePilotUpdate,
+          onStatChange: handleStatChange,
+          onUpdateEntityRef: handleUpdateEntityRef,
+          onUpdateMech: handleUpdateMech,
+          onUpdateMechEntityRef: handleUpdateMechEntityRef,
+          onDelete: handleDelete,
+          onToggleVisibility: handleToggleVisibility,
+          onToggleBoarded: handleToggleBoarded,
+          isDeleting: deletePilot.isPending,
+        }
+      : undefined
 
   return {
     pilot,

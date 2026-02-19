@@ -162,7 +162,11 @@
     "content": [
       {
         "type": "paragraph",
-        "value": "A drone companion controlled by the Little Sestra chassis."
+        "value": "The Little Sestra comes with a single Sestra Drone that it controls up to Far Range. Roll on the A.I. Personality Table for the drone's personality."
+      },
+      {
+        "type": "paragraph",
+        "value": "The Sestra Drone acts separately to the Little Sestra on its own turn, and is controlled by the Pilot. It functions effectively as a Mech, but cannot Push. It can be installed with Systems and Modules and restores its SP and EP in a T3 or higher Mech Bay during Downtime. If the Drone is damaged it can be repaired as though it was a Mech. If it is destroyed you may craft a new Sestra Drone for 2 Tech 3 Scrap as per the crafting rules. The Little Sestra may have one active Sestra Drone at a time."
       }
     ]
   },

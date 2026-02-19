@@ -50,10 +50,13 @@ export function CardImage({ url, alt, compact, editable }: CardImageProps) {
 
   return (
     <div
-      className="shrink-0 bg-su-white align-top md:float-left md:mr-4"
+      className="mx-auto shrink-0 bg-su-white align-top md:mx-0 md:float-left md:mr-4"
       style={{ width, maxWidth: '100%', shapeOutside: 'margin-box' }}
     >
-      <div className={cn('group relative overflow-hidden', editable && 'rounded')}>
+      <div
+        className={cn('group relative overflow-hidden', editable && 'rounded')}
+        style={displayUrl && showImage && !loaded ? { minHeight: compact ? 120 : 200 } : undefined}
+      >
         {displayUrl && showImage ? (
           <img
             ref={imgRef}

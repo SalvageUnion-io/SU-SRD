@@ -97,10 +97,11 @@ export function useCrawlerSheet(gameId: string) {
   const handleImmediateUpdate = useCallback(
     (input: Partial<CrawlerUpdate>) => {
       if (!crawler) return
+      const crawlerLabel = crawler.name || 'Crawler'
       updateCrawler.mutate(
         { crawlerId: crawler.id, input },
         {
-          onSuccess: () => showSaveToast(),
+          onSuccess: () => showSaveToast(`${crawlerLabel} updated`),
           onError: (err) => toast.error(getErrorMessage(err)),
         }
       )

@@ -15,6 +15,7 @@ import { ReferenceEntityRequirementDisplay } from '../ReferenceEntityRequirement
 import { ReferenceEntityChoices } from '../ReferenceEntityChoices'
 import { ReferenceEntityGrants } from '../ReferenceEntityGrants'
 import { ReferenceEntityBonusPerTechLevel } from '../ReferenceEntityBonusPerTechLevel'
+import { ReferenceEntityIntegratedSystems } from '../ReferenceEntityIntegratedSystems'
 import { ConditionalSheetInfo } from '../ConditionalSheetInfo'
 import { ReferenceEntityActions } from '../ReferenceEntityActions'
 import { CardImage } from '../../../shared/CardImage'
@@ -27,6 +28,7 @@ import { borderColorFromHeaderBg, getSourceStyles } from '../../referenceEntityH
 import { useReferenceEntityDisplayState } from '../useReferenceEntityDisplayState'
 import type { ReferenceEntityDisplayStateInput } from '../useReferenceEntityDisplayState'
 import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
+import type { ChoiceInputRenderer } from '../ReferenceEntityChoice'
 import type { NpcConfig } from '../referenceEntityDisplayTypes'
 import { ReferenceEntityFooter } from './ReferenceEntityFooter'
 import { ReferenceEntityFactionData } from './ReferenceEntityFactionData'
@@ -49,6 +51,8 @@ export type ReferenceEntityDisplayContentProps = ReferenceEntityDisplayStateInpu
   onCardClick?: () => void
   /** Enable hover enlarge effect without a click handler (e.g., when wrapped in an <a>) */
   cardClickable?: boolean
+  /** Custom renderer for simple choice inputs (e.g., freeform text, roll tables) */
+  choiceInputRenderer?: ChoiceInputRenderer
 }
 
 export function ReferenceEntityDisplayContent({
@@ -62,6 +66,7 @@ export function ReferenceEntityDisplayContent({
   lightweight = false,
   onCardClick,
   cardClickable,
+  choiceInputRenderer,
   ...inputProps
 }: ReferenceEntityDisplayContentProps) {
   const state = useReferenceEntityDisplayState(inputProps)
@@ -94,6 +99,7 @@ export function ReferenceEntityDisplayContent({
     primaryStatsOnly: primaryStatsOnlyProp,
     abilitiesSection,
     afterExtraContent,
+    afterChoicesContent,
     footerOverride,
   } = state
 
@@ -154,6 +160,7 @@ export function ReferenceEntityDisplayContent({
     !!children ||
     !!chassisAbilitiesBlock ||
     !!afterExtraContent ||
+    !!afterChoicesContent ||
     hasFactionContent ||
     hasGuideSteps ||
     ('bonusPerTechLevel' in data && !!data.bonusPerTechLevel) ||
@@ -496,7 +503,15 @@ export function ReferenceEntityDisplayContent({
               spacing={spacing}
               fontSize={fontSize}
               hideChoices={hide.choices}
+              compact={compact}
+              choiceInputRenderer={choiceInputRenderer}
             />
+            {afterChoicesContent && (
+              <>
+                <div className="clear-both" />
+                {afterChoicesContent}
+              </>
+            )}
             <div className="clear-both" />
           </div>
           {interactive?.renderFooter ? (

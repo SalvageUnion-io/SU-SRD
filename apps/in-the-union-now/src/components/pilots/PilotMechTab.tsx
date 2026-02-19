@@ -11,7 +11,9 @@ import {
   entityRefsToBuilderState,
   builderStateToPatchOps,
   getMechSourcePattern,
+  computeMechStatsFromRef,
 } from '../../lib/mechUtils'
+import { isSlotOwnerRef } from '../../lib/entityModificationUtils'
 import { builderToCreateInput } from '../../lib/builderUtils'
 import { hasDeviated, resolveSourcePatternItems } from '../../lib/deviationUtils'
 import type { BuilderState } from '../../lib/builderUtils'
@@ -67,7 +69,6 @@ export function PilotMechTab({ pilot, mech, mechRefs, canEdit, compact }: PilotM
 
   return (
     <PilotMechTabInner
-      pilot={pilot}
       mech={mech}
       mechRefs={mechRefs}
       canEdit={canEdit}
@@ -109,7 +110,6 @@ function PilotMechTabInner({
   showRefPatternModal,
   setShowRefPatternModal,
 }: {
-  pilot: PilotRow
   mech: MechRow
   mechRefs: EntityRefRow[]
   canEdit: boolean
@@ -137,7 +137,9 @@ function PilotMechTabInner({
     if (!sourcePattern || !mechRefs) return false
 
     const mechItems: PatternItem[] = mechRefs
-      .filter((r) => r.schema_name === 'systems' || r.schema_name === 'modules')
+      .filter(
+        (r) => (r.schema_name === 'systems' || r.schema_name === 'modules') && !isSlotOwnerRef(r)
+      )
       .map((r) => ({
         schema_name: r.schema_name as 'systems' | 'modules',
         schema_ref_id: r.schema_ref_id,
@@ -155,6 +157,8 @@ function PilotMechTabInner({
   const handleAutosave = useCallback(
     (state: BuilderState | null) => {
       if (!user || !state) return
+
+      // Patch entity_refs (systems/modules)
       const ops = builderStateToPatchOps(mechRefs, state, mech.id, user.id)
       updateLoadout.mutate(
         {
@@ -163,12 +167,38 @@ function PilotMechTabInner({
           deleteIds: ops.deleteIds,
         },
         {
-          onSuccess: () => showSaveToast(),
+          onSuccess: () => showSaveToast(`${state.name || 'Mech'} loadout saved`),
           onError: (err) => toast.error(getErrorMessage(err)),
         }
       )
+
+      // Patch mech row if chassis or name changed
+      const mechUpdate: Record<string, unknown> = {}
+      if (state.chassisRef && state.chassisRef !== mech.chassis_ref) {
+        mechUpdate.chassis_ref = state.chassisRef
+        const stats = computeMechStatsFromRef(state.chassisRef)
+        if (stats) {
+          Object.assign(mechUpdate, stats)
+          // Reset current values to new maxes
+          mechUpdate.current_sp = stats.max_sp
+          mechUpdate.current_ep = stats.max_ep
+          mechUpdate.current_heat = 0
+        }
+      }
+      if (state.name !== (mech.pattern_name ?? '')) {
+        mechUpdate.pattern_name = state.name || null
+      }
+      if (state.customImageUrl !== mech.image_path) {
+        mechUpdate.image_path = state.customImageUrl
+      }
+      if (Object.keys(mechUpdate).length > 0) {
+        updateMechMutation.mutate(
+          { mechId: mech.id, input: mechUpdate },
+          { onError: (err) => toast.error(getErrorMessage(err)) }
+        )
+      }
     },
-    [user, mech.id, mechRefs, updateLoadout]
+    [user, mech, mechRefs, updateLoadout, updateMechMutation]
   )
 
   useAutosave({

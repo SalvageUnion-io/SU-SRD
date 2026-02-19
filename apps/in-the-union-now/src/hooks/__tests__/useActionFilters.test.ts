@@ -15,7 +15,6 @@ function makeAction(overrides: {
     actionName: overrides.name ?? 'test',
     sourceEntity: {} as never,
     sourceSchemaName: 'abilities' as never,
-    paleBackgroundColor: '#fff',
     borderColor: '#000',
     dataValues: [],
     entityRefId: null,
@@ -25,6 +24,7 @@ function makeAction(overrides: {
     requiredTraits: [],
     actionType: overrides.actionType ?? 'Turn',
     source: overrides.source ?? 'pilot',
+    costType: 'none',
     hasDamage: overrides.hasDamage ?? false,
   }
 }

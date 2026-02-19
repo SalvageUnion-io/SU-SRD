@@ -1,6 +1,7 @@
 import { SalvageUnionReference, type SURefChassis } from 'salvageunion-reference'
 import type { PatternItem, EntityRefInsert, EntityRefRow, MechRow } from '../types/common'
 import type { BuilderState } from './builderUtils'
+import { isSlotOwnerRef } from './entityModificationUtils'
 
 // ---------------------------------------------------------------------------
 // Source Pattern Linking
@@ -70,9 +71,9 @@ export function patternItemsToEntityRefs(
 // BuilderState Bridge (for inline mech editing)
 // ---------------------------------------------------------------------------
 
-/** Check if an entity_ref is a mech equipment ref (system or module) */
+/** Check if an entity_ref is a mech equipment ref (system or module, excluding comrade mods) */
 function isMechEquipmentRef(ref: EntityRefRow): boolean {
-  return ref.schema_name === 'systems' || ref.schema_name === 'modules'
+  return (ref.schema_name === 'systems' || ref.schema_name === 'modules') && !isSlotOwnerRef(ref)
 }
 
 /** Convert a mech + its entity_refs into a BuilderState for MechBuilder reuse */

@@ -4,13 +4,9 @@ import { patternItemsToOverride } from '../../lib/builderUtils'
 import { usePatterns } from '../../hooks/usePatterns'
 import type { SURefEntity, SURefObjectPattern } from 'salvageunion-reference'
 import type { SelectedPattern, TypedPatternRow } from '../../types/common'
-import {
-  ReferenceEntityDisplay,
-  Text,
-  FilterChip,
-  addControl,
-  useChassisPatternConfig,
-} from 'suref-react'
+import { Plus } from 'lucide-react'
+import { ReferenceEntityDisplay, Text, FilterChip, useChassisPatternConfig } from 'suref-react'
+import type { ReferenceEntityControl } from 'suref-react'
 import type { PatternOverrideData } from 'suref-react'
 import { Button } from '../ui/button'
 import { actionButtonClasses } from '../shared/actionButtonClasses'
@@ -158,6 +154,17 @@ export function PatternSelectionModal({
   )
 }
 
+function selectControl(onClick: () => void): ReferenceEntityControl {
+  return {
+    key: 'select',
+    icon: Plus,
+    onClick,
+    ariaLabel: 'Select pattern',
+    label: 'Select',
+    variant: 'primary',
+  }
+}
+
 function ReferencePatternOption({
   chassis,
   pattern,
@@ -190,7 +197,7 @@ function ReferencePatternOption({
       statsOverride={patternConfig?.statsOverride}
       primaryStatsOnly={patternConfig?.primaryStatsOnly}
       abilitiesSection={patternConfig?.abilitiesSection}
-      controls={[addControl(() => onSelect(selection))]}
+      controls={[selectControl(() => onSelect(selection))]}
     />
   )
 }
@@ -222,7 +229,7 @@ function PlayerPatternOption({
       statsOverride={patternConfig?.statsOverride}
       primaryStatsOnly={patternConfig?.primaryStatsOnly}
       abilitiesSection={patternConfig?.abilitiesSection}
-      controls={[addControl(() => onSelect(selection))]}
+      controls={[selectControl(() => onSelect(selection))]}
     />
   )
 }

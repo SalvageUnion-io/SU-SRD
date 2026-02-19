@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { SalvageUnionReference, getTechLevel, getSource } from 'salvageunion-reference'
+import { SalvageUnionReference, getTechLevel, getSource, getTraits } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
 import { filterAndSplitEntities } from './entitySelectionUtils'
 
@@ -70,6 +70,57 @@ describe('filterAndSplitEntities', () => {
       expect(lower.selectable.length).toBe(upper.selectable.length)
       expect(lower.selectable.length).toBe(mixed.selectable.length)
       expect(lower.selectable.length).toBeGreaterThan(0)
+    })
+  })
+
+  describe('trait-based search', () => {
+    test('searching a trait type surfaces entities with that trait', () => {
+      const result = filterAndSplitEntities(defaultOpts({ search: 'salvaging' }))
+      expect(result.selectable.length).toBeGreaterThan(0)
+      // Every result should have "salvaging" in its name or in a trait type
+      for (const entity of result.selectable) {
+        const name = 'name' in entity ? (entity.name as string).toLowerCase() : ''
+        const traits = getTraits(entity)
+        const hasTraitMatch = traits?.some((t) => t.type.toLowerCase().includes('salvaging'))
+        expect(name.includes('salvaging') || hasTraitMatch).toBe(true)
+      }
+    })
+
+    test('trait search is case-insensitive', () => {
+      const lower = filterAndSplitEntities(defaultOpts({ search: 'melee' }))
+      const upper = filterAndSplitEntities(defaultOpts({ search: 'MELEE' }))
+      const mixed = filterAndSplitEntities(defaultOpts({ search: 'Melee' }))
+      expect(lower.selectable.length).toBe(upper.selectable.length)
+      expect(lower.selectable.length).toBe(mixed.selectable.length)
+      expect(lower.selectable.length).toBeGreaterThan(0)
+    })
+
+    test('trait search returns more results than name-only search for trait terms', () => {
+      // "melee" is a trait type — some melee weapons don't have "melee" in their name
+      const result = filterAndSplitEntities(defaultOpts({ search: 'melee' }))
+      const nameOnlyMatches = result.selectable.filter((e) => {
+        const name = 'name' in e ? (e.name as string).toLowerCase() : ''
+        return name.includes('melee')
+      })
+      // There should be more total results than just name matches (trait matches add extras)
+      expect(result.selectable.length).toBeGreaterThan(nameOnlyMatches.length)
+    })
+
+    test('entities without traits still match by name', () => {
+      // Chassis have no traits, search by name should still work
+      const result = filterAndSplitEntities(defaultOpts({ entities: allChassis, search: 'iron' }))
+      expect(result.selectable.length).toBeGreaterThan(0)
+      for (const entity of result.selectable) {
+        const name = 'name' in entity ? (entity.name as string).toLowerCase() : ''
+        expect(name).toContain('iron')
+      }
+    })
+
+    test('trait search works across entity types (modules)', () => {
+      const result = filterAndSplitEntities(
+        defaultOpts({ entities: allModules, search: 'hacking' })
+      )
+      expect(result.selectable.length).toBeGreaterThan(0)
     })
   })
 

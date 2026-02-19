@@ -50,7 +50,8 @@ export function ReferenceEntityStats({
 
         // Use svOverride for the SV stat when provided
         if (isSalvageValue && svOverride) {
-          const overrideDisplay = svOverride.value === 0 ? '-' : `${prefix}${svOverride.value}`
+          const overrideDisplay =
+            svOverride.value === 0 ? undefined : `${prefix}${svOverride.value}`
           return (
             <StatDisplay
               key={index}

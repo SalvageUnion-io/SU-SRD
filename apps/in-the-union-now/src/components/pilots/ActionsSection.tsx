@@ -1,24 +1,28 @@
 import { useMemo, useCallback, useState, useEffect, useRef } from 'react'
 import type { ReactNode } from 'react'
 import type { SURefEnumSchemaName, SURefChassis } from 'salvageunion-reference'
-import { SalvageUnionReference } from 'salvageunion-reference'
-import { ReferenceEntityDisplayTooltip, FilterChip, Text } from 'suref-react'
+import { SalvageUnionReference, getChassisAbilities } from 'salvageunion-reference'
+import { ReferenceEntityDisplayTooltip, FilterChip, StatDisplay, Text } from 'suref-react'
 import type { ReferenceEntityControl } from 'suref-react'
 import { Play, RotateCcw } from 'lucide-react'
 import { toast } from 'sonner'
 import { FilterRow } from '../shared/FilterRow'
+import { SimpleDisplayContainer } from '../shared/SimpleDisplayContainer'
 import {
   extractPilotActions,
   extractMechActions,
   extractChassisActions,
+  extractComradeActions,
   getGeneralActions,
 } from '../../lib/pilotActionUtils'
 import type { ActionDisplayData } from '../../lib/pilotActionUtils'
+import { extractComrades } from '../../lib/comradeUtils'
 import { ActionDisplay } from './ActionDisplay'
 import {
   getActionDisabledReason,
   getMechActionDisabledReason,
   getPilotTraits,
+  getActionsTraits,
   decrementActionUses,
   refillActionUses,
 } from '../../lib/actionUsesUtils'
@@ -33,13 +37,11 @@ import type {
   MechUpdate,
 } from '../../types/common'
 
-const MECH_BORDER_COLOR = 'rgb(122, 151, 138)'
-
 /** Tailwind color classes for category filter chips */
 const CATEGORY_CHIP_COLORS: Record<CategoryFilter, string> = {
   Pilot: 'bg-su-orange text-su-white',
   Mech: 'bg-su-green text-su-white',
-  Generic: 'bg-su-grey-dark text-su-white',
+  Generic: 'bg-su-pink text-su-white',
 }
 
 type ActionsSectionProps = {
@@ -66,24 +68,50 @@ export function ActionsSection({
   mechRefs,
   mech,
   mechChassis,
+  onUpdateMech,
   onUpdateMechEntityRef,
 }: ActionsSectionProps) {
-  const pilotActions = useMemo(() => extractPilotActions(pilotRefs), [pilotRefs])
+  const isBoarded = pilot.is_boarded
+  const pilotActions = useMemo(
+    () => extractPilotActions(pilotRefs, isBoarded),
+    [pilotRefs, isBoarded]
+  )
   const mechActions = useMemo(
-    () => (mechRefs && mechRefs.length > 0 ? extractMechActions(mechRefs) : []),
-    [mechRefs]
+    () => (mechRefs && mechRefs.length > 0 ? extractMechActions(mechRefs, isBoarded) : []),
+    [mechRefs, isBoarded]
   )
   const chassisActions = useMemo(
-    () => (mechChassis ? extractChassisActions(mechChassis) : []),
-    [mechChassis]
+    () => (mechChassis ? extractChassisActions(mechChassis, isBoarded) : []),
+    [mechChassis, isBoarded]
   )
-  const generalActions = useMemo(() => getGeneralActions(), [])
-  const pilotTraits = useMemo(() => getPilotTraits(pilotRefs), [pilotRefs])
+  const generalActions = useMemo(() => getGeneralActions(isBoarded), [isBoarded])
+  const comradeActions = useMemo(() => {
+    const comrades = extractComrades(pilotRefs, mechRefs ?? [], mechChassis)
+    return extractComradeActions(comrades, isBoarded)
+  }, [pilotRefs, mechRefs, mechChassis, isBoarded])
+  // Separate trait sets by source — variable-currency actions use the set matching
+  // their resolved cost type (mech traits when boarded/EP, pilot traits when not/AP)
+  const pilotSourceTraits = useMemo(() => getPilotTraits(pilotRefs), [pilotRefs])
+  const mechSourceTraits = useMemo(() => {
+    if (!isBoarded) return new Set<string>()
+    const traits = mechRefs ? getPilotTraits(mechRefs) : new Set<string>()
+    if (mechChassis) {
+      const chassisAbilityActions = getChassisAbilities(mechChassis) ?? []
+      for (const t of getActionsTraits(chassisAbilityActions)) traits.add(t)
+    }
+    return traits
+  }, [isBoarded, mechRefs, mechChassis])
 
   // Merge all actions into one pool
   const allActions = useMemo(
-    () => [...pilotActions, ...mechActions, ...chassisActions, ...generalActions],
-    [pilotActions, mechActions, chassisActions, generalActions]
+    () => [
+      ...pilotActions,
+      ...mechActions,
+      ...chassisActions,
+      ...comradeActions,
+      ...generalActions,
+    ],
+    [pilotActions, mechActions, chassisActions, comradeActions, generalActions]
   )
 
   const filters = useActionFilters()
@@ -107,9 +135,18 @@ export function ActionsSection({
         filters.hasActiveFilters,
         pilot,
         mech,
-        pilotTraits
+        pilotSourceTraits,
+        mechSourceTraits
       ),
-    [allActions, filters.checkMatch, filters.hasActiveFilters, pilot, mech, pilotTraits]
+    [
+      allActions,
+      filters.checkMatch,
+      filters.hasActiveFilters,
+      pilot,
+      mech,
+      pilotSourceTraits,
+      mechSourceTraits,
+    ]
   )
 
   const handleUsePilotAction = useCallback(
@@ -118,7 +155,12 @@ export function ActionsSection({
         style: { borderColor: action.borderColor, borderWidth: '2px' },
       })
       if (action.activationCost !== null) {
-        onUpdatePilot({ ap: pilot.ap - action.activationCost })
+        // Variable-currency actions resolved to EP deduct from mech
+        if (action.costType === 'ep' && mech && onUpdateMech) {
+          onUpdateMech({ current_ep: mech.current_ep - action.activationCost })
+        } else {
+          onUpdatePilot({ ap: pilot.ap - action.activationCost })
+        }
       }
       if (action.maxUses !== null && action.entityRefId) {
         const ref = pilotRefs.find((r) => r.id === action.entityRefId)
@@ -128,7 +170,28 @@ export function ActionsSection({
         }
       }
     },
-    [pilot.callsign, pilot.ap, pilotRefs, onUpdatePilot, onUpdateEntityRef]
+    [pilot.callsign, pilot.ap, mech, pilotRefs, onUpdatePilot, onUpdateMech, onUpdateEntityRef]
+  )
+
+  const handleUseMechAction = useCallback(
+    (action: ActionDisplayData) => {
+      if (!mech || !onUpdateMech) return
+      toast(`${mech.pattern_name ?? 'Mech'} used ${action.name}`, {
+        style: { borderColor: action.borderColor, borderWidth: '2px' },
+      })
+      if (action.activationCost !== null) {
+        onUpdateMech({ current_ep: mech.current_ep - action.activationCost })
+      }
+      if (action.maxUses !== null && action.entityRefId) {
+        if (!mechRefs || !onUpdateMechEntityRef) return
+        const ref = mechRefs.find((r) => r.id === action.entityRefId)
+        if (ref) {
+          const newMetadata = decrementActionUses(action.actionName, action.maxUses, ref.metadata)
+          onUpdateMechEntityRef(action.entityRefId, { metadata: newMetadata })
+        }
+      }
+    },
+    [mech, mechRefs, onUpdateMech, onUpdateMechEntityRef]
   )
 
   const handleRefillAction = useCallback(
@@ -159,39 +222,46 @@ export function ActionsSection({
   return (
     <div className={compact ? 'space-y-2' : 'space-y-3'}>
       <div>
-        {/* Filter chips */}
-        <div className={compact ? 'space-y-1' : 'space-y-1.5'}>
-          <FilterRow label="Type">
-            <FilterChip
-              label="All"
-              active={filters.activeTypes.size === 0}
-              onClick={filters.clearTypes}
-            />
-            {ACTION_TYPES.filter((t) => availableTypes.has(t)).map((type) => (
+        {/* Filter chips + optional EP stat */}
+        <div className="flex items-start gap-2">
+          <div className={compact ? 'flex-1 space-y-1' : 'flex-1 space-y-1.5'}>
+            <FilterRow label="Type">
               <FilterChip
-                key={type}
-                label={type}
-                active={filters.activeTypes.has(type)}
-                onClick={() => filters.toggleType(type)}
+                label="All"
+                active={filters.activeTypes.size === 0}
+                onClick={filters.clearTypes}
               />
-            ))}
-          </FilterRow>
-          <FilterRow label="Source">
-            <FilterChip
-              label="All"
-              active={filters.activeCategories.size === 0}
-              onClick={filters.clearCategories}
-            />
-            {CATEGORY_FILTERS.filter((c) => availableCategories.has(c)).map((cat) => (
+              {ACTION_TYPES.filter((t) => availableTypes.has(t)).map((type) => (
+                <FilterChip
+                  key={type}
+                  label={type}
+                  active={filters.activeTypes.has(type)}
+                  onClick={() => filters.toggleType(type)}
+                />
+              ))}
+            </FilterRow>
+            <FilterRow label="Source">
               <FilterChip
-                key={cat}
-                label={cat}
-                active={filters.activeCategories.has(cat)}
-                onClick={() => filters.toggleCategory(cat)}
-                colorClass={CATEGORY_CHIP_COLORS[cat]}
+                label="All"
+                active={filters.activeCategories.size === 0}
+                onClick={filters.clearCategories}
               />
-            ))}
-          </FilterRow>
+              {CATEGORY_FILTERS.filter((c) => availableCategories.has(c)).map((cat) => (
+                <FilterChip
+                  key={cat}
+                  label={cat}
+                  active={filters.activeCategories.has(cat)}
+                  onClick={() => filters.toggleCategory(cat)}
+                  colorClass={CATEGORY_CHIP_COLORS[cat]}
+                />
+              ))}
+            </FilterRow>
+          </div>
+          {pilot.is_boarded && (
+            <SimpleDisplayContainer label="Pilot" className="shrink-0">
+              <StatDisplay label="AP" value={pilot.ap} outOfMax={pilot.max_ap} />
+            </SimpleDisplayContainer>
+          )}
         </div>
 
         {/* Actions masonry — round-robin into columns for horizontal reading order */}
@@ -205,10 +275,13 @@ export function ActionsSection({
               action={action}
               pilot={pilot}
               mech={mech}
-              pilotTraits={pilotTraits}
+              pilotSourceTraits={pilotSourceTraits}
+              mechSourceTraits={mechSourceTraits}
               readOnly={readOnly}
+              isBoarded={pilot.is_boarded}
               filteredOut={filters.hasActiveFilters && !filters.checkMatch(action)}
               onUsePilot={handleUsePilotAction}
+              onUseMech={handleUseMechAction}
               onRefill={handleRefillAction}
             />
           )}
@@ -226,7 +299,8 @@ function computeDisabledReason(
   action: ActionDisplayData,
   pilot: PilotRow,
   mech: MechRow | null | undefined,
-  pilotTraits: Set<string>
+  pilotSourceTraits: Set<string>,
+  mechSourceTraits: Set<string>
 ): string | null {
   if (action.source === 'mech') {
     if (!mech) return 'No mech'
@@ -241,6 +315,9 @@ function computeDisabledReason(
     })
   }
 
+  // Variable-currency actions resolved to EP use mech traits; otherwise pilot traits
+  const traits = action.costType === 'ep' ? mechSourceTraits : pilotSourceTraits
+
   return getActionDisabledReason({
     action: {
       activationCost: action.activationCost,
@@ -248,9 +325,11 @@ function computeDisabledReason(
       traits: [],
     } as never,
     pilot,
-    pilotTraits,
+    pilotTraits: traits,
     usesRemaining: action.usesRemaining,
     maxUses: action.maxUses,
+    costType: action.costType,
+    mech,
   })
 }
 
@@ -261,13 +340,15 @@ function actionSortTier(
   hasActiveFilters: boolean,
   pilot: PilotRow,
   mech: MechRow | null | undefined,
-  pilotTraits: Set<string>
+  pilotSourceTraits: Set<string>,
+  mechSourceTraits: Set<string>
 ): number {
   const matches = !hasActiveFilters || checkMatch(action)
   if (!matches) return 2
 
   const gameDisabled =
-    action.source === 'mech' || computeDisabledReason(action, pilot, mech, pilotTraits) !== null
+    (action.source === 'mech' && !pilot.is_boarded) ||
+    computeDisabledReason(action, pilot, mech, pilotSourceTraits, mechSourceTraits) !== null
   return gameDisabled ? 1 : 0
 }
 
@@ -277,11 +358,28 @@ function sortActions(
   hasActiveFilters: boolean,
   pilot: PilotRow,
   mech: MechRow | null | undefined,
-  pilotTraits: Set<string>
+  pilotSourceTraits: Set<string>,
+  mechSourceTraits: Set<string>
 ): ActionDisplayData[] {
   return [...actions].sort((a, b) => {
-    const aTier = actionSortTier(a, checkMatch, hasActiveFilters, pilot, mech, pilotTraits)
-    const bTier = actionSortTier(b, checkMatch, hasActiveFilters, pilot, mech, pilotTraits)
+    const aTier = actionSortTier(
+      a,
+      checkMatch,
+      hasActiveFilters,
+      pilot,
+      mech,
+      pilotSourceTraits,
+      mechSourceTraits
+    )
+    const bTier = actionSortTier(
+      b,
+      checkMatch,
+      hasActiveFilters,
+      pilot,
+      mech,
+      pilotSourceTraits,
+      mechSourceTraits
+    )
     if (aTier !== bTier) return aTier - bTier
     return a.name.localeCompare(b.name)
   })
@@ -361,10 +459,13 @@ type ActionItemProps = {
   action: ActionDisplayData
   pilot: PilotRow
   mech?: MechRow | null
-  pilotTraits: Set<string>
+  pilotSourceTraits: Set<string>
+  mechSourceTraits: Set<string>
   readOnly: boolean
+  isBoarded: boolean
   filteredOut?: boolean
   onUsePilot: (action: ActionDisplayData) => void
+  onUseMech: (action: ActionDisplayData) => void
   onRefill: (action: ActionDisplayData) => void
 }
 
@@ -372,23 +473,26 @@ function ActionItem({
   action,
   pilot,
   mech,
-  pilotTraits,
+  pilotSourceTraits,
+  mechSourceTraits,
   readOnly,
+  isBoarded,
   filteredOut,
   onUsePilot,
+  onUseMech,
   onRefill,
 }: ActionItemProps) {
   const isMechAction = action.source === 'mech'
+  const mechUnboarded = isMechAction && !isBoarded
 
-  // Mech actions are always disabled in the unified pilot sheet view
-  const disabledReason = isMechAction
+  const disabledReason = mechUnboarded
     ? 'Board your mech to use'
-    : computeDisabledReason(action, pilot, mech, pilotTraits)
+    : computeDisabledReason(action, pilot, mech, pilotSourceTraits, mechSourceTraits)
 
   const isDisabled = !!disabledReason || !!filteredOut
 
   const controls: ReferenceEntityControl[] = []
-  if (!readOnly && !isMechAction && !filteredOut) {
+  if (!readOnly && !mechUnboarded && !filteredOut) {
     controls.push({
       key: 'use',
       icon: Play,
@@ -398,7 +502,11 @@ function ActionItem({
       className: disabledReason ? 'cursor-not-allowed opacity-30' : undefined,
       onClick: () => {
         if (!disabledReason) {
-          onUsePilot(action)
+          if (isMechAction) {
+            onUseMech(action)
+          } else {
+            onUsePilot(action)
+          }
         }
       },
     })
@@ -406,7 +514,7 @@ function ActionItem({
 
   const canRefill =
     !readOnly &&
-    !isMechAction &&
+    !mechUnboarded &&
     !filteredOut &&
     disabledReason === 'Out of uses' &&
     action.entityRefId &&
@@ -422,7 +530,6 @@ function ActionItem({
       controls={controls}
       disabled={isDisabled}
       footerMessage={footerMessage}
-      borderColorOverride={isMechAction ? MECH_BORDER_COLOR : undefined}
     />
   )
 }

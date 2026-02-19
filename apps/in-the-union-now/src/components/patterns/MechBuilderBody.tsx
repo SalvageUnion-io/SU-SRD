@@ -1,15 +1,15 @@
 import {
   SectionSeparator,
   CardImage,
+  ReferenceEntityDisplay,
   ReferenceEntityChassisAbilitiesContent,
   getReferenceEntitySpacing,
-  deleteControl,
 } from 'suref-react'
-import { Plus } from 'lucide-react'
+import { RefreshCw } from 'lucide-react'
 import type { SURefChassis, SURefMetaAction } from 'salvageunion-reference'
 import type { ResolvedItem, CapacityInfo } from '../../lib/builderUtils'
 import type { BuilderSchemaName } from './ReferenceEntitySelectionModal'
-import { ReferenceEntityListingItem } from '../shared/ReferenceEntityListingItem'
+import { ItemSlotSection } from '../shared/ItemSlotSection'
 
 type MechBuilderBodyProps = {
   chassis: SURefChassis | undefined
@@ -19,6 +19,7 @@ type MechBuilderBodyProps = {
   capacity: CapacityInfo
   readOnly?: boolean
   compact?: boolean
+  onSelectChassis?: () => void
   onRemoveItem: (sortOrder: number) => void
   onAddItem: (target: BuilderSchemaName) => void
   hideEquipment?: boolean
@@ -40,6 +41,7 @@ export function MechBuilderBody({
   capacity,
   readOnly,
   compact,
+  onSelectChassis,
   onRemoveItem,
   onAddItem,
   hideEquipment,
@@ -60,30 +62,86 @@ export function MechBuilderBody({
                 compact={compact}
                 editable={image.editable}
               />
+              <div className="space-y-4">
+                {chassis && (
+                  <div>
+                    <SectionSeparator label="Chassis" compact={compact} />
+                    <div className="mt-2">
+                      <ReferenceEntityDisplay
+                        data={chassis}
+                        compact
+                        listing
+                        controls={
+                          !readOnly && onSelectChassis
+                            ? [
+                                {
+                                  key: 'change',
+                                  icon: RefreshCw,
+                                  onClick: onSelectChassis,
+                                  ariaLabel: 'Change chassis',
+                                  variant: 'ghost',
+                                  label: 'Change',
+                                },
+                              ]
+                            : undefined
+                        }
+                      />
+                    </div>
+                  </div>
+                )}
+                {hasChassisAbilities && (
+                  <div>
+                    <SectionSeparator label="Chassis Ability" compact={compact} />
+                    <ReferenceEntityChassisAbilitiesContent
+                      chassisName={chassis!.name}
+                      spacing={getReferenceEntitySpacing(false)}
+                      compact={false}
+                      chassisAbilities={chassisAbilities!}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {chassis && (
+                <div>
+                  <SectionSeparator label="Chassis" compact={compact} />
+                  <div className="mt-2">
+                    <ReferenceEntityDisplay
+                      data={chassis}
+                      compact
+                      listing
+                      controls={
+                        !readOnly && onSelectChassis
+                          ? [
+                              {
+                                key: 'change',
+                                icon: RefreshCw,
+                                onClick: onSelectChassis,
+                                ariaLabel: 'Change chassis',
+                                variant: 'ghost',
+                                label: 'Change',
+                              },
+                            ]
+                          : undefined
+                      }
+                    />
+                  </div>
+                </div>
+              )}
               {hasChassisAbilities && (
                 <div>
                   <SectionSeparator label="Chassis Ability" compact={compact} />
                   <ReferenceEntityChassisAbilitiesContent
                     chassisName={chassis!.name}
-                    spacing={getReferenceEntitySpacing(false)}
-                    compact={false}
+                    spacing={getReferenceEntitySpacing(!!compact)}
+                    compact={!!compact}
                     chassisAbilities={chassisAbilities!}
                   />
                 </div>
               )}
             </div>
-          ) : (
-            hasChassisAbilities && (
-              <>
-                <SectionSeparator label="Chassis Ability" compact={compact} />
-                <ReferenceEntityChassisAbilitiesContent
-                  chassisName={chassis!.name}
-                  spacing={getReferenceEntitySpacing(!!compact)}
-                  compact={!!compact}
-                  chassisAbilities={chassisAbilities!}
-                />
-              </>
-            )
           )}
         </div>
       )}
@@ -101,6 +159,7 @@ export function MechBuilderBody({
             onRemove={onRemoveItem}
             onAdd={onAddItem}
             compact={compact}
+            showDetailButton
           />
 
           <ItemSlotSection
@@ -114,66 +173,10 @@ export function MechBuilderBody({
             onRemove={onRemoveItem}
             onAdd={onAddItem}
             compact={compact}
+            showDetailButton
           />
         </div>
       )}
     </div>
-  )
-}
-
-export function ItemSlotSection({
-  label,
-  items,
-  slotsUsed,
-  slotsTotal,
-  slotType,
-  readOnly,
-  hasChassis,
-  onRemove,
-  onAdd,
-  compact,
-  className,
-  showDetailButton,
-}: {
-  label: string
-  items: ResolvedItem[]
-  slotsUsed: number
-  slotsTotal: number
-  slotType: 'systems' | 'modules'
-  readOnly?: boolean
-  hasChassis: boolean
-  onRemove: (sortOrder: number) => void
-  onAdd: (target: BuilderSchemaName) => void
-  compact?: boolean
-  className?: string
-  showDetailButton?: boolean
-}) {
-  const canAdd = !readOnly && hasChassis && slotsUsed < slotsTotal
-
-  return (
-    <section className={className}>
-      <SectionSeparator label={`${label} (${slotsUsed}/${slotsTotal})`} compact={compact}>
-        {canAdd && (
-          <button
-            type="button"
-            onClick={() => onAdd(slotType)}
-            className="flex cursor-pointer items-center gap-0.5 font-mono text-xs font-bold uppercase text-su-grey-dark transition-colors hover:text-su-black"
-          >
-            <Plus className="h-3.5 w-3.5" />
-            Add
-          </button>
-        )}
-      </SectionSeparator>
-      <div className={compact ? 'mt-1.5 space-y-1.5' : 'mt-2 space-y-2'}>
-        {items.map((item) => (
-          <ReferenceEntityListingItem
-            key={item.sort_order}
-            entity={item.entity}
-            controls={readOnly ? undefined : [deleteControl(() => onRemove(item.sort_order))]}
-            showDetailButton={showDetailButton}
-          />
-        ))}
-      </div>
-    </section>
   )
 }

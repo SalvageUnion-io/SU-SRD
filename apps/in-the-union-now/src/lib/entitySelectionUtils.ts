@@ -1,5 +1,5 @@
 import type { SURefEntity } from 'salvageunion-reference'
-import { getTechLevel, getSource, getSalvageValue } from 'salvageunion-reference'
+import { getTechLevel, getSource, getSalvageValue, getTraits } from 'salvageunion-reference'
 
 export type TechLevelValue = number | 'B' | 'N'
 
@@ -72,10 +72,14 @@ export function filterAndSplitEntities({
     filtered = filtered.filter((e) => filter({ id: getEntityId(e), name: getEntityName(e) }))
   }
 
-  // Search filter
+  // Search filter (matches name or trait types)
   if (search.trim()) {
     const q = search.trim().toLowerCase()
-    filtered = filtered.filter((e) => getEntityName(e).toLowerCase().includes(q))
+    filtered = filtered.filter((e) => {
+      if (getEntityName(e).toLowerCase().includes(q)) return true
+      const traits = getTraits(e)
+      return traits?.some((t) => t.type.toLowerCase().includes(q)) ?? false
+    })
   }
 
   // Tech level filter (empty set = all)
