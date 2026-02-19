@@ -1,4 +1,4 @@
-import type { SURefEntity } from 'salvageunion-reference'
+import type { SURefEntity, ItemCondition } from 'salvageunion-reference'
 import { useEntityModifications } from '../../hooks/useEntityModifications'
 import { ItemSlotSection } from './ItemSlotSection'
 import { ReferenceEntitySelectionModal } from '../patterns/ReferenceEntitySelectionModal'
@@ -8,9 +8,10 @@ type EntityModificationSlotsProps = {
   entity: SURefEntity
   mechId: string
   mechRefs: EntityRefRow[]
-  userId: string
+  userId?: string
   compact?: boolean
   readOnly?: boolean
+  onConditionChange?: (refId: string, condition: ItemCondition) => void
 }
 
 export function EntityModificationSlots({
@@ -20,6 +21,7 @@ export function EntityModificationSlots({
   userId,
   compact,
   readOnly,
+  onConditionChange,
 }: EntityModificationSlotsProps) {
   const {
     playerSystemItems,
@@ -50,40 +52,43 @@ export function EntityModificationSlots({
 
   return (
     <>
-      {/* Editable Systems & Modules — hidden in readOnly */}
-      {!readOnly && (
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          {hasSystemSlots && (
-            <ItemSlotSection
-              label="Systems"
-              items={playerSystemItems}
-              slotsUsed={capacity.systemSlotsUsed}
-              slotsTotal={capacity.systemSlotsTotal}
-              slotType="systems"
-              hasChassis
-              onRemove={removeItem}
-              onAdd={openModal}
-              compact={compact}
-              showDetailButton
-            />
-          )}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        {hasSystemSlots && (
+          <ItemSlotSection
+            label="Systems"
+            items={playerSystemItems}
+            slotsUsed={capacity.systemSlotsUsed}
+            slotsTotal={capacity.systemSlotsTotal}
+            slotType="systems"
+            readOnly={readOnly}
+            hasChassis
+            onRemove={removeItem}
+            onAdd={openModal}
+            compact={compact}
+            showDetailButton
+            entityRefs={mechRefs}
+            onConditionChange={onConditionChange}
+          />
+        )}
 
-          {hasModuleSlots && (
-            <ItemSlotSection
-              label="Modules"
-              items={playerModuleItems}
-              slotsUsed={capacity.moduleSlotsUsed}
-              slotsTotal={capacity.moduleSlotsTotal}
-              slotType="modules"
-              hasChassis
-              onRemove={removeItem}
-              onAdd={openModal}
-              compact={compact}
-              showDetailButton
-            />
-          )}
-        </div>
-      )}
+        {hasModuleSlots && (
+          <ItemSlotSection
+            label="Modules"
+            items={playerModuleItems}
+            slotsUsed={capacity.moduleSlotsUsed}
+            slotsTotal={capacity.moduleSlotsTotal}
+            slotType="modules"
+            readOnly={readOnly}
+            hasChassis
+            onRemove={removeItem}
+            onAdd={openModal}
+            compact={compact}
+            showDetailButton
+            entityRefs={mechRefs}
+            onConditionChange={onConditionChange}
+          />
+        )}
+      </div>
 
       {!readOnly && modalTarget && (
         <ReferenceEntitySelectionModal

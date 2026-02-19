@@ -86,6 +86,7 @@ export type ReferenceEntityHideConfig = {
   content?: boolean
   rollTable?: boolean
   footer?: boolean
+  integratedSystems?: boolean
 }
 
 /** Pattern override data for patterned chassis display */

@@ -3,7 +3,7 @@ import { useNavigate } from '@tanstack/react-router'
 import { toast } from 'sonner'
 import { showSaveToast } from '../../lib/toastUtils'
 import { useAuthStore } from '../../stores/authStore'
-import { useUpdateMech, useUpdateMechLoadout } from '../../hooks/useMechs'
+import { useUpdateMech, useUpdateMechLoadout, useUpdateMechEntityRef } from '../../hooks/useMechs'
 import { useCreatePattern, usePattern } from '../../hooks/usePatterns'
 import { useAutosave } from '../../hooks/useAutosave'
 import { useSaveStatus } from '../../hooks/useSaveStatus'
@@ -17,6 +17,7 @@ import { isSlotOwnerRef } from '../../lib/entityModificationUtils'
 import { builderToCreateInput } from '../../lib/builderUtils'
 import { hasDeviated, resolveSourcePatternItems } from '../../lib/deviationUtils'
 import type { BuilderState } from '../../lib/builderUtils'
+import type { ItemCondition } from 'salvageunion-reference'
 import type {
   SelectedPattern,
   PatternItem,
@@ -43,6 +44,7 @@ export function PilotMechTab({ pilot, mech, mechRefs, canEdit, compact }: PilotM
   const user = useAuthStore((s) => s.user)
   const updateLoadout = useUpdateMechLoadout()
   const updateMechMutation = useUpdateMech()
+  const updateEntityRefMutation = useUpdateMechEntityRef()
   const createPatternMutation = useCreatePattern()
   const [builderState, setBuilderState] = useState<BuilderState | null>(null)
   const [showSavePatternDialog, setShowSavePatternDialog] = useState(false)
@@ -79,6 +81,7 @@ export function PilotMechTab({ pilot, mech, mechRefs, canEdit, compact }: PilotM
       navigate={navigate}
       updateLoadout={updateLoadout}
       updateMechMutation={updateMechMutation}
+      updateEntityRefMutation={updateEntityRefMutation}
       createPatternMutation={createPatternMutation}
       builderState={builderState}
       setBuilderState={setBuilderState}
@@ -102,6 +105,7 @@ function PilotMechTabInner({
   navigate,
   updateLoadout,
   updateMechMutation,
+  updateEntityRefMutation,
   createPatternMutation,
   builderState,
   setBuilderState,
@@ -120,6 +124,7 @@ function PilotMechTabInner({
   navigate: ReturnType<typeof useNavigate>
   updateLoadout: ReturnType<typeof useUpdateMechLoadout>
   updateMechMutation: ReturnType<typeof useUpdateMech>
+  updateEntityRefMutation: ReturnType<typeof useUpdateMechEntityRef>
   createPatternMutation: ReturnType<typeof useCreatePattern>
   builderState: BuilderState | null
   setBuilderState: (s: BuilderState | null) => void
@@ -263,6 +268,13 @@ function PilotMechTabInner({
     }
   }, [sourcePattern, navigate, setShowRefPatternModal])
 
+  const handleConditionChange = useCallback(
+    (refId: string, condition: ItemCondition) => {
+      updateEntityRefMutation.mutate({ refId, input: { condition }, mechId: mech.id })
+    },
+    [updateEntityRefMutation, mech.id]
+  )
+
   const saveStatus = useSaveStatus({ isSaving: updateLoadout.isPending })
 
   if (!canEdit) {
@@ -275,6 +287,7 @@ function PilotMechTabInner({
           stickyHeader={false}
           mechId={mech.id}
           mechRefs={mechRefs}
+          onConditionChange={handleConditionChange}
         />
       </div>
     )
@@ -299,6 +312,7 @@ function PilotMechTabInner({
           userId={user?.id}
           mechId={mech.id}
           mechRefs={mechRefs}
+          onConditionChange={handleConditionChange}
         />
       </div>
       <SavePatternDialog

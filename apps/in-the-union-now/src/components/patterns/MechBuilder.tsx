@@ -2,13 +2,15 @@ import { useMemo } from 'react'
 import { getAssetUrl } from 'salvageunion-reference'
 import { Layers } from 'lucide-react'
 import { DisplayCard } from 'suref-react'
-import type { ReferenceEntityControl } from 'suref-react'
+import type { ReferenceEntityControl, StatItem } from 'suref-react'
 import { useMechBuilderState } from '../../hooks/useMechBuilderState'
+import { STARTING_MECH_BUDGET } from '../../lib/builderUtils'
 import { MechBuilderHeader } from './MechBuilderHeader'
 import { MechBuilderBody } from './MechBuilderBody'
 import { MechBuilderFooter } from './MechBuilderFooter'
 import { MechBuilderModals } from './MechBuilderModals'
 import type { BuilderState } from '../../lib/builderUtils'
+import type { ItemCondition } from 'salvageunion-reference'
 import type { CreatePatternInput, SelectedPattern } from '../../types/common'
 import type { EntityRefRow } from '../../types/common'
 import type { MechSourcePattern } from '../../lib/mechUtils'
@@ -48,6 +50,7 @@ type MechBuilderProps = {
   mechId?: string
   /** Entity refs for drone modification slots */
   mechRefs?: EntityRefRow[]
+  onConditionChange?: (refId: string, condition: ItemCondition) => void
 }
 
 export function MechBuilder({
@@ -77,6 +80,7 @@ export function MechBuilder({
   controls,
   mechId,
   mechRefs,
+  onConditionChange,
 }: MechBuilderProps) {
   const builder = useMechBuilderState({
     initialState,
@@ -98,6 +102,62 @@ export function MechBuilder({
     return controls ? [applyPatternControl, ...controls] : [applyPatternControl]
   }, [readOnly, controls, builder])
 
+  const stats: StatItem[] | undefined = useMemo(() => {
+    const chassis = builder.chassis
+    if (!chassis) return undefined
+    const c = compact
+    return [
+      {
+        key: 'sp',
+        label: c ? 'SP' : 'Structure',
+        value: chassis.structurePoints,
+        bottomLabel: c ? '' : 'Points',
+      },
+      {
+        key: 'ep',
+        label: c ? 'EP' : 'Energy',
+        value: chassis.energyPoints,
+        bottomLabel: c ? '' : 'Points',
+      },
+      {
+        key: 'heat',
+        label: 'Heat',
+        value: chassis.heatCapacity,
+        bottomLabel: c ? 'Cap' : 'Capacity',
+      },
+      {
+        key: 'sys',
+        label: c ? 'Sys' : 'System',
+        value: builder.capacity.systemSlotsUsed,
+        outOfMax: builder.capacity.systemSlotsTotal,
+        isOverMax: builder.capacity.isOverSystemCapacity,
+        bottomLabel: c ? 'Slts' : 'Slots',
+      },
+      {
+        key: 'mod',
+        label: c ? 'Mod' : 'Module',
+        value: builder.capacity.moduleSlotsUsed,
+        outOfMax: builder.capacity.moduleSlotsTotal,
+        isOverMax: builder.capacity.isOverModuleCapacity,
+        bottomLabel: c ? 'Slts' : 'Slots',
+      },
+      {
+        key: 'cargo',
+        label: c ? 'Crgo' : 'Cargo',
+        value: chassis.cargoCapacity ?? 0,
+        bottomLabel: c ? 'Cap' : 'Capacity',
+      },
+      {
+        key: 'sv',
+        label: c ? 'SV' : 'Salvage',
+        value: builder.salvageValue.totalTL1Cost,
+        outOfMax: builder.startingMechMode ? STARTING_MECH_BUDGET : undefined,
+        isOverMax: builder.startingMechMode ? !builder.salvageValue.isLegalStartingMech : undefined,
+        bottomLabel: 'TL1',
+      },
+    ]
+  }, [builder.chassis, builder.capacity, builder.salvageValue, builder.startingMechMode, compact])
+
   return (
     <>
       <DisplayCard
@@ -106,15 +166,14 @@ export function MechBuilder({
         bodyPadding="p-4"
         mode={compact ? 'compact' : undefined}
         controls={mergedControls}
+        stats={stats}
         headerContent={
           <MechBuilderHeader
             chassis={builder.chassis}
             name={builder.state.name}
             readOnly={readOnly}
             compact={compact}
-            capacity={builder.capacity}
             salvageValue={builder.salvageValue}
-            startingMechMode={builder.startingMechMode}
             onNameChange={builder.setName}
             onSelectChassis={() => builder.setModalTarget('chassis')}
           />
@@ -161,6 +220,7 @@ export function MechBuilder({
           mechId={mechId}
           mechRefs={mechRefs}
           userId={userId}
+          onConditionChange={onConditionChange}
           image={{
             url: builder.chassis ? getAssetUrl(builder.chassis) : undefined,
             alt: builder.chassis?.name,

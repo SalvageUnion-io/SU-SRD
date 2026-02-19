@@ -1,7 +1,11 @@
 import { SectionSeparator, deleteControl } from 'suref-react'
+import type { ReferenceEntityControl } from 'suref-react'
+import type { ItemCondition } from 'salvageunion-reference'
 import { Plus } from 'lucide-react'
 import type { ResolvedItem } from '../../lib/builderUtils'
 import type { BuilderSchemaName } from '../patterns/ReferenceEntitySelectionModal'
+import type { EntityRefRow } from '../../types/common'
+import { makeConditionControl } from './ConditionToggle'
 import { ReferenceEntityListingItem } from './ReferenceEntityListingItem'
 
 type ItemSlotSectionProps = {
@@ -17,6 +21,8 @@ type ItemSlotSectionProps = {
   compact?: boolean
   className?: string
   showDetailButton?: boolean
+  entityRefs?: EntityRefRow[]
+  onConditionChange?: (refId: string, condition: ItemCondition) => void
 }
 
 export function ItemSlotSection({
@@ -32,6 +38,8 @@ export function ItemSlotSection({
   compact,
   className,
   showDetailButton,
+  entityRefs,
+  onConditionChange,
 }: ItemSlotSectionProps) {
   const canAdd = !readOnly && hasChassis && slotsUsed < slotsTotal
 
@@ -50,14 +58,37 @@ export function ItemSlotSection({
         )}
       </SectionSeparator>
       <div className={compact ? 'mt-1.5 space-y-1.5' : 'mt-2 space-y-2'}>
-        {items.map((item) => (
-          <ReferenceEntityListingItem
-            key={item.sort_order}
-            entity={item.entity}
-            controls={readOnly ? undefined : [deleteControl(() => onRemove(item.sort_order))]}
-            showDetailButton={showDetailButton}
-          />
-        ))}
+        {items.map((item) => {
+          // Match entity ref for condition tracking
+          const matchedRef = entityRefs?.find(
+            (r) =>
+              r.schema_name === slotType &&
+              r.schema_ref_id === item.entity.id &&
+              r.sort_order === item.sort_order
+          )
+          const condition = (matchedRef?.condition as ItemCondition | null) ?? null
+
+          const controls: ReferenceEntityControl[] = []
+          if (!readOnly) {
+            controls.push(deleteControl(() => onRemove(item.sort_order)))
+          }
+          if (condition && onConditionChange && matchedRef) {
+            controls.push(
+              makeConditionControl(condition, (c) => onConditionChange(matchedRef.id, c))
+            )
+          }
+
+          return (
+            <ReferenceEntityListingItem
+              key={item.sort_order}
+              entity={item.entity}
+              controls={controls.length > 0 ? controls : undefined}
+              disabled={condition === 'destroyed'}
+              damaged={condition != null && condition !== 'intact'}
+              showDetailButton={showDetailButton}
+            />
+          )
+        })}
       </div>
     </section>
   )

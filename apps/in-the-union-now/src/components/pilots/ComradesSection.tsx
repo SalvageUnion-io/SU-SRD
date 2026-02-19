@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import type { SURefChassis } from 'salvageunion-reference'
+import type { SURefChassis, ItemCondition } from 'salvageunion-reference'
 import { Text } from 'suref-react'
 import { extractComrades } from '../../lib/comradeUtils'
 import { SubEntityCard } from '../shared/SubEntityCard'
@@ -13,6 +13,7 @@ type ComradesSectionProps = {
   mechId?: string
   userId?: string
   readOnly?: boolean
+  onConditionChange?: (refId: string, condition: ItemCondition) => void
 }
 
 export function ComradesSection({
@@ -23,6 +24,7 @@ export function ComradesSection({
   mechId,
   userId,
   readOnly,
+  onConditionChange,
 }: ComradesSectionProps) {
   const comrades = useMemo(
     () => extractComrades(pilotRefs, mechRefs, mechChassis),
@@ -43,6 +45,7 @@ export function ComradesSection({
             userId={userId}
             readOnly={readOnly}
             compact
+            onConditionChange={onConditionChange}
           />
         </div>
       ))}

@@ -6,7 +6,7 @@ import {
   getReferenceEntitySpacing,
 } from 'suref-react'
 import { RefreshCw } from 'lucide-react'
-import type { SURefChassis, SURefMetaAction } from 'salvageunion-reference'
+import type { SURefChassis, SURefMetaAction, ItemCondition } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { ResolvedItem, CapacityInfo } from '../../lib/builderUtils'
 import type { BuilderSchemaName } from './ReferenceEntitySelectionModal'
@@ -29,6 +29,7 @@ type MechBuilderBodyProps = {
   mechId?: string
   mechRefs?: EntityRefRow[]
   userId?: string
+  onConditionChange?: (refId: string, condition: ItemCondition) => void
   image?: {
     url?: string
     alt?: string
@@ -54,6 +55,7 @@ export function MechBuilderBody({
   mechId,
   mechRefs,
   userId,
+  onConditionChange,
   image,
 }: MechBuilderBodyProps) {
   const hasChassisAbilities = !!(chassis && chassisAbilities && chassisAbilities.length > 0)
@@ -193,6 +195,8 @@ export function MechBuilderBody({
             onAdd={onAddItem}
             compact={compact}
             showDetailButton
+            entityRefs={mechRefs}
+            onConditionChange={onConditionChange}
           />
 
           <ItemSlotSection
@@ -207,6 +211,8 @@ export function MechBuilderBody({
             onAdd={onAddItem}
             compact={compact}
             showDetailButton
+            entityRefs={mechRefs}
+            onConditionChange={onConditionChange}
           />
         </div>
       )}

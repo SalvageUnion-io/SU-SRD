@@ -4,6 +4,9 @@ export type { PatternOverrideData } from './components/referenceEntity/Reference
 export type { ReferenceEntityControl } from './components/referenceEntity/ReferenceEntityDisplay/referenceEntityControlTypes'
 export type { ChoiceInputRenderer } from './components/referenceEntity/ReferenceEntityDisplay/ReferenceEntityChoice'
 export type { DisplayCardTab } from './components/shared/DisplayCard'
+export type { StatItem } from './components/shared/statsBarTypes'
+export type { StatConfig } from './components/referenceEntity/ReferenceEntityDisplay/referenceEntityStatsConfig'
+export { ENTITY_STATS_CONFIG } from './components/referenceEntity/ReferenceEntityDisplay/referenceEntityStatsConfig'
 
 // Base typography
 export { Text } from './components/base/Text'
@@ -37,6 +40,8 @@ export { DisplayCard } from './components/shared/DisplayCard'
 export { Footer } from './components/shared/Footer'
 export { ValueDisplay } from './components/shared/ValueDisplay'
 export { StatDisplay } from './components/shared/StatDisplay'
+export { StatControl } from './components/shared/StatControl'
+export { StatsBar } from './components/shared/StatsBar'
 export { RollTable } from './components/shared/RollTable'
 export { FilterChip } from './components/shared/FilterChip'
 export { ControlButtons } from './components/shared/ControlButtons'

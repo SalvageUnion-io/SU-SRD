@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import {
   DisplayCard,
@@ -11,12 +11,16 @@ import {
 import { cn } from '../../lib/utils'
 import type { ReferenceEntityControl } from 'suref-react'
 import type { ActionDisplayData, ActionSource } from '../../lib/pilotActionUtils'
+import { ComradeDetailModal } from '../shared/ComradeDetailModal'
+import type { EntityRefRow } from '../../types/common'
 
 type ActionDisplayProps = {
   data: ActionDisplayData
   controls?: ReferenceEntityControl[]
   disabled?: boolean
   footerMessage?: ReactNode
+  mechId?: string
+  mechRefs?: EntityRefRow[]
 }
 
 const DISABLED_PALE_BG = 'rgb(220, 220, 220)'
@@ -54,7 +58,15 @@ function getSourceColorKey(source: ActionSource, isComrade: boolean): SourceColo
   return source
 }
 
-export function ActionDisplay({ data, controls, disabled, footerMessage }: ActionDisplayProps) {
+export function ActionDisplay({
+  data,
+  controls,
+  disabled,
+  footerMessage,
+  mechId,
+  mechRefs,
+}: ActionDisplayProps) {
+  const [comradeOpen, setComradeOpen] = useState(false)
   const colorKey = getSourceColorKey(data.source, data.isComrade)
   const colors = SOURCE_COLORS[colorKey]
   const borderColor = disabled ? DISABLED_BORDER : colors.border
@@ -91,13 +103,18 @@ export function ActionDisplay({ data, controls, disabled, footerMessage }: Actio
         <div className="flex w-full items-center justify-between">
           {footerMessage ? (
             <span className="text-xs italic text-su-black">{footerMessage}</span>
+          ) : data.condition === 'damaged' ? (
+            <span className="font-mono text-xs font-bold uppercase text-su-orange">Damaged</span>
           ) : (
             <span />
           )}
           <SourceEntityChip
             entity={data.sourceEntity}
             dimmed={disabled}
-            labelOverride={data.sourceLabelOverride ?? (data.source === 'general' ? 'Generic Action' : undefined)}
+            labelOverride={
+              data.sourceLabelOverride ?? (data.source === 'general' ? 'Generic Action' : undefined)
+            }
+            onComradeClick={data.comradeEntity ? () => setComradeOpen(true) : undefined}
           />
         </div>
       }
@@ -111,9 +128,20 @@ export function ActionDisplay({ data, controls, disabled, footerMessage }: Actio
   )
 
   return (
-    <div className="overflow-hidden rounded-md" style={{ border: `2px solid ${borderColor}` }}>
-      {cardContent}
-    </div>
+    <>
+      <div className="overflow-hidden rounded-md" style={{ border: `2px solid ${borderColor}` }}>
+        {cardContent}
+      </div>
+      {data.comradeEntity && (
+        <ComradeDetailModal
+          open={comradeOpen}
+          onOpenChange={setComradeOpen}
+          comradeEntity={data.comradeEntity}
+          mechId={mechId}
+          mechRefs={mechRefs}
+        />
+      )}
+    </>
   )
 }
 
@@ -121,10 +149,12 @@ function SourceEntityChip({
   entity,
   dimmed,
   labelOverride,
+  onComradeClick,
 }: {
   entity: SURefEntity
   dimmed?: boolean
   labelOverride?: string
+  onComradeClick?: () => void
 }) {
   const { control, modal } = useDetailModal(entity)
   const name = labelOverride ?? ('name' in entity ? String(entity.name) : 'Source')
@@ -133,7 +163,7 @@ function SourceEntityChip({
     <>
       <button
         type="button"
-        onClick={control.onClick}
+        onClick={onComradeClick ?? control.onClick}
         className={cn(
           'cursor-pointer rounded-sm bg-su-black px-2 py-0.5 font-mono text-xs text-su-white transition-opacity hover:opacity-80',
           dimmed && 'opacity-40'
@@ -144,7 +174,7 @@ function SourceEntityChip({
           &rarr;
         </span>
       </button>
-      {modal}
+      {!onComradeClick && modal}
     </>
   )
 }

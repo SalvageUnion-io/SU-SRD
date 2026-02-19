@@ -22,7 +22,7 @@ import type { ComradeEntry } from './comradeUtils'
 import { isSlotOwnerRef } from './entityModificationUtils'
 
 export type ActionSource = 'pilot' | 'mech' | 'general'
-export type ActionCostType = 'ap' | 'ep' | 'variable' | 'none'
+export type ActionCostType = 'ap' | 'ep' | 'comrade-ep' | 'variable' | 'none'
 
 export type ActionDisplayData = {
   key: string
@@ -45,6 +45,7 @@ export type ActionDisplayData = {
   isComrade: boolean
   condition: ItemCondition
   sourceLabelOverride?: string
+  comradeEntity?: SURefEntity & { schemaName: SURefEnumSchemaName }
 }
 
 // ---------------------------------------------------------------------------
@@ -429,8 +430,35 @@ export function extractChassisActions(
         costType,
         hasDamage: 'damage' in action && action.damage != null,
         isComrade: false,
+        condition: 'intact' as ItemCondition,
       }
     })
+}
+
+/**
+ * Get the max EP for a comrade entity.
+ * Returns 0 if the entity doesn't have energyPoints.
+ */
+export function getComradeMaxEp(entity: SURefEntity): number {
+  return 'energyPoints' in entity && typeof entity.energyPoints === 'number'
+    ? entity.energyPoints
+    : 0
+}
+
+/**
+ * Override cost type for comrade actions — comrade actions always cost
+ * the comrade's own EP, never mech EP or pilot AP.
+ * Also rewrites the cost DataValue label to show "EP".
+ */
+function overrideComradeCostType(item: ActionDisplayData): void {
+  if (item.costType === 'none' || item.activationCost === null) return
+  // Rewrite cost DataValue labels from "N AP" to "N EP"
+  for (const dv of item.dataValues) {
+    if (dv.type === 'cost' && typeof dv.label === 'string' && dv.label.includes('AP')) {
+      dv.label = dv.label.replace('AP', 'EP')
+    }
+  }
+  item.costType = 'comrade-ep'
 }
 
 /**
@@ -463,7 +491,11 @@ export function extractComradeActions(
       isBoarded,
       true
     )
-    for (const item of items) item.sourceLabelOverride = comradeName
+    for (const item of items) {
+      item.sourceLabelOverride = comradeName
+      item.comradeEntity = comrade.entity
+      overrideComradeCostType(item)
+    }
     actions.push(...items)
   }
 
@@ -493,9 +525,14 @@ export function extractComradeActions(
         ref.metadata,
         source,
         isBoarded,
-        true
+        true,
+        (ref.condition as ItemCondition) ?? 'intact'
       )
-      for (const item of items) item.sourceLabelOverride = comradeName
+      for (const item of items) {
+        item.sourceLabelOverride = comradeName
+        item.comradeEntity = ownerComrade.entity
+        overrideComradeCostType(item)
+      }
       actions.push(...items)
     }
   }

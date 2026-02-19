@@ -21,7 +21,7 @@ type UseEntityModificationsOptions = {
   entity: SURefEntity
   mechId: string
   mechRefs: EntityRefRow[]
-  userId: string
+  userId?: string
 }
 
 type UseEntityModificationsReturn = {
@@ -83,7 +83,7 @@ export function useEntityModifications({
 
   const addItem = useCallback(
     (entityId: string) => {
-      if (!modalTarget) return
+      if (!modalTarget || !userId) return
       const allSortOrders = mechRefs.map((r) => r.sort_order)
       const newSortOrder = allSortOrders.length > 0 ? Math.max(...allSortOrders) + 1 : 0
 

@@ -3,8 +3,9 @@ import { useNavigate } from '@tanstack/react-router'
 import { getAssetUrl } from 'salvageunion-reference'
 import { Layers } from 'lucide-react'
 import { DisplayCard, navigateControl } from 'suref-react'
-import type { ReferenceEntityControl } from 'suref-react'
+import type { ReferenceEntityControl, StatItem } from 'suref-react'
 import { useMechBuilderState } from '../../hooks/useMechBuilderState'
+import { STARTING_MECH_BUDGET } from '../../lib/builderUtils'
 import { MechBuilderHeader } from './MechBuilderHeader'
 import { MechBuilderBody } from './MechBuilderBody'
 import { ItemSlotSection } from '../shared/ItemSlotSection'
@@ -74,6 +75,62 @@ export function PlayerPatternDisplay({
     setShowDiscard(false)
   }, [builder, editConfig])
 
+  const stats: StatItem[] | undefined = useMemo(() => {
+    const chassis = builder.chassis
+    if (!chassis) return undefined
+    const c = compact
+    return [
+      {
+        key: 'sp',
+        label: c ? 'SP' : 'Structure',
+        value: chassis.structurePoints,
+        bottomLabel: c ? '' : 'Points',
+      },
+      {
+        key: 'ep',
+        label: c ? 'EP' : 'Energy',
+        value: chassis.energyPoints,
+        bottomLabel: c ? '' : 'Points',
+      },
+      {
+        key: 'heat',
+        label: 'Heat',
+        value: chassis.heatCapacity,
+        bottomLabel: c ? 'Cap' : 'Capacity',
+      },
+      {
+        key: 'sys',
+        label: c ? 'Sys' : 'System',
+        value: builder.capacity.systemSlotsUsed,
+        outOfMax: builder.capacity.systemSlotsTotal,
+        isOverMax: builder.capacity.isOverSystemCapacity,
+        bottomLabel: c ? 'Slts' : 'Slots',
+      },
+      {
+        key: 'mod',
+        label: c ? 'Mod' : 'Module',
+        value: builder.capacity.moduleSlotsUsed,
+        outOfMax: builder.capacity.moduleSlotsTotal,
+        isOverMax: builder.capacity.isOverModuleCapacity,
+        bottomLabel: c ? 'Slts' : 'Slots',
+      },
+      {
+        key: 'cargo',
+        label: c ? 'Crgo' : 'Cargo',
+        value: chassis.cargoCapacity ?? 0,
+        bottomLabel: c ? 'Cap' : 'Capacity',
+      },
+      {
+        key: 'sv',
+        label: c ? 'SV' : 'Salvage',
+        value: builder.salvageValue.totalTL1Cost,
+        outOfMax: builder.startingMechMode ? STARTING_MECH_BUDGET : undefined,
+        isOverMax: builder.startingMechMode ? !builder.salvageValue.isLegalStartingMech : undefined,
+        bottomLabel: 'TL1',
+      },
+    ]
+  }, [builder.chassis, builder.capacity, builder.salvageValue, builder.startingMechMode, compact])
+
   if (!builder.chassis) return null
 
   // --- Mode mapping ---
@@ -88,15 +145,14 @@ export function PlayerPatternDisplay({
         bodyPadding="p-4"
         stickyHeader={!listing}
         controls={controls}
+        stats={stats}
         headerContent={
           <MechBuilderHeader
             chassis={builder.chassis}
             name={builder.state.name}
             readOnly={readOnly}
             compact={compact}
-            capacity={builder.capacity}
             salvageValue={builder.salvageValue}
-            startingMechMode={builder.startingMechMode}
             onNameChange={builder.setName}
           />
         }

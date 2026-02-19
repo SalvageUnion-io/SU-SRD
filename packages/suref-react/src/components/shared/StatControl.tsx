@@ -1,4 +1,4 @@
-import { StatDisplay } from 'suref-react'
+import { StatDisplay } from './StatDisplay'
 
 type StatControlProps = {
   label: string

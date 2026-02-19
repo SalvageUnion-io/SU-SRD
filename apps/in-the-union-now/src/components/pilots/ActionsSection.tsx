@@ -2,7 +2,7 @@ import { useMemo, useCallback, useState, useEffect, useRef } from 'react'
 import type { ReactNode } from 'react'
 import type { SURefEnumSchemaName, SURefChassis } from 'salvageunion-reference'
 import { SalvageUnionReference, getChassisAbilities } from 'salvageunion-reference'
-import { ReferenceEntityDisplayTooltip, FilterChip, StatDisplay, Text } from 'suref-react'
+import { ReferenceEntityDisplayTooltip, FilterChip, StatsBar, Text } from 'suref-react'
 import type { ReferenceEntityControl } from 'suref-react'
 import { Play, RotateCcw } from 'lucide-react'
 import { toast } from 'sonner'
@@ -14,6 +14,7 @@ import {
   extractChassisActions,
   extractComradeActions,
   getGeneralActions,
+  getComradeMaxEp,
 } from '../../lib/pilotActionUtils'
 import type { ActionDisplayData } from '../../lib/pilotActionUtils'
 import { extractComrades } from '../../lib/comradeUtils'
@@ -21,11 +22,13 @@ import { ActionDisplay } from './ActionDisplay'
 import {
   getActionDisabledReason,
   getMechActionDisabledReason,
+  getComradeActionDisabledReason,
   getPilotTraits,
   getActionsTraits,
   decrementActionUses,
   refillActionUses,
 } from '../../lib/actionUsesUtils'
+import { useComradeEp } from '../../hooks/useComradeEp'
 import { useActionFilters, ACTION_TYPES, CATEGORY_FILTERS } from '../../hooks/useActionFilters'
 import type { CategoryFilter } from '../../hooks/useActionFilters'
 import type {
@@ -50,6 +53,7 @@ type ActionsSectionProps = {
   pilot: PilotRow
   compact?: boolean
   readOnly: boolean
+  userId?: string
   onUpdatePilot: (input: Partial<PilotUpdate>) => void
   onUpdateEntityRef: (refId: string, input: EntityRefUpdate) => void
   mechRefs?: EntityRefRow[]
@@ -64,6 +68,7 @@ export function ActionsSection({
   pilot,
   compact,
   readOnly,
+  userId,
   onUpdatePilot,
   onUpdateEntityRef,
   mechRefs,
@@ -73,6 +78,11 @@ export function ActionsSection({
   onUpdateMechEntityRef,
 }: ActionsSectionProps) {
   const isBoarded = pilot.is_boarded
+  const { getComradeCurrentEp, updateComradeEp } = useComradeEp({
+    pilotId: pilot.id,
+    userId,
+    readOnly,
+  })
   const pilotActions = useMemo(
     () => extractPilotActions(pilotRefs, isBoarded),
     [pilotRefs, isBoarded]
@@ -81,10 +91,7 @@ export function ActionsSection({
     () => extractComrades(pilotRefs, mechRefs ?? [], mechChassis),
     [pilotRefs, mechRefs, mechChassis]
   )
-  const comradeEntityIds = useMemo(
-    () => new Set(comrades.map((c) => c.entity.id)),
-    [comrades]
-  )
+  const comradeEntityIds = useMemo(() => new Set(comrades.map((c) => c.entity.id)), [comrades])
   const mechActions = useMemo(
     () =>
       mechRefs && mechRefs.length > 0
@@ -142,7 +149,8 @@ export function ActionsSection({
         pilot,
         mech,
         pilotSourceTraits,
-        mechSourceTraits
+        mechSourceTraits,
+        getComradeCurrentEp
       ),
     [
       allActions,
@@ -152,6 +160,7 @@ export function ActionsSection({
       mech,
       pilotSourceTraits,
       mechSourceTraits,
+      getComradeCurrentEp,
     ]
   )
 
@@ -198,6 +207,32 @@ export function ActionsSection({
       }
     },
     [mech, mechRefs, onUpdateMech, onUpdateMechEntityRef]
+  )
+
+  const handleUseComradeAction = useCallback(
+    (action: ActionDisplayData) => {
+      if (!action.comradeEntity) return
+      const comrade = action.comradeEntity
+      const maxEp = getComradeMaxEp(comrade)
+      const currentEp = getComradeCurrentEp(comrade.id, maxEp)
+      toast(`${comrade.name} used ${action.name}`, {
+        style: { borderColor: action.borderColor, borderWidth: '2px' },
+      })
+      if (action.activationCost !== null) {
+        updateComradeEp(comrade.id, Math.max(0, currentEp - action.activationCost), comrade.name)
+      }
+      if (action.maxUses !== null && action.entityRefId) {
+        // Comrade slot items use mech refs
+        if (mechRefs && onUpdateMechEntityRef) {
+          const ref = mechRefs.find((r) => r.id === action.entityRefId)
+          if (ref) {
+            const newMetadata = decrementActionUses(action.actionName, action.maxUses, ref.metadata)
+            onUpdateMechEntityRef(action.entityRefId, { metadata: newMetadata })
+          }
+        }
+      }
+    },
+    [getComradeCurrentEp, updateComradeEp, mechRefs, onUpdateMechEntityRef]
   )
 
   const handleRefillAction = useCallback(
@@ -265,26 +300,28 @@ export function ActionsSection({
           </div>
           {(visibleComrades.length > 0 || pilot.is_boarded) && (
             <div className="ml-auto flex shrink-0 items-start gap-2">
-              {visibleComrades.map((c) => (
-                <SimpleDisplayContainer
-                  key={c.entity.id}
-                  label={c.entity.name}
-                  bg="bg-su-rust"
-                  className="shrink-0"
-                >
-                  {'structurePoints' in c.entity &&
-                    typeof c.entity.structurePoints === 'number' && (
-                      <StatDisplay label="SP" value={c.entity.structurePoints} />
-                    )}
-                  {'energyPoints' in c.entity &&
-                    typeof c.entity.energyPoints === 'number' && (
-                      <StatDisplay label="EP" value={c.entity.energyPoints} />
-                    )}
-                </SimpleDisplayContainer>
-              ))}
+              {visibleComrades.map((c) => {
+                const maxEp = getComradeMaxEp(c.entity)
+                const currentEp = maxEp > 0 ? getComradeCurrentEp(c.entity.id, maxEp) : 0
+                if (maxEp <= 0) return null
+                return (
+                  <SimpleDisplayContainer
+                    key={c.entity.id}
+                    label={c.entity.name}
+                    bg="bg-su-rust"
+                    className="shrink-0"
+                  >
+                    <StatsBar
+                      stats={[{ key: 'ep', label: 'EP', value: currentEp, outOfMax: maxEp }]}
+                    />
+                  </SimpleDisplayContainer>
+                )
+              })}
               {pilot.is_boarded && (
                 <SimpleDisplayContainer label="Pilot" className="shrink-0">
-                  <StatDisplay label="AP" value={pilot.ap} outOfMax={pilot.max_ap} />
+                  <StatsBar
+                    stats={[{ key: 'ap', label: 'AP', value: pilot.ap, outOfMax: pilot.max_ap }]}
+                  />
                 </SimpleDisplayContainer>
               )}
             </div>
@@ -302,13 +339,17 @@ export function ActionsSection({
               action={action}
               pilot={pilot}
               mech={mech}
+              mechId={mech?.id}
+              mechRefs={mechRefs}
               pilotSourceTraits={pilotSourceTraits}
               mechSourceTraits={mechSourceTraits}
               readOnly={readOnly}
               isBoarded={pilot.is_boarded}
               filteredOut={filters.hasActiveFilters && !filters.checkMatch(action)}
+              comradeEpGetter={getComradeCurrentEp}
               onUsePilot={handleUsePilotAction}
               onUseMech={handleUseMechAction}
+              onUseComrade={handleUseComradeAction}
               onRefill={handleRefillAction}
             />
           )}
@@ -322,14 +363,31 @@ export function ActionsSection({
 // Helpers
 // ---------------------------------------------------------------------------
 
+type ComradeEpGetter = (entityId: string, maxEp: number) => number
+
 function computeDisabledReason(
   action: ActionDisplayData,
   pilot: PilotRow,
   mech: MechRow | null | undefined,
   pilotSourceTraits: Set<string>,
-  mechSourceTraits: Set<string>
+  mechSourceTraits: Set<string>,
+  comradeEpGetter?: ComradeEpGetter
 ): string | null {
-  if (action.source === 'mech') {
+  if (action.condition === 'destroyed') return 'System Destroyed'
+
+  // Comrade actions check the comrade's own EP
+  if (action.costType === 'comrade-ep' && action.comradeEntity && comradeEpGetter) {
+    const maxEp = getComradeMaxEp(action.comradeEntity)
+    const currentEp = comradeEpGetter(action.comradeEntity.id, maxEp)
+    return getComradeActionDisabledReason({
+      activationCost: action.activationCost,
+      comradeCurrentEp: currentEp,
+      usesRemaining: action.usesRemaining,
+      maxUses: action.maxUses,
+    })
+  }
+
+  if (action.source === 'mech' && !action.isComrade) {
     if (!mech) return 'No mech'
     return getMechActionDisabledReason({
       action: {
@@ -368,14 +426,22 @@ function actionSortTier(
   pilot: PilotRow,
   mech: MechRow | null | undefined,
   pilotSourceTraits: Set<string>,
-  mechSourceTraits: Set<string>
+  mechSourceTraits: Set<string>,
+  comradeEpGetter?: ComradeEpGetter
 ): number {
   const matches = !hasActiveFilters || checkMatch(action)
   if (!matches) return 2
 
   const gameDisabled =
-    (action.source === 'mech' && !pilot.is_boarded) ||
-    computeDisabledReason(action, pilot, mech, pilotSourceTraits, mechSourceTraits) !== null
+    (action.source === 'mech' && !action.isComrade && !pilot.is_boarded) ||
+    computeDisabledReason(
+      action,
+      pilot,
+      mech,
+      pilotSourceTraits,
+      mechSourceTraits,
+      comradeEpGetter
+    ) !== null
   return gameDisabled ? 1 : 0
 }
 
@@ -386,7 +452,8 @@ function sortActions(
   pilot: PilotRow,
   mech: MechRow | null | undefined,
   pilotSourceTraits: Set<string>,
-  mechSourceTraits: Set<string>
+  mechSourceTraits: Set<string>,
+  comradeEpGetter?: ComradeEpGetter
 ): ActionDisplayData[] {
   return [...actions].sort((a, b) => {
     const aTier = actionSortTier(
@@ -396,7 +463,8 @@ function sortActions(
       pilot,
       mech,
       pilotSourceTraits,
-      mechSourceTraits
+      mechSourceTraits,
+      comradeEpGetter
     )
     const bTier = actionSortTier(
       b,
@@ -405,7 +473,8 @@ function sortActions(
       pilot,
       mech,
       pilotSourceTraits,
-      mechSourceTraits
+      mechSourceTraits,
+      comradeEpGetter
     )
     if (aTier !== bTier) return aTier - bTier
     return a.name.localeCompare(b.name)
@@ -486,13 +555,17 @@ type ActionItemProps = {
   action: ActionDisplayData
   pilot: PilotRow
   mech?: MechRow | null
+  mechId?: string
+  mechRefs?: EntityRefRow[]
   pilotSourceTraits: Set<string>
   mechSourceTraits: Set<string>
   readOnly: boolean
   isBoarded: boolean
   filteredOut?: boolean
+  comradeEpGetter?: ComradeEpGetter
   onUsePilot: (action: ActionDisplayData) => void
   onUseMech: (action: ActionDisplayData) => void
+  onUseComrade: (action: ActionDisplayData) => void
   onRefill: (action: ActionDisplayData) => void
 }
 
@@ -500,21 +573,33 @@ function ActionItem({
   action,
   pilot,
   mech,
+  mechId,
+  mechRefs,
   pilotSourceTraits,
   mechSourceTraits,
   readOnly,
   isBoarded,
   filteredOut,
+  comradeEpGetter,
   onUsePilot,
   onUseMech,
+  onUseComrade,
   onRefill,
 }: ActionItemProps) {
-  const isMechAction = action.source === 'mech'
+  const isComradeAction = action.costType === 'comrade-ep'
+  const isMechAction = action.source === 'mech' && !isComradeAction
   const mechUnboarded = isMechAction && !isBoarded
 
   const disabledReason = mechUnboarded
     ? 'Board your mech to use'
-    : computeDisabledReason(action, pilot, mech, pilotSourceTraits, mechSourceTraits)
+    : computeDisabledReason(
+        action,
+        pilot,
+        mech,
+        pilotSourceTraits,
+        mechSourceTraits,
+        comradeEpGetter
+      )
 
   const isDisabled = !!disabledReason || !!filteredOut
 
@@ -530,7 +615,9 @@ function ActionItem({
       className: disabledReason ? 'cursor-not-allowed opacity-30' : undefined,
       onClick: () => {
         if (!disabledReason) {
-          if (isMechAction) {
+          if (isComradeAction) {
+            onUseComrade(action)
+          } else if (isMechAction) {
             onUseMech(action)
           } else {
             onUsePilot(action)
@@ -558,6 +645,8 @@ function ActionItem({
       controls={controls}
       disabled={isDisabled}
       footerMessage={footerMessage}
+      mechId={mechId}
+      mechRefs={mechRefs}
     />
   )
 }

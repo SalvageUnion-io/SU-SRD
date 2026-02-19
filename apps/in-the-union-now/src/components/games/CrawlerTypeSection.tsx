@@ -2,7 +2,7 @@ import { useMemo, useCallback, useState } from 'react'
 import { SalvageUnionReference, getNpc } from 'salvageunion-reference'
 import type { SURefEntity, SURefMetaAction } from 'salvageunion-reference'
 import { Text, SectionSeparator, ReferenceEntityDisplay, NestedActionDisplay } from 'suref-react'
-import { StatControl } from '../shared/StatControl'
+import { StatControl } from 'suref-react'
 import { LabeledInput } from '../shared/LabeledInput'
 import { useAutosave } from '../../hooks/useAutosave'
 import {

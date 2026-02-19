@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useRef, useEffect, type ReactNode } from 'react'
 import { Text } from 'suref-react'
 import { cn } from '../../lib/utils'
 
@@ -19,16 +19,36 @@ export function SimpleDisplayContainer({
   bg = 'bg-su-orange',
   className,
 }: SimpleDisplayContainerProps) {
+  const labelRef = useRef<HTMLSpanElement>(null)
+
+  const BASE_TRANSFORM = 'translateX(-50%) translateY(-50%)'
+
+  useEffect(() => {
+    const el = labelRef.current
+    if (!el) return
+    const parent = el.parentElement
+    if (!parent) return
+    // Reset to base so we measure natural width
+    el.style.transform = BASE_TRANSFORM
+    const parentW = parent.offsetWidth
+    const labelW = el.scrollWidth
+    if (labelW > parentW) {
+      el.style.transform = `${BASE_TRANSFORM} scaleX(${parentW / labelW})`
+    }
+  })
+
   return (
     <div className={cn('relative flex items-center', className)}>
       {label && (
         <Text
+          ref={labelRef}
           variant="pseudoheader"
           as="span"
           className={cn(
-            'absolute left-1/2 top-0 z-[1] -translate-x-1/2 -translate-y-1/2 whitespace-nowrap uppercase',
+            'absolute left-1/2 top-0 z-[1] origin-top whitespace-nowrap uppercase',
             compact ? 'text-[10px]' : 'text-xs'
           )}
+          style={{ transform: 'translateX(-50%) translateY(-50%)' }}
         >
           {label}
         </Text>

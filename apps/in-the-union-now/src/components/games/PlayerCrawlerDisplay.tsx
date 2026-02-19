@@ -7,11 +7,11 @@ import {
   ValueDisplay,
   SectionSeparator,
   StatDisplay,
+  StatControl,
   navigateControl,
 } from 'suref-react'
-import type { ReferenceEntityControl } from 'suref-react'
+import type { ReferenceEntityControl, StatItem } from 'suref-react'
 import { ArrowUp, Eye, EyeOff, Trash2 } from 'lucide-react'
-import { StatControl } from '../shared/StatControl'
 import { SheetFooter } from '../shared/SheetFooter'
 import { actionButtonClasses } from '../shared/actionButtonClasses'
 import { DeleteConfirmDialog } from '../shared/DeleteConfirmDialog'
@@ -66,6 +66,27 @@ export function PlayerCrawlerDisplay({
 
   // --- Mode mapping ---
   const mode = listing ? 'listing' : compact ? 'compact' : ('full' as const)
+
+  // --- Crawler header stats (Upkeep + SP, only for sheet mode) ---
+  const crawlerStats: StatItem[] | undefined =
+    !listing && crawler && editConfig
+      ? [
+          {
+            key: 'upkeep',
+            label: 'Upkeep',
+            value: tlStats?.upkeep ?? 0,
+            bottomLabel: `TL${crawler.tech_level}`,
+          },
+          {
+            key: 'sp',
+            label: 'SP',
+            value: crawler.current_sp,
+            outOfMax: crawler.max_sp,
+            onChange: (v: number) => editConfig.onImmediateUpdate({ current_sp: v }),
+            canEdit: editConfig.isMed,
+          },
+        ]
+      : undefined
 
   // Sheet guard: impossible state protection
   if (!listing && (!crawler || !editConfig)) return null
@@ -133,27 +154,26 @@ export function PlayerCrawlerDisplay({
     )
   ) : (
     // Sheet header (crawler is guaranteed non-null here)
-    <div className="flex min-w-0 flex-1 items-start justify-between gap-2">
-      <div className="flex min-w-0 items-start gap-2">
-        <StatDisplay label="TL" value={crawler!.tech_level} inverse />
-        <div className="flex min-w-0 flex-col justify-center gap-0.5">
-          <div className="flex items-center gap-2">
-            <Text variant="pseudoheader" as="span" className="text-[1.75rem]">
-              {crawler!.name || 'Unnamed Crawler'}
+    <div className="flex min-w-0 items-start gap-2">
+      <StatDisplay label="TL" value={crawler!.tech_level} inverse />
+      <div className="flex min-w-0 flex-col justify-center gap-0.5">
+        <div className="flex items-center gap-2">
+          <Text variant="pseudoheader" as="span" className="text-[1.75rem]">
+            {crawler!.name || 'Unnamed Crawler'}
+          </Text>
+          {crawler!.tag && (
+            <Text variant="pseudoheader" as="span" className="text-lg opacity-70">
+              #{crawler!.tag}
             </Text>
-            {crawler!.tag && (
-              <Text variant="pseudoheader" as="span" className="text-lg opacity-70">
-                #{crawler!.tag}
-              </Text>
-            )}
-          </div>
-          <div className="flex flex-wrap items-center gap-1">
-            {crawlerType && <ValueDisplay label="Type" value={crawlerType.name} />}
-            {populationStr && <ValueDisplay label="Population" value={populationStr} />}
-          </div>
+          )}
+        </div>
+        <div className="flex flex-wrap items-center gap-1">
+          {crawlerType && <ValueDisplay label="Type" value={crawlerType.name} />}
+          {populationStr && <ValueDisplay label="Population" value={populationStr} />}
         </div>
       </div>
-      <div className="flex shrink-0 items-start gap-2">
+      {/* Upgrade Pool + TL Up button: tightly coupled, kept inline */}
+      <div className="ml-auto flex shrink-0 items-start gap-2">
         <StatControl
           label="Upgrade"
           bottomLabel="Pool"
@@ -177,18 +197,6 @@ export function PlayerCrawlerDisplay({
               <span>TL Up</span>
             </button>
           )}
-        <StatDisplay
-          label="Upkeep"
-          value={tlStats?.upkeep ?? 0}
-          bottomLabel={`TL${crawler!.tech_level}`}
-        />
-        <StatControl
-          label="SP"
-          value={crawler!.current_sp}
-          max={crawler!.max_sp}
-          canEdit={editConfig!.isMed}
-          onChange={(v) => editConfig!.onImmediateUpdate({ current_sp: v })}
-        />
       </div>
     </div>
   )
@@ -230,6 +238,7 @@ export function PlayerCrawlerDisplay({
         bodyPadding="p-4"
         mode={mode}
         headerContent={headerContent}
+        stats={crawlerStats}
         controls={controls}
         footerContent={footerContent}
       >

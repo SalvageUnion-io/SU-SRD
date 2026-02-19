@@ -27,6 +27,7 @@ function makeAction(overrides: {
     costType: 'none',
     hasDamage: overrides.hasDamage ?? false,
     isComrade: false,
+    condition: 'intact' as const,
   }
 }
 

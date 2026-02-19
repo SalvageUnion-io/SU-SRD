@@ -1,6 +1,6 @@
 import { useCallback } from 'react'
 import { SectionSeparator } from 'suref-react'
-import { StatControl } from '../shared/StatControl'
+import { StatControl } from 'suref-react'
 import type { CrawlerRow, CrawlerUpdate } from '../../types/common'
 
 type CrawlerScrapStatsProps = {

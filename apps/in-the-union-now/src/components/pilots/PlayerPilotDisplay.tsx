@@ -4,15 +4,14 @@ import {
   DisplayCard,
   CardHeader,
   ValueDisplay,
-  StatDisplay,
+  StatControl,
   Text,
   navigateControl,
   ClassAbilityTreeDisplay,
 } from 'suref-react'
-import type { ReferenceEntityControl, DisplayCardTab } from 'suref-react'
+import type { ReferenceEntityControl, DisplayCardTab, StatItem } from 'suref-react'
 import { Eye, EyeOff, LogIn, LogOut, Trash2 } from 'lucide-react'
 import { findChassisById, findClassName } from '../../lib/entityHelpers'
-import { StatControl } from '../shared/StatControl'
 import { SimpleDisplayContainer } from '../shared/SimpleDisplayContainer'
 import { SheetFooter } from '../shared/SheetFooter'
 import { actionButtonClasses } from '../shared/actionButtonClasses'
@@ -155,6 +154,37 @@ export function PlayerPilotDisplay({
     </span>
   ) : null
 
+  // --- Header stats (non-listing mode) ---
+  const headerStats: StatItem[] | undefined = useMemo(() => {
+    if (listing || !editConfig) return undefined
+    if (isBoarded) {
+      return [
+        {
+          key: 'sp',
+          label: 'SP',
+          value: mech.current_sp,
+          outOfMax: mech.max_sp,
+          onChange: (v: number) => editConfig.onUpdateMech({ current_sp: v }),
+          canEdit,
+        },
+        { key: 'ep', label: 'EP', value: mech.current_ep, outOfMax: mech.max_ep },
+        { key: 'heat', label: 'Heat', value: mech.current_heat, outOfMax: mech.heat_capacity },
+      ]
+    }
+    return [
+      {
+        key: 'hp',
+        label: 'HP',
+        value: pilot.hp,
+        outOfMax: pilot.max_hp,
+        onChange: (v: number) => editConfig.onStatChange('hp', v),
+        canEdit,
+      },
+      { key: 'ap', label: 'AP', value: pilot.ap, outOfMax: pilot.max_ap },
+      { key: 'tp', label: 'TP', value: pilot.tp },
+    ]
+  }, [listing, editConfig, isBoarded, mech, pilot, canEdit])
+
   // --- Header content ---
   const headerContent = listing ? (
     <CardHeader
@@ -171,72 +201,39 @@ export function PlayerPilotDisplay({
       compact={compact}
     />
   ) : (
-    <>
-      <div className="flex min-w-0 flex-col justify-center gap-0.5">
-        <Text variant="pseudoheader" as="span" className={compact ? 'text-xl' : 'text-[1.75rem]'}>
-          {isBoarded ? `\u201C${mech.pattern_name || chassisName || 'Mech'}\u201D` : pilot.callsign}
-        </Text>
-        <div className="flex flex-wrap items-center gap-1">
-          {isBoarded ? (
-            <>
-              {chassisName && (
-                <ValueDisplay label="Chassis" value={chassisName} compact={compact} />
-              )}
-              <span className="inline-flex shrink-0 cursor-default whitespace-nowrap border border-su-black">
-                <Text
-                  variant="pseudoheader"
-                  as="span"
-                  className={badgeTextClass}
-                  style={{ backgroundColor: 'var(--color-su-orange)' }}
-                >
-                  {pilotClassName}
-                </Text>
-                <Text variant="pseudoheader" as="span" className={badgeTextClass}>
-                  {`\u201C${pilot.callsign}\u201D`}
-                </Text>
-              </span>
-            </>
-          ) : (
-            <>
-              <ValueDisplay label="The" value={pilotClassName} compact={compact} />
-              {compact && abilityCountProp !== undefined && (
-                <ValueDisplay label="Abilities" value={abilityCountProp} compact={compact} />
-              )}
-              {chassisBadge}
-            </>
-          )}
-        </div>
+    <div className="flex min-w-0 flex-col justify-center gap-0.5">
+      <Text variant="pseudoheader" as="span" className={compact ? 'text-xl' : 'text-[1.75rem]'}>
+        {isBoarded ? `\u201C${mech.pattern_name || chassisName || 'Mech'}\u201D` : pilot.callsign}
+      </Text>
+      <div className="flex flex-wrap items-center gap-1">
+        {isBoarded ? (
+          <>
+            {chassisName && <ValueDisplay label="Chassis" value={chassisName} compact={compact} />}
+            <span className="inline-flex shrink-0 cursor-default whitespace-nowrap border border-su-black">
+              <Text
+                variant="pseudoheader"
+                as="span"
+                className={badgeTextClass}
+                style={{ backgroundColor: 'var(--color-su-orange)' }}
+              >
+                {pilotClassName}
+              </Text>
+              <Text variant="pseudoheader" as="span" className={badgeTextClass}>
+                {`\u201C${pilot.callsign}\u201D`}
+              </Text>
+            </span>
+          </>
+        ) : (
+          <>
+            <ValueDisplay label="The" value={pilotClassName} compact={compact} />
+            {compact && abilityCountProp !== undefined && (
+              <ValueDisplay label="Abilities" value={abilityCountProp} compact={compact} />
+            )}
+            {chassisBadge}
+          </>
+        )}
       </div>
-      {editConfig && (
-        <div className="flex shrink-0 items-center gap-1">
-          {isBoarded ? (
-            <>
-              <StatControl
-                label="SP"
-                value={mech.current_sp}
-                max={mech.max_sp}
-                canEdit={canEdit}
-                onChange={(v) => editConfig.onUpdateMech({ current_sp: v })}
-              />
-              <StatDisplay label="EP" value={mech.current_ep} outOfMax={mech.max_ep} />
-              <StatDisplay label="Heat" value={mech.current_heat} outOfMax={mech.heat_capacity} />
-            </>
-          ) : (
-            <>
-              <StatControl
-                label="HP"
-                value={pilot.hp}
-                max={pilot.max_hp}
-                canEdit={canEdit}
-                onChange={(v) => editConfig.onStatChange('hp', v)}
-              />
-              <StatDisplay label="AP" value={pilot.ap} outOfMax={pilot.max_ap} />
-              <StatDisplay label="TP" value={pilot.tp} />
-            </>
-          )}
-        </div>
-      )}
-    </>
+    </div>
   )
 
   // --- Comrades (conditionally shown if any equipped entity grants a drone/companion) ---
@@ -293,6 +290,11 @@ export function PlayerPilotDisplay({
               mechId={mech?.id}
               userId={editConfig?.userId}
               readOnly={!canEdit}
+              onConditionChange={
+                editConfig
+                  ? (refId, condition) => editConfig.onUpdateMechEntityRef(refId, { condition })
+                  : undefined
+              }
             />
           </div>
         ),
@@ -311,6 +313,7 @@ export function PlayerPilotDisplay({
               pilot={pilot}
               compact={compact}
               readOnly={!canEdit}
+              userId={editConfig?.userId}
               onUpdatePilot={editConfig?.onPilotUpdate ?? (() => {})}
               onUpdateEntityRef={editConfig?.onUpdateEntityRef ?? (() => {})}
               mechRefs={mechRefs}
@@ -368,7 +371,7 @@ export function PlayerPilotDisplay({
               </div>
             </div>
 
-            {isBoarded && mech && (
+            {mech && (
               <div>
                 <Text variant="pseudoheader" as="span" className="mb-2 block text-sm uppercase">
                   Mech Stats
@@ -460,6 +463,7 @@ export function PlayerPilotDisplay({
         bodyPadding="p-4"
         mode={mode}
         headerContent={headerContent}
+        stats={headerStats}
         image={
           listing
             ? undefined

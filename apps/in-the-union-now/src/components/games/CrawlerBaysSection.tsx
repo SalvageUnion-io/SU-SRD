@@ -13,7 +13,7 @@ import {
   NPC_ROLL_TABLE_FALLBACK,
 } from '../../lib/npcChoiceConstants'
 import type { BayNpcTextField } from '../../lib/npcChoiceConstants'
-import { StatControl } from '../shared/StatControl'
+import { StatControl } from 'suref-react'
 import { BayDetailOverlay } from './BayDetailOverlay'
 import type { BayNpcData, CrawlerRow, CrawlerUpdate } from '../../types/common'
 

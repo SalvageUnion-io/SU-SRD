@@ -13,6 +13,8 @@ import { DisplayCard } from '../../../shared/DisplayCard'
 import { ReferenceEntitySubTitleElement } from '../ReferenceEntitySubTitleContent'
 import { ReferenceEntityLeftContent } from '../ReferenceEntityLeftContent'
 import { ReferenceEntityRightHeaderContent } from '../ReferenceEntityRightHeaderContent'
+import { buildReferenceEntityStats } from '../referenceEntityStatsConfig'
+import type { StatItem } from '../../../shared/statsBarTypes'
 import { ReferenceEntityChassisPatterns } from '../ReferenceEntityChassisPatterns'
 import { ReferenceEntityFormation } from '../ReferenceEntityFormation'
 import { ReferenceEntityNpcDisplay } from '../ReferenceEntityNpcDisplay'
@@ -61,8 +63,8 @@ export type ReferenceEntityDisplayContentProps = ReferenceEntityDisplayStateInpu
   cardClickable?: boolean
   /** Custom renderer for simple choice inputs (e.g., freeform text, roll tables) */
   choiceInputRenderer?: ChoiceInputRenderer
-  /** Replaces the built-in stats in the card header when provided */
-  headerStatsContent?: ReactNode
+  /** Override stats in the card header (passed to DisplayCard.stats) */
+  stats?: StatItem[]
 }
 
 export function ReferenceEntityDisplayContent({
@@ -77,7 +79,7 @@ export function ReferenceEntityDisplayContent({
   onCardClick,
   cardClickable,
   choiceInputRenderer,
-  headerStatsContent,
+  stats: statsProp,
   ...inputProps
 }: ReferenceEntityDisplayContentProps) {
   const state = useReferenceEntityDisplayState(inputProps)
@@ -209,6 +211,19 @@ export function ReferenceEntityDisplayContent({
     />
   ) : null
 
+  // Build stats for DisplayCard
+  const resolvedStats: StatItem[] | undefined = statsProp
+    ? statsProp
+    : !hide.stats
+      ? buildReferenceEntityStats(data, {
+          compact,
+          listing,
+          primaryOnly: primaryStatsOnlyProp,
+          svOverride: statsOverride,
+          techLevel,
+        })
+      : undefined
+
   // Compose header content (previously assembled by Card internally)
   const titleNode = title ? (
     <div className={cn(compact ? '' : 'overflow-hidden text-ellipsis whitespace-nowrap')}>
@@ -248,18 +263,8 @@ export function ReferenceEntityDisplayContent({
         />
       }
       rightContent={
-        headerStatsContent ? (
-          headerStatsContent
-        ) : !hide.stats ? (
-          <ReferenceEntityRightHeaderContent
-            data={data}
-            compact={compact}
-            fontSize={fontSize}
-            techLevel={techLevel}
-            listing={listing}
-            primaryStatsOnly={primaryStatsOnlyProp ?? false}
-            svOverride={statsOverride}
-          />
+        !hide.stats ? (
+          <ReferenceEntityRightHeaderContent data={data} compact={compact} fontSize={fontSize} />
         ) : null
       }
       controls={listing ? undefined : controls}
@@ -287,6 +292,7 @@ export function ReferenceEntityDisplayContent({
       bodyPadding="p-0"
       disabled={disabled}
       controls={listing ? controls : undefined}
+      stats={resolvedStats}
       onCardClick={onCardClick ?? cardClickFromControls}
       cardClickable={cardClickable}
     >
@@ -415,7 +421,9 @@ export function ReferenceEntityDisplayContent({
             )}
             {/* Compact: chassis abilities render after actions */}
             {compact && chassisAbilitiesBlock}
-            <ReferenceEntityIntegratedSystems data={data} compact={compact} />
+            {!hide.integratedSystems && (
+              <ReferenceEntityIntegratedSystems data={data} compact={compact} />
+            )}
 
             <ReferenceEntityBonusPerTechLevel
               bonusPerTechLevel={'bonusPerTechLevel' in data ? data.bonusPerTechLevel : undefined}

@@ -6,6 +6,7 @@ import { DisplayCard } from '../../shared/DisplayCard'
 import { CardHeader } from '../../shared/CardHeader'
 import { StatDisplay } from '../../shared/StatDisplay'
 import { ValueDisplay } from '../../shared/ValueDisplay'
+import type { StatItem } from '../../shared/statsBarTypes'
 import { BlockContentRendererView } from '../BlockContentRendererView'
 import { borderColorFromHeaderBg } from '../referenceEntityHelpers'
 import { Text } from '../../base/Text'
@@ -221,6 +222,12 @@ export function ReferenceEntityNpcDisplay({
         ) as React.ReactNode)
     : (npc.position ?? '')
 
+  // HP as stats on DisplayCard (when no custom hpSlot), or as rightContent (when hpSlot)
+  const npcStats: StatItem[] | undefined =
+    npc.hitPoints > 0 && !hpSlot
+      ? [{ key: 'npc-hp', label: 'HP', value: npc.hitPoints }]
+      : undefined
+
   const headerContent = (
     <CardHeader
       title={titleContent}
@@ -229,11 +236,7 @@ export function ReferenceEntityNpcDisplay({
           <ValueDisplay label="The" value={npc.position} compact inverse />
         ) : undefined
       }
-      rightContent={
-        npc.hitPoints > 0
-          ? (hpSlot ?? <StatDisplay label="HP" value={npc.hitPoints} compact={compact} />)
-          : undefined
-      }
+      rightContent={npc.hitPoints > 0 && hpSlot ? hpSlot : undefined}
       compact={compact}
     />
   )
@@ -242,6 +245,7 @@ export function ReferenceEntityNpcDisplay({
     <DisplayCard
       headerBg={damaged ? 'bg-su-grey' : 'bg-su-rust'}
       headerContent={headerContent}
+      stats={npcStats}
       label="NPC"
       mode={compact ? 'compact' : 'full'}
       bodyPadding="p-0"

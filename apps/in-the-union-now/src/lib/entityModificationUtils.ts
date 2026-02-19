@@ -70,7 +70,7 @@ export function resolveBuiltInSystems(entity: SURefEntity): ResolvedItem[] {
  */
 export function computeSlotCapacity(
   entity: SURefEntity,
-  builtInItems: ResolvedItem[],
+  _builtInItems: ResolvedItem[],
   playerItems: ResolvedItem[]
 ): CapacityInfo {
   const systemSlotsTotal =
@@ -81,7 +81,8 @@ export function computeSlotCapacity(
   let systemSlotsUsed = 0
   let moduleSlotsUsed = 0
 
-  for (const item of [...builtInItems, ...playerItems]) {
+  // Only count player-added items — built-in (integrated) systems are free
+  for (const item of playerItems) {
     const slots = item.entity.slotsRequired ?? 1
     if (item.schema_name === 'systems') {
       systemSlotsUsed += slots

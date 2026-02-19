@@ -122,14 +122,15 @@ describe('resolveBuiltInSystems', () => {
 })
 
 describe('computeSlotCapacity', () => {
-  test('computes capacity from built-in and player items', () => {
+  test('does not count built-in (integrated) systems toward slots used', () => {
     const sestra = SalvageUnionReference.Drones.find((d) => d.name === 'Sestra Drone')!
     const builtIn = resolveBuiltInSystems(sestra)
     const capacity = computeSlotCapacity(sestra, builtIn, [])
 
     expect(capacity.systemSlotsTotal).toBe(7)
     expect(capacity.moduleSlotsTotal).toBe(2)
-    expect(capacity.systemSlotsUsed).toBeGreaterThan(0)
+    expect(capacity.systemSlotsUsed).toBe(0)
+    expect(capacity.isValid).toBe(true)
   })
 
   test('marks over-capacity correctly', () => {

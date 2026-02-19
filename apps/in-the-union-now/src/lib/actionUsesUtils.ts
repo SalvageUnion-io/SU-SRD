@@ -170,6 +170,32 @@ export function getMechActionDisabledReason(opts: MechDisabledReasonOptions): st
   return null
 }
 
+type ComradeDisabledReasonOptions = {
+  activationCost: number | null
+  comradeCurrentEp: number
+  usesRemaining: number | null
+  maxUses: number | null
+}
+
+/**
+ * Determine why a comrade action can't be used, or null if it can.
+ * Checks EP cost against the comrade's own current EP and uses remaining.
+ */
+export function getComradeActionDisabledReason(opts: ComradeDisabledReasonOptions): string | null {
+  const { activationCost, comradeCurrentEp, usesRemaining, maxUses } = opts
+
+  if (activationCost !== null && comradeCurrentEp < activationCost) {
+    return 'Not enough EP'
+  }
+
+  const effectiveRemaining = usesRemaining ?? maxUses
+  if (effectiveRemaining !== null && effectiveRemaining <= 0) {
+    return 'Out of uses'
+  }
+
+  return null
+}
+
 /**
  * Collect trait types from an array of resolved actions.
  * Used for chassis abilities which are already resolved to action objects.

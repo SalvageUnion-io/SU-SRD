@@ -5,6 +5,8 @@ import { cn } from '../../utils/cn'
 import { Text } from '../base/Text'
 import { CardImage } from './CardImage'
 import { ControlButtons } from './ControlButtons'
+import { StatsBar } from './StatsBar'
+import type { StatItem } from './statsBarTypes'
 import {
   getSourceStyles,
   getSourceBorderColor,
@@ -94,6 +96,8 @@ type DisplayCardProps = {
   defaultTabActiveColor?: string
   /** CSS class override for the footer background (overrides headerBg) */
   footerBg?: string
+  /** Stats rendered in the header's right side (between headerContent and controls) */
+  stats?: StatItem[]
 }
 
 const DEFAULT_TAB_KEY = '__default'
@@ -126,6 +130,7 @@ export function DisplayCard({
   defaultTabLabel = 'Info',
   defaultTabActiveColor,
   footerBg,
+  stats,
 }: DisplayCardProps) {
   const isCompact = mode === 'compact'
   const isListing = mode === 'listing'
@@ -299,12 +304,17 @@ export function DisplayCard({
             onKeyDown={onClick ? handleHeaderKeyDown : undefined}
             data-testid={headerTestId}
           >
-            {controls ? (
+            {controls || (stats && stats.length > 0) ? (
               <>
                 <div className="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-2 overflow-visible">
                   {headerContent}
                 </div>
-                <ControlButtons controls={controls} size="sm" />
+                <div className="flex shrink-0 items-center gap-1">
+                  {stats && stats.length > 0 && (
+                    <StatsBar stats={stats} compact={isCompact || isListing} />
+                  )}
+                  {controls && <ControlButtons controls={controls} size="sm" />}
+                </div>
               </>
             ) : (
               headerContent

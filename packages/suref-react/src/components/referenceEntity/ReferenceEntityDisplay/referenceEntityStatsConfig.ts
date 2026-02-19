@@ -1,4 +1,4 @@
-import type { SURefMetaEntity } from 'salvageunion-reference'
+import type { SURefMetaEntity, SURefObjectBonusPerTechLevel } from 'salvageunion-reference'
 import {
   getSlotsRequired,
   getSalvageValue,
@@ -11,6 +11,7 @@ import {
   getCargoCapacity,
   getHitPoints,
 } from 'salvageunion-reference'
+import type { StatItem } from '../../shared/statsBarTypes'
 
 export type StatConfig = {
   /** Getter function to extract stat value from entity */
@@ -139,4 +140,89 @@ export function applyStatLabel(
 ): string | undefined {
   if (value === undefined || value === 0) return undefined
   return `${prefix}${value}`
+}
+
+export type SvOverride = {
+  value: number | string
+  bottomLabel: string
+}
+
+type BuildReferenceEntityStatsOptions = {
+  compact: boolean
+  listing?: boolean
+  primaryOnly?: boolean
+  svOverride?: SvOverride
+  techLevel?: number | 'B' | 'N'
+  prefix?: string
+}
+
+/**
+ * Builds a StatItem[] from reference entity data using ENTITY_STATS_CONFIG.
+ * Returns items only for stats that have defined values.
+ */
+export function buildReferenceEntityStats(
+  data: SURefMetaEntity | SURefObjectBonusPerTechLevel,
+  options: BuildReferenceEntityStatsOptions
+): StatItem[] {
+  const {
+    compact,
+    listing = false,
+    primaryOnly = false,
+    svOverride,
+    techLevel,
+    prefix = '',
+  } = options
+  const entityData = data as SURefMetaEntity
+  const isBioTechLevel = techLevel === 'B'
+  const salvageValue = getSalvageValue(entityData)
+  const hasBioSalvage = isBioTechLevel && salvageValue !== undefined
+  const suppressTooltips = compact && listing
+
+  const items: StatItem[] = []
+
+  for (let i = 0; i < ENTITY_STATS_CONFIG.length; i++) {
+    const config = ENTITY_STATS_CONFIG[i]!
+    if (primaryOnly && !config.primary) continue
+    const isSalvageValue = config.getter === getSalvageValue
+
+    if (isSalvageValue && svOverride) {
+      const overrideDisplay = svOverride.value === 0 ? undefined : `${prefix}${svOverride.value}`
+      items.push({
+        key: `ref-stat-${i}`,
+        label: compact ? config.compactLabel : config.normalLabel,
+        bottomLabel: svOverride.bottomLabel,
+        value: overrideDisplay,
+        hoverText: suppressTooltips ? undefined : config.tooltip,
+      })
+      continue
+    }
+
+    const value = config.getter(entityData)
+    const displayValue = applyStatLabel(value, prefix)
+    if (displayValue === undefined) continue
+
+    if (isSalvageValue && hasBioSalvage) {
+      items.push({
+        key: `ref-stat-${i}`,
+        label: compact ? 'BSV' : 'BIO-SALVAGE',
+        bottomLabel: compact ? '' : 'VALUE',
+        value: displayValue,
+        hoverText: suppressTooltips ? undefined : config.tooltip,
+        bg: 'bg-su-sickly-yellow',
+        valueColor: 'text-su-black',
+        inverse: false,
+      })
+      continue
+    }
+
+    items.push({
+      key: `ref-stat-${i}`,
+      label: compact ? config.compactLabel : config.normalLabel,
+      bottomLabel: compact ? config.compactBottomLabel : config.normalBottomLabel,
+      value: displayValue,
+      hoverText: suppressTooltips ? undefined : config.tooltip,
+    })
+  }
+
+  return items
 }
