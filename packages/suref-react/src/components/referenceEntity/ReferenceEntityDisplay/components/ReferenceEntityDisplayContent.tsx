@@ -114,6 +114,7 @@ export function ReferenceEntityDisplayContent({
     afterExtraContent,
     afterChoicesContent,
     footerOverride,
+    titleSlot,
   } = state
 
   // Determine which content to render (from EntityTopMatter)
@@ -244,7 +245,7 @@ export function ReferenceEntityDisplayContent({
 
   const headerContent = (
     <CardHeader
-      title={titleNode ?? ''}
+      title={titleSlot ?? titleNode ?? ''}
       subtitle={
         <ReferenceEntitySubTitleElement
           data={data}
@@ -421,9 +422,7 @@ export function ReferenceEntityDisplayContent({
             )}
             {/* Compact: chassis abilities render after actions */}
             {compact && chassisAbilitiesBlock}
-            {!hide.integratedSystems && (
-              <ReferenceEntityIntegratedSystems data={data} compact={compact} />
-            )}
+            <ReferenceEntityIntegratedSystems data={data} compact={compact} />
 
             <ReferenceEntityBonusPerTechLevel
               bonusPerTechLevel={'bonusPerTechLevel' in data ? data.bonusPerTechLevel : undefined}

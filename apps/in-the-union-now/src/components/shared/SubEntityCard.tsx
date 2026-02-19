@@ -1,18 +1,18 @@
-import { useCallback, useMemo } from 'react'
+import { useCallback, useMemo, useState, useRef, useEffect } from 'react'
 import type { SURefEntity, ItemCondition } from 'salvageunion-reference'
 import {
   getParagraphString,
-  SalvageUnionReference,
   getEnergyPoints,
   getHeatCapacity,
+  getChoices,
+  getDisplayName,
 } from 'salvageunion-reference'
-import { ReferenceEntityDisplay, SectionSeparator, ENTITY_STATS_CONFIG } from 'suref-react'
+import type { SURefEnumSchemaName } from 'salvageunion-reference'
+import { ReferenceEntityDisplay, ENTITY_STATS_CONFIG, ValueDisplay, Text } from 'suref-react'
 import type { ChoiceInputRenderer, StatItem } from 'suref-react'
 import { hasModificationSlots } from '../../lib/entityModificationUtils'
 import { useComradeChoices } from '../../hooks/useComradeChoices'
 import { EntityModificationSlots } from './EntityModificationSlots'
-import { ReferenceEntityListingItem } from './ReferenceEntityListingItem'
-import { makeConditionControl } from './ConditionToggle'
 import { LabeledInput } from './LabeledInput'
 import type { EntityRefRow } from '../../types/common'
 
@@ -50,8 +50,18 @@ export function SubEntityCard({
 
   const isInputDisabled = !mechId || !userId || readOnly
 
+  // Detect "Name" choice for dynamic comrade naming
+  const choices = useMemo(() => getChoices(entity), [entity])
+  const nameChoice = useMemo(() => choices?.find((c) => c.name === 'Name'), [choices])
+  const customName = nameChoice ? getLocalValue(nameChoice.id) : ''
+  const entityName = 'name' in entity ? String(entity.name) : ''
+  const schemaName = 'schemaName' in entity ? (entity.schemaName as SURefEnumSchemaName) : undefined
+
   const choiceInputRenderer: ChoiceInputRenderer = useCallback(
     (choice, isCompact) => {
+      // Filter "Name" choice from body — it's rendered in the header
+      if (choice.name === 'Name') return null
+
       const choiceId = choice.id ?? ''
       const placeholder = getParagraphString(choice.content) || 'Enter value...'
       const hasRollTable = 'rollTable' in choice && !!choice.rollTable
@@ -75,17 +85,6 @@ export function SubEntityCard({
   )
 
   const showModSlots = !!mechId && !!mechRefs && hasModificationSlots(entity)
-
-  // Resolve built-in integrated systems for condition tracking
-  const integratedSystems = useMemo(() => {
-    if (!('systems' in entity) || !Array.isArray(entity.systems)) return []
-    const names = entity.systems as string[]
-    return names
-      .map((name) => SalvageUnionReference.Systems.find((s) => s.name === name))
-      .filter((s): s is NonNullable<typeof s> => s != null)
-  }, [entity])
-
-  const hasIntegratedSystems = integratedSystems.length > 0
   const canTrackCondition = !!mechId && !!userId
 
   // Build interactive stats (SP/EP/Heat with +/- controls) when tracking is available
@@ -147,81 +146,115 @@ export function SubEntityCard({
     readOnly,
   ])
 
+  // Build title slot and subtitle extra when entity has a "Name" choice
+  const titleSlot = nameChoice ? (
+    isInputDisabled ? (
+      customName ? (
+        <div className={compact ? '' : 'overflow-hidden text-ellipsis whitespace-nowrap'}>
+          <Text
+            variant="pseudoheader"
+            as="span"
+            className={`relative z-10 uppercase tracking-[-0.02em] transition-transform duration-300 ${compact ? 'py-[3px] text-base' : 'text-[1.75rem]'}`}
+            style={compact ? { lineHeight: 1 } : undefined}
+          >
+            {customName}
+          </Text>
+        </div>
+      ) : undefined
+    ) : (
+      <ComradeNameInput
+        value={customName}
+        placeholder={entityName}
+        compact={compact}
+        onChange={(val) => setLocalValue(nameChoice.id, val)}
+        onBlur={() => saveChoice(nameChoice, getLocalValue(nameChoice.id))}
+      />
+    )
+  ) : undefined
+
+  const subtitleExtra =
+    nameChoice && schemaName ? (
+      <ValueDisplay label={getDisplayName(schemaName)} value={entityName} compact={compact} />
+    ) : undefined
+
   return (
     <ReferenceEntityDisplay
       data={entity}
       compact={compact}
-      hide={{ footer: true, ...hide, integratedSystems: hasIntegratedSystems && canTrackCondition }}
+      hide={{ footer: true, ...hide }}
       choiceInputRenderer={choiceInputRenderer}
       stats={interactiveStats}
+      titleOverride={nameChoice && customName ? customName : undefined}
+      titleSlot={titleSlot}
+      subtitleExtra={subtitleExtra}
       afterChoicesContent={
-        showModSlots || (hasIntegratedSystems && canTrackCondition) ? (
-          <>
-            {showModSlots && (
-              <EntityModificationSlots
-                entity={entity}
-                mechId={mechId}
-                mechRefs={mechRefs}
-                userId={userId}
-                compact
-                readOnly={readOnly}
-                onConditionChange={onConditionChange}
-              />
-            )}
-            {hasIntegratedSystems && canTrackCondition && (
-              <IntegratedSystemsWithCondition
-                systems={integratedSystems}
-                compact={compact}
-                getLocalValue={getLocalValue}
-                setLocalValue={setLocalValue}
-                saveStat={saveStat}
-              />
-            )}
-          </>
+        showModSlots ? (
+          <EntityModificationSlots
+            entity={entity}
+            mechId={mechId}
+            mechRefs={mechRefs}
+            userId={userId}
+            compact
+            readOnly={readOnly}
+            onConditionChange={onConditionChange}
+          />
         ) : undefined
       }
     />
   )
 }
 
-function IntegratedSystemsWithCondition({
-  systems,
+function ComradeNameInput({
+  value,
+  placeholder,
+  onChange,
+  onBlur,
   compact,
-  getLocalValue,
-  setLocalValue,
-  saveStat,
 }: {
-  systems: SURefEntity[]
-  compact: boolean
-  getLocalValue: (choiceId: string) => string
-  setLocalValue: (choiceId: string, value: string) => void
-  saveStat: (choiceId: string, value: string) => void
+  value: string
+  placeholder: string
+  onChange: (value: string) => void
+  onBlur: () => void
+  compact?: boolean
 }) {
+  const measureRef = useRef<HTMLSpanElement>(null)
+  const [inputWidth, setInputWidth] = useState(0)
+
+  useEffect(() => {
+    if (measureRef.current) {
+      setInputWidth(measureRef.current.scrollWidth)
+    }
+  }, [value, placeholder])
+
+  const fontClass = compact ? 'text-base' : 'text-[1.75rem]'
+
   return (
-    <div className={compact ? 'space-y-1.5' : 'space-y-2'}>
-      <SectionSeparator label="Integrated Systems" compact={compact} />
-      {systems.map((system) => {
-        const choiceKey = `condition:builtin:${system.id}`
-        const stored = getLocalValue(choiceKey)
-        const condition: ItemCondition =
-          stored === 'damaged' || stored === 'destroyed' ? stored : 'intact'
-
-        const handleChange = (next: ItemCondition) => {
-          setLocalValue(choiceKey, next)
-          saveStat(choiceKey, next)
-        }
-
-        return (
-          <ReferenceEntityListingItem
-            key={system.id}
-            entity={system}
-            disabled={condition === 'destroyed'}
-            damaged={condition !== 'intact'}
-            showDetailButton
-            controls={[makeConditionControl(condition, handleChange)]}
-          />
-        )
-      })}
-    </div>
+    <span className="relative inline-flex items-baseline">
+      {/* Hidden measuring span — mirrors input font to get content width */}
+      <span
+        ref={measureRef}
+        aria-hidden
+        className={`pointer-events-none invisible absolute whitespace-pre font-mono ${fontClass} font-bold uppercase leading-none tracking-tight`}
+      >
+        {value || placeholder}
+      </span>
+      <Text
+        variant="pseudoheader"
+        as="span"
+        className={`inline-flex items-center ${fontClass}`}
+        style={compact ? { lineHeight: 1 } : undefined}
+      >
+        <input
+          type="text"
+          size={1}
+          placeholder={placeholder}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onBlur={onBlur}
+          className={`border-none bg-transparent p-0 font-mono ${fontClass} font-bold uppercase leading-none tracking-tight text-su-white outline-none placeholder:text-su-white/50`}
+          style={{ width: inputWidth || undefined }}
+        />
+      </Text>
+    </span>
   )
 }

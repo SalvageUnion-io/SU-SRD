@@ -55,6 +55,7 @@ export function useReferenceEntityDisplayState({
   afterExtraContent,
   afterChoicesContent,
   footerOverride,
+  titleSlot,
 }: ReferenceEntityDisplayStateInput): ReferenceEntityDisplayState {
   const hideActions = hide?.actions ?? false
   const hidePatterns = hide?.patterns ?? false
@@ -64,7 +65,6 @@ export function useReferenceEntityDisplayState({
   const hideContent = hide?.content ?? false
   const hideRollTable = hide?.rollTable ?? false
   const hideFooter = hide?.footer ?? false
-  const hideIntegratedSystems = hide?.integratedSystems ?? false
 
   const title = titleOverride
     ? titleOverride
@@ -133,7 +133,6 @@ export function useReferenceEntityDisplayState({
       content: hideContent,
       rollTable: hideRollTable,
       footer: hideFooter,
-      integratedSystems: hideIntegratedSystems,
     },
     damaged,
     disabled,
@@ -152,5 +151,6 @@ export function useReferenceEntityDisplayState({
     afterExtraContent,
     afterChoicesContent,
     footerOverride,
+    titleSlot,
   }
 }

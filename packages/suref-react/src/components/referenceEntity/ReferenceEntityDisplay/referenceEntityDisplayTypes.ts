@@ -86,7 +86,6 @@ export type ReferenceEntityHideConfig = {
   content?: boolean
   rollTable?: boolean
   footer?: boolean
-  integratedSystems?: boolean
 }
 
 /** Pattern override data for patterned chassis display */
@@ -124,6 +123,8 @@ export type ReferenceEntityDisplayStateInput = {
   afterChoicesContent?: ReactNode
   /** Replaces the computed footer */
   footerOverride?: ReactNode
+  /** When provided, replaces the computed title node in the header */
+  titleSlot?: ReactNode
 }
 
 /** Computed state returned by useReferenceEntityDisplayState. Extends input with derived values. */
@@ -139,6 +140,7 @@ export type ReferenceEntityDisplayState = Omit<
   | 'afterExtraContent'
   | 'afterChoicesContent'
   | 'footerOverride'
+  | 'titleSlot'
 > & {
   /** Subtitle extra content from caller */
   subtitleExtra?: ReactNode
@@ -154,6 +156,8 @@ export type ReferenceEntityDisplayState = Omit<
   afterChoicesContent?: ReactNode
   /** Replaces computed footer */
   footerOverride?: ReactNode
+  /** When provided, replaces the computed title node in the header */
+  titleSlot?: ReactNode
   /** hide with all fields resolved to booleans (no undefined) */
   hide: Required<ReferenceEntityHideConfig>
   /** Resolved to non-optional boolean */

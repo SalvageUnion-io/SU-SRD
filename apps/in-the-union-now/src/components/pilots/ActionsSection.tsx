@@ -1,7 +1,7 @@
 import { useMemo, useCallback, useState, useEffect, useRef } from 'react'
 import type { ReactNode } from 'react'
 import type { SURefEnumSchemaName, SURefChassis } from 'salvageunion-reference'
-import { SalvageUnionReference, getChassisAbilities } from 'salvageunion-reference'
+import { SalvageUnionReference, getChassisAbilities, getChoices } from 'salvageunion-reference'
 import { ReferenceEntityDisplayTooltip, FilterChip, StatsBar, Text } from 'suref-react'
 import type { ReferenceEntityControl } from 'suref-react'
 import { Play, RotateCcw } from 'lucide-react'
@@ -29,6 +29,7 @@ import {
   refillActionUses,
 } from '../../lib/actionUsesUtils'
 import { useComradeEp } from '../../hooks/useComradeEp'
+import { usePlayerChoices } from '../../hooks/useComradeChoices'
 import { useActionFilters, ACTION_TYPES, CATEGORY_FILTERS } from '../../hooks/useActionFilters'
 import type { CategoryFilter } from '../../hooks/useActionFilters'
 import type {
@@ -108,10 +109,41 @@ export function ActionsSection({
     () => comrades.filter((c) => c.sourceParent === 'pilot' || isBoarded),
     [comrades, isBoarded]
   )
-  const comradeActions = useMemo(
+  const comradeActionsRaw = useMemo(
     () => extractComradeActions(comrades, isBoarded, mechRefs),
     [comrades, isBoarded, mechRefs]
   )
+
+  // Build comrade custom name map from saved player choices
+  const { data: mechChoices } = usePlayerChoices(mech?.id)
+  const comradeNameMap = useMemo(() => {
+    const map = new Map<string, string>()
+    if (!mechChoices || comrades.length === 0) return map
+    const choiceMap = new Map<string, string>()
+    for (const row of mechChoices) {
+      if (row.selected_value) choiceMap.set(row.choice_id, row.selected_value)
+    }
+    for (const c of comrades) {
+      const choices = getChoices(c.entity)
+      const nameChoice = choices?.find((ch) => ch.name === 'Name')
+      if (nameChoice) {
+        const saved = choiceMap.get(nameChoice.id)
+        if (saved) map.set(c.entity.id, saved)
+      }
+    }
+    return map
+  }, [mechChoices, comrades])
+
+  // Override comrade action labels with custom names
+  const comradeActions = useMemo(() => {
+    if (comradeNameMap.size === 0) return comradeActionsRaw
+    return comradeActionsRaw.map((action) => {
+      if (!action.comradeEntity) return action
+      const custom = comradeNameMap.get(action.comradeEntity.id)
+      if (!custom) return action
+      return { ...action, sourceLabelOverride: custom }
+    })
+  }, [comradeActionsRaw, comradeNameMap])
   // Separate trait sets by source — variable-currency actions use the set matching
   // their resolved cost type (mech traits when boarded/EP, pilot traits when not/AP)
   const pilotSourceTraits = useMemo(() => getPilotTraits(pilotRefs), [pilotRefs])
@@ -215,11 +247,16 @@ export function ActionsSection({
       const comrade = action.comradeEntity
       const maxEp = getComradeMaxEp(comrade)
       const currentEp = getComradeCurrentEp(comrade.id, maxEp)
-      toast(`${comrade.name} used ${action.name}`, {
+      const comradeDisplayName = comradeNameMap.get(comrade.id) || comrade.name
+      toast(`${comradeDisplayName} used ${action.name}`, {
         style: { borderColor: action.borderColor, borderWidth: '2px' },
       })
       if (action.activationCost !== null) {
-        updateComradeEp(comrade.id, Math.max(0, currentEp - action.activationCost), comrade.name)
+        updateComradeEp(
+          comrade.id,
+          Math.max(0, currentEp - action.activationCost),
+          comradeDisplayName
+        )
       }
       if (action.maxUses !== null && action.entityRefId) {
         // Comrade slot items use mech refs
@@ -232,7 +269,7 @@ export function ActionsSection({
         }
       }
     },
-    [getComradeCurrentEp, updateComradeEp, mechRefs, onUpdateMechEntityRef]
+    [getComradeCurrentEp, updateComradeEp, mechRefs, onUpdateMechEntityRef, comradeNameMap]
   )
 
   const handleRefillAction = useCallback(
@@ -307,7 +344,7 @@ export function ActionsSection({
                 return (
                   <SimpleDisplayContainer
                     key={c.entity.id}
-                    label={c.entity.name}
+                    label={comradeNameMap.get(c.entity.id) || c.entity.name}
                     bg="bg-su-rust"
                     className="shrink-0"
                   >
