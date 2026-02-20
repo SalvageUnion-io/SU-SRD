@@ -712,5 +712,854 @@
         ]
       }
     ]
+  },
+  {
+    "id": "f3a1b2c4-d5e6-4f78-9a0b-1c2d3e4f5a6b",
+    "name": "Tough Choices",
+    "source": "Salvage Union Workshop Manual",
+    "page": 254,
+    "guideType": "gameplay",
+    "guideColor": "#B84C4C",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A Tough Choice is a decision between two undesirable options that are both some sort of Setback."
+      }
+    ],
+    "steps": [
+      {
+        "id": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
+        "name": "Default Rules",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "label",
+            "value": "In Combat"
+          },
+          {
+            "type": "paragraph",
+            "value": "By default in combat, if you are having trouble thinking of something, just say that the player or NPC deals half damage on an attack or takes 2 SP or 2 HP damage in order to succeed at their intended action."
+          },
+          {
+            "type": "label",
+            "value": "Out of Combat"
+          },
+          {
+            "type": "paragraph",
+            "value": "Out of combat their action succeeds, but they gain 2 Heat. This should cover most situations."
+          }
+        ]
+      },
+      {
+        "id": "b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e",
+        "name": "Alternative Tough Choices",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "In addition, consider the following as alternatives:"
+          },
+          {
+            "type": "list-item",
+            "value": "You hit, but damage a System or Module on your Mech."
+          },
+          {
+            "type": "list-item",
+            "value": "You deal half damage or hurt yourself."
+          },
+          {
+            "type": "list-item",
+            "value": "You hit, but an enemy gets a free attack against you."
+          },
+          {
+            "type": "list-item",
+            "value": "You hit, but activate the downside of your weapon."
+          },
+          {
+            "type": "list-item",
+            "value": "You hit, but gain additional Heat."
+          },
+          {
+            "type": "list-item",
+            "value": "You succeed in your task, but must expend additional EP."
+          },
+          {
+            "type": "list-item",
+            "value": "You hit, but must make a Heat Check."
+          },
+          {
+            "type": "list-item",
+            "value": "You betray a friend or make an enemy."
+          },
+          {
+            "type": "list-item",
+            "value": "Save a wastelander from dying or get to a destination faster."
+          },
+          {
+            "type": "list-item",
+            "value": "Save one wastelander from death, but not the other."
+          },
+          {
+            "type": "list-item",
+            "value": "You salvage something powerful, but activate its downside."
+          }
+        ]
+      },
+      {
+        "id": "c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f",
+        "name": "Creative Actions",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "A Tough Choice can also be posed to a player if they want their Pilot to do something that the rules do not cover or allow them to do."
+          },
+          {
+            "type": "flavor",
+            "value": "For example, a Pilot might want to try to use their Hydraulic Crusher to crush the Green Laser System another Mech is holding. There is no direct rule for this and normally you would need a Pin Point Targeter Module to make such an attack, but you pose the following Tough Choice to the player: Their Mech gets to make the attack, but suffers an attack in return or damages the Hydraulic Crusher in the process. Rule what makes sense in the situation and fits your game."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "e4b5c6d7-f8a9-4b0c-1d2e-3f4a5b6c7d8e",
+    "name": "Pushing a Mech",
+    "source": "Salvage Union Workshop Manual",
+    "page": 233,
+    "guideType": "gameplay",
+    "guideColor": "#B84C4C",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Mechs are designed to eke out every inch of their reactors by being able to Push them."
+      }
+    ],
+    "steps": [
+      {
+        "id": "d5e6f7a8-b9c0-4d1e-2f3a-4b5c6d7e8f9a",
+        "name": "Pushing to Re-Roll",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "The main Push effect all Mechs have access to is Pushing to re-roll. This represents straining the Mech's reactor, to Push as much power as possible out of it and direct that power towards whatever the Pilot is trying to achieve."
+          },
+          {
+            "type": "paragraph",
+            "value": "After rolling the die for an action, Ability, or attack, but before the Mediator describes the effects or consequences of the roll, you may choose to Push and re-roll the die. You must accept the second result of the die, and it cannot be Pushed further."
+          }
+        ]
+      },
+      {
+        "id": "e6f7a8b9-c0d1-4e2f-3a4b-5c6d7e8f9a0b",
+        "name": "Risks of Pushing",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Pushing is risky, as it overheats your reactor, which can result in your Mech being forced to Shutdown in the heat of battle, damaging Systems or Modules, or even being destroyed. When you Push your Mech it gains 2 Heat and you must make a Heat Check."
+          },
+          {
+            "type": "paragraph",
+            "value": "The action or attack roll is always resolved regardless of the result of the Heat Check. For example, if you Push an attack that hits, but the Heat Check result destroys your Mech, the attack still hits and deals damage as normal."
+          },
+          {
+            "type": "paragraph",
+            "value": "You may not Push your Mech if the amount of Heat gained from Pushing would make you go over your Mech's Heat Capacity. For example, a Mech with a Heat Capacity of 10 on 9 Heat cannot Push, as this would bring them over their Heat Capacity."
+          }
+        ]
+      },
+      {
+        "id": "f7a8b9c0-d1e2-4f3a-4b5c-6d7e8f9a0b1c",
+        "name": "Multiple Pushes",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Once a roll is Pushed you cannot Push it again. However, there is no limit beyond Heat on how many separate times you can Push different rolls in any particular round. For example, if you have a way to make multiple attacks, each of them can be Pushed."
+          },
+          {
+            "type": "paragraph",
+            "value": "There are additional Push-like effects in the game that can only be accessed from specific Systems, Modules, or Abilities your Mech has access to. These allow you to Push for different effects such as increasing damage or enabling your Mech to make an additional move action. You may stack various Push effects, but cannot apply the same effect twice to a single roll. For example, you can Push to increase the damage of an attack and Push to re-roll the die of the same attack, but cannot Push to increase the damage of the same attack twice."
+          },
+          {
+            "type": "paragraph",
+            "value": "Only Mechs can Push rolls unless otherwise stated. Pilots cannot Push rolls."
+          }
+        ]
+      },
+      {
+        "id": "a8b9c0d1-e2f3-4a4b-5c6d-7e8f9a0b1c2d",
+        "name": "Push Procedure",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "list-item",
+            "value": "Roll the Die."
+          },
+          {
+            "type": "list-item",
+            "value": "Re-Roll the die if you decide to Push. Accept the result of the second roll."
+          },
+          {
+            "type": "list-item",
+            "value": "Resolve all of the effects of the roll."
+          },
+          {
+            "type": "list-item",
+            "value": "Increase your Heat by 2 and roll your Heat Check."
+          },
+          {
+            "type": "list-item",
+            "value": "If the Heat Check fails, roll on the Reactor Overload Table and resolve this effect."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "a2b3c4d5-e6f7-4a8b-9c0d-1e2f3a4b5c6d",
+    "name": "Heat",
+    "source": "Salvage Union Workshop Manual",
+    "page": 234,
+    "guideType": "gameplay",
+    "guideColor": "#B84C4C",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Heat is generated by your Mech as you perform various actions. Firing weapons with the Hot Trait can generate Heat, using certain Systems and Modules such as a VTU can generate Heat, certain attacks against you may generate Heat, and Pushing also generates Heat."
+      },
+      {
+        "type": "paragraph",
+        "value": "You cannot activate an Ability or use a weapon that generates Heat if this would take you over your Heat Capacity. For example, if your Mech's Heat Capacity is 10 and you have 9 Heat and wish to fire a weapon that generates 2 Heat you cannot do so as it would take you over your Mech's Heat Capacity."
+      }
+    ],
+    "steps": [
+      {
+        "id": "b3c4d5e6-f7a8-4b9c-0d1e-2f3a4b5c6d7e",
+        "name": "Heat Check",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "You must make a Heat Check when you Push your Mech. You also must make a Heat Check if your Mech reaches its Heat Capacity or starts the turn at Heat Capacity."
+          },
+          {
+            "type": "paragraph",
+            "value": "To make a Heat Check, roll a d20. If the result is equal to or under your Mech's current Heat, your reactor has overloaded. A roll of a 20 is always a success, as your Heat Capacity can be higher than 20. You must roll on the Reactor Overload Table p. 235 to see what happens to your Mech. This can result in your Mech shutting down, losing Systems or Modules, or even being destroyed."
+          },
+          {
+            "type": "paragraph",
+            "value": "You should add any Heat to your Mech as a result of using any Systems, Modules, or Abilities before you make the Heat Check. For example, if you shoot a Red Laser which has the Hot (1) Trait and decide to Push the roll, you gain 1 Heat from the Red Laser and 2 Heat from the Push. You should then make the Heat Check."
+          },
+          {
+            "type": "paragraph",
+            "value": "If making multiple attacks in a single turn, resolve them each separately. For example, if you were to fire the Red Laser twice, resolve each attack and any Pushes separately, then move onto the next."
+          }
+        ]
+      },
+      {
+        "id": "c4d5e6f7-a8b9-4c0d-1e2f-3a4b5c6d7e8f",
+        "name": "Reactor Overload Table",
+        "stepType": "roll-table",
+        "rollTable": "Reactor Overload",
+        "content": []
+      },
+      {
+        "id": "d5e6f7a8-b9c0-4d1e-2f3a-4b5c6d7e8f9a",
+        "name": "Venting Heat",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "To reduce your Mech's Heat, you must fully shut it down and rest for 1 hour as a Long Action. If you do this it resets its Heat back to 0 at the end of the hour."
+          },
+          {
+            "type": "paragraph",
+            "value": "Whilst Shutdown, a Mech cannot take any actions and gains the Vulnerable Trait meaning it automatically takes 2\u00d7 damage from any attacks against it that hit."
+          },
+          {
+            "type": "paragraph",
+            "value": "Some Systems and Modules, such as Heat Sinks and Coolant Flow Manifolds allow you to increase the Heat capacity, or vent Heat more efficiently on your Mech."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "b4c5d6e7-f8a9-4b0c-1d2e-3f4a5b6c7d8f",
+    "name": "Activating and Shutting Down a Mech",
+    "source": "Salvage Union Workshop Manual",
+    "page": 238,
+    "guideType": "gameplay",
+    "guideColor": "#B84C4C",
+    "content": [],
+    "steps": [
+      {
+        "id": "c5d6e7f8-a9b0-4c1d-2e3f-4a5b6c7d8e9f",
+        "name": "Activating a Mech",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "A Pilot in a Mech's cockpit can activate it as a Turn Action. The Mech takes that turn booting up, and it will be active at the start of the Pilot's next turn. A Mech also takes a Turn Action to Shutdown."
+          },
+          {
+            "type": "paragraph",
+            "value": "The majority of Mechs take one Pilot to control who has to use all of their concentration to control them and cannot take other actions whilst controlling their Mechs."
+          }
+        ]
+      },
+      {
+        "id": "d6e7f8a9-b0c1-4d2e-3f4a-5b6c7d8e9f0a",
+        "name": "Embarking and Disembarking from a Mech",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Under normal conditions, Embarking or Disembarking from a Mech takes up a Pilot's movement for the turn. They may still act on a turn they Embark or Disembark."
+          },
+          {
+            "type": "paragraph",
+            "value": "If they wish to Embark or Disembark in an emergency situation or as a reaction they must use a System or Module with the Escape Trait which typically uses a Turn Action."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "c6d7e8f9-a0b1-4c2d-3e4f-5a6b7c8d9e0f",
+    "name": "Mech Damage",
+    "source": "Salvage Union Workshop Manual",
+    "page": 239,
+    "guideType": "gameplay",
+    "guideColor": "#B84C4C",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "When a Mech is successfully hit by an attack, reduce its Structure Points according to the damage of the weapon. For example, if a Scrapper Mech with 9 Structure Points is hit by a Red Laser which deals 3 damage, reduce its Structure Points to 6."
+      },
+      {
+        "type": "paragraph",
+        "value": "If a Mech is reduced to 0 Structure Points, roll on the Critical Damage Table to determine what happens to it. It can lose Systems or Modules, or even be destroyed. A Mech's Structure Points can only be reduced to 0 SP and can never go into negative values."
+      },
+      {
+        "type": "paragraph",
+        "value": "If your Mech is destroyed, your Pilot dies with it; unless they can escape. Mechs are usually installed with some form of escape mechanism which allows the Pilot to attempt to escape a Mech in the event it is destroyed. The standard type is the Escape Hatch System."
+      },
+      {
+        "type": "paragraph",
+        "value": "Mechs are behemoth armoured structures. If a Mech is hit by any weapon that lists HP damage in its profile rather than SP damage, such as a Pistol or Rifle, it takes half that damage."
+      }
+    ],
+    "steps": [
+      {
+        "id": "d7e8f9a0-b1c2-4d3e-4f5a-6b7c8d9e0f1a",
+        "name": "Critical Damage Table",
+        "stepType": "roll-table",
+        "rollTable": "Critical Damage",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Roll on this table when your Mech reaches 0 Structure Points. In addition, you can roll on this table to see what happens if a Mech suffers significant critical damage within a narrative situation in game."
+          }
+        ]
+      },
+      {
+        "id": "e8f9a0b1-c2d3-4e4f-5a6b-7c8d9e0f1a2b",
+        "name": "Restoring Mech Structure Points",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "The primary means to restore the Structure Points of a Mech is to place it inside a Mech Bay and have it repaired during Downtime. Over a period of one week of Downtime, the Structure Points of the Mech are fully restored."
+          },
+          {
+            "type": "paragraph",
+            "value": "All Mechs and Pilots can use the Patch Up Ability to restore Mech SP (see p. 249). There are also other abilities gained from Systems, Modules, the Mech Chassis, and Pilot Abilities which can restore Mech SP. For example, the Welding Laser System (see p. 172) or the Engineer's Mass Field Repair Ability (see p. 29)."
+          }
+        ]
+      },
+      {
+        "id": "f9a0b1c2-d3e4-4f5a-6b7c-8d9e0f1a2b3c",
+        "name": "Repairing Mech Chassis, Systems, and Modules",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "A damaged Mech Chassis is inoperable and cannot be piloted. A damaged System or Module cannot be used."
+          },
+          {
+            "type": "paragraph",
+            "value": "Damaged Mech Chassis, Systems, and Modules are repaired in a Mech Bay during Downtime. This requires a Mech Bay of the Tech Level equal to or greater than the Mech Chassis, System, or Module. For example, a Tech 3 Mech Bay can repair any Tech 1, 2, or 3 Mech Chassis, Systems, and Modules. Your Union Crawler has a Mech Bay installed with a Tech Level equal to the Union Crawler itself. For example, a Tech 2 Union Crawler has a Tech 2 Mech Bay."
+          },
+          {
+            "type": "paragraph",
+            "value": "Damaged Mech Chassis, Systems, and Modules as well as Vehicles can also be repaired using the Repair Ability which all Pilots and Mechs have access to (see p. 248)."
+          },
+          {
+            "type": "paragraph",
+            "value": "Certain Systems and Modules as well as Pilot and Chassis Abilities may also allow you to repair damaged Mech Chassis, Systems, and Modules as well as vehicles. For example, the Welding Laser System (see p. 170) or the Engineer's Mass Field Repair Ability (see p. 29)."
+          },
+          {
+            "type": "paragraph",
+            "value": "If a Mech Chassis is repaired in the field, it is operational with 1 SP and half its EP, or whatever EP it had remaining."
+          },
+          {
+            "type": "paragraph",
+            "value": "If it is repaired in a Mech Bay during Downtime it is restored to its full SP and EP. Its Systems and Modules are also operational, unless they were specifically either damaged or destroyed. If they were damaged, they must be repaired separately. If they were destroyed then there is no way to repair or even salvage them."
+          }
+        ]
+      },
+      {
+        "id": "a0b1c2d3-e4f5-4a6b-7c8d-9e0f1a2b3c4d",
+        "name": "Destroyed Mechs, Systems, and Modules",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "A destroyed Mech Chassis, System, or Module is unusable, unrepairable, and unsalvageable. If something is destroyed it has entirely burned out, turned to ash, has been vaporised, or is so ruined that even a salvager cannot make use of it."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "d8e9f0a1-b2c3-4d4e-5f6a-7b8c9d0e1f2a",
+    "name": "Pilot Damage",
+    "source": "Salvage Union Workshop Manual",
+    "page": 241,
+    "guideType": "gameplay",
+    "guideColor": "#B84C4C",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "When a Pilot is successfully hit by an attack, reduce their Hit Points by the damage of the weapon. For example, if a Pilot on 10 HP is hit by a Pistol which deals 2 HP damage, reduce their Hit Points from 10 to 8."
+      },
+      {
+        "type": "paragraph",
+        "value": "If a Pilot reaches 0 HP, roll on the Critical Injury Table to determine what happens to them. They can suffer injuries, be knocked out, or even die. A Pilot's Hit Points can only be reduced to 0 HP and never go into negative values."
+      },
+      {
+        "type": "paragraph",
+        "value": "If a Pilot is hit by a weapon that deals SP damage, such as a Red Laser, they take 2\u00d7 that damage. Weapon entries denote whether they do SP or HP damage in their profile."
+      }
+    ],
+    "steps": [
+      {
+        "id": "e9f0a1b2-c3d4-4e5f-6a7b-8c9d0e1f2a3b",
+        "name": "Critical Injury Table",
+        "stepType": "roll-table",
+        "rollTable": "Critical Injury",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "This table determines what happens to your Pilot when they are reduced to 0 Hit Points or suffer a severe injury during play."
+          }
+        ]
+      },
+      {
+        "id": "f0a1b2c3-d4e5-4f6a-7b8c-9d0e1f2a3b4c",
+        "name": "Injuries",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "You can have multiple Minor and Major Injuries."
+          },
+          {
+            "type": "paragraph",
+            "value": "If your Max HP is ever reduced to 0 your Pilot dies."
+          },
+          {
+            "type": "paragraph",
+            "value": "The Mediator may add additional consequences to any Minor and Major Injuries you suffer as fits the narrative and situation."
+          }
+        ]
+      },
+      {
+        "id": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5e",
+        "name": "Restoring Pilot Health and Mending Injuries",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "A Pilot fully heals all of their Hit Points during Downtime as long as they have access to a Tech 1-2 Med Bay or higher."
+          },
+          {
+            "type": "paragraph",
+            "value": "All Minor Injuries heal during Downtime as long as a Pilot has access to a Tech 3-4 Med Bay or higher."
+          },
+          {
+            "type": "paragraph",
+            "value": "All Major Injuries heal during Downtime as long as a Pilot has access to a Tech 5-6 Med Bay or higher."
+          },
+          {
+            "type": "paragraph",
+            "value": "Hit Points can be restored in the field via Pilot Equipment, such as a First Aid Kit or Healing Bio-Foam. Some Pilot Abilities may also restore HP."
+          },
+          {
+            "type": "paragraph",
+            "value": "If a Pilot is reduced to 0 Hit Points and then healed with a healing item or Ability, they are brought to consciousness and their health is restored by that amount. For example, a Pilot on 0 HP who is healed 3 HP via a First Aid Kit regains consciousness and is on 3 Hit Points."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "e0f1a2b3-c4d5-4e6f-7a8b-9c0d1e2f3a4b",
+    "name": "Safety Protocols",
+    "source": "Salvage Union Workshop Manual",
+    "page": 12,
+    "guideType": "gameplay",
+    "guideColor": "#B84C4C",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Salvage Union takes place in a post-apocalyptic setting, and is intended for mature audiences. It explores a variety of themes and topics that may make some readers uncomfortable. These include exploitation, authoritarianism, violence, anxiety, death, mental illness, poverty, and trauma."
+      },
+      {
+        "type": "paragraph",
+        "value": "Whilst these themes each carry a heavy weight with them, it is important to note that the game is meant to be played as a cooperative and fun experience through the improvisational means of a tabletop roleplaying game. No one should be forced to deal with any topics that they may find distressing or would cause any real conflict between players at the table."
+      },
+      {
+        "type": "paragraph",
+        "value": "These topics are presented as part of the world, but the intent is not to have you as either a player or the Mediator revel in them or use them to engage in fantasies that others playing with you find distressing."
+      },
+      {
+        "type": "paragraph",
+        "value": "The themes of authoritarianism and exploitation are presented as abhorrent, and are not intended to be glorified in any way, shape, or form. This game is not for fascists, or anyone else who holds any hateful beliefs."
+      },
+      {
+        "type": "paragraph",
+        "value": "The following Safety Protocols are intended to help facilitate a positive experience for everyone at the table."
+      }
+    ],
+    "steps": [
+      {
+        "id": "f1a2b3c4-d5e6-4f7a-8b9c-0d1e2f3a4b5c",
+        "name": "Boundaries",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Before you begin the game, ask the players in your group to let you know if there is any subject matter that is sensitive for them. You can use these categories to help create boundaries for your game's content."
+          },
+          {
+            "type": "label",
+            "value": "Out of Bounds"
+          },
+          {
+            "type": "paragraph",
+            "value": "If something is out of bounds, this means you should not use it in your game. For example, if a player says graphic descriptions of torture are out of bounds, everyone in the group should agree to not use that subject matter in the game. Things that are out of bounds should not be discussed or brought during the game."
+          },
+          {
+            "type": "label",
+            "value": "Off Camera"
+          },
+          {
+            "type": "paragraph",
+            "value": "There are some topics that might be okay to include within the game, but not in detail. In this case, you should reference these events indirectly or metaphorically, as if they are happening off screen, in the background."
+          },
+          {
+            "type": "paragraph",
+            "value": "For example, if a player is uncomfortable with detailed descriptions of blood and gore, you might describe a group of wastelanders being massacred by a rampaging Mech, with the grim sounds of metal and shouting in the background."
+          },
+          {
+            "type": "paragraph",
+            "value": "Or, some groups may want to explore sexual relationships between characters within the game, but would want things to fade to black during any actual scene involving intercourse."
+          },
+          {
+            "type": "paragraph",
+            "value": "Some players may realise something is out of bounds only when they hear it. If you notice a player is uncomfortable during a game, ask them if they are okay to keep playing before continuing."
+          }
+        ]
+      },
+      {
+        "id": "a2b3c4d5-e6f7-4a8b-9c0d-1e2f3a4b5c6e",
+        "name": "Stop Sign",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Players can use a STOP SIGN to signal when something makes them uncomfortable, or when they need to pause the game."
+          },
+          {
+            "type": "paragraph",
+            "value": "The STOP SIGN can be anything your group agrees to use. It can be a verbal cue (like a safe word), a gesture, or a card that you hold up."
+          },
+          {
+            "type": "paragraph",
+            "value": "If someone uses a STOP SIGN, pause the game to find out why by talking to each other out of character. Listen to other players if they need to set a new boundary, and respect the boundaries of other players in your group."
+          },
+          {
+            "type": "paragraph",
+            "value": "A player can use a STOP SIGN at any time within the game, and does not need to justify its use."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "f2a3b4c5-d6e7-4f8a-9b0c-1d2e3f4a5b6c",
+    "name": "Map Movement",
+    "source": "Salvage Union Workshop Manual",
+    "page": 263,
+    "guideType": "gameplay",
+    "guideColor": "#B84C4C",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Campaign Mode in Salvage Union involves exploring the wastes, discovering salvage, and becoming embroiled in the events, people and situations of the wastelands."
+      },
+      {
+        "type": "paragraph",
+        "value": "The Mediator will present you with a map of the area that you are in within the wasteland. You can move across this at different rates based on your mode of movement."
+      },
+      {
+        "type": "paragraph",
+        "value": "In addition, each point of the map can be zoomed in on at three different scales, each of which has its own movement level. This lets you have a wide overview of the entire map such as the 'Eastern Wastes', zoom in on an individual region such as 'The Badlands' to explore, and then zoom in even further to explore an individual area within that region such as 'Death Gulch.'"
+      }
+    ],
+    "steps": [
+      {
+        "id": "a3b4c5d6-e7f8-4a9b-0c1d-2e3f4a5b6c7d",
+        "name": "Campaign Map",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "This is the wide overview of an entire portion of the wastelands."
+          },
+          {
+            "type": "list-item",
+            "value": "A Crawler can move from one of these points to another in a week."
+          },
+          {
+            "type": "list-item",
+            "value": "A Pilot can move from one of these points to another in a week."
+          },
+          {
+            "type": "list-item",
+            "value": "A Mech can move from one of these points to another in a day."
+          }
+        ]
+      },
+      {
+        "id": "b4c5d6e7-f8a9-4b0c-1d2e-3f4a5b6c7d8a",
+        "name": "Region Map",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "This is a zoomed in region of a point on the Campaign Map."
+          },
+          {
+            "type": "list-item",
+            "value": "A Crawler can move from one of these points to another in a day."
+          },
+          {
+            "type": "list-item",
+            "value": "A Pilot can move from one of these points to another in a day."
+          },
+          {
+            "type": "list-item",
+            "value": "A Mech can move from one of these points to another in an hour."
+          }
+        ]
+      },
+      {
+        "id": "c5d6e7f8-a9b0-4c1d-2e3f-4a5b6c7d8e9a",
+        "name": "Area Map",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "This is a zoomed in point of a Region Map."
+          },
+          {
+            "type": "list-item",
+            "value": "A Crawler can move from one of these points to another in an hour."
+          },
+          {
+            "type": "list-item",
+            "value": "A Pilot can move from one of these points to another in an hour."
+          },
+          {
+            "type": "list-item",
+            "value": "A Mech can move from one of these points to another in 10 minutes."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "a4b5c6d7-e8f9-4a0b-1c2d-3e4f5a6b7c8d",
+    "name": "Salvage Condition",
+    "source": "Salvage Union Workshop Manual",
+    "page": 244,
+    "guideType": "gameplay",
+    "guideColor": "#B84C4C",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Each piece of salvage in the wastelands has a certain Condition which determines its usability and salvageability. All Pilots are able to quickly and easily tell the Condition of a piece of salvage upon a cursory inspection. This Condition is decided by the Mediator, with most salvage being assumed damaged."
+      }
+    ],
+    "steps": [
+      {
+        "id": "b5c6d7e8-f9a0-4b1c-2d3e-4f5a6b7c8d9e",
+        "name": "Intact",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "The Mech Chassis, System, or Module is fully Intact and in working order. It is incredibly rare to find Intact items in the wasteland."
+          }
+        ]
+      },
+      {
+        "id": "c6d7e8f9-a0b1-4c2d-3e4f-5a6b7c8d9e0a",
+        "name": "Damaged",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "The Mech Chassis, System, or Module is damaged. It is inoperable until repaired and cannot be used. It is assumed by default that all Mech Chassis, Systems, and Modules found in the wastelands are in this state."
+          },
+          {
+            "type": "paragraph",
+            "value": "The Patch Up and Repair Ability (see p. 249), as well as certain other Abilities, Systems, and Modules can be used to repair anything damaged in the field."
+          },
+          {
+            "type": "paragraph",
+            "value": "When you return to your Union Crawler, all damaged Mech Chassis, Systems, and Modules of a Tech Level equal to or lower than the Union Crawler are repaired to Intact during Downtime."
+          }
+        ]
+      },
+      {
+        "id": "d7e8f9a0-b1c2-4d3e-4f5a-6b7c8d9e0f1b",
+        "name": "Destroyed",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "A destroyed Mech Chassis, System, or Module is rendered entirely unusable and irreparable. It also cannot be salvaged from or scrapped."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "b6c7d8e9-f0a1-4b2c-3d4e-5f6a7b8c9d0e",
+    "name": "Salvaging",
+    "source": "Salvage Union Workshop Manual",
+    "page": 245,
+    "guideType": "gameplay",
+    "guideColor": "#B84C4C",
+    "content": [],
+    "steps": [
+      {
+        "id": "c7d8e9f0-a1b2-4c3d-4e5f-6a7b8c9d0e1f",
+        "name": "Area Salvage",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Area Salvaging represents scouring a large area for valuable salvage. This is typically a point on the Region Map within Campaign Mode. It includes areas such as factories, cargo hangers, bunkers, and abandoned settlements. The area must be free and safe from hostiles before Area Salvaging can be performed. Area Salvaging assumes the area being salvaged is demolished as salvagers tear it apart for scrap."
+          },
+          {
+            "type": "paragraph",
+            "value": "Not all places can be area salvaged, and it is up to the Mediator to decide if an area can or cannot be salvaged in this way. For example, an abandoned highway with only burned out Mechs may have no usable salvage to find. An area that can be Area Salvaged has two values."
+          },
+          {
+            "type": "label",
+            "value": "Tech Level"
+          },
+          {
+            "type": "paragraph",
+            "value": "This is the Tech Level of salvage in the area. This value is set by the Mediator as appropriate to the area."
+          },
+          {
+            "type": "label",
+            "value": "Supply"
+          },
+          {
+            "type": "paragraph",
+            "value": "This is the number of times an area can be area salvaged by a Mech or Pilot. By default this number is 5. Each time a Pilot rolls to Area Salvage, reduce the Supply by 1. When the value is 0, the area cannot be Area Salvaged anymore. The Mediator can change this number as appropriate, with some areas having more or less supply. For example, a sheet metal factory may have a high supply of 8, but a low Tech Level of 1, whereas an abandoned research laboratory may have a low supply of 2, but a high Tech Level of 4."
+          },
+          {
+            "type": "paragraph",
+            "value": "The Area Salvage Ability on p. 248 allows a Pilot to Area Salvage."
+          }
+        ]
+      },
+      {
+        "id": "d8e9f0a1-b2c3-4d4e-5f6a-7b8c9d0e1f2b",
+        "name": "Salvaging a Mech",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "The Mech Salvage Ability (see p. 248) is intended to emulate the salvager picking through the carcass of a Mech in the wasteland to find the best salvageable parts. It is more a test of luck to see what is available rather than reflective of the salvager's skill. The intent of the roll is that through play salvagers will encounter dozens of Mechs and being able to easily salvage every part would become overwhelming quickly, so instead the roll typically narrows choice so salvagers can pick one part they want. Everything else is considered destroyed."
+          }
+        ]
+      },
+      {
+        "id": "e9f0a1b2-c3d4-4e5f-6a7b-8c9d0e1f2a3c",
+        "name": "Salvaging a Non-Mech",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "There are some foes you may encounter in the game, such as Drones, Vehicles, and the likes of Bio-Titans."
+          },
+          {
+            "type": "paragraph",
+            "value": "These can be scrapped for the Salvage Value in Scrap of their Tech Level. Follow the same rules as the Scrap Ability."
+          },
+          {
+            "type": "paragraph",
+            "value": "Some of these may have a limited number of Systems or Modules mounted on them, which you can salvage as an individual System or Module. They are typically in Damaged Condition. The Systems and Modules you can salvage from a non-Mech are up to the Mediator to decide."
+          }
+        ]
+      },
+      {
+        "id": "f0a1b2c3-d4e5-4f6a-7b8c-9d0e1f2a3b4d",
+        "name": "Cargo Capacity",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "A Mech's Cargo Capacity is split into Slots. By default Mechs have 6 Cargo Slots. This represents an abstracted mixture of internal and external storage, the latter being a case of the Scrap or salvage being strapped to the Mech."
+          },
+          {
+            "type": "paragraph",
+            "value": "Mechs can increase their Cargo Capacity beyond this by installing Systems such as Cargo Bays, and via unique Chassis Abilities."
+          },
+          {
+            "type": "paragraph",
+            "value": "Each individual piece of Scrap takes up one Cargo Slot."
+          },
+          {
+            "type": "paragraph",
+            "value": "A Mech Chassis, System, or Module takes up a number of Slots equal to its Salvage Value. For example, a Red Laser System has a Salvage Value of 3 so takes up 3 Cargo Slots."
+          },
+          {
+            "type": "paragraph",
+            "value": "A Mech that has Systems and Modules mounted on it takes up a number of Slots equal to the combined value of its Systems, Modules, and Chassis Salvage Values. For example, a Tech 2 Mirrorball Mech has a Salvage Value of 10. A Mech with 10 Cargo Slots could carry the Mirrorball, and it would take up all of its Slots. A Mech with only 6 Slots could not carry the Mirrorball."
+          },
+          {
+            "type": "paragraph",
+            "value": "If a Mech does not have enough Cargo Capacity for this, it cannot carry the entire Mech Chassis, System, or Module."
+          },
+          {
+            "type": "paragraph",
+            "value": "A Chassis, System, or Module can be scrapped as per the Scrap action to split it into individual pieces of scrap which can then be split up and carried amongst different Mechs and Pilots."
+          }
+        ]
+      }
+    ]
   }
 ]
