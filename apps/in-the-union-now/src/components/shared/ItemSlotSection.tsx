@@ -45,7 +45,7 @@ export function ItemSlotSection({
 
   return (
     <section className={className}>
-      <SectionSeparator label={`${label} (${slotsUsed}/${slotsTotal})`} compact={compact}>
+      <SectionSeparator label={label} value={`${slotsUsed}/${slotsTotal}`} compact={compact}>
         {canAdd && (
           <button
             type="button"

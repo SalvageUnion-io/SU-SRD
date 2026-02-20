@@ -468,6 +468,7 @@ export const PILOT_DEFAULTS = {
   maxHP: 10,
   maxAP: 5,
   startingTP: 0,
+  inventorySlots: 6,
 } as const
 
 /**

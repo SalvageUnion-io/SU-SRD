@@ -1,6 +1,6 @@
 import { supabase } from '../supabase'
 import { handleSupabaseError } from '../errors'
-import type { EntityRefRow, EntityRefUpdate } from '../../types/common'
+import type { EntityRefRow, EntityRefInsert, EntityRefUpdate } from '../../types/common'
 
 export async function updateEntityRef(
   refId: string,
@@ -12,6 +12,19 @@ export async function updateEntityRef(
     .eq('id', refId)
     .select()
     .single()
+
+  if (error) handleSupabaseError(error)
+  return data!
+}
+
+export async function deleteEntityRef(refId: string): Promise<void> {
+  const { error } = await supabase.from('entity_refs').delete().eq('id', refId)
+
+  if (error) handleSupabaseError(error)
+}
+
+export async function createEntityRef(input: EntityRefInsert): Promise<EntityRefRow> {
+  const { data, error } = await supabase.from('entity_refs').insert(input).select().single()
 
   if (error) handleSupabaseError(error)
   return data!

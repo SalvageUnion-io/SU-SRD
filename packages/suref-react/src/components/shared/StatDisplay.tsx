@@ -82,12 +82,15 @@ export function StatDisplay({
 
   if (value === undefined) return null
 
-  const boxSize = compact ? 'h-8 w-8' : 'h-12 w-12'
+  const boxSize = compact ? 'h-8 min-w-8 px-0.5' : 'h-12 w-12'
 
   const content = (
     <div
       role="group"
-      className={cn('flex flex-col items-center gap-0 overflow-visible', compact ? 'w-8' : 'w-12')}
+      className={cn(
+        'flex flex-col items-center gap-0 overflow-visible',
+        compact ? 'min-w-8' : 'w-12'
+      )}
       aria-label={combinedAriaLabel}
     >
       <Text

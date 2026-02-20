@@ -10,8 +10,14 @@ import {
   listPilotsByCrawlerId,
   assignPilotToCrawler,
 } from '../lib/api/pilotApi'
-import { updateEntityRef } from '../lib/api/entityRefApi'
-import type { CreatePilotInput, EntityRefUpdate, PilotRow, PilotUpdate } from '../types/common'
+import { updateEntityRef, deleteEntityRef, createEntityRef } from '../lib/api/entityRefApi'
+import type {
+  CreatePilotInput,
+  EntityRefInsert,
+  EntityRefUpdate,
+  PilotRow,
+  PilotUpdate,
+} from '../types/common'
 
 export const pilotKeys = {
   all: ['pilots'] as const,
@@ -100,6 +106,28 @@ export function useDeletePilot() {
     mutationFn: ({ pilotId }: { pilotId: string; userId: string }) => deletePilot(pilotId),
     onSuccess: (_data, { userId }) => {
       queryClient.invalidateQueries({ queryKey: pilotKeys.list(userId) })
+    },
+  })
+}
+
+export function useDeleteEntityRef() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ refId }: { refId: string; pilotId: string }) => deleteEntityRef(refId),
+    onSuccess: (_data, { pilotId }) => {
+      queryClient.invalidateQueries({ queryKey: pilotKeys.entityRefs(pilotId) })
+    },
+  })
+}
+
+export function useCreateEntityRef() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ input }: { input: EntityRefInsert; pilotId: string }) => createEntityRef(input),
+    onSuccess: (_data, { pilotId }) => {
+      queryClient.invalidateQueries({ queryKey: pilotKeys.entityRefs(pilotId) })
     },
   })
 }

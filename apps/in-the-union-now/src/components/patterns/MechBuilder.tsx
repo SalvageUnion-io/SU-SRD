@@ -96,7 +96,6 @@ export function MechBuilder({
       icon: Layers,
       onClick: () => builder.setShowPatternModal(true),
       ariaLabel: 'Apply pattern',
-      label: 'Pattern',
       variant: 'ghost',
     }
     return controls ? [applyPatternControl, ...controls] : [applyPatternControl]
@@ -163,7 +162,7 @@ export function MechBuilder({
       <DisplayCard
         stickyHeader={stickyHeader}
         headerBg="bg-su-green"
-        bodyPadding="p-4"
+        bodyPadding="p-0"
         mode={compact ? 'compact' : undefined}
         controls={mergedControls}
         stats={stats}

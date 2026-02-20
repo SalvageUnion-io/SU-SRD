@@ -5,6 +5,9 @@ import {
   getMechEntityRefs,
   updateMechEntityRefs,
   updateMech,
+  listCargoForMech,
+  addCargoToMech,
+  deleteMechCargoItem,
 } from '../lib/api/mechApi'
 import { updateEntityRef } from '../lib/api/entityRefApi'
 import { pilotKeys } from './usePilots'
@@ -23,6 +26,7 @@ export const mechKeys = {
   details: () => [...mechKeys.all, 'detail'] as const,
   detail: (id: string) => [...mechKeys.details(), id] as const,
   entityRefs: (mechId: string) => [...mechKeys.all, 'entityRefs', mechId] as const,
+  cargo: (mechId: string) => [...mechKeys.all, 'cargo', mechId] as const,
 }
 
 export function useMech(mechId: string | undefined) {
@@ -101,6 +105,52 @@ export function useUpdateMechLoadout() {
     }) => updateMechEntityRefs(mechId, inserts, deleteIds),
     onSuccess: (_data, { mechId }) => {
       queryClient.invalidateQueries({ queryKey: mechKeys.entityRefs(mechId) })
+    },
+  })
+}
+
+// --- Cargo hooks ---
+
+export function useMechCargo(mechId: string | undefined) {
+  return useQuery({
+    queryKey: mechKeys.cargo(mechId ?? ''),
+    queryFn: () => listCargoForMech(mechId!),
+    enabled: !!mechId,
+  })
+}
+
+export function useAddMechCargo() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({
+      mechId,
+      userId,
+      input,
+    }: {
+      mechId: string
+      userId: string
+      input: {
+        name: string
+        amount?: number
+        schema_name?: string
+        schema_ref_id?: string
+        metadata?: Record<string, unknown>
+      }
+    }) => addCargoToMech(mechId, userId, input),
+    onSuccess: (_data, { mechId }) => {
+      queryClient.invalidateQueries({ queryKey: mechKeys.cargo(mechId) })
+    },
+  })
+}
+
+export function useDeleteMechCargo() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ cargoId }: { cargoId: string; mechId: string }) => deleteMechCargoItem(cargoId),
+    onSuccess: (_data, { mechId }) => {
+      queryClient.invalidateQueries({ queryKey: mechKeys.cargo(mechId) })
     },
   })
 }

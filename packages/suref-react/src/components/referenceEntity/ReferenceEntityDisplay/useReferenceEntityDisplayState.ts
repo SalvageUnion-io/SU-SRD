@@ -91,7 +91,10 @@ export function useReferenceEntityDisplayState({
   const opacity = { header: dimHeader ? 0.5 : 1, content: disabled ? 0.5 : 1 }
   const shouldShowExtraContent = compact ? !hideActions : true
 
-  const entityName = title || ('name' in data ? String(data.name) : '')
+  // Always use the original data name for action matching, not the display title.
+  // Custom names (via titleOverride) are for display only — action matching must
+  // compare against the canonical entity name so flat rendering still works.
+  const entityName = 'name' in data ? String(data.name) : ''
 
   const chassisAbilities = useMemo(() => getChassisAbilities(data), [data])
 

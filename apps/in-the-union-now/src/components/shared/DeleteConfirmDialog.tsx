@@ -29,10 +29,10 @@ export function DeleteConfirmDialog({
       maxWidth="max-w-md"
       align="center"
     >
-      <div className="flex flex-col gap-4 bg-su-dark p-4">
-        <Text as="p" className="text-sm text-su-grey-light">
-          Are you sure you want to delete <strong className="text-su-white">{entityName}</strong>?
-          This will remove all associated data. This action cannot be undone.
+      <div className="flex flex-col gap-4 p-4">
+        <Text as="p" className="text-sm text-su-black">
+          Are you sure you want to delete <strong>{entityName}</strong>? This will remove all
+          associated data. This action cannot be undone.
         </Text>
         <div className="flex justify-end gap-2">
           <Button

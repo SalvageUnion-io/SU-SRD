@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react'
+import { useState, useCallback, useRef, useEffect, useLayoutEffect, useContext } from 'react'
 import type { ReactNode } from 'react'
 import type { SURefEnumSource } from 'salvageunion-reference'
 import { cn } from '../../utils/cn'
@@ -13,7 +13,7 @@ import {
   borderColorFromHeaderBg,
 } from '../referenceEntity/referenceEntityHelpers'
 import type { ReferenceEntityControl } from '../referenceEntity/ReferenceEntityDisplay/referenceEntityControlTypes'
-import { StickyHeaderContext } from './StickyHeaderContext'
+import { StickyHeaderContext, StickyOffsetContext } from './StickyHeaderContext'
 
 type DisplayCardMode = 'full' | 'compact' | 'listing'
 
@@ -98,6 +98,8 @@ type DisplayCardProps = {
   footerBg?: string
   /** Stats rendered in the header's right side (between headerContent and controls) */
   stats?: StatItem[]
+  /** Custom content rendered to the left of stats in the header */
+  beforeStats?: ReactNode
 }
 
 const DEFAULT_TAB_KEY = '__default'
@@ -131,6 +133,7 @@ export function DisplayCard({
   defaultTabActiveColor,
   footerBg,
   stats,
+  beforeStats,
 }: DisplayCardProps) {
   const isCompact = mode === 'compact'
   const isListing = mode === 'listing'
@@ -184,23 +187,49 @@ export function DisplayCard({
     [resolvedCardClick]
   )
 
-  // Sticky header: measure header height and set CSS variable for SectionSeparator offsets
+  // Sticky header: measure header height and support nesting via context
   const wrapperRef = useRef<HTMLDivElement>(null)
   const headerRef = useRef<HTMLDivElement>(null)
+  const parentStickyOffset = useContext(StickyOffsetContext)
 
-  useEffect(() => {
+  // Measure nav height and header height for sticky positioning
+  const [measuredNavH, setMeasuredNavH] = useState(0)
+  const [measuredHeaderH, setMeasuredHeaderH] = useState(0)
+
+  useLayoutEffect(() => {
     if (!stickyHeader || !headerRef.current || !wrapperRef.current) return
     const header = headerRef.current
     const wrapper = wrapperRef.current
-    const update = () => {
+    const measure = () => {
       const navH = parseFloat(getComputedStyle(wrapper).getPropertyValue('--app-nav-h')) || 0
-      wrapper.style.setProperty('--sticky-header-h', `${navH + header.offsetHeight}px`)
+      setMeasuredNavH((prev) => (prev !== navH ? navH : prev))
+      setMeasuredHeaderH((prev) => {
+        const h = header.offsetHeight
+        return prev !== h ? h : prev
+      })
     }
-    update()
-    const ro = new ResizeObserver(update)
+    measure()
+    const ro = new ResizeObserver(measure)
     ro.observe(header)
     return () => ro.disconnect()
   }, [stickyHeader])
+
+  // Nested sticky: stack below parent's sticky header, or use nav height for top-level
+  const stickyTop = stickyHeader ? (parentStickyOffset > 0 ? parentStickyOffset : measuredNavH) : 0
+  const childStickyOffset = stickyHeader ? stickyTop + measuredHeaderH : 0
+
+  // Set --sticky-header-h CSS variable for SectionSeparator offsets
+  useEffect(() => {
+    if (!stickyHeader || !wrapperRef.current) return
+    wrapperRef.current.style.setProperty('--sticky-header-h', `${stickyTop + measuredHeaderH}px`)
+  }, [stickyHeader, stickyTop, measuredHeaderH])
+
+  // Use CSS variable as fallback for first render (before measurement)
+  const stickyTopStyle = stickyHeader
+    ? stickyTop > 0
+      ? `${stickyTop}px`
+      : 'var(--app-nav-h, 0px)'
+    : undefined
 
   const defaultBodyPadding = isCompact ? 'p-2' : 'p-3'
   const borderWidth = isCompact || isListing ? 2 : 3
@@ -273,7 +302,7 @@ export function DisplayCard({
           ref={stickyHeader ? headerRef : undefined}
           className={cn('w-full', hasTabs && 'flex flex-col', stickyHeader && 'sticky z-20')}
           style={{
-            ...(stickyHeader ? { top: 'var(--app-nav-h, 0px)' } : {}),
+            ...(stickyHeader ? { top: stickyTopStyle } : {}),
           }}
         >
           {/* Content row — existing header layout */}
@@ -282,8 +311,8 @@ export function DisplayCard({
             tabIndex={onClick ? 0 : undefined}
             className={cn(
               'flex w-full flex-wrap items-center justify-between gap-2 overflow-visible',
-              isListing ? 'min-h-[40px] px-2 py-1' : '',
-              !isListing && (isCompact ? 'min-h-[60px] px-1.5 py-1' : 'min-h-[80px] px-1.5 py-1.5'),
+              isListing ? 'min-h-[40px] px-0.5 py-1' : '',
+              !isListing && (isCompact ? 'min-h-[60px] px-0.5 py-1' : 'min-h-[80px] px-1.5 py-1.5'),
               !isListing && !isCompact && label && 'pb-4 pt-4',
               !isListing && isCompact && label && 'pt-2',
               actualHeaderBg,
@@ -304,12 +333,13 @@ export function DisplayCard({
             onKeyDown={onClick ? handleHeaderKeyDown : undefined}
             data-testid={headerTestId}
           >
-            {controls || (stats && stats.length > 0) ? (
+            {controls || beforeStats || (stats && stats.length > 0) ? (
               <>
-                <div className="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-2 overflow-visible">
+                <div className="flex min-w-0 flex-1 basis-full flex-wrap items-center justify-between gap-2 overflow-visible sm:basis-0">
                   {headerContent}
                 </div>
-                <div className="flex shrink-0 items-center gap-1">
+                <div className="flex w-full shrink-0 items-center justify-end gap-1 sm:w-auto">
+                  {beforeStats}
                   {stats && stats.length > 0 && (
                     <StatsBar stats={stats} compact={isCompact || isListing} />
                   )}
@@ -377,33 +407,36 @@ export function DisplayCard({
 
         {/* Body — hidden in listing mode */}
         {showBody && (
-          <StickyHeaderContext.Provider value={stickyHeader}>
-            <div
-              className={cn(
-                'w-full flex-1 bg-su-white',
-                isDefaultTab && image
-                  ? 'md:grid md:grid-cols-[auto_1fr] md:items-center'
-                  : 'flex flex-col',
-                bodyPadding || defaultBodyPadding
-              )}
-            >
-              {isDefaultTab ? (
-                <>
-                  {image && (
-                    <CardImage
-                      url={image.url}
-                      alt={image.alt}
-                      compact={isCompact}
-                      editable={image.editable}
-                    />
-                  )}
-                  {image ? <div>{children}</div> : children}
-                </>
-              ) : (
-                activeTab?.content
-              )}
-            </div>
-          </StickyHeaderContext.Provider>
+          <StickyOffsetContext.Provider value={childStickyOffset}>
+            <StickyHeaderContext.Provider value={stickyHeader}>
+              <div
+                className={cn(
+                  'w-full flex-1 bg-su-white',
+                  isDefaultTab && image
+                    ? 'md:grid md:grid-cols-[auto_1fr] md:items-center'
+                    : 'flex flex-col',
+                  bodyPadding || defaultBodyPadding,
+                  hasTabs && (isDefaultTab ? 'pt-0' : 'p-0')
+                )}
+              >
+                {isDefaultTab ? (
+                  <>
+                    {image && (
+                      <CardImage
+                        url={image.url}
+                        alt={image.alt}
+                        compact={isCompact}
+                        editable={image.editable}
+                      />
+                    )}
+                    {image ? <div>{children}</div> : children}
+                  </>
+                ) : (
+                  activeTab?.content
+                )}
+              </div>
+            </StickyHeaderContext.Provider>
+          </StickyOffsetContext.Provider>
         )}
 
         {/* Footer — hidden in listing mode */}

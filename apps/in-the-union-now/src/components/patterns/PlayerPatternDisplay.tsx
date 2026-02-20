@@ -2,7 +2,7 @@ import { useState, useCallback, useMemo } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { getAssetUrl } from 'salvageunion-reference'
 import { Layers } from 'lucide-react'
-import { DisplayCard, navigateControl } from 'suref-react'
+import { DisplayCard, navigateControl, DualColumnLayout } from 'suref-react'
 import type { ReferenceEntityControl, StatItem } from 'suref-react'
 import { useMechBuilderState } from '../../hooks/useMechBuilderState'
 import { STARTING_MECH_BUDGET } from '../../lib/builderUtils'
@@ -53,7 +53,6 @@ export function PlayerPatternDisplay({
       icon: Layers,
       onClick: () => builder.setShowPatternModal(true),
       ariaLabel: 'Apply pattern',
-      label: 'Pattern',
       variant: 'ghost' as const,
     }
   }, [listing, editConfig?.canEdit, builder])
@@ -204,8 +203,8 @@ export function PlayerPatternDisplay({
           />
         )}
         {/* Equipment grid: beneath the fold */}
-        <div>
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <DualColumnLayout
+          left={
             <ItemSlotSection
               label="Systems"
               items={builder.systemItems}
@@ -219,6 +218,8 @@ export function PlayerPatternDisplay({
               compact={compact}
               showDetailButton
             />
+          }
+          right={
             <ItemSlotSection
               label="Modules"
               items={builder.moduleItems}
@@ -232,8 +233,8 @@ export function PlayerPatternDisplay({
               compact={compact}
               showDetailButton
             />
-          </div>
-        </div>
+          }
+        />
       </DisplayCard>
 
       {!listing && (

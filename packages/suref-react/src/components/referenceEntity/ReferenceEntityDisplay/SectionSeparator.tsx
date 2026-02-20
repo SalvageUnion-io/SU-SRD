@@ -5,12 +5,19 @@ import { useStickyHeader } from '../../shared/StickyHeaderContext'
 
 type SectionSeparatorProps = {
   label: string
+  value?: string
   fontSize?: string
   compact?: boolean
   children?: ReactNode
 }
 
-export function SectionSeparator({ label, fontSize, compact, children }: SectionSeparatorProps) {
+export function SectionSeparator({
+  label,
+  value,
+  fontSize,
+  compact,
+  children,
+}: SectionSeparatorProps) {
   const isSticky = useStickyHeader()
   const resolvedFontSize = fontSize ?? (compact ? 'text-base' : 'text-lg')
   return (
@@ -21,9 +28,20 @@ export function SectionSeparator({ label, fontSize, compact, children }: Section
       }
     >
       <div className="h-px flex-1 bg-su-grey-light" aria-hidden="true" />
-      <Text variant="pseudoheader" className={cn(resolvedFontSize)}>
-        {label}
-      </Text>
+      <span className="inline-flex shrink-0 border border-su-black">
+        <Text variant="pseudoheader" as="span" className={cn(resolvedFontSize, 'font-semibold')}>
+          {label}
+        </Text>
+        {value !== undefined && (
+          <Text
+            variant="pseudoheaderInverse"
+            as="span"
+            className={cn(resolvedFontSize, 'font-semibold')}
+          >
+            {value}
+          </Text>
+        )}
+      </span>
       <div className="h-px flex-1 bg-su-grey-light" aria-hidden="true" />
       {children && (
         <div className="absolute right-0 flex shrink-0 items-center bg-su-white pl-3">

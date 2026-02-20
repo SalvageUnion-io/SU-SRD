@@ -119,6 +119,23 @@
       },
       "salvageValue": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
       "actions": { "type": "array", "items": { "type": "string" } },
+      "traits": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "amount": {
+              "anyOf": [
+                { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+                { "type": "string" }
+              ]
+            },
+            "type": { "type": "string" }
+          },
+          "required": ["type"],
+          "additionalProperties": false
+        }
+      },
       "bonusPerTechLevel": {
         "type": "object",
         "properties": {

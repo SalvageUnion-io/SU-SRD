@@ -25,8 +25,8 @@ export function ReferenceEntityRightHeaderContent({
       className={cn(
         'min-w-0 shrink overflow-hidden text-right font-medium italic text-su-white',
         fontSize.xs,
-        'max-h-[60px] leading-tight',
-        compact && 'max-w-[175px]'
+        'leading-tight',
+        compact && 'max-w-[110px]'
       )}
       style={{ whiteSpace: 'normal' }}
     >

@@ -1,3 +1,4 @@
+import { Flame } from 'lucide-react'
 import type { ItemCondition } from 'salvageunion-reference'
 import type { ReferenceEntityControl } from 'suref-react'
 
@@ -5,25 +6,22 @@ const CONDITION_CYCLE: ItemCondition[] = ['intact', 'damaged', 'destroyed']
 
 const CONDITION_STYLES: Record<
   ItemCondition,
-  { bg: string; border: string; hover: string; label: string }
+  { className: string; label: string; variant: ReferenceEntityControl['variant'] }
 > = {
   intact: {
-    bg: 'bg-su-green/80',
-    border: 'border-su-green/80',
-    hover: 'hover:bg-su-green/60',
+    className: undefined as unknown as string,
     label: 'Intact',
+    variant: 'ghost',
   },
   damaged: {
-    bg: 'bg-su-orange/80',
-    border: 'border-su-orange/80',
-    hover: 'hover:bg-su-orange/60',
+    className: 'bg-su-orange text-su-white opacity-100',
     label: 'Damaged',
+    variant: 'danger',
   },
   destroyed: {
-    bg: 'bg-su-rust/80',
-    border: 'border-su-rust/80',
-    hover: 'hover:bg-su-rust/60',
+    className: 'bg-su-rust text-su-white opacity-100',
     label: 'Destroyed',
+    variant: 'danger',
   },
 }
 
@@ -43,11 +41,12 @@ export function makeConditionControl(
 
   return {
     key: 'condition',
-    icon: () => null,
+    icon: Flame,
     onClick: disabled ? () => {} : () => onChange(next),
     ariaLabel: disabled ? `Condition: ${style.label}` : `Click to change to ${nextLabel}`,
-    variant: 'primary',
-    label: style.label,
-    className: `${style.bg} text-su-white ${style.border} ${style.hover}${disabled ? ' cursor-not-allowed opacity-50' : ''}`,
+    variant: style.variant,
+    className:
+      `${style.className ?? ''}${disabled ? ' cursor-not-allowed opacity-50' : ''}`.trim() ||
+      undefined,
   }
 }

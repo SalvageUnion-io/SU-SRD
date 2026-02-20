@@ -284,7 +284,7 @@ function PilotMechTabInner({
           initialState={initialState}
           readOnly
           compact={compact}
-          stickyHeader={false}
+          stickyHeader
           mechId={mech.id}
           mechRefs={mechRefs}
           onConditionChange={handleConditionChange}
@@ -301,7 +301,7 @@ function PilotMechTabInner({
           onChange={setBuilderState}
           saveStatusText={saveStatus.statusText}
           compact={compact}
-          stickyHeader={false}
+          stickyHeader
           hideFooterToggles
           sourcePattern={sourcePattern}
           isDeviated={isDeviated}

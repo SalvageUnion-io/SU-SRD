@@ -57,8 +57,8 @@ export function SimpleDisplayContainer({
         className={cn(
           'flex items-center rounded-md border-2 border-su-black',
           bg,
-          compact ? 'gap-1 px-2 py-1.5' : 'gap-2 px-3 py-2',
-          label && (compact ? 'pt-2.5' : 'pt-3')
+          compact ? 'gap-1 px-2 py-1' : 'gap-2 px-3 py-0.5',
+          label && (compact ? 'pt-2' : 'pt-2.5')
         )}
       >
         {children}

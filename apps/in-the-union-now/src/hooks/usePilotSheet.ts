@@ -11,6 +11,8 @@ import {
   useUpdatePilot,
   useDeletePilot,
   useUpdateEntityRef,
+  useDeleteEntityRef,
+  useCreateEntityRef,
   pilotKeys,
 } from './usePilots'
 import {
@@ -26,7 +28,7 @@ import { getEntityAccess } from '../lib/entityAccess'
 import { findChassisById } from '../lib/entityHelpers'
 import { getErrorMessage } from '../lib/errors'
 import { changeLogApi } from '../lib/api/changeLogApi'
-import type { EntityRefUpdate, MechUpdate, PilotUpdate } from '../types/common'
+import type { EntityRefInsert, EntityRefUpdate, MechUpdate, PilotUpdate } from '../types/common'
 
 export type PilotEditConfig = {
   userId: string
@@ -35,6 +37,8 @@ export type PilotEditConfig = {
   onPilotUpdate: (input: Partial<PilotUpdate>, toastMessage?: string) => void
   onStatChange: (field: 'hp' | 'ap' | 'tp', value: number) => void
   onUpdateEntityRef: (refId: string, input: EntityRefUpdate) => void
+  onDeleteEntityRef: (refId: string) => void
+  onCreateEntityRef: (input: EntityRefInsert) => void
   onUpdateMech: (input: Partial<MechUpdate>) => void
   onUpdateMechEntityRef: (refId: string, input: EntityRefUpdate) => void
   onDelete: () => void
@@ -57,6 +61,8 @@ export function usePilotSheet(pilotId: string) {
   const { data: mechRefs } = useMechEntityRefs(mech?.id)
   const updateMech = useUpdateMech()
   const updateMechEntityRef = useUpdateMechEntityRef()
+  const deleteEntityRefMutation = useDeleteEntityRef()
+  const createEntityRefMutation = useCreateEntityRef()
 
   // Realtime: sync pilot, entity refs, mech, and mech entity refs across clients
   useRealtimeSubscription('pilots', `id=eq.${pilotId}`, [pilotKeys.detail(pilotId)])
@@ -72,6 +78,8 @@ export function usePilotSheet(pilotId: string) {
     isSaving:
       updatePilot.isPending ||
       updateEntityRef.isPending ||
+      deleteEntityRefMutation.isPending ||
+      createEntityRefMutation.isPending ||
       updateMech.isPending ||
       updateMechEntityRef.isPending,
   })
@@ -198,6 +206,42 @@ export function usePilotSheet(pilotId: string) {
     [pilot, user, pilotRefs, updateEntityRef]
   )
 
+  const handleDeleteEntityRef = useCallback(
+    (refId: string) => {
+      if (!pilot || !user) return
+      const ref = (pilotRefs ?? []).find((r) => r.id === refId)
+      const refName = ref
+        ? SalvageUnionReference.get(ref.schema_name as EntitySchemaName, ref.schema_ref_id)?.name
+        : undefined
+      deleteEntityRefMutation.mutate(
+        { refId, pilotId: pilot.id },
+        {
+          onSuccess: () => showSaveToast(`${refName ?? 'Equipment'} removed`),
+          onError: (err) => toast.error(getErrorMessage(err)),
+        }
+      )
+    },
+    [pilot, user, pilotRefs, deleteEntityRefMutation]
+  )
+
+  const handleCreateEntityRef = useCallback(
+    (input: EntityRefInsert) => {
+      if (!pilot || !user) return
+      const entity = SalvageUnionReference.get(
+        input.schema_name as EntitySchemaName,
+        input.schema_ref_id
+      )
+      createEntityRefMutation.mutate(
+        { input, pilotId: pilot.id },
+        {
+          onSuccess: () => showSaveToast(`${entity?.name ?? 'Equipment'} added`),
+          onError: (err) => toast.error(getErrorMessage(err)),
+        }
+      )
+    },
+    [pilot, user, createEntityRefMutation]
+  )
+
   const handleUpdateMech = useCallback(
     (input: Partial<MechUpdate>) => {
       if (!mech || !user) return
@@ -312,6 +356,8 @@ export function usePilotSheet(pilotId: string) {
           onPilotUpdate: handlePilotUpdate,
           onStatChange: handleStatChange,
           onUpdateEntityRef: handleUpdateEntityRef,
+          onDeleteEntityRef: handleDeleteEntityRef,
+          onCreateEntityRef: handleCreateEntityRef,
           onUpdateMech: handleUpdateMech,
           onUpdateMechEntityRef: handleUpdateMechEntityRef,
           onDelete: handleDelete,

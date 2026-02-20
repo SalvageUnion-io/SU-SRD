@@ -2,12 +2,12 @@ import { useMemo, useCallback, useState, useEffect, useRef } from 'react'
 import type { ReactNode } from 'react'
 import type { SURefEnumSchemaName, SURefChassis } from 'salvageunion-reference'
 import { SalvageUnionReference, getChassisAbilities, getChoices } from 'salvageunion-reference'
-import { ReferenceEntityDisplayTooltip, FilterChip, StatsBar, Text } from 'suref-react'
+import { ReferenceEntityDisplayTooltip, FilterChip, Text } from 'suref-react'
 import type { ReferenceEntityControl } from 'suref-react'
 import { Play, RotateCcw } from 'lucide-react'
 import { toast } from 'sonner'
 import { FilterRow } from '../shared/FilterRow'
-import { SimpleDisplayContainer } from '../shared/SimpleDisplayContainer'
+import { IsolatedStatValue } from '../shared/IsolatedStatValue'
 import {
   extractPilotActions,
   extractMechActions,
@@ -209,7 +209,9 @@ export function ActionsSection({
           onUpdatePilot({ ap: pilot.ap - action.activationCost })
         }
       }
-      if (action.maxUses !== null && action.entityRefId) {
+      if (action.destroyOnUse && action.entityRefId) {
+        onUpdateEntityRef(action.entityRefId, { condition: 'destroyed' })
+      } else if (action.maxUses !== null && action.entityRefId) {
         const ref = pilotRefs.find((r) => r.id === action.entityRefId)
         if (ref) {
           const newMetadata = decrementActionUses(action.actionName, action.maxUses, ref.metadata)
@@ -229,7 +231,11 @@ export function ActionsSection({
       if (action.activationCost !== null) {
         onUpdateMech({ current_ep: mech.current_ep - action.activationCost })
       }
-      if (action.maxUses !== null && action.entityRefId) {
+      if (action.destroyOnUse && action.entityRefId) {
+        if (onUpdateMechEntityRef) {
+          onUpdateMechEntityRef(action.entityRefId, { condition: 'destroyed' })
+        }
+      } else if (action.maxUses !== null && action.entityRefId) {
         if (!mechRefs || !onUpdateMechEntityRef) return
         const ref = mechRefs.find((r) => r.id === action.entityRefId)
         if (ref) {
@@ -258,7 +264,11 @@ export function ActionsSection({
           comradeDisplayName
         )
       }
-      if (action.maxUses !== null && action.entityRefId) {
+      if (action.destroyOnUse && action.entityRefId) {
+        if (mechRefs && onUpdateMechEntityRef) {
+          onUpdateMechEntityRef(action.entityRefId, { condition: 'destroyed' })
+        }
+      } else if (action.maxUses !== null && action.entityRefId) {
         // Comrade slot items use mech refs
         if (mechRefs && onUpdateMechEntityRef) {
           const ref = mechRefs.find((r) => r.id === action.entityRefId)
@@ -335,34 +345,27 @@ export function ActionsSection({
               ))}
             </FilterRow>
           </div>
-          {(visibleComrades.length > 0 || pilot.is_boarded) && (
-            <div className="ml-auto flex shrink-0 items-start gap-2">
-              {visibleComrades.map((c) => {
-                const maxEp = getComradeMaxEp(c.entity)
-                const currentEp = maxEp > 0 ? getComradeCurrentEp(c.entity.id, maxEp) : 0
-                if (maxEp <= 0) return null
-                return (
-                  <SimpleDisplayContainer
-                    key={c.entity.id}
-                    label={comradeNameMap.get(c.entity.id) || c.entity.name}
-                    bg="bg-su-rust"
-                    className="shrink-0"
-                  >
-                    <StatsBar
-                      stats={[{ key: 'ep', label: 'EP', value: currentEp, outOfMax: maxEp }]}
-                    />
-                  </SimpleDisplayContainer>
-                )
-              })}
-              {pilot.is_boarded && (
-                <SimpleDisplayContainer label="Pilot" className="shrink-0">
-                  <StatsBar
-                    stats={[{ key: 'ap', label: 'AP', value: pilot.ap, outOfMax: pilot.max_ap }]}
-                  />
-                </SimpleDisplayContainer>
-              )}
-            </div>
-          )}
+          <div className="ml-auto flex shrink-0 items-start gap-2">
+            {visibleComrades.map((c) => {
+              const maxEp = getComradeMaxEp(c.entity)
+              const currentEp = maxEp > 0 ? getComradeCurrentEp(c.entity.id, maxEp) : 0
+              if (maxEp <= 0) return null
+              return (
+                <IsolatedStatValue
+                  key={c.entity.id}
+                  label={comradeNameMap.get(c.entity.id) || c.entity.name}
+                  bg="bg-su-rust"
+                  stats={[{ key: 'ep', label: 'EP', value: currentEp, outOfMax: maxEp }]}
+                  className="shrink-0"
+                />
+              )
+            })}
+            <IsolatedStatValue
+              label="Pilot"
+              stats={[{ key: 'ap', label: 'AP', value: pilot.ap, outOfMax: pilot.max_ap }]}
+              className="shrink-0"
+            />
+          </div>
         </div>
 
         {/* Actions masonry — round-robin into columns for horizontal reading order */}
@@ -642,7 +645,8 @@ function ActionItem({
 
   const controls: ReferenceEntityControl[] = []
   const isPassive = action.actionType === 'Passive'
-  if (!readOnly && !mechUnboarded && !filteredOut && !isPassive) {
+  const passiveWithUses = isPassive && (action.maxUses !== null || action.destroyOnUse)
+  if (!readOnly && !mechUnboarded && !filteredOut && (!isPassive || passiveWithUses)) {
     controls.push({
       key: 'use',
       icon: Play,

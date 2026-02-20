@@ -17,7 +17,12 @@ import { extractReferenceEntityDetails, getActivationCurrency } from 'suref-reac
 import type { DataValue } from 'suref-react'
 import type { EntityRefRow } from '../types/common'
 import type { Json } from '../types/database-generated.types'
-import { getActionActivationCost, getActionMaxUses, getRemainingUses } from './actionUsesUtils'
+import {
+  getActionActivationCost,
+  getActionMaxUses,
+  getRemainingUses,
+  isDestroyOnUse,
+} from './actionUsesUtils'
 import type { ComradeEntry } from './comradeUtils'
 import { isSlotOwnerRef } from './entityModificationUtils'
 
@@ -43,6 +48,7 @@ export type ActionDisplayData = {
   costType: ActionCostType
   hasDamage: boolean
   isComrade: boolean
+  destroyOnUse: boolean
   condition: ItemCondition
   sourceLabelOverride?: string
   comradeEntity?: SURefEntity & { schemaName: SURefEnumSchemaName }
@@ -167,6 +173,7 @@ function buildActionItems(
     }
 
     const maxUses = getActionMaxUses(action)
+    const destroyOnUse = isDestroyOnUse(action)
     const usesRemaining = entityRefId ? getRemainingUses(action.name, refMetadata) : null
     const requiredTraits = getRequiredTraits(action)
 
@@ -206,6 +213,7 @@ function buildActionItems(
       source,
       costType,
       hasDamage: 'damage' in action && action.damage != null,
+      destroyOnUse,
       isComrade,
       condition,
     }
@@ -310,6 +318,7 @@ export function extractPilotActions(refs: EntityRefRow[], isBoarded: boolean): A
             source: 'pilot',
             costType: 'none' as ActionCostType,
             hasDamage: false,
+            destroyOnUse: false,
             isComrade: false,
             condition: refCondition,
           })
@@ -408,6 +417,7 @@ export function extractChassisActions(
       }
 
       const maxUses = getActionMaxUses(action)
+      const destroyOnUse = isDestroyOnUse(action)
       const requiredTraits = getRequiredTraits(action)
 
       return {
@@ -429,6 +439,7 @@ export function extractChassisActions(
         source: 'mech' as ActionSource,
         costType,
         hasDamage: 'damage' in action && action.damage != null,
+        destroyOnUse,
         isComrade: false,
         condition: 'intact' as ItemCondition,
       }

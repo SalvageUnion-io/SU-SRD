@@ -30,6 +30,15 @@ export function getActionMaxUses(action: SURefMetaAction): number | null {
   return null
 }
 
+/**
+ * Check if an action has { type: "uses", amount: "Destroy" } trait,
+ * meaning the source entity is destroyed upon use.
+ */
+export function isDestroyOnUse(action: SURefMetaAction): boolean {
+  if (!('traits' in action) || !Array.isArray(action.traits)) return false
+  return action.traits.some((t) => t.type === 'uses' && t.amount === 'Destroy')
+}
+
 type ActionUsesMetadata = {
   actionUses?: Record<string, number>
 }

@@ -532,17 +532,8 @@
     },
     "page": 30,
     "actions": ["Auto-Turret"],
+    "traits": [{ "type": "immobile" }, { "type": "portable" }],
     "id": "f5f04072-9e81-4c9d-a835-b71f45120d66",
-    "content": [
-      {
-        "type": "paragraph",
-        "value": "Immobile"
-      },
-      {
-        "type": "paragraph",
-        "value": "Portable"
-      }
-    ],
     "choices": [
       {
         "id": "b9c0d1e2-f3a4-4b5c-9d0e-1f2a3b4c5d6e",

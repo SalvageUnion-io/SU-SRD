@@ -3,7 +3,7 @@ import { Text } from 'suref-react'
 import { cn } from '../../lib/utils'
 import { Input } from '../ui/input'
 import { Textarea } from '../ui/textarea'
-import { RollInput } from './RollInput'
+import { RollButtons } from './RollInput'
 
 type LabeledInputProps = {
   label: string
@@ -18,8 +18,6 @@ type LabeledInputProps = {
 
   /** Roll table name (variant='roll') */
   rollTableName?: string
-  /** Roll callback (variant='roll') */
-  onRoll?: () => void
 
   /** Number of rows (variant='textarea') */
   rows?: number
@@ -51,7 +49,6 @@ export function LabeledInput({
   className,
   variant = 'input',
   rollTableName,
-  onRoll,
   rows,
   optionalText,
   rightHeaderContent,
@@ -71,6 +68,11 @@ export function LabeledInput({
   const labelHeight = compact ? 'h-4' : 'h-5'
   const labelPadding = compact ? 'ml-3' : 'ml-4'
 
+  const rollButtons =
+    variant === 'roll' && rollTableName && !readOnly ? (
+      <RollButtons rollTableName={rollTableName} onChange={onChange} compact={compact} />
+    ) : null
+
   return (
     <div className={cn('relative flex flex-col', className)}>
       <div className={cn('z-[1] flex items-end justify-between', labelOffset, labelHeight)}>
@@ -85,6 +87,7 @@ export function LabeledInput({
             <span className={cn('ml-1 normal-case opacity-50', optionalSize)}>{optionalText}</span>
           )}
         </Text>
+        {rollButtons}
         {rightHeaderContent}
       </div>
 
@@ -101,15 +104,6 @@ export function LabeledInput({
           placeholder={placeholder}
           className={textareaSize}
           rows={rows ?? 2}
-        />
-      ) : variant === 'roll' ? (
-        <RollInput
-          value={value}
-          onChange={onChange}
-          onRoll={onRoll ?? (() => {})}
-          onBlur={onBlur}
-          placeholder={placeholder}
-          rollTableName={rollTableName}
         />
       ) : (
         <Input

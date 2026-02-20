@@ -433,6 +433,12 @@
   {
     "id": "f2a9de65-ba71-4e26-9e03-13cc137dc354",
     "actionType": "Passive",
+    "traits": [
+      {
+        "type": "uses",
+        "amount": "Destroy"
+      }
+    ],
     "name": "Armour Plating",
     "content": [
       {
@@ -6160,6 +6166,10 @@
       },
       {
         "type": "targeter"
+      },
+      {
+        "type": "uses",
+        "amount": "Destroy"
       }
     ],
     "range": ["Far"],

@@ -6,7 +6,6 @@ import type { ReferenceEntityControl } from 'suref-react'
 import { ArrowLeftRight, Flame } from 'lucide-react'
 import { useAutosave } from '../../hooks/useAutosave'
 import { LabeledInput } from '../shared/LabeledInput'
-import { rollOnTable } from '../../lib/pilotUtils'
 import {
   NPC_CHOICE_ORDER,
   NPC_EDITABLE_CHOICE_TYPES,
@@ -67,16 +66,6 @@ export function CrawlerBaysSection({
       },
     }))
   }, [])
-
-  const handleRoll = useCallback(
-    (bayId: string, fieldKey: BayNpcTextField, tableName: string) => {
-      const { text } = rollOnTable(tableName)
-      if (text) {
-        handleFieldChange(bayId, fieldKey, text)
-      }
-    },
-    [handleFieldChange]
-  )
 
   const handleHpChange = useCallback((bayId: string, hp: number) => {
     setLocalBayNpcs((prev) => ({
@@ -191,7 +180,6 @@ export function CrawlerBaysSection({
                 readOnlyValue={npcData[fieldKey] || '-'}
                 variant={choice.name === 'Description' ? 'textarea' : rollTable ? 'roll' : 'input'}
                 rollTableName={rollTable}
-                onRoll={rollTable ? () => handleRoll(bay.id, fieldKey, rollTable) : undefined}
                 placeholder={
                   choice.name === 'Description'
                     ? 'Enter description...'

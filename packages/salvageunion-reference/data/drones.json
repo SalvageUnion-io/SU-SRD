@@ -159,6 +159,20 @@
     "techLevel": 3,
     "salvageValue": 2,
     "page": 128,
+    "choices": [
+      {
+        "id": "e7c1a3b2-5f84-4d9e-b6a1-2c8d4e9f7a30",
+        "name": "A.I. Personality",
+        "choiceType": "permanent",
+        "rollTable": "A.I. Personality",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Roll on the A.I. Personality Table for the drone's personality."
+          }
+        ]
+      }
+    ],
     "content": [
       {
         "type": "paragraph",

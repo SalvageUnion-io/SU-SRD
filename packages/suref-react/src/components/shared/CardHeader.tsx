@@ -51,7 +51,7 @@ export function CardHeader({
 
   return (
     <>
-      <div className={cn('flex min-w-0 items-center', compact ? 'gap-0.5' : 'gap-1')}>
+      <div className={cn('flex min-w-0 flex-1 items-center', compact ? 'gap-0.5' : 'gap-1')}>
         {!lightweight && leftContent}
         <div
           className={cn(

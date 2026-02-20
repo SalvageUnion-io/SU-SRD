@@ -7,6 +7,12 @@ const allSystems = SalvageUnionReference.Systems.all() as SURefEntity[]
 const allModules = SalvageUnionReference.Modules.all() as SURefEntity[]
 const allChassis = SalvageUnionReference.Chassis.all() as SURefEntity[]
 
+// filterAndSplitEntities excludes indexable:false entities, so expected counts differ from .all()
+const isIndexable = (e: SURefEntity) => !('indexable' in e) || e.indexable !== false
+const indexableSystemsCount = allSystems.filter(isIndexable).length
+const indexableModulesCount = allModules.filter(isIndexable).length
+const indexableChassisCount = allChassis.filter(isIndexable).length
+
 // Empty set = all tech levels selected (matches component convention)
 const ALL_TECH_LEVELS = new Set<number | 'B' | 'N'>()
 
@@ -38,7 +44,7 @@ describe('filterAndSplitEntities', () => {
   describe('search filtering', () => {
     test('returns all entities when search is empty', () => {
       const result = filterAndSplitEntities(defaultOpts())
-      expect(result.selectable.length).toBe(allSystems.length)
+      expect(result.selectable.length).toBe(indexableSystemsCount)
       expect(result.overCapacity.length).toBe(0)
     })
 
@@ -147,12 +153,12 @@ describe('filterAndSplitEntities', () => {
       const result = filterAndSplitEntities(
         defaultOpts({ activeTechLevels: new Set<number | 'B' | 'N'>() })
       )
-      expect(result.selectable.length).toBe(allSystems.length)
+      expect(result.selectable.length).toBe(indexableSystemsCount)
     })
 
     test('all tech levels selected returns all entities', () => {
       const result = filterAndSplitEntities(defaultOpts())
-      expect(result.selectable.length).toBe(allSystems.length)
+      expect(result.selectable.length).toBe(indexableSystemsCount)
     })
 
     test('Bio tech level filter works', () => {
@@ -167,7 +173,7 @@ describe('filterAndSplitEntities', () => {
   describe('source filtering', () => {
     test('empty source filter set returns all entities (no source filtering)', () => {
       const result = filterAndSplitEntities(defaultOpts())
-      expect(result.selectable.length).toBe(allSystems.length)
+      expect(result.selectable.length).toBe(indexableSystemsCount)
     })
 
     test('filters to a single source', () => {
@@ -274,7 +280,7 @@ describe('filterAndSplitEntities', () => {
     test('no splitting when remainingSlots is undefined', () => {
       const result = filterAndSplitEntities(defaultOpts())
       expect(result.overCapacity.length).toBe(0)
-      expect(result.selectable.length).toBe(allSystems.length)
+      expect(result.selectable.length).toBe(indexableSystemsCount)
     })
 
     test('splits systems by slot capacity', () => {
@@ -299,19 +305,19 @@ describe('filterAndSplitEntities', () => {
 
     test('total count equals selectable + overCapacity', () => {
       const result = filterAndSplitEntities(defaultOpts({ remainingSlots: 4 }))
-      expect(result.selectable.length + result.overCapacity.length).toBe(allSystems.length)
+      expect(result.selectable.length + result.overCapacity.length).toBe(indexableSystemsCount)
     })
 
     test('remainingSlots=0 puts all systems in over-capacity', () => {
       const result = filterAndSplitEntities(defaultOpts({ remainingSlots: 0 }))
       // All systems have slotsRequired >= 1, so all should be over-capacity
       expect(result.selectable.length).toBe(0)
-      expect(result.overCapacity.length).toBe(allSystems.length)
+      expect(result.overCapacity.length).toBe(indexableSystemsCount)
     })
 
     test('very high remainingSlots puts all in selectable', () => {
       const result = filterAndSplitEntities(defaultOpts({ remainingSlots: 999 }))
-      expect(result.selectable.length).toBe(allSystems.length)
+      expect(result.selectable.length).toBe(indexableSystemsCount)
       expect(result.overCapacity.length).toBe(0)
     })
 
@@ -320,7 +326,7 @@ describe('filterAndSplitEntities', () => {
         defaultOpts({ entities: allChassis, remainingSlots: 1 })
       )
       // Chassis don't have slotsRequired, so they should all be selectable
-      expect(result.selectable.length).toBe(allChassis.length)
+      expect(result.selectable.length).toBe(indexableChassisCount)
       expect(result.overCapacity.length).toBe(0)
     })
   })
@@ -363,19 +369,19 @@ describe('filterAndSplitEntities', () => {
   describe('works with different entity types', () => {
     test('modules', () => {
       const result = filterAndSplitEntities(defaultOpts({ entities: allModules }))
-      expect(result.selectable.length).toBe(allModules.length)
+      expect(result.selectable.length).toBe(indexableModulesCount)
     })
 
     test('chassis', () => {
       const result = filterAndSplitEntities(defaultOpts({ entities: allChassis }))
-      expect(result.selectable.length).toBe(allChassis.length)
+      expect(result.selectable.length).toBe(indexableChassisCount)
     })
 
     test('module capacity splitting works', () => {
       const result = filterAndSplitEntities(
         defaultOpts({ entities: allModules, remainingSlots: 2 })
       )
-      expect(result.selectable.length + result.overCapacity.length).toBe(allModules.length)
+      expect(result.selectable.length + result.overCapacity.length).toBe(indexableModulesCount)
     })
   })
 })

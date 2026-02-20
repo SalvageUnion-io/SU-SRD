@@ -190,7 +190,11 @@ export const DistanceSchema = BaseEntitySchema.extend({
 /**
  * Autonomous drones in Salvage Union
  */
-export const DroneSchema = BaseEntitySchema.extend({ ...MechanicalEntitySchema.shape }).strict()
+export const DroneSchema = BaseEntitySchema.extend({ ...MechanicalEntitySchema.shape })
+  .extend({
+    choices: ChoicesSchema.optional(),
+  })
+  .strict()
 
 /**
  * Pilot equipment and gear in Salvage Union
@@ -199,6 +203,7 @@ export const EquipmentSchema = BaseEntitySchema.extend({ ...StatsSchema.shape })
   .extend({
     techLevel: TechLevelSchema,
     actions: z.array(z.string()),
+    traits: z.array(TraitSchema).optional(),
     bonusPerTechLevel: StatsSchema.optional(),
     choices: ChoicesSchema.optional(),
   })

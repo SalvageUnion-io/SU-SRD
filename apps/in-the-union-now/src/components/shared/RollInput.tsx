@@ -1,16 +1,123 @@
+import { useState, useCallback, useMemo } from 'react'
+import * as DialogPrimitive from '@radix-ui/react-dialog'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefObjectTable } from 'salvageunion-reference'
-import { RollTable } from 'suref-react'
+import { ReferenceEntityDisplay } from 'suref-react'
+import { cn } from '../../lib/utils'
 import { Input } from '../ui/input'
-import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '../ui/tooltip'
 
+function rollOnTable(table: SURefObjectTable): string {
+  const keys = Object.keys(table).filter((k) => k !== 'type')
+  const key = keys[Math.floor(Math.random() * keys.length)]!
+  const entry = (table as Record<string, unknown>)[key]
+  if (typeof entry === 'string') return entry
+  if (entry && typeof entry === 'object' && 'value' in entry)
+    return String((entry as { value: string }).value)
+  return ''
+}
+
+type RollButtonsProps = {
+  rollTableName: string
+  onChange: (value: string) => void
+  compact?: boolean
+}
+
+/**
+ * Renders ROLL + SEE TABLE buttons styled as pseudoheader chips,
+ * intended for use in the LabeledInput rightHeaderContent slot.
+ */
+export function RollButtons({ rollTableName, onChange, compact }: RollButtonsProps) {
+  const [showTable, setShowTable] = useState(false)
+
+  const rollTableEntity = useMemo(
+    () => SalvageUnionReference.RollTables.find((rt) => rt.name === rollTableName),
+    [rollTableName]
+  )
+  const table = useMemo(
+    () =>
+      rollTableEntity && 'table' in rollTableEntity
+        ? (rollTableEntity.table as SURefObjectTable)
+        : null,
+    [rollTableEntity]
+  )
+
+  const handleRoll = useCallback(() => {
+    if (!table) return
+    onChange(rollOnTable(table))
+  }, [table, onChange])
+
+  const btnSize = compact ? 'text-[10px] px-1.5 py-0' : 'text-xs px-2 py-0'
+
+  return (
+    <>
+      <div className="mr-3 flex items-end gap-1">
+        <button
+          type="button"
+          onClick={handleRoll}
+          className={cn(
+            'flex cursor-pointer items-center gap-1 border border-su-black bg-su-black font-mono font-bold uppercase leading-tight text-su-white transition-colors hover:bg-brand-srd',
+            btnSize
+          )}
+          aria-label={`Roll on ${rollTableName} table`}
+        >
+          <span>Roll</span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            height="12"
+            viewBox="0 -960 960 960"
+            width="12"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path d="M240-120q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm480 0q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35ZM240-600q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm240 240q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm240-240q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Z" />
+          </svg>
+        </button>
+        {rollTableEntity && (
+          <button
+            type="button"
+            onClick={() => setShowTable(true)}
+            className={cn(
+              'cursor-pointer border border-su-black bg-su-white font-mono font-bold uppercase leading-tight text-su-black transition-colors hover:bg-su-grey-light',
+              btnSize
+            )}
+            aria-label={`View ${rollTableName} table`}
+          >
+            See Table
+          </button>
+        )}
+      </div>
+
+      {showTable && rollTableEntity && (
+        <DialogPrimitive.Root open={showTable} onOpenChange={setShowTable}>
+          <DialogPrimitive.Portal>
+            <DialogPrimitive.Overlay className="fixed inset-0 z-50 overflow-y-auto bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0">
+              <div className="flex min-h-full w-full items-start justify-center px-4 py-8">
+                <DialogPrimitive.Content className="relative w-full max-w-4xl outline-none">
+                  <DialogPrimitive.Title className="sr-only">{rollTableName}</DialogPrimitive.Title>
+                  <DialogPrimitive.Description className="sr-only">
+                    Roll table details
+                  </DialogPrimitive.Description>
+                  <ReferenceEntityDisplay data={rollTableEntity} compact={false} />
+                </DialogPrimitive.Content>
+              </div>
+            </DialogPrimitive.Overlay>
+          </DialogPrimitive.Portal>
+        </DialogPrimitive.Root>
+      )}
+    </>
+  )
+}
+
+/**
+ * Combined input + roll buttons for use in guide wizards.
+ * Renders a plain input with RollButtons-style actions above it.
+ */
 type RollInputProps = {
   value: string
   onChange: (value: string) => void
   onRoll: () => void
   onBlur?: () => void
   placeholder?: string
-  /** Roll table name to look up from game data (shown in hover tooltip) */
   rollTableName?: string
 }
 
@@ -22,62 +129,83 @@ export function RollInput({
   placeholder,
   rollTableName,
 }: RollInputProps) {
-  const rollTableEntity = rollTableName
-    ? SalvageUnionReference.RollTables.find((rt) => rt.name === rollTableName)
-    : null
-  const table =
-    rollTableEntity && 'table' in rollTableEntity
-      ? (rollTableEntity.table as SURefObjectTable)
-      : null
+  const [showTable, setShowTable] = useState(false)
+
+  const rollTableEntity = useMemo(
+    () =>
+      rollTableName
+        ? SalvageUnionReference.RollTables.find((rt) => rt.name === rollTableName)
+        : null,
+    [rollTableName]
+  )
+
+  const btnSize = 'text-xs px-2 py-0'
 
   return (
-    <div className="flex">
+    <div className="relative flex flex-col">
+      {rollTableName && (
+        <div className="z-[1] -mb-2.5 flex h-5 justify-end">
+          <div className="mr-3 flex items-end gap-1">
+            <button
+              type="button"
+              onClick={onRoll}
+              className={cn(
+                'flex cursor-pointer items-center gap-1 border border-su-black bg-su-black font-mono font-bold uppercase leading-tight text-su-white transition-colors hover:bg-brand-srd',
+                btnSize
+              )}
+              aria-label={`Roll on ${rollTableName} table`}
+            >
+              <span>Roll</span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                height="12"
+                viewBox="0 -960 960 960"
+                width="12"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path d="M240-120q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm480 0q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35ZM240-600q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm240 240q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm240-240q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Z" />
+              </svg>
+            </button>
+            {rollTableEntity && (
+              <button
+                type="button"
+                onClick={() => setShowTable(true)}
+                className={cn(
+                  'cursor-pointer border border-su-black bg-su-white font-mono font-bold uppercase leading-tight text-su-black transition-colors hover:bg-su-grey-light',
+                  btnSize
+                )}
+                aria-label={`View ${rollTableName} table`}
+              >
+                See Table
+              </button>
+            )}
+          </div>
+        </div>
+      )}
       <Input
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onBlur={onBlur}
         placeholder={placeholder}
-        className="h-9 border-r-0 text-sm"
+        className="h-10 text-base"
       />
-      {rollTableName && (
-        <TooltipProvider delayDuration={300}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                type="button"
-                onClick={onRoll}
-                className="flex h-9 shrink-0 cursor-pointer items-center gap-1.5 rounded-none border border-su-black bg-su-black px-3 font-bold uppercase text-su-white transition-colors hover:bg-brand-srd"
-                aria-label={`Roll on ${rollTableName} table`}
-              >
-                <span className="text-xs tracking-wider">ROLL</span>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  height="16"
-                  viewBox="0 -960 960 960"
-                  width="16"
-                  fill="currentColor"
-                  aria-hidden="true"
-                >
-                  <path d="M240-120q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm480 0q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35ZM240-600q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm240 240q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm240-240q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Z" />
-                </svg>
-              </button>
-            </TooltipTrigger>
-            {table && (
-              <TooltipContent
-                side="bottom"
-                sideOffset={4}
-                className="z-50 max-h-[400px] w-[350px] overflow-y-auto rounded-md border bg-su-white p-0 shadow-lg"
-              >
-                <RollTable
-                  table={table}
-                  compact
-                  tableName={rollTableEntity?.name}
-                  onRollResult={(text) => onChange(text)}
-                />
-              </TooltipContent>
-            )}
-          </Tooltip>
-        </TooltipProvider>
+      {showTable && rollTableEntity && (
+        <DialogPrimitive.Root open={showTable} onOpenChange={setShowTable}>
+          <DialogPrimitive.Portal>
+            <DialogPrimitive.Overlay className="fixed inset-0 z-50 overflow-y-auto bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0">
+              <div className="flex min-h-full w-full items-start justify-center px-4 py-8">
+                <DialogPrimitive.Content className="relative w-full max-w-4xl outline-none">
+                  <DialogPrimitive.Title className="sr-only">{rollTableName}</DialogPrimitive.Title>
+                  <DialogPrimitive.Description className="sr-only">
+                    Roll table details
+                  </DialogPrimitive.Description>
+                  <ReferenceEntityDisplay data={rollTableEntity} compact={false} />
+                </DialogPrimitive.Content>
+              </div>
+            </DialogPrimitive.Overlay>
+          </DialogPrimitive.Portal>
+        </DialogPrimitive.Root>
       )}
     </div>
   )

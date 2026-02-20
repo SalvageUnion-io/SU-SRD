@@ -65,7 +65,8 @@ export function filterAndSplitEntities({
   remainingBudget,
   filter,
 }: FilterAndSplitOptions): FilterAndSplitResult {
-  let filtered = entities
+  // Exclude non-indexable entities (e.g. deprecated or internal-only)
+  let filtered = entities.filter((e) => !('indexable' in e) || e.indexable !== false)
 
   // External filter
   if (filter) {

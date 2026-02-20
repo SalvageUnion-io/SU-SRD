@@ -135,7 +135,213 @@
       "heatCapacity": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
       "systemSlots": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
       "moduleSlots": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
-      "cargoCapacity": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 }
+      "cargoCapacity": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+      "choices": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "string" },
+            "name": { "type": "string", "minLength": 1 },
+            "choiceType": {
+              "type": "string",
+              "enum": ["permanent", "session", "freeform"],
+              "description": "permanent: recorded on sheet; session: made during gameplay; freeform: arbitrary text"
+            },
+            "content": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "default": "paragraph",
+                    "type": "string",
+                    "enum": [
+                      "paragraph",
+                      "heading",
+                      "list-item",
+                      "label",
+                      "datavalues",
+                      "hint",
+                      "flavor"
+                    ]
+                  },
+                  "value": {
+                    "anyOf": [
+                      { "type": "string" },
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "label": { "anyOf": [{ "type": "string" }, { "type": "number" }] },
+                            "value": { "anyOf": [{ "type": "string" }, { "type": "number" }] },
+                            "type": { "type": "string" }
+                          },
+                          "required": ["label"],
+                          "additionalProperties": false
+                        },
+                        "description": "Array of data values when type is 'datavalues'"
+                      }
+                    ]
+                  },
+                  "label": { "type": "string" },
+                  "level": { "type": "integer", "minimum": 1, "maximum": 6 },
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "default": "paragraph",
+                          "type": "string",
+                          "enum": [
+                            "paragraph",
+                            "heading",
+                            "list-item",
+                            "label",
+                            "datavalues",
+                            "hint",
+                            "flavor"
+                          ]
+                        },
+                        "value": {
+                          "anyOf": [
+                            { "type": "string" },
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "label": {
+                                    "anyOf": [{ "type": "string" }, { "type": "number" }]
+                                  },
+                                  "value": {
+                                    "anyOf": [{ "type": "string" }, { "type": "number" }]
+                                  },
+                                  "type": { "type": "string" }
+                                },
+                                "required": ["label"],
+                                "additionalProperties": false
+                              },
+                              "description": "Array of data values when type is 'datavalues'"
+                            }
+                          ]
+                        },
+                        "label": { "type": "string" },
+                        "level": { "type": "integer", "minimum": 1, "maximum": 6 }
+                      },
+                      "required": ["type"],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": ["type"],
+                "additionalProperties": false
+              }
+            },
+            "rollTable": { "type": "string" },
+            "schemaEntities": { "type": "array", "items": { "type": "string" } },
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "abilities",
+                  "ability-tree-requirements",
+                  "bio-titans",
+                  "chassis",
+                  "classes",
+                  "crawler-bays",
+                  "crawler-tech-levels",
+                  "crawlers",
+                  "creatures",
+                  "distances",
+                  "drones",
+                  "equipment",
+                  "guides",
+                  "keywords",
+                  "factions",
+                  "meld",
+                  "modules",
+                  "npcs",
+                  "roll-tables",
+                  "squads",
+                  "systems",
+                  "traits",
+                  "vehicles"
+                ]
+              }
+            },
+            "customSystemOptions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "structurePoints": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "energyPoints": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+                  "heatCapacity": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+                  "systemSlots": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+                  "moduleSlots": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+                  "cargoCapacity": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+                  "techLevel": {
+                    "anyOf": [
+                      { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+                      { "type": "string", "const": "B" },
+                      { "type": "string", "const": "N" }
+                    ]
+                  },
+                  "salvageValue": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+                  "slotsRequired": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+                  "recommended": { "type": "boolean" },
+                  "count": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+                  "actions": { "type": "array", "items": { "type": "string" } }
+                },
+                "required": ["techLevel", "salvageValue", "slotsRequired", "actions"],
+                "additionalProperties": false
+              }
+            },
+            "setIndexable": { "type": "boolean" },
+            "multiSelect": {
+              "type": "boolean",
+              "description": "If true, this choice can be selected multiple times"
+            },
+            "choiceOptions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "label": { "type": "string" },
+                  "value": { "type": "string" },
+                  "description": { "type": "string" }
+                },
+                "required": ["label", "value"],
+                "additionalProperties": false
+              },
+              "description": "Structured options for this choice (similar to actionOptions)"
+            },
+            "constraints": {
+              "type": "object",
+              "properties": {
+                "field": { "type": "string" },
+                "min": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+                "max": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+                "scalesWithField": {
+                  "type": "string",
+                  "description": "Dynamic max: resolve this field name from the parent entity to use as max"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "required": ["id", "name"],
+          "additionalProperties": false
+        }
+      }
     },
     "required": ["id", "indexable", "blackMarket", "name", "source", "page"],
     "additionalProperties": false

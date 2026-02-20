@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react'
+import { useMemo } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type {
   SURefObjectNpc,
@@ -7,7 +7,6 @@ import type {
 } from 'salvageunion-reference'
 import { DisplayCard, Text, StatDisplay, ValueDisplay, BlockContentRendererView } from 'suref-react'
 import { LabeledInput } from '../shared/LabeledInput'
-import { rollOnTable } from '../../lib/pilotUtils'
 import {
   NPC_CHOICE_ORDER,
   NPC_EDITABLE_CHOICE_TYPES,
@@ -92,10 +91,9 @@ type NpcCardProps = {
   choiceValues: Record<string, string>
   stepId: string
   onChoiceValueChange: (stepId: string, choiceId: string, value: string) => void
-  onRoll: (choiceId: string, tableName: string) => void
 }
 
-function NpcCard({ entry, choiceValues, stepId, onChoiceValueChange, onRoll }: NpcCardProps) {
+function NpcCard({ entry, choiceValues, stepId, onChoiceValueChange }: NpcCardProps) {
   const editableChoices = sortChoices(getEditableChoices(entry.npc))
   const npcContent = entry.npc.content as SURefObjectContentBlock[] | undefined
 
@@ -140,7 +138,6 @@ function NpcCard({ entry, choiceValues, stepId, onChoiceValueChange, onRoll }: N
               optionalText={NPC_OPTIONAL_CHOICES.has(choice.name) ? '(Optional)' : undefined}
               variant={choice.name === 'Description' ? 'textarea' : rollTable ? 'roll' : 'input'}
               rollTableName={rollTable}
-              onRoll={rollTable ? () => onRoll(choice.id, rollTable) : undefined}
               placeholder={
                 choice.name === 'Description'
                   ? 'Enter description...'
@@ -167,16 +164,6 @@ export function CrawlerNpcStepContent({
     [selectedCrawlerTypeId]
   )
 
-  const handleRoll = useCallback(
-    (choiceId: string, tableName: string) => {
-      const { text } = rollOnTable(tableName)
-      if (text) {
-        onChoiceValueChange(stepId, choiceId, text)
-      }
-    },
-    [stepId, onChoiceValueChange]
-  )
-
   const crawlerTypeEntry = npcEntries.find((e) => e.isCrawlerType)
   const bayEntries = npcEntries.filter((e) => !e.isCrawlerType)
 
@@ -193,7 +180,6 @@ export function CrawlerNpcStepContent({
               choiceValues={choiceValues}
               stepId={stepId}
               onChoiceValueChange={onChoiceValueChange}
-              onRoll={handleRoll}
             />
           </div>
         ))}
@@ -204,7 +190,6 @@ export function CrawlerNpcStepContent({
           choiceValues={choiceValues}
           stepId={stepId}
           onChoiceValueChange={onChoiceValueChange}
-          onRoll={handleRoll}
         />
       )}
     </div>

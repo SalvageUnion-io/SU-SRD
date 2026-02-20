@@ -36,6 +36,7 @@ export { getClassSelections } from './components/referenceEntity/ReferenceEntity
 
 // Shared components
 export { CardImage } from './components/shared/CardImage'
+export { DualColumnLayout } from './components/shared/DualColumnLayout'
 export { DisplayCard } from './components/shared/DisplayCard'
 export { Footer } from './components/shared/Footer'
 export { ValueDisplay } from './components/shared/ValueDisplay'

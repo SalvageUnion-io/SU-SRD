@@ -11,7 +11,6 @@ import {
   NPC_ROLL_TABLE_FALLBACK,
 } from '../../lib/npcChoiceConstants'
 import type { BayNpcTextField } from '../../lib/npcChoiceConstants'
-import { rollOnTable } from '../../lib/pilotUtils'
 import type { BayNpcData, CrawlerRow, CrawlerUpdate } from '../../types/common'
 
 type CrawlerTypeSectionProps = {
@@ -51,14 +50,6 @@ export function CrawlerTypeSection({
   const handleFieldChange = useCallback((field: BayNpcTextField, value: string) => {
     setLocalNpc((prev) => ({ ...prev, [field]: value || undefined }))
   }, [])
-
-  const handleRoll = useCallback(
-    (fieldKey: BayNpcTextField, tableName: string) => {
-      const { text } = rollOnTable(tableName)
-      if (text) handleFieldChange(fieldKey, text)
-    },
-    [handleFieldChange]
-  )
 
   const handleHpChange = useCallback((hp: number) => {
     setLocalNpc((prev) => ({ ...prev, hp }))
@@ -107,7 +98,6 @@ export function CrawlerTypeSection({
               readOnlyValue={localNpc[fieldKey] || '-'}
               variant={choice.name === 'Description' ? 'textarea' : rollTable ? 'roll' : 'input'}
               rollTableName={rollTable}
-              onRoll={rollTable ? () => handleRoll(fieldKey, rollTable) : undefined}
               placeholder={
                 choice.name === 'Description'
                   ? 'Enter description...'

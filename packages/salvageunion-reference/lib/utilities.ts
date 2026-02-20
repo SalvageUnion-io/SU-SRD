@@ -1468,6 +1468,20 @@ export function getTraits(entity: SURefMetaEntity): SURefObjectTrait[] | undefin
 }
 
 /**
+ * Get the number of inventory slots an equipment entity occupies.
+ * Default is 1. Heavy or Portable traits make it 2.
+ */
+export function getInventorySlots(entity: SURefMetaEntity): number {
+  const traits = getTraits(entity)
+  if (traits) {
+    for (const t of traits) {
+      if (t.type === 'heavy' || t.type === 'portable') return 2
+    }
+  }
+  return 1
+}
+
+/**
  * Get effects from an entity
  * Note: Effects only exist at base level, not in actions
  * @param entity - The entity to extract effects from
