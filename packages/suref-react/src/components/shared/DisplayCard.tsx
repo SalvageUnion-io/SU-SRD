@@ -96,6 +96,8 @@ type DisplayCardProps = {
   defaultTabActiveColor?: string
   /** CSS class override for the footer background (overrides headerBg) */
   footerBg?: string
+  /** Inline style override for the footer background (e.g. gradient stripes) */
+  footerBgStyle?: React.CSSProperties
   /** Stats rendered in the header's right side (between headerContent and controls) */
   stats?: StatItem[]
   /** Custom content rendered to the left of stats in the header */
@@ -132,6 +134,7 @@ export function DisplayCard({
   defaultTabLabel = 'Info',
   defaultTabActiveColor,
   footerBg,
+  footerBgStyle,
   stats,
   beforeStats,
 }: DisplayCardProps) {
@@ -287,11 +290,12 @@ export function DisplayCard({
       )}
 
       {/* Inner wrapper clips backgrounds to border-radius.
-          overflow-clip (instead of hidden) when stickyHeader so position:sticky works. */}
+          overflow-visible when stickyHeader so position:sticky and absolute overlays work.
+          overflow-hidden otherwise (non-sticky cards still clip at border-radius). */}
       <div
         className={cn(
           'flex flex-1',
-          stickyHeader ? 'overflow-clip' : 'overflow-hidden',
+          stickyHeader ? 'overflow-visible' : 'overflow-hidden',
           !isListing && 'flex-col'
         )}
         style={{ borderRadius: `calc(0.375rem - ${borderWidth}px)` }}
@@ -311,7 +315,7 @@ export function DisplayCard({
             tabIndex={onClick ? 0 : undefined}
             className={cn(
               'flex w-full flex-wrap items-center justify-between gap-2 overflow-visible',
-              isListing ? 'min-h-[40px] px-0.5 py-1' : '',
+              isListing ? 'min-h-[60px] px-0.5 py-1' : '',
               !isListing && (isCompact ? 'min-h-[60px] px-0.5 py-1' : 'min-h-[80px] px-1.5 py-1.5'),
               !isListing && !isCompact && label && 'pb-4 pt-4',
               !isListing && isCompact && label && 'pt-2',
@@ -335,10 +339,24 @@ export function DisplayCard({
           >
             {controls || beforeStats || (stats && stats.length > 0) ? (
               <>
-                <div className="flex min-w-0 flex-1 basis-full flex-wrap items-center justify-between gap-2 overflow-visible sm:basis-0">
+                <div
+                  className={cn(
+                    'flex min-w-0 flex-1 flex-wrap items-center gap-2 overflow-visible',
+                    isListing
+                      ? 'justify-between'
+                      : 'basis-full justify-center sm:basis-0 sm:justify-between'
+                  )}
+                >
                   {headerContent}
                 </div>
-                <div className="flex w-full shrink-0 items-center justify-end gap-1 sm:w-auto">
+                <div
+                  className={cn(
+                    'flex shrink-0 items-center gap-1',
+                    isListing
+                      ? 'justify-end'
+                      : 'w-full flex-wrap justify-center gap-y-1 sm:w-auto sm:justify-end'
+                  )}
+                >
                   {beforeStats}
                   {stats && stats.length > 0 && (
                     <StatsBar stats={stats} compact={isCompact || isListing} />
@@ -353,16 +371,16 @@ export function DisplayCard({
 
           {/* Tab bar — only when hasTabs */}
           {hasTabs && (
-            <div className="flex" role="tablist">
+            <div className="flex flex-wrap divide-x divide-su-grey-dark/30" role="tablist">
               <button
                 type="button"
                 role="tab"
                 aria-selected={isDefaultTab}
                 className={cn(
-                  'flex-1 cursor-pointer py-1.5 font-mono text-xs font-bold uppercase tracking-wide transition-colors',
+                  'min-w-0 basis-1/3 grow shrink-0 md:basis-0 md:shrink cursor-pointer border-b border-su-grey-dark/30 px-3 py-1.5 font-mono text-xs font-bold uppercase tracking-wide transition-colors',
                   isDefaultTab
                     ? 'text-su-black'
-                    : 'bg-su-white text-su-black hover:bg-su-grey-light'
+                    : 'bg-su-grey-light text-su-black hover:bg-su-grey-medium'
                 )}
                 style={
                   isDefaultTab
@@ -389,10 +407,10 @@ export function DisplayCard({
                     role="tab"
                     aria-selected={isActive}
                     className={cn(
-                      'flex-1 cursor-pointer py-1.5 font-mono text-xs font-bold uppercase tracking-wide transition-colors',
+                      'min-w-0 basis-1/3 grow shrink-0 md:basis-0 md:shrink cursor-pointer border-b border-su-grey-dark/30 px-3 py-1.5 font-mono text-xs font-bold uppercase tracking-wide transition-colors',
                       isActive
                         ? 'text-su-black'
-                        : 'bg-su-white text-su-black hover:bg-su-grey-light'
+                        : 'bg-su-grey-light text-su-black hover:bg-su-grey-medium'
                     )}
                     style={isActive && tabBg ? { backgroundColor: tabBg } : undefined}
                     onClick={() => setActiveTabKey(tab.key)}
@@ -416,7 +434,7 @@ export function DisplayCard({
                     ? 'md:grid md:grid-cols-[auto_1fr] md:items-center'
                     : 'flex flex-col',
                   bodyPadding || defaultBodyPadding,
-                  hasTabs && (isDefaultTab ? 'pt-0' : 'p-0')
+                  hasTabs && (isDefaultTab ? (image ? 'pt-3' : 'pt-0') : 'p-0 pt-2')
                 )}
               >
                 {isDefaultTab ? (
@@ -450,6 +468,7 @@ export function DisplayCard({
             style={{
               ...(headerBgColor && !footerBg ? { backgroundColor: headerBgColor } : {}),
               ...footerSourceStyles.style,
+              ...footerBgStyle,
               borderTop: `${borderWidth}px solid ${effectiveBorderColor}`,
             }}
           >

@@ -92,14 +92,14 @@ function UsedToggle({
       style={{ alignSelf: 'flex-end' }}
     >
       <span
-        className={`inline-flex h-full ${checkSize} items-center justify-center bg-su-white font-mono ${textSize} font-bold leading-none text-su-black`}
-      >
-        {used ? 'X' : '\u00A0'}
-      </span>
-      <span
         className={`bg-su-black px-1 font-mono ${textSize} font-bold uppercase leading-none text-su-white`}
       >
         Used
+      </span>
+      <span
+        className={`inline-flex h-full ${checkSize} items-center justify-center bg-su-white font-mono ${textSize} font-bold leading-none text-su-black`}
+      >
+        {used ? 'X' : '\u00A0'}
       </span>
     </button>
   )

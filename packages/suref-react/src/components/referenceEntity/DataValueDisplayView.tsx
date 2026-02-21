@@ -105,7 +105,7 @@ export function DataValueDisplayView({
           </span>
         ))}
         <Text
-          variant="pseudoheader"
+          variant="pseudoheaderInverse"
           as="span"
           className={cn('!self-auto uppercase', fontSize, fontWeight)}
         >
@@ -148,7 +148,7 @@ export function DataValueDisplayView({
   }
 
   if (item.type === 'meta') {
-    const useRustBg = item.label === 'Recommended' || item.label === 'Legal Starting Mech'
+    const useRustBg = item.label === 'Recommended' || item.label === 'Legal Starting Pattern'
     return (
       <ValueDisplay
         label={item.label}

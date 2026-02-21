@@ -52,11 +52,12 @@ export function calculateBackgroundColor(
   if (schemaName === 'npcs') return headerColor || 'bg-su-rust'
   if (schemaName === 'meld') return headerColor || 'bg-su-rust'
   if (schemaName === 'squads') return headerColor || 'bg-su-rust'
-  if (schemaName === 'keywords') return headerColor || 'bg-su-black'
-  if (schemaName === 'distances') return headerColor || 'bg-su-black'
-  if (schemaName === 'traits') return headerColor || 'bg-su-black'
-  if (schemaName === 'guides') return headerColor || 'bg-su-black'
-  if (schemaName === 'roll-tables') return headerColor || 'bg-su-black'
+  if (schemaName === 'keywords') return headerColor || 'bg-su-grey-dark'
+  if (schemaName === 'distances') return headerColor || 'bg-su-grey-dark'
+  if (schemaName === 'traits') return headerColor || 'bg-su-grey-dark'
+  if (schemaName === 'guides') return headerColor || 'bg-su-grey-dark'
+  if (schemaName === 'roll-tables') return headerColor || 'bg-su-grey-dark'
+  if (schemaName === 'sources') return headerColor || 'bg-su-grey-dark'
   if (schemaName === 'classes' && !headerColor) {
     if (isEntityData(data)) {
       const isHybrid = isHybridClass(data)

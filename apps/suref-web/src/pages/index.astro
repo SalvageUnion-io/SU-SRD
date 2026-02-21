@@ -9,6 +9,10 @@ const schemas = catalog.schemas.filter((s) => !s.meta)
 const schemaMap = new Map(schemas.map((s) => [s.id, s]))
 const catalogCategories = SalvageUnionReference.CatalogCategories.all()
 
+const catalogNameOverrides: Record<string, string> = {
+  'Activating and Shutting Down a Mech': 'Operating a Mech',
+}
+
 const invariantNouns = new Set(['Chassis', 'Equipment', 'Meld'])
 
 function pluralize(name: string, count: number) {
@@ -50,7 +54,7 @@ const categories: CatalogSection[] = catalogCategories.map((cat) => {
         return {
           id: item.id,
           href: `/schema/${schemaName}/item/${display.slug}`,
-          label: item.name,
+          label: catalogNameOverrides[item.name] ?? item.name,
           catalogBg: (item as SURefGuide).guideColor || getCatalogBg(schemaName),
         }
       }),

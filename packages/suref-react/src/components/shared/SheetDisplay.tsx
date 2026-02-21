@@ -26,10 +26,7 @@ export function SheetDisplay({
         </p>
       )}
       <div
-        className={cn(
-          'font-normal leading-relaxed text-su-black',
-          compact ? 'text-sm' : 'text-base'
-        )}
+        className={cn('font-normal leading-snug text-su-black', compact ? 'text-sm' : 'text-base')}
       >
         {children || value}
       </div>

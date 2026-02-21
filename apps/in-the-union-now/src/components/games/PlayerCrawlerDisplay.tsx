@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import {
   DisplayCard,
@@ -10,7 +10,7 @@ import {
   StatControl,
   navigateControl,
 } from 'suref-react'
-import type { ReferenceEntityControl, StatItem } from 'suref-react'
+import type { ReferenceEntityControl, StatItem, DisplayCardTab } from 'suref-react'
 import { ArrowUp, Eye, EyeOff, Trash2 } from 'lucide-react'
 import { SheetFooter } from '../shared/SheetFooter'
 import { actionButtonClasses } from '../shared/actionButtonClasses'
@@ -87,6 +87,70 @@ export function PlayerCrawlerDisplay({
           },
         ]
       : undefined
+
+  // --- Tabs (only used in non-listing mode) ---
+  const CRAWLER_TAB_COLOR = 'rgb(201, 111, 146)'
+  const tabs = useMemo((): DisplayCardTab[] | undefined => {
+    if (listing || !crawler || !editConfig) return undefined
+    return [
+      {
+        key: 'pilots',
+        label: 'Pilots',
+        activeColor: CRAWLER_TAB_COLOR,
+        content: (
+          <div className="p-4">
+            <CrawlerPilotsSection crawlerId={crawler.id} />
+          </div>
+        ),
+      },
+      {
+        key: 'bays',
+        label: 'Bays',
+        activeColor: CRAWLER_TAB_COLOR,
+        content: (
+          <div className="p-4">
+            <CrawlerBaysSection
+              crawler={crawler}
+              readOnly={!editConfig.isMed}
+              onSave={editConfig.onImmediateUpdate}
+              onOpenScrapConversion={() => editConfig.setShowTranslateDialog(true)}
+              armamentControls={editConfig.weaponSlotControls}
+            />
+          </div>
+        ),
+      },
+      {
+        key: 'storage',
+        label: 'Storage',
+        activeColor: CRAWLER_TAB_COLOR,
+        content: (
+          <div className="flex gap-0 p-4">
+            {/* Left: Scrap controls — shrink-to-fit */}
+            <div className="shrink-0">
+              <CrawlerScrapStats
+                crawler={crawler}
+                readOnly={!editConfig.isMed}
+                onUpdate={editConfig.onImmediateUpdate}
+                compactGrid
+                onOpenScrapConversion={() => editConfig.setShowTranslateDialog(true)}
+              />
+            </div>
+            {/* Vertical separator */}
+            <div className="mx-4 w-px self-stretch bg-su-grey-light" aria-hidden="true" />
+            {/* Right: Storage — fills remaining space */}
+            <div className="flex min-w-0 flex-1 flex-col">
+              <SectionSeparator label="Storage" compact={compact} />
+              <CrawlerStorageSection
+                crawlerId={crawler.id}
+                userId={userId ?? ''}
+                readOnly={!editConfig.isMed}
+              />
+            </div>
+          </div>
+        ),
+      },
+    ]
+  }, [listing, crawler, editConfig, compact, userId])
 
   // Sheet guard: impossible state protection
   if (!listing && (!crawler || !editConfig)) return null
@@ -241,43 +305,17 @@ export function PlayerCrawlerDisplay({
         stats={crawlerStats}
         controls={controls}
         footerContent={footerContent}
+        tabs={tabs}
+        defaultTabLabel="Info"
+        defaultTabActiveColor={!listing ? CRAWLER_TAB_COLOR : undefined}
       >
-        {!listing && crawler && editConfig && (
-          <div className="space-y-6">
-            <CrawlerPilotsSection crawlerId={crawler.id} />
-
-            {crawlerType && (
-              <CrawlerTypeSection
-                crawler={crawler}
-                crawlerType={crawlerType}
-                readOnly={!editConfig.isMed}
-                onSave={editConfig.onImmediateUpdate}
-              />
-            )}
-
-            <CrawlerBaysSection
-              crawler={crawler}
-              readOnly={!editConfig.isMed}
-              onSave={editConfig.onImmediateUpdate}
-              onOpenScrapConversion={() => editConfig.setShowTranslateDialog(true)}
-              armamentControls={editConfig.weaponSlotControls}
-              storageContent={(bayDamaged) => (
-                <>
-                  <CrawlerScrapStats
-                    crawler={crawler}
-                    readOnly={!editConfig.isMed || bayDamaged}
-                    onUpdate={editConfig.onImmediateUpdate}
-                  />
-                  <SectionSeparator label="Storage" compact={compact} />
-                  <CrawlerStorageSection
-                    crawlerId={crawler.id}
-                    userId={userId ?? ''}
-                    readOnly={!editConfig.isMed || bayDamaged}
-                  />
-                </>
-              )}
-            />
-          </div>
+        {!listing && crawler && editConfig && crawlerType && (
+          <CrawlerTypeSection
+            crawler={crawler}
+            crawlerType={crawlerType}
+            readOnly={!editConfig.isMed}
+            onSave={editConfig.onImmediateUpdate}
+          />
         )}
       </DisplayCard>
 

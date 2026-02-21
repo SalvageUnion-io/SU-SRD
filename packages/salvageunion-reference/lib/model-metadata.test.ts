@@ -44,9 +44,9 @@ describe('Model Metadata', () => {
     })
   })
 
-  describe('displayName property', () => {
+  describe('displayName property (singular)', () => {
     it('should return correct display name for Abilities', () => {
-      expect(getReference().Abilities.displayName).toBe('Abilities')
+      expect(getReference().Abilities.displayName).toBe('Ability')
     })
 
     it('should return correct display name for Equipment', () => {
@@ -54,7 +54,7 @@ describe('Model Metadata', () => {
     })
 
     it('should return correct display name for Modules', () => {
-      expect(getReference().Modules.displayName).toBe('Modules')
+      expect(getReference().Modules.displayName).toBe('Module')
     })
 
     it('should return correct display name for Chassis', () => {
@@ -62,11 +62,11 @@ describe('Model Metadata', () => {
     })
 
     it('should return correct display name for Classes', () => {
-      expect(getReference().Classes.displayName).toBe('Classes')
+      expect(getReference().Classes.displayName).toBe('Class')
     })
 
     it('should return correct display name for AbilityTreeRequirements', () => {
-      expect(getReference().AbilityTreeRequirements.displayName).toBe('Ability Tree Requirements')
+      expect(getReference().AbilityTreeRequirements.displayName).toBe('Ability Tree Requirement')
     })
   })
 
@@ -76,7 +76,7 @@ describe('Model Metadata', () => {
     })
 
     it('should have correct mapping for abilities', () => {
-      expect(SchemaToDisplayName.abilities).toBe('Abilities')
+      expect(SchemaToDisplayName.abilities).toBe('Ability')
     })
 
     it('should have correct mapping for equipment', () => {
@@ -84,7 +84,7 @@ describe('Model Metadata', () => {
     })
 
     it('should have correct mapping for modules', () => {
-      expect(SchemaToDisplayName.modules).toBe('Modules')
+      expect(SchemaToDisplayName.modules).toBe('Module')
     })
 
     it('should have correct mapping for chassis', () => {
@@ -92,11 +92,11 @@ describe('Model Metadata', () => {
     })
 
     it('should have correct mapping for classes', () => {
-      expect(SchemaToDisplayName['classes']).toBe('Classes')
+      expect(SchemaToDisplayName['classes']).toBe('Class')
     })
 
     it('should have correct mapping for ability-tree-requirements', () => {
-      expect(SchemaToDisplayName['ability-tree-requirements']).toBe('Ability Tree Requirements')
+      expect(SchemaToDisplayName['ability-tree-requirements']).toBe('Ability Tree Requirement')
     })
 
     it('should have all schema names', () => {

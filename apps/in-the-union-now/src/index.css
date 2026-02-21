@@ -3,6 +3,17 @@
 
 @source "../../../packages/suref-react/src";
 
+@keyframes action-expand-in {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1.02);
+  }
+}
+
 /* Base styles */
 body {
   background-color: var(--color-su-sand);

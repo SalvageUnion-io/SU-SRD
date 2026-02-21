@@ -14,8 +14,14 @@ export function AppNav({ user }: AppNavProps) {
   return (
     <nav className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-su-grey-dark/30 bg-su-black px-4">
       <div className="flex items-center gap-6">
-        <Link to="/" className="text-lg font-bold tracking-tight text-su-orange">
-          In The Union Now
+        <Link
+          to="/"
+          className="flex items-center font-mono text-lg font-bold uppercase tracking-tight"
+        >
+          <span className="bg-su-white px-1 text-su-black">In</span>
+          <span className="bg-su-black px-1 text-su-white">The</span>
+          <span className="bg-su-white px-1 text-su-black">Union</span>
+          <span className="bg-su-black px-1 text-su-white">Now</span>
         </Link>
         <div className="hidden items-center gap-4 sm:flex">
           <Link

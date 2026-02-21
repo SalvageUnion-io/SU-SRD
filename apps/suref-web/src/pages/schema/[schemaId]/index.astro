@@ -19,7 +19,7 @@ const canonicalUrl = `https://salvageunion.io/schema/${schemaId}`
 
 // Pre-compute filter facets at build time
 const techLevels = getUniqueTechLevels(data)
-const sources = getUniqueSources(data)
+const sources = schemaId === 'sources' ? [] : getUniqueSources(data)
 
 const structuredData = {
   '@context': 'https://schema.org',

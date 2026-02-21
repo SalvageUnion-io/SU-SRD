@@ -36,6 +36,8 @@ import {
   TraitEntitySchema,
   VehicleSchema,
   GuideSchema,
+  SourceEntitySchema,
+  TechLevelEntitySchema,
   CatalogCategorySchema,
 } from '../lib/schemas/entities.js'
 
@@ -74,6 +76,8 @@ const entitySchemaMap: Record<string, z.ZodType> = {
   systems: SystemSchema,
   traits: TraitEntitySchema,
   vehicles: VehicleSchema,
+  sources: SourceEntitySchema,
+  'tech-levels': TechLevelEntitySchema,
   'catalog-categories': CatalogCategorySchema,
 }
 

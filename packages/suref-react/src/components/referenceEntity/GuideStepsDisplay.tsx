@@ -6,16 +6,13 @@ import { BlockContentRendererView } from './BlockContentRendererView'
 import { RollTable } from '../shared/RollTable'
 import { borderColorFromHeaderBg } from './referenceEntityHelpers'
 import {
-  getStepNumbers,
   matchesFilter,
   enrichForFiltering,
   sortGuideEntities,
   balancedTwoColumnSplit,
 } from './guideStepsHelpers'
-import type {
-  getReferenceEntityFontSizes,
-  getReferenceEntitySpacing,
-} from './ReferenceEntityDisplay/referenceEntityDisplayTypes'
+import { SectionSeparator } from './ReferenceEntityDisplay/SectionSeparator'
+import type { getReferenceEntityFontSizes } from './ReferenceEntityDisplay/referenceEntityDisplayTypes'
 import type { ReferenceEntityControl } from './ReferenceEntityDisplay/referenceEntityControlTypes'
 import { selectControl } from './ReferenceEntityDisplay/referenceEntityControls'
 import { cn } from '../../utils/cn'
@@ -74,7 +71,6 @@ type GuideStepsDisplayProps = {
   headerBg: string
   headerBgColor?: string
   fontSize: ReturnType<typeof getReferenceEntityFontSizes>
-  spacing: ReturnType<typeof getReferenceEntitySpacing>
   renderEntityListing?: (
     entityData: unknown,
     schemaName: string,
@@ -267,18 +263,15 @@ export function GuideStepsDisplay({
   headerBg,
   headerBgColor,
   fontSize,
-  spacing,
   renderEntityListing,
   interactive,
 }: GuideStepsDisplayProps) {
   if (!steps || steps.length === 0) return null
 
   const borderColor = borderColorFromHeaderBg(headerBg, headerBgColor)
-  const stepNumbers = getStepNumbers(steps)
-  const showStepNumbers = !compact || stepNumbers.some((n) => n > 1)
 
   return (
-    <div className={spacing.sectionSpaceYClass}>
+    <div className={compact ? 'space-y-6' : 'space-y-8'}>
       {steps.map((step, index) => {
         // --- Interactive state (all null/false when no interactive config) ---
         const stepState = interactive?.getStepState(step, index)
@@ -304,8 +297,6 @@ export function GuideStepsDisplay({
           hasEntityListings && step.content
             ? step.content.filter((block) => block.type !== 'hint')
             : step.content
-        const isRight = !compact && stepNumbers[index]! % 2 === 0
-
         return (
           <div
             key={step.id}
@@ -320,8 +311,7 @@ export function GuideStepsDisplay({
                 variant="pseudoheader"
                 className={cn(
                   'w-fit',
-                  compact ? 'text-base px-0.5 py-[1px] mt-2' : 'text-2xl px-1 py-1 mt-4',
-                  isRight && 'ml-auto'
+                  compact ? 'text-base px-0.5 py-[1px] mt-2' : 'text-2xl px-1 py-1 mt-4'
                 )}
                 style={{ backgroundColor: 'var(--color-su-black)', color: 'var(--color-su-white)' }}
               >
@@ -332,12 +322,7 @@ export function GuideStepsDisplay({
             {/* Step header */}
             {!isSidebarLayout && (
               <div
-                className={cn(
-                  'flex flex-wrap items-center gap-2 bg-transparent',
-                  compact ? 'py-1' : 'py-2',
-                  isRight && 'justify-end',
-                  interactive && 'cursor-pointer'
-                )}
+                className={cn(compact ? 'mb-2' : 'mb-4', interactive && 'cursor-pointer')}
                 role={interactive?.onStepClick ? 'button' : undefined}
                 tabIndex={interactive?.onStepClick ? 0 : undefined}
                 onClick={
@@ -354,37 +339,24 @@ export function GuideStepsDisplay({
                     : undefined
                 }
               >
-                {isRight && interactive?.renderStepHeaderExtra?.(step, index)}
-                <Text
-                  variant="pseudoheader"
-                  className={cn(
-                    'w-fit',
-                    compact ? 'text-sm px-0.5 py-[1px]' : 'text-xl px-1 py-0.5'
-                  )}
+                <SectionSeparator
+                  label={step.name}
+                  value={
+                    selectionState?.countBadge
+                      ? `${selectionState.countBadge.current}/${selectionState.countBadge.max}`
+                      : undefined
+                  }
+                  compact={compact}
                 >
-                  {showStepNumbers && !isRight ? `${stepNumbers[index]}. ` : ''}
-                  {selectionState?.countBadge && isRight
-                    ? `[${selectionState.countBadge.current}/${selectionState.countBadge.max}] `
-                    : ''}
-                  {step.name}
-                  {selectionState?.countBadge && !isRight
-                    ? ` [${selectionState.countBadge.current}/${selectionState.countBadge.max}]`
-                    : ''}
-                  {showStepNumbers && isRight ? ` .${stepNumbers[index]}` : ''}
-                </Text>
-                {!isRight && interactive?.renderStepHeaderExtra?.(step, index)}
+                  {interactive?.renderStepHeaderExtra?.(step, index)}
+                </SectionSeparator>
               </div>
             )}
 
             {/* Content area — identical structure for both modes */}
             {isSidebarLayout ? (
               <>
-                <div
-                  className={cn(
-                    'flex flex-col md:flex-row gap-4 mt-1',
-                    isRight && 'md:flex-row-reverse'
-                  )}
-                >
+                <div className={cn('flex flex-col md:flex-row gap-4 mt-1')}>
                   <div className="flex flex-col items-center md:flex-1 min-w-0">
                     {sortGuideEntities(resolvedEntities).map(
                       ({ data, schemaName, disabled: entityDisabled }, i) => {
@@ -416,17 +388,8 @@ export function GuideStepsDisplay({
                   </div>
                   {stepContent && stepContent.length > 0 && (
                     <div
-                      className={cn(
-                        'flex-1 min-w-0',
-                        isRight ? (compact ? 'pr-2' : 'pr-3') : compact ? 'pl-2' : 'pl-3'
-                      )}
-                      style={
-                        borderColor
-                          ? isRight
-                            ? { borderRight: `3px solid ${borderColor}` }
-                            : { borderLeft: `3px solid ${borderColor}` }
-                          : undefined
-                      }
+                      className={cn('flex-1 min-w-0', compact ? 'pl-2' : 'pl-3')}
+                      style={borderColor ? { borderLeft: `3px solid ${borderColor}` } : undefined}
                     >
                       <BlockContentRendererView
                         content={stepContent}
@@ -449,19 +412,10 @@ export function GuideStepsDisplay({
               </>
             ) : (
               <div>
-                {stepContent && stepContent.length > 0 && (
-                  <div
-                    className={cn(
-                      isRight ? (compact ? 'pr-2' : 'pr-3') : compact ? 'pl-2' : 'pl-3'
-                    )}
-                    style={
-                      borderColor
-                        ? isRight
-                          ? { borderRight: `3px solid ${borderColor}` }
-                          : { borderLeft: `3px solid ${borderColor}` }
-                        : undefined
-                    }
-                  >
+                {(() => {
+                  const customStepContent = interactive?.renderStepContent?.(step, index)
+
+                  const contentBlock = stepContent && stepContent.length > 0 && (
                     <BlockContentRendererView
                       content={stepContent}
                       fontSize={fontSize.sm}
@@ -469,64 +423,86 @@ export function GuideStepsDisplay({
                       headerBg={headerBg}
                       headerBgColor={headerBgColor}
                     />
-                  </div>
-                )}
-                {(() => {
-                  const customStepContent = interactive?.renderStepContent?.(step, index)
-                  if (customStepContent !== undefined) return customStepContent
+                  )
+
+                  if (customStepContent !== undefined) {
+                    return (
+                      <>
+                        {contentBlock}
+                        {customStepContent}
+                      </>
+                    )
+                  }
+
+                  const entityGrid =
+                    resolvedEntities.length > 0 &&
+                    renderEntityListing &&
+                    (() => {
+                      const sorted = sortGuideEntities(resolvedEntities)
+                      const enriched = sorted.map((entity) => {
+                        const entityId = (entity.data as { id: string }).id
+                        const { isGreyedOut, entityControls } = computeEntityInteractionState(
+                          step,
+                          entityId,
+                          entity.schemaName,
+                          entity.disabled,
+                          selectionState,
+                          interactive
+                        )
+                        return { ...entity, entityId, isGreyedOut, entityControls }
+                      })
+                      const [left, right] = balancedTwoColumnSplit(enriched, () => false)
+
+                      const renderColumn = (items: typeof enriched) =>
+                        items.map((e) => (
+                          <div key={`${step.id}-${e.schemaName}-${e.entityId}`} className="mb-2">
+                            {renderEntityListing(
+                              e.data,
+                              e.schemaName,
+                              `${step.id}-${e.schemaName}-${e.entityId}`,
+                              false,
+                              true,
+                              e.entityControls,
+                              e.disabled || e.isGreyedOut
+                            )}
+                          </div>
+                        ))
+
+                      return (
+                        <div className="mt-2 flex gap-2">
+                          <div className="flex flex-1 flex-col">{renderColumn(left)}</div>
+                          <div className="flex flex-1 flex-col">{renderColumn(right)}</div>
+                        </div>
+                      )
+                    })()
+
+                  const rollSection = (
+                    <StepRollSection
+                      step={step}
+                      rollTableEntity={rollTableEntity}
+                      rollState={rollState}
+                      isRollStep={isRollStep}
+                      interactive={interactive}
+                    />
+                  )
+
+                  if (rollTableEntity && !compact) {
+                    return (
+                      <div className="flex flex-col gap-4 md:flex-row md:items-center">
+                        <div className="min-w-0 flex-1">
+                          {contentBlock}
+                          {entityGrid}
+                        </div>
+                        <div className="w-full md:max-w-[60%]">{rollSection}</div>
+                      </div>
+                    )
+                  }
+
                   return (
                     <>
-                      {resolvedEntities.length > 0 &&
-                        renderEntityListing &&
-                        (() => {
-                          const sorted = sortGuideEntities(resolvedEntities)
-                          const enriched = sorted.map((entity) => {
-                            const entityId = (entity.data as { id: string }).id
-                            const { isGreyedOut, entityControls } = computeEntityInteractionState(
-                              step,
-                              entityId,
-                              entity.schemaName,
-                              entity.disabled,
-                              selectionState,
-                              interactive
-                            )
-                            return { ...entity, entityId, isGreyedOut, entityControls }
-                          })
-                          const [left, right] = balancedTwoColumnSplit(enriched, () => false)
-
-                          const renderColumn = (items: typeof enriched) =>
-                            items.map((e) => (
-                              <div
-                                key={`${step.id}-${e.schemaName}-${e.entityId}`}
-                                className="mb-2"
-                              >
-                                {renderEntityListing(
-                                  e.data,
-                                  e.schemaName,
-                                  `${step.id}-${e.schemaName}-${e.entityId}`,
-                                  false,
-                                  true,
-                                  e.entityControls,
-                                  e.disabled || e.isGreyedOut
-                                )}
-                              </div>
-                            ))
-
-                          return (
-                            <div className="mt-2 flex gap-2">
-                              <div className="flex flex-1 flex-col">{renderColumn(left)}</div>
-                              <div className="flex flex-1 flex-col">{renderColumn(right)}</div>
-                            </div>
-                          )
-                        })()}
-
-                      <StepRollSection
-                        step={step}
-                        rollTableEntity={rollTableEntity}
-                        rollState={rollState}
-                        isRollStep={isRollStep}
-                        interactive={interactive}
-                      />
+                      {contentBlock}
+                      {entityGrid}
+                      {rollSection}
                     </>
                   )
                 })()}

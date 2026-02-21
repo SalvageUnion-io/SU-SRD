@@ -99,7 +99,7 @@ export function NestedChassisAbility({
       {/* Name and optional inline details */}
       <div
         className={cn(
-          'flex flex-row flex-wrap items-center font-medium leading-relaxed text-su-black',
+          'flex flex-row flex-wrap items-center font-medium leading-snug text-su-black',
           fontSize,
           compact ? 'gap-0.5' : 'gap-1',
           hasBottomContent ? (compact ? 'mb-1' : 'mb-2') : 'mb-0'

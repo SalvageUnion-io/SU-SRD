@@ -63,7 +63,7 @@ export function ConditionalSheetInfo({
         {label && <SectionSeparator label={label} fontSize="text-sm" compact={compact} />}
         <div
           className={cn(
-            'mb-2 break-words font-medium leading-relaxed whitespace-normal text-su-black',
+            'mb-2 break-words font-medium leading-snug whitespace-normal text-su-black',
             compact ? 'pl-2' : 'pl-3',
             fontSize.sm
           )}

@@ -190,9 +190,10 @@ export function ReferenceEntityDisplayContent({
     !!table ||
     shouldShowExtraContent
 
-  // Footer data
-  const hasPage = 'page' in data && !!data.page
-  const hasSource = 'source' in data && !!data.source
+  // Footer data — sources entities are self-referencing, so hide page/source
+  const isSources = schemaName === 'sources'
+  const hasPage = !isSources && 'page' in data && !!data.page
+  const hasSource = !isSources && 'source' in data && !!data.source
   const footerDisplayName = getDisplayName(schemaName)
   const sourceFooterStyles = getSourceStyles(source, disabled ?? false, 'footer', !listing)
   const hasFooter = !hide.footer && (hasPage || hasSource)
@@ -264,9 +265,7 @@ export function ReferenceEntityDisplayContent({
         />
       }
       rightContent={
-        !hide.stats ? (
-          <ReferenceEntityRightHeaderContent data={data} compact={compact} fontSize={fontSize} />
-        ) : null
+        !hide.stats ? <ReferenceEntityRightHeaderContent data={data} fontSize={fontSize} /> : null
       }
       controls={listing ? undefined : controls}
       compact={compact}
@@ -383,7 +382,6 @@ export function ReferenceEntityDisplayContent({
                     headerBg={headerBg}
                     headerBgColor={headerBgColor}
                     fontSize={fontSize}
-                    spacing={spacing}
                     interactive={interactive}
                     renderEntityListing={(
                       entityData,

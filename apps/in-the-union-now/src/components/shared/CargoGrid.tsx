@@ -133,12 +133,18 @@ function CargoCell({
         className="relative h-[200px] w-[200px] cursor-pointer overflow-visible transition-transform duration-150"
         style={{
           backgroundColor: bgColor,
-          borderTopWidth: borders.top ? 2 : 0,
-          borderRightWidth: borders.right ? 2 : 0,
-          borderBottomWidth: borders.bottom ? 2 : 0,
-          borderLeftWidth: borders.left ? 2 : 0,
-          borderColor: 'var(--color-su-black)',
-          borderStyle: 'solid',
+          borderTopWidth: borders.top ? 2 : 1,
+          borderTopStyle: borders.top ? 'solid' : 'dashed',
+          borderTopColor: borders.top ? 'var(--color-su-black)' : 'rgba(0,0,0,0.2)',
+          borderRightWidth: borders.right ? 2 : 1,
+          borderRightStyle: borders.right ? 'solid' : 'dashed',
+          borderRightColor: borders.right ? 'var(--color-su-black)' : 'rgba(0,0,0,0.2)',
+          borderBottomWidth: borders.bottom ? 2 : 1,
+          borderBottomStyle: borders.bottom ? 'solid' : 'dashed',
+          borderBottomColor: borders.bottom ? 'var(--color-su-black)' : 'rgba(0,0,0,0.2)',
+          borderLeftWidth: borders.left ? 2 : 1,
+          borderLeftStyle: borders.left ? 'solid' : 'dashed',
+          borderLeftColor: borders.left ? 'var(--color-su-black)' : 'rgba(0,0,0,0.2)',
           transform: isHovered ? 'scale(1.1)' : undefined,
           zIndex: isHovered ? 10 : undefined,
         }}
@@ -280,43 +286,77 @@ function SimpleCargoDetailModal({
   techLevel?: number | string
   headerBg?: string
 }) {
-  const typeLabel = cargoType === 'scrap' ? 'Scrap' : 'Custom Item'
+  // For scrap, parse count from label format "NTLx Scrap"
+  const scrapCount = cargoType === 'scrap' ? parseInt(label, 10) || 1 : undefined
+  const isScrap = cargoType === 'scrap'
+  const modalTitle = isScrap ? 'SCRAP' : label
+  const typeLabel = isScrap ? 'Scrap' : 'Custom Item'
 
   return (
     <ModalShell
       open={open}
       onOpenChange={onOpenChange}
-      title={label}
+      title={modalTitle}
       description={`${typeLabel} details`}
       headerBg={headerBg ?? 'bg-su-orange'}
       maxWidth="max-w-md"
       align="center"
     >
       <div className="flex flex-col gap-3 bg-su-white p-4">
-        <DisplayCard
-          mode="listing"
-          headerBg={headerBg ?? 'bg-su-orange'}
-          headerContent={
-            <CardHeader
-              title={
-                <Text
-                  variant="pseudoheader"
-                  as="span"
-                  className="truncate py-[3px] text-base uppercase tracking-[-0.02em]"
-                  style={{ lineHeight: 1 }}
-                >
-                  {label}
-                </Text>
+        {isScrap ? (
+          <div className="flex items-center gap-3">
+            <span className="font-mono text-2xl font-bold text-su-black">{scrapCount}x</span>
+            <div className="w-fit">
+              <DisplayCard
+                mode="listing"
+                headerBg={headerBg ?? 'bg-su-orange'}
+                headerContent={
+                  <CardHeader
+                    title={
+                      <Text
+                        variant="pseudoheader"
+                        as="span"
+                        className="py-[3px] text-base uppercase tracking-[-0.02em]"
+                        style={{ lineHeight: 1 }}
+                      >
+                        TL{techLevel} SCRAP
+                      </Text>
+                    }
+                    compact
+                    lightweight
+                  />
+                }
+              />
+            </div>
+          </div>
+        ) : (
+          <>
+            <DisplayCard
+              mode="listing"
+              headerBg={headerBg ?? 'bg-su-orange'}
+              headerContent={
+                <CardHeader
+                  title={
+                    <Text
+                      variant="pseudoheader"
+                      as="span"
+                      className="truncate py-[3px] text-base uppercase tracking-[-0.02em]"
+                      style={{ lineHeight: 1 }}
+                    >
+                      {label}
+                    </Text>
+                  }
+                  compact
+                  lightweight
+                />
               }
-              compact
-              lightweight
             />
-          }
-        />
-        <div className="flex items-center gap-2 text-sm text-su-black/70">
-          <span className="font-mono text-xs font-bold uppercase">{typeLabel}</span>
-          {techLevel !== undefined && <span className="font-mono text-xs">TL{techLevel}</span>}
-        </div>
+            <div className="flex items-center gap-2 text-sm text-su-black/70">
+              <span className="font-mono text-xs font-bold uppercase">{typeLabel}</span>
+              {techLevel !== undefined && <span className="font-mono text-xs">TL{techLevel}</span>}
+            </div>
+          </>
+        )}
       </div>
     </ModalShell>
   )

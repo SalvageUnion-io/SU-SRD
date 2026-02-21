@@ -34,6 +34,8 @@ import {
   TraitEntitySchema,
   VehicleSchema,
   GuideSchema,
+  SourceEntitySchema,
+  TechLevelEntitySchema,
   CatalogCategorySchema,
 } from './schemas/index.js'
 
@@ -62,6 +64,8 @@ import squadsData from '../data/squads.json' with { type: 'json' }
 import systemsData from '../data/systems.json' with { type: 'json' }
 import traitsData from '../data/traits.json' with { type: 'json' }
 import vehiclesData from '../data/vehicles.json' with { type: 'json' }
+import sourcesData from '../data/sources.json' with { type: 'json' }
+import techLevelsData from '../data/tech-levels.json' with { type: 'json' }
 import catalogCategoriesData from '../data/catalog-categories.json' with { type: 'json' }
 
 // Import all schema files
@@ -89,6 +93,8 @@ import squadsSchema from '../schemas/squads.schema.json' with { type: 'json' }
 import systemsSchema from '../schemas/systems.schema.json' with { type: 'json' }
 import traitsSchema from '../schemas/traits.schema.json' with { type: 'json' }
 import vehiclesSchema from '../schemas/vehicles.schema.json' with { type: 'json' }
+import sourcesSchema from '../schemas/sources.schema.json' with { type: 'json' }
+import techLevelsSchema from '../schemas/tech-levels.schema.json' with { type: 'json' }
 import catalogCategoriesSchema from '../schemas/catalog-categories.schema.json' with { type: 'json' }
 
 /**
@@ -119,6 +125,8 @@ const dataMap: Record<string, unknown[]> = {
   systems: systemsData,
   traits: traitsData,
   vehicles: vehiclesData,
+  sources: sourcesData,
+  'tech-levels': techLevelsData,
   'catalog-categories': catalogCategoriesData,
 }
 
@@ -150,6 +158,8 @@ const zodSchemaMap: Record<string, z.ZodType<unknown>> = {
   systems: SystemSchema,
   traits: TraitEntitySchema,
   vehicles: VehicleSchema,
+  sources: SourceEntitySchema,
+  'tech-levels': TechLevelEntitySchema,
   'catalog-categories': CatalogCategorySchema,
 }
 
@@ -181,6 +191,8 @@ const schemaMap: Record<string, Record<string, unknown>> = {
   systems: systemsSchema,
   traits: traitsSchema,
   vehicles: vehiclesSchema,
+  sources: sourcesSchema,
+  'tech-levels': techLevelsSchema,
   'catalog-categories': catalogCategoriesSchema,
 }
 
@@ -258,7 +270,7 @@ function createModel<T>(schemaId: string): BaseModel<T> & {
   // Validate and parse data using Zod
   const validatedData = validateAndParseData(schemaId, rawData, zodSchema as z.ZodType<T>)
 
-  const displayNameValue = schemaDisplayNames[schemaId]?.plural || schemaId
+  const displayNameValue = schemaDisplayNames[schemaId]?.singular || schemaId
 
   const model = new BaseModel<T>(validatedData, schema, schemaId, displayNameValue)
 
@@ -331,6 +343,8 @@ const schemaDisplayNames: Record<string, { singular: string; plural: string }> =
   systems: { singular: 'System', plural: 'Systems' },
   traits: { singular: 'Trait', plural: 'Traits' },
   vehicles: { singular: 'Vehicle', plural: 'Vehicles' },
+  sources: { singular: 'Source', plural: 'Sources' },
+  'tech-levels': { singular: 'Tech Level', plural: 'Tech Levels' },
   'catalog-categories': { singular: 'Catalog Category', plural: 'Catalog Categories' },
 }
 

@@ -32,6 +32,8 @@ import type {
   SURefMetaAction,
   SURefMetaCrawlerTechLevel,
   SURefGuide,
+  SURefSource,
+  SURefTechLevel,
   SURefCatalogCategory,
   SURefEntity,
   SURefEnumSchemaName,
@@ -110,6 +112,8 @@ export type SchemaToEntityMap = {
   systems: SURefSystem
   traits: SURefTrait
   vehicles: SURefVehicle
+  sources: SURefSource
+  'tech-levels': SURefTechLevel
   'catalog-categories': SURefCatalogCategory
 }
 
@@ -142,6 +146,8 @@ export const EntitySchemaNames = new Set<EntitySchemaName>([
   'systems',
   'traits',
   'vehicles',
+  'sources',
+  'tech-levels',
 ])
 
 // Runtime mapping from schema names to model property names
@@ -170,36 +176,40 @@ export const SchemaToModelMap = {
   systems: 'Systems',
   traits: 'Traits',
   vehicles: 'Vehicles',
+  sources: 'Sources',
+  'tech-levels': 'TechLevels',
   'catalog-categories': 'CatalogCategories',
 } as const
 
-// Runtime mapping from schema names to display names
+// Runtime mapping from schema names to display names (singular)
 export const SchemaToDisplayName = {
-  abilities: 'Abilities',
-  'ability-tree-requirements': 'Ability Tree Requirements',
-  actions: 'actions',
-  'bio-titans': 'Bio-Titans',
+  abilities: 'Ability',
+  'ability-tree-requirements': 'Ability Tree Requirement',
+  actions: 'Action',
+  'bio-titans': 'Bio-Titan',
   chassis: 'Chassis',
-  classes: 'Classes',
-  'crawler-bays': 'Crawler Bays',
-  'crawler-tech-levels': 'Crawler Tech Levels',
-  crawlers: 'Crawlers',
-  creatures: 'Creatures',
-  distances: 'Distances',
-  drones: 'Drones',
+  classes: 'Class',
+  'crawler-bays': 'Crawler Bay',
+  'crawler-tech-levels': 'Crawler Tech Level',
+  crawlers: 'Crawler',
+  creatures: 'Creature',
+  distances: 'Distance',
+  drones: 'Drone',
   equipment: 'Equipment',
-  factions: 'factions',
-  guides: 'Guides',
-  keywords: 'Keywords',
+  factions: 'Faction',
+  guides: 'Guide',
+  keywords: 'Keyword',
   meld: 'Meld',
-  modules: 'Modules',
-  npcs: 'NPCs',
-  'roll-tables': 'Roll Tables',
-  squads: 'Squads',
-  systems: 'Systems',
-  traits: 'Traits',
-  vehicles: 'Vehicles',
-  'catalog-categories': 'Catalog Categories',
+  modules: 'Module',
+  npcs: 'NPC',
+  'roll-tables': 'Roll Table',
+  squads: 'Squad',
+  systems: 'System',
+  traits: 'Trait',
+  vehicles: 'Vehicle',
+  sources: 'Source',
+  'tech-levels': 'Tech Level',
+  'catalog-categories': 'Catalog Category',
 } as const
 
 // Auto-generate models from schema catalog (synchronous)
@@ -236,6 +246,8 @@ export class SalvageUnionReference {
   static Systems = models.Systems as ModelWithMetadata<SchemaToEntityMap['systems']>
   static Traits = models.Traits as ModelWithMetadata<SchemaToEntityMap['traits']>
   static Vehicles = models.Vehicles as ModelWithMetadata<SchemaToEntityMap['vehicles']>
+  static Sources = models.Sources as ModelWithMetadata<SURefSource>
+  static TechLevels = models.TechLevels as ModelWithMetadata<SURefTechLevel>
   static CatalogCategories = models.CatalogCategories as ModelWithMetadata<SURefCatalogCategory>
 
   /**

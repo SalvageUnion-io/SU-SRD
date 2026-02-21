@@ -31,7 +31,7 @@
   {
     "id": "reference",
     "name": "Reference",
-    "schemas": ["distances", "keywords", "roll-tables", "traits"]
+    "schemas": ["distances", "keywords", "roll-tables", "sources", "tech-levels", "traits"]
   },
   {
     "id": "guides",

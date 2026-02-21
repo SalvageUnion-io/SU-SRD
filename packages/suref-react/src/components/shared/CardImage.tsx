@@ -41,7 +41,7 @@ export function CardImage({ url, alt, compact, editable }: CardImageProps) {
   }
 
   const hasCustom = !!editable?.customUrl
-  const width = compact ? '180px' : '300px'
+  const width = compact ? '180px' : '220px'
 
   // Nothing to show and not editable — hide entirely
   if (!displayUrl && !editable) return null

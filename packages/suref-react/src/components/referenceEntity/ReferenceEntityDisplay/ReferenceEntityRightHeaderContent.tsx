@@ -6,13 +6,11 @@ import type { getReferenceEntityFontSizes } from './referenceEntityDisplayTypes'
 
 type ReferenceEntityRightHeaderContentProps = {
   data: SURefEntity
-  compact: boolean
   fontSize: ReturnType<typeof getReferenceEntityFontSizes>
 }
 
 export function ReferenceEntityRightHeaderContent({
   data,
-  compact,
   fontSize,
 }: ReferenceEntityRightHeaderContentProps) {
   const description = 'description' in data ? data.description : undefined
@@ -25,8 +23,7 @@ export function ReferenceEntityRightHeaderContent({
       className={cn(
         'min-w-0 shrink overflow-hidden text-right font-medium italic text-su-white',
         fontSize.xs,
-        'leading-tight',
-        compact && 'max-w-[110px]'
+        'leading-tight'
       )}
       style={{ whiteSpace: 'normal' }}
     >

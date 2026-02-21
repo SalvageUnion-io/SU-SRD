@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import { SalvageUnionReference, getNpc } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
-import { SectionSeparator, ReferenceEntityDisplay, Text, DetailIcon } from 'suref-react'
+import { ReferenceEntityDisplay, Text, DetailIcon } from 'suref-react'
 import type { ReferenceEntityControl } from 'suref-react'
 import { ArrowLeftRight, Flame } from 'lucide-react'
 import { useAutosave } from '../../hooks/useAutosave'
@@ -24,8 +24,6 @@ type CrawlerBaysSectionProps = {
   armamentControls?: ReferenceEntityControl[]
   /** Callback to open the scrap conversion dialog (shown inside Trading Bay) */
   onOpenScrapConversion?: () => void
-  /** Render function for Storage Bay content — receives bay damage state */
-  storageContent?: (bayDamaged: boolean) => React.ReactNode
 }
 
 export function CrawlerBaysSection({
@@ -34,11 +32,8 @@ export function CrawlerBaysSection({
   onSave,
   armamentControls,
   onOpenScrapConversion,
-  storageContent,
 }: CrawlerBaysSectionProps) {
   const allBays = SalvageUnionReference.CrawlerBays.all()
-  const regularBays = allBays.filter((b) => b.name !== 'Storage Bay')
-  const storageBay = allBays.find((b) => b.name === 'Storage Bay')
 
   // Local state for immediate UI feedback; useAutosave debounces the save
   const [localBayNpcs, setLocalBayNpcs] = useState<Record<string, BayNpcData>>(
@@ -106,7 +101,6 @@ export function CrawlerBaysSection({
 
     const isArmamentBay = bay.name === 'Armament Bay'
     const isTradingBay = bay.name === 'Trading Bay'
-    const isStorageBay = bay.name === 'Storage Bay'
 
     // Build controls: damage toggle + bay-specific controls + detail button
     const baySpecificControls: ReferenceEntityControl[] = []
@@ -211,7 +205,7 @@ export function CrawlerBaysSection({
       ) : undefined
 
     return (
-      <div key={bay.id} className="mb-4 break-inside-avoid">
+      <div key={bay.id}>
         <ReferenceEntityDisplay
           data={bayEntity}
           compact
@@ -232,9 +226,7 @@ export function CrawlerBaysSection({
             onNameChange: (name) => handleFieldChange(bay.id, 'name', name),
             onNameBlur: flush,
             readOnly: readOnly,
-            showNpcSeparator: isStorageBay,
           }}
-          rightContent={isStorageBay && storageContent ? storageContent(isDamaged) : undefined}
           damageOverlayText={isDamaged ? bay.damagedEffect : undefined}
         />
       </div>
@@ -243,12 +235,8 @@ export function CrawlerBaysSection({
 
   return (
     <div className="flex flex-col gap-3">
-      <SectionSeparator label="Crawler Bays" />
-
-      {storageBay && <div>{renderBay(storageBay)}</div>}
-
-      <div className="columns-1 gap-4 md:columns-2 lg:columns-3">
-        {regularBays.map((bay) => renderBay(bay))}
+      <div className="grid grid-cols-1 items-start gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {allBays.map((bay) => renderBay(bay))}
       </div>
 
       <BayDetailOverlay

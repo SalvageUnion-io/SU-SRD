@@ -53,7 +53,7 @@ export function PilotMechTab({ pilot, mech, mechRefs, canEdit, compact }: PilotM
   // No mech: show the empty state
   if (!pilot.mech_id || !mech) {
     return (
-      <div className={compact ? 'p-3' : 'p-4'}>
+      <div className={compact ? 'px-3 pb-3' : 'px-4 pb-4'}>
         <PilotMechSection
           pilot={pilot}
           compact={compact}
@@ -279,7 +279,7 @@ function PilotMechTabInner({
 
   if (!canEdit) {
     return (
-      <div className={compact ? 'p-3' : 'p-4'}>
+      <div className={compact ? 'px-3 pb-3' : 'px-4 pb-4'}>
         <MechBuilder
           initialState={initialState}
           readOnly
@@ -295,7 +295,7 @@ function PilotMechTabInner({
 
   return (
     <>
-      <div className={compact ? 'p-3' : 'p-4'}>
+      <div className={compact ? 'px-3 pb-3' : 'px-4 pb-4'}>
         <MechBuilder
           initialState={initialState}
           onChange={setBuilderState}

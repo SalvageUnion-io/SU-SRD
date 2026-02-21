@@ -266,7 +266,9 @@
                   "modules",
                   "npcs",
                   "roll-tables",
+                  "sources",
                   "squads",
+                  "tech-levels",
                   "systems",
                   "traits",
                   "vehicles"

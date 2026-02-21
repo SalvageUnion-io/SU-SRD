@@ -1,0 +1,80 @@
+[
+  {
+    "id": "b7a1c2d3-4e5f-6a7b-8c9d-0e1f2a3b4c01",
+    "name": "Tech 1",
+    "techLevel": 1,
+    "source": "Salvage Union Workshop Manual",
+    "page": 1,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Basic industrial equipment, simple mechanisms, antique, obsolete, or scrap built weaponry."
+      }
+    ]
+  },
+  {
+    "id": "b7a1c2d3-4e5f-6a7b-8c9d-0e1f2a3b4c02",
+    "name": "Tech 2",
+    "techLevel": 2,
+    "source": "Salvage Union Workshop Manual",
+    "page": 1,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Core industrial machines, basic weaponry, standard build mechanisms and electronics."
+      }
+    ]
+  },
+  {
+    "id": "b7a1c2d3-4e5f-6a7b-8c9d-0e1f2a3b4c03",
+    "name": "Tech 3",
+    "techLevel": 3,
+    "source": "Salvage Union Workshop Manual",
+    "page": 1,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Basic military grade equipment, specialised industrial equipment, more refined electronics and precision machinery."
+      }
+    ]
+  },
+  {
+    "id": "b7a1c2d3-4e5f-6a7b-8c9d-0e1f2a3b4c04",
+    "name": "Tech 4",
+    "techLevel": 4,
+    "source": "Salvage Union Workshop Manual",
+    "page": 1,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Military grade weaponry and support systems, very specialised industrial gear, high tech electronics and components."
+      }
+    ]
+  },
+  {
+    "id": "b7a1c2d3-4e5f-6a7b-8c9d-0e1f2a3b4c05",
+    "name": "Tech 5",
+    "techLevel": 5,
+    "source": "Salvage Union Workshop Manual",
+    "page": 1,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Corpo mil-tech grade equipment, the very best in the field. Highly specialised industrial gear."
+      }
+    ]
+  },
+  {
+    "id": "b7a1c2d3-4e5f-6a7b-8c9d-0e1f2a3b4c06",
+    "name": "Tech 6",
+    "techLevel": 6,
+    "source": "Salvage Union Workshop Manual",
+    "page": 1,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "State of the art, secret projects that begin with X, bio and nanite tech."
+      }
+    ]
+  }
+]

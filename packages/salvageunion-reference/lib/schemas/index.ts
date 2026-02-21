@@ -91,6 +91,8 @@ import {
   TraitEntitySchema,
   VehicleSchema,
   GuideSchema,
+  SourceEntitySchema,
+  TechLevelEntitySchema,
   CatalogCategorySchema,
 } from './entities.js'
 
@@ -177,6 +179,8 @@ export type SURefSystem = z.infer<typeof SystemSchema>
 export type SURefTrait = z.infer<typeof TraitEntitySchema>
 export type SURefVehicle = z.infer<typeof VehicleSchema>
 export type SURefGuide = z.infer<typeof GuideSchema>
+export type SURefSource = z.infer<typeof SourceEntitySchema>
+export type SURefTechLevel = z.infer<typeof TechLevelEntitySchema>
 export type SURefCatalogCategory = z.infer<typeof CatalogCategorySchema>
 
 // Union types
@@ -198,8 +202,10 @@ export type SURefEntity =
   | SURefModule
   | SURefNPC
   | SURefRollTable
+  | SURefSource
   | SURefSquad
   | SURefSystem
+  | SURefTechLevel
   | SURefTrait
   | SURefVehicle
 
@@ -221,6 +227,8 @@ export type SURefMetaEntity =
   | SURefMetaAction
   | SURefMetaCrawlerTechLevel
   | SURefGuide
+  | SURefSource
+  | SURefTechLevel
   | SURefModule
   | SURefNPC
   | SURefRollTable

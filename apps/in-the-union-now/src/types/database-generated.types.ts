@@ -409,6 +409,7 @@ export type Database = {
           hp: number
           id: string
           image_path: string | null
+          in_downtime: boolean
           is_boarded: boolean
           keepsake: string | null
           keepsake_used: boolean | null
@@ -436,6 +437,7 @@ export type Database = {
           hp?: number
           id?: string
           image_path?: string | null
+          in_downtime?: boolean
           is_boarded?: boolean
           keepsake?: string | null
           keepsake_used?: boolean | null
@@ -463,6 +465,7 @@ export type Database = {
           hp?: number
           id?: string
           image_path?: string | null
+          in_downtime?: boolean
           is_boarded?: boolean
           keepsake?: string | null
           keepsake_used?: boolean | null

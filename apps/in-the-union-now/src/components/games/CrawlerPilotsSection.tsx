@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { SectionSeparator, Text } from 'suref-react'
+import { Text } from 'suref-react'
 import { usePilotsForCrawler, usePilotAbilityCounts } from '../../hooks/usePilots'
 import { useMechMap } from '../../hooks/useMechMap'
 import { Skeleton } from '../ui/skeleton'
@@ -23,7 +23,6 @@ export function CrawlerPilotsSection({ crawlerId }: CrawlerPilotsSectionProps) {
 
   return (
     <div className="flex flex-col gap-3">
-      <SectionSeparator label="Pilots" />
       {isLoading ? (
         <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
           <Skeleton className="h-[40px] rounded-md" />

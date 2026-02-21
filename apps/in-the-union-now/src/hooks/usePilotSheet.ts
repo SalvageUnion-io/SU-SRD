@@ -44,6 +44,7 @@ export type PilotEditConfig = {
   onDelete: () => void
   onToggleVisibility: () => void
   onToggleBoarded: () => void
+  onToggleDowntime: () => void
   isDeleting: boolean
 }
 
@@ -343,9 +344,21 @@ export function usePilotSheet(pilotId: string) {
     const mechLabel = mech?.pattern_name || chassisName || 'mech'
     const msg = pilot.is_boarded
       ? `${pilot.callsign} has disembarked ${mechLabel}`
-      : `${pilot.callsign} has boarded ${mechLabel}`
+      : `${pilot.callsign} has embarked ${mechLabel}`
     handlePilotUpdate({ is_boarded: !pilot.is_boarded }, msg)
   }, [pilot, mech, chassisName, handlePilotUpdate])
+
+  const handleToggleDowntime = useCallback(() => {
+    if (!pilot) return
+    const entering = !pilot.in_downtime
+    const msg = entering
+      ? `${pilot.callsign} entered downtime`
+      : `${pilot.callsign} exited downtime`
+    handlePilotUpdate(
+      entering ? { in_downtime: true, is_boarded: false } : { in_downtime: false },
+      msg
+    )
+  }, [pilot, handlePilotUpdate])
 
   const editConfig: PilotEditConfig | undefined =
     access?.canView && user
@@ -363,6 +376,7 @@ export function usePilotSheet(pilotId: string) {
           onDelete: handleDelete,
           onToggleVisibility: handleToggleVisibility,
           onToggleBoarded: handleToggleBoarded,
+          onToggleDowntime: handleToggleDowntime,
           isDeleting: deletePilot.isPending,
         }
       : undefined

@@ -105,15 +105,12 @@ export function useChassisPatternConfig(
     <>
       {isLegalStartingMech && (
         <DataValueDisplayView
-          item={{ label: 'Legal Starting Mech', type: 'meta' }}
+          item={{ label: 'Legal Starting Pattern', type: 'meta' }}
           compact={compact}
         />
       )}
       {chassisName && (
-        <DataValueDisplayView
-          item={{ label: `${chassisName} Chassis`, type: 'meta' }}
-          compact={compact}
-        />
+        <DataValueDisplayView item={{ label: 'Chassis', value: chassisName }} compact={compact} />
       )}
     </>
   )

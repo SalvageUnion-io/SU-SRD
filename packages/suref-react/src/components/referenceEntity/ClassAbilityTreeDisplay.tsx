@@ -76,7 +76,7 @@ function TreeSection({
   return (
     <div className="space-y-1.5">
       <div className="pt-2">
-        <SectionSeparator label={`${tree} Tree`} compact />
+        <SectionSeparator label={tree} value="Tree" compact />
       </div>
       {abilities.map((ability) => (
         <AbilityTreeListing
@@ -102,14 +102,14 @@ export function ClassAbilityTreeDisplay({
   return (
     <div className="space-y-1.5">
       {hasCoreTrees && (
-        <div className="grid grid-cols-3 gap-4 max-[480px]:grid-cols-1">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           {trees.coreTrees.map((group) => (
             <TreeSection key={group.tree} {...group} activeAbilityIds={activeAbilityIds} />
           ))}
         </div>
       )}
       {hasSpecialTrees && (
-        <div className="grid grid-cols-2 gap-4 max-[480px]:grid-cols-1">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {trees.advancedTree && (
             <TreeSection {...trees.advancedTree} activeAbilityIds={activeAbilityIds} />
           )}

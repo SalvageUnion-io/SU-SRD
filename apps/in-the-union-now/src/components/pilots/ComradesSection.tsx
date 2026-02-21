@@ -9,7 +9,6 @@ type ComradesSectionProps = {
   pilotRefs: EntityRefRow[]
   mechRefs: EntityRefRow[]
   mechChassis?: SURefChassis
-  compact?: boolean
   mechId?: string
   userId?: string
   readOnly?: boolean
@@ -20,7 +19,6 @@ export function ComradesSection({
   pilotRefs,
   mechRefs,
   mechChassis,
-  compact,
   mechId,
   userId,
   readOnly,
@@ -34,7 +32,7 @@ export function ComradesSection({
   if (comrades.length === 0) return null
 
   return (
-    <div className={compact ? 'space-y-2' : 'space-y-3'}>
+    <div className="space-y-3">
       {comrades.map((entry) => (
         <div key={entry.entity.id}>
           <Text className="mb-1 text-xs text-su-fg-muted">From {entry.sourceName}</Text>

@@ -141,7 +141,10 @@ export function ActionsSection({
       if (!action.comradeEntity) return action
       const custom = comradeNameMap.get(action.comradeEntity.id)
       if (!custom) return action
-      return { ...action, sourceLabelOverride: custom }
+      return {
+        ...action,
+        sourceLabelOverride: `${action.comradeEntity.name}, \u201C${custom}\u201D`,
+      }
     })
   }, [comradeActionsRaw, comradeNameMap])
   // Separate trait sets by source — variable-currency actions use the set matching
@@ -631,7 +634,7 @@ function ActionItem({
   const mechUnboarded = isMechAction && !isBoarded
 
   const disabledReason = mechUnboarded
-    ? 'Board your mech to use'
+    ? 'Embark your mech to use'
     : computeDisabledReason(
         action,
         pilot,
@@ -697,6 +700,7 @@ function ActionItem({
 // ---------------------------------------------------------------------------
 
 const BREAKPOINTS = [
+  { min: 1280, cols: 4 }, // xl
   { min: 1024, cols: 3 }, // lg
   { min: 640, cols: 2 }, // sm
 ] as const

@@ -10,7 +10,7 @@ import {
   ClassAbilityTreeDisplay,
 } from 'suref-react'
 import type { ReferenceEntityControl, DisplayCardTab, StatItem } from 'suref-react'
-import { Eye, EyeOff, LogIn, LogOut, Settings, Trash2 } from 'lucide-react'
+import { Eye, EyeOff, LogIn, LogOut, Settings, Tent, Trash2 } from 'lucide-react'
 import { findChassisById, findClassName } from '../../lib/entityHelpers'
 import { IsolatedStatValue } from '../shared/IsolatedStatValue'
 import { SheetFooter } from '../shared/SheetFooter'
@@ -52,11 +52,9 @@ type PlayerPilotDisplayProps = {
 function PilotAbilityTrees({
   pilotClass,
   pilotRefs,
-  compact,
 }: {
   pilotClass: SURefClass
   pilotRefs: EntityRefRow[]
-  compact: boolean
 }) {
   const activeAbilityIds = useMemo(
     () =>
@@ -64,11 +62,7 @@ function PilotAbilityTrees({
     [pilotRefs]
   )
 
-  return (
-    <div className={compact ? 'py-3' : 'py-4'}>
-      <ClassAbilityTreeDisplay classEntity={pilotClass} activeAbilityIds={activeAbilityIds} />
-    </div>
-  )
+  return <ClassAbilityTreeDisplay classEntity={pilotClass} activeAbilityIds={activeAbilityIds} />
 }
 
 export function PlayerPilotDisplay({
@@ -122,27 +116,39 @@ export function PlayerPilotDisplay({
   }, [listing, editConfig])
 
   const boardControl: ReferenceEntityControl | undefined = useMemo(() => {
-    if (listing || !editConfig || !mech) return undefined
+    if (listing || !editConfig || !mech || pilot.in_downtime) return undefined
     return {
       key: 'board',
       icon: pilot.is_boarded ? LogOut : LogIn,
       onClick: editConfig.onToggleBoarded,
-      ariaLabel: pilot.is_boarded ? 'Disembark mech' : 'Board mech',
+      ariaLabel: pilot.is_boarded ? 'Disembark mech' : 'Embark mech',
       variant: pilot.is_boarded ? ('danger' as const) : ('primary' as const),
       className: pilot.is_boarded
         ? 'bg-su-rust text-su-white hover:bg-red-700'
         : 'bg-su-green text-su-white hover:bg-su-green/80',
     }
-  }, [listing, editConfig, mech, pilot.is_boarded])
+  }, [listing, editConfig, mech, pilot.is_boarded, pilot.in_downtime])
+
+  const downtimeControl: ReferenceEntityControl | undefined = useMemo(() => {
+    if (listing || !editConfig) return undefined
+    return {
+      key: 'downtime',
+      icon: Tent,
+      onClick: editConfig.onToggleDowntime,
+      ariaLabel: pilot.in_downtime ? 'Exit downtime' : 'Enter downtime',
+      variant: pilot.in_downtime ? ('primary' as const) : ('ghost' as const),
+      className: pilot.in_downtime ? 'bg-su-pink text-su-white hover:bg-su-pink/80' : undefined,
+    }
+  }, [listing, editConfig, pilot.in_downtime])
 
   const controls = useMemo(() => {
     if (controlsProp) return controlsProp
     if (listing) return defaultControls
-    const sheetControls = [settingsControl, boardControl].filter(
+    const sheetControls = [boardControl, downtimeControl, settingsControl].filter(
       Boolean
     ) as ReferenceEntityControl[]
     return sheetControls.length > 0 ? sheetControls : undefined
-  }, [controlsProp, listing, defaultControls, settingsControl, boardControl])
+  }, [controlsProp, listing, defaultControls, settingsControl, boardControl, downtimeControl])
 
   // --- Mode mapping ---
   const mode = listing ? 'listing' : compact ? 'compact' : ('full' as const)
@@ -165,7 +171,7 @@ export function PlayerPilotDisplay({
         {chassisName}
       </Text>
       {patternName && (
-        <Text variant="pseudoheader" as="span" className={badgeTextClass}>
+        <Text variant="pseudoheaderInverse" as="span" className={badgeTextClass}>
           {patternName}
         </Text>
       )}
@@ -253,7 +259,7 @@ export function PlayerPilotDisplay({
               >
                 {pilotClassName}
               </Text>
-              <Text variant="pseudoheader" as="span" className={badgeTextClass}>
+              <Text variant="pseudoheaderInverse" as="span" className={badgeTextClass}>
                 {`\u201C${pilot.callsign}\u201D`}
               </Text>
             </span>
@@ -285,16 +291,12 @@ export function PlayerPilotDisplay({
         label: 'Abilities',
         activeColor: 'rgb(239, 137, 79)',
         content: pilotClass ? (
-          <div className={compact ? 'p-3' : 'p-4'}>
+          <div className={compact ? 'px-3 pb-3' : 'px-4 pb-4'}>
             <IsolatedStatValue
               stats={[{ key: 'tp', label: 'TP', value: pilot.tp }]}
-              className="mb-3 ml-auto"
+              className="mb-1.5 ml-auto"
             />
-            <PilotAbilityTrees
-              pilotClass={pilotClass}
-              pilotRefs={pilotRefs ?? []}
-              compact={compact}
-            />
+            <PilotAbilityTrees pilotClass={pilotClass} pilotRefs={pilotRefs ?? []} />
           </div>
         ) : null,
       },
@@ -320,12 +322,11 @@ export function PlayerPilotDisplay({
         label: 'Comrades',
         activeColor: 'rgb(140, 75, 56)',
         content: (
-          <div className={compact ? 'p-3' : 'p-4'}>
+          <div className={compact ? 'px-3 pb-3' : 'px-4 pb-4'}>
             <ComradesSection
               pilotRefs={pilotRefs ?? []}
               mechRefs={mechRefs ?? []}
               mechChassis={mechChassisProp}
-              compact={compact}
               mechId={mech?.id}
               userId={editConfig?.userId}
               readOnly={!canEdit}
@@ -407,11 +408,26 @@ export function PlayerPilotDisplay({
       />
     ) : undefined
 
+  const stripeStyle =
+    pilot.in_downtime || isBoarded
+      ? {
+          backgroundImage: [
+            isBoarded &&
+              'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(122,151,138,0.45) 10px, rgba(122,151,138,0.45) 20px)',
+            pilot.in_downtime &&
+              'repeating-linear-gradient(-45deg, transparent, transparent 10px, rgba(206,88,152,0.35) 10px, rgba(206,88,152,0.35) 20px)',
+          ]
+            .filter(Boolean)
+            .join(', '),
+        }
+      : undefined
+
   return (
     <>
       <DisplayCard
         stickyHeader={!listing}
-        headerBg={isBoarded ? 'bg-su-green' : (cardColorProp ?? 'bg-su-orange')}
+        headerBg={cardColorProp ?? 'bg-su-orange'}
+        headerBgStyle={stripeStyle}
         bodyPadding="p-4"
         mode={mode}
         headerContent={headerContent}
@@ -435,6 +451,7 @@ export function PlayerPilotDisplay({
         controls={controls}
         defaultTabActiveColor={isBoarded ? 'rgb(239, 137, 79)' : undefined}
         footerBg={isBoarded ? 'bg-su-orange' : undefined}
+        footerBgStyle={stripeStyle}
         footerContent={footerContent}
       >
         <div className="space-y-4">
@@ -567,9 +584,9 @@ export function PlayerPilotDisplay({
               <button
                 type="button"
                 className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-su-black bg-su-pink px-3 py-1.5 font-mono text-sm font-semibold uppercase text-su-white transition-colors hover:bg-su-pink/80"
-                onClick={() => {}}
+                onClick={editConfig.onToggleDowntime}
               >
-                Trigger Downtime
+                {pilot.in_downtime ? 'Exit Downtime' : 'Trigger Downtime'}
               </button>
             </div>
           </div>

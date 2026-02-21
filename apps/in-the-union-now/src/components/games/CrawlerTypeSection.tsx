@@ -1,7 +1,7 @@
 import { useMemo, useCallback, useState } from 'react'
 import { SalvageUnionReference, getNpc } from 'salvageunion-reference'
 import type { SURefEntity, SURefMetaAction } from 'salvageunion-reference'
-import { Text, SectionSeparator, ReferenceEntityDisplay, NestedActionDisplay } from 'suref-react'
+import { Text, ReferenceEntityDisplay, NestedActionDisplay } from 'suref-react'
 import { StatControl } from 'suref-react'
 import { LabeledInput } from '../shared/LabeledInput'
 import { useAutosave } from '../../hooks/useAutosave'
@@ -155,7 +155,6 @@ export function CrawlerTypeSection({
 
   return (
     <div className="flex flex-col gap-3">
-      <SectionSeparator label="Crawler Type" />
       <ReferenceEntityDisplay
         data={crawlerType}
         compact

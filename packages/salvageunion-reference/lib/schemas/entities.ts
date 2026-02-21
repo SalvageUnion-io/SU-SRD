@@ -188,6 +188,14 @@ export const DistanceSchema = BaseEntitySchema.extend({
 }).strict()
 
 /**
+ * Tech level descriptions for Salvage Union
+ */
+export const TechLevelEntitySchema = BaseEntitySchema.extend({
+  techLevel: PositiveIntegerSchema,
+  content: ContentSchema.optional(),
+}).strict()
+
+/**
  * Autonomous drones in Salvage Union
  */
 export const DroneSchema = BaseEntitySchema.extend({ ...MechanicalEntitySchema.shape })
@@ -305,6 +313,13 @@ export const GuideSchema = BaseEntitySchema.extend({
     .describe('Hex color for entity display header/footer'),
   steps: z.array(GuideStepSchema).describe('Ordered sequence of steps'),
   repeatable: z.boolean().optional().describe('Whether this guide can be executed multiple times'),
+}).strict()
+
+/**
+ * Source books and expansions for Salvage Union content
+ */
+export const SourceEntitySchema = BaseEntitySchema.extend({
+  purchaseLink: z.string().url().optional().describe('URL where this source can be purchased'),
 }).strict()
 
 /**

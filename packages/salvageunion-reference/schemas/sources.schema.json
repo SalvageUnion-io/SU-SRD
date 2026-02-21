@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://salvageunion.com/schemas/factions.schema.json",
-  "title": "factions",
+  "$id": "https://salvageunion.com/schemas/sources.schema.json",
+  "title": "sources",
   "description": "",
   "type": "array",
   "items": {
@@ -104,82 +104,13 @@
         ]
       },
       "page": { "type": "integer", "exclusiveMinimum": 0, "maximum": 9007199254740991 },
-      "goals": { "type": "string", "description": "The goals and motivations of this faction" },
-      "assets": {
+      "purchaseLink": {
+        "description": "URL where this source can be purchased",
         "type": "string",
-        "description": "The assets and resources controlled by this faction"
-      },
-      "weaknesses": {
-        "type": "string",
-        "description": "The weaknesses and vulnerabilities of this faction"
-      },
-      "formation": {
-        "type": "array",
-        "items": {
-          "type": "object",
-          "properties": {
-            "chassis": { "type": "string" },
-            "pattern": { "type": "string" },
-            "schema": {
-              "type": "string",
-              "enum": [
-                "abilities",
-                "ability-tree-requirements",
-                "bio-titans",
-                "chassis",
-                "classes",
-                "crawler-bays",
-                "crawler-tech-levels",
-                "crawlers",
-                "creatures",
-                "distances",
-                "drones",
-                "equipment",
-                "guides",
-                "keywords",
-                "factions",
-                "meld",
-                "modules",
-                "npcs",
-                "roll-tables",
-                "sources",
-                "squads",
-                "tech-levels",
-                "systems",
-                "traits",
-                "vehicles"
-              ]
-            },
-            "source": {
-              "type": "string",
-              "enum": [
-                "Salvage Union Workshop Manual",
-                "Mech Monday",
-                "We Were Here First!",
-                "Rainmaker",
-                "False Flag"
-              ]
-            },
-            "page": { "type": "integer", "exclusiveMinimum": 0, "maximum": 9007199254740991 },
-            "quantity": { "type": "integer", "exclusiveMinimum": 0, "maximum": 9007199254740991 }
-          },
-          "required": ["chassis", "source", "page"],
-          "additionalProperties": false
-        },
-        "description": "The mechs that make up this faction formation"
+        "format": "uri"
       }
     },
-    "required": [
-      "id",
-      "indexable",
-      "blackMarket",
-      "name",
-      "source",
-      "page",
-      "goals",
-      "assets",
-      "weaknesses"
-    ],
+    "required": ["id", "indexable", "blackMarket", "name", "source", "page"],
     "additionalProperties": false
   }
 }

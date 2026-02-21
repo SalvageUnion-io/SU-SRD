@@ -29,6 +29,8 @@ import type {
   SURefModule,
   SURefNPC,
   SURefRollTable,
+  SURefSource,
+  SURefTechLevel,
   SURefSquad,
   SURefSystem,
   SURefTrait,
@@ -56,8 +58,10 @@ export type SURefEntity =
   | SURefModule
   | SURefNPC
   | SURefRollTable
+  | SURefSource
   | SURefSquad
   | SURefSystem
+  | SURefTechLevel
   | SURefTrait
   | SURefVehicle
 
@@ -82,6 +86,8 @@ export type SURefMetaEntity =
   | SURefModule
   | SURefNPC
   | SURefRollTable
+  | SURefSource
+  | SURefTechLevel
   | SURefSquad
   | SURefSystem
   | SURefTrait

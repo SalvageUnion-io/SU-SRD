@@ -117,7 +117,7 @@ export function BlockContentRendererView({
             {labelText && (
               <div
                 className={cn(
-                  'mb-2 break-words font-medium leading-relaxed whitespace-normal text-su-black',
+                  'mb-2 break-words font-medium leading-snug whitespace-normal text-su-black',
                   fontSize
                 )}
               >
@@ -187,10 +187,18 @@ function ContentBlock({
       return (
         <div
           className={cn(
-            'mb-1 break-words font-medium leading-relaxed whitespace-normal text-su-black',
+            'mb-1 break-words pl-2 font-medium leading-snug whitespace-normal text-su-black',
             fontSize
           )}
-          style={{ overflowWrap: 'break-word' }}
+          style={{
+            overflowWrap: 'break-word',
+            ...(borderColor
+              ? {
+                  borderLeft: `3px solid ${borderColor}`,
+                  paddingLeft: compact ? '0.5rem' : '0.75rem',
+                }
+              : {}),
+          }}
         >
           {parsedValue}
         </div>
@@ -213,7 +221,7 @@ function ContentBlock({
     case 'list-item':
       return (
         <div
-          className={cn('mb-2 pl-2 font-medium leading-relaxed text-su-black', fontSize)}
+          className={cn('mb-2 pl-2 font-medium leading-snug text-su-black', fontSize)}
           style={
             borderColor
               ? {
@@ -249,10 +257,18 @@ function ContentBlock({
       return (
         <div
           className={cn(
-            'max-w-full overflow-hidden break-words font-normal italic leading-relaxed whitespace-normal text-su-black',
+            'max-w-full overflow-hidden break-words pl-2 font-normal italic leading-snug whitespace-normal text-su-black',
             fontSize
           )}
-          style={{ overflowWrap: 'break-word' }}
+          style={{
+            overflowWrap: 'break-word',
+            ...(borderColor
+              ? {
+                  borderLeft: `3px solid ${borderColor}`,
+                  paddingLeft: compact ? '0.5rem' : '0.75rem',
+                }
+              : {}),
+          }}
         >
           {parsedValue}
         </div>
@@ -262,10 +278,18 @@ function ContentBlock({
       return (
         <div
           className={cn(
-            'mb-1 break-words font-normal italic leading-relaxed whitespace-normal text-su-grey-dark',
+            'mb-1 break-words pl-2 font-normal italic leading-snug whitespace-normal text-su-grey-dark',
             fontSize
           )}
-          style={{ overflowWrap: 'break-word' }}
+          style={{
+            overflowWrap: 'break-word',
+            ...(borderColor
+              ? {
+                  borderLeft: `3px solid ${borderColor}`,
+                  paddingLeft: compact ? '0.5rem' : '0.75rem',
+                }
+              : {}),
+          }}
         >
           {parsedValue}
         </div>
@@ -273,13 +297,23 @@ function ContentBlock({
 
     case 'label':
       return (
-        <div>
+        <div
+          className="pl-2"
+          style={
+            borderColor
+              ? {
+                  borderLeft: `3px solid ${borderColor}`,
+                  paddingLeft: compact ? '0.5rem' : '0.75rem',
+                }
+              : undefined
+          }
+        >
           {block.label && (
             <Text variant="pseudoheader" className="mb-1 text-xs">
               {block.label}
             </Text>
           )}
-          <div className={cn('font-medium leading-relaxed text-su-black', fontSize)}>
+          <div className={cn('font-medium leading-snug text-su-black', fontSize)}>
             {parsedValue}
           </div>
         </div>
@@ -288,7 +322,17 @@ function ContentBlock({
     default:
       // Fallback for unknown types - render as paragraph
       return (
-        <div className={cn('font-medium leading-relaxed text-su-black', fontSize)}>
+        <div
+          className={cn('pl-2 font-medium leading-snug text-su-black', fontSize)}
+          style={
+            borderColor
+              ? {
+                  borderLeft: `3px solid ${borderColor}`,
+                  paddingLeft: compact ? '0.5rem' : '0.75rem',
+                }
+              : undefined
+          }
+        >
           {parsedValue}
         </div>
       )

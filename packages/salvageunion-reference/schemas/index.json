@@ -13,7 +13,7 @@
       "schemaFile": "schemas/abilities.schema.json",
       "itemCount": 103,
       "requiredFields": [],
-      "displayName": "Abilities"
+      "displayName": "Ability"
     },
     {
       "id": "ability-tree-requirements",
@@ -23,7 +23,7 @@
       "schemaFile": "schemas/ability-tree-requirements.schema.json",
       "itemCount": 20,
       "requiredFields": [],
-      "displayName": "Ability Tree Requirements",
+      "displayName": "Ability Tree Requirement",
       "meta": true
     },
     {
@@ -34,7 +34,7 @@
       "schemaFile": "schemas/actions.schema.json",
       "itemCount": 611,
       "requiredFields": [],
-      "displayName": "actions",
+      "displayName": "Action",
       "meta": true
     },
     {
@@ -45,7 +45,7 @@
       "schemaFile": "schemas/bio-titans.schema.json",
       "itemCount": 11,
       "requiredFields": [],
-      "displayName": "Bio-Titans"
+      "displayName": "Bio-Titan"
     },
     {
       "id": "catalog-categories",
@@ -55,7 +55,7 @@
       "schemaFile": "schemas/catalog-categories.schema.json",
       "itemCount": 6,
       "requiredFields": [],
-      "displayName": "Catalog Categories",
+      "displayName": "Catalog Category",
       "meta": true
     },
     {
@@ -76,7 +76,7 @@
       "schemaFile": "schemas/classes.schema.json",
       "itemCount": 10,
       "requiredFields": [],
-      "displayName": "Classes"
+      "displayName": "Class"
     },
     {
       "id": "crawler-bays",
@@ -86,7 +86,7 @@
       "schemaFile": "schemas/crawler-bays.schema.json",
       "itemCount": 10,
       "requiredFields": [],
-      "displayName": "Crawler Bays"
+      "displayName": "Crawler Bay"
     },
     {
       "id": "crawler-tech-levels",
@@ -96,7 +96,7 @@
       "schemaFile": "schemas/crawler-tech-levels.schema.json",
       "itemCount": 6,
       "requiredFields": [],
-      "displayName": "Crawler Tech Levels"
+      "displayName": "Crawler Tech Level"
     },
     {
       "id": "crawlers",
@@ -106,7 +106,7 @@
       "schemaFile": "schemas/crawlers.schema.json",
       "itemCount": 5,
       "requiredFields": [],
-      "displayName": "Crawlers"
+      "displayName": "Crawler"
     },
     {
       "id": "creatures",
@@ -116,7 +116,7 @@
       "schemaFile": "schemas/creatures.schema.json",
       "itemCount": 9,
       "requiredFields": [],
-      "displayName": "Creatures"
+      "displayName": "Creature"
     },
     {
       "id": "distances",
@@ -126,7 +126,7 @@
       "schemaFile": "schemas/distances.schema.json",
       "itemCount": 4,
       "requiredFields": [],
-      "displayName": "Distances"
+      "displayName": "Distance"
     },
     {
       "id": "drones",
@@ -136,7 +136,7 @@
       "schemaFile": "schemas/drones.schema.json",
       "itemCount": 11,
       "requiredFields": [],
-      "displayName": "Drones"
+      "displayName": "Drone"
     },
     {
       "id": "equipment",
@@ -156,7 +156,7 @@
       "schemaFile": "schemas/factions.schema.json",
       "itemCount": 10,
       "requiredFields": [],
-      "displayName": "factions"
+      "displayName": "Faction"
     },
     {
       "id": "guides",
@@ -166,7 +166,7 @@
       "schemaFile": "schemas/guides.schema.json",
       "itemCount": 5,
       "requiredFields": [],
-      "displayName": "guides"
+      "displayName": "Guide"
     },
     {
       "id": "keywords",
@@ -176,7 +176,7 @@
       "schemaFile": "schemas/keywords.schema.json",
       "itemCount": 82,
       "requiredFields": ["name", "source", "page"],
-      "displayName": "Keywords"
+      "displayName": "Keyword"
     },
     {
       "id": "meld",
@@ -196,7 +196,7 @@
       "schemaFile": "schemas/modules.schema.json",
       "itemCount": 73,
       "requiredFields": ["name", "page"],
-      "displayName": "Modules"
+      "displayName": "Module"
     },
     {
       "id": "npcs",
@@ -206,7 +206,7 @@
       "schemaFile": "schemas/npcs.schema.json",
       "itemCount": 9,
       "requiredFields": [],
-      "displayName": "NPCs"
+      "displayName": "NPC"
     },
     {
       "id": "roll-tables",
@@ -216,7 +216,7 @@
       "schemaFile": "schemas/roll-tables.schema.json",
       "itemCount": 79,
       "requiredFields": [],
-      "displayName": "Roll Tables"
+      "displayName": "Roll Table"
     },
     {
       "id": "squads",
@@ -226,7 +226,7 @@
       "schemaFile": "schemas/squads.schema.json",
       "itemCount": 14,
       "requiredFields": [],
-      "displayName": "Squads"
+      "displayName": "Squad"
     },
     {
       "id": "systems",
@@ -236,7 +236,7 @@
       "schemaFile": "schemas/systems.schema.json",
       "itemCount": 118,
       "requiredFields": ["name", "page"],
-      "displayName": "Systems"
+      "displayName": "System"
     },
     {
       "id": "traits",
@@ -246,7 +246,7 @@
       "schemaFile": "schemas/traits.schema.json",
       "itemCount": 45,
       "requiredFields": ["name", "source", "page"],
-      "displayName": "Traits"
+      "displayName": "Trait"
     },
     {
       "id": "vehicles",
@@ -256,7 +256,27 @@
       "schemaFile": "schemas/vehicles.schema.json",
       "itemCount": 7,
       "requiredFields": [],
-      "displayName": "Vehicles"
+      "displayName": "Vehicle"
+    },
+    {
+      "id": "sources",
+      "title": "sources",
+      "description": "Source books and expansions for Salvage Union content",
+      "dataFile": "data/sources.json",
+      "schemaFile": "schemas/sources.schema.json",
+      "itemCount": 5,
+      "requiredFields": [],
+      "displayName": "Source"
+    },
+    {
+      "id": "tech-levels",
+      "title": "tech-levels",
+      "description": "Tech level descriptions for Salvage Union equipment and gear",
+      "dataFile": "data/tech-levels.json",
+      "schemaFile": "schemas/tech-levels.schema.json",
+      "itemCount": 6,
+      "requiredFields": [],
+      "displayName": "Tech Level"
     }
   ]
 }

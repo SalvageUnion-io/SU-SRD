@@ -48,7 +48,7 @@ export function ReferenceEntityFactionData({
           >
             <div
               className={cn(
-                'mb-2 break-words font-medium leading-relaxed whitespace-normal text-su-black',
+                'mb-2 break-words font-medium leading-snug whitespace-normal text-su-black',
                 fontSize.sm
               )}
               style={{ overflowWrap: 'break-word' }}

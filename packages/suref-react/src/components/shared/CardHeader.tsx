@@ -49,6 +49,26 @@ export function CardHeader({
   const hasControls = controls && controls.length > 0
   const hasRightSide = lightweight ? hasControls : !!rightContent || hasControls
 
+  // Compact + right side: single nowrap flex container so left/right never line-break.
+  // flex ratios: left shrinks 1.5× faster, right grows 1.2× more → mild right-side preference.
+  if (compact && hasRightSide) {
+    return (
+      <div className="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-1 lg:flex-nowrap">
+        <div className="flex min-w-0 max-w-[70%] flex-[2_1_auto] items-center gap-0.5 md:max-w-[70%]">
+          {!lightweight && leftContent}
+          <div className="flex min-w-0 flex-col justify-center gap-0.5 overflow-visible">
+            {titleElement}
+            {!lightweight && subtitle}
+          </div>
+        </div>
+        <div className="flex min-w-0 basis-full items-center justify-end gap-1 md:basis-auto md:max-w-[60%] md:flex-[1_2_auto]">
+          {!lightweight && rightContent}
+          {hasControls && <ControlButtons controls={controls} size={controlSize} />}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <>
       <div className={cn('flex min-w-0 flex-1 items-center', compact ? 'gap-0.5' : 'gap-1')}>

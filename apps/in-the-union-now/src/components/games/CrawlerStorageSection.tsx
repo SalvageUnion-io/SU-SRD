@@ -117,34 +117,12 @@ export function CrawlerStorageSection({ crawlerId, userId, readOnly }: CrawlerSt
   const entityItems = useMemo(() => (cargo ?? []).filter((c) => c.schema_ref_id), [cargo])
   const customItems = useMemo(() => (cargo ?? []).filter((c) => !c.schema_ref_id), [cargo])
 
+  const hasItems = entityItems.length > 0 || customItems.length > 0
+
   return (
     <>
-      {/* Add buttons */}
-      {!readOnly && (
-        <div className="flex gap-0">
-          <button
-            type="button"
-            onClick={() => setShowEntityPicker(true)}
-            className={`${EMPTY_SLOT_CLASSES} flex-[7] rounded-r-none border-r-0`}
-          >
-            <Package className="h-3.5 w-3.5" />
-            <span className="font-mono text-xs font-semibold uppercase">Load Storage</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setShowCustomDialog(true)}
-            className={`${EMPTY_SLOT_CLASSES} flex-[3] rounded-l-none`}
-          >
-            <Pencil className="h-3.5 w-3.5" />
-            <span className="font-mono text-xs font-semibold uppercase">Custom</span>
-          </button>
-        </div>
-      )}
-
-      {/* Storage items in a 2-column multi-column layout.
-          The columns wrapper is a BFC that auto-sizes beside the NPC float
-          and expands to full width below it. */}
-      {(entityItems.length > 0 || customItems.length > 0) && (
+      {/* Storage items in a 2-column multi-column layout */}
+      {hasItems ? (
         <div className="columns-2 gap-2 space-y-2">
           {entityItems.map((item) => (
             <div key={item.id} className="break-inside-avoid">
@@ -162,6 +140,32 @@ export function CrawlerStorageSection({ crawlerId, userId, readOnly }: CrawlerSt
               />
             </div>
           ))}
+        </div>
+      ) : (
+        <div className="flex flex-1 items-center justify-center py-8">
+          <span className="font-mono text-sm text-su-black/40">No items in storage</span>
+        </div>
+      )}
+
+      {/* Add buttons — at the bottom */}
+      {!readOnly && (
+        <div className="mt-auto flex gap-0 pt-2">
+          <button
+            type="button"
+            onClick={() => setShowEntityPicker(true)}
+            className={`${EMPTY_SLOT_CLASSES} flex-[7] rounded-r-none border-r-0`}
+          >
+            <Package className="h-3.5 w-3.5" />
+            <span className="font-mono text-xs font-semibold uppercase">Load Storage</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowCustomDialog(true)}
+            className={`${EMPTY_SLOT_CLASSES} flex-[3] rounded-l-none`}
+          >
+            <Pencil className="h-3.5 w-3.5" />
+            <span className="font-mono text-xs font-semibold uppercase">Custom</span>
+          </button>
         </div>
       )}
 

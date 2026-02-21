@@ -12,7 +12,7 @@ describe('calculateBackgroundColor', () => {
     3: 'bg-su-orange-dark',
   }
 
-  it('should return bg-su-black for guides schema with no headerColor', () => {
+  it('should return bg-su-grey-dark for guides schema with no headerColor', () => {
     const result = calculateBackgroundColor(
       'guides',
       '',
@@ -27,7 +27,7 @@ describe('calculateBackgroundColor', () => {
       },
       techLevelColors
     )
-    expect(result).toBe('bg-su-black')
+    expect(result).toBe('bg-su-grey-dark')
   })
 
   it('should return headerColor for guides schema when provided', () => {

@@ -69,10 +69,10 @@ export function MechBuilderHeader({
               className={`inline-flex shrink-0 whitespace-nowrap border border-su-black bg-su-rust px-1 font-mono font-bold uppercase tracking-tight text-white ${compact ? 'text-xs font-normal' : 'text-base font-semibold'}`}
               style={{ lineHeight: 1 }}
             >
-              Legal Starting Mech
+              Legal Starting Pattern
             </span>
           )}
-          <ValueDisplay label={`${chassis.name} Chassis`} compact={compact} />
+          <ValueDisplay label="Chassis" value={chassis.name} compact={compact} />
         </div>
       </div>
     </div>

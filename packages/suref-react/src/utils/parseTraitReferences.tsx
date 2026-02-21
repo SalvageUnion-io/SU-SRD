@@ -22,23 +22,30 @@ export function useParseTraitReferences(text: string | undefined): ReactNode {
       return null
     }
 
-    if (!text.includes('[[')) {
+    const hasTraits = text.includes('[[')
+    const hasParagraphBreaks = text.includes('\n\n')
+
+    if (!hasTraits && !hasParagraphBreaks) {
       return text
     }
 
     const nodes: ReactNode[] = []
     let currentIndex = 0
 
-    const traitRegex = /\[\[\[([^\]]+)\]\s*\(([^)]+)\)\]\]|\[\[([^\]]+)\]\]/g
+    // Combined regex: trait references (both forms) and paragraph breaks
+    const combinedRegex = /\[\[\[([^\]]+)\]\s*\(([^)]+)\)\]\]|\[\[([^\]]+)\]\]|\n\n/g
 
     let match: RegExpExecArray | null
 
-    while ((match = traitRegex.exec(text)) !== null) {
+    while ((match = combinedRegex.exec(text)) !== null) {
       if (match.index > currentIndex) {
         nodes.push(text.substring(currentIndex, match.index))
       }
 
-      if (match[1] !== undefined && match[2] !== undefined) {
+      if (match[0] === '\n\n') {
+        // Paragraph break: block spacer element
+        nodes.push(<span key={`break-${match.index}`} className="block h-3" />)
+      } else if (match[1] !== undefined && match[2] !== undefined) {
         const traitName = match[1].trim()
         const paramValue = match[2].trim()
 
