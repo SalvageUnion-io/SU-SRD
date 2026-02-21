@@ -2,7 +2,7 @@ import { useState, useCallback, useMemo } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { toast } from 'sonner'
 import { showSaveToast } from '../../lib/toastUtils'
-import { useAuthStore } from '../../stores/authStore'
+import { useCurrentUser } from '../../hooks/useCurrentUser'
 import { useUpdateMech, useUpdateMechLoadout, useUpdateMechEntityRef } from '../../hooks/useMechs'
 import { useCreatePattern, usePattern } from '../../hooks/usePatterns'
 import { useAutosave } from '../../hooks/useAutosave'
@@ -41,7 +41,7 @@ type PilotMechTabProps = {
 
 export function PilotMechTab({ pilot, mech, mechRefs, canEdit, compact }: PilotMechTabProps) {
   const navigate = useNavigate()
-  const user = useAuthStore((s) => s.user)
+  const user = useCurrentUser()
   const updateLoadout = useUpdateMechLoadout()
   const updateMechMutation = useUpdateMech()
   const updateEntityRefMutation = useUpdateMechEntityRef()

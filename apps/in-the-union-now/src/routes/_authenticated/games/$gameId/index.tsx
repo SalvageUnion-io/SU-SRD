@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { memo, useCallback, useMemo, useState } from 'react'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import {
   Plus,
@@ -14,7 +14,7 @@ import {
 import { SectionSeparator, Text, ValueDisplay } from 'suref-react'
 import { toast } from 'sonner'
 import { findClassName } from '../../../../lib/entityHelpers'
-import { useAuthStore } from '../../../../stores/authStore'
+import { useCurrentUser } from '../../../../hooks/useCurrentUser'
 import {
   useGame,
   useGameMembers,
@@ -60,12 +60,18 @@ export const Route = createFileRoute('/_authenticated/games/$gameId/')({
 
 function GameShowPage() {
   const { gameId } = Route.useParams()
-  const user = useAuthStore((s) => s.user)
+  const user = useCurrentUser()
   const { data: game, isLoading: gameLoading } = useGame(gameId)
   const { data: members, isLoading: membersLoading } = useGameMembers(gameId)
 
-  // Activity feed: toast notifications for other users' actions
-  useActivityFeed(user?.id)
+  // Activity feed: scoped to this game's entities
+  const gameCrawlerId = game?.crawler_id
+  const relevantIds = useMemo(() => {
+    const ids = new Set<string>([gameId])
+    if (gameCrawlerId) ids.add(gameCrawlerId)
+    return ids
+  }, [gameId, gameCrawlerId])
+  useActivityFeed(user?.id, relevantIds)
 
   // Realtime: sync campaign members and game data across clients
   useRealtimeSubscription('campaign_members', `campaign_id=eq.${gameId}`, [
@@ -146,7 +152,7 @@ function MembersSection({
   members: CampaignMemberRow[]
   isMediator: boolean
 }) {
-  const user = useAuthStore((s) => s.user)
+  const user = useCurrentUser()
   const promote = usePromoteMember()
   const demote = useSelfDemote()
   const uninvite = useUninviteMember()
@@ -208,7 +214,7 @@ function MembersSection({
   )
 }
 
-function MemberRow({
+const MemberRow = memo(function MemberRow({
   member,
   isYou,
   isMediator: isMed,
@@ -280,7 +286,7 @@ function MemberRow({
       )}
     </div>
   )
-}
+})
 
 function AssignedPilotsSection({
   crawlerId,
@@ -289,7 +295,7 @@ function AssignedPilotsSection({
   crawlerId: string
   isMediator: boolean
 }) {
-  const user = useAuthStore((s) => s.user)
+  const user = useCurrentUser()
   const { data: assignedPilots } = usePilotsForCrawler(crawlerId)
   const { data: myPilots } = usePilots(user?.id)
   const assignPilot = useAssignPilotToCrawler()
@@ -365,7 +371,7 @@ function AssignedPilotsSection({
   )
 }
 
-function PilotAssignmentRow({
+const PilotAssignmentRow = memo(function PilotAssignmentRow({
   pilot,
   canAssign,
   canUnassign,
@@ -413,7 +419,7 @@ function PilotAssignmentRow({
       )}
     </div>
   )
-}
+})
 
 function InviteCodeSection({ game }: { game: CampaignRow }) {
   const regenerate = useRegenerateInviteCode()

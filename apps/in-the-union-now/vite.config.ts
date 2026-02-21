@@ -23,6 +23,8 @@ export default defineConfig(({ mode }) => ({
         brotliSize: true,
       }),
   ].filter(Boolean) as PluginOption[],
+  // Note: manualChunks not used — TanStack Start manages its own client/server
+  // chunk splitting, and custom manualChunks conflicts with Rollup's SSR bundling.
   server: {
     watch: {
       ignored: ['**/routeTree.gen.ts'],

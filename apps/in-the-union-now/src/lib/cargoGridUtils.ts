@@ -1,6 +1,6 @@
 import type { EntitySchemaName, SURefEnumSchemaName } from 'salvageunion-reference'
 import { SalvageUnionReference, getSalvageValue, getTechLevelNumber } from 'salvageunion-reference'
-import { calculateBackgroundColor, techLevelColors } from 'suref-react'
+import { calculateBackgroundColor, TECH_LEVEL_BG } from 'suref-react'
 import type { CargoRow } from '../types/common'
 
 // --- Types ---
@@ -427,13 +427,13 @@ function computeHeaderBg(
       '',
       tlNum,
       entity as Parameters<typeof calculateBackgroundColor>[3],
-      techLevelColors
+      TECH_LEVEL_BG
     )
   }
 
   // Scrap or custom with numeric TL — use TL color
   if (techLevel !== undefined && typeof techLevel === 'number') {
-    return techLevelColors[techLevel] ?? 'bg-su-orange'
+    return TECH_LEVEL_BG[techLevel] ?? 'bg-su-orange'
   }
 
   // Custom fallback

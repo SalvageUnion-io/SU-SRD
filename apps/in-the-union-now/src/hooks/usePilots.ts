@@ -80,6 +80,19 @@ export function useUpdatePilot() {
   return useMutation({
     mutationFn: ({ pilotId, input }: { pilotId: string; input: PilotUpdate; userId: string }) =>
       updatePilot(pilotId, input),
+    onMutate: async ({ pilotId, input }) => {
+      await queryClient.cancelQueries({ queryKey: pilotKeys.detail(pilotId) })
+      const previous = queryClient.getQueryData<PilotRow>(pilotKeys.detail(pilotId))
+      if (previous) {
+        queryClient.setQueryData(pilotKeys.detail(pilotId), { ...previous, ...input })
+      }
+      return { previous }
+    },
+    onError: (_err, { pilotId }, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(pilotKeys.detail(pilotId), context.previous)
+      }
+    },
     onSuccess: (data: PilotRow, { userId }) => {
       queryClient.invalidateQueries({ queryKey: pilotKeys.list(userId) })
       queryClient.setQueryData(pilotKeys.detail(data.id), data)

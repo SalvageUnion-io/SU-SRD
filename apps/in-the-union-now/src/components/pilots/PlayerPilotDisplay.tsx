@@ -22,7 +22,7 @@ import { PilotEquipmentSection } from './PilotEquipmentSection'
 import { PilotMechTab } from './PilotMechTab'
 import { ActionsSection } from './ActionsSection'
 import { ComradesSection } from './ComradesSection'
-import { extractComrades } from '../../lib/comradeUtils'
+import type { ComradeEntry } from '../../lib/comradeUtils'
 import type { PilotEditConfig } from '../../hooks/usePilotSheet'
 import type { PilotRow, MechRow, EntityRefRow } from '../../types/common'
 import type { SURefChassis, SURefClass } from 'salvageunion-reference'
@@ -46,6 +46,7 @@ type PlayerPilotDisplayProps = {
   pilotClassAssetUrl?: string
   chassisName?: string
   patternName?: string
+  comrades?: ComradeEntry[]
   editConfig?: PilotEditConfig
 }
 
@@ -81,6 +82,7 @@ export function PlayerPilotDisplay({
   pilotClassAssetUrl,
   chassisName: chassisNameProp,
   patternName: patternNameProp,
+  comrades: comradesProp,
   editConfig,
 }: PlayerPilotDisplayProps) {
   const navigate = useNavigate()
@@ -278,10 +280,7 @@ export function PlayerPilotDisplay({
   )
 
   // --- Comrades (conditionally shown if any equipped entity grants a drone/companion) ---
-  const comrades = useMemo(
-    () => extractComrades(pilotRefs ?? [], mechRefs ?? [], mechChassisProp),
-    [pilotRefs, mechRefs, mechChassisProp]
-  )
+  const comrades = useMemo(() => comradesProp ?? [], [comradesProp])
 
   // --- Tabs (only used in non-listing mode, DisplayCard hides in listing) ---
   const tabs = useMemo(() => {
@@ -324,9 +323,8 @@ export function PlayerPilotDisplay({
         content: (
           <div className={compact ? 'px-3 pb-3' : 'px-4 pb-4'}>
             <ComradesSection
-              pilotRefs={pilotRefs ?? []}
+              comrades={comrades}
               mechRefs={mechRefs ?? []}
-              mechChassis={mechChassisProp}
               mechId={mech?.id}
               userId={editConfig?.userId}
               readOnly={!canEdit}
@@ -358,6 +356,7 @@ export function PlayerPilotDisplay({
             mechRefs={mechRefs}
             mech={mech}
             mechChassis={mechChassisProp}
+            comrades={comrades}
             onUpdateMech={editConfig?.onUpdateMech}
             onUpdateMechEntityRef={editConfig?.onUpdateMechEntityRef}
           />
@@ -374,7 +373,7 @@ export function PlayerPilotDisplay({
     mech,
     mechRefs,
     canEdit,
-    comrades.length,
+    comrades,
     mechChassisProp,
     editConfig,
   ])

@@ -2,14 +2,12 @@ import { supabase } from '../supabase'
 import { handleSupabaseError } from '../errors'
 import { computeMechStatsFromRef, patternItemsToEntityRefs } from '../mechUtils'
 import type {
-  CargoRow,
   MechRow,
   MechUpdate,
   EntityRefRow,
   EntityRefInsert,
   InstantiateMechInput,
 } from '../../types/common'
-import type { Json } from '../../types/database-generated.types'
 
 export async function instantiateMechFromPattern(
   userId: string,
@@ -111,53 +109,4 @@ export async function updateMechEntityRefs(
     const { error: insError } = await supabase.from('entity_refs').insert(inserts)
     if (insError) handleSupabaseError(insError)
   }
-}
-
-// --- Cargo CRUD ---
-
-export async function listCargoForMech(mechId: string): Promise<CargoRow[]> {
-  const { data, error } = await supabase
-    .from('cargo')
-    .select('*')
-    .eq('parent_id', mechId)
-    .eq('parent_type', 'mech')
-    .order('created_at', { ascending: true })
-
-  if (error) handleSupabaseError(error)
-  return data ?? []
-}
-
-export async function addCargoToMech(
-  mechId: string,
-  userId: string,
-  input: {
-    name: string
-    amount?: number
-    schema_name?: string
-    schema_ref_id?: string
-    metadata?: Record<string, unknown>
-  }
-): Promise<CargoRow> {
-  const { data, error } = await supabase
-    .from('cargo')
-    .insert({
-      parent_id: mechId,
-      parent_type: 'mech' as const,
-      user_id: userId,
-      name: input.name,
-      amount: input.amount ?? 1,
-      schema_name: input.schema_name ?? null,
-      schema_ref_id: input.schema_ref_id ?? null,
-      metadata: (input.metadata as Record<string, Json | undefined>) ?? null,
-    })
-    .select()
-    .single()
-
-  if (error) handleSupabaseError(error)
-  return data!
-}
-
-export async function deleteMechCargoItem(cargoId: string): Promise<void> {
-  const { error } = await supabase.from('cargo').delete().eq('id', cargoId)
-  if (error) handleSupabaseError(error)
 }

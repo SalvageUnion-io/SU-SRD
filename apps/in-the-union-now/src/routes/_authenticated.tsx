@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { createFileRoute, Outlet, redirect, useNavigate } from '@tanstack/react-router'
 import { useAuthStore } from '../stores/authStore'
 import { AppShell } from '../components/shell/AppShell'
+import { ErrorFallback } from '../components/shared/ErrorFallback'
 
 export const Route = createFileRoute('/_authenticated')({
   beforeLoad: () => {
@@ -10,6 +11,7 @@ export const Route = createFileRoute('/_authenticated')({
       throw redirect({ to: '/login' })
     }
   },
+  errorComponent: ErrorFallback,
   component: AuthenticatedLayout,
 })
 

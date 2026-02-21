@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react'
+import { memo, useState, useCallback, useMemo } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
 import {
@@ -68,7 +68,7 @@ export function CrawlerStorageSection({ crawlerId, userId, readOnly }: CrawlerSt
       const schemaName = entity.schemaName
       addCargo.mutate(
         {
-          crawlerId,
+          parentId: crawlerId,
           userId,
           input: {
             name: entity.name,
@@ -88,7 +88,7 @@ export function CrawlerStorageSection({ crawlerId, userId, readOnly }: CrawlerSt
     (name: string, metadata: Record<string, unknown>) => {
       addCargo.mutate(
         {
-          crawlerId,
+          parentId: crawlerId,
           userId,
           input: {
             name,
@@ -107,7 +107,7 @@ export function CrawlerStorageSection({ crawlerId, userId, readOnly }: CrawlerSt
   const handleDelete = useCallback(
     (cargoId: string) => {
       deleteCargo.mutate(
-        { cargoId, crawlerId },
+        { cargoId, parentId: crawlerId },
         { onError: (err) => toast.error(getErrorMessage(err)) }
       )
     },
@@ -192,7 +192,13 @@ export function CrawlerStorageSection({ crawlerId, userId, readOnly }: CrawlerSt
 }
 
 /** Renders a cargo item that has a schema reference — uses ReferenceEntityListingItem */
-function EntityStorageItem({ item, onDelete }: { item: CargoRow; onDelete?: () => void }) {
+const EntityStorageItem = memo(function EntityStorageItem({
+  item,
+  onDelete,
+}: {
+  item: CargoRow
+  onDelete?: () => void
+}) {
   const entity = useMemo(
     () =>
       item.schema_name && item.schema_ref_id
@@ -215,10 +221,16 @@ function EntityStorageItem({ item, onDelete }: { item: CargoRow; onDelete?: () =
       controls={onDelete ? [deleteControl(onDelete)] : undefined}
     />
   )
-}
+})
 
 /** Renders a custom cargo item as an entity-like listing with category-colored header */
-function CustomStorageItem({ item, onDelete }: { item: CargoRow; onDelete?: () => void }) {
+const CustomStorageItem = memo(function CustomStorageItem({
+  item,
+  onDelete,
+}: {
+  item: CargoRow
+  onDelete?: () => void
+}) {
   const [showDetail, setShowDetail] = useState(false)
   const metadata = item.metadata as Record<string, unknown> | null
   const category = (metadata?.category as string) ?? undefined
@@ -279,7 +291,7 @@ function CustomStorageItem({ item, onDelete }: { item: CargoRow; onDelete?: () =
       />
     </>
   )
-}
+})
 
 /** Full-view modal for a custom cargo item */
 function CustomItemDetailModal({

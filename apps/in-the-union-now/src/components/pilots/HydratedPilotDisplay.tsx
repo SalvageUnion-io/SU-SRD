@@ -46,6 +46,7 @@ export function HydratedPilotDisplay({
       pilotClassAssetUrl={sheet.pilotClassAssetUrl}
       chassisName={sheet.chassisName}
       patternName={sheet.patternName}
+      comrades={sheet.comrades}
       editConfig={listing ? undefined : sheet.editConfig}
     />
   )

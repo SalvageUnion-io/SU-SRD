@@ -5,7 +5,7 @@ import type { SURefGuide, EntitySchemaName } from 'salvageunion-reference'
 import { ReferenceEntityDisplay } from 'suref-react'
 import { toast } from 'sonner'
 import { actionButtonClasses } from '../../../../components/shared/actionButtonClasses'
-import { useAuthStore } from '../../../../stores/authStore'
+import { useCurrentUser } from '../../../../hooks/useCurrentUser'
 import { useInstantiateMech } from '../../../../hooks/useMechs'
 import { useGuideInteractiveConfig } from '../../../../hooks/useGuideInteractiveConfig'
 import type { WizardBudgetConfig } from '../../../../hooks/useGuideInteractiveConfig'
@@ -35,7 +35,7 @@ const interactiveMechGuide = { ...mechGuide, steps: mechDigitalSteps } as SURefG
 function CreateMechPage() {
   const { pilotId } = Route.useParams()
   const navigate = useNavigate()
-  const user = useAuthStore((s) => s.user)
+  const user = useCurrentUser()
   const instantiateMech = useInstantiateMech()
 
   const mechReducer = useMemo(() => createWizardReducer(mechDigitalSteps), [])

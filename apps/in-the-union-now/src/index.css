@@ -3,6 +3,15 @@
 
 @source "../../../packages/suref-react/src";
 
+/* Self-hosted Fira Code (variable font, supports weights 300-700) */
+@font-face {
+  font-family: 'Fira Code';
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url('/fonts/FiraCode-Variable.woff2') format('woff2');
+}
+
 @keyframes action-expand-in {
   from {
     opacity: 0;

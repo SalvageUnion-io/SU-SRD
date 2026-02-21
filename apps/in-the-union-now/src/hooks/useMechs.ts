@@ -5,10 +5,8 @@ import {
   getMechEntityRefs,
   updateMechEntityRefs,
   updateMech,
-  listCargoForMech,
-  addCargoToMech,
-  deleteMechCargoItem,
 } from '../lib/api/mechApi'
+import { useCargoQuery, useAddCargo, useDeleteCargo } from './useCargo'
 import { updateEntityRef } from '../lib/api/entityRefApi'
 import { pilotKeys } from './usePilots'
 import type {
@@ -72,6 +70,19 @@ export function useUpdateMech() {
   return useMutation({
     mutationFn: ({ mechId, input }: { mechId: string; input: MechUpdate }) =>
       updateMech(mechId, input),
+    onMutate: async ({ mechId, input }) => {
+      await queryClient.cancelQueries({ queryKey: mechKeys.detail(mechId) })
+      const previous = queryClient.getQueryData<MechRow>(mechKeys.detail(mechId))
+      if (previous) {
+        queryClient.setQueryData(mechKeys.detail(mechId), { ...previous, ...input })
+      }
+      return { previous }
+    },
+    onError: (_err, { mechId }, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(mechKeys.detail(mechId), context.previous)
+      }
+    },
     onSuccess: (data: MechRow) => {
       queryClient.setQueryData(mechKeys.detail(data.id), data)
     },
@@ -109,48 +120,16 @@ export function useUpdateMechLoadout() {
   })
 }
 
-// --- Cargo hooks ---
+// --- Cargo hooks (delegated to shared useCargo) ---
 
 export function useMechCargo(mechId: string | undefined) {
-  return useQuery({
-    queryKey: mechKeys.cargo(mechId ?? ''),
-    queryFn: () => listCargoForMech(mechId!),
-    enabled: !!mechId,
-  })
+  return useCargoQuery(mechId, 'mech', mechKeys.cargo(mechId ?? ''))
 }
 
 export function useAddMechCargo() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: ({
-      mechId,
-      userId,
-      input,
-    }: {
-      mechId: string
-      userId: string
-      input: {
-        name: string
-        amount?: number
-        schema_name?: string
-        schema_ref_id?: string
-        metadata?: Record<string, unknown>
-      }
-    }) => addCargoToMech(mechId, userId, input),
-    onSuccess: (_data, { mechId }) => {
-      queryClient.invalidateQueries({ queryKey: mechKeys.cargo(mechId) })
-    },
-  })
+  return useAddCargo((parentId) => mechKeys.cargo(parentId), 'mech')
 }
 
 export function useDeleteMechCargo() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: ({ cargoId }: { cargoId: string; mechId: string }) => deleteMechCargoItem(cargoId),
-    onSuccess: (_data, { mechId }) => {
-      queryClient.invalidateQueries({ queryKey: mechKeys.cargo(mechId) })
-    },
-  })
+  return useDeleteCargo((parentId) => mechKeys.cargo(parentId))
 }

@@ -17,7 +17,7 @@ import {
   getComradeMaxEp,
 } from '../../lib/pilotActionUtils'
 import type { ActionDisplayData } from '../../lib/pilotActionUtils'
-import { extractComrades } from '../../lib/comradeUtils'
+import type { ComradeEntry } from '../../lib/comradeUtils'
 import { ActionDisplay } from './ActionDisplay'
 import {
   getActionDisabledReason,
@@ -60,6 +60,7 @@ type ActionsSectionProps = {
   mechRefs?: EntityRefRow[]
   mech?: MechRow | null
   mechChassis?: SURefChassis
+  comrades?: ComradeEntry[]
   onUpdateMech?: (input: Partial<MechUpdate>) => void
   onUpdateMechEntityRef?: (refId: string, input: EntityRefUpdate) => void
 }
@@ -75,6 +76,7 @@ export function ActionsSection({
   mechRefs,
   mech,
   mechChassis,
+  comrades: comradesProp,
   onUpdateMech,
   onUpdateMechEntityRef,
 }: ActionsSectionProps) {
@@ -88,10 +90,7 @@ export function ActionsSection({
     () => extractPilotActions(pilotRefs, isBoarded),
     [pilotRefs, isBoarded]
   )
-  const comrades = useMemo(
-    () => extractComrades(pilotRefs, mechRefs ?? [], mechChassis),
-    [pilotRefs, mechRefs, mechChassis]
-  )
+  const comrades = useMemo(() => comradesProp ?? [], [comradesProp])
   const comradeEntityIds = useMemo(() => new Set(comrades.map((c) => c.entity.id)), [comrades])
   const mechActions = useMemo(
     () =>
@@ -435,8 +434,7 @@ function computeDisabledReason(
     return getMechActionDisabledReason({
       action: {
         activationCost: action.activationCost,
-        traits: [],
-      } as never,
+      },
       mech,
       usesRemaining: action.usesRemaining,
       maxUses: action.maxUses,
@@ -450,8 +448,7 @@ function computeDisabledReason(
     action: {
       activationCost: action.activationCost,
       requiredTraits: action.requiredTraits,
-      traits: [],
-    } as never,
+    },
     pilot,
     pilotTraits: traits,
     usesRemaining: action.usesRemaining,

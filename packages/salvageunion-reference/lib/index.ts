@@ -120,97 +120,70 @@ export type SchemaToEntityMap = {
 // Type for entity schema names (includes entity schemas and meta schemas, excludes non-entity schemas)
 export type EntitySchemaName = keyof SchemaToEntityMap
 
-// Runtime set of entity schema names (for runtime checks)
-export const EntitySchemaNames = new Set<EntitySchemaName>([
-  'abilities',
-  'ability-tree-requirements',
-  'actions',
-  'bio-titans',
-  'chassis',
-  'classes',
-  'crawler-bays',
-  'crawler-tech-levels',
-  'crawlers',
-  'creatures',
-  'distances',
-  'drones',
-  'equipment',
-  'factions',
-  'guides',
-  'keywords',
-  'meld',
-  'modules',
-  'npcs',
-  'roll-tables',
-  'squads',
-  'systems',
-  'traits',
-  'vehicles',
-  'sources',
-  'tech-levels',
-])
+// Single authoritative registry: maps every schema name to its model key and display name.
+// Adding a new schema only requires one entry here (plus its type in SchemaToEntityMap).
+// Set `entity: false` for non-entity metadata schemas (excluded from EntitySchemaNames).
+const SCHEMA_REGISTRY = {
+  abilities: { model: 'Abilities', display: 'Ability' },
+  'ability-tree-requirements': {
+    model: 'AbilityTreeRequirements',
+    display: 'Ability Tree Requirement',
+  },
+  actions: { model: 'Actions', display: 'Action' },
+  'bio-titans': { model: 'BioTitans', display: 'Bio-Titan' },
+  chassis: { model: 'Chassis', display: 'Chassis' },
+  classes: { model: 'Classes', display: 'Class' },
+  'crawler-bays': { model: 'CrawlerBays', display: 'Crawler Bay' },
+  'crawler-tech-levels': { model: 'CrawlerTechLevels', display: 'Crawler Tech Level' },
+  crawlers: { model: 'Crawlers', display: 'Crawler' },
+  creatures: { model: 'Creatures', display: 'Creature' },
+  distances: { model: 'Distances', display: 'Distance' },
+  drones: { model: 'Drones', display: 'Drone' },
+  equipment: { model: 'Equipment', display: 'Equipment' },
+  factions: { model: 'Factions', display: 'Faction' },
+  guides: { model: 'Guides', display: 'Guide' },
+  keywords: { model: 'Keywords', display: 'Keyword' },
+  meld: { model: 'Meld', display: 'Meld' },
+  modules: { model: 'Modules', display: 'Module' },
+  npcs: { model: 'NPCs', display: 'NPC' },
+  'roll-tables': { model: 'RollTables', display: 'Roll Table' },
+  squads: { model: 'Squads', display: 'Squad' },
+  systems: { model: 'Systems', display: 'System' },
+  traits: { model: 'Traits', display: 'Trait' },
+  vehicles: { model: 'Vehicles', display: 'Vehicle' },
+  sources: { model: 'Sources', display: 'Source' },
+  'tech-levels': { model: 'TechLevels', display: 'Tech Level' },
+  'catalog-categories': {
+    model: 'CatalogCategories',
+    display: 'Catalog Category',
+    entity: false as const,
+  },
+} as const satisfies Record<
+  keyof SchemaToEntityMap,
+  { model: string; display: string; entity?: boolean }
+>
 
-// Runtime mapping from schema names to model property names
-export const SchemaToModelMap = {
-  abilities: 'Abilities',
-  'ability-tree-requirements': 'AbilityTreeRequirements',
-  actions: 'Actions',
-  'bio-titans': 'BioTitans',
-  chassis: 'Chassis',
-  classes: 'Classes',
-  'crawler-bays': 'CrawlerBays',
-  'crawler-tech-levels': 'CrawlerTechLevels',
-  crawlers: 'Crawlers',
-  creatures: 'Creatures',
-  distances: 'Distances',
-  drones: 'Drones',
-  equipment: 'Equipment',
-  factions: 'Factions',
-  guides: 'Guides',
-  keywords: 'Keywords',
-  meld: 'Meld',
-  modules: 'Modules',
-  npcs: 'NPCs',
-  'roll-tables': 'RollTables',
-  squads: 'Squads',
-  systems: 'Systems',
-  traits: 'Traits',
-  vehicles: 'Vehicles',
-  sources: 'Sources',
-  'tech-levels': 'TechLevels',
-  'catalog-categories': 'CatalogCategories',
-} as const
+// Runtime set of entity schema names (derived from registry, excludes non-entity metadata schemas)
+export const EntitySchemaNames = new Set<EntitySchemaName>(
+  (
+    Object.entries(SCHEMA_REGISTRY) as [
+      EntitySchemaName,
+      { model: string; display: string; entity?: boolean },
+    ][]
+  )
+    .filter(([, v]) => v.entity !== false)
+    .map(([k]) => k)
+)
 
-// Runtime mapping from schema names to display names (singular)
-export const SchemaToDisplayName = {
-  abilities: 'Ability',
-  'ability-tree-requirements': 'Ability Tree Requirement',
-  actions: 'Action',
-  'bio-titans': 'Bio-Titan',
-  chassis: 'Chassis',
-  classes: 'Class',
-  'crawler-bays': 'Crawler Bay',
-  'crawler-tech-levels': 'Crawler Tech Level',
-  crawlers: 'Crawler',
-  creatures: 'Creature',
-  distances: 'Distance',
-  drones: 'Drone',
-  equipment: 'Equipment',
-  factions: 'Faction',
-  guides: 'Guide',
-  keywords: 'Keyword',
-  meld: 'Meld',
-  modules: 'Module',
-  npcs: 'NPC',
-  'roll-tables': 'Roll Table',
-  squads: 'Squad',
-  systems: 'System',
-  traits: 'Trait',
-  vehicles: 'Vehicle',
-  sources: 'Source',
-  'tech-levels': 'Tech Level',
-  'catalog-categories': 'Catalog Category',
-} as const
+// Runtime mapping from schema names to model property names (derived from registry)
+export const SchemaToModelMap = Object.fromEntries(
+  Object.entries(SCHEMA_REGISTRY).map(([k, v]) => [k, v.model])
+) as { readonly [K in keyof typeof SCHEMA_REGISTRY]: (typeof SCHEMA_REGISTRY)[K]['model'] }
+
+// Runtime mapping from schema names to display names (derived from registry)
+export const SchemaToDisplayName = Object.fromEntries(
+  Object.entries(SCHEMA_REGISTRY).map(([k, v]) => [k, v.display])
+) as { readonly [K in keyof typeof SCHEMA_REGISTRY]: (typeof SCHEMA_REGISTRY)[K]['display'] }
 
 // Auto-generate models from schema catalog (synchronous)
 const models = generateModels()
@@ -288,11 +261,8 @@ export class SalvageUnionReference {
     return model.findAll(predicate) as (SchemaToEntityMap[T] & { schemaName: T })[]
   }
 
-  // Entity cache for O(1) lookups
-  private static entityCache = new Map<string, SchemaToEntityMap[keyof SchemaToEntityMap]>()
-
   /**
-   * Get an entity by schema name and ID (O(1) with caching)
+   * Get an entity by schema name and ID (O(1) via ID map)
    *
    * @param schemaName - The schema to search in
    * @param id - The entity ID
@@ -305,29 +275,9 @@ export class SalvageUnionReference {
     schemaName: T,
     id: string
   ): (SchemaToEntityMap[T] & { schemaName: T }) | undefined {
-    const cacheKey = `${schemaName}::${id}`
-
-    // Check cache first
-    if (this.entityCache.has(cacheKey)) {
-      const cached = this.entityCache.get(cacheKey) as SchemaToEntityMap[T]
-      // Ensure cached entity has schemaName
-      if (cached && !('schemaName' in cached)) {
-        const withSchema = { ...cached, schemaName } as SchemaToEntityMap[T] & { schemaName: T }
-        this.entityCache.set(cacheKey, withSchema)
-        return withSchema
-      }
-      return cached as (SchemaToEntityMap[T] & { schemaName: T }) | undefined
-    }
-
-    // Find entity (findIn now returns entity with schemaName)
-    const entity = this.findIn(schemaName, (e: SchemaToEntityMap[T]) => e.id === id)
-
-    // Cache if found
-    if (entity) {
-      this.entityCache.set(cacheKey, entity)
-    }
-
-    return entity
+    const modelName = SchemaToModelMap[schemaName]
+    const model = models[modelName] as BaseModel<SchemaToEntityMap[T]>
+    return model.getById(id) as (SchemaToEntityMap[T] & { schemaName: T }) | undefined
   }
 
   /**

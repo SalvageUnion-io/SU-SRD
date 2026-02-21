@@ -3,13 +3,11 @@ import { supabase } from '../supabase'
 import { handleSupabaseError } from '../errors'
 import { computeCrawlerStatsFromTechLevel } from '../crawlerUtils'
 import type {
-  CargoRow,
   CrawlerRow,
   CrawlerUpdate,
   EntityRefRow,
   CreateCrawlerInput,
 } from '../../types/common'
-import type { Json } from '../../types/database-generated.types'
 
 export async function createCrawler(
   userId: string,
@@ -129,69 +127,6 @@ export async function translateScrap(
   return getCrawlerById(crawlerId)
 }
 
-export async function listCargoForCrawler(crawlerId: string): Promise<CargoRow[]> {
-  const { data, error } = await supabase
-    .from('cargo')
-    .select('*')
-    .eq('parent_id', crawlerId)
-    .eq('parent_type', 'crawler')
-    .order('created_at', { ascending: true })
-
-  if (error) handleSupabaseError(error)
-  return data ?? []
-}
-
-export async function addCargoToCrawler(
-  crawlerId: string,
-  userId: string,
-  input: {
-    name: string
-    amount?: number
-    schema_name?: string
-    schema_ref_id?: string
-    metadata?: Record<string, unknown>
-  }
-): Promise<CargoRow> {
-  const { data, error } = await supabase
-    .from('cargo')
-    .insert({
-      parent_id: crawlerId,
-      parent_type: 'crawler' as const,
-      user_id: userId,
-      name: input.name,
-      amount: input.amount ?? 1,
-      schema_name: input.schema_name ?? null,
-      schema_ref_id: input.schema_ref_id ?? null,
-      metadata: (input.metadata as Record<string, Json | undefined>) ?? null,
-    })
-    .select()
-    .single()
-
-  if (error) handleSupabaseError(error)
-  return data!
-}
-
-export async function updateCargoItem(
-  cargoId: string,
-  input: { name?: string; amount?: number }
-): Promise<CargoRow> {
-  const { data, error } = await supabase
-    .from('cargo')
-    .update(input)
-    .eq('id', cargoId)
-    .select()
-    .single()
-
-  if (error) handleSupabaseError(error)
-  return data!
-}
-
-export async function deleteCargoItem(cargoId: string): Promise<void> {
-  const { error } = await supabase.from('cargo').delete().eq('id', cargoId)
-
-  if (error) handleSupabaseError(error)
-}
-
 export async function upgradeTechLevel(crawlerId: string): Promise<CrawlerRow> {
   // Fetch current crawler to get tech_level and crawler_ref
   const crawler = await getCrawlerById(crawlerId)
@@ -208,6 +143,7 @@ export async function upgradeTechLevel(crawlerId: string): Promise<CrawlerRow> {
 
   const newMaxSp = nextTLData.structurePoints + spBonus
 
+  // Optimistic concurrency: guard against concurrent upgrades
   const { data, error } = await supabase
     .from('crawlers')
     .update({
@@ -218,11 +154,14 @@ export async function upgradeTechLevel(crawlerId: string): Promise<CrawlerRow> {
       upkeep: nextTLData.upkeepCost,
     })
     .eq('id', crawlerId)
+    .eq('tech_level', crawler.tech_level)
+    .gte('upgrade_pool', currentTL.upgradeCost)
     .select()
-    .single()
+    .maybeSingle()
 
   if (error) handleSupabaseError(error)
-  return data!
+  if (!data) throw new Error('Upgrade failed — another change happened first. Please refresh.')
+  return data
 }
 
 export async function updateCrawlerWeapon(

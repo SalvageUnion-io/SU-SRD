@@ -67,7 +67,7 @@ export function MechCargoSection({ mechId, userId, readOnly }: MechCargoSectionP
     (schemaName: string, entityId: string, name: string) => {
       addCargo.mutate(
         {
-          mechId,
+          parentId: mechId,
           userId,
           input: {
             name,
@@ -89,7 +89,7 @@ export function MechCargoSection({ mechId, userId, readOnly }: MechCargoSectionP
       if (techLevel !== undefined) metadata.tech_level = techLevel
       addCargo.mutate(
         {
-          mechId,
+          parentId: mechId,
           userId,
           input: { name, metadata },
         },
@@ -107,7 +107,7 @@ export function MechCargoSection({ mechId, userId, readOnly }: MechCargoSectionP
       const name = formatScrapName(quantity, techLevel)
       addCargo.mutate(
         {
-          mechId,
+          parentId: mechId,
           userId,
           input: {
             name,
@@ -131,7 +131,7 @@ export function MechCargoSection({ mechId, userId, readOnly }: MechCargoSectionP
   const handleDeleteConfirm = useCallback(() => {
     if (!deleteTarget) return
     deleteCargo.mutate(
-      { cargoId: deleteTarget.id, mechId },
+      { cargoId: deleteTarget.id, parentId: mechId },
       {
         onSuccess: () => setDeleteTarget(null),
         onError: (err) => toast.error(getErrorMessage(err)),

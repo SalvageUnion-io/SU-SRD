@@ -1,17 +1,17 @@
 import { describe, test, expect } from 'bun:test'
-import { render, screen } from '@testing-library/react'
+import { render, within } from '@testing-library/react'
 import { ValueDisplay } from '../ValueDisplay'
 
 describe('ValueDisplay', () => {
   test('renders label', () => {
-    render(<ValueDisplay label="SP" />)
-    expect(screen.getByText('SP')).toBeTruthy()
+    const { container } = render(<ValueDisplay label="SP" />)
+    expect(within(container).getByText('SP')).toBeTruthy()
   })
 
   test('renders label and value', () => {
-    render(<ValueDisplay label="SP" value={10} />)
-    expect(screen.getByText('SP')).toBeTruthy()
-    expect(screen.getByText('10')).toBeTruthy()
+    const { container } = render(<ValueDisplay label="SP" value={10} />)
+    expect(within(container).getByText('SP')).toBeTruthy()
+    expect(within(container).getByText('10')).toBeTruthy()
   })
 
   test('does not render value when undefined', () => {
@@ -27,8 +27,8 @@ describe('ValueDisplay', () => {
   })
 
   test('renders string values', () => {
-    render(<ValueDisplay label="Range" value="Close" />)
-    expect(screen.getByText('Range')).toBeTruthy()
-    expect(screen.getByText('Close')).toBeTruthy()
+    const { container } = render(<ValueDisplay label="Range" value="Close" />)
+    expect(within(container).getByText('Range')).toBeTruthy()
+    expect(within(container).getByText('Close')).toBeTruthy()
   })
 })

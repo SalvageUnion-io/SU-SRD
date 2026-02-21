@@ -3,7 +3,7 @@ import { Link, useNavigate } from '@tanstack/react-router'
 import { Plus, LogIn } from 'lucide-react'
 import { SectionSeparator } from 'suref-react'
 import { toast } from 'sonner'
-import { useAuthStore } from '../../stores/authStore'
+import { useCurrentUser } from '../../hooks/useCurrentUser'
 import { useGames, useJoinGame } from '../../hooks/useGames'
 import { Skeleton } from '../ui/skeleton'
 import { EMPTY_SLOT_CLASSES } from '../patterns/emptySlotClasses'
@@ -22,7 +22,7 @@ import {
 import { PlayerCrawlerDisplay } from './PlayerCrawlerDisplay'
 
 export function GameSection() {
-  const user = useAuthStore((s) => s.user)
+  const user = useCurrentUser()
   const [showArchived, setShowArchived] = useState(false)
   const { data: games, isLoading } = useGames(user?.id, showArchived)
 
@@ -71,7 +71,7 @@ function NewGameSlot() {
 }
 
 function JoinGameSlot() {
-  const user = useAuthStore((s) => s.user)
+  const user = useCurrentUser()
   const joinGame = useJoinGame()
   const navigate = useNavigate()
   const [code, setCode] = useState('')

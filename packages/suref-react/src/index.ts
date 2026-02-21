@@ -47,7 +47,11 @@ export { RollTable } from './components/shared/RollTable'
 export { FilterChip } from './components/shared/FilterChip'
 export { ControlButtons } from './components/shared/ControlButtons'
 export { CardHeader } from './components/shared/CardHeader'
-export { TECH_LEVEL_STYLES, techLevelLabel } from './components/shared/techLevelStyles'
+export {
+  TECH_LEVEL_STYLES,
+  TECH_LEVEL_BG,
+  techLevelLabel,
+} from './components/shared/techLevelStyles'
 
 // Skeletons
 export { ReferenceEntityCardSkeleton } from './components/skeleton/ReferenceEntityCardSkeleton'

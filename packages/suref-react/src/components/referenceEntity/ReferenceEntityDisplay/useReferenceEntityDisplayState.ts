@@ -12,6 +12,7 @@ import {
   getSource,
 } from 'salvageunion-reference'
 import { calculateBackgroundColor } from '../referenceEntityHelpers'
+import { TECH_LEVEL_BG } from '../../shared/techLevelStyles'
 import {
   getReferenceEntityFontSizes,
   getReferenceEntitySpacing,
@@ -24,17 +25,8 @@ import type {
 // Re-export for consumers that import from this file
 export type { ReferenceEntityDisplayStateInput } from './referenceEntityDisplayTypes'
 
-/**
- * Tech level to Tailwind bg class mapping
- */
-export const techLevelColors: Record<number, string> = {
-  1: 'bg-tl-1',
-  2: 'bg-tl-2',
-  3: 'bg-tl-3',
-  4: 'bg-tl-4',
-  5: 'bg-tl-5',
-  6: 'bg-tl-6',
-}
+/** @deprecated Use TECH_LEVEL_BG from techLevelStyles instead */
+export const techLevelColors: Record<number, string> = TECH_LEVEL_BG
 
 export function useReferenceEntityDisplayState({
   data,
@@ -81,7 +73,7 @@ export function useReferenceEntityDisplayState({
     headerColor,
     techLevelNumeric,
     data,
-    techLevelColors
+    TECH_LEVEL_BG
   )
   const headerBg = damaged ? 'bg-su-grey' : calculatedHeaderBg
   const headerBgColor =

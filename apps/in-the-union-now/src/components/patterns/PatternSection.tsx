@@ -1,13 +1,13 @@
 import { Link } from '@tanstack/react-router'
 import { Plus } from 'lucide-react'
 import { SectionSeparator } from 'suref-react'
-import { useAuthStore } from '../../stores/authStore'
+import { useCurrentUser } from '../../hooks/useCurrentUser'
 import { usePatterns } from '../../hooks/usePatterns'
 import { Skeleton } from '../ui/skeleton'
 import { PlayerPatternDisplay } from './PlayerPatternDisplay'
 
 export function PatternSection() {
-  const user = useAuthStore((s) => s.user)
+  const user = useCurrentUser()
   const { data: patterns, isLoading } = usePatterns(user?.id)
 
   return (

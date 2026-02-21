@@ -5,7 +5,7 @@ import type { SURefGuide } from 'salvageunion-reference'
 import { ReferenceEntityDisplay } from 'suref-react'
 import { toast } from 'sonner'
 import { actionButtonClasses } from '../../../components/shared/actionButtonClasses'
-import { useAuthStore } from '../../../stores/authStore'
+import { useCurrentUser } from '../../../hooks/useCurrentUser'
 import { useCreatePilot } from '../../../hooks/usePilots'
 import { useGuideInteractiveConfig } from '../../../hooks/useGuideInteractiveConfig'
 import {
@@ -32,7 +32,7 @@ const interactiveGuide = { ...pilotGuide, steps: digitalSteps } as SURefGuide
 
 function NewPilotPage() {
   const navigate = useNavigate()
-  const user = useAuthStore((s) => s.user)
+  const user = useCurrentUser()
   const createPilot = useCreatePilot()
 
   const reducer = useMemo(() => createWizardReducer(digitalSteps), [])

@@ -1,18 +1,23 @@
 import type { SURefMetaAction, SURefEnumSchemaName, SURefEntity } from 'salvageunion-reference'
-import {
-  SalvageUnionReference,
-  extractVisibleActions,
-  getRequiredTraits,
-} from 'salvageunion-reference'
+import { SalvageUnionReference, extractVisibleActions } from 'salvageunion-reference'
 import type { Json } from '../types/database-generated.types'
 import type { EntityRefRow, MechRow, PilotRow } from '../types/common'
 import type { ActionCostType } from './pilotActionUtils'
 
 /**
+ * Narrow input type for action cost/disabled-reason checks.
+ * Only the fields actually inspected by the disabled-reason functions.
+ */
+export type ActionCostInput = {
+  activationCost?: number | string | null
+  requiredTraits?: string[]
+}
+
+/**
  * Get the numeric AP activation cost from an action.
  * Returns null for undefined, 0, 'X', or 'Variable' costs.
  */
-export function getActionActivationCost(action: SURefMetaAction): number | null {
+export function getActionActivationCost(action: ActionCostInput): number | null {
   if (!('activationCost' in action)) return null
   const cost = action.activationCost
   if (typeof cost === 'number' && cost > 0) return cost
@@ -104,7 +109,7 @@ export function decrementActionUses(
 }
 
 type DisabledReasonOptions = {
-  action: SURefMetaAction
+  action: ActionCostInput
   pilot: PilotRow
   pilotTraits: Set<string>
   usesRemaining: number | null
@@ -122,7 +127,7 @@ export function getActionDisabledReason(opts: DisabledReasonOptions): string | n
   const { action, pilot, pilotTraits, usesRemaining, maxUses, costType, mech } = opts
 
   // Check required traits
-  const required = getRequiredTraits(action)
+  const required = action.requiredTraits ?? []
   for (const trait of required) {
     if (!pilotTraits.has(trait.toLowerCase())) {
       const displayName = trait.charAt(0).toUpperCase() + trait.slice(1)
@@ -150,7 +155,7 @@ export function getActionDisabledReason(opts: DisabledReasonOptions): string | n
 }
 
 type MechDisabledReasonOptions = {
-  action: SURefMetaAction
+  action: ActionCostInput
   mech: MechRow
   usesRemaining: number | null
   maxUses: number | null

@@ -4,26 +4,18 @@ import { generateInviteCode } from '../gameUtils'
 import type { CampaignRow, CampaignMemberRow, CampaignUpdate } from '../../types/common'
 
 export async function listGames(userId: string, includeArchived = false): Promise<CampaignRow[]> {
-  // Get campaigns where the user is a member
-  const { data: memberships, error: memberError } = await supabase
-    .from('campaign_members')
-    .select('campaign_id')
-    .eq('user_id', userId)
-
-  if (memberError) handleSupabaseError(memberError)
-  if (!memberships || memberships.length === 0) return []
-
-  const campaignIds = memberships.map((m) => m.campaign_id)
-  let query = supabase.from('campaigns').select('*').in('id', campaignIds)
+  let query = supabase.from('campaign_members').select('campaigns!inner(*)').eq('user_id', userId)
 
   if (!includeArchived) {
-    query = query.eq('archived', false)
+    query = query.eq('campaigns.archived', false)
   }
 
-  const { data, error } = await query.order('updated_at', { ascending: false })
+  const { data, error } = await query.order('campaigns(updated_at)', { ascending: false })
 
   if (error) handleSupabaseError(error)
-  return data ?? []
+  return (data ?? [])
+    .map((row) => (row as unknown as { campaigns: CampaignRow }).campaigns)
+    .filter(Boolean)
 }
 
 export async function getGameById(gameId: string): Promise<CampaignRow> {

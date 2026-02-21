@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { toast } from 'sonner'
-import { useAuthStore } from '../stores/authStore'
+import { useCurrentUser } from './useCurrentUser'
 import { usePattern, useCreatePattern, useUpdatePattern, useDeletePattern } from './usePatterns'
 import { getEntityAccess } from '../lib/entityAccess'
 import { getErrorMessage } from '../lib/errors'
@@ -24,7 +24,7 @@ export type PatternEditConfig = {
 
 export function usePatternSheet(patternId: string) {
   const navigate = useNavigate()
-  const user = useAuthStore((s) => s.user)
+  const user = useCurrentUser()
   const { data: pattern, isLoading, error } = usePattern(patternId)
   const createPattern = useCreatePattern()
   const updatePattern = useUpdatePattern()

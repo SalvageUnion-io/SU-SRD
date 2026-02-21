@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import {
   DisplayCard,
@@ -11,7 +11,8 @@ import {
   navigateControl,
 } from 'suref-react'
 import type { ReferenceEntityControl, StatItem, DisplayCardTab } from 'suref-react'
-import { ArrowUp, Eye, EyeOff, Trash2 } from 'lucide-react'
+import { ArrowUp, Crosshair, Eye, EyeOff, Plus, Trash2 } from 'lucide-react'
+import { ReferenceEntityDisplay } from 'suref-react'
 import { SheetFooter } from '../shared/SheetFooter'
 import { actionButtonClasses } from '../shared/actionButtonClasses'
 import { DeleteConfirmDialog } from '../shared/DeleteConfirmDialog'
@@ -22,7 +23,7 @@ import { ScrapTranslationDialog } from './ScrapTranslationDialog'
 import { WeaponSelectionDialog } from './WeaponSelectionDialog'
 import { CrawlerTypeSection } from './CrawlerTypeSection'
 import { CrawlerPilotsSection } from './CrawlerPilotsSection'
-import type { CrawlerEditConfig } from '../../hooks/useCrawlerSheet'
+import type { CrawlerEditConfig, WeaponSlot } from '../../hooks/useCrawlerSheet'
 import type { CampaignRow, CrawlerRow, EntityRefRow } from '../../types/common'
 import type { SURefEntity } from 'salvageunion-reference'
 
@@ -63,6 +64,38 @@ export function PlayerCrawlerDisplay({
   const handleNavigateToCrawler = useCallback(() => {
     navigate({ to: '/games/$gameId/crawler', params: { gameId: game.id } })
   }, [navigate, game.id])
+
+  // --- Transient UI state (owned by display component, not the hook) ---
+  const [showDelete, setShowDelete] = useState(false)
+  const [showTranslateDialog, setShowTranslateDialog] = useState(false)
+  const [editingWeaponSlot, setEditingWeaponSlot] = useState<WeaponSlot | null>(null)
+
+  // Build weapon slot controls from raw data provided by hook
+  const weaponSlotControls = useMemo((): ReferenceEntityControl[] => {
+    if (!editConfig?.isMed) return []
+    const controls: ReferenceEntityControl[] = (editConfig.weaponSystems ?? []).map(
+      ({ ref, entity }) => ({
+        key: `weapon-${ref.sort_order}`,
+        icon: Crosshair,
+        onClick: () => setEditingWeaponSlot({ index: ref.sort_order, oldRefId: ref.id }),
+        ariaLabel: entity?.name ?? 'Unknown weapon',
+        variant: 'ghost' as const,
+        hoverContent: entity ? <ReferenceEntityDisplay data={entity} compact /> : undefined,
+      })
+    )
+    const filledCount = editConfig.weaponSystems?.length ?? 0
+    const slotCount = editConfig.weaponSlotCount ?? 0
+    for (let i = filledCount; i < slotCount; i++) {
+      controls.push({
+        key: `weapon-empty-${i}`,
+        icon: Plus,
+        onClick: () => setEditingWeaponSlot({ index: i, oldRefId: null }),
+        ariaLabel: 'Add weapon system',
+        variant: 'primary' as const,
+      })
+    }
+    return controls
+  }, [editConfig?.isMed, editConfig?.weaponSystems, editConfig?.weaponSlotCount])
 
   // --- Mode mapping ---
   const mode = listing ? 'listing' : compact ? 'compact' : ('full' as const)
@@ -113,8 +146,8 @@ export function PlayerCrawlerDisplay({
               crawler={crawler}
               readOnly={!editConfig.isMed}
               onSave={editConfig.onImmediateUpdate}
-              onOpenScrapConversion={() => editConfig.setShowTranslateDialog(true)}
-              armamentControls={editConfig.weaponSlotControls}
+              onOpenScrapConversion={() => setShowTranslateDialog(true)}
+              armamentControls={weaponSlotControls}
             />
           </div>
         ),
@@ -132,7 +165,7 @@ export function PlayerCrawlerDisplay({
                 readOnly={!editConfig.isMed}
                 onUpdate={editConfig.onImmediateUpdate}
                 compactGrid
-                onOpenScrapConversion={() => editConfig.setShowTranslateDialog(true)}
+                onOpenScrapConversion={() => setShowTranslateDialog(true)}
               />
             </div>
             {/* Vertical separator */}
@@ -150,7 +183,7 @@ export function PlayerCrawlerDisplay({
         ),
       },
     ]
-  }, [listing, crawler, editConfig, compact, userId])
+  }, [listing, crawler, editConfig, compact, userId, weaponSlotControls])
 
   // Sheet guard: impossible state protection
   if (!listing && (!crawler || !editConfig)) return null
@@ -284,7 +317,7 @@ export function PlayerCrawlerDisplay({
         rightContent={
           <button
             type="button"
-            onClick={() => editConfig.setShowDelete(true)}
+            onClick={() => setShowDelete(true)}
             className={actionButtonClasses('rust')}
           >
             <Trash2 className="h-3.5 w-3.5" />
@@ -323,29 +356,37 @@ export function PlayerCrawlerDisplay({
       {!listing && editConfig && crawler && (
         <>
           <ScrapTranslationDialog
-            open={editConfig.showTranslateDialog}
-            onOpenChange={editConfig.setShowTranslateDialog}
+            open={showTranslateDialog}
+            onOpenChange={setShowTranslateDialog}
             crawler={crawler}
-            onTranslate={editConfig.onTranslate}
+            onTranslate={(...args) => {
+              editConfig.onTranslate(...args)
+              setShowTranslateDialog(false)
+            }}
             isPending={editConfig.translatePending}
           />
           <WeaponSelectionDialog
-            open={editConfig.editingWeaponSlot !== null}
+            open={editingWeaponSlot !== null}
             onOpenChange={(open) => {
-              if (!open) editConfig.setEditingWeaponSlot(null)
+              if (!open) setEditingWeaponSlot(null)
             }}
-            onSelect={editConfig.onWeaponChange}
+            onSelect={(newRefId) => {
+              if (editingWeaponSlot) {
+                editConfig.onWeaponChange(newRefId, editingWeaponSlot)
+                setEditingWeaponSlot(null)
+              }
+            }}
             techLevel={crawler.tech_level}
             currentWeaponId={
-              editConfig.editingWeaponSlot?.oldRefId
-                ? (weaponRefs ?? []).find((r) => r.id === editConfig.editingWeaponSlot?.oldRefId)
+              editingWeaponSlot?.oldRefId
+                ? (weaponRefs ?? []).find((r) => r.id === editingWeaponSlot?.oldRefId)
                     ?.schema_ref_id
                 : undefined
             }
           />
           <DeleteConfirmDialog
-            open={editConfig.showDelete}
-            onOpenChange={editConfig.setShowDelete}
+            open={showDelete}
+            onOpenChange={setShowDelete}
             entityType="Crawler"
             entityName={crawler.name || 'this crawler'}
             onConfirm={editConfig.onDelete}

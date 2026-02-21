@@ -48,13 +48,13 @@
     "build:ci": "tsc --project tsconfig.build.json",
     "watch": "tsc --project tsconfig.build.json --watch",
     "prepublishOnly": "bun run build && bun run typecheck",
-    "validate:ids": "tsx tools/checkUniqueIds.ts",
-    "fix:ids": "tsx tools/generateMissingIds.ts",
-    "docs": "tsx tools/generateDocs.ts",
-    "docs:schemas": "tsx tools/generateSchemaDocs.ts",
-    "generate:json-schemas": "tsx tools/generateJsonSchemas.ts",
-    "validate:references": "tsx tools/validateReferences.ts",
-    "validate:actions": "tsx tools/validateActionReferences.ts",
+    "validate:ids": "bun tools/checkUniqueIds.ts",
+    "fix:ids": "bun tools/generateMissingIds.ts",
+    "docs": "bun tools/generateDocs.ts",
+    "docs:schemas": "bun tools/generateSchemaDocs.ts",
+    "generate:json-schemas": "bun tools/generateJsonSchemas.ts",
+    "validate:references": "bun tools/validateReferences.ts",
+    "validate:actions": "bun tools/validateActionReferences.ts",
     "validate:all": "bun run validate:ids && bun run validate:references && bun run validate:actions",
     "typecheck": "tsc --project tsconfig.json --noEmit",
     "test": "bun test",
@@ -97,8 +97,7 @@
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1",
     "json-schema-to-typescript": "^15.0.4",
-    "jsonschema": "^1.5.0",
-    "tsx": "^4.20.6"
+    "jsonschema": "^1.5.0"
   },
   "engines": {
     "node": ">=18.0.0"

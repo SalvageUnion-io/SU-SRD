@@ -1,16 +1,14 @@
-import { useMemo, useCallback, useState } from 'react'
+import { useMemo, useCallback } from 'react'
 import { useNavigate } from '@tanstack/react-router'
+import type { SURefEntity } from 'salvageunion-reference'
 import {
   SalvageUnionReference,
   findCrawlerTechLevel,
   getWeaponSlotCount,
 } from 'salvageunion-reference'
-import { ReferenceEntityDisplay } from 'suref-react'
-import type { ReferenceEntityControl } from 'suref-react'
-import { Crosshair, Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { showSaveToast } from '../lib/toastUtils'
-import { useAuthStore } from '../stores/authStore'
+import { useCurrentUser } from './useCurrentUser'
 import { useGame, useGameMembers } from './useGames'
 import {
   useCrawler,
@@ -29,23 +27,20 @@ import { useActivityFeed } from './useActivityFeed'
 import { isMediator } from '../lib/gameUtils'
 import { getErrorMessage } from '../lib/errors'
 import { computeCrawlerStatsFromTechLevel } from '../lib/crawlerUtils'
-import type { CrawlerUpdate } from '../types/common'
+import type { CrawlerUpdate, EntityRefRow } from '../types/common'
+
+export type WeaponSlot = { index: number; oldRefId: string | null }
 
 export type CrawlerEditConfig = {
   isMed: boolean
   saveStatusText: string
   onImmediateUpdate: (input: Partial<CrawlerUpdate>) => void
   onTranslate: (fromTL: number, toTL: number, consumed: number, amount: number) => void
-  onWeaponChange: (newRefId: string) => void
+  onWeaponChange: (newRefId: string, slot: WeaponSlot) => void
   onDelete: () => void
   onUpgradeTL: () => void
-  weaponSlotControls: ReferenceEntityControl[]
-  showTranslateDialog: boolean
-  setShowTranslateDialog: (v: boolean) => void
-  editingWeaponSlot: { index: number; oldRefId: string | null } | null
-  setEditingWeaponSlot: (v: { index: number; oldRefId: string | null } | null) => void
-  showDelete: boolean
-  setShowDelete: (v: boolean) => void
+  weaponSystems: { ref: EntityRefRow; entity: SURefEntity | undefined }[]
+  weaponSlotCount: number
   isDeleting: boolean
   upgradePending: boolean
   translatePending: boolean
@@ -53,7 +48,7 @@ export type CrawlerEditConfig = {
 
 export function useCrawlerSheet(gameId: string) {
   const navigate = useNavigate()
-  const user = useAuthStore((s) => s.user)
+  const user = useCurrentUser()
   const { data: game, isLoading: gameLoading } = useGame(gameId)
   const { data: members } = useGameMembers(gameId)
   const { data: crawler, isLoading: crawlerLoading } = useCrawler(game?.crawler_id ?? undefined)
@@ -65,8 +60,14 @@ export function useCrawlerSheet(gameId: string) {
   const translateScrap = useTranslateScrap()
   const saveStatus = useSaveStatus({ isSaving: updateCrawler.isPending })
 
-  // Activity feed: toast notifications for other users' actions
-  useActivityFeed(user?.id)
+  // Activity feed: scoped to this crawler
+  const crawlerId = crawler?.id
+  const relevantIds = useMemo(() => {
+    const ids = new Set<string>()
+    if (crawlerId) ids.add(crawlerId)
+    return ids
+  }, [crawlerId])
+  useActivityFeed(user?.id, relevantIds)
 
   // Realtime: sync crawler data, entity refs, cargo, and assigned pilots
   useRealtimeSubscription('crawlers', crawler ? `id=eq.${crawler.id}` : undefined, [
@@ -75,19 +76,12 @@ export function useCrawlerSheet(gameId: string) {
   useRealtimeSubscription('entity_refs', crawler ? `parent_id=eq.${crawler.id}` : undefined, [
     crawlerKeys.entityRefs(crawler?.id ?? ''),
   ])
-  useRealtimeSubscription('cargo', crawler ? `crawler_id=eq.${crawler.id}` : undefined, [
+  useRealtimeSubscription('cargo', crawler ? `parent_id=eq.${crawler.id}` : undefined, [
     crawlerKeys.cargo(crawler?.id ?? ''),
   ])
   useRealtimeSubscription('pilots', crawler ? `crawler_id=eq.${crawler.id}` : undefined, [
     pilotKeys.forCrawler(crawler?.id ?? ''),
   ])
-
-  const [showDelete, setShowDelete] = useState(false)
-  const [showTranslateDialog, setShowTranslateDialog] = useState(false)
-  const [editingWeaponSlot, setEditingWeaponSlot] = useState<{
-    index: number
-    oldRefId: string | null
-  } | null>(null)
 
   const isMed = useMemo(
     () => (members ? isMediator(members, user?.id ?? '') : false),
@@ -117,7 +111,6 @@ export function useCrawlerSheet(gameId: string) {
         {
           onSuccess: () => {
             toast.success(`Translated ${sourceConsumed} TL${fromTL} → ${targetAmount} TL${toTL}`)
-            setShowTranslateDialog(false)
           },
           onError: (err) => toast.error(getErrorMessage(err)),
         }
@@ -127,26 +120,25 @@ export function useCrawlerSheet(gameId: string) {
   )
 
   const handleWeaponChange = useCallback(
-    (newRefId: string) => {
-      if (!crawler || !user || !editingWeaponSlot) return
+    (newRefId: string, slot: WeaponSlot) => {
+      if (!crawler || !user) return
       updateWeapon.mutate(
         {
           crawlerId: crawler.id,
           userId: user.id,
-          oldRefId: editingWeaponSlot.oldRefId,
+          oldRefId: slot.oldRefId,
           newRef: { schema_name: 'systems', schema_ref_id: newRefId },
-          sortOrder: editingWeaponSlot.index,
+          sortOrder: slot.index,
         },
         {
           onSuccess: () => {
             toast.success('Weapon system updated!')
-            setEditingWeaponSlot(null)
           },
           onError: (err) => toast.error(getErrorMessage(err)),
         }
       )
     },
-    [crawler, user, editingWeaponSlot, updateWeapon]
+    [crawler, user, updateWeapon]
   )
 
   const handleDelete = useCallback(() => {
@@ -195,28 +187,6 @@ export function useCrawlerSheet(gameId: string) {
 
   const weaponSlotCount = getWeaponSlotCount(crawler?.crawler_ref ?? '')
 
-  const weaponSlotControls = useMemo((): ReferenceEntityControl[] => {
-    if (!isMed) return []
-    const controls: ReferenceEntityControl[] = weaponSystems.map(({ ref, entity }) => ({
-      key: `weapon-${ref.sort_order}`,
-      icon: Crosshair,
-      onClick: () => setEditingWeaponSlot({ index: ref.sort_order, oldRefId: ref.id }),
-      ariaLabel: entity?.name ?? 'Unknown weapon',
-      variant: 'ghost' as const,
-      hoverContent: entity ? <ReferenceEntityDisplay data={entity} compact /> : undefined,
-    }))
-    for (let i = weaponRefs.length; i < weaponSlotCount; i++) {
-      controls.push({
-        key: `weapon-empty-${i}`,
-        icon: Plus,
-        onClick: () => setEditingWeaponSlot({ index: i, oldRefId: null }),
-        ariaLabel: 'Add weapon system',
-        variant: 'primary' as const,
-      })
-    }
-    return controls
-  }, [isMed, weaponSystems, weaponRefs.length, weaponSlotCount])
-
   // Derived data
   const crawlerType = crawler
     ? SalvageUnionReference.get('crawlers', crawler.crawler_ref)
@@ -239,13 +209,8 @@ export function useCrawlerSheet(gameId: string) {
     onWeaponChange: handleWeaponChange,
     onDelete: handleDelete,
     onUpgradeTL: handleUpgradeTL,
-    weaponSlotControls,
-    showTranslateDialog,
-    setShowTranslateDialog,
-    editingWeaponSlot,
-    setEditingWeaponSlot,
-    showDelete,
-    setShowDelete,
+    weaponSystems,
+    weaponSlotCount,
     isDeleting: deleteCrawlerMutation.isPending,
     upgradePending: upgradeTL.isPending,
     translatePending: translateScrap.isPending,

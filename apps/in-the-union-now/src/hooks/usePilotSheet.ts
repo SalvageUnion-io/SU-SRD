@@ -1,10 +1,10 @@
-import { useState, useMemo, useCallback } from 'react'
+import { useMemo, useCallback } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { SalvageUnionReference, isHybridClass, getAssetUrl } from 'salvageunion-reference'
 import type { EntitySchemaName } from 'salvageunion-reference'
 import { toast } from 'sonner'
 import { showSaveToast } from '../lib/toastUtils'
-import { useAuthStore } from '../stores/authStore'
+import { useCurrentUser } from './useCurrentUser'
 import {
   usePilot,
   usePilotEntityRefs,
@@ -26,6 +26,7 @@ import { useSaveStatus } from './useSaveStatus'
 import { useRealtimeSubscription } from './useRealtimeSubscription'
 import { getEntityAccess } from '../lib/entityAccess'
 import { findChassisById } from '../lib/entityHelpers'
+import { extractComrades } from '../lib/comradeUtils'
 import { getErrorMessage } from '../lib/errors'
 import { changeLogApi } from '../lib/api/changeLogApi'
 import type { EntityRefInsert, EntityRefUpdate, MechUpdate, PilotUpdate } from '../types/common'
@@ -50,13 +51,12 @@ export type PilotEditConfig = {
 
 export function usePilotSheet(pilotId: string) {
   const navigate = useNavigate()
-  const user = useAuthStore((s) => s.user)
+  const user = useCurrentUser()
   const { data: pilot, isLoading, error } = usePilot(pilotId)
   const { data: pilotRefs } = usePilotEntityRefs(pilotId)
   const updatePilot = useUpdatePilot()
   const updateEntityRef = useUpdateEntityRef()
   const deletePilot = useDeletePilot()
-  const [showDelete, setShowDelete] = useState(false)
 
   const { data: mech, isLoading: mechLoading } = useMech(pilot?.mech_id ?? undefined)
   const { data: mechRefs } = useMechEntityRefs(mech?.id)
@@ -100,6 +100,11 @@ export function usePilotSheet(pilotId: string) {
   const mechChassis = useMemo(() => (mech ? findChassisById(mech.chassis_ref) : undefined), [mech])
   const chassisName = mechChassis?.name
   const patternName = mech?.pattern_name ? `\u201C${mech.pattern_name}\u201D` : undefined
+
+  const comrades = useMemo(
+    () => extractComrades(pilotRefs ?? [], mechRefs ?? [], mechChassis),
+    [pilotRefs, mechRefs, mechChassis]
+  )
 
   const access = pilot ? getEntityAccess(pilot, user?.id) : undefined
   const canEdit = access?.canView ? access.canEdit : false
@@ -398,8 +403,7 @@ export function usePilotSheet(pilotId: string) {
     abilityCount,
     chassisName,
     patternName,
+    comrades,
     editConfig,
-    showDelete,
-    setShowDelete,
   }
 }

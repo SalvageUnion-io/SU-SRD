@@ -420,6 +420,14 @@ export function ReferenceEntityDisplayContent({
             )}
             {/* Compact: chassis abilities render after actions */}
             {compact && chassisAbilitiesBlock}
+            <ReferenceEntityChoices
+              data={data}
+              spacing={spacing}
+              fontSize={fontSize}
+              hideChoices={hide.choices}
+              compact={compact}
+              choiceInputRenderer={choiceInputRenderer}
+            />
             <ReferenceEntityIntegratedSystems data={data} compact={compact} />
 
             <ReferenceEntityBonusPerTechLevel
@@ -536,14 +544,6 @@ export function ReferenceEntityDisplayContent({
                 <ReferenceEntityGrants data={data} spacing={spacing} />
               </>
             )}
-            <ReferenceEntityChoices
-              data={data}
-              spacing={spacing}
-              fontSize={fontSize}
-              hideChoices={hide.choices}
-              compact={compact}
-              choiceInputRenderer={choiceInputRenderer}
-            />
             {afterChoicesContent && (
               <>
                 <div className="clear-both" />

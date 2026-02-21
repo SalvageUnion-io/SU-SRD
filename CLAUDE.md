@@ -2,9 +2,20 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Core Rules
+## Critical Rules
 
-Do NOT add features, schema changes, categories, or UI elements that were not explicitly requested. Stay strictly within the scope of what the user asks for.
+- Do NOT add features, schema changes, or UI elements that were not explicitly requested. Stay strictly within the scope of what the user asked for. If you think something additional would be beneficial, mention it as a suggestion but do not implement it.
+- When the user asks to 'plan' or 'prepare' something, the scope is document/plan creation only — do NOT begin implementation unless explicitly asked to implement.
+
+## UI Development
+
+- Always reuse existing shared components (e.g., EntityDisplay, DisplayCard) rather than building custom one-off UI. Check for existing patterns in the shared packages first before creating new components.
+- When making CSS/layout changes, get the first attempt right by carefully considering the rendering context (e.g., float doesn't work inside grid/flex containers). If a visual change requires iteration, ask the user to confirm via screenshot before making further adjustments. Prefer simple, well-understood CSS patterns over clever approaches.
+- For UI components, prefer compact/listing card displays by default (header-only, clickable) rather than full inline expanded displays. Ask if unsure about the level of detail to render.
+
+## Build & Validation
+
+This is a TypeScript monorepo with shared packages (suref-react, etc.). After any cross-package changes, always run typecheck, tests, and lint before considering a task complete. When modifying shared components, check all consuming apps for regressions (especially Tailwind @source paths and import changes).
 
 ## Repository Overview
 

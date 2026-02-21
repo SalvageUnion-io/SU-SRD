@@ -29,6 +29,9 @@ export default defineConfig({
             ) {
               return 'react-vendor'
             }
+            if (id.includes('salvageunion-reference')) {
+              return 'game-data'
+            }
           },
         },
       },

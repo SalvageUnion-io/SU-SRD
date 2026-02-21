@@ -8,11 +8,8 @@ import {
   updateCrawlerWeapon,
   upgradeTechLevel,
   translateScrap,
-  listCargoForCrawler,
-  addCargoToCrawler,
-  updateCargoItem,
-  deleteCargoItem,
 } from '../lib/api/crawlerApi'
+import { useCargoQuery, useAddCargo, useUpdateCargo, useDeleteCargo } from './useCargo'
 import { updateEntityRef } from '../lib/api/entityRefApi'
 import { gameKeys } from './useGames'
 import type {
@@ -84,6 +81,19 @@ export function useUpdateCrawler() {
   return useMutation({
     mutationFn: ({ crawlerId, input }: { crawlerId: string; input: CrawlerUpdate }) =>
       updateCrawler(crawlerId, input),
+    onMutate: async ({ crawlerId, input }) => {
+      await queryClient.cancelQueries({ queryKey: crawlerKeys.detail(crawlerId) })
+      const previous = queryClient.getQueryData<CrawlerRow>(crawlerKeys.detail(crawlerId))
+      if (previous) {
+        queryClient.setQueryData(crawlerKeys.detail(crawlerId), { ...previous, ...input })
+      }
+      return { previous }
+    },
+    onError: (_err, { crawlerId }, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(crawlerKeys.detail(crawlerId), context.previous)
+      }
+    },
     onSuccess: (data: CrawlerRow) => {
       queryClient.setQueryData(crawlerKeys.detail(data.id), data)
     },
@@ -166,64 +176,20 @@ export function useTranslateScrap() {
   })
 }
 
+// --- Cargo hooks (delegated to shared useCargo) ---
+
 export function useCrawlerCargo(crawlerId: string | undefined) {
-  return useQuery({
-    queryKey: crawlerKeys.cargo(crawlerId ?? ''),
-    queryFn: () => listCargoForCrawler(crawlerId!),
-    enabled: !!crawlerId,
-  })
+  return useCargoQuery(crawlerId, 'crawler', crawlerKeys.cargo(crawlerId ?? ''))
 }
 
 export function useAddCrawlerCargo() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: ({
-      crawlerId,
-      userId,
-      input,
-    }: {
-      crawlerId: string
-      userId: string
-      input: {
-        name: string
-        amount?: number
-        schema_name?: string
-        schema_ref_id?: string
-        metadata?: Record<string, unknown>
-      }
-    }) => addCargoToCrawler(crawlerId, userId, input),
-    onSuccess: (_data, { crawlerId }) => {
-      queryClient.invalidateQueries({ queryKey: crawlerKeys.cargo(crawlerId) })
-    },
-  })
+  return useAddCargo((parentId) => crawlerKeys.cargo(parentId), 'crawler')
 }
 
 export function useUpdateCrawlerCargo() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: ({
-      cargoId,
-      input,
-    }: {
-      cargoId: string
-      crawlerId: string
-      input: { name?: string; amount?: number }
-    }) => updateCargoItem(cargoId, input),
-    onSuccess: (_data, { crawlerId }) => {
-      queryClient.invalidateQueries({ queryKey: crawlerKeys.cargo(crawlerId) })
-    },
-  })
+  return useUpdateCargo((parentId) => crawlerKeys.cargo(parentId))
 }
 
 export function useDeleteCrawlerCargo() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: ({ cargoId }: { cargoId: string; crawlerId: string }) => deleteCargoItem(cargoId),
-    onSuccess: (_data, { crawlerId }) => {
-      queryClient.invalidateQueries({ queryKey: crawlerKeys.cargo(crawlerId) })
-    },
-  })
+  return useDeleteCargo((parentId) => crawlerKeys.cargo(parentId))
 }

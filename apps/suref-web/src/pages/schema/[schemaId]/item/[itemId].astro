@@ -72,6 +72,6 @@ const preloadImage = displayData?.assetUrl
 >
   <article class="flex min-h-full flex-1 flex-col items-center justify-center p-4">
     <h1 class="sr-only">{itemName}</h1>
-    <ReferenceEntityIsland client:load item={item} />
+    <ReferenceEntityIsland client:idle item={item} />
   </article>
 </BaseLayout>

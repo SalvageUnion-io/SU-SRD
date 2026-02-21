@@ -18,31 +18,14 @@ export async function getPlayerChoices(
 }
 
 export async function upsertPlayerChoice(input: PlayerChoiceInsert): Promise<PlayerChoiceRow> {
-  // Check for existing row by (parent_id, choice_id)
-  const { data: existing } = await supabase
+  const { data, error } = await supabase
     .from('player_choices')
-    .select('id')
-    .eq('parent_id', input.parent_id!)
-    .eq('choice_id', input.choice_id)
-    .maybeSingle()
-
-  if (existing) {
-    const { data, error } = await supabase
-      .from('player_choices')
-      .update({
-        selected_value: input.selected_value,
-        roll_value: input.roll_value,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', existing.id)
-      .select()
-      .single()
-
-    if (error) handleSupabaseError(error)
-    return data!
-  }
-
-  const { data, error } = await supabase.from('player_choices').insert(input).select().single()
+    .upsert(
+      { ...input, updated_at: new Date().toISOString() },
+      { onConflict: 'parent_id,parent_type,choice_id' }
+    )
+    .select()
+    .single()
 
   if (error) handleSupabaseError(error)
   return data!

@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { toast } from 'sonner'
-import { useAuthStore } from '../../../stores/authStore'
+import { useCurrentUser } from '../../../hooks/useCurrentUser'
 import { useCreatePattern } from '../../../hooks/usePatterns'
 import { MechBuilder } from '../../../components/patterns/MechBuilder'
 import { getErrorMessage } from '../../../lib/errors'
@@ -12,7 +12,7 @@ export const Route = createFileRoute('/_authenticated/patterns/new')({
 
 function NewPatternPage() {
   const navigate = useNavigate()
-  const user = useAuthStore((s) => s.user)
+  const user = useCurrentUser()
   const createPattern = useCreatePattern()
 
   function handleSave(input: CreatePatternInput) {
