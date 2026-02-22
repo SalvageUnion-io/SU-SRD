@@ -15,7 +15,7 @@ const classGradient =
   'linear-gradient(to right, var(--color-su-orange) 0%, var(--color-su-orange) 60%, var(--color-su-pink) 60%, var(--color-su-pink) 100%)'
 
 const schemaColors: Record<string, string> = {
-  chassis: 'var(--color-su-green)',
+  chassis: 'var(--color-su-green-dark)',
   classes: classGradient,
   systems: techLevelBg,
   modules: techLevelBg,
@@ -45,9 +45,9 @@ export function getCatalogBg(schemaId: string): string {
 }
 
 const schemaLabelColors: Record<string, string> = {
-  equipment: 'var(--color-su-orange)',
-  systems: 'var(--color-su-green)',
-  modules: 'var(--color-su-green)',
+  equipment: 'var(--color-su-orange-dark)',
+  systems: 'var(--color-su-green-dark)',
+  modules: 'var(--color-su-green-dark)',
   drones: 'var(--color-su-rust)',
   vehicles: 'var(--color-su-rust)',
 }

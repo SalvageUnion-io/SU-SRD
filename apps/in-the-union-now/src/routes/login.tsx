@@ -78,15 +78,15 @@ function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-dvh flex-col items-center justify-center gap-8 p-4">
+    <main className="flex min-h-dvh flex-col items-center justify-center gap-8 p-4">
       <div className="text-center">
-        <h1 className="mb-2 text-3xl font-bold text-su-orange">In The Union Now</h1>
+        <h1 className="mb-2 text-3xl font-bold text-su-orange-dark">In The Union Now</h1>
         <p className="text-sm text-su-grey-dark">Salvage Union Digital Character Sheet</p>
       </div>
 
       <Card className="w-full max-w-sm border-su-grey-dark/30 bg-su-sand">
         <CardHeader className="pb-4">
-          <CardTitle className="text-lg text-su-orange">
+          <CardTitle className="text-lg text-su-orange-dark">
             {mode === 'signin' && 'Sign In'}
             {mode === 'signup' && 'Create Account'}
             {mode === 'forgot' && 'Reset Password'}
@@ -166,7 +166,7 @@ function LoginPage() {
             <Button
               type="submit"
               disabled={submitting}
-              className="bg-su-orange text-white hover:bg-su-orange-dark"
+              className="bg-su-orange-dark text-white hover:bg-su-black"
             >
               {mode === 'signin' && (
                 <>
@@ -230,6 +230,6 @@ function LoginPage() {
           </form>
         </CardContent>
       </Card>
-    </div>
+    </main>
   )
 }
