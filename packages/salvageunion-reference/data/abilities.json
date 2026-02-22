@@ -118,7 +118,7 @@
     "tree": "Advanced Engineer",
     "level": 2,
     "page": 30,
-    "description": "Overcharge a Reactor beyond it’s initial capacity to gain additional Pushes.",
+    "description": "Overcharge a Reactor beyond it's initial capacity to gain additional Pushes.",
     "actions": ["This one goes to 11..."]
   },
   {
@@ -301,7 +301,7 @@
     "level": "L",
     "page": 37,
     "actions": ["Spyware"],
-    "description": "Permanent and undetectable spyware you can install on a settlement’s network."
+    "description": "Permanent and undetectable spyware you can install on a settlement's network."
   },
   {
     "id": "6ab9bdca-bd59-4bbd-afd7-ddcdaf944953",
@@ -341,7 +341,7 @@
     "level": 1,
     "page": 40,
     "actions": ["Read a Person"],
-    "description": "Learn information about an NPC you’re conversing with."
+    "description": "Learn information about an NPC you're conversing with."
   },
   {
     "id": "a9f7366a-90ab-4972-91cf-3c5b1032f35e",
@@ -350,7 +350,7 @@
     "tree": "Trading",
     "level": 2,
     "page": 40,
-    "actions": ["Let’s Make a Deal"],
+    "actions": ["Let's Make a Deal"],
     "description": "Attempt to force a deal through on your terms using leverage."
   },
   {
@@ -421,7 +421,7 @@
   },
   {
     "id": "89c763c3-a8f3-4502-abf6-3f531e583299",
-    "name": "Can’t Stop, Won’t Stop",
+    "name": "Can't Stop, Won't Stop",
     "source": "Salvage Union Workshop Manual",
     "tree": "Advanced Hauler",
     "level": 3,
@@ -699,7 +699,7 @@
     "level": 1,
     "page": 56,
     "actions": ["Critical Strike"],
-    "description": "Gain a ‘Nailed it’ result on attack rolls with a result of 19 - 20."
+    "description": "Gain a 'Nailed it' result on attack rolls with a result of 19 - 20."
   },
   {
     "id": "b521578a-3ee6-4b82-8066-27357b3bd9f1",
@@ -919,13 +919,13 @@
   },
   {
     "id": "37102a9a-4aa8-492a-a3d7-d84a34e131f3",
-    "name": "Pray I don’t alter the deal further...",
+    "name": "Pray I don't alter the deal further...",
     "source": "Salvage Union Workshop Manual",
     "tree": "Smuggler",
     "level": 2,
     "page": 72,
-    "actions": ["Pray I don’t alter the deal further..."],
-    "description": "Retroactively change the terms of a deal you’ve agreed."
+    "actions": ["Pray I don't alter the deal further..."],
+    "description": "Retroactively change the terms of a deal you've agreed."
   },
   {
     "id": "e8e364cf-5812-4848-85a9-bbf6ef8d21a6",

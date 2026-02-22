@@ -367,7 +367,7 @@
     "content": [
       {
         "type": "paragraph",
-        "value": "An area that’s Irradiated puts strain on Mech reactors, causes wildlife to wither and die, blights soil and causes untold damage to humans and animals in the area. Mechs in an irradiated area increase their Heat by 1 every hour they are within it. Pilots exposed in an irradiated area can suffer bloody vomit, internal bleeding, fever, infection, and eventually death, gaining a Major Injury every day they are exposed. Radiation storms are significantly more likely to occur in Irradiated areas and Bio-Titans and mutants are likely to be found within the area. This effect lasts in the area for at least 1 to 5 years. In extreme cases the area can be irradiated for 1,000 to 20,000 years."
+        "value": "An area that's Irradiated puts strain on Mech reactors, causes wildlife to wither and die, blights soil and causes untold damage to humans and animals in the area. Mechs in an irradiated area increase their Heat by 1 every hour they are within it. Pilots exposed in an irradiated area can suffer bloody vomit, internal bleeding, fever, infection, and eventually death, gaining a Major Injury every day they are exposed. Radiation storms are significantly more likely to occur in Irradiated areas and Bio-Titans and mutants are likely to be found within the area. This effect lasts in the area for at least 1 to 5 years. In extreme cases the area can be irradiated for 1,000 to 20,000 years."
       }
     ]
   },
@@ -559,7 +559,7 @@
     "content": [
       {
         "type": "paragraph",
-        "value": "Refers typically to the player’s Pilot character who controls their Mech. Can also refer to NPC Pilots in the world."
+        "value": "Refers typically to the player's Pilot character who controls their Mech. Can also refer to NPC Pilots in the world."
       }
     ]
   },
@@ -595,7 +595,7 @@
     "content": [
       {
         "type": "paragraph",
-        "value": "You may choose to Push your Mech after you roll the die. This allows you to re-roll the die, but you must accept the second result. Your Mech then increases its Heat by 2 and must make a Heat Check. If you Push ‘for free’ you may re-roll the die without adding Heat or making a Heat Check. Pilots cannot Push rolls and roll the die once for all actions, unless otherwise noted."
+        "value": "You may choose to Push your Mech after you roll the die. This allows you to re-roll the die, but you must accept the second result. Your Mech then increases its Heat by 2 and must make a Heat Check. If you Push 'for free' you may re-roll the die without adding Heat or making a Heat Check. Pilots cannot Push rolls and roll the die once for all actions, unless otherwise noted."
       }
     ]
   },

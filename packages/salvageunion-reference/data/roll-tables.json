@@ -6,7 +6,7 @@
     "table": {
       "1": {
         "label": "Cascade Failure",
-        "value": "Something has gone terribly wrong. You suffer a severe consequence of the Mediator’s choice. When attacking, you miss the target and suffer a Setback chosen by the Mediator."
+        "value": "Something has gone terribly wrong. You suffer a severe consequence of the Mediator's choice. When attacking, you miss the target and suffer a Setback chosen by the Mediator."
       },
       "20": {
         "label": "Nailed it",
@@ -22,7 +22,7 @@
       },
       "2-5": {
         "label": "Failure",
-        "value": "You have failed at what you were attempting to do. You face a Setback of the Mediator’s choice. When attacking, you miss the target."
+        "value": "You have failed at what you were attempting to do. You face a Setback of the Mediator's choice. When attacking, you miss the target."
       },
       "type": "standard"
     },
@@ -30,7 +30,7 @@
     "content": [
       {
         "type": "paragraph",
-        "value": "When a player declares an action within the game that has an uncertain, risky, or potentially inter- esting outcome, they roll a 20-sided die. This is referred to as a d20, or ‘the die’. Salvage Union only uses this one die, and it is all you need to resolve situations in the game."
+        "value": "When a player declares an action within the game that has an uncertain, risky, or potentially inter- esting outcome, they roll a 20-sided die. This is referred to as a d20, or 'the die'. Salvage Union only uses this one die, and it is all you need to resolve situations in the game."
       }
     ],
     "indexable": true
@@ -150,23 +150,23 @@
     "table": {
       "1": {
         "label": "Reactor Overload",
-        "value": "Your Mech’s reactor goes into full meltdown and explodes. Your Mech, as well as any mounted Systems, Modules, and all Cargo, is destroyed in the explosion. Everything in Close Range of your Mech takes SP damage equal to your Mech’s Maximum Heat Capacity. They may take any Turn Action or Reaction in response to try to avoid this. Your Pilot dies unless they have a means to escape. The area your Mech was in becomes Irradiated"
+        "value": "Your Mech's reactor goes into full meltdown and explodes. Your Mech, as well as any mounted Systems, Modules, and all Cargo, is destroyed in the explosion. Everything in Close Range of your Mech takes SP damage equal to your Mech's Maximum Heat Capacity. They may take any Turn Action or Reaction in response to try to avoid this. Your Pilot dies unless they have a means to escape. The area your Mech was in becomes Irradiated"
       },
       "20": {
         "label": "Reactor Overdrive",
-        "value": "Your Mech’s reactor goes into overdrive. Your Mech can take any additional action this turn or Push their next roll within 10 minutes for free."
+        "value": "Your Mech's reactor goes into overdrive. Your Mech can take any additional action this turn or Push their next roll within 10 minutes for free."
       },
       "11-19": {
         "label": "Reactor Overheat",
-        "value": "Your Mech’s reactor has overheated. Your Mech shuts down and gains the [[Vulnerable]] Trait. Your Mech will re-activate at the end of your next turn. In addition, your Mech takes an amount of SP damage equal to your current Heat."
+        "value": "Your Mech's reactor has overheated. Your Mech shuts down and gains the [[Vulnerable]] Trait. Your Mech will re-activate at the end of your next turn. In addition, your Mech takes an amount of SP damage equal to your current Heat."
       },
       "6-10": {
         "label": "Module Overload",
-        "value": "One of your Mech’s Modules chosen at random or by the Mediator is destroyed."
+        "value": "One of your Mech's Modules chosen at random or by the Mediator is destroyed."
       },
       "2-5": {
         "label": "System Overload",
-        "value": "One of your Mech’s Systems chosen at random or by the Mediator is destroyed."
+        "value": "One of your Mech's Systems chosen at random or by the Mediator is destroyed."
       },
       "type": "standard"
     },
@@ -468,11 +468,11 @@
     "table": {
       "1": {
         "label": "Cascade Failure",
-        "value": "The NPC has catastrophically failed at their action. They suffer a Severe Setback of the player’s choice. A weapon attack misses, with a Severe Setback chosen by the players."
+        "value": "The NPC has catastrophically failed at their action. They suffer a Severe Setback of the player's choice. A weapon attack misses, with a Severe Setback chosen by the players."
       },
       "20": {
         "label": "Nailed It",
-        "value": "The NPC succeeds spectacularly at their action. They get an additional bonus of the Mediator’s choice. If they are making an attack, they hit, and do double damage or get another bonus of the Mediator’s choice."
+        "value": "The NPC succeeds spectacularly at their action. They get an additional bonus of the Mediator's choice. If they are making an attack, they hit, and do double damage or get another bonus of the Mediator's choice."
       },
       "11-19": {
         "label": "Success",
@@ -528,7 +528,7 @@
     "content": [
       {
         "type": "paragraph",
-        "value": "These rules cover whether or not NPCs in the game choose to retreat. The Pilots never roll Morale, and it is always the player’s choice whether their Pilots retreat or not. NPCs include both those the Pilots are actively fighting as well as any allied NPCs they may have with them.  • When an NPC Mech is reduced to 50% or less of its Structure Points, make a Morale check to determine if it stays in the fight.  • When a Creature is reduced to 50% or less of its Hit Points, make a Morale check to determine if it stays in the fight. You can also apply this to an entire group rather than individual creatures or Mechs.  • When a group of NPCs suffers 50% or more overall deaths or the destruction of 50% or more Mechs, make a Morale check to determine if the entire group stays in the fight."
+        "value": "These rules cover whether or not NPCs in the game choose to retreat. The Pilots never roll Morale, and it is always the player's choice whether their Pilots retreat or not. NPCs include both those the Pilots are actively fighting as well as any allied NPCs they may have with them.  • When an NPC Mech is reduced to 50% or less of its Structure Points, make a Morale check to determine if it stays in the fight.  • When a Creature is reduced to 50% or less of its Hit Points, make a Morale check to determine if it stays in the fight. You can also apply this to an entire group rather than individual creatures or Mechs.  • When a group of NPCs suffers 50% or more overall deaths or the destruction of 50% or more Mechs, make a Morale check to determine if the entire group stays in the fight."
       }
     ],
     "indexable": true
@@ -564,7 +564,7 @@
     "content": [
       {
         "type": "paragraph",
-        "value": "Sometimes things go wrong and retreat becomes the only option. If the Pilots or a Group of NPCs choose to retreat, roll the die on the table below to find out what happens. If using Group Initiative, retreat may be chosen at the start of anyone in the group’s turn. The entire group must agree to retreat."
+        "value": "Sometimes things go wrong and retreat becomes the only option. If the Pilots or a Group of NPCs choose to retreat, roll the die on the table below to find out what happens. If using Group Initiative, retreat may be chosen at the start of anyone in the group's turn. The entire group must agree to retreat."
       }
     ],
     "indexable": true
@@ -606,10 +606,10 @@
         "value": "Your Union Crawler survives any significant damage this time."
       },
       "11-19": {
-        "value": "Your Union Crawler is inoperable and grounded. Its Bays are Intact, but inoperable.  You must pay your Union Crawler’s Upkeep Cost in order to repair it to be fully functioning again. Around 10% of your Union Crawler’s population are severely injured or killed."
+        "value": "Your Union Crawler is inoperable and grounded. Its Bays are Intact, but inoperable.  You must pay your Union Crawler's Upkeep Cost in order to repair it to be fully functioning again. Around 10% of your Union Crawler's population are severely injured or killed."
       },
       "6-10": {
-        "value": "Choose a Bay on your Union Crawler. It is Damaged and inoperable. You no longer benefit from any of its functions until it is repaired to the Intact Condition. Around 5% of your Union Crawler’s population are severely injured or killed."
+        "value": "Choose a Bay on your Union Crawler. It is Damaged and inoperable. You no longer benefit from any of its functions until it is repaired to the Intact Condition. Around 5% of your Union Crawler's population are severely injured or killed."
       },
       "2-5": {
         "value": "A Bay chosen at random on your Union Crawler is Damaged and inoperable. You no longer benefit from any of its functions until it is repaired to the Intact Condition."
@@ -631,7 +631,7 @@
         "value": "There is hope. Everyone on board is somewhat battered and bruised, but manages to escape the Union Crawler safely. Your Union Crawler can be rebuilt from the wreckage for its current Upgrade Cost in Scrap of its Tech Level or higher."
       },
       "11-19": {
-        "value": "The Union Crawler is torn apart. All of its Bays are damaged. Around 25% of the Union Crawler’s population are severely injured or killed. Any Salvager Pilots on board must roll on the Critical Injury Table. The Union Crawler can be rebuilt for its current Upgrade Cost in Scrap of its Tech Level or higher."
+        "value": "The Union Crawler is torn apart. All of its Bays are damaged. Around 25% of the Union Crawler's population are severely injured or killed. Any Salvager Pilots on board must roll on the Critical Injury Table. The Union Crawler can be rebuilt for its current Upgrade Cost in Scrap of its Tech Level or higher."
       },
       "6-10": {
         "value": "You must choose between saving the Union Crawler population and saving the Union Crawler itself. If you choose the population, the Union Crawler is entirely destroyed and cannot be rebuilt. If you choose the Union Crawler, assume all Bays are damaged.  It can be rebuilt for its current Upgrade Cost in Scrap of its Tech Level or higher, but you have to find new people to join it in the wastelands."
@@ -2109,7 +2109,7 @@
   {
     "id": "579d82ab-fb44-4c4e-9b30-6ecf97df9f76",
     "source": "Salvage Union Workshop Manual",
-    "name": "Let’s Make a Deal",
+    "name": "Let's Make a Deal",
     "table": {
       "1": {
         "value": "The deal is rejected and the people you are making a deal with become hostile to you and cannot be negotiated with further."

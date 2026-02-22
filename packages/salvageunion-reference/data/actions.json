@@ -1366,7 +1366,7 @@
     "content": [
       {
         "type": "paragraph",
-        "value": "Standing for ‘Constant Amplitude, Constant Bearing Laser’, the longer this laser is focussed on a target, the more damage it deals. Sakura Futures developed the CACB following Impact Day as a means to take down Anomaly X312, an organically shielded Bio-Titan that dominated the Central Wastes."
+        "value": "Standing for 'Constant Amplitude, Constant Bearing Laser', the longer this laser is focussed on a target, the more damage it deals. Sakura Futures developed the CACB following Impact Day as a means to take down Anomaly X312, an organically shielded Bio-Titan that dominated the Central Wastes."
       },
       {
         "type": "paragraph",
@@ -1437,7 +1437,7 @@
       },
       {
         "type": "paragraph",
-        "value": "This System increases your Mech’s Maximum EP by 2 for each bank installed."
+        "value": "This System increases your Mech's Maximum EP by 2 for each bank installed."
       }
     ],
     "actionSource": "systems"
@@ -1453,7 +1453,7 @@
       },
       {
         "type": "paragraph",
-        "value": "A Cargo Bay increases a Mech’s Cargo Capacity by 10."
+        "value": "A Cargo Bay increases a Mech's Cargo Capacity by 10."
       }
     ],
     "actionSource": "systems"
@@ -1861,7 +1861,7 @@
       },
       {
         "type": "paragraph",
-        "value": "This System increases your Mech’s Max SP by 5 for each Composite Armour System you have installed. If this System is Damaged or Destroyed reduce your Max SP by 5 and reduce your current SP to match your new Max SP."
+        "value": "This System increases your Mech's Max SP by 5 for each Composite Armour System you have installed. If this System is Damaged or Destroyed reduce your Max SP by 5 and reduce your current SP to match your new Max SP."
       }
     ],
     "actionSource": "systems"
@@ -2040,7 +2040,7 @@
     "content": [
       {
         "type": "paragraph",
-        "value": "Your firewalls are bristling with multiple worms which can create backdoors directly into an opposing hacker’s Systems."
+        "value": "Your firewalls are bristling with multiple worms which can create backdoors directly into an opposing hacker's Systems."
       },
       {
         "type": "paragraph",
@@ -3033,7 +3033,7 @@
     "content": [
       {
         "type": "paragraph",
-        "value": "Your Union Crawler reduces its upkeep cost by 2 Scrap of its Tech Level. In addition add 2 free Scrap of it’s Tech Level to its Upgrade Pool at the start of each Downtime."
+        "value": "Your Union Crawler reduces its upkeep cost by 2 Scrap of its Tech Level. In addition add 2 free Scrap of it's Tech Level to its Upgrade Pool at the start of each Downtime."
       }
     ],
     "actionSource": "crawlers"
@@ -3906,7 +3906,7 @@
     "content": [
       {
         "type": "paragraph",
-        "value": "A handheld worker’s torch that runs on a rechargeable lithium-ion battery."
+        "value": "A handheld worker's torch that runs on a rechargeable lithium-ion battery."
       },
       {
         "type": "paragraph",
@@ -4999,7 +4999,7 @@
     "id": "cebadd16-e1e9-4231-978d-f3f0e4179ae3",
     "activationCost": 1,
     "actionType": "Turn",
-    "name": "Let’s Make a Deal",
+    "name": "Let's Make a Deal",
     "content": [
       {
         "type": "paragraph",
@@ -5025,7 +5025,7 @@
       }
     ],
     "actionSource": "abilities",
-    "tableName": "Let’s Make a Deal"
+    "tableName": "Let's Make a Deal"
   },
   {
     "id": "c447e95d-56d8-431f-adfb-150622977dac",
@@ -5797,7 +5797,7 @@
       },
       {
         "type": "paragraph",
-        "value": "This System increases your Mech’s Module Capacity by 1."
+        "value": "This System increases your Mech's Module Capacity by 1."
       }
     ],
     "actionSource": "systems"
@@ -6385,7 +6385,7 @@
       },
       {
         "type": "paragraph",
-        "value": "When activated as a Turn Action, you may fire up to 6 Needle Missiles at a target of your choice in Range. This attack does not require you to be able to see the target, and automatically hits. Each individual Needle Missile fired takes up one ‘Use’ and is counted as a separate attack. Any modifiers or effects apply to each Needle Missile individually."
+        "value": "When activated as a Turn Action, you may fire up to 6 Needle Missiles at a target of your choice in Range. This attack does not require you to be able to see the target, and automatically hits. Each individual Needle Missile fired takes up one 'Use' and is counted as a separate attack. Any modifiers or effects apply to each Needle Missile individually."
       }
     ],
     "actionSource": "systems"
@@ -6620,7 +6620,7 @@
       },
       {
         "type": "paragraph",
-        "value": "There are a limited number of operational satellites in orbit, placed there by different corpos and other factions. None of them use compatible systems or codes. An Orbital Lance Controller has links to one operational satellite which has sufficient energy in its banks to fire three strikes. This means that an Orbital Lance Controller can only ever be used three times and does not regain it’s uses. \n\nThe laser strike that the Orbital Lance fires can be either focussed or wide. This allows you to specify any target of your choice from the huge to the small. You can choose a wide blast to destroy a settlement, or Mech convoy, or a pinpoint strike to kill a single person. The Orbital Lance only deals as much collateral damage as you want it to. The target you choose is killed or destroyed entirely.\n\nYou may only claim one Orbital Lance Controller per Union Crawler, others must be found in the wastelands. There are few of these just lying around!"
+        "value": "There are a limited number of operational satellites in orbit, placed there by different corpos and other factions. None of them use compatible systems or codes. An Orbital Lance Controller has links to one operational satellite which has sufficient energy in its banks to fire three strikes. This means that an Orbital Lance Controller can only ever be used three times and does not regain it's uses. \n\nThe laser strike that the Orbital Lance fires can be either focussed or wide. This allows you to specify any target of your choice from the huge to the small. You can choose a wide blast to destroy a settlement, or Mech convoy, or a pinpoint strike to kill a single person. The Orbital Lance only deals as much collateral damage as you want it to. The target you choose is killed or destroyed entirely.\n\nYou may only claim one Orbital Lance Controller per Union Crawler, others must be found in the wastelands. There are few of these just lying around!"
       }
     ],
     "actionSource": "equipment"
@@ -7232,7 +7232,7 @@
     "id": "0d45c0ed-d25f-4037-bf88-b8ac5f672836",
     "activationCost": 2,
     "actionType": "Turn",
-    "name": "Pray I don’t alter the deal further...",
+    "name": "Pray I don't alter the deal further...",
     "content": [
       {
         "type": "paragraph",
@@ -8428,7 +8428,7 @@
     "content": [
       {
         "type": "paragraph",
-        "value": "This is a separate cockpit which is mounted to the side of a Mech, and allows a Pilot to ride ‘shotgun’ on the Mech in support of the main Pilot, though unable to control the Mech itself."
+        "value": "This is a separate cockpit which is mounted to the side of a Mech, and allows a Pilot to ride 'shotgun' on the Mech in support of the main Pilot, though unable to control the Mech itself."
       },
       {
         "type": "paragraph",
@@ -9530,7 +9530,7 @@
       },
       {
         "type": "paragraph",
-        "value": "Overcharge a Reactor beyond it’s initial capacity to gain additional Pushes."
+        "value": "Overcharge a Reactor beyond it's initial capacity to gain additional Pushes."
       }
     ],
     "actionSource": "abilities"

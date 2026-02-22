@@ -3,6 +3,7 @@ import { useNavigate } from '@tanstack/react-router'
 import {
   DisplayCard,
   CardHeader,
+  CardImage,
   ValueDisplay,
   StatControl,
   Text,
@@ -238,39 +239,44 @@ export function PlayerPilotDisplay({
       compact={compact}
     />
   ) : (
-    <div className="flex min-w-0 flex-col justify-center gap-0.5">
-      <Text variant="pseudoheader" as="span" className={compact ? 'text-xl' : 'text-[1.75rem]'}>
-        {isBoarded ? `\u201C${mech.pattern_name || chassisName || 'Mech'}\u201D` : pilot.callsign}
-      </Text>
-      <div className="flex flex-wrap items-center gap-1">
-        {isBoarded ? (
-          <>
-            {chassisName && <ValueDisplay label="Chassis" value={chassisName} compact={compact} />}
-            <span className="inline-flex shrink-0 cursor-default whitespace-nowrap border border-su-black">
-              <Text
-                variant="pseudoheader"
-                as="span"
-                className={badgeTextClass}
-                style={{ backgroundColor: 'var(--color-su-orange)' }}
-              >
-                {pilotClassName}
-              </Text>
-              <Text variant="pseudoheaderInverse" as="span" className={badgeTextClass}>
-                {`\u201C${pilot.callsign}\u201D`}
-              </Text>
-            </span>
-          </>
-        ) : (
-          <>
-            <ValueDisplay label="The" value={pilotClassName} compact={compact} />
-            {compact && abilityCountProp !== undefined && (
-              <ValueDisplay label="Abilities" value={abilityCountProp} compact={compact} />
-            )}
-            {chassisBadge}
-          </>
-        )}
+    <>
+      <div className="flex min-w-0 flex-col justify-center gap-0.5">
+        <Text variant="pseudoheader" as="span" className={compact ? 'text-xl' : 'text-[1.75rem]'}>
+          {isBoarded ? `\u201C${mech.pattern_name || chassisName || 'Mech'}\u201D` : pilot.callsign}
+        </Text>
+        <div className="flex flex-wrap items-center gap-1">
+          {isBoarded ? (
+            <>
+              {chassisName && (
+                <ValueDisplay label="Chassis" value={chassisName} compact={compact} />
+              )}
+              <span className="inline-flex shrink-0 cursor-default whitespace-nowrap border border-su-black">
+                <Text
+                  variant="pseudoheader"
+                  as="span"
+                  className={badgeTextClass}
+                  style={{ backgroundColor: 'var(--color-su-orange)' }}
+                >
+                  {pilotClassName}
+                </Text>
+                <Text variant="pseudoheaderInverse" as="span" className={badgeTextClass}>
+                  {`\u201C${pilot.callsign}\u201D`}
+                </Text>
+              </span>
+            </>
+          ) : (
+            <>
+              <ValueDisplay label="The" value={pilotClassName} compact={compact} />
+              {compact && abilityCountProp !== undefined && (
+                <ValueDisplay label="Abilities" value={abilityCountProp} compact={compact} />
+              )}
+              {chassisBadge}
+            </>
+          )}
+        </div>
       </div>
-    </div>
+      {pilotBeforeStats}
+    </>
   )
 
   // --- Comrades (conditionally shown if any equipped entity grants a drone/companion) ---
@@ -424,74 +430,76 @@ export function PlayerPilotDisplay({
         compact={compact}
         listing={listing}
         headerContent={headerContent}
-        beforeStats={pilotBeforeStats}
         stats={headerStats}
-        image={
-          listing
-            ? undefined
-            : {
-                url: pilot.image_path ?? pilotClassAssetUrl,
-                alt: pilot.callsign,
-                editable: canEdit
-                  ? {
-                      customUrl: pilot.image_path,
-                      onSetCustom: (url) => editConfig?.onPilotUpdate({ image_path: url }),
-                    }
-                  : undefined,
-              }
-        }
         tabs={tabs}
         controls={controls}
         defaultTabActiveColor={isBoarded ? 'rgb(239, 137, 79)' : undefined}
-        styleOverrides={
+        headerStyle={stripeStyle ? { style: stripeStyle } : undefined}
+        footerStyle={
           stripeStyle || isBoarded
             ? {
-                headerStyle: stripeStyle,
-                footerStyle: stripeStyle,
-                footerBg: isBoarded ? 'bg-su-orange' : undefined,
+                className: isBoarded ? 'bg-su-orange' : undefined,
+                style: stripeStyle,
               }
             : undefined
         }
         footerContent={footerContent}
       >
-        <div className="space-y-4">
-          <PilotPersonalInfo
-            pilot={pilot}
-            compact={compact}
-            readOnly={!canEdit}
-            onUpdate={editConfig?.onPilotUpdate ?? (() => {})}
-          />
-          <PilotEquipmentSection
-            refs={pilotRefs ?? []}
-            compact={compact}
-            canEdit={canEdit}
-            onConditionChange={(refId, condition) =>
-              editConfig?.onUpdateEntityRef(refId, { condition })
-            }
-            onRemove={
-              canEdit && editConfig ? (refId) => editConfig.onDeleteEntityRef(refId) : undefined
-            }
-            onAdd={
-              canEdit && editConfig
-                ? (schemaRefId) => {
-                    const maxSort = (pilotRefs ?? []).reduce(
-                      (max, r) => Math.max(max, r.sort_order ?? 0),
-                      0
-                    )
-                    editConfig.onCreateEntityRef({
-                      parent_id: pilot.id,
-                      parent_type: 'pilot',
-                      schema_name: 'equipment',
-                      schema_ref_id: schemaRefId,
-                      sort_order: maxSort + 1,
-                      condition: 'intact',
-                      user_id: editConfig.userId,
-                    })
-                  }
-                : undefined
-            }
-          />
-        </div>
+        {!listing && (
+          <div className="md:grid md:grid-cols-[auto_1fr] md:items-center p-4">
+            <CardImage
+              url={pilot.image_path ?? pilotClassAssetUrl}
+              alt={pilot.callsign}
+              compact={compact}
+              editable={
+                canEdit
+                  ? {
+                      customUrl: pilot.image_path,
+                      onSetCustom: (url) => editConfig?.onPilotUpdate({ image_path: url }),
+                    }
+                  : undefined
+              }
+            />
+            <div className="space-y-4">
+              <PilotPersonalInfo
+                pilot={pilot}
+                compact={compact}
+                readOnly={!canEdit}
+                onUpdate={editConfig?.onPilotUpdate ?? (() => {})}
+              />
+              <PilotEquipmentSection
+                refs={pilotRefs ?? []}
+                compact={compact}
+                canEdit={canEdit}
+                onConditionChange={(refId, condition) =>
+                  editConfig?.onUpdateEntityRef(refId, { condition })
+                }
+                onRemove={
+                  canEdit && editConfig ? (refId) => editConfig.onDeleteEntityRef(refId) : undefined
+                }
+                onAdd={
+                  canEdit && editConfig
+                    ? (schemaRefId) => {
+                        const maxSort = (pilotRefs ?? []).reduce(
+                          (max, r) => Math.max(max, r.sort_order ?? 0),
+                          0
+                        )
+                        editConfig.onCreateEntityRef({
+                          parent_id: pilot.id,
+                          parent_type: 'pilot',
+                          schema_name: 'equipment',
+                          schema_ref_id: schemaRefId,
+                          sort_order: maxSort + 1,
+                          condition: 'intact',
+                          user_id: editConfig.userId,
+                        })
+                      }
+                    : undefined
+                }
+              />
+            </div>
+          </div>
+        )}
       </DisplayCard>
 
       {editConfig && (
