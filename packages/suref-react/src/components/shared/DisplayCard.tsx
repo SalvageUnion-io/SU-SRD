@@ -15,8 +15,6 @@ import {
 import type { ReferenceEntityControl } from '../referenceEntity/ReferenceEntityDisplay/referenceEntityControlTypes'
 import { StickyHeaderContext, StickyOffsetContext } from './StickyHeaderContext'
 
-type DisplayCardMode = 'full' | 'compact' | 'listing'
-
 export type DisplayCardTab = {
   key: string
   label: string
@@ -30,8 +28,6 @@ type DisplayCardProps = {
   headerBg: string
   /** Optional CSS color for border derivation */
   headerBgColor?: string
-  /** Optional inline styles for the header (e.g., gradient backgrounds) */
-  headerBgStyle?: React.CSSProperties
   /** Opacity on header div (default: 1) */
   headerOpacity?: number
   /** Content rendered inside the header bar */
@@ -42,15 +38,10 @@ type DisplayCardProps = {
   children?: ReactNode
   /** Optional pseudoheader label above the card */
   label?: string
-  /** Display mode:
-   *  - "full" (default): Standard card with header, body, footer
-   *  - "compact": Reduced spacing and typography for inline/grid use
-   *  - "listing": Minimal header-only clickable row (entity name + key stats)
-   *    — body and footer are hidden; header is the entire card
-   */
-  mode?: DisplayCardMode
-  /** onClick handler applied to the header (for direct header-click use cases) */
-  onClick?: () => void
+  /** Compact sizing: reduced min-height, padding, border width, font/stat sizes */
+  compact?: boolean
+  /** Header-only rendering: hides body, footer, and tabs. Orthogonal to compact. */
+  listing?: boolean
   /** Click handler for the entire card. Adds hover enlarge effect + cursor-pointer.
    * Controls with `cardClick: true` also contribute (fallback when this is not set). */
   onCardClick?: () => void
@@ -61,8 +52,6 @@ type DisplayCardProps = {
    * Controls with `hidden: true` are not rendered as buttons.
    * When provided, controls should NOT also be passed to CardHeader. */
   controls?: ReferenceEntityControl[]
-  /** Additional className on the outer wrapper */
-  className?: string
   /** Grey header + reduced opacity for disabled state */
   disabled?: boolean
   /** Override default body padding (e.g., "p-0") */
@@ -73,8 +62,6 @@ type DisplayCardProps = {
   isExpanded?: boolean
   /** data-testid on the header div */
   headerTestId?: string
-  /** Positioned absolutely inside wrapper div */
-  absoluteElements?: ReactNode
   /** CSS color for card borders (external + internal). Defaults to 'black'. */
   borderColor?: string
   /** Image rendered at the top of the body (floated left). Hidden in listing mode. */
@@ -94,10 +81,15 @@ type DisplayCardProps = {
   defaultTabLabel?: string
   /** CSS color override for the default tab's active background */
   defaultTabActiveColor?: string
-  /** CSS class override for the footer background (overrides headerBg) */
-  footerBg?: string
-  /** Inline style override for the footer background (e.g. gradient stripes) */
-  footerBgStyle?: React.CSSProperties
+  /** Style overrides for header/footer (e.g., gradient stripes, footer background class) */
+  styleOverrides?: {
+    /** Inline styles for the header div (e.g., gradient backgrounds) */
+    headerStyle?: React.CSSProperties
+    /** Inline styles for the footer div (e.g., gradient stripes) */
+    footerStyle?: React.CSSProperties
+    /** CSS class override for the footer background (overrides headerBg) */
+    footerBg?: string
+  }
   /** Stats rendered in the header's right side (between headerContent and controls) */
   stats?: StatItem[]
   /** Custom content rendered to the left of stats in the header */
@@ -109,37 +101,33 @@ const DEFAULT_TAB_KEY = '__default'
 export function DisplayCard({
   headerBg,
   headerBgColor,
-  headerBgStyle,
   headerOpacity = 1,
   headerContent,
   footerContent,
   children,
   label,
-  mode = 'full',
-  onClick,
+  compact: compactProp,
+  listing: listingProp,
   onCardClick,
   cardClickable = false,
   controls,
-  className,
   disabled = false,
   bodyPadding,
   source,
   isExpanded = true,
   borderColor: borderColorProp = 'black',
   headerTestId,
-  absoluteElements,
   image,
   stickyHeader = false,
   tabs,
   defaultTabLabel = 'Info',
   defaultTabActiveColor,
-  footerBg,
-  footerBgStyle,
+  styleOverrides,
   stats,
   beforeStats,
 }: DisplayCardProps) {
-  const isCompact = mode === 'compact'
-  const isListing = mode === 'listing'
+  const isListing = !!listingProp
+  const isCompact = !!compactProp
   const hasTabs = !isListing && tabs && tabs.length > 0
 
   const [activeTabKey, setActiveTabKey] = useState(DEFAULT_TAB_KEY)
@@ -169,16 +157,6 @@ export function DisplayCard({
   // Expansion border color falls back when no explicit prop override
   const effectiveBorderColor =
     borderColorProp !== 'black' ? borderColorProp : (getSourceBorderColor(source) ?? 'black')
-
-  const handleHeaderKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLDivElement>) => {
-      if (onClick && (e.key === 'Enter' || e.key === ' ')) {
-        e.preventDefault()
-        onClick()
-      }
-    },
-    [onClick]
-  )
 
   const handleCardKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -235,7 +213,7 @@ export function DisplayCard({
     : undefined
 
   const defaultBodyPadding = isCompact ? 'p-2' : 'p-3'
-  const borderWidth = isCompact || isListing ? 2 : 3
+  const borderWidth = isCompact ? 2 : 3
 
   const isDefaultTab = activeTabKey === DEFAULT_TAB_KEY
   const activeTab = hasTabs ? tabs.find((t) => t.key === activeTabKey) : undefined
@@ -259,8 +237,7 @@ export function DisplayCard({
         cardSourceStyles.className || 'shadow-lg',
         disabled && 'opacity-50',
         isCardHoverable &&
-          'cursor-pointer transition-all duration-200 md:hover:z-10 md:hover:-translate-y-0.5 md:hover:scale-[1.02]',
-        className
+          'cursor-pointer transition-all duration-200 md:hover:z-10 md:hover:-translate-y-0.5 md:hover:scale-[1.02]'
       )}
       style={{
         ...(actualHeaderBg ? { border: `${borderWidth}px solid ${effectiveBorderColor}` } : {}),
@@ -269,8 +246,7 @@ export function DisplayCard({
       onClick={resolvedCardClick}
       onKeyDown={resolvedCardClick ? handleCardKeyDown : undefined}
     >
-      {absoluteElements}
-      {label && !isCompact && !isListing && (
+      {label && !isCompact && (
         <Text
           variant="pseudoheader"
           as="span"
@@ -279,7 +255,7 @@ export function DisplayCard({
           {label}
         </Text>
       )}
-      {label && (isCompact || isListing) && (
+      {label && isCompact && (
         <Text
           variant="pseudoheader"
           as="span"
@@ -287,6 +263,17 @@ export function DisplayCard({
         >
           {label}
         </Text>
+      )}
+
+      {controls && (
+        <div
+          className={cn(
+            'absolute right-0 z-10 mr-1.5',
+            isCompact ? 'top-0 -translate-y-1/2' : '-mt-2'
+          )}
+        >
+          <ControlButtons controls={controls} compact={isCompact} />
+        </div>
       )}
 
       {/* Inner wrapper clips backgrounds to border-radius.
@@ -311,57 +298,34 @@ export function DisplayCard({
         >
           {/* Content row — existing header layout */}
           <div
-            role={onClick ? 'button' : undefined}
-            tabIndex={onClick ? 0 : undefined}
             className={cn(
               'flex w-full flex-wrap items-center justify-between gap-2 overflow-visible',
-              isListing ? 'min-h-[60px] px-0.5 py-1' : '',
-              !isListing && (isCompact ? 'min-h-[60px] px-0.5 py-1' : 'min-h-[80px] px-1.5 py-1.5'),
-              !isListing && !isCompact && label && 'pb-4 pt-4',
-              !isListing && isCompact && label && 'pt-2',
+              isCompact ? 'min-h-[60px] px-0.5 py-1' : 'min-h-[80px] px-1.5 py-1.5',
+              !isCompact && label && 'pb-4 pt-4',
+              isCompact && label && 'pt-2',
               actualHeaderBg,
-              onClick && 'cursor-pointer',
               headerSourceStyles.className,
               headerSourceStyles.className && 'h-full'
             )}
             style={{
               opacity: headerOpacity,
               ...(headerBgColor ? { backgroundColor: headerBgColor } : {}),
-              ...headerBgStyle,
+              ...styleOverrides?.headerStyle,
               ...headerSourceStyles.style,
               ...(!isListing && (children || image || footerContent || hasTabs)
                 ? { borderBottom: `${borderWidth}px solid ${effectiveBorderColor}` }
                 : {}),
             }}
-            onClick={onClick}
-            onKeyDown={onClick ? handleHeaderKeyDown : undefined}
             data-testid={headerTestId}
           >
-            {controls || beforeStats || (stats && stats.length > 0) ? (
+            {beforeStats || (stats && stats.length > 0) ? (
               <>
-                <div
-                  className={cn(
-                    'flex min-w-0 flex-1 flex-wrap items-center gap-2 overflow-visible',
-                    isListing
-                      ? 'justify-between'
-                      : 'basis-full justify-center sm:basis-0 sm:justify-between'
-                  )}
-                >
+                <div className="flex min-w-0 flex-1 basis-full flex-wrap items-center justify-center gap-2 overflow-visible sm:basis-0 sm:justify-between">
                   {headerContent}
                 </div>
-                <div
-                  className={cn(
-                    'flex shrink-0 items-center gap-1',
-                    isListing
-                      ? 'justify-end'
-                      : 'w-full flex-wrap justify-center gap-y-1 sm:w-auto sm:justify-end'
-                  )}
-                >
+                <div className="flex w-full shrink-0 flex-wrap items-center justify-center gap-1 gap-y-1 sm:w-auto sm:justify-end">
                   {beforeStats}
-                  {stats && stats.length > 0 && (
-                    <StatsBar stats={stats} compact={isCompact || isListing} />
-                  )}
-                  {controls && <ControlButtons controls={controls} size="sm" />}
+                  {stats && stats.length > 0 && <StatsBar stats={stats} compact={isCompact} />}
                 </div>
               </>
             ) : (
@@ -434,7 +398,7 @@ export function DisplayCard({
                     ? 'md:grid md:grid-cols-[auto_1fr] md:items-center'
                     : 'flex flex-col',
                   bodyPadding || defaultBodyPadding,
-                  hasTabs && (isDefaultTab ? (image ? 'pt-3' : 'pt-0') : 'p-0 pt-2')
+                  hasTabs && (isDefaultTab ? 'pt-3' : 'p-0 pt-2')
                 )}
               >
                 {isDefaultTab ? (
@@ -462,13 +426,15 @@ export function DisplayCard({
           <div
             className={cn(
               'flex w-full items-center justify-between px-3 py-2',
-              footerBg ?? actualHeaderBg,
+              styleOverrides?.footerBg ?? actualHeaderBg,
               footerSourceStyles.className
             )}
             style={{
-              ...(headerBgColor && !footerBg ? { backgroundColor: headerBgColor } : {}),
+              ...(headerBgColor && !styleOverrides?.footerBg
+                ? { backgroundColor: headerBgColor }
+                : {}),
               ...footerSourceStyles.style,
-              ...footerBgStyle,
+              ...styleOverrides?.footerStyle,
               borderTop: `${borderWidth}px solid ${effectiveBorderColor}`,
             }}
           >

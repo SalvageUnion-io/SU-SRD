@@ -1,7 +1,6 @@
 import { useState, useCallback, useMemo } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { getAssetUrl } from 'salvageunion-reference'
-import { Layers } from 'lucide-react'
 import { DisplayCard, navigateControl, DualColumnLayout } from 'suref-react'
 import type { ReferenceEntityControl, StatItem } from 'suref-react'
 import { useMechBuilderState } from '../../hooks/useMechBuilderState'
@@ -50,10 +49,9 @@ export function PlayerPatternDisplay({
     if (listing || !editConfig?.canEdit) return undefined
     return {
       key: 'apply-pattern',
-      icon: Layers,
+      label: 'Pattern',
       onClick: () => builder.setShowPatternModal(true),
       ariaLabel: 'Apply pattern',
-      variant: 'ghost' as const,
     }
   }, [listing, editConfig?.canEdit, builder])
   const controls =
@@ -132,14 +130,13 @@ export function PlayerPatternDisplay({
 
   if (!builder.chassis) return null
 
-  // --- Mode mapping ---
-  const mode = listing ? 'listing' : compact ? 'compact' : ('full' as const)
   const readOnly = !editConfig?.canEdit
 
   return (
     <>
       <DisplayCard
-        mode={mode}
+        compact={compact}
+        listing={listing}
         headerBg="bg-su-green"
         bodyPadding="p-4"
         stickyHeader={!listing}

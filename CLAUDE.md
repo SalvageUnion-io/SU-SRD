@@ -85,6 +85,15 @@ discord-bot (standalone, depends on salvageunion-reference)
 
 **Key dependency:** The `salvageunion-reference` package must be built before the apps can resolve types. Run `bun run build:package` after cloning or after changes to `packages/salvageunion-reference/`.
 
+### Architecture Reference
+
+Detailed cross-cutting architecture docs live in `docs/architecture/`:
+
+- **[display-system.md](docs/architecture/display-system.md)** — Three-layer rendering stack: DisplayCard -> ReferenceEntityDisplay -> consumer patterns
+- **[data-flow.md](docs/architecture/data-flow.md)** — Reference data + player data resolution, TanStack Query patterns, Supabase hydration
+- **[seo-accessibility.md](docs/architecture/seo-accessibility.md)** — SEO strategy (suref-web) and WCAG 2.1 AA compliance patterns
+- **[package-contracts.md](docs/architecture/package-contracts.md)** — Package APIs, dependency rules, cross-package change checklist
+
 ### Code Conventions (from `.claude/rules/`)
 
 - **Always use relative imports** (never `@/` path aliases)

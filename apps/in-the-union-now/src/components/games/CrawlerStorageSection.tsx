@@ -3,7 +3,6 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
 import {
   CardHeader,
-  DetailIcon,
   DisplayCard,
   FilterChip,
   StatDisplay,
@@ -239,10 +238,9 @@ const CustomStorageItem = memo(function CustomStorageItem({
 
   const detailControl: ReferenceEntityControl = {
     key: 'detail',
-    icon: DetailIcon,
+    label: 'Details',
     onClick: () => setShowDetail(true),
     ariaLabel: 'View details',
-    variant: 'ghost',
   }
 
   const controls = [...(onDelete ? [deleteControl(onDelete)] : []), detailControl]
@@ -275,10 +273,11 @@ const CustomStorageItem = memo(function CustomStorageItem({
   return (
     <>
       <DisplayCard
-        mode="listing"
+        compact
+        listing
         headerBg={headerBg}
         headerContent={<CardHeader title={titleContent} controls={controls} compact lightweight />}
-        onClick={detailControl.onClick}
+        onCardClick={detailControl.onClick}
       />
       <CustomItemDetailModal
         open={showDetail}

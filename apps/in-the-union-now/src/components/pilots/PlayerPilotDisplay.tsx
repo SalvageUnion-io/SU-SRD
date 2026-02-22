@@ -10,7 +10,7 @@ import {
   ClassAbilityTreeDisplay,
 } from 'suref-react'
 import type { ReferenceEntityControl, DisplayCardTab, StatItem } from 'suref-react'
-import { Eye, EyeOff, LogIn, LogOut, Settings, Tent, Trash2 } from 'lucide-react'
+import { Eye, EyeOff, Trash2 } from 'lucide-react'
 import { findChassisById, findClassName } from '../../lib/entityHelpers'
 import { IsolatedStatValue } from '../shared/IsolatedStatValue'
 import { SheetFooter } from '../shared/SheetFooter'
@@ -110,10 +110,9 @@ export function PlayerPilotDisplay({
     if (listing || !editConfig) return undefined
     return {
       key: 'settings',
-      icon: Settings,
+      label: 'Settings',
       onClick: () => setShowSettings(true),
       ariaLabel: 'Settings',
-      variant: 'ghost' as const,
     }
   }, [listing, editConfig])
 
@@ -121,13 +120,11 @@ export function PlayerPilotDisplay({
     if (listing || !editConfig || !mech || pilot.in_downtime) return undefined
     return {
       key: 'board',
-      icon: pilot.is_boarded ? LogOut : LogIn,
+      label: pilot.is_boarded ? 'Disembark' : 'Board',
       onClick: editConfig.onToggleBoarded,
       ariaLabel: pilot.is_boarded ? 'Disembark mech' : 'Embark mech',
       variant: pilot.is_boarded ? ('danger' as const) : ('primary' as const),
-      className: pilot.is_boarded
-        ? 'bg-su-rust text-su-white hover:bg-red-700'
-        : 'bg-su-green text-su-white hover:bg-su-green/80',
+      bgColor: pilot.is_boarded ? undefined : 'var(--color-su-green)',
     }
   }, [listing, editConfig, mech, pilot.is_boarded, pilot.in_downtime])
 
@@ -135,11 +132,10 @@ export function PlayerPilotDisplay({
     if (listing || !editConfig) return undefined
     return {
       key: 'downtime',
-      icon: Tent,
+      label: 'Downtime',
       onClick: editConfig.onToggleDowntime,
       ariaLabel: pilot.in_downtime ? 'Exit downtime' : 'Enter downtime',
-      variant: pilot.in_downtime ? ('primary' as const) : ('ghost' as const),
-      className: pilot.in_downtime ? 'bg-su-pink text-su-white hover:bg-su-pink/80' : undefined,
+      bgColor: pilot.in_downtime ? 'var(--color-su-pink)' : undefined,
     }
   }, [listing, editConfig, pilot.in_downtime])
 
@@ -152,8 +148,6 @@ export function PlayerPilotDisplay({
     return sheetControls.length > 0 ? sheetControls : undefined
   }, [controlsProp, listing, defaultControls, settingsControl, boardControl, downtimeControl])
 
-  // --- Mode mapping ---
-  const mode = listing ? 'listing' : compact ? 'compact' : ('full' as const)
   const canEdit = editConfig?.canEdit ?? false
   const isBoarded = !listing && pilot.is_boarded && !!mech
 
@@ -426,9 +420,9 @@ export function PlayerPilotDisplay({
       <DisplayCard
         stickyHeader={!listing}
         headerBg={cardColorProp ?? 'bg-su-orange'}
-        headerBgStyle={stripeStyle}
         bodyPadding="p-4"
-        mode={mode}
+        compact={compact}
+        listing={listing}
         headerContent={headerContent}
         beforeStats={pilotBeforeStats}
         stats={headerStats}
@@ -449,8 +443,15 @@ export function PlayerPilotDisplay({
         tabs={tabs}
         controls={controls}
         defaultTabActiveColor={isBoarded ? 'rgb(239, 137, 79)' : undefined}
-        footerBg={isBoarded ? 'bg-su-orange' : undefined}
-        footerBgStyle={stripeStyle}
+        styleOverrides={
+          stripeStyle || isBoarded
+            ? {
+                headerStyle: stripeStyle,
+                footerStyle: stripeStyle,
+                footerBg: isBoarded ? 'bg-su-orange' : undefined,
+              }
+            : undefined
+        }
         footerContent={footerContent}
       >
         <div className="space-y-4">

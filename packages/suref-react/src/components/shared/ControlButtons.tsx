@@ -7,51 +7,106 @@ import type {
   ReferenceEntityControlVariant,
 } from '../referenceEntity/ReferenceEntityDisplay/referenceEntityControlTypes'
 
-const VARIANT_STYLES: Record<ReferenceEntityControlVariant, string> = {
-  primary: 'bg-su-black text-su-white hover:bg-su-grey-dark',
-  danger: 'opacity-60 hover:bg-su-rust/80 hover:opacity-100',
-  ghost: 'opacity-60 hover:bg-white/20 hover:opacity-100',
+/** Tailwind classes for the primary segment of each variant */
+const VARIANT_BG: Record<ReferenceEntityControlVariant, string> = {
+  primary: 'bg-su-black',
+  danger: 'bg-su-rust',
+  ghost: 'bg-su-white',
 }
 
-const ICON_SIZE: Record<'sm' | 'default', string> = {
-  sm: 'h-3.5 w-3.5',
-  default: 'h-4.5 w-4.5',
+const VARIANT_TEXT: Record<ReferenceEntityControlVariant, string> = {
+  primary: 'text-su-white',
+  danger: 'text-su-white',
+  ghost: 'text-su-black',
+}
+
+/** Inverse segment colors (for segmentText) */
+const INVERSE_BG: Record<ReferenceEntityControlVariant, string> = {
+  primary: 'bg-su-white',
+  danger: 'bg-su-white',
+  ghost: 'bg-su-black',
+}
+
+const INVERSE_TEXT: Record<ReferenceEntityControlVariant, string> = {
+  primary: 'text-su-black',
+  danger: 'text-su-black',
+  ghost: 'text-su-white',
 }
 
 type ControlButtonsProps = {
   controls: ReferenceEntityControl[]
-  size?: 'sm' | 'default'
+  compact?: boolean
   className?: string
 }
 
 function ControlButton({
   control,
-  size,
+  compact,
   onClickWithStop,
 }: {
   control: ReferenceEntityControl
-  size: 'sm' | 'default'
+  compact: boolean
   onClickWithStop: (e: React.MouseEvent, onClick: () => void) => void
 }) {
-  const variant = control.variant ?? 'ghost'
-  const Icon = control.icon
+  const variant = control.variant ?? 'primary'
+  const isDisabled = !!control.disabled
+  const hasCustomColors = !!(control.bgColor || control.textColor)
+
+  const segmentClasses = cn(
+    'px-1 font-mono font-bold uppercase tracking-tight',
+    compact ? 'text-[10px]' : 'text-xs'
+  )
 
   return (
     <button
       key={control.key}
       type="button"
       className={cn(
-        'flex min-w-[25px] shrink-0 cursor-pointer items-center justify-center gap-1 self-center rounded border border-su-black p-1 transition-colors',
-        VARIANT_STYLES[variant],
+        'inline-flex shrink-0 items-stretch whitespace-nowrap border transition-colors',
+        isDisabled
+          ? 'cursor-not-allowed border-su-grey-medium'
+          : 'cursor-pointer hover:brightness-110',
+        !isDisabled && !control.borderColor && 'border-su-black',
         control.className
       )}
+      style={{
+        ...(control.borderColor && !isDisabled ? { borderColor: control.borderColor } : {}),
+        lineHeight: 1,
+      }}
       title={control.ariaLabel}
       aria-label={control.ariaLabel}
-      onClick={(e) => onClickWithStop(e, control.onClick)}
+      aria-disabled={isDisabled || undefined}
+      onClick={isDisabled ? undefined : (e) => onClickWithStop(e, control.onClick)}
     >
-      <Icon className={ICON_SIZE[size]} />
-      {control.label && (
-        <span className="font-mono text-xs font-bold uppercase leading-none">{control.label}</span>
+      {/* Primary segment */}
+      <span
+        className={cn(
+          segmentClasses,
+          isDisabled
+            ? 'bg-su-grey-light text-su-grey-dark'
+            : !hasCustomColors && VARIANT_BG[variant],
+          !isDisabled && !hasCustomColors && VARIANT_TEXT[variant]
+        )}
+        style={{
+          lineHeight: 1,
+          ...(!isDisabled && control.bgColor ? { backgroundColor: control.bgColor } : {}),
+          ...(!isDisabled && control.textColor ? { color: control.textColor } : {}),
+        }}
+      >
+        {control.label ?? control.ariaLabel}
+      </span>
+      {/* Secondary segment (inverse style, like ValueDisplay value) */}
+      {control.segmentText && (
+        <span
+          className={cn(
+            segmentClasses,
+            isDisabled ? 'bg-su-grey-medium text-su-grey-dark' : INVERSE_BG[variant],
+            !isDisabled && INVERSE_TEXT[variant]
+          )}
+          style={{ lineHeight: 1 }}
+        >
+          {control.segmentText}
+        </span>
       )}
     </button>
   )
@@ -59,19 +114,19 @@ function ControlButton({
 
 function ControlButtonWithHover({
   control,
-  size,
+  compact,
   onClickWithStop,
   hoverContent,
 }: {
   control: ReferenceEntityControl
-  size: 'sm' | 'default'
+  compact: boolean
   onClickWithStop: (e: React.MouseEvent, onClick: () => void) => void
   hoverContent: ReactNode
 }) {
   return (
     <HoverCard.Root openDelay={200} closeDelay={100}>
       <HoverCard.Trigger asChild>
-        <ControlButton control={control} size={size} onClickWithStop={onClickWithStop} />
+        <ControlButton control={control} compact={compact} onClickWithStop={onClickWithStop} />
       </HoverCard.Trigger>
       <HoverCard.Portal>
         <HoverCard.Content
@@ -86,7 +141,7 @@ function ControlButtonWithHover({
   )
 }
 
-export function ControlButtons({ controls, size = 'default', className }: ControlButtonsProps) {
+export function ControlButtons({ controls, compact = false, className }: ControlButtonsProps) {
   const handleClick = useCallback((e: React.MouseEvent, onClick: () => void) => {
     e.stopPropagation()
     onClick()
@@ -103,7 +158,7 @@ export function ControlButtons({ controls, size = 'default', className }: Contro
           <ControlButtonWithHover
             key={control.key}
             control={control}
-            size={size}
+            compact={compact}
             onClickWithStop={handleClick}
             hoverContent={control.hoverContent}
           />
@@ -111,7 +166,7 @@ export function ControlButtons({ controls, size = 'default', className }: Contro
           <ControlButton
             key={control.key}
             control={control}
-            size={size}
+            compact={compact}
             onClickWithStop={handleClick}
           />
         )

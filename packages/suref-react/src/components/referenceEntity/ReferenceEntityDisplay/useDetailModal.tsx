@@ -47,7 +47,6 @@ export function useDetailModal(
     icon: DetailIcon,
     onClick: () => setOpen(true),
     ariaLabel: 'View details',
-    variant: 'ghost',
     hidden: true,
     cardClick: true,
   }

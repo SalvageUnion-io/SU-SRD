@@ -8,7 +8,6 @@ import {
   DualColumnLayout,
 } from 'suref-react'
 import { cn } from '../../lib/utils'
-import { RefreshCw } from 'lucide-react'
 import type { SURefChassis, SURefMetaAction, ItemCondition } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { ResolvedItem, CapacityInfo } from '../../lib/builderUtils'
@@ -144,10 +143,9 @@ export function MechBuilderBody({
                                   ? [
                                       {
                                         key: 'change',
-                                        icon: RefreshCw,
+                                        label: 'Change',
                                         onClick: onSelectChassis,
                                         ariaLabel: 'Change chassis',
-                                        variant: 'ghost',
                                       },
                                     ]
                                   : undefined
@@ -185,7 +183,7 @@ export function MechBuilderBody({
                                 ? [
                                     {
                                       key: 'change',
-                                      icon: RefreshCw,
+                                      label: 'Change',
                                       onClick: onSelectChassis,
                                       ariaLabel: 'Change chassis',
                                       variant: 'ghost',

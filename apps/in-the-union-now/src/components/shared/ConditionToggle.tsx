@@ -1,4 +1,3 @@
-import { Flame } from 'lucide-react'
 import type { ItemCondition } from 'salvageunion-reference'
 import type { ReferenceEntityControl } from 'suref-react'
 
@@ -6,20 +5,18 @@ const CONDITION_CYCLE: ItemCondition[] = ['intact', 'damaged', 'destroyed']
 
 const CONDITION_STYLES: Record<
   ItemCondition,
-  { className: string; label: string; variant: ReferenceEntityControl['variant'] }
+  { label: string; variant: ReferenceEntityControl['variant']; bgColor?: string }
 > = {
   intact: {
-    className: undefined as unknown as string,
     label: 'Intact',
-    variant: 'ghost',
+    variant: 'primary',
   },
   damaged: {
-    className: 'bg-su-orange text-su-white opacity-100',
     label: 'Damaged',
     variant: 'danger',
+    bgColor: 'var(--color-su-orange)',
   },
   destroyed: {
-    className: 'bg-su-rust text-su-white opacity-100',
     label: 'Destroyed',
     variant: 'danger',
   },
@@ -41,12 +38,11 @@ export function makeConditionControl(
 
   return {
     key: 'condition',
-    icon: Flame,
-    onClick: disabled ? () => {} : () => onChange(next),
+    label: style.label,
+    onClick: () => onChange(next),
     ariaLabel: disabled ? `Condition: ${style.label}` : `Click to change to ${nextLabel}`,
     variant: style.variant,
-    className:
-      `${style.className ?? ''}${disabled ? ' cursor-not-allowed opacity-50' : ''}`.trim() ||
-      undefined,
+    bgColor: style.bgColor,
+    disabled,
   }
 }

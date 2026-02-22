@@ -3,14 +3,10 @@ import { render, screen, fireEvent, cleanup } from '@testing-library/react'
 import { CardHeader } from '../CardHeader'
 import type { ReferenceEntityControl } from '../../referenceEntity/ReferenceEntityDisplay/referenceEntityControlTypes'
 
-function MockIcon({ className }: { className?: string }) {
-  return <svg data-testid="mock-icon" className={className} />
-}
-
 function makeControl(overrides: Partial<ReferenceEntityControl> = {}): ReferenceEntityControl {
   return {
     key: 'test',
-    icon: MockIcon,
+    label: 'Test',
     onClick: () => {},
     ariaLabel: 'Test action',
     ...overrides,
@@ -59,10 +55,10 @@ describe('CardHeader', () => {
     expect(handleClick).toHaveBeenCalledTimes(1)
   })
 
-  test('controlSize prop passes through to ControlButtons', () => {
-    render(<CardHeader title="Title" controls={[makeControl()]} controlSize="sm" />)
-    const icon = screen.getByTestId('mock-icon')
-    expect(icon.getAttribute('class')).toContain('h-3.5')
+  test('compact passes through to ControlButtons', () => {
+    render(<CardHeader title="Title" controls={[makeControl()]} compact />)
+    const button = screen.getByRole('button')
+    expect(button.innerHTML).toContain('text-[10px]')
   })
 
   test('leftContent renders before title', () => {

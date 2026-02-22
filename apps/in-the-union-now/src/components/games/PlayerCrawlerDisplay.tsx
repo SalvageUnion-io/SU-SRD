@@ -11,7 +11,7 @@ import {
   navigateControl,
 } from 'suref-react'
 import type { ReferenceEntityControl, StatItem, DisplayCardTab } from 'suref-react'
-import { ArrowUp, Crosshair, Eye, EyeOff, Plus, Trash2 } from 'lucide-react'
+import { ArrowUp, Eye, EyeOff, Trash2 } from 'lucide-react'
 import { ReferenceEntityDisplay } from 'suref-react'
 import { SheetFooter } from '../shared/SheetFooter'
 import { actionButtonClasses } from '../shared/actionButtonClasses'
@@ -76,10 +76,9 @@ export function PlayerCrawlerDisplay({
     const controls: ReferenceEntityControl[] = (editConfig.weaponSystems ?? []).map(
       ({ ref, entity }) => ({
         key: `weapon-${ref.sort_order}`,
-        icon: Crosshair,
+        label: entity?.name ?? 'Unknown',
         onClick: () => setEditingWeaponSlot({ index: ref.sort_order, oldRefId: ref.id }),
         ariaLabel: entity?.name ?? 'Unknown weapon',
-        variant: 'ghost' as const,
         hoverContent: entity ? <ReferenceEntityDisplay data={entity} compact /> : undefined,
       })
     )
@@ -88,7 +87,7 @@ export function PlayerCrawlerDisplay({
     for (let i = filledCount; i < slotCount; i++) {
       controls.push({
         key: `weapon-empty-${i}`,
-        icon: Plus,
+        label: 'Add',
         onClick: () => setEditingWeaponSlot({ index: i, oldRefId: null }),
         ariaLabel: 'Add weapon system',
         variant: 'primary' as const,
@@ -96,9 +95,6 @@ export function PlayerCrawlerDisplay({
     }
     return controls
   }, [editConfig?.isMed, editConfig?.weaponSystems, editConfig?.weaponSlotCount])
-
-  // --- Mode mapping ---
-  const mode = listing ? 'listing' : compact ? 'compact' : ('full' as const)
 
   // --- Crawler header stats (Upkeep + SP, only for sheet mode) ---
   const crawlerStats: StatItem[] | undefined =
@@ -333,7 +329,8 @@ export function PlayerCrawlerDisplay({
         stickyHeader={!listing}
         headerBg="bg-su-pink"
         bodyPadding="p-4"
-        mode={mode}
+        compact={compact}
+        listing={listing}
         headerContent={headerContent}
         stats={crawlerStats}
         controls={controls}

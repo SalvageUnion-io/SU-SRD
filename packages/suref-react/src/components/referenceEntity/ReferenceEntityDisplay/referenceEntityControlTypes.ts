@@ -4,12 +4,21 @@ export type ReferenceEntityControlVariant = 'primary' | 'danger' | 'ghost'
 
 export type ReferenceEntityControl = {
   key: string
-  icon: (props: { className?: string }) => ReactNode
+  label?: string
   onClick: () => void
   ariaLabel: string
+  icon?: (props: { className?: string }) => ReactNode
   variant?: ReferenceEntityControlVariant
+  disabled?: boolean
+  /** Override the primary segment background color (CSS value, e.g. 'var(--color-su-green)') */
+  bgColor?: string
+  /** Override the primary segment text color */
+  textColor?: string
+  /** Override the border color */
+  borderColor?: string
+  /** Secondary segment text (renders in inverse style, like the value part of ValueDisplay) */
+  segmentText?: string
   className?: string
-  label?: string
   /** When true, the button is not rendered but still participates in header click behavior */
   hidden?: boolean
   /** When true, this control's onClick makes the entire card clickable (any mode).

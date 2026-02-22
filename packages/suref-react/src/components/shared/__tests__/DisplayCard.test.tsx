@@ -4,11 +4,10 @@ import { DisplayCard } from '../DisplayCard'
 import type { DisplayCardTab } from '../DisplayCard'
 import type { ReferenceEntityControl } from '../../referenceEntity/ReferenceEntityDisplay/referenceEntityControlTypes'
 
-const Stub = () => null
 function makeTestControl(overrides: Partial<ReferenceEntityControl> = {}): ReferenceEntityControl {
   return {
     key: 'test',
-    icon: Stub,
+    label: 'Test',
     onClick: () => {},
     ariaLabel: 'Test',
     ...overrides,
@@ -57,13 +56,14 @@ describe('DisplayCard', () => {
     expect(screen.getByText('CHASSIS')).toBeTruthy()
   })
 
-  test('listing mode hides body and footer', () => {
+  test('listing boolean hides body and footer', () => {
     render(
       <DisplayCard
         headerBg="bg-su-green"
         headerContent={<span>Header</span>}
         footerContent={<span>Footer</span>}
-        mode="listing"
+        compact
+        listing
       >
         <p>Body content</p>
       </DisplayCard>
@@ -73,9 +73,29 @@ describe('DisplayCard', () => {
     expect(screen.queryByText('Footer')).toBeNull()
   })
 
-  test('compact mode renders body with tighter padding', () => {
+  test('full + listing renders full-size header-only card', () => {
     const { container } = render(
-      <DisplayCard headerBg="bg-su-green" headerContent={<span>Header</span>} mode="compact">
+      <DisplayCard
+        headerBg="bg-su-green"
+        headerContent={<span>Full Listing</span>}
+        footerContent={<span>Footer</span>}
+        listing
+      >
+        <p>Body content</p>
+      </DisplayCard>
+    )
+    expect(screen.getByText('Full Listing')).toBeTruthy()
+    // Body and footer hidden
+    expect(screen.queryByText('Body content')).toBeNull()
+    expect(screen.queryByText('Footer')).toBeNull()
+    // Full-size header: 80px min-height, 3px border
+    const wrapper = container.firstElementChild as HTMLElement
+    expect(wrapper.style.border).toContain('3px')
+  })
+
+  test('compact renders body with tighter padding', () => {
+    const { container } = render(
+      <DisplayCard headerBg="bg-su-green" headerContent={<span>Header</span>} compact>
         <p>Body</p>
       </DisplayCard>
     )
@@ -83,59 +103,14 @@ describe('DisplayCard', () => {
     expect(body).toBeTruthy()
   })
 
-  test('full mode renders body with standard padding', () => {
+  test('full renders body with standard padding', () => {
     const { container } = render(
-      <DisplayCard headerBg="bg-su-green" headerContent={<span>Header</span>} mode="full">
+      <DisplayCard headerBg="bg-su-green" headerContent={<span>Header</span>}>
         <p>Body</p>
       </DisplayCard>
     )
     const body = container.querySelector('.p-3')
     expect(body).toBeTruthy()
-  })
-
-  test('onClick makes header clickable with button role', () => {
-    let clicked = false
-    render(
-      <DisplayCard
-        headerBg="bg-su-green"
-        headerContent={<span>Clickable</span>}
-        onClick={() => {
-          clicked = true
-        }}
-      >
-        <p>Body</p>
-      </DisplayCard>
-    )
-    const button = screen.getByRole('button')
-    fireEvent.click(button)
-    expect(clicked).toBe(true)
-  })
-
-  test('header supports keyboard activation', () => {
-    let clicked = false
-    render(
-      <DisplayCard
-        headerBg="bg-su-green"
-        headerContent={<span>Keyboard</span>}
-        onClick={() => {
-          clicked = true
-        }}
-      >
-        <p>Body</p>
-      </DisplayCard>
-    )
-    const button = screen.getByRole('button')
-    fireEvent.keyDown(button, { key: 'Enter' })
-    expect(clicked).toBe(true)
-  })
-
-  test('no onClick means no button role', () => {
-    render(
-      <DisplayCard headerBg="bg-su-green" headerContent={<span>Static</span>}>
-        <p>Body</p>
-      </DisplayCard>
-    )
-    expect(screen.queryByRole('button')).toBeNull()
   })
 
   test('does not render body when children is undefined', () => {
@@ -202,20 +177,6 @@ describe('DisplayCard', () => {
     expect(screen.getByTestId('my-header')).toBeTruthy()
   })
 
-  test('absoluteElements renders inside the wrapper', () => {
-    render(
-      <DisplayCard
-        headerBg="bg-su-green"
-        headerContent={<span>Header</span>}
-        absoluteElements={<div data-testid="absolute-el">Overlay</div>}
-      >
-        <p>Body</p>
-      </DisplayCard>
-    )
-    expect(screen.getByTestId('absolute-el')).toBeTruthy()
-    expect(screen.getByText('Overlay')).toBeTruthy()
-  })
-
   test('source applies expansion CSS class to header', () => {
     render(
       <DisplayCard
@@ -270,7 +231,8 @@ describe('DisplayCard', () => {
       <DisplayCard
         headerBg="bg-su-green"
         headerContent={<span>Row</span>}
-        mode="listing"
+        compact
+        listing
         headerTestId="header"
         controls={[
           makeTestControl({
@@ -295,7 +257,6 @@ describe('DisplayCard', () => {
       <DisplayCard
         headerBg="bg-su-green"
         headerContent={<span>Full</span>}
-        mode="full"
         controls={[
           makeTestControl({
             cardClick: true,
@@ -321,7 +282,8 @@ describe('DisplayCard', () => {
       <DisplayCard
         headerBg="bg-su-green"
         headerContent={<span>Row</span>}
-        mode="listing"
+        compact
+        listing
         controls={[makeTestControl({ cardClick: false })]}
       />
     )
@@ -338,7 +300,8 @@ describe('DisplayCard', () => {
       <DisplayCard
         headerBg="bg-su-green"
         headerContent={<span>Row</span>}
-        mode="listing"
+        compact
+        listing
         controls={[
           makeTestControl({
             key: 'first',
@@ -371,7 +334,8 @@ describe('DisplayCard', () => {
       <DisplayCard
         headerBg="bg-su-green"
         headerContent={<span>Row</span>}
-        mode="listing"
+        compact
+        listing
         onCardClick={() => {
           source = 'prop'
         }}
@@ -407,7 +371,8 @@ describe('DisplayCard', () => {
       <DisplayCard
         headerBg="bg-su-green"
         headerContent={<span>Row</span>}
-        mode="listing"
+        compact
+        listing
         controls={[makeTestControl({ cardClick: true, hidden: true })]}
       />
     )
@@ -517,7 +482,8 @@ describe('DisplayCard', () => {
       <DisplayCard
         headerBg="bg-su-green"
         headerContent={<span>Header</span>}
-        mode="listing"
+        compact
+        listing
         tabs={tabs}
       >
         <p>Body</p>

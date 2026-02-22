@@ -104,7 +104,7 @@ function NpcCard({ entry, choiceValues, stepId, onChoiceValueChange }: NpcCardPr
   return (
     <DisplayCard
       headerBg="bg-su-rust"
-      mode="compact"
+      compact
       headerContent={
         <div className="flex w-full items-center justify-between gap-2">
           <div className="flex flex-col gap-0.5">

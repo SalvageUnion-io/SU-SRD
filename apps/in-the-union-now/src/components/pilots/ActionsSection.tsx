@@ -4,7 +4,7 @@ import type { SURefEnumSchemaName, SURefChassis } from 'salvageunion-reference'
 import { SalvageUnionReference, getChassisAbilities, getChoices } from 'salvageunion-reference'
 import { ReferenceEntityDisplayTooltip, FilterChip, Text } from 'suref-react'
 import type { ReferenceEntityControl } from 'suref-react'
-import { Play, RotateCcw } from 'lucide-react'
+import { RotateCcw } from 'lucide-react'
 import { toast } from 'sonner'
 import { FilterRow } from '../shared/FilterRow'
 import { IsolatedStatValue } from '../shared/IsolatedStatValue'
@@ -649,20 +649,17 @@ function ActionItem({
   if (!readOnly && !mechUnboarded && !filteredOut && (!isPassive || passiveWithUses)) {
     controls.push({
       key: 'use',
-      icon: Play,
       label: 'Use',
       ariaLabel: 'Use action',
-      variant: disabledReason ? 'ghost' : 'primary',
-      className: disabledReason ? 'cursor-not-allowed opacity-30' : undefined,
+      variant: 'primary',
+      disabled: !!disabledReason,
       onClick: () => {
-        if (!disabledReason) {
-          if (isComradeAction) {
-            onUseComrade(action)
-          } else if (isMechAction) {
-            onUseMech(action)
-          } else {
-            onUsePilot(action)
-          }
+        if (isComradeAction) {
+          onUseComrade(action)
+        } else if (isMechAction) {
+          onUseMech(action)
+        } else {
+          onUsePilot(action)
         }
       },
     })

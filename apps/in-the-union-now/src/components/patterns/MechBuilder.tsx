@@ -1,6 +1,5 @@
 import { useMemo } from 'react'
 import { getAssetUrl } from 'salvageunion-reference'
-import { Layers } from 'lucide-react'
 import { DisplayCard } from 'suref-react'
 import type { ReferenceEntityControl, StatItem } from 'suref-react'
 import { useMechBuilderState } from '../../hooks/useMechBuilderState'
@@ -93,10 +92,9 @@ export function MechBuilder({
     if (readOnly) return controls
     const applyPatternControl: ReferenceEntityControl = {
       key: 'apply-pattern',
-      icon: Layers,
+      label: 'Pattern',
       onClick: () => builder.setShowPatternModal(true),
       ariaLabel: 'Apply pattern',
-      variant: 'ghost',
     }
     return controls ? [applyPatternControl, ...controls] : [applyPatternControl]
   }, [readOnly, controls, builder])
@@ -163,7 +161,7 @@ export function MechBuilder({
         stickyHeader={stickyHeader}
         headerBg="bg-su-green"
         bodyPadding="p-0"
-        mode={compact ? 'compact' : undefined}
+        compact={compact}
         controls={mergedControls}
         stats={stats}
         headerContent={

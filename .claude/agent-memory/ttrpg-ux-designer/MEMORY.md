@@ -2,28 +2,53 @@
 
 ## Project Structure
 - Monorepo at `/Users/jarvis/Code/su-io/SU-SRD/`
-- Shared theme: `packages/suref-react/src/theme.ts` (suColors, semantic tokens, Fira Code font)
-- Game rules constants: `packages/suref-react/src/constants/gameRules.ts`
-- Builder live sheet: `apps/suref-builder/src/components/NewPilotLiveSheet/`
-- Builder uses NumericStepper, Card (from suref-react), PilotResourceSteppers pattern
-- See `patterns.md` for component details
+- Architecture docs: `docs/architecture/` (display-system, data-flow, seo-accessibility, package-contracts)
+- Shared theme: `packages/suref-react/src/styles/theme.css` (CSS custom properties, Fira Code font)
+- Game data: `packages/salvageunion-reference/` (ORM-like API, `SalvageUnionReference.get(schemaName, id)`)
+- ITUN app: `apps/in-the-union-now/` (React 19 + TanStack Router/Query + ShadCN + Tailwind v4 + Supabase)
+
+## Three-Layer Display System
+1. **DisplayCard** (`packages/suref-react/src/components/shared/DisplayCard.tsx`): Low-level card with two boolean props (`compact` for reduced spacing, `listing` for header-only), controls architecture, stats system (StatsBar), tabs, sticky headers
+2. **ReferenceEntityDisplay** (`packages/suref-react/src/components/referenceEntity/`): Entity renderer with generic slot props (titleOverride, subtitleExtra, statsOverride, abilitiesSection, afterExtraContent, footerOverride). Uses data-shape detection, not schema-name checks.
+3. **Consumer hooks**: Return slot props to spread onto ReferenceEntityDisplay (e.g., `useChassisPatternConfig`)
+
+## Key Shared Components
+- `DisplayCard` — Card primitive (replaces old Card component)
+- `ReferenceEntityDisplay` — Entity renderer (replaces old EntityDisplay)
+- `FilterChip` — Toggle chip with `aria-pressed`
+- `StatsBar` / `StatDisplay` / `StatControl` — Stats rendering (read-only or interactive)
+- `ValueDisplay` — Labeled value display
+- `Text` — Base typography component
+- `ControlButtons` — Renders `ReferenceEntityControl[]` array
+- Control presets: `addControl`, `deleteControl`, `navigateControl`, `selectControl`
+
+## UI Framework (ITUN)
+- **ShadCN + Tailwind v4 + Radix** (NOT Chakra)
+- ShadCN primitives in `src/components/ui/`
+- Custom theme via CSS variables in `src/index.css` `@theme` block
+- State: Zustand (auth only) + TanStack Query (all entity data)
 
 ## Theme & Color Notes
 - Entity colors: orange=pilot, green=mech, pink=crawler
-- GREEN (122,151,138) and PINK (206,88,152) FAIL WCAG AA contrast on both light/dark backgrounds
-- Use these as accents/borders only, not for text. See `itun-ux-review` for full contrast analysis
+- GREEN (122,151,138) and PINK (206,88,152) used as accents/borders only, not for text (WCAG AA)
+- `su-orange-dark` (168, 82, 34) provides 5.5:1 contrast ratio for text
 - Heat colors need NEW tokens: critical red (200,50,50), atCap red (180,30,30)
-- Roll tier colors: cascadeFailure=deep red, failure=rust, toughChoice=amber, success=green, nailedIt=blue
+- Expansion source theming: claw-scratch, beveled border, rain-streak, CRT scanlines
 
 ## ITUN UX Review (Feb 2025)
-- Full review written to `.claude/plans/resilient-strolling-matsumoto-agent-af5c81a.md`
 - Key issues: sticky header too tall on mobile (needs auto-collapse), actions tab should filter by action type not source, 3-col grids need responsive breakpoints, needs FAB for d20 roll, condition cycling needs undo protection
 - Recommended: collapsible sticky header, action-type filter chips, responsive 1/2/3-col grid, floating d20 FAB, segmented control for conditions
 
-## Existing Patterns (Builder)
-- `Card` component in suref-react: flexible header/body with bg, source styling, compact mode
-- `getTiltRotation()` in suref-react for damaged item visual treatment
-- `EntityDisplay` render prop pattern for app-specific renderers
-- `NumericStepper` in builder (not shared) - needs 44px touch targets for mobile
-- Actions tab uses `useUniversalActions` hook, splits into 2-col Grid on desktop
-- Resource steppers use optimistic mutation via TanStack Query `useMutation`
+## Accessibility Patterns
+- `eslint-plugin-jsx-a11y` in all ESLint configs
+- `tools/a11y-scan.ts` (puppeteer + axe-core) for runtime scanning
+- DisplayCard: `role="button"` + `tabIndex={0}` when clickable, Enter/Space keydown
+- Tab panels: `role="tablist"` / `role="tab"` / `aria-selected`
+- Search: ARIA combobox with `aria-activedescendant`
+- Mobile touch targets: 44x44px min via `@media (pointer: coarse)`
+
+## Data Flow (ITUN)
+- `entity_refs` table bridges player data to game data (schema_name + schema_ref_id)
+- Hydration: `SalvageUnionReference.get(ref.schema_name, ref.schema_ref_id)` at query time
+- TanStack Query: 5min staleTime, hierarchical query key factories, optimistic updates
+- Realtime: `useRealtimeSubscription` invalidates TanStack Query caches on DB changes

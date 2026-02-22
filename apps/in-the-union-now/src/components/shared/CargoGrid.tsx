@@ -308,7 +308,8 @@ function SimpleCargoDetailModal({
             <span className="font-mono text-2xl font-bold text-su-black">{scrapCount}x</span>
             <div className="w-fit">
               <DisplayCard
-                mode="listing"
+                compact
+                listing
                 headerBg={headerBg ?? 'bg-su-orange'}
                 headerContent={
                   <CardHeader
@@ -332,7 +333,8 @@ function SimpleCargoDetailModal({
         ) : (
           <>
             <DisplayCard
-              mode="listing"
+              compact
+              listing
               headerBg={headerBg ?? 'bg-su-orange'}
               headerContent={
                 <CardHeader

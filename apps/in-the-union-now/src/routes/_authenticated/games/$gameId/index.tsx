@@ -11,9 +11,9 @@ import {
   Archive,
   ArchiveRestore,
 } from 'lucide-react'
-import { SectionSeparator, Text, ValueDisplay } from 'suref-react'
+import { SectionSeparator, Text } from 'suref-react'
+import type { ReferenceEntityControl } from 'suref-react'
 import { toast } from 'sonner'
-import { findClassName } from '../../../../lib/entityHelpers'
 import { useCurrentUser } from '../../../../hooks/useCurrentUser'
 import {
   useGame,
@@ -24,6 +24,7 @@ import {
 } from '../../../../hooks/useGames'
 import { useCrawler } from '../../../../hooks/useCrawlers'
 import { PlayerCrawlerDisplay } from '../../../../components/games/PlayerCrawlerDisplay'
+import { PlayerPilotDisplay } from '../../../../components/pilots/PlayerPilotDisplay'
 import {
   usePilots,
   usePilotsForCrawler,
@@ -52,7 +53,7 @@ import {
 import { useRealtimeSubscription } from '../../../../hooks/useRealtimeSubscription'
 import { useActivityFeed } from '../../../../hooks/useActivityFeed'
 import { gameKeys } from '../../../../hooks/useGames'
-import type { CampaignMemberRow, CampaignRow, PilotRow } from '../../../../types/common'
+import type { CampaignMemberRow, CampaignRow } from '../../../../types/common'
 
 export const Route = createFileRoute('/_authenticated/games/$gameId/')({
   component: GameShowPage,
@@ -121,7 +122,7 @@ function CrawlerSection({ game, isMediator }: { game: CampaignRow; isMediator: b
     return (
       <div className="flex flex-col gap-3">
         <SectionSeparator label="Crawler" fontSize="text-sm" />
-        <PlayerCrawlerDisplay game={game} crawler={crawler} listing compact />
+        <PlayerCrawlerDisplay game={game} crawler={crawler} listing compact={false} />
       </div>
     )
   }
@@ -193,6 +194,11 @@ function MembersSection({
     [gameId, uninvite]
   )
 
+  const mediatorCount = useMemo(
+    () => members.filter((m) => m.role === 'mediator').length,
+    [members]
+  )
+
   return (
     <div className="flex flex-col gap-3">
       <SectionSeparator label="Players" fontSize="text-sm" />
@@ -203,6 +209,7 @@ function MembersSection({
             member={member}
             isYou={member.user_id === user?.id}
             isMediator={isMed}
+            isSoleMediator={member.role === 'mediator' && mediatorCount === 1}
             onPromote={() => handlePromote(member.user_id)}
             onUninvite={() => handleUninvite(member.user_id)}
             onSelfDemote={handleSelfDemote}
@@ -218,6 +225,7 @@ const MemberRow = memo(function MemberRow({
   member,
   isYou,
   isMediator: isMed,
+  isSoleMediator,
   onPromote,
   onUninvite,
   onSelfDemote,
@@ -225,6 +233,7 @@ const MemberRow = memo(function MemberRow({
   member: CampaignMemberRow
   isYou: boolean
   isMediator: boolean
+  isSoleMediator: boolean
   onPromote: () => void
   onUninvite: () => void
   onSelfDemote: () => void
@@ -251,8 +260,11 @@ const MemberRow = memo(function MemberRow({
               variant="ghost"
               size="sm"
               onClick={onSelfDemote}
-              className="h-7 gap-1 text-xs text-su-orange hover:bg-su-orange/20"
-              title="Demote yourself to Player"
+              disabled={isSoleMediator}
+              className="h-7 gap-1 text-xs text-su-orange hover:bg-su-orange/20 disabled:cursor-not-allowed disabled:opacity-50"
+              title={
+                isSoleMediator ? 'A game needs at least one Mediator' : 'Demote yourself to Player'
+              }
             >
               <ShieldMinus className="h-3 w-3" />
               Demote
@@ -339,14 +351,29 @@ function AssignedPilotsSection({
     <div className="flex flex-col gap-3">
       <SectionSeparator label="Assigned Pilots" fontSize="text-sm" />
       <div className="flex flex-col gap-2">
-        {assignedPilots?.map((pilot) => (
-          <PilotAssignmentRow
-            key={pilot.id}
-            pilot={pilot}
-            canUnassign={isMediator || pilot.user_id === user?.id}
-            onUnassign={() => handleUnassign(pilot.id)}
-          />
-        ))}
+        {assignedPilots?.map((pilot) => {
+          const removeControls: ReferenceEntityControl[] =
+            isMediator || pilot.user_id === user?.id
+              ? [
+                  {
+                    key: 'unassign',
+                    label: 'Remove',
+                    onClick: () => handleUnassign(pilot.id),
+                    ariaLabel: 'Remove from crawler',
+                    variant: 'danger' as const,
+                  },
+                ]
+              : []
+          return (
+            <PlayerPilotDisplay
+              key={pilot.id}
+              pilot={pilot}
+              listing
+              compact
+              controls={removeControls}
+            />
+          )
+        })}
         {(!assignedPilots || assignedPilots.length === 0) && (
           <p className="text-sm text-su-grey-dark">No pilots assigned yet.</p>
         )}
@@ -357,69 +384,31 @@ function AssignedPilotsSection({
           <Text variant="default" as="p" className="text-xs text-su-white/50">
             Assign one of your pilots:
           </Text>
-          {unassignedPilots.map((pilot) => (
-            <PilotAssignmentRow
-              key={pilot.id}
-              pilot={pilot}
-              canAssign
-              onAssign={() => handleAssign(pilot.id)}
-            />
-          ))}
+          {unassignedPilots.map((pilot) => {
+            const assignControls: ReferenceEntityControl[] = [
+              {
+                key: 'assign',
+                label: 'Assign',
+                onClick: () => handleAssign(pilot.id),
+                ariaLabel: 'Assign to crawler',
+                bgColor: 'var(--color-su-green)',
+              },
+            ]
+            return (
+              <PlayerPilotDisplay
+                key={pilot.id}
+                pilot={pilot}
+                listing
+                compact
+                controls={assignControls}
+              />
+            )
+          })}
         </div>
       )}
     </div>
   )
 }
-
-const PilotAssignmentRow = memo(function PilotAssignmentRow({
-  pilot,
-  canAssign,
-  canUnassign,
-  onAssign,
-  onUnassign,
-}: {
-  pilot: PilotRow
-  canAssign?: boolean
-  canUnassign?: boolean
-  onAssign?: () => void
-  onUnassign?: () => void
-}) {
-  const pilotClassName = useMemo(() => {
-    return findClassName(pilot.class_ref)
-  }, [pilot.class_ref])
-
-  return (
-    <div className="flex items-center justify-between rounded-md border border-su-grey-light/20 px-3 py-2">
-      <div className="flex items-center gap-2">
-        <Text variant="pseudoheader" as="span" className="text-sm uppercase">
-          {pilot.callsign}
-        </Text>
-        <ValueDisplay label="Class" value={pilotClassName} compact />
-      </div>
-      {canAssign && onAssign && (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onAssign}
-          className="h-7 text-xs text-su-green hover:bg-su-green/20"
-        >
-          <Plus className="mr-1 h-3 w-3" />
-          Assign
-        </Button>
-      )}
-      {canUnassign && onUnassign && (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onUnassign}
-          className="h-7 text-xs text-su-rust hover:bg-su-rust/20"
-        >
-          Remove
-        </Button>
-      )}
-    </div>
-  )
-})
 
 function InviteCodeSection({ game }: { game: CampaignRow }) {
   const regenerate = useRegenerateInviteCode()

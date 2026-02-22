@@ -1,4 +1,4 @@
-import { Circle, CircleCheck, Plus, Trash2 } from 'lucide-react'
+import { Plus, Trash2 } from 'lucide-react'
 import { DetailIcon } from './DetailIcon'
 import type { ReferenceEntityControl } from './referenceEntityControlTypes'
 
@@ -17,17 +17,17 @@ export function addControl(onClick: () => void): ReferenceEntityControl {
 export function selectControl(onClick: () => void, selected?: boolean): ReferenceEntityControl {
   return {
     key: 'select',
-    icon: selected ? CircleCheck : Circle,
+    label: selected ? 'Selected' : 'Select',
     onClick,
     ariaLabel: selected ? 'Deselect' : 'Select',
-    variant: 'ghost',
-    className: selected ? 'opacity-100' : undefined,
+    variant: 'primary',
   }
 }
 
 export function deleteControl(onClick: () => void): ReferenceEntityControl {
   return {
     key: 'delete',
+    label: 'Delete',
     icon: Trash2,
     onClick,
     ariaLabel: 'Delete',
@@ -41,7 +41,6 @@ export function navigateControl(onClick: () => void): ReferenceEntityControl {
     icon: DetailIcon,
     onClick,
     ariaLabel: 'View details',
-    variant: 'ghost',
     hidden: true,
     cardClick: true,
   }

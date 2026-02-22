@@ -143,7 +143,8 @@ export function ActionDisplay({
             headerBg=""
             headerBgColor={headerBg}
             borderColor={borderColor}
-            mode="listing"
+            compact
+            listing
             headerContent={headerContentNode}
           />
         </div>
@@ -162,7 +163,7 @@ export function ActionDisplay({
                 headerBg=""
                 headerBgColor={headerBg}
                 borderColor={borderColor}
-                mode="compact"
+                compact
                 headerContent={headerContentNode}
                 footerContent={footerContentNode}
               >

@@ -247,7 +247,7 @@ export function ReferenceEntityNpcDisplay({
       headerContent={headerContent}
       stats={npcStats}
       label="NPC"
-      mode={compact ? 'compact' : 'full'}
+      compact={compact}
       bodyPadding="p-0"
     >
       {(hasContent || npcChildren) && (

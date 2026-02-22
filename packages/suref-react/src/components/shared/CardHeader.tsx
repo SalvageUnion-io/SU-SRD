@@ -8,7 +8,6 @@ type CardHeaderProps = {
   title: string | ReactNode
   subtitle?: ReactNode
   controls?: ReferenceEntityControl[]
-  controlSize?: 'sm' | 'default'
   leftContent?: ReactNode
   rightContent?: ReactNode
   compact?: boolean
@@ -23,7 +22,6 @@ export function CardHeader({
   title,
   subtitle,
   controls,
-  controlSize,
   leftContent,
   rightContent,
   compact = false,
@@ -66,7 +64,7 @@ export function CardHeader({
         </div>
         <div className="flex min-w-0 basis-full items-center justify-end gap-1 md:basis-auto md:max-w-[60%] md:flex-[1_2_auto]">
           {!lightweight && rightContent}
-          {hasControls && <ControlButtons controls={controls} size={controlSize} />}
+          {hasControls && <ControlButtons controls={controls} compact={compact} />}
         </div>
       </div>
     )
@@ -89,7 +87,7 @@ export function CardHeader({
       {hasRightSide && (
         <div className="flex gap-1">
           {!lightweight && rightContent}
-          {hasControls && <ControlButtons controls={controls} size={controlSize} />}
+          {hasControls && <ControlButtons controls={controls} compact={compact} />}
         </div>
       )}
     </>

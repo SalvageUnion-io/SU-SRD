@@ -268,16 +268,11 @@ export function ReferenceEntityDisplayContent({
       rightContent={
         !hide.stats ? <ReferenceEntityRightHeaderContent data={data} fontSize={fontSize} /> : null
       }
-      controls={listing ? undefined : controls}
       compact={compact}
       lightweight={lightweight}
       titleAs={titleAs}
     />
   )
-
-  // In non-listing mode, controls go to CardHeader for button rendering.
-  // Extract cardClick handler separately so DisplayCard can apply card-level click + hover.
-  const cardClickFromControls = !listing ? controls?.find((c) => c.cardClick)?.onClick : undefined
 
   const card = (
     <DisplayCard
@@ -287,15 +282,16 @@ export function ReferenceEntityDisplayContent({
       headerContent={headerContent}
       footerContent={!hasBodyContent ? footer : undefined}
       label={label}
-      mode={listing ? 'listing' : compact ? 'compact' : 'full'}
+      compact={compact}
+      listing={listing}
       headerTestId="frame-header-container"
       source={source}
       isExpanded={!listing}
       bodyPadding="p-0"
       disabled={disabled}
-      controls={listing ? controls : undefined}
+      controls={controls}
       stats={resolvedStats}
-      onCardClick={onCardClick ?? cardClickFromControls}
+      onCardClick={onCardClick}
       cardClickable={cardClickable}
     >
       {!listing && hasBodyContent && (

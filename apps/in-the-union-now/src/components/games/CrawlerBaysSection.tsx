@@ -1,9 +1,8 @@
 import { useState, useCallback } from 'react'
 import { SalvageUnionReference, getNpc } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
-import { ReferenceEntityDisplay, Text, DetailIcon } from 'suref-react'
+import { ReferenceEntityDisplay, Text } from 'suref-react'
 import type { ReferenceEntityControl } from 'suref-react'
-import { ArrowLeftRight, Flame } from 'lucide-react'
 import { useAutosave } from '../../hooks/useAutosave'
 import { LabeledInput } from '../shared/LabeledInput'
 import {
@@ -107,14 +106,14 @@ export function CrawlerBaysSection({
 
     if (isArmamentBay && armamentControls) {
       if (isDamaged) {
-        // When bay is damaged, show greyed-out no-op controls without hoverContent
+        // When bay is damaged, show disabled controls without hoverContent
         baySpecificControls.push(
           ...armamentControls.map((c) => ({
             ...c,
             key: `${c.key}-disabled`,
             onClick: () => {},
             hoverContent: undefined,
-            className: 'opacity-30 cursor-not-allowed',
+            disabled: true,
           }))
         )
       } else {
@@ -125,11 +124,10 @@ export function CrawlerBaysSection({
     if (isTradingBay && !readOnly && onOpenScrapConversion) {
       baySpecificControls.push({
         key: 'trade-scrap',
-        icon: ArrowLeftRight,
-        onClick: isDamaged ? () => {} : onOpenScrapConversion,
+        label: 'Trade',
+        onClick: onOpenScrapConversion,
         ariaLabel: 'Trade Scrap',
-        variant: 'ghost',
-        className: isDamaged ? 'opacity-30 cursor-not-allowed' : undefined,
+        disabled: isDamaged,
       })
     }
 
@@ -138,21 +136,19 @@ export function CrawlerBaysSection({
         ? [
             {
               key: 'toggle-damaged',
-              icon: Flame,
+              label: isDamaged ? 'Damaged' : 'Damage',
               onClick: () => handleToggleDamaged(bay.id),
               ariaLabel: isDamaged ? 'Restore to intact' : 'Mark as damaged',
-              variant: isDamaged ? ('danger' as const) : ('ghost' as const),
-              className: isDamaged ? 'bg-red-700 opacity-100 text-white' : undefined,
+              ...(isDamaged ? { variant: 'danger' as const } : {}),
             },
           ]
         : []),
       ...baySpecificControls,
       {
         key: 'show-content',
-        icon: DetailIcon,
+        label: 'Details',
         onClick: () => setBayOverlay({ entity: bayEntity, mode: 'content' }),
         ariaLabel: 'View details',
-        variant: 'ghost',
       },
     ]
 
