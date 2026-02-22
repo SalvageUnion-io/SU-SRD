@@ -103,7 +103,7 @@ export function MobileNavIsland({ categories, currentPath }: MobileNavIslandProp
                 {cat.schemas.map((schema) => (
                   <a
                     key={schema.id}
-                    href={schema.href || `/schema/${schema.id}`}
+                    href={schema.href || `/schema/${schema.id}/`}
                     className="btn catalog-item block text-center text-sm"
                     style={
                       {
@@ -126,7 +126,7 @@ export function MobileNavIsland({ categories, currentPath }: MobileNavIslandProp
             {/* Bottom links */}
             <div className="mt-auto flex flex-col gap-2 border-t border-su-grey-light pt-4">
               <Button
-                href="/randsum"
+                href="/randsum/"
                 active={isActive('/randsum')}
                 className="block text-sm"
                 onClick={() => setOpen(false)}
@@ -134,7 +134,7 @@ export function MobileNavIsland({ categories, currentPath }: MobileNavIslandProp
                 RANDSUM
               </Button>
               <Button
-                href="/about"
+                href="/about/"
                 active={isActive('/about')}
                 className="block text-sm"
                 onClick={() => setOpen(false)}

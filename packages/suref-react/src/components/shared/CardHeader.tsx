@@ -15,6 +15,8 @@ type CardHeaderProps = {
   disabled?: boolean
   /** When true, renders only title and controls — no subtitle, leftContent, or rightContent */
   lightweight?: boolean
+  /** HTML element to use for the title text (default: 'span') */
+  titleAs?: 'span' | 'h1'
 }
 
 export function CardHeader({
@@ -27,12 +29,13 @@ export function CardHeader({
   compact = false,
   disabled = false,
   lightweight = false,
+  titleAs = 'span',
 }: CardHeaderProps) {
   const titleElement =
     typeof title === 'string' ? (
       <Text
         variant="pseudoheader"
-        as="span"
+        as={titleAs}
         className={cn(
           'uppercase tracking-[-0.02em]',
           compact ? 'py-[3px] text-base' : 'text-[1.75rem]',

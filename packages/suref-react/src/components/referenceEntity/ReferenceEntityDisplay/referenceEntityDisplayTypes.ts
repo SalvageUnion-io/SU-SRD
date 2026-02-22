@@ -125,6 +125,8 @@ export type ReferenceEntityDisplayStateInput = {
   footerOverride?: ReactNode
   /** When provided, replaces the computed title node in the header */
   titleSlot?: ReactNode
+  /** HTML element for the title text in CardHeader (default: 'span') */
+  titleAs?: 'span' | 'h1'
 }
 
 /** Computed state returned by useReferenceEntityDisplayState. Extends input with derived values. */
@@ -141,6 +143,7 @@ export type ReferenceEntityDisplayState = Omit<
   | 'afterChoicesContent'
   | 'footerOverride'
   | 'titleSlot'
+  | 'titleAs'
 > & {
   /** Subtitle extra content from caller */
   subtitleExtra?: ReactNode
@@ -158,6 +161,8 @@ export type ReferenceEntityDisplayState = Omit<
   footerOverride?: ReactNode
   /** When provided, replaces the computed title node in the header */
   titleSlot?: ReactNode
+  /** HTML element for the title text in CardHeader (default: 'span') */
+  titleAs?: 'span' | 'h1'
   /** hide with all fields resolved to booleans (no undefined) */
   hide: Required<ReferenceEntityHideConfig>
   /** Resolved to non-optional boolean */

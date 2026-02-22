@@ -48,6 +48,7 @@ export function useReferenceEntityDisplayState({
   afterChoicesContent,
   footerOverride,
   titleSlot,
+  titleAs,
 }: ReferenceEntityDisplayStateInput): ReferenceEntityDisplayState {
   const hideActions = hide?.actions ?? false
   const hidePatterns = hide?.patterns ?? false
@@ -147,5 +148,6 @@ export function useReferenceEntityDisplayState({
     afterChoicesContent,
     footerOverride,
     titleSlot,
+    titleAs,
   }
 }

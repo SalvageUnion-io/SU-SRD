@@ -14,7 +14,7 @@ function toDisplayResult(result: SearchResult): DisplayResult {
   const slug = getEntitySlug(result.entity)
   return {
     id: result.entityId,
-    url: `/schema/${result.schemaName}/item/${slug}`,
+    url: `/schema/${result.schemaName}/item/${slug}/`,
     title: result.entityName,
     schema: result.schemaTitle.replace('Salvage Union ', ''),
   }
@@ -33,7 +33,7 @@ function matchSchemas(query: string): DisplayResult[] {
     )
     .map((s) => ({
       id: `schema:${s.id}`,
-      url: `/schema/${s.id}`,
+      url: `/schema/${s.id}/`,
       title: s.displayNamePlural,
       schema: 'Category',
     }))

@@ -21,7 +21,7 @@ type TextProps = {
   children: React.ReactNode
   className?: string
   style?: React.CSSProperties
-  as?: 'p' | 'span' | 'div' | 'label'
+  as?: 'p' | 'span' | 'div' | 'label' | 'h1'
 } & VariantProps<typeof textVariants> &
   Omit<React.HTMLAttributes<HTMLElement>, 'children' | 'style'>
 

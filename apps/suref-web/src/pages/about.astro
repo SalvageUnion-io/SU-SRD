@@ -6,16 +6,28 @@ import eldridgeCoastMap from '../assets/eldridge-coast-map.png'
 const imageAltText = 'Map of The Eldridge Coast, created using Shmeppy.com'
 
 const pilots = ['STUMPY', 'ROACH BOY', 'NELL', 'PART', 'PARCÈL', 'CALI']
+
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'AboutPage',
+  name: 'About the Salvage Union SRD',
+  description: 'About salvageunion.io, an open-source System Reference Document for the Salvage Union TTRPG by Leyline Press.',
+  url: 'https://salvageunion.io/about/',
+  isPartOf: {
+    '@type': 'WebSite',
+    name: 'Salvage Union System Reference Document',
+    url: 'https://salvageunion.io/',
+  },
+}
 ---
 
 <BaseLayout
   title="About - Salvage Union System Reference Document"
-  description="About the Salvage Union SRD (System Reference Document) project and its creators."
+  description="About salvageunion.io, an open-source System Reference Document for the Salvage Union TTRPG by Leyline Press. Community-built reference tool."
+  structuredData={structuredData}
 >
   <div class="flex w-full flex-1 flex-col justify-center py-12">
     <div class="mx-auto flex w-full max-w-5xl flex-col gap-8 px-6">
-      <h1 class="sr-only">About the Salvage Union SRD</h1>
-
       <!-- Riveted scrap metal panel -->
       <div class="pilot-panel-shadow">
       <div class="pilot-panel relative px-10 py-8">
@@ -77,12 +89,55 @@ const pilots = ['STUMPY', 'ROACH BOY', 'NELL', 'PART', 'PARCÈL', 'CALI']
       </div>
       </div>
 
+      <h1
+        class="box-decoration-clone bg-su-black px-2 py-1 text-center font-mono text-3xl font-bold uppercase leading-none tracking-tight text-su-white"
+        style="line-height: 1;"
+      >
+        About the Salvage Union SRD
+      </h1>
+
+      <!-- What is this? -->
+      <section class="text-sm leading-relaxed text-center">
+        <h2 class="mb-2 font-mono text-lg font-bold uppercase">What is this?</h2>
+        <p class="mb-2">
+          This is an unofficial, community-built System Reference Document (SRD) for{' '}
+          <a
+            href="https://leyline.press/pages/salvage-union"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="font-bold text-su-orange-dark hover:underline"
+          >
+            Salvage Union
+          </a>, a post-apocalyptic mech tabletop RPG published by{' '}
+          <a
+            href="https://leyline.press"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="font-bold text-su-orange-dark hover:underline"
+          >
+            Leyline Press
+          </a>. It provides a searchable, browsable reference for all game content released under the Salvage Union OGL.
+        </p>
+        <p class="mb-2">
+          Browse the full catalog:{' '}
+          <a href="/schema/chassis/" class="font-bold text-su-orange-dark hover:underline">Chassis</a>,{' '}
+          <a href="/schema/systems/" class="font-bold text-su-orange-dark hover:underline">Systems</a>,{' '}
+          <a href="/schema/modules/" class="font-bold text-su-orange-dark hover:underline">Modules</a>,{' '}
+          <a href="/schema/abilities/" class="font-bold text-su-orange-dark hover:underline">Abilities</a>,{' '}
+          <a href="/schema/classes/" class="font-bold text-su-orange-dark hover:underline">Classes</a>, and more.
+        </p>
+        <p>
+          The site is open source and contributions are welcome.
+        </p>
+      </section>
+
       <!-- Main content -->
       <div>
         <div class="flex flex-col gap-8">
 
           <!-- Thanks + Links -->
-          <div class="flex flex-col gap-4 text-center">
+          <section class="flex flex-col gap-4 text-center">
+            <h2 class="font-mono text-lg font-bold uppercase">Acknowledgments</h2>
             <p class="text-sm">
               Many thanks to{' '}
               <a
@@ -153,7 +208,7 @@ const pilots = ['STUMPY', 'ROACH BOY', 'NELL', 'PART', 'PARCÈL', 'CALI']
                 Salvage Union Discord
               </a>.
             </p>
-          </div>
+          </section>
         </div>
       </div>
     </div>

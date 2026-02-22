@@ -53,7 +53,7 @@ const categories: CatalogSection[] = catalogCategories.map((cat) => {
         const display = getReferenceEntityData(item)
         return {
           id: item.id,
-          href: `/schema/${schemaName}/item/${display.slug}`,
+          href: `/schema/${schemaName}/item/${display.slug}/`,
           label: catalogNameOverrides[item.name] ?? item.name,
           catalogBg: (item as SURefGuide).guideColor || getCatalogBg(schemaName),
         }
@@ -67,7 +67,7 @@ const categories: CatalogSection[] = catalogCategories.map((cat) => {
       if (!s) return []
       return [{
         id: s.id,
-        href: `/schema/${s.id}`,
+        href: `/schema/${s.id}/`,
         label: pluralize(s.displayName, s.itemCount),
         catalogBg: getCatalogBg(s.id),
         catalogLabel: getCatalogLabel(s.id),

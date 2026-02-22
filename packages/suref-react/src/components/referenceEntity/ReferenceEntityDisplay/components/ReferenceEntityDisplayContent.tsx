@@ -115,6 +115,7 @@ export function ReferenceEntityDisplayContent({
     afterChoicesContent,
     footerOverride,
     titleSlot,
+    titleAs,
   } = state
 
   // Determine which content to render (from EntityTopMatter)
@@ -270,6 +271,7 @@ export function ReferenceEntityDisplayContent({
       controls={listing ? undefined : controls}
       compact={compact}
       lightweight={lightweight}
+      titleAs={titleAs}
     />
   )
 

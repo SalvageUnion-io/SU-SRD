@@ -4,6 +4,11 @@ import '../styles/global.css'
 import TopNavigation from '../components/TopNavigation.astro'
 import { Footer, Toaster } from 'suref-react'
 
+type BreadcrumbItem = {
+  name: string
+  url: string
+}
+
 type Props = {
   title?: string
   description?: string
@@ -13,6 +18,7 @@ type Props = {
   structuredData?: Record<string, unknown>
   noindex?: boolean
   preloadImage?: string
+  breadcrumbs?: BreadcrumbItem[]
 }
 
 const {
@@ -24,11 +30,13 @@ const {
   structuredData,
   noindex = false,
   preloadImage,
+  breadcrumbs,
 } = Astro.props
 
 const siteUrl = 'https://salvageunion.io'
-const canonicalUrl = canonical || new URL(Astro.url.pathname, siteUrl).href
-const ogImageUrl = new URL(ogImage, siteUrl).href
+const pathname = Astro.url.pathname.endsWith('/') ? Astro.url.pathname : Astro.url.pathname + '/'
+const canonicalUrl = canonical || new URL(pathname, siteUrl).href
+const ogImageUrl = ogImage.startsWith('http') ? ogImage : new URL(ogImage, siteUrl).href
 ---
 
 <!doctype html>
@@ -51,8 +59,8 @@ const ogImageUrl = new URL(ogImage, siteUrl).href
     <meta property="og:type" content={ogType} />
     <meta property="og:site_name" content="Salvage Union SRD" />
     <meta property="og:image" content={ogImageUrl} />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
+    <meta property="og:image:width" content="790" />
+    <meta property="og:image:height" content="352" />
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
@@ -75,7 +83,7 @@ const ogImageUrl = new URL(ogImage, siteUrl).href
   </head>
   <body>
     <div class="flex min-h-screen flex-col bg-su-white">
-      <TopNavigation />
+      <TopNavigation breadcrumbs={breadcrumbs} />
       <main class="flex flex-1 flex-col bg-su-blue-pale" transition:animate="fade">
         <slot />
       </main>

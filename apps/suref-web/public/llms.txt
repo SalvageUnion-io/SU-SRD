@@ -1,0 +1,41 @@
+# Salvage Union System Reference Document (SRD)
+
+> An open-source, searchable reference for the Salvage Union tabletop RPG by Leyline Press.
+
+salvageunion.io is a community-built System Reference Document (SRD) for Salvage Union, a post-apocalyptic mech TTRPG. It provides stats, descriptions, abilities, and rules for all game content released under the Salvage Union Open Game License.
+
+## Content Categories
+
+All game data is organized into browsable categories:
+
+- Chassis (mech frames): https://salvageunion.io/schema/chassis/
+- Systems (mech systems): https://salvageunion.io/schema/systems/
+- Modules (mech modules): https://salvageunion.io/schema/modules/
+- Abilities (pilot abilities): https://salvageunion.io/schema/abilities/
+- Classes (pilot classes): https://salvageunion.io/schema/classes/
+- Equipment (pilot equipment): https://salvageunion.io/schema/equipment/
+- Traits (keyword traits): https://salvageunion.io/schema/traits/
+- Keywords (rules keywords): https://salvageunion.io/schema/keywords/
+- Distances (range bands): https://salvageunion.io/schema/distances/
+- Drones (deployable drones): https://salvageunion.io/schema/drones/
+- Vehicles (non-mech vehicles): https://salvageunion.io/schema/vehicles/
+- Crawlers (mobile bases): https://salvageunion.io/schema/crawlers/
+- Crawler Bays (crawler facilities): https://salvageunion.io/schema/crawler-bays/
+- Creatures (NPC creatures): https://salvageunion.io/schema/creatures/
+- NPCs (non-player characters): https://salvageunion.io/schema/npcs/
+- Squads (enemy squads): https://salvageunion.io/schema/squads/
+- Factions (world factions): https://salvageunion.io/schema/factions/
+- Bio-Titans (massive bio-mechs): https://salvageunion.io/schema/bio-titans/
+- Meld (alien technology): https://salvageunion.io/schema/meld/
+- Roll Tables (random tables): https://salvageunion.io/schema/roll-tables/
+- Sources (source books): https://salvageunion.io/schema/sources/
+
+## Licensing
+
+Game content is published under the Salvage Union Open Game License (OGL 1.0b).
+Salvage Union is created and published by Leyline Press (https://leyline.press).
+
+## Other Pages
+
+- About: https://salvageunion.io/about/
+- Sitemap: https://salvageunion.io/sitemap-index.xml

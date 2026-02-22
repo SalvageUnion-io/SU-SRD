@@ -6,6 +6,17 @@ import { SearchIsland } from './islands/SearchIsland'
 import Logo from './Logo.astro'
 import { getCatalogBg, getCatalogLabel } from '../lib/catalogColors'
 
+type BreadcrumbItem = {
+  name: string
+  url: string
+}
+
+type Props = {
+  breadcrumbs?: BreadcrumbItem[]
+}
+
+const { breadcrumbs } = Astro.props
+
 const catalog = getSchemaCatalog()
 const schemas = catalog.schemas.filter((s) => !s.meta)
 const schemaMap = new Map(schemas.map((s) => [s.id, s]))
@@ -24,7 +35,7 @@ const categories = catalogCategories.map((cat) => {
           id: item.id,
           displayName: item.name,
           catalogBg: (item as SURefGuide).guideColor || getCatalogBg(schemaName),
-          href: `/schema/${schemaName}/item/${display.slug}`,
+          href: `/schema/${schemaName}/item/${display.slug}/`,
         }
       }),
     }
@@ -54,17 +65,37 @@ function isActive(path: string) {
     </div>
   </div>
 
+  <!-- Breadcrumbs (centered) -->
+  {breadcrumbs && breadcrumbs.length > 0 && (
+    <nav aria-label="Breadcrumb" class="hidden lg:block">
+      <ol class="flex flex-wrap items-center gap-1 font-mono text-xs uppercase tracking-wide text-su-grey-dark">
+        {breadcrumbs.map((item, index) => (
+          <>
+            {index > 0 && <li aria-hidden="true" class="select-none">/</li>}
+            <li>
+              {index === breadcrumbs.length - 1 ? (
+                <span aria-current="page" class="text-su-black font-bold">{item.name}</span>
+              ) : (
+                <a href={item.url} class="hover:text-su-orange-dark hover:underline">{item.name}</a>
+              )}
+            </li>
+          </>
+        ))}
+      </ol>
+    </nav>
+  )}
+
   <!-- Desktop nav -->
   <div class="hidden lg:flex items-center gap-2">
     <a href="/" class:list={['btn', isActive('/schema') || currentPath === '/' ? 'btn-active' : 'btn-inactive']} aria-current={isActive('/schema') || currentPath === '/' ? 'page' : undefined}>
       SRD
     </a>
 
-    <a href="/randsum" class:list={['btn', isActive('/randsum') ? 'btn-active' : 'btn-inactive']} aria-current={isActive('/randsum') ? 'page' : undefined}>
+    <a href="/randsum/" class:list={['btn', isActive('/randsum') ? 'btn-active' : 'btn-inactive']} aria-current={isActive('/randsum') ? 'page' : undefined}>
       RANDSUM
     </a>
 
-    <a href="/about" class:list={['btn', isActive('/about') ? 'btn-active' : 'btn-inactive']} aria-current={isActive('/about') ? 'page' : undefined}>
+    <a href="/about/" class:list={['btn', isActive('/about') ? 'btn-active' : 'btn-inactive']} aria-current={isActive('/about') ? 'page' : undefined}>
       ABOUT
     </a>
 
@@ -82,3 +113,20 @@ function isActive(path: string) {
     />
   </div>
 </nav>
+
+{breadcrumbs && breadcrumbs.length > 0 && (
+  <script
+    is:inline
+    type="application/ld+json"
+    set:html={JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: breadcrumbs.map((item, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        name: item.name,
+        item: item.url,
+      })),
+    })}
+  />
+)}

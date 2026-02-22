@@ -15,7 +15,7 @@ const schemaName = schema.displayName || 'Schema'
 const capitalizedTitle =
   schema.displayNamePlural ||
   schema.title.charAt(0).toUpperCase() + schema.title.slice(1)
-const canonicalUrl = `https://salvageunion.io/schema/${schemaId}`
+const canonicalUrl = `https://salvageunion.io/schema/${schemaId}/`
 
 // Pre-compute filter facets at build time
 const techLevels = getUniqueTechLevels(data)
@@ -23,14 +23,23 @@ const sources = schemaId === 'sources' ? [] : getUniqueSources(data)
 
 const structuredData = {
   '@context': 'https://schema.org',
-  '@type': 'Dataset',
+  '@type': 'CollectionPage',
   name: schemaName,
-  description: `Salvage Union ${schemaName} System Reference Document (SRD) data`,
+  description: `Browse all ${schemaName} in the Salvage Union SRD (System Reference Document). Complete reference with stats, abilities, and details.`,
   url: canonicalUrl,
   keywords: ['Salvage Union', 'TTRPG', 'SRD', 'System Reference Document', schemaName],
+  isPartOf: {
+    '@type': 'WebSite',
+    name: 'Salvage Union System Reference Document',
+    url: 'https://salvageunion.io/',
+  },
+  mainEntity: {
+    '@type': 'ItemList',
+    numberOfItems: data.length,
+  },
   creator: {
     '@type': 'Organization',
-    name: 'Salvage Union SRD',
+    name: 'Leyline Press',
   },
 }
 ---
@@ -40,6 +49,10 @@ const structuredData = {
   description={`Browse all ${schemaName} in the Salvage Union SRD (System Reference Document). Complete reference with stats, abilities, and details.`}
   canonical={canonicalUrl}
   structuredData={structuredData}
+  breadcrumbs={[
+    { name: 'SRD', url: 'https://salvageunion.io/' },
+    { name: schemaName, url: canonicalUrl },
+  ]}
 >
   <div class="flex min-h-full flex-col">
     <!-- Static header -->

@@ -487,15 +487,19 @@ export function GuideStepsDisplay({
                   )
 
                   if (rollTableEntity && !compact) {
-                    return (
-                      <div className="flex flex-col gap-4 md:flex-row md:items-center">
-                        <div className="min-w-0 flex-1">
-                          {contentBlock}
-                          {entityGrid}
+                    const hasContent = !!(contentBlock || entityGrid)
+                    if (hasContent) {
+                      return (
+                        <div className="flex flex-col gap-4 md:flex-row md:items-center">
+                          <div className="min-w-0 flex-1">
+                            {contentBlock}
+                            {entityGrid}
+                          </div>
+                          <div className="w-full md:max-w-[60%]">{rollSection}</div>
                         </div>
-                        <div className="w-full md:max-w-[60%]">{rollSection}</div>
-                      </div>
-                    )
+                      )
+                    }
+                    return <div className="flex justify-center">{rollSection}</div>
                   }
 
                   return (

@@ -1,4 +1,4 @@
-import { Suspense, useMemo } from 'react'
+import { Suspense, useEffect, useMemo } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { isAbility } from 'salvageunion-reference'
 import {
@@ -11,11 +11,21 @@ import {
 type ReferenceEntityIslandProps = {
   item: SURefEntity
   compact?: boolean
+  titleAs?: 'span' | 'h1'
 }
 
-export function ReferenceEntityIsland({ item, compact = false }: ReferenceEntityIslandProps) {
+export function ReferenceEntityIsland({
+  item,
+  compact = false,
+  titleAs,
+}: ReferenceEntityIslandProps) {
   const classSelections = useMemo(() => getClassSelections(item), [item])
   const classEntity = classSelections.selectedClass || classSelections.selectedAdvancedClass
+
+  // Remove static fallback content after hydration
+  useEffect(() => {
+    document.querySelector('[data-static-fallback]')?.remove()
+  }, [])
 
   return (
     <div className="mx-auto w-full max-w-6xl p-4">
@@ -23,6 +33,7 @@ export function ReferenceEntityIsland({ item, compact = false }: ReferenceEntity
         <ReferenceEntityDisplay
           data={item}
           compact={compact}
+          titleAs={titleAs}
           afterExtraContent={
             classEntity ? <ClassAbilityTreeDisplay classEntity={classEntity} /> : undefined
           }

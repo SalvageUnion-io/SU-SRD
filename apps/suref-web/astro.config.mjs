@@ -6,10 +6,15 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   site: 'https://salvageunion.io',
   output: 'static',
+  trailingSlash: 'always',
   integrations: [
     react(),
     sitemap({
       filter: (page) => !page.includes('/image'),
+      serialize(item) {
+        item.lastmod = new Date().toISOString()
+        return item
+      },
     }),
   ],
   prefetch: {

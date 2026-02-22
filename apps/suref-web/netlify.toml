@@ -27,6 +27,12 @@
 [build.processing.images]
   compress = true
 
+# Sitemap redirect (Astro generates sitemap-index.xml, not sitemap.xml)
+[[redirects]]
+  from = "/sitemap.xml"
+  to = "/sitemap-index.xml"
+  status = 301
+
 # 404 fallback
 [[redirects]]
   from = "/*"

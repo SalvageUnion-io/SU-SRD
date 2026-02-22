@@ -35,7 +35,7 @@ const schemas = catalog.schemas.filter((s) => !s.meta).slice(0, 6)
         </a>
         {schemas.map((schema) => (
           <a
-            href={`/schema/${schema.id}`}
+            href={`/schema/${schema.id}/`}
             class:list={['btn text-center catalog-item']}
             style={`--catalog-bg: ${getCatalogBg(schema.id)}`}
           >

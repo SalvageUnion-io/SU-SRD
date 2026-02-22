@@ -122,7 +122,7 @@ export function SchemaViewerIsland({
             return (
               <a
                 key={item.id}
-                href={`/schema/${schemaId}/item/${getEntitySlug(item)}`}
+                href={`/schema/${schemaId}/item/${getEntitySlug(item)}/`}
                 aria-label={item.name}
                 className="relative block"
               >

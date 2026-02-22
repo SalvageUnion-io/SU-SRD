@@ -27,6 +27,20 @@ import {
   getPageReference,
   getTechLevel,
   getAssetUrl,
+  getContent,
+  getStructurePoints,
+  getEnergyPoints,
+  getHeatCapacity,
+  getSystemSlots,
+  getModuleSlots,
+  getCargoCapacity,
+  getSalvageValue,
+  getSlotsRequired,
+  getHitPoints,
+  getTraits,
+  getActionType,
+  getRange,
+  getDamage,
 } from './utilities.js'
 import { getEntitySlug } from './slug.js'
 import { ActionTypeSchema } from './schemas/enums.js'
@@ -614,4 +628,107 @@ export function getReferenceEntityData(entity: SURefEntity): ReferenceEntityData
     techLevel: getTechLevel(entity),
     assetUrl: getAssetUrl(entity),
   }
+}
+
+// ============================================================================
+// STATIC ENTITY SUMMARY (SEO)
+// ============================================================================
+
+/**
+ * Static summary data extracted from an entity for SEO/static HTML rendering
+ */
+export type StaticEntitySummary = {
+  name: string
+  description: string | undefined
+  source: string | undefined
+  page: number | undefined
+  techLevel: number | 'B' | 'N' | undefined
+  contentParagraphs: string[]
+  stats: { label: string; value: string | number }[]
+  traits: string[]
+}
+
+/**
+ * Extract a static summary from an entity for server-side rendering (SEO)
+ * Collects text content, numeric stats, and trait names into a flat structure
+ * suitable for rendering as static HTML at build time.
+ * @param entity - The entity to extract a summary from
+ * @returns Static summary data
+ */
+export function extractStaticEntitySummary(entity: SURefEntity): StaticEntitySummary {
+  const name = getName(entity) ?? entity.id
+  const description = getDescription(entity)
+  const source = getSource(entity)
+  const page = getPageReference(entity)
+  const techLevel = getTechLevel(entity)
+
+  // Extract paragraph text from content blocks
+  const contentParagraphs: string[] = []
+  const content = getContent(entity)
+  if (Array.isArray(content)) {
+    for (const block of content) {
+      if (
+        block &&
+        typeof block === 'object' &&
+        (!block.type || block.type === 'paragraph') &&
+        typeof block.value === 'string'
+      ) {
+        contentParagraphs.push(block.value)
+      }
+    }
+  }
+
+  // Collect numeric stats
+  const stats: { label: string; value: string | number }[] = []
+
+  const sp = getStructurePoints(entity)
+  if (sp != null) stats.push({ label: 'Structure Points', value: sp })
+
+  const ep = getEnergyPoints(entity)
+  if (ep != null) stats.push({ label: 'Energy Points', value: ep })
+
+  const hc = getHeatCapacity(entity)
+  if (hc != null) stats.push({ label: 'Heat Capacity', value: hc })
+
+  const ss = getSystemSlots(entity)
+  if (ss != null) stats.push({ label: 'System Slots', value: ss })
+
+  const ms = getModuleSlots(entity)
+  if (ms != null) stats.push({ label: 'Module Slots', value: ms })
+
+  const cc = getCargoCapacity(entity)
+  if (cc != null) stats.push({ label: 'Cargo Capacity', value: cc })
+
+  const sv = getSalvageValue(entity)
+  if (sv != null) stats.push({ label: 'Salvage Value', value: sv })
+
+  const sr = getSlotsRequired(entity)
+  if (sr != null) stats.push({ label: 'Slots Required', value: sr })
+
+  const hp = getHitPoints(entity)
+  if (hp != null) stats.push({ label: 'Hit Points', value: hp })
+
+  if (techLevel != null) stats.push({ label: 'Tech Level', value: techLevel })
+
+  const actionType = getActionType(entity)
+  if (actionType) stats.push({ label: 'Action Type', value: actionType })
+
+  const range = getRange(entity)
+  if (range) stats.push({ label: 'Range', value: range.join(', ') })
+
+  const damage = getDamage(entity)
+  if (damage) stats.push({ label: 'Damage', value: `${damage.amount} ${damage.damageType}` })
+
+  // Extract trait names
+  const traits: string[] = []
+  const entityTraits = getTraits(entity)
+  if (entityTraits) {
+    for (const t of entityTraits) {
+      if (t && typeof t === 'object' && 'type' in t && typeof t.type === 'string') {
+        traits.push(t.type)
+      }
+    }
+  }
+
+  return { name, description, source, page, techLevel, contentParagraphs, stats, traits }
 }

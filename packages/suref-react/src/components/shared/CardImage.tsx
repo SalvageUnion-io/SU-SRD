@@ -11,6 +11,8 @@ type CardImageProps = {
   alt?: string
   compact?: boolean
   editable?: CardImageEditable
+  width?: number
+  height?: number
 }
 
 const TAG_SM =
@@ -18,7 +20,7 @@ const TAG_SM =
 const TAG_SM_DANGER =
   'inline-flex items-center gap-1 border border-su-black bg-su-rust px-1 py-0 font-mono text-xs font-bold uppercase leading-none text-su-white transition-opacity hover:opacity-80'
 
-export function CardImage({ url, alt, compact, editable }: CardImageProps) {
+export function CardImage({ url, alt, compact, editable, width, height }: CardImageProps) {
   const [showImage, setShowImage] = useState(true)
   const [loaded, setLoaded] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -41,7 +43,7 @@ export function CardImage({ url, alt, compact, editable }: CardImageProps) {
   }
 
   const hasCustom = !!editable?.customUrl
-  const width = compact ? '180px' : '220px'
+  const containerWidth = compact ? '180px' : '220px'
 
   // Nothing to show and not editable — hide entirely
   if (!displayUrl && !editable) return null
@@ -51,7 +53,7 @@ export function CardImage({ url, alt, compact, editable }: CardImageProps) {
   return (
     <div
       className="mx-auto shrink-0 bg-su-white align-top md:mx-0 md:float-left md:mr-4"
-      style={{ width, maxWidth: '100%', shapeOutside: 'margin-box' }}
+      style={{ width: containerWidth, maxWidth: '100%', shapeOutside: 'margin-box' }}
     >
       <div
         className={cn('group relative overflow-hidden', editable && 'rounded')}
@@ -66,6 +68,8 @@ export function CardImage({ url, alt, compact, editable }: CardImageProps) {
             style={{ opacity: loaded ? 1 : 0 }}
             loading="lazy"
             decoding="async"
+            {...(width ? { width } : {})}
+            {...(height ? { height } : {})}
             onLoad={() => setLoaded(true)}
             onError={() => {
               console.error(`Failed to load image: ${displayUrl}`)
@@ -75,7 +79,7 @@ export function CardImage({ url, alt, compact, editable }: CardImageProps) {
         ) : editable ? (
           <div
             className="flex items-center justify-center text-su-grey-dark/30"
-            style={{ width, height: width, maxWidth: '100%' }}
+            style={{ width: containerWidth, height: containerWidth, maxWidth: '100%' }}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
