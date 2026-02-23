@@ -50,6 +50,10 @@ type MechBuilderProps = {
   /** Entity refs for drone modification slots */
   mechRefs?: EntityRefRow[]
   onConditionChange?: (refId: string, condition: ItemCondition) => void
+  /** Image upload handlers (forwarded to MechBuilderBody CardImage) */
+  onImageFileSelected?: (file: File) => void
+  onImageRemove?: () => void
+  isImageUploading?: boolean
 }
 
 export function MechBuilder({
@@ -80,6 +84,9 @@ export function MechBuilder({
   mechId,
   mechRefs,
   onConditionChange,
+  onImageFileSelected,
+  onImageRemove,
+  isImageUploading,
 }: MechBuilderProps) {
   const builder = useMechBuilderState({
     initialState,
@@ -160,7 +167,6 @@ export function MechBuilder({
       <DisplayCard
         stickyHeader={stickyHeader}
         headerBg="bg-su-green"
-        bodyPadding="p-0"
         compact={compact}
         controls={mergedControls}
         stats={stats}
@@ -225,7 +231,15 @@ export function MechBuilder({
               ? undefined
               : {
                   customUrl: builder.state.customImageUrl,
-                  onSetCustom: builder.setCustomImage,
+                  onSetCustom: onImageRemove
+                    ? (url) => {
+                        if (url === null) onImageRemove()
+                        else builder.setCustomImage(url)
+                      }
+                    : builder.setCustomImage,
+                  onFileSelected: onImageFileSelected,
+                  isUploading: isImageUploading,
+                  removeLabel: onImageRemove ? 'Delete' : undefined,
                 },
           }}
         />

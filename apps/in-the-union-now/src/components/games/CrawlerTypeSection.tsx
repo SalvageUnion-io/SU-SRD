@@ -163,6 +163,7 @@ export function CrawlerTypeSection({
         npcPosition="right"
         hide={{ actions: true, footer: true }}
         headerColor="bg-su-pink"
+        headerBgColor="color-mix(in srgb, rgb(206, 88, 152) 35%, white)"
       />
     </div>
   )

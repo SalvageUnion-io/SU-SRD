@@ -12,20 +12,30 @@ import {
 } from 'suref-react'
 import type { ReferenceEntityControl, DisplayCardTab, StatItem } from 'suref-react'
 import { Eye, EyeOff, Trash2 } from 'lucide-react'
+import { uploadEntityImage, deleteEntityImage } from '../../lib/api/storageApi'
 import { findChassisById, findClassName } from '../../lib/entityHelpers'
 import { IsolatedStatValue } from '../shared/IsolatedStatValue'
 import { SheetFooter } from '../shared/SheetFooter'
 import { actionButtonClasses } from '../shared/actionButtonClasses'
 import { DeleteConfirmDialog } from '../shared/DeleteConfirmDialog'
 import { ModalShell } from '../shared/ModalShell'
+import { PilotListingSplitHeader } from './PilotListingSplitHeader'
 import { PilotPersonalInfo } from './PilotPersonalInfo'
 import { PilotEquipmentSection } from './PilotEquipmentSection'
 import { PilotMechTab } from './PilotMechTab'
 import { ActionsSection } from './ActionsSection'
 import { ComradesSection } from './ComradesSection'
+import { PilotCrawlerTab } from './PilotCrawlerTab'
+import { PilotDowntimeTab } from './PilotDowntimeTab'
 import type { ComradeEntry } from '../../lib/comradeUtils'
 import type { PilotEditConfig } from '../../hooks/usePilotSheet'
-import type { PilotRow, MechRow, EntityRefRow } from '../../types/common'
+import type {
+  PilotRow,
+  MechRow,
+  CrawlerRow,
+  EntityRefRow,
+  DowntimeRecordRow,
+} from '../../types/common'
 import type { SURefChassis, SURefClass } from 'salvageunion-reference'
 
 type PlayerPilotDisplayProps = {
@@ -48,6 +58,9 @@ type PlayerPilotDisplayProps = {
   chassisName?: string
   patternName?: string
   comrades?: ComradeEntry[]
+  crawler?: CrawlerRow | null
+  crawlerTlStats?: { max_sp: number; upkeep: number; upgrade_cost: number | null }
+  activeDowntime?: DowntimeRecordRow | null
   editConfig?: PilotEditConfig
 }
 
@@ -84,11 +97,44 @@ export function PlayerPilotDisplay({
   chassisName: chassisNameProp,
   patternName: patternNameProp,
   comrades: comradesProp,
+  crawler,
+  crawlerTlStats,
+  activeDowntime,
   editConfig,
 }: PlayerPilotDisplayProps) {
   const navigate = useNavigate()
   const [showDelete, setShowDelete] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
+  const [crawlerNameDraft, setCrawlerNameDraft] = useState<string | null>(null)
+  const [isImageUploading, setIsImageUploading] = useState(false)
+
+  const handleImageFileSelected = useCallback(
+    async (file: File) => {
+      if (!editConfig) return
+      setIsImageUploading(true)
+      try {
+        const url = await uploadEntityImage(editConfig.userId, file)
+        // Delete old image if replacing
+        if (pilot.image_path) {
+          deleteEntityImage(pilot.image_path)
+        }
+        editConfig.onPilotUpdate({ image_path: url })
+      } catch (err) {
+        console.error('Failed to upload image:', err)
+      } finally {
+        setIsImageUploading(false)
+      }
+    },
+    [editConfig, pilot.image_path]
+  )
+
+  const handleImageRemove = useCallback(() => {
+    if (!editConfig) return
+    if (pilot.image_path) {
+      deleteEntityImage(pilot.image_path)
+    }
+    editConfig.onPilotUpdate({ image_path: null })
+  }, [editConfig, pilot.image_path])
 
   const pilotClassName = pilotClassNameProp ?? findClassName(pilot.class_ref)
 
@@ -130,7 +176,7 @@ export function PlayerPilotDisplay({
   }, [listing, editConfig, mech, pilot.is_boarded, pilot.in_downtime])
 
   const downtimeControl: ReferenceEntityControl | undefined = useMemo(() => {
-    if (listing || !editConfig) return undefined
+    if (listing || !editConfig || pilot.crawler_id) return undefined
     return {
       key: 'downtime',
       label: 'Downtime',
@@ -138,7 +184,7 @@ export function PlayerPilotDisplay({
       ariaLabel: pilot.in_downtime ? 'Exit downtime' : 'Enter downtime',
       bgColor: pilot.in_downtime ? 'var(--color-su-pink)' : undefined,
     }
-  }, [listing, editConfig, pilot.in_downtime])
+  }, [listing, editConfig, pilot.in_downtime, pilot.crawler_id])
 
   const controls = useMemo(() => {
     if (controlsProp) return controlsProp
@@ -151,6 +197,7 @@ export function PlayerPilotDisplay({
 
   const canEdit = editConfig?.canEdit ?? false
   const isBoarded = !listing && pilot.is_boarded && !!mech
+  const isDowntime = !listing && pilot.in_downtime && !!crawler
 
   const badgeTextClass = compact
     ? 'text-xs font-normal uppercase'
@@ -192,6 +239,26 @@ export function PlayerPilotDisplay({
         { key: 'heat', label: 'Heat', value: mech.current_heat, outOfMax: mech.heat_capacity },
       ]
     }
+    if (isDowntime) {
+      return [
+        {
+          key: 'hp',
+          label: 'HP',
+          value: pilot.hp,
+          outOfMax: pilot.max_hp,
+          onChange: (v: number) => editConfig.onStatChange('hp', v),
+          canEdit,
+        },
+        { key: 'ap', label: 'AP', value: pilot.ap, outOfMax: pilot.max_ap },
+        {
+          key: 'upgrade',
+          label: 'Upgrade',
+          bottomLabel: 'Pool',
+          value: crawler.upgrade_pool,
+          outOfMax: crawlerTlStats?.upgrade_cost ?? undefined,
+        },
+      ]
+    }
     return [
       {
         key: 'hp',
@@ -203,7 +270,7 @@ export function PlayerPilotDisplay({
       },
       { key: 'ap', label: 'AP', value: pilot.ap, outOfMax: pilot.max_ap },
     ]
-  }, [listing, editConfig, isBoarded, mech, pilot, canEdit])
+  }, [listing, editConfig, isBoarded, isDowntime, mech, pilot, crawler, crawlerTlStats, canEdit])
 
   // Pilot stats box shown in header when boarded (to the left of mech stats)
   const pilotBeforeStats =
@@ -225,25 +292,53 @@ export function PlayerPilotDisplay({
 
   // --- Header content ---
   const headerContent = listing ? (
-    <CardHeader
-      title={pilot.callsign}
-      subtitle={
-        <div className="flex flex-wrap items-center gap-1">
-          <ValueDisplay label="The" value={pilotClassName} compact={compact} />
-          {compact && abilityCountProp !== undefined && (
-            <ValueDisplay label="Abilities" value={abilityCountProp} compact={compact} />
-          )}
-          {compact && chassisBadge}
-        </div>
-      }
-      compact={compact}
-    />
+    chassisName ? (
+      <PilotListingSplitHeader
+        callsign={pilot.callsign}
+        pilotClassName={pilotClassName}
+        abilityCount={abilityCountProp}
+        chassisName={chassisName}
+        patternName={patternName}
+        compact={compact}
+      />
+    ) : (
+      <CardHeader
+        title={pilot.callsign}
+        subtitle={
+          <div className="flex flex-wrap items-center gap-1">
+            <ValueDisplay label="The" value={pilotClassName} compact={compact} />
+          </div>
+        }
+        compact={compact}
+      />
+    )
   ) : (
     <>
       <div className="flex min-w-0 flex-col justify-center gap-0.5">
-        <Text variant="pseudoheader" as="span" className={compact ? 'text-xl' : 'text-[1.75rem]'}>
-          {isBoarded ? `\u201C${mech.pattern_name || chassisName || 'Mech'}\u201D` : pilot.callsign}
-        </Text>
+        {isDowntime && editConfig ? (
+          <input
+            type="text"
+            value={crawlerNameDraft ?? crawler.name ?? ''}
+            onChange={(e) => setCrawlerNameDraft(e.target.value)}
+            onBlur={() => {
+              if (crawlerNameDraft !== null && crawlerNameDraft !== crawler.name) {
+                editConfig.onUpdateCrawler({ name: crawlerNameDraft })
+              }
+              setCrawlerNameDraft(null)
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
+            }}
+            placeholder="Name your crawler"
+            className="bg-transparent font-mono text-xl font-bold uppercase text-su-white outline-none border-b border-su-white/50 placeholder:text-su-white/30"
+          />
+        ) : (
+          <Text variant="pseudoheader" as="span" className={compact ? 'text-xl' : 'text-[1.75rem]'}>
+            {isBoarded
+              ? `\u201C${mech.pattern_name || chassisName || 'Mech'}\u201D`
+              : pilot.callsign}
+          </Text>
+        )}
         <div className="flex flex-wrap items-center gap-1">
           {isBoarded ? (
             <>
@@ -264,6 +359,20 @@ export function PlayerPilotDisplay({
                 </Text>
               </span>
             </>
+          ) : isDowntime ? (
+            <span className="inline-flex shrink-0 cursor-default whitespace-nowrap border border-su-black">
+              <Text
+                variant="pseudoheader"
+                as="span"
+                className={badgeTextClass}
+                style={{ backgroundColor: 'var(--color-su-pink)' }}
+              >
+                {pilotClassName}
+              </Text>
+              <Text variant="pseudoheaderInverse" as="span" className={badgeTextClass}>
+                {`\u201C${pilot.callsign}\u201D`}
+              </Text>
+            </span>
           ) : (
             <>
               <ValueDisplay label="The" value={pilotClassName} compact={compact} />
@@ -284,36 +393,58 @@ export function PlayerPilotDisplay({
 
   // --- Tabs (only used in non-listing mode, DisplayCard hides in listing) ---
   const tabs = useMemo(() => {
-    const result: DisplayCardTab[] = [
-      {
-        key: 'abilities',
-        label: 'Abilities',
-        activeColor: 'rgb(239, 137, 79)',
-        content: pilotClass ? (
-          <div className={compact ? 'px-3 pb-3' : 'px-4 pb-4'}>
-            <IsolatedStatValue
-              stats={[{ key: 'tp', label: 'TP', value: pilot.tp }]}
-              className="mb-1.5 ml-auto"
-            />
-            <PilotAbilityTrees pilotClass={pilotClass} pilotRefs={pilotRefs ?? []} />
-          </div>
-        ) : null,
-      },
-      {
-        key: 'mech',
-        label: 'Mech',
-        activeColor: 'rgb(122, 151, 138)',
+    const result: DisplayCardTab[] = []
+
+    if (pilot.in_downtime) {
+      result.push({
+        key: 'downtime',
+        label: 'Downtime',
+        before: true,
+        activeColor: 'rgb(206, 88, 152)',
+        borderColor: 'rgb(206, 88, 152)',
+        glowColor: 'rgba(206, 88, 152, 0.5)',
         content: (
-          <PilotMechTab
-            pilot={pilot}
-            mech={mech}
-            mechRefs={mechRefs ?? []}
-            canEdit={canEdit}
-            compact
-          />
+          <div className={compact ? 'p-3' : 'p-4'}>
+            <PilotDowntimeTab
+              mechId={mech?.id}
+              crawlerId={pilot.crawler_id ?? undefined}
+              crawler={crawler}
+              activeDowntime={activeDowntime}
+            />
+          </div>
         ),
-      },
-    ]
+      })
+    }
+
+    result.push({
+      key: 'abilities',
+      label: 'Abilities',
+      activeColor: 'rgb(239, 137, 79)',
+      content: pilotClass ? (
+        <div className={compact ? 'p-3' : 'p-4'}>
+          <IsolatedStatValue
+            stats={[{ key: 'tp', label: 'TP', value: pilot.tp }]}
+            className="mb-1.5 ml-auto"
+          />
+          <PilotAbilityTrees pilotClass={pilotClass} pilotRefs={pilotRefs ?? []} />
+        </div>
+      ) : null,
+    })
+
+    result.push({
+      key: 'mech',
+      label: 'Mech',
+      activeColor: 'rgb(122, 151, 138)',
+      content: (
+        <PilotMechTab
+          pilot={pilot}
+          mech={mech}
+          mechRefs={mechRefs ?? []}
+          canEdit={canEdit}
+          compact
+        />
+      ),
+    })
 
     if (comrades.length > 0) {
       result.push({
@@ -321,7 +452,7 @@ export function PlayerPilotDisplay({
         label: 'Comrades',
         activeColor: 'rgb(140, 75, 56)',
         content: (
-          <div className={compact ? 'px-3 pb-3' : 'px-4 pb-4'}>
+          <div className={compact ? 'p-3' : 'p-4'}>
             <ComradesSection
               comrades={comrades}
               mechRefs={mechRefs ?? []}
@@ -333,6 +464,7 @@ export function PlayerPilotDisplay({
                   ? (refId, condition) => editConfig.onUpdateMechEntityRef(refId, { condition })
                   : undefined
               }
+              headerBgColor="color-mix(in srgb, rgb(239, 137, 79) 35%, white)"
             />
           </div>
         ),
@@ -364,6 +496,17 @@ export function PlayerPilotDisplay({
       ),
     })
 
+    result.push({
+      key: 'crawler',
+      label: 'Crawler',
+      activeColor: 'rgb(206, 88, 152)',
+      content: (
+        <div className={compact ? 'p-3' : 'p-4'}>
+          <PilotCrawlerTab crawlerId={pilot.crawler_id} />
+        </div>
+      ),
+    })
+
     return result
   }, [
     pilotClass,
@@ -376,6 +519,8 @@ export function PlayerPilotDisplay({
     comrades,
     mechChassisProp,
     editConfig,
+    activeDowntime,
+    crawler,
   ])
 
   // --- Footer (only used in non-listing mode, DisplayCard hides in listing) ---
@@ -455,7 +600,12 @@ export function PlayerPilotDisplay({
                 canEdit
                   ? {
                       customUrl: pilot.image_path,
-                      onSetCustom: (url) => editConfig?.onPilotUpdate({ image_path: url }),
+                      onSetCustom: (url) => {
+                        if (url === null) handleImageRemove()
+                      },
+                      onFileSelected: handleImageFileSelected,
+                      isUploading: isImageUploading,
+                      removeLabel: 'Delete',
                     }
                   : undefined
               }
@@ -588,15 +738,17 @@ export function PlayerPilotDisplay({
               </div>
             )}
 
-            <div>
-              <button
-                type="button"
-                className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-su-black bg-su-pink px-3 py-1.5 font-mono text-sm font-semibold uppercase text-su-white transition-colors hover:bg-su-pink/80"
-                onClick={editConfig.onToggleDowntime}
-              >
-                {pilot.in_downtime ? 'Exit Downtime' : 'Trigger Downtime'}
-              </button>
-            </div>
+            {!pilot.crawler_id && (
+              <div>
+                <button
+                  type="button"
+                  className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-su-black bg-su-pink px-3 py-1.5 font-mono text-sm font-semibold uppercase text-su-white transition-colors hover:bg-su-pink/80"
+                  onClick={editConfig.onToggleDowntime}
+                >
+                  {pilot.in_downtime ? 'Exit Downtime' : 'Trigger Downtime'}
+                </button>
+              </div>
+            )}
           </div>
         </ModalShell>
       )}

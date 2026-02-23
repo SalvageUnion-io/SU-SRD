@@ -149,6 +149,7 @@ export function patternToBuilderState(pattern: {
   chassis_ref: string
   description: string | null
   visible: boolean
+  image_path?: string | null
   pattern_items: PatternItem[]
 }): BuilderState {
   return {
@@ -156,7 +157,7 @@ export function patternToBuilderState(pattern: {
     chassisRef: pattern.chassis_ref,
     description: pattern.description ?? '',
     visible: pattern.visible,
-    customImageUrl: null,
+    customImageUrl: pattern.image_path ?? null,
     items: pattern.pattern_items,
   }
 }
@@ -258,6 +259,7 @@ export function builderToCreateInput(state: BuilderState): CreatePatternInput | 
     chassis_ref: state.chassisRef,
     description: state.description.trim() || undefined,
     visible: state.visible,
+    image_path: state.customImageUrl,
     pattern_items: state.items,
   }
 }

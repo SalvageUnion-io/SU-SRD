@@ -39,6 +39,9 @@ type MechBuilderBodyProps = {
     editable?: {
       customUrl?: string | null
       onSetCustom: (url: string | null) => void
+      onFileSelected?: (file: File) => void
+      isUploading?: boolean
+      removeLabel?: string
     }
   }
 }
@@ -138,6 +141,7 @@ export function MechBuilderBody({
                               data={chassis}
                               compact
                               listing
+                              headerBgColor={ACTIVE_TAB_BG}
                               controls={
                                 !readOnly && onSelectChassis
                                   ? [
@@ -178,6 +182,7 @@ export function MechBuilderBody({
                             data={chassis}
                             compact
                             listing
+                            headerBgColor={ACTIVE_TAB_BG}
                             controls={
                               !readOnly && onSelectChassis
                                 ? [

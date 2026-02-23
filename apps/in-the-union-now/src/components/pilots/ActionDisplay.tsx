@@ -160,10 +160,10 @@ export function ActionDisplay({
               style={{ border: `2px solid ${borderColor}` }}
             >
               <DisplayCard
-                headerBg=""
                 headerBgColor={headerBg}
                 borderColor={borderColor}
                 compact
+                bodyPadding="p-2"
                 headerContent={headerContentNode}
                 footerContent={footerContentNode}
               >

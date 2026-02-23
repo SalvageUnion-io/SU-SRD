@@ -2,14 +2,19 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   createCrawler,
   deleteCrawler,
+  getActiveDowntimeRecord,
   getCrawlerById,
   getCrawlerEntityRefs,
   updateCrawler,
   updateCrawlerWeapon,
   upgradeTechLevel,
   translateScrap,
+  setCrawlerDowntime,
+  payUpkeep,
+  updateDowntimeRecord,
 } from '../lib/api/crawlerApi'
 import { useCargoQuery, useAddCargo, useUpdateCargo, useDeleteCargo } from './useCargo'
+import { pilotKeys } from './usePilots'
 import { updateEntityRef } from '../lib/api/entityRefApi'
 import { gameKeys } from './useGames'
 import type {
@@ -25,6 +30,7 @@ export const crawlerKeys = {
   detail: (id: string) => [...crawlerKeys.details(), id] as const,
   entityRefs: (crawlerId: string) => [...crawlerKeys.all, 'entityRefs', crawlerId] as const,
   cargo: (crawlerId: string) => [...crawlerKeys.all, 'cargo', crawlerId] as const,
+  activeDowntime: (crawlerId: string) => [...crawlerKeys.all, 'activeDowntime', crawlerId] as const,
 }
 
 export function useCrawler(crawlerId: string | undefined) {
@@ -39,6 +45,14 @@ export function useCrawlerEntityRefs(crawlerId: string | undefined) {
   return useQuery({
     queryKey: crawlerKeys.entityRefs(crawlerId ?? ''),
     queryFn: () => getCrawlerEntityRefs(crawlerId!),
+    enabled: !!crawlerId,
+  })
+}
+
+export function useActiveDowntimeRecord(crawlerId: string | undefined) {
+  return useQuery({
+    queryKey: crawlerKeys.activeDowntime(crawlerId ?? ''),
+    queryFn: () => getActiveDowntimeRecord(crawlerId!),
     enabled: !!crawlerId,
   })
 }
@@ -172,6 +186,63 @@ export function useTranslateScrap() {
       ),
     onSuccess: (data: CrawlerRow) => {
       queryClient.setQueryData(crawlerKeys.detail(data.id), data)
+    },
+  })
+}
+
+export function useCrawlerDowntime() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({
+      crawlerId,
+      entering,
+      userId,
+    }: {
+      crawlerId: string
+      entering: boolean
+      userId: string
+    }) => setCrawlerDowntime(crawlerId, entering, userId),
+    onSuccess: (_data, { crawlerId }) => {
+      queryClient.invalidateQueries({ queryKey: crawlerKeys.activeDowntime(crawlerId) })
+      queryClient.invalidateQueries({ queryKey: pilotKeys.forCrawler(crawlerId) })
+    },
+  })
+}
+
+export function usePayUpkeep() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({
+      crawlerId,
+      scrapDeductions,
+      upgradePoolIncrease,
+    }: {
+      crawlerId: string
+      scrapDeductions: Record<string, number>
+      upgradePoolIncrease: number
+    }) => payUpkeep(crawlerId, scrapDeductions, upgradePoolIncrease),
+    onSuccess: (data: CrawlerRow) => {
+      queryClient.setQueryData(crawlerKeys.detail(data.id), data)
+    },
+  })
+}
+
+export function useUpdateDowntimeRecord() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({
+      recordId,
+      input,
+    }: {
+      recordId: string
+      crawlerId: string
+      input: { upkeep_paid?: boolean; closed_at?: string }
+    }) => updateDowntimeRecord(recordId, input),
+    onSuccess: (_, { crawlerId }) => {
+      queryClient.invalidateQueries({ queryKey: crawlerKeys.activeDowntime(crawlerId) })
     },
   })
 }

@@ -6,9 +6,11 @@ import {
   updateMechEntityRefs,
   updateMech,
 } from '../lib/api/mechApi'
+import { offloadMechCargo } from '../lib/api/cargoApi'
 import { useCargoQuery, useAddCargo, useDeleteCargo } from './useCargo'
 import { updateEntityRef } from '../lib/api/entityRefApi'
 import { pilotKeys } from './usePilots'
+import { crawlerKeys } from './useCrawlers'
 import type {
   EntityRefInsert,
   EntityRefUpdate,
@@ -116,6 +118,29 @@ export function useUpdateMechLoadout() {
     }) => updateMechEntityRefs(mechId, inserts, deleteIds),
     onSuccess: (_data, { mechId }) => {
       queryClient.invalidateQueries({ queryKey: mechKeys.entityRefs(mechId) })
+    },
+  })
+}
+
+export function useOffloadMechCargo() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({
+      mechId,
+      crawlerId,
+      storageCargoIds,
+      scrapAdditions,
+    }: {
+      mechId: string
+      crawlerId: string
+      storageCargoIds: string[]
+      scrapAdditions: Record<string, number>
+    }) => offloadMechCargo(mechId, crawlerId, storageCargoIds, scrapAdditions),
+    onSuccess: (_, { mechId, crawlerId }) => {
+      queryClient.invalidateQueries({ queryKey: mechKeys.cargo(mechId) })
+      queryClient.invalidateQueries({ queryKey: crawlerKeys.detail(crawlerId) })
+      queryClient.invalidateQueries({ queryKey: crawlerKeys.cargo(crawlerId) })
     },
   })
 }

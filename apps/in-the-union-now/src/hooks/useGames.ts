@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   listGames,
   getGameById,
+  getGameByCrawlerId,
   getGameMembers,
   createGame,
   updateGame,
@@ -35,6 +36,14 @@ export function useGame(gameId: string | undefined) {
     queryKey: gameKeys.detail(gameId ?? ''),
     queryFn: () => getGameById(gameId!),
     enabled: !!gameId,
+  })
+}
+
+export function useGameByCrawlerId(crawlerId: string | undefined) {
+  return useQuery({
+    queryKey: [...gameKeys.all, 'byCrawler', crawlerId ?? ''] as const,
+    queryFn: () => getGameByCrawlerId(crawlerId!),
+    enabled: !!crawlerId,
   })
 }
 

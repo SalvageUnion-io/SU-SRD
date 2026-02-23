@@ -47,6 +47,9 @@ export function HydratedPilotDisplay({
       chassisName={sheet.chassisName}
       patternName={sheet.patternName}
       comrades={sheet.comrades}
+      crawler={sheet.crawler}
+      crawlerTlStats={sheet.crawlerTlStats}
+      activeDowntime={sheet.activeDowntime}
       editConfig={listing ? undefined : sheet.editConfig}
     />
   )

@@ -74,6 +74,9 @@ export type NpcConfig = {
   readOnly?: boolean
   /** Show an "NPC" section separator above the NPC name/HP block */
   showNpcSeparator?: boolean
+  /** Hide the NPC header row (name, position, HP) in embedded mode.
+   *  Use when these fields are rendered elsewhere (e.g. in the parent card header). */
+  hideNpcHeader?: boolean
 }
 
 /** Grouped visibility toggle props */
@@ -101,6 +104,8 @@ export type ReferenceEntityDisplayStateInput = {
   schemaName: SURefEnumSchemaName
   compact: boolean
   headerColor?: string
+  /** CSS color override for the header background (takes precedence over data-derived guideColor) */
+  headerBgColor?: string
   dimHeader: boolean
   disabled: boolean
   hide?: ReferenceEntityHideConfig

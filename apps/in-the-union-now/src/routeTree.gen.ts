@@ -22,6 +22,7 @@ import { Route as AuthenticatedGamesGameIdRouteImport } from './routes/_authenti
 import { Route as AuthenticatedPilotsPilotIdIndexRouteImport } from './routes/_authenticated/pilots/$pilotId/index'
 import { Route as AuthenticatedGamesGameIdIndexRouteImport } from './routes/_authenticated/games/$gameId/index'
 import { Route as AuthenticatedPilotsPilotIdCreateMechRouteImport } from './routes/_authenticated/pilots/$pilotId/create-mech'
+import { Route as AuthenticatedGamesGameIdMapRouteImport } from './routes/_authenticated/games/$gameId/map'
 import { Route as AuthenticatedGamesGameIdCreateCrawlerRouteImport } from './routes/_authenticated/games/$gameId/create-crawler'
 import { Route as AuthenticatedGamesGameIdCrawlerRouteImport } from './routes/_authenticated/games/$gameId/crawler'
 
@@ -96,6 +97,12 @@ const AuthenticatedPilotsPilotIdCreateMechRoute =
     path: '/create-mech',
     getParentRoute: () => AuthenticatedPilotsPilotIdRoute,
   } as any)
+const AuthenticatedGamesGameIdMapRoute =
+  AuthenticatedGamesGameIdMapRouteImport.update({
+    id: '/map',
+    path: '/map',
+    getParentRoute: () => AuthenticatedGamesGameIdRoute,
+  } as any)
 const AuthenticatedGamesGameIdCreateCrawlerRoute =
   AuthenticatedGamesGameIdCreateCrawlerRouteImport.update({
     id: '/create-crawler',
@@ -121,6 +128,7 @@ export interface FileRoutesByFullPath {
   '/pilots/new': typeof AuthenticatedPilotsNewRoute
   '/games/$gameId/crawler': typeof AuthenticatedGamesGameIdCrawlerRoute
   '/games/$gameId/create-crawler': typeof AuthenticatedGamesGameIdCreateCrawlerRoute
+  '/games/$gameId/map': typeof AuthenticatedGamesGameIdMapRoute
   '/pilots/$pilotId/create-mech': typeof AuthenticatedPilotsPilotIdCreateMechRoute
   '/games/$gameId/': typeof AuthenticatedGamesGameIdIndexRoute
   '/pilots/$pilotId/': typeof AuthenticatedPilotsPilotIdIndexRoute
@@ -135,6 +143,7 @@ export interface FileRoutesByTo {
   '/pilots/new': typeof AuthenticatedPilotsNewRoute
   '/games/$gameId/crawler': typeof AuthenticatedGamesGameIdCrawlerRoute
   '/games/$gameId/create-crawler': typeof AuthenticatedGamesGameIdCreateCrawlerRoute
+  '/games/$gameId/map': typeof AuthenticatedGamesGameIdMapRoute
   '/pilots/$pilotId/create-mech': typeof AuthenticatedPilotsPilotIdCreateMechRoute
   '/games/$gameId': typeof AuthenticatedGamesGameIdIndexRoute
   '/pilots/$pilotId': typeof AuthenticatedPilotsPilotIdIndexRoute
@@ -153,6 +162,7 @@ export interface FileRoutesById {
   '/_authenticated/pilots/new': typeof AuthenticatedPilotsNewRoute
   '/_authenticated/games/$gameId/crawler': typeof AuthenticatedGamesGameIdCrawlerRoute
   '/_authenticated/games/$gameId/create-crawler': typeof AuthenticatedGamesGameIdCreateCrawlerRoute
+  '/_authenticated/games/$gameId/map': typeof AuthenticatedGamesGameIdMapRoute
   '/_authenticated/pilots/$pilotId/create-mech': typeof AuthenticatedPilotsPilotIdCreateMechRoute
   '/_authenticated/games/$gameId/': typeof AuthenticatedGamesGameIdIndexRoute
   '/_authenticated/pilots/$pilotId/': typeof AuthenticatedPilotsPilotIdIndexRoute
@@ -171,6 +181,7 @@ export interface FileRouteTypes {
     | '/pilots/new'
     | '/games/$gameId/crawler'
     | '/games/$gameId/create-crawler'
+    | '/games/$gameId/map'
     | '/pilots/$pilotId/create-mech'
     | '/games/$gameId/'
     | '/pilots/$pilotId/'
@@ -185,6 +196,7 @@ export interface FileRouteTypes {
     | '/pilots/new'
     | '/games/$gameId/crawler'
     | '/games/$gameId/create-crawler'
+    | '/games/$gameId/map'
     | '/pilots/$pilotId/create-mech'
     | '/games/$gameId'
     | '/pilots/$pilotId'
@@ -202,6 +214,7 @@ export interface FileRouteTypes {
     | '/_authenticated/pilots/new'
     | '/_authenticated/games/$gameId/crawler'
     | '/_authenticated/games/$gameId/create-crawler'
+    | '/_authenticated/games/$gameId/map'
     | '/_authenticated/pilots/$pilotId/create-mech'
     | '/_authenticated/games/$gameId/'
     | '/_authenticated/pilots/$pilotId/'
@@ -306,6 +319,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPilotsPilotIdCreateMechRouteImport
       parentRoute: typeof AuthenticatedPilotsPilotIdRoute
     }
+    '/_authenticated/games/$gameId/map': {
+      id: '/_authenticated/games/$gameId/map'
+      path: '/map'
+      fullPath: '/games/$gameId/map'
+      preLoaderRoute: typeof AuthenticatedGamesGameIdMapRouteImport
+      parentRoute: typeof AuthenticatedGamesGameIdRoute
+    }
     '/_authenticated/games/$gameId/create-crawler': {
       id: '/_authenticated/games/$gameId/create-crawler'
       path: '/create-crawler'
@@ -326,6 +346,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedGamesGameIdRouteChildren {
   AuthenticatedGamesGameIdCrawlerRoute: typeof AuthenticatedGamesGameIdCrawlerRoute
   AuthenticatedGamesGameIdCreateCrawlerRoute: typeof AuthenticatedGamesGameIdCreateCrawlerRoute
+  AuthenticatedGamesGameIdMapRoute: typeof AuthenticatedGamesGameIdMapRoute
   AuthenticatedGamesGameIdIndexRoute: typeof AuthenticatedGamesGameIdIndexRoute
 }
 
@@ -334,6 +355,7 @@ const AuthenticatedGamesGameIdRouteChildren: AuthenticatedGamesGameIdRouteChildr
     AuthenticatedGamesGameIdCrawlerRoute: AuthenticatedGamesGameIdCrawlerRoute,
     AuthenticatedGamesGameIdCreateCrawlerRoute:
       AuthenticatedGamesGameIdCreateCrawlerRoute,
+    AuthenticatedGamesGameIdMapRoute: AuthenticatedGamesGameIdMapRoute,
     AuthenticatedGamesGameIdIndexRoute: AuthenticatedGamesGameIdIndexRoute,
   }
 

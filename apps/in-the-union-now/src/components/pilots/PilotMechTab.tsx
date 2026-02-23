@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { toast } from 'sonner'
+import { uploadEntityImage, deleteEntityImage } from '../../lib/api/storageApi'
 import { showSaveToast } from '../../lib/toastUtils'
 import { useCurrentUser } from '../../hooks/useCurrentUser'
 import { useUpdateMech, useUpdateMechLoadout, useUpdateMechEntityRef } from '../../hooks/useMechs'
@@ -53,7 +54,7 @@ export function PilotMechTab({ pilot, mech, mechRefs, canEdit, compact }: PilotM
   // No mech: show the empty state
   if (!pilot.mech_id || !mech) {
     return (
-      <div className={compact ? 'px-3 pb-3' : 'px-4 pb-4'}>
+      <div className={compact ? 'p-3' : 'p-4'}>
         <PilotMechSection
           pilot={pilot}
           compact={compact}
@@ -133,6 +134,42 @@ function PilotMechTabInner({
   showRefPatternModal: boolean
   setShowRefPatternModal: (v: boolean) => void
 }) {
+  const [isImageUploading, setIsImageUploading] = useState(false)
+
+  const handleImageFileSelected = useCallback(
+    async (file: File) => {
+      if (!user) return
+      setIsImageUploading(true)
+      try {
+        const url = await uploadEntityImage(user.id, file)
+        if (mech.image_path) {
+          deleteEntityImage(mech.image_path)
+        }
+        updateMechMutation.mutate(
+          { mechId: mech.id, input: { image_path: url } },
+          {
+            onSuccess: () => {
+              if (builderState) setBuilderState({ ...builderState, customImageUrl: url })
+            },
+          }
+        )
+      } catch (err) {
+        console.error('Failed to upload image:', err)
+      } finally {
+        setIsImageUploading(false)
+      }
+    },
+    [user, mech, builderState, setBuilderState, updateMechMutation]
+  )
+
+  const handleImageRemove = useCallback(() => {
+    if (mech.image_path) {
+      deleteEntityImage(mech.image_path)
+    }
+    updateMechMutation.mutate({ mechId: mech.id, input: { image_path: null } })
+    if (builderState) setBuilderState({ ...builderState, customImageUrl: null })
+  }, [mech, builderState, setBuilderState, updateMechMutation])
+
   // Fetch linked player pattern for deviation detection
   const { data: linkedPlayerPattern } = usePattern(
     sourcePattern?.kind === 'player' ? sourcePattern.patternId : undefined
@@ -279,7 +316,7 @@ function PilotMechTabInner({
 
   if (!canEdit) {
     return (
-      <div className={compact ? 'px-3 pb-3' : 'px-4 pb-4'}>
+      <div className={compact ? 'p-3' : 'p-4'}>
         <MechBuilder
           initialState={initialState}
           readOnly
@@ -295,7 +332,7 @@ function PilotMechTabInner({
 
   return (
     <>
-      <div className={compact ? 'px-3 pb-3' : 'px-4 pb-4'}>
+      <div className={compact ? 'p-3' : 'p-4'}>
         <MechBuilder
           initialState={initialState}
           onChange={setBuilderState}
@@ -313,6 +350,9 @@ function PilotMechTabInner({
           mechId={mech.id}
           mechRefs={mechRefs}
           onConditionChange={handleConditionChange}
+          onImageFileSelected={handleImageFileSelected}
+          onImageRemove={handleImageRemove}
+          isImageUploading={isImageUploading}
         />
       </div>
       <SavePatternDialog

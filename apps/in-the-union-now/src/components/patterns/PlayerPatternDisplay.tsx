@@ -2,6 +2,7 @@ import { useState, useCallback, useMemo } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { getAssetUrl } from 'salvageunion-reference'
 import { DisplayCard, navigateControl, DualColumnLayout } from 'suref-react'
+import { uploadEntityImage, deleteEntityImage } from '../../lib/api/storageApi'
 import type { ReferenceEntityControl, StatItem } from 'suref-react'
 import { useMechBuilderState } from '../../hooks/useMechBuilderState'
 import { STARTING_MECH_BUDGET } from '../../lib/builderUtils'
@@ -34,11 +35,38 @@ export function PlayerPatternDisplay({
   const navigate = useNavigate()
   const [showDelete, setShowDelete] = useState(false)
   const [showDiscard, setShowDiscard] = useState(false)
+  const [isImageUploading, setIsImageUploading] = useState(false)
 
   const builder = useMechBuilderState({
     initialState: patternToBuilderState(pattern),
     onChange: editConfig?.onBuilderChange,
   })
+
+  const handleImageFileSelected = useCallback(
+    async (file: File) => {
+      if (!editConfig) return
+      setIsImageUploading(true)
+      try {
+        const url = await uploadEntityImage(editConfig.userId, file)
+        if (pattern.image_path) {
+          deleteEntityImage(pattern.image_path)
+        }
+        builder.setCustomImage(url)
+      } catch (err) {
+        console.error('Failed to upload image:', err)
+      } finally {
+        setIsImageUploading(false)
+      }
+    },
+    [editConfig, pattern.image_path, builder]
+  )
+
+  const handleImageRemove = useCallback(() => {
+    if (pattern.image_path) {
+      deleteEntityImage(pattern.image_path)
+    }
+    builder.setCustomImage(null)
+  }, [pattern.image_path, builder])
 
   const handleNavigate = useCallback(() => {
     navigate({ to: '/patterns/$patternId', params: { patternId: pattern.id } })
@@ -194,7 +222,13 @@ export function PlayerPatternDisplay({
                 ? undefined
                 : {
                     customUrl: builder.state.customImageUrl,
-                    onSetCustom: builder.setCustomImage,
+                    onSetCustom: (url) => {
+                      if (url === null) handleImageRemove()
+                      else builder.setCustomImage(url)
+                    },
+                    onFileSelected: handleImageFileSelected,
+                    isUploading: isImageUploading,
+                    removeLabel: 'Delete',
                   },
             }}
           />

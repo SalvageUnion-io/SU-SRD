@@ -92,7 +92,7 @@ export function LabeledInput({
       </div>
 
       {readOnly ? (
-        <p className={cn(labelPadding, 'pt-3 text-su-grey-light', readOnlySize)}>
+        <p className={cn(labelPadding, 'pt-3 text-su-black', readOnlySize)}>
           {readOnlyValue ?? (value || '\u2014')}
         </p>
       ) : variant === 'textarea' ? (

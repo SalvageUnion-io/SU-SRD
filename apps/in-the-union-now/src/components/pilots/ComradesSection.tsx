@@ -11,6 +11,7 @@ type ComradesSectionProps = {
   userId?: string
   readOnly?: boolean
   onConditionChange?: (refId: string, condition: ItemCondition) => void
+  headerBgColor?: string
 }
 
 export function ComradesSection({
@@ -20,6 +21,7 @@ export function ComradesSection({
   userId,
   readOnly,
   onConditionChange,
+  headerBgColor,
 }: ComradesSectionProps) {
   if (comrades.length === 0) return null
 
@@ -36,6 +38,7 @@ export function ComradesSection({
             readOnly={readOnly}
             compact
             onConditionChange={onConditionChange}
+            headerBgColor={headerBgColor}
           />
         </div>
       ))}

@@ -33,6 +33,7 @@ export function useReferenceEntityDisplayState({
   schemaName,
   compact,
   headerColor,
+  headerBgColor: headerBgColorProp,
   dimHeader,
   disabled,
   hide,
@@ -78,7 +79,8 @@ export function useReferenceEntityDisplayState({
   )
   const headerBg = damaged ? 'bg-su-grey' : calculatedHeaderBg
   const headerBgColor =
-    'guideColor' in data && typeof data.guideColor === 'string' ? data.guideColor : undefined
+    headerBgColorProp ??
+    ('guideColor' in data && typeof data.guideColor === 'string' ? data.guideColor : undefined)
   const spacing = getReferenceEntitySpacing(compact)
   const fontSize = getReferenceEntityFontSizes(compact)
   const opacity = { header: dimHeader ? 0.5 : 1, content: disabled ? 0.5 : 1 }

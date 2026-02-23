@@ -7,11 +7,10 @@ import {
   ValueDisplay,
   SectionSeparator,
   StatDisplay,
-  StatControl,
   navigateControl,
 } from 'suref-react'
 import type { ReferenceEntityControl, StatItem, DisplayCardTab } from 'suref-react'
-import { ArrowUp, Eye, EyeOff, Trash2 } from 'lucide-react'
+import { Eye, EyeOff, Trash2 } from 'lucide-react'
 import { ReferenceEntityDisplay } from 'suref-react'
 import { SheetFooter } from '../shared/SheetFooter'
 import { actionButtonClasses } from '../shared/actionButtonClasses'
@@ -23,9 +22,11 @@ import { ScrapTranslationDialog } from './ScrapTranslationDialog'
 import { WeaponSelectionDialog } from './WeaponSelectionDialog'
 import { CrawlerTypeSection } from './CrawlerTypeSection'
 import { CrawlerPilotsSection } from './CrawlerPilotsSection'
+import { DowntimeGuideView } from './downtime/DowntimeGuideView'
 import type { CrawlerEditConfig, WeaponSlot } from '../../hooks/useCrawlerSheet'
-import type { CampaignRow, CrawlerRow, EntityRefRow } from '../../types/common'
+import type { CampaignRow, CrawlerRow, DowntimeRecordRow, EntityRefRow } from '../../types/common'
 import type { SURefEntity } from 'salvageunion-reference'
+import { SalvageUnionReference, findCrawlerTechLevel } from 'salvageunion-reference'
 
 type PlayerCrawlerDisplayProps = {
   game: CampaignRow
@@ -33,12 +34,15 @@ type PlayerCrawlerDisplayProps = {
   listing?: boolean
   compact?: boolean
   controls?: ReferenceEntityControl[]
+  /** Render in read-only mode: hides all edit controls, footer, and mutation triggers */
+  readOnly?: boolean
   // Sheet data (only needed when !listing)
   crawlerType?: SURefEntity | null
   tlStats?: { max_sp: number; upkeep: number; upgrade_cost: number | null }
   populationStr?: string
   weaponRefs?: EntityRefRow[]
   userId?: string
+  activeDowntime?: DowntimeRecordRow | null
   editConfig?: CrawlerEditConfig
 }
 
@@ -48,13 +52,16 @@ export function PlayerCrawlerDisplay({
   listing = true,
   compact = true,
   controls: controlsProp,
+  readOnly = false,
   crawlerType: crawlerTypeProp,
   tlStats,
   populationStr,
   weaponRefs,
   userId,
-  editConfig,
+  activeDowntime,
+  editConfig: editConfigProp,
 }: PlayerCrawlerDisplayProps) {
+  const editConfig = readOnly ? undefined : editConfigProp
   const navigate = useNavigate()
 
   const handleNavigateToGame = useCallback(() => {
@@ -96,38 +103,98 @@ export function PlayerCrawlerDisplay({
     return controls
   }, [editConfig?.isMed, editConfig?.weaponSystems, editConfig?.weaponSlotCount])
 
-  // --- Crawler header stats (Upkeep + SP, only for sheet mode) ---
-  const crawlerStats: StatItem[] | undefined =
-    !listing && crawler && editConfig
-      ? [
-          {
-            key: 'upkeep',
-            label: 'Upkeep',
-            value: tlStats?.upkeep ?? 0,
-            bottomLabel: `TL${crawler.tech_level}`,
-          },
-          {
-            key: 'sp',
-            label: 'SP',
-            value: crawler.current_sp,
-            outOfMax: crawler.max_sp,
-            onChange: (v: number) => editConfig.onImmediateUpdate({ current_sp: v }),
-            canEdit: editConfig.isMed,
-          },
-        ]
-      : undefined
+  // --- Crawler header stats ---
+  const crawlerStats: StatItem[] | undefined = useMemo(() => {
+    if (!crawler) return undefined
+    if (listing) {
+      return [
+        {
+          key: 'sp',
+          label: 'SP',
+          value: crawler.current_sp,
+          outOfMax: crawler.max_sp,
+        },
+      ]
+    }
+    return [
+      {
+        key: 'upkeep',
+        label: 'Upkeep',
+        value: tlStats?.upkeep ?? 0,
+        bottomLabel: `TL${crawler.tech_level}`,
+      },
+      {
+        key: 'sp',
+        label: 'SP',
+        value: crawler.current_sp,
+        outOfMax: crawler.max_sp,
+        ...(editConfig
+          ? {
+              onChange: (v: number) => editConfig.onImmediateUpdate({ current_sp: v }),
+              canEdit: editConfig.isMed,
+            }
+          : {}),
+      },
+      {
+        key: 'upgrade',
+        label: 'Upgrade',
+        bottomLabel: 'Pool',
+        value: crawler.upgrade_pool,
+        outOfMax: tlStats?.upgrade_cost ?? undefined,
+        ...(editConfig
+          ? {
+              onChange: (v: number) => editConfig.onImmediateUpdate({ upgrade_pool: v }),
+              canEdit: editConfig.isMed,
+            }
+          : {}),
+      },
+    ]
+  }, [listing, crawler, editConfig, tlStats])
 
   // --- Tabs (only used in non-listing mode) ---
   const CRAWLER_TAB_COLOR = 'rgb(201, 111, 146)'
+  const isReadOnlySheet = readOnly || !editConfig
   const tabs = useMemo((): DisplayCardTab[] | undefined => {
-    if (listing || !crawler || !editConfig) return undefined
+    if (listing || !crawler) return undefined
     return [
+      {
+        key: 'downtime',
+        label: 'Downtime',
+        activeColor: 'rgb(206, 88, 152)',
+        content: (
+          <div className={compact ? 'p-3' : 'p-4'}>
+            {activeDowntime && crawler ? (
+              <DowntimeGuideView
+                mode="mediator"
+                crawlerId={crawler.id}
+                crawler={crawler}
+                activeDowntime={activeDowntime}
+                compact
+              />
+            ) : editConfig ? (
+              <div className="flex flex-col items-center gap-2 py-6">
+                <button
+                  type="button"
+                  className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-su-black bg-su-pink px-4 py-2 font-mono text-sm font-semibold uppercase text-su-white transition-colors hover:bg-su-pink/80"
+                  onClick={editConfig.onToggleDowntime}
+                >
+                  Start Downtime
+                </button>
+              </div>
+            ) : (
+              <Text variant="default" as="p" className="py-6 text-center text-su-white/50">
+                Not currently in downtime.
+              </Text>
+            )}
+          </div>
+        ),
+      },
       {
         key: 'pilots',
         label: 'Pilots',
         activeColor: CRAWLER_TAB_COLOR,
         content: (
-          <div className="p-4">
+          <div className={compact ? 'p-3' : 'p-4'}>
             <CrawlerPilotsSection crawlerId={crawler.id} />
           </div>
         ),
@@ -137,13 +204,13 @@ export function PlayerCrawlerDisplay({
         label: 'Bays',
         activeColor: CRAWLER_TAB_COLOR,
         content: (
-          <div className="p-4">
+          <div className={compact ? 'p-3' : 'p-4'}>
             <CrawlerBaysSection
               crawler={crawler}
-              readOnly={!editConfig.isMed}
-              onSave={editConfig.onImmediateUpdate}
+              readOnly={isReadOnlySheet || !editConfig?.isMed}
+              onSave={editConfig?.onImmediateUpdate ?? (() => {})}
               onOpenScrapConversion={() => setShowTranslateDialog(true)}
-              armamentControls={weaponSlotControls}
+              armamentControls={isReadOnlySheet ? [] : weaponSlotControls}
             />
           </div>
         ),
@@ -153,14 +220,15 @@ export function PlayerCrawlerDisplay({
         label: 'Storage',
         activeColor: CRAWLER_TAB_COLOR,
         content: (
-          <div className="flex gap-0 p-4">
+          <div className={`flex gap-0 ${compact ? 'p-3' : 'p-4'}`}>
             {/* Left: Scrap controls — shrink-to-fit */}
             <div className="shrink-0">
               <CrawlerScrapStats
                 crawler={crawler}
-                readOnly={!editConfig.isMed}
-                onUpdate={editConfig.onImmediateUpdate}
+                readOnly={isReadOnlySheet || !editConfig?.isMed}
+                onUpdate={editConfig?.onImmediateUpdate ?? (() => {})}
                 compactGrid
+                compact={compact}
                 onOpenScrapConversion={() => setShowTranslateDialog(true)}
               />
             </div>
@@ -172,19 +240,40 @@ export function PlayerCrawlerDisplay({
               <CrawlerStorageSection
                 crawlerId={crawler.id}
                 userId={userId ?? ''}
-                readOnly={!editConfig.isMed}
+                readOnly={isReadOnlySheet || !editConfig?.isMed}
               />
             </div>
           </div>
         ),
       },
     ]
-  }, [listing, crawler, editConfig, compact, userId, weaponSlotControls])
+  }, [
+    listing,
+    crawler,
+    activeDowntime,
+    editConfig,
+    isReadOnlySheet,
+    compact,
+    userId,
+    weaponSlotControls,
+  ])
 
-  // Sheet guard: impossible state protection
-  if (!listing && (!crawler || !editConfig)) return null
+  const resolvedPopulationStr = useMemo(() => {
+    if (populationStr) return populationStr
+    if (!crawler) return undefined
+    const tl = findCrawlerTechLevel(crawler.tech_level)
+    if (!tl) return undefined
+    return tl.populationMax > 0
+      ? `${tl.populationMin.toLocaleString()} \u2013 ${tl.populationMax.toLocaleString()}`
+      : `${tl.populationMin.toLocaleString()}+`
+  }, [populationStr, crawler])
 
-  const crawlerType = crawlerTypeProp
+  // Sheet guard: non-listing needs at least a crawler
+  if (!listing && !crawler) return null
+
+  const crawlerType =
+    crawlerTypeProp ??
+    (crawler ? SalvageUnionReference.get('crawlers', crawler.crawler_ref) : undefined)
 
   // --- Controls ---
   const defaultControls =
@@ -193,6 +282,7 @@ export function PlayerCrawlerDisplay({
       : listing
         ? [navigateControl(handleNavigateToGame)]
         : undefined
+
   const controls = controlsProp ?? defaultControls
 
   // --- Header content ---
@@ -200,21 +290,34 @@ export function PlayerCrawlerDisplay({
     crawler ? (
       <CardHeader
         title={
-          <>
+          <Text
+            variant="pseudoheader"
+            as="span"
+            className={compact ? 'py-[3px] text-base' : 'text-[1.75rem]'}
+            style={compact ? { lineHeight: 1 } : undefined}
+          >
             {crawler.name || 'Unnamed Crawler'}{' '}
             {crawler.tag && <span className="text-sm opacity-70">#{crawler.tag}</span>}
-          </>
+          </Text>
         }
         subtitle={
           <div className="flex flex-wrap items-center gap-1">
-            <ValueDisplay
-              label="SP"
-              value={`${crawler.current_sp}/${crawler.max_sp}`}
-              compact={compact}
-            />
-            <ValueDisplay label="TL" value={crawler.tech_level} compact={compact} />
-            <ValueDisplay label="Upkeep" value={crawler.upkeep} compact={compact} />
+            {crawlerType && (
+              <ValueDisplay label="Type" value={crawlerType.name} compact={compact} />
+            )}
+            {resolvedPopulationStr && (
+              <ValueDisplay label="Population" value={resolvedPopulationStr} compact={compact} />
+            )}
           </div>
+        }
+        leftContent={
+          <StatDisplay
+            inverse
+            label={compact ? 'TL' : 'Tech'}
+            bottomLabel={compact ? '' : 'Level'}
+            value={crawler.tech_level}
+            compact={compact}
+          />
         }
         compact={compact}
       />
@@ -248,48 +351,34 @@ export function PlayerCrawlerDisplay({
   ) : (
     // Sheet header (crawler is guaranteed non-null here)
     <div className="flex min-w-0 items-start gap-2">
-      <StatDisplay label="TL" value={crawler!.tech_level} inverse />
+      <StatDisplay label="TL" value={crawler!.tech_level} inverse compact={compact} />
       <div className="flex min-w-0 flex-col justify-center gap-0.5">
         <div className="flex items-center gap-2">
-          <Text variant="pseudoheader" as="span" className="text-[1.75rem]">
+          <Text
+            variant="pseudoheader"
+            as="span"
+            className={compact ? 'py-[3px] text-base' : 'text-[1.75rem]'}
+            style={compact ? { lineHeight: 1 } : undefined}
+          >
             {crawler!.name || 'Unnamed Crawler'}
           </Text>
           {crawler!.tag && (
-            <Text variant="pseudoheader" as="span" className="text-lg opacity-70">
+            <Text
+              variant="pseudoheader"
+              as="span"
+              className={compact ? 'text-sm opacity-70' : 'text-lg opacity-70'}
+              style={compact ? { lineHeight: 1 } : undefined}
+            >
               #{crawler!.tag}
             </Text>
           )}
         </div>
         <div className="flex flex-wrap items-center gap-1">
-          {crawlerType && <ValueDisplay label="Type" value={crawlerType.name} />}
-          {populationStr && <ValueDisplay label="Population" value={populationStr} />}
-        </div>
-      </div>
-      {/* Upgrade Pool + TL Up button: tightly coupled, kept inline */}
-      <div className="ml-auto flex shrink-0 items-start gap-2">
-        <StatControl
-          label="Upgrade"
-          bottomLabel="Pool"
-          value={crawler!.upgrade_pool}
-          max={tlStats?.upgrade_cost ?? undefined}
-          canEdit={editConfig!.isMed}
-          onChange={(v) => editConfig!.onImmediateUpdate({ upgrade_pool: v })}
-        />
-        {editConfig!.isMed &&
-          tlStats?.upgrade_cost !== null &&
-          tlStats?.upgrade_cost !== undefined &&
-          crawler!.upgrade_pool >= tlStats.upgrade_cost && (
-            <button
-              type="button"
-              onClick={editConfig!.onUpgradeTL}
-              disabled={editConfig!.upgradePending}
-              className="flex cursor-pointer flex-col items-center gap-0.5 rounded border border-su-green/60 bg-su-green/20 px-2 py-1 font-mono text-[10px] font-semibold uppercase text-su-green transition-colors hover:bg-su-green/30 disabled:cursor-not-allowed disabled:opacity-50"
-              title={`Upgrade to Tech Level ${crawler!.tech_level + 1}`}
-            >
-              <ArrowUp className="h-3.5 w-3.5" />
-              <span>TL Up</span>
-            </button>
+          {crawlerType && <ValueDisplay label="Type" value={crawlerType.name} compact={compact} />}
+          {resolvedPopulationStr && (
+            <ValueDisplay label="Population" value={resolvedPopulationStr} compact={compact} />
           )}
+        </div>
       </div>
     </div>
   )
@@ -323,6 +412,13 @@ export function PlayerCrawlerDisplay({
       />
     ) : undefined
 
+  const stripeStyle = activeDowntime
+    ? {
+        backgroundImage:
+          'repeating-linear-gradient(-45deg, transparent, transparent 10px, rgba(206,88,152,0.35) 10px, rgba(206,88,152,0.35) 20px)',
+      }
+    : undefined
+
   return (
     <>
       <DisplayCard
@@ -336,15 +432,16 @@ export function PlayerCrawlerDisplay({
         controls={controls}
         footerContent={footerContent}
         tabs={tabs}
-        defaultTabLabel="Info"
         defaultTabActiveColor={!listing ? CRAWLER_TAB_COLOR : undefined}
+        headerStyle={stripeStyle ? { style: stripeStyle } : undefined}
+        footerStyle={stripeStyle ? { style: stripeStyle } : undefined}
       >
-        {!listing && crawler && editConfig && crawlerType && (
+        {!listing && crawler && crawlerType && (
           <CrawlerTypeSection
             crawler={crawler}
             crawlerType={crawlerType}
-            readOnly={!editConfig.isMed}
-            onSave={editConfig.onImmediateUpdate}
+            readOnly={isReadOnlySheet || !editConfig?.isMed}
+            onSave={editConfig?.onImmediateUpdate ?? (() => {})}
           />
         )}
       </DisplayCard>

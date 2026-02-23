@@ -25,6 +25,17 @@ export async function getGameById(gameId: string): Promise<CampaignRow> {
   return data!
 }
 
+export async function getGameByCrawlerId(crawlerId: string): Promise<CampaignRow | null> {
+  const { data, error } = await supabase
+    .from('campaigns')
+    .select('*')
+    .eq('crawler_id', crawlerId)
+    .maybeSingle()
+
+  if (error) handleSupabaseError(error)
+  return data
+}
+
 export async function getGameMembers(gameId: string): Promise<CampaignMemberRow[]> {
   const { data, error } = await supabase
     .from('campaign_members')

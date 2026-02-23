@@ -13,11 +13,13 @@ import { useGame, useGameMembers } from './useGames'
 import {
   useCrawler,
   useCrawlerEntityRefs,
+  useActiveDowntimeRecord,
   useUpdateCrawler,
   useDeleteCrawler,
   useUpdateCrawlerWeapon,
   useUpgradeTechLevel,
   useTranslateScrap,
+  useCrawlerDowntime,
   crawlerKeys,
 } from './useCrawlers'
 import { pilotKeys } from './usePilots'
@@ -39,6 +41,7 @@ export type CrawlerEditConfig = {
   onWeaponChange: (newRefId: string, slot: WeaponSlot) => void
   onDelete: () => void
   onUpgradeTL: () => void
+  onToggleDowntime: () => void
   weaponSystems: { ref: EntityRefRow; entity: SURefEntity | undefined }[]
   weaponSlotCount: number
   isDeleting: boolean
@@ -53,11 +56,13 @@ export function useCrawlerSheet(gameId: string) {
   const { data: members } = useGameMembers(gameId)
   const { data: crawler, isLoading: crawlerLoading } = useCrawler(game?.crawler_id ?? undefined)
   const { data: crawlerRefs } = useCrawlerEntityRefs(crawler?.id)
+  const { data: activeDowntime } = useActiveDowntimeRecord(crawler?.id)
   const updateCrawler = useUpdateCrawler()
   const deleteCrawlerMutation = useDeleteCrawler()
   const updateWeapon = useUpdateCrawlerWeapon()
   const upgradeTL = useUpgradeTechLevel()
   const translateScrap = useTranslateScrap()
+  const crawlerDowntime = useCrawlerDowntime()
   const saveStatus = useSaveStatus({ isSaving: updateCrawler.isPending })
 
   // Activity feed: scoped to this crawler
@@ -81,6 +86,9 @@ export function useCrawlerSheet(gameId: string) {
   ])
   useRealtimeSubscription('pilots', crawler ? `crawler_id=eq.${crawler.id}` : undefined, [
     pilotKeys.forCrawler(crawler?.id ?? ''),
+  ])
+  useRealtimeSubscription('downtime_records', crawler ? `crawler_id=eq.${crawler.id}` : undefined, [
+    crawlerKeys.activeDowntime(crawler?.id ?? ''),
   ])
 
   const isMed = useMemo(
@@ -168,6 +176,22 @@ export function useCrawlerSheet(gameId: string) {
     )
   }, [crawler, upgradeTL])
 
+  const handleToggleDowntime = useCallback(() => {
+    if (!crawler || !user) return
+    const entering = !activeDowntime
+    const crawlerLabel = crawler.name || 'Crawler'
+    crawlerDowntime.mutate(
+      { crawlerId: crawler.id, entering, userId: user.id },
+      {
+        onSuccess: () =>
+          toast.success(
+            entering ? `${crawlerLabel} entered downtime` : `${crawlerLabel} exited downtime`
+          ),
+        onError: (err) => toast.error(getErrorMessage(err)),
+      }
+    )
+  }, [crawler, user, activeDowntime, crawlerDowntime])
+
   const weaponRefs = useMemo(
     () =>
       (crawlerRefs ?? [])
@@ -209,6 +233,7 @@ export function useCrawlerSheet(gameId: string) {
     onWeaponChange: handleWeaponChange,
     onDelete: handleDelete,
     onUpgradeTL: handleUpgradeTL,
+    onToggleDowntime: handleToggleDowntime,
     weaponSystems,
     weaponSlotCount,
     isDeleting: deleteCrawlerMutation.isPending,
@@ -226,6 +251,7 @@ export function useCrawlerSheet(gameId: string) {
     populationStr,
     weaponRefs,
     userId: user?.id,
+    activeDowntime: activeDowntime ?? null,
     editConfig,
   }
 }

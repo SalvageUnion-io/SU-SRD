@@ -257,18 +257,10 @@ function ContentBlock({
       return (
         <div
           className={cn(
-            'max-w-full overflow-hidden break-words pl-2 font-normal italic leading-snug whitespace-normal text-su-black',
+            'max-w-full overflow-hidden break-words text-center font-normal italic leading-snug whitespace-normal text-su-black',
             fontSize
           )}
-          style={{
-            overflowWrap: 'break-word',
-            ...(borderColor
-              ? {
-                  borderLeft: `3px solid ${borderColor}`,
-                  paddingLeft: compact ? '0.5rem' : '0.75rem',
-                }
-              : {}),
-          }}
+          style={{ overflowWrap: 'break-word' }}
         >
           {parsedValue}
         </div>

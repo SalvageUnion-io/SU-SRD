@@ -5,6 +5,7 @@ import { computeCrawlerStatsFromTechLevel } from '../crawlerUtils'
 import type {
   CrawlerRow,
   CrawlerUpdate,
+  DowntimeRecordRow,
   EntityRefRow,
   CreateCrawlerInput,
 } from '../../types/common'
@@ -162,6 +163,93 @@ export async function upgradeTechLevel(crawlerId: string): Promise<CrawlerRow> {
   if (error) handleSupabaseError(error)
   if (!data) throw new Error('Upgrade failed — another change happened first. Please refresh.')
   return data
+}
+
+export async function getActiveDowntimeRecord(
+  crawlerId: string
+): Promise<DowntimeRecordRow | null> {
+  const { data, error } = await supabase
+    .from('downtime_records')
+    .select('*')
+    .eq('crawler_id', crawlerId)
+    .is('closed_at', null)
+    .maybeSingle()
+
+  if (error) handleSupabaseError(error)
+  return data
+}
+
+export async function setCrawlerDowntime(
+  crawlerId: string,
+  entering: boolean,
+  userId: string
+): Promise<DowntimeRecordRow> {
+  let record: DowntimeRecordRow
+
+  if (entering) {
+    // 1. Create a new open downtime record
+    const { data, error } = await supabase
+      .from('downtime_records')
+      .insert({ crawler_id: crawlerId, user_id: userId })
+      .select()
+      .single()
+
+    if (error) handleSupabaseError(error)
+    record = data!
+  } else {
+    // 1. Close the open downtime record
+    const { data, error } = await supabase
+      .from('downtime_records')
+      .update({ closed_at: new Date().toISOString() })
+      .eq('crawler_id', crawlerId)
+      .is('closed_at', null)
+      .select()
+      .single()
+
+    if (error) handleSupabaseError(error)
+    record = data!
+  }
+
+  // 2. Cascade to all assigned pilots
+  const pilotUpdate = entering ? { in_downtime: true, is_boarded: false } : { in_downtime: false }
+
+  const { error: pilotError } = await supabase
+    .from('pilots')
+    .update(pilotUpdate)
+    .eq('crawler_id', crawlerId)
+
+  if (pilotError) handleSupabaseError(pilotError)
+
+  return record
+}
+
+export async function payUpkeep(
+  crawlerId: string,
+  scrapDeductions: Record<string, number>,
+  upgradePoolIncrease: number
+): Promise<CrawlerRow> {
+  const crawler = await getCrawlerById(crawlerId)
+  const update: CrawlerUpdate = { upgrade_pool: crawler.upgrade_pool + upgradePoolIncrease }
+  for (const [field, amount] of Object.entries(scrapDeductions)) {
+    const current = crawler[field as keyof CrawlerRow] as number
+    ;(update as Record<string, number>)[field] = current - amount
+  }
+  return updateCrawler(crawlerId, update)
+}
+
+export async function updateDowntimeRecord(
+  recordId: string,
+  input: { upkeep_paid?: boolean; closed_at?: string }
+): Promise<DowntimeRecordRow> {
+  const { data, error } = await supabase
+    .from('downtime_records')
+    .update(input)
+    .eq('id', recordId)
+    .select()
+    .single()
+
+  if (error) handleSupabaseError(error)
+  return data!
 }
 
 export async function updateCrawlerWeapon(

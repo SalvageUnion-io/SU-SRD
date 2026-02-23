@@ -79,7 +79,6 @@ export function ScrapTranslationDialog({
 
               <DisplayCard
                 headerBg="bg-su-pink"
-                bodyPadding="p-0"
                 headerContent={
                   <div className="flex w-full items-center justify-between gap-2">
                     <div className="flex min-w-0 flex-col gap-0.5">

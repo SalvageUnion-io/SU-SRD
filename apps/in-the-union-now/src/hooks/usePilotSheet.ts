@@ -22,6 +22,8 @@ import {
   useUpdateMechEntityRef,
   mechKeys,
 } from './useMechs'
+import { useCrawler, useActiveDowntimeRecord, useUpdateCrawler, crawlerKeys } from './useCrawlers'
+import { computeCrawlerStatsFromTechLevel } from '../lib/crawlerUtils'
 import { useSaveStatus } from './useSaveStatus'
 import { useRealtimeSubscription } from './useRealtimeSubscription'
 import { getEntityAccess } from '../lib/entityAccess'
@@ -29,7 +31,13 @@ import { findChassisById } from '../lib/entityHelpers'
 import { extractComrades } from '../lib/comradeUtils'
 import { getErrorMessage } from '../lib/errors'
 import { changeLogApi } from '../lib/api/changeLogApi'
-import type { EntityRefInsert, EntityRefUpdate, MechUpdate, PilotUpdate } from '../types/common'
+import type {
+  CrawlerUpdate,
+  EntityRefInsert,
+  EntityRefUpdate,
+  MechUpdate,
+  PilotUpdate,
+} from '../types/common'
 
 export type PilotEditConfig = {
   userId: string
@@ -42,6 +50,7 @@ export type PilotEditConfig = {
   onCreateEntityRef: (input: EntityRefInsert) => void
   onUpdateMech: (input: Partial<MechUpdate>) => void
   onUpdateMechEntityRef: (refId: string, input: EntityRefUpdate) => void
+  onUpdateCrawler: (input: Partial<CrawlerUpdate>) => void
   onDelete: () => void
   onToggleVisibility: () => void
   onToggleBoarded: () => void
@@ -60,8 +69,11 @@ export function usePilotSheet(pilotId: string) {
 
   const { data: mech, isLoading: mechLoading } = useMech(pilot?.mech_id ?? undefined)
   const { data: mechRefs } = useMechEntityRefs(mech?.id)
+  const { data: crawler } = useCrawler(pilot?.crawler_id ?? undefined)
+  const { data: activeDowntime } = useActiveDowntimeRecord(pilot?.crawler_id ?? undefined)
   const updateMech = useUpdateMech()
   const updateMechEntityRef = useUpdateMechEntityRef()
+  const updateCrawlerMutation = useUpdateCrawler()
   const deleteEntityRefMutation = useDeleteEntityRef()
   const createEntityRefMutation = useCreateEntityRef()
 
@@ -74,6 +86,14 @@ export function usePilotSheet(pilotId: string) {
   useRealtimeSubscription('entity_refs', mech ? `parent_id=eq.${mech.id}` : undefined, [
     mechKeys.entityRefs(mech?.id ?? ''),
   ])
+  useRealtimeSubscription('crawlers', crawler ? `id=eq.${crawler.id}` : undefined, [
+    crawlerKeys.detail(crawler?.id ?? ''),
+  ])
+  useRealtimeSubscription(
+    'downtime_records',
+    pilot?.crawler_id ? `crawler_id=eq.${pilot.crawler_id}` : undefined,
+    [crawlerKeys.activeDowntime(pilot?.crawler_id ?? '')]
+  )
 
   const pilotSaveStatus = useSaveStatus({
     isSaving:
@@ -82,7 +102,8 @@ export function usePilotSheet(pilotId: string) {
       deleteEntityRefMutation.isPending ||
       createEntityRefMutation.isPending ||
       updateMech.isPending ||
-      updateMechEntityRef.isPending,
+      updateMechEntityRef.isPending ||
+      updateCrawlerMutation.isPending,
   })
 
   const pilotClass = useMemo(
@@ -104,6 +125,14 @@ export function usePilotSheet(pilotId: string) {
   const comrades = useMemo(
     () => extractComrades(pilotRefs ?? [], mechRefs ?? [], mechChassis),
     [pilotRefs, mechRefs, mechChassis]
+  )
+
+  const crawlerTlStats = useMemo(
+    () =>
+      crawler
+        ? computeCrawlerStatsFromTechLevel(crawler.tech_level, crawler.crawler_ref)
+        : undefined,
+    [crawler]
   )
 
   const access = pilot ? getEntityAccess(pilot, user?.id) : undefined
@@ -322,6 +351,21 @@ export function usePilotSheet(pilotId: string) {
     [mech, user, chassisName, mechRefs, updateMechEntityRef]
   )
 
+  const handleUpdateCrawler = useCallback(
+    (input: Partial<CrawlerUpdate>) => {
+      if (!crawler) return
+      const crawlerLabel = crawler.name || 'Crawler'
+      updateCrawlerMutation.mutate(
+        { crawlerId: crawler.id, input },
+        {
+          onSuccess: () => showSaveToast(`${crawlerLabel} updated`),
+          onError: (err) => toast.error(getErrorMessage(err)),
+        }
+      )
+    },
+    [crawler, updateCrawlerMutation]
+  )
+
   const handleDelete = useCallback(() => {
     if (!user) return
     deletePilot.mutate(
@@ -378,6 +422,7 @@ export function usePilotSheet(pilotId: string) {
           onCreateEntityRef: handleCreateEntityRef,
           onUpdateMech: handleUpdateMech,
           onUpdateMechEntityRef: handleUpdateMechEntityRef,
+          onUpdateCrawler: handleUpdateCrawler,
           onDelete: handleDelete,
           onToggleVisibility: handleToggleVisibility,
           onToggleBoarded: handleToggleBoarded,
@@ -404,6 +449,9 @@ export function usePilotSheet(pilotId: string) {
     chassisName,
     patternName,
     comrades,
+    crawler,
+    crawlerTlStats,
+    activeDowntime: activeDowntime ?? null,
     editConfig,
   }
 }

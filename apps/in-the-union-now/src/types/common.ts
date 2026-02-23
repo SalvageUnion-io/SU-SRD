@@ -13,6 +13,10 @@ export type PlayerChoiceRow = Database['public']['Tables']['player_choices']['Ro
 export type CargoRow = Database['public']['Tables']['cargo']['Row']
 export type CampaignRow = Database['public']['Tables']['campaigns']['Row']
 export type CampaignMemberRow = Database['public']['Tables']['campaign_members']['Row']
+export type DowntimeRecordRow = Database['public']['Tables']['downtime_records']['Row']
+export type MapLayerRow = Database['public']['Tables']['map_layers']['Row']
+export type MapLayerInsert = Database['public']['Tables']['map_layers']['Insert']
+export type MapLayerUpdate = Database['public']['Tables']['map_layers']['Update']
 
 // Insert types (for create operations)
 export type MechPatternInsert = Database['public']['Tables']['mech_patterns']['Insert']
@@ -45,6 +49,7 @@ export type CreatePatternInput = {
   chassis_ref: string
   description?: string
   visible?: boolean
+  image_path?: string | null
   pattern_items: PatternItem[]
 }
 

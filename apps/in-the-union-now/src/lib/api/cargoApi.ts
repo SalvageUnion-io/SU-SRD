@@ -72,3 +72,18 @@ export async function deleteCargo(cargoId: string): Promise<void> {
   const { error } = await supabase.from('cargo').delete().eq('id', cargoId)
   if (error) handleSupabaseError(error)
 }
+
+export async function offloadMechCargo(
+  mechId: string,
+  crawlerId: string,
+  storageCargoIds: string[],
+  scrapAdditions: Record<string, number>
+): Promise<void> {
+  const { error } = await supabase.rpc('offload_mech_cargo', {
+    p_mech_id: mechId,
+    p_crawler_id: crawlerId,
+    p_storage_cargo_ids: storageCargoIds,
+    p_scrap_additions: scrapAdditions,
+  })
+  if (error) handleSupabaseError(error)
+}

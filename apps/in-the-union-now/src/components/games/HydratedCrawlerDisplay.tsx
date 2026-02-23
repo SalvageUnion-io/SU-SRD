@@ -9,6 +9,7 @@ type HydratedCrawlerDisplayProps = {
   gameId: string
   listing?: boolean
   compact?: boolean
+  readOnly?: boolean
   controls?: ReferenceEntityControl[]
 }
 
@@ -16,6 +17,7 @@ export function HydratedCrawlerDisplay({
   gameId,
   listing = false,
   compact = false,
+  readOnly = false,
   controls,
 }: HydratedCrawlerDisplayProps) {
   const sheet = useCrawlerSheet(gameId)
@@ -39,11 +41,13 @@ export function HydratedCrawlerDisplay({
       listing={listing}
       compact={compact}
       controls={controls}
+      readOnly={readOnly}
       crawlerType={sheet.crawlerType}
       tlStats={sheet.tlStats}
       populationStr={sheet.populationStr}
       weaponRefs={sheet.weaponRefs}
       userId={sheet.userId}
+      activeDowntime={sheet.activeDowntime}
       editConfig={listing ? undefined : sheet.editConfig}
     />
   )

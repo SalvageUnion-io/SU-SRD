@@ -1,8 +1,8 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { SalvageUnionReference, getNpc } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
-import { ReferenceEntityDisplay, Text } from 'suref-react'
-import type { ReferenceEntityControl } from 'suref-react'
+import { ReferenceEntityDisplay, Text, ValueDisplay } from 'suref-react'
+import type { ReferenceEntityControl, StatItem } from 'suref-react'
 import { useAutosave } from '../../hooks/useAutosave'
 import { LabeledInput } from '../shared/LabeledInput'
 import {
@@ -11,9 +11,58 @@ import {
   NPC_ROLL_TABLE_FALLBACK,
 } from '../../lib/npcChoiceConstants'
 import type { BayNpcTextField } from '../../lib/npcChoiceConstants'
-import { StatControl } from 'suref-react'
 import { BayDetailOverlay } from './BayDetailOverlay'
 import type { BayNpcData, CrawlerRow, CrawlerUpdate } from '../../types/common'
+
+/** Inline NPC name input styled as a pseudoheader title */
+function BayNpcNameInput({
+  value,
+  onChange,
+  onBlur,
+}: {
+  value: string
+  onChange: (value: string) => void
+  onBlur?: () => void
+}) {
+  const measureRef = useRef<HTMLSpanElement>(null)
+  const [inputWidth, setInputWidth] = useState(0)
+  const placeholder = 'Name...'
+
+  useEffect(() => {
+    if (measureRef.current) {
+      setInputWidth(measureRef.current.scrollWidth)
+    }
+  }, [value])
+
+  return (
+    <span className="relative inline-flex items-baseline">
+      <span
+        ref={measureRef}
+        aria-hidden
+        className="pointer-events-none invisible absolute whitespace-pre font-mono text-base font-bold uppercase leading-none"
+      >
+        {value || placeholder}
+      </span>
+      <Text
+        variant="pseudoheader"
+        as="span"
+        className="inline-flex items-center box-decoration-clone bg-su-black px-1 py-[3px] text-base text-su-white"
+        style={{ lineHeight: 1 }}
+      >
+        <input
+          type="text"
+          size={1}
+          placeholder={placeholder}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onBlur={onBlur}
+          className="border-none bg-transparent p-0 font-mono text-base font-bold uppercase leading-none tracking-tight text-su-white outline-none placeholder:normal-case placeholder:text-su-white/50"
+          style={{ width: inputWidth || undefined, lineHeight: 1 }}
+        />
+      </Text>
+    </span>
+  )
+}
 
 type CrawlerBaysSectionProps = {
   crawler: CrawlerRow
@@ -183,45 +232,72 @@ export function CrawlerBaysSection({
         </div>
       ) : undefined
 
-    const hpSlot =
-      maxHp > 0 ? (
-        readOnly ? (
-          <Text as="span" variant="pseudoheader" className="text-sm">
-            HP {currentHp}/{maxHp}
-          </Text>
-        ) : (
-          <StatControl
-            label="HP"
-            value={currentHp}
-            max={maxHp}
-            canEdit
-            onChange={(v) => handleHpChange(bay.id, v)}
-          />
-        )
-      ) : undefined
+    // NPC name → title slot (interactive)
+    const npcName = npcData.name ?? ''
+    const titleSlot = readOnly ? (
+      <Text
+        variant="pseudoheader"
+        as="span"
+        className="py-[3px] text-base uppercase tracking-[-0.02em]"
+        style={{ lineHeight: 1 }}
+      >
+        {npcName || '\u2014'}
+      </Text>
+    ) : (
+      <BayNpcNameInput
+        value={npcName}
+        onChange={(name) => handleFieldChange(bay.id, 'name', name)}
+        onBlur={flush}
+      />
+    )
+
+    // NPC position → subtitle
+    const subtitleExtra = npc?.position ? (
+      <ValueDisplay label="The" value={npc.position} compact inverse />
+    ) : undefined
+
+    // HP → header stats
+    const bayStats: StatItem[] | undefined =
+      maxHp > 0
+        ? [
+            {
+              key: 'hp',
+              label: 'HP',
+              value: currentHp,
+              outOfMax: maxHp,
+              ...(!readOnly
+                ? { onChange: (v: number) => handleHpChange(bay.id, v), canEdit: true }
+                : {}),
+            },
+          ]
+        : undefined
 
     return (
       <div key={bay.id}>
         <ReferenceEntityDisplay
           data={bayEntity}
           compact
+          label={bay.name}
+          titleSlot={titleSlot}
+          subtitleExtra={subtitleExtra}
+          stats={bayStats}
+          headerBgColor={isDamaged ? undefined : 'color-mix(in srgb, rgb(206, 88, 152) 35%, white)'}
           hide={{
             content: true,
             damagedEffect: true,
             rollTable: true,
             footer: true,
             choices: isArmamentBay,
+            stats: true,
           }}
           damaged={isDamaged}
           controls={controls}
           npcConfig={{
             children: npcFieldsContent,
-            hpSlot: hpSlot,
             damaged: npcIsDamaged,
-            name: npcData.name ?? '',
-            onNameChange: (name) => handleFieldChange(bay.id, 'name', name),
-            onNameBlur: flush,
             readOnly: readOnly,
+            showNpcSeparator: false,
+            hideNpcHeader: true,
           }}
           damageOverlayText={isDamaged ? bay.damagedEffect : undefined}
         />

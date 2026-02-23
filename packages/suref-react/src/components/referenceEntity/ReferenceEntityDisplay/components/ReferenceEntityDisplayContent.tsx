@@ -34,7 +34,11 @@ import { GuideStepsDisplay } from '../../GuideStepsDisplay'
 import type { GuideStepsInteractiveConfig } from '../../GuideStepsDisplay'
 import { cn } from '../../../../utils/cn'
 import { Text } from '../../../base/Text'
-import { borderColorFromHeaderBg, getSourceStyles } from '../../referenceEntityHelpers'
+import {
+  borderColorFromHeaderBg,
+  getSourceStyles,
+  getSourceBorderColor,
+} from '../../referenceEntityHelpers'
 import { useReferenceEntityDisplayState } from '../useReferenceEntityDisplayState'
 import type { ReferenceEntityDisplayStateInput } from '../useReferenceEntityDisplayState'
 import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
@@ -196,8 +200,13 @@ export function ReferenceEntityDisplayContent({
   const hasPage = !isSources && 'page' in data && !!data.page
   const hasSource = !isSources && 'source' in data && !!data.source
   const footerDisplayName = getDisplayName(schemaName)
-  const sourceFooterStyles = getSourceStyles(source, disabled ?? false, 'footer', !listing)
   const hasFooter = !hide.footer && (hasPage || hasSource)
+
+  // Pre-compute source styles for DisplayCard generic overrides
+  const sourceCardStyle = getSourceStyles(source, disabled ?? false, 'card', !listing)
+  const sourceHeaderStyle = getSourceStyles(source, disabled ?? false, 'header', !listing)
+  const sourceFooterStyle = getSourceStyles(source, disabled ?? false, 'footer', !listing)
+  const sourceBorderColor = getSourceBorderColor(source) ?? 'black'
 
   const footer = footerOverride ? (
     footerOverride
@@ -210,7 +219,7 @@ export function ReferenceEntityDisplayContent({
       headerBg={headerBg}
       headerBgColor={headerBgColor}
       contentPaddingX={spacing.contentPaddingX}
-      sourceFooterStyles={sourceFooterStyles}
+      sourceFooterStyles={sourceFooterStyle}
     />
   ) : null
 
@@ -278,16 +287,22 @@ export function ReferenceEntityDisplayContent({
     <DisplayCard
       headerBg={headerBg}
       headerBgColor={headerBgColor}
-      headerOpacity={opacity.header}
-      headerContent={headerContent}
+      headerContent={
+        opacity.header !== 1 ? (
+          <div style={{ opacity: opacity.header }}>{headerContent}</div>
+        ) : (
+          headerContent
+        )
+      }
       footerContent={!hasBodyContent ? footer : undefined}
       label={label}
       compact={compact}
       listing={listing}
       headerTestId="frame-header-container"
-      source={source}
-      isExpanded={!listing}
-      bodyPadding="p-0"
+      cardStyle={sourceCardStyle}
+      headerStyle={sourceHeaderStyle}
+      footerStyle={sourceFooterStyle}
+      borderColor={sourceBorderColor}
       disabled={disabled}
       controls={controls}
       stats={resolvedStats}
@@ -479,6 +494,7 @@ export function ReferenceEntityDisplayContent({
                     onNpcNameBlur={npcConfig?.onNameBlur}
                     readOnly={npcConfig?.readOnly}
                     showSeparator={npcConfig?.showNpcSeparator}
+                    hideHeader={npcConfig?.hideNpcHeader}
                   />
                   {npcConfig?.afterContent}
                 </>
@@ -552,11 +568,11 @@ export function ReferenceEntityDisplayContent({
           </div>
           {interactive?.renderFooter ? (
             <div
-              className={cn('w-full py-3', headerBg || 'bg-su-white', sourceFooterStyles.className)}
+              className={cn('w-full py-3', headerBg || 'bg-su-white', sourceFooterStyle.className)}
               style={{
                 ...spacing.contentPaddingXStyle,
                 ...(headerBgColor ? { backgroundColor: headerBgColor } : {}),
-                ...sourceFooterStyles.style,
+                ...sourceFooterStyle.style,
                 borderTop: `${compact ? 2 : 3}px solid black`,
               }}
             >

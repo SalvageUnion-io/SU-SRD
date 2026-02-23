@@ -4,6 +4,9 @@ import { cn } from '../../utils/cn'
 type CardImageEditable = {
   customUrl?: string | null
   onSetCustom: (url: string | null) => void
+  onFileSelected?: (file: File) => void
+  isUploading?: boolean
+  removeLabel?: string
 }
 
 type CardImageProps = {
@@ -37,8 +40,12 @@ export function CardImage({ url, alt, compact, editable, width, height }: CardIm
   function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file || !editable) return
-    const objectUrl = URL.createObjectURL(file)
-    editable.onSetCustom(objectUrl)
+    if (editable.onFileSelected) {
+      editable.onFileSelected(file)
+    } else {
+      const objectUrl = URL.createObjectURL(file)
+      editable.onSetCustom(objectUrl)
+    }
     e.target.value = ''
   }
 
@@ -104,8 +111,15 @@ export function CardImage({ url, alt, compact, editable, width, height }: CardIm
 
         {/* Editable hover overlay */}
         {editable && (
-          <div className="absolute inset-0 flex items-center justify-center gap-2 bg-su-black/50 opacity-0 transition-opacity group-hover:opacity-100">
-            {hasCustom ? (
+          <div
+            className={cn(
+              'absolute inset-0 flex items-center justify-center gap-2 bg-su-black/50 transition-opacity',
+              editable.isUploading ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+            )}
+          >
+            {editable.isUploading ? (
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-su-white border-t-transparent" />
+            ) : hasCustom ? (
               <>
                 <button
                   type="button"
@@ -119,7 +133,7 @@ export function CardImage({ url, alt, compact, editable, width, height }: CardIm
                   onClick={() => editable.onSetCustom(null)}
                   className={TAG_SM_DANGER}
                 >
-                  Remove
+                  {editable.removeLabel ?? 'Remove'}
                 </button>
               </>
             ) : (

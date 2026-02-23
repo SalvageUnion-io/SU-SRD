@@ -344,7 +344,6 @@ function CustomItemDetailModal({
               </DialogPrimitive.Description>
               <DisplayCard
                 headerBg={headerBg}
-                bodyPadding="p-0"
                 headerContent={
                   <CardHeader
                     title={

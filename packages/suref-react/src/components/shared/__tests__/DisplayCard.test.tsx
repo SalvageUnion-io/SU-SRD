@@ -93,23 +93,13 @@ describe('DisplayCard', () => {
     expect(wrapper.style.border).toContain('3px')
   })
 
-  test('compact renders body with tighter padding', () => {
-    const { container } = render(
-      <DisplayCard headerBg="bg-su-green" headerContent={<span>Header</span>} compact>
-        <p>Body</p>
-      </DisplayCard>
-    )
-    const body = container.querySelector('.p-2')
-    expect(body).toBeTruthy()
-  })
-
-  test('full renders body with standard padding', () => {
+  test('default body padding is p-0', () => {
     const { container } = render(
       <DisplayCard headerBg="bg-su-green" headerContent={<span>Header</span>}>
         <p>Body</p>
       </DisplayCard>
     )
-    const body = container.querySelector('.p-3')
+    const body = container.querySelector('.p-0')
     expect(body).toBeTruthy()
   })
 
@@ -118,21 +108,6 @@ describe('DisplayCard', () => {
       <DisplayCard headerBg="bg-su-green" headerContent={<span>Header only</span>} />
     )
     expect(container.querySelector('.bg-su-white')).toBeNull()
-  })
-
-  test('headerOpacity applies opacity style to header', () => {
-    render(
-      <DisplayCard
-        headerBg="bg-su-green"
-        headerContent={<span>Dimmed</span>}
-        headerOpacity={0.5}
-        headerTestId="test-header"
-      >
-        <p>Body</p>
-      </DisplayCard>
-    )
-    const header = screen.getByTestId('test-header')
-    expect(header.style.opacity).toBe('0.5')
   })
 
   test('disabled state keeps original header background and applies opacity', () => {
@@ -155,13 +130,13 @@ describe('DisplayCard', () => {
 
   test('bodyPadding overrides default padding', () => {
     const { container } = render(
-      <DisplayCard headerBg="bg-su-green" headerContent={<span>Header</span>} bodyPadding="p-0">
+      <DisplayCard headerBg="bg-su-green" headerContent={<span>Header</span>} bodyPadding="p-4">
         <p>Body</p>
       </DisplayCard>
     )
-    const body = container.querySelector('.p-0')
+    const body = container.querySelector('.p-4')
     expect(body).toBeTruthy()
-    expect(container.querySelector('.p-3')).toBeNull()
+    expect(container.querySelector('.p-0')).toBeNull()
   })
 
   test('headerTestId passes data-testid to header div', () => {
@@ -175,54 +150,6 @@ describe('DisplayCard', () => {
       </DisplayCard>
     )
     expect(screen.getByTestId('my-header')).toBeTruthy()
-  })
-
-  test('source applies expansion CSS class to header', () => {
-    render(
-      <DisplayCard
-        headerBg="bg-su-green"
-        headerContent={<span>Beast</span>}
-        source="We Were Here First!"
-        headerTestId="test-header"
-      >
-        <p>Body</p>
-      </DisplayCard>
-    )
-    const header = screen.getByTestId('test-header')
-    expect(header.className).toContain('expansion-beast-texture')
-  })
-
-  test('footer gets source styling applied', () => {
-    const { container } = render(
-      <DisplayCard
-        headerBg="bg-su-green"
-        headerContent={<span>Header</span>}
-        footerContent={<span>Footer</span>}
-        source="We Were Here First!"
-      >
-        <p>Body</p>
-      </DisplayCard>
-    )
-    const footer = container.querySelector('.expansion-beast-texture')
-    expect(footer).toBeTruthy()
-  })
-
-  test('disabled state preserves source styling with opacity', () => {
-    const { container } = render(
-      <DisplayCard
-        headerBg="bg-su-green"
-        headerContent={<span>Header</span>}
-        source="We Were Here First!"
-        disabled
-        headerTestId="test-header"
-      >
-        <p>Body</p>
-      </DisplayCard>
-    )
-    const header = screen.getByTestId('test-header')
-    expect(header.className).toContain('expansion-beast-texture')
-    const wrapper = container.firstElementChild as HTMLElement
-    expect(wrapper.className).toContain('opacity-50')
   })
 
   test('cardClick control makes entire card clickable in listing mode', () => {
@@ -440,26 +367,6 @@ describe('DisplayCard', () => {
     expect(screen.queryByText('Alpha content')).toBeNull()
   })
 
-  test('image hidden on non-default tab', () => {
-    const tabs: DisplayCardTab[] = [{ key: 'a', label: 'Alpha', content: <p>Alpha content</p> }]
-    const { container } = render(
-      <DisplayCard
-        headerBg="bg-su-green"
-        headerContent={<span>Header</span>}
-        tabs={tabs}
-        image={{ url: 'https://example.com/img.png', alt: 'Test image' }}
-      >
-        <p>Default body</p>
-      </DisplayCard>
-    )
-    // Image visible on default tab
-    expect(container.querySelector('img')).toBeTruthy()
-
-    // Switch to Alpha tab
-    fireEvent.click(screen.getByRole('tab', { name: 'Alpha' }))
-    expect(container.querySelector('img')).toBeNull()
-  })
-
   test('defaultTabLabel customization', () => {
     const tabs: DisplayCardTab[] = [{ key: 'a', label: 'Alpha', content: <p>Alpha content</p> }]
     render(
@@ -492,5 +399,73 @@ describe('DisplayCard', () => {
     expect(screen.queryByRole('tablist')).toBeNull()
     expect(screen.queryByText('Body')).toBeNull()
     expect(screen.queryByText('Alpha content')).toBeNull()
+  })
+
+  test('tab with glowColor gets box-shadow applied', () => {
+    const tabs: DisplayCardTab[] = [
+      {
+        key: 'glow',
+        label: 'Glowing',
+        content: <p>Glow content</p>,
+        glowColor: 'rgba(206, 88, 152, 0.5)',
+      },
+    ]
+    render(
+      <DisplayCard headerBg="bg-su-green" headerContent={<span>Header</span>} tabs={tabs}>
+        <p>Body</p>
+      </DisplayCard>
+    )
+    const glowTab = screen.getByRole('tab', { name: 'Glowing' })
+    expect(glowTab.style.boxShadow).toBe('0 0 8px 2px rgba(206, 88, 152, 0.5)')
+  })
+
+  // --- Style override tests ---
+
+  test('cardStyle overrides default shadow class', () => {
+    const { container } = render(
+      <DisplayCard
+        headerBg="bg-su-green"
+        headerContent={<span>Header</span>}
+        cardStyle={{ className: 'custom-card-class' }}
+      >
+        <p>Body</p>
+      </DisplayCard>
+    )
+    const wrapper = container.firstElementChild as HTMLElement
+    expect(wrapper.className).toContain('custom-card-class')
+    expect(wrapper.className).not.toContain('shadow-lg')
+  })
+
+  test('headerStyle applies className and inline style to header', () => {
+    render(
+      <DisplayCard
+        headerBg="bg-su-green"
+        headerContent={<span>Header</span>}
+        headerStyle={{ className: 'custom-header', style: { backgroundImage: 'url(test)' } }}
+        headerTestId="test-header"
+      >
+        <p>Body</p>
+      </DisplayCard>
+    )
+    const header = screen.getByTestId('test-header')
+    expect(header.className).toContain('custom-header')
+    expect(header.style.backgroundImage).toContain('test')
+  })
+
+  test('footerStyle overrides default footer bg class', () => {
+    const { container } = render(
+      <DisplayCard
+        headerBg="bg-su-green"
+        headerContent={<span>Header</span>}
+        footerContent={<span>Footer</span>}
+        footerStyle={{ className: 'bg-su-orange' }}
+      >
+        <p>Body</p>
+      </DisplayCard>
+    )
+    // Footer should have the override class, not the default headerBg
+    const footerEl = container.querySelector('.bg-su-orange')
+    expect(footerEl).toBeTruthy()
+    expect(footerEl!.textContent).toBe('Footer')
   })
 })

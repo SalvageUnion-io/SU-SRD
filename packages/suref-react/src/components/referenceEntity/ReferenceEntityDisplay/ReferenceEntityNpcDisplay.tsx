@@ -46,6 +46,8 @@ type ReferenceEntityNpcDisplayProps = {
   readOnly?: boolean
   /** Show an "NPC" section separator above the NPC name/HP block */
   showSeparator?: boolean
+  /** Hide the header row (name, position, HP) in embedded mode */
+  hideHeader?: boolean
 }
 
 function NpcNameInput({
@@ -125,7 +127,8 @@ export function ReferenceEntityNpcDisplay({
   onNpcNameChange,
   onNpcNameBlur,
   readOnly = false,
-  showSeparator = false,
+  showSeparator,
+  hideHeader = false,
 }: ReferenceEntityNpcDisplayProps) {
   const npc = getNpc(data)
   if (!npc) return null
@@ -133,6 +136,8 @@ export function ReferenceEntityNpcDisplay({
   const hasContent = !hideContent && npc.content && npc.content.length > 0
   // Static when explicitly readOnly OR when no interactive props are provided
   const isStatic = readOnly || (!npcChildren && !onNpcNameChange && !hpSlot)
+  // showSeparator: explicit true/false overrides, undefined defaults to isStatic
+  const renderSeparator = showSeparator ?? isStatic
 
   // Content-block style for NPCs rendered inside an ReferenceEntityDisplay (e.g. bays)
   if (embedded) {
@@ -141,49 +146,46 @@ export function ReferenceEntityNpcDisplay({
 
     return (
       <div>
-        {(isStatic || showSeparator) && <SectionSeparator label="NPC" compact={compact} />}
-        {/* Header: editable name (large) + HP to the far right */}
-        <div
-          className={cn(
-            'flex items-start justify-between gap-2',
-            (isStatic || showSeparator) && 'mt-2'
-          )}
-        >
-          <div className="min-w-0">
-            {hasName && (
-              <div>
-                {readOnly || !onNpcNameChange ? (
-                  <Text
-                    variant="pseudoheader"
-                    as="span"
-                    className={cn(
-                      'box-decoration-clone bg-su-black px-1 text-su-white uppercase tracking-[-0.02em]',
-                      compact ? 'py-[3px] text-base' : 'py-1 text-[1.75rem]'
-                    )}
-                    style={compact ? { lineHeight: 1 } : undefined}
-                  >
-                    {npcName || '\u2014'}
-                  </Text>
-                ) : (
-                  <NpcNameInput
-                    value={npcName}
-                    onChange={onNpcNameChange}
-                    onBlur={onNpcNameBlur}
-                    compact={compact}
-                  />
-                )}
+        {renderSeparator && <SectionSeparator label="NPC" compact={compact} />}
+        {/* Header: editable name (large) + HP to the far right — hidden when hideHeader */}
+        {!hideHeader && (
+          <div className={cn('flex items-start justify-between gap-2', renderSeparator && 'mt-2')}>
+            <div className="min-w-0">
+              {hasName && (
+                <div>
+                  {readOnly || !onNpcNameChange ? (
+                    <Text
+                      variant="pseudoheader"
+                      as="span"
+                      className={cn(
+                        'box-decoration-clone bg-su-black px-1 text-su-white uppercase tracking-[-0.02em]',
+                        compact ? 'py-[3px] text-base' : 'py-1 text-[1.75rem]'
+                      )}
+                      style={compact ? { lineHeight: 1 } : undefined}
+                    >
+                      {npcName || '\u2014'}
+                    </Text>
+                  ) : (
+                    <NpcNameInput
+                      value={npcName}
+                      onChange={onNpcNameChange}
+                      onBlur={onNpcNameBlur}
+                      compact={compact}
+                    />
+                  )}
+                </div>
+              )}
+              {npc.position && (
+                <ValueDisplay label="The" value={npc.position} compact={compact} inverse />
+              )}
+            </div>
+            {npc.hitPoints > 0 && (
+              <div className="shrink-0">
+                {hpSlot ?? <StatDisplay label="HP" value={npc.hitPoints} compact={compact} />}
               </div>
             )}
-            {npc.position && (
-              <ValueDisplay label="The" value={npc.position} compact={compact} inverse />
-            )}
           </div>
-          {npc.hitPoints > 0 && (
-            <div className="shrink-0">
-              {hpSlot ?? <StatDisplay label="HP" value={npc.hitPoints} compact={compact} />}
-            </div>
-          )}
-        </div>
+        )}
 
         {/* Content with left border (static/readOnly only) */}
         {isStatic && hasContent && (
@@ -248,7 +250,6 @@ export function ReferenceEntityNpcDisplay({
       stats={npcStats}
       label="NPC"
       compact={compact}
-      bodyPadding="p-0"
     >
       {(hasContent || npcChildren) && (
         <div className="flex w-full flex-col gap-2" style={spacing.contentPaddingStyle}>

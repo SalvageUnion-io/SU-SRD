@@ -30,6 +30,7 @@ type SubEntityCardProps = {
     content?: boolean
   }
   onConditionChange?: (refId: string, condition: ItemCondition) => void
+  headerBgColor?: string
 }
 
 export function SubEntityCard({
@@ -41,6 +42,7 @@ export function SubEntityCard({
   compact = true,
   hide,
   onConditionChange,
+  headerBgColor,
 }: SubEntityCardProps) {
   const { getLocalValue, setLocalValue, saveChoice, saveStat } = useComradeChoices({
     mechId,
@@ -187,6 +189,7 @@ export function SubEntityCard({
       titleOverride={nameChoice && customName ? customName : undefined}
       titleSlot={titleSlot}
       subtitleExtra={subtitleExtra}
+      headerBgColor={headerBgColor}
       afterChoicesContent={
         showModSlots ? (
           <EntityModificationSlots

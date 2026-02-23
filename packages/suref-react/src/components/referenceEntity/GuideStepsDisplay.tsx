@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react'
 import type { SURefObjectGuideStep, SURefObjectTable } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { Text } from '../base/Text'
 import { BlockContentRendererView } from './BlockContentRendererView'
 import { RollTable } from '../shared/RollTable'
 import { borderColorFromHeaderBg } from './referenceEntityHelpers'
@@ -307,16 +306,13 @@ export function GuideStepsDisplay({
           >
             {/* Section header */}
             {step.section && (
-              <Text
-                variant="pseudoheader"
-                className={cn(
-                  'w-fit',
-                  compact ? 'text-base px-0.5 py-[1px] mt-2' : 'text-2xl px-1 py-1 mt-4'
-                )}
-                style={{ backgroundColor: 'var(--color-su-black)', color: 'var(--color-su-white)' }}
-              >
-                {step.section}
-              </Text>
+              <div className={compact ? 'mb-1 mt-1' : 'mb-4 mt-4'}>
+                <SectionSeparator
+                  label={step.section}
+                  compact={compact}
+                  fontSize={compact ? 'text-base' : 'text-2xl'}
+                />
+              </div>
             )}
 
             {/* Step header */}

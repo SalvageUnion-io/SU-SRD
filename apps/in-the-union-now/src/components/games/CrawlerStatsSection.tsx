@@ -9,6 +9,7 @@ type CrawlerScrapStatsProps = {
   onUpdate: (input: Partial<CrawlerUpdate>) => void
   /** Render as compact 2-column grid (for side-by-side layout) */
   compactGrid?: boolean
+  compact?: boolean
   /** Optional callback to open the scrap conversion dialog */
   onOpenScrapConversion?: () => void
 }
@@ -18,6 +19,7 @@ export function CrawlerScrapStats({
   readOnly,
   onUpdate,
   compactGrid,
+  compact,
   onOpenScrapConversion,
 }: CrawlerScrapStatsProps) {
   const handleChange = useCallback(
@@ -30,7 +32,7 @@ export function CrawlerScrapStats({
 
   return (
     <div className="flex flex-col gap-2">
-      <SectionSeparator label="Scrap" />
+      <SectionSeparator label="Scrap" compact={compact} />
       <div
         className={
           compactGrid

@@ -10,8 +10,9 @@ import {
   ShieldMinus,
   Archive,
   ArchiveRestore,
+  Map,
 } from 'lucide-react'
-import { SectionSeparator, Text } from 'suref-react'
+import { SectionSeparator, Text, navigateControl } from 'suref-react'
 import type { ReferenceEntityControl } from 'suref-react'
 import { toast } from 'sonner'
 import { useCurrentUser } from '../../../../hooks/useCurrentUser'
@@ -28,8 +29,10 @@ import { PlayerPilotDisplay } from '../../../../components/pilots/PlayerPilotDis
 import {
   usePilots,
   usePilotsForCrawler,
+  usePilotAbilityCounts,
   useAssignPilotToCrawler,
 } from '../../../../hooks/usePilots'
+import { useMechMap } from '../../../../hooks/useMechMap'
 import {
   usePromoteMember,
   useSelfDemote,
@@ -101,6 +104,15 @@ function GameShowPage() {
           </span>
         )}
       </div>
+
+      <Link
+        to="/games/$gameId/map"
+        params={{ gameId }}
+        className="flex items-center gap-2 rounded border border-su-grey-light/20 bg-su-grey-dark/50 px-3 py-2 font-mono text-sm text-su-white/70 hover:border-su-pink/40 hover:text-su-pink"
+      >
+        <Map className="h-4 w-4" />
+        Campaign Map
+      </Link>
 
       <CrawlerSection game={game} isMediator={isMed} />
 
@@ -307,10 +319,24 @@ function AssignedPilotsSection({
   crawlerId: string
   isMediator: boolean
 }) {
+  const navigate = useNavigate()
   const user = useCurrentUser()
   const { data: assignedPilots } = usePilotsForCrawler(crawlerId)
   const { data: myPilots } = usePilots(user?.id)
   const assignPilot = useAssignPilotToCrawler()
+
+  const allPilots = useMemo(
+    () => [...(assignedPilots ?? []), ...(myPilots?.filter((p) => !p.crawler_id) ?? [])],
+    [assignedPilots, myPilots]
+  )
+  const pilotIds = useMemo(() => allPilots.map((p) => p.id), [allPilots])
+  const { data: abilityCounts } = usePilotAbilityCounts(pilotIds)
+
+  const mechIds = useMemo(
+    () => allPilots.map((p) => p.mech_id).filter((id): id is string => !!id),
+    [allPilots]
+  )
+  const { mechMap } = useMechMap(mechIds)
 
   // Pilots owned by user that are not yet assigned to any crawler
   const unassignedPilots = useMemo(() => myPilots?.filter((p) => !p.crawler_id) ?? [], [myPilots])
@@ -352,8 +378,12 @@ function AssignedPilotsSection({
       <SectionSeparator label="Assigned Pilots" fontSize="text-sm" />
       <div className="flex flex-col gap-2">
         {assignedPilots?.map((pilot) => {
-          const removeControls: ReferenceEntityControl[] =
-            isMediator || pilot.user_id === user?.id
+          const navControl = navigateControl(() =>
+            navigate({ to: '/pilots/$pilotId', params: { pilotId: pilot.id } })
+          )
+          const removeControls: ReferenceEntityControl[] = [
+            navControl,
+            ...(isMediator || pilot.user_id === user?.id
               ? [
                   {
                     key: 'unassign',
@@ -363,13 +393,16 @@ function AssignedPilotsSection({
                     variant: 'danger' as const,
                   },
                 ]
-              : []
+              : []),
+          ]
           return (
             <PlayerPilotDisplay
               key={pilot.id}
               pilot={pilot}
               listing
               compact
+              abilityCount={abilityCounts?.[pilot.id] ?? 0}
+              mech={pilot.mech_id ? (mechMap.get(pilot.mech_id) ?? null) : null}
               controls={removeControls}
             />
           )
@@ -386,12 +419,15 @@ function AssignedPilotsSection({
           </Text>
           {unassignedPilots.map((pilot) => {
             const assignControls: ReferenceEntityControl[] = [
+              navigateControl(() =>
+                navigate({ to: '/pilots/$pilotId', params: { pilotId: pilot.id } })
+              ),
               {
                 key: 'assign',
                 label: 'Assign',
                 onClick: () => handleAssign(pilot.id),
                 ariaLabel: 'Assign to crawler',
-                bgColor: 'var(--color-su-green)',
+                bgColor: 'var(--color-su-pink)',
               },
             ]
             return (
@@ -400,6 +436,8 @@ function AssignedPilotsSection({
                 pilot={pilot}
                 listing
                 compact
+                abilityCount={abilityCounts?.[pilot.id] ?? 0}
+                mech={pilot.mech_id ? (mechMap.get(pilot.mech_id) ?? null) : null}
                 controls={assignControls}
               />
             )

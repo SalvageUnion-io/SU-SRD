@@ -9,6 +9,7 @@ import { patternToBuilderState, builderToCreateInput } from '../lib/builderUtils
 import type { BuilderState } from '../lib/builderUtils'
 
 export type PatternEditConfig = {
+  userId: string
   canEdit: boolean
   readOnly: boolean
   onBuilderChange: (s: BuilderState | null) => void
@@ -95,21 +96,23 @@ export function usePatternSheet(patternId: string) {
     )
   }, [user, patternId, deletePattern, navigate])
 
-  const editConfig: PatternEditConfig | undefined = access?.canView
-    ? {
-        canEdit,
-        readOnly: !canEdit,
-        onBuilderChange: setBuilderState,
-        onSave: handleSave,
-        onCancel: handleCancel,
-        onCopy: handleCopy,
-        onDelete: handleDelete,
-        isDirty,
-        isSaving: updatePattern.isPending,
-        isCopying: createPattern.isPending,
-        isDeleting: deletePattern.isPending,
-      }
-    : undefined
+  const editConfig: PatternEditConfig | undefined =
+    access?.canView && user
+      ? {
+          userId: user.id,
+          canEdit,
+          readOnly: !canEdit,
+          onBuilderChange: setBuilderState,
+          onSave: handleSave,
+          onCancel: handleCancel,
+          onCopy: handleCopy,
+          onDelete: handleDelete,
+          isDirty,
+          isSaving: updatePattern.isPending,
+          isCopying: createPattern.isPending,
+          isDeleting: deletePattern.isPending,
+        }
+      : undefined
 
   return {
     pattern,
