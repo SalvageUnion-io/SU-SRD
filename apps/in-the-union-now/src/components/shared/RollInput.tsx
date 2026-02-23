@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from 'react'
-import * as DialogPrimitive from '@radix-ui/react-dialog'
+import { Dialog } from '@base-ui/react/dialog'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefObjectTable } from 'salvageunion-reference'
 import { ReferenceEntityDisplay } from 'suref-react'
@@ -88,21 +88,16 @@ export function RollButtons({ rollTableName, onChange, compact }: RollButtonsPro
       </div>
 
       {showTable && rollTableEntity && (
-        <DialogPrimitive.Root open={showTable} onOpenChange={setShowTable}>
-          <DialogPrimitive.Portal>
-            <DialogPrimitive.Overlay className="fixed inset-0 z-50 overflow-y-auto bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0">
-              <div className="flex min-h-full w-full items-start justify-center px-4 py-8">
-                <DialogPrimitive.Content className="relative w-full max-w-4xl outline-none">
-                  <DialogPrimitive.Title className="sr-only">{rollTableName}</DialogPrimitive.Title>
-                  <DialogPrimitive.Description className="sr-only">
-                    Roll table details
-                  </DialogPrimitive.Description>
-                  <ReferenceEntityDisplay data={rollTableEntity} compact={false} />
-                </DialogPrimitive.Content>
-              </div>
-            </DialogPrimitive.Overlay>
-          </DialogPrimitive.Portal>
-        </DialogPrimitive.Root>
+        <Dialog.Root open={showTable} onOpenChange={setShowTable}>
+          <Dialog.Portal>
+            <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/80 data-[open]:animate-in data-[closed]:animate-out data-[closed]:fade-out-0 data-[open]:fade-in-0" />
+            <Dialog.Popup className="fixed inset-0 z-50 mx-auto mt-8 mb-auto h-fit max-h-[calc(100vh-4rem)] w-full max-w-4xl overflow-y-auto bg-transparent outline-none">
+              <Dialog.Title className="sr-only">{rollTableName}</Dialog.Title>
+              <Dialog.Description className="sr-only">Roll table details</Dialog.Description>
+              <ReferenceEntityDisplay data={rollTableEntity} compact={false} />
+            </Dialog.Popup>
+          </Dialog.Portal>
+        </Dialog.Root>
       )}
     </>
   )
@@ -191,21 +186,16 @@ export function RollInput({
         className="h-10 text-base"
       />
       {showTable && rollTableEntity && (
-        <DialogPrimitive.Root open={showTable} onOpenChange={setShowTable}>
-          <DialogPrimitive.Portal>
-            <DialogPrimitive.Overlay className="fixed inset-0 z-50 overflow-y-auto bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0">
-              <div className="flex min-h-full w-full items-start justify-center px-4 py-8">
-                <DialogPrimitive.Content className="relative w-full max-w-4xl outline-none">
-                  <DialogPrimitive.Title className="sr-only">{rollTableName}</DialogPrimitive.Title>
-                  <DialogPrimitive.Description className="sr-only">
-                    Roll table details
-                  </DialogPrimitive.Description>
-                  <ReferenceEntityDisplay data={rollTableEntity} compact={false} />
-                </DialogPrimitive.Content>
-              </div>
-            </DialogPrimitive.Overlay>
-          </DialogPrimitive.Portal>
-        </DialogPrimitive.Root>
+        <Dialog.Root open={showTable} onOpenChange={setShowTable}>
+          <Dialog.Portal>
+            <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/80 data-[open]:animate-in data-[closed]:animate-out data-[closed]:fade-out-0 data-[open]:fade-in-0" />
+            <Dialog.Popup className="fixed inset-0 z-50 mx-auto mt-8 mb-auto h-fit max-h-[calc(100vh-4rem)] w-full max-w-4xl overflow-y-auto bg-transparent outline-none">
+              <Dialog.Title className="sr-only">{rollTableName}</Dialog.Title>
+              <Dialog.Description className="sr-only">Roll table details</Dialog.Description>
+              <ReferenceEntityDisplay data={rollTableEntity} compact={false} />
+            </Dialog.Popup>
+          </Dialog.Portal>
+        </Dialog.Root>
       )}
     </div>
   )

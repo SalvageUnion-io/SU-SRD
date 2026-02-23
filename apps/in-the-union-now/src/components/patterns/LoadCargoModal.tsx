@@ -67,19 +67,19 @@ export function LoadCargoModal({
         <TabsList className="w-full rounded-none border-b border-su-grey-light/30 bg-su-white p-0">
           <TabsTrigger
             value="entity"
-            className="flex-1 rounded-none border-b-2 border-transparent py-2 font-mono text-xs font-bold uppercase tracking-wide text-su-black/50 data-[state=active]:border-su-green data-[state=active]:text-su-black data-[state=active]:shadow-none"
+            className="flex-1 rounded-none border-b-2 border-transparent py-2 font-mono text-xs font-bold uppercase tracking-wide text-su-black/50 data-[active]:border-su-green data-[active]:text-su-black data-[active]:shadow-none"
           >
             Entity
           </TabsTrigger>
           <TabsTrigger
             value="custom"
-            className="flex-1 rounded-none border-b-2 border-transparent py-2 font-mono text-xs font-bold uppercase tracking-wide text-su-black/50 data-[state=active]:border-su-green data-[state=active]:text-su-black data-[state=active]:shadow-none"
+            className="flex-1 rounded-none border-b-2 border-transparent py-2 font-mono text-xs font-bold uppercase tracking-wide text-su-black/50 data-[active]:border-su-green data-[active]:text-su-black data-[active]:shadow-none"
           >
             Custom
           </TabsTrigger>
           <TabsTrigger
             value="scrap"
-            className="flex-1 rounded-none border-b-2 border-transparent py-2 font-mono text-xs font-bold uppercase tracking-wide text-su-black/50 data-[state=active]:border-su-green data-[state=active]:text-su-black data-[state=active]:shadow-none"
+            className="flex-1 rounded-none border-b-2 border-transparent py-2 font-mono text-xs font-bold uppercase tracking-wide text-su-black/50 data-[active]:border-su-green data-[active]:text-su-black data-[active]:shadow-none"
           >
             Scrap
           </TabsTrigger>

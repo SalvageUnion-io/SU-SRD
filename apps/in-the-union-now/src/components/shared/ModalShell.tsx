@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import * as DialogPrimitive from '@radix-ui/react-dialog'
+import { Dialog } from '@base-ui/react/dialog'
 import { X } from 'lucide-react'
 import { DisplayCard, Text } from 'suref-react'
 
@@ -30,59 +30,50 @@ export function ModalShell({
   const isLightClose = headerBg === 'bg-su-rust'
 
   return (
-    <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
-      <DialogPrimitive.Portal>
-        <DialogPrimitive.Overlay
-          className={`fixed inset-0 z-50 overflow-y-auto bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 ${align === 'center' ? 'flex items-center justify-center' : ''}`}
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+      <Dialog.Portal>
+        <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/80 data-[open]:animate-in data-[closed]:animate-out data-[closed]:fade-out-0 data-[open]:fade-in-0" />
+        <Dialog.Popup
+          className={`fixed inset-0 z-50 h-fit max-h-[calc(100vh-4rem)] w-full ${maxWidth} overflow-y-auto bg-transparent outline-none ${align === 'center' ? 'm-auto' : 'mx-auto mt-8 mb-auto'}`}
         >
-          <div
-            className={`flex min-h-full w-full ${align === 'center' ? '' : 'items-start'} justify-center px-4 py-8`}
-          >
-            <DialogPrimitive.Content
-              className={`relative w-full ${maxWidth} bg-transparent outline-none`}
-            >
-              <DialogPrimitive.Title className="sr-only">{title}</DialogPrimitive.Title>
-              <DialogPrimitive.Description className="sr-only">
-                {description ?? title}
-              </DialogPrimitive.Description>
+          <Dialog.Title className="sr-only">{title}</Dialog.Title>
+          <Dialog.Description className="sr-only">{description ?? title}</Dialog.Description>
 
-              <DisplayCard
-                headerBg={headerBg}
-                headerContent={
-                  <div className="flex w-full items-center justify-between gap-2">
-                    <div className="flex min-w-0 flex-col gap-0.5">
-                      <Text
-                        as="span"
-                        variant="pseudoheader"
-                        className={`${headerBg === 'bg-su-rust' ? 'text-xl' : 'text-[1.75rem]'} text-su-white`}
-                      >
-                        {title}
-                      </Text>
-                      {subtitle && (
-                        <Text as="span" variant="pseudoheader" className="text-xs text-su-white/80">
-                          {subtitle}
-                        </Text>
-                      )}
-                    </div>
-                    <DialogPrimitive.Close
-                      className={`flex shrink-0 cursor-pointer items-center justify-center rounded p-1 transition-colors ${
-                        isLightClose
-                          ? 'text-su-white/60 hover:bg-su-black/20 hover:text-su-white'
-                          : 'text-su-black/60 hover:bg-su-black/20 hover:text-su-black'
-                      }`}
-                    >
-                      <X className="h-5 w-5" />
-                      <span className="sr-only">Close</span>
-                    </DialogPrimitive.Close>
-                  </div>
-                }
-              >
-                {children}
-              </DisplayCard>
-            </DialogPrimitive.Content>
-          </div>
-        </DialogPrimitive.Overlay>
-      </DialogPrimitive.Portal>
-    </DialogPrimitive.Root>
+          <DisplayCard
+            headerBg={headerBg}
+            headerContent={
+              <div className="flex w-full items-center justify-between gap-2">
+                <div className="flex min-w-0 flex-col gap-0.5">
+                  <Text
+                    as="span"
+                    variant="pseudoheader"
+                    className={`${headerBg === 'bg-su-rust' ? 'text-xl' : 'text-[1.75rem]'} text-su-white`}
+                  >
+                    {title}
+                  </Text>
+                  {subtitle && (
+                    <Text as="span" variant="pseudoheader" className="text-xs text-su-white/80">
+                      {subtitle}
+                    </Text>
+                  )}
+                </div>
+                <Dialog.Close
+                  className={`flex shrink-0 cursor-pointer items-center justify-center rounded p-1 transition-colors ${
+                    isLightClose
+                      ? 'text-su-white/60 hover:bg-su-black/20 hover:text-su-white'
+                      : 'text-su-black/60 hover:bg-su-black/20 hover:text-su-black'
+                  }`}
+                >
+                  <X className="h-5 w-5" />
+                  <span className="sr-only">Close</span>
+                </Dialog.Close>
+              </div>
+            }
+          >
+            {children}
+          </DisplayCard>
+        </Dialog.Popup>
+      </Dialog.Portal>
+    </Dialog.Root>
   )
 }

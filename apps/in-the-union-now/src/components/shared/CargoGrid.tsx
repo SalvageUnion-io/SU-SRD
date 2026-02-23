@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from 'react'
-import * as DialogPrimitive from '@radix-ui/react-dialog'
+import { Dialog } from '@base-ui/react/dialog'
 import { X, Plus } from 'lucide-react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { EntitySchemaName, SURefEntity } from 'salvageunion-reference'
@@ -251,23 +251,18 @@ function EntityDetailModal({
   if (!open) return null
 
   return (
-    <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
-      <DialogPrimitive.Portal>
-        <DialogPrimitive.Overlay className="fixed inset-0 z-50 overflow-y-auto bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0">
-          <div className="flex min-h-full w-full items-start justify-center px-4 py-8">
-            <DialogPrimitive.Content className="relative w-full max-w-4xl outline-none">
-              <DialogPrimitive.Title className="sr-only">
-                {'name' in entity ? (entity.name as string) : 'Entity'}
-              </DialogPrimitive.Title>
-              <DialogPrimitive.Description className="sr-only">
-                Cargo entity details
-              </DialogPrimitive.Description>
-              <ReferenceEntityDisplay data={entity} compact={false} />
-            </DialogPrimitive.Content>
-          </div>
-        </DialogPrimitive.Overlay>
-      </DialogPrimitive.Portal>
-    </DialogPrimitive.Root>
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+      <Dialog.Portal>
+        <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/80 data-[open]:animate-in data-[closed]:animate-out data-[closed]:fade-out-0 data-[open]:fade-in-0" />
+        <Dialog.Popup className="fixed inset-0 z-50 mx-auto mt-8 mb-auto h-fit max-h-[calc(100vh-4rem)] w-full max-w-4xl overflow-y-auto bg-transparent outline-none">
+          <Dialog.Title className="sr-only">
+            {'name' in entity ? (entity.name as string) : 'Entity'}
+          </Dialog.Title>
+          <Dialog.Description className="sr-only">Cargo entity details</Dialog.Description>
+          <ReferenceEntityDisplay data={entity} compact={false} />
+        </Dialog.Popup>
+      </Dialog.Portal>
+    </Dialog.Root>
   )
 }
 

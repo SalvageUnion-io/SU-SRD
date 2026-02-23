@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import * as DialogPrimitive from '@radix-ui/react-dialog'
+import { Dialog } from '@base-ui/react/dialog'
 import { SearchIsland } from './SearchIsland'
 import { Button } from '../Button'
 
@@ -27,31 +27,33 @@ export function MobileNavIsland({ categories, currentPath }: MobileNavIslandProp
   const isActive = useCallback((path: string) => currentPath.startsWith(path), [currentPath])
 
   return (
-    <DialogPrimitive.Root open={open} onOpenChange={setOpen}>
-      <DialogPrimitive.Trigger asChild>
-        <button className="rounded-md p-2" aria-label="Open menu">
-          <svg
-            width="24"
-            height="24"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4 6h16M4 12h16M4 18h16"
-            />
-          </svg>
-        </button>
-      </DialogPrimitive.Trigger>
+    <Dialog.Root open={open} onOpenChange={setOpen}>
+      <Dialog.Trigger
+        render={
+          <button className="rounded-md p-2" aria-label="Open menu">
+            <svg
+              width="24"
+              height="24"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 6h16M4 12h16M4 18h16"
+              />
+            </svg>
+          </button>
+        }
+      />
 
-      <DialogPrimitive.Portal>
-        <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/50" />
-        <DialogPrimitive.Content className="fixed inset-y-0 right-0 z-50 flex w-full flex-col bg-su-white p-4 shadow-lg data-[state=open]:animate-slide-in-right data-[state=closed]:animate-slide-out-right">
-          <DialogPrimitive.Title className="sr-only">Navigation Menu</DialogPrimitive.Title>
+      <Dialog.Portal>
+        <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/50" />
+        <Dialog.Popup className="fixed inset-y-0 right-0 z-50 flex w-full flex-col bg-su-white p-4 shadow-lg data-[open]:animate-slide-in-right data-[closed]:animate-slide-out-right">
+          <Dialog.Title className="sr-only">Navigation Menu</Dialog.Title>
 
           {/* Header row: Logo | Close */}
           <div className="mb-2 flex items-center justify-between">
@@ -61,25 +63,27 @@ export function MobileNavIsland({ categories, currentPath }: MobileNavIslandProp
                 <span className="bg-su-white px-1 py-0.5 text-su-black">SRD</span>
               </span>
             </a>
-            <DialogPrimitive.Close asChild>
-              <button className="rounded-md p-1" aria-label="Close menu">
-                <svg
-                  width="24"
-                  height="24"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-            </DialogPrimitive.Close>
+            <Dialog.Close
+              render={
+                <button className="rounded-md p-1" aria-label="Close menu">
+                  <svg
+                    width="24"
+                    height="24"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              }
+            />
           </div>
 
           {/* Search */}
@@ -152,8 +156,8 @@ export function MobileNavIsland({ categories, currentPath }: MobileNavIslandProp
               </a>
             </div>
           </div>
-        </DialogPrimitive.Content>
-      </DialogPrimitive.Portal>
-    </DialogPrimitive.Root>
+        </Dialog.Popup>
+      </Dialog.Portal>
+    </Dialog.Root>
   )
 }

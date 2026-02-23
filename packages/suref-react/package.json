@@ -19,9 +19,7 @@
     "ladle:build": "ladle build"
   },
   "peerDependencies": {
-    "@radix-ui/react-dialog": "^1.1.15",
-    "@radix-ui/react-hover-card": "^1.1.15",
-    "@radix-ui/react-tooltip": "^1.1.8",
+    "@base-ui/react": "^1.2.0",
     "@randsum/roller": "^0.27.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -33,10 +31,8 @@
     "tailwind-merge": "^3.0.2"
   },
   "devDependencies": {
+    "@base-ui/react": "1.2.0",
     "@ladle/react": "^4.1.0",
-    "@radix-ui/react-dialog": "^1.1.15",
-    "@radix-ui/react-hover-card": "^1.1.15",
-    "@radix-ui/react-tooltip": "^1.1.8",
     "@randsum/roller": "^0.27.0",
     "@vitejs/plugin-react": "^5.1.1",
     "class-variance-authority": "^0.7.1",

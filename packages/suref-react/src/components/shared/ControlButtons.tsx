@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { useCallback } from 'react'
-import * as HoverCard from '@radix-ui/react-hover-card'
+import { Tooltip } from '@base-ui/react/tooltip'
 import { cn } from '../../utils/cn'
 import type {
   ReferenceEntityControl,
@@ -124,20 +124,24 @@ function ControlButtonWithHover({
   hoverContent: ReactNode
 }) {
   return (
-    <HoverCard.Root openDelay={200} closeDelay={100}>
-      <HoverCard.Trigger asChild>
-        <ControlButton control={control} compact={compact} onClickWithStop={onClickWithStop} />
-      </HoverCard.Trigger>
-      <HoverCard.Portal>
-        <HoverCard.Content
-          className="z-50 max-h-[80vh] max-w-[500px] overflow-y-auto border-none bg-transparent p-0 shadow-2xl"
-          sideOffset={5}
-          align="start"
-        >
-          {hoverContent}
-        </HoverCard.Content>
-      </HoverCard.Portal>
-    </HoverCard.Root>
+    <Tooltip.Provider delay={200} closeDelay={100}>
+      <Tooltip.Root>
+        <Tooltip.Trigger
+          delay={200}
+          closeDelay={100}
+          render={
+            <ControlButton control={control} compact={compact} onClickWithStop={onClickWithStop} />
+          }
+        />
+        <Tooltip.Portal>
+          <Tooltip.Positioner sideOffset={5} align="start">
+            <Tooltip.Popup className="z-50 max-h-[80vh] max-w-[500px] overflow-y-auto border-none bg-transparent p-0 shadow-2xl">
+              {hoverContent}
+            </Tooltip.Popup>
+          </Tooltip.Positioner>
+        </Tooltip.Portal>
+      </Tooltip.Root>
+    </Tooltip.Provider>
   )
 }
 

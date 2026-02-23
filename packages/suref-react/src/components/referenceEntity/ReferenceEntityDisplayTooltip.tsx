@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react'
 import { SalvageUnionReference, isKeyword } from 'salvageunion-reference'
 import type { SURefEnumSchemaName } from 'salvageunion-reference'
-import * as HoverCard from '@radix-ui/react-hover-card'
+import { Tooltip } from '@base-ui/react/tooltip'
 import { ReferenceEntityDisplay } from './ReferenceEntityDisplay'
-import { Tooltip } from '../ui/tooltip'
+import { Tooltip as SimpleTooltip } from '../ui/tooltip'
 
 type ReferenceEntityDisplayTooltipProps = {
   schemaName: SURefEnumSchemaName
@@ -62,7 +62,7 @@ export function ReferenceEntityDisplayTooltip({
     const description = getKeywordDescription(entity)
     if (description) {
       return (
-        <Tooltip content={description} delayDuration={openDelay}>
+        <SimpleTooltip content={description} delayDuration={openDelay}>
           <span
             style={{
               margin: 0,
@@ -76,40 +76,44 @@ export function ReferenceEntityDisplayTooltip({
           >
             {children}
           </span>
-        </Tooltip>
+        </SimpleTooltip>
       )
     }
   }
 
   return (
-    <HoverCard.Root openDelay={openDelay} closeDelay={closeDelay}>
-      <HoverCard.Trigger asChild>
-        <span
-          role="button"
-          tabIndex={0}
-          style={{
-            margin: 0,
-            lineHeight: 1,
-            cursor: 'help',
-            display: fullWidth ? 'block' : 'inline-flex',
-            flexShrink: 0,
-            flexGrow: 0,
-            width: fullWidth ? '100%' : 'auto',
-          }}
+    <Tooltip.Provider delay={openDelay} closeDelay={closeDelay}>
+      <Tooltip.Root>
+        <Tooltip.Trigger
+          delay={openDelay}
+          closeDelay={closeDelay}
+          render={
+            <span
+              role="button"
+              tabIndex={0}
+              style={{
+                margin: 0,
+                lineHeight: 1,
+                cursor: 'help',
+                display: fullWidth ? 'block' : 'inline-flex',
+                flexShrink: 0,
+                flexGrow: 0,
+                width: fullWidth ? '100%' : 'auto',
+              }}
+            />
+          }
         >
           {children}
-        </span>
-      </HoverCard.Trigger>
-      <HoverCard.Portal>
-        <HoverCard.Content
-          className="z-50 max-h-[80vh] max-w-[500px] overflow-y-auto border-none bg-transparent p-0 shadow-2xl"
-          sideOffset={5}
-          align="start"
-        >
-          {showArrow && <HoverCard.Arrow />}
-          <ReferenceEntityDisplay data={entity} compact />
-        </HoverCard.Content>
-      </HoverCard.Portal>
-    </HoverCard.Root>
+        </Tooltip.Trigger>
+        <Tooltip.Portal>
+          <Tooltip.Positioner sideOffset={5} align="start">
+            <Tooltip.Popup className="z-50 max-h-[80vh] max-w-[500px] overflow-y-auto border-none bg-transparent p-0 shadow-2xl">
+              {showArrow && <Tooltip.Arrow />}
+              <ReferenceEntityDisplay data={entity} compact />
+            </Tooltip.Popup>
+          </Tooltip.Positioner>
+        </Tooltip.Portal>
+      </Tooltip.Root>
+    </Tooltip.Provider>
   )
 }

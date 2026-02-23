@@ -13,7 +13,7 @@ import {
   techLevelLabel,
 } from 'suref-react'
 import type { ReferenceEntityControl } from 'suref-react'
-import * as DialogPrimitive from '@radix-ui/react-dialog'
+import { Dialog } from '@base-ui/react/dialog'
 import { Package, Pencil, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { useCrawlerCargo, useAddCrawlerCargo, useDeleteCrawlerCargo } from '../../hooks/useCrawlers'
@@ -329,76 +329,69 @@ function CustomItemDetailModal({
     stats.push({ label: 'HP', value: metadata.hit_points as number })
 
   return (
-    <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
-      <DialogPrimitive.Portal>
-        <DialogPrimitive.Overlay className="fixed inset-0 z-50 overflow-y-auto bg-black/60 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0">
-          <div className="flex min-h-full items-center justify-center px-4 py-8">
-            <DialogPrimitive.Content className="relative w-full max-w-2xl bg-transparent outline-none">
-              <DialogPrimitive.Close className="fixed top-4 right-4 z-[60] rounded-full bg-su-black/70 p-2 text-su-white opacity-70 transition-opacity hover:opacity-100">
-                <X className="h-6 w-6" aria-hidden="true" />
-                <span className="sr-only">Close</span>
-              </DialogPrimitive.Close>
-              <DialogPrimitive.Title className="sr-only">{item.name}</DialogPrimitive.Title>
-              <DialogPrimitive.Description className="sr-only">
-                Custom item details
-              </DialogPrimitive.Description>
-              <DisplayCard
-                headerBg={headerBg}
-                headerContent={
-                  <CardHeader
-                    title={
-                      <Text
-                        variant="pseudoheader"
-                        as="span"
-                        className="text-[1.75rem] uppercase tracking-[-0.02em]"
-                      >
-                        {item.name}
-                      </Text>
-                    }
-                    subtitle={
-                      <div className="flex flex-wrap items-center gap-1">
-                        <ValueDisplay
-                          label="Custom Item"
-                          compact
-                          bgColor="var(--color-su-rust)"
-                          textColor="var(--color-su-white)"
-                        />
-                        <ValueDisplay label="Category" value={categoryLabel} compact />
-                        {item.amount > 1 && (
-                          <ValueDisplay label="Qty" value={item.amount} compact />
-                        )}
-                      </div>
-                    }
-                    leftContent={
-                      techLevel !== undefined ? (
-                        <StatDisplay label="TL" value={String(techLevel)} inverse />
-                      ) : undefined
-                    }
-                    rightContent={
-                      stats.length > 0 ? (
-                        <div className="flex items-center gap-0.5">
-                          {stats.map((s) => (
-                            <StatDisplay key={s.label} label={s.label} value={s.value} inverse />
-                          ))}
-                        </div>
-                      ) : undefined
-                    }
-                  />
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+      <Dialog.Portal>
+        <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/60 data-[open]:animate-in data-[closed]:animate-out data-[closed]:fade-out-0 data-[open]:fade-in-0" />
+        <Dialog.Popup className="fixed inset-0 z-50 m-auto h-fit max-h-[calc(100vh-4rem)] w-full max-w-2xl overflow-y-auto bg-transparent outline-none">
+          <Dialog.Close className="fixed top-4 right-4 z-[60] rounded-full bg-su-black/70 p-2 text-su-white opacity-70 transition-opacity hover:opacity-100">
+            <X className="h-6 w-6" aria-hidden="true" />
+            <span className="sr-only">Close</span>
+          </Dialog.Close>
+          <Dialog.Title className="sr-only">{item.name}</Dialog.Title>
+          <Dialog.Description className="sr-only">Custom item details</Dialog.Description>
+          <DisplayCard
+            headerBg={headerBg}
+            headerContent={
+              <CardHeader
+                title={
+                  <Text
+                    variant="pseudoheader"
+                    as="span"
+                    className="text-[1.75rem] uppercase tracking-[-0.02em]"
+                  >
+                    {item.name}
+                  </Text>
                 }
-              >
-                {description && (
-                  <div className="bg-su-white p-4">
-                    <Text variant="default" className="text-sm leading-relaxed text-su-black">
-                      {description}
-                    </Text>
+                subtitle={
+                  <div className="flex flex-wrap items-center gap-1">
+                    <ValueDisplay
+                      label="Custom Item"
+                      compact
+                      bgColor="var(--color-su-rust)"
+                      textColor="var(--color-su-white)"
+                    />
+                    <ValueDisplay label="Category" value={categoryLabel} compact />
+                    {item.amount > 1 && <ValueDisplay label="Qty" value={item.amount} compact />}
                   </div>
-                )}
-              </DisplayCard>
-            </DialogPrimitive.Content>
-          </div>
-        </DialogPrimitive.Overlay>
-      </DialogPrimitive.Portal>
-    </DialogPrimitive.Root>
+                }
+                leftContent={
+                  techLevel !== undefined ? (
+                    <StatDisplay label="TL" value={String(techLevel)} inverse />
+                  ) : undefined
+                }
+                rightContent={
+                  stats.length > 0 ? (
+                    <div className="flex items-center gap-0.5">
+                      {stats.map((s) => (
+                        <StatDisplay key={s.label} label={s.label} value={s.value} inverse />
+                      ))}
+                    </div>
+                  ) : undefined
+                }
+              />
+            }
+          >
+            {description && (
+              <div className="bg-su-white p-4">
+                <Text variant="default" className="text-sm leading-relaxed text-su-black">
+                  {description}
+                </Text>
+              </div>
+            )}
+          </DisplayCard>
+        </Dialog.Popup>
+      </Dialog.Portal>
+    </Dialog.Root>
   )
 }
 
