@@ -301,6 +301,7 @@ describe('builderToCreateInput', () => {
       chassis_ref: 'iron-mongrel',
       description: 'A test pattern',
       visible: true,
+      image_path: null,
       pattern_items: validState.items,
     })
   })
