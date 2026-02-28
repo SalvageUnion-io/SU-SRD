@@ -23,6 +23,20 @@ type TallySummary = {
   storageItems: TalliedEntityItem[]
 }
 
+export type OffloadReceipt = {
+  scrapByTL: Record<string, number>
+  storageCount: number
+}
+
+export function summaryToReceipt(summary: TallySummary): OffloadReceipt {
+  return {
+    scrapByTL: Object.fromEntries(
+      Object.entries(summary.scrapByTL).map(([k, v]) => [String(k), v])
+    ),
+    storageCount: summary.storageItems.length,
+  }
+}
+
 /**
  * Separate raw scrap items from entity items in cargo.
  * Raw scrap = no schema_ref_id, has metadata.tech_level

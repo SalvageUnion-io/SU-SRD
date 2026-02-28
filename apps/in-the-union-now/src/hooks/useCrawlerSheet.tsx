@@ -28,6 +28,7 @@ import { useRealtimeSubscription } from './useRealtimeSubscription'
 import { useActivityFeed } from './useActivityFeed'
 import { isMediator } from '../lib/gameUtils'
 import { getErrorMessage } from '../lib/errors'
+import { changeLogApi } from '../lib/api/changeLogApi'
 import { computeCrawlerStatsFromTechLevel } from '../lib/crawlerUtils'
 import type { CrawlerUpdate, EntityRefRow } from '../types/common'
 
@@ -98,38 +99,68 @@ export function useCrawlerSheet(gameId: string) {
 
   const handleImmediateUpdate = useCallback(
     (input: Partial<CrawlerUpdate>) => {
-      if (!crawler) return
+      if (!crawler || !user) return
       const crawlerLabel = crawler.name || 'Crawler'
       updateCrawler.mutate(
         { crawlerId: crawler.id, input },
         {
-          onSuccess: () => showSaveToast(`${crawlerLabel} updated`),
-          onError: (err) => toast.error(getErrorMessage(err)),
-        }
-      )
-    },
-    [crawler, updateCrawler]
-  )
-
-  const handleTranslate = useCallback(
-    (fromTL: number, toTL: number, sourceConsumed: number, targetAmount: number) => {
-      if (!crawler) return
-      translateScrap.mutate(
-        { crawlerId: crawler.id, fromTL, toTL, sourceConsumed, targetAmount },
-        {
           onSuccess: () => {
-            toast.success(`Translated ${sourceConsumed} TL${fromTL} → ${targetAmount} TL${toTL}`)
+            showSaveToast(`${crawlerLabel} updated`)
+            for (const [field, newValue] of Object.entries(input)) {
+              const oldValue = crawler[field as keyof typeof crawler]
+              changeLogApi
+                .log(user.id, {
+                  targetId: crawler.id,
+                  targetType: 'crawler',
+                  action: 'update',
+                  field,
+                  oldValue: oldValue as unknown,
+                  newValue,
+                  description: `${crawlerLabel} ${field} ${oldValue} → ${newValue}`,
+                  gameId,
+                })
+                .catch(() => {})
+            }
           },
           onError: (err) => toast.error(getErrorMessage(err)),
         }
       )
     },
-    [crawler, translateScrap]
+    [crawler, user, updateCrawler, gameId]
+  )
+
+  const handleTranslate = useCallback(
+    (fromTL: number, toTL: number, sourceConsumed: number, targetAmount: number) => {
+      if (!crawler || !user) return
+      const crawlerLabel = crawler.name || 'Crawler'
+      translateScrap.mutate(
+        { crawlerId: crawler.id, fromTL, toTL, sourceConsumed, targetAmount },
+        {
+          onSuccess: () => {
+            toast.success(`Translated ${sourceConsumed} TL${fromTL} → ${targetAmount} TL${toTL}`)
+            changeLogApi
+              .log(user.id, {
+                targetId: crawler.id,
+                targetType: 'crawler',
+                action: 'update',
+                field: 'scrap',
+                description: `${crawlerLabel} translated ${sourceConsumed} TL${fromTL} → ${targetAmount} TL${toTL}`,
+                gameId,
+              })
+              .catch(() => {})
+          },
+          onError: (err) => toast.error(getErrorMessage(err)),
+        }
+      )
+    },
+    [crawler, user, translateScrap, gameId]
   )
 
   const handleWeaponChange = useCallback(
     (newRefId: string, slot: WeaponSlot) => {
       if (!crawler || !user) return
+      const crawlerLabel = crawler.name || 'Crawler'
+      const newWeapon = SalvageUnionReference.get('systems', newRefId)
       updateWeapon.mutate(
         {
           crawlerId: crawler.id,
@@ -141,12 +172,23 @@ export function useCrawlerSheet(gameId: string) {
         {
           onSuccess: () => {
             toast.success('Weapon system updated!')
+            changeLogApi
+              .log(user.id, {
+                targetId: crawler.id,
+                targetType: 'crawler',
+                action: 'update',
+                field: 'weapon_system',
+                newValue: newRefId,
+                description: `${crawlerLabel} weapon system → ${newWeapon?.name ?? newRefId}`,
+                gameId,
+              })
+              .catch(() => {})
           },
           onError: (err) => toast.error(getErrorMessage(err)),
         }
       )
     },
-    [crawler, user, updateWeapon]
+    [crawler, user, updateWeapon, gameId]
   )
 
   const handleDelete = useCallback(() => {
@@ -164,17 +206,31 @@ export function useCrawlerSheet(gameId: string) {
   }, [crawler, gameId, deleteCrawlerMutation, navigate])
 
   const handleUpgradeTL = useCallback(() => {
-    if (!crawler) return
+    if (!crawler || !user) return
+    const crawlerLabel = crawler.name || 'Crawler'
+    const oldTL = crawler.tech_level
     upgradeTL.mutate(
       { crawlerId: crawler.id },
       {
         onSuccess: (data) => {
           toast.success(`Crawler upgraded to Tech Level ${data.tech_level}!`)
+          changeLogApi
+            .log(user.id, {
+              targetId: crawler.id,
+              targetType: 'crawler',
+              action: 'update',
+              field: 'tech_level',
+              oldValue: oldTL,
+              newValue: data.tech_level,
+              description: `${crawlerLabel} upgraded to Tech Level ${data.tech_level}`,
+              gameId,
+            })
+            .catch(() => {})
         },
         onError: (err) => toast.error(getErrorMessage(err)),
       }
     )
-  }, [crawler, upgradeTL])
+  }, [crawler, user, upgradeTL, gameId])
 
   const handleToggleDowntime = useCallback(() => {
     if (!crawler || !user) return
@@ -183,14 +239,26 @@ export function useCrawlerSheet(gameId: string) {
     crawlerDowntime.mutate(
       { crawlerId: crawler.id, entering, userId: user.id },
       {
-        onSuccess: () =>
-          toast.success(
-            entering ? `${crawlerLabel} entered downtime` : `${crawlerLabel} exited downtime`
-          ),
+        onSuccess: () => {
+          const msg = entering
+            ? `${crawlerLabel} entered downtime`
+            : `${crawlerLabel} exited downtime`
+          toast.success(msg)
+          changeLogApi
+            .log(user.id, {
+              targetId: crawler.id,
+              targetType: 'crawler',
+              action: 'update',
+              field: 'downtime',
+              description: msg,
+              gameId,
+            })
+            .catch(() => {})
+        },
         onError: (err) => toast.error(getErrorMessage(err)),
       }
     )
-  }, [crawler, user, activeDowntime, crawlerDowntime])
+  }, [crawler, user, activeDowntime, crawlerDowntime, gameId])
 
   const weaponRefs = useMemo(
     () =>

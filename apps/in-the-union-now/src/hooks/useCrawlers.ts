@@ -12,7 +12,14 @@ import {
   setCrawlerDowntime,
   payUpkeep,
   updateDowntimeRecord,
+  saveOffloadReceipt,
+  saveRestoreReceipt,
+  saveTradeResult,
 } from '../lib/api/crawlerApi'
+import type { Json } from '../types/database-generated.types'
+import type { OffloadReceipt } from '../lib/tallySalvageUtils'
+import type { RestoreReceipt } from '../lib/restoreUtils'
+import type { TradeResult } from '../lib/tradeUtils'
 import { useCargoQuery, useAddCargo, useDeleteCargo } from './useCargo'
 import { pilotKeys } from './usePilots'
 import { gameKeys } from './useGames'
@@ -221,8 +228,69 @@ export function useUpdateDowntimeRecord() {
     }: {
       recordId: string
       crawlerId: string
-      input: { upkeep_paid?: boolean; closed_at?: string }
+      input: {
+        upkeep_paid?: boolean
+        closed_at?: string
+        upkeep_result?: Json
+        restore_receipts?: Json
+        trade_result?: Json
+      }
     }) => updateDowntimeRecord(recordId, input),
+    onSuccess: (_, { crawlerId }) => {
+      queryClient.invalidateQueries({ queryKey: crawlerKeys.activeDowntime(crawlerId) })
+    },
+  })
+}
+
+export function useSaveTradeResult() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({
+      recordId,
+      result,
+    }: {
+      recordId: string
+      result: TradeResult
+      crawlerId: string
+    }) => saveTradeResult(recordId, result),
+    onSuccess: (_, { crawlerId }) => {
+      queryClient.invalidateQueries({ queryKey: crawlerKeys.activeDowntime(crawlerId) })
+    },
+  })
+}
+
+export function useSaveOffloadReceipt() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({
+      recordId,
+      pilotId,
+      receipt,
+    }: {
+      recordId: string
+      pilotId: string
+      receipt: OffloadReceipt
+      crawlerId: string
+    }) => saveOffloadReceipt(recordId, pilotId, receipt),
+    onSuccess: (_, { crawlerId }) => {
+      queryClient.invalidateQueries({ queryKey: crawlerKeys.activeDowntime(crawlerId) })
+    },
+  })
+}
+
+export function useSaveRestoreReceipt() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({
+      recordId,
+      pilotId,
+      receipt,
+    }: {
+      recordId: string
+      pilotId: string
+      receipt: RestoreReceipt
+      crawlerId: string
+    }) => saveRestoreReceipt(recordId, pilotId, receipt),
     onSuccess: (_, { crawlerId }) => {
       queryClient.invalidateQueries({ queryKey: crawlerKeys.activeDowntime(crawlerId) })
     },

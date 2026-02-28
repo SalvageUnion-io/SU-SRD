@@ -14,15 +14,17 @@ type LogParams = {
   description: string
   sessionId?: string
   reversible?: boolean
+  gameId?: string
 }
 
-type ChangeLogEntry = {
+export type ChangeLogEntry = {
   id: string
   user_id: string
   target_id: string
   target_type: string
   action: string
   field: string | null
+  game_id: string | null
   old_value: Json | null
   new_value: Json | null
   description: string | null
@@ -30,6 +32,8 @@ type ChangeLogEntry = {
   reversible: boolean
   created_at: string
 }
+
+const PAGE_SIZE = 50
 
 export const changeLogApi = {
   log: async (userId: string, params: LogParams): Promise<void> => {
@@ -44,6 +48,7 @@ export const changeLogApi = {
       description: params.description,
       session_id: params.sessionId ?? null,
       reversible: params.reversible ?? false,
+      game_id: params.gameId ?? null,
     })
 
     if (error) handleSupabaseError(error)
@@ -58,6 +63,24 @@ export const changeLogApi = {
       .eq('target_id', targetId)
       .eq('target_type', targetType)
       .order('created_at', { ascending: false })
+
+    if (error) handleSupabaseError(error)
+    return (data ?? []) as ChangeLogEntry[]
+  },
+
+  listByGame: async (gameId: string, opts?: { before?: string }): Promise<ChangeLogEntry[]> => {
+    let query = supabase
+      .from('change_log')
+      .select('*')
+      .eq('game_id', gameId)
+      .order('created_at', { ascending: false })
+      .limit(PAGE_SIZE)
+
+    if (opts?.before) {
+      query = query.lt('created_at', opts.before)
+    }
+
+    const { data, error } = await query
 
     if (error) handleSupabaseError(error)
     return (data ?? []) as ChangeLogEntry[]

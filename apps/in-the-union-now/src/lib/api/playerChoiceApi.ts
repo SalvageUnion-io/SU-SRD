@@ -19,6 +19,16 @@ export async function getPlayerChoices(
   return data!
 }
 
+export async function deleteComradeEpChoices(pilotId: string): Promise<void> {
+  const { error } = await supabase
+    .from('player_choices')
+    .delete()
+    .eq('parent_id', pilotId)
+    .eq('parent_type', 'pilot')
+    .like('choice_id', 'comrade-ep:%')
+  if (error) handleSupabaseError(error)
+}
+
 export async function upsertPlayerChoice(input: PlayerChoiceInsert): Promise<PlayerChoiceRow> {
   const { data, error } = await supabase
     .from('player_choices')

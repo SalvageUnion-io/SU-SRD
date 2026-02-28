@@ -19,7 +19,7 @@ export function ReferenceEntityRightHeaderContent({
   if (!description || !isAbility(data)) return null
 
   return (
-    <div className={cn('text-right font-medium italic leading-tight text-su-white', fontSize.xs)}>
+    <div className={cn('pr-1.5 text-pretty text-right font-medium italic leading-tight text-su-white', fontSize.xs)}>
       {parsedDescription}
     </div>
   )

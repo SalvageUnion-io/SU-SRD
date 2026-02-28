@@ -3,25 +3,33 @@ import { StatDisplay } from './StatDisplay'
 type StatControlProps = {
   label: string
   value: number
+  min?: number
   max?: number
   bottomLabel?: string
   canEdit: boolean
   compact?: boolean
   inverse?: boolean
+  bg?: string
+  valueColor?: string
+  borderColor?: string
   onChange: (newValue: number) => void
 }
 
 export function StatControl({
   label,
   value,
+  min = 0,
   max,
   bottomLabel,
   canEdit,
   compact = false,
   inverse = false,
+  bg,
+  valueColor,
+  borderColor,
   onChange,
 }: StatControlProps) {
-  const atMin = value <= 0
+  const atMin = value <= min
   const atMax = max !== undefined && value >= max
 
   const btnSize = compact ? 'h-3 w-3 text-[9px]' : 'h-4 w-4 text-xs'
@@ -42,6 +50,9 @@ export function StatControl({
         bottomLabel={bottomLabel}
         compact={compact}
         inverse={inverse}
+        bg={bg}
+        valueColor={valueColor}
+        borderColor={borderColor}
       />
       {canEdit && (
         <div className="flex flex-col gap-0.5">
@@ -57,7 +68,7 @@ export function StatControl({
           </button>
           <button
             type="button"
-            onClick={() => onChange(Math.max(0, value - 1))}
+            onClick={() => onChange(Math.max(min, value - 1))}
             disabled={atMin}
             className={`flex items-center justify-center border font-mono font-bold leading-none transition-colors ${btnSize} ${btnResting} ${
               atMin ? 'cursor-not-allowed opacity-30' : `cursor-pointer ${btnHover}`

@@ -58,6 +58,10 @@ export type GuideStepsInteractiveConfig = {
   renderStepHeaderExtra?: (step: SURefObjectGuideStep, index: number) => ReactNode
   /** Render custom content for a step, replacing the entity grid + roll section */
   renderStepContent?: (step: SURefObjectGuideStep, index: number) => ReactNode | undefined
+  /** Render content to the right of the step text */
+  renderStepSideContent?: (step: SURefObjectGuideStep, index: number) => ReactNode | undefined
+  /** Render content to the left of the step text */
+  renderStepStartContent?: (step: SURefObjectGuideStep, index: number) => ReactNode | undefined
 }
 
 // ---------------------------------------------------------------------------
@@ -410,6 +414,8 @@ export function GuideStepsDisplay({
               <div>
                 {(() => {
                   const customStepContent = interactive?.renderStepContent?.(step, index)
+                  const sideContent = interactive?.renderStepSideContent?.(step, index)
+                  const startContent = interactive?.renderStepStartContent?.(step, index)
 
                   const contentBlock = stepContent && stepContent.length > 0 && (
                     <BlockContentRendererView
@@ -420,6 +426,21 @@ export function GuideStepsDisplay({
                       headerBgColor={headerBgColor}
                     />
                   )
+
+                  if (startContent !== undefined || sideContent !== undefined) {
+                    return (
+                      <div className="flex gap-4">
+                        {startContent !== undefined && (
+                          <div className="shrink-0">{startContent}</div>
+                        )}
+                        <div className="min-w-0 flex-1">
+                          {contentBlock}
+                          {customStepContent}
+                        </div>
+                        {sideContent !== undefined && <div className="shrink-0">{sideContent}</div>}
+                      </div>
+                    )
+                  }
 
                   if (customStepContent !== undefined) {
                     return (

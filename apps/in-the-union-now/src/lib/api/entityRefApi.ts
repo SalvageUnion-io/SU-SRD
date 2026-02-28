@@ -23,6 +23,15 @@ export async function deleteEntityRef(refId: string): Promise<void> {
   if (error) handleSupabaseError(error)
 }
 
+export async function batchRepairEntityRefs(refIds: string[]): Promise<void> {
+  if (refIds.length === 0) return
+  const { error } = await supabase
+    .from('entity_refs')
+    .update({ condition: 'intact' as const })
+    .in('id', refIds)
+  if (error) handleSupabaseError(error)
+}
+
 export async function createEntityRef(input: EntityRefInsert): Promise<EntityRefRow> {
   const { data, error } = await supabase.from('entity_refs').insert(input).select().single()
 

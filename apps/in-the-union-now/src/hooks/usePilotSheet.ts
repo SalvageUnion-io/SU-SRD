@@ -28,6 +28,7 @@ import { useSaveStatus } from './useSaveStatus'
 import { useActivateAction } from './useActivateAction'
 import type { UseActionResult } from './useActivateAction'
 import type { ActionDisplayData } from '../lib/pilotActionUtils'
+import { useGameByCrawlerId } from './useGames'
 import { useRealtimeSubscription } from './useRealtimeSubscription'
 import { getEntityAccess } from '../lib/entityAccess'
 import { findChassisById } from 'salvageunion-reference'
@@ -77,6 +78,7 @@ export function usePilotSheet(pilotId: string) {
   const { data: mech, isLoading: mechLoading } = useMech(pilot?.mech_id ?? undefined)
   const { data: mechRefs } = useMechEntityRefs(mech?.id)
   const { data: crawler } = useCrawler(pilot?.crawler_id ?? undefined)
+  const { data: game } = useGameByCrawlerId(pilot?.crawler_id ?? undefined)
   const { data: activeDowntime } = useActiveDowntimeRecord(pilot?.crawler_id ?? undefined)
   const updateMech = useUpdateMech()
   const updateMechEntityRef = useUpdateMechEntityRef()
@@ -185,10 +187,11 @@ export function usePilotSheet(pilotId: string) {
           oldValue,
           newValue,
           description: `${pilot.callsign} ${field.toUpperCase()} ${oldValue} → ${newValue}`,
+          gameId: game?.id,
         })
         .catch(() => {})
     },
-    [pilot, user, handlePilotUpdate]
+    [pilot, user, handlePilotUpdate, game]
   )
 
   const handleUpdateEntityRef = useCallback(
@@ -225,6 +228,7 @@ export function usePilotSheet(pilotId: string) {
                   oldValue: ref.condition,
                   newValue: input.condition,
                   description: `${pilot.callsign} equipment → ${input.condition}`,
+                  gameId: game?.id,
                 })
                 .catch(() => {})
             }
@@ -246,6 +250,7 @@ export function usePilotSheet(pilotId: string) {
                   oldValue: ref.schema_ref_id,
                   newValue: input.schema_ref_id,
                   description: `${pilot.callsign} swapped ${oldEntity?.name ?? ref.schema_ref_id} → ${newEntity?.name ?? input.schema_ref_id}`,
+                  gameId: game?.id,
                 })
                 .catch(() => {})
             }
@@ -254,7 +259,7 @@ export function usePilotSheet(pilotId: string) {
         }
       )
     },
-    [pilot, user, pilotRefs, updateEntityRef]
+    [pilot, user, pilotRefs, updateEntityRef, game]
   )
 
   const handleDeleteEntityRef = useCallback(
@@ -318,6 +323,7 @@ export function usePilotSheet(pilotId: string) {
                   oldValue: oldValue as unknown,
                   newValue,
                   description: `Mech ${field} ${oldValue} → ${newValue}`,
+                  gameId: game?.id,
                 })
                 .catch(() => {})
             }
@@ -326,7 +332,7 @@ export function usePilotSheet(pilotId: string) {
         }
       )
     },
-    [mech, user, chassisName, updateMech]
+    [mech, user, chassisName, updateMech, game]
   )
 
   const handleUpdateMechEntityRef = useCallback(
@@ -356,6 +362,7 @@ export function usePilotSheet(pilotId: string) {
                   oldValue: ref.condition,
                   newValue: input.condition,
                   description: `Mech loadout → ${input.condition}`,
+                  gameId: game?.id,
                 })
                 .catch(() => {})
             }
@@ -364,7 +371,7 @@ export function usePilotSheet(pilotId: string) {
         }
       )
     },
-    [mech, user, chassisName, mechRefs, updateMechEntityRef]
+    [mech, user, chassisName, mechRefs, updateMechEntityRef, game]
   )
 
   const handleUpdateCrawler = useCallback(

@@ -8,7 +8,7 @@ import {
 } from '../lib/api/mechApi'
 import { offloadMechCargo } from '../lib/api/cargoApi'
 import { useCargoQuery, useAddCargo, useDeleteCargo } from './useCargo'
-import { updateEntityRef } from '../lib/api/entityRefApi'
+import { updateEntityRef, batchRepairEntityRefs } from '../lib/api/entityRefApi'
 import { pilotKeys } from './usePilots'
 import { crawlerKeys } from './useCrawlers'
 import type {
@@ -141,6 +141,17 @@ export function useOffloadMechCargo() {
       queryClient.invalidateQueries({ queryKey: mechKeys.cargo(mechId) })
       queryClient.invalidateQueries({ queryKey: crawlerKeys.detail(crawlerId) })
       queryClient.invalidateQueries({ queryKey: crawlerKeys.cargo(crawlerId) })
+    },
+  })
+}
+
+export function useBatchRepairEntityRefs() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ refIds }: { refIds: string[]; mechId: string }) => batchRepairEntityRefs(refIds),
+    onSuccess: (_, { mechId }) => {
+      queryClient.invalidateQueries({ queryKey: mechKeys.entityRefs(mechId) })
     },
   })
 }

@@ -129,6 +129,7 @@ export type Database = {
           created_at: string
           description: string | null
           field: string | null
+          game_id: string | null
           id: string
           new_value: Json | null
           old_value: Json | null
@@ -143,6 +144,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           field?: string | null
+          game_id?: string | null
           id?: string
           new_value?: Json | null
           old_value?: Json | null
@@ -157,6 +159,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           field?: string | null
+          game_id?: string | null
           id?: string
           new_value?: Json | null
           old_value?: Json | null
@@ -166,7 +169,15 @@ export type Database = {
           target_type?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "change_log_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       crawlers: {
         Row: {
@@ -249,7 +260,11 @@ export type Database = {
           crawler_id: string
           created_at: string
           id: string
+          offload_receipts: Json
+          restore_receipts: Json
+          trade_result: Json | null
           upkeep_paid: boolean
+          upkeep_result: Json | null
           user_id: string
         }
         Insert: {
@@ -257,7 +272,11 @@ export type Database = {
           crawler_id: string
           created_at?: string
           id?: string
+          offload_receipts?: Json
+          restore_receipts?: Json
+          trade_result?: Json | null
           upkeep_paid?: boolean
+          upkeep_result?: Json | null
           user_id: string
         }
         Update: {
@@ -265,7 +284,11 @@ export type Database = {
           crawler_id?: string
           created_at?: string
           id?: string
+          offload_receipts?: Json
+          restore_receipts?: Json
+          trade_result?: Json | null
           upkeep_paid?: boolean
+          upkeep_result?: Json | null
           user_id?: string
         }
         Relationships: [

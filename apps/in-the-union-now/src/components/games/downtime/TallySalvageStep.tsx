@@ -5,18 +5,23 @@ import { StatDisplay, Text } from 'suref-react'
 import { ArrowRight, Check, Package } from 'lucide-react'
 import { toast } from 'sonner'
 import { useMechCargo, useOffloadMechCargo } from '../../../hooks/useMechs'
+import { useSaveOffloadReceipt } from '../../../hooks/useCrawlers'
 import {
   categorizeCargoItems,
   computeTallySummary,
   buildOffloadPayload,
+  summaryToReceipt,
 } from '../../../lib/tallySalvageUtils'
-import type { CargoDecision } from '../../../lib/tallySalvageUtils'
+import type { CargoDecision, OffloadReceipt } from '../../../lib/tallySalvageUtils'
 import { ReferenceEntityListingItem } from '../../shared/ReferenceEntityListingItem'
 import { getErrorMessage } from '../../../lib/errors'
+import type { DowntimeRecordRow } from '../../../types/common'
 
 type TallySalvageStepProps = {
   mechId: string
   crawlerId: string
+  pilotId: string
+  activeDowntime: DowntimeRecordRow
   compact?: boolean
   onComplete?: () => void
 }
@@ -24,16 +29,23 @@ type TallySalvageStepProps = {
 export function TallySalvageStep({
   mechId,
   crawlerId,
+  pilotId,
+  activeDowntime,
   compact = true,
   onComplete,
 }: TallySalvageStepProps) {
   const { data: cargo, isLoading } = useMechCargo(mechId)
   const offloadMutation = useOffloadMechCargo()
+  const saveReceiptMutation = useSaveOffloadReceipt()
+
+  // Check for existing server-side receipt for this pilot
+  const existingReceipt = useMemo(() => {
+    const receipts = activeDowntime.offload_receipts as Record<string, OffloadReceipt> | null
+    return receipts?.[pilotId] ?? null
+  }, [activeDowntime.offload_receipts, pilotId])
 
   const [decisions, setDecisions] = useState<Record<string, CargoDecision>>({})
-  const [offloadedSummary, setOffloadedSummary] = useState<ReturnType<
-    typeof computeTallySummary
-  > | null>(null)
+  const [offloadedSummary, setOffloadedSummary] = useState<OffloadReceipt | null>(existingReceipt)
 
   const { rawScrap, entityItems } = useMemo(() => categorizeCargoItems(cargo ?? []), [cargo])
 
@@ -57,24 +69,43 @@ export function TallySalvageStep({
     )
     // Snapshot the summary before offload clears cargo
     const snapshotSummary = computeTallySummary(rawScrap, entityItems, decisions)
+    const receipt = summaryToReceipt(snapshotSummary)
     offloadMutation.mutate(
       { mechId, crawlerId, storageCargoIds, scrapAdditions },
       {
         onSuccess: () => {
-          setOffloadedSummary(snapshotSummary)
+          setOffloadedSummary(receipt)
+          // Persist receipt server-side (fire-and-forget)
+          saveReceiptMutation.mutate({
+            recordId: activeDowntime.id,
+            pilotId,
+            receipt,
+            crawlerId,
+          })
           toast.success('Cargo offloaded to crawler!')
           onComplete?.()
         },
         onError: (err) => toast.error(getErrorMessage(err)),
       }
     )
-  }, [rawScrap, entityItems, decisions, mechId, crawlerId, offloadMutation, onComplete])
+  }, [
+    rawScrap,
+    entityItems,
+    decisions,
+    mechId,
+    crawlerId,
+    offloadMutation,
+    onComplete,
+    activeDowntime.id,
+    pilotId,
+    saveReceiptMutation,
+  ])
 
   // Cargo empty — either never had any, or already offloaded
   if (!isLoading && (!cargo || cargo.length === 0)) {
     // Had cargo and offloaded it — show the offload summary
     if (offloadedSummary) {
-      return <OffloadedSummary summary={offloadedSummary} compact={compact} />
+      return <OffloadedSummary receipt={offloadedSummary} compact={compact} />
     }
     // Never had cargo
     return (
@@ -267,10 +298,10 @@ export function TallySalvageStep({
 }
 
 function OffloadedSummary({
-  summary,
+  receipt,
   compact = true,
 }: {
-  summary: ReturnType<typeof computeTallySummary>
+  receipt: OffloadReceipt
   compact?: boolean
 }) {
   return (
@@ -292,7 +323,7 @@ function OffloadedSummary({
             Scrap
           </Text>
           <div className="flex flex-wrap gap-1.5">
-            {Object.entries(summary.scrapByTL)
+            {Object.entries(receipt.scrapByTL)
               .sort(([a], [b]) => Number(a) - Number(b))
               .map(([tl, amount]) => (
                 <StatDisplay
@@ -302,7 +333,7 @@ function OffloadedSummary({
                   compact={compact}
                 />
               ))}
-            {Object.keys(summary.scrapByTL).length === 0 && (
+            {Object.keys(receipt.scrapByTL).length === 0 && (
               <Text variant="default" as="span" className="text-xs text-su-white/30">
                 None
               </Text>
@@ -310,7 +341,7 @@ function OffloadedSummary({
           </div>
         </div>
 
-        {summary.storageItems.length > 0 && (
+        {receipt.storageCount > 0 && (
           <div>
             <Text
               variant="pseudoheader"
@@ -322,7 +353,7 @@ function OffloadedSummary({
             <div className="flex flex-wrap gap-1.5">
               <StatDisplay
                 label="Items"
-                value={summary.storageItems.length}
+                value={receipt.storageCount}
                 compact={compact}
                 bg="bg-su-pink/20"
                 borderColor="border-su-pink/50"

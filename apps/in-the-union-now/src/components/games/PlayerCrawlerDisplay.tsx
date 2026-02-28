@@ -23,6 +23,7 @@ import { WeaponSelectionDialog } from './WeaponSelectionDialog'
 import { CrawlerTypeSection } from './CrawlerTypeSection'
 import { CrawlerPilotsSection } from './CrawlerPilotsSection'
 import { DowntimeGuideView } from './downtime/DowntimeGuideView'
+import { GameLogTimeline } from './GameLogTimeline'
 import type { CrawlerEditConfig, WeaponSlot } from '../../hooks/useCrawlerSheet'
 import type { CampaignRow, CrawlerRow, DowntimeRecordRow, EntityRefRow } from '../../types/common'
 import type { SURefEntity } from 'salvageunion-reference'
@@ -118,12 +119,6 @@ export function PlayerCrawlerDisplay({
     }
     return [
       {
-        key: 'upkeep',
-        label: 'Upkeep',
-        value: tlStats?.upkeep ?? 0,
-        bottomLabel: `TL${crawler.tech_level}`,
-      },
-      {
         key: 'sp',
         label: 'SP',
         value: crawler.current_sp,
@@ -131,19 +126,6 @@ export function PlayerCrawlerDisplay({
         ...(editConfig
           ? {
               onChange: (v: number) => editConfig.onImmediateUpdate({ current_sp: v }),
-              canEdit: editConfig.isMed,
-            }
-          : {}),
-      },
-      {
-        key: 'upgrade',
-        label: 'Upgrade',
-        bottomLabel: 'Pool',
-        value: crawler.upgrade_pool,
-        outOfMax: tlStats?.upgrade_cost ?? undefined,
-        ...(editConfig
-          ? {
-              onChange: (v: number) => editConfig.onImmediateUpdate({ upgrade_pool: v }),
               canEdit: editConfig.isMed,
             }
           : {}),
@@ -246,6 +228,16 @@ export function PlayerCrawlerDisplay({
           </div>
         ),
       },
+      {
+        key: 'log',
+        label: 'Log',
+        activeColor: CRAWLER_TAB_COLOR,
+        content: (
+          <div className={compact ? 'p-3' : 'p-4'}>
+            <GameLogTimeline gameId={game.id} crawler={crawler} compact={compact} />
+          </div>
+        ),
+      },
     ]
   }, [
     listing,
@@ -256,6 +248,7 @@ export function PlayerCrawlerDisplay({
     compact,
     userId,
     weaponSlotControls,
+    game.id,
   ])
 
   const resolvedPopulationStr = useMemo(() => {
