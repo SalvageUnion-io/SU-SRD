@@ -13,6 +13,10 @@ import type {
 import type { OffloadReceipt } from '../tallySalvageUtils'
 import type { RestoreReceipt } from '../restoreUtils'
 import type { TradeResult } from '../tradeUtils'
+import type { CraftReceipt } from '../craftUtils'
+import type { TrainingReceipt } from '../trainingUtils'
+import type { EquipmentReceipt } from '../equipmentUtils'
+import type { RumourReceipt } from '../rumourUtils'
 
 export async function createCrawler(
   userId: string,
@@ -229,6 +233,12 @@ export async function updateDowntimeRecord(
     upkeep_result?: Json
     restore_receipts?: Json
     trade_result?: Json
+    craft_receipts?: Json
+    training_receipts?: Json
+    equipment_receipts?: Json
+    customise_acknowledged?: Json
+    rumour_receipts?: Json
+    pre_session_started?: boolean
   }
 ): Promise<DowntimeRecordRow> {
   const { data, error } = await supabase
@@ -324,6 +334,140 @@ export async function saveTradeResult(
   const { data, error } = await supabase
     .from('downtime_records')
     .update({ trade_result: result as unknown as Json })
+    .eq('id', recordId)
+    .select()
+    .single()
+
+  if (error) handleSupabaseError(error)
+  return data!
+}
+
+export async function saveCraftReceipt(
+  recordId: string,
+  pilotId: string,
+  receipt: CraftReceipt
+): Promise<DowntimeRecordRow> {
+  const { data: current, error: readError } = await supabase
+    .from('downtime_records')
+    .select('craft_receipts')
+    .eq('id', recordId)
+    .single()
+
+  if (readError) handleSupabaseError(readError)
+
+  const existing = (current!.craft_receipts ?? {}) as Record<string, Json | undefined>
+  const merged: Json = { ...existing, [pilotId]: receipt as unknown as Json }
+
+  const { data, error } = await supabase
+    .from('downtime_records')
+    .update({ craft_receipts: merged })
+    .eq('id', recordId)
+    .select()
+    .single()
+
+  if (error) handleSupabaseError(error)
+  return data!
+}
+
+export async function saveTrainingReceipt(
+  recordId: string,
+  pilotId: string,
+  receipt: TrainingReceipt
+): Promise<DowntimeRecordRow> {
+  const { data: current, error: readError } = await supabase
+    .from('downtime_records')
+    .select('training_receipts')
+    .eq('id', recordId)
+    .single()
+
+  if (readError) handleSupabaseError(readError)
+
+  const existing = (current!.training_receipts ?? {}) as Record<string, Json | undefined>
+  const merged: Json = { ...existing, [pilotId]: receipt as unknown as Json }
+
+  const { data, error } = await supabase
+    .from('downtime_records')
+    .update({ training_receipts: merged })
+    .eq('id', recordId)
+    .select()
+    .single()
+
+  if (error) handleSupabaseError(error)
+  return data!
+}
+
+export async function saveEquipmentReceipt(
+  recordId: string,
+  pilotId: string,
+  receipt: EquipmentReceipt
+): Promise<DowntimeRecordRow> {
+  const { data: current, error: readError } = await supabase
+    .from('downtime_records')
+    .select('equipment_receipts')
+    .eq('id', recordId)
+    .single()
+
+  if (readError) handleSupabaseError(readError)
+
+  const existing = (current!.equipment_receipts ?? {}) as Record<string, Json | undefined>
+  const merged: Json = { ...existing, [pilotId]: receipt as unknown as Json }
+
+  const { data, error } = await supabase
+    .from('downtime_records')
+    .update({ equipment_receipts: merged })
+    .eq('id', recordId)
+    .select()
+    .single()
+
+  if (error) handleSupabaseError(error)
+  return data!
+}
+
+export async function saveCustomiseAcknowledged(
+  recordId: string,
+  pilotId: string
+): Promise<DowntimeRecordRow> {
+  const { data: current, error: readError } = await supabase
+    .from('downtime_records')
+    .select('customise_acknowledged')
+    .eq('id', recordId)
+    .single()
+
+  if (readError) handleSupabaseError(readError)
+
+  const existing = (current!.customise_acknowledged ?? {}) as Record<string, Json | undefined>
+  const merged: Json = { ...existing, [pilotId]: true }
+
+  const { data, error } = await supabase
+    .from('downtime_records')
+    .update({ customise_acknowledged: merged })
+    .eq('id', recordId)
+    .select()
+    .single()
+
+  if (error) handleSupabaseError(error)
+  return data!
+}
+
+export async function saveRumourReceipt(
+  recordId: string,
+  pilotId: string,
+  receipt: RumourReceipt
+): Promise<DowntimeRecordRow> {
+  const { data: current, error: readError } = await supabase
+    .from('downtime_records')
+    .select('rumour_receipts')
+    .eq('id', recordId)
+    .single()
+
+  if (readError) handleSupabaseError(readError)
+
+  const existing = (current!.rumour_receipts ?? {}) as Record<string, Json | undefined>
+  const merged: Json = { ...existing, [pilotId]: receipt as unknown as Json }
+
+  const { data, error } = await supabase
+    .from('downtime_records')
+    .update({ rumour_receipts: merged })
     .eq('id', recordId)
     .select()
     .single()

@@ -257,36 +257,54 @@ export type Database = {
       downtime_records: {
         Row: {
           closed_at: string | null
+          craft_receipts: Json | null
           crawler_id: string
           created_at: string
+          customise_acknowledged: Json | null
+          equipment_receipts: Json | null
           id: string
           offload_receipts: Json
+          pre_session_started: boolean
           restore_receipts: Json
+          rumour_receipts: Json | null
           trade_result: Json | null
+          training_receipts: Json | null
           upkeep_paid: boolean
           upkeep_result: Json | null
           user_id: string
         }
         Insert: {
           closed_at?: string | null
+          craft_receipts?: Json | null
           crawler_id: string
           created_at?: string
+          customise_acknowledged?: Json | null
+          equipment_receipts?: Json | null
           id?: string
           offload_receipts?: Json
+          pre_session_started?: boolean
           restore_receipts?: Json
+          rumour_receipts?: Json | null
           trade_result?: Json | null
+          training_receipts?: Json | null
           upkeep_paid?: boolean
           upkeep_result?: Json | null
           user_id: string
         }
         Update: {
           closed_at?: string | null
+          craft_receipts?: Json | null
           crawler_id?: string
           created_at?: string
+          customise_acknowledged?: Json | null
+          equipment_receipts?: Json | null
           id?: string
           offload_receipts?: Json
+          pre_session_started?: boolean
           restore_receipts?: Json
+          rumour_receipts?: Json | null
           trade_result?: Json | null
+          training_receipts?: Json | null
           upkeep_paid?: boolean
           upkeep_result?: Json | null
           user_id?: string
