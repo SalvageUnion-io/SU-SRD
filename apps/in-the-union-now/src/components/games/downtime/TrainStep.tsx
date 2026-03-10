@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from 'react'
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { Text } from 'suref-react'
 import { Check, Loader2, AlertTriangle } from 'lucide-react'
@@ -53,9 +53,11 @@ export function TrainStep({
 
   // Grant +1 TP on first render if not yet granted this downtime (idempotent)
   const tpGranted = hasReceivedTP(receipt)
+  const tpGrantFiredRef = useRef(false)
 
   useEffect(() => {
-    if (!pilot || !user || tpGranted || bayDamaged) return
+    if (!pilot || !user || tpGranted || bayDamaged || tpGrantFiredRef.current) return
+    tpGrantFiredRef.current = true
 
     // Grant TP and create initial receipt
     const newTp = pilot.tp + 1
@@ -76,7 +78,17 @@ export function TrainStep({
         },
       }
     )
-  }, [pilot?.id, tpGranted, bayDamaged]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [
+    pilot,
+    user,
+    pilotId,
+    tpGranted,
+    bayDamaged,
+    updatePilot,
+    saveReceipt,
+    activeDowntime.id,
+    crawlerId,
+  ])
 
   const existingAbilityIds = useMemo(() => {
     if (!pilotRefs) return new Set<string>()
@@ -168,6 +180,22 @@ export function TrainStep({
     ]
   )
 
+  const isSkipped = receipt?.skipped === true
+
+  const handleSkip = useCallback(() => {
+    saveReceipt.mutate({
+      recordId: activeDowntime.id,
+      pilotId,
+      receipt: {
+        tp_granted: receipt?.tp_granted ?? 0,
+        abilities_learned: [],
+        tp_remaining: pilot?.tp ?? 0,
+        skipped: true,
+      },
+      crawlerId,
+    })
+  }, [activeDowntime.id, pilotId, crawlerId, receipt?.tp_granted, pilot?.tp, saveReceipt])
+
   if (bayDamaged) {
     return (
       <div className="flex items-center gap-2 py-2">
@@ -230,10 +258,30 @@ export function TrainStep({
         </button>
       )}
 
-      {pilot.tp <= 0 && learnedCount === 0 && (
+      {pilot.tp <= 0 && learnedCount === 0 && !isSkipped && (
         <Text variant="default" as="p" className="text-xs text-su-white/40">
           No TP available for training.
         </Text>
+      )}
+
+      {isSkipped && learnedCount === 0 && (
+        <div className="flex items-center gap-2">
+          <Text variant="default" as="span" className="text-sm text-su-white/40">
+            -- Skipped --
+          </Text>
+        </div>
+      )}
+
+      {!isSkipped && (
+        <button
+          type="button"
+          onClick={handleSkip}
+          className="flex w-full cursor-pointer items-center justify-center gap-2 border border-su-white/20 bg-su-black/30 px-4 py-2 transition-opacity hover:opacity-80"
+        >
+          <Text variant="pseudoheader" as="span" className="text-sm text-su-white/50">
+            Skip Training
+          </Text>
+        </button>
       )}
 
       <TrainingAbilityModal

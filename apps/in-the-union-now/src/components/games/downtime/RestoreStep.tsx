@@ -102,13 +102,13 @@ export function RestoreStep({
       }
 
       // 3. Heal comrades (delete EP overrides so they return to max)
-      await deleteComradeEpChoices(pilotId)
+      const comradesHealed = await deleteComradeEpChoices(pilotId)
 
       // 4. Save receipt
       saveReceiptUpdate({
         mech_restored: true,
         items_repaired: repairableIds.length,
-        comrades_healed: 0,
+        comrades_healed: comradesHealed,
       })
 
       toast.success('Mech restored!')

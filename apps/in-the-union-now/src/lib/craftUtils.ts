@@ -15,6 +15,7 @@ export type CraftedItem = {
 
 export type CraftReceipt = {
   crafted_items: CraftedItem[]
+  skipped?: true
 }
 
 /** Get the scrap cost for crafting an entity (= its salvage value) */

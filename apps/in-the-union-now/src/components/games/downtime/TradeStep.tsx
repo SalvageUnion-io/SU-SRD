@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import { Text } from 'suref-react'
 import { Check } from 'lucide-react'
 import { toast } from 'sonner'
@@ -63,15 +63,17 @@ export function TradeStep({
   )
 
   // Auto-save "nothing" result for roll 1
-  if (rollKey && !tradeResult && category === 'nothing' && !saveTradeResult.isPending) {
-    const result: TradeResult = { roll_key: rollKey, roll_value: rollValue ?? 1 }
-    saveTradeResult.mutate(
-      { recordId: activeDowntime.id, result, crawlerId },
-      {
-        onError: (err) => toast.error(getErrorMessage(err)),
-      }
-    )
-  }
+  useEffect(() => {
+    if (rollKey && !tradeResult && category === 'nothing') {
+      const result: TradeResult = { roll_key: rollKey, roll_value: rollValue ?? 1 }
+      saveTradeResult.mutate(
+        { recordId: activeDowntime.id, result, crawlerId },
+        {
+          onError: (err) => toast.error(getErrorMessage(err)),
+        }
+      )
+    }
+  }, [rollKey, tradeResult, category]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const tradeComplete = isTradeComplete(tradeResult)
   const resolvedEntities = useMemo(

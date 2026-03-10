@@ -217,28 +217,6 @@ function UpkeepMediatorView({
   const handlePayDues = useCallback(() => {
     const paidResult = buildPaidResult(totalPayment)
 
-    if (!canAfford) {
-      // Can't afford — just acknowledge (shouldn't happen from pay button, but defensive)
-      updateDowntimeMutation.mutate(
-        {
-          recordId: activeDowntime.id,
-          crawlerId: crawler.id,
-          input: {
-            upkeep_paid: true,
-            upkeep_result: paidResult as unknown as Json,
-          },
-        },
-        {
-          onSuccess: () => {
-            toast.success('Upkeep acknowledged (insufficient scrap)')
-            onComplete?.()
-          },
-          onError: (err) => toast.error(getErrorMessage(err)),
-        }
-      )
-      return
-    }
-
     const deductions = contributionsToDeductions({ [crawlerTL]: contribution })
 
     payUpkeepMutation.mutate(
@@ -595,7 +573,7 @@ function DeteriorationRollPhase({
           onClick={onCancel}
           className="cursor-pointer border border-su-black bg-su-white px-4 py-2 transition-opacity hover:opacity-80"
         >
-          <Text variant="pseudoheader" as="span" className="text-sm text-su-white">
+          <Text variant="pseudoheader" as="span" className="text-sm text-su-black">
             Cancel
           </Text>
         </button>

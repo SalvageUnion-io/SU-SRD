@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { Text } from 'suref-react'
-import { Check, Loader2 } from 'lucide-react'
+import { Check, Minus } from 'lucide-react'
 import type { PilotRow, DowntimeRecordRow } from '../../../types/common'
 import type { CraftReceipt } from '../../../lib/craftUtils'
 
@@ -40,21 +40,26 @@ function PilotCraftStatus({
   }, [activeDowntime.craft_receipts, pilot.id])
 
   const craftedCount = receipt?.crafted_items.length ?? 0
+  const isSkipped = receipt?.skipped === true
+
+  let icon = null
+  let statusText = 'Waiting...'
+  if (craftedCount > 0) {
+    icon = <Check className="h-4 w-4 text-su-green" />
+    statusText = `Crafted: ${craftedCount} item${craftedCount !== 1 ? 's' : ''}`
+  } else if (isSkipped) {
+    icon = <Minus className="h-4 w-4 text-su-white/30" />
+    statusText = 'Skipped'
+  }
 
   return (
     <div className="flex items-center gap-2 rounded border border-su-white/10 bg-su-black/20 px-3 py-2">
-      {craftedCount > 0 ? (
-        <Check className="h-4 w-4 text-su-green" />
-      ) : (
-        <Loader2 className="h-4 w-4 animate-spin text-su-white/40" />
-      )}
+      {icon}
       <Text variant="pseudoheader" as="span" className="text-xs">
         {pilot.callsign}
       </Text>
       <Text variant="default" as="span" className="ml-auto text-[10px] text-su-white/40">
-        {craftedCount > 0
-          ? `Crafted: ${craftedCount} item${craftedCount !== 1 ? 's' : ''}`
-          : 'No crafting'}
+        {statusText}
       </Text>
     </div>
   )

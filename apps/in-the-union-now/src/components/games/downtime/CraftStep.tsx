@@ -130,6 +130,17 @@ export function CraftStep({
     ]
   )
 
+  const isSkipped = receipt?.skipped === true
+
+  const handleSkip = useCallback(() => {
+    saveReceipt.mutate({
+      recordId: activeDowntime.id,
+      pilotId,
+      receipt: { crafted_items: [], skipped: true },
+      crawlerId,
+    })
+  }, [activeDowntime.id, pilotId, crawlerId, saveReceipt])
+
   if (bayDamaged) {
     return (
       <div className="flex items-center gap-2 py-2">
@@ -166,17 +177,39 @@ export function CraftStep({
         </div>
       )}
 
-      <button
-        type="button"
-        onClick={() => setModalOpen(true)}
-        disabled={saving}
-        className="flex w-full cursor-pointer items-center justify-center gap-2 bg-su-orange px-4 py-2.5 transition-opacity hover:opacity-80 disabled:pointer-events-none disabled:opacity-40"
-      >
-        {saving ? <Loader2 className="h-4 w-4 animate-spin text-su-white" /> : null}
-        <Text variant="pseudoheader" as="span" className="text-sm text-su-white">
-          {saving ? 'Crafting...' : 'Open Crafting'}
-        </Text>
-      </button>
+      {isSkipped && craftedCount === 0 && (
+        <div className="flex items-center gap-2">
+          <Text variant="default" as="span" className="text-sm text-su-white/40">
+            -- Skipped --
+          </Text>
+        </div>
+      )}
+
+      {!isSkipped && (
+        <button
+          type="button"
+          onClick={() => setModalOpen(true)}
+          disabled={saving}
+          className="flex w-full cursor-pointer items-center justify-center gap-2 bg-su-orange px-4 py-2.5 transition-opacity hover:opacity-80 disabled:pointer-events-none disabled:opacity-40"
+        >
+          {saving ? <Loader2 className="h-4 w-4 animate-spin text-su-white" /> : null}
+          <Text variant="pseudoheader" as="span" className="text-sm text-su-white">
+            {saving ? 'Crafting...' : 'Open Crafting'}
+          </Text>
+        </button>
+      )}
+
+      {!isSkipped && (
+        <button
+          type="button"
+          onClick={handleSkip}
+          className="flex w-full cursor-pointer items-center justify-center gap-2 border border-su-white/20 bg-su-black/30 px-4 py-2 transition-opacity hover:opacity-80"
+        >
+          <Text variant="pseudoheader" as="span" className="text-sm text-su-white/50">
+            Skip Crafting
+          </Text>
+        </button>
+      )}
 
       <CraftSelectionModal
         open={modalOpen}

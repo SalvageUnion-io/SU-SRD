@@ -45,6 +45,16 @@ export function EquipmentStep({
   }, [activeDowntime.equipment_receipts, pilotId])
 
   const obtained = hasObtainedEquipment(receipt)
+  const isSkipped = receipt?.skipped === true
+
+  const handleSkip = useCallback(() => {
+    saveReceipt.mutate({
+      recordId: activeDowntime.id,
+      pilotId,
+      receipt: { item: null, skipped: true },
+      crawlerId,
+    })
+  }, [activeDowntime.id, pilotId, crawlerId, saveReceipt])
 
   const resolvedEntity = useMemo(() => {
     if (!receipt?.item) return null
@@ -131,6 +141,16 @@ export function EquipmentStep({
     )
   }
 
+  if (isSkipped) {
+    return (
+      <div className="flex items-center gap-2">
+        <Text variant="default" as="span" className="text-sm text-su-white/40">
+          -- Skipped --
+        </Text>
+      </div>
+    )
+  }
+
   return (
     <div className="flex flex-col gap-2">
       <button
@@ -142,6 +162,16 @@ export function EquipmentStep({
         {saving ? <Loader2 className="h-4 w-4 animate-spin text-su-white" /> : null}
         <Text variant="pseudoheader" as="span" className="text-sm text-su-white">
           {saving ? 'Obtaining...' : 'Choose Equipment'}
+        </Text>
+      </button>
+
+      <button
+        type="button"
+        onClick={handleSkip}
+        className="flex w-full cursor-pointer items-center justify-center gap-2 border border-su-white/20 bg-su-black/30 px-4 py-2 transition-opacity hover:opacity-80"
+      >
+        <Text variant="pseudoheader" as="span" className="text-sm text-su-white/50">
+          Skip Equipment
         </Text>
       </button>
 

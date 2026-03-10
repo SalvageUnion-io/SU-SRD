@@ -4,6 +4,7 @@ import { filterByTechLevel } from './tradeUtils'
 
 export type EquipmentReceipt = {
   item: { ref_id: string; name: string } | null
+  skipped?: true
 }
 
 /** Get all pilot equipment entities filtered by crawler TL */

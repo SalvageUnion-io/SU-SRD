@@ -126,7 +126,9 @@ export function useDowntimeInteractiveConfig({
       // Steps 9-10: current during pre-session
       if (PRE_SESSION_STEP_IDS.has(step.id)) {
         const isCurrent = preSessionStarted
-        const isComplete = step.id === RUMOURS_ID ? rumoursComplete : false
+        let isComplete = false
+        if (step.id === RUMOURS_ID) isComplete = rumoursComplete
+        else if (step.id === PREPARE_ID) isComplete = preSessionStarted
         return { isCurrent, isComplete, isUnlocked: true }
       }
 

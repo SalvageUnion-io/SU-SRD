@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { Text } from 'suref-react'
-import { Check, Loader2 } from 'lucide-react'
+import { Check, Minus } from 'lucide-react'
 import type { PilotRow, DowntimeRecordRow } from '../../../types/common'
 import type { TrainingReceipt } from '../../../lib/trainingUtils'
 
@@ -40,21 +40,26 @@ function PilotTrainStatus({
   }, [activeDowntime.training_receipts, pilot.id])
 
   const learnedCount = receipt?.abilities_learned.length ?? 0
+  const isSkipped = receipt?.skipped === true
+
+  let icon = null
+  let statusText = 'Waiting...'
+  if (learnedCount > 0) {
+    icon = <Check className="h-4 w-4 text-su-green" />
+    statusText = `${receipt!.abilities_learned.map((a) => a.name).join(', ')} (${receipt!.tp_remaining} TP left)`
+  } else if (isSkipped) {
+    icon = <Minus className="h-4 w-4 text-su-white/30" />
+    statusText = 'Skipped'
+  }
 
   return (
     <div className="flex items-center gap-2 rounded border border-su-white/10 bg-su-black/20 px-3 py-2">
-      {learnedCount > 0 ? (
-        <Check className="h-4 w-4 text-su-green" />
-      ) : (
-        <Loader2 className="h-4 w-4 animate-spin text-su-white/40" />
-      )}
+      {icon}
       <Text variant="pseudoheader" as="span" className="text-xs">
         {pilot.callsign}
       </Text>
       <Text variant="default" as="span" className="ml-auto text-[10px] text-su-white/40">
-        {learnedCount > 0
-          ? `${receipt!.abilities_learned.map((a) => a.name).join(', ')} (${receipt!.tp_remaining} TP left)`
-          : 'No training'}
+        {statusText}
       </Text>
     </div>
   )

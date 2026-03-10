@@ -140,7 +140,8 @@ function PlayerDowntimeGuide({
     const receipts = activeDowntime.craft_receipts as Record<string, CraftReceipt> | null
     return receipts?.[pilotId] ?? undefined
   }, [activeDowntime.craft_receipts, pilotId])
-  const craftComplete = (craftReceipt?.crafted_items.length ?? 0) > 0
+  const craftComplete =
+    (craftReceipt?.crafted_items.length ?? 0) > 0 || craftReceipt?.skipped === true
 
   const customiseComplete = useMemo(() => {
     const acked = activeDowntime.customise_acknowledged as Record<string, boolean> | null
@@ -151,13 +152,15 @@ function PlayerDowntimeGuide({
     const receipts = activeDowntime.training_receipts as Record<string, TrainingReceipt> | null
     return receipts?.[pilotId] ?? undefined
   }, [activeDowntime.training_receipts, pilotId])
-  const trainComplete = (trainingReceipt?.abilities_learned.length ?? 0) > 0
+  const trainComplete =
+    (trainingReceipt?.abilities_learned.length ?? 0) > 0 || trainingReceipt?.skipped === true
 
   const equipmentReceipt = useMemo(() => {
     const receipts = activeDowntime.equipment_receipts as Record<string, EquipmentReceipt> | null
     return receipts?.[pilotId] ?? undefined
   }, [activeDowntime.equipment_receipts, pilotId])
-  const equipmentComplete = hasObtainedEquipment(equipmentReceipt)
+  const equipmentComplete =
+    hasObtainedEquipment(equipmentReceipt) || equipmentReceipt?.skipped === true
 
   const rumourReceipt = useMemo(() => {
     const receipts = activeDowntime.rumour_receipts as Record<string, RumourReceipt> | null
@@ -357,6 +360,36 @@ function MediatorDowntimeGuide({
   }, [user, crawlerId, crawlerDowntime])
 
   const handleMoveToPreSession = useCallback(() => {
+    // Check if any pilots haven't finished optional steps
+    if (pilots && pilots.length > 0) {
+      const craftReceipts = activeDowntime.craft_receipts as Record<string, CraftReceipt> | null
+      const trainingReceipts = activeDowntime.training_receipts as Record<
+        string,
+        TrainingReceipt
+      > | null
+      const equipmentReceipts = activeDowntime.equipment_receipts as Record<
+        string,
+        EquipmentReceipt
+      > | null
+
+      const hasIncomplete = pilots.some((p) => {
+        const cr = craftReceipts?.[p.id] as CraftReceipt | undefined
+        const tr = trainingReceipts?.[p.id] as TrainingReceipt | undefined
+        const er = equipmentReceipts?.[p.id] as EquipmentReceipt | undefined
+        const craftDone = (cr?.crafted_items.length ?? 0) > 0 || cr?.skipped === true
+        const trainDone = (tr?.abilities_learned.length ?? 0) > 0 || tr?.skipped === true
+        const equipDone = hasObtainedEquipment(er) || er?.skipped === true
+        return !craftDone || !trainDone || !equipDone
+      })
+
+      if (hasIncomplete) {
+        const confirmed = window.confirm(
+          "Some pilots haven't finished optional steps. Move to pre-session anyway?"
+        )
+        if (!confirmed) return
+      }
+    }
+
     updateRecord.mutate(
       {
         recordId: activeDowntime.id,
@@ -368,7 +401,7 @@ function MediatorDowntimeGuide({
         onError: (err) => toast.error(getErrorMessage(err)),
       }
     )
-  }, [activeDowntime.id, crawlerId, updateRecord])
+  }, [activeDowntime, crawlerId, pilots, updateRecord])
 
   const loadingSpinner = useMemo(
     () => (

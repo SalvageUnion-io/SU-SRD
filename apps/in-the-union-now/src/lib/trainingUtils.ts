@@ -10,6 +10,7 @@ export type TrainingReceipt = {
     tp_cost: number
   }>
   tp_remaining: number
+  skipped?: true
 }
 
 export type AbilityTier = 'core' | 'advanced' | 'hybrid' | 'legendary'

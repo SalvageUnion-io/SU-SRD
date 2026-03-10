@@ -79,7 +79,10 @@ export function CustomiseStep({
     <div className="flex flex-col gap-3">
       <Text variant="default" as="p" className="text-xs text-su-white/60">
         Current loadout: {systemCount} system{systemCount !== 1 ? 's' : ''}, {moduleCount} module
-        {moduleCount !== 1 ? 's' : ''}. Use the Mech tab to swap systems and modules.
+        {moduleCount !== 1 ? 's' : ''}.
+      </Text>
+      <Text variant="pseudoheader" as="p" className="text-xs text-su-orange">
+        Navigate to your Mech tab above to swap systems and modules.
       </Text>
 
       <button

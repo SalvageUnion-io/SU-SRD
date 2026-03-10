@@ -1,5 +1,5 @@
 import { StatDisplay, Text } from 'suref-react'
-import { Check, Loader2 } from 'lucide-react'
+import { Check, Circle, Loader2 } from 'lucide-react'
 import { useMechCargo } from '../../../hooks/useMechs'
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '../../ui/tooltip'
 import type { PilotRow } from '../../../types/common'
@@ -22,13 +22,13 @@ function PilotOffloadStatus({ pilot, receipt }: { pilot: PilotRow; receipt?: Off
       ) : isOffloaded ? (
         <Check className="h-4 w-4 text-su-green" />
       ) : (
-        <Loader2 className="h-4 w-4 animate-spin text-su-orange" />
+        <Circle className="h-4 w-4 text-su-white/30" />
       )}
       <Text variant="pseudoheader" as="span" className="text-xs">
         {pilot.callsign}
       </Text>
       <Text variant="default" as="span" className="ml-auto text-[10px] text-su-white/40">
-        {isLoading ? 'Loading...' : isOffloaded ? 'Done' : 'Offloading...'}
+        {isLoading ? 'Loading...' : isOffloaded ? 'Done' : 'Waiting...'}
       </Text>
     </div>
   )
