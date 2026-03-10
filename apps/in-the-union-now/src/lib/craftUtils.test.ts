@@ -7,6 +7,7 @@ import {
   getAvailableScrapAfterCrafts,
 } from './craftUtils'
 import type { CraftReceipt } from './craftUtils'
+import type { SURefEntity } from 'salvageunion-reference'
 import type { CrawlerRow } from '../types/common'
 import type { CrawlerScrap } from './upkeepUtils'
 
@@ -32,10 +33,8 @@ function makeCrawler(overrides: Partial<CrawlerRow> = {}): CrawlerRow {
   } as CrawlerRow
 }
 
-type PartialEntity = Partial<Record<string, unknown>> & { id: string; name: string }
-
-function makeEntity(overrides: Partial<PartialEntity> = {}): PartialEntity {
-  return { id: 'test', name: 'Test', ...overrides }
+function makeEntity(overrides: Record<string, unknown> = {}): SURefEntity {
+  return { id: 'test', name: 'Test', ...overrides } as unknown as SURefEntity
 }
 
 describe('getCraftCost', () => {

@@ -20,7 +20,7 @@ import {
 } from '../../../lib/deteriorationUtils'
 import type { UpkeepResult } from '../../../lib/deteriorationUtils'
 import { ScrapTranslationDialog } from '../ScrapTranslationDialog'
-import { ModalShell } from '../../shared/ModalShell'
+import { ModalShell } from 'suref-react'
 import type { Json } from '../../../types/database-generated.types'
 import type { BayNpcData, CrawlerRow, DowntimeRecordRow } from '../../../types/common'
 

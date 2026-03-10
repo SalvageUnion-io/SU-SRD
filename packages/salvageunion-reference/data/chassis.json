@@ -123,6 +123,8 @@
       },
       {
         "name": "Acid Spitter",
+        "source": "We Were Here First!",
+        "page": 76,
         "systems": [
           {
             "name": "Acid Cannon"
@@ -394,12 +396,14 @@
         "content": [
           {
             "type": "paragraph",
-            "value": "This Scrapper has been modified for search and rescue operations, many of which were commissioned following Impact Day to clear the irradiated wreckage of what was once the TDA Council. They also came in useful as riot control Mechs following the wave of post-Impact Day unrest."
+            "value": "This Scrapper has been modified for search and rescue operations, many of which were commissioned following Impact Day to clear the irradiated wreckage of what was once the TDA Council."
           }
         ]
       },
       {
         "name": "Royce",
+        "source": "Rainmaker",
+        "page": 78,
         "systems": [
           {
             "name": "30mm Autocannon"
@@ -680,6 +684,8 @@
       },
       {
         "name": "Chimerium Harvester",
+        "source": "We Were Here First!",
+        "page": 76,
         "systems": [
           {
             "name": "Chimerium Harvester"
@@ -699,11 +705,12 @@
           {
             "name": "Survey Scanner"
           }
-        ],
-        "content": []
+        ]
       },
       {
         "name": "Mutant",
+        "source": "We Were Here First!",
+        "page": 76,
         "systems": [
           {
             "name": "Bio-Talon"
@@ -879,7 +886,7 @@
         "content": [
           {
             "type": "paragraph",
-            "value": "Waves of anti-corpo protestors were cut down at the barricades built by this Mech pattern; keep them in your memory as you use the tools of the oppressors."
+            "value": "Used to build barricades against protestors."
           }
         ]
       }
@@ -940,7 +947,7 @@
         "content": [
           {
             "type": "paragraph",
-            "value": "Designed to hunt and kill, and favoured by The Legion, a raider conglomerate that formed after the chaos of Impact Day and terrorised the Central Wastes."
+            "value": "Designed for hunting and killing, favored by a raider group called The Legion."
           }
         ]
       },
@@ -977,7 +984,7 @@
         "content": [
           {
             "type": "paragraph",
-            "value": "Designed for reconnaissance and sniping, most famously used in the Battle of Bracken Ridge, when salvagers from Crawler #192 held off an Evantis attack against their Union Crawler with only a pair of Longsaddle Gophers."
+            "value": "Designed for reconnaissance and sniping, famously used in the Battle of Bracken Ridge."
           }
         ]
       },
@@ -1014,7 +1021,7 @@
         "content": [
           {
             "type": "paragraph",
-            "value": "Designed for its original designation of quickly ferrying cargo on and off the battlefield whilst providing combat support."
+            "value": "Designed for its original purpose of quickly moving cargo on and off the battlefield while providing combat support."
           }
         ]
       }
@@ -2209,7 +2216,7 @@
     "content": [
       {
         "type": "paragraph",
-        "value": "The 'HC-15' Little Sestra is a Mech designed by DronTek Systems to control a Sestra Drone in the field. Little Sestra Mechs are utilised for reconnaissance or in larger numbers to support DronTek's Big Brother Mechs in battle. Sestra Mechs were utilised effectively in the First Corpo War to pick off retreating Evantis forces following their failed invasion of the Northern Wastes. The majority of remote drones are unusable in the wastes, but the Little Sestra's high end, specialised drone controller continues to function where others have failed."
+        "value": "The 'НC-15' Little Sestra is a Mech designed by DronTek Systems to control a Sestra Drone in the field. Little Sestra Mechs are utilised for reconnaissance or in larger numbers to support DronTek's Big Brother Mechs in battle. Sestra Mechs were utilised effectively in the First Corpo War to pick off retreating Evantis forces following their failed invasion of the Northern Wastes. The majority of remote drones are unusable in the wastes, but the Little Sestra's high end, specialised drone controller continues to function where others have failed."
       }
     ],
     "chassisAbilities": ["Sestra Drone Controller"]
@@ -2628,7 +2635,7 @@
         "content": [
           {
             "type": "paragraph",
-            "value": "Developed for lone wetwork, a Mech of this pattern was said to be responsible for the assasination of President Nadine triggering the First Corpo War and the Fall of Nations."
+            "value": "Developed for lone wetwork, a Mech of this pattern was said to be responsible for the assassination of President Nadine Kureigh in the First Corpo War and the Fall of Nations."
           }
         ]
       }
@@ -3200,7 +3207,7 @@
     "heatCapacity": 12,
     "systemSlots": 12,
     "moduleSlots": 5,
-    "cargoCapacity": 5,
+    "cargoCapacity": 6,
     "techLevel": 4,
     "salvageValue": 3,
     "content": [
@@ -3912,6 +3919,8 @@
       },
       {
         "name": "Gruman",
+        "source": "Rainmaker",
+        "page": 78,
         "systems": [
           {
             "name": "Red Pulse Laser"
@@ -4548,8 +4557,7 @@
           {
             "name": "Comms Module"
           }
-        ],
-        "content": []
+        ]
       }
     ],
     "structurePoints": 26,
@@ -4815,7 +4823,7 @@
     "structurePoints": 7,
     "energyPoints": 9,
     "heatCapacity": 7,
-    "systemSlots": 6,
+    "systemSlots": 8,
     "moduleSlots": 3,
     "cargoCapacity": 6,
     "techLevel": 1,
@@ -4961,7 +4969,7 @@
         "content": [
           {
             "type": "paragraph",
-            "value": "This stock Trooper build was rolled out by the smog-drenched factories of the DronTek motherland. It provides a mixture of cost-effective offensive and defensive capabilities for the corpo pilot on the ground. After the corpo wars, many of the conscripted pilots became mercs to pay off their debts. As a result, this pattern is still commonly seen in DronTek territory."
+            "value": "The Trooper is a stock build from the smog-drenched factories of the DronTek motherland, offering cost-effective offensive and defensive capabilities for the corpo pilot on the ground. After the corpo wars, many of the conscripted pilots became mercs to pay off their debts, and as a result, this pattern is still commonly seen in DronTek territory."
           }
         ]
       }
@@ -5196,7 +5204,7 @@
         "content": [
           {
             "type": "paragraph",
-            "value": "This pattern was standardised by DronTek during the cyberwars and is still utilised by the corpo today. Its drones are each designed with a specific task in mind from shielding to mine placement. The Big Brother itself provides heavy fire support with missile and railgun fire. This pattern was used with devastating effect against Stefanus' naval installations surrounding Ostfjord Port, forcing them to develop their EM-Self Destruct modules in response."
+            "value": "This pattern was standardised by DronTek during cyberwars and is still used. Drones are designed for specific tasks like shielding and mine placement. The 'Big Brother' itself provides heavy fire support with missiles and railguns. The pattern was used against Stefanus' naval installations surrounding Ostfjord Port, leading to the development of EM-Self Destruct modules."
           }
         ]
       }
@@ -5444,7 +5452,7 @@
     "cargoCapacity": 6,
     "techLevel": 2,
     "salvageValue": 8,
-    "chassisAbilities": ["Integrated Advanced Stabilising Locomotion System"],
+    "chassisAbilities": ["Integrated Advanced Deployable Locomotion System"],
     "patterns": [
       {
         "name": "Hunchback Pattern",
@@ -5499,7 +5507,7 @@
     "cargoCapacity": 6,
     "techLevel": 3,
     "salvageValue": 8,
-    "chassisAbilities": ["Automech", "Demonic Visage"],
+    "chassisAbilities": ["Automech", "Hell Fumes", "Demonic Visage"],
     "patterns": [
       {
         "name": "A",

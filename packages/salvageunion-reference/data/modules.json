@@ -28,7 +28,7 @@
     "slotsRequired": 1,
     "salvageValue": 3,
     "page": 190,
-    "actions": ["Eggs Mayhem"]
+    "actions": ["Eggs"]
   },
   {
     "id": "dde4b6c5-fe3c-4d18-a6c3-15ba7630db96",
@@ -177,7 +177,7 @@
     "techLevel": 2,
     "slotsRequired": 1,
     "salvageValue": 2,
-    "actions": ["Auto-Scan", "Active Scan", "Metal Detector"],
+    "actions": ["Auto-Scan", "Coolant Flush", "Metal Detector"],
     "page": 195
   },
   {
@@ -198,7 +198,7 @@
     "slotsRequired": 1,
     "salvageValue": 2,
     "page": 196,
-    "actions": ["Navigation"]
+    "actions": ["Navigation Module"]
   },
   {
     "id": "09409fcc-9463-465b-91e5-5580bc1ce7bd",
@@ -228,7 +228,7 @@
     "slotsRequired": 1,
     "salvageValue": 1,
     "page": 196,
-    "actions": ["Video Projection Array"]
+    "actions": ["Projection Array"]
   },
   {
     "id": "df8846de-8b69-4199-a20e-09bac424e6a1",
@@ -657,12 +657,6 @@
     "slotsRequired": 1,
     "salvageValue": 7,
     "page": 75,
-    "content": [
-      {
-        "type": "paragraph",
-        "value": "May only be Mounted on a Bio-Mech Chassis."
-      }
-    ],
     "actions": ["Burst (Adrenal Glands)", "Power (Adrenal Glands)"]
   },
   {
@@ -683,12 +677,6 @@
     "slotsRequired": 1,
     "salvageValue": 9,
     "page": 75,
-    "content": [
-      {
-        "type": "paragraph",
-        "value": "May only be Mounted on a Bio-Mech Chassis."
-      }
-    ],
     "actions": ["Regeneration Glands", "Regrowth (Regeneration Glands)"]
   },
   {
@@ -729,7 +717,7 @@
     "slotsRequired": 2,
     "salvageValue": 4,
     "page": 69,
-    "actions": ["Meld Replicator"]
+    "actions": ["Meld Module Replicator"]
   },
   {
     "id": "00ad584d-283d-410c-82a4-85f970bdf274",

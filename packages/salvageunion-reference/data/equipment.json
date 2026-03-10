@@ -57,7 +57,7 @@
     "source": "Salvage Union Workshop Manual",
     "name": "Improvised Melee Weapon",
     "techLevel": 1,
-    "page": 81,
+    "page": 298,
     "actions": ["Improvised Melee Weapon"]
   },
   {
@@ -65,15 +65,15 @@
     "source": "Salvage Union Workshop Manual",
     "name": "Portable Comms Unit",
     "techLevel": 1,
-    "page": 81,
-    "actions": ["Portable Comms Unit"]
+    "page": 301,
+    "actions": ["Portable Communications Unit"]
   },
   {
     "id": "a4ee8227-41c0-40b1-a825-2bca61256359",
     "source": "Salvage Union Workshop Manual",
     "name": "Salvaging Tools",
     "techLevel": 1,
-    "page": 81,
+    "page": 298,
     "actions": ["Salvaging Tools"]
   },
   {
@@ -97,7 +97,7 @@
     "source": "Salvage Union Workshop Manual",
     "name": "Pistol",
     "techLevel": 2,
-    "page": 81,
+    "page": 314,
     "actions": ["Pistol"]
   },
   {
@@ -189,7 +189,7 @@
     "source": "Salvage Union Workshop Manual",
     "name": "Green Laser Rifle",
     "techLevel": 3,
-    "page": 82,
+    "page": 313,
     "actions": ["Green Laser Rifle"]
   },
   {
@@ -258,7 +258,7 @@
     "source": "Salvage Union Workshop Manual",
     "name": "Reactive Armour",
     "techLevel": 3,
-    "page": 83,
+    "page": 333,
     "actions": ["Reactive Armour"]
   },
   {
@@ -266,7 +266,7 @@
     "source": "Salvage Union Workshop Manual",
     "name": "Rifle",
     "techLevel": 3,
-    "page": 83,
+    "page": 127,
     "actions": ["Rifle"]
   },
   {
@@ -294,7 +294,7 @@
       "Patch (Adv. Epoxy Applicator)",
       "System Repair",
       "Chassis Repair",
-      "Adv. Epoxy Applicator"
+      "Advanced Epoxy Applicator"
     ],
     "page": 84
   },
@@ -303,7 +303,7 @@
     "source": "Salvage Union Workshop Manual",
     "name": "Electro Grappling Hook",
     "techLevel": 4,
-    "page": 84,
+    "page": 301,
     "actions": ["Electro Grappling Hook"]
   },
   {
@@ -343,7 +343,7 @@
     "source": "Salvage Union Workshop Manual",
     "name": "Sniper Rifle",
     "techLevel": 4,
-    "page": 85,
+    "page": 47,
     "actions": ["Sniper Rifle"]
   },
   {
@@ -351,7 +351,7 @@
     "source": "Salvage Union Workshop Manual",
     "name": "Monomolecular Sword",
     "techLevel": 5,
-    "page": 85,
+    "page": 301,
     "actions": ["Monomolecular Sword"]
   },
   {
@@ -456,7 +456,9 @@
           }
         ],
         "multiSelect": true,
-        "constraints": { "scalesWithField": "techLevel" },
+        "constraints": {
+          "scalesWithField": "techLevel"
+        },
         "choiceOptions": [
           {
             "label": "Rangefinder",
@@ -532,7 +534,14 @@
     },
     "page": 30,
     "actions": ["Auto-Turret"],
-    "traits": [{ "type": "immobile" }, { "type": "portable" }],
+    "traits": [
+      {
+        "type": "immobile"
+      },
+      {
+        "type": "portable"
+      }
+    ],
     "id": "f5f04072-9e81-4c9d-a835-b71f45120d66",
     "choices": [
       {
@@ -570,7 +579,7 @@
     "id": "12345678-90ab-4cd1-82e3-456789012345"
   },
   {
-    "name": "Wingsuit",
+    "name": "WingSuit",
     "indexable": false,
     "source": "Salvage Union Workshop Manual",
     "techLevel": 1,
@@ -584,7 +593,7 @@
     "source": "Salvage Union Workshop Manual",
     "techLevel": 1,
     "actions": ["Hacking Kit"],
-    "page": 34,
+    "page": 51,
     "id": "c9929a61-d5fc-4362-827f-d0c7644ddd3d"
   },
   {
@@ -640,7 +649,9 @@
           }
         ],
         "multiSelect": true,
-        "constraints": { "scalesWithField": "techLevel" },
+        "constraints": {
+          "scalesWithField": "techLevel"
+        },
         "choiceOptions": [
           {
             "label": "Rangefinder",

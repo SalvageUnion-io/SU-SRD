@@ -4,8 +4,7 @@ import { getTechLevel, getSource, getSalvageValue } from 'salvageunion-reference
 import { ReferenceEntityDisplay, FilterChip, TECH_LEVEL_STYLES, techLevelLabel } from 'suref-react'
 import { Hammer } from 'lucide-react'
 import { Input } from '../../ui/input'
-import { FilterRow } from '../../shared/FilterRow'
-import { ModalShell } from '../../shared/ModalShell'
+import { FilterRow, ModalShell } from 'suref-react'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../ui/tabs'
 import {
   filterAndSplitEntities,

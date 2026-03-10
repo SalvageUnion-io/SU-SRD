@@ -4,8 +4,7 @@ import { getSource } from 'salvageunion-reference'
 import { ReferenceEntityDisplay, FilterChip } from 'suref-react'
 import { GraduationCap } from 'lucide-react'
 import { Input } from '../../ui/input'
-import { FilterRow } from '../../shared/FilterRow'
-import { ModalShell } from '../../shared/ModalShell'
+import { FilterRow, ModalShell } from 'suref-react'
 import { filterAndSplitEntities, getEntityId } from '../../../lib/entitySelectionUtils'
 import {
   getTrainableAbilities,

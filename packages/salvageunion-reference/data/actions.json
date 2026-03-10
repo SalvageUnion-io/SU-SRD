@@ -28,7 +28,8 @@
         "value": "Make a ranged attack against a target within Range."
       }
     ],
-    "actionSource": "systems"
+    "actionSource": "systems",
+    "actionType": "Turn"
   },
   {
     "name": ".50 Cal Machine Gun (Machine Gun Squad)",
@@ -54,7 +55,8 @@
       }
     ],
     "id": "54487422-177c-43ab-92e4-da9536094c3d",
-    "actionSource": "squads"
+    "actionSource": "squads",
+    "actionType": "Turn"
   },
   {
     "id": "1ee3c81e-a6aa-4515-a70f-f73d156d4095",
@@ -83,7 +85,8 @@
         "value": "This chunky Weapons System fires a huge ballistic charge that explodes on impact."
       }
     ],
-    "actionSource": "systems"
+    "actionSource": "systems",
+    "actionType": "Turn"
   },
   {
     "id": "5946780b-82f1-4633-a58d-268ae5aece3a",
@@ -115,7 +118,8 @@
         "value": "This obscenely oversized weapon rapidly fires 120mm explosive rounds. Evantis developed this as a means to show off the power of their Leviathan Heavy Mech which can mount two of these and still have room for a drinks dispenser. The drinks dispenser is known to dispense an unpleasant drink almost exactly unlike tea. This is why all good salvagers know not to blow all the scrap on the military budget."
       }
     ],
-    "actionSource": "systems"
+    "actionSource": "systems",
+    "actionType": "Turn"
   },
   {
     "id": "c9734532-1261-4a25-a9a9-7539fbef65e4",
@@ -143,7 +147,8 @@
         "value": "This automatic ballistic weapon fires high calibre slugs at a target."
       }
     ],
-    "actionSource": "systems"
+    "actionSource": "systems",
+    "actionType": "Turn"
   },
   {
     "id": "7dcac217-f188-4614-b84f-b4c9802a64e0",
@@ -183,11 +188,12 @@
       }
     ],
     "id": "85f9957b-7c90-417f-bff2-c62e4673ba08",
-    "actionSource": "creatures"
+    "actionSource": "creatures",
+    "actionType": "Turn"
   },
   {
     "id": "97731aa7-b6fa-48cb-94c7-776c3f6216db",
-    "name": "Adv. Epoxy Applicator",
+    "name": "Advanced Epoxy Applicator",
     "content": [
       {
         "type": "paragraph",
@@ -198,7 +204,6 @@
   },
   {
     "id": "53670394-ad63-43f6-b754-c2b4a05b7034",
-    "traits": [],
     "name": "Adv. Fabrication Arm",
     "content": [
       {
@@ -206,6 +211,62 @@
         "value": "Specially designed by Osiris Construction to repair Evantis Colossus Mechs during the Last War of Nations."
       }
     ],
+    "actionSource": "systems"
+  },
+  {
+    "id": "7faffeb2-27f3-41b5-88f9-daddb42c4d70",
+    "name": "Multi-Function Repair Arm",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Developed by Stefanus to repair the intricate mechanisms within the Neura-Phage Chassis. Can fix up some of the most advanced tech in the wastes."
+      }
+    ],
+    "actionSource": "systems"
+  },
+  {
+    "id": "7912e50b-a85a-4869-98cd-6b79f8afac60",
+    "name": "Patch (Multi-Function Repair Arm)",
+    "activationCost": 2,
+    "range": ["Close"],
+    "actionType": "Turn",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Restore up to 8 SP to a Mech, Vehicle, or Crawler."
+      }
+    ],
+    "displayName": "Patch",
+    "actionSource": "systems"
+  },
+  {
+    "id": "90a62a86-677f-4fa4-b188-839dbdd8286e",
+    "name": "System Repair (Multi-Function Repair Arm)",
+    "activationCost": 2,
+    "range": ["Close"],
+    "actionType": "Short",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Repair a damaged TL 1-5 System or Module."
+      }
+    ],
+    "displayName": "System Repair",
+    "actionSource": "systems"
+  },
+  {
+    "id": "d5fed4cb-b414-4de5-9ad8-b2c5db85afdf",
+    "name": "Chassis Repair (Multi-Function Repair Arm)",
+    "activationCost": 4,
+    "range": ["Close"],
+    "actionType": "Long",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Repair a damaged TL 1-5 Chassis or Vehicle."
+      }
+    ],
+    "displayName": "Chassis Repair",
     "actionSource": "systems"
   },
   {
@@ -304,7 +365,8 @@
     "actionType": "Turn",
     "traits": [
       {
-        "type": "hot (x)"
+        "type": "hot",
+        "amount": "X"
       },
       {
         "type": "targeter"
@@ -399,13 +461,14 @@
     ],
     "name": "Anti-Mech Mine Layer",
     "actionSource": "systems",
-    "tableName": "Anti-Mech Mine Layer"
+    "tableName": "Anti-Mech Mine Layer",
+    "actionType": "Short",
+    "range": ["Close"]
   },
   {
     "id": "c8a3aedc-fea0-4355-b255-83504b66ed50",
     "actionType": "Long",
     "activationCost": 1,
-    "traits": [],
     "name": "Area Salvage",
     "requiredTraits": ["salvaging"],
     "content": [
@@ -781,7 +844,8 @@
       }
     ],
     "id": "ff32cfbb-0930-4fe3-a7d3-c51f71cc06d8",
-    "actionSource": "creatures"
+    "actionSource": "creatures",
+    "actionType": "Turn"
   },
   {
     "id": "4da1f1ed-e662-4fee-a0ae-27a0d4083759",
@@ -817,7 +881,8 @@
       }
     ],
     "id": "167d2315-0770-4f18-812a-fef772daabed",
-    "actionSource": "creatures"
+    "actionSource": "creatures",
+    "actionType": "Turn"
   },
   {
     "id": "dc1ded8b-c4d8-43c1-9100-1a01cf7f3992",
@@ -910,7 +975,8 @@
         "value": "This frankly over-designed weapon fires a huge blast of supercharged fission which engulfs an entire area in superheated green flame."
       }
     ],
-    "actionSource": "equipment"
+    "actionSource": "equipment",
+    "actionType": "Turn"
   },
   {
     "name": "Beta Fission Gun (Elite Beam Squad)",
@@ -938,7 +1004,8 @@
       }
     ],
     "id": "60c3c816-c849-4f33-83c1-b5773c095908",
-    "actionSource": "squads"
+    "actionSource": "squads",
+    "actionType": "Turn"
   },
   {
     "name": "Bio-Chassis",
@@ -949,7 +1016,8 @@
         "value": "This chassis is made of living Bio-Titan flesh. See rules for Bio-Chassis."
       }
     ],
-    "actionSource": "chassis"
+    "actionSource": "chassis",
+    "actionType": "Passive"
   },
   {
     "name": "Bio-Electric Arc",
@@ -1004,7 +1072,8 @@
       }
     ],
     "content": [],
-    "actionSource": "npcs"
+    "actionSource": "npcs",
+    "actionType": "Turn"
   },
   {
     "id": "4f715070-4a94-4211-829f-4479364ff159",
@@ -1039,7 +1108,8 @@
         "value": "This ability does not affect Meld or Bio-Titans."
       }
     ],
-    "actionSource": "equipment"
+    "actionSource": "equipment",
+    "actionType": "Turn"
   },
   {
     "id": "9c017d05-8ba7-4225-a203-b2bf9d240bcb",
@@ -1081,7 +1151,8 @@
         "value": "Melee attack with your bionic arms, where X is equal to the Tech Level of your Union Crawler."
       }
     ],
-    "actionSource": "abilities"
+    "actionSource": "abilities",
+    "actionType": "Turn"
   },
   {
     "id": "7f379d64-6246-48be-adc0-36df4475fb82",
@@ -1180,7 +1251,8 @@
         "value": "The Meld Drone mindlessly attacks the target with teeth and claw."
       }
     ],
-    "actionSource": "meld"
+    "actionSource": "meld",
+    "actionType": "Turn"
   },
   {
     "id": "d2c3ac20-6b2f-44ea-aac0-e1568f7d5777",
@@ -1244,7 +1316,8 @@
       }
     ],
     "actionSource": "equipment",
-    "tableName": "Blinding Blue Laser Rifle"
+    "tableName": "Blinding Blue Laser Rifle",
+    "actionType": "Turn"
   },
   {
     "id": "32db342c-b76e-475b-b5a9-6cbf77b9ff32",
@@ -1255,7 +1328,8 @@
     },
     "traits": [
       {
-        "type": "hot (x)"
+        "type": "hot",
+        "amount": "X"
       }
     ],
     "name": "Blue Beam Laser",
@@ -1269,7 +1343,8 @@
         "value": "Before you make an attack with this Weapons System, choose a number. Your Mech gains Heat equal to this number. If the attack hits the target it deals damage equal to this number. You cannot choose a number that would exceed your Mech's Heat Capacity."
       }
     ],
-    "actionSource": "systems"
+    "actionSource": "systems",
+    "actionType": "Turn"
   },
   {
     "id": "e0ebea27-00ca-4ede-b889-3ab4ec77c2e5",
@@ -1298,7 +1373,8 @@
         "value": "In the Night of Red Iron, salvagers tore apart Thatcher Steel defences with these, seizing their production facilities and turning the tide in the Ferrous Wars. *Union safety regulation 956.326 (a) requires the use of Reactor Safety Protocols when using this system.*"
       }
     ],
-    "actionSource": "systems"
+    "actionSource": "systems",
+    "actionType": "Turn"
   },
   {
     "id": "512bbb19-ffe2-4c97-8591-04ad83e1422e",
@@ -1317,7 +1393,7 @@
       },
       {
         "type": "paragraph",
-        "value": "The Iron Wyrm remains burrowed until it unburrows as a Turn Action where it emerges at a point of the Pilot's choice within Close Range of it."
+        "value": "The Iron Wyrm remains burrowed until it unborrows as a Turn Action where it emerges at a point of the Pilot's choice within Close Range of it."
       },
       {
         "type": "paragraph",
@@ -1373,7 +1449,8 @@
         "value": "Each time you hit the same target with this Weapons System in consecutive turns you deal an additional 5 SP damage."
       }
     ],
-    "actionSource": "systems"
+    "actionSource": "systems",
+    "actionType": "Turn"
   },
   {
     "id": "62c75971-b6ba-42ed-9121-26cb2d437bfb",
@@ -1522,7 +1599,8 @@
         "value": "Make a melee attack against a target within Range."
       }
     ],
-    "actionSource": "systems"
+    "actionSource": "systems",
+    "actionType": "Turn"
   },
   {
     "id": "2b98527c-2950-4f80-a4dd-cc4cf6129994",
@@ -1765,7 +1843,8 @@
         "value": "[(CHASSIS)] deals an additional 2 SP damage when it makes an attack at any target within Close Range of it. This bonus is applied before other modifiers."
       }
     ],
-    "actionSource": "chassis"
+    "actionSource": "chassis",
+    "actionType": "Passive"
   },
   {
     "name": "Cluster Energy Bombs",
@@ -1932,7 +2011,7 @@
     "actionSource": "modules"
   },
   {
-    "name": "Active Scan",
+    "name": "Coolant Flush",
     "activationCost": 2,
     "actionType": "Short",
     "range": ["Medium"],
@@ -2102,10 +2181,6 @@
       {
         "type": "paragraph",
         "value": "When rolling attacks as a Pilot or in your Mech, you score a 'Nailed it' result on a result of 19 - 20."
-      },
-      {
-        "type": "paragraph",
-        "value": "In addition, increase your Pilot's HP Max by 2."
       }
     ],
     "actionSource": "abilities"
@@ -2363,7 +2438,8 @@
         "label": "Compact Design"
       }
     ],
-    "actionSource": "abilities"
+    "actionSource": "abilities",
+    "actionType": "Turn"
   },
   {
     "name": "Cybernetic Neuralink",
@@ -2382,7 +2458,8 @@
         "value": "In addition, they always count as having a Neuralink Communicator installed in their Mech."
       }
     ],
-    "actionSource": "chassis"
+    "actionSource": "chassis",
+    "actionType": "Passive"
   },
   {
     "id": "6a000b93-d5b1-4b38-90bc-2027f2f6202c",
@@ -2570,7 +2647,8 @@
         "value": "The Meld Drones bite and claw at a target with all their multitude limbs and maws."
       }
     ],
-    "actionSource": "meld"
+    "actionSource": "meld",
+    "actionType": "Turn"
   },
   {
     "name": "Disintegrate",
@@ -2701,15 +2779,7 @@
   },
   {
     "id": "c0af420b-1690-42c9-99b4-b17f084a1191",
-    "name": "Eggs Mayhem",
-    "activationCost": 2,
-    "actionType": "Turn",
-    "range": ["Medium"],
-    "traits": [
-      {
-        "type": "hacking"
-      }
-    ],
+    "name": "Eggs",
     "content": [
       {
         "type": "paragraph",
@@ -2802,7 +2872,8 @@
         "value": "This gravitonic beam allows the user to attach themselves to surfaces at Range, allowing them to swing or pull themselves towards it. You may use it to attach to any surface within Range."
       }
     ],
-    "actionSource": "equipment"
+    "actionSource": "equipment",
+    "actionType": "Turn"
   },
   {
     "name": "Electro Grappling Hook (Elite Blade Squad)",
@@ -2850,7 +2921,6 @@
         "type": "shield"
       }
     ],
-    "activationCost": 2,
     "range": ["Close"],
     "name": "Electro-Magnetic Shield Projector",
     "content": [
@@ -2864,7 +2934,8 @@
       }
     ],
     "actionSource": "systems",
-    "tableName": "Electro-Magnetic Shield Projector"
+    "tableName": "Electro-Magnetic Shield Projector",
+    "activationCost": 2
   },
   {
     "id": "5d2a17e7-0ff3-45d4-b5a3-7a67b59667db",
@@ -2995,7 +3066,8 @@
         "value": "If [(CHASSIS)] rolls a 'Nailed It' result (20) with an attack roll, it deals 4× damage instead of 2× damage."
       }
     ],
-    "actionSource": "chassis"
+    "actionSource": "chassis",
+    "actionType": "Passive"
   },
   {
     "id": "ee2d09da-23b3-4821-9ded-5e30bd4cda53",
@@ -3119,7 +3191,8 @@
         "value": "Please report any findings of field use of this weapon to the Salvage Union Council"
       }
     ],
-    "actionSource": "systems"
+    "actionSource": "systems",
+    "actionType": "Turn"
   },
   {
     "id": "764ee5b3-b104-4af8-87cd-b30cbdb13977",
@@ -3141,7 +3214,6 @@
   },
   {
     "id": "ffe53de5-217b-4cf4-a521-60d06d76ac1b",
-    "traits": [],
     "name": "Fabrication Arm",
     "content": [
       {
@@ -3178,7 +3250,8 @@
         "value": "The [[CHASSIS]] can move an additional Range Band on its turn as a free action. In addition, it moves twice as fast across the Campaign, Area, and Region Maps."
       }
     ],
-    "actionSource": "chassis"
+    "actionSource": "chassis",
+    "actionType": "Passive"
   },
   {
     "id": "4248662d-4a35-44c3-9f12-d725a0fcaeba",
@@ -3322,7 +3395,8 @@
         "value": "[(CHASSIS)] has the [[Flashy]] Trait. It looks incredibly impressive, never being less than mint and pristine to onlookers, and fills them with much awe and admiration."
       }
     ],
-    "actionSource": "chassis"
+    "actionSource": "chassis",
+    "actionType": "Passive"
   },
   {
     "id": "8b26ca5b-c7a1-42d3-9b13-ad8a2284e2c2",
@@ -3379,7 +3453,8 @@
         "value": "The FM-3 shoots a superheated stream of fire at a target. Most Mechs are armoured enough that this only licks them, but it can mess up internals enough to stop them firing anything hot back at you. Flesh bubbles and screams."
       }
     ],
-    "actionSource": "systems"
+    "actionSource": "systems",
+    "actionType": "Turn"
   },
   {
     "id": "c9557cd7-b65d-4550-b734-34abfcc628b9",
@@ -3511,7 +3586,6 @@
   },
   {
     "id": "508c44a7-c7fa-492b-9b39-dfdbdeb401f6",
-    "traits": [],
     "name": "Grappling Harpoon",
     "content": [
       {
@@ -3564,7 +3638,8 @@
         "value": "The Green Laser fires a solid beam of superheated energy at a target."
       }
     ],
-    "actionSource": "systems"
+    "actionSource": "systems",
+    "actionType": "Turn"
   },
   {
     "id": "ea03f9b9-502c-4ff5-8017-bef1d26b9ff8",
@@ -3585,7 +3660,8 @@
         "value": "This weapon covers a wide variety of standard issue shoulder-mounted energy laser rifles such as beam guns, pulse lasers, and ray rifles."
       }
     ],
-    "actionSource": "equipment"
+    "actionSource": "equipment",
+    "actionType": "Turn"
   },
   {
     "name": "Green Laser Rifle (Veteran)",
@@ -3601,7 +3677,8 @@
       }
     ],
     "id": "91a2fd03-ded5-4e51-970c-fdf246b5ede2",
-    "actionSource": "npcs"
+    "actionSource": "npcs",
+    "actionType": "Turn"
   },
   {
     "id": "a6285ed4-ca12-43fc-ad27-e648df09ae24",
@@ -3627,7 +3704,8 @@
         "value": "A handheld explosive device that can be thrown towards a target dealing high damage in an area."
       }
     ],
-    "actionSource": "equipment"
+    "actionSource": "equipment",
+    "actionType": "Turn"
   },
   {
     "id": "d79c2029-b794-4e07-8c07-cd3aa3eecd5f",
@@ -3712,7 +3790,8 @@
         "value": "This pocket-sized riveting gun can make basic repairs in the field."
       }
     ],
-    "actionSource": "equipment"
+    "actionSource": "equipment",
+    "actionType": "Turn"
   },
   {
     "id": "7d200c64-23ed-4f39-acde-396a36036e00",
@@ -3739,7 +3818,8 @@
         "value": "[(CHASSIS)] suffers no effect or damage from hazardous environmental effects such as radiation storms. In addition, when dealing with severe environmental hazards they may Push once for free to circumvent or resist any effects."
       }
     ],
-    "actionSource": "chassis"
+    "actionSource": "chassis",
+    "actionType": "Passive"
   },
   {
     "id": "1edc18d4-c3c2-41ab-b594-675a2eaf015e",
@@ -3778,7 +3858,17 @@
         "value": "When activated, reduce the Heat on your Mech to 0."
       }
     ],
-    "actionSource": "modules"
+    "actionSource": "modules",
+    "traits": [
+      {
+        "type": "hot",
+        "amount": 2
+      },
+      {
+        "type": "uses",
+        "amount": 3
+      }
+    ]
   },
   {
     "name": "Heal",
@@ -3833,7 +3923,8 @@
         "value": "Everytime [(CHASSIS)] gains Heat, reduce the amount gained to 1. Treat each source of Heat separately when using this Ability. For example if [(CHASSIS)] fires a Blue Mining Laser with the [[[Hot] (3)]] Trait it gains 1 Heat instead of 3. If [(CHASSIS)] then chooses to Push it would gain an additional 1 Heat instead of 2 for the Push."
       }
     ],
-    "actionSource": "chassis"
+    "actionSource": "chassis",
+    "actionType": "Passive"
   },
   {
     "id": "9c539f14-71e8-4d04-a58b-4bee81362c84",
@@ -3864,7 +3955,8 @@
         "value": "In addition, when you roll on the Bio-Chassis Critical Damage Table you may re-roll the result, accepting the second."
       }
     ],
-    "actionSource": "chassis"
+    "actionSource": "chassis",
+    "actionType": "Passive"
   },
   {
     "name": "Heavily Armoured Chassis",
@@ -3875,7 +3967,8 @@
         "value": "Any attack that rolls a 'Nailed It' (20) result against [(CHASSIS)] counts as a standard hit (11-19) and does not deal 2× damage or have any other bonus effect."
       }
     ],
-    "actionSource": "chassis"
+    "actionSource": "chassis",
+    "actionType": "Passive"
   },
   {
     "id": "69254864-8da6-4ace-bb6b-e4b79b4b064a",
@@ -3909,7 +4002,8 @@
         "value": "A heavy duty industrial mining rig that can be used to deal carnage in a pinch."
       }
     ],
-    "actionSource": "systems"
+    "actionSource": "systems",
+    "actionType": "Turn"
   },
   {
     "id": "6ba4598f-8b08-4866-94e1-9099c2aa76d7",
@@ -4111,7 +4205,8 @@
         "value": "[(CHASSIS)] allows you to mount and dismount Systems on it in the field significantly faster. This uses the normal rules for mounting, but increases the speed and versatility. A Pilot may Mount a System on [(CHASSIS)] as a Short Action (10 minutes). A Mech, including [(CHASSIS)] itself, may Mount a System on [(CHASSIS)] as a Turn Action."
       }
     ],
-    "actionSource": "chassis"
+    "actionSource": "chassis",
+    "actionType": "Passive"
   },
   {
     "name": "Hover",
@@ -4134,7 +4229,8 @@
         "value": "[(CHASSIS)] has an Integrated Hover Locomotion System which is included in its profile. This allows it to hover over obstacles and terrain."
       }
     ],
-    "actionSource": "chassis"
+    "actionSource": "chassis",
+    "actionType": "Passive"
   },
   {
     "id": "ff15234f-6897-4887-ba4b-61f511dc9b59",
@@ -4235,7 +4331,8 @@
         "value": "When you Area Salvage with this System you gain a single additional Scrap of the Tech Level of the area in addition to what you roll on the Area Salvaging Table."
       }
     ],
-    "actionSource": "systems"
+    "actionSource": "systems",
+    "actionType": "Turn"
   },
   {
     "id": "fb752e33-d45c-41df-b257-bf6fa262af0a",
@@ -4320,7 +4417,8 @@
         "value": "An IED can be thrown at a target as an attack. It can also be planted as a proximity mine which triggers when a target comes within Close Range of the IED. In either case, roll an attack as normal to find out what happens."
       }
     ],
-    "actionSource": "equipment"
+    "actionSource": "equipment",
+    "actionType": "Turn"
   },
   {
     "id": "6beeb9e7-9e76-4e08-90b5-340ff65f2b26",
@@ -4344,7 +4442,8 @@
         "value": "This covers any number of improvised firearms such as pipe guns, zip guns, and slam guns. The humble boomstick has got many a salvager out of a sticky situation."
       }
     ],
-    "actionSource": "equipment"
+    "actionSource": "equipment",
+    "actionType": "Turn"
   },
   {
     "name": "Improvised Firearm (Raider)",
@@ -4363,7 +4462,8 @@
       }
     ],
     "id": "cc732598-c273-481d-a37a-ce107cf1312c",
-    "actionSource": "npcs"
+    "actionSource": "npcs",
+    "actionType": "Turn"
   },
   {
     "name": "Improvised Firearms",
@@ -4382,7 +4482,8 @@
       }
     ],
     "id": "5cbd2c39-f22a-4382-bdc1-99feae76f6ef",
-    "actionSource": "squads"
+    "actionSource": "squads",
+    "actionType": "Turn"
   },
   {
     "id": "2a6e05c9-34c6-40c1-b44a-d906413a681f",
@@ -4406,7 +4507,8 @@
         "value": "This covers any number of melee weapons from wrenches and hammers to shards of metal and sharpened metal posts. There are a lot of things you can use to bludgeon, stab, or otherwise injure someone, to be found in the wastes."
       }
     ],
-    "actionSource": "equipment"
+    "actionSource": "equipment",
+    "actionType": "Turn"
   },
   {
     "name": "Improvised Melee Weapon (Wastelander)",
@@ -4422,7 +4524,8 @@
       }
     ],
     "id": "481f14da-1d3a-49c1-a973-68051980c042",
-    "actionSource": "npcs"
+    "actionSource": "npcs",
+    "actionType": "Turn"
   },
   {
     "name": "Improvised Weapons",
@@ -4441,7 +4544,8 @@
       }
     ],
     "id": "63859850-7ffd-4449-b840-312fbbc05d61",
-    "actionSource": "squads"
+    "actionSource": "squads",
+    "actionType": "Turn"
   },
   {
     "id": "4dd5106e-4aaa-4b3a-a3ce-4c70d7fc44f7",
@@ -4605,7 +4709,8 @@
         "value": "[(CHASSIS)] has an Integrated Advanced Vectored Thrust Unit. This acts as a standard Vectored Thrust Unit System. In addition, when [(CHASSIS)] activates the Advanced VTU System it can move an additional Range Band, ignoring all obstacles, Mechs, and terrain, and still move on its turn as normal."
       }
     ],
-    "actionSource": "chassis"
+    "actionSource": "chassis",
+    "actionType": "Passive"
   },
   {
     "name": "Integrated Amphibious Locomotion System",
@@ -4616,7 +4721,8 @@
         "value": "[(CHASSIS)] has an integral Advanced Amphibious Locomotion System included in its profile. This allows [(CHASSIS)] to operate indefinitely in underwater conditions at significant depths whilst also being able to walk on land. Its sealed Chassis is also airtight and watertight."
       }
     ],
-    "actionSource": "chassis"
+    "actionSource": "chassis",
+    "actionType": "Passive"
   },
   {
     "name": "Integrated Cargo Bay",
@@ -4627,7 +4733,8 @@
         "value": "Increases the Cargo Capacity of [(CHASSIS)] by 10, to 16."
       }
     ],
-    "actionSource": "chassis"
+    "actionSource": "chassis",
+    "actionType": "Passive"
   },
   {
     "name": "Integrated Colossal Cargo Bay",
@@ -4638,7 +4745,8 @@
         "value": "Increases the Cargo Capacity of [(CHASSIS)] by 24, to 30."
       }
     ],
-    "actionSource": "chassis"
+    "actionSource": "chassis",
+    "actionType": "Passive"
   },
   {
     "name": "Integrated Epoxy Printer",
@@ -4686,7 +4794,8 @@
         "value": "Increases the Cargo Capacity of [(CHASSIS)] by 6, to 12."
       }
     ],
-    "actionSource": "chassis"
+    "actionSource": "chassis",
+    "actionType": "Passive"
   },
   {
     "activationCost": 2,
@@ -4744,7 +4853,8 @@
         "value": "[(CHASSIS)] has an integrated Tech 4 Mech Bay which can carry up to 5 Tech 4 or lower Mechs in an active and ready state. This acts as a Tech 4 Mech Bay allowing you to fully heal the SP, EP, and Heat of all Mechs within it over a week of Downtime and mount or remove any number of Systems or Modules as well as anything else the Mech Bay would be capable of."
       }
     ],
-    "actionSource": "chassis"
+    "actionSource": "chassis",
+    "actionType": "Passive"
   },
   {
     "name": "Integrated Monstrous Bio-Wings",
@@ -4755,7 +4865,8 @@
         "value": "The Stormterror gains the Fly Trait. This allows it to fly over all obstacles and terrain. All attacks against the Stormterror when it is flying are treated as though it is in Long Range. In addition, once per turn (as long as The Stormterror is flying) it may move an additional Range Band as a Free Action."
       }
     ],
-    "actionSource": "chassis"
+    "actionSource": "chassis",
+    "actionType": "Passive"
   },
   {
     "id": "83e032ec-2525-4917-be24-79f66375ec80",
@@ -4766,7 +4877,8 @@
         "value": "Allows the Scuttler to move normally and grants it the Climb and Fast Traits."
       }
     ],
-    "actionSource": "chassis"
+    "actionSource": "chassis",
+    "actionType": "Passive"
   },
   {
     "name": "Integrated VTU System",
@@ -4777,7 +4889,8 @@
         "value": "[(CHASSIS)] has an integrated Vectored Thrust Unit System which is included in its profile. This functions as a standard VTU System."
       }
     ],
-    "actionSource": "chassis"
+    "actionSource": "chassis",
+    "actionType": "Passive"
   },
   {
     "id": "d4c14bba-f02f-4c7a-b179-5f297973bf4e",
@@ -4808,7 +4921,8 @@
         "value": "A target hit by this weapon cannot activate any Systems, Modules, or Abilities that have an Energy Cost on their next turn. Stefanus forced Ascension PLC, one of their subsidiaries to develop this as a countermeasure to their own Neura-Phage Mech, as Neura-Phage Pilots are known to sometimes be driven insane after spending too long wired into the cockpit."
       }
     ],
-    "actionSource": "systems"
+    "actionSource": "systems",
+    "actionType": "Turn"
   },
   {
     "id": "e1e94d13-e9e4-492b-b3c4-63c4f9985a18",
@@ -4846,7 +4960,8 @@
       }
     ],
     "id": "86a7997d-a983-49c2-bdc9-c1a4cef76e1e",
-    "actionSource": "creatures"
+    "actionSource": "creatures",
+    "actionType": "Turn"
   },
   {
     "name": "Irradiated Beam",
@@ -4890,7 +5005,8 @@
         "value": "[(CHASSIS)] may fire up to 2 Weapons Systems in a turn as a single Turn Action. Resolve each attack separately."
       }
     ],
-    "actionSource": "chassis"
+    "actionSource": "chassis",
+    "actionType": "Passive"
   },
   {
     "id": "2e21680b-029e-472d-bf9d-22686f8a8a0c",
@@ -4939,7 +5055,6 @@
   },
   {
     "id": "c0a19b9c-2344-4f21-9aae-b28b7123aa94",
-    "activationCost": 1,
     "actionType": "Reaction",
     "name": "Laser Anti-Missile System",
     "content": [
@@ -4952,7 +5067,8 @@
         "value": "If you are hit by an attack with the [[Missile]] Trait you may activate your LAMS as a Reaction. The missiles explode harmlessly, missing and dealing no damage."
       }
     ],
-    "actionSource": "systems"
+    "actionSource": "systems",
+    "activationCost": 1
   },
   {
     "id": "d610f2d9-48ea-423a-8302-7b41dcc2f685",
@@ -4981,9 +5097,6 @@
     "traits": [
       {
         "type": "targeter"
-      },
-      {
-        "type": "guided"
       }
     ],
     "range": ["Long"],
@@ -5045,7 +5158,6 @@
     "id": "c447e95d-56d8-431f-adfb-150622977dac",
     "range": ["Close"],
     "actionType": "Short",
-    "traits": [],
     "name": "Load",
     "requiredTraits": ["rigging"],
     "content": [
@@ -5112,7 +5224,8 @@
         "value": "A Green Laser with an extended beam mount and heat sink allowing it to fire over a longer distance, whilst reducing its heat load."
       }
     ],
-    "actionSource": "systems"
+    "actionSource": "systems",
+    "actionType": "Turn"
   },
   {
     "id": "d511b72e-6645-4a64-bda4-74c42ade4a51",
@@ -5154,7 +5267,8 @@
         "value": "Fires a blast of grapeshot which rips through multiple targets at close quarters. When you hit with this weapon one other target of your choice in Close Range takes 2 SP damage."
       }
     ],
-    "actionSource": "systems"
+    "actionSource": "systems",
+    "actionType": "Turn"
   },
   {
     "id": "50899a1f-cdc7-44b1-8cd1-58ba95cd1cdc",
@@ -5351,13 +5465,13 @@
         "value": "When crafting this you may describe what the weapon looks like."
       }
     ],
-    "actionSource": "systems"
+    "actionSource": "systems",
+    "actionType": "Turn"
   },
   {
     "id": "c98dcfcd-e39b-4587-8cb7-2be494bb14e4",
     "range": ["Close"],
     "actionType": "Long",
-    "traits": [],
     "name": "Mech Salvage",
     "requiredTraits": ["salvaging"],
     "content": [
@@ -5493,7 +5607,10 @@
     "id": "93c1da61-7e1a-49c2-bdc2-20ed230f7556",
     "actionType": "Turn",
     "range": ["Long"],
-    "damage": { "damageType": "SP", "amount": "X" },
+    "damage": {
+      "damageType": "SP",
+      "amount": "X"
+    },
     "name": "Mechapult",
     "content": [
       {
@@ -5602,7 +5719,8 @@
         "value": "Attack with your Meld tendrils."
       }
     ],
-    "actionSource": "abilities"
+    "actionSource": "abilities",
+    "actionType": "Turn"
   },
   {
     "id": "58ff1d96-d3f1-4e61-9b53-a8e4f2a2bbf4",
@@ -5626,7 +5744,8 @@
         "value": "This covers a wide range of high quality melee weapons that your Pilot can acquire, from standard issue survival knives and hatchets to katanas and claymores."
       }
     ],
-    "actionSource": "equipment"
+    "actionSource": "equipment",
+    "actionType": "Turn"
   },
   {
     "name": "Mender",
@@ -5676,7 +5795,8 @@
         "value": "The Herrsch Pattern Miniaturised Mortar lobs an explosive, high velocity round against a target, flaying everything around it with superheated shrapnel."
       }
     ],
-    "actionSource": "systems"
+    "actionSource": "systems",
+    "actionType": "Turn"
   },
   {
     "id": "a141c475-9893-43e6-be15-0fa4a313b079",
@@ -5749,7 +5869,8 @@
         "value": "These were used extensively in the Ferrous Range by Thatcher Steel miners and their carcasses still litter the rocky outcrops."
       }
     ],
-    "actionSource": "systems"
+    "actionSource": "systems",
+    "actionType": "Turn"
   },
   {
     "id": "4d5518c5-f14f-4f54-ad5f-f8778a6b1453",
@@ -5786,7 +5907,8 @@
         "value": "The Contour Aerospace execs were so proud of this design that when Aegean Dynamics surrendered to them they decided to shell their home arco to oblivion anyway and chalk the cost up as research and development."
       }
     ],
-    "actionSource": "systems"
+    "actionSource": "systems",
+    "actionType": "Turn"
   },
   {
     "id": "f682e733-0728-48d3-b612-8378ca3dac31",
@@ -5852,7 +5974,8 @@
         "value": "This Weapons System fires a bunker busting torpedo with an explosive charge that burrows into the earth and travels underneath a target, causing a controlled explosion beneath it making it effective against shields. This weapon was used to bust open the underground home arco of the Spyre Corpo in the Central Wastes by TDA rebels. The ensuing massacre following the siege saw the corpo's oligarchs, executives, and elites summarily tried and executed, and its holdings permanently liquidated."
       }
     ],
-    "actionSource": "systems"
+    "actionSource": "systems",
+    "actionType": "Turn"
   },
   {
     "id": "340b0516-9ab2-4808-9928-6d724d0d9f79",
@@ -5882,7 +6005,8 @@
         "value": "A honed-carbon fibre blade with a monomolecular energy field that can slice through a Mech like butter. Nobody is sure who designed these, but they started appearing in salvage spots around the Nanite Sea following the first Meld incident."
       }
     ],
-    "actionSource": "systems"
+    "actionSource": "systems",
+    "actionType": "Turn"
   },
   {
     "id": "13c89e02-a0f1-4efa-9c18-27598224e85e",
@@ -5909,7 +6033,8 @@
         "value": "This blade is formed from a super-hardened carbon lattice, held together by an electro-static charge, and honed to the width of a single mole-cule. They give off the smell of ozone in the atmosphere as the moisture in the air is cut."
       }
     ],
-    "actionSource": "equipment"
+    "actionSource": "equipment",
+    "actionType": "Turn"
   },
   {
     "name": "Monomolecular Sword (Elite Blade Squad)",
@@ -5932,7 +6057,8 @@
       }
     ],
     "id": "64d10d60-fc06-4208-b248-786b5ec65eb1",
-    "actionSource": "squads"
+    "actionSource": "squads",
+    "actionType": "Turn"
   },
   {
     "name": "Morph Scythes",
@@ -5985,7 +6111,6 @@
     "id": "b36d791b-9a0c-450a-9e3a-56947a4f31b6",
     "range": ["Close"],
     "actionType": "Long",
-    "traits": [],
     "name": "Mount",
     "requiredTraits": ["rigging"],
     "content": [
@@ -6055,7 +6180,6 @@
   },
   {
     "id": "62929252-d0f2-42d3-8480-dbf6e2c69455",
-    "activationCost": "X",
     "actionType": "Turn",
     "traits": [
       {
@@ -6123,7 +6247,8 @@
         "value": "A mutated appendage honed over the years to deal swift death."
       }
     ],
-    "actionSource": "npcs"
+    "actionSource": "npcs",
+    "actionType": "Turn"
   },
   {
     "id": "4e9ceec8-c298-45c2-9a3f-7a3e0e77368a",
@@ -6145,7 +6270,8 @@
         "value": "A large spiked, bulbous, or otherwise gnarly appendage."
       }
     ],
-    "actionSource": "npcs"
+    "actionSource": "npcs",
+    "actionType": "Turn"
   },
   {
     "id": "b8ac3c5b-666b-4b3d-a9f2-e15d185ad56a",
@@ -6171,7 +6297,8 @@
         "value": "A mass of mutated appendages."
       }
     ],
-    "actionSource": "npcs"
+    "actionSource": "npcs",
+    "actionType": "Turn"
   },
   {
     "id": "7fd8c770-192d-4847-8aaf-3eda625481c6",
@@ -6211,7 +6338,6 @@
   },
   {
     "id": "c25af755-b092-4951-83e5-c208bcea9315",
-    "traits": [],
     "name": "Nanite Repair Arm",
     "content": [
       {
@@ -6272,7 +6398,8 @@
         "value": "The nanoid lashes out with it's tendrils"
       }
     ],
-    "actionSource": "meld"
+    "actionSource": "meld",
+    "actionType": "Turn"
   },
   {
     "id": "65f25a6f-3aac-45d6-ba7c-3cbaa6d098d8",
@@ -6304,7 +6431,8 @@
         "value": "Fires superheated napalm that sticks to a target causing agonising pain. Used extensively by Contour Aerospace in the purging of the primordials, which saw much of the world's forests turn to ash."
       }
     ],
-    "actionSource": "systems"
+    "actionSource": "systems",
+    "actionType": "Turn"
   },
   {
     "id": "528c8a36-83ea-406b-b775-0573031953d9",
@@ -6336,7 +6464,8 @@
         "value": "Take a Napalm Launcher and saw off the barrel, and you get this contemptible weapon capable of liquifying flesh from bone. Such is its horrific potential that it's even banned by the Corporate Council."
       }
     ],
-    "actionSource": "systems"
+    "actionSource": "systems",
+    "actionType": "Turn"
   },
   {
     "id": "5b381c42-1ca5-41bb-b5f0-d7df743abf6f",
@@ -6348,7 +6477,7 @@
     "actionType": "Turn",
     "range": ["Medium"],
     "activationCost": 1,
-    "name": "Navigation",
+    "name": "Navigation Module",
     "content": [
       {
         "type": "paragraph",
@@ -6394,10 +6523,6 @@
       },
       {
         "type": "targeter"
-      },
-      {
-        "type": "uses",
-        "amount": 30
       }
     ],
     "name": "Needle Missile Pod",
@@ -6411,7 +6536,8 @@
         "value": "When activated as a Turn Action, you may fire up to 6 Needle Missiles at a target of your choice in Range. This attack does not require you to be able to see the target, and automatically hits. Each individual Needle Missile fired takes up one 'Use' and is counted as a separate attack. Any modifiers or effects apply to each Needle Missile individually."
       }
     ],
-    "actionSource": "systems"
+    "actionSource": "systems",
+    "actionType": "Turn"
   },
   {
     "name": "Nether Teleport",
@@ -6485,7 +6611,8 @@
         "value": "When activated, your Pilot can see in darkness via a green tinted visor, in any area within Range. This effect lasts for 1 hour."
       }
     ],
-    "actionSource": "equipment"
+    "actionSource": "equipment",
+    "activationCost": 1
   },
   {
     "name": "Night Vision Optics",
@@ -6854,7 +6981,6 @@
     "id": "195077ef-7f6b-457c-a8c4-ee1ad32bf68e",
     "range": ["Close"],
     "actionType": "Long",
-    "traits": [],
     "name": "Patch Up",
     "requiredTraits": ["rigging"],
     "content": [
@@ -6979,7 +7105,11 @@
         "value": "When activated, choose a target in Range. You deal 1 SP damage to the target and it cannot move beyond Medium Range of your Mech whilst the grappling harpoon is attached. You can detach the grappling harpoon as a Free Action. The target may attempt to remove the harpoon as a Turn Action on their turn, if they have some means to do so."
       }
     ],
-    "actionSource": "systems"
+    "actionSource": "systems",
+    "damage": {
+      "damageType": "SP",
+      "amount": 1
+    }
   },
   {
     "id": "cd413c8f-3fc5-4abb-abc8-6b2bef91b73a",
@@ -7045,7 +7175,8 @@
         "value": "This weapon covers a wide variety of standard issue pistols such as revolvers and semi-automatic pistols."
       }
     ],
-    "actionSource": "equipment"
+    "actionSource": "equipment",
+    "actionType": "Turn"
   },
   {
     "name": "Pistol (Combat Pilot)",
@@ -7061,7 +7192,8 @@
       }
     ],
     "id": "7feff15d-e417-4d08-b02d-d64c94893542",
-    "actionSource": "npcs"
+    "actionSource": "npcs",
+    "actionType": "Turn"
   },
   {
     "id": "c286ff6e-6860-492f-8e1e-4732882726ee",
@@ -7094,7 +7226,8 @@
         "value": "This Weapons System coats an area in superheated plasma which sticks to targets and burns through them. The effect is devastating against anyone in the open or unprotected terrain, burning them to a crisp in an instant. The weapon not only inflicts immediate damage against a Mech, it can also cause the Mech's reactor to overheat. This weapon was nearly banned under the terms of the Corporate Council Convention on Inhumane Weaponry. Aeon lawyers successfully argued that since the plasma heats to temperatures comparable to the centre of the sun, any man or woman hit by the weapon would instantly disintegrate and therefore not feel any pain."
       }
     ],
-    "actionSource": "systems"
+    "actionSource": "systems",
+    "actionType": "Turn"
   },
   {
     "id": "0766ba42-5339-4fae-97bf-5dc3bea32a1f",
@@ -7128,7 +7261,8 @@
         "value": "[(CHASSIS)] cannot be targeted with anything that uses the [[Targeter]] Trait such as targeting Modules. It also cannot be seen by anything with the [[Optics]] Trait or [[Scanner]] Trait. It does not appear on sensors, radar systems, or scanners, and needs clear and direct visual confirmation to be spotted."
       }
     ],
-    "actionSource": "chassis"
+    "actionSource": "chassis",
+    "actionType": "Passive"
   },
   {
     "id": "d80088b7-b4a1-4549-aacc-a264298c50c4",
@@ -7150,7 +7284,7 @@
     ],
     "actionType": "Free",
     "range": ["Medium"],
-    "name": "Portable Comms Unit",
+    "name": "Portable Communications Unit",
     "content": [
       {
         "type": "paragraph",
@@ -7162,10 +7296,6 @@
       }
     ],
     "actionSource": "equipment"
-  },
-  {
-    "name": "Portable Comms Unit ()",
-    "id": "174a2143-78c2-4b5a-8fda-f78c479ae844"
   },
   {
     "name": "Portable Comms Unit (NPC)",
@@ -7202,7 +7332,8 @@
         "value": "This portable flamethrower fires superheated liquid flame at a target."
       }
     ],
-    "actionSource": "equipment"
+    "actionSource": "equipment",
+    "actionType": "Turn"
   },
   {
     "id": "28ecb9f7-0dc9-470c-8466-ddfcf6be59c9",
@@ -7316,7 +7447,8 @@
         "value": "If a human or creature is hit with this attack, they die as their brain is sucked out of their skull."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "bio-titans",
+    "actionType": "Turn"
   },
   {
     "name": "Project",
@@ -7373,7 +7505,8 @@
         "value": "This weapon fires an intense wave of radiation at a target. An organic target hit suffers an agonising death from acute radiation poisoning. They will suffer a Major Injury every day which reduces their Max HP by 2 each time. This attack can target Pilots inside their Mechs, unless they have Radiation Sealing or equivalent."
       }
     ],
-    "actionSource": "systems"
+    "actionSource": "systems",
+    "actionType": "Turn"
   },
   {
     "id": "87a346d9-dbef-4a8f-953a-aefcb4dc9822",
@@ -7434,7 +7567,8 @@
         "value": "It fires an electro-magnetic ballistic charge at a phenomenal Range."
       }
     ],
-    "actionSource": "systems"
+    "actionSource": "systems",
+    "actionType": "Turn"
   },
   {
     "id": "07c395a3-e81c-4f1b-a44f-832a2bcec780",
@@ -7459,7 +7593,8 @@
         "value": "A magnetically propelled ballistic weapon that fires a large calibre, high velocity projectile that deals devastating damage on impact. The tragic fall of Crawler #13 was caused by a sustained railgun barrage from an Evantis hit squad sent to secure territory around the Arid Steppes. The catalyst for the Reclamation of the Wastes, this incident prompted the Opus Institute to reverse engineer and release their own Railgun schematic; turning the tide in the fight against the corpos."
       }
     ],
-    "actionSource": "systems"
+    "actionSource": "systems",
+    "actionType": "Turn"
   },
   {
     "id": "fd4c8b2f-eff5-45ba-8f11-ce5d18868304",
@@ -7708,12 +7843,13 @@
         "value": "Their blueprint has been made widely available by the Opus Institute and are commonly used by corpos as much as they are by salvagers and wastelanders."
       }
     ],
-    "actionSource": "systems"
+    "actionSource": "systems",
+    "actionType": "Turn"
   },
   {
     "name": "Red Laser (Drone Squadron)",
     "displayName": "Red Laser",
-    "range": ["Medium"],
+    "range": ["Close"],
     "damage": {
       "amount": 4,
       "damageType": "SP"
@@ -7732,7 +7868,8 @@
       }
     ],
     "id": "8efcb234-f723-4f61-b21b-530a26cc14a0",
-    "actionSource": "squads"
+    "actionSource": "squads",
+    "actionType": "Turn"
   },
   {
     "id": "5a8597de-1045-45d0-95bb-d77203b10bf6",
@@ -7753,7 +7890,8 @@
         "value": "This weapon covers a wide variety of standard issue handheld lasers such as blasters, phasers, and zap guns."
       }
     ],
-    "actionSource": "equipment"
+    "actionSource": "equipment",
+    "actionType": "Turn"
   },
   {
     "id": "46e8c091-7902-430a-bba3-06bea0ab24fe",
@@ -7782,7 +7920,8 @@
         "value": "Shoots a hail of red lasers at a target sacrificing some range for increased firepower."
       }
     ],
-    "actionSource": "systems"
+    "actionSource": "systems",
+    "actionType": "Turn"
   },
   {
     "id": "1c8f0282-b7e0-4d79-bef7-6e83ca5eb98a",
@@ -7812,7 +7951,6 @@
         "type": "shield"
       }
     ],
-    "activationCost": 2,
     "range": ["Close"],
     "name": "Refractive Shield Projector",
     "content": [
@@ -7826,7 +7964,8 @@
       }
     ],
     "actionSource": "systems",
-    "tableName": "Refractive Shield Projector"
+    "tableName": "Refractive Shield Projector",
+    "activationCost": 2
   },
   {
     "name": "Regeneration",
@@ -7850,7 +7989,8 @@
       }
     ],
     "actionSource": "chassis",
-    "tableName": "Reinforced Chassis"
+    "tableName": "Reinforced Chassis",
+    "actionType": "Passive"
   },
   {
     "id": "b486ecdf-fe72-489a-a62d-7be471530cf0",
@@ -7908,7 +8048,8 @@
         "value": "Whist use of Remote Mines is allowed under Corporate Council policy; Union Safety Regulation 402.36 bans their use in civilian occupied territory."
       }
     ],
-    "actionSource": "equipment"
+    "actionSource": "equipment",
+    "actionType": "Turn"
   },
   {
     "name": "Rending Bite",
@@ -7939,7 +8080,6 @@
     "id": "4649d724-1cf6-4517-8814-2077291331ae",
     "range": ["Close"],
     "actionType": "Long",
-    "traits": [],
     "name": "Repair",
     "requiredTraits": ["rigging"],
     "content": [
@@ -7963,18 +8103,6 @@
     ],
     "displayName": "Repair",
     "actionSource": "modules"
-  },
-  {
-    "name": "Repair (Fabrication Bay)",
-    "displayName": "Repair",
-    "id": "36835956-4448-4cc7-9b7e-7c0820383bfc",
-    "content": [
-      {
-        "type": "paragraph",
-        "value": "• Restore up to 15 SP to a target Mech within the Fabrication Bay with at least 1 SP.\n• Restore up to 2 EP to a target Mech within the Fabrication Bay.\n• Repair up to 3 damaged Systems or Modules of Tech 1-5 within the Fabrication Bay to Intact Condition.\n• Repair up to 2 damaged Mech Chassis or Vehicles of Tech 1-5 within the Fabrication Bay to Intact Condition."
-      }
-    ],
-    "actionSource": "systems"
   },
   {
     "id": "7ae8c363-1eed-41be-a95e-324c7ba280e2",
@@ -8024,7 +8152,8 @@
         "value": "This weapon covers a wide variety of standard issue ballistic rifles, including assault rifles, semi-automatic rifles, and bolt-action rifles."
       }
     ],
-    "actionSource": "equipment"
+    "actionSource": "equipment",
+    "actionType": "Turn"
   },
   {
     "name": "Rifle (Trooper)",
@@ -8040,7 +8169,8 @@
       }
     ],
     "id": "780c8a12-89f2-4ea7-933f-67e356953ac8",
-    "actionSource": "npcs"
+    "actionSource": "npcs",
+    "actionType": "Turn"
   },
   {
     "name": "Rifles",
@@ -8062,7 +8192,8 @@
       }
     ],
     "id": "08aadf97-911d-4885-a001-b8f888e61969",
-    "actionSource": "squads"
+    "actionSource": "squads",
+    "actionType": "Turn"
   },
   {
     "id": "27c181a5-3dbe-4cce-995e-5f3c97ac9957",
@@ -8082,7 +8213,9 @@
         "value": "To avoid any embarrassment in the field, please remember to install a Rigging Arm on your Mech, as it will be unable to pick up objects without one."
       }
     ],
-    "actionSource": "systems"
+    "actionSource": "systems",
+    "range": ["Close"],
+    "actionType": "Turn"
   },
   {
     "id": "34d4a7d5-8911-4a8d-bf68-42d93768286d",
@@ -8106,7 +8239,6 @@
   },
   {
     "id": "d40bcbd6-a0ef-4352-b014-4e00b214b411",
-    "traits": [],
     "name": "Riveting Gun",
     "content": [
       {
@@ -8146,7 +8278,8 @@
         "value": "This weapon fires unguided, explosive warheads at its targets and is a great way to make an entrance at your next hoedown."
       }
     ],
-    "actionSource": "equipment"
+    "actionSource": "equipment",
+    "actionType": "Turn"
   },
   {
     "name": "Rocket Launcher (Missile Squad)",
@@ -8174,7 +8307,8 @@
       }
     ],
     "id": "30df4001-e19d-45da-8fe9-eb043b15aed4",
-    "actionSource": "squads"
+    "actionSource": "squads",
+    "actionType": "Turn"
   },
   {
     "id": "c54b7ebe-0125-4b93-bf80-53816ef48440",
@@ -8213,7 +8347,8 @@
         "value": "This Evantis-developed Mech-mountable rotary ballistic weapon fires a horrifying hail of firepower at a target."
       }
     ],
-    "actionSource": "systems"
+    "actionSource": "systems",
+    "actionType": "Turn"
   },
   {
     "name": "Rugged Chassis",
@@ -8224,7 +8359,8 @@
         "value": "Designed to survive in the harsh conditions of the Arid Steppes and withstand brutal punishment. When this Chassis takes damage, reduce the amount by 1. This can reduce damage to 0."
       }
     ],
-    "actionSource": "chassis"
+    "actionSource": "chassis",
+    "actionType": "Passive"
   },
   {
     "id": "6fa82f93-8aa9-4128-af22-7f9b655c6f89",
@@ -8277,7 +8413,6 @@
     "id": "7c006633-d112-4369-bbe0-8fa86f165ab5",
     "range": ["Close"],
     "actionType": "Long",
-    "traits": [],
     "name": "Scrap",
     "requiredTraits": ["salvaging"],
     "content": [
@@ -8297,7 +8432,8 @@
         "value": "[(CHASSIS)] counts as having 3 Armour Plating Systems. If any of these are destroyed, any number of them can be restored by using any ability that can repair [(CHASSIS)] Chassis, or during Downtime in a T2 or higher Mech Bay."
       }
     ],
-    "actionSource": "chassis"
+    "actionSource": "chassis",
+    "actionType": "Passive"
   },
   {
     "name": "Scythe Attack",
@@ -8322,7 +8458,8 @@
         "value": "Scylla stabs with its forearms attempting to pierce it's prey."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "bio-titans",
+    "actionType": "Turn"
   },
   {
     "id": "9ce3af9d-9350-4cb8-a470-af332774c53e",
@@ -8372,7 +8509,8 @@
       }
     ],
     "actionSource": "chassis",
-    "drone": "Sestra Drone"
+    "drone": "Sestra Drone",
+    "actionType": "Passive"
   },
   {
     "name": "Shield",
@@ -8402,7 +8540,6 @@
         "type": "shield"
       }
     ],
-    "activationCost": "X",
     "range": ["Close"],
     "name": "Shield Dome",
     "content": [
@@ -8419,7 +8556,8 @@
         "value": "When you or any target within Close Range of your Mech is dealt damage, the damage is instead dealt to the Shield Dome. Any excess damage that penetrates the shield is dealt to the target instead. If the damage is reduced to 0, the target suffers no additional effect from the attack."
       }
     ],
-    "actionSource": "systems"
+    "actionSource": "systems",
+    "activationCost": "X"
   },
   {
     "id": "b61f51df-6829-42a7-9f00-1590a9d6c44f",
@@ -8444,7 +8582,8 @@
         "value": "When you hit with this weapon up to one other target of your choice in Close Range takes 2 HP damage."
       }
     ],
-    "actionSource": "equipment"
+    "actionSource": "equipment",
+    "actionType": "Turn"
   },
   {
     "id": "053a9527-92a1-4b2b-9d11-c9f839534ccd",
@@ -8594,7 +8733,8 @@
         "value": "This weapon covers a wide variety of scoped rifles designed for taking out targets at a distance."
       }
     ],
-    "actionSource": "equipment"
+    "actionSource": "equipment",
+    "actionType": "Turn"
   },
   {
     "name": "Sniper Rifle (Ace)",
@@ -8610,7 +8750,8 @@
       }
     ],
     "id": "d59c2720-ab52-4999-a830-da2525ce2dea",
-    "actionSource": "npcs"
+    "actionSource": "npcs",
+    "actionType": "Turn"
   },
   {
     "id": "fc3b0d04-2b80-4483-af94-938837690657",
@@ -8639,7 +8780,8 @@
         "value": "When this weapon hits a target in Close Range it deals 2× damage. Apply this after other modifiers."
       }
     ],
-    "actionSource": "systems"
+    "actionSource": "systems",
+    "actionType": "Turn"
   },
   {
     "name": "Solar Reactor",
@@ -8650,7 +8792,8 @@
         "value": "As a Long Action you may fully restore the Energy Points of [(CHASSIS)] to its maximum value. You must be in an area of sunlight to do this. You may only use this Ability once every 24 hours."
       }
     ],
-    "actionSource": "chassis"
+    "actionSource": "chassis",
+    "actionType": "Passive"
   },
   {
     "id": "34b696b8-b97b-4741-b251-4de139efb959",
@@ -8698,7 +8841,7 @@
     "content": [
       {
         "type": "paragraph",
-        "value": "When Typhon unburrows all targets within Close Range of the area it unburrows up to take 5 SP damage from its spiked carapace. In addition, any target that attacks Typhon with an attack that has the [[Melee]] Trait takes 3 SP damage on a hit."
+        "value": "When Typhon unborrows all targets within Close Range of the area it unburrows up to take 5 SP damage from its spiked carapace. In addition, any target that attacks Typhon with an attack that has the [[Melee]] Trait takes 3 SP damage on a hit."
       }
     ],
     "actionSource": "bio-titans"
@@ -8740,7 +8883,8 @@
         "value": "Huge tendrils lash out at anything nearby."
       }
     ],
-    "actionSource": "meld"
+    "actionSource": "meld",
+    "actionType": "Turn"
   },
   {
     "id": "c7f68c3b-5edd-4894-a953-e44a9da2717d",
@@ -8849,7 +8993,8 @@
         "value": "Creatures hit by this attack are knocked prone."
       }
     ],
-    "actionSource": "squads"
+    "actionSource": "squads",
+    "actionType": "Turn"
   },
   {
     "name": "Static Field",
@@ -8934,20 +9079,12 @@
         "type": "poison"
       },
       {
-        "type": "deadly (creatures only)"
+        "type": "deadly"
       }
     ],
     "id": "110f09d1-2f84-4ec5-a9a2-df36461bde75",
-    "actionSource": "creatures"
-  },
-  {
-    "id": "10f0cd71-0f6d-4288-b16d-06787a44fda4",
-    "name": "Pilot Equipment",
-    "traits": [
-      {
-        "type": "pilot equipment"
-      }
-    ]
+    "actionSource": "creatures",
+    "actionType": "Turn"
   },
   {
     "id": "cd290925-24e0-455f-8817-4f99fcf211a9",
@@ -9329,7 +9466,8 @@
       "damageType": "HP"
     },
     "id": "a138ebfe-33fc-4594-9a80-77486fdeb1a9",
-    "actionSource": "creatures"
+    "actionSource": "creatures",
+    "actionType": "Turn"
   },
   {
     "id": "8c5e3717-1229-4a6d-b11d-1ee70a29d089",
@@ -9555,7 +9693,7 @@
       },
       {
         "type": "paragraph",
-        "value": "Overcharge a Reactor beyond its initial capacity to gain additional Pushes."
+        "value": "Overcharge a Reactor beyond it's initial capacity to gain additional Pushes."
       }
     ],
     "actionSource": "abilities"
@@ -9807,7 +9945,8 @@
         "value": "When fired in water, Torpedo Tubes are Long Range weapons. When fired out of water they are Close Range weapons."
       }
     ],
-    "actionSource": "systems"
+    "actionSource": "systems",
+    "actionType": "Turn"
   },
   {
     "id": "0cc670fa-1420-408f-9d1c-9e0c88690063",
@@ -9855,7 +9994,8 @@
         "value": " If a creature is hit with the tranquiliser rifle they fall unconscious for 10 minutes. Making any attack with this weapon reduces its Uses by 1. This does not affect Bio-Titans or Meld."
       }
     ],
-    "actionSource": "equipment"
+    "actionSource": "equipment",
+    "actionType": "Turn"
   },
   {
     "id": "e9a98733-ee84-451a-b28a-bb9601ad6cd7",
@@ -10025,14 +10165,20 @@
         "value": "When activated, the movement of your Mech this turn ignores all terrain and obstacles. You can leap on top of tall buildings and other structures, as well as behind targets within Close Range, granting you better vantage points for reconnaissance and attack."
       }
     ],
-    "actionSource": "systems"
+    "actionSource": "systems",
+    "traits": [
+      {
+        "type": "hot",
+        "amount": 2
+      }
+    ]
   },
   {
     "id": "cd0784f5-3f3f-4edd-bda9-56899826b947",
     "actionType": "Turn",
     "range": ["Long"],
     "activationCost": 1,
-    "name": "Video Projection Array",
+    "name": "Projection Array",
     "content": [
       {
         "type": "paragraph",
@@ -10208,7 +10354,12 @@
   },
   {
     "id": "729b8837-841f-46d5-b485-85167bd7efea",
-    "traits": [],
+    "traits": [
+      {
+        "type": "hot",
+        "amount": 2
+      }
+    ],
     "name": "Welding Laser",
     "content": [
       {
@@ -10376,9 +10527,6 @@
     "traits": [
       {
         "type": "melee"
-      },
-      {
-        "type": "rigging"
       }
     ],
     "content": [
@@ -10399,7 +10547,8 @@
         "value": "Giant leathery wings grow from your Mech along hollow bony ribs. Your Mech gains the Fly Trait."
       }
     ],
-    "actionSource": "systems"
+    "actionSource": "systems",
+    "actionType": "Passive"
   },
   {
     "id": "2d55bd6c-1e38-48b5-8d4e-0e1699420537",
@@ -10455,31 +10604,6 @@
       {
         "type": "paragraph",
         "value": "When you salvage Bio-Salvage with this System, you find Chimerium on the roll of a 19 or 20."
-      }
-    ],
-    "actionSource": "systems"
-  },
-  {
-    "id": "bbe55547-f26f-4ef0-9aba-4372fa9a98c8",
-    "name": "Consume (Bio-Maw)",
-    "actionType": "Short",
-    "range": ["Close"],
-    "content": [
-      {
-        "type": "paragraph",
-        "value": "You consume an amount of Bio-Salvage within Range. It is destroyed. Choose one or more of the following:"
-      },
-      {
-        "type": "list-item",
-        "value": "You regain SP equal to 2× the Bio-Salvage you consume."
-      },
-      {
-        "type": "list-item",
-        "value": "You gain EP equal to the Bio-Salvage you consume."
-      },
-      {
-        "type": "list-item",
-        "value": "You reduce your Heat equal to 2× the Bio-Salvage you consume."
       }
     ],
     "actionSource": "systems"
@@ -10811,7 +10935,8 @@
         "value": "Developed by Solitude researchers, this versatile tendril-like System has the ability to morph itself into any other system it touches."
       }
     ],
-    "actionSource": "systems"
+    "actionSource": "systems",
+    "actionType": "Passive"
   },
   {
     "id": "b43c3e9b-eaca-4341-a89c-3fe848c736eb",
@@ -10879,14 +11004,15 @@
     "actionType": "Turn",
     "activationCost": 3,
     "range": ["Close"],
-    "name": "Meld Replicator",
+    "name": "Meld Module Replicator",
     "content": [
       {
         "type": "paragraph",
         "value": "Utilising the Melds innate ability to replicate electronic systems, this module has the ability to morph into other modules. This Module becomes a copy of a target Module in Range, destroying the target Module in the process. The replicated Module retains this Ability, as well as the Salvage and Module Slot Value of the Meld Module Replicator. The replicated Module reverts back to the Meld Module Replicator during Downtime."
       }
     ],
-    "actionSource": "modules"
+    "actionSource": "modules",
+    "displayName": "Meld Module Replicator"
   },
   {
     "id": "e98fa567-c485-47f5-803b-b2f08e1cb8bd",
@@ -10977,7 +11103,8 @@
         "value": "Simple, efficient, and dependable, DronTek arms most of their standing forces with this rifle."
       }
     ],
-    "actionSource": "equipment"
+    "actionSource": "equipment",
+    "actionType": "Turn"
   },
   {
     "id": "082b3c97-733c-4d48-a43c-94dc02d0cc75",
@@ -11012,7 +11139,8 @@
         "value": "This Stefanus laser, issued to their ground troops, is similar to the Mech variant. It produces a lot of heat, making it prone to overloading, but that matters less in the cold. This weapon loses the Unwieldy Trait in cold environments."
       }
     ],
-    "actionSource": "equipment"
+    "actionSource": "equipment",
+    "actionType": "Turn"
   },
   {
     "id": "8e59d1ad-e5cd-40bb-aaf8-58c228f2f74b",
@@ -11060,7 +11188,8 @@
         "value": "This Meld-infused rifle fires high calibre rounds loaded with flesh eating nanites which release upon impact, spreading over the wounded area. This causes horrific wounds to biological targets."
       }
     ],
-    "actionSource": "equipment"
+    "actionSource": "equipment",
+    "actionType": "Turn"
   },
   {
     "id": "e13d2dad-12af-466e-85ed-03acacf80a84",
@@ -11075,7 +11204,8 @@
         "value": "A Mech equipped with a Genetic Lock can only be Piloted by one person who encodes their DNA string to the Chassis. If an unauthorised Pilot attempts to in any way activate the Mech they will trigger the security protocols. This seals the cockpit of the Mech and triggers a sonic screecher, designed to alert though with a high pitched alarm, and knock out the unauthorised Pilot. The Pilot must roll on the Critical Injury Table."
       }
     ],
-    "actionSource": "modules"
+    "actionSource": "modules",
+    "actionType": "Passive"
   },
   {
     "id": "52bb3a90-6642-4847-9bb4-d996a767e7ef",
@@ -11109,7 +11239,8 @@
         "value": "Make a ranged attack against a target within Range."
       }
     ],
-    "actionSource": "equipment"
+    "actionSource": "equipment",
+    "actionType": "Turn"
   },
   {
     "id": "f889193e-e842-4a1b-9462-431564522eec",
@@ -11138,7 +11269,8 @@
         "value": "Make a ranged attack against a target within Range."
       }
     ],
-    "actionSource": "equipment"
+    "actionSource": "equipment",
+    "actionType": "Turn"
   },
   {
     "id": "1a48a9cb-df87-4732-82ef-ebb8bcf485e7",
@@ -11158,7 +11290,8 @@
         "value": "Make a ranged attack against a target within Range."
       }
     ],
-    "actionSource": "equipment"
+    "actionSource": "equipment",
+    "actionType": "Turn"
   },
   {
     "id": "ca6a0f7f-8f47-4234-a348-5675402140f0",
@@ -11183,7 +11316,8 @@
         "value": "Make a melee attack against a target within Range."
       }
     ],
-    "actionSource": "equipment"
+    "actionSource": "equipment",
+    "actionType": "Turn"
   },
   {
     "id": "aba98f6c-e5e6-4dac-b0b9-13b93836bb2e",
@@ -11216,7 +11350,8 @@
         "value": "Make a ranged attack against a target within Range."
       }
     ],
-    "actionSource": "equipment"
+    "actionSource": "equipment",
+    "actionType": "Turn"
   },
   {
     "id": "70179219-f6ad-41e8-aaab-f2091400a6ef",
@@ -11241,7 +11376,8 @@
         "value": "Make a ranged attack against a target within Range."
       }
     ],
-    "actionSource": "equipment"
+    "actionSource": "equipment",
+    "actionType": "Turn"
   },
   {
     "id": "cb744f12-f69f-427b-949e-6cecc6b1d173",
@@ -11266,7 +11402,8 @@
         "value": "Make a ranged attack against a target within Range."
       }
     ],
-    "actionSource": "squads"
+    "actionSource": "squads",
+    "actionType": "Turn"
   },
   {
     "id": "8f41be1c-8069-4bfb-979b-8358e2789661",
@@ -11303,7 +11440,8 @@
         "value": "Make a ranged attack against a target within Range."
       }
     ],
-    "actionSource": "squads"
+    "actionSource": "squads",
+    "actionType": "Turn"
   },
   {
     "id": "21a15e23-6b4f-427b-82ac-a4c98f90aa16",
@@ -11351,7 +11489,8 @@
         "value": "Make a ranged attack against a target within Range."
       }
     ],
-    "actionSource": "squads"
+    "actionSource": "squads",
+    "actionType": "Turn"
   },
   {
     "id": "6c68d814-7334-460d-b838-096aaa2ef372",
@@ -11391,7 +11530,8 @@
         "value": "Make a ranged attack against a target within Range."
       }
     ],
-    "actionSource": "squads"
+    "actionSource": "squads",
+    "actionType": "Turn"
   },
   {
     "id": "5c6f77d1-961d-4216-9f8e-2943ee25495b",
@@ -11427,7 +11567,8 @@
         "value": "Make a melee attack against a target within Range."
       }
     ],
-    "actionSource": "squads"
+    "actionSource": "squads",
+    "actionType": "Turn"
   },
   {
     "id": "7b1efaf3-5ae6-45bb-b7c9-81ba066a041a",
@@ -11443,18 +11584,20 @@
         "value": "Make a ranged attack against a target within Range."
       }
     ],
-    "actionSource": "squads"
+    "actionSource": "squads",
+    "actionType": "Turn"
   },
   {
     "id": "64a9f7ef-133a-46d8-be08-ab17be378985",
-    "name": "Thermal Goggles",
+    "name": "Thermal Optics (Fell Stalkers Squad)",
     "content": [
       {
         "type": "paragraph",
         "value": "T3 Pilot Equipment, acts as Thermal Optics."
       }
     ],
-    "actionSource": "squads"
+    "actionSource": "squads",
+    "displayName": "Thermal Optics"
   },
   {
     "id": "0e13d663-dc07-4a5d-88eb-b20b93d806fb",
@@ -11499,7 +11642,8 @@
         "value": "This attack does not affect Mechs or Vehicles."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "bio-titans",
+    "actionType": "Turn"
   },
   {
     "id": "44a1e91e-4a29-40e7-a426-5c9f661b1466",
@@ -11517,7 +11661,8 @@
         "value": "Apophis wraps itself around its prey. It may target one Mech, Bio-Titan or Vehicle or up to 4 Creatures with this Ability. Make an attack roll as normal. On a hit each target is constricted. They immediately take 6 SP damage and gain the Vulnerable and Immobile Traits. A target caught may attempt to escape as a Turn Action. Apophis may only constrict one Mech or 3 Creatures at a time."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "bio-titans",
+    "actionType": "Turn"
   },
   {
     "id": "bd3e75cb-aa4d-4f1e-aed9-e2c948b3b820",
@@ -11527,7 +11672,7 @@
     "content": [
       {
         "type": "paragraph",
-        "value": "Apophis crushes all targets that it has constricted. This automatically deals 12 SP damage to the targets, and a random System or Module on a Mech is destroyed. (The 2x damage of the Vulnerable Trait is factored into this damage.)"
+        "value": "Apophis crushes all targets that it has constricted. This automatically deals 12 SP damage to the targets, and a random System or Module on a Mech is destroyed. (THe₂x damage of the Vulnerable Trait is factored into this damage.)"
       }
     ],
     "actionSource": "bio-titans"
@@ -11586,7 +11731,8 @@
         "value": "Make a melee attack against a target within Range."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "bio-titans",
+    "actionType": "Turn"
   },
   {
     "id": "f5ad4482-fb2b-468b-995c-9b930ac9356d",
@@ -11708,7 +11854,8 @@
         "value": "Make a ranged attack against a target within Range."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "bio-titans",
+    "actionType": "Turn"
   },
   {
     "id": "676f4cf0-9bbc-486c-96c8-c4c113347404",
@@ -11738,7 +11885,8 @@
         "value": "Make a melee attack against a target within Range."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "bio-titans",
+    "actionType": "Turn"
   },
   {
     "id": "34091167-a996-4455-8665-6b904b14961d",
@@ -11832,7 +11980,8 @@
         "value": "Make a melee attack against a target within Range."
       }
     ],
-    "actionSource": "creatures"
+    "actionSource": "creatures",
+    "actionType": "Turn"
   },
   {
     "id": "11d76f01-536f-4e92-9325-c6f8c9fd4379",
@@ -11849,7 +11998,8 @@
         "value": "The creature uses its tongue to trip and tangle prey."
       }
     ],
-    "actionSource": "creatures"
+    "actionSource": "creatures",
+    "actionType": "Turn"
   },
   {
     "id": "2b67d7d6-3434-40c0-9cfe-5591b5092d41",
@@ -11870,7 +12020,8 @@
         "value": "Make a melee attack against a target within Range."
       }
     ],
-    "actionSource": "creatures"
+    "actionSource": "creatures",
+    "actionType": "Turn"
   },
   {
     "id": "d13aa01b-3b60-44b7-8a42-a36d0b798097",
@@ -11897,7 +12048,8 @@
         "value": "Make a melee attack against a target within Range."
       }
     ],
-    "actionSource": "creatures"
+    "actionSource": "creatures",
+    "actionType": "Turn"
   },
   {
     "id": "36f739ac-40b2-41b2-a9c1-46400a44146d",
@@ -11920,7 +12072,8 @@
         "value": "Layers of metal with a protective chemical coating and reliable rubber sealants defend against the cold. When installed on a Mech, this System prevents any negative environmental effects of Freezing temperatures that the Mech would otherwise suffer."
       }
     ],
-    "actionSource": "systems"
+    "actionSource": "systems",
+    "actionType": "Passive"
   },
   {
     "id": "0d6f2ec3-4cbf-487a-b95b-c65579e78627",
@@ -11931,7 +12084,8 @@
         "value": "This system, developed by Aegean Dynamics, allows for a Mech to move over and under water."
       }
     ],
-    "actionSource": "systems"
+    "actionSource": "systems",
+    "actionType": "Passive"
   },
   {
     "id": "5ccedd0f-4626-4211-a0c8-0b5305361f33",
@@ -11959,7 +12113,8 @@
         "value": "Make a ranged attack against a target within Range."
       }
     ],
-    "actionSource": "systems"
+    "actionSource": "systems",
+    "actionType": "Turn"
   },
   {
     "id": "0a9bc8ae-902b-4d74-96ce-db2c23977711",
@@ -11970,7 +12125,8 @@
         "value": "A cryogenic container developed to safely store and transport Meld. This system can safely hold up to 5 Active or 10 Inert Meld Nanites."
       }
     ],
-    "actionSource": "systems"
+    "actionSource": "systems",
+    "actionType": "Passive"
   },
   {
     "name": "Integrated Hydrologic Locomotion System",
@@ -11981,7 +12137,8 @@
         "value": "The Kelpie has an Integrated Hydrologic Locomotion System, allowing it to move and function underwater but not on land."
       }
     ],
-    "actionSource": "chassis"
+    "actionSource": "chassis",
+    "actionType": "Passive"
   },
   {
     "name": "Dependable Chassis",
@@ -11992,7 +12149,8 @@
         "value": "This Chassis gains the Dependable Trait. Additionally, you may re-roll results on the Critical Damage Table and on failed Heat Checks."
       }
     ],
-    "actionSource": "chassis"
+    "actionSource": "chassis",
+    "actionType": "Passive"
   },
   {
     "name": "Sub-Zero Engineered Chassis",
@@ -12003,7 +12161,8 @@
         "value": "Designed by Opus to operate within sub-zero temperatures and reinforced with titanium alloys, insulative materials and numerous locomotive stabilisers. The Pioneer suffers no adverse effects (including damage) from freezing conditions. It is also not slowed by Difficult Terrain in frozen and snowy biomes, such as the Frozen Gulf or the Forgotten Tundra. A Pilot within the Pioneer Chassis is also entirely protected from any adverse effects from freezing conditions, as the insulated interior keeps them at a stable body temperature."
       }
     ],
-    "actionSource": "chassis"
+    "actionSource": "chassis",
+    "actionType": "Passive"
   },
   {
     "name": "Parasitic Reactor",
@@ -12014,7 +12173,8 @@
         "value": "Theoretically, [(CHASSIS)] has infinite energy capacity, but it may only gain Energy Points from its Parasitic Membrane Ability. During Downtime its Energy Point total is reduced to its base value of 0."
       }
     ],
-    "actionSource": "chassis"
+    "actionSource": "chassis",
+    "actionType": "Passive"
   },
   {
     "name": "Parasitic Membrane",
@@ -12064,7 +12224,8 @@
         "value": "The Big Brother must choose between moving or taking a Turn Action on its turn. It also takes twice as long to travel between any two points on the Campaign, Region, or Area maps."
       }
     ],
-    "actionSource": "chassis"
+    "actionSource": "chassis",
+    "actionType": "Passive"
   },
   {
     "name": "Big Brother Drone Controller",
@@ -12080,7 +12241,8 @@
       }
     ],
     "actionSource": "chassis",
-    "drone": "Big Brother Drone"
+    "drone": "Big Brother Drone",
+    "actionType": "Passive"
   },
   {
     "name": "MELD",
@@ -12091,7 +12253,8 @@
         "value": "The X0315 is Meld and has all the strengths and vulnerabilities of Meld."
       }
     ],
-    "actionSource": "chassis"
+    "actionSource": "chassis",
+    "actionType": "Passive"
   },
   {
     "name": "Integrated Meld Locomotion",
@@ -12102,7 +12265,8 @@
         "value": "The X0315 has multiple tendril-like legs which allow it to move normally."
       }
     ],
-    "actionSource": "chassis"
+    "actionSource": "chassis",
+    "actionType": "Passive"
   },
   {
     "name": "Integrated Neuralink Communicator",
@@ -12113,7 +12277,8 @@
         "value": "The X0315 has the equivalent of a Neuralink Communicator Module."
       }
     ],
-    "actionSource": "chassis"
+    "actionSource": "chassis",
+    "actionType": "Passive"
   },
   {
     "name": "Mech Replication",
@@ -12168,7 +12333,8 @@
         "value": "[(CHASSIS)] has a standard Locomotion System that allows it to move through water, swamps, mud, rivers and similar expanses of difficult terrain without penalty."
       }
     ],
-    "actionSource": "chassis"
+    "actionSource": "chassis",
+    "actionType": "Passive"
   },
   {
     "name": "Hybrid Diesel Reactor",
@@ -12187,7 +12353,8 @@
         "value": "During Downtime [(CHASSIS)] gains only 5 Energy Points instead of being restored to its maximum amount. Otherwise this works as a normal reactor."
       }
     ],
-    "actionSource": "chassis"
+    "actionSource": "chassis",
+    "actionType": "Passive"
   },
   {
     "name": "Excoriate",
@@ -12214,7 +12381,8 @@
         "value": "[(CHASSIS)] is an Automech and follows all of the rules for Automechs."
       }
     ],
-    "actionSource": "chassis"
+    "actionSource": "chassis",
+    "actionType": "Passive"
   },
   {
     "name": "Hell Fumes",
@@ -12239,23 +12407,16 @@
     "actionSource": "chassis"
   },
   {
-    "name": "Integrated Advanced Stabilising Locomotion System",
+    "name": "Integrated Advanced Deployable Locomotion System",
     "id": "9dd10211-7f3d-410c-8975-93ca8ebf41f7",
     "content": [
       {
         "type": "paragraph",
-        "value": "This Chassis Ability functions as a Stabilising Locomotion System. (p.181 SU Core Book) It has the following improvements:"
-      },
-      {
-        "type": "list-item",
-        "value": "The Ravager reduces all damage dealt to it by 3 SP whilst stabilised, to a minimum of 1."
-      },
-      {
-        "type": "list-item",
-        "value": "The first attack the Ravager makes on its turn whilst stabilised deals an additional 3 SP damage."
+        "value": "This system functions as a deployable Locomotion System but boosts the damage dealt and damage reduced by 1 SP. Whilst deployed all of the attacks the Ravager makes deal an additional 3SP damage and whenever the Ravager receives damage it is reduced by 3 SP to a minimum of 1."
       }
     ],
-    "actionSource": "chassis"
+    "actionSource": "chassis",
+    "actionType": "Passive"
   },
   {
     "name": "Demonic Visage",
@@ -12266,7 +12427,8 @@
         "value": "The [(CHASSIS)] Mech is designed to evoke fear in all who look upon them. The first time any creature looks upon it, including player Pilots, they must make a Morale Check."
       }
     ],
-    "actionSource": "chassis"
+    "actionSource": "chassis",
+    "actionType": "Passive"
   },
   {
     "name": "Energy Smite",
@@ -12290,7 +12452,8 @@
         "value": "The three heads of Cerberus are piloted separately. Each head can be piloted by a separate Pilot, or all three can be piloted by the same Pilot. Each Pilot activates Systems and Modules and makes attacks separately for their head. Movement is shared between all heads and the chassis. Each head and the chassis can target separately. Critical damage is rolled separately for the chassis and each head. The chassis and all heads share Energy Points and Heat Capacity. Reactor Overload checks are made for the chassis."
       }
     ],
-    "actionSource": "chassis"
+    "actionSource": "chassis",
+    "actionType": "Passive"
   },
   {
     "id": "8806e453-1c00-4418-acbe-bc294ccc33be",
@@ -12327,5 +12490,106 @@
       }
     ],
     "actionSource": "creatures"
+  },
+  {
+    "id": "efb4fca3-f7cb-4f5f-9579-3ca559c32fb4",
+    "name": "Bionic Arms",
+    "actionType": "Passive",
+    "actionSource": "abilities",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "You gain a set of bionic arms, surgically installed to any specification you desire. They provide you the following weapon attack, where X is equal to the Tech Level of your Union Crawler."
+      },
+      {
+        "type": "paragraph",
+        "value": "Range: Close // Damage: X SP // Melee"
+      },
+      {
+        "type": "paragraph",
+        "value": "In addition, you can heal a Minor Injury during Downtime by spending 2 Tech 1 Scrap at any Crafting Bay."
+      },
+      {
+        "type": "paragraph",
+        "value": "You also increase your Pilot's Max HP by 2."
+      }
+    ]
+  },
+  {
+    "id": "dfa291a9-ac84-485d-a01f-26ebf17a2b3e",
+    "name": "Automated Machine Gun Turret",
+    "actionType": "Turn",
+    "actionSource": "systems",
+    "range": ["Close"],
+    "damage": {
+      "damageType": "SP",
+      "amount": 2
+    },
+    "traits": [
+      {
+        "type": "ballistic"
+      },
+      {
+        "type": "pinning"
+      }
+    ],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A gimble mounted .50 Cal Machine gun with automated optical tracking."
+      }
+    ]
+  },
+  {
+    "id": "113b761e-ec91-4f5e-8d47-888225604e5e",
+    "name": "Automated Green Laser Turret",
+    "actionType": "Turn",
+    "actionSource": "systems",
+    "range": ["Medium"],
+    "damage": {
+      "damageType": "SP",
+      "amount": 4
+    },
+    "traits": [
+      {
+        "type": "energy"
+      },
+      {
+        "type": "hot",
+        "amount": 2
+      }
+    ],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A tri-axis gyroscope controlled Green Laser, with No-Scope LIDAR tracking."
+      }
+    ]
+  },
+  {
+    "id": "1e4514b6-4af4-4b62-9487-d909dd73eb11",
+    "name": "Automated 120mm Cannon Turret",
+    "actionType": "Turn",
+    "actionSource": "systems",
+    "range": ["Long"],
+    "damage": {
+      "damageType": "SP",
+      "amount": 6
+    },
+    "traits": [
+      {
+        "type": "ballistic"
+      },
+      {
+        "type": "explosive",
+        "amount": 1
+      }
+    ],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A Herrsch 360° RealSteel Turret Enclosure, controls this 120mm Cannon."
+      }
+    ]
   }
 ]

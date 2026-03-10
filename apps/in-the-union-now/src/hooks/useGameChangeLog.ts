@@ -5,7 +5,7 @@ import { changeLogApi } from '../lib/api/changeLogApi'
 import type { ChangeLogEntry } from '../lib/api/changeLogApi'
 import { supabase } from '../lib/supabase'
 
-export const changeLogKeys = {
+const changeLogKeys = {
   all: ['changeLog'] as const,
   byGame: (gameId: string) => [...changeLogKeys.all, 'game', gameId] as const,
 }

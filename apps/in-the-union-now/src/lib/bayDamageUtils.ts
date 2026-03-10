@@ -14,16 +14,10 @@ function getBayId(bayName: string): string | undefined {
 }
 
 /** Check if a specific bay is damaged */
-export function isBayDamaged(bayNpcs: Record<string, BayNpcData>, bayName: string): boolean {
+function isBayDamaged(bayNpcs: Record<string, BayNpcData>, bayName: string): boolean {
   const bayId = getBayId(bayName)
   if (!bayId) return false
   return bayNpcs[bayId]?.damaged === true
-}
-
-/** Get the damaged effect description for a bay */
-export function getBayDamagedEffect(bayName: string): string | undefined {
-  const bay = SalvageUnionReference.findIn('crawler-bays', (b) => b.name === bayName)
-  return bay && 'damagedEffect' in bay ? (bay.damagedEffect as string) : undefined
 }
 
 export function isCraftingBayDamaged(bayNpcs: Record<string, BayNpcData>): boolean {

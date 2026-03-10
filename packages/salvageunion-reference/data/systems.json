@@ -803,7 +803,22 @@
     "techLevel": 5,
     "slotsRequired": 7,
     "salvageValue": 5,
-    "actions": ["Repair (Fabrication Bay)", "Fabrication Bay"],
+    "actions": ["Fabrication Bay"],
+    "page": 183
+  },
+  {
+    "id": "7edd803f-76c6-41b0-8d3f-0de5c7716e00",
+    "source": "Salvage Union Workshop Manual",
+    "name": "Multi-Function Repair Arm",
+    "techLevel": 5,
+    "slotsRequired": 3,
+    "salvageValue": 3,
+    "actions": [
+      "Patch (Multi-Function Repair Arm)",
+      "System Repair (Multi-Function Repair Arm)",
+      "Chassis Repair (Multi-Function Repair Arm)",
+      "Multi-Function Repair Arm"
+    ],
     "page": 183
   },
   {
@@ -990,7 +1005,7 @@
     "salvageValue": 3,
     "indexable": false,
     "blackMarket": true,
-    "page": 71,
+    "page": 72,
     "actions": ["Napalm Launcher"]
   },
   {
@@ -1002,7 +1017,7 @@
     "salvageValue": 4,
     "indexable": false,
     "blackMarket": true,
-    "page": 71,
+    "page": 72,
     "actions": ["Rad Wave Generator"]
   },
   {

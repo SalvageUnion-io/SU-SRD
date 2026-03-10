@@ -48,7 +48,7 @@
     "content": [
       {
         "type": "paragraph",
-        "value": "A high-tech lance operating in Gehenna with detailed information about the area and its inhabitants. Fed with information from a Stefanus data auction, they know about the Red Mesa Facility and BOLZA Encampments in the area."
+        "value": "A professional and discreet wet work team on a black ops assignment to Gehenna. Led by Lance Leader 'Moto' (Ace)."
       }
     ],
     "goals": "Gain Chimerium samples to engineer a cure to Chimerium Mutation they can leverage. Prevent BOLZA Chimerium Energy ambitions by assassinating Exec Petro. Commit industrial sabotage on Red Mesa and BOLZA operations to slow down their research ambitions.",
@@ -122,9 +122,9 @@
       },
       {
         "chassis": "Waster Mob",
-        "schema": "squads",
+        "schema": "npcs",
         "source": "Salvage Union Workshop Manual",
-        "page": 270,
+        "page": 300,
         "quantity": 2
       }
     ]
@@ -250,7 +250,8 @@
         "chassis": "Rotorcraft",
         "schema": "vehicles",
         "source": "Salvage Union Workshop Manual",
-        "page": 293
+        "page": 293,
+        "quantity": 1
       }
     ]
   },
@@ -290,9 +291,9 @@
       },
       {
         "chassis": "Waster Mob",
-        "schema": "squads",
+        "schema": "npcs",
         "source": "Salvage Union Workshop Manual",
-        "page": 270,
+        "page": 300,
         "quantity": 2
       }
     ]
@@ -331,10 +332,11 @@
         "page": 77
       },
       {
-        "chassis": "Chimerium Mutant Squad",
-        "schema": "squads",
+        "chassis": "Chimerium Mutant Mob",
+        "schema": "npcs",
         "source": "We Were Here First!",
-        "page": 54
+        "page": 60,
+        "quantity": 1
       }
     ]
   },

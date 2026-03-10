@@ -13,8 +13,6 @@ export type TrainingReceipt = {
   skipped?: true
 }
 
-export type AbilityTier = 'core' | 'advanced' | 'hybrid' | 'legendary'
-
 /** TP cost per ability level */
 export function getAbilityCost(level: number | string): number {
   if (level === 1) return 1

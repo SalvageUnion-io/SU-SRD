@@ -71,7 +71,9 @@ export const changeLogApi = {
   listByGame: async (gameId: string, opts?: { before?: string }): Promise<ChangeLogEntry[]> => {
     let query = supabase
       .from('change_log')
-      .select('*')
+      .select(
+        'id,action,created_at,description,field,game_id,new_value,old_value,reversible,session_id,target_id,target_type,user_id'
+      )
       .eq('game_id', gameId)
       .order('created_at', { ascending: false })
       .limit(PAGE_SIZE)

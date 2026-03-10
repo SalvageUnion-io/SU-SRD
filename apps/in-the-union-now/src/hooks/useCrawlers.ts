@@ -31,14 +31,13 @@ import type { EquipmentReceipt } from '../lib/equipmentUtils'
 import type { RumourReceipt } from '../lib/rumourUtils'
 import { useCargoQuery, useAddCargo, useDeleteCargo } from './useCargo'
 import { pilotKeys } from './usePilots'
-import { updateEntityRef, createEntityRef } from '../lib/api/entityRefApi'
+import { createEntityRef } from '../lib/api/entityRefApi'
 import { gameKeys } from './useGames'
 import type {
   CreateCrawlerInput,
   CrawlerRow,
   CrawlerUpdate,
   EntityRefInsert,
-  EntityRefUpdate,
 } from '../types/common'
 
 export const crawlerKeys = {
@@ -127,18 +126,6 @@ export function useUpdateCrawler() {
     },
     onSuccess: (data: CrawlerRow) => {
       queryClient.setQueryData(crawlerKeys.detail(data.id), data)
-    },
-  })
-}
-
-export function useUpdateCrawlerEntityRef() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: ({ refId, input }: { refId: string; input: EntityRefUpdate; crawlerId: string }) =>
-      updateEntityRef(refId, input),
-    onSuccess: (_data, { crawlerId }) => {
-      queryClient.invalidateQueries({ queryKey: crawlerKeys.entityRefs(crawlerId) })
     },
   })
 }

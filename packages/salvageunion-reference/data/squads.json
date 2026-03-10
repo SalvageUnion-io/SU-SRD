@@ -207,7 +207,11 @@
     "page": 79,
     "hitPoints": 8,
     "damageType": "HP",
-    "actions": ["Fell Rifles (Fell Stalkers Squad)", "Thermal Goggles", "Born in the Saddle"],
+    "actions": [
+      "Fell Rifles (Fell Stalkers Squad)",
+      "Thermal Optics (Fell Stalkers Squad)",
+      "Born in the Saddle"
+    ],
     "content": [
       {
         "type": "paragraph",

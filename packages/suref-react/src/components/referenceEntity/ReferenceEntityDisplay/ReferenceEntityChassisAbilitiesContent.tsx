@@ -13,7 +13,7 @@ type ReferenceEntityChassisAbilitiesContentProps = {
   compact: boolean
   chassisAbilities?: SURefMetaAction[]
   /** Drone equipment from pattern (pre-baked mode only) */
-  droneEquipment?: { systems: string[]; modules: string[] }
+  droneEquipment?: Array<{ name?: string; systems: string[]; modules: string[] }>
   /** When true, skip rendering the drone entity (consumer renders it separately) */
   hideDrone?: boolean
 }
@@ -33,18 +33,22 @@ export function ReferenceEntityChassisAbilitiesContent({
     ? SalvageUnionReference.findIn('drones', (d) => d.name === droneAbility.drone)
     : undefined
 
-  const resolvedSystems = droneEquipment?.systems
-    ? droneEquipment.systems.flatMap((name) => {
-        const found = SalvageUnionReference.findIn('systems', (s) => s.name === name)
-        return found ? [found] : []
-      })
+  const resolvedSystems = droneEquipment?.length
+    ? droneEquipment.flatMap((drone) =>
+        drone.systems.flatMap((name) => {
+          const found = SalvageUnionReference.findIn('systems', (s) => s.name === name)
+          return found ? [found] : []
+        })
+      )
     : []
 
-  const resolvedModules = droneEquipment?.modules
-    ? droneEquipment.modules.flatMap((name) => {
-        const found = SalvageUnionReference.findIn('modules', (m) => m.name === name)
-        return found ? [found] : []
-      })
+  const resolvedModules = droneEquipment?.length
+    ? droneEquipment.flatMap((drone) =>
+        drone.modules.flatMap((name) => {
+          const found = SalvageUnionReference.findIn('modules', (m) => m.name === name)
+          return found ? [found] : []
+        })
+      )
     : []
 
   return (

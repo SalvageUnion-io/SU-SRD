@@ -9,8 +9,7 @@ import {
   addControl,
 } from 'suref-react'
 import { Input } from '../../ui/input'
-import { FilterRow } from '../../shared/FilterRow'
-import { ModalShell } from '../../shared/ModalShell'
+import { FilterRow, ModalShell } from 'suref-react'
 import {
   filterAndSplitEntities,
   ALL_TECH_LEVELS,
