@@ -1,30 +1,30 @@
-import abilitiesSchema from '../schemas/abilities.schema.json'
-import abilityTreeRequirementsSchema from '../schemas/ability-tree-requirements.schema.json'
-import actionsSchema from '../schemas/actions.schema.json'
-import bioTitansSchema from '../schemas/bio-titans.schema.json'
-import catalogCategoriesSchema from '../schemas/catalog-categories.schema.json'
-import chassisSchema from '../schemas/chassis.schema.json'
-import classesSchema from '../schemas/classes.schema.json'
-import crawlerBaysSchema from '../schemas/crawler-bays.schema.json'
-import crawlerTechLevelsSchema from '../schemas/crawler-tech-levels.schema.json'
-import crawlersSchema from '../schemas/crawlers.schema.json'
-import creaturesSchema from '../schemas/creatures.schema.json'
-import distancesSchema from '../schemas/distances.schema.json'
-import dronesSchema from '../schemas/drones.schema.json'
-import equipmentSchema from '../schemas/equipment.schema.json'
-import factionsSchema from '../schemas/factions.schema.json'
-import guidesSchema from '../schemas/guides.schema.json'
-import keywordsSchema from '../schemas/keywords.schema.json'
-import meldSchema from '../schemas/meld.schema.json'
-import modulesSchema from '../schemas/modules.schema.json'
-import npcsSchema from '../schemas/npcs.schema.json'
-import rollTablesSchema from '../schemas/roll-tables.schema.json'
-import squadsSchema from '../schemas/squads.schema.json'
-import systemsSchema from '../schemas/systems.schema.json'
-import traitsSchema from '../schemas/traits.schema.json'
-import vehiclesSchema from '../schemas/vehicles.schema.json'
-import sourcesSchema from '../schemas/sources.schema.json'
-import techLevelsSchema from '../schemas/tech-levels.schema.json'
+import abilitiesSchema from '../schemas/abilities.schema.json' with { type: 'json' }
+import abilityTreeRequirementsSchema from '../schemas/ability-tree-requirements.schema.json' with { type: 'json' }
+import actionsSchema from '../schemas/actions.schema.json' with { type: 'json' }
+import bioTitansSchema from '../schemas/bio-titans.schema.json' with { type: 'json' }
+import catalogCategoriesSchema from '../schemas/catalog-categories.schema.json' with { type: 'json' }
+import chassisSchema from '../schemas/chassis.schema.json' with { type: 'json' }
+import classesSchema from '../schemas/classes.schema.json' with { type: 'json' }
+import crawlerBaysSchema from '../schemas/crawler-bays.schema.json' with { type: 'json' }
+import crawlerTechLevelsSchema from '../schemas/crawler-tech-levels.schema.json' with { type: 'json' }
+import crawlersSchema from '../schemas/crawlers.schema.json' with { type: 'json' }
+import creaturesSchema from '../schemas/creatures.schema.json' with { type: 'json' }
+import distancesSchema from '../schemas/distances.schema.json' with { type: 'json' }
+import dronesSchema from '../schemas/drones.schema.json' with { type: 'json' }
+import equipmentSchema from '../schemas/equipment.schema.json' with { type: 'json' }
+import factionsSchema from '../schemas/factions.schema.json' with { type: 'json' }
+import guidesSchema from '../schemas/guides.schema.json' with { type: 'json' }
+import keywordsSchema from '../schemas/keywords.schema.json' with { type: 'json' }
+import meldSchema from '../schemas/meld.schema.json' with { type: 'json' }
+import modulesSchema from '../schemas/modules.schema.json' with { type: 'json' }
+import npcsSchema from '../schemas/npcs.schema.json' with { type: 'json' }
+import rollTablesSchema from '../schemas/roll-tables.schema.json' with { type: 'json' }
+import squadsSchema from '../schemas/squads.schema.json' with { type: 'json' }
+import systemsSchema from '../schemas/systems.schema.json' with { type: 'json' }
+import traitsSchema from '../schemas/traits.schema.json' with { type: 'json' }
+import vehiclesSchema from '../schemas/vehicles.schema.json' with { type: 'json' }
+import sourcesSchema from '../schemas/sources.schema.json' with { type: 'json' }
+import techLevelsSchema from '../schemas/tech-levels.schema.json' with { type: 'json' }
 
 const SCHEMA_DEFINITIONS: Record<string, Record<string, unknown>> = {
   abilities: abilitiesSchema as Record<string, unknown>,
