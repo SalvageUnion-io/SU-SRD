@@ -1,4 +1,9 @@
-/schema/v1/*
+/schema/*.json
+  Access-Control-Allow-Origin: *
+  Access-Control-Allow-Methods: GET
+  Content-Type: application/json
+
+/schema/*/item/*.json
   Access-Control-Allow-Origin: *
   Access-Control-Allow-Methods: GET
   Content-Type: application/json
