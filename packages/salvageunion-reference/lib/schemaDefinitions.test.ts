@@ -6,7 +6,7 @@ describe('getJsonSchemaDefinition', () => {
     const schema = getJsonSchemaDefinition('chassis')
     expect(schema).toBeDefined()
     expect(typeof schema).toBe('object')
-    expect(schema['$schema']).toBeDefined()
+    expect(schema?.['$schema']).toBeDefined()
   })
 
   it('returns undefined for an unknown schema ID', () => {
