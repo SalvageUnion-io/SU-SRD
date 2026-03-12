@@ -134,7 +134,7 @@ export const ENTITY_STATS_CONFIG: StatConfig[] = [
 /**
  * Apply label formatting (prefix, zero handling)
  */
-export function applyStatLabel(
+function applyStatLabel(
   value: number | string | undefined,
   prefix: string = ''
 ): string | undefined {

@@ -30,7 +30,6 @@ import {
   NameSchema,
   NonNegativeIntegerSchema,
   PositiveIntegerSchema,
-  HitPointsSchema,
   TechLevelSchema,
 } from './common.js'
 
@@ -176,7 +175,7 @@ export const CrawlerSchema = BaseEntitySchema.extend({
  */
 export const CreatureSchema = BaseEntitySchema.extend({ ...CombatEntitySchema.shape })
   .extend({
-    hitPoints: HitPointsSchema,
+    hitPoints: NonNegativeIntegerSchema,
   })
   .strict()
 
@@ -259,7 +258,7 @@ export const ModuleSchema = BaseEntitySchema.extend({ ...SystemModuleSchema.shap
  */
 export const NPCSchema = BaseEntitySchema.extend({ ...CombatEntitySchema.shape })
   .extend({
-    hitPoints: HitPointsSchema,
+    hitPoints: NonNegativeIntegerSchema,
     bioSalvageValue: NonNegativeIntegerSchema.optional().describe(
       'Bio-salvage value for Chimerium mutants'
     ),
@@ -278,7 +277,7 @@ export const RollTableSchema = BaseEntitySchema.extend({
  * NPC squads and groups in Salvage Union
  */
 export const SquadSchema = BaseEntitySchema.extend({
-  hitPoints: HitPointsSchema.optional(),
+  hitPoints: NonNegativeIntegerSchema.optional(),
   actions: z.array(z.string()),
   traits: z.array(TraitSchema).optional(),
   damageType: DamageTypeSchema.optional(),

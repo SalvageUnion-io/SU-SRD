@@ -216,7 +216,7 @@ export function getDataMaps(): {
  *
  * Exposed for client use
  */
-export function toPascalCase(id: string): string {
+function toPascalCase(id: string): string {
   // Handle special case for classes
   if (id === 'classes') return 'Classes'
 

@@ -3,4 +3,3 @@ const TAG_BUTTON_BASE =
 
 export const TAG_BUTTON = `${TAG_BUTTON_BASE} bg-su-white px-1 py-0 text-base text-su-black`
 export const TAG_BUTTON_SM = `${TAG_BUTTON_BASE} bg-su-white px-1 py-0 text-xs text-su-black`
-export const TAG_BUTTON_SM_DANGER = `${TAG_BUTTON_BASE} bg-su-rust px-1 py-0 text-xs text-su-white`

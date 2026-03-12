@@ -53,21 +53,6 @@ export async function addCargo(
   return data!
 }
 
-export async function updateCargo(
-  cargoId: string,
-  input: { name?: string; amount?: number }
-): Promise<CargoRow> {
-  const { data, error } = await supabase
-    .from('cargo')
-    .update(input)
-    .eq('id', cargoId)
-    .select()
-    .single()
-
-  if (error) handleSupabaseError(error)
-  return data!
-}
-
 export async function deleteCargo(cargoId: string): Promise<void> {
   const { error } = await supabase.from('cargo').delete().eq('id', cargoId)
   if (error) handleSupabaseError(error)

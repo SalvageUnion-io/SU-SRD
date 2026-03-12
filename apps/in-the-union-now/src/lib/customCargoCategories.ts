@@ -22,9 +22,6 @@ const TL_BG_MAP: Record<string, string> = {
   N: 'bg-su-silver',
 }
 
-/** Categories that support a tech level selector */
-export const TECH_LEVEL_CATEGORIES = new Set(['systems', 'modules', 'chassis'])
-
 /** Categories that show tech-level-based header colors */
 const TL_COLOR_CATEGORIES = new Set(['systems', 'modules'])
 

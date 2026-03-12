@@ -22,12 +22,10 @@
       "default": "./dist/index.js"
     },
     "./data/*": {
-      "types": "./data/*.d.ts",
       "import": "./data/*.json",
       "default": "./data/*.json"
     },
     "./schemas/*": {
-      "types": "./schemas/*.d.ts",
       "import": "./schemas/*.json",
       "default": "./schemas/*.json"
     },
@@ -93,12 +91,7 @@
   "dependencies": {
     "zod": "^4.3.6"
   },
-  "devDependencies": {
-    "ajv": "^8.17.1",
-    "ajv-formats": "^3.0.1",
-    "json-schema-to-typescript": "^15.0.4",
-    "jsonschema": "^1.5.0"
-  },
+  "devDependencies": {},
   "engines": {
     "node": ">=18.0.0"
   }

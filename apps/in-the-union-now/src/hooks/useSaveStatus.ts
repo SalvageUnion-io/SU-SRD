@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 
-export type SaveStatus = {
+type SaveStatus = {
   statusText: string
   isSaving: boolean
   lastSavedAt: Date | null

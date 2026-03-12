@@ -8,7 +8,7 @@ import type { ActionCostType } from './pilotActionUtils'
  * Narrow input type for action cost/disabled-reason checks.
  * Only the fields actually inspected by the disabled-reason functions.
  */
-export type ActionCostInput = {
+type ActionCostInput = {
   activationCost?: number | string | null
   requiredTraits?: string[]
 }

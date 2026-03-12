@@ -24,10 +24,6 @@ function DialogPortal({ ...props }: DialogPrimitive.Portal.Props) {
   return <DialogPrimitive.Portal {...props} />
 }
 
-function DialogClose({ ...props }: DialogPrimitive.Close.Props) {
-  return <DialogPrimitive.Close {...props} />
-}
-
 const DialogOverlay = React.forwardRef<
   HTMLDivElement,
   React.ComponentPropsWithoutRef<'div'> & { className?: string }
@@ -104,9 +100,6 @@ DialogDescription.displayName = 'DialogDescription'
 
 export {
   Dialog,
-  DialogPortal,
-  DialogOverlay,
-  DialogClose,
   DialogTrigger,
   DialogContent,
   DialogHeader,

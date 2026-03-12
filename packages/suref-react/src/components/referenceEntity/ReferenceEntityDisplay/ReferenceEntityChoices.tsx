@@ -8,7 +8,7 @@ import type {
   getReferenceEntityFontSizes,
 } from './referenceEntityDisplayTypes'
 
-export type ReferenceEntityChoicesProps = {
+type ReferenceEntityChoicesProps = {
   data: SURefEntity
   spacing: ReturnType<typeof getReferenceEntitySpacing>
   fontSize: ReturnType<typeof getReferenceEntityFontSizes>

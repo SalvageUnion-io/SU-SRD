@@ -92,7 +92,7 @@ export function computeGridDisplayCells(capacity: number, columns: number): numb
  * - Custom items: metadata.salvage_value
  * - Scrap: cargo.amount (quantity)
  */
-export function getCellCount(cargo: CargoRow): number {
+function getCellCount(cargo: CargoRow): number {
   // Scrap: no schema_ref_id, amount IS the cell count
   if (!cargo.schema_ref_id) {
     const metadata = cargo.metadata as Record<string, unknown> | null

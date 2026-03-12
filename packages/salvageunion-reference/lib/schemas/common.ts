@@ -42,18 +42,3 @@ export const TechLevelSchema = z.union([
   z.literal('B'),
   z.literal('N'),
 ])
-
-/**
- * Salvage value in credits
- */
-export const SalvageValueSchema = NonNegativeIntegerSchema
-
-/**
- * Hit points for creatures and personnel
- */
-export const HitPointsSchema = NonNegativeIntegerSchema
-
-/**
- * Structure points for mechs, vehicles, and titans
- */
-export const StructurePointsSchema = PositiveIntegerSchema

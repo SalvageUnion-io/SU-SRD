@@ -23,7 +23,7 @@ export function getMechSourcePattern(mech: MechRow): MechSourcePattern | null {
 // Mech Stats Computation
 // ---------------------------------------------------------------------------
 
-export type MechStats = {
+type MechStats = {
   max_sp: number
   max_ep: number
   heat_capacity: number
