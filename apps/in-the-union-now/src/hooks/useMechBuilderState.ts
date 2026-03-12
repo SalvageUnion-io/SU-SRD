@@ -228,5 +228,3 @@ export function useMechBuilderState({
     reset,
   }
 }
-
-export type { MechBuilderStateReturn, ModalTarget }

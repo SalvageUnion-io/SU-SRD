@@ -7,8 +7,6 @@ import {
   NonNegativeIntegerSchema,
   PositiveIntegerSchema,
   TechLevelSchema,
-  SalvageValueSchema,
-  HitPointsSchema,
   NameSchema,
   IdSchema,
   AssetUrlSchema,
@@ -45,7 +43,7 @@ export const StatsSchema = z.object({
   moduleSlots: NonNegativeIntegerSchema.optional(),
   cargoCapacity: NonNegativeIntegerSchema.optional(),
   techLevel: TechLevelSchema.optional(),
-  salvageValue: SalvageValueSchema.optional(),
+  salvageValue: NonNegativeIntegerSchema.optional(),
 })
 
 /**
@@ -59,7 +57,7 @@ export const ChassisStatsSchema = z.object({
   moduleSlots: NonNegativeIntegerSchema.optional(),
   cargoCapacity: NonNegativeIntegerSchema.optional(),
   techLevel: TechLevelSchema.optional(),
-  salvageValue: SalvageValueSchema.optional(),
+  salvageValue: NonNegativeIntegerSchema.optional(),
 })
 
 /**
@@ -67,7 +65,7 @@ export const ChassisStatsSchema = z.object({
  */
 export const EquipmentStatsSchema = z.object({
   techLevel: TechLevelSchema.optional(),
-  salvageValue: SalvageValueSchema.optional(),
+  salvageValue: NonNegativeIntegerSchema.optional(),
 })
 
 /**
@@ -84,7 +82,7 @@ export const CombatEntitySchema = z.object({
 export const MechanicalEntitySchema = z.object({
   structurePoints: PositiveIntegerSchema.optional(),
   techLevel: TechLevelSchema.optional(),
-  salvageValue: SalvageValueSchema.optional(),
+  salvageValue: NonNegativeIntegerSchema.optional(),
   systems: z.array(z.string()).optional(),
   traits: z.array(TraitSchema).optional(),
   energyPoints: NonNegativeIntegerSchema.optional(),
@@ -319,7 +317,7 @@ export const PatternSystemModuleSchema = z
 export const SystemModuleSchema = StatsSchema.extend({
   techLevel: TechLevelSchema,
   slotsRequired: NonNegativeIntegerSchema,
-  salvageValue: SalvageValueSchema,
+  salvageValue: NonNegativeIntegerSchema,
   recommended: z.boolean().optional(),
   count: NonNegativeIntegerSchema.optional(),
   actions: z.array(z.string()),
@@ -414,14 +412,14 @@ export const ChoicesSchema = z.array(ChoiceSchema)
 export const NpcSchema: z.ZodType<{
   position: string
   content?: z.infer<typeof ContentSchema>
-  hitPoints: z.infer<typeof HitPointsSchema>
+  hitPoints: z.infer<typeof NonNegativeIntegerSchema>
   choices?: z.infer<typeof ChoicesSchema>
 }> = z.lazy(() =>
   z
     .object({
       position: NameSchema,
       content: ContentSchema.optional(),
-      hitPoints: HitPointsSchema,
+      hitPoints: NonNegativeIntegerSchema,
       choices: ChoicesSchema.optional(),
     })
     .strict()
@@ -557,11 +555,6 @@ export const BaseEntitySchema = z.object({
   source: SourceSchema,
   page: PositiveIntegerSchema,
 })
-
-/**
- * Bonus values that increase with tech level
- */
-export const BonusPerTechLevelSchema = StatsSchema
 
 /**
  * Advanced or hybrid character class

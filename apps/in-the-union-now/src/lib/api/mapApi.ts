@@ -2,16 +2,6 @@ import { supabase } from '../supabase'
 import { handleSupabaseError } from '../errors'
 import type { MapLayerRow, MapLayerInsert, MapLayerUpdate } from '../../types/common'
 
-export async function getMapLayers(campaignId: string): Promise<MapLayerRow[]> {
-  const { data, error } = await supabase
-    .from('map_layers')
-    .select('*')
-    .eq('campaign_id', campaignId)
-    .order('created_at', { ascending: true })
-  if (error) handleSupabaseError(error)
-  return data!
-}
-
 export async function getMapLayer(
   campaignId: string,
   tier: string,
@@ -49,9 +39,4 @@ export async function updateMapLayer(layerId: string, input: MapLayerUpdate): Pr
     .single()
   if (error) handleSupabaseError(error)
   return data!
-}
-
-export async function deleteMapLayer(layerId: string): Promise<void> {
-  const { error } = await supabase.from('map_layers').delete().eq('id', layerId)
-  if (error) handleSupabaseError(error)
 }

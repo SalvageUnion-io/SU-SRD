@@ -7,9 +7,6 @@ import { showSaveToast } from '../lib/toastUtils'
 import { getErrorMessage } from '../lib/errors'
 import { usePlayerChoiceValue, playerChoiceKeys } from './usePlayerChoiceValue'
 
-// Re-export keys for consumers that import them from here
-export { playerChoiceKeys }
-
 export function usePlayerChoices(parentId: string | undefined) {
   return useQuery({
     queryKey: playerChoiceKeys.forParent(parentId!),

@@ -45,7 +45,7 @@ function resolveEntityName(
   return undefined
 }
 
-export type ReferenceEntityListDisplayProps = {
+type ReferenceEntityListDisplayProps = {
   choice: SURefObjectChoice
   selectedChoice?: string
   isMultiSelect?: boolean

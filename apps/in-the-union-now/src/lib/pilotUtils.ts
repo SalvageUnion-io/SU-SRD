@@ -147,7 +147,7 @@ export type ConstraintOverride = (
  * Resolve the effective min for a step.
  * Checks override first, then falls back to static `constraints.min` or 1.
  */
-export function resolveConstraintMin(
+function resolveConstraintMin(
   step: SURefObjectGuideStep,
   state: WizardState,
   steps: SURefObjectGuideStep[],
@@ -204,7 +204,7 @@ export function resolveConstraintMax(
 // ---------------------------------------------------------------------------
 
 /** Roll a d20 (1-20) */
-export function rollD20(): number {
+function rollD20(): number {
   return Math.floor(Math.random() * 20) + 1
 }
 

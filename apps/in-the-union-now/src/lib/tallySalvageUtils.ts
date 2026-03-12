@@ -4,12 +4,12 @@ import type { CargoRow } from '../types/common'
 
 export type CargoDecision = 'scrap' | 'storage'
 
-export type RawScrapGroup = {
+type RawScrapGroup = {
   techLevel: number
   amount: number
 }
 
-export type TalliedEntityItem = {
+type TalliedEntityItem = {
   cargoId: string
   name: string
   schemaName: string
@@ -18,7 +18,7 @@ export type TalliedEntityItem = {
   salvageValue: number
 }
 
-export type TallySummary = {
+type TallySummary = {
   scrapByTL: Record<number, number>
   storageItems: TalliedEntityItem[]
 }

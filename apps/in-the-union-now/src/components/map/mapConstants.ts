@@ -18,12 +18,6 @@ export const CHILD_TIER: Record<MapTier, MapTier | null> = {
   area: null,
 }
 
-export const PARENT_TIER: Record<MapTier, MapTier | null> = {
-  campaign: null,
-  region: 'campaign',
-  area: 'region',
-}
-
 export const ZONE_COLORS = [
   '#FF6B35',
   '#E91E63',
@@ -48,7 +42,6 @@ export const CONNECTION_COLORS = [
 
 export const DEFAULT_ZONE_COLOR = ZONE_COLORS[0]
 export const DEFAULT_ZONE_OPACITY = 0.3
-export const DEFAULT_CONNECTION_COLOR = CONNECTION_COLORS[0]
 
 export const MIN_ZOOM = 1
 export const MAX_ZOOM = 6

@@ -31,7 +31,6 @@
     "suref-react": "workspace:*"
   },
   "devDependencies": {
-    "prettier-plugin-astro": "^0.14.0",
     "sharp": "0.34.5"
   }
 }

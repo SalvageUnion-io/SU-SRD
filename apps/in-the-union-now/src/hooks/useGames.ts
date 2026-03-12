@@ -5,13 +5,11 @@ import {
   getGameByCrawlerId,
   getGameMembers,
   createGame,
-  updateGame,
   deleteGame,
   joinGame,
   regenerateInviteCode,
   archiveGame,
 } from '../lib/api/gameApi'
-import type { CampaignUpdate } from '../types/common'
 
 export const gameKeys = {
   all: ['games'] as const,
@@ -62,19 +60,6 @@ export function useCreateGame() {
     mutationFn: ({ userId, name }: { userId: string; name: string }) => createGame(userId, name),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: gameKeys.lists() })
-    },
-  })
-}
-
-export function useUpdateGame() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: ({ gameId, input }: { gameId: string; input: CampaignUpdate }) =>
-      updateGame(gameId, input),
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: gameKeys.lists() })
-      queryClient.setQueryData(gameKeys.detail(data.id), data)
     },
   })
 }

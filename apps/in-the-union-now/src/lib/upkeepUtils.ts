@@ -10,14 +10,14 @@ export type CrawlerScrap = {
   tl6: number
 }
 
-export type ScrapConversion = {
+type ScrapConversion = {
   fromTL: number
   toTL: number
   sourceConsumed: number
   targetAmount: number
 }
 
-export type UpkeepAffordability =
+type UpkeepAffordability =
   | { canAfford: true; directPay: true }
   | { canAfford: true; directPay: false; conversions: ScrapConversion[] }
   | { canAfford: false }

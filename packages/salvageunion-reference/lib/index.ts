@@ -86,6 +86,8 @@ import {
 
 export type * from './types/index.js'
 
+export { getJsonSchemaDefinition, getAllJsonSchemaDefinitions } from './schemaDefinitions.js'
+
 // Type mapping from schema names to entity types (includes entity schemas and meta schemas)
 export type SchemaToEntityMap = {
   abilities: SURefAbility

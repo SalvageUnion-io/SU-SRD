@@ -5,9 +5,7 @@ import { buildReferenceEntityStats } from './referenceEntityStatsConfig'
 import type { SvOverride } from './referenceEntityStatsConfig'
 import { cn } from '../../../utils/cn'
 
-export type { SvOverride }
-
-export type ReferenceEntityStatsProps = {
+type ReferenceEntityStatsProps = {
   data: SURefMetaEntity | SURefObjectBonusPerTechLevel
   compact: boolean
   listing?: boolean

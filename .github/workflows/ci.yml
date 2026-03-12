@@ -70,6 +70,38 @@ jobs:
           path: packages/salvageunion-reference/dist/
           retention-days: 1
 
+  knip:
+    needs: [build-package]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Cache Bun dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ hashFiles('**/bun.lock') }}
+          restore-keys: |
+            bun-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Download package dist
+        uses: actions/download-artifact@v4
+        with:
+          name: package-dist
+          path: packages/salvageunion-reference/dist/
+
+      - name: Knip
+        run: bun run knip
+
   typecheck:
     needs: [build-package]
     runs-on: ubuntu-latest
@@ -160,7 +192,7 @@ jobs:
         run: bun run validate:all
 
   build:
-    needs: [lint, typecheck, test, validate]
+    needs: [lint, typecheck, test, validate, knip]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

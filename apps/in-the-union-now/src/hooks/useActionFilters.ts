@@ -37,7 +37,7 @@ function matchesCategoryFilter(
   return false
 }
 
-export function matchesFilters(
+function matchesFilters(
   action: ActionDisplayData,
   activeTypes: Set<ActionTypeFilter>,
   activeCategories: Set<CategoryFilter>

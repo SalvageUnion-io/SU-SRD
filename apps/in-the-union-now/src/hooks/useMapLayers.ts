@@ -1,11 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import {
-  getMapLayers,
-  getMapLayer,
-  upsertMapLayer,
-  updateMapLayer,
-  deleteMapLayer,
-} from '../lib/api/mapApi'
+import { getMapLayer, upsertMapLayer, updateMapLayer } from '../lib/api/mapApi'
 import type { MapLayerRow, MapLayerInsert, MapLayerUpdate } from '../types/common'
 
 export const mapKeys = {
@@ -13,14 +7,6 @@ export const mapKeys = {
   forCampaign: (campaignId: string) => [...mapKeys.all, campaignId] as const,
   layer: (campaignId: string, tier: string, parentZoneId: string | null) =>
     [...mapKeys.all, campaignId, tier, parentZoneId ?? '__root__'] as const,
-}
-
-export function useMapLayers(campaignId: string | undefined) {
-  return useQuery({
-    queryKey: mapKeys.forCampaign(campaignId ?? ''),
-    queryFn: () => getMapLayers(campaignId!),
-    enabled: !!campaignId,
-  })
 }
 
 export function useMapLayer(
@@ -81,17 +67,6 @@ export function useUpdateMapLayer() {
         data
       )
       queryClient.invalidateQueries({ queryKey: mapKeys.forCampaign(data.campaign_id) })
-    },
-  })
-}
-
-export function useDeleteMapLayer() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: ({ layerId }: { layerId: string; campaignId: string }) => deleteMapLayer(layerId),
-    onSuccess: (_data, { campaignId }) => {
-      queryClient.invalidateQueries({ queryKey: mapKeys.forCampaign(campaignId) })
     },
   })
 }

@@ -1,0 +1,31 @@
+{
+  "$schema": "https://unpkg.com/knip@latest/schema.json",
+  "ignoreBinaries": ["lefthook"],
+  "ignoreDependencies": ["tailwindcss"],
+  "workspaces": {
+    ".": {
+      "entry": ["tools/**/*.ts", "eslint.base.js"],
+      "project": ["tools/**/*.ts"]
+    },
+    "packages/salvageunion-reference": {
+      "project": ["lib/**/*.ts", "tools/**/*.ts"]
+    },
+    "packages/suref-react": {
+      "project": ["src/**/*.{ts,tsx}"]
+    },
+    "apps/suref-web": {
+      "entry": ["src/pages/**/*.{astro,ts,tsx}"],
+      "project": ["src/**/*.{ts,tsx,astro}"],
+      "ignoreDependencies": ["sharp"]
+    },
+    "apps/in-the-union-now": {
+      "entry": ["src/routes/**/*.tsx"],
+      "project": ["src/**/*.{ts,tsx}"],
+      "ignore": ["src/types/database-generated.types.ts"],
+      "ignoreDependencies": ["@tanstack/router-plugin"]
+    },
+    "apps/discord-bot": {
+      "project": ["src/**/*.ts"]
+    }
+  }
+}

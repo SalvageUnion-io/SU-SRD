@@ -31,9 +31,6 @@ import {
   AssetUrlSchema,
   ActivationCostSchema,
   TechLevelSchema,
-  SalvageValueSchema,
-  HitPointsSchema,
-  StructurePointsSchema,
 } from './common.js'
 
 import {
@@ -57,7 +54,6 @@ import {
   DamageSchema,
   ActionSchema,
   BaseEntitySchema,
-  BonusPerTechLevelSchema,
   AdvancedClassSchema,
   FormationMechSchema,
   GrantSchema,
@@ -117,9 +113,9 @@ export type SURefCommonPositiveInteger = z.infer<typeof PositiveIntegerSchema>
 export type SURefCommonAssetUrl = z.infer<typeof AssetUrlSchema>
 export type SURefCommonActivationCost = z.infer<typeof ActivationCostSchema>
 export type SURefCommonTechLevel = z.infer<typeof TechLevelSchema>
-export type SURefCommonSalvageValue = z.infer<typeof SalvageValueSchema>
-export type SURefCommonHitPoints = z.infer<typeof HitPointsSchema>
-export type SURefCommonStructurePoints = z.infer<typeof StructurePointsSchema>
+export type SURefCommonSalvageValue = z.infer<typeof NonNegativeIntegerSchema>
+export type SURefCommonHitPoints = z.infer<typeof NonNegativeIntegerSchema>
+export type SURefCommonStructurePoints = z.infer<typeof PositiveIntegerSchema>
 
 // Object types
 export type SURefObjectTrait = z.infer<typeof TraitSchema>
@@ -142,7 +138,7 @@ export type SURefObjectPattern = z.infer<typeof PatternSchema>
 export type SURefObjectDamage = z.infer<typeof DamageSchema>
 export type SURefObjectAction = z.infer<typeof ActionSchema>
 export type SURefObjectBaseEntity = z.infer<typeof BaseEntitySchema>
-export type SURefObjectBonusPerTechLevel = z.infer<typeof BonusPerTechLevelSchema>
+export type SURefObjectBonusPerTechLevel = z.infer<typeof StatsSchema>
 export type SURefObjectAdvancedClass = z.infer<typeof AdvancedClassSchema>
 export type SURefObjectFormationMech = z.infer<typeof FormationMechSchema>
 export type SURefObjectGrant = z.infer<typeof GrantSchema>

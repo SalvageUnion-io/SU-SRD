@@ -1,7 +1,7 @@
 import { supabase } from '../supabase'
 import { handleSupabaseError } from '../errors'
 import { generateInviteCode } from '../gameUtils'
-import type { CampaignRow, CampaignMemberRow, CampaignUpdate } from '../../types/common'
+import type { CampaignRow, CampaignMemberRow } from '../../types/common'
 
 export async function listGames(userId: string, includeArchived = false): Promise<CampaignRow[]> {
   let query = supabase.from('campaign_members').select('campaigns!inner(*)').eq('user_id', userId)
@@ -73,18 +73,6 @@ export async function createGame(userId: string, name: string): Promise<Campaign
   if (memberError) handleSupabaseError(memberError)
 
   return campaign!
-}
-
-export async function updateGame(gameId: string, input: CampaignUpdate): Promise<CampaignRow> {
-  const { data, error } = await supabase
-    .from('campaigns')
-    .update(input)
-    .eq('id', gameId)
-    .select()
-    .single()
-
-  if (error) handleSupabaseError(error)
-  return data!
 }
 
 export async function deleteGame(gameId: string): Promise<void> {

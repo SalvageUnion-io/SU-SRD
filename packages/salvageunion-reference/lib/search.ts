@@ -18,20 +18,6 @@ const MAX_CACHE_SIZE = 100
 const searchCache = new Map<string, SearchResult[]>()
 
 /**
- * Clear the search cache (useful when data is reloaded)
- */
-export function clearSearchCache(): void {
-  searchCache.clear()
-}
-
-/**
- * Get cache size
- */
-export function getCacheSize(): number {
-  return searchCache.size
-}
-
-/**
  * Trim cache if it exceeds max size (LRU eviction)
  */
 function trimCache(): void {

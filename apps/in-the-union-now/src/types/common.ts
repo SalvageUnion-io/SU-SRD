@@ -1,6 +1,3 @@
-// Enum types - canonical definitions in salvageunion-reference
-export type { ParentType, ItemCondition } from 'salvageunion-reference'
-
 // DB row types - derived from Supabase-generated types (never hand-written)
 import type { Database } from './database-generated.types'
 
@@ -19,23 +16,14 @@ export type MapLayerInsert = Database['public']['Tables']['map_layers']['Insert'
 export type MapLayerUpdate = Database['public']['Tables']['map_layers']['Update']
 
 // Insert types (for create operations)
-export type MechPatternInsert = Database['public']['Tables']['mech_patterns']['Insert']
-export type PilotInsert = Database['public']['Tables']['pilots']['Insert']
-export type MechInsert = Database['public']['Tables']['mechs']['Insert']
-export type CrawlerInsert = Database['public']['Tables']['crawlers']['Insert']
 export type EntityRefInsert = Database['public']['Tables']['entity_refs']['Insert']
 export type PlayerChoiceInsert = Database['public']['Tables']['player_choices']['Insert']
 
 // Update types (for edit operations)
-export type MechPatternUpdate = Database['public']['Tables']['mech_patterns']['Update']
 export type PilotUpdate = Database['public']['Tables']['pilots']['Update']
 export type MechUpdate = Database['public']['Tables']['mechs']['Update']
 export type CrawlerUpdate = Database['public']['Tables']['crawlers']['Update']
 export type EntityRefUpdate = Database['public']['Tables']['entity_refs']['Update']
-export type PlayerChoiceUpdate = Database['public']['Tables']['player_choices']['Update']
-
-// Typed update handler - constrains field names and value types
-export type EntityUpdateHandler<T> = <K extends keyof T>(field: K, value: T[K]) => void
 
 // Pattern builder types
 export type PatternItem = {
@@ -89,9 +77,6 @@ export type SelectedPattern =
     }
   | { source: 'player'; pattern: TypedPatternRow }
 
-// Campaign insert/update types
-export type CampaignInsert = Database['public']['Tables']['campaigns']['Insert']
-export type CampaignUpdate = Database['public']['Tables']['campaigns']['Update']
 // Bay NPC data for crawler JSONB field
 export type BayNpcData = {
   name?: string

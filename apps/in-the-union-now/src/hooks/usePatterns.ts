@@ -8,7 +8,7 @@ import {
 } from '../lib/api/patternApi'
 import type { CreatePatternInput, TypedPatternRow, UpdatePatternInput } from '../types/common'
 
-export const patternKeys = {
+const patternKeys = {
   all: ['patterns'] as const,
   lists: () => [...patternKeys.all, 'list'] as const,
   list: (userId: string) => [...patternKeys.lists(), userId] as const,
