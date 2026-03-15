@@ -124,6 +124,12 @@ export function SearchIsland() {
 
   return (
     <div className="relative" ref={containerRef}>
+      <div className="sr-only" aria-live="polite">
+        {hasSearched &&
+          (results.length > 0
+            ? `${results.length} result${results.length === 1 ? '' : 's'} found`
+            : 'No results found')}
+      </div>
       <input
         ref={inputRef}
         type="text"
