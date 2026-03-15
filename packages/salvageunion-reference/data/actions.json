@@ -1317,7 +1317,7 @@
       },
       {
         "type": "paragraph",
-        "value": "The Iron Wyrm remains burrowed until it unborrows as a Turn Action where it emerges at a point of the Pilot's choice within Close Range of it."
+        "value": "The Iron Wyrm remains burrowed until it unburrows as a Turn Action where it emerges at a point of the Pilot's choice within Close Range of it."
       },
       {
         "type": "paragraph",
@@ -1932,7 +1932,7 @@
     "actionSource": "modules"
   },
   {
-    "name": "Coolant Flush",
+    "name": "Active Scan",
     "activationCost": 2,
     "actionType": "Short",
     "range": ["Medium"],
@@ -2102,6 +2102,10 @@
       {
         "type": "paragraph",
         "value": "When rolling attacks as a Pilot or in your Mech, you score a 'Nailed it' result on a result of 19 - 20."
+      },
+      {
+        "type": "paragraph",
+        "value": "In addition, increase your Pilot's HP Max by 2."
       }
     ],
     "actionSource": "abilities"
@@ -2698,6 +2702,14 @@
   {
     "id": "c0af420b-1690-42c9-99b4-b17f084a1191",
     "name": "Eggs Mayhem",
+    "activationCost": 2,
+    "actionType": "Turn",
+    "range": ["Medium"],
+    "traits": [
+      {
+        "type": "hacking"
+      }
+    ],
     "content": [
       {
         "type": "paragraph",
@@ -2838,6 +2850,7 @@
         "type": "shield"
       }
     ],
+    "activationCost": 2,
     "range": ["Close"],
     "name": "Electro-Magnetic Shield Projector",
     "content": [
@@ -4926,6 +4939,7 @@
   },
   {
     "id": "c0a19b9c-2344-4f21-9aae-b28b7123aa94",
+    "activationCost": 1,
     "actionType": "Reaction",
     "name": "Laser Anti-Missile System",
     "content": [
@@ -5755,6 +5769,10 @@
       },
       {
         "type": "missile"
+      },
+      {
+        "type": "uses",
+        "amount": 6
       }
     ],
     "name": "Missile Pod",
@@ -6037,6 +6055,7 @@
   },
   {
     "id": "62929252-d0f2-42d3-8480-dbf6e2c69455",
+    "activationCost": "X",
     "actionType": "Turn",
     "traits": [
       {
@@ -6375,6 +6394,10 @@
       },
       {
         "type": "targeter"
+      },
+      {
+        "type": "uses",
+        "amount": 30
       }
     ],
     "name": "Needle Missile Pod",
@@ -7789,6 +7812,7 @@
         "type": "shield"
       }
     ],
+    "activationCost": 2,
     "range": ["Close"],
     "name": "Refractive Shield Projector",
     "content": [
@@ -8378,6 +8402,7 @@
         "type": "shield"
       }
     ],
+    "activationCost": "X",
     "range": ["Close"],
     "name": "Shield Dome",
     "content": [
@@ -8673,7 +8698,7 @@
     "content": [
       {
         "type": "paragraph",
-        "value": "When Typhon unborrows all targets within Close Range of the area it unburrows up to take 5 SP damage from its spiked carapace. In addition, any target that attacks Typhon with an attack that has the [[Melee]] Trait takes 3 SP damage on a hit."
+        "value": "When Typhon unburrows all targets within Close Range of the area it unburrows up to take 5 SP damage from its spiked carapace. In addition, any target that attacks Typhon with an attack that has the [[Melee]] Trait takes 3 SP damage on a hit."
       }
     ],
     "actionSource": "bio-titans"
@@ -9530,7 +9555,7 @@
       },
       {
         "type": "paragraph",
-        "value": "Overcharge a Reactor beyond it's initial capacity to gain additional Pushes."
+        "value": "Overcharge a Reactor beyond its initial capacity to gain additional Pushes."
       }
     ],
     "actionSource": "abilities"
@@ -10351,6 +10376,9 @@
     "traits": [
       {
         "type": "melee"
+      },
+      {
+        "type": "rigging"
       }
     ],
     "content": [
@@ -11499,7 +11527,7 @@
     "content": [
       {
         "type": "paragraph",
-        "value": "Apophis crushes all targets that it has constricted. This automatically deals 12 SP damage to the targets, and a random System or Module on a Mech is destroyed. (THe₂x damage of the Vulnerable Trait is factored into this damage.)"
+        "value": "Apophis crushes all targets that it has constricted. This automatically deals 12 SP damage to the targets, and a random System or Module on a Mech is destroyed. (The 2x damage of the Vulnerable Trait is factored into this damage.)"
       }
     ],
     "actionSource": "bio-titans"

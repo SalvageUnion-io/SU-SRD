@@ -54,7 +54,7 @@
       },
       "6-10": {
         "label": "Wait and See",
-        "value": "One NPC chosen by the players acts first. Play then passes to the player group and one Pilot chosen by the players acts."
+        "value": "One NPC chosen by the Mediator acts first. Play then passes to the player group and one Pilot chosen by the players acts."
       },
       "2-5": {
         "label": "Fumble",
@@ -62,7 +62,7 @@
       },
       "type": "standard"
     },
-    "page": 330,
+    "page": 337,
     "content": [
       {
         "type": "paragraph",
@@ -98,7 +98,7 @@
       },
       "type": "standard"
     },
-    "page": 323,
+    "page": 338,
     "content": [
       {
         "type": "paragraph",
@@ -230,7 +230,7 @@
       },
       "type": "standard"
     },
-    "page": 2,
+    "page": 248,
     "indexable": true
   },
   {
@@ -591,7 +591,7 @@
       },
       "type": "standard"
     },
-    "page": 7,
+    "page": 219,
     "indexable": true
   },
   {
@@ -612,7 +612,7 @@
         "value": "Choose a Bay on your Union Crawler. It is Damaged and inoperable. You no longer benefit from any of its functions until it is repaired to the Intact Condition. Around 5% of your Union Crawler's population are severely injured or killed."
       },
       "2-5": {
-        "value": "A Bay chosen at random on your Union Crawler is Damaged and inoperable. You no longer benefit from any of its functions until it is repaired to the Intact Condition."
+        "value": "A Bay chosen at random on your Union Crawler is Damaged and inoperable. You no longer benefit from any of its functions until it is repaired to the Intact Condition. Around 5% of your Union Crawler's population are severely injured or killed."
       },
       "type": "standard"
     },
@@ -671,7 +671,7 @@
         "value": "Walkman"
       },
       "8": {
-        "value": "Scuffed Book"
+        "value": "Scruffed Book"
       },
       "9": {
         "value": "Butterfly Earrings"
@@ -711,7 +711,7 @@
       },
       "type": "flat"
     },
-    "page": 24,
+    "page": 90,
     "content": [
       {
         "type": "paragraph",
@@ -786,7 +786,7 @@
       },
       "type": "flat"
     },
-    "page": 24,
+    "page": 90,
     "content": [
       {
         "type": "paragraph",
@@ -861,7 +861,7 @@
       },
       "type": "flat"
     },
-    "page": 332,
+    "page": 91,
     "content": [
       {
         "type": "paragraph",
@@ -936,7 +936,7 @@
       },
       "type": "flat"
     },
-    "page": 208
+    "page": 91
   },
   {
     "id": "3ba3c58c-4f75-454f-be16-6bd3236b79d8",
@@ -1080,7 +1080,7 @@
       },
       "type": "flat"
     },
-    "page": 94,
+    "page": 208,
     "content": [
       {
         "type": "paragraph",
@@ -1295,7 +1295,7 @@
         "value": "A Chimerium Harvester System"
       },
       "5": {
-        "value": "An Acid Spitter"
+        "value": "An Acid Spitter Mule"
       },
       "6": {
         "value": "A Mutant Pattern Thresher"
@@ -2104,7 +2104,7 @@
       },
       "type": "standard"
     },
-    "page": 331
+    "page": 73
   },
   {
     "id": "579d82ab-fb44-4c4e-9b30-6ecf97df9f76",
@@ -2196,7 +2196,7 @@
         "value": "The target is struck by dense coils of wiring looms which wind around it. It takes SP damage equal to 2× the Tech Level of the Scrap and falls Prone."
       },
       "13": {
-        "value": "Streams of superheated gas lash out at the target. The attack deals SP damage equal to tHe₂× the Tech Level of the Scrap and the attack has the [[[Burn] (X)]] Trait, where X is the Tech Level of the Scrap."
+        "value": "Streams of superheated gas lash out at the target. The attack deals SP damage equal to the 2× the Tech Level of the Scrap and the attack has the [[[Burn] (X)]] Trait, where X is the Tech Level of the Scrap."
       },
       "14": {
         "value": "The Mechapult was loaded with crude oil. The target is hit for SP damage equal to 2× the Tech Level of the Scrap and the area around them is coated in slippery, flammable oil. This can be ignited and moving within it can cause a Mech or Creature to fall prone."
@@ -2211,7 +2211,7 @@
         "value": "A bundle of carbon fibre rods fire at the target. It takes SP damage equal to 3× the Tech Level of the Scrap and is skewered to the ground. It cannot move and gains the [[Vulnerable]] Trait until it takes an action to free itself."
       },
       "18": {
-        "value": "The scrap carves through the target flaying chunks off of it. A number of random Systems equal to the Tech Level of the Scrap on the target are damaged. In addition, it takes SP damage equal to tHe₂× Tech Level of the Scrap."
+        "value": "The scrap carves through the target flaying chunks off of it. A number of random Systems equal to the Tech Level of the Scrap on the target are damaged. In addition, it takes SP damage equal to the 2× Tech Level of the Scrap."
       },
       "19": {
         "value": "A heavy lump of scrap strikes the target with a devastating blow. The target is hit for SP damage equal to 4× the Tech Level of the Scrap"
@@ -2514,7 +2514,7 @@
       },
       "type": "standard"
     },
-    "page": 194
+    "page": 192
   },
   {
     "id": "117faf24-a910-4625-93bb-71572ff32cf6",
@@ -2674,7 +2674,7 @@
   },
   {
     "id": "8c107425-8ddf-49dd-9882-7559a4fda62b",
-    "source": "Salvage Union Workshop Manual",
+    "source": "False Flag",
     "name": "Nanite Reconstruction",
     "table": {
       "1": {
@@ -2703,7 +2703,7 @@
   },
   {
     "id": "b2eb603f-036a-4984-b79b-330e745554d3",
-    "source": "Salvage Union Workshop Manual",
+    "source": "False Flag",
     "name": "Meld Distorter",
     "table": {
       "1": {
@@ -2747,7 +2747,7 @@
         "value": "An Intact System and an Intact Module are available for trade."
       }
     },
-    "page": 222
+    "page": 223
   },
   {
     "id": "3ea86f23-1c17-4236-a772-47d0e0f7c165",

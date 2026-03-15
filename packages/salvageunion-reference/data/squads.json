@@ -55,7 +55,7 @@
     ],
     "hitPoints": 10,
     "damageType": "HP",
-    "page": 274,
+    "page": 300,
     "content": [
       {
         "type": "paragraph",
@@ -93,7 +93,7 @@
     ],
     "hitPoints": 20,
     "damageType": "HP",
-    "asset_url": "https://opxrguskxuogghzcnppk.supabase.co/storage/v1/object/public/LP-Assets/squads/elite%20beam%20squad.jpg",
+    "asset_url": "https://opxrguskxuogghzcnppk.supabase.co/storage/v1/object/public/LP-Assets/squads/elite%20blade%20squad.jpg",
     "page": 301,
     "content": [
       {
@@ -128,7 +128,7 @@
     "actions": ["Stampede"],
     "hitPoints": 4,
     "damageType": "HP",
-    "page": 270,
+    "page": 301,
     "content": [
       {
         "type": "paragraph",
@@ -230,6 +230,21 @@
       {
         "type": "paragraph",
         "value": "Daring riders who pin targets with servo-lassos and then skewer them with their lances."
+      }
+    ]
+  },
+  {
+    "id": "ba77796e-494f-4744-890c-a84dae2098e2",
+    "name": "Chimerium Mutant Squad",
+    "source": "We Were Here First!",
+    "page": 54,
+    "hitPoints": 10,
+    "damageType": "HP",
+    "actions": ["Mutated Weapons (Chimerium Mutant Squad)"],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A mass of mutated appendages."
       }
     ]
   }

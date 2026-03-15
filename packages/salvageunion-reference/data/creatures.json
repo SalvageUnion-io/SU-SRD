@@ -25,7 +25,7 @@
     ],
     "actions": ["Acid Spit", "Corrosive Skin Glands"],
     "hitPoints": 2,
-    "page": 266,
+    "page": 296,
     "content": [
       {
         "type": "paragraph",
@@ -40,7 +40,7 @@
     "asset_url": "https://opxrguskxuogghzcnppk.supabase.co/storage/v1/object/public/LP-Assets/creatures/chimeripede.jpg",
     "actions": ["Barbed Tentacles"],
     "hitPoints": 10,
-    "page": 272,
+    "page": 296,
     "content": [
       {
         "type": "paragraph",
@@ -74,7 +74,7 @@
     ],
     "actions": ["Iron Claw"],
     "hitPoints": 12,
-    "page": 266,
+    "page": 297,
     "content": [
       {
         "type": "paragraph",
@@ -93,7 +93,7 @@
     ],
     "actions": ["Talons"],
     "hitPoints": 3,
-    "page": 266,
+    "page": 297,
     "content": [
       {
         "type": "paragraph",

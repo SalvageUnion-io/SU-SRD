@@ -57,7 +57,7 @@
     "source": "Salvage Union Workshop Manual",
     "name": "Improvised Melee Weapon",
     "techLevel": 1,
-    "page": 298,
+    "page": 81,
     "actions": ["Improvised Melee Weapon"]
   },
   {
@@ -65,7 +65,7 @@
     "source": "Salvage Union Workshop Manual",
     "name": "Portable Comms Unit",
     "techLevel": 1,
-    "page": 301,
+    "page": 81,
     "actions": ["Portable Comms Unit"]
   },
   {
@@ -73,7 +73,7 @@
     "source": "Salvage Union Workshop Manual",
     "name": "Salvaging Tools",
     "techLevel": 1,
-    "page": 298,
+    "page": 81,
     "actions": ["Salvaging Tools"]
   },
   {
@@ -97,7 +97,7 @@
     "source": "Salvage Union Workshop Manual",
     "name": "Pistol",
     "techLevel": 2,
-    "page": 314,
+    "page": 81,
     "actions": ["Pistol"]
   },
   {
@@ -189,7 +189,7 @@
     "source": "Salvage Union Workshop Manual",
     "name": "Green Laser Rifle",
     "techLevel": 3,
-    "page": 313,
+    "page": 82,
     "actions": ["Green Laser Rifle"]
   },
   {
@@ -258,7 +258,7 @@
     "source": "Salvage Union Workshop Manual",
     "name": "Reactive Armour",
     "techLevel": 3,
-    "page": 333,
+    "page": 83,
     "actions": ["Reactive Armour"]
   },
   {
@@ -266,7 +266,7 @@
     "source": "Salvage Union Workshop Manual",
     "name": "Rifle",
     "techLevel": 3,
-    "page": 127,
+    "page": 83,
     "actions": ["Rifle"]
   },
   {
@@ -303,7 +303,7 @@
     "source": "Salvage Union Workshop Manual",
     "name": "Electro Grappling Hook",
     "techLevel": 4,
-    "page": 301,
+    "page": 84,
     "actions": ["Electro Grappling Hook"]
   },
   {
@@ -343,7 +343,7 @@
     "source": "Salvage Union Workshop Manual",
     "name": "Sniper Rifle",
     "techLevel": 4,
-    "page": 47,
+    "page": 85,
     "actions": ["Sniper Rifle"]
   },
   {
@@ -351,7 +351,7 @@
     "source": "Salvage Union Workshop Manual",
     "name": "Monomolecular Sword",
     "techLevel": 5,
-    "page": 301,
+    "page": 85,
     "actions": ["Monomolecular Sword"]
   },
   {
@@ -570,7 +570,7 @@
     "id": "12345678-90ab-4cd1-82e3-456789012345"
   },
   {
-    "name": "WingSuit",
+    "name": "Wingsuit",
     "indexable": false,
     "source": "Salvage Union Workshop Manual",
     "techLevel": 1,
@@ -584,7 +584,7 @@
     "source": "Salvage Union Workshop Manual",
     "techLevel": 1,
     "actions": ["Hacking Kit"],
-    "page": 51,
+    "page": 34,
     "id": "c9929a61-d5fc-4362-827f-d0c7644ddd3d"
   },
   {
@@ -606,7 +606,7 @@
     "id": "f09dddca-4cf3-45fd-8ce7-640048a5c43d"
   },
   {
-    "name": "Knife Missle",
+    "name": "Knife Missile",
     "indexable": false,
     "source": "Salvage Union Workshop Manual",
     "techLevel": 1,
@@ -615,7 +615,7 @@
     "id": "256126db-8ba3-4a57-975a-2ed74832b983"
   },
   {
-    "name": "Custom Missle Launcher",
+    "name": "Custom Missile Launcher",
     "indexable": false,
     "source": "Salvage Union Workshop Manual",
     "techLevel": 1,

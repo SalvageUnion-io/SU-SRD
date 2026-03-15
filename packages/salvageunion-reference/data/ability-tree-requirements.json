@@ -44,7 +44,7 @@
   {
     "id": "ae159e18-1612-4b66-9b95-ac580d6c6dc0",
     "name": "Cyborg",
-    "requirement": ["Augmentation", "Gladitorial Combat"],
+    "requirement": ["Augmentation", "Gladiatorial Combat"],
     "page": 58,
     "source": "Salvage Union Workshop Manual"
   },

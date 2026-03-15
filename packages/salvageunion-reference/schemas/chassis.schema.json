@@ -269,14 +269,19 @@
                 "additionalProperties": false
               }
             },
-            "drone": {
-              "type": "object",
-              "properties": {
-                "systems": { "type": "array", "items": { "type": "string" } },
-                "modules": { "type": "array", "items": { "type": "string" } }
+            "drones": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string", "minLength": 1 },
+                  "systems": { "type": "array", "items": { "type": "string" } },
+                  "modules": { "type": "array", "items": { "type": "string" } }
+                },
+                "required": ["name", "systems", "modules"],
+                "additionalProperties": false
               },
-              "required": ["systems", "modules"],
-              "additionalProperties": false
+              "description": "Named drone configurations for this pattern"
             }
           },
           "required": ["name", "systems", "modules"],

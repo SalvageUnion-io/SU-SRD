@@ -99,33 +99,38 @@ for (const chassisItem of chassis) {
       }
     }
 
-    // Validate drone systems and modules if present
-    if (pattern.drone) {
-      const drone = pattern.drone as { systems?: string[]; modules?: string[] } | undefined
-      if (drone?.systems && Array.isArray(drone.systems)) {
-        for (const systemName of drone.systems) {
-          if (!systemNames.has(systemName)) {
-            errors.push({
-              file: 'chassis.json',
-              entityName: String(chassisItem.name ?? 'unknown'),
-              field: `patterns.${(pattern as { name?: string }).name ?? 'unknown'}.drone.systems`,
-              referencedName: systemName,
-              message: `Drone system "${systemName}" not found in systems.json`,
-            })
+    // Validate drone configurations if present
+    const drones = (
+      pattern as { drones?: Array<{ name?: string; systems?: string[]; modules?: string[] }> }
+    ).drones
+    if (drones && Array.isArray(drones)) {
+      for (const droneConfig of drones) {
+        const droneName = droneConfig.name ?? 'unknown'
+        if (droneConfig.systems && Array.isArray(droneConfig.systems)) {
+          for (const systemName of droneConfig.systems) {
+            if (!systemNames.has(systemName)) {
+              errors.push({
+                file: 'chassis.json',
+                entityName: String(chassisItem.name ?? 'unknown'),
+                field: `patterns.${(pattern as { name?: string }).name ?? 'unknown'}.drones.${droneName}.systems`,
+                referencedName: systemName,
+                message: `Drone system "${systemName}" not found in systems.json`,
+              })
+            }
           }
         }
-      }
 
-      if (drone?.modules && Array.isArray(drone.modules)) {
-        for (const moduleName of drone.modules) {
-          if (!moduleNames.has(moduleName)) {
-            errors.push({
-              file: 'chassis.json',
-              entityName: String(chassisItem.name ?? 'unknown'),
-              field: `patterns.${(pattern as { name?: string }).name ?? 'unknown'}.drone.modules`,
-              referencedName: moduleName,
-              message: `Drone module "${moduleName}" not found in modules.json`,
-            })
+        if (droneConfig.modules && Array.isArray(droneConfig.modules)) {
+          for (const moduleName of droneConfig.modules) {
+            if (!moduleNames.has(moduleName)) {
+              errors.push({
+                file: 'chassis.json',
+                entityName: String(chassisItem.name ?? 'unknown'),
+                field: `patterns.${(pattern as { name?: string }).name ?? 'unknown'}.drones.${droneName}.modules`,
+                referencedName: moduleName,
+                message: `Drone module "${moduleName}" not found in modules.json`,
+              })
+            }
           }
         }
       }

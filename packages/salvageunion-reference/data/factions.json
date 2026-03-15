@@ -119,6 +119,13 @@
         "pattern": "Leaky",
         "source": "Salvage Union Workshop Manual",
         "page": 105
+      },
+      {
+        "chassis": "Waster Mob",
+        "schema": "squads",
+        "source": "Salvage Union Workshop Manual",
+        "page": 270,
+        "quantity": 2
       }
     ]
   },
@@ -238,6 +245,12 @@
         "source": "Salvage Union Workshop Manual",
         "page": 293,
         "quantity": 4
+      },
+      {
+        "chassis": "Rotorcraft",
+        "schema": "vehicles",
+        "source": "Salvage Union Workshop Manual",
+        "page": 293
       }
     ]
   },
@@ -274,6 +287,13 @@
         "pattern": "Acid Spitter",
         "source": "We Were Here First!",
         "page": 76
+      },
+      {
+        "chassis": "Waster Mob",
+        "schema": "squads",
+        "source": "Salvage Union Workshop Manual",
+        "page": 270,
+        "quantity": 2
       }
     ]
   },
@@ -309,6 +329,12 @@
         "pattern": "Screecher",
         "source": "We Were Here First!",
         "page": 77
+      },
+      {
+        "chassis": "Chimerium Mutant Squad",
+        "schema": "squads",
+        "source": "We Were Here First!",
+        "page": 54
       }
     ]
   },

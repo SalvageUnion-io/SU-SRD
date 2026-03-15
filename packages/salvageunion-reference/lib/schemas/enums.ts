@@ -76,7 +76,7 @@ export const TreeSchema = z.enum([
   'Fabricator',
   'Forging',
   'Generic',
-  'Gladitorial Combat',
+  'Gladiatorial Combat',
   'Hacking',
   'Leadership',
   'Legendary Cyborg',

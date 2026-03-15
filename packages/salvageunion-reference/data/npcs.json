@@ -34,7 +34,7 @@
     "name": "Trooper",
     "actions": ["Rifle (Trooper)", "Portable Comms Unit (NPC)"],
     "hitPoints": 5,
-    "page": 274,
+    "page": 298,
     "content": [
       {
         "type": "paragraph",

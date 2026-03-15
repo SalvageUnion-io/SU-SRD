@@ -161,7 +161,7 @@ export function useChassisPatternConfig(
             spacing={spacing}
             compact={compact}
             chassisAbilities={chassisAbilities}
-            droneEquipment={overridePatternData?.drone}
+            droneEquipment={overridePatternData?.drones?.[0]}
             hideDrone
           />
         )}

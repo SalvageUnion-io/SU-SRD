@@ -170,7 +170,7 @@
     "name": "Storage Bay",
     "source": "Salvage Union Workshop Manual",
     "damagedEffect": "If the Storage Bay becomes damaged, half of the Mech Chassis, Systems, and Modules stored within it are damaged and half of the Scrap within it is destroyed. Determine this randomly. In addition, you cannot store anything else within it until it is repaired.",
-    "page": 221,
+    "page": 222,
     "npc": {
       "position": "Bullwhacker",
       "hitPoints": 4,
@@ -464,7 +464,7 @@
       "content": [
         {
           "type": "paragraph",
-          "value": "The Trading Bay allows for Scrap as well as Intact Mech Chassis, Systems, and Modules to be traded. As the Union Crawler travels across the wasteland, this represents the various waste- landers and other folk who stop by the Union Crawler with wares to trade back and forth."
+          "value": "The Trading Bay allows for Scrap as well as Intact Mech Chassis, Systems, and Modules to be traded. As the Union Crawler travels across the wasteland, this represents the various wastelanders and other folk who stop by the Union Crawler with wares to trade back and forth."
         }
       ]
     },

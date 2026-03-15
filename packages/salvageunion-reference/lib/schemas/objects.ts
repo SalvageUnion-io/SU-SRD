@@ -426,6 +426,17 @@ export const NpcSchema: z.ZodType<{
 )
 
 /**
+ * Named drone configuration for patterns with multiple drones
+ */
+export const PatternDroneConfigSchema = z
+  .object({
+    name: NameSchema,
+    systems: z.array(z.string()),
+    modules: z.array(z.string()),
+  })
+  .strict()
+
+/**
  * Pattern schema (using z.lazy() for recursive reference)
  */
 export const PatternSchema: z.ZodType<{
@@ -436,10 +447,7 @@ export const PatternSchema: z.ZodType<{
   page?: z.infer<typeof PositiveIntegerSchema>
   systems: z.infer<typeof PatternSystemModuleSchema>[]
   modules: z.infer<typeof PatternSystemModuleSchema>[]
-  drone?: {
-    systems: string[]
-    modules: string[]
-  }
+  drones?: z.infer<typeof PatternDroneConfigSchema>[]
 }> = z.lazy(() =>
   z
     .object({
@@ -450,12 +458,9 @@ export const PatternSchema: z.ZodType<{
       page: PositiveIntegerSchema.optional(),
       systems: z.array(PatternSystemModuleSchema),
       modules: z.array(PatternSystemModuleSchema),
-      drone: z
-        .object({
-          systems: z.array(z.string()),
-          modules: z.array(z.string()),
-        })
-        .strict()
+      drones: z
+        .array(PatternDroneConfigSchema)
+        .describe('Named drone configurations for this pattern')
         .optional(),
     })
     .strict()

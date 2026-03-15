@@ -72,10 +72,10 @@
       "Sleuth",
       "Sniper",
       "Survivalist",
-      "Gladitorial Combat",
+      "Gladiatorial Combat",
       "Tactical Warfare"
     ],
-    "page": 9,
+    "page": 44,
     "advanceable": false,
     "maxAbilities": 12,
     "content": [
@@ -108,7 +108,7 @@
     "name": "Soldier",
     "source": "Salvage Union Workshop Manual",
     "asset_url": "https://opxrguskxuogghzcnppk.supabase.co/storage/v1/object/public/LP-Assets/classes.core/soldier.jpg",
-    "coreTrees": ["Survivalist", "Gladitorial Combat", "Tactical Warfare"],
+    "coreTrees": ["Survivalist", "Gladiatorial Combat", "Tactical Warfare"],
     "page": 52,
     "advanceable": true,
     "advancedTree": "Advanced Soldier",

@@ -118,7 +118,7 @@
     "tree": "Advanced Engineer",
     "level": 2,
     "page": 30,
-    "description": "Overcharge a Reactor beyond it's initial capacity to gain additional Pushes.",
+    "description": "Overcharge a Reactor beyond its initial capacity to gain additional Pushes.",
     "actions": ["This one goes to 11..."]
   },
   {
@@ -311,7 +311,7 @@
     "level": 1,
     "page": 40,
     "actions": ["Squeeze it in"],
-    "description": "Temporariliy increase the cargo capacity of a Mech."
+    "description": "Temporarily increase the cargo capacity of a Mech."
   },
   {
     "id": "cb3a5c51-2162-4090-8173-8909bae9dc8c",
@@ -391,7 +391,7 @@
     "level": 3,
     "page": 42,
     "actions": ["Valiant Speech"],
-    "description": "Inspire you allies with a rousing speech which heals and provides them with bonuses."
+    "description": "Inspire your allies with a rousing speech which heals and provides them with bonuses."
   },
   {
     "id": "7ea637ab-14cf-4728-be2e-09adfddf5266",
@@ -425,7 +425,7 @@
     "source": "Salvage Union Workshop Manual",
     "tree": "Advanced Hauler",
     "level": 3,
-    "page": 328,
+    "page": 42,
     "actions": ["Can't Stop, Won't Stop"],
     "description": "Gain a special charge attack. Damage is based on cargo carried."
   },
@@ -457,7 +457,7 @@
     "level": 1,
     "page": 48,
     "actions": ["Gather Intelligence"],
-    "description": "Ask two questions about an area and recieve truthful answers."
+    "description": "Ask two questions about an area and receive truthful answers."
   },
   {
     "id": "10fc5eb8-418e-4127-aebe-0c9c6543ddc6",
@@ -533,7 +533,7 @@
     "level": 2,
     "page": 50,
     "actions": ["Spotter"],
-    "description": "Chooose a target in range for an ally to make a free attack against."
+    "description": "Choose a target in range for an ally to make a free attack against."
   },
   {
     "id": "921afb77-3d0f-49b5-9cc4-36372b24e00d",
@@ -567,7 +567,7 @@
     "source": "Salvage Union Workshop Manual",
     "tree": "Advanced Scout",
     "level": 2,
-    "page": 328,
+    "page": 51,
     "actions": ["Camo Suit"],
     "description": "Gain the use of an advanced Camo Suit that will make you invisible for short periods of time."
   },
@@ -605,7 +605,7 @@
     "id": "9947ca57-8a30-4ea6-bb0b-d021ee5e8567",
     "name": "Charge",
     "source": "Salvage Union Workshop Manual",
-    "tree": "Gladitorial Combat",
+    "tree": "Gladiatorial Combat",
     "level": 1,
     "page": 54,
     "actions": ["Charge"],
@@ -615,7 +615,7 @@
     "id": "19b1961c-b50b-4436-9620-11b69545dbb4",
     "name": "Overpower",
     "source": "Salvage Union Workshop Manual",
-    "tree": "Gladitorial Combat",
+    "tree": "Gladiatorial Combat",
     "level": 2,
     "page": 54,
     "actions": ["Overpower"],
@@ -625,7 +625,7 @@
     "id": "010ef454-6c74-4fa5-8df1-c611ccaf66b3",
     "name": "Duel",
     "source": "Salvage Union Workshop Manual",
-    "tree": "Gladitorial Combat",
+    "tree": "Gladiatorial Combat",
     "level": 3,
     "page": 54,
     "actions": ["Duel"],
@@ -787,7 +787,7 @@
     "source": "Salvage Union Workshop Manual",
     "tree": "Legendary Cyborg",
     "level": "L",
-    "page": 153,
+    "page": 61,
     "actions": ["Ascension"],
     "description": "You are now a virtual being. You control your Mech by wire, and can project your image holographically."
   },
@@ -943,7 +943,7 @@
     "source": "Salvage Union Workshop Manual",
     "tree": "Legendary Smuggler",
     "level": "L",
-    "page": 331,
+    "page": 73,
     "actions": ["Knife Missile"],
     "description": "Gain a Knife Missile, a small floating assassination device you control."
   },
@@ -983,7 +983,7 @@
     "source": "Salvage Union Workshop Manual",
     "tree": "Union Rep",
     "level": 3,
-    "page": 219,
+    "page": 76,
     "actions": ["Recruit"],
     "description": "Command an NPC follower who will assist you in your missions."
   },

@@ -7,7 +7,7 @@
     "techLevel": 1,
     "salvageValue": 1,
     "structurePoints": 2,
-    "page": 274,
+    "page": 294,
     "content": [
       {
         "type": "paragraph",
@@ -56,7 +56,7 @@
     "techLevel": 2,
     "salvageValue": 2,
     "structurePoints": 4,
-    "page": 270,
+    "page": 294,
     "content": [
       {
         "type": "paragraph",
@@ -72,7 +72,7 @@
     "techLevel": 3,
     "salvageValue": 2,
     "structurePoints": 5,
-    "page": 270,
+    "page": 294,
     "content": [
       {
         "type": "paragraph",
@@ -105,7 +105,7 @@
     "techLevel": 3,
     "salvageValue": 3,
     "structurePoints": 4,
-    "page": 270,
+    "page": 295,
     "content": [
       {
         "type": "paragraph",
@@ -201,7 +201,7 @@
     "content": [
       {
         "type": "paragraph",
-        "value": "A support drone controlled by the Big Brother chassis."
+        "value": "Big Brother Drones are programmed with swarm protocols that make them act as a single unified force. Their distinctive buzzing sound spells doom for pilots. They may be customised as a Mech using their profile."
       }
     ]
   }

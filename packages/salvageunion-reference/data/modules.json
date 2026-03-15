@@ -77,7 +77,7 @@
     "techLevel": 1,
     "slotsRequired": 1,
     "salvageValue": 3,
-    "page": 194,
+    "page": 192,
     "actions": ["Survey Scanner"]
   },
   {
@@ -177,7 +177,7 @@
     "techLevel": 2,
     "slotsRequired": 1,
     "salvageValue": 2,
-    "actions": ["Auto-Scan", "Coolant Flush", "Metal Detector"],
+    "actions": ["Auto-Scan", "Active Scan", "Metal Detector"],
     "page": 195
   },
   {
@@ -552,7 +552,7 @@
     "techLevel": 5,
     "slotsRequired": 1,
     "salvageValue": 2,
-    "page": 197,
+    "page": 205,
     "actions": ["He₂ Coolant Flush"]
   },
   {
@@ -657,6 +657,12 @@
     "slotsRequired": 1,
     "salvageValue": 7,
     "page": 75,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "May only be Mounted on a Bio-Mech Chassis."
+      }
+    ],
     "actions": ["Burst (Adrenal Glands)", "Power (Adrenal Glands)"]
   },
   {
@@ -677,6 +683,12 @@
     "slotsRequired": 1,
     "salvageValue": 9,
     "page": 75,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "May only be Mounted on a Bio-Mech Chassis."
+      }
+    ],
     "actions": ["Regeneration Glands", "Regrowth (Regeneration Glands)"]
   },
   {
@@ -696,7 +708,7 @@
     "techLevel": 1,
     "slotsRequired": 1,
     "salvageValue": 1,
-    "page": 59,
+    "page": 69,
     "actions": ["Heating Unit"]
   },
   {
@@ -706,7 +718,7 @@
     "techLevel": 4,
     "slotsRequired": 2,
     "salvageValue": 4,
-    "page": 59,
+    "page": 69,
     "actions": ["Pop Goes The Weasel"]
   },
   {
@@ -716,7 +728,7 @@
     "techLevel": "N",
     "slotsRequired": 2,
     "salvageValue": 4,
-    "page": 59,
+    "page": 69,
     "actions": ["Meld Replicator"]
   },
   {
