@@ -75,4 +75,3 @@ export {
   getActivationCurrency,
 } from './lib/referenceEntityDataExtraction'
 export { DataValueDisplayView } from './components/referenceEntity/DataValueDisplayView'
-export { techLevelColors } from './components/referenceEntity/ReferenceEntityDisplay/useReferenceEntityDisplayState'
