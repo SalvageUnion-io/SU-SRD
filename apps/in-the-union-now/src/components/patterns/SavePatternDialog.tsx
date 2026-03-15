@@ -1,6 +1,6 @@
 import { useState } from 'react'
+import { ModalShell } from 'suref-react'
 import { Input } from '../ui/input'
-import { ModalShell } from '../shared/ModalShell'
 
 type SavePatternDialogProps = {
   open: boolean

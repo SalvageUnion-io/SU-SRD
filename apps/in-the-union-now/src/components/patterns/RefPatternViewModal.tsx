@@ -1,9 +1,8 @@
 import { useMemo } from 'react'
 import { findChassisById } from '../../lib/entityHelpers'
 import type { SURefChassis, SURefObjectPattern } from 'salvageunion-reference'
-import { ReferenceEntityDisplay, useChassisPatternConfig } from 'suref-react'
+import { ReferenceEntityDisplay, ModalShell, useChassisPatternConfig } from 'suref-react'
 import type { PatternOverrideData } from 'suref-react'
-import { ModalShell } from '../shared/ModalShell'
 
 type RefPatternViewModalProps = {
   refPatternId: string

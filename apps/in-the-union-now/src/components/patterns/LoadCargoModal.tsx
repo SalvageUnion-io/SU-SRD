@@ -4,14 +4,14 @@ import type { SURefEntity } from 'salvageunion-reference'
 import {
   ReferenceEntityDisplay,
   FilterChip,
+  FilterRow,
+  ModalShell,
   TECH_LEVEL_STYLES,
   techLevelLabel,
   addControl,
 } from 'suref-react'
-import { ModalShell } from '../shared/ModalShell'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs'
 import { Input } from '../ui/input'
-import { FilterRow } from '../shared/FilterRow'
 import {
   filterAndSplitEntities,
   ALL_TECH_LEVELS,
