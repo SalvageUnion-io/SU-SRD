@@ -25,9 +25,6 @@ import type {
 // Re-export for consumers that import from this file
 export type { ReferenceEntityDisplayStateInput } from './referenceEntityDisplayTypes'
 
-/** @deprecated Use TECH_LEVEL_BG from techLevelStyles instead */
-export const techLevelColors: Record<number, string> = TECH_LEVEL_BG
-
 export function useReferenceEntityDisplayState({
   data,
   schemaName,

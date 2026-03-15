@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { findChassisById } from '../../lib/entityHelpers'
+import { findChassisById } from 'salvageunion-reference'
 import { patternItemsToOverride } from '../../lib/builderUtils'
 import { usePatterns } from '../../hooks/usePatterns'
 import type { SURefEntity, SURefObjectPattern } from 'salvageunion-reference'
