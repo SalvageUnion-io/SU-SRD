@@ -9,9 +9,7 @@ import type {
   SURefChassis,
   SURefClass,
   SURefCrawler,
-  SURefCrawlerBay,
   SURefMetaCrawlerTechLevel,
-  SURefEquipment,
   SURefEntity,
   SURefEnumSchemaName,
   SURefObjectAdvancedClass,
@@ -234,14 +232,6 @@ export function findClass(className: string): SURefClass | undefined {
 // ============================================================================
 
 /**
- * Get all chassis
- * @returns Array of chassis
- */
-export function getChassis(): SURefChassis[] {
-  return SalvageUnionReference.findAllIn('chassis', () => true)
-}
-
-/**
  * Get chassis that have patterns
  * @returns Array of chassis with patterns
  */
@@ -272,22 +262,6 @@ export function getChassisNameById(chassisId: string | null, fallback = 'Unknown
 // ============================================================================
 // CRAWLER HELPERS
 // ============================================================================
-
-/**
- * Get all crawlers
- * @returns Array of crawlers
- */
-export function getCrawlers(): (SURefCrawler & { schemaName: string })[] {
-  return SalvageUnionReference.Crawlers.all()
-}
-
-/**
- * Get all crawler bays
- * @returns Array of crawler bays
- */
-export function getCrawlerBays(): (SURefCrawlerBay & { schemaName: string })[] {
-  return SalvageUnionReference.CrawlerBays.all()
-}
 
 /**
  * Find a crawler by ID
@@ -388,14 +362,6 @@ export function getStructurePointsForTechLevel(
 // ============================================================================
 
 /**
- * Get all abilities
- * @returns Array of abilities
- */
-export function getAbilities(): (SURefAbility & { schemaName: string })[] {
-  return SalvageUnionReference.Abilities.all()
-}
-
-/**
  * Get abilities by level
  * @param level - The ability level
  * @returns Array of abilities at that level
@@ -407,14 +373,6 @@ export function getAbilitiesByLevel(level: number): (SURefAbility & { schemaName
 // ============================================================================
 // EQUIPMENT HELPERS
 // ============================================================================
-
-/**
- * Get all equipment
- * @returns Array of equipment
- */
-export function getEquipment(): (SURefEquipment & { schemaName: string })[] {
-  return SalvageUnionReference.findAllIn('equipment', () => true)
-}
 
 // ============================================================================
 // TECH LEVEL HELPERS

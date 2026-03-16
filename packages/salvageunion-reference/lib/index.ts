@@ -403,21 +403,6 @@ export class SalvageUnionReference {
   }
 
   /**
-   * Compose a reference string from schema name and ID
-   *
-   * @param schemaName - The schema name
-   * @param id - The entity ID
-   * @returns Reference string in format "schemaName::id"
-   *
-   * @example
-   * const ref = SalvageUnionReference.composeRef('abilities', 'bionic-senses')
-   * // => 'abilities::bionic-senses'
-   */
-  public static composeRef<T extends keyof SchemaToEntityMap>(schemaName: T, id: string): string {
-    return `${schemaName}::${id}`
-  }
-
-  /**
    * Parse a reference string into schema name and ID
    *
    * @param ref - Reference string in format "schemaName::id"
@@ -464,36 +449,6 @@ export class SalvageUnionReference {
       return this.get(parsed.schemaName as keyof SchemaToEntityMap, parsed.id)
     }
     return undefined
-  }
-
-  /**
-   * Batch fetch entities by reference strings
-   *
-   * @param refs - Array of reference strings
-   * @returns Map of reference strings to entities (undefined for invalid refs)
-   *
-   * @example
-   * const entities = SalvageUnionReference.getManyByRef([
-   *   'abilities::bionic-senses',
-   *   'systems::energy-shield'
-   * ])
-   */
-  public static getManyByRef(
-    refs: string[]
-  ): Map<
-    string,
-    | (SchemaToEntityMap[keyof SchemaToEntityMap] & { schemaName: keyof SchemaToEntityMap })
-    | undefined
-  > {
-    const result = new Map<
-      string,
-      | (SchemaToEntityMap[keyof SchemaToEntityMap] & { schemaName: keyof SchemaToEntityMap })
-      | undefined
-    >()
-    for (const ref of refs) {
-      result.set(ref, this.getByRef(ref))
-    }
-    return result
   }
 
   /**
@@ -601,99 +556,4 @@ export class SalvageUnionReference {
     }
     return result
   }
-
-  /**
-   * Find all entities across all schemas that reference a given entity
-   *
-   * Traverses string array fields (e.g. actions, systems/modules in patterns)
-   * to find inbound links by entity name or ID.
-   *
-   * @param schemaName - The schema of the entity to find usages of
-   * @param id - The ID of the entity to find usages of
-   * @returns Array of tagged results identifying entities that reference the given entity
-   *
-   * @example
-   * // Find all entities that reference the Escape Hatch system
-   * const usages = SalvageUnionReference.findUsagesOf('systems', 'escape-hatch-id')
-   */
-  public static findUsagesOf(
-    schemaName: keyof SchemaToEntityMap,
-    id: string
-  ): Array<{ schemaName: keyof SchemaToEntityMap; entity: SURefMetaEntity }> {
-    // Look up the entity to get its name for name-based reference matching
-    const targetEntity = this.get(schemaName, id)
-    if (!targetEntity) return []
-
-    const targetName =
-      'name' in targetEntity && typeof targetEntity.name === 'string'
-        ? targetEntity.name
-        : undefined
-
-    const result: Array<{ schemaName: keyof SchemaToEntityMap; entity: SURefMetaEntity }> = []
-
-    for (const candidateSchemaName of Object.keys(
-      SchemaToModelMap
-    ) as (keyof SchemaToEntityMap)[]) {
-      const modelName = SchemaToModelMap[candidateSchemaName]
-      const model = models[modelName] as BaseModel<SURefMetaEntity>
-
-      for (const entity of model.all()) {
-        // Skip the entity itself
-        if (
-          candidateSchemaName === schemaName &&
-          'id' in entity &&
-          (entity as { id: string }).id === id
-        ) {
-          continue
-        }
-
-        if (entityReferencesTarget(entity, id, targetName)) {
-          result.push({ schemaName: candidateSchemaName, entity })
-        }
-      }
-    }
-
-    return result
-  }
-}
-
-/**
- * Check whether a given entity references a target by ID or name.
- * Traverses all string array fields and nested object arrays that are
- * known to hold cross-entity references (actions, systems/modules in patterns, schemaEntities).
- */
-function entityReferencesTarget(
-  entity: unknown,
-  targetId: string,
-  targetName: string | undefined
-): boolean {
-  if (entity === null || typeof entity !== 'object') return false
-
-  const obj = entity as Record<string, unknown>
-
-  for (const value of Object.values(obj)) {
-    if (typeof value === 'string') {
-      if (value === targetId || (targetName !== undefined && value === targetName)) {
-        return true
-      }
-    } else if (Array.isArray(value)) {
-      for (const item of value) {
-        if (typeof item === 'string') {
-          if (item === targetId || (targetName !== undefined && item === targetName)) {
-            return true
-          }
-        } else if (item !== null && typeof item === 'object') {
-          if (entityReferencesTarget(item, targetId, targetName)) {
-            return true
-          }
-        }
-      }
-    } else if (value !== null && typeof value === 'object') {
-      if (entityReferencesTarget(value, targetId, targetName)) {
-        return true
-      }
-    }
-  }
-
-  return false
 }
