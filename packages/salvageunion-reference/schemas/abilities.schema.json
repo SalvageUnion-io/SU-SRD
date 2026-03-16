@@ -275,7 +275,17 @@
         "description": "Action names this ability provides"
       }
     },
-    "required": ["id", "indexable", "blackMarket", "name", "source", "page", "tree", "level"],
+    "required": [
+      "id",
+      "indexable",
+      "blackMarket",
+      "name",
+      "source",
+      "page",
+      "tree",
+      "level",
+      "actions"
+    ],
     "additionalProperties": false,
     "description": "Pilot abilities and skills in Salvage Union"
   }

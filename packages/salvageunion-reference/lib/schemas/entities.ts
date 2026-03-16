@@ -55,7 +55,7 @@ export const AbilitySchema = BaseEntitySchema.extend({
   activationCurrency: ActivationCurrencySchema.describe(
     'Currency type used for activation'
   ).optional(),
-  actions: z.array(z.string()).describe('Action names this ability provides').optional(),
+  actions: z.array(z.string()).describe('Action names this ability provides'),
 })
   .strict()
   .describe('Pilot abilities and skills in Salvage Union')
