@@ -9,7 +9,8 @@ import {
   ClassAbilityTreeDisplay,
 } from 'suref-react'
 import type { ReferenceEntityControl, DisplayCardTab, StatItem } from 'suref-react'
-import { Eye, EyeOff, Trash2 } from 'lucide-react'
+import { Eye, EyeOff, Trash2, ShieldAlert } from 'lucide-react'
+import { TakeDamageModal } from './TakeDamageModal'
 import { uploadEntityImage, deleteEntityImage } from '../../lib/api/storageApi'
 import { findChassisById, SalvageUnionReference } from 'salvageunion-reference'
 import { IsolatedStatValue } from '../shared/IsolatedStatValue'
@@ -98,6 +99,7 @@ export function PilotSheet({
 }: PilotSheetProps) {
   const [showDelete, setShowDelete] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
+  const [showDamageModal, setShowDamageModal] = useState(false)
   const [crawlerNameDraft, setCrawlerNameDraft] = useState<string | null>(null)
   const [isImageUploading, setIsImageUploading] = useState(false)
 
@@ -150,6 +152,10 @@ export function PilotSheet({
     }
   }, [editConfig])
 
+  const canEdit = editConfig?.canEdit ?? false
+  const isBoarded = pilot.is_boarded && !!mech
+  const isDowntime = pilot.in_downtime && !!crawler
+
   const boardControl: ReferenceEntityControl | undefined = useMemo(() => {
     if (!editConfig || !mech || pilot.in_downtime) return undefined
     return {
@@ -173,17 +179,25 @@ export function PilotSheet({
     }
   }, [editConfig, pilot.in_downtime, pilot.crawler_id])
 
+  const takeDamageControl: ReferenceEntityControl | undefined = useMemo(() => {
+    if (!editConfig || !mech || !isBoarded) return undefined
+    return {
+      key: 'take-damage',
+      icon: ShieldAlert,
+      label: 'Take Damage',
+      ariaLabel: 'Apply damage to mech',
+      onClick: () => setShowDamageModal(true),
+      variant: 'danger' as const,
+    }
+  }, [editConfig, mech, isBoarded])
+
   const controls = useMemo(() => {
     if (controlsProp) return controlsProp
-    const sheetControls = [boardControl, downtimeControl, settingsControl].filter(
+    const sheetControls = [takeDamageControl, boardControl, downtimeControl, settingsControl].filter(
       Boolean
     ) as ReferenceEntityControl[]
     return sheetControls.length > 0 ? sheetControls : undefined
-  }, [controlsProp, settingsControl, boardControl, downtimeControl])
-
-  const canEdit = editConfig?.canEdit ?? false
-  const isBoarded = pilot.is_boarded && !!mech
-  const isDowntime = pilot.in_downtime && !!crawler
+  }, [controlsProp, settingsControl, boardControl, downtimeControl, takeDamageControl])
 
   const badgeTextClass = buildBadgeTextClass(compact)
   const chassisBadgeProps = buildChassisBadgeProps(chassisName, patternName, compact)
@@ -436,6 +450,7 @@ export function PilotSheet({
             comrades={comrades}
             onUpdateMech={editConfig?.onUpdateMech}
             onUpdateMechEntityRef={editConfig?.onUpdateMechEntityRef}
+            onUseAction={editConfig?.onUseAction}
           />
         </div>
       ),
@@ -693,6 +708,17 @@ export function PilotSheet({
             )}
           </div>
         </ModalShell>
+      )}
+
+      {editConfig && mech && isBoarded && (
+        <TakeDamageModal
+          open={showDamageModal}
+          onOpenChange={setShowDamageModal}
+          mech={mech}
+          pilot={pilot}
+          mechRefs={mechRefs ?? []}
+          userId={editConfig.userId}
+        />
       )}
     </>
   )
