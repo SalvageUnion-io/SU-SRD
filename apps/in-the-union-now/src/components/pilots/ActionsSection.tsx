@@ -25,6 +25,7 @@ import { useComradeEp } from '../../hooks/useComradeEp'
 import { usePlayerChoices } from '../../hooks/useComradeChoices'
 import { useActionFilters, ACTION_TYPES, CATEGORY_FILTERS } from '../../hooks/useActionFilters'
 import type { CategoryFilter } from '../../hooks/useActionFilters'
+import type { UseActionResult } from '../../hooks/useActivateAction'
 import type {
   EntityRefRow,
   EntityRefUpdate,
@@ -56,6 +57,7 @@ type ActionsSectionProps = {
   comrades?: ComradeEntry[]
   onUpdateMech?: (input: Partial<MechUpdate>) => void
   onUpdateMechEntityRef?: (refId: string, input: EntityRefUpdate) => void
+  onUseAction?: (action: ActionDisplayData, variableHeatOverride?: number) => Promise<UseActionResult & { needsVariableHeatPrompt?: boolean }>
 }
 
 export function ActionsSection({
@@ -72,6 +74,7 @@ export function ActionsSection({
   comrades: comradesProp,
   onUpdateMech,
   onUpdateMechEntityRef,
+  onUseAction,
 }: ActionsSectionProps) {
   const isBoarded = pilot.is_boarded
   const { getComradeCurrentEp, updateComradeEp } = useComradeEp({
@@ -172,6 +175,12 @@ export function ActionsSection({
   )
 
   function handleUsePilotAction(action: ActionDisplayData) {
+    // When heat-aware action handler is available, delegate to it
+    if (onUseAction) {
+      onUseAction(action).catch(() => {})
+      return
+    }
+    // Legacy path (no heat management)
     toast(`${pilot.callsign} used ${action.name}`, {
       style: { borderColor: action.borderColor, borderWidth: '2px' },
     })
@@ -195,6 +204,12 @@ export function ActionsSection({
   }
 
   function handleUseMechAction(action: ActionDisplayData) {
+    // When heat-aware action handler is available, delegate to it
+    if (onUseAction) {
+      onUseAction(action).catch(() => {})
+      return
+    }
+    // Legacy path (no heat management)
     if (!mech || !onUpdateMech) return
     toast(`${mech.pattern_name ?? 'Mech'} used ${action.name}`, {
       style: { borderColor: action.borderColor, borderWidth: '2px' },

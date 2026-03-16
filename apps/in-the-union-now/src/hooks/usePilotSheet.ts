@@ -25,6 +25,9 @@ import {
 import { useCrawler, useActiveDowntimeRecord, useUpdateCrawler, crawlerKeys } from './useCrawlers'
 import { computeCrawlerStatsFromTechLevel } from '../lib/crawlerUtils'
 import { useSaveStatus } from './useSaveStatus'
+import { useActivateAction } from './useActivateAction'
+import type { UseActionResult } from './useActivateAction'
+import type { ActionDisplayData } from '../lib/pilotActionUtils'
 import { useRealtimeSubscription } from './useRealtimeSubscription'
 import { getEntityAccess } from '../lib/entityAccess'
 import { findChassisById } from 'salvageunion-reference'
@@ -56,6 +59,7 @@ export type PilotEditConfig = {
   onToggleBoarded: () => void
   onToggleDowntime: () => void
   isDeleting: boolean
+  onUseAction: (action: ActionDisplayData, variableHeatOverride?: number) => Promise<UseActionResult & { needsVariableHeatPrompt?: boolean }>
 }
 
 export function usePilotSheet(pilotId: string) {
@@ -137,6 +141,15 @@ export function usePilotSheet(pilotId: string) {
 
   const access = pilot ? getEntityAccess(pilot, user?.id) : undefined
   const canEdit = access?.canView ? access.canEdit : false
+
+  const { handleUseAction } = useActivateAction({
+    mech,
+    pilot,
+    mechRefs: mechRefs ?? [],
+    pilotRefs: pilotRefs ?? [],
+    userId: user?.id,
+    mechLabel: mech?.pattern_name ?? chassisName ?? 'Mech',
+  })
 
   const handlePilotUpdate = useCallback(
     (input: Partial<PilotUpdate>, toastMessage?: string) => {
@@ -428,6 +441,7 @@ export function usePilotSheet(pilotId: string) {
           onToggleBoarded: handleToggleBoarded,
           onToggleDowntime: handleToggleDowntime,
           isDeleting: deletePilot.isPending,
+          onUseAction: handleUseAction,
         }
       : undefined
 
