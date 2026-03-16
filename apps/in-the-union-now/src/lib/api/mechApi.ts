@@ -51,7 +51,13 @@ export async function updateMech(mechId: string, input: MechUpdate): Promise<Mec
 }
 
 export async function getMechById(mechId: string): Promise<MechRow> {
-  const { data, error } = await supabase.from('mechs').select('*').eq('id', mechId).single()
+  const { data, error } = await supabase
+    .from('mechs')
+    .select(
+      'id,active,cargo_capacity,chassis_ref,created_at,current_ep,current_heat,current_sp,heat_capacity,image_path,max_ep,max_sp,notes,pattern_name,source_pattern_id,source_ref_pattern_id,updated_at,user_id'
+    )
+    .eq('id', mechId)
+    .single()
 
   if (error) handleSupabaseError(error)
   return data!
@@ -60,7 +66,9 @@ export async function getMechById(mechId: string): Promise<MechRow> {
 export async function getMechEntityRefs(mechId: string): Promise<EntityRefRow[]> {
   const { data, error } = await supabase
     .from('entity_refs')
-    .select('*')
+    .select(
+      'id,condition,created_at,metadata,parent_id,parent_type,schema_name,schema_ref_id,sort_order,updated_at,user_id'
+    )
     .eq('parent_id', mechId)
     .eq('parent_type', 'mech')
     .order('sort_order', { ascending: true })

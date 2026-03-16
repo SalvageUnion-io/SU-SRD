@@ -8,7 +8,9 @@ import type { CreatePilotInput } from '../../types/common'
 export async function listPilots(userId: string): Promise<PilotRow[]> {
   const { data, error } = await supabase
     .from('pilots')
-    .select('*')
+    .select(
+      'id,active,ap,appearance,background,background_used,callsign,class_ref,crawler_id,created_at,hp,image_path,in_downtime,is_boarded,keepsake,keepsake_used,max_ap,max_hp,mech_id,motto,motto_used,notes,tp,updated_at,user_id,visible'
+    )
     .eq('user_id', userId)
     .order('updated_at', { ascending: false })
 
@@ -17,7 +19,13 @@ export async function listPilots(userId: string): Promise<PilotRow[]> {
 }
 
 export async function getPilotById(pilotId: string): Promise<PilotRow> {
-  const { data, error } = await supabase.from('pilots').select('*').eq('id', pilotId).single()
+  const { data, error } = await supabase
+    .from('pilots')
+    .select(
+      'id,active,ap,appearance,background,background_used,callsign,class_ref,crawler_id,created_at,hp,image_path,in_downtime,is_boarded,keepsake,keepsake_used,max_ap,max_hp,mech_id,motto,motto_used,notes,tp,updated_at,user_id,visible'
+    )
+    .eq('id', pilotId)
+    .single()
 
   if (error) handleSupabaseError(error)
   return data!
@@ -89,7 +97,9 @@ export async function listAbilityCountsByPilotIds(
 export async function getPilotEntityRefs(pilotId: string): Promise<EntityRefRow[]> {
   const { data, error } = await supabase
     .from('entity_refs')
-    .select('*')
+    .select(
+      'id,condition,created_at,metadata,parent_id,parent_type,schema_name,schema_ref_id,sort_order,updated_at,user_id'
+    )
     .eq('parent_id', pilotId)
     .eq('parent_type', 'pilot')
     .order('sort_order', { ascending: true })
@@ -101,7 +111,9 @@ export async function getPilotEntityRefs(pilotId: string): Promise<EntityRefRow[
 export async function listPilotsByCrawlerId(crawlerId: string): Promise<PilotRow[]> {
   const { data, error } = await supabase
     .from('pilots')
-    .select('*')
+    .select(
+      'id,active,ap,appearance,background,background_used,callsign,class_ref,crawler_id,created_at,hp,image_path,in_downtime,is_boarded,keepsake,keepsake_used,max_ap,max_hp,mech_id,motto,motto_used,notes,tp,updated_at,user_id,visible'
+    )
     .eq('crawler_id', crawlerId)
     .order('callsign', { ascending: true })
 

@@ -35,7 +35,13 @@ export async function createCrawler(
 }
 
 export async function getCrawlerById(crawlerId: string): Promise<CrawlerRow> {
-  const { data, error } = await supabase.from('crawlers').select('*').eq('id', crawlerId).single()
+  const { data, error } = await supabase
+    .from('crawlers')
+    .select(
+      'id,active,bay_npcs,crawler_ref,created_at,current_sp,max_sp,name,notes,scrap_tl1,scrap_tl2,scrap_tl3,scrap_tl4,scrap_tl5,scrap_tl6,tag,tech_level,updated_at,upgrade_pool,upkeep,user_id,visible'
+    )
+    .eq('id', crawlerId)
+    .single()
 
   if (error) handleSupabaseError(error)
   return data!
@@ -44,7 +50,9 @@ export async function getCrawlerById(crawlerId: string): Promise<CrawlerRow> {
 export async function getCrawlerEntityRefs(crawlerId: string): Promise<EntityRefRow[]> {
   const { data, error } = await supabase
     .from('entity_refs')
-    .select('*')
+    .select(
+      'id,condition,created_at,metadata,parent_id,parent_type,schema_name,schema_ref_id,sort_order,updated_at,user_id'
+    )
     .eq('parent_id', crawlerId)
     .eq('parent_type', 'crawler')
     .order('sort_order', { ascending: true })
@@ -142,7 +150,7 @@ export async function getActiveDowntimeRecord(
 ): Promise<DowntimeRecordRow | null> {
   const { data, error } = await supabase
     .from('downtime_records')
-    .select('*')
+    .select('id,closed_at,crawler_id,created_at,upkeep_paid,user_id')
     .eq('crawler_id', crawlerId)
     .is('closed_at', null)
     .maybeSingle()
