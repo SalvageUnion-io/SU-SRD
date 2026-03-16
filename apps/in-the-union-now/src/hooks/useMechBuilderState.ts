@@ -17,7 +17,7 @@ import {
 } from '../lib/builderUtils'
 import type { CreatePatternInput, SelectedPattern } from '../types/common'
 import type { BuilderSchemaName } from '../components/patterns/ReferenceEntitySelectionModal'
-import { findChassisById } from '../lib/entityHelpers'
+import { findChassisById } from 'salvageunion-reference'
 import type { SURefChassis, SURefMetaAction } from 'salvageunion-reference'
 
 type ModalTarget = BuilderSchemaName | null
