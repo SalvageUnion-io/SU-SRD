@@ -2,7 +2,7 @@
 import BaseLayout from '../../../layouts/BaseLayout.astro'
 import { getSchemaStaticPaths } from '../../../lib/staticPaths'
 import { SchemaViewerIsland } from '../../../components/islands/SchemaViewerIsland'
-import { getUniqueTechLevels, getUniqueSources } from 'salvageunion-reference'
+import { getUniqueTechLevels, getUniqueSources } from '../../../lib/gameData'
 
 export function getStaticPaths() {
   return getSchemaStaticPaths()
