@@ -59,7 +59,10 @@ export type PilotEditConfig = {
   onToggleBoarded: () => void
   onToggleDowntime: () => void
   isDeleting: boolean
-  onUseAction: (action: ActionDisplayData, variableHeatOverride?: number) => Promise<UseActionResult & { needsVariableHeatPrompt?: boolean }>
+  onUseAction: (
+    action: ActionDisplayData,
+    variableHeatOverride?: number
+  ) => Promise<UseActionResult & { needsVariableHeatPrompt?: boolean }>
 }
 
 export function usePilotSheet(pilotId: string) {

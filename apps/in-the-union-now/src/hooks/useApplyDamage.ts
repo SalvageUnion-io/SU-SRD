@@ -50,15 +50,7 @@ export function useApplyDamage(): UseApplyDamageReturn {
   const [isPending, setIsPending] = useState(false)
 
   const applyDamage = useCallback(
-    ({
-      mech,
-      pilot,
-      userId,
-      spDamage,
-      cascade,
-      targetRef,
-      onSuccess,
-    }: ApplyDamageParams) => {
+    ({ mech, pilot, userId, spDamage, cascade, targetRef, onSuccess }: ApplyDamageParams) => {
       setIsPending(true)
 
       const mechLabel = mech.pattern_name || 'Mech'

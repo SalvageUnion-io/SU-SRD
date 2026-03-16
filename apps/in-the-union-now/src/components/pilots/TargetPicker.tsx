@@ -63,7 +63,10 @@ export function TargetPicker({ mechRefs, onConfirm, onCancel, isPending }: Targe
       {/* Equipment list */}
       <div className="space-y-1" role="listbox" aria-label="Select damage target">
         {damageableRefs.map((ref) => {
-          const entity = SalvageUnionReference.get(ref.schema_name as EntitySchemaName, ref.schema_ref_id)
+          const entity = SalvageUnionReference.get(
+            ref.schema_name as EntitySchemaName,
+            ref.schema_ref_id
+          )
           const displayName = entity?.name ?? ref.schema_ref_id
           const isSelected = selectedRefId === ref.id
 
@@ -101,13 +104,7 @@ export function TargetPicker({ mechRefs, onConfirm, onCancel, isPending }: Targe
           Random
         </Button>
         <div className="flex gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={onCancel}
-            disabled={isPending}
-          >
+          <Button type="button" variant="outline" size="sm" onClick={onCancel} disabled={isPending}>
             Cancel
           </Button>
           <Button

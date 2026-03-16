@@ -194,9 +194,12 @@ export function PilotSheet({
 
   const controls = useMemo(() => {
     if (controlsProp) return controlsProp
-    const sheetControls = [takeDamageControl, boardControl, downtimeControl, settingsControl].filter(
-      Boolean
-    ) as ReferenceEntityControl[]
+    const sheetControls = [
+      takeDamageControl,
+      boardControl,
+      downtimeControl,
+      settingsControl,
+    ].filter(Boolean) as ReferenceEntityControl[]
     return sheetControls.length > 0 ? sheetControls : undefined
   }, [controlsProp, settingsControl, boardControl, downtimeControl, takeDamageControl])
 

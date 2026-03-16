@@ -289,7 +289,8 @@ export function HeatCheckModal({
               aria-atomic="true"
             >
               <Text as="p" className="text-xs font-semibold uppercase text-su-rust/80">
-                Roll: {rollCategoryLabel} — {rollValue !== null && rollValue >= 6 ? 'Module Overload' : 'System Overload'}
+                Roll: {rollCategoryLabel} —{' '}
+                {rollValue !== null && rollValue >= 6 ? 'Module Overload' : 'System Overload'}
               </Text>
               {tableResult && (
                 <>
@@ -308,12 +309,7 @@ export function HeatCheckModal({
               Select a target to destroy. This requires your confirmation.
             </Text>
             <div className="flex justify-end gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleDismiss}
-              >
+              <Button type="button" variant="outline" size="sm" onClick={handleDismiss}>
                 Dismiss
               </Button>
               <Button

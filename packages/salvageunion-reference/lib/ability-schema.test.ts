@@ -27,18 +27,21 @@ describe('AbilitySchema field optionality', () => {
 
   describe('required fields', () => {
     it('rejects an ability missing tree', () => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { tree: _tree, ...withoutTree } = baseAbility
       const result = AbilitySchema.safeParse(withoutTree)
       expect(result.success).toBe(false)
     })
 
     it('rejects an ability missing level', () => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { level: _level, ...withoutLevel } = baseAbility
       const result = AbilitySchema.safeParse(withoutLevel)
       expect(result.success).toBe(false)
     })
 
     it('rejects an ability missing actions', () => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { actions: _actions, ...withoutActions } = baseAbility
       const result = AbilitySchema.safeParse(withoutActions)
       expect(result.success).toBe(false)

@@ -1,9 +1,5 @@
 import { describe, test, expect } from 'bun:test'
-import {
-  computeDamageCascade,
-  selectRandomTarget,
-  filterDamageableRefs,
-} from './damageUtils'
+import { computeDamageCascade, selectRandomTarget, filterDamageableRefs } from './damageUtils'
 import type { EntityRefRow } from '../types/common'
 
 // ---------------------------------------------------------------------------
@@ -138,9 +134,7 @@ describe('filterDamageableRefs', () => {
   })
 
   test('includes modules refs that are not destroyed', () => {
-    const refs = [
-      makeRef({ id: 'ref-3', schema_name: 'modules', condition: 'intact' }),
-    ]
+    const refs = [makeRef({ id: 'ref-3', schema_name: 'modules', condition: 'intact' })]
     const result = filterDamageableRefs(refs)
     expect(result).toHaveLength(1)
   })
@@ -186,11 +180,7 @@ describe('filterDamageableRefs', () => {
 
 describe('selectRandomTarget', () => {
   test('returns a ref from the list', () => {
-    const refs = [
-      makeRef({ id: 'ref-1' }),
-      makeRef({ id: 'ref-2' }),
-      makeRef({ id: 'ref-3' }),
-    ]
+    const refs = [makeRef({ id: 'ref-1' }), makeRef({ id: 'ref-2' }), makeRef({ id: 'ref-3' })]
     const result = selectRandomTarget(refs)
     expect(result).not.toBeNull()
     const ids = refs.map((r) => r.id)

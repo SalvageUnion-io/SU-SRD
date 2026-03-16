@@ -44,8 +44,7 @@ export function computeDamageCascade(
 export function filterDamageableRefs(refs: EntityRefRow[]): EntityRefRow[] {
   return refs.filter(
     (r) =>
-      (r.schema_name === 'systems' || r.schema_name === 'modules') &&
-      r.condition !== 'destroyed'
+      (r.schema_name === 'systems' || r.schema_name === 'modules') && r.condition !== 'destroyed'
   )
 }
 

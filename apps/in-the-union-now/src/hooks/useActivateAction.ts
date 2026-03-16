@@ -1,6 +1,11 @@
 import { useCallback } from 'react'
 import { toast } from 'sonner'
-import { getHeatGenerated, applyHeat, canActivateAction, shouldTriggerHeatCheck } from 'salvageunion-reference'
+import {
+  getHeatGenerated,
+  applyHeat,
+  canActivateAction,
+  shouldTriggerHeatCheck,
+} from 'salvageunion-reference'
 import { showSaveToast } from '../lib/toastUtils'
 import { getErrorMessage } from '../lib/errors'
 import { changeLogApi } from '../lib/api/changeLogApi'
@@ -83,8 +88,10 @@ export function buildUseActionResult({
   action,
   heatCost,
 }: BuildUseActionResultOptions): UseActionComputedResult {
-  const epCost = action.costType === 'ep' && action.activationCost !== null ? action.activationCost : 0
-  const apCost = action.costType === 'ap' && action.activationCost !== null ? action.activationCost : 0
+  const epCost =
+    action.costType === 'ep' && action.activationCost !== null ? action.activationCost : 0
+  const apCost =
+    action.costType === 'ap' && action.activationCost !== null ? action.activationCost : 0
 
   const currentHeat = mech?.current_heat ?? 0
   const heatCap = mech?.heat_capacity ?? 0
@@ -152,7 +159,12 @@ export function useActivateAction({
     ): Promise<UseActionResult & { needsVariableHeatPrompt?: boolean }> => {
       return new Promise((resolve) => {
         if (!userId) {
-          resolve({ success: false, heatCheckTriggered: false, newHeat: 0, error: 'Not authenticated' })
+          resolve({
+            success: false,
+            heatCheckTriggered: false,
+            newHeat: 0,
+            error: 'Not authenticated',
+          })
           return
         }
 
@@ -166,7 +178,12 @@ export function useActivateAction({
           if (rawHeat === 'variable') {
             if (variableHeatOverride === undefined) {
               // Signal caller that we need a variable heat prompt (Story 2)
-              resolve({ success: false, heatCheckTriggered: false, newHeat: 0, needsVariableHeatPrompt: true })
+              resolve({
+                success: false,
+                heatCheckTriggered: false,
+                newHeat: 0,
+                needsVariableHeatPrompt: true,
+              })
               return
             }
             heatCost = variableHeatOverride
@@ -183,7 +200,12 @@ export function useActivateAction({
           const blockReason = canActivateMechAction(mech, epCost, heatCost)
           if (blockReason) {
             toast.error(blockReason)
-            resolve({ success: false, heatCheckTriggered: false, newHeat: mech.current_heat, error: blockReason })
+            resolve({
+              success: false,
+              heatCheckTriggered: false,
+              newHeat: mech.current_heat,
+              error: blockReason,
+            })
             return
           }
         }
@@ -192,16 +214,28 @@ export function useActivateAction({
           if (pilot.ap < action.activationCost) {
             const reason = 'Not enough AP'
             toast.error(reason)
-            resolve({ success: false, heatCheckTriggered: false, newHeat: mech?.current_heat ?? 0, error: reason })
+            resolve({
+              success: false,
+              heatCheckTriggered: false,
+              newHeat: mech?.current_heat ?? 0,
+              error: reason,
+            })
             return
           }
         }
 
         // --- Compute result values ---
-        const computed = buildUseActionResult({ mech: mech ?? undefined, pilot: pilot ?? undefined, action, heatCost })
+        const computed = buildUseActionResult({
+          mech: mech ?? undefined,
+          pilot: pilot ?? undefined,
+          action,
+          heatCost,
+        })
 
         // Show action-used toast
-        const actorLabel = isMechAction ? (mech?.pattern_name ?? mechLabel) : (pilot?.callsign ?? 'Pilot')
+        const actorLabel = isMechAction
+          ? (mech?.pattern_name ?? mechLabel)
+          : (pilot?.callsign ?? 'Pilot')
         toast(`${actorLabel} used ${action.name}`, {
           style: { borderColor: action.borderColor, borderWidth: '2px' },
         })
@@ -215,7 +249,12 @@ export function useActivateAction({
           completedMutations++
           if (completedMutations >= pendingMutations) {
             if (mutationError) {
-              resolve({ success: false, heatCheckTriggered: false, newHeat: mech?.current_heat ?? 0, error: mutationError })
+              resolve({
+                success: false,
+                heatCheckTriggered: false,
+                newHeat: mech?.current_heat ?? 0,
+                error: mutationError,
+              })
             } else {
               showSaveToast(`${actorLabel} used ${action.name}`)
               resolve({
@@ -358,7 +397,17 @@ export function useActivateAction({
         }
       })
     },
-    [mech, pilot, mechRefs, pilotRefs, userId, mechLabel, updateMech, updatePilot, updateMechEntityRef]
+    [
+      mech,
+      pilot,
+      mechRefs,
+      pilotRefs,
+      userId,
+      mechLabel,
+      updateMech,
+      updatePilot,
+      updateMechEntityRef,
+    ]
   )
 
   return { handleUseAction }

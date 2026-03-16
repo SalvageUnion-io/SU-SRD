@@ -59,7 +59,10 @@ type ActionsSectionProps = {
   comrades?: ComradeEntry[]
   onUpdateMech?: (input: Partial<MechUpdate>) => void
   onUpdateMechEntityRef?: (refId: string, input: EntityRefUpdate) => void
-  onUseAction?: (action: ActionDisplayData, variableHeatOverride?: number) => Promise<UseActionResult & { needsVariableHeatPrompt?: boolean }>
+  onUseAction?: (
+    action: ActionDisplayData,
+    variableHeatOverride?: number
+  ) => Promise<UseActionResult & { needsVariableHeatPrompt?: boolean }>
 }
 
 export function ActionsSection({
@@ -657,7 +660,12 @@ function ActionItem({
   const controls: ReferenceEntityControl[] = []
   const isPassive = action.actionType === 'Passive'
   const passiveWithUses = isPassive && (action.maxUses !== null || action.destroyOnUse)
-  const useLabel = getUseButtonLabel(action.sourceEntity as { traits?: Array<{ type: string; amount?: number | string }>; [key: string]: unknown })
+  const useLabel = getUseButtonLabel(
+    action.sourceEntity as {
+      traits?: Array<{ type: string; amount?: number | string }>
+      [key: string]: unknown
+    }
+  )
   if (!readOnly && !mechUnboarded && !filteredOut && (!isPassive || passiveWithUses)) {
     controls.push({
       key: 'use',

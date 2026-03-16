@@ -52,9 +52,13 @@ export const AbilitySchema = BaseEntitySchema.extend({
   level: AbilityLevelSchema.describe('Ability level (1-3, L for Legendary, G for Generic)'),
   mechActionType: ActionTypeSchema.describe('Action type when used as a mech action').optional(),
   grants: z.array(GrantSchema).describe('Entities or choices granted by this ability').optional(),
-  activationCurrency: ActivationCurrencySchema.describe('Currency type used for activation').optional(),
+  activationCurrency: ActivationCurrencySchema.describe(
+    'Currency type used for activation'
+  ).optional(),
   actions: z.array(z.string()).describe('Action names this ability provides'),
-}).strict().describe('Pilot abilities and skills in Salvage Union')
+})
+  .strict()
+  .describe('Pilot abilities and skills in Salvage Union')
 
 /**
  * Requirements for ability trees in Salvage Union
@@ -63,7 +67,9 @@ export const AbilityTreeRequirementSchema = BaseEntitySchema.extend({
   requirement: z
     .array(TreeSchema)
     .describe('List of ability tree names required to access this tree'),
-}).strict().describe('Requirements for unlocking ability trees in Salvage Union')
+})
+  .strict()
+  .describe('Requirements for unlocking ability trees in Salvage Union')
 
 /**
  * Actions, abilities, and attacks that can be performed in Salvage Union
@@ -71,7 +77,9 @@ export const AbilityTreeRequirementSchema = BaseEntitySchema.extend({
 export const MetaActionSchema = ActionSchema.and(
   z.object({
     displayName: z.string().min(1).describe('Alternative display name for this action').optional(),
-    activationCurrency: ActivationCurrencySchema.describe('Currency type used for activation').optional(),
+    activationCurrency: ActivationCurrencySchema.describe(
+      'Currency type used for activation'
+    ).optional(),
   })
 ).describe('Actions, abilities, and attacks that can be performed in Salvage Union')
 
@@ -82,7 +90,9 @@ export const BioTitanSchema = BaseEntitySchema.extend({
   structurePoints: PositiveIntegerSchema.describe('Structure points of this bio-titan'),
   actions: z.array(z.string()).describe('Action names this bio-titan can perform'),
   traits: z.array(TraitSchema).describe('Traits and special properties').optional(),
-}).strict().describe('Massive bio-engineered titan creatures in Salvage Union')
+})
+  .strict()
+  .describe('Massive bio-engineered titan creatures in Salvage Union')
 
 /**
  * Mech chassis definitions in Salvage Union
@@ -135,7 +145,9 @@ export const CrawlerBaySchema = BaseEntitySchema.extend({
   ).optional(),
   table: TableSchema.describe('Roll table associated with this bay').optional(),
   tableName: z.string().describe('Reference to a roll table name').optional(),
-}).strict().describe('Bays and facilities on Union Crawlers in Salvage Union')
+})
+  .strict()
+  .describe('Bays and facilities on Union Crawlers in Salvage Union')
 
 /**
  * Tech levels for Union Crawlers in Salvage Union
@@ -162,7 +174,9 @@ export const CrawlerTechLevelSchema = BaseEntitySchema.extend({
     .int()
     .nonnegative()
     .describe('Maximum approximate population (0 means unlimited/25,000+)'),
-}).strict().describe('Tech level progression for Union Crawlers in Salvage Union')
+})
+  .strict()
+  .describe('Tech level progression for Union Crawlers in Salvage Union')
 
 /**
  * Crawler vehicles in Salvage Union
@@ -170,8 +184,13 @@ export const CrawlerTechLevelSchema = BaseEntitySchema.extend({
 export const CrawlerSchema = BaseEntitySchema.extend({
   npc: NpcSchema.describe('NPC commander of this crawler'),
   actions: z.array(z.string()).describe('Action names this crawler can perform'),
-  mutations: z.array(CrawlerMutationSchema).describe('Rule mutations applied by this crawler type').optional(),
-}).strict().describe('Union Crawler mobile bases in Salvage Union')
+  mutations: z
+    .array(CrawlerMutationSchema)
+    .describe('Rule mutations applied by this crawler type')
+    .optional(),
+})
+  .strict()
+  .describe('Union Crawler mobile bases in Salvage Union')
 
 /**
  * Creatures and wildlife in Salvage Union
@@ -188,7 +207,9 @@ export const CreatureSchema = BaseEntitySchema.extend({ ...CombatEntitySchema.sh
  */
 export const DistanceSchema = BaseEntitySchema.extend({
   content: ContentSchema.describe('Descriptive content for this distance band').optional(),
-}).strict().describe('Distance bands and ranges in Salvage Union')
+})
+  .strict()
+  .describe('Distance bands and ranges in Salvage Union')
 
 /**
  * Tech level descriptions for Salvage Union
@@ -196,7 +217,9 @@ export const DistanceSchema = BaseEntitySchema.extend({
 export const TechLevelEntitySchema = BaseEntitySchema.extend({
   techLevel: PositiveIntegerSchema.describe('Numeric tech level value'),
   content: ContentSchema.describe('Descriptive content for this tech level').optional(),
-}).strict().describe('Tech level descriptions for Salvage Union')
+})
+  .strict()
+  .describe('Tech level descriptions for Salvage Union')
 
 /**
  * Autonomous drones in Salvage Union
@@ -234,14 +257,18 @@ export const FactionSchema = BaseEntitySchema.extend({
     .describe('The mechs that make up this faction formation')
     .optional(),
   content: ContentSchema.describe('Descriptive content for this faction').optional(),
-}).strict().describe('Faction groups and organizations in Salvage Union')
+})
+  .strict()
+  .describe('Faction groups and organizations in Salvage Union')
 
 /**
  * Game keywords and terminology in Salvage Union
  */
 export const KeywordSchema = BaseEntitySchema.extend({
   content: ContentSchema.describe('Definition and explanation of this keyword').optional(),
-}).strict().describe('Game keywords and terminology in Salvage Union')
+})
+  .strict()
+  .describe('Game keywords and terminology in Salvage Union')
 
 /**
  * Meld-infected creatures in Salvage Union
@@ -251,8 +278,15 @@ export const MeldSchema = BaseEntitySchema.extend({
   traits: z.array(TraitSchema).describe('Traits and special properties').optional(),
   salvageValue: z.number().int().nonnegative().describe('Scrap value when salvaged').optional(),
   hitPoints: z.number().int().nonnegative().describe('Hit points of this meld creature').optional(),
-  structurePoints: z.number().int().positive().describe('Structure points of this meld creature').optional(),
-}).strict().describe('Meld-infected creatures in Salvage Union')
+  structurePoints: z
+    .number()
+    .int()
+    .positive()
+    .describe('Structure points of this meld creature')
+    .optional(),
+})
+  .strict()
+  .describe('Meld-infected creatures in Salvage Union')
 
 /**
  * Mech modules in Salvage Union
@@ -280,7 +314,9 @@ export const NPCSchema = BaseEntitySchema.extend({ ...CombatEntitySchema.shape }
 export const RollTableSchema = BaseEntitySchema.extend({
   table: TableSchema.describe('The roll table data with outcomes keyed by roll ranges'),
   content: ContentSchema.describe('Descriptive content for this roll table').optional(),
-}).strict().describe('Random tables and roll tables in Salvage Union')
+})
+  .strict()
+  .describe('Random tables and roll tables in Salvage Union')
 
 /**
  * NPC squads and groups in Salvage Union
@@ -290,7 +326,9 @@ export const SquadSchema = BaseEntitySchema.extend({
   actions: z.array(z.string()).describe('Action names this squad can perform'),
   traits: z.array(TraitSchema).describe('Traits and special properties').optional(),
   damageType: DamageTypeSchema.describe('Type of damage this squad deals').optional(),
-}).strict().describe('NPC squads and groups in Salvage Union')
+})
+  .strict()
+  .describe('NPC squads and groups in Salvage Union')
 
 /**
  * Mech systems in Salvage Union
@@ -304,7 +342,9 @@ export const SystemSchema = BaseEntitySchema.extend({ ...SystemModuleSchema.shap
  */
 export const TraitEntitySchema = BaseEntitySchema.extend({
   content: ContentSchema.describe('Definition and rules for this trait').optional(),
-}).strict().describe('Traits and special properties in Salvage Union')
+})
+  .strict()
+  .describe('Traits and special properties in Salvage Union')
 
 /**
  * Conventional vehicles in Salvage Union
@@ -325,14 +365,18 @@ export const GuideSchema = BaseEntitySchema.extend({
     .describe('Hex color for entity display header/footer'),
   steps: z.array(GuideStepSchema).describe('Ordered sequence of steps'),
   repeatable: z.boolean().optional().describe('Whether this guide can be executed multiple times'),
-}).strict().describe('Player-facing guides and processes in Salvage Union')
+})
+  .strict()
+  .describe('Player-facing guides and processes in Salvage Union')
 
 /**
  * Source books and expansions for Salvage Union content
  */
 export const SourceEntitySchema = BaseEntitySchema.extend({
   purchaseLink: z.string().url().describe('URL where this source can be purchased').optional(),
-}).strict().describe('Source books and expansions for Salvage Union content')
+})
+  .strict()
+  .describe('Source books and expansions for Salvage Union content')
 
 /**
  * Catalog categories for organizing schemas in the UI (meta schema, not a game entity)

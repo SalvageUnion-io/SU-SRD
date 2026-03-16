@@ -34,7 +34,9 @@ export function TakeDamageModal({
 }: TakeDamageModalProps) {
   const [damageInput, setDamageInput] = useState('')
   const [showTargetPicker, setShowTargetPicker] = useState(false)
-  const [pendingCascade, setPendingCascade] = useState<ReturnType<typeof computeDamageCascade> | null>(null)
+  const [pendingCascade, setPendingCascade] = useState<ReturnType<
+    typeof computeDamageCascade
+  > | null>(null)
   const { applyDamage, isPending } = useApplyDamage()
 
   const isBoarded = pilot.is_boarded && !!mech
@@ -114,7 +116,10 @@ export function TakeDamageModal({
           <>
             {/* SP damage input */}
             <div>
-              <label htmlFor="sp-damage-input" className="mb-1 block font-mono text-xs font-semibold uppercase text-su-black/70">
+              <label
+                htmlFor="sp-damage-input"
+                className="mb-1 block font-mono text-xs font-semibold uppercase text-su-black/70"
+              >
                 SP Damage Amount
               </label>
               <input

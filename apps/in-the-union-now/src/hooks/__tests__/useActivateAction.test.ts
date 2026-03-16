@@ -1,9 +1,5 @@
 import { describe, test, expect } from 'bun:test'
-import {
-  buildUseActionResult,
-  canActivateMechAction,
-  resolveHeatCost,
-} from '../useActivateAction'
+import { buildUseActionResult, canActivateMechAction, resolveHeatCost } from '../useActivateAction'
 import type { ActionDisplayData } from '../../lib/pilotActionUtils'
 import type { MechRow, PilotRow } from '../../types/common'
 
