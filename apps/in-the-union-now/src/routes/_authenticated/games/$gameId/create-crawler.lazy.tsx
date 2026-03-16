@@ -28,27 +28,31 @@ export const Route = createLazyFileRoute('/_authenticated/games/$gameId/create-c
   component: CreateCrawlerPage,
 })
 
-const crawlerGuide = SalvageUnionReference.Guides.find(
-  (g) => g.name === 'Create a Crawler'
-)! as SURefGuide
-
-const digitalSteps = getDigitalSteps(crawlerGuide)
-
-const crawlerTypeStep = digitalSteps.find(
-  (s) => s.stepType === 'select-one' && s.schema?.[0] === 'crawlers'
-)!
-const npcStep = digitalSteps.find(
-  (s) => s.stepType === 'freeform' && s.schema?.[0] === 'crawler-bays'
-)!
-
-/** Guide entity with only digital steps (filters out paperOnly steps) */
-const interactiveGuide = { ...crawlerGuide, steps: digitalSteps } as SURefGuide
-
 function CreateCrawlerPage() {
   const { gameId } = Route.useParams()
   const navigate = useNavigate()
   const user = useCurrentUser()
   const createCrawler = useCreateCrawler()
+
+  const { digitalSteps, crawlerTypeStep, npcStep, interactiveGuide } = useMemo(() => {
+    const guide = SalvageUnionReference.Guides.find(
+      (g) => g.name === 'Create a Crawler'
+    )! as SURefGuide
+
+    const steps = getDigitalSteps(guide)
+
+    const typeStep = steps.find((s) => s.stepType === 'select-one' && s.schema?.[0] === 'crawlers')!
+    const npcStepFound = steps.find(
+      (s) => s.stepType === 'freeform' && s.schema?.[0] === 'crawler-bays'
+    )!
+
+    return {
+      digitalSteps: steps,
+      crawlerTypeStep: typeStep,
+      npcStep: npcStepFound,
+      interactiveGuide: { ...guide, steps } as SURefGuide,
+    }
+  }, [])
 
   const reducer = useMemo(() => createWizardReducer(digitalSteps, crawlerConstraintOverride), [])
   const [state, dispatch] = useReducer(reducer, undefined, createInitialWizardState)

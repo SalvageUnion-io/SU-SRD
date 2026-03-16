@@ -25,18 +25,24 @@ export const Route = createLazyFileRoute('/_authenticated/pilots/$pilotId/create
 
 const MECH_BUDGET_SCHEMAS = new Set(['chassis', 'systems', 'modules'])
 
-const mechGuide = SalvageUnionReference.Guides.find(
-  (g) => g.name === 'Create a Mech'
-)! as SURefGuide
-
-const mechDigitalSteps = getDigitalSteps(mechGuide)
-const interactiveMechGuide = { ...mechGuide, steps: mechDigitalSteps } as SURefGuide
-
 function CreateMechPage() {
   const { pilotId } = Route.useParams()
   const navigate = useNavigate()
   const user = useCurrentUser()
   const instantiateMech = useInstantiateMech()
+
+  const { mechDigitalSteps, interactiveMechGuide } = useMemo(() => {
+    const guide = SalvageUnionReference.Guides.find(
+      (g) => g.name === 'Create a Mech'
+    )! as SURefGuide
+
+    const steps = getDigitalSteps(guide)
+
+    return {
+      mechDigitalSteps: steps,
+      interactiveMechGuide: { ...guide, steps } as SURefGuide,
+    }
+  }, [])
 
   const mechReducer = useMemo(() => createWizardReducer(mechDigitalSteps), [])
   const [wizardState, wizardDispatch] = useReducer(mechReducer, undefined, createInitialWizardState)

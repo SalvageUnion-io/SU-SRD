@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefGuide } from 'salvageunion-reference'
 import { ReferenceEntityDisplay, Text } from 'suref-react'
@@ -14,10 +14,6 @@ import { TallySalvageStep } from './TallySalvageStep'
 import { TallySalvageMediatorView } from './TallySalvageMediatorView'
 import { UpkeepStep } from './UpkeepStep'
 import type { CrawlerRow, DowntimeRecordRow } from '../../../types/common'
-
-const downtimeGuide = SalvageUnionReference.Guides.find(
-  (g) => g.id === '5b57c66c-ad03-4184-b081-366c98c44fbe'
-)! as SURefGuide
 
 const DOWNTIME_HEADER_BG = 'color-mix(in srgb, rgb(206, 88, 152) 35%, white)'
 
@@ -73,6 +69,14 @@ function PlayerDowntimeGuide({
   activeDowntime: DowntimeRecordRow
   compact?: boolean
 }) {
+  const downtimeGuide = useMemo(
+    () =>
+      SalvageUnionReference.Guides.find(
+        (g) => g.id === '5b57c66c-ad03-4184-b081-366c98c44fbe'
+      )! as SURefGuide,
+    []
+  )
+
   const { data: cargo, isLoading } = useMechCargo(mechId)
   const tallySalvageComplete = !isLoading && (!cargo || cargo.length === 0)
 
@@ -114,6 +118,14 @@ function MediatorDowntimeGuide({
   activeDowntime: DowntimeRecordRow
   compact?: boolean
 }) {
+  const downtimeGuide = useMemo(
+    () =>
+      SalvageUnionReference.Guides.find(
+        (g) => g.id === '5b57c66c-ad03-4184-b081-366c98c44fbe'
+      )! as SURefGuide,
+    []
+  )
+
   const { data: pilots, isLoading } = usePilotsForCrawler(crawlerId)
   const user = useCurrentUser()
   const crawlerDowntime = useCrawlerDowntime()
