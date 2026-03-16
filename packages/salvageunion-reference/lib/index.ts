@@ -577,4 +577,123 @@ export class SalvageUnionReference {
     // Then try to resolve actions array (for systems, modules, abilities, equipment, etc.)
     return resolveActionsArray(entity)
   }
+
+  /**
+   * Get all entities from multiple schemas, tagged with their schema name
+   *
+   * @param schemaNames - Array of schema names to fetch from
+   * @returns Array of tagged results, each with schemaName and entity
+   *
+   * @example
+   * const results = SalvageUnionReference.getAllBySchemaNames(['systems', 'modules'])
+   * // => [{ schemaName: 'systems', entity: {...} }, { schemaName: 'modules', entity: {...} }, ...]
+   */
+  public static getAllBySchemaNames(
+    schemaNames: (keyof SchemaToEntityMap)[]
+  ): Array<{ schemaName: keyof SchemaToEntityMap; entity: SURefMetaEntity }> {
+    const result: Array<{ schemaName: keyof SchemaToEntityMap; entity: SURefMetaEntity }> = []
+    for (const schemaName of schemaNames) {
+      const modelName = SchemaToModelMap[schemaName]
+      const model = models[modelName] as BaseModel<SURefMetaEntity>
+      for (const entity of model.all()) {
+        result.push({ schemaName, entity })
+      }
+    }
+    return result
+  }
+
+  /**
+   * Find all entities across all schemas that reference a given entity
+   *
+   * Traverses string array fields (e.g. actions, systems/modules in patterns)
+   * to find inbound links by entity name or ID.
+   *
+   * @param schemaName - The schema of the entity to find usages of
+   * @param id - The ID of the entity to find usages of
+   * @returns Array of tagged results identifying entities that reference the given entity
+   *
+   * @example
+   * // Find all entities that reference the Escape Hatch system
+   * const usages = SalvageUnionReference.findUsagesOf('systems', 'escape-hatch-id')
+   */
+  public static findUsagesOf(
+    schemaName: keyof SchemaToEntityMap,
+    id: string
+  ): Array<{ schemaName: keyof SchemaToEntityMap; entity: SURefMetaEntity }> {
+    // Look up the entity to get its name for name-based reference matching
+    const targetEntity = this.get(schemaName, id)
+    if (!targetEntity) return []
+
+    const targetName =
+      'name' in targetEntity && typeof targetEntity.name === 'string'
+        ? targetEntity.name
+        : undefined
+
+    const result: Array<{ schemaName: keyof SchemaToEntityMap; entity: SURefMetaEntity }> = []
+
+    for (const candidateSchemaName of Object.keys(
+      SchemaToModelMap
+    ) as (keyof SchemaToEntityMap)[]) {
+      const modelName = SchemaToModelMap[candidateSchemaName]
+      const model = models[modelName] as BaseModel<SURefMetaEntity>
+
+      for (const entity of model.all()) {
+        // Skip the entity itself
+        if (
+          candidateSchemaName === schemaName &&
+          'id' in entity &&
+          (entity as { id: string }).id === id
+        ) {
+          continue
+        }
+
+        if (entityReferencesTarget(entity, id, targetName)) {
+          result.push({ schemaName: candidateSchemaName, entity })
+        }
+      }
+    }
+
+    return result
+  }
+}
+
+/**
+ * Check whether a given entity references a target by ID or name.
+ * Traverses all string array fields and nested object arrays that are
+ * known to hold cross-entity references (actions, systems/modules in patterns, schemaEntities).
+ */
+function entityReferencesTarget(
+  entity: unknown,
+  targetId: string,
+  targetName: string | undefined
+): boolean {
+  if (entity === null || typeof entity !== 'object') return false
+
+  const obj = entity as Record<string, unknown>
+
+  for (const value of Object.values(obj)) {
+    if (typeof value === 'string') {
+      if (value === targetId || (targetName !== undefined && value === targetName)) {
+        return true
+      }
+    } else if (Array.isArray(value)) {
+      for (const item of value) {
+        if (typeof item === 'string') {
+          if (item === targetId || (targetName !== undefined && item === targetName)) {
+            return true
+          }
+        } else if (item !== null && typeof item === 'object') {
+          if (entityReferencesTarget(item, targetId, targetName)) {
+            return true
+          }
+        }
+      }
+    } else if (value !== null && typeof value === 'object') {
+      if (entityReferencesTarget(value, targetId, targetName)) {
+        return true
+      }
+    }
+  }
+
+  return false
 }
