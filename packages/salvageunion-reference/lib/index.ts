@@ -6,7 +6,7 @@
  */
 
 import { BaseModel, type ModelWithMetadata } from './BaseModel.js'
-import { generateModels } from './ModelFactory.js'
+import { generateModels, getDataMaps } from './ModelFactory.js'
 import type {
   SURefAbility,
   SURefBioTitan,
@@ -36,6 +36,7 @@ import type {
   SURefTechLevel,
   SURefCatalogCategory,
   SURefEntity,
+  SURefMetaEntity,
   SURefEnumSchemaName,
 } from './types/index.js'
 
@@ -83,6 +84,90 @@ import {
   type SearchOptions,
   type SearchResult,
 } from './search.js'
+
+// Cached action map - built once since action data is static
+let _actionMap: Map<string, SURefMetaAction> | null = null
+function getActionMapForResolve(): Map<string, SURefMetaAction> {
+  if (_actionMap) return _actionMap
+  const { dataMap } = getDataMaps()
+  const actionsData = dataMap['actions'] as SURefMetaAction[] | undefined
+  if (!actionsData) return new Map()
+  _actionMap = new Map(actionsData.map((a) => [a.name, a]))
+  return _actionMap
+}
+
+/**
+ * Resolve actions from an entity's actions array
+ * @param entity - The entity to resolve actions from
+ * @returns The resolved actions array or undefined
+ */
+function resolveActionsArray(entity: SURefMetaEntity): SURefMetaAction[] | undefined {
+  if (!('actions' in entity) || !Array.isArray(entity.actions)) {
+    return undefined
+  }
+
+  const actionNames = entity.actions as string[]
+
+  const actionMap = getActionMapForResolve()
+  if (actionMap.size === 0) {
+    return undefined
+  }
+
+  // Resolve each action name to its object
+  const resolved: SURefMetaAction[] = []
+  for (const actionName of actionNames) {
+    if (typeof actionName !== 'string') {
+      continue
+    }
+    const action = actionMap.get(actionName)
+    if (action) {
+      resolved.push(action)
+    }
+  }
+
+  return resolved.length > 0 ? resolved : undefined
+}
+
+/**
+ * Resolve chassis abilities from a chassis entity
+ * @param entity - The entity to resolve chassis abilities from
+ * @returns The resolved abilities array or undefined
+ */
+function resolveChassisAbilities(entity: SURefMetaEntity): SURefMetaAction[] | undefined {
+  if (!('chassisAbilities' in entity) || !Array.isArray(entity.chassisAbilities)) {
+    return undefined
+  }
+
+  const chassisAbilities = entity.chassisAbilities
+
+  const abilityMap = getActionMapForResolve()
+  if (abilityMap.size === 0) {
+    return undefined
+  }
+
+  // Resolve each ability name to its object
+  // Use a Set to track IDs to prevent duplicates (in case same ability is referenced multiple times)
+  const seenIds = new Set<string>()
+  const resolved: SURefMetaAction[] = []
+  for (const abilityName of chassisAbilities) {
+    if (typeof abilityName !== 'string') {
+      continue
+    }
+    const ability = abilityMap.get(abilityName)
+    if (ability) {
+      // Skip if we've already added this ability (duplicate reference)
+      if (ability.id && seenIds.has(ability.id)) {
+        continue
+      }
+      if (ability.id) {
+        seenIds.add(ability.id)
+      }
+      resolved.push(ability)
+    }
+  }
+
+  return resolved.length > 0 ? resolved : undefined
+}
 
 export type * from './types/index.js'
 
@@ -463,5 +548,33 @@ export class SalvageUnionReference {
     }
   ): string[] {
     return getSuggestionsFn(query, options)
+  }
+
+  /**
+   * Resolve actions from any entity that might have actions
+   *
+   * Handles two types of action resolution:
+   * 1. Chassis entities - resolves via chassisAbilities array
+   * 2. Other entities - resolves via actions array (systems, modules, abilities, equipment, NPCs, creatures, etc.)
+   *
+   * @param entity - The entity to resolve actions from (any entity type)
+   * @returns Array of resolved SURefMetaAction objects, or undefined if no actions are found
+   *
+   * @example
+   * const chassis = SalvageUnionReference.Chassis.find(c => c.id === 'iron-mongrel')
+   * const chassisActions = SalvageUnionReference.resolveActions(chassis)
+   *
+   * const system = SalvageUnionReference.Systems.find(s => s.id === 'assault-rifle')
+   * const systemActions = SalvageUnionReference.resolveActions(system)
+   */
+  public static resolveActions(entity: SURefMetaEntity): SURefMetaAction[] | undefined {
+    // Try to resolve chassis abilities first (for chassis entities)
+    const chassisAbilities = resolveChassisAbilities(entity)
+    if (chassisAbilities) {
+      return chassisAbilities
+    }
+
+    // Then try to resolve actions array (for systems, modules, abilities, equipment, etc.)
+    return resolveActionsArray(entity)
   }
 }
