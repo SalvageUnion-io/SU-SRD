@@ -2,36 +2,22 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://salvageunion.com/schemas/abilities.schema.json",
   "title": "abilities",
-  "description": "Pilot abilities and skills in Salvage Union",
+  "description": "",
   "type": "array",
   "items": {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "type": "object",
     "properties": {
-      "asset_url": {
-        "type": "string",
-        "format": "uri",
-        "description": "URL to an image asset for this entity"
-      },
+      "asset_url": { "type": "string", "format": "uri" },
       "content": {
         "type": "array",
         "items": {
-          "description": "Block of structured content for rendering (paragraph, heading, list item, etc.)",
           "type": "object",
           "properties": {
             "type": {
               "default": "paragraph",
               "type": "string",
-              "enum": [
-                "paragraph",
-                "heading",
-                "list-item",
-                "label",
-                "datavalues",
-                "hint",
-                "flavor"
-              ],
-              "description": "Type of content block for rendering structured text"
+              "enum": ["paragraph", "heading", "list-item", "label", "datavalues", "hint", "flavor"]
             },
             "value": {
               "anyOf": [
@@ -41,22 +27,12 @@
                   "items": {
                     "type": "object",
                     "properties": {
-                      "label": {
-                        "anyOf": [{ "type": "string" }, { "type": "number" }],
-                        "description": "Display label for this data value"
-                      },
-                      "value": {
-                        "anyOf": [{ "type": "string" }, { "type": "number" }],
-                        "description": "The data value"
-                      },
-                      "type": {
-                        "type": "string",
-                        "description": "Type classification for this data value"
-                      }
+                      "label": { "anyOf": [{ "type": "string" }, { "type": "number" }] },
+                      "value": { "anyOf": [{ "type": "string" }, { "type": "number" }] },
+                      "type": { "type": "string" }
                     },
                     "required": ["label"],
-                    "additionalProperties": false,
-                    "description": "A data value with label, optional value, and optional type"
+                    "additionalProperties": false
                   },
                   "description": "Array of data values when type is 'datavalues'"
                 }
@@ -80,8 +56,7 @@
                       "datavalues",
                       "hint",
                       "flavor"
-                    ],
-                    "description": "Type of content block for rendering structured text"
+                    ]
                   },
                   "value": {
                     "anyOf": [
@@ -91,22 +66,12 @@
                         "items": {
                           "type": "object",
                           "properties": {
-                            "label": {
-                              "anyOf": [{ "type": "string" }, { "type": "number" }],
-                              "description": "Display label for this data value"
-                            },
-                            "value": {
-                              "anyOf": [{ "type": "string" }, { "type": "number" }],
-                              "description": "The data value"
-                            },
-                            "type": {
-                              "type": "string",
-                              "description": "Type classification for this data value"
-                            }
+                            "label": { "anyOf": [{ "type": "string" }, { "type": "number" }] },
+                            "value": { "anyOf": [{ "type": "string" }, { "type": "number" }] },
+                            "type": { "type": "string" }
                           },
                           "required": ["label"],
-                          "additionalProperties": false,
-                          "description": "A data value with label, optional value, and optional type"
+                          "additionalProperties": false
                         },
                         "description": "Array of data values when type is 'datavalues'"
                       }
@@ -122,21 +87,12 @@
           },
           "required": ["type"],
           "additionalProperties": false
-        },
-        "description": "Descriptive content blocks for this entity"
+        }
       },
-      "id": { "type": "string", "description": "Unique identifier for this entity" },
-      "indexable": {
-        "default": true,
-        "description": "Whether this entity appears in search results",
-        "type": "boolean"
-      },
-      "blackMarket": {
-        "default": false,
-        "description": "Whether this entity is only available on the black market",
-        "type": "boolean"
-      },
-      "name": { "type": "string", "minLength": 1, "description": "Display name of this entity" },
+      "id": { "type": "string" },
+      "indexable": { "default": true, "type": "boolean" },
+      "blackMarket": { "default": false, "type": "boolean" },
+      "name": { "type": "string", "minLength": 1 },
       "source": {
         "type": "string",
         "enum": [
@@ -145,16 +101,10 @@
           "We Were Here First!",
           "Rainmaker",
           "False Flag"
-        ],
-        "description": "Source book this entity appears in"
+        ]
       },
-      "page": {
-        "type": "integer",
-        "exclusiveMinimum": 0,
-        "maximum": 9007199254740991,
-        "description": "Page number in the source book"
-      },
-      "description": { "type": "string", "description": "Short description of the ability" },
+      "page": { "type": "integer", "exclusiveMinimum": 0, "maximum": 9007199254740991 },
+      "description": { "type": "string" },
       "tree": {
         "type": "string",
         "enum": [
@@ -194,21 +144,18 @@
           "Tactical Warfare",
           "Trading",
           "Union Rep"
-        ],
-        "description": "Ability tree this ability belongs to"
+        ]
       },
       "level": {
         "anyOf": [
           { "type": "integer", "minimum": 1, "maximum": 3 },
           { "type": "string", "const": "L" },
           { "type": "string", "const": "G" }
-        ],
-        "description": "Ability level (1-3, L for Legendary, G for Generic)"
+        ]
       },
       "mechActionType": {
         "type": "string",
-        "enum": ["Passive", "Free", "Reaction", "Turn", "Short", "Long", "DownTime"],
-        "description": "Action type when used as a mech action"
+        "enum": ["Passive", "Free", "Reaction", "Turn", "Short", "Long", "DownTime"]
       },
       "grants": {
         "type": "array",
@@ -245,35 +192,19 @@
                     "systems",
                     "traits",
                     "vehicles"
-                  ],
-                  "description": "Name of the entity schema collection"
+                  ]
                 },
                 { "type": "string", "const": "choice" }
-              ],
-              "description": "Schema collection the granted entity belongs to, or 'choice' for a choice grant"
+              ]
             },
-            "name": {
-              "type": "string",
-              "minLength": 1,
-              "description": "Name of the granted entity or choice"
-            }
+            "name": { "type": "string", "minLength": 1 }
           },
           "required": ["schema", "name"],
-          "additionalProperties": false,
-          "description": "An entity or choice granted by an ability"
-        },
-        "description": "Entities or choices granted by this ability"
+          "additionalProperties": false
+        }
       },
-      "activationCurrency": {
-        "type": "string",
-        "enum": ["Variable", "EP or AP", "SP or HP"],
-        "description": "Currency type used for activation"
-      },
-      "actions": {
-        "type": "array",
-        "items": { "type": "string" },
-        "description": "Action names this ability provides"
-      }
+      "activationCurrency": { "type": "string", "enum": ["Variable", "EP or AP", "SP or HP"] },
+      "actions": { "type": "array", "items": { "type": "string" } }
     },
     "required": [
       "id",
@@ -286,7 +217,6 @@
       "level",
       "actions"
     ],
-    "additionalProperties": false,
-    "description": "Pilot abilities and skills in Salvage Union"
+    "additionalProperties": false
   }
 }
