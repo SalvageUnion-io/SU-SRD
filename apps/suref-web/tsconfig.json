@@ -11,5 +11,5 @@
     "skipLibCheck": true,
     "types": ["node", "bun-types"]
   },
-  "include": ["src/**/*", "astro.config.mjs", ".astro/types.d.ts"]
+  "include": ["src/**/*", "test/**/*", "astro.config.mjs", ".astro/types.d.ts"]
 }

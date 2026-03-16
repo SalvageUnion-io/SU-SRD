@@ -42,6 +42,8 @@ describe('SalvageUnionReference static properties', () => {
         'filterByTechLevel',
         'filterBySource',
         'getAllBySchemaNames',
+        'preload',
+        'isLoaded',
       ]
       return !methodNames.includes(prop)
     })
