@@ -82,6 +82,17 @@ export {
   type SearchResult,
 } from './search.js'
 
+// Export combat utility functions (pure game logic)
+export {
+  getHeatGenerated,
+  applyHeat,
+  canActivateAction,
+  shouldTriggerHeatCheck,
+  canPush,
+  nextCondition,
+  applySpDamage,
+} from './combatUtils.js'
+
 // Import search functions for use in class methods
 import {
   search as searchFn,
