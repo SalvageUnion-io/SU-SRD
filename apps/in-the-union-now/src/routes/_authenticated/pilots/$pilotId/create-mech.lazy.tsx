@@ -44,7 +44,7 @@ function CreateMechPage() {
     }
   }, [])
 
-  const mechReducer = useMemo(() => createWizardReducer(mechDigitalSteps), [])
+  const mechReducer = useMemo(() => createWizardReducer(mechDigitalSteps), [mechDigitalSteps])
   const [wizardState, wizardDispatch] = useReducer(mechReducer, undefined, createInitialWizardState)
 
   const budgetConfig = useMemo((): WizardBudgetConfig => {
@@ -65,7 +65,7 @@ function CreateMechPage() {
       remainingBudget: STARTING_MECH_BUDGET - totalCost,
       budgetSchemas: MECH_BUDGET_SCHEMAS,
     }
-  }, [wizardState])
+  }, [wizardState, mechDigitalSteps])
 
   const guideInteractive = useGuideInteractiveConfig(
     mechDigitalSteps,
@@ -74,7 +74,10 @@ function CreateMechPage() {
     budgetConfig
   )
 
-  const isSubmittable = useMemo(() => canSubmitWizard(wizardState, mechDigitalSteps), [wizardState])
+  const isSubmittable = useMemo(
+    () => canSubmitWizard(wizardState, mechDigitalSteps),
+    [wizardState, mechDigitalSteps]
+  )
 
   const handleSubmit = useCallback(() => {
     if (!user) return
@@ -93,7 +96,7 @@ function CreateMechPage() {
         onError: (err) => toast.error(getErrorMessage(err)),
       }
     )
-  }, [user, pilotId, wizardState, instantiateMech, navigate])
+  }, [user, pilotId, wizardState, mechDigitalSteps, instantiateMech, navigate])
 
   const renderFooter = useCallback(
     () => (

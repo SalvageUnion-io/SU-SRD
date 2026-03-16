@@ -39,12 +39,12 @@ function NewPilotPage() {
     }
   }, [])
 
-  const reducer = useMemo(() => createWizardReducer(digitalSteps), [])
+  const reducer = useMemo(() => createWizardReducer(digitalSteps), [digitalSteps])
   const [state, dispatch] = useReducer(reducer, undefined, createInitialWizardState)
 
   const guideInteractive = useGuideInteractiveConfig(digitalSteps, state, dispatch)
 
-  const isSubmittable = useMemo(() => canSubmitWizard(state, digitalSteps), [state])
+  const isSubmittable = useMemo(() => canSubmitWizard(state, digitalSteps), [state, digitalSteps])
 
   const handleSubmit = useCallback(() => {
     if (!user) return
@@ -66,7 +66,7 @@ function NewPilotPage() {
         },
       }
     )
-  }, [user, state, createPilot, navigate])
+  }, [user, state, digitalSteps, createPilot, navigate])
 
   const renderFooter = useCallback(
     () => (

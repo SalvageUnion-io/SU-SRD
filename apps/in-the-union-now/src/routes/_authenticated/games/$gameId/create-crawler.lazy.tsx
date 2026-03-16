@@ -54,7 +54,10 @@ function CreateCrawlerPage() {
     }
   }, [])
 
-  const reducer = useMemo(() => createWizardReducer(digitalSteps, crawlerConstraintOverride), [])
+  const reducer = useMemo(
+    () => createWizardReducer(digitalSteps, crawlerConstraintOverride),
+    [digitalSteps]
+  )
   const [state, dispatch] = useReducer(reducer, undefined, createInitialWizardState)
 
   const guideInteractive = useGuideInteractiveConfig(
@@ -82,7 +85,7 @@ function CreateCrawlerPage() {
         requiredChoiceIds: requiredIds,
       })
     }
-  }, [selectedCrawlerTypeId, state.selections, dispatch])
+  }, [selectedCrawlerTypeId, state.selections, npcStep.id, dispatch])
 
   const onChoiceValueChange = useCallback(
     (stepId: string, choiceId: string, value: string) => {
@@ -104,10 +107,13 @@ function CreateCrawlerPage() {
         />
       )
     },
-    [state.selections, onChoiceValueChange, selectedCrawlerTypeId]
+    [npcStep.id, state.selections, onChoiceValueChange, selectedCrawlerTypeId]
   )
 
-  const isSubmittable = useMemo(() => canSubmitCrawlerWizard(state, digitalSteps), [state])
+  const isSubmittable = useMemo(
+    () => canSubmitCrawlerWizard(state, digitalSteps),
+    [state, digitalSteps]
+  )
 
   const handleSubmit = useCallback(() => {
     if (!user) return
@@ -129,7 +135,7 @@ function CreateCrawlerPage() {
         },
       }
     )
-  }, [user, state, gameId, createCrawler, navigate])
+  }, [user, state, digitalSteps, gameId, createCrawler, navigate])
 
   const renderFooter = useCallback(
     () => (
