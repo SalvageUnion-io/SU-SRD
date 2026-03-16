@@ -8,6 +8,7 @@ import {
   TECH_LEVEL_STYLES,
   techLevelLabel,
 } from 'suref-react'
+import { GameDataGate } from '../../lib/useGameData'
 
 type SchemaViewerIslandProps = {
   initialData: SURefEntity[]
@@ -72,7 +73,7 @@ export function SchemaViewerIsland({
   const hasFilters = techLevels.length > 1 || sources.length > 1
 
   return (
-    <>
+    <GameDataGate>
       {hasFilters && (
         <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-3">
           {techLevels.length > 1 && (
@@ -140,6 +141,6 @@ export function SchemaViewerIsland({
           })}
         </div>
       </div>
-    </>
+    </GameDataGate>
   )
 }
