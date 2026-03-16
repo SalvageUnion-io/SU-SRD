@@ -53,7 +53,7 @@ export const AbilitySchema = BaseEntitySchema.extend({
   mechActionType: ActionTypeSchema.optional(),
   grants: z.array(GrantSchema).optional(),
   activationCurrency: ActivationCurrencySchema.optional(),
-  actions: z.array(z.string()).optional(),
+  actions: z.array(z.string()),
 }).strict()
 
 /**

@@ -206,7 +206,17 @@
       "activationCurrency": { "type": "string", "enum": ["Variable", "EP or AP", "SP or HP"] },
       "actions": { "type": "array", "items": { "type": "string" } }
     },
-    "required": ["id", "indexable", "blackMarket", "name", "source", "page", "tree", "level"],
+    "required": [
+      "id",
+      "indexable",
+      "blackMarket",
+      "name",
+      "source",
+      "page",
+      "tree",
+      "level",
+      "actions"
+    ],
     "additionalProperties": false
   }
 }
