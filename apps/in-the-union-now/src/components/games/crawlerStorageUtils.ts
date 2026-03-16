@@ -12,7 +12,7 @@ export function partitionCargo(cargo: CargoRow[] | null | undefined): {
   }
 }
 
-export type CategoryFields = {
+type CategoryFields = {
   techLevel?: boolean
   salvageValue?: boolean
   slotsRequired?: boolean
@@ -21,7 +21,7 @@ export type CategoryFields = {
   heatCapacity?: boolean
 }
 
-export type CustomCargoFormData = {
+type CustomCargoFormData = {
   category: string
   description: string
   techLevel: string | undefined

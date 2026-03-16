@@ -18,7 +18,7 @@ export type AggregateActionsInput = {
   mechChassis?: SURefChassis
 }
 
-export type AggregateActionsResult = {
+type AggregateActionsResult = {
   allActions: ActionDisplayData[]
   comradeEntityIds: Set<string>
 }

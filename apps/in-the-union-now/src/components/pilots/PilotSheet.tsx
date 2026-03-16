@@ -36,7 +36,7 @@ import type {
 } from '../../types/common'
 import type { SURefChassis, SURefClass } from 'salvageunion-reference'
 
-export type PilotSheetProps = {
+type PilotSheetProps = {
   pilot: PilotRow
   compact?: boolean
   controls?: ReferenceEntityControl[]

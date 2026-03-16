@@ -9,7 +9,7 @@ import {
 import type { ActionDisplayData } from '../../lib/pilotActionUtils'
 import type { PilotRow, MechRow } from '../../types/common'
 
-export type ComradeEpGetter = (entityId: string, maxEp: number) => number
+type ComradeEpGetter = (entityId: string, maxEp: number) => number
 
 export function computeDisabledReason(
   action: ActionDisplayData,
