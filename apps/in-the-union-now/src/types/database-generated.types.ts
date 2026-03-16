@@ -653,14 +653,77 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_crawler: {
+        Args: {
+          p_user_id: string
+          p_game_id: string
+          p_crawler_ref: string
+          p_name?: string | null
+          p_tag?: string | null
+          p_max_sp?: number
+          p_upkeep?: number
+          p_bay_npcs?: Json
+          p_weapon_refs?: Json
+        }
+        Returns: Json
+      }
+      create_game: {
+        Args: {
+          p_user_id: string
+          p_name: string
+          p_invite_code: string
+        }
+        Returns: Json
+      }
+      create_pilot: {
+        Args: {
+          p_user_id: string
+          p_callsign: string
+          p_class_ref: string
+          p_hp: number
+          p_max_hp: number
+          p_ap: number
+          p_max_ap: number
+          p_tp: number
+          p_background?: string | null
+          p_motto?: string | null
+          p_keepsake?: string | null
+          p_appearance?: string | null
+          p_entity_refs?: Json
+        }
+        Returns: Json
+      }
       get_mediator_campaign_ids: { Args: never; Returns: string[] }
       get_user_campaign_ids: { Args: never; Returns: string[] }
       get_user_crawler_ids: { Args: never; Returns: string[] }
+      instantiate_mech: {
+        Args: {
+          p_user_id: string
+          p_pilot_id: string
+          p_chassis_ref: string
+          p_pattern_name?: string | null
+          p_max_sp?: number
+          p_max_ep?: number
+          p_heat_capacity?: number
+          p_cargo_capacity?: number
+          p_source_pattern_id?: string | null
+          p_source_ref_pattern_id?: string | null
+          p_entity_refs?: Json
+        }
+        Returns: Json
+      }
       is_campaign_mediator: {
         Args: { campaign_uuid: string }
         Returns: boolean
       }
       is_campaign_member: { Args: { campaign_uuid: string }; Returns: boolean }
+      join_game: {
+        Args: {
+          p_user_id: string
+          p_invite_code: string
+        }
+        Returns: Json
+      }
       offload_mech_cargo: {
         Args: {
           p_crawler_id: string
@@ -678,6 +741,25 @@ export type Database = {
           p_source_consumed: number
           p_target_amount: number
           p_to_field: string
+        }
+        Returns: undefined
+      }
+      update_crawler_weapon: {
+        Args: {
+          p_crawler_id: string
+          p_user_id: string
+          p_old_ref_id?: string | null
+          p_new_schema_name?: string
+          p_new_schema_ref_id?: string
+          p_sort_order?: number
+        }
+        Returns: undefined
+      }
+      update_mech_entity_refs: {
+        Args: {
+          p_mech_id: string
+          p_delete_ids?: string[]
+          p_inserts?: Json
         }
         Returns: undefined
       }

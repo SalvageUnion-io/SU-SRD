@@ -178,6 +178,8 @@ export function DisplayCard({
         'relative flex shrink-0 flex-col overflow-visible rounded-md',
         cardStyle?.className || 'shadow-lg',
         disabled && 'opacity-50',
+        resolvedCardClick &&
+          'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-su-orange',
         isCardHoverable &&
           'cursor-pointer transition-all duration-200 md:hover:z-10 md:hover:-translate-y-0.5 md:hover:scale-[1.02]'
       )}
@@ -354,6 +356,7 @@ export function DisplayCard({
                   bodyPadding || defaultBodyPadding,
                   hasTabs && (isDefaultTab ? 'pt-3' : 'p-0 pt-2')
                 )}
+                {...(hasTabs ? { 'aria-live': 'polite' as const } : {})}
               >
                 {isDefaultTab ? children : activeTab?.content}
               </div>

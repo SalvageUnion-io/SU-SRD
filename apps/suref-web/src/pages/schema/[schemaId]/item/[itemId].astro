@@ -2,7 +2,7 @@
 import BaseLayout from '../../../../layouts/BaseLayout.astro'
 import { getItemStaticPaths } from '../../../../lib/staticPaths'
 import { ReferenceEntityIsland } from '../../../../components/islands/ReferenceEntityIsland'
-import { getReferenceEntityData, extractStaticEntitySummary } from 'salvageunion-reference'
+import { getReferenceEntityData, extractStaticEntitySummary } from '../../../../lib/gameData'
 import StaticEntityContent from '../../../../components/StaticEntityContent.astro'
 
 export function getStaticPaths() {
@@ -89,7 +89,7 @@ const ogImage = displayData?.assetUrl || '/og-image.png'
   ]}
 >
   <article class="flex min-h-full flex-1 flex-col items-center justify-center p-4">
-    <ReferenceEntityIsland client:idle item={item} titleAs="h1" />
+    <ReferenceEntityIsland client:visible item={item} titleAs="h1" />
     {staticSummary && <StaticEntityContent summary={staticSummary} />}
   </article>
 </BaseLayout>

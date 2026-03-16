@@ -9,7 +9,9 @@ export async function getPlayerChoices(
 ): Promise<PlayerChoiceRow[]> {
   const { data, error } = await supabase
     .from('player_choices')
-    .select('*')
+    .select(
+      'id,choice_id,choice_type,created_at,entity_ref_id,guide_step_id,parent_choice_id,parent_id,parent_type,roll_value,selected_value,selected_values,updated_at,user_id'
+    )
     .eq('parent_id', parentId)
     .eq('parent_type', parentType)
 

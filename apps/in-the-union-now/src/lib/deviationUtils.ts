@@ -1,7 +1,7 @@
 import type { PatternItem, TypedPatternRow } from '../types/common'
 import type { MechSourcePattern } from './mechUtils'
 import { referencePatternToItems } from './builderUtils'
-import { findChassisById } from './entityHelpers'
+import { findChassisById } from 'salvageunion-reference'
 
 /**
  * Build a frequency map of "schema_name::schema_ref_id" → count.

@@ -17,6 +17,108 @@ export interface SearchOptions {
 const MAX_CACHE_SIZE = 100
 const searchCache = new Map<string, SearchResult[]>()
 
+// Lazy singleton search index
+type SearchIndexEntry = {
+  schemaName: SURefEnumSchemaName
+  schemaTitle: string
+  entity: SURefEntity & { schemaName: SURefEnumSchemaName }
+  entityId: string
+  entityName: string
+  nameText: string
+  descriptionText: string
+  effectText: string
+  goalsText: string
+  assetsText: string
+  weaknessesText: string
+  contentText: string
+  actionsText: string
+}
+
+let searchIndex: SearchIndexEntry[] | null = null
+
+/**
+ * Build the search index lazily on first access
+ * Pre-computes searchable text for all entities
+ */
+function buildSearchIndex(): SearchIndexEntry[] {
+  const entries: SearchIndexEntry[] = []
+  const schemaCatalog = getSchemaCatalog()
+  const { dataMap } = getDataMaps()
+
+  const schemasToIndex = schemaCatalog.schemas.filter((s) => !s.meta)
+
+  for (const schema of schemasToIndex) {
+    const schemaId = schema.id as SURefEnumSchemaName
+    const data = dataMap[schemaId]
+
+    if (!data || !Array.isArray(data)) {
+      continue
+    }
+
+    for (const entity of data as SURefEntity[]) {
+      const entityWithSchema = { ...entity, schemaName: schemaId } as SURefEntity & {
+        schemaName: SURefEnumSchemaName
+      }
+
+      const resolvedActions = extractActions(entity)
+      const actionsText = resolvedActions
+        ? resolvedActions
+            .map((action) =>
+              typeof action === 'object' && action !== null && 'content' in action
+                ? extractContentText(action.content)
+                : ''
+            )
+            .join(' ')
+            .toLowerCase()
+        : ''
+
+      entries.push({
+        schemaName: schemaId,
+        schemaTitle: schema.title,
+        entity: entityWithSchema,
+        entityId: entity.id,
+        entityName: entity.name,
+        nameText: entity.name.toLowerCase(),
+        descriptionText:
+          'description' in entity && typeof entity.description === 'string'
+            ? entity.description.toLowerCase()
+            : '',
+        effectText:
+          'effect' in entity && typeof entity.effect === 'string'
+            ? entity.effect.toLowerCase()
+            : '',
+        goalsText:
+          'goals' in entity && typeof entity.goals === 'string' ? entity.goals.toLowerCase() : '',
+        assetsText:
+          'assets' in entity && typeof entity.assets === 'string'
+            ? entity.assets.toLowerCase()
+            : '',
+        weaknessesText:
+          'weaknesses' in entity && typeof entity.weaknesses === 'string'
+            ? entity.weaknesses.toLowerCase()
+            : '',
+        contentText:
+          'content' in entity && entity.content
+            ? extractContentText(entity.content).toLowerCase()
+            : '',
+        actionsText,
+      })
+    }
+  }
+
+  return entries
+}
+
+/**
+ * Get the search index, building it lazily on first access
+ */
+function getSearchIndex(): SearchIndexEntry[] {
+  if (searchIndex === null) {
+    searchIndex = buildSearchIndex()
+  }
+  return searchIndex
+}
+
 /**
  * Trim cache if it exceeds max size (LRU eviction)
  */
@@ -124,10 +226,10 @@ function calculateScore(entity: SURefEntity, query: string, matchedFields: strin
 }
 
 /**
- * Check if an entity matches the search query
+ * Check if an entity matches the search query using pre-computed indexed text
  */
 function matchesQuery(
-  entity: SURefEntity,
+  indexEntry: SearchIndexEntry,
   query: string,
   caseSensitive: boolean
 ): { matches: boolean; matchedFields: string[] } {
@@ -135,75 +237,56 @@ function matchesQuery(
   const searchQuery = caseSensitive ? query : query.toLowerCase()
 
   // Check name field (all entities have this)
-  const name = caseSensitive ? entity.name : entity.name.toLowerCase()
-  if (name.includes(searchQuery)) {
+  const nameText = caseSensitive ? indexEntry.entity.name : indexEntry.nameText
+  if (nameText.includes(searchQuery)) {
     matchedFields.push('name')
   }
 
   // Check description field if it exists
-  if ('description' in entity && typeof entity.description === 'string') {
-    const description = caseSensitive ? entity.description : entity.description.toLowerCase()
-    if (description.includes(searchQuery)) {
+  if (indexEntry.descriptionText) {
+    if (indexEntry.descriptionText.includes(searchQuery)) {
       matchedFields.push('description')
     }
   }
 
   // Check effect field if it exists
-  if ('effect' in entity && typeof entity.effect === 'string') {
-    const effect = caseSensitive ? entity.effect : entity.effect.toLowerCase()
-    if (effect.includes(searchQuery)) {
+  if (indexEntry.effectText) {
+    if (indexEntry.effectText.includes(searchQuery)) {
       matchedFields.push('effect')
     }
   }
 
   // Check goals field if it exists (factions)
-  if ('goals' in entity && typeof entity.goals === 'string') {
-    const goals = caseSensitive ? entity.goals : entity.goals.toLowerCase()
-    if (goals.includes(searchQuery)) {
+  if (indexEntry.goalsText) {
+    if (indexEntry.goalsText.includes(searchQuery)) {
       matchedFields.push('goals')
     }
   }
 
   // Check assets field if it exists (factions)
-  if ('assets' in entity && typeof entity.assets === 'string') {
-    const assets = caseSensitive ? entity.assets : entity.assets.toLowerCase()
-    if (assets.includes(searchQuery)) {
+  if (indexEntry.assetsText) {
+    if (indexEntry.assetsText.includes(searchQuery)) {
       matchedFields.push('assets')
     }
   }
 
   // Check weaknesses field if it exists (factions)
-  if ('weaknesses' in entity && typeof entity.weaknesses === 'string') {
-    const weaknesses = caseSensitive ? entity.weaknesses : entity.weaknesses.toLowerCase()
-    if (weaknesses.includes(searchQuery)) {
+  if (indexEntry.weaknessesText) {
+    if (indexEntry.weaknessesText.includes(searchQuery)) {
       matchedFields.push('weaknesses')
     }
   }
 
   // Check content blocks if they exist
-  if ('content' in entity && entity.content) {
-    const contentText = extractContentText(entity.content)
-    const searchableContent = caseSensitive ? contentText : contentText.toLowerCase()
-    if (searchableContent.includes(searchQuery)) {
+  if (indexEntry.contentText) {
+    if (indexEntry.contentText.includes(searchQuery)) {
       matchedFields.push('content')
     }
   }
 
-  // Check actions for content blocks (actions are now strings, need to resolve)
-  const resolvedActions = extractActions(entity)
-  if (resolvedActions) {
-    for (const action of resolvedActions) {
-      if (typeof action === 'object' && action !== null && 'content' in action) {
-        const actionContentText = extractContentText(action.content)
-        const searchableActionContent = caseSensitive
-          ? actionContentText
-          : actionContentText.toLowerCase()
-        if (searchableActionContent.includes(searchQuery)) {
-          matchedFields.push('actions.content')
-          break // Only count once even if multiple actions match
-        }
-      }
-    }
+  // Check actions text
+  if (indexEntry.actionsText && indexEntry.actionsText.includes(searchQuery)) {
+    matchedFields.push('actions.content')
   }
 
   return {
@@ -232,44 +315,32 @@ export function search(options: SearchOptions): SearchResult[] {
   }
 
   const results: SearchResult[] = []
-  const schemaCatalog = getSchemaCatalog()
-  const { dataMap } = getDataMaps()
+  const index = getSearchIndex()
 
-  // Filter schemas if specified, and exclude meta schemas
-  const schemasToSearch = (
-    schemaFilter
-      ? schemaCatalog.schemas.filter((s) => schemaFilter.includes(s.id as SURefEnumSchemaName))
-      : schemaCatalog.schemas
-  ).filter((s) => !s.meta)
+  // Create a set of schemas to search for O(1) lookup
+  const schemasToSearch = schemaFilter ? new Set(schemaFilter) : null
 
-  for (const schema of schemasToSearch) {
-    const schemaId = schema.id as SURefEnumSchemaName
-    const data = dataMap[schemaId]
-
-    if (!data || !Array.isArray(data)) {
+  // Iterate through the pre-built index
+  for (const indexEntry of index) {
+    // Skip if schema filter is specified and this schema is not in the filter
+    if (schemasToSearch && !schemasToSearch.has(indexEntry.schemaName)) {
       continue
     }
 
-    for (const entity of data as SURefEntity[]) {
-      const { matches, matchedFields } = matchesQuery(entity, query, caseSensitive)
+    const { matches, matchedFields } = matchesQuery(indexEntry, query, caseSensitive)
 
-      if (matches) {
-        const matchScore = calculateScore(entity, query, matchedFields)
-        // Add schemaName to entity
-        const entityWithSchema = { ...entity, schemaName: schemaId } as SURefEntity & {
-          schemaName: SURefEnumSchemaName
-        }
+    if (matches) {
+      const matchScore = calculateScore(indexEntry.entity, query, matchedFields)
 
-        results.push({
-          schemaName: schemaId,
-          schemaTitle: schema.title,
-          entity: entityWithSchema,
-          entityId: entity.id,
-          entityName: entity.name,
-          matchedFields,
-          matchScore,
-        })
-      }
+      results.push({
+        schemaName: indexEntry.schemaName,
+        schemaTitle: indexEntry.schemaTitle,
+        entity: indexEntry.entity,
+        entityId: indexEntry.entityId,
+        entityName: indexEntry.entityName,
+        matchedFields,
+        matchScore,
+      })
     }
   }
 

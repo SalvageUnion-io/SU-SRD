@@ -39,7 +39,6 @@ import type {
   SURefMetaAbilityTreeRequirement,
   SURefMetaCrawlerTechLevel,
   SURefObjectAdvancedClass,
-  SURefObjectBonusPerTechLevel,
   SURefObjectFormationMech,
   SURefObjectNpc,
   SURefObjectPattern,
@@ -67,51 +66,8 @@ export type ItemCondition = 'intact' | 'damaged' | 'destroyed'
 export type ParentType = 'pilot' | 'mech' | 'crawler'
 
 // ============================================================================
-// TYPE UTILITIES
-// ============================================================================
-
-/**
- * Get all possible keys from a union type
- */
-type AllKeys<T> = T extends unknown ? keyof T : never
-
-/**
- * All possible property keys across all SURefMetaEntity types
- */
-type SURefMetaEntityKeys = AllKeys<SURefMetaEntity>
-
-/**
- * Get the type of a property across all types in the union
- * Returns the union of all possible types for that property
- */
-type PropertyType<T, K extends PropertyKey> = T extends unknown
-  ? K extends keyof T
-    ? T[K]
-    : never
-  : never
-
-// ============================================================================
 // PROPERTY EXTRACTORS
 // ============================================================================
-
-/**
- * Type-safe property extractor for SURefMetaEntity
- * @param entity - The entity to extract from
- * @param propertyName - The property name to extract
- * @returns The property value or undefined if not present
- */
-export function extractProperty<K extends SURefMetaEntityKeys>(
-  entity: SURefMetaEntity,
-  propertyName: K
-): PropertyType<SURefMetaEntity, K> | undefined {
-  if (entity !== null && typeof entity === 'object' && propertyName in entity) {
-    return (entity as unknown as Record<string, unknown>)[propertyName as string] as PropertyType<
-      SURefMetaEntity,
-      K
-    >
-  }
-  return undefined
-}
 
 /**
  * Extract tech level from an entity
@@ -416,17 +372,6 @@ export function getId(entity: SURefMetaEntity): string | undefined {
 }
 
 /**
- * Extract indexable from an entity
- * @param entity - The entity to extract from
- * @returns The indexable or undefined
- */
-export function getIndexable(entity: SURefMetaEntity): boolean | undefined {
-  return 'indexable' in entity && typeof entity.indexable === 'boolean'
-    ? entity.indexable
-    : undefined
-}
-
-/**
  * Extract name from an entity
  * @param entity - The entity to extract from
  * @returns The name or undefined
@@ -445,25 +390,6 @@ export function getSource(entity: SURefMetaEntity): string | undefined {
 }
 
 /**
- * Extract page from an entity
- * @param entity - The entity to extract from
- * @returns The page or undefined
- */
-export function getPage(entity: SURefMetaEntity): number | undefined {
-  return 'page' in entity && typeof entity.page === 'number' ? entity.page : undefined
-}
-
-/**
- * Extract actions from an entity
- * Note: This function returns the raw string array. Use extractActions() to get resolved action objects.
- * @param entity - The entity to extract from
- * @returns The actions or undefined
- */
-export function getActions(entity: SURefMetaEntity): unknown | undefined {
-  return 'actions' in entity ? entity.actions : undefined
-}
-
-/**
  * Extract npc from an entity
  * @param entity - The entity to extract from
  * @returns The npc or undefined
@@ -478,50 +404,12 @@ export function getNpc(entity: SURefMetaEntity): SURefObjectNpc | undefined {
 }
 
 /**
- * Extract systems from an entity
- * @param entity - The entity to extract from
- * @returns The systems or undefined
- */
-export function getSystems(entity: SURefMetaEntity): unknown | undefined {
-  return 'systems' in entity ? entity.systems : undefined
-}
-
-/**
  * Extract tree from an entity
  * @param entity - The entity to extract from
  * @returns The tree or undefined
  */
 export function getTree(entity: SURefMetaEntity): unknown | undefined {
   return 'tree' in entity ? entity.tree : undefined
-}
-
-/**
- * Extract level from an entity
- * @param entity - The entity to extract from
- * @returns The level or undefined
- */
-export function getLevel(entity: SURefMetaEntity): unknown | undefined {
-  return 'level' in entity ? entity.level : undefined
-}
-
-/**
- * Extract mechActionType from an entity
- * @param entity - The entity to extract from
- * @returns The mechActionType or undefined
- */
-export function getMechActionType(entity: SURefMetaEntity): unknown | undefined {
-  return 'mechActionType' in entity ? entity.mechActionType : undefined
-}
-
-/**
- * Extract activationCurrency from an entity
- * @param entity - The entity to extract from
- * @returns The activationCurrency or undefined
- */
-export function getActivationCurrency(entity: SURefMetaEntity): string | undefined {
-  return 'activationCurrency' in entity && typeof entity.activationCurrency === 'string'
-    ? entity.activationCurrency
-    : undefined
 }
 
 /**
@@ -542,55 +430,6 @@ export function getRequirement(entity: SURefMetaEntity): string[] | undefined {
  */
 export function getPatterns(entity: SURefMetaEntity): SURefObjectPattern[] | undefined {
   return 'patterns' in entity && Array.isArray(entity.patterns) ? entity.patterns : undefined
-}
-
-/**
- * Extract damagedEffect from an entity
- * @param entity - The entity to extract from
- * @returns The damagedEffect or undefined
- */
-export function getDamagedEffect(entity: SURefMetaEntity): string | undefined {
-  return 'damagedEffect' in entity && typeof entity.damagedEffect === 'string'
-    ? entity.damagedEffect
-    : undefined
-}
-
-/**
- * Extract populationMin from an entity
- * @param entity - The entity to extract from
- * @returns The populationMin or undefined
- */
-export function getPopulationMin(entity: SURefMetaEntity): number | undefined {
-  return 'populationMin' in entity && typeof entity.populationMin === 'number'
-    ? entity.populationMin
-    : undefined
-}
-
-/**
- * Extract populationMax from an entity
- * @param entity - The entity to extract from
- * @returns The populationMax or undefined
- */
-export function getPopulationMax(entity: SURefMetaEntity): number | undefined {
-  return 'populationMax' in entity && typeof entity.populationMax === 'number'
-    ? entity.populationMax
-    : undefined
-}
-
-/**
- * Extract bonusPerTechLevel from an entity
- * @param entity - The entity to extract from
- * @returns The bonusPerTechLevel or undefined
- */
-export function getBonusPerTechLevel(
-  entity: SURefMetaEntity
-): SURefObjectBonusPerTechLevel | undefined {
-  return 'bonusPerTechLevel' in entity &&
-    entity.bonusPerTechLevel !== null &&
-    typeof entity.bonusPerTechLevel === 'object' &&
-    !Array.isArray(entity.bonusPerTechLevel)
-    ? entity.bonusPerTechLevel
-    : undefined
 }
 
 /**
@@ -737,24 +576,6 @@ export function resolveFormationMember(
   return found ? { entity: found } : undefined
 }
 
-/**
- * Extract section from an entity
- * @param entity - The entity to extract from
- * @returns The section or undefined
- */
-export function getSection(entity: SURefMetaEntity): string | undefined {
-  return 'section' in entity && typeof entity.section === 'string' ? entity.section : undefined
-}
-
-/**
- * Extract damageType from an entity
- * @param entity - The entity to extract from
- * @returns The damageType or undefined
- */
-export function getDamageType(entity: SURefMetaEntity): unknown | undefined {
-  return 'damageType' in entity ? entity.damageType : undefined
-}
-
 // ============================================================================
 // TYPE GUARDS - Data shape
 // ============================================================================
@@ -787,39 +608,6 @@ export function hasTechLevel(
     'techLevel' in entity &&
     (typeof entity.techLevel === 'number' || entity.techLevel === 'B' || entity.techLevel === 'N')
   )
-}
-
-/**
- * Type guard to check if an entity has a salvageValue property
- * @param entity - The entity to check
- * @returns True if the entity has a salvageValue property
- */
-export function hasSalvageValue(
-  entity: SURefMetaEntity
-): entity is SURefMetaEntity & { salvageValue: number } {
-  return 'salvageValue' in entity && typeof entity.salvageValue === 'number'
-}
-
-/**
- * Type guard to check if an entity has a slotsRequired property
- * @param entity - The entity to check
- * @returns True if the entity has a slotsRequired property
- */
-export function hasSlotsRequired(
-  entity: SURefMetaEntity
-): entity is SURefMetaEntity & { slotsRequired: number } {
-  return 'slotsRequired' in entity && typeof entity.slotsRequired === 'number'
-}
-
-/**
- * Type guard to check if an entity has actions
- * @param entity - The entity to check
- * @returns True if the entity has an actions array
- */
-export function hasActions(
-  entity: SURefMetaEntity
-): entity is SURefMetaEntity & { actions: string[] } {
-  return 'actions' in entity && Array.isArray(entity.actions)
 }
 
 /**

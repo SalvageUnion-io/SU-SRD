@@ -2,14 +2,18 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://salvageunion.com/schemas/catalog-categories.schema.json",
   "title": "catalog-categories",
-  "description": "",
+  "description": "Catalog categories for organizing schemas in the UI",
   "type": "array",
   "items": {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "type": "object",
     "properties": {
-      "id": { "type": "string" },
-      "name": { "type": "string", "minLength": 1 },
+      "id": { "type": "string", "description": "Unique identifier for this catalog category" },
+      "name": {
+        "type": "string",
+        "minLength": 1,
+        "description": "Display name of this catalog category"
+      },
       "schemas": {
         "type": "array",
         "items": {
@@ -40,12 +44,19 @@
             "systems",
             "traits",
             "vehicles"
-          ]
-        }
+          ],
+          "description": "Name of the entity schema collection"
+        },
+        "description": "Schema collections included in this category"
       },
-      "flat": { "default": false, "type": "boolean" }
+      "flat": {
+        "default": false,
+        "description": "Whether to display schemas in a flat list",
+        "type": "boolean"
+      }
     },
     "required": ["id", "name", "schemas", "flat"],
-    "additionalProperties": false
+    "additionalProperties": false,
+    "description": "Catalog categories for organizing schemas in the UI"
   }
 }

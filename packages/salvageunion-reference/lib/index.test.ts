@@ -7,6 +7,7 @@ import {
   isModule,
   isChassis,
   getTechLevel,
+  getTechLevelNumber,
   getSalvageValue,
   getSlotsRequired,
   getPageReference,
@@ -29,18 +30,20 @@ describe('SalvageUnionReference static properties', () => {
         'get',
         'exists',
         'getMany',
-        'composeRef',
         'parseRef',
         'getByRef',
-        'getManyByRef',
-        'getTechLevel',
-        'getTechLevelNumber',
-        'getSalvageValue',
         'getSlotsRequired',
         'getAllClasses',
         'findClassById',
         'getAbilitiesForClass',
+        'resolveActions',
         'entityCache',
+        'isValidSchemaName',
+        'filterByTechLevel',
+        'filterBySource',
+        'getAllBySchemaNames',
+        'preload',
+        'isLoaded',
       ]
       return !methodNames.includes(prop)
     })
@@ -373,13 +376,6 @@ describe('SalvageUnionReference.getMany', () => {
   })
 })
 
-describe('SalvageUnionReference.composeRef', () => {
-  it('should compose a reference string', () => {
-    const ref = SalvageUnionReference.composeRef('abilities', 'test-id')
-    expect(ref).toBe('abilities::test-id')
-  })
-})
-
 describe('SalvageUnionReference.parseRef', () => {
   it('should parse a valid reference string', () => {
     const parsed = SalvageUnionReference.parseRef('abilities::test-id')
@@ -404,7 +400,7 @@ describe('SalvageUnionReference.getByRef', () => {
     const allAbilities = SalvageUnionReference.Abilities.all()
     const firstAbility = allAbilities[0]!
 
-    const ref = SalvageUnionReference.composeRef('abilities', firstAbility.id)
+    const ref = `abilities::${firstAbility.id}`
     const entity = SalvageUnionReference.getByRef(ref)
 
     expect(entity).toBeDefined()
@@ -496,35 +492,6 @@ describe('Property Extractors', () => {
   })
 })
 
-describe('SalvageUnionReference.getManyByRef', () => {
-  it('should batch fetch entities by reference strings', () => {
-    const abilities = SalvageUnionReference.Abilities.all().slice(0, 3)
-    const refs = abilities.map((a) => SalvageUnionReference.composeRef('abilities', a.id))
-
-    const entities = SalvageUnionReference.getManyByRef(refs)
-
-    expect(entities.size).toBe(3)
-    for (let i = 0; i < refs.length; i++) {
-      const ref = refs[i]!
-      const ability = abilities[i]!
-      const entity = entities.get(ref)
-      expect(entity).toBeDefined()
-      expect(entity?.id).toBe(ability.id)
-    }
-  })
-
-  it('should return undefined for invalid references', () => {
-    const entities = SalvageUnionReference.getManyByRef([
-      'abilities::invalid-1',
-      'systems::invalid-2',
-    ])
-
-    expect(entities.size).toBe(2)
-    expect(entities.get('abilities::invalid-1')).toBeUndefined()
-    expect(entities.get('systems::invalid-2')).toBeUndefined()
-  })
-})
-
 describe('getTechLevel', () => {
   it('should get tech level from systems', () => {
     const system = SalvageUnionReference.Systems.all()[0]!
@@ -559,7 +526,7 @@ describe('getTechLevel', () => {
 describe('getTechLevelNumber', () => {
   it('should get tech level as number from systems', () => {
     const system = SalvageUnionReference.Systems.all()[0]!
-    const techLevel = SalvageUnionReference.getTechLevelNumber(system)
+    const techLevel = getTechLevelNumber(system)
 
     expect(techLevel).toBeDefined()
     expect(typeof techLevel).toBe('number')
@@ -570,7 +537,7 @@ describe('getTechLevelNumber', () => {
 
   it('should get tech level as number from chassis (in stats)', () => {
     const chassis = SalvageUnionReference.Chassis.all()[0]!
-    const techLevel = SalvageUnionReference.getTechLevelNumber(chassis)
+    const techLevel = getTechLevelNumber(chassis)
 
     expect(techLevel).toBeDefined()
     expect(typeof techLevel).toBe('number')
@@ -581,7 +548,7 @@ describe('getTechLevelNumber', () => {
 
   it('should return undefined for entities without tech level', () => {
     const ability = SalvageUnionReference.Abilities.all()[0]!
-    const techLevel = SalvageUnionReference.getTechLevelNumber(ability)
+    const techLevel = getTechLevelNumber(ability)
 
     expect(techLevel).toBeUndefined()
   })
@@ -663,6 +630,20 @@ describe('SalvageUnionReference.CatalogCategories', () => {
 
   it('should not be in EntitySchemaNames', () => {
     expect(EntitySchemaNames.has('catalog-categories')).toBe(false)
+  })
+})
+
+describe('SalvageUnionReference public API surface', () => {
+  it('should NOT expose findUsagesOf (removed as unused)', () => {
+    expect('findUsagesOf' in SalvageUnionReference).toBe(false)
+  })
+
+  it('should NOT expose composeRef (removed as unused)', () => {
+    expect('composeRef' in SalvageUnionReference).toBe(false)
+  })
+
+  it('should NOT expose getManyByRef (removed as unused)', () => {
+    expect('getManyByRef' in SalvageUnionReference).toBe(false)
   })
 })
 

@@ -3,10 +3,9 @@ import { Dialog } from '@base-ui/react/dialog'
 import { X, Plus } from 'lucide-react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { EntitySchemaName, SURefEntity } from 'salvageunion-reference'
-import { ReferenceEntityDisplay, DisplayCard, CardHeader, Text } from 'suref-react'
+import { ReferenceEntityDisplay, DisplayCard, CardHeader, ModalShell, Text } from 'suref-react'
 import type { CellRenderInfo, CargoType } from '../../lib/cargoGridUtils'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip'
-import { ModalShell } from './ModalShell'
 
 type CargoGridProps = {
   cells: CellRenderInfo[]

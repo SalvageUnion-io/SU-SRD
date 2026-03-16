@@ -16,6 +16,7 @@ type Props = {
   ogType?: string
   ogImage?: string
   structuredData?: Record<string, unknown>
+  additionalStructuredData?: Record<string, unknown>[]
   noindex?: boolean
   preloadImage?: string
   breadcrumbs?: BreadcrumbItem[]
@@ -28,6 +29,7 @@ const {
   ogType = 'website',
   ogImage = '/og-image.png',
   structuredData,
+  additionalStructuredData,
   noindex = false,
   preloadImage,
   breadcrumbs,
@@ -78,6 +80,9 @@ const ogImageUrl = ogImage.startsWith('http') ? ogImage : new URL(ogImage, siteU
     {structuredData && (
       <script is:inline type="application/ld+json" set:html={JSON.stringify(structuredData)} />
     )}
+    {additionalStructuredData && additionalStructuredData.map((data) => (
+      <script is:inline type="application/ld+json" set:html={JSON.stringify(data)} />
+    ))}
 
     <ClientRouter />
   </head>
@@ -89,6 +94,6 @@ const ogImageUrl = ogImage.startsWith('http') ? ogImage : new URL(ogImage, siteU
       </main>
       <Footer poweredBySalvageUrl="/Powered_by_Salvage_Black.webp" />
     </div>
-    <Toaster client:idle />
+    <Toaster client:visible />
   </body>
 </html>

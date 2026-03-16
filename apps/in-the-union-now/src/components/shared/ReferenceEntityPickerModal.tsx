@@ -4,19 +4,19 @@ import { getTechLevel, getSource } from 'salvageunion-reference'
 import {
   ReferenceEntityDisplay,
   FilterChip,
+  FilterRow,
+  ModalShell,
   TECH_LEVEL_STYLES,
   techLevelLabel,
   addControl,
 } from 'suref-react'
 import { Input } from '../ui/input'
-import { FilterRow } from './FilterRow'
 import {
   filterAndSplitEntities,
   ALL_TECH_LEVELS,
   getEntityId,
 } from '../../lib/entitySelectionUtils'
 import type { TechLevelValue } from '../../lib/entitySelectionUtils'
-import { ModalShell } from './ModalShell'
 
 type ReferenceEntityPickerModalProps = {
   open: boolean

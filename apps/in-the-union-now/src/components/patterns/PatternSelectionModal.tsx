@@ -1,16 +1,21 @@
 import { useMemo, useState } from 'react'
-import { findChassisById } from '../../lib/entityHelpers'
+import { findChassisById } from 'salvageunion-reference'
 import { patternItemsToOverride } from '../../lib/builderUtils'
 import { usePatterns } from '../../hooks/usePatterns'
 import type { SURefEntity, SURefObjectPattern } from 'salvageunion-reference'
 import type { SelectedPattern, TypedPatternRow } from '../../types/common'
-import { ReferenceEntityDisplay, Text, FilterChip, useChassisPatternConfig } from 'suref-react'
+import {
+  ReferenceEntityDisplay,
+  Text,
+  FilterChip,
+  FilterRow,
+  ModalShell,
+  useChassisPatternConfig,
+} from 'suref-react'
 import type { ReferenceEntityControl } from 'suref-react'
 import type { PatternOverrideData } from 'suref-react'
 import { Button } from '../ui/button'
 import { actionButtonClasses } from '../shared/actionButtonClasses'
-import { FilterRow } from '../shared/FilterRow'
-import { ModalShell } from '../shared/ModalShell'
 
 type SourceFilter = 'reference' | 'player'
 

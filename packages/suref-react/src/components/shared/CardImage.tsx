@@ -11,7 +11,7 @@ type CardImageEditable = {
 
 type CardImageProps = {
   url?: string
-  alt?: string
+  alt: string
   compact?: boolean
   editable?: CardImageEditable
   width?: number
@@ -70,7 +70,7 @@ export function CardImage({ url, alt, compact, editable, width, height }: CardIm
           <img
             ref={imgRef}
             src={displayUrl}
-            alt={alt ?? ''}
+            alt={alt}
             className="block h-auto w-full object-contain transition-opacity duration-300"
             style={{ opacity: loaded ? 1 : 0 }}
             loading="lazy"

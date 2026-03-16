@@ -52,7 +52,9 @@ export const changeLogApi = {
   listByTarget: async (targetId: string, targetType: string): Promise<ChangeLogEntry[]> => {
     const { data, error } = await supabase
       .from('change_log')
-      .select('*')
+      .select(
+        'id,action,created_at,description,field,new_value,old_value,reversible,session_id,target_id,target_type,user_id'
+      )
       .eq('target_id', targetId)
       .eq('target_type', targetType)
       .order('created_at', { ascending: false })
