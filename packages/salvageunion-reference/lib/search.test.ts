@@ -230,4 +230,43 @@ describe('Search API', () => {
       expect(systems.length).toBeGreaterThan(0)
     })
   })
+
+  describe('Search index lazy singleton', () => {
+    test('should build index on first search and reuse it', () => {
+      // First search triggers index build
+      const results1 = search({ query: 'laser', schemas: ['systems'] })
+      expect(results1.length).toBeGreaterThan(0)
+
+      // Second search with same schema should reuse index
+      const results2 = search({ query: 'laser', schemas: ['systems'] })
+      expect(results2.length).toBe(results1.length)
+
+      // Results should be identical (same order, same data)
+      expect(results2).toEqual(results1)
+    })
+
+    test('should handle searches with different schema filters using same index', () => {
+      // Search one schema
+      const systems = search({ query: 'laser', schemas: ['systems'] })
+      expect(systems.length).toBeGreaterThan(0)
+
+      // Search different schema - index already built, just filtered
+      const modules = search({ query: 'targeting', schemas: ['modules'] })
+      expect(modules.every((r) => r.schemaName === 'modules')).toBe(true)
+
+      // Verify both searches still work correctly
+      expect(systems.every((r) => r.schemaName === 'systems')).toBe(true)
+    })
+
+    test('should produce consistent results across multiple searches', () => {
+      // Run the same search multiple times
+      const results1 = search({ query: 'damage', limit: 5 })
+      const results2 = search({ query: 'damage', limit: 5 })
+      const results3 = search({ query: 'damage', limit: 5 })
+
+      // All results should be identical
+      expect(results2).toEqual(results1)
+      expect(results3).toEqual(results1)
+    })
+  })
 })
