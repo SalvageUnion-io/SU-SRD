@@ -4,10 +4,6 @@ import { getItemStaticPaths } from '../../../../lib/staticPaths'
 import { ReferenceEntityIsland } from '../../../../components/islands/ReferenceEntityIsland'
 import { getReferenceEntityData, extractStaticEntitySummary } from 'salvageunion-reference'
 import StaticEntityContent from '../../../../components/StaticEntityContent.astro'
-import {
-  buildItemPageStructuredData,
-  buildBreadcrumbList,
-} from '../../../../lib/structuredData'
 
 export function getStaticPaths() {
   return getItemStaticPaths()
@@ -31,28 +27,48 @@ const metaDescription = firstParagraph
   : itemDescription ||
     `${itemName}: ${schemaName} reference for the Salvage Union tabletop RPG.`
 
-const itemBreadcrumbs = [
-  { name: 'SRD', url: 'https://salvageunion.io/' },
-  { name: schemaName, url: `https://salvageunion.io/schema/${schemaId}/` },
-  { name: itemName, url: canonicalUrl },
-]
+const structuredData: Record<string, unknown> = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemPage',
+  name: itemName,
+  description: metaDescription,
+  url: canonicalUrl,
+  keywords: [
+    'Salvage Union',
+    'TTRPG',
+    'SRD',
+    'System Reference Document',
+    schemaName,
+    itemName,
+  ],
+  isPartOf: {
+    '@type': 'CollectionPage',
+    name: `${schemaName} - Salvage Union SRD`,
+    url: `https://salvageunion.io/schema/${schemaId}/`,
+  },
+  mainEntity: {
+    '@type': 'Thing',
+    name: itemName,
+    description: metaDescription,
+    ...(displayData?.source
+      ? {
+          isPartOf: {
+            '@type': 'Book',
+            name: displayData.source,
+            author: { '@type': 'Organization', name: 'Leyline Press' },
+          },
+        }
+      : {}),
+  },
+}
 
-const structuredData = buildItemPageStructuredData({
-  itemName,
-  metaDescription,
-  canonicalUrl,
-  schemaName,
-  schemaId,
-  displayData: displayData
-    ? {
-        techLevel: displayData.techLevel,
-        source: displayData.source,
-        assetUrl: displayData.assetUrl,
-      }
-    : null,
-})
-
-const breadcrumbStructuredData = buildBreadcrumbList(itemBreadcrumbs)
+if (displayData?.techLevel != null) {
+  structuredData.additionalProperty = {
+    '@type': 'PropertyValue',
+    name: 'Tech Level',
+    value: displayData.techLevel,
+  }
+}
 
 const preloadImage = displayData?.assetUrl
 const ogImage = displayData?.assetUrl || '/og-image.png'
@@ -65,9 +81,12 @@ const ogImage = displayData?.assetUrl || '/og-image.png'
   ogType="article"
   ogImage={ogImage}
   structuredData={structuredData}
-  additionalStructuredData={[breadcrumbStructuredData]}
   preloadImage={preloadImage}
-  breadcrumbs={itemBreadcrumbs}
+  breadcrumbs={[
+    { name: 'SRD', url: 'https://salvageunion.io/' },
+    { name: schemaName, url: `https://salvageunion.io/schema/${schemaId}/` },
+    { name: itemName, url: canonicalUrl },
+  ]}
 >
   <article class="flex min-h-full flex-1 flex-col items-center justify-center p-4">
     <ReferenceEntityIsland client:visible item={item} titleAs="h1" />
