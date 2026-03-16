@@ -3,6 +3,10 @@ import BaseLayout from '../../../layouts/BaseLayout.astro'
 import { getSchemaStaticPaths } from '../../../lib/staticPaths'
 import { SchemaViewerIsland } from '../../../components/islands/SchemaViewerIsland'
 import { getUniqueTechLevels, getUniqueSources } from 'salvageunion-reference'
+import {
+  buildCollectionPageStructuredData,
+  buildBreadcrumbList,
+} from '../../../lib/structuredData'
 
 export function getStaticPaths() {
   return getSchemaStaticPaths()
@@ -21,27 +25,18 @@ const canonicalUrl = `https://salvageunion.io/schema/${schemaId}/`
 const techLevels = getUniqueTechLevels(data)
 const sources = schemaId === 'sources' ? [] : getUniqueSources(data)
 
-const structuredData = {
-  '@context': 'https://schema.org',
-  '@type': 'CollectionPage',
-  name: schemaName,
-  description: `Browse all ${schemaName} in the Salvage Union SRD (System Reference Document). Complete reference with stats, abilities, and details.`,
-  url: canonicalUrl,
-  keywords: ['Salvage Union', 'TTRPG', 'SRD', 'System Reference Document', schemaName],
-  isPartOf: {
-    '@type': 'WebSite',
-    name: 'Salvage Union System Reference Document',
-    url: 'https://salvageunion.io/',
-  },
-  mainEntity: {
-    '@type': 'ItemList',
-    numberOfItems: data.length,
-  },
-  creator: {
-    '@type': 'Organization',
-    name: 'Leyline Press',
-  },
-}
+const collectionBreadcrumbs = [
+  { name: 'SRD', url: 'https://salvageunion.io/' },
+  { name: schemaName, url: canonicalUrl },
+]
+
+const structuredData = buildCollectionPageStructuredData({
+  schemaName,
+  canonicalUrl,
+  itemCount: data.length,
+})
+
+const breadcrumbStructuredData = buildBreadcrumbList(collectionBreadcrumbs)
 ---
 
 <BaseLayout
@@ -49,10 +44,8 @@ const structuredData = {
   description={`Browse all ${schemaName} in the Salvage Union SRD (System Reference Document). Complete reference with stats, abilities, and details.`}
   canonical={canonicalUrl}
   structuredData={structuredData}
-  breadcrumbs={[
-    { name: 'SRD', url: 'https://salvageunion.io/' },
-    { name: schemaName, url: canonicalUrl },
-  ]}
+  additionalStructuredData={[breadcrumbStructuredData]}
+  breadcrumbs={collectionBreadcrumbs}
 >
   <div class="flex min-h-full flex-col">
     <!-- Static header -->
