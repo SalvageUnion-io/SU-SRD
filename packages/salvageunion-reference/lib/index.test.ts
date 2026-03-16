@@ -38,7 +38,11 @@ describe('SalvageUnionReference static properties', () => {
         'getAllClasses',
         'findClassById',
         'getAbilitiesForClass',
+        'resolveActions',
         'entityCache',
+        'isValidSchemaName',
+        'filterByTechLevel',
+        'filterBySource',
       ]
       return !methodNames.includes(prop)
     })
