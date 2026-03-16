@@ -50,7 +50,7 @@ In development, consuming apps resolve `lib/index.ts` directly (via the `develop
 `.get(schemaName, id)`, `.exists()`, `.getMany()`, `.findIn()`, `.findAllIn()`
 
 **Reference strings:**
-`.composeRef()`, `.parseRef()`, `.getByRef()`, `.getManyByRef()`
+`.parseRef()`, `.getByRef()`
 
 **Metadata:**
 `.getTechLevel()`, `.getTechLevelNumber()`, `.getSalvageValue()`
@@ -75,6 +75,60 @@ All entity types (`SURef*`), enum types (`SURefEnum*`), common types (`SURefComm
 - `schemas/*.schema.json` — Generated from Zod schemas
 
 To change output: edit Zod schemas in `lib/schemas/`, then `bun run build:package`.
+
+### Lazy-Loading Architecture
+
+All JSON data files (~1.1 MB total) are loaded via dynamic `import()` at runtime, not at module scope. This allows consuming apps to code-split the data corpus.
+
+**How it works:**
+
+1. At module load time, `SalvageUnionReference` creates one `LazyModel<T>` instance per schema. These are stable object references — references captured before `preload()` are still valid after it.
+2. `preload()` calls `loadSchemas()` in `ModelFactory`, which fires dynamic imports in parallel for the requested schemas.
+3. After each schema loads, the `LazyModel` receives a "backing" model via `_install()`. All subsequent data-access calls delegate to the backing model.
+4. Before `preload()`, any data-access call throws a descriptive error.
+
+Zod schemas are still statically imported because they are code (types + validation), not data, and must be available at compilation time.
+
+### preload() API
+
+```typescript
+// Load all schemas (safe default for most consumers):
+await SalvageUnionReference.preload('all')
+
+// Load only specific schemas (enables code-splitting):
+await SalvageUnionReference.preload(['chassis', 'systems', 'modules'])
+
+// Check whether a schema is loaded:
+SalvageUnionReference.isLoaded('chassis') // boolean
+```
+
+`preload()` is idempotent: calling it multiple times for the same schemas is safe. Already-loaded schemas are skipped.
+
+Accessing a model before its schema is loaded throws:
+
+```
+Schema "chassis" not loaded. Call SalvageUnionReference.preload(['chassis']) or SalvageUnionReference.preload('all') first.
+```
+
+**Enumeration risk:** Only schema IDs registered in `ModelFactory.ts`'s `dataLoaders` map are valid. Passing an unrecognised ID to `preload()` throws `No loader found for schema ID: <id>`. When adding new schemas, both the data loader and the `LazyModel` instance in `index.ts` must be added together or neither will work.
+
+### Reference String Protocol
+
+Reference strings are the cross-schema pointer format used in JSON data and throughout the codebase. The format is `"schemaId::entityId"` (e.g. `"chassis::iron-mongrel"`).
+
+```typescript
+// Parse a reference string:
+const parsed = SalvageUnionReference.parseRef('chassis::iron-mongrel')
+// => { schemaName: 'chassis', id: 'iron-mongrel' } | null
+
+// Resolve directly to an entity:
+const entity = SalvageUnionReference.getByRef('chassis::iron-mongrel')
+// => SURefChassis & { schemaName: 'chassis' } | undefined
+```
+
+`parseRef()` returns `null` for malformed strings (wrong separator, unknown schema, empty parts). `getByRef()` returns `undefined` for unresolvable refs.
+
+When storing cross-entity references in new JSON data files, always use the `"schemaId::entityId"` format — never raw IDs without a schema prefix.
 
 ---
 
@@ -204,6 +258,75 @@ Consuming apps' Vite/Astro bundlers compile `.ts/.tsx` files directly. No interm
 
 ---
 
+## Architectural Patterns & Risk Areas
+
+### Module-Scope ORM Call Risk
+
+**Problem:** Calling any `SalvageUnionReference` model accessor at module scope (i.e. outside a function or React hook) executes before `preload()` has run and throws at import time. This causes the entire module to fail to load, often with a confusing stack trace far removed from the actual call site.
+
+**Examples of the anti-pattern:**
+
+```typescript
+// BAD — executes at module load time, before preload()
+const ALL_CHASSIS = SalvageUnionReference.Chassis.all()
+
+// BAD — same problem inside a constant declaration
+const DEFAULT_OPTION = SalvageUnionReference.Equipment.find((e) => e.id === 'default')
+```
+
+**Correct patterns:**
+
+```typescript
+// GOOD — inside a React component with useMemo (runs after preload in the render cycle)
+function MyComponent() {
+  const allChassis = useMemo(() => SalvageUnionReference.Chassis.all(), [])
+  // ...
+}
+
+// GOOD — inside a function that is called after preload()
+function buildOptions() {
+  return SalvageUnionReference.Equipment.all().map((e) => ({ value: e.id, label: e.name }))
+}
+```
+
+If you need a module-level constant derived from reference data, compute it lazily (e.g. via a getter function) or call it from a hook/effect that runs after the app's preload bootstrap.
+
+### Circular Dependency: Package vs. HTTP API
+
+`salvageunion-reference` generates the data model that the ITUN app uses to build its HTTP API layer (Supabase RPCs, TanStack Query keys, Zod validation schemas). The dependency flows one way:
+
+```
+salvageunion-reference (game data schema)
+  --> in-the-union-now (derives DB schema, API layer, validation from game data)
+```
+
+The reference package must never import from the apps. If you find yourself wanting to add app-specific logic (e.g. Supabase row types, player state) to `salvageunion-reference`, that logic belongs in the consuming app instead.
+
+### Test Preload Setup
+
+Consumer packages run `SalvageUnionReference.preload('all')` as a Bun test preload script so all test files have access to reference data without per-file `beforeAll()` calls.
+
+**Setup for a new consumer package:**
+
+1. Create `test/preload-reference.ts`:
+
+```typescript
+import { SalvageUnionReference } from 'salvageunion-reference'
+
+await SalvageUnionReference.preload('all')
+```
+
+2. Add it to the package's `bunfig.toml` preload list:
+
+```toml
+[test]
+preload = ["./test/preload-reference.ts"]
+```
+
+All existing consumer packages (`suref-react`, `suref-web`, `in-the-union-now`) follow this pattern. New packages that test any code touching `SalvageUnionReference` must do the same.
+
+---
+
 ## Cross-Package Change Checklist
 
 When modifying shared packages, follow this checklist:
@@ -214,6 +337,7 @@ When modifying shared packages, follow this checklist:
 - [ ] Run typecheck: `bun run typecheck`
 - [ ] Run validation: `bun run validate:all`
 - [ ] Run tests: `bun test`
+- [ ] If adding a new schema: add data loader to `ModelFactory.ts`, add `LazyModel` instance to `index.ts`, add entry to `SchemaToEntityMap`, and verify `preload(['new-schema-id'])` resolves without error
 
 ### 2. After changing `suref-react`
 
