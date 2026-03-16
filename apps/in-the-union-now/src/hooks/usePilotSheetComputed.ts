@@ -1,4 +1,3 @@
-import { useMemo } from 'react'
 import { SalvageUnionReference, isHybridClass, getAssetUrl } from 'salvageunion-reference'
 import type { SURefClass, SURefChassis } from 'salvageunion-reference'
 import { computeCrawlerStatsFromTechLevel } from '../lib/crawlerUtils'
@@ -73,17 +72,4 @@ export function computePilotSheetDerived(input: ComputePilotSheetInput): PilotSh
     access,
     canEdit,
   }
-}
-
-/**
- * Hook that computes derived state for the pilot sheet.
- * Wraps computePilotSheetDerived with useMemo for React performance.
- */
-export function usePilotSheetComputed(input: ComputePilotSheetInput): PilotSheetDerived {
-  const { pilot, pilotRefs, mech, mechRefs, crawler, userId } = input
-
-  return useMemo(
-    () => computePilotSheetDerived({ pilot, pilotRefs, mech, mechRefs, crawler, userId }),
-    [pilot, pilotRefs, mech, mechRefs, crawler, userId]
-  )
 }
