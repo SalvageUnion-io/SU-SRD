@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, useRef } from 'react'
+import { useMemo, useState, useEffect, useRef, useCallback } from 'react'
 import type { ReactNode } from 'react'
 import type { SURefEnumSchemaName, SURefChassis } from 'salvageunion-reference'
 import { SalvageUnionReference, getChassisAbilities, getChoices } from 'salvageunion-reference'
@@ -12,6 +12,8 @@ import type { ActionDisplayData } from '../../lib/pilotActionUtils'
 import { aggregateActions } from '../../lib/aggregateActions'
 import type { ComradeEntry } from '../../lib/comradeUtils'
 import { ActionDisplay } from './ActionDisplay'
+import { HeatCheckModal } from './HeatCheckModal'
+import { getUseButtonLabel } from '../../lib/heatUtils'
 import {
   getActionDisabledReason,
   getMechActionDisabledReason,
@@ -76,6 +78,9 @@ export function ActionsSection({
   onUpdateMechEntityRef,
   onUseAction,
 }: ActionsSectionProps) {
+  const [heatCheckOpen, setHeatCheckOpen] = useState(false)
+  const [heatCheckCurrentHeat, setHeatCheckCurrentHeat] = useState(0)
+
   const isBoarded = pilot.is_boarded
   const { getComradeCurrentEp, updateComradeEp } = useComradeEp({
     pilotId: pilot.id,
@@ -174,10 +179,24 @@ export function ActionsSection({
     ]
   )
 
+  const handleActionResult = useCallback(
+    (result: { heatCheckTriggered: boolean; newHeat: number }) => {
+      if (result.heatCheckTriggered) {
+        setHeatCheckCurrentHeat(result.newHeat)
+        setHeatCheckOpen(true)
+      }
+    },
+    []
+  )
+
   function handleUsePilotAction(action: ActionDisplayData) {
     // When heat-aware action handler is available, delegate to it
     if (onUseAction) {
-      onUseAction(action).catch(() => {})
+      onUseAction(action)
+        .then((result) => {
+          if (result.success) handleActionResult(result)
+        })
+        .catch(() => {})
       return
     }
     // Legacy path (no heat management)
@@ -206,7 +225,11 @@ export function ActionsSection({
   function handleUseMechAction(action: ActionDisplayData) {
     // When heat-aware action handler is available, delegate to it
     if (onUseAction) {
-      onUseAction(action).catch(() => {})
+      onUseAction(action)
+        .then((result) => {
+          if (result.success) handleActionResult(result)
+        })
+        .catch(() => {})
       return
     }
     // Legacy path (no heat management)
@@ -373,6 +396,18 @@ export function ActionsSection({
           )}
         />
       </div>
+
+      {mech && userId && (
+        <HeatCheckModal
+          open={heatCheckOpen}
+          onOpenChange={setHeatCheckOpen}
+          currentHeat={heatCheckCurrentHeat}
+          mech={mech}
+          pilot={pilot}
+          mechRefs={mechRefs ?? []}
+          userId={userId}
+        />
+      )}
     </div>
   )
 }
@@ -622,10 +657,11 @@ function ActionItem({
   const controls: ReferenceEntityControl[] = []
   const isPassive = action.actionType === 'Passive'
   const passiveWithUses = isPassive && (action.maxUses !== null || action.destroyOnUse)
+  const useLabel = getUseButtonLabel(action.sourceEntity as { traits?: Array<{ type: string; amount?: number | string }>; [key: string]: unknown })
   if (!readOnly && !mechUnboarded && !filteredOut && (!isPassive || passiveWithUses)) {
     controls.push({
       key: 'use',
-      label: 'Use',
+      label: useLabel,
       ariaLabel: 'Use action',
       variant: 'primary',
       disabled: !!disabledReason,

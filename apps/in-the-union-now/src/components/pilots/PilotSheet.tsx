@@ -13,6 +13,7 @@ import { Eye, EyeOff, Trash2, ShieldAlert } from 'lucide-react'
 import { TakeDamageModal } from './TakeDamageModal'
 import { uploadEntityImage, deleteEntityImage } from '../../lib/api/storageApi'
 import { findChassisById, SalvageUnionReference } from 'salvageunion-reference'
+import { getHeatLevel, getHeatColorClass } from '../../lib/heatUtils'
 import { IsolatedStatValue } from '../shared/IsolatedStatValue'
 import { SheetFooter } from '../shared/SheetFooter'
 import { actionButtonClasses } from '../shared/actionButtonClasses'
@@ -216,7 +217,14 @@ export function PilotSheet({
           canEdit,
         },
         { key: 'ep', label: 'EP', value: mech.current_ep, outOfMax: mech.max_ep },
-        { key: 'heat', label: 'Heat', value: mech.current_heat, outOfMax: mech.heat_capacity },
+        {
+          key: 'heat',
+          label: 'Heat',
+          value: mech.current_heat,
+          outOfMax: mech.heat_capacity,
+          valueColor: getHeatColorClass(getHeatLevel(mech.current_heat, mech.heat_capacity)),
+          ariaLabel: `Heat: ${mech.current_heat} of ${mech.heat_capacity}`,
+        },
       ]
     }
     if (isDowntime) {
