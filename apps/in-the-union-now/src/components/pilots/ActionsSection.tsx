@@ -1,4 +1,4 @@
-import { useMemo, useCallback, useState, useEffect, useRef } from 'react'
+import { useMemo, useState, useEffect, useRef } from 'react'
 import type { ReactNode } from 'react'
 import type { SURefEnumSchemaName, SURefChassis } from 'salvageunion-reference'
 import { SalvageUnionReference, getChassisAbilities, getChoices } from 'salvageunion-reference'
@@ -7,15 +7,9 @@ import type { ReferenceEntityControl } from 'suref-react'
 import { RotateCcw } from 'lucide-react'
 import { toast } from 'sonner'
 import { IsolatedStatValue } from '../shared/IsolatedStatValue'
-import {
-  extractPilotActions,
-  extractMechActions,
-  extractChassisActions,
-  extractComradeActions,
-  getGeneralActions,
-  getComradeMaxEp,
-} from '../../lib/pilotActionUtils'
+import { getComradeMaxEp } from '../../lib/pilotActionUtils'
 import type { ActionDisplayData } from '../../lib/pilotActionUtils'
+import { aggregateActions } from '../../lib/aggregateActions'
 import type { ComradeEntry } from '../../lib/comradeUtils'
 import { ActionDisplay } from './ActionDisplay'
 import {
@@ -85,31 +79,23 @@ export function ActionsSection({
     userId,
     readOnly,
   })
-  const pilotActions = useMemo(
-    () => extractPilotActions(pilotRefs, isBoarded),
-    [pilotRefs, isBoarded]
-  )
   const comrades = useMemo(() => comradesProp ?? [], [comradesProp])
-  const comradeEntityIds = useMemo(() => new Set(comrades.map((c) => c.entity.id)), [comrades])
-  const mechActions = useMemo(
-    () =>
-      mechRefs && mechRefs.length > 0
-        ? extractMechActions(mechRefs, isBoarded, comradeEntityIds)
-        : [],
-    [mechRefs, isBoarded, comradeEntityIds]
-  )
-  const chassisActions = useMemo(
-    () => (mechChassis ? extractChassisActions(mechChassis, isBoarded) : []),
-    [mechChassis, isBoarded]
-  )
-  const generalActions = useMemo(() => getGeneralActions(isBoarded), [isBoarded])
   const visibleComrades = useMemo(
     () => comrades.filter((c) => c.sourceParent === 'pilot' || isBoarded),
     [comrades, isBoarded]
   )
-  const comradeActionsRaw = useMemo(
-    () => extractComradeActions(comrades, isBoarded, mechRefs),
-    [comrades, isBoarded, mechRefs]
+
+  // Aggregate all action sources into a single pool
+  const aggregated = useMemo(
+    () =>
+      aggregateActions({
+        pilotRefs,
+        isBoarded,
+        comrades,
+        mechRefs,
+        mechChassis,
+      }),
+    [pilotRefs, isBoarded, comrades, mechRefs, mechChassis]
   )
 
   // Build comrade custom name map from saved player choices
@@ -133,9 +119,9 @@ export function ActionsSection({
   }, [mechChoices, comrades])
 
   // Override comrade action labels with custom names
-  const comradeActions = useMemo(() => {
-    if (comradeNameMap.size === 0) return comradeActionsRaw
-    return comradeActionsRaw.map((action) => {
+  const allActions = useMemo(() => {
+    if (comradeNameMap.size === 0) return aggregated.allActions
+    return aggregated.allActions.map((action) => {
       if (!action.comradeEntity) return action
       const custom = comradeNameMap.get(action.comradeEntity.id)
       if (!custom) return action
@@ -144,7 +130,7 @@ export function ActionsSection({
         sourceLabelOverride: `${action.comradeEntity.name}, \u201C${custom}\u201D`,
       }
     })
-  }, [comradeActionsRaw, comradeNameMap])
+  }, [aggregated.allActions, comradeNameMap])
   // Separate trait sets by source — variable-currency actions use the set matching
   // their resolved cost type (mech traits when boarded/EP, pilot traits when not/AP)
   const pilotSourceTraits = useMemo(() => getPilotTraits(pilotRefs), [pilotRefs])
@@ -157,18 +143,6 @@ export function ActionsSection({
     }
     return traits
   }, [isBoarded, mechRefs, mechChassis])
-
-  // Merge all actions into one pool
-  const allActions = useMemo(
-    () => [
-      ...pilotActions,
-      ...mechActions,
-      ...chassisActions,
-      ...comradeActions,
-      ...generalActions,
-    ],
-    [pilotActions, mechActions, chassisActions, comradeActions, generalActions]
-  )
 
   const filters = useActionFilters()
 
@@ -197,114 +171,102 @@ export function ActionsSection({
     ]
   )
 
-  const handleUsePilotAction = useCallback(
-    (action: ActionDisplayData) => {
-      toast(`${pilot.callsign} used ${action.name}`, {
-        style: { borderColor: action.borderColor, borderWidth: '2px' },
-      })
-      if (action.activationCost !== null) {
-        // Variable-currency actions resolved to EP deduct from mech
-        if (action.costType === 'ep' && mech && onUpdateMech) {
-          onUpdateMech({ current_ep: mech.current_ep - action.activationCost })
-        } else {
-          onUpdatePilot({ ap: pilot.ap - action.activationCost })
-        }
-      }
-      if (action.destroyOnUse && action.entityRefId) {
-        onUpdateEntityRef(action.entityRefId, { condition: 'destroyed' })
-      } else if (action.maxUses !== null && action.entityRefId) {
-        const ref = pilotRefs.find((r) => r.id === action.entityRefId)
-        if (ref) {
-          const newMetadata = decrementActionUses(action.actionName, action.maxUses, ref.metadata)
-          onUpdateEntityRef(action.entityRefId, { metadata: newMetadata })
-        }
-      }
-    },
-    [pilot.callsign, pilot.ap, mech, pilotRefs, onUpdatePilot, onUpdateMech, onUpdateEntityRef]
-  )
-
-  const handleUseMechAction = useCallback(
-    (action: ActionDisplayData) => {
-      if (!mech || !onUpdateMech) return
-      toast(`${mech.pattern_name ?? 'Mech'} used ${action.name}`, {
-        style: { borderColor: action.borderColor, borderWidth: '2px' },
-      })
-      if (action.activationCost !== null) {
+  function handleUsePilotAction(action: ActionDisplayData) {
+    toast(`${pilot.callsign} used ${action.name}`, {
+      style: { borderColor: action.borderColor, borderWidth: '2px' },
+    })
+    if (action.activationCost !== null) {
+      // Variable-currency actions resolved to EP deduct from mech
+      if (action.costType === 'ep' && mech && onUpdateMech) {
         onUpdateMech({ current_ep: mech.current_ep - action.activationCost })
+      } else {
+        onUpdatePilot({ ap: pilot.ap - action.activationCost })
       }
-      if (action.destroyOnUse && action.entityRefId) {
-        if (onUpdateMechEntityRef) {
-          onUpdateMechEntityRef(action.entityRefId, { condition: 'destroyed' })
-        }
-      } else if (action.maxUses !== null && action.entityRefId) {
-        if (!mechRefs || !onUpdateMechEntityRef) return
+    }
+    if (action.destroyOnUse && action.entityRefId) {
+      onUpdateEntityRef(action.entityRefId, { condition: 'destroyed' })
+    } else if (action.maxUses !== null && action.entityRefId) {
+      const ref = pilotRefs.find((r) => r.id === action.entityRefId)
+      if (ref) {
+        const newMetadata = decrementActionUses(action.actionName, action.maxUses, ref.metadata)
+        onUpdateEntityRef(action.entityRefId, { metadata: newMetadata })
+      }
+    }
+  }
+
+  function handleUseMechAction(action: ActionDisplayData) {
+    if (!mech || !onUpdateMech) return
+    toast(`${mech.pattern_name ?? 'Mech'} used ${action.name}`, {
+      style: { borderColor: action.borderColor, borderWidth: '2px' },
+    })
+    if (action.activationCost !== null) {
+      onUpdateMech({ current_ep: mech.current_ep - action.activationCost })
+    }
+    if (action.destroyOnUse && action.entityRefId) {
+      if (onUpdateMechEntityRef) {
+        onUpdateMechEntityRef(action.entityRefId, { condition: 'destroyed' })
+      }
+    } else if (action.maxUses !== null && action.entityRefId) {
+      if (!mechRefs || !onUpdateMechEntityRef) return
+      const ref = mechRefs.find((r) => r.id === action.entityRefId)
+      if (ref) {
+        const newMetadata = decrementActionUses(action.actionName, action.maxUses, ref.metadata)
+        onUpdateMechEntityRef(action.entityRefId, { metadata: newMetadata })
+      }
+    }
+  }
+
+  function handleUseComradeAction(action: ActionDisplayData) {
+    if (!action.comradeEntity) return
+    const comrade = action.comradeEntity
+    const maxEp = getComradeMaxEp(comrade)
+    const currentEp = getComradeCurrentEp(comrade.id, maxEp)
+    const comradeDisplayName = comradeNameMap.get(comrade.id) || comrade.name
+    toast(`${comradeDisplayName} used ${action.name}`, {
+      style: { borderColor: action.borderColor, borderWidth: '2px' },
+    })
+    if (action.activationCost !== null) {
+      updateComradeEp(
+        comrade.id,
+        Math.max(0, currentEp - action.activationCost),
+        comradeDisplayName
+      )
+    }
+    if (action.destroyOnUse && action.entityRefId) {
+      if (mechRefs && onUpdateMechEntityRef) {
+        onUpdateMechEntityRef(action.entityRefId, { condition: 'destroyed' })
+      }
+    } else if (action.maxUses !== null && action.entityRefId) {
+      // Comrade slot items use mech refs
+      if (mechRefs && onUpdateMechEntityRef) {
         const ref = mechRefs.find((r) => r.id === action.entityRefId)
         if (ref) {
           const newMetadata = decrementActionUses(action.actionName, action.maxUses, ref.metadata)
           onUpdateMechEntityRef(action.entityRefId, { metadata: newMetadata })
         }
       }
-    },
-    [mech, mechRefs, onUpdateMech, onUpdateMechEntityRef]
-  )
+    }
+  }
 
-  const handleUseComradeAction = useCallback(
-    (action: ActionDisplayData) => {
-      if (!action.comradeEntity) return
-      const comrade = action.comradeEntity
-      const maxEp = getComradeMaxEp(comrade)
-      const currentEp = getComradeCurrentEp(comrade.id, maxEp)
-      const comradeDisplayName = comradeNameMap.get(comrade.id) || comrade.name
-      toast(`${comradeDisplayName} used ${action.name}`, {
-        style: { borderColor: action.borderColor, borderWidth: '2px' },
-      })
-      if (action.activationCost !== null) {
-        updateComradeEp(
-          comrade.id,
-          Math.max(0, currentEp - action.activationCost),
-          comradeDisplayName
-        )
-      }
-      if (action.destroyOnUse && action.entityRefId) {
-        if (mechRefs && onUpdateMechEntityRef) {
-          onUpdateMechEntityRef(action.entityRefId, { condition: 'destroyed' })
-        }
-      } else if (action.maxUses !== null && action.entityRefId) {
-        // Comrade slot items use mech refs
-        if (mechRefs && onUpdateMechEntityRef) {
-          const ref = mechRefs.find((r) => r.id === action.entityRefId)
-          if (ref) {
-            const newMetadata = decrementActionUses(action.actionName, action.maxUses, ref.metadata)
-            onUpdateMechEntityRef(action.entityRefId, { metadata: newMetadata })
-          }
-        }
-      }
-    },
-    [getComradeCurrentEp, updateComradeEp, mechRefs, onUpdateMechEntityRef, comradeNameMap]
-  )
+  function handleRefillAction(action: ActionDisplayData) {
+    if (action.maxUses === null || !action.entityRefId) return
 
-  const handleRefillAction = useCallback(
-    (action: ActionDisplayData) => {
-      if (action.maxUses === null || !action.entityRefId) return
-
-      if (action.source === 'mech') {
-        if (!mechRefs || !onUpdateMechEntityRef) return
-        const ref = mechRefs.find((r) => r.id === action.entityRefId)
-        if (!ref) return
-        const newMetadata = refillActionUses(action.actionName, action.maxUses, ref.metadata)
-        onUpdateMechEntityRef(action.entityRefId, { metadata: newMetadata })
-      } else {
-        const ref = pilotRefs.find((r) => r.id === action.entityRefId)
-        if (!ref) return
-        const newMetadata = refillActionUses(action.actionName, action.maxUses, ref.metadata)
-        onUpdateEntityRef(action.entityRefId, { metadata: newMetadata })
-      }
-      toast(`Refilled ${action.name}`, {
-        style: { borderColor: action.borderColor, borderWidth: '2px' },
-      })
-    },
-    [pilotRefs, mechRefs, onUpdateEntityRef, onUpdateMechEntityRef]
-  )
+    if (action.source === 'mech') {
+      if (!mechRefs || !onUpdateMechEntityRef) return
+      const ref = mechRefs.find((r) => r.id === action.entityRefId)
+      if (!ref) return
+      const newMetadata = refillActionUses(action.actionName, action.maxUses, ref.metadata)
+      onUpdateMechEntityRef(action.entityRefId, { metadata: newMetadata })
+    } else {
+      const ref = pilotRefs.find((r) => r.id === action.entityRefId)
+      if (!ref) return
+      const newMetadata = refillActionUses(action.actionName, action.maxUses, ref.metadata)
+      onUpdateEntityRef(action.entityRefId, { metadata: newMetadata })
+    }
+    toast(`Refilled ${action.name}`, {
+      style: { borderColor: action.borderColor, borderWidth: '2px' },
+    })
+  }
 
   if (allActions.length === 0) return null
 
