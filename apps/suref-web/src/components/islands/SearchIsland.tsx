@@ -41,7 +41,7 @@ function matchSchemas(query: string): DisplayResult[] {
 }
 
 export function SearchIsland() {
-  const { ready } = useGameData()
+  useGameData()
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<DisplayResult[]>([])
   const [isOpen, setIsOpen] = useState(false)

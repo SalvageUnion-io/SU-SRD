@@ -29,7 +29,13 @@ export function ReferenceEntityIsland({
   }, [])
 
   return (
-    <GameDataGate fallback={<div className="mx-auto w-full max-w-6xl p-4"><ReferenceEntityCardSkeleton compact={compact} /></div>}>
+    <GameDataGate
+      fallback={
+        <div className="mx-auto w-full max-w-6xl p-4">
+          <ReferenceEntityCardSkeleton compact={compact} />
+        </div>
+      }
+    >
       <div className="mx-auto w-full max-w-6xl p-4">
         <Suspense fallback={<ReferenceEntityCardSkeleton compact={compact} />}>
           <ReferenceEntityDisplay
