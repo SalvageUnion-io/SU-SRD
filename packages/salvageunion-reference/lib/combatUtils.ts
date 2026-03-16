@@ -8,7 +8,6 @@
 
 import type { ItemCondition } from './utilities.js'
 
-
 /**
  * Minimal shape needed to read heat trait data from an entity.
  * The traits array is optional — many entities have no traits.
