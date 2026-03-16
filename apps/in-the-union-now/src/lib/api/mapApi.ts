@@ -7,7 +7,13 @@ export async function getMapLayer(
   tier: string,
   parentZoneId: string | null
 ): Promise<MapLayerRow | null> {
-  let query = supabase.from('map_layers').select('*').eq('campaign_id', campaignId).eq('tier', tier)
+  let query = supabase
+    .from('map_layers')
+    .select(
+      'id,background_url,campaign_id,connections,created_at,label,parent_zone_id,tier,updated_at,user_id,zones'
+    )
+    .eq('campaign_id', campaignId)
+    .eq('tier', tier)
 
   if (parentZoneId === null) {
     query = query.is('parent_zone_id', null)

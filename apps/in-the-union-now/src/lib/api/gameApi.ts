@@ -19,7 +19,11 @@ export async function listGames(userId: string, includeArchived = false): Promis
 }
 
 export async function getGameById(gameId: string): Promise<CampaignRow> {
-  const { data, error } = await supabase.from('campaigns').select('*').eq('id', gameId).single()
+  const { data, error } = await supabase
+    .from('campaigns')
+    .select('id,archived,crawler_id,created_at,created_by,invite_code,name,updated_at')
+    .eq('id', gameId)
+    .single()
 
   if (error) handleSupabaseError(error)
   return data!
@@ -28,7 +32,7 @@ export async function getGameById(gameId: string): Promise<CampaignRow> {
 export async function getGameByCrawlerId(crawlerId: string): Promise<CampaignRow | null> {
   const { data, error } = await supabase
     .from('campaigns')
-    .select('*')
+    .select('id,archived,crawler_id,created_at,created_by,invite_code,name,updated_at')
     .eq('crawler_id', crawlerId)
     .maybeSingle()
 
@@ -39,7 +43,7 @@ export async function getGameByCrawlerId(crawlerId: string): Promise<CampaignRow
 export async function getGameMembers(gameId: string): Promise<CampaignMemberRow[]> {
   const { data, error } = await supabase
     .from('campaign_members')
-    .select('*')
+    .select('id,campaign_id,joined_at,role,user_id')
     .eq('campaign_id', gameId)
     .order('joined_at', { ascending: true })
 
@@ -84,7 +88,7 @@ export async function joinGame(userId: string, inviteCode: string): Promise<Camp
   // 1. Find the campaign by invite code
   const { data: campaign, error: findError } = await supabase
     .from('campaigns')
-    .select('*')
+    .select('id,archived,crawler_id,created_at,created_by,invite_code,name,updated_at')
     .eq('invite_code', inviteCode.toUpperCase())
     .single()
 

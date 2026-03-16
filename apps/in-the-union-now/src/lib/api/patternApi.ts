@@ -5,7 +5,9 @@ import type { CreatePatternInput, TypedPatternRow, UpdatePatternInput } from '..
 export async function listPatterns(userId: string): Promise<TypedPatternRow[]> {
   const { data, error } = await supabase
     .from('mech_patterns')
-    .select('*')
+    .select(
+      'id,chassis_ref,created_at,description,image_path,name,pattern_items,updated_at,user_id,visible'
+    )
     .eq('user_id', userId)
     .order('updated_at', { ascending: false })
 
@@ -16,7 +18,9 @@ export async function listPatterns(userId: string): Promise<TypedPatternRow[]> {
 export async function getPatternById(patternId: string): Promise<TypedPatternRow> {
   const { data, error } = await supabase
     .from('mech_patterns')
-    .select('*')
+    .select(
+      'id,chassis_ref,created_at,description,image_path,name,pattern_items,updated_at,user_id,visible'
+    )
     .eq('id', patternId)
     .single()
 
