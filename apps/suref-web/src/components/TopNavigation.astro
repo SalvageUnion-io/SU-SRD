@@ -99,6 +99,10 @@ function isActive(path: string) {
       ABOUT
     </a>
 
+    <a href="/api/" class:list={['btn', isActive('/api') ? 'btn-active' : 'btn-inactive']} aria-current={isActive('/api') ? 'page' : undefined}>
+      API
+    </a>
+
     <a href="https://leyline.press/collections/salvage-union" target="_blank" rel="noopener noreferrer" class="btn btn-inactive">
       BUY THE GAME
     </a>
