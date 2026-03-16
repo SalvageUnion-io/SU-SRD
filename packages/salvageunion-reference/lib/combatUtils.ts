@@ -8,8 +8,6 @@
 
 import type { ItemCondition } from './utilities.js'
 
-// Re-export so consumers can import ItemCondition from this module
-export type { ItemCondition }
 
 /**
  * Minimal shape needed to read heat trait data from an entity.

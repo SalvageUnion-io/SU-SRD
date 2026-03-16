@@ -10,7 +10,7 @@ import { getHeatGenerated } from 'salvageunion-reference'
  * Describes the heat level relative to the heat cap.
  * Used to determine color coding on the heat stat display.
  */
-export type HeatLevel = 'normal' | 'warning' | 'danger' | 'critical'
+type HeatLevel = 'normal' | 'warning' | 'danger' | 'critical'
 
 /**
  * Compute the heat level from a current heat value and heat cap.

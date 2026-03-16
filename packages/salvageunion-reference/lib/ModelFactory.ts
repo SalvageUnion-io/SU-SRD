@@ -396,19 +396,6 @@ export function getDataMaps(): {
 }
 
 // ---------------------------------------------------------------------------
-// generateModels() — kept for backward compatibility but now delegates to
-// the lazy registry. Only works after schemas are loaded.
-// ---------------------------------------------------------------------------
-
-/**
- * Return all currently-loaded models keyed by PascalCase property name.
- * Exposed for client use.
- */
-export function generateModels(): Record<string, BaseModel<unknown>> {
-  return { ...modelRegistry }
-}
-
-// ---------------------------------------------------------------------------
 // Helper utilities
 // ---------------------------------------------------------------------------
 

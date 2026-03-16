@@ -99,7 +99,7 @@ jobs:
           path: packages/salvageunion-reference/dist/
 
       - name: Test
-        run: bun test
+        run: bun run test
 
   validate:
     runs-on: ubuntu-latest

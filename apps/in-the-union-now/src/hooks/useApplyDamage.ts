@@ -26,7 +26,7 @@ import { useUpdatePilot } from './usePilots'
 import type { DamageCascade } from '../lib/damageUtils'
 import type { EntityRefRow, MechRow, PilotRow } from '../types/common'
 
-export type ApplyDamageParams = {
+type ApplyDamageParams = {
   mech: MechRow
   pilot: PilotRow
   userId: string
@@ -37,7 +37,7 @@ export type ApplyDamageParams = {
   onSuccess?: () => void
 }
 
-export type UseApplyDamageReturn = {
+type UseApplyDamageReturn = {
   applyDamage: (params: ApplyDamageParams) => void
   isPending: boolean
 }
