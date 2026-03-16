@@ -16,60 +16,26 @@ export async function createCrawler(
   input: CreateCrawlerInput
 ): Promise<CrawlerRow> {
   const stats = computeCrawlerStatsFromTechLevel(1, input.crawler_ref)
-
-  // 1. Insert the crawler row
-  const { data: crawler, error: crawlerError } = await supabase
-    .from('crawlers')
-    .insert({
-      user_id: userId,
-      crawler_ref: input.crawler_ref,
-      name: input.name ?? null,
-      tag: input.tag ?? null,
-      max_sp: stats.max_sp,
-      current_sp: stats.max_sp,
-      tech_level: 1,
-      upkeep: stats.upkeep,
-      bay_npcs: input.bay_npcs ?? {},
-    })
-    .select()
-    .single()
-
-  if (crawlerError) handleSupabaseError(crawlerError)
-
-  // 2. Insert entity_refs for weapons (supports multiple via weapon_refs, falls back to weapon_ref)
   const weaponRefs = input.weapon_refs ?? (input.weapon_ref ? [input.weapon_ref] : [])
-  if (weaponRefs.length > 0) {
-    const refs = weaponRefs.map((ref, index) => ({
-      parent_id: crawler!.id,
-      parent_type: 'crawler' as const,
-      schema_name: ref.schema_name,
-      schema_ref_id: ref.schema_ref_id,
-      sort_order: index,
-      user_id: userId,
-    }))
-    const { error: refError } = await supabase.from('entity_refs').insert(refs)
-    if (refError) handleSupabaseError(refError)
-  }
 
-  // 3. Link crawler to campaign
-  const { error: linkError } = await supabase
-    .from('campaigns')
-    .update({ crawler_id: crawler!.id })
-    .eq('id', gameId)
+  const { data, error } = await supabase.rpc('create_crawler', {
+    p_user_id: userId,
+    p_game_id: gameId,
+    p_crawler_ref: input.crawler_ref,
+    p_name: input.name ?? null,
+    p_tag: input.tag ?? null,
+    p_max_sp: stats.max_sp,
+    p_upkeep: stats.upkeep,
+    p_bay_npcs: input.bay_npcs ?? {},
+    p_weapon_refs: weaponRefs,
+  })
 
-  if (linkError) handleSupabaseError(linkError)
-
-  return crawler!
+  if (error) handleSupabaseError(error)
+  return data as unknown as CrawlerRow
 }
 
 export async function getCrawlerById(crawlerId: string): Promise<CrawlerRow> {
-  const { data, error } = await supabase
-    .from('crawlers')
-    .select(
-      'id,active,bay_npcs,crawler_ref,created_at,current_sp,max_sp,name,notes,scrap_tl1,scrap_tl2,scrap_tl3,scrap_tl4,scrap_tl5,scrap_tl6,tag,tech_level,updated_at,upgrade_pool,upkeep,user_id,visible'
-    )
-    .eq('id', crawlerId)
-    .single()
+  const { data, error } = await supabase.from('crawlers').select('*').eq('id', crawlerId).single()
 
   if (error) handleSupabaseError(error)
   return data!
@@ -78,9 +44,7 @@ export async function getCrawlerById(crawlerId: string): Promise<CrawlerRow> {
 export async function getCrawlerEntityRefs(crawlerId: string): Promise<EntityRefRow[]> {
   const { data, error } = await supabase
     .from('entity_refs')
-    .select(
-      'id,condition,created_at,metadata,parent_id,parent_type,schema_name,schema_ref_id,sort_order,updated_at,user_id'
-    )
+    .select('*')
     .eq('parent_id', crawlerId)
     .eq('parent_type', 'crawler')
     .order('sort_order', { ascending: true })
@@ -178,7 +142,7 @@ export async function getActiveDowntimeRecord(
 ): Promise<DowntimeRecordRow | null> {
   const { data, error } = await supabase
     .from('downtime_records')
-    .select('id,closed_at,crawler_id,created_at,upkeep_paid,user_id')
+    .select('*')
     .eq('crawler_id', crawlerId)
     .is('closed_at', null)
     .maybeSingle()
@@ -267,26 +231,14 @@ export async function updateCrawlerWeapon(
   newRef: { schema_name: 'systems'; schema_ref_id: string },
   sortOrder: number = 0
 ): Promise<void> {
-  // Delete old weapon ref
-  if (oldRefId) {
-    const { error: delError } = await supabase
-      .from('entity_refs')
-      .delete()
-      .eq('id', oldRefId)
-      .eq('parent_id', crawlerId)
-
-    if (delError) handleSupabaseError(delError)
-  }
-
-  // Insert new weapon ref
-  const { error: insError } = await supabase.from('entity_refs').insert({
-    parent_id: crawlerId,
-    parent_type: 'crawler' as const,
-    schema_name: newRef.schema_name,
-    schema_ref_id: newRef.schema_ref_id,
-    sort_order: sortOrder,
-    user_id: userId,
+  const { error } = await supabase.rpc('update_crawler_weapon', {
+    p_crawler_id: crawlerId,
+    p_user_id: userId,
+    p_old_ref_id: oldRefId,
+    p_new_schema_name: newRef.schema_name,
+    p_new_schema_ref_id: newRef.schema_ref_id,
+    p_sort_order: sortOrder,
   })
 
-  if (insError) handleSupabaseError(insError)
+  if (error) handleSupabaseError(error)
 }

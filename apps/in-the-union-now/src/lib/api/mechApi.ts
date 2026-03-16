@@ -17,44 +17,25 @@ export async function instantiateMechFromPattern(
   const stats = computeMechStatsFromRef(input.chassis_ref)
   if (!stats) throw new Error(`Chassis not found: ${input.chassis_ref}`)
 
-  // 1. Insert the mech
-  const { data: mech, error: mechError } = await supabase
-    .from('mechs')
-    .insert({
-      user_id: userId,
-      chassis_ref: input.chassis_ref,
-      pattern_name: input.pattern_name ?? null,
-      max_sp: stats.max_sp,
-      current_sp: stats.max_sp,
-      max_ep: stats.max_ep,
-      current_ep: stats.max_ep,
-      heat_capacity: stats.heat_capacity,
-      current_heat: 0,
-      cargo_capacity: stats.cargo_capacity,
-      source_pattern_id: input.source_pattern_id ?? null,
-      source_ref_pattern_id: input.source_ref_pattern_id ?? null,
-    })
-    .select()
-    .single()
+  // Build entity refs using a placeholder parent_id — the RPC uses the newly created mech id
+  const entityRefs = patternItemsToEntityRefs('placeholder', userId, input.pattern_items)
 
-  if (mechError) handleSupabaseError(mechError)
+  const { data, error } = await supabase.rpc('instantiate_mech', {
+    p_user_id: userId,
+    p_pilot_id: pilotId,
+    p_chassis_ref: input.chassis_ref,
+    p_pattern_name: input.pattern_name ?? null,
+    p_max_sp: stats.max_sp,
+    p_max_ep: stats.max_ep,
+    p_heat_capacity: stats.heat_capacity,
+    p_cargo_capacity: stats.cargo_capacity,
+    p_source_pattern_id: input.source_pattern_id ?? null,
+    p_source_ref_pattern_id: input.source_ref_pattern_id ?? null,
+    p_entity_refs: entityRefs,
+  })
 
-  // 2. Insert entity_refs for systems + modules
-  const entityRefs = patternItemsToEntityRefs(mech!.id, userId, input.pattern_items)
-  if (entityRefs.length > 0) {
-    const { error: refError } = await supabase.from('entity_refs').insert(entityRefs)
-    if (refError) handleSupabaseError(refError)
-  }
-
-  // 3. Link mech to pilot
-  const { error: linkError } = await supabase
-    .from('pilots')
-    .update({ mech_id: mech!.id })
-    .eq('id', pilotId)
-
-  if (linkError) handleSupabaseError(linkError)
-
-  return mech!
+  if (error) handleSupabaseError(error)
+  return data as unknown as MechRow
 }
 
 export async function updateMech(mechId: string, input: MechUpdate): Promise<MechRow> {
@@ -70,13 +51,7 @@ export async function updateMech(mechId: string, input: MechUpdate): Promise<Mec
 }
 
 export async function getMechById(mechId: string): Promise<MechRow> {
-  const { data, error } = await supabase
-    .from('mechs')
-    .select(
-      'id,active,cargo_capacity,chassis_ref,created_at,current_ep,current_heat,current_sp,heat_capacity,image_path,max_ep,max_sp,notes,pattern_name,source_pattern_id,source_ref_pattern_id,updated_at,user_id'
-    )
-    .eq('id', mechId)
-    .single()
+  const { data, error } = await supabase.from('mechs').select('*').eq('id', mechId).single()
 
   if (error) handleSupabaseError(error)
   return data!
@@ -85,9 +60,7 @@ export async function getMechById(mechId: string): Promise<MechRow> {
 export async function getMechEntityRefs(mechId: string): Promise<EntityRefRow[]> {
   const { data, error } = await supabase
     .from('entity_refs')
-    .select(
-      'id,condition,created_at,metadata,parent_id,parent_type,schema_name,schema_ref_id,sort_order,updated_at,user_id'
-    )
+    .select('*')
     .eq('parent_id', mechId)
     .eq('parent_type', 'mech')
     .order('sort_order', { ascending: true })
@@ -101,20 +74,11 @@ export async function updateMechEntityRefs(
   inserts: EntityRefInsert[],
   deleteIds: string[]
 ): Promise<void> {
-  // Delete removed refs
-  if (deleteIds.length > 0) {
-    const { error: delError } = await supabase
-      .from('entity_refs')
-      .delete()
-      .in('id', deleteIds)
-      .eq('parent_id', mechId)
+  const { error } = await supabase.rpc('update_mech_entity_refs', {
+    p_mech_id: mechId,
+    p_delete_ids: deleteIds,
+    p_inserts: inserts,
+  })
 
-    if (delError) handleSupabaseError(delError)
-  }
-
-  // Insert new refs
-  if (inserts.length > 0) {
-    const { error: insError } = await supabase.from('entity_refs').insert(inserts)
-    if (insError) handleSupabaseError(insError)
-  }
+  if (error) handleSupabaseError(error)
 }

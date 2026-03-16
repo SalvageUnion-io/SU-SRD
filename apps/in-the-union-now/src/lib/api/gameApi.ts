@@ -19,11 +19,7 @@ export async function listGames(userId: string, includeArchived = false): Promis
 }
 
 export async function getGameById(gameId: string): Promise<CampaignRow> {
-  const { data, error } = await supabase
-    .from('campaigns')
-    .select('id,archived,crawler_id,created_at,created_by,invite_code,name,updated_at')
-    .eq('id', gameId)
-    .single()
+  const { data, error } = await supabase.from('campaigns').select('*').eq('id', gameId).single()
 
   if (error) handleSupabaseError(error)
   return data!
@@ -32,7 +28,7 @@ export async function getGameById(gameId: string): Promise<CampaignRow> {
 export async function getGameByCrawlerId(crawlerId: string): Promise<CampaignRow | null> {
   const { data, error } = await supabase
     .from('campaigns')
-    .select('id,archived,crawler_id,created_at,created_by,invite_code,name,updated_at')
+    .select('*')
     .eq('crawler_id', crawlerId)
     .maybeSingle()
 
@@ -43,7 +39,7 @@ export async function getGameByCrawlerId(crawlerId: string): Promise<CampaignRow
 export async function getGameMembers(gameId: string): Promise<CampaignMemberRow[]> {
   const { data, error } = await supabase
     .from('campaign_members')
-    .select('id,campaign_id,joined_at,role,user_id')
+    .select('*')
     .eq('campaign_id', gameId)
     .order('joined_at', { ascending: true })
 
@@ -54,29 +50,14 @@ export async function getGameMembers(gameId: string): Promise<CampaignMemberRow[
 export async function createGame(userId: string, name: string): Promise<CampaignRow> {
   const inviteCode = generateInviteCode()
 
-  // 1. Insert the campaign
-  const { data: campaign, error: campaignError } = await supabase
-    .from('campaigns')
-    .insert({
-      name,
-      created_by: userId,
-      invite_code: inviteCode,
-    })
-    .select()
-    .single()
-
-  if (campaignError) handleSupabaseError(campaignError)
-
-  // 2. Insert the creator as mediator
-  const { error: memberError } = await supabase.from('campaign_members').insert({
-    campaign_id: campaign!.id,
-    user_id: userId,
-    role: 'mediator',
+  const { data, error } = await supabase.rpc('create_game', {
+    p_user_id: userId,
+    p_name: name,
+    p_invite_code: inviteCode,
   })
 
-  if (memberError) handleSupabaseError(memberError)
-
-  return campaign!
+  if (error) handleSupabaseError(error)
+  return data as unknown as CampaignRow
 }
 
 export async function deleteGame(gameId: string): Promise<void> {
@@ -85,35 +66,13 @@ export async function deleteGame(gameId: string): Promise<void> {
 }
 
 export async function joinGame(userId: string, inviteCode: string): Promise<CampaignRow> {
-  // 1. Find the campaign by invite code
-  const { data: campaign, error: findError } = await supabase
-    .from('campaigns')
-    .select('id,archived,crawler_id,created_at,created_by,invite_code,name,updated_at')
-    .eq('invite_code', inviteCode.toUpperCase())
-    .single()
-
-  if (findError) handleSupabaseError(findError)
-
-  // 2. Check if already a member
-  const { data: existing } = await supabase
-    .from('campaign_members')
-    .select('id')
-    .eq('campaign_id', campaign!.id)
-    .eq('user_id', userId)
-    .maybeSingle()
-
-  if (existing) return campaign!
-
-  // 3. Insert as player
-  const { error: joinError } = await supabase.from('campaign_members').insert({
-    campaign_id: campaign!.id,
-    user_id: userId,
-    role: 'player',
+  const { data, error } = await supabase.rpc('join_game', {
+    p_user_id: userId,
+    p_invite_code: inviteCode.toUpperCase(),
   })
 
-  if (joinError) handleSupabaseError(joinError)
-
-  return campaign!
+  if (error) handleSupabaseError(error)
+  return data as unknown as CampaignRow
 }
 
 export async function regenerateInviteCode(gameId: string): Promise<string> {
