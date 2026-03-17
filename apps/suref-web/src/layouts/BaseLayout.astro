@@ -3,6 +3,7 @@ import { ClientRouter } from 'astro:transitions'
 import '../styles/global.css'
 import TopNavigation from '../components/TopNavigation.astro'
 import { Footer } from 'suref-react'
+import { SITE_URL } from '../lib/constants'
 
 type BreadcrumbItem = {
   name: string
@@ -35,10 +36,9 @@ const {
   breadcrumbs,
 } = Astro.props
 
-const siteUrl = 'https://salvageunion.io'
 const pathname = Astro.url.pathname.endsWith('/') ? Astro.url.pathname : Astro.url.pathname + '/'
-const canonicalUrl = canonical || new URL(pathname, siteUrl).href
-const ogImageUrl = ogImage.startsWith('http') ? ogImage : new URL(ogImage, siteUrl).href
+const canonicalUrl = canonical || new URL(pathname, SITE_URL).href
+const ogImageUrl = ogImage.startsWith('http') ? ogImage : new URL(ogImage, SITE_URL).href
 ---
 
 <!doctype html>

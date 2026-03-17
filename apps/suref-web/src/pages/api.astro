@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro'
 import { getSchemaCatalog } from '../lib/gameData'
+import { SITE_URL } from '../lib/constants'
 
 const catalog = getSchemaCatalog()
 const schemas = catalog.schemas.filter((s) => !s.meta)
@@ -10,15 +11,15 @@ const structuredData = {
   '@type': 'TechArticle',
   name: 'Salvage Union SRD JSON API Reference',
   description: 'Documentation for the public JSON API endpoints available at salvageunion.io.',
-  url: 'https://salvageunion.io/api/',
+  url: `${SITE_URL}/api/`,
   isPartOf: {
     '@type': 'WebSite',
     name: 'Salvage Union System Reference Document',
-    url: 'https://salvageunion.io/',
+    url: `${SITE_URL}/`,
   },
 }
 
-const baseUrl = 'https://salvageunion.io'
+const baseUrl = SITE_URL
 ---
 
 <BaseLayout
@@ -165,9 +166,9 @@ const baseUrl = 'https://salvageunion.io'
         <p class="text-sm leading-relaxed">
           Fetch all chassis data in browser JavaScript:
         </p>
-        <pre class="overflow-x-auto rounded bg-su-blue-pale p-4 text-xs leading-relaxed"><code>const response = await fetch('https://salvageunion.io/schema/chassis.json')
+        <pre class="overflow-x-auto rounded bg-su-blue-pale p-4 text-xs leading-relaxed"><code>{`const response = await fetch('${SITE_URL}/schema/chassis.json')
 const chassis = await response.json()
-console.log(chassis[0].name) // "Iron Mongrel"</code></pre>
+console.log(chassis[0].name) // "Iron Mongrel"`}</code></pre>
       </section>
 
       <!-- Available schemas -->

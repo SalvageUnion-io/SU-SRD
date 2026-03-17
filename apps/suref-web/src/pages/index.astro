@@ -3,6 +3,7 @@ import BaseLayout from '../layouts/BaseLayout.astro'
 import { getSchemaCatalog, SalvageUnionReference, getReferenceEntityData } from '../lib/gameData'
 import { getCatalogBg, getCatalogLabel } from '../lib/catalogColors'
 import { buildCatalogCategories } from '../lib/catalogHelpers'
+import { SITE_URL } from '../lib/constants'
 
 const catalog = getSchemaCatalog()
 const schemas = catalog.schemas.filter((s) => !s.meta)
@@ -26,7 +27,7 @@ const categories = buildCatalogCategories({
     '@context': 'https://schema.org',
     '@type': 'WebSite',
     name: 'Salvage Union System Reference Document',
-    url: 'https://salvageunion.io',
+    url: SITE_URL,
   }}
 >
   <div class="flex w-full flex-1 flex-col justify-center py-6">
