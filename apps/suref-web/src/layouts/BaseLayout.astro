@@ -2,7 +2,7 @@
 import { ClientRouter } from 'astro:transitions'
 import '../styles/global.css'
 import TopNavigation from '../components/TopNavigation.astro'
-import { Footer, Toaster } from 'suref-react'
+import { Footer } from 'suref-react'
 
 type BreadcrumbItem = {
   name: string
@@ -94,6 +94,5 @@ const ogImageUrl = ogImage.startsWith('http') ? ogImage : new URL(ogImage, siteU
       </main>
       <Footer poweredBySalvageUrl="/Powered_by_Salvage_Black.webp" />
     </div>
-    <Toaster client:visible />
   </body>
 </html>

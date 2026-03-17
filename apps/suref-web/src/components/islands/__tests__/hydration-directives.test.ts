@@ -42,10 +42,9 @@ describe('hydration directives', () => {
       )
     })
 
-    it('Toaster in BaseLayout uses client:visible', () => {
+    it('Toaster is not imported or rendered in BaseLayout', () => {
       const content = readAstroFile('src/layouts/BaseLayout.astro')
-      expect(content).toContain('Toaster')
-      expect(content).toMatch(/Toaster[^\n]*client:visible|client:visible[^\n]*Toaster/)
+      expect(content).not.toContain('Toaster')
     })
   })
 })
