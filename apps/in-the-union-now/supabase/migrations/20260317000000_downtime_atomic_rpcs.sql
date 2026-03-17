@@ -74,3 +74,56 @@ BEGIN
   RETURN to_jsonb(v_row);
 END;
 $$;
+
+-- ---------------------------------------------------------------------------
+-- 2. atomic_pay_upkeep: Deduct scrap, increment upgrade_pool, mark upkeep_paid
+--    in a single transaction — eliminates the crash window between the two
+--    client-side mutations that previously handled these separately.
+-- ---------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION atomic_pay_upkeep(
+  p_crawler_id uuid,
+  p_record_id uuid,
+  p_scrap_deductions jsonb,
+  p_upgrade_pool_increase int,
+  p_upkeep_result jsonb
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY INVOKER
+AS $$
+DECLARE
+  v_crawler crawlers%ROWTYPE;
+BEGIN
+  -- Apply scrap deductions and upgrade pool increment atomically
+  UPDATE crawlers
+  SET
+    scrap_tl1 = scrap_tl1 - COALESCE((p_scrap_deductions->>'scrap_tl1')::int, 0),
+    scrap_tl2 = scrap_tl2 - COALESCE((p_scrap_deductions->>'scrap_tl2')::int, 0),
+    scrap_tl3 = scrap_tl3 - COALESCE((p_scrap_deductions->>'scrap_tl3')::int, 0),
+    scrap_tl4 = scrap_tl4 - COALESCE((p_scrap_deductions->>'scrap_tl4')::int, 0),
+    scrap_tl5 = scrap_tl5 - COALESCE((p_scrap_deductions->>'scrap_tl5')::int, 0),
+    scrap_tl6 = scrap_tl6 - COALESCE((p_scrap_deductions->>'scrap_tl6')::int, 0),
+    upgrade_pool = upgrade_pool + p_upgrade_pool_increase
+  WHERE id = p_crawler_id
+  RETURNING * INTO v_crawler;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'crawlers row not found: %', p_crawler_id
+      USING ERRCODE = 'P0002';
+  END IF;
+
+  -- Mark upkeep paid and write result on the downtime record
+  UPDATE downtime_records
+  SET
+    upkeep_paid = true,
+    upkeep_result = p_upkeep_result
+  WHERE id = p_record_id;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'downtime_records row not found: %', p_record_id
+      USING ERRCODE = 'P0002';
+  END IF;
+
+  RETURN to_jsonb(v_crawler);
+END;
+$$;

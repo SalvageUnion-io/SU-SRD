@@ -268,6 +268,8 @@ export type Database = {
           restore_receipts: Json
           rumour_receipts: Json | null
           trade_result: Json | null
+          trade_roll_key: string | null
+          trade_roll_value: number | null
           training_receipts: Json | null
           upkeep_paid: boolean
           upkeep_result: Json | null
@@ -286,6 +288,8 @@ export type Database = {
           restore_receipts?: Json
           rumour_receipts?: Json | null
           trade_result?: Json | null
+          trade_roll_key?: string | null
+          trade_roll_value?: number | null
           training_receipts?: Json | null
           upkeep_paid?: boolean
           upkeep_result?: Json | null
@@ -304,6 +308,8 @@ export type Database = {
           restore_receipts?: Json
           rumour_receipts?: Json | null
           trade_result?: Json | null
+          trade_roll_key?: string | null
+          trade_roll_value?: number | null
           training_receipts?: Json | null
           upkeep_paid?: boolean
           upkeep_result?: Json | null
@@ -762,6 +768,16 @@ export type Database = {
         Args: {
           p_user_id: string
           p_invite_code: string
+        }
+        Returns: Json
+      }
+      atomic_pay_upkeep: {
+        Args: {
+          p_crawler_id: string
+          p_record_id: string
+          p_scrap_deductions: Json
+          p_upgrade_pool_increase: number
+          p_upkeep_result: Json
         }
         Returns: Json
       }

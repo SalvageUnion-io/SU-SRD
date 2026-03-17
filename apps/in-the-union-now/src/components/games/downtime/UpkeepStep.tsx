@@ -215,47 +215,31 @@ function UpkeepMediatorView({
 
   const handlePayDues = useCallback(() => {
     const paidResult = buildPaidResult(totalPayment)
-
     const deductions = contributionsToDeductions({ [crawlerTL]: contribution })
 
     payUpkeepMutation.mutate(
       {
         crawlerId: crawler.id,
+        recordId: activeDowntime.id,
         scrapDeductions: deductions,
         upgradePoolIncrease: totalPayment,
+        upkeepResult: paidResult,
       },
       {
         onSuccess: () => {
-          updateDowntimeMutation.mutate(
-            {
-              recordId: activeDowntime.id,
-              crawlerId: crawler.id,
-              input: {
-                upkeep_paid: true,
-                upkeep_result: paidResult as unknown as Json,
-              },
-            },
-            {
-              onSuccess: () => {
-                toast.success(`Upkeep paid! +${totalPayment} to upgrade pool`)
-                onComplete?.()
-              },
-              onError: (err) => toast.error(getErrorMessage(err)),
-            }
-          )
+          toast.success(`Upkeep paid! +${totalPayment} to upgrade pool`)
+          onComplete?.()
         },
         onError: (err) => toast.error(getErrorMessage(err)),
       }
     )
   }, [
-    canAfford,
     contribution,
     crawlerTL,
     totalPayment,
     crawler.id,
     activeDowntime.id,
     payUpkeepMutation,
-    updateDowntimeMutation,
     onComplete,
   ])
 

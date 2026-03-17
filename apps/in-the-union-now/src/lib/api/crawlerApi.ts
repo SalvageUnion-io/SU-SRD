@@ -159,7 +159,7 @@ export async function getActiveDowntimeRecord(
   const { data, error } = await supabase
     .from('downtime_records')
     .select(
-      'id,closed_at,craft_receipts,crawler_id,created_at,customise_acknowledged,equipment_receipts,offload_receipts,pre_session_started,restore_receipts,rumour_receipts,trade_result,training_receipts,upkeep_paid,upkeep_result,user_id'
+      'id,closed_at,craft_receipts,crawler_id,created_at,customise_acknowledged,equipment_receipts,offload_receipts,pre_session_started,restore_receipts,rumour_receipts,trade_result,trade_roll_key,trade_roll_value,training_receipts,upkeep_paid,upkeep_result,user_id'
     )
     .eq('crawler_id', crawlerId)
     .is('closed_at', null)
@@ -215,16 +215,21 @@ export async function setCrawlerDowntime(
 
 export async function payUpkeep(
   crawlerId: string,
+  recordId: string,
   scrapDeductions: Record<string, number>,
-  upgradePoolIncrease: number
+  upgradePoolIncrease: number,
+  upkeepResult: unknown
 ): Promise<CrawlerRow> {
-  const crawler = await getCrawlerById(crawlerId)
-  const update: CrawlerUpdate = { upgrade_pool: crawler.upgrade_pool + upgradePoolIncrease }
-  for (const [field, amount] of Object.entries(scrapDeductions)) {
-    const current = crawler[field as keyof CrawlerRow] as number
-    ;(update as Record<string, number>)[field] = current - amount
-  }
-  return updateCrawler(crawlerId, update)
+  const { data, error } = await supabase.rpc('atomic_pay_upkeep', {
+    p_crawler_id: crawlerId,
+    p_record_id: recordId,
+    p_scrap_deductions: scrapDeductions as Json,
+    p_upgrade_pool_increase: upgradePoolIncrease,
+    p_upkeep_result: upkeepResult as Json,
+  })
+
+  if (error) handleSupabaseError(error)
+  return data as unknown as CrawlerRow
 }
 
 export async function updateDowntimeRecord(
@@ -278,28 +283,14 @@ export async function saveOffloadReceipt(
   pilotId: string,
   receipt: OffloadReceipt
 ): Promise<DowntimeRecordRow> {
-  // Read current receipts, merge in this pilot's receipt, write back.
-  // Low contention: each pilot offloads independently.
-  const { data: current, error: readError } = await supabase
-    .from('downtime_records')
-    .select('offload_receipts')
-    .eq('id', recordId)
-    .single()
-
-  if (readError) handleSupabaseError(readError)
-
-  const existing = (current!.offload_receipts ?? {}) as Record<string, Json | undefined>
-  const merged: Json = { ...existing, [pilotId]: receipt as unknown as Json }
-
-  const { data, error } = await supabase
-    .from('downtime_records')
-    .update({ offload_receipts: merged })
-    .eq('id', recordId)
-    .select()
-    .single()
-
+  const { data, error } = await supabase.rpc('merge_downtime_receipt', {
+    p_record_id: recordId,
+    p_field: 'offload_receipts',
+    p_pilot_id: pilotId,
+    p_receipt: receipt as unknown as Json,
+  })
   if (error) handleSupabaseError(error)
-  return data!
+  return data as unknown as DowntimeRecordRow
 }
 
 export async function saveRestoreReceipt(
@@ -307,26 +298,14 @@ export async function saveRestoreReceipt(
   pilotId: string,
   receipt: RestoreReceipt
 ): Promise<DowntimeRecordRow> {
-  const { data: current, error: readError } = await supabase
-    .from('downtime_records')
-    .select('restore_receipts')
-    .eq('id', recordId)
-    .single()
-
-  if (readError) handleSupabaseError(readError)
-
-  const existing = (current!.restore_receipts ?? {}) as Record<string, Json | undefined>
-  const merged: Json = { ...existing, [pilotId]: receipt as unknown as Json }
-
-  const { data, error } = await supabase
-    .from('downtime_records')
-    .update({ restore_receipts: merged })
-    .eq('id', recordId)
-    .select()
-    .single()
-
+  const { data, error } = await supabase.rpc('merge_downtime_receipt', {
+    p_record_id: recordId,
+    p_field: 'restore_receipts',
+    p_pilot_id: pilotId,
+    p_receipt: receipt as unknown as Json,
+  })
   if (error) handleSupabaseError(error)
-  return data!
+  return data as unknown as DowntimeRecordRow
 }
 
 export async function saveTradeResult(

@@ -232,15 +232,20 @@ export function usePayUpkeep() {
   return useMutation({
     mutationFn: ({
       crawlerId,
+      recordId,
       scrapDeductions,
       upgradePoolIncrease,
+      upkeepResult,
     }: {
       crawlerId: string
+      recordId: string
       scrapDeductions: Record<string, number>
       upgradePoolIncrease: number
-    }) => payUpkeep(crawlerId, scrapDeductions, upgradePoolIncrease),
-    onSuccess: (data: CrawlerRow) => {
+      upkeepResult: unknown
+    }) => payUpkeep(crawlerId, recordId, scrapDeductions, upgradePoolIncrease, upkeepResult),
+    onSuccess: (data: CrawlerRow, { crawlerId }) => {
       queryClient.setQueryData(crawlerKeys.detail(data.id), data)
+      queryClient.invalidateQueries({ queryKey: crawlerKeys.activeDowntime(crawlerId) })
     },
   })
 }
