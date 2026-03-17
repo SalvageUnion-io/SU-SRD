@@ -323,31 +323,35 @@ export async function saveTradeResult(
   return data!
 }
 
-export async function saveCraftReceipt(
+export async function saveTradeRoll(
   recordId: string,
-  pilotId: string,
-  receipt: CraftReceipt
+  rollKey: string,
+  rollValue: number
 ): Promise<DowntimeRecordRow> {
-  const { data: current, error: readError } = await supabase
-    .from('downtime_records')
-    .select('craft_receipts')
-    .eq('id', recordId)
-    .single()
-
-  if (readError) handleSupabaseError(readError)
-
-  const existing = (current!.craft_receipts ?? {}) as Record<string, Json | undefined>
-  const merged: Json = { ...existing, [pilotId]: receipt as unknown as Json }
-
   const { data, error } = await supabase
     .from('downtime_records')
-    .update({ craft_receipts: merged })
+    .update({ trade_roll_key: rollKey, trade_roll_value: rollValue })
     .eq('id', recordId)
     .select()
     .single()
 
   if (error) handleSupabaseError(error)
   return data!
+}
+
+export async function saveCraftReceipt(
+  recordId: string,
+  pilotId: string,
+  receipt: CraftReceipt
+): Promise<DowntimeRecordRow> {
+  const { data, error } = await supabase.rpc('merge_downtime_receipt', {
+    p_record_id: recordId,
+    p_field: 'craft_receipts',
+    p_pilot_id: pilotId,
+    p_receipt: receipt as unknown as Json,
+  })
+  if (error) handleSupabaseError(error)
+  return data as unknown as DowntimeRecordRow
 }
 
 export async function saveTrainingReceipt(

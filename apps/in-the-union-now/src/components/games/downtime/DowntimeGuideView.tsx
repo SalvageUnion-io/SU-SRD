@@ -6,7 +6,11 @@ import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useMechCargo } from '../../../hooks/useMechs'
 import { usePilotsForCrawler } from '../../../hooks/usePilots'
-import { useCrawlerDowntime, useUpdateDowntimeRecord } from '../../../hooks/useCrawlers'
+import {
+  useCrawlerDowntime,
+  useUpdateDowntimeRecord,
+  useSaveTradeRoll,
+} from '../../../hooks/useCrawlers'
 import { useCurrentUser } from '../../../hooks/useCurrentUser'
 import { useDowntimeInteractiveConfig } from '../../../hooks/useDowntimeInteractiveConfig'
 import { getErrorMessage } from '../../../lib/errors'
@@ -330,10 +334,15 @@ function MediatorDowntimeGuide({
   const user = useCurrentUser()
   const crawlerDowntime = useCrawlerDowntime()
   const updateRecord = useUpdateDowntimeRecord()
+  const saveTradeRollMutation = useSaveTradeRoll()
 
-  // Trade roll state (lifted for RollTable callback)
-  const [tradeRollKey, setTradeRollKey] = useState<string | null>(null)
-  const [tradeRollValue, setTradeRollValue] = useState<number | null>(null)
+  // Trade roll state (lifted for RollTable callback); hydrated from DB for refresh survival
+  const [tradeRollKey, setTradeRollKey] = useState<string | null>(
+    activeDowntime.trade_roll_key ?? null
+  )
+  const [tradeRollValue, setTradeRollValue] = useState<number | null>(
+    activeDowntime.trade_roll_value ?? null
+  )
 
   // Pre-session confirmation modal state
   const [confirmModalOpen, setConfirmModalOpen] = useState(false)
@@ -485,10 +494,16 @@ function MediatorDowntimeGuide({
             ? parseInt(key.split('-')[0]!, 10)
             : parseInt(key, 10)
           setTradeRollValue(numericValue)
+          saveTradeRollMutation.mutate({
+            recordId: activeDowntime.id,
+            rollKey: key,
+            rollValue: numericValue,
+            crawlerId,
+          })
         }}
       />
     ),
-    [tradeResult]
+    [tradeResult, activeDowntime.id, crawlerId, saveTradeRollMutation]
   )
 
   // Mediator views for steps 5-10

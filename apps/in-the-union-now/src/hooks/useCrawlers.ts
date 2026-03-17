@@ -15,6 +15,7 @@ import {
   saveOffloadReceipt,
   saveRestoreReceipt,
   saveTradeResult,
+  saveTradeRoll,
   saveCraftReceipt,
   saveTrainingReceipt,
   saveEquipmentReceipt,
@@ -291,6 +292,25 @@ export function useSaveTradeResult() {
       result: TradeResult
       crawlerId: string
     }) => saveTradeResult(recordId, result),
+    onSuccess: (_, { crawlerId }) => {
+      queryClient.invalidateQueries({ queryKey: crawlerKeys.activeDowntime(crawlerId) })
+    },
+  })
+}
+
+export function useSaveTradeRoll() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({
+      recordId,
+      rollKey,
+      rollValue,
+    }: {
+      recordId: string
+      rollKey: string
+      rollValue: number
+      crawlerId: string
+    }) => saveTradeRoll(recordId, rollKey, rollValue),
     onSuccess: (_, { crawlerId }) => {
       queryClient.invalidateQueries({ queryKey: crawlerKeys.activeDowntime(crawlerId) })
     },

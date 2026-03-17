@@ -20,14 +20,17 @@ export function TradePlayerView({ activeDowntime }: TradePlayerViewProps) {
     [tradeResult]
   )
 
-  // No result yet — waiting for mediator
+  // No result yet — distinguish pre-roll from post-roll states
   if (!tradeResult) {
-    return (
-      <DowntimeWaitState
-        message="Waiting for mediator to roll and select trade items..."
-        orientationCopy="The mediator is rolling on the Trading Bay table."
-      />
-    )
+    if (!activeDowntime.trade_roll_key) {
+      return (
+        <DowntimeWaitState
+          message="Waiting for mediator to roll on the Trading Bay table..."
+          orientationCopy="The mediator is rolling on the Trading Bay table."
+        />
+      )
+    }
+    return <DowntimeWaitState message="Mediator is selecting trade items..." />
   }
 
   // Roll 1 — nothing
