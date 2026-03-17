@@ -159,7 +159,7 @@ export async function getActiveDowntimeRecord(
   const { data, error } = await supabase
     .from('downtime_records')
     .select(
-      'id,closed_at,craft_receipts,crawler_id,created_at,customise_acknowledged,equipment_receipts,offload_receipts,pre_session_started,restore_receipts,rumour_receipts,trade_result,training_receipts,upkeep_paid,upkeep_result,user_id'
+      'id,closed_at,craft_receipts,crawler_id,created_at,customise_acknowledged,equipment_receipts,offload_receipts,pre_session_started,restore_receipts,rumour_receipts,trade_result,trade_roll_key,trade_roll_value,training_receipts,upkeep_paid,upkeep_result,user_id'
     )
     .eq('crawler_id', crawlerId)
     .is('closed_at', null)
