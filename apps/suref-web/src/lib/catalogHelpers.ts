@@ -7,7 +7,7 @@ export type CatalogCategory = {
   flat: boolean
 }
 
-export type CatalogCard = {
+type CatalogCard = {
   id: string
   href: string
   /** Raw display name (no pluralization, no overrides) */
@@ -18,7 +18,7 @@ export type CatalogCard = {
   catalogLabel?: string
 }
 
-export type CatalogSection = {
+type CatalogSection = {
   label: string
   schemas: CatalogCard[]
 }
