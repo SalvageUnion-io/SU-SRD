@@ -159,7 +159,7 @@ export async function getActiveDowntimeRecord(
   const { data, error } = await supabase
     .from('downtime_records')
     .select(
-      'id,closed_at,craft_receipts,crawler_id,created_at,customise_acknowledged,equipment_receipts,offload_receipts,pre_session_started,restore_receipts,rumour_receipts,trade_result,trade_roll_key,trade_roll_value,training_receipts,upkeep_paid,upkeep_result,user_id'
+      'id,closed_at,craft_receipts,crawler_id,created_at,customise_acknowledged,equipment_receipts,offload_receipts,pre_session_started,restore_receipts,rumour_receipts,trade_result,training_receipts,upkeep_paid,upkeep_result,user_id'
     )
     .eq('crawler_id', crawlerId)
     .is('closed_at', null)
@@ -215,21 +215,16 @@ export async function setCrawlerDowntime(
 
 export async function payUpkeep(
   crawlerId: string,
-  recordId: string,
   scrapDeductions: Record<string, number>,
-  upgradePoolIncrease: number,
-  upkeepResult: unknown
+  upgradePoolIncrease: number
 ): Promise<CrawlerRow> {
-  const { data, error } = await supabase.rpc('atomic_pay_upkeep', {
-    p_crawler_id: crawlerId,
-    p_record_id: recordId,
-    p_scrap_deductions: scrapDeductions as Json,
-    p_upgrade_pool_increase: upgradePoolIncrease,
-    p_upkeep_result: upkeepResult as Json,
-  })
-
-  if (error) handleSupabaseError(error)
-  return data as unknown as CrawlerRow
+  const crawler = await getCrawlerById(crawlerId)
+  const update: CrawlerUpdate = { upgrade_pool: crawler.upgrade_pool + upgradePoolIncrease }
+  for (const [field, amount] of Object.entries(scrapDeductions)) {
+    const current = crawler[field as keyof CrawlerRow] as number
+    ;(update as Record<string, number>)[field] = current - amount
+  }
+  return updateCrawler(crawlerId, update)
 }
 
 export async function updateDowntimeRecord(
@@ -315,22 +310,6 @@ export async function saveTradeResult(
   const { data, error } = await supabase
     .from('downtime_records')
     .update({ trade_result: result as unknown as Json })
-    .eq('id', recordId)
-    .select()
-    .single()
-
-  if (error) handleSupabaseError(error)
-  return data!
-}
-
-export async function saveTradeRoll(
-  recordId: string,
-  rollKey: string,
-  rollValue: number
-): Promise<DowntimeRecordRow> {
-  const { data, error } = await supabase
-    .from('downtime_records')
-    .update({ trade_roll_key: rollKey, trade_roll_value: rollValue })
     .eq('id', recordId)
     .select()
     .single()
