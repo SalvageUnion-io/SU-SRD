@@ -1,0 +1,252 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro'
+import { getSchemaCatalog } from '../lib/gameData'
+import { SITE_URL } from '../lib/constants'
+
+const catalog = getSchemaCatalog()
+const schemas = catalog.schemas.filter((s) => !s.meta)
+
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'TechArticle',
+  name: 'Salvage Union SRD JSON API Reference',
+  description: 'Documentation for the public JSON API endpoints available at salvageunion.io.',
+  url: `${SITE_URL}/api/`,
+  isPartOf: {
+    '@type': 'WebSite',
+    name: 'Salvage Union System Reference Document',
+    url: `${SITE_URL}/`,
+  },
+}
+
+const baseUrl = SITE_URL
+---
+
+<BaseLayout
+  title="API Reference - Salvage Union System Reference Document"
+  description="Public JSON API documentation for salvageunion.io. Access Salvage Union game data programmatically via CORS-enabled JSON endpoints."
+  structuredData={structuredData}
+>
+  <div class="flex w-full flex-1 flex-col py-12">
+    <div class="mx-auto flex w-full max-w-5xl flex-col gap-8 px-6">
+
+      <h1
+        class="box-decoration-clone bg-su-black px-2 py-1 font-mono text-3xl font-bold uppercase leading-none tracking-tight text-su-white"
+        style="line-height: 1;"
+      >
+        JSON API Reference
+      </h1>
+
+      <!-- Overview -->
+      <section class="flex flex-col gap-3 text-sm leading-relaxed">
+        <h2 class="font-mono text-lg font-bold uppercase">Overview</h2>
+        <p>
+          All game data on salvageunion.io is available as machine-readable JSON. The API is static — every endpoint is a plain file served directly from the site. No authentication is required.
+        </p>
+        <p>
+          CORS is fully open (<code class="rounded bg-su-blue-pale px-1 py-0.5">Access-Control-Allow-Origin: *</code>), so you can fetch from any origin, including browser JavaScript.
+        </p>
+        <p>
+          <strong>Base URL:</strong>{' '}
+          <code class="rounded bg-su-blue-pale px-1 py-0.5">{baseUrl}</code>
+        </p>
+      </section>
+
+      <!-- Endpoints -->
+      <section class="flex flex-col gap-6">
+        <h2 class="font-mono text-lg font-bold uppercase">Endpoints</h2>
+
+        <!-- Schema data array -->
+        <div class="rounded-md border-2 border-su-grey-light bg-su-white">
+          <div class="border-b-2 border-su-grey-light px-5 py-3">
+            <p class="font-mono text-sm font-bold uppercase tracking-wide text-su-grey-dark">GET</p>
+            <p class="mt-1 font-mono text-base font-bold">
+              /schema/<span class="text-su-orange-dark">{'{schemaId}'}</span>.json
+            </p>
+          </div>
+          <div class="flex flex-col gap-3 px-5 py-4 text-sm leading-relaxed">
+            <p>Returns the full data array for a schema. Each element is a game entity.</p>
+            <p>
+              <strong>Example:</strong>{' '}
+              <a
+                href={`${baseUrl}/schema/chassis.json`}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="font-bold text-su-orange-dark hover:underline"
+              >
+                {baseUrl}/schema/chassis.json
+              </a>
+            </p>
+            <pre class="overflow-x-auto rounded bg-su-blue-pale p-3 text-xs leading-relaxed"><code>[
+  {'{'}
+    "id": "iron-mongrel",
+    "name": "Iron Mongrel",
+    "hull": 30,
+    "armor": 2,
+    ...
+  {'}'},
+  ...
+]</code></pre>
+          </div>
+        </div>
+
+        <!-- JSON Schema definition -->
+        <div class="rounded-md border-2 border-su-grey-light bg-su-white">
+          <div class="border-b-2 border-su-grey-light px-5 py-3">
+            <p class="font-mono text-sm font-bold uppercase tracking-wide text-su-grey-dark">GET</p>
+            <p class="mt-1 font-mono text-base font-bold">
+              /schema/<span class="text-su-orange-dark">{'{schemaId}'}</span>.schema.json
+            </p>
+          </div>
+          <div class="flex flex-col gap-3 px-5 py-4 text-sm leading-relaxed">
+            <p>Returns the JSON Schema definition for a schema, generated from the Zod validation schemas used in the SRD codebase. Useful for validating data or understanding the shape of entity objects.</p>
+            <p>
+              <strong>Example:</strong>{' '}
+              <a
+                href={`${baseUrl}/schema/chassis.schema.json`}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="font-bold text-su-orange-dark hover:underline"
+              >
+                {baseUrl}/schema/chassis.schema.json
+              </a>
+            </p>
+            <pre class="overflow-x-auto rounded bg-su-blue-pale p-3 text-xs leading-relaxed"><code>{'{'}
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "array",
+  "items": {'{'}
+    "type": "object",
+    "properties": {'{'}
+      "id": {'{'} "type": "string" {'}'},
+      "name": {'{'} "type": "string" {'}'},
+      ...
+    {'}'}
+  {'}'}
+{'}'}</code></pre>
+          </div>
+        </div>
+
+        <!-- Individual entity -->
+        <div class="rounded-md border-2 border-su-grey-light bg-su-white">
+          <div class="border-b-2 border-su-grey-light px-5 py-3">
+            <p class="font-mono text-sm font-bold uppercase tracking-wide text-su-grey-dark">GET</p>
+            <p class="mt-1 font-mono text-base font-bold">
+              /schema/<span class="text-su-orange-dark">{'{schemaId}'}</span>/item/<span class="text-su-orange-dark">{'{itemId}'}</span>.json
+            </p>
+          </div>
+          <div class="flex flex-col gap-3 px-5 py-4 text-sm leading-relaxed">
+            <p>
+              Returns a single entity by its slug. Entity slugs are lowercase, hyphen-separated versions of the entity name (e.g., <code class="rounded bg-su-blue-pale px-1 py-0.5">Iron Mongrel</code> becomes <code class="rounded bg-su-blue-pale px-1 py-0.5">iron-mongrel</code>). Slugs match the URLs used on the reference site.
+            </p>
+            <p>
+              <strong>Example:</strong>{' '}
+              <a
+                href={`${baseUrl}/schema/chassis/item/iron-mongrel.json`}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="font-bold text-su-orange-dark hover:underline"
+              >
+                {baseUrl}/schema/chassis/item/iron-mongrel.json
+              </a>
+            </p>
+            <pre class="overflow-x-auto rounded bg-su-blue-pale p-3 text-xs leading-relaxed"><code>{'{'}
+  "id": "iron-mongrel",
+  "name": "Iron Mongrel",
+  "hull": 30,
+  "armor": 2,
+  ...
+{'}'}</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- Usage example -->
+      <section class="flex flex-col gap-3">
+        <h2 class="font-mono text-lg font-bold uppercase">Usage Example</h2>
+        <p class="text-sm leading-relaxed">
+          Fetch all chassis data in browser JavaScript:
+        </p>
+        <pre class="overflow-x-auto rounded bg-su-blue-pale p-4 text-xs leading-relaxed"><code>{`const response = await fetch('${SITE_URL}/schema/chassis.json')
+const chassis = await response.json()
+console.log(chassis[0].name) // "Iron Mongrel"`}</code></pre>
+      </section>
+
+      <!-- Available schemas -->
+      <section class="flex flex-col gap-4">
+        <h2 class="font-mono text-lg font-bold uppercase">Available Schemas</h2>
+        <p class="text-sm leading-relaxed">
+          The following schema IDs are available. Use them in the endpoint patterns above.
+        </p>
+
+        <div class="overflow-hidden rounded-md border-2 border-su-grey-light">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b-2 border-su-grey-light bg-su-black text-su-white">
+                <th class="px-4 py-2 text-left font-mono text-xs font-bold uppercase tracking-wide">Schema ID</th>
+                <th class="px-4 py-2 text-left font-mono text-xs font-bold uppercase tracking-wide">Name</th>
+                <th class="px-4 py-2 text-left font-mono text-xs font-bold uppercase tracking-wide hidden sm:table-cell">Description</th>
+                <th class="px-4 py-2 text-right font-mono text-xs font-bold uppercase tracking-wide">Items</th>
+              </tr>
+            </thead>
+            <tbody>
+              {schemas.map((schema, i) => (
+                <tr class:list={['border-b border-su-grey-light', i % 2 === 0 ? 'bg-su-white' : 'bg-su-blue-pale']}>
+                  <td class="px-4 py-2">
+                    <a
+                      href={`/schema/${schema.id}/`}
+                      class="font-mono text-xs font-bold text-su-orange-dark hover:underline"
+                    >
+                      {schema.id}
+                    </a>
+                  </td>
+                  <td class="px-4 py-2 font-medium">{schema.displayNamePlural}</td>
+                  <td class="px-4 py-2 text-su-grey-dark hidden sm:table-cell">{schema.description}</td>
+                  <td class="px-4 py-2 text-right font-mono">{schema.itemCount}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- CORS & headers -->
+      <section class="flex flex-col gap-3">
+        <h2 class="font-mono text-lg font-bold uppercase">CORS Policy</h2>
+        <p class="text-sm leading-relaxed">
+          All <code class="rounded bg-su-blue-pale px-1 py-0.5">/schema/</code> endpoints include the following response headers:
+        </p>
+        <pre class="overflow-x-auto rounded bg-su-blue-pale p-4 text-xs leading-relaxed"><code>Access-Control-Allow-Origin: *
+Access-Control-Allow-Methods: GET
+Content-Type: application/json</code></pre>
+        <p class="text-sm leading-relaxed">
+          No preflight requests are required for standard GET requests.
+        </p>
+      </section>
+
+      <!-- Licensing note -->
+      <section class="flex flex-col gap-3 text-sm leading-relaxed">
+        <h2 class="font-mono text-lg font-bold uppercase">Licensing</h2>
+        <p>
+          Data returned by this API is published under the{' '}
+          <a
+            href="https://leyline.press"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="font-bold text-su-orange-dark hover:underline"
+          >
+            Salvage Union Open Game License (OGL 1.0b)
+          </a>. Salvage Union is created and published by{' '}
+          <a
+            href="https://leyline.press"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="font-bold text-su-orange-dark hover:underline"
+          >
+            Leyline Press
+          </a>.
+        </p>
+      </section>
+
+    </div>
+  </div>
+</BaseLayout>

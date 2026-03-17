@@ -35,7 +35,48 @@ All game data is organized into browsable categories:
 Game content is published under the Salvage Union Open Game License (OGL 1.0b).
 Salvage Union is created and published by Leyline Press (https://leyline.press).
 
+## JSON API
+
+salvageunion.io exposes a public JSON API for machine consumption of all game data. CORS is enabled for all endpoints (`Access-Control-Allow-Origin: *`), so requests can be made from any origin.
+
+Base URL: `https://salvageunion.io`
+
+### Endpoints
+
+- `GET /schema/{schemaId}.json` — full data array for a schema (e.g., `/schema/chassis.json`)
+- `GET /schema/{schemaId}.schema.json` — JSON Schema definition for a schema (e.g., `/schema/chassis.schema.json`)
+- `GET /schema/{schemaId}/item/{itemId}.json` — individual entity by slug (e.g., `/schema/chassis/item/iron-mongrel.json`)
+
+### Available Schema IDs
+
+The following schema IDs can be used in the endpoint patterns above:
+
+- `chassis` — mech frames
+- `systems` — mech systems
+- `modules` — mech modules
+- `abilities` — pilot abilities
+- `classes` — pilot classes
+- `equipment` — pilot equipment
+- `traits` — keyword traits
+- `keywords` — rules keywords
+- `distances` — range bands
+- `drones` — deployable drones
+- `vehicles` — non-mech vehicles
+- `crawlers` — mobile bases
+- `crawler-bays` — crawler facilities
+- `creatures` — NPC creatures
+- `npcs` — non-player characters
+- `squads` — enemy squads
+- `factions` — world factions
+- `bio-titans` — massive bio-mechs
+- `meld` — alien technology
+- `roll-tables` — random tables
+- `sources` — source books
+
+Full API documentation: https://salvageunion.io/api/
+
 ## Other Pages
 
 - About: https://salvageunion.io/about/
+- API Reference: https://salvageunion.io/api/
 - Sitemap: https://salvageunion.io/sitemap-index.xml

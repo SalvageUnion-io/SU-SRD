@@ -2,11 +2,17 @@
  * Salvage Union Data ORM
  *
  * Type-safe query interface for Salvage Union game data
- * Models are auto-generated from the schema catalog
+ * Models are loaded lazily via SalvageUnionReference.preload().
  */
 
 import { BaseModel, type ModelWithMetadata } from './BaseModel.js'
-import { generateModels } from './ModelFactory.js'
+import {
+  getDataMaps,
+  getLoadedModel,
+  isSchemaLoaded,
+  loadSchemas,
+  resetLoadStateForTesting,
+} from './ModelFactory.js'
 import type {
   SURefAbility,
   SURefBioTitan,
@@ -36,6 +42,7 @@ import type {
   SURefTechLevel,
   SURefCatalogCategory,
   SURefEntity,
+  SURefMetaEntity,
   SURefEnumSchemaName,
 } from './types/index.js'
 
@@ -75,6 +82,17 @@ export {
   type SearchResult,
 } from './search.js'
 
+// Export combat utility functions (pure game logic)
+export {
+  getHeatGenerated,
+  applyHeat,
+  canActivateAction,
+  shouldTriggerHeatCheck,
+  canPush,
+  nextCondition,
+  applySpDamage,
+} from './combatUtils.js'
+
 // Import search functions for use in class methods
 import {
   search as searchFn,
@@ -83,6 +101,263 @@ import {
   type SearchOptions,
   type SearchResult,
 } from './search.js'
+
+// ---------------------------------------------------------------------------
+// LazyModel — a BaseModel that throws descriptive errors until loaded
+// ---------------------------------------------------------------------------
+
+/**
+ * A BaseModel subclass that guards all data-access methods behind a load
+ * check. Before preload(), all data methods throw. After preload(), they
+ * delegate to the real backing model.
+ *
+ * The backing model is replaced in place so that references captured before
+ * preload (e.g. `const c = SalvageUnionReference.Chassis`) see the real data
+ * after preload completes.
+ */
+class LazyModel<T> extends BaseModel<T> {
+  private readonly _schemaIdForLazy: string
+  private _backing: BaseModel<T> | null = null
+
+  // Declared explicitly so TypeScript sees them as class properties
+  // (ModelWithMetadata<T> requires these to be present).
+  readonly schemaName: string
+  readonly displayName: string
+
+  constructor(schemaId: string, _propName: string, displayNameValue: string) {
+    // Pass empty arrays / empty schema; data is never used until _backing is set
+    super([], {}, schemaId, displayNameValue)
+    this._schemaIdForLazy = schemaId
+    this.schemaName = schemaId
+    this.displayName = displayNameValue
+  }
+
+  /**
+   * Install the real backing model once preload() has resolved.
+   * Called by SalvageUnionReference.preload() after loading completes.
+   */
+  _install(backing: BaseModel<T>): void {
+    this._backing = backing
+    // Copy the schema reference so getDataMaps() can read it
+    this.schema = backing.schema
+  }
+
+  private _assertLoaded(): void {
+    if (!this._backing) {
+      throw new Error(
+        `Schema "${this._schemaIdForLazy}" not loaded. Call SalvageUnionReference.preload(['${this._schemaIdForLazy}']) or SalvageUnionReference.preload('all') first.`
+      )
+    }
+  }
+
+  all(): (T & { schemaName: string })[] {
+    this._assertLoaded()
+    return this._backing!.all()
+  }
+
+  find(predicate: (item: T) => boolean): (T & { schemaName: string }) | undefined {
+    this._assertLoaded()
+    return this._backing!.find(predicate)
+  }
+
+  findAll(predicate: (item: T) => boolean): (T & { schemaName: string })[] {
+    this._assertLoaded()
+    return this._backing!.findAll(predicate)
+  }
+
+  getById(id: string): (T & { schemaName: string }) | undefined {
+    this._assertLoaded()
+    return this._backing!.getById(id)
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Lazy model instances — one per schema, created at module load time
+// These are stable object references; preload() populates the backing data.
+// Display names are the singular form used by consumers (model-metadata tests).
+// ---------------------------------------------------------------------------
+
+const lazyAbilities = new LazyModel<SchemaToEntityMap['abilities']>(
+  'abilities',
+  'Abilities',
+  'Ability'
+)
+const lazyAbilityTreeRequirements = new LazyModel<SURefMetaAbilityTreeRequirement>(
+  'ability-tree-requirements',
+  'AbilityTreeRequirements',
+  'Ability Tree Requirement'
+)
+const lazyActions = new LazyModel<SURefMetaAction>('actions', 'Actions', 'Action')
+const lazyBioTitans = new LazyModel<SchemaToEntityMap['bio-titans']>(
+  'bio-titans',
+  'BioTitans',
+  'Bio-Titan'
+)
+const lazyChassis = new LazyModel<SchemaToEntityMap['chassis']>('chassis', 'Chassis', 'Chassis')
+const lazyClasses = new LazyModel<SchemaToEntityMap['classes']>('classes', 'Classes', 'Class')
+const lazyCrawlerBays = new LazyModel<SchemaToEntityMap['crawler-bays']>(
+  'crawler-bays',
+  'CrawlerBays',
+  'Crawler Bay'
+)
+const lazyCrawlerTechLevels = new LazyModel<SURefMetaCrawlerTechLevel>(
+  'crawler-tech-levels',
+  'CrawlerTechLevels',
+  'Crawler Tech Level'
+)
+const lazyCrawlers = new LazyModel<SchemaToEntityMap['crawlers']>('crawlers', 'Crawlers', 'Crawler')
+const lazyCreatures = new LazyModel<SchemaToEntityMap['creatures']>(
+  'creatures',
+  'Creatures',
+  'Creature'
+)
+const lazyDistances = new LazyModel<SchemaToEntityMap['distances']>(
+  'distances',
+  'Distances',
+  'Distance'
+)
+const lazyDrones = new LazyModel<SchemaToEntityMap['drones']>('drones', 'Drones', 'Drone')
+const lazyEquipment = new LazyModel<SchemaToEntityMap['equipment']>(
+  'equipment',
+  'Equipment',
+  'Equipment'
+)
+const lazyFactions = new LazyModel<SchemaToEntityMap['factions']>('factions', 'Factions', 'Faction')
+const lazyGuides = new LazyModel<SURefGuide>('guides', 'Guides', 'Guide')
+const lazyKeywords = new LazyModel<SchemaToEntityMap['keywords']>('keywords', 'Keywords', 'Keyword')
+const lazyMeld = new LazyModel<SchemaToEntityMap['meld']>('meld', 'Meld', 'Meld')
+const lazyModules = new LazyModel<SchemaToEntityMap['modules']>('modules', 'Modules', 'Module')
+const lazyNPCs = new LazyModel<SchemaToEntityMap['npcs']>('npcs', 'NPCs', 'NPC')
+const lazyRollTables = new LazyModel<SchemaToEntityMap['roll-tables']>(
+  'roll-tables',
+  'RollTables',
+  'Roll Table'
+)
+const lazySquads = new LazyModel<SchemaToEntityMap['squads']>('squads', 'Squads', 'Squad')
+const lazySystems = new LazyModel<SchemaToEntityMap['systems']>('systems', 'Systems', 'System')
+const lazyTraits = new LazyModel<SchemaToEntityMap['traits']>('traits', 'Traits', 'Trait')
+const lazyVehicles = new LazyModel<SchemaToEntityMap['vehicles']>('vehicles', 'Vehicles', 'Vehicle')
+const lazySources = new LazyModel<SURefSource>('sources', 'Sources', 'Source')
+const lazyTechLevels = new LazyModel<SURefTechLevel>('tech-levels', 'TechLevels', 'Tech Level')
+const lazyCatalogCategories = new LazyModel<SURefCatalogCategory>(
+  'catalog-categories',
+  'CatalogCategories',
+  'Catalog Category'
+)
+
+/** Map from schema ID to its LazyModel instance — used by preload() to install backing models */
+const lazyModelMap: Record<string, LazyModel<unknown>> = {
+  abilities: lazyAbilities as LazyModel<unknown>,
+  'ability-tree-requirements': lazyAbilityTreeRequirements as LazyModel<unknown>,
+  actions: lazyActions as LazyModel<unknown>,
+  'bio-titans': lazyBioTitans as LazyModel<unknown>,
+  chassis: lazyChassis as LazyModel<unknown>,
+  classes: lazyClasses as LazyModel<unknown>,
+  'crawler-bays': lazyCrawlerBays as LazyModel<unknown>,
+  'crawler-tech-levels': lazyCrawlerTechLevels as LazyModel<unknown>,
+  crawlers: lazyCrawlers as LazyModel<unknown>,
+  creatures: lazyCreatures as LazyModel<unknown>,
+  distances: lazyDistances as LazyModel<unknown>,
+  drones: lazyDrones as LazyModel<unknown>,
+  equipment: lazyEquipment as LazyModel<unknown>,
+  factions: lazyFactions as LazyModel<unknown>,
+  guides: lazyGuides as LazyModel<unknown>,
+  keywords: lazyKeywords as LazyModel<unknown>,
+  meld: lazyMeld as LazyModel<unknown>,
+  modules: lazyModules as LazyModel<unknown>,
+  npcs: lazyNPCs as LazyModel<unknown>,
+  'roll-tables': lazyRollTables as LazyModel<unknown>,
+  squads: lazySquads as LazyModel<unknown>,
+  systems: lazySystems as LazyModel<unknown>,
+  traits: lazyTraits as LazyModel<unknown>,
+  vehicles: lazyVehicles as LazyModel<unknown>,
+  sources: lazySources as LazyModel<unknown>,
+  'tech-levels': lazyTechLevels as LazyModel<unknown>,
+  'catalog-categories': lazyCatalogCategories as LazyModel<unknown>,
+}
+
+// ---------------------------------------------------------------------------
+// Cached action map — built once after actions are loaded
+// ---------------------------------------------------------------------------
+
+let _actionMap: Map<string, SURefMetaAction> | null = null
+function getActionMapForResolve(): Map<string, SURefMetaAction> {
+  if (_actionMap) return _actionMap
+  const { dataMap } = getDataMaps()
+  const actionsData = dataMap['actions'] as SURefMetaAction[] | undefined
+  if (!actionsData) return new Map()
+  _actionMap = new Map(actionsData.map((a) => [a.name, a]))
+  return _actionMap
+}
+
+/**
+ * Resolve actions from an entity's actions array
+ * @param entity - The entity to resolve actions from
+ * @returns The resolved actions array or undefined
+ */
+function resolveActionsArray(entity: SURefMetaEntity): SURefMetaAction[] | undefined {
+  if (!('actions' in entity) || !Array.isArray(entity.actions)) {
+    return undefined
+  }
+
+  const actionNames = entity.actions as string[]
+
+  const actionMap = getActionMapForResolve()
+  if (actionMap.size === 0) {
+    return undefined
+  }
+
+  const resolved: SURefMetaAction[] = []
+  for (const actionName of actionNames) {
+    if (typeof actionName !== 'string') {
+      continue
+    }
+    const action = actionMap.get(actionName)
+    if (action) {
+      resolved.push(action)
+    }
+  }
+
+  return resolved.length > 0 ? resolved : undefined
+}
+
+/**
+ * Resolve chassis abilities from a chassis entity
+ * @param entity - The entity to resolve chassis abilities from
+ * @returns The resolved abilities array or undefined
+ */
+function resolveChassisAbilities(entity: SURefMetaEntity): SURefMetaAction[] | undefined {
+  if (!('chassisAbilities' in entity) || !Array.isArray(entity.chassisAbilities)) {
+    return undefined
+  }
+
+  const chassisAbilities = entity.chassisAbilities
+
+  const abilityMap = getActionMapForResolve()
+  if (abilityMap.size === 0) {
+    return undefined
+  }
+
+  const seenIds = new Set<string>()
+  const resolved: SURefMetaAction[] = []
+  for (const abilityName of chassisAbilities) {
+    if (typeof abilityName !== 'string') {
+      continue
+    }
+    const ability = abilityMap.get(abilityName)
+    if (ability) {
+      if (ability.id && seenIds.has(ability.id)) {
+        continue
+      }
+      if (ability.id) {
+        seenIds.add(ability.id)
+      }
+      resolved.push(ability)
+    }
+  }
+
+  return resolved.length > 0 ? resolved : undefined
+}
 
 export type * from './types/index.js'
 
@@ -187,110 +462,131 @@ export const SchemaToDisplayName = Object.fromEntries(
   Object.entries(SCHEMA_REGISTRY).map(([k, v]) => [k, v.display])
 ) as { readonly [K in keyof typeof SCHEMA_REGISTRY]: (typeof SCHEMA_REGISTRY)[K]['display'] }
 
-// Auto-generate models from schema catalog (synchronous)
-const models = generateModels()
-
 /**
  * Main ORM class with static model accessors
+ *
+ * Data is loaded lazily. Call `SalvageUnionReference.preload('all')` (or a
+ * specific array of schema IDs) before accessing any model.
  */
 export class SalvageUnionReference {
-  // Initialize static properties from generated models
-  static Abilities = models.Abilities as ModelWithMetadata<SchemaToEntityMap['abilities']>
+  // Static model properties — these are LazyModel instances that throw until preload() is called
+  static Abilities = lazyAbilities as ModelWithMetadata<SchemaToEntityMap['abilities']>
   static AbilityTreeRequirements =
-    models.AbilityTreeRequirements as ModelWithMetadata<SURefMetaAbilityTreeRequirement>
-  static Actions = models.Actions as ModelWithMetadata<SURefMetaAction>
-  static BioTitans = models.BioTitans as ModelWithMetadata<SchemaToEntityMap['bio-titans']>
-  static Chassis = models.Chassis as ModelWithMetadata<SchemaToEntityMap['chassis']>
-  static Classes = models.Classes as ModelWithMetadata<SchemaToEntityMap['classes']>
-  static CrawlerBays = models.CrawlerBays as ModelWithMetadata<SchemaToEntityMap['crawler-bays']>
-  static CrawlerTechLevels =
-    models.CrawlerTechLevels as ModelWithMetadata<SURefMetaCrawlerTechLevel>
-  static Crawlers = models.Crawlers as ModelWithMetadata<SchemaToEntityMap['crawlers']>
-  static Creatures = models.Creatures as ModelWithMetadata<SchemaToEntityMap['creatures']>
-  static Distances = models.Distances as ModelWithMetadata<SchemaToEntityMap['distances']>
-  static Drones = models.Drones as ModelWithMetadata<SchemaToEntityMap['drones']>
-  static Equipment = models.Equipment as ModelWithMetadata<SchemaToEntityMap['equipment']>
-  static Factions = models.Factions as ModelWithMetadata<SchemaToEntityMap['factions']>
-  static Guides = models.Guides as ModelWithMetadata<SURefGuide>
-  static Keywords = models.Keywords as ModelWithMetadata<SchemaToEntityMap['keywords']>
-  static Meld = models.Meld as ModelWithMetadata<SchemaToEntityMap['meld']>
-  static Modules = models.Modules as ModelWithMetadata<SchemaToEntityMap['modules']>
-  static NPCs = models.NPCs as ModelWithMetadata<SchemaToEntityMap['npcs']>
-  static RollTables = models.RollTables as ModelWithMetadata<SchemaToEntityMap['roll-tables']>
-  static Squads = models.Squads as ModelWithMetadata<SchemaToEntityMap['squads']>
-  static Systems = models.Systems as ModelWithMetadata<SchemaToEntityMap['systems']>
-  static Traits = models.Traits as ModelWithMetadata<SchemaToEntityMap['traits']>
-  static Vehicles = models.Vehicles as ModelWithMetadata<SchemaToEntityMap['vehicles']>
-  static Sources = models.Sources as ModelWithMetadata<SURefSource>
-  static TechLevels = models.TechLevels as ModelWithMetadata<SURefTechLevel>
-  static CatalogCategories = models.CatalogCategories as ModelWithMetadata<SURefCatalogCategory>
+    lazyAbilityTreeRequirements as ModelWithMetadata<SURefMetaAbilityTreeRequirement>
+  static Actions = lazyActions as ModelWithMetadata<SURefMetaAction>
+  static BioTitans = lazyBioTitans as ModelWithMetadata<SchemaToEntityMap['bio-titans']>
+  static Chassis = lazyChassis as ModelWithMetadata<SchemaToEntityMap['chassis']>
+  static Classes = lazyClasses as ModelWithMetadata<SchemaToEntityMap['classes']>
+  static CrawlerBays = lazyCrawlerBays as ModelWithMetadata<SchemaToEntityMap['crawler-bays']>
+  static CrawlerTechLevels = lazyCrawlerTechLevels as ModelWithMetadata<SURefMetaCrawlerTechLevel>
+  static Crawlers = lazyCrawlers as ModelWithMetadata<SchemaToEntityMap['crawlers']>
+  static Creatures = lazyCreatures as ModelWithMetadata<SchemaToEntityMap['creatures']>
+  static Distances = lazyDistances as ModelWithMetadata<SchemaToEntityMap['distances']>
+  static Drones = lazyDrones as ModelWithMetadata<SchemaToEntityMap['drones']>
+  static Equipment = lazyEquipment as ModelWithMetadata<SchemaToEntityMap['equipment']>
+  static Factions = lazyFactions as ModelWithMetadata<SchemaToEntityMap['factions']>
+  static Guides = lazyGuides as ModelWithMetadata<SURefGuide>
+  static Keywords = lazyKeywords as ModelWithMetadata<SchemaToEntityMap['keywords']>
+  static Meld = lazyMeld as ModelWithMetadata<SchemaToEntityMap['meld']>
+  static Modules = lazyModules as ModelWithMetadata<SchemaToEntityMap['modules']>
+  static NPCs = lazyNPCs as ModelWithMetadata<SchemaToEntityMap['npcs']>
+  static RollTables = lazyRollTables as ModelWithMetadata<SchemaToEntityMap['roll-tables']>
+  static Squads = lazySquads as ModelWithMetadata<SchemaToEntityMap['squads']>
+  static Systems = lazySystems as ModelWithMetadata<SchemaToEntityMap['systems']>
+  static Traits = lazyTraits as ModelWithMetadata<SchemaToEntityMap['traits']>
+  static Vehicles = lazyVehicles as ModelWithMetadata<SchemaToEntityMap['vehicles']>
+  static Sources = lazySources as ModelWithMetadata<SURefSource>
+  static TechLevels = lazyTechLevels as ModelWithMetadata<SURefTechLevel>
+  static CatalogCategories = lazyCatalogCategories as ModelWithMetadata<SURefCatalogCategory>
+
+  // ---------------------------------------------------------------------------
+  // preload / isLoaded API
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Load schemas before use.
+   *
+   * @param schemas - Array of schema IDs to load, or `'all'` to load everything.
+   * @returns Promise that resolves when all requested schemas are loaded.
+   *
+   * @example
+   * // Load everything (safe default):
+   * await SalvageUnionReference.preload('all')
+   *
+   * // Load only what you need (enables code-splitting):
+   * await SalvageUnionReference.preload(['chassis', 'systems', 'modules'])
+   */
+  public static async preload(schemas: string[] | 'all'): Promise<void> {
+    await loadSchemas(schemas)
+
+    // Install backing models into all LazyModel wrappers for loaded schemas
+    const ids = schemas === 'all' ? Object.keys(lazyModelMap) : schemas
+    for (const id of ids) {
+      const lazyModel = lazyModelMap[id]
+      if (!lazyModel) continue
+      if (!isSchemaLoaded(id)) continue
+
+      try {
+        const backing = getLoadedModel(id, toPascalCaseLocal(id))
+        lazyModel._install(backing as BaseModel<unknown>)
+      } catch {
+        // Already logged during load; skip gracefully
+      }
+    }
+
+    // Invalidate the action map so it is rebuilt with fresh data
+    _actionMap = null
+  }
+
+  /**
+   * Check whether a schema has been loaded.
+   *
+   * @param schemaId - The schema ID to check (e.g. `'chassis'`, `'abilities'`).
+   * @returns `true` if the schema has been loaded via `preload()`, `false` otherwise.
+   */
+  public static isLoaded(schemaId: string): boolean {
+    return isSchemaLoaded(schemaId)
+  }
+
+  // ---------------------------------------------------------------------------
+  // Query methods
+  // ---------------------------------------------------------------------------
 
   /**
    * Find a single entity in a specific schema
-   *
-   * @param schemaName - The schema to search in
-   * @param predicate - Function to test each entity
-   * @returns The first matching entity or undefined
-   *
-   * @example
-   * const ability = SalvageUnionReference.findIn('abilities', a => a.name === 'Bionic Senses')
    */
   public static findIn<T extends keyof SchemaToEntityMap>(
     schemaName: T,
     predicate: (entity: SchemaToEntityMap[T]) => boolean
   ): (SchemaToEntityMap[T] & { schemaName: T }) | undefined {
-    const modelName = SchemaToModelMap[schemaName]
-    const model = models[modelName] as BaseModel<SchemaToEntityMap[T]>
+    const model = lazyModelMap[schemaName] as unknown as BaseModel<SchemaToEntityMap[T]>
     return model.find(predicate) as (SchemaToEntityMap[T] & { schemaName: T }) | undefined
   }
 
   /**
    * Find all entities matching a predicate in a specific schema
-   *
-   * @param schemaName - The schema to search in
-   * @param predicate - Function to test each entity
-   * @returns Array of matching entities
-   *
-   * @example
-   * const level1Abilities = SalvageUnionReference.findAllIn('abilities', a => a.level === 1)
    */
   public static findAllIn<T extends keyof SchemaToEntityMap>(
     schemaName: T,
     predicate: (entity: SchemaToEntityMap[T]) => boolean
   ): (SchemaToEntityMap[T] & { schemaName: T })[] {
-    const modelName = SchemaToModelMap[schemaName]
-    const model = models[modelName] as BaseModel<SchemaToEntityMap[T]>
+    const model = lazyModelMap[schemaName] as unknown as BaseModel<SchemaToEntityMap[T]>
     return model.findAll(predicate) as (SchemaToEntityMap[T] & { schemaName: T })[]
   }
 
   /**
    * Get an entity by schema name and ID (O(1) via ID map)
-   *
-   * @param schemaName - The schema to search in
-   * @param id - The entity ID
-   * @returns The entity or undefined if not found
-   *
-   * @example
-   * const ability = SalvageUnionReference.get('abilities', 'bionic-senses')
    */
   public static get<T extends keyof SchemaToEntityMap>(
     schemaName: T,
     id: string
   ): (SchemaToEntityMap[T] & { schemaName: T }) | undefined {
-    const modelName = SchemaToModelMap[schemaName]
-    const model = models[modelName] as BaseModel<SchemaToEntityMap[T]>
+    const model = lazyModelMap[schemaName] as unknown as BaseModel<SchemaToEntityMap[T]>
     return model.getById(id) as (SchemaToEntityMap[T] & { schemaName: T }) | undefined
   }
 
   /**
    * Check if an entity exists by schema name and ID
-   *
-   * @param schemaName - The schema to check
-   * @param id - The entity ID
-   * @returns True if the entity exists
-   *
-   * @example
-   * if (SalvageUnionReference.exists('abilities', 'bionic-senses')) { ... }
    */
   public static exists<T extends keyof SchemaToEntityMap>(schemaName: T, id: string): boolean {
     return this.get(schemaName, id) !== undefined
@@ -298,15 +594,6 @@ export class SalvageUnionReference {
 
   /**
    * Get multiple entities by schema name and IDs
-   *
-   * @param requests - Array of {schemaName, id} objects
-   * @returns Array of entities (undefined for IDs not found)
-   *
-   * @example
-   * const entities = SalvageUnionReference.getMany([
-   *   { schemaName: 'abilities', id: 'bionic-senses' },
-   *   { schemaName: 'systems', id: 'energy-shield' }
-   * ])
    */
   public static getMany(
     requests: Array<{ schemaName: keyof SchemaToEntityMap; id: string }>
@@ -318,29 +605,7 @@ export class SalvageUnionReference {
   }
 
   /**
-   * Compose a reference string from schema name and ID
-   *
-   * @param schemaName - The schema name
-   * @param id - The entity ID
-   * @returns Reference string in format "schemaName::id"
-   *
-   * @example
-   * const ref = SalvageUnionReference.composeRef('abilities', 'bionic-senses')
-   * // => 'abilities::bionic-senses'
-   */
-  public static composeRef<T extends keyof SchemaToEntityMap>(schemaName: T, id: string): string {
-    return `${schemaName}::${id}`
-  }
-
-  /**
    * Parse a reference string into schema name and ID
-   *
-   * @param ref - Reference string in format "schemaName::id"
-   * @returns Object with schemaName and id, or null if invalid
-   *
-   * @example
-   * const parsed = SalvageUnionReference.parseRef('abilities::bionic-senses')
-   * // => { schemaName: 'abilities', id: 'bionic-senses' }
    */
   public static parseRef(ref: string): {
     schemaName: SURefEnumSchemaName
@@ -360,12 +625,6 @@ export class SalvageUnionReference {
 
   /**
    * Get an entity by reference string
-   *
-   * @param ref - Reference string in format "schemaName::id"
-   * @returns The entity or undefined if not found
-   *
-   * @example
-   * const ability = SalvageUnionReference.getByRef('abilities::bionic-senses')
    */
   public static getByRef(
     ref: string
@@ -374,7 +633,6 @@ export class SalvageUnionReference {
     | undefined {
     const parsed = this.parseRef(ref)
     if (!parsed) return undefined
-    // Work with all schemas in SchemaToEntityMap (includes meta schemas)
     if (parsed.schemaName in SchemaToModelMap) {
       return this.get(parsed.schemaName as keyof SchemaToEntityMap, parsed.id)
     }
@@ -382,44 +640,7 @@ export class SalvageUnionReference {
   }
 
   /**
-   * Batch fetch entities by reference strings
-   *
-   * @param refs - Array of reference strings
-   * @returns Map of reference strings to entities (undefined for invalid refs)
-   *
-   * @example
-   * const entities = SalvageUnionReference.getManyByRef([
-   *   'abilities::bionic-senses',
-   *   'systems::energy-shield'
-   * ])
-   */
-  public static getManyByRef(
-    refs: string[]
-  ): Map<
-    string,
-    | (SchemaToEntityMap[keyof SchemaToEntityMap] & { schemaName: keyof SchemaToEntityMap })
-    | undefined
-  > {
-    const result = new Map<
-      string,
-      | (SchemaToEntityMap[keyof SchemaToEntityMap] & { schemaName: keyof SchemaToEntityMap })
-      | undefined
-    >()
-    for (const ref of refs) {
-      result.set(ref, this.getByRef(ref))
-    }
-    return result
-  }
-
-  /**
    * Search across all or specific schemas
-   *
-   * @param options - Search options including query, schemas filter, limit, and case sensitivity
-   * @returns Array of search results sorted by relevance
-   *
-   * @example
-   * const results = SalvageUnionReference.search({ query: 'laser' })
-   * const systemResults = SalvageUnionReference.search({ query: 'laser', schemas: ['systems'] })
    */
   public static search(options: SearchOptions): SearchResult[] {
     return searchFn(options)
@@ -427,14 +648,6 @@ export class SalvageUnionReference {
 
   /**
    * Search within a specific schema
-   *
-   * @param schemaName - The schema to search in
-   * @param query - Search query string
-   * @param options - Optional search options (limit, case sensitivity)
-   * @returns Array of matching entities
-   *
-   * @example
-   * const systems = SalvageUnionReference.searchIn('systems', 'laser')
    */
   public static searchIn<T extends SURefEntity>(
     schemaName: SURefEnumSchemaName,
@@ -446,13 +659,6 @@ export class SalvageUnionReference {
 
   /**
    * Get search suggestions based on partial query
-   *
-   * @param query - Partial search query
-   * @param options - Optional search options (schemas filter, limit, case sensitivity)
-   * @returns Array of unique entity names matching the query
-   *
-   * @example
-   * const suggestions = SalvageUnionReference.getSuggestions('las')
    */
   public static getSuggestions(
     query: string,
@@ -463,5 +669,64 @@ export class SalvageUnionReference {
     }
   ): string[] {
     return getSuggestionsFn(query, options)
+  }
+
+  /**
+   * Resolve actions from any entity that might have actions
+   */
+  public static resolveActions(entity: SURefMetaEntity): SURefMetaAction[] | undefined {
+    const chassisAbilities = resolveChassisAbilities(entity)
+    if (chassisAbilities) {
+      return chassisAbilities
+    }
+    return resolveActionsArray(entity)
+  }
+
+  /**
+   * Get all entities from multiple schemas, tagged with their schema name
+   */
+  public static getAllBySchemaNames(
+    schemaNames: (keyof SchemaToEntityMap)[]
+  ): Array<{ schemaName: keyof SchemaToEntityMap; entity: SURefMetaEntity }> {
+    const result: Array<{ schemaName: keyof SchemaToEntityMap; entity: SURefMetaEntity }> = []
+    for (const schemaName of schemaNames) {
+      const model = lazyModelMap[schemaName] as unknown as BaseModel<SURefMetaEntity>
+      for (const entity of model.all()) {
+        result.push({ schemaName, entity })
+      }
+    }
+    return result
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Module-level helpers
+// ---------------------------------------------------------------------------
+
+function toPascalCaseLocal(id: string): string {
+  if (id === 'classes') return 'Classes'
+  if (id === 'npcs') return 'NPCs'
+  return id
+    .split(/[-.]/)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join('')
+}
+
+// ---------------------------------------------------------------------------
+// Testing utilities
+// ---------------------------------------------------------------------------
+
+/**
+ * Reset all lazy-loading state for testing purposes.
+ * Clears ModelFactory load state AND resets all LazyModel backing models.
+ * Must be called in tests that need to exercise preload from a clean state.
+ */
+export function resetAllForTesting(): void {
+  resetLoadStateForTesting()
+  for (const lazyModel of Object.values(lazyModelMap)) {
+    lazyModel._install(new BaseModel([], {}, '', '') as BaseModel<unknown>)
+    // Mark as not installed by setting _backing to null directly
+    ;(lazyModel as unknown as { _backing: null })._backing = null
+    lazyModel.schema = {}
   }
 }

@@ -2,8 +2,9 @@
 import BaseLayout from '../../../../layouts/BaseLayout.astro'
 import { getItemStaticPaths } from '../../../../lib/staticPaths'
 import { ReferenceEntityIsland } from '../../../../components/islands/ReferenceEntityIsland'
-import { getReferenceEntityData, extractStaticEntitySummary } from 'salvageunion-reference'
+import { getReferenceEntityData, extractStaticEntitySummary } from '../../../../lib/gameData'
 import StaticEntityContent from '../../../../components/StaticEntityContent.astro'
+import { SITE_URL } from '../../../../lib/constants'
 
 export function getStaticPaths() {
   return getItemStaticPaths()
@@ -13,7 +14,7 @@ const { item, schema, itemName, itemDescription } = Astro.props
 const { schemaId, itemId } = Astro.params
 
 const schemaName = schema.displayName || 'Item'
-const canonicalUrl = `https://salvageunion.io/schema/${schemaId}/item/${itemId}/`
+const canonicalUrl = `${SITE_URL}/schema/${schemaId}/item/${itemId}/`
 
 const displayData = item ? getReferenceEntityData(item) : null
 const staticSummary = item ? extractStaticEntitySummary(item) : null
@@ -44,7 +45,7 @@ const structuredData: Record<string, unknown> = {
   isPartOf: {
     '@type': 'CollectionPage',
     name: `${schemaName} - Salvage Union SRD`,
-    url: `https://salvageunion.io/schema/${schemaId}/`,
+    url: `${SITE_URL}/schema/${schemaId}/`,
   },
   mainEntity: {
     '@type': 'Thing',
@@ -83,13 +84,13 @@ const ogImage = displayData?.assetUrl || '/og-image.png'
   structuredData={structuredData}
   preloadImage={preloadImage}
   breadcrumbs={[
-    { name: 'SRD', url: 'https://salvageunion.io/' },
-    { name: schemaName, url: `https://salvageunion.io/schema/${schemaId}/` },
+    { name: 'SRD', url: `${SITE_URL}/` },
+    { name: schemaName, url: `${SITE_URL}/schema/${schemaId}/` },
     { name: itemName, url: canonicalUrl },
   ]}
 >
   <article class="flex min-h-full flex-1 flex-col items-center justify-center p-4">
-    <ReferenceEntityIsland client:idle item={item} titleAs="h1" />
+    <ReferenceEntityIsland client:visible item={item} titleAs="h1" />
     {staticSummary && <StaticEntityContent summary={staticSummary} />}
   </article>
 </BaseLayout>

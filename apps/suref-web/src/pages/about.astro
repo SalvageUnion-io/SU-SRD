@@ -2,6 +2,7 @@
 import { Image } from 'astro:assets'
 import BaseLayout from '../layouts/BaseLayout.astro'
 import eldridgeCoastMap from '../assets/eldridge-coast-map.png'
+import { SITE_URL } from '../lib/constants'
 
 const imageAltText = 'Map of The Eldridge Coast, created using Shmeppy.com'
 
@@ -12,11 +13,11 @@ const structuredData = {
   '@type': 'AboutPage',
   name: 'About the Salvage Union SRD',
   description: 'About salvageunion.io, an open-source System Reference Document for the Salvage Union TTRPG by Leyline Press.',
-  url: 'https://salvageunion.io/about/',
+  url: `${SITE_URL}/about/`,
   isPartOf: {
     '@type': 'WebSite',
     name: 'Salvage Union System Reference Document',
-    url: 'https://salvageunion.io/',
+    url: `${SITE_URL}/`,
   },
 }
 ---

@@ -23,6 +23,9 @@ export default defineConfig({
   },
   vite: {
     plugins: [tailwindcss()],
+    resolve: {
+      conditions: ['development'],
+    },
     build: {
       rollupOptions: {
         output: {

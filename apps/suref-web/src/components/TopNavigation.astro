@@ -1,10 +1,10 @@
 ---
-import { getSchemaCatalog, SalvageUnionReference, getReferenceEntityData } from 'salvageunion-reference'
-import type { SURefGuide } from 'salvageunion-reference'
+import { getSchemaCatalog, SalvageUnionReference, getReferenceEntityData } from '../lib/gameData'
 import { MobileNavIsland } from './islands/MobileNavIsland'
 import { SearchIsland } from './islands/SearchIsland'
 import Logo from './Logo.astro'
 import { getCatalogBg, getCatalogLabel } from '../lib/catalogColors'
+import { buildCatalogCategories } from '../lib/catalogHelpers'
 
 type BreadcrumbItem = {
   name: string
@@ -23,30 +23,13 @@ const schemaMap = new Map(schemas.map((s) => [s.id, s]))
 const currentPath = Astro.url.pathname
 const catalogCategories = SalvageUnionReference.CatalogCategories.all()
 
-const categories = catalogCategories.map((cat) => {
-  if (cat.flat) {
-    const schemaName = cat.schemas[0]!
-    const items = SalvageUnionReference.findAllIn(schemaName, () => true)
-    return {
-      label: cat.name.toUpperCase(),
-      schemas: items.map((item) => {
-        const display = getReferenceEntityData(item)
-        return {
-          id: item.id,
-          displayName: item.name,
-          catalogBg: (item as SURefGuide).guideColor || getCatalogBg(schemaName),
-          href: `/schema/${schemaName}/item/${display.slug}/`,
-        }
-      }),
-    }
-  }
-  return {
-    label: cat.name.toUpperCase(),
-    schemas: cat.schemas.flatMap((id) => {
-      const s = schemaMap.get(id)
-      return s ? [{ id: s.id, displayName: s.displayName || s.title.replace('Salvage Union ', ''), catalogBg: getCatalogBg(s.id), catalogLabel: getCatalogLabel(s.id) }] : []
-    }),
-  }
+const categories = buildCatalogCategories({
+  catalogCategories,
+  schemaMap,
+  findAllIn: (schemaName, pred) => SalvageUnionReference.findAllIn(schemaName, pred),
+  getReferenceEntityData,
+  getCatalogBg,
+  getCatalogLabel,
 })
 
 function isActive(path: string) {
@@ -97,6 +80,10 @@ function isActive(path: string) {
 
     <a href="/about/" class:list={['btn', isActive('/about') ? 'btn-active' : 'btn-inactive']} aria-current={isActive('/about') ? 'page' : undefined}>
       ABOUT
+    </a>
+
+    <a href="/api/" class:list={['btn', isActive('/api') ? 'btn-active' : 'btn-inactive']} aria-current={isActive('/api') ? 'page' : undefined}>
+      API
     </a>
 
     <a href="https://leyline.press/collections/salvage-union" target="_blank" rel="noopener noreferrer" class="btn btn-inactive">

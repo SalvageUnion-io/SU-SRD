@@ -17,6 +17,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a TypeScript monorepo with shared packages (suref-react, etc.). After any cross-package changes, always run typecheck, tests, and lint before considering a task complete. When modifying shared components, check all consuming apps for regressions (especially Tailwind @source paths and import changes).
 
+### Root Dev Dependencies (Intentional)
+
+- **`puppeteer-core`** — Used by `tools/a11y-scan.ts` for WCAG accessibility audits. Not dead code.
+
 ## Repository Overview
 
 Bun monorepo ("SURef") for Salvage Union (tabletop RPG) tools, located in the `SU-SRD/` subdirectory. Contains a static reference site, a character builder app, a Discord bot, and shared packages.

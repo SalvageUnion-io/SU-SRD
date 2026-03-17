@@ -7,6 +7,7 @@ import {
   getClassSelections,
   ClassAbilityTreeDisplay,
 } from 'suref-react'
+import { GameDataGate } from '../../lib/useGameData'
 
 type ReferenceEntityIslandProps = {
   item: SURefEntity
@@ -28,18 +29,26 @@ export function ReferenceEntityIsland({
   }, [])
 
   return (
-    <div className="mx-auto w-full max-w-6xl p-4">
-      <Suspense fallback={<ReferenceEntityCardSkeleton compact={compact} />}>
-        <ReferenceEntityDisplay
-          data={item}
-          compact={compact}
-          titleAs={titleAs}
-          afterExtraContent={
-            classEntity ? <ClassAbilityTreeDisplay classEntity={classEntity} /> : undefined
-          }
-          label={isAbility(item) && item.tree ? `${item.tree} tree` : undefined}
-        />
-      </Suspense>
-    </div>
+    <GameDataGate
+      fallback={
+        <div className="mx-auto w-full max-w-6xl p-4">
+          <ReferenceEntityCardSkeleton compact={compact} />
+        </div>
+      }
+    >
+      <div className="mx-auto w-full max-w-6xl p-4">
+        <Suspense fallback={<ReferenceEntityCardSkeleton compact={compact} />}>
+          <ReferenceEntityDisplay
+            data={item}
+            compact={compact}
+            titleAs={titleAs}
+            afterExtraContent={
+              classEntity ? <ClassAbilityTreeDisplay classEntity={classEntity} /> : undefined
+            }
+            label={isAbility(item) && item.tree ? `${item.tree} tree` : undefined}
+          />
+        </Suspense>
+      </div>
+    </GameDataGate>
   )
 }

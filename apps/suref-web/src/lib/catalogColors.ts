@@ -37,6 +37,7 @@ const schemaColors: Record<string, string> = {
   sources: 'var(--color-su-grey-dark)',
   'tech-levels': 'var(--color-su-grey-dark)',
   traits: 'var(--color-su-grey-dark)',
+  guides: 'var(--color-su-grey-dark)',
 }
 
 export function getCatalogBg(schemaId: string): string {

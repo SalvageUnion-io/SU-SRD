@@ -19,7 +19,9 @@ export async function listCargo(
 ): Promise<CargoRow[]> {
   const { data, error } = await supabase
     .from('cargo')
-    .select('*')
+    .select(
+      'id,amount,created_at,metadata,name,parent_id,parent_type,schema_name,schema_ref_id,updated_at,user_id'
+    )
     .eq('parent_id', parentId)
     .eq('parent_type', parentType)
     .order('created_at', { ascending: true })
