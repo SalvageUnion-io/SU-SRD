@@ -106,6 +106,15 @@ const { joinGame } = await import('../gameApi')
 const { createPilot } = await import('../pilotApi')
 const { createCrawler } = await import('../crawlerApi')
 const { updateCrawlerWeapon } = await import('../crawlerApi')
+const {
+  saveOffloadReceipt,
+  saveRestoreReceipt,
+  saveCraftReceipt,
+  saveTrainingReceipt,
+  saveEquipmentReceipt,
+  saveCustomiseAcknowledged,
+  saveRumourReceipt,
+} = await import('../crawlerApi')
 const { instantiateMechFromPattern } = await import('../mechApi')
 const { updateMechEntityRefs } = await import('../mechApi')
 
@@ -564,5 +573,131 @@ describe('updateCrawlerWeapon (RPC)', () => {
         schema_ref_id: 'weapon-2',
       })
     ).rejects.toThrow()
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Receipt save functions — should call merge_downtime_receipt RPC
+// ---------------------------------------------------------------------------
+
+const fakeDowntimeRow = {
+  id: 'dt-1',
+  crawler_id: 'crawler-1',
+  offload_receipts: null,
+  restore_receipts: null,
+  craft_receipts: null,
+  training_receipts: null,
+  equipment_receipts: null,
+  customise_acknowledged: null,
+  rumour_receipts: null,
+  trade_result: null,
+  upkeep_paid: false,
+  upkeep_result: null,
+  closed_at: null,
+  pre_session_started: false,
+  user_id: 'user-1',
+  created_at: '2026-01-01',
+  updated_at: '2026-01-01',
+}
+
+describe('saveOffloadReceipt (merge RPC)', () => {
+  beforeEach(() => { rpcMock.mockReset() })
+
+  test('calls merge_downtime_receipt with offload_receipts field', async () => {
+    rpcMock.mockResolvedValueOnce({ data: fakeDowntimeRow, error: null })
+    const receipt = { items_offloaded: [], scrap_gained: {} }
+    await saveOffloadReceipt('dt-1', 'pilot-1', receipt as never)
+    expect(rpcMock).toHaveBeenCalledTimes(1)
+    const [rpcName, params] = getRpcCall(0)
+    expect(rpcName).toBe('merge_downtime_receipt')
+    expect(params.p_record_id).toBe('dt-1')
+    expect(params.p_field).toBe('offload_receipts')
+    expect(params.p_pilot_id).toBe('pilot-1')
+    expect(params.p_receipt).toEqual(receipt)
+  })
+
+  test('throws on RPC error', async () => {
+    rpcMock.mockResolvedValueOnce({ data: null, error: { code: '42501', message: 'denied' } })
+    await expect(saveOffloadReceipt('dt-1', 'pilot-1', {} as never)).rejects.toThrow()
+  })
+})
+
+describe('saveRestoreReceipt (merge RPC)', () => {
+  beforeEach(() => { rpcMock.mockReset() })
+
+  test('calls merge_downtime_receipt with restore_receipts field', async () => {
+    rpcMock.mockResolvedValueOnce({ data: fakeDowntimeRow, error: null })
+    const receipt = { items_restored: [] }
+    await saveRestoreReceipt('dt-1', 'pilot-1', receipt as never)
+    const [rpcName, params] = getRpcCall(0)
+    expect(rpcName).toBe('merge_downtime_receipt')
+    expect(params.p_field).toBe('restore_receipts')
+    expect(params.p_pilot_id).toBe('pilot-1')
+  })
+})
+
+describe('saveCraftReceipt (merge RPC)', () => {
+  beforeEach(() => { rpcMock.mockReset() })
+
+  test('calls merge_downtime_receipt with craft_receipts field', async () => {
+    rpcMock.mockResolvedValueOnce({ data: fakeDowntimeRow, error: null })
+    const receipt = { items_crafted: [] }
+    await saveCraftReceipt('dt-1', 'pilot-1', receipt as never)
+    const [rpcName, params] = getRpcCall(0)
+    expect(rpcName).toBe('merge_downtime_receipt')
+    expect(params.p_field).toBe('craft_receipts')
+  })
+})
+
+describe('saveTrainingReceipt (merge RPC)', () => {
+  beforeEach(() => { rpcMock.mockReset() })
+
+  test('calls merge_downtime_receipt with training_receipts field', async () => {
+    rpcMock.mockResolvedValueOnce({ data: fakeDowntimeRow, error: null })
+    const receipt = { tp_granted: 1, abilities_learned: [], tp_remaining: 1 }
+    await saveTrainingReceipt('dt-1', 'pilot-1', receipt)
+    const [rpcName, params] = getRpcCall(0)
+    expect(rpcName).toBe('merge_downtime_receipt')
+    expect(params.p_field).toBe('training_receipts')
+    expect(params.p_receipt).toEqual(receipt)
+  })
+})
+
+describe('saveEquipmentReceipt (merge RPC)', () => {
+  beforeEach(() => { rpcMock.mockReset() })
+
+  test('calls merge_downtime_receipt with equipment_receipts field', async () => {
+    rpcMock.mockResolvedValueOnce({ data: fakeDowntimeRow, error: null })
+    const receipt = { items_equipped: [] }
+    await saveEquipmentReceipt('dt-1', 'pilot-1', receipt as never)
+    const [rpcName, params] = getRpcCall(0)
+    expect(rpcName).toBe('merge_downtime_receipt')
+    expect(params.p_field).toBe('equipment_receipts')
+  })
+})
+
+describe('saveCustomiseAcknowledged (merge RPC)', () => {
+  beforeEach(() => { rpcMock.mockReset() })
+
+  test('calls merge_downtime_receipt with customise_acknowledged field and true as receipt', async () => {
+    rpcMock.mockResolvedValueOnce({ data: fakeDowntimeRow, error: null })
+    await saveCustomiseAcknowledged('dt-1', 'pilot-1')
+    const [rpcName, params] = getRpcCall(0)
+    expect(rpcName).toBe('merge_downtime_receipt')
+    expect(params.p_field).toBe('customise_acknowledged')
+    expect(params.p_receipt).toBe(true)
+  })
+})
+
+describe('saveRumourReceipt (merge RPC)', () => {
+  beforeEach(() => { rpcMock.mockReset() })
+
+  test('calls merge_downtime_receipt with rumour_receipts field', async () => {
+    rpcMock.mockResolvedValueOnce({ data: fakeDowntimeRow, error: null })
+    const receipt = { rumour_obtained: false }
+    await saveRumourReceipt('dt-1', 'pilot-1', receipt as never)
+    const [rpcName, params] = getRpcCall(0)
+    expect(rpcName).toBe('merge_downtime_receipt')
+    expect(params.p_field).toBe('rumour_receipts')
   })
 })

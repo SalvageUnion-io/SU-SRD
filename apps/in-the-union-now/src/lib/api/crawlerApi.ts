@@ -359,26 +359,14 @@ export async function saveTrainingReceipt(
   pilotId: string,
   receipt: TrainingReceipt
 ): Promise<DowntimeRecordRow> {
-  const { data: current, error: readError } = await supabase
-    .from('downtime_records')
-    .select('training_receipts')
-    .eq('id', recordId)
-    .single()
-
-  if (readError) handleSupabaseError(readError)
-
-  const existing = (current!.training_receipts ?? {}) as Record<string, Json | undefined>
-  const merged: Json = { ...existing, [pilotId]: receipt as unknown as Json }
-
-  const { data, error } = await supabase
-    .from('downtime_records')
-    .update({ training_receipts: merged })
-    .eq('id', recordId)
-    .select()
-    .single()
-
+  const { data, error } = await supabase.rpc('merge_downtime_receipt', {
+    p_record_id: recordId,
+    p_field: 'training_receipts',
+    p_pilot_id: pilotId,
+    p_receipt: receipt as unknown as Json,
+  })
   if (error) handleSupabaseError(error)
-  return data!
+  return data as unknown as DowntimeRecordRow
 }
 
 export async function saveEquipmentReceipt(
@@ -386,52 +374,28 @@ export async function saveEquipmentReceipt(
   pilotId: string,
   receipt: EquipmentReceipt
 ): Promise<DowntimeRecordRow> {
-  const { data: current, error: readError } = await supabase
-    .from('downtime_records')
-    .select('equipment_receipts')
-    .eq('id', recordId)
-    .single()
-
-  if (readError) handleSupabaseError(readError)
-
-  const existing = (current!.equipment_receipts ?? {}) as Record<string, Json | undefined>
-  const merged: Json = { ...existing, [pilotId]: receipt as unknown as Json }
-
-  const { data, error } = await supabase
-    .from('downtime_records')
-    .update({ equipment_receipts: merged })
-    .eq('id', recordId)
-    .select()
-    .single()
-
+  const { data, error } = await supabase.rpc('merge_downtime_receipt', {
+    p_record_id: recordId,
+    p_field: 'equipment_receipts',
+    p_pilot_id: pilotId,
+    p_receipt: receipt as unknown as Json,
+  })
   if (error) handleSupabaseError(error)
-  return data!
+  return data as unknown as DowntimeRecordRow
 }
 
 export async function saveCustomiseAcknowledged(
   recordId: string,
   pilotId: string
 ): Promise<DowntimeRecordRow> {
-  const { data: current, error: readError } = await supabase
-    .from('downtime_records')
-    .select('customise_acknowledged')
-    .eq('id', recordId)
-    .single()
-
-  if (readError) handleSupabaseError(readError)
-
-  const existing = (current!.customise_acknowledged ?? {}) as Record<string, Json | undefined>
-  const merged: Json = { ...existing, [pilotId]: true }
-
-  const { data, error } = await supabase
-    .from('downtime_records')
-    .update({ customise_acknowledged: merged })
-    .eq('id', recordId)
-    .select()
-    .single()
-
+  const { data, error } = await supabase.rpc('merge_downtime_receipt', {
+    p_record_id: recordId,
+    p_field: 'customise_acknowledged',
+    p_pilot_id: pilotId,
+    p_receipt: true as unknown as Json,
+  })
   if (error) handleSupabaseError(error)
-  return data!
+  return data as unknown as DowntimeRecordRow
 }
 
 export async function saveRumourReceipt(
@@ -439,24 +403,12 @@ export async function saveRumourReceipt(
   pilotId: string,
   receipt: RumourReceipt
 ): Promise<DowntimeRecordRow> {
-  const { data: current, error: readError } = await supabase
-    .from('downtime_records')
-    .select('rumour_receipts')
-    .eq('id', recordId)
-    .single()
-
-  if (readError) handleSupabaseError(readError)
-
-  const existing = (current!.rumour_receipts ?? {}) as Record<string, Json | undefined>
-  const merged: Json = { ...existing, [pilotId]: receipt as unknown as Json }
-
-  const { data, error } = await supabase
-    .from('downtime_records')
-    .update({ rumour_receipts: merged })
-    .eq('id', recordId)
-    .select()
-    .single()
-
+  const { data, error } = await supabase.rpc('merge_downtime_receipt', {
+    p_record_id: recordId,
+    p_field: 'rumour_receipts',
+    p_pilot_id: pilotId,
+    p_receipt: receipt as unknown as Json,
+  })
   if (error) handleSupabaseError(error)
-  return data!
+  return data as unknown as DowntimeRecordRow
 }
