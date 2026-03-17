@@ -321,7 +321,7 @@ export function useSaveTradeRoll() {
 export function useSaveDeteriorationPending() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ recordId, result }: { recordId: string; result: Json; crawlerId: string }) =>
+    mutationFn: ({ recordId, result }: { recordId: string; result: UpkeepResult; crawlerId: string }) =>
       saveDeteriorationPending(recordId, result),
     onSuccess: (_, { crawlerId }) => {
       queryClient.invalidateQueries({ queryKey: crawlerKeys.activeDowntime(crawlerId) })
@@ -448,23 +448,6 @@ export function useSaveRumourReceipt() {
       receipt: RumourReceipt
       crawlerId: string
     }) => saveRumourReceipt(recordId, pilotId, receipt),
-    onSuccess: (_, { crawlerId }) => {
-      queryClient.invalidateQueries({ queryKey: crawlerKeys.activeDowntime(crawlerId) })
-    },
-  })
-}
-
-export function useSaveDeteriorationPending() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: ({
-      recordId,
-      result,
-    }: {
-      recordId: string
-      result: UpkeepResult
-      crawlerId: string
-    }) => saveDeteriorationPending(recordId, result),
     onSuccess: (_, { crawlerId }) => {
       queryClient.invalidateQueries({ queryKey: crawlerKeys.activeDowntime(crawlerId) })
     },
