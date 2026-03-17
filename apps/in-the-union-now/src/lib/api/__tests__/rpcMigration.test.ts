@@ -601,7 +601,9 @@ const fakeDowntimeRow = {
 }
 
 describe('saveOffloadReceipt (merge RPC)', () => {
-  beforeEach(() => { rpcMock.mockReset() })
+  beforeEach(() => {
+    rpcMock.mockReset()
+  })
 
   test('calls merge_downtime_receipt with offload_receipts field', async () => {
     rpcMock.mockResolvedValueOnce({ data: fakeDowntimeRow, error: null })
@@ -623,7 +625,9 @@ describe('saveOffloadReceipt (merge RPC)', () => {
 })
 
 describe('saveRestoreReceipt (merge RPC)', () => {
-  beforeEach(() => { rpcMock.mockReset() })
+  beforeEach(() => {
+    rpcMock.mockReset()
+  })
 
   test('calls merge_downtime_receipt with restore_receipts field', async () => {
     rpcMock.mockResolvedValueOnce({ data: fakeDowntimeRow, error: null })
@@ -637,7 +641,9 @@ describe('saveRestoreReceipt (merge RPC)', () => {
 })
 
 describe('saveCraftReceipt (merge RPC)', () => {
-  beforeEach(() => { rpcMock.mockReset() })
+  beforeEach(() => {
+    rpcMock.mockReset()
+  })
 
   test('calls merge_downtime_receipt with craft_receipts field', async () => {
     rpcMock.mockResolvedValueOnce({ data: fakeDowntimeRow, error: null })
@@ -650,7 +656,9 @@ describe('saveCraftReceipt (merge RPC)', () => {
 })
 
 describe('saveTrainingReceipt (merge RPC)', () => {
-  beforeEach(() => { rpcMock.mockReset() })
+  beforeEach(() => {
+    rpcMock.mockReset()
+  })
 
   test('calls merge_downtime_receipt with training_receipts field', async () => {
     rpcMock.mockResolvedValueOnce({ data: fakeDowntimeRow, error: null })
@@ -664,7 +672,9 @@ describe('saveTrainingReceipt (merge RPC)', () => {
 })
 
 describe('saveEquipmentReceipt (merge RPC)', () => {
-  beforeEach(() => { rpcMock.mockReset() })
+  beforeEach(() => {
+    rpcMock.mockReset()
+  })
 
   test('calls merge_downtime_receipt with equipment_receipts field', async () => {
     rpcMock.mockResolvedValueOnce({ data: fakeDowntimeRow, error: null })
@@ -677,7 +687,9 @@ describe('saveEquipmentReceipt (merge RPC)', () => {
 })
 
 describe('saveCustomiseAcknowledged (merge RPC)', () => {
-  beforeEach(() => { rpcMock.mockReset() })
+  beforeEach(() => {
+    rpcMock.mockReset()
+  })
 
   test('calls merge_downtime_receipt with customise_acknowledged field and true as receipt', async () => {
     rpcMock.mockResolvedValueOnce({ data: fakeDowntimeRow, error: null })
@@ -690,7 +702,9 @@ describe('saveCustomiseAcknowledged (merge RPC)', () => {
 })
 
 describe('saveRumourReceipt (merge RPC)', () => {
-  beforeEach(() => { rpcMock.mockReset() })
+  beforeEach(() => {
+    rpcMock.mockReset()
+  })
 
   test('calls merge_downtime_receipt with rumour_receipts field', async () => {
     rpcMock.mockResolvedValueOnce({ data: fakeDowntimeRow, error: null })
