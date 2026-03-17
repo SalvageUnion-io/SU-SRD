@@ -220,13 +220,12 @@ function UpkeepMediatorView({
     payUpkeepMutation.mutate(
       {
         crawlerId: crawler.id,
-        recordId: activeDowntime.id,
         scrapDeductions: deductions,
         upgradePoolIncrease: totalPayment,
-        upkeepResult: paidResult,
       },
       {
         onSuccess: () => {
+          markUpkeepPaid(paidResult)
           toast.success(`Upkeep paid! +${totalPayment} to upgrade pool`)
           onComplete?.()
         },
