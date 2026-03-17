@@ -4,6 +4,7 @@ import {
   DisplayCard,
   CardHeader,
   CardImage,
+  ModalShell,
   ValueDisplay,
   StatControl,
   Text,
@@ -18,7 +19,6 @@ import { IsolatedStatValue } from '../shared/IsolatedStatValue'
 import { SheetFooter } from '../shared/SheetFooter'
 import { actionButtonClasses } from '../shared/actionButtonClasses'
 import { DeleteConfirmDialog } from '../shared/DeleteConfirmDialog'
-import { ModalShell } from '../shared/ModalShell'
 import { PilotListingSplitHeader } from './PilotListingSplitHeader'
 import { PilotPersonalInfo } from './PilotPersonalInfo'
 import { PilotEquipmentSection } from './PilotEquipmentSection'

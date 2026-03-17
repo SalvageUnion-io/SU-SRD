@@ -7,6 +7,7 @@ import {
   isModule,
   isChassis,
   getTechLevel,
+  getTechLevelNumber,
   getSalvageValue,
   getSlotsRequired,
   getPageReference,
@@ -33,9 +34,6 @@ describe('SalvageUnionReference static properties', () => {
         'parseRef',
         'getByRef',
         'getManyByRef',
-        'getTechLevel',
-        'getTechLevelNumber',
-        'getSalvageValue',
         'getSlotsRequired',
         'getAllClasses',
         'findClassById',
@@ -559,7 +557,7 @@ describe('getTechLevel', () => {
 describe('getTechLevelNumber', () => {
   it('should get tech level as number from systems', () => {
     const system = SalvageUnionReference.Systems.all()[0]!
-    const techLevel = SalvageUnionReference.getTechLevelNumber(system)
+    const techLevel = getTechLevelNumber(system)
 
     expect(techLevel).toBeDefined()
     expect(typeof techLevel).toBe('number')
@@ -570,7 +568,7 @@ describe('getTechLevelNumber', () => {
 
   it('should get tech level as number from chassis (in stats)', () => {
     const chassis = SalvageUnionReference.Chassis.all()[0]!
-    const techLevel = SalvageUnionReference.getTechLevelNumber(chassis)
+    const techLevel = getTechLevelNumber(chassis)
 
     expect(techLevel).toBeDefined()
     expect(typeof techLevel).toBe('number')
@@ -581,7 +579,7 @@ describe('getTechLevelNumber', () => {
 
   it('should return undefined for entities without tech level', () => {
     const ability = SalvageUnionReference.Abilities.all()[0]!
-    const techLevel = SalvageUnionReference.getTechLevelNumber(ability)
+    const techLevel = getTechLevelNumber(ability)
 
     expect(techLevel).toBeUndefined()
   })

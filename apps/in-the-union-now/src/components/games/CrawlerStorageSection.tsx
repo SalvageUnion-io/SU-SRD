@@ -5,6 +5,7 @@ import {
   CardHeader,
   DisplayCard,
   FilterChip,
+  ModalShell,
   StatDisplay,
   TECH_LEVEL_STYLES,
   Text,
@@ -26,7 +27,6 @@ import {
 import { EMPTY_SLOT_CLASSES } from '../patterns/emptySlotClasses'
 import { ReferenceEntityListingItem } from '../shared/ReferenceEntityListingItem'
 import { ReferenceEntityPickerModal } from '../shared/ReferenceEntityPickerModal'
-import { ModalShell } from '../shared/ModalShell'
 import { Input } from '../ui/input'
 import { Textarea } from '../ui/textarea'
 import type { CargoRow } from '../../types/common'

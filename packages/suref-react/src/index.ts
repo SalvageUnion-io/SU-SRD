@@ -45,6 +45,8 @@ export { StatControl } from './components/shared/StatControl'
 export { StatsBar } from './components/shared/StatsBar'
 export { RollTable } from './components/shared/RollTable'
 export { FilterChip } from './components/shared/FilterChip'
+export { FilterRow } from './components/shared/FilterRow'
+export { ModalShell } from './components/shared/ModalShell'
 export { ControlButtons } from './components/shared/ControlButtons'
 export { CardHeader } from './components/shared/CardHeader'
 export {
@@ -73,4 +75,3 @@ export {
   getActivationCurrency,
 } from './lib/referenceEntityDataExtraction'
 export { DataValueDisplayView } from './components/referenceEntity/DataValueDisplayView'
-export { techLevelColors } from './components/referenceEntity/ReferenceEntityDisplay/useReferenceEntityDisplayState'

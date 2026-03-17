@@ -16,10 +16,10 @@ export function FilterChip({ label, active, onClick, colorClass }: FilterChipPro
     classes = colorClass ? cn(base, colorClass) : cn(base, 'bg-su-black text-su-white')
   } else {
     classes = colorClass
-      ? cn(base, 'text-su-grey-dark hover:text-su-black hover:bg-su-grey-light/30')
+      ? cn(base, 'text-su-black/70 hover:text-su-black hover:bg-su-grey-light/30')
       : cn(
           base,
-          'bg-su-grey-light/30 text-su-grey-dark hover:text-su-black hover:bg-su-grey-light/50'
+          'bg-su-grey-light/30 text-su-black/70 hover:text-su-black hover:bg-su-grey-light/50'
         )
   }
 

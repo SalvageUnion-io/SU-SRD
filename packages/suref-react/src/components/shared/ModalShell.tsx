@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react'
 import { Dialog } from '@base-ui/react/dialog'
 import { X } from 'lucide-react'
-import { DisplayCard, Text } from 'suref-react'
+import { DisplayCard } from './DisplayCard'
+import { Text } from '../base/Text'
 
 type ModalShellProps = {
   open: boolean

@@ -1,6 +1,5 @@
-import { Text } from 'suref-react'
+import { Text, ModalShell } from 'suref-react'
 import { Button } from '../ui/button'
-import { ModalShell } from './ModalShell'
 
 type DiscardChangesDialogProps = {
   open: boolean

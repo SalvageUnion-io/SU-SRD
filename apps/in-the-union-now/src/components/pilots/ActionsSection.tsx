@@ -2,11 +2,10 @@ import { useMemo, useCallback, useState, useEffect, useRef } from 'react'
 import type { ReactNode } from 'react'
 import type { SURefEnumSchemaName, SURefChassis } from 'salvageunion-reference'
 import { SalvageUnionReference, getChassisAbilities, getChoices } from 'salvageunion-reference'
-import { ReferenceEntityDisplayTooltip, FilterChip, Text } from 'suref-react'
+import { ReferenceEntityDisplayTooltip, FilterChip, FilterRow, Text } from 'suref-react'
 import type { ReferenceEntityControl } from 'suref-react'
 import { RotateCcw } from 'lucide-react'
 import { toast } from 'sonner'
-import { FilterRow } from '../shared/FilterRow'
 import { IsolatedStatValue } from '../shared/IsolatedStatValue'
 import {
   extractPilotActions,

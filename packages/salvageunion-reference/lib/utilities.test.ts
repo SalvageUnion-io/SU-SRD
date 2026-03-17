@@ -5,9 +5,6 @@
 import { describe, it, expect } from 'bun:test'
 import {
   hasTechLevel,
-  hasSalvageValue,
-  hasSlotsRequired,
-  hasActions,
   hasTraits,
   isClass,
   isSystemOrModule,
@@ -62,67 +59,6 @@ describe('Additional Type Guards', () => {
     it('should return false for abilities', () => {
       const ability = getReference().Abilities.all()[0]!
       expect(hasTechLevel(ability)).toBe(false)
-    })
-  })
-
-  describe('hasSalvageValue', () => {
-    it('should return true for systems', () => {
-      const system = getReference().Systems.all()[0]!
-      expect(hasSalvageValue(system)).toBe(true)
-    })
-
-    it('should return true for modules', () => {
-      const module = getReference().Modules.all()[0]!
-      expect(hasSalvageValue(module)).toBe(true)
-    })
-
-    it('should return true for chassis', () => {
-      const chassis = getReference().Chassis.all()[0]!
-      expect(hasSalvageValue(chassis)).toBe(true)
-    })
-
-    it('should return false for abilities', () => {
-      const ability = getReference().Abilities.all()[0]!
-      expect(hasSalvageValue(ability)).toBe(false)
-    })
-  })
-
-  describe('hasSlotsRequired', () => {
-    it('should return true for systems', () => {
-      const system = getReference().Systems.all()[0]!
-      expect(hasSlotsRequired(system)).toBe(true)
-    })
-
-    it('should return true for modules', () => {
-      const module = getReference().Modules.all()[0]!
-      expect(hasSlotsRequired(module)).toBe(true)
-    })
-
-    it('should return false for chassis', () => {
-      const chassis = getReference().Chassis.all()[0]!
-      expect(hasSlotsRequired(chassis)).toBe(false)
-    })
-
-    it('should return false for abilities', () => {
-      const ability = getReference().Abilities.all()[0]!
-      expect(hasSlotsRequired(ability)).toBe(false)
-    })
-  })
-
-  describe('hasActions', () => {
-    it('should return false for chassis (chassis use chassisAbilities)', () => {
-      const chassis = getReference().Chassis.all()[0]!
-      expect(hasActions(chassis)).toBe(false)
-    })
-
-    it('should return true for systems', () => {
-      const system = getReference().Systems.all()[0]!
-      expect(hasActions(system)).toBe(true)
-    })
-
-    it('should return true for abilities', () => {
-      const ability = getReference().Abilities.all()[0]!
-      expect(hasActions(ability)).toBe(true)
     })
   })
 
