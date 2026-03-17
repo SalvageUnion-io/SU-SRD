@@ -5,6 +5,7 @@ import {
   ReferenceEntityDisplay,
   ReferenceEntityCardSkeleton,
   FilterChip,
+  FilterRow,
   TECH_LEVEL_STYLES,
   techLevelLabel,
 } from 'suref-react'
@@ -73,11 +74,11 @@ export function SchemaViewerIsland({
   const hasFilters = techLevels.length > 1 || sources.length > 1
 
   return (
-    <GameDataGate>
+    <>
       {hasFilters && (
         <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-3">
           {techLevels.length > 1 && (
-            <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filter by tech level">
+            <FilterRow label="Tech Level">
               <FilterChip
                 label="All"
                 active={techLevelFilters.size === 0}
@@ -92,11 +93,11 @@ export function SchemaViewerIsland({
                   colorClass={TECH_LEVEL_STYLES[String(level)]}
                 />
               ))}
-            </div>
+            </FilterRow>
           )}
 
           {sources.length > 1 && (
-            <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filter by source">
+            <FilterRow label="Source">
               <FilterChip
                 label="All"
                 active={sourceFilters.size === 0}
@@ -110,37 +111,39 @@ export function SchemaViewerIsland({
                   onClick={() => toggleSource(source)}
                 />
               ))}
-            </div>
+            </FilterRow>
           )}
         </div>
       )}
 
       {/* Entity Grid */}
-      <div className="flex-1 p-6">
-        <div className="mx-auto max-w-[1400px] columns-1 gap-4 md:columns-2 lg:columns-3 [&>*]:mb-4 [&>*]:break-inside-avoid">
-          {filteredData.map((item: SURefEntity) => {
-            const tree = schemaId === 'abilities' ? (getTree(item) as string) : undefined
-            return (
-              <a
-                key={item.id}
-                href={`/schema/${schemaId}/item/${getEntitySlug(item)}/`}
-                aria-label={item.name}
-                className="relative block"
-              >
-                <Suspense fallback={<ReferenceEntityCardSkeleton compact />}>
-                  <ReferenceEntityDisplay
-                    hide={{ actions: true, choices: true }}
-                    data={item}
-                    compact
-                    label={tree}
-                    cardClickable
-                  />
-                </Suspense>
-              </a>
-            )
-          })}
+      <GameDataGate>
+        <div className="flex-1 p-6">
+          <div className="mx-auto max-w-[1400px] columns-1 gap-4 md:columns-2 lg:columns-3 [&>*]:mb-4 [&>*]:break-inside-avoid">
+            {filteredData.map((item: SURefEntity) => {
+              const tree = schemaId === 'abilities' ? (getTree(item) as string) : undefined
+              return (
+                <a
+                  key={item.id}
+                  href={`/schema/${schemaId}/item/${getEntitySlug(item)}/`}
+                  aria-label={item.name}
+                  className="relative block"
+                >
+                  <Suspense fallback={<ReferenceEntityCardSkeleton compact />}>
+                    <ReferenceEntityDisplay
+                      hide={{ actions: true, choices: true }}
+                      data={item}
+                      compact
+                      label={tree}
+                      cardClickable
+                    />
+                  </Suspense>
+                </a>
+              )
+            })}
+          </div>
         </div>
-      </div>
-    </GameDataGate>
+      </GameDataGate>
+    </>
   )
 }
