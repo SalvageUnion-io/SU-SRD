@@ -70,6 +70,9 @@ export function CardHeader({
     )
   }
 
+  // Non-compact: title takes full width, right content wraps naturally via
+  // parent's flex-wrap when space is tight. No grid or forced splitting —
+  // the inline box-decoration-clone title cannot wrap in constrained flex/grid cells.
   return (
     <>
       <div className={cn('flex min-w-0 flex-1 items-center', compact ? 'gap-0.5' : 'gap-1')}>
@@ -85,7 +88,7 @@ export function CardHeader({
         </div>
       </div>
       {hasRightSide && (
-        <div className="flex gap-1">
+        <div className="flex max-w-[40%] items-start justify-end gap-1">
           {!lightweight && rightContent}
           {hasControls && <ControlButtons controls={controls} compact={compact} />}
         </div>

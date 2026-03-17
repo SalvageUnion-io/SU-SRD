@@ -238,7 +238,7 @@ export function ReferenceEntityDisplayContent({
 
   // Compose header content (previously assembled by Card internally)
   const titleNode = title ? (
-    <div className={cn(compact ? '' : 'overflow-hidden text-ellipsis whitespace-nowrap')}>
+    <div>
       <Text
         variant="pseudoheader"
         as="span"
