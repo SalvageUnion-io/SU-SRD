@@ -35,10 +35,12 @@ export function TradeStep({
   const [autoOpened, setAutoOpened] = useState(false)
 
   // Auto-open once when rollKey arrives and no saved result
-  if (rollKey && !tradeResult && !autoOpened && category !== 'nothing') {
-    setAutoOpened(true)
-    setModalOpen(true)
-  }
+  useEffect(() => {
+    if (rollKey && !tradeResult && !autoOpened && category !== 'nothing') {
+      setAutoOpened(true)
+      setModalOpen(true)
+    }
+  }, [rollKey, tradeResult, autoOpened, category])
 
   const handleSelect = useCallback(
     (selections: {

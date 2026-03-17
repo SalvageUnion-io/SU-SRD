@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
+import { useState, useMemo, useCallback, useEffect } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { Text } from 'suref-react'
 import { Check, Loader2, AlertTriangle } from 'lucide-react'
@@ -16,6 +16,7 @@ import { getAbilityCost, countAbilitiesByTier, hasReceivedTP } from '../../../li
 import type { TrainingReceipt } from '../../../lib/trainingUtils'
 import { getErrorMessage } from '../../../lib/errors'
 import { getEntityId } from '../../../lib/entitySelectionUtils'
+import { Skeleton } from '../../ui/skeleton'
 import { TrainingAbilityModal } from './TrainingAbilityModal'
 import type { DowntimeRecordRow } from '../../../types/common'
 import type { BayNpcData } from '../../../types/common'
@@ -36,7 +37,7 @@ export function TrainStep({
   bayNpcs,
 }: TrainStepProps) {
   const user = useCurrentUser()
-  const { data: pilot } = usePilot(pilotId)
+  const { data: pilot, isLoading: pilotLoading } = usePilot(pilotId)
   const { data: pilotRefs } = usePilotEntityRefs(pilotId)
   const updatePilot = useUpdatePilot()
   const createEntityRef = useCreateEntityRef()
@@ -53,11 +54,9 @@ export function TrainStep({
 
   // Grant +1 TP on first render if not yet granted this downtime (idempotent)
   const tpGranted = hasReceivedTP(receipt)
-  const tpGrantFiredRef = useRef(false)
 
   useEffect(() => {
-    if (!pilot || !user || tpGranted || bayDamaged || tpGrantFiredRef.current) return
-    tpGrantFiredRef.current = true
+    if (!pilot || !user || tpGranted || bayDamaged) return
 
     // Grant TP and create initial receipt
     const newTp = pilot.tp + 1
@@ -207,7 +206,14 @@ export function TrainStep({
     )
   }
 
-  if (!pilot) return null
+  if (pilotLoading || !pilot) {
+    return (
+      <div role="status" aria-label="Loading..." className="flex flex-col gap-2 py-2">
+        <Skeleton className="h-4 w-32" />
+        <Skeleton className="h-8 w-full" />
+      </div>
+    )
+  }
 
   const learnedCount = receipt?.abilities_learned.length ?? 0
 
