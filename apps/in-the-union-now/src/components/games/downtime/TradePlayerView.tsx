@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { Text } from 'suref-react'
-import { Check, Loader2 } from 'lucide-react'
+import { Check } from 'lucide-react'
+import { DowntimeWaitState } from '../../shared/DowntimeWaitState'
 import { resolveTradeEntities, rollKeyToCategory, isTradeComplete } from '../../../lib/tradeUtils'
 import type { TradeResult } from '../../../lib/tradeUtils'
 import { ReferenceEntityListingItem } from '../../shared/ReferenceEntityListingItem'
@@ -22,12 +23,10 @@ export function TradePlayerView({ activeDowntime }: TradePlayerViewProps) {
   // No result yet — waiting for mediator
   if (!tradeResult) {
     return (
-      <div className="flex items-center gap-2 py-2">
-        <Loader2 className="h-4 w-4 animate-spin text-su-white/40" />
-        <Text variant="default" as="span" className="text-sm text-su-white/50">
-          Waiting for mediator to roll and select trade items...
-        </Text>
-      </div>
+      <DowntimeWaitState
+        message="Waiting for mediator to roll and select trade items..."
+        orientationCopy="The mediator is rolling on the Trading Bay table."
+      />
     )
   }
 
@@ -44,14 +43,7 @@ export function TradePlayerView({ activeDowntime }: TradePlayerViewProps) {
 
   // Mediator hasn't finished selecting yet
   if (!tradeComplete) {
-    return (
-      <div className="flex items-center gap-2 py-2">
-        <Loader2 className="h-4 w-4 animate-spin text-su-white/40" />
-        <Text variant="default" as="span" className="text-sm text-su-white/50">
-          Mediator is selecting trade items...
-        </Text>
-      </div>
-    )
+    return <DowntimeWaitState message="Mediator is selecting trade items..." />
   }
 
   // Show selected entities

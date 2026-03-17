@@ -3,6 +3,7 @@ import { StatControl, StatDisplay, Text, RollTable, ReferenceEntityDisplay } fro
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefObjectTable, SURefEntity } from 'salvageunion-reference'
 import { ArrowRight, Check, Loader2, AlertTriangle } from 'lucide-react'
+import { DowntimeWaitState } from '../../shared/DowntimeWaitState'
 import { toast } from 'sonner'
 import {
   usePayUpkeep,
@@ -41,12 +42,10 @@ export function UpkeepStep({ crawler, isMediator, activeDowntime, onComplete }: 
   // Player view: waiting
   if (!isMediator) {
     return (
-      <div className="flex flex-col items-center gap-2 py-6">
-        <Loader2 className="h-6 w-6 animate-spin text-su-white/40" />
-        <Text variant="pseudoheader" as="span" className="text-sm text-su-white/60">
-          Waiting for Mediator...
-        </Text>
-      </div>
+      <DowntimeWaitState
+        message="Waiting for Mediator..."
+        orientationCopy="While you wait, review what you offloaded in Step 1."
+      />
     )
   }
 

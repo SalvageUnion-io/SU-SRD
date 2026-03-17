@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { Text } from 'suref-react'
-import { Loader2, AlertTriangle, MessageSquare } from 'lucide-react'
+import { AlertTriangle, MessageSquare } from 'lucide-react'
+import { DowntimeWaitState } from '../../shared/DowntimeWaitState'
 import { isCantinaDamaged } from '../../../lib/bayDamageUtils'
 import { hasReceivedRumour } from '../../../lib/rumourUtils'
 import type { RumourReceipt } from '../../../lib/rumourUtils'
@@ -52,12 +53,5 @@ export function RumourStep({ pilotId, activeDowntime, bayNpcs }: RumourStepProps
     )
   }
 
-  return (
-    <div className="flex items-center gap-2 py-2">
-      <Loader2 className="h-4 w-4 animate-spin text-su-white/40" />
-      <Text variant="default" as="span" className="text-sm text-su-white/50">
-        Waiting for mediator to share a rumour...
-      </Text>
-    </div>
-  )
+  return <DowntimeWaitState message="Waiting for mediator to share a rumour..." />
 }

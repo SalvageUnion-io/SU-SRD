@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefGuide, SURefObjectTable } from 'salvageunion-reference'
-import { ReferenceEntityDisplay, RollTable, Text } from 'suref-react'
+import { ModalShell, ReferenceEntityDisplay, RollTable, Text } from 'suref-react'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useMechCargo } from '../../../hooks/useMechs'
@@ -12,6 +12,7 @@ import { useDowntimeInteractiveConfig } from '../../../hooks/useDowntimeInteract
 import { getErrorMessage } from '../../../lib/errors'
 import { isRestoreComplete } from '../../../lib/restoreUtils'
 import { isTradeComplete } from '../../../lib/tradeUtils'
+import { computeMediatorTallySalvageComplete } from '../../../lib/mediatorDowntimeUtils'
 import { hasObtainedEquipment } from '../../../lib/equipmentUtils'
 import { hasReceivedRumour } from '../../../lib/rumourUtils'
 import type { TradeResult } from '../../../lib/tradeUtils'
@@ -39,7 +40,8 @@ import { EquipmentMediatorView } from './EquipmentMediatorView'
 import { RumourStep } from './RumourStep'
 import { RumourMediatorView } from './RumourMediatorView'
 import { PrepareStep } from './PrepareStep'
-import type { CrawlerRow, DowntimeRecordRow, BayNpcData } from '../../../types/common'
+import { getIncompletePilots } from '../../../lib/downtimePreSessionUtils'
+import type { CrawlerRow, DowntimeRecordRow, BayNpcData, PilotRow } from '../../../types/common'
 
 const tradingBayTable = SalvageUnionReference.RollTables.find(
   (rt) => rt.id === '12a6fcf2-2eda-492e-b9f5-f86a340c9fb3'
@@ -333,9 +335,19 @@ function MediatorDowntimeGuide({
   const [tradeRollKey, setTradeRollKey] = useState<string | null>(null)
   const [tradeRollValue, setTradeRollValue] = useState<number | null>(null)
 
+  // Pre-session confirmation modal state
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false)
+  const [incompletePilots, setIncompletePilots] = useState<PilotRow[]>([])
+
   const tradeResult = activeDowntime.trade_result as TradeResult | null
   const tradeComplete = isTradeComplete(tradeResult)
   const preSessionStarted = activeDowntime.pre_session_started
+
+  const offloadReceipts = activeDowntime.offload_receipts as Record<string, OffloadReceipt> | null
+  const tallySalvageComplete = useMemo(
+    () => computeMediatorTallySalvageComplete(isLoading, pilots, offloadReceipts),
+    [isLoading, pilots, offloadReceipts]
+  )
 
   // Rumour completion (mediator needs to know)
   const rumoursComplete = useMemo(() => {
@@ -359,37 +371,8 @@ function MediatorDowntimeGuide({
     )
   }, [user, crawlerId, crawlerDowntime])
 
-  const handleMoveToPreSession = useCallback(() => {
-    // Check if any pilots haven't finished optional steps
-    if (pilots && pilots.length > 0) {
-      const craftReceipts = activeDowntime.craft_receipts as Record<string, CraftReceipt> | null
-      const trainingReceipts = activeDowntime.training_receipts as Record<
-        string,
-        TrainingReceipt
-      > | null
-      const equipmentReceipts = activeDowntime.equipment_receipts as Record<
-        string,
-        EquipmentReceipt
-      > | null
-
-      const hasIncomplete = pilots.some((p) => {
-        const cr = craftReceipts?.[p.id] as CraftReceipt | undefined
-        const tr = trainingReceipts?.[p.id] as TrainingReceipt | undefined
-        const er = equipmentReceipts?.[p.id] as EquipmentReceipt | undefined
-        const craftDone = (cr?.crafted_items.length ?? 0) > 0 || cr?.skipped === true
-        const trainDone = (tr?.abilities_learned.length ?? 0) > 0 || tr?.skipped === true
-        const equipDone = hasObtainedEquipment(er) || er?.skipped === true
-        return !craftDone || !trainDone || !equipDone
-      })
-
-      if (hasIncomplete) {
-        const confirmed = window.confirm(
-          "Some pilots haven't finished optional steps. Move to pre-session anyway?"
-        )
-        if (!confirmed) return
-      }
-    }
-
+  const handleConfirmMoveToPreSession = useCallback(() => {
+    setConfirmModalOpen(false)
     updateRecord.mutate(
       {
         recordId: activeDowntime.id,
@@ -401,7 +384,36 @@ function MediatorDowntimeGuide({
         onError: (err) => toast.error(getErrorMessage(err)),
       }
     )
-  }, [activeDowntime, crawlerId, pilots, updateRecord])
+  }, [activeDowntime, crawlerId, updateRecord])
+
+  const handleMoveToPreSession = useCallback(() => {
+    if (pilots && pilots.length > 0) {
+      const craftReceipts = activeDowntime.craft_receipts as Record<string, CraftReceipt> | null
+      const trainingReceipts = activeDowntime.training_receipts as Record<
+        string,
+        TrainingReceipt
+      > | null
+      const equipmentReceipts = activeDowntime.equipment_receipts as Record<
+        string,
+        EquipmentReceipt
+      > | null
+
+      const incomplete = getIncompletePilots(
+        pilots,
+        craftReceipts,
+        trainingReceipts,
+        equipmentReceipts
+      )
+
+      if (incomplete.length > 0) {
+        setIncompletePilots(incomplete)
+        setConfirmModalOpen(true)
+        return
+      }
+    }
+
+    handleConfirmMoveToPreSession()
+  }, [activeDowntime, pilots, handleConfirmMoveToPreSession])
 
   const loadingSpinner = useMemo(
     () => (
@@ -564,11 +576,10 @@ function MediatorDowntimeGuide({
     updateRecord.isPending,
   ])
 
-  // Mediator: tally salvage & restore stay "current" until upkeep_paid (mediator always sees the pilot status grid)
   const interactive = useDowntimeInteractiveConfig({
-    tallySalvageComplete: false,
+    tallySalvageComplete,
     upkeepPaid: activeDowntime.upkeep_paid,
-    restoreComplete: false,
+    restoreComplete: false, // Mediator always shows the restore status grid regardless of per-pilot completion
     tradeComplete,
     preSessionStarted,
     craftComplete: false, // Mediator always shows status grid
@@ -591,11 +602,56 @@ function MediatorDowntimeGuide({
   })
 
   return (
-    <ReferenceEntityDisplay
-      data={downtimeGuide}
-      compact={compact}
-      headerBgColor={DOWNTIME_HEADER_BG}
-      interactive={interactive}
-    />
+    <>
+      <ReferenceEntityDisplay
+        data={downtimeGuide}
+        compact={compact}
+        headerBgColor={DOWNTIME_HEADER_BG}
+        interactive={interactive}
+      />
+      <ModalShell
+        open={confirmModalOpen}
+        onOpenChange={setConfirmModalOpen}
+        title="Move to Pre-Session?"
+        headerBg="bg-su-rust"
+        maxWidth="max-w-md"
+      >
+        <div className="flex flex-col gap-4 p-4">
+          <Text variant="default">
+            The following pilots haven&apos;t finished their optional steps:
+          </Text>
+          <ul className="flex flex-col gap-1">
+            {incompletePilots.map((p) => (
+              <li key={p.id}>
+                <Text variant="default" className="font-semibold">
+                  {p.callsign}
+                </Text>
+              </li>
+            ))}
+          </ul>
+          <div className="flex justify-end gap-2 pt-2">
+            <button
+              type="button"
+              onClick={() => setConfirmModalOpen(false)}
+              className="cursor-pointer bg-su-black/10 px-4 py-2 transition-opacity hover:opacity-80"
+            >
+              <Text variant="pseudoheader" as="span" className="text-sm text-su-black">
+                Cancel
+              </Text>
+            </button>
+            <button
+              type="button"
+              onClick={handleConfirmMoveToPreSession}
+              disabled={updateRecord.isPending}
+              className="cursor-pointer bg-su-rust px-4 py-2 transition-opacity hover:opacity-80 disabled:pointer-events-none disabled:opacity-40"
+            >
+              <Text variant="pseudoheader" as="span" className="text-sm text-su-white">
+                {updateRecord.isPending ? 'Moving...' : 'Move Anyway'}
+              </Text>
+            </button>
+          </div>
+        </div>
+      </ModalShell>
+    </>
   )
 }
