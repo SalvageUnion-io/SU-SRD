@@ -16,12 +16,12 @@ import {
   saveRestoreReceipt,
   saveTradeResult,
   saveTradeRoll,
+  saveDeteriorationPending,
   saveCraftReceipt,
   saveTrainingReceipt,
   saveEquipmentReceipt,
   saveCustomiseAcknowledged,
   saveRumourReceipt,
-  saveDeteriorationPending,
 } from '../lib/api/crawlerApi'
 import type { Json } from '../types/database-generated.types'
 import type { OffloadReceipt } from '../lib/tallySalvageUtils'
@@ -312,6 +312,17 @@ export function useSaveTradeRoll() {
       rollValue: number
       crawlerId: string
     }) => saveTradeRoll(recordId, rollKey, rollValue),
+    onSuccess: (_, { crawlerId }) => {
+      queryClient.invalidateQueries({ queryKey: crawlerKeys.activeDowntime(crawlerId) })
+    },
+  })
+}
+
+export function useSaveDeteriorationPending() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ recordId, result }: { recordId: string; result: Json; crawlerId: string }) =>
+      saveDeteriorationPending(recordId, result),
     onSuccess: (_, { crawlerId }) => {
       queryClient.invalidateQueries({ queryKey: crawlerKeys.activeDowntime(crawlerId) })
     },
