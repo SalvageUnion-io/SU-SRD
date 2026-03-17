@@ -318,6 +318,22 @@ export async function saveTradeResult(
   return data!
 }
 
+export async function saveTradeRoll(
+  recordId: string,
+  rollKey: string,
+  rollValue: number
+): Promise<DowntimeRecordRow> {
+  const { data, error } = await supabase
+    .from('downtime_records')
+    .update({ trade_roll_key: rollKey, trade_roll_value: rollValue })
+    .eq('id', recordId)
+    .select()
+    .single()
+
+  if (error) handleSupabaseError(error)
+  return data as unknown as DowntimeRecordRow
+}
+
 export async function saveCraftReceipt(
   recordId: string,
   pilotId: string,
