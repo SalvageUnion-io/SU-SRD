@@ -7,9 +7,9 @@ const textVariants = cva('font-mono', {
     variant: {
       default: 'text-[var(--foreground)]',
       pseudoheader:
-        'block self-start bg-su-black text-su-white px-1 py-0.5 font-bold uppercase leading-tight tracking-tight',
+        'block w-fit self-start bg-su-black text-su-white px-1 py-0.5 font-bold uppercase leading-tight tracking-tight',
       pseudoheaderInverse:
-        'block self-start bg-su-white text-su-black px-1 py-0.5 font-bold uppercase leading-tight tracking-tight',
+        'block w-fit self-start bg-su-white text-su-black px-1 py-0.5 font-bold uppercase leading-tight tracking-tight',
     },
   },
   defaultVariants: {

@@ -57,37 +57,39 @@ export function useDetailModal(
         <Dialog.Portal>
           <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/60 data-[open]:animate-in data-[closed]:animate-out data-[closed]:fade-out-0 data-[open]:fade-in-0" />
           <Dialog.Popup className="fixed inset-0 z-50 m-auto h-fit max-h-[calc(100vh-4rem)] w-full max-w-6xl overflow-y-auto bg-transparent outline-none">
-            <Dialog.Close className="sticky top-2 z-[60] ml-auto block rounded-full bg-su-black/70 p-2 text-su-white opacity-70 transition-opacity hover:opacity-100">
-              <X className="h-6 w-6" aria-hidden="true" />
-              <span className="sr-only">Close</span>
-            </Dialog.Close>
-            <Dialog.Title className="sr-only">{title}</Dialog.Title>
-            <Dialog.Description className="sr-only">Entity display details</Dialog.Description>
-            <ReferenceEntityDisplayContent
-              data={data}
-              schemaName={schemaName}
-              compact={false}
-              listing={false}
-              dimHeader={false}
-              disabled={false}
-              hide={options?.hide}
-              controls={options?.modalControls}
-              label={
-                schemaName === 'abilities' && 'tree' in data && data.tree
-                  ? `${data.tree} Tree`
-                  : options?.label
-              }
-              titleOverride={options?.titleOverride}
-              subtitleExtra={options?.subtitleExtra}
-              statsOverride={options?.statsOverride}
-              primaryStatsOnly={options?.primaryStatsOnly}
-              abilitiesSection={options?.abilitiesSection}
-              afterExtraContent={options?.afterExtraContent}
-              afterChoicesContent={options?.afterChoicesContent}
-              footerOverride={options?.footerOverride}
-            >
-              {options?.children}
-            </ReferenceEntityDisplayContent>
+            <div className="relative">
+              <Dialog.Close className="absolute -top-2 -right-2 z-[60] rounded-full bg-su-black/70 p-2 text-su-white opacity-70 transition-opacity hover:opacity-100 cursor-pointer">
+                <X className="h-6 w-6" aria-hidden="true" />
+                <span className="sr-only">Close</span>
+              </Dialog.Close>
+              <Dialog.Title className="sr-only">{title}</Dialog.Title>
+              <Dialog.Description className="sr-only">Entity display details</Dialog.Description>
+              <ReferenceEntityDisplayContent
+                data={data}
+                schemaName={schemaName}
+                compact={false}
+                listing={false}
+                dimHeader={false}
+                disabled={false}
+                hide={options?.hide}
+                controls={options?.modalControls}
+                label={
+                  schemaName === 'abilities' && 'tree' in data && data.tree
+                    ? `${data.tree} Tree`
+                    : options?.label
+                }
+                titleOverride={options?.titleOverride}
+                subtitleExtra={options?.subtitleExtra}
+                statsOverride={options?.statsOverride}
+                primaryStatsOnly={options?.primaryStatsOnly}
+                abilitiesSection={options?.abilitiesSection}
+                afterExtraContent={options?.afterExtraContent}
+                afterChoicesContent={options?.afterChoicesContent}
+                footerOverride={options?.footerOverride}
+              >
+                {options?.children}
+              </ReferenceEntityDisplayContent>
+            </div>
           </Dialog.Popup>
         </Dialog.Portal>
       </Dialog.Root>
