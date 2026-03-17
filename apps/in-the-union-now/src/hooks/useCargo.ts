@@ -1,16 +1,21 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import type { UseQueryOptions } from '@tanstack/react-query'
 import { listCargo, addCargo, deleteCargo } from '../lib/api/cargoApi'
 import type { CargoParentType, CargoInput } from '../lib/api/cargoApi'
+
+type CargoRow = Awaited<ReturnType<typeof listCargo>>
 
 export function useCargoQuery(
   parentId: string | undefined,
   parentType: CargoParentType,
-  queryKey: readonly unknown[]
+  queryKey: readonly unknown[],
+  extraOptions?: Partial<UseQueryOptions<CargoRow>>
 ) {
   return useQuery({
     queryKey,
     queryFn: () => listCargo(parentId!, parentType),
     enabled: !!parentId,
+    ...extraOptions,
   })
 }
 

@@ -158,8 +158,11 @@ export function useBatchRepairEntityRefs() {
 
 // --- Cargo hooks (delegated to shared useCargo) ---
 
-export function useMechCargo(mechId: string | undefined) {
-  return useCargoQuery(mechId, 'mech', mechKeys.cargo(mechId ?? ''))
+export function useMechCargo(
+  mechId: string | undefined,
+  extraOptions?: Parameters<typeof useCargoQuery>[3]
+) {
+  return useCargoQuery(mechId, 'mech', mechKeys.cargo(mechId ?? ''), extraOptions)
 }
 
 export function useAddMechCargo() {

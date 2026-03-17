@@ -261,6 +261,7 @@ export type Database = {
           crawler_id: string
           created_at: string
           customise_acknowledged: Json | null
+          deterioration_pending: Json | null
           equipment_receipts: Json | null
           id: string
           offload_receipts: Json
@@ -281,6 +282,7 @@ export type Database = {
           crawler_id: string
           created_at?: string
           customise_acknowledged?: Json | null
+          deterioration_pending?: Json | null
           equipment_receipts?: Json | null
           id?: string
           offload_receipts?: Json
@@ -301,6 +303,7 @@ export type Database = {
           crawler_id?: string
           created_at?: string
           customise_acknowledged?: Json | null
+          deterioration_pending?: Json | null
           equipment_receipts?: Json | null
           id?: string
           offload_receipts?: Json

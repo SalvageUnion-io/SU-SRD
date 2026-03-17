@@ -21,6 +21,7 @@ import {
   saveEquipmentReceipt,
   saveCustomiseAcknowledged,
   saveRumourReceipt,
+  saveDeteriorationPending,
 } from '../lib/api/crawlerApi'
 import type { Json } from '../types/database-generated.types'
 import type { OffloadReceipt } from '../lib/tallySalvageUtils'
@@ -30,6 +31,7 @@ import type { CraftReceipt } from '../lib/craftUtils'
 import type { TrainingReceipt } from '../lib/trainingUtils'
 import type { EquipmentReceipt } from '../lib/equipmentUtils'
 import type { RumourReceipt } from '../lib/rumourUtils'
+import type { UpkeepResult } from '../lib/deteriorationUtils'
 import { useCargoQuery, useAddCargo, useDeleteCargo } from './useCargo'
 import { pilotKeys } from './usePilots'
 import { createEntityRef } from '../lib/api/entityRefApi'
@@ -71,6 +73,7 @@ export function useActiveDowntimeRecord(crawlerId: string | undefined) {
     queryKey: crawlerKeys.activeDowntime(crawlerId ?? ''),
     queryFn: () => getActiveDowntimeRecord(crawlerId!),
     enabled: !!crawlerId,
+    refetchInterval: 15_000,
   })
 }
 
@@ -268,6 +271,9 @@ export function useUpdateDowntimeRecord() {
         customise_acknowledged?: Json
         rumour_receipts?: Json
         pre_session_started?: boolean
+        trade_roll_key?: string | null
+        trade_roll_value?: number | null
+        deterioration_pending?: Json | null
       }
     }) => updateDowntimeRecord(recordId, input),
     onSuccess: (_, { crawlerId }) => {
@@ -431,6 +437,23 @@ export function useSaveRumourReceipt() {
       receipt: RumourReceipt
       crawlerId: string
     }) => saveRumourReceipt(recordId, pilotId, receipt),
+    onSuccess: (_, { crawlerId }) => {
+      queryClient.invalidateQueries({ queryKey: crawlerKeys.activeDowntime(crawlerId) })
+    },
+  })
+}
+
+export function useSaveDeteriorationPending() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({
+      recordId,
+      result,
+    }: {
+      recordId: string
+      result: UpkeepResult
+      crawlerId: string
+    }) => saveDeteriorationPending(recordId, result),
     onSuccess: (_, { crawlerId }) => {
       queryClient.invalidateQueries({ queryKey: crawlerKeys.activeDowntime(crawlerId) })
     },

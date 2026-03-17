@@ -10,6 +10,7 @@ import {
   useUpdateDowntimeRecord,
   useUpdateCrawler,
   useTranslateScrap,
+  useSaveDeteriorationPending,
 } from '../../../hooks/useCrawlers'
 import { extractScrap, contributionsToDeductions } from '../../../lib/upkeepUtils'
 import { getErrorMessage } from '../../../lib/errors'
@@ -138,8 +139,20 @@ function UpkeepMediatorView({
   const updateDowntimeMutation = useUpdateDowntimeRecord()
   const updateCrawlerMutation = useUpdateCrawler()
   const translateScrap = useTranslateScrap()
+  const saveDeteriorationPendingMutation = useSaveDeteriorationPending()
   const [showConvertDialog, setShowConvertDialog] = useState(false)
-  const [deterioration, setDeterioration] = useState<DeteriorationState | null>(null)
+  const [deterioration, setDeterioration] = useState<DeteriorationState | null>(() => {
+    const pending = activeDowntime.deterioration_pending as UpkeepResult | null
+    if (!pending || activeDowntime.upkeep_paid) return null
+    const phase =
+      pending.selectionMethod === 'player' && pending.bayDamagedId === null ? 'select-bay' : 'roll'
+    return {
+      phase,
+      rollKey: pending.rollKey ?? null,
+      rollText: pending.rollText ?? null,
+      result: pending,
+    }
+  })
 
   const deteriorationTable = useMemo(() => {
     const entity = SalvageUnionReference.RollTables.find(
@@ -193,6 +206,11 @@ function UpkeepMediatorView({
 
   const applyDeteriorationResult = useCallback(
     (result: UpkeepResult) => {
+      if (activeDowntime.upkeep_paid) {
+        onComplete?.()
+        return
+      }
+
       setDeterioration((prev) => (prev ? { ...prev, phase: 'applying', result } : prev))
 
       const crawlerUpdate = computeCrawlerDeteriorationUpdate(result, crawler)
@@ -208,7 +226,7 @@ function UpkeepMediatorView({
         markUpkeepPaid(result)
       }
     },
-    [crawler, updateCrawlerMutation, markUpkeepPaid]
+    [activeDowntime.upkeep_paid, onComplete, crawler, updateCrawlerMutation, markUpkeepPaid]
   )
 
   // --- Pay dues (can-afford path) ---
@@ -240,6 +258,7 @@ function UpkeepMediatorView({
     activeDowntime.id,
     payUpkeepMutation,
     onComplete,
+    markUpkeepPaid,
   ])
 
   // --- Deterioration flow ---
@@ -259,13 +278,29 @@ function UpkeepMediatorView({
       allBays
     )
 
-    if (result.selectionMethod === 'player') {
-      // Need player to choose a bay
-      setDeterioration((prev) => (prev ? { ...prev, phase: 'select-bay', result } : prev))
-    } else {
-      applyDeteriorationResult(result)
-    }
-  }, [deterioration, crawler.bay_npcs, allBays, applyDeteriorationResult])
+    saveDeteriorationPendingMutation.mutate(
+      { recordId: activeDowntime.id, result, crawlerId: crawler.id },
+      {
+        onSuccess: () => {
+          if (result.selectionMethod === 'player') {
+            // Need player to choose a bay
+            setDeterioration((prev) => (prev ? { ...prev, phase: 'select-bay', result } : prev))
+          } else {
+            applyDeteriorationResult(result)
+          }
+        },
+        onError: (err) => toast.error(getErrorMessage(err)),
+      }
+    )
+  }, [
+    deterioration,
+    crawler.bay_npcs,
+    crawler.id,
+    activeDowntime.id,
+    allBays,
+    saveDeteriorationPendingMutation,
+    applyDeteriorationResult,
+  ])
 
   const handleBaySelected = useCallback(
     (bayId: string) => {

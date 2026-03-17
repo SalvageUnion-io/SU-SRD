@@ -13,6 +13,7 @@ import {
 } from '../../../hooks/useCrawlers'
 import { useCurrentUser } from '../../../hooks/useCurrentUser'
 import { useDowntimeInteractiveConfig } from '../../../hooks/useDowntimeInteractiveConfig'
+import { useDowntimeRealtime } from '../../../hooks/useDowntimeRealtime'
 import { getErrorMessage } from '../../../lib/errors'
 import { isRestoreComplete } from '../../../lib/restoreUtils'
 import { isTradeComplete } from '../../../lib/tradeUtils'
@@ -122,7 +123,8 @@ function PlayerDowntimeGuide({
     []
   )
 
-  const { data: cargo, isLoading } = useMechCargo(mechId)
+  const { data: cargo, isLoading } = useMechCargo(mechId, { refetchOnWindowFocus: 'always' })
+  useDowntimeRealtime(crawlerId, activeDowntime.id)
   const tallySalvageComplete = !isLoading && (!cargo || cargo.length === 0)
 
   const bayNpcs = useMemo(
@@ -331,6 +333,7 @@ function MediatorDowntimeGuide({
   )
 
   const { data: pilots, isLoading } = usePilotsForCrawler(crawlerId)
+  useDowntimeRealtime(crawlerId, activeDowntime.id)
   const user = useCurrentUser()
   const crawlerDowntime = useCrawlerDowntime()
   const updateRecord = useUpdateDowntimeRecord()
@@ -386,7 +389,12 @@ function MediatorDowntimeGuide({
       {
         recordId: activeDowntime.id,
         crawlerId,
-        input: { pre_session_started: true },
+        input: {
+          pre_session_started: true,
+          trade_roll_key: null,
+          trade_roll_value: null,
+          deterioration_pending: null,
+        },
       },
       {
         onSuccess: () => toast.success('Moved to pre-session phase'),

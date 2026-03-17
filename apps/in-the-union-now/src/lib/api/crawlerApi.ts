@@ -17,6 +17,7 @@ import type { CraftReceipt } from '../craftUtils'
 import type { TrainingReceipt } from '../trainingUtils'
 import type { EquipmentReceipt } from '../equipmentUtils'
 import type { RumourReceipt } from '../rumourUtils'
+import type { UpkeepResult } from '../deteriorationUtils'
 
 export async function createCrawler(
   userId: string,
@@ -159,7 +160,7 @@ export async function getActiveDowntimeRecord(
   const { data, error } = await supabase
     .from('downtime_records')
     .select(
-      'id,closed_at,craft_receipts,crawler_id,created_at,customise_acknowledged,equipment_receipts,offload_receipts,pre_session_started,restore_receipts,rumour_receipts,trade_result,trade_roll_key,trade_roll_value,training_receipts,upkeep_paid,upkeep_result,user_id'
+      'id,closed_at,craft_receipts,crawler_id,created_at,customise_acknowledged,deterioration_pending,equipment_receipts,offload_receipts,pre_session_started,restore_receipts,rumour_receipts,trade_result,trade_roll_key,trade_roll_value,training_receipts,upkeep_paid,upkeep_result,user_id'
     )
     .eq('crawler_id', crawlerId)
     .is('closed_at', null)
@@ -241,6 +242,9 @@ export async function updateDowntimeRecord(
     customise_acknowledged?: Json
     rumour_receipts?: Json
     pre_session_started?: boolean
+    trade_roll_key?: string | null
+    trade_roll_value?: number | null
+    deterioration_pending?: Json | null
   }
 ): Promise<DowntimeRecordRow> {
   const { data, error } = await supabase
@@ -326,6 +330,21 @@ export async function saveTradeRoll(
   const { data, error } = await supabase
     .from('downtime_records')
     .update({ trade_roll_key: rollKey, trade_roll_value: rollValue })
+    .eq('id', recordId)
+    .select()
+    .single()
+
+  if (error) handleSupabaseError(error)
+  return data as unknown as DowntimeRecordRow
+}
+
+export async function saveDeteriorationPending(
+  recordId: string,
+  result: UpkeepResult
+): Promise<DowntimeRecordRow> {
+  const { data, error } = await supabase
+    .from('downtime_records')
+    .update({ deterioration_pending: result as unknown as Json })
     .eq('id', recordId)
     .select()
     .single()
