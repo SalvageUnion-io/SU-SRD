@@ -19,6 +19,7 @@ import {
 import type { RestoreReceipt } from '../../../lib/restoreUtils'
 import { deleteComradeEpChoices } from '../../../lib/api/playerChoiceApi'
 import { getErrorMessage } from '../../../lib/errors'
+import { Skeleton } from '../../ui/skeleton'
 import type { DowntimeRecordRow } from '../../../types/common'
 
 type RestoreStepProps = {
@@ -38,9 +39,9 @@ export function RestoreStep({
   activeDowntime,
 }: RestoreStepProps) {
   const user = useCurrentUser()
-  const { data: mech } = useMech(mechId)
-  const { data: pilot } = usePilot(pilotId)
-  const { data: mechRefs } = useMechEntityRefs(mechId)
+  const { data: mech, isLoading: mechLoading } = useMech(mechId)
+  const { data: pilot, isLoading: pilotLoading } = usePilot(pilotId)
+  const { data: mechRefs, isLoading: mechRefsLoading } = useMechEntityRefs(mechId)
 
   const updateMech = useUpdateMech()
   const updatePilot = useUpdatePilot()
@@ -139,6 +140,15 @@ export function RestoreStep({
       setPilotRestoring(false)
     }
   }, [pilot, user, pilotId, updatePilot, saveReceiptUpdate])
+
+  if (mechLoading || pilotLoading || mechRefsLoading || !mech || !pilot || !mechRefs) {
+    return (
+      <div role="status" aria-label="Loading..." className="flex flex-col gap-2 py-2">
+        <Skeleton className="h-8 w-full" />
+        <Skeleton className="h-8 w-full" />
+      </div>
+    )
+  }
 
   // Both done — show summary
   if (mechDone && pilotDone) {
