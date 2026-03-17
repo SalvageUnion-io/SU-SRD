@@ -1,4 +1,4 @@
-import { getSchemaCatalog, getJsonSchemaDefinition } from 'salvageunion-reference'
+import { getSchemaCatalog, getJsonSchemaDefinition } from '../../lib/gameData'
 import type { APIRoute } from 'astro'
 
 export function getStaticPaths() {

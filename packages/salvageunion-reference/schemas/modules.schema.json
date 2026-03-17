@@ -2,22 +2,36 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://salvageunion.com/schemas/modules.schema.json",
   "title": "modules",
-  "description": "",
+  "description": "Mech modules in Salvage Union",
   "type": "array",
   "items": {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "type": "object",
     "properties": {
-      "asset_url": { "type": "string", "format": "uri" },
+      "asset_url": {
+        "type": "string",
+        "format": "uri",
+        "description": "URL to an image asset for this entity"
+      },
       "content": {
         "type": "array",
         "items": {
+          "description": "Block of structured content for rendering (paragraph, heading, list item, etc.)",
           "type": "object",
           "properties": {
             "type": {
               "default": "paragraph",
               "type": "string",
-              "enum": ["paragraph", "heading", "list-item", "label", "datavalues", "hint", "flavor"]
+              "enum": [
+                "paragraph",
+                "heading",
+                "list-item",
+                "label",
+                "datavalues",
+                "hint",
+                "flavor"
+              ],
+              "description": "Type of content block for rendering structured text"
             },
             "value": {
               "anyOf": [
@@ -27,12 +41,22 @@
                   "items": {
                     "type": "object",
                     "properties": {
-                      "label": { "anyOf": [{ "type": "string" }, { "type": "number" }] },
-                      "value": { "anyOf": [{ "type": "string" }, { "type": "number" }] },
-                      "type": { "type": "string" }
+                      "label": {
+                        "anyOf": [{ "type": "string" }, { "type": "number" }],
+                        "description": "Display label for this data value"
+                      },
+                      "value": {
+                        "anyOf": [{ "type": "string" }, { "type": "number" }],
+                        "description": "The data value"
+                      },
+                      "type": {
+                        "type": "string",
+                        "description": "Type classification for this data value"
+                      }
                     },
                     "required": ["label"],
-                    "additionalProperties": false
+                    "additionalProperties": false,
+                    "description": "A data value with label, optional value, and optional type"
                   },
                   "description": "Array of data values when type is 'datavalues'"
                 }
@@ -56,7 +80,8 @@
                       "datavalues",
                       "hint",
                       "flavor"
-                    ]
+                    ],
+                    "description": "Type of content block for rendering structured text"
                   },
                   "value": {
                     "anyOf": [
@@ -66,12 +91,22 @@
                         "items": {
                           "type": "object",
                           "properties": {
-                            "label": { "anyOf": [{ "type": "string" }, { "type": "number" }] },
-                            "value": { "anyOf": [{ "type": "string" }, { "type": "number" }] },
-                            "type": { "type": "string" }
+                            "label": {
+                              "anyOf": [{ "type": "string" }, { "type": "number" }],
+                              "description": "Display label for this data value"
+                            },
+                            "value": {
+                              "anyOf": [{ "type": "string" }, { "type": "number" }],
+                              "description": "The data value"
+                            },
+                            "type": {
+                              "type": "string",
+                              "description": "Type classification for this data value"
+                            }
                           },
                           "required": ["label"],
-                          "additionalProperties": false
+                          "additionalProperties": false,
+                          "description": "A data value with label, optional value, and optional type"
                         },
                         "description": "Array of data values when type is 'datavalues'"
                       }
@@ -87,12 +122,21 @@
           },
           "required": ["type"],
           "additionalProperties": false
-        }
+        },
+        "description": "Descriptive content blocks for this entity"
       },
-      "id": { "type": "string" },
-      "indexable": { "default": true, "type": "boolean" },
-      "blackMarket": { "default": false, "type": "boolean" },
-      "name": { "type": "string", "minLength": 1 },
+      "id": { "type": "string", "description": "Unique identifier for this entity" },
+      "indexable": {
+        "default": true,
+        "description": "Whether this entity appears in search results",
+        "type": "boolean"
+      },
+      "blackMarket": {
+        "default": false,
+        "description": "Whether this entity is only available on the black market",
+        "type": "boolean"
+      },
+      "name": { "type": "string", "minLength": 1, "description": "Display name of this entity" },
       "source": {
         "type": "string",
         "enum": [
@@ -101,27 +145,86 @@
           "We Were Here First!",
           "Rainmaker",
           "False Flag"
-        ]
+        ],
+        "description": "Source book this entity appears in"
       },
-      "page": { "type": "integer", "exclusiveMinimum": 0, "maximum": 9007199254740991 },
-      "structurePoints": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
-      "energyPoints": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
-      "heatCapacity": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
-      "systemSlots": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
-      "moduleSlots": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
-      "cargoCapacity": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+      "page": {
+        "type": "integer",
+        "exclusiveMinimum": 0,
+        "maximum": 9007199254740991,
+        "description": "Page number in the source book"
+      },
+      "structurePoints": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 9007199254740991,
+        "description": "Structure points (mech health)"
+      },
+      "energyPoints": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 9007199254740991,
+        "description": "Energy points for powering systems"
+      },
+      "heatCapacity": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 9007199254740991,
+        "description": "Maximum heat before overheating"
+      },
+      "systemSlots": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 9007199254740991,
+        "description": "Number of system slots available"
+      },
+      "moduleSlots": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 9007199254740991,
+        "description": "Number of module slots available"
+      },
+      "cargoCapacity": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 9007199254740991,
+        "description": "Cargo carrying capacity"
+      },
       "techLevel": {
         "anyOf": [
           { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
           { "type": "string", "const": "B" },
           { "type": "string", "const": "N" }
-        ]
+        ],
+        "description": "Technology level of the item or entity (number, 'B' for Bio, or 'N' for Nanite)"
       },
-      "salvageValue": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
-      "slotsRequired": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
-      "recommended": { "type": "boolean" },
-      "count": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
-      "actions": { "type": "array", "items": { "type": "string" } }
+      "salvageValue": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 9007199254740991,
+        "description": "Scrap value when salvaged"
+      },
+      "slotsRequired": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 9007199254740991,
+        "description": "Number of slots this system/module occupies"
+      },
+      "recommended": {
+        "type": "boolean",
+        "description": "Whether this is a recommended starting system/module"
+      },
+      "count": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 9007199254740991,
+        "description": "Number of this system/module installed"
+      },
+      "actions": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "Action names this system/module provides"
+      }
     },
     "required": [
       "id",
@@ -135,6 +238,7 @@
       "slotsRequired",
       "actions"
     ],
-    "additionalProperties": false
+    "additionalProperties": false,
+    "description": "Mech modules in Salvage Union"
   }
 }

@@ -16,7 +16,7 @@ export type ModelWithMetadata<T> = BaseModel<T> & {
 export class BaseModel<T> {
   protected data: (T & { schemaName: string })[]
   protected idMap: Map<string, T & { schemaName: string }>
-  protected schema: Record<string, unknown>
+  schema: Record<string, unknown>
   protected _schemaName: string
   protected _displayName: string
 

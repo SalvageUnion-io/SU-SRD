@@ -8,7 +8,9 @@ import type { CreatePilotInput } from '../../types/common'
 export async function listPilots(userId: string): Promise<PilotRow[]> {
   const { data, error } = await supabase
     .from('pilots')
-    .select('*')
+    .select(
+      'id,active,ap,appearance,background,background_used,callsign,class_ref,crawler_id,created_at,hp,image_path,in_downtime,is_boarded,keepsake,keepsake_used,max_ap,max_hp,mech_id,motto,motto_used,notes,tp,updated_at,user_id,visible'
+    )
     .eq('user_id', userId)
     .order('updated_at', { ascending: false })
 
@@ -17,47 +19,43 @@ export async function listPilots(userId: string): Promise<PilotRow[]> {
 }
 
 export async function getPilotById(pilotId: string): Promise<PilotRow> {
-  const { data, error } = await supabase.from('pilots').select('*').eq('id', pilotId).single()
+  const { data, error } = await supabase
+    .from('pilots')
+    .select(
+      'id,active,ap,appearance,background,background_used,callsign,class_ref,crawler_id,created_at,hp,image_path,in_downtime,is_boarded,keepsake,keepsake_used,max_ap,max_hp,mech_id,motto,motto_used,notes,tp,updated_at,user_id,visible'
+    )
+    .eq('id', pilotId)
+    .single()
 
   if (error) handleSupabaseError(error)
   return data!
 }
 
 export async function createPilot(userId: string, input: CreatePilotInput): Promise<PilotRow> {
-  // 1. Insert the pilot row
-  const { data: pilot, error: pilotError } = await supabase
-    .from('pilots')
-    .insert({
-      user_id: userId,
-      callsign: input.callsign,
-      class_ref: input.class_ref,
-      hp: PILOT_DEFAULTS.maxHP,
-      max_hp: PILOT_DEFAULTS.maxHP,
-      ap: PILOT_DEFAULTS.maxAP,
-      max_ap: PILOT_DEFAULTS.maxAP,
-      tp: PILOT_DEFAULTS.startingTP,
-      background: input.background ?? null,
-      motto: input.motto ?? null,
-      keepsake: input.keepsake ?? null,
-      appearance: input.appearance ?? null,
-    })
-    .select()
-    .single()
-
-  if (pilotError) handleSupabaseError(pilotError)
-
-  // 2. Insert entity_refs for ability + equipment
+  // Build entity refs array for the RPC (using a placeholder parent_id — the RPC uses the newly created pilot id)
   const entityRefs = [
-    abilityToEntityRef(pilot!.id, userId, input.ability_ref),
-    ...equipmentToEntityRefs(pilot!.id, userId, input.equipment_refs),
+    abilityToEntityRef('placeholder', userId, input.ability_ref),
+    ...equipmentToEntityRefs('placeholder', userId, input.equipment_refs),
   ]
 
-  if (entityRefs.length > 0) {
-    const { error: refError } = await supabase.from('entity_refs').insert(entityRefs)
-    if (refError) handleSupabaseError(refError)
-  }
+  const { data, error } = await supabase.rpc('create_pilot', {
+    p_user_id: userId,
+    p_callsign: input.callsign,
+    p_class_ref: input.class_ref,
+    p_hp: PILOT_DEFAULTS.maxHP,
+    p_max_hp: PILOT_DEFAULTS.maxHP,
+    p_ap: PILOT_DEFAULTS.maxAP,
+    p_max_ap: PILOT_DEFAULTS.maxAP,
+    p_tp: PILOT_DEFAULTS.startingTP,
+    p_background: input.background ?? null,
+    p_motto: input.motto ?? null,
+    p_keepsake: input.keepsake ?? null,
+    p_appearance: input.appearance ?? null,
+    p_entity_refs: entityRefs,
+  })
 
-  return pilot!
+  if (error) handleSupabaseError(error)
+  return data as unknown as PilotRow
 }
 
 export async function updatePilot(pilotId: string, input: PilotUpdate): Promise<PilotRow> {
@@ -99,7 +97,9 @@ export async function listAbilityCountsByPilotIds(
 export async function getPilotEntityRefs(pilotId: string): Promise<EntityRefRow[]> {
   const { data, error } = await supabase
     .from('entity_refs')
-    .select('*')
+    .select(
+      'id,condition,created_at,metadata,parent_id,parent_type,schema_name,schema_ref_id,sort_order,updated_at,user_id'
+    )
     .eq('parent_id', pilotId)
     .eq('parent_type', 'pilot')
     .order('sort_order', { ascending: true })
@@ -111,7 +111,9 @@ export async function getPilotEntityRefs(pilotId: string): Promise<EntityRefRow[
 export async function listPilotsByCrawlerId(crawlerId: string): Promise<PilotRow[]> {
   const { data, error } = await supabase
     .from('pilots')
-    .select('*')
+    .select(
+      'id,active,ap,appearance,background,background_used,callsign,class_ref,crawler_id,created_at,hp,image_path,in_downtime,is_boarded,keepsake,keepsake_used,max_ap,max_hp,mech_id,motto,motto_used,notes,tp,updated_at,user_id,visible'
+    )
     .eq('crawler_id', crawlerId)
     .order('callsign', { ascending: true })
 

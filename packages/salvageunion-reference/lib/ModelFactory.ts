@@ -1,10 +1,10 @@
 /**
  * Model Factory - Auto-generates models from schema catalog
- * Uses static imports for synchronous data loading
+ * Uses lazy (dynamic) imports for JSON data files so consumers
+ * can code-split the ~1.1 MB data corpus via SalvageUnionReference.preload().
  *
- * Note: Current implementation loads all data at import time for synchronous access.
- * Future optimization: Consider lazy loading schemas on first access for better
- * code splitting and initial bundle size reduction.
+ * Zod schemas remain statically imported because they are code (types + validation),
+ * not data, and must be available at compilation time.
  */
 import { BaseModel } from './BaseModel.js'
 import schemaIndex from '../schemas/index.json' with { type: 'json' }
@@ -39,99 +39,202 @@ import {
   CatalogCategorySchema,
 } from './schemas/index.js'
 
-// Import all data files
-import abilitiesData from '../data/abilities.json' with { type: 'json' }
-import abilityTreeRequirementsData from '../data/ability-tree-requirements.json' with { type: 'json' }
-import actionsData from '../data/actions.json' with { type: 'json' }
-import bioTitansData from '../data/bio-titans.json' with { type: 'json' }
-import chassisData from '../data/chassis.json' with { type: 'json' }
-import classesData from '../data/classes.json' with { type: 'json' }
-import crawlerBaysData from '../data/crawler-bays.json' with { type: 'json' }
-import crawlerTechLevelsData from '../data/crawler-tech-levels.json' with { type: 'json' }
-import crawlersData from '../data/crawlers.json' with { type: 'json' }
-import creaturesData from '../data/creatures.json' with { type: 'json' }
-import distancesData from '../data/distances.json' with { type: 'json' }
-import dronesData from '../data/drones.json' with { type: 'json' }
-import equipmentData from '../data/equipment.json' with { type: 'json' }
-import guidesData from '../data/guides.json' with { type: 'json' }
-import keywordsData from '../data/keywords.json' with { type: 'json' }
-import factionsData from '../data/factions.json' with { type: 'json' }
-import meldData from '../data/meld.json' with { type: 'json' }
-import modulesData from '../data/modules.json' with { type: 'json' }
-import npcsData from '../data/npcs.json' with { type: 'json' }
-import rollTablesData from '../data/roll-tables.json' with { type: 'json' }
-import squadsData from '../data/squads.json' with { type: 'json' }
-import systemsData from '../data/systems.json' with { type: 'json' }
-import traitsData from '../data/traits.json' with { type: 'json' }
-import vehiclesData from '../data/vehicles.json' with { type: 'json' }
-import sourcesData from '../data/sources.json' with { type: 'json' }
-import techLevelsData from '../data/tech-levels.json' with { type: 'json' }
-import catalogCategoriesData from '../data/catalog-categories.json' with { type: 'json' }
+// ---------------------------------------------------------------------------
+// Lazy loader registries — no JSON is imported at module scope
+// ---------------------------------------------------------------------------
 
-// Import all schema files
-import abilitiesSchema from '../schemas/abilities.schema.json' with { type: 'json' }
-import abilityTreeRequirementsSchema from '../schemas/ability-tree-requirements.schema.json' with { type: 'json' }
-import actionsSchema from '../schemas/actions.schema.json' with { type: 'json' }
-import bioTitansSchema from '../schemas/bio-titans.schema.json' with { type: 'json' }
-import chassisSchema from '../schemas/chassis.schema.json' with { type: 'json' }
-import classesSchema from '../schemas/classes.schema.json' with { type: 'json' }
-import crawlerBaysSchema from '../schemas/crawler-bays.schema.json' with { type: 'json' }
-import crawlerTechLevelsSchema from '../schemas/crawler-tech-levels.schema.json' with { type: 'json' }
-import crawlersSchema from '../schemas/crawlers.schema.json' with { type: 'json' }
-import creaturesSchema from '../schemas/creatures.schema.json' with { type: 'json' }
-import distancesSchema from '../schemas/distances.schema.json' with { type: 'json' }
-import dronesSchema from '../schemas/drones.schema.json' with { type: 'json' }
-import equipmentSchema from '../schemas/equipment.schema.json' with { type: 'json' }
-import guidesSchema from '../schemas/guides.schema.json' with { type: 'json' }
-import keywordsSchema from '../schemas/keywords.schema.json' with { type: 'json' }
-import factionsSchema from '../schemas/factions.schema.json' with { type: 'json' }
-import meldSchema from '../schemas/meld.schema.json' with { type: 'json' }
-import modulesSchema from '../schemas/modules.schema.json' with { type: 'json' }
-import npcsSchema from '../schemas/npcs.schema.json' with { type: 'json' }
-import rollTablesSchema from '../schemas/roll-tables.schema.json' with { type: 'json' }
-import squadsSchema from '../schemas/squads.schema.json' with { type: 'json' }
-import systemsSchema from '../schemas/systems.schema.json' with { type: 'json' }
-import traitsSchema from '../schemas/traits.schema.json' with { type: 'json' }
-import vehiclesSchema from '../schemas/vehicles.schema.json' with { type: 'json' }
-import sourcesSchema from '../schemas/sources.schema.json' with { type: 'json' }
-import techLevelsSchema from '../schemas/tech-levels.schema.json' with { type: 'json' }
-import catalogCategoriesSchema from '../schemas/catalog-categories.schema.json' with { type: 'json' }
+const dataLoaders: Record<string, () => Promise<unknown[]>> = {
+  abilities: () =>
+    import('../data/abilities.json', { with: { type: 'json' } }).then(
+      (m) => m.default as unknown[]
+    ),
+  'ability-tree-requirements': () =>
+    import('../data/ability-tree-requirements.json', { with: { type: 'json' } }).then(
+      (m) => m.default as unknown[]
+    ),
+  actions: () =>
+    import('../data/actions.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
+  'bio-titans': () =>
+    import('../data/bio-titans.json', { with: { type: 'json' } }).then(
+      (m) => m.default as unknown[]
+    ),
+  chassis: () =>
+    import('../data/chassis.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
+  classes: () =>
+    import('../data/classes.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
+  'crawler-bays': () =>
+    import('../data/crawler-bays.json', { with: { type: 'json' } }).then(
+      (m) => m.default as unknown[]
+    ),
+  'crawler-tech-levels': () =>
+    import('../data/crawler-tech-levels.json', { with: { type: 'json' } }).then(
+      (m) => m.default as unknown[]
+    ),
+  crawlers: () =>
+    import('../data/crawlers.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
+  creatures: () =>
+    import('../data/creatures.json', { with: { type: 'json' } }).then(
+      (m) => m.default as unknown[]
+    ),
+  distances: () =>
+    import('../data/distances.json', { with: { type: 'json' } }).then(
+      (m) => m.default as unknown[]
+    ),
+  drones: () =>
+    import('../data/drones.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
+  equipment: () =>
+    import('../data/equipment.json', { with: { type: 'json' } }).then(
+      (m) => m.default as unknown[]
+    ),
+  guides: () =>
+    import('../data/guides.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
+  keywords: () =>
+    import('../data/keywords.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
+  factions: () =>
+    import('../data/factions.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
+  meld: () =>
+    import('../data/meld.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
+  modules: () =>
+    import('../data/modules.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
+  npcs: () =>
+    import('../data/npcs.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
+  'roll-tables': () =>
+    import('../data/roll-tables.json', { with: { type: 'json' } }).then(
+      (m) => m.default as unknown[]
+    ),
+  squads: () =>
+    import('../data/squads.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
+  systems: () =>
+    import('../data/systems.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
+  traits: () =>
+    import('../data/traits.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
+  vehicles: () =>
+    import('../data/vehicles.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
+  sources: () =>
+    import('../data/sources.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
+  'tech-levels': () =>
+    import('../data/tech-levels.json', { with: { type: 'json' } }).then(
+      (m) => m.default as unknown[]
+    ),
+  'catalog-categories': () =>
+    import('../data/catalog-categories.json', { with: { type: 'json' } }).then(
+      (m) => m.default as unknown[]
+    ),
+}
 
-/**
- * Static data map - all data files indexed by schema ID
- */
-const dataMap: Record<string, unknown[]> = {
-  abilities: abilitiesData,
-  'ability-tree-requirements': abilityTreeRequirementsData,
-  actions: actionsData,
-  'bio-titans': bioTitansData,
-  chassis: chassisData,
-  classes: classesData,
-  'crawler-bays': crawlerBaysData,
-  'crawler-tech-levels': crawlerTechLevelsData,
-  crawlers: crawlersData,
-  creatures: creaturesData,
-  distances: distancesData,
-  drones: dronesData,
-  equipment: equipmentData,
-  guides: guidesData,
-  keywords: keywordsData,
-  factions: factionsData,
-  meld: meldData,
-  modules: modulesData,
-  npcs: npcsData,
-  'roll-tables': rollTablesData,
-  squads: squadsData,
-  systems: systemsData,
-  traits: traitsData,
-  vehicles: vehiclesData,
-  sources: sourcesData,
-  'tech-levels': techLevelsData,
-  'catalog-categories': catalogCategoriesData,
+const jsonSchemaLoaders: Record<string, () => Promise<Record<string, unknown>>> = {
+  abilities: () =>
+    import('../schemas/abilities.schema.json', { with: { type: 'json' } }).then(
+      (m) => m.default as Record<string, unknown>
+    ),
+  'ability-tree-requirements': () =>
+    import('../schemas/ability-tree-requirements.schema.json', { with: { type: 'json' } }).then(
+      (m) => m.default as Record<string, unknown>
+    ),
+  actions: () =>
+    import('../schemas/actions.schema.json', { with: { type: 'json' } }).then(
+      (m) => m.default as Record<string, unknown>
+    ),
+  'bio-titans': () =>
+    import('../schemas/bio-titans.schema.json', { with: { type: 'json' } }).then(
+      (m) => m.default as Record<string, unknown>
+    ),
+  chassis: () =>
+    import('../schemas/chassis.schema.json', { with: { type: 'json' } }).then(
+      (m) => m.default as Record<string, unknown>
+    ),
+  classes: () =>
+    import('../schemas/classes.schema.json', { with: { type: 'json' } }).then(
+      (m) => m.default as Record<string, unknown>
+    ),
+  'crawler-bays': () =>
+    import('../schemas/crawler-bays.schema.json', { with: { type: 'json' } }).then(
+      (m) => m.default as Record<string, unknown>
+    ),
+  'crawler-tech-levels': () =>
+    import('../schemas/crawler-tech-levels.schema.json', { with: { type: 'json' } }).then(
+      (m) => m.default as Record<string, unknown>
+    ),
+  crawlers: () =>
+    import('../schemas/crawlers.schema.json', { with: { type: 'json' } }).then(
+      (m) => m.default as Record<string, unknown>
+    ),
+  creatures: () =>
+    import('../schemas/creatures.schema.json', { with: { type: 'json' } }).then(
+      (m) => m.default as Record<string, unknown>
+    ),
+  distances: () =>
+    import('../schemas/distances.schema.json', { with: { type: 'json' } }).then(
+      (m) => m.default as Record<string, unknown>
+    ),
+  drones: () =>
+    import('../schemas/drones.schema.json', { with: { type: 'json' } }).then(
+      (m) => m.default as Record<string, unknown>
+    ),
+  equipment: () =>
+    import('../schemas/equipment.schema.json', { with: { type: 'json' } }).then(
+      (m) => m.default as Record<string, unknown>
+    ),
+  guides: () =>
+    import('../schemas/guides.schema.json', { with: { type: 'json' } }).then(
+      (m) => m.default as Record<string, unknown>
+    ),
+  keywords: () =>
+    import('../schemas/keywords.schema.json', { with: { type: 'json' } }).then(
+      (m) => m.default as Record<string, unknown>
+    ),
+  factions: () =>
+    import('../schemas/factions.schema.json', { with: { type: 'json' } }).then(
+      (m) => m.default as Record<string, unknown>
+    ),
+  meld: () =>
+    import('../schemas/meld.schema.json', { with: { type: 'json' } }).then(
+      (m) => m.default as Record<string, unknown>
+    ),
+  modules: () =>
+    import('../schemas/modules.schema.json', { with: { type: 'json' } }).then(
+      (m) => m.default as Record<string, unknown>
+    ),
+  npcs: () =>
+    import('../schemas/npcs.schema.json', { with: { type: 'json' } }).then(
+      (m) => m.default as Record<string, unknown>
+    ),
+  'roll-tables': () =>
+    import('../schemas/roll-tables.schema.json', { with: { type: 'json' } }).then(
+      (m) => m.default as Record<string, unknown>
+    ),
+  squads: () =>
+    import('../schemas/squads.schema.json', { with: { type: 'json' } }).then(
+      (m) => m.default as Record<string, unknown>
+    ),
+  systems: () =>
+    import('../schemas/systems.schema.json', { with: { type: 'json' } }).then(
+      (m) => m.default as Record<string, unknown>
+    ),
+  traits: () =>
+    import('../schemas/traits.schema.json', { with: { type: 'json' } }).then(
+      (m) => m.default as Record<string, unknown>
+    ),
+  vehicles: () =>
+    import('../schemas/vehicles.schema.json', { with: { type: 'json' } }).then(
+      (m) => m.default as Record<string, unknown>
+    ),
+  sources: () =>
+    import('../schemas/sources.schema.json', { with: { type: 'json' } }).then(
+      (m) => m.default as Record<string, unknown>
+    ),
+  'tech-levels': () =>
+    import('../schemas/tech-levels.schema.json', { with: { type: 'json' } }).then(
+      (m) => m.default as Record<string, unknown>
+    ),
+  'catalog-categories': () =>
+    import('../schemas/catalog-categories.schema.json', { with: { type: 'json' } }).then(
+      (m) => m.default as Record<string, unknown>
+    ),
 }
 
 /**
- * Zod schema map - all Zod schemas indexed by schema ID
+ * Zod schema map — statically available, these are code not data
  */
 const zodSchemaMap: Record<string, z.ZodType<unknown>> = {
   abilities: AbilitySchema,
@@ -163,49 +266,138 @@ const zodSchemaMap: Record<string, z.ZodType<unknown>> = {
   'catalog-categories': CatalogCategorySchema,
 }
 
+// ---------------------------------------------------------------------------
+// Load state
+// ---------------------------------------------------------------------------
+
+/** Set of schema IDs that have been successfully loaded */
+const loadedSchemas = new Set<string>()
+
+/** Live model registry — populated by preload(), keyed by PascalCase property name */
+const modelRegistry: Record<string, BaseModel<unknown>> = {}
+
+// ---------------------------------------------------------------------------
+// Public load-state API (consumed by SalvageUnionReference)
+// ---------------------------------------------------------------------------
+
 /**
- * Static schema map - all schemas indexed by schema ID (JSON Schema, kept for backward compatibility)
+ * Returns true if the given schema ID has been loaded via preload().
  */
-const schemaMap: Record<string, Record<string, unknown>> = {
-  abilities: abilitiesSchema,
-  'ability-tree-requirements': abilityTreeRequirementsSchema,
-  actions: actionsSchema,
-  'bio-titans': bioTitansSchema,
-  chassis: chassisSchema,
-  classes: classesSchema,
-  'crawler-bays': crawlerBaysSchema,
-  'crawler-tech-levels': crawlerTechLevelsSchema,
-  crawlers: crawlersSchema,
-  creatures: creaturesSchema,
-  distances: distancesSchema,
-  drones: dronesSchema,
-  equipment: equipmentSchema,
-  factions: factionsSchema,
-  guides: guidesSchema,
-  keywords: keywordsSchema,
-  meld: meldSchema,
-  modules: modulesSchema,
-  npcs: npcsSchema,
-  'roll-tables': rollTablesSchema,
-  squads: squadsSchema,
-  systems: systemsSchema,
-  traits: traitsSchema,
-  vehicles: vehiclesSchema,
-  sources: sourcesSchema,
-  'tech-levels': techLevelsSchema,
-  'catalog-categories': catalogCategoriesSchema,
+export function isSchemaLoaded(schemaId: string): boolean {
+  return loadedSchemas.has(schemaId)
 }
 
 /**
- * Get the data and schema maps (synchronous)
- * Exposed for client use
+ * Load the given schemas (or all schemas if 'all' is passed).
+ * Idempotent: already-loaded schemas are skipped.
+ * Returns a Promise that resolves when all requested schemas are loaded.
+ */
+export async function loadSchemas(schemas: string[] | 'all'): Promise<void> {
+  const ids = schemas === 'all' ? Object.keys(dataLoaders) : schemas
+
+  // Only load schemas not yet loaded
+  const pending = ids.filter((id) => !loadedSchemas.has(id))
+  if (pending.length === 0) return
+
+  await Promise.all(pending.map((id) => loadSingleSchema(id)))
+}
+
+async function loadSingleSchema(schemaId: string): Promise<void> {
+  const dataLoader = dataLoaders[schemaId]
+  const jsonSchemaLoader = jsonSchemaLoaders[schemaId]
+  const zodSchema = zodSchemaMap[schemaId]
+
+  if (!dataLoader || !jsonSchemaLoader || !zodSchema) {
+    throw new Error(`No loader found for schema ID: ${schemaId}`)
+  }
+
+  const [rawData, jsonSchema] = await Promise.all([dataLoader(), jsonSchemaLoader()])
+
+  const validatedData = validateAndParseData(schemaId, rawData, zodSchema)
+  const displayNameValue = schemaDisplayNames[schemaId]?.singular ?? schemaId
+  const model = new BaseModel(validatedData, jsonSchema, schemaId, displayNameValue)
+
+  Object.defineProperties(model, {
+    schemaName: {
+      value: schemaId,
+      writable: false,
+      enumerable: true,
+      configurable: false,
+    },
+    displayName: {
+      value: displayNameValue,
+      writable: false,
+      enumerable: true,
+      configurable: false,
+    },
+  })
+
+  const propertyName = toPascalCase(schemaId)
+  modelRegistry[propertyName] = model
+  loadedSchemas.add(schemaId)
+}
+
+/**
+ * Get a loaded model by PascalCase property name.
+ * Throws with a descriptive error if the schema hasn't been loaded yet.
+ */
+export function getLoadedModel(schemaId: string, propertyName: string): BaseModel<unknown> {
+  if (!loadedSchemas.has(schemaId)) {
+    throw new Error(
+      `Schema "${schemaId}" not loaded. Call SalvageUnionReference.preload(['${schemaId}']) or SalvageUnionReference.preload('all') first.`
+    )
+  }
+  const model = modelRegistry[propertyName]
+  if (!model) {
+    throw new Error(`Model for schema "${schemaId}" not found after loading. This is a bug.`)
+  }
+  return model
+}
+
+/**
+ * Reset all load state. Exposed for testing only.
+ * In production, schemas are loaded once and kept for the lifetime of the process.
+ */
+export function resetLoadStateForTesting(): void {
+  loadedSchemas.clear()
+  for (const key of Object.keys(modelRegistry)) {
+    delete modelRegistry[key]
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Existing synchronous API — kept for getDataMaps() consumers (e.g. action map)
+// ---------------------------------------------------------------------------
+
+/**
+ * Get the loaded data and schema maps (synchronous).
+ * Only returns data for schemas that have been preloaded.
+ * Exposed for client use (e.g. resolveActions in index.ts).
  */
 export function getDataMaps(): {
   dataMap: Record<string, unknown[]>
   schemaMap: Record<string, Record<string, unknown>>
 } {
+  const dataMap: Record<string, unknown[]> = {}
+  const schemaMap: Record<string, Record<string, unknown>> = {}
+
+  for (const schemaId of loadedSchemas) {
+    const propName = toPascalCase(schemaId)
+    const model = modelRegistry[propName]
+    if (model) {
+      dataMap[schemaId] = model.all() as unknown[]
+      schemaMap[schemaId] = (
+        model as BaseModel<unknown> & { schema: Record<string, unknown> }
+      ).schema
+    }
+  }
+
   return { dataMap, schemaMap }
 }
+
+// ---------------------------------------------------------------------------
+// Helper utilities
+// ---------------------------------------------------------------------------
 
 /**
  * Convert schema ID to PascalCase property name
@@ -217,13 +409,8 @@ export function getDataMaps(): {
  * Exposed for client use
  */
 function toPascalCase(id: string): string {
-  // Handle special case for classes
   if (id === 'classes') return 'Classes'
-
-  // Handle special case for NPCs (all caps)
   if (id === 'npcs') return 'NPCs'
-
-  // Handle hyphenated and dotted names
   return id
     .split(/[-.]/)
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
@@ -250,65 +437,6 @@ function validateAndParseData<T>(
     }
     throw error
   }
-}
-
-/**
- * Create a model instance for a given schema entry (synchronous)
- * Returns an object with instance methods and readonly metadata properties
- */
-function createModel<T>(schemaId: string): BaseModel<T> & {
-  readonly schemaName: string
-  readonly displayName: string
-} {
-  const rawData = dataMap[schemaId]
-  const schema = schemaMap[schemaId]
-  const zodSchema = zodSchemaMap[schemaId]
-
-  if (!rawData || !schema || !zodSchema) {
-    throw new Error(`No data or schema found for schema ID: ${schemaId}`)
-  }
-
-  // Validate and parse data using Zod
-  const validatedData = validateAndParseData(schemaId, rawData, zodSchema as z.ZodType<T>)
-
-  const displayNameValue = schemaDisplayNames[schemaId]?.singular || schemaId
-
-  const model = new BaseModel<T>(validatedData, schema, schemaId, displayNameValue)
-
-  // Add readonly metadata properties directly to the instance
-  Object.defineProperties(model, {
-    schemaName: {
-      value: schemaId,
-      writable: false,
-      enumerable: true,
-      configurable: false,
-    },
-    displayName: {
-      value: displayNameValue,
-      writable: false,
-      enumerable: true,
-      configurable: false,
-    },
-  })
-
-  return model as BaseModel<T> & {
-    readonly schemaName: string
-    readonly displayName: string
-  }
-}
-
-/**
- * Auto-generate all models from the schema catalog (synchronous)
- */
-export function generateModels(): Record<string, BaseModel<unknown>> {
-  const models: Record<string, BaseModel<unknown>> = {}
-
-  for (const schemaEntry of schemaIndex.schemas) {
-    const propertyName = toPascalCase(schemaEntry.id)
-    models[propertyName] = createModel(schemaEntry.id)
-  }
-
-  return models
 }
 
 /**

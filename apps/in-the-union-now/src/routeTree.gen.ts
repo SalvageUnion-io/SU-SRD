@@ -90,13 +90,21 @@ const AuthenticatedGamesGameIdIndexRoute =
     id: '/',
     path: '/',
     getParentRoute: () => AuthenticatedGamesGameIdRoute,
-  } as any)
+  } as any).lazy(() =>
+    import('./routes/_authenticated/games/$gameId/index.lazy').then(
+      (d) => d.Route,
+    ),
+  )
 const AuthenticatedPilotsPilotIdCreateMechRoute =
   AuthenticatedPilotsPilotIdCreateMechRouteImport.update({
     id: '/create-mech',
     path: '/create-mech',
     getParentRoute: () => AuthenticatedPilotsPilotIdRoute,
-  } as any)
+  } as any).lazy(() =>
+    import('./routes/_authenticated/pilots/$pilotId/create-mech.lazy').then(
+      (d) => d.Route,
+    ),
+  )
 const AuthenticatedGamesGameIdMapRoute =
   AuthenticatedGamesGameIdMapRouteImport.update({
     id: '/map',
@@ -108,7 +116,11 @@ const AuthenticatedGamesGameIdCreateCrawlerRoute =
     id: '/create-crawler',
     path: '/create-crawler',
     getParentRoute: () => AuthenticatedGamesGameIdRoute,
-  } as any)
+  } as any).lazy(() =>
+    import('./routes/_authenticated/games/$gameId/create-crawler.lazy').then(
+      (d) => d.Route,
+    ),
+  )
 const AuthenticatedGamesGameIdCrawlerRoute =
   AuthenticatedGamesGameIdCrawlerRouteImport.update({
     id: '/crawler',

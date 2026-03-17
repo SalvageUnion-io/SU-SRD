@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect } from 'react'
 import { search, getEntitySchemas } from 'salvageunion-reference'
 import type { SearchResult } from 'salvageunion-reference'
 import { getEntitySlug } from 'salvageunion-reference'
+import { useGameData } from '../../lib/useGameData'
 
 type DisplayResult = {
   id: string
@@ -40,6 +41,7 @@ function matchSchemas(query: string): DisplayResult[] {
 }
 
 export function SearchIsland() {
+  useGameData()
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<DisplayResult[]>([])
   const [isOpen, setIsOpen] = useState(false)

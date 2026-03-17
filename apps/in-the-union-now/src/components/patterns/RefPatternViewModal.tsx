@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { findChassisById } from '../../lib/entityHelpers'
+import { findChassisById } from 'salvageunion-reference'
 import type { SURefChassis, SURefObjectPattern } from 'salvageunion-reference'
 import { ReferenceEntityDisplay, ModalShell, useChassisPatternConfig } from 'suref-react'
 import type { PatternOverrideData } from 'suref-react'

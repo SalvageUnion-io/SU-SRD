@@ -11,6 +11,27 @@ import { SchemaViewerIsland } from '../SchemaViewerIsland'
 const entitySchemas = getEntitySchemas()
 
 describe('SchemaViewerIsland', () => {
+  it('renders FilterRow labels as visible text for filter sections', () => {
+    // FilterRow renders a visible <span> label — old code used aria-label (not visible text)
+    // Verifies FilterRow is used rather than the old manual div+role="group" pattern
+    const firstSchema = entitySchemas[0]!
+    const model = getModel(firstSchema.id)!
+    const entities = model.all()
+
+    const { getByText } = render(
+      <SchemaViewerIsland
+        initialData={entities}
+        schemaId={firstSchema.id}
+        techLevels={[1, 2, 3]}
+        sources={['Core', 'Rig']}
+      />
+    )
+
+    // FilterRow renders the label as visible text in a <span>
+    expect(getByText('Tech Level')).toBeTruthy()
+    expect(getByText('Source')).toBeTruthy()
+  })
+
   for (const schema of entitySchemas) {
     const model = getModel(schema.id)
     if (!model) continue

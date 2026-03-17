@@ -19,14 +19,7 @@ export function ReferenceEntityRightHeaderContent({
   if (!description || !isAbility(data)) return null
 
   return (
-    <div
-      className={cn(
-        'min-w-0 shrink overflow-hidden text-right font-medium italic text-su-white',
-        fontSize.xs,
-        'leading-tight'
-      )}
-      style={{ whiteSpace: 'normal' }}
-    >
+    <div className={cn('text-right font-medium italic leading-tight text-su-white', fontSize.xs)}>
       {parsedDescription}
     </div>
   )

@@ -2,7 +2,8 @@
 import BaseLayout from '../../../layouts/BaseLayout.astro'
 import { getSchemaStaticPaths } from '../../../lib/staticPaths'
 import { SchemaViewerIsland } from '../../../components/islands/SchemaViewerIsland'
-import { getUniqueTechLevels, getUniqueSources } from 'salvageunion-reference'
+import { getUniqueTechLevels, getUniqueSources } from '../../../lib/gameData'
+import { SITE_URL } from '../../../lib/constants'
 
 export function getStaticPaths() {
   return getSchemaStaticPaths()
@@ -15,7 +16,7 @@ const schemaName = schema.displayName || 'Schema'
 const capitalizedTitle =
   schema.displayNamePlural ||
   schema.title.charAt(0).toUpperCase() + schema.title.slice(1)
-const canonicalUrl = `https://salvageunion.io/schema/${schemaId}/`
+const canonicalUrl = `${SITE_URL}/schema/${schemaId}/`
 
 // Pre-compute filter facets at build time
 const techLevels = getUniqueTechLevels(data)
@@ -31,7 +32,7 @@ const structuredData = {
   isPartOf: {
     '@type': 'WebSite',
     name: 'Salvage Union System Reference Document',
-    url: 'https://salvageunion.io/',
+    url: `${SITE_URL}/`,
   },
   mainEntity: {
     '@type': 'ItemList',
@@ -50,7 +51,7 @@ const structuredData = {
   canonical={canonicalUrl}
   structuredData={structuredData}
   breadcrumbs={[
-    { name: 'SRD', url: 'https://salvageunion.io/' },
+    { name: 'SRD', url: `${SITE_URL}/` },
     { name: schemaName, url: canonicalUrl },
   ]}
 >
@@ -69,7 +70,7 @@ const structuredData = {
 
       <!-- Island handles search + filters + grid -->
       <SchemaViewerIsland
-        client:idle
+        client:visible
         initialData={data}
         schemaId={schemaId!}
         techLevels={techLevels}

@@ -21,26 +21,30 @@ export const Route = createFileRoute('/_authenticated/pilots/new')({
   component: NewPilotPage,
 })
 
-const pilotGuide = SalvageUnionReference.Guides.find(
-  (g) => g.name === 'Create a Pilot'
-)! as SURefGuide
-
-const digitalSteps = getDigitalSteps(pilotGuide)
-
-/** Guide entity with only digital steps (filters out paperOnly steps) */
-const interactiveGuide = { ...pilotGuide, steps: digitalSteps } as SURefGuide
-
 function NewPilotPage() {
   const navigate = useNavigate()
   const user = useCurrentUser()
   const createPilot = useCreatePilot()
 
-  const reducer = useMemo(() => createWizardReducer(digitalSteps), [])
+  const { digitalSteps, interactiveGuide } = useMemo(() => {
+    const guide = SalvageUnionReference.Guides.find(
+      (g) => g.name === 'Create a Pilot'
+    )! as SURefGuide
+
+    const steps = getDigitalSteps(guide)
+
+    return {
+      digitalSteps: steps,
+      interactiveGuide: { ...guide, steps } as SURefGuide,
+    }
+  }, [])
+
+  const reducer = useMemo(() => createWizardReducer(digitalSteps), [digitalSteps])
   const [state, dispatch] = useReducer(reducer, undefined, createInitialWizardState)
 
   const guideInteractive = useGuideInteractiveConfig(digitalSteps, state, dispatch)
 
-  const isSubmittable = useMemo(() => canSubmitWizard(state, digitalSteps), [state])
+  const isSubmittable = useMemo(() => canSubmitWizard(state, digitalSteps), [state, digitalSteps])
 
   const handleSubmit = useCallback(() => {
     if (!user) return
@@ -62,7 +66,7 @@ function NewPilotPage() {
         },
       }
     )
-  }, [user, state, createPilot, navigate])
+  }, [user, state, digitalSteps, createPilot, navigate])
 
   const renderFooter = useCallback(
     () => (

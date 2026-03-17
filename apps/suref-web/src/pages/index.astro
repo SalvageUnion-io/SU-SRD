@@ -1,79 +1,22 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro'
-import { getSchemaCatalog, SalvageUnionReference, getReferenceEntityData } from 'salvageunion-reference'
-import type { SURefGuide } from 'salvageunion-reference'
+import { getSchemaCatalog, SalvageUnionReference, getReferenceEntityData } from '../lib/gameData'
 import { getCatalogBg, getCatalogLabel } from '../lib/catalogColors'
+import { buildCatalogCategories } from '../lib/catalogHelpers'
+import { SITE_URL } from '../lib/constants'
 
 const catalog = getSchemaCatalog()
 const schemas = catalog.schemas.filter((s) => !s.meta)
 const schemaMap = new Map(schemas.map((s) => [s.id, s]))
 const catalogCategories = SalvageUnionReference.CatalogCategories.all()
 
-const catalogNameOverrides: Record<string, string> = {
-  'Activating and Shutting Down a Mech': 'Operating a Mech',
-}
-
-const invariantNouns = new Set(['Chassis', 'Equipment', 'Meld'])
-
-function pluralize(name: string, count: number) {
-  if (count <= 1 || invariantNouns.has(name)) return name
-  const spaceIdx = name.lastIndexOf(' ')
-  if (spaceIdx >= 0) {
-    return name.slice(0, spaceIdx + 1) + pluralizeWord(name.slice(spaceIdx + 1))
-  }
-  return pluralizeWord(name)
-}
-
-function pluralizeWord(word: string) {
-  if (/[^aeiou]y$/i.test(word)) return word.slice(0, -1) + 'ies'
-  if (/(?:s|sh|ch|x|z)$/i.test(word)) return word + 'es'
-  return word + 's'
-}
-
-type CatalogCard = {
-  id: string
-  href: string
-  label: string
-  catalogBg: string
-  catalogLabel?: string
-}
-
-type CatalogSection = {
-  label: string
-  cards: CatalogCard[]
-}
-
-const categories: CatalogSection[] = catalogCategories.map((cat) => {
-  if (cat.flat) {
-    const schemaName = cat.schemas[0]!
-    const items = SalvageUnionReference.findAllIn(schemaName, () => true)
-    return {
-      label: cat.name.toUpperCase(),
-      cards: items.map((item) => {
-        const display = getReferenceEntityData(item)
-        return {
-          id: item.id,
-          href: `/schema/${schemaName}/item/${display.slug}/`,
-          label: catalogNameOverrides[item.name] ?? item.name,
-          catalogBg: (item as SURefGuide).guideColor || getCatalogBg(schemaName),
-        }
-      }),
-    }
-  }
-  return {
-    label: cat.name.toUpperCase(),
-    cards: cat.schemas.flatMap((id) => {
-      const s = schemaMap.get(id)
-      if (!s) return []
-      return [{
-        id: s.id,
-        href: `/schema/${s.id}/`,
-        label: pluralize(s.displayName, s.itemCount),
-        catalogBg: getCatalogBg(s.id),
-        catalogLabel: getCatalogLabel(s.id),
-      }]
-    }),
-  }
+const categories = buildCatalogCategories({
+  catalogCategories,
+  schemaMap,
+  findAllIn: (schemaName, pred) => SalvageUnionReference.findAllIn(schemaName, pred),
+  getReferenceEntityData,
+  getCatalogBg,
+  getCatalogLabel,
 })
 ---
 
@@ -84,7 +27,7 @@ const categories: CatalogSection[] = catalogCategories.map((cat) => {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
     name: 'Salvage Union System Reference Document',
-    url: 'https://salvageunion.io',
+    url: SITE_URL,
   }}
 >
   <div class="flex w-full flex-1 flex-col justify-center py-6">
@@ -101,7 +44,7 @@ const categories: CatalogSection[] = catalogCategories.map((cat) => {
               </h2>
             </div>
             <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {cat.cards.map((card) => (
+              {cat.schemas.map((card) => (
                 <a
                   href={card.href}
                   class:list={['btn text-center catalog-item']}

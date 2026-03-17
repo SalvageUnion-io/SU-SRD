@@ -2,22 +2,36 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://salvageunion.com/schemas/creatures.schema.json",
   "title": "creatures",
-  "description": "",
+  "description": "Creatures and wildlife in Salvage Union",
   "type": "array",
   "items": {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "type": "object",
     "properties": {
-      "asset_url": { "type": "string", "format": "uri" },
+      "asset_url": {
+        "type": "string",
+        "format": "uri",
+        "description": "URL to an image asset for this entity"
+      },
       "content": {
         "type": "array",
         "items": {
+          "description": "Block of structured content for rendering (paragraph, heading, list item, etc.)",
           "type": "object",
           "properties": {
             "type": {
               "default": "paragraph",
               "type": "string",
-              "enum": ["paragraph", "heading", "list-item", "label", "datavalues", "hint", "flavor"]
+              "enum": [
+                "paragraph",
+                "heading",
+                "list-item",
+                "label",
+                "datavalues",
+                "hint",
+                "flavor"
+              ],
+              "description": "Type of content block for rendering structured text"
             },
             "value": {
               "anyOf": [
@@ -27,12 +41,22 @@
                   "items": {
                     "type": "object",
                     "properties": {
-                      "label": { "anyOf": [{ "type": "string" }, { "type": "number" }] },
-                      "value": { "anyOf": [{ "type": "string" }, { "type": "number" }] },
-                      "type": { "type": "string" }
+                      "label": {
+                        "anyOf": [{ "type": "string" }, { "type": "number" }],
+                        "description": "Display label for this data value"
+                      },
+                      "value": {
+                        "anyOf": [{ "type": "string" }, { "type": "number" }],
+                        "description": "The data value"
+                      },
+                      "type": {
+                        "type": "string",
+                        "description": "Type classification for this data value"
+                      }
                     },
                     "required": ["label"],
-                    "additionalProperties": false
+                    "additionalProperties": false,
+                    "description": "A data value with label, optional value, and optional type"
                   },
                   "description": "Array of data values when type is 'datavalues'"
                 }
@@ -56,7 +80,8 @@
                       "datavalues",
                       "hint",
                       "flavor"
-                    ]
+                    ],
+                    "description": "Type of content block for rendering structured text"
                   },
                   "value": {
                     "anyOf": [
@@ -66,12 +91,22 @@
                         "items": {
                           "type": "object",
                           "properties": {
-                            "label": { "anyOf": [{ "type": "string" }, { "type": "number" }] },
-                            "value": { "anyOf": [{ "type": "string" }, { "type": "number" }] },
-                            "type": { "type": "string" }
+                            "label": {
+                              "anyOf": [{ "type": "string" }, { "type": "number" }],
+                              "description": "Display label for this data value"
+                            },
+                            "value": {
+                              "anyOf": [{ "type": "string" }, { "type": "number" }],
+                              "description": "The data value"
+                            },
+                            "type": {
+                              "type": "string",
+                              "description": "Type classification for this data value"
+                            }
                           },
                           "required": ["label"],
-                          "additionalProperties": false
+                          "additionalProperties": false,
+                          "description": "A data value with label, optional value, and optional type"
                         },
                         "description": "Array of data values when type is 'datavalues'"
                       }
@@ -87,12 +122,21 @@
           },
           "required": ["type"],
           "additionalProperties": false
-        }
+        },
+        "description": "Descriptive content blocks for this entity"
       },
-      "id": { "type": "string" },
-      "indexable": { "default": true, "type": "boolean" },
-      "blackMarket": { "default": false, "type": "boolean" },
-      "name": { "type": "string", "minLength": 1 },
+      "id": { "type": "string", "description": "Unique identifier for this entity" },
+      "indexable": {
+        "default": true,
+        "description": "Whether this entity appears in search results",
+        "type": "boolean"
+      },
+      "blackMarket": {
+        "default": false,
+        "description": "Whether this entity is only available on the black market",
+        "type": "boolean"
+      },
+      "name": { "type": "string", "minLength": 1, "description": "Display name of this entity" },
       "source": {
         "type": "string",
         "enum": [
@@ -101,10 +145,20 @@
           "We Were Here First!",
           "Rainmaker",
           "False Flag"
-        ]
+        ],
+        "description": "Source book this entity appears in"
       },
-      "page": { "type": "integer", "exclusiveMinimum": 0, "maximum": 9007199254740991 },
-      "actions": { "type": "array", "items": { "type": "string" } },
+      "page": {
+        "type": "integer",
+        "exclusiveMinimum": 0,
+        "maximum": 9007199254740991,
+        "description": "Page number in the source book"
+      },
+      "actions": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "Action names this entity can perform"
+      },
       "traits": {
         "type": "array",
         "items": {
@@ -112,19 +166,33 @@
           "properties": {
             "amount": {
               "anyOf": [
-                { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+                {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991,
+                  "description": "Non-negative integer (0 or greater)"
+                },
                 { "type": "string" }
-              ]
+              ],
+              "description": "Numeric or variable amount for this trait"
             },
-            "type": { "type": "string" }
+            "type": { "type": "string", "description": "Trait type identifier" }
           },
           "required": ["type"],
-          "additionalProperties": false
-        }
+          "additionalProperties": false,
+          "description": "Special traits and properties of items, systems, or abilities"
+        },
+        "description": "Traits and special properties"
       },
-      "hitPoints": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 }
+      "hitPoints": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 9007199254740991,
+        "description": "Hit points of this creature"
+      }
     },
     "required": ["id", "indexable", "blackMarket", "name", "source", "page", "hitPoints"],
-    "additionalProperties": false
+    "additionalProperties": false,
+    "description": "Creatures and wildlife in Salvage Union"
   }
 }

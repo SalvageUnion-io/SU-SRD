@@ -4,7 +4,7 @@ import {
   getModel,
   getEntitySchemas,
   getReferenceEntityData,
-} from 'salvageunion-reference'
+} from './gameData'
 import type { SURefEnumSchemaName, SURefEntity } from 'salvageunion-reference'
 
 const catalog = getSchemaCatalog()
