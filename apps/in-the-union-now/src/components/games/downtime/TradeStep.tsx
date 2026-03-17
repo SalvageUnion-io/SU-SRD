@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect } from 'react'
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { Text } from 'suref-react'
 import { Check } from 'lucide-react'
 import { toast } from 'sonner'
@@ -32,15 +32,18 @@ export function TradeStep({
 
   // Auto-open modal when roll happens and no result saved yet
   const [modalOpen, setModalOpen] = useState(false)
-  const [autoOpened, setAutoOpened] = useState(false)
+  const autoOpenedRef = useRef(false)
 
-  // Auto-open once when rollKey arrives and no saved result
+  // Auto-open once when rollKey arrives and no saved result.
+  // setModalOpen here is intentional: this effect synchronises an external
+  // event (a new rollKey from the server) into local modal UI state exactly once.
   useEffect(() => {
-    if (rollKey && !tradeResult && !autoOpened && category !== 'nothing') {
-      setAutoOpened(true)
+    if (rollKey && !tradeResult && !autoOpenedRef.current && category !== 'nothing') {
+      autoOpenedRef.current = true
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setModalOpen(true)
     }
-  }, [rollKey, tradeResult, autoOpened, category])
+  }, [rollKey, tradeResult, category])
 
   const handleSelect = useCallback(
     (selections: {

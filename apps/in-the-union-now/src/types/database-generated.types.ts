@@ -765,6 +765,15 @@ export type Database = {
         }
         Returns: Json
       }
+      merge_downtime_receipt: {
+        Args: {
+          p_record_id: string
+          p_field: string
+          p_pilot_id: string
+          p_receipt: Json
+        }
+        Returns: Json
+      }
       offload_mech_cargo: {
         Args: {
           p_crawler_id: string
