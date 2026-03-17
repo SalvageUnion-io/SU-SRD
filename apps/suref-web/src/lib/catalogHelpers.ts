@@ -46,19 +46,19 @@ export function pluralize(name: string, count: number): string {
 
 type SchemaMapEntry = Pick<EnhancedSchemaMetadata, 'id' | 'title' | 'displayName' | 'itemCount'>
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 type BuildCatalogCategoriesOptions = {
   catalogCategories: CatalogCategory[]
   schemaMap: Map<string, SchemaMapEntry>
   findAllIn: (
-    schemaName: string,
-    predicate: () => boolean
+    schemaName: any,
+    predicate: (entity: any) => boolean
   ) => Array<{ id: string; name: string; [key: string]: unknown }>
-  getReferenceEntityData: (item: { id: string; name: string; [key: string]: unknown }) => {
-    slug: string
-  }
+  getReferenceEntityData: (item: any) => { slug: string; [key: string]: unknown }
   getCatalogBg: (schemaId: string) => string
   getCatalogLabel: (schemaId: string) => string | undefined
 }
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 export function buildCatalogCategories({
   catalogCategories,
