@@ -125,16 +125,33 @@ describe('canActivateAction', () => {
 // -------------------------------------------------------------------------
 
 describe('shouldTriggerHeatCheck', () => {
-  it('returns true when newHeat is greater than 0', () => {
-    expect(shouldTriggerHeatCheck(1)).toBe(true)
+  it('returns false when heat gain stays below capacity', () => {
+    // 3 + 2 = 5, cap = 10 — no trigger
+    expect(shouldTriggerHeatCheck(3, 2, 10)).toBe(false)
   })
 
-  it('returns true when newHeat is high', () => {
-    expect(shouldTriggerHeatCheck(10)).toBe(true)
+  it('returns false when heat gain of zero (no heat action)', () => {
+    expect(shouldTriggerHeatCheck(5, 0, 10)).toBe(false)
   })
 
-  it('returns false when newHeat is 0', () => {
-    expect(shouldTriggerHeatCheck(0)).toBe(false)
+  it('returns true when heat gain exactly reaches capacity', () => {
+    // 5 + 5 = 10, cap = 10 — trigger
+    expect(shouldTriggerHeatCheck(5, 5, 10)).toBe(true)
+  })
+
+  it('returns true when heat gain exceeds capacity (clamped to cap)', () => {
+    // 8 + 5 = 13 > 10, clamps to cap — trigger
+    expect(shouldTriggerHeatCheck(8, 5, 10)).toBe(true)
+  })
+
+  it('returns true when already at capacity and any heat is gained', () => {
+    // 10 + 2, cap = 10 — already at cap, trigger
+    expect(shouldTriggerHeatCheck(10, 2, 10)).toBe(true)
+  })
+
+  it('returns false when heat gain below cap from low baseline', () => {
+    // 0 + 3 = 3, cap = 10 — no trigger
+    expect(shouldTriggerHeatCheck(0, 3, 10)).toBe(false)
   })
 })
 

@@ -1,5 +1,79 @@
 import { describe, test, expect } from 'bun:test'
 import { getHeatLevel, getHeatColorClass, getUseButtonLabel } from './heatUtils'
+import { buildUseActionResult } from '../hooks/useActivateAction'
+import type { MechRow } from '../types/common'
+
+// ---------------------------------------------------------------------------
+// buildUseActionResult — heatCheckTriggered gate (rules p.234)
+// ---------------------------------------------------------------------------
+
+function makeMech(current_heat: number, heat_capacity: number): MechRow {
+  return {
+    id: 'mech-1',
+    current_heat,
+    heat_capacity,
+    current_ep: 10,
+    current_sp: 10,
+    max_sp: 10,
+    current_hp: 10,
+    max_hp: 10,
+    pattern_name: 'Test',
+    pilot_id: 'pilot-1',
+    crawler_id: 'crawler-1',
+    is_boarded: true,
+    max_ep: 10,
+    created_at: null,
+    updated_at: null,
+  } as unknown as MechRow
+}
+
+const freeAction = {
+  costType: 'none' as const,
+  activationCost: null,
+  source: 'mech' as const,
+  isComrade: false,
+  name: 'Test Action',
+  actionName: 'test-action',
+  maxUses: null,
+  entityRefId: null,
+  sourceEntity: {},
+  borderColor: '',
+} as import('../lib/pilotActionUtils').ActionDisplayData
+
+describe('buildUseActionResult — heatCheckTriggered', () => {
+  test('does NOT trigger heat check when heat gain stays below capacity', () => {
+    const mech = makeMech(3, 10)
+    const result = buildUseActionResult({ mech, pilot: undefined, action: freeAction, heatCost: 2 })
+    // 3 + 2 = 5, cap = 10 — no trigger
+    expect(result.heatCheckTriggered).toBe(false)
+  })
+
+  test('does NOT trigger heat check when heatCost is zero', () => {
+    const mech = makeMech(5, 10)
+    const result = buildUseActionResult({ mech, pilot: undefined, action: freeAction, heatCost: 0 })
+    expect(result.heatCheckTriggered).toBe(false)
+  })
+
+  test('DOES trigger heat check when heat gain reaches capacity exactly', () => {
+    const mech = makeMech(5, 10)
+    const result = buildUseActionResult({ mech, pilot: undefined, action: freeAction, heatCost: 5 })
+    // 5 + 5 = 10, cap = 10 — trigger
+    expect(result.heatCheckTriggered).toBe(true)
+  })
+
+  test('DOES trigger heat check when heat gain exceeds capacity', () => {
+    const mech = makeMech(8, 10)
+    const result = buildUseActionResult({ mech, pilot: undefined, action: freeAction, heatCost: 5 })
+    // 8 + 5 = 13 > 10, clamps — trigger
+    expect(result.heatCheckTriggered).toBe(true)
+  })
+
+  test('DOES trigger heat check when already at capacity and heat is gained', () => {
+    const mech = makeMech(10, 10)
+    const result = buildUseActionResult({ mech, pilot: undefined, action: freeAction, heatCost: 2 })
+    expect(result.heatCheckTriggered).toBe(true)
+  })
+})
 
 // ---------------------------------------------------------------------------
 // getHeatLevel

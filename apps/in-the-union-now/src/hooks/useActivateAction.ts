@@ -105,7 +105,7 @@ export function buildUseActionResult({
     newHeat,
     newEp,
     newAp,
-    heatCheckTriggered: shouldTriggerHeatCheck(newHeat),
+    heatCheckTriggered: shouldTriggerHeatCheck(currentHeat, heatCost, heatCap),
   }
 }
 
