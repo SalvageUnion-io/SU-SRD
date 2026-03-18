@@ -9,8 +9,8 @@ describe('DowntimeWaitState', () => {
   })
 
   test('has role="status" on the root element', () => {
-    render(<DowntimeWaitState message="Waiting..." />)
-    const statusEl = screen.getByRole('status')
+    const { container } = render(<DowntimeWaitState message="Waiting..." />)
+    const statusEl = container.querySelector('[role="status"]')
     expect(statusEl).toBeTruthy()
   })
 
