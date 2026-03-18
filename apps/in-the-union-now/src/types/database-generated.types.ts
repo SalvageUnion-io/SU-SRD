@@ -545,6 +545,7 @@ export type Database = {
           id: string
           image_path: string | null
           in_downtime: boolean
+          injuries: Json
           is_boarded: boolean
           keepsake: string | null
           keepsake_used: boolean | null
@@ -573,6 +574,7 @@ export type Database = {
           id?: string
           image_path?: string | null
           in_downtime?: boolean
+          injuries?: Json
           is_boarded?: boolean
           keepsake?: string | null
           keepsake_used?: boolean | null
@@ -601,6 +603,7 @@ export type Database = {
           id?: string
           image_path?: string | null
           in_downtime?: boolean
+          injuries?: Json
           is_boarded?: boolean
           keepsake?: string | null
           keepsake_used?: boolean | null

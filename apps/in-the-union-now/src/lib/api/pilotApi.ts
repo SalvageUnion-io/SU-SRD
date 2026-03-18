@@ -9,7 +9,7 @@ export async function listPilots(userId: string): Promise<PilotRow[]> {
   const { data, error } = await supabase
     .from('pilots')
     .select(
-      'id,active,ap,appearance,background,background_used,callsign,class_ref,crawler_id,created_at,hp,image_path,in_downtime,is_boarded,keepsake,keepsake_used,max_ap,max_hp,mech_id,motto,motto_used,notes,tp,updated_at,user_id,visible'
+      'id,active,ap,appearance,background,background_used,callsign,class_ref,crawler_id,created_at,hp,image_path,in_downtime,injuries,is_boarded,keepsake,keepsake_used,max_ap,max_hp,mech_id,motto,motto_used,notes,tp,updated_at,user_id,visible'
     )
     .eq('user_id', userId)
     .order('updated_at', { ascending: false })
@@ -22,7 +22,7 @@ export async function getPilotById(pilotId: string): Promise<PilotRow> {
   const { data, error } = await supabase
     .from('pilots')
     .select(
-      'id,active,ap,appearance,background,background_used,callsign,class_ref,crawler_id,created_at,hp,image_path,in_downtime,is_boarded,keepsake,keepsake_used,max_ap,max_hp,mech_id,motto,motto_used,notes,tp,updated_at,user_id,visible'
+      'id,active,ap,appearance,background,background_used,callsign,class_ref,crawler_id,created_at,hp,image_path,in_downtime,injuries,is_boarded,keepsake,keepsake_used,max_ap,max_hp,mech_id,motto,motto_used,notes,tp,updated_at,user_id,visible'
     )
     .eq('id', pilotId)
     .single()
@@ -112,7 +112,7 @@ export async function listPilotsByCrawlerId(crawlerId: string): Promise<PilotRow
   const { data, error } = await supabase
     .from('pilots')
     .select(
-      'id,active,ap,appearance,background,background_used,callsign,class_ref,crawler_id,created_at,hp,image_path,in_downtime,is_boarded,keepsake,keepsake_used,max_ap,max_hp,mech_id,motto,motto_used,notes,tp,updated_at,user_id,visible'
+      'id,active,ap,appearance,background,background_used,callsign,class_ref,crawler_id,created_at,hp,image_path,in_downtime,injuries,is_boarded,keepsake,keepsake_used,max_ap,max_hp,mech_id,motto,motto_used,notes,tp,updated_at,user_id,visible'
     )
     .eq('crawler_id', crawlerId)
     .order('callsign', { ascending: true })
