@@ -158,7 +158,7 @@ CREATE INDEX idx_encounter_participants_is_visible ON encounter_participants(is_
 
 **Rationale:** The `(select auth.uid())` form (subquery, not bare function call) is the established pattern in this codebase for performance — PostgreSQL can cache the subquery result within a query plan, whereas `auth.uid()` as a bare call is evaluated per-row. All existing shared-access policies in `20260221002000_restore_shared_access_policies.sql` use this form. The encounter policies must follow the same convention.
 
-The participant visibility policy has two SELECT policies on the same table (one for players with the visibility filter, one for mediators without it). This is intentional: Supabase/PostgreSQL evaluates RLS policies with OR between them for SELECT, so a mediator (who satisfies the mediator policy) sees all rows, while a player (who does not satisfy the mediator policy) is constrained to the visibility-filtered policy.
+The participant visibility policy has two SELECT policies on the same table (one for players with the visibility filter, one for mediators without it). This is intentional: Supabase/PostgreSQL evaluates RLS policies with OR between them for SELECT, so a mediator (who satisfies the mediator policy) sees all rows, while a player (who does not satisfy the mediator policy) is constrained to the visibility-filtered policy. The player visibility policy technically applies to all authenticated users, including mediators, but mediators are always covered by the mediator SELECT policy which has no visibility filter. Under Postgres OR semantics between permissive policies, the mediator policy's unrestricted access takes precedence — the player policy's `is_visible` filter does not constrain mediators in practice.
 
 ## Consequences
 
