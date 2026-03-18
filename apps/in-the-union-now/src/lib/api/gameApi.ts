@@ -1,7 +1,9 @@
 import { supabase } from '../supabase'
 import { handleSupabaseError } from '../errors'
 import { generateInviteCode } from '../gameUtils'
+import { mergeSessionState } from '../sessionStateUtils'
 import type { CampaignRow, CampaignMemberRow } from '../../types/common'
+import type { SessionState } from '../sessionStateUtils'
 
 export async function listGames(userId: string, includeArchived = false): Promise<CampaignRow[]> {
   let query = supabase.from('campaign_members').select('campaigns!inner(*)').eq('user_id', userId)
@@ -21,7 +23,9 @@ export async function listGames(userId: string, includeArchived = false): Promis
 export async function getGameById(gameId: string): Promise<CampaignRow> {
   const { data, error } = await supabase
     .from('campaigns')
-    .select('id,archived,crawler_id,created_at,created_by,invite_code,name,updated_at')
+    .select(
+      'id,archived,crawler_id,created_at,created_by,invite_code,name,session_state,updated_at'
+    )
     .eq('id', gameId)
     .single()
 
@@ -32,7 +36,9 @@ export async function getGameById(gameId: string): Promise<CampaignRow> {
 export async function getGameByCrawlerId(crawlerId: string): Promise<CampaignRow | null> {
   const { data, error } = await supabase
     .from('campaigns')
-    .select('id,archived,crawler_id,created_at,created_by,invite_code,name,updated_at')
+    .select(
+      'id,archived,crawler_id,created_at,created_by,invite_code,name,session_state,updated_at'
+    )
     .eq('crawler_id', crawlerId)
     .maybeSingle()
 
@@ -94,6 +100,23 @@ export async function archiveGame(gameId: string, archived: boolean): Promise<Ca
   const { data, error } = await supabase
     .from('campaigns')
     .update({ archived })
+    .eq('id', gameId)
+    .select()
+    .single()
+
+  if (error) handleSupabaseError(error)
+  return data!
+}
+
+export async function updateSessionState(
+  gameId: string,
+  existing: SessionState | null,
+  patch: Partial<SessionState>
+): Promise<CampaignRow> {
+  const merged = mergeSessionState(existing, patch)
+  const { data, error } = await supabase
+    .from('campaigns')
+    .update({ session_state: merged })
     .eq('id', gameId)
     .select()
     .single()
