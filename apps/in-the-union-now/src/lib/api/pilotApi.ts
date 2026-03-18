@@ -47,10 +47,10 @@ export async function createPilot(userId: string, input: CreatePilotInput): Prom
     p_ap: PILOT_DEFAULTS.maxAP,
     p_max_ap: PILOT_DEFAULTS.maxAP,
     p_tp: PILOT_DEFAULTS.startingTP,
-    p_background: input.background ?? null,
-    p_motto: input.motto ?? null,
-    p_keepsake: input.keepsake ?? null,
-    p_appearance: input.appearance ?? null,
+    p_background: input.background ?? undefined,
+    p_motto: input.motto ?? undefined,
+    p_keepsake: input.keepsake ?? undefined,
+    p_appearance: input.appearance ?? undefined,
     p_entity_refs: entityRefs,
   })
 
