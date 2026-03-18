@@ -5,6 +5,7 @@ import { uploadEntityImage, deleteEntityImage } from '../../lib/api/storageApi'
 import { showSaveToast } from '../../lib/toastUtils'
 import { useCurrentUser } from '../../hooks/useCurrentUser'
 import { useUpdateMech, useUpdateMechLoadout, useUpdateMechEntityRef } from '../../hooks/useMechs'
+import { useUpdatePilot } from '../../hooks/usePilots'
 import { useCreatePattern, usePattern } from '../../hooks/usePatterns'
 import { useAutosave } from '../../hooks/useAutosave'
 import { useSaveStatus } from '../../hooks/useSaveStatus'
@@ -17,6 +18,8 @@ import {
 import { isSlotOwnerRef } from '../../lib/entityModificationUtils'
 import { builderToCreateInput } from '../../lib/builderUtils'
 import { hasDeviated, resolveSourcePatternItems } from '../../lib/deviationUtils'
+import { computeShutdown, computeActivation } from '../../lib/shutdownUtils'
+import { changeLogApi } from '../../lib/api/changeLogApi'
 import type { BuilderState } from '../../lib/builderUtils'
 import type { ItemCondition } from 'salvageunion-reference'
 import type {
@@ -31,6 +34,7 @@ import { SavePatternDialog } from '../patterns/SavePatternDialog'
 import { RefPatternViewModal } from '../patterns/RefPatternViewModal'
 import { PilotMechSection } from './PilotMechSection'
 import { getErrorMessage } from '../../lib/errors'
+import { Button } from '../ui/button'
 
 type PilotMechTabProps = {
   pilot: PilotRow
@@ -45,6 +49,7 @@ export function PilotMechTab({ pilot, mech, mechRefs, canEdit, compact }: PilotM
   const user = useCurrentUser()
   const updateLoadout = useUpdateMechLoadout()
   const updateMechMutation = useUpdateMech()
+  const updatePilotMutation = useUpdatePilot()
   const updateEntityRefMutation = useUpdateMechEntityRef()
   const createPatternMutation = useCreatePattern()
   const [builderState, setBuilderState] = useState<BuilderState | null>(null)
@@ -72,6 +77,7 @@ export function PilotMechTab({ pilot, mech, mechRefs, canEdit, compact }: PilotM
 
   return (
     <PilotMechTabInner
+      pilot={pilot}
       mech={mech}
       mechRefs={mechRefs}
       canEdit={canEdit}
@@ -82,6 +88,7 @@ export function PilotMechTab({ pilot, mech, mechRefs, canEdit, compact }: PilotM
       navigate={navigate}
       updateLoadout={updateLoadout}
       updateMechMutation={updateMechMutation}
+      updatePilotMutation={updatePilotMutation}
       updateEntityRefMutation={updateEntityRefMutation}
       createPatternMutation={createPatternMutation}
       builderState={builderState}
@@ -96,6 +103,7 @@ export function PilotMechTab({ pilot, mech, mechRefs, canEdit, compact }: PilotM
 
 // Inner component avoids hooks after early return
 function PilotMechTabInner({
+  pilot,
   mech,
   mechRefs,
   canEdit,
@@ -106,6 +114,7 @@ function PilotMechTabInner({
   navigate,
   updateLoadout,
   updateMechMutation,
+  updatePilotMutation,
   updateEntityRefMutation,
   createPatternMutation,
   builderState,
@@ -115,6 +124,7 @@ function PilotMechTabInner({
   showRefPatternModal,
   setShowRefPatternModal,
 }: {
+  pilot: PilotRow
   mech: MechRow
   mechRefs: EntityRefRow[]
   canEdit: boolean
@@ -125,6 +135,7 @@ function PilotMechTabInner({
   navigate: ReturnType<typeof useNavigate>
   updateLoadout: ReturnType<typeof useUpdateMechLoadout>
   updateMechMutation: ReturnType<typeof useUpdateMech>
+  updatePilotMutation: ReturnType<typeof useUpdatePilot>
   updateEntityRefMutation: ReturnType<typeof useUpdateMechEntityRef>
   createPatternMutation: ReturnType<typeof useCreatePattern>
   builderState: BuilderState | null
@@ -135,6 +146,80 @@ function PilotMechTabInner({
   setShowRefPatternModal: (v: boolean) => void
 }) {
   const [isImageUploading, setIsImageUploading] = useState(false)
+
+  const handleShutdown = useCallback(() => {
+    if (!user) return
+    const mechLabel = mech.pattern_name ?? 'Mech'
+    const updates = computeShutdown(mech)
+    updateMechMutation.mutate(
+      { mechId: mech.id, input: { ...updates, active: false } },
+      {
+        onSuccess: () => {
+          changeLogApi
+            .log(user.id, {
+              targetId: mech.id,
+              targetType: 'mech',
+              action: 'update',
+              field: 'active',
+              oldValue: true,
+              newValue: false,
+              description: `${mechLabel} shut down: heat ${mech.current_heat} → 0, EP ${mech.current_ep} → ${mech.max_ep}`,
+              reversible: true,
+            })
+            .catch(() => {})
+          toast(`${mechLabel} shut down`)
+        },
+        onError: (err) => toast.error(getErrorMessage(err)),
+      }
+    )
+  }, [user, mech, updateMechMutation])
+
+  const handleActivate = useCallback(() => {
+    if (!user) return
+    const mechLabel = mech.pattern_name ?? 'Mech'
+    const pilotUpdates = computeActivation(pilot)
+    updateMechMutation.mutate(
+      { mechId: mech.id, input: { active: true } },
+      {
+        onSuccess: () => {
+          changeLogApi
+            .log(user.id, {
+              targetId: mech.id,
+              targetType: 'mech',
+              action: 'update',
+              field: 'active',
+              oldValue: false,
+              newValue: true,
+              description: `${mechLabel} activated`,
+              reversible: true,
+            })
+            .catch(() => {})
+          updatePilotMutation.mutate(
+            { pilotId: pilot.id, input: { ap: pilotUpdates.ap }, userId: user.id },
+            {
+              onSuccess: () => {
+                changeLogApi
+                  .log(user.id, {
+                    targetId: pilot.id,
+                    targetType: 'pilot',
+                    action: 'update',
+                    field: 'ap',
+                    oldValue: pilot.ap,
+                    newValue: pilotUpdates.ap,
+                    description: `${pilot.callsign} spent 1 AP to activate ${mechLabel}: AP ${pilot.ap} → ${pilotUpdates.ap}`,
+                    reversible: true,
+                  })
+                  .catch(() => {})
+                toast(`${mechLabel} activated`)
+              },
+              onError: (err) => toast.error(getErrorMessage(err)),
+            }
+          )
+        },
+        onError: (err) => toast.error(getErrorMessage(err)),
+      }
+    )
+  }, [user, mech, pilot, updateMechMutation, updatePilotMutation])
 
   const handleImageFileSelected = useCallback(
     async (file: File) => {
@@ -333,6 +418,28 @@ function PilotMechTabInner({
   return (
     <>
       <div className={compact ? 'p-3' : 'p-4'}>
+        <div className="mb-2 flex gap-2">
+          {mech.active === true && (
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={handleShutdown}
+              className="font-mono text-xs uppercase"
+            >
+              Shut Down
+            </Button>
+          )}
+          {mech.active === false && (
+            <Button
+              size="sm"
+              onClick={handleActivate}
+              disabled={pilot.ap < 1}
+              className="font-mono text-xs uppercase"
+            >
+              Activate (1 AP)
+            </Button>
+          )}
+        </div>
         <MechBuilder
           initialState={initialState}
           onChange={setBuilderState}
