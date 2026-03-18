@@ -1,7 +1,37 @@
 import { describe, test, expect } from 'bun:test'
-import { getHeatLevel, getHeatColorClass, getUseButtonLabel } from './heatUtils'
+import { getHeatLevel, getHeatColorClass, getUseButtonLabel, clampHeat } from './heatUtils'
 import { buildUseActionResult } from '../hooks/useActivateAction'
 import type { MechRow } from '../types/common'
+
+// ---------------------------------------------------------------------------
+// clampHeat
+// ---------------------------------------------------------------------------
+
+describe('clampHeat', () => {
+  test('returns value unchanged when within bounds', () => {
+    expect(clampHeat(5, 10)).toBe(5)
+  })
+
+  test('clamps to 0 when value is negative', () => {
+    expect(clampHeat(-1, 10)).toBe(0)
+  })
+
+  test('returns 0 when value is 0', () => {
+    expect(clampHeat(0, 10)).toBe(0)
+  })
+
+  test('clamps to heat capacity when value exceeds cap', () => {
+    expect(clampHeat(11, 10)).toBe(10)
+  })
+
+  test('returns heat capacity when value equals cap exactly', () => {
+    expect(clampHeat(10, 10)).toBe(10)
+  })
+
+  test('clamps to 0 when heat cap is 0', () => {
+    expect(clampHeat(5, 0)).toBe(0)
+  })
+})
 
 // ---------------------------------------------------------------------------
 // buildUseActionResult — heatCheckTriggered gate (rules p.234)
