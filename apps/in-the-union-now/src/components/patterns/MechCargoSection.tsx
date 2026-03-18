@@ -3,6 +3,7 @@ import { Text } from 'suref-react'
 import { toast } from 'sonner'
 import { useMech, useMechCargo, useAddMechCargo, useDeleteMechCargo } from '../../hooks/useMechs'
 import { getErrorMessage } from '../../lib/errors'
+import { SalvageModal } from '../pilots/SalvageModal'
 import {
   cargoRowsToGridItems,
   computeGridColumns,
@@ -31,6 +32,7 @@ export function MechCargoSection({ mechId, userId, readOnly }: MechCargoSectionP
   const deleteCargo = useDeleteMechCargo()
 
   const [showLoadModal, setShowLoadModal] = useState(false)
+  const [showSalvageModal, setShowSalvageModal] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null)
 
   const cargoCapacity = mech?.cargo_capacity ?? 0
@@ -151,11 +153,24 @@ export function MechCargoSection({ mechId, userId, readOnly }: MechCargoSectionP
 
   return (
     <div className="space-y-3">
-      <IsolatedStatValue
-        bg="bg-su-green"
-        stats={[{ key: 'cargo', label: 'Cargo Cap', value: usedCapacity, outOfMax: cargoCapacity }]}
-        className="ml-auto"
-      />
+      <div className="flex items-center justify-between">
+        <IsolatedStatValue
+          bg="bg-su-green"
+          stats={[
+            { key: 'cargo', label: 'Cargo Cap', value: usedCapacity, outOfMax: cargoCapacity },
+          ]}
+        />
+        {!readOnly && (
+          <button
+            type="button"
+            onClick={() => setShowSalvageModal(true)}
+            className="inline-flex cursor-pointer items-center gap-1 rounded border border-su-green bg-su-green/10 px-2 py-1 font-mono text-xs font-bold uppercase text-su-black transition-colors hover:bg-su-green/20"
+            aria-label="Open post-combat salvage"
+          >
+            Salvage
+          </button>
+        )}
+      </div>
 
       {/* Grid */}
       {cargoCapacity > 0 && (
@@ -177,6 +192,16 @@ export function MechCargoSection({ mechId, userId, readOnly }: MechCargoSectionP
         onAddCustom={handleAddCustom}
         onAddScrap={handleAddScrap}
         isAdding={addCargo.isPending}
+      />
+
+      {/* Post-combat salvage modal */}
+      <SalvageModal
+        open={showSalvageModal}
+        onOpenChange={setShowSalvageModal}
+        mechId={mechId}
+        userId={userId}
+        currentCargo={cargo ?? []}
+        mechMaxCargo={cargoCapacity}
       />
 
       {/* Delete confirm */}
