@@ -90,7 +90,7 @@ export function buildCombatGuideConfig({
                 onClick={onPush}
                 className="inline-flex cursor-pointer items-center gap-2 border border-su-black bg-su-rust px-4 py-2 font-mono text-sm font-bold uppercase tracking-wide text-su-white transition-colors hover:bg-su-rust/80 active:scale-95"
               >
-                Execute Push — Spend 2 Heat
+                Push — Spend 2 Heat
               </button>
             </div>
           )
