@@ -13,7 +13,9 @@ import { aggregateActions } from '../../lib/aggregateActions'
 import type { ComradeEntry } from '../../lib/comradeUtils'
 import { ActionDisplay } from './ActionDisplay'
 import { HeatCheckModal } from './HeatCheckModal'
+import { PushModal } from './PushModal'
 import { getUseButtonLabel } from '../../lib/heatUtils'
+import { canPush } from '../../lib/pushUtils'
 import {
   getActionDisabledReason,
   getMechActionDisabledReason,
@@ -83,6 +85,7 @@ export function ActionsSection({
 }: ActionsSectionProps) {
   const [heatCheckOpen, setHeatCheckOpen] = useState(false)
   const [heatCheckCurrentHeat, setHeatCheckCurrentHeat] = useState(0)
+  const [pushOpen, setPushOpen] = useState(false)
 
   const isBoarded = pilot.is_boarded
   const { getComradeCurrentEp, updateComradeEp } = useComradeEp({
@@ -350,6 +353,20 @@ export function ActionsSection({
             </FilterRow>
           </div>
           <div className="ml-auto flex shrink-0 items-start gap-2">
+            {!readOnly &&
+              isBoarded &&
+              mech &&
+              canPush(mech.current_heat, mech.heat_capacity) &&
+              userId && (
+                <button
+                  type="button"
+                  onClick={() => setPushOpen(true)}
+                  className="inline-flex items-center gap-1 rounded border border-su-rust/40 bg-su-rust/10 px-2 py-1 text-xs font-semibold text-su-rust transition-colors hover:bg-su-rust/20 shrink-0"
+                >
+                  Push — Heat {mech.current_heat} →{' '}
+                  {Math.min(mech.current_heat + 2, mech.heat_capacity)}
+                </button>
+              )}
             {visibleComrades.map((c) => {
               const maxEp = getComradeMaxEp(c.entity)
               const currentEp = maxEp > 0 ? getComradeCurrentEp(c.entity.id, maxEp) : 0
@@ -399,6 +416,17 @@ export function ActionsSection({
           )}
         />
       </div>
+
+      {mech && userId && (
+        <PushModal
+          open={pushOpen}
+          onOpenChange={setPushOpen}
+          mech={mech}
+          pilot={pilot}
+          mechRefs={mechRefs ?? []}
+          userId={userId}
+        />
+      )}
 
       {mech && userId && (
         <HeatCheckModal
