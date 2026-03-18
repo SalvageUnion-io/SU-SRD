@@ -3,10 +3,12 @@ import {
   isRestoreComplete,
   computeMechRestoreUpdate,
   computePilotRestoreUpdate,
+  computePilotRestoreWithInjuries,
   findRepairableRefs,
 } from './restoreUtils'
 import type { RestoreReceipt } from './restoreUtils'
 import type { MechRow, PilotRow, EntityRefRow } from '../types/common'
+import type { PilotInjury } from './injuryUtils'
 
 function makeMech(overrides: Partial<MechRow> = {}): MechRow {
   return {
@@ -152,7 +154,85 @@ describe('computePilotRestoreUpdate', () => {
     expect(update).toEqual({
       hp: 8,
       ap: 4,
+      keepsake_used: false,
+      background_used: false,
+      motto_used: false,
     })
+  })
+
+  it('resets keepsake_used, background_used, motto_used to false', () => {
+    const pilot = makePilot({
+      keepsake_used: true,
+      background_used: true,
+      motto_used: true,
+    })
+    const update = computePilotRestoreUpdate(pilot)
+    expect(update.keepsake_used).toBe(false)
+    expect(update.background_used).toBe(false)
+    expect(update.motto_used).toBe(false)
+  })
+
+  it('resets used flags even when they were null', () => {
+    const pilot = makePilot({
+      keepsake_used: null,
+      background_used: null,
+      motto_used: null,
+    })
+    const update = computePilotRestoreUpdate(pilot)
+    expect(update.keepsake_used).toBe(false)
+    expect(update.background_used).toBe(false)
+    expect(update.motto_used).toBe(false)
+  })
+})
+
+describe('computePilotRestoreWithInjuries', () => {
+  const minor: PilotInjury = { severity: 'minor', maxHpReduction: 1 }
+  const major: PilotInjury = { severity: 'major', maxHpReduction: 2 }
+
+  it('heals minor injury at TL 3, restores max_hp', () => {
+    const pilot = makePilot({ max_hp: 7, hp: 7, max_ap: 4, ap: 4 })
+    const result = computePilotRestoreWithInjuries(pilot, [minor], 3)
+    expect(result.healedInjuryCount).toBe(1)
+    expect(result.remainingInjuries).toEqual([])
+    expect(result.update.max_hp).toBe(8)
+    expect(result.update.hp).toBe(8)
+  })
+
+  it('does not heal minor injury below TL 3, no max_hp in update', () => {
+    const pilot = makePilot({ max_hp: 7, hp: 7, max_ap: 4, ap: 4 })
+    const result = computePilotRestoreWithInjuries(pilot, [minor], 2)
+    expect(result.healedInjuryCount).toBe(0)
+    expect(result.remainingInjuries).toEqual([minor])
+    expect(result.update.max_hp).toBeUndefined()
+    expect(result.update.hp).toBe(7)
+  })
+
+  it('heals major injury at TL 5', () => {
+    const pilot = makePilot({ max_hp: 6, hp: 6, max_ap: 4, ap: 4 })
+    const result = computePilotRestoreWithInjuries(pilot, [major], 5)
+    expect(result.healedInjuryCount).toBe(1)
+    expect(result.update.max_hp).toBe(8)
+    expect(result.update.hp).toBe(8)
+  })
+
+  it('with no injuries, max_hp is absent from update', () => {
+    const pilot = makePilot({ max_hp: 8, hp: 3, max_ap: 4, ap: 1 })
+    const result = computePilotRestoreWithInjuries(pilot, [], 5)
+    expect(result.healedInjuryCount).toBe(0)
+    expect(result.update.max_hp).toBeUndefined()
+    expect(result.update.hp).toBe(8)
+  })
+
+  it('resets one-time re-roll flags', () => {
+    const pilot = makePilot({
+      keepsake_used: true,
+      background_used: true,
+      motto_used: true,
+    })
+    const result = computePilotRestoreWithInjuries(pilot, [], 3)
+    expect(result.update.keepsake_used).toBe(false)
+    expect(result.update.background_used).toBe(false)
+    expect(result.update.motto_used).toBe(false)
   })
 })
 

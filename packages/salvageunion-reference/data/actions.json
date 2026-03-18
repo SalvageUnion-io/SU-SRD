@@ -7233,7 +7233,8 @@
     "id": "0766ba42-5339-4fae-97bf-5dc3bea32a1f",
     "traits": [
       {
-        "type": "armor"
+        "type": "armor",
+        "amount": 2
       },
       {
         "type": "heavy"
@@ -7657,7 +7658,8 @@
     "id": "43d6fbfd-6fac-4b36-b4ff-833286cad3d7",
     "traits": [
       {
-        "type": "armor"
+        "type": "armor",
+        "amount": 1
       },
       {
         "type": "heavy"

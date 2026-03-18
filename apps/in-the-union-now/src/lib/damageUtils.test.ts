@@ -1,5 +1,10 @@
 import { describe, test, expect } from 'bun:test'
-import { computeDamageCascade, selectRandomTarget, filterDamageableRefs } from './damageUtils'
+import {
+  computeDamageCascade,
+  selectRandomTarget,
+  filterDamageableRefs,
+  getArmorReduction,
+} from './damageUtils'
 import type { EntityRefRow } from '../types/common'
 
 // ---------------------------------------------------------------------------
@@ -203,5 +208,88 @@ describe('selectRandomTarget', () => {
     const result = selectRandomTarget(refs)
     expect(result!.id).toBeDefined()
     expect(typeof result!.id).toBe('string')
+  })
+})
+
+// ---------------------------------------------------------------------------
+// getArmorReduction
+// ---------------------------------------------------------------------------
+
+type TraitLike = { type: string; amount?: number | string }
+type EntityLike = { traits?: TraitLike[]; [key: string]: unknown }
+
+describe('getArmorReduction', () => {
+  test('returns 0 when entity has no traits', () => {
+    expect(getArmorReduction({})).toBe(0)
+  })
+
+  test('returns 0 when entity has no armor trait', () => {
+    const entity: EntityLike = { traits: [{ type: 'hot', amount: 2 }] }
+    expect(getArmorReduction(entity)).toBe(0)
+  })
+
+  test('returns 0 when armor trait has no amount', () => {
+    // e.g. Camo Suit — armor flag with no numeric reduction
+    const entity: EntityLike = { traits: [{ type: 'armor' }] }
+    expect(getArmorReduction(entity)).toBe(0)
+  })
+
+  test('returns numeric armor amount when present', () => {
+    // e.g. Reactive Armour — reduces by 1
+    const entity: EntityLike = { traits: [{ type: 'armor', amount: 1 }] }
+    expect(getArmorReduction(entity)).toBe(1)
+  })
+
+  test('returns higher armor amount for heavy armor', () => {
+    // e.g. Polycarbonate Carapace Armour — reduces by 2
+    const entity: EntityLike = { traits: [{ type: 'armor', amount: 2 }] }
+    expect(getArmorReduction(entity)).toBe(2)
+  })
+
+  test('returns 0 when armor amount is a non-numeric string', () => {
+    const entity: EntityLike = { traits: [{ type: 'armor', amount: 'variable' }] }
+    expect(getArmorReduction(entity)).toBe(0)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// computeDamageCascade with armor
+// ---------------------------------------------------------------------------
+
+describe('computeDamageCascade with armor reduction', () => {
+  test('armor reduces hpDamage when pilot is boarded', () => {
+    // damage 6, SP 10, boarded → rawHpDamage = floor(6/2) = 3, armor 1 → hpDamage = 2
+    const result = computeDamageCascade(10, 6, true, 1)
+    expect(result.hpDamage).toBe(2)
+  })
+
+  test('armor never reduces hpDamage below 1 (minimum 1)', () => {
+    // damage 2, SP 10, boarded → rawHpDamage = floor(2/2) = 1, armor 2 → hpDamage = 1 (min)
+    const result = computeDamageCascade(10, 2, true, 2)
+    expect(result.hpDamage).toBe(1)
+  })
+
+  test('armor does not affect SP damage', () => {
+    const withArmor = computeDamageCascade(10, 6, true, 2)
+    const withoutArmor = computeDamageCascade(10, 6, true, 0)
+    expect(withArmor.newSp).toBe(withoutArmor.newSp)
+  })
+
+  test('armor does not apply when pilot is not boarded', () => {
+    // Not boarded → hpDamage is always 0 regardless of armor
+    const result = computeDamageCascade(10, 6, false, 2)
+    expect(result.hpDamage).toBe(0)
+  })
+
+  test('zero armor behaves the same as no armor', () => {
+    const withZeroArmor = computeDamageCascade(10, 6, true, 0)
+    const withNoArmorParam = computeDamageCascade(10, 6, true)
+    expect(withZeroArmor.hpDamage).toBe(withNoArmorParam.hpDamage)
+  })
+
+  test('armor reduces large hpDamage correctly', () => {
+    // damage 10, SP 20, boarded → rawHpDamage = floor(10/2) = 5, armor 2 → hpDamage = 3
+    const result = computeDamageCascade(20, 10, true, 2)
+    expect(result.hpDamage).toBe(3)
   })
 })

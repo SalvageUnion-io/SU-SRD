@@ -57,11 +57,20 @@ export function canActivateAction(currentHeat: number, heatCost: number, heatCap
 
 /**
  * Determine whether a Heat Check is triggered.
- * Per the rules, a Heat Check triggers whenever heat is gained (newHeat > 0).
- * The caller rolls d20 and compares to current heat after application.
+ * Per rules p.234, a Heat Check triggers when:
+ *  - The mech's heat reaches or exceeds its heat capacity after gaining heat, OR
+ *  - The mech is Pushed (Push always brings heat to capacity, so this is covered
+ *    by the same condition).
+ *
+ * Normal heat gain that stays below capacity does NOT trigger a Heat Check.
  */
-export function shouldTriggerHeatCheck(newHeat: number): boolean {
-  return newHeat > 0
+export function shouldTriggerHeatCheck(
+  currentHeat: number,
+  heatGained: number,
+  heatCapacity: number
+): boolean {
+  if (heatGained <= 0) return false
+  return currentHeat + heatGained >= heatCapacity
 }
 
 /**

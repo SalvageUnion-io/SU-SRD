@@ -56,6 +56,14 @@ type EntityWithTraits = {
 }
 
 /**
+ * Clamp a proposed heat value within valid bounds [0, heatCap].
+ * Used for manual heat adjustment controls.
+ */
+export function clampHeat(value: number, heatCap: number): number {
+  return Math.min(Math.max(0, value), heatCap)
+}
+
+/**
  * Build the label string for a "Use" button based on the heat cost of an entity.
  *
  * - Heat cost N:       "Use (Heat: N)"

@@ -5,6 +5,7 @@ import {
   getClassTrees,
   countAbilitiesByTier,
   meetsPrerequisites,
+  meetsNamedPrerequisites,
   getTrainableAbilities,
   hasReceivedTP,
 } from './trainingUtils'
@@ -151,6 +152,47 @@ describe('meetsPrerequisites', () => {
 
   it('returns true for unknown levels', () => {
     expect(meetsPrerequisites(99, { core: 0, advanced: 0, legendary: 0 })).toBe(true)
+  })
+})
+
+describe('meetsNamedPrerequisites', () => {
+  it('returns true for abilities with no named prerequisites', () => {
+    // "Mech-Tech" is a core ability with no entry in ability-tree-requirements
+    expect(meetsNamedPrerequisites('Mech-Tech', new Set())).toBe(true)
+  })
+
+  it('blocks an ability when its named prerequisite is not learned', () => {
+    // "Advanced Engineer" requires ["Mech-Tech"]
+    expect(meetsNamedPrerequisites('Advanced Engineer', new Set())).toBe(false)
+    expect(meetsNamedPrerequisites('Advanced Engineer', new Set(['Hacking']))).toBe(false)
+  })
+
+  it('allows an ability when its named prerequisite is learned', () => {
+    // "Advanced Engineer" requires ["Mech-Tech"]
+    expect(meetsNamedPrerequisites('Advanced Engineer', new Set(['Mech-Tech']))).toBe(true)
+  })
+
+  it('blocks an ability requiring multiple prerequisites when only some are met', () => {
+    // "Cyborg" requires ["Augmentation", "Gladiatorial Combat"]
+    expect(meetsNamedPrerequisites('Cyborg', new Set(['Augmentation']))).toBe(false)
+    expect(meetsNamedPrerequisites('Cyborg', new Set(['Gladiatorial Combat']))).toBe(false)
+  })
+
+  it('allows an ability when all multiple named prerequisites are learned', () => {
+    // "Cyborg" requires ["Augmentation", "Gladiatorial Combat"]
+    expect(
+      meetsNamedPrerequisites('Cyborg', new Set(['Augmentation', 'Gladiatorial Combat']))
+    ).toBe(true)
+  })
+
+  it('allows a legendary ability when its chain is fully learned', () => {
+    // "Legendary Engineer" requires ["Advanced Engineer"], which requires ["Mech-Tech"]
+    expect(meetsNamedPrerequisites('Legendary Engineer', new Set(['Advanced Engineer']))).toBe(true)
+  })
+
+  it('blocks a legendary ability when intermediate chain ability is missing', () => {
+    // "Legendary Engineer" requires ["Advanced Engineer"] directly
+    expect(meetsNamedPrerequisites('Legendary Engineer', new Set(['Mech-Tech']))).toBe(false)
   })
 })
 

@@ -1,6 +1,8 @@
 import type { EntitySchemaName } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { MechRow, MechUpdate, PilotRow, PilotUpdate, EntityRefRow } from '../types/common'
+import { computeInjuryHealingUpdate } from './injuryUtils'
+import type { PilotInjury } from './injuryUtils'
 
 export type RestoreReceipt = {
   mech_restored: boolean
@@ -23,11 +25,14 @@ export function computeMechRestoreUpdate(mech: MechRow): MechUpdate {
   }
 }
 
-/** Compute pilot update for restore: HP->max, AP->max */
+/** Compute pilot update for restore: HP->max, AP->max, reset one-time re-roll flags */
 export function computePilotRestoreUpdate(pilot: PilotRow): PilotUpdate {
   return {
     hp: pilot.max_hp,
     ap: pilot.max_ap,
+    keepsake_used: false,
+    background_used: false,
+    motto_used: false,
   }
 }
 
@@ -53,4 +58,34 @@ export function findRepairableRefs(refs: EntityRefRow[], crawlerTL: number): str
   }
 
   return repairableIds
+}
+
+/**
+ * Compute pilot update for restore when a Med Bay is available.
+ * Heals injuries appropriate to the Med Bay TL, restores HP to the new max,
+ * and resets one-time re-roll flags.
+ *
+ * - Minor injuries: healed at TL >= 3
+ * - Major injuries: healed at TL >= 5
+ */
+export function computePilotRestoreWithInjuries(
+  pilot: PilotRow,
+  injuries: PilotInjury[],
+  medBayTL: number
+): { update: PilotUpdate; healedInjuryCount: number; remainingInjuries: PilotInjury[] } {
+  const { remainingInjuries, healedCount, maxHpRestored } = computeInjuryHealingUpdate(
+    injuries,
+    pilot.max_hp,
+    medBayTL
+  )
+  const newMaxHp = pilot.max_hp + maxHpRestored
+  const update: PilotUpdate = {
+    hp: newMaxHp,
+    ap: pilot.max_ap,
+    keepsake_used: false,
+    background_used: false,
+    motto_used: false,
+    ...(healedCount > 0 ? { max_hp: newMaxHp } : {}),
+  }
+  return { update, healedInjuryCount: healedCount, remainingInjuries }
 }
