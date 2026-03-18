@@ -1,13 +1,8 @@
 /**
  * salvageUtils.ts — pure utility functions for the post-combat salvage flow.
- *
- * NOTE: resolveRollTable extraction is expected in Story 1B (rollTableUtils.ts).
- * Once 1B merges, the local roll table lookup in resolveSalvageRoll should be
- * consolidated with that shared helper.
- * TODO: consolidate with rollTableUtils.ts once Story 1B merges.
  */
-import { SalvageUnionReference, resultForTable } from 'salvageunion-reference'
 import type { TableRollResult } from 'salvageunion-reference'
+import { resolveRollTable } from './rollTableUtils'
 import { cargoRowsToGridItems, getRemainingCapacity } from './cargoGridUtils'
 import type { CargoRow } from '../types/common'
 
@@ -26,18 +21,18 @@ export function validateSalvageCondition(condition: SalvageCondition): boolean {
 /**
  * Resolves a named salvage roll table and returns the result for the given roll.
  *
- * Calls SalvageUnionReference.RollTables.find by name (as used in HeatCheckModal).
- * TODO: consolidate with rollTableUtils.ts once Story 1B merges.
+ * Delegates to resolveRollTable from rollTableUtils (established in Story 1B)
+ * and adapts the return type to TableRollResult for SalvageModal consumers.
  */
 export function resolveSalvageRoll(
   tableSlug: 'Area Salvage' | 'Mech Salvage',
   roll: number
 ): TableRollResult {
-  const tableEntity = SalvageUnionReference.RollTables.find((t) => t.name === tableSlug)
-  if (!tableEntity || !('table' in tableEntity) || !tableEntity.table) {
+  const resolved = resolveRollTable(tableSlug, roll)
+  if (!resolved) {
     throw new Error(`Salvage roll table not found: ${tableSlug}`)
   }
-  return resultForTable(tableEntity.table, roll)
+  return { success: true, result: resolved, key: `${tableSlug}-${roll}` }
 }
 
 /**
