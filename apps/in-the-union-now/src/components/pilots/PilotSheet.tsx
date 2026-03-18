@@ -405,7 +405,7 @@ export function PilotSheet({
 
     result.push({
       key: 'mech',
-      label: 'Mech',
+      label: mech?.active === false ? 'Mech (Offline)' : 'Mech',
       activeColor: 'rgb(122, 151, 138)',
       content: (
         <PilotMechTab
