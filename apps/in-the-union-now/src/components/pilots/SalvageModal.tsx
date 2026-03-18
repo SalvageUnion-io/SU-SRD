@@ -6,6 +6,7 @@ import { Button } from '../ui/button'
 import { Input } from '../ui/input'
 import { useAddMechCargo } from '../../hooks/useMechs'
 import { resolveSalvageRoll, computeCargoFit } from '../../lib/salvageUtils'
+import type { SalvageType } from '../../lib/salvageUtils'
 import { getEntityId } from '../../lib/entitySelectionUtils'
 import type { CargoRow } from '../../types/common'
 
@@ -21,8 +22,6 @@ type SalvageModalProps = {
   currentCargo: CargoRow[]
   mechMaxCargo: number
 }
-
-type SalvageTypeOption = 'area' | 'mech'
 
 type SalvageResultItem = {
   entity: SURefEntity
@@ -90,7 +89,7 @@ export function SalvageModal({
   mechMaxCargo,
 }: SalvageModalProps) {
   const [phase, setPhase] = useState<SalvagePhase>('select-type')
-  const [salvageType, setSalvageType] = useState<SalvageTypeOption | null>(null)
+  const [salvageType, setSalvageType] = useState<SalvageType | null>(null)
   const [sourceMechLabel, setSourceMechLabel] = useState('')
   const [rollValue, setRollValue] = useState<number | null>(null)
   const [rollInput, setRollInput] = useState('')
@@ -128,7 +127,7 @@ export function SalvageModal({
     onOpenChange(false)
   }, [onOpenChange])
 
-  const handleSelectType = useCallback((type: SalvageTypeOption) => {
+  const handleSelectType = useCallback((type: SalvageType) => {
     setSalvageType(type)
     setPhase('roll')
   }, [])
