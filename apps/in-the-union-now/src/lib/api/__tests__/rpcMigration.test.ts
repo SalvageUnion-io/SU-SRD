@@ -159,6 +159,7 @@ const fakePilot = {
   appearance: null,
   image_path: null,
   in_downtime: false,
+  injuries: null,
   is_boarded: false,
   mech_id: null,
   crawler_id: null,
