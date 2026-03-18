@@ -23,6 +23,7 @@ import {
   useRegenerateInviteCode,
   useArchiveGame,
 } from '../../../../hooks/useGames'
+import { SessionAnchorSection } from '../../../../components/games/SessionAnchorSection'
 import { useCrawler } from '../../../../hooks/useCrawlers'
 import { PlayerCrawlerDisplay } from '../../../../components/games/PlayerCrawlerDisplay'
 import { PlayerPilotDisplay } from '../../../../components/pilots/PlayerPilotDisplay'
@@ -116,7 +117,14 @@ function GameShowPage() {
 
       <CrawlerSection game={game} isMediator={isMed} />
 
-      <MembersSection gameId={gameId} members={members ?? []} isMediator={isMed} />
+      <SessionAnchorSection game={game} isMediator={isMed} crawlerId={game.crawler_id} />
+
+      <MembersSection
+        gameId={gameId}
+        members={members ?? []}
+        isMediator={isMed}
+        crawlerId={game.crawler_id}
+      />
 
       {game.crawler_id && <AssignedPilotsSection crawlerId={game.crawler_id} isMediator={isMed} />}
 
@@ -160,15 +168,27 @@ function MembersSection({
   gameId,
   members,
   isMediator: isMed,
+  crawlerId,
 }: {
   gameId: string
   members: CampaignMemberRow[]
   isMediator: boolean
+  crawlerId: string | null
 }) {
   const user = useCurrentUser()
   const promote = usePromoteMember()
   const demote = useSelfDemote()
   const uninvite = useUninviteMember()
+  const { data: assignedPilots } = usePilotsForCrawler(crawlerId ?? undefined)
+
+  // Build a user_id → callsign lookup so MemberRow can show callsigns instead of UUIDs
+  const pilotCallsignByUserId = useMemo(() => {
+    const lookup: Record<string, string> = {}
+    assignedPilots?.forEach((pilot) => {
+      if (pilot.user_id) lookup[pilot.user_id] = pilot.callsign
+    })
+    return lookup
+  }, [assignedPilots])
 
   const handlePromote = useCallback(
     (userId: string) => {
@@ -225,6 +245,7 @@ function MembersSection({
             onPromote={() => handlePromote(member.user_id)}
             onUninvite={() => handleUninvite(member.user_id)}
             onSelfDemote={handleSelfDemote}
+            pilotCallsign={pilotCallsignByUserId[member.user_id]}
           />
         ))}
         {members.length === 0 && <p className="text-sm text-su-grey-dark">No players yet.</p>}
@@ -241,6 +262,7 @@ const MemberRow = memo(function MemberRow({
   onPromote,
   onUninvite,
   onSelfDemote,
+  pilotCallsign,
 }: {
   member: CampaignMemberRow
   isYou: boolean
@@ -249,6 +271,7 @@ const MemberRow = memo(function MemberRow({
   onPromote: () => void
   onUninvite: () => void
   onSelfDemote: () => void
+  pilotCallsign?: string
 }) {
   const roleColor = member.role === 'mediator' ? 'bg-su-pink/80' : 'bg-su-grey-dark/50'
   const isMemberMediator = member.role === 'mediator'
@@ -257,7 +280,7 @@ const MemberRow = memo(function MemberRow({
     <div className="flex items-center justify-between rounded-md border border-su-grey-light/20 px-3 py-2">
       <div className="flex items-center gap-2">
         <Text variant="pseudoheader" as="span" className="text-sm uppercase">
-          {isYou ? 'You' : `Player ${member.user_id.slice(0, 6)}`}
+          {isYou ? 'You' : (pilotCallsign ?? `Player ${member.user_id.slice(0, 6)}`)}
         </Text>
         <span
           className={`rounded px-1.5 py-0.5 font-mono text-xs uppercase text-su-white/80 ${roleColor}`}
