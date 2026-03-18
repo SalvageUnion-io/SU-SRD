@@ -54,6 +54,9 @@ export function canActivateMechAction(
   epCost: number,
   heatCost: number
 ): string | null {
+  if (mech.active === false) {
+    return 'Mech is shut down'
+  }
   if (!canActivateAction(mech.current_heat, heatCost, mech.heat_capacity)) {
     return `Action blocked: heat cost would exceed heat cap (${mech.current_heat} + ${heatCost} > ${mech.heat_capacity})`
   }
