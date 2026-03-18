@@ -1,8 +1,11 @@
 import { useState, useMemo, useCallback } from 'react'
+import { toast } from 'sonner'
 import { ModalShell, Text } from 'suref-react'
 import { Button } from '../ui/button'
 import { SalvageUnionReference, resultForTable } from 'salvageunion-reference'
 import { useApplyDamage } from '../../hooks/useApplyDamage'
+import { useUpdateMechEntityRef } from '../../hooks/useMechs'
+import { changeLogApi } from '../../lib/api/changeLogApi'
 import { TargetPicker } from './TargetPicker'
 import type { EntityRefRow, MechRow, PilotRow } from '../../types/common'
 
@@ -19,7 +22,7 @@ function rollD20(): number {
  *  - 11–19: core damage (auto-apply SP = current heat)
  *  - 6–10: module destroyed (target picker)
  *  - 2–5: system destroyed (target picker)
- *  - 1: catastrophic meltdown (player handles manually)
+ *  - 1: catastrophic meltdown (all refs marked destroyed)
  */
 type ReactorOverloadCategory = 'miraculous' | 'core-damage' | 'destructive' | 'catastrophic'
 
@@ -57,7 +60,7 @@ type ModalPhase =
  * 2. Roll 20 (miraculous): show text, dismiss.
  * 3. Roll 11–19 (core damage): auto-apply SP damage equal to current heat. Show new SP.
  * 4. Roll 6–10 (module) or 2–5 (system): show text, open target picker for confirmation.
- * 5. Roll 1 (catastrophic): show text, player handles manually.
+ * 5. Roll 1 (catastrophic): show text, player confirms to destroy all mech refs.
  *
  * Non-destructive outcomes (11–19) are auto-applied.
  * Destructive outcomes (6–10, 2–5) always require explicit player confirmation.
@@ -77,6 +80,8 @@ export function HeatCheckModal({
   const [newSpAfterDamage, setNewSpAfterDamage] = useState<number | null>(null)
 
   const { applyDamage, isPending } = useApplyDamage()
+  const updateMechEntityRef = useUpdateMechEntityRef()
+  const [meltdownPending, setMeltdownPending] = useState(false)
 
   // Resolve the Reactor Overload Table once
   const reactorOverloadTable = useMemo(
@@ -160,6 +165,64 @@ export function HeatCheckModal({
   const handleTargetCancel = useCallback(() => {
     setPhase('result-destructive')
   }, [])
+
+  /**
+   * Catastrophic Meltdown — destroy all non-destroyed entity refs on the mech.
+   *
+   * Calls useUpdateMechEntityRef directly (no SP/HP arithmetic needed — this is
+   * mass destruction of all refs). Each mutation is fire-and-forget with a
+   * changeLogApi.log call per ref per ADR-004 (reversible: false).
+   *
+   * Tech debt: replace with apply_mech_damage RPC for true atomicity once the
+   * migration is written and deployed (ADR-007, pre-Option-6 work).
+   */
+  const handleMeltdownConfirm = useCallback(() => {
+    const targets = mechRefs.filter((r) => r.condition !== 'destroyed')
+
+    if (targets.length === 0) {
+      handleDismiss()
+      return
+    }
+
+    setMeltdownPending(true)
+
+    const mechLabel = mech.pattern_name || 'Mech'
+    let completed = 0
+
+    for (const ref of targets) {
+      updateMechEntityRef.mutate(
+        { refId: ref.id, input: { condition: 'destroyed' }, mechId: mech.id },
+        {
+          onSuccess: () => {
+            changeLogApi
+              .log(userId, {
+                targetId: ref.id,
+                targetType: 'entity_ref',
+                action: 'update',
+                field: 'condition',
+                oldValue: ref.condition ?? 'intact',
+                newValue: 'destroyed',
+                description: `${mechLabel} Catastrophic Meltdown: item destroyed`,
+                reversible: false,
+              })
+              .catch(() => {})
+
+            completed += 1
+            if (completed === targets.length) {
+              setMeltdownPending(false)
+              toast.success(
+                `Catastrophic Meltdown — ${targets.length} system${targets.length !== 1 ? 's' : ''} destroyed`
+              )
+              handleDismiss()
+            }
+          },
+          onError: () => {
+            setMeltdownPending(false)
+          },
+        }
+      )
+    }
+  }, [mechRefs, mech, userId, updateMechEntityRef, handleDismiss])
 
   const rollCategoryLabel =
     rollValue !== null ? (
@@ -357,11 +420,20 @@ export function HeatCheckModal({
               )}
             </div>
             <Text as="p" className="text-sm text-su-black/70">
-              Handle the consequences manually using the sheet controls.
+              All mech systems will be marked destroyed.
             </Text>
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" size="sm" onClick={handleDismiss}>
                 Dismiss
+              </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                size="sm"
+                onClick={handleMeltdownConfirm}
+                disabled={meltdownPending}
+              >
+                {meltdownPending ? 'Destroying...' : 'Confirm Meltdown'}
               </Button>
             </div>
           </>

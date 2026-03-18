@@ -219,7 +219,14 @@ export function PilotSheet({
           onChange: (v: number) => editConfig.onUpdateMech({ current_sp: v }),
           canEdit,
         },
-        { key: 'ep', label: 'EP', value: mech.current_ep, outOfMax: mech.max_ep },
+        {
+          key: 'ep',
+          label: 'EP',
+          value: mech.current_ep,
+          outOfMax: mech.max_ep,
+          onChange: (v: number) => editConfig.onUpdateMech({ current_ep: v }),
+          canEdit,
+        },
         {
           key: 'heat',
           label: 'Heat',
