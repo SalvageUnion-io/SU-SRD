@@ -23,11 +23,14 @@ export function computeMechRestoreUpdate(mech: MechRow): MechUpdate {
   }
 }
 
-/** Compute pilot update for restore: HP->max, AP->max */
+/** Compute pilot update for restore: HP->max, AP->max, reset one-time re-roll flags */
 export function computePilotRestoreUpdate(pilot: PilotRow): PilotUpdate {
   return {
     hp: pilot.max_hp,
     ap: pilot.max_ap,
+    keepsake_used: false,
+    background_used: false,
+    motto_used: false,
   }
 }
 
