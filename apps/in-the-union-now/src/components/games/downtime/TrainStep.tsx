@@ -13,6 +13,7 @@ import { useSaveTrainingReceipt } from '../../../hooks/useCrawlers'
 import { useCurrentUser } from '../../../hooks/useCurrentUser'
 import { isPilotBayDamaged } from '../../../lib/bayDamageUtils'
 import { getAbilityCost, countAbilitiesByTier, hasReceivedTP } from '../../../lib/trainingUtils'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import type { TrainingReceipt } from '../../../lib/trainingUtils'
 import { getErrorMessage } from '../../../lib/errors'
 import { getEntityId } from '../../../lib/entitySelectionUtils'
@@ -94,6 +95,17 @@ export function TrainStep({
     return new Set(
       pilotRefs.filter((r) => r.schema_name === 'abilities').map((r) => r.schema_ref_id)
     )
+  }, [pilotRefs])
+
+  const learnedAbilityNames = useMemo(() => {
+    if (!pilotRefs) return new Set<string>()
+    const names = new Set<string>()
+    for (const ref of pilotRefs) {
+      if (ref.schema_name !== 'abilities') continue
+      const ability = SalvageUnionReference.get('abilities', ref.schema_ref_id)
+      if (ability && 'name' in ability) names.add(ability.name as string)
+    }
+    return names
   }, [pilotRefs])
 
   const abilityCounts = useMemo(
@@ -296,6 +308,7 @@ export function TrainStep({
         classRef={pilot.class_ref}
         crawlerTL={crawlerTL}
         existingAbilityIds={existingAbilityIds}
+        learnedAbilityNames={learnedAbilityNames}
         abilityCounts={abilityCounts}
         currentTP={pilot.tp}
         onSelect={handleLearn}
