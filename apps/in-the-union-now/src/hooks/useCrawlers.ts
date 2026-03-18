@@ -321,8 +321,14 @@ export function useSaveTradeRoll() {
 export function useSaveDeteriorationPending() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ recordId, result }: { recordId: string; result: UpkeepResult; crawlerId: string }) =>
-      saveDeteriorationPending(recordId, result),
+    mutationFn: ({
+      recordId,
+      result,
+    }: {
+      recordId: string
+      result: UpkeepResult
+      crawlerId: string
+    }) => saveDeteriorationPending(recordId, result),
     onSuccess: (_, { crawlerId }) => {
       queryClient.invalidateQueries({ queryKey: crawlerKeys.activeDowntime(crawlerId) })
     },
