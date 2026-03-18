@@ -3,8 +3,19 @@ import { ModalShell, Text } from 'suref-react'
 import { Button } from '../ui/button'
 import { computeDamageCascade } from '../../lib/damageUtils'
 import { useApplyDamage } from '../../hooks/useApplyDamage'
+import { useUpdatePilot } from '../../hooks/usePilots'
 import { TargetPicker } from './TargetPicker'
+import {
+  classifyInjuryRoll,
+  createInjuryFromRoll,
+  applyInjuryToMaxHp,
+  getInjuryRollLabel,
+  getInjuryRollDescription,
+  getInjuries,
+} from '../../lib/injuryUtils'
+import type { InjurySeverity, PilotInjury } from '../../lib/injuryUtils'
 import type { EntityRefRow, MechRow, PilotRow } from '../../types/common'
+import type { Json } from '../../types/database-generated.types'
 
 type TakeDamageModalProps = {
   open: boolean
@@ -13,6 +24,100 @@ type TakeDamageModalProps = {
   pilot: PilotRow
   mechRefs: EntityRefRow[]
   userId: string
+}
+
+type CriticalInjuryStepProps = {
+  pilotName: string
+  roll: number | null
+  result: InjurySeverity | null
+  onRoll: () => void
+  onConfirm: () => void
+  onDismiss: () => void
+  isPending: boolean
+}
+
+function CriticalInjuryStep({
+  pilotName,
+  roll,
+  result,
+  onRoll,
+  onConfirm,
+  onDismiss,
+  isPending,
+}: CriticalInjuryStepProps) {
+  const isFatal = result === 'fatal'
+  const hasInjury = result === 'minor' || result === 'major'
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded bg-su-rust/15 px-3 py-2">
+        <Text as="p" className="text-sm font-semibold text-su-rust">
+          {pilotName} reaches 0 HP!
+        </Text>
+        <Text as="p" className="text-xs text-su-rust/80">
+          Roll d20 on the Critical Injury Table (p.241).
+        </Text>
+      </div>
+
+      {roll === null ? (
+        <Button type="button" variant="destructive" className="w-full" onClick={onRoll}>
+          Roll d20
+        </Button>
+      ) : (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between rounded border border-su-black/20 bg-su-black/5 px-3 py-2">
+            <span className="font-mono text-xs uppercase text-su-black/60">Roll Result</span>
+            <span className="font-mono text-2xl font-bold text-su-black">{roll}</span>
+          </div>
+
+          {result && (
+            <div
+              className={`rounded border px-3 py-2 space-y-1 ${
+                isFatal
+                  ? 'border-su-rust bg-su-rust/10'
+                  : hasInjury
+                    ? 'border-su-orange/50 bg-su-orange/10'
+                    : 'border-su-green/50 bg-su-green/10'
+              }`}
+            >
+              <Text
+                as="p"
+                className={`text-sm font-bold ${
+                  isFatal ? 'text-su-rust' : hasInjury ? 'text-su-orange' : 'text-su-green'
+                }`}
+              >
+                {getInjuryRollLabel(result)}
+              </Text>
+              <Text as="p" className="text-xs text-su-black/70">
+                {getInjuryRollDescription(result)}
+              </Text>
+            </div>
+          )}
+
+          <div className="flex justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={onDismiss}
+              disabled={isPending}
+            >
+              Dismiss
+            </Button>
+            <Button
+              type="button"
+              variant={isFatal ? 'destructive' : 'default'}
+              size="sm"
+              onClick={onConfirm}
+              disabled={isPending}
+            >
+              {isPending ? 'Saving...' : isFatal ? 'Mark Fatal' : 'Confirm'}
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
 }
 
 /**
@@ -37,7 +142,11 @@ export function TakeDamageModal({
   const [pendingCascade, setPendingCascade] = useState<ReturnType<
     typeof computeDamageCascade
   > | null>(null)
+  const [showInjuryPrompt, setShowInjuryPrompt] = useState(false)
+  const [injuryRoll, setInjuryRoll] = useState<number | null>(null)
+  const [injuryConfirmed, setInjuryConfirmed] = useState(false)
   const { applyDamage, isPending } = useApplyDamage()
+  const updatePilot = useUpdatePilot()
 
   const isBoarded = pilot.is_boarded && !!mech
 
@@ -49,11 +158,32 @@ export function TakeDamageModal({
     return computeDamageCascade(mech.current_sp, spDamage, isBoarded)
   }, [mech.current_sp, spDamage, isBoarded, hasValidInput])
 
+  const pilotNewHp = useMemo(() => {
+    if (!cascade || !pilot.is_boarded) return pilot.hp ?? 0
+    return Math.max(0, (pilot.hp ?? 0) - cascade.hpDamage)
+  }, [cascade, pilot.hp, pilot.is_boarded])
+
+  const willTriggerInjury = pilot.is_boarded && pilotNewHp === 0 && (pilot.hp ?? 0) > 0
+
+  const injuryRollResult: InjurySeverity | null =
+    injuryRoll !== null ? classifyInjuryRoll(injuryRoll) : null
+
   const handleClose = () => {
     setDamageInput('')
     setShowTargetPicker(false)
     setPendingCascade(null)
+    setShowInjuryPrompt(false)
+    setInjuryRoll(null)
+    setInjuryConfirmed(false)
     onOpenChange(false)
+  }
+
+  const afterApplySuccess = () => {
+    if (willTriggerInjury) {
+      setShowInjuryPrompt(true)
+    } else {
+      handleClose()
+    }
   }
 
   const handleConfirm = () => {
@@ -72,7 +202,7 @@ export function TakeDamageModal({
       userId,
       spDamage,
       cascade,
-      onSuccess: handleClose,
+      onSuccess: afterApplySuccess,
     })
   }
 
@@ -85,8 +215,33 @@ export function TakeDamageModal({
       spDamage,
       cascade: pendingCascade,
       targetRef,
-      onSuccess: handleClose,
+      onSuccess: afterApplySuccess,
     })
+  }
+
+  const handleRollDice = () => {
+    setInjuryRoll(Math.floor(Math.random() * 20) + 1)
+  }
+
+  const handleConfirmInjury = () => {
+    if (injuryRollResult === null) return
+    const injury = createInjuryFromRoll(injuryRollResult)
+    if (!injury) {
+      handleClose()
+      return
+    }
+    const existingInjuries = getInjuries(pilot as { injuries?: PilotInjury[] | null })
+    const newInjuries = [...existingInjuries, injury]
+    const newMaxHp = applyInjuryToMaxHp(pilot.max_hp, injury.severity)
+    setInjuryConfirmed(true)
+    updatePilot.mutate(
+      {
+        pilotId: pilot.id,
+        userId,
+        input: { injuries: newInjuries as unknown as Json, max_hp: newMaxHp },
+      },
+      { onSuccess: handleClose, onSettled: () => setInjuryConfirmed(false) }
+    )
   }
 
   const handleTargetCancel = () => {
@@ -105,7 +260,17 @@ export function TakeDamageModal({
       align="center"
     >
       <div className="space-y-4 p-4">
-        {showTargetPicker && pendingCascade ? (
+        {showInjuryPrompt ? (
+          <CriticalInjuryStep
+            pilotName={pilot.callsign}
+            roll={injuryRoll}
+            result={injuryRollResult}
+            onRoll={handleRollDice}
+            onConfirm={handleConfirmInjury}
+            onDismiss={handleClose}
+            isPending={injuryConfirmed}
+          />
+        ) : showTargetPicker && pendingCascade ? (
           <TargetPicker
             mechRefs={mechRefs}
             onConfirm={handleTargetConfirm}
