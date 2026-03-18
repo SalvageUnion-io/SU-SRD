@@ -227,6 +227,8 @@ export function PilotSheet({
           outOfMax: mech.heat_capacity,
           valueColor: getHeatColorClass(getHeatLevel(mech.current_heat, mech.heat_capacity)),
           ariaLabel: `Heat: ${mech.current_heat} of ${mech.heat_capacity}`,
+          onChange: (v: number) => editConfig.onUpdateMech({ current_heat: v }),
+          canEdit,
         },
       ]
     }
