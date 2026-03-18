@@ -2,6 +2,8 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
 import type { EntityRefRow } from '../types/common'
 
+const abilityTreeRequirements = SalvageUnionReference.AbilityTreeRequirements.all()
+
 export type TrainingReceipt = {
   tp_granted: number
   abilities_learned: Array<{
@@ -90,6 +92,20 @@ export function meetsPrerequisites(
   if (level === 2) return counts.core >= 6
   if (level === 3 || level === 'L') return counts.core >= 6 && counts.advanced >= 3
   return true
+}
+
+/**
+ * Check if a pilot meets named ability prerequisites for a given ability.
+ * Uses ability-tree-requirements data to find required ability names.
+ * Returns true if the ability has no named prerequisites, or all are in learnedAbilityNames.
+ */
+export function meetsNamedPrerequisites(
+  abilityName: string,
+  learnedAbilityNames: Set<string>
+): boolean {
+  const entry = abilityTreeRequirements.find((r) => r.name === abilityName)
+  if (!entry) return true
+  return entry.requirement.every((req) => learnedAbilityNames.has(req))
 }
 
 /**

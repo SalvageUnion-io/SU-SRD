@@ -10,6 +10,7 @@ import {
   getTrainableAbilities,
   getAbilityCost,
   meetsPrerequisites,
+  meetsNamedPrerequisites,
 } from '../../../lib/trainingUtils'
 
 type TrainingAbilityModalProps = {
@@ -18,6 +19,7 @@ type TrainingAbilityModalProps = {
   classRef: string
   crawlerTL: number
   existingAbilityIds: Set<string>
+  learnedAbilityNames: Set<string>
   abilityCounts: { core: number; advanced: number; legendary: number }
   currentTP: number
   onSelect: (entity: SURefEntity) => void
@@ -29,6 +31,7 @@ export function TrainingAbilityModal({
   classRef,
   crawlerTL,
   existingAbilityIds,
+  learnedAbilityNames,
   abilityCounts,
   currentTP,
   onSelect,
@@ -57,6 +60,7 @@ export function TrainingAbilityModal({
         <AbilityList
           abilities={abilities}
           abilityCounts={abilityCounts}
+          learnedAbilityNames={learnedAbilityNames}
           currentTP={currentTP}
           onSelect={onSelect}
         />
@@ -68,11 +72,13 @@ export function TrainingAbilityModal({
 function AbilityList({
   abilities,
   abilityCounts,
+  learnedAbilityNames,
   currentTP,
   onSelect,
 }: {
   abilities: SURefEntity[]
   abilityCounts: { core: number; advanced: number; legendary: number }
+  learnedAbilityNames: Set<string>
   currentTP: number
   onSelect: (entity: SURefEntity) => void
 }) {
@@ -152,7 +158,9 @@ function AbilityList({
             const level = 'level' in entity ? entity.level : 1
             const cost = getAbilityCost(level as number | string)
             const canAfford = currentTP >= cost
-            const prereqMet = meetsPrerequisites(level as number | string, abilityCounts)
+            const prereqMet =
+              meetsPrerequisites(level as number | string, abilityCounts) &&
+              meetsNamedPrerequisites(entity.name, learnedAbilityNames)
             const available = canAfford && prereqMet
 
             const tierLabel = level === 1 ? 'Core' : level === 2 ? 'Adv/Hybrid' : 'Legendary'

@@ -168,7 +168,7 @@ describe('buildUseActionResult', () => {
 
     expect(result.newHeat).toBe(5) // 2 + 3
     expect(result.newEp).toBe(2) // 4 - 2
-    expect(result.heatCheckTriggered).toBe(true) // newHeat > 0
+    expect(result.heatCheckTriggered).toBe(false) // 5 < 10 cap — no trigger
     expect(result.success).toBe(true)
   })
 

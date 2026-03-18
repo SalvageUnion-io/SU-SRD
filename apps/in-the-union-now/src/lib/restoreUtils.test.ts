@@ -152,7 +152,34 @@ describe('computePilotRestoreUpdate', () => {
     expect(update).toEqual({
       hp: 8,
       ap: 4,
+      keepsake_used: false,
+      background_used: false,
+      motto_used: false,
     })
+  })
+
+  it('resets keepsake_used, background_used, motto_used to false', () => {
+    const pilot = makePilot({
+      keepsake_used: true,
+      background_used: true,
+      motto_used: true,
+    })
+    const update = computePilotRestoreUpdate(pilot)
+    expect(update.keepsake_used).toBe(false)
+    expect(update.background_used).toBe(false)
+    expect(update.motto_used).toBe(false)
+  })
+
+  it('resets used flags even when they were null', () => {
+    const pilot = makePilot({
+      keepsake_used: null,
+      background_used: null,
+      motto_used: null,
+    })
+    const update = computePilotRestoreUpdate(pilot)
+    expect(update.keepsake_used).toBe(false)
+    expect(update.background_used).toBe(false)
+    expect(update.motto_used).toBe(false)
   })
 })
 
