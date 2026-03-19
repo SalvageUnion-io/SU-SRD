@@ -2,14 +2,16 @@ import { useNavigate } from '@tanstack/react-router'
 import { Plus } from 'lucide-react'
 import { Button } from '../ui/button'
 import { Skeleton } from '../ui/skeleton'
-import type { PilotRow } from '../../types/common'
+import type { PilotRow, MechRow } from '../../types/common'
 
 type PilotMechSectionProps = {
   pilot: PilotRow
   compact?: boolean
   readOnly?: boolean
-  mech?: { id: string; pattern_name: string | null } | null
+  mech?: Pick<MechRow, 'id' | 'pattern_name' | 'active'> | null
   mechLoading: boolean
+  onShutdown?: () => void
+  onActivate?: () => void
 }
 
 export function PilotMechSection({
@@ -18,6 +20,8 @@ export function PilotMechSection({
   readOnly,
   mech,
   mechLoading,
+  onShutdown,
+  onActivate,
 }: PilotMechSectionProps) {
   const navigate = useNavigate()
 
@@ -48,9 +52,35 @@ export function PilotMechSection({
       ) : mechLoading ? (
         <Skeleton className="h-[40px] rounded-md" />
       ) : mech ? (
-        <p className={`${compact ? 'text-xs' : 'text-sm'} text-su-grey-dark`}>
-          Mech loaded — switch to the Mech tab.
-        </p>
+        <div className="flex flex-col gap-2">
+          <p className={`${compact ? 'text-xs' : 'text-sm'} text-su-grey-dark`}>
+            Mech loaded — switch to the Mech tab.
+          </p>
+          {!readOnly && (
+            <div className="flex gap-2">
+              {mech.active === true && onShutdown && (
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={onShutdown}
+                  className="font-mono text-xs uppercase"
+                >
+                  Shut Down
+                </Button>
+              )}
+              {mech.active === false && onActivate && (
+                <Button
+                  size="sm"
+                  onClick={onActivate}
+                  disabled={pilot.ap < 1}
+                  className="font-mono text-xs uppercase"
+                >
+                  Activate (1 AP)
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
       ) : null}
     </div>
   )

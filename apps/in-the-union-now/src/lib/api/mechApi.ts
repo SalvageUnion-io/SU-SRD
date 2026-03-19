@@ -24,13 +24,13 @@ export async function instantiateMechFromPattern(
     p_user_id: userId,
     p_pilot_id: pilotId,
     p_chassis_ref: input.chassis_ref,
-    p_pattern_name: input.pattern_name ?? null,
+    p_pattern_name: input.pattern_name ?? undefined,
     p_max_sp: stats.max_sp,
     p_max_ep: stats.max_ep,
     p_heat_capacity: stats.heat_capacity,
     p_cargo_capacity: stats.cargo_capacity,
-    p_source_pattern_id: input.source_pattern_id ?? null,
-    p_source_ref_pattern_id: input.source_ref_pattern_id ?? null,
+    p_source_pattern_id: input.source_pattern_id ?? undefined,
+    p_source_ref_pattern_id: input.source_ref_pattern_id ?? undefined,
     p_entity_refs: entityRefs,
   })
 

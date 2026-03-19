@@ -26,6 +26,8 @@ import { ActionsSection } from './ActionsSection'
 import { ComradesSection } from './ComradesSection'
 import { PilotCrawlerTab } from './PilotCrawlerTab'
 import { PilotDowntimeTab } from './PilotDowntimeTab'
+import { CombatGuidesPanel } from './CombatGuidesPanel'
+import { PushModal } from './PushModal'
 import { buildBadgeTextClass, buildChassisBadgeProps } from './pilotDisplayUtils'
 import type { ComradeEntry } from '../../lib/comradeUtils'
 import type { PilotEditConfig } from '../../hooks/usePilotSheet'
@@ -101,6 +103,7 @@ export function PilotSheet({
   const [showDelete, setShowDelete] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [showDamageModal, setShowDamageModal] = useState(false)
+  const [showPushModal, setShowPushModal] = useState(false)
   const [crawlerNameDraft, setCrawlerNameDraft] = useState<string | null>(null)
   const [isImageUploading, setIsImageUploading] = useState(false)
 
@@ -219,7 +222,14 @@ export function PilotSheet({
           onChange: (v: number) => editConfig.onUpdateMech({ current_sp: v }),
           canEdit,
         },
-        { key: 'ep', label: 'EP', value: mech.current_ep, outOfMax: mech.max_ep },
+        {
+          key: 'ep',
+          label: 'EP',
+          value: mech.current_ep,
+          outOfMax: mech.max_ep,
+          onChange: (v: number) => editConfig.onUpdateMech({ current_ep: v }),
+          canEdit,
+        },
         {
           key: 'heat',
           label: 'Heat',
@@ -405,7 +415,7 @@ export function PilotSheet({
 
     result.push({
       key: 'mech',
-      label: 'Mech',
+      label: mech?.active === false ? 'Mech (Offline)' : 'Mech',
       activeColor: 'rgb(122, 151, 138)',
       content: (
         <PilotMechTab
@@ -468,6 +478,27 @@ export function PilotSheet({
         </div>
       ),
     })
+
+    if (isBoarded) {
+      result.push({
+        key: 'procedures',
+        label: 'Procedures',
+        activeColor: 'rgb(122, 151, 138)',
+        borderColor: 'rgb(122, 151, 138)',
+        glowColor: 'rgba(122, 151, 138, 0.5)',
+        content: (
+          <div className={compact ? 'p-3' : 'p-4'}>
+            <CombatGuidesPanel
+              pilot={pilot}
+              mech={mech!}
+              mechRefs={mechRefs ?? []}
+              userId={editConfig?.userId}
+              onPush={editConfig ? () => setShowPushModal(true) : undefined}
+            />
+          </div>
+        ),
+      })
+    }
 
     result.push({
       key: 'crawler',
@@ -727,6 +758,17 @@ export function PilotSheet({
         <TakeDamageModal
           open={showDamageModal}
           onOpenChange={setShowDamageModal}
+          mech={mech}
+          pilot={pilot}
+          mechRefs={mechRefs ?? []}
+          userId={editConfig.userId}
+        />
+      )}
+
+      {editConfig && mech && isBoarded && (
+        <PushModal
+          open={showPushModal}
+          onOpenChange={setShowPushModal}
           mech={mech}
           pilot={pilot}
           mechRefs={mechRefs ?? []}

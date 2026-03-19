@@ -9,7 +9,9 @@ import {
   joinGame,
   regenerateInviteCode,
   archiveGame,
+  updateSessionState,
 } from '../lib/api/gameApi'
+import type { SessionState } from '../lib/sessionStateUtils'
 
 export const gameKeys = {
   all: ['games'] as const,
@@ -104,6 +106,26 @@ export function useArchiveGame() {
   return useMutation({
     mutationFn: ({ gameId, archived }: { gameId: string; archived: boolean }) =>
       archiveGame(gameId, archived),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: gameKeys.lists() })
+      queryClient.setQueryData(gameKeys.detail(data.id), data)
+    },
+  })
+}
+
+export function useUpdateSessionState() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({
+      gameId,
+      existing,
+      patch,
+    }: {
+      gameId: string
+      existing: SessionState | null
+      patch: Partial<SessionState>
+    }) => updateSessionState(gameId, existing, patch),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: gameKeys.lists() })
       queryClient.setQueryData(gameKeys.detail(data.id), data)

@@ -260,6 +260,98 @@ The following rules from the Salvage Union Quick Reference Sheets inform the imp
 
 ---
 
+## Wave 1 Implementation Notes (doc refinement 2026-03-18)
+
+This section documents decisions and patterns that emerged during Wave 1 implementation and were not fully specified in the original architecture doc. Developers should treat these as authoritative for new stories.
+
+### ModalPhase Pattern
+
+Multi-step combat modals use a discriminated union `type ModalPhase = 'idle' | ...` local to each modal component. The canonical example is `HeatCheckModal` (`src/components/pilots/HeatCheckModal.tsx`), which defines:
+
+```typescript
+type ModalPhase =
+  | 'idle'
+  | 'result-miraculous'
+  | 'result-core-damage'
+  | 'result-destructive'
+  | 'result-catastrophic'
+  | 'target-picker'
+```
+
+`PushModal` uses a simpler two-state variant (`'idle' | 'applying'`). `SalvageModal` uses a five-state linear progression (`'select-type' | 'roll' | 'results' | 'select-items' | 'confirm'`).
+
+**Convention:** phase types are always local to the modal file (not shared). Names use kebab-case strings. Phase drives which JSX block renders inside the modal body — one `{phase === 'x' && (...)}` block per phase.
+
+### resolveRollTable Shared Helper
+
+**Location:** `apps/in-the-union-now/src/lib/rollTableUtils.ts`
+
+The `resolveRollTable(tableSlug, roll)` function is the canonical helper for all roll-table lookups that accept a pre-rolled value. It differs from `rollOnTable` in `pilotUtils.ts`, which rolls internally and returns `{ text, roll }`.
+
+```typescript
+function resolveRollTable(
+  tableSlug: string,
+  roll: number
+): { label?: string; value: string } | null
+```
+
+Returns `null` if the table does not exist or no entry matches the roll. All future roll-table resolution with a caller-supplied roll value should use this function, not implement lookup inline.
+
+Story 1B introduced `resolveRollTable`; Story 1C (`salvageUtils.ts`) consumes it immediately. Story 1B consolidation (fb349f9) deduplicated a parallel implementation that briefly existed before the shared helper was extracted.
+
+### Push Pipeline
+
+```
+ActionsSection "Push" button
+  -> PushModal (src/components/pilots/PushModal.tsx)
+     -> computePush(currentHeat, heatCap)   [src/lib/pushUtils.ts]
+        -> clampHeat(...)                    [src/lib/heatUtils.ts]
+        -> shouldTriggerHeatCheck(...)       [salvageunion-reference]
+     -> useUpdateMech mutation (writes current_heat)
+     -> changeLogApi.log (fire-and-forget)
+     -> if heatCheckTriggered: chain into HeatCheckModal
+```
+
+`pushUtils.ts` exports two pure functions: `canPush(currentHeat, heatCap)` and `computePush(currentHeat, heatCap)`. No React, no Supabase. The Push action reuses the existing heat mutation pipeline — it introduces no new DB columns or RPCs.
+
+**Note on rules spec vs. implementation:** The original combat-loop.md (Story 0 section) listed `canPush` as blocking "if the +2 would exceed heat cap." The implementation allows pushing to exactly cap (triggering a heat check), but blocks if already at cap. `canPush` returns `currentHeat < heatCap`. This is the correct interpretation of the rules and supersedes the original spec wording.
+
+### Salvage Pipeline
+
+```
+MechCargoSection "Salvage" button
+  -> SalvageModal (src/components/pilots/SalvageModal.tsx)
+     Phase 1: select-type (Area Salvage | Mech Salvage)
+     Phase 2: roll (d20 entry; manual or app-rolled)
+     Phase 3: results (resolveSalvageRoll -> resolveRollTable -> table entry text)
+     Phase 4: select-items (capacity-validated; greyed + red ring if over capacity)
+     Phase 5: confirm -> useAddMechCargo for each selected item
+```
+
+`salvageUtils.ts` exports three pure functions:
+
+```typescript
+validateSalvageCondition(condition: SalvageCondition): boolean
+// Returns true only for 'intact' or 'damaged' — destroyed mechs cannot be salvaged.
+
+resolveSalvageRoll(
+  tableSlug: 'Area Salvage' | 'Mech Salvage',
+  roll: number
+): TableRollResult
+// Delegates to resolveRollTable; throws if table not found.
+
+computeCargoFit(currentCargo: CargoRow[], mechMaxCargo: number): number
+// Wraps getRemainingCapacity from cargoGridUtils. Does not re-implement capacity math.
+```
+
+The salvage cargo write uses `useAddMechCargo`, not a new API function. Mech Salvage flows attach `source_label` and `encounter_participant_id` metadata to the cargo row. Post-combat salvage is scoped to the `cargo` table only — no `entity_refs` writes.
+
+### deviationUtils.ts — Not Dead Code
+
+`apps/in-the-union-now/src/lib/deviationUtils.ts` has active callers in `PilotMechTab.tsx` (`hasDeviated`, `resolveSourcePatternItems`). It was flagged as potentially dead code during an earlier audit pass. That assessment was incorrect — do not remove it.
+
+---
+
 ## Cross-References
 
 - `docs/adrs/ADR-001-self-service-combat-model.md` — Why honor-system, no turn enforcement

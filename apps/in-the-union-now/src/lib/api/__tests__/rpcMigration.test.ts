@@ -137,6 +137,7 @@ const fakeCampaign = {
   crawler_id: null,
   created_at: '2026-01-01',
   updated_at: '2026-01-01',
+  session_state: null,
 }
 
 const fakePilot = {
@@ -327,7 +328,7 @@ describe('createPilot (RPC)', () => {
     expect(result).toEqual(fakePilot)
   })
 
-  test('passes null for optional fields when not provided', async () => {
+  test('passes undefined for optional fields when not provided', async () => {
     rpcMock.mockResolvedValueOnce({ data: fakePilot, error: null })
 
     const input = {
@@ -340,10 +341,10 @@ describe('createPilot (RPC)', () => {
     await createPilot('user-1', input)
 
     const [, rpcParams] = getRpcCall(0)
-    expect(rpcParams.p_background).toBeNull()
-    expect(rpcParams.p_motto).toBeNull()
-    expect(rpcParams.p_keepsake).toBeNull()
-    expect(rpcParams.p_appearance).toBeNull()
+    expect(rpcParams.p_background).toBeUndefined()
+    expect(rpcParams.p_motto).toBeUndefined()
+    expect(rpcParams.p_keepsake).toBeUndefined()
+    expect(rpcParams.p_appearance).toBeUndefined()
   })
 
   test('throws on RPC error', async () => {
@@ -550,7 +551,7 @@ describe('updateCrawlerWeapon (RPC)', () => {
     expect(rpcParams.p_sort_order).toBe(1)
   })
 
-  test('passes null for old_ref_id when no old ref', async () => {
+  test('passes undefined for old_ref_id when no old ref', async () => {
     rpcMock.mockResolvedValueOnce({ data: null, error: null })
 
     await updateCrawlerWeapon('crawler-1', 'user-1', null, {
@@ -559,7 +560,7 @@ describe('updateCrawlerWeapon (RPC)', () => {
     })
 
     const [, rpcParams] = getRpcCall(0)
-    expect(rpcParams.p_old_ref_id).toBeNull()
+    expect(rpcParams.p_old_ref_id).toBeUndefined()
   })
 
   test('throws on RPC error', async () => {
