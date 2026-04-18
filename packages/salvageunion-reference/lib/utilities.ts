@@ -17,27 +17,12 @@ import type {
 } from './types/index.js'
 import type {
   SURefAbility,
-  SURefBioTitan,
   SURefChassis,
   SURefClass,
-  SURefCrawler,
-  SURefCrawlerBay,
-  SURefCreature,
-  SURefDistance,
-  SURefDrone,
-  SURefEquipment,
-  SURefFaction,
   SURefKeyword,
-  SURefMeld,
   SURefModule,
-  SURefNPC,
   SURefRollTable,
-  SURefSquad,
   SURefSystem,
-  SURefTrait,
-  SURefVehicle,
-  SURefMetaAbilityTreeRequirement,
-  SURefMetaCrawlerTechLevel,
   SURefObjectAdvancedClass,
   SURefObjectFormationMech,
   SURefObjectNpc,
@@ -489,54 +474,6 @@ export function getRecommended(entity: SURefMetaEntity): boolean | undefined {
 }
 
 /**
- * Resolve a creature trait type string (e.g., "burrower") to its full SURefTrait entity
- * @param typeName - The trait type name to look up
- * @returns The matching trait entity or undefined
- */
-export function resolveTraitByType(
-  typeName: string
-): (SURefTrait & { schemaName: 'traits' }) | undefined {
-  return SalvageUnionReference.findIn(
-    'traits',
-    (t) => t.name.toLowerCase() === typeName.toLowerCase()
-  )
-}
-
-/**
- * Resolve a formation mech's chassis name to a full chassis entity
- * @param chassisName - The chassis name to look up
- * @returns The matching chassis entity or undefined
- */
-export function resolveFormationChassis(
-  chassisName: string
-): (SURefChassis & { schemaName: 'chassis' }) | undefined {
-  return SalvageUnionReference.findIn('chassis', (c) => c.name === chassisName)
-}
-
-/**
- * Resolve a formation mech's chassis + pattern name to full chassis entity and pattern data
- * @param chassisName - The chassis name (e.g., "Atlas")
- * @param patternName - The pattern name (e.g., "Bastion" or "Bastion Pattern")
- * @returns The chassis entity and matching pattern, or undefined if not found
- */
-export function resolveFormationPattern(
-  chassisName: string,
-  patternName: string
-): { chassis: SURefChassis & { schemaName: 'chassis' }; pattern: SURefObjectPattern } | undefined {
-  const chassis = resolveFormationChassis(chassisName)
-  if (!chassis) return undefined
-
-  const patterns = getPatterns(chassis)
-  if (!patterns) return undefined
-
-  const normalizedInput = normalizePatternName(patternName)
-  const pattern = patterns.find((p) => normalizePatternName(p.name) === normalizedInput)
-  if (!pattern) return undefined
-
-  return { chassis, pattern }
-}
-
-/**
  * Resolve a formation member to its entity, supporting chassis+pattern and standalone entity types.
  * For chassis: resolves chassis and optionally its pattern.
  * For other schemas (vehicles, drones, squads, npcs): resolves by name.
@@ -549,7 +486,7 @@ export function resolveFormationMember(
   const schemaName = member.schema ?? 'chassis'
 
   if (schemaName === 'chassis') {
-    const chassis = resolveFormationChassis(member.chassis)
+    const chassis = SalvageUnionReference.findIn('chassis', (c) => c.name === member.chassis)
     if (!chassis) return undefined
 
     if (member.pattern) {
@@ -647,39 +584,6 @@ export function isAbility(entity: SURefMetaEntity): entity is SURefAbility {
 }
 
 /**
- * Type guard to check if an entity is a AbilityTreeRequirement
- * @param entity - The entity to check
- * @returns True if the entity is a AbilityTreeRequirement
- */
-export function isAbilityTreeRequirement(
-  entity: SURefMetaEntity
-): entity is SURefMetaAbilityTreeRequirement {
-  return (
-    'id' in entity &&
-    'name' in entity &&
-    'source' in entity &&
-    'page' in entity &&
-    'requirement' in entity
-  )
-}
-
-/**
- * Type guard to check if an entity is a BioTitan
- * @param entity - The entity to check
- * @returns True if the entity is a BioTitan
- */
-export function isBioTitan(entity: SURefMetaEntity): entity is SURefBioTitan {
-  return (
-    'id' in entity &&
-    'name' in entity &&
-    'source' in entity &&
-    'page' in entity &&
-    'structurePoints' in entity &&
-    'actions' in entity
-  )
-}
-
-/**
  * Type guard to check if an entity is a System
  * Note: Systems and Modules share the same schema, so this checks for
  * the presence of required system/module properties
@@ -732,205 +636,11 @@ export function isChassis(entity: SURefMetaEntity): entity is SURefChassis {
 }
 
 /**
- * Type guard to check if an entity is a CrawlerBay
- * @param entity - The entity to check
- * @returns True if the entity is a CrawlerBay
- */
-export function isCrawlerBay(entity: SURefMetaEntity): entity is SURefCrawlerBay {
-  return (
-    'id' in entity &&
-    'name' in entity &&
-    'source' in entity &&
-    'page' in entity &&
-    'damagedEffect' in entity &&
-    'npc' in entity
-  )
-}
-
-/**
- * Type guard to check if an entity is a CrawlerTechLevel
- * @param entity - The entity to check
- * @returns True if the entity is a CrawlerTechLevel
- */
-export function isCrawlerTechLevel(entity: SURefMetaEntity): entity is SURefMetaCrawlerTechLevel {
-  return (
-    'id' in entity &&
-    'name' in entity &&
-    'source' in entity &&
-    'page' in entity &&
-    'techLevel' in entity &&
-    'structurePoints' in entity &&
-    'populationMin' in entity &&
-    'populationMax' in entity
-  )
-}
-
-/**
- * Type guard to check if an entity is a Crawler
- * @param entity - The entity to check
- * @returns True if the entity is a Crawler
- */
-export function isCrawler(entity: SURefMetaEntity): entity is SURefCrawler {
-  return (
-    'id' in entity &&
-    'name' in entity &&
-    'source' in entity &&
-    'page' in entity &&
-    'npc' in entity &&
-    'actions' in entity
-  )
-}
-
-/**
- * Type guard to check if an entity is a Creature
- * @param entity - The entity to check
- * @returns True if the entity is a Creature
- */
-export function isCreature(entity: SURefMetaEntity): entity is SURefCreature {
-  return (
-    'id' in entity &&
-    'name' in entity &&
-    'source' in entity &&
-    'page' in entity &&
-    'hitPoints' in entity
-  )
-}
-
-/**
- * Type guard to check if an entity is a Distance
- * @param entity - The entity to check
- * @returns True if the entity is a Distance
- */
-export function isDistance(entity: SURefMetaEntity): entity is SURefDistance {
-  return 'id' in entity && 'name' in entity && 'source' in entity && 'page' in entity
-}
-
-/**
- * Type guard to check if an entity is a Drone
- * @param entity - The entity to check
- * @returns True if the entity is a Drone
- */
-export function isDrone(entity: SURefMetaEntity): entity is SURefDrone {
-  return 'id' in entity && 'name' in entity && 'source' in entity && 'page' in entity
-}
-
-/**
- * Type guard to check if an entity is a Equipment
- * @param entity - The entity to check
- * @returns True if the entity is a Equipment
- */
-export function isEquipment(entity: SURefMetaEntity): entity is SURefEquipment {
-  return (
-    'id' in entity &&
-    'name' in entity &&
-    'source' in entity &&
-    'page' in entity &&
-    'actions' in entity
-  )
-}
-
-/**
- * Type guard to check if an entity is a Faction
- * @param entity - The entity to check
- * @returns True if the entity is a Faction
- */
-export function isFaction(entity: SURefMetaEntity): entity is SURefFaction {
-  return (
-    'id' in entity &&
-    'name' in entity &&
-    'source' in entity &&
-    'page' in entity &&
-    'goals' in entity &&
-    'assets' in entity &&
-    'weaknesses' in entity
-  )
-}
-
-/**
  * Type guard to check if an entity is a Keyword
  * @param entity - The entity to check
  * @returns True if the entity is a Keyword
  */
 export function isKeyword(entity: SURefMetaEntity): entity is SURefKeyword {
-  return 'id' in entity && 'name' in entity && 'source' in entity && 'page' in entity
-}
-
-/**
- * Type guard to check if an entity is a Meld
- * @param entity - The entity to check
- * @returns True if the entity is a Meld
- */
-export function isMeld(entity: SURefMetaEntity): entity is SURefMeld {
-  return (
-    'id' in entity &&
-    'name' in entity &&
-    'source' in entity &&
-    'page' in entity &&
-    'actions' in entity
-  )
-}
-
-/**
- * Type guard to check if an entity is a NPC
- * @param entity - The entity to check
- * @returns True if the entity is a NPC
- */
-export function isNPC(entity: SURefMetaEntity): entity is SURefNPC {
-  return (
-    'id' in entity &&
-    'name' in entity &&
-    'source' in entity &&
-    'page' in entity &&
-    'hitPoints' in entity
-  )
-}
-
-/**
- * Type guard to check if an entity is a RollTable
- * @param entity - The entity to check
- * @returns True if the entity is a RollTable
- */
-export function isRollTable(entity: SURefMetaEntity): entity is SURefRollTable {
-  return (
-    'id' in entity &&
-    'name' in entity &&
-    'source' in entity &&
-    'page' in entity &&
-    'section' in entity &&
-    'table' in entity
-  )
-}
-
-/**
- * Type guard to check if an entity is a Squad
- * @param entity - The entity to check
- * @returns True if the entity is a Squad
- */
-export function isSquad(entity: SURefMetaEntity): entity is SURefSquad {
-  return (
-    'id' in entity &&
-    'name' in entity &&
-    'source' in entity &&
-    'page' in entity &&
-    'actions' in entity
-  )
-}
-
-/**
- * Type guard to check if an entity is a Trait
- * @param entity - The entity to check
- * @returns True if the entity is a Trait
- */
-export function isTrait(entity: SURefMetaEntity): entity is SURefTrait {
-  return 'id' in entity && 'name' in entity && 'source' in entity && 'page' in entity
-}
-
-/**
- * Type guard to check if an entity is a Vehicle
- * @param entity - The entity to check
- * @returns True if the entity is a Vehicle
- */
-export function isVehicle(entity: SURefMetaEntity): entity is SURefVehicle {
   return 'id' in entity && 'name' in entity && 'source' in entity && 'page' in entity
 }
 
@@ -966,15 +676,6 @@ export function isBaseAdvancedClass(entity: SURefMetaEntity): entity is SURefObj
 }
 
 /**
- * Type guard to check if an entity is an Advanced Class (base class with advancedTree, not a hybrid)
- * @param entity - The entity to check
- * @returns True if the entity is an Advanced Class
- */
-export function isAdvancedClass(entity: SURefMetaEntity): entity is SURefObjectAdvancedClass {
-  return isBaseAdvancedClass(entity) && !('hybrid' in entity && entity.hybrid === true)
-}
-
-/**
  * Type guard to check if an entity is a Hybrid Class
  * Note: This is also exported from helpers.ts, but we keep it here for backwards compatibility
  * @param entity - The entity to check
@@ -990,7 +691,7 @@ export function isHybridClass(entity: SURefMetaEntity): entity is SURefObjectAdv
  * @returns True if the entity is a Core, Advanced, or Hybrid class
  */
 export function isClass(entity: SURefMetaEntity): entity is SURefClass {
-  return isCoreClass(entity) || isAdvancedClass(entity) || isHybridClass(entity)
+  return isCoreClass(entity) || isBaseAdvancedClass(entity)
 }
 
 /**
@@ -1068,23 +769,6 @@ export function getEntityNameFromSystemModule(entity: SURefObjectSystemModule): 
  */
 export function normalizePatternName(patternName: string): string {
   return patternName.replace(/\s+Pattern$/i, '')
-}
-
-/**
- * Find an action by name in an entity
- * @param entity - The entity to search
- * @param name - The action name to find
- * @returns The matching action or undefined
- */
-export function findActionByName(
-  entity: SURefMetaEntity,
-  name: string
-): SURefMetaAction | undefined {
-  const visibleActions = extractVisibleActions(entity)
-  if (!visibleActions || visibleActions.length === 0) {
-    return undefined
-  }
-  return visibleActions.find((action) => action.name === name || action.displayName === name)
 }
 
 /**
