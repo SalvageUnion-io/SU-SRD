@@ -2,8 +2,17 @@ import { supabase } from '../supabase'
 import { handleSupabaseError } from '../errors'
 import { generateInviteCode } from '../gameUtils'
 import { mergeSessionState } from '../sessionStateUtils'
+import { CampaignRowSchema, CampaignMemberRowSchema } from '../validation'
+import { parseDatabaseResult, parseDatabaseResultArray } from './parseDatabaseResult'
 import type { CampaignRow, CampaignMemberRow } from '../../types/common'
 import type { SessionState } from '../sessionStateUtils'
+
+// TODO: migrate remaining `as unknown as` call sites in:
+//   - src/lib/api/crawlerApi.ts
+//   - src/lib/api/mechApi.ts
+//   - src/lib/api/pilotApi.ts
+// This module is the reference implementation for the `parseDatabaseResult`
+// boundary pattern. Schemas live in `src/lib/validation.ts`.
 
 export async function listGames(userId: string, includeArchived = false): Promise<CampaignRow[]> {
   let query = supabase.from('campaign_members').select('campaigns!inner(*)').eq('user_id', userId)
@@ -15,9 +24,10 @@ export async function listGames(userId: string, includeArchived = false): Promis
   const { data, error } = await query.order('campaigns(updated_at)', { ascending: false })
 
   if (error) handleSupabaseError(error)
-  return (data ?? [])
-    .map((row) => (row as unknown as { campaigns: CampaignRow }).campaigns)
-    .filter(Boolean)
+
+  const rows = (data ?? []) as Array<{ campaigns: unknown }>
+  const campaigns = rows.map((row) => row.campaigns).filter((c): c is unknown => Boolean(c))
+  return parseDatabaseResultArray(campaigns, CampaignRowSchema, 'listGames')
 }
 
 export async function getGameById(gameId: string): Promise<CampaignRow> {
@@ -30,7 +40,7 @@ export async function getGameById(gameId: string): Promise<CampaignRow> {
     .single()
 
   if (error) handleSupabaseError(error)
-  return data!
+  return parseDatabaseResult(data, CampaignRowSchema, 'getGameById')
 }
 
 export async function getGameByCrawlerId(crawlerId: string): Promise<CampaignRow | null> {
@@ -43,7 +53,8 @@ export async function getGameByCrawlerId(crawlerId: string): Promise<CampaignRow
     .maybeSingle()
 
   if (error) handleSupabaseError(error)
-  return data
+  if (data === null) return null
+  return parseDatabaseResult(data, CampaignRowSchema, 'getGameByCrawlerId')
 }
 
 export async function getGameMembers(gameId: string): Promise<CampaignMemberRow[]> {
@@ -54,7 +65,7 @@ export async function getGameMembers(gameId: string): Promise<CampaignMemberRow[
     .order('joined_at', { ascending: true })
 
   if (error) handleSupabaseError(error)
-  return data ?? []
+  return parseDatabaseResultArray(data, CampaignMemberRowSchema, 'getGameMembers')
 }
 
 export async function createGame(userId: string, name: string): Promise<CampaignRow> {
@@ -67,7 +78,7 @@ export async function createGame(userId: string, name: string): Promise<Campaign
   })
 
   if (error) handleSupabaseError(error)
-  return data as unknown as CampaignRow
+  return parseDatabaseResult(data, CampaignRowSchema, 'createGame')
 }
 
 export async function deleteGame(gameId: string): Promise<void> {
@@ -82,7 +93,7 @@ export async function joinGame(userId: string, inviteCode: string): Promise<Camp
   })
 
   if (error) handleSupabaseError(error)
-  return data as unknown as CampaignRow
+  return parseDatabaseResult(data, CampaignRowSchema, 'joinGame')
 }
 
 export async function regenerateInviteCode(gameId: string): Promise<string> {
@@ -105,7 +116,7 @@ export async function archiveGame(gameId: string, archived: boolean): Promise<Ca
     .single()
 
   if (error) handleSupabaseError(error)
-  return data!
+  return parseDatabaseResult(data, CampaignRowSchema, 'archiveGame')
 }
 
 export async function updateSessionState(
@@ -122,5 +133,5 @@ export async function updateSessionState(
     .single()
 
   if (error) handleSupabaseError(error)
-  return data!
+  return parseDatabaseResult(data, CampaignRowSchema, 'updateSessionState')
 }
