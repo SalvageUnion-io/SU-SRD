@@ -17,11 +17,14 @@ PROTECTED_PATTERNS=(
   "packages/salvageunion-reference/schemas/*.schema.json"
   "packages/salvageunion-reference/dist/"
   "routeTree.gen.ts"
+  "database-generated.types.ts"
+  "/dist/"
+  "tsconfig.tsbuildinfo"
 )
 
 for pattern in "${PROTECTED_PATTERNS[@]}"; do
   if [[ "$FILE_PATH" == *"$pattern"* ]]; then
-    echo "BLOCKED: $FILE_PATH is auto-generated. For JSON schemas, edit the Zod schemas in lib/schemas/ and run 'bun run build:package'. For dist/, run 'bun run build:package'. For routeTree.gen.ts, TanStack Router generates this automatically." >&2
+    echo "BLOCKED: $FILE_PATH is auto-generated. For JSON schemas, edit the Zod schemas in lib/schemas/ and run 'bun run build:package'. For dist/, run 'bun run build:package'. For routeTree.gen.ts, TanStack Router generates this automatically. For database-generated.types.ts, run the Supabase type generation." >&2
     exit 2
   fi
 done

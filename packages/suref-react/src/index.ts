@@ -29,7 +29,6 @@ export {
   deleteControl,
   navigateControl,
 } from './components/referenceEntity/ReferenceEntityDisplay/referenceEntityControls'
-export { DetailIcon } from './components/referenceEntity/ReferenceEntityDisplay/DetailIcon'
 export { useDetailModal } from './components/referenceEntity/ReferenceEntityDisplay/useDetailModal'
 export { useChassisPatternConfig } from './components/referenceEntity/ReferenceEntityDisplay/useChassisPatternConfig'
 export { getClassSelections } from './components/referenceEntity/ReferenceEntityDisplay/classSelectionUtils'

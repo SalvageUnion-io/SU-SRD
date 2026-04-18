@@ -2,6 +2,13 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Documentation Hub
+
+**Start here for navigation:** [`docs/README.md`](docs/README.md) maps user intent → relevant doc (architecture, ADRs, audit backlog, per-package CLAUDE.md).
+
+- [`docs/audit/AUDIT-BACKLOG.md`](docs/audit/AUDIT-BACKLOG.md) — 69-finding prioritized cleanup backlog (epics + stories). Consult before proposing cleanup/refactor work; it probably already has a story for it.
+- [`docs/adrs/`](docs/adrs/) — architecture decision records. Consult the matching ADR before revisiting a prior decision (e.g. ADR-008 automation boundary before building rules-driven features).
+
 ## Critical Rules
 
 - Do NOT add features, schema changes, or UI elements that were not explicitly requested. Stay strictly within the scope of what the user asked for. If you think something additional would be beneficial, mention it as a suggestion but do not implement it.
@@ -156,3 +163,15 @@ For styling bugs, check Tailwind configuration (@source paths, plugin setup) ear
 
 Pre-commit runs: lint --fix, format, typecheck (parallel).
 Pre-push runs: test, validate:all (parallel).
+
+### Project Skills (`.claude/skills/`)
+
+When to reach for which skill (overlap explained):
+
+- `/build-package` — rebuild `salvageunion-reference` only (TS compile + regenerate `schemas/*.schema.json`). Use after Zod schema or data-file edits.
+- `/generate` — same as above **plus** `validate:all` (IDs, cross-refs, action refs). Use when you've changed JSON data and want integrity checks in one step.
+- `/validate` / `/verify` — run the full CI suite (`lint`, `format`, `typecheck`, `test`, `validate`). Both do the same thing; prefer `/validate`.
+- `/a11y-scan` — WCAG 2.1 AA scan via puppeteer (suref-web).
+- `/commit` — conventional commit with message drafting.
+- `/deploy-bot` — deploy Discord slash commands.
+- `/create-migration` — scaffold + apply a Supabase migration.

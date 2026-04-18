@@ -7,12 +7,12 @@
 
 import { BaseModel, type ModelWithMetadata } from './BaseModel.js'
 import {
-  getDataMaps,
   getLoadedModel,
   isSchemaLoaded,
   loadSchemas,
   resetLoadStateForTesting,
 } from './ModelFactory.js'
+import { extractActions, getChassisAbilities, invalidateActionMap } from './utilities.js'
 import type {
   SURefAbility,
   SURefBioTitan,
@@ -276,89 +276,6 @@ const lazyModelMap: Record<string, LazyModel<unknown>> = {
   'catalog-categories': lazyCatalogCategories as LazyModel<unknown>,
 }
 
-// ---------------------------------------------------------------------------
-// Cached action map — built once after actions are loaded
-// ---------------------------------------------------------------------------
-
-let _actionMap: Map<string, SURefMetaAction> | null = null
-function getActionMapForResolve(): Map<string, SURefMetaAction> {
-  if (_actionMap) return _actionMap
-  const { dataMap } = getDataMaps()
-  const actionsData = dataMap['actions'] as SURefMetaAction[] | undefined
-  if (!actionsData) return new Map()
-  _actionMap = new Map(actionsData.map((a) => [a.name, a]))
-  return _actionMap
-}
-
-/**
- * Resolve actions from an entity's actions array
- * @param entity - The entity to resolve actions from
- * @returns The resolved actions array or undefined
- */
-function resolveActionsArray(entity: SURefMetaEntity): SURefMetaAction[] | undefined {
-  if (!('actions' in entity) || !Array.isArray(entity.actions)) {
-    return undefined
-  }
-
-  const actionNames = entity.actions as string[]
-
-  const actionMap = getActionMapForResolve()
-  if (actionMap.size === 0) {
-    return undefined
-  }
-
-  const resolved: SURefMetaAction[] = []
-  for (const actionName of actionNames) {
-    if (typeof actionName !== 'string') {
-      continue
-    }
-    const action = actionMap.get(actionName)
-    if (action) {
-      resolved.push(action)
-    }
-  }
-
-  return resolved.length > 0 ? resolved : undefined
-}
-
-/**
- * Resolve chassis abilities from a chassis entity
- * @param entity - The entity to resolve chassis abilities from
- * @returns The resolved abilities array or undefined
- */
-function resolveChassisAbilities(entity: SURefMetaEntity): SURefMetaAction[] | undefined {
-  if (!('chassisAbilities' in entity) || !Array.isArray(entity.chassisAbilities)) {
-    return undefined
-  }
-
-  const chassisAbilities = entity.chassisAbilities
-
-  const abilityMap = getActionMapForResolve()
-  if (abilityMap.size === 0) {
-    return undefined
-  }
-
-  const seenIds = new Set<string>()
-  const resolved: SURefMetaAction[] = []
-  for (const abilityName of chassisAbilities) {
-    if (typeof abilityName !== 'string') {
-      continue
-    }
-    const ability = abilityMap.get(abilityName)
-    if (ability) {
-      if (ability.id && seenIds.has(ability.id)) {
-        continue
-      }
-      if (ability.id) {
-        seenIds.add(ability.id)
-      }
-      resolved.push(ability)
-    }
-  }
-
-  return resolved.length > 0 ? resolved : undefined
-}
-
 export type * from './types/index.js'
 
 export { getJsonSchemaDefinition, getAllJsonSchemaDefinitions } from './schemaDefinitions.js'
@@ -535,7 +452,7 @@ export class SalvageUnionReference {
     }
 
     // Invalidate the action map so it is rebuilt with fresh data
-    _actionMap = null
+    invalidateActionMap()
   }
 
   /**
@@ -675,11 +592,7 @@ export class SalvageUnionReference {
    * Resolve actions from any entity that might have actions
    */
   public static resolveActions(entity: SURefMetaEntity): SURefMetaAction[] | undefined {
-    const chassisAbilities = resolveChassisAbilities(entity)
-    if (chassisAbilities) {
-      return chassisAbilities
-    }
-    return resolveActionsArray(entity)
+    return getChassisAbilities(entity) ?? extractActions(entity)
   }
 
   /**

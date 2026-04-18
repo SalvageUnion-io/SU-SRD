@@ -58,6 +58,11 @@ function getActionMap(): Map<string, SURefMetaAction> {
   return _actionMap
 }
 
+/** Clear the cached action map so the next lookup reads fresh data. Called by `preload()`. */
+export function invalidateActionMap(): void {
+  _actionMap = null
+}
+
 // ============================================================================
 // SHARED ENUM TYPES
 // ============================================================================
