@@ -368,15 +368,6 @@ export function getContent(entity: SURefMetaEntity): unknown | undefined {
 }
 
 /**
- * Extract id from an entity
- * @param entity - The entity to extract from
- * @returns The id or undefined
- */
-export function getId(entity: SURefMetaEntity): string | undefined {
-  return 'id' in entity && typeof entity.id === 'string' ? entity.id : undefined
-}
-
-/**
  * Extract name from an entity
  * @param entity - The entity to extract from
  * @returns The name or undefined
