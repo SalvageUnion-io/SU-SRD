@@ -31,7 +31,6 @@ type PilotSheetProps = {
   pilotRefs?: EntityRefRow[]
   mechRefs?: EntityRefRow[]
   mechChassis?: SURefChassis
-  mechLoading?: boolean
   cardColor?: string
   pilotClassName?: string
   pilotClassAssetUrl?: string

@@ -56,7 +56,6 @@ export function HydratedPilotDisplay({
       pilotRefs={sheet.pilotRefs}
       mechRefs={sheet.mechRefs}
       mechChassis={sheet.mechChassis}
-      mechLoading={sheet.mechLoading}
       cardColor={sheet.cardColor}
       pilotClassName={sheet.pilotClassName}
       pilotClassAssetUrl={sheet.pilotClassAssetUrl}
