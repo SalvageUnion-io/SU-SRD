@@ -26,7 +26,7 @@ import {
 import { SessionAnchorSection } from '../../../../components/games/SessionAnchorSection'
 import { useCrawler } from '../../../../hooks/useCrawlers'
 import { PlayerCrawlerDisplay } from '../../../../components/games/PlayerCrawlerDisplay'
-import { PlayerPilotDisplay } from '../../../../components/pilots/PlayerPilotDisplay'
+import { PilotListingCard } from '../../../../components/pilots/PilotListingCard'
 import {
   usePilots,
   usePilotsForCrawler,
@@ -419,10 +419,9 @@ function AssignedPilotsSection({
               : []),
           ]
           return (
-            <PlayerPilotDisplay
+            <PilotListingCard
               key={pilot.id}
               pilot={pilot}
-              listing
               compact
               abilityCount={abilityCounts?.[pilot.id] ?? 0}
               mech={pilot.mech_id ? (mechMap.get(pilot.mech_id) ?? null) : null}
@@ -454,10 +453,9 @@ function AssignedPilotsSection({
               },
             ]
             return (
-              <PlayerPilotDisplay
+              <PilotListingCard
                 key={pilot.id}
                 pilot={pilot}
-                listing
                 compact
                 abilityCount={abilityCounts?.[pilot.id] ?? 0}
                 mech={pilot.mech_id ? (mechMap.get(pilot.mech_id) ?? null) : null}

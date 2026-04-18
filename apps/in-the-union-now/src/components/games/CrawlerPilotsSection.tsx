@@ -3,7 +3,7 @@ import { Text } from 'suref-react'
 import { usePilotsForCrawler, usePilotAbilityCounts } from '../../hooks/usePilots'
 import { useMechMap } from '../../hooks/useMechMap'
 import { Skeleton } from '../ui/skeleton'
-import { PlayerPilotDisplay } from '../pilots/PlayerPilotDisplay'
+import { PilotListingCard } from '../pilots/PilotListingCard'
 
 type CrawlerPilotsSectionProps = {
   crawlerId: string
@@ -36,7 +36,7 @@ export function CrawlerPilotsSection({ crawlerId }: CrawlerPilotsSectionProps) {
         <div className="columns-1 gap-2 space-y-2 md:columns-2">
           {pilots.map((pilot) => (
             <div key={pilot.id} className="break-inside-avoid">
-              <PlayerPilotDisplay
+              <PilotListingCard
                 pilot={pilot}
                 abilityCount={abilityCounts?.[pilot.id] ?? 0}
                 mech={pilot.mech_id ? (mechMap.get(pilot.mech_id) ?? null) : null}

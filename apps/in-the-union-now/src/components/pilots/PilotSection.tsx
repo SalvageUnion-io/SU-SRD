@@ -6,7 +6,7 @@ import { useCurrentUser } from '../../hooks/useCurrentUser'
 import { usePilots, usePilotAbilityCounts } from '../../hooks/usePilots'
 import { useMechMap } from '../../hooks/useMechMap'
 import { Skeleton } from '../ui/skeleton'
-import { PlayerPilotDisplay } from './PlayerPilotDisplay'
+import { PilotCompactCard } from './PilotCompactCard'
 
 export function PilotSection() {
   const user = useCurrentUser()
@@ -41,10 +41,9 @@ export function PilotSection() {
       ) : (
         <div className="flex flex-col gap-2">
           {pilots?.map((pilot) => (
-            <PlayerPilotDisplay
+            <PilotCompactCard
               key={pilot.id}
               pilot={pilot}
-              compact={false}
               abilityCount={abilityCounts?.[pilot.id] ?? 0}
               mech={pilot.mech_id ? (mechMap.get(pilot.mech_id) ?? null) : null}
             />

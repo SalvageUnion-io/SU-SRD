@@ -3,7 +3,8 @@ import { usePilotSheet } from '../../hooks/usePilotSheet'
 import { PageSkeleton } from '../shared/PageSkeleton'
 import { NotFoundState } from '../shared/NotFoundState'
 import { Skeleton } from '../ui/skeleton'
-import { PlayerPilotDisplay } from './PlayerPilotDisplay'
+import { PilotListingCard } from './PilotListingCard'
+import { PilotSheet } from './PilotSheet'
 
 type HydratedPilotDisplayProps = {
   pilotId: string
@@ -28,21 +29,36 @@ export function HydratedPilotDisplay({
     return <NotFoundState message="Pilot not found." />
   }
 
+  if (listing) {
+    return (
+      <PilotListingCard
+        pilot={sheet.pilot}
+        compact={compact}
+        controls={controls}
+        abilityCount={sheet.abilityCount}
+        mech={sheet.mech}
+        cardColor={sheet.cardColor}
+        pilotClassName={sheet.pilotClassName}
+        chassisName={sheet.chassisName}
+        patternName={sheet.patternName}
+      />
+    )
+  }
+
   return (
-    <PlayerPilotDisplay
+    <PilotSheet
       pilot={sheet.pilot}
-      listing={listing}
       compact={compact}
       controls={controls}
       abilityCount={sheet.abilityCount}
       mech={sheet.mech}
+      pilotClass={sheet.pilotClass}
       pilotRefs={sheet.pilotRefs}
       mechRefs={sheet.mechRefs}
       mechChassis={sheet.mechChassis}
       mechLoading={sheet.mechLoading}
       cardColor={sheet.cardColor}
       pilotClassName={sheet.pilotClassName}
-      pilotClass={sheet.pilotClass}
       pilotClassAssetUrl={sheet.pilotClassAssetUrl}
       chassisName={sheet.chassisName}
       patternName={sheet.patternName}
@@ -50,7 +66,7 @@ export function HydratedPilotDisplay({
       crawler={sheet.crawler}
       crawlerTlStats={sheet.crawlerTlStats}
       activeDowntime={sheet.activeDowntime}
-      editConfig={listing ? undefined : sheet.editConfig}
+      editConfig={sheet.editConfig}
     />
   )
 }
