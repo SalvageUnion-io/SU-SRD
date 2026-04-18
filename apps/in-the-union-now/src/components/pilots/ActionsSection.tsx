@@ -1,51 +1,29 @@
-import { useMemo, useState, useEffect, useRef, useCallback } from 'react'
-import type { ReactNode } from 'react'
-import type { SURefEnumSchemaName, SURefChassis } from 'salvageunion-reference'
-import { SalvageUnionReference, getChassisAbilities, getChoices } from 'salvageunion-reference'
-import { ReferenceEntityDisplayTooltip, FilterChip, FilterRow, Text } from 'suref-react'
-import type { ReferenceEntityControl } from 'suref-react'
-import { RotateCcw } from 'lucide-react'
-import { toast } from 'sonner'
-import { IsolatedStatValue } from '../shared/IsolatedStatValue'
-import { getComradeMaxEp } from '../../lib/pilotActionUtils'
-import type { ActionDisplayData } from '../../lib/pilotActionUtils'
+import { useMemo, useState } from 'react'
+import type { SURefChassis } from 'salvageunion-reference'
+import { getChassisAbilities, getChoices } from 'salvageunion-reference'
 import { aggregateActions } from '../../lib/aggregateActions'
+import type { ActionDisplayData } from '../../lib/pilotActionUtils'
 import type { ComradeEntry } from '../../lib/comradeUtils'
-import { ActionDisplay } from './ActionDisplay'
 import { HeatCheckModal } from './HeatCheckModal'
 import { PushModal } from './PushModal'
-import { getUseButtonLabel } from '../../lib/heatUtils'
-import { canPush } from '../../lib/pushUtils'
-import {
-  getActionDisabledReason,
-  getMechActionDisabledReason,
-  getComradeActionDisabledReason,
-  getPilotTraits,
-  getActionsTraits,
-  decrementActionUses,
-  refillActionUses,
-} from '../../lib/actionUsesUtils'
+import { getPilotTraits, getActionsTraits } from '../../lib/actionUsesUtils'
 import { useComradeEp } from '../../hooks/useComradeEp'
 import { usePlayerChoices } from '../../hooks/useComradeChoices'
-import { useActionFilters, ACTION_TYPES, CATEGORY_FILTERS } from '../../hooks/useActionFilters'
-import type { CategoryFilter } from '../../hooks/useActionFilters'
-import type { UseActionResult } from '../../hooks/useActivateAction'
+import { useActionFilters } from '../../hooks/useActionFilters'
 import type {
   EntityRefRow,
   EntityRefUpdate,
-  PilotRow,
   MechRow,
-  PilotUpdate,
   MechUpdate,
+  PilotRow,
+  PilotUpdate,
 } from '../../types/common'
-
-/** Tailwind color classes for category filter chips */
-const CATEGORY_CHIP_COLORS: Record<CategoryFilter, string> = {
-  Pilot: 'bg-su-orange text-su-white',
-  Mech: 'bg-su-green text-su-white',
-  Generic: 'bg-su-pink text-su-white',
-  Comrade: 'bg-su-rust text-su-white',
-}
+import { sortActions } from './actionsSectionUtils'
+import { ActionItem } from './ActionsSection.ActionItem'
+import { ActionsToolbar } from './ActionsSection.Toolbar'
+import { MasonryColumns } from './ActionsSection.MasonryColumns'
+import { useActionHandlers } from './useActionHandlers'
+import type { ActivateActionFn } from './useActionHandlers'
 
 type ActionsSectionProps = {
   pilotRefs: EntityRefRow[]
@@ -61,10 +39,7 @@ type ActionsSectionProps = {
   comrades?: ComradeEntry[]
   onUpdateMech?: (input: Partial<MechUpdate>) => void
   onUpdateMechEntityRef?: (refId: string, input: EntityRefUpdate) => void
-  onUseAction?: (
-    action: ActionDisplayData,
-    variableHeatOverride?: number
-  ) => Promise<UseActionResult & { needsVariableHeatPrompt?: boolean }>
+  onUseAction?: ActivateActionFn
 }
 
 export function ActionsSection({
@@ -145,6 +120,7 @@ export function ActionsSection({
       }
     })
   }, [aggregated.allActions, comradeNameMap])
+
   // Separate trait sets by source — variable-currency actions use the set matching
   // their resolved cost type (mech traits when boarded/EP, pilot traits when not/AP)
   const pilotSourceTraits = useMemo(() => getPilotTraits(pilotRefs), [pilotRefs])
@@ -185,216 +161,51 @@ export function ActionsSection({
     ]
   )
 
-  const handleActionResult = useCallback(
-    (result: { heatCheckTriggered: boolean; newHeat: number }) => {
-      if (result.heatCheckTriggered) {
-        setHeatCheckCurrentHeat(result.newHeat)
+  const { handleUsePilotAction, handleUseMechAction, handleUseComradeAction, handleRefillAction } =
+    useActionHandlers({
+      pilot,
+      pilotRefs,
+      mech,
+      mechRefs,
+      comradeNameMap,
+      getComradeCurrentEp,
+      updateComradeEp,
+      onUpdatePilot,
+      onUpdateEntityRef,
+      onUpdateMech,
+      onUpdateMechEntityRef,
+      onUseAction,
+      onHeatCheckTriggered: (newHeat) => {
+        setHeatCheckCurrentHeat(newHeat)
         setHeatCheckOpen(true)
-      }
-    },
-    []
-  )
-
-  function handleUsePilotAction(action: ActionDisplayData) {
-    // When heat-aware action handler is available, delegate to it
-    if (onUseAction) {
-      onUseAction(action)
-        .then((result) => {
-          if (result.success) handleActionResult(result)
-        })
-        .catch(() => {})
-      return
-    }
-    // Legacy path (no heat management)
-    toast(`${pilot.callsign} used ${action.name}`, {
-      style: { borderColor: action.borderColor, borderWidth: '2px' },
+      },
     })
-    if (action.activationCost !== null) {
-      // Variable-currency actions resolved to EP deduct from mech
-      if (action.costType === 'ep' && mech && onUpdateMech) {
-        onUpdateMech({ current_ep: mech.current_ep - action.activationCost })
-      } else {
-        onUpdatePilot({ ap: pilot.ap - action.activationCost })
-      }
-    }
-    if (action.destroyOnUse && action.entityRefId) {
-      onUpdateEntityRef(action.entityRefId, { condition: 'destroyed' })
-    } else if (action.maxUses !== null && action.entityRefId) {
-      const ref = pilotRefs.find((r) => r.id === action.entityRefId)
-      if (ref) {
-        const newMetadata = decrementActionUses(action.actionName, action.maxUses, ref.metadata)
-        onUpdateEntityRef(action.entityRefId, { metadata: newMetadata })
-      }
-    }
-  }
-
-  function handleUseMechAction(action: ActionDisplayData) {
-    // When heat-aware action handler is available, delegate to it
-    if (onUseAction) {
-      onUseAction(action)
-        .then((result) => {
-          if (result.success) handleActionResult(result)
-        })
-        .catch(() => {})
-      return
-    }
-    // Legacy path (no heat management)
-    if (!mech || !onUpdateMech) return
-    toast(`${mech.pattern_name ?? 'Mech'} used ${action.name}`, {
-      style: { borderColor: action.borderColor, borderWidth: '2px' },
-    })
-    if (action.activationCost !== null) {
-      onUpdateMech({ current_ep: mech.current_ep - action.activationCost })
-    }
-    if (action.destroyOnUse && action.entityRefId) {
-      if (onUpdateMechEntityRef) {
-        onUpdateMechEntityRef(action.entityRefId, { condition: 'destroyed' })
-      }
-    } else if (action.maxUses !== null && action.entityRefId) {
-      if (!mechRefs || !onUpdateMechEntityRef) return
-      const ref = mechRefs.find((r) => r.id === action.entityRefId)
-      if (ref) {
-        const newMetadata = decrementActionUses(action.actionName, action.maxUses, ref.metadata)
-        onUpdateMechEntityRef(action.entityRefId, { metadata: newMetadata })
-      }
-    }
-  }
-
-  function handleUseComradeAction(action: ActionDisplayData) {
-    if (!action.comradeEntity) return
-    const comrade = action.comradeEntity
-    const maxEp = getComradeMaxEp(comrade)
-    const currentEp = getComradeCurrentEp(comrade.id, maxEp)
-    const comradeDisplayName = comradeNameMap.get(comrade.id) || comrade.name
-    toast(`${comradeDisplayName} used ${action.name}`, {
-      style: { borderColor: action.borderColor, borderWidth: '2px' },
-    })
-    if (action.activationCost !== null) {
-      updateComradeEp(
-        comrade.id,
-        Math.max(0, currentEp - action.activationCost),
-        comradeDisplayName
-      )
-    }
-    if (action.destroyOnUse && action.entityRefId) {
-      if (mechRefs && onUpdateMechEntityRef) {
-        onUpdateMechEntityRef(action.entityRefId, { condition: 'destroyed' })
-      }
-    } else if (action.maxUses !== null && action.entityRefId) {
-      // Comrade slot items use mech refs
-      if (mechRefs && onUpdateMechEntityRef) {
-        const ref = mechRefs.find((r) => r.id === action.entityRefId)
-        if (ref) {
-          const newMetadata = decrementActionUses(action.actionName, action.maxUses, ref.metadata)
-          onUpdateMechEntityRef(action.entityRefId, { metadata: newMetadata })
-        }
-      }
-    }
-  }
-
-  function handleRefillAction(action: ActionDisplayData) {
-    if (action.maxUses === null || !action.entityRefId) return
-
-    if (action.source === 'mech') {
-      if (!mechRefs || !onUpdateMechEntityRef) return
-      const ref = mechRefs.find((r) => r.id === action.entityRefId)
-      if (!ref) return
-      const newMetadata = refillActionUses(action.actionName, action.maxUses, ref.metadata)
-      onUpdateMechEntityRef(action.entityRefId, { metadata: newMetadata })
-    } else {
-      const ref = pilotRefs.find((r) => r.id === action.entityRefId)
-      if (!ref) return
-      const newMetadata = refillActionUses(action.actionName, action.maxUses, ref.metadata)
-      onUpdateEntityRef(action.entityRefId, { metadata: newMetadata })
-    }
-    toast(`Refilled ${action.name}`, {
-      style: { borderColor: action.borderColor, borderWidth: '2px' },
-    })
-  }
 
   if (allActions.length === 0) return null
 
   return (
     <div className={compact ? 'space-y-2' : 'space-y-3'}>
       <div>
-        {/* Filter chips + optional EP stat */}
-        <div className="flex items-start gap-2">
-          <div className={compact ? 'flex-1 space-y-1' : 'flex-1 space-y-1.5'}>
-            <FilterRow label="Type">
-              <FilterChip
-                label="All"
-                active={filters.activeTypes.size === 0}
-                onClick={filters.clearTypes}
-              />
-              {ACTION_TYPES.map((type) => (
-                <FilterChip
-                  key={type}
-                  label={type}
-                  active={filters.activeTypes.has(type)}
-                  onClick={() => filters.toggleType(type)}
-                />
-              ))}
-            </FilterRow>
-            <FilterRow label="Source">
-              <FilterChip
-                label="All"
-                active={filters.activeCategories.size === 0}
-                onClick={filters.clearCategories}
-              />
-              {CATEGORY_FILTERS.map((cat) => (
-                <FilterChip
-                  key={cat}
-                  label={cat}
-                  active={filters.activeCategories.has(cat)}
-                  onClick={() => filters.toggleCategory(cat)}
-                  colorClass={CATEGORY_CHIP_COLORS[cat]}
-                />
-              ))}
-            </FilterRow>
-          </div>
-          <div className="ml-auto flex shrink-0 items-start gap-2">
-            {!readOnly &&
-              isBoarded &&
-              mech &&
-              canPush(mech.current_heat, mech.heat_capacity) &&
-              userId && (
-                <button
-                  type="button"
-                  onClick={() => setPushOpen(true)}
-                  className="inline-flex items-center gap-1 rounded border border-su-rust/40 bg-su-rust/10 px-2 py-1 text-xs font-semibold text-su-rust transition-colors hover:bg-su-rust/20 shrink-0"
-                >
-                  Push — Heat {mech.current_heat} →{' '}
-                  {Math.min(mech.current_heat + 2, mech.heat_capacity)}
-                </button>
-              )}
-            {visibleComrades.map((c) => {
-              const maxEp = getComradeMaxEp(c.entity)
-              const currentEp = maxEp > 0 ? getComradeCurrentEp(c.entity.id, maxEp) : 0
-              if (maxEp <= 0) return null
-              return (
-                <IsolatedStatValue
-                  key={c.entity.id}
-                  label={comradeNameMap.get(c.entity.id) || c.entity.name}
-                  bg="bg-su-rust"
-                  stats={[{ key: 'ep', label: 'EP', value: currentEp, outOfMax: maxEp }]}
-                  className="shrink-0"
-                />
-              )
-            })}
-            <IsolatedStatValue
-              label="Pilot"
-              stats={[{ key: 'ap', label: 'AP', value: pilot.ap, outOfMax: pilot.max_ap }]}
-              className="shrink-0"
-            />
-          </div>
-        </div>
+        <ActionsToolbar
+          filters={filters}
+          pilot={pilot}
+          mech={mech}
+          userId={userId}
+          readOnly={readOnly}
+          isBoarded={isBoarded}
+          compact={compact}
+          visibleComrades={visibleComrades}
+          comradeNameMap={comradeNameMap}
+          getComradeCurrentEp={getComradeCurrentEp}
+          onPushClick={() => setPushOpen(true)}
+        />
 
         {/* Actions masonry — round-robin into columns for horizontal reading order */}
         <MasonryColumns
           items={sortedActions}
           gap={compact ? 'gap-1.5' : 'gap-2'}
           className={compact ? 'mt-1.5' : 'mt-2'}
-          renderItem={(action) => (
+          renderItem={(action: ActionDisplayData) => (
             <ActionItem
               key={action.key}
               action={action}
@@ -439,367 +250,6 @@ export function ActionsSection({
           userId={userId}
         />
       )}
-    </div>
-  )
-}
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-type ComradeEpGetter = (entityId: string, maxEp: number) => number
-
-function computeDisabledReason(
-  action: ActionDisplayData,
-  pilot: PilotRow,
-  mech: MechRow | null | undefined,
-  pilotSourceTraits: Set<string>,
-  mechSourceTraits: Set<string>,
-  comradeEpGetter?: ComradeEpGetter
-): string | null {
-  if (action.condition === 'destroyed') return 'System Destroyed'
-
-  // Comrade actions check the comrade's own EP
-  if (action.costType === 'comrade-ep' && action.comradeEntity && comradeEpGetter) {
-    const maxEp = getComradeMaxEp(action.comradeEntity)
-    const currentEp = comradeEpGetter(action.comradeEntity.id, maxEp)
-    return getComradeActionDisabledReason({
-      activationCost: action.activationCost,
-      comradeCurrentEp: currentEp,
-      usesRemaining: action.usesRemaining,
-      maxUses: action.maxUses,
-    })
-  }
-
-  if (action.source === 'mech' && !action.isComrade) {
-    if (!mech) return 'No mech'
-    return getMechActionDisabledReason({
-      action: {
-        activationCost: action.activationCost,
-      },
-      mech,
-      usesRemaining: action.usesRemaining,
-      maxUses: action.maxUses,
-    })
-  }
-
-  // Variable-currency actions resolved to EP use mech traits; otherwise pilot traits
-  const traits = action.costType === 'ep' ? mechSourceTraits : pilotSourceTraits
-
-  return getActionDisabledReason({
-    action: {
-      activationCost: action.activationCost,
-      requiredTraits: action.requiredTraits,
-    },
-    pilot,
-    pilotTraits: traits,
-    usesRemaining: action.usesRemaining,
-    maxUses: action.maxUses,
-    costType: action.costType,
-    mech,
-  })
-}
-
-/** Sort tier: 0 = active+matching, 1 = inactive+matching, 2 = non-matching */
-function actionSortTier(
-  action: ActionDisplayData,
-  checkMatch: (action: ActionDisplayData) => boolean,
-  hasActiveFilters: boolean,
-  pilot: PilotRow,
-  mech: MechRow | null | undefined,
-  pilotSourceTraits: Set<string>,
-  mechSourceTraits: Set<string>,
-  comradeEpGetter?: ComradeEpGetter
-): number {
-  const matches = !hasActiveFilters || checkMatch(action)
-  if (!matches) return 2
-
-  const gameDisabled =
-    (action.source === 'mech' && !action.isComrade && !pilot.is_boarded) ||
-    computeDisabledReason(
-      action,
-      pilot,
-      mech,
-      pilotSourceTraits,
-      mechSourceTraits,
-      comradeEpGetter
-    ) !== null
-  return gameDisabled ? 1 : 0
-}
-
-function sortActions(
-  actions: ActionDisplayData[],
-  checkMatch: (action: ActionDisplayData) => boolean,
-  hasActiveFilters: boolean,
-  pilot: PilotRow,
-  mech: MechRow | null | undefined,
-  pilotSourceTraits: Set<string>,
-  mechSourceTraits: Set<string>,
-  comradeEpGetter?: ComradeEpGetter
-): ActionDisplayData[] {
-  return [...actions].sort((a, b) => {
-    const aTier = actionSortTier(
-      a,
-      checkMatch,
-      hasActiveFilters,
-      pilot,
-      mech,
-      pilotSourceTraits,
-      mechSourceTraits,
-      comradeEpGetter
-    )
-    const bTier = actionSortTier(
-      b,
-      checkMatch,
-      hasActiveFilters,
-      pilot,
-      mech,
-      pilotSourceTraits,
-      mechSourceTraits,
-      comradeEpGetter
-    )
-    if (aTier !== bTier) return aTier - bTier
-    return a.name.localeCompare(b.name)
-  })
-}
-
-function findTraitEntity(
-  traitName: string
-): { id: string; schemaName: SURefEnumSchemaName } | null {
-  const entity = SalvageUnionReference.findIn(
-    'traits',
-    (t) => t.name.toLowerCase() === traitName.toLowerCase()
-  )
-  return entity ? { id: entity.id, schemaName: 'traits' as SURefEnumSchemaName } : null
-}
-
-function buildFooterMessage(
-  disabledReason: string,
-  action: ActionDisplayData,
-  onRefill?: () => void
-): ReactNode {
-  const missingTrait = action.requiredTraits.find((trait) =>
-    disabledReason.toLowerCase().includes(trait.toLowerCase())
-  )
-
-  if (missingTrait) {
-    const traitEntity = findTraitEntity(missingTrait)
-    const displayName = missingTrait.charAt(0).toUpperCase() + missingTrait.slice(1)
-    const traitLabel = (
-      <Text variant="pseudoheader" as="span" className="text-xs uppercase">
-        {displayName}
-      </Text>
-    )
-
-    return (
-      <>
-        Requires Trait:{' '}
-        {traitEntity ? (
-          <ReferenceEntityDisplayTooltip
-            schemaName={traitEntity.schemaName}
-            entityId={traitEntity.id}
-            openDelay={300}
-          >
-            {traitLabel}
-          </ReferenceEntityDisplayTooltip>
-        ) : (
-          traitLabel
-        )}
-      </>
-    )
-  }
-
-  if (onRefill) {
-    return (
-      <span className="flex items-center gap-1.5">
-        {disabledReason}
-        <button
-          type="button"
-          onClick={onRefill}
-          className="inline-flex cursor-pointer items-center gap-0.5 rounded bg-su-black px-1.5 py-0.5 font-mono text-xs text-su-white transition-opacity hover:opacity-80"
-          aria-label="Refill uses"
-        >
-          <RotateCcw className="h-3 w-3" />
-          Refill
-        </button>
-      </span>
-    )
-  }
-
-  return disabledReason
-}
-
-// ---------------------------------------------------------------------------
-// Sub-components
-// ---------------------------------------------------------------------------
-
-type ActionItemProps = {
-  action: ActionDisplayData
-  pilot: PilotRow
-  mech?: MechRow | null
-  mechId?: string
-  mechRefs?: EntityRefRow[]
-  pilotSourceTraits: Set<string>
-  mechSourceTraits: Set<string>
-  readOnly: boolean
-  isBoarded: boolean
-  filteredOut?: boolean
-  comradeEpGetter?: ComradeEpGetter
-  onUsePilot: (action: ActionDisplayData) => void
-  onUseMech: (action: ActionDisplayData) => void
-  onUseComrade: (action: ActionDisplayData) => void
-  onRefill: (action: ActionDisplayData) => void
-}
-
-function ActionItem({
-  action,
-  pilot,
-  mech,
-  mechId,
-  mechRefs,
-  pilotSourceTraits,
-  mechSourceTraits,
-  readOnly,
-  isBoarded,
-  filteredOut,
-  comradeEpGetter,
-  onUsePilot,
-  onUseMech,
-  onUseComrade,
-  onRefill,
-}: ActionItemProps) {
-  const isComradeAction = action.costType === 'comrade-ep'
-  const isMechAction = action.source === 'mech' && !isComradeAction
-  const mechUnboarded = isMechAction && !isBoarded
-
-  const disabledReason = mechUnboarded
-    ? 'Embark your mech to use'
-    : computeDisabledReason(
-        action,
-        pilot,
-        mech,
-        pilotSourceTraits,
-        mechSourceTraits,
-        comradeEpGetter
-      )
-
-  const isDisabled = !!disabledReason || !!filteredOut
-
-  const controls: ReferenceEntityControl[] = []
-  const isPassive = action.actionType === 'Passive'
-  const passiveWithUses = isPassive && (action.maxUses !== null || action.destroyOnUse)
-  const useLabel = getUseButtonLabel(
-    action.sourceEntity as {
-      traits?: Array<{ type: string; amount?: number | string }>
-      [key: string]: unknown
-    }
-  )
-  if (!readOnly && !mechUnboarded && !filteredOut && (!isPassive || passiveWithUses)) {
-    controls.push({
-      key: 'use',
-      label: useLabel,
-      ariaLabel: 'Use action',
-      variant: 'primary',
-      disabled: !!disabledReason,
-      onClick: () => {
-        if (isComradeAction) {
-          onUseComrade(action)
-        } else if (isMechAction) {
-          onUseMech(action)
-        } else {
-          onUsePilot(action)
-        }
-      },
-    })
-  }
-
-  const canRefill =
-    !readOnly &&
-    !mechUnboarded &&
-    !filteredOut &&
-    disabledReason === 'Out of uses' &&
-    action.entityRefId &&
-    action.maxUses !== null
-
-  const footerMessage = disabledReason
-    ? buildFooterMessage(disabledReason, action, canRefill ? () => onRefill(action) : undefined)
-    : undefined
-
-  return (
-    <ActionDisplay
-      data={action}
-      controls={controls}
-      disabled={isDisabled}
-      footerMessage={footerMessage}
-      mechId={mechId}
-      mechRefs={mechRefs}
-    />
-  )
-}
-
-// ---------------------------------------------------------------------------
-// Masonry layout — round-robin distribution for horizontal reading order
-// ---------------------------------------------------------------------------
-
-const BREAKPOINTS = [
-  { min: 1280, cols: 4 }, // xl
-  { min: 1024, cols: 3 }, // lg
-  { min: 640, cols: 2 }, // sm
-] as const
-
-function useColumnCount(ref: React.RefObject<HTMLDivElement | null>): number {
-  const [cols, setCols] = useState(1)
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    const ro = new ResizeObserver(([entry]) => {
-      const w = entry!.contentRect.width
-      let next = 1
-      for (const bp of BREAKPOINTS) {
-        if (w >= bp.min) {
-          next = bp.cols
-          break
-        }
-      }
-      setCols(next)
-    })
-    ro.observe(el)
-    return () => ro.disconnect()
-  }, [ref])
-  return cols
-}
-
-function MasonryColumns<T extends { key: string }>({
-  items,
-  gap,
-  className,
-  renderItem,
-}: {
-  items: T[]
-  gap: string
-  className?: string
-  renderItem: (item: T) => ReactNode
-}) {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const cols = useColumnCount(containerRef)
-
-  const columns = useMemo(() => {
-    const buckets: T[][] = Array.from({ length: cols }, () => [])
-    for (let i = 0; i < items.length; i++) {
-      buckets[i % cols]!.push(items[i]!)
-    }
-    return buckets
-  }, [items, cols])
-
-  return (
-    <div ref={containerRef} className={`flex ${gap} ${className ?? ''}`}>
-      {columns.map((col, ci) => (
-        <div key={ci} className={`flex flex-1 flex-col ${gap}`}>
-          {col.map((item) => (
-            <div key={item.key}>{renderItem(item)}</div>
-          ))}
-        </div>
-      ))}
     </div>
   )
 }
