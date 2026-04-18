@@ -8,7 +8,7 @@ import type { EntityRefRow, MechRow, PilotRow } from '../../types/common'
 
 type ComradeEpGetter = (entityId: string, maxEp: number) => number
 
-export type ActionItemProps = {
+type ActionItemProps = {
   action: ActionDisplayData
   pilot: PilotRow
   mech?: MechRow | null

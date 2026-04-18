@@ -18,7 +18,7 @@ export type ActivateActionFn = (
   variableHeatOverride?: number
 ) => Promise<UseActionResult & { needsVariableHeatPrompt?: boolean }>
 
-export type UseActionHandlersInput = {
+type UseActionHandlersInput = {
   pilot: PilotRow
   pilotRefs: EntityRefRow[]
   mech?: MechRow | null
@@ -34,7 +34,7 @@ export type UseActionHandlersInput = {
   onHeatCheckTriggered: (newHeat: number) => void
 }
 
-export type UseActionHandlersResult = {
+type UseActionHandlersResult = {
   handleUsePilotAction: (action: ActionDisplayData) => void
   handleUseMechAction: (action: ActionDisplayData) => void
   handleUseComradeAction: (action: ActionDisplayData) => void

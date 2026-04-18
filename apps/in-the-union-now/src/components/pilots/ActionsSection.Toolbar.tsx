@@ -17,7 +17,7 @@ const CATEGORY_CHIP_COLORS: Record<CategoryFilter, string> = {
   Comrade: 'bg-su-rust text-su-white',
 }
 
-export type ActionsToolbarProps = {
+type ActionsToolbarProps = {
   filters: UseActionFiltersReturn
   pilot: PilotRow
   mech?: MechRow | null
