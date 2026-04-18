@@ -7,13 +7,6 @@ import { parseDatabaseResult, parseDatabaseResultArray } from './parseDatabaseRe
 import type { CampaignRow, CampaignMemberRow } from '../../types/common'
 import type { SessionState } from '../sessionStateUtils'
 
-// TODO: migrate remaining `as unknown as` call sites in:
-//   - src/lib/api/crawlerApi.ts
-//   - src/lib/api/mechApi.ts
-//   - src/lib/api/pilotApi.ts
-// This module is the reference implementation for the `parseDatabaseResult`
-// boundary pattern. Schemas live in `src/lib/validation.ts`.
-
 export async function listGames(userId: string, includeArchived = false): Promise<CampaignRow[]> {
   let query = supabase.from('campaign_members').select('campaigns!inner(*)').eq('user_id', userId)
 

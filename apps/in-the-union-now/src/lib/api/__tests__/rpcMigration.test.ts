@@ -593,13 +593,15 @@ const fakeDowntimeRow = {
   customise_acknowledged: null,
   rumour_receipts: null,
   trade_result: null,
+  trade_roll_key: null,
+  trade_roll_value: null,
+  deterioration_pending: null,
   upkeep_paid: false,
   upkeep_result: null,
   closed_at: null,
   pre_session_started: false,
   user_id: 'user-1',
   created_at: '2026-01-01',
-  updated_at: '2026-01-01',
 }
 
 describe('saveOffloadReceipt (merge RPC)', () => {

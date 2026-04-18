@@ -1,6 +1,8 @@
 import { supabase } from '../supabase'
 import { handleSupabaseError } from '../errors'
 import { computeMechStatsFromRef, patternItemsToEntityRefs } from '../mechUtils'
+import { MechRowSchema, EntityRefRowSchema } from '../validation'
+import { parseDatabaseResult, parseDatabaseResultArray } from './parseDatabaseResult'
 import type {
   MechRow,
   MechUpdate,
@@ -35,7 +37,7 @@ export async function instantiateMechFromPattern(
   })
 
   if (error) handleSupabaseError(error)
-  return data as unknown as MechRow
+  return parseDatabaseResult(data, MechRowSchema, 'instantiateMechFromPattern')
 }
 
 export async function updateMech(mechId: string, input: MechUpdate): Promise<MechRow> {
@@ -47,7 +49,7 @@ export async function updateMech(mechId: string, input: MechUpdate): Promise<Mec
     .single()
 
   if (error) handleSupabaseError(error)
-  return data!
+  return parseDatabaseResult(data, MechRowSchema, 'updateMech')
 }
 
 export async function getMechById(mechId: string): Promise<MechRow> {
@@ -60,7 +62,7 @@ export async function getMechById(mechId: string): Promise<MechRow> {
     .single()
 
   if (error) handleSupabaseError(error)
-  return data!
+  return parseDatabaseResult(data, MechRowSchema, 'getMechById')
 }
 
 export async function getMechEntityRefs(mechId: string): Promise<EntityRefRow[]> {
@@ -74,7 +76,7 @@ export async function getMechEntityRefs(mechId: string): Promise<EntityRefRow[]>
     .order('sort_order', { ascending: true })
 
   if (error) handleSupabaseError(error)
-  return data ?? []
+  return parseDatabaseResultArray(data, EntityRefRowSchema, 'getMechEntityRefs')
 }
 
 export async function updateMechEntityRefs(

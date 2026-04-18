@@ -2,6 +2,8 @@ import { PILOT_DEFAULTS } from 'salvageunion-reference'
 import { supabase } from '../supabase'
 import { handleSupabaseError } from '../errors'
 import { abilityToEntityRef, equipmentToEntityRefs } from '../entityRefUtils'
+import { PilotRowSchema, EntityRefRowSchema } from '../validation'
+import { parseDatabaseResult, parseDatabaseResultArray } from './parseDatabaseResult'
 import type { PilotRow, EntityRefRow, PilotUpdate } from '../../types/common'
 import type { CreatePilotInput } from '../../types/common'
 
@@ -15,7 +17,7 @@ export async function listPilots(userId: string): Promise<PilotRow[]> {
     .order('updated_at', { ascending: false })
 
   if (error) handleSupabaseError(error)
-  return data ?? []
+  return parseDatabaseResultArray(data, PilotRowSchema, 'listPilots')
 }
 
 export async function getPilotById(pilotId: string): Promise<PilotRow> {
@@ -28,7 +30,7 @@ export async function getPilotById(pilotId: string): Promise<PilotRow> {
     .single()
 
   if (error) handleSupabaseError(error)
-  return data!
+  return parseDatabaseResult(data, PilotRowSchema, 'getPilotById')
 }
 
 export async function createPilot(userId: string, input: CreatePilotInput): Promise<PilotRow> {
@@ -55,7 +57,7 @@ export async function createPilot(userId: string, input: CreatePilotInput): Prom
   })
 
   if (error) handleSupabaseError(error)
-  return data as unknown as PilotRow
+  return parseDatabaseResult(data, PilotRowSchema, 'createPilot')
 }
 
 export async function updatePilot(pilotId: string, input: PilotUpdate): Promise<PilotRow> {
@@ -67,7 +69,7 @@ export async function updatePilot(pilotId: string, input: PilotUpdate): Promise<
     .single()
 
   if (error) handleSupabaseError(error)
-  return data!
+  return parseDatabaseResult(data, PilotRowSchema, 'updatePilot')
 }
 
 export async function deletePilot(pilotId: string): Promise<void> {
@@ -105,7 +107,7 @@ export async function getPilotEntityRefs(pilotId: string): Promise<EntityRefRow[
     .order('sort_order', { ascending: true })
 
   if (error) handleSupabaseError(error)
-  return data ?? []
+  return parseDatabaseResultArray(data, EntityRefRowSchema, 'getPilotEntityRefs')
 }
 
 export async function listPilotsByCrawlerId(crawlerId: string): Promise<PilotRow[]> {
@@ -118,7 +120,7 @@ export async function listPilotsByCrawlerId(crawlerId: string): Promise<PilotRow
     .order('callsign', { ascending: true })
 
   if (error) handleSupabaseError(error)
-  return data ?? []
+  return parseDatabaseResultArray(data, PilotRowSchema, 'listPilotsByCrawlerId')
 }
 
 export async function assignPilotToCrawler(
@@ -133,5 +135,5 @@ export async function assignPilotToCrawler(
     .single()
 
   if (error) handleSupabaseError(error)
-  return data!
+  return parseDatabaseResult(data, PilotRowSchema, 'assignPilotToCrawler')
 }

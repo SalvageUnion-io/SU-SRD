@@ -2,6 +2,12 @@ import { SalvageUnionReference, getMaxSpBonus } from 'salvageunion-reference'
 import { supabase } from '../supabase'
 import { handleSupabaseError } from '../errors'
 import { computeCrawlerStatsFromTechLevel } from '../crawlerUtils'
+import { CrawlerRowSchema, DowntimeRecordRowSchema, EntityRefRowSchema } from '../validation'
+import { parseDatabaseResult, parseDatabaseResultArray } from './parseDatabaseResult'
+// Row results are parsed through Zod via `parseDatabaseResult` / `parseDatabaseResultArray`.
+// The remaining `as unknown as Json` casts in this file are input-side serialization:
+// typed receipt objects (OffloadReceipt, TradeResult, etc.) widened to Supabase's
+// generated `Json` type for writes. They are not row-parse targets.
 import type { Json } from '../../types/database-generated.types'
 import type {
   CrawlerRow,
@@ -40,7 +46,7 @@ export async function createCrawler(
   })
 
   if (error) handleSupabaseError(error)
-  return data as unknown as CrawlerRow
+  return parseDatabaseResult(data, CrawlerRowSchema, 'createCrawler')
 }
 
 export async function getCrawlerById(crawlerId: string): Promise<CrawlerRow> {
@@ -53,7 +59,7 @@ export async function getCrawlerById(crawlerId: string): Promise<CrawlerRow> {
     .single()
 
   if (error) handleSupabaseError(error)
-  return data!
+  return parseDatabaseResult(data, CrawlerRowSchema, 'getCrawlerById')
 }
 
 export async function getCrawlerEntityRefs(crawlerId: string): Promise<EntityRefRow[]> {
@@ -67,7 +73,7 @@ export async function getCrawlerEntityRefs(crawlerId: string): Promise<EntityRef
     .order('sort_order', { ascending: true })
 
   if (error) handleSupabaseError(error)
-  return data ?? []
+  return parseDatabaseResultArray(data, EntityRefRowSchema, 'getCrawlerEntityRefs')
 }
 
 export async function deleteCrawler(crawlerId: string, gameId: string): Promise<void> {
@@ -94,7 +100,7 @@ export async function updateCrawler(crawlerId: string, input: CrawlerUpdate): Pr
     .single()
 
   if (error) handleSupabaseError(error)
-  return data!
+  return parseDatabaseResult(data, CrawlerRowSchema, 'updateCrawler')
 }
 
 export async function translateScrap(
@@ -151,7 +157,7 @@ export async function upgradeTechLevel(crawlerId: string): Promise<CrawlerRow> {
 
   if (error) handleSupabaseError(error)
   if (!data) throw new Error('Upgrade failed — another change happened first. Please refresh.')
-  return data
+  return parseDatabaseResult(data, CrawlerRowSchema, 'upgradeTechLevel')
 }
 
 export async function getActiveDowntimeRecord(
@@ -167,7 +173,8 @@ export async function getActiveDowntimeRecord(
     .maybeSingle()
 
   if (error) handleSupabaseError(error)
-  return data
+  if (data === null) return null
+  return parseDatabaseResult(data, DowntimeRecordRowSchema, 'getActiveDowntimeRecord')
 }
 
 export async function setCrawlerDowntime(
@@ -186,7 +193,7 @@ export async function setCrawlerDowntime(
       .single()
 
     if (error) handleSupabaseError(error)
-    record = data!
+    record = parseDatabaseResult(data, DowntimeRecordRowSchema, 'setCrawlerDowntime:enter')
   } else {
     // 1. Close the open downtime record
     const { data, error } = await supabase
@@ -198,7 +205,7 @@ export async function setCrawlerDowntime(
       .single()
 
     if (error) handleSupabaseError(error)
-    record = data!
+    record = parseDatabaseResult(data, DowntimeRecordRowSchema, 'setCrawlerDowntime:exit')
   }
 
   // 2. Cascade to all assigned pilots
@@ -255,7 +262,7 @@ export async function updateDowntimeRecord(
     .single()
 
   if (error) handleSupabaseError(error)
-  return data!
+  return parseDatabaseResult(data, DowntimeRecordRowSchema, 'updateDowntimeRecord')
 }
 
 export async function updateCrawlerWeapon(
@@ -289,7 +296,7 @@ export async function saveOffloadReceipt(
     p_receipt: receipt as unknown as Json,
   })
   if (error) handleSupabaseError(error)
-  return data as unknown as DowntimeRecordRow
+  return parseDatabaseResult(data, DowntimeRecordRowSchema, 'saveOffloadReceipt')
 }
 
 export async function saveRestoreReceipt(
@@ -304,7 +311,7 @@ export async function saveRestoreReceipt(
     p_receipt: receipt as unknown as Json,
   })
   if (error) handleSupabaseError(error)
-  return data as unknown as DowntimeRecordRow
+  return parseDatabaseResult(data, DowntimeRecordRowSchema, 'saveRestoreReceipt')
 }
 
 export async function saveTradeResult(
@@ -319,7 +326,7 @@ export async function saveTradeResult(
     .single()
 
   if (error) handleSupabaseError(error)
-  return data!
+  return parseDatabaseResult(data, DowntimeRecordRowSchema, 'saveTradeResult')
 }
 
 export async function saveTradeRoll(
@@ -335,7 +342,7 @@ export async function saveTradeRoll(
     .single()
 
   if (error) handleSupabaseError(error)
-  return data as unknown as DowntimeRecordRow
+  return parseDatabaseResult(data, DowntimeRecordRowSchema, 'saveTradeRoll')
 }
 
 export async function saveDeteriorationPending(
@@ -350,7 +357,7 @@ export async function saveDeteriorationPending(
     .single()
 
   if (error) handleSupabaseError(error)
-  return data as unknown as DowntimeRecordRow
+  return parseDatabaseResult(data, DowntimeRecordRowSchema, 'saveDeteriorationPending')
 }
 
 export async function saveCraftReceipt(
@@ -365,7 +372,7 @@ export async function saveCraftReceipt(
     p_receipt: receipt as unknown as Json,
   })
   if (error) handleSupabaseError(error)
-  return data as unknown as DowntimeRecordRow
+  return parseDatabaseResult(data, DowntimeRecordRowSchema, 'saveCraftReceipt')
 }
 
 export async function saveTrainingReceipt(
@@ -380,7 +387,7 @@ export async function saveTrainingReceipt(
     p_receipt: receipt as unknown as Json,
   })
   if (error) handleSupabaseError(error)
-  return data as unknown as DowntimeRecordRow
+  return parseDatabaseResult(data, DowntimeRecordRowSchema, 'saveTrainingReceipt')
 }
 
 export async function saveEquipmentReceipt(
@@ -395,7 +402,7 @@ export async function saveEquipmentReceipt(
     p_receipt: receipt as unknown as Json,
   })
   if (error) handleSupabaseError(error)
-  return data as unknown as DowntimeRecordRow
+  return parseDatabaseResult(data, DowntimeRecordRowSchema, 'saveEquipmentReceipt')
 }
 
 export async function saveCustomiseAcknowledged(
@@ -409,7 +416,7 @@ export async function saveCustomiseAcknowledged(
     p_receipt: true as unknown as Json,
   })
   if (error) handleSupabaseError(error)
-  return data as unknown as DowntimeRecordRow
+  return parseDatabaseResult(data, DowntimeRecordRowSchema, 'saveCustomiseAcknowledged')
 }
 
 export async function saveRumourReceipt(
@@ -424,5 +431,5 @@ export async function saveRumourReceipt(
     p_receipt: receipt as unknown as Json,
   })
   if (error) handleSupabaseError(error)
-  return data as unknown as DowntimeRecordRow
+  return parseDatabaseResult(data, DowntimeRecordRowSchema, 'saveRumourReceipt')
 }
