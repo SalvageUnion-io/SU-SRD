@@ -208,6 +208,12 @@ export function ReferenceEntityDisplayContent({
   const sourceFooterStyle = getSourceStyles(source, disabled ?? false, 'footer', !listing)
   const sourceBorderColor = getSourceBorderColor(source) ?? 'black'
 
+  // Accessible alt text for the entity illustration: "{Title} {schema display name} illustration"
+  // (e.g. "Iron Mongrel Chassis illustration"). Falls back to a generic label when title is absent.
+  const imageAltText = title
+    ? `${title} ${getDisplayName(schemaName)} illustration`
+    : `${getDisplayName(schemaName)} illustration`
+
   const footer = footerOverride ? (
     footerOverride
   ) : hasFooter ? (
@@ -329,7 +335,7 @@ export function ReferenceEntityDisplayContent({
             {assetUrl && hasChassisAbilities && !compact && !hide.actions ? (
               // Grid layout for chassis with images: ability anchored to bottom of image
               <div className="md:grid md:grid-cols-[auto_1fr]">
-                <CardImage url={assetUrl} alt={title} compact={compact} />
+                <CardImage url={assetUrl} alt={imageAltText} compact={compact} />
                 <div className="flex flex-col justify-evenly">
                   <div>
                     {showContent && (
@@ -352,7 +358,7 @@ export function ReferenceEntityDisplayContent({
                   // Grid layout: vertically center content beside image when
                   // afterExtraContent (e.g. class ability trees) will render below
                   <div className="md:grid md:grid-cols-[auto_1fr] md:items-center">
-                    <CardImage url={assetUrl} alt={title} compact={compact} />
+                    <CardImage url={assetUrl} alt={imageAltText} compact={compact} />
                     <div>
                       {showContent && (
                         <BlockContentRendererView
@@ -368,7 +374,7 @@ export function ReferenceEntityDisplayContent({
                   </div>
                 ) : (
                   <>
-                    {assetUrl && <CardImage url={assetUrl} alt={title} compact={compact} />}
+                    {assetUrl && <CardImage url={assetUrl} alt={imageAltText} compact={compact} />}
                     {showContent && (
                       <BlockContentRendererView
                         content={contentBlocks!}

@@ -15,11 +15,18 @@ export function FilterChip({ label, active, onClick, colorClass }: FilterChipPro
   if (active) {
     classes = colorClass ? cn(base, colorClass) : cn(base, 'bg-su-black text-su-white')
   } else {
+    // Inactive state uses fully opaque text-su-black on bg-su-grey-light so contrast
+    // passes WCAG AA (≥ 4.5:1 for normal text).
+    // - text-su-black (rgb(40,32,25)) on bg-su-grey-light (rgb(199,199,199)) ≈ 9.1:1
+    // - text-su-black on white (colorClass variant) = 16:1
     classes = colorClass
-      ? cn(base, 'text-su-black/70 hover:text-su-black hover:bg-su-grey-light/30')
+      ? cn(
+          base,
+          'text-su-black hover:bg-su-grey-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-su-orange'
+        )
       : cn(
           base,
-          'bg-su-grey-light/30 text-su-black/70 hover:text-su-black hover:bg-su-grey-light/50'
+          'bg-su-grey-light text-su-black hover:bg-su-grey-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-su-orange'
         )
   }
 

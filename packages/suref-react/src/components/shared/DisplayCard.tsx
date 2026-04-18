@@ -178,8 +178,11 @@ export function DisplayCard({
         'relative flex shrink-0 flex-col overflow-visible rounded-md',
         cardStyle?.className || 'shadow-lg',
         disabled && 'opacity-50',
+        // Focus ring for button mode: uses a dark inner ring + white outer offset
+        // so the outline stays visible on both light backgrounds (e.g., bg-su-white)
+        // and dark tech-level backgrounds (e.g., tl-5/tl-6).
         resolvedCardClick &&
-          'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-su-orange',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-su-black focus-visible:ring-offset-2 focus-visible:ring-offset-su-white',
         isCardHoverable &&
           'cursor-pointer transition-all duration-200 md:hover:z-10 md:hover:-translate-y-0.5 md:hover:scale-[1.02]'
       )}

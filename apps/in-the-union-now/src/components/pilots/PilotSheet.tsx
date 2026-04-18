@@ -596,7 +596,7 @@ export function PilotSheet({
         <div className="md:grid md:grid-cols-[auto_1fr] md:items-center p-4">
           <CardImage
             url={pilot.image_path ?? pilotClassAssetUrl}
-            alt={pilot.callsign}
+            alt={`${pilot.callsign} pilot portrait`}
             compact={compact}
             editable={
               canEdit

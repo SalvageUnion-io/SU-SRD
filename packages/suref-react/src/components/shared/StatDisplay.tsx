@@ -83,13 +83,19 @@ export function StatDisplay({
   if (value === undefined) return null
 
   const boxSize = compact ? 'h-8 min-w-8 px-0.5' : 'h-12 w-12'
+  // Disabled state: reduce overall opacity to signal disabled while preserving
+  // foreground/background contrast. The default bg-su-white / text-su-black pair
+  // has a 16:1 base ratio; at 60% opacity the effective ratio is ~9.6:1, still
+  // well above the WCAG AA threshold of 4.5:1 for normal text.
+  const disabledClass = disabled ? 'opacity-60' : ''
 
   const content = (
     <div
       role="group"
       className={cn(
         'flex flex-col items-center gap-0 overflow-visible',
-        compact ? 'min-w-8' : 'w-12'
+        compact ? 'min-w-8' : 'w-12',
+        disabledClass
       )}
       aria-label={combinedAriaLabel}
     >
@@ -110,13 +116,16 @@ export function StatDisplay({
           ref={boxRef as React.Ref<HTMLButtonElement>}
           onClick={onClick}
           disabled={disabled}
+          aria-disabled={disabled || undefined}
           className={cn(
             'flex items-center justify-center border',
             boxSize,
             trueBg,
             trueBorderColor,
             compact ? 'border' : 'border-[1.5px]',
-            disabled ? 'pointer-events-none' : 'cursor-pointer hover:opacity-80',
+            disabled
+              ? 'pointer-events-none'
+              : 'cursor-pointer hover:opacity-80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-su-orange',
             isFlashing && 'animate-[growShrink_3s_ease-out] motion-reduce:animate-none'
           )}
           aria-label={combinedAriaLabel}

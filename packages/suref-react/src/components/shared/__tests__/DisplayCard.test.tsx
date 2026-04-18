@@ -307,6 +307,47 @@ describe('DisplayCard', () => {
     expect(wrapper.className).toContain('md:hover:scale-[1.02]')
   })
 
+  test('button mode exposes a focus-visible ring with contrast offset', () => {
+    const { container } = render(
+      <DisplayCard headerBg="bg-su-green" headerContent={<span>Row</span>} onCardClick={() => {}}>
+        <p>Body</p>
+      </DisplayCard>
+    )
+    const wrapper = container.firstElementChild as HTMLElement
+    // Wrapper should be keyboard-focusable when clickable
+    expect(wrapper.getAttribute('tabIndex')).toBe('0')
+    expect(wrapper.getAttribute('role')).toBe('button')
+    // Ring-based focus indicator with a contrasting offset color so the outline
+    // remains visible on both light and dark tech-level backgrounds.
+    expect(wrapper.className).toContain('focus-visible:ring-2')
+    expect(wrapper.className).toContain('focus-visible:ring-su-black')
+    expect(wrapper.className).toContain('focus-visible:ring-offset-2')
+    expect(wrapper.className).toContain('focus-visible:ring-offset-su-white')
+  })
+
+  test('non-button (non-clickable) card does not render focus ring classes', () => {
+    const { container } = render(
+      <DisplayCard headerBg="bg-su-green" headerContent={<span>Static</span>}>
+        <p>Body</p>
+      </DisplayCard>
+    )
+    const wrapper = container.firstElementChild as HTMLElement
+    expect(wrapper.getAttribute('role')).toBeNull()
+    expect(wrapper.className).not.toContain('focus-visible:ring-2')
+  })
+
+  test('tab content container has aria-live polite for screen reader announcements', () => {
+    const tabs: DisplayCardTab[] = [{ key: 'a', label: 'Alpha', content: <p>Alpha content</p> }]
+    const { container } = render(
+      <DisplayCard headerBg="bg-su-green" headerContent={<span>Header</span>} tabs={tabs}>
+        <p>Default body</p>
+      </DisplayCard>
+    )
+    const liveRegion = container.querySelector('[aria-live="polite"]')
+    expect(liveRegion).toBeTruthy()
+    expect(liveRegion!.textContent).toContain('Default body')
+  })
+
   // --- Tab tests ---
 
   test('no tabs renders no tab bar', () => {

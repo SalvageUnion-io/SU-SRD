@@ -128,7 +128,7 @@ export function MechBuilderBody({
                   <div className="md:grid md:grid-cols-[auto_1fr] md:items-center">
                     <CardImage
                       url={image.url}
-                      alt={image.alt ?? 'Mech image'}
+                      alt={image.alt ?? `${chassis?.name ?? 'Mech'} illustration`}
                       compact={compact}
                       editable={image.editable}
                     />
