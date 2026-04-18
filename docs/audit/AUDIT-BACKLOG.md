@@ -20,43 +20,49 @@ Organized backlog of 69 findings from the SURef monorepo audit, structured as ep
 
 > Remove dead exports, duplicate methods, and unused helpers across the reference package and shared components. Total effort: S
 
-### Story 1.1: Remove dead code from salvageunion-reference
+### Story 1.1: Remove dead code from salvageunion-reference ✅ DONE
 **Package(s):** `salvageunion-reference`
 **Effort:** S
 
 Remove 17 dead exported functions (~200 lines) from `utilities.ts`, remove dead helper types (`AllKeys`, `PropertyType`, `SURefMetaEntityKeys`), and remove 3 duplicate static methods (`getTechLevel`, `getTechLevelNumber`, `getSalvageValue`) from the `SalvageUnionReference` class.
 
-**Acceptance Criteria:**
-- [ ] All 17 unused functions removed from `packages/salvageunion-reference/lib/utilities.ts`
-- [ ] Dead types at `utilities.ts:76-91` removed
-- [ ] Duplicate static methods at `packages/salvageunion-reference/lib/index.ts:423-473` removed
-- [ ] No consumers reference the removed exports (verify with grep)
-- [ ] All tests pass (`bun test`)
-- [ ] Lint/typecheck clean (`bun run check:all`)
+**Shipped**: commits `53a175e` (verified-dead `getId`) and `6258f93` (17 type guards + `findActionByName` + resolve helpers; −316 lines). Most of the audit's originally listed "17 candidates" turned out to be actively consumed; the real dead code was in the type guards, which were not in the original story list. The dead helper types and duplicate static methods were already gone from a prior cleanup.
 
-### Story 1.2: Clean up suref-react barrel exports
+**Acceptance Criteria:**
+- [x] All verified-dead functions removed (see commit bodies for the exhaustive list)
+- [x] Dead types already absent (no-op verified)
+- [x] Duplicate static methods already absent (no-op verified)
+- [x] No consumers reference the removed exports (grep confirmed)
+- [x] All tests pass (`bun test`)
+- [x] Lint/typecheck clean (`bun run check:all`)
+
+### Story 1.2: Clean up suref-react barrel exports ✅ DONE
 **Package(s):** `suref-react`
 **Effort:** S
 
 Remove `DetailIcon` and `techLevelColors` from the barrel export (`packages/suref-react/src/index.ts`). Remove the deprecated `techLevelColors` export from `useReferenceEntityDisplayState.ts`. Verify no consumers import these symbols.
 
-**Acceptance Criteria:**
-- [ ] `DetailIcon` and `techLevelColors` removed from `packages/suref-react/src/index.ts`
-- [ ] Deprecated `techLevelColors` removed from `packages/suref-react/src/components/referenceEntity/ReferenceEntityDisplay/useReferenceEntityDisplayState.ts:29`
-- [ ] Grep confirms zero imports of these symbols across all workspaces
-- [ ] Lint/typecheck clean (`bun run check:all`)
+**Shipped**: `DetailIcon` removed from barrel in `7e5a95d`. `techLevelColors` was already removed from `useReferenceEntityDisplayState.ts` by prior work; grep confirms only a local parameter name by that string remains in `referenceEntityHelpers.ts` (unrelated).
 
-### Story 1.3: Replace ITUN's duplicate entity helper
+**Acceptance Criteria:**
+- [x] `DetailIcon` and `techLevelColors` removed from `packages/suref-react/src/index.ts`
+- [x] Deprecated `techLevelColors` removed from `useReferenceEntityDisplayState.ts`
+- [x] Grep confirms zero imports of these symbols across all workspaces
+- [x] Lint/typecheck clean (`bun run check:all`)
+
+### Story 1.3: Replace ITUN's duplicate entity helper ✅ DONE
 **Package(s):** `itun`, `salvageunion-reference`
 **Effort:** S
 
 Replace ITUN's `findChassisById` with the equivalent from `salvageunion-reference`. Delete `apps/in-the-union-now/src/lib/entityHelpers.ts` if it becomes empty after removal.
 
+**Shipped**: completed in `81a30d5` (2026-03-15). `entityHelpers.ts` deleted; all 8 ITUN call sites now import `findChassisById` directly from `salvageunion-reference`.
+
 **Acceptance Criteria:**
-- [ ] All call sites updated to use `salvageunion-reference` API
-- [ ] `entityHelpers.ts` deleted or reduced to only non-duplicate helpers
-- [ ] All tests pass (`bun test`)
-- [ ] Lint/typecheck clean (`bun run check:all`)
+- [x] All call sites updated to use `salvageunion-reference` API
+- [x] `entityHelpers.ts` deleted
+- [x] All tests pass
+- [x] Lint/typecheck clean
 
 ---
 
