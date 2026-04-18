@@ -38,9 +38,6 @@ apps/suref-web/.vite
 .claude/settings.local.json
 .mcp.json
 
-# Cursor IDE
-.cursor/
-
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
