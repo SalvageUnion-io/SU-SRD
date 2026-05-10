@@ -135,5 +135,228 @@
       "Random Mutation (Chimerium Mutant Squad)"
     ],
     "page": 54
+  },
+  {
+    "id": "1c2a02b9-9d9c-4e1f-8b8a-1f7c0a8d9e21",
+    "name": "Thatcher Pit Android",
+    "source": "Salvage Union Starter Set",
+    "booklet": "AP",
+    "page": 4,
+    "hitPoints": 2,
+    "damageType": "SP",
+    "actions": ["Mining Tools (Thatcher Pit Android)", "Comms Module"],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Forcibly cyber-converted Thatcher workers. They can toil in the bowels of the mining pits for up to 128 hours before needing M.I.L.K."
+      }
+    ]
+  },
+  {
+    "id": "2c3b13ca-ae0d-4f20-9c9b-2a8d1b9e0f32",
+    "name": "Super Android Soldier",
+    "source": "Salvage Union Starter Set",
+    "booklet": "AP",
+    "page": 4,
+    "hitPoints": 9,
+    "damageType": "SP",
+    "actions": [
+      "Broad Koch Submachine Gun (Super Android Soldier)",
+      "T2S2 Grenade (Super Android Soldier)",
+      "Comms Module",
+      "IR Night Vision Optics"
+    ],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Chosen from the most loyal, ruthless, and daring of Thatcher Steel mercenaries to be cyber-grafted into the perfect defenders of the corpo."
+      }
+    ]
+  },
+  {
+    "id": "3d4c24db-bf1e-4031-ad0c-3b9e2caf1043",
+    "name": "Super Android Strikebreaker",
+    "source": "Salvage Union Starter Set",
+    "booklet": "AP",
+    "page": 4,
+    "hitPoints": 15,
+    "damageType": "SP",
+    "traits": [{ "type": "fast" }],
+    "actions": [
+      "Hooves and Clubs (Super Android Strikebreaker)",
+      "Comms Module",
+      "Reinforced Polycarbonate Shield"
+    ],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Thatcher androids on cybernetic mounts, sent to crack worker skulls to enforce obedience and loyalty."
+      }
+    ]
+  },
+  {
+    "id": "4e5d35ec-c02f-4142-be1d-4c0f3db02154",
+    "name": "Skull Drone",
+    "source": "Salvage Union Starter Set",
+    "booklet": "AP",
+    "page": 4,
+    "hitPoints": 2,
+    "damageType": "SP",
+    "actions": ["AMS Micro Laser", "Hover Locomotion System", "Welding Laser"],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Sentient android skulls, grafted with repair tools to maintain the facility."
+      }
+    ]
+  },
+  {
+    "id": "959ddd49-6f39-4c67-80ff-0366b6f462f7",
+    "name": "Churchill",
+    "source": "Salvage Union Starter Set",
+    "booklet": "AP",
+    "page": 4,
+    "hitPoints": 12,
+    "damageType": "SP",
+    "traits": [{ "type": "fast" }],
+    "actions": ["Barbed Bite (Churchill)", "Puff Smoke (Churchill)"],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Thatcher's war minister, transformed into a faithful mechanical pitbull and tasked with guarding the precious M.I.L.K."
+      }
+    ]
+  },
+  {
+    "id": "0fdbd34f-8a13-43a6-9bba-18825554b355",
+    "name": "Dennis",
+    "source": "Salvage Union Starter Set",
+    "booklet": "AP",
+    "page": 4,
+    "hitPoints": 15,
+    "damageType": "SP",
+    "traits": [{ "type": "immobile" }],
+    "actions": [
+      "30mm Autocannon",
+      "Long Barrelled Green Laser",
+      "Red Laser",
+      "Omega Strike (Dennis)"
+    ],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "The giant head of an elderly man has been mounted on the wall, half-flesh, half-android. Both of his eyes are lasers, and his mouth is an autocannon. He overlooks the operations of the grafting chamber, and speaks in a grating metallic voice."
+      }
+    ]
+  },
+  {
+    "id": "f2cdf1a6-c5b6-47e5-bf66-ddd1f0a87388",
+    "name": "Android Osborne",
+    "source": "Salvage Union Starter Set",
+    "booklet": "AP",
+    "page": 4,
+    "hitPoints": 12,
+    "damageType": "HP",
+    "actions": ["Electro-Whip (Android Osborne)"],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A sycophantic follower of the Iron Lady, even before conversion. He leads operations within the command hub."
+      },
+      {
+        "type": "heading",
+        "value": "Pet Skull Drones x2"
+      },
+      {
+        "type": "paragraph",
+        "value": "Osborne has two Skull drones, Tony and Benn, under his control, once his political rivals."
+      }
+    ]
+  },
+  {
+    "id": "6b662026-362b-4a80-bead-880fb80e0a7e",
+    "name": "Hogg",
+    "source": "Salvage Union Starter Set",
+    "booklet": "AP",
+    "page": 4,
+    "hitPoints": 2,
+    "damageType": "SP",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Osborne's pet pig, Hogg. This was the fate of an executive who questioned the Iron Lady and was punished for his disobedience."
+      }
+    ]
+  },
+  {
+    "id": "8983222a-36c0-4377-9a74-4696d9a04d43",
+    "name": "Browning",
+    "source": "Salvage Union Starter Set",
+    "booklet": "AP",
+    "page": 4,
+    "hitPoints": 4,
+    "damageType": "SP",
+    "actions": ["AMS Micro Laser", "Hover Locomotion System", "Welding Laser"],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Once the lead of Thatcher Research & Development, his barely-sentient severed head mindlessly parrots birdwatching facts. (Skull Drone with +2 SP.)"
+      }
+    ]
+  },
+  {
+    "id": "5bb5a243-e4ec-40ae-a6e2-dba236e11e37",
+    "name": "The Iron Lady",
+    "source": "Salvage Union Starter Set",
+    "booklet": "AP",
+    "page": 5,
+    "hitPoints": 0,
+    "structurePoints": 87,
+    "damageType": "SP",
+    "actions": [
+      "Iron Claws (The Iron Lady)",
+      "Corrosive M.I.L.K. Spray (The Iron Lady)",
+      "TRIDENT Missile Pod (The Iron Lady)",
+      "TRIDENT Defence System (The Iron Lady)",
+      "M.I.L.K. Injector (The Iron Lady)",
+      "Control Signal (The Iron Lady)",
+      "Comms Module",
+      "IR Night Vision Optics",
+      "Firewall"
+    ],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A monstrous mecha-android built specifically to house the Thatcher Steel CEO. A reinforced glass cockpit reveals her emaciated body, allowing her worshippers to look upon her terrible visage. Sustained far beyond her mortal years, she requires only 4 hours sleep."
+      },
+      {
+        "type": "heading",
+        "value": "Titanic Actions"
+      },
+      {
+        "type": "paragraph",
+        "value": "The Iron Lady can take one of three Titanic Actions at a time, detailed below. These can only be chosen at the end of another Pilot's or NPC's turn. She regains spent Titanic Actions at the start of her turn."
+      },
+      {
+        "type": "list-item",
+        "value": "The Iron Lady moves one Range Band."
+      },
+      {
+        "type": "list-item",
+        "value": "The Iron Lady makes a single Iron Claw attack."
+      },
+      {
+        "type": "list-item",
+        "value": "The Iron Lady makes a M.I.L.K Spray attack (costs 2 Titanic Actions)."
+      },
+      {
+        "type": "heading",
+        "value": "Mech Modules"
+      },
+      {
+        "type": "paragraph",
+        "value": "The Iron Lady is equipped with the following standard Mech Modules, which may be used per their standard rules: Comms Module, IR Night Vision, Firewall."
+      }
+    ]
   }
 ]

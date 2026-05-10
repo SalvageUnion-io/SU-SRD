@@ -300,7 +300,15 @@ export const ModuleSchema = BaseEntitySchema.extend({ ...SystemModuleSchema.shap
  */
 export const NPCSchema = BaseEntitySchema.extend({ ...CombatEntitySchema.shape })
   .extend({
-    hitPoints: NonNegativeIntegerSchema.describe('Hit points of this NPC'),
+    hitPoints: NonNegativeIntegerSchema.describe(
+      'Hit points (HP) or structure points (SP) of this NPC; see damageType to disambiguate'
+    ),
+    damageType: DamageTypeSchema.describe(
+      'Whether this NPC tracks HP (organic) or SP (mechanical/cybernetic). Defaults to HP when omitted.'
+    ).optional(),
+    structurePoints: NonNegativeIntegerSchema.describe(
+      'Structure points for mech-scale boss NPCs (e.g. The Iron Lady). Use instead of hitPoints when the NPC is a unique mecha-android.'
+    ).optional(),
     bioSalvageValue: NonNegativeIntegerSchema.describe(
       'Bio-salvage value for Chimerium mutants'
     ).optional(),

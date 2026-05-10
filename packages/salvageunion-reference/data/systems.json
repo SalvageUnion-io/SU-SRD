@@ -1241,5 +1241,22 @@
     "salvageValue": 6,
     "page": 2,
     "actions": ["Impact Hammer", "Hammer Time"]
+  },
+  {
+    "id": "4c77b8fb-9398-4594-a38d-b3004b61e0a5",
+    "source": "Salvage Union Starter Set",
+    "booklet": "AP",
+    "name": "AMS Micro Laser",
+    "techLevel": 2,
+    "slotsRequired": 1,
+    "salvageValue": 1,
+    "page": 1,
+    "actions": ["AMS Micro Laser", "Solder"],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Rapidly emits a rainbow-like array of laser beams, designed to quickly solder together damaged androids within the heat of battle (or to be used as an offensive measure in a pinch)."
+      }
+    ]
   }
 ]

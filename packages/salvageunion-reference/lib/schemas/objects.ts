@@ -495,6 +495,7 @@ export const PatternSchema: z.ZodType<{
   legalStarting?: boolean
   source?: z.infer<typeof SourceSchema>
   page?: z.infer<typeof PositiveIntegerSchema>
+  booklet?: string
   additionalSources?: z.infer<typeof AdditionalSourceSchema>[]
   systems: z.infer<typeof PatternSystemModuleSchema>[]
   modules: z.infer<typeof PatternSystemModuleSchema>[]
@@ -508,6 +509,13 @@ export const PatternSchema: z.ZodType<{
         legalStarting: z.boolean().describe('Whether this is a valid starting pattern').optional(),
         source: SourceSchema.describe('Source book for this pattern').optional(),
         page: PositiveIntegerSchema.describe('Page number in the source book').optional(),
+        booklet: z
+          .string()
+          .min(1)
+          .describe(
+            'Booklet code within a multi-booklet primary source (e.g. "CR", "PH", "PC", "RR", "AP" for the Salvage Union Starter Set). Omit for single-volume sources.'
+          )
+          .optional(),
         additionalSources: z
           .array(AdditionalSourceSchema)
           .describe('Other source books where this pattern is reprinted')

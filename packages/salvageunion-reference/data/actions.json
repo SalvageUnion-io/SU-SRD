@@ -12868,5 +12868,196 @@
       }
     ],
     "actionSource": "modules"
+  },
+  {
+    "id": "b46a402d-c8bf-47b8-9cf9-9c15d7178397",
+    "name": "AMS Micro Laser",
+    "actionType": "Turn",
+    "range": ["Close"],
+    "damage": { "damageType": "SP", "amount": 1 },
+    "traits": [{ "type": "energy" }],
+    "actionSource": "systems"
+  },
+  {
+    "id": "007d890b-ed44-4cbf-907d-1757eae1676f",
+    "name": "Solder",
+    "actionType": "Turn",
+    "activationCost": 1,
+    "content": [{ "type": "paragraph", "value": "Heal 1 SP to a target within Close Range." }],
+    "actionSource": "systems"
+  },
+  {
+    "id": "970a3251-6bb9-4cd4-b0a6-4869b43de50a",
+    "name": "Mining Tools (Thatcher Pit Android)",
+    "displayName": "Mining Tools",
+    "actionType": "Turn",
+    "range": ["Close"],
+    "damage": { "damageType": "SP", "amount": 2 },
+    "traits": [{ "type": "melee" }],
+    "actionSource": "npcs"
+  },
+  {
+    "id": "112b1a32-207f-40dd-ba80-601acb497852",
+    "name": "Broad Koch Submachine Gun (Super Android Soldier)",
+    "displayName": "Broad Koch Submachine Gun",
+    "actionType": "Turn",
+    "range": ["Medium"],
+    "damage": { "damageType": "HP", "amount": 5 },
+    "traits": [{ "type": "ballistic" }],
+    "actionSource": "npcs"
+  },
+  {
+    "id": "dccece4e-81be-4388-8fbf-736f42c54c22",
+    "name": "T2S2 Grenade (Super Android Soldier)",
+    "displayName": "T2S2 Grenade",
+    "actionType": "Turn",
+    "range": ["Medium"],
+    "damage": { "damageType": "SP", "amount": 4 },
+    "traits": [
+      { "type": "explosive", "amount": 1 },
+      { "type": "uses", "amount": 3 }
+    ],
+    "actionSource": "npcs"
+  },
+  {
+    "id": "a12444db-a754-43ce-b859-b5d0f40d388a",
+    "name": "Hooves and Clubs (Super Android Strikebreaker)",
+    "displayName": "Hooves and Clubs",
+    "actionType": "Turn",
+    "range": ["Close"],
+    "damage": { "damageType": "SP", "amount": 4 },
+    "traits": [{ "type": "melee" }, { "type": "multi-attack", "amount": 2 }],
+    "actionSource": "npcs"
+  },
+  {
+    "id": "6e576a98-8e60-4067-a8bb-1b2041dc6d2f",
+    "name": "Barbed Bite (Churchill)",
+    "displayName": "Barbed Bite",
+    "actionType": "Turn",
+    "range": ["Close"],
+    "damage": { "damageType": "SP", "amount": 5 },
+    "traits": [{ "type": "melee" }],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "On a successful hit, a System on a target Mech is destroyed."
+      }
+    ],
+    "actionSource": "npcs"
+  },
+  {
+    "id": "48b1bda8-f95b-4d5e-ab9c-1c801e3a30bb",
+    "name": "Puff Smoke (Churchill)",
+    "displayName": "Puff Smoke",
+    "actionType": "Passive",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Fumes smoke from a cigar permanently affixed to its mouth; acts as a Smoke Machine."
+      }
+    ],
+    "actionSource": "npcs"
+  },
+  {
+    "id": "1d34c0e4-0732-417a-9868-458f92cec194",
+    "name": "Omega Strike (Dennis)",
+    "displayName": "Omega Strike",
+    "actionType": "Turn",
+    "content": [{ "type": "paragraph", "value": "May fire all weapons in a single turn." }],
+    "actionSource": "npcs"
+  },
+  {
+    "id": "e5d91339-391d-43a2-af1f-514af1d3ea90",
+    "name": "Electro-Whip (Android Osborne)",
+    "displayName": "Electro-Whip (Melee Armament)",
+    "actionType": "Turn",
+    "range": ["Close"],
+    "damage": { "damageType": "HP", "amount": 4 },
+    "traits": [{ "type": "melee" }, { "type": "silent" }],
+    "actionSource": "npcs"
+  },
+  {
+    "id": "fb411ad1-18e3-4c5c-8afc-ec586a4a05f1",
+    "name": "Iron Claws (The Iron Lady)",
+    "displayName": "Iron Claws",
+    "actionType": "Turn",
+    "range": ["Close"],
+    "damage": { "damageType": "SP", "amount": 6 },
+    "traits": [{ "type": "melee" }, { "type": "multi-attack", "amount": 2 }],
+    "content": [{ "type": "paragraph", "value": "The Iron Lady swipes with her clawed limbs." }],
+    "actionSource": "npcs"
+  },
+  {
+    "id": "159a2729-48b1-43c3-b358-6f6776456ab3",
+    "name": "Corrosive M.I.L.K. Spray (The Iron Lady)",
+    "displayName": "Corrosive M.I.L.K. Spray",
+    "actionType": "Turn",
+    "range": ["Medium"],
+    "damage": { "damageType": "SP", "amount": 3 },
+    "traits": [{ "type": "burn", "amount": 3 }],
+    "content": [{ "type": "paragraph", "value": "Hits every target in Medium Range." }],
+    "actionSource": "npcs"
+  },
+  {
+    "id": "deb2486f-443f-4b8b-99de-e068fc037ae6",
+    "name": "TRIDENT Missile Pod (The Iron Lady)",
+    "displayName": "TRIDENT Missile Pod",
+    "actionType": "Turn",
+    "range": ["Long"],
+    "damage": { "damageType": "SP", "amount": 9 },
+    "traits": [
+      { "type": "explosive", "amount": 2 },
+      { "type": "irradiated" },
+      { "type": "uses", "amount": 6 }
+    ],
+    "content": [
+      { "type": "paragraph", "value": "The Iron Lady fires off a salvo of irradiated warheads." }
+    ],
+    "actionSource": "npcs"
+  },
+  {
+    "id": "74e3153d-a3bb-476d-a814-19e4c43e4ae7",
+    "name": "TRIDENT Defence System (The Iron Lady)",
+    "displayName": "TRIDENT Defence System",
+    "actionType": "Reaction",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "If the Iron Lady is hit by a Ranged Weapon attack, she may immediately fire a Trident Missile as a reaction."
+      }
+    ],
+    "actionSource": "npcs"
+  },
+  {
+    "id": "5d9d5d89-496e-42d7-a30f-34ac468a6a84",
+    "name": "M.I.L.K. Injector (The Iron Lady)",
+    "displayName": "M.I.L.K. Injector",
+    "actionType": "Free",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "The Iron Lady can inject herself with M.I.L.K. This allows her to act twice in a round, but reduces her SP by d20."
+      }
+    ],
+    "actionSource": "npcs"
+  },
+  {
+    "id": "28ce4d04-73a8-4edd-8c22-0dbfb7af9319",
+    "name": "Control Signal (The Iron Lady)",
+    "displayName": "Control Signal",
+    "actionType": "Turn",
+    "range": ["Medium"],
+    "traits": [{ "type": "hacking" }],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "The Iron Lady gains full control of any Thatcher Steel or AMS Mech in Range for 10 minutes."
+      },
+      {
+        "type": "paragraph",
+        "value": "Further, the control signal keeps the androids under her steely spell. If she is destroyed the signal will be broken, freeing the android workers from her control."
+      }
+    ],
+    "actionSource": "npcs"
   }
 ]

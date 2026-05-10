@@ -2980,5 +2980,103 @@
       }
     ],
     "indexable": true
+  },
+  {
+    "id": "407a3fac-2024-45af-ad7e-4c709e7b0c62",
+    "source": "Salvage Union Starter Set",
+    "booklet": "AP",
+    "name": "The Hive Random Encounters",
+    "table": {
+      "type": "standard",
+      "1": {
+        "value": "Dr. Apis is surveying the property in her Queen Bee Atlas, with an escort of 2x Killers."
+      },
+      "2-5": {
+        "value": "A patrol of 2 x Killers and 2x Madronas."
+      },
+      "6-10": {
+        "value": "A pair of Bomblebees are in the process of mining the area the Pilots are in."
+      },
+      "11-19": {
+        "value": "Safe travel."
+      },
+      "20": {
+        "value": "A confused Madrona thinks one of the Pilots is the Queen. It will follow the Pilot and defend it."
+      }
+    },
+    "page": 1,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Roll when Pilots travel between locations."
+      }
+    ]
+  },
+  {
+    "id": "194bf63b-cc49-41a3-9700-d1cfb1e2fd94",
+    "source": "Salvage Union Starter Set",
+    "booklet": "AP",
+    "name": "The Hive Minefield",
+    "table": {
+      "type": "standard",
+      "1": {
+        "label": "Big bada-boom!",
+        "value": "A Mech has detonated a mine, which has triggered a chain reaction. All Mechs in the minefield receive 5SP damage. The minefield is now clear of mines."
+      },
+      "2-5": {
+        "label": "Boom!",
+        "value": "A Mech has detonated a mine. It and any other Mech within Close Range receive 3SP damage."
+      },
+      "6-10": {
+        "label": "Click",
+        "value": "A Mech has stepped on a mine but it has not yet detonated. Any further movement will result in the mine exploding, but a clever crew may be able to disarm it."
+      },
+      "11-19": {
+        "label": "Phew",
+        "value": "The crew manages to navigate safely through the minefield."
+      },
+      "20": {
+        "label": "Dud",
+        "value": "The Pilot finds a disarmed mine. It can be salvaged for 1 x T2 Scrap or used as an IED."
+      }
+    },
+    "page": 2,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A series of explosive mines have been laid across this area. Roll on the following table every time the crew move through an unexplored area or attempt to Area Salvage."
+      }
+    ]
+  },
+  {
+    "id": "73c32765-2df3-4990-9072-ae3c611e6f17",
+    "source": "Salvage Union Starter Set",
+    "booklet": "AP",
+    "name": "Thatcher's Mech Base Random Encounters",
+    "table": {
+      "type": "standard",
+      "1": {
+        "value": "The Iron Lady awakes from her slumber to hunt the intruders."
+      },
+      "2-5": {
+        "value": "2x Super Android Strikebreakers and 4x Super Android Soldiers on patrol."
+      },
+      "6-10": {
+        "value": "Thatcher Pit Android Lance"
+      },
+      "11-19": {
+        "value": "Safe travel."
+      },
+      "20": {
+        "value": "The Iron Lady falls into deep slumber for 10 minutes, making all Androids inert for the duration."
+      }
+    },
+    "page": 3,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Roll when Pilots travel between locations."
+      }
+    ]
   }
 ]

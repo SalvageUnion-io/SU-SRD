@@ -231,7 +231,18 @@
         "type": "integer",
         "minimum": 0,
         "maximum": 9007199254740991,
-        "description": "Hit points of this NPC"
+        "description": "Hit points (HP) or structure points (SP) of this NPC; see damageType to disambiguate"
+      },
+      "damageType": {
+        "type": "string",
+        "enum": ["HP", "SP"],
+        "description": "Whether this NPC tracks HP (organic) or SP (mechanical/cybernetic). Defaults to HP when omitted."
+      },
+      "structurePoints": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 9007199254740991,
+        "description": "Structure points for mech-scale boss NPCs (e.g. The Iron Lady). Use instead of hitPoints when the NPC is a unique mecha-android."
       },
       "bioSalvageValue": {
         "type": "integer",

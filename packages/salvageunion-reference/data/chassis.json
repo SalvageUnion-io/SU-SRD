@@ -266,6 +266,101 @@
             "value": "Designed for smuggling and covert reconnaissance, being disguised as a delivery drone allows it to blend into the background within most arcos and settlements undetected."
           }
         ]
+      },
+      {
+        "name": "Madrona Pattern",
+        "source": "Salvage Union Starter Set",
+        "booklet": "AP",
+        "page": 1,
+        "systems": [
+          {
+            "name": "Rigging Arm"
+          },
+          {
+            "name": "Transport Hold",
+            "count": 2
+          },
+          {
+            "name": "Cargo Pod"
+          }
+        ],
+        "modules": [
+          {
+            "name": "Self-Destruct"
+          },
+          {
+            "name": "Comms Module"
+          },
+          {
+            "name": "Reactor Flare"
+          }
+        ],
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Painted with black and yellow stripes, their dangling rigging arms collect pollen from the mutated wildflowers and load it into the pollen holds mounted on their sides. If attacked, they will self-destruct to protect the swarm."
+          }
+        ]
+      },
+      {
+        "name": "Bomblebee Pattern",
+        "source": "Salvage Union Starter Set",
+        "booklet": "AP",
+        "page": 1,
+        "systems": [
+          {
+            "name": "Anti-Mech Mine Layer"
+          },
+          {
+            "name": "Articulated Rigging Arm"
+          }
+        ],
+        "modules": [
+          {
+            "name": "Energy Cell",
+            "count": 3
+          }
+        ],
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Larger than a normal Mazona, this pattern emits a loud buzz from its overworked Hover Loco. Heavily laden with AM Mines, its Energy Cells are used to mine large swathes of land."
+          }
+        ]
+      },
+      {
+        "name": "Killer Pattern",
+        "source": "Salvage Union Starter Set",
+        "booklet": "AP",
+        "page": 1,
+        "systems": [
+          {
+            "name": "Armour Plating"
+          },
+          {
+            "name": "Articulated Rigging Arm"
+          },
+          {
+            "name": "Mech Melee Armament"
+          }
+        ],
+        "modules": [
+          {
+            "name": "Evasion Protocols"
+          },
+          {
+            "name": "Pinpoint Targeter"
+          },
+          {
+            "name": "Energy Cell"
+          }
+        ],
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Deadly and accurate, these Killer drones are designed to take out intruders with swift efficiency."
+          }
+        ]
       }
     ],
     "structurePoints": 5,
@@ -1932,6 +2027,48 @@
           {
             "type": "paragraph",
             "value": "A colossal throne of scrap, festooned with weapons. Ridden into battle by raider lord Julius the Immortal, inspiring his followers with fire and thunder."
+          }
+        ]
+      },
+      {
+        "name": "Queen Bee Pattern",
+        "source": "Salvage Union Starter Set",
+        "booklet": "AP",
+        "page": 1,
+        "systems": [
+          {
+            "name": "Fabrication Arm"
+          },
+          {
+            "name": "Floodlights"
+          },
+          {
+            "name": "Hover Locomotion System"
+          },
+          {
+            "name": "Monomolecular Blade",
+            "count": 2
+          },
+          {
+            "name": "Rigging Arm",
+            "count": 2
+          },
+          {
+            "name": "Smoke Machine"
+          }
+        ],
+        "modules": [
+          {
+            "name": "Comms Module"
+          },
+          {
+            "name": "Weapon Link"
+          }
+        ],
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Dr Apis' custom pattern has many arms hanging beneath it like legs. Two large floodlights beam like glowing eyes through the smoke it releases. This is not the work of a sane person."
           }
         ]
       }

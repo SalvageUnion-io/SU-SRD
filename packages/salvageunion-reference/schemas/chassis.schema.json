@@ -398,6 +398,11 @@
               "maximum": 9007199254740991,
               "description": "Page number in the source book"
             },
+            "booklet": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Booklet code within a multi-booklet primary source (e.g. \"CR\", \"PH\", \"PC\", \"RR\", \"AP\" for the Salvage Union Starter Set). Omit for single-volume sources."
+            },
             "additionalSources": {
               "type": "array",
               "items": {
