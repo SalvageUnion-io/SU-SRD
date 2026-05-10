@@ -7,6 +7,7 @@
     "salvageValue": 1,
     "hitPoints": 3,
     "page": 289,
+    "additionalSources": [{ "source": "Reclamation of the Wastes", "page": 113 }],
     "content": [
       {
         "type": "paragraph",
@@ -22,6 +23,7 @@
     "salvageValue": 3,
     "hitPoints": 6,
     "page": 289,
+    "additionalSources": [{ "source": "Reclamation of the Wastes", "page": 113 }],
     "content": [
       {
         "type": "paragraph",
@@ -43,6 +45,7 @@
     "salvageValue": 5,
     "asset_url": "https://opxrguskxuogghzcnppk.supabase.co/storage/v1/object/public/LP-Assets/meld/meld%20nanoid.jpg",
     "page": 289,
+    "additionalSources": [{ "source": "Reclamation of the Wastes", "page": 113 }],
     "content": [
       {
         "type": "paragraph",
@@ -59,6 +62,7 @@
     "salvageValue": 10,
     "asset_url": "https://opxrguskxuogghzcnppk.supabase.co/storage/v1/object/public/LP-Assets/meld/meld%20splitter.jpg",
     "page": 289,
+    "additionalSources": [{ "source": "Reclamation of the Wastes", "page": 113 }],
     "content": [
       {
         "type": "paragraph",
@@ -74,6 +78,7 @@
     "structurePoints": 60,
     "asset_url": "https://opxrguskxuogghzcnppk.supabase.co/storage/v1/object/public/LP-Assets/meld/meld%20behemoth.jpg",
     "page": 290,
+    "additionalSources": [{ "source": "Reclamation of the Wastes", "page": 114 }],
     "content": [
       {
         "type": "paragraph",

@@ -7,6 +7,7 @@
     "actions": ["Improvised Melee Weapon (Wastelander)", "Salvaging Tools (NPC)"],
     "hitPoints": 2,
     "page": 298,
+    "additionalSources": [{ "source": "Reclamation of the Wastes", "page": 104 }],
     "content": [
       {
         "type": "paragraph",
@@ -21,6 +22,7 @@
     "actions": ["Improvised Firearm (Raider)"],
     "hitPoints": 3,
     "page": 298,
+    "additionalSources": [{ "source": "Reclamation of the Wastes", "page": 104 }],
     "content": [
       {
         "type": "paragraph",
@@ -35,6 +37,7 @@
     "actions": ["Rifle (Trooper)", "Portable Comms Unit (NPC)"],
     "hitPoints": 5,
     "page": 298,
+    "additionalSources": [{ "source": "Reclamation of the Wastes", "page": 104 }],
     "content": [
       {
         "type": "paragraph",
@@ -49,6 +52,7 @@
     "actions": ["Green Laser Rifle (Veteran)", "Portable Comms Unit (NPC)"],
     "hitPoints": 9,
     "page": 298,
+    "additionalSources": [{ "source": "Reclamation of the Wastes", "page": 104 }],
     "content": [
       {
         "type": "paragraph",
@@ -63,6 +67,7 @@
     "actions": ["Pistol (Combat Pilot)", "Portable Comms Unit (NPC)"],
     "hitPoints": 10,
     "page": 298,
+    "additionalSources": [{ "source": "Reclamation of the Wastes", "page": 104 }],
     "content": [
       {
         "type": "paragraph",
@@ -77,6 +82,7 @@
     "actions": ["Sniper Rifle (Ace)", "Portable Comms Unit (NPC)"],
     "hitPoints": 16,
     "page": 298,
+    "additionalSources": [{ "source": "Reclamation of the Wastes", "page": 104 }],
     "content": [
       {
         "type": "paragraph",

@@ -8,6 +8,7 @@
     "salvageValue": 1,
     "structurePoints": 1,
     "page": 292,
+    "additionalSources": [{ "source": "Reclamation of the Wastes", "page": 102 }],
     "content": [
       {
         "type": "paragraph",
@@ -33,6 +34,7 @@
     "salvageValue": 1,
     "structurePoints": 1,
     "page": 292,
+    "additionalSources": [{ "source": "Reclamation of the Wastes", "page": 102 }],
     "content": [
       {
         "type": "paragraph",
@@ -84,6 +86,7 @@
     "structurePoints": 4,
     "asset_url": "https://opxrguskxuogghzcnppk.supabase.co/storage/v1/object/public/LP-Assets/vehicles/armoured%20box%20wheel.jpg",
     "page": 293,
+    "additionalSources": [{ "source": "Reclamation of the Wastes", "page": 102 }],
     "content": [
       {
         "type": "paragraph",
@@ -100,6 +103,7 @@
     "salvageValue": 4,
     "structurePoints": 6,
     "page": 293,
+    "additionalSources": [{ "source": "Reclamation of the Wastes", "page": 102 }],
     "content": [
       {
         "type": "paragraph",
@@ -125,6 +129,7 @@
     "salvageValue": 3,
     "structurePoints": 3,
     "page": 293,
+    "additionalSources": [{ "source": "Reclamation of the Wastes", "page": 102 }],
     "content": [
       {
         "type": "paragraph",
@@ -146,6 +151,7 @@
     "salvageValue": 1,
     "structurePoints": 2,
     "page": 293,
+    "additionalSources": [{ "source": "Reclamation of the Wastes", "page": 103 }],
     "content": [
       {
         "type": "paragraph",

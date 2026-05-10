@@ -308,7 +308,8 @@
     "slotsRequired": 1,
     "salvageValue": 2,
     "actions": ["Coolant Flow", "Coolant Flush (Coolant Flow Manifold)", "Coolant Flow Manifold"],
-    "page": 199
+    "page": 199,
+    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "AP", "page": 2 }]
   },
   {
     "id": "3394e0b0-0fb9-4226-9c6d-b5e99b9ca522",

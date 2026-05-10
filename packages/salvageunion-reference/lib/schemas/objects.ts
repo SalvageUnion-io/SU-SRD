@@ -495,6 +495,7 @@ export const PatternSchema: z.ZodType<{
   legalStarting?: boolean
   source?: z.infer<typeof SourceSchema>
   page?: z.infer<typeof PositiveIntegerSchema>
+  additionalSources?: z.infer<typeof AdditionalSourceSchema>[]
   systems: z.infer<typeof PatternSystemModuleSchema>[]
   modules: z.infer<typeof PatternSystemModuleSchema>[]
   drones?: z.infer<typeof PatternDroneConfigSchema>[]
@@ -507,6 +508,10 @@ export const PatternSchema: z.ZodType<{
         legalStarting: z.boolean().describe('Whether this is a valid starting pattern').optional(),
         source: SourceSchema.describe('Source book for this pattern').optional(),
         page: PositiveIntegerSchema.describe('Page number in the source book').optional(),
+        additionalSources: z
+          .array(AdditionalSourceSchema)
+          .describe('Other source books where this pattern is reprinted')
+          .optional(),
         systems: z.array(PatternSystemModuleSchema).describe('Systems included in this pattern'),
         modules: z.array(PatternSystemModuleSchema).describe('Modules included in this pattern'),
         drones: z

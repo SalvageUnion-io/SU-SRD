@@ -6,6 +6,7 @@
     "actions": ["Stinger"],
     "hitPoints": 4,
     "page": 296,
+    "additionalSources": [{ "source": "Reclamation of the Wastes", "page": 109 }],
     "content": [
       {
         "type": "paragraph",
@@ -26,6 +27,7 @@
     "actions": ["Acid Spit", "Corrosive Skin Glands"],
     "hitPoints": 2,
     "page": 296,
+    "additionalSources": [{ "source": "Reclamation of the Wastes", "page": 108 }],
     "content": [
       {
         "type": "paragraph",
@@ -41,6 +43,10 @@
     "actions": ["Barbed Tentacles"],
     "hitPoints": 10,
     "page": 296,
+    "additionalSources": [
+      { "source": "Salvage Union Starter Set", "booklet": "AP", "page": 2 },
+      { "source": "Reclamation of the Wastes", "page": 108 }
+    ],
     "content": [
       {
         "type": "paragraph",
@@ -55,6 +61,7 @@
     "actions": ["Bear Carnage"],
     "hitPoints": 5,
     "page": 297,
+    "additionalSources": [{ "source": "Reclamation of the Wastes", "page": 107 }],
     "content": [
       {
         "type": "paragraph",
@@ -75,6 +82,7 @@
     "actions": ["Iron Claw"],
     "hitPoints": 12,
     "page": 297,
+    "additionalSources": [{ "source": "Reclamation of the Wastes", "page": 107 }],
     "content": [
       {
         "type": "paragraph",
@@ -94,6 +102,7 @@
     "actions": ["Talons"],
     "hitPoints": 3,
     "page": 297,
+    "additionalSources": [{ "source": "Reclamation of the Wastes", "page": 107 }],
     "content": [
       {
         "type": "paragraph",
