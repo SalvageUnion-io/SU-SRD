@@ -13059,5 +13059,17 @@
       }
     ],
     "actionSource": "npcs"
+  },
+  {
+    "id": "2413bb3d-f312-4f9e-9d64-7de00ca665c1",
+    "name": "Growth Formula",
+    "actionType": "Turn",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A spray bottle of plant-growth accelerant. Spraying it on a plant grows it rapidly until it spreads in tendrils that fill the surrounding area."
+      }
+    ],
+    "actionSource": "equipment"
   }
 ]

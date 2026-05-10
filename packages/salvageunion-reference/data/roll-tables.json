@@ -3078,5 +3078,112 @@
         "value": "Roll when Pilots travel between locations."
       }
     ]
+  },
+  {
+    "id": "89910746-a8a3-4b3f-83fb-9003693fabbe",
+    "source": "Salvage Union Starter Set",
+    "booklet": "AP",
+    "name": "Relics of a Time Gone By Exterior Encounters",
+    "table": {
+      "type": "standard",
+      "1": {
+        "value": "PAX awakens"
+      },
+      "2-5": {
+        "value": "Survey Lance x4"
+      },
+      "6-10": {
+        "value": "Skinless Jim's Scavengers"
+      },
+      "11-19": {
+        "value": "All clear"
+      },
+      "20": {
+        "value": "An excavation entrance is revealed."
+      }
+    },
+    "page": 5,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "The tip of the spire juts from a lone dune. Roll on the following location encounter table."
+      }
+    ]
+  },
+  {
+    "id": "2c70964e-0741-480f-b23f-5b05cfb52942",
+    "source": "Salvage Union Starter Set",
+    "booklet": "AP",
+    "name": "Relics of a Time Gone By Salvage Table",
+    "table": {
+      "type": "flat",
+      "1": {
+        "value": "Silicon Dust (1 Tech 1 Scrap)"
+      },
+      "2": {
+        "value": "Circuitry (1 Tech 2 Scrap)"
+      },
+      "3": {
+        "value": "Superconductors (1 Tech 3 Scrap)"
+      },
+      "4": {
+        "value": "Tungsten (1 Tech 4 Scrap)"
+      },
+      "5": {
+        "value": "Boron Nitride (1 Tech 5 Scrap)"
+      },
+      "6": {
+        "value": "Rare Earth Metals (1 Tech 6 Scrap)"
+      },
+      "7": {
+        "value": "Coolant Flow Manifold (Module)"
+      },
+      "8": {
+        "value": "Survey Drone"
+      },
+      "9": {
+        "value": "Pest Drone"
+      },
+      "10": {
+        "value": "Defacer Drone"
+      },
+      "11": {
+        "value": "Salvo Drone"
+      },
+      "12": {
+        "value": "Combat Drone"
+      },
+      "13": {
+        "value": "Walker Drone"
+      },
+      "14": {
+        "value": "Hover Drone"
+      },
+      "15": {
+        "value": "Heavy Combat Drone"
+      },
+      "16": {
+        "value": "Thatcher Pattern Jackhammer"
+      },
+      "17": {
+        "value": "Legion Pattern Gopher"
+      },
+      "18": {
+        "value": "Mauler Pattern Hussar"
+      },
+      "19": {
+        "value": "Analysis Pattern Gopher"
+      },
+      "20": {
+        "value": "All is Dust Pattern Atlas"
+      }
+    },
+    "page": 6,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "When directed, roll on the below table."
+      }
+    ]
   }
 ]
