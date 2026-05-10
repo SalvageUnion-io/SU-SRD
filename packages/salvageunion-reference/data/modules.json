@@ -753,5 +753,93 @@
     "salvageValue": 1,
     "page": 76,
     "actions": ["Genetic Lock"]
+  },
+  {
+    "id": "9d670290-473f-44a9-a02d-81c8df2594e2",
+    "source": "Salvage Union Starter Set",
+    "booklet": "AP",
+    "name": "Analogue Internals",
+    "techLevel": 1,
+    "slotsRequired": 1,
+    "salvageValue": 3,
+    "page": 1,
+    "actions": ["Analogue Internals"]
+  },
+  {
+    "id": "e9276eae-7205-4e54-b361-58840b41a4d5",
+    "source": "Salvage Union Starter Set",
+    "booklet": "AP",
+    "name": "Targeting Reticule",
+    "techLevel": 2,
+    "slotsRequired": 1,
+    "salvageValue": 2,
+    "page": 1,
+    "actions": ["Targeting Reticule"]
+  },
+  {
+    "id": "827e5acf-8ff2-4058-9c97-1a7e2b818277",
+    "source": "Salvage Union Starter Set",
+    "booklet": "AP",
+    "name": "IFF Beacon",
+    "techLevel": 3,
+    "slotsRequired": 2,
+    "salvageValue": 2,
+    "page": 1,
+    "actions": ["IFF Beacon"]
+  },
+  {
+    "id": "4d5be4a6-5b0e-4521-a9af-01a83c952861",
+    "source": "Salvage Union Starter Set",
+    "booklet": "AP",
+    "name": "Surge Protector",
+    "techLevel": 1,
+    "slotsRequired": 1,
+    "salvageValue": 1,
+    "page": 2,
+    "actions": ["Surge Protector"]
+  },
+  {
+    "id": "53cab7a9-e9a6-4eeb-8982-48e60ad11bcc",
+    "source": "Salvage Union Starter Set",
+    "booklet": "AP",
+    "name": "Remote Transponder",
+    "techLevel": 4,
+    "slotsRequired": 1,
+    "salvageValue": 2,
+    "page": 2,
+    "actions": ["Remote Transponder"]
+  },
+  {
+    "id": "adaec371-7e90-4b08-a1c5-8f6a4bc50577",
+    "source": "Salvage Union Starter Set",
+    "booklet": "AP",
+    "name": "EM Counterpulse",
+    "techLevel": 3,
+    "slotsRequired": 1,
+    "salvageValue": 2,
+    "page": 2,
+    "actions": ["EM Counterpulse"]
+  },
+  {
+    "id": "ee029a8e-d9be-4894-8d62-95523250f546",
+    "source": "Salvage Union Starter Set",
+    "booklet": "AP",
+    "name": "Adaptive Chassis Linkage",
+    "techLevel": 6,
+    "slotsRequired": 1,
+    "salvageValue": 2,
+    "page": 3,
+    "actions": ["Adaptive Chassis Linkage", "Combo Attack"]
+  },
+  {
+    "id": "506118a7-ae09-45d5-b9d5-3fce74729580",
+    "source": "Salvage Union Starter Set",
+    "booklet": "AP",
+    "name": "Mozart's Ghost",
+    "techLevel": 5,
+    "slotsRequired": 1,
+    "salvageValue": 2,
+    "page": 3,
+    "actions": ["Mozart's Ghost"]
   }
 ]

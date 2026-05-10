@@ -1219,5 +1219,27 @@
     "salvageValue": 3,
     "page": 76,
     "actions": ["Napalm Shotgun"]
+  },
+  {
+    "id": "1f8ad16a-5162-4aec-8a6f-295f499a17cc",
+    "source": "Salvage Union Starter Set",
+    "booklet": "AP",
+    "name": "Cluster Missile",
+    "techLevel": 4,
+    "slotsRequired": 7,
+    "salvageValue": 5,
+    "page": 1,
+    "actions": ["Cluster Missile"]
+  },
+  {
+    "id": "1cb78a8c-1d28-449c-b412-484f85fd60f5",
+    "source": "Salvage Union Starter Set",
+    "booklet": "AP",
+    "name": "Impact Hammer",
+    "techLevel": 3,
+    "slotsRequired": 7,
+    "salvageValue": 6,
+    "page": 2,
+    "actions": ["Impact Hammer", "Hammer Time"]
   }
 ]

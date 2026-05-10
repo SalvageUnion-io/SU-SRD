@@ -12593,5 +12593,280 @@
         "value": "A Herrsch 360° RealSteel Turret Enclosure, controls this 120mm Cannon."
       }
     ]
+  },
+  {
+    "id": "1bbb256c-81e2-4a4b-8f5e-78ed450837ec",
+    "name": "Cluster Missile",
+    "actionType": "Turn",
+    "range": ["Far"],
+    "damage": {
+      "damageType": "SP",
+      "amount": 3
+    },
+    "traits": [
+      {
+        "type": "explosive",
+        "amount": 3
+      },
+      {
+        "type": "guided"
+      },
+      {
+        "type": "uses",
+        "amount": 6
+      }
+    ],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "An Evantis-developed ordnance missile system, designed to deliver numerous submunition explosives over a wide area at extreme range. Utilised effectively to destroy swarms of DronTek drones during the Evantis invasion of the Northern Wastes."
+      },
+      {
+        "type": "paragraph",
+        "value": "This weapon's [[Explosive]] Trait hits everything in Medium Range of the primary target instead of Close."
+      }
+    ],
+    "actionSource": "systems"
+  },
+  {
+    "id": "59933c70-3ed7-4957-97e2-d33f6d2da4c3",
+    "name": "Analogue Internals",
+    "actionType": "Passive",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Developed in the cyberwars by Evantis to counter Stefanus tech, this hardened module strips a Mech's internals, protecting it from cyber warfare but limiting functionality. Whilst installed, your Mech cannot be targeted by anything with the [[Hacking]] Trait and ignores the effects of the ECM Transmitter. Your Mech also cannot activate any ability with the [[Hacking]], [[Communicator]], or [[Targeter]] Trait."
+      }
+    ],
+    "actionSource": "modules"
+  },
+  {
+    "id": "0d6d2dff-77fc-4d0c-9b1b-d7d2e516b9c0",
+    "name": "Targeting Reticule",
+    "actionType": "Free",
+    "activationCost": 1,
+    "traits": [
+      {
+        "type": "targeter"
+      }
+    ],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A Mech-mountable reflector sight that enables more precision when firing. Forms part of an Evantis Merc's basic training at the academy."
+      },
+      {
+        "type": "paragraph",
+        "value": "When activated, you may re-roll the die for the next attack you make with a weapon that has the [[Ballistic]] or Laser Trait. The second result may still be Pushed."
+      }
+    ],
+    "actionSource": "modules"
+  },
+  {
+    "id": "fa0d5a55-f6ff-42f4-8a2c-ec0b3e791007",
+    "name": "IFF Beacon",
+    "actionType": "Turn",
+    "activationCost": 1,
+    "range": ["Long"],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A countermeasure against Sakura wetwork teams, the IFF Beacon identifies stock information about a Mech, as well as if the Mech is friendly."
+      },
+      {
+        "type": "paragraph",
+        "value": "When activated, you gain the following information about a Mech of your choice in range:"
+      },
+      {
+        "type": "list-item",
+        "value": "Whether it is Friendly. Friendly Mechs may be given this unique tag to identify them. It's assumed that all allied Pilot Mechs gain this tag if anyone takes this Module."
+      },
+      {
+        "type": "list-item",
+        "value": "Its Chassis, such as if it is a Jackhammer or Scrapper."
+      },
+      {
+        "type": "list-item",
+        "value": "Its Chassis Pattern, if using any stock Mech Pattern within the Salvage Union Core Book or any published adventures, or if the Mediator allows."
+      },
+      {
+        "type": "list-item",
+        "value": "Its faction if it belongs to an identifiable faction, including all corpos, the Salvage Union, and any other established faction within the world."
+      }
+    ],
+    "actionSource": "modules"
+  },
+  {
+    "id": "b85891f3-0c4f-49f3-b4d1-997fc033a1a4",
+    "name": "Surge Protector",
+    "actionType": "Passive",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Developed by Opus during the colonisation of the red planet, as its extreme sub-surface temperatures caused settler Mechs to continually overheat. Despite its effectiveness, corpos were reluctant to have them installed as standard due to the additional cost involved."
+      },
+      {
+        "type": "paragraph",
+        "value": "If your Mech has to roll on the Reactor Overheat table, ignore the roll; instead, this Module is destroyed and your Mech's Heat is reduced by 1."
+      }
+    ],
+    "actionSource": "modules"
+  },
+  {
+    "id": "79a962ae-6d63-4fce-a798-502e4b268b87",
+    "name": "Remote Transponder",
+    "actionType": "Turn",
+    "activationCost": 1,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "When activated, you may activate any ability on a friendly Mech within Range with the [[Hacking]], [[Targeter]], [[Scanner]], or [[Communicator]] Trait."
+      },
+      {
+        "type": "paragraph",
+        "value": "The target Mech must also have a Remote Transponder installed and agree to your signal."
+      }
+    ],
+    "actionSource": "modules"
+  },
+  {
+    "id": "d1876eba-a7ef-4233-b19f-0a506a80ec80",
+    "name": "Impact Hammer",
+    "actionType": "Turn",
+    "range": ["Close"],
+    "damage": {
+      "damageType": "SP",
+      "amount": 3
+    },
+    "traits": [
+      {
+        "type": "melee"
+      }
+    ],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Developed by Opus as a means to breach fortifications, this industrial-sized pneumatic hammer needs to be charged to deliver its full effect, but is devastating upon impact. It can easily tear bulkheads apart and rend a chassis open."
+      }
+    ],
+    "actionSource": "systems"
+  },
+  {
+    "id": "fe2776c3-3342-4fee-8aef-f4a67b83089d",
+    "name": "Hammer Time",
+    "actionType": "Turn",
+    "activationCost": 1,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "When activated, you charge the Impact Hammer."
+      },
+      {
+        "type": "paragraph",
+        "value": "The next attack you make with the Impact Hammer within 10 minutes will deal 2x damage on a successful hit. This attack will automatically breach blast doors, destroy walls, tear down barricades, and damage equivalent structures."
+      }
+    ],
+    "actionSource": "systems"
+  },
+  {
+    "id": "d80925ea-761a-481a-a848-93243845309d",
+    "name": "EM Counterpulse",
+    "actionType": "Turn",
+    "activationCost": 1,
+    "range": ["Medium"],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "An electronic countermeasure used frequently during the cyberwars between Stefanus and Drontek. When activated, this module this module sends out a counterpulse signal to prevent electronic interference."
+      },
+      {
+        "type": "paragraph",
+        "value": "Until the start of your next turn, all friendly Mechs within range cannot be prevented by an enemy from activating any abilities with the [[Hacking]], [[Scanner]], [[Communicator]], [[Targeter]], or [[Shield]] traits."
+      }
+    ],
+    "actionSource": "modules"
+  },
+  {
+    "id": "a383e0fb-8dbe-435e-b82a-1d419bd308d8",
+    "name": "Adaptive Chassis Linkage",
+    "actionType": "Passive",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Developed by the Sakura specialist R&D department within their home arco of Neochiba in the Central Wastes."
+      },
+      {
+        "type": "paragraph",
+        "value": "It allows two Mechs to be linked together, operated as one by both Pilots, subject to the following conditions:"
+      },
+      {
+        "type": "list-item",
+        "value": "Mechs can deploy linked; otherwise it is a Long Action to link them together."
+      },
+      {
+        "type": "list-item",
+        "value": "Both Mechs require this Module to be installed to link them."
+      },
+      {
+        "type": "list-item",
+        "value": "The combined Mechs count as one Mech for all intents and purposes."
+      },
+      {
+        "type": "list-item",
+        "value": "The Mechs combine the total of their current and max Structure Points, and their Energy Points."
+      },
+      {
+        "type": "list-item",
+        "value": "The Mechs combine their current Heat and their Heat Cap."
+      },
+      {
+        "type": "list-item",
+        "value": "The Mechs share all Systems, Modules, and Chassis Abilities of both Mechs."
+      },
+      {
+        "type": "list-item",
+        "value": "When it is the turn of either Pilot, they may move and take actions as normal as the combined Mech. This effectively lets the Mech act twice in each round (once on each Pilot's turn)."
+      }
+    ],
+    "actionSource": "modules"
+  },
+  {
+    "id": "882986d2-565f-4e13-931d-b76554fcc10c",
+    "name": "Combo Attack",
+    "actionType": "Turn",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Acting in unison, the Pilots combine their efforts to let out a flurry of blows."
+      },
+      {
+        "type": "paragraph",
+        "value": "The first time either Pilot activates this ability in a round, it begins to prepare the attack."
+      },
+      {
+        "type": "paragraph",
+        "value": "The second time this ability is activated in the round, each Pilot may pick two different weapon systems (each mounted on the Mech) and attack with both. The same weapon cannot be fired twice."
+      }
+    ],
+    "actionSource": "modules"
+  },
+  {
+    "id": "da15eca6-0c82-44df-a9a6-e3beddfebc95",
+    "name": "Mozart's Ghost",
+    "actionType": "Turn",
+    "activationCost": 2,
+    "range": ["Medium"],
+    "traits": [
+      {
+        "type": "hacking"
+      }
+    ],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Choose a target Mech and create a ghost copy of it. Whilst active, you may activate any System, Module, or Chassis Ability of the target with the [[Hacking]], [[Targeter]], [[Scanner]], or [[Communicator]] Trait as though it was mounted on your Mech. Communications appear as though they are from the ghosted Mech. You may only have one ghosted Mech. Lasts for 1 hour and can be ended as a Free Action."
+      }
+    ],
+    "actionSource": "modules"
   }
 ]
