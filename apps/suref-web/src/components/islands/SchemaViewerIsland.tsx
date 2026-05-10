@@ -117,8 +117,8 @@ export function SchemaViewerIsland({
       )}
 
       {/* Entity Grid */}
-      <div className="flex-1 p-6">
-        <div className="mx-auto max-w-[1400px] columns-1 gap-4 md:columns-2 lg:columns-3 [&>*]:mb-4 [&>*]:break-inside-avoid">
+      <div className="w-full min-w-0 flex-1 px-2 py-6 md:p-6">
+        <div className="mx-auto w-full max-w-[1400px] columns-1 gap-4 md:columns-2 lg:columns-3 [&>*]:mb-4 [&>*]:break-inside-avoid">
           {filteredData.map((item: SURefEntity) => {
             const tree = schemaId === 'abilities' ? (getTree(item) as string) : undefined
             return (
