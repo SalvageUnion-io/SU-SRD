@@ -39,7 +39,7 @@ These will recur across multiple PDFs and should be resolved once, not per-bookl
 
 Decision: **Option A — primary + additional sources, with optional booklet code.** Added `AdditionalSourceSchema` and an optional `additionalSources?: Array<{source, booklet?, page}>` field to `BaseEntitySchema` (`packages/salvageunion-reference/lib/schemas/objects.ts`). The new field is automatically inherited by all 25 entity schemas that extend `BaseEntitySchema`, and is reported in every generated `*.schema.json`.
 
-The optional `booklet` field disambiguates pages within multi-booklet sources (CR/PH/PC/CB for the Starter Set). It is omitted for single-volume sources.
+The optional `booklet` field disambiguates pages within multi-booklet sources. The Starter Set uses five codes: `CR` (Core Rulebook), `PH` (Pilots Handbook), `PC` (Parts Catalogue), `CB` (Campaign Book — Reclamation of the Wastes), `AP` (Asset Pack — covers Hive / Thatcher's Mech Base / Relics / Sticker Sheets / Char/Mech/Crawler Sheets). The `booklet` field is omitted for single-volume sources.
 
 Backfilled with the 6 guide entries surfaced from the Rules Reference pass:
 
@@ -489,32 +489,32 @@ The bulk of pages 12–87 is region/sub-location content. Modeling decision requ
 
 #### Cross-cutting open question raised by RotW
 
-##### Q3. Schema scope — adding new entity types
+##### Q3. Schema scope — adding new entity types — ✓ resolved
 
-RotW introduces material that current `salvageunion-reference` has no schema for. Decision needed before any modeling can begin:
+RotW introduces material spread across three tiers. Decisions captured below.
 
-| Proposed entity type | RotW count | Should we add? |
-| --- | --- | --- |
-| `vehicles` | 6 | Yes — well-bounded, statblock-shaped (close to `npcs`) |
-| `drones` | 3 | Yes — same pattern as vehicles |
-| `turrets` | 3 + 1 loader | Yes — same pattern |
-| `npcs` (people) | 11 (6 individuals + 5 squads) | Yes — referenced from regions and Reclamation Jobs |
-| `creatures` | 11 | Yes — referenced from encounter tables and Bio-Fauna spawn |
-| `bioTitans` | 1 (Ygdriss) | Possibly merge into `npcs` with a `category` discriminator, since Behemoth (Meld) is also titanic |
-| `meld` (units + items) | 5 + 2 | Possibly merge into existing schemas (`npcs` for units, `equipment` for items) with a `category` field |
-| `regions` | 4 | Open — heavy content, mostly narrative |
-| `areas` (sub-locations) | ~50 | Open — heavy content, mostly narrative |
-| `lances` | ~10 | Open — could be modeled as composite NPC groupings |
-| `reclamationJobs` | 3 | Open — adventure-shaped content |
+| Proposed entity type | RotW count | Decision | Rationale |
+| --- | --- | --- | --- |
+| `vehicles` | 6 | **Tier 1 — add to existing `vehicles.json`** | Well-bounded statblock; schema already exists |
+| `drones` | 3 | **Tier 1 — add to existing schema** | Drones already modeled (verify schema covers RotW shape) |
+| `turrets` | 3 + 1 loader | **Tier 1 — needs new `turrets.json` or extend `vehicles`** | Currently turrets exist only as actions on parent NPCs |
+| `npcs` (people) | 11 (6 individuals + 5 squads) | **Tier 1 — squads → existing `squads.json`, individuals → `npcs.json`** | Both schemas already exist |
+| `creatures` | 11 | **Tier 1 — add to existing `creatures.json`** | Schema already exists |
+| `bioTitans` | 1 (Ygdriss) | **Tier 2 — add to existing `bio-titans.json`** | Schema already exists |
+| `meld` units | 5 | **Tier 2 — add to existing `meld.json`** | Schema already exists (5 entries today) |
+| `meld` items (Nanite) | 2 | **Tier 2 — `equipment.json` with category discriminator** | No standalone schema needed |
+| `lances` | ~10 | **Tier 1 — add to existing `squads.json`** | Lance = a squad; existing schema covers Thatcher Pit Android Lance, 4 CURNOS Lances, Skinless Jim's Scavengers |
+| `regions` | 4 | **Tier 3 — Decision C: do not model** | Stays as PDF reference only |
+| `areas` (sub-locations) | ~50 | **Tier 3 — Decision C: do not model** | Stays as PDF reference only |
+| `reclamationJobs` | 3 | **Tier 3 — Decision C: do not model** | Stays as PDF reference only |
 
-Recommend resolving by tier:
-- **Tier 1 (do first):** vehicles, drones, turrets, npcs (people), creatures — all are statblock-shaped and have clear schema analogies in WM data we already model
-- **Tier 2 (after Tier 1 schemas land):** Meld units → npcs with `category: "meld"`, Bio-Titans → npcs with `category: "bio-titan"`. Inert/Active Meld Nanite → equipment with `category: "scrap-equivalent"`
-- **Tier 3 (separate decision):** regions / areas / lances / reclamation jobs. These may be better as a separate `campaign-content` package rather than reference data, since they're tightly coupled to a specific adventure path
+**Tier 3 = Decision C (do not model).** Regions, areas, sub-locations, and Reclamation Jobs stay as PDF references — suref-web links to them but doesn't render them. Rationale: these are adventure-path content tightly coupled to RotW; modeling them would either bloat the reference package with campaign-specific content or require a parallel `campaign-content` package with cross-package references. Neither pays off given the limited reuse value. The Asset Pack mini-adventure sub-locations (Hive ~10, Thatcher's ~10, Relics ~21) follow the same rule.
+
+Note: turret schema decision is the only remaining open subquestion in Tier 1 — pick "extend vehicles" vs "new schema" at implementation time.
 
 #### Cross-ref backlog
 
-Once Tier 1 schemas land, every entity above gets `source: "Salvage Union Starter Set"` + `booklet: "CB"` + the page number from the catalog. ~40 net-new entities + 12 roll tables + 21 guides = ~73 new data entries from RotW alone (Tier 1+2 only; Tier 3 unbounded).
+Once Tier 1 schemas land, every entity above gets `source: "Salvage Union Starter Set"` + `booklet: "CB"` + the page number from the catalog. **Tier 1 + Tier 2 totals: ~40 net-new entities + 12 roll tables + 21 guides = ~73 new data entries from RotW.** Tier 3 content (regions/areas/jobs) is intentionally not modeled per Decision C.
 
 ### SUSS Campaign Map 1.0 — surveyed
 
@@ -627,7 +627,7 @@ Mini-adventure: explore a multi-level pre-Cataclysm ruin staffed by AI entities 
 
 #### Asset Pack Sticker Sheets 1.0 (3 pages)
 
-Sticker sheets cataloging 10 net-new mech equipment items, organized by manufacturer (Evantis Heavy Industries, Opus Institute, Sakura). All entries are full game-data-ready (Tech Level / Slots / Salvage Value / type / range / damage / abilities). Source/booklet target: `Salvage Union Starter Set`, no booklet code (asset pack is not a numbered booklet; may need a new booklet code or `booklet: "CB"` if categorized with Campaign Book — open question for Q1).
+Sticker sheets cataloging 10 net-new mech equipment items, organized by manufacturer (Evantis Heavy Industries, Opus Institute, Sakura). All entries are full game-data-ready (Tech Level / Slots / Salvage Value / type / range / damage / abilities). Source/booklet target: `Salvage Union Starter Set`, booklet `AP` (Asset Pack — see Q1 for the full booklet code list).
 
 | Item | Manufacturer | TL/SS/SV | Type | Notes |
 | --- | --- | --- | --- | --- |

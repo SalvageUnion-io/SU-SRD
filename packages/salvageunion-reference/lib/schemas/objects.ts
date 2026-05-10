@@ -626,7 +626,7 @@ export const AdditionalSourceSchema = z
       .string()
       .min(1)
       .describe(
-        'Booklet code within a multi-booklet source (e.g. "CR", "PH", "PC", "CB" for the Salvage Union Starter Set). Omit for single-volume sources.'
+        'Booklet code within a multi-booklet source (e.g. "CR", "PH", "PC", "CB", "AP" for the Salvage Union Starter Set — Core Rulebook / Pilots Handbook / Parts Catalogue / Campaign Book / Asset Pack). Omit for single-volume sources.'
       )
       .optional(),
     page: PositiveIntegerSchema.describe('Page number in the secondary source book'),
