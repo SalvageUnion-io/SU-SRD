@@ -29,6 +29,19 @@
     ]
   },
   {
+    "id": "572a5eee-b3f3-4f82-8092-88551fa6e0c4",
+    "name": "Salvage Union Starter Set",
+    "source": "Salvage Union Starter Set",
+    "page": 1,
+    "purchaseLink": "https://www.backerkit.com/c/projects/leyline-press/salvage-union-starter-set",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "The Salvage Union Starter Set is an introductory boxed set for Salvage Union, containing a streamlined Core Rulebook, Pilots Handbook, Parts Catalogue, Rules Reference, and the Reclamation of the Wastes adventure module, along with a campaign map, character/mech/crawler sheets, and a digital asset pack."
+      }
+    ]
+  },
+  {
     "id": "0a8868a5-aaad-43ed-a936-94224b6543eb",
     "name": "Mech Monday",
     "source": "Mech Monday",

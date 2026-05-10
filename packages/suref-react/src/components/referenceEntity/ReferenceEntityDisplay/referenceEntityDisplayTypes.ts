@@ -187,4 +187,5 @@ export type ReferenceEntityDisplayState = Omit<
   actionsToDisplay?: SURefMetaAction[]
   matchingAction?: SURefMetaAction
   source?: SURefEnumSource
+  booklet?: string
 }

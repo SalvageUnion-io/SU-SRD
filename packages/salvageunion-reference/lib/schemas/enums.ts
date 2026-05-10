@@ -10,6 +10,7 @@ import { z } from 'zod'
 export const SourceSchema = z
   .enum([
     'Salvage Union Workshop Manual',
+    'Salvage Union Starter Set',
     'Mech Monday',
     'We Were Here First!',
     'Rainmaker',

@@ -10,6 +10,7 @@ import {
   extractVisibleActions,
   filterActionsExcludingName,
   getSource,
+  getBooklet,
 } from 'salvageunion-reference'
 import { calculateBackgroundColor } from '../referenceEntityHelpers'
 import { TECH_LEVEL_BG } from '../../shared/techLevelStyles'
@@ -67,6 +68,7 @@ export function useReferenceEntityDisplayState({
   const techLevel = getTechLevel(data)
   const techLevelNumeric = getTechLevelNumber(data)
   const source = getSource(data) as SURefEnumSource | undefined
+  const booklet = getBooklet(data)
   const calculatedHeaderBg = calculateBackgroundColor(
     schemaName,
     headerColor,
@@ -138,6 +140,7 @@ export function useReferenceEntityDisplayState({
     actionsToDisplay,
     matchingAction,
     source,
+    booklet,
     label,
     subtitleExtra,
     statsOverride,

@@ -1016,6 +1016,7 @@
     "activationCurrency": "Variable",
     "mechActionType": "Short",
     "page": 248,
+    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 31 }],
     "actions": ["Area Salvage"],
     "description": "You salvage an area for scrap. This could be an abandoned factory, a ruined settlement, or a crumbling research facility. The Mediator will tell you if an area can be Area Salvaged or not. It costs 1 AP for a Pilot or 1 EP in a Mech."
   },
@@ -1027,6 +1028,7 @@
     "source": "Salvage Union Workshop Manual",
     "mechActionType": "Short",
     "page": 248,
+    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 31 }],
     "actions": ["Mech Salvage"],
     "description": "You salvage a destroyed Mech Chassis for Scrap and Systems."
   },
@@ -1038,6 +1040,7 @@
     "source": "Salvage Union Workshop Manual",
     "mechActionType": "Short",
     "page": 248,
+    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 32 }],
     "actions": ["Scrap"],
     "description": "You break down a Mech Chassis, System, or Module into Scrap."
   },
@@ -1049,6 +1052,7 @@
     "source": "Salvage Union Workshop Manual",
     "mechActionType": "Short",
     "page": 248,
+    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 33 }],
     "actions": ["Repair"],
     "description": "You repair a damaged Mech Chassis, System, or Module."
   },
@@ -1060,6 +1064,7 @@
     "source": "Salvage Union Workshop Manual",
     "mechActionType": "Short",
     "page": 249,
+    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 33 }],
     "actions": ["Mount"]
   },
   {
@@ -1070,6 +1075,7 @@
     "source": "Salvage Union Workshop Manual",
     "mechActionType": "Short",
     "page": 249,
+    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 33 }],
     "actions": ["Patch Up"]
   },
   {
@@ -1080,6 +1086,7 @@
     "source": "Salvage Union Workshop Manual",
     "mechActionType": "Turn",
     "page": 249,
+    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 33 }],
     "actions": ["Load"]
   },
   {
@@ -1089,6 +1096,7 @@
     "tree": "Generic",
     "source": "Salvage Union Workshop Manual",
     "page": 249,
+    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 32 }],
     "actions": ["Craft"],
     "description": "You craft a Mech Chassis, System, or Module."
   }

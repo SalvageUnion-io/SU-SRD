@@ -4,6 +4,7 @@
     "name": "Safety Protocols",
     "source": "Salvage Union Workshop Manual",
     "page": 12,
+    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 8 }],
     "guideType": "gameplay",
     "guideColor": "#5A9DB5",
     "content": [
@@ -652,6 +653,7 @@
     "name": "Crawler Downtime",
     "source": "Salvage Union Workshop Manual",
     "page": 227,
+    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "PH", "page": 64 }],
     "guideType": "downtime",
     "guideColor": "#D14B8A",
     "content": [
@@ -812,6 +814,7 @@
     "name": "Pushing a Mech",
     "source": "Salvage Union Workshop Manual",
     "page": 233,
+    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 16 }],
     "guideType": "gameplay",
     "guideColor": "#7A978A",
     "content": [
@@ -908,6 +911,7 @@
     "name": "Heat",
     "source": "Salvage Union Workshop Manual",
     "page": 234,
+    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 16 }],
     "guideType": "gameplay",
     "guideColor": "#7A978A",
     "content": [
@@ -977,6 +981,7 @@
     "name": "Activating and Shutting Down a Mech",
     "source": "Salvage Union Workshop Manual",
     "page": 238,
+    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 21 }],
     "guideType": "gameplay",
     "guideColor": "#7A978A",
     "content": [],
@@ -1018,6 +1023,7 @@
     "name": "Mech Damage",
     "source": "Salvage Union Workshop Manual",
     "page": 239,
+    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 22 }],
     "guideType": "gameplay",
     "guideColor": "#7A978A",
     "content": [
@@ -1115,6 +1121,7 @@
     "name": "Pilot Damage",
     "source": "Salvage Union Workshop Manual",
     "page": 241,
+    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 24 }],
     "guideType": "gameplay",
     "guideColor": "#D46A30",
     "content": [
@@ -1197,6 +1204,7 @@
     "name": "Salvage Condition",
     "source": "Salvage Union Workshop Manual",
     "page": 244,
+    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 28 }],
     "guideType": "gameplay",
     "guideColor": "#5A9DB5",
     "content": [
@@ -1254,6 +1262,7 @@
     "name": "Salvaging",
     "source": "Salvage Union Workshop Manual",
     "page": 245,
+    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 28 }],
     "guideType": "gameplay",
     "guideColor": "#5A9DB5",
     "content": [],
@@ -1365,6 +1374,7 @@
     "name": "Tough Choices",
     "source": "Salvage Union Workshop Manual",
     "page": 254,
+    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 14 }],
     "guideType": "gameplay",
     "guideColor": "#B84C4C",
     "content": [
@@ -1476,6 +1486,7 @@
     "name": "Map Movement",
     "source": "Salvage Union Workshop Manual",
     "page": 263,
+    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CB", "page": 8 }],
     "guideType": "gameplay",
     "guideColor": "#5A9DB5",
     "content": [

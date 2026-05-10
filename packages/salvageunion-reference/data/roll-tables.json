@@ -2,6 +2,7 @@
   {
     "id": "fa9860bb-83c2-4d8c-b100-40708948257d",
     "source": "Salvage Union Workshop Manual",
+    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 14 }],
     "name": "Core Mechanic",
     "table": {
       "1": {
@@ -38,6 +39,7 @@
   {
     "id": "cdbc20d9-ff63-4272-805b-f148f0c01752",
     "source": "Salvage Union Workshop Manual",
+    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 19 }],
     "name": "Group Initiative",
     "table": {
       "1": {
@@ -74,6 +76,7 @@
   {
     "id": "dcd888a2-dc2d-4f45-94eb-ae6138761931",
     "source": "Salvage Union Workshop Manual",
+    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 25 }],
     "name": "Critical Injury",
     "table": {
       "1": {
@@ -110,6 +113,7 @@
   {
     "id": "aa54dcd4-efd0-4cbb-83dc-4cf6f0411066",
     "source": "Salvage Union Workshop Manual",
+    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 23 }],
     "name": "Critical Damage",
     "table": {
       "1": {
@@ -146,6 +150,7 @@
   {
     "id": "0050af76-7d88-43e7-b098-1a6af7656353",
     "source": "Salvage Union Workshop Manual",
+    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 17 }],
     "name": "Reactor Overload",
     "table": {
       "1": {
@@ -176,6 +181,7 @@
   {
     "id": "abca780b-da93-47b0-91e6-290da910e2fd",
     "source": "Salvage Union Workshop Manual",
+    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 31 }],
     "name": "Area Salvage",
     "table": {
       "1": {
@@ -206,6 +212,7 @@
   {
     "id": "acdc85ee-056c-4edc-95be-e25f0ab9b319",
     "source": "Salvage Union Workshop Manual",
+    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 31 }],
     "name": "Mech Salvage",
     "table": {
       "1": {

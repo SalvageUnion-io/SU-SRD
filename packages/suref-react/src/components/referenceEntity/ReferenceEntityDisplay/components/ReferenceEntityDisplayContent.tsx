@@ -109,6 +109,7 @@ export function ReferenceEntityDisplayContent({
     actionsToDisplay,
     matchingAction,
     source,
+    booklet,
     label,
     techLevel,
     subtitleExtra,
@@ -220,6 +221,7 @@ export function ReferenceEntityDisplayContent({
     <ReferenceEntityFooter
       footerDisplayName={footerDisplayName}
       source={hasSource ? data.source : undefined}
+      booklet={booklet}
       page={hasPage ? data.page : undefined}
       compact={compact}
       headerBg={headerBg}

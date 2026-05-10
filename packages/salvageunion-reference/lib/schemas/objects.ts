@@ -612,6 +612,29 @@ export const ActionSchema: z.ZodType<{
   .describe('An action, ability, or attack that can be performed')
 
 /**
+ * Reprint of an entity in a secondary source book
+ *
+ * `booklet` is optional and used when a source is a multi-booklet product
+ * (e.g. the Salvage Union Starter Set, which uses CR / PH / PC / CB codes
+ * for its Core Rulebook / Pilots Handbook / Parts Catalogue / Campaign Book).
+ * Single-volume sources omit it.
+ */
+export const AdditionalSourceSchema = z
+  .object({
+    source: SourceSchema.describe('Secondary source book this entity also appears in'),
+    booklet: z
+      .string()
+      .min(1)
+      .describe(
+        'Booklet code within a multi-booklet source (e.g. "CR", "PH", "PC", "CB" for the Salvage Union Starter Set). Omit for single-volume sources.'
+      )
+      .optional(),
+    page: PositiveIntegerSchema.describe('Page number in the secondary source book'),
+  })
+  .strict()
+  .describe('A secondary source where this entity is reprinted (e.g. condensed in a Starter Set)')
+
+/**
  * Basic entity with name, content, source, and page reference
  */
 export const BaseEntitySchema = z
@@ -625,8 +648,19 @@ export const BaseEntitySchema = z
       .default(false)
       .describe('Whether this entity is only available on the black market'),
     name: NameSchema.describe('Display name of this entity'),
-    source: SourceSchema.describe('Source book this entity appears in'),
-    page: PositiveIntegerSchema.describe('Page number in the source book'),
+    source: SourceSchema.describe('Primary source book this entity appears in'),
+    page: PositiveIntegerSchema.describe('Page number in the primary source book'),
+    booklet: z
+      .string()
+      .min(1)
+      .describe(
+        'Booklet code within a multi-booklet primary source (e.g. "CR", "PH", "PC", "CB" for the Salvage Union Starter Set). Omit for single-volume sources.'
+      )
+      .optional(),
+    additionalSources: z
+      .array(AdditionalSourceSchema)
+      .describe('Other source books where this entity is reprinted')
+      .optional(),
   })
   .describe('Base entity with name, content, source, and page reference')
 

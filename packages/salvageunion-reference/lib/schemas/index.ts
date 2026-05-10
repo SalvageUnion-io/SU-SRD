@@ -53,6 +53,7 @@ import {
   PatternSchema,
   DamageSchema,
   ActionSchema,
+  AdditionalSourceSchema,
   BaseEntitySchema,
   AdvancedClassSchema,
   FormationMechSchema,
@@ -137,6 +138,7 @@ export type SURefObjectNpc = z.infer<typeof NpcSchema>
 export type SURefObjectPattern = z.infer<typeof PatternSchema>
 export type SURefObjectDamage = z.infer<typeof DamageSchema>
 export type SURefObjectAction = z.infer<typeof ActionSchema>
+export type SURefObjectAdditionalSource = z.infer<typeof AdditionalSourceSchema>
 export type SURefObjectBaseEntity = z.infer<typeof BaseEntitySchema>
 export type SURefObjectBonusPerTechLevel = z.infer<typeof StatsSchema>
 export type SURefObjectAdvancedClass = z.infer<typeof AdvancedClassSchema>
