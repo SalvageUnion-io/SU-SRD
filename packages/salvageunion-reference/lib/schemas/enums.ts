@@ -11,6 +11,7 @@ export const SourceSchema = z
   .enum([
     'Salvage Union Workshop Manual',
     'Salvage Union Starter Set',
+    'Reclamation of the Wastes',
     'Mech Monday',
     'We Were Here First!',
     'Rainmaker',

@@ -142,6 +142,7 @@
         "enum": [
           "Salvage Union Workshop Manual",
           "Salvage Union Starter Set",
+          "Reclamation of the Wastes",
           "Mech Monday",
           "We Were Here First!",
           "Rainmaker",
@@ -158,7 +159,7 @@
       "booklet": {
         "type": "string",
         "minLength": 1,
-        "description": "Booklet code within a multi-booklet primary source (e.g. \"CR\", \"PH\", \"PC\", \"CB\" for the Salvage Union Starter Set). Omit for single-volume sources."
+        "description": "Booklet code within a multi-booklet primary source (e.g. \"CR\", \"PH\", \"PC\", \"RR\", \"AP\" for the Salvage Union Starter Set). Omit for single-volume sources."
       },
       "additionalSources": {
         "type": "array",
@@ -170,6 +171,7 @@
               "enum": [
                 "Salvage Union Workshop Manual",
                 "Salvage Union Starter Set",
+                "Reclamation of the Wastes",
                 "Mech Monday",
                 "We Were Here First!",
                 "Rainmaker",
@@ -180,7 +182,7 @@
             "booklet": {
               "type": "string",
               "minLength": 1,
-              "description": "Booklet code within a multi-booklet source (e.g. \"CR\", \"PH\", \"PC\", \"CB\" for the Salvage Union Starter Set). Omit for single-volume sources."
+              "description": "Booklet code within a multi-booklet source (e.g. \"CR\", \"PH\", \"PC\", \"RR\", \"AP\" for the Salvage Union Starter Set — Core Rulebook / Pilots Handbook / Parts Catalogue / Rules Reference / Asset Pack). Omit for single-volume sources."
             },
             "page": {
               "type": "integer",

@@ -615,8 +615,8 @@ export const ActionSchema: z.ZodType<{
  * Reprint of an entity in a secondary source book
  *
  * `booklet` is optional and used when a source is a multi-booklet product
- * (e.g. the Salvage Union Starter Set, which uses CR / PH / PC / CB codes
- * for its Core Rulebook / Pilots Handbook / Parts Catalogue / Campaign Book).
+ * (e.g. the Salvage Union Starter Set, which uses CR / PH / PC / RR / AP codes
+ * for its Core Rulebook / Pilots Handbook / Parts Catalogue / Rules Reference / Asset Pack).
  * Single-volume sources omit it.
  */
 export const AdditionalSourceSchema = z
@@ -626,7 +626,7 @@ export const AdditionalSourceSchema = z
       .string()
       .min(1)
       .describe(
-        'Booklet code within a multi-booklet source (e.g. "CR", "PH", "PC", "CB", "AP" for the Salvage Union Starter Set — Core Rulebook / Pilots Handbook / Parts Catalogue / Campaign Book / Asset Pack). Omit for single-volume sources.'
+        'Booklet code within a multi-booklet source (e.g. "CR", "PH", "PC", "RR", "AP" for the Salvage Union Starter Set — Core Rulebook / Pilots Handbook / Parts Catalogue / Rules Reference / Asset Pack). Omit for single-volume sources.'
       )
       .optional(),
     page: PositiveIntegerSchema.describe('Page number in the secondary source book'),
@@ -654,7 +654,7 @@ export const BaseEntitySchema = z
       .string()
       .min(1)
       .describe(
-        'Booklet code within a multi-booklet primary source (e.g. "CR", "PH", "PC", "CB" for the Salvage Union Starter Set). Omit for single-volume sources.'
+        'Booklet code within a multi-booklet primary source (e.g. "CR", "PH", "PC", "RR", "AP" for the Salvage Union Starter Set). Omit for single-volume sources.'
       )
       .optional(),
     additionalSources: z

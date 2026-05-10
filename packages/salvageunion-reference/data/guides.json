@@ -1486,7 +1486,7 @@
     "name": "Map Movement",
     "source": "Salvage Union Workshop Manual",
     "page": 263,
-    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CB", "page": 8 }],
+    "additionalSources": [{ "source": "Reclamation of the Wastes", "page": 8 }],
     "guideType": "gameplay",
     "guideColor": "#5A9DB5",
     "content": [

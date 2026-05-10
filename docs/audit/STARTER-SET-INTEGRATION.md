@@ -14,7 +14,10 @@ Single audit doc tracking the deep-dive of the **Salvage Union Starter Set 1.0**
 | `CR` | Core Rulebook (`SUSS Core Rulebook 1.0.pdf`) |
 | `PH` | Pilots Handbook (`SUSS Pilots Handbook 1.0.pdf`) |
 | `PC` | Parts Catalogue (`SUSS Parts Catalogue 1.0.pdf`) |
-| `CB` | Campaign Book — Reclamation of the Wastes (`SUSS Reclamation of the Wastes 1.0.pdf`) |
+| `RR` | Rules Reference (`SUSS Rules Reference 1.0.pdf`) |
+| `AP` | Asset Pack (Sticker Sheets / Hive / Thatcher's Mech Base / Relics / Char/Mech/Crawler Sheets) |
+
+**Reclamation of the Wastes is its own standalone source**, NOT a SUSS booklet. RotW entries use `source: "Reclamation of the Wastes"` with no booklet code (single-volume).
 
 Quick-ref pages elsewhere use `(p. NNXX)` — e.g. `(p. 16CR)` means page 16 of the Core Rulebook.
 
@@ -39,7 +42,7 @@ These will recur across multiple PDFs and should be resolved once, not per-bookl
 
 Decision: **Option A — primary + additional sources, with optional booklet code.** Added `AdditionalSourceSchema` and an optional `additionalSources?: Array<{source, booklet?, page}>` field to `BaseEntitySchema` (`packages/salvageunion-reference/lib/schemas/objects.ts`). The new field is automatically inherited by all 25 entity schemas that extend `BaseEntitySchema`, and is reported in every generated `*.schema.json`.
 
-The optional `booklet` field disambiguates pages within multi-booklet sources. The Starter Set uses five codes: `CR` (Core Rulebook), `PH` (Pilots Handbook), `PC` (Parts Catalogue), `CB` (Campaign Book — Reclamation of the Wastes), `AP` (Asset Pack — covers Hive / Thatcher's Mech Base / Relics / Sticker Sheets / Char/Mech/Crawler Sheets). The `booklet` field is omitted for single-volume sources.
+The optional `booklet` field disambiguates pages within multi-booklet sources. The Starter Set uses five codes: `CR` (Core Rulebook), `PH` (Pilots Handbook), `PC` (Parts Catalogue), `RR` (Rules Reference), `AP` (Asset Pack — covers Hive / Thatcher's Mech Base / Relics / Sticker Sheets / Char/Mech/Crawler Sheets). The `booklet` field is omitted for single-volume sources. **Reclamation of the Wastes is its own standalone source** (not a SUSS booklet), so RotW citations use `source: "Reclamation of the Wastes"` with no booklet code.
 
 Backfilled with the 6 guide entries surfaced from the Rules Reference pass:
 
@@ -49,14 +52,12 @@ Backfilled with the 6 guide entries surfaced from the Rules Reference pass:
 | Heat | WM p. 234 | SUSS p. 16CR |
 | Activating and Shutting Down a Mech | WM p. 238 | SUSS p. 21CR |
 | Crawler Downtime | WM p. 227 | SUSS p. 64PH |
-| Map Movement | WM p. 263 | SUSS p. 8CB |
+| Map Movement | WM p. 263 | RotW p. 8 |
 | Safety Protocols | WM p. 12 | SUSS p. 8CR |
 
-### Q2. Source granularity — one source or per-booklet?
+### Q2. Source granularity — ✓ resolved
 
-Currently we've added a single `Salvage Union Starter Set` enum value. The Starter Set is actually a 7-PDF box; some PDFs are clearly "the same thing in a different costume" (Rules Reference = condensed WM rules), while others (Reclamation of the Wastes, Hive, Thatcher's, Relics) are net-new content that may deserve their own sources.
-
-Decide after Reclamation of the Wastes review — that's the PDF most likely to push for sub-source granularity.
+`Salvage Union Starter Set` covers the rules + asset pack PDFs (CR/PH/PC/RR/AP) — same source, different booklets. **Reclamation of the Wastes is its own standalone source** (`source: "Reclamation of the Wastes"`, no booklet code), since the campaign is original Starter-Set content with substantial setting/entity material that's distinct from the rules booklets and would benefit from independent citation.
 
 ---
 
@@ -111,7 +112,7 @@ Decide after Reclamation of the Wastes review — that's the PDF most likely to 
 - Safety Protocols (Boundaries: Out of Bounds / Off Camera; Stop Sign)
 - Map Movement (Campaign Map / Region Map / Area Map — speeds for Crawler/Pilot vs Mech)
 - Downtime Procedure (Post-Session 6 bullets / Pre-session 2 bullets)
-- Page References legend (CR / PH / PC / CB)
+- Page References legend (CR / PH / PC / RR — RotW is its own source)
 
 #### Coverage analysis vs current data
 
@@ -155,7 +156,7 @@ Safety Protocols ✓ · Pushing a Mech ✓ (incl. Push Procedure) · Heat ✓ (i
 | Scrap Value (concept) | WM | p. 30CR |
 | Mech Salvage (concept) | WM | p. 30CR |
 | `Crawler Downtime` (guide) | WM | p. 64PH |
-| `Map Movement` (guide) | WM p. 263 | p. 8CB |
+| `Map Movement` (guide) | WM p. 263 | RotW p. 8 |
 | `Safety Protocols` (guide) | WM p. 12 | p. 8CR |
 
 ---
@@ -202,7 +203,7 @@ Safety Protocols ✓ · Pushing a Mech ✓ (incl. Push Procedure) · Heat ✓ (i
 Core Mechanic ✓ · Reactor Overload ✓ · Group Initiative ✓ · Critical Damage ✓ · Critical Injury ✓ · Area Salvage ✓ · Mech Salvage ✓
 
 **Guides — all 11 referenced sections covered** (existing in `guides.json`):
-Safety Protocols ✓ · Pushing a Mech ✓ · Heat ✓ · Activating and Shutting Down a Mech ✓ · Tough Choices ✓ · Map Movement (referenced in CB) · Crawler Downtime (referenced in PH) · Mech Damage ✓ · Pilot Damage ✓ · Salvaging ✓ · Salvage Condition ✓
+Safety Protocols ✓ · Pushing a Mech ✓ · Heat ✓ · Activating and Shutting Down a Mech ✓ · Tough Choices ✓ · Map Movement (referenced in RotW p. 8) · Crawler Downtime (referenced in PH) · Mech Damage ✓ · Pilot Damage ✓ · Salvaging ✓ · Salvage Condition ✓
 
 **Generic Pilot Abilities — 8/8 covered** (existing in `abilities.json`, tree `Generic`, source WM p.248–249):
 Area Salvage ✓ · Mech Salvage ✓ · Scrap ✓ · Craft ✓ · Repair ✓ · Patch Up ✓ · Load ✓ · Mount ✓
@@ -514,7 +515,7 @@ Note: turret schema decision is the only remaining open subquestion in Tier 1 �
 
 #### Cross-ref backlog
 
-Once Tier 1 schemas land, every entity above gets `source: "Salvage Union Starter Set"` + `booklet: "CB"` + the page number from the catalog. **Tier 1 + Tier 2 totals: ~40 net-new entities + 12 roll tables + 21 guides = ~73 new data entries from RotW.** Tier 3 content (regions/areas/jobs) is intentionally not modeled per Decision C.
+Once Tier 1 schemas land, every entity above gets `source: "Reclamation of the Wastes"` + the page number from the catalog (no booklet code — RotW is single-volume). **Tier 1 + Tier 2 totals: ~40 net-new entities + 12 roll tables + 21 guides = ~73 new data entries from RotW.** Tier 3 content (regions/areas/jobs) is intentionally not modeled per Decision C.
 
 ### SUSS Campaign Map 1.0 — surveyed
 
@@ -659,7 +660,7 @@ Print-ready pre-made character sheets for the six RotW pre-made pilots + Crawler
 
 **Crawler #430 ("Tenacity")** — Exploratory Crawler, 20 SP, T1, 5 upgrade total. **Bays (10):** Command, Mech, Armament (with Mini Mortar T1), Crafting, Trading, Med, Pilot, Armoury, Cantina, Storage. **Crew (10 Wasteland NPCs):** Cara 'Blaze' Voss (Princeps), Yuri 'Tinker' Petrov (Greaser), Sergio 'Grip' Cruz (Gunny), Danika 'Artificer' Gujar (Forger), Olivia 'Tout' Ortega (Operator), Maya 'Hale' Turner (Doc), Shariq 'Hawk' Rahimi (Ace), Paloma 'Hammer' Fane (Smith), Jaxon 'Blazemaker' Todd (Chef), Sofia 'Stormcrow' Costa (Bullwhacker). All 4 HP. Hannah 'Trek' Lane = Wasteland Explorer (4 HP). Crawler ability: All Terrain Locomotion + Wasteland Explorer (1×/Downtime, 2 questions about an area).
 
-**Backfill flag:** if RotW pre-mades are modeled as `players` data (or a new `pre-made-characters` schema), this PDF is the single canonical source for the print-ready stat blocks. Same source/booklet as RotW (`booklet: "CB"`).
+**Backfill flag:** if RotW pre-mades are modeled as `players` data (or a new `pre-made-characters` schema), this PDF is the single canonical source for the print-ready stat blocks. Same source as RotW (`source: "Reclamation of the Wastes"`, no booklet code).
 
 #### Asset Pack — schema scope summary
 
