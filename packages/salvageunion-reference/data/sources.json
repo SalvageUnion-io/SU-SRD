@@ -109,6 +109,45 @@
     ]
   },
   {
+    "id": "b1d3a4f2-7e6c-4a18-9c5b-2f8e91d4a7c3",
+    "name": "The Hive",
+    "source": "The Hive",
+    "page": 1,
+    "purchaseLink": "https://www.backerkit.com/c/projects/leyline-press/salvage-union-starter-set",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A mini-adventure included in the Salvage Union Starter Set Digital Asset Pack."
+      }
+    ]
+  },
+  {
+    "id": "c2e4b5a3-8f7d-4b29-ad6c-3e9f02e5b8d4",
+    "name": "Thatcher's Mech Base",
+    "source": "Thatcher's Mech Base",
+    "page": 1,
+    "purchaseLink": "https://www.backerkit.com/c/projects/leyline-press/salvage-union-starter-set",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A mini-adventure included in the Salvage Union Starter Set Digital Asset Pack."
+      }
+    ]
+  },
+  {
+    "id": "d3f5c6b4-9a8e-4c3a-be7d-4a0103f6c9e5",
+    "name": "Relics of a Time Gone By",
+    "source": "Relics of a Time Gone By",
+    "page": 1,
+    "purchaseLink": "https://www.backerkit.com/c/projects/leyline-press/salvage-union-starter-set",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A mini-adventure included in the Salvage Union Starter Set Digital Asset Pack."
+      }
+    ]
+  },
+  {
     "id": "94c0e076-8c3c-4f46-8214-34d4f5301c15",
     "name": "False Flag",
     "source": "False Flag",

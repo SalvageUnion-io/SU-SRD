@@ -15,9 +15,14 @@ Single audit doc tracking the deep-dive of the **Salvage Union Starter Set 1.0**
 | `PH` | Pilots Handbook (`SUSS Pilots Handbook 1.0.pdf`) |
 | `PC` | Parts Catalogue (`SUSS Parts Catalogue 1.0.pdf`) |
 | `RR` | Rules Reference (`SUSS Rules Reference 1.0.pdf`) |
-| `AP` | Asset Pack (Sticker Sheets / Hive / Thatcher's Mech Base / Relics / Char/Mech/Crawler Sheets) |
+| `AP` | Asset Pack — **Sticker Sheets only** (`Asset Pack Sticker Sheets 1.0.pdf`) |
 
-**Reclamation of the Wastes is its own standalone source**, NOT a SUSS booklet. RotW entries use `source: "Reclamation of the Wastes"` with no booklet code (single-volume).
+**Standalone sources — NOT SUSS booklets** (each is its own work, no booklet code):
+
+- `Reclamation of the Wastes` — bundled adventure module
+- `The Hive` — Asset Pack mini-adventure
+- `Thatcher's Mech Base` — Asset Pack mini-adventure
+- `Relics of a Time Gone By` — Asset Pack mini-adventure
 
 Quick-ref pages elsewhere use `(p. NNXX)` — e.g. `(p. 16CR)` means page 16 of the Core Rulebook.
 
@@ -31,7 +36,10 @@ Quick-ref pages elsewhere use `(p. NNXX)` — e.g. `(p. 16CR)` means page 16 of 
 | SUSS Parts Catalogue 1.0 | 13M | ✓ surveyed | 2 chassis + 1 system + ~30 patterns | all WM systems/modules reprint | high (every chassis/system/module reprinted) |
 | SUSS Reclamation of the Wastes 1.0 | 8.5M | ✓ surveyed | major (see below) | none | high (every entity is net-new for SUSS) |
 | SUSS Campaign Map 1.0 | 5.4M | ✓ surveyed | 0 (visual aid) | 0 | 0 |
-| Asset Pack (Hive / Thatcher's / Relics / Stickers) | ~10M | ✓ surveyed | major (see below) | none | high (every mini-adventure NPC/system/lance is net-new) |
+| Asset Pack — The Hive (standalone source) | ~3M | ✓ surveyed | major (see below) | none | high (every NPC/pattern is net-new) |
+| Asset Pack — Thatcher's Mech Base (standalone source) | ~3M | ✓ surveyed | major (see below) | none | high (every NPC/system/lance is net-new) |
+| Asset Pack — Relics of a Time Gone By (standalone source) | ~3M | ✓ surveyed | major (see below) | none | high (every NPC/equipment/table is net-new) |
+| Asset Pack — Sticker Sheets (SUSS booklet `AP`) | ~1M | ✓ surveyed | 10 modules/systems | none | n/a |
 | SUSS Char/Mech/Crawler Sheets 1.0 | 9.1M | ✓ surveyed | 0 (consolidated reprint of RotW pre-mades) | 0 | 0 (cross-ref RotW once modeled) |
 
 ## Cross-Cutting Open Questions
@@ -42,7 +50,7 @@ These will recur across multiple PDFs and should be resolved once, not per-bookl
 
 Decision: **Option A — primary + additional sources, with optional booklet code.** Added `AdditionalSourceSchema` and an optional `additionalSources?: Array<{source, booklet?, page}>` field to `BaseEntitySchema` (`packages/salvageunion-reference/lib/schemas/objects.ts`). The new field is automatically inherited by all 25 entity schemas that extend `BaseEntitySchema`, and is reported in every generated `*.schema.json`.
 
-The optional `booklet` field disambiguates pages within multi-booklet sources. The Starter Set uses five codes: `CR` (Core Rulebook), `PH` (Pilots Handbook), `PC` (Parts Catalogue), `RR` (Rules Reference), `AP` (Asset Pack — covers Hive / Thatcher's Mech Base / Relics / Sticker Sheets / Char/Mech/Crawler Sheets). The `booklet` field is omitted for single-volume sources. **Reclamation of the Wastes is its own standalone source** (not a SUSS booklet), so RotW citations use `source: "Reclamation of the Wastes"` with no booklet code.
+The optional `booklet` field disambiguates pages within multi-booklet sources. The Starter Set uses five codes: `CR` (Core Rulebook), `PH` (Pilots Handbook), `PC` (Parts Catalogue), `RR` (Rules Reference), `AP` (Asset Pack Sticker Sheets only). The `booklet` field is omitted for single-volume sources. **Reclamation of the Wastes and the Asset Pack mini-adventures (The Hive, Thatcher's Mech Base, Relics of a Time Gone By) are each their own standalone source** (not SUSS booklets) — citations use the work's title as `source` with no booklet code.
 
 Backfilled with the 6 guide entries surfaced from the Rules Reference pass:
 
@@ -55,9 +63,16 @@ Backfilled with the 6 guide entries surfaced from the Rules Reference pass:
 | Map Movement | WM p. 263 | RotW p. 8 |
 | Safety Protocols | WM p. 12 | SUSS p. 8CR |
 
-### Q2. Source granularity — ✓ resolved
+### Q2. Source granularity — ✓ resolved (revised 2026-05-10)
 
-`Salvage Union Starter Set` covers the rules + asset pack PDFs (CR/PH/PC/RR/AP) — same source, different booklets. **Reclamation of the Wastes is its own standalone source** (`source: "Reclamation of the Wastes"`, no booklet code), since the campaign is original Starter-Set content with substantial setting/entity material that's distinct from the rules booklets and would benefit from independent citation.
+`Salvage Union Starter Set` covers the rules booklets and Sticker Sheets (CR/PH/PC/RR/AP) — same source, different booklets. **Each adventure / mini-adventure shipped in the box is its own standalone source** with no booklet code:
+
+- `Reclamation of the Wastes` — bundled adventure module
+- `The Hive` — Asset Pack mini-adventure
+- `Thatcher's Mech Base` — Asset Pack mini-adventure
+- `Relics of a Time Gone By` — Asset Pack mini-adventure
+
+Each is a self-paginated PDF with substantial original setting/entity material that warrants independent citation. The `AP` booklet code now refers strictly to the Sticker Sheets PDF (10 net-new modules + systems).
 
 ---
 

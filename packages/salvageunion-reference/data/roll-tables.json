@@ -2983,8 +2983,7 @@
   },
   {
     "id": "407a3fac-2024-45af-ad7e-4c709e7b0c62",
-    "source": "Salvage Union Starter Set",
-    "booklet": "AP",
+    "source": "The Hive",
     "name": "The Hive Random Encounters",
     "table": {
       "type": "standard",
@@ -3014,8 +3013,7 @@
   },
   {
     "id": "194bf63b-cc49-41a3-9700-d1cfb1e2fd94",
-    "source": "Salvage Union Starter Set",
-    "booklet": "AP",
+    "source": "The Hive",
     "name": "The Hive Minefield",
     "table": {
       "type": "standard",
@@ -3050,8 +3048,7 @@
   },
   {
     "id": "73c32765-2df3-4990-9072-ae3c611e6f17",
-    "source": "Salvage Union Starter Set",
-    "booklet": "AP",
+    "source": "Thatcher's Mech Base",
     "name": "Thatcher's Mech Base Random Encounters",
     "table": {
       "type": "standard",
@@ -3071,7 +3068,7 @@
         "value": "The Iron Lady falls into deep slumber for 10 minutes, making all Androids inert for the duration."
       }
     },
-    "page": 3,
+    "page": 1,
     "content": [
       {
         "type": "paragraph",
@@ -3081,8 +3078,7 @@
   },
   {
     "id": "89910746-a8a3-4b3f-83fb-9003693fabbe",
-    "source": "Salvage Union Starter Set",
-    "booklet": "AP",
+    "source": "Relics of a Time Gone By",
     "name": "Relics of a Time Gone By Exterior Encounters",
     "table": {
       "type": "standard",
@@ -3102,7 +3098,7 @@
         "value": "An excavation entrance is revealed."
       }
     },
-    "page": 5,
+    "page": 1,
     "content": [
       {
         "type": "paragraph",
@@ -3112,8 +3108,7 @@
   },
   {
     "id": "2c70964e-0741-480f-b23f-5b05cfb52942",
-    "source": "Salvage Union Starter Set",
-    "booklet": "AP",
+    "source": "Relics of a Time Gone By",
     "name": "Relics of a Time Gone By Salvage Table",
     "table": {
       "type": "flat",
@@ -3178,7 +3173,7 @@
         "value": "All is Dust Pattern Atlas"
       }
     },
-    "page": 6,
+    "page": 2,
     "content": [
       {
         "type": "paragraph",

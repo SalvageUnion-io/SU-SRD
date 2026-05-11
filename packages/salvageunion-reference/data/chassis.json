@@ -269,8 +269,7 @@
       },
       {
         "name": "Madrona Pattern",
-        "source": "Salvage Union Starter Set",
-        "booklet": "AP",
+        "source": "The Hive",
         "page": 1,
         "systems": [
           {
@@ -304,8 +303,7 @@
       },
       {
         "name": "Bomblebee Pattern",
-        "source": "Salvage Union Starter Set",
-        "booklet": "AP",
+        "source": "The Hive",
         "page": 1,
         "systems": [
           {
@@ -330,8 +328,7 @@
       },
       {
         "name": "Killer Pattern",
-        "source": "Salvage Union Starter Set",
-        "booklet": "AP",
+        "source": "The Hive",
         "page": 1,
         "systems": [
           {
@@ -586,9 +583,7 @@
       },
       {
         "name": "Operator Pattern",
-        "additionalSources": [
-          { "source": "Salvage Union Starter Set", "booklet": "AP", "page": 1 }
-        ],
+        "additionalSources": [{ "source": "Thatcher's Mech Base", "page": 1 }],
         "systems": [
           {
             "name": "FM-3 Flamethrower"
@@ -1366,9 +1361,7 @@
       },
       {
         "name": "Thatcher Pattern",
-        "additionalSources": [
-          { "source": "Salvage Union Starter Set", "booklet": "AP", "page": 1 }
-        ],
+        "additionalSources": [{ "source": "Thatcher's Mech Base", "page": 1 }],
         "systems": [
           {
             "name": "Heavy Duty Mining Rig"
@@ -1652,9 +1645,7 @@
       },
       {
         "name": "Maggie Pattern",
-        "additionalSources": [
-          { "source": "Salvage Union Starter Set", "booklet": "AP", "page": 1 }
-        ],
+        "additionalSources": [{ "source": "Thatcher's Mech Base", "page": 1 }],
         "systems": [
           {
             "name": "30mm Autocannon"
@@ -2032,8 +2023,7 @@
       },
       {
         "name": "Queen Bee Pattern",
-        "source": "Salvage Union Starter Set",
-        "booklet": "AP",
+        "source": "The Hive",
         "page": 1,
         "systems": [
           {

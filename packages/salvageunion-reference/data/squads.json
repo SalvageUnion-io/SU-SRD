@@ -261,9 +261,8 @@
   {
     "id": "4db0aafe-364f-4c7f-a2e4-23de8d63f933",
     "name": "Pit Android Squad",
-    "source": "Salvage Union Starter Set",
-    "booklet": "AP",
-    "page": 4,
+    "source": "Thatcher's Mech Base",
+    "page": 1,
     "hitPoints": 6,
     "damageType": "SP",
     "actions": ["Mining Tools (Thatcher Pit Android)", "Comms Module"],
@@ -303,9 +302,8 @@
   {
     "id": "c3375fb6-1f56-4a5d-a40b-df29bf997c54",
     "name": "Thatcher Pit Android Lance",
-    "source": "Salvage Union Starter Set",
-    "booklet": "AP",
-    "page": 4,
+    "source": "Thatcher's Mech Base",
+    "page": 1,
     "hitPoints": 15,
     "damageType": "SP",
     "traits": [{ "type": "fast" }],
