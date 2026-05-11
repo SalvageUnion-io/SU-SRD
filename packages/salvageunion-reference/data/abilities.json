@@ -794,7 +794,14 @@
     ],
     "page": 50,
     "actions": ["Custom Sniper Rifle"],
-    "description": "Gain a specialised sniper rifle that only you can use."
+    "description": "Gain a specialised sniper rifle that only you can use.",
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 28
+      }
+    ]
   },
   {
     "id": "89f20d2a-6f43-4a5f-943a-f8a77abd341b",
