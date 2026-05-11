@@ -2505,5 +2505,205 @@
         ]
       }
     ]
+  },
+  {
+    "id": "7e3c8a4f-2d1b-4c95-8e2a-9d5c1f8b3a7e",
+    "name": "Denizens of the Wastes",
+    "source": "Reclamation of the Wastes",
+    "page": 96,
+    "guideType": "gameplay",
+    "guideColor": "#B84C4C",
+    "content": [],
+    "steps": [
+      {
+        "id": "4b1f7c2d-9a3e-4b85-8c4d-2e7f1a5c8b3d",
+        "name": "Denizens of the Wastes",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "This section details the range of inhabitants, from wasters trying to get by, to bio-engineered titans, that populate the wasteland."
+          },
+          {
+            "type": "heading",
+            "value": "Corpos",
+            "level": 3
+          },
+          {
+            "type": "paragraph",
+            "value": "Corpos are some of the most powerful foes Pilots can encounter. They hire many of their forces as mercenaries indebted to them, but they do train some as elite troops. Corpos have advanced technology, including combat-focused Tech 3-6 Mechs, turrets, drones, and veteran troops. Each corpo has differing goals and motivations, but they all share the same desire for profit. Corpos encountered in the wastes may be protecting a convoy, searching for a lost asset, or cracking down on striking workers. This means they won't always attack salvagers on sight, and in rare cases they may even band together with them to achieve a greater goal. However, they are the enemy, opposed to the salvager way of life. Extreme caution is advised."
+          },
+          {
+            "type": "heading",
+            "value": "Wastelanders",
+            "level": 3
+          },
+          {
+            "type": "paragraph",
+            "value": "Wastelanders are common folk who live in arcos, working for corpos to survive or eking out life in scattered settlements. Although they prioritise their own survival, wastelanders are helpful to passers-by and can provide a friendly face for Pilots. They use worker-focused Tech 1-2 Mechs, vehicles, and wastelanders on foot. Their settlements can act as pit stops for Pilots to rest, gather information, and make trades."
+          },
+          {
+            "type": "heading",
+            "value": "Raiders",
+            "level": 3
+          },
+          {
+            "type": "paragraph",
+            "value": "Raiders are wasters or wannabe mercs who resort to raiding for survival, power, or as a step to becoming a corpo merc. They attack settlements, traders, salvagers, and anyone else with scrap to pillage. They have combat focussed Tech 1-2 Mechs, and utilise vehicles and troops on foot, making them a foe Pilots can deal with even with their starting Mechs."
+          },
+          {
+            "type": "heading",
+            "value": "Creatures",
+            "level": 3
+          },
+          {
+            "type": "paragraph",
+            "value": "Regular creatures (and those mutated by radiation or corpo experiments) roam the wastes. While they are not usually a danger to Mechs, they can be a challenge for Pilots on foot. Creatures like Bears or Carrion Birds can be good to add to areas that Mechs can't access, or as fodder for Mechs to deal with. Some creatures, like Molebears or Artls, can pose a threat to Mechs and are deadly to Pilots."
+          },
+          {
+            "type": "heading",
+            "value": "Bio-Titans",
+            "level": 3
+          },
+          {
+            "type": "paragraph",
+            "value": "Bio-Titans are powerful monsters, part flesh, part machine. Rumours suggest they were created in corpo labs or came from another world. Territorial in nature, they hunt anything that comes through their patch. They reportedly consume both organic and mechanical-matter to power themselves. Bio-Titans are able to take on an entire crew of Mechs, their Titanic Actions allowing for multiple attacks in a round. Pilots should expect death and destruction when facing them."
+          },
+          {
+            "type": "heading",
+            "value": "Meld",
+            "level": 3
+          },
+          {
+            "type": "paragraph",
+            "value": "The Meld are an incomprehensibly intelligent nanite entity that desires to spread, replicate, and consume all biological and mechanical life. Active Meld Nanites are worth 1 x Tech 6 Scrap each, meaning they can provide a huge injection of salvage for Pilots. Corpos will look to exploit and profit off Meld, whilst others may turn to worshipping them. The Meld can be placed as an anomaly within the world, or as a central focus to explore their motivations. can be further explored. Meld come in various types, such as Behemoths (which are as tough as Bio-Titans), swarms of zombie-like Drones, or amorphous, inky-black Splitters."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "8f4d2c1a-7b3e-4c95-9d8a-5c1f3e8b2a7d",
+    "name": "Mechs of the Wasteland",
+    "source": "Reclamation of the Wastes",
+    "page": 100,
+    "guideType": "gameplay",
+    "guideColor": "#B84C4C",
+    "content": [],
+    "steps": [
+      {
+        "id": "2d8f1c5b-9a3e-4c47-92b8-7e4d1a8c5f3b",
+        "name": "Mechs of the Wasteland",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Mechs are vital to nearly every facet of life in the wastes. You can view a wide range of different Mech patterns on each Chassis entry (p. 10PC). These builds are used by a wide range of folk across the wastes, such as wasters, salvagers, corpos, traders, and lone bounty hunters."
+          },
+          {
+            "type": "paragraph",
+            "value": "When running Salvage Union, it is important that the Pilots can access lots of different Chassis, Systems, and Modules to salvage and utilise."
+          },
+          {
+            "type": "paragraph",
+            "value": "These Mech profiles can be inserted into a scenario or as a means for distributing salvage to Pilots once the Mech is defeated. You can think of each Mech's list of Systems and Modules as a loot table of potential things the Pilots can salvage, as well as its Abilities in play."
+          },
+          {
+            "type": "paragraph",
+            "value": "Each of them is also a Mech that a Pilot can run themselves. These profiles can be used as pre-built Mechs for players to find in play and Pilot as designed."
+          },
+          {
+            "type": "paragraph",
+            "value": "When creating NPCs, the Mediator can use the pattern types included in the Mech Chassis section as inspiration and a guideline for how to format them. NPC Mechs are created in the same way that player Mechs are."
+          },
+          {
+            "type": "paragraph",
+            "value": "To keep things simple, NPC Mechs do not need to track Heat or Energy, nor Push rolls. You can run them effectively by simply moving and attacking with them, and perhaps activating one or two Abilities at interesting moments."
+          },
+          {
+            "type": "paragraph",
+            "value": "If the Mediator wishes, they can introduce tracking of these elements, but there is additional load in doing so."
+          },
+          {
+            "type": "paragraph",
+            "value": "Most of the Systems, Modules, and Abilities in the game are written in such a way that they can apply to NPCs without needing to track any additional values, though there may be some edge cases that can be left to the Mediator's discretion."
+          },
+          {
+            "type": "flavor",
+            "value": "When creating or inserting your own NPC Mechs into the game, keep in mind that Pilots can potentially take and use anything you put on them. If you do not want the Pilots getting hold of a Railgun, do not give one to your NPCs!"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "1c8a3f5d-7b2e-4c95-92d8-4f1a8c5e3b7d",
+    "name": "Nanite Salvage",
+    "source": "Reclamation of the Wastes",
+    "page": 112,
+    "guideType": "gameplay",
+    "guideColor": "#B84C4C",
+    "content": [],
+    "steps": [
+      {
+        "id": "5e2c8a1f-9b3d-4c47-8d2a-7f1c8e5b3a4d",
+        "name": "Nanite Salvage",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "When any Meld is reduced to 0 SP, a portion of it drops as Nanite Salvage. This occurs even if the Meld splits. This can be salvaged as though it was Scrap. Whenever any Nanite Salvage is found, Roll the Die. On the result of a 20, it is an Active Meld Nanite, otherwise it is an Inert Meld Nanite. Roll for each piece of Nanite Salvage that is found separately."
+          },
+          {
+            "type": "heading",
+            "value": "Inert Meld Nanite",
+            "level": 3
+          },
+          {
+            "type": "paragraph",
+            "value": "An Inert Meld Nanite can be traded for the equivalent of 1 Tech 1 Scrap. It cannot be used for Crafting or Repairing. It takes up 1 Cargo Slot and can be transported safely."
+          },
+          {
+            "type": "heading",
+            "value": "Active Meld Nanite",
+            "level": 3
+          },
+          {
+            "type": "paragraph",
+            "value": "An Active Meld Nanite is worth the equivalent of Tech 6 Scrap. In addition, it can be used to repair or craft any Mech Chassis, System, or Module as though it was Tech 6. The Active Meld Nanite takes up 1 Cargo Slot and must be transported in a specialised container that reduces its temperature to a point it becomes inert. Active Meld Nanites are typically transported using cryogenic containers."
+          },
+          {
+            "type": "paragraph",
+            "value": "If no such safety measures are taken, Roll the Die for each hour the Active Meld Nanite is carried. On the roll of a 1, something goes wrong. Present the players with a Tough Choice involving the Active Meld Nanite. It might spawn into a Meld Nanoid, take control of a Mech temporarily, destroy a System or Module, or have some other anomalous effect. If Active Meld Nanites are stored in a Union Crawler without safety measures make this roll once per week or Downtime cycle."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "9b3d8c1a-7f2e-4c95-92d8-5c1a8f3e4b7d",
+    "name": "Meld Infection",
+    "source": "Reclamation of the Wastes",
+    "page": 112,
+    "guideType": "gameplay",
+    "guideColor": "#B84C4C",
+    "content": [],
+    "steps": [
+      {
+        "id": "4c8a1f5d-9b3e-4c47-92d8-7e1c5a8b3f4d",
+        "name": "Meld Infection",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Meld infect creatures through ingestion via contaminated water. They can also infect through open wounds or retinal membranes."
+          },
+          {
+            "type": "flavor",
+            "value": "Meld Infection: A target hit by Meld Infection becomes infected by the nanite swarm. If an infected Mech is reduced to 0 SP, it becomes a Meld Behemoth under the control of the Meld. If an infected creature is reduced to 0 SP, it becomes a Meld Drone under the control of the Meld. Meld Infection does not go away unless removed. The only widely known method of cleansing a Meld Infection is fire, but that will burn and harm the infected."
+          }
+        ]
+      }
+    ]
   }
 ]
