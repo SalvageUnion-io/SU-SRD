@@ -1861,5 +1861,284 @@
         ]
       }
     ]
+  },
+  {
+    "id": "5e546070-283d-4b83-b8c0-0590fbfe19f7",
+    "name": "Exploration",
+    "source": "Reclamation of the Wastes",
+    "page": 8,
+    "guideType": "gameplay",
+    "guideColor": "#B84C4C",
+    "content": [],
+    "steps": [
+      {
+        "id": "1cb4e1f5-1b76-4149-8daf-a89e21c47bd8",
+        "name": "Exploration",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "The Campaign Map is the entire Reclamation of the Wastes Map. It takes a Union Crawler a week to travel between each Region on this map."
+          },
+          {
+            "type": "paragraph",
+            "value": "A Region represents a linked series of Areas on the map. For example, Region 1.0 Caldera's Edge is composed of multiple areas, denoted as 1.01, 1.02, and so on."
+          },
+          {
+            "type": "paragraph",
+            "value": "An Area is a single point on the Campaign Map, e.g. Area 1.01 Dumping Grounds. A Mech will take an hour to travel between Areas; a Pilot will take one day."
+          },
+          {
+            "type": "paragraph",
+            "value": "Finally, a Location is a zoomed in point of an Area map. For example, The Ur Pit at 10.03 is split into Locations. It takes a Mech 10 minutes to travel between points on a Location Map, and a Pilot an hour."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "271fedd7-719c-4a77-a97e-baa31b6512c9",
+    "name": "Running the Game",
+    "source": "Reclamation of the Wastes",
+    "page": 88,
+    "guideType": "gameplay",
+    "guideColor": "#B84C4C",
+    "content": [],
+    "steps": [
+      {
+        "id": "951f4dec-aaf4-4139-878b-0af656fb5af2",
+        "name": "Running the Game",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "The core procedure of play in Salvage Union is a conversation that goes like this:"
+          },
+          {
+            "type": "list-item",
+            "value": "The Mediator describes the situation that the Pilots are in;"
+          },
+          {
+            "type": "list-item",
+            "value": "The Pilots tell the Mediator what they wish to do;"
+          },
+          {
+            "type": "list-item",
+            "value": "The Mediator narrates the result."
+          },
+          {
+            "type": "paragraph",
+            "value": "If something the Pilots want to do at point 2 is significant, dangerous, dramatic, or has some chance of going wrong, they roll a d20 to learn what happens based on the Core Mechanic. Be wary of rolling the dice in trivial situations or ones without any interesting outcomes. The die roll is not a test of skill: it represents fate, luck, serendipity, and an array of potential external factors. This is why it broadly applies in the same way to everyone in the game."
+          },
+          {
+            "type": "paragraph",
+            "value": "The skill of the game comes from working out actions and ideas in play that would result in beneficial situations and reduce the effects of potential consequences, and in how players utilise their array of Pilot and Mech Abilities."
+          },
+          {
+            "type": "paragraph",
+            "value": "There is a lot of flexibility to the Core Mechanic, and it can be applied in many different ways to create dynamic and changing situations."
+          },
+          {
+            "type": "paragraph",
+            "value": "For example, in combat you may say a Tough Choice results in a Mech being flanked by an opposing Mech who is now bearing down on them. Whilst technically the opposing Mech did not or could not have moved, as it was not its turn, this adds a fun, dramatic moment to play. Feel emboldened to throw curveballs like this when the die prompts you to. The Core Mechanic takes precedence in Salvage Union over any other rule; all other rules are built around it."
+          },
+          {
+            "type": "paragraph",
+            "value": "Failures in Salvage Union are not inherently related to the Pilots' skill in play. The Pilots are assumed to be competent and failures are more the result of bad luck, fate, or timing than of a Pilot being grossly negligent. Where you can, avoid describing failure as Pilots making fools of themselves in a situation or acting stupidly; instead, describe how fate conspired against them in that moment."
+          },
+          {
+            "type": "paragraph",
+            "value": "The key advice to running Salvage Union is always be upfront and honest with the players about the situation they are in, the options they have, and what the consequences are of their choices. Balance those options to create a tense and satisfying experience."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "731249de-274e-414e-908b-de4ec0550812",
+    "name": "Setbacks",
+    "source": "Reclamation of the Wastes",
+    "page": 88,
+    "guideType": "gameplay",
+    "guideColor": "#B84C4C",
+    "content": [],
+    "steps": [
+      {
+        "id": "c1cbf864-3877-493f-acaf-7d61503b4944",
+        "name": "Setbacks",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "A Setback is a kind of consequence that Pilots may face in the game. This is typically a result of a die roll made to resolve a situation, but can also emerge naturally in play based on the Mediator making a decision."
+          },
+          {
+            "type": "paragraph",
+            "value": "A Setback should never stall play entirely, or be magnified beyond what reasonable harm and difficulty it would cause within the narrative. Instead, it should be an opportunity for Pilots to exercise their problem-solving skills, re-think a situation, and propel play forwards to different and unexpected avenues."
+          },
+          {
+            "type": "paragraph",
+            "value": "For example, if the Pilots attempt to cross a mountain pass and roll badly, simply stating that boulders fall on their Mechs and they are all destroyed is an unfair Setback. On the other hand, saying there is a landslide with multiple rocks raining down on the group and asking how they deal with the situation is interesting. It engages them immediately in the action, and gives them the opportunity to try and solve the situation."
+          },
+          {
+            "type": "paragraph",
+            "value": "This could also lead to different outcomes. In the previous example, with the Mechs caught in a landslide, a simple consequence of the Setback could be that they just take 2 SP damage. A more complex consequence of the Setback could be that their Mechs take the 2 SP, and the landslide reveals an alternative route through the mountain. This is a more interesting development and might lead to further adventure."
+          },
+          {
+            "type": "paragraph",
+            "value": "Setbacks should occur as a result of players making significant choices in the game, rolling the die, and getting a result that leads to a Setback or applied as seen fit by the Mediator."
+          },
+          {
+            "type": "paragraph",
+            "value": "When dealing damage as a Setback, the default baseline is 2 SP for Mechs and 2 HP for Pilots. This can be adjusted by the Mediator."
+          },
+          {
+            "type": "paragraph",
+            "value": "Here are some other examples of Setbacks the Mediator can use in play."
+          },
+          {
+            "type": "heading",
+            "level": 3,
+            "value": "They are hurt"
+          },
+          {
+            "type": "list-item",
+            "value": "They take damage (2 SP/2 HP by default)"
+          },
+          {
+            "type": "list-item",
+            "value": "An NPC attacks them"
+          },
+          {
+            "type": "list-item",
+            "value": "They must roll on the Critical Damage or Critical Injury Table"
+          },
+          {
+            "type": "list-item",
+            "value": "A System or Module is damaged or destroyed"
+          },
+          {
+            "type": "list-item",
+            "value": "A Pilot suffers a Minor or Major Injury"
+          },
+          {
+            "type": "list-item",
+            "value": "They must roll on the Reactor Overload Table"
+          },
+          {
+            "type": "list-item",
+            "value": "They gain Heat and must roll on the Reactor Overload Table"
+          },
+          {
+            "type": "list-item",
+            "value": "Their weapon's Trait is used against them"
+          },
+          {
+            "type": "heading",
+            "level": 3,
+            "value": "Their reputation or standing is harmed"
+          },
+          {
+            "type": "list-item",
+            "value": "They offend someone important"
+          },
+          {
+            "type": "list-item",
+            "value": "They break a law, code, or unwritten rule, and become targets for retributive justice"
+          },
+          {
+            "type": "list-item",
+            "value": "They are cast out of a community"
+          },
+          {
+            "type": "list-item",
+            "value": "A bounty is put on their heads"
+          },
+          {
+            "type": "list-item",
+            "value": "They lose an ally"
+          },
+          {
+            "type": "list-item",
+            "value": "Something from a Pilot's background comes back to haunt them"
+          },
+          {
+            "type": "heading",
+            "level": 3,
+            "value": "They lose something"
+          },
+          {
+            "type": "list-item",
+            "value": "Something important is stolen"
+          },
+          {
+            "type": "list-item",
+            "value": "Their ballistic weapon jams or runs out of ammo"
+          },
+          {
+            "type": "list-item",
+            "value": "Their items or weapons are less effective than they should be"
+          },
+          {
+            "type": "list-item",
+            "value": "A trader demands a costly deal"
+          },
+          {
+            "type": "heading",
+            "level": 3,
+            "value": "Their environment shifts"
+          },
+          {
+            "type": "list-item",
+            "value": "A sudden radiation storm makes a journey difficult"
+          },
+          {
+            "type": "list-item",
+            "value": "Acid rain causes them to seek shelter"
+          },
+          {
+            "type": "list-item",
+            "value": "A disease begins to spread"
+          },
+          {
+            "type": "list-item",
+            "value": "The path is blocked by debris"
+          },
+          {
+            "type": "list-item",
+            "value": "An enemy suddenly flanks them"
+          },
+          {
+            "type": "heading",
+            "level": 3,
+            "value": "Their enemies advance"
+          },
+          {
+            "type": "list-item",
+            "value": "A faction gains power"
+          },
+          {
+            "type": "list-item",
+            "value": "New enemy reinforcements suddenly join the fight they are in"
+          },
+          {
+            "type": "list-item",
+            "value": "An ally loses territory or resources"
+          },
+          {
+            "type": "list-item",
+            "value": "A settlement is taken over by a foe"
+          },
+          {
+            "type": "list-item",
+            "value": "A group is waiting to ambush the Pilots"
+          },
+          {
+            "type": "list-item",
+            "value": "A faction captures something powerful"
+          }
+        ]
+      }
+    ]
   }
 ]
