@@ -454,7 +454,9 @@ Total: ~98 cross-ref backfills.
 
 12 net-new roll tables.
 
-#### Net-new guides (Mediator advice + setting)
+#### Net-new guides (Mediator advice + setting) — ✓ done
+
+All 21 net-new RotW guides have been added to `packages/salvageunion-reference/data/guides.json`. All entries use `source: "Reclamation of the Wastes"`, `guideType: "gameplay"`, `guideColor: "#B84C4C"`, and were transcribed verbatim from SUSS Reclamation of the Wastes 1.0 per the exact-text rule. Landed across 6 commits on `suss-update`: `7d4e5abf`, `d3cf0e23`, `09ac6a52`, `28e5e19e`, `2bcbddc1`, `340702c7`.
 
 | Guide | Page | Type |
 | --- | --- | --- |
