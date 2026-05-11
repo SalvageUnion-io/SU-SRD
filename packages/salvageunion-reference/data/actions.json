@@ -4737,6 +4737,73 @@
     "actionType": "Passive"
   },
   {
+    "name": "Sand Blaster",
+    "id": "13da6184-7b45-4add-aa52-02839704807c",
+    "actionType": "Turn",
+    "range": ["Close"],
+    "damage": {
+      "damageType": "SP",
+      "amount": 1
+    },
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A compressor and nozzle which propels an abrasive material like sand to slowly erode, clean, or shape a surface."
+      },
+      {
+        "type": "paragraph",
+        "value": "Any target hit cannot use any system or module with the Targeter Trait for 1 turn."
+      }
+    ],
+    "actionSource": "systems"
+  },
+  {
+    "name": "Siege Ram",
+    "id": "1a174714-5347-4c0a-a42b-1a2fbdfc195d",
+    "actionType": "Turn",
+    "activationCost": "X",
+    "range": ["Close"],
+    "traits": [
+      {
+        "type": "heat spike"
+      }
+    ],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "When activated the Gatecrasher makes an attack against a target in Range with the Siege Ram. If this attack hits it deals an amount of damage equal to 2x the Heat you spent when activating this ability. This attack automatically hits structures, doors, turrets, and anything with the Immobile trait, as though rolling an 11-19 result."
+      }
+    ],
+    "actionSource": "chassis"
+  },
+  {
+    "name": "Integrated Scrap Magnet",
+    "id": "653fd5c3-c3d7-426f-a534-1210e76adfcd",
+    "actionType": "Turn",
+    "activationCost": 1,
+    "range": ["Close"],
+    "traits": [
+      {
+        "type": "rigging"
+      }
+    ],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "When activated the Scrap Magnet creates a magnetic pull strong enough to draw in and carry Mech Chassis, Systems, Modules, and Scrap, counting as 12 Cargo Slots stored on the end of the magnet. The effect lasts as long as the Chassis is operable, and activating it again allows for more Scrap to be stored on the magnet."
+      },
+      {
+        "type": "paragraph",
+        "value": "Though against salvager safety procedure, the Scrap Magnet can be used against an active Mech or Vehicle, which becomes Immobile and gains the Vulnerable Trait until it escapes. However the Bobcat will also gain the Vulnerable Trait as the Mech grinds against the magnet."
+      },
+      {
+        "type": "paragraph",
+        "value": "The Scrap Magnet can be deactivated at any time as a Free Action, which drops everything carried."
+      }
+    ],
+    "actionSource": "chassis"
+  },
+  {
     "name": "Integrated Colossal Cargo Bay",
     "id": "76308ada-500f-4e96-a09b-cf6156c6da8a",
     "content": [

@@ -1285,5 +1285,16 @@
         "value": "Can safely transport a family of people across the wastes."
       }
     ]
+  },
+  {
+    "id": "d6f34bc7-1dac-4280-9417-52ae103b2930",
+    "source": "Salvage Union Starter Set",
+    "booklet": "PC",
+    "name": "Sand Blaster",
+    "techLevel": 1,
+    "slotsRequired": 3,
+    "salvageValue": 2,
+    "page": 52,
+    "actions": ["Sand Blaster"]
   }
 ]
