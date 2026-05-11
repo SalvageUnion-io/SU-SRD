@@ -248,10 +248,7 @@ To be backfilled as `additionalSources` entries with `booklet: "CR"`. High-value
 | Generic abilities | 8 | Area Salvage, Mech Salvage, Scrap, Craft, Repair, Patch Up, Load, Mount |
 | Distances | 4 | Close, Medium, Long, Far |
 
-Deferred (will revisit after PH/PC review since they likely restate the same entries):
-- ~80 keywords (entire glossary on p. 38–44)
-- 43 traits (entire glossary on p. 34–37)
-- Tech-level entities (p. 29 references concept only)
+✓ done (per top-of-doc status row): 73 keywords (CR pp. 38–44 glossary) and 43 traits (CR pp. 34–37 glossary) backfilled with `additionalSources` `booklet: "CR"` entries — 116 total. Tech-level entities are concept-only on p. 29 and not modeled as separate entities.
 
 
 
@@ -697,3 +694,25 @@ The sticker-sheet equipment (10 items) is the **only Asset Pack content that can
 | Sticker Sheets | 10 mech systems/modules | 0 |
 | Char/Mech/Crawler Sheets | 0 (cross-ref RotW) | 0 |
 | **Total (immediate)** | **~36 entities + 5 tables + 1 trait** | **~41 locations + 2 schema decisions** |
+
+#### Asset Pack landing status (2026-05-11)
+
+| Item | Status |
+| --- | --- |
+| Hive: 4 chassis patterns (Madrona, Bomblebee, Killer, Queen Bee Atlas) | ✓ done |
+| Hive: Random Encounters + Minefield roll tables | ✓ done |
+| Hive: Dr Mortimer Apis, Dr Regina Apis NPCs | Skipped — narrative-only in source PDF (Mortimer in stasis pod, Regina pilots Queen Bee Atlas); no statblocks to transcribe |
+| Thatcher's: AMS Micro Laser system + Coolant Flow Manifold module | ✓ done |
+| Thatcher's: 7 NPCs (Pit Android, Skull Drone, Super Android Soldier/Strikebreaker, Churchill, Dennis, Android Osborne, Hogg, Browning) | ✓ done |
+| Thatcher's: The Iron Lady (titanic boss in npcs.json) | ✓ done |
+| Thatcher's: Thatcher Pit Android Lance | ✓ done |
+| Thatcher's: Steel Billy Club pilot equipment | ✓ done (no-stat entry per source) |
+| Thatcher's: Reinforced Polycarbonate Shield + Growth Formula equipment | ✓ done (already present from WM / Relics) |
+| Thatcher's: Broad Koch SMG, T2S2 Grenade, Electro-Whip | Encoded as NPC actions (already in actions.json) — source treats them as NPC armaments, not pilot equipment |
+| Relics: CURNOS + PAX NPCs | CURNOS done (npcs.json); PAX skipped — narrative-only in source PDF |
+| Relics: Skinless Jim, Gorgut, Ayana, Dragonfly | Skipped — source labels them as named pilots using existing Trooper/Raider NPC stats; no separate statblocks |
+| Relics: 4 CURNOS Lances + Skinless Jim's Scavengers | ✓ done (composition-only entries; source provides no aggregate HP/damage type) |
+| Relics: Random Encounters + Salvage Table roll tables | ✓ done |
+| Relics: Coolant Flow Manifold module + All is Dust Pattern Atlas + Growth Formula equipment | ✓ done |
+| Sticker Sheets: 10 mech systems/modules | ✓ done |
+| Char/Mech/Crawler Sheets: 6 RotW pre-made pilots | Deferred — needs `players.json` or `pre-made-characters` schema decision |

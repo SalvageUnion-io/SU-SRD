@@ -989,5 +989,13 @@
         "value": "If no such safety measures are taken, Roll the Die for each hour the Active Meld Nanite is carried. On the roll of a 1, something goes wrong. Present the players with a Tough Choice involving the Active Meld Nanite. It might spawn into a Meld Nanoid, take control of a Mech temporarily, destroy a System or Module, or have some other anomalous effect. If Active Meld Nanites are stored in a Union Crawler without safety measures make this roll once per week or Downtime cycle."
       }
     ]
+  },
+  {
+    "id": "3b6b84b3-35c6-4f7f-b9cb-66a8d455ddbc",
+    "source": "Thatcher's Mech Base",
+    "page": 2,
+    "name": "Steel Billy Club",
+    "techLevel": 1,
+    "actions": []
   }
 ]

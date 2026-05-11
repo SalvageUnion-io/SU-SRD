@@ -313,5 +313,74 @@
         "value": "A lance composed of 2 x Thatcher Pattern Jackhammer, 1 x Maggie Pattern Magpie, 1 x Operator Pattern Spectrum, and 1 x Skull Drone, piloted by Thatcher Pit Androids and ready to defend the Mech Bay."
       }
     ]
+  },
+  {
+    "id": "dd062b76-f911-4bbc-bf57-5a28c6a86492",
+    "name": "CURNOS Alpha Lance",
+    "source": "Relics of a Time Gone By",
+    "page": 1,
+    "actions": [],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "1 x All is Dust Pattern Atlas (droned), 3 x Heavy Combat Drone, 2 x Hover Drone."
+      }
+    ]
+  },
+  {
+    "id": "64888d9c-3462-4db6-abd5-7d0f0e45609c",
+    "name": "CURNOS Beta Lance",
+    "source": "Relics of a Time Gone By",
+    "page": 1,
+    "actions": [],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "4 x Walker Drone, 2 x Combat Drone."
+      }
+    ]
+  },
+  {
+    "id": "70fef3c5-ce1a-4edf-a605-a7b170bea53c",
+    "name": "CURNOS Gamma Lance",
+    "source": "Relics of a Time Gone By",
+    "page": 1,
+    "actions": [],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "2 x Pest Drone, 2 x Defacer Drone // 2 x Salvo Drone."
+      }
+    ]
+  },
+  {
+    "id": "13b7ffc9-a260-46d7-a15e-a9a56cc2a030",
+    "name": "CURNOS Survey Lance",
+    "source": "Relics of a Time Gone By",
+    "page": 1,
+    "actions": [],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "4 x Survey Drones. Will awaken CURNOS in 1 round if they detect a threat."
+      }
+    ]
+  },
+  {
+    "id": "1720f8da-9443-42db-a971-e84658a83808",
+    "name": "Skinless Jim's Scavengers",
+    "source": "Relics of a Time Gone By",
+    "page": 1,
+    "actions": [],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Looking to score, not afraid of a fight, but will cooperate for a payday."
+      },
+      {
+        "type": "paragraph",
+        "value": "1 x Thatcher Pattern Jackhammer piloted by Skinless Jim [Trooper]. 1 x Mauler Pattern Hussar piloted by Gorgut [Raider]. 2 x Legion Pattern Gopher piloted by Ayana and Dragonfly [Raider]."
+      }
+    ]
   }
 ]
