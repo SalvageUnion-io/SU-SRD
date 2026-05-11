@@ -3267,5 +3267,145 @@
       "11-19": { "value": "Safe travel between the areas." },
       "20": { "value": "The pilots find a Salvage Cache." }
     }
+  },
+  {
+    "id": "7e2f3c1a-8b4d-4e51-a7c3-9d8e1f4b2c6a",
+    "source": "Reclamation of the Wastes",
+    "page": 33,
+    "name": "Void Shore Random Encounters",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A desolate coastal frontier where land meets a restless, devouring sea. Once part of a thriving holiday strip of adventure parks, wooded retreats, and sun-soaked beaches, it is now a sun-blasted graveyard of failed utopian projects. Its decaying infrastructure is wracked by constant tidal storms."
+      }
+    ],
+    "table": {
+      "type": "standard",
+      "1": {
+        "value": "The winds carry a pile of grey dust: an Inert Meld Nanite from the Geodome."
+      },
+      "2-5": { "value": "The Sakura Academy 'Party' Lance out looking for fun." },
+      "6-10": {
+        "value": "Two mechs from Container Town out looking for scrap and supplies: A Scrapjack Pattern Goliath Mech piloted by Aneska, with a supporting Rigger Pattern Scrapper piloted by Mina."
+      },
+      "11-19": { "value": "Safe travel across the area." },
+      "20": { "value": "Pilots find a Salvage Cache." }
+    }
+  },
+  {
+    "id": "4a9c2d8e-3b6f-4a91-8c5e-2f9d7a1b4e8c",
+    "source": "Reclamation of the Wastes",
+    "page": 55,
+    "name": "House of the Gods Random Encounters",
+    "table": {
+      "type": "standard",
+      "1": { "value": "The Osiris Kill Team from Sunken Colonies (3.08)." },
+      "2-5": { "value": "Roll on the Bio-Fauna Table." },
+      "6-10": {
+        "value": "A group of the Sect of Ygdriss (Waster Mob) from 3.04 exploring the area."
+      },
+      "11-19": { "value": "Safe travel between the areas." },
+      "20": { "value": "The pilots find a Salvage Cache." }
+    }
+  },
+  {
+    "id": "9f3b1e7c-5a2d-4f88-b6e1-3c8a5d7f9b2e",
+    "source": "Reclamation of the Wastes",
+    "page": 64,
+    "name": "Heart of Ygdriss Removal Table",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Removing a single shard of Ygdriss is unpredictable. Roll on the table below to determine the effect."
+      }
+    ],
+    "table": {
+      "type": "standard",
+      "1": {
+        "value": "The entire region is turned into a wasteland within 2 weeks, as per Destroying Ygdriss or Removing the Heart."
+      },
+      "2-5": {
+        "value": "Hostile Creatures will rapidly multiply to protect Ygdriss. The entire region, including Elysia, will be overrun and in constant conflict within two weeks. If this result occurs, roll on the Bio-Fauna Table every time pilots enter an area, and double the amount of Creatures present."
+      },
+      "6-10": {
+        "value": "Elysia will become wasteland within two weeks, but the bio-flora and fauna in every other area will survive. The Elysians will need to find a new home."
+      },
+      "11-19": {
+        "value": "Elysia will remain, but the surrounding area will wither over the next two weeks (including the Rust Bulbs keeping Mason alive)."
+      },
+      "20": {
+        "value": "Nature finds a way. The heart grows back within two weeks, and there are no ill effects."
+      }
+    }
+  },
+  {
+    "id": "8c1e4a9f-2d7b-4e63-9a4f-1b6c3e8d5a7f",
+    "source": "Reclamation of the Wastes",
+    "page": 71,
+    "name": "Irongrad Random Encounters",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Roll when pilots travel between Areas in the Region, and when they travel between Locations within Irongrad City."
+      }
+    ],
+    "table": {
+      "type": "standard",
+      "1": {
+        "value": "A Monkey Wrencher boobytrap triggers. Roll on the Monkey Wrencher Boobytrap Table."
+      },
+      "2-5": {
+        "value": "A random faction is encountered. Roll on the Irongrad Faction Table."
+      },
+      "6-10": {
+        "value": "Two factions are encountered. Roll on the Irongrad Faction Table twice."
+      },
+      "11-19": { "value": "Safe travel across the area." },
+      "20": { "value": "The Pilots find a Salvage Cache." }
+    }
+  },
+  {
+    "id": "3d7e9c2a-5f1b-4a86-8c2d-6e9f3b7a1c4d",
+    "source": "Reclamation of the Wastes",
+    "page": 71,
+    "name": "Monkey Wrencher Boobytrap Table",
+    "table": {
+      "type": "standard",
+      "1": {
+        "value": "An electrostatic mine shuts down a Mech or Drone for 1 Turn. A Saboteur Squad will then appear and attack the target."
+      },
+      "2-5": {
+        "value": "Oil bomb dealing 1 SP Damage // Burn (1) // Explosive (1) and applying the Overheat Trait."
+      },
+      "6-10": {
+        "value": "Hobbler Mine dealing 1 SP (Explosive 1) and destroying a random Mech's Locomotion System"
+      },
+      "11-19": { "value": "IED dealing 3 SP Damage (Explosive 1)" },
+      "20": { "value": "Dud mine, harmless." }
+    }
+  },
+  {
+    "id": "6b4f8e1c-9a3d-4e72-8f5a-2c7b1d4e9a3f",
+    "source": "Reclamation of the Wastes",
+    "page": 51,
+    "name": "Emergency EM Pulse Table",
+    "table": {
+      "type": "standard",
+      "1": {
+        "value": "As effect 11-19, and every Mech in the area (piloted or unpiloted) is destroyed."
+      },
+      "2-5": {
+        "value": "As effect 11-19, and every Mech in the area (piloted or unpiloted) becomes damaged and inoperable until repaired."
+      },
+      "6-10": {
+        "value": "As effect 11-19, and a random System and Module on every Mech in the area, piloted or unpiloted, is destroyed."
+      },
+      "11-19": {
+        "value": "All Meld within the entire area, including the Underground Lab and Decontamination Chamber are entirely destroyed, leaving not even dust behind.  The following are also destroyed: The Generator, The Wind Turbines, The Lab Mainframe, Observation Mainframe, and all data within"
+      },
+      "20": {
+        "value": "As effect 11-19, but only the Meld are destroyed, leaving everything else intact."
+      }
+    }
   }
 ]

@@ -435,24 +435,24 @@ Total: ~98 cross-ref backfills.
 - **Active Meld Nanite handling** (p. 112): hourly d20 — 1 = Tough Choice (Meld escapes / spawns Nanoid / takes mech control / destroys system).
 - **Ygdriss Mutagenic Radiation** (p. 111): Pilot Keepsake-style permanent narrative effect from proximity, with hostile/friendly branching.
 
-#### Net-new roll tables
+#### Net-new roll tables — partial (8/12)
 
-| Table | Page | Notes |
+| Table | Page | Status |
 | --- | --- | --- |
-| Salvage Cache Table | 10 | Generic loot table for Reclamation Jobs |
-| Rumour Table | 11 | Generic rumour-roll generator for the campaign |
-| Caldera's Edge Random Encounters | 13 | Region 1 encounter table |
-| Void Shore Random Encounters | 33 | Region 2 encounter table |
-| House of the Gods Random Encounters | 55 | Region 3 encounter table |
-| Irongrad Random Encounters | 71 | Region 4 encounter table |
-| Irongrad Faction Reaction Table | 74 | Modifier on standard Reaction Roll for Irongrad factions |
-| Heart of Ygdriss Table | 64 | Location-specific table (Region 3) |
-| Hunter Nest | 69 | Location-specific encounter generator |
-| Monkey Wrencher Boobytrap Table | 71 | Location-specific hazard table |
-| Emergency EM Pulse Table | 51 | Underground Research Lab event |
-| Bio-Fauna Table | 111 | Spawn table for Ygdriss's Summon Bio-Fauna ability (already cataloged in entity statblock above) |
+| Salvage Cache Table | 10 | Skipped — 11-bucket shape (1, 2-3, 4-5, 6-7, 8-9, 10-11, 12-13, 14-15, 16-17, 18-19, 20) doesn't fit any existing TableSchema discriminator |
+| Rumour Table | 11 | ✓ done (`flat`, commit `6379d27d`) |
+| Caldera's Edge Random Encounters | 13 | ✓ done (`standard`, commit `6379d27d`) |
+| Void Shore Random Encounters | 33 | ✓ done (`standard`) |
+| House of the Gods Random Encounters | 55 | ✓ done (`standard`) |
+| Irongrad Random Encounters | 71 | ✓ done (`standard`) |
+| Irongrad Faction Reaction Table | 71 | Skipped — 8-bucket faction-pick shape (1, 2-4, 5-7, 8-10, 11-13, 14-16, 17-19, 20) doesn't fit any existing discriminator |
+| Heart of Ygdriss Removal Table | 64 | ✓ done (`standard`) |
+| Hunter Nest | 69 | Not a roll table — descriptive location text only |
+| Monkey Wrencher Boobytrap Table | 71 | ✓ done (`standard`) — source typo `10-19` encoded as `11-19` to resolve overlap with `6-10` bucket |
+| Emergency EM Pulse Table | 51 | ✓ done (`standard`) |
+| Bio-Fauna Table | 55 / 111 | p. 111 (Summon variant) already in dataset as `c02da98d-931f-4850-9b04-a3a1b6a3bc2a`. p. 55 House-of-the-Gods variant skipped — same 8-bucket shape as Faction Reaction Table |
 
-12 net-new roll tables.
+8 net-new roll tables landed; 3 skipped pending TableSchema discriminator additions (out of scope for archival pass per CLAUDE.md "no schema features without explicit user request"); 1 (Hunter Nest) reclassified as descriptive text not a roll table.
 
 #### Net-new guides (Mediator advice + setting) — ✓ done
 
