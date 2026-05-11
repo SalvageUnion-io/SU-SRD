@@ -1,8 +1,8 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://salvageunion.com/schemas/factions.schema.json",
-  "title": "factions",
-  "description": "Faction groups and organizations in Salvage Union",
+  "$id": "https://salvageunion.com/schemas/ai-entities.schema.json",
+  "title": "ai-entities",
+  "description": "Sentient AI entities (supercomputers, fragments, hive-minds)",
   "type": "array",
   "items": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -123,7 +123,7 @@
           "required": ["type"],
           "additionalProperties": false
         },
-        "description": "Descriptive content for this faction"
+        "description": "Descriptive content blocks for this entity"
       },
       "id": { "type": "string", "description": "Unique identifier for this entity" },
       "indexable": {
@@ -203,110 +203,50 @@
         },
         "description": "Other source books where this entity is reprinted"
       },
-      "goals": { "type": "string", "description": "The goals and motivations of this faction" },
-      "assets": {
-        "type": "string",
-        "description": "The assets and resources controlled by this faction"
+      "actions": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "Action names this entity can perform"
       },
-      "weaknesses": {
-        "type": "string",
-        "description": "The weaknesses and vulnerabilities of this faction"
-      },
-      "formation": {
+      "traits": {
         "type": "array",
         "items": {
           "type": "object",
           "properties": {
-            "chassis": {
-              "type": "string",
-              "description": "Chassis name for this formation member"
-            },
-            "pattern": {
-              "type": "string",
-              "description": "Pattern name for this formation member"
-            },
-            "schema": {
-              "type": "string",
-              "enum": [
-                "abilities",
-                "ability-tree-requirements",
-                "ai-entities",
-                "bio-titans",
-                "bosses",
-                "chassis",
-                "classes",
-                "crawler-bays",
-                "crawler-tech-levels",
-                "crawlers",
-                "creatures",
-                "distances",
-                "drones",
-                "equipment",
-                "guides",
-                "keywords",
-                "factions",
-                "meld",
-                "modules",
-                "npcs",
-                "pre-made-characters",
-                "roll-tables",
-                "sources",
-                "squads",
-                "tech-levels",
-                "systems",
-                "traits",
-                "vehicles"
+            "amount": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991,
+                  "description": "Non-negative integer (0 or greater)"
+                },
+                { "type": "string" }
               ],
-              "description": "Schema type if not a chassis (vehicle, drone, etc.)"
+              "description": "Numeric or variable amount for this trait"
             },
-            "source": {
-              "type": "string",
-              "enum": [
-                "Salvage Union Workshop Manual",
-                "Salvage Union Starter Set",
-                "Reclamation of the Wastes",
-                "The Hive",
-                "Thatcher's Mech Base",
-                "Relics of a Time Gone By",
-                "Mech Monday",
-                "We Were Here First!",
-                "Rainmaker",
-                "False Flag"
-              ],
-              "description": "Source book for this formation entry"
-            },
-            "page": {
-              "type": "integer",
-              "exclusiveMinimum": 0,
-              "maximum": 9007199254740991,
-              "description": "Page number in the source book"
-            },
-            "quantity": {
-              "type": "integer",
-              "exclusiveMinimum": 0,
-              "maximum": 9007199254740991,
-              "description": "Number of this unit in the formation"
-            }
+            "type": { "type": "string", "description": "Trait type identifier" }
           },
-          "required": ["chassis", "source", "page"],
+          "required": ["type"],
           "additionalProperties": false,
-          "description": "A member of a faction formation (chassis+pattern combo or standalone entity)"
+          "description": "Special traits and properties of items, systems, or abilities"
         },
-        "description": "The mechs that make up this faction formation"
+        "description": "Traits and special properties"
+      },
+      "structurePoints": {
+        "type": "integer",
+        "exclusiveMinimum": 0,
+        "maximum": 9007199254740991,
+        "description": "Structure points for this AI entity (if it has a destructible core)"
+      },
+      "damageType": {
+        "type": "string",
+        "enum": ["HP", "SP"],
+        "description": "Damage type tracked by this AI entity. Typically SP for the physical core."
       }
     },
-    "required": [
-      "id",
-      "indexable",
-      "blackMarket",
-      "name",
-      "source",
-      "page",
-      "goals",
-      "assets",
-      "weaknesses"
-    ],
+    "required": ["id", "indexable", "blackMarket", "name", "source", "page"],
     "additionalProperties": false,
-    "description": "Faction groups and organizations in Salvage Union"
+    "description": "Sentient AI entities (supercomputers, fragments, hive-minds)"
   }
 }

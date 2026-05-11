@@ -1,0 +1,55 @@
+[
+  {
+    "id": "5bb5a243-e4ec-40ae-a6e2-dba236e11e37",
+    "name": "The Iron Lady",
+    "source": "Thatcher's Mech Base",
+    "page": 2,
+    "structurePoints": 87,
+    "damageType": "SP",
+    "actions": [
+      "Iron Claws (The Iron Lady)",
+      "Corrosive M.I.L.K. Spray (The Iron Lady)",
+      "TRIDENT Missile Pod (The Iron Lady)",
+      "TRIDENT Defence System (The Iron Lady)",
+      "M.I.L.K. Injector (The Iron Lady)",
+      "Control Signal (The Iron Lady)",
+      "Comms Module",
+      "IR Night Vision Optics",
+      "Firewall"
+    ],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A monstrous mecha-android built specifically to house the Thatcher Steel CEO. A reinforced glass cockpit reveals her emaciated body, allowing her worshippers to look upon her terrible visage. Sustained far beyond her mortal years, she requires only 4 hours sleep."
+      },
+      {
+        "type": "heading",
+        "value": "Titanic Actions"
+      },
+      {
+        "type": "paragraph",
+        "value": "The Iron Lady can take one of three Titanic Actions at a time, detailed below. These can only be chosen at the end of another Pilot's or NPC's turn. She regains spent Titanic Actions at the start of her turn."
+      },
+      {
+        "type": "list-item",
+        "value": "The Iron Lady moves one Range Band."
+      },
+      {
+        "type": "list-item",
+        "value": "The Iron Lady makes a single Iron Claw attack."
+      },
+      {
+        "type": "list-item",
+        "value": "The Iron Lady makes a M.I.L.K Spray attack (costs 2 Titanic Actions)."
+      },
+      {
+        "type": "heading",
+        "value": "Mech Modules"
+      },
+      {
+        "type": "paragraph",
+        "value": "The Iron Lady is equipped with the following standard Mech Modules, which may be used per their standard rules: Comms Module, IR Night Vision, Firewall."
+      }
+    ]
+  }
+]

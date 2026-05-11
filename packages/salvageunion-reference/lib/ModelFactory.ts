@@ -13,7 +13,9 @@ import {
   AbilitySchema,
   AbilityTreeRequirementSchema,
   MetaActionSchema,
+  AiEntitySchema,
   BioTitanSchema,
+  BossSchema,
   ChassisSchema,
   ClassSchema,
   CrawlerBaySchema,
@@ -55,10 +57,16 @@ const dataLoaders: Record<string, () => Promise<unknown[]>> = {
     ),
   actions: () =>
     import('../data/actions.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
+  'ai-entities': () =>
+    import('../data/ai-entities.json', { with: { type: 'json' } }).then(
+      (m) => m.default as unknown[]
+    ),
   'bio-titans': () =>
     import('../data/bio-titans.json', { with: { type: 'json' } }).then(
       (m) => m.default as unknown[]
     ),
+  bosses: () =>
+    import('../data/bosses.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
   chassis: () =>
     import('../data/chassis.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
   classes: () =>
@@ -140,8 +148,16 @@ const jsonSchemaLoaders: Record<string, () => Promise<Record<string, unknown>>> 
     import('../schemas/actions.schema.json', { with: { type: 'json' } }).then(
       (m) => m.default as Record<string, unknown>
     ),
+  'ai-entities': () =>
+    import('../schemas/ai-entities.schema.json', { with: { type: 'json' } }).then(
+      (m) => m.default as Record<string, unknown>
+    ),
   'bio-titans': () =>
     import('../schemas/bio-titans.schema.json', { with: { type: 'json' } }).then(
+      (m) => m.default as Record<string, unknown>
+    ),
+  bosses: () =>
+    import('../schemas/bosses.schema.json', { with: { type: 'json' } }).then(
       (m) => m.default as Record<string, unknown>
     ),
   chassis: () =>
@@ -249,7 +265,9 @@ const zodSchemaMap: Record<string, z.ZodType<unknown>> = {
   abilities: AbilitySchema,
   'ability-tree-requirements': AbilityTreeRequirementSchema,
   actions: MetaActionSchema,
+  'ai-entities': AiEntitySchema,
   'bio-titans': BioTitanSchema,
+  bosses: BossSchema,
   chassis: ChassisSchema,
   classes: ClassSchema,
   'crawler-bays': CrawlerBaySchema,
@@ -421,6 +439,7 @@ export function getDataMaps(): {
 function toPascalCase(id: string): string {
   if (id === 'classes') return 'Classes'
   if (id === 'npcs') return 'NPCs'
+  if (id === 'ai-entities') return 'AiEntities'
   return id
     .split(/[-.]/)
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
@@ -458,7 +477,9 @@ const schemaDisplayNames: Record<string, { singular: string; plural: string }> =
     singular: 'Ability Tree Requirement',
     plural: 'Ability Tree Requirements',
   },
+  'ai-entities': { singular: 'AI Entity', plural: 'AI Entities' },
   'bio-titans': { singular: 'Bio-Titan', plural: 'Bio-Titans' },
+  bosses: { singular: 'Boss', plural: 'Bosses' },
   chassis: { singular: 'Chassis', plural: 'Chassis' },
   classes: { singular: 'Class', plural: 'Classes' },
   'crawler-bays': { singular: 'Crawler Bay', plural: 'Crawler Bays' },

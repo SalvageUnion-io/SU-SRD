@@ -38,6 +38,16 @@
       "meta": true
     },
     {
+      "id": "ai-entities",
+      "title": "ai-entities",
+      "description": "Sentient AI entities (supercomputers, fragments, hive-minds)",
+      "dataFile": "data/ai-entities.json",
+      "schemaFile": "schemas/ai-entities.schema.json",
+      "itemCount": 1,
+      "requiredFields": [],
+      "displayName": "AI Entity"
+    },
+    {
       "id": "bio-titans",
       "title": "bio-titans",
       "description": "",
@@ -46,6 +56,16 @@
       "itemCount": 11,
       "requiredFields": [],
       "displayName": "Bio-Titan"
+    },
+    {
+      "id": "bosses",
+      "title": "bosses",
+      "description": "Titanic boss enemies (mech-scale named threats with Titanic Actions)",
+      "dataFile": "data/bosses.json",
+      "schemaFile": "schemas/bosses.schema.json",
+      "itemCount": 1,
+      "requiredFields": [],
+      "displayName": "Boss"
     },
     {
       "id": "catalog-categories",

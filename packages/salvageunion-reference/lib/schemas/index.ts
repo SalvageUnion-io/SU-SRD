@@ -67,7 +67,9 @@ import {
   AbilitySchema,
   AbilityTreeRequirementSchema,
   MetaActionSchema,
+  AiEntitySchema,
   BioTitanSchema,
+  BossSchema,
   ChassisSchema,
   ClassSchema,
   CrawlerBaySchema,
@@ -157,7 +159,9 @@ export type SURefObjectActionOptions = Array<{ label: string; value: string }>
 export type SURefAbility = z.infer<typeof AbilitySchema>
 export type SURefMetaAbilityTreeRequirement = z.infer<typeof AbilityTreeRequirementSchema>
 export type SURefMetaAction = z.infer<typeof MetaActionSchema>
+export type SURefAiEntity = z.infer<typeof AiEntitySchema>
 export type SURefBioTitan = z.infer<typeof BioTitanSchema>
+export type SURefBoss = z.infer<typeof BossSchema>
 export type SURefChassis = z.infer<typeof ChassisSchema>
 export type SURefClass = z.infer<typeof ClassSchema>
 export type SURefCrawlerBay = z.infer<typeof CrawlerBaySchema>
@@ -186,7 +190,9 @@ export type SURefCatalogCategory = z.infer<typeof CatalogCategorySchema>
 // Union types
 export type SURefEntity =
   | SURefAbility
+  | SURefAiEntity
   | SURefBioTitan
+  | SURefBoss
   | SURefChassis
   | SURefClass
   | SURefCrawler
@@ -212,7 +218,9 @@ export type SURefEntity =
 
 export type SURefMetaEntity =
   | SURefAbility
+  | SURefAiEntity
   | SURefBioTitan
+  | SURefBoss
   | SURefChassis
   | SURefClass
   | SURefCrawler

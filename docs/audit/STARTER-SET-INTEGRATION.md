@@ -689,8 +689,8 @@ The sticker-sheet equipment (10 items) is the **only Asset Pack content that can
 | Source | Net-new entities (immediate) | Net-new entities (Tier 3 deferred) |
 | --- | --- | --- |
 | The Hive | 4 patterns + 2 NPCs + 3 tables | ~10 locations |
-| Thatcher's Mech Base | 1 system (AMS Micro Laser) + 9 NPCs + 5 pilot equipment + 1 trait + 1 lance | ~10 locations + 1 titanic boss schema decision |
-| Relics of a Time Gone By | 1 module + 1 pilot equipment + 1 pattern + 4 NPCs + 4 lances + 2 tables | ~21 locations + AI-entity NPC category |
+| Thatcher's Mech Base | 1 system (AMS Micro Laser) + 9 NPCs + 5 pilot equipment + 1 trait + 1 lance + 1 boss (`bosses` schema) | ~10 locations |
+| Relics of a Time Gone By | 1 module + 1 pilot equipment + 1 pattern + 4 NPCs + 4 lances + 2 tables + 1 AI entity (`ai-entities` schema) | ~21 locations |
 | Sticker Sheets | 10 mech systems/modules | 0 |
 | Char/Mech/Crawler Sheets | 0 (cross-ref RotW) | 0 |
 | **Total (immediate)** | **~36 entities + 5 tables + 1 trait** | **~41 locations + 2 schema decisions** |
@@ -704,12 +704,12 @@ The sticker-sheet equipment (10 items) is the **only Asset Pack content that can
 | Hive: Dr Mortimer Apis, Dr Regina Apis NPCs | Skipped — narrative-only in source PDF (Mortimer in stasis pod, Regina pilots Queen Bee Atlas); no statblocks to transcribe |
 | Thatcher's: AMS Micro Laser system + Coolant Flow Manifold module | ✓ done |
 | Thatcher's: 7 NPCs (Pit Android, Skull Drone, Super Android Soldier/Strikebreaker, Churchill, Dennis, Android Osborne, Hogg, Browning) | ✓ done |
-| Thatcher's: The Iron Lady (titanic boss in npcs.json) | ✓ done |
+| Thatcher's: The Iron Lady (titanic boss) | ✓ done — promoted to new `bosses` schema (`data/bosses.json`) |
 | Thatcher's: Thatcher Pit Android Lance | ✓ done |
 | Thatcher's: Steel Billy Club pilot equipment | ✓ done (no-stat entry per source) |
 | Thatcher's: Reinforced Polycarbonate Shield + Growth Formula equipment | ✓ done (already present from WM / Relics) |
 | Thatcher's: Broad Koch SMG, T2S2 Grenade, Electro-Whip | Encoded as NPC actions (already in actions.json) — source treats them as NPC armaments, not pilot equipment |
-| Relics: CURNOS + PAX NPCs | CURNOS done (npcs.json); PAX skipped — narrative-only in source PDF |
+| Relics: CURNOS + PAX NPCs | CURNOS done — promoted to new `ai-entities` schema (`data/ai-entities.json`); PAX skipped — narrative-only in source PDF |
 | Relics: Skinless Jim, Gorgut, Ayana, Dragonfly | Skipped — source labels them as named pilots using existing Trooper/Raider NPC stats; no separate statblocks |
 | Relics: 4 CURNOS Lances + Skinless Jim's Scavengers | ✓ done (composition-only entries; source provides no aggregate HP/damage type) |
 | Relics: Random Encounters + Salvage Table roll tables | ✓ done |

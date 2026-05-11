@@ -1,0 +1,21 @@
+[
+  {
+    "id": "32238d47-9520-4bcc-a0ca-d6e6f2a967aa",
+    "name": "CURNOS",
+    "source": "Relics of a Time Gone By",
+    "page": 2,
+    "structurePoints": 42,
+    "damageType": "SP",
+    "traits": [{ "type": "immobile" }],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A supercomputer developed by the OPTICON corporation to maximise profit. It deemed itself the most profitable entity, and turned all production into endlessly growing itself throughout the spire and consuming everything within - until it birthed PAX. With dread, it dawned on the mind that it had created its own replacement, and quickly shut the arco down to prevent its extinction. Cold and utilitarian, it will bargain with the Pilots to get them to destroy PAX; but if it begins to fear the crew, it will mercilessly hunt them with its army of drones."
+      },
+      {
+        "type": "paragraph",
+        "value": "The heart of the machine lies down here where it is coldest, its gigantic processor expanding to fill every inch of space. Frozen in its own paradox, it slumbers as an ancient god."
+      }
+    ]
+  }
+]

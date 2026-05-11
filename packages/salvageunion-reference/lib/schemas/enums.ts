@@ -114,7 +114,9 @@ export const SchemaNameSchema = z
   .enum([
     'abilities',
     'ability-tree-requirements',
+    'ai-entities',
     'bio-titans',
+    'bosses',
     'chassis',
     'classes',
     'crawler-bays',

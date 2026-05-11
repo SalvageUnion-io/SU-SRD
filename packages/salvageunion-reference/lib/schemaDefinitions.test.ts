@@ -16,11 +16,13 @@ describe('getJsonSchemaDefinition', () => {
 })
 
 describe('getAllJsonSchemaDefinitions', () => {
-  it('returns a map with all 28 schema IDs as keys', () => {
+  it('returns a map with all 30 schema IDs as keys', () => {
     const all = getAllJsonSchemaDefinitions()
-    expect(Object.keys(all).length).toBe(28)
+    expect(Object.keys(all).length).toBe(30)
     expect(all['chassis']).toBeDefined()
     expect(all['abilities']).toBeDefined()
     expect(all['roll-tables']).toBeDefined()
+    expect(all['ai-entities']).toBeDefined()
+    expect(all['bosses']).toBeDefined()
   })
 })

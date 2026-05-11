@@ -248,7 +248,7 @@
         "type": "integer",
         "minimum": 0,
         "maximum": 9007199254740991,
-        "description": "Structure points for mech-scale boss NPCs (e.g. The Iron Lady). Use instead of hitPoints when the NPC is a unique mecha-android."
+        "description": "Structure points for mech-scale NPCs. Use instead of hitPoints when the NPC is mech-scale."
       },
       "bioSalvageValue": {
         "type": "integer",
