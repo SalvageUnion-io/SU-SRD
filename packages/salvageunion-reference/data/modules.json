@@ -841,5 +841,27 @@
     "salvageValue": 2,
     "page": 3,
     "actions": ["Mozart's Ghost"]
+  },
+  {
+    "id": "e7f142d4-ff0c-44ef-8488-ad3f2b5a68d9",
+    "source": "Salvage Union Starter Set",
+    "booklet": "PC",
+    "name": "A Little Bit Rude",
+    "techLevel": 1,
+    "slotsRequired": 1,
+    "salvageValue": 2,
+    "page": 64,
+    "actions": ["A Little Bit Rude"]
+  },
+  {
+    "id": "0a6e0c93-bb61-4ce1-8715-8bb8f71a5f06",
+    "source": "Salvage Union Starter Set",
+    "booklet": "PC",
+    "name": "Very Rude",
+    "techLevel": 3,
+    "slotsRequired": 1,
+    "salvageValue": 2,
+    "page": 74,
+    "actions": ["Very Rude"]
   }
 ]

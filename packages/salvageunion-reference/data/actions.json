@@ -13668,5 +13668,142 @@
     ],
     "actionSource": "bio-titans",
     "tableName": "Summon Bio-Fauna"
+  },
+  {
+    "name": "Hydraulic Shunter",
+    "id": "f05d8dd6-bd65-45cc-894f-1d54db3ce918",
+    "actionType": "Turn",
+    "activationCost": 1,
+    "range": ["Close"],
+    "traits": [
+      {
+        "type": "melee"
+      }
+    ],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "When activated, an object in Range such as a heavy piece of machinery, a boulder, or a cargo container, is pushed a Range Band away from you."
+      },
+      {
+        "type": "paragraph",
+        "value": "If an active Mech is targeted with this ability, make an attack roll. On a success the Mech is pushed a Range Band away from you. If this would cause them to fall, for example off a cliff face or into a pit, the target falls Prone, gains the Vulnerable Trait, and takes 2 SP damage by default. If they are pushed into a hazardous obstacle such as a wall of jagged rebars, they take 4 SP by default."
+      },
+      {
+        "type": "paragraph",
+        "value": "The Mediator can modify the damage and effects based on the situation, for example, being pushed into a burning oil fire could apply the Burn (1) Trait."
+      }
+    ],
+    "actionSource": "systems"
+  },
+  {
+    "name": "Auger",
+    "id": "d8d77481-3641-43ec-9442-9b77093cef96",
+    "actionType": "Short",
+    "activationCost": 1,
+    "traits": [
+      {
+        "type": "reliable"
+      },
+      {
+        "type": "salvaging"
+      }
+    ],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Drills into the ground, tearing through anything in its path, and creating a hole large enough for a Mech to enter. The precision of the tool makes it safer to use than other salvaging tools, avoiding any booby traps or other potential hazards, as well as being able to safely dig around a stuck Mech or even person."
+      }
+    ],
+    "actionSource": "systems"
+  },
+  {
+    "name": "Drill",
+    "id": "ccffe836-fc09-44cf-b7b1-dd243947f9c2",
+    "actionType": "Turn",
+    "activationCost": 1,
+    "range": ["Close"],
+    "damage": {
+      "damageType": "SP",
+      "amount": 1
+    },
+    "traits": [
+      {
+        "type": "reliable"
+      },
+      {
+        "type": "salvaging"
+      },
+      {
+        "type": "melee"
+      }
+    ],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "The Salvaging Drill can be used to tear apart a Mech with surgical precision. On a successful hit it deals 1 SP damage and a System of your choice on the Mech is destroyed."
+      }
+    ],
+    "actionSource": "systems"
+  },
+  {
+    "name": "A Little Bit Rude",
+    "id": "320e6913-636b-4198-b8e5-4eb8fe78b310",
+    "actionType": "Turn",
+    "activationCost": 1,
+    "range": ["Medium"],
+    "traits": [
+      {
+        "type": "hacking"
+      }
+    ],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "You hack into a Mech to cause one of various annoying effects. When activated a target Mech in Range suffers one of the following effects of your choice:"
+      },
+      { "type": "list-item", "value": "Takes 1 SP damage." },
+      { "type": "list-item", "value": "A random System is damaged for 1 round." },
+      { "type": "list-item", "value": "A random Module is damaged for 1 round." },
+      { "type": "list-item", "value": "Gains 1 Heat." },
+      { "type": "list-item", "value": "Loses 1 EP." },
+      {
+        "type": "list-item",
+        "value": "A glitch of your choice, this doesn't have any serious effect, but it's really annoying to fix."
+      }
+    ],
+    "actionSource": "modules"
+  },
+  {
+    "name": "Very Rude",
+    "id": "751f7587-cd73-43f4-a360-b5a78221c35b",
+    "actionType": "Turn",
+    "activationCost": 2,
+    "range": ["Medium"],
+    "traits": [
+      {
+        "type": "hacking"
+      }
+    ],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "You hack into a Mech to cause a significant effect."
+      },
+      {
+        "type": "paragraph",
+        "value": "When activated a target Mech in Range suffers one of the following effects of your choice."
+      },
+      { "type": "list-item", "value": "Takes 2 SP damage" },
+      { "type": "list-item", "value": "A random System is damaged" },
+      { "type": "list-item", "value": "A random Module is damaged" },
+      { "type": "list-item", "value": "Gains 2 Heat" },
+      { "type": "list-item", "value": "Loses 2 EP" },
+      {
+        "type": "list-item",
+        "value": "A glitch of your choice with a debilitating effect that lasts 1 round"
+      }
+    ],
+    "actionSource": "modules"
   }
 ]

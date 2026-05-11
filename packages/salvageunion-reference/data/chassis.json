@@ -153,6 +153,52 @@
             "value": "Mules fitted with acid spitters to defend their Bio-Salvage hauls in Gehenna."
           }
         ]
+      },
+      {
+        "name": "Shunter Pattern",
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 13,
+        "systems": [
+          {
+            "name": "Hydraulic Crusher"
+          },
+          {
+            "name": "Escape Hatch"
+          },
+          {
+            "name": "Floodlights"
+          },
+          {
+            "name": "Hydraulic Shunter"
+          },
+          {
+            "name": "Locomotion System"
+          },
+          {
+            "name": "Loudspeakers"
+          },
+          {
+            "name": "Personnel Transport Pod"
+          },
+          {
+            "name": "Rigging Arm"
+          },
+          {
+            "name": "Tracking Node"
+          }
+        ],
+        "modules": [
+          {
+            "name": "Comms Module"
+          }
+        ],
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Used extensively by the TDA during the construction of their new settlements within the Central Wastes, designed to be free of corpo rule. The Mech is designed to track and move heavy cargo and machinery."
+          }
+        ]
       }
     ],
     "structurePoints": 12,
@@ -358,6 +404,118 @@
             "value": "Deadly and accurate, these Killer drones are designed to take out intruders with swift efficiency."
           }
         ]
+      },
+      {
+        "name": "Pop Pattern",
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 15,
+        "systems": [
+          {
+            "name": "Escape Hatch"
+          },
+          {
+            "name": "Mini Mortar"
+          },
+          {
+            "name": "Floodlights"
+          }
+        ],
+        "modules": [
+          {
+            "name": "Comms Module"
+          },
+          {
+            "name": "Survey Scanner"
+          },
+          {
+            "name": "Zoom Optics"
+          }
+        ],
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "A build Hotdog favoured in Neon Strip races. Though directly using weapons against other Pilots was prohibited, the mortar if timed right could be used to propel the Mazona forwards by the force of the explosion, acting as a speed bump to clear gaps and obstacles."
+          },
+          {
+            "type": "paragraph",
+            "value": "This is a pre-made Mech for the Reclamation of the Wastes Campaign, piloted by Hotdog."
+          }
+        ]
+      },
+      {
+        "name": "M2 Pattern",
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 15,
+        "systems": [
+          {
+            "name": "Loudspeakers"
+          },
+          {
+            "name": "Grappling Harpoon"
+          },
+          {
+            "name": "Ejection System"
+          },
+          {
+            "name": "Chaff Launcher"
+          }
+        ],
+        "modules": [
+          {
+            "name": "Comms Module"
+          },
+          {
+            "name": "Evasion Protocols"
+          },
+          {
+            "name": "Dash Protocols"
+          }
+        ],
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "A Mazona built for high-speed racing upon the Neon Strip of the Sakura home arco of Neo-Nara. Equipped with a harpoon for taking dangerous shortcuts and pinning rival racers."
+          }
+        ]
+      },
+      {
+        "name": "'Shaitan' Pattern",
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 15,
+        "systems": [
+          {
+            "name": "Corpo Body Kit",
+            "preselectedChoices": {
+              "8286393e-daf8-4a1d-8b91-dd8457da6251": "Shaitan"
+            }
+          },
+          {
+            "name": "Ejection System"
+          },
+          {
+            "name": "Shotgun Pit"
+          }
+        ],
+        "modules": [
+          {
+            "name": "Comms Module"
+          },
+          {
+            "name": "Dash Protocols"
+          },
+          {
+            "name": "Evasion Protocols"
+          }
+        ],
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Painted a garish neon purple, this is a gift Katsuro's father Onishi gave him on his 18th birthday. He didn't have the DebtCredit to afford a real Shaitan, so used his engineering skills to do the best he could. Katsuro remains unaware of this."
+          }
+        ]
       }
     ],
     "structurePoints": 5,
@@ -521,6 +679,50 @@
             "value": "Scrappers fitted with amphibious locomotion systems and heavy ballistic weapons. See Salvage Union Core Book p. 106."
           }
         ]
+      },
+      {
+        "name": "Swiss Cheese Pattern",
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 17,
+        "systems": [
+          {
+            "name": "Chainsaw Arm"
+          },
+          {
+            "name": "Escape Hatch"
+          },
+          {
+            "name": "Cargo Pod"
+          },
+          {
+            "name": "Rigging Arm"
+          },
+          {
+            "name": "Locomotion System"
+          },
+          {
+            "name": "Riveting Gun"
+          }
+        ],
+        "modules": [
+          {
+            "name": "Comms Module"
+          },
+          {
+            "name": "Eggs Mayhem"
+          }
+        ],
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Originally built by Bone-Saw to support his wasteland community. There's a wide range of utility baked into this build, from salvaging to repair and even hacking, which has proved just as useful to support the crew of Crawler #430."
+          },
+          {
+            "type": "paragraph",
+            "value": "This is a pre-made Mech for the Reclamation of the Wastes Campaign, piloted by Bone-Saw."
+          }
+        ]
       }
     ],
     "structurePoints": 9,
@@ -653,6 +855,90 @@
           {
             "type": "paragraph",
             "value": "Developed to transport and protect a colony's datacore in the event of a collapse whilst supporting the rest of the convoy."
+          }
+        ]
+      },
+      {
+        "name": "Pyrotechnic Pattern",
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 19,
+        "systems": [
+          {
+            "name": "Locomotion System"
+          },
+          {
+            "name": "FM-3 Flamethrower"
+          },
+          {
+            "name": "Loudspeakers"
+          },
+          {
+            "name": "Escape Hatch"
+          }
+        ],
+        "modules": [
+          {
+            "name": "A Little Bit Rude"
+          },
+          {
+            "name": "Eggs Mayhem"
+          },
+          {
+            "name": "Firewall"
+          },
+          {
+            "name": "Comms Module"
+          }
+        ],
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Pickle's Spectrum was the real star of Drone. Trap. Pickle would mix the entire set from the cockpit, pumping out beats along with gouts of fire. It was also covertly hacking into, and causing mayhem within, whatever Arco she was performing at."
+          },
+          {
+            "type": "paragraph",
+            "value": "This is a pre-made Mech for the Reclamation of the Wastes Campaign, piloted by Pickle."
+          }
+        ]
+      },
+      {
+        "name": "Party Bus Pattern",
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 19,
+        "systems": [
+          {
+            "name": "Floodlights"
+          },
+          {
+            "name": "Locomotion System"
+          },
+          {
+            "name": "Loudspeakers"
+          },
+          {
+            "name": "Personnel Transport Pod"
+          }
+        ],
+        "modules": [
+          {
+            "name": "A Little Bit Rude"
+          },
+          {
+            "name": "Equipment Locker"
+          },
+          {
+            "name": "Comms Module"
+          },
+          {
+            "name": "Personal Recreation Device"
+          }
+        ],
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Utilising a Mech intended for schoolwork, a group of students calibrated this Mech's values to 300% energy, 200% chaos, and 0% sleep."
           }
         ]
       }
@@ -832,6 +1118,44 @@
             "value": "Threshers rigged with bio-organic systems, such as talons harvested from Chimerium Beasts."
           }
         ]
+      },
+      {
+        "name": "Slugger Pattern",
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 21,
+        "systems": [
+          {
+            "name": "Red Laser"
+          },
+          {
+            "name": "Chainsaw Arm"
+          },
+          {
+            "name": "Locomotion System"
+          },
+          {
+            "name": "Escape Hatch"
+          }
+        ],
+        "modules": [
+          {
+            "name": "Comms Module"
+          },
+          {
+            "name": "Self-Destruct"
+          }
+        ],
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Razor designed this Mech to get up close and personal with its dual chainsaw and laser. The Self-Destruct was added as Razor has fantasies of explosive redemption in battle. Judge at least persuaded her to include the Escape Hatch."
+          },
+          {
+            "type": "paragraph",
+            "value": "This is a pre-made Mech for the Reclamation of the Wastes Campaign, piloted by Razor."
+          }
+        ]
       }
     ],
     "structurePoints": 15,
@@ -982,6 +1306,55 @@
             "value": "Used to build barricades against protestors."
           }
         ]
+      },
+      {
+        "name": "Cargo Pattern",
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 23,
+        "systems": [
+          {
+            "name": "Armour Plating"
+          },
+          {
+            "name": "30mm Autocannon"
+          },
+          {
+            "name": "Floodlights"
+          },
+          {
+            "name": "High Gain Antenna"
+          },
+          {
+            "name": "Cargo Bay"
+          },
+          {
+            "name": "Locomotion System"
+          },
+          {
+            "name": "Escape Hatch"
+          }
+        ],
+        "modules": [
+          {
+            "name": "Comms Module"
+          },
+          {
+            "name": "Firewall"
+          },
+          {
+            "name": "Barometric Sensor"
+          },
+          {
+            "name": "M315 Motion Scanner"
+          }
+        ],
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Designed to ferry cargo between hot spots in the wastes, favoured by freelance traders who are able to upgrade from the Mule due to its added utility in forging new systems in a pinch."
+          }
+        ]
       }
     ],
     "structurePoints": 16,
@@ -1115,6 +1488,86 @@
           {
             "type": "paragraph",
             "value": "Designed for its original purpose of quickly moving cargo on and off the battlefield while providing combat support."
+          }
+        ]
+      },
+      {
+        "name": "Herrsch Pattern",
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 27,
+        "systems": [
+          {
+            "name": "Mini Mortar"
+          },
+          {
+            "name": ".50 Cal Machine Gun"
+          },
+          {
+            "name": "Smoke Machine"
+          },
+          {
+            "name": "Escape Hatch"
+          },
+          {
+            "name": "Locomotion System"
+          }
+        ],
+        "modules": [
+          {
+            "name": "Comms Module"
+          },
+          {
+            "name": "Zoom Optics"
+          },
+          {
+            "name": "Personal Recreation Device"
+          }
+        ],
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Built as a cheap defensive Mech by Herrsch to defend their home arco from the TDA siege forces, which ultimately was not enough to prevent the onslaught and their arco being destroyed."
+          }
+        ]
+      },
+      {
+        "name": "Analysis Pattern",
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 27,
+        "systems": [
+          {
+            "name": "High Gain Antenna"
+          },
+          {
+            "name": "Locomotion System"
+          },
+          {
+            "name": "Long Barrelled Green Laser"
+          },
+          {
+            "name": "Rigging Arm"
+          },
+          {
+            "name": "Tracking Node"
+          }
+        ],
+        "modules": [
+          {
+            "name": "Comms Module"
+          },
+          {
+            "name": "Eggs Mayhem"
+          },
+          {
+            "name": "Survey Scanner"
+          }
+        ],
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "An Opus-designed Gopher pattern, designed for recon and intel gathering."
           }
         ]
       }
@@ -1260,6 +1713,43 @@
           {
             "type": "paragraph",
             "value": "The stock Contour build is designed to get in fast and strip a vital component off of a foe before retreating ready to do it again."
+          }
+        ]
+      },
+      {
+        "name": "Blue Bolt Pattern",
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 29,
+        "systems": [
+          {
+            "name": "Blue Mining Laser"
+          },
+          {
+            "name": "Escape Hatch"
+          },
+          {
+            "name": "Floodlights"
+          },
+          {
+            "name": "Locomotion System"
+          }
+        ],
+        "modules": [
+          {
+            "name": "Comms Module"
+          },
+          {
+            "name": "Evasion Protocols"
+          },
+          {
+            "name": "IR Night Vision Optics"
+          }
+        ],
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "A Contour build designed to flank enemy positions and deliver powerful laser blasts from afar, developed following an administrative error where Contour mistakenly ordered a mass shipment of Blue Mining Lasers."
           }
         ]
       }
@@ -1422,7 +1912,154 @@
     "cargoCapacity": 6,
     "techLevel": 2,
     "salvageValue": 8,
-    "patterns": [],
+    "patterns": [
+      {
+        "name": "Scrapjack Pattern",
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 25,
+        "systems": [
+          {
+            "name": "30mm Autocannon"
+          },
+          {
+            "name": "Blue Mining Laser"
+          },
+          {
+            "name": "Escape Hatch"
+          },
+          {
+            "name": "Floodlights"
+          },
+          {
+            "name": "Locomotion System"
+          },
+          {
+            "name": "Refractive Shield Projector"
+          },
+          {
+            "name": "Rigging Arm"
+          }
+        ],
+        "modules": [
+          {
+            "name": "Comms Module"
+          },
+          {
+            "name": "Zoom Optics"
+          },
+          {
+            "name": "Very Rude"
+          }
+        ],
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "A build favoured by wasters for defence, this is an imposing Mech that can be rigged together from low tech industrial weapons and armaments, giving it good bang for its buck."
+          }
+        ]
+      },
+      {
+        "name": "Endeavour Pattern",
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 25,
+        "systems": [
+          {
+            "name": "Escape Hatch"
+          },
+          {
+            "name": "Locomotion System"
+          },
+          {
+            "name": "Loudspeakers"
+          },
+          {
+            "name": "Mechapult",
+            "count": 2
+          },
+          {
+            "name": "Rigging Arm"
+          },
+          {
+            "name": "Cargo Bay"
+          }
+        ],
+        "modules": [
+          {
+            "name": "Comms Module"
+          },
+          {
+            "name": "Reactor Safety Protocols"
+          },
+          {
+            "name": "Weapon Link"
+          }
+        ],
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Designed by salvagers of Crawler Union #382 during a late night 'lock in' at the Union Cantina. Sanity prevailed in the morning when they woke up to behold their creation and resolved not to pilot it, making the build theoretical and untested in the field. Pilot caution is advised."
+          }
+        ]
+      },
+      {
+        "name": "Bio Hunter Pattern",
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 25,
+        "systems": [
+          {
+            "name": "Armoured Shield"
+          },
+          {
+            "name": "Escape Hatch"
+          },
+          {
+            "name": "FM-3 Flamethrower"
+          },
+          {
+            "name": "Locomotion System"
+          },
+          {
+            "name": "Loudspeakers"
+          },
+          {
+            "name": "Mech Melee Armament",
+            "preselectedChoices": {
+              "1d0f3be8-3cf9-4c3a-a6d1-d2f221b02832": "Blade"
+            }
+          },
+          {
+            "name": "Nanofibre Net Launcher"
+          },
+          {
+            "name": "Rigging Arm",
+            "count": 2
+          },
+          {
+            "name": "Transport Hold"
+          }
+        ],
+        "modules": [
+          {
+            "name": "Comms Module"
+          },
+          {
+            "name": "Self-Destruct"
+          },
+          {
+            "name": "Pinpoint Targeter"
+          }
+        ],
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "A cost-effective build designed to hunt Bio-Titans, using the armoured core of the Goliath to go toe-to-toe with the behemoths, and additional cargo space to haul back their carcasses for bio-salvage."
+          }
+        ]
+      }
+    ],
     "page": 4,
     "id": "76345263-a5a4-4fb0-8aa3-0b154cff797c",
     "content": [
@@ -1575,6 +2212,81 @@
             "value": "The original pattern, developed for land and sea combat. Salvagers first got this blueprint as a result of an Aegean Kraken whose crew mutinied and flipped sides to the Unions during the Wasteland Reclamation."
           }
         ]
+      },
+      {
+        "name": "TDA Industrial Pattern",
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 33,
+        "systems": [
+          {
+            "name": "Escape Hatch"
+          },
+          {
+            "name": "Floodlights"
+          },
+          {
+            "name": "Grappling Harpoon"
+          },
+          {
+            "name": "Hydraulic Crusher"
+          },
+          {
+            "name": "Locomotion System"
+          },
+          {
+            "name": "Cargo Bay"
+          },
+          {
+            "name": "Rigging Arm"
+          },
+          {
+            "name": "Welding Laser"
+          }
+        ],
+        "modules": [
+          {
+            "name": "Comms Module"
+          },
+          {
+            "name": "Damage Assessor"
+          },
+          {
+            "name": "Reactor Flare"
+          }
+        ],
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "A deep water construction and repair build utilised by the TDA during the building of offshore industrial facilities, from observation posts to windmill farms and oil rigs."
+          }
+        ]
+      },
+      {
+        "name": "Last Resort Pattern",
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 33,
+        "systems": [
+          {
+            "name": "Torpedo Tubes",
+            "count": 3
+          }
+        ],
+        "modules": [
+          {
+            "name": "Comms Module"
+          },
+          {
+            "name": "Weapon Link"
+          }
+        ],
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Developed by Aegean Dynamics during the siege of their underwater arco by Contour Dynamics, it's designed to deliver a massive payload of torpedoes to a target at significant risk of overheat, which in the dark final days of the siege was a last measure to attempt to stem the tide of Contour vessels."
+          }
+        ]
       }
     ],
     "structurePoints": 24,
@@ -1721,6 +2433,52 @@
             "value": "Boasts a complex array of arm attachments that made a lot more sense to the Stefanus techs who used these as modular worker Mechs."
           }
         ]
+      },
+      {
+        "name": "Scourer Pattern",
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 35,
+        "systems": [
+          {
+            "name": "Dozer Blades"
+          },
+          {
+            "name": "Escape Hatch"
+          },
+          {
+            "name": "Floodlights"
+          },
+          {
+            "name": "Hydraulic Crusher"
+          },
+          {
+            "name": "Locomotion System"
+          },
+          {
+            "name": "Rigging Arm"
+          },
+          {
+            "name": "Transport Hold"
+          }
+        ],
+        "modules": [
+          {
+            "name": "Hull Magnetiser"
+          },
+          {
+            "name": "Comms Module"
+          },
+          {
+            "name": "Metal Detector"
+          }
+        ],
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "A TDA salvaging build, designed following the siege of Irongrad to scour the city for scrap to rebuild."
+          }
+        ]
       }
     ],
     "structurePoints": 15,
@@ -1851,6 +2609,49 @@
           {
             "type": "paragraph",
             "value": "Evantis converted many of these Mechs into mobile, shielded missile platforms as a last gasp in the Colonial Wars."
+          }
+        ]
+      },
+      {
+        "name": "Furtive Pattern",
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 37,
+        "systems": [
+          {
+            "name": "Green Laser"
+          },
+          {
+            "name": "High Gain Antenna"
+          },
+          {
+            "name": "Industrial Body Kit",
+            "preselectedChoices": {
+              "ed8cb1b3-3b38-4c92-9f0c-2638356edfc7": "Mule"
+            }
+          },
+          {
+            "name": "Locomotion System"
+          },
+          {
+            "name": "Rigging Arm"
+          }
+        ],
+        "modules": [
+          {
+            "name": "Comms Module"
+          },
+          {
+            "name": "Eggs Mayhem"
+          },
+          {
+            "name": "Survey Scanner"
+          }
+        ],
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Originally designed by Kombu Tech for corporate infiltration during their short-lived war with Aeon from scavenged Aeon Mechs. The shielding allows the pilot to weather a storm of fire and make an escape should the ruse be revealed."
           }
         ]
       }
@@ -2061,6 +2862,97 @@
             "value": "Dr Apis' custom pattern has many arms hanging beneath it like legs. Two large floodlights beam like glowing eyes through the smoke it releases. This is not the work of a sane person."
           }
         ]
+      },
+      {
+        "name": "Chauffeur Pattern",
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 39,
+        "systems": [
+          {
+            "name": "120mm Cannon"
+          },
+          {
+            "name": "Escape Hatch"
+          },
+          {
+            "name": "Floodlights"
+          },
+          {
+            "name": "Green Laser"
+          },
+          {
+            "name": "High Gain Antenna"
+          },
+          {
+            "name": "Locomotion System"
+          },
+          {
+            "name": "Module Switch"
+          },
+          {
+            "name": "Personnel Transport Pod"
+          }
+        ],
+        "modules": [
+          {
+            "name": "Comms Module"
+          },
+          {
+            "name": "Firewall"
+          },
+          {
+            "name": "Survey Scanner"
+          }
+        ],
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Built to comfortably and safely transport important personnel into danger zones, where the armour-plated chassis of the Atlas provides ample protection for its VIP passenger."
+          },
+          {
+            "type": "paragraph",
+            "value": "The Mech's Escape Hatch is built into the Personnel Transport Pod rather than the pilot's cockpit, allowing the exec within to escape on foot."
+          }
+        ]
+      },
+      {
+        "name": "All Is Dust Pattern",
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 39,
+        "systems": [
+          {
+            "name": "Locomotion System"
+          },
+          {
+            "name": "Rigging Arm"
+          },
+          {
+            "name": "30mm Autocannon",
+            "count": 2
+          },
+          {
+            "name": "Long Barrelled Green Laser"
+          },
+          {
+            "name": ".50 Cal Machine Gun"
+          }
+        ],
+        "modules": [
+          {
+            "name": "Comms Module"
+          },
+          {
+            "name": "Weapon Link"
+          }
+        ],
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Developed by the OPTICON corporation to ferry silicone dust from their mines and defend that precious payload with enormous amounts of firepower."
+          }
+        ]
       }
     ],
     "structurePoints": 30,
@@ -2199,6 +3091,87 @@
           {
             "type": "paragraph",
             "value": "A popular entry level build amongst corpo contractor pilots who accrue enough debt to purchase one and pay off their interest through violence."
+          }
+        ]
+      },
+      {
+        "name": "Torpedo-Man Pattern",
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 41,
+        "systems": [
+          {
+            "name": "Torpedo Tubes",
+            "count": 2
+          },
+          {
+            "name": "Ejection System"
+          },
+          {
+            "name": "Locomotion System"
+          }
+        ],
+        "modules": [
+          {
+            "name": "Comms Module"
+          },
+          {
+            "name": "Sleeping Beauty"
+          },
+          {
+            "name": "Weapon Link"
+          }
+        ],
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Designed during the Aegean conflict to deliver a payload of explosives at close range for significant damage via the Brawler's protocols."
+          }
+        ]
+      },
+      {
+        "name": "Steel-Drivingman Pattern",
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 41,
+        "systems": [
+          {
+            "name": "Mining Rig"
+          },
+          {
+            "name": "Salvaging Drill"
+          },
+          {
+            "name": "Escape Hatch"
+          },
+          {
+            "name": "Locomotion System"
+          },
+          {
+            "name": "Transport Hold"
+          },
+          {
+            "name": "Floodlights"
+          },
+          {
+            "name": "Armour Plating"
+          }
+        ],
+        "modules": [
+          {
+            "name": "Comms Module"
+          },
+          {
+            "name": "Reactor Flare"
+          },
+          {
+            "name": "Equipment Locker"
+          }
+        ],
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "A salvage and excavation Brawler variant, utilised by salvagers on a budget, that can still pack a surprise punch with its mining rig."
           }
         ]
       }
@@ -2772,6 +3745,130 @@
           {
             "type": "paragraph",
             "value": "Developed for lone wetwork, a Mech of this pattern was said to be responsible for the assassination of President Nadine Kureigh in the First Corpo War and the Fall of Nations."
+          }
+        ]
+      },
+      {
+        "name": "Blueberry Surprise Pattern",
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 45,
+        "systems": [
+          {
+            "name": "Mini Mortar"
+          },
+          {
+            "name": "Escape Hatch"
+          },
+          {
+            "name": "Floodlights"
+          },
+          {
+            "name": "Locomotion System"
+          },
+          {
+            "name": "Loudspeakers"
+          },
+          {
+            "name": "Rigging Arm"
+          },
+          {
+            "name": "Welding Laser"
+          }
+        ],
+        "modules": [
+          {
+            "name": "Comms Module"
+          },
+          {
+            "name": "Damage Assessor"
+          },
+          {
+            "name": "Reactor Flare"
+          }
+        ],
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Developed as a cost-efficient stealth and ambush Mech by Sakura, the addition of the Industrial Body Kit makes the Mech appear as a downed industrial Mech, allowing the pilot to ambush unsuspecting salvagers."
+          }
+        ]
+      },
+      {
+        "name": "Refugee Pattern",
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 45,
+        "systems": [
+          {
+            "name": "30mm Autocannon"
+          },
+          {
+            "name": "Refractive Shield Projector"
+          },
+          {
+            "name": "Ejection System"
+          },
+          {
+            "name": "Floodlights"
+          },
+          {
+            "name": "Locomotion System"
+          },
+          {
+            "name": "Welding Laser"
+          }
+        ],
+        "modules": [
+          {
+            "name": "Barometric Sensor"
+          },
+          {
+            "name": "Comms Module"
+          },
+          {
+            "name": "Eggs Mayhem"
+          }
+        ],
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Designed by Opus to transport as many people as it can carry through militarised hot zones, with only some basic hacking tools as defensive measures."
+          }
+        ]
+      },
+      {
+        "name": "Monster Games Pattern",
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 45,
+        "systems": [
+          {
+            "name": ".50 Cal Machine Gun",
+            "count": 5
+          },
+          {
+            "name": "Locomotion System"
+          }
+        ],
+        "modules": [
+          {
+            "name": "Video Recording Array"
+          },
+          {
+            "name": "Weapon Link"
+          },
+          {
+            "name": "M315 Motion Scanner"
+          },
+          {
+            "name": "Comms Module"
+          }
+        ],
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Developed by Mr. Monster for the hit reality show 'Monster Games', which pitted contestants against one another in a no-holds-barred death show, all for the grand prize of 100,000 Monster Bux. This build was created for a challenge run where contestants had to navigate an obstacle course undetected, whilst hitting a series of mobile targets for points."
           }
         ]
       }
