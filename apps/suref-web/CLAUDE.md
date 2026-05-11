@@ -43,3 +43,25 @@ Static SRD reference site for Salvage Union game data.
 - Cmd+K/Ctrl+K shortcut to focus search
 - Imports from `suref-react` for shared UI components
 - Dev command: `bun run dev`
+
+## Changelog Maintenance
+
+The `/changelog` page (data in `src/lib/changelog.ts`) lists major changes to the site. When you make a major change, prepend a new entry at the top of the `CHANGELOG` array.
+
+**What counts as major (add an entry):**
+
+- New top-level page or navigation item
+- New schema added to the Denizens / Pilot / Mech / Crawler / Reference catalog
+- A new feature surfaced to users (search behaviour, filters, randomizer mode, API endpoints, etc.)
+- A visible UX overhaul (mobile navigation, layout, typography system, etc.)
+- A user-visible bug fix that changed behaviour they would have noticed (mobile overflow, broken links, missing entities)
+
+**What does NOT count (do not add):**
+
+- Internal refactors with no user-facing change
+- Test additions
+- Dependency bumps unless they change behaviour
+- Minor copy edits or title tweaks (including easter egg renames — e.g. greembeem)
+- Changes in other apps (`in-the-union-now`, `discord-bot`) or in shared packages that aren't surfaced through the suref-web UI
+
+Keep entries to 1-2 sentences, with `date` in `YYYY-MM-DD` form.
