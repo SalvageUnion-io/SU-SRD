@@ -2140,5 +2140,209 @@
         ]
       }
     ]
+  },
+  {
+    "id": "95d6c8a4-3e1f-4b27-9a8d-5c2f4e7b1d3a",
+    "name": "Mediator Tough Choices",
+    "source": "Reclamation of the Wastes",
+    "page": 90,
+    "guideType": "gameplay",
+    "guideColor": "#B84C4C",
+    "content": [],
+    "steps": [
+      {
+        "id": "f7c0b1d2-8a3e-4c95-b67d-1e4a8f5c2b9d",
+        "name": "Mediator Tough Choices",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "A Tough Choice is a decision between two undesirable options that are both some sort of Setback."
+          },
+          {
+            "type": "flavor",
+            "value": "If you are having trouble thinking of something in combat, you can default to saying that the player or NPC deals half damage, or takes 2 SP or 2HP damage to succeed at their action."
+          },
+          {
+            "type": "paragraph",
+            "value": "Out of combat, their action succeeds but they gain 2 Heat. This should cover most situations. In addition, consider the following as alternatives:"
+          },
+          {
+            "type": "list-item",
+            "value": "You hit, but damage a System or Module on your Mech."
+          },
+          {
+            "type": "list-item",
+            "value": "You deal half damage or hurt yourself."
+          },
+          {
+            "type": "list-item",
+            "value": "You hit, but an enemy gets a free attack against you."
+          },
+          {
+            "type": "list-item",
+            "value": "You hit, but activate the downside of your weapon."
+          },
+          {
+            "type": "list-item",
+            "value": "You hit, but gain additional Heat."
+          },
+          {
+            "type": "list-item",
+            "value": "You succeed in your task, but must expend additional EP."
+          },
+          {
+            "type": "list-item",
+            "value": "You hit, but must make a Heat Check."
+          },
+          {
+            "type": "list-item",
+            "value": "You betray a friend or make an enemy."
+          },
+          {
+            "type": "list-item",
+            "value": "Save a wastelander from dying or get to a destination faster."
+          },
+          {
+            "type": "list-item",
+            "value": "Save one wastelander from death, but not the other."
+          },
+          {
+            "type": "list-item",
+            "value": "You salvage something powerful, but activate its downside."
+          },
+          {
+            "type": "paragraph",
+            "value": "A Tough Choice can also be posed to a player if they want their Pilot to do something that the rules do not cover or allow them to do. For example, a Pilot might want to try to use their Hydraulic Crusher to crush the Green Laser System another Mech is holding. There is no direct rule for this and normally you would need a Pin Point Targeter Module to make such an attack. So, you pose the following Tough Choice to the player: their Mech gets to make the attack, but suffers an attack in return or damages the Hydraulic Crusher in the process. Rule what makes sense in the situation and fits your game."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "e8a5c3b6-4d1f-4b27-9c8d-7f2a4e7b5d3c",
+    "name": "Controlling an NPC",
+    "source": "Reclamation of the Wastes",
+    "page": 90,
+    "guideType": "gameplay",
+    "guideColor": "#B84C4C",
+    "content": [],
+    "steps": [
+      {
+        "id": "d9b4a7c1-6c2e-4a35-b48d-2f5c8e1b9a3d",
+        "name": "Controlling an NPC",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "NPCs work much the same way as Pilots. On their turn they can move, take a Turn Action, and take any Reactions as appropriate."
+          },
+          {
+            "type": "flavor",
+            "value": "NPCs do not Push rolls in the game. The Mediator also does not need to track Heat, Ability Points, or Energy Points for NPCs."
+          },
+          {
+            "type": "paragraph",
+            "value": "It can be assumed that any Systems, Modules, or Abilities they have access to can be used as many times as they need within a situation."
+          },
+          {
+            "type": "paragraph",
+            "value": "Any Ability an NPC has access to is written in such a way that it can work when applied to a Pilot or an NPC."
+          },
+          {
+            "type": "paragraph",
+            "value": "If the Mediator wants to track NPCs in more detail they can do so, but this is a lot of additional load on their shoulders, and is not necessary for the game to work or be fun to play. It is important to keep in mind that any Mech NPC the Pilots encounter can potentially be salvaged and used by them. If you do not want the Pilots to own a Leviathan at the start of the game, do not put one in front of them."
+          },
+          {
+            "type": "paragraph",
+            "value": "NPCs work similarly to Pilots with their Mechs. You can, however, ignore the spending of EP and Heat if you wish; just assume they have enough to do what they need to do. This means you can quite comfortably run a Mech with many Systems and Modules just by having it move and attack on each turn."
+          },
+          {
+            "type": "paragraph",
+            "value": "However, if you want to add more complications or depth, you can activate a Mech's Systems and Modules. Likewise, you can track EP and Heat on NPC Mechs if you feel they are important enough or if you have the capacity as a Mediator. However, this is not necessary to run Salvage Union."
+          },
+          {
+            "type": "paragraph",
+            "value": "Non-Mech NPCs are a lot simpler to use in play. Typically, you only need to worry about tracking their HP values and whatever weapons or Abilities they have, which can be kept to a small number."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "c3e8f2a5-7b1d-4f93-a52c-8e4d6b1f5c2a",
+    "name": "NPC Health and Damage",
+    "source": "Reclamation of the Wastes",
+    "page": 91,
+    "guideType": "gameplay",
+    "guideColor": "#B84C4C",
+    "content": [],
+    "steps": [
+      {
+        "id": "b6d7c4e9-3a8f-4c25-9d1b-7e2f8c5a4b9d",
+        "name": "NPC Health and Damage",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "For the sake of simplicity in play, assume that the Chassis, Systems, and Modules of an NPC Mech are rendered inoperable when its Structure Points are reduced to 0. The Pilot is assumed dead or incapacitated."
+          },
+          {
+            "type": "flavor",
+            "value": "When the Hit Points of an NPC are reduced to 0, they are assumed dead or incapacitated."
+          },
+          {
+            "type": "paragraph",
+            "value": "For particularly important NPCs, the Mediator may decide to roll on the Critical Damage Table or Critical Injury Table. Likewise, they may decide to roll to see if they escape from their Mech via a System or Module with the Escape Trait, if applicable."
+          },
+          {
+            "type": "paragraph",
+            "value": "Special NPCs, such as Bio-Titans and Meld, often have their own unique rules when they reach 0 SP. If they do not, these are assumed to be dead or destroyed."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "a4f1b8d3-5c2e-4b97-9a6d-3f8c1b5e2a7d",
+    "name": "How do I balance combat?",
+    "source": "Reclamation of the Wastes",
+    "page": 91,
+    "guideType": "gameplay",
+    "guideColor": "#B84C4C",
+    "content": [],
+    "steps": [
+      {
+        "id": "92c5d6f1-7a4e-4b18-92d9-5b1f8e3c4a7d",
+        "name": "How do I balance combat?",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "It is best to organically design your game situations, Mechs, and other combatants within your world based on the narrative and what makes sense. For example, a group of wastelanders is probably only going to have access to one or maybe two Mechs of quite a low Tech Level, so it makes sense to include that when designing a waster settlement. On the other hand, a corpo like Evantis has access to vastly more resources. Should the Pilots try to attack one of their convoys, for example, it is likely that the corpo will deploy multiple high Tech Level Mechs to defend it."
+          },
+          {
+            "type": "flavor",
+            "value": "Combat situations in Salvage Union are not intended to be universally balanced."
+          },
+          {
+            "type": "paragraph",
+            "value": "Players should have multiple tools to gather information about foes and make informed decisions about whether to engage them and how. They should also have tools to avoid combat and harm if need be."
+          },
+          {
+            "type": "paragraph",
+            "value": "There are a few principles to keep in mind when eyeballing situations and trying to estimate power levels. If either side of a combat is outnumbered, the outnumbered side is at a significant disadvantage due to being able to take fewer actions in combat. Even a powerful foe can be taken down by much weaker foes if they are outnumbered in this way."
+          },
+          {
+            "type": "paragraph",
+            "value": "Mechs are relatively symmetrical to one another within their Tech Levels: damage is flat, and base chance to hit is about 75%. If the Pilots tackle Mechs of their Tech Level, they can expect to suffer a fair amount of damage from doing so, even if the fight is a balanced one. They can expect to suffer significant damage fighting higher Tech Level Mechs, but can survive a lot longer and end the combat a lot quicker against lower Tech Level Mechs."
+          },
+          {
+            "type": "paragraph",
+            "value": "Both damage and Structure Points scale by Tech Level. Higher Tech Level Mechs can therefore survive longer in combat against Mechs using lower Tech Level weapons. However, Mechs broadly survive around the same length of time of about 5 hits when fighting at their own Tech Level."
+          }
+        ]
+      }
+    ]
   }
 ]
