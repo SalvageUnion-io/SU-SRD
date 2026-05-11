@@ -3194,5 +3194,78 @@
       "20": { "value": "2 x Hunters" },
       "type": "standard"
     }
+  },
+  {
+    "id": "2e8b1a4f-7c3d-4c95-92a5-8e1f3c5d4b7e",
+    "source": "Reclamation of the Wastes",
+    "page": 11,
+    "name": "Rumour Table",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "When pilots are asking around at the Cantina during Downtime, roll once on the table to find out what they hear about Caldera."
+      }
+    ],
+    "table": {
+      "type": "flat",
+      "1": { "value": "Artls leave you alone if you mimic their behaviour." },
+      "2": { "value": "Standard TDA Authenticators all use code 2041." },
+      "3": { "value": "A community of farmers are living without technology in Elysia." },
+      "4": { "value": "The Geodome is an ancient Meld temple." },
+      "5": {
+        "value": "A secret tunnel connects the Concrete Graveyard to the Water Purification Plant."
+      },
+      "6": {
+        "value": "A Sakura habitation team is surveying Irongrad with intent  to settle their population there."
+      },
+      "7": {
+        "value": "An Osiris kill team is somewhere in the House of the God hunting a Bio-Titan."
+      },
+      "8": { "value": "Hunters can rip a pilot out of their cockpit and feast on their flesh." },
+      "9": {
+        "value": "Mr Brass is looking to take over the Ur Pit on behalf of his boss Tilda Grayson."
+      },
+      "10": { "value": "The Monkey Wrenchers are fighting corpos in Irongrad using the tunnels." },
+      "11": {
+        "value": "A bunch of corpo students have taken over the Raging Ocean Adventure Park in the Void Shore."
+      },
+      "12": { "value": "Meld are vulnerable to cold and electromagnetic pulses." },
+      "13": { "value": "A new class of Bio-Titan thrives in The House of the God." },
+      "14": {
+        "value": "Meld lurk beneath the waves of the Void Shore and can turn you or your Mech into a mind-controlled zombie."
+      },
+      "15": { "value": "Evantis are fighting Sakura in Irongrad." },
+      "16": { "value": "One of the Cult of Ygdriss is an Aeon Agent." },
+      "17": { "value": "TDA drones protect the Water Purification Plant in Caldera's Edge." },
+      "18": {
+        "value": "Caldera was once the thriving heart of the Territorial Democratic Alliance until a meteor destroyed the entire region."
+      },
+      "19": { "value": "Salt Termites only hunt Mechs and won't hurt pilots." },
+      "20": { "value": "The TDA live! They are in cryosleep somewhere in Irongrad." }
+    }
+  },
+  {
+    "id": "5d3a8c1f-9b2e-4c47-8d2a-7f1c5e8b3a4d",
+    "source": "Reclamation of the Wastes",
+    "page": 13,
+    "name": "Caldera's Edge Random Encounters",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "This is the first that many will see of Caldera. Situated on the tip of the crater, this rugged region of badlands contains twisting canyons with crumbling rocks scorched red by the ever-burning sun. The wasteland stretches on for miles, with sparse vegetation and the local wasters clinging on to life. It is dominated by a TDA uranium mine that was buried under ash during Impact Day, as well as the surrounding crumbling infrastructure, which provides a dangerous (but potentially lucrative) salvage opportunity for savvy teams."
+      }
+    ],
+    "table": {
+      "type": "standard",
+      "1": { "value": "Glob and Gab from The Ur Pit (1.03), out hunting for victims." },
+      "2-5": {
+        "value": "Mr Brass scouting the area in his Chauffeur Pattern Atlas, piloted by Mr Pivot. See Crater Ridge (1.02)."
+      },
+      "6-10": {
+        "value": "A group of Greystone Wasters (2 x Waster Mob), out scouting the area from the Panopticon (1.05)."
+      },
+      "11-19": { "value": "Safe travel between the areas." },
+      "20": { "value": "The pilots find a Salvage Cache." }
+    }
   }
 ]
