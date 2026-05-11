@@ -3407,5 +3407,67 @@
         "value": "As effect 11-19, but only the Meld are destroyed, leaving everything else intact."
       }
     }
+  },
+  {
+    "id": "dd4d6469-fd9d-4eeb-86fc-b8202477d5e3",
+    "source": "Reclamation of the Wastes",
+    "page": 10,
+    "name": "Salvage Cache Table",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Roll when pilots find a Salvage Cache."
+      }
+    ],
+    "table": {
+      "type": "salvage-cache",
+      "20": { "value": "Random Intact T3 Chassis p.38 - 44 [PC]" },
+      "18-19": { "value": "Random Intact T3 System or Module p.59,60,74 [PC]" },
+      "16-17": { "value": "Random Intact T2 Chassis p.68- 73 [PC]" },
+      "14-15": { "value": "Random Intact T2 System p.53 - 58 [PC]" },
+      "12-13": { "value": "Random Intact T2 Module p.68 - 73 [PC]" },
+      "10-11": { "value": "5 x T2 Scrap" },
+      "8-9": { "value": "Random Intact T1 Chassis p.10 - 20 [PC]" },
+      "6-7": { "value": "Random Intact T1 System p.48 - 53 [PC]" },
+      "4-5": { "value": "Random Intact T1 Module p.64 - 67 [PC]" },
+      "2-3": { "value": "5 x T1 Scrap" },
+      "1": { "value": "Data Cache - Pilots ask the Mediator 3 questions about the Region." }
+    }
+  },
+  {
+    "id": "50bb2567-0be9-4a72-b30e-c296ac09c33e",
+    "source": "Reclamation of the Wastes",
+    "page": 71,
+    "name": "Irongrad Faction Table",
+    "table": {
+      "type": "octet",
+      "20": { "value": "A Faction friendly to the pilots." },
+      "17-19": { "value": "Tombstone" },
+      "14-16": { "value": "Monkey Wrenchers" },
+      "11-13": { "value": "Aeon" },
+      "8-10": { "value": "Opus" },
+      "5-7": { "value": "Sakura" },
+      "2-4": { "value": "Evantis" },
+      "1": { "value": "A Faction hostile to the pilots." }
+    }
+  },
+  {
+    "id": "9e5f8873-5627-4e8e-8126-b9cd8c01d762",
+    "source": "Reclamation of the Wastes",
+    "page": 55,
+    "name": "Bio-Fauna Table",
+    "table": {
+      "type": "octet",
+      "20": {
+        "value": "6 x Carrion Birds. These creatures feast on the dead and typically will not attack unless someone is injured."
+      },
+      "17-19": { "value": "2 x Hunters" },
+      "14-16": { "value": "2 x Chimeripedes" },
+      "11-13": { "value": "6 x Irradiated Scorpions" },
+      "8-10": { "value": "6 x Artls" },
+      "5-7": { "value": "2 x Mole Bears, a mating pair" },
+      "2-4": { "value": "6 x Salt Termites" },
+      "1": { "value": "6 x Artls and the Artl Queen" }
+    }
   }
 ]

@@ -322,6 +322,37 @@ export const TableSchema = z
         '17-20': ColumnEntriesSchema,
       })
       .strict(),
+    // Salvage cache roll table (singletons at 1 and 20, paired buckets in between)
+    z
+      .object({
+        type: z.literal('salvage-cache'),
+        '1': TableContentSchema,
+        '2-3': TableContentSchema,
+        '4-5': TableContentSchema,
+        '6-7': TableContentSchema,
+        '8-9': TableContentSchema,
+        '10-11': TableContentSchema,
+        '12-13': TableContentSchema,
+        '14-15': TableContentSchema,
+        '16-17': TableContentSchema,
+        '18-19': TableContentSchema,
+        '20': TableContentSchema,
+      })
+      .strict(),
+    // Octet roll table (singletons at 1 and 20, six 3-wide buckets in between)
+    z
+      .object({
+        type: z.literal('octet'),
+        '1': TableContentSchema,
+        '2-4': TableContentSchema,
+        '5-7': TableContentSchema,
+        '8-10': TableContentSchema,
+        '11-13': TableContentSchema,
+        '14-16': TableContentSchema,
+        '17-19': TableContentSchema,
+        '20': TableContentSchema,
+      })
+      .strict(),
   ])
   .describe('Roll table for random outcomes based on d20 rolls')
 

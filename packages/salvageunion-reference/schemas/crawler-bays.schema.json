@@ -3406,6 +3406,282 @@
             },
             "required": ["type", "1-4", "5-8", "9-12", "13-16", "17-20"],
             "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "1": {
+                "type": "object",
+                "properties": {
+                  "label": {
+                    "type": "string",
+                    "description": "Optional label for this table entry"
+                  },
+                  "value": { "type": "string", "description": "Result text for this table entry" }
+                },
+                "required": ["value"],
+                "additionalProperties": false,
+                "description": "Table content with label and value for roll table entries"
+              },
+              "20": {
+                "type": "object",
+                "properties": {
+                  "label": {
+                    "type": "string",
+                    "description": "Optional label for this table entry"
+                  },
+                  "value": { "type": "string", "description": "Result text for this table entry" }
+                },
+                "required": ["value"],
+                "additionalProperties": false,
+                "description": "Table content with label and value for roll table entries"
+              },
+              "type": { "type": "string", "const": "salvage-cache" },
+              "2-3": {
+                "type": "object",
+                "properties": {
+                  "label": {
+                    "type": "string",
+                    "description": "Optional label for this table entry"
+                  },
+                  "value": { "type": "string", "description": "Result text for this table entry" }
+                },
+                "required": ["value"],
+                "additionalProperties": false,
+                "description": "Table content with label and value for roll table entries"
+              },
+              "4-5": {
+                "type": "object",
+                "properties": {
+                  "label": {
+                    "type": "string",
+                    "description": "Optional label for this table entry"
+                  },
+                  "value": { "type": "string", "description": "Result text for this table entry" }
+                },
+                "required": ["value"],
+                "additionalProperties": false,
+                "description": "Table content with label and value for roll table entries"
+              },
+              "6-7": {
+                "type": "object",
+                "properties": {
+                  "label": {
+                    "type": "string",
+                    "description": "Optional label for this table entry"
+                  },
+                  "value": { "type": "string", "description": "Result text for this table entry" }
+                },
+                "required": ["value"],
+                "additionalProperties": false,
+                "description": "Table content with label and value for roll table entries"
+              },
+              "8-9": {
+                "type": "object",
+                "properties": {
+                  "label": {
+                    "type": "string",
+                    "description": "Optional label for this table entry"
+                  },
+                  "value": { "type": "string", "description": "Result text for this table entry" }
+                },
+                "required": ["value"],
+                "additionalProperties": false,
+                "description": "Table content with label and value for roll table entries"
+              },
+              "10-11": {
+                "type": "object",
+                "properties": {
+                  "label": {
+                    "type": "string",
+                    "description": "Optional label for this table entry"
+                  },
+                  "value": { "type": "string", "description": "Result text for this table entry" }
+                },
+                "required": ["value"],
+                "additionalProperties": false,
+                "description": "Table content with label and value for roll table entries"
+              },
+              "12-13": {
+                "type": "object",
+                "properties": {
+                  "label": {
+                    "type": "string",
+                    "description": "Optional label for this table entry"
+                  },
+                  "value": { "type": "string", "description": "Result text for this table entry" }
+                },
+                "required": ["value"],
+                "additionalProperties": false,
+                "description": "Table content with label and value for roll table entries"
+              },
+              "14-15": {
+                "type": "object",
+                "properties": {
+                  "label": {
+                    "type": "string",
+                    "description": "Optional label for this table entry"
+                  },
+                  "value": { "type": "string", "description": "Result text for this table entry" }
+                },
+                "required": ["value"],
+                "additionalProperties": false,
+                "description": "Table content with label and value for roll table entries"
+              },
+              "16-17": {
+                "type": "object",
+                "properties": {
+                  "label": {
+                    "type": "string",
+                    "description": "Optional label for this table entry"
+                  },
+                  "value": { "type": "string", "description": "Result text for this table entry" }
+                },
+                "required": ["value"],
+                "additionalProperties": false,
+                "description": "Table content with label and value for roll table entries"
+              },
+              "18-19": {
+                "type": "object",
+                "properties": {
+                  "label": {
+                    "type": "string",
+                    "description": "Optional label for this table entry"
+                  },
+                  "value": { "type": "string", "description": "Result text for this table entry" }
+                },
+                "required": ["value"],
+                "additionalProperties": false,
+                "description": "Table content with label and value for roll table entries"
+              }
+            },
+            "required": [
+              "1",
+              "20",
+              "type",
+              "2-3",
+              "4-5",
+              "6-7",
+              "8-9",
+              "10-11",
+              "12-13",
+              "14-15",
+              "16-17",
+              "18-19"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "1": {
+                "type": "object",
+                "properties": {
+                  "label": {
+                    "type": "string",
+                    "description": "Optional label for this table entry"
+                  },
+                  "value": { "type": "string", "description": "Result text for this table entry" }
+                },
+                "required": ["value"],
+                "additionalProperties": false,
+                "description": "Table content with label and value for roll table entries"
+              },
+              "20": {
+                "type": "object",
+                "properties": {
+                  "label": {
+                    "type": "string",
+                    "description": "Optional label for this table entry"
+                  },
+                  "value": { "type": "string", "description": "Result text for this table entry" }
+                },
+                "required": ["value"],
+                "additionalProperties": false,
+                "description": "Table content with label and value for roll table entries"
+              },
+              "type": { "type": "string", "const": "octet" },
+              "2-4": {
+                "type": "object",
+                "properties": {
+                  "label": {
+                    "type": "string",
+                    "description": "Optional label for this table entry"
+                  },
+                  "value": { "type": "string", "description": "Result text for this table entry" }
+                },
+                "required": ["value"],
+                "additionalProperties": false,
+                "description": "Table content with label and value for roll table entries"
+              },
+              "5-7": {
+                "type": "object",
+                "properties": {
+                  "label": {
+                    "type": "string",
+                    "description": "Optional label for this table entry"
+                  },
+                  "value": { "type": "string", "description": "Result text for this table entry" }
+                },
+                "required": ["value"],
+                "additionalProperties": false,
+                "description": "Table content with label and value for roll table entries"
+              },
+              "8-10": {
+                "type": "object",
+                "properties": {
+                  "label": {
+                    "type": "string",
+                    "description": "Optional label for this table entry"
+                  },
+                  "value": { "type": "string", "description": "Result text for this table entry" }
+                },
+                "required": ["value"],
+                "additionalProperties": false,
+                "description": "Table content with label and value for roll table entries"
+              },
+              "11-13": {
+                "type": "object",
+                "properties": {
+                  "label": {
+                    "type": "string",
+                    "description": "Optional label for this table entry"
+                  },
+                  "value": { "type": "string", "description": "Result text for this table entry" }
+                },
+                "required": ["value"],
+                "additionalProperties": false,
+                "description": "Table content with label and value for roll table entries"
+              },
+              "14-16": {
+                "type": "object",
+                "properties": {
+                  "label": {
+                    "type": "string",
+                    "description": "Optional label for this table entry"
+                  },
+                  "value": { "type": "string", "description": "Result text for this table entry" }
+                },
+                "required": ["value"],
+                "additionalProperties": false,
+                "description": "Table content with label and value for roll table entries"
+              },
+              "17-19": {
+                "type": "object",
+                "properties": {
+                  "label": {
+                    "type": "string",
+                    "description": "Optional label for this table entry"
+                  },
+                  "value": { "type": "string", "description": "Result text for this table entry" }
+                },
+                "required": ["value"],
+                "additionalProperties": false,
+                "description": "Table content with label and value for roll table entries"
+              }
+            },
+            "required": ["1", "20", "type", "2-4", "5-7", "8-10", "11-13", "14-16", "17-19"],
+            "additionalProperties": false
           }
         ],
         "description": "Roll table associated with this bay"
