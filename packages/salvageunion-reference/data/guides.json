@@ -1574,5 +1574,121 @@
         ]
       }
     ]
+  },
+  {
+    "id": "058be1b5-d1ec-484f-a443-4d54b01e3eb7",
+    "name": "Salvage Union Setting",
+    "source": "Reclamation of the Wastes",
+    "page": 4,
+    "guideType": "gameplay",
+    "guideColor": "#B84C4C",
+    "content": [],
+    "steps": [
+      {
+        "id": "8a410b14-b460-47e7-b363-06c59b1b3a8d",
+        "name": "Salvage Union Setting",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Salvage Union is set on an earth-like planet that has suffered multiple catastrophic events that have left much of the world a barren wasteland. There are no governments, only corporations that rule swathes of territory and resources from their Arcologies; vast self sufficient and enclosed mega-settlements."
+          },
+          {
+            "type": "paragraph",
+            "value": "As a salvager, you exist outside of corporate control, living in a giant Mech known as a Union Crawler and scavenging to support yourselves."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "208f2316-e098-4081-b839-4533d0029b58",
+    "name": "What is the Salvage Union?",
+    "source": "Reclamation of the Wastes",
+    "page": 4,
+    "guideType": "gameplay",
+    "guideColor": "#B84C4C",
+    "content": [],
+    "steps": [
+      {
+        "id": "9390cd3a-25db-4c59-83f8-62d89e4cba88",
+        "name": "What is the Salvage Union?",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "The Salvage Union is an autonomous collective of salvagers, workers, pilots, and all manner of folk from across the wasteland who have banded together to live free of corpo influence. The backbone of the Salvage Union are the Union Crawlers; giant moving settlements that scavenge the wastes, growing organically as they scrape together more resources."
+          },
+          {
+            "type": "paragraph",
+            "value": "The 'Union Council' acts as the regulatory body, formed of elected members from each of the Union Crawlers. Anyone can form a Union Crawler and apply for a 'Salvage Charter' to the Union Council. Individual Crawlers are identified by their Union Crawler number and allowed to autonomously manage their own affairs, with the council settling any inter-crawler disputes."
+          },
+          {
+            "type": "paragraph",
+            "value": "The pilots in the Reclamation of the Wastes campaign are part of a newly built Union Crawler, #430, and have the role of salvagers who head out into the wastes to collect scrap to keep your Union Crawler alive in the wastelands."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "a2f84aa0-10a7-46e0-8d1f-bdc7f166bd01",
+    "name": "Reclamation of the Wastes Setting",
+    "source": "Reclamation of the Wastes",
+    "page": 5,
+    "guideType": "gameplay",
+    "guideColor": "#B84C4C",
+    "content": [],
+    "steps": [
+      {
+        "id": "4ec2e6c1-a471-4cc2-a785-4a5501ab879c",
+        "name": "Reclamation of the Wastes Setting",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Impact Day was a cataclysmic event at the end of the Second Corpo War. Isolated in their space colonies, the remnants of the corpo elites flung a meteor at the People's Capital of the Territorial Democratic Alliance (TDA): a megalopolis founded to commemorate their victory over the corpos."
+          },
+          {
+            "type": "paragraph",
+            "value": "This petty act of spite doomed the corpo colonists as it consumed the last of their resources, resulted in the loss of millions of lives on the planet, and wiped the TDA off the map. The world was flung back into chaos. In time, the corpos who had remained planet-side regained control of their Arcos - and eventually, the wastelands as well."
+          },
+          {
+            "type": "paragraph",
+            "value": "Caldera was the impact site: large swathes of the region were destroyed, irradiated, or buried under ash and flame. Until now."
+          },
+          {
+            "type": "paragraph",
+            "value": "Centuries after Impact Day, Caldera has once more become a habitable region in the Central Wastes. The noxious ash clouds from the corpo meteor attack have finally settled, revealing an area ripe for exploration."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "909fff8c-d34f-4212-bd2e-7afdea142d9c",
+    "name": "The Present Day",
+    "source": "Reclamation of the Wastes",
+    "page": 5,
+    "guideType": "gameplay",
+    "guideColor": "#B84C4C",
+    "content": [],
+    "steps": [
+      {
+        "id": "793c8a21-e6af-4507-a0a7-4aed2948a40a",
+        "name": "The Present Day",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Now the dust has settled, Caldera's buried resources have been revealed. Multiple factions - including corpos, wasters, raiders, and cults - have come to stake a claim to the territory. Some are looking to rebuild; others to claim the region's riches; others simply want to exert control in this new power vacuum."
+          },
+          {
+            "type": "paragraph",
+            "value": "You play as a fledgling group of salvagers. Having built your first Union Crawler and claimed your Salvage Charter, you are heading into Caldera to support your growing community in this scrap-rich. You'll uncover and explore its buried secrets, making friends and foes along the way."
+          }
+        ]
+      }
+    ]
   }
 ]
