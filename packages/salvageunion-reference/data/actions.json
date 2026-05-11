@@ -4759,7 +4759,6 @@
     "id": "7ec6d168-b6a0-448f-ac2c-96eb194a0c46",
     "actionType": "Turn",
     "activationCost": 1,
-    "range": null,
     "content": [
       {
         "type": "paragraph",
