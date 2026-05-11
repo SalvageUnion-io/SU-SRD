@@ -1690,5 +1690,176 @@
         ]
       }
     ]
+  },
+  {
+    "id": "450b720b-3d5b-408e-a66f-ae45a79dbc04",
+    "name": "Your First Session",
+    "source": "Reclamation of the Wastes",
+    "page": 6,
+    "guideType": "gameplay",
+    "guideColor": "#B84C4C",
+    "content": [],
+    "steps": [
+      {
+        "id": "9aa8c733-fb63-477b-aadf-ef5781104506",
+        "name": "Your First Session",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "The Starter Set comes with 6 pre-made Pilots and Mechs that are designed to work with one another. These have been designed as starting Tech 1 Pilots and Mechs, but with some additional Systems and Modules added to the Mechs to flesh them out."
+          },
+          {
+            "type": "paragraph",
+            "value": "Give the players a chance to read through the sheets and decide who wants to play which Pilot and Mech."
+          },
+          {
+            "type": "paragraph",
+            "value": "Explain the following rules to the players, and hand each player a Quick Reference sheet. This should be enough to play in the first session."
+          },
+          {
+            "type": "list-item",
+            "value": "Core Mechanic p.14 CR"
+          },
+          {
+            "type": "list-item",
+            "value": "Heat p.16 CR"
+          },
+          {
+            "type": "list-item",
+            "value": "Energy p.39 CR"
+          },
+          {
+            "type": "paragraph",
+            "value": "Have each player introduce their Mech and Pilot to one another. Briefly explain the setting detailed on p.5, and campaign goals for the pilots detailed here."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "c472c8ab-1243-49dc-918c-b2b7c0efe979",
+    "name": "Starting Play",
+    "source": "Reclamation of the Wastes",
+    "page": 6,
+    "guideType": "gameplay",
+    "guideColor": "#B84C4C",
+    "content": [],
+    "steps": [
+      {
+        "id": "5bdd547d-30b9-46bf-8bc8-f61e79e50f60",
+        "name": "Starting Play",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Pilots are deployed in Region 1.01: Dumping Grounds, with their Union Crawler safely hidden. For the sake of simplicity we'd recommend saying the pilots have just arrived here and describing the area to them."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "cc303122-1506-44a6-a919-8891469a8bc9",
+    "name": "Campaign Goals",
+    "source": "Reclamation of the Wastes",
+    "page": 6,
+    "guideType": "gameplay",
+    "guideColor": "#B84C4C",
+    "content": [],
+    "steps": [
+      {
+        "id": "4d4d52b6-6f59-4c1b-a78d-a483e073475d",
+        "name": "Campaign Goals",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "heading",
+            "level": 3,
+            "value": "Explore"
+          },
+          {
+            "type": "paragraph",
+            "value": "Caldera is an unexplored region ripe with secrets and old technology to discover, including those of the TDA."
+          },
+          {
+            "type": "heading",
+            "level": 3,
+            "value": "Salvage"
+          },
+          {
+            "type": "paragraph",
+            "value": "Caldera is brimming with scrap from the ruins of what once was. As a base goal, pilots of Crawler #430 will need to find scrap so their Union Crawler can survive in the wastes. They will need 5 scrap of the Tech Level of the Union Crawler each downtime."
+          },
+          {
+            "type": "paragraph",
+            "value": "They can get this scrap from exploring and salvaging, or by taking jobs from factions and individuals within the wastes. See the downtime rules on p.64 - 65 of the Pilot's Handbook for more information on Union Crawler upkeep."
+          },
+          {
+            "type": "heading",
+            "level": 3,
+            "value": "Negotiate"
+          },
+          {
+            "type": "paragraph",
+            "value": "Caldera represents an opportunity for the Salvage Union to gain a foothold in a new region of the wastelands by making alliances and trading with other factions."
+          },
+          {
+            "type": "paragraph",
+            "value": "As the first Union Crawler to enter Caldera, Crawler #430 has been granted a Writ of Trade by the Union Council allowing them to make deals on behalf of the Union. This will open up commercial lanes between the factions and the Union, and mean any further Union Crawlers that enter Caldera will have friendly connections, open to jobs and trade."
+          },
+          {
+            "type": "paragraph",
+            "value": "The campaign has many factions. If the pilots can successfully make deals with them by completing jobs, they will become an ally to the Union and open up trade links. This won't be easy. Crawler #430 will need to earn their trust, but many will be opposed to each other. Tough decisions will need to be made on who to support."
+          },
+          {
+            "type": "paragraph",
+            "value": "The Reclamation of the Wastes Campaign will note when such deals are possible."
+          },
+          {
+            "type": "paragraph",
+            "value": "As a reward for establishing trade links, Pilots will receive 1 Scrap of the Tech Level of their Union Crawler per Downtime, per faction they have signed a deal with. This will apply only whilst they are exploring the Caldera Campaign Map."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "72db7951-ea27-46d8-a8c8-e28f642903fd",
+    "name": "Campaign Pacing",
+    "source": "Reclamation of the Wastes",
+    "page": 7,
+    "guideType": "gameplay",
+    "guideColor": "#B84C4C",
+    "content": [],
+    "steps": [
+      {
+        "id": "37799fbd-d71a-4d3a-af5c-cc516755d85a",
+        "name": "Campaign Pacing",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "The campaign is designed as an open-ended sandbox, with pilots deciding where they want to travel. They can choose a direction during the session when exploring different areas of a Region, and during downtime when picking the next Region the Union Crawler will visit."
+          },
+          {
+            "type": "paragraph",
+            "value": "There is no specific story in mind for the campaign. The game is designed for pilots to explore each area at their own pace, meet the characters, experience the unfolding events, and make decisions on what they want to do."
+          },
+          {
+            "type": "paragraph",
+            "value": "Each Region is intended to run for approximately 1-3 sessions of around 3-4 hours, depending on how your group approaches each area. The campaign is designed for players to reach Tech 3 of their Union Crawler after exploring the 4 regions of the map."
+          },
+          {
+            "type": "paragraph",
+            "value": "Don't worry if they haven't perfectly achieved this. 'Spikes' in progression via Scrap is part of the freeform, emergent design of the game. If pilots don't reach Tech 3 after exploring the map, they can re-explore areas, or you can offer them additional jobs. If they reach it early, they can continue exploring or head to another Region."
+          },
+          {
+            "type": "paragraph",
+            "value": "Once pilots have reached Tech 3, you will need the Salvage Union Core Book to detail the Tech 3 - 6 content. At this stage they can continue to explore the other regions on the map, or you can expand the campaign out to one of the Salvage Union Adventure Modules (We Were Here First!, False Flag, and Rainmaker). Alternatively, you can design your own campaign using the advice in the Core Book"
+          }
+        ]
+      }
+    ]
   }
 ]
