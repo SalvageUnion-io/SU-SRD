@@ -111,6 +111,74 @@
     ]
   },
   {
+    "id": "2fa09e63-4454-4ea8-8089-3741ab69f921",
+    "source": "Salvage Union Starter Set",
+    "booklet": "RR",
+    "page": 107,
+    "name": "Iron Leech",
+    "actions": ["Attach (Iron Leech)"],
+    "hitPoints": 10,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Bloated, slug-like bio-fauna that feed on dying flesh and metal."
+      }
+    ]
+  },
+  {
+    "id": "15dc84b1-8321-4afe-8810-3e13f1e68101",
+    "source": "Salvage Union Starter Set",
+    "booklet": "RR",
+    "page": 108,
+    "name": "Scrap Termite",
+    "actions": ["Bite (Scrap Termite)", "Regurgitate"],
+    "hitPoints": 4,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Gangly insectoid creatures around the size of a goat. They have bony exoskeletons and razor-sharp mandibles that can chew through metal, which they reconstitute into a thick paste to build their burrows."
+      }
+    ]
+  },
+  {
+    "id": "270855a6-c3d6-43ed-91d4-685a841e231a",
+    "source": "Salvage Union Starter Set",
+    "booklet": "RR",
+    "page": 108,
+    "name": "Artl Queen",
+    "traits": [{ "type": "burrower" }],
+    "actions": ["Armoured Carapace", "Scythe Swipe", "Acid Spray", "Corrosive Skin Glands"],
+    "hitPoints": 20,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Around the size of a boxwheel, with large scything talons emerging from her back and an armoured carapace."
+      }
+    ]
+  },
+  {
+    "id": "1cd316fa-8fe0-46ad-a060-acdb67192a2e",
+    "source": "Salvage Union Starter Set",
+    "booklet": "RR",
+    "page": 109,
+    "name": "Hunter",
+    "actions": [
+      "Cockpit Strike",
+      "Decapitating Bite",
+      "Ambush (Hunter)",
+      "Cloaking",
+      "Leap",
+      "Hunter's Sight"
+    ],
+    "hitPoints": 9,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Gangly and bony legged, these mutated mantis-like creatures hunt in pairs, and often feast on pilots in their cockpits."
+      }
+    ]
+  },
+  {
     "id": "46102100-e51b-48a1-9264-4025105d7c2b",
     "source": "Rainmaker",
     "page": 81,

@@ -13330,5 +13330,162 @@
       }
     ],
     "actionSource": "squads"
+  },
+  {
+    "id": "5dd47cfb-9164-4acd-88da-87c194cee0ec",
+    "name": "Attach (Iron Leech)",
+    "displayName": "Attach",
+    "actionType": "Turn",
+    "range": ["Close"],
+    "damage": { "amount": 2, "damageType": "SP" },
+    "traits": [{ "type": "melee" }],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "On a successful hit, the Iron Leech attaches to a target and deals 1 SP damage to them at the end of their Turn. They can also keep attacking the same target as normal. Any attacks against an Iron Leech whilst its attached will deal half damage (rounded down) to the target they are attached to."
+      }
+    ],
+    "actionSource": "creatures"
+  },
+  {
+    "id": "15bcabe3-b12b-4c51-96ab-6605312b8b82",
+    "name": "Bite (Scrap Termite)",
+    "displayName": "Bite",
+    "actionType": "Turn",
+    "range": ["Close"],
+    "damage": { "amount": 2, "damageType": "SP" },
+    "traits": [{ "type": "melee" }],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "On a successful hit, a random System on the target Mech or Vehicle is damaged. If the target is Immobile, the System is instead destroyed."
+      }
+    ],
+    "actionSource": "creatures"
+  },
+  {
+    "id": "e47ae334-6f04-4e06-afa6-c72a72a4803c",
+    "name": "Regurgitate",
+    "actionType": "Turn",
+    "range": ["Medium"],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "The Scrap Termite spits digested matter onto a target in Range. The target gains the Immobile Trait from the concrete-like goo."
+      }
+    ],
+    "actionSource": "creatures"
+  },
+  {
+    "id": "02887678-0e38-4a8f-9467-2cd742359113",
+    "name": "Armoured Carapace",
+    "actionType": "Passive",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "The Artl Queen counts as having 1x Armour Plating System."
+      }
+    ],
+    "actionSource": "creatures"
+  },
+  {
+    "id": "62a375dc-3173-4224-bf32-ad0b7ed455de",
+    "name": "Scythe Swipe",
+    "actionType": "Turn",
+    "range": ["Close"],
+    "damage": { "amount": 3, "damageType": "SP" },
+    "traits": [{ "type": "multi-attack", "amount": 2 }],
+    "actionSource": "creatures"
+  },
+  {
+    "id": "dd0b2d93-7e65-4c0a-99a4-a2979522fc61",
+    "name": "Acid Spray",
+    "actionType": "Turn",
+    "range": ["Medium"],
+    "damage": { "amount": 2, "damageType": "SP" },
+    "traits": [
+      { "type": "burn", "amount": 2 },
+      { "type": "explosive", "amount": 1 }
+    ],
+    "actionSource": "creatures"
+  },
+  {
+    "id": "9af00525-16c8-4fb3-b144-507ad1ba64e9",
+    "name": "Cockpit Strike",
+    "actionType": "Turn",
+    "range": ["Close"],
+    "damage": { "amount": 1, "damageType": "SP" },
+    "traits": [{ "type": "melee" }],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "The Hunter launches a precise blow with a spiny limb. A hit tears a Mech's cockpit apart, exposing the Pilot, who can now be targeted by attacks in Close Range. The damage can be fixed by any Ability that can repair a Mech Chassis."
+      }
+    ],
+    "actionSource": "creatures"
+  },
+  {
+    "id": "c058dd83-6305-4846-b01e-9be51ec9490a",
+    "name": "Decapitating Bite",
+    "actionType": "Turn",
+    "range": ["Close"],
+    "damage": { "amount": 6, "damageType": "HP" },
+    "traits": [{ "type": "melee" }, { "type": "deadly" }],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A killing blow that decapitates the victim. Can only target pilots and creatures."
+      }
+    ],
+    "actionSource": "creatures"
+  },
+  {
+    "id": "54a14ab3-1168-4a71-88b2-366a7ca3b338",
+    "name": "Hunter's Sight",
+    "actionType": "Passive",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Heat vision equivalent to Thermal Optics. Their only method of sight."
+      }
+    ],
+    "actionSource": "creatures"
+  },
+  {
+    "id": "4fd026d6-97bd-486e-8359-a83f542b29f5",
+    "name": "Ambush (Hunter)",
+    "displayName": "Ambush",
+    "actionType": "Passive",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Unless spotted, Hunters always strike first, counting as the party rolling a 1 on the Group Initiative Table."
+      }
+    ],
+    "actionSource": "creatures"
+  },
+  {
+    "id": "c7470163-a69a-4f68-a1e5-711993923312",
+    "name": "Cloaking",
+    "actionType": "Passive",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Natural camouflage in wilderness areas. Hidden from sight: cannot be detected by anything with the Scanner Trait or targeted by anything with the Targeter Trait."
+      }
+    ],
+    "actionSource": "creatures"
+  },
+  {
+    "id": "02aefa41-7243-42b9-bc91-6dbbc5191fb2",
+    "name": "Leap",
+    "actionType": "Passive",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Can move an additional Range Band on their Turn and travel vertically, ignoring any intervening terrain or obstacles."
+      }
+    ],
+    "actionSource": "creatures"
   }
 ]
