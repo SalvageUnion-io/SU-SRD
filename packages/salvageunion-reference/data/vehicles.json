@@ -139,8 +139,7 @@
   },
   {
     "id": "f4fe9598-04dd-4d00-b742-1ab7695b43cd",
-    "source": "Salvage Union Starter Set",
-    "booklet": "RR",
+    "source": "Reclamation of the Wastes",
     "page": 102,
     "name": "E-Boat",
     "systems": ["Integrated Amphibious Locomotion System"],
@@ -162,8 +161,7 @@
   },
   {
     "id": "36b2a94c-306f-476c-bf74-5c39a0eaab73",
-    "source": "Salvage Union Starter Set",
-    "booklet": "RR",
+    "source": "Reclamation of the Wastes",
     "page": 102,
     "name": "Tombstone Trackbox",
     "systems": ["Locomotion System", "Shanty Home"],
@@ -207,8 +205,7 @@
   },
   {
     "id": "ab26df6f-cc65-492d-9d80-42c31489c4a7",
-    "source": "Salvage Union Starter Set",
-    "booklet": "RR",
+    "source": "Reclamation of the Wastes",
     "page": 103,
     "name": "Green Laser Turret",
     "systems": ["Green Laser"],
@@ -223,8 +220,7 @@
   },
   {
     "id": "73ffb42f-ab96-4a15-bd48-ab86ab79a47d",
-    "source": "Salvage Union Starter Set",
-    "booklet": "RR",
+    "source": "Reclamation of the Wastes",
     "page": 103,
     "name": "Missile Pod Turret",
     "systems": ["Missile Pod"],

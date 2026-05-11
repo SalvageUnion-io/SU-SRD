@@ -109,6 +109,27 @@
     ]
   },
   {
+    "id": "f4a6d7c5-0b9f-4d3b-cf8e-5b1214f7daf6",
+    "name": "Reclamation of the Wastes",
+    "source": "Reclamation of the Wastes",
+    "page": 1,
+    "purchaseLink": "https://www.backerkit.com/c/projects/leyline-press/salvage-union-starter-set",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Salvage Union is a post-apocalyptic tabletop RPG where you play as a group of salvagers, piloting Mechs and scouring the wasteland for scrap to keep you and your community alive."
+      },
+      {
+        "type": "paragraph",
+        "value": "The Reclamation of the Wastes campaign contains everything you need to start playing your first Salvage Union campaign, exploring the newly discovered region of Caldera."
+      },
+      {
+        "type": "paragraph",
+        "value": "Reclamation of the Wastes is the bundled adventure module included in the Salvage Union Starter Set."
+      }
+    ]
+  },
+  {
     "id": "b1d3a4f2-7e6c-4a18-9c5b-2f8e91d4a7c3",
     "name": "The Hive",
     "source": "The Hive",
