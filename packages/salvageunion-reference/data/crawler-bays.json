@@ -74,6 +74,13 @@
         "type": "paragraph",
         "value": "If the Command Bay is damaged your Union Crawler can no longer move, and its scanning and map functions no longer work. You are in the dark when it comes to conducting missions outside of the immediate area."
       }
+    ],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 57
+      }
     ]
   },
   {
@@ -163,6 +170,13 @@
         "type": "paragraph",
         "value": "If the Mech Bay becomes damaged, your Mechs can no longer restore SP and EP during Downtime. Their Chassis as well as any Systems or Modules will not be repaired if they are damaged, and you will have to make any System or Module modifications manually."
       }
+    ],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 57
+      }
     ]
   },
   {
@@ -235,6 +249,13 @@
       {
         "type": "paragraph",
         "value": "If the Storage Bay becomes damaged, half of the Mech Chassis, Systems, and Modules stored within it are damaged and half of the Scrap within it is destroyed. Determine this randomly. In addition, you cannot store anything else within it until it is repaired."
+      }
+    ],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 58
       }
     ]
   },
@@ -323,6 +344,13 @@
         "type": "paragraph",
         "value": "If the Armament Bay becomes damaged, the Union Crawler cannot use any of its Weapons Systems."
       }
+    ],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 58
+      }
     ]
   },
   {
@@ -403,6 +431,13 @@
       {
         "type": "paragraph",
         "value": "If the Crafting Bay becomes damaged, you can no longer craft anything."
+      }
+    ],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 58
       }
     ]
   },
@@ -517,7 +552,14 @@
         "value": "For example a Tech 2 Union Crawler would be able to source Tech 3 Chassis, Systems, and Modules for trade."
       }
     ],
-    "tableName": "Trading Bay"
+    "tableName": "Trading Bay",
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 59
+      }
+    ]
   },
   {
     "id": "0850a891-19e3-4372-af35-0a1679130c8f",
@@ -604,6 +646,13 @@
       {
         "type": "paragraph",
         "label": "If the Med Bay is damaged, you cannot heal any of your Pilot's Hit Points or injuries."
+      }
+    ],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 60
       }
     ]
   },
@@ -806,6 +855,13 @@
         "type": "list-item",
         "value": "Training during Downtime on your Union Crawler in a Tech 6 Pilot Bay grants a Pilot a one-off improvement of +2 HP and +1 AP."
       }
+    ],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 60
+      }
     ]
   },
   {
@@ -883,6 +939,13 @@
         "type": "paragraph",
         "value": "If the Armoury becomes damaged, you can no longer acquire Pilot Equipment from it, and half of all stored Pilot Equipment within it is destroyed. Determine this randomly."
       }
+    ],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 61
+      }
     ]
   },
   {
@@ -959,6 +1022,13 @@
       {
         "type": "paragraph",
         "value": "If the Cantina becomes damaged, you no longer have food and water purifiers and your food and water supply is spoiled. The people on your Union Crawler will die of starvation and dehydration within four weeks if it is not repaired. In addition, you can no longer ask around for rumours."
+      }
+    ],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 62
       }
     ]
   }

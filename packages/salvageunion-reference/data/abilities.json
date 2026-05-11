@@ -7,7 +7,14 @@
     "level": 1,
     "page": 28,
     "actions": ["Engineering Expertise"],
-    "description": "Ask questions pertaining to mechanical and engineering topics."
+    "description": "Ask questions pertaining to mechanical and engineering topics.",
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 13
+      }
+    ]
   },
   {
     "id": "c3b7d2dd-d774-45b8-827c-48d3c9c58202",
@@ -17,7 +24,14 @@
     "level": 2,
     "page": 28,
     "actions": ["Talk Shop"],
-    "description": "Build rapport, and ask favours of other mechanics, salvagers, and workers."
+    "description": "Build rapport, and ask favours of other mechanics, salvagers, and workers.",
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 13
+      }
+    ]
   },
   {
     "id": "fba6ecb0-86c6-4b4a-9daf-f0056c79c88f",
@@ -27,7 +41,14 @@
     "level": 3,
     "page": 28,
     "description": "Track down and acquire specific Mech parts and Chassis.",
-    "actions": ["Mech Acquisition"]
+    "actions": ["Mech Acquisition"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 13
+      }
+    ]
   },
   {
     "id": "5521c16b-0831-4a2e-87b5-0f9205b734da",
@@ -37,7 +58,14 @@
     "level": 1,
     "page": 29,
     "description": "Repair 4 SP on target Mechs or Vehicles in the field.",
-    "actions": ["Mass Field Maintenance"]
+    "actions": ["Mass Field Maintenance"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 14
+      }
+    ]
   },
   {
     "id": "c28d466d-0a44-434e-8258-2f188285c67f",
@@ -47,7 +75,14 @@
     "level": 2,
     "page": 29,
     "actions": ["If I cut this wire..."],
-    "description": "Damage Systems and Modules on target Mech."
+    "description": "Damage Systems and Modules on target Mech.",
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 14
+      }
+    ]
   },
   {
     "id": "8fff03d8-8831-4143-af99-b3439bf9a306",
@@ -57,7 +92,14 @@
     "level": 3,
     "page": 29,
     "actions": ["Mass Field Repair"],
-    "description": "Repair target Systems and Modules in the field."
+    "description": "Repair target Systems and Modules in the field.",
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 14
+      }
+    ]
   },
   {
     "id": "d51afc02-2683-46e1-acba-353d85eaf071",
@@ -67,7 +109,14 @@
     "level": 1,
     "page": 29,
     "actions": ["Jury Rig"],
-    "description": "Craft improvised equipment from everyday items."
+    "description": "Craft improvised equipment from everyday items.",
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 14
+      }
+    ]
   },
   {
     "id": "4c410720-0a21-4b2b-a842-68a4d34ccf33",
@@ -77,7 +126,14 @@
     "level": 2,
     "page": 29,
     "actions": ["Mech-Gyver"],
-    "description": "Craft Mech Systems and Modules from Scrap in the field."
+    "description": "Craft Mech Systems and Modules from Scrap in the field.",
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 15
+      }
+    ]
   },
   {
     "id": "c7f121eb-6e9f-46e6-9500-f65860ddd08c",
@@ -93,7 +149,14 @@
     ],
     "page": 30,
     "description": "Construct an Immobile Auto-Turret that can be fitted with Systems and Modules.",
-    "actions": ["Auto-Turret"]
+    "actions": ["Auto-Turret"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 15
+      }
+    ]
   },
   {
     "id": "8f954763-3014-4184-ace6-a7409ff00401",
@@ -159,7 +222,14 @@
     "level": 1,
     "page": 34,
     "actions": ["Hacking Kit"],
-    "description": "Versatile tool for allowing Mech Module hacks on foot and vice-versa."
+    "description": "Versatile tool for allowing Mech Module hacks on foot and vice-versa.",
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 17
+      }
+    ]
   },
   {
     "id": "8a61839b-b0e2-4726-b436-0d76f229a9ea",
@@ -169,7 +239,14 @@
     "level": 2,
     "page": 34,
     "actions": ["System and Software Hacker"],
-    "description": "Attempt to destroy Systems and Modules on target Mech."
+    "description": "Attempt to destroy Systems and Modules on target Mech.",
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 17
+      }
+    ]
   },
   {
     "id": "24f08353-1f4e-4549-a2e3-45272c90b57f",
@@ -179,7 +256,14 @@
     "level": 3,
     "page": 34,
     "actions": ["Denial of Service Attack"],
-    "description": "Attempt to Shutdown target Mech in Range."
+    "description": "Attempt to Shutdown target Mech in Range.",
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 18
+      }
+    ]
   },
   {
     "id": "f7bc9f48-bdaf-4d28-a965-38b017b2328f",
@@ -189,7 +273,14 @@
     "level": 1,
     "page": 34,
     "actions": ["Well actually..."],
-    "description": "Ask questions about Systems, Modules, or Technology."
+    "description": "Ask questions about Systems, Modules, or Technology.",
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 18
+      }
+    ]
   },
   {
     "id": "f6d6d8d7-0b3e-4ea8-906f-582281a98a5e",
@@ -199,7 +290,14 @@
     "level": 2,
     "page": 35,
     "actions": ["Techno Babble"],
-    "description": "Build rapport and ask favours of other Hackers and technophiles."
+    "description": "Build rapport and ask favours of other Hackers and technophiles.",
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 18
+      }
+    ]
   },
   {
     "id": "3364cc4f-227f-4f88-8b73-a09309e293f0",
@@ -215,7 +313,14 @@
       }
     ],
     "actions": ["Holo Companion"],
-    "description": "Construct an intelligent, holographic A.I. companion, projected from a device on your person."
+    "description": "Construct an intelligent, holographic A.I. companion, projected from a device on your person.",
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 18
+      }
+    ]
   },
   {
     "id": "420ab386-ad77-4857-9679-1e4a01e3d090",
@@ -225,7 +330,14 @@
     "level": 1,
     "page": 35,
     "actions": ["Bionic Senses"],
-    "description": "Gain integrated Thermal Optics, Zoom Optics, or IR Night Vision Optics."
+    "description": "Gain integrated Thermal Optics, Zoom Optics, or IR Night Vision Optics.",
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 19
+      }
+    ]
   },
   {
     "id": "1e6183d7-0b67-40ab-91f4-134090c8846b",
@@ -241,7 +353,14 @@
         "value": "You gain a set of bionic arms, surgically installed to any specification you desire. In addition, you can heal a Minor Injury during Downtime by spending 2 Tech 1 Scrap at any Crafting Bay. You also increase your Pilot's Max HP by 2."
       }
     ],
-    "description": "Gain a set of integrated Bionic Arms. Gives an improved base attack."
+    "description": "Gain a set of integrated Bionic Arms. Gives an improved base attack.",
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 19
+      }
+    ]
   },
   {
     "id": "4823bdf3-b501-423d-abd6-79ca1fd6203d",
@@ -251,7 +370,14 @@
     "level": 3,
     "page": 36,
     "actions": ["Bionic Legs"],
-    "description": "Gain a set of integrated Bionic Legs. Gives improved base movement."
+    "description": "Gain a set of integrated Bionic Legs. Gives improved base movement.",
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 19
+      }
+    ]
   },
   {
     "id": "379654a5-004f-458d-b0ce-1693fd87ee7f",
@@ -311,7 +437,14 @@
     "level": 1,
     "page": 40,
     "actions": ["Squeeze it in"],
-    "description": "Temporarily increase the cargo capacity of a Mech."
+    "description": "Temporarily increase the cargo capacity of a Mech.",
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 21
+      }
+    ]
   },
   {
     "id": "cb3a5c51-2162-4090-8173-8909bae9dc8c",
@@ -321,7 +454,14 @@
     "level": 2,
     "page": 40,
     "description": "You are a dab hand at scouring the wastes for every piece of salvage.",
-    "actions": ["Area Salvage (Expert Salvager)", "Mech Salvage (Expert Salvager)"]
+    "actions": ["Area Salvage (Expert Salvager)", "Mech Salvage (Expert Salvager)"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 21
+      }
+    ]
   },
   {
     "id": "d3845a5e-d838-4747-8e02-65f181ead511",
@@ -331,7 +471,14 @@
     "level": 3,
     "page": 40,
     "actions": ["Emergency Salvage Drop"],
-    "description": "Retrieve Chassis, Systems, Modules, Scrap, and Equipment from your Crawler."
+    "description": "Retrieve Chassis, Systems, Modules, Scrap, and Equipment from your Crawler.",
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 21
+      }
+    ]
   },
   {
     "id": "60b55e00-61c7-49af-b386-4c5fc21fc086",
@@ -341,7 +488,14 @@
     "level": 1,
     "page": 40,
     "actions": ["Read a Person"],
-    "description": "Learn information about an NPC you're conversing with."
+    "description": "Learn information about an NPC you're conversing with.",
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 22
+      }
+    ]
   },
   {
     "id": "a9f7366a-90ab-4972-91cf-3c5b1032f35e",
@@ -351,7 +505,14 @@
     "level": 2,
     "page": 40,
     "actions": ["Let's Make a Deal"],
-    "description": "Attempt to force a deal through on your terms using leverage."
+    "description": "Attempt to force a deal through on your terms using leverage.",
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 22
+      }
+    ]
   },
   {
     "id": "1918ed6b-3341-4063-8be5-d87051701568",
@@ -361,7 +522,14 @@
     "level": 3,
     "page": 41,
     "actions": ["No Job Too Big"],
-    "description": "When reduced to 0 HP or your Mech is reduced to 0 SP, take a Turn Action or Reaction."
+    "description": "When reduced to 0 HP or your Mech is reduced to 0 SP, take a Turn Action or Reaction.",
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 22
+      }
+    ]
   },
   {
     "id": "3ad259a6-00eb-4411-af1a-03c247536520",
@@ -371,7 +539,14 @@
     "level": 1,
     "page": 41,
     "actions": ["Folk Song"],
-    "description": "Sing a song to set a mood for an audience of NPCs."
+    "description": "Sing a song to set a mood for an audience of NPCs.",
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 23
+      }
+    ]
   },
   {
     "id": "9c2dad26-7d5d-45f8-9f60-d003e3151359",
@@ -381,7 +556,14 @@
     "level": 2,
     "page": 41,
     "actions": ["Behemoth"],
-    "description": "Intimidate opponents and force them to accept your demands or flee."
+    "description": "Intimidate opponents and force them to accept your demands or flee.",
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 23
+      }
+    ]
   },
   {
     "id": "c657f188-107b-40c1-82c0-c5b37bfb3e4b",
@@ -391,7 +573,14 @@
     "level": 3,
     "page": 42,
     "actions": ["Valiant Speech"],
-    "description": "Inspire your allies with a rousing speech which heals and provides them with bonuses."
+    "description": "Inspire your allies with a rousing speech which heals and provides them with bonuses.",
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 23
+      }
+    ]
   },
   {
     "id": "7ea637ab-14cf-4728-be2e-09adfddf5266",
@@ -457,7 +646,14 @@
     "level": 1,
     "page": 48,
     "actions": ["Gather Intelligence"],
-    "description": "Ask two questions about an area and receive truthful answers."
+    "description": "Ask two questions about an area and receive truthful answers.",
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 25
+      }
+    ]
   },
   {
     "id": "10fc5eb8-418e-4127-aebe-0c9c6543ddc6",
@@ -467,7 +663,14 @@
     "level": 2,
     "page": 48,
     "actions": ["Tail"],
-    "description": "Track a target without being seen."
+    "description": "Track a target without being seen.",
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 25
+      }
+    ]
   },
   {
     "id": "74830a8a-dc87-4a10-b95e-0e3ac2ec8fb4",
@@ -483,7 +686,14 @@
       }
     ],
     "actions": ["Survey Drone"],
-    "description": "Gain a Survey Drone that can be equipped with Systems and Modules."
+    "description": "Gain a Survey Drone that can be equipped with Systems and Modules.",
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 25
+      }
+    ]
   },
   {
     "id": "e1796802-3966-4286-a0e4-74cf816a26b3",
@@ -493,7 +703,14 @@
     "level": 1,
     "page": 48,
     "actions": ["Silver Tongue"],
-    "description": "Glean what motivates an NPC and use it to convince them to do as you wish."
+    "description": "Glean what motivates an NPC and use it to convince them to do as you wish.",
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 26
+      }
+    ]
   },
   {
     "id": "6c36afb5-917c-4328-be35-2cd2cce9ccfc",
@@ -503,7 +720,14 @@
     "level": 2,
     "page": 49,
     "actions": ["Forked Tongue"],
-    "description": "Lie with confidence and great skill to fool even the most insightful."
+    "description": "Lie with confidence and great skill to fool even the most insightful.",
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 27
+      }
+    ]
   },
   {
     "id": "bac905b5-d178-413b-96b4-5317712529a3",
@@ -513,7 +737,14 @@
     "level": 3,
     "page": 49,
     "actions": ["Persona"],
-    "description": "Disguise yourself and create a false identity."
+    "description": "Disguise yourself and create a false identity.",
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 27
+      }
+    ]
   },
   {
     "id": "4460ad4a-8abb-44bc-9aaf-8d53b968ce76",
@@ -523,7 +754,14 @@
     "level": 1,
     "page": 50,
     "actions": ["You Shot First"],
-    "description": "Activate this to act first whenever initiative would be rolled."
+    "description": "Activate this to act first whenever initiative would be rolled.",
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 28
+      }
+    ]
   },
   {
     "id": "ec6498ba-a242-42fd-a5b0-dbd7a4b63b40",
@@ -533,7 +771,14 @@
     "level": 2,
     "page": 50,
     "actions": ["Spotter"],
-    "description": "Choose a target in range for an ally to make a free attack against."
+    "description": "Choose a target in range for an ally to make a free attack against.",
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 28
+      }
+    ]
   },
   {
     "id": "921afb77-3d0f-49b5-9cc4-36372b24e00d",
@@ -619,7 +864,14 @@
     "level": 2,
     "page": 54,
     "actions": ["Overpower"],
-    "description": "Put and hold a target in a compromised position so that they gain the [[Vulnerable]] Trait."
+    "description": "Put and hold a target in a compromised position so that they gain the [[Vulnerable]] Trait.",
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 31
+      }
+    ]
   },
   {
     "id": "010ef454-6c74-4fa5-8df1-c611ccaf66b3",
@@ -629,7 +881,14 @@
     "level": 3,
     "page": 54,
     "actions": ["Duel"],
-    "description": "Compel a target in Range to fight you in single combat."
+    "description": "Compel a target in Range to fight you in single combat.",
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 31
+      }
+    ]
   },
   {
     "id": "3095eb7e-aaea-4b8e-8b58-28a1643b5267",
@@ -639,7 +898,14 @@
     "level": 1,
     "page": 54,
     "actions": ["Wastelander Rapport"],
-    "description": "Ask questions of locals and gain assistance when required."
+    "description": "Ask questions of locals and gain assistance when required.",
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 32
+      }
+    ]
   },
   {
     "id": "61e72d21-812e-46c1-9217-7717bdfd5cf7",
@@ -649,7 +915,14 @@
     "level": 2,
     "page": 54,
     "actions": ["Resourceful"],
-    "description": "Find resources in the wastes and limit the effects of environmental conditions."
+    "description": "Find resources in the wastes and limit the effects of environmental conditions.",
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 32
+      }
+    ]
   },
   {
     "id": "35c99351-c62a-4975-ab48-23f14b3e633f",
@@ -659,7 +932,14 @@
     "level": 3,
     "page": 55,
     "actions": ["Custom Missile Launcher"],
-    "description": "Gain a specialised Missile Launcher that only you can use."
+    "description": "Gain a specialised Missile Launcher that only you can use.",
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 32
+      }
+    ]
   },
   {
     "id": "3625ae9b-942c-4d96-ae4d-683c9aaf2301",
@@ -669,7 +949,14 @@
     "level": 1,
     "page": 55,
     "actions": ["Provoke"],
-    "description": "Taunt a target in Range to focus its attacks on you."
+    "description": "Taunt a target in Range to focus its attacks on you.",
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 33
+      }
+    ]
   },
   {
     "id": "dc88ef14-e1cd-49da-8927-1738a3f0a873",
@@ -679,7 +966,14 @@
     "level": 2,
     "page": 55,
     "actions": ["Tactical Retreat"],
-    "description": "Allow you and your allies to retreat safely to an adjacent Area."
+    "description": "Allow you and your allies to retreat safely to an adjacent Area.",
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 33
+      }
+    ]
   },
   {
     "id": "a23001d9-4db3-4ffa-9ff3-5bdb39627318",
@@ -689,7 +983,14 @@
     "level": 3,
     "page": 55,
     "actions": ["Counterattack"],
-    "description": "Use as a reaction to make a single attack against the target that attacked you."
+    "description": "Use as a reaction to make a single attack against the target that attacked you.",
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 33
+      }
+    ]
   },
   {
     "id": "4070019b-4924-444d-b666-77c75cd47794",
@@ -1016,7 +1317,13 @@
     "activationCurrency": "Variable",
     "mechActionType": "Short",
     "page": 248,
-    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 31 }],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "CR",
+        "page": 31
+      }
+    ],
     "actions": ["Area Salvage"],
     "description": "You salvage an area for scrap. This could be an abandoned factory, a ruined settlement, or a crumbling research facility. The Mediator will tell you if an area can be Area Salvaged or not. It costs 1 AP for a Pilot or 1 EP in a Mech."
   },
@@ -1028,7 +1335,13 @@
     "source": "Salvage Union Workshop Manual",
     "mechActionType": "Short",
     "page": 248,
-    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 31 }],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "CR",
+        "page": 31
+      }
+    ],
     "actions": ["Mech Salvage"],
     "description": "You salvage a destroyed Mech Chassis for Scrap and Systems."
   },
@@ -1040,7 +1353,13 @@
     "source": "Salvage Union Workshop Manual",
     "mechActionType": "Short",
     "page": 248,
-    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 32 }],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "CR",
+        "page": 32
+      }
+    ],
     "actions": ["Scrap"],
     "description": "You break down a Mech Chassis, System, or Module into Scrap."
   },
@@ -1052,7 +1371,13 @@
     "source": "Salvage Union Workshop Manual",
     "mechActionType": "Short",
     "page": 248,
-    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 33 }],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "CR",
+        "page": 33
+      }
+    ],
     "actions": ["Repair"],
     "description": "You repair a damaged Mech Chassis, System, or Module."
   },
@@ -1064,7 +1389,13 @@
     "source": "Salvage Union Workshop Manual",
     "mechActionType": "Short",
     "page": 249,
-    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 33 }],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "CR",
+        "page": 33
+      }
+    ],
     "actions": ["Mount"]
   },
   {
@@ -1075,7 +1406,13 @@
     "source": "Salvage Union Workshop Manual",
     "mechActionType": "Short",
     "page": 249,
-    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 33 }],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "CR",
+        "page": 33
+      }
+    ],
     "actions": ["Patch Up"]
   },
   {
@@ -1086,7 +1423,13 @@
     "source": "Salvage Union Workshop Manual",
     "mechActionType": "Turn",
     "page": 249,
-    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 33 }],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "CR",
+        "page": 33
+      }
+    ],
     "actions": ["Load"]
   },
   {
@@ -1096,7 +1439,13 @@
     "tree": "Generic",
     "source": "Salvage Union Workshop Manual",
     "page": 249,
-    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 32 }],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "CR",
+        "page": 32
+      }
+    ],
     "actions": ["Craft"],
     "description": "You craft a Mech Chassis, System, or Module."
   }
