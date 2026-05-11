@@ -438,20 +438,20 @@ All RotW entity statblocks are now in the dataset. Reprints from Workshop Manual
 
 | Table | Page | Status |
 | --- | --- | --- |
-| Salvage Cache Table | 10 | Skipped — 11-bucket shape (1, 2-3, 4-5, 6-7, 8-9, 10-11, 12-13, 14-15, 16-17, 18-19, 20) doesn't fit any existing TableSchema discriminator |
+| Salvage Cache Table | 10 | ✓ done (`salvage-cache`, commit `a0dad807`) — new 11-bucket discriminator added |
 | Rumour Table | 11 | ✓ done (`flat`, commit `6379d27d`) |
 | Caldera's Edge Random Encounters | 13 | ✓ done (`standard`, commit `6379d27d`) |
 | Void Shore Random Encounters | 33 | ✓ done (`standard`) |
 | House of the Gods Random Encounters | 55 | ✓ done (`standard`) |
 | Irongrad Random Encounters | 71 | ✓ done (`standard`) |
-| Irongrad Faction Reaction Table | 71 | Skipped — 8-bucket faction-pick shape (1, 2-4, 5-7, 8-10, 11-13, 14-16, 17-19, 20) doesn't fit any existing discriminator |
+| Irongrad Faction Reaction Table | 71 | ✓ done (`octet`, commit `a0dad807`) — new 8-bucket discriminator added |
 | Heart of Ygdriss Removal Table | 64 | ✓ done (`standard`) |
 | Hunter Nest | 69 | Not a roll table — descriptive location text only |
 | Monkey Wrencher Boobytrap Table | 71 | ✓ done (`standard`) — source typo `10-19` encoded as `11-19` to resolve overlap with `6-10` bucket |
 | Emergency EM Pulse Table | 51 | ✓ done (`standard`) |
-| Bio-Fauna Table | 55 / 111 | p. 111 (Summon variant) already in dataset as `c02da98d-931f-4850-9b04-a3a1b6a3bc2a`. p. 55 House-of-the-Gods variant skipped — same 8-bucket shape as Faction Reaction Table |
+| Bio-Fauna Table | 55 / 111 | ✓ done — p. 111 (Summon variant) already in dataset as `c02da98d-931f-4850-9b04-a3a1b6a3bc2a`; p. 55 House-of-the-Gods variant added (`octet`, commit `a0dad807`) |
 
-8 net-new roll tables landed; 3 skipped pending TableSchema discriminator additions (out of scope for archival pass per CLAUDE.md "no schema features without explicit user request"); 1 (Hunter Nest) reclassified as descriptive text not a roll table.
+All 11 net-new roll tables landed (8 standard/flat + 3 new-discriminator: `salvage-cache`, `octet`×2 via commit `a0dad807`); 1 (Hunter Nest) reclassified as descriptive text not a roll table.
 
 #### Net-new guides (Mediator advice + setting) — ✓ done
 
