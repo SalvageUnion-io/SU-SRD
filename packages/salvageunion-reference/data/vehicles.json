@@ -138,6 +138,52 @@
     ]
   },
   {
+    "id": "f4fe9598-04dd-4d00-b742-1ab7695b43cd",
+    "source": "Salvage Union Starter Set",
+    "booklet": "RR",
+    "page": 102,
+    "name": "E-Boat",
+    "systems": ["Integrated Amphibious Locomotion System"],
+    "traits": [
+      {
+        "type": "personnel capacity",
+        "amount": 12
+      }
+    ],
+    "techLevel": 1,
+    "salvageValue": 2,
+    "structurePoints": 2,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A simple boat, powered by a small electric generator and able to transport up to a dozen people across water"
+      }
+    ]
+  },
+  {
+    "id": "36b2a94c-306f-476c-bf74-5c39a0eaab73",
+    "source": "Salvage Union Starter Set",
+    "booklet": "RR",
+    "page": 102,
+    "name": "Tombstone Trackbox",
+    "systems": ["Locomotion System", "Shanty Home"],
+    "traits": [
+      {
+        "type": "personnel capacity",
+        "amount": 12
+      }
+    ],
+    "techLevel": 1,
+    "salvageValue": 1,
+    "structurePoints": 2,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A caravan home built on the frame of an industrial trackbox."
+      }
+    ]
+  },
+  {
     "id": "79640c87-2166-44fa-a9e5-396de3fe865a",
     "source": "Salvage Union Workshop Manual",
     "name": "Machine Gun Turret",
