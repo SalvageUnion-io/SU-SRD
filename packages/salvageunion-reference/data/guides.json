@@ -2344,5 +2344,166 @@
         ]
       }
     ]
+  },
+  {
+    "id": "4e2f1a8c-7b3d-4c95-92a6-1f5d8e3c4b2a",
+    "name": "Answer lots of questions",
+    "source": "Reclamation of the Wastes",
+    "page": 92,
+    "guideType": "gameplay",
+    "guideColor": "#B84C4C",
+    "content": [],
+    "steps": [
+      {
+        "id": "8c5d3a2f-9b1e-4f47-b2a8-6d3c1e5f8a4b",
+        "name": "Answer lots of questions",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Salvage Union runs most smoothly when you give players lots of information about the situation their Pilots are in and what their various options are. It can be tempting to withhold information, but doing so can slow down play and prevent players from making informed decisions or fully roleplaying their Pilots."
+          },
+          {
+            "type": "paragraph",
+            "value": "This can be broken down into the following steps."
+          },
+          {
+            "type": "heading",
+            "value": "Information",
+            "level": 3
+          },
+          {
+            "type": "paragraph",
+            "value": "Pilots will learn about the situation they are in and the various factors involved. They may do this through exploration, talking to other characters in the world, utilising Abilities, or describing their actions."
+          },
+          {
+            "type": "heading",
+            "value": "Choice",
+            "level": 3
+          },
+          {
+            "type": "paragraph",
+            "value": "This information will help players to make decisions about the situation they are in and how they want to resolve it."
+          },
+          {
+            "type": "heading",
+            "value": "Consequence",
+            "level": 3
+          },
+          {
+            "type": "paragraph",
+            "value": "Pilots will act on that decision. This may involve engaging the core die mechanic, or may be played out in a freeform manner depending on the context of the situation. In any respect, some sort of consequence will result from the Pilots' actions which will lead them to a new situation where they can repeat this process."
+          },
+          {
+            "type": "paragraph",
+            "value": "Pilots will have access to lots of Abilities that let the players ask broad questions about the world. More specific questions should get specific answers, and vague questions should get more vague answers. If you cannot think of an answer to one of these questions you can just make it up, or flip it and ask the player what they think the answer might be."
+          },
+          {
+            "type": "paragraph",
+            "value": "The questions that your players ask may also give you an idea of what they find interesting within the current situation. You can then focus and expand on those elements as you see fit in play."
+          },
+          {
+            "type": "flavor",
+            "value": "Players can never have \"too much\" information. The more they have, the more positive their experience will be."
+          },
+          {
+            "type": "paragraph",
+            "value": "Do not worry too much about players metagaming. It is assumed that their Pilots already know plenty of information about the world around them as they are, after all, salvagers who live in the world. So avoid nitpicking their decisions based on what they may or may not know, and instead assume they are competent and capable to get things done."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "7a3f8c2d-5b1e-4f86-92c4-3e7d1a8f5b2c",
+    "name": "Encourage Creativity",
+    "source": "Reclamation of the Wastes",
+    "page": 93,
+    "guideType": "gameplay",
+    "guideColor": "#B84C4C",
+    "content": [],
+    "steps": [
+      {
+        "id": "2b8f4c1e-9a3d-4b75-8c2f-7e1d4a8c5b3f",
+        "name": "Encourage Creativity",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Salvage Union is designed to encourage creativity and improvisation in play. The rules are an inspirational and improvisational toolkit that can be used at the table to create an engaging experience for everyone. The rules should not be used as a way to restrict interesting ideas or ways of engaging with the game."
+          },
+          {
+            "type": "paragraph",
+            "value": "Pilots and Mechs in Salvage Union have a wide range of installed Systems and Modules, as well as Pilot Equipment. Many of these change how the player can directly interact with the world. For example, the ubiquitous Rigging Arm allows a Mech to manipulate objects in its external environment."
+          },
+          {
+            "type": "flavor",
+            "value": "Without a rigging arm, a Mech has no way to pick up objects (such as salvage). It will need to rely on someone who does, or work out another means of retrieving something."
+          },
+          {
+            "type": "paragraph",
+            "value": "A rigging arm could also be used as an impromptu demolition arm, a means to grab hold of an enemy Mech in a tight spot, a winch to raise a Pilot up to a higher area, or a way to carry that last piece of Scrap when your Cargo Bay is full."
+          },
+          {
+            "type": "paragraph",
+            "value": "When describing what actions they want their Pilots to take in the game, players should consider their wide range of utility tools. their Pilots have at their disposal. Likewise, the Mediator should think through the Pilots' actions and question the players if they do not seem to have the correct utility tools to do the job."
+          },
+          {
+            "type": "paragraph",
+            "value": "Pilots and Mechs in Salvage Union also have access to a wide range of unique Abilities, some of which provide static boons, but many of which actively allow you to affect the game world. They tend to allow a Pilot to either perform a unique action at a cost, or have a moment of narrative control where they can dictate the flow of the game."
+          },
+          {
+            "type": "paragraph",
+            "value": "These Abilities are not intended to be restrictive in the sense that they would prevent other Pilots in the game from doing similar actions, but instead to provide a simple way of that Pilot doing so at a cost of Energy or Ability Points. As with Systems and Modules, there are many ways to use a Pilot's Abilities. We encourage creativity in testing out different combinations and methods."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "5c1f8a3e-4b2d-4c97-95a3-8e2c1f5b3a7d",
+    "name": "Managing Time",
+    "source": "Reclamation of the Wastes",
+    "page": 94,
+    "guideType": "gameplay",
+    "guideColor": "#B84C4C",
+    "content": [],
+    "steps": [
+      {
+        "id": "9d2a8f1e-6c3b-4a85-92f8-1e5c4b8a3d7c",
+        "name": "Managing Time",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Time is an important factor in Salvage Union, and running a successful campaign involves having an idea of time within the game. The various Abilities that the Pilots have access to are often differentiated by how long they take. The campaign exploration is structured around the Union Crawler taking around a week to get from point to point as the Pilots engage in Downtime."
+          },
+          {
+            "type": "list-item",
+            "value": "Turn Actions: These are quick and can be performed in the midst of a combat or action scene."
+          },
+          {
+            "type": "list-item",
+            "value": "Short Actions: These take 10 minutes, so are intended to be something done outside of an action scene that is still relatively quick to accomplish."
+          },
+          {
+            "type": "list-item",
+            "value": "Long Actions: These take an hour, so are more of an investment of time."
+          },
+          {
+            "type": "list-item",
+            "value": "Downtime Actions: These take a week and are intended to be a way to pace out the more complex parts of the game (like crafting and the structure of the campaign itself)."
+          },
+          {
+            "type": "flavor",
+            "value": "Not every situation needs to be a race against time, but pilots should be considering it as a factor."
+          },
+          {
+            "type": "paragraph",
+            "value": "Consider adding a calendar to your campaign world with some invented dates and months, or at least a tracker of how many in-game weeks have passed to frame situations and events. The world of Salvage Union is not static. A week of Downtime should give you the opportunity to think about what other people and factions have been doing, and update things accordingly."
+          }
+        ]
+      }
+    ]
   }
 ]
