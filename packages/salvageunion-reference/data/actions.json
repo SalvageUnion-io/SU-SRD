@@ -13071,5 +13071,104 @@
       }
     ],
     "actionSource": "equipment"
+  },
+  {
+    "id": "db83cba7-86d0-4959-ba29-5f897c3265de",
+    "name": "Oil Bomb",
+    "actionType": "Turn",
+    "range": ["Close"],
+    "damage": {
+      "amount": 1,
+      "damageType": "SP"
+    },
+    "traits": [
+      {
+        "type": "anti-organic"
+      },
+      {
+        "type": "burn",
+        "amount": 1
+      },
+      {
+        "type": "overheat"
+      },
+      {
+        "type": "uses",
+        "amount": 3
+      }
+    ],
+    "actionSource": "equipment"
+  },
+  {
+    "id": "2d675a50-a38e-4ffe-9f79-0e3bd89a8ae4",
+    "name": "Electrostatic Mine",
+    "actionType": "Turn",
+    "range": ["Close"],
+    "damage": {
+      "amount": 3,
+      "damageType": "SP"
+    },
+    "traits": [
+      {
+        "type": "explosive",
+        "amount": 1
+      },
+      {
+        "type": "uses",
+        "amount": 2
+      }
+    ],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "On hit, Mech Shutdown for (1) Turn"
+      }
+    ],
+    "actionSource": "equipment"
+  },
+  {
+    "id": "9e4f6f94-e098-4aa0-996a-7ee8d8e15147",
+    "name": "Hobbler Mine",
+    "actionType": "Turn",
+    "range": ["Close"],
+    "damage": {
+      "amount": 1,
+      "damageType": "SP"
+    },
+    "traits": [
+      {
+        "type": "explosive",
+        "amount": 1
+      },
+      {
+        "type": "uses",
+        "amount": 2
+      }
+    ],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "On hit, destroy Locomotion System."
+      }
+    ],
+    "actionSource": "equipment"
+  },
+  {
+    "id": "900c83b0-bf02-4a24-b7f5-5e7346cc18ed",
+    "name": "Integrated Amphibious Locomotion System",
+    "actionType": "Passive",
+    "actionSource": "systems"
+  },
+  {
+    "id": "4ea8fc40-6ee7-4905-8d64-1fbfac7de27e",
+    "name": "Shanty Home",
+    "actionType": "Passive",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Can safely transport a family of people across the wastes."
+      }
+    ],
+    "actionSource": "systems"
   }
 ]

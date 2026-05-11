@@ -926,5 +926,41 @@
     "name": "Growth Formula",
     "techLevel": 1,
     "actions": ["Growth Formula"]
+  },
+  {
+    "id": "495c3287-6acf-4aae-bcb0-f7da73b3a3ef",
+    "source": "Salvage Union Starter Set",
+    "booklet": "RR",
+    "page": 106,
+    "name": "Camouflage Fatigues",
+    "techLevel": 1,
+    "actions": []
+  },
+  {
+    "id": "8ed8fb63-adff-4ae8-ac98-8bd4b8872e13",
+    "source": "Salvage Union Starter Set",
+    "booklet": "RR",
+    "page": 106,
+    "name": "Oil Bomb",
+    "techLevel": 1,
+    "actions": ["Oil Bomb"]
+  },
+  {
+    "id": "55ed40db-7958-4180-a8dc-67c9cc71f54d",
+    "source": "Salvage Union Starter Set",
+    "booklet": "RR",
+    "page": 106,
+    "name": "Electrostatic Mine",
+    "techLevel": 1,
+    "actions": ["Electrostatic Mine"]
+  },
+  {
+    "id": "f9b2b9a7-e79b-43f8-a97e-87c985d4bbc3",
+    "source": "Salvage Union Starter Set",
+    "booklet": "RR",
+    "page": 106,
+    "name": "Hobbler Mine",
+    "techLevel": 1,
+    "actions": ["Hobbler Mine"]
   }
 ]
