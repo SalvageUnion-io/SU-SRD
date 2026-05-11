@@ -344,7 +344,9 @@ Total: ~98 cross-ref backfills.
 - **Ygdriss (p. 110–111):** Bio-Titan statblock
 - **Meld (p. 112–115):** Meld lore + 5 entity statblocks (Drone, Drone Swarm, Nanoid, Splitter, Behemoth) + 2 item entries (Inert/Active Meld Nanite)
 
-#### Net-new entities (consolidated catalog from p. 102–115)
+#### Net-new entities (consolidated catalog from p. 102–115) — ✓ done
+
+All RotW entity statblocks are now in the dataset. Reprints from Workshop Manual (Box Wheel, Armoured Box Wheel, Tank, Rotorcraft, Power Loader, Machine Gun Turret, Survey Drone, all 6 People NPCs, Waster Mob, Raider Band, Rifle Squad, Wasteland Bear, Carrion Bird, Molebear, Chimeripede, Artl, Irradiated Scorpion, all 5 Meld statblocks) carry RotW under `additionalSources`. RotW-native entries (E-Boat, Tombstone Trackbox, Green Laser Turret, Missile Pod Turret, TDA Steelcap Drone, TDA Silverback Drone, Saboteur, Saboteur Squad, Iron Leech, Scrap Termite, Artl Queen, Hunter, Ygdriss, Inert Meld Nanite, Active Meld Nanite) carry RotW as primary `source`. The catalog tables below remain for cross-reference.
 
 **Vehicles** (6 — all net-new; current data has no `vehicles.json`)
 
