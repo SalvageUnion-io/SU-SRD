@@ -3185,5 +3185,20 @@
         "value": "When directed, roll on the below table."
       }
     ]
+  },
+  {
+    "id": "c02da98d-931f-4850-9b04-a3a1b6a3bc2a",
+    "source": "Salvage Union Starter Set",
+    "booklet": "RR",
+    "page": 111,
+    "name": "Summon Bio-Fauna",
+    "table": {
+      "1": { "value": "1 x Chimeripede" },
+      "2-5": { "value": "4 x Irradiated Scorpions" },
+      "6-10": { "value": "4 x Scrap Termites" },
+      "11-19": { "value": "4 x Artls" },
+      "20": { "value": "2 x Hunters" },
+      "type": "standard"
+    }
   }
 ]

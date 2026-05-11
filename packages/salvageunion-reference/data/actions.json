@@ -13487,5 +13487,119 @@
       }
     ],
     "actionSource": "creatures"
+  },
+  {
+    "id": "b3f677df-36d7-48c9-9903-67416e7059e3",
+    "name": "Titanic Actions (Ygdriss)",
+    "displayName": "Titanic Actions",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Ygdriss can take one of three Titanic Actions at a time, detailed below. These can only be chosen at the end of another Pilot's or NPC's turn. She regains spent Titanic Actions at the start of her turn."
+      },
+      {
+        "type": "list-item",
+        "value": "Ygdriss makes a Gods Wrath attack."
+      },
+      {
+        "type": "list-item",
+        "value": "Ygdriss uses her Rust Spores ability (Costs 2 Titanic Actions)"
+      },
+      {
+        "type": "list-item",
+        "value": "Ygdriss uses her Summon Bio-Fauna Ability (Costs 2 Titanic Actions)"
+      }
+    ],
+    "actionSource": "bio-titans"
+  },
+  {
+    "id": "294733bf-e788-4ccb-805c-558d405a9617",
+    "name": "Immobile (Ygdriss)",
+    "displayName": "Immobile",
+    "actionType": "Passive",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Ygdriss is rooted to the ground and cannot move."
+      }
+    ],
+    "actionSource": "bio-titans"
+  },
+  {
+    "id": "3285e4a2-9a58-40fe-9e9c-14b8d2bade51",
+    "name": "Thickened Bark",
+    "actionType": "Passive",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Ygdriss counts as having 2 x Armour Plating Systems."
+      }
+    ],
+    "actionSource": "bio-titans"
+  },
+  {
+    "id": "1736c548-3ac4-4a28-975a-b65e8b369b12",
+    "name": "Thorns",
+    "actionType": "Passive",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Melee attacks against Ygdriss cause 2 SP damage to the attacker."
+      }
+    ],
+    "actionSource": "bio-titans"
+  },
+  {
+    "id": "c1e95208-2a68-4dba-a247-02c03e423ea1",
+    "name": "Mutagenic Radiation",
+    "actionType": "Passive",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Pilots within Close Range of Ygdriss gain a minor mutation, which can be treated as a Pilot Keepsake (p.46 PH). They may describe this form of minor mutation however they wish. If the Pilot is hostile to Ygdriss, their mutation will instead cause a Minor Injury that they can describe as they wish."
+      }
+    ],
+    "actionSource": "bio-titans"
+  },
+  {
+    "id": "36686c6c-7bf9-4f91-8aaf-bcaeaefaa191",
+    "name": "God's Wrath",
+    "actionType": "Turn",
+    "range": ["Medium"],
+    "damage": { "amount": 4, "damageType": "SP" },
+    "traits": [{ "type": "melee" }, { "type": "multi-attack", "amount": 2 }],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Ygdriss swipes with her barbed branches. On a successful hit, the target is rooted in place, gaining the Immobile and Vulnerable Traits until they escape."
+      }
+    ],
+    "actionSource": "bio-titans"
+  },
+  {
+    "id": "d78e7d16-8c19-4a10-af74-5087421086ae",
+    "name": "Rust Spores",
+    "actionType": "Turn",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Ygdriss emits a cloud of rust spores. All Mechs and Vehicles within Far Range take 2 SP damage with Burn 2."
+      }
+    ],
+    "actionSource": "bio-titans"
+  },
+  {
+    "id": "dd5a7429-429e-4831-b37a-2fe9cb308fa0",
+    "name": "Summon Bio-Fauna",
+    "actionType": "Turn",
+    "traits": [{ "type": "uses", "amount": 3 }],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Ygdriss summons Creatures from within her branches to defend herself. They start in Close Range to her."
+      }
+    ],
+    "actionSource": "bio-titans",
+    "tableName": "Summon Bio-Fauna"
   }
 ]

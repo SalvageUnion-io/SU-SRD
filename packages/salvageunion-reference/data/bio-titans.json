@@ -126,6 +126,30 @@
     ]
   },
   {
+    "id": "1082026c-9b85-4d3e-8d3b-f3414067dd80",
+    "source": "Salvage Union Starter Set",
+    "booklet": "RR",
+    "page": 110,
+    "name": "Ygdriss",
+    "actions": [
+      "Immobile (Ygdriss)",
+      "Thickened Bark",
+      "Thorns",
+      "Mutagenic Radiation",
+      "God's Wrath",
+      "Rust Spores",
+      "Summon Bio-Fauna",
+      "Titanic Actions (Ygdriss)"
+    ],
+    "structurePoints": 27,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A towering bioluminescent tree. Her serene form is almost anthropomorphic, with many ethereal limbs and a pulsating 'heart' of Chimerium that glows orange. She is not hostile unless there is an attempt to remove her Heart or she is otherwise attacked."
+      }
+    ]
+  },
+  {
     "id": "ab560707-8448-47be-9cfb-4dca5ead08c1",
     "source": "We Were Here First!",
     "name": "Cortex Bio-Titan",
