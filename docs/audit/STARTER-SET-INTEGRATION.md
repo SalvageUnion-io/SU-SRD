@@ -715,4 +715,4 @@ The sticker-sheet equipment (10 items) is the **only Asset Pack content that can
 | Relics: Random Encounters + Salvage Table roll tables | ✓ done |
 | Relics: Coolant Flow Manifold module + All is Dust Pattern Atlas + Growth Formula equipment | ✓ done |
 | Sticker Sheets: 10 mech systems/modules | ✓ done |
-| Char/Mech/Crawler Sheets: 6 RotW pre-made pilots | Deferred — needs `players.json` or `pre-made-characters` schema decision |
+| Char/Mech/Crawler Sheets: 6 RotW pre-made pilots | ✓ done — added `PreMadeCharacterSchema` and 6 pre-made pilots (commit a5d3737e) |
