@@ -4737,22 +4737,33 @@
     "actionType": "Passive"
   },
   {
-    "name": "Sand Blaster",
-    "id": "13da6184-7b45-4add-aa52-02839704807c",
-    "actionType": "Turn",
+    "name": "Transfer",
+    "id": "9fefb77d-12d0-4a82-b2f9-4c6a5b5ca0e9",
+    "actionType": "Long",
+    "activationCost": "X",
     "range": ["Close"],
-    "damage": {
-      "damageType": "SP",
-      "amount": 1
-    },
     "content": [
       {
         "type": "paragraph",
-        "value": "A compressor and nozzle which propels an abrasive material like sand to slowly erode, clean, or shape a surface."
+        "value": "You connect your Mech to another Mech. Whilst connected, both your Mechs have the Vulnerable Trait."
       },
       {
         "type": "paragraph",
-        "value": "Any target hit cannot use any system or module with the Targeter Trait for 1 turn."
+        "value": "You may transfer any amount of Energy from one Mech to the other, subtracting from the EP total of one Mech and adding it to the other up to its Max EP."
+      }
+    ],
+    "actionSource": "systems"
+  },
+  {
+    "name": "Water Purification System",
+    "id": "7ec6d168-b6a0-448f-ac2c-96eb194a0c46",
+    "actionType": "Turn",
+    "activationCost": 1,
+    "range": null,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "When activated the Water Purification System can purify up to 2,000 litres of water within its tanks. It removes all toxins, bacteria, and diseases, as well as radiation and even Meld, making it safe to drink."
       }
     ],
     "actionSource": "systems"

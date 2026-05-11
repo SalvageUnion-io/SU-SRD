@@ -298,7 +298,14 @@
     "slotsRequired": 3,
     "salvageValue": 2,
     "page": 167,
-    "actions": ["Sandblaster"]
+    "actions": ["Sandblaster"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 52
+      }
+    ]
   },
   {
     "id": "3cf8a2ee-9aa4-4235-96fe-bd4eeeb114e4",
@@ -1565,15 +1572,38 @@
     ]
   },
   {
-    "id": "d6f34bc7-1dac-4280-9417-52ae103b2930",
+    "id": "2745be06-5961-49e0-acfa-177b87210dea",
     "source": "Salvage Union Starter Set",
     "booklet": "PC",
-    "name": "Sand Blaster",
+    "name": "Power Transference Cable",
     "techLevel": 1,
-    "slotsRequired": 3,
+    "slotsRequired": 1,
     "salvageValue": 2,
     "page": 52,
-    "actions": ["Sand Blaster"]
+    "actions": ["Transfer"],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "This simply constructed cable can connect to a Mech reactor and transfer energy from one to another."
+      }
+    ]
+  },
+  {
+    "id": "cbaada6c-340a-4b17-9100-21942110e57c",
+    "source": "Salvage Union Starter Set",
+    "booklet": "PC",
+    "name": "Water Purification System",
+    "techLevel": 2,
+    "slotsRequired": 2,
+    "salvageValue": 2,
+    "page": 58,
+    "actions": ["Water Purification System"],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A Kombu Tech designed system that purifies water, often mounted on radiation-resistant Mechs to gather water in hot zones and purify it for settlement consumption."
+      }
+    ]
   },
   {
     "id": "aa1a232b-67b3-481d-860b-30a4c4777919",
