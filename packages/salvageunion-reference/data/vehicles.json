@@ -204,5 +204,37 @@
         "value": "A static gun emplacement."
       }
     ]
+  },
+  {
+    "id": "ab26df6f-cc65-492d-9d80-42c31489c4a7",
+    "source": "Salvage Union Starter Set",
+    "booklet": "RR",
+    "page": 103,
+    "name": "Green Laser Turret",
+    "systems": ["Green Laser"],
+    "traits": [
+      {
+        "type": "immobile"
+      }
+    ],
+    "techLevel": 2,
+    "salvageValue": 1,
+    "structurePoints": 4
+  },
+  {
+    "id": "73ffb42f-ab96-4a15-bd48-ab86ab79a47d",
+    "source": "Salvage Union Starter Set",
+    "booklet": "RR",
+    "page": 103,
+    "name": "Missile Pod Turret",
+    "systems": ["Missile Pod"],
+    "traits": [
+      {
+        "type": "immobile"
+      }
+    ],
+    "techLevel": 3,
+    "salvageValue": 1,
+    "structurePoints": 6
   }
 ]

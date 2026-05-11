@@ -196,6 +196,40 @@
     ]
   },
   {
+    "id": "201462df-cb24-48b6-899a-a0c9a229d43d",
+    "source": "Salvage Union Starter Set",
+    "booklet": "RR",
+    "page": 103,
+    "name": "TDA Steelcap Drone",
+    "systems": ["Red Laser", "Locomotion System", "Comms Module"],
+    "techLevel": 1,
+    "salvageValue": 3,
+    "structurePoints": 4,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Painted dark red, the drone is intended to appear like a TDA soldier, complete with steel flat cap."
+      }
+    ]
+  },
+  {
+    "id": "c847ecc1-9b45-409d-a576-abf640ceae76",
+    "source": "Salvage Union Starter Set",
+    "booklet": "RR",
+    "page": 103,
+    "name": "TDA Silverback Drone",
+    "systems": ["Mini Mortar", "Locomotion System", "Comms Module"],
+    "techLevel": 1,
+    "salvageValue": 5,
+    "structurePoints": 4,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "This drone appears bulky and hunchbacked due to its boxy quadruped design and heavy mortar."
+      }
+    ]
+  },
+  {
     "id": "60b451ac-af8c-48dd-ad96-8d0fb2189c50",
     "source": "False Flag",
     "name": "Big Brother Drone",
