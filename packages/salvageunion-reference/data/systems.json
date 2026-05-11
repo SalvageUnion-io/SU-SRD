@@ -546,7 +546,14 @@
     "slotsRequired": 4,
     "salvageValue": 1,
     "page": 170,
-    "actions": ["Module Switch"]
+    "actions": ["Module Switch"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 56
+      }
+    ]
   },
   {
     "id": "66aad3fe-84a3-4145-ab69-37bb44c49e05",

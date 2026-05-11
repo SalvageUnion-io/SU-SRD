@@ -1404,7 +1404,14 @@
         "value": "The 'O-F-531' Forge was developed by Osiris Construction as a fabrication Mech that could rapidly construct and repair structures within the field, whilst also defending the area from attack. They were purchased en-masse by Herrsch Manufacturing, and used effectively to prevent the inner tier of their home arco in the Verdant Crescent from being breached by starving citizens during the great food riots. This proved successful, and Osiris soon rolled them out to other corporate arcos to operate in a similar capacity."
       }
     ],
-    "chassisAbilities": ["Integrated Epoxy Printer"]
+    "chassisAbilities": ["Integrated Epoxy Printer"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 22
+      }
+    ]
   },
   {
     "id": "9782857d-ccf4-4d95-8da2-d3912a6da8e3",
@@ -2748,7 +2755,14 @@
         "value": "The 'V6.10.3' Mirror Ball was developed by Aeon as a mobile shield Mech designed to protect machinery and workers within inhospitable locations. During the 'Great Exodus' Mirrorball units were used effectively as a rearguard against corpo harriers by the first salvagers who fled their home arcos to forge a destiny of their own. Its nickname derives from the sparkling ball of energy that surrounds and protects it when it is operational."
       }
     ],
-    "chassisAbilities": ["Integrated Advanced Shield Dome"]
+    "chassisAbilities": ["Integrated Advanced Shield Dome"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 36
+      }
+    ]
   },
   {
     "id": "4ba6cc9f-19b0-4ae7-9471-3552f5470d4a",

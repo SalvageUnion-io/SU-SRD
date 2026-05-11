@@ -25,7 +25,14 @@
     "slotsRequired": 1,
     "salvageValue": 1,
     "page": 190,
-    "actions": ["Equipment Locker"]
+    "actions": ["Equipment Locker"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 65
+      }
+    ]
   },
   {
     "id": "25ca5163-7ac1-47d3-b36c-377aaf2773fe",
@@ -375,7 +382,14 @@
     "slotsRequired": 1,
     "salvageValue": 1,
     "page": 196,
-    "actions": ["Projection Array"]
+    "actions": ["Projection Array"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 71
+      }
+    ]
   },
   {
     "id": "df8846de-8b69-4199-a20e-09bac424e6a1",
