@@ -360,6 +360,30 @@
     ]
   },
   {
+    "id": "4bac512a-54d8-4ced-9ff1-7a88cb710af7",
+    "source": "Salvage Union Starter Set",
+    "booklet": "RR",
+    "page": 106,
+    "name": "Saboteur",
+    "hitPoints": 6,
+    "actions": [
+      "Camouflage Fatigues (NPC)",
+      "Improvised Explosive Device (Saboteur)",
+      "Oil Bomb (Saboteur)",
+      "Electrostatic Mine (Saboteur)",
+      "Hobbler Mine (Saboteur)",
+      "Ambusher",
+      "Guerrilla",
+      "Explosive Expert"
+    ],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "An ideologically-driven guerilla fighter."
+      }
+    ]
+  },
+  {
     "id": "32238d47-9520-4bcc-a0ca-d6e6f2a967aa",
     "name": "CURNOS",
     "source": "Salvage Union Starter Set",

@@ -275,6 +275,32 @@
     ]
   },
   {
+    "id": "4f491ff7-788c-49d5-8349-98888f45e873",
+    "source": "Salvage Union Starter Set",
+    "booklet": "RR",
+    "page": 106,
+    "name": "Saboteur Squad",
+    "hitPoints": 10,
+    "damageType": "HP",
+    "actions": [
+      "Camouflage Fatigues (NPC)",
+      "Improvised Explosive Device (Saboteur)",
+      "Oil Bomb (Saboteur)",
+      "Electrostatic Mine (Saboteur)",
+      "Hobbler Mine (Saboteur)",
+      "Ambusher",
+      "Guerrilla",
+      "Explosive Expert",
+      "Saboteurs"
+    ],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A group of Saboteurs that work in tandem."
+      }
+    ]
+  },
+  {
     "id": "c3375fb6-1f56-4a5d-a40b-df29bf997c54",
     "name": "Thatcher Pit Android Lance",
     "source": "Salvage Union Starter Set",

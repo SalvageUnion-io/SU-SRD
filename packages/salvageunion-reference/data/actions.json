@@ -13170,5 +13170,165 @@
       }
     ],
     "actionSource": "systems"
+  },
+  {
+    "id": "36d23a7f-e9ab-40cd-bef0-bed9a6ae4769",
+    "name": "Improvised Explosive Device (Saboteur)",
+    "displayName": "Improvised Explosive Device",
+    "actionType": "Turn",
+    "range": ["Close"],
+    "damage": {
+      "amount": 3,
+      "damageType": "SP"
+    },
+    "traits": [
+      {
+        "type": "explosive",
+        "amount": 1
+      },
+      {
+        "type": "uses",
+        "amount": 2
+      }
+    ],
+    "actionSource": "npcs"
+  },
+  {
+    "id": "974cc5b2-b1d6-42ca-b045-3dd79725c706",
+    "name": "Oil Bomb (Saboteur)",
+    "displayName": "Oil Bomb",
+    "actionType": "Turn",
+    "range": ["Close"],
+    "damage": {
+      "amount": 1,
+      "damageType": "SP"
+    },
+    "traits": [
+      {
+        "type": "anti-organic"
+      },
+      {
+        "type": "burn",
+        "amount": 1
+      },
+      {
+        "type": "overheat"
+      },
+      {
+        "type": "uses",
+        "amount": 3
+      }
+    ],
+    "actionSource": "npcs"
+  },
+  {
+    "id": "105dc4b7-7be7-4cef-91cd-dfb5fa9f2c2f",
+    "name": "Electrostatic Mine (Saboteur)",
+    "displayName": "Electrostatic Mine",
+    "actionType": "Turn",
+    "range": ["Close"],
+    "damage": {
+      "amount": 3,
+      "damageType": "SP"
+    },
+    "traits": [
+      {
+        "type": "explosive",
+        "amount": 1
+      },
+      {
+        "type": "uses",
+        "amount": 2
+      }
+    ],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "On hit, Mech Shutdown for (1) Turn"
+      }
+    ],
+    "actionSource": "npcs"
+  },
+  {
+    "id": "25818e13-572d-4f59-a52c-cf09e5f11804",
+    "name": "Hobbler Mine (Saboteur)",
+    "displayName": "Hobbler Mine",
+    "actionType": "Turn",
+    "range": ["Close"],
+    "damage": {
+      "amount": 1,
+      "damageType": "SP"
+    },
+    "traits": [
+      {
+        "type": "explosive",
+        "amount": 1
+      },
+      {
+        "type": "uses",
+        "amount": 2
+      }
+    ],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "On hit, destroy Locomotion System."
+      }
+    ],
+    "actionSource": "npcs"
+  },
+  {
+    "id": "594f332a-c26a-401b-9513-2e0a7b2a1a73",
+    "name": "Camouflage Fatigues (NPC)",
+    "displayName": "Camouflage Fatigues",
+    "actionSource": "npcs"
+  },
+  {
+    "id": "6e723500-1eef-4e02-8770-a1e28e07199a",
+    "name": "Ambusher",
+    "actionType": "Passive",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Unless spotted, will always count as rolling a 20 on the Group Initiative Table."
+      }
+    ],
+    "actionSource": "npcs"
+  },
+  {
+    "id": "41e5834b-c550-423c-9e27-b47609aa2820",
+    "name": "Guerrilla",
+    "actionType": "Passive",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "After making an attack, may roll on the Retreat Table to flee the combat area."
+      }
+    ],
+    "actionSource": "npcs"
+  },
+  {
+    "id": "28c6d508-ca90-4c77-a4e5-ee0453cc1cda",
+    "name": "Explosive Expert",
+    "actionType": "Passive",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Takes no Explosive damage from any attack made by themselves or an ally with the Explosive Trait."
+      }
+    ],
+    "actionSource": "npcs"
+  },
+  {
+    "id": "393d06d4-ba03-43d4-a45a-2e19916af4ff",
+    "name": "Saboteurs",
+    "actionType": "Passive",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "May attack twice with any weapon that has the Explosive Trait. This can be the same, or a different weapon they have access to. In addition all weapons with the Explosive Trait deal an additional 1 SP damage, including any Explosive damage."
+      }
+    ],
+    "actionSource": "squads"
   }
 ]
