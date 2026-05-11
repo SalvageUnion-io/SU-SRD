@@ -1,8 +1,8 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://salvageunion.com/schemas/abilities.schema.json",
-  "title": "abilities",
-  "description": "Pilot abilities and skills in Salvage Union",
+  "$id": "https://salvageunion.com/schemas/pre-made-characters.schema.json",
+  "title": "pre-made-characters",
+  "description": "Pre-made player characters bundled with starter sets",
   "type": "array",
   "items": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -203,126 +203,51 @@
         },
         "description": "Other source books where this entity is reprinted"
       },
-      "description": { "type": "string", "description": "Short description of the ability" },
-      "tree": {
+      "pilotClass": {
         "type": "string",
-        "enum": [
-          "Advanced Engineer",
-          "Advanced Hacking",
-          "Advanced Hauler",
-          "Advanced Scout",
-          "Advanced Soldier",
-          "Augmentation",
-          "Cyborg",
-          "Electronics",
-          "Fabricator",
-          "Forging",
-          "Generic",
-          "Gladiatorial Combat",
-          "Hacking",
-          "Leadership",
-          "Legendary Cyborg",
-          "Legendary Engineer",
-          "Legendary Fabricator",
-          "Legendary Hacker",
-          "Legendary Hauler",
-          "Legendary Ranger",
-          "Legendary Scout",
-          "Legendary Smuggler",
-          "Legendary Soldier",
-          "Legendary Union Rep",
-          "Mech-Tech",
-          "Mechanical Knowledge",
-          "Ranger",
-          "Recon",
-          "Salvaging",
-          "Sleuth",
-          "Smuggler",
-          "Sniper",
-          "Survivalist",
-          "Tactical Warfare",
-          "Trading",
-          "Union Rep"
-        ],
-        "description": "Ability tree this ability belongs to"
+        "minLength": 1,
+        "description": "Pilot class name (e.g. \"Engineer\")"
       },
-      "level": {
-        "anyOf": [
-          { "type": "integer", "minimum": 1, "maximum": 3 },
-          { "type": "string", "const": "L" },
-          { "type": "string", "const": "G" }
-        ],
-        "description": "Ability level (1-3, L for Legendary, G for Generic)"
+      "background": { "type": "string", "minLength": 1, "description": "Pilot background" },
+      "motto": { "type": "string", "minLength": 1, "description": "Pilot motto" },
+      "keepsake": { "type": "string", "minLength": 1, "description": "Pilot keepsake" },
+      "hitPoints": {
+        "type": "integer",
+        "exclusiveMinimum": 0,
+        "maximum": 9007199254740991,
+        "description": "Pilot hit points"
       },
-      "mechActionType": {
-        "type": "string",
-        "enum": ["Passive", "Free", "Reaction", "Turn", "Short", "Long", "DownTime"],
-        "description": "Action type when used as a mech action"
+      "actionPoints": {
+        "type": "integer",
+        "exclusiveMinimum": 0,
+        "maximum": 9007199254740991,
+        "description": "Pilot action points"
       },
-      "grants": {
-        "type": "array",
-        "items": {
-          "type": "object",
-          "properties": {
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string",
-                  "enum": [
-                    "abilities",
-                    "ability-tree-requirements",
-                    "bio-titans",
-                    "chassis",
-                    "classes",
-                    "crawler-bays",
-                    "crawler-tech-levels",
-                    "crawlers",
-                    "creatures",
-                    "distances",
-                    "drones",
-                    "equipment",
-                    "guides",
-                    "keywords",
-                    "factions",
-                    "meld",
-                    "modules",
-                    "npcs",
-                    "pre-made-characters",
-                    "roll-tables",
-                    "sources",
-                    "squads",
-                    "tech-levels",
-                    "systems",
-                    "traits",
-                    "vehicles"
-                  ],
-                  "description": "Name of the entity schema collection"
-                },
-                { "type": "string", "const": "choice" }
-              ],
-              "description": "Schema collection the granted entity belongs to, or 'choice' for a choice grant"
-            },
-            "name": {
-              "type": "string",
-              "minLength": 1,
-              "description": "Name of the granted entity or choice"
-            }
-          },
-          "required": ["schema", "name"],
-          "additionalProperties": false,
-          "description": "An entity or choice granted by an ability"
-        },
-        "description": "Entities or choices granted by this ability"
-      },
-      "activationCurrency": {
-        "type": "string",
-        "enum": ["Variable", "EP or AP", "SP or HP"],
-        "description": "Currency type used for activation"
-      },
-      "actions": {
+      "equipment": {
         "type": "array",
         "items": { "type": "string" },
-        "description": "Action names this ability provides"
+        "description": "Pilot equipment names"
+      },
+      "mech": {
+        "type": "object",
+        "properties": {
+          "chassis": { "type": "string", "minLength": 1, "description": "Chassis name" },
+          "pattern": { "type": "string", "minLength": 1, "description": "Pattern name" },
+          "name": { "type": "string", "minLength": 1, "description": "Mech's individual name" }
+        },
+        "required": ["chassis", "pattern"],
+        "additionalProperties": false,
+        "description": "Pre-built mech for this pilot"
+      },
+      "systems": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "Mech system names"
+      },
+      "modules": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "Mech module names"
       }
     },
     "required": [
@@ -332,11 +257,18 @@
       "name",
       "source",
       "page",
-      "tree",
-      "level",
-      "actions"
+      "pilotClass",
+      "background",
+      "motto",
+      "keepsake",
+      "hitPoints",
+      "actionPoints",
+      "equipment",
+      "mech",
+      "systems",
+      "modules"
     ],
     "additionalProperties": false,
-    "description": "Pilot abilities and skills in Salvage Union"
+    "description": "Pre-made player characters bundled with starter sets"
   }
 }

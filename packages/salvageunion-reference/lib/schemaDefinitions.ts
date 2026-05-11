@@ -18,6 +18,7 @@ import keywordsSchema from '../schemas/keywords.schema.json' with { type: 'json'
 import meldSchema from '../schemas/meld.schema.json' with { type: 'json' }
 import modulesSchema from '../schemas/modules.schema.json' with { type: 'json' }
 import npcsSchema from '../schemas/npcs.schema.json' with { type: 'json' }
+import preMadeCharactersSchema from '../schemas/pre-made-characters.schema.json' with { type: 'json' }
 import rollTablesSchema from '../schemas/roll-tables.schema.json' with { type: 'json' }
 import squadsSchema from '../schemas/squads.schema.json' with { type: 'json' }
 import systemsSchema from '../schemas/systems.schema.json' with { type: 'json' }
@@ -47,6 +48,7 @@ const SCHEMA_DEFINITIONS: Record<string, Record<string, unknown>> = {
   meld: meldSchema as Record<string, unknown>,
   modules: modulesSchema as Record<string, unknown>,
   npcs: npcsSchema as Record<string, unknown>,
+  'pre-made-characters': preMadeCharactersSchema as Record<string, unknown>,
   'roll-tables': rollTablesSchema as Record<string, unknown>,
   squads: squadsSchema as Record<string, unknown>,
   systems: systemsSchema as Record<string, unknown>,

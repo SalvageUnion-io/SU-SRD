@@ -209,6 +209,16 @@
       "displayName": "NPC"
     },
     {
+      "id": "pre-made-characters",
+      "title": "pre-made-characters",
+      "description": "Pre-made player characters bundled with starter sets",
+      "dataFile": "data/pre-made-characters.json",
+      "schemaFile": "schemas/pre-made-characters.schema.json",
+      "itemCount": 6,
+      "requiredFields": [],
+      "displayName": "Pre-Made Character"
+    },
+    {
       "id": "roll-tables",
       "title": "roll-tables",
       "description": "",

@@ -90,6 +90,7 @@ import {
   GuideSchema,
   SourceEntitySchema,
   TechLevelEntitySchema,
+  PreMadeCharacterSchema,
   CatalogCategorySchema,
 } from './entities.js'
 
@@ -179,6 +180,7 @@ export type SURefVehicle = z.infer<typeof VehicleSchema>
 export type SURefGuide = z.infer<typeof GuideSchema>
 export type SURefSource = z.infer<typeof SourceEntitySchema>
 export type SURefTechLevel = z.infer<typeof TechLevelEntitySchema>
+export type SURefPreMadeCharacter = z.infer<typeof PreMadeCharacterSchema>
 export type SURefCatalogCategory = z.infer<typeof CatalogCategorySchema>
 
 // Union types
@@ -199,6 +201,7 @@ export type SURefEntity =
   | SURefMeld
   | SURefModule
   | SURefNPC
+  | SURefPreMadeCharacter
   | SURefRollTable
   | SURefSource
   | SURefSquad
@@ -229,6 +232,7 @@ export type SURefMetaEntity =
   | SURefTechLevel
   | SURefModule
   | SURefNPC
+  | SURefPreMadeCharacter
   | SURefRollTable
   | SURefSquad
   | SURefSystem

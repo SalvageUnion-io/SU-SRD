@@ -1,0 +1,222 @@
+[
+  {
+    "id": "7b17b822-2bf3-48ff-bd35-2f19cfb2452f",
+    "name": "Bonesaw",
+    "source": "Reclamation of the Wastes",
+    "page": 1,
+    "pilotClass": "Engineer",
+    "background": "Prodigy",
+    "motto": "Mechs are not built in a day.",
+    "keepsake": "Lucky Tooth",
+    "hitPoints": 10,
+    "actionPoints": 5,
+    "equipment": ["Handheld Riveting Gun", "First Aid Kit"],
+    "mech": {
+      "chassis": "Scrapper",
+      "pattern": "Swiss Cheese Pattern"
+    },
+    "systems": [
+      "Chainsaw Arm",
+      "Escape Hatch",
+      "Cargo Pod",
+      "Rigging Arm",
+      "Locomotion System",
+      "Riveting Gun"
+    ],
+    "modules": ["Comms Module", "Eggs Mayhem"],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Bone-Saw grew up in the slums of Osiris' home Arco in The Great Cape, always watching the Glass Pyramid where the corpos lived, casting a shadow over the town. He showed an aptitude for engineering from a young age, using his expertise to help maintain the meagre low-Tech Mechs that his community relied on to survive and scavenge."
+      },
+      {
+        "type": "paragraph",
+        "value": "It was during a routine repair of his trusted Scrapper Mech that one of the supports failed and his hand was crushed under the machine. He managed to cut it free with a welding tool and cauterise the wound with a homemade Med Bay, replacing it with a mechanical prosthetic. This moment made him realise he didn't want to die in the slums. He took to the road with his Mech, eventually finding his way to Crawler #430."
+      }
+    ]
+  },
+  {
+    "id": "1d760f09-53ce-43c4-8603-c44b4c298c21",
+    "name": "Pickle",
+    "source": "Reclamation of the Wastes",
+    "page": 3,
+    "pilotClass": "Hacker",
+    "background": "VIP",
+    "motto": "Carpe diem!",
+    "keepsake": "Walkman and tapes - all her own EDM tracks",
+    "hitPoints": 10,
+    "actionPoints": 5,
+    "equipment": ["Improvised Explosive Device", "Heavy Duty Torch"],
+    "mech": {
+      "chassis": "Spectrum",
+      "pattern": "Pyrotechnic Pattern"
+    },
+    "systems": ["Locomotion System", "FM-3 Flamethrower", "Loudspeakers", "Escape Hatch"],
+    "modules": ["A Little Bit Rude", "Eggs Mayhem", "Firewall", "Comms Module"],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Pickle grew to underground music fame as creator and lead of the holo-EDM band 'Drone.Trap', who play energetic hyperpop mixed with dark, vulgar images of the horrors of the wastes."
+      },
+      {
+        "type": "paragraph",
+        "value": "In their early days, she broadcast their pirate signal across the wastes from deep within the Stefanus data centres. She hacked their networks to play music across every comms module, receiver, and jukebox in every Arco, hub, and dingy holo-club that could pick it up."
+      },
+      {
+        "type": "paragraph",
+        "value": "Their song 'Wires in my veins' went viral, and soon Stefanus took notice. It took them some time to track her down, but when they did they went in hard. At first they were going to throw her into a prison cube, but she persuaded them it was in their best interests to use her as an asset. So she began to tour the arcos of the wastes, performing to packed crowds - and using that opportunity to tap into the Arcos' networks and leech information back to Stefanus."
+      },
+      {
+        "type": "paragraph",
+        "value": "Fearing her fame (and therefore Stefanus' mercy) would wane, and wanting to avoid all chains no matter how golden, she swapped herself for a hologram during a concert in Neo-Nara. Pickle made her escape into the wastelands and eventually to the last place she thought the corpos would look for her: Crawler #430."
+      }
+    ]
+  },
+  {
+    "id": "ad164f9a-5ad8-46b5-85c0-e2ee9e077bf3",
+    "name": "Judge",
+    "source": "Reclamation of the Wastes",
+    "page": 5,
+    "pilotClass": "Hauler",
+    "background": "Survivor",
+    "motto": "Dance like nobody is watching.",
+    "keepsake": "Leatherbound Journal - Records each of his jobs.",
+    "hitPoints": 10,
+    "actionPoints": 5,
+    "equipment": ["Handheld Riveting Gun", "High Tensile Wire"],
+    "mech": {
+      "chassis": "Mule",
+      "pattern": "Survivor Pattern"
+    },
+    "systems": [
+      ".50 Cal Machine Gun",
+      "Armour Plating",
+      "Escape Hatch",
+      "Floodlights",
+      "Hydraulic Crusher",
+      "Locomotion System",
+      "Loudspeakers"
+    ],
+    "modules": ["Comms Module", "Cooling Module"],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Judge has been everywhere: Haven, Novosrik, Phoenix, Ashfall…you name it, he's hauled to it while building up his own trading company. He's earned a reputation for working with anyone (waster, corpo, or raider) and getting the job done, no questions asked, as long as he gets paid fair and square."
+      },
+      {
+        "type": "paragraph",
+        "value": "A routine Sakura hauling job through the Central Wastes went bad when his caravan was attacked by an Evantis patrol packing heat. Judge barely survived, crawling from the damaged wreck of his mule, with the attackers leaving him for dead."
+      },
+      {
+        "type": "paragraph",
+        "value": "After recovering, he managed to hunt down one of the merc pilots who'd attacked him and squeeze him for information. Turns out he was hired by Sakura to attack them using Evantis body kits, as part of a ploy to justify increased Sakura expansionism into the Evantis territory of the Arid Steppes."
+      },
+      {
+        "type": "paragraph",
+        "value": "He'd just been some pawn in the corpo games. Filled with rage, his crew dead, and only a single Mule Mech surviving from his caravan, he signed up to the Union and got assigned Crawler #430 for some payback against the corpos."
+      }
+    ]
+  },
+  {
+    "id": "7d67e09c-88fa-433b-a912-92d5fbe3546e",
+    "name": "Driftwood",
+    "source": "Reclamation of the Wastes",
+    "page": 7,
+    "pilotClass": "Salvager",
+    "background": "Hermit",
+    "motto": "Live and Let Live.",
+    "keepsake": "Butterfly Earrings",
+    "hitPoints": 10,
+    "actionPoints": 5,
+    "equipment": ["Heavy Duty Torch", "Salvaging Tools"],
+    "mech": {
+      "chassis": "Bobcat",
+      "pattern": "Mr Dig Pattern",
+      "name": "Mr Dig"
+    },
+    "systems": [
+      "Escape Hatch",
+      "Riveting Gun",
+      "Locomotion System",
+      "Mining Rig",
+      "High Pressure Hose"
+    ],
+    "modules": ["Comms Module", "Survey Scanner"],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Driftwood likes to keep to herself. She lives on the outskirts of waster settlements, alone in caverns, or tags along with trade caravans. She never stays anywhere too long and scavenges for what she needs. Her only companion is her BobCat Mech 'Mr Dig', who she has been known to have entire conversations with as the sun sets on the wastes."
+      },
+      {
+        "type": "paragraph",
+        "value": "She's occasionally visited by those who have heard of her wide-ranging skillset and need her help, which she's happy to provide for some peace and quiet. She found her way onto Crawler #430 through one of these chance meetings with the crew, who asked her to join and support them in their foray into Caldera. She agreed, and is enjoying crawler life so far - probably because it's always on the move, just how she likes it."
+      }
+    ]
+  },
+  {
+    "id": "1cf965e0-59e9-44db-8be3-a249e8d8014e",
+    "name": "Hotdog",
+    "source": "Reclamation of the Wastes",
+    "page": 9,
+    "pilotClass": "Scout",
+    "background": "Freelancer",
+    "motto": "Everything is impossible until it is done.",
+    "keepsake": "Pack of smokes",
+    "hitPoints": 10,
+    "actionPoints": 5,
+    "equipment": ["Improvised Melee Weapon", "Portable Comms Unit"],
+    "mech": {
+      "chassis": "Mazona",
+      "pattern": "Pop Pattern"
+    },
+    "systems": ["Escape Hatch", "Floodlights", "Mini Mortar"],
+    "modules": ["Comms Module", "Survey Scanner", "Zoom Optics"],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Hotdog is a match lit at both ends: he'll dive into a nest of Artls to save your skin, then not talk to you for a week for forgetting his drink order. In his youth, he fell into the street-gang life of Neo-Nara, the home Arco of Sakura. He found himself in high-speed Mazona races across the neon strip, gambling his life for scrip until he got the attention of the notorious Black Steel gang. The boss, Takeda, took Hotdog under his wing, offering driving and delivery jobs. But these soon became wetwork, and Hotdog used cheap thrills to forget - until the fateful morning he was asked to drive Sunshine, Takeda's daughter."
+      },
+      {
+        "type": "paragraph",
+        "value": "The two of them fell in love, and of course it ended messily. Hotdog fled into the wastes and has been running ever since, taking whatever jobs he could until Crawler #430 needed a Pilot for a Scouting job. Now he finds solace in the wilds, watching the windswept steppes to support his crew."
+      }
+    ]
+  },
+  {
+    "id": "18b79b4e-1b9f-4ecc-b9ba-6ddd4c9b4f28",
+    "name": "Razor",
+    "source": "Reclamation of the Wastes",
+    "page": 11,
+    "pilotClass": "Soldier",
+    "background": "Mercenary",
+    "motto": "Those who have a why can bear any how.",
+    "keepsake": "Snow's Dogtags",
+    "hitPoints": 10,
+    "actionPoints": 5,
+    "equipment": ["First Aid Kit", "Improvised Firearm"],
+    "mech": {
+      "chassis": "Thresher",
+      "pattern": "Slugger Pattern"
+    },
+    "systems": ["Red Laser", "Chainsaw Arm", "Locomotion System", "Escape Hatch"],
+    "modules": ["Comms Module", "Self-Destruct"],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Razor and her life partner Snow were a Mech mercenary power couple for hire. They took whatever jobs the corpos offered them, travelling far and wide across the different Arcos of the wastes, in hopes of earning enough DebtCredit to settle down somewhere and put the merc life and its darkness behind them. They were sometimes working together, but sometimes apart for long, painful stretches."
+      },
+      {
+        "type": "paragraph",
+        "value": "It was during one of these periods apart that Razor took a sabotage job for an unknown client, attacking an Aeon agri convoy within the Verdant Crescent. Unbeknownst to her, Snow had taken another job, to defend the operation."
+      },
+      {
+        "type": "paragraph",
+        "value": "The attack was swift. Under the cover of night, a deadly firefight of missile and laser salvos was exchanged. When the dust settled, Razor approached to confirm the kill and call for a salvage team. Then, with horror, she found herself pulling Snow's body from the cockpit."
+      },
+      {
+        "type": "paragraph",
+        "value": "With her life now in disarray, she fell into a dark hole, drinking through her saved scrip until she reached rock bottom at a Union Cantina. After hearing her story, they invited Razor to stay with them on Crawler #430 - no questions asked, no work required. They helped her back on her feet, got her clean, and now she has a new purpose as part of the salvaging crew."
+      }
+    ]
+  }
+]
