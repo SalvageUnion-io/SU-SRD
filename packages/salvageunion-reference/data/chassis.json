@@ -215,7 +215,14 @@
         "value": "The 'M-63' Mule was developed by the Opus Institute as one of the first open source Mech blueprints. They remain a ubiquitous presence across the wasteland as a result. Their design was replicated not only by other corpos, but numerous enthusiasts with a crafting bay. The Mule's spacious cargo bay makes the Mech invaluable to wastelanders, corpos, and salvagers alike for transporting salvage over a wide array of terrain, whilst its general hardiness allows it to survive numerous threats from raider ambushes to radiation storms."
       }
     ],
-    "chassisAbilities": ["Integrated Cargo Bay"]
+    "chassisAbilities": ["Integrated Cargo Bay"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 12
+      }
+    ]
   },
   {
     "id": "df6b7872-5fbe-4602-b564-564157864746",
@@ -532,7 +539,14 @@
         "value": "The Mazona 'PR1-M3' was created by DronTek Systems in the aftermath of the first Luddite Rebellion. It was designed as a delivery drone that could be piloted by a worker rather than automated. Its design remains useful due to the majority of automated drones malfunctioning as a result of the increased radiation storms across the wastelands. Whilst fragile, the DronTek patented hover function enables it to operate across a wide variety of terrain, plus it is a cheap Mech to rebuild if it does get blown apart."
       }
     ],
-    "chassisAbilities": ["Hover Drone"]
+    "chassisAbilities": ["Hover Drone"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 14
+      }
+    ]
   },
   {
     "id": "105055e2-eb07-4329-8dc0-a344d6d77212",
@@ -739,7 +753,14 @@
         "value": "The 'S-5000' Scrapper was designed by Hodgson & Vasquez, a subsidiary of Evantis Heavy Industries, for trash haulage and waste disposal. Its Hazard Protected Chassis was necessary to protect the Pilot against the accumulated toxic wastes of the great trash mountains that dotted the Arid Steppes around the Evantis home arco of Haven."
       }
     ],
-    "chassisAbilities": ["Hazard Protected Chassis"]
+    "chassisAbilities": ["Hazard Protected Chassis"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 16
+      }
+    ]
   },
   {
     "id": "c465ea55-0230-41c9-a014-2baf453e2d2b",
@@ -785,7 +806,12 @@
       },
       {
         "name": "Operator Pattern",
-        "additionalSources": [{ "source": "Thatcher's Mech Base", "page": 1 }],
+        "additionalSources": [
+          {
+            "source": "Thatcher's Mech Base",
+            "page": 1
+          }
+        ],
         "systems": [
           {
             "name": "FM-3 Flamethrower"
@@ -1172,7 +1198,14 @@
         "value": "The 'T-690' Thresher was designed as a multi-purpose agriculture Mech by Hodgson & Vasquez to aid in the large-scale crop harvesting and forestry operations within the Verdant Crescent. It is one of the longest operating Mechs in existence, said to have been used in the Great War. Its multiple layers of heavy armour are a clunky holdover from that era, but provide solid protection to the Mech in the perilous wastes."
       }
     ],
-    "chassisAbilities": ["Heavily Armoured Chassis"]
+    "chassisAbilities": ["Heavily Armoured Chassis"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 20
+      }
+    ]
   },
   {
     "id": "b9ad42f1-55a8-4e87-aa9a-e135ad434831",
@@ -1590,7 +1623,14 @@
         "value": "Following the Olympia Springs incident it is against Union Regulations to store raw meat in the Expanded Transport Hold."
       }
     ],
-    "chassisAbilities": ["Integrated Expanded Transport Hold"]
+    "chassisAbilities": ["Integrated Expanded Transport Hold"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 26
+      }
+    ]
   },
   {
     "id": "a7134396-92a6-47a7-b6fe-bd2e8a93c4fb",
@@ -1851,7 +1891,12 @@
       },
       {
         "name": "Thatcher Pattern",
-        "additionalSources": [{ "source": "Thatcher's Mech Base", "page": 1 }],
+        "additionalSources": [
+          {
+            "source": "Thatcher's Mech Base",
+            "page": 1
+          }
+        ],
         "systems": [
           {
             "name": "Heavy Duty Mining Rig"
@@ -1899,7 +1944,14 @@
         "value": "The 'BG-288' Jackhammer was commissioned by the Terrestrial Democratic Alliance and constructed by Thatcher Steel. The Jackhammer was built in response to a series of costly uranium mining accidents on off-world colonies, due to lax worker safety protocols, in which a slew of mining Mechs were destroyed in tunnel collapses and the worker pilots tragically killed. The reinforced chassis of the Jackhammer was designed to protect the Mech's expensive reactor and core systems in the event of an accident which immobilised or crushed the Mech. That it happened to also protect the worker pilot was of secondary consideration to the corpo."
       }
     ],
-    "chassisAbilities": ["Reinforced Chassis"]
+    "chassisAbilities": ["Reinforced Chassis"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 30
+      }
+    ]
   },
   {
     "name": "Goliath",
@@ -2068,7 +2120,14 @@
         "value": "The salvager answer to the Leviathan Chassis. This junker Mech is built out of a hodgepodge of scrap parts, giving it a hulking appearance. Layers of expendable scrap armour built into its hull make it rugged, and resilient for its tech level, despite a relatively fragile core. The Goliath is used extensively by salvagers in regions where scrap is ripe."
       }
     ],
-    "chassisAbilities": ["Scrap Plating"]
+    "chassisAbilities": ["Scrap Plating"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 24
+      }
+    ]
   },
   {
     "id": "1ba741eb-5b33-496f-81f8-7f9d05e27985",
@@ -2303,7 +2362,14 @@
         "value": "The 'USM-53' Kraken was developed by Aegean Dynamics as one of the first hybrid land and water Mechs. Able to carry a large crew to the depths of ocean trenches, it proved instrumental in the construction and repair of underwater fibre net pipelines which were a vulnerable target during the cyberwars. It has a reputation for being a chunky Mech on land, but its pilots often extol its comfortable environmental systems which keeps it both airtight and watertight. When on land this also keeps it protected from wasteland debris, dust, and dangerous gases."
       }
     ],
-    "chassisAbilities": ["Integrated Amphibious Locomotion System"]
+    "chassisAbilities": ["Integrated Amphibious Locomotion System"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 32
+      }
+    ]
   },
   {
     "id": "c505adcd-26af-4c2a-91f4-55ff1fd8fe72",
@@ -2357,7 +2423,12 @@
       },
       {
         "name": "Maggie Pattern",
-        "additionalSources": [{ "source": "Thatcher's Mech Base", "page": 1 }],
+        "additionalSources": [
+          {
+            "source": "Thatcher's Mech Base",
+            "page": 1
+          }
+        ],
         "systems": [
           {
             "name": "30mm Autocannon"
@@ -2495,7 +2566,14 @@
         "value": "The 'Type 43' Magpie was developed by Thatcher Steel on behalf of Stefanus as an industrial worker Mech. Its universal mounting points allowed for rapid transition between the various complex servo arms needed during the development and roll out of the Stefanus Prion Chassis. This means its parts can be rapidly hot swapped in the field, even in a combat situation making it something of a holy grail for salvagers, though less so for its namesake."
       }
     ],
-    "chassisAbilities": ["Hot Swap Universal Mounts"]
+    "chassisAbilities": ["Hot Swap Universal Mounts"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 34
+      }
+    ]
   },
   {
     "id": "fdb9542b-d85e-468b-911a-517f8411efab",
@@ -2969,7 +3047,14 @@
         "value": "The 'MK8' Atlas was developed by Evantis Heavy Industries as a mobile, heavily armoured, resupply base. When Evantis switched their Mech production to focus on their Colossus Chassis during the midst of the First Corpo War, it made the Atlas technically the smallest Mech they still produced. This led to the Atlas being known colloquially as the 'Evantis Scout'."
       }
     ],
-    "chassisAbilities": ["Integrated Colossal Cargo Bay"]
+    "chassisAbilities": ["Integrated Colossal Cargo Bay"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 38
+      }
+    ]
   },
   {
     "id": "d05330c9-e87e-4e1b-b1b4-cb70a97e7543",
@@ -3190,7 +3275,14 @@
         "value": "The 'GC-C21' Brawler is a combat Mech favoured by corpo mercs due to its relatively low scrip debt cost. The Terrestrial Democratic Alliance began to mass produce Brawlers during the Second Corpo War, and deployed them in the siege of the Central Wastes where they obliterated the Herrsch home arco. They later became one of the first combat Mechs to be produced as an open source blueprint by the Opus Institute."
       }
     ],
-    "chassisAbilities": ["Close Range Protocols"]
+    "chassisAbilities": ["Close Range Protocols"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 40
+      }
+    ]
   },
   {
     "id": "01944f26-0843-4897-a72d-da19a56b1974",
@@ -3887,7 +3979,14 @@
         "value": "The 'S-1300' Solo was designed by Sakura for use in wetwork operations due to its capability to smuggle deadly weaponry close to exposed targets, whilst avoiding radar and scanning systems. As a result of its design, it has become prized by smugglers across the wastes who utilise its Chassis to ferry all manner of contraband through the various arcos and militarised checkpoints dotted around the wastelands."
       }
     ],
-    "chassisAbilities": ["Polycarbonate Stealth Chassis"]
+    "chassisAbilities": ["Polycarbonate Stealth Chassis"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 44
+      }
+    ]
   },
   {
     "id": "c7dba8f0-cec4-4e32-a01f-5832da666afc",
