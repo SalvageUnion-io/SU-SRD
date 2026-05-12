@@ -48,6 +48,8 @@ Static SRD reference site for Salvage Union game data.
 
 The `/changelog` page (data in `src/lib/changelog.ts`) lists major changes to the site. When you make a major change, prepend a new entry at the top of the `CHANGELOG` array.
 
+**One entry per PR (or per release).** Changelog entries are PR-scoped, not commit-scoped. Do not add a new entry for every intra-PR change — when iterating on a branch, edit the existing entry to reflect the final shape of the PR. The entry should describe the PR's final state, not its history. If a PR has no existing entry yet, add one. If it already has one, update it in place.
+
 **What counts as major (add an entry):**
 
 - New top-level page or navigation item
