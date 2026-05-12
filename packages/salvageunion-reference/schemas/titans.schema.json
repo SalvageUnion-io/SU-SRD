@@ -1,8 +1,8 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://salvageunion.com/schemas/bosses.schema.json",
-  "title": "bosses",
-  "description": "Boss enemies (mech-scale named threats, often with Titanic Actions)",
+  "$id": "https://salvageunion.com/schemas/titans.schema.json",
+  "title": "titans",
+  "description": "Mech-scale single-threat enemies in Salvage Union (monsters and bosses)",
   "type": "array",
   "items": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -203,10 +203,21 @@
         },
         "description": "Other source books where this entity is reprinted"
       },
+      "kind": {
+        "type": "string",
+        "enum": ["monster", "boss"],
+        "description": "Monster (instinctual creature) or Boss (named antagonist with goals and motivations)"
+      },
+      "structurePoints": {
+        "type": "integer",
+        "exclusiveMinimum": 0,
+        "maximum": 9007199254740991,
+        "description": "Structure points of this titan"
+      },
       "actions": {
         "type": "array",
         "items": { "type": "string" },
-        "description": "Action names this entity can perform"
+        "description": "Action names this titan can perform"
       },
       "traits": {
         "type": "array",
@@ -232,21 +243,20 @@
           "description": "Special traits and properties of items, systems, or abilities"
         },
         "description": "Traits and special properties"
-      },
-      "structurePoints": {
-        "type": "integer",
-        "exclusiveMinimum": 0,
-        "maximum": 9007199254740991,
-        "description": "Structure points (boss-scale SP)"
-      },
-      "damageType": {
-        "type": "string",
-        "enum": ["HP", "SP"],
-        "description": "Damage type tracked by this boss. Bosses are mech-scale, so this is typically SP."
       }
     },
-    "required": ["id", "indexable", "blackMarket", "name", "source", "page", "structurePoints"],
+    "required": [
+      "id",
+      "indexable",
+      "blackMarket",
+      "name",
+      "source",
+      "page",
+      "kind",
+      "structurePoints",
+      "actions"
+    ],
     "additionalProperties": false,
-    "description": "Boss enemies (mech-scale named threats, often with Titanic Actions)"
+    "description": "Mech-scale single-threat enemies in Salvage Union (monsters and bosses)"
   }
 }

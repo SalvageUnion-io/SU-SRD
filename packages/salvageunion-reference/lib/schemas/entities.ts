@@ -84,15 +84,27 @@ export const MetaActionSchema = ActionSchema.and(
 ).describe('Actions, abilities, and attacks that can be performed in Salvage Union')
 
 /**
- * Massive bio-engineered titan creatures in Salvage Union
+ * Mech-scale single-threat enemies in Salvage Union (monsters and bosses).
+ *
+ * `kind` distinguishes:
+ * - `monster`: instinctual creatures (e.g. Scylla, Typhon, Chrysalis)
+ * - `boss`: named antagonists with goals and motivations (e.g. The Iron Lady)
+ *
+ * Both share the same statblock shape: structurePoints + actions (often
+ * including a "Titanic Actions" entry) and optional traits.
  */
-export const BioTitanSchema = BaseEntitySchema.extend({
-  structurePoints: PositiveIntegerSchema.describe('Structure points of this bio-titan'),
-  actions: z.array(z.string()).describe('Action names this bio-titan can perform'),
+export const TitanSchema = BaseEntitySchema.extend({
+  kind: z
+    .enum(['monster', 'boss'])
+    .describe(
+      'Monster (instinctual creature) or Boss (named antagonist with goals and motivations)'
+    ),
+  structurePoints: PositiveIntegerSchema.describe('Structure points of this titan'),
+  actions: z.array(z.string()).describe('Action names this titan can perform'),
   traits: z.array(TraitSchema).describe('Traits and special properties').optional(),
 })
   .strict()
-  .describe('Massive bio-engineered titan creatures in Salvage Union')
+  .describe('Mech-scale single-threat enemies in Salvage Union (monsters and bosses)')
 
 /**
  * Mech chassis definitions in Salvage Union
@@ -315,22 +327,6 @@ export const NPCSchema = BaseEntitySchema.extend({ ...CombatEntitySchema.shape }
   })
   .strict()
   .describe('Non-player characters and people in Salvage Union')
-
-/**
- * Boss enemies (e.g. The Iron Lady, CURNOS) — mech-scale named threats that
- * function as the focus of a single encounter. Distinguished from NPCs because
- * they fight at mech scale (SP only) and frequently have Titanic Actions or
- * other multi-stage boss-fight mechanics.
- */
-export const BossSchema = BaseEntitySchema.extend({ ...CombatEntitySchema.shape })
-  .extend({
-    structurePoints: PositiveIntegerSchema.describe('Structure points (boss-scale SP)'),
-    damageType: DamageTypeSchema.describe(
-      'Damage type tracked by this boss. Bosses are mech-scale, so this is typically SP.'
-    ).optional(),
-  })
-  .strict()
-  .describe('Boss enemies (mech-scale named threats, often with Titanic Actions)')
 
 /**
  * Random tables and roll tables in Salvage Union

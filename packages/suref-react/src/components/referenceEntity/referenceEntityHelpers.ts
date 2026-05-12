@@ -47,7 +47,7 @@ export function calculateBackgroundColor(
   if (schemaName === 'crawler-tech-levels') return headerColor || 'bg-su-pink'
   if (schemaName === 'crawler-bays') return headerColor || 'bg-su-pink'
   if (schemaName === 'creatures') return headerColor || 'bg-su-rust'
-  if (schemaName === 'bio-titans') return headerColor || 'bg-su-rust'
+  if (schemaName === 'titans') return headerColor || 'bg-su-rust'
   if (schemaName === 'factions') return headerColor || 'bg-su-rust'
   if (schemaName === 'npcs') return headerColor || 'bg-su-rust'
   if (schemaName === 'meld') return headerColor || 'bg-su-rust'

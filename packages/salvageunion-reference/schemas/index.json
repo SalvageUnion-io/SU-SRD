@@ -3,7 +3,7 @@
   "title": "Salvage Union Data Schema Catalog",
   "description": "Catalog of all available schemas in the salvageunion-data repository",
   "version": "2.3.5",
-  "generated": "2026-05-12T00:52:44.799Z",
+  "generated": "2026-05-12T04:18:16.657Z",
   "schemas": [
     {
       "id": "abilities",
@@ -46,43 +46,6 @@
       "requiredFields": [],
       "displayName": "actions",
       "meta": true
-    },
-    {
-      "id": "bio-titans",
-      "title": "bio-titans",
-      "description": "Massive bio-engineered titan creatures in Salvage Union",
-      "dataFile": "data/bio-titans.json",
-      "schemaFile": "schemas/bio-titans.schema.json",
-      "itemCount": 12,
-      "requiredFields": [
-        "id",
-        "indexable",
-        "blackMarket",
-        "name",
-        "source",
-        "page",
-        "structurePoints",
-        "actions"
-      ],
-      "displayName": "Bio-Titans"
-    },
-    {
-      "id": "bosses",
-      "title": "bosses",
-      "description": "Boss enemies (mech-scale named threats, often with Titanic Actions)",
-      "dataFile": "data/bosses.json",
-      "schemaFile": "schemas/bosses.schema.json",
-      "itemCount": 2,
-      "requiredFields": [
-        "id",
-        "indexable",
-        "blackMarket",
-        "name",
-        "source",
-        "page",
-        "structurePoints"
-      ],
-      "displayName": "bosses"
     },
     {
       "id": "catalog-categories",
@@ -412,6 +375,26 @@
       "itemCount": 6,
       "requiredFields": ["id", "indexable", "blackMarket", "name", "source", "page", "techLevel"],
       "displayName": "tech-levels"
+    },
+    {
+      "id": "titans",
+      "title": "titans",
+      "description": "Mech-scale single-threat enemies in Salvage Union (monsters and bosses)",
+      "dataFile": "data/titans.json",
+      "schemaFile": "schemas/titans.schema.json",
+      "itemCount": 13,
+      "requiredFields": [
+        "id",
+        "indexable",
+        "blackMarket",
+        "name",
+        "source",
+        "page",
+        "kind",
+        "structurePoints",
+        "actions"
+      ],
+      "displayName": "Titans"
     },
     {
       "id": "traits",

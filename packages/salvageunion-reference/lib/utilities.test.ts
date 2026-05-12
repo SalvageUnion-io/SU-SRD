@@ -320,7 +320,6 @@ describe('Property Extractors', () => {
     const schemasWithPages = [
       'Abilities',
       'AbilityTreeRequirements',
-      'BioTitans',
       'Chassis',
       'Classes',
       'CrawlerBays',
@@ -338,6 +337,7 @@ describe('Property Extractors', () => {
       'RollTables',
       'Squads',
       'Systems',
+      'Titans',
       'Traits',
       'Vehicles',
     ] as const
@@ -404,9 +404,9 @@ describe('Property Extractors', () => {
       expect(actions!.length).toBeGreaterThan(0)
     })
 
-    it('should extract actions from bio-titans', () => {
-      const bioTitan = getReference().BioTitans.all()[0]!
-      const actions = extractActions(bioTitan)
+    it('should extract actions from titans', () => {
+      const titan = getReference().Titans.all()[0]!
+      const actions = extractActions(titan)
       expect(actions).toBeDefined()
       expect(Array.isArray(actions)).toBe(true)
       expect(actions!.length).toBeGreaterThan(0)
@@ -620,9 +620,9 @@ describe('Property Extractors', () => {
       expect(assetUrl).toContain('chassis/mule.png')
     })
 
-    it('should extract asset_url from bio-titans', () => {
-      const bioTitan = getReference().BioTitans.find((b) => b.name === 'Typhon')
-      const assetUrl = getAssetUrl(bioTitan!)
+    it('should extract asset_url from titans', () => {
+      const titan = getReference().Titans.find((t) => t.name === 'Typhon')
+      const assetUrl = getAssetUrl(titan!)
       expect(assetUrl).toBeDefined()
       expect(typeof assetUrl).toBe('string')
       expect(assetUrl).toContain('bio-titans/typhon.jpg')

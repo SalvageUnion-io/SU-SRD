@@ -13,8 +13,7 @@ import {
   AbilitySchema,
   AbilityTreeRequirementSchema,
   MetaActionSchema,
-  BioTitanSchema,
-  BossSchema,
+  TitanSchema,
   ChassisSchema,
   ClassSchema,
   CrawlerBaySchema,
@@ -56,12 +55,6 @@ const dataLoaders: Record<string, () => Promise<unknown[]>> = {
     ),
   actions: () =>
     import('../data/actions.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
-  'bio-titans': () =>
-    import('../data/bio-titans.json', { with: { type: 'json' } }).then(
-      (m) => m.default as unknown[]
-    ),
-  bosses: () =>
-    import('../data/bosses.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
   chassis: () =>
     import('../data/chassis.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
   classes: () =>
@@ -114,6 +107,8 @@ const dataLoaders: Record<string, () => Promise<unknown[]>> = {
     import('../data/squads.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
   systems: () =>
     import('../data/systems.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
+  titans: () =>
+    import('../data/titans.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
   traits: () =>
     import('../data/traits.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
   vehicles: () =>
@@ -141,14 +136,6 @@ const jsonSchemaLoaders: Record<string, () => Promise<Record<string, unknown>>> 
     ),
   actions: () =>
     import('../schemas/actions.schema.json', { with: { type: 'json' } }).then(
-      (m) => m.default as Record<string, unknown>
-    ),
-  'bio-titans': () =>
-    import('../schemas/bio-titans.schema.json', { with: { type: 'json' } }).then(
-      (m) => m.default as Record<string, unknown>
-    ),
-  bosses: () =>
-    import('../schemas/bosses.schema.json', { with: { type: 'json' } }).then(
       (m) => m.default as Record<string, unknown>
     ),
   chassis: () =>
@@ -227,6 +214,10 @@ const jsonSchemaLoaders: Record<string, () => Promise<Record<string, unknown>>> 
     import('../schemas/systems.schema.json', { with: { type: 'json' } }).then(
       (m) => m.default as Record<string, unknown>
     ),
+  titans: () =>
+    import('../schemas/titans.schema.json', { with: { type: 'json' } }).then(
+      (m) => m.default as Record<string, unknown>
+    ),
   traits: () =>
     import('../schemas/traits.schema.json', { with: { type: 'json' } }).then(
       (m) => m.default as Record<string, unknown>
@@ -256,8 +247,6 @@ const zodSchemaMap: Record<string, z.ZodType<unknown>> = {
   abilities: AbilitySchema,
   'ability-tree-requirements': AbilityTreeRequirementSchema,
   actions: MetaActionSchema,
-  'bio-titans': BioTitanSchema,
-  bosses: BossSchema,
   chassis: ChassisSchema,
   classes: ClassSchema,
   'crawler-bays': CrawlerBaySchema,
@@ -277,6 +266,7 @@ const zodSchemaMap: Record<string, z.ZodType<unknown>> = {
   'roll-tables': RollTableSchema,
   squads: SquadSchema,
   systems: SystemSchema,
+  titans: TitanSchema,
   traits: TraitEntitySchema,
   vehicles: VehicleSchema,
   sources: SourceEntitySchema,
@@ -466,8 +456,6 @@ const schemaDisplayNames: Record<string, { singular: string; plural: string }> =
     singular: 'Ability Tree Requirement',
     plural: 'Ability Tree Requirements',
   },
-  'bio-titans': { singular: 'Bio-Titan', plural: 'Bio-Titans' },
-  bosses: { singular: 'Boss', plural: 'Bosses' },
   chassis: { singular: 'Chassis', plural: 'Chassis' },
   classes: { singular: 'Class', plural: 'Classes' },
   'crawler-bays': { singular: 'Crawler Bay', plural: 'Crawler Bays' },
@@ -490,6 +478,7 @@ const schemaDisplayNames: Record<string, { singular: string; plural: string }> =
   'roll-tables': { singular: 'Roll Table', plural: 'Roll Tables' },
   squads: { singular: 'Squad', plural: 'Squads' },
   systems: { singular: 'System', plural: 'Systems' },
+  titans: { singular: 'Titan', plural: 'Titans' },
   traits: { singular: 'Trait', plural: 'Traits' },
   vehicles: { singular: 'Vehicle', plural: 'Vehicles' },
   sources: { singular: 'Source', plural: 'Sources' },

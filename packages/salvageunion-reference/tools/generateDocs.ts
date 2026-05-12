@@ -105,7 +105,6 @@ function parseSchemaFile(schemaFile: string): SchemaInfo | null {
     // Convert to proper display format
     if (displayName === 'abilities') displayName = 'Abilities'
     else if (displayName === 'ability-tree-requirements') displayName = 'Ability Tree Requirements'
-    else if (displayName === 'bio-titans') displayName = 'Bio-Titans'
     else if (displayName === 'chassis') displayName = 'Chassis'
     else if (displayName === 'classes') displayName = 'Classes'
     else if (displayName === 'crawler-bays') displayName = 'Crawler Bays'
@@ -122,6 +121,7 @@ function parseSchemaFile(schemaFile: string): SchemaInfo | null {
     else if (displayName === 'roll-tables') displayName = 'Roll Tables'
     else if (displayName === 'squads') displayName = 'Squads'
     else if (displayName === 'systems') displayName = 'Systems'
+    else if (displayName === 'titans') displayName = 'Titans'
     else if (displayName === 'traits') displayName = 'Traits'
     else if (displayName === 'vehicles') displayName = 'Vehicles'
     else if (displayName === 'catalog-categories') displayName = 'Catalog Categories'

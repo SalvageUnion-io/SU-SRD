@@ -21,8 +21,6 @@
           "enum": [
             "abilities",
             "ability-tree-requirements",
-            "bio-titans",
-            "bosses",
             "chassis",
             "classes",
             "crawler-bays",
@@ -44,6 +42,7 @@
             "squads",
             "tech-levels",
             "systems",
+            "titans",
             "traits",
             "vehicles"
           ],

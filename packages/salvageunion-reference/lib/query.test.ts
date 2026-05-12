@@ -47,7 +47,6 @@ describe('isValidSchemaName', () => {
     const entitySchemaNames: SURefEnumSchemaName[] = [
       'abilities',
       'ability-tree-requirements',
-      'bio-titans',
       'chassis',
       'classes',
       'crawler-bays',
@@ -68,6 +67,7 @@ describe('isValidSchemaName', () => {
       'squads',
       'systems',
       'tech-levels',
+      'titans',
       'traits',
       'vehicles',
     ]
