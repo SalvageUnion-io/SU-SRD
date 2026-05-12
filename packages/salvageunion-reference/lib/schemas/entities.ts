@@ -301,8 +301,8 @@ export const ModuleSchema = BaseEntitySchema.extend({ ...SystemModuleSchema.shap
 export const NPCSchema = BaseEntitySchema.extend({ ...CombatEntitySchema.shape })
   .extend({
     hitPoints: NonNegativeIntegerSchema.describe(
-      'Hit points (HP) or structure points (SP) of this NPC; see damageType to disambiguate. Omit for narrative-only NPCs (e.g. Holo-Companions).'
-    ).optional(),
+      'Hit points (HP) or structure points (SP) of this NPC; see damageType to disambiguate.'
+    ),
     damageType: DamageTypeSchema.describe(
       'Whether this NPC tracks HP (organic) or SP (mechanical/cybernetic). Defaults to HP when omitted.'
     ).optional(),
@@ -324,9 +324,7 @@ export const NPCSchema = BaseEntitySchema.extend({ ...CombatEntitySchema.shape }
  */
 export const BossSchema = BaseEntitySchema.extend({ ...CombatEntitySchema.shape })
   .extend({
-    structurePoints: PositiveIntegerSchema.describe(
-      'Structure points (boss-scale SP). Omit for narrative-only bosses with no combat statblock (e.g. PAX).'
-    ).optional(),
+    structurePoints: PositiveIntegerSchema.describe('Structure points (boss-scale SP)'),
     damageType: DamageTypeSchema.describe(
       'Damage type tracked by this boss. Bosses are mech-scale, so this is typically SP.'
     ).optional(),

@@ -237,7 +237,7 @@
         "type": "integer",
         "minimum": 0,
         "maximum": 9007199254740991,
-        "description": "Hit points (HP) or structure points (SP) of this NPC; see damageType to disambiguate. Omit for narrative-only NPCs (e.g. Holo-Companions)."
+        "description": "Hit points (HP) or structure points (SP) of this NPC; see damageType to disambiguate."
       },
       "damageType": {
         "type": "string",
@@ -257,7 +257,7 @@
         "description": "Bio-salvage value for Chimerium mutants"
       }
     },
-    "required": ["id", "indexable", "blackMarket", "name", "source", "page"],
+    "required": ["id", "indexable", "blackMarket", "name", "source", "page", "hitPoints"],
     "additionalProperties": false,
     "description": "Non-player characters and people in Salvage Union"
   }
