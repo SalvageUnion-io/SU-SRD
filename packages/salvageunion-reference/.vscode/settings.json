@@ -13,10 +13,6 @@
       "url": "./schemas/actions.schema.json"
     },
     {
-      "fileMatch": ["data/bio-titans.json"],
-      "url": "./schemas/bio-titans.schema.json"
-    },
-    {
       "fileMatch": ["data/catalog-categories.json"],
       "url": "./schemas/catalog-categories.schema.json"
     },
@@ -81,8 +77,16 @@
       "url": "./schemas/npcs.schema.json"
     },
     {
+      "fileMatch": ["data/pre-made-characters.json"],
+      "url": "./schemas/pre-made-characters.schema.json"
+    },
+    {
       "fileMatch": ["data/roll-tables.json"],
       "url": "./schemas/roll-tables.schema.json"
+    },
+    {
+      "fileMatch": ["data/sources.json"],
+      "url": "./schemas/sources.schema.json"
     },
     {
       "fileMatch": ["data/squads.json"],
@@ -91,6 +95,14 @@
     {
       "fileMatch": ["data/systems.json"],
       "url": "./schemas/systems.schema.json"
+    },
+    {
+      "fileMatch": ["data/tech-levels.json"],
+      "url": "./schemas/tech-levels.schema.json"
+    },
+    {
+      "fileMatch": ["data/titans.json"],
+      "url": "./schemas/titans.schema.json"
     },
     {
       "fileMatch": ["data/traits.json"],

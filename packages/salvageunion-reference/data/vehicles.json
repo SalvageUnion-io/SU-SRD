@@ -8,6 +8,7 @@
     "salvageValue": 1,
     "structurePoints": 1,
     "page": 292,
+    "additionalSources": [{ "source": "Reclamation of the Wastes", "page": 102 }],
     "content": [
       {
         "type": "paragraph",
@@ -33,6 +34,7 @@
     "salvageValue": 1,
     "structurePoints": 1,
     "page": 292,
+    "additionalSources": [{ "source": "Reclamation of the Wastes", "page": 102 }],
     "content": [
       {
         "type": "paragraph",
@@ -84,6 +86,7 @@
     "structurePoints": 4,
     "asset_url": "https://opxrguskxuogghzcnppk.supabase.co/storage/v1/object/public/LP-Assets/vehicles/armoured%20box%20wheel.jpg",
     "page": 293,
+    "additionalSources": [{ "source": "Reclamation of the Wastes", "page": 102 }],
     "content": [
       {
         "type": "paragraph",
@@ -100,6 +103,7 @@
     "salvageValue": 4,
     "structurePoints": 6,
     "page": 293,
+    "additionalSources": [{ "source": "Reclamation of the Wastes", "page": 102 }],
     "content": [
       {
         "type": "paragraph",
@@ -125,10 +129,55 @@
     "salvageValue": 3,
     "structurePoints": 3,
     "page": 293,
+    "additionalSources": [{ "source": "Reclamation of the Wastes", "page": 102 }],
     "content": [
       {
         "type": "paragraph",
         "value": "A flying vehicle that can hover over terrain."
+      }
+    ]
+  },
+  {
+    "id": "f4fe9598-04dd-4d00-b742-1ab7695b43cd",
+    "source": "Reclamation of the Wastes",
+    "page": 102,
+    "name": "E-Boat",
+    "systems": ["Integrated Amphibious Locomotion System"],
+    "traits": [
+      {
+        "type": "personnel capacity",
+        "amount": 12
+      }
+    ],
+    "techLevel": 1,
+    "salvageValue": 2,
+    "structurePoints": 2,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A simple boat, powered by a small electric generator and able to transport up to a dozen people across water"
+      }
+    ]
+  },
+  {
+    "id": "36b2a94c-306f-476c-bf74-5c39a0eaab73",
+    "source": "Reclamation of the Wastes",
+    "page": 102,
+    "name": "Tombstone Trackbox",
+    "systems": ["Locomotion System", "Shanty Home"],
+    "traits": [
+      {
+        "type": "personnel capacity",
+        "amount": 12
+      }
+    ],
+    "techLevel": 1,
+    "salvageValue": 1,
+    "structurePoints": 2,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A caravan home built on the frame of an industrial trackbox."
       }
     ]
   },
@@ -146,11 +195,42 @@
     "salvageValue": 1,
     "structurePoints": 2,
     "page": 293,
+    "additionalSources": [{ "source": "Reclamation of the Wastes", "page": 103 }],
     "content": [
       {
         "type": "paragraph",
         "value": "A static gun emplacement."
       }
     ]
+  },
+  {
+    "id": "ab26df6f-cc65-492d-9d80-42c31489c4a7",
+    "source": "Reclamation of the Wastes",
+    "page": 103,
+    "name": "Green Laser Turret",
+    "systems": ["Green Laser"],
+    "traits": [
+      {
+        "type": "immobile"
+      }
+    ],
+    "techLevel": 2,
+    "salvageValue": 1,
+    "structurePoints": 4
+  },
+  {
+    "id": "73ffb42f-ab96-4a15-bd48-ab86ab79a47d",
+    "source": "Reclamation of the Wastes",
+    "page": 103,
+    "name": "Missile Pod Turret",
+    "systems": ["Missile Pod"],
+    "traits": [
+      {
+        "type": "immobile"
+      }
+    ],
+    "techLevel": 3,
+    "salvageValue": 1,
+    "structurePoints": 6
   }
 ]

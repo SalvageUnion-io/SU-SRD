@@ -2,6 +2,7 @@
   {
     "id": "d1a2b3c4-5e6f-7a8b-9c0d-1e2f3a4b5c6d",
     "source": "Salvage Union Workshop Manual",
+    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 20 }],
     "name": "Close",
     "page": 237,
     "content": [
@@ -18,6 +19,7 @@
   {
     "id": "e2b3c4d5-6f7a-8b9c-0d1e-2f3a4b5c6d7e",
     "source": "Salvage Union Workshop Manual",
+    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 20 }],
     "name": "Medium",
     "page": 237,
     "content": [
@@ -34,6 +36,7 @@
   {
     "id": "f3c4d5e6-7a8b-9c0d-1e2f-3a4b5c6d7e8f",
     "source": "Salvage Union Workshop Manual",
+    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 20 }],
     "name": "Long",
     "page": 237,
     "content": [
@@ -50,6 +53,7 @@
   {
     "id": "a4d5e6f7-8b9c-0d1e-2f3a-4b5c6d7e8f9a",
     "source": "Salvage Union Workshop Manual",
+    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 20 }],
     "name": "Far",
     "page": 237,
     "content": [

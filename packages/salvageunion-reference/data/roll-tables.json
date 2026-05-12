@@ -2,6 +2,13 @@
   {
     "id": "fa9860bb-83c2-4d8c-b100-40708948257d",
     "source": "Salvage Union Workshop Manual",
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "CR",
+        "page": 14
+      }
+    ],
     "name": "Core Mechanic",
     "table": {
       "1": {
@@ -38,6 +45,13 @@
   {
     "id": "cdbc20d9-ff63-4272-805b-f148f0c01752",
     "source": "Salvage Union Workshop Manual",
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "CR",
+        "page": 19
+      }
+    ],
     "name": "Group Initiative",
     "table": {
       "1": {
@@ -74,6 +88,13 @@
   {
     "id": "dcd888a2-dc2d-4f45-94eb-ae6138761931",
     "source": "Salvage Union Workshop Manual",
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "CR",
+        "page": 25
+      }
+    ],
     "name": "Critical Injury",
     "table": {
       "1": {
@@ -110,6 +131,13 @@
   {
     "id": "aa54dcd4-efd0-4cbb-83dc-4cf6f0411066",
     "source": "Salvage Union Workshop Manual",
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "CR",
+        "page": 23
+      }
+    ],
     "name": "Critical Damage",
     "table": {
       "1": {
@@ -146,6 +174,13 @@
   {
     "id": "0050af76-7d88-43e7-b098-1a6af7656353",
     "source": "Salvage Union Workshop Manual",
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "CR",
+        "page": 17
+      }
+    ],
     "name": "Reactor Overload",
     "table": {
       "1": {
@@ -176,6 +211,13 @@
   {
     "id": "abca780b-da93-47b0-91e6-290da910e2fd",
     "source": "Salvage Union Workshop Manual",
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "CR",
+        "page": 31
+      }
+    ],
     "name": "Area Salvage",
     "table": {
       "1": {
@@ -206,6 +248,13 @@
   {
     "id": "acdc85ee-056c-4edc-95be-e25f0ab9b319",
     "source": "Salvage Union Workshop Manual",
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "CR",
+        "page": 31
+      }
+    ],
     "name": "Mech Salvage",
     "table": {
       "1": {
@@ -261,6 +310,12 @@
       "type": "standard"
     },
     "page": 268,
+    "additionalSources": [
+      {
+        "source": "Reclamation of the Wastes",
+        "page": 98
+      }
+    ],
     "content": [
       {
         "type": "paragraph",
@@ -524,6 +579,12 @@
       "type": "standard"
     },
     "page": 268,
+    "additionalSources": [
+      {
+        "source": "Reclamation of the Wastes",
+        "page": 99
+      }
+    ],
     "content": [
       {
         "type": "paragraph",
@@ -560,6 +621,12 @@
       "type": "standard"
     },
     "page": 268,
+    "additionalSources": [
+      {
+        "source": "Reclamation of the Wastes",
+        "page": 99
+      }
+    ],
     "content": [
       {
         "type": "paragraph",
@@ -591,7 +658,14 @@
       "type": "standard"
     },
     "page": 219,
-    "indexable": true
+    "indexable": true,
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 55
+      }
+    ]
   },
   {
     "id": "f4e866be-1092-4760-896c-fa3571b983d6",
@@ -616,7 +690,14 @@
       "type": "standard"
     },
     "page": 219,
-    "indexable": true
+    "indexable": true,
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 56
+      }
+    ]
   },
   {
     "id": "50f0dcca-d2ac-408d-a916-55027485299b",
@@ -641,7 +722,14 @@
       "type": "standard"
     },
     "page": 220,
-    "indexable": true
+    "indexable": true,
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 56
+      }
+    ]
   },
   {
     "id": "a1b2c3d4-e5f6-47a8-b9c0-d1e2f3a4b5c6",
@@ -715,6 +803,13 @@
       {
         "type": "paragraph",
         "value": "Your Pilot's Keepsake is an item that is personal and important to them. It could be an old photograph, a childhood bobblehead toy, or a music mixtape from an old sweetheart. Consider why this Keepsake is important and what it means to your Pilot. If a Pilot takes an action that aligns with why their Keepsake is important to them, they may re-roll the dice on the action, accepting the second result. This Ability can be used once, a Pilot regains the use of this Ability following Downtime."
+      }
+    ],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 46
       }
     ]
   },
@@ -791,6 +886,13 @@
         "type": "paragraph",
         "value": "Your Pilot's Motto is a phrase they happen to be fond of using. They may say this phrase, as a Free Action or Reaction, at a time during the game that feels appropriate, and another Pilot may re-roll the dice, accepting the second result. This Ability can be used once, a Pilot regains the use of this Ability following Downtime."
       }
+    ],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 46
+      }
     ]
   },
   {
@@ -866,6 +968,13 @@
         "type": "paragraph",
         "value": "Briefly describe the appearance of your Pilot, and consider their gender and pronouns. Are they alluring, fancy, glamorous, tall, stocky, sloppy, or intimidating? Do they have any iconic features such as scars, wildly spiked hair, a mischievous grin, or crooked teeth? What type of clothing do they wear? Do they go by she, he, they, or something else?"
       }
+    ],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 47
+      }
     ]
   },
   {
@@ -935,7 +1044,14 @@
       },
       "type": "flat"
     },
-    "page": 208
+    "page": 208,
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 48
+      }
+    ]
   },
   {
     "id": "3ba3c58c-4f75-454f-be16-6bd3236b79d8",
@@ -1009,6 +1125,13 @@
       {
         "type": "paragraph",
         "value": "In addition to the Systems and Modules you have installed in your Mech, you can also give it a unique Quirk that will make it stand out from other Mechs. For example, their comms and sensor array could look like rabbit ears or they might make beeping noises when being operated. Either roll on the Quirks Table below or create one yourself."
+      }
+    ],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 76
       }
     ]
   },
@@ -1085,6 +1208,13 @@
         "type": "paragraph",
         "value": "Describe the appearance of your Mech. The Mech Chassis is simply an example of the Mech in its stock form before a salvager gets their hands on it. Your Mech can take on any appearance that you can imagine."
       }
+    ],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 76
+      }
     ]
   },
   {
@@ -1160,6 +1290,13 @@
         "type": "paragraph",
         "value": "Finally give your Mech a unique pattern name that marks it as your own creation. This could be something like 'Butcher', 'Slinky', 'Bullseye', or 'Roach'. For example: if you built a Mule with Zoom Optics and a Red Laser, you might want to call it a 'Bullseye Pattern Mule'."
       }
+    ],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 77
+      }
     ]
   },
   {
@@ -1229,7 +1366,14 @@
       },
       "type": "flat"
     },
-    "page": 226
+    "page": 226,
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 62
+      }
+    ]
   },
   {
     "id": "ba70ae70-e955-45af-af31-b4ca98ae223e",
@@ -1343,7 +1487,13 @@
       },
       "type": "flat"
     },
-    "page": 23
+    "page": 23,
+    "additionalSources": [
+      {
+        "source": "Reclamation of the Wastes",
+        "page": 10
+      }
+    ]
   },
   {
     "id": "e213dd70-6ece-4950-8036-e4b495e6dd34",
@@ -1553,7 +1703,13 @@
       },
       "type": "flat"
     },
-    "page": 8
+    "page": 8,
+    "additionalSources": [
+      {
+        "source": "Reclamation of the Wastes",
+        "page": 11
+      }
+    ]
   },
   {
     "id": "c2d3e4f5-a6b7-4c8d-9e0f-1a2b3c4d5e6f",
@@ -2746,7 +2902,14 @@
         "value": "An Intact System and an Intact Module are available for trade."
       }
     },
-    "page": 222
+    "page": 222,
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 59
+      }
+    ]
   },
   {
     "id": "3ea86f23-1c17-4236-a772-47d0e0f7c165",
@@ -2841,6 +3004,13 @@
         "type": "paragraph",
         "value": "Your Pilot's Background is where they came from before they joined the Union Crawler. They may have been a wastelander, a member of the corpos, a wanderer, or even a born salvager. If a Pilot takes an action that aligns with their Background they may re-roll the dice on the action, accepting the second result. This Ability can be used once. A Pilot regains the use of this Ability following Downtime."
       }
+    ],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 45
+      }
     ]
   },
   {
@@ -2850,114 +3020,314 @@
     "table": {
       "type": "columns",
       "1-4": {
-        "1": { "value": "Sparkles" },
-        "2": { "value": "Apex" },
-        "3": { "value": "Boomer" },
-        "4": { "value": "Doctor" },
-        "5": { "value": "Poptop" },
-        "6": { "value": "Flatline" },
-        "7": { "value": "Oilslick" },
-        "8": { "value": "Poacher" },
-        "9": { "value": "Redbeard" },
-        "10": { "value": "Taxman" },
-        "11": { "value": "Bingo" },
-        "12": { "value": "Goose" },
-        "13": { "value": "Trigger" },
-        "14": { "value": "Socrates" },
-        "15": { "value": "Emu" },
-        "16": { "value": "Zipline" },
-        "17": { "value": "Scorpion" },
-        "18": { "value": "Jester" },
-        "19": { "value": "Smudge" },
-        "20": { "value": "Redeye" }
+        "1": {
+          "value": "Sparkles"
+        },
+        "2": {
+          "value": "Apex"
+        },
+        "3": {
+          "value": "Boomer"
+        },
+        "4": {
+          "value": "Doctor"
+        },
+        "5": {
+          "value": "Poptop"
+        },
+        "6": {
+          "value": "Flatline"
+        },
+        "7": {
+          "value": "Oilslick"
+        },
+        "8": {
+          "value": "Poacher"
+        },
+        "9": {
+          "value": "Redbeard"
+        },
+        "10": {
+          "value": "Taxman"
+        },
+        "11": {
+          "value": "Bingo"
+        },
+        "12": {
+          "value": "Goose"
+        },
+        "13": {
+          "value": "Trigger"
+        },
+        "14": {
+          "value": "Socrates"
+        },
+        "15": {
+          "value": "Emu"
+        },
+        "16": {
+          "value": "Zipline"
+        },
+        "17": {
+          "value": "Scorpion"
+        },
+        "18": {
+          "value": "Jester"
+        },
+        "19": {
+          "value": "Smudge"
+        },
+        "20": {
+          "value": "Redeye"
+        }
       },
       "5-8": {
-        "1": { "value": "Candyman" },
-        "2": { "value": "Gremlin" },
-        "3": { "value": "Pyro" },
-        "4": { "value": "T-BAR" },
-        "5": { "value": "Whipsaw" },
-        "6": { "value": "Swamp Fox" },
-        "7": { "value": "Tickles" },
-        "8": { "value": "Teapot" },
-        "9": { "value": "Hotdog" },
-        "10": { "value": "Slippy" },
-        "11": { "value": "Roughhouse" },
-        "12": { "value": "Spitfire" },
-        "13": { "value": "Blackjack" },
-        "14": { "value": "Bunny-Ears" },
-        "15": { "value": "Sandman" },
-        "16": { "value": "Laserburn" },
-        "17": { "value": "Warbird" },
-        "18": { "value": "Dipstick" },
-        "19": { "value": "Wingnut" },
-        "20": { "value": "Roulette" }
+        "1": {
+          "value": "Candyman"
+        },
+        "2": {
+          "value": "Gremlin"
+        },
+        "3": {
+          "value": "Pyro"
+        },
+        "4": {
+          "value": "T-BAR"
+        },
+        "5": {
+          "value": "Whipsaw"
+        },
+        "6": {
+          "value": "Swamp Fox"
+        },
+        "7": {
+          "value": "Tickles"
+        },
+        "8": {
+          "value": "Teapot"
+        },
+        "9": {
+          "value": "Hotdog"
+        },
+        "10": {
+          "value": "Slippy"
+        },
+        "11": {
+          "value": "Roughhouse"
+        },
+        "12": {
+          "value": "Spitfire"
+        },
+        "13": {
+          "value": "Blackjack"
+        },
+        "14": {
+          "value": "Bunny-Ears"
+        },
+        "15": {
+          "value": "Sandman"
+        },
+        "16": {
+          "value": "Laserburn"
+        },
+        "17": {
+          "value": "Warbird"
+        },
+        "18": {
+          "value": "Dipstick"
+        },
+        "19": {
+          "value": "Wingnut"
+        },
+        "20": {
+          "value": "Roulette"
+        }
       },
       "9-12": {
-        "1": { "value": "Vapour" },
-        "2": { "value": "Urchin" },
-        "3": { "value": "Commodore" },
-        "4": { "value": "Viper" },
-        "5": { "value": "Shinji" },
-        "6": { "value": "Roach" },
-        "7": { "value": "Silverback" },
-        "8": { "value": "Chuckles" },
-        "9": { "value": "Fingers" },
-        "10": { "value": "Voodoo" },
-        "11": { "value": "Stumpy" },
-        "12": { "value": "Fencepost" },
-        "13": { "value": "Casper" },
-        "14": { "value": "Whistler" },
-        "15": { "value": "Pickle" },
-        "16": { "value": "Starbuck" },
-        "17": { "value": "Fatcat" },
-        "18": { "value": "Ruffles" },
-        "19": { "value": "Maverick" },
-        "20": { "value": "Thumper" }
+        "1": {
+          "value": "Vapour"
+        },
+        "2": {
+          "value": "Urchin"
+        },
+        "3": {
+          "value": "Commodore"
+        },
+        "4": {
+          "value": "Viper"
+        },
+        "5": {
+          "value": "Shinji"
+        },
+        "6": {
+          "value": "Roach"
+        },
+        "7": {
+          "value": "Silverback"
+        },
+        "8": {
+          "value": "Chuckles"
+        },
+        "9": {
+          "value": "Fingers"
+        },
+        "10": {
+          "value": "Voodoo"
+        },
+        "11": {
+          "value": "Stumpy"
+        },
+        "12": {
+          "value": "Fencepost"
+        },
+        "13": {
+          "value": "Casper"
+        },
+        "14": {
+          "value": "Whistler"
+        },
+        "15": {
+          "value": "Pickle"
+        },
+        "16": {
+          "value": "Starbuck"
+        },
+        "17": {
+          "value": "Fatcat"
+        },
+        "18": {
+          "value": "Ruffles"
+        },
+        "19": {
+          "value": "Maverick"
+        },
+        "20": {
+          "value": "Thumper"
+        }
       },
       "13-16": {
-        "1": { "value": "Curly" },
-        "2": { "value": "FANG" },
-        "3": { "value": "Driftwood" },
-        "4": { "value": "Turtle" },
-        "5": { "value": "Coyote" },
-        "6": { "value": "Warlock" },
-        "7": { "value": "Scarecrow" },
-        "8": { "value": "Husker" },
-        "9": { "value": "Codebreaker" },
-        "10": { "value": "Doughboy" },
-        "11": { "value": "Ironsides" },
-        "12": { "value": "Highlander" },
-        "13": { "value": "Stainer" },
-        "14": { "value": "Bone-Saw" },
-        "15": { "value": "Biscuit" },
-        "16": { "value": "Catfish" },
-        "17": { "value": "Big Dusty" },
-        "18": { "value": "Dingle" },
-        "19": { "value": "Sidewinder" },
-        "20": { "value": "Lumpy" }
+        "1": {
+          "value": "Curly"
+        },
+        "2": {
+          "value": "FANG"
+        },
+        "3": {
+          "value": "Driftwood"
+        },
+        "4": {
+          "value": "Turtle"
+        },
+        "5": {
+          "value": "Coyote"
+        },
+        "6": {
+          "value": "Warlock"
+        },
+        "7": {
+          "value": "Scarecrow"
+        },
+        "8": {
+          "value": "Husker"
+        },
+        "9": {
+          "value": "Codebreaker"
+        },
+        "10": {
+          "value": "Doughboy"
+        },
+        "11": {
+          "value": "Ironsides"
+        },
+        "12": {
+          "value": "Highlander"
+        },
+        "13": {
+          "value": "Stainer"
+        },
+        "14": {
+          "value": "Bone-Saw"
+        },
+        "15": {
+          "value": "Biscuit"
+        },
+        "16": {
+          "value": "Catfish"
+        },
+        "17": {
+          "value": "Big Dusty"
+        },
+        "18": {
+          "value": "Dingle"
+        },
+        "19": {
+          "value": "Sidewinder"
+        },
+        "20": {
+          "value": "Lumpy"
+        }
       },
       "17-20": {
-        "1": { "value": "Twitch" },
-        "2": { "value": "Airtime" },
-        "3": { "value": "Bubbles" },
-        "4": { "value": "Razor" },
-        "5": { "value": "Sandbag" },
-        "6": { "value": "Judge" },
-        "7": { "value": "Momma Bear" },
-        "8": { "value": "Pumpkin" },
-        "9": { "value": "Kujo" },
-        "10": { "value": "Aurora" },
-        "11": { "value": "Ducky" },
-        "12": { "value": "Flea" },
-        "13": { "value": "Big Nasty" },
-        "14": { "value": "Coma" },
-        "15": { "value": "Wedge" },
-        "16": { "value": "Widowmaker" },
-        "17": { "value": "Meatpie" },
-        "18": { "value": "Rattler" },
-        "19": { "value": "Neutron" },
-        "20": { "value": "Iceman" }
+        "1": {
+          "value": "Twitch"
+        },
+        "2": {
+          "value": "Airtime"
+        },
+        "3": {
+          "value": "Bubbles"
+        },
+        "4": {
+          "value": "Razor"
+        },
+        "5": {
+          "value": "Sandbag"
+        },
+        "6": {
+          "value": "Judge"
+        },
+        "7": {
+          "value": "Momma Bear"
+        },
+        "8": {
+          "value": "Pumpkin"
+        },
+        "9": {
+          "value": "Kujo"
+        },
+        "10": {
+          "value": "Aurora"
+        },
+        "11": {
+          "value": "Ducky"
+        },
+        "12": {
+          "value": "Flea"
+        },
+        "13": {
+          "value": "Big Nasty"
+        },
+        "14": {
+          "value": "Coma"
+        },
+        "15": {
+          "value": "Wedge"
+        },
+        "16": {
+          "value": "Widowmaker"
+        },
+        "17": {
+          "value": "Meatpie"
+        },
+        "18": {
+          "value": "Rattler"
+        },
+        "19": {
+          "value": "Neutron"
+        },
+        "20": {
+          "value": "Iceman"
+        }
       }
     },
     "page": 88,
@@ -2967,6 +3337,618 @@
         "value": "Your Pilot's Callsign is the name everyone on the Union Crawler refers to them as. It's how you are known to the world. You might pick your own Callsign or you might earn one through some memorable act. Roll on the Column first (d20 to select a column), then roll within that column (d20 to select a Callsign), or pick any Callsign you like."
       }
     ],
-    "indexable": true
+    "indexable": true,
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 44
+      }
+    ]
+  },
+  {
+    "id": "407a3fac-2024-45af-ad7e-4c709e7b0c62",
+    "source": "The Hive",
+    "name": "The Hive Random Encounters",
+    "table": {
+      "1": {
+        "value": "Dr. Apis is surveying the property in her Queen Bee Atlas, with an escort of 2x Killers."
+      },
+      "20": {
+        "value": "A confused Madrona thinks one of the Pilots is the Queen. It will follow the Pilot and defend it."
+      },
+      "type": "standard",
+      "2-5": {
+        "value": "A patrol of 2 x Killers and 2x Madronas."
+      },
+      "6-10": {
+        "value": "A pair of Bomblebees are in the process of mining the area the Pilots are in."
+      },
+      "11-19": {
+        "value": "Safe travel."
+      }
+    },
+    "page": 1,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Roll when Pilots travel between locations."
+      }
+    ]
+  },
+  {
+    "id": "194bf63b-cc49-41a3-9700-d1cfb1e2fd94",
+    "source": "The Hive",
+    "name": "The Hive Minefield",
+    "table": {
+      "1": {
+        "label": "Big bada-boom!",
+        "value": "A Mech has detonated a mine, which has triggered a chain reaction. All Mechs in the minefield receive 5SP damage. The minefield is now clear of mines."
+      },
+      "20": {
+        "label": "Dud",
+        "value": "The Pilot finds a disarmed mine. It can be salvaged for 1 x T2 Scrap or used as an IED."
+      },
+      "type": "standard",
+      "2-5": {
+        "label": "Boom!",
+        "value": "A Mech has detonated a mine. It and any other Mech within Close Range receive 3SP damage."
+      },
+      "6-10": {
+        "label": "Click",
+        "value": "A Mech has stepped on a mine but it has not yet detonated. Any further movement will result in the mine exploding, but a clever crew may be able to disarm it."
+      },
+      "11-19": {
+        "label": "Phew",
+        "value": "The crew manages to navigate safely through the minefield."
+      }
+    },
+    "page": 2,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A series of explosive mines have been laid across this area. Roll on the following table every time the crew move through an unexplored area or attempt to Area Salvage."
+      }
+    ]
+  },
+  {
+    "id": "73c32765-2df3-4990-9072-ae3c611e6f17",
+    "source": "Thatcher's Mech Base",
+    "name": "Thatcher's Mech Base Random Encounters",
+    "table": {
+      "1": {
+        "value": "The Iron Lady awakes from her slumber to hunt the intruders."
+      },
+      "20": {
+        "value": "The Iron Lady falls into deep slumber for 10 minutes, making all Androids inert for the duration."
+      },
+      "type": "standard",
+      "2-5": {
+        "value": "2x Super Android Strikebreakers and 4x Super Android Soldiers on patrol."
+      },
+      "6-10": {
+        "value": "Thatcher Pit Android Lance"
+      },
+      "11-19": {
+        "value": "Safe travel."
+      }
+    },
+    "page": 1,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Roll when Pilots travel between locations."
+      }
+    ]
+  },
+  {
+    "id": "89910746-a8a3-4b3f-83fb-9003693fabbe",
+    "source": "Relics of a Time Gone By",
+    "name": "Relics of a Time Gone By Exterior Encounters",
+    "table": {
+      "1": {
+        "value": "PAX awakens"
+      },
+      "20": {
+        "value": "An excavation entrance is revealed."
+      },
+      "type": "standard",
+      "2-5": {
+        "value": "Survey Lance x4"
+      },
+      "6-10": {
+        "value": "Skinless Jim's Scavengers"
+      },
+      "11-19": {
+        "value": "All clear"
+      }
+    },
+    "page": 1,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "The tip of the spire juts from a lone dune. Roll on the following location encounter table."
+      }
+    ]
+  },
+  {
+    "id": "2c70964e-0741-480f-b23f-5b05cfb52942",
+    "source": "Relics of a Time Gone By",
+    "name": "Relics of a Time Gone By Salvage Table",
+    "table": {
+      "1": {
+        "value": "Silicon Dust (1 Tech 1 Scrap)"
+      },
+      "2": {
+        "value": "Circuitry (1 Tech 2 Scrap)"
+      },
+      "3": {
+        "value": "Superconductors (1 Tech 3 Scrap)"
+      },
+      "4": {
+        "value": "Tungsten (1 Tech 4 Scrap)"
+      },
+      "5": {
+        "value": "Boron Nitride (1 Tech 5 Scrap)"
+      },
+      "6": {
+        "value": "Rare Earth Metals (1 Tech 6 Scrap)"
+      },
+      "7": {
+        "value": "Coolant Flow Manifold (Module)"
+      },
+      "8": {
+        "value": "Survey Drone"
+      },
+      "9": {
+        "value": "Pest Drone"
+      },
+      "10": {
+        "value": "Defacer Drone"
+      },
+      "11": {
+        "value": "Salvo Drone"
+      },
+      "12": {
+        "value": "Combat Drone"
+      },
+      "13": {
+        "value": "Walker Drone"
+      },
+      "14": {
+        "value": "Hover Drone"
+      },
+      "15": {
+        "value": "Heavy Combat Drone"
+      },
+      "16": {
+        "value": "Thatcher Pattern Jackhammer"
+      },
+      "17": {
+        "value": "Legion Pattern Gopher"
+      },
+      "18": {
+        "value": "Mauler Pattern Hussar"
+      },
+      "19": {
+        "value": "Analysis Pattern Gopher"
+      },
+      "20": {
+        "value": "All is Dust Pattern Atlas"
+      },
+      "type": "flat"
+    },
+    "page": 2,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "When directed, roll on the below table."
+      }
+    ]
+  },
+  {
+    "id": "c02da98d-931f-4850-9b04-a3a1b6a3bc2a",
+    "source": "Reclamation of the Wastes",
+    "page": 111,
+    "name": "Summon Bio-Fauna",
+    "table": {
+      "1": {
+        "value": "1 x Chimeripede"
+      },
+      "20": {
+        "value": "2 x Hunters"
+      },
+      "2-5": {
+        "value": "4 x Irradiated Scorpions"
+      },
+      "6-10": {
+        "value": "4 x Scrap Termites"
+      },
+      "11-19": {
+        "value": "4 x Artls"
+      },
+      "type": "standard"
+    }
+  },
+  {
+    "id": "2e8b1a4f-7c3d-4c95-92a5-8e1f3c5d4b7e",
+    "source": "Reclamation of the Wastes",
+    "page": 11,
+    "name": "Rumour Table",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "When pilots are asking around at the Cantina during Downtime, roll once on the table to find out what they hear about Caldera."
+      }
+    ],
+    "table": {
+      "1": {
+        "value": "Artls leave you alone if you mimic their behaviour."
+      },
+      "2": {
+        "value": "Standard TDA Authenticators all use code 2041."
+      },
+      "3": {
+        "value": "A community of farmers are living without technology in Elysia."
+      },
+      "4": {
+        "value": "The Geodome is an ancient Meld temple."
+      },
+      "5": {
+        "value": "A secret tunnel connects the Concrete Graveyard to the Water Purification Plant."
+      },
+      "6": {
+        "value": "A Sakura habitation team is surveying Irongrad with intent  to settle their population there."
+      },
+      "7": {
+        "value": "An Osiris kill team is somewhere in the House of the God hunting a Bio-Titan."
+      },
+      "8": {
+        "value": "Hunters can rip a pilot out of their cockpit and feast on their flesh."
+      },
+      "9": {
+        "value": "Mr Brass is looking to take over the Ur Pit on behalf of his boss Tilda Grayson."
+      },
+      "10": {
+        "value": "The Monkey Wrenchers are fighting corpos in Irongrad using the tunnels."
+      },
+      "11": {
+        "value": "A bunch of corpo students have taken over the Raging Ocean Adventure Park in the Void Shore."
+      },
+      "12": {
+        "value": "Meld are vulnerable to cold and electromagnetic pulses."
+      },
+      "13": {
+        "value": "A new class of Bio-Titan thrives in The House of the God."
+      },
+      "14": {
+        "value": "Meld lurk beneath the waves of the Void Shore and can turn you or your Mech into a mind-controlled zombie."
+      },
+      "15": {
+        "value": "Evantis are fighting Sakura in Irongrad."
+      },
+      "16": {
+        "value": "One of the Cult of Ygdriss is an Aeon Agent."
+      },
+      "17": {
+        "value": "TDA drones protect the Water Purification Plant in Caldera's Edge."
+      },
+      "18": {
+        "value": "Caldera was once the thriving heart of the Territorial Democratic Alliance until a meteor destroyed the entire region."
+      },
+      "19": {
+        "value": "Salt Termites only hunt Mechs and won't hurt pilots."
+      },
+      "20": {
+        "value": "The TDA live! They are in cryosleep somewhere in Irongrad."
+      },
+      "type": "flat"
+    }
+  },
+  {
+    "id": "5d3a8c1f-9b2e-4c47-8d2a-7f1c5e8b3a4d",
+    "source": "Reclamation of the Wastes",
+    "page": 13,
+    "name": "Caldera's Edge Random Encounters",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "This is the first that many will see of Caldera. Situated on the tip of the crater, this rugged region of badlands contains twisting canyons with crumbling rocks scorched red by the ever-burning sun. The wasteland stretches on for miles, with sparse vegetation and the local wasters clinging on to life. It is dominated by a TDA uranium mine that was buried under ash during Impact Day, as well as the surrounding crumbling infrastructure, which provides a dangerous (but potentially lucrative) salvage opportunity for savvy teams."
+      }
+    ],
+    "table": {
+      "1": {
+        "value": "Glob and Gab from The Ur Pit (1.03), out hunting for victims."
+      },
+      "20": {
+        "value": "The pilots find a Salvage Cache."
+      },
+      "type": "standard",
+      "2-5": {
+        "value": "Mr Brass scouting the area in his Chauffeur Pattern Atlas, piloted by Mr Pivot. See Crater Ridge (1.02)."
+      },
+      "6-10": {
+        "value": "A group of Greystone Wasters (2 x Waster Mob), out scouting the area from the Panopticon (1.05)."
+      },
+      "11-19": {
+        "value": "Safe travel between the areas."
+      }
+    }
+  },
+  {
+    "id": "7e2f3c1a-8b4d-4e51-a7c3-9d8e1f4b2c6a",
+    "source": "Reclamation of the Wastes",
+    "page": 33,
+    "name": "Void Shore Random Encounters",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A desolate coastal frontier where land meets a restless, devouring sea. Once part of a thriving holiday strip of adventure parks, wooded retreats, and sun-soaked beaches, it is now a sun-blasted graveyard of failed utopian projects. Its decaying infrastructure is wracked by constant tidal storms."
+      }
+    ],
+    "table": {
+      "1": {
+        "value": "The winds carry a pile of grey dust: an Inert Meld Nanite from the Geodome."
+      },
+      "20": {
+        "value": "Pilots find a Salvage Cache."
+      },
+      "type": "standard",
+      "2-5": {
+        "value": "The Sakura Academy 'Party' Lance out looking for fun."
+      },
+      "6-10": {
+        "value": "Two mechs from Container Town out looking for scrap and supplies: A Scrapjack Pattern Goliath Mech piloted by Aneska, with a supporting Rigger Pattern Scrapper piloted by Mina."
+      },
+      "11-19": {
+        "value": "Safe travel across the area."
+      }
+    }
+  },
+  {
+    "id": "4a9c2d8e-3b6f-4a91-8c5e-2f9d7a1b4e8c",
+    "source": "Reclamation of the Wastes",
+    "page": 55,
+    "name": "House of the Gods Random Encounters",
+    "table": {
+      "1": {
+        "value": "The Osiris Kill Team from Sunken Colonies (3.08)."
+      },
+      "20": {
+        "value": "The pilots find a Salvage Cache."
+      },
+      "type": "standard",
+      "2-5": {
+        "value": "Roll on the Bio-Fauna Table."
+      },
+      "6-10": {
+        "value": "A group of the Sect of Ygdriss (Waster Mob) from 3.04 exploring the area."
+      },
+      "11-19": {
+        "value": "Safe travel between the areas."
+      }
+    }
+  },
+  {
+    "id": "9f3b1e7c-5a2d-4f88-b6e1-3c8a5d7f9b2e",
+    "source": "Reclamation of the Wastes",
+    "page": 64,
+    "name": "Heart of Ygdriss Removal Table",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Removing a single shard of Ygdriss is unpredictable. Roll on the table below to determine the effect."
+      }
+    ],
+    "table": {
+      "1": {
+        "value": "The entire region is turned into a wasteland within 2 weeks, as per Destroying Ygdriss or Removing the Heart."
+      },
+      "20": {
+        "value": "Nature finds a way. The heart grows back within two weeks, and there are no ill effects."
+      },
+      "type": "standard",
+      "2-5": {
+        "value": "Hostile Creatures will rapidly multiply to protect Ygdriss. The entire region, including Elysia, will be overrun and in constant conflict within two weeks. If this result occurs, roll on the Bio-Fauna Table every time pilots enter an area, and double the amount of Creatures present."
+      },
+      "6-10": {
+        "value": "Elysia will become wasteland within two weeks, but the bio-flora and fauna in every other area will survive. The Elysians will need to find a new home."
+      },
+      "11-19": {
+        "value": "Elysia will remain, but the surrounding area will wither over the next two weeks (including the Rust Bulbs keeping Mason alive)."
+      }
+    }
+  },
+  {
+    "id": "8c1e4a9f-2d7b-4e63-9a4f-1b6c3e8d5a7f",
+    "source": "Reclamation of the Wastes",
+    "page": 71,
+    "name": "Irongrad Random Encounters",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Roll when pilots travel between Areas in the Region, and when they travel between Locations within Irongrad City."
+      }
+    ],
+    "table": {
+      "1": {
+        "value": "A Monkey Wrencher boobytrap triggers. Roll on the Monkey Wrencher Boobytrap Table."
+      },
+      "20": {
+        "value": "The Pilots find a Salvage Cache."
+      },
+      "type": "standard",
+      "2-5": {
+        "value": "A random faction is encountered. Roll on the Irongrad Faction Table."
+      },
+      "6-10": {
+        "value": "Two factions are encountered. Roll on the Irongrad Faction Table twice."
+      },
+      "11-19": {
+        "value": "Safe travel across the area."
+      }
+    }
+  },
+  {
+    "id": "3d7e9c2a-5f1b-4a86-8c2d-6e9f3b7a1c4d",
+    "source": "Reclamation of the Wastes",
+    "page": 71,
+    "name": "Monkey Wrencher Boobytrap Table",
+    "table": {
+      "1": {
+        "value": "An electrostatic mine shuts down a Mech or Drone for 1 Turn. A Saboteur Squad will then appear and attack the target."
+      },
+      "20": {
+        "value": "Dud mine, harmless."
+      },
+      "type": "standard",
+      "2-5": {
+        "value": "Oil bomb dealing 1 SP Damage // Burn (1) // Explosive (1) and applying the Overheat Trait."
+      },
+      "6-10": {
+        "value": "Hobbler Mine dealing 1 SP (Explosive 1) and destroying a random Mech's Locomotion System"
+      },
+      "11-19": {
+        "value": "IED dealing 3 SP Damage (Explosive 1)"
+      }
+    }
+  },
+  {
+    "id": "6b4f8e1c-9a3d-4e72-8f5a-2c7b1d4e9a3f",
+    "source": "Reclamation of the Wastes",
+    "page": 51,
+    "name": "Emergency EM Pulse Table",
+    "table": {
+      "1": {
+        "value": "As effect 11-19, and every Mech in the area (piloted or unpiloted) is destroyed."
+      },
+      "20": {
+        "value": "As effect 11-19, but only the Meld are destroyed, leaving everything else intact."
+      },
+      "type": "standard",
+      "2-5": {
+        "value": "As effect 11-19, and every Mech in the area (piloted or unpiloted) becomes damaged and inoperable until repaired."
+      },
+      "6-10": {
+        "value": "As effect 11-19, and a random System and Module on every Mech in the area, piloted or unpiloted, is destroyed."
+      },
+      "11-19": {
+        "value": "All Meld within the entire area, including the Underground Lab and Decontamination Chamber are entirely destroyed, leaving not even dust behind.  The following are also destroyed: The Generator, The Wind Turbines, The Lab Mainframe, Observation Mainframe, and all data within"
+      }
+    }
+  },
+  {
+    "id": "dd4d6469-fd9d-4eeb-86fc-b8202477d5e3",
+    "source": "Reclamation of the Wastes",
+    "page": 10,
+    "name": "Salvage Cache Table",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Roll when pilots find a Salvage Cache."
+      }
+    ],
+    "table": {
+      "1": {
+        "value": "Data Cache - Pilots ask the Mediator 3 questions about the Region."
+      },
+      "20": {
+        "value": "Random Intact T3 Chassis p.38 - 44 [PC]"
+      },
+      "type": "salvage-cache",
+      "18-19": {
+        "value": "Random Intact T3 System or Module p.59,60,74 [PC]"
+      },
+      "16-17": {
+        "value": "Random Intact T2 Chassis p.68- 73 [PC]"
+      },
+      "14-15": {
+        "value": "Random Intact T2 System p.53 - 58 [PC]"
+      },
+      "12-13": {
+        "value": "Random Intact T2 Module p.68 - 73 [PC]"
+      },
+      "10-11": {
+        "value": "5 x T2 Scrap"
+      },
+      "8-9": {
+        "value": "Random Intact T1 Chassis p.10 - 20 [PC]"
+      },
+      "6-7": {
+        "value": "Random Intact T1 System p.48 - 53 [PC]"
+      },
+      "4-5": {
+        "value": "Random Intact T1 Module p.64 - 67 [PC]"
+      },
+      "2-3": {
+        "value": "5 x T1 Scrap"
+      }
+    }
+  },
+  {
+    "id": "50bb2567-0be9-4a72-b30e-c296ac09c33e",
+    "source": "Reclamation of the Wastes",
+    "page": 71,
+    "name": "Irongrad Faction Table",
+    "table": {
+      "1": {
+        "value": "A Faction hostile to the pilots."
+      },
+      "20": {
+        "value": "A Faction friendly to the pilots."
+      },
+      "type": "octet",
+      "17-19": {
+        "value": "Tombstone"
+      },
+      "14-16": {
+        "value": "Monkey Wrenchers"
+      },
+      "11-13": {
+        "value": "Aeon"
+      },
+      "8-10": {
+        "value": "Opus"
+      },
+      "5-7": {
+        "value": "Sakura"
+      },
+      "2-4": {
+        "value": "Evantis"
+      }
+    }
+  },
+  {
+    "id": "9e5f8873-5627-4e8e-8126-b9cd8c01d762",
+    "source": "Reclamation of the Wastes",
+    "page": 55,
+    "name": "Bio-Fauna Table",
+    "table": {
+      "1": {
+        "value": "6 x Artls and the Artl Queen"
+      },
+      "20": {
+        "value": "6 x Carrion Birds. These creatures feast on the dead and typically will not attack unless someone is injured."
+      },
+      "type": "octet",
+      "17-19": {
+        "value": "2 x Hunters"
+      },
+      "14-16": {
+        "value": "2 x Chimeripedes"
+      },
+      "11-13": {
+        "value": "6 x Irradiated Scorpions"
+      },
+      "8-10": {
+        "value": "6 x Artls"
+      },
+      "5-7": {
+        "value": "2 x Mole Bears, a mating pair"
+      },
+      "2-4": {
+        "value": "6 x Salt Termites"
+      }
+    }
   }
 ]

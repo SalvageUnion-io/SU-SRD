@@ -156,4 +156,13 @@ describe('getSourceStyles', () => {
     expect(result.style.borderTop).toBeDefined()
     expect(result.style.boxShadow).toBeDefined()
   })
+
+  it('should reuse scanline texture for Salvage Union Starter Set (placeholder styling)', () => {
+    expect(getSourceStyles('Salvage Union Starter Set', false, 'header', true).className).toBe(
+      'expansion-scanline-texture'
+    )
+    expect(getSourceStyles('Salvage Union Starter Set', false, 'footer', true).className).toBe(
+      'expansion-scanline-texture'
+    )
+  })
 })

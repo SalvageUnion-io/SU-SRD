@@ -7,7 +7,14 @@
     "slotsRequired": 2,
     "salvageValue": 2,
     "page": 164,
-    "actions": [".50 Cal Machine Gun"]
+    "actions": [".50 Cal Machine Gun"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 48
+      }
+    ]
   },
   {
     "id": "799e7054-4227-4288-9015-9d29bb2a73d9",
@@ -17,7 +24,14 @@
     "slotsRequired": 2,
     "salvageValue": 1,
     "page": 164,
-    "actions": ["Armour Plating"]
+    "actions": ["Armour Plating"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 48
+      }
+    ]
   },
   {
     "id": "08bfedbf-c00a-4353-927a-109dc14d3c56",
@@ -27,7 +41,14 @@
     "slotsRequired": 1,
     "salvageValue": 1,
     "page": 164,
-    "actions": ["Cargo Pod"]
+    "actions": ["Cargo Pod"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 48
+      }
+    ]
   },
   {
     "id": "d1b9d257-a2d5-4765-9899-1f08ffa7f5c1",
@@ -38,7 +59,14 @@
     "salvageValue": 1,
     "recommended": true,
     "page": 164,
-    "actions": ["Escape Hatch"]
+    "actions": ["Escape Hatch"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 48
+      }
+    ]
   },
   {
     "id": "9beaf95a-de30-4f3d-a523-a7af5f6fc8de",
@@ -48,7 +76,14 @@
     "slotsRequired": 3,
     "salvageValue": 3,
     "page": 164,
-    "actions": ["Chainsaw Arm"]
+    "actions": ["Chainsaw Arm"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 48
+      }
+    ]
   },
   {
     "id": "dfccec2b-1e23-4476-946f-45993455da3e",
@@ -58,7 +93,14 @@
     "slotsRequired": 1,
     "salvageValue": 1,
     "page": 165,
-    "actions": ["Floodlights"]
+    "actions": ["Floodlights"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 49
+      }
+    ]
   },
   {
     "id": "d541364c-fbeb-4c38-883c-462ee8e1cbc2",
@@ -68,7 +110,14 @@
     "slotsRequired": 3,
     "salvageValue": 3,
     "page": 165,
-    "actions": ["FM-3 Flamethrower"]
+    "actions": ["FM-3 Flamethrower"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 49
+      }
+    ]
   },
   {
     "id": "084ec8ab-8eab-4b28-ae4f-53026e2c9d4e",
@@ -78,7 +127,14 @@
     "slotsRequired": 2,
     "salvageValue": 2,
     "page": 165,
-    "actions": ["High Pressure Hose"]
+    "actions": ["High Pressure Hose"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 49
+      }
+    ]
   },
   {
     "id": "89b75921-7bdf-410e-aa16-95d332ded6f9",
@@ -88,7 +144,14 @@
     "slotsRequired": 4,
     "salvageValue": 4,
     "page": 165,
-    "actions": ["Hydraulic Crusher"]
+    "actions": ["Hydraulic Crusher"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 49
+      }
+    ]
   },
   {
     "id": "28fc95c2-0c31-4904-9a0c-d5e0e66f6598",
@@ -99,7 +162,14 @@
     "salvageValue": 2,
     "recommended": true,
     "page": 165,
-    "actions": ["Locomotion System"]
+    "actions": ["Locomotion System"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 50
+      }
+    ]
   },
   {
     "id": "919411b2-cdfd-4c5f-98d8-d401ffd40ff3",
@@ -109,7 +179,14 @@
     "slotsRequired": 1,
     "salvageValue": 1,
     "page": 165,
-    "actions": ["Loudspeakers"]
+    "actions": ["Loudspeakers"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 50
+      }
+    ]
   },
   {
     "id": "e2f93445-ed27-4fe1-b35e-5d3cdc8957c6",
@@ -119,7 +196,14 @@
     "slotsRequired": 5,
     "salvageValue": 3,
     "page": 166,
-    "actions": ["Mechapult"]
+    "actions": ["Mechapult"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 50
+      }
+    ]
   },
   {
     "id": "9e7ad2ee-2793-4f80-a0c6-4729123302c2",
@@ -129,7 +213,14 @@
     "slotsRequired": 5,
     "salvageValue": 5,
     "page": 167,
-    "actions": ["Mini Mortar"]
+    "actions": ["Mini Mortar"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 52
+      }
+    ]
   },
   {
     "id": "d68b90c2-7637-4672-99c5-b67e72db74de",
@@ -139,7 +230,14 @@
     "slotsRequired": 5,
     "salvageValue": 5,
     "page": 167,
-    "actions": ["Mining Rig"]
+    "actions": ["Mining Rig"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 52
+      }
+    ]
   },
   {
     "id": "828d17e1-d61c-4b1b-915f-2f0a0f0faf15",
@@ -149,7 +247,14 @@
     "slotsRequired": 3,
     "salvageValue": 3,
     "page": 167,
-    "actions": ["Red Laser"]
+    "actions": ["Red Laser"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 52
+      }
+    ]
   },
   {
     "id": "0d9a91d4-1045-444d-b8c2-3ae711576a8c",
@@ -159,7 +264,14 @@
     "slotsRequired": 2,
     "salvageValue": 2,
     "page": 167,
-    "actions": ["Rigging Arm"]
+    "actions": ["Rigging Arm"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 52
+      }
+    ]
   },
   {
     "id": "eb57d2c5-7c22-4869-a806-edc0d92f539b",
@@ -169,7 +281,14 @@
     "slotsRequired": 2,
     "salvageValue": 2,
     "page": 168,
-    "actions": ["Transport Hold"]
+    "actions": ["Transport Hold"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 53
+      }
+    ]
   },
   {
     "id": "dd080aea-2e6e-481d-8eb9-e7a532ac3e3a",
@@ -179,7 +298,14 @@
     "slotsRequired": 3,
     "salvageValue": 2,
     "page": 167,
-    "actions": ["Sandblaster"]
+    "actions": ["Sandblaster"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 52
+      }
+    ]
   },
   {
     "id": "3cf8a2ee-9aa4-4235-96fe-bd4eeeb114e4",
@@ -189,7 +315,14 @@
     "slotsRequired": 3,
     "salvageValue": 4,
     "actions": ["Patch", "System Repair", "Chassis Repair", "Riveting Gun"],
-    "page": 168
+    "page": 168,
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 53
+      }
+    ]
   },
   {
     "id": "fb0de7ed-bf3e-4293-aaba-c35d9718bc33",
@@ -199,7 +332,14 @@
     "slotsRequired": 2,
     "salvageValue": 2,
     "page": 168,
-    "actions": ["Armoured Shield"]
+    "actions": ["Armoured Shield"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 53
+      }
+    ]
   },
   {
     "id": "c1a27f45-075a-4fe4-a07e-1d3d548ff82d",
@@ -209,7 +349,14 @@
     "slotsRequired": 5,
     "salvageValue": 3,
     "page": 168,
-    "actions": ["30mm Autocannon"]
+    "actions": ["30mm Autocannon"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 53
+      }
+    ]
   },
   {
     "id": "962d035c-2d46-4698-a060-03ec169b9373",
@@ -219,7 +366,14 @@
     "slotsRequired": 7,
     "salvageValue": 5,
     "page": 169,
-    "actions": ["Blue Mining Laser"]
+    "actions": ["Blue Mining Laser"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 54
+      }
+    ]
   },
   {
     "id": "14626d57-064d-48c3-80c6-3221e2014589",
@@ -229,7 +383,14 @@
     "slotsRequired": 4,
     "salvageValue": 2,
     "page": 169,
-    "actions": ["Cargo Bay"]
+    "actions": ["Cargo Bay"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 54
+      }
+    ]
   },
   {
     "id": "9eeb5d1a-19b7-4044-bd9e-de87aeda9b67",
@@ -239,7 +400,14 @@
     "slotsRequired": 1,
     "salvageValue": 1,
     "page": 169,
-    "actions": ["Chaff Launcher"]
+    "actions": ["Chaff Launcher"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 54
+      }
+    ]
   },
   {
     "id": "15685ad9-348f-48dc-828b-014f23274ed9",
@@ -249,7 +417,14 @@
     "slotsRequired": 3,
     "salvageValue": 2,
     "page": 169,
-    "actions": ["Dozer Blades"]
+    "actions": ["Dozer Blades"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 54
+      }
+    ]
   },
   {
     "id": "005da612-641c-4d20-aafc-dc74ecbe0102",
@@ -259,7 +434,14 @@
     "slotsRequired": 3,
     "salvageValue": 2,
     "actions": ["Pin", "Swing", "Grappling Harpoon"],
-    "page": 169
+    "page": 169,
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 54
+      }
+    ]
   },
   {
     "id": "5fabe13d-8e5c-436e-9b73-ce02027fe6a5",
@@ -269,7 +451,14 @@
     "slotsRequired": 4,
     "salvageValue": 2,
     "page": 170,
-    "actions": ["Green Laser"]
+    "actions": ["Green Laser"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 55
+      }
+    ]
   },
   {
     "id": "a241c7a9-4739-4e57-a74d-26e2597bbe99",
@@ -279,7 +468,14 @@
     "slotsRequired": 2,
     "salvageValue": 1,
     "page": 170,
-    "actions": ["Heat Sink"]
+    "actions": ["Heat Sink"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 55
+      }
+    ]
   },
   {
     "id": "49cbaf62-8bb6-44f5-b048-198a708747e3",
@@ -289,7 +485,14 @@
     "slotsRequired": 1,
     "salvageValue": 1,
     "page": 170,
-    "actions": ["High Gain Antenna"]
+    "actions": ["High Gain Antenna"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 55
+      }
+    ]
   },
   {
     "id": "0a69bc01-e8bb-4726-864d-3d45f9724000",
@@ -299,7 +502,14 @@
     "slotsRequired": 3,
     "salvageValue": 3,
     "page": 170,
-    "actions": ["Industrial Body Kit"]
+    "actions": ["Industrial Body Kit"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 55
+      }
+    ]
   },
   {
     "id": "bbed4a6b-e602-4e44-929f-773759b05068",
@@ -309,7 +519,14 @@
     "slotsRequired": 3,
     "salvageValue": 2,
     "page": 170,
-    "actions": ["M2-X Mauler"]
+    "actions": ["M2-X Mauler"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 56
+      }
+    ]
   },
   {
     "id": "ee78e486-95be-4876-b48d-621185636e09",
@@ -319,7 +536,14 @@
     "slotsRequired": 3,
     "salvageValue": 2,
     "page": 170,
-    "actions": ["Nanofibre Net Launcher"]
+    "actions": ["Nanofibre Net Launcher"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 56
+      }
+    ]
   },
   {
     "id": "7152f2d6-d9ed-4903-b2b3-fc31ed39f5a2",
@@ -329,7 +553,14 @@
     "slotsRequired": 4,
     "salvageValue": 1,
     "page": 170,
-    "actions": ["Module Switch"]
+    "actions": ["Module Switch"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 56
+      }
+    ]
   },
   {
     "id": "66aad3fe-84a3-4145-ab69-37bb44c49e05",
@@ -339,7 +570,14 @@
     "slotsRequired": 3,
     "salvageValue": 2,
     "page": 171,
-    "actions": ["Personnel Transport Pod"]
+    "actions": ["Personnel Transport Pod"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 56
+      }
+    ]
   },
   {
     "id": "5cef0ef1-a850-4c92-9350-cf4a8de491df",
@@ -349,7 +587,14 @@
     "slotsRequired": 2,
     "salvageValue": 2,
     "page": 171,
-    "actions": ["Shotgun Pit"]
+    "actions": ["Shotgun Pit"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 57
+      }
+    ]
   },
   {
     "id": "8b4e7111-3334-4deb-bfdf-ad74c8c9c1de",
@@ -359,7 +604,14 @@
     "slotsRequired": 2,
     "salvageValue": 2,
     "page": 171,
-    "actions": ["Smoke Machine"]
+    "actions": ["Smoke Machine"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 57
+      }
+    ]
   },
   {
     "id": "0760af2d-b0ae-45ef-90ab-e797f2233cdb",
@@ -369,7 +621,14 @@
     "slotsRequired": 2,
     "salvageValue": 2,
     "page": 171,
-    "actions": ["Refractive Shield Projector"]
+    "actions": ["Refractive Shield Projector"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 56
+      }
+    ]
   },
   {
     "id": "8e8052e2-3779-4c88-b40d-517e3b1d1432",
@@ -379,7 +638,14 @@
     "slotsRequired": 6,
     "salvageValue": 5,
     "page": 172,
-    "actions": ["Torpedo Tubes"]
+    "actions": ["Torpedo Tubes"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 58
+      }
+    ]
   },
   {
     "id": "8913e828-fe19-486b-b994-909136fbf3f4",
@@ -389,7 +655,14 @@
     "slotsRequired": 2,
     "salvageValue": 2,
     "page": 172,
-    "actions": ["Tracking Node"]
+    "actions": ["Tracking Node"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 58
+      }
+    ]
   },
   {
     "id": "ff499aa4-f422-4beb-ad55-683c508ff950",
@@ -404,7 +677,14 @@
       "Chassis Repair (Welding Laser)",
       "Welding Laser"
     ],
-    "page": 172
+    "page": 172,
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 58
+      }
+    ]
   },
   {
     "id": "104ef3b1-64b7-4617-85bd-b2960a3e7142",
@@ -684,7 +964,14 @@
     "slotsRequired": 3,
     "salvageValue": 3,
     "page": 179,
-    "actions": ["Corpo Body Kit"]
+    "actions": ["Corpo Body Kit"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 61
+      }
+    ]
   },
   {
     "id": "e717b8f1-c509-4faf-9a33-0702bb0b07be",
@@ -1219,5 +1506,137 @@
     "salvageValue": 3,
     "page": 76,
     "actions": ["Napalm Shotgun"]
+  },
+  {
+    "id": "1f8ad16a-5162-4aec-8a6f-295f499a17cc",
+    "source": "Salvage Union Starter Set",
+    "booklet": "AP",
+    "name": "Cluster Missile",
+    "techLevel": 4,
+    "slotsRequired": 7,
+    "salvageValue": 5,
+    "page": 1,
+    "actions": ["Cluster Missile"]
+  },
+  {
+    "id": "1cb78a8c-1d28-449c-b412-484f85fd60f5",
+    "source": "Salvage Union Starter Set",
+    "booklet": "AP",
+    "name": "Impact Hammer",
+    "techLevel": 3,
+    "slotsRequired": 7,
+    "salvageValue": 6,
+    "page": 2,
+    "actions": ["Impact Hammer", "Hammer Time"]
+  },
+  {
+    "id": "4c77b8fb-9398-4594-a38d-b3004b61e0a5",
+    "source": "Thatcher's Mech Base",
+    "name": "AMS Micro Laser",
+    "techLevel": 2,
+    "slotsRequired": 1,
+    "salvageValue": 1,
+    "page": 1,
+    "actions": ["AMS Micro Laser", "Solder"],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Rapidly emits a rainbow-like array of laser beams, designed to quickly solder together damaged androids within the heat of battle (or to be used as an offensive measure in a pinch)."
+      }
+    ]
+  },
+  {
+    "id": "05bc4e29-9487-4559-9cbf-1244b4b06ea4",
+    "source": "Reclamation of the Wastes",
+    "name": "Integrated Amphibious Locomotion System",
+    "techLevel": 1,
+    "slotsRequired": 2,
+    "salvageValue": 2,
+    "page": 102,
+    "actions": ["Integrated Amphibious Locomotion System"]
+  },
+  {
+    "id": "4b79a534-38c0-4beb-b43c-c222007fad51",
+    "source": "Reclamation of the Wastes",
+    "name": "Shanty Home",
+    "techLevel": 1,
+    "slotsRequired": 2,
+    "salvageValue": 1,
+    "page": 102,
+    "actions": ["Shanty Home"],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Can safely transport a family of people across the wastes."
+      }
+    ]
+  },
+  {
+    "id": "2745be06-5961-49e0-acfa-177b87210dea",
+    "source": "Salvage Union Starter Set",
+    "booklet": "PC",
+    "name": "Power Transference Cable",
+    "techLevel": 1,
+    "slotsRequired": 1,
+    "salvageValue": 2,
+    "page": 52,
+    "actions": ["Transfer"],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "This simply constructed cable can connect to a Mech reactor and transfer energy from one to another."
+      }
+    ]
+  },
+  {
+    "id": "cbaada6c-340a-4b17-9100-21942110e57c",
+    "source": "Salvage Union Starter Set",
+    "booklet": "PC",
+    "name": "Water Purification System",
+    "techLevel": 2,
+    "slotsRequired": 2,
+    "salvageValue": 2,
+    "page": 58,
+    "actions": ["Water Purification System"],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A Kombu Tech designed system that purifies water, often mounted on radiation-resistant Mechs to gather water in hot zones and purify it for settlement consumption."
+      }
+    ]
+  },
+  {
+    "id": "aa1a232b-67b3-481d-860b-30a4c4777919",
+    "source": "Salvage Union Starter Set",
+    "booklet": "PC",
+    "name": "Hydraulic Shunter",
+    "techLevel": 2,
+    "slotsRequired": 2,
+    "salvageValue": 2,
+    "page": 55,
+    "actions": ["Hydraulic Shunter"],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "An industrial-sized, cylindrical, hydraulic ram that can produce immense force, enough to even push a Mech.  It was designed by the TDA to move heavy industrial machinery during construction operations."
+      }
+    ]
+  },
+  {
+    "id": "632003b0-fce2-4056-a238-ddc304de1fa2",
+    "source": "Salvage Union Starter Set",
+    "booklet": "PC",
+    "name": "Salvaging Drill",
+    "techLevel": 2,
+    "slotsRequired": 3,
+    "salvageValue": 2,
+    "page": 57,
+    "actions": ["Auger", "Drill"],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "An Opus-designed industrial sized drill, highly precise and intended to drill directly down into the ground to reveal anything hidden underneath. Powerful enough to cut through rock, metal plates, and concrete."
+      }
+    ]
   }
 ]

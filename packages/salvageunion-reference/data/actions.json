@@ -395,7 +395,7 @@
         "value": "Unless detected, Scylla always acts first in combat."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "titans"
   },
   {
     "name": "Amphibious",
@@ -407,7 +407,7 @@
         "value": "The Tyrant is able to move swiftly in all bodies of water at any depth as well as on land. It can breathe underwater as well as on land."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "titans"
   },
   {
     "id": "7360911b-e7e4-4b05-81da-0f14aaa09758",
@@ -532,7 +532,7 @@
         "value": "When Scylla takes damage, instead destroy a layer of Armour Plating and negate all of the damage and any effects."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "titans"
   },
   {
     "name": "Armour Plating (Typhon)",
@@ -551,7 +551,7 @@
         "value": "When Typhon takes damage, instead destroy a layer of Armour Plating and negate all of the damage and any effects."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "titans"
   },
   {
     "id": "bf8c765f-cc1a-4c05-9469-8161dff85d2e",
@@ -1035,7 +1035,7 @@
         "value": "Electrophorus fires an arc of bioelectricity. Choose up to three targets in Medium Range and make a single attack roll. On a successful hit the first target takes 10 SP damage, the second target takes 5 SP damage, and the third target takes 3 SP damage."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "titans"
   },
   {
     "name": "Bio-Electric Shield",
@@ -1052,7 +1052,7 @@
         "value": "As a Reaction may when hit by an attack, Electrophorus may trigger its Bio-Electric Shield to deflect the blow."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "titans"
   },
   {
     "id": "ab8b327f-3f29-406a-af7e-5719bfffaccd",
@@ -1227,7 +1227,7 @@
         "value": "Chrysalis Lays d20 Egg Sacs in an area within Close Range. At the start of its next turn they are born as a Child of Chrysalis and join the combat. Egg Sacs have 1 SP before they hatch."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "titans"
   },
   {
     "name": "Bite",
@@ -1420,7 +1420,7 @@
         "value": "Typhon can move freely on land and traverse underground through earth, even through the hardest of rock deposits. It can burrow into the earth as a Turn Action and unburrow as a Free Action. Whilst burrowed, it cannot be seen or targeted by anything on the ground, but can be spotted via the huge amounts of earth it kicks up."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "titans"
   },
   {
     "id": "2e67cdca-2fbb-446a-948b-ed8fa48500ed",
@@ -1820,7 +1820,7 @@
         "value": "The Tyrant makes a frenetic series of claw swipes."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "titans"
   },
   {
     "name": "Climb",
@@ -1832,7 +1832,7 @@
         "value": "Scylla can effortlessly climb over difficult and vertical terrain, rocky surfaces, and other obstacles."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "titans"
   },
   {
     "name": "Close Range Protocols",
@@ -1874,7 +1874,7 @@
         "value": "Chrysalis scatters a series of glowing cluster bombs upon its foes."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "titans"
   },
   {
     "name": "Cocoon",
@@ -1886,7 +1886,7 @@
         "value": "Chrysalis forms itself into a Cocoon. Whilst in the Cocoon it cannot move or take any other actions, but regains 10 SP at the start of each round. The Cocoon has 50 SP; if it is destroyed Chrysalis cannot use this Ability again for 24 hours."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "titans"
   },
   {
     "id": "4a6d5bbf-5da8-4d66-b1a1-2da9b13be155",
@@ -2619,7 +2619,7 @@
         "value": "The destructive power of The Tyrant is unparalleled. It will destroy any Arco, City, Settlement, or Crawler within a day of attacking it."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "titans"
   },
   {
     "name": "Devour",
@@ -2855,7 +2855,7 @@
         "value": "Electrophorus gouges a target with its spines."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "titans"
   },
   {
     "id": "7bcbcd9c-10a5-441d-9b6f-732f63488833",
@@ -3043,7 +3043,7 @@
         "value": "Chrysalis emits an entrancing song by vibrating its wings at a series of different frequencies. This Ability affects all targets that can hear Chrysalis within Medium Range including those in a Mech unless it is somehow sound sealed."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "titans"
   },
   {
     "id": "4d313bcd-751e-4d74-aa2f-e8600915d571",
@@ -3421,7 +3421,7 @@
         "value": "Chrysalis can fly in the air, moving over all obstacles and terrain. All attacks against Chrysalis when it is flying treat it as though it is in Long Range."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "titans"
   },
   {
     "id": "416526f5-d704-4437-a0ed-5d6d10cbf0f6",
@@ -4218,7 +4218,7 @@
         "value": "Electrophorus is able to use its bioelectric energy to hover over obstacles, creatures, Mechs, and terrain as a Free Action."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "titans"
   },
   {
     "name": "Hover Drone",
@@ -4737,6 +4737,83 @@
     "actionType": "Passive"
   },
   {
+    "name": "Transfer",
+    "id": "9fefb77d-12d0-4a82-b2f9-4c6a5b5ca0e9",
+    "actionType": "Long",
+    "activationCost": "X",
+    "range": ["Close"],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "You connect your Mech to another Mech. Whilst connected, both your Mechs have the Vulnerable Trait."
+      },
+      {
+        "type": "paragraph",
+        "value": "You may transfer any amount of Energy from one Mech to the other, subtracting from the EP total of one Mech and adding it to the other up to its Max EP."
+      }
+    ],
+    "actionSource": "systems"
+  },
+  {
+    "name": "Water Purification System",
+    "id": "7ec6d168-b6a0-448f-ac2c-96eb194a0c46",
+    "actionType": "Turn",
+    "activationCost": 1,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "When activated the Water Purification System can purify up to 2,000 litres of water within its tanks. It removes all toxins, bacteria, and diseases, as well as radiation and even Meld, making it safe to drink."
+      }
+    ],
+    "actionSource": "systems"
+  },
+  {
+    "name": "Siege Ram",
+    "id": "1a174714-5347-4c0a-a42b-1a2fbdfc195d",
+    "actionType": "Turn",
+    "activationCost": "X",
+    "range": ["Close"],
+    "traits": [
+      {
+        "type": "heat spike"
+      }
+    ],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "When activated the Gatecrasher makes an attack against a target in Range with the Siege Ram. If this attack hits it deals an amount of damage equal to 2x the Heat you spent when activating this ability. This attack automatically hits structures, doors, turrets, and anything with the Immobile trait, as though rolling an 11-19 result."
+      }
+    ],
+    "actionSource": "chassis"
+  },
+  {
+    "name": "Integrated Scrap Magnet",
+    "id": "653fd5c3-c3d7-426f-a534-1210e76adfcd",
+    "actionType": "Turn",
+    "activationCost": 1,
+    "range": ["Close"],
+    "traits": [
+      {
+        "type": "rigging"
+      }
+    ],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "When activated the Scrap Magnet creates a magnetic pull strong enough to draw in and carry Mech Chassis, Systems, Modules, and Scrap, counting as 12 Cargo Slots stored on the end of the magnet. The effect lasts as long as the Chassis is operable, and activating it again allows for more Scrap to be stored on the magnet."
+      },
+      {
+        "type": "paragraph",
+        "value": "Though against salvager safety procedure, the Scrap Magnet can be used against an active Mech or Vehicle, which becomes Immobile and gains the Vulnerable Trait until it escapes. However the Bobcat will also gain the Vulnerable Trait as the Mech grinds against the magnet."
+      },
+      {
+        "type": "paragraph",
+        "value": "The Scrap Magnet can be deactivated at any time as a Free Action, which drops everything carried."
+      }
+    ],
+    "actionSource": "chassis"
+  },
+  {
     "name": "Integrated Colossal Cargo Bay",
     "id": "76308ada-500f-4e96-a09b-cf6156c6da8a",
     "content": [
@@ -4994,7 +5071,7 @@
         "value": "The Tyrant produces a humongous beam of Irradiated energy from its maw. This must recharge after being fired, and can only be made every other turn. Any target hit by the Irradiated Beam as well as the entire area within Close Range becomes Irradiated."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "titans"
   },
   {
     "name": "Juggernaut",
@@ -6084,7 +6161,7 @@
         "value": "The molecular structure of a target hit by Phantom's Morph Scythes begins to unravel with bizarre results."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "titans"
   },
   {
     "actionType": "Turn",
@@ -6225,7 +6302,7 @@
         "value": "Fanatical devotees of the Cortex Bio-Titan who have twisted themselves into complete servitude to the creature. They will sacrifice themselves to keep its fragile form alive. When an attack hits the Cortex Bio-Titan, any **Chimerium Mutant**, **Chimerium Mutant Squad**, or **Chimerium Chosen** within Medium Range may take the hit instead as a reaction, suffering all effects of the attack."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "titans"
   },
   {
     "id": "35dec542-51ff-4377-8e39-bab20debb96a",
@@ -6549,7 +6626,7 @@
         "value": "Phantom teleports itself to the Nether Zone or teleports from the Nether Zone to the material world. After Phantom uses this Ability it may not act on its next turn."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "titans"
   },
   {
     "id": "df658854-feab-4c76-bff9-061a847194bb",
@@ -6703,7 +6780,7 @@
         "value": "The Cortex Bio-Titan is hyper-intelligent and always one step ahead of those around it. During any encounter with the Cortex Bio-Titan, each player must declare what action they intend to do in advance, whether they wish to attack, parley, flee, or do anything else. The Cortex Bio-Titan may then act first, assuming all of that knowledge."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "titans"
   },
   {
     "id": "7c1cdc03-7966-4294-9e25-8e5924a8a839",
@@ -7072,7 +7149,7 @@
         "value": "Phantom is permanently phased. It can move through walls and obstacles and is invisible except for a faint blue outline. Phantom can make attacks whilst phased."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "titans"
   },
   {
     "name": "Physio",
@@ -7426,7 +7503,7 @@
         "value": "If the proboscis is connected to the skull of a human, it can communicate with them via telepathy. This requires them presenting their skull and tendril-like probes piercing through into their cranial membrane. This is unpleasant, but not deadly - unless the Cortex Bio-Titan chooses it to be."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "titans"
   },
   {
     "id": "4a4b4f90-1abe-4738-add9-6e554dd3cc99",
@@ -7448,7 +7525,7 @@
         "value": "If a human or creature is hit with this attack, they die as their brain is sucked out of their skull."
       }
     ],
-    "actionSource": "bio-titans",
+    "actionSource": "titans",
     "actionType": "Turn"
   },
   {
@@ -7979,7 +8056,7 @@
         "value": "The Tyrant regains 10 SP at the start of its turn. This triggers even when reduced to 0 SP."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "titans"
   },
   {
     "name": "Reinforced Chassis",
@@ -8076,7 +8153,7 @@
         "value": "The Tyrant rips apart a target with a mammoth bite."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "titans"
   },
   {
     "id": "4649d724-1cf6-4517-8814-2077291331ae",
@@ -8460,7 +8537,7 @@
         "value": "Scylla stabs with its forearms attempting to pierce it's prey."
       }
     ],
-    "actionSource": "bio-titans",
+    "actionSource": "titans",
     "actionType": "Turn"
   },
   {
@@ -8846,7 +8923,7 @@
         "value": "When Typhon unborrows all targets within Close Range of the area it unburrows up to take 5 SP damage from its spiked carapace. In addition, any target that attacks Typhon with an attack that has the [[Melee]] Trait takes 3 SP damage on a hit."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "titans"
   },
   {
     "name": "Split",
@@ -9008,7 +9085,7 @@
         "value": "Anything that starts its turn or enters within Close Range of the Electrophorus will take 5 SP damage."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "titans"
   },
   {
     "id": "6b889072-bfb5-4479-8a23-f6f650ea8d60",
@@ -9156,7 +9233,7 @@
         "value": "Typhon attempts to swallow a target into its humongous maw. Typhon may have multiple targets swallowed at once."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "titans"
   },
   {
     "name": "Swing",
@@ -9400,7 +9477,7 @@
         "value": "The Tyrant swipes with its tail, casually knocking over skyscrapers and swatting away projectiles."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "titans"
   },
   {
     "name": "Tail Sweep",
@@ -9417,7 +9494,7 @@
         "value": "Scylla makes one giant sweeping attack with their tail. This hits every target within Medium Range, dealing 3 SP damage on a hit. Targets hit are knocked Prone and gain the [[Vulnerable]] Trait."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "titans"
   },
   {
     "id": "7a8ba47f-0815-403c-a840-6ee05db36e2a",
@@ -9742,7 +9819,7 @@
         "value": "Chrysalis uses its Cocoon Ability (Costs 2 Titanic Actions)."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "titans"
   },
   {
     "id": "4c103043-2ef5-4812-9aaa-f81dca9bd9e8",
@@ -9766,7 +9843,7 @@
         "value": "The Cortex Bio-Titan wills one of its Mutant Followers to attack. Any Chimerium Mutant, Chimerium Mutant Squad, or Chimerium Beast within Long Range may make an attack against a target of the Cortex Bio-Titan's choice as a reaction. (Costs 1 Titanic Action)"
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "titans"
   },
   {
     "name": "Titanic Actions (Electrophorus)",
@@ -9790,7 +9867,7 @@
         "value": "Electrophorus makes a Bio-Electric Arc Attack (Uses 2 Titanic Actions)."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "titans"
   },
   {
     "name": "Titanic Actions (Meld Behemoth)",
@@ -9838,7 +9915,7 @@
         "value": "Phantom uses its Nether Teleport Ability."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "titans"
   },
   {
     "name": "Titanic Actions (Scylla)",
@@ -9862,7 +9939,7 @@
         "value": "Scylla makes a Tail Sweep Attack (Costs 2 Titanic Actions)."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "titans"
   },
   {
     "name": "Titanic Actions (Typhon)",
@@ -9886,7 +9963,7 @@
         "value": "Typhon makes a Swallow Whole Attack (Costs three Titanic Actions)."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "titans"
   },
   {
     "name": "Titanic Actions (Tyrant)",
@@ -9910,7 +9987,7 @@
         "value": "Tyrant makes a single Claw Swipe Attack. This does not have the [[Multi-Attack]] Trait."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "titans"
   },
   {
     "id": "0946ece1-ca7e-4aac-9bfe-31adcf40d455",
@@ -11612,7 +11689,7 @@
         "value": "Apophis scales are an array of hypnotic colours designed to confuse foes and throw off targeting, scanning and optical systems. Apophis cannot be targeted with anything with the Targeter Trait. It also cannot be seen by anything with the Optics Trait or Scanner Trait."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "titans"
   },
   {
     "id": "5cf942e4-d588-402a-bea2-135dda076c89",
@@ -11644,7 +11721,7 @@
         "value": "This attack does not affect Mechs or Vehicles."
       }
     ],
-    "actionSource": "bio-titans",
+    "actionSource": "titans",
     "actionType": "Turn"
   },
   {
@@ -11663,7 +11740,7 @@
         "value": "Apophis wraps itself around its prey. It may target one Mech, Bio-Titan or Vehicle or up to 4 Creatures with this Ability. Make an attack roll as normal. On a hit each target is constricted. They immediately take 6 SP damage and gain the Vulnerable and Immobile Traits. A target caught may attempt to escape as a Turn Action. Apophis may only constrict one Mech or 3 Creatures at a time."
       }
     ],
-    "actionSource": "bio-titans",
+    "actionSource": "titans",
     "actionType": "Turn"
   },
   {
@@ -11677,7 +11754,7 @@
         "value": "Apophis crushes all targets that it has constricted. This automatically deals 12 SP damage to the targets, and a random System or Module on a Mech is destroyed. (THe₂x damage of the Vulnerable Trait is factored into this damage.)"
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "titans"
   },
   {
     "id": "b239d9c5-ea33-4f5e-b7bf-5b0805efa3d4",
@@ -11705,7 +11782,7 @@
         "value": "Apophis makes a Venomous Bite Attack."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "titans"
   },
   {
     "id": "32c1b47f-38cd-4de3-8447-8ff898aa73b9",
@@ -11733,7 +11810,7 @@
         "value": "Make a melee attack against a target within Range."
       }
     ],
-    "actionSource": "bio-titans",
+    "actionSource": "titans",
     "actionType": "Turn"
   },
   {
@@ -11752,7 +11829,7 @@
         "value": "Puppeteer tendrils can target any Mech without a Pilot in Range. The Mech comes under the control of Physalis. It acts when Physalis wills it via its Mech Marionette Ability."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "titans"
   },
   {
     "id": "c07208c2-f5fc-40b3-a8d1-368039f82b0b",
@@ -11765,7 +11842,7 @@
         "value": "A Mech in Range under the control of Physalis may either Move or take a Turn Action. It may also take as many Free Actions as it is able to. It cannot take Reactions."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "titans"
   },
   {
     "id": "6788277f-10af-40c7-be9f-5d0049972929",
@@ -11777,7 +11854,7 @@
         "value": "When Physalis is hit by an attack it may redirect the attack to one of the Mechs under its control. The attack deals its damage and any effects to the chosen Mech. During a round, Physalis may use this Reaction once per Mech it has under its control."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "titans"
   },
   {
     "id": "653ade99-a3b0-4094-b822-1f1edca5f507",
@@ -11794,7 +11871,7 @@
         "value": "Physalis uses electro-magnetic propulsion to hover over terrain and obstacles. It has the Hover Trait."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "titans"
   },
   {
     "id": "a4733b36-8ef0-48e9-9c41-a76b14cc6868",
@@ -11822,7 +11899,7 @@
         "value": "Physalis Moves a Range Band"
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "titans"
   },
   {
     "id": "e0b63ff6-7541-49d7-bc8f-94308c415cec",
@@ -11835,7 +11912,7 @@
         "value": "If undetected in an aquatic environment, Genbu always acts first in an Action Scene."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "titans"
   },
   {
     "id": "8e6b4dc1-863d-4581-94a5-9c0742e9435e",
@@ -11856,7 +11933,7 @@
         "value": "Make a ranged attack against a target within Range."
       }
     ],
-    "actionSource": "bio-titans",
+    "actionSource": "titans",
     "actionType": "Turn"
   },
   {
@@ -11887,7 +11964,7 @@
         "value": "Make a melee attack against a target within Range."
       }
     ],
-    "actionSource": "bio-titans",
+    "actionSource": "titans",
     "actionType": "Turn"
   },
   {
@@ -11901,7 +11978,7 @@
         "value": "Genbu regenerates a layer of Armour Plating on its shell, regaining 1 Armour Plating up to its maximum of 6."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "titans"
   },
   {
     "id": "c33a9caf-aac3-423d-b6dc-4685472bd049",
@@ -11920,7 +11997,7 @@
         "value": "When Genbu takes damage, instead remove a layer of Armour Plating and it takes no damage or effect from the attack."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "titans"
   },
   {
     "id": "055bf8d4-9a9f-43bb-a82b-9a791f90ea10",
@@ -11933,7 +12010,7 @@
         "value": "Genbu can move effortlessly in water, swamp, rivers, and other aquatic environments. Genbu is slow on areas of land. It must choose to either attack or move on its turn when on land."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "titans"
   },
   {
     "id": "bf9470f6-5df0-405b-b550-b9f1feb0d228",
@@ -11961,7 +12038,7 @@
         "value": "Genbu uses its Shell Regeneration Ability."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "titans"
   },
   {
     "id": "05957294-9d2b-4ce2-a77a-b55f744bbe53",
@@ -12063,7 +12140,7 @@
         "value": "The Worm's physiology extracts metals and extrudes them as defensive rings. It gains an additional Armour Plating when it reduces a Mech or Vehicle to 0 SP."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "titans"
   },
   {
     "id": "72b054eb-28c5-4363-bf5c-27e0b3e766f9",
@@ -12593,5 +12670,1174 @@
         "value": "A Herrsch 360° RealSteel Turret Enclosure, controls this 120mm Cannon."
       }
     ]
+  },
+  {
+    "id": "1bbb256c-81e2-4a4b-8f5e-78ed450837ec",
+    "name": "Cluster Missile",
+    "actionType": "Turn",
+    "range": ["Far"],
+    "damage": {
+      "damageType": "SP",
+      "amount": 3
+    },
+    "traits": [
+      {
+        "type": "explosive",
+        "amount": 3
+      },
+      {
+        "type": "guided"
+      },
+      {
+        "type": "uses",
+        "amount": 6
+      }
+    ],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "An Evantis-developed ordnance missile system, designed to deliver numerous submunition explosives over a wide area at extreme range. Utilised effectively to destroy swarms of DronTek drones during the Evantis invasion of the Northern Wastes."
+      },
+      {
+        "type": "paragraph",
+        "value": "This weapon's [[Explosive]] Trait hits everything in Medium Range of the primary target instead of Close."
+      }
+    ],
+    "actionSource": "systems"
+  },
+  {
+    "id": "59933c70-3ed7-4957-97e2-d33f6d2da4c3",
+    "name": "Analogue Internals",
+    "actionType": "Passive",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Developed in the cyberwars by Evantis to counter Stefanus tech, this hardened module strips a Mech's internals, protecting it from cyber warfare but limiting functionality. Whilst installed, your Mech cannot be targeted by anything with the [[Hacking]] Trait and ignores the effects of the ECM Transmitter. Your Mech also cannot activate any ability with the [[Hacking]], [[Communicator]], or [[Targeter]] Trait."
+      }
+    ],
+    "actionSource": "modules"
+  },
+  {
+    "id": "0d6d2dff-77fc-4d0c-9b1b-d7d2e516b9c0",
+    "name": "Targeting Reticule",
+    "actionType": "Free",
+    "activationCost": 1,
+    "traits": [
+      {
+        "type": "targeter"
+      }
+    ],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A Mech-mountable reflector sight that enables more precision when firing. Forms part of an Evantis Merc's basic training at the academy."
+      },
+      {
+        "type": "paragraph",
+        "value": "When activated, you may re-roll the die for the next attack you make with a weapon that has the [[Ballistic]] or Laser Trait. The second result may still be Pushed."
+      }
+    ],
+    "actionSource": "modules"
+  },
+  {
+    "id": "fa0d5a55-f6ff-42f4-8a2c-ec0b3e791007",
+    "name": "IFF Beacon",
+    "actionType": "Turn",
+    "activationCost": 1,
+    "range": ["Long"],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A countermeasure against Sakura wetwork teams, the IFF Beacon identifies stock information about a Mech, as well as if the Mech is friendly."
+      },
+      {
+        "type": "paragraph",
+        "value": "When activated, you gain the following information about a Mech of your choice in range:"
+      },
+      {
+        "type": "list-item",
+        "value": "Whether it is Friendly. Friendly Mechs may be given this unique tag to identify them. It's assumed that all allied Pilot Mechs gain this tag if anyone takes this Module."
+      },
+      {
+        "type": "list-item",
+        "value": "Its Chassis, such as if it is a Jackhammer or Scrapper."
+      },
+      {
+        "type": "list-item",
+        "value": "Its Chassis Pattern, if using any stock Mech Pattern within the Salvage Union Core Book or any published adventures, or if the Mediator allows."
+      },
+      {
+        "type": "list-item",
+        "value": "Its faction if it belongs to an identifiable faction, including all corpos, the Salvage Union, and any other established faction within the world."
+      }
+    ],
+    "actionSource": "modules"
+  },
+  {
+    "id": "b85891f3-0c4f-49f3-b4d1-997fc033a1a4",
+    "name": "Surge Protector",
+    "actionType": "Passive",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Developed by Opus during the colonisation of the red planet, as its extreme sub-surface temperatures caused settler Mechs to continually overheat. Despite its effectiveness, corpos were reluctant to have them installed as standard due to the additional cost involved."
+      },
+      {
+        "type": "paragraph",
+        "value": "If your Mech has to roll on the Reactor Overheat table, ignore the roll; instead, this Module is destroyed and your Mech's Heat is reduced by 1."
+      }
+    ],
+    "actionSource": "modules"
+  },
+  {
+    "id": "79a962ae-6d63-4fce-a798-502e4b268b87",
+    "name": "Remote Transponder",
+    "actionType": "Turn",
+    "activationCost": 1,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "When activated, you may activate any ability on a friendly Mech within Range with the [[Hacking]], [[Targeter]], [[Scanner]], or [[Communicator]] Trait."
+      },
+      {
+        "type": "paragraph",
+        "value": "The target Mech must also have a Remote Transponder installed and agree to your signal."
+      }
+    ],
+    "actionSource": "modules"
+  },
+  {
+    "id": "d1876eba-a7ef-4233-b19f-0a506a80ec80",
+    "name": "Impact Hammer",
+    "actionType": "Turn",
+    "range": ["Close"],
+    "damage": {
+      "damageType": "SP",
+      "amount": 3
+    },
+    "traits": [
+      {
+        "type": "melee"
+      }
+    ],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Developed by Opus as a means to breach fortifications, this industrial-sized pneumatic hammer needs to be charged to deliver its full effect, but is devastating upon impact. It can easily tear bulkheads apart and rend a chassis open."
+      }
+    ],
+    "actionSource": "systems"
+  },
+  {
+    "id": "fe2776c3-3342-4fee-8aef-f4a67b83089d",
+    "name": "Hammer Time",
+    "actionType": "Turn",
+    "activationCost": 1,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "When activated, you charge the Impact Hammer."
+      },
+      {
+        "type": "paragraph",
+        "value": "The next attack you make with the Impact Hammer within 10 minutes will deal 2x damage on a successful hit. This attack will automatically breach blast doors, destroy walls, tear down barricades, and damage equivalent structures."
+      }
+    ],
+    "actionSource": "systems"
+  },
+  {
+    "id": "d80925ea-761a-481a-a848-93243845309d",
+    "name": "EM Counterpulse",
+    "actionType": "Turn",
+    "activationCost": 1,
+    "range": ["Medium"],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "An electronic countermeasure used frequently during the cyberwars between Stefanus and Drontek. When activated, this module this module sends out a counterpulse signal to prevent electronic interference."
+      },
+      {
+        "type": "paragraph",
+        "value": "Until the start of your next turn, all friendly Mechs within range cannot be prevented by an enemy from activating any abilities with the [[Hacking]], [[Scanner]], [[Communicator]], [[Targeter]], or [[Shield]] traits."
+      }
+    ],
+    "actionSource": "modules"
+  },
+  {
+    "id": "a383e0fb-8dbe-435e-b82a-1d419bd308d8",
+    "name": "Adaptive Chassis Linkage",
+    "actionType": "Passive",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Developed by the Sakura specialist R&D department within their home arco of Neochiba in the Central Wastes."
+      },
+      {
+        "type": "paragraph",
+        "value": "It allows two Mechs to be linked together, operated as one by both Pilots, subject to the following conditions:"
+      },
+      {
+        "type": "list-item",
+        "value": "Mechs can deploy linked; otherwise it is a Long Action to link them together."
+      },
+      {
+        "type": "list-item",
+        "value": "Both Mechs require this Module to be installed to link them."
+      },
+      {
+        "type": "list-item",
+        "value": "The combined Mechs count as one Mech for all intents and purposes."
+      },
+      {
+        "type": "list-item",
+        "value": "The Mechs combine the total of their current and max Structure Points, and their Energy Points."
+      },
+      {
+        "type": "list-item",
+        "value": "The Mechs combine their current Heat and their Heat Cap."
+      },
+      {
+        "type": "list-item",
+        "value": "The Mechs share all Systems, Modules, and Chassis Abilities of both Mechs."
+      },
+      {
+        "type": "list-item",
+        "value": "When it is the turn of either Pilot, they may move and take actions as normal as the combined Mech. This effectively lets the Mech act twice in each round (once on each Pilot's turn)."
+      }
+    ],
+    "actionSource": "modules"
+  },
+  {
+    "id": "882986d2-565f-4e13-931d-b76554fcc10c",
+    "name": "Combo Attack",
+    "actionType": "Turn",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Acting in unison, the Pilots combine their efforts to let out a flurry of blows."
+      },
+      {
+        "type": "paragraph",
+        "value": "The first time either Pilot activates this ability in a round, it begins to prepare the attack."
+      },
+      {
+        "type": "paragraph",
+        "value": "The second time this ability is activated in the round, each Pilot may pick two different weapon systems (each mounted on the Mech) and attack with both. The same weapon cannot be fired twice."
+      }
+    ],
+    "actionSource": "modules"
+  },
+  {
+    "id": "da15eca6-0c82-44df-a9a6-e3beddfebc95",
+    "name": "Mozart's Ghost",
+    "actionType": "Turn",
+    "activationCost": 2,
+    "range": ["Medium"],
+    "traits": [
+      {
+        "type": "hacking"
+      }
+    ],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Choose a target Mech and create a ghost copy of it. Whilst active, you may activate any System, Module, or Chassis Ability of the target with the [[Hacking]], [[Targeter]], [[Scanner]], or [[Communicator]] Trait as though it was mounted on your Mech. Communications appear as though they are from the ghosted Mech. You may only have one ghosted Mech. Lasts for 1 hour and can be ended as a Free Action."
+      }
+    ],
+    "actionSource": "modules"
+  },
+  {
+    "id": "b46a402d-c8bf-47b8-9cf9-9c15d7178397",
+    "name": "AMS Micro Laser",
+    "actionType": "Turn",
+    "range": ["Close"],
+    "damage": { "damageType": "SP", "amount": 1 },
+    "traits": [{ "type": "energy" }],
+    "actionSource": "systems"
+  },
+  {
+    "id": "007d890b-ed44-4cbf-907d-1757eae1676f",
+    "name": "Solder",
+    "actionType": "Turn",
+    "activationCost": 1,
+    "content": [{ "type": "paragraph", "value": "Heal 1 SP to a target within Close Range." }],
+    "actionSource": "systems"
+  },
+  {
+    "id": "970a3251-6bb9-4cd4-b0a6-4869b43de50a",
+    "name": "Mining Tools (Thatcher Pit Android)",
+    "displayName": "Mining Tools",
+    "actionType": "Turn",
+    "range": ["Close"],
+    "damage": { "damageType": "SP", "amount": 2 },
+    "traits": [{ "type": "melee" }],
+    "actionSource": "npcs"
+  },
+  {
+    "id": "112b1a32-207f-40dd-ba80-601acb497852",
+    "name": "Broad Koch Submachine Gun (Super Android Soldier)",
+    "displayName": "Broad Koch Submachine Gun",
+    "actionType": "Turn",
+    "range": ["Medium"],
+    "damage": { "damageType": "HP", "amount": 5 },
+    "traits": [{ "type": "ballistic" }],
+    "actionSource": "npcs"
+  },
+  {
+    "id": "dccece4e-81be-4388-8fbf-736f42c54c22",
+    "name": "T2S2 Grenade (Super Android Soldier)",
+    "displayName": "T2S2 Grenade",
+    "actionType": "Turn",
+    "range": ["Medium"],
+    "damage": { "damageType": "SP", "amount": 4 },
+    "traits": [
+      { "type": "explosive", "amount": 1 },
+      { "type": "uses", "amount": 3 }
+    ],
+    "actionSource": "npcs"
+  },
+  {
+    "id": "a12444db-a754-43ce-b859-b5d0f40d388a",
+    "name": "Hooves and Clubs (Super Android Strikebreaker)",
+    "displayName": "Hooves and Clubs",
+    "actionType": "Turn",
+    "range": ["Close"],
+    "damage": { "damageType": "SP", "amount": 4 },
+    "traits": [{ "type": "melee" }, { "type": "multi-attack", "amount": 2 }],
+    "actionSource": "npcs"
+  },
+  {
+    "id": "6e576a98-8e60-4067-a8bb-1b2041dc6d2f",
+    "name": "Barbed Bite (Churchill)",
+    "displayName": "Barbed Bite",
+    "actionType": "Turn",
+    "range": ["Close"],
+    "damage": { "damageType": "SP", "amount": 5 },
+    "traits": [{ "type": "melee" }],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "On a successful hit, a System on a target Mech is destroyed."
+      }
+    ],
+    "actionSource": "npcs"
+  },
+  {
+    "id": "48b1bda8-f95b-4d5e-ab9c-1c801e3a30bb",
+    "name": "Puff Smoke (Churchill)",
+    "displayName": "Puff Smoke",
+    "actionType": "Passive",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Fumes smoke from a cigar permanently affixed to its mouth; acts as a Smoke Machine."
+      }
+    ],
+    "actionSource": "npcs"
+  },
+  {
+    "id": "1d34c0e4-0732-417a-9868-458f92cec194",
+    "name": "Omega Strike (Dennis)",
+    "displayName": "Omega Strike",
+    "actionType": "Turn",
+    "content": [{ "type": "paragraph", "value": "May fire all weapons in a single turn." }],
+    "actionSource": "npcs"
+  },
+  {
+    "id": "e5d91339-391d-43a2-af1f-514af1d3ea90",
+    "name": "Electro-Whip (Android Osborne)",
+    "displayName": "Electro-Whip (Melee Armament)",
+    "actionType": "Turn",
+    "range": ["Close"],
+    "damage": { "damageType": "HP", "amount": 4 },
+    "traits": [{ "type": "melee" }, { "type": "silent" }],
+    "actionSource": "npcs"
+  },
+  {
+    "id": "fb411ad1-18e3-4c5c-8afc-ec586a4a05f1",
+    "name": "Iron Claws (The Iron Lady)",
+    "displayName": "Iron Claws",
+    "actionType": "Turn",
+    "range": ["Close"],
+    "damage": { "damageType": "SP", "amount": 6 },
+    "traits": [{ "type": "melee" }, { "type": "multi-attack", "amount": 2 }],
+    "content": [{ "type": "paragraph", "value": "The Iron Lady swipes with her clawed limbs." }],
+    "actionSource": "titans"
+  },
+  {
+    "id": "159a2729-48b1-43c3-b358-6f6776456ab3",
+    "name": "Corrosive M.I.L.K. Spray (The Iron Lady)",
+    "displayName": "Corrosive M.I.L.K. Spray",
+    "actionType": "Turn",
+    "range": ["Medium"],
+    "damage": { "damageType": "SP", "amount": 3 },
+    "traits": [{ "type": "burn", "amount": 3 }],
+    "content": [{ "type": "paragraph", "value": "Hits every target in Medium Range." }],
+    "actionSource": "titans"
+  },
+  {
+    "id": "deb2486f-443f-4b8b-99de-e068fc037ae6",
+    "name": "TRIDENT Missile Pod (The Iron Lady)",
+    "displayName": "TRIDENT Missile Pod",
+    "actionType": "Turn",
+    "range": ["Long"],
+    "damage": { "damageType": "SP", "amount": 9 },
+    "traits": [
+      { "type": "explosive", "amount": 2 },
+      { "type": "irradiated" },
+      { "type": "uses", "amount": 6 }
+    ],
+    "content": [
+      { "type": "paragraph", "value": "The Iron Lady fires off a salvo of irradiated warheads." }
+    ],
+    "actionSource": "titans"
+  },
+  {
+    "id": "74e3153d-a3bb-476d-a814-19e4c43e4ae7",
+    "name": "TRIDENT Defence System (The Iron Lady)",
+    "displayName": "TRIDENT Defence System",
+    "actionType": "Reaction",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "If the Iron Lady is hit by a Ranged Weapon attack, she may immediately fire a Trident Missile as a reaction."
+      }
+    ],
+    "actionSource": "titans"
+  },
+  {
+    "id": "5d9d5d89-496e-42d7-a30f-34ac468a6a84",
+    "name": "M.I.L.K. Injector (The Iron Lady)",
+    "displayName": "M.I.L.K. Injector",
+    "actionType": "Free",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "The Iron Lady can inject herself with M.I.L.K. This allows her to act twice in a round, but reduces her SP by d20."
+      }
+    ],
+    "actionSource": "titans"
+  },
+  {
+    "id": "28ce4d04-73a8-4edd-8c22-0dbfb7af9319",
+    "name": "Control Signal (The Iron Lady)",
+    "displayName": "Control Signal",
+    "actionType": "Turn",
+    "range": ["Medium"],
+    "traits": [{ "type": "hacking" }],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "The Iron Lady gains full control of any Thatcher Steel or AMS Mech in Range for 10 minutes."
+      },
+      {
+        "type": "paragraph",
+        "value": "Further, the control signal keeps the androids under her steely spell. If she is destroyed the signal will be broken, freeing the android workers from her control."
+      }
+    ],
+    "actionSource": "titans"
+  },
+  {
+    "id": "e6b0a773-736c-4b81-a07a-6762e68225ff",
+    "name": "Titanic Actions (The Iron Lady)",
+    "displayName": "Titanic Actions",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "The Iron Lady can take one of three Titanic Actions at a time, detailed below. These can only be chosen at the end of another Pilot's or NPC's turn. She regains spent Titanic Actions at the start of her turn."
+      },
+      {
+        "type": "list-item",
+        "value": "The Iron Lady moves one Range Band."
+      },
+      {
+        "type": "list-item",
+        "value": "The Iron Lady makes a single Iron Claw attack."
+      },
+      {
+        "type": "list-item",
+        "value": "The Iron Lady makes a M.I.L.K Spray attack (costs 2 Titanic Actions)."
+      }
+    ],
+    "actionSource": "titans"
+  },
+  {
+    "id": "2413bb3d-f312-4f9e-9d64-7de00ca665c1",
+    "name": "Growth Formula",
+    "actionType": "Turn",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A spray bottle of plant-growth accelerant. Spraying it on a plant grows it rapidly until it spreads in tendrils that fill the surrounding area."
+      }
+    ],
+    "actionSource": "equipment"
+  },
+  {
+    "id": "db83cba7-86d0-4959-ba29-5f897c3265de",
+    "name": "Oil Bomb",
+    "actionType": "Turn",
+    "range": ["Close"],
+    "damage": {
+      "amount": 1,
+      "damageType": "SP"
+    },
+    "traits": [
+      {
+        "type": "anti-organic"
+      },
+      {
+        "type": "burn",
+        "amount": 1
+      },
+      {
+        "type": "overheat"
+      },
+      {
+        "type": "uses",
+        "amount": 3
+      }
+    ],
+    "actionSource": "equipment"
+  },
+  {
+    "id": "2d675a50-a38e-4ffe-9f79-0e3bd89a8ae4",
+    "name": "Electrostatic Mine",
+    "actionType": "Turn",
+    "range": ["Close"],
+    "damage": {
+      "amount": 3,
+      "damageType": "SP"
+    },
+    "traits": [
+      {
+        "type": "explosive",
+        "amount": 1
+      },
+      {
+        "type": "uses",
+        "amount": 2
+      }
+    ],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "On hit, Mech Shutdown for (1) Turn"
+      }
+    ],
+    "actionSource": "equipment"
+  },
+  {
+    "id": "9e4f6f94-e098-4aa0-996a-7ee8d8e15147",
+    "name": "Hobbler Mine",
+    "actionType": "Turn",
+    "range": ["Close"],
+    "damage": {
+      "amount": 1,
+      "damageType": "SP"
+    },
+    "traits": [
+      {
+        "type": "explosive",
+        "amount": 1
+      },
+      {
+        "type": "uses",
+        "amount": 2
+      }
+    ],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "On hit, destroy Locomotion System."
+      }
+    ],
+    "actionSource": "equipment"
+  },
+  {
+    "id": "900c83b0-bf02-4a24-b7f5-5e7346cc18ed",
+    "name": "Integrated Amphibious Locomotion System",
+    "actionType": "Passive",
+    "actionSource": "systems"
+  },
+  {
+    "id": "4ea8fc40-6ee7-4905-8d64-1fbfac7de27e",
+    "name": "Shanty Home",
+    "actionType": "Passive",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Can safely transport a family of people across the wastes."
+      }
+    ],
+    "actionSource": "systems"
+  },
+  {
+    "id": "36d23a7f-e9ab-40cd-bef0-bed9a6ae4769",
+    "name": "Improvised Explosive Device (Saboteur)",
+    "displayName": "Improvised Explosive Device",
+    "actionType": "Turn",
+    "range": ["Close"],
+    "damage": {
+      "amount": 3,
+      "damageType": "SP"
+    },
+    "traits": [
+      {
+        "type": "explosive",
+        "amount": 1
+      },
+      {
+        "type": "uses",
+        "amount": 2
+      }
+    ],
+    "actionSource": "npcs"
+  },
+  {
+    "id": "974cc5b2-b1d6-42ca-b045-3dd79725c706",
+    "name": "Oil Bomb (Saboteur)",
+    "displayName": "Oil Bomb",
+    "actionType": "Turn",
+    "range": ["Close"],
+    "damage": {
+      "amount": 1,
+      "damageType": "SP"
+    },
+    "traits": [
+      {
+        "type": "anti-organic"
+      },
+      {
+        "type": "burn",
+        "amount": 1
+      },
+      {
+        "type": "overheat"
+      },
+      {
+        "type": "uses",
+        "amount": 3
+      }
+    ],
+    "actionSource": "npcs"
+  },
+  {
+    "id": "105dc4b7-7be7-4cef-91cd-dfb5fa9f2c2f",
+    "name": "Electrostatic Mine (Saboteur)",
+    "displayName": "Electrostatic Mine",
+    "actionType": "Turn",
+    "range": ["Close"],
+    "damage": {
+      "amount": 3,
+      "damageType": "SP"
+    },
+    "traits": [
+      {
+        "type": "explosive",
+        "amount": 1
+      },
+      {
+        "type": "uses",
+        "amount": 2
+      }
+    ],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "On hit, Mech Shutdown for (1) Turn"
+      }
+    ],
+    "actionSource": "npcs"
+  },
+  {
+    "id": "25818e13-572d-4f59-a52c-cf09e5f11804",
+    "name": "Hobbler Mine (Saboteur)",
+    "displayName": "Hobbler Mine",
+    "actionType": "Turn",
+    "range": ["Close"],
+    "damage": {
+      "amount": 1,
+      "damageType": "SP"
+    },
+    "traits": [
+      {
+        "type": "explosive",
+        "amount": 1
+      },
+      {
+        "type": "uses",
+        "amount": 2
+      }
+    ],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "On hit, destroy Locomotion System."
+      }
+    ],
+    "actionSource": "npcs"
+  },
+  {
+    "id": "594f332a-c26a-401b-9513-2e0a7b2a1a73",
+    "name": "Camouflage Fatigues (NPC)",
+    "displayName": "Camouflage Fatigues",
+    "actionSource": "npcs"
+  },
+  {
+    "id": "6e723500-1eef-4e02-8770-a1e28e07199a",
+    "name": "Ambusher",
+    "actionType": "Passive",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Unless spotted, will always count as rolling a 20 on the Group Initiative Table."
+      }
+    ],
+    "actionSource": "npcs"
+  },
+  {
+    "id": "41e5834b-c550-423c-9e27-b47609aa2820",
+    "name": "Guerrilla",
+    "actionType": "Passive",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "After making an attack, may roll on the Retreat Table to flee the combat area."
+      }
+    ],
+    "actionSource": "npcs"
+  },
+  {
+    "id": "28c6d508-ca90-4c77-a4e5-ee0453cc1cda",
+    "name": "Explosive Expert",
+    "actionType": "Passive",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Takes no Explosive damage from any attack made by themselves or an ally with the Explosive Trait."
+      }
+    ],
+    "actionSource": "npcs"
+  },
+  {
+    "id": "393d06d4-ba03-43d4-a45a-2e19916af4ff",
+    "name": "Saboteurs",
+    "actionType": "Passive",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "May attack twice with any weapon that has the Explosive Trait. This can be the same, or a different weapon they have access to. In addition all weapons with the Explosive Trait deal an additional 1 SP damage, including any Explosive damage."
+      }
+    ],
+    "actionSource": "squads"
+  },
+  {
+    "id": "5dd47cfb-9164-4acd-88da-87c194cee0ec",
+    "name": "Attach (Iron Leech)",
+    "displayName": "Attach",
+    "actionType": "Turn",
+    "range": ["Close"],
+    "damage": { "amount": 2, "damageType": "SP" },
+    "traits": [{ "type": "melee" }],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "On a successful hit, the Iron Leech attaches to a target and deals 1 SP damage to them at the end of their Turn. They can also keep attacking the same target as normal. Any attacks against an Iron Leech whilst its attached will deal half damage (rounded down) to the target they are attached to."
+      }
+    ],
+    "actionSource": "creatures"
+  },
+  {
+    "id": "15bcabe3-b12b-4c51-96ab-6605312b8b82",
+    "name": "Bite (Scrap Termite)",
+    "displayName": "Bite",
+    "actionType": "Turn",
+    "range": ["Close"],
+    "damage": { "amount": 2, "damageType": "SP" },
+    "traits": [{ "type": "melee" }],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "On a successful hit, a random System on the target Mech or Vehicle is damaged. If the target is Immobile, the System is instead destroyed."
+      }
+    ],
+    "actionSource": "creatures"
+  },
+  {
+    "id": "e47ae334-6f04-4e06-afa6-c72a72a4803c",
+    "name": "Regurgitate",
+    "actionType": "Turn",
+    "range": ["Medium"],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "The Scrap Termite spits digested matter onto a target in Range. The target gains the Immobile Trait from the concrete-like goo."
+      }
+    ],
+    "actionSource": "creatures"
+  },
+  {
+    "id": "02887678-0e38-4a8f-9467-2cd742359113",
+    "name": "Armoured Carapace",
+    "actionType": "Passive",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "The Artl Queen counts as having 1x Armour Plating System."
+      }
+    ],
+    "actionSource": "creatures"
+  },
+  {
+    "id": "62a375dc-3173-4224-bf32-ad0b7ed455de",
+    "name": "Scythe Swipe",
+    "actionType": "Turn",
+    "range": ["Close"],
+    "damage": { "amount": 3, "damageType": "SP" },
+    "traits": [{ "type": "multi-attack", "amount": 2 }],
+    "actionSource": "creatures"
+  },
+  {
+    "id": "dd0b2d93-7e65-4c0a-99a4-a2979522fc61",
+    "name": "Acid Spray",
+    "actionType": "Turn",
+    "range": ["Medium"],
+    "damage": { "amount": 2, "damageType": "SP" },
+    "traits": [
+      { "type": "burn", "amount": 2 },
+      { "type": "explosive", "amount": 1 }
+    ],
+    "actionSource": "creatures"
+  },
+  {
+    "id": "9af00525-16c8-4fb3-b144-507ad1ba64e9",
+    "name": "Cockpit Strike",
+    "actionType": "Turn",
+    "range": ["Close"],
+    "damage": { "amount": 1, "damageType": "SP" },
+    "traits": [{ "type": "melee" }],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "The Hunter launches a precise blow with a spiny limb. A hit tears a Mech's cockpit apart, exposing the Pilot, who can now be targeted by attacks in Close Range. The damage can be fixed by any Ability that can repair a Mech Chassis."
+      }
+    ],
+    "actionSource": "creatures"
+  },
+  {
+    "id": "c058dd83-6305-4846-b01e-9be51ec9490a",
+    "name": "Decapitating Bite",
+    "actionType": "Turn",
+    "range": ["Close"],
+    "damage": { "amount": 6, "damageType": "HP" },
+    "traits": [{ "type": "melee" }, { "type": "deadly" }],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A killing blow that decapitates the victim. Can only target pilots and creatures."
+      }
+    ],
+    "actionSource": "creatures"
+  },
+  {
+    "id": "54a14ab3-1168-4a71-88b2-366a7ca3b338",
+    "name": "Hunter's Sight",
+    "actionType": "Passive",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Heat vision equivalent to Thermal Optics. Their only method of sight."
+      }
+    ],
+    "actionSource": "creatures"
+  },
+  {
+    "id": "4fd026d6-97bd-486e-8359-a83f542b29f5",
+    "name": "Ambush (Hunter)",
+    "displayName": "Ambush",
+    "actionType": "Passive",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Unless spotted, Hunters always strike first, counting as the party rolling a 1 on the Group Initiative Table."
+      }
+    ],
+    "actionSource": "creatures"
+  },
+  {
+    "id": "c7470163-a69a-4f68-a1e5-711993923312",
+    "name": "Cloaking",
+    "actionType": "Passive",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Natural camouflage in wilderness areas. Hidden from sight: cannot be detected by anything with the Scanner Trait or targeted by anything with the Targeter Trait."
+      }
+    ],
+    "actionSource": "creatures"
+  },
+  {
+    "id": "02aefa41-7243-42b9-bc91-6dbbc5191fb2",
+    "name": "Leap",
+    "actionType": "Passive",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Can move an additional Range Band on their Turn and travel vertically, ignoring any intervening terrain or obstacles."
+      }
+    ],
+    "actionSource": "creatures"
+  },
+  {
+    "id": "b3f677df-36d7-48c9-9903-67416e7059e3",
+    "name": "Titanic Actions (Ygdriss)",
+    "displayName": "Titanic Actions",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Ygdriss can take one of three Titanic Actions at a time, detailed below. These can only be chosen at the end of another Pilot's or NPC's turn. She regains spent Titanic Actions at the start of her turn."
+      },
+      {
+        "type": "list-item",
+        "value": "Ygdriss makes a Gods Wrath attack."
+      },
+      {
+        "type": "list-item",
+        "value": "Ygdriss uses her Rust Spores ability (Costs 2 Titanic Actions)"
+      },
+      {
+        "type": "list-item",
+        "value": "Ygdriss uses her Summon Bio-Fauna Ability (Costs 2 Titanic Actions)"
+      }
+    ],
+    "actionSource": "titans"
+  },
+  {
+    "id": "294733bf-e788-4ccb-805c-558d405a9617",
+    "name": "Immobile (Ygdriss)",
+    "displayName": "Immobile",
+    "actionType": "Passive",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Ygdriss is rooted to the ground and cannot move."
+      }
+    ],
+    "actionSource": "titans"
+  },
+  {
+    "id": "3285e4a2-9a58-40fe-9e9c-14b8d2bade51",
+    "name": "Thickened Bark",
+    "actionType": "Passive",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Ygdriss counts as having 2 x Armour Plating Systems."
+      }
+    ],
+    "actionSource": "titans"
+  },
+  {
+    "id": "1736c548-3ac4-4a28-975a-b65e8b369b12",
+    "name": "Thorns",
+    "actionType": "Passive",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Melee attacks against Ygdriss cause 2 SP damage to the attacker."
+      }
+    ],
+    "actionSource": "titans"
+  },
+  {
+    "id": "c1e95208-2a68-4dba-a247-02c03e423ea1",
+    "name": "Mutagenic Radiation",
+    "actionType": "Passive",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Pilots within Close Range of Ygdriss gain a minor mutation, which can be treated as a Pilot Keepsake (p.46 PH). They may describe this form of minor mutation however they wish. If the Pilot is hostile to Ygdriss, their mutation will instead cause a Minor Injury that they can describe as they wish."
+      }
+    ],
+    "actionSource": "titans"
+  },
+  {
+    "id": "36686c6c-7bf9-4f91-8aaf-bcaeaefaa191",
+    "name": "God's Wrath",
+    "actionType": "Turn",
+    "range": ["Medium"],
+    "damage": { "amount": 4, "damageType": "SP" },
+    "traits": [{ "type": "melee" }, { "type": "multi-attack", "amount": 2 }],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Ygdriss swipes with her barbed branches. On a successful hit, the target is rooted in place, gaining the Immobile and Vulnerable Traits until they escape."
+      }
+    ],
+    "actionSource": "titans"
+  },
+  {
+    "id": "d78e7d16-8c19-4a10-af74-5087421086ae",
+    "name": "Rust Spores",
+    "actionType": "Turn",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Ygdriss emits a cloud of rust spores. All Mechs and Vehicles within Far Range take 2 SP damage with Burn 2."
+      }
+    ],
+    "actionSource": "titans"
+  },
+  {
+    "id": "dd5a7429-429e-4831-b37a-2fe9cb308fa0",
+    "name": "Summon Bio-Fauna",
+    "actionType": "Turn",
+    "traits": [{ "type": "uses", "amount": 3 }],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Ygdriss summons Creatures from within her branches to defend herself. They start in Close Range to her."
+      }
+    ],
+    "actionSource": "titans",
+    "tableName": "Summon Bio-Fauna"
+  },
+  {
+    "name": "Hydraulic Shunter",
+    "id": "f05d8dd6-bd65-45cc-894f-1d54db3ce918",
+    "actionType": "Turn",
+    "activationCost": 1,
+    "range": ["Close"],
+    "traits": [
+      {
+        "type": "melee"
+      }
+    ],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "When activated, an object in Range such as a heavy piece of machinery, a boulder, or a cargo container, is pushed a Range Band away from you."
+      },
+      {
+        "type": "paragraph",
+        "value": "If an active Mech is targeted with this ability, make an attack roll. On a success the Mech is pushed a Range Band away from you. If this would cause them to fall, for example off a cliff face or into a pit, the target falls Prone, gains the Vulnerable Trait, and takes 2 SP damage by default. If they are pushed into a hazardous obstacle such as a wall of jagged rebars, they take 4 SP by default."
+      },
+      {
+        "type": "paragraph",
+        "value": "The Mediator can modify the damage and effects based on the situation, for example, being pushed into a burning oil fire could apply the Burn (1) Trait."
+      }
+    ],
+    "actionSource": "systems"
+  },
+  {
+    "name": "Auger",
+    "id": "d8d77481-3641-43ec-9442-9b77093cef96",
+    "actionType": "Short",
+    "activationCost": 1,
+    "traits": [
+      {
+        "type": "reliable"
+      },
+      {
+        "type": "salvaging"
+      }
+    ],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Drills into the ground, tearing through anything in its path, and creating a hole large enough for a Mech to enter. The precision of the tool makes it safer to use than other salvaging tools, avoiding any booby traps or other potential hazards, as well as being able to safely dig around a stuck Mech or even person."
+      }
+    ],
+    "actionSource": "systems"
+  },
+  {
+    "name": "Drill",
+    "id": "ccffe836-fc09-44cf-b7b1-dd243947f9c2",
+    "actionType": "Turn",
+    "activationCost": 1,
+    "range": ["Close"],
+    "damage": {
+      "damageType": "SP",
+      "amount": 1
+    },
+    "traits": [
+      {
+        "type": "reliable"
+      },
+      {
+        "type": "salvaging"
+      },
+      {
+        "type": "melee"
+      }
+    ],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "The Salvaging Drill can be used to tear apart a Mech with surgical precision. On a successful hit it deals 1 SP damage and a System of your choice on the Mech is destroyed."
+      }
+    ],
+    "actionSource": "systems"
+  },
+  {
+    "name": "A Little Bit Rude",
+    "id": "320e6913-636b-4198-b8e5-4eb8fe78b310",
+    "actionType": "Turn",
+    "activationCost": 1,
+    "range": ["Medium"],
+    "traits": [
+      {
+        "type": "hacking"
+      }
+    ],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "You hack into a Mech to cause one of various annoying effects. When activated a target Mech in Range suffers one of the following effects of your choice:"
+      },
+      { "type": "list-item", "value": "Takes 1 SP damage." },
+      { "type": "list-item", "value": "A random System is damaged for 1 round." },
+      { "type": "list-item", "value": "A random Module is damaged for 1 round." },
+      { "type": "list-item", "value": "Gains 1 Heat." },
+      { "type": "list-item", "value": "Loses 1 EP." },
+      {
+        "type": "list-item",
+        "value": "A glitch of your choice, this doesn't have any serious effect, but it's really annoying to fix."
+      }
+    ],
+    "actionSource": "modules"
+  },
+  {
+    "name": "Very Rude",
+    "id": "751f7587-cd73-43f4-a360-b5a78221c35b",
+    "actionType": "Turn",
+    "activationCost": 2,
+    "range": ["Medium"],
+    "traits": [
+      {
+        "type": "hacking"
+      }
+    ],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "You hack into a Mech to cause a significant effect."
+      },
+      {
+        "type": "paragraph",
+        "value": "When activated a target Mech in Range suffers one of the following effects of your choice."
+      },
+      { "type": "list-item", "value": "Takes 2 SP damage" },
+      { "type": "list-item", "value": "A random System is damaged" },
+      { "type": "list-item", "value": "A random Module is damaged" },
+      { "type": "list-item", "value": "Gains 2 Heat" },
+      { "type": "list-item", "value": "Loses 2 EP" },
+      {
+        "type": "list-item",
+        "value": "A glitch of your choice with a debilitating effect that lasts 1 round"
+      }
+    ],
+    "actionSource": "modules"
   }
 ]

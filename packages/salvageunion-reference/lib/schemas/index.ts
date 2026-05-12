@@ -53,6 +53,7 @@ import {
   PatternSchema,
   DamageSchema,
   ActionSchema,
+  AdditionalSourceSchema,
   BaseEntitySchema,
   AdvancedClassSchema,
   FormationMechSchema,
@@ -66,7 +67,7 @@ import {
   AbilitySchema,
   AbilityTreeRequirementSchema,
   MetaActionSchema,
-  BioTitanSchema,
+  TitanSchema,
   ChassisSchema,
   ClassSchema,
   CrawlerBaySchema,
@@ -89,6 +90,7 @@ import {
   GuideSchema,
   SourceEntitySchema,
   TechLevelEntitySchema,
+  PreMadeCharacterSchema,
   CatalogCategorySchema,
 } from './entities.js'
 
@@ -137,6 +139,7 @@ export type SURefObjectNpc = z.infer<typeof NpcSchema>
 export type SURefObjectPattern = z.infer<typeof PatternSchema>
 export type SURefObjectDamage = z.infer<typeof DamageSchema>
 export type SURefObjectAction = z.infer<typeof ActionSchema>
+export type SURefObjectAdditionalSource = z.infer<typeof AdditionalSourceSchema>
 export type SURefObjectBaseEntity = z.infer<typeof BaseEntitySchema>
 export type SURefObjectBonusPerTechLevel = z.infer<typeof StatsSchema>
 export type SURefObjectAdvancedClass = z.infer<typeof AdvancedClassSchema>
@@ -154,7 +157,7 @@ export type SURefObjectActionOptions = Array<{ label: string; value: string }>
 export type SURefAbility = z.infer<typeof AbilitySchema>
 export type SURefMetaAbilityTreeRequirement = z.infer<typeof AbilityTreeRequirementSchema>
 export type SURefMetaAction = z.infer<typeof MetaActionSchema>
-export type SURefBioTitan = z.infer<typeof BioTitanSchema>
+export type SURefTitan = z.infer<typeof TitanSchema>
 export type SURefChassis = z.infer<typeof ChassisSchema>
 export type SURefClass = z.infer<typeof ClassSchema>
 export type SURefCrawlerBay = z.infer<typeof CrawlerBaySchema>
@@ -177,12 +180,12 @@ export type SURefVehicle = z.infer<typeof VehicleSchema>
 export type SURefGuide = z.infer<typeof GuideSchema>
 export type SURefSource = z.infer<typeof SourceEntitySchema>
 export type SURefTechLevel = z.infer<typeof TechLevelEntitySchema>
+export type SURefPreMadeCharacter = z.infer<typeof PreMadeCharacterSchema>
 export type SURefCatalogCategory = z.infer<typeof CatalogCategorySchema>
 
 // Union types
 export type SURefEntity =
   | SURefAbility
-  | SURefBioTitan
   | SURefChassis
   | SURefClass
   | SURefCrawler
@@ -197,17 +200,18 @@ export type SURefEntity =
   | SURefMeld
   | SURefModule
   | SURefNPC
+  | SURefPreMadeCharacter
   | SURefRollTable
   | SURefSource
   | SURefSquad
   | SURefSystem
   | SURefTechLevel
+  | SURefTitan
   | SURefTrait
   | SURefVehicle
 
 export type SURefMetaEntity =
   | SURefAbility
-  | SURefBioTitan
   | SURefChassis
   | SURefClass
   | SURefCrawler
@@ -225,8 +229,10 @@ export type SURefMetaEntity =
   | SURefGuide
   | SURefSource
   | SURefTechLevel
+  | SURefTitan
   | SURefModule
   | SURefNPC
+  | SURefPreMadeCharacter
   | SURefRollTable
   | SURefSquad
   | SURefSystem

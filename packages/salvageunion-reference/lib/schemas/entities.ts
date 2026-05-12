@@ -84,15 +84,27 @@ export const MetaActionSchema = ActionSchema.and(
 ).describe('Actions, abilities, and attacks that can be performed in Salvage Union')
 
 /**
- * Massive bio-engineered titan creatures in Salvage Union
+ * Mech-scale single-threat enemies in Salvage Union (monsters and bosses).
+ *
+ * `kind` distinguishes:
+ * - `monster`: instinctual creatures (e.g. Scylla, Typhon, Chrysalis)
+ * - `boss`: named antagonists with goals and motivations (e.g. The Iron Lady)
+ *
+ * Both share the same statblock shape: structurePoints + actions (often
+ * including a "Titanic Actions" entry) and optional traits.
  */
-export const BioTitanSchema = BaseEntitySchema.extend({
-  structurePoints: PositiveIntegerSchema.describe('Structure points of this bio-titan'),
-  actions: z.array(z.string()).describe('Action names this bio-titan can perform'),
+export const TitanSchema = BaseEntitySchema.extend({
+  kind: z
+    .enum(['monster', 'boss'])
+    .describe(
+      'Monster (instinctual creature) or Boss (named antagonist with goals and motivations)'
+    ),
+  structurePoints: PositiveIntegerSchema.describe('Structure points of this titan'),
+  actions: z.array(z.string()).describe('Action names this titan can perform'),
   traits: z.array(TraitSchema).describe('Traits and special properties').optional(),
 })
   .strict()
-  .describe('Massive bio-engineered titan creatures in Salvage Union')
+  .describe('Mech-scale single-threat enemies in Salvage Union (monsters and bosses)')
 
 /**
  * Mech chassis definitions in Salvage Union
@@ -300,7 +312,15 @@ export const ModuleSchema = BaseEntitySchema.extend({ ...SystemModuleSchema.shap
  */
 export const NPCSchema = BaseEntitySchema.extend({ ...CombatEntitySchema.shape })
   .extend({
-    hitPoints: NonNegativeIntegerSchema.describe('Hit points of this NPC'),
+    hitPoints: NonNegativeIntegerSchema.describe(
+      'Hit points (HP) or structure points (SP) of this NPC; see damageType to disambiguate.'
+    ),
+    damageType: DamageTypeSchema.describe(
+      'Whether this NPC tracks HP (organic) or SP (mechanical/cybernetic). Defaults to HP when omitted.'
+    ).optional(),
+    structurePoints: NonNegativeIntegerSchema.describe(
+      'Structure points for mech-scale NPCs. Use instead of hitPoints when the NPC is mech-scale.'
+    ).optional(),
     bioSalvageValue: NonNegativeIntegerSchema.describe(
       'Bio-salvage value for Chimerium mutants'
     ).optional(),
@@ -377,6 +397,31 @@ export const SourceEntitySchema = BaseEntitySchema.extend({
 })
   .strict()
   .describe('Source books and expansions for Salvage Union content')
+
+/**
+ * Pre-made player characters bundled with starter sets
+ */
+export const PreMadeCharacterSchema = BaseEntitySchema.extend({
+  pilotClass: z.string().min(1).describe('Pilot class name (e.g. "Engineer")'),
+  background: z.string().min(1).describe('Pilot background'),
+  motto: z.string().min(1).describe('Pilot motto'),
+  keepsake: z.string().min(1).describe('Pilot keepsake'),
+  hitPoints: PositiveIntegerSchema.describe('Pilot hit points'),
+  actionPoints: PositiveIntegerSchema.describe('Pilot action points'),
+  equipment: z.array(z.string()).describe('Pilot equipment names'),
+  mech: z
+    .object({
+      chassis: z.string().min(1).describe('Chassis name'),
+      pattern: z.string().min(1).describe('Pattern name'),
+      name: z.string().min(1).describe("Mech's individual name").optional(),
+    })
+    .strict()
+    .describe('Pre-built mech for this pilot'),
+  systems: z.array(z.string()).describe('Mech system names'),
+  modules: z.array(z.string()).describe('Mech module names'),
+})
+  .strict()
+  .describe('Pre-made player characters bundled with starter sets')
 
 /**
  * Catalog categories for organizing schemas in the UI (meta schema, not a game entity)

@@ -1,8 +1,8 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://salvageunion.com/schemas/traits.schema.json",
-  "title": "traits",
-  "description": "Traits and special properties in Salvage Union",
+  "$id": "https://salvageunion.com/schemas/pre-made-characters.schema.json",
+  "title": "pre-made-characters",
+  "description": "Pre-made player characters bundled with starter sets",
   "type": "array",
   "items": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -123,7 +123,7 @@
           "required": ["type"],
           "additionalProperties": false
         },
-        "description": "Definition and rules for this trait"
+        "description": "Descriptive content blocks for this entity"
       },
       "id": { "type": "string", "description": "Unique identifier for this entity" },
       "indexable": {
@@ -202,10 +202,73 @@
           "description": "A secondary source where this entity is reprinted (e.g. condensed in a Starter Set)"
         },
         "description": "Other source books where this entity is reprinted"
+      },
+      "pilotClass": {
+        "type": "string",
+        "minLength": 1,
+        "description": "Pilot class name (e.g. \"Engineer\")"
+      },
+      "background": { "type": "string", "minLength": 1, "description": "Pilot background" },
+      "motto": { "type": "string", "minLength": 1, "description": "Pilot motto" },
+      "keepsake": { "type": "string", "minLength": 1, "description": "Pilot keepsake" },
+      "hitPoints": {
+        "type": "integer",
+        "exclusiveMinimum": 0,
+        "maximum": 9007199254740991,
+        "description": "Pilot hit points"
+      },
+      "actionPoints": {
+        "type": "integer",
+        "exclusiveMinimum": 0,
+        "maximum": 9007199254740991,
+        "description": "Pilot action points"
+      },
+      "equipment": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "Pilot equipment names"
+      },
+      "mech": {
+        "type": "object",
+        "properties": {
+          "chassis": { "type": "string", "minLength": 1, "description": "Chassis name" },
+          "pattern": { "type": "string", "minLength": 1, "description": "Pattern name" },
+          "name": { "type": "string", "minLength": 1, "description": "Mech's individual name" }
+        },
+        "required": ["chassis", "pattern"],
+        "additionalProperties": false,
+        "description": "Pre-built mech for this pilot"
+      },
+      "systems": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "Mech system names"
+      },
+      "modules": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "Mech module names"
       }
     },
-    "required": ["id", "indexable", "blackMarket", "name", "source", "page"],
+    "required": [
+      "id",
+      "indexable",
+      "blackMarket",
+      "name",
+      "source",
+      "page",
+      "pilotClass",
+      "background",
+      "motto",
+      "keepsake",
+      "hitPoints",
+      "actionPoints",
+      "equipment",
+      "mech",
+      "systems",
+      "modules"
+    ],
     "additionalProperties": false,
-    "description": "Traits and special properties in Salvage Union"
+    "description": "Pre-made player characters bundled with starter sets"
   }
 }

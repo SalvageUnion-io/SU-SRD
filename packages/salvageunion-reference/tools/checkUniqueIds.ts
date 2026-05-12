@@ -78,7 +78,6 @@ const dataFiles = [
   'abilities.json',
   'ability-tree-requirements.json',
   'actions.json',
-  'bio-titans.json',
   'chassis.json',
   'classes.json',
   'crawler-bays.json',
@@ -94,6 +93,7 @@ const dataFiles = [
   'roll-tables.json',
   'squads.json',
   'systems.json',
+  'titans.json',
   'traits.json',
   'vehicles.json',
 ]

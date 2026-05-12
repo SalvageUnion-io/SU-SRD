@@ -8,7 +8,14 @@
     "salvageValue": 1,
     "recommended": true,
     "page": 190,
-    "actions": ["Comms Module"]
+    "actions": ["Comms Module"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 64
+      }
+    ]
   },
   {
     "id": "f8acedfb-56da-4ca2-8bb8-511d95a23abe",
@@ -18,7 +25,14 @@
     "slotsRequired": 1,
     "salvageValue": 1,
     "page": 190,
-    "actions": ["Equipment Locker"]
+    "actions": ["Equipment Locker"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 65
+      }
+    ]
   },
   {
     "id": "25ca5163-7ac1-47d3-b36c-377aaf2773fe",
@@ -28,7 +42,14 @@
     "slotsRequired": 1,
     "salvageValue": 3,
     "page": 190,
-    "actions": ["Eggs"]
+    "actions": ["Eggs"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 64
+      }
+    ]
   },
   {
     "id": "dde4b6c5-fe3c-4d18-a6c3-15ba7630db96",
@@ -38,7 +59,14 @@
     "slotsRequired": 1,
     "salvageValue": 2,
     "page": 191,
-    "actions": ["Firewall"]
+    "actions": ["Firewall"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 65
+      }
+    ]
   },
   {
     "id": "ab7c2af1-f474-4cc0-8dc9-3942d6f24d8b",
@@ -48,7 +76,14 @@
     "slotsRequired": 1,
     "salvageValue": 1,
     "page": 191,
-    "actions": ["Personal Recreation Device"]
+    "actions": ["Personal Recreation Device"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 65
+      }
+    ]
   },
   {
     "id": "92677d7f-3490-48ee-9554-513355c967ce",
@@ -58,7 +93,14 @@
     "slotsRequired": 1,
     "salvageValue": 1,
     "page": 191,
-    "actions": ["Reactor Flare"]
+    "actions": ["Reactor Flare"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 66
+      }
+    ]
   },
   {
     "id": "a93614fa-1e90-4fed-b806-4f2f4ea77dab",
@@ -68,7 +110,14 @@
     "slotsRequired": 1,
     "salvageValue": 1,
     "page": 192,
-    "actions": ["Self-Destruct"]
+    "actions": ["Self-Destruct"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 66
+      }
+    ]
   },
   {
     "id": "655c1325-9525-4a7f-a601-e302e5240208",
@@ -78,7 +127,14 @@
     "slotsRequired": 1,
     "salvageValue": 3,
     "page": 192,
-    "actions": ["Survey Scanner"]
+    "actions": ["Survey Scanner"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 67
+      }
+    ]
   },
   {
     "id": "d54471d7-562a-4f25-8f3d-740ffc520dc3",
@@ -88,7 +144,14 @@
     "slotsRequired": 1,
     "salvageValue": 3,
     "page": 193,
-    "actions": ["Weapon Link"]
+    "actions": ["Weapon Link"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 67
+      }
+    ]
   },
   {
     "id": "301a86b9-2508-41ed-939f-f416c050dccc",
@@ -98,7 +161,14 @@
     "slotsRequired": 1,
     "salvageValue": 2,
     "page": 193,
-    "actions": ["Zoom Optics"]
+    "actions": ["Zoom Optics"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 67
+      }
+    ]
   },
   {
     "id": "bca31633-15d8-4441-9d84-1857546b50cb",
@@ -108,7 +178,14 @@
     "slotsRequired": 1,
     "salvageValue": 1,
     "page": 193,
-    "actions": ["Barometric Sensor"]
+    "actions": ["Barometric Sensor"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 68
+      }
+    ]
   },
   {
     "id": "5360e2ed-f25f-4d7a-9ec0-7b0bdc0af758",
@@ -118,7 +195,14 @@
     "slotsRequired": 1,
     "salvageValue": 1,
     "page": 193,
-    "actions": ["Damage Assessor"]
+    "actions": ["Damage Assessor"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 68
+      }
+    ]
   },
   {
     "id": "ffa5abd0-c7b4-4adb-8411-132040d385a5",
@@ -128,7 +212,14 @@
     "slotsRequired": 1,
     "salvageValue": 2,
     "page": 194,
-    "actions": ["Energy Cell"]
+    "actions": ["Energy Cell"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 69
+      }
+    ]
   },
   {
     "id": "10ccfd99-5580-4a94-a9b7-50c24fd7faf3",
@@ -138,7 +229,14 @@
     "slotsRequired": 1,
     "salvageValue": 2,
     "page": 194,
-    "actions": ["Deep Survey Scanner"]
+    "actions": ["Deep Survey Scanner"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 69
+      }
+    ]
   },
   {
     "id": "746b6003-1100-4c22-ab2a-5593fafe3e41",
@@ -148,7 +246,14 @@
     "slotsRequired": 1,
     "salvageValue": 1,
     "page": 194,
-    "actions": ["Evasion Protocols"]
+    "actions": ["Evasion Protocols"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 69
+      }
+    ]
   },
   {
     "id": "3d096dd7-7437-4af1-a8ab-28cf9886cae4",
@@ -158,7 +263,14 @@
     "slotsRequired": 1,
     "salvageValue": 2,
     "page": 194,
-    "actions": ["Hull Magnetiser"]
+    "actions": ["Hull Magnetiser"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 69
+      }
+    ]
   },
   {
     "id": "91256ee6-a6d8-4bee-a457-1f7b87b177a4",
@@ -168,7 +280,14 @@
     "slotsRequired": 1,
     "salvageValue": 2,
     "page": 195,
-    "actions": ["IR Night Vision Optics"]
+    "actions": ["IR Night Vision Optics"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 70
+      }
+    ]
   },
   {
     "id": "893a303c-7b53-4956-945e-ee8619859ca2",
@@ -178,7 +297,14 @@
     "slotsRequired": 1,
     "salvageValue": 2,
     "actions": ["Auto-Scan", "Coolant Flush", "Metal Detector"],
-    "page": 195
+    "page": 195,
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 70
+      }
+    ]
   },
   {
     "id": "c8c03a99-b0d4-4071-b92d-0fa3cb9de6e0",
@@ -188,7 +314,14 @@
     "slotsRequired": 1,
     "salvageValue": 2,
     "page": 195,
-    "actions": ["M315 Motion Scanner"]
+    "actions": ["M315 Motion Scanner"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 70
+      }
+    ]
   },
   {
     "id": "c753cba0-29f8-4690-82f7-ca146251682c",
@@ -198,7 +331,14 @@
     "slotsRequired": 1,
     "salvageValue": 2,
     "page": 196,
-    "actions": ["Navigation Module"]
+    "actions": ["Navigation Module"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 71
+      }
+    ]
   },
   {
     "id": "09409fcc-9463-465b-91e5-5580bc1ce7bd",
@@ -208,7 +348,14 @@
     "slotsRequired": 1,
     "salvageValue": 3,
     "page": 196,
-    "actions": ["Pinpoint Targeter"]
+    "actions": ["Pinpoint Targeter"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 71
+      }
+    ]
   },
   {
     "id": "d0eeed2b-690e-486e-936a-ec2baac2a48e",
@@ -218,7 +365,14 @@
     "slotsRequired": 1,
     "salvageValue": 3,
     "page": 196,
-    "actions": ["Reactor Overload"]
+    "actions": ["Reactor Overload"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 72
+      }
+    ]
   },
   {
     "id": "f1c9860f-949c-44ee-9d77-baf6016b38fb",
@@ -228,7 +382,14 @@
     "slotsRequired": 1,
     "salvageValue": 1,
     "page": 196,
-    "actions": ["Projection Array"]
+    "actions": ["Projection Array"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 71
+      }
+    ]
   },
   {
     "id": "df8846de-8b69-4199-a20e-09bac424e6a1",
@@ -238,7 +399,14 @@
     "slotsRequired": 1,
     "salvageValue": 2,
     "page": 197,
-    "actions": ["Sleeping Beauty"]
+    "actions": ["Sleeping Beauty"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 73
+      }
+    ]
   },
   {
     "id": "2cf1bba0-3614-4559-adfe-f353ff04bbd0",
@@ -248,7 +416,14 @@
     "slotsRequired": 1,
     "salvageValue": 2,
     "page": 197,
-    "actions": ["Reactor Safety Protocols"]
+    "actions": ["Reactor Safety Protocols"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 72
+      }
+    ]
   },
   {
     "id": "db7d6cfa-4947-4543-8a4f-e8b7b67da979",
@@ -258,7 +433,14 @@
     "slotsRequired": 1,
     "salvageValue": 1,
     "page": 197,
-    "actions": ["Video Recording Array"]
+    "actions": ["Video Recording Array"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 73
+      }
+    ]
   },
   {
     "id": "10498cb2-a869-4d73-81c5-7ac82f149448",
@@ -308,7 +490,14 @@
     "slotsRequired": 1,
     "salvageValue": 2,
     "actions": ["Coolant Flow", "Coolant Flush (Coolant Flow Manifold)", "Coolant Flow Manifold"],
-    "page": 199
+    "page": 199,
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "AP",
+        "page": 2
+      }
+    ]
   },
   {
     "id": "3394e0b0-0fb9-4226-9c6d-b5e99b9ca522",
@@ -453,7 +642,14 @@
     "slotsRequired": 1,
     "salvageValue": 1,
     "page": 203,
-    "actions": ["Dash Protocols"]
+    "actions": ["Dash Protocols"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 74
+      }
+    ]
   },
   {
     "id": "67c24f7c-aa47-46a6-ae8e-eaa0ade9e1f4",
@@ -752,5 +948,115 @@
     "salvageValue": 1,
     "page": 76,
     "actions": ["Genetic Lock"]
+  },
+  {
+    "id": "9d670290-473f-44a9-a02d-81c8df2594e2",
+    "source": "Salvage Union Starter Set",
+    "booklet": "AP",
+    "name": "Analogue Internals",
+    "techLevel": 1,
+    "slotsRequired": 1,
+    "salvageValue": 3,
+    "page": 1,
+    "actions": ["Analogue Internals"]
+  },
+  {
+    "id": "e9276eae-7205-4e54-b361-58840b41a4d5",
+    "source": "Salvage Union Starter Set",
+    "booklet": "AP",
+    "name": "Targeting Reticule",
+    "techLevel": 2,
+    "slotsRequired": 1,
+    "salvageValue": 2,
+    "page": 1,
+    "actions": ["Targeting Reticule"]
+  },
+  {
+    "id": "827e5acf-8ff2-4058-9c97-1a7e2b818277",
+    "source": "Salvage Union Starter Set",
+    "booklet": "AP",
+    "name": "IFF Beacon",
+    "techLevel": 3,
+    "slotsRequired": 2,
+    "salvageValue": 2,
+    "page": 1,
+    "actions": ["IFF Beacon"]
+  },
+  {
+    "id": "4d5be4a6-5b0e-4521-a9af-01a83c952861",
+    "source": "Salvage Union Starter Set",
+    "booklet": "AP",
+    "name": "Surge Protector",
+    "techLevel": 1,
+    "slotsRequired": 1,
+    "salvageValue": 1,
+    "page": 2,
+    "actions": ["Surge Protector"]
+  },
+  {
+    "id": "53cab7a9-e9a6-4eeb-8982-48e60ad11bcc",
+    "source": "Salvage Union Starter Set",
+    "booklet": "AP",
+    "name": "Remote Transponder",
+    "techLevel": 4,
+    "slotsRequired": 1,
+    "salvageValue": 2,
+    "page": 2,
+    "actions": ["Remote Transponder"]
+  },
+  {
+    "id": "adaec371-7e90-4b08-a1c5-8f6a4bc50577",
+    "source": "Salvage Union Starter Set",
+    "booklet": "AP",
+    "name": "EM Counterpulse",
+    "techLevel": 3,
+    "slotsRequired": 1,
+    "salvageValue": 2,
+    "page": 2,
+    "actions": ["EM Counterpulse"]
+  },
+  {
+    "id": "ee029a8e-d9be-4894-8d62-95523250f546",
+    "source": "Salvage Union Starter Set",
+    "booklet": "AP",
+    "name": "Adaptive Chassis Linkage",
+    "techLevel": 6,
+    "slotsRequired": 1,
+    "salvageValue": 2,
+    "page": 3,
+    "actions": ["Adaptive Chassis Linkage", "Combo Attack"]
+  },
+  {
+    "id": "506118a7-ae09-45d5-b9d5-3fce74729580",
+    "source": "Salvage Union Starter Set",
+    "booklet": "AP",
+    "name": "Mozart's Ghost",
+    "techLevel": 5,
+    "slotsRequired": 1,
+    "salvageValue": 2,
+    "page": 3,
+    "actions": ["Mozart's Ghost"]
+  },
+  {
+    "id": "e7f142d4-ff0c-44ef-8488-ad3f2b5a68d9",
+    "source": "Salvage Union Starter Set",
+    "booklet": "PC",
+    "name": "A Little Bit Rude",
+    "techLevel": 1,
+    "slotsRequired": 1,
+    "salvageValue": 2,
+    "page": 64,
+    "actions": ["A Little Bit Rude"]
+  },
+  {
+    "id": "0a6e0c93-bb61-4ce1-8715-8bb8f71a5f06",
+    "source": "Salvage Union Starter Set",
+    "booklet": "PC",
+    "name": "Very Rude",
+    "techLevel": 3,
+    "slotsRequired": 1,
+    "salvageValue": 2,
+    "page": 74,
+    "actions": ["Very Rude"]
   }
 ]

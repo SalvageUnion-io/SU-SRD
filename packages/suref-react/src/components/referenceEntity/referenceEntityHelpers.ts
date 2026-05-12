@@ -47,7 +47,7 @@ export function calculateBackgroundColor(
   if (schemaName === 'crawler-tech-levels') return headerColor || 'bg-su-pink'
   if (schemaName === 'crawler-bays') return headerColor || 'bg-su-pink'
   if (schemaName === 'creatures') return headerColor || 'bg-su-rust'
-  if (schemaName === 'bio-titans') return headerColor || 'bg-su-rust'
+  if (schemaName === 'titans') return headerColor || 'bg-su-rust'
   if (schemaName === 'factions') return headerColor || 'bg-su-rust'
   if (schemaName === 'npcs') return headerColor || 'bg-su-rust'
   if (schemaName === 'meld') return headerColor || 'bg-su-rust'
@@ -124,6 +124,8 @@ export function getSourceBorderColor(source: SURefEnumSource | undefined): strin
       return 'rgb(55, 70, 85)'
     case 'Mech Monday':
       return 'rgb(25, 55, 30)'
+    case 'Salvage Union Starter Set':
+      return 'rgb(25, 55, 30)'
     default:
       return undefined
   }
@@ -162,6 +164,8 @@ export function getSourceStyles(
         return { className: 'expansion-rain-card', style: {} }
       case 'Mech Monday':
         return { className: 'expansion-scanline-card', style: {} }
+      case 'Salvage Union Starter Set':
+        return { className: 'expansion-scanline-card', style: {} }
       default:
         return { className: '', style: {} }
     }
@@ -193,6 +197,12 @@ export function getSourceStyles(
       }
     }
     case 'Mech Monday': {
+      return {
+        className: 'expansion-scanline-texture',
+        style: {},
+      }
+    }
+    case 'Salvage Union Starter Set': {
       return {
         className: 'expansion-scanline-texture',
         style: {},

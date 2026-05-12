@@ -5,7 +5,14 @@
     "name": "First Aid Kit",
     "techLevel": 1,
     "page": 80,
-    "actions": ["First Aid Kit"]
+    "actions": ["First Aid Kit"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 38
+      }
+    ]
   },
   {
     "id": "d985144a-8452-4f8c-a9f3-8d2eec5f8adf",
@@ -18,7 +25,14 @@
       "Chassis Repair",
       "Handheld Riveting Gun"
     ],
-    "page": 80
+    "page": 80,
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 38
+      }
+    ]
   },
   {
     "id": "9434d2e3-b9d3-4eb3-aef1-98d475f9106f",
@@ -26,7 +40,14 @@
     "name": "Heavy Duty Torch",
     "techLevel": 1,
     "page": 80,
-    "actions": ["Heavy Duty Torch"]
+    "actions": ["Heavy Duty Torch"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 38
+      }
+    ]
   },
   {
     "id": "da17db82-043d-4b00-91b4-308c1ac15753",
@@ -34,7 +55,14 @@
     "name": "High Tensile Wire",
     "techLevel": 1,
     "page": 80,
-    "actions": ["High Tensile Wire"]
+    "actions": ["High Tensile Wire"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 38
+      }
+    ]
   },
   {
     "id": "500de29e-3278-436a-aff5-841464a9fc82",
@@ -42,7 +70,14 @@
     "name": "Improvised Explosive Device",
     "techLevel": 1,
     "page": 80,
-    "actions": ["Improvised Explosive Device"]
+    "actions": ["Improvised Explosive Device"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 38
+      }
+    ]
   },
   {
     "id": "eab089ff-2a22-4343-9885-c5e97f795ae8",
@@ -50,7 +85,14 @@
     "name": "Improvised Firearm",
     "techLevel": 1,
     "page": 80,
-    "actions": ["Improvised Firearm"]
+    "actions": ["Improvised Firearm"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 39
+      }
+    ]
   },
   {
     "id": "bbeb531b-d0a6-437a-b5eb-6a98bb7cd93c",
@@ -58,7 +100,14 @@
     "name": "Improvised Melee Weapon",
     "techLevel": 1,
     "page": 298,
-    "actions": ["Improvised Melee Weapon"]
+    "actions": ["Improvised Melee Weapon"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 39
+      }
+    ]
   },
   {
     "id": "6492f3c1-656d-4efe-84f6-9fdb7492f6e0",
@@ -66,7 +115,14 @@
     "name": "Portable Comms Unit",
     "techLevel": 1,
     "page": 301,
-    "actions": ["Portable Communications Unit"]
+    "actions": ["Portable Communications Unit"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 39
+      }
+    ]
   },
   {
     "id": "a4ee8227-41c0-40b1-a825-2bca61256359",
@@ -74,7 +130,14 @@
     "name": "Salvaging Tools",
     "techLevel": 1,
     "page": 298,
-    "actions": ["Salvaging Tools"]
+    "actions": ["Salvaging Tools"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 39
+      }
+    ]
   },
   {
     "id": "2a753c6a-d879-4508-9d0f-1f65b2a679ee",
@@ -82,7 +145,14 @@
     "name": "Flare Gun",
     "techLevel": 2,
     "page": 81,
-    "actions": ["Flare Gun"]
+    "actions": ["Flare Gun"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 40
+      }
+    ]
   },
   {
     "id": "689f8d83-f497-46eb-9b80-0df6d2ef35e5",
@@ -90,7 +160,14 @@
     "name": "Holofoil Tent",
     "techLevel": 2,
     "page": 81,
-    "actions": ["Holofoil Tent"]
+    "actions": ["Holofoil Tent"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 40
+      }
+    ]
   },
   {
     "id": "404a6715-3998-4c03-bb40-bfec070fa3c5",
@@ -98,7 +175,14 @@
     "name": "Pistol",
     "techLevel": 2,
     "page": 314,
-    "actions": ["Pistol"]
+    "actions": ["Pistol"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 40
+      }
+    ]
   },
   {
     "id": "cb39be32-b1a9-4edc-a742-bd69edea77df",
@@ -106,7 +190,14 @@
     "name": "Disposable Camera",
     "techLevel": 2,
     "page": 81,
-    "actions": ["Disposable Camera"]
+    "actions": ["Disposable Camera"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 39
+      }
+    ]
   },
   {
     "name": "Holo Companion",
@@ -158,7 +249,14 @@
       "Chassis Repair (Portable Arc Welder)",
       "Portable Arc Welder"
     ],
-    "page": 82
+    "page": 82,
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 40
+      }
+    ]
   },
   {
     "id": "712dbf42-141a-40b2-ac90-62a031937b87",
@@ -166,7 +264,14 @@
     "name": "Red Laser Pistol",
     "techLevel": 2,
     "page": 82,
-    "actions": ["Red Laser Pistol"]
+    "actions": ["Red Laser Pistol"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 40
+      }
+    ]
   },
   {
     "id": "0f88f194-8d10-4111-9004-bbad27252fdb",
@@ -174,7 +279,14 @@
     "name": "Rigging Jack",
     "techLevel": 2,
     "page": 82,
-    "actions": ["Rigging Jack"]
+    "actions": ["Rigging Jack"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 41
+      }
+    ]
   },
   {
     "id": "e68df609-a15c-46fe-9fb8-e5ce8832e2db",
@@ -182,7 +294,14 @@
     "name": "Reinforced Polycarbonate Shield",
     "techLevel": 2,
     "page": 81,
-    "actions": ["Reinforced Polycarbonate Shield"]
+    "actions": ["Reinforced Polycarbonate Shield"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 41
+      }
+    ]
   },
   {
     "id": "db612219-9037-4f9a-8082-45cbdbe94a53",
@@ -190,7 +309,14 @@
     "name": "Green Laser Rifle",
     "techLevel": 3,
     "page": 313,
-    "actions": ["Green Laser Rifle"]
+    "actions": ["Green Laser Rifle"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 41
+      }
+    ]
   },
   {
     "id": "64b71a0e-6d75-40e4-8c64-f21e8e5eb7c2",
@@ -198,7 +324,14 @@
     "name": "Grenade",
     "techLevel": 3,
     "page": 82,
-    "actions": ["Grenade"]
+    "actions": ["Grenade"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 41
+      }
+    ]
   },
   {
     "id": "f9bc4550-dc66-4c4b-bbee-66aebdf464e6",
@@ -206,7 +339,14 @@
     "name": "Hazard Protection Suit",
     "techLevel": 3,
     "page": 82,
-    "actions": ["Hazard Protection Suit"]
+    "actions": ["Hazard Protection Suit"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 41
+      }
+    ]
   },
   {
     "id": "d09ee515-68fe-4b07-9154-327d1973e4e6",
@@ -214,7 +354,14 @@
     "name": "Healing Bio-Foam",
     "techLevel": 3,
     "actions": ["Healing Spray", "Suturing Spray", "Healing Bio-Foam"],
-    "page": 83
+    "page": 83,
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 42
+      }
+    ]
   },
   {
     "id": "e429e978-189f-47ef-be9c-a12d288f56b6",
@@ -243,7 +390,14 @@
     "name": "Melee Armament",
     "techLevel": 3,
     "page": 83,
-    "actions": ["Melee Armament"]
+    "actions": ["Melee Armament"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 42
+      }
+    ]
   },
   {
     "id": "53e84ba2-c94b-4fa3-8716-d2af1c90940d",
@@ -251,7 +405,14 @@
     "name": "Portable Flamethrower",
     "techLevel": 3,
     "page": 83,
-    "actions": ["Portable Flamethrower"]
+    "actions": ["Portable Flamethrower"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 42
+      }
+    ]
   },
   {
     "id": "74fa7e04-67d2-4b6b-8361-c66e6f8262f1",
@@ -259,7 +420,14 @@
     "name": "Reactive Armour",
     "techLevel": 3,
     "page": 333,
-    "actions": ["Reactive Armour"]
+    "actions": ["Reactive Armour"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 42
+      }
+    ]
   },
   {
     "id": "31d70046-b05b-4ca8-b9ad-20f717e144e2",
@@ -267,7 +435,14 @@
     "name": "Rifle",
     "techLevel": 3,
     "page": 127,
-    "actions": ["Rifle"]
+    "actions": ["Rifle"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 42
+      }
+    ]
   },
   {
     "id": "78ad938a-a674-40dd-ae0a-3e2887d3cd5c",
@@ -275,7 +450,14 @@
     "name": "Shotgun",
     "techLevel": 3,
     "page": 84,
-    "actions": ["Shotgun"]
+    "actions": ["Shotgun"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 42
+      }
+    ]
   },
   {
     "id": "6df32208-63b2-4777-9df5-9493ea3aa487",
@@ -320,7 +502,14 @@
     "name": "Portable Multi-Phase Shield",
     "techLevel": 4,
     "page": 85,
-    "actions": ["Portable Multi-Phase Shield"]
+    "actions": ["Portable Multi-Phase Shield"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 43
+      }
+    ]
   },
   {
     "id": "b58ee707-f7f6-400c-8222-a056f4053d74",
@@ -336,7 +525,14 @@
     "name": "Rocket Launcher",
     "techLevel": 4,
     "page": 85,
-    "actions": ["Rocket Launcher"]
+    "actions": ["Rocket Launcher"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 43
+      }
+    ]
   },
   {
     "id": "6c01bc01-d9fa-4964-ab7f-ecadbdf5ee1f",
@@ -344,7 +540,14 @@
     "name": "Sniper Rifle",
     "techLevel": 4,
     "page": 47,
-    "actions": ["Sniper Rifle"]
+    "actions": ["Sniper Rifle"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 43
+      }
+    ]
   },
   {
     "id": "3952334c-fd0f-4a6d-bc2f-5dd66d4f3b56",
@@ -917,5 +1120,113 @@
     "techLevel": 3,
     "page": 77,
     "actions": ["Fell Rifle"]
+  },
+  {
+    "id": "f1173316-fb72-463a-a7a3-f51352d6133a",
+    "source": "Relics of a Time Gone By",
+    "page": 2,
+    "name": "Growth Formula",
+    "techLevel": 1,
+    "actions": ["Growth Formula"]
+  },
+  {
+    "id": "495c3287-6acf-4aae-bcb0-f7da73b3a3ef",
+    "source": "Reclamation of the Wastes",
+    "page": 106,
+    "name": "Camouflage Fatigues",
+    "techLevel": 1,
+    "actions": [],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 39
+      }
+    ]
+  },
+  {
+    "id": "8ed8fb63-adff-4ae8-ac98-8bd4b8872e13",
+    "source": "Reclamation of the Wastes",
+    "page": 106,
+    "name": "Oil Bomb",
+    "techLevel": 1,
+    "actions": ["Oil Bomb"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 40
+      }
+    ]
+  },
+  {
+    "id": "55ed40db-7958-4180-a8dc-67c9cc71f54d",
+    "source": "Reclamation of the Wastes",
+    "page": 106,
+    "name": "Electrostatic Mine",
+    "techLevel": 1,
+    "actions": ["Electrostatic Mine"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 41
+      }
+    ]
+  },
+  {
+    "id": "f9b2b9a7-e79b-43f8-a97e-87c985d4bbc3",
+    "source": "Reclamation of the Wastes",
+    "page": 106,
+    "name": "Hobbler Mine",
+    "techLevel": 1,
+    "actions": ["Hobbler Mine"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 40
+      }
+    ]
+  },
+  {
+    "id": "3c8e1f7a-2b5d-4a9c-9e6f-7b1c3d8e4a52",
+    "source": "Reclamation of the Wastes",
+    "page": 112,
+    "name": "Inert Meld Nanite",
+    "techLevel": 1,
+    "actions": [],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "An Inert Meld Nanite can be traded for the equivalent of 1 Tech 1 Scrap. It cannot be used for Crafting or Repairing. It takes up 1 Cargo Slot and can be transported safely."
+      }
+    ]
+  },
+  {
+    "id": "5d9f2c1b-3e7a-4b8d-af6c-8c2d4e9f5b63",
+    "source": "Reclamation of the Wastes",
+    "page": 112,
+    "name": "Active Meld Nanite",
+    "techLevel": 6,
+    "actions": [],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "An Active Meld Nanite is worth the equivalent of Tech 6 Scrap. In addition, it can be used to repair or craft any Mech Chassis, System, or Module as though it was Tech 6. The Active Meld Nanite takes up 1 Cargo Slot and must be transported in a specialised container that reduces its temperature to a point it becomes inert. Active Meld Nanites are typically transported using cryogenic containers."
+      },
+      {
+        "type": "paragraph",
+        "value": "If no such safety measures are taken, Roll the Die for each hour the Active Meld Nanite is carried. On the roll of a 1, something goes wrong. Present the players with a Tough Choice involving the Active Meld Nanite. It might spawn into a Meld Nanoid, take control of a Mech temporarily, destroy a System or Module, or have some other anomalous effect. If Active Meld Nanites are stored in a Union Crawler without safety measures make this roll once per week or Downtime cycle."
+      }
+    ]
+  },
+  {
+    "id": "3b6b84b3-35c6-4f7f-b9cb-66a8d455ddbc",
+    "source": "Thatcher's Mech Base",
+    "page": 2,
+    "name": "Steel Billy Club",
+    "techLevel": 1,
+    "actions": []
   }
 ]

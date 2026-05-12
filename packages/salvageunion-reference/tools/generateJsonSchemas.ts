@@ -15,7 +15,7 @@ import {
   AbilitySchema,
   AbilityTreeRequirementSchema,
   MetaActionSchema,
-  BioTitanSchema,
+  TitanSchema,
   ChassisSchema,
   ClassSchema,
   CrawlerBaySchema,
@@ -39,6 +39,7 @@ import {
   SourceEntitySchema,
   TechLevelEntitySchema,
   CatalogCategorySchema,
+  PreMadeCharacterSchema,
 } from '../lib/schemas/entities.js'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -55,7 +56,6 @@ const entitySchemaMap: Record<string, z.ZodType> = {
   abilities: AbilitySchema,
   'ability-tree-requirements': AbilityTreeRequirementSchema,
   actions: MetaActionSchema,
-  'bio-titans': BioTitanSchema,
   chassis: ChassisSchema,
   classes: ClassSchema,
   'crawler-bays': CrawlerBaySchema,
@@ -71,9 +71,11 @@ const entitySchemaMap: Record<string, z.ZodType> = {
   meld: MeldSchema,
   modules: ModuleSchema,
   npcs: NPCSchema,
+  'pre-made-characters': PreMadeCharacterSchema,
   'roll-tables': RollTableSchema,
   squads: SquadSchema,
   systems: SystemSchema,
+  titans: TitanSchema,
   traits: TraitEntitySchema,
   vehicles: VehicleSchema,
   sources: SourceEntitySchema,

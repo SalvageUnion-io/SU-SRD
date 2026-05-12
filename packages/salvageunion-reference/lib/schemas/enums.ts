@@ -10,6 +10,11 @@ import { z } from 'zod'
 export const SourceSchema = z
   .enum([
     'Salvage Union Workshop Manual',
+    'Salvage Union Starter Set',
+    'Reclamation of the Wastes',
+    'The Hive',
+    "Thatcher's Mech Base",
+    'Relics of a Time Gone By',
     'Mech Monday',
     'We Were Here First!',
     'Rainmaker',
@@ -109,7 +114,6 @@ export const SchemaNameSchema = z
   .enum([
     'abilities',
     'ability-tree-requirements',
-    'bio-titans',
     'chassis',
     'classes',
     'crawler-bays',
@@ -125,11 +129,13 @@ export const SchemaNameSchema = z
     'meld',
     'modules',
     'npcs',
+    'pre-made-characters',
     'roll-tables',
     'sources',
     'squads',
     'tech-levels',
     'systems',
+    'titans',
     'traits',
     'vehicles',
   ])

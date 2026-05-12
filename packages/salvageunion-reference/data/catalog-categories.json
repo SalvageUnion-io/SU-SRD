@@ -2,7 +2,7 @@
   {
     "id": "pilot",
     "name": "Pilot",
-    "schemas": ["classes", "abilities", "equipment"]
+    "schemas": ["classes", "abilities", "equipment", "pre-made-characters"]
   },
   {
     "id": "mech",
@@ -17,16 +17,7 @@
   {
     "id": "denizens",
     "name": "Denizens",
-    "schemas": [
-      "bio-titans",
-      "creatures",
-      "drones",
-      "factions",
-      "meld",
-      "npcs",
-      "squads",
-      "vehicles"
-    ]
+    "schemas": ["creatures", "drones", "factions", "meld", "npcs", "squads", "titans", "vehicles"]
   },
   {
     "id": "reference",

@@ -141,18 +141,67 @@
         "type": "string",
         "enum": [
           "Salvage Union Workshop Manual",
+          "Salvage Union Starter Set",
+          "Reclamation of the Wastes",
+          "The Hive",
+          "Thatcher's Mech Base",
+          "Relics of a Time Gone By",
           "Mech Monday",
           "We Were Here First!",
           "Rainmaker",
           "False Flag"
         ],
-        "description": "Source book this entity appears in"
+        "description": "Primary source book this entity appears in"
       },
       "page": {
         "type": "integer",
         "exclusiveMinimum": 0,
         "maximum": 9007199254740991,
-        "description": "Page number in the source book"
+        "description": "Page number in the primary source book"
+      },
+      "booklet": {
+        "type": "string",
+        "minLength": 1,
+        "description": "Booklet code within a multi-booklet primary source (e.g. \"CR\", \"PH\", \"PC\", \"RR\", \"AP\" for the Salvage Union Starter Set). Omit for single-volume sources."
+      },
+      "additionalSources": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "source": {
+              "type": "string",
+              "enum": [
+                "Salvage Union Workshop Manual",
+                "Salvage Union Starter Set",
+                "Reclamation of the Wastes",
+                "The Hive",
+                "Thatcher's Mech Base",
+                "Relics of a Time Gone By",
+                "Mech Monday",
+                "We Were Here First!",
+                "Rainmaker",
+                "False Flag"
+              ],
+              "description": "Secondary source book this entity also appears in"
+            },
+            "booklet": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Booklet code within a multi-booklet source (e.g. \"CR\", \"PH\", \"PC\", \"RR\", \"AP\" for the Salvage Union Starter Set — Core Rulebook / Pilots Handbook / Parts Catalogue / Rules Reference / Asset Pack). Omit for single-volume sources."
+            },
+            "page": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991,
+              "description": "Page number in the secondary source book"
+            }
+          },
+          "required": ["source", "page"],
+          "additionalProperties": false,
+          "description": "A secondary source where this entity is reprinted (e.g. condensed in a Starter Set)"
+        },
+        "description": "Other source books where this entity is reprinted"
       },
       "purchaseLink": {
         "type": "string",

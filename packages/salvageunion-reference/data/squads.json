@@ -7,6 +7,10 @@
     "hitPoints": 4,
     "damageType": "HP",
     "page": 300,
+    "additionalSources": [
+      { "source": "Salvage Union Starter Set", "booklet": "AP", "page": 2 },
+      { "source": "Reclamation of the Wastes", "page": 104 }
+    ],
     "content": [
       {
         "type": "paragraph",
@@ -22,6 +26,7 @@
     "hitPoints": 6,
     "damageType": "HP",
     "page": 300,
+    "additionalSources": [{ "source": "Reclamation of the Wastes", "page": 104 }],
     "content": [
       {
         "type": "paragraph",
@@ -37,6 +42,7 @@
     "hitPoints": 10,
     "damageType": "HP",
     "page": 300,
+    "additionalSources": [{ "source": "Reclamation of the Wastes", "page": 104 }],
     "content": [
       {
         "type": "paragraph",
@@ -249,6 +255,131 @@
       {
         "type": "paragraph",
         "value": "A mass of mutated appendages."
+      }
+    ]
+  },
+  {
+    "id": "4db0aafe-364f-4c7f-a2e4-23de8d63f933",
+    "name": "Pit Android Squad",
+    "source": "Thatcher's Mech Base",
+    "page": 1,
+    "hitPoints": 6,
+    "damageType": "SP",
+    "actions": ["Mining Tools (Thatcher Pit Android)", "Comms Module"],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A squad of forcibly cyber-converted Thatcher workers, deployed in mass to overwhelm intruders."
+      }
+    ]
+  },
+  {
+    "id": "4f491ff7-788c-49d5-8349-98888f45e873",
+    "source": "Reclamation of the Wastes",
+    "page": 106,
+    "name": "Saboteur Squad",
+    "hitPoints": 10,
+    "damageType": "HP",
+    "actions": [
+      "Camouflage Fatigues (NPC)",
+      "Improvised Explosive Device (Saboteur)",
+      "Oil Bomb (Saboteur)",
+      "Electrostatic Mine (Saboteur)",
+      "Hobbler Mine (Saboteur)",
+      "Ambusher",
+      "Guerrilla",
+      "Explosive Expert",
+      "Saboteurs"
+    ],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A group of Saboteurs that work in tandem."
+      }
+    ]
+  },
+  {
+    "id": "c3375fb6-1f56-4a5d-a40b-df29bf997c54",
+    "name": "Thatcher Pit Android Lance",
+    "source": "Thatcher's Mech Base",
+    "page": 1,
+    "hitPoints": 15,
+    "damageType": "SP",
+    "traits": [{ "type": "fast" }],
+    "actions": ["Mining Tools (Thatcher Pit Android)", "Comms Module"],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A lance composed of 2 x Thatcher Pattern Jackhammer, 1 x Maggie Pattern Magpie, 1 x Operator Pattern Spectrum, and 1 x Skull Drone, piloted by Thatcher Pit Androids and ready to defend the Mech Bay."
+      }
+    ]
+  },
+  {
+    "id": "dd062b76-f911-4bbc-bf57-5a28c6a86492",
+    "name": "CURNOS Alpha Lance",
+    "source": "Relics of a Time Gone By",
+    "page": 1,
+    "actions": [],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "1 x All is Dust Pattern Atlas (droned), 3 x Heavy Combat Drone, 2 x Hover Drone."
+      }
+    ]
+  },
+  {
+    "id": "64888d9c-3462-4db6-abd5-7d0f0e45609c",
+    "name": "CURNOS Beta Lance",
+    "source": "Relics of a Time Gone By",
+    "page": 1,
+    "actions": [],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "4 x Walker Drone, 2 x Combat Drone."
+      }
+    ]
+  },
+  {
+    "id": "70fef3c5-ce1a-4edf-a605-a7b170bea53c",
+    "name": "CURNOS Gamma Lance",
+    "source": "Relics of a Time Gone By",
+    "page": 1,
+    "actions": [],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "2 x Pest Drone, 2 x Defacer Drone // 2 x Salvo Drone."
+      }
+    ]
+  },
+  {
+    "id": "13b7ffc9-a260-46d7-a15e-a9a56cc2a030",
+    "name": "CURNOS Survey Lance",
+    "source": "Relics of a Time Gone By",
+    "page": 1,
+    "actions": [],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "4 x Survey Drones. Will awaken CURNOS in 1 round if they detect a threat."
+      }
+    ]
+  },
+  {
+    "id": "1720f8da-9443-42db-a971-e84658a83808",
+    "name": "Skinless Jim's Scavengers",
+    "source": "Relics of a Time Gone By",
+    "page": 1,
+    "actions": [],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Looking to score, not afraid of a fight, but will cooperate for a payday."
+      },
+      {
+        "type": "paragraph",
+        "value": "1 x Thatcher Pattern Jackhammer piloted by Skinless Jim [Trooper]. 1 x Mauler Pattern Hussar piloted by Gorgut [Raider]. 2 x Legion Pattern Gopher piloted by Ayana and Dragonfly [Raider]."
       }
     ]
   }

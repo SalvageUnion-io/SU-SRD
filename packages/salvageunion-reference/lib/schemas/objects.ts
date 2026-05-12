@@ -322,6 +322,37 @@ export const TableSchema = z
         '17-20': ColumnEntriesSchema,
       })
       .strict(),
+    // Salvage cache roll table (singletons at 1 and 20, paired buckets in between)
+    z
+      .object({
+        type: z.literal('salvage-cache'),
+        '1': TableContentSchema,
+        '2-3': TableContentSchema,
+        '4-5': TableContentSchema,
+        '6-7': TableContentSchema,
+        '8-9': TableContentSchema,
+        '10-11': TableContentSchema,
+        '12-13': TableContentSchema,
+        '14-15': TableContentSchema,
+        '16-17': TableContentSchema,
+        '18-19': TableContentSchema,
+        '20': TableContentSchema,
+      })
+      .strict(),
+    // Octet roll table (singletons at 1 and 20, six 3-wide buckets in between)
+    z
+      .object({
+        type: z.literal('octet'),
+        '1': TableContentSchema,
+        '2-4': TableContentSchema,
+        '5-7': TableContentSchema,
+        '8-10': TableContentSchema,
+        '11-13': TableContentSchema,
+        '14-16': TableContentSchema,
+        '17-19': TableContentSchema,
+        '20': TableContentSchema,
+      })
+      .strict(),
   ])
   .describe('Roll table for random outcomes based on d20 rolls')
 
@@ -495,6 +526,8 @@ export const PatternSchema: z.ZodType<{
   legalStarting?: boolean
   source?: z.infer<typeof SourceSchema>
   page?: z.infer<typeof PositiveIntegerSchema>
+  booklet?: string
+  additionalSources?: z.infer<typeof AdditionalSourceSchema>[]
   systems: z.infer<typeof PatternSystemModuleSchema>[]
   modules: z.infer<typeof PatternSystemModuleSchema>[]
   drones?: z.infer<typeof PatternDroneConfigSchema>[]
@@ -507,6 +540,17 @@ export const PatternSchema: z.ZodType<{
         legalStarting: z.boolean().describe('Whether this is a valid starting pattern').optional(),
         source: SourceSchema.describe('Source book for this pattern').optional(),
         page: PositiveIntegerSchema.describe('Page number in the source book').optional(),
+        booklet: z
+          .string()
+          .min(1)
+          .describe(
+            'Booklet code within a multi-booklet primary source (e.g. "CR", "PH", "PC", "RR", "AP" for the Salvage Union Starter Set). Omit for single-volume sources.'
+          )
+          .optional(),
+        additionalSources: z
+          .array(AdditionalSourceSchema)
+          .describe('Other source books where this pattern is reprinted')
+          .optional(),
         systems: z.array(PatternSystemModuleSchema).describe('Systems included in this pattern'),
         modules: z.array(PatternSystemModuleSchema).describe('Modules included in this pattern'),
         drones: z
@@ -612,6 +656,29 @@ export const ActionSchema: z.ZodType<{
   .describe('An action, ability, or attack that can be performed')
 
 /**
+ * Reprint of an entity in a secondary source book
+ *
+ * `booklet` is optional and used when a source is a multi-booklet product
+ * (e.g. the Salvage Union Starter Set, which uses CR / PH / PC / RR / AP codes
+ * for its Core Rulebook / Pilots Handbook / Parts Catalogue / Rules Reference / Asset Pack).
+ * Single-volume sources omit it.
+ */
+export const AdditionalSourceSchema = z
+  .object({
+    source: SourceSchema.describe('Secondary source book this entity also appears in'),
+    booklet: z
+      .string()
+      .min(1)
+      .describe(
+        'Booklet code within a multi-booklet source (e.g. "CR", "PH", "PC", "RR", "AP" for the Salvage Union Starter Set — Core Rulebook / Pilots Handbook / Parts Catalogue / Rules Reference / Asset Pack). Omit for single-volume sources.'
+      )
+      .optional(),
+    page: PositiveIntegerSchema.describe('Page number in the secondary source book'),
+  })
+  .strict()
+  .describe('A secondary source where this entity is reprinted (e.g. condensed in a Starter Set)')
+
+/**
  * Basic entity with name, content, source, and page reference
  */
 export const BaseEntitySchema = z
@@ -625,8 +692,19 @@ export const BaseEntitySchema = z
       .default(false)
       .describe('Whether this entity is only available on the black market'),
     name: NameSchema.describe('Display name of this entity'),
-    source: SourceSchema.describe('Source book this entity appears in'),
-    page: PositiveIntegerSchema.describe('Page number in the source book'),
+    source: SourceSchema.describe('Primary source book this entity appears in'),
+    page: PositiveIntegerSchema.describe('Page number in the primary source book'),
+    booklet: z
+      .string()
+      .min(1)
+      .describe(
+        'Booklet code within a multi-booklet primary source (e.g. "CR", "PH", "PC", "RR", "AP" for the Salvage Union Starter Set). Omit for single-volume sources.'
+      )
+      .optional(),
+    additionalSources: z
+      .array(AdditionalSourceSchema)
+      .describe('Other source books where this entity is reprinted')
+      .optional(),
   })
   .describe('Base entity with name, content, source, and page reference')
 

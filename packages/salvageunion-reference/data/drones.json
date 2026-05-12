@@ -8,6 +8,7 @@
     "salvageValue": 1,
     "structurePoints": 2,
     "page": 294,
+    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "AP", "page": 2 }],
     "content": [
       {
         "type": "paragraph",
@@ -24,6 +25,7 @@
     "salvageValue": 2,
     "structurePoints": 3,
     "page": 294,
+    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "AP", "page": 2 }],
     "content": [
       {
         "type": "paragraph",
@@ -41,6 +43,10 @@
     "structurePoints": 1,
     "asset_url": "https://opxrguskxuogghzcnppk.supabase.co/storage/v1/object/public/LP-Assets/drones/survey%20drone.jpg",
     "page": 294,
+    "additionalSources": [
+      { "source": "Salvage Union Starter Set", "booklet": "AP", "page": 2 },
+      { "source": "Reclamation of the Wastes", "page": 103 }
+    ],
     "content": [
       {
         "type": "paragraph",
@@ -57,6 +63,7 @@
     "salvageValue": 2,
     "structurePoints": 4,
     "page": 294,
+    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "AP", "page": 2 }],
     "content": [
       {
         "type": "paragraph",
@@ -73,6 +80,7 @@
     "salvageValue": 2,
     "structurePoints": 5,
     "page": 294,
+    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "AP", "page": 2 }],
     "content": [
       {
         "type": "paragraph",
@@ -90,6 +98,7 @@
     "structurePoints": 6,
     "asset_url": "https://opxrguskxuogghzcnppk.supabase.co/storage/v1/object/public/LP-Assets/drones/walker%20drone.jpg",
     "page": 295,
+    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "AP", "page": 2 }],
     "content": [
       {
         "type": "paragraph",
@@ -106,6 +115,7 @@
     "salvageValue": 3,
     "structurePoints": 4,
     "page": 295,
+    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "AP", "page": 2 }],
     "content": [
       {
         "type": "paragraph",
@@ -122,6 +132,7 @@
     "salvageValue": 3,
     "structurePoints": 4,
     "page": 294,
+    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "AP", "page": 2 }],
     "content": [
       {
         "type": "paragraph",
@@ -181,6 +192,38 @@
       {
         "type": "paragraph",
         "value": "The Sestra Drone acts separately to the Little Sestra on its own turn, and is controlled by the Pilot. It functions effectively as a Mech, but cannot Push. It can be installed with Systems and Modules and restores its SP and EP in a T3 or higher Mech Bay during Downtime. If the Drone is damaged it can be repaired as though it was a Mech. If it is destroyed you may craft a new Sestra Drone for 2 Tech 3 Scrap as per the crafting rules. The Little Sestra may have one active Sestra Drone at a time."
+      }
+    ]
+  },
+  {
+    "id": "201462df-cb24-48b6-899a-a0c9a229d43d",
+    "source": "Reclamation of the Wastes",
+    "page": 103,
+    "name": "TDA Steelcap Drone",
+    "systems": ["Red Laser", "Locomotion System", "Comms Module"],
+    "techLevel": 1,
+    "salvageValue": 3,
+    "structurePoints": 4,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Painted dark red, the drone is intended to appear like a TDA soldier, complete with steel flat cap."
+      }
+    ]
+  },
+  {
+    "id": "c847ecc1-9b45-409d-a576-abf640ceae76",
+    "source": "Reclamation of the Wastes",
+    "page": 103,
+    "name": "TDA Silverback Drone",
+    "systems": ["Mini Mortar", "Locomotion System", "Comms Module"],
+    "techLevel": 1,
+    "salvageValue": 5,
+    "structurePoints": 4,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "This drone appears bulky and hunchbacked due to its boxy quadruped design and heavy mortar."
       }
     ]
   },

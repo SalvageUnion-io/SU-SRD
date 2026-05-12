@@ -1,7 +1,6 @@
 import abilitiesSchema from '../schemas/abilities.schema.json' with { type: 'json' }
 import abilityTreeRequirementsSchema from '../schemas/ability-tree-requirements.schema.json' with { type: 'json' }
 import actionsSchema from '../schemas/actions.schema.json' with { type: 'json' }
-import bioTitansSchema from '../schemas/bio-titans.schema.json' with { type: 'json' }
 import catalogCategoriesSchema from '../schemas/catalog-categories.schema.json' with { type: 'json' }
 import chassisSchema from '../schemas/chassis.schema.json' with { type: 'json' }
 import classesSchema from '../schemas/classes.schema.json' with { type: 'json' }
@@ -18,9 +17,11 @@ import keywordsSchema from '../schemas/keywords.schema.json' with { type: 'json'
 import meldSchema from '../schemas/meld.schema.json' with { type: 'json' }
 import modulesSchema from '../schemas/modules.schema.json' with { type: 'json' }
 import npcsSchema from '../schemas/npcs.schema.json' with { type: 'json' }
+import preMadeCharactersSchema from '../schemas/pre-made-characters.schema.json' with { type: 'json' }
 import rollTablesSchema from '../schemas/roll-tables.schema.json' with { type: 'json' }
 import squadsSchema from '../schemas/squads.schema.json' with { type: 'json' }
 import systemsSchema from '../schemas/systems.schema.json' with { type: 'json' }
+import titansSchema from '../schemas/titans.schema.json' with { type: 'json' }
 import traitsSchema from '../schemas/traits.schema.json' with { type: 'json' }
 import vehiclesSchema from '../schemas/vehicles.schema.json' with { type: 'json' }
 import sourcesSchema from '../schemas/sources.schema.json' with { type: 'json' }
@@ -30,7 +31,6 @@ const SCHEMA_DEFINITIONS: Record<string, Record<string, unknown>> = {
   abilities: abilitiesSchema as Record<string, unknown>,
   'ability-tree-requirements': abilityTreeRequirementsSchema as Record<string, unknown>,
   actions: actionsSchema as Record<string, unknown>,
-  'bio-titans': bioTitansSchema as Record<string, unknown>,
   'catalog-categories': catalogCategoriesSchema as Record<string, unknown>,
   chassis: chassisSchema as Record<string, unknown>,
   classes: classesSchema as Record<string, unknown>,
@@ -47,9 +47,11 @@ const SCHEMA_DEFINITIONS: Record<string, Record<string, unknown>> = {
   meld: meldSchema as Record<string, unknown>,
   modules: modulesSchema as Record<string, unknown>,
   npcs: npcsSchema as Record<string, unknown>,
+  'pre-made-characters': preMadeCharactersSchema as Record<string, unknown>,
   'roll-tables': rollTablesSchema as Record<string, unknown>,
   squads: squadsSchema as Record<string, unknown>,
   systems: systemsSchema as Record<string, unknown>,
+  titans: titansSchema as Record<string, unknown>,
   traits: traitsSchema as Record<string, unknown>,
   vehicles: vehiclesSchema as Record<string, unknown>,
   sources: sourcesSchema as Record<string, unknown>,

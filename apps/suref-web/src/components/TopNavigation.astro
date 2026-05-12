@@ -82,6 +82,10 @@ function isActive(path: string) {
       ABOUT
     </a>
 
+    <a href="/changelog/" class:list={['btn', isActive('/changelog') ? 'btn-active' : 'btn-inactive']} aria-current={isActive('/changelog') ? 'page' : undefined}>
+      CHANGELOG
+    </a>
+
     <a href="/api/" class:list={['btn', isActive('/api') ? 'btn-active' : 'btn-inactive']} aria-current={isActive('/api') ? 'page' : undefined}>
       API
     </a>

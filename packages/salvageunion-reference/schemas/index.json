@@ -3,49 +3,49 @@
   "title": "Salvage Union Data Schema Catalog",
   "description": "Catalog of all available schemas in the salvageunion-data repository",
   "version": "2.3.5",
-  "generated": "2026-02-15T06:01:18.977Z",
+  "generated": "2026-05-12T04:18:16.657Z",
   "schemas": [
     {
       "id": "abilities",
       "title": "abilities",
-      "description": "",
+      "description": "Pilot abilities and skills in Salvage Union",
       "dataFile": "data/abilities.json",
       "schemaFile": "schemas/abilities.schema.json",
       "itemCount": 103,
-      "requiredFields": [],
-      "displayName": "Ability"
+      "requiredFields": [
+        "id",
+        "indexable",
+        "blackMarket",
+        "name",
+        "source",
+        "page",
+        "tree",
+        "level",
+        "actions"
+      ],
+      "displayName": "Abilities"
     },
     {
       "id": "ability-tree-requirements",
       "title": "ability-tree-requirements",
-      "description": "",
+      "description": "Requirements for unlocking ability trees in Salvage Union",
       "dataFile": "data/ability-tree-requirements.json",
       "schemaFile": "schemas/ability-tree-requirements.schema.json",
       "itemCount": 20,
-      "requiredFields": [],
-      "displayName": "Ability Tree Requirement",
+      "requiredFields": ["id", "indexable", "blackMarket", "name", "source", "page", "requirement"],
+      "displayName": "Ability Tree Requirements",
       "meta": true
     },
     {
       "id": "actions",
       "title": "actions",
-      "description": "",
+      "description": "Actions, abilities, and attacks that can be performed in Salvage Union",
       "dataFile": "data/actions.json",
       "schemaFile": "schemas/actions.schema.json",
-      "itemCount": 611,
+      "itemCount": 688,
       "requiredFields": [],
-      "displayName": "Action",
+      "displayName": "actions",
       "meta": true
-    },
-    {
-      "id": "bio-titans",
-      "title": "bio-titans",
-      "description": "",
-      "dataFile": "data/bio-titans.json",
-      "schemaFile": "schemas/bio-titans.schema.json",
-      "itemCount": 11,
-      "requiredFields": [],
-      "displayName": "Bio-Titan"
     },
     {
       "id": "catalog-categories",
@@ -54,209 +54,276 @@
       "dataFile": "data/catalog-categories.json",
       "schemaFile": "schemas/catalog-categories.schema.json",
       "itemCount": 6,
-      "requiredFields": [],
-      "displayName": "Catalog Category",
+      "requiredFields": ["id", "name", "schemas", "flat"],
+      "displayName": "Catalog Categories",
       "meta": true
     },
     {
       "id": "chassis",
       "title": "chassis",
-      "description": "",
+      "description": "Mech chassis definitions in Salvage Union",
       "dataFile": "data/chassis.json",
       "schemaFile": "schemas/chassis.schema.json",
-      "itemCount": 49,
-      "requiredFields": [],
+      "itemCount": 51,
+      "requiredFields": [
+        "id",
+        "indexable",
+        "blackMarket",
+        "name",
+        "source",
+        "page",
+        "chassisAbilities",
+        "patterns"
+      ],
       "displayName": "Chassis"
     },
     {
       "id": "classes",
       "title": "classes",
-      "description": "",
+      "description": "Character classes in Salvage Union (base, advanced, and hybrid)",
       "dataFile": "data/classes.json",
       "schemaFile": "schemas/classes.schema.json",
-      "itemCount": 10,
+      "itemCount": 11,
       "requiredFields": [],
-      "displayName": "Class"
+      "displayName": "Classes"
     },
     {
       "id": "crawler-bays",
       "title": "crawler-bays",
-      "description": "",
+      "description": "Bays and facilities on Union Crawlers in Salvage Union",
       "dataFile": "data/crawler-bays.json",
       "schemaFile": "schemas/crawler-bays.schema.json",
       "itemCount": 10,
-      "requiredFields": [],
-      "displayName": "Crawler Bay"
+      "requiredFields": [
+        "id",
+        "indexable",
+        "blackMarket",
+        "name",
+        "source",
+        "page",
+        "damagedEffect",
+        "npc"
+      ],
+      "displayName": "Crawler Bays"
     },
     {
       "id": "crawler-tech-levels",
       "title": "crawler-tech-levels",
-      "description": "",
+      "description": "Tech level progression for Union Crawlers in Salvage Union",
       "dataFile": "data/crawler-tech-levels.json",
       "schemaFile": "schemas/crawler-tech-levels.schema.json",
       "itemCount": 6,
-      "requiredFields": [],
-      "displayName": "Crawler Tech Level"
+      "requiredFields": [
+        "id",
+        "indexable",
+        "blackMarket",
+        "name",
+        "source",
+        "page",
+        "techLevel",
+        "structurePoints",
+        "upkeepCost",
+        "upgradeCost",
+        "populationMin",
+        "populationMax"
+      ],
+      "displayName": "Crawler Tech Levels"
     },
     {
       "id": "crawlers",
       "title": "crawlers",
-      "description": "",
+      "description": "Union Crawler mobile bases in Salvage Union",
       "dataFile": "data/crawlers.json",
       "schemaFile": "schemas/crawlers.schema.json",
       "itemCount": 5,
-      "requiredFields": [],
-      "displayName": "Crawler"
+      "requiredFields": [
+        "id",
+        "indexable",
+        "blackMarket",
+        "name",
+        "source",
+        "page",
+        "npc",
+        "actions"
+      ],
+      "displayName": "Crawlers"
     },
     {
       "id": "creatures",
       "title": "creatures",
-      "description": "",
+      "description": "Creatures and wildlife in Salvage Union",
       "dataFile": "data/creatures.json",
       "schemaFile": "schemas/creatures.schema.json",
-      "itemCount": 9,
-      "requiredFields": [],
-      "displayName": "Creature"
+      "itemCount": 13,
+      "requiredFields": ["id", "indexable", "blackMarket", "name", "source", "page", "hitPoints"],
+      "displayName": "Creatures"
     },
     {
       "id": "distances",
       "title": "distances",
-      "description": "",
+      "description": "Distance bands and ranges in Salvage Union",
       "dataFile": "data/distances.json",
       "schemaFile": "schemas/distances.schema.json",
       "itemCount": 4,
-      "requiredFields": [],
-      "displayName": "Distance"
+      "requiredFields": ["id", "indexable", "blackMarket", "name", "source", "page"],
+      "displayName": "Distances"
     },
     {
       "id": "drones",
       "title": "drones",
-      "description": "",
+      "description": "Autonomous drones in Salvage Union",
       "dataFile": "data/drones.json",
       "schemaFile": "schemas/drones.schema.json",
-      "itemCount": 11,
-      "requiredFields": [],
-      "displayName": "Drone"
+      "itemCount": 13,
+      "requiredFields": ["id", "indexable", "blackMarket", "name", "source", "page"],
+      "displayName": "Drones"
     },
     {
       "id": "equipment",
       "title": "equipment",
-      "description": "",
+      "description": "Pilot equipment and gear in Salvage Union",
       "dataFile": "data/equipment.json",
       "schemaFile": "schemas/equipment.schema.json",
-      "itemCount": 73,
-      "requiredFields": [],
+      "itemCount": 81,
+      "requiredFields": [
+        "id",
+        "indexable",
+        "blackMarket",
+        "name",
+        "source",
+        "page",
+        "techLevel",
+        "actions"
+      ],
       "displayName": "Equipment"
     },
     {
       "id": "factions",
       "title": "factions",
-      "description": "",
+      "description": "Faction groups and organizations in Salvage Union",
       "dataFile": "data/factions.json",
       "schemaFile": "schemas/factions.schema.json",
       "itemCount": 10,
-      "requiredFields": [],
-      "displayName": "Faction"
+      "requiredFields": [
+        "id",
+        "indexable",
+        "blackMarket",
+        "name",
+        "source",
+        "page",
+        "goals",
+        "assets",
+        "weaknesses"
+      ],
+      "displayName": "factions"
     },
     {
       "id": "guides",
       "title": "guides",
-      "description": "",
+      "description": "Player-facing guides and processes in Salvage Union",
       "dataFile": "data/guides.json",
       "schemaFile": "schemas/guides.schema.json",
-      "itemCount": 5,
-      "requiredFields": [],
-      "displayName": "Guide"
+      "itemCount": 37,
+      "requiredFields": [
+        "id",
+        "indexable",
+        "blackMarket",
+        "name",
+        "source",
+        "page",
+        "guideType",
+        "guideColor",
+        "steps"
+      ],
+      "displayName": "guides"
     },
     {
       "id": "keywords",
       "title": "keywords",
-      "description": "",
+      "description": "Game keywords and terminology in Salvage Union",
       "dataFile": "data/keywords.json",
       "schemaFile": "schemas/keywords.schema.json",
       "itemCount": 82,
-      "requiredFields": ["name", "source", "page"],
-      "displayName": "Keyword"
+      "requiredFields": ["id", "indexable", "blackMarket", "name", "source", "page"],
+      "displayName": "Keywords"
     },
     {
       "id": "meld",
       "title": "meld",
-      "description": "",
+      "description": "Meld-infected creatures in Salvage Union",
       "dataFile": "data/meld.json",
       "schemaFile": "schemas/meld.schema.json",
       "itemCount": 5,
-      "requiredFields": [],
+      "requiredFields": ["id", "indexable", "blackMarket", "name", "source", "page", "actions"],
       "displayName": "Meld"
     },
     {
       "id": "modules",
       "title": "modules",
-      "description": "",
+      "description": "Mech modules in Salvage Union",
       "dataFile": "data/modules.json",
       "schemaFile": "schemas/modules.schema.json",
-      "itemCount": 73,
-      "requiredFields": ["name", "page"],
-      "displayName": "Module"
+      "itemCount": 83,
+      "requiredFields": [
+        "id",
+        "indexable",
+        "blackMarket",
+        "name",
+        "source",
+        "page",
+        "techLevel",
+        "salvageValue",
+        "slotsRequired",
+        "actions"
+      ],
+      "displayName": "Modules"
     },
     {
       "id": "npcs",
       "title": "npcs",
-      "description": "",
+      "description": "Non-player characters and people in Salvage Union",
       "dataFile": "data/npcs.json",
       "schemaFile": "schemas/npcs.schema.json",
-      "itemCount": 9,
-      "requiredFields": [],
-      "displayName": "NPC"
+      "itemCount": 19,
+      "requiredFields": ["id", "indexable", "blackMarket", "name", "source", "page", "hitPoints"],
+      "displayName": "NPCs"
+    },
+    {
+      "id": "pre-made-characters",
+      "title": "pre-made-characters",
+      "description": "Pre-made player characters bundled with starter sets",
+      "dataFile": "data/pre-made-characters.json",
+      "schemaFile": "schemas/pre-made-characters.schema.json",
+      "itemCount": 6,
+      "requiredFields": [
+        "id",
+        "indexable",
+        "blackMarket",
+        "name",
+        "source",
+        "page",
+        "pilotClass",
+        "background",
+        "motto",
+        "keepsake",
+        "hitPoints",
+        "actionPoints",
+        "equipment",
+        "mech",
+        "systems",
+        "modules"
+      ],
+      "displayName": "pre-made-characters"
     },
     {
       "id": "roll-tables",
       "title": "roll-tables",
-      "description": "",
+      "description": "Random tables and roll tables in Salvage Union",
       "dataFile": "data/roll-tables.json",
       "schemaFile": "schemas/roll-tables.schema.json",
-      "itemCount": 79,
-      "requiredFields": [],
-      "displayName": "Roll Table"
-    },
-    {
-      "id": "squads",
-      "title": "squads",
-      "description": "",
-      "dataFile": "data/squads.json",
-      "schemaFile": "schemas/squads.schema.json",
-      "itemCount": 14,
-      "requiredFields": [],
-      "displayName": "Squad"
-    },
-    {
-      "id": "systems",
-      "title": "systems",
-      "description": "",
-      "dataFile": "data/systems.json",
-      "schemaFile": "schemas/systems.schema.json",
-      "itemCount": 118,
-      "requiredFields": ["name", "page"],
-      "displayName": "System"
-    },
-    {
-      "id": "traits",
-      "title": "traits",
-      "description": "",
-      "dataFile": "data/traits.json",
-      "schemaFile": "schemas/traits.schema.json",
-      "itemCount": 45,
-      "requiredFields": ["name", "source", "page"],
-      "displayName": "Trait"
-    },
-    {
-      "id": "vehicles",
-      "title": "vehicles",
-      "description": "",
-      "dataFile": "data/vehicles.json",
-      "schemaFile": "schemas/vehicles.schema.json",
-      "itemCount": 7,
-      "requiredFields": [],
-      "displayName": "Vehicle"
+      "itemCount": 96,
+      "requiredFields": ["id", "indexable", "blackMarket", "name", "source", "page", "table"],
+      "displayName": "Roll Tables"
     },
     {
       "id": "sources",
@@ -264,19 +331,90 @@
       "description": "Source books and expansions for Salvage Union content",
       "dataFile": "data/sources.json",
       "schemaFile": "schemas/sources.schema.json",
-      "itemCount": 5,
-      "requiredFields": [],
-      "displayName": "Source"
+      "itemCount": 10,
+      "requiredFields": ["id", "indexable", "blackMarket", "name", "source", "page"],
+      "displayName": "sources"
+    },
+    {
+      "id": "squads",
+      "title": "squads",
+      "description": "NPC squads and groups in Salvage Union",
+      "dataFile": "data/squads.json",
+      "schemaFile": "schemas/squads.schema.json",
+      "itemCount": 23,
+      "requiredFields": ["id", "indexable", "blackMarket", "name", "source", "page", "actions"],
+      "displayName": "Squads"
+    },
+    {
+      "id": "systems",
+      "title": "systems",
+      "description": "Mech systems (weapons and utilities) in Salvage Union",
+      "dataFile": "data/systems.json",
+      "schemaFile": "schemas/systems.schema.json",
+      "itemCount": 128,
+      "requiredFields": [
+        "id",
+        "indexable",
+        "blackMarket",
+        "name",
+        "source",
+        "page",
+        "techLevel",
+        "salvageValue",
+        "slotsRequired",
+        "actions"
+      ],
+      "displayName": "Systems"
     },
     {
       "id": "tech-levels",
       "title": "tech-levels",
-      "description": "Tech level descriptions for Salvage Union equipment and gear",
+      "description": "Tech level descriptions for Salvage Union",
       "dataFile": "data/tech-levels.json",
       "schemaFile": "schemas/tech-levels.schema.json",
       "itemCount": 6,
-      "requiredFields": [],
-      "displayName": "Tech Level"
+      "requiredFields": ["id", "indexable", "blackMarket", "name", "source", "page", "techLevel"],
+      "displayName": "tech-levels"
+    },
+    {
+      "id": "titans",
+      "title": "titans",
+      "description": "Mech-scale single-threat enemies in Salvage Union (monsters and bosses)",
+      "dataFile": "data/titans.json",
+      "schemaFile": "schemas/titans.schema.json",
+      "itemCount": 13,
+      "requiredFields": [
+        "id",
+        "indexable",
+        "blackMarket",
+        "name",
+        "source",
+        "page",
+        "kind",
+        "structurePoints",
+        "actions"
+      ],
+      "displayName": "Titans"
+    },
+    {
+      "id": "traits",
+      "title": "traits",
+      "description": "Traits and special properties in Salvage Union",
+      "dataFile": "data/traits.json",
+      "schemaFile": "schemas/traits.schema.json",
+      "itemCount": 45,
+      "requiredFields": ["id", "indexable", "blackMarket", "name", "source", "page"],
+      "displayName": "Traits"
+    },
+    {
+      "id": "vehicles",
+      "title": "vehicles",
+      "description": "Conventional vehicles in Salvage Union",
+      "dataFile": "data/vehicles.json",
+      "schemaFile": "schemas/vehicles.schema.json",
+      "itemCount": 11,
+      "requiredFields": ["id", "indexable", "blackMarket", "name", "source", "page"],
+      "displayName": "Vehicles"
     }
   ]
 }

@@ -1,0 +1,70 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro'
+import { CHANGELOG } from '../lib/changelog'
+import { SITE_URL } from '../lib/constants'
+
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'WebPage',
+  name: 'Changelog - Salvage Union SRD',
+  description: 'Major changes to salvageunion.io over time.',
+  url: `${SITE_URL}/changelog/`,
+  isPartOf: {
+    '@type': 'WebSite',
+    name: 'Salvage Union System Reference Document',
+    url: `${SITE_URL}/`,
+  },
+}
+
+const breadcrumbs = [
+  { name: 'Home', url: `${SITE_URL}/` },
+  { name: 'Changelog', url: `${SITE_URL}/changelog/` },
+]
+---
+
+<BaseLayout
+  title="Changelog - Salvage Union System Reference Document"
+  description="Major changes to salvageunion.io over time."
+  structuredData={structuredData}
+  breadcrumbs={breadcrumbs}
+>
+  <div class="flex w-full flex-1 flex-col py-12">
+    <div class="mx-auto flex w-full max-w-3xl flex-col gap-8 px-6">
+      <h1
+        class="box-decoration-clone bg-su-black px-2 py-1 text-center font-mono text-3xl font-bold uppercase leading-none tracking-tight text-su-white"
+        style="line-height: 1;"
+      >
+        Changelog
+      </h1>
+
+      <p class="text-center text-sm leading-relaxed">
+        Major changes to the SRD site. For full commit history see the
+        <a
+          href="https://github.com/alxjrvs/SU-SRD/commits/main"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="font-bold text-su-orange-dark hover:underline"
+        >
+          GitHub repository
+        </a>.
+      </p>
+
+      <ol class="flex flex-col gap-6">
+        {CHANGELOG.map((entry) => (
+          <li class="flex flex-col gap-1 border-l-4 border-su-black pl-4">
+            <time
+              datetime={entry.date}
+              class="font-mono text-xs font-bold uppercase tracking-wide text-su-grey-dark"
+            >
+              {entry.date}
+            </time>
+            <h2 class="font-mono text-lg font-bold uppercase leading-tight">
+              {entry.title}
+            </h2>
+            <p class="text-sm leading-relaxed">{entry.description}</p>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </div>
+</BaseLayout>

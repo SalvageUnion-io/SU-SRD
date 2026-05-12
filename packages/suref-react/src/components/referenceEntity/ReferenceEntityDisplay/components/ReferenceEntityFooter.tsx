@@ -4,6 +4,7 @@ import { Text } from '../../../base/Text'
 type ReferenceEntityFooterProps = {
   footerDisplayName: string | undefined
   source: string | undefined
+  booklet: string | undefined
   page: string | number | undefined
   compact: boolean
   headerBg: string | undefined
@@ -15,6 +16,7 @@ type ReferenceEntityFooterProps = {
 export function ReferenceEntityFooter({
   footerDisplayName,
   source,
+  booklet,
   page,
   compact,
   headerBg,
@@ -22,6 +24,7 @@ export function ReferenceEntityFooter({
   contentPaddingX,
   sourceFooterStyles,
 }: ReferenceEntityFooterProps) {
+  const sourceLabel = source && booklet ? `${source} (${booklet})` : source
   return (
     <div
       className={cn(
@@ -53,13 +56,13 @@ export function ReferenceEntityFooter({
       </div>
 
       <div className="flex shrink-0">
-        {source && (
+        {sourceLabel && (
           <Text
             variant="pseudoheader"
             as="span"
             className={cn('whitespace-nowrap text-xs font-semibold uppercase', page && 'mr-4')}
           >
-            {source}
+            {sourceLabel}
           </Text>
         )}
         {page && (

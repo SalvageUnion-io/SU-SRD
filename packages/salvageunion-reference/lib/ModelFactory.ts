@@ -13,7 +13,7 @@ import {
   AbilitySchema,
   AbilityTreeRequirementSchema,
   MetaActionSchema,
-  BioTitanSchema,
+  TitanSchema,
   ChassisSchema,
   ClassSchema,
   CrawlerBaySchema,
@@ -36,6 +36,7 @@ import {
   GuideSchema,
   SourceEntitySchema,
   TechLevelEntitySchema,
+  PreMadeCharacterSchema,
   CatalogCategorySchema,
 } from './schemas/index.js'
 
@@ -54,10 +55,6 @@ const dataLoaders: Record<string, () => Promise<unknown[]>> = {
     ),
   actions: () =>
     import('../data/actions.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
-  'bio-titans': () =>
-    import('../data/bio-titans.json', { with: { type: 'json' } }).then(
-      (m) => m.default as unknown[]
-    ),
   chassis: () =>
     import('../data/chassis.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
   classes: () =>
@@ -98,6 +95,10 @@ const dataLoaders: Record<string, () => Promise<unknown[]>> = {
     import('../data/modules.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
   npcs: () =>
     import('../data/npcs.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
+  'pre-made-characters': () =>
+    import('../data/pre-made-characters.json', { with: { type: 'json' } }).then(
+      (m) => m.default as unknown[]
+    ),
   'roll-tables': () =>
     import('../data/roll-tables.json', { with: { type: 'json' } }).then(
       (m) => m.default as unknown[]
@@ -106,6 +107,8 @@ const dataLoaders: Record<string, () => Promise<unknown[]>> = {
     import('../data/squads.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
   systems: () =>
     import('../data/systems.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
+  titans: () =>
+    import('../data/titans.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
   traits: () =>
     import('../data/traits.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
   vehicles: () =>
@@ -133,10 +136,6 @@ const jsonSchemaLoaders: Record<string, () => Promise<Record<string, unknown>>> 
     ),
   actions: () =>
     import('../schemas/actions.schema.json', { with: { type: 'json' } }).then(
-      (m) => m.default as Record<string, unknown>
-    ),
-  'bio-titans': () =>
-    import('../schemas/bio-titans.schema.json', { with: { type: 'json' } }).then(
       (m) => m.default as Record<string, unknown>
     ),
   chassis: () =>
@@ -199,6 +198,10 @@ const jsonSchemaLoaders: Record<string, () => Promise<Record<string, unknown>>> 
     import('../schemas/npcs.schema.json', { with: { type: 'json' } }).then(
       (m) => m.default as Record<string, unknown>
     ),
+  'pre-made-characters': () =>
+    import('../schemas/pre-made-characters.schema.json', { with: { type: 'json' } }).then(
+      (m) => m.default as Record<string, unknown>
+    ),
   'roll-tables': () =>
     import('../schemas/roll-tables.schema.json', { with: { type: 'json' } }).then(
       (m) => m.default as Record<string, unknown>
@@ -209,6 +212,10 @@ const jsonSchemaLoaders: Record<string, () => Promise<Record<string, unknown>>> 
     ),
   systems: () =>
     import('../schemas/systems.schema.json', { with: { type: 'json' } }).then(
+      (m) => m.default as Record<string, unknown>
+    ),
+  titans: () =>
+    import('../schemas/titans.schema.json', { with: { type: 'json' } }).then(
       (m) => m.default as Record<string, unknown>
     ),
   traits: () =>
@@ -240,7 +247,6 @@ const zodSchemaMap: Record<string, z.ZodType<unknown>> = {
   abilities: AbilitySchema,
   'ability-tree-requirements': AbilityTreeRequirementSchema,
   actions: MetaActionSchema,
-  'bio-titans': BioTitanSchema,
   chassis: ChassisSchema,
   classes: ClassSchema,
   'crawler-bays': CrawlerBaySchema,
@@ -256,9 +262,11 @@ const zodSchemaMap: Record<string, z.ZodType<unknown>> = {
   meld: MeldSchema,
   modules: ModuleSchema,
   npcs: NPCSchema,
+  'pre-made-characters': PreMadeCharacterSchema,
   'roll-tables': RollTableSchema,
   squads: SquadSchema,
   systems: SystemSchema,
+  titans: TitanSchema,
   traits: TraitEntitySchema,
   vehicles: VehicleSchema,
   sources: SourceEntitySchema,
@@ -448,7 +456,6 @@ const schemaDisplayNames: Record<string, { singular: string; plural: string }> =
     singular: 'Ability Tree Requirement',
     plural: 'Ability Tree Requirements',
   },
-  'bio-titans': { singular: 'Bio-Titan', plural: 'Bio-Titans' },
   chassis: { singular: 'Chassis', plural: 'Chassis' },
   classes: { singular: 'Class', plural: 'Classes' },
   'crawler-bays': { singular: 'Crawler Bay', plural: 'Crawler Bays' },
@@ -467,9 +474,11 @@ const schemaDisplayNames: Record<string, { singular: string; plural: string }> =
   meld: { singular: 'Meld', plural: 'Meld' },
   modules: { singular: 'Module', plural: 'Modules' },
   npcs: { singular: 'NPC', plural: 'NPCs' },
+  'pre-made-characters': { singular: 'Pre-Made Character', plural: 'Pre-Made Characters' },
   'roll-tables': { singular: 'Roll Table', plural: 'Roll Tables' },
   squads: { singular: 'Squad', plural: 'Squads' },
   systems: { singular: 'System', plural: 'Systems' },
+  titans: { singular: 'Titan', plural: 'Titans' },
   traits: { singular: 'Trait', plural: 'Traits' },
   vehicles: { singular: 'Vehicle', plural: 'Vehicles' },
   sources: { singular: 'Source', plural: 'Sources' },

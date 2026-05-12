@@ -371,6 +371,16 @@ export function getSource(entity: SURefMetaEntity): string | undefined {
 }
 
 /**
+ * Extract booklet code from an entity (e.g. "CR" / "PH" / "PC" / "CB" for SUSS).
+ * Only meaningful when the primary source is a multi-booklet product.
+ * @param entity - The entity to extract from
+ * @returns The booklet code or undefined
+ */
+export function getBooklet(entity: SURefMetaEntity): string | undefined {
+  return 'booklet' in entity && typeof entity.booklet === 'string' ? entity.booklet : undefined
+}
+
+/**
  * Extract npc from an entity
  * @param entity - The entity to extract from
  * @returns The npc or undefined

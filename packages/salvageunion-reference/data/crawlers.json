@@ -56,6 +56,13 @@
         "type": "paragraph",
         "value": "Nearly everyone on your Union Crawler is augmented in some way and your medical technicians are able to implement a variety of body modifications with ease."
       }
+    ],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 52
+      }
     ]
   },
   {
@@ -128,14 +135,27 @@
     },
     "actions": ["Improved Armour and Armaments"],
     "mutations": [
-      { "type": "weapon_slots", "value": 1 },
-      { "type": "max_sp_bonus", "value": 5 }
+      {
+        "type": "weapon_slots",
+        "value": 1
+      },
+      {
+        "type": "max_sp_bonus",
+        "value": 5
+      }
     ],
     "page": 216,
     "content": [
       {
         "type": "paragraph",
         "value": "Your Crawler is equipped to better defend itself in the wastelands. It bristles with armour and armaments and many on board are highly trained and effective fighters."
+      }
+    ],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 52
       }
     ]
   },
@@ -210,6 +230,13 @@
         "type": "paragraph",
         "value": "Your Crawler is designed for maximum efficiency, functioning with the bare minimum of scrap expenditure thanks to the efforts of your well-oiled engineering team. "
       }
+    ],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 52
+      }
     ]
   },
   {
@@ -278,6 +305,13 @@
       {
         "type": "paragraph",
         "value": "Exploratory Crawlers are designed to get to the hardest to reach places in the wasteland. They have unique and even bizarre locomotion systems that let them travel over terrain that range from spider-like legs and multiple articulated tracks to tunnelling maws and complex hover systems."
+      }
+    ],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 53
       }
     ]
   },
@@ -351,6 +385,13 @@
       {
         "type": "paragraph",
         "value": "Your Crawler is geared towards trade in the wastelands, giving you better deals and attracting more folk willing to trade better quality goods."
+      }
+    ],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PH",
+        "page": 53
       }
     ]
   }

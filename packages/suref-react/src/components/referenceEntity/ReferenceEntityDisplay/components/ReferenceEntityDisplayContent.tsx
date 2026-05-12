@@ -109,6 +109,7 @@ export function ReferenceEntityDisplayContent({
     actionsToDisplay,
     matchingAction,
     source,
+    booklet,
     label,
     techLevel,
     subtitleExtra,
@@ -150,7 +151,7 @@ export function ReferenceEntityDisplayContent({
     !!actionsToDisplay &&
     actionsToDisplay.length > 0 &&
     (!hide.actions || compact) &&
-    !(compact && schemaName === 'bio-titans')
+    !(compact && schemaName === 'titans')
 
   const hasTopMatterContent =
     !!showContent || hasChassisAbilities || !!assetUrl || hasDisplayableActions
@@ -220,6 +221,7 @@ export function ReferenceEntityDisplayContent({
     <ReferenceEntityFooter
       footerDisplayName={footerDisplayName}
       source={hasSource ? data.source : undefined}
+      booklet={booklet}
       page={hasPage ? data.page : undefined}
       compact={compact}
       headerBg={headerBg}
@@ -427,7 +429,7 @@ export function ReferenceEntityDisplayContent({
                 {!compact && !hide.actions && chassisAbilitiesBlock}
               </>
             )}
-            {(!hide.actions || (compact && schemaName !== 'bio-titans' && !rightContent)) && (
+            {(!hide.actions || (compact && schemaName !== 'titans' && !rightContent)) && (
               <ReferenceEntityActions
                 suppressActions={hasChassisAbilities}
                 spacing={spacing}

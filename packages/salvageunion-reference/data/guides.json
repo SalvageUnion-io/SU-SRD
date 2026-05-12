@@ -4,6 +4,7 @@
     "name": "Safety Protocols",
     "source": "Salvage Union Workshop Manual",
     "page": 12,
+    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 8 }],
     "guideType": "gameplay",
     "guideColor": "#5A9DB5",
     "content": [
@@ -652,6 +653,7 @@
     "name": "Crawler Downtime",
     "source": "Salvage Union Workshop Manual",
     "page": 227,
+    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "PH", "page": 64 }],
     "guideType": "downtime",
     "guideColor": "#D14B8A",
     "content": [
@@ -812,6 +814,7 @@
     "name": "Pushing a Mech",
     "source": "Salvage Union Workshop Manual",
     "page": 233,
+    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 16 }],
     "guideType": "gameplay",
     "guideColor": "#7A978A",
     "content": [
@@ -908,6 +911,7 @@
     "name": "Heat",
     "source": "Salvage Union Workshop Manual",
     "page": 234,
+    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 16 }],
     "guideType": "gameplay",
     "guideColor": "#7A978A",
     "content": [
@@ -977,6 +981,7 @@
     "name": "Activating and Shutting Down a Mech",
     "source": "Salvage Union Workshop Manual",
     "page": 238,
+    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 21 }],
     "guideType": "gameplay",
     "guideColor": "#7A978A",
     "content": [],
@@ -1018,6 +1023,7 @@
     "name": "Mech Damage",
     "source": "Salvage Union Workshop Manual",
     "page": 239,
+    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 22 }],
     "guideType": "gameplay",
     "guideColor": "#7A978A",
     "content": [
@@ -1115,6 +1121,7 @@
     "name": "Pilot Damage",
     "source": "Salvage Union Workshop Manual",
     "page": 241,
+    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 24 }],
     "guideType": "gameplay",
     "guideColor": "#D46A30",
     "content": [
@@ -1197,6 +1204,7 @@
     "name": "Salvage Condition",
     "source": "Salvage Union Workshop Manual",
     "page": 244,
+    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 28 }],
     "guideType": "gameplay",
     "guideColor": "#5A9DB5",
     "content": [
@@ -1254,6 +1262,7 @@
     "name": "Salvaging",
     "source": "Salvage Union Workshop Manual",
     "page": 245,
+    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 28 }],
     "guideType": "gameplay",
     "guideColor": "#5A9DB5",
     "content": [],
@@ -1365,6 +1374,7 @@
     "name": "Tough Choices",
     "source": "Salvage Union Workshop Manual",
     "page": 254,
+    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 14 }],
     "guideType": "gameplay",
     "guideColor": "#B84C4C",
     "content": [
@@ -1476,6 +1486,7 @@
     "name": "Map Movement",
     "source": "Salvage Union Workshop Manual",
     "page": 263,
+    "additionalSources": [{ "source": "Reclamation of the Wastes", "page": 8 }],
     "guideType": "gameplay",
     "guideColor": "#5A9DB5",
     "content": [
@@ -1559,6 +1570,1137 @@
           {
             "type": "list-item",
             "value": "A Mech can move from one of these points to another in 10 minutes."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "058be1b5-d1ec-484f-a443-4d54b01e3eb7",
+    "name": "Salvage Union Setting",
+    "source": "Reclamation of the Wastes",
+    "page": 4,
+    "guideType": "gameplay",
+    "guideColor": "#B84C4C",
+    "content": [],
+    "steps": [
+      {
+        "id": "8a410b14-b460-47e7-b363-06c59b1b3a8d",
+        "name": "Salvage Union Setting",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Salvage Union is set on an earth-like planet that has suffered multiple catastrophic events that have left much of the world a barren wasteland. There are no governments, only corporations that rule swathes of territory and resources from their Arcologies; vast self sufficient and enclosed mega-settlements."
+          },
+          {
+            "type": "paragraph",
+            "value": "As a salvager, you exist outside of corporate control, living in a giant Mech known as a Union Crawler and scavenging to support yourselves."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "208f2316-e098-4081-b839-4533d0029b58",
+    "name": "What is the Salvage Union?",
+    "source": "Reclamation of the Wastes",
+    "page": 4,
+    "guideType": "gameplay",
+    "guideColor": "#B84C4C",
+    "content": [],
+    "steps": [
+      {
+        "id": "9390cd3a-25db-4c59-83f8-62d89e4cba88",
+        "name": "What is the Salvage Union?",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "The Salvage Union is an autonomous collective of salvagers, workers, pilots, and all manner of folk from across the wasteland who have banded together to live free of corpo influence. The backbone of the Salvage Union are the Union Crawlers; giant moving settlements that scavenge the wastes, growing organically as they scrape together more resources."
+          },
+          {
+            "type": "paragraph",
+            "value": "The 'Union Council' acts as the regulatory body, formed of elected members from each of the Union Crawlers. Anyone can form a Union Crawler and apply for a 'Salvage Charter' to the Union Council. Individual Crawlers are identified by their Union Crawler number and allowed to autonomously manage their own affairs, with the council settling any inter-crawler disputes."
+          },
+          {
+            "type": "paragraph",
+            "value": "The pilots in the Reclamation of the Wastes campaign are part of a newly built Union Crawler, #430, and have the role of salvagers who head out into the wastes to collect scrap to keep your Union Crawler alive in the wastelands."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "a2f84aa0-10a7-46e0-8d1f-bdc7f166bd01",
+    "name": "Reclamation of the Wastes Setting",
+    "source": "Reclamation of the Wastes",
+    "page": 5,
+    "guideType": "gameplay",
+    "guideColor": "#B84C4C",
+    "content": [],
+    "steps": [
+      {
+        "id": "4ec2e6c1-a471-4cc2-a785-4a5501ab879c",
+        "name": "Reclamation of the Wastes Setting",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Impact Day was a cataclysmic event at the end of the Second Corpo War. Isolated in their space colonies, the remnants of the corpo elites flung a meteor at the People's Capital of the Territorial Democratic Alliance (TDA): a megalopolis founded to commemorate their victory over the corpos."
+          },
+          {
+            "type": "paragraph",
+            "value": "This petty act of spite doomed the corpo colonists as it consumed the last of their resources, resulted in the loss of millions of lives on the planet, and wiped the TDA off the map. The world was flung back into chaos. In time, the corpos who had remained planet-side regained control of their Arcos - and eventually, the wastelands as well."
+          },
+          {
+            "type": "paragraph",
+            "value": "Caldera was the impact site: large swathes of the region were destroyed, irradiated, or buried under ash and flame. Until now."
+          },
+          {
+            "type": "paragraph",
+            "value": "Centuries after Impact Day, Caldera has once more become a habitable region in the Central Wastes. The noxious ash clouds from the corpo meteor attack have finally settled, revealing an area ripe for exploration."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "909fff8c-d34f-4212-bd2e-7afdea142d9c",
+    "name": "The Present Day",
+    "source": "Reclamation of the Wastes",
+    "page": 5,
+    "guideType": "gameplay",
+    "guideColor": "#B84C4C",
+    "content": [],
+    "steps": [
+      {
+        "id": "793c8a21-e6af-4507-a0a7-4aed2948a40a",
+        "name": "The Present Day",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Now the dust has settled, Caldera's buried resources have been revealed. Multiple factions - including corpos, wasters, raiders, and cults - have come to stake a claim to the territory. Some are looking to rebuild; others to claim the region's riches; others simply want to exert control in this new power vacuum."
+          },
+          {
+            "type": "paragraph",
+            "value": "You play as a fledgling group of salvagers. Having built your first Union Crawler and claimed your Salvage Charter, you are heading into Caldera to support your growing community in this scrap-rich. You'll uncover and explore its buried secrets, making friends and foes along the way."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "450b720b-3d5b-408e-a66f-ae45a79dbc04",
+    "name": "Your First Session",
+    "source": "Reclamation of the Wastes",
+    "page": 6,
+    "guideType": "gameplay",
+    "guideColor": "#B84C4C",
+    "content": [],
+    "steps": [
+      {
+        "id": "9aa8c733-fb63-477b-aadf-ef5781104506",
+        "name": "Your First Session",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "The Starter Set comes with 6 pre-made Pilots and Mechs that are designed to work with one another. These have been designed as starting Tech 1 Pilots and Mechs, but with some additional Systems and Modules added to the Mechs to flesh them out."
+          },
+          {
+            "type": "paragraph",
+            "value": "Give the players a chance to read through the sheets and decide who wants to play which Pilot and Mech."
+          },
+          {
+            "type": "paragraph",
+            "value": "Explain the following rules to the players, and hand each player a Quick Reference sheet. This should be enough to play in the first session."
+          },
+          {
+            "type": "list-item",
+            "value": "Core Mechanic p.14 CR"
+          },
+          {
+            "type": "list-item",
+            "value": "Heat p.16 CR"
+          },
+          {
+            "type": "list-item",
+            "value": "Energy p.39 CR"
+          },
+          {
+            "type": "paragraph",
+            "value": "Have each player introduce their Mech and Pilot to one another. Briefly explain the setting detailed on p.5, and campaign goals for the pilots detailed here."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "c472c8ab-1243-49dc-918c-b2b7c0efe979",
+    "name": "Starting Play",
+    "source": "Reclamation of the Wastes",
+    "page": 6,
+    "guideType": "gameplay",
+    "guideColor": "#B84C4C",
+    "content": [],
+    "steps": [
+      {
+        "id": "5bdd547d-30b9-46bf-8bc8-f61e79e50f60",
+        "name": "Starting Play",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Pilots are deployed in Region 1.01: Dumping Grounds, with their Union Crawler safely hidden. For the sake of simplicity we'd recommend saying the pilots have just arrived here and describing the area to them."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "cc303122-1506-44a6-a919-8891469a8bc9",
+    "name": "Campaign Goals",
+    "source": "Reclamation of the Wastes",
+    "page": 6,
+    "guideType": "gameplay",
+    "guideColor": "#B84C4C",
+    "content": [],
+    "steps": [
+      {
+        "id": "4d4d52b6-6f59-4c1b-a78d-a483e073475d",
+        "name": "Campaign Goals",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "heading",
+            "level": 3,
+            "value": "Explore"
+          },
+          {
+            "type": "paragraph",
+            "value": "Caldera is an unexplored region ripe with secrets and old technology to discover, including those of the TDA."
+          },
+          {
+            "type": "heading",
+            "level": 3,
+            "value": "Salvage"
+          },
+          {
+            "type": "paragraph",
+            "value": "Caldera is brimming with scrap from the ruins of what once was. As a base goal, pilots of Crawler #430 will need to find scrap so their Union Crawler can survive in the wastes. They will need 5 scrap of the Tech Level of the Union Crawler each downtime."
+          },
+          {
+            "type": "paragraph",
+            "value": "They can get this scrap from exploring and salvaging, or by taking jobs from factions and individuals within the wastes. See the downtime rules on p.64 - 65 of the Pilot's Handbook for more information on Union Crawler upkeep."
+          },
+          {
+            "type": "heading",
+            "level": 3,
+            "value": "Negotiate"
+          },
+          {
+            "type": "paragraph",
+            "value": "Caldera represents an opportunity for the Salvage Union to gain a foothold in a new region of the wastelands by making alliances and trading with other factions."
+          },
+          {
+            "type": "paragraph",
+            "value": "As the first Union Crawler to enter Caldera, Crawler #430 has been granted a Writ of Trade by the Union Council allowing them to make deals on behalf of the Union. This will open up commercial lanes between the factions and the Union, and mean any further Union Crawlers that enter Caldera will have friendly connections, open to jobs and trade."
+          },
+          {
+            "type": "paragraph",
+            "value": "The campaign has many factions. If the pilots can successfully make deals with them by completing jobs, they will become an ally to the Union and open up trade links. This won't be easy. Crawler #430 will need to earn their trust, but many will be opposed to each other. Tough decisions will need to be made on who to support."
+          },
+          {
+            "type": "paragraph",
+            "value": "The Reclamation of the Wastes Campaign will note when such deals are possible."
+          },
+          {
+            "type": "paragraph",
+            "value": "As a reward for establishing trade links, Pilots will receive 1 Scrap of the Tech Level of their Union Crawler per Downtime, per faction they have signed a deal with. This will apply only whilst they are exploring the Caldera Campaign Map."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "72db7951-ea27-46d8-a8c8-e28f642903fd",
+    "name": "Campaign Pacing",
+    "source": "Reclamation of the Wastes",
+    "page": 7,
+    "guideType": "gameplay",
+    "guideColor": "#B84C4C",
+    "content": [],
+    "steps": [
+      {
+        "id": "37799fbd-d71a-4d3a-af5c-cc516755d85a",
+        "name": "Campaign Pacing",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "The campaign is designed as an open-ended sandbox, with pilots deciding where they want to travel. They can choose a direction during the session when exploring different areas of a Region, and during downtime when picking the next Region the Union Crawler will visit."
+          },
+          {
+            "type": "paragraph",
+            "value": "There is no specific story in mind for the campaign. The game is designed for pilots to explore each area at their own pace, meet the characters, experience the unfolding events, and make decisions on what they want to do."
+          },
+          {
+            "type": "paragraph",
+            "value": "Each Region is intended to run for approximately 1-3 sessions of around 3-4 hours, depending on how your group approaches each area. The campaign is designed for players to reach Tech 3 of their Union Crawler after exploring the 4 regions of the map."
+          },
+          {
+            "type": "paragraph",
+            "value": "Don't worry if they haven't perfectly achieved this. 'Spikes' in progression via Scrap is part of the freeform, emergent design of the game. If pilots don't reach Tech 3 after exploring the map, they can re-explore areas, or you can offer them additional jobs. If they reach it early, they can continue exploring or head to another Region."
+          },
+          {
+            "type": "paragraph",
+            "value": "Once pilots have reached Tech 3, you will need the Salvage Union Core Book to detail the Tech 3 - 6 content. At this stage they can continue to explore the other regions on the map, or you can expand the campaign out to one of the Salvage Union Adventure Modules (We Were Here First!, False Flag, and Rainmaker). Alternatively, you can design your own campaign using the advice in the Core Book"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "5e546070-283d-4b83-b8c0-0590fbfe19f7",
+    "name": "Exploration",
+    "source": "Reclamation of the Wastes",
+    "page": 8,
+    "guideType": "gameplay",
+    "guideColor": "#B84C4C",
+    "content": [],
+    "steps": [
+      {
+        "id": "1cb4e1f5-1b76-4149-8daf-a89e21c47bd8",
+        "name": "Exploration",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "The Campaign Map is the entire Reclamation of the Wastes Map. It takes a Union Crawler a week to travel between each Region on this map."
+          },
+          {
+            "type": "paragraph",
+            "value": "A Region represents a linked series of Areas on the map. For example, Region 1.0 Caldera's Edge is composed of multiple areas, denoted as 1.01, 1.02, and so on."
+          },
+          {
+            "type": "paragraph",
+            "value": "An Area is a single point on the Campaign Map, e.g. Area 1.01 Dumping Grounds. A Mech will take an hour to travel between Areas; a Pilot will take one day."
+          },
+          {
+            "type": "paragraph",
+            "value": "Finally, a Location is a zoomed in point of an Area map. For example, The Ur Pit at 10.03 is split into Locations. It takes a Mech 10 minutes to travel between points on a Location Map, and a Pilot an hour."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "271fedd7-719c-4a77-a97e-baa31b6512c9",
+    "name": "Running the Game",
+    "source": "Reclamation of the Wastes",
+    "page": 88,
+    "guideType": "gameplay",
+    "guideColor": "#B84C4C",
+    "content": [],
+    "steps": [
+      {
+        "id": "951f4dec-aaf4-4139-878b-0af656fb5af2",
+        "name": "Running the Game",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "The core procedure of play in Salvage Union is a conversation that goes like this:"
+          },
+          {
+            "type": "list-item",
+            "value": "The Mediator describes the situation that the Pilots are in;"
+          },
+          {
+            "type": "list-item",
+            "value": "The Pilots tell the Mediator what they wish to do;"
+          },
+          {
+            "type": "list-item",
+            "value": "The Mediator narrates the result."
+          },
+          {
+            "type": "paragraph",
+            "value": "If something the Pilots want to do at point 2 is significant, dangerous, dramatic, or has some chance of going wrong, they roll a d20 to learn what happens based on the Core Mechanic. Be wary of rolling the dice in trivial situations or ones without any interesting outcomes. The die roll is not a test of skill: it represents fate, luck, serendipity, and an array of potential external factors. This is why it broadly applies in the same way to everyone in the game."
+          },
+          {
+            "type": "paragraph",
+            "value": "The skill of the game comes from working out actions and ideas in play that would result in beneficial situations and reduce the effects of potential consequences, and in how players utilise their array of Pilot and Mech Abilities."
+          },
+          {
+            "type": "paragraph",
+            "value": "There is a lot of flexibility to the Core Mechanic, and it can be applied in many different ways to create dynamic and changing situations."
+          },
+          {
+            "type": "paragraph",
+            "value": "For example, in combat you may say a Tough Choice results in a Mech being flanked by an opposing Mech who is now bearing down on them. Whilst technically the opposing Mech did not or could not have moved, as it was not its turn, this adds a fun, dramatic moment to play. Feel emboldened to throw curveballs like this when the die prompts you to. The Core Mechanic takes precedence in Salvage Union over any other rule; all other rules are built around it."
+          },
+          {
+            "type": "paragraph",
+            "value": "Failures in Salvage Union are not inherently related to the Pilots' skill in play. The Pilots are assumed to be competent and failures are more the result of bad luck, fate, or timing than of a Pilot being grossly negligent. Where you can, avoid describing failure as Pilots making fools of themselves in a situation or acting stupidly; instead, describe how fate conspired against them in that moment."
+          },
+          {
+            "type": "paragraph",
+            "value": "The key advice to running Salvage Union is always be upfront and honest with the players about the situation they are in, the options they have, and what the consequences are of their choices. Balance those options to create a tense and satisfying experience."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "731249de-274e-414e-908b-de4ec0550812",
+    "name": "Setbacks",
+    "source": "Reclamation of the Wastes",
+    "page": 88,
+    "guideType": "gameplay",
+    "guideColor": "#B84C4C",
+    "content": [],
+    "steps": [
+      {
+        "id": "c1cbf864-3877-493f-acaf-7d61503b4944",
+        "name": "Setbacks",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "A Setback is a kind of consequence that Pilots may face in the game. This is typically a result of a die roll made to resolve a situation, but can also emerge naturally in play based on the Mediator making a decision."
+          },
+          {
+            "type": "paragraph",
+            "value": "A Setback should never stall play entirely, or be magnified beyond what reasonable harm and difficulty it would cause within the narrative. Instead, it should be an opportunity for Pilots to exercise their problem-solving skills, re-think a situation, and propel play forwards to different and unexpected avenues."
+          },
+          {
+            "type": "paragraph",
+            "value": "For example, if the Pilots attempt to cross a mountain pass and roll badly, simply stating that boulders fall on their Mechs and they are all destroyed is an unfair Setback. On the other hand, saying there is a landslide with multiple rocks raining down on the group and asking how they deal with the situation is interesting. It engages them immediately in the action, and gives them the opportunity to try and solve the situation."
+          },
+          {
+            "type": "paragraph",
+            "value": "This could also lead to different outcomes. In the previous example, with the Mechs caught in a landslide, a simple consequence of the Setback could be that they just take 2 SP damage. A more complex consequence of the Setback could be that their Mechs take the 2 SP, and the landslide reveals an alternative route through the mountain. This is a more interesting development and might lead to further adventure."
+          },
+          {
+            "type": "paragraph",
+            "value": "Setbacks should occur as a result of players making significant choices in the game, rolling the die, and getting a result that leads to a Setback or applied as seen fit by the Mediator."
+          },
+          {
+            "type": "paragraph",
+            "value": "When dealing damage as a Setback, the default baseline is 2 SP for Mechs and 2 HP for Pilots. This can be adjusted by the Mediator."
+          },
+          {
+            "type": "paragraph",
+            "value": "Here are some other examples of Setbacks the Mediator can use in play."
+          },
+          {
+            "type": "heading",
+            "level": 3,
+            "value": "They are hurt"
+          },
+          {
+            "type": "list-item",
+            "value": "They take damage (2 SP/2 HP by default)"
+          },
+          {
+            "type": "list-item",
+            "value": "An NPC attacks them"
+          },
+          {
+            "type": "list-item",
+            "value": "They must roll on the Critical Damage or Critical Injury Table"
+          },
+          {
+            "type": "list-item",
+            "value": "A System or Module is damaged or destroyed"
+          },
+          {
+            "type": "list-item",
+            "value": "A Pilot suffers a Minor or Major Injury"
+          },
+          {
+            "type": "list-item",
+            "value": "They must roll on the Reactor Overload Table"
+          },
+          {
+            "type": "list-item",
+            "value": "They gain Heat and must roll on the Reactor Overload Table"
+          },
+          {
+            "type": "list-item",
+            "value": "Their weapon's Trait is used against them"
+          },
+          {
+            "type": "heading",
+            "level": 3,
+            "value": "Their reputation or standing is harmed"
+          },
+          {
+            "type": "list-item",
+            "value": "They offend someone important"
+          },
+          {
+            "type": "list-item",
+            "value": "They break a law, code, or unwritten rule, and become targets for retributive justice"
+          },
+          {
+            "type": "list-item",
+            "value": "They are cast out of a community"
+          },
+          {
+            "type": "list-item",
+            "value": "A bounty is put on their heads"
+          },
+          {
+            "type": "list-item",
+            "value": "They lose an ally"
+          },
+          {
+            "type": "list-item",
+            "value": "Something from a Pilot's background comes back to haunt them"
+          },
+          {
+            "type": "heading",
+            "level": 3,
+            "value": "They lose something"
+          },
+          {
+            "type": "list-item",
+            "value": "Something important is stolen"
+          },
+          {
+            "type": "list-item",
+            "value": "Their ballistic weapon jams or runs out of ammo"
+          },
+          {
+            "type": "list-item",
+            "value": "Their items or weapons are less effective than they should be"
+          },
+          {
+            "type": "list-item",
+            "value": "A trader demands a costly deal"
+          },
+          {
+            "type": "heading",
+            "level": 3,
+            "value": "Their environment shifts"
+          },
+          {
+            "type": "list-item",
+            "value": "A sudden radiation storm makes a journey difficult"
+          },
+          {
+            "type": "list-item",
+            "value": "Acid rain causes them to seek shelter"
+          },
+          {
+            "type": "list-item",
+            "value": "A disease begins to spread"
+          },
+          {
+            "type": "list-item",
+            "value": "The path is blocked by debris"
+          },
+          {
+            "type": "list-item",
+            "value": "An enemy suddenly flanks them"
+          },
+          {
+            "type": "heading",
+            "level": 3,
+            "value": "Their enemies advance"
+          },
+          {
+            "type": "list-item",
+            "value": "A faction gains power"
+          },
+          {
+            "type": "list-item",
+            "value": "New enemy reinforcements suddenly join the fight they are in"
+          },
+          {
+            "type": "list-item",
+            "value": "An ally loses territory or resources"
+          },
+          {
+            "type": "list-item",
+            "value": "A settlement is taken over by a foe"
+          },
+          {
+            "type": "list-item",
+            "value": "A group is waiting to ambush the Pilots"
+          },
+          {
+            "type": "list-item",
+            "value": "A faction captures something powerful"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "95d6c8a4-3e1f-4b27-9a8d-5c2f4e7b1d3a",
+    "name": "Mediator Tough Choices",
+    "source": "Reclamation of the Wastes",
+    "page": 90,
+    "guideType": "gameplay",
+    "guideColor": "#B84C4C",
+    "content": [],
+    "steps": [
+      {
+        "id": "f7c0b1d2-8a3e-4c95-b67d-1e4a8f5c2b9d",
+        "name": "Mediator Tough Choices",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "A Tough Choice is a decision between two undesirable options that are both some sort of Setback."
+          },
+          {
+            "type": "flavor",
+            "value": "If you are having trouble thinking of something in combat, you can default to saying that the player or NPC deals half damage, or takes 2 SP or 2HP damage to succeed at their action."
+          },
+          {
+            "type": "paragraph",
+            "value": "Out of combat, their action succeeds but they gain 2 Heat. This should cover most situations. In addition, consider the following as alternatives:"
+          },
+          {
+            "type": "list-item",
+            "value": "You hit, but damage a System or Module on your Mech."
+          },
+          {
+            "type": "list-item",
+            "value": "You deal half damage or hurt yourself."
+          },
+          {
+            "type": "list-item",
+            "value": "You hit, but an enemy gets a free attack against you."
+          },
+          {
+            "type": "list-item",
+            "value": "You hit, but activate the downside of your weapon."
+          },
+          {
+            "type": "list-item",
+            "value": "You hit, but gain additional Heat."
+          },
+          {
+            "type": "list-item",
+            "value": "You succeed in your task, but must expend additional EP."
+          },
+          {
+            "type": "list-item",
+            "value": "You hit, but must make a Heat Check."
+          },
+          {
+            "type": "list-item",
+            "value": "You betray a friend or make an enemy."
+          },
+          {
+            "type": "list-item",
+            "value": "Save a wastelander from dying or get to a destination faster."
+          },
+          {
+            "type": "list-item",
+            "value": "Save one wastelander from death, but not the other."
+          },
+          {
+            "type": "list-item",
+            "value": "You salvage something powerful, but activate its downside."
+          },
+          {
+            "type": "paragraph",
+            "value": "A Tough Choice can also be posed to a player if they want their Pilot to do something that the rules do not cover or allow them to do. For example, a Pilot might want to try to use their Hydraulic Crusher to crush the Green Laser System another Mech is holding. There is no direct rule for this and normally you would need a Pin Point Targeter Module to make such an attack. So, you pose the following Tough Choice to the player: their Mech gets to make the attack, but suffers an attack in return or damages the Hydraulic Crusher in the process. Rule what makes sense in the situation and fits your game."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "e8a5c3b6-4d1f-4b27-9c8d-7f2a4e7b5d3c",
+    "name": "Controlling an NPC",
+    "source": "Reclamation of the Wastes",
+    "page": 90,
+    "guideType": "gameplay",
+    "guideColor": "#B84C4C",
+    "content": [],
+    "steps": [
+      {
+        "id": "d9b4a7c1-6c2e-4a35-b48d-2f5c8e1b9a3d",
+        "name": "Controlling an NPC",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "NPCs work much the same way as Pilots. On their turn they can move, take a Turn Action, and take any Reactions as appropriate."
+          },
+          {
+            "type": "flavor",
+            "value": "NPCs do not Push rolls in the game. The Mediator also does not need to track Heat, Ability Points, or Energy Points for NPCs."
+          },
+          {
+            "type": "paragraph",
+            "value": "It can be assumed that any Systems, Modules, or Abilities they have access to can be used as many times as they need within a situation."
+          },
+          {
+            "type": "paragraph",
+            "value": "Any Ability an NPC has access to is written in such a way that it can work when applied to a Pilot or an NPC."
+          },
+          {
+            "type": "paragraph",
+            "value": "If the Mediator wants to track NPCs in more detail they can do so, but this is a lot of additional load on their shoulders, and is not necessary for the game to work or be fun to play. It is important to keep in mind that any Mech NPC the Pilots encounter can potentially be salvaged and used by them. If you do not want the Pilots to own a Leviathan at the start of the game, do not put one in front of them."
+          },
+          {
+            "type": "paragraph",
+            "value": "NPCs work similarly to Pilots with their Mechs. You can, however, ignore the spending of EP and Heat if you wish; just assume they have enough to do what they need to do. This means you can quite comfortably run a Mech with many Systems and Modules just by having it move and attack on each turn."
+          },
+          {
+            "type": "paragraph",
+            "value": "However, if you want to add more complications or depth, you can activate a Mech's Systems and Modules. Likewise, you can track EP and Heat on NPC Mechs if you feel they are important enough or if you have the capacity as a Mediator. However, this is not necessary to run Salvage Union."
+          },
+          {
+            "type": "paragraph",
+            "value": "Non-Mech NPCs are a lot simpler to use in play. Typically, you only need to worry about tracking their HP values and whatever weapons or Abilities they have, which can be kept to a small number."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "c3e8f2a5-7b1d-4f93-a52c-8e4d6b1f5c2a",
+    "name": "NPC Health and Damage",
+    "source": "Reclamation of the Wastes",
+    "page": 91,
+    "guideType": "gameplay",
+    "guideColor": "#B84C4C",
+    "content": [],
+    "steps": [
+      {
+        "id": "b6d7c4e9-3a8f-4c25-9d1b-7e2f8c5a4b9d",
+        "name": "NPC Health and Damage",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "For the sake of simplicity in play, assume that the Chassis, Systems, and Modules of an NPC Mech are rendered inoperable when its Structure Points are reduced to 0. The Pilot is assumed dead or incapacitated."
+          },
+          {
+            "type": "flavor",
+            "value": "When the Hit Points of an NPC are reduced to 0, they are assumed dead or incapacitated."
+          },
+          {
+            "type": "paragraph",
+            "value": "For particularly important NPCs, the Mediator may decide to roll on the Critical Damage Table or Critical Injury Table. Likewise, they may decide to roll to see if they escape from their Mech via a System or Module with the Escape Trait, if applicable."
+          },
+          {
+            "type": "paragraph",
+            "value": "Special NPCs, such as Bio-Titans and Meld, often have their own unique rules when they reach 0 SP. If they do not, these are assumed to be dead or destroyed."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "a4f1b8d3-5c2e-4b97-9a6d-3f8c1b5e2a7d",
+    "name": "How do I balance combat?",
+    "source": "Reclamation of the Wastes",
+    "page": 91,
+    "guideType": "gameplay",
+    "guideColor": "#B84C4C",
+    "content": [],
+    "steps": [
+      {
+        "id": "92c5d6f1-7a4e-4b18-92d9-5b1f8e3c4a7d",
+        "name": "How do I balance combat?",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "It is best to organically design your game situations, Mechs, and other combatants within your world based on the narrative and what makes sense. For example, a group of wastelanders is probably only going to have access to one or maybe two Mechs of quite a low Tech Level, so it makes sense to include that when designing a waster settlement. On the other hand, a corpo like Evantis has access to vastly more resources. Should the Pilots try to attack one of their convoys, for example, it is likely that the corpo will deploy multiple high Tech Level Mechs to defend it."
+          },
+          {
+            "type": "flavor",
+            "value": "Combat situations in Salvage Union are not intended to be universally balanced."
+          },
+          {
+            "type": "paragraph",
+            "value": "Players should have multiple tools to gather information about foes and make informed decisions about whether to engage them and how. They should also have tools to avoid combat and harm if need be."
+          },
+          {
+            "type": "paragraph",
+            "value": "There are a few principles to keep in mind when eyeballing situations and trying to estimate power levels. If either side of a combat is outnumbered, the outnumbered side is at a significant disadvantage due to being able to take fewer actions in combat. Even a powerful foe can be taken down by much weaker foes if they are outnumbered in this way."
+          },
+          {
+            "type": "paragraph",
+            "value": "Mechs are relatively symmetrical to one another within their Tech Levels: damage is flat, and base chance to hit is about 75%. If the Pilots tackle Mechs of their Tech Level, they can expect to suffer a fair amount of damage from doing so, even if the fight is a balanced one. They can expect to suffer significant damage fighting higher Tech Level Mechs, but can survive a lot longer and end the combat a lot quicker against lower Tech Level Mechs."
+          },
+          {
+            "type": "paragraph",
+            "value": "Both damage and Structure Points scale by Tech Level. Higher Tech Level Mechs can therefore survive longer in combat against Mechs using lower Tech Level weapons. However, Mechs broadly survive around the same length of time of about 5 hits when fighting at their own Tech Level."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "4e2f1a8c-7b3d-4c95-92a6-1f5d8e3c4b2a",
+    "name": "Answer lots of questions",
+    "source": "Reclamation of the Wastes",
+    "page": 92,
+    "guideType": "gameplay",
+    "guideColor": "#B84C4C",
+    "content": [],
+    "steps": [
+      {
+        "id": "8c5d3a2f-9b1e-4f47-b2a8-6d3c1e5f8a4b",
+        "name": "Answer lots of questions",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Salvage Union runs most smoothly when you give players lots of information about the situation their Pilots are in and what their various options are. It can be tempting to withhold information, but doing so can slow down play and prevent players from making informed decisions or fully roleplaying their Pilots."
+          },
+          {
+            "type": "paragraph",
+            "value": "This can be broken down into the following steps."
+          },
+          {
+            "type": "heading",
+            "value": "Information",
+            "level": 3
+          },
+          {
+            "type": "paragraph",
+            "value": "Pilots will learn about the situation they are in and the various factors involved. They may do this through exploration, talking to other characters in the world, utilising Abilities, or describing their actions."
+          },
+          {
+            "type": "heading",
+            "value": "Choice",
+            "level": 3
+          },
+          {
+            "type": "paragraph",
+            "value": "This information will help players to make decisions about the situation they are in and how they want to resolve it."
+          },
+          {
+            "type": "heading",
+            "value": "Consequence",
+            "level": 3
+          },
+          {
+            "type": "paragraph",
+            "value": "Pilots will act on that decision. This may involve engaging the core die mechanic, or may be played out in a freeform manner depending on the context of the situation. In any respect, some sort of consequence will result from the Pilots' actions which will lead them to a new situation where they can repeat this process."
+          },
+          {
+            "type": "paragraph",
+            "value": "Pilots will have access to lots of Abilities that let the players ask broad questions about the world. More specific questions should get specific answers, and vague questions should get more vague answers. If you cannot think of an answer to one of these questions you can just make it up, or flip it and ask the player what they think the answer might be."
+          },
+          {
+            "type": "paragraph",
+            "value": "The questions that your players ask may also give you an idea of what they find interesting within the current situation. You can then focus and expand on those elements as you see fit in play."
+          },
+          {
+            "type": "flavor",
+            "value": "Players can never have \"too much\" information. The more they have, the more positive their experience will be."
+          },
+          {
+            "type": "paragraph",
+            "value": "Do not worry too much about players metagaming. It is assumed that their Pilots already know plenty of information about the world around them as they are, after all, salvagers who live in the world. So avoid nitpicking their decisions based on what they may or may not know, and instead assume they are competent and capable to get things done."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "7a3f8c2d-5b1e-4f86-92c4-3e7d1a8f5b2c",
+    "name": "Encourage Creativity",
+    "source": "Reclamation of the Wastes",
+    "page": 93,
+    "guideType": "gameplay",
+    "guideColor": "#B84C4C",
+    "content": [],
+    "steps": [
+      {
+        "id": "2b8f4c1e-9a3d-4b75-8c2f-7e1d4a8c5b3f",
+        "name": "Encourage Creativity",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Salvage Union is designed to encourage creativity and improvisation in play. The rules are an inspirational and improvisational toolkit that can be used at the table to create an engaging experience for everyone. The rules should not be used as a way to restrict interesting ideas or ways of engaging with the game."
+          },
+          {
+            "type": "paragraph",
+            "value": "Pilots and Mechs in Salvage Union have a wide range of installed Systems and Modules, as well as Pilot Equipment. Many of these change how the player can directly interact with the world. For example, the ubiquitous Rigging Arm allows a Mech to manipulate objects in its external environment."
+          },
+          {
+            "type": "flavor",
+            "value": "Without a rigging arm, a Mech has no way to pick up objects (such as salvage). It will need to rely on someone who does, or work out another means of retrieving something."
+          },
+          {
+            "type": "paragraph",
+            "value": "A rigging arm could also be used as an impromptu demolition arm, a means to grab hold of an enemy Mech in a tight spot, a winch to raise a Pilot up to a higher area, or a way to carry that last piece of Scrap when your Cargo Bay is full."
+          },
+          {
+            "type": "paragraph",
+            "value": "When describing what actions they want their Pilots to take in the game, players should consider their wide range of utility tools. their Pilots have at their disposal. Likewise, the Mediator should think through the Pilots' actions and question the players if they do not seem to have the correct utility tools to do the job."
+          },
+          {
+            "type": "paragraph",
+            "value": "Pilots and Mechs in Salvage Union also have access to a wide range of unique Abilities, some of which provide static boons, but many of which actively allow you to affect the game world. They tend to allow a Pilot to either perform a unique action at a cost, or have a moment of narrative control where they can dictate the flow of the game."
+          },
+          {
+            "type": "paragraph",
+            "value": "These Abilities are not intended to be restrictive in the sense that they would prevent other Pilots in the game from doing similar actions, but instead to provide a simple way of that Pilot doing so at a cost of Energy or Ability Points. As with Systems and Modules, there are many ways to use a Pilot's Abilities. We encourage creativity in testing out different combinations and methods."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "5c1f8a3e-4b2d-4c97-95a3-8e2c1f5b3a7d",
+    "name": "Managing Time",
+    "source": "Reclamation of the Wastes",
+    "page": 94,
+    "guideType": "gameplay",
+    "guideColor": "#B84C4C",
+    "content": [],
+    "steps": [
+      {
+        "id": "9d2a8f1e-6c3b-4a85-92f8-1e5c4b8a3d7c",
+        "name": "Managing Time",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Time is an important factor in Salvage Union, and running a successful campaign involves having an idea of time within the game. The various Abilities that the Pilots have access to are often differentiated by how long they take. The campaign exploration is structured around the Union Crawler taking around a week to get from point to point as the Pilots engage in Downtime."
+          },
+          {
+            "type": "list-item",
+            "value": "Turn Actions: These are quick and can be performed in the midst of a combat or action scene."
+          },
+          {
+            "type": "list-item",
+            "value": "Short Actions: These take 10 minutes, so are intended to be something done outside of an action scene that is still relatively quick to accomplish."
+          },
+          {
+            "type": "list-item",
+            "value": "Long Actions: These take an hour, so are more of an investment of time."
+          },
+          {
+            "type": "list-item",
+            "value": "Downtime Actions: These take a week and are intended to be a way to pace out the more complex parts of the game (like crafting and the structure of the campaign itself)."
+          },
+          {
+            "type": "flavor",
+            "value": "Not every situation needs to be a race against time, but pilots should be considering it as a factor."
+          },
+          {
+            "type": "paragraph",
+            "value": "Consider adding a calendar to your campaign world with some invented dates and months, or at least a tracker of how many in-game weeks have passed to frame situations and events. The world of Salvage Union is not static. A week of Downtime should give you the opportunity to think about what other people and factions have been doing, and update things accordingly."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "7e3c8a4f-2d1b-4c95-8e2a-9d5c1f8b3a7e",
+    "name": "Denizens of the Wastes",
+    "source": "Reclamation of the Wastes",
+    "page": 96,
+    "guideType": "gameplay",
+    "guideColor": "#B84C4C",
+    "content": [],
+    "steps": [
+      {
+        "id": "4b1f7c2d-9a3e-4b85-8c4d-2e7f1a5c8b3d",
+        "name": "Denizens of the Wastes",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "This section details the range of inhabitants, from wasters trying to get by, to bio-engineered titans, that populate the wasteland."
+          },
+          {
+            "type": "heading",
+            "value": "Corpos",
+            "level": 3
+          },
+          {
+            "type": "paragraph",
+            "value": "Corpos are some of the most powerful foes Pilots can encounter. They hire many of their forces as mercenaries indebted to them, but they do train some as elite troops. Corpos have advanced technology, including combat-focused Tech 3-6 Mechs, turrets, drones, and veteran troops. Each corpo has differing goals and motivations, but they all share the same desire for profit. Corpos encountered in the wastes may be protecting a convoy, searching for a lost asset, or cracking down on striking workers. This means they won't always attack salvagers on sight, and in rare cases they may even band together with them to achieve a greater goal. However, they are the enemy, opposed to the salvager way of life. Extreme caution is advised."
+          },
+          {
+            "type": "heading",
+            "value": "Wastelanders",
+            "level": 3
+          },
+          {
+            "type": "paragraph",
+            "value": "Wastelanders are common folk who live in arcos, working for corpos to survive or eking out life in scattered settlements. Although they prioritise their own survival, wastelanders are helpful to passers-by and can provide a friendly face for Pilots. They use worker-focused Tech 1-2 Mechs, vehicles, and wastelanders on foot. Their settlements can act as pit stops for Pilots to rest, gather information, and make trades."
+          },
+          {
+            "type": "heading",
+            "value": "Raiders",
+            "level": 3
+          },
+          {
+            "type": "paragraph",
+            "value": "Raiders are wasters or wannabe mercs who resort to raiding for survival, power, or as a step to becoming a corpo merc. They attack settlements, traders, salvagers, and anyone else with scrap to pillage. They have combat focussed Tech 1-2 Mechs, and utilise vehicles and troops on foot, making them a foe Pilots can deal with even with their starting Mechs."
+          },
+          {
+            "type": "heading",
+            "value": "Creatures",
+            "level": 3
+          },
+          {
+            "type": "paragraph",
+            "value": "Regular creatures (and those mutated by radiation or corpo experiments) roam the wastes. While they are not usually a danger to Mechs, they can be a challenge for Pilots on foot. Creatures like Bears or Carrion Birds can be good to add to areas that Mechs can't access, or as fodder for Mechs to deal with. Some creatures, like Molebears or Artls, can pose a threat to Mechs and are deadly to Pilots."
+          },
+          {
+            "type": "heading",
+            "value": "Bio-Titans",
+            "level": 3
+          },
+          {
+            "type": "paragraph",
+            "value": "Bio-Titans are powerful monsters, part flesh, part machine. Rumours suggest they were created in corpo labs or came from another world. Territorial in nature, they hunt anything that comes through their patch. They reportedly consume both organic and mechanical-matter to power themselves. Bio-Titans are able to take on an entire crew of Mechs, their Titanic Actions allowing for multiple attacks in a round. Pilots should expect death and destruction when facing them."
+          },
+          {
+            "type": "heading",
+            "value": "Meld",
+            "level": 3
+          },
+          {
+            "type": "paragraph",
+            "value": "The Meld are an incomprehensibly intelligent nanite entity that desires to spread, replicate, and consume all biological and mechanical life. Active Meld Nanites are worth 1 x Tech 6 Scrap each, meaning they can provide a huge injection of salvage for Pilots. Corpos will look to exploit and profit off Meld, whilst others may turn to worshipping them. The Meld can be placed as an anomaly within the world, or as a central focus to explore their motivations. can be further explored. Meld come in various types, such as Behemoths (which are as tough as Bio-Titans), swarms of zombie-like Drones, or amorphous, inky-black Splitters."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "8f4d2c1a-7b3e-4c95-9d8a-5c1f3e8b2a7d",
+    "name": "Mechs of the Wasteland",
+    "source": "Reclamation of the Wastes",
+    "page": 100,
+    "guideType": "gameplay",
+    "guideColor": "#B84C4C",
+    "content": [],
+    "steps": [
+      {
+        "id": "2d8f1c5b-9a3e-4c47-92b8-7e4d1a8c5f3b",
+        "name": "Mechs of the Wasteland",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Mechs are vital to nearly every facet of life in the wastes. You can view a wide range of different Mech patterns on each Chassis entry (p. 10PC). These builds are used by a wide range of folk across the wastes, such as wasters, salvagers, corpos, traders, and lone bounty hunters."
+          },
+          {
+            "type": "paragraph",
+            "value": "When running Salvage Union, it is important that the Pilots can access lots of different Chassis, Systems, and Modules to salvage and utilise."
+          },
+          {
+            "type": "paragraph",
+            "value": "These Mech profiles can be inserted into a scenario or as a means for distributing salvage to Pilots once the Mech is defeated. You can think of each Mech's list of Systems and Modules as a loot table of potential things the Pilots can salvage, as well as its Abilities in play."
+          },
+          {
+            "type": "paragraph",
+            "value": "Each of them is also a Mech that a Pilot can run themselves. These profiles can be used as pre-built Mechs for players to find in play and Pilot as designed."
+          },
+          {
+            "type": "paragraph",
+            "value": "When creating NPCs, the Mediator can use the pattern types included in the Mech Chassis section as inspiration and a guideline for how to format them. NPC Mechs are created in the same way that player Mechs are."
+          },
+          {
+            "type": "paragraph",
+            "value": "To keep things simple, NPC Mechs do not need to track Heat or Energy, nor Push rolls. You can run them effectively by simply moving and attacking with them, and perhaps activating one or two Abilities at interesting moments."
+          },
+          {
+            "type": "paragraph",
+            "value": "If the Mediator wishes, they can introduce tracking of these elements, but there is additional load in doing so."
+          },
+          {
+            "type": "paragraph",
+            "value": "Most of the Systems, Modules, and Abilities in the game are written in such a way that they can apply to NPCs without needing to track any additional values, though there may be some edge cases that can be left to the Mediator's discretion."
+          },
+          {
+            "type": "flavor",
+            "value": "When creating or inserting your own NPC Mechs into the game, keep in mind that Pilots can potentially take and use anything you put on them. If you do not want the Pilots getting hold of a Railgun, do not give one to your NPCs!"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "1c8a3f5d-7b2e-4c95-92d8-4f1a8c5e3b7d",
+    "name": "Nanite Salvage",
+    "source": "Reclamation of the Wastes",
+    "page": 112,
+    "guideType": "gameplay",
+    "guideColor": "#B84C4C",
+    "content": [],
+    "steps": [
+      {
+        "id": "5e2c8a1f-9b3d-4c47-8d2a-7f1c8e5b3a4d",
+        "name": "Nanite Salvage",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "When any Meld is reduced to 0 SP, a portion of it drops as Nanite Salvage. This occurs even if the Meld splits. This can be salvaged as though it was Scrap. Whenever any Nanite Salvage is found, Roll the Die. On the result of a 20, it is an Active Meld Nanite, otherwise it is an Inert Meld Nanite. Roll for each piece of Nanite Salvage that is found separately."
+          },
+          {
+            "type": "heading",
+            "value": "Inert Meld Nanite",
+            "level": 3
+          },
+          {
+            "type": "paragraph",
+            "value": "An Inert Meld Nanite can be traded for the equivalent of 1 Tech 1 Scrap. It cannot be used for Crafting or Repairing. It takes up 1 Cargo Slot and can be transported safely."
+          },
+          {
+            "type": "heading",
+            "value": "Active Meld Nanite",
+            "level": 3
+          },
+          {
+            "type": "paragraph",
+            "value": "An Active Meld Nanite is worth the equivalent of Tech 6 Scrap. In addition, it can be used to repair or craft any Mech Chassis, System, or Module as though it was Tech 6. The Active Meld Nanite takes up 1 Cargo Slot and must be transported in a specialised container that reduces its temperature to a point it becomes inert. Active Meld Nanites are typically transported using cryogenic containers."
+          },
+          {
+            "type": "paragraph",
+            "value": "If no such safety measures are taken, Roll the Die for each hour the Active Meld Nanite is carried. On the roll of a 1, something goes wrong. Present the players with a Tough Choice involving the Active Meld Nanite. It might spawn into a Meld Nanoid, take control of a Mech temporarily, destroy a System or Module, or have some other anomalous effect. If Active Meld Nanites are stored in a Union Crawler without safety measures make this roll once per week or Downtime cycle."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "9b3d8c1a-7f2e-4c95-92d8-5c1a8f3e4b7d",
+    "name": "Meld Infection",
+    "source": "Reclamation of the Wastes",
+    "page": 112,
+    "guideType": "gameplay",
+    "guideColor": "#B84C4C",
+    "content": [],
+    "steps": [
+      {
+        "id": "4c8a1f5d-9b3e-4c47-92d8-7e1c5a8b3f4d",
+        "name": "Meld Infection",
+        "stepType": "info",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Meld infect creatures through ingestion via contaminated water. They can also infect through open wounds or retinal membranes."
+          },
+          {
+            "type": "flavor",
+            "value": "Meld Infection: A target hit by Meld Infection becomes infected by the nanite swarm. If an infected Mech is reduced to 0 SP, it becomes a Meld Behemoth under the control of the Meld. If an infected creature is reduced to 0 SP, it becomes a Meld Drone under the control of the Meld. Meld Infection does not go away unless removed. The only widely known method of cleansing a Meld Infection is fire, but that will burn and harm the infected."
           }
         ]
       }

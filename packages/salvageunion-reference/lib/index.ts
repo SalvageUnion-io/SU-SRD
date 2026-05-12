@@ -15,7 +15,6 @@ import {
 import { extractActions, getChassisAbilities, invalidateActionMap } from './utilities.js'
 import type {
   SURefAbility,
-  SURefBioTitan,
   SURefChassis,
   SURefClass,
   SURefCrawlerBay,
@@ -29,9 +28,11 @@ import type {
   SURefMeld,
   SURefModule,
   SURefNPC,
+  SURefPreMadeCharacter,
   SURefRollTable,
   SURefSquad,
   SURefSystem,
+  SURefTitan,
   SURefTrait,
   SURefVehicle,
   SURefMetaAbilityTreeRequirement,
@@ -188,11 +189,6 @@ const lazyAbilityTreeRequirements = new LazyModel<SURefMetaAbilityTreeRequiremen
   'Ability Tree Requirement'
 )
 const lazyActions = new LazyModel<SURefMetaAction>('actions', 'Actions', 'Action')
-const lazyBioTitans = new LazyModel<SchemaToEntityMap['bio-titans']>(
-  'bio-titans',
-  'BioTitans',
-  'Bio-Titan'
-)
 const lazyChassis = new LazyModel<SchemaToEntityMap['chassis']>('chassis', 'Chassis', 'Chassis')
 const lazyClasses = new LazyModel<SchemaToEntityMap['classes']>('classes', 'Classes', 'Class')
 const lazyCrawlerBays = new LazyModel<SchemaToEntityMap['crawler-bays']>(
@@ -228,6 +224,11 @@ const lazyKeywords = new LazyModel<SchemaToEntityMap['keywords']>('keywords', 'K
 const lazyMeld = new LazyModel<SchemaToEntityMap['meld']>('meld', 'Meld', 'Meld')
 const lazyModules = new LazyModel<SchemaToEntityMap['modules']>('modules', 'Modules', 'Module')
 const lazyNPCs = new LazyModel<SchemaToEntityMap['npcs']>('npcs', 'NPCs', 'NPC')
+const lazyPreMadeCharacters = new LazyModel<SchemaToEntityMap['pre-made-characters']>(
+  'pre-made-characters',
+  'PreMadeCharacters',
+  'Pre-Made Character'
+)
 const lazyRollTables = new LazyModel<SchemaToEntityMap['roll-tables']>(
   'roll-tables',
   'RollTables',
@@ -235,6 +236,7 @@ const lazyRollTables = new LazyModel<SchemaToEntityMap['roll-tables']>(
 )
 const lazySquads = new LazyModel<SchemaToEntityMap['squads']>('squads', 'Squads', 'Squad')
 const lazySystems = new LazyModel<SchemaToEntityMap['systems']>('systems', 'Systems', 'System')
+const lazyTitans = new LazyModel<SchemaToEntityMap['titans']>('titans', 'Titans', 'Titan')
 const lazyTraits = new LazyModel<SchemaToEntityMap['traits']>('traits', 'Traits', 'Trait')
 const lazyVehicles = new LazyModel<SchemaToEntityMap['vehicles']>('vehicles', 'Vehicles', 'Vehicle')
 const lazySources = new LazyModel<SURefSource>('sources', 'Sources', 'Source')
@@ -250,7 +252,6 @@ const lazyModelMap: Record<string, LazyModel<unknown>> = {
   abilities: lazyAbilities as LazyModel<unknown>,
   'ability-tree-requirements': lazyAbilityTreeRequirements as LazyModel<unknown>,
   actions: lazyActions as LazyModel<unknown>,
-  'bio-titans': lazyBioTitans as LazyModel<unknown>,
   chassis: lazyChassis as LazyModel<unknown>,
   classes: lazyClasses as LazyModel<unknown>,
   'crawler-bays': lazyCrawlerBays as LazyModel<unknown>,
@@ -266,9 +267,11 @@ const lazyModelMap: Record<string, LazyModel<unknown>> = {
   meld: lazyMeld as LazyModel<unknown>,
   modules: lazyModules as LazyModel<unknown>,
   npcs: lazyNPCs as LazyModel<unknown>,
+  'pre-made-characters': lazyPreMadeCharacters as LazyModel<unknown>,
   'roll-tables': lazyRollTables as LazyModel<unknown>,
   squads: lazySquads as LazyModel<unknown>,
   systems: lazySystems as LazyModel<unknown>,
+  titans: lazyTitans as LazyModel<unknown>,
   traits: lazyTraits as LazyModel<unknown>,
   vehicles: lazyVehicles as LazyModel<unknown>,
   sources: lazySources as LazyModel<unknown>,
@@ -285,7 +288,6 @@ export type SchemaToEntityMap = {
   abilities: SURefAbility
   'ability-tree-requirements': SURefMetaAbilityTreeRequirement
   actions: SURefMetaAction
-  'bio-titans': SURefBioTitan
   chassis: SURefChassis
   classes: SURefClass
   'crawler-bays': SURefCrawlerBay
@@ -301,9 +303,11 @@ export type SchemaToEntityMap = {
   meld: SURefMeld
   modules: SURefModule
   npcs: SURefNPC
+  'pre-made-characters': SURefPreMadeCharacter
   'roll-tables': SURefRollTable
   squads: SURefSquad
   systems: SURefSystem
+  titans: SURefTitan
   traits: SURefTrait
   vehicles: SURefVehicle
   sources: SURefSource
@@ -324,7 +328,6 @@ const SCHEMA_REGISTRY = {
     display: 'Ability Tree Requirement',
   },
   actions: { model: 'Actions', display: 'Action' },
-  'bio-titans': { model: 'BioTitans', display: 'Bio-Titan' },
   chassis: { model: 'Chassis', display: 'Chassis' },
   classes: { model: 'Classes', display: 'Class' },
   'crawler-bays': { model: 'CrawlerBays', display: 'Crawler Bay' },
@@ -340,9 +343,11 @@ const SCHEMA_REGISTRY = {
   meld: { model: 'Meld', display: 'Meld' },
   modules: { model: 'Modules', display: 'Module' },
   npcs: { model: 'NPCs', display: 'NPC' },
+  'pre-made-characters': { model: 'PreMadeCharacters', display: 'Pre-Made Character' },
   'roll-tables': { model: 'RollTables', display: 'Roll Table' },
   squads: { model: 'Squads', display: 'Squad' },
   systems: { model: 'Systems', display: 'System' },
+  titans: { model: 'Titans', display: 'Titan' },
   traits: { model: 'Traits', display: 'Trait' },
   vehicles: { model: 'Vehicles', display: 'Vehicle' },
   sources: { model: 'Sources', display: 'Source' },
@@ -391,7 +396,6 @@ export class SalvageUnionReference {
   static AbilityTreeRequirements =
     lazyAbilityTreeRequirements as ModelWithMetadata<SURefMetaAbilityTreeRequirement>
   static Actions = lazyActions as ModelWithMetadata<SURefMetaAction>
-  static BioTitans = lazyBioTitans as ModelWithMetadata<SchemaToEntityMap['bio-titans']>
   static Chassis = lazyChassis as ModelWithMetadata<SchemaToEntityMap['chassis']>
   static Classes = lazyClasses as ModelWithMetadata<SchemaToEntityMap['classes']>
   static CrawlerBays = lazyCrawlerBays as ModelWithMetadata<SchemaToEntityMap['crawler-bays']>
@@ -407,9 +411,13 @@ export class SalvageUnionReference {
   static Meld = lazyMeld as ModelWithMetadata<SchemaToEntityMap['meld']>
   static Modules = lazyModules as ModelWithMetadata<SchemaToEntityMap['modules']>
   static NPCs = lazyNPCs as ModelWithMetadata<SchemaToEntityMap['npcs']>
+  static PreMadeCharacters = lazyPreMadeCharacters as ModelWithMetadata<
+    SchemaToEntityMap['pre-made-characters']
+  >
   static RollTables = lazyRollTables as ModelWithMetadata<SchemaToEntityMap['roll-tables']>
   static Squads = lazySquads as ModelWithMetadata<SchemaToEntityMap['squads']>
   static Systems = lazySystems as ModelWithMetadata<SchemaToEntityMap['systems']>
+  static Titans = lazyTitans as ModelWithMetadata<SchemaToEntityMap['titans']>
   static Traits = lazyTraits as ModelWithMetadata<SchemaToEntityMap['traits']>
   static Vehicles = lazyVehicles as ModelWithMetadata<SchemaToEntityMap['vehicles']>
   static Sources = lazySources as ModelWithMetadata<SURefSource>

@@ -21,7 +21,6 @@
           "enum": [
             "abilities",
             "ability-tree-requirements",
-            "bio-titans",
             "chassis",
             "classes",
             "crawler-bays",
@@ -37,11 +36,13 @@
             "meld",
             "modules",
             "npcs",
+            "pre-made-characters",
             "roll-tables",
             "sources",
             "squads",
             "tech-levels",
             "systems",
+            "titans",
             "traits",
             "vehicles"
           ],
