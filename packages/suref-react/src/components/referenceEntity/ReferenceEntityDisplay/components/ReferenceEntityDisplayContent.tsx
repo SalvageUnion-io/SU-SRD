@@ -21,6 +21,7 @@ import { ReferenceEntityNpcDisplay } from '../ReferenceEntityNpcDisplay'
 import { ReferenceEntityChassisAbilitiesContent } from '../ReferenceEntityChassisAbilitiesContent'
 import { SectionSeparator } from '../SectionSeparator'
 import { ReferenceEntityDisplay } from '../index'
+import { PatternEquipmentItem } from '../PatternEquipmentItem'
 import { ReferenceEntityRequirementDisplay } from '../ReferenceEntityRequirementDisplay'
 import { ReferenceEntityChoices } from '../ReferenceEntityChoices'
 import { ReferenceEntityGrants } from '../ReferenceEntityGrants'
@@ -465,12 +466,7 @@ export function ReferenceEntityDisplayContent({
                 <SectionSeparator label="Mech Systems" compact={compact} />
                 <div className={cn('flex flex-col', spacing.sectionSpaceYClass)}>
                   {titanSystems.map((system) => (
-                    <ReferenceEntityDisplay
-                      key={`titan-system-${system.id}`}
-                      data={system}
-                      compact
-                      listing
-                    />
+                    <PatternEquipmentItem key={`titan-system-${system.id}`} data={system} />
                   ))}
                 </div>
               </>
@@ -480,12 +476,7 @@ export function ReferenceEntityDisplayContent({
                 <SectionSeparator label="Mech Modules" compact={compact} />
                 <div className={cn('flex flex-col', spacing.sectionSpaceYClass)}>
                   {titanModules.map((mod) => (
-                    <ReferenceEntityDisplay
-                      key={`titan-module-${mod.id}`}
-                      data={mod}
-                      compact
-                      listing
-                    />
+                    <PatternEquipmentItem key={`titan-module-${mod.id}`} data={mod} />
                   ))}
                 </div>
               </>
