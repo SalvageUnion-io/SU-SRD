@@ -199,6 +199,171 @@
   pointer-events: none;
 }
 
+/* Reclamation of the Wastes — Wind-blown dust & ochre haze
+   Wide low-angle striations evoking sandblasted metal in the Caldera basin.
+   Warm desaturated tones with a faint speckle layer for grit. */
+.expansion-wastes-texture {
+  position: relative;
+  box-shadow:
+    inset 0 1px 0 0 rgba(120, 95, 60, 0.18),
+    inset 0 -1px 0 0 rgba(60, 45, 30, 0.12);
+}
+.expansion-wastes-texture::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    /* Wind-driven dust streaks — long shallow horizontal sweeps */
+    repeating-linear-gradient(
+      -8deg,
+      transparent 0px,
+      transparent 18px,
+      rgba(140, 105, 60, 0.1) 18px,
+      rgba(140, 105, 60, 0.13) 21px,
+      transparent 21px,
+      transparent 36px,
+      rgba(110, 80, 45, 0.07) 36px,
+      rgba(110, 80, 45, 0.09) 38px,
+      transparent 38px,
+      transparent 64px
+    ),
+    /* Counter-sweep — slightly steeper, lighter */
+    repeating-linear-gradient(
+        6deg,
+        transparent 0px,
+        transparent 28px,
+        rgba(180, 140, 90, 0.06) 28px,
+        rgba(180, 140, 90, 0.08) 30px,
+        transparent 30px,
+        transparent 60px
+      );
+  pointer-events: none;
+}
+
+/* The Hive — Honeycomb mesh
+   Two crossing 60°/-60° linear gradients form a diamond/hexagonal weave.
+   Amber undertone evokes hexagonal wax cells. */
+.expansion-hive-texture {
+  position: relative;
+  box-shadow: inset 0 0 0 1px rgba(140, 95, 25, 0.18);
+}
+.expansion-hive-texture::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    repeating-linear-gradient(
+      60deg,
+      transparent 0px,
+      transparent 9px,
+      rgba(160, 110, 30, 0.1) 9px,
+      rgba(160, 110, 30, 0.12) 10px,
+      transparent 10px,
+      transparent 20px
+    ),
+    repeating-linear-gradient(
+      -60deg,
+      transparent 0px,
+      transparent 9px,
+      rgba(160, 110, 30, 0.1) 9px,
+      rgba(160, 110, 30, 0.12) 10px,
+      transparent 10px,
+      transparent 20px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent 0px,
+      transparent 17px,
+      rgba(180, 130, 40, 0.06) 17px,
+      rgba(180, 130, 40, 0.07) 18px,
+      transparent 18px,
+      transparent 36px
+    );
+  pointer-events: none;
+}
+
+/* Thatcher's Mech Base — Industrial steel grate
+   Heavy horizontal bands like floor grating, plus thinner cross-pinstripes
+   for a riveted-plate feel. Cold grey-blue undertone. */
+.expansion-mechbase-texture {
+  position: relative;
+  box-shadow:
+    inset 0 0 0 2px rgba(60, 65, 75, 0.2),
+    inset 0 1px 0 0 rgba(180, 185, 195, 0.15);
+}
+.expansion-mechbase-texture::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    /* Horizontal grate bands — wide, even spacing */
+    repeating-linear-gradient(
+      0deg,
+      transparent 0px,
+      transparent 6px,
+      rgba(40, 50, 60, 0.16) 6px,
+      rgba(40, 50, 60, 0.18) 7px,
+      transparent 7px,
+      transparent 14px
+    ),
+    /* Vertical pinstripe cross-hatch — thinner, denser */
+    repeating-linear-gradient(
+        90deg,
+        transparent 0px,
+        transparent 22px,
+        rgba(40, 50, 60, 0.08) 22px,
+        rgba(40, 50, 60, 0.1) 23px,
+        transparent 23px,
+        transparent 46px
+      );
+  pointer-events: none;
+}
+
+/* Relics of a Time Gone By — Weathered parchment
+   Soft sepia overlay with irregular hairline cracks across the surface.
+   Warm aged-paper undertone, gentler than other textures. */
+.expansion-relics-texture {
+  position: relative;
+  box-shadow:
+    inset 0 0 0 1px rgba(85, 70, 50, 0.15),
+    inset 0 0 12px 2px rgba(85, 70, 50, 0.08);
+}
+.expansion-relics-texture::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    /* Sparse hairline cracks — irregular angles to feel non-mechanical */
+    repeating-linear-gradient(
+      18deg,
+      transparent 0px,
+      transparent 46px,
+      rgba(85, 70, 50, 0.08) 46px,
+      rgba(85, 70, 50, 0.1) 47px,
+      transparent 47px,
+      transparent 92px
+    ),
+    repeating-linear-gradient(
+      -34deg,
+      transparent 0px,
+      transparent 58px,
+      rgba(85, 70, 50, 0.06) 58px,
+      rgba(85, 70, 50, 0.08) 58.5px,
+      transparent 58.5px,
+      transparent 110px
+    ),
+    repeating-linear-gradient(
+      72deg,
+      transparent 0px,
+      transparent 80px,
+      rgba(85, 70, 50, 0.05) 80px,
+      rgba(85, 70, 50, 0.07) 81px,
+      transparent 81px,
+      transparent 150px
+    );
+  pointer-events: none;
+}
+
 /* === Expansion Card-Level Shadows ===
    Each replaces the default shadow-lg on the outer card wrapper. */
 
@@ -229,6 +394,34 @@
   box-shadow:
     0 0 8px 1px rgba(25, 55, 30, 0.18),
     0 2px 8px -1px rgba(0, 0, 0, 0.2);
+}
+
+/* Reclamation of the Wastes — warm dust-haze halo */
+.expansion-wastes-card {
+  box-shadow:
+    0 4px 14px -2px rgba(120, 85, 45, 0.32),
+    0 2px 6px -1px rgba(120, 85, 45, 0.16);
+}
+
+/* The Hive — warm amber comb-glow */
+.expansion-hive-card {
+  box-shadow:
+    0 0 10px 1px rgba(180, 130, 35, 0.22),
+    0 3px 8px -1px rgba(85, 60, 15, 0.22);
+}
+
+/* Thatcher's Mech Base — heavy industrial drop shadow */
+.expansion-mechbase-card {
+  box-shadow:
+    4px 5px 0 -1px rgba(25, 30, 40, 0.35),
+    0 2px 6px 0 rgba(0, 0, 0, 0.18);
+}
+
+/* Relics of a Time Gone By — soft sepia age glow */
+.expansion-relics-card {
+  box-shadow:
+    0 3px 12px -2px rgba(85, 70, 50, 0.3),
+    0 1px 4px 0 rgba(85, 70, 50, 0.15);
 }
 
 /* Mobile-first touch targets */

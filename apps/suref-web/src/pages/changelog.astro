@@ -51,7 +51,7 @@ const breadcrumbs = [
 
       <ol class="flex flex-col gap-6">
         {CHANGELOG.map((entry) => (
-          <li class="flex flex-col gap-1 border-l-4 border-su-black pl-4">
+          <li class="flex flex-col gap-2 border-l-4 border-su-black pl-4">
             <time
               datetime={entry.date}
               class="font-mono text-xs font-bold uppercase tracking-wide text-su-grey-dark"
@@ -61,7 +61,11 @@ const breadcrumbs = [
             <h2 class="font-mono text-lg font-bold uppercase leading-tight">
               {entry.title}
             </h2>
-            <p class="text-sm leading-relaxed">{entry.description}</p>
+            <ul class="flex list-disc flex-col gap-1.5 pl-5 text-sm leading-relaxed marker:text-su-orange-dark">
+              {entry.items.map((item) => (
+                <li>{item}</li>
+              ))}
+            </ul>
           </li>
         ))}
       </ol>
