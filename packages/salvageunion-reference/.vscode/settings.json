@@ -77,10 +77,6 @@
       "url": "./schemas/npcs.schema.json"
     },
     {
-      "fileMatch": ["data/pre-made-characters.json"],
-      "url": "./schemas/pre-made-characters.schema.json"
-    },
-    {
       "fileMatch": ["data/roll-tables.json"],
       "url": "./schemas/roll-tables.schema.json"
     },

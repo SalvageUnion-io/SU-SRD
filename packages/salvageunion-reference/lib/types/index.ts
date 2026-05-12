@@ -27,7 +27,6 @@ import type {
   SURefMetaCrawlerTechLevel,
   SURefModule,
   SURefNPC,
-  SURefPreMadeCharacter,
   SURefRollTable,
   SURefSource,
   SURefTechLevel,
@@ -57,7 +56,6 @@ export type SURefEntity =
   | SURefMeld
   | SURefModule
   | SURefNPC
-  | SURefPreMadeCharacter
   | SURefRollTable
   | SURefSource
   | SURefSquad
@@ -86,7 +84,6 @@ export type SURefMetaEntity =
   | SURefMetaCrawlerTechLevel
   | SURefModule
   | SURefNPC
-  | SURefPreMadeCharacter
   | SURefRollTable
   | SURefSource
   | SURefTechLevel

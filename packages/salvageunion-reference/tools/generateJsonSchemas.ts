@@ -39,7 +39,6 @@ import {
   SourceEntitySchema,
   TechLevelEntitySchema,
   CatalogCategorySchema,
-  PreMadeCharacterSchema,
 } from '../lib/schemas/entities.js'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -71,7 +70,6 @@ const entitySchemaMap: Record<string, z.ZodType> = {
   meld: MeldSchema,
   modules: ModuleSchema,
   npcs: NPCSchema,
-  'pre-made-characters': PreMadeCharacterSchema,
   'roll-tables': RollTableSchema,
   squads: SquadSchema,
   systems: SystemSchema,

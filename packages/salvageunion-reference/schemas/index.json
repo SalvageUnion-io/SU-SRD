@@ -3,7 +3,7 @@
   "title": "Salvage Union Data Schema Catalog",
   "description": "Catalog of all available schemas in the salvageunion-data repository",
   "version": "2.3.5",
-  "generated": "2026-05-12T04:18:16.657Z",
+  "generated": "2026-05-12T05:26:18.760Z",
   "schemas": [
     {
       "id": "abilities",
@@ -223,7 +223,7 @@
       "description": "Player-facing guides and processes in Salvage Union",
       "dataFile": "data/guides.json",
       "schemaFile": "schemas/guides.schema.json",
-      "itemCount": 37,
+      "itemCount": 15,
       "requiredFields": [
         "id",
         "indexable",
@@ -287,33 +287,6 @@
       "itemCount": 19,
       "requiredFields": ["id", "indexable", "blackMarket", "name", "source", "page", "hitPoints"],
       "displayName": "NPCs"
-    },
-    {
-      "id": "pre-made-characters",
-      "title": "pre-made-characters",
-      "description": "Pre-made player characters bundled with starter sets",
-      "dataFile": "data/pre-made-characters.json",
-      "schemaFile": "schemas/pre-made-characters.schema.json",
-      "itemCount": 6,
-      "requiredFields": [
-        "id",
-        "indexable",
-        "blackMarket",
-        "name",
-        "source",
-        "page",
-        "pilotClass",
-        "background",
-        "motto",
-        "keepsake",
-        "hitPoints",
-        "actionPoints",
-        "equipment",
-        "mech",
-        "systems",
-        "modules"
-      ],
-      "displayName": "pre-made-characters"
     },
     {
       "id": "roll-tables",

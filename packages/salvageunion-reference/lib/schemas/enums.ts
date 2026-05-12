@@ -129,7 +129,6 @@ export const SchemaNameSchema = z
     'meld',
     'modules',
     'npcs',
-    'pre-made-characters',
     'roll-tables',
     'sources',
     'squads',
