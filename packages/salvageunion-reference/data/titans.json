@@ -282,23 +282,13 @@
       "TRIDENT Defence System (The Iron Lady)",
       "M.I.L.K. Injector (The Iron Lady)",
       "Control Signal (The Iron Lady)",
-      "Titanic Actions (The Iron Lady)",
-      "Comms Module",
-      "IR Night Vision Optics",
-      "Firewall"
+      "Titanic Actions (The Iron Lady)"
     ],
+    "modules": ["Comms Module", "IR Night Vision Optics", "Firewall"],
     "content": [
       {
         "type": "paragraph",
         "value": "A monstrous mecha-android built specifically to house the Thatcher Steel CEO. A reinforced glass cockpit reveals her emaciated body, allowing her worshippers to look upon her terrible visage. Sustained far beyond her mortal years, she requires only 4 hours sleep."
-      },
-      {
-        "type": "heading",
-        "value": "Mech Modules"
-      },
-      {
-        "type": "paragraph",
-        "value": "The Iron Lady is equipped with the following standard Mech Modules, which may be used per their standard rules: Comms Module, IR Night Vision, Firewall."
       }
     ]
   }

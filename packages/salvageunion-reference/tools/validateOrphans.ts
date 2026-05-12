@@ -112,12 +112,14 @@ const referencedSystemNames = collectReferencedSystemNames({
   chassis,
   vehicles,
   drones,
+  titans,
   allSystemNames,
 })
 
 const referencedModuleNames = collectReferencedModuleNames({
   chassis,
   drones,
+  titans,
   allModuleNames,
 })
 

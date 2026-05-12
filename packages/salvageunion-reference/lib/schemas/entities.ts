@@ -101,6 +101,8 @@ export const TitanSchema = BaseEntitySchema.extend({
     ),
   structurePoints: PositiveIntegerSchema.describe('Structure points of this titan'),
   actions: z.array(z.string()).describe('Action names this titan can perform'),
+  systems: z.array(z.string()).describe('Mech system names this titan is equipped with').optional(),
+  modules: z.array(z.string()).describe('Mech module names this titan is equipped with').optional(),
   traits: z.array(TraitSchema).describe('Traits and special properties').optional(),
 })
   .strict()

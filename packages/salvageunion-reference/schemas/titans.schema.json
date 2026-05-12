@@ -219,6 +219,16 @@
         "items": { "type": "string" },
         "description": "Action names this titan can perform"
       },
+      "systems": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "Mech system names this titan is equipped with"
+      },
+      "modules": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "Mech module names this titan is equipped with"
+      },
       "traits": {
         "type": "array",
         "items": {

@@ -126,6 +126,14 @@ export function getSourceBorderColor(source: SURefEnumSource | undefined): strin
       return 'rgb(25, 55, 30)'
     case 'Salvage Union Starter Set':
       return 'rgb(25, 55, 30)'
+    case 'Reclamation of the Wastes':
+      return 'rgb(110, 80, 45)'
+    case 'The Hive':
+      return 'rgb(140, 95, 25)'
+    case "Thatcher's Mech Base":
+      return 'rgb(50, 55, 65)'
+    case 'Relics of a Time Gone By':
+      return 'rgb(85, 70, 50)'
     default:
       return undefined
   }
@@ -166,6 +174,14 @@ export function getSourceStyles(
         return { className: 'expansion-scanline-card', style: {} }
       case 'Salvage Union Starter Set':
         return { className: 'expansion-scanline-card', style: {} }
+      case 'Reclamation of the Wastes':
+        return { className: 'expansion-wastes-card', style: {} }
+      case 'The Hive':
+        return { className: 'expansion-hive-card', style: {} }
+      case "Thatcher's Mech Base":
+        return { className: 'expansion-mechbase-card', style: {} }
+      case 'Relics of a Time Gone By':
+        return { className: 'expansion-relics-card', style: {} }
       default:
         return { className: '', style: {} }
     }
@@ -205,6 +221,30 @@ export function getSourceStyles(
     case 'Salvage Union Starter Set': {
       return {
         className: 'expansion-scanline-texture',
+        style: {},
+      }
+    }
+    case 'Reclamation of the Wastes': {
+      return {
+        className: 'expansion-wastes-texture',
+        style: {},
+      }
+    }
+    case 'The Hive': {
+      return {
+        className: 'expansion-hive-texture',
+        style: {},
+      }
+    }
+    case "Thatcher's Mech Base": {
+      return {
+        className: 'expansion-mechbase-texture',
+        style: {},
+      }
+    }
+    case 'Relics of a Time Gone By': {
+      return {
+        className: 'expansion-relics-texture',
         style: {},
       }
     }
