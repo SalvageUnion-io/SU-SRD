@@ -28,7 +28,6 @@ const schemaColors: Record<string, string> = {
   creatures: 'var(--color-su-rust)',
   'bio-titans': 'var(--color-su-rust)',
   bosses: 'var(--color-su-rust)',
-  'ai-entities': 'var(--color-su-rust)',
   factions: 'var(--color-su-rust)',
   npcs: 'var(--color-su-rust)',
   meld: 'var(--color-su-rust)',

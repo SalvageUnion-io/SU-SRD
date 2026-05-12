@@ -13062,7 +13062,7 @@
     "damage": { "damageType": "SP", "amount": 6 },
     "traits": [{ "type": "melee" }, { "type": "multi-attack", "amount": 2 }],
     "content": [{ "type": "paragraph", "value": "The Iron Lady swipes with her clawed limbs." }],
-    "actionSource": "npcs"
+    "actionSource": "bosses"
   },
   {
     "id": "159a2729-48b1-43c3-b358-6f6776456ab3",
@@ -13073,7 +13073,7 @@
     "damage": { "damageType": "SP", "amount": 3 },
     "traits": [{ "type": "burn", "amount": 3 }],
     "content": [{ "type": "paragraph", "value": "Hits every target in Medium Range." }],
-    "actionSource": "npcs"
+    "actionSource": "bosses"
   },
   {
     "id": "deb2486f-443f-4b8b-99de-e068fc037ae6",
@@ -13090,7 +13090,7 @@
     "content": [
       { "type": "paragraph", "value": "The Iron Lady fires off a salvo of irradiated warheads." }
     ],
-    "actionSource": "npcs"
+    "actionSource": "bosses"
   },
   {
     "id": "74e3153d-a3bb-476d-a814-19e4c43e4ae7",
@@ -13103,7 +13103,7 @@
         "value": "If the Iron Lady is hit by a Ranged Weapon attack, she may immediately fire a Trident Missile as a reaction."
       }
     ],
-    "actionSource": "npcs"
+    "actionSource": "bosses"
   },
   {
     "id": "5d9d5d89-496e-42d7-a30f-34ac468a6a84",
@@ -13116,7 +13116,7 @@
         "value": "The Iron Lady can inject herself with M.I.L.K. This allows her to act twice in a round, but reduces her SP by d20."
       }
     ],
-    "actionSource": "npcs"
+    "actionSource": "bosses"
   },
   {
     "id": "28ce4d04-73a8-4edd-8c22-0dbfb7af9319",
@@ -13135,7 +13135,31 @@
         "value": "Further, the control signal keeps the androids under her steely spell. If she is destroyed the signal will be broken, freeing the android workers from her control."
       }
     ],
-    "actionSource": "npcs"
+    "actionSource": "bosses"
+  },
+  {
+    "id": "e6b0a773-736c-4b81-a07a-6762e68225ff",
+    "name": "Titanic Actions (The Iron Lady)",
+    "displayName": "Titanic Actions",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "The Iron Lady can take one of three Titanic Actions at a time, detailed below. These can only be chosen at the end of another Pilot's or NPC's turn. She regains spent Titanic Actions at the start of her turn."
+      },
+      {
+        "type": "list-item",
+        "value": "The Iron Lady moves one Range Band."
+      },
+      {
+        "type": "list-item",
+        "value": "The Iron Lady makes a single Iron Claw attack."
+      },
+      {
+        "type": "list-item",
+        "value": "The Iron Lady makes a M.I.L.K Spray attack (costs 2 Titanic Actions)."
+      }
+    ],
+    "actionSource": "bosses"
   },
   {
     "id": "2413bb3d-f312-4f9e-9d64-7de00ca665c1",

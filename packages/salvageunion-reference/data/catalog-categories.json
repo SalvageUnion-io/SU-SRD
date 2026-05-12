@@ -18,7 +18,6 @@
     "id": "denizens",
     "name": "Denizens",
     "schemas": [
-      "ai-entities",
       "bio-titans",
       "bosses",
       "creatures",

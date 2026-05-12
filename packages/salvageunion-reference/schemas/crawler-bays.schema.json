@@ -476,7 +476,6 @@
                     "enum": [
                       "abilities",
                       "ability-tree-requirements",
-                      "ai-entities",
                       "bio-titans",
                       "bosses",
                       "chassis",
@@ -791,7 +790,6 @@
                 "enum": [
                   "abilities",
                   "ability-tree-requirements",
-                  "ai-entities",
                   "bio-titans",
                   "bosses",
                   "chassis",

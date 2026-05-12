@@ -317,9 +317,10 @@ export const NPCSchema = BaseEntitySchema.extend({ ...CombatEntitySchema.shape }
   .describe('Non-player characters and people in Salvage Union')
 
 /**
- * Titanic boss enemies (e.g. The Iron Lady) — mech-scale or larger named threats
- * with Titanic Actions and boss-fight mechanics. Distinguished from NPCs because
- * they fight at mech scale (SP only) and have multi-stage / Titanic Action rules.
+ * Boss enemies (e.g. The Iron Lady, CURNOS) — mech-scale named threats that
+ * function as the focus of a single encounter. Distinguished from NPCs because
+ * they fight at mech scale (SP only) and frequently have Titanic Actions or
+ * other multi-stage boss-fight mechanics.
  */
 export const BossSchema = BaseEntitySchema.extend({ ...CombatEntitySchema.shape })
   .extend({
@@ -329,25 +330,7 @@ export const BossSchema = BaseEntitySchema.extend({ ...CombatEntitySchema.shape 
     ).optional(),
   })
   .strict()
-  .describe('Titanic boss enemies (mech-scale named threats with Titanic Actions)')
-
-/**
- * Sentient AI entities (e.g. CURNOS variants) — supercomputer / AI threats with
- * consciousness, hacking interaction, and narrative agency. Distinguished from
- * NPCs because they are not biological and operate at a different scale of
- * interaction (often immobile, often dialogue-first).
- */
-export const AiEntitySchema = BaseEntitySchema.extend({ ...CombatEntitySchema.shape })
-  .extend({
-    structurePoints: PositiveIntegerSchema.describe(
-      'Structure points for this AI entity (if it has a destructible core)'
-    ).optional(),
-    damageType: DamageTypeSchema.describe(
-      'Damage type tracked by this AI entity. Typically SP for the physical core.'
-    ).optional(),
-  })
-  .strict()
-  .describe('Sentient AI entities (supercomputers, fragments, hive-minds)')
+  .describe('Boss enemies (mech-scale named threats, often with Titanic Actions)')
 
 /**
  * Random tables and roll tables in Salvage Union

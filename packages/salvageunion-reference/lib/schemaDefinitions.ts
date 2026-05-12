@@ -1,7 +1,6 @@
 import abilitiesSchema from '../schemas/abilities.schema.json' with { type: 'json' }
 import abilityTreeRequirementsSchema from '../schemas/ability-tree-requirements.schema.json' with { type: 'json' }
 import actionsSchema from '../schemas/actions.schema.json' with { type: 'json' }
-import aiEntitiesSchema from '../schemas/ai-entities.schema.json' with { type: 'json' }
 import bioTitansSchema from '../schemas/bio-titans.schema.json' with { type: 'json' }
 import bossesSchema from '../schemas/bosses.schema.json' with { type: 'json' }
 import catalogCategoriesSchema from '../schemas/catalog-categories.schema.json' with { type: 'json' }
@@ -33,7 +32,6 @@ const SCHEMA_DEFINITIONS: Record<string, Record<string, unknown>> = {
   abilities: abilitiesSchema as Record<string, unknown>,
   'ability-tree-requirements': abilityTreeRequirementsSchema as Record<string, unknown>,
   actions: actionsSchema as Record<string, unknown>,
-  'ai-entities': aiEntitiesSchema as Record<string, unknown>,
   'bio-titans': bioTitansSchema as Record<string, unknown>,
   bosses: bossesSchema as Record<string, unknown>,
   'catalog-categories': catalogCategoriesSchema as Record<string, unknown>,

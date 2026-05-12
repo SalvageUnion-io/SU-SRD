@@ -251,7 +251,6 @@ const dataFiles = [
   'abilities.json',
   'ability-tree-requirements.json',
   'actions.json',
-  'ai-entities.json',
   'bio-titans.json',
   'bosses.json',
   'chassis.json',

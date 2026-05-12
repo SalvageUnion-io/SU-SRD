@@ -690,7 +690,7 @@ The sticker-sheet equipment (10 items) is the **only Asset Pack content that can
 | --- | --- | --- |
 | The Hive | 4 patterns + 2 NPCs + 3 tables | ~10 locations |
 | Thatcher's Mech Base | 1 system (AMS Micro Laser) + 9 NPCs + 5 pilot equipment + 1 trait + 1 lance + 1 boss (`bosses` schema) | ~10 locations |
-| Relics of a Time Gone By | 1 module + 1 pilot equipment + 1 pattern + 4 NPCs + 4 lances + 2 tables + 1 AI entity (`ai-entities` schema) | ~21 locations |
+| Relics of a Time Gone By | 1 module + 1 pilot equipment + 1 pattern + 4 NPCs + 4 lances + 2 tables + 1 boss (CURNOS, `bosses` schema) | ~21 locations |
 | Sticker Sheets | 10 mech systems/modules | 0 |
 | Char/Mech/Crawler Sheets | 0 (cross-ref RotW) | 0 |
 | **Total (immediate)** | **~36 entities + 5 tables + 1 trait** | **~41 locations + 2 schema decisions** |
@@ -709,7 +709,7 @@ The sticker-sheet equipment (10 items) is the **only Asset Pack content that can
 | Thatcher's: Steel Billy Club pilot equipment | ✓ done (no-stat entry per source) |
 | Thatcher's: Reinforced Polycarbonate Shield + Growth Formula equipment | ✓ done (already present from WM / Relics) |
 | Thatcher's: Broad Koch SMG, T2S2 Grenade, Electro-Whip | Encoded as NPC actions (already in actions.json) — source treats them as NPC armaments, not pilot equipment |
-| Relics: CURNOS + PAX NPCs | CURNOS done — promoted to new `ai-entities` schema (`data/ai-entities.json`); PAX skipped — narrative-only in source PDF |
+| Relics: CURNOS + PAX NPCs | CURNOS done — added to the `bosses` schema (`data/bosses.json`); PAX skipped — narrative-only in source PDF |
 | Relics: Skinless Jim, Gorgut, Ayana, Dragonfly | Skipped — source labels them as named pilots using existing Trooper/Raider NPC stats; no separate statblocks |
 | Relics: 4 CURNOS Lances + Skinless Jim's Scavengers | ✓ done (composition-only entries; source provides no aggregate HP/damage type) |
 | Relics: Random Encounters + Salvage Table roll tables | ✓ done |

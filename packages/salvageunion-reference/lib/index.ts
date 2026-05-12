@@ -15,7 +15,6 @@ import {
 import { extractActions, getChassisAbilities, invalidateActionMap } from './utilities.js'
 import type {
   SURefAbility,
-  SURefAiEntity,
   SURefBioTitan,
   SURefBoss,
   SURefChassis,
@@ -191,11 +190,6 @@ const lazyAbilityTreeRequirements = new LazyModel<SURefMetaAbilityTreeRequiremen
   'Ability Tree Requirement'
 )
 const lazyActions = new LazyModel<SURefMetaAction>('actions', 'Actions', 'Action')
-const lazyAiEntities = new LazyModel<SchemaToEntityMap['ai-entities']>(
-  'ai-entities',
-  'AiEntities',
-  'AI Entity'
-)
 const lazyBioTitans = new LazyModel<SchemaToEntityMap['bio-titans']>(
   'bio-titans',
   'BioTitans',
@@ -264,7 +258,6 @@ const lazyModelMap: Record<string, LazyModel<unknown>> = {
   abilities: lazyAbilities as LazyModel<unknown>,
   'ability-tree-requirements': lazyAbilityTreeRequirements as LazyModel<unknown>,
   actions: lazyActions as LazyModel<unknown>,
-  'ai-entities': lazyAiEntities as LazyModel<unknown>,
   'bio-titans': lazyBioTitans as LazyModel<unknown>,
   bosses: lazyBosses as LazyModel<unknown>,
   chassis: lazyChassis as LazyModel<unknown>,
@@ -302,7 +295,6 @@ export type SchemaToEntityMap = {
   abilities: SURefAbility
   'ability-tree-requirements': SURefMetaAbilityTreeRequirement
   actions: SURefMetaAction
-  'ai-entities': SURefAiEntity
   'bio-titans': SURefBioTitan
   bosses: SURefBoss
   chassis: SURefChassis
@@ -344,7 +336,6 @@ const SCHEMA_REGISTRY = {
     display: 'Ability Tree Requirement',
   },
   actions: { model: 'Actions', display: 'Action' },
-  'ai-entities': { model: 'AiEntities', display: 'AI Entity' },
   'bio-titans': { model: 'BioTitans', display: 'Bio-Titan' },
   bosses: { model: 'Bosses', display: 'Boss' },
   chassis: { model: 'Chassis', display: 'Chassis' },
@@ -414,7 +405,6 @@ export class SalvageUnionReference {
   static AbilityTreeRequirements =
     lazyAbilityTreeRequirements as ModelWithMetadata<SURefMetaAbilityTreeRequirement>
   static Actions = lazyActions as ModelWithMetadata<SURefMetaAction>
-  static AiEntities = lazyAiEntities as ModelWithMetadata<SchemaToEntityMap['ai-entities']>
   static BioTitans = lazyBioTitans as ModelWithMetadata<SchemaToEntityMap['bio-titans']>
   static Bosses = lazyBosses as ModelWithMetadata<SchemaToEntityMap['bosses']>
   static Chassis = lazyChassis as ModelWithMetadata<SchemaToEntityMap['chassis']>

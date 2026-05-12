@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://salvageunion.com/schemas/bosses.schema.json",
   "title": "bosses",
-  "description": "Titanic boss enemies (mech-scale named threats with Titanic Actions)",
+  "description": "Boss enemies (mech-scale named threats, often with Titanic Actions)",
   "type": "array",
   "items": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -247,6 +247,6 @@
     },
     "required": ["id", "indexable", "blackMarket", "name", "source", "page", "structurePoints"],
     "additionalProperties": false,
-    "description": "Titanic boss enemies (mech-scale named threats with Titanic Actions)"
+    "description": "Boss enemies (mech-scale named threats, often with Titanic Actions)"
   }
 }

@@ -72,7 +72,6 @@ const drones = loadData('drones.json')
 const actions = loadData('actions.json')
 const equipment = loadData('equipment.json')
 const abilities = loadData('abilities.json')
-const aiEntities = loadData('ai-entities.json')
 const bioTitans = loadData('bio-titans.json')
 const bosses = loadData('bosses.json')
 const crawlers = loadData('crawlers.json')
@@ -99,7 +98,6 @@ const referencedActionNames = collectReferencedActionNames({
   equipment,
   chassis,
   otherEntities: [
-    ...aiEntities,
     ...bioTitans,
     ...bosses,
     ...crawlers,

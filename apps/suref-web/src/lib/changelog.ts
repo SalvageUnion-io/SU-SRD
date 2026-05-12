@@ -7,9 +7,9 @@ type ChangelogEntry = {
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: '2026-05-11',
-    title: 'New schemas: bosses & AI entities',
+    title: 'New schema: bosses',
     description:
-      'Promoted The Iron Lady to a new `bosses` schema and CURNOS to a new `ai-entities` schema. Both now appear in the Denizens catalog.',
+      "Promoted The Iron Lady and CURNOS to a new `bosses` schema for mech-scale named threats. Iron Lady's Titanic Actions are now structured alongside her other actions.",
   },
   {
     date: '2026-05-11',

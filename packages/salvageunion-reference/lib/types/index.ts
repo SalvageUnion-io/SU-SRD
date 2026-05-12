@@ -11,7 +11,6 @@ export type * from '../schemas/index.js'
 // Import types for use in union types (for compatibility)
 import type {
   SURefAbility,
-  SURefAiEntity,
   SURefBioTitan,
   SURefBoss,
   SURefChassis,
@@ -46,7 +45,6 @@ import type {
 // Union type of all entity types (excludes meta schemas and non-entities)
 export type SURefEntity =
   | SURefAbility
-  | SURefAiEntity
   | SURefBioTitan
   | SURefBoss
   | SURefChassis
@@ -74,7 +72,6 @@ export type SURefEntity =
 // Union type of all meta entity types (includes all schemas except non-entities)
 export type SURefMetaEntity =
   | SURefAbility
-  | SURefAiEntity
   | SURefBioTitan
   | SURefBoss
   | SURefChassis
