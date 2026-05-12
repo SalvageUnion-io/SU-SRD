@@ -28,7 +28,6 @@ import type {
   SURefMeld,
   SURefModule,
   SURefNPC,
-  SURefPreMadeCharacter,
   SURefRollTable,
   SURefSquad,
   SURefSystem,
@@ -224,11 +223,6 @@ const lazyKeywords = new LazyModel<SchemaToEntityMap['keywords']>('keywords', 'K
 const lazyMeld = new LazyModel<SchemaToEntityMap['meld']>('meld', 'Meld', 'Meld')
 const lazyModules = new LazyModel<SchemaToEntityMap['modules']>('modules', 'Modules', 'Module')
 const lazyNPCs = new LazyModel<SchemaToEntityMap['npcs']>('npcs', 'NPCs', 'NPC')
-const lazyPreMadeCharacters = new LazyModel<SchemaToEntityMap['pre-made-characters']>(
-  'pre-made-characters',
-  'PreMadeCharacters',
-  'Pre-Made Character'
-)
 const lazyRollTables = new LazyModel<SchemaToEntityMap['roll-tables']>(
   'roll-tables',
   'RollTables',
@@ -267,7 +261,6 @@ const lazyModelMap: Record<string, LazyModel<unknown>> = {
   meld: lazyMeld as LazyModel<unknown>,
   modules: lazyModules as LazyModel<unknown>,
   npcs: lazyNPCs as LazyModel<unknown>,
-  'pre-made-characters': lazyPreMadeCharacters as LazyModel<unknown>,
   'roll-tables': lazyRollTables as LazyModel<unknown>,
   squads: lazySquads as LazyModel<unknown>,
   systems: lazySystems as LazyModel<unknown>,
@@ -303,7 +296,6 @@ export type SchemaToEntityMap = {
   meld: SURefMeld
   modules: SURefModule
   npcs: SURefNPC
-  'pre-made-characters': SURefPreMadeCharacter
   'roll-tables': SURefRollTable
   squads: SURefSquad
   systems: SURefSystem
@@ -343,7 +335,6 @@ const SCHEMA_REGISTRY = {
   meld: { model: 'Meld', display: 'Meld' },
   modules: { model: 'Modules', display: 'Module' },
   npcs: { model: 'NPCs', display: 'NPC' },
-  'pre-made-characters': { model: 'PreMadeCharacters', display: 'Pre-Made Character' },
   'roll-tables': { model: 'RollTables', display: 'Roll Table' },
   squads: { model: 'Squads', display: 'Squad' },
   systems: { model: 'Systems', display: 'System' },
@@ -411,9 +402,6 @@ export class SalvageUnionReference {
   static Meld = lazyMeld as ModelWithMetadata<SchemaToEntityMap['meld']>
   static Modules = lazyModules as ModelWithMetadata<SchemaToEntityMap['modules']>
   static NPCs = lazyNPCs as ModelWithMetadata<SchemaToEntityMap['npcs']>
-  static PreMadeCharacters = lazyPreMadeCharacters as ModelWithMetadata<
-    SchemaToEntityMap['pre-made-characters']
-  >
   static RollTables = lazyRollTables as ModelWithMetadata<SchemaToEntityMap['roll-tables']>
   static Squads = lazySquads as ModelWithMetadata<SchemaToEntityMap['squads']>
   static Systems = lazySystems as ModelWithMetadata<SchemaToEntityMap['systems']>

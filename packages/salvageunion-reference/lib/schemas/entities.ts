@@ -401,31 +401,6 @@ export const SourceEntitySchema = BaseEntitySchema.extend({
   .describe('Source books and expansions for Salvage Union content')
 
 /**
- * Pre-made player characters bundled with starter sets
- */
-export const PreMadeCharacterSchema = BaseEntitySchema.extend({
-  pilotClass: z.string().min(1).describe('Pilot class name (e.g. "Engineer")'),
-  background: z.string().min(1).describe('Pilot background'),
-  motto: z.string().min(1).describe('Pilot motto'),
-  keepsake: z.string().min(1).describe('Pilot keepsake'),
-  hitPoints: PositiveIntegerSchema.describe('Pilot hit points'),
-  actionPoints: PositiveIntegerSchema.describe('Pilot action points'),
-  equipment: z.array(z.string()).describe('Pilot equipment names'),
-  mech: z
-    .object({
-      chassis: z.string().min(1).describe('Chassis name'),
-      pattern: z.string().min(1).describe('Pattern name'),
-      name: z.string().min(1).describe("Mech's individual name").optional(),
-    })
-    .strict()
-    .describe('Pre-built mech for this pilot'),
-  systems: z.array(z.string()).describe('Mech system names'),
-  modules: z.array(z.string()).describe('Mech module names'),
-})
-  .strict()
-  .describe('Pre-made player characters bundled with starter sets')
-
-/**
  * Catalog categories for organizing schemas in the UI (meta schema, not a game entity)
  */
 export const CatalogCategorySchema = z

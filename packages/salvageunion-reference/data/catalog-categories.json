@@ -2,7 +2,7 @@
   {
     "id": "pilot",
     "name": "Pilot",
-    "schemas": ["classes", "abilities", "equipment", "pre-made-characters"]
+    "schemas": ["classes", "abilities", "equipment"]
   },
   {
     "id": "mech",

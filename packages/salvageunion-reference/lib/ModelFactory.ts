@@ -36,7 +36,6 @@ import {
   GuideSchema,
   SourceEntitySchema,
   TechLevelEntitySchema,
-  PreMadeCharacterSchema,
   CatalogCategorySchema,
 } from './schemas/index.js'
 
@@ -95,10 +94,6 @@ const dataLoaders: Record<string, () => Promise<unknown[]>> = {
     import('../data/modules.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
   npcs: () =>
     import('../data/npcs.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
-  'pre-made-characters': () =>
-    import('../data/pre-made-characters.json', { with: { type: 'json' } }).then(
-      (m) => m.default as unknown[]
-    ),
   'roll-tables': () =>
     import('../data/roll-tables.json', { with: { type: 'json' } }).then(
       (m) => m.default as unknown[]
@@ -198,10 +193,6 @@ const jsonSchemaLoaders: Record<string, () => Promise<Record<string, unknown>>> 
     import('../schemas/npcs.schema.json', { with: { type: 'json' } }).then(
       (m) => m.default as Record<string, unknown>
     ),
-  'pre-made-characters': () =>
-    import('../schemas/pre-made-characters.schema.json', { with: { type: 'json' } }).then(
-      (m) => m.default as Record<string, unknown>
-    ),
   'roll-tables': () =>
     import('../schemas/roll-tables.schema.json', { with: { type: 'json' } }).then(
       (m) => m.default as Record<string, unknown>
@@ -262,7 +253,6 @@ const zodSchemaMap: Record<string, z.ZodType<unknown>> = {
   meld: MeldSchema,
   modules: ModuleSchema,
   npcs: NPCSchema,
-  'pre-made-characters': PreMadeCharacterSchema,
   'roll-tables': RollTableSchema,
   squads: SquadSchema,
   systems: SystemSchema,
@@ -474,7 +464,6 @@ const schemaDisplayNames: Record<string, { singular: string; plural: string }> =
   meld: { singular: 'Meld', plural: 'Meld' },
   modules: { singular: 'Module', plural: 'Modules' },
   npcs: { singular: 'NPC', plural: 'NPCs' },
-  'pre-made-characters': { singular: 'Pre-Made Character', plural: 'Pre-Made Characters' },
   'roll-tables': { singular: 'Roll Table', plural: 'Roll Tables' },
   squads: { singular: 'Squad', plural: 'Squads' },
   systems: { singular: 'System', plural: 'Systems' },
