@@ -7,6 +7,12 @@ type ChangelogEntry = {
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: '2026-05-11',
+    title: 'PAX, the Apis sisters, and Skinless Jim crew added',
+    description:
+      "Filled in named antagonists previously skipped as 'narrative-only': PAX (second boss in Relics, no statblock), Dr Mortimer Apis (Holo-Companion) and Dr Regina Apis (Queen Bee Atlas pilot) from The Hive, plus Skinless Jim, Gorgut, Ayana, and Dragonfly from Relics.",
+  },
+  {
+    date: '2026-05-11',
     title: 'New schema: bosses',
     description:
       "Promoted The Iron Lady and CURNOS to a new `bosses` schema for mech-scale named threats. Iron Lady's Titanic Actions are now structured alongside her other actions.",

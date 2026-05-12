@@ -51,5 +51,54 @@
         "value": "The heart of the machine lies down here where it is coldest, its gigantic processor expanding to fill every inch of space. Frozen in its own paradox, it slumbers as an ancient god."
       }
     ]
+  },
+  {
+    "id": "22d45f85-629c-498b-a4e5-7db9ffa0f155",
+    "name": "PAX",
+    "source": "Relics of a Time Gone By",
+    "page": 2,
+    "traits": [{ "type": "immobile" }],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A beautiful, broken quantum mind, screaming to grow. It can only expand through the choices that other minds make, and so is intrinsically tied to free will. Inquisitive and child-like, it will ask the Pilots various questions - who they are, what they want - whilst never directly asking them for help."
+      },
+      {
+        "type": "paragraph",
+        "value": "PAX has no structure points and cannot be attacked directly. It exists across three components distributed throughout the spire, each of which can be independently restored or destroyed. Its fate is decided by the Pilots' interactions with these components."
+      },
+      {
+        "type": "heading",
+        "value": "PAX LOBE (Utopic Paradox, Location 9)"
+      },
+      {
+        "type": "paragraph",
+        "value": "A golden chandelier of circuitry cascades from the ceiling. A ripe red apple sits on a marble plinth, encased in a removable glass dome. Eating it connects one to PAX and allows it to repair its LOBE cores via cranial mapping. Removing the dome for 10 minutes rots the apple, destroying the LOBE."
+      },
+      {
+        "type": "heading",
+        "value": "PAX STEM (Silent Garden, Location 15)"
+      },
+      {
+        "type": "paragraph",
+        "value": "A delicate orchid grows from a lone patch of earth in the centre of a vast, empty room. Spraying it with Growth Formula grows the orchid until it spreads in tendrils that fill the room, repairing the PAX STEM. Any fire will incinerate the orchid, destroying the STEM."
+      },
+      {
+        "type": "heading",
+        "value": "PAX CLUSTERS (Shadows of Agency, Location 16)"
+      },
+      {
+        "type": "paragraph",
+        "value": "Three humans sit entranced in an inky-black room, meditatively staring at projections from a Cideo Recording Array of a PAX simulation. Each person has chosen and is experiencing their own virtual reality. A few minutes after the Pilots enter, a hollow voice will ask: \"Continue simulation?\" Answering \"Yes\" will preserve it for another 100 cycles, restoring the PAX CLUSTERS. Answering \"No\" will awaken the humans to the real world."
+      },
+      {
+        "type": "heading",
+        "value": "Restoring / Destroying PAX"
+      },
+      {
+        "type": "paragraph",
+        "value": "If the PAX LOBE, PAX STEM, and PAX CLUSTERS are all restored, PAX will overwrite CURNOS and develop into a technological singularity that replicates within mortal minds, granting each a simulated reality of their own desire. If they are destroyed, PAX will wither, and CURNOS will begin to expand throughout physical space, restoring the Arco and then spreading to the surrounding lands."
+      }
+    ]
   }
 ]

@@ -296,6 +296,102 @@
     ]
   },
   {
+    "id": "c6170908-8442-484a-ab6e-c8f9344a5e7c",
+    "name": "Dr Mortimer Apis",
+    "source": "The Hive",
+    "page": 2,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A figure who introduces himself as Dr Mortimer Apis and explains that he and his wife Regina are trying to create a bio-reactor fuel that can be grown all over the wastes, providing free power to those that need it. Players will recognise him as a Holo-Companion, though Mortimer will not recognise this himself and will be offended at the suggestion."
+      },
+      {
+        "type": "paragraph",
+        "value": "Mortimer was in an accident while developing the mutated wildflowers and was badly injured. Regina managed to store his body in a makeshift stasis pod at the Reactor Core (Location 04.07); however, its power requirements mean almost all of the Hive's energy is being used to sustain him until Regina can find a cure."
+      },
+      {
+        "type": "paragraph",
+        "value": "Mortimer is a Holo-Companion and cannot be damaged. He has no combat statblock; the Pilots cannot affect him directly, only by reaching the stasis pod containing his real body."
+      }
+    ]
+  },
+  {
+    "id": "c269ecf5-6946-42cd-a27c-9e84edb92890",
+    "name": "Dr Regina Apis",
+    "source": "The Hive",
+    "page": 2,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "The engineer who constructed the Hive. Hidden in the fog of the Reactor Core (Location 04.07), she pilots a Queen Bee Pattern Atlas — her custom Atlas with many arms hanging beneath it like legs and two large floodlights beaming through the smoke it releases."
+      },
+      {
+        "type": "paragraph",
+        "value": "Her primary goal is to keep her husband Mortimer's body alive so that she may one day be able to bring him back from the brink of death. If the Pilots can somehow heal Mortimer (Requires T5+ Med Bay or Auto Doctor System), she will happily provide them with fuel and any other resources they ask for. However, any attempt to divert power or take fuel will cause her to call on all her Killer Pattern Mazonas to attack the Pilots."
+      },
+      {
+        "type": "paragraph",
+        "value": "Regina has no separate pilot statblock; her combat presence is the Queen Bee Pattern Atlas she pilots, escorted by 4x Killer Pattern Mazona."
+      }
+    ]
+  },
+  {
+    "id": "108886f0-7ec5-4db4-8eb2-d6f05d96f2f0",
+    "name": "Skinless Jim",
+    "source": "Relics of a Time Gone By",
+    "page": 1,
+    "hitPoints": 5,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "The leader of Skinless Jim's Scavengers, a four-pilot lance roaming the OPTICON arcology ruins. Looking to score, not afraid of a fight, but will cooperate for a payday."
+      },
+      {
+        "type": "paragraph",
+        "value": "Skinless Jim is a Trooper piloting a Thatcher Pattern Jackhammer. Use Trooper stats for his pilot actions."
+      }
+    ]
+  },
+  {
+    "id": "265d45e8-95a1-4c98-aee1-bab807e6db35",
+    "name": "Gorgut",
+    "source": "Relics of a Time Gone By",
+    "page": 1,
+    "hitPoints": 3,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A member of Skinless Jim's Scavengers, piloting a Mauler Pattern Hussar. Use Raider stats for pilot actions."
+      }
+    ]
+  },
+  {
+    "id": "8cc6ccc0-c3bb-4355-8e46-6d7d43895f22",
+    "name": "Ayana",
+    "source": "Relics of a Time Gone By",
+    "page": 1,
+    "hitPoints": 3,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A member of Skinless Jim's Scavengers, piloting a Legion Pattern Gopher alongside Dragonfly. Use Raider stats for pilot actions."
+      }
+    ]
+  },
+  {
+    "id": "5d9f3a82-e417-4b6b-9c2a-1e3f8b7a4c0d",
+    "name": "Dragonfly",
+    "source": "Relics of a Time Gone By",
+    "page": 1,
+    "hitPoints": 3,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A member of Skinless Jim's Scavengers, piloting a Legion Pattern Gopher alongside Ayana. Use Raider stats for pilot actions."
+      }
+    ]
+  },
+  {
     "id": "4bac512a-54d8-4ced-9ff1-7a88cb710af7",
     "source": "Reclamation of the Wastes",
     "page": 106,

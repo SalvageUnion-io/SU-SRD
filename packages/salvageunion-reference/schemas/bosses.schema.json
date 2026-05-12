@@ -237,7 +237,7 @@
         "type": "integer",
         "exclusiveMinimum": 0,
         "maximum": 9007199254740991,
-        "description": "Structure points (boss-scale SP)"
+        "description": "Structure points (boss-scale SP). Omit for narrative-only bosses with no combat statblock (e.g. PAX)."
       },
       "damageType": {
         "type": "string",
@@ -245,7 +245,7 @@
         "description": "Damage type tracked by this boss. Bosses are mech-scale, so this is typically SP."
       }
     },
-    "required": ["id", "indexable", "blackMarket", "name", "source", "page", "structurePoints"],
+    "required": ["id", "indexable", "blackMarket", "name", "source", "page"],
     "additionalProperties": false,
     "description": "Boss enemies (mech-scale named threats, often with Titanic Actions)"
   }
