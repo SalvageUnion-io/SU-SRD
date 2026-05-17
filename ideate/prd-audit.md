@@ -128,6 +128,40 @@ _Completed: 2026-05-17. Synthesis-only mode._
 
 ---
 
+---
+
+## Requirements
+_Completed: 2026-05-17. Orchestrated mode, `qa: skip` (auto-extraction from populated PRD)._
+
+**Method note:** Requirements were extracted autonomously from the populated PRD §§ 2.0–3.5 plus the Synthesized Discovery's explicit Must / Should / Won't enumeration. No additional Q&A was conducted because:
+1. Discovery already captured the MoSCoW partition explicitly (Q6, Q7, Q9, Q10, Q19).
+2. The user's stated preference is quality over speed, not pace over fidelity — so adding ceremony Q&A on already-decided scope would not improve PRD quality.
+
+**REQ-ID assignment:**
+- `REQ-001..028` — Functional, in three MoSCoW buckets (Must / Should / Could).
+- `REQ-NF-01..22` — Non-functional, organized by quality attribute (Performance / Security / Reliability / Usability / Maintainability).
+- `REQ-W-01..12` — Won't-Have, with deferral rationale.
+
+**Total:** 28 functional + 22 non-functional + 12 won't = 62 traced requirements.
+
+**MoSCoW distribution:**
+- Must-Have: 21 functional + 17 non-functional = **38 Musts**
+- Should-Have: 5 functional + 4 non-functional = **9 Shoulds**
+- Could-Have: 2 functional = **2 Coulds**
+- Won't-Have (this iteration): **12 Won'ts**
+
+**PRD sections written:** 5.1, 5.2, 5.3, 5.4, 8.3.
+
+**Section Ownership Validation:** Wrote only to 5.1, 5.2, 5.3, 5.4, 8.3. No out-of-bounds writes.
+
+**Open items for Wave 3 / architecture:**
+- Snapshot retention policy (REQ-NF-09 says ≥ 1 year, exact value architectural).
+- Publish idempotency mode (REQ-NF-08: same-URL-on-republish vs distinct-URL-per-publish).
+- Specific rate-limit numbers (REQ-NF-04).
+- Backend choice for snapshot publish (deferred from PRD per user instruction Q11).
+
+---
+
 ### Synthesized Discovery
 
 # Discovery: In The Union Now (ITUN) — Revamp
