@@ -12,7 +12,7 @@ Salvage Union Community Tooling — alxjrvs
 | :----------------------------- | :------------------------------------------------------------------------------------------------------------------------------ |
 | **Version**                    | 0.1 (research draft)                                                                                                            |
 | **Date**                       | 2026-05-17                                                                                                                      |
-| **Status**                     | In Progress (Wave 1 complete; Wave 2 / Requirements pending)                                                                    |
+| **Status**                     | Complete                                                                                                                        |
 | **Target Release / Milestone** | MVP "Single-Player Builder" — no hard date, quality-gated release                                                               |
 | **Authors / Contributors**     | alxjrvs (sole maintainer) + Claude Code (ideate pipeline)                                                                       |
 
@@ -31,6 +31,8 @@ ITUN today is a half-built multiplayer campaign manager. Its scope has outpaced 
 **Out of scope (this iteration):** Real-time multiplayer / live-sync; accounts and auth at MVP; GM/Mediator tools (NPCs, encounters, factions, rumors); active combat tracking (action buttons that decrement resources, automated damage flow, heat-link); guided downtime / progression wizards; campaign-shared workspaces; Discord bot changes; full SRD reference duplication inside ITUN; image uploads; vehicle/faction/bio-titan tracking.
 
 **Architectural runway (must remain credible, not built):** Cloud sync; magic-link or full-account auth layered on top of anonymous snapshots; light-automation combat; campaign-shared multiplayer workspaces with realtime sync; GM-side tooling.
+
+**Sharing posture (user-reaffirmed):** MVP has **no accounts** and **shareable links** — anonymous publish produces a short-URL snapshot anyone can open without signing up. This is the defining identity / sharing contract for the MVP; it pins REQ-W-02 (no auth) ↔ REQ-017 (anonymous publish) ↔ REQ-018 (open by URL) as load-bearing decisions, not implementation details.
 
 ### 2.3 Success Metrics
 
@@ -144,7 +146,53 @@ Synthesized from `plan-docs/long-term-goals.md`, `plan-docs/audit-follow-up.md`,
 
 ## 4.0 Target Audience & Personas
 
-_To be populated by Wave 3 (prd-verify)._
+### Primary Persona — *The Individual Player*
+
+**Description.** A Salvage Union enthusiast — typically already in a campaign or about to start one — who wants a frictionless way to build, save, and share characters at any composition level. Plays at a physical or virtual table; cares about the SU tone (callsigns, mottos, mech aesthetics) as much as the math. Has built characters in Google Docs or paper before and treats a sharable, rules-aware tool as a meaningful upgrade.
+
+**Goals:**
+- Build a pilot, mech, or crawler — alone or together — in a single short session, no setup required.
+- Have the math check itself (slots, scrap, capacity) so the finished build is rules-legal.
+- Share the result with a friend or a GM via one link or one PDF.
+- Bring a clean printed sheet to the table when phones-at-the-table is awkward.
+- Edit freely between sessions; the app warns if a change appears rules-violating but never blocks creative narrative reasons to break a rule.
+
+**Pain points (from §3.4):**
+- Current ITUN's auth/campaign-required posture costs 10+ minutes of setup for what should be a 60-second affair.
+- Existing alternatives (Google Docs, PDFs) are rules-unaware.
+- No SU tool today produces a print-quality sheet that doesn't look like a spreadsheet.
+
+**Notes / tells:**
+- Will accept "no account" as a positive, not a "we ship later." Will *not* accept "make an account to publish a one-time snapshot."
+- Mobile use case is at-the-table, often outdoors or under poor light → drives WCAG 2.1 AAA for sheet display.
+- Believes in the SU community's design taste — will compare the printed sheet to the rulebook and notice if it falls short.
+
+### Secondary Persona (upgrade-path framing only) — *The Table-Runner*
+
+**Description.** A GM or Mediator running an SU campaign. Today juggles the SRD, sheets, and table notes across multiple tabs and physical books. Not the MVP user, but the architecture must leave a credible path back to them.
+
+**Goals (post-MVP):** track NPC stats, stage encounters, share campaign state with players, govern downtime resolution.
+
+**Pain points:** No SU GM tool today integrates with `salvageunion-reference` data fidelity; the legacy ITUN's half-built GM features are not migrated.
+
+**Notes / tells:** The MVP must not foreclose this persona's eventual needs — composability + workspaces lay the groundwork; multiplayer + auth + GM-side tools complete it.
+
+### Tertiary Persona (upgrade-path framing only) — *The Party Group*
+
+**Description.** A full SU table — 1 GM + 3–5 players — who eventually want shared real-time state. Pure upgrade-path; explicitly out of MVP scope.
+
+### 4.1 User Stories
+
+Top user stories distilled from §5.1, anchored to the Individual Player persona unless otherwise noted.
+
+- *As an individual player, I want to build a mech in 10 minutes with no account so that I can share it with a friend.* → REQ-001..005, REQ-006, REQ-017, REQ-018, REQ-NF-17.
+- *As an individual player, I want capacity / scrap / slot math enforced so I can trust the final build is rules-legal.* → REQ-009, REQ-014, REQ-015.
+- *As an individual player at the table, I want a sheet I can edit live without action-button automation getting in my way.* → REQ-011, REQ-016.
+- *As an individual player advancing my character, I want to edit freely with soft warnings when I appear to break a rule.* → REQ-012.
+- *As an individual player who plays at a physical table, I want a print-quality sheet on A4 or US Letter.* → REQ-019, REQ-NF-13, REQ-NF-14.
+- *As an individual player on my phone at the table, I want the sheet to remain legible under poor light at 320 px viewport.* → REQ-NF-10, REQ-NF-12, REQ-NF-15.
+- *As an individual player publishing a build, I want a short URL anyone can open without an account.* → REQ-017, REQ-018, REQ-NF-04..06.
+- *As a Salvage Union community member, I want anonymous pattern publishing so I can share mech designs with the broader community.* → REQ-026.
 
 ## 5.0 Key Features & Requirements
 
@@ -291,38 +339,140 @@ Organized by quality attribute (per ISO/IEC/IEEE 29148 §4).
 
 ### 5.4 Out of Scope (Won't-Have, this iteration)
 
-Each item below was *explicitly* deferred during discovery Q&A. Items remain candidates for the architectural upgrade path.
+Each item below was deferred or rejected during discovery Q&A. Items remain candidates for the architectural upgrade path. Sub-class tag indicates the evidence type per the MoSCoW Synthesis Guide (Explicit Rejection / Inferred Deferral / Indirect-Grammar Rejection).
 
-- **REQ-W-01 — Real-time multiplayer / live sync / RLS.** *Rationale:* MVP is single-player. Architecture must not foreclose multiplayer, but no multi-user features ship in MVP.
-- **REQ-W-02 — User accounts and authentication.** *Rationale:* Anonymous snapshot publishing meets the share requirement without an account. A magic-link or full-auth layer is upgrade-path territory.
-- **REQ-W-03 — GM / Mediator tools.** *Rationale:* MVP is player-only. NPC stats, encounter staging, faction tracking, rumor systems are all out. The legacy ITUN's partial GM features are not migrated.
-- **REQ-W-04 — Active combat tracking.** *Rationale:* No action buttons that decrement AP/EP/HP/Heat. No automated damage flow. No heat-link from actions. The sheet shows current values; the player updates them. Tracked as "P0 gap" in `plan-docs/long-term-goals.md` but explicitly deferred.
-- **REQ-W-05 — Guided downtime / progression wizards.** *Rationale:* Edit-with-soft-warnings (REQ-012) covers progression; full wizards are upgrade-path.
-- **REQ-W-06 — Campaign-shared workspaces.** *Rationale:* Workspaces (REQ-020) are private to the owner in MVP. Multiplayer-shared workspaces require the auth + sync layers that are out of scope.
-- **REQ-W-07 — Discord bot changes.** *Rationale:* `apps/discord-bot/` is a separate concern; PRD does not scope it.
-- **REQ-W-08 — Full SRD reference duplication inside ITUN.** *Rationale:* `suref-web` is the canonical SRD reader; ITUN provides contextual reference only (REQ-021).
-- **REQ-W-09 — Image uploads.** *Rationale:* Image hosting requires storage infrastructure (S3-class or Supabase Storage). URL inputs are acceptable for MVP cosmetic fields.
-- **REQ-W-10 — Vehicle / faction / bio-titan / NPC encounter tracking.** *Rationale:* GM-facing; explicitly out per REQ-W-03.
-- **REQ-W-11 — Free-tier hosting cap.** *Rationale:* User declined this as a hard constraint. Cost-conscious choices preferred, but not a binding requirement.
-- **REQ-W-12 — Migration of legacy ITUN data.** *Rationale:* Legacy ITUN has zero real users. Supabase project is decommissioned without data migration.
+- **REQ-W-01 — Real-time multiplayer / live sync / RLS.** *Sub-class:* Inferred Deferral. *Evidence:* Discovery Q7 answer ("All multiplayer / realtime / live-sync features" selected as out-of-scope). *Rationale:* MVP is single-player. Architecture must not foreclose multiplayer.
+- **REQ-W-02 — User accounts and authentication.** *Sub-class:* Inferred Deferral. *Evidence:* Discovery Q17 answer ("Anonymous publishing — no account required"). *Rationale:* Anonymous snapshot publishing meets the share requirement without an account. Magic-link / full-auth is upgrade-path.
+- **REQ-W-03 — GM / Mediator tools.** *Sub-class:* Inferred Deferral. *Evidence:* Discovery Q1 (primary user = individual player), Q7 ("GM / Mediator tools" out-of-scope). *Rationale:* MVP is player-only. NPC stats, encounter staging, faction tracking, rumor systems all out.
+- **REQ-W-04 — Active combat tracking.** *Sub-class:* Inferred Deferral. *Evidence:* Discovery Q10 ("Sheet only — view + manual stat edits"). *Rationale:* No action buttons that decrement AP/EP/HP/Heat. No automated damage flow. Tracked as "P0 gap" in `plan-docs/long-term-goals.md` but explicitly deferred.
+- **REQ-W-05 — Guided downtime / progression wizards.** *Sub-class:* Inferred Deferral. *Evidence:* Discovery Q9 ("Edit-with-soft-warnings") chose soft warnings over guided wizards. *Rationale:* REQ-012 covers progression; full wizards are upgrade-path.
+- **REQ-W-06 — Campaign-shared workspaces (multiplayer).** *Sub-class:* Inferred Deferral. *Evidence:* Derived from REQ-W-01 + Q15 ("Workspace per campaign" was specified as a *local grouping*, not a multiplayer construct). *Rationale:* Workspaces are private to the owner in MVP.
+- **REQ-W-07 — Discord bot changes.** *Sub-class:* Inferred Deferral. *Evidence:* Discovery Q16 ("Out of scope — separate concern"). *Rationale:* `apps/discord-bot/` is a separate concern.
+- **REQ-W-08 — Full SRD reference duplication inside ITUN.** *Sub-class:* Inferred Deferral. *Evidence:* Discovery Q14 ("Contextual reference only"). *Rationale:* `suref-web` is the canonical SRD reader.
+- **REQ-W-09 — Image uploads.** *Sub-class:* Inferred Deferral. *Evidence:* Discovery did not explicitly ask, but Q19 hard constraints did not include any storage requirement; URL inputs remain acceptable per current ITUN behavior. *Rationale:* Hosting infrastructure dependency; defer to upgrade-path.
+- **REQ-W-10 — Vehicle / faction / bio-titan / NPC encounter tracking.** *Sub-class:* Inferred Deferral. *Evidence:* Derived from REQ-W-03 (GM-facing). *Rationale:* All entity-types are GM-tool category.
+- **REQ-W-11 — Free-tier hosting hard cap.** *Sub-class:* Explicit Rejection. *Evidence:* Discovery Q19 — "Must be free to host" option was *not* selected by the user. *Rationale:* Cost-conscious choices preferred, but not a binding requirement.
+- **REQ-W-12 — Migration of legacy ITUN data.** *Sub-class:* Inferred Deferral. *Evidence:* Discovery Q12 ("Archive existing app to apps/itun-legacy/, delete Supabase") + user follow-up confirming "legacy ITUN has no users." *Rationale:* No real users to migrate; legacy Supabase decommissioned.
 
 ## 6.0 Verification & Validation
 
-_To be populated by Wave 3 (prd-verify)._
+### 6.1 Outcome Metrics
+
+Outcome metrics extend §2.3 success metrics with concrete measurement methods.
+
+| Outcome | Metric | Method | Desired Outcome |
+| :--- | :--- | :--- | :--- |
+| Visitor builds a character without friction | Time from first page-load to first saved pilot | Maintainer timing study + post-release self-report | ≤ 10 min (REQ-NF-17) |
+| Builds are shareable across all composition levels | Snapshot publish + open round-trip per build type | Functional test in CI | All four (pilot-only, mech-only, crawler-only, wired) ✓ |
+| Sheet is accessible | WCAG 2.1 AAA on sheet view; AA elsewhere | `a11y-scan` CI run | Zero violations at stated levels (REQ-NF-10, REQ-NF-11) |
+| Print output is professional | A4 + US Letter PDF visual review | Maintainer print-preview review with each PR touching sheet/print | Passes maintainer review |
+| Sheet is mobile-usable at the table | Manual test at 320 px and on real device | Pre-release manual QA | Critical info readable without zoom; targets ≥ 44 px (REQ-NF-12, REQ-NF-15) |
+| App works offline | Manual test: load, go offline, build | Pre-release manual QA | All non-publish flows succeed offline (REQ-NF-07) |
+| Community adoption | Anecdotal: SU Discord / forum mentions, GitHub stars, opened-snapshot URL hits | Self-reported, no telemetry | ≥ a handful of SU players outside the maintainer reach a finished build |
+| Maintainer sustainability | Cadence of merged PRs vs in-progress branches | Self-observation | Maintainer continues to ship without dread |
+
+### 6.2 Acceptance Criteria (Project as a Whole)
+
+"Done" for the MVP means:
+
+1. All 38 Must-Have requirements (§5.1, §5.2 with Must priority) pass their stated acceptance criteria and are demonstrated in a release build.
+2. All Won't-Have items (§5.4) are *not present* in the release build (no half-built combat automation, no auth UI, no GM screens leaking through).
+3. CI green: `bun run check:all` (lint, format, typecheck, test, validate) and `a11y-scan` (WCAG 2.1 AAA on sheet view, AA elsewhere) pass on the main branch.
+4. Legacy app is archived to `apps/itun-legacy/` and the new app builds and serves at the same canonical URL as the prior ITUN (deployment swap performed cleanly).
+5. The legacy Supabase project (`dshtuchbleipwqacyokz`) is decommissioned.
+6. The PRD's success metrics (§2.3, §6.1) have a baseline measurement at release plus a documented path for the maintainer to track them post-release.
+7. The maintainer can complete a fresh pilot+mech+crawler build, publish snapshots of each composition level, and print both A4 and US Letter sheets — in a single uninterrupted session — without consulting the codebase.
 
 ## 7.0 Risks, Assumptions, & Mitigations
 
-_To be populated by Wave 3 (prd-verify)._
+Risks consolidated from competitive analysis (§3.5), pain-points (§3.4), and the scope discipline implied by §5.4.
+
+| # | Risk | Impact | Mitigation | Score (L/M/H) |
+| :- | :--- | :--- | :--- | :--- |
+| R-1 | **Scope creep back toward multiplayer.** Every "while we're in there" multiplayer / GM / live-combat addition weakens the friction-free single-player position and re-introduces the maintenance burden that motivated the rebuild. | Re-runs the original failure mode; quality bar slips; release indefinitely delayed. | §5.4 Won't-Have list is binding for this iteration. Every PR that touches an out-of-scope concern must either remove a Won't-Have explicitly (with PRD update) or be rejected. Architecture phase should add a self-review checklist for the maintainer. | **H** |
+| R-2 | **Composability data model proves complex.** Pilot/mech/crawler as independent first-class entities with soft links and auto stand-ins is a meaningful departure from ITUN's parent-owns-child shape. The model may have edge cases (e.g., what happens when a snapshot's "stand-in" pilot is later replaced — does the published snapshot mutate?). | Implementation overrun; data-model thrash; published-snapshot integrity bugs. | Architecture phase produces a thorough data-model ADR covering all four composition modes and the snapshot lifecycle. Spike on the worst edge case (snapshot mutability vs. stand-in replacement) before broader implementation. | **M** |
+| R-3 | **Print quality is harder than expected.** Producing rulebook-grade A4 + US Letter prints from web is non-trivial; CSS print quirks differ across browsers and PDF generators. | Cosmetic deliverable misses target; release feels unfinished. | Treat print stylesheet as a first-class deliverable with a dedicated story group and explicit maintainer-review acceptance criteria. Spike with one composition level (mech) early to validate approach before duplicating for pilot and crawler. | **M** |
+| R-4 | **Anonymous publishing invites abuse.** A no-account publish endpoint is a spam magnet in principle (test snapshots, content abuse, link shorteners). | Backend cost / moderation burden; brand risk. | REQ-NF-04 explicit rate-limit; REQ-NF-06 collects no PII; architecture phase chooses backend with built-in rate limiting and pickup-free snapshot URLs (long enough not to be guessable). Accept a low residual moderation risk consistent with the project's solo-maintainer reality. | **M** |
+| R-5 | **WCAG 2.1 AAA for sheet display is ambitious.** AAA targets (especially contrast ratios and uninterrupted reading flow) are harder than AA; some SU brand colors may not pass. | Brand-color sacrifice; uglier sheet; tech-debt. | Architecture phase audits the SU theme against AAA early. Where brand-color and AAA conflict, sheet display prefers AAA; brand color is preserved on non-sheet surfaces (covered by AA). The `a11y-scan` skill gates regressions. | **M** |
+| R-6 | **Maintainer capacity remains the binding constraint.** The rebuild solves architecture and scope, but not the underlying solo-maintainer capacity gap. Without a quality bar that the maintainer can actually clear, the PRD repeats history. | Slips back into the legacy-ITUN failure mode. | "No hard deadline; quality over speed" is the explicit policy. Each Must-Have is independently shippable (per the AUDIT-BACKLOG.md story model). Maintainer can release piecemeal as Musts complete; the *baseline* is the first composition mode (mech alone) end-to-end. | **H** |
+| R-7 | **Shared-package contract drift.** As the new ITUN evolves it will want changes in `suref-react` and `salvageunion-reference`. Without discipline these shared packages can fork-in-spirit. | Tech debt; coupled refactors; `suref-web` regressions. | `docs/architecture/package-contracts.md` already documents the cross-package change checklist. Architecture phase formalizes a contribution-back rule: components built in ITUN that prove generally useful are promoted to `suref-react` rather than forked. | **M** |
+| R-8 | **Legacy archive becomes stale immediately.** `apps/itun-legacy/` is preserved as a reference. Without active maintenance, its dependencies will rot and the archive becomes harder to mine for patterns. | Lost institutional knowledge; awkward stale code in repo. | Architecture phase declares an explicit legacy policy: tagged Git commit at archive-time, dependencies frozen, no expectation of buildability after N months. Reference value is conceptual, not executable. | **L** |
+| R-9 | **Print + AAA + mobile is a constraint triangle.** Optimizing for one (e.g., AAA contrast on sheet) can compromise another (e.g., print fidelity uses ink-cost-aware low-contrast palettes). | Trade-off frustration during implementation; design-system thrash. | Treat the three as constraints to *simultaneously* satisfy in a single design system. Architecture phase produces a triangle-aware color/spacing/typography spec rather than three separate optimizations. | **M** |
+
+### Assumptions
+
+| # | Assumption | Validation |
+| :- | :--- | :--- |
+| A-1 | The SU community values a no-account, link-shareable, print-friendly builder enough to adopt it over current spreadsheet / PDF workflows. | Validated post-release via community-uptake metric (§6.1). If adoption is low, the architecture is reusable for a GM-focused or VTT-integrated re-pivot. |
+| A-2 | The `salvageunion-reference` data layer remains the canonical SU dataset and continues to be maintained. | Maintained by the same maintainer; risk is the same as the project itself. Architecture phase documents the reference-package release cadence. |
+| A-3 | The legacy ITUN has zero real users and no data needs migrating. | User-confirmed (Discovery Q&A item 12 + follow-up note). |
+| A-4 | A "workspace-per-campaign" abstraction is sufficient grouping for MVP without introducing multiplayer-style semantics (sharing, roles, RLS). | Architecture phase should sanity-check that workspaces persist locally and have a clean upgrade path to shared multiplayer workspaces without schema churn. |
+| A-5 | Evergreen-browser-only support (Safari ≥ 16) is acceptable to the SU community. | User-stated hard constraint; not separately validated. |
 
 ## 8.0 Appendix
 
 ### 8.1 Glossary
 
-_To be populated by Wave 3 (prd-verify)._
+**SU game terms** (per `salvageunion-reference`):
+
+| Term | Meaning |
+| :--- | :--- |
+| **Pilot** | A player-character humanoid; has class abilities, equipment, motto / keepsake / appearance fields. |
+| **Mech** | A salvaged combat suit assembled from a Chassis + Systems + Modules; piloted by a Pilot. |
+| **Chassis** | The base mech frame; defines slot layout, base HP/SP, and intrinsic abilities. |
+| **System** | A weapon, defensive, or utility module installed in a mech slot. |
+| **Module** | A non-weapon mech upgrade (e.g., armor, mobility, sensor). |
+| **Crawler** | A massive shared community/vehicle that hosts pilots between encounters; has a Tech Level (TL1–TL6) and bays. |
+| **Pattern** | A saved, named mech build that can be cloned/shared. |
+| **Scrap** | The SU economy; tiered TL1–TL6; consumed for crafting, repair, upgrades. |
+| **Tech Level (TL)** | An SU-wide progression scale (TL1–TL6). Gates crafting and upgrade legality. |
+| **HP / AP / TP / SP / EP / Heat** | The six tracked stats on a mech sheet. (HP=hit points, AP=action points, TP=turn points, SP=structure points, EP=energy points, Heat=current heat). |
+| **Comrade / Drone** | Mech-attached secondary units with their own actions and EP pools. |
+| **Roll table** | An SU-canonical randomization table (e.g., callsign, motto, keepsake). |
+
+**Project-specific terms:**
+
+| Term | Meaning |
+| :--- | :--- |
+| **ITUN / "In The Union Now"** | This app — the player-side SU character builder and live sheet. |
+| **Revamp / Rebuild** | This project — replacing the legacy `apps/in-the-union-now/` with a greenfield, scope-disciplined re-implementation. |
+| **Legacy ITUN** | The current `apps/in-the-union-now/`, being archived to `apps/itun-legacy/`. |
+| **`suref-web`** | Sibling app in this monorepo — the canonical SU reference site (SRD reader). |
+| **`suref-react`** | Shared workspace package — SU-themed React component library; no build step; exported as TypeScript source. |
+| **`salvageunion-reference`** | Shared workspace package — TypeScript-typed, Zod-validated, JSON-backed SU game data ORM. |
+| **Composition mode** | One of: pilot-only / mech-only / crawler-only / wired. Each must be independently buildable, saveable, shareable, printable. |
+| **Auto stand-in** | A generated placeholder record for a missing entity (e.g., a stand-in "generic pilot" rendered when a mech is built alone) so the sheet renders cleanly without dummy data. |
+| **Snapshot** | An immutable, anonymous, short-URL-addressable copy of a build (pilot / mech / crawler / pattern / wired). Read-only. |
+| **Workspace** | A user-private named grouping of builds (e.g., "Monday night campaign"). Local-only in MVP; multiplayer-shareable on the upgrade path. |
+| **Soft wiring** | A non-ownership reference between entities (e.g., "this mech is assigned to that pilot") that does *not* enforce parent-owns-child semantics. Deleting one referenced entity does not cascade. |
+| **Edit-with-soft-warnings** | The MVP's progression model. Free editing of any saved build; the app surfaces a warning when an edit appears to violate published SU rules, but allows the user to confirm and proceed. |
+| **Honor system (ADR-001)** | The architectural premise: the app enforces economic constraints (slots, scrap, capacity, tech-level gates) but not procedural adjudication (turn order, action resolution, table governance). See `docs/architecture/rules-engine-boundary.md`. |
+| **MoSCoW** | Must / Should / Could / Won't prioritization framework. |
 
 ### 8.2 References
 
-_To be populated by Wave 3 (prd-verify)._
+**First-party project artifacts:**
+
+- `apps/in-the-union-now/` — Legacy ITUN web app source.
+- `apps/in-the-union-now/README.md`, `CLAUDE.md` — Legacy stack documentation.
+- `apps/in-the-union-now/plan-docs/phase-{1..6, 5II}/` — Phased implementation history.
+- `plan-docs/long-term-goals.md` — 22-gap analysis with P0–P4 priority matrix.
+- `plan-docs/audit-follow-up.md` — Tech-debt remediation log + race-condition catalog.
+- `docs/architecture/rules-engine-boundary.md` — ADR-grade boundary statement (economic vs procedural).
+- `docs/architecture/combat-loop.md`, `data-flow.md`, `display-system.md`, `package-contracts.md`, `seo-accessibility.md` — Cross-cutting architecture docs.
+- `docs/audit/AUDIT-BACKLOG.md` — 69-finding cleanup backlog (epics + stories).
+- `packages/salvageunion-reference/` + `packages/suref-react/` — Preserved shared workspace packages.
+
+**This-run artifacts:**
+
+- `ideate/prd-audit.md` — Discovery Q&A log (19 items) + Wave 1–3 audit records (Competitors, Knowledge, Opportunity, Requirements, Requirements Validation).
+- This PRD (`ideate/PRD.md`).
+
+**External:**
+
+- Salvage Union RPG (Leyline Press) — the game system the project tools.
+- ISO/IEC/IEEE 29148:2018 — Systems and Software Engineering — Requirements Specification standard, governing this PRD's structural form.
+- WCAG 2.1 — Web Content Accessibility Guidelines (AAA target for sheet display, AA elsewhere).
 
 ### 8.3 Requirements Traceability
 

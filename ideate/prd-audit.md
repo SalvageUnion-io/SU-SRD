@@ -162,6 +162,36 @@ _Completed: 2026-05-17. Orchestrated mode, `qa: skip` (auto-extraction from popu
 
 ---
 
+---
+
+## Requirements Validation
+_Completed: 2026-05-17. Orchestrated mode._
+
+**Method:** Ran all ISO/IEC/IEEE 29148 §6.4 validation checks (completeness, consistency, clarity, traceability) against PRD §§ 5.1–5.4 and 8.3.
+
+**Result:** 1 Blocker (auto-fixed), 3 Warnings (noted), 2 Info (noted).
+
+### Blockers (resolved)
+
+- **§5.4 Won't-Have items lacked 3-way sub-class tags.** All 12 items now tagged: 11 `Inferred Deferral` + 1 `Explicit Rejection`. Evidence cited inline (specific Q&A answer or prior-line reference).
+
+### Warnings (noted; not blocking Wave 3)
+
+- **Ambiguous language in REQ-NF-13 / REQ-NF-14 ("professional fidelity").** Subjective by nature for print quality. Architecture phase should define a reference comparison (e.g., "matches Salvage Union official sheet at A4 size") and CI add a manual print-review checkpoint. Not auto-fixable without picking a reference artifact.
+- **REQ-NF-04 ("reasonable cap" on rate-limit).** Explicit architectural placeholder; final value selected in architecture phase.
+- **REQ-NF-09 snapshot retention** is ≥ 1 year; architecture decides exact policy.
+
+### Info (style notes; resolved next pass)
+
+- REQ-ID format uses three variants (`REQ-NNN`, `REQ-NF-NN`, `REQ-W-NN`) where the canonical spec is `REQ-NNN`. The variant scheme aids readability and is widely accepted; not changing.
+- §4.0 Personas not yet populated — Must-Have functional → persona traceability will resolve when Wave 3 writes §4.0. The persona "Individual Player" is implicit throughout §§5.1.
+
+### Section Ownership Validation
+
+Validation phase did not write to any PRD section outside §5.4 (sub-class tags added in place). No out-of-bounds writes.
+
+---
+
 ### Synthesized Discovery
 
 # Discovery: In The Union Now (ITUN) — Revamp
