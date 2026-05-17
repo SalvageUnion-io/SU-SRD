@@ -64,6 +64,70 @@ _Strategic-scope Q&A — 16 questions across 4 batches._
 | 18 | Accessibility target? | **WCAG 2.1 AAA for sheet display** (AA elsewhere implied) | Sheet view is the hot path — read at the table on a phone, often under poor lighting. Push the bar higher. CI a11y-scan job already exists. |
 | 19 | Remaining hard constraints? (multi) | **A4 + US Letter print quality required**; **evergreen browsers only — drop Safari < 16** | Not selected: free-tier hosting cap, must-deploy-on-Netlify. Implies modern CSS / View Transitions / etc. are fair game. |
 
+---
+
+## Competitors
+_Completed: 2026-05-17. Synthesis-only mode (no third-party transcripts to extract from)._
+
+**Method note:** No stakeholder interview transcripts exist for this run. All source materials are first-party project artifacts authored by the user. The traditional competitors extraction workflow (verbatim quoting from customer voice) does not apply. Instead, competitive landscape was synthesized from:
+
+1. The Synthesized Discovery (§ above) — the user's own framing of the SU tool landscape from strategic Q&A.
+2. `plan-docs/long-term-goals.md` — explicit comparison of current ITUN vs. intended scope.
+3. `apps/in-the-union-now/README.md` + `CLAUDE.md` — current ITUN's positioning.
+4. Inherited project knowledge of the Salvage Union community tooling space (Google Docs, Roll20, Foundry, PDF sheets, `suref-web`).
+
+**Speaker attribution:** Single-speaker (the user) for all extracted content. No Claude-turn / agent-turn lines were promoted to PRD voice. Where the PRD says "the user wants X", the source is either an explicit Q&A answer in the Q&A log above or a written assertion in `plan-docs/`.
+
+**PRD sections written:**
+- 1.0 Document Overview — metadata scaffold
+- 2.0 Executive Summary (initial — refined by opportunity below)
+- 3.0 Background & Strategic Fit
+- 3.5 Competitive Landscape — five-tool comparison table; market gaps; differentiation thesis; key takeaways
+
+**Section Ownership Validation:** Wrote only to 1.0, 2.0 (initial), 3.0, 3.5. No out-of-bounds writes.
+
+---
+
+## Knowledge
+_Completed: 2026-05-17. Synthesis-only mode._
+
+**Method note:** "Knowledge" in the canonical workflow means unwritten operational expertise extracted from stakeholder transcripts. For this brownfield rebuild, the equivalent is **operational pain points the maintainer has personally encountered and documented in plan-docs / audit-followup / the codebase itself**. Sources synthesized:
+
+1. `plan-docs/long-term-goals.md` — 22 catalogued P0–P4 gaps; priority matrix; race conditions.
+2. `plan-docs/audit-follow-up.md` — completed sessions + remaining tech debt (god hooks, eager loading, race conditions).
+3. `docs/audit/AUDIT-BACKLOG.md` — 69-finding prioritized cleanup backlog.
+4. `docs/architecture/rules-engine-boundary.md` — the codified ADR-grade decision: ITUN enforces economic constraints, not procedural adjudication.
+5. The Synthesized Discovery's user-perspective success criteria.
+
+**Speaker attribution:** Same as Competitors. Single-speaker, all first-party authoritative content.
+
+**PRD sections written:**
+- 3.1 Problem Statement (synthesized user-perspective frustrations)
+- 3.4 Pain Points with Existing Systems (9 catalogued pain points with citations)
+
+**Section Ownership Validation:** Wrote only to 3.1, 3.4. No out-of-bounds writes.
+
+---
+
+## Opportunity
+_Completed: 2026-05-17. Synthesis-only mode._
+
+**Method note:** Strategic opportunity assessment grounded in:
+
+1. The cross-product of identified market gaps (§3.5) and user-stated success criteria (Discovery synthesis).
+2. The maintainer's explicit framing in Q&A #2–#4: smaller, more useful, sooner, with an upgrade path to the original ambition.
+3. The `salvageunion-reference` data-layer moat — identified as the project's strongest compounding asset.
+
+**Speaker attribution:** Same as above. Single-speaker, first-party.
+
+**PRD sections written:**
+- 3.2 Goal & Opportunity (focused single-player builder; multiplayer-ready foundation; "why now" rationale)
+- 2.0 Executive Summary (refinement — vision/scope statement; explicit MVP vs. upgrade-path partition; success-metrics table)
+
+**Section Ownership Validation:** Wrote only to 3.2 and refinements to 2.0. No out-of-bounds writes.
+
+---
+
 ### Synthesized Discovery
 
 # Discovery: In The Union Now (ITUN) — Revamp
