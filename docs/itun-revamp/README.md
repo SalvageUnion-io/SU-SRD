@@ -7,8 +7,10 @@ and via pinned tracking epic
 
 ## Branch convention
 
-> **`yitun-revamp` is the integration branch for this revamp. Do not target
-> `main` for any M1–M3 issue.**
+> **`yitun-revamp` is the permanent integration branch for the ITUN revamp.
+> All revamp PRs target `yitun-revamp`, never `main` — through M1, M2, M3,
+> M4, and any follow-on work. `yitun-revamp` is not closed at the M3
+> release; it stays alive as the long-lived home for the rebuild lineage.**
 
 | Phase | Story branches off | PR base |
 | :---- | :----------------- | :------ |
@@ -18,7 +20,7 @@ and via pinned tracking epic
 | M3 → Release | `yitun-revamp` (entire branch) | `main` (one-time integration merge) |
 | M4 (Post-Release Backlog) | `yitun-revamp` | `yitun-revamp` |
 
-**M4 stays on `yitun-revamp` too.** Post-release backlog work continues on the integration branch so the entire revamp lives in one reviewable lineage. `yitun-revamp` is not closed after the M3 release — it remains the long-lived integration branch for any ITUN-revamp work, including optional Should-Have features and post-launch polish.
+**Every wave stays on `yitun-revamp` — through M3 release, M4 backlog, and any follow-on work afterward.** The integration branch is permanent. `yitun-revamp → main` happens only at the maintainer's discretion (e.g., a coordinated swap when the rebuild is judged production-equivalent); short of that explicit decision, all ITUN-revamp work continues on `yitun-revamp` indefinitely.
 
 The repo's GitHub default branch stays `main` because unrelated work — the
 Discord bot, suref-web cleanup, salvageunion-reference data edits, etc. —
