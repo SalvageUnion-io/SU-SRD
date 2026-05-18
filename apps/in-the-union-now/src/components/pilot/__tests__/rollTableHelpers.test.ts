@@ -1,119 +1,92 @@
 /**
- * Unit tests for rollTableHelpers — pure logic, no DOM.
+ * Unit tests for rollTableHelpers — pure logic, dep-injection only.
  *
- * Bun does not support import-time vi.mock() the same way as Vitest.
- * Instead we directly mock SalvageUnionReference methods on the module's
- * imported object, which works because modules are cached singletons.
+ * Does NOT use `mock.module()` because Bun's module mocks leak globally
+ * across test files in the same process and break sibling tests that
+ * import `salvageunion-reference`. Instead the helpers accept a
+ * `RollTableDeps` parameter that we stub directly per test.
  */
 
-import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
+import { rollForPilotField } from '../rollTableHelpers'
+import type { RollTableDeps } from '../rollTableHelpers'
 
-// ---------------------------------------------------------------------------
-// We must mock SalvageUnionReference BEFORE importing rollTableHelpers
-// because the helpers module captures the reference at import time.
-// Use bun module mock.module() to intercept the import.
-// ---------------------------------------------------------------------------
-const mockFind = mock(() => undefined)
+type StubTable = {
+  id: string
+  name: string
+  schemaName: 'roll-tables'
+  table: Record<string, { value: string; label?: string }>
+}
 
-mock.module('salvageunion-reference', () => ({
-  SalvageUnionReference: {
-    RollTables: { find: mockFind },
-    Classes: { all: mock(() => []), find: mock(() => undefined) },
-    Abilities: { findAll: mock(() => []) },
-    Equipment: { findAll: mock(() => []) },
-  },
-  resultForTable: (table: Record<string, unknown> | undefined, roll: number) => {
-    if (!table) return { success: false, result: { value: 'no table' }, key: '' }
-    const key = roll.toString()
-    const entry = (table as Record<string, { value: string }>)[key]
-    if (!entry) return { success: false, result: { value: 'no result' }, key: '' }
-    return { success: true, result: entry, key }
-  },
-}))
-
-// Import AFTER mock is set up
-const { rollForPilotField } = await import('../rollTableHelpers')
-
-// ---------------------------------------------------------------------------
-// Tests
-// ---------------------------------------------------------------------------
+function makeDeps(table: StubTable | undefined, roll: number): RollTableDeps {
+  return {
+    findTable: () => table as never,
+    rollD20: () => roll,
+  }
+}
 
 describe('rollForPilotField', () => {
-  beforeEach(() => {
-    mockFind.mockReset()
-  })
-
-  afterEach(() => {
-    mockFind.mockReset()
-  })
-
   test('returns null when table is not found', () => {
-    mockFind.mockImplementation(() => undefined)
-    const result = rollForPilotField('callsign')
+    const result = rollForPilotField('callsign', makeDeps(undefined, 5))
     expect(result).toBeNull()
   })
 
   test('returns null when table exists but has no matching roll result', () => {
-    mockFind.mockImplementation(() => ({
-      id: 'mock-id',
-      name: 'Callsign Table',
-      table: {},
-    }))
-
-    const result = rollForPilotField('callsign')
+    const result = rollForPilotField(
+      'callsign',
+      makeDeps(
+        { id: 'rt-callsign', name: 'Callsign Table', schemaName: 'roll-tables', table: {} },
+        5
+      )
+    )
     expect(result).toBeNull()
   })
 
-  test('returns a string when a flat table entry is found', () => {
-    const flatTable: Record<string, { value: string }> = {}
-    for (let i = 1; i <= 20; i++) {
-      flatTable[i.toString()] = { value: `Option ${i}` }
-    }
-
-    mockFind.mockImplementation(() => ({
-      id: 'mock-id',
-      name: 'Callsign Table',
-      table: flatTable,
-    }))
-
-    const result = rollForPilotField('callsign')
-    expect(typeof result).toBe('string')
-    expect(result).toMatch(/^Option \d+$/)
+  test('returns the rolled value for a valid roll', () => {
+    const result = rollForPilotField(
+      'callsign',
+      makeDeps(
+        {
+          id: 'rt-callsign',
+          name: 'Callsign Table',
+          schemaName: 'roll-tables',
+          table: { '5': { value: 'Ghost' } },
+        },
+        5
+      )
+    )
+    expect(result).toBe('Ghost')
   })
 
-  test('result includes label when table entry has a label field', () => {
-    const flatTable: Record<string, { label: string; value: string }> = {}
-    for (let i = 1; i <= 20; i++) {
-      flatTable[i.toString()] = { label: 'Label', value: 'Value' }
-    }
-
-    mockFind.mockImplementation(() => ({
-      id: 'mock-id',
-      name: 'Motto',
-      table: flatTable,
-    }))
-
-    // The real resultForTable is mocked to return label+value for entries that have it
-    // but our mock resultForTable doesn't format with label — test the shape only
-    const result = rollForPilotField('motto')
-    expect(typeof result).toBe('string')
+  test('prefixes label when entry has both label and value', () => {
+    const result = rollForPilotField(
+      'motto',
+      makeDeps(
+        {
+          id: 'rt-motto',
+          name: 'Motto',
+          schemaName: 'roll-tables',
+          table: { '7': { label: 'Bold', value: 'Forward, always' } },
+        },
+        7
+      )
+    )
+    expect(result).toBe('Bold: Forward, always')
   })
 
-  test('works for all pilot roll fields', () => {
-    const flatTable: Record<string, { value: string }> = {}
-    for (let i = 1; i <= 20; i++) {
-      flatTable[i.toString()] = { value: `Entry ${i}` }
-    }
-    mockFind.mockImplementation(() => ({
-      id: 'mock-id',
-      name: 'Any',
-      table: flatTable,
-    }))
-
-    const fields = ['callsign', 'motto', 'keepsake', 'appearance', 'background'] as const
-    for (const field of fields) {
-      const result = rollForPilotField(field)
-      expect(typeof result).toBe('string')
-    }
+  test('uses bare value when entry has no label', () => {
+    const result = rollForPilotField(
+      'keepsake',
+      makeDeps(
+        {
+          id: 'rt-keepsake',
+          name: 'Keepsake',
+          schemaName: 'roll-tables',
+          table: { '12': { value: 'A tarnished medal' } },
+        },
+        12
+      )
+    )
+    expect(result).toBe('A tarnished medal')
   })
 })

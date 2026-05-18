@@ -1,6 +1,6 @@
 run_id: 2026-05-18-itun-revamp-wave-3
 version: 1
-status: in_flight
+status: shipped
 mode: concurrent
 triviality: standard
 input_shape: prose
@@ -37,14 +37,14 @@ phases:
   - id: scope
     status: complete
   - id: scaffold
-    status: pending
+    status: complete
   - id: worktree
-    status: pending
+    status: complete
   - id: cycles
-    status: pending
+    status: complete
   - id: integrate
-    status: pending
+    status: complete
   - id: review
-    status: pending
+    status: complete
   - id: ship
-    status: pending
+    status: complete

@@ -177,7 +177,9 @@ export function PilotWizard({ onComplete, onCancel, _rollDeps, _sur }: PilotWiza
         updatedAt: now,
       })
       if (!validation.success) {
-        const messages = validation.error.errors.map((e) => e.message).join('; ')
+        const messages = validation.error.issues
+          .map((e: { message: string }) => e.message)
+          .join('; ')
         setSubmitError(`Validation error: ${messages}`)
         setIsSubmitting(false)
         return

@@ -12,8 +12,14 @@ type ClassStepProps = {
   _sur?: SURClassesAccessor
 }
 
-function isBaseClass(cls: SURefClass): boolean {
-  return 'coreTrees' in cls && cls.coreTrees !== null && cls.coreTrees !== undefined
+function isBaseClass(cls: unknown): cls is SURefClass {
+  return (
+    typeof cls === 'object' &&
+    cls !== null &&
+    'coreTrees' in cls &&
+    (cls as { coreTrees: unknown }).coreTrees !== null &&
+    (cls as { coreTrees: unknown }).coreTrees !== undefined
+  )
 }
 
 /**
