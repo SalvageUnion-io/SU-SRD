@@ -25,7 +25,12 @@
         "src/lib/schemas/index.ts",
         "src/lib/db/index.ts",
         "src/lib/db/stores.ts",
-        "src/lib/db/crud.ts"
+        "src/lib/db/crud.ts",
+        "src/stores/index.ts",
+        "src/stores/appStore.ts",
+        "src/stores/entityStore.ts",
+        "src/stores/workspaceStore.ts",
+        "src/stores/types.ts"
       ],
       "project": ["src/**/*.{ts,tsx}", "test/**/*.ts"],
       "ignoreDependencies": ["salvageunion-reference", "suref-react", "lucide-react"]
