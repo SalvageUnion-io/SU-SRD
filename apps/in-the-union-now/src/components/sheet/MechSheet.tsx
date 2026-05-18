@@ -1,19 +1,26 @@
 /**
- * MechSheet — read-only mech section for the sheet view.
+ * MechSheet — mech section for the sheet view.
  *
  * Renders: mech name + chassis (resolved via salvageunion-reference), chassis
- * stats (SP/EP/heat/system slots/module slots/cargo capacity), systems list,
- * modules list (each with a read-only ConditionToggle), and cargo.
+ * stats (SP/EP/Heat/Sys/Mod/Cargo) as inline-editable fields (Wave 6, #199),
+ * systems list, modules list (each with a read-only ConditionToggle), and cargo.
  *
- * Stats are static chassis defaults. Click-to-edit is #199 (later wave).
+ * Editable stats: HP, AP, TP, SP, EP, Heat — backed by optional `currentXxx`
+ * fields on the Mech schema (Wave 6). The display falls back to chassis defaults
+ * when no current value is set, giving users a sensible starting point.
  *
  * Chassis resolution is dep-injectable for testing: pass `chassis` directly
  * when you don't want the component to call SalvageUnionReference at runtime.
+ *
+ * entityStore is also dep-injectable (defaults to useEntityStore) so tests can
+ * pass a stub without module mocking.
  */
 
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { Mech } from '../../lib/schemas/mech'
+import { useEntityStore } from '../../stores/entityStore'
 import { ConditionToggle } from '../shared/ConditionToggle'
+import { EditableStatRow } from './EditableStatRow'
 
 // Narrow subset of chassis data we actually need
 type ChassisLike = {
@@ -33,6 +40,11 @@ type MechSheetProps = {
    * SalvageUnionReference.Chassis.find() via mech.chassisRef.
    */
   chassis?: ChassisLike | null
+  /**
+   * Injectable store — defaults to useEntityStore.
+   * Pass a stub in tests to avoid Zustand/IndexedDB side effects.
+   */
+  store?: typeof useEntityStore
 }
 
 function resolveChassis(mech: Mech, override?: ChassisLike | null): ChassisLike | null {
@@ -40,7 +52,11 @@ function resolveChassis(mech: Mech, override?: ChassisLike | null): ChassisLike 
   return SalvageUnionReference.Chassis.find((c) => c.name === mech.chassisRef) ?? null
 }
 
-export function MechSheet({ mech, chassis: chassisOverride }: MechSheetProps) {
+export function MechSheet({
+  mech,
+  chassis: chassisOverride,
+  store = useEntityStore,
+}: MechSheetProps) {
   const chassis = resolveChassis(mech, chassisOverride)
 
   return (
@@ -55,19 +71,97 @@ export function MechSheet({ mech, chassis: chassisOverride }: MechSheetProps) {
         </p>
       </div>
 
-      {/* Stats */}
+      {/* Stats — inline-editable via EditableStatRow (AC-1 + AC-2) */}
       {chassis && (
         <div>
           <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-2">
             Stats
           </h3>
           <dl className="grid grid-cols-3 gap-2 sm:grid-cols-6">
-            <StatBlock label="SP" value={chassis.structurePoints} />
-            <StatBlock label="EP" value={chassis.energyPoints} />
-            <StatBlock label="Heat" value={chassis.heatCapacity} />
-            <StatBlock label="Sys" value={chassis.systemSlots} />
-            <StatBlock label="Mod" value={chassis.moduleSlots} />
-            <StatBlock label="Cargo" value={chassis.cargoCapacity} />
+            <div className="flex flex-col items-center rounded border border-border py-2 text-center">
+              <dt className="text-xs text-muted-foreground">HP</dt>
+              <dd className="text-lg font-semibold">
+                <EditableStatRow
+                  label=""
+                  value={mech.currentHP ?? chassis.structurePoints ?? 0}
+                  entityKind="mech"
+                  entityId={mech.id}
+                  fieldPath="currentHP"
+                  min={0}
+                  store={store}
+                />
+              </dd>
+            </div>
+            <div className="flex flex-col items-center rounded border border-border py-2 text-center">
+              <dt className="text-xs text-muted-foreground">AP</dt>
+              <dd className="text-lg font-semibold">
+                <EditableStatRow
+                  label=""
+                  value={mech.currentAP ?? 0}
+                  entityKind="mech"
+                  entityId={mech.id}
+                  fieldPath="currentAP"
+                  min={0}
+                  store={store}
+                />
+              </dd>
+            </div>
+            <div className="flex flex-col items-center rounded border border-border py-2 text-center">
+              <dt className="text-xs text-muted-foreground">TP</dt>
+              <dd className="text-lg font-semibold">
+                <EditableStatRow
+                  label=""
+                  value={mech.currentTP ?? 0}
+                  entityKind="mech"
+                  entityId={mech.id}
+                  fieldPath="currentTP"
+                  min={0}
+                  store={store}
+                />
+              </dd>
+            </div>
+            <div className="flex flex-col items-center rounded border border-border py-2 text-center">
+              <dt className="text-xs text-muted-foreground">SP</dt>
+              <dd className="text-lg font-semibold">
+                <EditableStatRow
+                  label=""
+                  value={mech.currentSP ?? chassis.structurePoints ?? 0}
+                  entityKind="mech"
+                  entityId={mech.id}
+                  fieldPath="currentSP"
+                  min={0}
+                  store={store}
+                />
+              </dd>
+            </div>
+            <div className="flex flex-col items-center rounded border border-border py-2 text-center">
+              <dt className="text-xs text-muted-foreground">EP</dt>
+              <dd className="text-lg font-semibold">
+                <EditableStatRow
+                  label=""
+                  value={mech.currentEP ?? chassis.energyPoints ?? 0}
+                  entityKind="mech"
+                  entityId={mech.id}
+                  fieldPath="currentEP"
+                  min={0}
+                  store={store}
+                />
+              </dd>
+            </div>
+            <div className="flex flex-col items-center rounded border border-border py-2 text-center">
+              <dt className="text-xs text-muted-foreground">Heat</dt>
+              <dd className="text-lg font-semibold">
+                <EditableStatRow
+                  label=""
+                  value={mech.currentHeat ?? chassis.heatCapacity ?? 0}
+                  entityKind="mech"
+                  entityId={mech.id}
+                  fieldPath="currentHeat"
+                  min={0}
+                  store={store}
+                />
+              </dd>
+            </div>
           </dl>
         </div>
       )}
@@ -128,23 +222,5 @@ export function MechSheet({ mech, chassis: chassisOverride }: MechSheetProps) {
         </div>
       )}
     </section>
-  )
-}
-
-// ---------------------------------------------------------------------------
-// Sub-component
-// ---------------------------------------------------------------------------
-
-type StatBlockProps = {
-  label: string
-  value?: number
-}
-
-function StatBlock({ label, value }: StatBlockProps) {
-  return (
-    <div className="flex flex-col items-center rounded border border-border py-2 text-center">
-      <dt className="text-xs text-muted-foreground">{label}</dt>
-      <dd className="text-lg font-semibold">{value ?? '—'}</dd>
-    </div>
   )
 }

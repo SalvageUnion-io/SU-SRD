@@ -35,6 +35,7 @@ import { PilotSheet } from './PilotSheet'
 import { MechSheet } from './MechSheet'
 import { CrawlerSheet } from './CrawlerSheet'
 import { PilotStandIn } from '../shared/PilotStandIn'
+import { PublishButton } from './PublishButton'
 
 // ---------------------------------------------------------------------------
 // Dep-injection types for testing
@@ -60,9 +61,20 @@ type SheetProps = {
    * When omitted, useSoftLinks reads from the real Zustand store.
    */
   softLinkStore?: SoftLinkStore
+  /**
+   * When true, the PublishButton is hidden. Use for snapshot-view contexts
+   * where publishing is not applicable.
+   */
+  readOnly?: boolean
 }
 
-export function Sheet({ kind, id, entityStore: entityStoreOverride, softLinkStore }: SheetProps) {
+export function Sheet({
+  kind,
+  id,
+  entityStore: entityStoreOverride,
+  softLinkStore,
+  readOnly = false,
+}: SheetProps) {
   // ---------------------------------------------------------------------------
   // Always call hooks (Rules of Hooks) — real store used when no override.
   // ---------------------------------------------------------------------------
@@ -206,6 +218,11 @@ export function Sheet({ kind, id, entityStore: entityStoreOverride, softLinkStor
   return (
     <main className="mx-auto max-w-3xl p-6">
       <SheetHeader name={displayName} mode={resolved.mode} />
+      {!readOnly && (
+        <div className="flex justify-end mb-4">
+          <PublishButton entityKind={kind} entityId={id} entityStore={entityStoreOverride} />
+        </div>
+      )}
 
       <div className="flex flex-col gap-8">
         {/* Pilot section */}
