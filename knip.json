@@ -33,7 +33,6 @@
         "src/stores/types.ts"
       ],
       "project": ["src/**/*.{ts,tsx}", "test/**/*.ts"],
-      "ignore": ["src/lib/sw/__mocks__/**"],
       "ignoreDependencies": ["suref-react", "lucide-react"]
     },
     "apps/itun-legacy": {

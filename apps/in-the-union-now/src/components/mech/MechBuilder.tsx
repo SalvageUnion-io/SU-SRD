@@ -24,16 +24,26 @@ import { SystemModuleGrid } from './SystemModuleGrid'
 import { CargoEditor } from './CargoEditor'
 import { CapacityIndicator } from './CapacityIndicator'
 import { SavePatternButton } from './Pattern/SavePatternButton'
+// TODO(cycle-3): SoftWarningBanner is wired here but is a no-op during create flow
+// because there is no entityId until after entityStore.create() resolves.
+// Wire the edit flow once /mechs/$id gains an inline editing mode (deferred to a later wave).
+import { SoftWarningBanner } from '../shared/SoftWarningBanner'
+import { useSoftWarnings } from '../shared/useSoftWarnings'
 import { Button } from '../ui/button'
 import { cn } from '../../lib/utils'
 
 type MechBuilderProps = {
   /** Called after entityStore.create() resolves; parent route navigates on success. */
   onSuccess?: () => void
+  /**
+   * Id of an existing mech being edited. When provided, SoftWarningBanner is active.
+   * Omit in create mode (the banner is a no-op until an id exists).
+   */
+  mechId?: string
   className?: string
 }
 
-export function MechBuilder({ onSuccess, className }: MechBuilderProps) {
+export function MechBuilder({ onSuccess, mechId, className }: MechBuilderProps) {
   const [mechName, setMechName] = useState('')
   const [chassisName, setChassisName] = useState<string | null>(null)
   const [systems, setSystems] = useState<MechSystemSlot[]>([])
@@ -41,6 +51,17 @@ export function MechBuilder({ onSuccess, className }: MechBuilderProps) {
   const [cargoItems, setCargoItems] = useState<CargoItem[]>([])
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // SoftWarningBanner — active only in edit mode (mechId provided).
+  // In create mode (no mechId) the hook returns empty warnings (entity not found).
+  const {
+    warnings: softWarnings,
+    saveAnyway: saveSoftAnyway,
+    fixIt: fixSoftWarnings,
+  } = useSoftWarnings({
+    entityType: 'mech',
+    entityId: mechId ?? '',
+  })
 
   // ---------------------------------------------------------------------------
   // Resolve chassis for capacity / cargo math
@@ -199,6 +220,13 @@ export function MechBuilder({ onSuccess, className }: MechBuilderProps) {
           {submitError}
         </div>
       )}
+
+      {/* Soft warnings (edit mode only — no-op in create flow) */}
+      <SoftWarningBanner
+        warnings={softWarnings}
+        onSaveAnyway={() => void saveSoftAnyway()}
+        onFixIt={fixSoftWarnings}
+      />
 
       {/* Submit button */}
       <div className="flex gap-3">
