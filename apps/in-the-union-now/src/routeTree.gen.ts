@@ -10,43 +10,43 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as MechsNewRouteImport } from './routes/mechs/new'
+import { Route as CrawlersNewRouteImport } from './routes/crawlers/new'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const MechsNewRoute = MechsNewRouteImport.update({
-  id: '/mechs/new',
-  path: '/mechs/new',
+const CrawlersNewRoute = CrawlersNewRouteImport.update({
+  id: '/crawlers/new',
+  path: '/crawlers/new',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/mechs/new': typeof MechsNewRoute
+  '/crawlers/new': typeof CrawlersNewRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/mechs/new': typeof MechsNewRoute
+  '/crawlers/new': typeof CrawlersNewRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/mechs/new': typeof MechsNewRoute
+  '/crawlers/new': typeof CrawlersNewRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/mechs/new'
+  fullPaths: '/' | '/crawlers/new'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/mechs/new'
-  id: '__root__' | '/' | '/mechs/new'
+  to: '/' | '/crawlers/new'
+  id: '__root__' | '/' | '/crawlers/new'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  MechsNewRoute: typeof MechsNewRoute
+  CrawlersNewRoute: typeof CrawlersNewRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -58,11 +58,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/mechs/new': {
-      id: '/mechs/new'
-      path: '/mechs/new'
-      fullPath: '/mechs/new'
-      preLoaderRoute: typeof MechsNewRouteImport
+    '/crawlers/new': {
+      id: '/crawlers/new'
+      path: '/crawlers/new'
+      fullPath: '/crawlers/new'
+      preLoaderRoute: typeof CrawlersNewRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -70,7 +70,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  MechsNewRoute: MechsNewRoute,
+  CrawlersNewRoute: CrawlersNewRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
