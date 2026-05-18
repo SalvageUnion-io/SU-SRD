@@ -1,5 +1,5 @@
 [test]
-preload = ["../../test/happydom.ts", "../../test/testing-library.ts"]
+preload = ["../../test/happydom.ts", "../../test/testing-library.ts", "fake-indexeddb/auto"]
 
 [test.env]
 NODE_ENV = "test"

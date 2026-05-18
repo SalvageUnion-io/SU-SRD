@@ -19,7 +19,14 @@
       "ignoreDependencies": ["sharp"]
     },
     "apps/in-the-union-now": {
-      "entry": ["src/routes/**/*.tsx", "test/**/*.test.ts"],
+      "entry": [
+        "src/routes/**/*.tsx",
+        "test/**/*.test.ts",
+        "src/lib/schemas/index.ts",
+        "src/lib/db/index.ts",
+        "src/lib/db/stores.ts",
+        "src/lib/db/crud.ts"
+      ],
       "project": ["src/**/*.{ts,tsx}", "test/**/*.ts"],
       "ignoreDependencies": ["salvageunion-reference", "suref-react", "lucide-react"]
     },
