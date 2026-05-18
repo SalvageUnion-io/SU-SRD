@@ -86,7 +86,7 @@ describe('useSoftWarnings', () => {
           entityType: 'pilot',
           entityId: PILOT_ID,
           evaluate: evaluateFn as Parameters<typeof useSoftWarnings>[0]['evaluate'],
-          store: storeHook,
+          store: storeHook as never,
         })
       )
 
@@ -97,7 +97,7 @@ describe('useSoftWarnings', () => {
       })
 
       expect(evaluateFn).toHaveBeenCalledTimes(1)
-      const [calledBefore, calledAfter, calledCtx] = evaluateFn.mock.calls[0] as [
+      const [calledBefore, calledAfter, calledCtx] = evaluateFn.mock.calls[0] as unknown as [
         unknown,
         unknown,
         unknown,
@@ -119,7 +119,7 @@ describe('useSoftWarnings', () => {
           entityType: 'pilot',
           entityId: PILOT_ID,
           evaluate: evaluateFn as Parameters<typeof useSoftWarnings>[0]['evaluate'],
-          store: storeHook,
+          store: storeHook as never,
         })
       )
 
@@ -141,7 +141,7 @@ describe('useSoftWarnings', () => {
           entityType: 'pilot',
           entityId: PILOT_ID,
           evaluate: evaluateFn as Parameters<typeof useSoftWarnings>[0]['evaluate'],
-          store: storeHook,
+          store: storeHook as never,
         })
       )
 
@@ -161,7 +161,7 @@ describe('useSoftWarnings', () => {
           entityType: 'mech',
           entityId: PILOT_ID,
           evaluate: evaluateFn as Parameters<typeof useSoftWarnings>[0]['evaluate'],
-          store: storeHook,
+          store: storeHook as never,
         })
       )
 
@@ -169,7 +169,7 @@ describe('useSoftWarnings', () => {
         result.current.preview({ name: 'Mech' }, { techLevelDowngraded: true })
       })
 
-      const [, , calledCtx] = evaluateFn.mock.calls[0] as [
+      const [, , calledCtx] = evaluateFn.mock.calls[0] as unknown as [
         unknown,
         unknown,
         { techLevelDowngraded?: boolean },
@@ -188,7 +188,7 @@ describe('useSoftWarnings', () => {
           entityType: 'pilot',
           entityId: PILOT_ID,
           evaluate: evaluateFn as Parameters<typeof useSoftWarnings>[0]['evaluate'],
-          store: storeHook,
+          store: storeHook as never,
         })
       )
 
@@ -201,7 +201,7 @@ describe('useSoftWarnings', () => {
       })
 
       expect(updateFn).toHaveBeenCalledTimes(1)
-      const [calledType, calledId, calledPatch] = updateFn.mock.calls[0] as [
+      const [calledType, calledId, calledPatch] = updateFn.mock.calls[0] as unknown as [
         string,
         string,
         unknown,
@@ -220,7 +220,7 @@ describe('useSoftWarnings', () => {
           entityType: 'pilot',
           entityId: PILOT_ID,
           evaluate: evaluateFn as Parameters<typeof useSoftWarnings>[0]['evaluate'],
-          store: storeHook,
+          store: storeHook as never,
         })
       )
 
@@ -244,7 +244,7 @@ describe('useSoftWarnings', () => {
         useSoftWarnings({
           entityType: 'pilot',
           entityId: PILOT_ID,
-          store: storeHook,
+          store: storeHook as never,
         })
       )
 
@@ -265,7 +265,7 @@ describe('useSoftWarnings', () => {
           entityType: 'pilot',
           entityId: PILOT_ID,
           evaluate: evaluateFn as Parameters<typeof useSoftWarnings>[0]['evaluate'],
-          store: storeHook,
+          store: storeHook as never,
         })
       )
 
@@ -290,7 +290,7 @@ describe('useSoftWarnings', () => {
         useSoftWarnings({
           entityType: 'pilot',
           entityId: PILOT_ID,
-          store: storeHook,
+          store: storeHook as never,
         })
       )
 

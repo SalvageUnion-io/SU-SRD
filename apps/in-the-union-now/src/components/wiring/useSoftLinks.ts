@@ -16,9 +16,9 @@ import type { SoftLink } from '../../lib/schemas/softLink'
 import type { EntityRef } from '../../lib/schemas/entity'
 
 /** The entity types that can be endpoints in a SoftLink (excludes 'softLink' itself). */
-export type AssignTarget = EntityRef
+type AssignTarget = EntityRef
 
-export type SoftLinkActions = {
+type SoftLinkActions = {
   outgoing: SoftLink[]
   incoming: SoftLink[]
   /**

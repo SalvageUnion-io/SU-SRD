@@ -49,7 +49,7 @@ describe('SoftWarningBanner', () => {
     render(
       <SoftWarningBanner warnings={[warnWarning]} onSaveAnyway={() => {}} onFixIt={() => {}} />
     )
-    expect(screen.getByText(warnWarning.message)).toBeInTheDocument()
+    expect(screen.getByText(warnWarning.message)).toBeTruthy()
   })
 
   test('renders multiple warnings', () => {
@@ -60,16 +60,16 @@ describe('SoftWarningBanner', () => {
         onFixIt={() => {}}
       />
     )
-    expect(screen.getByText(warnWarning.message)).toBeInTheDocument()
-    expect(screen.getByText(infoWarning.message)).toBeInTheDocument()
+    expect(screen.getByText(warnWarning.message)).toBeTruthy()
+    expect(screen.getByText(infoWarning.message)).toBeTruthy()
   })
 
   test('renders "Save anyway" and "Fix it" buttons when non-empty', () => {
     render(
       <SoftWarningBanner warnings={[warnWarning]} onSaveAnyway={() => {}} onFixIt={() => {}} />
     )
-    expect(screen.getByRole('button', { name: /save anyway/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /fix it/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /save anyway/i })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /fix it/i })).toBeTruthy()
   })
 
   test('clicking "Save anyway" calls onSaveAnyway', async () => {
@@ -123,7 +123,7 @@ describe('SoftWarningBanner', () => {
     render(
       <SoftWarningBanner warnings={[warnWarning]} onSaveAnyway={() => {}} onFixIt={() => {}} />
     )
-    expect(screen.getByRole('alert')).toBeInTheDocument()
+    expect(screen.getByRole('alert')).toBeTruthy()
   })
 
   test('accepts optional className', () => {
