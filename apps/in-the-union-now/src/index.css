@@ -1,5 +1,6 @@
 @import 'tailwindcss';
 @import 'suref-react/styles/theme.css';
+@import './styles/print.css';
 
 @source "../../../packages/suref-react/src";
 
