@@ -33,7 +33,8 @@
         "src/stores/types.ts"
       ],
       "project": ["src/**/*.{ts,tsx}", "test/**/*.ts"],
-      "ignoreDependencies": ["salvageunion-reference", "suref-react", "lucide-react"]
+      "ignore": ["src/lib/sw/__mocks__/**"],
+      "ignoreDependencies": ["suref-react", "lucide-react"]
     },
     "apps/itun-legacy": {
       "entry": [],
