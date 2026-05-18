@@ -1,6 +1,6 @@
 run_id: 2026-05-18-itun-revamp-wave-5
 version: 1
-status: in_flight
+status: shipped
 mode: concurrent
 triviality: standard
 input_shape: prose
