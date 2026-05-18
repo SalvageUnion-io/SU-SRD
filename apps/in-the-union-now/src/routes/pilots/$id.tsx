@@ -14,6 +14,8 @@ import { useEntityStore } from '../../stores/entityStore'
 import { AssignCrawlerToPilot } from '../../components/wiring/AssignCrawlerToPilot'
 import { UnassignLinkButton } from '../../components/wiring/UnassignLinkButton'
 import { useSoftLinks } from '../../components/wiring/useSoftLinks'
+import { AssignToWorkspaceButton } from '../../components/workspace/AssignToWorkspaceButton'
+import { useWorkspaceStore } from '../../stores/workspaceStore'
 
 export const Route = createFileRoute('/pilots/$id')({
   loader: async ({ params }) => {
@@ -21,6 +23,7 @@ export const Route = createFileRoute('/pilots/$id')({
       useEntityStore.getState().hydrate('pilot'),
       useEntityStore.getState().hydrate('crawler'),
       useEntityStore.getState().hydrate('softLink'),
+      useWorkspaceStore.getState().hydrate(),
     ])
     return { id: params.id }
   },
@@ -113,6 +116,17 @@ function PilotDetailPage() {
             />
           </div>
         )}
+      </section>
+
+      {/* Workspace assignment */}
+      <section className="mb-6">
+        <h2 className="mb-3 text-base font-semibold">Workspace</h2>
+        <AssignToWorkspaceButton
+          entityType="pilot"
+          entityId={id}
+          currentWorkspaceId={pilot.workspaceId}
+          onChanged={() => void navigate({ to: '/pilots/$id', params: { id } })}
+        />
       </section>
 
       {/* Actions */}

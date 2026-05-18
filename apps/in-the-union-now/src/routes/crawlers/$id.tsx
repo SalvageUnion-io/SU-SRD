@@ -8,10 +8,12 @@
  * 404 rendered inline when the crawler is not found after hydration.
  */
 
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 
 import { useEntityStore } from '../../stores/entityStore'
 import { useSoftLinks } from '../../components/wiring/useSoftLinks'
+import { AssignToWorkspaceButton } from '../../components/workspace/AssignToWorkspaceButton'
+import { useWorkspaceStore } from '../../stores/workspaceStore'
 
 export const Route = createFileRoute('/crawlers/$id')({
   loader: async ({ params }) => {
@@ -19,6 +21,7 @@ export const Route = createFileRoute('/crawlers/$id')({
       useEntityStore.getState().hydrate('crawler'),
       useEntityStore.getState().hydrate('pilot'),
       useEntityStore.getState().hydrate('softLink'),
+      useWorkspaceStore.getState().hydrate(),
     ])
     return { id: params.id }
   },
@@ -27,6 +30,7 @@ export const Route = createFileRoute('/crawlers/$id')({
 
 function CrawlerDetailPage() {
   const { id } = Route.useParams()
+  const navigate = useNavigate()
 
   const crawler = useEntityStore((s) => s.crawlers.find((c) => c.id === id) ?? null)
   const pilots = useEntityStore((s) => s.pilots)
@@ -106,6 +110,17 @@ function CrawlerDetailPage() {
             ))}
           </ul>
         )}
+      </section>
+
+      {/* Workspace assignment */}
+      <section className="mb-6">
+        <h2 className="mb-3 text-base font-semibold">Workspace</h2>
+        <AssignToWorkspaceButton
+          entityType="crawler"
+          entityId={id}
+          currentWorkspaceId={crawler.workspaceId}
+          onChanged={() => void navigate({ to: '/crawlers/$id', params: { id } })}
+        />
       </section>
 
       {/* Actions */}

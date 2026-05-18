@@ -14,6 +14,8 @@ import { useEntityStore } from '../../stores/entityStore'
 import { AssignPilotToMech } from '../../components/wiring/AssignPilotToMech'
 import { UnassignLinkButton } from '../../components/wiring/UnassignLinkButton'
 import { useSoftLinks } from '../../components/wiring/useSoftLinks'
+import { AssignToWorkspaceButton } from '../../components/workspace/AssignToWorkspaceButton'
+import { useWorkspaceStore } from '../../stores/workspaceStore'
 
 export const Route = createFileRoute('/mechs/$id')({
   loader: async ({ params }) => {
@@ -21,6 +23,7 @@ export const Route = createFileRoute('/mechs/$id')({
       useEntityStore.getState().hydrate('mech'),
       useEntityStore.getState().hydrate('pilot'),
       useEntityStore.getState().hydrate('softLink'),
+      useWorkspaceStore.getState().hydrate(),
     ])
     return { id: params.id }
   },
@@ -107,6 +110,17 @@ function MechDetailPage() {
             />
           </div>
         )}
+      </section>
+
+      {/* Workspace assignment */}
+      <section className="mb-6">
+        <h2 className="mb-3 text-base font-semibold">Workspace</h2>
+        <AssignToWorkspaceButton
+          entityType="mech"
+          entityId={id}
+          currentWorkspaceId={mech.workspaceId}
+          onChanged={() => void navigate({ to: '/mechs/$id', params: { id } })}
+        />
       </section>
 
       {/* Actions */}

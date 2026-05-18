@@ -1,9 +1,12 @@
 /**
  * Dashboard — entry-point view for existing pilots, mechs, and crawlers.
  *
- * On mount: calls entityStore.hydrate() for all three entity types.
- * After hydration: renders three sections (Pilots, Mechs, Crawlers), each
- * with a compact listing (EntityListItem) and an empty-state CTA.
+ * On mount: calls entityStore.hydrate() for all three entity types + workspaceStore.hydrate().
+ * After hydration: renders a WorkspaceSwitcher in the header to filter the lists by workspace.
+ *   - "All Builds" (activeWorkspaceId = null) shows ALL entities (unassigned + assigned).
+ *   - A specific workspace shows only entities assigned to that workspace.
+ * Renders three sections (Pilots, Mechs, Crawlers), each with a compact listing
+ * (EntityListItem) and an empty-state CTA.
  *
  * Delete flow:
  *   1. User clicks "Delete" on an EntityListItem.
@@ -16,6 +19,8 @@ import { useEffect, useState } from 'react'
 
 import type { EntityType } from '../../stores/entityStore'
 import { useEntityStore } from '../../stores/entityStore'
+import { useWorkspaceStore } from '../../stores/workspaceStore'
+import { WorkspaceSwitcher } from '../workspace/WorkspaceSwitcher'
 import { DeleteConfirmDialog } from './DeleteConfirmDialog'
 import { EntityListItem } from './EntityListItem'
 
@@ -27,23 +32,45 @@ type DeleteTarget = {
 
 export function Dashboard() {
   const store = useEntityStore()
+  const workspaceStore = useWorkspaceStore()
   const [hydratedAll, setHydratedAll] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null)
+  /** null = "All Builds" (show all), string = filter by workspace id */
+  const [activeWorkspaceId, setActiveWorkspaceId] = useState<string | null>(null)
 
-  // Hydrate all three entity types on mount.
+  // Hydrate all three entity types + workspaces on mount.
   useEffect(() => {
     const run = async () => {
-      await Promise.all([store.hydrate('pilot'), store.hydrate('mech'), store.hydrate('crawler')])
+      await Promise.all([
+        store.hydrate('pilot'),
+        store.hydrate('mech'),
+        store.hydrate('crawler'),
+        workspaceStore.hydrate(),
+      ])
       setHydratedAll(true)
     }
     void run()
-    // Only run once on mount; store is stable (Zustand singleton).
+    // Only run once on mount; stores are stable (Zustand singletons).
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const pilots = store.list('pilot')
-  const mechs = store.list('mech')
-  const crawlers = store.list('crawler')
+  const allPilots = store.list('pilot')
+  const allMechs = store.list('mech')
+  const allCrawlers = store.list('crawler')
+
+  // Filter by active workspace. "All Builds" (null) shows all entities.
+  const pilots =
+    activeWorkspaceId === null
+      ? allPilots
+      : allPilots.filter((p) => (p as { workspaceId?: string }).workspaceId === activeWorkspaceId)
+  const mechs =
+    activeWorkspaceId === null
+      ? allMechs
+      : allMechs.filter((m) => (m as { workspaceId?: string }).workspaceId === activeWorkspaceId)
+  const crawlers =
+    activeWorkspaceId === null
+      ? allCrawlers
+      : allCrawlers.filter((c) => (c as { workspaceId?: string }).workspaceId === activeWorkspaceId)
 
   function openDeleteDialog(type: EntityType, id: string, name: string) {
     setDeleteTarget({ type, id, name })
@@ -61,7 +88,10 @@ export function Dashboard() {
 
   return (
     <main className="mx-auto max-w-3xl p-6">
-      <h1 className="mb-8 text-3xl font-bold">ITUN — Saved Builds</h1>
+      <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
+        <h1 className="text-3xl font-bold">ITUN — Saved Builds</h1>
+        <WorkspaceSwitcher activeWorkspaceId={activeWorkspaceId} onSelect={setActiveWorkspaceId} />
+      </div>
 
       {!hydratedAll ? (
         <div aria-label="Loading saved builds" className="py-12 text-center text-muted-foreground">
