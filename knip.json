@@ -22,18 +22,21 @@
       "entry": [
         "src/routes/**/*.tsx",
         "test/**/*.test.ts",
+        "netlify/functions/**/*.ts",
         "src/lib/schemas/index.ts",
         "src/lib/db/index.ts",
         "src/lib/db/stores.ts",
         "src/lib/db/crud.ts",
+        "src/lib/snapshot/storage.ts",
+        "src/lib/snapshot/id.ts",
+        "src/lib/snapshot/rateLimit.ts",
         "src/stores/index.ts",
         "src/stores/appStore.ts",
         "src/stores/entityStore.ts",
         "src/stores/workspaceStore.ts",
         "src/stores/types.ts"
       ],
-      "project": ["src/**/*.{ts,tsx}", "test/**/*.ts"],
-      "ignore": ["src/lib/sw/__mocks__/**"],
+      "project": ["src/**/*.{ts,tsx}", "test/**/*.ts", "netlify/**/*.ts"],
       "ignoreDependencies": ["suref-react", "lucide-react"]
     },
     "apps/itun-legacy": {

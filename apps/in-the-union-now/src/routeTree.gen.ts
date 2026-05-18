@@ -11,9 +11,13 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PilotsNewRouteImport } from './routes/pilots/new'
+import { Route as PilotsIdRouteImport } from './routes/pilots/$id'
 import { Route as MechsNewRouteImport } from './routes/mechs/new'
+import { Route as MechsIdRouteImport } from './routes/mechs/$id'
 import { Route as CrawlersNewRouteImport } from './routes/crawlers/new'
+import { Route as CrawlersIdRouteImport } from './routes/crawlers/$id'
 import { Route as MechsPatternsIndexRouteImport } from './routes/mechs/patterns/index'
+import { Route as SheetKindIdRouteImport } from './routes/sheet/$kind/$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -25,9 +29,19 @@ const PilotsNewRoute = PilotsNewRouteImport.update({
   path: '/pilots/new',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PilotsIdRoute = PilotsIdRouteImport.update({
+  id: '/pilots/$id',
+  path: '/pilots/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MechsNewRoute = MechsNewRouteImport.update({
   id: '/mechs/new',
   path: '/mechs/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MechsIdRoute = MechsIdRouteImport.update({
+  id: '/mechs/$id',
+  path: '/mechs/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CrawlersNewRoute = CrawlersNewRouteImport.update({
@@ -35,58 +49,101 @@ const CrawlersNewRoute = CrawlersNewRouteImport.update({
   path: '/crawlers/new',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CrawlersIdRoute = CrawlersIdRouteImport.update({
+  id: '/crawlers/$id',
+  path: '/crawlers/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MechsPatternsIndexRoute = MechsPatternsIndexRouteImport.update({
   id: '/mechs/patterns/',
   path: '/mechs/patterns/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SheetKindIdRoute = SheetKindIdRouteImport.update({
+  id: '/sheet/$kind/$id',
+  path: '/sheet/$kind/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/crawlers/$id': typeof CrawlersIdRoute
   '/crawlers/new': typeof CrawlersNewRoute
+  '/mechs/$id': typeof MechsIdRoute
   '/mechs/new': typeof MechsNewRoute
+  '/pilots/$id': typeof PilotsIdRoute
   '/pilots/new': typeof PilotsNewRoute
+  '/sheet/$kind/$id': typeof SheetKindIdRoute
   '/mechs/patterns/': typeof MechsPatternsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/crawlers/$id': typeof CrawlersIdRoute
   '/crawlers/new': typeof CrawlersNewRoute
+  '/mechs/$id': typeof MechsIdRoute
   '/mechs/new': typeof MechsNewRoute
+  '/pilots/$id': typeof PilotsIdRoute
   '/pilots/new': typeof PilotsNewRoute
+  '/sheet/$kind/$id': typeof SheetKindIdRoute
   '/mechs/patterns': typeof MechsPatternsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/crawlers/$id': typeof CrawlersIdRoute
   '/crawlers/new': typeof CrawlersNewRoute
+  '/mechs/$id': typeof MechsIdRoute
   '/mechs/new': typeof MechsNewRoute
+  '/pilots/$id': typeof PilotsIdRoute
   '/pilots/new': typeof PilotsNewRoute
+  '/sheet/$kind/$id': typeof SheetKindIdRoute
   '/mechs/patterns/': typeof MechsPatternsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/crawlers/$id'
     | '/crawlers/new'
+    | '/mechs/$id'
     | '/mechs/new'
+    | '/pilots/$id'
     | '/pilots/new'
+    | '/sheet/$kind/$id'
     | '/mechs/patterns/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/crawlers/new' | '/mechs/new' | '/pilots/new' | '/mechs/patterns'
+  to:
+    | '/'
+    | '/crawlers/$id'
+    | '/crawlers/new'
+    | '/mechs/$id'
+    | '/mechs/new'
+    | '/pilots/$id'
+    | '/pilots/new'
+    | '/sheet/$kind/$id'
+    | '/mechs/patterns'
   id:
     | '__root__'
     | '/'
+    | '/crawlers/$id'
     | '/crawlers/new'
+    | '/mechs/$id'
     | '/mechs/new'
+    | '/pilots/$id'
     | '/pilots/new'
+    | '/sheet/$kind/$id'
     | '/mechs/patterns/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CrawlersIdRoute: typeof CrawlersIdRoute
   CrawlersNewRoute: typeof CrawlersNewRoute
+  MechsIdRoute: typeof MechsIdRoute
   MechsNewRoute: typeof MechsNewRoute
+  PilotsIdRoute: typeof PilotsIdRoute
   PilotsNewRoute: typeof PilotsNewRoute
+  SheetKindIdRoute: typeof SheetKindIdRoute
   MechsPatternsIndexRoute: typeof MechsPatternsIndexRoute
 }
 
@@ -106,11 +163,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PilotsNewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pilots/$id': {
+      id: '/pilots/$id'
+      path: '/pilots/$id'
+      fullPath: '/pilots/$id'
+      preLoaderRoute: typeof PilotsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/mechs/new': {
       id: '/mechs/new'
       path: '/mechs/new'
       fullPath: '/mechs/new'
       preLoaderRoute: typeof MechsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mechs/$id': {
+      id: '/mechs/$id'
+      path: '/mechs/$id'
+      fullPath: '/mechs/$id'
+      preLoaderRoute: typeof MechsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/crawlers/new': {
@@ -120,6 +191,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CrawlersNewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/crawlers/$id': {
+      id: '/crawlers/$id'
+      path: '/crawlers/$id'
+      fullPath: '/crawlers/$id'
+      preLoaderRoute: typeof CrawlersIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/mechs/patterns/': {
       id: '/mechs/patterns/'
       path: '/mechs/patterns'
@@ -127,14 +205,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MechsPatternsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/sheet/$kind/$id': {
+      id: '/sheet/$kind/$id'
+      path: '/sheet/$kind/$id'
+      fullPath: '/sheet/$kind/$id'
+      preLoaderRoute: typeof SheetKindIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CrawlersIdRoute: CrawlersIdRoute,
   CrawlersNewRoute: CrawlersNewRoute,
+  MechsIdRoute: MechsIdRoute,
   MechsNewRoute: MechsNewRoute,
+  PilotsIdRoute: PilotsIdRoute,
   PilotsNewRoute: PilotsNewRoute,
+  SheetKindIdRoute: SheetKindIdRoute,
   MechsPatternsIndexRoute: MechsPatternsIndexRoute,
 }
 export const routeTree = rootRouteImport

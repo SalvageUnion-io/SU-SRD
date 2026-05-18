@@ -9,6 +9,11 @@ import { ClassStep } from './ClassStep'
 import { EquipmentStep } from './EquipmentStep'
 import { IdentityStep } from './IdentityStep'
 import type { RollTableDeps } from './rollTableHelpers'
+// TODO(cycle-3): SoftWarningBanner is wired on the Review step but is a no-op
+// during the create wizard (no entityId until after create resolves).
+// Wire into edit flow once /pilots/$id gains inline editing (deferred to later wave).
+import { SoftWarningBanner } from '../shared/SoftWarningBanner'
+import { useSoftWarnings } from '../shared/useSoftWarnings'
 
 /** Shape of form state carried through the wizard. */
 type WizardFormState = {
@@ -57,6 +62,11 @@ type PilotWizardProps = {
   /** Called when the user cancels. */
   onCancel: () => void
   /**
+   * Id of an existing pilot being edited. When provided, SoftWarningBanner is
+   * active on the Review step. Omit in create mode (no-op until id exists).
+   */
+  pilotId?: string
+  /**
    * Injectable roll table deps for testing — omit in production.
    * Used to stub the SalvageUnionReference.RollTables accessor in tests.
    */
@@ -77,7 +87,7 @@ type PilotWizardProps = {
  *
  * Form state: plain React state — react-hook-form is not in the dep set.
  */
-export function PilotWizard({ onComplete, onCancel, _rollDeps, _sur }: PilotWizardProps) {
+export function PilotWizard({ onComplete, onCancel, pilotId, _rollDeps, _sur }: PilotWizardProps) {
   // Use injected SUR or the real module (for testing without module mocking)
   const sur: SURDeps = _sur ?? {
     Classes: SalvageUnionReference.Classes as unknown as SURDeps['Classes'],
@@ -89,6 +99,17 @@ export function PilotWizard({ onComplete, onCancel, _rollDeps, _sur }: PilotWiza
   const [form, setForm] = useState<WizardFormState>(INITIAL_STATE)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // SoftWarningBanner — active only in edit mode (pilotId provided).
+  // In create mode (no pilotId) the hook returns empty warnings (entity not found).
+  const {
+    warnings: softWarnings,
+    saveAnyway: saveSoftAnyway,
+    fixIt: fixSoftWarnings,
+  } = useSoftWarnings({
+    entityType: 'pilot',
+    entityId: pilotId ?? '',
+  })
 
   const currentIndex = STEPS.indexOf(step)
 
@@ -357,6 +378,13 @@ export function PilotWizard({ onComplete, onCancel, _rollDeps, _sur }: PilotWiza
           )}
         </div>
       )}
+
+      {/* Soft warnings (edit mode only — no-op in create flow) */}
+      <SoftWarningBanner
+        warnings={softWarnings}
+        onSaveAnyway={() => void saveSoftAnyway()}
+        onFixIt={fixSoftWarnings}
+      />
 
       {/* Navigation */}
       <div className="flex justify-between pt-2">
