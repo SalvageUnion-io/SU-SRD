@@ -1,0 +1,200 @@
+/**
+ * Dashboard — entry-point view for existing pilots, mechs, and crawlers.
+ *
+ * On mount: calls entityStore.hydrate() for all three entity types.
+ * After hydration: renders three sections (Pilots, Mechs, Crawlers), each
+ * with a compact listing (EntityListItem) and an empty-state CTA.
+ *
+ * Delete flow:
+ *   1. User clicks "Delete" on an EntityListItem.
+ *   2. DeleteConfirmDialog opens.
+ *   3. User confirms → entityStore.delete() is called, entity removed from
+ *      listing immediately (Zustand in-memory update is synchronous).
+ */
+
+import { useEffect, useState } from 'react'
+
+import type { EntityType } from '../../stores/entityStore'
+import { useEntityStore } from '../../stores/entityStore'
+import { DeleteConfirmDialog } from './DeleteConfirmDialog'
+import { EntityListItem } from './EntityListItem'
+
+type DeleteTarget = {
+  type: EntityType
+  id: string
+  name: string
+}
+
+export function Dashboard() {
+  const store = useEntityStore()
+  const [hydratedAll, setHydratedAll] = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null)
+
+  // Hydrate all three entity types on mount.
+  useEffect(() => {
+    const run = async () => {
+      await Promise.all([store.hydrate('pilot'), store.hydrate('mech'), store.hydrate('crawler')])
+      setHydratedAll(true)
+    }
+    void run()
+    // Only run once on mount; store is stable (Zustand singleton).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const pilots = store.list('pilot')
+  const mechs = store.list('mech')
+  const crawlers = store.list('crawler')
+
+  function openDeleteDialog(type: EntityType, id: string, name: string) {
+    setDeleteTarget({ type, id, name })
+  }
+
+  async function handleConfirmDelete() {
+    if (!deleteTarget) return
+    await useEntityStore.getState().delete(deleteTarget.type, deleteTarget.id)
+    setDeleteTarget(null)
+  }
+
+  function handleCancelDelete() {
+    setDeleteTarget(null)
+  }
+
+  return (
+    <main className="mx-auto max-w-3xl p-6">
+      <h1 className="mb-8 text-3xl font-bold">ITUN — Saved Builds</h1>
+
+      {!hydratedAll ? (
+        <div aria-label="Loading saved builds" className="py-12 text-center text-muted-foreground">
+          Loading…
+        </div>
+      ) : (
+        <div className="flex flex-col gap-8">
+          {/* Pilots */}
+          <section aria-labelledby="pilots-heading">
+            <div className="mb-3 flex items-center justify-between">
+              <h2 id="pilots-heading" className="text-xl font-semibold">
+                Pilots
+              </h2>
+              <a
+                href="/pilots/new"
+                className="rounded px-3 py-1 text-sm font-medium text-primary underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                + Create Pilot
+              </a>
+            </div>
+            {pilots.length === 0 ? (
+              <EmptyState label="No pilots yet." ctaHref="/pilots/new" ctaLabel="Create Pilot" />
+            ) : (
+              <ul className="flex flex-col gap-2">
+                {pilots.map((p) => (
+                  <EntityListItem
+                    key={p.id}
+                    id={p.id}
+                    name={p.name}
+                    href={`/pilots/${p.id}`}
+                    onDeleteClick={(id, name) => openDeleteDialog('pilot', id, name)}
+                  />
+                ))}
+              </ul>
+            )}
+          </section>
+
+          {/* Mechs */}
+          <section aria-labelledby="mechs-heading">
+            <div className="mb-3 flex items-center justify-between">
+              <h2 id="mechs-heading" className="text-xl font-semibold">
+                Mechs
+              </h2>
+              <a
+                href="/mechs/new"
+                className="rounded px-3 py-1 text-sm font-medium text-primary underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                + Create Mech
+              </a>
+            </div>
+            {mechs.length === 0 ? (
+              <EmptyState label="No mechs yet." ctaHref="/mechs/new" ctaLabel="Create Mech" />
+            ) : (
+              <ul className="flex flex-col gap-2">
+                {mechs.map((m) => (
+                  <EntityListItem
+                    key={m.id}
+                    id={m.id}
+                    name={m.name}
+                    href={`/mechs/${m.id}`}
+                    onDeleteClick={(id, name) => openDeleteDialog('mech', id, name)}
+                  />
+                ))}
+              </ul>
+            )}
+          </section>
+
+          {/* Crawlers */}
+          <section aria-labelledby="crawlers-heading">
+            <div className="mb-3 flex items-center justify-between">
+              <h2 id="crawlers-heading" className="text-xl font-semibold">
+                Crawlers
+              </h2>
+              <a
+                href="/crawlers/new"
+                className="rounded px-3 py-1 text-sm font-medium text-primary underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                + Create Crawler
+              </a>
+            </div>
+            {crawlers.length === 0 ? (
+              <EmptyState
+                label="No crawlers yet."
+                ctaHref="/crawlers/new"
+                ctaLabel="Create Crawler"
+              />
+            ) : (
+              <ul className="flex flex-col gap-2">
+                {crawlers.map((c) => (
+                  <EntityListItem
+                    key={c.id}
+                    id={c.id}
+                    name={c.name}
+                    href={`/crawlers/${c.id}`}
+                    onDeleteClick={(id, name) => openDeleteDialog('crawler', id, name)}
+                  />
+                ))}
+              </ul>
+            )}
+          </section>
+        </div>
+      )}
+
+      <DeleteConfirmDialog
+        open={deleteTarget !== null}
+        entityName={deleteTarget?.name ?? ''}
+        onConfirm={() => void handleConfirmDelete()}
+        onCancel={handleCancelDelete}
+      />
+    </main>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Sub-component
+// ---------------------------------------------------------------------------
+
+type EmptyStateProps = {
+  label: string
+  ctaHref: string
+  ctaLabel: string
+}
+
+function EmptyState({ label, ctaHref, ctaLabel }: EmptyStateProps) {
+  return (
+    <div className="flex flex-col items-center gap-3 rounded-md border border-dashed border-border py-8 text-center text-muted-foreground">
+      <p className="text-sm">{label}</p>
+      <a
+        href={ctaHref}
+        className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        {ctaLabel}
+      </a>
+    </div>
+  )
+}
