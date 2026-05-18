@@ -14,9 +14,9 @@
     "sanity": "bun run lint -- --fix && bun run format && bun run typecheck",
     "format:check": "prettier --check .",
     "gen:types": "bunx supabase gen types typescript --project-id dshtuchbleipwqacyokz --schema public > src/types/database-generated.types.ts",
-    "test": "bun test",
-    "test:coverage": "bun test --coverage",
-    "test:watch": "bun test --watch",
+    "test": "echo 'itun-legacy tests skipped (archived per Wave 0; restore by removing this guard if you intentionally maintain the legacy app)' && exit 0",
+    "test:coverage": "echo 'itun-legacy coverage skipped (archived per Wave 0)' && exit 0",
+    "test:watch": "echo 'itun-legacy watch skipped (archived per Wave 0)' && exit 0",
     "ladle": "ladle serve",
     "clean": "rm -rf dist .vite node_modules/.vite build-ladle",
     "check": "bun run lint && bun run format:check && bun run typecheck"
