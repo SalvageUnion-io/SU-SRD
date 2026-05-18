@@ -10,7 +10,16 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 
 export default [
   {
-    ignores: ['dist', 'node_modules', '.git', 'coverage', 'build', '.vite', 'src/routeTree.gen.ts'],
+    ignores: [
+      '.netlify',
+      'dist',
+      'node_modules',
+      '.git',
+      'coverage',
+      'build',
+      '.vite',
+      'src/routeTree.gen.ts',
+    ],
   },
   ...base,
   {
