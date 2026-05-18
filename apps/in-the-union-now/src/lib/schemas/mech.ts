@@ -23,6 +23,25 @@ export const MechSchema = z
     conditions: z.array(z.string()),
     /** Optional: links this mech to a workspace */
     workspaceId: z.string().optional(),
+    // ---------------------------------------------------------------------------
+    // Live-play current stat tracking (Wave 6, #199).
+    // These are current values for the active session — separate from the chassis
+    // defaults shown in MechSheet. When absent the sheet falls back to chassis
+    // defaults as the display value; when set they represent the mech's current
+    // live state (damage taken, resources spent, etc.).
+    // ---------------------------------------------------------------------------
+    /** Current hull/structure points (falls back to chassis structurePoints) */
+    currentHP: z.number().int().min(0).optional(),
+    /** Current action points */
+    currentAP: z.number().int().min(0).optional(),
+    /** Current tech points */
+    currentTP: z.number().int().min(0).optional(),
+    /** Current structure points */
+    currentSP: z.number().int().min(0).optional(),
+    /** Current energy points (falls back to chassis energyPoints) */
+    currentEP: z.number().int().min(0).optional(),
+    /** Current heat level (falls back to chassis heatCapacity) */
+    currentHeat: z.number().int().min(0).optional(),
     createdAt: z.string().datetime(),
     updatedAt: z.string().datetime(),
   })
