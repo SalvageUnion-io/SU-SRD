@@ -43,4 +43,4 @@ phases:
   - id: review
     status: complete
   - id: ship
-    status: in_progress
+    status: complete
