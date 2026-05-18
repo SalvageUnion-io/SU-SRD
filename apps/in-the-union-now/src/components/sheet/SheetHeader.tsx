@@ -28,20 +28,20 @@ type SheetHeaderProps = {
 
 export function SheetHeader({ name, mode }: SheetHeaderProps) {
   return (
-    <header className="flex items-center gap-4 border-b border-border pb-4 mb-6">
+    <header className="flex flex-col gap-2 border-b border-border pb-4 mb-6 sm:flex-row sm:items-center sm:gap-4">
       <a
         href="/"
-        className="text-sm text-muted-foreground underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="min-h-11 sm:min-h-9 inline-flex items-center text-sm text-muted-foreground underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         aria-label="Back to dashboard"
       >
         &larr; Dashboard
       </a>
 
-      <h1 className="flex-1 text-2xl font-bold truncate">{name}</h1>
+      <h1 className="flex-1 text-xl font-bold sm:text-2xl sm:truncate">{name}</h1>
 
       <span
         aria-label={`Composition mode: ${MODE_LABELS[mode]}`}
-        className={`shrink-0 rounded px-2 py-0.5 text-xs font-semibold ${MODE_COLORS[mode]}`}
+        className={`self-start shrink-0 rounded px-2 py-0.5 text-xs font-semibold sm:self-auto ${MODE_COLORS[mode]}`}
       >
         {MODE_LABELS[mode]}
       </span>

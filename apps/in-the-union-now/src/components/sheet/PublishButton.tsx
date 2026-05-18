@@ -99,6 +99,7 @@ export function PublishButton({
           onClick={() => void handlePublish()}
           disabled={isPublishing}
           aria-label="Publish snapshot and get share URL"
+          className="min-h-11 sm:min-h-9"
         >
           {isPublishing ? 'Publishing…' : 'Share'}
         </Button>
