@@ -1,7 +1,17 @@
-import { z } from 'zod'
+export { EntityRefSchema } from './entity'
+export type { EntityRef } from './entity'
 
-// Placeholder: Wave 1 schemas go here.
-// Example: pilot, mech, crawler character sheet schemas.
-export const placeholderSchema = z.object({
-  id: z.string(),
-})
+export { PilotSchema } from './pilot'
+export type { Pilot } from './pilot'
+
+export { MechSchema } from './mech'
+export type { Mech } from './mech'
+
+export { CrawlerSchema } from './crawler'
+export type { Crawler } from './crawler'
+
+export { WorkspaceSchema } from './workspace'
+export type { Workspace } from './workspace'
+
+export { SoftLinkSchema } from './softLink'
+export type { SoftLink } from './softLink'
