@@ -1,0 +1,47 @@
+run_id: 2026-05-18-itun-revamp-wave-2
+version: 1
+status: in_flight
+mode: concurrent
+triviality: standard
+input_shape: prose
+repo_root: /Users/jarvis/Code/su-io/SU-SRD
+base_branch: yitun-revamp
+base_sha: 31205e3f2730f8f2247190e26130d401908bf761
+run_branch: run/2026-05-18-itun-revamp-wave-2/work
+pr_strategy: one
+gh_available: true
+issues:
+  - 187
+  - 186
+flags:
+  no_issue: false
+  no_pr: false
+  no_commit: false
+  local: false
+aggregate_budget: 8
+test_commands:
+  - bun run check:all
+cost_so_far:
+  tokens_in: 0
+  tokens_out: 0
+  dollars: 0
+parallel_concurrency: 2
+phases:
+  - id: bootstrap
+    status: complete
+  - id: define
+    status: complete
+  - id: scope
+    status: complete
+  - id: scaffold
+    status: pending
+  - id: worktree
+    status: pending
+  - id: cycles
+    status: pending
+  - id: integrate
+    status: pending
+  - id: review
+    status: pending
+  - id: ship
+    status: pending
