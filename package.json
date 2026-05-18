@@ -41,9 +41,11 @@
     "dev:bot": "bun run build:package && bun --filter @suref/discord-bot dev",
     "dev:bot:watch": "bun --filter @suref/discord-bot dev:watch",
     "dev:itun": "bun run build:package && bun --filter in-the-union-now dev",
+    "dev:itun-legacy": "bun run build:package && bun --filter itun-legacy dev",
     "build": "bun run build:package && bun run build:web && bun run build:itun && bun run build:bot",
     "build:web": "bun --filter suref-web build",
     "build:itun": "bun --filter in-the-union-now build",
+    "build:itun-legacy": "bun --filter itun-legacy build",
     "build:bot": "bun --filter @suref/discord-bot build",
     "build:package": "bun --filter salvageunion-reference build",
     "build:package:ci": "bun --filter salvageunion-reference build:ci",
@@ -78,6 +80,7 @@
     "fix:all": "bun run lint -- --fix && bun run format",
     "ladle": "bun --filter suref-react ladle",
     "ladle:web": "bun --filter suref-web ladle",
-    "ladle:itun": "bun --filter in-the-union-now ladle"
+    "ladle:itun": "bun --filter in-the-union-now ladle",
+    "ladle:itun-legacy": "bun --filter itun-legacy ladle"
   }
 }

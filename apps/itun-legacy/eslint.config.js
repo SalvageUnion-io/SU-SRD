@@ -10,11 +10,24 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 
 export default [
   {
-    ignores: ['dist', 'node_modules', '.git', 'coverage', 'build', '.vite', 'src/routeTree.gen.ts'],
+    ignores: [
+      '.netlify',
+      '.ladle',
+      'dist',
+      'node_modules',
+      '.git',
+      'coverage',
+      'build',
+      'build-ladle',
+      '.vite',
+      'src/types/database-generated.types.ts',
+      'src/routeTree.gen.ts',
+    ],
   },
   ...base,
   {
     files: ['**/*.{ts,tsx}'],
+    ignores: ['happydom.ts', 'testing-library.ts'],
     plugins: {
       'react-hooks': reactHooks,
       'react-refresh': reactRefresh,

@@ -5,29 +5,20 @@
   "type": "module",
   "license": "Salvage Union Open Game Licence 1.0b",
   "scripts": {
-    "dev": "vite dev",
+    "dev": "vite",
     "typecheck": "tsc --noEmit",
-    "build": "vite build && tsc --noEmit",
-    "build:analyze": "vite build --mode analyze",
+    "build": "tsc --noEmit && vite build",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "sanity": "bun run lint -- --fix && bun run format && bun run typecheck",
     "format:check": "prettier --check .",
-    "gen:types": "bunx supabase gen types typescript --project-id dshtuchbleipwqacyokz --schema public > src/types/database-generated.types.ts",
     "test": "bun test",
     "test:coverage": "bun test --coverage",
     "test:watch": "bun test --watch",
-    "ladle": "ladle serve",
-    "clean": "rm -rf dist .vite node_modules/.vite build-ladle",
-    "check": "bun run lint && bun run format:check && bun run typecheck"
+    "clean": "rm -rf dist .vite node_modules/.vite"
   },
   "dependencies": {
-    "@base-ui/react": "1.2.0",
-    "@randsum/roller": "^0.27.0",
-    "@supabase/supabase-js": "^2.81.1",
     "@tanstack/react-query": "^5.90.9",
     "@tanstack/react-router": "^1.136.1",
-    "@tanstack/react-start": "^1.136.1",
     "@tanstack/router-plugin": "^1.136.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -35,18 +26,14 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "salvageunion-reference": "workspace:*",
-    "sonner": "^2.0.3",
     "suref-react": "workspace:*",
     "tailwind-merge": "^3.0.2",
     "zod": "^4.3.6",
     "zustand": "^5.0.11"
   },
   "devDependencies": {
-    "@ladle/react": "^4.1.0",
-    "@netlify/vite-plugin-tanstack-start": "^1.1.12",
     "@vitejs/plugin-react": "^5.1.1",
     "eslint-plugin-react-refresh": "^0.4.24",
-    "rollup-plugin-visualizer": "^5.12.0",
     "vite": "^7.2.2"
   }
 }
