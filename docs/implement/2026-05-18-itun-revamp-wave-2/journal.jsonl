@@ -6,3 +6,5 @@
 {"ts":"2026-05-18T04:15:00Z","event":"phase_integrate_complete","run_id":"2026-05-18-itun-revamp-wave-2","merge_strategy":"ff_then_no_ff","run_branch_sha":"98784dd3","knip_conflict":"auto-resolved (different sections)"}
 {"ts":"2026-05-18T04:30:00Z","event":"phase_review_complete","run_id":"2026-05-18-itun-revamp-wave-2","verdict":"APPROVED-WITH-NOTES","remediation":[]}
 {"ts":"2026-05-18T04:45:00Z","event":"phase_ship_started","run_id":"2026-05-18-itun-revamp-wave-2","pr_strategy":"one","base":"yitun-revamp"}
+{"ts":"2026-05-18T05:00:00Z","event":"phase_ship_complete","run_id":"2026-05-18-itun-revamp-wave-2","pr_url":"https://github.com/SalvageUnion-io/SU-SRD/pull/231","pr_number":231,"issues_commented":[187,186]}
+{"ts":"2026-05-18T05:01:00Z","event":"phase_deliver_complete","run_id":"2026-05-18-itun-revamp-wave-2","status":"shipped"}
