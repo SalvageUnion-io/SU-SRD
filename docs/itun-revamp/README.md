@@ -16,7 +16,9 @@ and via pinned tracking epic
 | M2 (Sheet, Print, Snapshot) | `yitun-revamp` | `yitun-revamp` |
 | M3 (Polish, A11y, Launch) | `yitun-revamp` | `yitun-revamp` |
 | M3 → Release | `yitun-revamp` (entire branch) | `main` (one-time integration merge) |
-| M4 (Post-Release Backlog) | `main` | `main` (yitun-revamp is closed after release) |
+| M4 (Post-Release Backlog) | `yitun-revamp` | `yitun-revamp` |
+
+**M4 stays on `yitun-revamp` too.** Post-release backlog work continues on the integration branch so the entire revamp lives in one reviewable lineage. `yitun-revamp` is not closed after the M3 release — it remains the long-lived integration branch for any ITUN-revamp work, including optional Should-Have features and post-launch polish.
 
 The repo's GitHub default branch stays `main` because unrelated work — the
 Discord bot, suref-web cleanup, salvageunion-reference data edits, etc. —
