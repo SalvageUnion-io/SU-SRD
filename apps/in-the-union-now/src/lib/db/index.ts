@@ -31,6 +31,7 @@ import type { IDBPDatabase } from 'idb'
 
 import { CrawlerSchema } from '../schemas/crawler'
 import { MechSchema } from '../schemas/mech'
+import { MechPatternSchema } from '../schemas/pattern'
 import { PilotSchema } from '../schemas/pilot'
 import { SoftLinkSchema } from '../schemas/softLink'
 import { WorkspaceSchema } from '../schemas/workspace'
@@ -42,12 +43,27 @@ let dbPromise: Promise<IDBPDatabase> | null = null
 
 function getDb(): Promise<IDBPDatabase> {
   if (dbPromise === null) {
-    dbPromise = openDB('itun-v1', 1, {
-      upgrade(db) {
-        // v1: create all object stores with keyPath = 'id'
-        for (const storeName of Object.values(STORE_NAMES)) {
-          if (!db.objectStoreNames.contains(storeName)) {
-            db.createObjectStore(storeName, { keyPath: 'id' })
+    dbPromise = openDB('itun-v1', 2, {
+      upgrade(db, oldVersion) {
+        // v1: create all core object stores with keyPath = 'id'
+        if (oldVersion < 1) {
+          for (const storeName of [
+            STORE_NAMES.pilots,
+            STORE_NAMES.mechs,
+            STORE_NAMES.crawlers,
+            STORE_NAMES.workspaces,
+            STORE_NAMES.softLinks,
+          ]) {
+            if (!db.objectStoreNames.contains(storeName)) {
+              db.createObjectStore(storeName, { keyPath: 'id' })
+            }
+          }
+        }
+        // v2 (Wave 4, cycle-1): add mechPatterns object store.
+        // See ADR in src/lib/schemas/pattern.ts.
+        if (oldVersion < 2) {
+          if (!db.objectStoreNames.contains(STORE_NAMES.mechPatterns)) {
+            db.createObjectStore(STORE_NAMES.mechPatterns, { keyPath: 'id' })
           }
         }
         // Future migrations: see migrations/ directory.
@@ -82,10 +98,12 @@ export async function _clearAllStores(): Promise<void> {
 
 // Per-entity store accessors
 // hasUpdatedAt=true for Pilot, Mech, Crawler (their schemas include updatedAt)
-// hasUpdatedAt=false (default) for Workspace (createdAt only) and SoftLink (createdAt only)
+// hasUpdatedAt=false (default) for Workspace (createdAt only), SoftLink (createdAt only),
+// and MechPattern (createdAt only — patterns are immutable after creation).
 
 export const pilots = makeStore(getDb, PilotSchema, STORE_NAMES.pilots, true)
 export const mechs = makeStore(getDb, MechSchema, STORE_NAMES.mechs, true)
 export const crawlers = makeStore(getDb, CrawlerSchema, STORE_NAMES.crawlers, true)
 export const workspaces = makeStore(getDb, WorkspaceSchema, STORE_NAMES.workspaces, false)
 export const softLinks = makeStore(getDb, SoftLinkSchema, STORE_NAMES.softLinks, false)
+export const mechPatterns = makeStore(getDb, MechPatternSchema, STORE_NAMES.mechPatterns, false)

@@ -23,6 +23,7 @@ import { ChassisSelector } from './ChassisSelector'
 import { SystemModuleGrid } from './SystemModuleGrid'
 import { CargoEditor } from './CargoEditor'
 import { CapacityIndicator } from './CapacityIndicator'
+import { SavePatternButton } from './Pattern/SavePatternButton'
 import { Button } from '../ui/button'
 import { cn } from '../../lib/utils'
 
@@ -208,6 +209,15 @@ export function MechBuilder({ onSuccess, className }: MechBuilderProps) {
         >
           {isSubmitting ? 'Creating…' : 'Create Mech'}
         </Button>
+        {chassisName && (
+          <SavePatternButton
+            mechName={mechName.trim() || 'Unnamed Mech'}
+            chassisRef={chassisName}
+            systems={systems.map((s) => s.ref)}
+            modules={modules.map((m) => m.ref)}
+            cargo={cargoItems.map((item) => (item.kind === 'ref' ? item.ref : item.name))}
+          />
+        )}
       </div>
     </form>
   )
