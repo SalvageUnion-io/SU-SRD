@@ -77,7 +77,7 @@ export function MechSheet({
           <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-2">
             Stats
           </h3>
-          <dl className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+          <dl className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-6">
             <div className="flex flex-col items-center rounded border border-border py-2 text-center">
               <dt className="text-xs text-muted-foreground">HP</dt>
               <dd className="text-lg font-semibold">

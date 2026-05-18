@@ -114,7 +114,7 @@ export function InlineEditField({
               }
         }
         className={cn(
-          'inline-block',
+          'inline-flex items-center justify-center min-h-11 sm:min-h-9',
           !readOnly &&
             'cursor-pointer rounded px-1 hover:bg-muted/60 focus:outline-none focus:ring-2 focus:ring-ring',
           className
