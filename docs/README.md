@@ -18,6 +18,8 @@ Navigation hub for documentation in the SU-SRD monorepo. Start here if you're ex
 
 **I'm cleaning up the codebase** → [audit/AUDIT-BACKLOG.md](audit/AUDIT-BACKLOG.md) (69 prioritized findings)
 
+**I'm working on the ITUN revamp** → [itun-revamp/README.md](itun-revamp/README.md) (branch convention + workflow). All M1–M3 PRs target `yitun-revamp`, not `main`. See pinned epic [#228](https://github.com/SalvageUnion-io/SU-SRD/issues/228).
+
 ## Directory Map
 
 ### [`architecture/`](architecture/) — Cross-cutting architecture
