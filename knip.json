@@ -19,6 +19,11 @@
       "ignoreDependencies": ["sharp"]
     },
     "apps/in-the-union-now": {
+      "entry": ["src/routes/**/*.tsx", "test/**/*.test.ts"],
+      "project": ["src/**/*.{ts,tsx}", "test/**/*.ts"],
+      "ignoreDependencies": ["salvageunion-reference", "suref-react", "lucide-react"]
+    },
+    "apps/itun-legacy": {
       "entry": ["src/routes/**/*.tsx"],
       "project": ["src/**/*.{ts,tsx}"],
       "ignore": ["src/types/database-generated.types.ts"],
