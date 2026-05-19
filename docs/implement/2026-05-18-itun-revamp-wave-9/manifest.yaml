@@ -1,6 +1,6 @@
 run_id: 2026-05-18-itun-revamp-wave-9
 version: 1
-status: in_flight
+status: shipped
 mode: concurrent
 triviality: standard
 input_shape: prose
@@ -40,10 +40,12 @@ phases:
   - id: worktree
     status: complete
   - id: cycles
-    status: pending
+    status: complete
+    notes: 3/3 workers stalled; deliverables authored inline by orchestrator per user directive
   - id: integrate
-    status: pending
+    status: complete
+    notes: inline-authored; no merge required
   - id: review
-    status: pending
+    status: complete
   - id: ship
-    status: pending
+    status: complete
