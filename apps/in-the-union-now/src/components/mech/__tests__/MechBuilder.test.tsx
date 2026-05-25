@@ -61,41 +61,67 @@ afterEach(async () => {
 })
 
 // ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * EntityChoiceCard renders ReferenceEntityDisplay with role="button" on the
+ * card root (via DisplayCard's cardClickable wiring). Locate a card by its
+ * entity name and return the clickable element. The name may be split across
+ * text nodes in the card header, so match by accessible-name containment
+ * rather than exact text.
+ */
+function getChoiceCardByName(name: string): HTMLElement {
+  // The card root is a <div role="button"> (DisplayCard wiring). Internal
+  // <button> tags inside the card also report role=button — prefer the div
+  // root so the onClick from cardClick:true fires.
+  const cardRoots = Array.from(document.querySelectorAll('div[role="button"]'))
+  const card = cardRoots.find((b) => (b.textContent ?? '').includes(name))
+  if (!card) throw new Error(`No card div[role=button] containing "${name}"`)
+  return card as HTMLElement
+}
+
+// ---------------------------------------------------------------------------
 // ChassisSelector tests
 // ---------------------------------------------------------------------------
 
 describe('ChassisSelector', () => {
-  it('renders a list of chassis from salvageunion-reference', async () => {
+  it('renders a card for each chassis from salvageunion-reference', () => {
     const onSelect = mock(() => {})
     render(<ChassisSelector selectedChassis={null} onSelect={onSelect} />)
 
-    // Should render at least one chassis option
-    const options = screen.getAllByRole('option')
-    expect(options.length).toBeGreaterThan(1) // includes empty "select" option
+    // Verify that at least two known chassis render as selectable cards
+    const allChassis = SalvageUnionReference.Chassis.all()
+    expect(allChassis.length).toBeGreaterThan(1)
+    const firstTwo = allChassis.slice(0, 2)
+    for (const c of firstTwo) {
+      expect(screen.getAllByText(c.name).length).toBeGreaterThan(0)
+    }
   })
 
-  it('selecting a chassis calls onSelect with the chassis name', async () => {
+  it('clicking a chassis card calls onSelect with the chassis name', async () => {
     const onSelect = mock(() => {})
     render(<ChassisSelector selectedChassis={null} onSelect={onSelect} />)
 
-    const select = screen.getByRole('combobox')
     const allChassis = SalvageUnionReference.Chassis.all()
     const firstChassis = allChassis[0]!
 
     await act(async () => {
-      fireEvent.change(select, { target: { value: firstChassis.name } })
+      fireEvent.click(getChoiceCardByName(firstChassis.name))
     })
 
     expect(onSelect).toHaveBeenCalledWith(firstChassis.name)
   })
 
-  it('shows selected chassis as the combobox value', () => {
+  it('shows a selected indicator on the chosen chassis', () => {
     const allChassis = SalvageUnionReference.Chassis.all()
     const mule = allChassis.find((c) => c.name === 'Mule') ?? allChassis[0]!
     render(<ChassisSelector selectedChassis={mule.name} onSelect={mock(() => {})} />)
 
-    const select = screen.getByRole('combobox') as HTMLSelectElement
-    expect(select.value).toBe(mule.name)
+    // EntityChoiceCard injects a control with ariaLabel starting "Selected"
+    // when the card is the chosen one.
+    const selectedIndicator = screen.getByLabelText(/^Selected/)
+    expect(selectedIndicator).not.toBeNull()
   })
 })
 
@@ -230,16 +256,19 @@ describe('CargoEditor', () => {
 // ---------------------------------------------------------------------------
 
 describe('MechBuilder — submit', () => {
+  // Rendering the full MechBuilder now mounts ~200 ReferenceEntityDisplay
+  // cards for chassis selection plus another ~100 once systems/modules
+  // reveal. The integration covers a real save through fake-indexeddb, so
+  // bump the timeout past the 5 s default.
   it('calls entityStore.create with a valid Mech shape on submission', async () => {
     render(<MechBuilder />)
 
-    // Select a chassis
-    const chassisSelect = screen.getByRole('combobox', { name: /chassis/i })
+    // Select a chassis by clicking its EntityChoiceCard
     const allChassis = SalvageUnionReference.Chassis.all()
     const mule = allChassis.find((c) => c.name === 'Mule') ?? allChassis[0]!
 
     await act(async () => {
-      fireEvent.change(chassisSelect, { target: { value: mule.name } })
+      fireEvent.click(getChoiceCardByName(mule.name))
     })
 
     // Enter a mech name
@@ -266,5 +295,5 @@ describe('MechBuilder — submit', () => {
       expect(mechs[0]!.conditions).toEqual([])
       expect(mechs[0]!.schemaVersion).toBe(1)
     })
-  })
+  }, 15000)
 })

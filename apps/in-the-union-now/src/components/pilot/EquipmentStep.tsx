@@ -1,4 +1,5 @@
 import { SalvageUnionReference } from 'salvageunion-reference'
+import { EntityChoiceCard } from '../shared/EntityChoiceCard'
 
 type SUREquipmentAccessor = {
   findAll: (fn: (x: unknown) => boolean) => unknown[]
@@ -44,28 +45,17 @@ export function EquipmentStep({ selectedEquipment, onToggle, _sur }: EquipmentSt
         {allEquipment.map((item) => {
           const isSelected = selectedEquipment.includes(item.id)
           const isDisabled = !isSelected && isAtBudget
-
           return (
-            <button
+            <EntityChoiceCard
               key={item.id}
-              type="button"
-              onClick={() => !isDisabled && onToggle(item.id)}
+              entity={item}
+              selected={isSelected}
               disabled={isDisabled}
-              aria-pressed={isSelected}
-              className={[
-                'w-full rounded-md border p-3 text-left text-sm transition-colors',
-                isSelected
-                  ? 'border-primary bg-primary/10'
-                  : isDisabled
-                    ? 'cursor-not-allowed border-border opacity-40'
-                    : 'border-border hover:border-primary/50 hover:bg-accent',
-              ].join(' ')}
-            >
-              <div className="font-medium">{item.name}</div>
-              {item.actions.length > 0 && (
-                <div className="mt-1 text-xs opacity-60">Actions: {item.actions.join(', ')}</div>
-              )}
-            </button>
+              disabledReason={
+                isDisabled ? `Budget reached (${STARTING_EQUIPMENT_BUDGET}/3 selected)` : undefined
+              }
+              onSelect={() => onToggle(item.id)}
+            />
           )
         })}
         {allEquipment.length === 0 && (

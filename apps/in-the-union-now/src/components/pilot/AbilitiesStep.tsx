@@ -1,5 +1,6 @@
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefClass } from 'salvageunion-reference'
+import { EntityChoiceCard } from '../shared/EntityChoiceCard'
 
 type SURAbilitiesAccessor = {
   findAll: (fn: (x: unknown) => boolean) => unknown[]
@@ -36,10 +37,12 @@ function isBaseClass(
   )
 }
 
+/** Starting ability budget at character creation, per Salvage Union core rules. */
+const STARTING_ABILITY_BUDGET = 3
+
 /**
  * Step 2: Choose starting abilities for the selected class.
  * Shows level-1 abilities from the class's core trees.
- * Players start with a limited set; the class's maxAbilities defines the cap.
  */
 export function AbilitiesStep({ classId, selectedAbilities, onToggle, _sur }: AbilitiesStepProps) {
   const surClasses = _sur?.Classes ?? SalvageUnionReference.Classes
@@ -52,22 +55,19 @@ export function AbilitiesStep({ classId, selectedAbilities, onToggle, _sur }: Ab
 
   const coreTrees = isBaseClass(cls) ? cls.coreTrees : []
 
-  // Starting ability budget: 3 at character creation (per Salvage Union core rules)
-  const startingAbilityBudget = 3
-
   const availableAbilities = surAbilities.findAll((a: unknown) => {
     const ab = a as AbilityLike
     return coreTrees.includes(ab.tree) && ab.level === 1
   }) as AbilityLike[]
 
-  const isAtBudget = selectedAbilities.length >= startingAbilityBudget
+  const isAtBudget = selectedAbilities.length >= STARTING_ABILITY_BUDGET
 
   return (
     <div className="space-y-4">
       <p className="text-sm opacity-70">
-        Choose up to {startingAbilityBudget} starting abilities from your class trees.{' '}
+        Choose up to {STARTING_ABILITY_BUDGET} starting abilities from your class trees.{' '}
         <span className="font-medium">
-          {selectedAbilities.length}/{startingAbilityBudget} selected
+          {selectedAbilities.length}/{STARTING_ABILITY_BUDGET} selected
         </span>
       </p>
       {coreTrees.map((tree) => {
@@ -81,28 +81,19 @@ export function AbilitiesStep({ classId, selectedAbilities, onToggle, _sur }: Ab
               {treeAbilities.map((ability) => {
                 const isSelected = selectedAbilities.includes(ability.id)
                 const isDisabled = !isSelected && isAtBudget
-
                 return (
-                  <button
+                  <EntityChoiceCard
                     key={ability.id}
-                    type="button"
-                    onClick={() => !isDisabled && onToggle(ability.id)}
+                    entity={ability}
+                    selected={isSelected}
                     disabled={isDisabled}
-                    aria-pressed={isSelected}
-                    className={[
-                      'w-full rounded-md border p-3 text-left text-sm transition-colors',
-                      isSelected
-                        ? 'border-primary bg-primary/10'
-                        : isDisabled
-                          ? 'cursor-not-allowed border-border opacity-40'
-                          : 'border-border hover:border-primary/50 hover:bg-accent',
-                    ].join(' ')}
-                  >
-                    <div className="font-medium">{ability.name}</div>
-                    {ability.description && (
-                      <div className="mt-1 text-xs opacity-60">{ability.description}</div>
-                    )}
-                  </button>
+                    disabledReason={
+                      isDisabled
+                        ? `Budget reached (${STARTING_ABILITY_BUDGET}/3 selected)`
+                        : undefined
+                    }
+                    onSelect={() => onToggle(ability.id)}
+                  />
                 )
               })}
             </div>

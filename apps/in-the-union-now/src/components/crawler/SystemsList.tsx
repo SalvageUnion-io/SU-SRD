@@ -1,4 +1,5 @@
 import type { SURefSystem } from 'salvageunion-reference'
+import { EntityChoiceCard } from '../shared/EntityChoiceCard'
 
 type SystemsListProps = {
   /** All available systems, already filtered by tech level by the parent. */
@@ -29,28 +30,14 @@ export function SystemsList({ systems, selectedSystemSlugs, onChange }: SystemsL
     <fieldset>
       <legend className="mb-2 text-sm font-semibold">Systems</legend>
       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-        {systems.map((system) => {
-          const isSelected = selectedSystemSlugs.includes(system.id)
-          return (
-            <button
-              key={system.id}
-              type="button"
-              aria-pressed={isSelected}
-              onClick={() => toggle(system.id)}
-              className={[
-                'rounded border p-2 text-left text-sm transition-colors',
-                isSelected
-                  ? 'border-primary bg-primary/10'
-                  : 'border-input bg-background hover:bg-accent',
-              ].join(' ')}
-            >
-              <span className="block font-medium">{system.name}</span>
-              {system.techLevel !== undefined && (
-                <span className="text-xs opacity-60">TL {system.techLevel}</span>
-              )}
-            </button>
-          )
-        })}
+        {systems.map((system) => (
+          <EntityChoiceCard
+            key={system.id}
+            entity={system}
+            selected={selectedSystemSlugs.includes(system.id)}
+            onSelect={() => toggle(system.id)}
+          />
+        ))}
       </div>
     </fieldset>
   )
