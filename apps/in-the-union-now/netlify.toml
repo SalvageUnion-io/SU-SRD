@@ -1,13 +1,16 @@
 # Netlify configuration for in-the-union-now (character builder + snapshot backend)
 #
+# Netlify site base directory is the repo root (unchanged from pre-revamp).
+# All paths in this file are root-relative.
+#
 # Snapshot endpoints are Netlify Functions (TypeScript, ESM).
 # The /api/snapshots/* path family is mapped to the two handlers.
 # See docs/adrs/ADR-010-snapshot-backend.md.
 
 [build]
-  command = "bun install --frozen-lockfile && cd ../.. && bun run build:package && bun --filter in-the-union-now build"
-  publish = "dist"
-  functions = "netlify/functions"
+  command = "bun install --frozen-lockfile && bun run build:package:ci && bun --filter in-the-union-now build"
+  publish = "apps/in-the-union-now/dist"
+  functions = "apps/in-the-union-now/netlify/functions"
 
 [build.environment]
   BUN_VERSION = "1.3.14"
