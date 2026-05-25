@@ -259,7 +259,8 @@ describe('MechBuilder — submit', () => {
   // Rendering the full MechBuilder now mounts ~200 ReferenceEntityDisplay
   // cards for chassis selection plus another ~100 once systems/modules
   // reveal. The integration covers a real save through fake-indexeddb, so
-  // bump the timeout past the 5 s default.
+  // bump the timeout past the 5 s default. CI runners are slower than
+  // local; 30 s covers GitHub Actions' Ubuntu standard runner.
   it('calls entityStore.create with a valid Mech shape on submission', async () => {
     render(<MechBuilder />)
 
@@ -295,5 +296,5 @@ describe('MechBuilder — submit', () => {
       expect(mechs[0]!.conditions).toEqual([])
       expect(mechs[0]!.schemaVersion).toBe(1)
     })
-  }, 15000)
+  }, 30000)
 })
