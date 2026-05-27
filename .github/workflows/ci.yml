@@ -193,10 +193,12 @@ jobs:
           path: packages/salvageunion-reference/dist/
 
       - name: Install Playwright browsers (Chromium)
-        run: bun --filter in-the-union-now exec playwright install --with-deps chromium
+        working-directory: apps/in-the-union-now
+        run: bunx playwright install --with-deps chromium
 
       - name: Run E2E tests
-        run: bun run e2e:itun
+        working-directory: apps/in-the-union-now
+        run: bunx playwright test
 
       - name: Upload Playwright report on failure
         if: failure()
