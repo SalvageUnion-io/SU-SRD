@@ -46,13 +46,20 @@ export default defineConfig({
     // { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
     // { name: 'webkit',  use: { ...devices['Desktop Safari']  } },
   ],
+  // In CI we want a production preview server (built bundle, served as
+  // static files) — Vite's dev mode pays a 30-60 s lazy compile cost on
+  // first request and that cost lands inside per-test timeouts.
+  // Locally we still reuse the dev server when one is already running on
+  // 5173 (the dev experience expectation).
   webServer: {
-    command: 'bun run dev:itun',
-    cwd: '../..',
+    command: process.env.CI
+      ? 'bun run build:package:ci && bun --filter in-the-union-now build && bunx --bun vite preview --port 5173 --strictPort'
+      : 'bun run dev:itun',
+    cwd: process.env.CI ? './' : '../..',
     url: 'http://localhost:5173',
     reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
-    stdout: 'ignore',
+    timeout: 240_000,
+    stdout: process.env.CI ? 'pipe' : 'ignore',
     stderr: 'pipe',
   },
 })
