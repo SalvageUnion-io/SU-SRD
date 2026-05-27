@@ -23,6 +23,12 @@ export default defineConfig({
   // `.test.ts` — does not try to execute them. Playwright is told here to
   // look for `*.e2e.ts`.
   testMatch: /.*\.e2e\.ts$/,
+  // Vite's dev server lazily compiles modules on first request. Dashboard
+  // + builder routes pull in salvageunion-reference (large JSON dataset) so
+  // the first navigation per test takes ~30-60 s on GHA Ubuntu runners.
+  // 90 s gives enough headroom without masking real hangs.
+  timeout: 90_000,
+  expect: { timeout: 15_000 },
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,

@@ -16,16 +16,26 @@ export function choiceCardByName(page: Page, name: string): Locator {
 /**
  * Wait for the page to finish hydrating (router + game data preload). The
  * dashboard and wizards mount with a Suspense boundary that resolves once
- * `salvageunion-reference` is loaded.
+ * `salvageunion-reference` finishes loading.
+ *
+ * Vite's dev server lazily compiles modules on first hit, so the initial
+ * page load on a CI runner can take 30-60 s before any meaningful content
+ * appears. We wait for both a real heading element AND at least one
+ * interactive element to be present before returning — the bare `<main>`
+ * tag renders pre-hydration and would otherwise resolve immediately.
  */
 export async function waitForReady(page: Page): Promise<void> {
-  // Either the dashboard heading or a wizard heading should be visible.
   await page.waitForLoadState('domcontentloaded')
-  // Allow a beat for game-data preload before asserting.
   await page.waitForFunction(
-    () => Boolean(document.querySelector('[role="button"], h1, h2, main')),
+    () => {
+      const heading = document.querySelector('h1, h2')
+      const interactive = document.querySelector(
+        'div[role="button"], button, input, select, a[href]'
+      )
+      return Boolean(heading && interactive)
+    },
     null,
-    { timeout: 30_000 }
+    { timeout: 60_000 }
   )
 }
 
