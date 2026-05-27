@@ -63,7 +63,7 @@ export function AbilitiesStep({ classId, selectedAbilities, onToggle, _sur }: Ab
   const isAtBudget = selectedAbilities.length >= STARTING_ABILITY_BUDGET
 
   return (
-    <div className="space-y-4">
+    <div className="mx-auto w-full max-w-[1400px] space-y-4">
       <p className="text-sm opacity-70">
         Choose up to {STARTING_ABILITY_BUDGET} starting abilities from your class trees.{' '}
         <span className="font-medium">
@@ -77,7 +77,7 @@ export function AbilitiesStep({ classId, selectedAbilities, onToggle, _sur }: Ab
         return (
           <div key={tree} className="space-y-2">
             <h3 className="text-sm font-semibold uppercase tracking-wide opacity-70">{tree}</h3>
-            <div className="grid gap-2">
+            <div className="flex flex-col gap-2">
               {treeAbilities.map((ability) => {
                 const isSelected = selectedAbilities.includes(ability.id)
                 const isDisabled = !isSelected && isAtBudget

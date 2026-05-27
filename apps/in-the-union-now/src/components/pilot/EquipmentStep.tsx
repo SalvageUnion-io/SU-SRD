@@ -34,14 +34,14 @@ export function EquipmentStep({ selectedEquipment, onToggle, _sur }: EquipmentSt
   const isAtBudget = selectedEquipment.length >= STARTING_EQUIPMENT_BUDGET
 
   return (
-    <div className="space-y-4">
+    <div className="mx-auto w-full max-w-[1400px] space-y-4">
       <p className="text-sm opacity-70">
         Choose up to {STARTING_EQUIPMENT_BUDGET} starting equipment items (Tech Level 1).{' '}
         <span className="font-medium">
           {selectedEquipment.length}/{STARTING_EQUIPMENT_BUDGET} selected
         </span>
       </p>
-      <div className="grid gap-2">
+      <div className="flex flex-col gap-2">
         {allEquipment.map((item) => {
           const isSelected = selectedEquipment.includes(item.id)
           const isDisabled = !isSelected && isAtBudget

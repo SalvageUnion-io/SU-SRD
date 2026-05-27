@@ -80,6 +80,7 @@ export function EntityChoiceCard({
         compact
         disabled={disabled}
         controls={controls}
+        hide={{ actions: true, choices: true }}
       />
       {inlineReason && (
         <p className="px-3 pb-2 pt-1 text-xs text-[var(--color-su-rust)]">{inlineReason}</p>

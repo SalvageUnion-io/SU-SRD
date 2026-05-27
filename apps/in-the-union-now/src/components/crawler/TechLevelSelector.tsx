@@ -26,7 +26,7 @@ export function TechLevelSelector({
               aria-pressed={isSelected}
               onClick={() => onChange(tl.techLevel)}
               className={[
-                'rounded border px-3 py-2 text-sm font-medium transition-colors',
+                'cursor-pointer rounded border px-3 py-2 text-sm font-medium transition-colors',
                 isSelected
                   ? 'border-primary bg-primary text-primary-foreground'
                   : 'border-input bg-background hover:bg-accent hover:text-accent-foreground',

@@ -80,7 +80,7 @@ export function SystemModuleGrid({
     onToggle: (name: string, slotsRequired: number) => void
   ) {
     return (
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+      <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-2">
         {items.map((item) => {
           const isSelected = selectedRefs.some((s) => s.ref === item.name)
           const wouldExceed = !isSelected && max > 0 && used + item.slotsRequired > max
@@ -110,7 +110,7 @@ export function SystemModuleGrid({
           type="button"
           onClick={() => setActiveTab('systems')}
           className={cn(
-            'rounded-md px-3 py-1 text-sm transition-colors',
+            'cursor-pointer rounded-md px-3 py-1 text-sm transition-colors',
             activeTab === 'systems'
               ? 'bg-primary text-primary-foreground'
               : 'text-muted-foreground hover:text-foreground'
@@ -122,7 +122,7 @@ export function SystemModuleGrid({
           type="button"
           onClick={() => setActiveTab('modules')}
           className={cn(
-            'rounded-md px-3 py-1 text-sm transition-colors',
+            'cursor-pointer rounded-md px-3 py-1 text-sm transition-colors',
             activeTab === 'modules'
               ? 'bg-primary text-primary-foreground'
               : 'text-muted-foreground hover:text-foreground'

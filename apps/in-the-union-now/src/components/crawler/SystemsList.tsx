@@ -27,9 +27,9 @@ export function SystemsList({ systems, selectedSystemSlugs, onChange }: SystemsL
   }
 
   return (
-    <fieldset>
+    <fieldset className="mx-auto w-full max-w-[1400px]">
       <legend className="mb-2 text-sm font-semibold">Systems</legend>
-      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="flex flex-col gap-2">
         {systems.map((system) => (
           <EntityChoiceCard
             key={system.id}

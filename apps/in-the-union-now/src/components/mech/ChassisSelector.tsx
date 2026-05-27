@@ -19,9 +19,9 @@ export function ChassisSelector({ selectedChassis, onSelect, className }: Chassi
   const allChassis = SalvageUnionReference.Chassis.all()
 
   return (
-    <fieldset className={cn('flex flex-col gap-2', className)}>
+    <fieldset className={cn('mx-auto flex w-full max-w-[1400px] flex-col gap-2', className)}>
       <legend className="mb-1 text-sm font-medium">Chassis</legend>
-      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="flex flex-col gap-2">
         {allChassis.map((chassis) => (
           <EntityChoiceCard
             key={chassis.id}

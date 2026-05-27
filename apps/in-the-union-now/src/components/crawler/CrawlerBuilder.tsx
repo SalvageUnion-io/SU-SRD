@@ -140,14 +140,14 @@ export function CrawlerBuilder({ onCreated, onCancel }: CrawlerBuilderProps) {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="rounded bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+          className="cursor-pointer rounded bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isSubmitting ? 'Creating…' : 'Create Crawler'}
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="rounded border border-input bg-background px-4 py-2 text-sm font-medium hover:bg-accent"
+          className="cursor-pointer rounded border border-input bg-background px-4 py-2 text-sm font-medium hover:bg-accent"
         >
           Cancel
         </button>

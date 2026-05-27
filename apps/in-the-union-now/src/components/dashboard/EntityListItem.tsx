@@ -40,7 +40,7 @@ export function EntityListItem({ id, name, href, sheetHref, onDeleteClick }: Ent
           type="button"
           aria-label={`Delete ${name}`}
           onClick={() => onDeleteClick(id, name)}
-          className="rounded px-3 py-1 text-sm font-medium text-destructive hover:bg-destructive/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="cursor-pointer rounded px-3 py-1 text-sm font-medium text-destructive hover:bg-destructive/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           Delete
         </button>
