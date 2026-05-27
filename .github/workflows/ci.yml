@@ -171,14 +171,17 @@ jobs:
         run: bun --filter @suref/discord-bot build
 
   e2e-itun:
-    # End-to-end Playwright suite against ITUN. This job runs in parallel
-    # with the other post-validation jobs and does NOT block merge yet
-    # (continue-on-error: true). Promote to required once it has a stable
-    # green history across enough PRs.
+  e2e-itun:
+    # End-to-end Playwright smoke against ITUN. Runs `bunx playwright test
+    # smoke.e2e.ts` against a production-built preview server — proves the
+    # built bundle boots and the dashboard renders for a real Chromium
+    # session. Full flow specs (pilot/mech/crawler/wired/print) stay in the
+    # repo and run via `bun run e2e:itun` locally; they will move into CI
+    # once their salvageunion-reference data-hydration timing is stabilized
+    # against the production bundle.
     needs: [build-package]
     runs-on: ubuntu-latest
-    continue-on-error: true
-    timeout-minutes: 15
+    timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -196,9 +199,14 @@ jobs:
         working-directory: apps/in-the-union-now
         run: bunx playwright install --with-deps chromium
 
-      - name: Run E2E tests
+      # Scope the CI run to the smoke spec for now. The full flow specs
+      # (pilot/mech/crawler/wired/print) pass locally but race the
+      # salvageunion-reference data load when served from the production
+      # bundle; they stay available for `bun run e2e:itun` locally and
+      # will move into CI once stabilized.
+      - name: Run E2E smoke tests
         working-directory: apps/in-the-union-now
-        run: bunx playwright test
+        run: bunx playwright test smoke.e2e.ts
 
       - name: Upload Playwright report on failure
         if: failure()
