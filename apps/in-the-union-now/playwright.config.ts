@@ -52,10 +52,14 @@ export default defineConfig({
   // Locally we still reuse the dev server when one is already running on
   // 5173 (the dev experience expectation).
   webServer: {
+    // Both paths run from the repo root so the workspace bun scripts
+    // resolve consistently. CI builds a static bundle and serves it with
+    // `vite preview` (no per-request compile); locally we reuse the
+    // running dev server when one exists.
     command: process.env.CI
-      ? 'bun run build:package:ci && bun --filter in-the-union-now build && bunx --bun vite preview --port 5173 --strictPort'
+      ? 'bun --filter salvageunion-reference build:ci && bun --filter in-the-union-now build && bun --filter in-the-union-now exec vite preview --port 5173 --strictPort'
       : 'bun run dev:itun',
-    cwd: process.env.CI ? './' : '../..',
+    cwd: '../..',
     url: 'http://localhost:5173',
     reuseExistingServer: !process.env.CI,
     timeout: 240_000,
