@@ -53,3 +53,7 @@ apps/suref-web/.vite
 .netlify
 
 rules/*
+
+# Playwright artifacts (per-app)
+apps/in-the-union-now/playwright-report
+apps/in-the-union-now/test-results

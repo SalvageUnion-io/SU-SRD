@@ -34,6 +34,7 @@
     "zustand": "^5.0.11"
   },
   "devDependencies": {
+    "@playwright/test": "1.60.0",
     "@vitejs/plugin-react": "^5.1.1",
     "eslint-plugin-react-refresh": "^0.4.24",
     "fake-indexeddb": "6.2.5",
