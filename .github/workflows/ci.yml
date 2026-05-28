@@ -171,16 +171,15 @@ jobs:
         run: bun --filter @suref/discord-bot build
 
   e2e-itun:
-    # End-to-end Playwright smoke against ITUN. Runs `bunx playwright test
-    # smoke.e2e.ts` against a production-built preview server — proves the
-    # built bundle boots and the dashboard renders for a real Chromium
-    # session. Full flow specs (pilot/mech/crawler/wired/print) stay in the
-    # repo and run via `bun run e2e:itun` locally; they will move into CI
-    # once their salvageunion-reference data-hydration timing is stabilized
-    # against the production bundle.
+    # End-to-end Playwright suite against ITUN — runs the full e2e/ suite
+    # against a production-built preview server (vite build + vite preview)
+    # in a real Chromium session. The data-hydration race that previously
+    # plagued the flow specs is fixed by a root-level `GameDataReady`
+    # Suspense barrier that preloads salvageunion-reference and sets a
+    # `body[data-game-data-ready]` marker the test helper waits on.
     needs: [build-package]
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -198,14 +197,9 @@ jobs:
         working-directory: apps/in-the-union-now
         run: bunx playwright install --with-deps chromium
 
-      # Scope the CI run to the smoke spec for now. The full flow specs
-      # (pilot/mech/crawler/wired/print) pass locally but race the
-      # salvageunion-reference data load when served from the production
-      # bundle; they stay available for `bun run e2e:itun` locally and
-      # will move into CI once stabilized.
-      - name: Run E2E smoke tests
+      - name: Run E2E tests
         working-directory: apps/in-the-union-now
-        run: bunx playwright test smoke.e2e.ts
+        run: bunx playwright test
 
       - name: Upload Playwright report on failure
         if: failure()

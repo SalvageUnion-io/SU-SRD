@@ -14,29 +14,22 @@ export function choiceCardByName(page: Page, name: string): Locator {
 }
 
 /**
- * Wait for the page to finish hydrating (router + game data preload). The
- * dashboard and wizards mount with a Suspense boundary that resolves once
- * `salvageunion-reference` finishes loading.
+ * Wait for the page to finish hydrating (router + game data preload).
  *
- * Vite's dev server lazily compiles modules on first hit, so the initial
- * page load on a CI runner can take 30-60 s before any meaningful content
- * appears. We wait for both a real heading element AND at least one
- * interactive element to be present before returning — the bare `<main>`
- * tag renders pre-hydration and would otherwise resolve immediately.
+ * The router root wraps its Outlet in `<GameDataReady>`, which suspends until
+ * `SalvageUnionReference.preload('all')` resolves and then sets
+ * `body[data-game-data-ready="true"]`. We wait on that single marker — once
+ * it's true, every consumer of game data has its lookups resolved
+ * synchronously, so card/label queries downstream are race-free.
+ *
+ * The wait is generous (60 s) because cold-start preload on a CI runner can
+ * be slow; once the marker is set, subsequent queries respond instantly.
  */
 export async function waitForReady(page: Page): Promise<void> {
   await page.waitForLoadState('domcontentloaded')
-  await page.waitForFunction(
-    () => {
-      const heading = document.querySelector('h1, h2')
-      const interactive = document.querySelector(
-        'div[role="button"], button, input, select, a[href]'
-      )
-      return Boolean(heading && interactive)
-    },
-    null,
-    { timeout: 60_000 }
-  )
+  await page.waitForFunction(() => document.body?.dataset?.gameDataReady === 'true', null, {
+    timeout: 60_000,
+  })
 }
 
 /**
@@ -46,7 +39,9 @@ export async function waitForReady(page: Page): Promise<void> {
  */
 export async function pickByName(page: Page, name: string): Promise<void> {
   const card = choiceCardByName(page, name)
-  await expect(card, `card containing "${name}" should render`).toBeVisible({ timeout: 15_000 })
+  await expect(card, `card containing "${name}" should render`).toBeVisible({
+    timeout: 15_000,
+  })
   await card.click()
 }
 
