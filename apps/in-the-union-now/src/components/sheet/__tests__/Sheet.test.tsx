@@ -389,10 +389,10 @@ describe('Sheet — MechStandIn in wired pilot+crawler (no mech)', () => {
 })
 
 // ---------------------------------------------------------------------------
-// ConditionToggle read-only in sheet context
+// ConditionToggle renders in editable sheet context
 // ---------------------------------------------------------------------------
 
-describe('Sheet — ConditionToggle is read-only in sheet context', () => {
+describe('Sheet — ConditionToggle renders in editable sheet context', () => {
   test('ConditionToggle renders in PilotSheet equipment list', () => {
     render(
       <Sheet
@@ -407,7 +407,7 @@ describe('Sheet — ConditionToggle is read-only in sheet context', () => {
     expect(toggle).toBeTruthy()
   })
 
-  test('ConditionToggle stays at "Intact" after click (onChange is no-op)', () => {
+  test('ConditionToggle renders in initial Intact state by default', () => {
     render(
       <Sheet
         kind="pilot"
@@ -416,7 +416,7 @@ describe('Sheet — ConditionToggle is read-only in sheet context', () => {
         softLinkStore={makeSoftLinkStore([])}
       />
     )
-    // Both toggles show "Intact" since onChange is no-op — value can't change
+    // Equipment starts in Intact condition; ConditionToggle is interactive and persists to the store on change
     const toggles = screen.getAllByText('Intact')
     expect(toggles.length).toBeTruthy()
   })
