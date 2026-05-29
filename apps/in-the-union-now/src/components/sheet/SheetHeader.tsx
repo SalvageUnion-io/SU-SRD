@@ -5,6 +5,9 @@
  * to the dashboard. Read-only.
  */
 
+import { buttonVariants } from '../ui/buttonVariants'
+import { cn } from '../../lib/utils'
+
 export type CompositionMode = 'pilot-only' | 'mech-only' | 'crawler-only' | 'wired'
 
 const MODE_LABELS: Record<CompositionMode, string> = {
@@ -31,7 +34,10 @@ export function SheetHeader({ name, mode }: SheetHeaderProps) {
     <header className="flex flex-col gap-2 border-b border-border pb-4 mb-6 sm:flex-row sm:items-center sm:gap-4">
       <a
         href="/"
-        className="min-h-11 sm:min-h-9 inline-flex items-center text-sm text-muted-foreground underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className={cn(
+          buttonVariants({ variant: 'ghost', size: 'sm' }),
+          'no-underline min-h-11 sm:min-h-9'
+        )}
         aria-label="Back to dashboard"
       >
         &larr; Dashboard

@@ -22,6 +22,8 @@ import { createFileRoute } from '@tanstack/react-router'
 import { retrieveSnapshot, SnapshotNotFoundError } from '../../lib/snapshot/client'
 import type { SnapshotPayload } from '../../lib/snapshot/client'
 import { SnapshotView } from '../../components/sheet/SnapshotView'
+import { buttonVariants } from '../../components/ui/buttonVariants'
+import { cn } from '../../lib/utils'
 
 // ---------------------------------------------------------------------------
 // Route definition
@@ -56,14 +58,14 @@ type SnapshotPageInnerProps = {
 export function SnapshotPageInner({ snapshot, notFound, error }: SnapshotPageInnerProps) {
   if (notFound) {
     return (
-      <main className="mx-auto max-w-3xl p-6">
+      <main className="mx-auto max-w-5xl p-6">
         <h1 className="mb-2 text-xl font-bold">Snapshot not found</h1>
         <p className="mb-4 text-sm text-muted-foreground">
           This snapshot link may have expired or never existed.
         </p>
         <a
           href="/"
-          className="text-sm underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
         >
           &larr; Back to dashboard
         </a>
@@ -73,12 +75,12 @@ export function SnapshotPageInner({ snapshot, notFound, error }: SnapshotPageInn
 
   if (error) {
     return (
-      <main className="mx-auto max-w-3xl p-6">
+      <main className="mx-auto max-w-5xl p-6">
         <h1 className="mb-2 text-xl font-bold">Failed to load snapshot</h1>
         <p className="mb-4 text-sm text-muted-foreground">{error}</p>
         <a
           href="/"
-          className="text-sm underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
         >
           &larr; Back to dashboard
         </a>

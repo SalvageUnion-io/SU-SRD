@@ -14,6 +14,8 @@ import { useEntityStore } from '../../stores/entityStore'
 import { useSoftLinks } from '../../components/wiring/useSoftLinks'
 import { AssignToWorkspaceButton } from '../../components/workspace/AssignToWorkspaceButton'
 import { useWorkspaceStore } from '../../stores/workspaceStore'
+import { buttonVariants } from '../../components/ui/buttonVariants'
+import { cn } from '../../lib/utils'
 
 export const Route = createFileRoute('/crawlers/$id')({
   loader: async ({ params }) => {
@@ -45,9 +47,9 @@ function CrawlerDetailPage() {
 
   if (!crawler) {
     return (
-      <main className="mx-auto max-w-2xl px-4 py-8">
+      <main className="mx-auto max-w-5xl px-4 py-8">
         <p className="text-muted-foreground">Crawler not found.</p>
-        <a href="/" className="text-sm text-primary underline-offset-2 hover:underline">
+        <a href="/" className={cn(buttonVariants({ variant: 'link', size: 'sm' }))}>
           Back to dashboard
         </a>
       </main>
@@ -55,13 +57,16 @@ function CrawlerDetailPage() {
   }
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-8">
+    <main className="mx-auto max-w-5xl px-4 py-8">
       <div className="mb-6 flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">{crawler.name}</h1>
           <p className="mt-1 text-sm text-muted-foreground">Tech level: {crawler.techLevel}</p>
         </div>
-        <a href="/" className="text-sm text-muted-foreground underline-offset-2 hover:underline">
+        <a
+          href="/"
+          className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
+        >
           Back
         </a>
       </div>
@@ -127,7 +132,7 @@ function CrawlerDetailPage() {
       <div className="flex gap-3">
         <a
           href={`/sheet/crawler/${id}`}
-          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className={cn(buttonVariants({ variant: 'default' }), 'no-underline')}
         >
           View Sheet
         </a>

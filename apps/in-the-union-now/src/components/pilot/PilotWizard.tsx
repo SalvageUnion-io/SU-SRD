@@ -219,7 +219,7 @@ export function PilotWizard({ onComplete, onCancel, pilotId, _rollDeps, _sur }: 
     : null
 
   return (
-    <div className="mx-auto max-w-xl space-y-6 p-6">
+    <div className="mx-auto max-w-5xl space-y-6 p-6">
       {/* Progress indicator */}
       <nav aria-label="Wizard steps">
         <ol className="flex items-center gap-2 text-xs">

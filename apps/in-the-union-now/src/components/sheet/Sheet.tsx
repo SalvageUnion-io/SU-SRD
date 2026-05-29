@@ -199,7 +199,7 @@ export function Sheet({
   // ---------------------------------------------------------------------------
   if (!entity) {
     return (
-      <main className="mx-auto max-w-3xl p-3 sm:p-6">
+      <main className="mx-auto max-w-5xl p-3 sm:p-6">
         <p className="text-muted-foreground text-sm">Entity not found.</p>
       </main>
     )
@@ -216,7 +216,7 @@ export function Sheet({
   // Render
   // ---------------------------------------------------------------------------
   return (
-    <main className="mx-auto max-w-3xl p-3 sm:p-6">
+    <main className="mx-auto max-w-5xl p-3 sm:p-6">
       <SheetHeader name={displayName} mode={resolved.mode} />
       {!readOnly && (
         <div className="flex justify-end mb-4">

@@ -89,7 +89,7 @@ export function Dashboard() {
   }
 
   return (
-    <main className="mx-auto max-w-3xl p-6">
+    <main className="mx-auto max-w-6xl p-6">
       <div className="mb-8 flex flex-wrap items-center justify-between gap-4 border-b-2 border-[var(--color-su-black)] pb-4">
         <h1 className="text-3xl font-bold uppercase tracking-wide">ITUN — Saved Builds</h1>
         <WorkspaceSwitcher activeWorkspaceId={activeWorkspaceId} onSelect={setActiveWorkspaceId} />

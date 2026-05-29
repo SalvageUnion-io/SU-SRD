@@ -16,6 +16,8 @@ import { UnassignLinkButton } from '../../components/wiring/UnassignLinkButton'
 import { useSoftLinks } from '../../components/wiring/useSoftLinks'
 import { AssignToWorkspaceButton } from '../../components/workspace/AssignToWorkspaceButton'
 import { useWorkspaceStore } from '../../stores/workspaceStore'
+import { buttonVariants } from '../../components/ui/buttonVariants'
+import { cn } from '../../lib/utils'
 
 export const Route = createFileRoute('/pilots/$id')({
   loader: async ({ params }) => {
@@ -42,9 +44,9 @@ function PilotDetailPage() {
 
   if (!pilot) {
     return (
-      <main className="mx-auto max-w-2xl px-4 py-8">
+      <main className="mx-auto max-w-5xl px-4 py-8">
         <p className="text-muted-foreground">Pilot not found.</p>
-        <a href="/" className="text-sm text-primary underline-offset-2 hover:underline">
+        <a href="/" className={cn(buttonVariants({ variant: 'link', size: 'sm' }))}>
           Back to dashboard
         </a>
       </main>
@@ -52,7 +54,7 @@ function PilotDetailPage() {
   }
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-8">
+    <main className="mx-auto max-w-5xl px-4 py-8">
       <div className="mb-6 flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">{pilot.name}</h1>
@@ -61,7 +63,10 @@ function PilotDetailPage() {
           )}
           <p className="mt-1 text-sm text-muted-foreground">Class: {pilot.classRef}</p>
         </div>
-        <a href="/" className="text-sm text-muted-foreground underline-offset-2 hover:underline">
+        <a
+          href="/"
+          className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
+        >
           Back
         </a>
       </div>
@@ -133,7 +138,7 @@ function PilotDetailPage() {
       <div className="flex gap-3">
         <a
           href={`/sheet/pilot/${id}`}
-          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className={cn(buttonVariants({ variant: 'default' }), 'no-underline')}
         >
           View Sheet
         </a>

@@ -16,6 +16,8 @@ import { UnassignLinkButton } from '../../components/wiring/UnassignLinkButton'
 import { useSoftLinks } from '../../components/wiring/useSoftLinks'
 import { AssignToWorkspaceButton } from '../../components/workspace/AssignToWorkspaceButton'
 import { useWorkspaceStore } from '../../stores/workspaceStore'
+import { buttonVariants } from '../../components/ui/buttonVariants'
+import { cn } from '../../lib/utils'
 
 export const Route = createFileRoute('/mechs/$id')({
   loader: async ({ params }) => {
@@ -42,9 +44,9 @@ function MechDetailPage() {
 
   if (!mech) {
     return (
-      <main className="mx-auto max-w-2xl px-4 py-8">
+      <main className="mx-auto max-w-5xl px-4 py-8">
         <p className="text-muted-foreground">Mech not found.</p>
-        <a href="/" className="text-sm text-primary underline-offset-2 hover:underline">
+        <a href="/" className={cn(buttonVariants({ variant: 'link', size: 'sm' }))}>
           Back to dashboard
         </a>
       </main>
@@ -52,13 +54,16 @@ function MechDetailPage() {
   }
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-8">
+    <main className="mx-auto max-w-5xl px-4 py-8">
       <div className="mb-6 flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">{mech.name}</h1>
           <p className="mt-1 text-sm text-muted-foreground">Chassis: {mech.chassisRef}</p>
         </div>
-        <a href="/" className="text-sm text-muted-foreground underline-offset-2 hover:underline">
+        <a
+          href="/"
+          className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
+        >
           Back
         </a>
       </div>
@@ -127,14 +132,11 @@ function MechDetailPage() {
       <div className="flex gap-3">
         <a
           href={`/sheet/mech/${id}`}
-          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className={cn(buttonVariants({ variant: 'default' }), 'no-underline')}
         >
           View Sheet
         </a>
-        <a
-          href="/mechs/new"
-          className="rounded-md border border-border px-4 py-2 text-sm font-medium hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
+        <a href="/mechs/new" className={cn(buttonVariants({ variant: 'outline' }), 'no-underline')}>
           Edit Build
         </a>
       </div>
