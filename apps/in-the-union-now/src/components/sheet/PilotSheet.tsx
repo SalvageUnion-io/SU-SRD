@@ -16,6 +16,7 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefAbility, SURefEntity, SURefEquipment } from 'salvageunion-reference'
 import { ReferenceEntityDisplay } from 'suref-react'
 
+import type { ItemCondition } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
 import { useEntityStore } from '../../stores/entityStore'
 import { ConditionToggle } from '../shared/ConditionToggle'
@@ -46,6 +47,13 @@ type PilotSheetProps = {
 }
 
 export function PilotSheet({ pilot, store = useEntityStore, readOnly = false }: PilotSheetProps) {
+  const storeState = store()
+
+  async function handleEquipmentConditionChange(slug: string, next: ItemCondition) {
+    const prev = pilot.equipmentConditions ?? {}
+    await storeState.update('pilot', pilot.id, { equipmentConditions: { ...prev, [slug]: next } })
+  }
+
   return (
     <section aria-labelledby="pilot-sheet-heading" className="flex flex-col gap-4">
       {/* Header */}
@@ -155,11 +163,13 @@ export function PilotSheet({ pilot, store = useEntityStore, readOnly = false }: 
                       </div>
                     )}
                   </div>
-                  {/* Read-only condition display — onChange is a no-op */}
                   <ConditionToggle
-                    value="intact"
-                    onChange={() => undefined}
+                    value={pilot.equipmentConditions?.[slug] ?? 'intact'}
+                    onChange={(next) => {
+                      void handleEquipmentConditionChange(slug, next)
+                    }}
                     ariaLabelPrefix={slug}
+                    readOnly={readOnly}
                   />
                 </div>
               )

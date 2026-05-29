@@ -1,6 +1,17 @@
 import { z } from 'zod'
 
 /**
+ * Per-item condition states for mech systems, modules, and pilot equipment.
+ * Keyed by the item slug. When absent defaults to 'intact' at the display layer.
+ */
+export const ItemConditionSchema = z.enum(['intact', 'damaged', 'destroyed'])
+export type ItemCondition = z.infer<typeof ItemConditionSchema>
+
+/** Map from item slug → condition */
+export const ItemConditionMapSchema = z.record(z.string(), ItemConditionSchema)
+export type ItemConditionMap = z.infer<typeof ItemConditionMapSchema>
+
+/**
  * chassisRef: slug reference to a Chassis in salvageunion-reference.
  * Resolution against game data is handled at the presentation/query layer.
  */
@@ -42,6 +53,16 @@ export const MechSchema = z
     currentEP: z.number().int().min(0).optional(),
     /** Current heat level (falls back to chassis heatCapacity) */
     currentHeat: z.number().int().min(0).optional(),
+    /**
+     * Per-system condition map (REQ-011 #240). Keyed by system slug.
+     * When absent or key missing, the display layer defaults to 'intact'.
+     */
+    systemConditions: ItemConditionMapSchema.optional(),
+    /**
+     * Per-module condition map (REQ-011 #240). Keyed by module slug.
+     * When absent or key missing, the display layer defaults to 'intact'.
+     */
+    moduleConditions: ItemConditionMapSchema.optional(),
     createdAt: z.string().datetime(),
     updatedAt: z.string().datetime(),
   })

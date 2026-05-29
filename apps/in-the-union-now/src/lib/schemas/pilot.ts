@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { ItemConditionMapSchema } from './mech'
 
 /**
  * classRef: slug reference to a class in salvageunion-reference.
@@ -35,6 +36,11 @@ export const PilotSchema = z
     currentHP: z.number().int().min(0).optional(),
     /** Current action points */
     currentAP: z.number().int().min(0).optional(),
+    /**
+     * Per-equipment condition map (REQ-011 #240). Keyed by equipment slug.
+     * When absent or key missing, the display layer defaults to 'intact'.
+     */
+    equipmentConditions: ItemConditionMapSchema.optional(),
     createdAt: z.string().datetime(),
     updatedAt: z.string().datetime(),
   })

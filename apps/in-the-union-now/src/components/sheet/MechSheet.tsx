@@ -17,6 +17,7 @@
  */
 
 import { SalvageUnionReference } from 'salvageunion-reference'
+import type { ItemCondition } from '../../lib/schemas/mech'
 import type { Mech } from '../../lib/schemas/mech'
 import { useEntityStore } from '../../stores/entityStore'
 import { ConditionToggle } from '../shared/ConditionToggle'
@@ -64,6 +65,17 @@ export function MechSheet({
   readOnly = false,
 }: MechSheetProps) {
   const chassis = resolveChassis(mech, chassisOverride)
+  const storeState = store()
+
+  async function handleSystemConditionChange(slug: string, next: ItemCondition) {
+    const prev = mech.systemConditions ?? {}
+    await storeState.update('mech', mech.id, { systemConditions: { ...prev, [slug]: next } })
+  }
+
+  async function handleModuleConditionChange(slug: string, next: ItemCondition) {
+    const prev = mech.moduleConditions ?? {}
+    await storeState.update('mech', mech.id, { moduleConditions: { ...prev, [slug]: next } })
+  }
 
   return (
     <section aria-labelledby="mech-sheet-heading" className="flex flex-col gap-4">
@@ -198,7 +210,14 @@ export function MechSheet({
                 className="flex items-center justify-between rounded border border-border px-2 py-1 text-sm"
               >
                 <span>{slug}</span>
-                <ConditionToggle value="intact" onChange={() => undefined} ariaLabelPrefix={slug} />
+                <ConditionToggle
+                  value={mech.systemConditions?.[slug] ?? 'intact'}
+                  onChange={(next) => {
+                    void handleSystemConditionChange(slug, next)
+                  }}
+                  ariaLabelPrefix={slug}
+                  readOnly={readOnly}
+                />
               </li>
             ))}
           </ul>
@@ -218,7 +237,14 @@ export function MechSheet({
                 className="flex items-center justify-between rounded border border-border px-2 py-1 text-sm"
               >
                 <span>{slug}</span>
-                <ConditionToggle value="intact" onChange={() => undefined} ariaLabelPrefix={slug} />
+                <ConditionToggle
+                  value={mech.moduleConditions?.[slug] ?? 'intact'}
+                  onChange={(next) => {
+                    void handleModuleConditionChange(slug, next)
+                  }}
+                  ariaLabelPrefix={slug}
+                  readOnly={readOnly}
+                />
               </li>
             ))}
           </ul>
