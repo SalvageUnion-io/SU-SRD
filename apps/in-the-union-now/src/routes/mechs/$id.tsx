@@ -44,7 +44,7 @@ function MechDetailPage() {
 
   if (!mech) {
     return (
-      <main className="mx-auto max-w-5xl px-4 py-8">
+      <main className="mx-auto max-w-7xl px-4 py-8">
         <p className="text-muted-foreground">Mech not found.</p>
         <a href="/" className={cn(buttonVariants({ variant: 'link', size: 'sm' }))}>
           Back to dashboard
@@ -54,7 +54,7 @@ function MechDetailPage() {
   }
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-8">
+    <main className="mx-auto max-w-7xl px-4 py-8">
       <div className="mb-6 flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">{mech.name}</h1>

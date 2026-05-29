@@ -200,7 +200,7 @@ export function Sheet({
   // ---------------------------------------------------------------------------
   if (!entity) {
     return (
-      <main className="mx-auto max-w-5xl p-3 sm:p-6">
+      <main className="mx-auto max-w-7xl p-3 sm:p-6">
         <p className="text-muted-foreground text-sm">Entity not found.</p>
       </main>
     )
@@ -216,8 +216,11 @@ export function Sheet({
   // ---------------------------------------------------------------------------
   // Render
   // ---------------------------------------------------------------------------
+  // Determine if wired composition warrants a 2-pane layout at lg+
+  const isWired = resolved.mode === 'wired'
+
   return (
-    <main className="mx-auto max-w-5xl p-3 sm:p-6">
+    <main className="mx-auto max-w-7xl p-3 sm:p-6">
       <SheetHeader name={displayName} mode={resolved.mode} />
       {!readOnly && (
         <div className="flex justify-end mb-4">
@@ -225,28 +228,51 @@ export function Sheet({
         </div>
       )}
 
-      <div className="flex flex-col gap-8">
-        {/* Pilot section */}
-        {resolved.pilot && <PilotSheet pilot={resolved.pilot} readOnly={readOnly} />}
+      {isWired ? (
+        /* Wired composition: 2-pane at lg+ */
+        <div className="flex flex-col gap-8 lg:flex-row lg:gap-6">
+          {/* Left pane: pilot + mech */}
+          <div className="flex flex-col gap-8 flex-1 min-w-0">
+            {resolved.pilot && <PilotSheet pilot={resolved.pilot} readOnly={readOnly} />}
+            {resolved.mech && <MechSheet mech={resolved.mech} readOnly={readOnly} />}
+            {kind === 'pilot' && !resolved.mech && <MechStandIn />}
+          </div>
+          {/* Right pane: crawler */}
+          {resolved.crawler && (
+            <div className="lg:w-80 shrink-0">
+              <CrawlerSheet
+                crawler={resolved.crawler}
+                pilots={resolved.crawlerPilots}
+                readOnly={readOnly}
+              />
+            </div>
+          )}
+        </div>
+      ) : (
+        /* Single-entity: single column */
+        <div className="flex flex-col gap-8">
+          {/* Pilot section */}
+          {resolved.pilot && <PilotSheet pilot={resolved.pilot} readOnly={readOnly} />}
 
-        {/* Pilot stand-in: shown in mech-only mode (no wired pilot) */}
-        {resolved.mode === 'mech-only' && <PilotStandIn />}
+          {/* Pilot stand-in: shown in mech-only mode (no wired pilot) */}
+          {resolved.mode === 'mech-only' && <PilotStandIn />}
 
-        {/* Mech section */}
-        {resolved.mech && <MechSheet mech={resolved.mech} readOnly={readOnly} />}
+          {/* Mech section */}
+          {resolved.mech && <MechSheet mech={resolved.mech} readOnly={readOnly} />}
 
-        {/* Mech stand-in: shown in pilot-only mode and wired pilot+crawler (no mech) */}
-        {kind === 'pilot' && !resolved.mech && <MechStandIn />}
+          {/* Mech stand-in: shown in pilot-only mode (no mech) */}
+          {kind === 'pilot' && !resolved.mech && <MechStandIn />}
 
-        {/* Crawler section — pilots=[] triggers the stand-in in crawler-only mode */}
-        {resolved.crawler && (
-          <CrawlerSheet
-            crawler={resolved.crawler}
-            pilots={resolved.crawlerPilots}
-            readOnly={readOnly}
-          />
-        )}
-      </div>
+          {/* Crawler section — pilots=[] triggers the stand-in in crawler-only mode */}
+          {resolved.crawler && (
+            <CrawlerSheet
+              crawler={resolved.crawler}
+              pilots={resolved.crawlerPilots}
+              readOnly={readOnly}
+            />
+          )}
+        </div>
+      )}
     </main>
   )
 }

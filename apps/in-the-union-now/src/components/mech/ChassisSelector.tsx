@@ -21,7 +21,7 @@ export function ChassisSelector({ selectedChassis, onSelect, className }: Chassi
   return (
     <fieldset className={cn('flex w-full flex-col gap-2', className)}>
       <legend className="mb-1 text-sm font-medium">Chassis</legend>
-      <div className="grid grid-cols-1 gap-2 xl:grid-cols-2">
+      <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
         {allChassis.map((chassis) => (
           <EntityChoiceCard
             key={chassis.id}
