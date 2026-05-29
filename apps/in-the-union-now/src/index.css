@@ -4,11 +4,101 @@
 
 @source "../../../packages/suref-react/src";
 
-/* Base styles */
+/*
+ * Self-host the Fira Code variable font so ITUN's typography matches the
+ * SRD reference site exactly (suref-web preloads the same file).
+ */
+@font-face {
+  font-family: 'Fira Code';
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url('/fonts/FiraCode-Variable.woff2') format('woff2');
+}
+
+/*
+ * ShadCN runtime tokens — map to SU brand colors so generic ShadCN
+ * components (Button, Dialog, Input, etc.) inherit the same look as the
+ * suref-web SRD site instead of falling back to Tailwind defaults.
+ *
+ * Keep names ShadCN expects (no `--color-` prefix). Tailwind v4 picks
+ * these up through the `bg-background` / `text-foreground` shorthand via
+ * the suref-react theme `@theme` block; this :root block is the override
+ * layer that points each one at an SU brand variable.
+ */
+:root {
+  /* Page shell + body */
+  --background: var(--color-su-white);
+  --foreground: var(--color-su-black);
+
+  /* Cards / popovers */
+  --card: var(--color-su-white);
+  --card-foreground: var(--color-su-black);
+  --popover: var(--color-su-white);
+  --popover-foreground: var(--color-su-black);
+
+  /* Primary — Salvage orange. Mirrors `.btn-active` on the SRD. */
+  --primary: var(--color-su-orange-dark);
+  --primary-foreground: var(--color-su-white);
+
+  /* Secondary — pale blue (matches the SRD main-area chrome). */
+  --secondary: var(--color-su-blue-pale);
+  --secondary-foreground: var(--color-su-black);
+
+  /* Muted — used for subtle backgrounds + muted text. */
+  --muted: var(--color-su-blue-pale);
+  --muted-foreground: var(--color-su-grey-dark);
+
+  /* Accent — orange-light for hover halos and selected list items. */
+  --accent: var(--color-su-orange-light);
+  --accent-foreground: var(--color-su-black);
+
+  /* Destructive — rust, not red. */
+  --destructive: var(--color-su-rust);
+  --destructive-foreground: var(--color-su-white);
+
+  /* Borders / inputs / focus rings. */
+  --border: var(--color-su-grey-light);
+  --input: var(--color-su-grey-light);
+  --ring: var(--color-su-orange);
+
+  /* Radius — keep ShadCN defaults; SRD cards rely on their own borders. */
+  --radius: 0.375rem;
+}
+
+/* === Base layout === */
 body {
-  background-color: var(--color-su-sand);
-  color: var(--foreground);
+  background-color: var(--color-su-white);
+  color: var(--color-su-black);
   font-family: var(--font-mono);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/*
+ * Route-level main content sits inside a blue-pale band, mirroring the
+ * SRD layout (BaseLayout wraps <main> in `bg-su-blue-pale`). Tag every
+ * top-level <main> so feature pages get the shared backdrop without
+ * having to repeat the class.
+ */
+main {
+  background-color: var(--color-su-blue-pale);
+}
+
+/*
+ * Section dividers matching the SRD `catalog-header` pattern — line,
+ * label, line. Available as `<div class="su-section-header"><span>Label
+ * </span></div>` and reused across the dashboard / builders.
+ */
+.su-section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.su-section-header::before,
+.su-section-header::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--color-su-grey-light);
 }

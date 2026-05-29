@@ -88,8 +88,8 @@ export function Dashboard() {
 
   return (
     <main className="mx-auto max-w-3xl p-6">
-      <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-3xl font-bold">ITUN — Saved Builds</h1>
+      <div className="mb-8 flex flex-wrap items-center justify-between gap-4 border-b-2 border-[var(--color-su-black)] pb-4">
+        <h1 className="text-3xl font-bold uppercase tracking-wide">ITUN — Saved Builds</h1>
         <WorkspaceSwitcher activeWorkspaceId={activeWorkspaceId} onSelect={setActiveWorkspaceId} />
       </div>
 
@@ -102,7 +102,10 @@ export function Dashboard() {
           {/* Pilots */}
           <section aria-labelledby="pilots-heading">
             <div className="mb-3 flex items-center justify-between">
-              <h2 id="pilots-heading" className="text-xl font-semibold">
+              <h2
+                id="pilots-heading"
+                className="text-xl font-bold uppercase tracking-wide text-[var(--color-su-orange-dark)]"
+              >
                 Pilots
               </h2>
               <a
@@ -133,7 +136,10 @@ export function Dashboard() {
           {/* Mechs */}
           <section aria-labelledby="mechs-heading">
             <div className="mb-3 flex items-center justify-between">
-              <h2 id="mechs-heading" className="text-xl font-semibold">
+              <h2
+                id="mechs-heading"
+                className="text-xl font-bold uppercase tracking-wide text-[var(--color-su-orange-dark)]"
+              >
                 Mechs
               </h2>
               <a
@@ -164,7 +170,10 @@ export function Dashboard() {
           {/* Crawlers */}
           <section aria-labelledby="crawlers-heading">
             <div className="mb-3 flex items-center justify-between">
-              <h2 id="crawlers-heading" className="text-xl font-semibold">
+              <h2
+                id="crawlers-heading"
+                className="text-xl font-bold uppercase tracking-wide text-[var(--color-su-orange-dark)]"
+              >
                 Crawlers
               </h2>
               <a
