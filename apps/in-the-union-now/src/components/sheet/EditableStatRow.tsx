@@ -31,6 +31,8 @@ type EditableStatRowProps<T extends AssignableType> = {
   fieldPath: keyof EntityForType<T> & string
   min?: number
   max?: number
+  /** When true, renders value as plain text with no click-to-edit affordance. */
+  readOnly?: boolean
   /** Injectable store — defaults to useEntityStore */
   store?: typeof useEntityStore
   /** Injectable evaluator — defaults to evaluateSoftWarnings */
@@ -49,6 +51,7 @@ export function EditableStatRow<T extends AssignableType>({
   fieldPath,
   min,
   max,
+  readOnly = false,
   store = useEntityStore,
   evaluate,
 }: EditableStatRowProps<T>) {
@@ -85,6 +88,7 @@ export function EditableStatRow<T extends AssignableType>({
           min={min}
           max={max}
           ariaLabel={`Edit ${label}`}
+          readOnly={readOnly}
         />
       </div>
 

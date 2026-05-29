@@ -45,6 +45,11 @@ type MechSheetProps = {
    * Pass a stub in tests to avoid Zustand/IndexedDB side effects.
    */
   store?: typeof useEntityStore
+  /**
+   * When true, stat cells render as plain text with no click-to-edit affordance.
+   * Use in read-only contexts like published snapshots.
+   */
+  readOnly?: boolean
 }
 
 function resolveChassis(mech: Mech, override?: ChassisLike | null): ChassisLike | null {
@@ -56,6 +61,7 @@ export function MechSheet({
   mech,
   chassis: chassisOverride,
   store = useEntityStore,
+  readOnly = false,
 }: MechSheetProps) {
   const chassis = resolveChassis(mech, chassisOverride)
 
@@ -97,6 +103,7 @@ export function MechSheet({
                 fieldPath="currentHP"
                 min={0}
                 store={store}
+                readOnly={readOnly}
               />
             </dd>
           </div>
@@ -111,6 +118,7 @@ export function MechSheet({
                 fieldPath="currentAP"
                 min={0}
                 store={store}
+                readOnly={readOnly}
               />
             </dd>
           </div>
@@ -125,6 +133,7 @@ export function MechSheet({
                 fieldPath="currentTP"
                 min={0}
                 store={store}
+                readOnly={readOnly}
               />
             </dd>
           </div>
@@ -139,6 +148,7 @@ export function MechSheet({
                 fieldPath="currentSP"
                 min={0}
                 store={store}
+                readOnly={readOnly}
               />
             </dd>
           </div>
@@ -153,6 +163,7 @@ export function MechSheet({
                 fieldPath="currentEP"
                 min={0}
                 store={store}
+                readOnly={readOnly}
               />
             </dd>
           </div>
@@ -167,6 +178,7 @@ export function MechSheet({
                 fieldPath="currentHeat"
                 min={0}
                 store={store}
+                readOnly={readOnly}
               />
             </dd>
           </div>

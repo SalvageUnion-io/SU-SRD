@@ -111,7 +111,7 @@ export function SnapshotView({ snapshot }: SnapshotViewProps) {
 
       <div className="flex flex-col gap-8">
         {result.kind === 'pilot' && <PilotSheet pilot={result.entity} />}
-        {result.kind === 'mech' && <MechSheet mech={result.entity} />}
+        {result.kind === 'mech' && <MechSheet mech={result.entity} readOnly />}
         {result.kind === 'crawler' && <CrawlerSheet crawler={result.entity} pilots={[]} />}
       </div>
     </main>
