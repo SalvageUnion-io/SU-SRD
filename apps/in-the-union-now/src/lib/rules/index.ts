@@ -10,6 +10,7 @@
  */
 
 export { computeMechCapacity } from './capacity'
+export { computeCrawlerCapacity } from './crawlerCapacity'
 export { salvageValueFor, scrapCostFor, tierUpgradeCost } from './scrap'
 export { computeCargoCapacity } from './cargo'
 export { evaluateSoftWarnings, evaluatePilotWarnings, evaluateMechWarnings } from './softWarnings'
@@ -42,3 +43,9 @@ export type {
   AbilityInput,
   SystemSnapshot,
 } from './types'
+
+export type {
+  CrawlerCapacityInput,
+  CrawlerCapacityResult,
+  CrawlerCapacityViolation,
+} from './crawlerCapacity'

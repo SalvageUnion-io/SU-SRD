@@ -1,4 +1,5 @@
 import { SalvageUnionReference } from 'salvageunion-reference'
+import { STARTING_EQUIPMENT_BUDGET } from '../../lib/constants'
 import { EntityChoiceCard } from '../shared/EntityChoiceCard'
 
 type SUREquipmentAccessor = {
@@ -18,9 +19,6 @@ type EquipmentStepProps = {
   /** Injectable SUR for testing. */
   _sur?: { Equipment: SUREquipmentAccessor }
 }
-
-/** Max starting equipment items per Salvage Union character creation rules. */
-const STARTING_EQUIPMENT_BUDGET = 3
 
 /**
  * Step 3: Choose starting equipment.

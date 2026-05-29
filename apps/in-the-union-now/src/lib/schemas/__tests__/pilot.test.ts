@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 
+import { STARTING_ABILITY_BUDGET, STARTING_EQUIPMENT_BUDGET } from '../../constants'
 import { PilotSchema } from '../pilot'
 
 const validPilot = {
@@ -65,5 +66,38 @@ describe('PilotSchema', () => {
 
   test('rejects invalid datetime format for createdAt', () => {
     expect(() => PilotSchema.parse({ ...validPilot, createdAt: 'not-a-date' })).toThrow()
+  })
+
+  // Schema hardening: name/callsign must be non-empty
+  test('rejects empty name', () => {
+    expect(() => PilotSchema.parse({ ...validPilot, name: '' })).toThrow()
+  })
+
+  test('rejects empty callsign', () => {
+    expect(() => PilotSchema.parse({ ...validPilot, callsign: '' })).toThrow()
+  })
+
+  // Schema hardening: abilities array must not exceed STARTING_ABILITY_BUDGET
+  test(`rejects abilities array exceeding STARTING_ABILITY_BUDGET (${STARTING_ABILITY_BUDGET})`, () => {
+    const tooMany = Array.from({ length: STARTING_ABILITY_BUDGET + 1 }, (_, i) => `ability-${i}`)
+    expect(() => PilotSchema.parse({ ...validPilot, abilities: tooMany })).toThrow()
+  })
+
+  test(`accepts abilities array exactly at STARTING_ABILITY_BUDGET (${STARTING_ABILITY_BUDGET})`, () => {
+    const atMax = Array.from({ length: STARTING_ABILITY_BUDGET }, (_, i) => `ability-${i}`)
+    const result = PilotSchema.parse({ ...validPilot, abilities: atMax })
+    expect(result.abilities).toHaveLength(STARTING_ABILITY_BUDGET)
+  })
+
+  // Schema hardening: equipment array must not exceed STARTING_EQUIPMENT_BUDGET
+  test(`rejects equipment array exceeding STARTING_EQUIPMENT_BUDGET (${STARTING_EQUIPMENT_BUDGET})`, () => {
+    const tooMany = Array.from({ length: STARTING_EQUIPMENT_BUDGET + 1 }, (_, i) => `item-${i}`)
+    expect(() => PilotSchema.parse({ ...validPilot, equipment: tooMany })).toThrow()
+  })
+
+  test(`accepts equipment array exactly at STARTING_EQUIPMENT_BUDGET (${STARTING_EQUIPMENT_BUDGET})`, () => {
+    const atMax = Array.from({ length: STARTING_EQUIPMENT_BUDGET }, (_, i) => `item-${i}`)
+    const result = PilotSchema.parse({ ...validPilot, equipment: atMax })
+    expect(result.equipment).toHaveLength(STARTING_EQUIPMENT_BUDGET)
   })
 })

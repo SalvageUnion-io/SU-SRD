@@ -43,6 +43,10 @@ export function SystemModuleGrid({
 }: SystemModuleGridProps) {
   const [activeTab, setActiveTab] = useState<TabId>('systems')
 
+  // TODO(p3): Filter systems by mech tech level (mirroring CrawlerBuilder's
+  // filterSystemsByTL) once a mech TL context is available. MechBuilder
+  // currently does not expose a tech level — chassis drives slot math only.
+  // When a mech TL field is added, apply filterSystemsByTL here.
   const allSystems = useMemo(() => SalvageUnionReference.Systems.all(), [])
   const allModules = useMemo(() => SalvageUnionReference.Modules.all(), [])
 

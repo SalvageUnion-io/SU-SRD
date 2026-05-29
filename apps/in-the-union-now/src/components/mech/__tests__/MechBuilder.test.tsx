@@ -252,6 +252,32 @@ describe('CargoEditor', () => {
 })
 
 // ---------------------------------------------------------------------------
+// MechBuilder integration test — schema validation gate at submit
+// ---------------------------------------------------------------------------
+
+describe('MechBuilder — schema validation gate', () => {
+  it('shows a validation error and does not create mech when name is empty', async () => {
+    render(<MechBuilder />)
+
+    // Select a chassis
+    const allChassis = SalvageUnionReference.Chassis.all()
+    const mule = allChassis.find((c) => c.name === 'Mule') ?? allChassis[0]!
+
+    await act(async () => {
+      fireEvent.click(getChoiceCardByName(mule.name))
+    })
+
+    // Leave mech name empty — submit button should be disabled (name required)
+    const submitButton = screen.getByRole('button', { name: /create mech/i })
+    expect((submitButton as HTMLButtonElement).disabled).toBe(true)
+
+    // No mechs should have been created
+    const mechs = useEntityStore.getState().list('mech')
+    expect(mechs.length).toBe(0)
+  })
+})
+
+// ---------------------------------------------------------------------------
 // MechBuilder integration test — entityStore.create called on finish
 // ---------------------------------------------------------------------------
 

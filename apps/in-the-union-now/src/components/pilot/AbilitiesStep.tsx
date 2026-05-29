@@ -1,5 +1,6 @@
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefClass } from 'salvageunion-reference'
+import { STARTING_ABILITY_BUDGET } from '../../lib/constants'
 import { EntityChoiceCard } from '../shared/EntityChoiceCard'
 
 type SURAbilitiesAccessor = {
@@ -36,9 +37,6 @@ function isBaseClass(
     (cls as Record<string, unknown>).coreTrees !== undefined
   )
 }
-
-/** Starting ability budget at character creation, per Salvage Union core rules. */
-const STARTING_ABILITY_BUDGET = 3
 
 /**
  * Step 2: Choose starting abilities for the selected class.
