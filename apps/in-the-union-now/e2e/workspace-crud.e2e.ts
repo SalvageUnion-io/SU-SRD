@@ -10,32 +10,27 @@ test('create and delete a workspace from the manage modal', async ({ page }) => 
   await page.goto('/')
   await waitForReady(page)
 
-  // Open the manage modal via the workspace switcher.
-  const switcher = page.getByLabel(/workspace/i).first()
-  await switcher.selectOption({ label: 'Manage workspaces…' }).catch(async () => {
-    // Some app variants render the manage entry as a button; fall back.
-    await page.getByRole('button', { name: /Manage workspaces/i }).click()
-  })
+  // Open the manage modal via the workspace switcher select (aria-label="Select workspace").
+  // The "Manage workspaces…" entry has value="__manage__"; selecting it opens WorkspaceList.
+  await page.getByLabel('Select workspace').selectOption({ label: 'Manage workspaces…' })
 
-  await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10_000 })
-  await expect(page.getByText(/Manage Workspaces/i)).toBeVisible()
+  // Confirm the dialog is open and shows the correct heading.
+  const dialog = page.getByRole('dialog', { name: 'Manage Workspaces' })
+  await expect(dialog).toBeVisible({ timeout: 10_000 })
+  await expect(dialog.getByRole('heading', { name: 'Manage Workspaces' })).toBeVisible()
 
   // Create a workspace.
-  await page.getByLabel(/New workspace name/i).fill('Wasteland Patrol')
-  await page
-    .getByRole('button', { name: /^Create$|^Add$|^New$/ })
-    .first()
-    .click()
+  await dialog.getByLabel('New workspace name').fill('Wasteland Patrol')
+  await dialog.getByRole('button', { name: 'Create workspace' }).click()
 
   // Verify the new workspace shows up in the list.
-  await expect(page.getByText('Wasteland Patrol').first()).toBeVisible()
+  await expect(dialog.getByText('Wasteland Patrol')).toBeVisible()
 
-  // Delete the workspace we just made.
-  await page.getByRole('button', { name: /Delete workspace Wasteland Patrol/i }).click()
+  // Delete the workspace we just made (aria-label="Delete workspace <name>").
+  await dialog.getByRole('button', { name: 'Delete workspace Wasteland Patrol' }).click()
 
-  // Confirmation may use a confirm() prompt OR an inline second-click —
-  // accept either.
+  // Confirmation may use a confirm() prompt — accept it if it appears.
   page.once('dialog', (d) => void d.accept())
 
-  await expect(page.getByText('Wasteland Patrol')).not.toBeVisible({ timeout: 10_000 })
+  await expect(dialog.getByText('Wasteland Patrol')).not.toBeVisible({ timeout: 10_000 })
 })

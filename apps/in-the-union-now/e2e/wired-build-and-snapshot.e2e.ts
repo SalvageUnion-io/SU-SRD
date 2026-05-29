@@ -33,7 +33,12 @@ test('pilot + mech + crawler build and snapshot share URL', async ({ page }) => 
   await page.getByRole('button', { name: /^Next$/ }).click()
   await page.getByRole('button', { name: /^Next$/ }).click()
   await page.getByRole('button', { name: /Create Pilot/i }).click()
-  await page.waitForURL(/\/(pilots\/|$)/, { timeout: 15_000 })
+  // Wait for navigation to the dashboard root ('/') — not '/pilots/new' — so we
+  // know the async IndexedDB write completed before we move to the next step.
+  // The broken regex /\/(pilots\/|$)/ also matched the *current* URL '/pilots/new'
+  // (because it contains '/pilots/'), causing waitForURL to return immediately and
+  // interrupting the in-flight entity-store write.
+  await page.waitForURL((url) => url.pathname === '/', { timeout: 15_000 })
 
   // --- Mech ---
   await page.goto('/mechs/new')
@@ -41,7 +46,7 @@ test('pilot + mech + crawler build and snapshot share URL', async ({ page }) => 
   await pickByName(page, 'Mule')
   await page.getByLabel(/Mech name/i).fill('Iron Fist')
   await page.getByRole('button', { name: /Create Mech/i }).click()
-  await page.waitForURL(/\/(mechs\/|$)/, { timeout: 15_000 })
+  await page.waitForURL((url) => url.pathname === '/', { timeout: 15_000 })
 
   // --- Crawler ---
   await page.goto('/crawlers/new')
@@ -49,7 +54,7 @@ test('pilot + mech + crawler build and snapshot share URL', async ({ page }) => 
   await page.getByLabel(/Crawler name/i).fill('Iron Wagon')
   await page.getByRole('button', { name: /TL 1/i }).click()
   await page.getByRole('button', { name: /Create Crawler/i }).click()
-  await page.waitForURL(/\/(crawlers\/|$)/, { timeout: 15_000 })
+  await page.waitForURL((url) => url.pathname === '/', { timeout: 15_000 })
 
   // --- Open the pilot sheet and try to publish a snapshot ---
   await page.goto('/')
