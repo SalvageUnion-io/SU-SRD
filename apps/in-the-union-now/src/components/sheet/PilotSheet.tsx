@@ -4,12 +4,30 @@
  * Renders: callsign + name + class ref, abilities, equipment (with read-only
  * ConditionToggle), and identity fields (motto, keepsake, appearance).
  *
+ * Abilities and equipment are resolved against SalvageUnionReference and
+ * displayed via ReferenceEntityDisplay so the sheet reads as a slice of the
+ * SRD rather than a bare slug list.
+ *
  * ConditionToggle is rendered in display-only mode: the onChange handler is a
  * no-op, so clicks have no effect.
  */
 
+import { SalvageUnionReference } from 'salvageunion-reference'
+import type { SURefAbility, SURefEntity, SURefEquipment } from 'salvageunion-reference'
+import { ReferenceEntityDisplay } from 'suref-react'
+
 import type { Pilot } from '../../lib/schemas/pilot'
 import { ConditionToggle } from '../shared/ConditionToggle'
+
+function resolveAbility(slug: string): SURefAbility | null {
+  const all = SalvageUnionReference.Abilities.all() as ReadonlyArray<SURefAbility>
+  return all.find((a) => a.id === slug || a.name === slug) ?? null
+}
+
+function resolveEquipment(slug: string): SURefEquipment | null {
+  const all = SalvageUnionReference.Equipment.all() as ReadonlyArray<SURefEquipment>
+  return all.find((e) => e.id === slug || e.name === slug) ?? null
+}
 
 type PilotSheetProps = {
   pilot: Pilot
@@ -30,37 +48,70 @@ export function PilotSheet({ pilot }: PilotSheetProps) {
       {/* Abilities */}
       {pilot.abilities.length > 0 && (
         <div>
-          <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-1">
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-2">
             Abilities
           </h3>
-          <ul className="flex flex-col gap-1">
-            {pilot.abilities.map((slug) => (
-              <li key={slug} className="text-sm rounded border border-border px-2 py-1">
-                {slug}
-              </li>
-            ))}
-          </ul>
+          <div className="flex flex-col gap-3">
+            {pilot.abilities.map((slug) => {
+              const ability = resolveAbility(slug)
+              if (!ability) {
+                return (
+                  <div
+                    key={slug}
+                    className="rounded border border-border px-2 py-1 text-sm text-muted-foreground"
+                  >
+                    {slug}
+                  </div>
+                )
+              }
+              return (
+                <ReferenceEntityDisplay
+                  key={ability.id}
+                  data={ability as unknown as SURefEntity}
+                  compact
+                  label={ability.tree}
+                  hide={{ choices: true }}
+                />
+              )
+            })}
+          </div>
         </div>
       )}
 
       {/* Equipment */}
       {pilot.equipment.length > 0 && (
         <div>
-          <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-1">
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-2">
             Equipment
           </h3>
-          <ul className="flex flex-col gap-1">
-            {pilot.equipment.map((slug) => (
-              <li
-                key={slug}
-                className="flex items-center justify-between rounded border border-border px-2 py-1 text-sm"
-              >
-                <span>{slug}</span>
-                {/* Read-only condition display — onChange is a no-op */}
-                <ConditionToggle value="intact" onChange={() => undefined} ariaLabelPrefix={slug} />
-              </li>
-            ))}
-          </ul>
+          <div className="flex flex-col gap-3">
+            {pilot.equipment.map((slug) => {
+              const equipment = resolveEquipment(slug)
+              return (
+                <div key={slug} className="flex items-start gap-2">
+                  <div className="flex-1">
+                    {equipment ? (
+                      <ReferenceEntityDisplay
+                        data={equipment as unknown as SURefEntity}
+                        compact
+                        hide={{ choices: true }}
+                      />
+                    ) : (
+                      <div className="rounded border border-border px-2 py-1 text-sm text-muted-foreground">
+                        {slug}
+                      </div>
+                    )}
+                  </div>
+                  {/* Read-only condition display — onChange is a no-op */}
+                  <ConditionToggle
+                    value="intact"
+                    onChange={() => undefined}
+                    ariaLabelPrefix={slug}
+                  />
+                </div>
+              )
+            })}
+          </div>
         </div>
       )}
 

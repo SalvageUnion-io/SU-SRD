@@ -67,22 +67,25 @@
 }
 
 /* === Base layout === */
+html,
 body {
-  background-color: var(--color-su-white);
+  min-height: 100dvh;
+}
+
+body {
+  /*
+   * Full-viewport blue-pale background. The SRD's BaseLayout puts blue-pale
+   * on the <main> element, but ITUN's per-route <main> tags are width-
+   * constrained (`mx-auto max-w-Nxl`), which left the rest of the viewport
+   * unstyled. Setting the colour at the <body> level paints the whole
+   * window; the centred content inside each route inherits the colour and
+   * sits over it.
+   */
+  background-color: var(--color-su-blue-pale);
   color: var(--color-su-black);
   font-family: var(--font-mono);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
-
-/*
- * Route-level main content sits inside a blue-pale band, mirroring the
- * SRD layout (BaseLayout wraps <main> in `bg-su-blue-pale`). Tag every
- * top-level <main> so feature pages get the shared backdrop without
- * having to repeat the class.
- */
-main {
-  background-color: var(--color-su-blue-pale);
 }
 
 /*

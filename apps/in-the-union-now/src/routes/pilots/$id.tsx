@@ -18,6 +18,7 @@ import { AssignToWorkspaceButton } from '../../components/workspace/AssignToWork
 import { useWorkspaceStore } from '../../stores/workspaceStore'
 import { buttonVariants } from '../../components/ui/buttonVariants'
 import { cn } from '../../lib/utils'
+import { PilotSheet } from '../../components/sheet/PilotSheet'
 
 export const Route = createFileRoute('/pilots/$id')({
   loader: async ({ params }) => {
@@ -74,14 +75,6 @@ function PilotDetailPage() {
       {/* Summary */}
       <section className="mb-6 rounded-md border border-border p-4 text-sm">
         <dl className="space-y-2">
-          <div className="flex gap-2">
-            <dt className="font-medium">Abilities:</dt>
-            <dd>{pilot.abilities.length}</dd>
-          </div>
-          <div className="flex gap-2">
-            <dt className="font-medium">Equipment:</dt>
-            <dd>{pilot.equipment.length}</dd>
-          </div>
           {pilot.conditions.length > 0 && (
             <div className="flex gap-2">
               <dt className="font-medium">Conditions:</dt>
@@ -95,6 +88,11 @@ function PilotDetailPage() {
             </div>
           )}
         </dl>
+      </section>
+
+      {/* Abilities + Equipment via the SRD entity display */}
+      <section className="mb-6">
+        <PilotSheet pilot={pilot} />
       </section>
 
       {/* Crawler assignment */}
