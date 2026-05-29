@@ -68,7 +68,7 @@ export function CargoEditor({ items, onChange, className }: CargoEditorProps) {
                 size="sm"
                 aria-label={`Remove ${item.kind === 'custom' ? item.name : item.ref}`}
                 onClick={() => removeItem(i)}
-                className="h-6 px-2 text-destructive hover:text-destructive"
+                className="px-2 text-destructive hover:text-destructive"
               >
                 Remove
               </Button>

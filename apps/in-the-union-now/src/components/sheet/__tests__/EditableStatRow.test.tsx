@@ -244,4 +244,40 @@ describe('EditableStatRow — label', () => {
     )
     expect(screen.getByText('Heat')).toBeTruthy()
   })
+
+  test('edit button aria-label includes the stat name', () => {
+    const store = makeStore([fakeMech])
+    render(
+      <EditableStatRow
+        label="HP"
+        value={10}
+        entityKind="mech"
+        entityId="mech-1"
+        fieldPath="currentHP"
+        store={store}
+        evaluate={noWarnings}
+      />
+    )
+    // The edit trigger is role="button" and aria-label="Edit {label}"
+    const editBtn = screen.getByRole('button')
+    const ariaLabel = editBtn.getAttribute('aria-label') ?? ''
+    expect(ariaLabel).toContain('HP')
+  })
+
+  test('edit button aria-label for AP includes "AP"', () => {
+    const store = makeStore([fakeMech])
+    render(
+      <EditableStatRow
+        label="AP"
+        value={3}
+        entityKind="mech"
+        entityId="mech-1"
+        fieldPath="currentAP"
+        store={store}
+        evaluate={noWarnings}
+      />
+    )
+    const editBtn = screen.getByRole('button')
+    expect(editBtn.getAttribute('aria-label')).toContain('AP')
+  })
 })

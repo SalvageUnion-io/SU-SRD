@@ -80,7 +80,7 @@ export function PilotSheet({ pilot, store = useEntityStore, readOnly = false }: 
             <dd className="text-lg font-semibold">
               {/* TODO: source base value from rules once pilot class data exposes HP */}
               <EditableStatRow
-                label=""
+                label="HP"
                 value={pilot.currentHP ?? 0}
                 entityKind="pilot"
                 entityId={pilot.id}
@@ -96,7 +96,7 @@ export function PilotSheet({ pilot, store = useEntityStore, readOnly = false }: 
             <dd className="text-lg font-semibold">
               {/* TODO: source base value from rules once pilot class data exposes AP */}
               <EditableStatRow
-                label=""
+                label="AP"
                 value={pilot.currentAP ?? 0}
                 entityKind="pilot"
                 entityId={pilot.id}

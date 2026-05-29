@@ -85,12 +85,14 @@ export function ConditionToggle({
       role="button"
       tabIndex={0}
       aria-label={label}
-      aria-pressed={undefined}
       onClick={cycle}
       onKeyDown={handleKeyDown}
       className={cn(
         badgeClass,
-        'cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1'
+        // min-h-11 ensures 44px touch target on mobile; sm:min-h-0 lets the
+        // badge return to its natural (text-driven) height on larger viewports.
+        'cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1',
+        'min-h-11 sm:min-h-0'
       )}
     >
       {LABELS[value]}

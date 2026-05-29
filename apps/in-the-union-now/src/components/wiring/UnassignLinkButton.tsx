@@ -13,9 +13,10 @@
  *   className   — optional class override for the trigger button
  */
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 
 import { useEntityStore } from '../../stores/entityStore'
+import { useDialogA11y } from '../shared/useDialogA11y'
 import { Button } from '../ui/button'
 import { cn } from '../../lib/utils'
 
@@ -82,40 +83,66 @@ export function UnassignLinkButton({
       </Button>
 
       {open && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="unassign-confirm-title"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-        >
-          <div className="w-full max-w-sm rounded-lg border bg-background p-6 shadow-lg">
-            <h2 id="unassign-confirm-title" className="mb-2 text-base font-semibold">
-              Remove assignment?
-            </h2>
-            <p className="mb-4 text-sm text-muted-foreground">
-              This only removes the link between the entities &mdash; it does <strong>not</strong>{' '}
-              delete either the pilot, mech, or crawler.
-            </p>
-
-            {error && <p className="mb-3 text-sm text-destructive">{error}</p>}
-
-            <div className="flex justify-end gap-2">
-              <Button variant="ghost" size="sm" onClick={closeConfirm} disabled={pending}>
-                Cancel
-              </Button>
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={handleConfirm}
-                disabled={pending}
-                aria-label="Confirm unassign"
-              >
-                {pending ? 'Removing…' : 'Remove link'}
-              </Button>
-            </div>
-          </div>
-        </div>
+        <UnassignConfirmDialog
+          error={error}
+          pending={pending}
+          onConfirm={handleConfirm}
+          onClose={closeConfirm}
+        />
       )}
     </>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Dialog sub-component (mounted only when open, so useDialogA11y runs once)
+// ---------------------------------------------------------------------------
+
+type UnassignConfirmDialogProps = {
+  error: string | null
+  pending: boolean
+  onConfirm: () => Promise<void>
+  onClose: () => void
+}
+
+function UnassignConfirmDialog({ error, pending, onConfirm, onClose }: UnassignConfirmDialogProps) {
+  const dialogRef = useRef<HTMLDivElement>(null)
+  useDialogA11y({ ref: dialogRef, onClose })
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="unassign-confirm-title"
+        className="w-full max-w-sm rounded-lg border bg-background p-6 shadow-lg"
+      >
+        <h2 id="unassign-confirm-title" className="mb-2 text-base font-semibold">
+          Remove assignment?
+        </h2>
+        <p className="mb-4 text-sm text-muted-foreground">
+          This only removes the link between the entities &mdash; it does <strong>not</strong>{' '}
+          delete either the pilot, mech, or crawler.
+        </p>
+
+        {error && <p className="mb-3 text-sm text-destructive">{error}</p>}
+
+        <div className="flex justify-end gap-2">
+          <Button variant="ghost" size="sm" onClick={onClose} disabled={pending}>
+            Cancel
+          </Button>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => void onConfirm()}
+            disabled={pending}
+            aria-label="Confirm unassign"
+          >
+            {pending ? 'Removing…' : 'Remove link'}
+          </Button>
+        </div>
+      </div>
+    </div>
   )
 }

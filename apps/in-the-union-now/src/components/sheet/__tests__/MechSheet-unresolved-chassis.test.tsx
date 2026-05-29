@@ -89,13 +89,14 @@ describe('MechSheet — unresolved chassis (chassis=null)', () => {
     // The stats section heading should appear
     expect(screen.getByText('Stats')).toBeTruthy()
 
-    // Each of the six stat labels must be present
-    expect(screen.getByText('HP')).toBeTruthy()
-    expect(screen.getByText('AP')).toBeTruthy()
-    expect(screen.getByText('TP')).toBeTruthy()
-    expect(screen.getByText('SP')).toBeTruthy()
-    expect(screen.getByText('EP')).toBeTruthy()
-    expect(screen.getByText('Heat')).toBeTruthy()
+    // Each of the six stat labels must be present (getAllByText because the label
+    // appears in both the <dt> and the EditableStatRow's internal <span>).
+    expect(screen.getAllByText('HP').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('AP').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('TP').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('SP').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('EP').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('Heat').length).toBeGreaterThanOrEqual(1)
   })
 
   test('stat rows are editable (role=button present) when chassis is null', () => {

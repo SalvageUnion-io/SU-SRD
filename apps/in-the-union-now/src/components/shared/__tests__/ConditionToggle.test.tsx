@@ -122,4 +122,20 @@ describe('ConditionToggle', () => {
     expect(button.getAttribute('aria-label')).toContain('Heavy Blaster')
     expect(button.getAttribute('aria-label')).toContain('Damaged')
   })
+
+  test('does not set aria-pressed attribute (tri-state semantics use aria-label instead)', () => {
+    const onChange = mock(() => {})
+    render(<ConditionToggle value="intact" onChange={onChange} />)
+    const button = screen.getByRole('button')
+    // aria-pressed on a tri-state toggle is semantically incorrect;
+    // the descriptive aria-label is the correct pattern here.
+    expect(button.hasAttribute('aria-pressed')).toBe(false)
+  })
+
+  test('interactive toggle has min-h-11 class for touch target compliance', () => {
+    const onChange = mock(() => {})
+    render(<ConditionToggle value="intact" onChange={onChange} />)
+    const button = screen.getByRole('button')
+    expect(button.className).toContain('min-h-11')
+  })
 })

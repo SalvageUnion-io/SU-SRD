@@ -9,9 +9,9 @@
  * without mock.module().
  */
 
-import { useState } from 'react'
-import type { KeyboardEvent } from 'react'
+import { useRef, useState } from 'react'
 
+import { useDialogA11y } from '../shared/useDialogA11y'
 import { Button } from '../ui/button'
 
 type ShareURLDialogProps = {
@@ -39,12 +39,8 @@ export function ShareURLDialog({
 }: ShareURLDialogProps) {
   const [copied, setCopied] = useState(false)
   const [copyError, setCopyError] = useState<string | null>(null)
-
-  function handleBackdropKeyDown(e: KeyboardEvent<HTMLDivElement>) {
-    if (e.key === 'Escape') {
-      onClose()
-    }
-  }
+  const dialogRef = useRef<HTMLDivElement>(null)
+  useDialogA11y({ ref: dialogRef, onClose })
 
   async function handleCopy() {
     setCopyError(null)
@@ -60,12 +56,9 @@ export function ShareURLDialog({
   }
 
   return (
-    // eslint-disable-next-line jsx-a11y/no-static-element-interactions
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
-      onKeyDown={handleBackdropKeyDown}
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="share-dialog-title"
