@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { ItemConditionMapSchema } from './mech'
 
 /**
  * classRef: slug reference to a class in salvageunion-reference.
@@ -25,6 +26,21 @@ export const PilotSchema = z
     conditions: z.array(z.string()),
     /** Optional: links this pilot to a workspace */
     workspaceId: z.string().optional(),
+    // ---------------------------------------------------------------------------
+    // Live-play current stat tracking (#245).
+    // These are current values for the active session — separate from any
+    // class/rules defaults. When absent the sheet falls back to 0.
+    // TODO: source base value from rules once pilot class data exposes HP/AP.
+    // ---------------------------------------------------------------------------
+    /** Current hit points */
+    currentHP: z.number().int().min(0).optional(),
+    /** Current action points */
+    currentAP: z.number().int().min(0).optional(),
+    /**
+     * Per-equipment condition map (REQ-011 #240). Keyed by equipment slug.
+     * When absent or key missing, the display layer defaults to 'intact'.
+     */
+    equipmentConditions: ItemConditionMapSchema.optional(),
     createdAt: z.string().datetime(),
     updatedAt: z.string().datetime(),
   })

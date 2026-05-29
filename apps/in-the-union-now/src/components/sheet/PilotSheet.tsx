@@ -16,8 +16,11 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefAbility, SURefEntity, SURefEquipment } from 'salvageunion-reference'
 import { ReferenceEntityDisplay } from 'suref-react'
 
+import type { ItemCondition } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
+import { useEntityStore } from '../../stores/entityStore'
 import { ConditionToggle } from '../shared/ConditionToggle'
+import { EditableStatRow } from './EditableStatRow'
 
 function resolveAbility(slug: string): SURefAbility | null {
   const all = SalvageUnionReference.Abilities.all() as ReadonlyArray<SURefAbility>
@@ -31,9 +34,29 @@ function resolveEquipment(slug: string): SURefEquipment | null {
 
 type PilotSheetProps = {
   pilot: Pilot
+  /**
+   * Injectable store — defaults to useEntityStore.
+   * Pass a stub in tests to avoid Zustand/IndexedDB side effects.
+   */
+  store?: typeof useEntityStore
+  /**
+   * When true, stat cells render as plain text with no click-to-edit affordance.
+   * Use in read-only contexts like published snapshots.
+   */
+  readOnly?: boolean
 }
 
-export function PilotSheet({ pilot }: PilotSheetProps) {
+export function PilotSheet({ pilot, store = useEntityStore, readOnly = false }: PilotSheetProps) {
+  const storeState = store()
+
+  async function handleEquipmentConditionChange(slug: string, next: ItemCondition) {
+    // Read the freshest map from the store (not the render-time prop) so rapid
+    // sequential toggles don't stomp each other with a stale-closure overwrite.
+    const prev =
+      storeState.get('pilot', pilot.id)?.equipmentConditions ?? pilot.equipmentConditions ?? {}
+    await storeState.update('pilot', pilot.id, { equipmentConditions: { ...prev, [slug]: next } })
+  }
+
   return (
     <section aria-labelledby="pilot-sheet-heading" className="flex flex-col gap-4">
       {/* Header */}
@@ -43,6 +66,47 @@ export function PilotSheet({ pilot }: PilotSheetProps) {
           {pilot.name}
         </h2>
         <p className="text-sm text-muted-foreground">Class: {pilot.classRef}</p>
+      </div>
+
+      {/* Stats — HP + AP (live-play tracking, #245) */}
+      <div>
+        <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+          Stats
+        </h3>
+        <dl className="grid grid-cols-2 gap-2">
+          <div className="flex flex-col items-center rounded border border-border py-2 text-center">
+            <dt className="text-xs text-muted-foreground">HP</dt>
+            <dd className="text-lg font-semibold">
+              {/* TODO: source base value from rules once pilot class data exposes HP */}
+              <EditableStatRow
+                label=""
+                value={pilot.currentHP ?? 0}
+                entityKind="pilot"
+                entityId={pilot.id}
+                fieldPath="currentHP"
+                min={0}
+                store={store}
+                readOnly={readOnly}
+              />
+            </dd>
+          </div>
+          <div className="flex flex-col items-center rounded border border-border py-2 text-center">
+            <dt className="text-xs text-muted-foreground">AP</dt>
+            <dd className="text-lg font-semibold">
+              {/* TODO: source base value from rules once pilot class data exposes AP */}
+              <EditableStatRow
+                label=""
+                value={pilot.currentAP ?? 0}
+                entityKind="pilot"
+                entityId={pilot.id}
+                fieldPath="currentAP"
+                min={0}
+                store={store}
+                readOnly={readOnly}
+              />
+            </dd>
+          </div>
+        </dl>
       </div>
 
       {/* Abilities */}
@@ -102,11 +166,13 @@ export function PilotSheet({ pilot }: PilotSheetProps) {
                       </div>
                     )}
                   </div>
-                  {/* Read-only condition display — onChange is a no-op */}
                   <ConditionToggle
-                    value="intact"
-                    onChange={() => undefined}
+                    value={pilot.equipmentConditions?.[slug] ?? 'intact'}
+                    onChange={(next) => {
+                      void handleEquipmentConditionChange(slug, next)
+                    }}
                     ariaLabelPrefix={slug}
+                    readOnly={readOnly}
                   />
                 </div>
               )

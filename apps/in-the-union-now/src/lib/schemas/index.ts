@@ -4,8 +4,8 @@ export type { EntityRef } from './entity'
 export { PilotSchema } from './pilot'
 export type { Pilot } from './pilot'
 
-export { MechSchema } from './mech'
-export type { Mech } from './mech'
+export { MechSchema, ItemConditionSchema, ItemConditionMapSchema } from './mech'
+export type { Mech, ItemCondition, ItemConditionMap } from './mech'
 
 export { CrawlerSchema } from './crawler'
 export type { Crawler } from './crawler'

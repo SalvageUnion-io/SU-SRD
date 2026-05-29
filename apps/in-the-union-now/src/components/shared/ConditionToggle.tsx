@@ -37,6 +37,11 @@ type ConditionToggleProps = {
   className?: string
   /** Optional accessible label prefix, e.g. the item name. */
   ariaLabelPrefix?: string
+  /**
+   * When true, renders as a static badge with no interactive affordance.
+   * Used in read-only contexts like published snapshots.
+   */
+  readOnly?: boolean
 }
 
 export function ConditionToggle({
@@ -44,6 +49,7 @@ export function ConditionToggle({
   onChange,
   className,
   ariaLabelPrefix,
+  readOnly = false,
 }: ConditionToggleProps) {
   function cycle() {
     onChange(CYCLE[value])
@@ -60,6 +66,20 @@ export function ConditionToggle({
     ? `${ariaLabelPrefix} condition: ${LABELS[value]}`
     : `Condition: ${LABELS[value]}`
 
+  const badgeClass = cn(
+    'inline-flex select-none items-center rounded border px-2 py-0.5 text-xs font-semibold',
+    STYLES[value],
+    className
+  )
+
+  if (readOnly) {
+    return (
+      <span aria-label={label} className={badgeClass}>
+        {LABELS[value]}
+      </span>
+    )
+  }
+
   return (
     <span
       role="button"
@@ -69,9 +89,8 @@ export function ConditionToggle({
       onClick={cycle}
       onKeyDown={handleKeyDown}
       className={cn(
-        'inline-flex cursor-pointer select-none items-center rounded border px-2 py-0.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1',
-        STYLES[value],
-        className
+        badgeClass,
+        'cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1'
       )}
     >
       {LABELS[value]}

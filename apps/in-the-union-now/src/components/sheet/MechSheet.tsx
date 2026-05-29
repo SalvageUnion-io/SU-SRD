@@ -17,6 +17,7 @@
  */
 
 import { SalvageUnionReference } from 'salvageunion-reference'
+import type { ItemCondition } from '../../lib/schemas/mech'
 import type { Mech } from '../../lib/schemas/mech'
 import { useEntityStore } from '../../stores/entityStore'
 import { ConditionToggle } from '../shared/ConditionToggle'
@@ -45,6 +46,11 @@ type MechSheetProps = {
    * Pass a stub in tests to avoid Zustand/IndexedDB side effects.
    */
   store?: typeof useEntityStore
+  /**
+   * When true, stat cells render as plain text with no click-to-edit affordance.
+   * Use in read-only contexts like published snapshots.
+   */
+  readOnly?: boolean
 }
 
 function resolveChassis(mech: Mech, override?: ChassisLike | null): ChassisLike | null {
@@ -56,8 +62,22 @@ export function MechSheet({
   mech,
   chassis: chassisOverride,
   store = useEntityStore,
+  readOnly = false,
 }: MechSheetProps) {
   const chassis = resolveChassis(mech, chassisOverride)
+  const storeState = store()
+
+  async function handleSystemConditionChange(slug: string, next: ItemCondition) {
+    // Read the freshest map from the store (not the render-time prop) so rapid
+    // sequential toggles don't stomp each other with a stale-closure overwrite.
+    const prev = storeState.get('mech', mech.id)?.systemConditions ?? mech.systemConditions ?? {}
+    await storeState.update('mech', mech.id, { systemConditions: { ...prev, [slug]: next } })
+  }
+
+  async function handleModuleConditionChange(slug: string, next: ItemCondition) {
+    const prev = storeState.get('mech', mech.id)?.moduleConditions ?? mech.moduleConditions ?? {}
+    await storeState.update('mech', mech.id, { moduleConditions: { ...prev, [slug]: next } })
+  }
 
   return (
     <section aria-labelledby="mech-sheet-heading" className="flex flex-col gap-4">
@@ -72,99 +92,112 @@ export function MechSheet({
       </div>
 
       {/* Stats — inline-editable via EditableStatRow (AC-1 + AC-2) */}
-      {chassis && (
-        <div>
-          <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-2">
-            Stats
-          </h3>
-          <dl className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-6">
-            <div className="flex flex-col items-center rounded border border-border py-2 text-center">
-              <dt className="text-xs text-muted-foreground">HP</dt>
-              <dd className="text-lg font-semibold">
-                <EditableStatRow
-                  label=""
-                  value={mech.currentHP ?? chassis.structurePoints ?? 0}
-                  entityKind="mech"
-                  entityId={mech.id}
-                  fieldPath="currentHP"
-                  min={0}
-                  store={store}
-                />
-              </dd>
-            </div>
-            <div className="flex flex-col items-center rounded border border-border py-2 text-center">
-              <dt className="text-xs text-muted-foreground">AP</dt>
-              <dd className="text-lg font-semibold">
-                <EditableStatRow
-                  label=""
-                  value={mech.currentAP ?? 0}
-                  entityKind="mech"
-                  entityId={mech.id}
-                  fieldPath="currentAP"
-                  min={0}
-                  store={store}
-                />
-              </dd>
-            </div>
-            <div className="flex flex-col items-center rounded border border-border py-2 text-center">
-              <dt className="text-xs text-muted-foreground">TP</dt>
-              <dd className="text-lg font-semibold">
-                <EditableStatRow
-                  label=""
-                  value={mech.currentTP ?? 0}
-                  entityKind="mech"
-                  entityId={mech.id}
-                  fieldPath="currentTP"
-                  min={0}
-                  store={store}
-                />
-              </dd>
-            </div>
-            <div className="flex flex-col items-center rounded border border-border py-2 text-center">
-              <dt className="text-xs text-muted-foreground">SP</dt>
-              <dd className="text-lg font-semibold">
-                <EditableStatRow
-                  label=""
-                  value={mech.currentSP ?? chassis.structurePoints ?? 0}
-                  entityKind="mech"
-                  entityId={mech.id}
-                  fieldPath="currentSP"
-                  min={0}
-                  store={store}
-                />
-              </dd>
-            </div>
-            <div className="flex flex-col items-center rounded border border-border py-2 text-center">
-              <dt className="text-xs text-muted-foreground">EP</dt>
-              <dd className="text-lg font-semibold">
-                <EditableStatRow
-                  label=""
-                  value={mech.currentEP ?? chassis.energyPoints ?? 0}
-                  entityKind="mech"
-                  entityId={mech.id}
-                  fieldPath="currentEP"
-                  min={0}
-                  store={store}
-                />
-              </dd>
-            </div>
-            <div className="flex flex-col items-center rounded border border-border py-2 text-center">
-              <dt className="text-xs text-muted-foreground">Heat</dt>
-              <dd className="text-lg font-semibold">
-                <EditableStatRow
-                  label=""
-                  value={mech.currentHeat ?? chassis.heatCapacity ?? 0}
-                  entityKind="mech"
-                  entityId={mech.id}
-                  fieldPath="currentHeat"
-                  min={0}
-                  store={store}
-                />
-              </dd>
-            </div>
-          </dl>
-        </div>
-      )}
+      {/* Rendered regardless of chassis resolution; falls back to stored values or 0 when chassis is null */}
+      <div>
+        <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+          Stats
+        </h3>
+        {!chassis && (
+          <p
+            role="alert"
+            className="mb-2 rounded border border-yellow-400 bg-yellow-50 px-3 py-2 text-sm text-yellow-800"
+          >
+            Unknown chassis &ldquo;{mech.chassisRef}&rdquo; — using stored/zero defaults
+          </p>
+        )}
+        <dl className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-6">
+          <div className="flex flex-col items-center rounded border border-border py-2 text-center">
+            <dt className="text-xs text-muted-foreground">HP</dt>
+            <dd className="text-lg font-semibold">
+              <EditableStatRow
+                label=""
+                value={mech.currentHP ?? chassis?.structurePoints ?? 0}
+                entityKind="mech"
+                entityId={mech.id}
+                fieldPath="currentHP"
+                min={0}
+                store={store}
+                readOnly={readOnly}
+              />
+            </dd>
+          </div>
+          <div className="flex flex-col items-center rounded border border-border py-2 text-center">
+            <dt className="text-xs text-muted-foreground">AP</dt>
+            <dd className="text-lg font-semibold">
+              <EditableStatRow
+                label=""
+                value={mech.currentAP ?? 0}
+                entityKind="mech"
+                entityId={mech.id}
+                fieldPath="currentAP"
+                min={0}
+                store={store}
+                readOnly={readOnly}
+              />
+            </dd>
+          </div>
+          <div className="flex flex-col items-center rounded border border-border py-2 text-center">
+            <dt className="text-xs text-muted-foreground">TP</dt>
+            <dd className="text-lg font-semibold">
+              <EditableStatRow
+                label=""
+                value={mech.currentTP ?? 0}
+                entityKind="mech"
+                entityId={mech.id}
+                fieldPath="currentTP"
+                min={0}
+                store={store}
+                readOnly={readOnly}
+              />
+            </dd>
+          </div>
+          <div className="flex flex-col items-center rounded border border-border py-2 text-center">
+            <dt className="text-xs text-muted-foreground">SP</dt>
+            <dd className="text-lg font-semibold">
+              <EditableStatRow
+                label=""
+                value={mech.currentSP ?? chassis?.structurePoints ?? 0}
+                entityKind="mech"
+                entityId={mech.id}
+                fieldPath="currentSP"
+                min={0}
+                store={store}
+                readOnly={readOnly}
+              />
+            </dd>
+          </div>
+          <div className="flex flex-col items-center rounded border border-border py-2 text-center">
+            <dt className="text-xs text-muted-foreground">EP</dt>
+            <dd className="text-lg font-semibold">
+              <EditableStatRow
+                label=""
+                value={mech.currentEP ?? chassis?.energyPoints ?? 0}
+                entityKind="mech"
+                entityId={mech.id}
+                fieldPath="currentEP"
+                min={0}
+                store={store}
+                readOnly={readOnly}
+              />
+            </dd>
+          </div>
+          <div className="flex flex-col items-center rounded border border-border py-2 text-center">
+            <dt className="text-xs text-muted-foreground">Heat</dt>
+            <dd className="text-lg font-semibold">
+              <EditableStatRow
+                label=""
+                value={mech.currentHeat ?? chassis?.heatCapacity ?? 0}
+                entityKind="mech"
+                entityId={mech.id}
+                fieldPath="currentHeat"
+                min={0}
+                store={store}
+                readOnly={readOnly}
+              />
+            </dd>
+          </div>
+        </dl>
+      </div>
 
       {/* Systems */}
       {mech.systems.length > 0 && (
@@ -179,7 +212,14 @@ export function MechSheet({
                 className="flex items-center justify-between rounded border border-border px-2 py-1 text-sm"
               >
                 <span>{slug}</span>
-                <ConditionToggle value="intact" onChange={() => undefined} ariaLabelPrefix={slug} />
+                <ConditionToggle
+                  value={mech.systemConditions?.[slug] ?? 'intact'}
+                  onChange={(next) => {
+                    void handleSystemConditionChange(slug, next)
+                  }}
+                  ariaLabelPrefix={slug}
+                  readOnly={readOnly}
+                />
               </li>
             ))}
           </ul>
@@ -199,7 +239,14 @@ export function MechSheet({
                 className="flex items-center justify-between rounded border border-border px-2 py-1 text-sm"
               >
                 <span>{slug}</span>
-                <ConditionToggle value="intact" onChange={() => undefined} ariaLabelPrefix={slug} />
+                <ConditionToggle
+                  value={mech.moduleConditions?.[slug] ?? 'intact'}
+                  onChange={(next) => {
+                    void handleModuleConditionChange(slug, next)
+                  }}
+                  ariaLabelPrefix={slug}
+                  readOnly={readOnly}
+                />
               </li>
             ))}
           </ul>

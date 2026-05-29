@@ -16,6 +16,12 @@ export const CrawlerSchema = z
     systems: z.array(z.string()),
     /** Optional: links this crawler to a workspace */
     workspaceId: z.string().optional(),
+    // ---------------------------------------------------------------------------
+    // Live-play current stat tracking (#245).
+    // TODO: source base value from rules once crawler tech-level data exposes SP.
+    // ---------------------------------------------------------------------------
+    /** Current structure points */
+    currentSP: z.number().int().min(0).optional(),
     createdAt: z.string().datetime(),
     updatedAt: z.string().datetime(),
   })

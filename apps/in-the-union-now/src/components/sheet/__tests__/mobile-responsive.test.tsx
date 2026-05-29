@@ -6,10 +6,12 @@
  *       (verified via class attribute containing min-h-11).
  *
  * Design choices:
- * - scrollWidth / clientWidth check uses a wrapper div styled to 320px. In
- *   happy-dom the layout engine is not full-featured, so both values are 0.
- *   We assert scrollWidth <= clientWidth (never overflows) which holds as long
- *   as the component does not explicitly set a width wider than its container.
+ * - 320px overflow check: happy-dom does not implement a full layout engine, so
+ *   scrollWidth and clientWidth are both 0 regardless of CSS. The overflow
+ *   assertion below is therefore replaced with a render-completeness check
+ *   (entity content appears without throwing). Real 320px overflow verification
+ *   requires a browser engine — this is tracked in the M3 a11y/perf work and
+ *   should be covered by a Playwright / puppeteer visual regression test.
  * - Touch target: we assert the display-state span/button carries `min-h-11`
  *   in its className string, matching the Tailwind class applied in the source.
  *   This is the most reliable assertion in happy-dom (no computed styles).
@@ -121,8 +123,15 @@ function makePublishFn(
 // AC-1: No horizontal overflow at 320px
 // ---------------------------------------------------------------------------
 
-describe('Mobile responsive — no horizontal overflow at 320px', () => {
-  test('pilot-only Sheet does not overflow 320px container', () => {
+describe('Mobile responsive — renders without error at 320px container', () => {
+  // NOTE: happy-dom does not implement a real layout engine — scrollWidth and
+  // clientWidth are both 0 regardless of CSS, making overflow assertions vacuous.
+  // These tests assert instead that each Sheet variant renders its core entity
+  // content correctly inside a 320px container (render-completeness check).
+  // Real 320px horizontal-overflow verification is deferred to M3 a11y/perf work
+  // and should be covered by a Playwright / puppeteer browser-engine test.
+
+  test('pilot-only Sheet renders entity name inside 320px container', () => {
     const wrapper = document.createElement('div')
     wrapper.style.width = '320px'
     document.body.appendChild(wrapper)
@@ -137,14 +146,13 @@ describe('Mobile responsive — no horizontal overflow at 320px', () => {
       { container: wrapper }
     )
 
-    // In happy-dom, both values are 0 — the assertion holds (no overflow)
-    // On a real browser, scrollWidth would match or be less than clientWidth
-    expect(wrapper.scrollWidth <= wrapper.clientWidth).toBeTruthy()
+    // Render-completeness: pilot name visible (would throw if render crashes)
+    expect(screen.getAllByText(/Yara Voss/).length).toBeGreaterThan(0)
 
     document.body.removeChild(wrapper)
   })
 
-  test('mech-only Sheet does not overflow 320px container', () => {
+  test('mech-only Sheet renders entity name inside 320px container', () => {
     const wrapper = document.createElement('div')
     wrapper.style.width = '320px'
     document.body.appendChild(wrapper)
@@ -159,12 +167,12 @@ describe('Mobile responsive — no horizontal overflow at 320px', () => {
       { container: wrapper }
     )
 
-    expect(wrapper.scrollWidth <= wrapper.clientWidth).toBeTruthy()
+    expect(screen.getAllByText(/Iron Fist/).length).toBeGreaterThan(0)
 
     document.body.removeChild(wrapper)
   })
 
-  test('crawler-only Sheet does not overflow 320px container', () => {
+  test('crawler-only Sheet renders entity name inside 320px container', () => {
     const wrapper = document.createElement('div')
     wrapper.style.width = '320px'
     document.body.appendChild(wrapper)
@@ -179,7 +187,7 @@ describe('Mobile responsive — no horizontal overflow at 320px', () => {
       { container: wrapper }
     )
 
-    expect(wrapper.scrollWidth <= wrapper.clientWidth).toBeTruthy()
+    expect(screen.getAllByText(/Iron Tortoise/).length).toBeGreaterThan(0)
 
     document.body.removeChild(wrapper)
   })
