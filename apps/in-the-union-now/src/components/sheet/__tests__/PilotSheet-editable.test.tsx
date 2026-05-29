@@ -34,6 +34,7 @@ const fakePilot: Pilot = {
   motto: '',
   keepsake: '',
   appearance: '',
+  background: '',
   conditions: [],
   currentHP: 10,
   currentAP: 4,

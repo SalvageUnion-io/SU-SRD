@@ -34,6 +34,7 @@ const fakePilot: Pilot = {
   motto: 'Waste not.',
   keepsake: 'A bent coin.',
   appearance: 'Tall, weathered.',
+  background: '',
   conditions: [],
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),

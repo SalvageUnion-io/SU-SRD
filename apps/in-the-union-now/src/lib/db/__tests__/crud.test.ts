@@ -29,6 +29,7 @@ const basePilotInput = {
   motto: 'Everything burns.',
   keepsake: 'A compass.',
   appearance: 'Tall.',
+  background: '',
   conditions: [],
 }
 

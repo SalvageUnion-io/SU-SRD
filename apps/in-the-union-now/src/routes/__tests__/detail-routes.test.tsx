@@ -43,6 +43,7 @@ const basePilotInput = {
   motto: 'Keep moving.',
   keepsake: 'Old photo.',
   appearance: 'Short.',
+  background: '',
   conditions: [],
 }
 

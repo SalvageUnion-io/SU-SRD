@@ -22,6 +22,7 @@ export const PilotSchema = z
     motto: z.string(),
     keepsake: z.string(),
     appearance: z.string(),
+    background: z.string().default(''),
     /** Active condition slugs */
     conditions: z.array(z.string()),
     /** Optional: links this pilot to a workspace */

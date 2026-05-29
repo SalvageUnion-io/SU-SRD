@@ -53,6 +53,7 @@ const fakePilot: Pilot = {
   motto: 'Waste not.',
   keepsake: 'A bent coin.',
   appearance: 'Tall, weathered.',
+  background: '',
   conditions: [],
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
@@ -388,10 +389,10 @@ describe('Sheet — MechStandIn in wired pilot+crawler (no mech)', () => {
 })
 
 // ---------------------------------------------------------------------------
-// ConditionToggle read-only in sheet context
+// ConditionToggle renders in editable sheet context
 // ---------------------------------------------------------------------------
 
-describe('Sheet — ConditionToggle is read-only in sheet context', () => {
+describe('Sheet — ConditionToggle renders in editable sheet context', () => {
   test('ConditionToggle renders in PilotSheet equipment list', () => {
     render(
       <Sheet
@@ -406,7 +407,7 @@ describe('Sheet — ConditionToggle is read-only in sheet context', () => {
     expect(toggle).toBeTruthy()
   })
 
-  test('ConditionToggle stays at "Intact" after click (onChange is no-op)', () => {
+  test('ConditionToggle renders in initial Intact state by default', () => {
     render(
       <Sheet
         kind="pilot"
@@ -415,8 +416,82 @@ describe('Sheet — ConditionToggle is read-only in sheet context', () => {
         softLinkStore={makeSoftLinkStore([])}
       />
     )
-    // Both toggles show "Intact" since onChange is no-op — value can't change
+    // Equipment starts in Intact condition; ConditionToggle is interactive and persists to the store on change
     const toggles = screen.getAllByText('Intact')
     expect(toggles.length).toBeTruthy()
+  })
+})
+
+// ---------------------------------------------------------------------------
+// readOnly propagation — stat cells non-interactive when Sheet readOnly=true
+// ---------------------------------------------------------------------------
+
+describe('Sheet — readOnly propagates to sub-sheets', () => {
+  test('PilotSheet stat cells have no role=button when Sheet readOnly=true', () => {
+    render(
+      <Sheet
+        kind="pilot"
+        id="pilot-1"
+        readOnly
+        entityStore={makeEntityStore([fakePilot])}
+        softLinkStore={makeSoftLinkStore([])}
+      />
+    )
+    // InlineEditField renders role="button" only when NOT readOnly.
+    // In a readOnly Sheet, stat cells should be plain spans with no button role.
+    // ariaLabel for stat cells is "Edit " (empty label string from EditableStatRow).
+    const statButtons = screen
+      .queryAllByRole('button')
+      .filter((el) => (el.getAttribute('aria-label') ?? '').startsWith('Edit '))
+    expect(statButtons.length).toBe(0)
+  })
+
+  test('MechSheet stat cells have no role=button when Sheet readOnly=true', () => {
+    render(
+      <Sheet
+        kind="mech"
+        id="mech-1"
+        readOnly
+        entityStore={makeEntityStore([fakeMech])}
+        softLinkStore={makeSoftLinkStore([])}
+      />
+    )
+    const statButtons = screen
+      .queryAllByRole('button')
+      .filter((el) => (el.getAttribute('aria-label') ?? '').startsWith('Edit '))
+    expect(statButtons.length).toBe(0)
+  })
+
+  test('CrawlerSheet stat cells have no role=button when Sheet readOnly=true', () => {
+    render(
+      <Sheet
+        kind="crawler"
+        id="crawler-1"
+        readOnly
+        entityStore={makeEntityStore([fakeCrawler])}
+        softLinkStore={makeSoftLinkStore([])}
+      />
+    )
+    const statButtons = screen
+      .queryAllByRole('button')
+      .filter((el) => (el.getAttribute('aria-label') ?? '').startsWith('Edit '))
+    expect(statButtons.length).toBe(0)
+  })
+
+  test('stat cells ARE interactive (role=button) when Sheet is NOT readOnly', () => {
+    render(
+      <Sheet
+        kind="pilot"
+        id="pilot-1"
+        entityStore={makeEntityStore([fakePilot])}
+        softLinkStore={makeSoftLinkStore([])}
+      />
+    )
+    // Without readOnly, InlineEditField renders role="button" on the value span
+    // ariaLabel is "Edit " (EditableStatRow passes label="" to EditableStatRow)
+    const statButtons = screen
+      .queryAllByRole('button')
+      .filter((el) => (el.getAttribute('aria-label') ?? '').startsWith('Edit '))
+    expect(statButtons.length).toBeGreaterThan(0)
   })
 })

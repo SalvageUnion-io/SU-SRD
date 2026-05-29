@@ -227,20 +227,24 @@ export function Sheet({
 
       <div className="flex flex-col gap-8">
         {/* Pilot section */}
-        {resolved.pilot && <PilotSheet pilot={resolved.pilot} />}
+        {resolved.pilot && <PilotSheet pilot={resolved.pilot} readOnly={readOnly} />}
 
         {/* Pilot stand-in: shown in mech-only mode (no wired pilot) */}
         {resolved.mode === 'mech-only' && <PilotStandIn />}
 
         {/* Mech section */}
-        {resolved.mech && <MechSheet mech={resolved.mech} />}
+        {resolved.mech && <MechSheet mech={resolved.mech} readOnly={readOnly} />}
 
         {/* Mech stand-in: shown in pilot-only mode and wired pilot+crawler (no mech) */}
         {kind === 'pilot' && !resolved.mech && <MechStandIn />}
 
         {/* Crawler section — pilots=[] triggers the stand-in in crawler-only mode */}
         {resolved.crawler && (
-          <CrawlerSheet crawler={resolved.crawler} pilots={resolved.crawlerPilots} />
+          <CrawlerSheet
+            crawler={resolved.crawler}
+            pilots={resolved.crawlerPilots}
+            readOnly={readOnly}
+          />
         )}
       </div>
     </main>

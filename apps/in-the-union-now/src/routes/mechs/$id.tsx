@@ -136,9 +136,6 @@ function MechDetailPage() {
         >
           View Sheet
         </a>
-        <a href="/mechs/new" className={cn(buttonVariants({ variant: 'outline' }), 'no-underline')}>
-          Edit Build
-        </a>
       </div>
     </main>
   )

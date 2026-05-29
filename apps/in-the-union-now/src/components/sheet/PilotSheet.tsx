@@ -1,15 +1,16 @@
 /**
- * PilotSheet — read-only pilot section for the sheet view.
+ * PilotSheet — pilot section for the sheet view.
  *
- * Renders: callsign + name + class ref, abilities, equipment (with read-only
+ * Renders: callsign + name + class ref, abilities, equipment (with
  * ConditionToggle), and identity fields (motto, keepsake, appearance).
  *
  * Abilities and equipment are resolved against SalvageUnionReference and
  * displayed via ReferenceEntityDisplay so the sheet reads as a slice of the
  * SRD rather than a bare slug list.
  *
- * ConditionToggle is rendered in display-only mode: the onChange handler is a
- * no-op, so clicks have no effect.
+ * ConditionToggle persists condition changes to the entityStore via
+ * handleEquipmentConditionChange. Pass readOnly=true to suppress editing
+ * affordances (stat cells render as plain text; ConditionToggle is locked).
  */
 
 import { SalvageUnionReference } from 'salvageunion-reference'

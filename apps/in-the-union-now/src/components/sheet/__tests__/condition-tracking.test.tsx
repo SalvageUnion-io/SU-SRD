@@ -126,6 +126,7 @@ const fakePilot: Pilot = {
   motto: '',
   keepsake: '',
   appearance: '',
+  background: '',
   conditions: [],
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
