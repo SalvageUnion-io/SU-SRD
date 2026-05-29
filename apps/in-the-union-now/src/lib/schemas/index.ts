@@ -1,6 +1,9 @@
 export { EntityRefSchema } from './entity'
 export type { EntityRef } from './entity'
 
+export { ExportBundleSchema } from './exportBundle'
+export type { ExportBundle } from './exportBundle'
+
 export { PilotSchema } from './pilot'
 export type { Pilot } from './pilot'
 

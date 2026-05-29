@@ -19,6 +19,7 @@ import { useWorkspaceStore } from '../../stores/workspaceStore'
 import { buttonVariants } from '../../components/ui/buttonVariants'
 import { cn } from '../../lib/utils'
 import { PilotSheet } from '../../components/sheet/PilotSheet'
+import { ExportEntityButton } from '../../components/export/ExportEntityButton'
 
 export const Route = createFileRoute('/pilots/$id')({
   loader: async ({ params }) => {
@@ -141,13 +142,14 @@ function PilotDetailPage() {
           </section>
 
           {/* Actions */}
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-3">
             <a
               href={`/sheet/pilot/${id}`}
               className={cn(buttonVariants({ variant: 'default' }), 'no-underline')}
             >
               View Sheet
             </a>
+            <ExportEntityButton type="pilot" id={id} name={pilot.name} />
           </div>
         </div>
       </div>

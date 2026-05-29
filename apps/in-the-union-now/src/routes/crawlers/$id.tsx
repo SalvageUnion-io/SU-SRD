@@ -16,6 +16,7 @@ import { AssignToWorkspaceButton } from '../../components/workspace/AssignToWork
 import { useWorkspaceStore } from '../../stores/workspaceStore'
 import { buttonVariants } from '../../components/ui/buttonVariants'
 import { cn } from '../../lib/utils'
+import { ExportEntityButton } from '../../components/export/ExportEntityButton'
 
 export const Route = createFileRoute('/crawlers/$id')({
   loader: async ({ params }) => {
@@ -139,13 +140,14 @@ function CrawlerDetailPage() {
           </section>
 
           {/* Actions */}
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-3">
             <a
               href={`/sheet/crawler/${id}`}
               className={cn(buttonVariants({ variant: 'default' }), 'no-underline')}
             >
               View Sheet
             </a>
+            <ExportEntityButton type="crawler" id={id} name={crawler.name} />
           </div>
         </div>
       </div>

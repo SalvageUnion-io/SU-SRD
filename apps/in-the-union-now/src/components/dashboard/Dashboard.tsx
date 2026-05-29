@@ -25,6 +25,8 @@ import { buttonVariants } from '../ui/buttonVariants'
 import { cn } from '../../lib/utils'
 import { DeleteConfirmDialog } from './DeleteConfirmDialog'
 import { EntityListItem } from './EntityListItem'
+import { ExportAllButton } from '../export/ExportAllButton'
+import { ImportButton } from '../export/ImportButton'
 
 type DeleteTarget = {
   type: EntityType
@@ -90,9 +92,18 @@ export function Dashboard() {
 
   return (
     <main className="mx-auto max-w-7xl p-4 sm:p-6">
-      <div className="mb-8 flex flex-wrap items-center justify-between gap-4 border-b-2 border-[var(--color-su-black)] pb-4">
-        <h1 className="text-3xl font-bold uppercase tracking-wide">ITUN — Saved Builds</h1>
-        <WorkspaceSwitcher activeWorkspaceId={activeWorkspaceId} onSelect={setActiveWorkspaceId} />
+      <div className="mb-8 border-b-2 border-[var(--color-su-black)] pb-4">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <h1 className="text-3xl font-bold uppercase tracking-wide">ITUN — Saved Builds</h1>
+          <WorkspaceSwitcher
+            activeWorkspaceId={activeWorkspaceId}
+            onSelect={setActiveWorkspaceId}
+          />
+        </div>
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <ExportAllButton />
+          <ImportButton />
+        </div>
       </div>
 
       {!hydratedAll ? (

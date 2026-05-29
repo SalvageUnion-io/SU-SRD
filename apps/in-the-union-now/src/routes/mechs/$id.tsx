@@ -18,6 +18,7 @@ import { AssignToWorkspaceButton } from '../../components/workspace/AssignToWork
 import { useWorkspaceStore } from '../../stores/workspaceStore'
 import { buttonVariants } from '../../components/ui/buttonVariants'
 import { cn } from '../../lib/utils'
+import { ExportEntityButton } from '../../components/export/ExportEntityButton'
 
 export const Route = createFileRoute('/mechs/$id')({
   loader: async ({ params }) => {
@@ -138,13 +139,14 @@ function MechDetailPage() {
           </section>
 
           {/* Actions */}
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-3">
             <a
               href={`/sheet/mech/${id}`}
               className={cn(buttonVariants({ variant: 'default' }), 'no-underline')}
             >
               View Sheet
             </a>
+            <ExportEntityButton type="mech" id={id} name={mech.name} />
           </div>
         </div>
       </div>
