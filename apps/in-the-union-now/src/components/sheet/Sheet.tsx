@@ -35,6 +35,7 @@ import { PilotSheet } from './PilotSheet'
 import { MechSheet } from './MechSheet'
 import { CrawlerSheet } from './CrawlerSheet'
 import { PilotStandIn } from '../shared/PilotStandIn'
+import { MechStandIn } from '../shared/MechStandIn'
 import { PublishButton } from './PublishButton'
 
 // ---------------------------------------------------------------------------
@@ -233,6 +234,9 @@ export function Sheet({
 
         {/* Mech section */}
         {resolved.mech && <MechSheet mech={resolved.mech} />}
+
+        {/* Mech stand-in: shown in pilot-only mode and wired pilot+crawler (no mech) */}
+        {kind === 'pilot' && !resolved.mech && <MechStandIn />}
 
         {/* Crawler section — pilots=[] triggers the stand-in in crawler-only mode */}
         {resolved.crawler && (

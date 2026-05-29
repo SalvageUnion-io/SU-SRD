@@ -30,7 +30,7 @@ import type { SoftLink } from '../../../lib/schemas/softLink'
 // ---------------------------------------------------------------------------
 
 beforeAll(async () => {
-  await SalvageUnionReference.preload(['chassis'])
+  await SalvageUnionReference.preload('all')
 })
 
 afterEach(() => {
@@ -299,6 +299,91 @@ describe('Sheet — wired (mech WITH pilot link)', () => {
       />
     )
     expect(screen.queryByLabelText('No pilot assigned')).toBeNull()
+  })
+})
+
+// ---------------------------------------------------------------------------
+// MechStandIn: pilot-only mode
+// ---------------------------------------------------------------------------
+
+describe('Sheet — MechStandIn in pilot-only mode', () => {
+  test('MechStandIn renders when pilot has no mech wired', () => {
+    render(
+      <Sheet
+        kind="pilot"
+        id="pilot-1"
+        entityStore={makeEntityStore([fakePilot])}
+        softLinkStore={makeSoftLinkStore([])}
+      />
+    )
+    expect(screen.getByLabelText('No mech assigned')).toBeTruthy()
+  })
+
+  test('MechStandIn is ABSENT when a mech is wired', () => {
+    const mechToPilotLink = makeLink(
+      'link-1',
+      'mech',
+      'mech-1',
+      'pilot',
+      'pilot-1',
+      'mech-to-pilot'
+    )
+    render(
+      <Sheet
+        kind="pilot"
+        id="pilot-1"
+        entityStore={makeEntityStore([fakePilot, fakeMech])}
+        softLinkStore={makeSoftLinkStore([mechToPilotLink])}
+      />
+    )
+    expect(screen.queryByLabelText('No mech assigned')).toBeNull()
+  })
+})
+
+// ---------------------------------------------------------------------------
+// MechStandIn: wired pilot+crawler (no mech)
+// ---------------------------------------------------------------------------
+
+describe('Sheet — MechStandIn in wired pilot+crawler (no mech)', () => {
+  const pilotToCrawlerLink = makeLink(
+    'link-2',
+    'pilot',
+    'pilot-1',
+    'crawler',
+    'crawler-1',
+    'pilot-to-crawler'
+  )
+
+  test('MechStandIn renders when wired pilot+crawler but no mech', () => {
+    render(
+      <Sheet
+        kind="pilot"
+        id="pilot-1"
+        entityStore={makeEntityStore([fakePilot, fakeCrawler])}
+        softLinkStore={makeSoftLinkStore([pilotToCrawlerLink])}
+      />
+    )
+    expect(screen.getByLabelText('No mech assigned')).toBeTruthy()
+  })
+
+  test('MechStandIn is ABSENT when mech is also wired (full wired)', () => {
+    const mechToPilotLink = makeLink(
+      'link-1',
+      'mech',
+      'mech-1',
+      'pilot',
+      'pilot-1',
+      'mech-to-pilot'
+    )
+    render(
+      <Sheet
+        kind="pilot"
+        id="pilot-1"
+        entityStore={makeEntityStore([fakePilot, fakeMech, fakeCrawler])}
+        softLinkStore={makeSoftLinkStore([mechToPilotLink, pilotToCrawlerLink])}
+      />
+    )
+    expect(screen.queryByLabelText('No mech assigned')).toBeNull()
   })
 })
 
