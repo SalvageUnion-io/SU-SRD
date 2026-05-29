@@ -30,10 +30,15 @@ test('every class card exposes a Show abilities disclosure', async ({ page }) =>
   await page.goto('/pilots/new')
   await waitForReady(page)
 
-  // Each base class should render a "Show abilities (N)" summary.
-  const disclosures = page.getByText(/Show abilities \(\d+\)/)
-  // SU core book has at least 6 base classes; allow for new sources to add
-  // more without breaking this assertion.
+  // Wait for at least one class card to be rendered before counting summaries,
+  // ensuring game data has hydrated into the DOM (waitForReady guards the data
+  // preload, but the cards may still be rendering their first paint).
+  await expect(page.locator('details').first()).toBeVisible({ timeout: 15_000 })
+
+  // Each base class card renders a native <details> with a <summary> reading
+  // "Show abilities" (ClassAbilitiesSlot in ClassStep.tsx).
+  // SU core book has 6 base classes; allow for new sources to add more.
+  const disclosures = page.locator('details')
   expect(await disclosures.count()).toBeGreaterThanOrEqual(6)
 })
 
@@ -41,25 +46,21 @@ test('opening the Engineer disclosure shows ability descriptions inline', async 
   await page.goto('/pilots/new')
   await waitForReady(page)
 
-  // Find the disclosure inside the Engineer card and open it.
-  const engineerCardContainer = page
-    .locator('div')
-    .filter({ hasText: /^Engineer$/ })
+  // Wait for the Engineer card's <details> disclosure to be in the DOM.
+  // The Engineer card is a div[role="button"] whose accessible text starts
+  // with "Engineer"; its <details> is the first child details element.
+  const engineerCard = page
+    .locator('[role="button"]')
+    .filter({ hasText: /Engineer/ })
     .first()
-  // Click any Show abilities summary in that container.
-  await engineerCardContainer
-    .locator('summary')
-    .first()
-    .click()
-    .catch(async () => {
-      // Fall back to a global click on the first "Show abilities" summary.
-      await page
-        .getByText(/Show abilities/)
-        .first()
-        .click()
-    })
+  await expect(engineerCard).toBeVisible({ timeout: 15_000 })
 
-  // After opening, the SRD ability rules text for Engineering Expertise
-  // should be visible inline (without leaving the wizard).
-  await expect(page.getByText(/Engineering Expertise/).first()).toBeVisible()
+  // Click the <summary> inside the Engineer card to open the disclosure.
+  const summary = engineerCard.locator('summary').first()
+  await summary.click()
+
+  // After opening, the Mechanical Knowledge L1 ability "Engineering Expertise"
+  // (description: "Ask questions pertaining to mechanical and engineering topics.")
+  // should be visible inline within the wizard — no navigation required.
+  await expect(page.getByText('Engineering Expertise').first()).toBeVisible({ timeout: 15_000 })
 })

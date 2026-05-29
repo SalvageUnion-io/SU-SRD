@@ -40,7 +40,10 @@ test('SystemModuleGrid placeholder disappears after chassis pick', async ({ page
   await pickByName(page, 'Mule')
 
   // Placeholder gone, capacity counters visible.
+  // Use anchored regexes (^) so we match only the SystemModuleGrid tab buttons
+  // (e.g. "Systems (0/16)") and not chassis card accessible names that contain
+  // "Systems" within their description text.
   await expect(page.getByText(/Select a chassis to choose systems and modules/i)).not.toBeVisible()
-  await expect(page.getByRole('button', { name: /Systems \(/ })).toBeVisible()
-  await expect(page.getByRole('button', { name: /Modules \(/ })).toBeVisible()
+  await expect(page.getByRole('button', { name: /^Systems \(/ })).toBeVisible()
+  await expect(page.getByRole('button', { name: /^Modules \(/ })).toBeVisible()
 })

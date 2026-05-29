@@ -599,13 +599,17 @@ export function ReferenceEntityDisplayContent({
                     headerBg={headerBg}
                   />
                 )}
-                {afterExtraContent && (
-                  <>
-                    <div className="clear-both" />
-                    {afterExtraContent}
-                  </>
-                )}
                 <ReferenceEntityGrants data={data} spacing={spacing} />
+              </>
+            )}
+            {/* Caller-provided slot — renders whenever supplied, independent of
+                the actions-gated extra content above. Compact selection cards
+                (e.g. the pilot class wizard) hide actions but still need their
+                injected ability/tree disclosure to appear. */}
+            {afterExtraContent && (
+              <>
+                <div className="clear-both" />
+                {afterExtraContent}
               </>
             )}
             {afterChoicesContent && (

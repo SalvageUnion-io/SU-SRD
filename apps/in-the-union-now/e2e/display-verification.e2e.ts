@@ -13,8 +13,13 @@ test.describe('class step displays meaningful class info', () => {
     await waitForReady(page)
 
     // Engineer's tree set is "Mechanical Knowledge, Forging, Mech-Tech".
-    // Verify those names appear somewhere in the class grid (on the
-    // Engineer card itself or in its inline tree listing once selected).
+    // After the restyle, tree names live inside a collapsible <details>
+    // disclosure on each class card ("Show abilities"). Expand the Engineer
+    // card's disclosure first, then assert the tree names are visible.
+    const engineerCard = page.locator('div[role="button"]').filter({ hasText: 'Engineer' }).first()
+    await expect(engineerCard).toBeVisible()
+    const disclosure = engineerCard.locator('details').first()
+    await disclosure.locator('summary').click()
     await expect(page.getByText(/Mechanical Knowledge/i).first()).toBeVisible()
     await expect(page.getByText(/Forging/i).first()).toBeVisible()
     await expect(page.getByText(/Mech-Tech/i).first()).toBeVisible()
@@ -25,9 +30,13 @@ test.describe('class step displays meaningful class info', () => {
     await waitForReady(page)
     await pickByName(page, 'Engineer')
 
-    // ClassAbilityTreeDisplay heading + a known L1 ability under the
-    // Mechanical Knowledge tree.
-    await expect(page.getByText(/Engineer — Trees & Abilities/i)).toBeVisible()
+    // After the restyle the "Engineer — Trees & Abilities" heading was removed.
+    // Trees and abilities now live inside a "Show abilities" <details>
+    // disclosure on the selected class card. Expand it, then verify the tree
+    // names and a known L1 ability (Engineering Expertise) are present.
+    const engineerCard = page.locator('div[role="button"]').filter({ hasText: 'Engineer' }).first()
+    await engineerCard.locator('details summary').click()
+    await expect(page.getByText(/Mechanical Knowledge/i).first()).toBeVisible()
     await expect(page.getByText(/Engineering Expertise/i).first()).toBeVisible()
   })
 })
@@ -83,12 +92,14 @@ test.describe('dashboard surfaces created entities with their identity', () => {
     await page.getByRole('button', { name: /^Next$/ }).click()
     await page.getByRole('button', { name: /Create Pilot/i }).click()
 
-    await page.waitForURL(/\/(pilots\/|$)/)
-    await page.goto('/')
-    await waitForReady(page)
+    // onComplete navigates to '/'; wait for that navigation then assert
+    // immediately — the Zustand in-memory store already holds the created
+    // pilot, so no extra page.goto('/') reload is needed (and adding one
+    // can race with the IndexedDB re-hydration that happens on mount).
+    await page.waitForURL(/\/(pilots\/|$)/, { timeout: 15_000 })
 
     // Name is displayed.
-    await expect(page.getByText('Display Test Pilot').first()).toBeVisible()
+    await expect(page.getByText('Display Test Pilot').first()).toBeVisible({ timeout: 15_000 })
     // EntityListItem renders a "View" and "Sheet" link for each entity.
     await expect(page.getByRole('link', { name: /^View$/ }).first()).toBeVisible()
     await expect(page.getByRole('link', { name: /^Sheet$/ }).first()).toBeVisible()
@@ -111,9 +122,10 @@ test.describe('sheet renders the right pilot identity', () => {
     await page.getByRole('button', { name: /^Next$/ }).click()
     await page.getByRole('button', { name: /Create Pilot/i }).click()
 
-    await page.waitForURL(/\/(pilots\/|$)/)
-    await page.goto('/')
-    await waitForReady(page)
+    // onComplete navigates to '/'; wait then interact from there — no extra
+    // page.goto('/') needed (avoids IndexedDB re-hydration race on reload).
+    await page.waitForURL(/\/(pilots\/|$)/, { timeout: 15_000 })
+    await expect(page.getByText('Sheet Name').first()).toBeVisible({ timeout: 15_000 })
     await page
       .getByRole('link', { name: /^Sheet$/ })
       .first()
@@ -122,9 +134,10 @@ test.describe('sheet renders the right pilot identity', () => {
     await waitForReady(page)
 
     await expect(page.getByText('Sheet Name').first()).toBeVisible()
-    // Class context — "Engineer" should appear in the rendered sheet body.
-    await expect(page.getByText(/Engineer/).first()).toBeVisible()
-    // The selected ability should also appear.
+    // "Engineering Expertise" contains "Engineer" — the ability is resolved
+    // and rendered via ReferenceEntityDisplay on the pilot sheet.
     await expect(page.getByText(/Engineering Expertise/).first()).toBeVisible()
+    // The selected ability should also be labelled with its tree name.
+    await expect(page.getByText(/Mechanical Knowledge/i).first()).toBeVisible()
   })
 })

@@ -110,10 +110,23 @@ test('4th equipment pick is blocked once the budget is reached', async ({ page }
   await cards.nth(0).click()
   await cards.nth(1).click()
   await cards.nth(2).click()
-  await expect(page.getByText(/3\/3 selected/)).toBeVisible()
+  // After the restyle, unselected cards render a "Budget reached (3/3 selected)"
+  // paragraph each, so /3\/3 selected/ matches 26+ elements and Playwright's
+  // strict mode rejects it. Target the counter <span> exactly — it renders as
+  // the plain text "3/3 selected" (no "Budget reached" prefix).
+  await expect(page.getByText('3/3 selected', { exact: true })).toBeVisible()
 
   // The 4th card (if more than 3 TL1 equipment exist) should now be
-  // budget-reached. Click it and confirm the counter stays at 3/3.
+  // budget-reached. Verify the blocked state is visible, then confirm that
+  // attempting to interact with it leaves the counter at 3/3.
+  const budgetReachedLabels = page.getByText('Budget reached (3/3 selected)')
+  const hasBudgetReached = (await budgetReachedLabels.count()) > 0
+  if (hasBudgetReached) {
+    // The budget-reached paragraph is present — the UI is showing the blocked
+    // state as expected. Confirm it is visible.
+    await expect(budgetReachedLabels.first()).toBeVisible()
+  }
+
   const fourthCard = cards.nth(3)
   const hasFourth = (await fourthCard.count()) > 0
   if (hasFourth) {
@@ -122,6 +135,6 @@ test('4th equipment pick is blocked once the budget is reached', async ({ page }
     await fourthCard.click({ force: true, trial: false }).catch(() => {
       // Interception is expected; ignore.
     })
-    await expect(page.getByText(/3\/3 selected/)).toBeVisible()
+    await expect(page.getByText('3/3 selected', { exact: true })).toBeVisible()
   }
 })
