@@ -11,8 +11,8 @@
 import { useMemo, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { MechSystemSlot, MechModuleSlot } from '../../lib/rules/types'
+import { Button } from '../ui/button'
 import { EntityChoiceCard } from '../shared/EntityChoiceCard'
-import { cn } from '../../lib/utils'
 
 type SystemModuleGridProps = {
   chassisName: string | null
@@ -106,30 +106,22 @@ export function SystemModuleGrid({
   return (
     <div className="flex flex-col gap-3">
       <div className="flex gap-2 border-b border-border pb-2">
-        <button
+        <Button
           type="button"
+          size="sm"
+          variant={activeTab === 'systems' ? 'default' : 'outline'}
           onClick={() => setActiveTab('systems')}
-          className={cn(
-            'cursor-pointer rounded-md px-3 py-1 text-sm transition-colors',
-            activeTab === 'systems'
-              ? 'bg-primary text-primary-foreground'
-              : 'text-muted-foreground hover:text-foreground'
-          )}
         >
           Systems ({systemSlotsUsed}/{systemSlotsMax})
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
+          size="sm"
+          variant={activeTab === 'modules' ? 'default' : 'outline'}
           onClick={() => setActiveTab('modules')}
-          className={cn(
-            'cursor-pointer rounded-md px-3 py-1 text-sm transition-colors',
-            activeTab === 'modules'
-              ? 'bg-primary text-primary-foreground'
-              : 'text-muted-foreground hover:text-foreground'
-          )}
         >
           Modules ({moduleSlotsUsed}/{moduleSlotsMax})
-        </button>
+        </Button>
       </div>
 
       {activeTab === 'systems' &&

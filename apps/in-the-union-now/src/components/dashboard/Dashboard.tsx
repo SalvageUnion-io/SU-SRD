@@ -21,6 +21,8 @@ import type { EntityType } from '../../stores/entityStore'
 import { useEntityStore } from '../../stores/entityStore'
 import { useWorkspaceStore } from '../../stores/workspaceStore'
 import { WorkspaceSwitcher } from '../workspace/WorkspaceSwitcher'
+import { buttonVariants } from '../ui/buttonVariants'
+import { cn } from '../../lib/utils'
 import { DeleteConfirmDialog } from './DeleteConfirmDialog'
 import { EntityListItem } from './EntityListItem'
 
@@ -110,7 +112,7 @@ export function Dashboard() {
               </h2>
               <a
                 href="/pilots/new"
-                className="rounded px-3 py-1 text-sm font-medium text-primary underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'no-underline')}
               >
                 + Create Pilot
               </a>
@@ -144,7 +146,7 @@ export function Dashboard() {
               </h2>
               <a
                 href="/mechs/new"
-                className="rounded px-3 py-1 text-sm font-medium text-primary underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'no-underline')}
               >
                 + Create Mech
               </a>
@@ -178,7 +180,7 @@ export function Dashboard() {
               </h2>
               <a
                 href="/crawlers/new"
-                className="rounded px-3 py-1 text-sm font-medium text-primary underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'no-underline')}
               >
                 + Create Crawler
               </a>
@@ -231,10 +233,7 @@ function EmptyState({ label, ctaHref, ctaLabel }: EmptyStateProps) {
   return (
     <div className="flex flex-col items-center gap-3 rounded-md border border-dashed border-border py-8 text-center text-muted-foreground">
       <p className="text-sm">{label}</p>
-      <a
-        href={ctaHref}
-        className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-      >
+      <a href={ctaHref} className={cn(buttonVariants({ variant: 'default' }), 'no-underline')}>
         {ctaLabel}
       </a>
     </div>

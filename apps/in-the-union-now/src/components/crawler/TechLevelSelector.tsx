@@ -1,4 +1,5 @@
 import type { SURefMetaCrawlerTechLevel } from 'salvageunion-reference'
+import { Button } from '../ui/button'
 
 type TechLevelEntry = Pick<SURefMetaCrawlerTechLevel, 'id' | 'name' | 'techLevel'>
 
@@ -20,21 +21,17 @@ export function TechLevelSelector({
         {techLevels.map((tl) => {
           const isSelected = selectedTechLevel === tl.techLevel
           return (
-            <button
+            <Button
               key={tl.id}
               type="button"
+              variant={isSelected ? 'default' : 'outline'}
               aria-pressed={isSelected}
               onClick={() => onChange(tl.techLevel)}
-              className={[
-                'cursor-pointer rounded border px-3 py-2 text-sm font-medium transition-colors',
-                isSelected
-                  ? 'border-primary bg-primary text-primary-foreground'
-                  : 'border-input bg-background hover:bg-accent hover:text-accent-foreground',
-              ].join(' ')}
+              className="h-auto flex-col py-2"
             >
               <span className="block font-bold">TL {tl.techLevel}</span>
               <span className="block text-xs opacity-80">{tl.name}</span>
-            </button>
+            </Button>
           )
         })}
       </div>

@@ -4,6 +4,7 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefSystem } from 'salvageunion-reference'
 
 import { useEntityStore } from '../../stores/entityStore'
+import { Button } from '../ui/button'
 import { BaysEditor } from './BaysEditor'
 import { SystemsList } from './SystemsList'
 import { TechLevelSelector } from './TechLevelSelector'
@@ -137,20 +138,12 @@ export function CrawlerBuilder({ onCreated, onCancel }: CrawlerBuilderProps) {
       )}
 
       <div className="flex gap-3">
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="cursor-pointer rounded bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
-        >
+        <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? 'Creating…' : 'Create Crawler'}
-        </button>
-        <button
-          type="button"
-          onClick={onCancel}
-          className="cursor-pointer rounded border border-input bg-background px-4 py-2 text-sm font-medium hover:bg-accent"
-        >
+        </Button>
+        <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
-        </button>
+        </Button>
       </div>
     </form>
   )
