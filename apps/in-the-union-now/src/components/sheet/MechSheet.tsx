@@ -114,7 +114,7 @@ export function MechSheet({
             <dt className="text-xs text-muted-foreground">HP</dt>
             <dd className="text-lg font-semibold">
               <EditableStatRow
-                label=""
+                label="HP"
                 value={mech.currentHP ?? chassis?.structurePoints ?? 0}
                 entityKind="mech"
                 entityId={mech.id}
@@ -129,7 +129,7 @@ export function MechSheet({
             <dt className="text-xs text-muted-foreground">AP</dt>
             <dd className="text-lg font-semibold">
               <EditableStatRow
-                label=""
+                label="AP"
                 value={mech.currentAP ?? 0}
                 entityKind="mech"
                 entityId={mech.id}
@@ -144,7 +144,7 @@ export function MechSheet({
             <dt className="text-xs text-muted-foreground">TP</dt>
             <dd className="text-lg font-semibold">
               <EditableStatRow
-                label=""
+                label="TP"
                 value={mech.currentTP ?? 0}
                 entityKind="mech"
                 entityId={mech.id}
@@ -159,7 +159,7 @@ export function MechSheet({
             <dt className="text-xs text-muted-foreground">SP</dt>
             <dd className="text-lg font-semibold">
               <EditableStatRow
-                label=""
+                label="SP"
                 value={mech.currentSP ?? chassis?.structurePoints ?? 0}
                 entityKind="mech"
                 entityId={mech.id}
@@ -174,7 +174,7 @@ export function MechSheet({
             <dt className="text-xs text-muted-foreground">EP</dt>
             <dd className="text-lg font-semibold">
               <EditableStatRow
-                label=""
+                label="EP"
                 value={mech.currentEP ?? chassis?.energyPoints ?? 0}
                 entityKind="mech"
                 entityId={mech.id}
@@ -189,7 +189,7 @@ export function MechSheet({
             <dt className="text-xs text-muted-foreground">Heat</dt>
             <dd className="text-lg font-semibold">
               <EditableStatRow
-                label=""
+                label="Heat"
                 value={mech.currentHeat ?? chassis?.heatCapacity ?? 0}
                 entityKind="mech"
                 entityId={mech.id}

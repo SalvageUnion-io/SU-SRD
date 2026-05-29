@@ -12,12 +12,13 @@
  *   className   — optional class override for the trigger button
  */
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 
 import { useEntityStore } from '../../stores/entityStore'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { SoftLinkStore } from './useSoftLinks'
 import { useSoftLinks } from './useSoftLinks'
+import { useDialogA11y } from '../shared/useDialogA11y'
 import { Button } from '../ui/button'
 import { cn } from '../../lib/utils'
 
@@ -93,62 +94,102 @@ export function AssignCrawlerToPilot({
       </Button>
 
       {open && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="assign-crawler-title"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-        >
-          <div className="w-full max-w-sm rounded-lg border bg-background p-6 shadow-lg">
-            <h2 id="assign-crawler-title" className="mb-4 text-base font-semibold">
-              Assign Pilot to Crawler
-            </h2>
-
-            {crawlers.length === 0 ? (
-              <p className="mb-4 text-sm text-muted-foreground">
-                No crawlers found. Create a crawler first.
-              </p>
-            ) : (
-              <div className="mb-4 space-y-2">
-                {crawlers.map((crawler) => (
-                  <label
-                    key={crawler.id}
-                    className="flex cursor-pointer items-center gap-2 rounded border p-2 hover:bg-accent"
-                  >
-                    <input
-                      type="radio"
-                      name="crawler-select"
-                      value={crawler.id}
-                      checked={selectedCrawlerId === crawler.id}
-                      onChange={() => setSelectedCrawlerId(crawler.id)}
-                      className="accent-primary"
-                    />
-                    <span className="text-sm font-medium">{crawler.name}</span>
-                    <span className="text-xs text-muted-foreground">{crawler.techLevel}</span>
-                  </label>
-                ))}
-              </div>
-            )}
-
-            {error && <p className="mb-3 text-sm text-destructive">{error}</p>}
-
-            <div className="flex justify-end gap-2">
-              <Button variant="ghost" size="sm" onClick={closeDialog} disabled={pending}>
-                Cancel
-              </Button>
-              <Button
-                variant="default"
-                size="sm"
-                onClick={handleConfirm}
-                disabled={pending || crawlers.length === 0}
-                aria-label="Confirm crawler assignment"
-              >
-                {pending ? 'Assigning…' : 'Assign'}
-              </Button>
-            </div>
-          </div>
-        </div>
+        <AssignCrawlerDialog
+          crawlers={crawlers}
+          selectedCrawlerId={selectedCrawlerId}
+          setSelectedCrawlerId={setSelectedCrawlerId}
+          error={error}
+          pending={pending}
+          onConfirm={handleConfirm}
+          onClose={closeDialog}
+        />
       )}
     </>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Dialog sub-component (mounted only when open, so useDialogA11y runs once)
+// ---------------------------------------------------------------------------
+
+type AssignCrawlerDialogProps = {
+  crawlers: Crawler[]
+  selectedCrawlerId: string
+  setSelectedCrawlerId: (id: string) => void
+  error: string | null
+  pending: boolean
+  onConfirm: () => Promise<void>
+  onClose: () => void
+}
+
+function AssignCrawlerDialog({
+  crawlers,
+  selectedCrawlerId,
+  setSelectedCrawlerId,
+  error,
+  pending,
+  onConfirm,
+  onClose,
+}: AssignCrawlerDialogProps) {
+  const dialogRef = useRef<HTMLDivElement>(null)
+  useDialogA11y({ ref: dialogRef, onClose })
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="assign-crawler-title"
+        className="w-full max-w-sm rounded-lg border bg-background p-6 shadow-lg"
+      >
+        <h2 id="assign-crawler-title" className="mb-4 text-base font-semibold">
+          Assign Pilot to Crawler
+        </h2>
+
+        {crawlers.length === 0 ? (
+          <p className="mb-4 text-sm text-muted-foreground">
+            No crawlers found. Create a crawler first.
+          </p>
+        ) : (
+          <div className="mb-4 space-y-2">
+            {crawlers.map((crawler) => (
+              <label
+                key={crawler.id}
+                className="flex cursor-pointer items-center gap-2 rounded border p-2 hover:bg-accent"
+              >
+                <input
+                  type="radio"
+                  name="crawler-select"
+                  value={crawler.id}
+                  checked={selectedCrawlerId === crawler.id}
+                  onChange={() => setSelectedCrawlerId(crawler.id)}
+                  className="accent-primary"
+                />
+                <span className="text-sm font-medium">{crawler.name}</span>
+                <span className="text-xs text-muted-foreground">{crawler.techLevel}</span>
+              </label>
+            ))}
+          </div>
+        )}
+
+        {error && <p className="mb-3 text-sm text-destructive">{error}</p>}
+
+        <div className="flex justify-end gap-2">
+          <Button variant="ghost" size="sm" onClick={onClose} disabled={pending}>
+            Cancel
+          </Button>
+          <Button
+            variant="default"
+            size="sm"
+            onClick={() => void onConfirm()}
+            disabled={pending || crawlers.length === 0}
+            aria-label="Confirm crawler assignment"
+          >
+            {pending ? 'Assigning…' : 'Assign'}
+          </Button>
+        </div>
+      </div>
+    </div>
   )
 }

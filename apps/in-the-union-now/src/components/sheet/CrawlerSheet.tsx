@@ -59,7 +59,7 @@ export function CrawlerSheet({
             <dd className="text-lg font-semibold">
               {/* TODO: source base value from rules once crawler tech-level data exposes SP */}
               <EditableStatRow
-                label=""
+                label="SP"
                 value={crawler.currentSP ?? 0}
                 entityKind="crawler"
                 entityId={crawler.id}

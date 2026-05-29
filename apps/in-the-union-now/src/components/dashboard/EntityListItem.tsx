@@ -22,8 +22,8 @@ type EntityListItemProps = {
 export function EntityListItem({ id, name, href, sheetHref, onDeleteClick }: EntityListItemProps) {
   const linkClass = cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'no-underline')
   return (
-    <li className="flex items-center justify-between gap-2 rounded-md border border-[var(--color-su-grey-light)] bg-[var(--color-su-white)] px-4 py-2">
-      <span className="truncate font-medium">{name}</span>
+    <li className="flex flex-wrap items-center gap-2 rounded-md border border-[var(--color-su-grey-light)] bg-[var(--color-su-white)] px-4 py-2">
+      <span className="min-w-0 flex-1 truncate font-medium">{name}</span>
       <div className="flex shrink-0 items-center gap-2">
         <a href={href} className={linkClass}>
           View

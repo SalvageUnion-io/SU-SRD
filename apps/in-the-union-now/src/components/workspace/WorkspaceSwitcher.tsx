@@ -84,7 +84,7 @@ export function WorkspaceSwitcher({ activeWorkspaceId, onSelect, store }: Worksp
           id="workspace-switcher"
           value={selectValue}
           onChange={handleChange}
-          className="rounded border border-input bg-background px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          className="rounded border border-input bg-background px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-11 sm:min-h-9"
           aria-label="Select workspace"
         >
           <option value={ALL_BUILDS_VALUE}>All Builds</option>

@@ -5,12 +5,13 @@
  * dismissal. The parent is responsible for calling entityStore.delete() inside
  * onConfirm.
  *
- * Accessibility: role="dialog" with aria-modal + aria-labelledby. Pressing
- * Escape on the backdrop keyDown handler dismisses the dialog.
+ * Accessibility: role="dialog" with aria-modal + aria-labelledby. Focus is
+ * trapped inside and restored to the trigger on close. Escape dismisses.
  */
 
-import type { KeyboardEvent } from 'react'
+import { useRef } from 'react'
 
+import { useDialogA11y } from '../shared/useDialogA11y'
 import { Button } from '../ui/button'
 
 type DeleteConfirmDialogProps = {
@@ -20,30 +21,19 @@ type DeleteConfirmDialogProps = {
   onCancel: () => void
 }
 
-export function DeleteConfirmDialog({
-  open,
+function DeleteConfirmDialogInner({
   entityName,
   onConfirm,
   onCancel,
-}: DeleteConfirmDialogProps) {
-  if (!open) return null
-
-  function handleBackdropKeyDown(e: KeyboardEvent<HTMLDivElement>) {
-    if (e.key === 'Escape') {
-      onCancel()
-    }
-  }
+}: Omit<DeleteConfirmDialogProps, 'open'>) {
+  const dialogRef = useRef<HTMLDivElement>(null)
+  useDialogA11y({ ref: dialogRef, onClose: onCancel })
 
   return (
-    /* Backdrop — keyboard listener for Escape-to-dismiss. The interactive
-       content lives inside the dialog panel. */
-    // eslint-disable-next-line jsx-a11y/no-static-element-interactions
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
-      onKeyDown={handleBackdropKeyDown}
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
       {/* Dialog panel */}
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="delete-dialog-title"
@@ -65,5 +55,17 @@ export function DeleteConfirmDialog({
         </div>
       </div>
     </div>
+  )
+}
+
+export function DeleteConfirmDialog({
+  open,
+  entityName,
+  onConfirm,
+  onCancel,
+}: DeleteConfirmDialogProps) {
+  if (!open) return null
+  return (
+    <DeleteConfirmDialogInner entityName={entityName} onConfirm={onConfirm} onCancel={onCancel} />
   )
 }

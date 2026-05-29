@@ -34,4 +34,21 @@ describe('ViewInSRDLink', () => {
     const link = container.querySelector('a')
     expect(link?.className).toContain('custom-class')
   })
+
+  it('includes entity name in aria-label when entityName is provided', () => {
+    const { container } = render(
+      <ViewInSRDLink schemaName="chassis" slug="iron-mongrel" entityName="Iron Mongrel" />
+    )
+    const link = container.querySelector('a')
+    expect(link?.getAttribute('aria-label')).toContain('Iron Mongrel')
+    expect(link?.getAttribute('aria-label')).toContain('SRD')
+  })
+
+  it('uses generic aria-label when entityName is not provided', () => {
+    const { container } = render(<ViewInSRDLink schemaName="chassis" slug="iron-mongrel" />)
+    const link = container.querySelector('a')
+    const label = link?.getAttribute('aria-label') ?? ''
+    expect(label.length).toBeGreaterThan(0)
+    expect(label).toContain('SRD')
+  })
 })

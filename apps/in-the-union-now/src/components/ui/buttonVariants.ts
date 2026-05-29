@@ -61,10 +61,12 @@ export const buttonVariants = cva(
         ].join(' '),
       },
       size: {
-        default: 'h-10 px-4 py-1.5',
-        sm: 'h-9 rounded-[0.375rem] px-3',
+        // min-h-11 (44px) on mobile keeps touch targets WCAG-compliant at the table.
+        // sm:min-h-* restores the designed height on larger viewports.
+        default: 'h-10 min-h-11 sm:min-h-10 px-4 py-1.5',
+        sm: 'h-9 min-h-11 sm:min-h-9 rounded-[0.375rem] px-3',
         lg: 'h-11 rounded-[0.375rem] px-6',
-        icon: 'h-10 w-10',
+        icon: 'h-10 w-10 min-h-11 sm:min-h-10',
       },
     },
     defaultVariants: {

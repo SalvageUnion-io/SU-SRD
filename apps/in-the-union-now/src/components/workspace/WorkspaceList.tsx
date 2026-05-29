@@ -15,10 +15,11 @@
  * module docblock for the "orphaned entity" semantics).
  */
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 
 import type { Workspace } from '../../lib/schemas/workspace'
 import { useWorkspaceStore } from '../../stores/workspaceStore'
+import { useDialogA11y } from '../shared/useDialogA11y'
 import { Button } from '../ui/button'
 
 // ---------------------------------------------------------------------------
@@ -44,10 +45,25 @@ type WorkspaceListProps = {
 }
 
 // ---------------------------------------------------------------------------
-// Component
+// Outer component — gates rendering on `open` so the inner component's hooks
+// (including useDialogA11y) only run when the dialog is visible.
 // ---------------------------------------------------------------------------
 
 export function WorkspaceList({ open, onClose, store }: WorkspaceListProps) {
+  if (!open) return null
+  return <WorkspaceListInner onClose={onClose} store={store} />
+}
+
+// ---------------------------------------------------------------------------
+// Inner component (always mounted when open)
+// ---------------------------------------------------------------------------
+
+type WorkspaceListInnerProps = {
+  onClose: () => void
+  store?: WorkspaceListStore
+}
+
+function WorkspaceListInner({ onClose, store }: WorkspaceListInnerProps) {
   const zustandStore = useWorkspaceStore()
   const activeStore: WorkspaceListStore = store ?? {
     workspaces: zustandStore.workspaces,
@@ -66,7 +82,8 @@ export function WorkspaceList({ open, onClose, store }: WorkspaceListProps) {
   const [renamePending, setRenamePending] = useState(false)
   const [renameError, setRenameError] = useState<string | null>(null)
 
-  if (!open) return null
+  const dialogRef = useRef<HTMLDivElement>(null)
+  useDialogA11y({ ref: dialogRef, onClose })
 
   // ---------------------------------------------------------------------------
   // Handlers
@@ -134,13 +151,14 @@ export function WorkspaceList({ open, onClose, store }: WorkspaceListProps) {
   // ---------------------------------------------------------------------------
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="workspace-list-title"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-    >
-      <div className="w-full max-w-md rounded-lg border bg-background p-6 shadow-lg">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="workspace-list-title"
+        className="w-full max-w-md rounded-lg border bg-background p-6 shadow-lg"
+      >
         <div className="mb-4 flex items-center justify-between">
           <h2 id="workspace-list-title" className="text-base font-semibold">
             Manage Workspaces
@@ -189,6 +207,7 @@ export function WorkspaceList({ open, onClose, store }: WorkspaceListProps) {
                         size="sm"
                         onClick={cancelEditing}
                         disabled={renamePending}
+                        aria-label={`Cancel rename workspace ${ws.name}`}
                       >
                         Cancel
                       </Button>
