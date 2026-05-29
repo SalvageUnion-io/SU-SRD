@@ -57,11 +57,11 @@ export function ClassStep({ selectedClassId, onSelect, _sur }: ClassStepProps) {
   const baseClasses = allClasses.filter(isBaseClass)
 
   return (
-    <div className="mx-auto w-full max-w-[1400px] space-y-4">
+    <div className="w-full space-y-4">
       <p className="text-sm opacity-70">
         Choose your pilot class. This determines your ability trees.
       </p>
-      <div className="flex flex-col gap-4">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {baseClasses.map((cls) => (
           <EntityChoiceCard
             key={cls.id}
