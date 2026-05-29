@@ -21,7 +21,7 @@ export const MechSchema = z
   .object({
     id: z.string(),
     schemaVersion: z.literal(1),
-    name: z.string(),
+    name: z.string().min(1),
     /** Slug reference to a Chassis in salvageunion-reference */
     chassisRef: z.string(),
     /** Slugs of mech system items installed */

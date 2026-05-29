@@ -277,5 +277,23 @@ describe('CrawlerBuilder', () => {
 
     // Capacity banner should not be visible initially (no bays assigned)
     expect(screen.queryByRole('region', { name: /capacity/i })).toBeNull()
+
+    // Add 3 bays — TL 1 cap is 2, so this triggers bays-over-capacity violation
+    const bayInput = screen.getByLabelText('Bay entity slug')
+    const addBayButton = screen.getByRole('button', { name: /Add Bay/i })
+
+    for (const slug of ['pilot-001', 'pilot-002', 'pilot-003']) {
+      act(() => {
+        fireEvent.change(bayInput, { target: { value: slug } })
+      })
+      act(() => {
+        fireEvent.click(addBayButton)
+      })
+    }
+
+    // Capacity banner should now be visible
+    await waitFor(() => {
+      expect(screen.getByRole('region', { name: /capacity/i })).toBeDefined()
+    })
   })
 })
