@@ -216,8 +216,11 @@ export function Sheet({
   // ---------------------------------------------------------------------------
   // Render
   // ---------------------------------------------------------------------------
-  // Determine if wired composition warrants a 2-pane layout at lg+
-  const isWired = resolved.mode === 'wired'
+  // Determine if wired composition warrants a 2-pane layout at lg+.
+  // Only activate 2-pane when the left pane has content (pilot present).
+  // kind=crawler wired (crawler with assigned pilots) has pilot=null/mech=null,
+  // so the left pane would be empty — render single-column in that case.
+  const isWired = resolved.mode === 'wired' && resolved.pilot !== null
 
   return (
     <main className="mx-auto max-w-7xl p-3 sm:p-6">
