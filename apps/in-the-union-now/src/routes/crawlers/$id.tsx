@@ -58,6 +58,7 @@ function CrawlerDetailPage() {
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-8">
+      {/* Page header */}
       <div className="mb-6 flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">{crawler.name}</h1>
@@ -71,71 +72,82 @@ function CrawlerDetailPage() {
         </a>
       </div>
 
-      {/* Summary */}
-      <section className="mb-6 rounded-md border border-border p-4 text-sm">
-        <dl className="space-y-2">
-          <div className="flex gap-2">
-            <dt className="font-medium">Bay slots used:</dt>
-            <dd>{crawler.bays.length}</dd>
+      {/* 2-pane at lg+: left = summary/stats, right = wiring/actions */}
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
+        {/* Left pane — crawler stats summary */}
+        <div className="min-w-0 flex-1">
+          <section className="mb-6 rounded-md border border-border p-4 text-sm">
+            <h2 className="mb-3 text-base font-semibold">Stats</h2>
+            <dl className="space-y-2">
+              <div className="flex gap-2">
+                <dt className="font-medium">Bay slots used:</dt>
+                <dd>{crawler.bays.length}</dd>
+              </div>
+              <div className="flex gap-2">
+                <dt className="font-medium">Systems:</dt>
+                <dd>{crawler.systems.length}</dd>
+              </div>
+            </dl>
+          </section>
+        </div>
+
+        {/* Right pane — assigned pilots + workspace/actions */}
+        <div className="w-full shrink-0 space-y-6 lg:w-72">
+          {/* Assigned pilots (via incoming SoftLinks) */}
+          <section className="rounded-md border border-border p-4">
+            <h2 className="mb-3 text-base font-semibold">Assigned Pilots</h2>
+            {assignedPilots.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                No pilots assigned. Pilots can be assigned from their detail page.
+              </p>
+            ) : (
+              <ul className="space-y-2">
+                {assignedPilots.map(({ link, pilot }) => (
+                  <li
+                    key={link.id}
+                    className="flex items-center gap-2 rounded-md border border-border px-3 py-2 text-sm"
+                  >
+                    <span className="flex-1">
+                      {pilot ? (
+                        <a
+                          href={`/pilots/${pilot.id}`}
+                          className="font-medium text-primary underline-offset-2 hover:underline"
+                        >
+                          {pilot.name}
+                        </a>
+                      ) : (
+                        <span className="text-muted-foreground">
+                          Unknown pilot ({link.from.id})
+                        </span>
+                      )}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+
+          {/* Workspace assignment */}
+          <section className="rounded-md border border-border p-4">
+            <h2 className="mb-3 text-base font-semibold">Workspace</h2>
+            <AssignToWorkspaceButton
+              entityType="crawler"
+              entityId={id}
+              currentWorkspaceId={crawler.workspaceId}
+              onChanged={() => void navigate({ to: '/crawlers/$id', params: { id } })}
+            />
+          </section>
+
+          {/* Actions */}
+          <div className="flex gap-3">
+            <a
+              href={`/sheet/crawler/${id}`}
+              className={cn(buttonVariants({ variant: 'default' }), 'no-underline')}
+            >
+              View Sheet
+            </a>
           </div>
-          <div className="flex gap-2">
-            <dt className="font-medium">Systems:</dt>
-            <dd>{crawler.systems.length}</dd>
-          </div>
-        </dl>
-      </section>
-
-      {/* Assigned pilots (via incoming SoftLinks) */}
-      <section className="mb-6">
-        <h2 className="mb-3 text-base font-semibold">Assigned Pilots</h2>
-        {assignedPilots.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            No pilots assigned. Pilots can be assigned from their detail page.
-          </p>
-        ) : (
-          <ul className="space-y-2">
-            {assignedPilots.map(({ link, pilot }) => (
-              <li
-                key={link.id}
-                className="flex items-center gap-2 rounded-md border border-border px-3 py-2 text-sm"
-              >
-                <span className="flex-1">
-                  {pilot ? (
-                    <a
-                      href={`/pilots/${pilot.id}`}
-                      className="font-medium text-primary underline-offset-2 hover:underline"
-                    >
-                      {pilot.name}
-                    </a>
-                  ) : (
-                    <span className="text-muted-foreground">Unknown pilot ({link.from.id})</span>
-                  )}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      {/* Workspace assignment */}
-      <section className="mb-6">
-        <h2 className="mb-3 text-base font-semibold">Workspace</h2>
-        <AssignToWorkspaceButton
-          entityType="crawler"
-          entityId={id}
-          currentWorkspaceId={crawler.workspaceId}
-          onChanged={() => void navigate({ to: '/crawlers/$id', params: { id } })}
-        />
-      </section>
-
-      {/* Actions */}
-      <div className="flex gap-3">
-        <a
-          href={`/sheet/crawler/${id}`}
-          className={cn(buttonVariants({ variant: 'default' }), 'no-underline')}
-        >
-          View Sheet
-        </a>
+        </div>
       </div>
     </main>
   )

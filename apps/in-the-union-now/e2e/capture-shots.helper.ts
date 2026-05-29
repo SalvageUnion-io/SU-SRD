@@ -8,9 +8,10 @@
  * These supplement the dashboard + crawler-builder shots already captured.
  * Output goes to apps/in-the-union-now/.tmp-shots/
  *
- * This file is intentionally not in the main CI test matrix — it's a
- * one-shot capture helper. Run with:
- *   CI=1 bunx playwright test --project=chromium --workers=1 --retries=0 e2e/capture-shots.e2e.ts
+ * This file is intentionally not in the main CI test matrix — it uses the
+ * `.helper.ts` extension so it does not match the `*.e2e.ts` testMatch glob.
+ * Run manually with:
+ *   CI=1 bunx playwright test --project=chromium --workers=1 --retries=0 e2e/capture-shots.helper.ts
  */
 
 import * as fs from 'fs'
@@ -108,7 +109,8 @@ test('capture sheet + detail route screenshots', async ({ page }) => {
   await shot(page, 'sheet-pilot-single-mobile-375', 375)
 
   // ----------------------------------------------------------------
-  // 4. Build a mech, wire pilot to mech, capture wired sheet
+  // 4. Build a mech, wire pilot → mech via the mech detail page,
+  //    then capture the wired sheet
   // ----------------------------------------------------------------
   await page.goto('/mechs/new')
   await waitForReady(page)
@@ -117,34 +119,51 @@ test('capture sheet + detail route screenshots', async ({ page }) => {
   await page.getByRole('button', { name: /Create Mech/i }).click()
   await page.waitForURL((url) => url.pathname === '/', { timeout: 15_000 })
 
-  // Navigate to pilot detail to wire pilot → mech link
-  // The EntityListItem renders a "View" link for the detail route (not the name).
+  // Navigate to the mech detail page.
+  // On the dashboard the mechs section "View" links appear after the pilots section,
+  // so we use getByRole with exact text and filter to the one that links to /mechs/.
+  await page.goto('/')
+  await waitForReady(page)
+  await expect(page.getByText('Iron Fist').first()).toBeVisible({ timeout: 15_000 })
+
+  // Navigate to the mech detail page.
+  // "Iron Fist" text is rendered as a link in EntityListItem; use it directly.
+  // If it's not a link, fall back to the second "View" link (pilot is first).
+  const ironFistLink = page.getByRole('link', { name: 'Iron Fist' }).first()
+  const ironFistIsLink = await ironFistLink.isVisible().catch(() => false)
+  if (ironFistIsLink) {
+    await ironFistLink.click()
+  } else {
+    // pilot "View" is first, mech "View" is second on the dashboard
+    await page
+      .getByRole('link', { name: /^View$/ })
+      .nth(1)
+      .click()
+  }
+  await page.waitForURL(/\/mechs\//, { timeout: 10_000 })
+  await waitForReady(page)
+
+  // Assign the pilot to this mech via the "Assign Pilot" button
+  const assignPilotBtn = page.getByRole('button', { name: /Assign Pilot/i })
+  await expect(assignPilotBtn).toBeVisible({ timeout: 10_000 })
+  await assignPilotBtn.click()
+
+  // In the dialog, select "Test Pilot" radio (wrapped in a <label>) and confirm.
+  // The dialog is a div[role="dialog"] labeled via aria-labelledby; radio inputs
+  // are labelled by their wrapping <label> element's text content.
+  await expect(page.locator('[role="dialog"]')).toBeVisible({ timeout: 5_000 })
+  // Click the label containing "Test Pilot" to select the radio
+  await page.locator('[role="dialog"] label', { hasText: 'Test Pilot' }).click()
+  // Click the confirm button (aria-label="Confirm pilot assignment")
+  await page.getByRole('button', { name: /Confirm pilot assignment/i }).click()
+
+  // Wait for dialog to close (URL may refresh to same mech detail)
+  await page.waitForTimeout(1_000)
+
+  // Now navigate to the pilot's sheet (pilot is still the primary wired entity)
   await page.goto('/')
   await waitForReady(page)
   await expect(page.getByText('Test Pilot').first()).toBeVisible({ timeout: 15_000 })
-  // Use the first "View" link (pilots section appears first on the dashboard)
-  const pilotDetailLink = page.getByRole('link', { name: /^View$/ }).first()
-  await pilotDetailLink.click()
-  await page.waitForURL(/\/pilots\//, { timeout: 10_000 })
-  await waitForReady(page)
-
-  // Look for a wire/link control — if it exists, wire the mech
-  const wireMechBtn = page
-    .getByRole('button', { name: /wire|link|mech/i })
-    .or(page.getByRole('combobox', { name: /mech/i }))
-    .first()
-  const wireMechVisible = await wireMechBtn.isVisible().catch(() => false)
-  if (wireMechVisible) {
-    await wireMechBtn.click()
-    // Try to select Iron Fist from a dropdown or list
-    const ironFistOption = page.getByText('Iron Fist').first()
-    const optionVisible = await ironFistOption.isVisible().catch(() => false)
-    if (optionVisible) await ironFistOption.click()
-  }
-
-  // Now navigate to the pilot's sheet
-  await page.goto('/')
-  await waitForReady(page)
   const wiredSheetLink = page.getByRole('link', { name: /^Sheet$/i }).first()
   await wiredSheetLink.click()
   await page.waitForURL(/\/sheet\//, { timeout: 10_000 })
