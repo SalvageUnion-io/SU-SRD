@@ -187,6 +187,7 @@ export function PilotWizard({ onComplete, onCancel, pilotId, _rollDeps, _sur }: 
         motto: form.motto.trim(),
         keepsake: form.keepsake.trim(),
         appearance: form.appearance.trim(),
+        background: form.background.trim(),
         conditions: [],
       }
 

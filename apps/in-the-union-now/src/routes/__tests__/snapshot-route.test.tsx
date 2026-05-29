@@ -43,6 +43,7 @@ const pilotSnapshot: SnapshotPayload = {
     motto: 'Keep moving.',
     keepsake: 'Old photo.',
     appearance: 'Short.',
+    background: '',
     conditions: [],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),

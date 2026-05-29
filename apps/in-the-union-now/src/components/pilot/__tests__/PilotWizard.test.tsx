@@ -164,6 +164,70 @@ describe('PilotWizard — happy path', () => {
 })
 
 // ---------------------------------------------------------------------------
+// Background field round-trip
+// ---------------------------------------------------------------------------
+
+describe('PilotWizard — background field round-trips', () => {
+  it('persists the background text entered on the Background step', async () => {
+    const onComplete = mock(() => {})
+    render(<PilotWizard onComplete={onComplete} onCancel={() => {}} />)
+
+    // Step 1: Class
+    await act(async () => {
+      fireEvent.click(getChoiceCardByName('Engineer'))
+    })
+    await clickNext()
+
+    // Step 2: Abilities — pick three
+    await act(async () => {
+      fireEvent.click(getChoiceCardByName('Engineering Expertise'))
+    })
+    await act(async () => {
+      fireEvent.click(getChoiceCardByName('Jury Rig'))
+    })
+    await act(async () => {
+      fireEvent.click(getChoiceCardByName('Mass Field Maintenance'))
+    })
+    await clickNext()
+
+    // Step 3: Equipment — skip (just proceed)
+    await clickNext()
+
+    // Step 4: Identity
+    const nameInput = screen.getByLabelText(/^Name/) as HTMLInputElement
+    const callsignInput = screen.getByLabelText(/Callsign/) as HTMLInputElement
+    await act(async () => {
+      fireEvent.change(nameInput, { target: { value: 'Bex Okafor' } })
+      fireEvent.change(callsignInput, { target: { value: 'Rust' } })
+    })
+    await clickNext()
+
+    // Step 5: Background — type a background
+    const backgroundTextarea = screen.getByLabelText(/Background/i) as HTMLTextAreaElement
+    await act(async () => {
+      fireEvent.change(backgroundTextarea, {
+        target: { value: 'Grew up scavenging in the Rust Belt.' },
+      })
+    })
+    await clickNext()
+
+    // Step 6: Review → submit
+    const submit = screen.getByRole('button', { name: /Create Pilot/i })
+    await act(async () => {
+      fireEvent.click(submit)
+    })
+
+    // The created pilot must have the background field persisted.
+    await waitFor(() => {
+      const pilots = useEntityStore.getState().list('pilot')
+      expect(pilots.length).toBe(1)
+      const p = pilots[0]!
+      expect((p as { background?: string }).background).toBe('Grew up scavenging in the Rust Belt.')
+    })
+  }, 30000)
+})
+
+// ---------------------------------------------------------------------------
 // Edge case: 3-ability hard cap
 // ---------------------------------------------------------------------------
 

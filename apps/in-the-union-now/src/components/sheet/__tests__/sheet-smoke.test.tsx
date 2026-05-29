@@ -69,6 +69,7 @@ const fakePilot: Pilot = {
   motto: 'Fix it fast.',
   keepsake: 'Worn goggles.',
   appearance: 'Compact, oil-stained.',
+  background: '',
   conditions: [],
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),

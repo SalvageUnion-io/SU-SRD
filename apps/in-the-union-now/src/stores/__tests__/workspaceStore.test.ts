@@ -27,6 +27,7 @@ const basePilotInput = {
   motto: '',
   keepsake: '',
   appearance: '',
+  background: '',
   conditions: [],
 }
 

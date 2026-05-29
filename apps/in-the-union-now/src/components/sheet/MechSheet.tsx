@@ -2,12 +2,16 @@
  * MechSheet — mech section for the sheet view.
  *
  * Renders: mech name + chassis (resolved via salvageunion-reference), chassis
- * stats (SP/EP/Heat/Sys/Mod/Cargo) as inline-editable fields (Wave 6, #199),
- * systems list, modules list (each with a read-only ConditionToggle), and cargo.
+ * stats (HP/AP/TP/SP/EP/Heat) as inline-editable fields, systems list,
+ * modules list (each with a ConditionToggle), and cargo.
  *
  * Editable stats: HP, AP, TP, SP, EP, Heat — backed by optional `currentXxx`
- * fields on the Mech schema (Wave 6). The display falls back to chassis defaults
- * when no current value is set, giving users a sensible starting point.
+ * fields on the Mech schema. The display falls back to chassis defaults when
+ * no current value is set, giving users a sensible starting point.
+ *
+ * ConditionToggle persists system/module condition changes to the entityStore.
+ * Pass readOnly=true to suppress editing affordances (stat cells render as
+ * plain text; ConditionToggles are locked).
  *
  * Chassis resolution is dep-injectable for testing: pass `chassis` directly
  * when you don't want the component to call SalvageUnionReference at runtime.
