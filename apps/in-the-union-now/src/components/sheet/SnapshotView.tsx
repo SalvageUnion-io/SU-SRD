@@ -87,7 +87,7 @@ export function SnapshotView({ snapshot }: SnapshotViewProps) {
 
   if (!result.ok) {
     return (
-      <main className="mx-auto max-w-5xl p-6">
+      <main className="mx-auto max-w-7xl p-6">
         <p className="text-sm text-muted-foreground">Could not render snapshot: {result.reason}</p>
       </main>
     )
@@ -97,7 +97,7 @@ export function SnapshotView({ snapshot }: SnapshotViewProps) {
   const name = result.entity.name
 
   return (
-    <main className="mx-auto max-w-5xl p-6">
+    <main className="mx-auto max-w-7xl p-6">
       {/* Snapshot banner — makes read-only context clear */}
       <div
         role="note"

@@ -82,7 +82,10 @@ export function PatternList({ onInstantiated }: PatternListProps) {
   }
 
   return (
-    <ul className="flex flex-col gap-3" aria-label="Saved mech patterns">
+    <ul
+      className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3"
+      aria-label="Saved mech patterns"
+    >
       {patterns.map((pattern) => (
         <li
           key={pattern.id}

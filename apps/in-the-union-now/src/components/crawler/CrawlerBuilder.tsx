@@ -134,7 +134,8 @@ export function CrawlerBuilder({ onCreated, onCancel }: CrawlerBuilderProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+      {/* Crawler name */}
       <div>
         <label htmlFor="crawler-name" className="mb-1 block text-sm font-semibold">
           Crawler Name
@@ -150,41 +151,93 @@ export function CrawlerBuilder({ onCreated, onCancel }: CrawlerBuilderProps) {
         />
       </div>
 
-      <TechLevelSelector
-        techLevels={techLevels}
-        selectedTechLevel={form.techLevel}
-        onChange={(tl) => setForm((f) => ({ ...f, techLevel: tl, systems: [] }))}
-      />
+      {/* Desktop 2-pane: builder left, capacity sidebar right */}
+      <div className="flex flex-col gap-6 lg:flex-row">
+        {/* Left: builder panels */}
+        <div className="flex flex-col gap-6 flex-1 min-w-0">
+          <TechLevelSelector
+            techLevels={techLevels}
+            selectedTechLevel={form.techLevel}
+            onChange={(tl) => setForm((f) => ({ ...f, techLevel: tl, systems: [] }))}
+          />
 
-      <BaysEditor bays={form.bays} onChange={(bays) => setForm((f) => ({ ...f, bays }))} />
+          <BaysEditor bays={form.bays} onChange={(bays) => setForm((f) => ({ ...f, bays }))} />
 
-      <SystemsList
-        systems={filteredSystems}
-        selectedSystemSlugs={form.systems}
-        onChange={(systems) => setForm((f) => ({ ...f, systems }))}
-      />
+          <SystemsList
+            systems={filteredSystems}
+            selectedSystemSlugs={form.systems}
+            onChange={(systems) => setForm((f) => ({ ...f, systems }))}
+          />
 
-      {/* Auto stand-in pilots preview */}
-      <div
-        className="rounded border border-dashed border-muted-foreground/40 bg-muted/30 p-3 text-sm text-muted-foreground"
-        aria-label="Pilot roster placeholder"
-      >
-        [No Pilots Assigned] — pilot assignment available after Wave 3 soft-wiring (story #195)
-      </div>
-
-      {/* Capacity banner — soft warning only, does NOT block submit */}
-      {hasCapacityViolations && (
-        <div
-          role="region"
-          aria-label="Capacity warning"
-          className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800"
-        >
-          <strong>Capacity warning</strong> — this crawler exceeds its tech-level caps (bays:{' '}
-          {crawlerCapacity.baysUsed}/{crawlerCapacity.baysMax}, systems:{' '}
-          {crawlerCapacity.systemsUsed}/{crawlerCapacity.systemsMax}). You can still save — review
-          before proceeding.
+          {/* Auto stand-in pilots preview */}
+          <div
+            className="rounded border border-dashed border-muted-foreground/40 bg-muted/30 p-3 text-sm text-muted-foreground"
+            aria-label="Pilot roster placeholder"
+          >
+            [No Pilots Assigned] — pilot assignment available after Wave 3 soft-wiring (story #195)
+          </div>
         </div>
-      )}
+
+        {/* Right: capacity summary sidebar */}
+        <div className="flex flex-col gap-4 lg:w-64 shrink-0">
+          <div
+            aria-label="Capacity summary"
+            className="rounded-lg border border-border bg-card p-4 flex flex-col gap-3 sticky top-4"
+          >
+            <h3 className="text-sm font-semibold">Capacity</h3>
+
+            {/* Bays */}
+            <div className="flex flex-col gap-0.5">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-medium">Bays</span>
+                <span
+                  className={
+                    crawlerCapacity.baysUsed > crawlerCapacity.baysMax &&
+                    crawlerCapacity.baysMax > 0
+                      ? 'tabular-nums text-red-500 font-semibold'
+                      : 'tabular-nums'
+                  }
+                >
+                  {crawlerCapacity.baysUsed}&nbsp;/&nbsp;
+                  {crawlerCapacity.baysMax > 0 ? crawlerCapacity.baysMax : '—'}
+                </span>
+              </div>
+            </div>
+
+            {/* Systems */}
+            <div className="flex flex-col gap-0.5">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-medium">Systems</span>
+                <span
+                  className={
+                    crawlerCapacity.systemsUsed > crawlerCapacity.systemsMax &&
+                    crawlerCapacity.systemsMax > 0
+                      ? 'tabular-nums text-red-500 font-semibold'
+                      : 'tabular-nums'
+                  }
+                >
+                  {crawlerCapacity.systemsUsed}&nbsp;/&nbsp;
+                  {crawlerCapacity.systemsMax > 0 ? crawlerCapacity.systemsMax : '—'}
+                </span>
+              </div>
+            </div>
+
+            {hasCapacityViolations && (
+              <div
+                role="region"
+                aria-label="Capacity warning"
+                className="rounded-md border border-amber-300 bg-amber-50 p-2 text-xs text-amber-800"
+              >
+                <strong>Over capacity</strong> — review before saving.
+              </div>
+            )}
+
+            {form.techLevel === null && (
+              <p className="text-xs text-muted-foreground">Select a tech level to see caps.</p>
+            )}
+          </div>
+        </div>
+      </div>
 
       {error && (
         <p role="alert" className="text-sm text-destructive">

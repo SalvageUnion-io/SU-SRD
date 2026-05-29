@@ -53,7 +53,7 @@ export function CrawlerSheet({
         <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-2">
           Stats
         </h3>
-        <dl className="grid grid-cols-2 gap-2">
+        <dl className="grid grid-cols-1 gap-2">
           <div className="flex flex-col items-center rounded border border-border py-2 text-center">
             <dt className="text-xs text-muted-foreground">SP</dt>
             <dd className="text-lg font-semibold">

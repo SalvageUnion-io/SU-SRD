@@ -44,7 +44,7 @@ function MechDetailPage() {
 
   if (!mech) {
     return (
-      <main className="mx-auto max-w-5xl px-4 py-8">
+      <main className="mx-auto max-w-7xl px-4 py-8">
         <p className="text-muted-foreground">Mech not found.</p>
         <a href="/" className={cn(buttonVariants({ variant: 'link', size: 'sm' }))}>
           Back to dashboard
@@ -54,7 +54,8 @@ function MechDetailPage() {
   }
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-8">
+    <main className="mx-auto max-w-7xl px-4 py-8">
+      {/* Page header */}
       <div className="mb-6 flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">{mech.name}</h1>
@@ -68,74 +69,84 @@ function MechDetailPage() {
         </a>
       </div>
 
-      {/* Summary */}
-      <section className="mb-6 rounded-md border border-border p-4 text-sm">
-        <dl className="space-y-2">
-          <div className="flex gap-2">
-            <dt className="font-medium">Systems:</dt>
-            <dd>{mech.systems.length}</dd>
-          </div>
-          <div className="flex gap-2">
-            <dt className="font-medium">Modules:</dt>
-            <dd>{mech.modules.length}</dd>
-          </div>
-          <div className="flex gap-2">
-            <dt className="font-medium">Cargo slots used:</dt>
-            <dd>{mech.cargo.length}</dd>
-          </div>
-          {mech.conditions.length > 0 && (
-            <div className="flex gap-2">
-              <dt className="font-medium">Conditions:</dt>
-              <dd>{mech.conditions.join(', ')}</dd>
-            </div>
-          )}
-        </dl>
-      </section>
+      {/* 2-pane at lg+: left = summary/stats, right = wiring/actions */}
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
+        {/* Left pane — mech stats summary */}
+        <div className="min-w-0 flex-1">
+          <section className="mb-6 rounded-md border border-border p-4 text-sm">
+            <h2 className="mb-3 text-base font-semibold">Stats</h2>
+            <dl className="space-y-2">
+              <div className="flex gap-2">
+                <dt className="font-medium">Systems:</dt>
+                <dd>{mech.systems.length}</dd>
+              </div>
+              <div className="flex gap-2">
+                <dt className="font-medium">Modules:</dt>
+                <dd>{mech.modules.length}</dd>
+              </div>
+              <div className="flex gap-2">
+                <dt className="font-medium">Cargo slots used:</dt>
+                <dd>{mech.cargo.length}</dd>
+              </div>
+              {mech.conditions.length > 0 && (
+                <div className="flex gap-2">
+                  <dt className="font-medium">Conditions:</dt>
+                  <dd>{mech.conditions.join(', ')}</dd>
+                </div>
+              )}
+            </dl>
+          </section>
+        </div>
 
-      {/* Pilot assignment */}
-      <section className="mb-6">
-        <h2 className="mb-3 text-base font-semibold">Pilot</h2>
-        {pilotLink ? (
-          <div className="flex items-center gap-3 rounded-md border border-border p-3 text-sm">
-            <span className="flex-1 text-muted-foreground">
-              Pilot linked: <span className="font-medium text-foreground">{pilotLink.to.id}</span>
-            </span>
-            <UnassignLinkButton
-              linkId={pilotLink.id}
-              label="Unassign Pilot"
-              onUnassigned={() => void navigate({ to: '/mechs/$id', params: { id } })}
+        {/* Right pane — wiring + actions */}
+        <div className="w-full shrink-0 space-y-6 lg:w-72">
+          {/* Pilot assignment */}
+          <section className="rounded-md border border-border p-4">
+            <h2 className="mb-3 text-base font-semibold">Pilot</h2>
+            {pilotLink ? (
+              <div className="flex items-center gap-3 text-sm">
+                <span className="flex-1 text-muted-foreground">
+                  Pilot linked:{' '}
+                  <span className="font-medium text-foreground">{pilotLink.to.id}</span>
+                </span>
+                <UnassignLinkButton
+                  linkId={pilotLink.id}
+                  label="Unassign Pilot"
+                  onUnassigned={() => void navigate({ to: '/mechs/$id', params: { id } })}
+                />
+              </div>
+            ) : (
+              <div className="flex items-center gap-3">
+                <p className="text-sm text-muted-foreground">No pilot assigned.</p>
+                <AssignPilotToMech
+                  mechId={id}
+                  onAssigned={() => void navigate({ to: '/mechs/$id', params: { id } })}
+                />
+              </div>
+            )}
+          </section>
+
+          {/* Workspace assignment */}
+          <section className="rounded-md border border-border p-4">
+            <h2 className="mb-3 text-base font-semibold">Workspace</h2>
+            <AssignToWorkspaceButton
+              entityType="mech"
+              entityId={id}
+              currentWorkspaceId={mech.workspaceId}
+              onChanged={() => void navigate({ to: '/mechs/$id', params: { id } })}
             />
-          </div>
-        ) : (
-          <div className="flex items-center gap-3">
-            <p className="text-sm text-muted-foreground">No pilot assigned.</p>
-            <AssignPilotToMech
-              mechId={id}
-              onAssigned={() => void navigate({ to: '/mechs/$id', params: { id } })}
-            />
-          </div>
-        )}
-      </section>
+          </section>
 
-      {/* Workspace assignment */}
-      <section className="mb-6">
-        <h2 className="mb-3 text-base font-semibold">Workspace</h2>
-        <AssignToWorkspaceButton
-          entityType="mech"
-          entityId={id}
-          currentWorkspaceId={mech.workspaceId}
-          onChanged={() => void navigate({ to: '/mechs/$id', params: { id } })}
-        />
-      </section>
-
-      {/* Actions */}
-      <div className="flex gap-3">
-        <a
-          href={`/sheet/mech/${id}`}
-          className={cn(buttonVariants({ variant: 'default' }), 'no-underline')}
-        >
-          View Sheet
-        </a>
+          {/* Actions */}
+          <div className="flex gap-3">
+            <a
+              href={`/sheet/mech/${id}`}
+              className={cn(buttonVariants({ variant: 'default' }), 'no-underline')}
+            >
+              View Sheet
+            </a>
+          </div>
+        </div>
       </div>
     </main>
   )

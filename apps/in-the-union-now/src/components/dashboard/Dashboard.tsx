@@ -89,7 +89,7 @@ export function Dashboard() {
   }
 
   return (
-    <main className="mx-auto max-w-6xl p-6">
+    <main className="mx-auto max-w-7xl p-4 sm:p-6">
       <div className="mb-8 flex flex-wrap items-center justify-between gap-4 border-b-2 border-[var(--color-su-black)] pb-4">
         <h1 className="text-3xl font-bold uppercase tracking-wide">ITUN — Saved Builds</h1>
         <WorkspaceSwitcher activeWorkspaceId={activeWorkspaceId} onSelect={setActiveWorkspaceId} />
@@ -100,10 +100,10 @@ export function Dashboard() {
           Loading…
         </div>
       ) : (
-        <div className="flex flex-col gap-8">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
           {/* Pilots */}
           <section aria-labelledby="pilots-heading">
-            <div className="mb-3 flex items-center justify-between">
+            <div className="mb-3 flex items-center justify-between gap-2">
               <h2
                 id="pilots-heading"
                 className="text-xl font-bold uppercase tracking-wide text-[var(--color-su-orange-dark)]"
@@ -112,7 +112,10 @@ export function Dashboard() {
               </h2>
               <a
                 href="/pilots/new"
-                className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'no-underline')}
+                className={cn(
+                  buttonVariants({ variant: 'outline', size: 'sm' }),
+                  'no-underline min-h-[44px] flex items-center'
+                )}
               >
                 + Create Pilot
               </a>
@@ -137,7 +140,7 @@ export function Dashboard() {
 
           {/* Mechs */}
           <section aria-labelledby="mechs-heading">
-            <div className="mb-3 flex items-center justify-between">
+            <div className="mb-3 flex items-center justify-between gap-2">
               <h2
                 id="mechs-heading"
                 className="text-xl font-bold uppercase tracking-wide text-[var(--color-su-orange-dark)]"
@@ -146,7 +149,10 @@ export function Dashboard() {
               </h2>
               <a
                 href="/mechs/new"
-                className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'no-underline')}
+                className={cn(
+                  buttonVariants({ variant: 'outline', size: 'sm' }),
+                  'no-underline min-h-[44px] flex items-center'
+                )}
               >
                 + Create Mech
               </a>
@@ -171,7 +177,7 @@ export function Dashboard() {
 
           {/* Crawlers */}
           <section aria-labelledby="crawlers-heading">
-            <div className="mb-3 flex items-center justify-between">
+            <div className="mb-3 flex items-center justify-between gap-2">
               <h2
                 id="crawlers-heading"
                 className="text-xl font-bold uppercase tracking-wide text-[var(--color-su-orange-dark)]"
@@ -180,7 +186,10 @@ export function Dashboard() {
               </h2>
               <a
                 href="/crawlers/new"
-                className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'no-underline')}
+                className={cn(
+                  buttonVariants({ variant: 'outline', size: 'sm' }),
+                  'no-underline min-h-[44px] flex items-center'
+                )}
               >
                 + Create Crawler
               </a>
