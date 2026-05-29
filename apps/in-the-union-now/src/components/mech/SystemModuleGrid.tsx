@@ -80,7 +80,7 @@ export function SystemModuleGrid({
     onToggle: (name: string, slotsRequired: number) => void
   ) {
     return (
-      <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-2">
+      <div className="grid w-full grid-cols-1 gap-2 xl:grid-cols-2">
         {items.map((item) => {
           const isSelected = selectedRefs.some((s) => s.ref === item.name)
           const wouldExceed = !isSelected && max > 0 && used + item.slotsRequired > max

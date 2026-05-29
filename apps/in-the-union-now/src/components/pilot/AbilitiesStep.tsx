@@ -63,7 +63,7 @@ export function AbilitiesStep({ classId, selectedAbilities, onToggle, _sur }: Ab
   const isAtBudget = selectedAbilities.length >= STARTING_ABILITY_BUDGET
 
   return (
-    <div className="mx-auto w-full max-w-[1400px] space-y-4">
+    <div className="w-full space-y-4">
       <p className="text-sm opacity-70">
         Choose up to {STARTING_ABILITY_BUDGET} starting abilities from your class trees.{' '}
         <span className="font-medium">
@@ -80,7 +80,7 @@ export function AbilitiesStep({ classId, selectedAbilities, onToggle, _sur }: Ab
         Order: keep the original coreTrees declaration order so abilities
         from the same tree stay contiguous in the list.
       */}
-      <div className="flex flex-col gap-3">
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
         {coreTrees.flatMap((tree) =>
           availableAbilities
             .filter((a) => a.tree === tree)

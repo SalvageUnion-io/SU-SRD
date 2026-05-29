@@ -219,199 +219,210 @@ export function PilotWizard({ onComplete, onCancel, pilotId, _rollDeps, _sur }: 
     : null
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 p-6">
-      {/* Progress indicator */}
-      <nav aria-label="Wizard steps">
-        <ol className="flex items-center gap-2 text-xs">
-          {STEPS.map((s, i) => (
-            <li
-              key={s}
-              className={[
-                'rounded px-2 py-1',
-                s === step
-                  ? 'bg-primary text-primary-foreground font-semibold'
-                  : i < currentIndex
-                    ? 'opacity-60'
-                    : 'opacity-30',
-              ].join(' ')}
-            >
-              {s}
-            </li>
-          ))}
-        </ol>
-      </nav>
+    <div className="mx-auto max-w-7xl p-6">
+      <div className="lg:grid lg:grid-cols-[12rem_minmax(0,1fr)] lg:gap-8">
+        {/* Progress indicator — vertical rail on desktop, horizontal on mobile */}
+        <nav aria-label="Wizard steps" className="mb-6 lg:mb-0">
+          <ol className="flex items-center gap-2 text-xs lg:sticky lg:top-4 lg:flex-col lg:items-stretch lg:gap-1">
+            {STEPS.map((s, i) => (
+              <li
+                key={s}
+                className={[
+                  'rounded px-2 py-1 lg:px-3 lg:py-2',
+                  s === step
+                    ? 'bg-primary text-primary-foreground font-semibold'
+                    : i < currentIndex
+                      ? 'opacity-60'
+                      : 'opacity-30',
+                ].join(' ')}
+              >
+                {s}
+              </li>
+            ))}
+          </ol>
+        </nav>
 
-      {/* Step heading */}
-      <h2 className="text-xl font-bold">
-        {step === 'Class' && 'Choose Your Class'}
-        {step === 'Abilities' && 'Choose Starting Abilities'}
-        {step === 'Equipment' && 'Choose Starting Equipment'}
-        {step === 'Identity' && 'Your Identity'}
-        {step === 'Background' && 'Your Background'}
-        {step === 'Review' && 'Review & Create'}
-      </h2>
+        {/* Content column */}
+        <div className="min-w-0 space-y-6">
+          {/* Step heading */}
+          <h2 className="text-xl font-bold">
+            {step === 'Class' && 'Choose Your Class'}
+            {step === 'Abilities' && 'Choose Starting Abilities'}
+            {step === 'Equipment' && 'Choose Starting Equipment'}
+            {step === 'Identity' && 'Your Identity'}
+            {step === 'Background' && 'Your Background'}
+            {step === 'Review' && 'Review & Create'}
+          </h2>
 
-      {/* Name field — shown on Identity step */}
-      {step === 'Identity' && (
-        <div className="space-y-1">
-          <label className="block text-sm font-medium" htmlFor="pilot-name">
-            Name <span className="text-destructive">*</span>
-          </label>
-          <input
-            id="pilot-name"
-            type="text"
-            value={form.name}
-            onChange={(e) => updateForm({ name: e.target.value })}
-            placeholder="Your pilot's real name"
-            required
-            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          {/* Name field — shown on Identity step */}
+          {step === 'Identity' && (
+            <div className="space-y-1">
+              <label className="block text-sm font-medium" htmlFor="pilot-name">
+                Name <span className="text-destructive">*</span>
+              </label>
+              <input
+                id="pilot-name"
+                type="text"
+                value={form.name}
+                onChange={(e) => updateForm({ name: e.target.value })}
+                placeholder="Your pilot's real name"
+                required
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+            </div>
+          )}
+
+          {/* Step content */}
+          {step === 'Class' && (
+            <ClassStep
+              selectedClassId={form.classId}
+              onSelect={(classId) => {
+                // Resetting abilities when class changes since trees differ
+                updateForm({ classId, abilities: [] })
+              }}
+              _sur={sur.Classes}
+            />
+          )}
+          {step === 'Abilities' && (
+            <AbilitiesStep
+              classId={form.classId}
+              selectedAbilities={form.abilities}
+              onToggle={toggleAbility}
+              _sur={{ Classes: sur.Classes, Abilities: sur.Abilities }}
+            />
+          )}
+          {step === 'Equipment' && (
+            <EquipmentStep
+              selectedEquipment={form.equipment}
+              onToggle={toggleEquipment}
+              _sur={{ Equipment: sur.Equipment }}
+            />
+          )}
+          {step === 'Identity' && (
+            <IdentityStep
+              callsign={form.callsign}
+              motto={form.motto}
+              keepsake={form.keepsake}
+              appearance={form.appearance}
+              onChange={(field, value) => updateForm({ [field]: value })}
+              _rollDeps={_rollDeps}
+            />
+          )}
+          {step === 'Background' && (
+            <BackgroundStep
+              background={form.background}
+              onChange={(v) => updateForm({ background: v })}
+              _rollDeps={_rollDeps}
+            />
+          )}
+
+          {/* Review step */}
+          {step === 'Review' && (
+            <div className="space-y-4 rounded-lg border border-border p-4 text-sm">
+              <div>
+                <span className="font-semibold">Name: </span>
+                {form.name || <span className="text-destructive">required</span>}
+              </div>
+              <div>
+                <span className="font-semibold">Callsign: </span>
+                {form.callsign || <span className="text-destructive">required</span>}
+              </div>
+              <div>
+                <span className="font-semibold">Class: </span>
+                {selectedClass ? (
+                  (selectedClass as { name: string }).name
+                ) : (
+                  <span className="text-destructive">required</span>
+                )}
+              </div>
+              <div>
+                <span className="font-semibold">Abilities: </span>
+                {form.abilities.length > 0
+                  ? form.abilities
+                      .map((id) => {
+                        const found = sur.Abilities.findAll(
+                          (a) => (a as { id: string }).id === id
+                        )[0]
+                        return found ? (found as { name: string }).name : id
+                      })
+                      .join(', ')
+                  : 'none'}
+              </div>
+              <div>
+                <span className="font-semibold">Equipment: </span>
+                {form.equipment.length > 0
+                  ? form.equipment
+                      .map((id) => {
+                        const found = sur.Equipment.findAll(
+                          (e) => (e as { id: string }).id === id
+                        )[0]
+                        return found ? (found as { name: string }).name : id
+                      })
+                      .join(', ')
+                  : 'none'}
+              </div>
+              <div>
+                <span className="font-semibold">Motto: </span>
+                {form.motto || '—'}
+              </div>
+              <div>
+                <span className="font-semibold">Keepsake: </span>
+                {form.keepsake || '—'}
+              </div>
+              <div>
+                <span className="font-semibold">Appearance: </span>
+                {form.appearance || '—'}
+              </div>
+              <div>
+                <span className="font-semibold">Background: </span>
+                {form.background || '—'}
+              </div>
+
+              {submitError && (
+                <p role="alert" className="text-sm text-destructive">
+                  {submitError}
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Soft warnings (edit mode only — no-op in create flow) */}
+          <SoftWarningBanner
+            warnings={softWarnings}
+            onSaveAnyway={() => void saveSoftAnyway()}
+            onFixIt={fixSoftWarnings}
           />
-        </div>
-      )}
 
-      {/* Step content */}
-      {step === 'Class' && (
-        <ClassStep
-          selectedClassId={form.classId}
-          onSelect={(classId) => {
-            // Resetting abilities when class changes since trees differ
-            updateForm({ classId, abilities: [] })
-          }}
-          _sur={sur.Classes}
-        />
-      )}
-      {step === 'Abilities' && (
-        <AbilitiesStep
-          classId={form.classId}
-          selectedAbilities={form.abilities}
-          onToggle={toggleAbility}
-          _sur={{ Classes: sur.Classes, Abilities: sur.Abilities }}
-        />
-      )}
-      {step === 'Equipment' && (
-        <EquipmentStep
-          selectedEquipment={form.equipment}
-          onToggle={toggleEquipment}
-          _sur={{ Equipment: sur.Equipment }}
-        />
-      )}
-      {step === 'Identity' && (
-        <IdentityStep
-          callsign={form.callsign}
-          motto={form.motto}
-          keepsake={form.keepsake}
-          appearance={form.appearance}
-          onChange={(field, value) => updateForm({ [field]: value })}
-          _rollDeps={_rollDeps}
-        />
-      )}
-      {step === 'Background' && (
-        <BackgroundStep
-          background={form.background}
-          onChange={(v) => updateForm({ background: v })}
-          _rollDeps={_rollDeps}
-        />
-      )}
+          {/* Navigation */}
+          <div className="flex justify-between pt-2">
+            <div className="flex gap-2">
+              {currentIndex > 0 && (
+                <Button type="button" variant="ghost" onClick={goBack} disabled={isSubmitting}>
+                  Back
+                </Button>
+              )}
+              <Button type="button" variant="ghost" onClick={onCancel} disabled={isSubmitting}>
+                Cancel
+              </Button>
+            </div>
 
-      {/* Review step */}
-      {step === 'Review' && (
-        <div className="space-y-4 rounded-lg border border-border p-4 text-sm">
-          <div>
-            <span className="font-semibold">Name: </span>
-            {form.name || <span className="text-destructive">required</span>}
-          </div>
-          <div>
-            <span className="font-semibold">Callsign: </span>
-            {form.callsign || <span className="text-destructive">required</span>}
-          </div>
-          <div>
-            <span className="font-semibold">Class: </span>
-            {selectedClass ? (
-              (selectedClass as { name: string }).name
+            {step !== 'Review' ? (
+              <Button type="button" onClick={goNext} disabled={!canAdvance()}>
+                Next
+              </Button>
             ) : (
-              <span className="text-destructive">required</span>
+              <Button
+                type="button"
+                onClick={handleSubmit}
+                disabled={
+                  isSubmitting || !form.name.trim() || !form.callsign.trim() || !form.classId
+                }
+              >
+                {isSubmitting ? 'Creating…' : 'Create Pilot'}
+              </Button>
             )}
           </div>
-          <div>
-            <span className="font-semibold">Abilities: </span>
-            {form.abilities.length > 0
-              ? form.abilities
-                  .map((id) => {
-                    const found = sur.Abilities.findAll((a) => (a as { id: string }).id === id)[0]
-                    return found ? (found as { name: string }).name : id
-                  })
-                  .join(', ')
-              : 'none'}
-          </div>
-          <div>
-            <span className="font-semibold">Equipment: </span>
-            {form.equipment.length > 0
-              ? form.equipment
-                  .map((id) => {
-                    const found = sur.Equipment.findAll((e) => (e as { id: string }).id === id)[0]
-                    return found ? (found as { name: string }).name : id
-                  })
-                  .join(', ')
-              : 'none'}
-          </div>
-          <div>
-            <span className="font-semibold">Motto: </span>
-            {form.motto || '—'}
-          </div>
-          <div>
-            <span className="font-semibold">Keepsake: </span>
-            {form.keepsake || '—'}
-          </div>
-          <div>
-            <span className="font-semibold">Appearance: </span>
-            {form.appearance || '—'}
-          </div>
-          <div>
-            <span className="font-semibold">Background: </span>
-            {form.background || '—'}
-          </div>
-
-          {submitError && (
-            <p role="alert" className="text-sm text-destructive">
-              {submitError}
-            </p>
-          )}
         </div>
-      )}
-
-      {/* Soft warnings (edit mode only — no-op in create flow) */}
-      <SoftWarningBanner
-        warnings={softWarnings}
-        onSaveAnyway={() => void saveSoftAnyway()}
-        onFixIt={fixSoftWarnings}
-      />
-
-      {/* Navigation */}
-      <div className="flex justify-between pt-2">
-        <div className="flex gap-2">
-          {currentIndex > 0 && (
-            <Button type="button" variant="ghost" onClick={goBack} disabled={isSubmitting}>
-              Back
-            </Button>
-          )}
-          <Button type="button" variant="ghost" onClick={onCancel} disabled={isSubmitting}>
-            Cancel
-          </Button>
-        </div>
-
-        {step !== 'Review' ? (
-          <Button type="button" onClick={goNext} disabled={!canAdvance()}>
-            Next
-          </Button>
-        ) : (
-          <Button
-            type="button"
-            onClick={handleSubmit}
-            disabled={isSubmitting || !form.name.trim() || !form.callsign.trim() || !form.classId}
-          >
-            {isSubmitting ? 'Creating…' : 'Create Pilot'}
-          </Button>
-        )}
       </div>
     </div>
   )
