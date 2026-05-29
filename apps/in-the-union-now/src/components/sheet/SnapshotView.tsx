@@ -110,9 +110,9 @@ export function SnapshotView({ snapshot }: SnapshotViewProps) {
       <SheetHeader name={name} mode={mode} />
 
       <div className="flex flex-col gap-8">
-        {result.kind === 'pilot' && <PilotSheet pilot={result.entity} />}
+        {result.kind === 'pilot' && <PilotSheet pilot={result.entity} readOnly />}
         {result.kind === 'mech' && <MechSheet mech={result.entity} readOnly />}
-        {result.kind === 'crawler' && <CrawlerSheet crawler={result.entity} pilots={[]} />}
+        {result.kind === 'crawler' && <CrawlerSheet crawler={result.entity} pilots={[]} readOnly />}
       </div>
     </main>
   )

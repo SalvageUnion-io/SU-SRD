@@ -9,7 +9,9 @@
 
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Pilot } from '../../lib/schemas/pilot'
+import { useEntityStore } from '../../stores/entityStore'
 import { CrawlerPilotsStandIn } from '../shared/CrawlerPilotsStandIn'
+import { EditableStatRow } from './EditableStatRow'
 
 type CrawlerSheetProps = {
   crawler: Crawler
@@ -18,9 +20,24 @@ type CrawlerSheetProps = {
    * When empty, renders the stand-in placeholder.
    */
   pilots?: Pilot[]
+  /**
+   * Injectable store — defaults to useEntityStore.
+   * Pass a stub in tests to avoid Zustand/IndexedDB side effects.
+   */
+  store?: typeof useEntityStore
+  /**
+   * When true, stat cells render as plain text with no click-to-edit affordance.
+   * Use in read-only contexts like published snapshots.
+   */
+  readOnly?: boolean
 }
 
-export function CrawlerSheet({ crawler, pilots = [] }: CrawlerSheetProps) {
+export function CrawlerSheet({
+  crawler,
+  pilots = [],
+  store = useEntityStore,
+  readOnly = false,
+}: CrawlerSheetProps) {
   return (
     <section aria-labelledby="crawler-sheet-heading" className="flex flex-col gap-4">
       {/* Header */}
@@ -29,6 +46,31 @@ export function CrawlerSheet({ crawler, pilots = [] }: CrawlerSheetProps) {
           {crawler.name}
         </h2>
         <p className="text-sm text-muted-foreground">Tech Level: {crawler.techLevel}</p>
+      </div>
+
+      {/* Stats — SP (live-play tracking, #245) */}
+      <div>
+        <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+          Stats
+        </h3>
+        <dl className="grid grid-cols-2 gap-2">
+          <div className="flex flex-col items-center rounded border border-border py-2 text-center">
+            <dt className="text-xs text-muted-foreground">SP</dt>
+            <dd className="text-lg font-semibold">
+              {/* TODO: source base value from rules once crawler tech-level data exposes SP */}
+              <EditableStatRow
+                label=""
+                value={crawler.currentSP ?? 0}
+                entityKind="crawler"
+                entityId={crawler.id}
+                fieldPath="currentSP"
+                min={0}
+                store={store}
+                readOnly={readOnly}
+              />
+            </dd>
+          </div>
+        </dl>
       </div>
 
       {/* Bays */}

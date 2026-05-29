@@ -25,6 +25,16 @@ export const PilotSchema = z
     conditions: z.array(z.string()),
     /** Optional: links this pilot to a workspace */
     workspaceId: z.string().optional(),
+    // ---------------------------------------------------------------------------
+    // Live-play current stat tracking (#245).
+    // These are current values for the active session — separate from any
+    // class/rules defaults. When absent the sheet falls back to 0.
+    // TODO: source base value from rules once pilot class data exposes HP/AP.
+    // ---------------------------------------------------------------------------
+    /** Current hit points */
+    currentHP: z.number().int().min(0).optional(),
+    /** Current action points */
+    currentAP: z.number().int().min(0).optional(),
     createdAt: z.string().datetime(),
     updatedAt: z.string().datetime(),
   })
