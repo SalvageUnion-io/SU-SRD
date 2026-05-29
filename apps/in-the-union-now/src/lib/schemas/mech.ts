@@ -12,7 +12,9 @@ export const ItemConditionMapSchema = z.record(z.string(), ItemConditionSchema)
 export type ItemConditionMap = z.infer<typeof ItemConditionMapSchema>
 
 /**
- * chassisRef: slug reference to a Chassis in salvageunion-reference.
+ * chassisRef: reference to a Chassis in salvageunion-reference by its `name`
+ * (e.g. "Ghost Chassis"), matching how the builder stores it and how the rules
+ * layer (lib/rules/capacity.ts) resolves it. Not a slug.
  * Resolution against game data is handled at the presentation/query layer.
  */
 export const MechSchema = z

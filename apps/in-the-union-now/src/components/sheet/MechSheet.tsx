@@ -68,12 +68,14 @@ export function MechSheet({
   const storeState = store()
 
   async function handleSystemConditionChange(slug: string, next: ItemCondition) {
-    const prev = mech.systemConditions ?? {}
+    // Read the freshest map from the store (not the render-time prop) so rapid
+    // sequential toggles don't stomp each other with a stale-closure overwrite.
+    const prev = storeState.get('mech', mech.id)?.systemConditions ?? mech.systemConditions ?? {}
     await storeState.update('mech', mech.id, { systemConditions: { ...prev, [slug]: next } })
   }
 
   async function handleModuleConditionChange(slug: string, next: ItemCondition) {
-    const prev = mech.moduleConditions ?? {}
+    const prev = storeState.get('mech', mech.id)?.moduleConditions ?? mech.moduleConditions ?? {}
     await storeState.update('mech', mech.id, { moduleConditions: { ...prev, [slug]: next } })
   }
 

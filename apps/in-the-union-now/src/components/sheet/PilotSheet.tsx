@@ -50,7 +50,10 @@ export function PilotSheet({ pilot, store = useEntityStore, readOnly = false }: 
   const storeState = store()
 
   async function handleEquipmentConditionChange(slug: string, next: ItemCondition) {
-    const prev = pilot.equipmentConditions ?? {}
+    // Read the freshest map from the store (not the render-time prop) so rapid
+    // sequential toggles don't stomp each other with a stale-closure overwrite.
+    const prev =
+      storeState.get('pilot', pilot.id)?.equipmentConditions ?? pilot.equipmentConditions ?? {}
     await storeState.update('pilot', pilot.id, { equipmentConditions: { ...prev, [slug]: next } })
   }
 

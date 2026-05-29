@@ -293,3 +293,52 @@ describe('PilotSheet — equipment condition toggle (REQ-011 #240)', () => {
     expect(updateSpy).not.toHaveBeenCalled()
   })
 })
+
+// ---------------------------------------------------------------------------
+// Stale-closure regression (formal-review fix): the handler must merge from the
+// freshest store state, not the render-time prop, so a condition set by a prior
+// (not-yet-re-rendered) toggle is preserved instead of being stomped.
+// ---------------------------------------------------------------------------
+
+describe('MechSheet — condition merge reads live store, not stale prop (#240 regression)', () => {
+  test('preserves a prior condition that exists in the store but not in the render prop', async () => {
+    const updateSpy = mock(async () => fakeMech)
+    // Prop has NO conditions yet; the store (get) already holds a prior toggle.
+    const propMech: Mech = { ...fakeMech, systemConditions: {} }
+    const freshMech: Mech = {
+      ...fakeMech,
+      systemConditions: { 'prior-system': 'destroyed' },
+    }
+    const storeState = {
+      pilots: [],
+      mechs: [freshMech],
+      crawlers: [],
+      softLinks: [],
+      hydrated: { pilots: false, mechs: true, crawlers: false, softLinks: false },
+      hydrate: mock(async () => {}),
+      list: mock(() => [freshMech]),
+      // get returns the FRESH mech (with the prior condition), unlike the prop
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      get: mock((_type: string, id: string) => (id === fakeMech.id ? freshMech : null)) as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      create: mock(async () => fakeMech) as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      update: updateSpy as any,
+      delete: mock(async () => {}),
+    }
+    const store = (() => storeState) as unknown as typeof useEntityStore
+
+    render(<MechSheet mech={propMech} chassis={fakeChassis} store={store} />)
+
+    const toggle = screen.getByRole('button', { name: /plasma-torch condition/i })
+    await act(async () => {
+      fireEvent.click(toggle)
+    })
+
+    // The patch must include BOTH the prior store condition and the new one —
+    // proving the merge base came from store.get, not the empty prop map.
+    expect(updateSpy).toHaveBeenCalledWith('mech', fakeMech.id, {
+      systemConditions: { 'prior-system': 'destroyed', 'plasma-torch': 'damaged' },
+    })
+  })
+})
