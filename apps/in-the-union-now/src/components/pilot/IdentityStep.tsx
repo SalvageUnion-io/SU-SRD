@@ -21,7 +21,7 @@ type FieldConfig = {
 const FIELDS: FieldConfig[] = [
   {
     key: 'callsign',
-    label: 'Callsign',
+    label: 'Callsign *',
     placeholder: 'Your pilot callsign',
     rollField: 'callsign',
   },
