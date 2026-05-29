@@ -70,36 +70,41 @@ export function AbilitiesStep({ classId, selectedAbilities, onToggle, _sur }: Ab
           {selectedAbilities.length}/{STARTING_ABILITY_BUDGET} selected
         </span>
       </p>
-      {coreTrees.map((tree) => {
-        const treeAbilities = availableAbilities.filter((a) => a.tree === tree)
-        if (treeAbilities.length === 0) return null
+      {/*
+        SRD catalog pattern — each ability is its own compact
+        ReferenceEntityDisplay card with the tree name rendered as the
+        card's pseudo-header label (matches the SchemaViewerIsland
+        rendering in suref-web). No external <h3> tree groupings — the
+        tree label lives ON the card frame itself.
 
-        return (
-          <div key={tree} className="space-y-2">
-            <h3 className="text-sm font-semibold uppercase tracking-wide opacity-70">{tree}</h3>
-            <div className="flex flex-col gap-2">
-              {treeAbilities.map((ability) => {
-                const isSelected = selectedAbilities.includes(ability.id)
-                const isDisabled = !isSelected && isAtBudget
-                return (
-                  <EntityChoiceCard
-                    key={ability.id}
-                    entity={ability}
-                    selected={isSelected}
-                    disabled={isDisabled}
-                    disabledReason={
-                      isDisabled
-                        ? `Budget reached (${STARTING_ABILITY_BUDGET}/3 selected)`
-                        : undefined
-                    }
-                    onSelect={() => onToggle(ability.id)}
-                  />
-                )
-              })}
-            </div>
-          </div>
-        )
-      })}
+        Order: keep the original coreTrees declaration order so abilities
+        from the same tree stay contiguous in the list.
+      */}
+      <div className="flex flex-col gap-3">
+        {coreTrees.flatMap((tree) =>
+          availableAbilities
+            .filter((a) => a.tree === tree)
+            .map((ability) => {
+              const isSelected = selectedAbilities.includes(ability.id)
+              const isDisabled = !isSelected && isAtBudget
+              return (
+                <EntityChoiceCard
+                  key={ability.id}
+                  entity={ability}
+                  selected={isSelected}
+                  disabled={isDisabled}
+                  disabledReason={
+                    isDisabled
+                      ? `Budget reached (${STARTING_ABILITY_BUDGET}/3 selected)`
+                      : undefined
+                  }
+                  label={ability.tree}
+                  onSelect={() => onToggle(ability.id)}
+                />
+              )
+            })
+        )}
+      </div>
       {availableAbilities.length === 0 && (
         <p className="text-sm opacity-60">No level-1 abilities found for this class.</p>
       )}

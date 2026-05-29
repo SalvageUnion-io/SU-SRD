@@ -33,6 +33,13 @@ type EntityChoiceCardProps = {
    * rather than below it — mirrors the SRD ReferenceEntityIsland pattern.
    */
   afterExtraContent?: ReactNode
+  /**
+   * Optional pseudo-header label rendered on the card frame (e.g. the
+   * ability's tree name). Passed through to ReferenceEntityDisplay's
+   * `label` prop so the result matches the SRD catalog rendering for the
+   * same entity (apps/suref-web/.../SchemaViewerIsland.tsx).
+   */
+  label?: string
   onSelect: () => void
 }
 
@@ -55,6 +62,7 @@ export function EntityChoiceCard({
   warning = false,
   warningReason,
   afterExtraContent,
+  label,
   onSelect,
 }: EntityChoiceCardProps) {
   const controls = useMemo(() => {
@@ -96,6 +104,7 @@ export function EntityChoiceCard({
         controls={controls}
         hide={{ actions: true, choices: true }}
         afterExtraContent={afterExtraContent}
+        label={label}
       />
       {inlineReason && (
         <p className="px-3 pb-2 pt-1 text-xs text-[var(--color-su-rust)]">{inlineReason}</p>
