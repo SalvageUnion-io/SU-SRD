@@ -41,6 +41,15 @@ describe('CrawlerSchema', () => {
     expect(() => CrawlerSchema.parse(omit(validCrawler, 'name'))).toThrow()
   })
 
+  test('rejects empty name (min(1) constraint)', () => {
+    expect(() => CrawlerSchema.parse({ ...validCrawler, name: '' })).toThrow()
+  })
+
+  test('accepts non-empty name', () => {
+    const result = CrawlerSchema.parse({ ...validCrawler, name: 'The Wandering Throne' })
+    expect(result.name).toBe('The Wandering Throne')
+  })
+
   test('rejects missing required field: techLevel', () => {
     expect(() => CrawlerSchema.parse(omit(validCrawler, 'techLevel'))).toThrow()
   })

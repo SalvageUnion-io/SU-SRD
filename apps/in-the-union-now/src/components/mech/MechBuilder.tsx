@@ -236,7 +236,10 @@ export function MechBuilder({ onSuccess, mechId, className }: MechBuilderProps) 
 
       {/* Submit error */}
       {submitError && (
-        <div className="rounded-md bg-destructive/10 border border-destructive/20 p-3 text-sm text-destructive">
+        <div
+          role="alert"
+          className="rounded-md bg-destructive/10 border border-destructive/20 p-3 text-sm text-destructive"
+        >
           {submitError}
         </div>
       )}
