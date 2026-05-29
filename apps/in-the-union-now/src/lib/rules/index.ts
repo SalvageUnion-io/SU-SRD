@@ -10,6 +10,7 @@
  */
 
 export { computeMechCapacity } from './capacity'
+export { enrichPilotSnapshot } from './pilotSnapshot'
 export { computeCrawlerCapacity } from './crawlerCapacity'
 export { salvageValueFor, scrapCostFor, tierUpgradeCost } from './scrap'
 export { computeCargoCapacity } from './cargo'

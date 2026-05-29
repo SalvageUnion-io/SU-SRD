@@ -253,17 +253,20 @@ describe('CrawlerBuilder', () => {
       expect(screen.getByText('Drill')).toBeDefined()
     })
 
-    // Do not fill in a name — submit (name check should block create)
+    // Do not fill in a name — submit via fireEvent.submit on the form element so
+    // that native browser `required` validation (which would otherwise silently
+    // swallow the event in happy-dom) is bypassed and handleSubmit actually runs.
+    const form = screen.getByRole('button', { name: /Create Crawler/i }).closest('form')!
     act(() => {
-      fireEvent.click(screen.getByRole('button', { name: /Create Crawler/i }))
+      fireEvent.submit(form)
     })
 
-    // Allow the submit handler to run and the render to complete
+    // Both conditions must hold: the error alert must be visible AND create must
+    // not have been called. An OR-gate would pass even if the banner never rendered.
     await waitFor(() => {
-      // Either an error alert appears OR storePatch.createMock was not called
-      // Both are valid outcomes that confirm the gate works
-      expect(storePatch.createMock).not.toHaveBeenCalled()
+      expect(screen.getByRole('alert')).toBeDefined()
     })
+    expect(storePatch.createMock).not.toHaveBeenCalled()
   })
 
   test('capacity banner appears when bays are over-capacity for selected TL', async () => {
