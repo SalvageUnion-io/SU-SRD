@@ -252,6 +252,50 @@ describe('CargoEditor', () => {
 })
 
 // ---------------------------------------------------------------------------
+// MechBuilder integration test — schema validation gate at submit
+// ---------------------------------------------------------------------------
+
+describe('MechBuilder — schema validation gate', () => {
+  it('shows a validation error and does not create mech when name is empty', async () => {
+    render(<MechBuilder />)
+
+    // Select a chassis
+    const allChassis = SalvageUnionReference.Chassis.all()
+    const mule = allChassis.find((c) => c.name === 'Mule') ?? allChassis[0]!
+
+    await act(async () => {
+      fireEvent.click(getChoiceCardByName(mule.name))
+    })
+
+    // Leave mech name empty. Submit via fireEvent.submit on the form element so
+    // that the native browser `required` / `disabled` guard is bypassed and
+    // handleSubmit actually runs — this exercises the MechSchema.safeParse gate
+    // rather than the UI-layer disabled prop (which would pass vacuously even
+    // if the safeParse block were deleted).
+    const form = screen.getByRole('button', { name: /create mech/i }).closest('form')!
+    // Use synchronous act (not async) so we do not await the entire React
+    // scheduler queue — the MechBuilder chassis grid leaves pending microtasks
+    // that cause await act(async…) to hang in the full test suite. The submit
+    // handler's early-return path (no name) is synchronous so a sync act flush
+    // is sufficient to commit the setSubmitError re-render.
+    act(() => {
+      fireEvent.submit(form)
+    })
+
+    // Dual-assert: BOTH conditions must hold. An OR-gate would pass vacuously.
+    // 1. The validation-error alert must be visible.
+    // The early-return path in handleSubmit (no name) calls setSubmitError()
+    // before any await, so the state update is flushed synchronously by the
+    // act() wrapper above. Assert directly without waitFor (which hangs in the
+    // full bun test suite due to React scheduler microtasks from the chassis grid).
+    expect(screen.getByRole('alert')).toBeDefined()
+    // 2. No mech was persisted to the store.
+    const mechs = useEntityStore.getState().list('mech')
+    expect(mechs.length).toBe(0)
+  })
+})
+
+// ---------------------------------------------------------------------------
 // MechBuilder integration test — entityStore.create called on finish
 // ---------------------------------------------------------------------------
 

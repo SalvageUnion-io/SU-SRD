@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { STARTING_ABILITY_BUDGET, STARTING_EQUIPMENT_BUDGET } from '../constants'
 import { ItemConditionMapSchema } from './mech'
 
 /**
@@ -9,14 +10,23 @@ export const PilotSchema = z
   .object({
     id: z.string(),
     schemaVersion: z.literal(1),
-    name: z.string(),
-    callsign: z.string(),
+    /** Pilot's real name — must not be empty. */
+    name: z.string().min(1),
+    /** Pilot's callsign / handle — must not be empty. */
+    callsign: z.string().min(1),
     /** Slug reference to a Pilot Class in salvageunion-reference */
     classRef: z.string(),
-    /** Slugs of class abilities selected for this pilot */
-    abilities: z.array(z.string()),
-    /** Slugs of equipment items carried */
-    equipment: z.array(z.string()),
+    /**
+     * Slugs of class abilities selected for this pilot.
+     * Capped at STARTING_ABILITY_BUDGET for character creation.
+     * Reference-data maxAbilities per class is the preferred source when available.
+     */
+    abilities: z.array(z.string()).max(STARTING_ABILITY_BUDGET),
+    /**
+     * Slugs of equipment items carried.
+     * Capped at STARTING_EQUIPMENT_BUDGET for character creation.
+     */
+    equipment: z.array(z.string()).max(STARTING_EQUIPMENT_BUDGET),
     /** Freeform roll result strings (injury table, etc.) */
     rollResults: z.array(z.string()),
     motto: z.string(),

@@ -238,4 +238,65 @@ describe('CrawlerBuilder', () => {
     fireEvent.click(screen.getByRole('button', { name: /Cancel/i }))
     expect(onCancel).toHaveBeenCalledTimes(1)
   })
+
+  test('schema validation gate: create is not called when name is empty', async () => {
+    render(<CrawlerBuilder onCreated={() => undefined} onCancel={() => undefined} />)
+
+    // Select a TL so the tech-level check passes
+    await waitFor(() => screen.getByText('TL 1'))
+    act(() => {
+      fireEvent.click(screen.getByText('TL 1').closest('button')!)
+    })
+
+    // Wait for TL state to flush and systems to be filtered
+    await waitFor(() => {
+      expect(screen.getByText('Drill')).toBeDefined()
+    })
+
+    // Do not fill in a name — submit via fireEvent.submit on the form element so
+    // that native browser `required` validation (which would otherwise silently
+    // swallow the event in happy-dom) is bypassed and handleSubmit actually runs.
+    const form = screen.getByRole('button', { name: /Create Crawler/i }).closest('form')!
+    act(() => {
+      fireEvent.submit(form)
+    })
+
+    // Both conditions must hold: the error alert must be visible AND create must
+    // not have been called. An OR-gate would pass even if the banner never rendered.
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toBeDefined()
+    })
+    expect(storePatch.createMock).not.toHaveBeenCalled()
+  })
+
+  test('capacity banner appears when bays are over-capacity for selected TL', async () => {
+    render(<CrawlerBuilder onCreated={() => undefined} onCancel={() => undefined} />)
+
+    // Select TL 1 (baysMax = 2 per computeCrawlerCapacity)
+    await waitFor(() => screen.getByText('TL 1'))
+    act(() => {
+      fireEvent.click(screen.getByText('TL 1').closest('button')!)
+    })
+
+    // Capacity banner should not be visible initially (no bays assigned)
+    expect(screen.queryByRole('region', { name: /capacity/i })).toBeNull()
+
+    // Add 3 bays — TL 1 cap is 2, so this triggers bays-over-capacity violation
+    const bayInput = screen.getByLabelText('Bay entity slug')
+    const addBayButton = screen.getByRole('button', { name: /Add Bay/i })
+
+    for (const slug of ['pilot-001', 'pilot-002', 'pilot-003']) {
+      act(() => {
+        fireEvent.change(bayInput, { target: { value: slug } })
+      })
+      act(() => {
+        fireEvent.click(addBayButton)
+      })
+    }
+
+    // Capacity banner should now be visible
+    await waitFor(() => {
+      expect(screen.getByRole('region', { name: /capacity/i })).toBeDefined()
+    })
+  })
 })

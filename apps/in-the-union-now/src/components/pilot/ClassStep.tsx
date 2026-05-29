@@ -14,6 +14,13 @@ type ClassStepProps = {
   _sur?: SURClassesAccessor
 }
 
+/**
+ * Semantic base-class guard: only classes with a non-null `coreTrees` field
+ * are true base classes (Scavenger, Hauler, etc.). Advanced classes in
+ * salvageunion-reference do NOT expose coreTrees (they gate on a prior base
+ * class). This check is intentionally semantic rather than structural —
+ * the `coreTrees` field is the canonical marker per the SRD schema.
+ */
 function isBaseClass(cls: unknown): cls is SURefClass {
   return (
     typeof cls === 'object' &&

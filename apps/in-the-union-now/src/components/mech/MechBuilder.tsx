@@ -18,6 +18,7 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import { computeMechCapacity } from '../../lib/rules/capacity'
 import { computeCargoCapacity } from '../../lib/rules/cargo'
 import { useEntityStore } from '../../stores/entityStore'
+import { MechSchema } from '../../lib/schemas/mech'
 import type { MechSystemSlot, MechModuleSlot, CargoItem } from '../../lib/rules/types'
 import { ChassisSelector } from './ChassisSelector'
 import { SystemModuleGrid } from './SystemModuleGrid'
@@ -108,15 +109,34 @@ export function MechBuilder({ onSuccess, mechId, className }: MechBuilderProps) 
     setSubmitError(null)
 
     try {
-      await useEntityStore.getState().create('mech', {
-        schemaVersion: 1,
+      const now = new Date().toISOString()
+      const rawInput = {
+        schemaVersion: 1 as const,
         name: mechName.trim(),
         chassisRef: chassisName,
         systems: systems.map((s) => s.ref),
         modules: modules.map((m) => m.ref),
         cargo: cargoItems.map((item) => (item.kind === 'ref' ? item.ref : item.name)),
         conditions: [],
+      }
+
+      // Validate against MechSchema before submitting (surface errors in-UI)
+      const validation = MechSchema.safeParse({
+        ...rawInput,
+        id: 'temp-validate-only',
+        createdAt: now,
+        updatedAt: now,
       })
+      if (!validation.success) {
+        const messages = validation.error.issues
+          .map((e: { message: string }) => e.message)
+          .join('; ')
+        setSubmitError(`Validation error: ${messages}`)
+        setIsSubmitting(false)
+        return
+      }
+
+      await useEntityStore.getState().create('mech', rawInput)
       onSuccess?.()
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : 'Failed to create mech.')
@@ -216,7 +236,10 @@ export function MechBuilder({ onSuccess, mechId, className }: MechBuilderProps) 
 
       {/* Submit error */}
       {submitError && (
-        <div className="rounded-md bg-destructive/10 border border-destructive/20 p-3 text-sm text-destructive">
+        <div
+          role="alert"
+          className="rounded-md bg-destructive/10 border border-destructive/20 p-3 text-sm text-destructive"
+        >
           {submitError}
         </div>
       )}

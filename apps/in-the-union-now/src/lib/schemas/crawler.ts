@@ -7,7 +7,7 @@ export const CrawlerSchema = z
   .object({
     id: z.string(),
     schemaVersion: z.literal(1),
-    name: z.string(),
+    name: z.string().min(1),
     /** Tech level (I–VI) expressed as a string slug, e.g. "tech-1" */
     techLevel: z.string(),
     /** Slugs of entities assigned to crawler bays (pilots/mechs) */

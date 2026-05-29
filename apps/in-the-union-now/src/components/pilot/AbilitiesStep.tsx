@@ -1,5 +1,6 @@
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefClass } from 'salvageunion-reference'
+import { STARTING_ABILITY_BUDGET } from '../../lib/constants'
 import { EntityChoiceCard } from '../shared/EntityChoiceCard'
 
 type SURAbilitiesAccessor = {
@@ -37,9 +38,6 @@ function isBaseClass(
   )
 }
 
-/** Starting ability budget at character creation, per Salvage Union core rules. */
-const STARTING_ABILITY_BUDGET = 3
-
 /**
  * Step 2: Choose starting abilities for the selected class.
  * Shows level-1 abilities from the class's core trees.
@@ -55,19 +53,27 @@ export function AbilitiesStep({ classId, selectedAbilities, onToggle, _sur }: Ab
 
   const coreTrees = isBaseClass(cls) ? cls.coreTrees : []
 
+  // Use maxAbilities from reference data when it is smaller than the starting budget
+  // (e.g. a class with fewer total abilities than the global cap). When the class
+  // exposes a higher value (e.g. 10 for total advancement), the starting budget wins.
+  const budget =
+    isBaseClass(cls) && cls.maxAbilities
+      ? Math.min(cls.maxAbilities, STARTING_ABILITY_BUDGET)
+      : STARTING_ABILITY_BUDGET
+
   const availableAbilities = surAbilities.findAll((a: unknown) => {
     const ab = a as AbilityLike
     return coreTrees.includes(ab.tree) && ab.level === 1
   }) as AbilityLike[]
 
-  const isAtBudget = selectedAbilities.length >= STARTING_ABILITY_BUDGET
+  const isAtBudget = selectedAbilities.length >= budget
 
   return (
     <div className="w-full space-y-4">
       <p className="text-sm opacity-70">
-        Choose up to {STARTING_ABILITY_BUDGET} starting abilities from your class trees.{' '}
+        Choose up to {budget} starting abilities from your class trees.{' '}
         <span className="font-medium">
-          {selectedAbilities.length}/{STARTING_ABILITY_BUDGET} selected
+          {selectedAbilities.length}/{budget} selected
         </span>
       </p>
       {/*
@@ -95,7 +101,7 @@ export function AbilitiesStep({ classId, selectedAbilities, onToggle, _sur }: Ab
                   disabled={isDisabled}
                   disabledReason={
                     isDisabled
-                      ? `Budget reached (${STARTING_ABILITY_BUDGET}/3 selected)`
+                      ? `Budget reached (${selectedAbilities.length}/${budget} selected)`
                       : undefined
                   }
                   label={ability.tree}

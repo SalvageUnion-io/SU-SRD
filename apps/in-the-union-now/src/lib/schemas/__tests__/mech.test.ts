@@ -47,6 +47,15 @@ describe('MechSchema', () => {
     expect(() => MechSchema.parse(omit(validMech, 'name'))).toThrow()
   })
 
+  test('rejects empty name (min(1) constraint)', () => {
+    expect(() => MechSchema.parse({ ...validMech, name: '' })).toThrow()
+  })
+
+  test('accepts non-empty name', () => {
+    const result = MechSchema.parse({ ...validMech, name: 'Iron Lurker' })
+    expect(result.name).toBe('Iron Lurker')
+  })
+
   test('rejects invalid schemaVersion', () => {
     expect(() => MechSchema.parse({ ...validMech, schemaVersion: 0 })).toThrow()
   })

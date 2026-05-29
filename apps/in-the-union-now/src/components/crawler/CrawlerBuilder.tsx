@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefSystem } from 'salvageunion-reference'
 
 import { useEntityStore } from '../../stores/entityStore'
+import { CrawlerSchema } from '../../lib/schemas/crawler'
+import { computeCrawlerCapacity } from '../../lib/rules/crawlerCapacity'
 import { Button } from '../ui/button'
 import { BaysEditor } from './BaysEditor'
 import { SystemsList } from './SystemsList'
@@ -62,6 +64,25 @@ export function CrawlerBuilder({ onCreated, onCancel }: CrawlerBuilderProps) {
 
   const filteredSystems = filterSystemsByTL(allSystems, form.techLevel)
 
+  // ---------------------------------------------------------------------------
+  // Live capacity computation (soft-warn only — does NOT block submit)
+  // ---------------------------------------------------------------------------
+  const crawlerCapacity = useMemo(
+    () =>
+      computeCrawlerCapacity({
+        techLevel: form.techLevel ?? 0,
+        bays: form.bays,
+        systems: form.systems,
+      }),
+    [form.techLevel, form.bays, form.systems]
+  )
+
+  const hasCapacityViolations =
+    form.techLevel !== null &&
+    crawlerCapacity.violations.some(
+      (v) => v.kind === 'bays-over-capacity' || v.kind === 'systems-over-capacity'
+    )
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!form.techLevel) {
@@ -75,15 +96,35 @@ export function CrawlerBuilder({ onCreated, onCancel }: CrawlerBuilderProps) {
 
     setIsSubmitting(true)
     setError(null)
+
     try {
-      // The db layer injects id, createdAt, updatedAt — pass only the user data.
-      await useEntityStore.getState().create('crawler', {
+      const now = new Date().toISOString()
+      const rawInput = {
         schemaVersion: 1 as const,
         name: form.name.trim(),
         techLevel: `tech-${form.techLevel}`,
         bays: form.bays,
         systems: form.systems,
+      }
+
+      // Validate against CrawlerSchema before submitting (surface errors in-UI)
+      const validation = CrawlerSchema.safeParse({
+        ...rawInput,
+        id: 'temp-validate-only',
+        createdAt: now,
+        updatedAt: now,
       })
+      if (!validation.success) {
+        const messages = validation.error.issues
+          .map((e: { message: string }) => e.message)
+          .join('; ')
+        setError(`Validation error: ${messages}`)
+        setIsSubmitting(false)
+        return
+      }
+
+      // The db layer injects id, createdAt, updatedAt — pass only the user data.
+      await useEntityStore.getState().create('crawler', rawInput)
       onCreated()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create crawler.')
@@ -130,6 +171,20 @@ export function CrawlerBuilder({ onCreated, onCancel }: CrawlerBuilderProps) {
       >
         [No Pilots Assigned] — pilot assignment available after Wave 3 soft-wiring (story #195)
       </div>
+
+      {/* Capacity banner — soft warning only, does NOT block submit */}
+      {hasCapacityViolations && (
+        <div
+          role="region"
+          aria-label="Capacity warning"
+          className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800"
+        >
+          <strong>Capacity warning</strong> — this crawler exceeds its tech-level caps (bays:{' '}
+          {crawlerCapacity.baysUsed}/{crawlerCapacity.baysMax}, systems:{' '}
+          {crawlerCapacity.systemsUsed}/{crawlerCapacity.systemsMax}). You can still save — review
+          before proceeding.
+        </div>
+      )}
 
       {error && (
         <p role="alert" className="text-sm text-destructive">
