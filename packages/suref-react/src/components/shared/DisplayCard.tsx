@@ -203,9 +203,9 @@ export function DisplayCard({
     >
       {hasCallout && (
         <div
-          // Inset inside the card's top-left (left-3/top-2) rather than straddling
-          // the top edge — symmetric with the right-side controls below.
-          className="absolute left-3 top-2 z-30 flex items-center gap-1"
+          // Braced against the card's top border (top-0, no upper padding), inset
+          // on the left (left-3) — symmetric with the right-side controls below.
+          className="absolute left-3 top-0 z-30 flex items-center gap-1"
         >
           {labelLead}
           {/* A label + badge pair (e.g. TECH LEVEL · 1, or a tree + ability level)
@@ -224,8 +224,9 @@ export function DisplayCard({
 
       {controls && (
         <div
-          // Inset inside the card's top-right (right-3/top-2), mirroring the callout.
-          className="absolute right-3 top-2 z-30"
+          // Braced against the top border (top-0), inset on the right (right-3),
+          // mirroring the callout.
+          className="absolute right-3 top-0 z-30"
         >
           <ControlButtons controls={controls} compact={isCompact} />
         </div>
@@ -267,8 +268,8 @@ export function DisplayCard({
               isCompact ? 'min-h-[60px] px-3 py-1' : 'min-h-[80px] px-3 py-1.5',
               // Top padding clears the now-inset callout (top-2 inside the card)
               // so the title sits below it with a thin, consistent gap.
-              !isCompact && hasCallout && 'pb-4 pt-9',
-              isCompact && hasCallout && 'pt-7',
+              !isCompact && hasCallout && 'pb-4 pt-7',
+              isCompact && hasCallout && 'pt-5',
               actualHeaderBg,
               headerStyleProp?.className,
               headerStyleProp?.className && 'h-full'
