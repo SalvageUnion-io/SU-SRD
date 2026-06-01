@@ -261,14 +261,16 @@ export function DisplayCard({
               // (modules/systems) centred high and collided with the callout, tall
               // ones (chassis) sat low. Top-aligning + a fixed top padding gives a
               // consistent thin gap under the callout regardless of content height.
-              (labelLead || label || labelBadge) && !isCompact ? 'items-start' : 'items-center',
+              labelLead || label || labelBadge ? 'items-start' : 'items-center',
               // px-3 (12px) aligns the header content L/R extremes with the
               // inset white body block (which uses mx-3) and the footer.
               isCompact ? 'min-h-[60px] px-3 py-1' : 'min-h-[80px] px-3 py-1.5',
-              // Top padding clears the callout straddle (~8px above the card top) by
-              // a slim, consistent gap. Compact's callout sits centred on the edge.
+              // Top padding clears the callout so the gap below it is consistent.
+              // Non-compact: callout straddles ~8px above the top → pt-4 ≈ 8px gap.
+              // Compact: callout sits centred on the edge (~8px of it below the
+              // top) → pt-3 ≈ 4px gap, tighter to suit dense listings.
               !isCompact && (labelLead || label || labelBadge) && 'pb-4 pt-4',
-              isCompact && (labelLead || label || labelBadge) && 'pt-1',
+              isCompact && (labelLead || label || labelBadge) && 'pt-3',
               actualHeaderBg,
               headerStyleProp?.className,
               headerStyleProp?.className && 'h-full'
