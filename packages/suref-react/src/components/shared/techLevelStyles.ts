@@ -21,6 +21,6 @@ export const TECH_LEVEL_BG: Record<number, string> = {
 
 export function techLevelLabel(tl: number | 'B' | 'N'): string {
   if (tl === 'B') return 'BIO'
-  if (tl === 'N') return 'NPC'
+  if (tl === 'N') return 'NANITE'
   return `TL${tl}`
 }

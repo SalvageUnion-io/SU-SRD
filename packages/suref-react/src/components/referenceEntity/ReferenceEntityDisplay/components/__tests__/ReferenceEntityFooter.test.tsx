@@ -8,7 +8,6 @@ const baseProps = {
   page: undefined,
   headerBg: 'bg-su-green',
   headerBgColor: undefined,
-  sourceFooterStyles: { className: '', style: {} },
 }
 
 describe('ReferenceEntityFooter', () => {

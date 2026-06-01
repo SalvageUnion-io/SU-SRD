@@ -46,7 +46,6 @@ import { Text } from '../../../base/Text'
 import {
   accentSurface,
   borderColorFromHeaderBg,
-  getSourceStyles,
   getSourceBorderColor,
 } from '../../referenceEntityHelpers'
 import { useReferenceEntityDisplayState } from '../useReferenceEntityDisplayState'
@@ -274,10 +273,8 @@ export function ReferenceEntityDisplayContent({
   const footerDisplayName = getDisplayName(schemaName)
   const hasFooter = !hide.footer && (hasPage || hasSource)
 
-  // Pre-compute source styles for DisplayCard generic overrides
-  const sourceCardStyle = getSourceStyles(source, disabled ?? false, 'card', !listing)
-  const sourceHeaderStyle = getSourceStyles(source, disabled ?? false, 'header', !listing)
-  const sourceFooterStyle = getSourceStyles(source, disabled ?? false, 'footer', !listing)
+  // Themed border for expansion-sourced entities (the source-specific header /
+  // footer / card textural patterns have been removed).
   const sourceBorderColor = getSourceBorderColor(source) ?? 'black'
 
   // Accessible alt text for the entity illustration: "{Title} {schema display name} illustration"
@@ -296,7 +293,6 @@ export function ReferenceEntityDisplayContent({
       page={hasPage ? data.page : undefined}
       headerBg={headerBg}
       headerBgColor={headerBgColor}
-      sourceFooterStyles={sourceFooterStyle}
     />
   ) : null
 
@@ -381,9 +377,6 @@ export function ReferenceEntityDisplayContent({
       compact={compact}
       listing={listing}
       headerTestId="frame-header-container"
-      cardStyle={sourceCardStyle}
-      headerStyle={sourceHeaderStyle}
-      footerStyle={sourceFooterStyle}
       borderColor={sourceBorderColor}
       disabled={disabled}
       controls={controls}
@@ -707,11 +700,10 @@ export function ReferenceEntityDisplayContent({
               margin, accent background spanning the full card width). */}
           {interactive?.renderFooter ? (
             <div
-              className={cn('w-full py-3', accent.className, sourceFooterStyle.className)}
+              className={cn('w-full py-3', accent.className)}
               style={{
                 ...spacing.contentPaddingXStyle,
                 ...accent.style,
-                ...sourceFooterStyle.style,
               }}
             >
               {interactive.renderFooter()}

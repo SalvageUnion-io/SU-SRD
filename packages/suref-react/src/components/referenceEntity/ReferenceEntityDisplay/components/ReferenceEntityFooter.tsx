@@ -9,7 +9,6 @@ type ReferenceEntityFooterProps = {
   page: string | number | undefined
   headerBg: string | undefined
   headerBgColor: string | undefined
-  sourceFooterStyles: { className: string; style: React.CSSProperties }
 }
 
 // Shared type scale for the three footer tags (name / source / page) — one source
@@ -23,7 +22,6 @@ export function ReferenceEntityFooter({
   page,
   headerBg,
   headerBgColor,
-  sourceFooterStyles,
 }: ReferenceEntityFooterProps) {
   // Drop the "Salvage Union " prefix in footers — "Salvage Union Workshop
   // Manual" reads as "Workshop Manual", "Salvage Union Starter Set" as
@@ -36,8 +34,7 @@ export function ReferenceEntityFooter({
       className={cn(
         // Slim footer: half the vertical padding, text vertically centred.
         'flex w-full items-center justify-between gap-4 py-1.5 text-su-black',
-        accent.className,
-        sourceFooterStyles.className
+        accent.className
       )}
       style={{
         // Align the footer's left/right extremes with the white body block
@@ -45,7 +42,6 @@ export function ReferenceEntityFooter({
         paddingLeft: '0.75rem',
         paddingRight: '0.75rem',
         ...accent.style,
-        ...sourceFooterStyles.style,
       }}
     >
       <div className="flex min-w-0 shrink items-center gap-2">
