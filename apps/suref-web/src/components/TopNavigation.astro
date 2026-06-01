@@ -38,7 +38,7 @@ function isActive(path: string) {
 
 <nav aria-label="Main navigation" class="flex h-[62px] items-center gap-[22px] bg-su-black px-9 z-50 border-b-2 border-su-black" transition:name="nav" transition:animate="none">
   <!-- Wordmark -->
-  <a href="/" class="shrink-0 font-cond font-bold text-xl uppercase tracking-[.04em] text-su-white no-underline">
+  <a href="/" class="shrink-0 font-cond font-bold text-xl uppercase tracking-[0.04em] text-su-white no-underline">
     SALVAGE <span class="text-su-orange">UNION</span> SRD
   </a>
 
@@ -66,7 +66,7 @@ function isActive(path: string) {
     {breadcrumbs && breadcrumbs.length > 0 && (
       <nav aria-label="Breadcrumb" class="min-w-0 shrink">
         {/* .crumb treatment: font-mono, 12px, muted text; bold su-white on current segment */}
-        <ol class="flex flex-wrap items-center gap-1 font-mono text-[12px] text-[#b9bdb6]">
+        <ol class="flex flex-wrap items-center gap-1 font-mono text-xs text-su-grey-nav">
           {breadcrumbs.map((item, index) => (
             <>
               {index > 0 && <li aria-hidden="true" class="select-none opacity-50">/</li>}
@@ -74,7 +74,7 @@ function isActive(path: string) {
                 {index === breadcrumbs.length - 1 ? (
                   <span aria-current="page" class="font-medium text-su-white">{item.name}</span>
                 ) : (
-                  <a href={item.url} class="text-[#b9bdb6] hover:text-su-white transition-colors">{item.name}</a>
+                  <a href={item.url} class="text-su-grey-nav hover:text-su-white transition-colors">{item.name}</a>
                 )}
               </li>
             </>

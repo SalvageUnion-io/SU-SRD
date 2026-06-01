@@ -47,7 +47,7 @@
   font-size: 14px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #b9bdb6;
+  color: var(--color-su-grey-nav);
   text-decoration: none;
   transition: color 0.12s;
 }
@@ -55,6 +55,11 @@
 .nav-link:hover,
 .nav-link.nav-link-active {
   color: var(--color-su-white);
+}
+
+.nav-link:focus-visible {
+  outline: 2px solid var(--color-su-orange);
+  outline-offset: 2px;
 }
 
 /* Catalog category headers — line / [PSEUDOHEADER] / line */
@@ -105,6 +110,40 @@
 .catalog-item:hover {
   box-shadow: 0 5px 18px rgba(34, 30, 23, 0.18);
   transform: translateY(-2px);
+}
+
+.catalog-item:focus-visible {
+  outline: 2px solid var(--color-su-orange);
+  outline-offset: 2px;
+}
+
+/* Ghost variant — white/black tile that reuses the shared geometry + hover/focus
+   of .catalog-item (e.g. the 404 "Return to Home" link). Apply alongside
+   .catalog-item: class="catalog-item catalog-item--ghost". */
+.catalog-item--ghost {
+  background: var(--color-su-white);
+  color: var(--color-su-black);
+  font-family: var(--font-cond);
+  font-size: 1.125rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+/* Page H1 "band" — black stamp heading used on about / api / changelog. Per-page
+   modifiers (e.g. text-center) stay as inline utilities alongside the class. */
+.page-heading {
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  background: var(--color-su-black);
+  color: var(--color-su-white);
+  padding: 0.25rem 0.5rem;
+  font-family: var(--font-cond);
+  font-size: 1.875rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
 }
 
 /* Tile name line — font-cond, bold, uppercase, text-shadow for legibility on gradients */

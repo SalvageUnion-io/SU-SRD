@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro'
+import CatalogTile from '../components/CatalogTile.astro'
 import { getSchemaCatalog, SalvageUnionReference, getReferenceEntityData } from '../lib/gameData'
 import { getCatalogBg, getCatalogLabel } from '../lib/catalogColors'
 import { buildCatalogCategories } from '../lib/catalogHelpers'
@@ -46,17 +47,12 @@ const categories = buildCatalogCategories({
             </div>
             <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {cat.schemas.map((card) => (
-                <a
+                <CatalogTile
                   href={card.href}
-                  class="catalog-item"
-                  style={`--catalog-bg: ${card.catalogBg}${card.catalogLabel ? `; --catalog-label: ${card.catalogLabel}` : ''}`}
-                >
-                  {card.catalogLabel ? (
-                    <span class="catalog-item__name catalog-item-label">{card.label}</span>
-                  ) : (
-                    <span class="catalog-item__name">{card.label}</span>
-                  )}
-                </a>
+                  name={card.label}
+                  catalogBg={card.catalogBg}
+                  catalogLabel={card.catalogLabel}
+                />
               ))}
             </div>
           </div>

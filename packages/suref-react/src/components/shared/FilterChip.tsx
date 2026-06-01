@@ -17,7 +17,7 @@ export function FilterChip({ label, active, onClick, colorClass, swatchStyle }: 
 
   // When a swatch is shown, use tlchip layout: flex row, font-cond label, bordered swatch
   const swatchBase =
-    'cursor-pointer flex items-center gap-1.5 rounded border border-su-black px-2.5 py-1 font-cond text-[13px] font-semibold uppercase tracking-[.04em] transition-colors'
+    'cursor-pointer flex items-center gap-1.5 rounded border border-su-black px-2.5 py-1 font-cond text-[13px] font-semibold uppercase tracking-[0.04em] transition-colors'
 
   // Themed keyboard-focus ring — applied to every branch (incl. the active swatch,
   // which previously fell back to the browser default) for a consistent WCAG 2.4.7

@@ -138,10 +138,12 @@ export function SearchIsland({ variant = 'nav' }: SearchIslandProps = {}) {
             ? `${results.length} result${results.length === 1 ? '' : 's'} found`
             : 'No results found')}
       </div>
-      {/* Search container — .srd-search treatment: bordered su-black, tight radius, font-mono */}
+      {/* Search container — .srd-search treatment: bordered su-black, tight radius, font-mono.
+          The inner input keeps focus:outline-none, so the container carries the
+          visible keyboard-focus indicator via focus-within (WCAG 2.4.7). */}
       <div
-        className={`flex items-center gap-2 rounded border border-su-black bg-su-white font-mono text-su-grey-dark ${
-          isHero ? 'w-full px-4 py-2.5 text-[14px]' : 'px-3 py-[7px] text-[13px]'
+        className={`flex items-center gap-2 rounded border border-su-black bg-su-white font-mono text-su-grey-dark focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-su-orange ${
+          isHero ? 'w-full px-4 py-2.5 text-sm' : 'px-3 py-[7px] text-[13px]'
         }`}
       >
         {/* Search glyph */}
@@ -171,7 +173,7 @@ export function SearchIsland({ variant = 'nav' }: SearchIslandProps = {}) {
           onFocus={() => hasSearched && setIsOpen(true)}
           className={
             isHero
-              ? 'w-full bg-transparent font-mono text-[14px] text-su-black placeholder:text-su-grey-dark focus:outline-none'
+              ? 'w-full bg-transparent font-mono text-sm text-su-black placeholder:text-su-grey-dark focus:outline-none'
               : 'w-32 bg-transparent font-mono text-[13px] text-su-black placeholder:text-su-grey-dark focus:w-52 focus:outline-none transition-all md:w-36'
           }
           aria-label="Search the SRD"
