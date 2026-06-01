@@ -80,7 +80,7 @@
     {
       "id": "classes",
       "title": "classes",
-      "description": "Character classes in Salvage Union (base, advanced, and hybrid)",
+      "description": "Pilot Classes in Salvage Union (Base and Hybrid)",
       "dataFile": "data/classes.json",
       "schemaFile": "schemas/classes.schema.json",
       "itemCount": 11,

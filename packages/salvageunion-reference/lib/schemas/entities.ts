@@ -142,11 +142,11 @@ const BaseClassSchema = BaseEntitySchema.extend({
 }).strict()
 
 /**
- * Character classes in Salvage Union (base, advanced, and hybrid)
+ * Pilot Classes in Salvage Union (Base and Hybrid)
  */
 export const ClassSchema = z
   .union([BaseClassSchema, AdvancedClassSchema])
-  .describe('Character classes in Salvage Union (base, advanced, and hybrid)')
+  .describe('Pilot Classes in Salvage Union (Base and Hybrid)')
 
 /**
  * Bays and facilities on Union Crawlers in Salvage Union
