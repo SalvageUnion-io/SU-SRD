@@ -40,14 +40,8 @@ function matchSchemas(query: string): DisplayResult[] {
     }))
 }
 
-type SearchIslandProps = {
-  /** 'nav' (fixed-width field in the header) or 'hero' (persistent wide field for the index hero) */
-  variant?: 'nav' | 'hero'
-}
-
-export function SearchIsland({ variant = 'nav' }: SearchIslandProps = {}) {
+export function SearchIsland() {
   useGameData()
-  const isHero = variant === 'hero'
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<DisplayResult[]>([])
   const [isOpen, setIsOpen] = useState(false)
@@ -131,7 +125,7 @@ export function SearchIsland({ variant = 'nav' }: SearchIslandProps = {}) {
   }, [])
 
   return (
-    <div className={isHero ? 'relative w-full' : 'relative'} ref={containerRef}>
+    <div className="relative" ref={containerRef}>
       <div className="sr-only" aria-live="polite">
         {hasSearched &&
           (results.length > 0
@@ -141,17 +135,13 @@ export function SearchIsland({ variant = 'nav' }: SearchIslandProps = {}) {
       {/* Search container — .srd-search treatment: bordered su-black, tight radius, font-mono.
           The inner input keeps focus:outline-none, so the container carries the
           visible keyboard-focus indicator via focus-within (WCAG 2.4.7). */}
-      <div
-        className={`flex items-center gap-2 rounded border border-su-black bg-su-white font-mono text-su-grey-dark focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-su-orange ${
-          isHero ? 'w-full px-4 py-2.5 text-sm' : 'px-3 py-[7px] text-[13px]'
-        }`}
-      >
+      <div className="flex items-center gap-2 rounded border border-su-black bg-su-white px-3 py-[7px] font-mono text-[13px] text-su-grey-dark focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-su-orange">
         {/* Search glyph */}
         <svg
           aria-hidden="true"
           xmlns="http://www.w3.org/2000/svg"
-          width={isHero ? 16 : 14}
-          height={isHero ? 16 : 14}
+          width={14}
+          height={14}
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -166,16 +156,12 @@ export function SearchIsland({ variant = 'nav' }: SearchIslandProps = {}) {
         <input
           ref={inputRef}
           type="text"
-          placeholder={isHero ? 'Search the SRD…' : 'Search…'}
+          placeholder="Search…"
           value={query}
           onChange={(e) => handleInput(e.target.value)}
           onKeyDown={handleKeyDown}
           onFocus={() => hasSearched && setIsOpen(true)}
-          className={
-            isHero
-              ? 'w-full bg-transparent font-mono text-sm text-su-black placeholder:text-su-grey-dark focus:outline-none'
-              : 'w-52 bg-transparent font-mono text-[13px] text-su-black placeholder:text-su-grey-dark focus:outline-none'
-          }
+          className="w-52 bg-transparent font-mono text-[13px] text-su-black placeholder:text-su-grey-dark focus:outline-none"
           aria-label="Search the SRD"
           aria-expanded={isOpen}
           role="combobox"
@@ -188,9 +174,7 @@ export function SearchIsland({ variant = 'nav' }: SearchIslandProps = {}) {
         <div
           id="search-results"
           role="listbox"
-          className={`absolute top-full z-50 mt-1 max-h-96 overflow-y-auto rounded-md border border-su-grey-light bg-su-white shadow-lg ${
-            isHero ? 'left-0 right-0 w-full' : 'right-0 w-80'
-          }`}
+          className="absolute right-0 top-full z-50 mt-1 max-h-96 w-80 overflow-y-auto rounded-md border border-su-grey-light bg-su-white shadow-lg"
         >
           {results.length > 0 ? (
             results.map((result, index) => (
