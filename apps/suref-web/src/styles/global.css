@@ -63,13 +63,13 @@
 }
 
 /* Breadcrumb trail font tokens — shared by the crumb <ol> and the description
-   <span>. Non-uppercase by design: the <ol> adds the `uppercase` utility inline
-   (short crumb labels), while the description span stays sentence-case for
-   readability. Layout utilities (flex/gap) also stay inline on each element. */
+   <span>; both are uppercase to read as one band. Layout utilities (flex/gap)
+   stay inline on each element. */
 .breadcrumb-text {
   font-family: var(--font-cond);
   font-size: 0.75rem;
   letter-spacing: 0.14em;
+  text-transform: uppercase;
   color: var(--color-su-grey-dark);
 }
 

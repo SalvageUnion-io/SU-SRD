@@ -99,7 +99,7 @@ function isActive(path: string) {
 {breadcrumbs && breadcrumbs.length > 0 && (
   <>
     <nav aria-label="Breadcrumb" class="flex flex-wrap items-baseline gap-x-2 gap-y-1 border-b border-su-grey-light bg-su-white px-5 py-2 sm:px-[34px]">
-      <ol class="breadcrumb-text flex flex-wrap items-center gap-1.5 uppercase">
+      <ol class="breadcrumb-text flex flex-wrap items-center gap-1.5">
         {breadcrumbs.map((item, index) => (
           <>
             {index > 0 && <li aria-hidden="true" class="select-none text-su-grey-medium">/</li>}
