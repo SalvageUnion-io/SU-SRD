@@ -5,7 +5,7 @@ import { cva } from 'class-variance-authority'
  * (apps/suref-web/src/styles/global.css).
  *
  * Base recipe matches `.btn`: inline-flex layout, 0.375 rem rounding,
- * 0.875 rem / 500-weight Fira-Code text, 1 px transparent border that the
+ * 0.875 rem / 500-weight Barlow text, 1 px transparent border that the
  * variants tint, 150 ms transition across color/bg/border.
  *
  * Variant mapping to the SRD's vocabulary:
