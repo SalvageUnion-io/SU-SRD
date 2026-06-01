@@ -3,6 +3,7 @@ import type { SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
 import {
   extractReferenceEntityDetails,
   getActivationCurrency,
+  CALLOUT_META_LABEL_VALUES,
 } from '../../../lib/referenceEntityDataExtraction'
 import { DataValueDisplayView } from '../DataValueDisplayView'
 import { cn } from '../../../utils/cn'
@@ -30,11 +31,13 @@ export function ReferenceEntitySubTitleElement({
 
   const values = extractReferenceEntityDetails(data, schemaName, currency).filter(
     // "Recommended" and the class type ("Base/Hybrid Class") now render in the
-    // label callout row, not the data row.
+    // header label callout row, not the data row. Filter by the shared constant
+    // (CALLOUT_META_LABELS) so the producer and this de-dup can't drift apart.
     (v) =>
       !(
         v.type === 'meta' &&
-        (v.label === 'Recommended' || v.label === 'Base Class' || v.label === 'Hybrid Class')
+        typeof v.label === 'string' &&
+        CALLOUT_META_LABEL_VALUES.includes(v.label)
       )
   )
 

@@ -6,12 +6,14 @@ type ReferenceEntityFooterProps = {
   source: string | undefined
   booklet: string | undefined
   page: string | number | undefined
-  compact: boolean
   headerBg: string | undefined
   headerBgColor: string | undefined
-  contentPaddingX: number
   sourceFooterStyles: { className: string; style: React.CSSProperties }
 }
+
+// Shared type scale for the three footer tags (name / source / page) — one source
+// of truth for the footer's size/weight/transform so they can't drift.
+const footerTagClass = 'whitespace-nowrap text-[0.6rem] font-medium uppercase'
 
 export function ReferenceEntityFooter({
   footerDisplayName,
@@ -49,7 +51,7 @@ export function ReferenceEntityFooter({
           <Text
             variant="pseudoheader"
             as="span"
-            className="shrink-0 overflow-hidden text-ellipsis whitespace-nowrap text-[0.6rem] font-medium uppercase"
+            className={cn('shrink-0 overflow-hidden text-ellipsis', footerTagClass)}
           >
             {footerDisplayName}
           </Text>
@@ -58,20 +60,12 @@ export function ReferenceEntityFooter({
 
       <div className="flex shrink-0">
         {sourceLabel && (
-          <Text
-            variant="pseudoheader"
-            as="span"
-            className={cn('whitespace-nowrap text-[0.6rem] font-medium uppercase', page && 'mr-4')}
-          >
+          <Text variant="pseudoheader" as="span" className={cn(footerTagClass, page && 'mr-4')}>
             {sourceLabel}
           </Text>
         )}
         {page && (
-          <Text
-            variant="pseudoheader"
-            as="span"
-            className="whitespace-nowrap text-[0.6rem] font-medium uppercase"
-          >
+          <Text variant="pseudoheader" as="span" className={footerTagClass}>
             Page {page}
           </Text>
         )}

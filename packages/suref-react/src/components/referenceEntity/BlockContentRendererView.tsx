@@ -207,17 +207,22 @@ function ContentBlock({
       return <SectionSeparator label={stringValue} fontSize={headingFontSize} />
     }
 
-    case 'list-item':
+    case 'list-item': {
+      // Square accent marker, shared by the labeled and unlabeled branches so the
+      // size/offset/colour-fallback live in one place.
+      const bulletMarker = (
+        <span
+          aria-hidden="true"
+          className="mt-[0.45em] inline-block size-[5px] shrink-0 self-start"
+          style={{ backgroundColor: borderColor ?? 'currentColor' }}
+        />
+      )
       return (
         <div className={cn('mb-2 font-medium leading-snug text-pretty text-su-black', fontSize)}>
           {block.label ? (
             <>
               <span className="flex items-baseline gap-2">
-                <span
-                  aria-hidden="true"
-                  className="mt-[0.45em] inline-block size-[5px] shrink-0 self-start"
-                  style={{ backgroundColor: borderColor ?? 'currentColor' }}
-                />
+                {bulletMarker}
                 <Text as="span" className="font-bold">
                   {block.label}:
                 </Text>
@@ -231,16 +236,13 @@ function ContentBlock({
             </>
           ) : (
             <span className="flex items-baseline gap-2">
-              <span
-                aria-hidden="true"
-                className="mt-[0.45em] inline-block size-[5px] shrink-0 self-start"
-                style={{ backgroundColor: borderColor ?? 'currentColor' }}
-              />
+              {bulletMarker}
               <span className="min-w-0">{parsedValue}</span>
             </span>
           )}
         </div>
       )
+    }
     case 'hint':
       return (
         <div

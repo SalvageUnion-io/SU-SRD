@@ -19,15 +19,18 @@ export function FilterChip({ label, active, onClick, colorClass, swatchStyle }: 
   const swatchBase =
     'cursor-pointer flex items-center gap-1.5 rounded border border-su-black px-2.5 py-1 font-cond text-[13px] font-semibold uppercase tracking-[.04em] transition-colors'
 
+  // Themed keyboard-focus ring — applied to every branch (incl. the active swatch,
+  // which previously fell back to the browser default) for a consistent WCAG 2.4.7
+  // focus indicator.
+  const focusRing =
+    'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-su-orange'
+
   let classes: string
   if (swatchStyle !== undefined) {
     // tlchip mode
     classes = active
-      ? cn(swatchBase, 'bg-su-black text-su-white')
-      : cn(
-          swatchBase,
-          'bg-su-white text-su-black hover:bg-su-grey-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-su-orange'
-        )
+      ? cn(swatchBase, 'bg-su-black text-su-white', focusRing)
+      : cn(swatchBase, 'bg-su-white text-su-black hover:bg-su-grey-light', focusRing)
   } else if (active) {
     classes = colorClass ? cn(base, colorClass) : cn(base, 'bg-su-black text-su-white')
   } else {
@@ -36,14 +39,8 @@ export function FilterChip({ label, active, onClick, colorClass, swatchStyle }: 
     // - text-su-black (rgb(40,32,25)) on bg-su-grey-light (rgb(199,199,199)) ≈ 9.1:1
     // - text-su-black on white (colorClass variant) = 16:1
     classes = colorClass
-      ? cn(
-          base,
-          'text-su-black hover:bg-su-grey-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-su-orange'
-        )
-      : cn(
-          base,
-          'bg-su-grey-light text-su-black hover:bg-su-grey-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-su-orange'
-        )
+      ? cn(base, 'text-su-black hover:bg-su-grey-light', focusRing)
+      : cn(base, 'bg-su-grey-light text-su-black hover:bg-su-grey-medium', focusRing)
   }
 
   return (

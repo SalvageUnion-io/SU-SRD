@@ -24,6 +24,29 @@ import type { DataValue } from '../types/common'
 export const getActivationCurrency = resolveActivationCurrency
 
 /**
+ * Label strings for the "meta" data values that the entity card relocates from
+ * the data row into the header label callout ("Recommended", class type). These
+ * literals must agree across three sites — the producer (this file), the callout
+ * re-derivation (ReferenceEntityDisplayContent), and the data-row de-dup filter
+ * (ReferenceEntitySubTitleContent) — so they are defined here once.
+ */
+export const CALLOUT_META_LABELS = {
+  recommended: 'Recommended',
+  baseClass: 'Base Class',
+  hybridClass: 'Hybrid Class',
+} as const
+
+/** Set of labels the header label-callout owns; the data row filters these out. */
+export const CALLOUT_META_LABEL_VALUES: readonly string[] = Object.values(CALLOUT_META_LABELS)
+
+/** Class-type label ("Base Class" / "Hybrid Class"), derived from entity shape. */
+export function getClassTypeLabel(data: SURefMetaEntity): string {
+  return 'hybrid' in data && data.hybrid
+    ? CALLOUT_META_LABELS.hybridClass
+    : CALLOUT_META_LABELS.baseClass
+}
+
+/**
  * Type alias for action properties accessed directly on SURefMetaAction
  * Used for type-safe property access in the else branches
  */
@@ -221,7 +244,7 @@ export function extractReferenceEntityDetails(
   // Add recommended tag first for systems/modules
   if (isEntityData(data) && getRecommended(data)) {
     details.push({
-      label: 'Recommended',
+      label: CALLOUT_META_LABELS.recommended,
       type: 'meta',
     })
   }
@@ -256,7 +279,7 @@ export function extractReferenceEntityDetails(
     const isHybrid = 'hybrid' in data && data.hybrid
 
     details.push({
-      label: isHybrid ? 'Hybrid Class' : 'Base Class',
+      label: getClassTypeLabel(data),
       type: 'meta',
     })
 

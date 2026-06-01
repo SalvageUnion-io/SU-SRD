@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { cn } from '../../utils/cn'
 import { Text } from '../base/Text'
 import { ControlButtons } from './ControlButtons'
+import { cardTitleClasses, cardTitleStyle } from './cardTitleStyles'
 import type { ReferenceEntityControl } from '../referenceEntity/ReferenceEntityDisplay/referenceEntityControlTypes'
 
 type CardHeaderProps = {
@@ -34,12 +35,8 @@ export function CardHeader({
       <Text
         variant="pseudoheader"
         as={titleAs}
-        className={cn(
-          'uppercase tracking-[0.01em]',
-          compact ? 'py-[3px] text-base' : 'text-[1.75rem]',
-          disabled && 'opacity-50'
-        )}
-        style={compact ? { lineHeight: 1 } : undefined}
+        className={cardTitleClasses(compact, disabled)}
+        style={cardTitleStyle(compact)}
       >
         {title}
       </Text>

@@ -8,10 +8,12 @@ import {
   getRecommended,
   isEntityData,
   isAbility,
+  isClass,
   SalvageUnionReference,
 } from 'salvageunion-reference'
 import { RollTable } from '../../../shared/RollTable'
 import { CardHeader } from '../../../shared/CardHeader'
+import { cardTitleClasses, cardTitleStyle } from '../../../shared/cardTitleStyles'
 import { DisplayCard } from '../../../shared/DisplayCard'
 import { ReferenceEntitySubTitleElement } from '../ReferenceEntitySubTitleContent'
 import { ReferenceEntityRightHeaderContent } from '../ReferenceEntityRightHeaderContent'
@@ -36,6 +38,10 @@ import { BlockContentRendererView } from '../../BlockContentRendererView'
 import { GuideStepsDisplay } from '../../GuideStepsDisplay'
 import type { GuideStepsInteractiveConfig } from '../../GuideStepsDisplay'
 import { cn } from '../../../../utils/cn'
+import {
+  CALLOUT_META_LABELS,
+  getClassTypeLabel,
+} from '../../../../lib/referenceEntityDataExtraction'
 import { Text } from '../../../base/Text'
 import {
   borderColorFromHeaderBg,
@@ -150,28 +156,26 @@ export function ReferenceEntityDisplayContent({
   //  - basic/advanced abilities (numeric level 1-3) show their level beside the
   //    tree label; legendary ('L') and generic ('G') omit it entirely;
   //  - tech-level entities show their tech level beside a "Tech Level" label.
+  // Gate on data shape, not schemaName, per .claude/rules/display-system.md — keeps
+  // the label-callout logic schema-agnostic (works for app-injected entities too).
+  const isAbilityEntity = isAbility(data)
   const abilityLevel = 'level' in data ? data.level : undefined
   const isAbilityWithNumericLevel =
-    schemaName === 'abilities' &&
+    isAbilityEntity &&
     abilityLevel != null &&
     !['L', 'G'].includes(String(abilityLevel).toUpperCase())
   const labelBadge = isAbilityWithNumericLevel
     ? String(abilityLevel)
-    : schemaName !== 'abilities' && techLevel != null
+    : !isAbilityEntity && techLevel != null
       ? String(techLevel)
       : undefined
   // Classes surface their type ("Base Class" / "Hybrid Class") as the label;
   // tech-level entities surface "Tech Level". (Both move out of the data row.)
-  const classTypeLabel =
-    schemaName === 'classes'
-      ? 'hybrid' in data && data.hybrid
-        ? 'Hybrid Class'
-        : 'Base Class'
-      : undefined
+  // getClassTypeLabel is the shared producer of the label string (one source of
+  // truth with the data-extraction layer + the subtitle de-dup filter).
+  const classTypeLabel = isClass(data) ? getClassTypeLabel(data) : undefined
   const effectiveLabel =
-    label ??
-    classTypeLabel ??
-    (schemaName !== 'abilities' && techLevel != null ? 'Tech Level' : undefined)
+    label ?? classTypeLabel ?? (!isAbilityEntity && techLevel != null ? 'Tech Level' : undefined)
 
   // "Recommended" moves from the data row into the label callout row, ordered
   // first, in the same rust as its data value. (It is filtered out of the
@@ -181,18 +185,17 @@ export function ReferenceEntityDisplayContent({
     <Text
       variant="pseudoheader"
       as="span"
-      className="whitespace-nowrap text-xs uppercase text-su-white"
-      style={{ backgroundColor: 'var(--color-su-rust)' }}
+      className="whitespace-nowrap bg-su-rust text-xs uppercase text-su-white"
     >
-      Recommended
+      {CALLOUT_META_LABELS.recommended}
     </Text>
   ) : undefined
 
-  // Whether the right header column will actually render flavor. Mirrors the
-  // guard in ReferenceEntityRightHeaderContent (ability + description) so we can
-  // avoid passing a truthy-but-empty node to CardHeader.
-  const hasHeaderFlavor =
-    isAbility(data) && 'description' in data && !!(data as { description?: unknown }).description
+  // Whether the right header column will actually render flavor. isAbility narrows
+  // to SURefAbility (description is a declared optional field), so no cast/extra
+  // membership check is needed; this mirrors ReferenceEntityRightHeaderContent's
+  // own early-return guard so we never pass a truthy-but-empty node to CardHeader.
+  const hasHeaderFlavor = isAbilityEntity && !!data.description
 
   // Consolidate chassis abilities logic — data-shape driven
   const chassisName = 'name' in data ? data.name : undefined
@@ -295,10 +298,8 @@ export function ReferenceEntityDisplayContent({
       source={hasSource ? data.source : undefined}
       booklet={booklet}
       page={hasPage ? data.page : undefined}
-      compact={compact}
       headerBg={headerBg}
       headerBgColor={headerBgColor}
-      contentPaddingX={spacing.contentPaddingX}
       sourceFooterStyles={sourceFooterStyle}
     />
   ) : null
@@ -319,15 +320,16 @@ export function ReferenceEntityDisplayContent({
   // Compose header content (previously assembled by Card internally)
   const titleNode = title ? (
     <div>
+      {/* Layers the enlarge animation over the shared card-title sizing — see
+          cardTitleClasses (the size/tracking literals live there once). */}
       <Text
         variant="pseudoheader"
         as="span"
         className={cn(
-          'relative z-10 uppercase tracking-[0.01em] transition-transform duration-300',
-          compact ? 'py-[3px] text-base' : 'text-[1.75rem]',
-          disabled && 'opacity-50'
+          'relative z-10 transition-transform duration-300',
+          cardTitleClasses(compact, disabled)
         )}
-        style={compact ? { lineHeight: 1 } : undefined}
+        style={cardTitleStyle(compact)}
       >
         {title}
       </Text>
@@ -346,7 +348,6 @@ export function ReferenceEntityDisplayContent({
           subtitleExtra={subtitleExtra}
         />
       }
-      leftContent={undefined}
       rightContent={
         // Only pass right-header content when there's actually flavor to render
         // (ability description). Passing the element unconditionally made it a
@@ -417,7 +418,8 @@ export function ReferenceEntityDisplayContent({
                     : `${spacing.contentPadding}rem`,
                 // The last content block already carries its own bottom margin,
                 // so keep the container's bottom padding small to avoid doubling
-                // the whitespace above the footer.
+                // the whitespace above the footer. 0.34 is empirically tuned
+                // (~1/3 of the default content padding), not derived.
                 paddingBottom: `${spacing.contentPadding * 0.34}rem`,
               }}
             >
