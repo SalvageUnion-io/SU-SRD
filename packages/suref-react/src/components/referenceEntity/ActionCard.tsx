@@ -12,10 +12,7 @@ import { BlockContentRendererView } from './BlockContentRendererView'
 import { DataValueDisplayView } from './DataValueDisplayView'
 import { RollTable } from '../shared/RollTable'
 import { accentDeepColor, accentTextColor, borderColorFromHeaderBg } from './referenceEntityHelpers'
-import {
-  extractReferenceEntityDetails,
-  formatActionType,
-} from '../../lib/referenceEntityDataExtraction'
+import { extractReferenceEntityDetails } from '../../lib/referenceEntityDataExtraction'
 import { Text } from '../base/Text'
 import { cn } from '../../utils/cn'
 
@@ -74,17 +71,9 @@ export function ActionCard({
 
   const displayName = getReferenceEntityName(data) || data.name
 
-  // Determine the action-type callout label.
-  type DataWithActionType = { actionType?: string }
-  const actionType = (data as DataWithActionType).actionType
-  const actionTypeLabel = actionType ? formatActionType(actionType) : undefined
-
-  // Extract all DataValues, then filter out the action-type keyword so it isn't
-  // duplicated (it moves into the DisplayCard label callout).
-  const allDetails = extractReferenceEntityDetails(data, undefined, 'AP')
-  const details = actionTypeLabel
-    ? allDetails.filter((item) => item.label !== actionTypeLabel)
-    : allDetails
+  // The action type (e.g. "TURN ACTION") stays in the data-value row alongside
+  // range/damage/traits — it is NOT lifted into a callout.
+  const details = extractReferenceEntityDetails(data, undefined, 'AP')
 
   const fontSize = compact ? 'text-xs' : 'text-sm'
 
@@ -154,7 +143,6 @@ export function ActionCard({
       headerBg=""
       headerBgColor={cardColor}
       headerContent={headerContent}
-      label={actionTypeLabel}
       compact={compact}
       borderColor={cardColor ?? 'var(--color-su-black)'}
       // Blank accent bar (matches the deep header colour) so the card closes with

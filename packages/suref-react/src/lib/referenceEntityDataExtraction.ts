@@ -84,7 +84,7 @@ type ActionWithProperties = {
  * - "Reaction" → "Reaction" (no change)
  * - Already includes "action" → unchanged
  */
-export function formatActionType(actionType: string): string {
+function formatActionType(actionType: string): string {
   const actionTypeLower = actionType.toLowerCase()
 
   // Don't append "Action" if it already includes "action" or is Passive/Reaction
