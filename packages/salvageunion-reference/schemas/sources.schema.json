@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://salvageunion.com/schemas/sources.schema.json",
   "title": "sources",
-  "description": "Source books and expansions for Salvage Union content",
+  "description": "Source books and expansions",
   "type": "array",
   "items": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -211,6 +211,6 @@
     },
     "required": ["id", "indexable", "blackMarket", "name", "source", "page"],
     "additionalProperties": false,
-    "description": "Source books and expansions for Salvage Union content"
+    "description": "Source books and expansions"
   }
 }

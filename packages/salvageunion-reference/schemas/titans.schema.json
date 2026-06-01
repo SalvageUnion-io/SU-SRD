@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://salvageunion.com/schemas/titans.schema.json",
   "title": "titans",
-  "description": "Mech-scale single-threat enemies in Salvage Union (monsters and bosses)",
+  "description": "Mech-scale single-threat enemies (monsters and bosses)",
   "type": "array",
   "items": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -267,6 +267,6 @@
       "actions"
     ],
     "additionalProperties": false,
-    "description": "Mech-scale single-threat enemies in Salvage Union (monsters and bosses)"
+    "description": "Mech-scale single-threat enemies (monsters and bosses)"
   }
 }

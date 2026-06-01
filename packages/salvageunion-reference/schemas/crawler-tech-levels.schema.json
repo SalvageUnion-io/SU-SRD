@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://salvageunion.com/schemas/crawler-tech-levels.schema.json",
   "title": "crawler-tech-levels",
-  "description": "Tech level progression for Union Crawlers in Salvage Union",
+  "description": "Tech level progression for Union Crawlers",
   "type": "array",
   "items": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -256,6 +256,6 @@
       "populationMax"
     ],
     "additionalProperties": false,
-    "description": "Tech level progression for Union Crawlers in Salvage Union"
+    "description": "Tech level progression for Union Crawlers"
   }
 }

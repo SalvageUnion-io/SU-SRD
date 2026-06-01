@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://salvageunion.com/schemas/distances.schema.json",
   "title": "distances",
-  "description": "Distance bands and ranges in Salvage Union",
+  "description": "Distance bands and ranges",
   "type": "array",
   "items": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -206,6 +206,6 @@
     },
     "required": ["id", "indexable", "blackMarket", "name", "source", "page"],
     "additionalProperties": false,
-    "description": "Distance bands and ranges in Salvage Union"
+    "description": "Distance bands and ranges"
   }
 }

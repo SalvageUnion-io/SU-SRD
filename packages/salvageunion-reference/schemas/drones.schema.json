@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://salvageunion.com/schemas/drones.schema.json",
   "title": "drones",
-  "description": "Autonomous drones in Salvage Union",
+  "description": "Autonomous drones",
   "type": "array",
   "items": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -594,6 +594,6 @@
     },
     "required": ["id", "indexable", "blackMarket", "name", "source", "page"],
     "additionalProperties": false,
-    "description": "Autonomous drones in Salvage Union"
+    "description": "Autonomous drones"
   }
 }

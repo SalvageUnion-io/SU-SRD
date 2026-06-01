@@ -1,6 +1,6 @@
 # traits
 
-Traits and special properties in Salvage Union
+Traits and special properties
 
 ## Metadata
 

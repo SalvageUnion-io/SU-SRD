@@ -1,6 +1,6 @@
 # crawler-bays
 
-Bays and facilities on Union Crawlers in Salvage Union
+Bays and facilities on Union Crawlers
 
 ## Metadata
 

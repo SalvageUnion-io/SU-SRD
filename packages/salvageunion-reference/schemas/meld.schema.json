@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://salvageunion.com/schemas/meld.schema.json",
   "title": "meld",
-  "description": "Meld-infected creatures in Salvage Union",
+  "description": "Meld-infected creatures",
   "type": "array",
   "items": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -254,6 +254,6 @@
     },
     "required": ["id", "indexable", "blackMarket", "name", "source", "page", "actions"],
     "additionalProperties": false,
-    "description": "Meld-infected creatures in Salvage Union"
+    "description": "Meld-infected creatures"
   }
 }

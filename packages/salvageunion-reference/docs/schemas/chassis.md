@@ -1,6 +1,6 @@
 # chassis
 
-Mech chassis definitions in Salvage Union
+Mech chassis definitions
 
 ## Metadata
 

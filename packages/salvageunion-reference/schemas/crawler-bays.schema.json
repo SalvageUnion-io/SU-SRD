@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://salvageunion.com/schemas/crawler-bays.schema.json",
   "title": "crawler-bays",
-  "description": "Bays and facilities on Union Crawlers in Salvage Union",
+  "description": "Bays and facilities on Union Crawlers",
   "type": "array",
   "items": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -3699,6 +3699,6 @@
       "npc"
     ],
     "additionalProperties": false,
-    "description": "Bays and facilities on Union Crawlers in Salvage Union"
+    "description": "Bays and facilities on Union Crawlers"
   }
 }

@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://salvageunion.com/schemas/equipment.schema.json",
   "title": "equipment",
-  "description": "Pilot equipment and gear in Salvage Union",
+  "description": "Pilot equipment and gear",
   "type": "array",
   "items": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -660,6 +660,6 @@
       "actions"
     ],
     "additionalProperties": false,
-    "description": "Pilot equipment and gear in Salvage Union"
+    "description": "Pilot equipment and gear"
   }
 }

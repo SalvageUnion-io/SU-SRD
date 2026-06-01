@@ -1,6 +1,6 @@
 # creatures
 
-Creatures and wildlife in Salvage Union
+Creatures and wildlife
 
 ## Metadata
 

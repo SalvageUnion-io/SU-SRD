@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://salvageunion.com/schemas/ability-tree-requirements.schema.json",
   "title": "ability-tree-requirements",
-  "description": "Requirements for unlocking ability trees in Salvage Union",
+  "description": "Requirements for unlocking ability trees",
   "type": "array",
   "items": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -252,6 +252,6 @@
     },
     "required": ["id", "indexable", "blackMarket", "name", "source", "page", "requirement"],
     "additionalProperties": false,
-    "description": "Requirements for unlocking ability trees in Salvage Union"
+    "description": "Requirements for unlocking ability trees"
   }
 }

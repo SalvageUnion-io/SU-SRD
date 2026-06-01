@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://salvageunion.com/schemas/classes.schema.json",
   "title": "classes",
-  "description": "Pilot Classes in Salvage Union (Base and Hybrid)",
+  "description": "Pilot Classes (Base and Hybrid)",
   "type": "array",
   "items": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -668,6 +668,6 @@
         "description": "Advanced or hybrid character class"
       }
     ],
-    "description": "Pilot Classes in Salvage Union (Base and Hybrid)"
+    "description": "Pilot Classes (Base and Hybrid)"
   }
 }

@@ -8,7 +8,7 @@
     {
       "id": "abilities",
       "title": "abilities",
-      "description": "Pilot abilities and skills in Salvage Union",
+      "description": "Pilot abilities and skills",
       "dataFile": "data/abilities.json",
       "schemaFile": "schemas/abilities.schema.json",
       "itemCount": 103,
@@ -28,7 +28,7 @@
     {
       "id": "ability-tree-requirements",
       "title": "ability-tree-requirements",
-      "description": "Requirements for unlocking ability trees in Salvage Union",
+      "description": "Requirements for unlocking ability trees",
       "dataFile": "data/ability-tree-requirements.json",
       "schemaFile": "schemas/ability-tree-requirements.schema.json",
       "itemCount": 20,
@@ -39,7 +39,7 @@
     {
       "id": "actions",
       "title": "actions",
-      "description": "Actions, abilities, and attacks that can be performed in Salvage Union",
+      "description": "Actions, abilities, and attacks that can be performed",
       "dataFile": "data/actions.json",
       "schemaFile": "schemas/actions.schema.json",
       "itemCount": 688,
@@ -61,7 +61,7 @@
     {
       "id": "chassis",
       "title": "chassis",
-      "description": "Mech chassis definitions in Salvage Union",
+      "description": "Mech chassis definitions",
       "dataFile": "data/chassis.json",
       "schemaFile": "schemas/chassis.schema.json",
       "itemCount": 51,
@@ -80,7 +80,7 @@
     {
       "id": "classes",
       "title": "classes",
-      "description": "Pilot Classes in Salvage Union (Base and Hybrid)",
+      "description": "Pilot Classes (Base and Hybrid)",
       "dataFile": "data/classes.json",
       "schemaFile": "schemas/classes.schema.json",
       "itemCount": 11,
@@ -90,7 +90,7 @@
     {
       "id": "crawler-bays",
       "title": "crawler-bays",
-      "description": "Bays and facilities on Union Crawlers in Salvage Union",
+      "description": "Bays and facilities on Union Crawlers",
       "dataFile": "data/crawler-bays.json",
       "schemaFile": "schemas/crawler-bays.schema.json",
       "itemCount": 10,
@@ -109,7 +109,7 @@
     {
       "id": "crawler-tech-levels",
       "title": "crawler-tech-levels",
-      "description": "Tech level progression for Union Crawlers in Salvage Union",
+      "description": "Tech level progression for Union Crawlers",
       "dataFile": "data/crawler-tech-levels.json",
       "schemaFile": "schemas/crawler-tech-levels.schema.json",
       "itemCount": 6,
@@ -132,7 +132,7 @@
     {
       "id": "crawlers",
       "title": "crawlers",
-      "description": "Union Crawler mobile bases in Salvage Union",
+      "description": "Union Crawler mobile bases",
       "dataFile": "data/crawlers.json",
       "schemaFile": "schemas/crawlers.schema.json",
       "itemCount": 5,
@@ -151,7 +151,7 @@
     {
       "id": "creatures",
       "title": "creatures",
-      "description": "Creatures and wildlife in Salvage Union",
+      "description": "Creatures and wildlife",
       "dataFile": "data/creatures.json",
       "schemaFile": "schemas/creatures.schema.json",
       "itemCount": 13,
@@ -161,7 +161,7 @@
     {
       "id": "distances",
       "title": "distances",
-      "description": "Distance bands and ranges in Salvage Union",
+      "description": "Distance bands and ranges",
       "dataFile": "data/distances.json",
       "schemaFile": "schemas/distances.schema.json",
       "itemCount": 4,
@@ -171,7 +171,7 @@
     {
       "id": "drones",
       "title": "drones",
-      "description": "Autonomous drones in Salvage Union",
+      "description": "Autonomous drones",
       "dataFile": "data/drones.json",
       "schemaFile": "schemas/drones.schema.json",
       "itemCount": 13,
@@ -181,7 +181,7 @@
     {
       "id": "equipment",
       "title": "equipment",
-      "description": "Pilot equipment and gear in Salvage Union",
+      "description": "Pilot equipment and gear",
       "dataFile": "data/equipment.json",
       "schemaFile": "schemas/equipment.schema.json",
       "itemCount": 81,
@@ -200,7 +200,7 @@
     {
       "id": "factions",
       "title": "factions",
-      "description": "Faction groups and organizations in Salvage Union",
+      "description": "Faction groups and organizations",
       "dataFile": "data/factions.json",
       "schemaFile": "schemas/factions.schema.json",
       "itemCount": 10,
@@ -220,7 +220,7 @@
     {
       "id": "guides",
       "title": "guides",
-      "description": "Player-facing guides and processes in Salvage Union",
+      "description": "Player-facing guides and processes",
       "dataFile": "data/guides.json",
       "schemaFile": "schemas/guides.schema.json",
       "itemCount": 15,
@@ -240,7 +240,7 @@
     {
       "id": "keywords",
       "title": "keywords",
-      "description": "Game keywords and terminology in Salvage Union",
+      "description": "Game keywords and terminology",
       "dataFile": "data/keywords.json",
       "schemaFile": "schemas/keywords.schema.json",
       "itemCount": 82,
@@ -250,7 +250,7 @@
     {
       "id": "meld",
       "title": "meld",
-      "description": "Meld-infected creatures in Salvage Union",
+      "description": "Meld-infected creatures",
       "dataFile": "data/meld.json",
       "schemaFile": "schemas/meld.schema.json",
       "itemCount": 5,
@@ -260,7 +260,7 @@
     {
       "id": "modules",
       "title": "modules",
-      "description": "Mech modules in Salvage Union",
+      "description": "Mech modules",
       "dataFile": "data/modules.json",
       "schemaFile": "schemas/modules.schema.json",
       "itemCount": 83,
@@ -281,7 +281,7 @@
     {
       "id": "npcs",
       "title": "npcs",
-      "description": "Non-player characters and people in Salvage Union",
+      "description": "Non-player characters and people",
       "dataFile": "data/npcs.json",
       "schemaFile": "schemas/npcs.schema.json",
       "itemCount": 19,
@@ -291,7 +291,7 @@
     {
       "id": "roll-tables",
       "title": "roll-tables",
-      "description": "Random tables and roll tables in Salvage Union",
+      "description": "Random tables and roll tables",
       "dataFile": "data/roll-tables.json",
       "schemaFile": "schemas/roll-tables.schema.json",
       "itemCount": 96,
@@ -301,7 +301,7 @@
     {
       "id": "sources",
       "title": "sources",
-      "description": "Source books and expansions for Salvage Union content",
+      "description": "Source books and expansions",
       "dataFile": "data/sources.json",
       "schemaFile": "schemas/sources.schema.json",
       "itemCount": 10,
@@ -311,7 +311,7 @@
     {
       "id": "squads",
       "title": "squads",
-      "description": "NPC squads and groups in Salvage Union",
+      "description": "NPC squads and groups",
       "dataFile": "data/squads.json",
       "schemaFile": "schemas/squads.schema.json",
       "itemCount": 23,
@@ -321,7 +321,7 @@
     {
       "id": "systems",
       "title": "systems",
-      "description": "Mech systems (weapons and utilities) in Salvage Union",
+      "description": "Mech systems (weapons and utilities)",
       "dataFile": "data/systems.json",
       "schemaFile": "schemas/systems.schema.json",
       "itemCount": 128,
@@ -342,7 +342,7 @@
     {
       "id": "tech-levels",
       "title": "tech-levels",
-      "description": "Tech level descriptions for Salvage Union",
+      "description": "Tech level descriptions",
       "dataFile": "data/tech-levels.json",
       "schemaFile": "schemas/tech-levels.schema.json",
       "itemCount": 6,
@@ -352,7 +352,7 @@
     {
       "id": "titans",
       "title": "titans",
-      "description": "Mech-scale single-threat enemies in Salvage Union (monsters and bosses)",
+      "description": "Mech-scale single-threat enemies (monsters and bosses)",
       "dataFile": "data/titans.json",
       "schemaFile": "schemas/titans.schema.json",
       "itemCount": 13,
@@ -372,7 +372,7 @@
     {
       "id": "traits",
       "title": "traits",
-      "description": "Traits and special properties in Salvage Union",
+      "description": "Traits and special properties",
       "dataFile": "data/traits.json",
       "schemaFile": "schemas/traits.schema.json",
       "itemCount": 45,
@@ -382,7 +382,7 @@
     {
       "id": "vehicles",
       "title": "vehicles",
-      "description": "Conventional vehicles in Salvage Union",
+      "description": "Conventional vehicles",
       "dataFile": "data/vehicles.json",
       "schemaFile": "schemas/vehicles.schema.json",
       "itemCount": 11,

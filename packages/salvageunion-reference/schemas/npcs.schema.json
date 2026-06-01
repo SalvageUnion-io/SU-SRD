@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://salvageunion.com/schemas/npcs.schema.json",
   "title": "npcs",
-  "description": "Non-player characters and people in Salvage Union",
+  "description": "Non-player characters and people",
   "type": "array",
   "items": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -259,6 +259,6 @@
     },
     "required": ["id", "indexable", "blackMarket", "name", "source", "page", "hitPoints"],
     "additionalProperties": false,
-    "description": "Non-player characters and people in Salvage Union"
+    "description": "Non-player characters and people"
   }
 }

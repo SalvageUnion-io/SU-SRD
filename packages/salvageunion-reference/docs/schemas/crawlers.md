@@ -1,6 +1,6 @@
 # crawlers
 
-Crawler vehicles in Salvage Union
+Crawler vehicles
 
 ## Metadata
 

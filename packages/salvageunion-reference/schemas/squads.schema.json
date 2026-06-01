@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://salvageunion.com/schemas/squads.schema.json",
   "title": "squads",
-  "description": "NPC squads and groups in Salvage Union",
+  "description": "NPC squads and groups",
   "type": "array",
   "items": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -247,6 +247,6 @@
     },
     "required": ["id", "indexable", "blackMarket", "name", "source", "page", "actions"],
     "additionalProperties": false,
-    "description": "NPC squads and groups in Salvage Union"
+    "description": "NPC squads and groups"
   }
 }

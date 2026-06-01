@@ -1,6 +1,6 @@
 # drones
 
-Autonomous drones in Salvage Union
+Autonomous drones
 
 ## Metadata
 

@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://salvageunion.com/schemas/factions.schema.json",
   "title": "factions",
-  "description": "Faction groups and organizations in Salvage Union",
+  "description": "Faction groups and organizations",
   "type": "array",
   "items": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -304,6 +304,6 @@
       "weaknesses"
     ],
     "additionalProperties": false,
-    "description": "Faction groups and organizations in Salvage Union"
+    "description": "Faction groups and organizations"
   }
 }

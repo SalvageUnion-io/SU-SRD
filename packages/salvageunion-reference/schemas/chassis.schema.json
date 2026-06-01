@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://salvageunion.com/schemas/chassis.schema.json",
   "title": "chassis",
-  "description": "Mech chassis definitions in Salvage Union",
+  "description": "Mech chassis definitions",
   "type": "array",
   "items": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -1001,6 +1001,6 @@
       "patterns"
     ],
     "additionalProperties": false,
-    "description": "Mech chassis definitions in Salvage Union"
+    "description": "Mech chassis definitions"
   }
 }

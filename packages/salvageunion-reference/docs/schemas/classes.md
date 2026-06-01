@@ -1,6 +1,6 @@
 # classes
 
-Pilot Classes in Salvage Union (Base and Hybrid)
+Pilot Classes (Base and Hybrid)
 
 ## Metadata
 

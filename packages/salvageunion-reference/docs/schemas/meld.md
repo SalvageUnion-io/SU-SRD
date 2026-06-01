@@ -1,6 +1,6 @@
 # meld
 
-Meld-infected creatures in Salvage Union
+Meld-infected creatures
 
 ## Metadata
 

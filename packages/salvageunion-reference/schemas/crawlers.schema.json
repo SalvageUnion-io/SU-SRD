@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://salvageunion.com/schemas/crawlers.schema.json",
   "title": "crawlers",
-  "description": "Union Crawler mobile bases in Salvage Union",
+  "description": "Union Crawler mobile bases",
   "type": "array",
   "items": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -673,6 +673,6 @@
     },
     "required": ["id", "indexable", "blackMarket", "name", "source", "page", "npc", "actions"],
     "additionalProperties": false,
-    "description": "Union Crawler mobile bases in Salvage Union"
+    "description": "Union Crawler mobile bases"
   }
 }

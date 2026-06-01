@@ -1,6 +1,6 @@
 # bio-titans
 
-Massive bio-engineered titan creatures in Salvage Union
+Massive bio-engineered titan creatures
 
 ## Metadata
 

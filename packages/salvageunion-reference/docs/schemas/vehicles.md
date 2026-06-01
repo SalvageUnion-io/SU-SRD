@@ -1,6 +1,6 @@
 # vehicles
 
-Conventional vehicles in Salvage Union
+Conventional vehicles
 
 ## Metadata
 

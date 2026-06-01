@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://salvageunion.com/schemas/abilities.schema.json",
   "title": "abilities",
-  "description": "Pilot abilities and skills in Salvage Union",
+  "description": "Pilot abilities and skills",
   "type": "array",
   "items": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -336,6 +336,6 @@
       "actions"
     ],
     "additionalProperties": false,
-    "description": "Pilot abilities and skills in Salvage Union"
+    "description": "Pilot abilities and skills"
   }
 }

@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://salvageunion.com/schemas/actions.schema.json",
   "title": "actions",
-  "description": "Actions, abilities, and attacks that can be performed in Salvage Union",
+  "description": "Actions, abilities, and attacks that can be performed",
   "type": "array",
   "items": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -3567,6 +3567,6 @@
         "additionalProperties": false
       }
     ],
-    "description": "Actions, abilities, and attacks that can be performed in Salvage Union"
+    "description": "Actions, abilities, and attacks that can be performed"
   }
 }

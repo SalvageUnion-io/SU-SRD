@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://salvageunion.com/schemas/roll-tables.schema.json",
   "title": "roll-tables",
-  "description": "Random tables and roll tables in Salvage Union",
+  "description": "Random tables and roll tables",
   "type": "array",
   "items": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -2941,6 +2941,6 @@
     },
     "required": ["id", "indexable", "blackMarket", "name", "source", "page", "table"],
     "additionalProperties": false,
-    "description": "Random tables and roll tables in Salvage Union"
+    "description": "Random tables and roll tables"
   }
 }

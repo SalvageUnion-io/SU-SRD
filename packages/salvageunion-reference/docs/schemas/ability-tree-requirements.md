@@ -1,6 +1,6 @@
 # ability-tree-requirements
 
-Requirements for ability trees in Salvage Union
+Requirements for ability trees
 
 ## Metadata
 

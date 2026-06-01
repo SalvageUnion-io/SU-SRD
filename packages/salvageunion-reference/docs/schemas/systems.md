@@ -1,6 +1,6 @@
 # systems
 
-Mech systems in Salvage Union
+Mech systems
 
 ## Metadata
 

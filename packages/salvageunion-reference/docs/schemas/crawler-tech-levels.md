@@ -1,6 +1,6 @@
 # crawler-tech-levels
 
-Tech levels for Union Crawlers in Salvage Union
+Tech levels for Union Crawlers
 
 ## Metadata
 

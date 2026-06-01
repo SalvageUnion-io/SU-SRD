@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://salvageunion.com/schemas/guides.schema.json",
   "title": "guides",
-  "description": "Player-facing guides and processes in Salvage Union",
+  "description": "Player-facing guides and processes",
   "type": "array",
   "items": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -522,6 +522,6 @@
       "steps"
     ],
     "additionalProperties": false,
-    "description": "Player-facing guides and processes in Salvage Union"
+    "description": "Player-facing guides and processes"
   }
 }
