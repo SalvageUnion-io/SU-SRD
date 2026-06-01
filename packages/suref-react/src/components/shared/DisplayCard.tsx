@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { cn } from '../../utils/cn'
 import { ControlButtons } from './ControlButtons'
 import { StatsBar } from './StatsBar'
+import { ValueDisplay } from './ValueDisplay'
 import type { StatItem } from './statsBarTypes'
 import { borderColorFromHeaderBg } from '../referenceEntity/referenceEntityHelpers'
 import type { ReferenceEntityControl } from '../referenceEntity/ReferenceEntityDisplay/referenceEntityControlTypes'
@@ -208,8 +209,17 @@ export function DisplayCard({
           )}
         >
           {labelLead}
-          {label && <CalloutMetaStamp>{label}</CalloutMetaStamp>}
-          {labelBadge && <CalloutMetaStamp>{labelBadge}</CalloutMetaStamp>}
+          {/* A label + badge pair (e.g. TECH LEVEL · 1, or a tree + ability level)
+              renders as one segmented value — label on the dark stamp, value in a
+              bounded white box — matching the data-row tags (e.g. RANGE · LONG).
+              A lone label or badge stays a single dark stamp. */}
+          {label && labelBadge ? (
+            <ValueDisplay label={label} value={labelBadge} compact={isCompact} />
+          ) : label ? (
+            <CalloutMetaStamp>{label}</CalloutMetaStamp>
+          ) : labelBadge ? (
+            <CalloutMetaStamp>{labelBadge}</CalloutMetaStamp>
+          ) : null}
         </div>
       )}
 
