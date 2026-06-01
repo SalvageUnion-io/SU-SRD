@@ -36,8 +36,24 @@ export const CALLOUT_META_LABELS = {
   hybridClass: 'Hybrid Class',
 } as const
 
-/** Set of labels the header label-callout owns; the data row filters these out. */
-export const CALLOUT_META_LABEL_VALUES: readonly string[] = Object.values(CALLOUT_META_LABELS)
+// Const tuple of the callout-owned labels — preserves the literal union (vs the
+// old `Object.values`, which widened to `string[]` and discarded the literals).
+const CALLOUT_META_LABEL_TUPLE = [
+  CALLOUT_META_LABELS.recommended,
+  CALLOUT_META_LABELS.baseClass,
+  CALLOUT_META_LABELS.hybridClass,
+] as const
+
+/** Literal union of the labels the header callout owns. */
+export type CalloutMetaLabel = (typeof CALLOUT_META_LABEL_TUPLE)[number]
+
+/**
+ * Set of labels the header label-callout owns; the data row filters these out.
+ * Typed `readonly string[]` (not the literal tuple) so the data-row de-dup's
+ * `.includes(v.label)` — where `v.label` is a plain `string` — still type-checks;
+ * the literals live in CalloutMetaLabel / CALLOUT_META_LABELS for consumers.
+ */
+export const CALLOUT_META_LABEL_VALUES: readonly string[] = CALLOUT_META_LABEL_TUPLE
 
 /** Class-type label ("Base Class" / "Hybrid Class"), derived from entity shape. */
 export function getClassTypeLabel(data: SURefMetaEntity): string {

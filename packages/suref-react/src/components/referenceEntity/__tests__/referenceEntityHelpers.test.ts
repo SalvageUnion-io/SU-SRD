@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'bun:test'
-import { calculateBackgroundColor, borderColorFromHeaderBg } from '../referenceEntityHelpers'
+import {
+  calculateBackgroundColor,
+  borderColorFromHeaderBg,
+  accentSurface,
+} from '../referenceEntityHelpers'
 
 describe('calculateBackgroundColor', () => {
   const techLevelColors: Record<number, string> = {
@@ -97,5 +101,28 @@ describe('borderColorFromHeaderBg', () => {
 
   it('should prefer headerBgColor over headerBg derivation', () => {
     expect(borderColorFromHeaderBg('bg-su-orange', '#FF0000')).toBe('#FF0000')
+  })
+})
+
+describe('accentSurface', () => {
+  it('should fall back to bg-su-white with no inline style when headerBg is undefined', () => {
+    expect(accentSurface(undefined, undefined)).toEqual({
+      className: 'bg-su-white',
+      style: undefined,
+    })
+  })
+
+  it('should use the passed bg class with no inline style', () => {
+    expect(accentSurface('bg-su-green', undefined)).toEqual({
+      className: 'bg-su-green',
+      style: undefined,
+    })
+  })
+
+  it('should emit an inline backgroundColor when headerBgColor is truthy', () => {
+    expect(accentSurface('bg-su-green', '#D46A30')).toEqual({
+      className: 'bg-su-green',
+      style: { backgroundColor: '#D46A30' },
+    })
   })
 })

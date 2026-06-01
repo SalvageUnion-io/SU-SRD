@@ -56,7 +56,7 @@ export function useDetailModal(
       <Dialog.Root open={open} onOpenChange={setOpen}>
         <Dialog.Portal>
           <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/60 data-[open]:animate-in data-[closed]:animate-out data-[closed]:fade-out-0 data-[open]:fade-in-0" />
-          <Dialog.Popup className="fixed inset-0 z-50 m-auto h-fit max-h-[calc(100vh-4rem)] w-full max-w-6xl bg-transparent px-3 outline-none">
+          <Dialog.Popup className="fixed inset-0 z-50 m-auto h-fit w-full max-w-6xl bg-transparent px-3 outline-none">
             {/* Overflow lives on the inner scroll wrapper so the close button
                 (a sibling) isn't clipped by it. The scroll wrapper's pt-3 leaves
                 room for the floating callout row, which straddles ~8px above the

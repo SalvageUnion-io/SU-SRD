@@ -50,11 +50,13 @@ function isActive(path: string) {
       height="64"
       class="block size-12 shrink-0 rounded-xl sm:size-16"
     />
+    <!-- Optical tuning: wordmark 26->34px responsive, tightened leading/tracking;
+         sub-tag 13px eyebrow at 0.22em tracking. -->
     <span class="flex min-w-0 flex-col">
       <span class="font-cond text-[26px] font-bold leading-[0.98] tracking-[0.005em] text-su-paper sm:text-[34px]">
         SalvageUnion<span class="text-su-orange-dark">.io</span>
       </span>
-      <span class="mt-[7px] whitespace-nowrap font-cond text-[13px] font-semibold uppercase leading-none tracking-[0.22em] text-su-orange-dark sm:mt-[9px]">
+      <span class="mt-[7px] whitespace-nowrap font-cond text-[13px] font-semibold uppercase leading-none tracking-[0.22em] text-su-orange sm:mt-[9px]">
         The Salvage Union SRD
       </span>
     </span>
@@ -97,7 +99,7 @@ function isActive(path: string) {
 {breadcrumbs && breadcrumbs.length > 0 && (
   <>
     <nav aria-label="Breadcrumb" class="flex flex-wrap items-baseline gap-x-2 gap-y-1 border-b border-su-grey-light bg-su-white px-5 py-2 sm:px-[34px]">
-      <ol class="flex flex-wrap items-center gap-1.5 font-cond text-xs uppercase tracking-[0.14em] text-su-grey-dark">
+      <ol class="breadcrumb-text flex flex-wrap items-center gap-1.5 uppercase">
         {breadcrumbs.map((item, index) => (
           <>
             {index > 0 && <li aria-hidden="true" class="select-none text-su-grey-medium">/</li>}
@@ -112,7 +114,7 @@ function isActive(path: string) {
         ))}
       </ol>
       {breadcrumbDescription && (
-        <span class="font-cond text-xs uppercase tracking-[0.14em] text-su-grey-dark">— {breadcrumbDescription}</span>
+        <span class="breadcrumb-text">— {breadcrumbDescription}</span>
       )}
     </nav>
 

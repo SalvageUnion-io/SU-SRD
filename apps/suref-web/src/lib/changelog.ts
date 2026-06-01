@@ -6,6 +6,14 @@ type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    date: '2026-06-01',
+    title: 'Site restyle: new brand header + refreshed entity cards',
+    items: [
+      "New Salvage Union 'Cargo' brand header with a breadcrumb description sub-bar that surfaces each schema's description as you browse.",
+      'Refreshed entity-card and typography styling across the SRD, and the old landing-page hero has been removed.',
+    ],
+  },
+  {
     date: '2026-05-12',
     title: 'Iron Lady modules + custom expansion themes',
     items: [

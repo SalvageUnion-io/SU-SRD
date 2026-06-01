@@ -80,6 +80,58 @@ describe('DisplayCard', () => {
     expect(rowText.indexOf('TECH LEVEL')).toBeLessThan(rowText.indexOf('3'))
   })
 
+  test('non-compact card WITH a callout top-aligns the header row and pads it', () => {
+    render(
+      <DisplayCard
+        headerBg="bg-su-green"
+        headerContent={<span>Header</span>}
+        label="CHASSIS"
+        headerTestId="frame-header-container"
+      >
+        <p>Body</p>
+      </DisplayCard>
+    )
+    const headerRow = screen.getByTestId('frame-header-container')
+    expect(headerRow.className).toContain('items-start')
+    expect(headerRow.className).toContain('pt-4')
+    expect(headerRow.className).toContain('pb-4')
+  })
+
+  test('compact card WITH a callout uses pt-3 and top-aligns the header row', () => {
+    render(
+      <DisplayCard
+        headerBg="bg-su-green"
+        headerContent={<span>Header</span>}
+        label="CHASSIS"
+        compact
+        headerTestId="frame-header-container"
+      >
+        <p>Body</p>
+      </DisplayCard>
+    )
+    const headerRow = screen.getByTestId('frame-header-container')
+    expect(headerRow.className).toContain('pt-3')
+    expect(headerRow.className).toContain('items-start')
+  })
+
+  test('card WITHOUT any callout centres the header row and omits callout padding', () => {
+    render(
+      <DisplayCard
+        headerBg="bg-su-green"
+        headerContent={<span>Header</span>}
+        headerTestId="frame-header-container"
+      >
+        <p>Body</p>
+      </DisplayCard>
+    )
+    const headerRow = screen.getByTestId('frame-header-container')
+    expect(headerRow.className).toContain('items-center')
+    // Only the callout-specific paddings should be absent (base px-3 py-* remain).
+    expect(headerRow.className).not.toContain('pt-4')
+    expect(headerRow.className).not.toContain('pb-4')
+    expect(headerRow.className).not.toContain('pt-3')
+  })
+
   test('listing boolean hides body and footer', () => {
     render(
       <DisplayCard

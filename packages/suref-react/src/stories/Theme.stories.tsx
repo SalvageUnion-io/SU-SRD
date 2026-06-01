@@ -24,7 +24,6 @@ const brandColors: Record<string, string> = {
   'su-grey-medium': 'rgb(130, 130, 130)',
   'su-grey-dark': 'rgb(80, 80, 80)',
   'su-input-bg': 'rgb(232, 229, 216)',
-  'su-input-text': 'rgb(45, 62, 54)',
   'su-peach': 'rgb(245, 193, 163)',
   'su-sickly-yellow': 'rgb(215, 195, 125)',
   'su-silver': 'rgb(192, 192, 192)',

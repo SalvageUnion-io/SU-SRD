@@ -1,7 +1,6 @@
 import { useState, useCallback } from 'react'
 import type { ReactNode } from 'react'
 import { cn } from '../../utils/cn'
-import { Text } from '../base/Text'
 import { ControlButtons } from './ControlButtons'
 import { StatsBar } from './StatsBar'
 import type { StatItem } from './statsBarTypes'
@@ -9,6 +8,7 @@ import { borderColorFromHeaderBg } from '../referenceEntity/referenceEntityHelpe
 import type { ReferenceEntityControl } from '../referenceEntity/ReferenceEntityDisplay/referenceEntityControlTypes'
 import { StickyHeaderContext, StickyOffsetContext } from './StickyHeaderContext'
 import { useStickyCard } from './useStickyCard'
+import { CalloutMetaStamp } from '../referenceEntity/ReferenceEntityDisplay/components/CalloutMetaStamp'
 
 export type DisplayCardTab = {
   key: string
@@ -61,7 +61,7 @@ type DisplayCardProps = {
   bodyPadding?: string
   /** Override card wrapper className (replaces default shadow) and inline style */
   cardStyle?: { className?: string; style?: React.CSSProperties }
-  /** Override header className and inline style (e.g., texture overlays) */
+  /** Override header className and inline style (e.g., the pilot/crawler stripe accent) */
   headerStyle?: { className?: string; style?: React.CSSProperties }
   /** Override footer className and inline style */
   footerStyle?: { className?: string; style?: React.CSSProperties }
@@ -112,6 +112,7 @@ export function DisplayCard({
 }: DisplayCardProps) {
   const isListing = !!listingProp
   const isCompact = !!compactProp
+  const hasCallout = !!(labelLead || label || labelBadge)
   const hasTabs = !isListing && tabs && tabs.length > 0
 
   const [activeTabKey, setActiveTabKey] = useState(DEFAULT_TAB_KEY)
@@ -199,7 +200,7 @@ export function DisplayCard({
       onClick={resolvedCardClick}
       onKeyDown={resolvedCardClick ? handleCardKeyDown : undefined}
     >
-      {(labelLead || label || labelBadge) && (
+      {hasCallout && (
         <div
           className={cn(
             'absolute z-30 ml-3 flex items-center gap-1',
@@ -207,16 +208,8 @@ export function DisplayCard({
           )}
         >
           {labelLead}
-          {label && (
-            <Text variant="pseudoheader" as="span" className="whitespace-nowrap text-xs uppercase">
-              {label}
-            </Text>
-          )}
-          {labelBadge && (
-            <Text variant="pseudoheader" as="span" className="whitespace-nowrap text-xs uppercase">
-              {labelBadge}
-            </Text>
-          )}
+          {label && <CalloutMetaStamp>{label}</CalloutMetaStamp>}
+          {labelBadge && <CalloutMetaStamp>{labelBadge}</CalloutMetaStamp>}
         </div>
       )}
 
@@ -261,7 +254,7 @@ export function DisplayCard({
               // (modules/systems) centred high and collided with the callout, tall
               // ones (chassis) sat low. Top-aligning + a fixed top padding gives a
               // consistent thin gap under the callout regardless of content height.
-              labelLead || label || labelBadge ? 'items-start' : 'items-center',
+              hasCallout ? 'items-start' : 'items-center',
               // px-3 (12px) aligns the header content L/R extremes with the
               // inset white body block (which uses mx-3) and the footer.
               isCompact ? 'min-h-[60px] px-3 py-1' : 'min-h-[80px] px-3 py-1.5',
@@ -269,8 +262,8 @@ export function DisplayCard({
               // Non-compact: callout straddles ~8px above the top → pt-4 ≈ 8px gap.
               // Compact: callout sits centred on the edge (~8px of it below the
               // top) → pt-3 ≈ 4px gap, tighter to suit dense listings.
-              !isCompact && (labelLead || label || labelBadge) && 'pb-4 pt-4',
-              isCompact && (labelLead || label || labelBadge) && 'pt-3',
+              !isCompact && hasCallout && 'pb-4 pt-4',
+              isCompact && hasCallout && 'pt-3',
               actualHeaderBg,
               headerStyleProp?.className,
               headerStyleProp?.className && 'h-full'

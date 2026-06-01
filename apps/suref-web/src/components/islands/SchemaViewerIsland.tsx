@@ -76,9 +76,10 @@ export function SchemaViewerIsland({
   // Browse layout: a fixed left filter rail beside the entity grid on desktop
   // (design board-srd.jsx:96), collapsing to stacked filters above the grid on
   // mobile. When there are no facets to filter, the grid spans full width.
+  const browseBase = 'mx-auto w-full max-w-[1400px]'
   const containerClass = hasFilters
-    ? 'mx-auto w-full max-w-[1400px] lg:grid lg:grid-cols-[230px_minmax(0,1fr)] lg:gap-8'
-    : 'mx-auto w-full max-w-[1400px]'
+    ? `${browseBase} lg:grid lg:grid-cols-[230px_minmax(0,1fr)] lg:gap-8`
+    : browseBase
 
   return (
     <GameDataGate>
@@ -134,7 +135,7 @@ export function SchemaViewerIsland({
 
         {/* Entity Grid */}
         <div className="w-full min-w-0 flex-1 px-2 py-6 md:p-6 lg:px-0">
-          <div className="columns-1 gap-4 md:columns-2 lg:columns-2 xl:columns-3 [&>*]:mb-4 [&>*]:break-inside-avoid">
+          <div className="columns-1 gap-4 md:columns-2 xl:columns-3 [&>*]:mb-4 [&>*]:break-inside-avoid">
             {filteredData.map((item: SURefEntity) => {
               const tree = schemaId === 'abilities' ? (getTree(item) as string) : undefined
               return (

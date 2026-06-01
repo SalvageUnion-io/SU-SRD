@@ -45,29 +45,36 @@ export function BlockContentRendererView({
     return null
   }
 
+  // borderColor now only colours the list-item bullet square (see ContentBlock,
+  // ~line 217); the source-texture treatment that once bordered each section is gone.
   const borderColor = borderColorFromHeaderBg(headerBg, headerBgColor)
 
+  // Section grouping (heading/datavalues blocks start a new section with top spacing)
+  // is gated on borderColor: entities without a derived colour render the flat,
+  // ungrouped block flow. Kept intentional to preserve current rendered spacing.
+  const groupSections = Boolean(borderColor)
+
   // Group content blocks into sections: blocks before any heading/datavalues are ungrouped,
-  // each heading or datavalues block starts a new bordered section
+  // each heading or datavalues block starts a new section
   const sectionStarters = new Set(['heading', 'datavalues'])
   const sections: {
-    isBorderedSection: boolean
+    startsSection: boolean
     blocks: { block: SURefObjectContentBlock; originalIndex: number }[]
   }[] = []
   let current: {
-    isBorderedSection: boolean
+    startsSection: boolean
     blocks: { block: SURefObjectContentBlock; originalIndex: number }[]
-  } = { isBorderedSection: false, blocks: [] }
+  } = { startsSection: false, blocks: [] }
 
   for (let i = 0; i < content.length; i++) {
     const block = content[i]!
-    if (block.type && sectionStarters.has(block.type) && borderColor) {
+    if (block.type && sectionStarters.has(block.type) && groupSections) {
       // Push current section if it has blocks
       if (current.blocks.length > 0) {
         sections.push(current)
       }
-      // Start a new bordered section
-      current = { isBorderedSection: true, blocks: [{ block, originalIndex: i }] }
+      // Start a new section
+      current = { startsSection: true, blocks: [{ block, originalIndex: i }] }
     } else {
       current.blocks.push({ block, originalIndex: i })
     }
@@ -79,7 +86,7 @@ export function BlockContentRendererView({
   return (
     <div>
       {sections.map((section, sIdx) => {
-        if (!section.isBorderedSection) {
+        if (!section.startsSection) {
           return section.blocks.map(({ block, originalIndex }) => (
             <ContentBlock
               key={originalIndex}

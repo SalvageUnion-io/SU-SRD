@@ -83,6 +83,12 @@ export type ReferenceEntityDisplayContentProps = ReferenceEntityDisplayStateInpu
   stats?: StatItem[]
 }
 
+// Bottom padding of the content float-zone, as a ratio of the default content
+// padding. The last content block already carries its own bottom margin, so this
+// stays small to avoid doubling whitespace above the footer. Empirically tuned
+// (~1/3 of the default content padding), not derived.
+const CONTENT_PADDING_BOTTOM_RATIO = 0.34
+
 export function ReferenceEntityDisplayContent({
   children,
   controls,
@@ -162,6 +168,7 @@ export function ReferenceEntityDisplayContent({
   // Gate on data shape, not schemaName, per .claude/rules/display-system.md — keeps
   // the label-callout logic schema-agnostic (works for app-injected entities too).
   const isAbilityEntity = isAbility(data)
+  const isTechLevelEntity = !isAbilityEntity && techLevel != null
   const abilityLevel = 'level' in data ? data.level : undefined
   const isAbilityWithNumericLevel =
     isAbilityEntity &&
@@ -169,7 +176,7 @@ export function ReferenceEntityDisplayContent({
     !['L', 'G'].includes(String(abilityLevel).toUpperCase())
   const labelBadge = isAbilityWithNumericLevel
     ? String(abilityLevel)
-    : !isAbilityEntity && techLevel != null
+    : isTechLevelEntity
       ? String(techLevel)
       : undefined
   // Classes surface their type ("Base Class" / "Hybrid Class") as the label;
@@ -177,15 +184,14 @@ export function ReferenceEntityDisplayContent({
   // getClassTypeLabel is the shared producer of the label string (one source of
   // truth with the data-extraction layer + the subtitle de-dup filter).
   const classTypeLabel = isClass(data) ? getClassTypeLabel(data) : undefined
-  const effectiveLabel =
-    label ?? classTypeLabel ?? (!isAbilityEntity && techLevel != null ? 'Tech Level' : undefined)
+  const effectiveLabel = label ?? classTypeLabel ?? (isTechLevelEntity ? 'Tech Level' : undefined)
 
   // "Recommended" moves from the data row into the label callout row, ordered
   // first, in the same rust as its data value. (It is filtered out of the
   // subtitle below.) Renders in header-only/compact/full like the rest of the row.
   const isRecommended = isEntityData(data) && getRecommended(data) === true
   const labelLead = isRecommended ? (
-    <CalloutMetaStamp>{CALLOUT_META_LABELS.recommended}</CalloutMetaStamp>
+    <CalloutMetaStamp rust>{CALLOUT_META_LABELS.recommended}</CalloutMetaStamp>
   ) : undefined
 
   // Whether the right header column will actually render flavor. isAbility narrows
@@ -282,7 +288,7 @@ export function ReferenceEntityDisplayContent({
 
   // Themed border for expansion-sourced entities (the source-specific header /
   // footer / card textural patterns have been removed).
-  const sourceBorderColor = getSourceBorderColor(source) ?? 'black'
+  const sourceBorderColor = getSourceBorderColor(source) ?? 'var(--color-su-black)'
 
   // Accessible alt text for the entity illustration: "{Title} {schema display name} illustration"
   // (e.g. "Iron Mongrel Chassis illustration"). Falls back to a generic label when title is absent.
@@ -424,11 +430,8 @@ export function ReferenceEntityDisplayContent({
                   source !== 'Salvage Union Workshop Manual' && hasTopMatterContent
                     ? `calc(${spacing.contentPadding * 0.25}rem + 5px)`
                     : `${spacing.contentPadding}rem`,
-                // The last content block already carries its own bottom margin,
-                // so keep the container's bottom padding small to avoid doubling
-                // the whitespace above the footer. 0.34 is empirically tuned
-                // (~1/3 of the default content padding), not derived.
-                paddingBottom: `${spacing.contentPadding * 0.34}rem`,
+                // See CONTENT_PADDING_BOTTOM_RATIO for the rationale behind the ratio.
+                paddingBottom: `${spacing.contentPadding * CONTENT_PADDING_BOTTOM_RATIO}rem`,
               }}
             >
               {assetUrl && hasChassisAbilities && !compact && !hide.actions ? (
