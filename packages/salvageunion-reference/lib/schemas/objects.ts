@@ -133,6 +133,7 @@ export const ContentBlockSchema: z.ZodType<{
   value?: string | z.infer<typeof DataValueSchema>[]
   label?: string
   level?: number
+  lead?: boolean
   items?: Array<{
     type?: z.infer<typeof ContentTypeSchema>
     value?: string | z.infer<typeof DataValueSchema>[]
@@ -152,6 +153,7 @@ export const ContentBlockSchema: z.ZodType<{
           .optional(),
         label: z.string().optional(),
         level: z.number().int().min(1).max(6).optional(),
+        lead: z.boolean().optional(),
         items: z
           .array(
             z
@@ -389,6 +391,17 @@ export const SystemModuleSchema = StatsSchema.extend({
 }).describe('A system or module that can be installed on a mech')
 
 /**
+ * Choice effect schema — describes a mechanical effect applied when a choice option is selected
+ */
+export const ChoiceEffectSchema = z
+  .object({
+    op: z.enum(['addTrait', 'setRange', 'addDamage']),
+    value: z.union([z.string(), z.number()]),
+    unit: z.string().optional(),
+  })
+  .strict()
+
+/**
  * Choice options schema
  */
 const ChoiceOptionSchema = z
@@ -396,6 +409,7 @@ const ChoiceOptionSchema = z
     label: z.string(),
     value: z.string(),
     description: z.string().optional(),
+    effects: z.array(ChoiceEffectSchema).optional(),
   })
   .strict()
 

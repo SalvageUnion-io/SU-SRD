@@ -210,7 +210,8 @@
     "content": [
       {
         "type": "paragraph",
-        "value": "You have created an intelligent, holographic, A.I. companion that only you can use. Describe your Companion's appearance, and name them. They project from a small, portable device which you can hold on your person. Add this to your Pilot Inventory.  Your Holo Companion cannot interact physi- cally with the material world, but can see, be seen, speak, and traverse it. You can project or un-project them as a Turn Action, and they can appear anywhere within Medium Range of the device. Nominate another player at the table to voice your companion."
+        "lead": true,
+        "value": "You have created an intelligent, holographic, A.I. companion that only you can use."
       }
     ],
     "choices": [
@@ -632,7 +633,23 @@
     "content": [
       {
         "type": "paragraph",
-        "value": "You acquire and train in the use of a Custom Sniper Rifle that only you can use. Choose if it is a Ballistic or Energy weapon and it gains the respective Energy or Ballistic Trait. At each Tech Level you may choose an additional modification for your Custom Sniper Rifle."
+        "lead": true,
+        "value": "You acquire and train in the use of a Custom Sniper Rifle that only you can use."
+      },
+      {
+        "type": "datavalues",
+        "value": [
+          {
+            "label": "Damage",
+            "type": "keyword",
+            "value": 2
+          },
+          {
+            "label": "Range",
+            "type": "keyword",
+            "value": "Long"
+          }
+        ]
       }
     ],
     "choices": [
@@ -666,7 +683,8 @@
           {
             "label": "Rangefinder",
             "value": "Rangefinder",
-            "description": "The Custom Sniper Rifle increases its Range to Far."
+            "description": "The Custom Sniper Rifle increases its Range to Far.",
+            "effects": [{ "op": "setRange", "value": "Far" }]
           },
           {
             "label": "Laser Guidance",
@@ -681,27 +699,32 @@
           {
             "label": "Dum Dum Rounds",
             "value": "Dum Dum Rounds",
-            "description": "The Custom Sniper Rifle gains the [[Anti-Organic]] Trait."
+            "description": "The Custom Sniper Rifle gains the [[Anti-Organic]] Trait.",
+            "effects": [{ "op": "addTrait", "value": "Anti-Organic" }]
           },
           {
             "label": "High Calibre Rounds",
             "value": "High Calibre Rounds",
-            "description": "The Custom Sniper Rifle deals an additional 1 SP damage."
+            "description": "The Custom Sniper Rifle deals an additional 1 SP damage.",
+            "effects": [{ "op": "addDamage", "value": 1, "unit": "SP" }]
           },
           {
             "label": "Anti-Matter",
             "value": "Anti-Matter",
-            "description": "The Custom Sniper Rifle gains the [[Deadly]] Trait."
+            "description": "The Custom Sniper Rifle gains the [[Deadly]] Trait.",
+            "effects": [{ "op": "addTrait", "value": "Deadly" }]
           },
           {
             "label": "Flashy",
             "value": "Flashy",
-            "description": "The Custom Sniper Rifle gains the [[Flashy]] Trait."
+            "description": "The Custom Sniper Rifle gains the [[Flashy]] Trait.",
+            "effects": [{ "op": "addTrait", "value": "Flashy" }]
           },
           {
             "label": "Silencer",
             "value": "Silencer",
-            "description": "The Custom Sniper Rifle gains the [[Silent]] Trait."
+            "description": "The Custom Sniper Rifle gains the [[Silent]] Trait.",
+            "effects": [{ "op": "addTrait", "value": "Silent" }]
           },
           {
             "label": "Compact Design",
@@ -746,6 +769,13 @@
       }
     ],
     "id": "f5f04072-9e81-4c9d-a835-b71f45120d66",
+    "content": [
+      {
+        "type": "paragraph",
+        "lead": true,
+        "value": "You construct an immobile Auto-Turret and train yourself in using it."
+      }
+    ],
     "choices": [
       {
         "id": "b9c0d1e2-f3a4-4b5c-9d0e-1f2a3b4c5d6e",
@@ -837,7 +867,36 @@
     "content": [
       {
         "type": "paragraph",
-        "value": "You acquire and train in the use of a Custom Missile Launcher that only you can use. It can be customised how you desire. At each Tech Level you may choose an additional modification for your Custom Missile Launcher."
+        "lead": true,
+        "value": "You acquire and train in the use of a Custom Missile Launcher that only you can use."
+      },
+      {
+        "type": "datavalues",
+        "value": [
+          {
+            "label": "Damage",
+            "type": "keyword",
+            "value": 3
+          },
+          {
+            "label": "Range",
+            "type": "keyword",
+            "value": "Medium"
+          },
+          {
+            "label": "Missile",
+            "type": "trait"
+          },
+          {
+            "label": "Explosive",
+            "type": "trait",
+            "value": 1
+          },
+          {
+            "label": "Heavy",
+            "type": "trait"
+          }
+        ]
       }
     ],
     "choices": [
@@ -859,7 +918,8 @@
           {
             "label": "Rangefinder",
             "value": "Rangefinder",
-            "description": "The Custom Missile increases its Range to Long."
+            "description": "The Custom Missile increases its Range to Long.",
+            "effects": [{ "op": "setRange", "value": "Long" }]
           },
           {
             "label": "Laser Guidance",
@@ -874,7 +934,8 @@
           {
             "label": "Napalm Rounds",
             "value": "Napalm Rounds",
-            "description": "The Custom Missile Launcher gains the Anti-Organic and [[[Burn] (1)]] Trait."
+            "description": "The Custom Missile Launcher gains the Anti-Organic and [[[Burn] (1)]] Trait.",
+            "effects": [{ "op": "addTrait", "value": "Anti-Organic" }]
           },
           {
             "label": "Bigger Boom",
@@ -884,12 +945,14 @@
           {
             "label": "Flashy",
             "value": "Flashy",
-            "description": "The Custom Missile Launcher gains the [[Flashy]] Trait."
+            "description": "The Custom Missile Launcher gains the [[Flashy]] Trait.",
+            "effects": [{ "op": "addTrait", "value": "Flashy" }]
           },
           {
             "label": "Expanded Warhead",
             "value": "Expanded Warhead",
-            "description": "The Custom Missile Launcher deals an additional 1 SP damage."
+            "description": "The Custom Missile Launcher deals an additional 1 SP damage.",
+            "effects": [{ "op": "addDamage", "value": 1, "unit": "SP" }]
           },
           {
             "label": "Portable",
@@ -927,6 +990,11 @@
     "id": "4b6483d0-811e-40f9-8808-d88e940f5e61",
     "content": [
       {
+        "type": "paragraph",
+        "lead": true,
+        "value": "You acquire and train in the use of a Survey Drone and Drone Controller that only you can use."
+      },
+      {
         "label": "Integrated Hover Locomotion System",
         "type": "paragraph",
         "value": "Your Survey Drone has the Hover trait."
@@ -958,6 +1026,13 @@
     "page": 68,
     "id": "248c2e65-5159-4518-a0ce-9d8083794871",
     "source": "Salvage Union Workshop Manual",
+    "content": [
+      {
+        "type": "paragraph",
+        "lead": true,
+        "value": "You have constructed a mechanical companion."
+      }
+    ],
     "choices": [
       {
         "id": "c0d1e2f3-a4b5-4c6d-9e0f-1a2b3c4d5e6f",

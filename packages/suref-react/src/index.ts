@@ -75,3 +75,17 @@ export {
   getActivationCurrency,
 } from './lib/referenceEntityDataExtraction'
 export { DataValueDisplayView } from './components/referenceEntity/DataValueDisplayView'
+
+// Interactive choice cards (granted-equipment choices)
+export { ChoiceGroups } from './components/referenceEntity/choiceCard/ChoiceGroups'
+export { ChoiceGroup } from './components/referenceEntity/choiceCard/ChoiceGroup'
+export { ChoiceCard, FreeTextChoiceCard } from './components/referenceEntity/choiceCard/ChoiceCard'
+export type { ChoiceCardOption } from './components/referenceEntity/choiceCard/choiceSelectionHelpers'
+export {
+  isFreeTextChoice,
+  isMultiSelectChoice,
+  getChoiceCardOptions,
+  resolveMultiSelectCap,
+  toggleSelection,
+} from './components/referenceEntity/choiceCard/choiceSelectionHelpers'
+export type { ChoiceSelections } from './components/referenceEntity/choiceCard/choiceSelectionHelpers'

@@ -66,6 +66,7 @@
                 },
                 "label": { "type": "string" },
                 "level": { "type": "integer", "minimum": 1, "maximum": 6 },
+                "lead": { "type": "boolean" },
                 "items": {
                   "type": "array",
                   "items": {
@@ -422,6 +423,7 @@
                 },
                 "label": { "type": "string" },
                 "level": { "type": "integer", "minimum": 1, "maximum": 6 },
+                "lead": { "type": "boolean" },
                 "items": {
                   "type": "array",
                   "items": {

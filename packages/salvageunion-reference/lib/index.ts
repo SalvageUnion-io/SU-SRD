@@ -82,6 +82,14 @@ export {
   type SearchResult,
 } from './search.js'
 
+// Export the granted-equipment choice resolver (pure view computation)
+export {
+  resolveChoiceView,
+  type ChoiceSelections,
+  type ChoicePrompt,
+  type ResolvedChoiceView,
+} from './resolveChoiceView.js'
+
 // Export combat utility functions (pure game logic)
 export {
   getHeatGenerated,

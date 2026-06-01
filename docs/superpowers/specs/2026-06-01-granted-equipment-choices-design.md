@@ -146,12 +146,19 @@ The op vocabulary is the minimum the actual data needs:
 | `setRange` | Rangefinder (Far) | replace the `Range` datavalue |
 | `addDamage` | High Calibre Rounds (+1 SP) | increase the `Damage` datavalue |
 
-`schemaEntities`-based options (Ballistic / Energy) need their effect attached too. Options: extend the choice to map an entity name → effects, or model Weapon Type as `choiceOptions` with effects rather than `schemaEntities`. **Recommendation:** convert Weapon Type to `choiceOptions` (Ballistic / Energy each with an `addTrait` effect) so a single options-with-effects path covers both choices. (Confirm during planning.)
+**Two effect sources, both schema-driven — prefer explicit tags over render-time heuristics:**
+
+- **Inferred `addTrait` for trait-schema choices.** A `schemaEntities` choice that references **trait** entities (Weapon Type → Ballistic / Energy) needs **no per-option tagging**: the resolver infers `addTrait <selectedEntity>` because the schema is `traits`. The option cards keep their entity linkage (they still deep-link to the Ballistic / Energy trait detail), which a `choiceOptions` conversion would lose. This is why we keep Weapon Type as `schemaEntities`.
+- **Explicit `effects` for free-form options.** `choiceOptions` (Rangefinder, High Calibre Rounds, Dum Dum Rounds…) carry an explicit `effects` tag, because their mechanical impact isn't inferable from the schema. Options that are pure ability-text (Laser Guidance, Pinpoint Targeter, Compact Design) carry no `effects` and toggle Chosen without altering the row.
 
 ### 5.4 Schema/data checklist
 
+- Add `ChoiceEffectSchema` + `effects` to `ChoiceOptionSchema` (§5.3).
+- Add optional `lead?: boolean` to the content-block schema (§8.2).
 - Edit Zod in `lib/schemas/objects.ts`; rebuild via `bun run build:package` to regenerate `schemas/*.schema.json` (never hand-edit generated JSON).
 - `bun run validate:all` for IDs / cross-refs / action refs.
+
+> **Principle (per direction):** prefer explicit schema tags over render-time heuristics or component special-casing. Effects, the lead marker, and the option/free-text split all live in the data + schema, so the display layer stays generic and the behavior is automatic for every entity that fits the shape.
 
 ## 6. Workstream 2 — Resolver (`salvageunion-reference`)
 
@@ -223,7 +230,7 @@ On an ability that grants equipment:
 - Render the **full nested compact equipment** (not header-only listing): resolved row + choice cards. Update `ReferenceEntityGrants` / `GrantedEntityListing` accordingly.
 - **Visible in compact mode** — adjust the current gate (`shouldShowExtraContent = compact ? !hideActions : true`) so grants show in compact.
 
-> Implementation note on the lead line: the ability surfaces its granted equipment's first content paragraph as the lead. If cross-entity text extraction proves awkward, the fallback is to drop the separate lead and let the nested equipment's intro sentence (rendered under the divider) serve as the intro. Primary design is lead-above-`Grants`, deduped.
+**Lead line — schema-driven.** After the §5.1 prose split the equipment holds a single intro paragraph, so the ability surfaces it deterministically (no sentence-extraction heuristic). To make this explicit rather than positional, add an optional `lead?: boolean` marker to the content-block schema; the ability renders the granted equipment's `lead`-flagged block (falling back to the first `paragraph` block when unmarked). The lead renders **once** above the `Grants` divider and is de-duplicated from the nested equipment.
 
 ## 9. Decisions log (from brainstorming)
 
@@ -239,12 +246,16 @@ On an ability that grants equipment:
 | Content prose | **Split the paragraph; keep the intro sentence; drop the two choice-describing sentences** (cards are the source of truth). |
 | Redundant actions | **Leave in place**; stop rendering under the ability; deletion is a follow-up. |
 | Multi-select cap | **Disable at cap** (no silent replacement); show `(n/max)` counter. |
+| Schema-driven | **Tag in the schema where it makes behavior automatic** — `effects` on free-form options, inferred `addTrait` for trait-schema choices, optional `lead` content-block marker. No render-time heuristics or per-entity special-casing. |
 
 ## 10. Risks & open questions
 
-- **Weapon Type effect attachment** (§5.3) — `schemaEntities` vs converting to `choiceOptions`. Recommend converting; confirm in planning.
 - **Deriving base stats** for non-sniper equipment (§5.2) — some may lack derivable values; flag rather than invent.
-- **Lead-line cross-entity extraction** (§8.2) — confirm the primary vs fallback approach in planning.
+
+_Resolved (now schema-driven, per direction to tag in the schema where it makes behavior automatic):_
+
+- **Weapon Type effect attachment** (§5.3) — resolved: keep `schemaEntities`, resolver infers `addTrait` for trait-schema choices; explicit `effects` only on free-form `choiceOptions`.
+- **Lead line** (§8.2) — resolved: optional `lead?: boolean` content-block marker, falling back to the first paragraph; no cross-entity sentence extraction.
 - **ITUN persistence shape** — the selection persistence model in ITUN is named but not designed here; this spec defines the `suref-react` controlled interface it must satisfy, not the storage schema.
 
 ## 11. Testing

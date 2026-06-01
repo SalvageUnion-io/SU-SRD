@@ -1,0 +1,266 @@
+/**
+ * resolveChoiceView — pure resolver for granted-equipment choices.
+ *
+ * Given an entity (e.g. Custom Sniper Rifle) carrying a base `datavalues`
+ * content block, base `traits`, and a set of `choices`, plus the player's
+ * current `selections`, compute the live dataview:
+ *
+ *   { datavalues, traits, prompts }
+ *
+ * - `datavalues`: the base datavalue row with applied effects (setRange
+ *   replaces Range, addDamage bumps Damage), and unresolved required-choice
+ *   prompts removed once resolved.
+ * - `traits`: base traits plus any `addTrait` effects (explicit on
+ *   choiceOptions, or inferred from trait-schema `schemaEntities` choices).
+ * - `prompts`: one entry per unresolved required choice (nothing selected),
+ *   e.g. { choiceId, label, text: 'Choose: Ballistic or Energy' }.
+ *
+ * The function is deterministic and performs no I/O. It is the single source
+ * of truth shared by suref-web (ephemeral selection state) and ITUN
+ * (persisted selection state).
+ */
+
+import type {
+  SURefObjectDataValue,
+  SURefObjectTrait,
+  SURefObjectContentBlock,
+  SURefObjectChoice,
+} from './schemas/index.js'
+
+/**
+ * Selections keyed by choice id, each holding the selected option values.
+ */
+export type ChoiceSelections = Record<string, string[]>
+
+/**
+ * Unresolved required-choice prompt surfaced in the dataview row.
+ */
+export type ChoicePrompt = {
+  choiceId: string
+  label: string
+  text: string
+}
+
+/**
+ * The resolved dataview for an entity given a set of selections.
+ */
+export type ResolvedChoiceView = {
+  datavalues: SURefObjectDataValue[]
+  traits: SURefObjectTrait[]
+  prompts: ChoicePrompt[]
+}
+
+/**
+ * Minimal structural shape the resolver needs from an entity. Kept local so
+ * the resolver accepts any entity carrying content + choices without forcing
+ * the caller through the full SURefEntity union.
+ */
+type ResolvableEntity = {
+  content?: SURefObjectContentBlock[]
+  traits?: SURefObjectTrait[]
+  choices?: SURefObjectChoice[]
+}
+
+/**
+ * Find the entity's base `datavalues` content block and return a deep-ish copy
+ * of its values (so effects mutate the view, never the source data).
+ */
+function baseDataValues(entity: ResolvableEntity): SURefObjectDataValue[] {
+  const block = entity.content?.find((c) => c.type === 'datavalues')
+  if (!block || !Array.isArray(block.value)) {
+    return []
+  }
+  return block.value.map((dv) => ({ ...dv }))
+}
+
+/**
+ * Locate a datavalue by case-insensitive label match.
+ */
+function findByLabel(
+  datavalues: SURefObjectDataValue[],
+  label: string
+): SURefObjectDataValue | undefined {
+  return datavalues.find(
+    (dv) => typeof dv.label === 'string' && dv.label.toLowerCase() === label.toLowerCase()
+  )
+}
+
+/**
+ * A `schemaEntities` choice with neither structured `choiceOptions` nor
+ * `customSystemOptions` is a trait-schema option choice (e.g. Weapon Type →
+ * Ballistic / Energy): the resolver infers `addTrait <selectedEntityName>`
+ * for each selection. The option cards keep their entity linkage in the UI.
+ */
+function isInferredTraitChoice(choice: SURefObjectChoice): boolean {
+  return (
+    Array.isArray(choice.schemaEntities) &&
+    choice.schemaEntities.length > 0 &&
+    !choice.choiceOptions &&
+    !choice.customSystemOptions
+  )
+}
+
+/**
+ * Whether a choice is required. A choice with a `min` of 0 (or an explicit
+ * non-required marker) is optional; otherwise selecting an option choice that
+ * presents mutually-exclusive entity options is treated as required.
+ *
+ * Trait-schema `schemaEntities` choices (Weapon Type) are required: the row
+ * shows a `Choose: …` prompt until resolved. Multi-select modification choices
+ * are optional (the player may take zero), so they never emit a prompt.
+ */
+function isRequired(choice: SURefObjectChoice): boolean {
+  if (choice.constraints?.min !== undefined) {
+    return choice.constraints.min > 0
+  }
+  if (choice.multiSelect) {
+    return false
+  }
+  return isInferredTraitChoice(choice)
+}
+
+/**
+ * Human-readable list of option labels for a choice, used in prompt text.
+ */
+function promptOptionLabels(choice: SURefObjectChoice): string[] {
+  if (choice.choiceOptions && choice.choiceOptions.length > 0) {
+    return choice.choiceOptions.map((o) => o.label)
+  }
+  if (choice.schemaEntities && choice.schemaEntities.length > 0) {
+    return [...choice.schemaEntities]
+  }
+  return []
+}
+
+/**
+ * Build the `Choose: A or B` prompt text from a choice's options.
+ */
+function buildPromptText(choice: SURefObjectChoice): string {
+  const labels = promptOptionLabels(choice)
+  if (labels.length === 0) {
+    return `Choose: ${choice.name}`
+  }
+  if (labels.length === 1) {
+    return `Choose: ${labels[0]}`
+  }
+  const head = labels.slice(0, -1).join(', ')
+  const tail = labels[labels.length - 1]
+  return `Choose: ${head} or ${tail}`
+}
+
+/**
+ * Append a trait (by name) to the trait list if not already present.
+ */
+function addTrait(traits: SURefObjectTrait[], type: string): void {
+  if (!traits.some((t) => t.type.toLowerCase() === type.toLowerCase())) {
+    traits.push({ type })
+  }
+}
+
+/**
+ * Apply a `setRange` effect: replace the Range datavalue's value.
+ */
+function applySetRange(datavalues: SURefObjectDataValue[], value: string | number): void {
+  const range = findByLabel(datavalues, 'Range')
+  if (range) {
+    range.value = value
+  } else {
+    datavalues.push({ label: 'Range', type: 'keyword', value })
+  }
+}
+
+/**
+ * Apply an `addDamage` effect: increase the Damage datavalue, respecting unit.
+ * Numeric damage values are summed; non-numeric values are concatenated with
+ * the unit (e.g. "2 SP / +1 SP") so no information is silently dropped.
+ */
+function applyAddDamage(
+  datavalues: SURefObjectDataValue[],
+  value: string | number,
+  unit?: string
+): void {
+  const damage = findByLabel(datavalues, 'Damage')
+  const numericDelta = typeof value === 'number' ? value : Number(value)
+  if (!damage) {
+    const label = unit !== undefined ? `${value} ${unit}` : value
+    datavalues.push({ label: 'Damage', type: 'keyword', value: label })
+    return
+  }
+  const current = damage.value
+  if (typeof current === 'number' && !Number.isNaN(numericDelta)) {
+    damage.value = current + numericDelta
+    return
+  }
+  if (typeof current === 'string') {
+    const currentNumeric = Number(current)
+    if (!Number.isNaN(currentNumeric) && !Number.isNaN(numericDelta)) {
+      damage.value = currentNumeric + numericDelta
+      return
+    }
+  }
+  const suffix = unit !== undefined ? `+${value} ${unit}` : `+${value}`
+  damage.value = current === undefined ? suffix : `${current} / ${suffix}`
+}
+
+/**
+ * Resolve the live dataview for an entity given a set of choice selections.
+ */
+export function resolveChoiceView(
+  entity: ResolvableEntity,
+  selections: ChoiceSelections
+): ResolvedChoiceView {
+  const datavalues = baseDataValues(entity)
+  const traits: SURefObjectTrait[] = (entity.traits ?? []).map((t) => ({ ...t }))
+  const prompts: ChoicePrompt[] = []
+
+  const choices = entity.choices ?? []
+
+  for (const choice of choices) {
+    const selected = selections[choice.id] ?? []
+
+    if (selected.length === 0) {
+      // Unresolved. Emit a prompt only for required choices.
+      if (isRequired(choice)) {
+        prompts.push({
+          choiceId: choice.id,
+          label: choice.name,
+          text: buildPromptText(choice),
+        })
+      }
+      continue
+    }
+
+    if (isInferredTraitChoice(choice)) {
+      // Trait-schema choice: infer addTrait for each selected entity name.
+      for (const value of selected) {
+        addTrait(traits, value)
+      }
+      continue
+    }
+
+    // choiceOptions with explicit effects.
+    if (choice.choiceOptions) {
+      for (const value of selected) {
+        const option = choice.choiceOptions.find((o) => o.value === value)
+        if (!option?.effects) {
+          continue
+        }
+        for (const effect of option.effects) {
+          switch (effect.op) {
+            case 'addTrait':
+              addTrait(traits, String(effect.value))
+              break
+            case 'setRange':
+              applySetRange(datavalues, effect.value)
+              break
+            case 'addDamage':
+              applyAddDamage(datavalues, effect.value, effect.unit)
+              break
+          }
+        }
+      }
+    }
+  }
+
+  return { datavalues, traits, prompts }
+}

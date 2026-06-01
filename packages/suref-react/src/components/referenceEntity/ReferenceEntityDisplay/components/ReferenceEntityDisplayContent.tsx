@@ -1,11 +1,18 @@
 import type { ReactNode } from 'react'
-import type { SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
+import type {
+  SURefEntity,
+  SURefEnumSchemaName,
+  SURefObjectContentBlock,
+} from 'salvageunion-reference'
 import {
   getDisplayName,
   getGoals,
   getAssets,
   getWeaknesses,
   getRecommended,
+  getGrants,
+  getChoices,
+  getModel,
   isEntityData,
   isAbility,
   isClass,
@@ -27,7 +34,7 @@ import { SectionSeparator } from '../SectionSeparator'
 import { ReferenceEntityDisplay } from '../index'
 import { PatternEquipmentItem } from '../PatternEquipmentItem'
 import { ReferenceEntityRequirementDisplay } from '../ReferenceEntityRequirementDisplay'
-import { ReferenceEntityChoices } from '../ReferenceEntityChoices'
+import { ReferenceEntityResolvedChoices } from '../ReferenceEntityResolvedChoices'
 import { ReferenceEntityGrants } from '../ReferenceEntityGrants'
 import { ReferenceEntityBonusPerTechLevel } from '../ReferenceEntityBonusPerTechLevel'
 import { ReferenceEntityIntegratedSystems } from '../ReferenceEntityIntegratedSystems'
@@ -89,6 +96,40 @@ export type ReferenceEntityDisplayContentProps = ReferenceEntityDisplayStateInpu
 // (~1/3 of the default content padding), not derived.
 const CONTENT_PADDING_BOTTOM_RATIO = 0.34
 
+/**
+ * Resolve an entity's non-`choice` grants into their full entities (e.g. an
+ * ability's granted equipment). Mirrors the resolution that
+ * `ReferenceEntityGrants` performs so the display layer can decide, before
+ * rendering, whether an ability is a granting ability.
+ */
+function resolveGrantedEntities(data: SURefEntity): SURefEntity[] {
+  const grants = getGrants(data) ?? []
+  return grants
+    .map((grant): SURefEntity | null => {
+      if (grant.schema === 'choice') return null
+      const model = getModel((grant.schema as SURefEnumSchemaName).toLowerCase())
+      if (!model) return null
+      return model.find((e: SURefEntity) => 'name' in e && e.name === grant.name) ?? null
+    })
+    .filter((entity): entity is SURefEntity => entity !== null)
+}
+
+/**
+ * The lead content block for a granted entity: the `lead`-flagged paragraph
+ * (schema-driven, §8.2), falling back to the first `paragraph` block. Returns
+ * undefined when the entity has no paragraph content. Rendered once above the
+ * `Grants` divider and de-duplicated from the nested equipment.
+ */
+function getLeadBlock(entity: SURefEntity | undefined): SURefObjectContentBlock | undefined {
+  if (!entity || !('content' in entity) || !Array.isArray(entity.content)) {
+    return undefined
+  }
+  const blocks = entity.content as SURefObjectContentBlock[]
+  const flagged = blocks.find((block) => block.type === 'paragraph' && block.lead === true)
+  if (flagged) return flagged
+  return blocks.find((block) => block.type === 'paragraph')
+}
+
 export function ReferenceEntityDisplayContent({
   children,
   controls,
@@ -144,9 +185,31 @@ export function ReferenceEntityDisplayContent({
   // Determine which content to render (from EntityTopMatter)
   let contentBlocks = hide.content ? undefined : 'content' in data ? data.content : undefined
 
-  // Check if any action name matches the entity name - if so, use that action's content
-  if (matchingAction && matchingAction.content && matchingAction.content.length > 0) {
+  // Entities with choices render a live, resolved dataview row (base datavalues +
+  // applied choice effects) via ReferenceEntityResolvedChoices.
+  const entityHasChoices = (getChoices(data)?.length ?? 0) > 0 && !hide.choices
+
+  // Check if any action name matches the entity name - if so, use that action's
+  // content. Skipped for granted equipment (entities carrying their own choices):
+  // their same-named action holds the legacy verbose prose (the choice-describing
+  // sentences + list-items), whereas the entity's own `content` is the trimmed
+  // intro + base datavalues that the resolved row / choice cards render from. The
+  // override is also gated on `hide.content` so suppression is honoured.
+  if (
+    !hide.content &&
+    !entityHasChoices &&
+    matchingAction &&
+    matchingAction.content &&
+    matchingAction.content.length > 0
+  ) {
     contentBlocks = matchingAction.content
+  }
+
+  // Suppress the static `datavalues` content block when choices are present — the
+  // resolved row renders it instead (avoids rendering the row twice). The intro
+  // prose paragraph(s) still render.
+  if (contentBlocks && entityHasChoices) {
+    contentBlocks = contentBlocks.filter((block) => block.type !== 'datavalues')
   }
 
   // In compact list view (hide.actions), only show content before the first heading
@@ -157,8 +220,26 @@ export function ReferenceEntityDisplayContent({
     }
   }
 
-  // Show content if entity has content blocks
-  const showContent = contentBlocks && contentBlocks.length > 0
+  // An ability that grants equipment (e.g. Custom Sniper Rifle) re-skins its body:
+  // it suppresses its own description/content + Actions and instead surfaces the
+  // granted equipment's intro (lead) line + a `Grants` block (the nested compact
+  // equipment with its resolved row + choice cards). Resolve the granted entities
+  // here so the gates below (header flavor, content, actions) can react.
+  const grantedEntities = resolveGrantedEntities(data)
+  const isGrantingAbility = isAbility(data) && grantedEntities.length > 0
+  // Whether the Grants block actually renders. The nested equipment is the
+  // granting ability's choices surface, so a consumer that hides choices (e.g.
+  // the schema-viewer's minimal listing card via `hide.choices`) also opts out of
+  // the Grants block — the ability still suppresses its own prose/Actions for a
+  // clean header card. Grants are otherwise visible in compact (spec §8.2).
+  const showGrants = isGrantingAbility && !hide.choices
+  // The lead paragraph is rendered ONCE above the Grants divider and de-duplicated
+  // from the nested equipment (which hides it via `hide.content` lead suppression).
+  const leadBlock = showGrants ? getLeadBlock(grantedEntities[0]) : undefined
+
+  // Show content if entity has content blocks. A granting ability suppresses its
+  // own content entirely — its body is the lead line + Grants block instead.
+  const showContent = !isGrantingAbility && !!contentBlocks && contentBlocks.length > 0
 
   // The level/tech-level moves out of the header into the label as a badge
   // stamp ([LABEL] [N]):
@@ -200,21 +281,24 @@ export function ReferenceEntityDisplayContent({
   // to SURefAbility (description is a declared optional field), so no cast/extra
   // membership check is needed; this mirrors ReferenceEntityRightHeaderContent's
   // own early-return guard so we never pass a truthy-but-empty node to CardHeader.
-  const hasHeaderFlavor = isAbilityEntity && !!data.description
+  const hasHeaderFlavor = isAbilityEntity && !isGrantingAbility && !!data.description
 
   // Consolidate chassis abilities logic — data-shape driven
   const chassisName = 'name' in data ? data.name : undefined
   const hasChassisAbilities = !!chassisAbilities && chassisAbilities.length > 0
 
-  // Check if entity has actions that will be displayed (after filtering)
+  // Check if entity has actions that will be displayed (after filtering).
+  // A granting ability suppresses its Actions section (its redundant same-named
+  // action lives on the granted equipment instead).
   const hasDisplayableActions =
+    !isGrantingAbility &&
     !!actionsToDisplay &&
     actionsToDisplay.length > 0 &&
     (!hide.actions || compact) &&
     !(compact && schemaName === 'titans')
 
   const hasTopMatterContent =
-    !!showContent || hasChassisAbilities || !!assetUrl || hasDisplayableActions
+    !!showContent || hasChassisAbilities || !!assetUrl || hasDisplayableActions || showGrants
 
   // Resolve drone entity from chassis abilities (rendered below the fold)
   const droneAbility = chassisAbilities?.find((a) => a.drone)
@@ -279,6 +363,7 @@ export function ReferenceEntityDisplayContent({
     ('bonusPerTechLevel' in data && !!data.bonusPerTechLevel) ||
     (effects && effects.length > 0) ||
     !!table ||
+    entityHasChoices ||
     shouldShowExtraContent
 
   // Footer data — sources entities are self-referencing, so hide page/source
@@ -535,13 +620,37 @@ export function ReferenceEntityDisplayContent({
               )}
               {(!hide.actions || (compact && schemaName !== 'titans' && !rightContent)) && (
                 <ReferenceEntityActions
-                  suppressActions={hasChassisAbilities}
+                  suppressActions={hasChassisAbilities || isGrantingAbility}
                   spacing={spacing}
                   compact={compact}
                   actionsToDisplay={actionsToDisplay}
                   headerBg={headerBg}
                   sectionHeaders={schemaName === 'crawlers'}
                 />
+              )}
+              {/* Granting ability: lead line + `Grants` block (the nested compact
+                  equipment with its resolved row + choice cards). Rendered in the
+                  main body flow so it is visible in compact mode too. The lead is
+                  the granted equipment's intro paragraph, shown once here and
+                  de-duplicated from the nested equipment below. */}
+              {showGrants && (
+                <>
+                  {leadBlock && (
+                    <BlockContentRendererView
+                      content={[leadBlock]}
+                      fontSize={fontSize.sm}
+                      compact={compact}
+                      headerBg={headerBg}
+                      headerBgColor={headerBgColor}
+                    />
+                  )}
+                  <ReferenceEntityGrants
+                    data={data}
+                    spacing={spacing}
+                    compact={compact}
+                    suppressLead
+                  />
+                </>
               )}
               {/* Titan-equipped systems/modules render as compact listings under actions */}
               {titanSystems && titanSystems.length > 0 && (
@@ -566,13 +675,13 @@ export function ReferenceEntityDisplayContent({
               )}
               {/* Compact: chassis abilities render after actions */}
               {compact && chassisAbilitiesBlock}
-              <ReferenceEntityChoices
+              <ReferenceEntityResolvedChoices
                 data={data}
                 spacing={spacing}
-                fontSize={fontSize}
                 hideChoices={hide.choices}
                 compact={compact}
-                choiceInputRenderer={choiceInputRenderer}
+                parentHeaderBg={headerBg}
+                parentHeaderBgColor={headerBgColor}
               />
               <ReferenceEntityIntegratedSystems data={data} compact={compact} />
 
@@ -686,7 +795,8 @@ export function ReferenceEntityDisplayContent({
                       headerBg={headerBg}
                     />
                   )}
-                  <ReferenceEntityGrants data={data} spacing={spacing} />
+                  {/* Grants render in the main body flow above (granting abilities,
+                      visible in compact) — not here. */}
                 </>
               )}
               {/* Caller-provided slot — renders whenever supplied, independent of

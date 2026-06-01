@@ -64,6 +64,7 @@
             },
             "label": { "type": "string" },
             "level": { "type": "integer", "minimum": 1, "maximum": 6 },
+            "lead": { "type": "boolean" },
             "items": {
               "type": "array",
               "items": {
@@ -320,6 +321,7 @@
                   },
                   "label": { "type": "string" },
                   "level": { "type": "integer", "minimum": 1, "maximum": 6 },
+                  "lead": { "type": "boolean" },
                   "items": {
                     "type": "array",
                     "items": {
@@ -610,6 +612,7 @@
                 },
                 "label": { "type": "string" },
                 "level": { "type": "integer", "minimum": 1, "maximum": 6 },
+                "lead": { "type": "boolean" },
                 "items": {
                   "type": "array",
                   "items": {
@@ -745,6 +748,7 @@
                       },
                       "label": { "type": "string" },
                       "level": { "type": "integer", "minimum": 1, "maximum": 6 },
+                      "lead": { "type": "boolean" },
                       "items": {
                         "type": "array",
                         "items": {
@@ -948,7 +952,23 @@
                     "properties": {
                       "label": { "type": "string" },
                       "value": { "type": "string" },
-                      "description": { "type": "string" }
+                      "description": { "type": "string" },
+                      "effects": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "op": {
+                              "type": "string",
+                              "enum": ["addTrait", "setRange", "addDamage"]
+                            },
+                            "value": { "anyOf": [{ "type": "string" }, { "type": "number" }] },
+                            "unit": { "type": "string" }
+                          },
+                          "required": ["op", "value"],
+                          "additionalProperties": false
+                        }
+                      }
                     },
                     "required": ["label", "value"],
                     "additionalProperties": false
