@@ -19,7 +19,14 @@ export function CalloutMetaStamp({
     <Text
       variant="pseudoheader"
       as="span"
-      className={cn('whitespace-nowrap text-xs uppercase', rust && 'bg-su-rust text-su-white')}
+      // font-semibold overrides the pseudoheader variant's font-bold so a lone
+      // stamp (e.g. legendary/generic ability trees, which have no numeric badge)
+      // matches the weight of the segmented ValueDisplay callout used for numeric
+      // levels / tech levels.
+      className={cn(
+        'whitespace-nowrap text-xs font-semibold uppercase',
+        rust && 'bg-su-rust text-su-white'
+      )}
     >
       {children}
     </Text>
