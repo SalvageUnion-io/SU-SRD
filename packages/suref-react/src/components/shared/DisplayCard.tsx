@@ -114,6 +114,10 @@ export function DisplayCard({
   const isListing = !!listingProp
   const isCompact = !!compactProp
   const hasCallout = !!(labelLead || label || labelBadge)
+  // A label+badge pair renders as the taller segmented ValueDisplay (text-sm +
+  // border) rather than a single text-xs stamp, so it needs extra header top
+  // padding to clear the title in non-compact mode.
+  const hasSegmentedCallout = !!(label && labelBadge)
   const hasTabs = !isListing && tabs && tabs.length > 0
 
   const [activeTabKey, setActiveTabKey] = useState(DEFAULT_TAB_KEY)
@@ -269,10 +273,12 @@ export function DisplayCard({
               // inset white body block (which uses mx-3) and the footer.
               isCompact ? 'min-h-[60px] px-3 py-1' : 'min-h-[80px] px-3 py-1.5',
               // Top padding clears the callout so the gap below it is consistent.
-              // Non-compact: callout straddles ~8px above the top → pt-4 ≈ 8px gap.
+              // Non-compact: a single stamp straddles ~8px above the top → pt-4
+              // clears it; the taller segmented (label+badge) callout needs pt-6
+              // so it never runs into the title.
               // Compact: callout sits centred on the edge (~8px of it below the
               // top) → pt-3 ≈ 4px gap, tighter to suit dense listings.
-              !isCompact && hasCallout && 'pb-4 pt-4',
+              !isCompact && hasCallout && (hasSegmentedCallout ? 'pb-4 pt-6' : 'pb-4 pt-4'),
               isCompact && hasCallout && 'pt-3',
               actualHeaderBg,
               headerStyleProp?.className,
