@@ -32,7 +32,7 @@ Astro 5 (static output) + React 19 islands, Tailwind v4, Pagefind for search ind
 - `/schema/[schemaId]` — schema index (e.g. chassis, classes, equipment)
 - `/schema/[schemaId]/item/[itemId]` — individual entity pages
 - `/schema/v1/*.json` — JSON API for third-party consumers
-- `/about`, `/randsum`, `/404`
+- `/about`, `/404`
 
 ## Documentation
 

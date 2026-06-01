@@ -134,7 +134,7 @@ Models extend `BaseModel<T>`, created via `ModelFactory`, accessed via `SalvageU
 ### suref-web App (Static Reference Site)
 
 - **Framework:** Astro 5 with React 19 islands architecture. Static output, no SSR.
-- **Routing:** File-based routing in `src/pages/` via Astro. Routes: `/` (landing), `/schema/[schemaId]`, `/schema/[schemaId]/item/[itemId]`, `/about`, `/randsum`, `/404`.
+- **Routing:** File-based routing in `src/pages/` via Astro. Routes: `/` (landing), `/schema/[schemaId]`, `/schema/[schemaId]/item/[itemId]`, `/about`, `/404`.
 - **No auth, no Supabase, no user data.** Pure static reference site.
 - **UI:** Tailwind v4 with theme from `suref-react`. React islands for interactive components (search, schema viewer, entity display). Components import from `suref-react` for shared UI.
 - **Search:** In-memory search via `salvageunion-reference` package `search()` function. Cmd+K/Ctrl+K shortcut to focus.
