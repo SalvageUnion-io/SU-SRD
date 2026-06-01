@@ -254,17 +254,20 @@ export function DisplayCard({
           {/* Content row — existing header layout */}
           <div
             className={cn(
-              'flex w-full flex-wrap items-center justify-between gap-2 overflow-visible',
+              'flex w-full flex-wrap justify-between gap-2 overflow-visible',
+              // Vertically centre the header content normally, but TOP-align it when
+              // the floating callout row is present (non-compact). Centring made the
+              // gap below the callout vary with header height — short headers
+              // (modules/systems) centred high and collided with the callout, tall
+              // ones (chassis) sat low. Top-aligning + a fixed top padding gives a
+              // consistent thin gap under the callout regardless of content height.
+              (labelLead || label || labelBadge) && !isCompact ? 'items-start' : 'items-center',
               // px-3 (12px) aligns the header content L/R extremes with the
               // inset white body block (which uses mx-3) and the footer.
               isCompact ? 'min-h-[60px] px-3 py-1' : 'min-h-[80px] px-3 py-1.5',
-              // Extra top padding when the floating callout row is present so the
-              // title clears it instead of bunching up. Compact needs more
-              // because its callout sits centred on the top edge.
-              // Thin gap below the floating callout row: the callout straddles the
-              // top edge (~8px below it), so a near-zero top padding leaves just a
-              // slim, always-present gap before the title instead of a chunky one.
-              !isCompact && (labelLead || label || labelBadge) && 'pb-4 pt-0.5',
+              // Top padding clears the callout straddle (~8px above the card top) by
+              // a slim, consistent gap. Compact's callout sits centred on the edge.
+              !isCompact && (labelLead || label || labelBadge) && 'pb-4 pt-4',
               isCompact && (labelLead || label || labelBadge) && 'pt-1',
               actualHeaderBg,
               headerStyleProp?.className,
