@@ -93,11 +93,11 @@ describe('DisplayCard', () => {
     )
     const headerRow = screen.getByTestId('frame-header-container')
     expect(headerRow.className).toContain('items-start')
-    expect(headerRow.className).toContain('pt-4')
+    expect(headerRow.className).toContain('pt-9')
     expect(headerRow.className).toContain('pb-4')
   })
 
-  test('compact card WITH a callout uses pt-3 and top-aligns the header row', () => {
+  test('compact card WITH a callout uses pt-7 and top-aligns the header row', () => {
     render(
       <DisplayCard
         headerBg="bg-su-green"
@@ -110,7 +110,7 @@ describe('DisplayCard', () => {
       </DisplayCard>
     )
     const headerRow = screen.getByTestId('frame-header-container')
-    expect(headerRow.className).toContain('pt-3')
+    expect(headerRow.className).toContain('pt-7')
     expect(headerRow.className).toContain('items-start')
   })
 
@@ -127,9 +127,9 @@ describe('DisplayCard', () => {
     const headerRow = screen.getByTestId('frame-header-container')
     expect(headerRow.className).toContain('items-center')
     // Only the callout-specific paddings should be absent (base px-3 py-* remain).
-    expect(headerRow.className).not.toContain('pt-4')
+    expect(headerRow.className).not.toContain('pt-9')
     expect(headerRow.className).not.toContain('pb-4')
-    expect(headerRow.className).not.toContain('pt-3')
+    expect(headerRow.className).not.toContain('pt-7')
   })
 
   test('listing boolean hides body and footer', () => {
