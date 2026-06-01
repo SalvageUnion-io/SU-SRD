@@ -27,7 +27,7 @@ export function SectionSeparator({
         isSticky ? { top: 'var(--sticky-content-top, var(--sticky-header-h, 0px))' } : undefined
       }
     >
-      <div className="h-px flex-1 bg-su-grey-light" aria-hidden="true" />
+      <div className="flex-1 border-t border-dashed border-su-grey-light" aria-hidden="true" />
       <span className="inline-flex shrink-0 border border-su-black">
         <Text variant="pseudoheader" as="span" className={cn(resolvedFontSize, 'font-semibold')}>
           {label}
@@ -42,7 +42,7 @@ export function SectionSeparator({
           </Text>
         )}
       </span>
-      <div className="h-px flex-1 bg-su-grey-light" aria-hidden="true" />
+      <div className="flex-1 border-t border-dashed border-su-grey-light" aria-hidden="true" />
       {children && (
         <div className="absolute right-0 flex shrink-0 items-center bg-su-white pl-3">
           {children}

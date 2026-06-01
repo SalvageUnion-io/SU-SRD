@@ -21,6 +21,7 @@ export { SectionSeparator } from './components/referenceEntity/ReferenceEntityDi
 export { ReferenceEntityChassisAbilitiesContent } from './components/referenceEntity/ReferenceEntityDisplay/ReferenceEntityChassisAbilitiesContent'
 export { ClassAbilityTreeDisplay } from './components/referenceEntity/ClassAbilityTreeDisplay'
 export { NestedActionDisplay } from './components/referenceEntity/NestedActionDisplay'
+export { ActionCard } from './components/referenceEntity/ActionCard'
 export { getReferenceEntitySpacing } from './components/referenceEntity/ReferenceEntityDisplay/referenceEntityDisplayTypes'
 
 // Entity controls
