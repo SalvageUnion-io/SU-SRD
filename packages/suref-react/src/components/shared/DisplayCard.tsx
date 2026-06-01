@@ -261,8 +261,11 @@ export function DisplayCard({
               // Extra top padding when the floating callout row is present so the
               // title clears it instead of bunching up. Compact needs more
               // because its callout sits centred on the top edge.
-              !isCompact && (labelLead || label || labelBadge) && 'pb-4 pt-4',
-              isCompact && (labelLead || label || labelBadge) && 'pt-3.5',
+              // Thin gap below the floating callout row: the callout straddles the
+              // top edge (~8px below it), so a near-zero top padding leaves just a
+              // slim, always-present gap before the title instead of a chunky one.
+              !isCompact && (labelLead || label || labelBadge) && 'pb-4 pt-0.5',
+              isCompact && (labelLead || label || labelBadge) && 'pt-1',
               actualHeaderBg,
               headerStyleProp?.className,
               headerStyleProp?.className && 'h-full'
