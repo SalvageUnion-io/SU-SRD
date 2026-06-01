@@ -28,7 +28,15 @@ export function ReferenceEntitySubTitleElement({
   const variableCost = 'activationCurrency' in data && schemaName === 'abilities'
   const currency = getActivationCurrency(schemaName, variableCost)
 
-  const values = extractReferenceEntityDetails(data, schemaName, currency)
+  const values = extractReferenceEntityDetails(data, schemaName, currency).filter(
+    // "Recommended" and the class type ("Base/Hybrid Class") now render in the
+    // label callout row, not the data row.
+    (v) =>
+      !(
+        v.type === 'meta' &&
+        (v.label === 'Recommended' || v.label === 'Base Class' || v.label === 'Hybrid Class')
+      )
+  )
 
   if (values.length === 0 && !subtitleExtra) return null
 

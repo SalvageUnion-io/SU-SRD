@@ -4,7 +4,11 @@
  */
 @theme {
   /* === Typography === */
-  --font-mono: 'Fira Code', Monaco, Consolas, 'Ubuntu Mono', monospace;
+  --font-mono: 'Barlow', system-ui, -apple-system, sans-serif;
+  --font-cond: 'Barlow Semi Condensed', 'Barlow', system-ui, -apple-system, sans-serif;
+
+  /* === Derived semantic tokens === */
+  --color-su-ink-soft: rgb(70, 61, 49);
 
   /* === Brand Colors === */
   --color-su-orange: rgb(239, 137, 79);

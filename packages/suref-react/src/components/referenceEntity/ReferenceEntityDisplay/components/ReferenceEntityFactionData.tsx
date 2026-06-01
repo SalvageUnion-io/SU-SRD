@@ -35,7 +35,7 @@ export function ReferenceEntityFactionData({
         <div key={label} className="mt-2">
           <h5
             className={cn(
-              'font-mono inline self-start box-decoration-clone bg-su-black text-su-white px-1 font-bold uppercase leading-none tracking-tight mb-1',
+              'font-cond inline self-start box-decoration-clone bg-su-black text-su-white px-1 font-bold uppercase leading-none tracking-tight mb-1',
               fontSize.sm
             )}
             style={{ lineHeight: 1 }}

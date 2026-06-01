@@ -14,7 +14,7 @@ export function LevelDisplay({ level, compact = false, inline = false }: LevelDi
     return (
       <div
         className={cn(
-          'flex shrink-0 items-center justify-center rounded-sm bg-black font-bold text-white',
+          'flex shrink-0 items-center justify-center bg-black font-bold text-white',
           size,
           fontSize
         )}

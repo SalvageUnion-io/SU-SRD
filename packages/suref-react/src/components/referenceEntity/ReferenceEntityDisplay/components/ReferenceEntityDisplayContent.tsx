@@ -5,13 +5,15 @@ import {
   getGoals,
   getAssets,
   getWeaknesses,
+  getRecommended,
+  isEntityData,
+  isAbility,
   SalvageUnionReference,
 } from 'salvageunion-reference'
 import { RollTable } from '../../../shared/RollTable'
 import { CardHeader } from '../../../shared/CardHeader'
 import { DisplayCard } from '../../../shared/DisplayCard'
 import { ReferenceEntitySubTitleElement } from '../ReferenceEntitySubTitleContent'
-import { ReferenceEntityLeftContent } from '../ReferenceEntityLeftContent'
 import { ReferenceEntityRightHeaderContent } from '../ReferenceEntityRightHeaderContent'
 import { buildReferenceEntityStats } from '../referenceEntityStatsConfig'
 import type { StatItem } from '../../../shared/statsBarTypes'
@@ -143,6 +145,55 @@ export function ReferenceEntityDisplayContent({
   // Show content if entity has content blocks
   const showContent = contentBlocks && contentBlocks.length > 0
 
+  // The level/tech-level moves out of the header into the label as a badge
+  // stamp ([LABEL] [N]):
+  //  - basic/advanced abilities (numeric level 1-3) show their level beside the
+  //    tree label; legendary ('L') and generic ('G') omit it entirely;
+  //  - tech-level entities show their tech level beside a "Tech Level" label.
+  const abilityLevel = 'level' in data ? data.level : undefined
+  const isAbilityWithNumericLevel =
+    schemaName === 'abilities' &&
+    abilityLevel != null &&
+    !['L', 'G'].includes(String(abilityLevel).toUpperCase())
+  const labelBadge = isAbilityWithNumericLevel
+    ? String(abilityLevel)
+    : schemaName !== 'abilities' && techLevel != null
+      ? String(techLevel)
+      : undefined
+  // Classes surface their type ("Base Class" / "Hybrid Class") as the label;
+  // tech-level entities surface "Tech Level". (Both move out of the data row.)
+  const classTypeLabel =
+    schemaName === 'classes'
+      ? 'hybrid' in data && data.hybrid
+        ? 'Hybrid Class'
+        : 'Base Class'
+      : undefined
+  const effectiveLabel =
+    label ??
+    classTypeLabel ??
+    (schemaName !== 'abilities' && techLevel != null ? 'Tech Level' : undefined)
+
+  // "Recommended" moves from the data row into the label callout row, ordered
+  // first, in the same rust as its data value. (It is filtered out of the
+  // subtitle below.) Renders in header-only/compact/full like the rest of the row.
+  const isRecommended = isEntityData(data) && getRecommended(data) === true
+  const labelLead = isRecommended ? (
+    <Text
+      variant="pseudoheader"
+      as="span"
+      className="whitespace-nowrap text-xs uppercase text-su-white"
+      style={{ backgroundColor: 'var(--color-su-rust)' }}
+    >
+      Recommended
+    </Text>
+  ) : undefined
+
+  // Whether the right header column will actually render flavor. Mirrors the
+  // guard in ReferenceEntityRightHeaderContent (ability + description) so we can
+  // avoid passing a truthy-but-empty node to CardHeader.
+  const hasHeaderFlavor =
+    isAbility(data) && 'description' in data && !!(data as { description?: unknown }).description
+
   // Consolidate chassis abilities logic — data-shape driven
   const chassisName = 'name' in data ? data.name : undefined
   const hasChassisAbilities = !!chassisAbilities && chassisAbilities.length > 0
@@ -272,7 +323,7 @@ export function ReferenceEntityDisplayContent({
         variant="pseudoheader"
         as="span"
         className={cn(
-          'relative z-10 uppercase tracking-[-0.02em] transition-transform duration-300',
+          'relative z-10 uppercase tracking-[0.01em] transition-transform duration-300',
           compact ? 'py-[3px] text-base' : 'text-[1.75rem]',
           disabled && 'opacity-50'
         )}
@@ -295,16 +346,16 @@ export function ReferenceEntityDisplayContent({
           subtitleExtra={subtitleExtra}
         />
       }
-      leftContent={
-        <ReferenceEntityLeftContent
-          techLevel={techLevel}
-          compact={compact}
-          listing={listing}
-          level={'level' in data ? data.level : undefined}
-        />
-      }
+      leftContent={undefined}
       rightContent={
-        !hide.stats ? <ReferenceEntityRightHeaderContent data={data} fontSize={fontSize} /> : null
+        // Only pass right-header content when there's actually flavor to render
+        // (ability description). Passing the element unconditionally made it a
+        // truthy node even when it renders null — which flips CardHeader into the
+        // capped flex-[0_1_auto] max-w branch and squishes the data row for
+        // systems/modules (whose only right element is the separate stats column).
+        !hide.stats && hasHeaderFlavor ? (
+          <ReferenceEntityRightHeaderContent data={data} fontSize={fontSize} />
+        ) : undefined
       }
       compact={compact}
       lightweight={lightweight}
@@ -324,7 +375,9 @@ export function ReferenceEntityDisplayContent({
         )
       }
       footerContent={!hasBodyContent ? footer : undefined}
-      label={label}
+      label={effectiveLabel}
+      labelBadge={labelBadge}
+      labelLead={labelLead}
       compact={compact}
       listing={listing}
       headerTestId="frame-header-container"
@@ -340,48 +393,39 @@ export function ReferenceEntityDisplayContent({
     >
       {!listing && hasBodyContent && (
         <div
-          className={cn('min-w-0 bg-su-white p-0', damageOverlayText && 'relative')}
-          style={{ opacity: opacity.content, width: '100%' }}
+          className={cn('w-full', headerBg || 'bg-su-white')}
+          style={headerBgColor ? { backgroundColor: headerBgColor } : undefined}
         >
-          {/* Float zone: block flow so image float propagates to all children */}
+          {/* Inset white body box floating in the accent field (design itun.css
+              .ec__body margin: 0 12px 8px) — the accent wrapper above shows
+              through the mx-3/mb-2 insets so colour surrounds the text. */}
           <div
-            className={cn(spacing.sectionSpaceYClass)}
-            style={{
-              ...spacing.contentPaddingXStyle,
-              paddingTop:
-                source !== 'Salvage Union Workshop Manual' && hasTopMatterContent
-                  ? `calc(${spacing.contentPadding * 0.25}rem + 5px)`
-                  : `${spacing.contentPadding}rem`,
-              paddingBottom: `${spacing.contentPadding}rem`,
-            }}
+            // No bottom margin: the footer's own symmetric py provides the gap
+            // above its content, so the footer isn't top-heavy (the body box's
+            // bottom edge meets the footer directly).
+            className={cn('mx-3 min-w-0 bg-su-white p-0', damageOverlayText && 'relative')}
+            style={{ opacity: opacity.content }}
           >
-            {assetUrl && hasChassisAbilities && !compact && !hide.actions ? (
-              // Grid layout for chassis with images: ability anchored to bottom of image
-              <div className="md:grid md:grid-cols-[auto_1fr]">
-                <CardImage url={assetUrl} alt={imageAltText} compact={compact} />
-                <div className="flex flex-col justify-evenly">
-                  <div>
-                    {showContent && (
-                      <BlockContentRendererView
-                        content={contentBlocks!}
-                        fontSize={fontSize.sm}
-                        compact={compact}
-                        headerBg={headerBg}
-                        headerBgColor={headerBgColor}
-                      />
-                    )}
-                    {children}
-                  </div>
-                  {chassisAbilitiesBlock}
-                </div>
-              </div>
-            ) : (
-              <>
-                {assetUrl && afterExtraContent && !compact ? (
-                  // Grid layout: vertically center content beside image when
-                  // afterExtraContent (e.g. class ability trees) will render below
-                  <div className="md:grid md:grid-cols-[auto_1fr] md:items-center">
-                    <CardImage url={assetUrl} alt={imageAltText} compact={compact} />
+            {/* Float zone: block flow so image float propagates to all children */}
+            <div
+              className={cn(spacing.sectionSpaceYClass)}
+              style={{
+                ...spacing.contentPaddingXStyle,
+                paddingTop:
+                  source !== 'Salvage Union Workshop Manual' && hasTopMatterContent
+                    ? `calc(${spacing.contentPadding * 0.25}rem + 5px)`
+                    : `${spacing.contentPadding}rem`,
+                // The last content block already carries its own bottom margin,
+                // so keep the container's bottom padding small to avoid doubling
+                // the whitespace above the footer.
+                paddingBottom: `${spacing.contentPadding * 0.34}rem`,
+              }}
+            >
+              {assetUrl && hasChassisAbilities && !compact && !hide.actions ? (
+                // Grid layout for chassis with images: ability anchored to bottom of image
+                <div className="md:grid md:grid-cols-[auto_1fr]">
+                  <CardImage url={assetUrl} alt={imageAltText} compact={compact} />
+                  <div className="flex flex-col justify-evenly">
                     <div>
                       {showContent && (
                         <BlockContentRendererView
@@ -394,228 +438,275 @@ export function ReferenceEntityDisplayContent({
                       )}
                       {children}
                     </div>
+                    {chassisAbilitiesBlock}
                   </div>
-                ) : (
-                  <>
-                    {assetUrl && <CardImage url={assetUrl} alt={imageAltText} compact={compact} />}
-                    {showContent && (
-                      <BlockContentRendererView
-                        content={contentBlocks!}
-                        fontSize={fontSize.sm}
-                        compact={compact}
-                        headerBg={headerBg}
-                        headerBgColor={headerBgColor}
-                      />
-                    )}
-                    {children}
-                  </>
-                )}
-                <ReferenceEntityFactionData
+                </div>
+              ) : (
+                <>
+                  {assetUrl && afterExtraContent && !compact ? (
+                    // Grid layout: vertically center content beside image when
+                    // afterExtraContent (e.g. class ability trees) will render below
+                    <div className="md:grid md:grid-cols-[auto_1fr] md:items-center">
+                      <CardImage url={assetUrl} alt={imageAltText} compact={compact} />
+                      <div>
+                        {showContent && (
+                          <BlockContentRendererView
+                            content={contentBlocks!}
+                            fontSize={fontSize.sm}
+                            compact={compact}
+                            headerBg={headerBg}
+                            headerBgColor={headerBgColor}
+                          />
+                        )}
+                        {children}
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      {assetUrl && (
+                        <CardImage url={assetUrl} alt={imageAltText} compact={compact} />
+                      )}
+                      {showContent && (
+                        <BlockContentRendererView
+                          content={contentBlocks!}
+                          fontSize={fontSize.sm}
+                          compact={compact}
+                          headerBg={headerBg}
+                          headerBgColor={headerBgColor}
+                        />
+                      )}
+                      {children}
+                    </>
+                  )}
+                  <ReferenceEntityFactionData
+                    data={data}
+                    compact={compact}
+                    fontSize={fontSize}
+                    borderColor={borderColor}
+                  />
+                  {/* Guide steps — data-shape driven */}
+                  {'steps' in data && Array.isArray(data.steps) && data.steps.length > 0 && (
+                    <GuideStepsDisplay
+                      steps={data.steps}
+                      compact={compact}
+                      headerBg={headerBg}
+                      headerBgColor={headerBgColor}
+                      fontSize={fontSize}
+                      interactive={interactive}
+                      renderEntityListing={(
+                        entityData,
+                        entitySchemaName,
+                        key,
+                        isListing,
+                        forceCompact,
+                        entityControls,
+                        entityDisabled
+                      ) => (
+                        <GuideEntityListing
+                          key={key}
+                          data={entityData as SURefEntity}
+                          schemaName={entitySchemaName as SURefEnumSchemaName}
+                          compact={forceCompact ?? isListing}
+                          listing={isListing}
+                          disabled={!!entityDisabled}
+                          controls={entityControls}
+                        />
+                      )}
+                    />
+                  )}
+                  {/* Non-compact: chassis abilities render before actions */}
+                  {!compact && !hide.actions && chassisAbilitiesBlock}
+                </>
+              )}
+              {(!hide.actions || (compact && schemaName !== 'titans' && !rightContent)) && (
+                <ReferenceEntityActions
+                  suppressActions={hasChassisAbilities}
+                  spacing={spacing}
+                  compact={compact}
+                  actionsToDisplay={actionsToDisplay}
+                  headerBg={headerBg}
+                  sectionHeaders={schemaName === 'crawlers'}
+                />
+              )}
+              {/* Titan-equipped systems/modules render as compact listings under actions */}
+              {titanSystems && titanSystems.length > 0 && (
+                <>
+                  <SectionSeparator label="Mech Systems" compact={compact} />
+                  <div className={cn('flex flex-col', spacing.sectionSpaceYClass)}>
+                    {titanSystems.map((system) => (
+                      <PatternEquipmentItem key={`titan-system-${system.id}`} data={system} />
+                    ))}
+                  </div>
+                </>
+              )}
+              {titanModules && titanModules.length > 0 && (
+                <>
+                  <SectionSeparator label="Mech Modules" compact={compact} />
+                  <div className={cn('flex flex-col', spacing.sectionSpaceYClass)}>
+                    {titanModules.map((mod) => (
+                      <PatternEquipmentItem key={`titan-module-${mod.id}`} data={mod} />
+                    ))}
+                  </div>
+                </>
+              )}
+              {/* Compact: chassis abilities render after actions */}
+              {compact && chassisAbilitiesBlock}
+              <ReferenceEntityChoices
+                data={data}
+                spacing={spacing}
+                fontSize={fontSize}
+                hideChoices={hide.choices}
+                compact={compact}
+                choiceInputRenderer={choiceInputRenderer}
+              />
+              <ReferenceEntityIntegratedSystems data={data} compact={compact} />
+
+              <ReferenceEntityBonusPerTechLevel
+                bonusPerTechLevel={'bonusPerTechLevel' in data ? data.bonusPerTechLevel : undefined}
+                spacing={spacing}
+                compact={compact}
+                techLevel={techLevel}
+              />
+              {effects?.map((effect, index) => (
+                <ConditionalSheetInfo
+                  key={index}
+                  propertyName="effects"
+                  label={effect.label}
+                  value={effect.value}
                   data={data}
                   compact={compact}
                   fontSize={fontSize}
-                  borderColor={borderColor}
+                  headerBg={headerBg}
                 />
-                {/* Guide steps — data-shape driven */}
-                {'steps' in data && Array.isArray(data.steps) && data.steps.length > 0 && (
-                  <GuideStepsDisplay
-                    steps={data.steps}
-                    compact={compact}
-                    headerBg={headerBg}
-                    headerBgColor={headerBgColor}
-                    fontSize={fontSize}
-                    interactive={interactive}
-                    renderEntityListing={(
-                      entityData,
-                      entitySchemaName,
-                      key,
-                      isListing,
-                      forceCompact,
-                      entityControls,
-                      entityDisabled
-                    ) => (
-                      <GuideEntityListing
-                        key={key}
-                        data={entityData as SURefEntity}
-                        schemaName={entitySchemaName as SURefEnumSchemaName}
-                        compact={forceCompact ?? isListing}
-                        listing={isListing}
-                        disabled={!!entityDisabled}
-                        controls={entityControls}
-                      />
-                    )}
+              ))}
+
+              <ReferenceEntityRequirementDisplay data={data} compact={compact} />
+              {table && !hide.rollTable && (
+                <div className="relative z-10 rounded-md">
+                  <RollTable
+                    disabled={disabled}
+                    table={table}
+                    showCommand
+                    compact
+                    tableName={chassisName != null ? String(chassisName) : undefined}
                   />
-                )}
-                {/* Non-compact: chassis abilities render before actions */}
-                {!compact && !hide.actions && chassisAbilitiesBlock}
-              </>
-            )}
-            {(!hide.actions || (compact && schemaName !== 'titans' && !rightContent)) && (
-              <ReferenceEntityActions
-                suppressActions={hasChassisAbilities}
-                spacing={spacing}
-                compact={compact}
-                actionsToDisplay={actionsToDisplay}
-                headerBg={headerBg}
-                sectionHeaders={schemaName === 'crawlers'}
-              />
-            )}
-            {/* Titan-equipped systems/modules render as compact listings under actions */}
-            {titanSystems && titanSystems.length > 0 && (
-              <>
-                <SectionSeparator label="Mech Systems" compact={compact} />
-                <div className={cn('flex flex-col', spacing.sectionSpaceYClass)}>
-                  {titanSystems.map((system) => (
-                    <PatternEquipmentItem key={`titan-system-${system.id}`} data={system} />
-                  ))}
                 </div>
-              </>
-            )}
-            {titanModules && titanModules.length > 0 && (
-              <>
-                <SectionSeparator label="Mech Modules" compact={compact} />
-                <div className={cn('flex flex-col', spacing.sectionSpaceYClass)}>
-                  {titanModules.map((mod) => (
-                    <PatternEquipmentItem key={`titan-module-${mod.id}`} data={mod} />
-                  ))}
-                </div>
-              </>
-            )}
-            {/* Compact: chassis abilities render after actions */}
-            {compact && chassisAbilitiesBlock}
-            <ReferenceEntityChoices
-              data={data}
-              spacing={spacing}
-              fontSize={fontSize}
-              hideChoices={hide.choices}
-              compact={compact}
-              choiceInputRenderer={choiceInputRenderer}
-            />
-            <ReferenceEntityIntegratedSystems data={data} compact={compact} />
-
-            <ReferenceEntityBonusPerTechLevel
-              bonusPerTechLevel={'bonusPerTechLevel' in data ? data.bonusPerTechLevel : undefined}
-              spacing={spacing}
-              compact={compact}
-              techLevel={techLevel}
-            />
-            {effects?.map((effect, index) => (
-              <ConditionalSheetInfo
-                key={index}
-                propertyName="effects"
-                label={effect.label}
-                value={effect.value}
+              )}
+              <ReferenceEntityFormation
                 data={data}
+                headerFontSize={fontSize.lg}
                 compact={compact}
-                fontSize={fontSize}
-                headerBg={headerBg}
               />
-            ))}
-
-            <ReferenceEntityRequirementDisplay data={data} compact={compact} />
-            {table && !hide.rollTable && (
-              <div className="relative z-10 rounded-md">
-                <RollTable
-                  disabled={disabled}
-                  table={table}
-                  showCommand
-                  compact
-                  tableName={chassisName != null ? String(chassisName) : undefined}
-                />
+              {(() => {
+                const npcBlock = (
+                  <>
+                    <ReferenceEntityNpcDisplay
+                      data={data}
+                      compact={compact}
+                      embedded
+                      fontSize={fontSize}
+                      spacing={spacing}
+                      npcChildren={npcConfig?.children}
+                      hpSlot={npcConfig?.hpSlot}
+                      damaged={npcConfig?.damaged ?? damaged}
+                      headerBg={headerBg}
+                      headerBgColor={headerBgColor}
+                      npcName={npcConfig?.name}
+                      onNpcNameChange={npcConfig?.onNameChange}
+                      onNpcNameBlur={npcConfig?.onNameBlur}
+                      readOnly={npcConfig?.readOnly}
+                      showSeparator={npcConfig?.showNpcSeparator}
+                      hideHeader={npcConfig?.hideNpcHeader}
+                    />
+                    {npcConfig?.afterContent}
+                  </>
+                )
+                return rightContent ? (
+                  <>
+                    <div
+                      className={
+                        npcPosition === 'right'
+                          ? 'md:float-right md:ml-4 md:w-1/2 md:border-l md:border-su-grey-light md:pl-4'
+                          : 'md:float-left md:mr-4 md:w-1/2 md:border-r md:border-su-grey-light md:pr-4'
+                      }
+                      style={{ shapeOutside: 'margin-box' }}
+                    >
+                      {npcBlock}
+                    </div>
+                    {rightContent}
+                    <div className="clear-both !mt-0" />
+                  </>
+                ) : (
+                  npcBlock
+                )
+              })()}
+              {shouldShowExtraContent && (
+                <>
+                  {droneEntity && (
+                    <>
+                      <SectionSeparator label="Drone" compact={compact} />
+                      <ReferenceEntityDisplay
+                        data={droneEntity}
+                        compact
+                        hide={{ actions: true, patterns: true }}
+                        choiceInputRenderer={choiceInputRenderer}
+                      />
+                    </>
+                  )}
+                  {!hide.patterns && (
+                    <ReferenceEntityChassisPatterns
+                      patterns={'patterns' in data ? data.patterns : undefined}
+                      headerFontSize={fontSize.lg}
+                      chassisEntity={data}
+                    />
+                  )}
+                  {!hide.damagedEffect && 'damagedEffect' in data && data.damagedEffect && (
+                    <ConditionalSheetInfo
+                      propertyName="damagedEffect"
+                      labelBgColor="text-brand-srd"
+                      label="Damaged Effect"
+                      data={data}
+                      compact={compact}
+                      fontSize={fontSize}
+                      headerBg={headerBg}
+                    />
+                  )}
+                  <ReferenceEntityGrants data={data} spacing={spacing} />
+                </>
+              )}
+              {/* Caller-provided slot — renders whenever supplied, independent of
+                the actions-gated extra content above. Compact selection cards
+                (e.g. the pilot class wizard) hide actions but still need their
+                injected ability/tree disclosure to appear. */}
+              {afterExtraContent && (
+                <>
+                  <div className="clear-both" />
+                  {afterExtraContent}
+                </>
+              )}
+              {afterChoicesContent && (
+                <>
+                  <div className="clear-both" />
+                  {afterChoicesContent}
+                </>
+              )}
+              <div className="clear-both" />
+            </div>
+            {damageOverlayText && (
+              <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center rounded-b-md bg-black/50 p-4">
+                <div className="rounded border-2 border-red-500/60 bg-red-800/90 px-4 py-3 text-center shadow-lg">
+                  <Text variant="pseudoheader" as="span" className="text-xs uppercase text-white">
+                    Damaged
+                  </Text>
+                  <Text variant="default" className="mt-1 text-sm leading-snug text-red-100">
+                    {damageOverlayText}
+                  </Text>
+                </div>
               </div>
             )}
-            <ReferenceEntityFormation data={data} headerFontSize={fontSize.lg} compact={compact} />
-            {(() => {
-              const npcBlock = (
-                <>
-                  <ReferenceEntityNpcDisplay
-                    data={data}
-                    compact={compact}
-                    embedded
-                    fontSize={fontSize}
-                    spacing={spacing}
-                    npcChildren={npcConfig?.children}
-                    hpSlot={npcConfig?.hpSlot}
-                    damaged={npcConfig?.damaged ?? damaged}
-                    headerBg={headerBg}
-                    headerBgColor={headerBgColor}
-                    npcName={npcConfig?.name}
-                    onNpcNameChange={npcConfig?.onNameChange}
-                    onNpcNameBlur={npcConfig?.onNameBlur}
-                    readOnly={npcConfig?.readOnly}
-                    showSeparator={npcConfig?.showNpcSeparator}
-                    hideHeader={npcConfig?.hideNpcHeader}
-                  />
-                  {npcConfig?.afterContent}
-                </>
-              )
-              return rightContent ? (
-                <>
-                  <div
-                    className={
-                      npcPosition === 'right'
-                        ? 'md:float-right md:ml-4 md:w-1/2 md:border-l md:border-su-grey-light md:pl-4'
-                        : 'md:float-left md:mr-4 md:w-1/2 md:border-r md:border-su-grey-light md:pr-4'
-                    }
-                    style={{ shapeOutside: 'margin-box' }}
-                  >
-                    {npcBlock}
-                  </div>
-                  {rightContent}
-                  <div className="clear-both !mt-0" />
-                </>
-              ) : (
-                npcBlock
-              )
-            })()}
-            {shouldShowExtraContent && (
-              <>
-                {droneEntity && (
-                  <>
-                    <SectionSeparator label="Drone" compact={compact} />
-                    <ReferenceEntityDisplay
-                      data={droneEntity}
-                      compact
-                      hide={{ actions: true, patterns: true }}
-                      choiceInputRenderer={choiceInputRenderer}
-                    />
-                  </>
-                )}
-                {!hide.patterns && (
-                  <ReferenceEntityChassisPatterns
-                    patterns={'patterns' in data ? data.patterns : undefined}
-                    headerFontSize={fontSize.lg}
-                    chassisEntity={data}
-                  />
-                )}
-                {!hide.damagedEffect && 'damagedEffect' in data && data.damagedEffect && (
-                  <ConditionalSheetInfo
-                    propertyName="damagedEffect"
-                    labelBgColor="text-brand-srd"
-                    label="Damaged Effect"
-                    data={data}
-                    compact={compact}
-                    fontSize={fontSize}
-                    headerBg={headerBg}
-                  />
-                )}
-                {afterExtraContent && (
-                  <>
-                    <div className="clear-both" />
-                    {afterExtraContent}
-                  </>
-                )}
-                <ReferenceEntityGrants data={data} spacing={spacing} />
-              </>
-            )}
-            {afterChoicesContent && (
-              <>
-                <div className="clear-both" />
-                {afterChoicesContent}
-              </>
-            )}
-            <div className="clear-both" />
           </div>
+          {/* Footer — full-width accent bar (design itun.css .ec__foot: no
+              margin, accent background spanning the full card width). */}
           {interactive?.renderFooter ? (
             <div
               className={cn('w-full py-3', headerBg || 'bg-su-white', sourceFooterStyle.className)}
@@ -623,25 +714,12 @@ export function ReferenceEntityDisplayContent({
                 ...spacing.contentPaddingXStyle,
                 ...(headerBgColor ? { backgroundColor: headerBgColor } : {}),
                 ...sourceFooterStyle.style,
-                borderTop: `${compact ? 2 : 3}px solid black`,
               }}
             >
               {interactive.renderFooter()}
             </div>
           ) : (
             footer
-          )}
-          {damageOverlayText && (
-            <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center rounded-b-md bg-black/50 p-4">
-              <div className="rounded border-2 border-red-500/60 bg-red-800/90 px-4 py-3 text-center shadow-lg">
-                <Text variant="pseudoheader" as="span" className="text-xs uppercase text-white">
-                  Damaged
-                </Text>
-                <Text variant="default" className="mt-1 text-sm leading-snug text-red-100">
-                  {damageOverlayText}
-                </Text>
-              </div>
-            </div>
           )}
         </div>
       )}

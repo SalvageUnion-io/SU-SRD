@@ -125,10 +125,7 @@ export function BlockContentRendererView({
               </div>
             )}
             {contentBlocks.length > 0 && (
-              <div
-                className={compact ? 'pl-2' : 'pl-3'}
-                style={{ borderLeft: `3px solid ${borderColor}` }}
-              >
+              <div>
                 {contentBlocks.map(({ block, originalIndex }) => (
                   <ContentBlock
                     key={originalIndex}
@@ -187,18 +184,10 @@ function ContentBlock({
       return (
         <div
           className={cn(
-            'mb-1 break-words pl-2 font-medium leading-snug whitespace-normal text-pretty text-su-black',
+            'mb-1 break-words font-medium leading-snug whitespace-normal text-pretty text-su-black',
             fontSize
           )}
-          style={{
-            overflowWrap: 'break-word',
-            ...(borderColor
-              ? {
-                  borderLeft: `3px solid ${borderColor}`,
-                  paddingLeft: compact ? '0.5rem' : '0.75rem',
-                }
-              : {}),
-          }}
+          style={{ overflowWrap: 'break-word' }}
         >
           {parsedValue}
         </div>
@@ -220,22 +209,19 @@ function ContentBlock({
 
     case 'list-item':
       return (
-        <div
-          className={cn('mb-2 pl-2 font-medium leading-snug text-pretty text-su-black', fontSize)}
-          style={
-            borderColor
-              ? {
-                  borderLeft: `3px solid ${borderColor}`,
-                  paddingLeft: compact ? '0.5rem' : '0.75rem',
-                }
-              : undefined
-          }
-        >
+        <div className={cn('mb-2 font-medium leading-snug text-pretty text-su-black', fontSize)}>
           {block.label ? (
             <>
-              <Text as="span" className="font-bold">
-                - {block.label}:
-              </Text>
+              <span className="flex items-baseline gap-2">
+                <span
+                  aria-hidden="true"
+                  className="mt-[0.45em] inline-block size-[5px] shrink-0 self-start"
+                  style={{ backgroundColor: borderColor ?? 'currentColor' }}
+                />
+                <Text as="span" className="font-bold">
+                  {block.label}:
+                </Text>
+              </span>
               <div className="mt-1 mb-2 pl-4">
                 <Text as="span" className="mr-1 font-bold">
                   &#8226;
@@ -244,12 +230,14 @@ function ContentBlock({
               </div>
             </>
           ) : (
-            <>
-              <Text as="span" className="mr-1 font-bold">
-                -
-              </Text>
-              {parsedValue}
-            </>
+            <span className="flex items-baseline gap-2">
+              <span
+                aria-hidden="true"
+                className="mt-[0.45em] inline-block size-[5px] shrink-0 self-start"
+                style={{ backgroundColor: borderColor ?? 'currentColor' }}
+              />
+              <span className="min-w-0">{parsedValue}</span>
+            </span>
           )}
         </div>
       )
@@ -270,18 +258,10 @@ function ContentBlock({
       return (
         <div
           className={cn(
-            'mb-1 break-words pl-2 font-normal italic leading-snug whitespace-normal text-pretty text-su-grey-dark',
+            'mb-1 break-words font-normal italic leading-snug whitespace-normal text-pretty text-su-grey-dark',
             fontSize
           )}
-          style={{
-            overflowWrap: 'break-word',
-            ...(borderColor
-              ? {
-                  borderLeft: `3px solid ${borderColor}`,
-                  paddingLeft: compact ? '0.5rem' : '0.75rem',
-                }
-              : {}),
-          }}
+          style={{ overflowWrap: 'break-word' }}
         >
           {parsedValue}
         </div>
@@ -289,17 +269,7 @@ function ContentBlock({
 
     case 'label':
       return (
-        <div
-          className="pl-2"
-          style={
-            borderColor
-              ? {
-                  borderLeft: `3px solid ${borderColor}`,
-                  paddingLeft: compact ? '0.5rem' : '0.75rem',
-                }
-              : undefined
-          }
-        >
+        <div>
           {block.label && (
             <Text variant="pseudoheader" className="mb-1 text-xs">
               {block.label}
@@ -314,17 +284,7 @@ function ContentBlock({
     default:
       // Fallback for unknown types - render as paragraph
       return (
-        <div
-          className={cn('pl-2 font-medium leading-snug text-pretty text-su-black', fontSize)}
-          style={
-            borderColor
-              ? {
-                  borderLeft: `3px solid ${borderColor}`,
-                  paddingLeft: compact ? '0.5rem' : '0.75rem',
-                }
-              : undefined
-          }
-        >
+        <div className={cn('font-medium leading-snug text-pretty text-su-black', fontSize)}>
           {parsedValue}
         </div>
       )

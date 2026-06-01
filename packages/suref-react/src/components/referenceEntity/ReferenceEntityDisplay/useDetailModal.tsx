@@ -56,39 +56,44 @@ export function useDetailModal(
       <Dialog.Root open={open} onOpenChange={setOpen}>
         <Dialog.Portal>
           <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/60 data-[open]:animate-in data-[closed]:animate-out data-[closed]:fade-out-0 data-[open]:fade-in-0" />
-          <Dialog.Popup className="fixed inset-0 z-50 m-auto h-fit max-h-[calc(100vh-4rem)] w-full max-w-6xl overflow-y-auto bg-transparent outline-none">
+          <Dialog.Popup className="fixed inset-0 z-50 m-auto h-fit max-h-[calc(100vh-4rem)] w-full max-w-6xl bg-transparent px-3 outline-none">
+            {/* Overflow lives on the inner scroll wrapper so the close button
+                (a sibling) isn't clipped by it. SRD black-stamp square button
+                floats just outside the card's top-right corner. */}
             <div className="relative">
-              <Dialog.Close className="absolute -top-2 -right-2 z-[60] rounded-full bg-su-black/70 p-2 text-su-white opacity-70 transition-opacity hover:opacity-100 cursor-pointer">
-                <X className="h-6 w-6" aria-hidden="true" />
+              <Dialog.Close className="absolute -top-3 right-1 z-[60] flex h-9 w-9 cursor-pointer items-center justify-center rounded-[3px] border-2 border-su-white bg-su-black text-su-white shadow-lg transition-colors hover:bg-su-orange-dark">
+                <X className="h-5 w-5" aria-hidden="true" />
                 <span className="sr-only">Close</span>
               </Dialog.Close>
-              <Dialog.Title className="sr-only">{title}</Dialog.Title>
-              <Dialog.Description className="sr-only">Entity display details</Dialog.Description>
-              <ReferenceEntityDisplayContent
-                data={data}
-                schemaName={schemaName}
-                compact={false}
-                listing={false}
-                dimHeader={false}
-                disabled={false}
-                hide={options?.hide}
-                controls={options?.modalControls}
-                label={
-                  schemaName === 'abilities' && 'tree' in data && data.tree
-                    ? `${data.tree} Tree`
-                    : options?.label
-                }
-                titleOverride={options?.titleOverride}
-                subtitleExtra={options?.subtitleExtra}
-                statsOverride={options?.statsOverride}
-                primaryStatsOnly={options?.primaryStatsOnly}
-                abilitiesSection={options?.abilitiesSection}
-                afterExtraContent={options?.afterExtraContent}
-                afterChoicesContent={options?.afterChoicesContent}
-                footerOverride={options?.footerOverride}
-              >
-                {options?.children}
-              </ReferenceEntityDisplayContent>
+              <div className="max-h-[calc(100vh-4rem)] overflow-y-auto">
+                <Dialog.Title className="sr-only">{title}</Dialog.Title>
+                <Dialog.Description className="sr-only">Entity display details</Dialog.Description>
+                <ReferenceEntityDisplayContent
+                  data={data}
+                  schemaName={schemaName}
+                  compact={false}
+                  listing={false}
+                  dimHeader={false}
+                  disabled={false}
+                  hide={options?.hide}
+                  controls={options?.modalControls}
+                  label={
+                    schemaName === 'abilities' && 'tree' in data && data.tree
+                      ? `${data.tree} Tree`
+                      : options?.label
+                  }
+                  titleOverride={options?.titleOverride}
+                  subtitleExtra={options?.subtitleExtra}
+                  statsOverride={options?.statsOverride}
+                  primaryStatsOnly={options?.primaryStatsOnly}
+                  abilitiesSection={options?.abilitiesSection}
+                  afterExtraContent={options?.afterExtraContent}
+                  afterChoicesContent={options?.afterChoicesContent}
+                  footerOverride={options?.footerOverride}
+                >
+                  {options?.children}
+                </ReferenceEntityDisplayContent>
+              </div>
             </div>
           </Dialog.Popup>
         </Dialog.Portal>

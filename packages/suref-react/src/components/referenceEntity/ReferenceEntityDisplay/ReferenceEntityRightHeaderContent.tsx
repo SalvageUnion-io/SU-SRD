@@ -21,8 +21,9 @@ export function ReferenceEntityRightHeaderContent({
   return (
     <div
       className={cn(
-        'pr-1.5 text-pretty text-right font-medium italic leading-tight text-su-white',
-        fontSize.xs
+        // White, non-italic, semibold flavor — no backing chip, no drop shadow.
+        'pr-1.5 text-pretty text-right font-cond font-semibold leading-none text-su-white',
+        fontSize.sm
       )}
     >
       {parsedDescription}

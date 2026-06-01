@@ -15,7 +15,9 @@ import type {
  */
 export const getReferenceEntitySpacing = (compact: boolean) => {
   const contentPadding = compact ? 0.5 : 0.75
-  const contentPaddingX = compact ? 1 : 1.5
+  // Tighter horizontal body padding (closer to the design's ~13px) so the text
+  // content stretches further toward the white body-box edges.
+  const contentPaddingX = compact ? 0.7 : 0.9
 
   return {
     /** Gap between small elements: 1.5 (compact) or 2 (normal) */

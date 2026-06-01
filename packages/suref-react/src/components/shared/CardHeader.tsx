@@ -35,7 +35,7 @@ export function CardHeader({
         variant="pseudoheader"
         as={titleAs}
         className={cn(
-          'uppercase tracking-[-0.02em]',
+          'uppercase tracking-[0.01em]',
           compact ? 'py-[3px] text-base' : 'text-[1.75rem]',
           disabled && 'opacity-50'
         )}
@@ -50,36 +50,40 @@ export function CardHeader({
   const hasControls = controls && controls.length > 0
   const hasRightSide = lightweight ? hasControls : !!rightContent || hasControls
 
-  // Compact + right side: single nowrap flex container so left/right never line-break.
-  // flex ratios: left shrinks 1.5× faster, right grows 1.2× more → mild right-side preference.
-  if (compact && hasRightSide) {
-    return (
-      <div className="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-1 lg:flex-nowrap">
-        <div className="flex min-w-0 max-w-[70%] flex-[2_1_auto] items-center gap-0.5 md:max-w-[70%]">
-          {!lightweight && leftContent}
-          <div className="flex min-w-0 flex-col justify-center gap-0.5 overflow-visible">
-            {titleElement}
-            {!lightweight && subtitle}
-          </div>
-        </div>
-        <div className="flex min-w-0 basis-full items-center justify-end gap-1 md:basis-auto md:max-w-[60%] md:flex-[1_2_auto]">
-          {!lightweight && rightContent}
-          {hasControls && <ControlButtons controls={controls} compact={compact} />}
-        </div>
-      </div>
-    )
-  }
-
-  // Non-compact: title takes full width, right content wraps naturally via
-  // parent's flex-wrap when space is tight. No grid or forced splitting —
-  // the inline box-decoration-clone title cannot wrap in constrained flex/grid cells.
+  // Unified header for compact AND non-compact:
+  //  - Left: the TL/level box vertically centred to the left of the title +
+  //    data-row stack (which carries the title and the data/subtitle row).
+  //  - Right: proper right content (flavor / chassis stats) as its own column
+  //    that splits the whole header.
+  // The left (title + data) gets flex preference; the right is capped at 60%
+  // so it can stretch into the left when the left is short, and shrinks back
+  // when the left needs the room.
   return (
-    <>
-      <div className={cn('flex min-w-0 flex-1 items-center', compact ? 'gap-0.5' : 'gap-1')}>
+    <div className="flex w-full min-w-0 items-center justify-between gap-2">
+      <div
+        className={cn(
+          'flex min-w-0 items-center',
+          // With a right-side flavor: claim only the content and cap the width so
+          // a wide data row can't crush the flavor. With no flavor (e.g.
+          // systems/modules — their only right element is the separate stats
+          // column), let the left stretch to fill the header so the data row uses
+          // the full width instead of wrapping beside a big empty gap.
+          hasRightSide ? 'flex-[0_1_auto]' : 'flex-1',
+          // Cap the left so a flavored ability's data row can't crush the flavor.
+          // The cap is what the left *reserves*, not what it *uses* — when the
+          // data row wraps short of the cap, the freed width goes to the flavor.
+          // 50/60 (was 60/70) keeps the data row's left-preference but hands the
+          // flavor a fairer share when the row doesn't fill its ceiling.
+          hasRightSide && (compact ? 'max-w-[60%]' : 'max-w-[50%]'),
+          compact ? 'gap-0.5' : 'gap-1'
+        )}
+      >
         {!lightweight && leftContent}
+        {/* flex-1 so the title/data column fills the (stretched) left block —
+            otherwise it stays content-sized and the data row wraps narrow. */}
         <div
           className={cn(
-            'flex min-w-0 flex-col justify-center overflow-visible',
+            'flex min-w-0 flex-1 flex-col overflow-visible',
             compact ? 'gap-0.5' : 'gap-1'
           )}
         >
@@ -88,11 +92,18 @@ export function CardHeader({
         </div>
       </div>
       {hasRightSide && (
-        <div className="flex max-w-[40%] items-start justify-end gap-1">
+        <div
+          // flex-1 == flex: 1 1 0% — a ZERO basis is the key: the right column
+          // doesn't claim its content width up front (which would push/compete
+          // with the left). The left (flex-[0_1_auto]) claims its content first;
+          // the right then grows into whatever space is left over — stretching
+          // into empty space when the left is short, yielding when it isn't.
+          className="flex min-w-0 flex-1 items-start justify-end gap-1"
+        >
           {!lightweight && rightContent}
           {hasControls && <ControlButtons controls={controls} compact={compact} />}
         </div>
       )}
-    </>
+    </div>
   )
 }

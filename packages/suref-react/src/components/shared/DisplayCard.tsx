@@ -37,6 +37,10 @@ type DisplayCardProps = {
   children?: ReactNode
   /** Optional pseudoheader label above the card */
   label?: string
+  /** Optional small badge rendered as a second stamp beside the label (e.g. ability level) */
+  labelBadge?: string
+  /** Optional node rendered FIRST in the label callout row (e.g. a "Recommended" stamp) */
+  labelLead?: ReactNode
   /** Compact sizing: reduced min-height, padding, border width, font/stat sizes */
   compact?: boolean
   /** Header-only rendering: hides body, footer, and tabs. Orthogonal to compact. */
@@ -86,6 +90,8 @@ export function DisplayCard({
   footerContent,
   children,
   label,
+  labelBadge,
+  labelLead,
   compact: compactProp,
   listing: listingProp,
   onCardClick,
@@ -96,7 +102,7 @@ export function DisplayCard({
   cardStyle,
   headerStyle: headerStyleProp,
   footerStyle: footerStyleProp,
-  borderColor: borderColorProp = 'black',
+  borderColor: borderColorProp = 'var(--color-su-black)',
   headerTestId,
   stickyHeader = false,
   tabs,
@@ -175,7 +181,7 @@ export function DisplayCard({
       role={resolvedCardClick ? 'button' : undefined}
       tabIndex={resolvedCardClick ? 0 : undefined}
       className={cn(
-        'relative flex shrink-0 flex-col overflow-visible rounded-md',
+        'relative flex shrink-0 flex-col overflow-visible rounded-[3px]',
         cardStyle?.className || 'shadow-lg',
         disabled && 'opacity-50',
         // Focus ring for button mode: uses a dark inner ring + white outer offset
@@ -193,23 +199,25 @@ export function DisplayCard({
       onClick={resolvedCardClick}
       onKeyDown={resolvedCardClick ? handleCardKeyDown : undefined}
     >
-      {label && !isCompact && (
-        <Text
-          variant="pseudoheader"
-          as="span"
-          className="absolute z-30 ml-3 -mt-2 text-sm uppercase"
+      {(labelLead || label || labelBadge) && (
+        <div
+          className={cn(
+            'absolute z-30 ml-3 flex items-center gap-1',
+            isCompact ? 'top-0 -translate-y-1/2' : '-mt-2'
+          )}
         >
-          {label}
-        </Text>
-      )}
-      {label && isCompact && (
-        <Text
-          variant="pseudoheader"
-          as="span"
-          className="absolute top-0 z-30 ml-3 -translate-y-1/2 whitespace-nowrap text-xs uppercase"
-        >
-          {label}
-        </Text>
+          {labelLead}
+          {label && (
+            <Text variant="pseudoheader" as="span" className="whitespace-nowrap text-xs uppercase">
+              {label}
+            </Text>
+          )}
+          {labelBadge && (
+            <Text variant="pseudoheader" as="span" className="whitespace-nowrap text-xs uppercase">
+              {labelBadge}
+            </Text>
+          )}
+        </div>
       )}
 
       {controls && (
@@ -232,7 +240,7 @@ export function DisplayCard({
           isSticky ? 'overflow-visible' : 'overflow-hidden',
           !isListing && 'flex-col'
         )}
-        style={{ borderRadius: `calc(0.375rem - ${borderWidth}px)` }}
+        style={{ borderRadius: `calc(3px - ${borderWidth}px)` }}
       >
         {/* Header wrapper — contains content row + optional tab bar.
             When stickyHeader, both stick together. headerRef measures the full height. */}
@@ -247,9 +255,14 @@ export function DisplayCard({
           <div
             className={cn(
               'flex w-full flex-wrap items-center justify-between gap-2 overflow-visible',
-              isCompact ? 'min-h-[60px] px-0.5 py-1' : 'min-h-[80px] px-1.5 py-1.5',
-              !isCompact && label && 'pb-4 pt-4',
-              isCompact && label && 'pt-2',
+              // px-3 (12px) aligns the header content L/R extremes with the
+              // inset white body block (which uses mx-3) and the footer.
+              isCompact ? 'min-h-[60px] px-3 py-1' : 'min-h-[80px] px-3 py-1.5',
+              // Extra top padding when the floating callout row is present so the
+              // title clears it instead of bunching up. Compact needs more
+              // because its callout sits centred on the top edge.
+              !isCompact && (labelLead || label || labelBadge) && 'pb-4 pt-4',
+              isCompact && (labelLead || label || labelBadge) && 'pt-3.5',
               actualHeaderBg,
               headerStyleProp?.className,
               headerStyleProp?.className && 'h-full'
@@ -257,9 +270,6 @@ export function DisplayCard({
             style={{
               ...(headerBgColor ? { backgroundColor: headerBgColor } : {}),
               ...headerStyleProp?.style,
-              ...(!isListing && (children || footerContent || hasTabs)
-                ? { borderBottom: `${borderWidth}px solid ${effectiveBorderColor}` }
-                : {}),
             }}
             data-testid={headerTestId}
           >
@@ -379,7 +389,6 @@ export function DisplayCard({
                 ? { backgroundColor: headerBgColor }
                 : {}),
               ...footerStyleProp?.style,
-              borderTop: `${borderWidth}px solid ${effectiveBorderColor}`,
             }}
           >
             {footerContent}
