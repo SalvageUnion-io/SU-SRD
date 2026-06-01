@@ -166,3 +166,45 @@ jobs:
 
       - name: Build discord-bot
         run: bun --filter @suref/discord-bot build
+
+  e2e-itun:
+    # End-to-end Playwright suite against ITUN — runs the full e2e/ suite
+    # against a production-built preview server (vite build + vite preview)
+    # in a real Chromium session. The data-hydration race that previously
+    # plagued the flow specs is fixed by a root-level `GameDataReady`
+    # Suspense barrier that preloads salvageunion-reference and sets a
+    # `body[data-game-data-ready]` marker the test helper waits on.
+    needs: [build-package]
+    runs-on: ubuntu-latest
+    # Serial Playwright suite (workers:1) over ~32 specs against a freshly-built
+    # preview server runs ~12 min on a GHA runner; the prior 20 min cap killed
+    # the run mid-suite. 30 min leaves headroom for the build + occasional retry.
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Bun
+        uses: ./.github/actions/setup-bun
+
+      - name: Download package dist
+        uses: actions/download-artifact@v4
+        with:
+          name: package-dist
+          path: packages/salvageunion-reference/dist/
+
+      - name: Install Playwright browsers (Chromium)
+        working-directory: apps/in-the-union-now
+        run: bunx playwright install --with-deps chromium
+
+      - name: Run E2E tests
+        working-directory: apps/in-the-union-now
+        run: bunx playwright test
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: apps/in-the-union-now/playwright-report/
+          retention-days: 7

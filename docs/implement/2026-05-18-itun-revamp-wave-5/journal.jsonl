@@ -1,0 +1,4 @@
+{"ts":"2026-05-18T18:00:00Z","event":"phase_bootstrap_started","run_id":"2026-05-18-itun-revamp-wave-5","base_branch":"yitun-revamp","base_sha":"473e7c3789ec90cb74229fd8032418fd4ae07668","issues":[198,202,203,204],"parallel_concurrency":3}
+{"ts":"2026-05-18T18:01:00Z","event":"phase_bootstrap_complete","run_id":"2026-05-18-itun-revamp-wave-5"}
+{"ts":"2026-05-18T18:02:00Z","event":"phase_define_complete","run_id":"2026-05-18-itun-revamp-wave-5","ac_count":6}
+{"ts":"2026-05-18T18:03:00Z","event":"phase_scope_complete","run_id":"2026-05-18-itun-revamp-wave-5","cycle_count":3}

@@ -1,36 +1,51 @@
 import { defineConfig } from 'vite'
-import type { PluginOption } from 'vite'
-import { tanstackStart } from '@tanstack/react-start/plugin/vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
-import netlify from '@netlify/vite-plugin-tanstack-start'
-import { visualizer } from 'rollup-plugin-visualizer'
+import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
+import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
-export default defineConfig(({ mode }) => ({
+export default defineConfig({
   plugins: [
+    TanStackRouterVite({
+      routesDirectory: './src/routes',
+      generatedRouteTree: './src/routeTree.gen.ts',
+    }),
     tailwindcss(),
-    tanstackStart(),
     react({
       jsxRuntime: 'automatic',
     }),
-    netlify(),
-    mode === 'analyze' &&
-      visualizer({
-        open: true,
-        filename: './dist/stats.html',
-        gzipSize: true,
-        brotliSize: true,
-      }),
-  ].filter(Boolean) as PluginOption[],
-  // Note: manualChunks not used — TanStack Start manages its own client/server
-  // chunk splitting, and custom manualChunks conflicts with Rollup's SSR bundling.
-  resolve: {
-    conditions: ['development'],
-  },
+    VitePWA({
+      registerType: 'autoUpdate',
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+      },
+      manifest: {
+        name: 'ITUN — In The Union Now',
+        short_name: 'ITUN',
+        description: 'Local-first character builder for Salvage Union',
+        theme_color: '#000000',
+        background_color: '#ffffff',
+        display: 'standalone',
+        icons: [
+          // Placeholder icons — replace with real artwork before M3 launch.
+          {
+            src: 'icon-192.png',
+            sizes: '192x192',
+            type: 'image/png',
+          },
+          {
+            src: 'icon-512.png',
+            sizes: '512x512',
+            type: 'image/png',
+          },
+        ],
+      },
+    }),
+  ],
   server: {
     watch: {
       ignored: ['**/routeTree.gen.ts'],
     },
   },
-}))
+})

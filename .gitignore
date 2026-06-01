@@ -65,3 +65,8 @@ apps/suref-web/.vite
 # tooling (tools/rules-digest/, tools/extract-rules.ts) lives in git.
 rules/*
 docs/rules/
+
+# Playwright artifacts (per-app)
+apps/in-the-union-now/playwright-report
+apps/in-the-union-now/test-results
+.design-bundle/

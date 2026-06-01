@@ -9,428 +9,244 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
-import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
-import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
-import { Route as AuthenticatedPilotsNewRouteImport } from './routes/_authenticated/pilots/new'
-import { Route as AuthenticatedPilotsPilotIdRouteImport } from './routes/_authenticated/pilots/$pilotId'
-import { Route as AuthenticatedPatternsNewRouteImport } from './routes/_authenticated/patterns/new'
-import { Route as AuthenticatedPatternsPatternIdRouteImport } from './routes/_authenticated/patterns/$patternId'
-import { Route as AuthenticatedGamesNewRouteImport } from './routes/_authenticated/games/new'
-import { Route as AuthenticatedGamesGameIdRouteImport } from './routes/_authenticated/games/$gameId'
-import { Route as AuthenticatedPilotsPilotIdIndexRouteImport } from './routes/_authenticated/pilots/$pilotId/index'
-import { Route as AuthenticatedGamesGameIdIndexRouteImport } from './routes/_authenticated/games/$gameId/index'
-import { Route as AuthenticatedPilotsPilotIdCreateMechRouteImport } from './routes/_authenticated/pilots/$pilotId/create-mech'
-import { Route as AuthenticatedGamesGameIdMapRouteImport } from './routes/_authenticated/games/$gameId/map'
-import { Route as AuthenticatedGamesGameIdCreateCrawlerRouteImport } from './routes/_authenticated/games/$gameId/create-crawler'
-import { Route as AuthenticatedGamesGameIdCrawlerRouteImport } from './routes/_authenticated/games/$gameId/crawler'
+import { Route as IndexRouteImport } from './routes/index'
+import { Route as SIdRouteImport } from './routes/s/$id'
+import { Route as PilotsNewRouteImport } from './routes/pilots/new'
+import { Route as PilotsIdRouteImport } from './routes/pilots/$id'
+import { Route as MechsNewRouteImport } from './routes/mechs/new'
+import { Route as MechsIdRouteImport } from './routes/mechs/$id'
+import { Route as CrawlersNewRouteImport } from './routes/crawlers/new'
+import { Route as CrawlersIdRouteImport } from './routes/crawlers/$id'
+import { Route as MechsPatternsIndexRouteImport } from './routes/mechs/patterns/index'
+import { Route as SheetKindIdRouteImport } from './routes/sheet/$kind/$id'
 
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedRoute = AuthenticatedRouteImport.update({
-  id: '/_authenticated',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
+const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthCallbackRoute = AuthCallbackRouteImport.update({
-  id: '/auth/callback',
-  path: '/auth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedPilotsNewRoute = AuthenticatedPilotsNewRouteImport.update({
+const SIdRoute = SIdRouteImport.update({
+  id: '/s/$id',
+  path: '/s/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PilotsNewRoute = PilotsNewRouteImport.update({
   id: '/pilots/new',
   path: '/pilots/new',
-  getParentRoute: () => AuthenticatedRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedPilotsPilotIdRoute =
-  AuthenticatedPilotsPilotIdRouteImport.update({
-    id: '/pilots/$pilotId',
-    path: '/pilots/$pilotId',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedPatternsNewRoute =
-  AuthenticatedPatternsNewRouteImport.update({
-    id: '/patterns/new',
-    path: '/patterns/new',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedPatternsPatternIdRoute =
-  AuthenticatedPatternsPatternIdRouteImport.update({
-    id: '/patterns/$patternId',
-    path: '/patterns/$patternId',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedGamesNewRoute = AuthenticatedGamesNewRouteImport.update({
-  id: '/games/new',
-  path: '/games/new',
-  getParentRoute: () => AuthenticatedRoute,
+const PilotsIdRoute = PilotsIdRouteImport.update({
+  id: '/pilots/$id',
+  path: '/pilots/$id',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedGamesGameIdRoute =
-  AuthenticatedGamesGameIdRouteImport.update({
-    id: '/games/$gameId',
-    path: '/games/$gameId',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedPilotsPilotIdIndexRoute =
-  AuthenticatedPilotsPilotIdIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => AuthenticatedPilotsPilotIdRoute,
-  } as any)
-const AuthenticatedGamesGameIdIndexRoute =
-  AuthenticatedGamesGameIdIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => AuthenticatedGamesGameIdRoute,
-  } as any).lazy(() =>
-    import('./routes/_authenticated/games/$gameId/index.lazy').then(
-      (d) => d.Route,
-    ),
-  )
-const AuthenticatedPilotsPilotIdCreateMechRoute =
-  AuthenticatedPilotsPilotIdCreateMechRouteImport.update({
-    id: '/create-mech',
-    path: '/create-mech',
-    getParentRoute: () => AuthenticatedPilotsPilotIdRoute,
-  } as any).lazy(() =>
-    import('./routes/_authenticated/pilots/$pilotId/create-mech.lazy').then(
-      (d) => d.Route,
-    ),
-  )
-const AuthenticatedGamesGameIdMapRoute =
-  AuthenticatedGamesGameIdMapRouteImport.update({
-    id: '/map',
-    path: '/map',
-    getParentRoute: () => AuthenticatedGamesGameIdRoute,
-  } as any)
-const AuthenticatedGamesGameIdCreateCrawlerRoute =
-  AuthenticatedGamesGameIdCreateCrawlerRouteImport.update({
-    id: '/create-crawler',
-    path: '/create-crawler',
-    getParentRoute: () => AuthenticatedGamesGameIdRoute,
-  } as any).lazy(() =>
-    import('./routes/_authenticated/games/$gameId/create-crawler.lazy').then(
-      (d) => d.Route,
-    ),
-  )
-const AuthenticatedGamesGameIdCrawlerRoute =
-  AuthenticatedGamesGameIdCrawlerRouteImport.update({
-    id: '/crawler',
-    path: '/crawler',
-    getParentRoute: () => AuthenticatedGamesGameIdRoute,
-  } as any)
+const MechsNewRoute = MechsNewRouteImport.update({
+  id: '/mechs/new',
+  path: '/mechs/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MechsIdRoute = MechsIdRouteImport.update({
+  id: '/mechs/$id',
+  path: '/mechs/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CrawlersNewRoute = CrawlersNewRouteImport.update({
+  id: '/crawlers/new',
+  path: '/crawlers/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CrawlersIdRoute = CrawlersIdRouteImport.update({
+  id: '/crawlers/$id',
+  path: '/crawlers/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MechsPatternsIndexRoute = MechsPatternsIndexRouteImport.update({
+  id: '/mechs/patterns/',
+  path: '/mechs/patterns/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SheetKindIdRoute = SheetKindIdRouteImport.update({
+  id: '/sheet/$kind/$id',
+  path: '/sheet/$kind/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof AuthenticatedIndexRoute
-  '/login': typeof LoginRoute
-  '/auth/callback': typeof AuthCallbackRoute
-  '/games/$gameId': typeof AuthenticatedGamesGameIdRouteWithChildren
-  '/games/new': typeof AuthenticatedGamesNewRoute
-  '/patterns/$patternId': typeof AuthenticatedPatternsPatternIdRoute
-  '/patterns/new': typeof AuthenticatedPatternsNewRoute
-  '/pilots/$pilotId': typeof AuthenticatedPilotsPilotIdRouteWithChildren
-  '/pilots/new': typeof AuthenticatedPilotsNewRoute
-  '/games/$gameId/crawler': typeof AuthenticatedGamesGameIdCrawlerRoute
-  '/games/$gameId/create-crawler': typeof AuthenticatedGamesGameIdCreateCrawlerRoute
-  '/games/$gameId/map': typeof AuthenticatedGamesGameIdMapRoute
-  '/pilots/$pilotId/create-mech': typeof AuthenticatedPilotsPilotIdCreateMechRoute
-  '/games/$gameId/': typeof AuthenticatedGamesGameIdIndexRoute
-  '/pilots/$pilotId/': typeof AuthenticatedPilotsPilotIdIndexRoute
+  '/': typeof IndexRoute
+  '/crawlers/$id': typeof CrawlersIdRoute
+  '/crawlers/new': typeof CrawlersNewRoute
+  '/mechs/$id': typeof MechsIdRoute
+  '/mechs/new': typeof MechsNewRoute
+  '/pilots/$id': typeof PilotsIdRoute
+  '/pilots/new': typeof PilotsNewRoute
+  '/s/$id': typeof SIdRoute
+  '/sheet/$kind/$id': typeof SheetKindIdRoute
+  '/mechs/patterns/': typeof MechsPatternsIndexRoute
 }
 export interface FileRoutesByTo {
-  '/login': typeof LoginRoute
-  '/auth/callback': typeof AuthCallbackRoute
-  '/': typeof AuthenticatedIndexRoute
-  '/games/new': typeof AuthenticatedGamesNewRoute
-  '/patterns/$patternId': typeof AuthenticatedPatternsPatternIdRoute
-  '/patterns/new': typeof AuthenticatedPatternsNewRoute
-  '/pilots/new': typeof AuthenticatedPilotsNewRoute
-  '/games/$gameId/crawler': typeof AuthenticatedGamesGameIdCrawlerRoute
-  '/games/$gameId/create-crawler': typeof AuthenticatedGamesGameIdCreateCrawlerRoute
-  '/games/$gameId/map': typeof AuthenticatedGamesGameIdMapRoute
-  '/pilots/$pilotId/create-mech': typeof AuthenticatedPilotsPilotIdCreateMechRoute
-  '/games/$gameId': typeof AuthenticatedGamesGameIdIndexRoute
-  '/pilots/$pilotId': typeof AuthenticatedPilotsPilotIdIndexRoute
+  '/': typeof IndexRoute
+  '/crawlers/$id': typeof CrawlersIdRoute
+  '/crawlers/new': typeof CrawlersNewRoute
+  '/mechs/$id': typeof MechsIdRoute
+  '/mechs/new': typeof MechsNewRoute
+  '/pilots/$id': typeof PilotsIdRoute
+  '/pilots/new': typeof PilotsNewRoute
+  '/s/$id': typeof SIdRoute
+  '/sheet/$kind/$id': typeof SheetKindIdRoute
+  '/mechs/patterns': typeof MechsPatternsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/_authenticated': typeof AuthenticatedRouteWithChildren
-  '/login': typeof LoginRoute
-  '/auth/callback': typeof AuthCallbackRoute
-  '/_authenticated/': typeof AuthenticatedIndexRoute
-  '/_authenticated/games/$gameId': typeof AuthenticatedGamesGameIdRouteWithChildren
-  '/_authenticated/games/new': typeof AuthenticatedGamesNewRoute
-  '/_authenticated/patterns/$patternId': typeof AuthenticatedPatternsPatternIdRoute
-  '/_authenticated/patterns/new': typeof AuthenticatedPatternsNewRoute
-  '/_authenticated/pilots/$pilotId': typeof AuthenticatedPilotsPilotIdRouteWithChildren
-  '/_authenticated/pilots/new': typeof AuthenticatedPilotsNewRoute
-  '/_authenticated/games/$gameId/crawler': typeof AuthenticatedGamesGameIdCrawlerRoute
-  '/_authenticated/games/$gameId/create-crawler': typeof AuthenticatedGamesGameIdCreateCrawlerRoute
-  '/_authenticated/games/$gameId/map': typeof AuthenticatedGamesGameIdMapRoute
-  '/_authenticated/pilots/$pilotId/create-mech': typeof AuthenticatedPilotsPilotIdCreateMechRoute
-  '/_authenticated/games/$gameId/': typeof AuthenticatedGamesGameIdIndexRoute
-  '/_authenticated/pilots/$pilotId/': typeof AuthenticatedPilotsPilotIdIndexRoute
+  '/': typeof IndexRoute
+  '/crawlers/$id': typeof CrawlersIdRoute
+  '/crawlers/new': typeof CrawlersNewRoute
+  '/mechs/$id': typeof MechsIdRoute
+  '/mechs/new': typeof MechsNewRoute
+  '/pilots/$id': typeof PilotsIdRoute
+  '/pilots/new': typeof PilotsNewRoute
+  '/s/$id': typeof SIdRoute
+  '/sheet/$kind/$id': typeof SheetKindIdRoute
+  '/mechs/patterns/': typeof MechsPatternsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/login'
-    | '/auth/callback'
-    | '/games/$gameId'
-    | '/games/new'
-    | '/patterns/$patternId'
-    | '/patterns/new'
-    | '/pilots/$pilotId'
+    | '/crawlers/$id'
+    | '/crawlers/new'
+    | '/mechs/$id'
+    | '/mechs/new'
+    | '/pilots/$id'
     | '/pilots/new'
-    | '/games/$gameId/crawler'
-    | '/games/$gameId/create-crawler'
-    | '/games/$gameId/map'
-    | '/pilots/$pilotId/create-mech'
-    | '/games/$gameId/'
-    | '/pilots/$pilotId/'
+    | '/s/$id'
+    | '/sheet/$kind/$id'
+    | '/mechs/patterns/'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/login'
-    | '/auth/callback'
     | '/'
-    | '/games/new'
-    | '/patterns/$patternId'
-    | '/patterns/new'
+    | '/crawlers/$id'
+    | '/crawlers/new'
+    | '/mechs/$id'
+    | '/mechs/new'
+    | '/pilots/$id'
     | '/pilots/new'
-    | '/games/$gameId/crawler'
-    | '/games/$gameId/create-crawler'
-    | '/games/$gameId/map'
-    | '/pilots/$pilotId/create-mech'
-    | '/games/$gameId'
-    | '/pilots/$pilotId'
+    | '/s/$id'
+    | '/sheet/$kind/$id'
+    | '/mechs/patterns'
   id:
     | '__root__'
-    | '/_authenticated'
-    | '/login'
-    | '/auth/callback'
-    | '/_authenticated/'
-    | '/_authenticated/games/$gameId'
-    | '/_authenticated/games/new'
-    | '/_authenticated/patterns/$patternId'
-    | '/_authenticated/patterns/new'
-    | '/_authenticated/pilots/$pilotId'
-    | '/_authenticated/pilots/new'
-    | '/_authenticated/games/$gameId/crawler'
-    | '/_authenticated/games/$gameId/create-crawler'
-    | '/_authenticated/games/$gameId/map'
-    | '/_authenticated/pilots/$pilotId/create-mech'
-    | '/_authenticated/games/$gameId/'
-    | '/_authenticated/pilots/$pilotId/'
+    | '/'
+    | '/crawlers/$id'
+    | '/crawlers/new'
+    | '/mechs/$id'
+    | '/mechs/new'
+    | '/pilots/$id'
+    | '/pilots/new'
+    | '/s/$id'
+    | '/sheet/$kind/$id'
+    | '/mechs/patterns/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
-  LoginRoute: typeof LoginRoute
-  AuthCallbackRoute: typeof AuthCallbackRoute
+  IndexRoute: typeof IndexRoute
+  CrawlersIdRoute: typeof CrawlersIdRoute
+  CrawlersNewRoute: typeof CrawlersNewRoute
+  MechsIdRoute: typeof MechsIdRoute
+  MechsNewRoute: typeof MechsNewRoute
+  PilotsIdRoute: typeof PilotsIdRoute
+  PilotsNewRoute: typeof PilotsNewRoute
+  SIdRoute: typeof SIdRoute
+  SheetKindIdRoute: typeof SheetKindIdRoute
+  MechsPatternsIndexRoute: typeof MechsPatternsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated': {
-      id: '/_authenticated'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated/': {
-      id: '/_authenticated/'
+    '/': {
+      id: '/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedIndexRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/auth/callback': {
-      id: '/auth/callback'
-      path: '/auth/callback'
-      fullPath: '/auth/callback'
-      preLoaderRoute: typeof AuthCallbackRouteImport
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/pilots/new': {
-      id: '/_authenticated/pilots/new'
+    '/s/$id': {
+      id: '/s/$id'
+      path: '/s/$id'
+      fullPath: '/s/$id'
+      preLoaderRoute: typeof SIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pilots/new': {
+      id: '/pilots/new'
       path: '/pilots/new'
       fullPath: '/pilots/new'
-      preLoaderRoute: typeof AuthenticatedPilotsNewRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      preLoaderRoute: typeof PilotsNewRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/pilots/$pilotId': {
-      id: '/_authenticated/pilots/$pilotId'
-      path: '/pilots/$pilotId'
-      fullPath: '/pilots/$pilotId'
-      preLoaderRoute: typeof AuthenticatedPilotsPilotIdRouteImport
-      parentRoute: typeof AuthenticatedRoute
+    '/pilots/$id': {
+      id: '/pilots/$id'
+      path: '/pilots/$id'
+      fullPath: '/pilots/$id'
+      preLoaderRoute: typeof PilotsIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/patterns/new': {
-      id: '/_authenticated/patterns/new'
-      path: '/patterns/new'
-      fullPath: '/patterns/new'
-      preLoaderRoute: typeof AuthenticatedPatternsNewRouteImport
-      parentRoute: typeof AuthenticatedRoute
+    '/mechs/new': {
+      id: '/mechs/new'
+      path: '/mechs/new'
+      fullPath: '/mechs/new'
+      preLoaderRoute: typeof MechsNewRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/patterns/$patternId': {
-      id: '/_authenticated/patterns/$patternId'
-      path: '/patterns/$patternId'
-      fullPath: '/patterns/$patternId'
-      preLoaderRoute: typeof AuthenticatedPatternsPatternIdRouteImport
-      parentRoute: typeof AuthenticatedRoute
+    '/mechs/$id': {
+      id: '/mechs/$id'
+      path: '/mechs/$id'
+      fullPath: '/mechs/$id'
+      preLoaderRoute: typeof MechsIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/games/new': {
-      id: '/_authenticated/games/new'
-      path: '/games/new'
-      fullPath: '/games/new'
-      preLoaderRoute: typeof AuthenticatedGamesNewRouteImport
-      parentRoute: typeof AuthenticatedRoute
+    '/crawlers/new': {
+      id: '/crawlers/new'
+      path: '/crawlers/new'
+      fullPath: '/crawlers/new'
+      preLoaderRoute: typeof CrawlersNewRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/games/$gameId': {
-      id: '/_authenticated/games/$gameId'
-      path: '/games/$gameId'
-      fullPath: '/games/$gameId'
-      preLoaderRoute: typeof AuthenticatedGamesGameIdRouteImport
-      parentRoute: typeof AuthenticatedRoute
+    '/crawlers/$id': {
+      id: '/crawlers/$id'
+      path: '/crawlers/$id'
+      fullPath: '/crawlers/$id'
+      preLoaderRoute: typeof CrawlersIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/pilots/$pilotId/': {
-      id: '/_authenticated/pilots/$pilotId/'
-      path: '/'
-      fullPath: '/pilots/$pilotId/'
-      preLoaderRoute: typeof AuthenticatedPilotsPilotIdIndexRouteImport
-      parentRoute: typeof AuthenticatedPilotsPilotIdRoute
+    '/mechs/patterns/': {
+      id: '/mechs/patterns/'
+      path: '/mechs/patterns'
+      fullPath: '/mechs/patterns/'
+      preLoaderRoute: typeof MechsPatternsIndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/games/$gameId/': {
-      id: '/_authenticated/games/$gameId/'
-      path: '/'
-      fullPath: '/games/$gameId/'
-      preLoaderRoute: typeof AuthenticatedGamesGameIdIndexRouteImport
-      parentRoute: typeof AuthenticatedGamesGameIdRoute
-    }
-    '/_authenticated/pilots/$pilotId/create-mech': {
-      id: '/_authenticated/pilots/$pilotId/create-mech'
-      path: '/create-mech'
-      fullPath: '/pilots/$pilotId/create-mech'
-      preLoaderRoute: typeof AuthenticatedPilotsPilotIdCreateMechRouteImport
-      parentRoute: typeof AuthenticatedPilotsPilotIdRoute
-    }
-    '/_authenticated/games/$gameId/map': {
-      id: '/_authenticated/games/$gameId/map'
-      path: '/map'
-      fullPath: '/games/$gameId/map'
-      preLoaderRoute: typeof AuthenticatedGamesGameIdMapRouteImport
-      parentRoute: typeof AuthenticatedGamesGameIdRoute
-    }
-    '/_authenticated/games/$gameId/create-crawler': {
-      id: '/_authenticated/games/$gameId/create-crawler'
-      path: '/create-crawler'
-      fullPath: '/games/$gameId/create-crawler'
-      preLoaderRoute: typeof AuthenticatedGamesGameIdCreateCrawlerRouteImport
-      parentRoute: typeof AuthenticatedGamesGameIdRoute
-    }
-    '/_authenticated/games/$gameId/crawler': {
-      id: '/_authenticated/games/$gameId/crawler'
-      path: '/crawler'
-      fullPath: '/games/$gameId/crawler'
-      preLoaderRoute: typeof AuthenticatedGamesGameIdCrawlerRouteImport
-      parentRoute: typeof AuthenticatedGamesGameIdRoute
+    '/sheet/$kind/$id': {
+      id: '/sheet/$kind/$id'
+      path: '/sheet/$kind/$id'
+      fullPath: '/sheet/$kind/$id'
+      preLoaderRoute: typeof SheetKindIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
-
-interface AuthenticatedGamesGameIdRouteChildren {
-  AuthenticatedGamesGameIdCrawlerRoute: typeof AuthenticatedGamesGameIdCrawlerRoute
-  AuthenticatedGamesGameIdCreateCrawlerRoute: typeof AuthenticatedGamesGameIdCreateCrawlerRoute
-  AuthenticatedGamesGameIdMapRoute: typeof AuthenticatedGamesGameIdMapRoute
-  AuthenticatedGamesGameIdIndexRoute: typeof AuthenticatedGamesGameIdIndexRoute
-}
-
-const AuthenticatedGamesGameIdRouteChildren: AuthenticatedGamesGameIdRouteChildren =
-  {
-    AuthenticatedGamesGameIdCrawlerRoute: AuthenticatedGamesGameIdCrawlerRoute,
-    AuthenticatedGamesGameIdCreateCrawlerRoute:
-      AuthenticatedGamesGameIdCreateCrawlerRoute,
-    AuthenticatedGamesGameIdMapRoute: AuthenticatedGamesGameIdMapRoute,
-    AuthenticatedGamesGameIdIndexRoute: AuthenticatedGamesGameIdIndexRoute,
-  }
-
-const AuthenticatedGamesGameIdRouteWithChildren =
-  AuthenticatedGamesGameIdRoute._addFileChildren(
-    AuthenticatedGamesGameIdRouteChildren,
-  )
-
-interface AuthenticatedPilotsPilotIdRouteChildren {
-  AuthenticatedPilotsPilotIdCreateMechRoute: typeof AuthenticatedPilotsPilotIdCreateMechRoute
-  AuthenticatedPilotsPilotIdIndexRoute: typeof AuthenticatedPilotsPilotIdIndexRoute
-}
-
-const AuthenticatedPilotsPilotIdRouteChildren: AuthenticatedPilotsPilotIdRouteChildren =
-  {
-    AuthenticatedPilotsPilotIdCreateMechRoute:
-      AuthenticatedPilotsPilotIdCreateMechRoute,
-    AuthenticatedPilotsPilotIdIndexRoute: AuthenticatedPilotsPilotIdIndexRoute,
-  }
-
-const AuthenticatedPilotsPilotIdRouteWithChildren =
-  AuthenticatedPilotsPilotIdRoute._addFileChildren(
-    AuthenticatedPilotsPilotIdRouteChildren,
-  )
-
-interface AuthenticatedRouteChildren {
-  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
-  AuthenticatedGamesGameIdRoute: typeof AuthenticatedGamesGameIdRouteWithChildren
-  AuthenticatedGamesNewRoute: typeof AuthenticatedGamesNewRoute
-  AuthenticatedPatternsPatternIdRoute: typeof AuthenticatedPatternsPatternIdRoute
-  AuthenticatedPatternsNewRoute: typeof AuthenticatedPatternsNewRoute
-  AuthenticatedPilotsPilotIdRoute: typeof AuthenticatedPilotsPilotIdRouteWithChildren
-  AuthenticatedPilotsNewRoute: typeof AuthenticatedPilotsNewRoute
-}
-
-const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
-  AuthenticatedIndexRoute: AuthenticatedIndexRoute,
-  AuthenticatedGamesGameIdRoute: AuthenticatedGamesGameIdRouteWithChildren,
-  AuthenticatedGamesNewRoute: AuthenticatedGamesNewRoute,
-  AuthenticatedPatternsPatternIdRoute: AuthenticatedPatternsPatternIdRoute,
-  AuthenticatedPatternsNewRoute: AuthenticatedPatternsNewRoute,
-  AuthenticatedPilotsPilotIdRoute: AuthenticatedPilotsPilotIdRouteWithChildren,
-  AuthenticatedPilotsNewRoute: AuthenticatedPilotsNewRoute,
-}
-
-const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
-  AuthenticatedRouteChildren,
-)
 
 const rootRouteChildren: RootRouteChildren = {
-  AuthenticatedRoute: AuthenticatedRouteWithChildren,
-  LoginRoute: LoginRoute,
-  AuthCallbackRoute: AuthCallbackRoute,
+  IndexRoute: IndexRoute,
+  CrawlersIdRoute: CrawlersIdRoute,
+  CrawlersNewRoute: CrawlersNewRoute,
+  MechsIdRoute: MechsIdRoute,
+  MechsNewRoute: MechsNewRoute,
+  PilotsIdRoute: PilotsIdRoute,
+  PilotsNewRoute: PilotsNewRoute,
+  SIdRoute: SIdRoute,
+  SheetKindIdRoute: SheetKindIdRoute,
+  MechsPatternsIndexRoute: MechsPatternsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
