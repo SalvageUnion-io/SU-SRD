@@ -44,14 +44,11 @@ const CALLOUT_META_LABEL_TUPLE = [
   CALLOUT_META_LABELS.hybridClass,
 ] as const
 
-/** Literal union of the labels the header callout owns. */
-export type CalloutMetaLabel = (typeof CALLOUT_META_LABEL_TUPLE)[number]
-
 /**
  * Set of labels the header label-callout owns; the data row filters these out.
  * Typed `readonly string[]` (not the literal tuple) so the data-row de-dup's
  * `.includes(v.label)` — where `v.label` is a plain `string` — still type-checks;
- * the literals live in CalloutMetaLabel / CALLOUT_META_LABELS for consumers.
+ * the literals live in CALLOUT_META_LABELS for consumers that need them.
  */
 export const CALLOUT_META_LABEL_VALUES: readonly string[] = CALLOUT_META_LABEL_TUPLE
 
