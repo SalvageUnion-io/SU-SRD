@@ -203,9 +203,10 @@ export function DisplayCard({
     >
       {hasCallout && (
         <div
-          // Braced against the card's top border (top-0, no upper padding), inset
-          // on the left (left-3) — symmetric with the right-side controls below.
-          className="absolute left-3 top-0 z-30 flex items-center gap-1"
+          className={cn(
+            'absolute z-30 ml-3 flex items-center gap-1',
+            isCompact ? 'top-0 -translate-y-1/2' : '-mt-2'
+          )}
         >
           {labelLead}
           {/* A label + badge pair (e.g. TECH LEVEL · 1, or a tree + ability level)
@@ -224,9 +225,10 @@ export function DisplayCard({
 
       {controls && (
         <div
-          // Braced against the top border (top-0), inset on the right (right-3),
-          // mirroring the callout.
-          className="absolute right-3 top-0 z-30"
+          className={cn(
+            'absolute right-0 z-30 mr-1.5',
+            isCompact ? 'top-0 -translate-y-1/2' : '-mt-2'
+          )}
         >
           <ControlButtons controls={controls} compact={isCompact} />
         </div>
@@ -266,10 +268,12 @@ export function DisplayCard({
               // px-3 (12px) aligns the header content L/R extremes with the
               // inset white body block (which uses mx-3) and the footer.
               isCompact ? 'min-h-[60px] px-3 py-1' : 'min-h-[80px] px-3 py-1.5',
-              // Top padding clears the now-inset callout (top-2 inside the card)
-              // so the title sits below it with a thin, consistent gap.
-              !isCompact && hasCallout && 'pb-4 pt-7',
-              isCompact && hasCallout && 'pt-5',
+              // Top padding clears the callout so the gap below it is consistent.
+              // Non-compact: callout straddles ~8px above the top → pt-4 ≈ 8px gap.
+              // Compact: callout sits centred on the edge (~8px of it below the
+              // top) → pt-3 ≈ 4px gap, tighter to suit dense listings.
+              !isCompact && hasCallout && 'pb-4 pt-4',
+              isCompact && hasCallout && 'pt-3',
               actualHeaderBg,
               headerStyleProp?.className,
               headerStyleProp?.className && 'h-full'
