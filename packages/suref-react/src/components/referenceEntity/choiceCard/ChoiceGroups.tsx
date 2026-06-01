@@ -72,11 +72,13 @@ export function ChoiceGroups({
     (choice: SURefObjectChoice, value: string) => {
       const current = selections[choice.id] ?? []
       const multiSelect = isMultiSelectChoice(choice)
-      const cap = resolveMultiSelectCap(choice, parent)
-      const nextForChoice = toggleSelection(current, value, multiSelect, cap)
+      // The SRD shows the inherent cap as an informational `n/max` counter but
+      // lets the user select beyond it (no cap passed to toggleSelection). ITUN
+      // can enforce the cap later via its persistence layer.
+      const nextForChoice = toggleSelection(current, value, multiSelect)
       commit({ ...selections, [choice.id]: nextForChoice })
     },
-    [selections, parent, commit]
+    [selections, commit]
   )
 
   const handleFreeTextChange = useCallback(

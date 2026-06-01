@@ -93,26 +93,21 @@ describe('ChoiceGroups — multi-select cap (scalesWithField)', () => {
     expect(screen.getByText('0/2')).toBeTruthy()
   })
 
-  test('disables remaining options at the cap (no silent replacement)', () => {
+  test('shows the cap as an informational counter but allows selecting beyond it (SRD)', () => {
     render(<ChoiceGroups choices={[modificationChoice]} parent={{ techLevel: 1 }} />)
     const rangefinder = screen.getByRole('button', { name: /Rangefinder/ })
     const laser = screen.getByRole('button', { name: /Laser Guidance/ })
-    const highCalibre = screen.getByRole('button', { name: /High Calibre Rounds/ })
 
     fireEvent.click(rangefinder)
-    // Cap is 1: the other two cards are now disabled.
     expect(rangefinder.getAttribute('aria-pressed')).toBe('true')
-    expect((laser as HTMLButtonElement).disabled).toBe(true)
-    expect((highCalibre as HTMLButtonElement).disabled).toBe(true)
     expect(screen.getByText('1/1')).toBeTruthy()
 
-    // Clicking a disabled card does nothing.
-    fireEvent.click(laser)
-    expect(laser.getAttribute('aria-pressed')).toBe('false')
-
-    // Deselecting frees the cap and re-enables the others.
-    fireEvent.click(rangefinder)
+    // Cap is 1, but the SRD lets the user keep selecting — options are not disabled.
     expect((laser as HTMLButtonElement).disabled).toBe(false)
+    fireEvent.click(laser)
+    expect(laser.getAttribute('aria-pressed')).toBe('true')
+    // The counter reflects the over-cap selection (2/1).
+    expect(screen.getByText('2/1')).toBeTruthy()
   })
 })
 

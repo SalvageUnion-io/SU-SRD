@@ -1,9 +1,6 @@
+import { useState } from 'react'
 import type { ReactNode } from 'react'
-import type {
-  SURefEntity,
-  SURefEnumSchemaName,
-  SURefObjectContentBlock,
-} from 'salvageunion-reference'
+import type { SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
 import {
   getDisplayName,
   getGoals,
@@ -35,6 +32,8 @@ import { ReferenceEntityDisplay } from '../index'
 import { PatternEquipmentItem } from '../PatternEquipmentItem'
 import { ReferenceEntityRequirementDisplay } from '../ReferenceEntityRequirementDisplay'
 import { ReferenceEntityResolvedChoices } from '../ReferenceEntityResolvedChoices'
+import { ReferenceEntityResolvedDataRow } from '../ReferenceEntityResolvedDataRow'
+import type { ChoiceSelections } from '../../choiceCard/choiceSelectionHelpers'
 import { ReferenceEntityGrants } from '../ReferenceEntityGrants'
 import { ReferenceEntityBonusPerTechLevel } from '../ReferenceEntityBonusPerTechLevel'
 import { ReferenceEntityIntegratedSystems } from '../ReferenceEntityIntegratedSystems'
@@ -114,22 +113,6 @@ function resolveGrantedEntities(data: SURefEntity): SURefEntity[] {
     .filter((entity): entity is SURefEntity => entity !== null)
 }
 
-/**
- * The lead content block for a granted entity: the `lead`-flagged paragraph
- * (schema-driven, §8.2), falling back to the first `paragraph` block. Returns
- * undefined when the entity has no paragraph content. Rendered once above the
- * `Grants` divider and de-duplicated from the nested equipment.
- */
-function getLeadBlock(entity: SURefEntity | undefined): SURefObjectContentBlock | undefined {
-  if (!entity || !('content' in entity) || !Array.isArray(entity.content)) {
-    return undefined
-  }
-  const blocks = entity.content as SURefObjectContentBlock[]
-  const flagged = blocks.find((block) => block.type === 'paragraph' && block.lead === true)
-  if (flagged) return flagged
-  return blocks.find((block) => block.type === 'paragraph')
-}
-
 export function ReferenceEntityDisplayContent({
   children,
   controls,
@@ -189,6 +172,25 @@ export function ReferenceEntityDisplayContent({
   // applied choice effects) via ReferenceEntityResolvedChoices.
   const entityHasChoices = (getChoices(data)?.length ?? 0) > 0 && !hide.choices
 
+  // Choice-bearing equipment carries its stats in the resolved dataview row, so
+  // its redundant same-named action (the "pilot equipment" card) is suppressed
+  // here to avoid duplicating Damage/Range. The action stays in data — kept on
+  // the granting ability.
+  const entityName = 'name' in data ? data.name : undefined
+  const visibleActions =
+    entityHasChoices && actionsToDisplay
+      ? actionsToDisplay.filter((action) => action.name !== entityName)
+      : actionsToDisplay
+
+  // Choice-bearing entities own their ephemeral selection state here so the
+  // header data row (ReferenceEntityResolvedDataRow) and the body choice cards
+  // (ReferenceEntityResolvedChoices) share one source of truth — toggling a card
+  // recomputes the header row live. ITUN can later thread controlled selections.
+  const [choiceSelections, setChoiceSelections] = useState<ChoiceSelections>({})
+  const resolvedDataRow = entityHasChoices ? (
+    <ReferenceEntityResolvedDataRow data={data} selections={choiceSelections} compact={compact} />
+  ) : null
+
   // Check if any action name matches the entity name - if so, use that action's
   // content. Skipped for granted equipment (entities carrying their own choices):
   // their same-named action holds the legacy verbose prose (the choice-describing
@@ -233,9 +235,6 @@ export function ReferenceEntityDisplayContent({
   // the Grants block — the ability still suppresses its own prose/Actions for a
   // clean header card. Grants are otherwise visible in compact (spec §8.2).
   const showGrants = isGrantingAbility && !hide.choices
-  // The lead paragraph is rendered ONCE above the Grants divider and de-duplicated
-  // from the nested equipment (which hides it via `hide.content` lead suppression).
-  const leadBlock = showGrants ? getLeadBlock(grantedEntities[0]) : undefined
 
   // Show content if entity has content blocks. A granting ability suppresses its
   // own content entirely — its body is the lead line + Grants block instead.
@@ -292,8 +291,8 @@ export function ReferenceEntityDisplayContent({
   // action lives on the granted equipment instead).
   const hasDisplayableActions =
     !isGrantingAbility &&
-    !!actionsToDisplay &&
-    actionsToDisplay.length > 0 &&
+    !!visibleActions &&
+    visibleActions.length > 0 &&
     (!hide.actions || compact) &&
     !(compact && schemaName === 'titans')
 
@@ -437,7 +436,16 @@ export function ReferenceEntityDisplayContent({
           schemaName={schemaName}
           spacing={spacing}
           compact={compact}
-          subtitleExtra={subtitleExtra}
+          subtitleExtra={
+            resolvedDataRow ? (
+              <>
+                {subtitleExtra}
+                {resolvedDataRow}
+              </>
+            ) : (
+              subtitleExtra
+            )
+          }
         />
       }
       rightContent={
@@ -623,34 +631,16 @@ export function ReferenceEntityDisplayContent({
                   suppressActions={hasChassisAbilities || isGrantingAbility}
                   spacing={spacing}
                   compact={compact}
-                  actionsToDisplay={actionsToDisplay}
+                  actionsToDisplay={visibleActions}
                   headerBg={headerBg}
                   sectionHeaders={schemaName === 'crawlers'}
                 />
               )}
-              {/* Granting ability: lead line + `Grants` block (the nested compact
-                  equipment with its resolved row + choice cards). Rendered in the
-                  main body flow so it is visible in compact mode too. The lead is
-                  the granted equipment's intro paragraph, shown once here and
-                  de-duplicated from the nested equipment below. */}
+              {/* Granting ability: a `Grants` block — the nested compact equipment
+                  renders its own intro paragraph, resolved row + choice cards.
+                  Rendered in the main body flow so it is visible in compact mode. */}
               {showGrants && (
-                <>
-                  {leadBlock && (
-                    <BlockContentRendererView
-                      content={[leadBlock]}
-                      fontSize={fontSize.sm}
-                      compact={compact}
-                      headerBg={headerBg}
-                      headerBgColor={headerBgColor}
-                    />
-                  )}
-                  <ReferenceEntityGrants
-                    data={data}
-                    spacing={spacing}
-                    compact={compact}
-                    suppressLead
-                  />
-                </>
+                <ReferenceEntityGrants data={data} spacing={spacing} compact={compact} />
               )}
               {/* Titan-equipped systems/modules render as compact listings under actions */}
               {titanSystems && titanSystems.length > 0 && (
@@ -677,11 +667,12 @@ export function ReferenceEntityDisplayContent({
               {compact && chassisAbilitiesBlock}
               <ReferenceEntityResolvedChoices
                 data={data}
-                spacing={spacing}
                 hideChoices={hide.choices}
                 compact={compact}
                 parentHeaderBg={headerBg}
                 parentHeaderBgColor={headerBgColor}
+                selections={choiceSelections}
+                onSelectionChange={setChoiceSelections}
               />
               <ReferenceEntityIntegratedSystems data={data} compact={compact} />
 

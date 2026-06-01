@@ -30,9 +30,25 @@ describe('Custom Sniper Rifle equipment display', () => {
     expect(screen.getByText('Long')).toBeTruthy()
   })
 
-  test('renders an unresolved Weapon Type prompt in the row', () => {
+  test('renders the max-describing content text (when a Modification may be picked)', () => {
     render(<ReferenceEntityDisplay data={rifleEquipment} compact />)
-    expect(screen.getByText(/Choose:.*Ballistic.*or.*Energy/i)).toBeTruthy()
+    expect(
+      screen.getByText(/At each Tech Level, you may select an additional Modification/i)
+    ).toBeTruthy()
+  })
+
+  test('does not duplicate the redundant pilot-equipment action (Damage shown once)', () => {
+    render(<ReferenceEntityDisplay data={rifleEquipment} compact />)
+    // The same-named pilot-equipment action card is suppressed for choice-bearing
+    // equipment, so the base stats render only in the resolved row — not twice.
+    expect(screen.getAllByText('Damage').length).toBe(1)
+  })
+
+  test('renders an unresolved Weapon Type prompt in the row (segmented chrome)', () => {
+    render(<ReferenceEntityDisplay data={rifleEquipment} compact />)
+    // The prompt uses the class-style segmented chrome: [CHOOSE][Ballistic][OR][Energy].
+    expect(screen.getByText('Choose')).toBeTruthy()
+    expect(screen.getByText('OR')).toBeTruthy()
   })
 
   test('renders interactive choice cards (Weapon Type + Modification)', () => {
@@ -45,7 +61,8 @@ describe('Custom Sniper Rifle equipment display', () => {
   test('selecting Ballistic removes the prompt and adds the Ballistic trait to the row', () => {
     render(<ReferenceEntityDisplay data={rifleEquipment} compact />)
     fireEvent.click(screen.getByRole('button', { name: /Ballistic/ }))
-    expect(screen.queryByText(/Choose:.*Ballistic.*or.*Energy/i)).toBeNull()
+    // The segmented Weapon Type prompt disappears once resolved.
+    expect(screen.queryByText('Choose')).toBeNull()
     // The trait now appears in the resolved row (in addition to the option card).
     expect(screen.getAllByText('Ballistic').length).toBeGreaterThan(1)
   })
@@ -78,8 +95,8 @@ describe('Custom Sniper Rifle granting ability display', () => {
 
   test('renders the nested equipment with its resolved row + choice cards', () => {
     render(<ReferenceEntityDisplay data={rifleAbility} />)
-    // The nested equipment surfaces the weapon-type prompt + option cards.
-    expect(screen.getByText(/Choose:.*Ballistic.*or.*Energy/i)).toBeTruthy()
+    // The nested equipment surfaces the segmented weapon-type prompt + option cards.
+    expect(screen.getByText('Choose')).toBeTruthy()
     // The Weapon Type / Modification choice groups render.
     expect(screen.getByText('Weapon Type')).toBeTruthy()
     expect(screen.getByText('Modification')).toBeTruthy()
@@ -95,5 +112,13 @@ describe('Custom Sniper Rifle granting ability display', () => {
   test('does not render an Actions section for the granting ability', () => {
     const { container } = render(<ReferenceEntityDisplay data={rifleAbility} />)
     expect(within(container).queryByText('Actions')).toBeNull()
+  })
+
+  test('nested equipment exposes a "View Details" control (opens the show page) and is not whole-card clickable', () => {
+    render(<ReferenceEntityDisplay data={rifleAbility} />)
+    // A visible View Details control replaces the old detail modal / cardClick,
+    // so the nested card no longer enlarges on hover.
+    const viewDetails = screen.getByRole('button', { name: /View Custom Sniper Rifle details/i })
+    expect(viewDetails).toBeTruthy()
   })
 })

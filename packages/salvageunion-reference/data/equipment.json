@@ -637,6 +637,10 @@
         "value": "You acquire and train in the use of a Custom Sniper Rifle that only you can use."
       },
       {
+        "type": "paragraph",
+        "value": "At each Tech Level, you may select an additional Modification for your Custom Sniper Rifle."
+      },
+      {
         "type": "datavalues",
         "value": [
           {
@@ -869,6 +873,10 @@
         "type": "paragraph",
         "lead": true,
         "value": "You acquire and train in the use of a Custom Missile Launcher that only you can use."
+      },
+      {
+        "type": "paragraph",
+        "value": "At each Tech Level, you may select an additional Modification for your Custom Missile Launcher."
       },
       {
         "type": "datavalues",

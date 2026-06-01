@@ -30,8 +30,8 @@ type ChoiceGroupProps = {
  * multi-select groups, followed by the option cards — or, for free-text
  * choices, a single editable free-text card.
  *
- * At the multi-select cap, unselected option cards are disabled (no silent
- * replacement) until one is deselected.
+ * The cap is shown as an informational `n/max` counter; the SRD lets the user
+ * select beyond it (no hard disable), so `n` may exceed `max`.
  */
 export function ChoiceGroup({
   choice,
@@ -47,8 +47,6 @@ export function ChoiceGroup({
   const freeText = isFreeTextChoice(choice)
 
   const counter = multiSelect && typeof cap === 'number' ? `${selected.length}/${cap}` : undefined
-
-  const atCap = typeof cap === 'number' && selected.length >= cap
 
   if (freeText) {
     const promptBlock = choice.content?.find((block) => block.type === 'paragraph')
@@ -79,14 +77,12 @@ export function ChoiceGroup({
       <div className="flex flex-col gap-2">
         {options.map((option) => {
           const isChosen = selected.includes(option.value)
-          const disabled = multiSelect && atCap && !isChosen
           return (
             <ChoiceCard
               key={option.value}
               label={option.label}
               description={option.description}
               chosen={isChosen}
-              disabled={disabled}
               compact={compact}
               parentHeaderBg={parentHeaderBg}
               parentHeaderBgColor={parentHeaderBgColor}
