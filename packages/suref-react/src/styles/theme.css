@@ -23,6 +23,11 @@
   --color-su-rust: rgb(140, 75, 56);
   --color-su-black: rgb(40, 32, 25);
   --color-su-white: rgb(255, 255, 255);
+  /* Cargo brand header tokens (Claude Design handoff): warm off-white "paper",
+     the dark header ground, and the muted nav-link ink on that ground. */
+  --color-su-paper: rgb(243, 237, 226);
+  --color-su-ink-dark: rgb(27, 23, 18);
+  --color-su-muted: rgb(155, 148, 136);
   --color-su-grey: rgb(150, 150, 150);
   --color-su-grey-light: rgb(199, 199, 199);
   --color-su-grey-medium: rgb(130, 130, 130);

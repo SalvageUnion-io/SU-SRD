@@ -44,17 +44,17 @@
 .nav-link {
   font-family: var(--font-cond);
   font-weight: 600;
-  font-size: 14px;
-  letter-spacing: 0.08em;
+  font-size: 15px;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--color-su-grey-nav);
+  color: var(--color-su-muted);
   text-decoration: none;
   transition: color 0.12s;
 }
 
 .nav-link:hover,
 .nav-link.nav-link-active {
-  color: var(--color-su-white);
+  color: var(--color-su-paper);
 }
 
 .nav-link:focus-visible {

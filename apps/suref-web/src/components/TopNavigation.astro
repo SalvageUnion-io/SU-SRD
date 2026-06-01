@@ -36,14 +36,30 @@ function isActive(path: string) {
 }
 ---
 
-<nav aria-label="Main navigation" class="flex h-[62px] items-center gap-[22px] bg-su-black px-9 z-50 border-b-2 border-su-black" transition:name="nav" transition:animate="none">
-  <!-- Wordmark -->
-  <a href="/" class="shrink-0 font-cond font-bold text-xl uppercase tracking-[0.04em] text-su-white no-underline">
-    SALVAGE <span class="text-su-orange">UNION</span> SRD
+<!-- Cargo brand header: SU mark + SalvageUnion.io wordmark on the left, existing
+     nav links pushed to the right. Dark su-ink ground, 3px rust bottom border. -->
+<nav aria-label="Main navigation" class="flex items-center gap-[14px] bg-su-ink-dark px-5 py-[18px] z-50 border-b-[3px] border-su-orange-dark sm:px-[34px] sm:py-[26px]" transition:name="nav" transition:animate="none">
+  <!-- Brand: solid-orange SU mark + wordmark + sub-tag -->
+  <a href="/" class="flex shrink-0 items-center gap-[14px] no-underline">
+    <img
+      src="/logos/su-cargo-dark.svg"
+      alt="Salvage Union"
+      width="64"
+      height="64"
+      class="block size-12 shrink-0 rounded-xl sm:size-16"
+    />
+    <span class="flex min-w-0 flex-col">
+      <span class="font-cond text-[26px] font-bold leading-[0.98] tracking-[0.005em] text-su-paper sm:text-[34px]">
+        SalvageUnion<span class="text-su-orange-dark">.io</span>
+      </span>
+      <span class="mt-[7px] whitespace-nowrap font-cond text-[13px] font-semibold uppercase leading-none tracking-[0.22em] text-su-orange-dark sm:mt-[9px]">
+        The Salvage Union SRD
+      </span>
+    </span>
   </a>
 
-  <!-- Desktop nav links -->
-  <div class="hidden lg:flex items-center gap-5">
+  <!-- Existing nav links + search + buy — moved to the right (margin-left:auto) -->
+  <div class="ml-auto hidden items-center gap-[26px] lg:flex">
     <a href="/" class:list={['nav-link', isActive('/schema') || currentPath === '/' ? 'nav-link-active' : '']} aria-current={isActive('/schema') || currentPath === '/' ? 'page' : undefined}>
       SRD
     </a>
@@ -59,29 +75,7 @@ function isActive(path: string) {
     <a href="/api/" class:list={['nav-link', isActive('/api') ? 'nav-link-active' : '']} aria-current={isActive('/api') ? 'page' : undefined}>
       API
     </a>
-  </div>
 
-  <!-- Right rail: breadcrumbs (when present) + search + buy — all pushed right -->
-  <div class="ml-auto hidden lg:flex items-center gap-4 min-w-0">
-    {breadcrumbs && breadcrumbs.length > 0 && (
-      <nav aria-label="Breadcrumb" class="min-w-0 shrink">
-        {/* .crumb treatment: font-mono, 12px, muted text; bold su-white on current segment */}
-        <ol class="flex flex-wrap items-center gap-1 font-mono text-xs text-su-grey-nav">
-          {breadcrumbs.map((item, index) => (
-            <>
-              {index > 0 && <li aria-hidden="true" class="select-none opacity-50">/</li>}
-              <li>
-                {index === breadcrumbs.length - 1 ? (
-                  <span aria-current="page" class="font-medium text-su-white">{item.name}</span>
-                ) : (
-                  <a href={item.url} class="text-su-grey-nav hover:text-su-white transition-colors">{item.name}</a>
-                )}
-              </li>
-            </>
-          ))}
-        </ol>
-      </nav>
-    )}
     <SearchIsland client:idle />
     <a href="https://leyline.press/collections/salvage-union" target="_blank" rel="noopener noreferrer" class="btn btn-active shrink-0 font-cond text-[13px] uppercase tracking-[.06em]">
       BUY THE GAME
@@ -97,6 +91,25 @@ function isActive(path: string) {
     />
   </div>
 </nav>
+
+{breadcrumbs && breadcrumbs.length > 0 && (
+  <nav aria-label="Breadcrumb" class="border-b border-su-grey-light bg-su-white px-5 py-2 sm:px-[34px]">
+    <ol class="flex flex-wrap items-center gap-1.5 font-cond text-xs uppercase tracking-[0.14em] text-su-grey-dark">
+      {breadcrumbs.map((item, index) => (
+        <>
+          {index > 0 && <li aria-hidden="true" class="select-none text-su-grey-medium">/</li>}
+          <li>
+            {index === breadcrumbs.length - 1 ? (
+              <span aria-current="page" class="font-semibold text-su-black">{item.name}</span>
+            ) : (
+              <a href={item.url} class="transition-colors hover:text-su-orange-dark">{item.name}</a>
+            )}
+          </li>
+        </>
+      ))}
+    </ol>
+  </nav>
+)}
 
 {breadcrumbs && breadcrumbs.length > 0 && (
   <script
