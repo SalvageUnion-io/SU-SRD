@@ -41,7 +41,7 @@ function matchSchemas(query: string): DisplayResult[] {
 }
 
 type SearchIslandProps = {
-  /** 'nav' (compact, focus-to-expand) or 'hero' (persistent wide field for the index hero) */
+  /** 'nav' (fixed-width field in the header) or 'hero' (persistent wide field for the index hero) */
   variant?: 'nav' | 'hero'
 }
 
@@ -174,7 +174,7 @@ export function SearchIsland({ variant = 'nav' }: SearchIslandProps = {}) {
           className={
             isHero
               ? 'w-full bg-transparent font-mono text-sm text-su-black placeholder:text-su-grey-dark focus:outline-none'
-              : 'w-32 bg-transparent font-mono text-[13px] text-su-black placeholder:text-su-grey-dark focus:w-52 focus:outline-none transition-all md:w-36'
+              : 'w-52 bg-transparent font-mono text-[13px] text-su-black placeholder:text-su-grey-dark focus:outline-none'
           }
           aria-label="Search the SRD"
           aria-expanded={isOpen}
