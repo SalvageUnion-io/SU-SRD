@@ -12,9 +12,11 @@ type BreadcrumbItem = {
 
 type Props = {
   breadcrumbs?: BreadcrumbItem[]
+  /** Optional descriptive tail rendered after the trail (e.g. a schema description) */
+  breadcrumbDescription?: string
 }
 
-const { breadcrumbs } = Astro.props
+const { breadcrumbs, breadcrumbDescription } = Astro.props
 
 const catalog = getSchemaCatalog()
 const schemas = catalog.schemas.filter((s) => !s.meta)
@@ -94,7 +96,7 @@ function isActive(path: string) {
 
 {breadcrumbs && breadcrumbs.length > 0 && (
   <>
-    <nav aria-label="Breadcrumb" class="border-b border-su-grey-light bg-su-white px-5 py-2 sm:px-[34px]">
+    <nav aria-label="Breadcrumb" class="flex flex-wrap items-baseline gap-x-2 gap-y-1 border-b border-su-grey-light bg-su-white px-5 py-2 sm:px-[34px]">
       <ol class="flex flex-wrap items-center gap-1.5 font-cond text-xs uppercase tracking-[0.14em] text-su-grey-dark">
         {breadcrumbs.map((item, index) => (
           <>
@@ -109,6 +111,9 @@ function isActive(path: string) {
           </>
         ))}
       </ol>
+      {breadcrumbDescription && (
+        <span class="font-mono text-xs text-su-grey-dark">— {breadcrumbDescription}</span>
+      )}
     </nav>
 
     <script

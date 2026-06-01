@@ -21,6 +21,8 @@ type Props = {
   noindex?: boolean
   preloadImage?: string
   breadcrumbs?: BreadcrumbItem[]
+  /** Optional descriptive tail shown after the breadcrumb trail (e.g. a schema description) */
+  breadcrumbDescription?: string
 }
 
 const {
@@ -34,6 +36,7 @@ const {
   noindex = false,
   preloadImage,
   breadcrumbs,
+  breadcrumbDescription,
 } = Astro.props
 
 const pathname = Astro.url.pathname.endsWith('/') ? Astro.url.pathname : Astro.url.pathname + '/'
@@ -92,7 +95,7 @@ const ogImageUrl = ogImage.startsWith('http') ? ogImage : new URL(ogImage, SITE_
   </head>
   <body>
     <div class="flex min-h-screen flex-col bg-su-white">
-      <TopNavigation breadcrumbs={breadcrumbs} />
+      <TopNavigation breadcrumbs={breadcrumbs} breadcrumbDescription={breadcrumbDescription} />
       <main class="flex flex-1 flex-col bg-su-blue-pale" transition:animate="fade">
         <slot />
       </main>
