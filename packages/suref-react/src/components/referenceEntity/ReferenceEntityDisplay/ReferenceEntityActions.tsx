@@ -82,9 +82,11 @@ export function ReferenceEntityActions({
                 </div>
               ))}
 
-              {/* Titanic action spans all columns as the last item (full width). */}
+              {/* Titanic action spans all columns as the last item (full width).
+                  mt-4 separates it from the masonry block above (whose balanced
+                  columns otherwise butt right up against the spanning card). */}
               {titanicAction && (
-                <div className="mb-3 break-inside-avoid [column-span:all]">
+                <div className="mb-3 mt-4 break-inside-avoid [column-span:all]">
                   <ActionCard
                     key={titanicAction.id}
                     data={titanicAction}
