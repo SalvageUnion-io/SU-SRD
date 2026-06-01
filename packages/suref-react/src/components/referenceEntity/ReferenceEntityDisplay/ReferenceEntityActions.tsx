@@ -60,25 +60,31 @@ export function ReferenceEntityActions({
         <>
           <SectionSeparator label="Actions" compact={compact} />
 
-          {/* 2-column container query grid.
-              @container on the wrapper; @md: breakpoint fires when the
-              container itself is ≥ 28rem (448px), switching to 2 columns.
-              Tailwind v4 has built-in container query support — no plugin needed.
+          {/* Masonry via CSS multi-column: each card keeps its NATURAL height
+              (a grid would stretch a card to its row-neighbour's height, leaving
+              dead space between the body box and footer). The browser balances
+              the two columns by default (column-fill: balance).
+              @container on the wrapper; @md: fires when the container is ≥ 28rem,
+              switching from 1 to 2 columns. `gap-3` is the column-gap; vertical
+              spacing between stacked cards comes from `mb-3` on each wrapper.
+              `break-inside-avoid` keeps a card from splitting across columns.
               NOTE: the consuming app / page must NOT have overflow:hidden on an
               ancestor that would prevent the container from reporting its width;
               if actions appear single-column, check ancestor overflow constraints.
               mt-2 gives a clear gap below the "Actions" separator label. */}
           <div className="@container mt-2">
-            <div className="grid grid-cols-1 gap-3 @md:grid-cols-2">
+            <div className="columns-1 gap-3 @md:columns-2">
               {/* Regular actions always render compact; the titanic action stays
                   full so its reminder + option list have room. */}
               {regularActions.map((action) => (
-                <ActionCard key={action.id} data={action} compact parentHeaderBg={headerBg} />
+                <div key={action.id} className="mb-3 break-inside-avoid">
+                  <ActionCard data={action} compact parentHeaderBg={headerBg} />
+                </div>
               ))}
 
-              {/* Titanic action renders full-width as the last grid item */}
+              {/* Titanic action spans all columns as the last item (full width). */}
               {titanicAction && (
-                <div className="col-span-full">
+                <div className="mb-3 break-inside-avoid [column-span:all]">
                   <ActionCard
                     key={titanicAction.id}
                     data={titanicAction}
