@@ -146,6 +146,18 @@
   text-transform: uppercase;
 }
 
+/* Page H2 subheading — matches `font-cond text-lg font-bold uppercase` exactly
+   (incl. text-lg's 1.75rem line-height). Used by the about/api H2s. NB: do not
+   apply where a Tailwind leading-* override is needed (e.g. changelog) — this
+   unlayered rule outranks utility-layer classes and would win the line-height. */
+.page-subheading {
+  font-family: var(--font-cond);
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
 /* Tile name line — font-cond, bold, uppercase, text-shadow for legibility on gradients */
 .catalog-item__name {
   font-family: var(--font-cond);

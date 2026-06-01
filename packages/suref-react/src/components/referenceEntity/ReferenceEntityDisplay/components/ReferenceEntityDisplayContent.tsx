@@ -55,6 +55,7 @@ import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
 import type { ChoiceInputRenderer } from '../ReferenceEntityChoice'
 import type { NpcConfig } from '../referenceEntityDisplayTypes'
 import { ReferenceEntityFooter } from './ReferenceEntityFooter'
+import { CalloutMetaStamp } from './CalloutMetaStamp'
 import { ReferenceEntityFactionData } from './ReferenceEntityFactionData'
 import { GuideEntityListing } from './GuideEntityListing'
 
@@ -183,13 +184,7 @@ export function ReferenceEntityDisplayContent({
   // subtitle below.) Renders in header-only/compact/full like the rest of the row.
   const isRecommended = isEntityData(data) && getRecommended(data) === true
   const labelLead = isRecommended ? (
-    <Text
-      variant="pseudoheader"
-      as="span"
-      className="whitespace-nowrap bg-su-rust text-xs uppercase text-su-white"
-    >
-      {CALLOUT_META_LABELS.recommended}
-    </Text>
+    <CalloutMetaStamp>{CALLOUT_META_LABELS.recommended}</CalloutMetaStamp>
   ) : undefined
 
   // Whether the right header column will actually render flavor. isAbility narrows
