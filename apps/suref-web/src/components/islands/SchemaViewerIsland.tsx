@@ -73,73 +73,88 @@ export function SchemaViewerIsland({
 
   const hasFilters = techLevels.length > 1 || sources.length > 1
 
+  // Browse layout: a fixed left filter rail beside the entity grid on desktop
+  // (design board-srd.jsx:96), collapsing to stacked filters above the grid on
+  // mobile. When there are no facets to filter, the grid spans full width.
+  const containerClass = hasFilters
+    ? 'mx-auto w-full max-w-[1400px] lg:grid lg:grid-cols-[230px_minmax(0,1fr)] lg:gap-8'
+    : 'mx-auto w-full max-w-[1400px]'
+
   return (
     <GameDataGate>
-      {hasFilters && (
-        <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-3">
-          {techLevels.length > 1 && (
-            <FilterRow label="Tech Level">
-              <FilterChip
-                label="All"
-                active={techLevelFilters.size === 0}
-                onClick={() => setTechLevelFilters(new Set())}
-              />
-              {techLevels.map((level) => (
+      <div className={containerClass}>
+        {hasFilters && (
+          <aside className="mb-4 flex w-full flex-col gap-4 lg:mb-0 lg:py-6">
+            {techLevels.length > 1 && (
+              <FilterRow label="Tech Level">
                 <FilterChip
-                  key={String(level)}
-                  label={techLevelLabel(level)}
-                  active={techLevelFilters.has(String(level))}
-                  onClick={() => toggleTechLevel(level)}
-                  colorClass={TECH_LEVEL_STYLES[String(level)]}
+                  label="All"
+                  active={techLevelFilters.size === 0}
+                  onClick={() => setTechLevelFilters(new Set())}
                 />
-              ))}
-            </FilterRow>
-          )}
+                {techLevels.map((level) => {
+                  const numericLevel = typeof level === 'number' ? level : undefined
+                  const swatchStyle =
+                    numericLevel !== undefined ? `var(--color-tl-${numericLevel})` : undefined
+                  return (
+                    <FilterChip
+                      key={String(level)}
+                      label={techLevelLabel(level)}
+                      active={techLevelFilters.has(String(level))}
+                      onClick={() => toggleTechLevel(level)}
+                      colorClass={TECH_LEVEL_STYLES[String(level)]}
+                      swatchStyle={swatchStyle}
+                    />
+                  )
+                })}
+              </FilterRow>
+            )}
 
-          {sources.length > 1 && (
-            <FilterRow label="Source">
-              <FilterChip
-                label="All"
-                active={sourceFilters.size === 0}
-                onClick={() => setSourceFilters(new Set())}
-              />
-              {sources.map((source) => (
+            {sources.length > 1 && (
+              <FilterRow label="Source">
                 <FilterChip
-                  key={source}
-                  label={source}
-                  active={sourceFilters.has(source)}
-                  onClick={() => toggleSource(source)}
+                  label="All"
+                  active={sourceFilters.size === 0}
+                  onClick={() => setSourceFilters(new Set())}
                 />
-              ))}
-            </FilterRow>
-          )}
-        </div>
-      )}
-
-      {/* Entity Grid */}
-      <div className="w-full min-w-0 flex-1 px-2 py-6 md:p-6">
-        <div className="mx-auto w-full max-w-[1400px] columns-1 gap-4 md:columns-2 lg:columns-3 [&>*]:mb-4 [&>*]:break-inside-avoid">
-          {filteredData.map((item: SURefEntity) => {
-            const tree = schemaId === 'abilities' ? (getTree(item) as string) : undefined
-            return (
-              <a
-                key={item.id}
-                href={`/schema/${schemaId}/item/${getEntitySlug(item)}/`}
-                aria-label={item.name}
-                className="relative block"
-              >
-                <Suspense fallback={<ReferenceEntityCardSkeleton compact />}>
-                  <ReferenceEntityDisplay
-                    hide={{ actions: true, choices: true }}
-                    data={item}
-                    compact
-                    label={tree}
-                    cardClickable
+                {sources.map((source) => (
+                  <FilterChip
+                    key={source}
+                    label={source}
+                    active={sourceFilters.has(source)}
+                    onClick={() => toggleSource(source)}
                   />
-                </Suspense>
-              </a>
-            )
-          })}
+                ))}
+              </FilterRow>
+            )}
+          </aside>
+        )}
+
+        {/* Entity Grid */}
+        <div className="w-full min-w-0 flex-1 px-2 py-6 md:p-6 lg:px-0">
+          <div className="columns-1 gap-4 md:columns-2 lg:columns-2 xl:columns-3 [&>*]:mb-4 [&>*]:break-inside-avoid">
+            {filteredData.map((item: SURefEntity) => {
+              const tree = schemaId === 'abilities' ? (getTree(item) as string) : undefined
+              return (
+                <a
+                  key={item.id}
+                  href={`/schema/${schemaId}/item/${getEntitySlug(item)}/`}
+                  aria-label={item.name}
+                  className="relative block"
+                >
+                  <Suspense fallback={<ReferenceEntityCardSkeleton compact />}>
+                    <ReferenceEntityDisplay
+                      hide={{ actions: true, choices: true }}
+                      data={item}
+                      compact
+                      label={tree}
+                      cardClickable
+                    />
+                  </Suspense>
+                </a>
+              )
+            })}
+          </div>
         </div>
       </div>
     </GameDataGate>

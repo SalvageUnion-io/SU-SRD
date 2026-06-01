@@ -3,15 +3,6 @@
 
 @source "../../../../packages/suref-react/src";
 
-/* Self-hosted Fira Code (variable font, supports weights 300-700) */
-@font-face {
-  font-family: 'Fira Code';
-  font-style: normal;
-  font-weight: 300 700;
-  font-display: swap;
-  src: url('/fonts/FiraCode-Variable.woff2') format('woff2');
-}
-
 /* Button system */
 .btn {
   display: inline-flex;
@@ -49,6 +40,23 @@
   outline-offset: 2px;
 }
 
+/* Top nav link — dark-bar treatment (muted grey → white on hover/active) */
+.nav-link {
+  font-family: var(--font-cond);
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #b9bdb6;
+  text-decoration: none;
+  transition: color 0.12s;
+}
+
+.nav-link:hover,
+.nav-link.nav-link-active {
+  color: var(--color-su-white);
+}
+
 /* Catalog category headers — line / [PSEUDOHEADER] / line */
 .catalog-header {
   display: flex;
@@ -64,22 +72,62 @@
   background: var(--color-su-grey-light);
 }
 
-/* Catalog items */
-.catalog-item {
-  justify-content: center;
-  border: 2px solid var(--color-su-black);
-  background: var(--catalog-bg);
-  color: var(--color-su-white);
-  transition: transform 0.15s ease;
+/* Group title label — rust/orange-dark, condensed, wide tracking */
+.catalog-group-title {
+  font-family: var(--font-cond);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-su-orange-dark);
+  line-height: 1;
+  white-space: nowrap;
 }
 
-.catalog-item-label {
-  background: var(--catalog-label);
-  padding: 0.125rem 0.5rem;
+/* Catalog tiles — full-bleed color, .srd-tile treatment */
+.catalog-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 54px;
+  border: 1.5px solid var(--color-su-black);
+  border-radius: 3px;
+  background: var(--catalog-bg);
+  color: var(--color-su-white);
+  padding: 13px 15px;
+  text-decoration: none;
+  transition:
+    box-shadow 0.12s,
+    transform 0.12s;
 }
 
 .catalog-item:hover {
-  transform: scale(1.05);
+  box-shadow: 0 5px 18px rgba(34, 30, 23, 0.18);
+  transform: translateY(-2px);
+}
+
+/* Tile name line — font-cond, bold, uppercase, text-shadow for legibility on gradients */
+.catalog-item__name {
+  font-family: var(--font-cond);
+  font-weight: 600;
+  font-size: 16px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--color-su-white);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  line-height: 1.2;
+  text-align: center;
+}
+
+/* Disambiguation badge — solid label color behind the name so equipment /
+   systems / modules read clearly over their tech-level gradient. */
+.catalog-item-label {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 2px;
+  background: var(--catalog-label);
+  text-shadow: none;
 }
 
 /* Shadow wrapper — clip-path kills box-shadow, so shadow lives here */

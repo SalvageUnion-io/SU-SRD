@@ -2,7 +2,6 @@
 import { getSchemaCatalog, SalvageUnionReference, getReferenceEntityData } from '../lib/gameData'
 import { MobileNavIsland } from './islands/MobileNavIsland'
 import { SearchIsland } from './islands/SearchIsland'
-import Logo from './Logo.astro'
 import { getCatalogBg, getCatalogLabel } from '../lib/catalogColors'
 import { buildCatalogCategories } from '../lib/catalogHelpers'
 
@@ -37,66 +36,64 @@ function isActive(path: string) {
 }
 ---
 
-<nav aria-label="Main navigation" class="flex h-20 items-center justify-between bg-su-white px-6 py-3 z-50" transition:name="nav" transition:animate="none">
-  <!-- Logo + Search -->
-  <div class="flex items-center gap-2">
-    <a href="/" class="p-2">
-      <Logo />
-    </a>
-    <div class="hidden lg:block">
-      <SearchIsland client:idle />
-    </div>
-  </div>
+<nav aria-label="Main navigation" class="flex h-[62px] items-center gap-[22px] bg-su-black px-9 z-50 border-b-2 border-su-black" transition:name="nav" transition:animate="none">
+  <!-- Wordmark -->
+  <a href="/" class="shrink-0 font-cond font-bold text-xl uppercase tracking-[.04em] text-su-white no-underline">
+    SALVAGE <span class="text-su-orange">UNION</span> SRD
+  </a>
 
-  <!-- Breadcrumbs (centered) -->
-  {breadcrumbs && breadcrumbs.length > 0 && (
-    <nav aria-label="Breadcrumb" class="hidden lg:block">
-      <ol class="flex flex-wrap items-center gap-1 font-mono text-xs uppercase tracking-wide text-su-grey-dark">
-        {breadcrumbs.map((item, index) => (
-          <>
-            {index > 0 && <li aria-hidden="true" class="select-none">/</li>}
-            <li>
-              {index === breadcrumbs.length - 1 ? (
-                <span aria-current="page" class="text-su-black font-bold">{item.name}</span>
-              ) : (
-                <a href={item.url} class="hover:text-su-orange-dark hover:underline">{item.name}</a>
-              )}
-            </li>
-          </>
-        ))}
-      </ol>
-    </nav>
-  )}
-
-  <!-- Desktop nav -->
-  <div class="hidden lg:flex items-center gap-2">
-    <a href="/" class:list={['btn', isActive('/schema') || currentPath === '/' ? 'btn-active' : 'btn-inactive']} aria-current={isActive('/schema') || currentPath === '/' ? 'page' : undefined}>
+  <!-- Desktop nav links -->
+  <div class="hidden lg:flex items-center gap-5">
+    <a href="/" class:list={['nav-link', isActive('/schema') || currentPath === '/' ? 'nav-link-active' : '']} aria-current={isActive('/schema') || currentPath === '/' ? 'page' : undefined}>
       SRD
     </a>
 
-    <a href="/randsum/" class:list={['btn', isActive('/randsum') ? 'btn-active' : 'btn-inactive']} aria-current={isActive('/randsum') ? 'page' : undefined}>
+    <a href="/randsum/" class:list={['nav-link', isActive('/randsum') ? 'nav-link-active' : '']} aria-current={isActive('/randsum') ? 'page' : undefined}>
       RANDSUM
     </a>
 
-    <a href="/about/" class:list={['btn', isActive('/about') ? 'btn-active' : 'btn-inactive']} aria-current={isActive('/about') ? 'page' : undefined}>
+    <a href="/about/" class:list={['nav-link', isActive('/about') ? 'nav-link-active' : '']} aria-current={isActive('/about') ? 'page' : undefined}>
       ABOUT
     </a>
 
-    <a href="/changelog/" class:list={['btn', isActive('/changelog') ? 'btn-active' : 'btn-inactive']} aria-current={isActive('/changelog') ? 'page' : undefined}>
+    <a href="/changelog/" class:list={['nav-link', isActive('/changelog') ? 'nav-link-active' : '']} aria-current={isActive('/changelog') ? 'page' : undefined}>
       CHANGELOG
     </a>
 
-    <a href="/api/" class:list={['btn', isActive('/api') ? 'btn-active' : 'btn-inactive']} aria-current={isActive('/api') ? 'page' : undefined}>
+    <a href="/api/" class:list={['nav-link', isActive('/api') ? 'nav-link-active' : '']} aria-current={isActive('/api') ? 'page' : undefined}>
       API
     </a>
+  </div>
 
-    <a href="https://leyline.press/collections/salvage-union" target="_blank" rel="noopener noreferrer" class="btn btn-inactive">
+  <!-- Right rail: breadcrumbs (when present) + search + buy — all pushed right -->
+  <div class="ml-auto hidden lg:flex items-center gap-4 min-w-0">
+    {breadcrumbs && breadcrumbs.length > 0 && (
+      <nav aria-label="Breadcrumb" class="min-w-0 shrink">
+        {/* .crumb treatment: font-mono, 12px, muted text; bold su-white on current segment */}
+        <ol class="flex flex-wrap items-center gap-1 font-mono text-[12px] text-[#b9bdb6]">
+          {breadcrumbs.map((item, index) => (
+            <>
+              {index > 0 && <li aria-hidden="true" class="select-none opacity-50">/</li>}
+              <li>
+                {index === breadcrumbs.length - 1 ? (
+                  <span aria-current="page" class="font-medium text-su-white">{item.name}</span>
+                ) : (
+                  <a href={item.url} class="text-[#b9bdb6] hover:text-su-white transition-colors">{item.name}</a>
+                )}
+              </li>
+            </>
+          ))}
+        </ol>
+      </nav>
+    )}
+    <SearchIsland client:idle />
+    <a href="https://leyline.press/collections/salvage-union" target="_blank" rel="noopener noreferrer" class="btn btn-active shrink-0 font-cond text-[13px] uppercase tracking-[.06em]">
       BUY THE GAME
     </a>
   </div>
 
   <!-- Mobile: hamburger -->
-  <div class="flex lg:hidden items-center gap-2">
+  <div class="flex lg:hidden items-center gap-2 ml-auto">
     <MobileNavIsland
       client:idle
       categories={categories}

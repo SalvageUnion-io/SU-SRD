@@ -1,7 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro'
 import { getSchemaCatalog } from '../lib/gameData'
-import { getCatalogBg } from '../lib/catalogColors'
+import { getCatalogBg, getCatalogLabel } from '../lib/catalogColors'
 
 const catalog = getSchemaCatalog()
 const schemas = catalog.schemas.filter((s) => !s.meta).slice(0, 6)
@@ -29,19 +29,26 @@ const schemas = catalog.schemas.filter((s) => !s.meta).slice(0, 6)
       <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <a
           href="/"
-          class="btn btn-inactive text-center"
+          class="flex min-h-[54px] items-center justify-center rounded-[3px] border border-su-black bg-su-white px-4 font-cond text-lg font-bold uppercase tracking-[.02em] text-su-black no-underline transition-all hover:-translate-y-0.5 hover:shadow-[0_5px_18px_rgba(34,30,23,0.18)]"
         >
           Return to Home
         </a>
-        {schemas.map((schema) => (
-          <a
-            href={`/schema/${schema.id}/`}
-            class:list={['btn text-center catalog-item']}
-            style={`--catalog-bg: ${getCatalogBg(schema.id)}`}
-          >
-            {schema.displayName}
-          </a>
-        ))}
+        {schemas.map((schema) => {
+          const label = getCatalogLabel(schema.id)
+          return (
+            <a
+              href={`/schema/${schema.id}/`}
+              class="catalog-item"
+              style={`--catalog-bg: ${getCatalogBg(schema.id)}${label ? `; --catalog-label: ${label}` : ''}`}
+            >
+              {label ? (
+                <span class="catalog-item__name catalog-item-label">{schema.displayName}</span>
+              ) : (
+                <span class="catalog-item__name">{schema.displayName}</span>
+              )}
+            </a>
+          )
+        })}
       </div>
     </div>
   </div>

@@ -26,6 +26,14 @@ export default defineConfig({
     resolve: {
       conditions: ['development'],
     },
+    // Pre-bundle the game-data package so esbuild inlines its native JSON
+    // attribute imports (import(... { with: { type: 'json' } })). Without this
+    // the dev server serves those data/schema files as text/javascript and the
+    // browser rejects them (JSON module MIME mismatch), so client game-data
+    // never loads and entity-card islands hang on their skeleton.
+    optimizeDeps: {
+      include: ['salvageunion-reference'],
+    },
     build: {
       rollupOptions: {
         output: {

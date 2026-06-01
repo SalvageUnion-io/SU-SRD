@@ -4,6 +4,7 @@ import { getSchemaCatalog, SalvageUnionReference, getReferenceEntityData } from 
 import { getCatalogBg, getCatalogLabel } from '../lib/catalogColors'
 import { buildCatalogCategories } from '../lib/catalogHelpers'
 import { SITE_URL } from '../lib/constants'
+import { SearchIsland } from '../components/islands/SearchIsland'
 
 const catalog = getSchemaCatalog()
 const schemas = catalog.schemas.filter((s) => !s.meta)
@@ -32,27 +33,42 @@ const categories = buildCatalogCategories({
 >
   <div class="flex w-full flex-1 flex-col justify-center py-6">
     <div class="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4">
-      <h1 class="sr-only">Salvage Union System Reference Document</h1>
+      <!-- Hero band — eyebrow, headline, subhead, prominent search -->
+      <header class="flex flex-col gap-3 pb-6">
+        <p class="font-cond text-[14px] font-bold uppercase tracking-[.12em] text-su-orange-dark">
+          System Reference Document
+        </p>
+        <h1 class="font-cond text-3xl font-bold uppercase tracking-[.01em] text-su-black sm:text-4xl">
+          Browse the wastes
+        </h1>
+        <p class="max-w-2xl font-mono text-[14px] leading-relaxed text-su-grey-dark">
+          Every Chassis, System, Module, Ability and more — searchable, filterable,
+          salvage-ready.
+        </p>
+        <div class="mt-1 w-full max-w-xl">
+          <SearchIsland client:idle variant="hero" />
+        </div>
+      </header>
 
       <!-- Schema list -->
       <div class="flex flex-col gap-6">
         {categories.map((cat) => (
           <div>
             <div class="catalog-header mb-2">
-              <h2 class="bg-su-black px-1 font-mono font-bold uppercase tracking-tight text-su-white" style="line-height: 1; font-size: inherit;">
-                {cat.label}
-              </h2>
+              <h2 class="catalog-group-title">{cat.label}</h2>
             </div>
             <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {cat.schemas.map((card) => (
                 <a
                   href={card.href}
-                  class:list={['btn text-center catalog-item']}
+                  class="catalog-item"
                   style={`--catalog-bg: ${card.catalogBg}${card.catalogLabel ? `; --catalog-label: ${card.catalogLabel}` : ''}`}
                 >
-                  {card.catalogLabel
-                    ? <span class="catalog-item-label">{card.label}</span>
-                    : card.label}
+                  {card.catalogLabel ? (
+                    <span class="catalog-item__name catalog-item-label">{card.label}</span>
+                  ) : (
+                    <span class="catalog-item__name">{card.label}</span>
+                  )}
                 </a>
               ))}
             </div>

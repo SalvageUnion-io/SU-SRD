@@ -40,8 +40,14 @@ function matchSchemas(query: string): DisplayResult[] {
     }))
 }
 
-export function SearchIsland() {
+type SearchIslandProps = {
+  /** 'nav' (compact, focus-to-expand) or 'hero' (persistent wide field for the index hero) */
+  variant?: 'nav' | 'hero'
+}
+
+export function SearchIsland({ variant = 'nav' }: SearchIslandProps = {}) {
   useGameData()
+  const isHero = variant === 'hero'
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<DisplayResult[]>([])
   const [isOpen, setIsOpen] = useState(false)
@@ -125,34 +131,64 @@ export function SearchIsland() {
   }, [])
 
   return (
-    <div className="relative" ref={containerRef}>
+    <div className={isHero ? 'relative w-full' : 'relative'} ref={containerRef}>
       <div className="sr-only" aria-live="polite">
         {hasSearched &&
           (results.length > 0
             ? `${results.length} result${results.length === 1 ? '' : 's'} found`
             : 'No results found')}
       </div>
-      <input
-        ref={inputRef}
-        type="text"
-        placeholder="Search..."
-        value={query}
-        onChange={(e) => handleInput(e.target.value)}
-        onKeyDown={handleKeyDown}
-        onFocus={() => hasSearched && setIsOpen(true)}
-        className="w-40 rounded-md border border-su-grey-light bg-su-white px-3 py-1.5 text-sm text-su-input-text placeholder:text-su-grey focus:w-64 focus:outline-none focus:ring-2 focus:ring-su-orange transition-all md:w-48"
-        aria-label="Search the SRD"
-        aria-expanded={isOpen}
-        role="combobox"
-        aria-controls="search-results"
-        aria-activedescendant={selectedIndex >= 0 ? `search-result-${selectedIndex}` : undefined}
-      />
+      {/* Search container — .srd-search treatment: bordered su-black, tight radius, font-mono */}
+      <div
+        className={`flex items-center gap-2 rounded border border-su-black bg-su-white font-mono text-su-grey-dark ${
+          isHero ? 'w-full px-4 py-2.5 text-[14px]' : 'px-3 py-[7px] text-[13px]'
+        }`}
+      >
+        {/* Search glyph */}
+        <svg
+          aria-hidden="true"
+          xmlns="http://www.w3.org/2000/svg"
+          width={isHero ? 16 : 14}
+          height={isHero ? 16 : 14}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="shrink-0 opacity-60"
+        >
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <input
+          ref={inputRef}
+          type="text"
+          placeholder={isHero ? 'Search the SRD…' : 'Search…'}
+          value={query}
+          onChange={(e) => handleInput(e.target.value)}
+          onKeyDown={handleKeyDown}
+          onFocus={() => hasSearched && setIsOpen(true)}
+          className={
+            isHero
+              ? 'w-full bg-transparent font-mono text-[14px] text-su-black placeholder:text-su-grey-dark focus:outline-none'
+              : 'w-32 bg-transparent font-mono text-[13px] text-su-black placeholder:text-su-grey-dark focus:w-52 focus:outline-none transition-all md:w-36'
+          }
+          aria-label="Search the SRD"
+          aria-expanded={isOpen}
+          role="combobox"
+          aria-controls="search-results"
+          aria-activedescendant={selectedIndex >= 0 ? `search-result-${selectedIndex}` : undefined}
+        />
+      </div>
 
       {isOpen && (
         <div
           id="search-results"
           role="listbox"
-          className="absolute right-0 top-full z-50 mt-1 w-80 max-h-96 overflow-y-auto rounded-md border border-su-grey-light bg-su-white shadow-lg"
+          className={`absolute top-full z-50 mt-1 max-h-96 overflow-y-auto rounded-md border border-su-grey-light bg-su-white shadow-lg ${
+            isHero ? 'left-0 right-0 w-full' : 'right-0 w-80'
+          }`}
         >
           {results.length > 0 ? (
             results.map((result, index) => (
