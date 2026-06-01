@@ -114,7 +114,7 @@ export function ActionCard({
         <Text
           as="span"
           className={cn('text-right font-medium italic leading-snug', fontSize)}
-          style={{ color: cardAccentText ?? 'white', maxWidth: '60%' }}
+          style={{ color: cardAccentText ?? 'white', maxWidth: '75%' }}
         >
           {reminderText}
         </Text>
