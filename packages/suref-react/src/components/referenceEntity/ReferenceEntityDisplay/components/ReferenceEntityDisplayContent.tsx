@@ -44,6 +44,7 @@ import {
 } from '../../../../lib/referenceEntityDataExtraction'
 import { Text } from '../../../base/Text'
 import {
+  accentSurface,
   borderColorFromHeaderBg,
   getSourceStyles,
   getSourceBorderColor,
@@ -364,6 +365,9 @@ export function ReferenceEntityDisplayContent({
     />
   )
 
+  // Shared accent-surface fallback (bg class + optional dynamic backgroundColor).
+  const accent = accentSurface(headerBg, headerBgColor)
+
   const card = (
     <DisplayCard
       headerBg={headerBg}
@@ -393,10 +397,7 @@ export function ReferenceEntityDisplayContent({
       cardClickable={cardClickable}
     >
       {!listing && hasBodyContent && (
-        <div
-          className={cn('w-full', headerBg || 'bg-su-white')}
-          style={headerBgColor ? { backgroundColor: headerBgColor } : undefined}
-        >
+        <div className={cn('w-full', accent.className)} style={accent.style}>
           {/* Inset white body box floating in the accent field (design itun.css
               .ec__body margin: 0 12px 8px) — the accent wrapper above shows
               through the mx-3/mb-2 insets so colour surrounds the text. */}
@@ -711,10 +712,10 @@ export function ReferenceEntityDisplayContent({
               margin, accent background spanning the full card width). */}
           {interactive?.renderFooter ? (
             <div
-              className={cn('w-full py-3', headerBg || 'bg-su-white', sourceFooterStyle.className)}
+              className={cn('w-full py-3', accent.className, sourceFooterStyle.className)}
               style={{
                 ...spacing.contentPaddingXStyle,
-                ...(headerBgColor ? { backgroundColor: headerBgColor } : {}),
+                ...accent.style,
                 ...sourceFooterStyle.style,
               }}
             >

@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import type {
   SURefMetaEntity,
   SURefEnumSchemaName,
@@ -10,6 +11,22 @@ import {
   isEntityData,
   getHybridClasses,
 } from 'salvageunion-reference'
+
+/**
+ * The card's accent surface: a Tailwind bg class (or the white fallback) plus an
+ * optional inline backgroundColor for dynamic per-source accents. Shared by the
+ * body wrapper, the interactive footer wrapper, and ReferenceEntityFooter so the
+ * `headerBg || 'bg-su-white'` + `headerBgColor` fallback lives in one place.
+ */
+export function accentSurface(
+  headerBg: string | undefined,
+  headerBgColor: string | undefined
+): { className: string; style: CSSProperties | undefined } {
+  return {
+    className: headerBg || 'bg-su-white',
+    style: headerBgColor ? { backgroundColor: headerBgColor } : undefined,
+  }
+}
 
 /** Set of tree names that belong to hybrid classes (e.g. "Fabricator", "Cyborg") */
 let _hybridTreeNames: Set<string> | null = null

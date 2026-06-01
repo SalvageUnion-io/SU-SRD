@@ -56,6 +56,30 @@ describe('DisplayCard', () => {
     expect(screen.getByText('CHASSIS')).toBeTruthy()
   })
 
+  test('renders labelLead, label, and labelBadge together in one callout row', () => {
+    render(
+      <DisplayCard
+        headerBg="bg-su-green"
+        headerContent={<span>Header</span>}
+        labelLead={<span>RECOMMENDED</span>}
+        label="TECH LEVEL"
+        labelBadge="3"
+      >
+        <p>Body</p>
+      </DisplayCard>
+    )
+    expect(screen.getByText('RECOMMENDED')).toBeTruthy()
+    expect(screen.getByText('TECH LEVEL')).toBeTruthy()
+    expect(screen.getByText('3')).toBeTruthy()
+    // All three live inside a single callout row (shared parent element), in order.
+    const lead = screen.getByText('RECOMMENDED')
+    const row = lead.parentElement
+    expect(row).not.toBeNull()
+    const rowText = row?.textContent ?? ''
+    expect(rowText.indexOf('RECOMMENDED')).toBeLessThan(rowText.indexOf('TECH LEVEL'))
+    expect(rowText.indexOf('TECH LEVEL')).toBeLessThan(rowText.indexOf('3'))
+  })
+
   test('listing boolean hides body and footer', () => {
     render(
       <DisplayCard

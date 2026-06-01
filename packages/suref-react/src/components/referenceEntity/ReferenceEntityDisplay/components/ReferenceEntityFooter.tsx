@@ -1,5 +1,6 @@
 import { cn } from '../../../../utils/cn'
 import { Text } from '../../../base/Text'
+import { accentSurface } from '../../referenceEntityHelpers'
 
 type ReferenceEntityFooterProps = {
   footerDisplayName: string | undefined
@@ -29,12 +30,13 @@ export function ReferenceEntityFooter({
   // "Starter Set" — keeping the source tag short.
   const shortSource = source?.replace(/^Salvage Union\s+/i, '')
   const sourceLabel = shortSource && booklet ? `${shortSource} (${booklet})` : shortSource
+  const accent = accentSurface(headerBg, headerBgColor)
   return (
     <div
       className={cn(
         // Slim footer: half the vertical padding, text vertically centred.
         'flex w-full items-center justify-between gap-4 py-1.5 text-su-black',
-        headerBg || 'bg-su-white',
+        accent.className,
         sourceFooterStyles.className
       )}
       style={{
@@ -42,7 +44,7 @@ export function ReferenceEntityFooter({
         // edges (the body box is inset by mx-3 = 0.75rem).
         paddingLeft: '0.75rem',
         paddingRight: '0.75rem',
-        ...(headerBgColor ? { backgroundColor: headerBgColor } : {}),
+        ...accent.style,
         ...sourceFooterStyles.style,
       }}
     >
