@@ -130,14 +130,6 @@ export function MobileNavIsland({ categories, currentPath }: MobileNavIslandProp
             {/* Bottom links */}
             <div className="mt-auto flex flex-col gap-2 border-t border-su-grey-light pt-4">
               <Button
-                href="/randsum/"
-                active={isActive('/randsum')}
-                className="block text-sm"
-                onClick={() => setOpen(false)}
-              >
-                RANDSUM
-              </Button>
-              <Button
                 href="/about/"
                 active={isActive('/about')}
                 className="block text-sm"
