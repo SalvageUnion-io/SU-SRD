@@ -77,7 +77,7 @@ function isActive(path: string) {
     </a>
 
     <SearchIsland client:idle />
-    <a href="https://leyline.press/collections/salvage-union" target="_blank" rel="noopener noreferrer" class="btn btn-active shrink-0 font-cond text-[13px] uppercase tracking-[.06em]">
+    <a href="https://leyline.press/collections/salvage-union" target="_blank" rel="noopener noreferrer" class="btn btn-active shrink-0 font-cond text-[13px] uppercase tracking-[0.06em]">
       BUY THE GAME
     </a>
   </div>
@@ -93,37 +93,37 @@ function isActive(path: string) {
 </nav>
 
 {breadcrumbs && breadcrumbs.length > 0 && (
-  <nav aria-label="Breadcrumb" class="border-b border-su-grey-light bg-su-white px-5 py-2 sm:px-[34px]">
-    <ol class="flex flex-wrap items-center gap-1.5 font-cond text-xs uppercase tracking-[0.14em] text-su-grey-dark">
-      {breadcrumbs.map((item, index) => (
-        <>
-          {index > 0 && <li aria-hidden="true" class="select-none text-su-grey-medium">/</li>}
-          <li>
-            {index === breadcrumbs.length - 1 ? (
-              <span aria-current="page" class="font-semibold text-su-black">{item.name}</span>
-            ) : (
-              <a href={item.url} class="transition-colors hover:text-su-orange-dark">{item.name}</a>
-            )}
-          </li>
-        </>
-      ))}
-    </ol>
-  </nav>
-)}
+  <>
+    <nav aria-label="Breadcrumb" class="border-b border-su-grey-light bg-su-white px-5 py-2 sm:px-[34px]">
+      <ol class="flex flex-wrap items-center gap-1.5 font-cond text-xs uppercase tracking-[0.14em] text-su-grey-dark">
+        {breadcrumbs.map((item, index) => (
+          <>
+            {index > 0 && <li aria-hidden="true" class="select-none text-su-grey-medium">/</li>}
+            <li>
+              {index === breadcrumbs.length - 1 ? (
+                <span aria-current="page" class="font-semibold text-su-black">{item.name}</span>
+              ) : (
+                <a href={item.url} class="transition-colors hover:text-su-orange-dark">{item.name}</a>
+              )}
+            </li>
+          </>
+        ))}
+      </ol>
+    </nav>
 
-{breadcrumbs && breadcrumbs.length > 0 && (
-  <script
-    is:inline
-    type="application/ld+json"
-    set:html={JSON.stringify({
-      '@context': 'https://schema.org',
-      '@type': 'BreadcrumbList',
-      itemListElement: breadcrumbs.map((item, index) => ({
-        '@type': 'ListItem',
-        position: index + 1,
-        name: item.name,
-        item: item.url,
-      })),
-    })}
-  />
+    <script
+      is:inline
+      type="application/ld+json"
+      set:html={JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: breadcrumbs.map((item, index) => ({
+          '@type': 'ListItem',
+          position: index + 1,
+          name: item.name,
+          item: item.url,
+        })),
+      })}
+    />
+  </>
 )}
