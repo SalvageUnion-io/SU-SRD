@@ -45,6 +45,8 @@ import {
 import { Text } from '../../../base/Text'
 import {
   accentSurface,
+  accentTextColor,
+  accentDeepColor,
   borderColorFromHeaderBg,
   getSourceBorderColor,
 } from '../../referenceEntityHelpers'
@@ -247,6 +249,11 @@ export function ReferenceEntityDisplayContent({
 
   // Cache border color derivation (used in faction data and elsewhere)
   const borderColor = borderColorFromHeaderBg(headerBg, headerBgColor)
+  // Accent tints derived from the base/header colour: a lighter variant for the
+  // flavour ("accent") text on the coloured field, and a deeper variant for the
+  // white body box's left accent border.
+  const accentText = accentTextColor(headerBg, headerBgColor)
+  const accentDeep = accentDeepColor(headerBg, headerBgColor)
 
   // Determine if there is any body content to render (to avoid empty padding)
   const hasFactionContent = !!(getGoals(data) || getAssets(data) || getWeaknesses(data))
@@ -347,7 +354,11 @@ export function ReferenceEntityDisplayContent({
         // capped flex-[0_1_auto] max-w branch and squishes the data row for
         // systems/modules (whose only right element is the separate stats column).
         !hide.stats && hasHeaderFlavor ? (
-          <ReferenceEntityRightHeaderContent data={data} fontSize={fontSize} />
+          <ReferenceEntityRightHeaderContent
+            data={data}
+            fontSize={fontSize}
+            accentColor={accentText}
+          />
         ) : undefined
       }
       compact={compact}
@@ -393,8 +404,16 @@ export function ReferenceEntityDisplayContent({
             // No bottom margin: the footer's own symmetric py provides the gap
             // above its content, so the footer isn't top-heavy (the body box's
             // bottom edge meets the footer directly).
-            className={cn('mx-3 min-w-0 bg-su-white p-0', damageOverlayText && 'relative')}
-            style={{ opacity: opacity.content }}
+            // 3px left accent border in the card's "deep" (darker) accent tint.
+            className={cn(
+              'mx-3 min-w-0 bg-su-white p-0',
+              accentDeep && 'border-l-[3px]',
+              damageOverlayText && 'relative'
+            )}
+            style={{
+              opacity: opacity.content,
+              ...(accentDeep ? { borderLeftColor: accentDeep } : {}),
+            }}
           >
             {/* Float zone: block flow so image float propagates to all children */}
             <div

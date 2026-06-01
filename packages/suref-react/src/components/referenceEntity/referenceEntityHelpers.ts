@@ -128,6 +128,32 @@ export function borderColorFromHeaderBg(
 }
 
 /**
+ * Lighter tint of the card's accent (header) colour — a pale variant of the base
+ * layer, used for the flavour/"accent" text that sits on the coloured field.
+ * Derived via color-mix so it works for every accent (tokens are inconsistent —
+ * su-rust/su-pink have no -light variant). Undefined when there is no accent.
+ */
+export function accentTextColor(
+  headerBg: string | undefined,
+  headerBgColor?: string
+): string | undefined {
+  const base = borderColorFromHeaderBg(headerBg, headerBgColor)
+  return base ? `color-mix(in srgb, ${base} 30%, white)` : undefined
+}
+
+/**
+ * Deeper (darker) tint of the card's accent (header) colour — the "deep" variant,
+ * used for the white body box's 3px left accent border.
+ */
+export function accentDeepColor(
+  headerBg: string | undefined,
+  headerBgColor?: string
+): string | undefined {
+  const base = borderColorFromHeaderBg(headerBg, headerBgColor)
+  return base ? `color-mix(in srgb, ${base} 65%, black)` : undefined
+}
+
+/**
  * Get a themed border color for expansion-sourced entities.
  * Returns undefined for core-book sources so the caller can fall back to defaults.
  */
