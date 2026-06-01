@@ -114,7 +114,7 @@ export function ActionCard({
         <Text
           as="span"
           className={cn('text-right font-medium italic leading-snug', fontSize)}
-          style={{ color: cardAccentText ?? 'white', maxWidth: '40%' }}
+          style={{ color: cardAccentText ?? 'white', maxWidth: '60%' }}
         >
           {reminderText}
         </Text>
@@ -157,14 +157,17 @@ export function ActionCard({
       label={actionTypeLabel}
       compact={compact}
       borderColor={cardColor ?? 'var(--color-su-black)'}
+      // Blank accent bar (matches the deep header colour) so the card closes with
+      // a footer instead of a bare white edge — mirrors the entity-card footer.
+      footerContent={<span aria-hidden className="block" />}
     >
       {hasBodyContent && (
-        <div
-          className={cn('w-full', parentHeaderBg || 'bg-su-white')}
-          style={parentHeaderBgColor ? { backgroundColor: parentHeaderBgColor } : undefined}
-        >
+        // Body accent field — the deep header colour shows through the mx-3 insets
+        // around the white box, so the card's left/right edges match the header.
+        <div className="w-full" style={cardColor ? { backgroundColor: cardColor } : undefined}>
           {/* Inset white body box — mirrors ReferenceEntityDisplayContent's body box.
-              Left border uses the parent accent (not deeper-of-deep) to stay visible. */}
+              Left border uses the parent (lighter) accent so it stays visible
+              against the deep accent field. */}
           <div
             className={cn('mx-3 min-w-0 bg-su-white p-0', bodyBorderColor && 'border-l-[3px]')}
             style={bodyBorderColor ? { borderLeftColor: bodyBorderColor } : undefined}

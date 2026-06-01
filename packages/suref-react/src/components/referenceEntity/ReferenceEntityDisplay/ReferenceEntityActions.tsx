@@ -58,11 +58,7 @@ export function ReferenceEntityActions({
     <div className={cn('flex flex-col', spacing.smallSpaceYClass)}>
       {regularActions.length > 0 && (
         <>
-          <SectionSeparator
-            label="Actions"
-            value={String(actionsToDisplay.length)}
-            compact={compact}
-          />
+          <SectionSeparator label="Actions" compact={compact} />
 
           {/* 2-column container query grid.
               @container on the wrapper; @md: breakpoint fires when the
@@ -70,16 +66,14 @@ export function ReferenceEntityActions({
               Tailwind v4 has built-in container query support — no plugin needed.
               NOTE: the consuming app / page must NOT have overflow:hidden on an
               ancestor that would prevent the container from reporting its width;
-              if actions appear single-column, check ancestor overflow constraints. */}
-          <div className="@container">
+              if actions appear single-column, check ancestor overflow constraints.
+              mt-2 gives a clear gap below the "Actions" separator label. */}
+          <div className="@container mt-2">
             <div className="grid grid-cols-1 gap-3 @md:grid-cols-2">
+              {/* Regular actions always render compact; the titanic action stays
+                  full so its reminder + option list have room. */}
               {regularActions.map((action) => (
-                <ActionCard
-                  key={action.id}
-                  data={action}
-                  compact={compact}
-                  parentHeaderBg={headerBg}
-                />
+                <ActionCard key={action.id} data={action} compact parentHeaderBg={headerBg} />
               ))}
 
               {/* Titanic action renders full-width as the last grid item */}
@@ -102,13 +96,15 @@ export function ReferenceEntityActions({
       {/* Edge case: only a titanic action, no regular actions */}
       {regularActions.length === 0 && titanicAction && (
         <>
-          <SectionSeparator label="Actions" value="1" compact={compact} />
-          <ActionCard
-            data={titanicAction}
-            compact={compact}
-            parentHeaderBg={headerBg}
-            titanicMode
-          />
+          <SectionSeparator label="Actions" compact={compact} />
+          <div className="mt-2">
+            <ActionCard
+              data={titanicAction}
+              compact={compact}
+              parentHeaderBg={headerBg}
+              titanicMode
+            />
+          </div>
         </>
       )}
     </div>
