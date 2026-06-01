@@ -97,12 +97,14 @@ export function SchemaViewerIsland({
                   const swatchStyle =
                     numericLevel !== undefined ? `var(--color-tl-${numericLevel})` : undefined
                   return (
+                    // colorClass is only consumed in the non-swatch (B/N) branch; a
+                    // numeric chip renders the swatch and ignores it, so omit it there.
                     <FilterChip
                       key={String(level)}
                       label={techLevelLabel(level)}
                       active={techLevelFilters.has(String(level))}
                       onClick={() => toggleTechLevel(level)}
-                      colorClass={TECH_LEVEL_STYLES[String(level)]}
+                      colorClass={swatchStyle ? undefined : TECH_LEVEL_STYLES[String(level)]}
                       swatchStyle={swatchStyle}
                     />
                   )
