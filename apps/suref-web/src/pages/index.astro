@@ -4,7 +4,6 @@ import { getSchemaCatalog, SalvageUnionReference, getReferenceEntityData } from 
 import { getCatalogBg, getCatalogLabel } from '../lib/catalogColors'
 import { buildCatalogCategories } from '../lib/catalogHelpers'
 import { SITE_URL } from '../lib/constants'
-import { SearchIsland } from '../components/islands/SearchIsland'
 
 const catalog = getSchemaCatalog()
 const schemas = catalog.schemas.filter((s) => !s.meta)
@@ -31,24 +30,12 @@ const categories = buildCatalogCategories({
     url: SITE_URL,
   }}
 >
-  <div class="flex w-full flex-1 flex-col justify-center py-6">
+  <div class="flex w-full flex-1 flex-col py-6">
     <div class="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4">
-      <!-- Hero band — eyebrow, headline, subhead, prominent search -->
-      <header class="flex flex-col gap-3 pb-6">
-        <p class="font-cond text-[14px] font-bold uppercase tracking-[.12em] text-su-orange-dark">
-          System Reference Document
-        </p>
-        <h1 class="font-cond text-3xl font-bold uppercase tracking-[.01em] text-su-black sm:text-4xl">
-          Browse the wastes
-        </h1>
-        <p class="max-w-2xl font-mono text-[14px] leading-relaxed text-su-grey-dark">
-          Every Chassis, System, Module, Ability and more — searchable, filterable,
-          salvage-ready.
-        </p>
-        <div class="mt-1 w-full max-w-xl">
-          <SearchIsland client:idle variant="hero" />
-        </div>
-      </header>
+      {/* Visually-hidden page heading — preserves the landing-page h1 for SEO /
+          accessibility now that the visible hero band is gone. Search lives in
+          the top nav (and mobile nav). */}
+      <h1 class="sr-only">Salvage Union System Reference Document</h1>
 
       <!-- Schema list -->
       <div class="flex flex-col gap-6">
