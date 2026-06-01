@@ -191,7 +191,9 @@ export function ReferenceEntityDisplayContent({
   // subtitle below.) Renders in header-only/compact/full like the rest of the row.
   const isRecommended = isEntityData(data) && getRecommended(data) === true
   const labelLead = isRecommended ? (
-    <CalloutMetaStamp rust>{CALLOUT_META_LABELS.recommended}</CalloutMetaStamp>
+    <CalloutMetaStamp rust compact={compact}>
+      {CALLOUT_META_LABELS.recommended}
+    </CalloutMetaStamp>
   ) : undefined
 
   // Whether the right header column will actually render flavor. isAbility narrows

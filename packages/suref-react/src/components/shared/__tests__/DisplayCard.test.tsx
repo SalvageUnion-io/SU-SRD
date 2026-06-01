@@ -93,7 +93,7 @@ describe('DisplayCard', () => {
     )
     const headerRow = screen.getByTestId('frame-header-container')
     expect(headerRow.className).toContain('items-start')
-    expect(headerRow.className).toContain('pt-4')
+    expect(headerRow.className).toContain('pt-6')
     expect(headerRow.className).toContain('pb-4')
   })
 

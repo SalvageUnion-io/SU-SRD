@@ -11,20 +11,24 @@ import { cn } from '../../../../utils/cn'
 export function CalloutMetaStamp({
   children,
   rust = false,
+  compact = false,
 }: {
   children: ReactNode
   rust?: boolean
+  compact?: boolean
 }) {
   return (
     <Text
       variant="pseudoheader"
       as="span"
-      // font-semibold overrides the pseudoheader variant's font-bold so a lone
-      // stamp (e.g. legendary/generic ability trees, which have no numeric badge)
-      // matches the weight of the segmented ValueDisplay callout used for numeric
-      // levels / tech levels.
+      // Mirror ValueDisplay's size + weight exactly (text-sm/font-semibold in full
+      // mode, text-xs/font-normal when compact) so a lone stamp — e.g. legendary
+      // and generic ability trees, which have no numeric level badge — is uniform
+      // with the segmented ValueDisplay callout used for numeric levels / tech
+      // levels. The pseudoheader variant is font-bold; these override it.
       className={cn(
-        'whitespace-nowrap text-xs font-semibold uppercase',
+        'whitespace-nowrap uppercase',
+        compact ? 'text-xs font-normal' : 'text-sm font-semibold',
         rust && 'bg-su-rust text-su-white'
       )}
     >
