@@ -112,15 +112,16 @@ describe('ChoiceGroups — multi-select cap (scalesWithField)', () => {
 })
 
 describe('ChoiceGroups — free-text choice', () => {
-  test('renders an editable field and reads as chosen once filled', () => {
+  test('renders an editable field and updates its value (no Chosen/Not Chosen stamp)', () => {
     render(<ChoiceGroups choices={[nameChoice]} parent={parent} />)
     const field = screen.getByLabelText('Name') as HTMLInputElement
     expect(field).toBeTruthy()
-    expect(screen.getByText('Not Chosen')).toBeTruthy()
+    // Free-text input cards carry no Chosen / Not Chosen status stamp.
+    expect(screen.queryByText('Not Chosen')).toBeNull()
+    expect(screen.queryByText('Chosen')).toBeNull()
 
     fireEvent.change(field, { target: { value: 'Rex' } })
     expect(field.value).toBe('Rex')
-    expect(screen.getByText('Chosen')).toBeTruthy()
   })
 })
 

@@ -215,10 +215,10 @@ export function FreeTextChoiceCard({
 
   return (
     <div
-      className={cn('relative w-full min-w-0 overflow-visible rounded-[3px] border')}
+      className={cn('relative w-full min-w-0 overflow-hidden rounded-[3px] border')}
       style={choiceCardColors(chosen, parentHeaderBg, parentHeaderBgColor)}
     >
-      <ChoiceStatusCallout chosen={chosen} compact={compact} />
+      {/* Free-text input cards carry no Chosen / Not Chosen stamp. */}
       <ChoiceCardHeader label={label} chosen={chosen} compact={compact} />
       <ChoiceCardBody accent={accent} compact={compact}>
         {description && (
