@@ -1,5 +1,5 @@
-import type { SURefObjectGrant, SURefEnumSchemaName, SURefEntity } from 'salvageunion-reference'
-import { getGrants, getModel } from 'salvageunion-reference'
+import type { SURefEntity } from 'salvageunion-reference'
+import { resolveGrantedEntities } from 'salvageunion-reference'
 import { ReferenceEntityDisplay } from './index'
 import { SectionSeparator } from './SectionSeparator'
 import { getEntityDetailHref } from './entityDetailHref'
@@ -14,29 +14,8 @@ type ReferenceEntityGrantsProps = {
 }
 
 export function ReferenceEntityGrants({ data, spacing, compact }: ReferenceEntityGrantsProps) {
-  // Get grants from entity
-  const entityGrants = getGrants(data) || []
-
-  if (entityGrants.length === 0) {
-    return null
-  }
-
-  // Resolve granted entities
-  const grantedEntities = entityGrants
-    .map((grant: SURefObjectGrant) => {
-      // Skip 'choice' schema grants as they're handled separately
-      if (grant.schema === 'choice') {
-        return null
-      }
-
-      const schema = grant.schema as SURefEnumSchemaName
-      const model = getModel(schema.toLowerCase())
-      if (!model) return null
-
-      const entity = model.find((e: SURefEntity) => e.name === grant.name)
-      return entity || null
-    })
-    .filter((entity): entity is SURefEntity & { schemaName: string } => entity !== null)
+  // Shared resolver (single source of truth — see salvageunion-reference).
+  const grantedEntities = resolveGrantedEntities(data)
 
   if (grantedEntities.length === 0) {
     return null
@@ -52,7 +31,13 @@ export function ReferenceEntityGrants({ data, spacing, compact }: ReferenceEntit
       />
       <div className={cn('flex flex-col', spacing.smallSpaceYClass)}>
         {grantedEntities.map((entity, idx) => (
-          <GrantedEntityListing key={idx} entity={entity} parentCompact={!!compact} />
+          // id + index: stable, and unique even for an intentional double-grant
+          // (e.g. Mecha Packmaster grants two Mecha Companions).
+          <GrantedEntityListing
+            key={`${entity.id}-${idx}`}
+            entity={entity}
+            parentCompact={!!compact}
+          />
         ))}
       </div>
     </div>

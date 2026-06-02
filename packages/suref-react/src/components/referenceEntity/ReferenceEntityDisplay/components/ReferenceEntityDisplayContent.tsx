@@ -7,10 +7,10 @@ import {
   getAssets,
   getWeaknesses,
   getRecommended,
-  getGrants,
   getChoices,
   getModel,
   getBooklet,
+  resolveGrantedEntities,
   isEntityData,
   isAbility,
   isClass,
@@ -95,24 +95,6 @@ export type ReferenceEntityDisplayContentProps = ReferenceEntityDisplayStateInpu
 // stays small to avoid doubling whitespace above the footer. Empirically tuned
 // (~1/3 of the default content padding), not derived.
 const CONTENT_PADDING_BOTTOM_RATIO = 0.34
-
-/**
- * Resolve an entity's non-`choice` grants into their full entities (e.g. an
- * ability's granted equipment). Mirrors the resolution that
- * `ReferenceEntityGrants` performs so the display layer can decide, before
- * rendering, whether an ability is a granting ability.
- */
-function resolveGrantedEntities(data: SURefEntity): SURefEntity[] {
-  const grants = getGrants(data) ?? []
-  return grants
-    .map((grant): SURefEntity | null => {
-      if (grant.schema === 'choice') return null
-      const model = getModel((grant.schema as SURefEnumSchemaName).toLowerCase())
-      if (!model) return null
-      return model.find((e: SURefEntity) => 'name' in e && e.name === grant.name) ?? null
-    })
-    .filter((entity): entity is SURefEntity => entity !== null)
-}
 
 /**
  * The entity a footer's source/page/booklet should read from. Actions carry no

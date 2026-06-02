@@ -93,6 +93,27 @@ export function getModel(
 }
 
 /**
+ * Resolve an entity's `grants` into the granted entities, skipping `choice`
+ * grants (handled separately). Single source of truth for the grant-resolution
+ * walk — used by the display layer (Grants block) and any tooling.
+ */
+export function resolveGrantedEntities(entity: SURefEntity): SURefEntity[] {
+  const grants =
+    'grants' in entity && Array.isArray(entity.grants)
+      ? (entity.grants as Array<{ name: string; schema: string }>)
+      : []
+  return grants
+    .filter((grant) => grant.schema !== 'choice')
+    .map(
+      (grant): SURefEntity | null =>
+        getModel((grant.schema as SURefEnumSchemaName).toLowerCase())?.find(
+          (e: SURefEntity) => 'name' in e && e.name === grant.name
+        ) ?? null
+    )
+    .filter((e): e is SURefEntity => e !== null)
+}
+
+/**
  * Get a map of all schema names to their models
  * Useful for dynamic model access
  */
