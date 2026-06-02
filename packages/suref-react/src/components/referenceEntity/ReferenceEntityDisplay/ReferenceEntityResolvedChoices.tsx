@@ -44,9 +44,14 @@ export function ReferenceEntityResolvedChoices({
   }
 
   return (
+    // No scaling `parent` is passed: `scalesWithField` caps (e.g. Modification
+    // "at each Tech Level") scale with a play/build context — the crawler or
+    // character — which the read-only SRD reference doesn't have. So those caps
+    // don't resolve here and the choice is unbounded, while any intrinsic
+    // `constraints.max` would still apply. A build context (ITUN) would pass its
+    // own parent. This keeps the behavior generic — no per-entity callouts.
     <ChoiceGroups
       choices={choices}
-      parent={data as unknown as Record<string, unknown>}
       selections={selections}
       onSelectionChange={onSelectionChange}
       compact={compact}

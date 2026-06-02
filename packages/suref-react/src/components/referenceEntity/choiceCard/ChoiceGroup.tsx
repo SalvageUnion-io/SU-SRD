@@ -74,22 +74,25 @@ export function ChoiceGroup({
   return (
     <div className={cn('flex flex-col gap-2')}>
       <SectionSeparator label={choice.name} value={counter} compact={compact} />
-      <div className="flex flex-col gap-2">
-        {options.map((option) => {
-          const isChosen = selected.includes(option.value)
-          return (
-            <ChoiceCard
-              key={option.value}
-              label={option.label}
-              description={option.description}
-              chosen={isChosen}
-              compact={compact}
-              parentHeaderBg={parentHeaderBg}
-              parentHeaderBgColor={parentHeaderBgColor}
-              onToggle={() => onToggleOption(option.value)}
-            />
-          )
-        })}
+      {/* Masonry: up to 3 columns, dropping to 2 then 1 as the container narrows
+          (@container queries). `break-inside-avoid` keeps each card whole;
+          vertical spacing between stacked cards is the `mb-2` on each wrapper. */}
+      <div className="@container">
+        <div className="columns-1 gap-2 @md:columns-2 @4xl:columns-3">
+          {options.map((option) => (
+            <div key={option.value} className="mb-2 break-inside-avoid">
+              <ChoiceCard
+                label={option.label}
+                description={option.description}
+                chosen={selected.includes(option.value)}
+                compact={compact}
+                parentHeaderBg={parentHeaderBg}
+                parentHeaderBgColor={parentHeaderBgColor}
+                onToggle={() => onToggleOption(option.value)}
+              />
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   )

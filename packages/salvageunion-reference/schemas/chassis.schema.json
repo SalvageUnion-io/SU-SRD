@@ -52,11 +52,15 @@
                       "type": {
                         "type": "string",
                         "description": "Type classification for this data value"
+                      },
+                      "unit": {
+                        "type": "string",
+                        "description": "Optional unit shown after the value (e.g. damage type \"SP\")"
                       }
                     },
                     "required": ["label"],
                     "additionalProperties": false,
-                    "description": "A data value with label, optional value, and optional type"
+                    "description": "A data value with label, optional value, optional type, and optional unit"
                   },
                   "description": "Array of data values when type is 'datavalues'"
                 }
@@ -103,11 +107,15 @@
                             "type": {
                               "type": "string",
                               "description": "Type classification for this data value"
+                            },
+                            "unit": {
+                              "type": "string",
+                              "description": "Optional unit shown after the value (e.g. damage type \"SP\")"
                             }
                           },
                           "required": ["label"],
                           "additionalProperties": false,
-                          "description": "A data value with label, optional value, and optional type"
+                          "description": "A data value with label, optional value, optional type, and optional unit"
                         },
                         "description": "Array of data values when type is 'datavalues'"
                       }
@@ -309,11 +317,15 @@
                             "type": {
                               "type": "string",
                               "description": "Type classification for this data value"
+                            },
+                            "unit": {
+                              "type": "string",
+                              "description": "Optional unit shown after the value (e.g. damage type \"SP\")"
                             }
                           },
                           "required": ["label"],
                           "additionalProperties": false,
-                          "description": "A data value with label, optional value, and optional type"
+                          "description": "A data value with label, optional value, optional type, and optional unit"
                         },
                         "description": "Array of data values when type is 'datavalues'"
                       }
@@ -360,11 +372,15 @@
                                   "type": {
                                     "type": "string",
                                     "description": "Type classification for this data value"
+                                  },
+                                  "unit": {
+                                    "type": "string",
+                                    "description": "Optional unit shown after the value (e.g. damage type \"SP\")"
                                   }
                                 },
                                 "required": ["label"],
                                 "additionalProperties": false,
-                                "description": "A data value with label, optional value, and optional type"
+                                "description": "A data value with label, optional value, optional type, and optional unit"
                               },
                               "description": "Array of data values when type is 'datavalues'"
                             }
@@ -600,11 +616,15 @@
                           "type": {
                             "type": "string",
                             "description": "Type classification for this data value"
+                          },
+                          "unit": {
+                            "type": "string",
+                            "description": "Optional unit shown after the value (e.g. damage type \"SP\")"
                           }
                         },
                         "required": ["label"],
                         "additionalProperties": false,
-                        "description": "A data value with label, optional value, and optional type"
+                        "description": "A data value with label, optional value, optional type, and optional unit"
                       },
                       "description": "Array of data values when type is 'datavalues'"
                     }
@@ -651,11 +671,15 @@
                                 "type": {
                                   "type": "string",
                                   "description": "Type classification for this data value"
+                                },
+                                "unit": {
+                                  "type": "string",
+                                  "description": "Optional unit shown after the value (e.g. damage type \"SP\")"
                                 }
                               },
                               "required": ["label"],
                               "additionalProperties": false,
-                              "description": "A data value with label, optional value, and optional type"
+                              "description": "A data value with label, optional value, optional type, and optional unit"
                             },
                             "description": "Array of data values when type is 'datavalues'"
                           }
@@ -736,11 +760,15 @@
                                 "type": {
                                   "type": "string",
                                   "description": "Type classification for this data value"
+                                },
+                                "unit": {
+                                  "type": "string",
+                                  "description": "Optional unit shown after the value (e.g. damage type \"SP\")"
                                 }
                               },
                               "required": ["label"],
                               "additionalProperties": false,
-                              "description": "A data value with label, optional value, and optional type"
+                              "description": "A data value with label, optional value, optional type, and optional unit"
                             },
                             "description": "Array of data values when type is 'datavalues'"
                           }
@@ -787,11 +815,15 @@
                                       "type": {
                                         "type": "string",
                                         "description": "Type classification for this data value"
+                                      },
+                                      "unit": {
+                                        "type": "string",
+                                        "description": "Optional unit shown after the value (e.g. damage type \"SP\")"
                                       }
                                     },
                                     "required": ["label"],
                                     "additionalProperties": false,
-                                    "description": "A data value with label, optional value, and optional type"
+                                    "description": "A data value with label, optional value, optional type, and optional unit"
                                   },
                                   "description": "Array of data values when type is 'datavalues'"
                                 }

@@ -109,7 +109,7 @@ describe('toggleSelection', () => {
 })
 
 describe('real data — Custom Sniper Rifle choices', () => {
-  test('Weapon Type is exclusive trait choice, Modification is capped multi-select', () => {
+  test('Weapon Type is exclusive; Modification is capped in data but unbounded without a scaling context', () => {
     const rifle = SalvageUnionReference.Equipment.find((e) => e.name === 'Custom Sniper Rifle')
     expect(rifle).toBeTruthy()
     const choices = rifle?.choices ?? []
@@ -127,7 +127,10 @@ describe('real data — Custom Sniper Rifle choices', () => {
     ])
 
     expect(isMultiSelectChoice(modification as SURefObjectChoice)).toBe(true)
-    // techLevel 3 → cap 3.
-    expect(resolveMultiSelectCap(modification as SURefObjectChoice, rifle)).toBe(3)
+    // The Modification IS capped in the data (scalesWithField: techLevel — the
+    // crawler's tech level in play). But the read-only SRD passes no scaling
+    // context, so no cap resolves here and the choice is unbounded.
+    expect(modification?.constraints?.scalesWithField).toBe('techLevel')
+    expect(resolveMultiSelectCap(modification as SURefObjectChoice, undefined)).toBeUndefined()
   })
 })

@@ -638,6 +638,10 @@
       },
       {
         "type": "paragraph",
+        "value": "Choose if your Custom Sniper Rifle is a Ballistic or Energy weapon. It gains the respective Energy or Ballistic Trait."
+      },
+      {
+        "type": "paragraph",
         "value": "At each Tech Level, you may select an additional Modification for your Custom Sniper Rifle."
       },
       {
@@ -646,7 +650,8 @@
           {
             "label": "Damage",
             "type": "keyword",
-            "value": 2
+            "value": 2,
+            "unit": "SP"
           },
           {
             "label": "Range",
@@ -884,7 +889,8 @@
           {
             "label": "Damage",
             "type": "keyword",
-            "value": 3
+            "value": 3,
+            "unit": "SP"
           },
           {
             "label": "Range",

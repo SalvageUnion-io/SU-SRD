@@ -436,6 +436,7 @@ export function ReferenceEntityDisplayContent({
           schemaName={schemaName}
           spacing={spacing}
           compact={compact}
+          suppressExtractedDetails={entityHasChoices}
           subtitleExtra={
             resolvedDataRow ? (
               <>

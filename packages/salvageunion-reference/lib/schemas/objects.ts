@@ -120,9 +120,13 @@ export const DataValueSchema = z
     label: z.union([z.string(), z.number()]).describe('Display label for this data value'),
     value: z.union([z.string(), z.number()]).describe('The data value').optional(),
     type: z.string().describe('Type classification for this data value').optional(),
+    unit: z
+      .string()
+      .describe('Optional unit shown after the value (e.g. damage type "SP")')
+      .optional(),
   })
   .strict()
-  .describe('A data value with label, optional value, and optional type')
+  .describe('A data value with label, optional value, optional type, and optional unit')
 
 /**
  * Block of structured content for rendering (paragraph, heading, list item, etc.)

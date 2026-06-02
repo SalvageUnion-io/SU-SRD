@@ -30,6 +30,23 @@ describe('Custom Sniper Rifle equipment display', () => {
     expect(screen.getByText('Long')).toBeTruthy()
   })
 
+  test('renders the weapon-type choice text in the content', () => {
+    render(<ReferenceEntityDisplay data={rifleEquipment} compact />)
+    expect(
+      screen.getByText(/Choose if your Custom Sniper Rifle is a Ballistic or Energy weapon/i)
+    ).toBeTruthy()
+  })
+
+  test('shows the damage type (SP) after the damage value', () => {
+    render(<ReferenceEntityDisplay data={rifleEquipment} compact />)
+    expect(screen.getByText('SP')).toBeTruthy()
+  })
+
+  test('does not surface the linked action\'s "Pilot equipment" trait in the subtitle', () => {
+    render(<ReferenceEntityDisplay data={rifleEquipment} compact />)
+    expect(screen.queryByText(/pilot equipment/i)).toBeNull()
+  })
+
   test('renders the max-describing content text (when a Modification may be picked)', () => {
     render(<ReferenceEntityDisplay data={rifleEquipment} compact />)
     expect(

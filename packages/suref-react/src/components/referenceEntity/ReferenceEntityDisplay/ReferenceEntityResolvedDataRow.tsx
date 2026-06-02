@@ -44,9 +44,23 @@ export function ReferenceEntityResolvedDataRow({
 
   return (
     <>
-      {rowItems.map((item, index) => (
-        <DataValueDisplayView key={`dv-${index}`} item={item} compact={compact} />
-      ))}
+      {rowItems.map((item, index) => {
+        // A datavalue carrying a `unit` (e.g. Damage 2 SP) renders as a 3-segment
+        // tag [LABEL][value][unit] via the segmented chrome — label + unit on
+        // black, value on white — so the damage type shows after the number in
+        // all rendering states.
+        const unit = 'unit' in item ? item.unit : undefined
+        if (unit && item.value !== undefined) {
+          return (
+            <DataValueDisplayView
+              key={`dv-${index}`}
+              item={{ label: item.label, value: `${item.value}||${unit}`, type: 'segmented' }}
+              compact={compact}
+            />
+          )
+        }
+        return <DataValueDisplayView key={`dv-${index}`} item={item} compact={compact} />
+      })}
       {view.prompts.map((prompt) => {
         // Unresolved choice → segmented chrome matching the class "X or Y Tree"
         // data row: [CHOOSE][opt][OR][opt], built from the choice's own options.
