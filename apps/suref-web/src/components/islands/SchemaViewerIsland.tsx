@@ -8,8 +8,10 @@ import {
   FilterRow,
   TECH_LEVEL_STYLES,
   techLevelLabel,
+  EntityHrefProvider,
 } from 'suref-react'
 import { GameDataGate } from '../../lib/useGameData'
+import { srdEntityHref } from '../../lib/entityHref'
 
 type SchemaViewerIslandProps = {
   initialData: SURefEntity[]
@@ -135,29 +137,31 @@ export function SchemaViewerIsland({
 
         {/* Entity Grid */}
         <div className="w-full min-w-0 flex-1 px-2 pt-2 pb-6 md:p-6 md:pt-2 lg:px-0">
-          <div className="columns-1 gap-4 md:columns-2 xl:columns-3 [&>*]:mb-4 [&>*]:break-inside-avoid">
-            {filteredData.map((item: SURefEntity) => {
-              const tree = schemaId === 'abilities' ? (getTree(item) as string) : undefined
-              return (
-                <a
-                  key={item.id}
-                  href={`/schema/${schemaId}/item/${getEntitySlug(item)}/`}
-                  aria-label={item.name}
-                  className="relative block"
-                >
-                  <Suspense fallback={<ReferenceEntityCardSkeleton compact />}>
-                    <ReferenceEntityDisplay
-                      hide={{ actions: true, choices: true }}
-                      data={item}
-                      compact
-                      label={tree}
-                      cardClickable
-                    />
-                  </Suspense>
-                </a>
-              )
-            })}
-          </div>
+          <EntityHrefProvider value={srdEntityHref}>
+            <div className="columns-1 gap-4 md:columns-2 xl:columns-3 [&>*]:mb-4 [&>*]:break-inside-avoid">
+              {filteredData.map((item: SURefEntity) => {
+                const tree = schemaId === 'abilities' ? (getTree(item) as string) : undefined
+                return (
+                  <a
+                    key={item.id}
+                    href={`/schema/${schemaId}/item/${getEntitySlug(item)}/`}
+                    aria-label={item.name}
+                    className="relative block"
+                  >
+                    <Suspense fallback={<ReferenceEntityCardSkeleton compact />}>
+                      <ReferenceEntityDisplay
+                        hide={{ actions: true, choices: true }}
+                        data={item}
+                        compact
+                        label={tree}
+                        cardClickable
+                      />
+                    </Suspense>
+                  </a>
+                )
+              })}
+            </div>
+          </EntityHrefProvider>
         </div>
       </div>
     </GameDataGate>

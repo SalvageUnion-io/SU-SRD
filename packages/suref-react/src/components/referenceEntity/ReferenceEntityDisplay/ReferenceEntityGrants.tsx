@@ -2,7 +2,7 @@ import type { SURefEntity } from 'salvageunion-reference'
 import { resolveGrantedEntities } from 'salvageunion-reference'
 import { ReferenceEntityDisplay } from './index'
 import { SectionSeparator } from './SectionSeparator'
-import { getEntityDetailHref } from './entityDetailHref'
+import { useEntityHref } from './entityHrefContext'
 import type { ReferenceEntityControl } from './referenceEntityControlTypes'
 import { cn } from '../../../utils/cn'
 import type { getReferenceEntitySpacing } from './referenceEntityDisplayTypes'
@@ -52,7 +52,9 @@ function GrantedEntityListing({
   parentCompact: boolean
 }) {
   const name = 'name' in entity && typeof entity.name === 'string' ? entity.name : 'entity'
-  const href = getEntityDetailHref(entity)
+  // Href comes from the app-provided builder (route-agnostic); no provider →
+  // no link → no View Details control.
+  const href = useEntityHref(entity)
 
   // A visible "View Details" control (not a cardClick) opens the entity's show
   // page in a new tab. Because the card is no longer whole-card-clickable, it no

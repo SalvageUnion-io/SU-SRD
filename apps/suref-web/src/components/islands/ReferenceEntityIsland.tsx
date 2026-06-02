@@ -6,8 +6,10 @@ import {
   ReferenceEntityCardSkeleton,
   getClassSelections,
   ClassAbilityTreeDisplay,
+  EntityHrefProvider,
 } from 'suref-react'
 import { GameDataGate } from '../../lib/useGameData'
+import { srdEntityHref } from '../../lib/entityHref'
 
 type ReferenceEntityIslandProps = {
   item: SURefEntity
@@ -36,15 +38,17 @@ export function ReferenceEntityIsland({
     >
       <div className="mx-auto w-full max-w-6xl p-4">
         <Suspense fallback={<ReferenceEntityCardSkeleton compact={compact} />}>
-          <ReferenceEntityDisplay
-            data={item}
-            compact={compact}
-            titleAs={titleAs}
-            afterExtraContent={
-              classEntity ? <ClassAbilityTreeDisplay classEntity={classEntity} /> : undefined
-            }
-            label={isAbility(item) && item.tree ? `${item.tree} tree` : undefined}
-          />
+          <EntityHrefProvider value={srdEntityHref}>
+            <ReferenceEntityDisplay
+              data={item}
+              compact={compact}
+              titleAs={titleAs}
+              afterExtraContent={
+                classEntity ? <ClassAbilityTreeDisplay classEntity={classEntity} /> : undefined
+              }
+              label={isAbility(item) && item.tree ? `${item.tree} tree` : undefined}
+            />
+          </EntityHrefProvider>
         </Suspense>
       </div>
     </GameDataGate>

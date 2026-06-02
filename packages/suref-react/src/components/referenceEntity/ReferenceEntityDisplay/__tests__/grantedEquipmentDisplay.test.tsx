@@ -2,6 +2,7 @@ import { describe, test, expect, afterEach } from 'bun:test'
 import { render, screen, fireEvent, cleanup, within } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { ReferenceEntityDisplay } from '../index'
+import { EntityHrefProvider } from '../entityHrefContext'
 
 /**
  * Phase 4 display-rewire integration tests, driven by the real Custom Sniper
@@ -134,9 +135,12 @@ describe('Custom Sniper Rifle granting ability display', () => {
   })
 
   test('nested equipment exposes a "View Details" control (opens the show page) and is not whole-card clickable', () => {
-    render(<ReferenceEntityDisplay data={rifleAbility} />)
-    // A visible View Details control replaces the old detail modal / cardClick,
-    // so the nested card no longer enlarges on hover.
+    // The View Details link comes from the app-provided EntityHrefProvider.
+    render(
+      <EntityHrefProvider value={() => '/schema/equipment/item/custom-sniper-rifle/'}>
+        <ReferenceEntityDisplay data={rifleAbility} />
+      </EntityHrefProvider>
+    )
     const viewDetails = screen.getByRole('button', { name: /View Custom Sniper Rifle details/i })
     expect(viewDetails).toBeTruthy()
   })

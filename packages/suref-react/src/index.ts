@@ -18,6 +18,11 @@ export { Toaster } from './components/ui/toaster'
 export { ReferenceEntityDisplay } from './components/referenceEntity/ReferenceEntityDisplay/index'
 export { ReferenceEntityDisplayTooltip } from './components/referenceEntity/ReferenceEntityDisplayTooltip'
 export { SectionSeparator } from './components/referenceEntity/ReferenceEntityDisplay/SectionSeparator'
+export {
+  EntityHrefProvider,
+  useEntityHref,
+} from './components/referenceEntity/ReferenceEntityDisplay/entityHrefContext'
+export type { EntityHrefBuilder } from './components/referenceEntity/ReferenceEntityDisplay/entityHrefContext'
 export { ReferenceEntityChassisAbilitiesContent } from './components/referenceEntity/ReferenceEntityDisplay/ReferenceEntityChassisAbilitiesContent'
 export { ClassAbilityTreeDisplay } from './components/referenceEntity/ClassAbilityTreeDisplay'
 export { NestedActionDisplay } from './components/referenceEntity/NestedActionDisplay'
