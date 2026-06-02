@@ -83,11 +83,16 @@ describe('resolveChoiceView — Custom Sniper Rifle fixture', () => {
     expect(traitTypes(view)).toEqual(['Anti-Organic'])
   })
 
-  it('option without effects (Laser Guidance) toggles chosen but does not alter the row', () => {
-    const view = resolveChoiceView(sniper, { [MODIFICATION]: ['Laser Guidance'] })
+  it('option without effects (Compact Design) toggles chosen but does not alter the row', () => {
+    const view = resolveChoiceView(sniper, { [MODIFICATION]: ['Compact Design'] })
     expect(damage(view)).toBe(2)
     expect(range(view)).toBe('Long')
     expect(view.traits).toEqual([])
+  })
+
+  it('Pinpoint Targeter modification: Targeter trait added via addTrait', () => {
+    const view = resolveChoiceView(sniper, { [MODIFICATION]: ['Pinpoint Targeter'] })
+    expect(traitTypes(view)).toEqual(['Targeter'])
   })
 
   it('multiple modifications combined: Rangefinder + High Calibre + Dum Dum stack', () => {

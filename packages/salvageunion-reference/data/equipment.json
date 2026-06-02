@@ -698,12 +698,24 @@
           {
             "label": "Laser Guidance",
             "value": "Laser Guidance",
-            "description": "You may spend 2 AP to automatically hit with the Custom Sniper Rifle. It also gains the [[Targeter]] Trait."
+            "description": "You may spend 2 AP to automatically hit with the Custom Sniper Rifle. It also gains the [[Targeter]] Trait.",
+            "effects": [
+              {
+                "op": "addTrait",
+                "value": "Targeter"
+              }
+            ]
           },
           {
             "label": "Pinpoint Targeter",
             "value": "Pinpoint Targeter",
-            "description": "You may spend 2 AP when you make an attack. If it hits, a System, Module, or appendage of your choice on the target is damaged. It also gains the [[Targeter]] Trait."
+            "description": "You may spend 2 AP when you make an attack. If it hits, a System, Module, or appendage of your choice on the target is damaged. It also gains the [[Targeter]] Trait.",
+            "effects": [
+              {
+                "op": "addTrait",
+                "value": "Targeter"
+              }
+            ]
           },
           {
             "label": "Dum Dum Rounds",

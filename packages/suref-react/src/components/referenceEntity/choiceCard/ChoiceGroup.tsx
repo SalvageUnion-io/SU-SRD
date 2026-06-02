@@ -75,12 +75,13 @@ export function ChoiceGroup({
     <div className={cn('flex flex-col gap-2')}>
       <SectionSeparator label={choice.name} value={counter} compact={compact} />
       {/* Masonry: up to 3 columns, dropping to 2 then 1 as the container narrows
-          (@container queries). `break-inside-avoid` keeps each card whole;
-          vertical spacing between stacked cards is the `mb-2` on each wrapper. */}
+          (@container queries). `break-inside-avoid` keeps each card whole. The
+          `pt-3` / `mb-4` leave room for each card's Chosen/Not callout stamp,
+          which straddles ~half its height above the card's top edge. */}
       <div className="@container">
-        <div className="columns-1 gap-2 @md:columns-2 @4xl:columns-3">
+        <div className="columns-1 gap-2 pt-3 @md:columns-2 @4xl:columns-3">
           {options.map((option) => (
-            <div key={option.value} className="mb-2 break-inside-avoid">
+            <div key={option.value} className="mb-4 break-inside-avoid">
               <ChoiceCard
                 label={option.label}
                 description={option.description}
