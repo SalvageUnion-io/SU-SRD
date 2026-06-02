@@ -41,15 +41,13 @@ export default defineConfig({
     // Dev-only: prod is a static rollup build with no dep optimizer, so this
     // churn never affected production.
     optimizeDeps: {
-      include: [
-        'salvageunion-reference',
-        '@base-ui/react/dialog',
-        '@base-ui/react/tooltip',
-        'class-variance-authority',
-        'lucide-react',
-        'sonner',
-        '@randsum/roller',
-      ],
+      include: ['salvageunion-reference'],
+      // Scan the island entrypoints up front so Vite discovers + pre-bundles
+      // their transitive deps (@base-ui, sonner, lucide-react, cva, @randsum —
+      // nested under suref-react/node_modules, so they can't be listed in
+      // `include` from this app root). Without this, those deps are only found
+      // lazily on first navigation, triggering a mid-session re-optimization.
+      entries: ['src/components/islands/**/*.{ts,tsx}'],
     },
     build: {
       rollupOptions: {
