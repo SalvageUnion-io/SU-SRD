@@ -28,8 +28,11 @@ export function ReferenceEntityIntegratedSystems({
   return (
     <div className={cn(compact ? 'space-y-1.5' : 'space-y-2')}>
       <SectionSeparator label="Integrated Systems" compact={compact} />
-      {resolved.map((system) => (
-        <IntegratedSystemListing key={system.id} entity={system} />
+      {resolved.map((system, idx) => (
+        // Index-suffixed: an entity may legitimately integrate the same system
+        // more than once (e.g. the Power Loader's two Rigging Arms), so the id
+        // alone is not a unique key.
+        <IntegratedSystemListing key={`${system.id}-${idx}`} entity={system} />
       ))}
     </div>
   )
