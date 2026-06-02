@@ -26,13 +26,30 @@ export default defineConfig({
     resolve: {
       conditions: ['development'],
     },
-    // Pre-bundle the game-data package so esbuild inlines its native JSON
-    // attribute imports (import(... { with: { type: 'json' } })). Without this
-    // the dev server serves those data/schema files as text/javascript and the
-    // browser rejects them (JSON module MIME mismatch), so client game-data
-    // never loads and entity-card islands hang on their skeleton.
+    // Pre-bundle game-data + every dependency the island components pull in
+    // transitively through the `suref-react` workspace source package. The
+    // game-data package also needs this so esbuild inlines its native JSON
+    // attribute imports (import(... { with: { type: 'json' } })).
+    //
+    // The other deps live in node_modules but are only *discovered* when an
+    // island first imports a suref-react component — which made Vite re-run its
+    // dep optimizer mid-navigation, returning 504 "Outdated Optimize Dep" for
+    // in-flight island chunks and leaving cards hung on their skeleton (with
+    // transient stale-React `jsxDEV` errors). Pinning them optimizes everything
+    // on dev startup so no mid-session re-optimization happens.
+    //
+    // Dev-only: prod is a static rollup build with no dep optimizer, so this
+    // churn never affected production.
     optimizeDeps: {
-      include: ['salvageunion-reference'],
+      include: [
+        'salvageunion-reference',
+        '@base-ui/react/dialog',
+        '@base-ui/react/tooltip',
+        'class-variance-authority',
+        'lucide-react',
+        'sonner',
+        '@randsum/roller',
+      ],
     },
     build: {
       rollupOptions: {
