@@ -1,5 +1,4 @@
 import { describe, test, expect } from 'bun:test'
-import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefObjectChoice } from 'salvageunion-reference'
 import {
   getChoiceCardOptions,
@@ -105,32 +104,5 @@ describe('toggleSelection', () => {
   })
   test('multi-select: still allows deselect at cap', () => {
     expect(toggleSelection(['a'], 'a', true, 1)).toEqual([])
-  })
-})
-
-describe('real data — Custom Sniper Rifle choices', () => {
-  test('Weapon Type is exclusive; Modification is capped in data but unbounded without a scaling context', () => {
-    const rifle = SalvageUnionReference.Equipment.find((e) => e.name === 'Custom Sniper Rifle')
-    expect(rifle).toBeTruthy()
-    const choices = rifle?.choices ?? []
-    const weaponType = choices.find((c) => c.name === 'Weapon Type')
-    const modification = choices.find((c) => c.name === 'Modification')
-
-    expect(weaponType).toBeTruthy()
-    expect(modification).toBeTruthy()
-
-    expect(isFreeTextChoice(weaponType as SURefObjectChoice)).toBe(false)
-    expect(isMultiSelectChoice(weaponType as SURefObjectChoice)).toBe(false)
-    expect(getChoiceCardOptions(weaponType as SURefObjectChoice).map((o) => o.value)).toEqual([
-      'Ballistic',
-      'Energy',
-    ])
-
-    expect(isMultiSelectChoice(modification as SURefObjectChoice)).toBe(true)
-    // The Modification IS capped in the data (scalesWithField: techLevel — the
-    // crawler's tech level in play). But the read-only SRD passes no scaling
-    // context, so no cap resolves here and the choice is unbounded.
-    expect(modification?.constraints?.scalesWithField).toBe('techLevel')
-    expect(resolveMultiSelectCap(modification as SURefObjectChoice, undefined)).toBeUndefined()
   })
 })

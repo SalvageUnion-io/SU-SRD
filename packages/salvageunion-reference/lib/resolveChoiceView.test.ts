@@ -1,251 +1,446 @@
 import { describe, it, expect } from 'bun:test'
-import { SalvageUnionReference } from './index.js'
 import { resolveChoiceView, type ChoiceSelections } from './resolveChoiceView.js'
+import type {
+  SURefObjectChoice,
+  SURefObjectContentBlock,
+  SURefObjectDataValue,
+  SURefObjectTrait,
+} from './schemas/index.js'
 
-const sniper = SalvageUnionReference.Equipment.find((e) => e.name === 'Custom Sniper Rifle')!
+/**
+ * These tests drive the resolver from the schema, not from any specific real
+ * entity. Every fixture is a minimal, synthetic `{ content, traits, choices }`
+ * shaped exactly as the Zod schemas allow, so each effect op, choice shape, and
+ * branch is covered by construction — no dependency on whichever items happen to
+ * carry choices in the dataset.
+ */
 
-// Resolve choice ids from the real entity so the tests track the data, not
-// hard-coded UUIDs.
-const weaponTypeChoice = sniper.choices!.find((c) => c.name === 'Weapon Type')!
-const modificationChoice = sniper.choices!.find((c) => c.name === 'Modification')!
-
-const WEAPON_TYPE = weaponTypeChoice.id
-const MODIFICATION = modificationChoice.id
-
-function damage(view: ReturnType<typeof resolveChoiceView>) {
-  return view.datavalues.find((dv) => dv.label === 'Damage')?.value
+type ResolvableEntity = {
+  content?: SURefObjectContentBlock[]
+  traits?: SURefObjectTrait[]
+  choices?: SURefObjectChoice[]
 }
 
-function range(view: ReturnType<typeof resolveChoiceView>) {
-  return view.datavalues.find((dv) => dv.label === 'Range')?.value
+type ChoiceOption = NonNullable<SURefObjectChoice['choiceOptions']>[number]
+type ChoiceEffect = NonNullable<ChoiceOption['effects']>[number]
+type ChoiceConstraints = NonNullable<SURefObjectChoice['constraints']>
+
+// --- fixture builders -------------------------------------------------------
+
+function entity(parts: {
+  datavalues?: SURefObjectDataValue[]
+  traits?: SURefObjectTrait[]
+  choices?: SURefObjectChoice[]
+}): ResolvableEntity {
+  return {
+    content: parts.datavalues
+      ? [{ type: 'datavalues', value: parts.datavalues } satisfies SURefObjectContentBlock]
+      : undefined,
+    traits: parts.traits,
+    choices: parts.choices,
+  }
 }
 
-function traitTypes(view: ReturnType<typeof resolveChoiceView>) {
-  return view.traits.map((t) => t.type)
+const addTrait = (value: string, amount?: number): ChoiceEffect =>
+  amount === undefined ? { op: 'addTrait', value } : { op: 'addTrait', value, amount }
+const removeTrait = (value: string): ChoiceEffect => ({ op: 'removeTrait', value })
+const setRange = (value: string | number): ChoiceEffect => ({ op: 'setRange', value })
+const addDamage = (value: number, unit?: string): ChoiceEffect =>
+  unit === undefined ? { op: 'addDamage', value } : { op: 'addDamage', value, unit }
+
+const option = (value: string, effects?: ChoiceEffect[]): ChoiceOption => ({
+  value,
+  label: value,
+  ...(effects ? { effects } : {}),
+})
+
+function optionChoice(
+  id: string,
+  options: ChoiceOption[],
+  opts: { name?: string; multiSelect?: boolean; constraints?: ChoiceConstraints } = {}
+): SURefObjectChoice {
+  return {
+    id,
+    name: opts.name ?? id,
+    choiceOptions: options,
+    ...(opts.multiSelect ? { multiSelect: true } : {}),
+    ...(opts.constraints ? { constraints: opts.constraints } : {}),
+  }
 }
 
-describe('resolveChoiceView — Custom Sniper Rifle fixture', () => {
-  it('sanity: fixture has base datavalues and the two expected choices', () => {
-    expect(sniper).toBeDefined()
-    expect(damage(resolveChoiceView(sniper, {}))).toBe(2)
-    expect(range(resolveChoiceView(sniper, {}))).toBe('Long')
-    expect(weaponTypeChoice.schemaEntities).toEqual(['Ballistic', 'Energy'])
-    expect(modificationChoice.multiSelect).toBe(true)
-  })
+/** A trait-schema choice (e.g. Weapon Type → Ballistic / Energy): the resolver
+ * infers `addTrait <selectedName>`, and an unresolved exclusive one is required. */
+function traitSchemaChoice(
+  id: string,
+  entities: string[],
+  opts: { name?: string; multiSelect?: boolean } = {}
+): SURefObjectChoice {
+  return {
+    id,
+    name: opts.name ?? id,
+    schemaEntities: entities,
+    ...(opts.multiSelect ? { multiSelect: true } : {}),
+  }
+}
 
-  it('base row only (no selections): base stats, no traits, weapon-type prompt present', () => {
-    const view = resolveChoiceView(sniper, {})
+// --- accessors --------------------------------------------------------------
 
+type View = ReturnType<typeof resolveChoiceView>
+const datavalue = (view: View, label: string) => view.datavalues.find((d) => d.label === label)
+const damage = (view: View) => datavalue(view, 'Damage')?.value
+const range = (view: View) => datavalue(view, 'Range')?.value
+const traitTypes = (view: View) => view.traits.map((t) => t.type)
+const traitAmount = (view: View, type: string) => view.traits.find((t) => t.type === type)?.amount
+
+const DV: SURefObjectDataValue[] = [
+  { label: 'Damage', type: 'keyword', value: 2 },
+  { label: 'Range', type: 'keyword', value: 'Long' },
+]
+
+// ---------------------------------------------------------------------------
+
+describe('resolveChoiceView — base datavalues', () => {
+  it('passes the base row through unchanged when there are no selections', () => {
+    const view = resolveChoiceView(entity({ datavalues: DV }), {})
     expect(damage(view)).toBe(2)
     expect(range(view)).toBe('Long')
     expect(view.traits).toEqual([])
+    expect(view.prompts).toEqual([])
+  })
 
-    // Weapon Type is required (exclusive trait-schema choice) → prompt.
-    expect(view.prompts).toHaveLength(1)
-    expect(view.prompts[0]).toEqual({
-      choiceId: WEAPON_TYPE,
-      label: 'Weapon Type',
-      text: 'Choose: Ballistic or Energy',
+  it('returns an empty datavalues array when the entity has no datavalues block', () => {
+    expect(resolveChoiceView({ choices: [] }, {}).datavalues).toEqual([])
+  })
+
+  it('does not mutate the source content block', () => {
+    const e = entity({
+      datavalues: DV,
+      choices: [optionChoice('mod', [option('boost', [addDamage(1)])], { multiSelect: true })],
     })
+    const before = JSON.stringify(e.content)
+    resolveChoiceView(e, { mod: ['boost'] })
+    expect(JSON.stringify(e.content)).toBe(before)
   })
+})
 
-  it('Ballistic selected: Ballistic trait added and weapon-type prompt gone', () => {
-    const selections: ChoiceSelections = { [WEAPON_TYPE]: ['Ballistic'] }
-    const view = resolveChoiceView(sniper, selections)
-
-    expect(traitTypes(view)).toEqual(['Ballistic'])
-    expect(view.prompts).toHaveLength(0)
-    // Base stats untouched by a pure trait add.
-    expect(damage(view)).toBe(2)
-    expect(range(view)).toBe('Long')
-  })
-
-  it('Energy selected: Energy trait added (exclusive alternative)', () => {
-    const view = resolveChoiceView(sniper, { [WEAPON_TYPE]: ['Energy'] })
-    expect(traitTypes(view)).toEqual(['Energy'])
-    expect(view.prompts).toHaveLength(0)
-  })
-
-  it('Rangefinder modification: Range raised to Far via setRange', () => {
-    const view = resolveChoiceView(sniper, { [MODIFICATION]: ['Rangefinder'] })
+describe('resolveChoiceView — setRange effect', () => {
+  it('replaces the existing Range value', () => {
+    const e = entity({
+      datavalues: DV,
+      choices: [optionChoice('mod', [option('rf', [setRange('Far')])], { multiSelect: true })],
+    })
+    const view = resolveChoiceView(e, { mod: ['rf'] })
     expect(range(view)).toBe('Far')
     expect(damage(view)).toBe(2)
   })
 
-  it('High Calibre Rounds modification: Damage raised to 3 via addDamage', () => {
-    const view = resolveChoiceView(sniper, { [MODIFICATION]: ['High Calibre Rounds'] })
-    expect(damage(view)).toBe(3)
-    expect(range(view)).toBe('Long')
-  })
-
-  it('Dum Dum Rounds modification: Anti-Organic trait added via addTrait', () => {
-    const view = resolveChoiceView(sniper, { [MODIFICATION]: ['Dum Dum Rounds'] })
-    expect(traitTypes(view)).toEqual(['Anti-Organic'])
-  })
-
-  it('option without effects (Compact Design) toggles chosen but does not alter the row', () => {
-    const view = resolveChoiceView(sniper, { [MODIFICATION]: ['Compact Design'] })
-    expect(damage(view)).toBe(2)
-    expect(range(view)).toBe('Long')
-    expect(view.traits).toEqual([])
-  })
-
-  it('Pinpoint Targeter modification: Targeter trait added via addTrait', () => {
-    const view = resolveChoiceView(sniper, { [MODIFICATION]: ['Pinpoint Targeter'] })
-    expect(traitTypes(view)).toEqual(['Targeter'])
-  })
-
-  it('multiple modifications combined: Rangefinder + High Calibre + Dum Dum stack', () => {
-    const view = resolveChoiceView(sniper, {
-      [MODIFICATION]: ['Rangefinder', 'High Calibre Rounds', 'Dum Dum Rounds'],
+  it('creates a Range datavalue when none exists', () => {
+    const e = entity({
+      datavalues: [{ label: 'Damage', type: 'keyword', value: 2 }],
+      choices: [optionChoice('mod', [option('rf', [setRange('Close')])], { multiSelect: true })],
     })
+    const view = resolveChoiceView(e, { mod: ['rf'] })
+    expect(range(view)).toBe('Close')
+  })
+})
+
+describe('resolveChoiceView — addDamage effect', () => {
+  it('sums a numeric Damage value', () => {
+    const e = entity({
+      datavalues: DV,
+      choices: [optionChoice('mod', [option('hc', [addDamage(1)])], { multiSelect: true })],
+    })
+    expect(damage(resolveChoiceView(e, { mod: ['hc'] }))).toBe(3)
+  })
+
+  it('sums when the base Damage is a numeric string', () => {
+    const e = entity({
+      datavalues: [{ label: 'Damage', type: 'keyword', value: '2' }],
+      choices: [optionChoice('mod', [option('hc', [addDamage(2)])], { multiSelect: true })],
+    })
+    expect(damage(resolveChoiceView(e, { mod: ['hc'] }))).toBe(4)
+  })
+
+  it('creates a Damage datavalue with its unit when none exists', () => {
+    const e = entity({
+      datavalues: [{ label: 'Range', type: 'keyword', value: 'Long' }],
+      choices: [optionChoice('mod', [option('hc', [addDamage(1, 'SP')])], { multiSelect: true })],
+    })
+    const view = resolveChoiceView(e, { mod: ['hc'] })
+    expect(damage(view)).toBe(1)
+    expect(datavalue(view, 'Damage')?.unit).toBe('SP')
+  })
+
+  it('concatenates with the unit when the base Damage is non-numeric', () => {
+    const e = entity({
+      datavalues: [{ label: 'Damage', type: 'keyword', value: '2d6' }],
+      choices: [optionChoice('mod', [option('hc', [addDamage(1, 'SP')])], { multiSelect: true })],
+    })
+    expect(damage(resolveChoiceView(e, { mod: ['hc'] }))).toBe('2d6 / +1 SP')
+  })
+})
+
+describe('resolveChoiceView — addTrait effect', () => {
+  it('adds a new trait', () => {
+    const e = entity({
+      choices: [
+        optionChoice('mod', [option('dd', [addTrait('Anti-Organic')])], { multiSelect: true }),
+      ],
+    })
+    expect(traitTypes(resolveChoiceView(e, { mod: ['dd'] }))).toEqual(['Anti-Organic'])
+  })
+
+  it('adds a trait carrying an amount', () => {
+    const e = entity({
+      choices: [
+        optionChoice('mod', [option('napalm', [addTrait('Burn', 1)])], { multiSelect: true }),
+      ],
+    })
+    expect(traitAmount(resolveChoiceView(e, { mod: ['napalm'] }), 'Burn')).toBe(1)
+  })
+
+  it('upgrades the amount of an existing trait in place (no duplicate)', () => {
+    const e = entity({
+      traits: [{ type: 'Explosive', amount: 1 }],
+      choices: [
+        optionChoice('mod', [option('boom', [addTrait('Explosive', 2)])], { multiSelect: true }),
+      ],
+    })
+    const view = resolveChoiceView(e, { mod: ['boom'] })
+    expect(traitAmount(view, 'Explosive')).toBe(2)
+    expect(view.traits.filter((t) => t.type === 'Explosive')).toHaveLength(1)
+  })
+
+  it('does not duplicate an existing trait when no new amount is given', () => {
+    const e = entity({
+      traits: [{ type: 'Ballistic' }],
+      choices: [
+        optionChoice('mod', [option('again', [addTrait('Ballistic')])], { multiSelect: true }),
+      ],
+    })
+    expect(traitTypes(resolveChoiceView(e, { mod: ['again'] }))).toEqual(['Ballistic'])
+  })
+})
+
+describe('resolveChoiceView — removeTrait effect', () => {
+  it('strips an existing trait', () => {
+    const e = entity({
+      traits: [{ type: 'Heavy' }, { type: 'Missile' }],
+      choices: [
+        optionChoice('mod', [option('portable', [removeTrait('Heavy')])], { multiSelect: true }),
+      ],
+    })
+    expect(traitTypes(resolveChoiceView(e, { mod: ['portable'] }))).toEqual(['Missile'])
+  })
+
+  it('is a no-op when the trait is absent', () => {
+    const e = entity({
+      traits: [{ type: 'Missile' }],
+      choices: [
+        optionChoice('mod', [option('portable', [removeTrait('Heavy')])], { multiSelect: true }),
+      ],
+    })
+    expect(traitTypes(resolveChoiceView(e, { mod: ['portable'] }))).toEqual(['Missile'])
+  })
+})
+
+describe('resolveChoiceView — inferred trait choices (schemaEntities)', () => {
+  it('adds a trait named after the selected entity', () => {
+    const e = entity({ choices: [traitSchemaChoice('wt', ['Ballistic', 'Energy'])] })
+    const view = resolveChoiceView(e, { wt: ['Ballistic'] })
+    expect(traitTypes(view)).toEqual(['Ballistic'])
+    expect(view.prompts).toHaveLength(0)
+  })
+
+  it('adds one trait per selection for a multi-select trait-schema choice', () => {
+    const e = entity({ choices: [traitSchemaChoice('opt', ['A', 'B'], { multiSelect: true })] })
+    expect(traitTypes(resolveChoiceView(e, { opt: ['A', 'B'] }))).toEqual(['A', 'B'])
+  })
+})
+
+describe('resolveChoiceView — prompts for unresolved choices', () => {
+  it('emits a prompt for an unresolved exclusive trait-schema choice', () => {
+    const e = entity({
+      choices: [traitSchemaChoice('wt', ['Ballistic', 'Energy'], { name: 'Weapon Type' })],
+    })
+    const view = resolveChoiceView(e, {})
+    expect(view.prompts).toEqual([
+      { choiceId: 'wt', label: 'Weapon Type', text: 'Choose: Ballistic or Energy' },
+    ])
+  })
+
+  it('formats a single-option prompt as "Choose: X"', () => {
+    const e = entity({ choices: [traitSchemaChoice('w', ['OnlyOne'])] })
+    expect(resolveChoiceView(e, {}).prompts[0]?.text).toBe('Choose: OnlyOne')
+  })
+
+  it('formats three or more options as "Choose: A, B or C"', () => {
+    const e = entity({ choices: [traitSchemaChoice('w', ['A', 'B', 'C'])] })
+    expect(resolveChoiceView(e, {}).prompts[0]?.text).toBe('Choose: A, B or C')
+  })
+
+  it('drops the prompt once the choice is resolved', () => {
+    const e = entity({ choices: [traitSchemaChoice('wt', ['Ballistic', 'Energy'])] })
+    expect(resolveChoiceView(e, { wt: ['Energy'] }).prompts).toHaveLength(0)
+  })
+
+  it('does not prompt for a multi-select choice with zero selections', () => {
+    const e = entity({ choices: [traitSchemaChoice('opt', ['A', 'B'], { multiSelect: true })] })
+    expect(resolveChoiceView(e, {}).prompts).toEqual([])
+  })
+
+  it('does not prompt for an exclusive choiceOptions choice (only trait-schema choices are required)', () => {
+    const e = entity({ choices: [optionChoice('mod', [option('a'), option('b')])] })
+    expect(resolveChoiceView(e, {}).prompts).toEqual([])
+  })
+
+  it('treats constraints.min > 0 as required and prompts', () => {
+    const e = entity({
+      choices: [optionChoice('mod', [option('a'), option('b')], { constraints: { min: 1 } })],
+    })
+    expect(resolveChoiceView(e, {}).prompts[0]?.text).toBe('Choose: a or b')
+  })
+
+  it('treats constraints.min === 0 as optional', () => {
+    const e = entity({
+      choices: [
+        traitSchemaChoice('wt', ['A', 'B']),
+        optionChoice('opt', [option('x')], { constraints: { min: 0 } }),
+      ],
+    })
+    const prompts = resolveChoiceView(e, {}).prompts
+    expect(prompts).toHaveLength(1)
+    expect(prompts[0]?.choiceId).toBe('wt')
+  })
+})
+
+describe('resolveChoiceView — combined effects', () => {
+  it('stacks effects across multiple selected options', () => {
+    const e = entity({
+      datavalues: DV,
+      choices: [
+        optionChoice(
+          'mod',
+          [
+            option('rf', [setRange('Far')]),
+            option('hc', [addDamage(1)]),
+            option('dd', [addTrait('Anti-Organic')]),
+          ],
+          { multiSelect: true }
+        ),
+      ],
+    })
+    const view = resolveChoiceView(e, { mod: ['rf', 'hc', 'dd'] })
     expect(range(view)).toBe('Far')
     expect(damage(view)).toBe(3)
     expect(traitTypes(view)).toContain('Anti-Organic')
   })
 
-  it('weapon type + modifications combined: trait + range + damage all applied, no prompt', () => {
-    const view = resolveChoiceView(sniper, {
-      [WEAPON_TYPE]: ['Ballistic'],
-      [MODIFICATION]: ['Rangefinder', 'High Calibre Rounds'],
+  it('applies a trait choice and an effect choice together, with no leftover prompt', () => {
+    const e = entity({
+      datavalues: DV,
+      choices: [
+        traitSchemaChoice('wt', ['Ballistic', 'Energy']),
+        optionChoice('mod', [option('rf', [setRange('Far')])], { multiSelect: true }),
+      ],
     })
+    const view = resolveChoiceView(e, { wt: ['Ballistic'], mod: ['rf'] })
     expect(traitTypes(view)).toContain('Ballistic')
     expect(range(view)).toBe('Far')
-    expect(damage(view)).toBe(3)
     expect(view.prompts).toHaveLength(0)
   })
 
-  it('multiple trait-adding modifications stack additively (Anti-Matter + Flashy + Silencer)', () => {
-    const view = resolveChoiceView(sniper, {
-      [MODIFICATION]: ['Anti-Matter', 'Flashy', 'Silencer'],
+  it('leaves the trait-schema prompt up while other choices resolve', () => {
+    const e = entity({
+      choices: [
+        traitSchemaChoice('wt', ['Ballistic', 'Energy']),
+        optionChoice('mod', [option('rf', [setRange('Far')])], { multiSelect: true }),
+      ],
     })
-    const types = traitTypes(view)
-    expect(types).toContain('Deadly')
-    expect(types).toContain('Flashy')
-    expect(types).toContain('Silent')
-    expect(types).toHaveLength(3)
+    expect(resolveChoiceView(e, { mod: ['rf'] }).prompts[0]?.choiceId).toBe('wt')
   })
+})
 
-  it('unresolved Weapon Type still prompts even when modifications are selected', () => {
-    const view = resolveChoiceView(sniper, { [MODIFICATION]: ['Rangefinder'] })
-    expect(view.prompts).toHaveLength(1)
-    expect(view.prompts[0]?.choiceId).toBe(WEAPON_TYPE)
-    expect(view.prompts[0]?.text).toBe('Choose: Ballistic or Energy')
-  })
-
-  it('is pure: does not mutate the source entity datavalues or traits', () => {
-    const before = JSON.stringify(sniper.content)
-    resolveChoiceView(sniper, {
-      [WEAPON_TYPE]: ['Ballistic'],
-      [MODIFICATION]: ['Rangefinder', 'High Calibre Rounds'],
+describe('resolveChoiceView — purity and determinism', () => {
+  it('preserves and copies base traits without referencing the source array', () => {
+    const e = entity({
+      traits: [{ type: 'Heavy' }],
+      choices: [
+        optionChoice('mod', [option('dd', [addTrait('Anti-Organic')])], { multiSelect: true }),
+      ],
     })
-    expect(JSON.stringify(sniper.content)).toBe(before)
+    const view = resolveChoiceView(e, { mod: ['dd'] })
+    expect(traitTypes(view)).toEqual(['Heavy', 'Anti-Organic'])
+    expect(e.traits).toEqual([{ type: 'Heavy' }])
   })
 
-  it('repeated resolution is deterministic', () => {
-    const selections: ChoiceSelections = {
-      [WEAPON_TYPE]: ['Energy'],
-      [MODIFICATION]: ['Rangefinder', 'Dum Dum Rounds'],
-    }
-    const a = resolveChoiceView(sniper, selections)
-    const b = resolveChoiceView(sniper, selections)
-    expect(a).toEqual(b)
+  it('removeTrait does not mutate the source traits', () => {
+    const e = entity({
+      traits: [{ type: 'Heavy' }, { type: 'Explosive', amount: 1 }],
+      choices: [
+        optionChoice('mod', [option('p', [removeTrait('Heavy'), addTrait('Explosive', 2)])], {
+          multiSelect: true,
+        }),
+      ],
+    })
+    resolveChoiceView(e, { mod: ['p'] })
+    expect(e.traits).toEqual([{ type: 'Heavy' }, { type: 'Explosive', amount: 1 }])
+  })
+
+  it('is deterministic across repeated resolution', () => {
+    const e = entity({
+      datavalues: DV,
+      choices: [
+        traitSchemaChoice('wt', ['Ballistic', 'Energy']),
+        optionChoice(
+          'mod',
+          [option('rf', [setRange('Far')]), option('dd', [addTrait('Anti-Organic')])],
+          { multiSelect: true }
+        ),
+      ],
+    })
+    const selections: ChoiceSelections = { wt: ['Energy'], mod: ['rf', 'dd'] }
+    expect(resolveChoiceView(e, selections)).toEqual(resolveChoiceView(e, selections))
   })
 })
 
 describe('resolveChoiceView — edge cases', () => {
-  it('entity with no choices returns base row and no prompts', () => {
-    const view = resolveChoiceView({ content: sniper.content }, {})
+  it('returns the base row and no prompts when there are no choices', () => {
+    const view = resolveChoiceView(entity({ datavalues: DV }), {})
     expect(damage(view)).toBe(2)
     expect(view.prompts).toEqual([])
     expect(view.traits).toEqual([])
   })
 
-  it('entity with no datavalues block returns an empty datavalues array', () => {
-    const view = resolveChoiceView({ choices: sniper.choices }, {})
-    expect(view.datavalues).toEqual([])
-    // Weapon Type prompt still surfaces.
-    expect(view.prompts).toHaveLength(1)
+  it('ignores an unknown option value in the selections', () => {
+    const e = entity({
+      datavalues: DV,
+      choices: [optionChoice('mod', [option('real', [addTrait('T')])], { multiSelect: true })],
+    })
+    const view = resolveChoiceView(e, { mod: ['nope'] })
+    expect(view.traits).toEqual([])
+    expect(damage(view)).toBe(2)
   })
 
-  it('multi-select choice with zero selections emits no prompt (optional)', () => {
-    const view = resolveChoiceView(sniper, { [WEAPON_TYPE]: ['Ballistic'] })
-    // Only Weapon Type was resolved; Modification (multiSelect) must not prompt.
-    expect(view.prompts).toHaveLength(0)
+  it('ignores selections keyed by an unknown choice id', () => {
+    const e = entity({
+      datavalues: DV,
+      choices: [optionChoice('mod', [option('real', [addTrait('T')])], { multiSelect: true })],
+    })
+    const view = resolveChoiceView(e, { bogus: ['x'] })
+    expect(view.traits).toEqual([])
+    expect(damage(view)).toBe(2)
+    expect(view.prompts).toEqual([])
   })
 
-  it('unknown option value in selections is ignored', () => {
-    const view = resolveChoiceView(sniper, { [MODIFICATION]: ['Nonexistent Mod'] })
+  it('treats a selected option without effects as a no-op on the row', () => {
+    const e = entity({
+      datavalues: DV,
+      choices: [optionChoice('mod', [option('plain')], { multiSelect: true })],
+    })
+    const view = resolveChoiceView(e, { mod: ['plain'] })
     expect(damage(view)).toBe(2)
     expect(range(view)).toBe('Long')
     expect(view.traits).toEqual([])
-  })
-
-  it('base traits on the entity are preserved and copied (not referencing source)', () => {
-    const entity = {
-      content: sniper.content,
-      traits: [{ type: 'Heavy' }],
-      choices: sniper.choices,
-    }
-    const view = resolveChoiceView(entity, { [MODIFICATION]: ['Dum Dum Rounds'] })
-    expect(traitTypes(view)).toEqual(['Heavy', 'Anti-Organic'])
-    // Source traits untouched.
-    expect(entity.traits).toEqual([{ type: 'Heavy' }])
-  })
-})
-
-// The Custom Missile Launcher is the one granted item carrying base traits and
-// the addTrait-with-amount / removeTrait effect ops — kept as a distinct fixture
-// so these paths can't regress unnoticed (the Sniper Rifle has no base traits).
-const launcher = SalvageUnionReference.Equipment.find((e) => e.name === 'Custom Missile Launcher')!
-const LAUNCHER_MOD = launcher.choices!.find((c) => c.name === 'Modification')!.id
-
-function traitAmount(view: ReturnType<typeof resolveChoiceView>, type: string) {
-  return view.traits.find((t) => t.type === type)?.amount
-}
-
-describe('resolveChoiceView — Custom Missile Launcher fixture (base traits + amount/removeTrait ops)', () => {
-  it('base row: base traits resolve from traits[] with their amounts', () => {
-    const view = resolveChoiceView(launcher, {})
-    expect(traitTypes(view)).toEqual(['Missile', 'Explosive', 'Heavy'])
-    expect(traitAmount(view, 'Explosive')).toBe(1)
-    expect(damage(view)).toBe(3)
-    expect(range(view)).toBe('Medium')
-  })
-
-  it('Bigger Boom: addTrait upgrades an existing trait amount (Explosive 1 → 2)', () => {
-    const view = resolveChoiceView(launcher, { [LAUNCHER_MOD]: ['Bigger Boom'] })
-    expect(traitAmount(view, 'Explosive')).toBe(2)
-    // No duplicate Explosive entry.
-    expect(view.traits.filter((t) => t.type === 'Explosive')).toHaveLength(1)
-  })
-
-  it('Napalm Rounds: adds Anti-Organic plus Burn with amount 1', () => {
-    const view = resolveChoiceView(launcher, { [LAUNCHER_MOD]: ['Napalm Rounds'] })
-    expect(traitTypes(view)).toContain('Anti-Organic')
-    expect(traitAmount(view, 'Burn')).toBe(1)
-  })
-
-  it('Portable: removeTrait strips Heavy', () => {
-    const view = resolveChoiceView(launcher, { [LAUNCHER_MOD]: ['Portable'] })
-    expect(traitTypes(view)).not.toContain('Heavy')
-    expect(traitTypes(view)).toEqual(['Missile', 'Explosive'])
-  })
-
-  it('combined: Bigger Boom + Napalm + Portable + Expanded Warhead stack correctly', () => {
-    const view = resolveChoiceView(launcher, {
-      [LAUNCHER_MOD]: ['Bigger Boom', 'Napalm Rounds', 'Portable', 'Expanded Warhead'],
-    })
-    expect(traitAmount(view, 'Explosive')).toBe(2)
-    expect(traitAmount(view, 'Burn')).toBe(1)
-    expect(traitTypes(view)).toContain('Anti-Organic')
-    expect(traitTypes(view)).not.toContain('Heavy')
-    expect(damage(view)).toBe(4)
-  })
-
-  it('is pure: resolving effects does not mutate the source traits', () => {
-    const before = JSON.stringify(launcher.traits)
-    resolveChoiceView(launcher, { [LAUNCHER_MOD]: ['Bigger Boom', 'Portable'] })
-    expect(JSON.stringify(launcher.traits)).toBe(before)
   })
 })
