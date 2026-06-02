@@ -60,7 +60,6 @@ import {
 import { useReferenceEntityDisplayState } from '../useReferenceEntityDisplayState'
 import type { ReferenceEntityDisplayStateInput } from '../useReferenceEntityDisplayState'
 import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
-import type { ChoiceInputRenderer } from '../ReferenceEntityChoice'
 import type { NpcConfig } from '../referenceEntityDisplayTypes'
 import { ReferenceEntityFooter } from './ReferenceEntityFooter'
 import { CalloutMetaStamp } from './CalloutMetaStamp'
@@ -84,8 +83,6 @@ export type ReferenceEntityDisplayContentProps = ReferenceEntityDisplayStateInpu
   onCardClick?: () => void
   /** Enable hover enlarge effect without a click handler (e.g., when wrapped in an <a>) */
   cardClickable?: boolean
-  /** Custom renderer for simple choice inputs (e.g., freeform text, roll tables) */
-  choiceInputRenderer?: ChoiceInputRenderer
   /** Override stats in the card header (passed to DisplayCard.stats) */
   stats?: StatItem[]
 }
@@ -124,7 +121,6 @@ export function ReferenceEntityDisplayContent({
   lightweight = false,
   onCardClick,
   cardClickable,
-  choiceInputRenderer,
   stats: statsProp,
   ...inputProps
 }: ReferenceEntityDisplayContentProps) {
@@ -770,7 +766,6 @@ export function ReferenceEntityDisplayContent({
                         data={droneEntity}
                         compact
                         hide={{ actions: true, patterns: true }}
-                        choiceInputRenderer={choiceInputRenderer}
                       />
                     </>
                   )}

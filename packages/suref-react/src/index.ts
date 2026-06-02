@@ -2,7 +2,6 @@
 export type { DataValue } from './types/common'
 export type { PatternOverrideData } from './components/referenceEntity/ReferenceEntityDisplay/referenceEntityDisplayTypes'
 export type { ReferenceEntityControl } from './components/referenceEntity/ReferenceEntityDisplay/referenceEntityControlTypes'
-export type { ChoiceInputRenderer } from './components/referenceEntity/ReferenceEntityDisplay/ReferenceEntityChoice'
 export type { DisplayCardTab } from './components/shared/DisplayCard'
 export type { StatItem } from './components/shared/statsBarTypes'
 export type { StatConfig } from './components/referenceEntity/ReferenceEntityDisplay/referenceEntityStatsConfig'
