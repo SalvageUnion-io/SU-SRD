@@ -134,7 +134,7 @@ type ReferenceEntityDisplayStateInput = {
   statsOverride?: { value: number; bottomLabel: string }  // Overrides SV stat
   primaryStatsOnly?: boolean          // Show only primary stat (SV)
   abilitiesSection?: ReactNode        // Replaces built-in chassis abilities
-  afterExtraContent?: ReactNode       // After patterns/damagedEffect, before grants
+  afterExtraContent?: ReactNode       // After patterns/damagedEffect, before grants/choices
   afterChoicesContent?: ReactNode     // After choices, before footer
   footerOverride?: ReactNode          // Replaces computed footer
   titleSlot?: ReactNode               // Replaces computed title node entirely
@@ -143,7 +143,8 @@ type ReferenceEntityDisplayStateInput = {
   // Visibility toggles
   hide?: ReferenceEntityHideConfig
   label?: string                      // Pseudoheader label above card
-  headerColor?: string                // Override header background
+  headerColor?: string                // Override header background (Tailwind class)
+  headerBgColor?: string              // Override header background (raw CSS color)
 }
 ```
 
@@ -204,16 +205,99 @@ When `damaged: true`, the header switches to `bg-su-grey`.
 
 ### Source/Expansion Theming
 
-`getSourceStyles(source, disabled, variant, isExpanded)` returns themed styles per expansion book:
+`getSourceBorderColor(source)` returns themed border colors. Expansion-specific texture styles (crosshatch, bevel, scan-lines) are applied internally by `ReferenceEntityDisplayContent` and are not part of the public API.
 
-| Source | Effect |
-|--------|--------|
-| We Were Here First! | Beast claw-scratch crosshatch texture |
-| False Flag | Windows 95 beveled border |
-| Rainmaker | Driving rain-streak diagonal texture |
-| Mech Monday | CRT horizontal scanline texture |
+---
 
-`getSourceBorderColor(source)` returns themed border colors.
+## Layer 2.5: Choice-Card / Grants Layer
+
+This layer sits between ReferenceEntityDisplay (the card frame) and the consumers. It handles granted-equipment choices — entities like the Custom Sniper Rifle that carry selectable options that modify their stat row.
+
+### Choice-Card Components (`choiceCard/`)
+
+**File:** `packages/suref-react/src/components/referenceEntity/choiceCard/`
+
+Three exported variants, all sharing a coloured-header + white-inset-body visual language matching entity cards:
+
+| Component | Purpose |
+|-----------|---------|
+| `ChoiceCard` | Selectable option (`aria-pressed`, toggles chosen/not-chosen status stamp) |
+| `FreeTextChoiceCard` | Editable free-text field (Name / Appearance / A.I. Personality) — always renders as "chosen" |
+| `StaticChoiceCard` | Display-only list items (NPC motivations, bullet options); borrowed choice-card chrome, no interactivity |
+
+`BlockContentRendererView` renders `list-item` content blocks as `StaticChoiceCard` (the bordered frame replaces plain bullets).
+
+### ChoiceGroup / ChoiceGroups
+
+`ChoiceGroups` is the top-level interactive renderer for a set of choices. It accepts `choices: SURefObjectChoice[]` and owns the selection state, with two modes:
+
+- **Uncontrolled** (no `selections` / `onSelectionChange` props): self-manages ephemeral React state. Used by `suref-web` — no persistence, lost on refresh.
+- **Controlled** (`selections` + `onSelectionChange` props): caller owns state. Used by ITUN, which wires through its persistence stores.
+
+`ChoiceGroup` (singular) renders one choice — its heading + either option cards or a free-text card.
+
+### choiceSelectionHelpers
+
+`packages/suref-react/src/components/referenceEntity/choiceCard/choiceSelectionHelpers.ts`
+
+Pure helpers (no React), all exported from `suref-react`:
+
+| Export | Purpose |
+|--------|---------|
+| `ChoiceSelections` | Type: `Record<string, string[]>` — selections keyed by choice id |
+| `ChoiceCardOption` | Distilled option shape (value, label, description, optional schema link) |
+| `getChoiceCardOptions(choice)` | Distils `choiceOptions` or `schemaEntities` into a flat `ChoiceCardOption[]` |
+| `isFreeTextChoice(choice)` | Returns true for `choiceType: 'freeform'` or choices with no option source |
+| `isMultiSelectChoice(choice)` | Returns true when `choice.multiSelect === true` |
+| `resolveMultiSelectCap(choice, parent)` | Resolves `constraints.max` or `constraints.scalesWithField` to a numeric cap |
+| `toggleSelection(current, value, multiSelect, cap?)` | Pure selection-set reducer; enforces exclusive/multi-select rules |
+
+### ReferenceEntityResolvedChoices
+
+Renders the interactive choice-group cards for a choice-bearing entity. Receives `selections` + `onSelectionChange` from the parent display so the header data row and the body cards share one source of truth.
+
+### ReferenceEntityResolvedDataRow
+
+Renders the live resolved data tags in the subtitle/header area. Given `selections`, calls `resolveChoiceView` from `salvageunion-reference` and returns a fragment of `DataValueDisplayView` tags showing: base datavalues with applied effects, resolved traits, and segmented "Choose: …" prompts for unresolved required choices. Updates live as choices are toggled.
+
+### ReferenceEntityGrants
+
+Renders the `Grants` section separator + compact nested `ReferenceEntityDisplay` cards for each entity resolved by `resolveGrantedEntities`. When the parent is compact (listing mode), the nested cards collapse to header-only (`listing: true`). Actions are suppressed on nested cards (the same-named action lives on the ability itself).
+
+**`resolveGrantedEntities` (salvageunion-reference):** the shared helper that walks `entity.grants`, skips `schema: 'choice'` entries, and resolves each remaining grant to a live entity via the ORM. Single source of truth for both the display layer and tooling.
+
+### resolveChoiceView (salvageunion-reference)
+
+`packages/salvageunion-reference/lib/resolveChoiceView.ts`
+
+Pure, deterministic resolver (no I/O). Given an entity and `ChoiceSelections`, returns a `ResolvedChoiceView`:
+
+```typescript
+type ResolvedChoiceView = {
+  datavalues: SURefObjectDataValue[]   // base row + applied effects
+  traits:     SURefObjectTrait[]       // base traits + addTrait effects
+  prompts:    ChoicePrompt[]           // unresolved required choices
+}
+```
+
+Effects: `addDamage` bumps a Damage datavalue, `setRange` replaces Range, `addTrait` appends a trait. `unit` on a DataValue produces a 3-segment tag `[LABEL][value][unit]` (e.g. "Damage 2 SP"). Exported from `salvageunion-reference` alongside `type ChoiceSelections` and `type ResolvedChoiceView`.
+
+### Entity href injection (route-agnostic)
+
+`packages/suref-react/src/components/referenceEntity/ReferenceEntityDisplay/entityHrefContext.ts`
+
+The shared library does not know app routes. `EntityHrefProvider` supplies an `EntityHrefBuilder` (`(entity) => string | undefined`); `ReferenceEntityGrants`'s nested "View Details" control reads it via `useEntityHref(entity)`. suref-web provides `srdEntityHref` (`/schema/<schema>/item/<slug>/`) at the island level; with no provider there is no link (correct for consumers like ITUN with different routing).
+
+### isGrantingAbility — Ability → Grants Collapse Pattern
+
+When a class ability grants equipment (e.g. "Custom Sniper Rifle"), the entity display re-skins its body:
+
+1. `resolveGrantedEntities(data)` is called; if the result is non-empty **and** the entity is an ability (`isAbility(data)`), `isGrantingAbility` is set to `true`.
+2. **Body substitution:** the ability's own `content` blocks and `Actions` section are suppressed. The body renders the granted equipment's `lead` intro line (a `ContentBlock` with `lead: true`) followed by the `ReferenceEntityGrants` block.
+3. **Header flavor preserved:** the ability's own `description` still renders in the right-header flavor slot — it does not conflict with the Grants block.
+4. **Compact collapse:** in compact/listing contexts the nested granted-equipment card collapses to header-only (`listing: true` on the inner `ReferenceEntityDisplay`).
+
+The `lead` field on `ContentBlock` marks the one-sentence intro for a granted piece of equipment, surfaced as the body opener when the ability collapses to the Grants view.
 
 ---
 
@@ -250,9 +334,11 @@ Renders equipment, abilities, and comrades with interactive stats and condition 
 
 - `titleSlot` — `ComradeNameInput` for dynamic comrade naming
 - `subtitleExtra` — `ValueDisplay` showing schema display name
-- `choiceInputRenderer` — `LabeledInput` for comrade choices
+- `choiceInputRenderer` — `LabeledInput` for simple comrade/chassis-ability choices (legacy `ChoiceInputRenderer` path; still used for choices that pre-date the granted-equipment system)
 - `stats` — Interactive stats with +/- via `ENTITY_STATS_CONFIG`
 - `afterChoicesContent` — `EntityModificationSlots` for modification tracking
+
+For granted-equipment choices (e.g. Custom Sniper Rifle), the new `ChoiceGroups` path is used instead: `ReferenceEntityResolvedChoices` (body) + `ReferenceEntityResolvedDataRow` (header subtitle) work together via controlled `selections` / `onSelectionChange` state. ITUN wires these to its persistence stores; suref-web uses the uncontrolled (ephemeral) mode.
 
 ### ReferenceEntityPickerModal (ITUN)
 

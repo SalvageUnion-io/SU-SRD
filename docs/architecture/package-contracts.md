@@ -62,7 +62,10 @@ In development, consuming apps resolve `lib/index.ts` directly (via the `develop
 All entity types (`SURef*`), enum types (`SURefEnum*`), common types (`SURefCommon*`), object types (`SURefObject*`), `SchemaToEntityMap`, `EntitySchemaNames` (runtime Set).
 
 **Utility exports:**
-`nameToSlug`, `getEntitySlug`, `findEntityBySlug`, `getParagraphString`, `replaceChassisPlaceholder`, `parseContentBlockString`, `resultForTable`, `BaseModel`, `getDataMaps`, `getSchemaCatalog`
+`nameToSlug`, `getEntitySlug`, `findEntityBySlug`, `getParagraphString`, `replaceChassisPlaceholder`, `parseContentBlockString`, `resultForTable`, `BaseModel`, `getDataMaps`, `getSchemaCatalog`, `resolveGrantedEntities`, `resolveChoiceView`
+
+**Choice-resolver types:**
+`ChoiceSelections` (`Record<string, string[]>`), `ResolvedChoiceView` (`{ datavalues, traits, prompts }`), `ChoicePrompt`
 
 ### Dependencies
 
@@ -148,13 +151,13 @@ When storing cross-entity references in new JSON data files, always use the `"sc
 
 Consuming apps' Vite/Astro bundlers compile `.ts/.tsx` files directly. No intermediate build step.
 
-### Public API (77 exports from `src/index.ts`)
+### Public API (64 named exports from `src/index.ts`)
 
 **Types:**
-`DataValue`, `PatternOverrideData`, `ReferenceEntityControl`, `ChoiceInputRenderer`, `DisplayCardTab`, `StatItem`, `StatConfig`, `GuideStepsInteractiveConfig`, `GuideStepRollState`
+`DataValue`, `PatternOverrideData`, `ReferenceEntityControl`, `ChoiceInputRenderer`, `DisplayCardTab`, `StatItem`, `StatConfig`, `GuideStepsInteractiveConfig`, `GuideStepRollState`, `ChoiceSelections`, `ChoiceCardOption`
 
 **Constants:**
-`ENTITY_STATS_CONFIG`, `TECH_LEVEL_STYLES`, `TECH_LEVEL_BG`, `techLevelLabel`, `techLevelColors`
+`ENTITY_STATS_CONFIG`, `TECH_LEVEL_STYLES`, `TECH_LEVEL_BG`, `techLevelLabel`
 
 **Base Typography:**
 `Text`
@@ -163,13 +166,16 @@ Consuming apps' Vite/Astro bundlers compile `.ts/.tsx` files directly. No interm
 `Toaster`
 
 **Entity Display System:**
-`ReferenceEntityDisplay`, `ReferenceEntityDisplayTooltip`, `SectionSeparator`, `ReferenceEntityChassisAbilitiesContent`, `ClassAbilityTreeDisplay`, `NestedActionDisplay`, `getReferenceEntitySpacing`
+`ReferenceEntityDisplay`, `ReferenceEntityDisplayTooltip`, `SectionSeparator`, `ReferenceEntityChassisAbilitiesContent`, `ClassAbilityTreeDisplay`, `NestedActionDisplay`, `ActionCard`, `getReferenceEntitySpacing`
 
 **Controls & Interactions:**
-`addControl`, `deleteControl`, `navigateControl`, `DetailIcon`, `useDetailModal`, `useChassisPatternConfig`, `getClassSelections`
+`addControl`, `deleteControl`, `navigateControl`, `useDetailModal`, `useChassisPatternConfig`, `getClassSelections`
+
+**Interactive Choice Cards (granted-equipment):**
+`ChoiceGroups`, `ChoiceGroup`, `ChoiceCard`, `FreeTextChoiceCard`, `getChoiceCardOptions`, `isFreeTextChoice`, `isMultiSelectChoice`, `resolveMultiSelectCap`, `toggleSelection`
 
 **Shared Components:**
-`DisplayCard`, `CardHeader`, `CardImage`, `DualColumnLayout`, `ValueDisplay`, `StatDisplay`, `StatControl`, `StatsBar`, `ControlButtons`, `RollTable`, `FilterChip`, `Footer`
+`DisplayCard`, `CardHeader`, `CardImage`, `DualColumnLayout`, `ValueDisplay`, `StatDisplay`, `StatControl`, `StatsBar`, `ControlButtons`, `RollTable`, `FilterChip`, `FilterRow`, `Footer`, `ModalShell`
 
 **Skeletons:**
 `ReferenceEntityCardSkeleton`
