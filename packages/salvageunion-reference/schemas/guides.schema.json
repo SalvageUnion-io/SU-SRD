@@ -433,18 +433,46 @@
                   "effects": {
                     "type": "array",
                     "items": {
-                      "type": "object",
-                      "properties": {
-                        "op": {
-                          "type": "string",
-                          "enum": ["addTrait", "removeTrait", "setRange", "addDamage"]
+                      "oneOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "op": { "type": "string", "const": "addTrait" },
+                            "value": { "type": "string" },
+                            "amount": { "anyOf": [{ "type": "string" }, { "type": "number" }] }
+                          },
+                          "required": ["op", "value"],
+                          "additionalProperties": false
                         },
-                        "value": { "anyOf": [{ "type": "string" }, { "type": "number" }] },
-                        "amount": { "anyOf": [{ "type": "string" }, { "type": "number" }] },
-                        "unit": { "type": "string" }
-                      },
-                      "required": ["op", "value"],
-                      "additionalProperties": false
+                        {
+                          "type": "object",
+                          "properties": {
+                            "op": { "type": "string", "const": "removeTrait" },
+                            "value": { "type": "string" }
+                          },
+                          "required": ["op", "value"],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "op": { "type": "string", "const": "setRange" },
+                            "value": { "anyOf": [{ "type": "string" }, { "type": "number" }] }
+                          },
+                          "required": ["op", "value"],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "op": { "type": "string", "const": "addDamage" },
+                            "value": { "anyOf": [{ "type": "string" }, { "type": "number" }] },
+                            "unit": { "type": "string" }
+                          },
+                          "required": ["op", "value"],
+                          "additionalProperties": false
+                        }
+                      ]
                     }
                   }
                 },

@@ -397,16 +397,45 @@ export const SystemModuleSchema = StatsSchema.extend({
 /**
  * Choice effect schema — describes a mechanical effect applied when a choice option is selected
  */
-export const ChoiceEffectSchema = z
-  .object({
-    op: z.enum(['addTrait', 'removeTrait', 'setRange', 'addDamage']),
-    value: z.union([z.string(), z.number()]),
-    /** Trait magnitude for addTrait (e.g. Burn 1, Explosive 2). Adding a trait
-     * that already exists upgrades its amount. */
-    amount: z.union([z.string(), z.number()]).optional(),
-    unit: z.string().optional(),
-  })
-  .strict()
+/**
+ * A single mechanical effect of a choice option, discriminated by `op` so each
+ * operation only permits the fields it actually uses (no `removeTrait` with an
+ * `amount`, no `addDamage` with an `amount`, etc.):
+ *
+ * - `addTrait`    — add a trait by name; optional `amount` is its magnitude
+ *                   (e.g. Burn 1). Adding a trait that already exists upgrades it.
+ * - `removeTrait` — strip a trait by name.
+ * - `setRange`    — replace the Range datavalue.
+ * - `addDamage`   — increase the Damage datavalue; optional `unit` (e.g. "SP").
+ */
+export const ChoiceEffectSchema = z.discriminatedUnion('op', [
+  z
+    .object({
+      op: z.literal('addTrait'),
+      value: z.string(),
+      amount: z.union([z.string(), z.number()]).optional(),
+    })
+    .strict(),
+  z
+    .object({
+      op: z.literal('removeTrait'),
+      value: z.string(),
+    })
+    .strict(),
+  z
+    .object({
+      op: z.literal('setRange'),
+      value: z.union([z.string(), z.number()]),
+    })
+    .strict(),
+  z
+    .object({
+      op: z.literal('addDamage'),
+      value: z.union([z.string(), z.number()]),
+      unit: z.string().optional(),
+    })
+    .strict(),
+])
 
 /**
  * Choice options schema
