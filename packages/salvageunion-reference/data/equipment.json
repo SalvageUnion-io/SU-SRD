@@ -1112,7 +1112,7 @@
         ]
       }
     ],
-    "traits": [{ "type": "Missile" }, { "type": "Explosive", "amount": 1 }, { "type": "Heavy" }],
+    "traits": [{ "type": "missile" }, { "type": "explosive", "amount": 1 }, { "type": "heavy" }],
     "choices": [
       {
         "name": "Modification",
