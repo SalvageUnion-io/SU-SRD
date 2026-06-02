@@ -474,12 +474,11 @@ export function ReferenceEntityDisplayContent({
         />
       }
       rightContent={
-        // Only pass right-header content when there's actually flavor to render
-        // (ability description). Passing the element unconditionally made it a
-        // truthy node even when it renders null — which flips CardHeader into the
-        // capped flex-[0_1_auto] max-w branch and squishes the data row for
-        // systems/modules (whose only right element is the separate stats column).
-        !hide.stats && hasHeaderFlavor ? (
+        // The ability description always renders in the header-right flavor slot
+        // (nothing suppresses it). `hasHeaderFlavor` already means "ability with a
+        // description", so the node is never truthy-but-empty — only abilities
+        // reach this branch; systems/modules render their stats via `stats`.
+        hasHeaderFlavor ? (
           <ReferenceEntityRightHeaderContent
             data={data}
             fontSize={fontSize}
