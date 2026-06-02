@@ -94,9 +94,9 @@ describe('Custom Sniper Rifle equipment display', () => {
 })
 
 describe('Custom Sniper Rifle granting ability display', () => {
-  test('suppresses the ability description', () => {
+  test('shows the ability description in the header flavor slot', () => {
     render(<ReferenceEntityDisplay data={rifleAbility} />)
-    expect(screen.queryByText('Gain a specialised sniper rifle that only you can use.')).toBeNull()
+    expect(screen.getByText('Gain a specialised sniper rifle that only you can use.')).toBeTruthy()
   })
 
   test('renders the equipment lead line once', () => {

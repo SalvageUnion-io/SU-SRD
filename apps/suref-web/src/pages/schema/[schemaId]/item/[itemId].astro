@@ -92,5 +92,9 @@ const ogImage = displayData?.assetUrl || '/og-image.png'
   <article class="flex min-h-full flex-1 flex-col items-center justify-center p-4">
     <ReferenceEntityIsland client:visible item={item} titleAs="h1" />
     {staticSummary && <StaticEntityContent summary={staticSummary} />}
+    {/* The static block is an SEO / no-JS fallback only (the hydrated card is the
+        real view). Remove it immediately on parse so JS users never see the
+        duplicate naked text — independent of when the below-fold island hydrates. */}
+    <script is:inline>document.querySelector('[data-static-fallback]')?.remove()</script>
   </article>
 </BaseLayout>

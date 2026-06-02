@@ -297,7 +297,9 @@ export function ReferenceEntityDisplayContent({
   // to SURefAbility (description is a declared optional field), so no cast/extra
   // membership check is needed; this mirrors ReferenceEntityRightHeaderContent's
   // own early-return guard so we never pass a truthy-but-empty node to CardHeader.
-  const hasHeaderFlavor = isAbilityEntity && !isGrantingAbility && !!data.description
+  // Granting abilities still show their description in the header-right flavor
+  // slot (the Grants block lives in the body — they don't conflict).
+  const hasHeaderFlavor = isAbilityEntity && !!data.description
 
   // Consolidate chassis abilities logic — data-shape driven
   const chassisName = 'name' in data ? data.name : undefined
