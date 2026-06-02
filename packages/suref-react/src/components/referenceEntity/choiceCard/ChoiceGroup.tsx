@@ -52,20 +52,18 @@ export function ChoiceGroup({
     const promptBlock = choice.content?.find((block) => block.type === 'paragraph')
     const description = promptBlock ? parseContentBlockString(promptBlock) : undefined
     const currentValue = selected[0] ?? ''
+    // No SectionSeparator — the input card's own header already shows the name.
     return (
-      <div className={cn('flex flex-col gap-2')}>
-        <SectionSeparator label={choice.name} compact={compact} />
-        <FreeTextChoiceCard
-          label={choice.name}
-          description={description}
-          value={currentValue}
-          onValueChange={onFreeTextChange}
-          multiline={choice.name.toLowerCase() !== 'name'}
-          compact={compact}
-          parentHeaderBg={parentHeaderBg}
-          parentHeaderBgColor={parentHeaderBgColor}
-        />
-      </div>
+      <FreeTextChoiceCard
+        label={choice.name}
+        description={description}
+        value={currentValue}
+        onValueChange={onFreeTextChange}
+        multiline={choice.name.toLowerCase() !== 'name'}
+        compact={compact}
+        parentHeaderBg={parentHeaderBg}
+        parentHeaderBgColor={parentHeaderBgColor}
+      />
     )
   }
 

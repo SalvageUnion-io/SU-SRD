@@ -198,10 +198,10 @@ export function FreeTextChoiceCard({
   parentHeaderBg,
   parentHeaderBgColor,
 }: FreeTextChoiceCardProps) {
-  const chosen = value.trim().length > 0
-  const parsedDescription = useParseTraitReferences(description)
-  const fontSize = compact ? 'text-xs' : 'text-sm'
   const accent = choiceAccent(parentHeaderBg, parentHeaderBgColor)
+  // The prompt becomes the field's placeholder — these are inputs, not text
+  // description fields.
+  const effectivePlaceholder = placeholder ?? description
 
   const handleChange = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     onValueChange?.(event.target.value)
@@ -213,28 +213,21 @@ export function FreeTextChoiceCard({
     compact ? 'px-1.5 py-0.5 text-xs' : 'px-2 py-1 text-sm'
   )
 
+  // Input cards are always "active" — full accent fill + full title, no
+  // Chosen / Not Chosen status.
   return (
     <div
       className={cn('relative w-full min-w-0 overflow-hidden rounded-[3px] border')}
-      style={choiceCardColors(chosen, parentHeaderBg, parentHeaderBgColor)}
+      style={choiceCardColors(true, parentHeaderBg, parentHeaderBgColor)}
     >
-      {/* Free-text input cards carry no Chosen / Not Chosen stamp. */}
-      <ChoiceCardHeader label={label} chosen={chosen} compact={compact} />
+      <ChoiceCardHeader label={label} chosen compact={compact} />
       <ChoiceCardBody accent={accent} compact={compact}>
-        {description && (
-          <Text
-            as="span"
-            className={cn('mb-1 block text-su-black', fontSize, !chosen && 'opacity-80')}
-          >
-            {parsedDescription}
-          </Text>
-        )}
         {multiline ? (
           <textarea
             aria-label={label}
             className={fieldClasses}
             value={value}
-            placeholder={placeholder}
+            placeholder={effectivePlaceholder}
             rows={compact ? 2 : 3}
             onChange={handleChange}
           />
@@ -244,7 +237,7 @@ export function FreeTextChoiceCard({
             aria-label={label}
             className={fieldClasses}
             value={value}
-            placeholder={placeholder}
+            placeholder={effectivePlaceholder}
             onChange={handleChange}
           />
         )}
