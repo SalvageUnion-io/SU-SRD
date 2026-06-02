@@ -193,3 +193,59 @@ describe('resolveChoiceView — edge cases', () => {
     expect(entity.traits).toEqual([{ type: 'Heavy' }])
   })
 })
+
+// The Custom Missile Launcher is the one granted item carrying base traits and
+// the addTrait-with-amount / removeTrait effect ops — kept as a distinct fixture
+// so these paths can't regress unnoticed (the Sniper Rifle has no base traits).
+const launcher = SalvageUnionReference.Equipment.find((e) => e.name === 'Custom Missile Launcher')!
+const LAUNCHER_MOD = launcher.choices!.find((c) => c.name === 'Modification')!.id
+
+function traitAmount(view: ReturnType<typeof resolveChoiceView>, type: string) {
+  return view.traits.find((t) => t.type === type)?.amount
+}
+
+describe('resolveChoiceView — Custom Missile Launcher fixture (base traits + amount/removeTrait ops)', () => {
+  it('base row: base traits resolve from traits[] with their amounts', () => {
+    const view = resolveChoiceView(launcher, {})
+    expect(traitTypes(view)).toEqual(['Missile', 'Explosive', 'Heavy'])
+    expect(traitAmount(view, 'Explosive')).toBe(1)
+    expect(damage(view)).toBe(3)
+    expect(range(view)).toBe('Medium')
+  })
+
+  it('Bigger Boom: addTrait upgrades an existing trait amount (Explosive 1 → 2)', () => {
+    const view = resolveChoiceView(launcher, { [LAUNCHER_MOD]: ['Bigger Boom'] })
+    expect(traitAmount(view, 'Explosive')).toBe(2)
+    // No duplicate Explosive entry.
+    expect(view.traits.filter((t) => t.type === 'Explosive')).toHaveLength(1)
+  })
+
+  it('Napalm Rounds: adds Anti-Organic plus Burn with amount 1', () => {
+    const view = resolveChoiceView(launcher, { [LAUNCHER_MOD]: ['Napalm Rounds'] })
+    expect(traitTypes(view)).toContain('Anti-Organic')
+    expect(traitAmount(view, 'Burn')).toBe(1)
+  })
+
+  it('Portable: removeTrait strips Heavy', () => {
+    const view = resolveChoiceView(launcher, { [LAUNCHER_MOD]: ['Portable'] })
+    expect(traitTypes(view)).not.toContain('Heavy')
+    expect(traitTypes(view)).toEqual(['Missile', 'Explosive'])
+  })
+
+  it('combined: Bigger Boom + Napalm + Portable + Expanded Warhead stack correctly', () => {
+    const view = resolveChoiceView(launcher, {
+      [LAUNCHER_MOD]: ['Bigger Boom', 'Napalm Rounds', 'Portable', 'Expanded Warhead'],
+    })
+    expect(traitAmount(view, 'Explosive')).toBe(2)
+    expect(traitAmount(view, 'Burn')).toBe(1)
+    expect(traitTypes(view)).toContain('Anti-Organic')
+    expect(traitTypes(view)).not.toContain('Heavy')
+    expect(damage(view)).toBe(4)
+  })
+
+  it('is pure: resolving effects does not mutate the source traits', () => {
+    const before = JSON.stringify(launcher.traits)
+    resolveChoiceView(launcher, { [LAUNCHER_MOD]: ['Bigger Boom', 'Portable'] })
+    expect(JSON.stringify(launcher.traits)).toBe(before)
+  })
+})

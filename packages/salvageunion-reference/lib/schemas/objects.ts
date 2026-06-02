@@ -399,8 +399,11 @@ export const SystemModuleSchema = StatsSchema.extend({
  */
 export const ChoiceEffectSchema = z
   .object({
-    op: z.enum(['addTrait', 'setRange', 'addDamage']),
+    op: z.enum(['addTrait', 'removeTrait', 'setRange', 'addDamage']),
     value: z.union([z.string(), z.number()]),
+    /** Trait magnitude for addTrait (e.g. Burn 1, Explosive 2). Adding a trait
+     * that already exists upgrades its amount. */
+    amount: z.union([z.string(), z.number()]).optional(),
     unit: z.string().optional(),
   })
   .strict()

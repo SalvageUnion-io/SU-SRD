@@ -1108,23 +1108,11 @@
             "label": "Range",
             "type": "keyword",
             "value": "Medium"
-          },
-          {
-            "label": "Missile",
-            "type": "trait"
-          },
-          {
-            "label": "Explosive",
-            "type": "trait",
-            "value": 1
-          },
-          {
-            "label": "Heavy",
-            "type": "trait"
           }
         ]
       }
     ],
+    "traits": [{ "type": "Missile" }, { "type": "Explosive", "amount": 1 }, { "type": "Heavy" }],
     "choices": [
       {
         "name": "Modification",
@@ -1161,12 +1149,16 @@
             "label": "Napalm Rounds",
             "value": "Napalm Rounds",
             "description": "The Custom Missile Launcher gains the Anti-Organic and [[[Burn] (1)]] Trait.",
-            "effects": [{ "op": "addTrait", "value": "Anti-Organic" }]
+            "effects": [
+              { "op": "addTrait", "value": "Anti-Organic" },
+              { "op": "addTrait", "value": "Burn", "amount": 1 }
+            ]
           },
           {
             "label": "Bigger Boom",
             "value": "Bigger Boom",
-            "description": "The Custom Missile Launcher gains the [[[Explosive] (2)]] Trait."
+            "description": "The Custom Missile Launcher gains the [[[Explosive] (2)]] Trait.",
+            "effects": [{ "op": "addTrait", "value": "Explosive", "amount": 2 }]
           },
           {
             "label": "Flashy",
@@ -1183,7 +1175,8 @@
           {
             "label": "Portable",
             "value": "Portable",
-            "description": "The Custom Missile Launcher loses the [[Heavy]] Trait."
+            "description": "The Custom Missile Launcher loses the [[Heavy]] Trait.",
+            "effects": [{ "op": "removeTrait", "value": "Heavy" }]
           }
         ]
       }

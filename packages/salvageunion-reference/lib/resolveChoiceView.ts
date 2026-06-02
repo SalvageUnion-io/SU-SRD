@@ -10,8 +10,9 @@
  * - `datavalues`: the base datavalue row with applied effects (setRange
  *   replaces Range, addDamage bumps Damage), and unresolved required-choice
  *   prompts removed once resolved.
- * - `traits`: base traits plus any `addTrait` effects (explicit on
- *   choiceOptions, or inferred from trait-schema `schemaEntities` choices).
+ * - `traits`: base traits with `addTrait`/`removeTrait` effects applied
+ *   (explicit on choiceOptions, or inferred from trait-schema `schemaEntities`
+ *   choices). Adding an existing trait upgrades its amount (Explosive 1 → 2).
  * - `prompts`: one entry per unresolved required choice (nothing selected),
  *   e.g. { choiceId, label, text: 'Choose: Ballistic or Energy' }.
  *
@@ -149,11 +150,30 @@ function buildPromptText(choice: SURefObjectChoice): string {
 }
 
 /**
- * Append a trait (by name) to the trait list if not already present.
+ * Add a trait (by name) to the trait list. If the trait is already present,
+ * upgrade its `amount` when a new one is given (e.g. Explosive 1 → Explosive 2);
+ * otherwise leave the existing entry untouched. A fresh trait is pushed with its
+ * `amount` when provided (e.g. Burn 1).
  */
-function addTrait(traits: SURefObjectTrait[], type: string): void {
-  if (!traits.some((t) => t.type.toLowerCase() === type.toLowerCase())) {
-    traits.push({ type })
+function addTrait(traits: SURefObjectTrait[], type: string, amount?: string | number): void {
+  const existing = traits.find((t) => t.type.toLowerCase() === type.toLowerCase())
+  if (existing) {
+    if (amount !== undefined) {
+      existing.amount = amount
+    }
+    return
+  }
+  traits.push(amount !== undefined ? { type, amount } : { type })
+}
+
+/**
+ * Remove a trait (by name) from the trait list, if present (e.g. Portable strips
+ * Heavy). No-op when the trait isn't there.
+ */
+function removeTrait(traits: SURefObjectTrait[], type: string): void {
+  const index = traits.findIndex((t) => t.type.toLowerCase() === type.toLowerCase())
+  if (index !== -1) {
+    traits.splice(index, 1)
   }
 }
 
@@ -249,7 +269,10 @@ export function resolveChoiceView(
         for (const effect of option.effects) {
           switch (effect.op) {
             case 'addTrait':
-              addTrait(traits, String(effect.value))
+              addTrait(traits, String(effect.value), effect.amount)
+              break
+            case 'removeTrait':
+              removeTrait(traits, String(effect.value))
               break
             case 'setRange':
               applySetRange(datavalues, effect.value)
