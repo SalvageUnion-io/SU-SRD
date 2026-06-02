@@ -246,12 +246,12 @@ export function ReferenceEntityDisplayContent({
   // here so the gates below (header flavor, content, actions) can react.
   const grantedEntities = resolveGrantedEntities(data)
   const isGrantingAbility = isAbility(data) && grantedEntities.length > 0
-  // Whether the Grants block actually renders. The nested equipment is the
-  // granting ability's choices surface, so a consumer that hides choices (e.g.
-  // the schema-viewer's minimal listing card via `hide.choices`) also opts out of
-  // the Grants block — the ability still suppresses its own prose/Actions for a
-  // clean header card. Grants are otherwise visible in compact (spec §8.2).
-  const showGrants = isGrantingAbility && !hide.choices
+  // Whether the Grants block renders. A granting ability ALWAYS shows its Grants
+  // (so the index list / compact cards surface what's granted) — in compact the
+  // nested equipment collapses to header-only (see GrantedEntityListing), so
+  // `hide.choices` no longer needs to suppress the whole block. The block still
+  // only renders when the card has a body (i.e. not a header-only `listing`).
+  const showGrants = isGrantingAbility
 
   // Show content if entity has content blocks. A granting ability suppresses its
   // own content entirely — its body is the lead line + Grants block instead.
