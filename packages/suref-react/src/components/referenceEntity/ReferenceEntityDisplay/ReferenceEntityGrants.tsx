@@ -48,14 +48,20 @@ export function ReferenceEntityGrants({ data, spacing, compact }: ReferenceEntit
       <SectionSeparator label="Grants" compact={compact} />
       <div className={cn('flex flex-col', spacing.smallSpaceYClass)}>
         {grantedEntities.map((entity, idx) => (
-          <GrantedEntityListing key={idx} entity={entity} />
+          <GrantedEntityListing key={idx} entity={entity} parentCompact={!!compact} />
         ))}
       </div>
     </div>
   )
 }
 
-function GrantedEntityListing({ entity }: { entity: SURefEntity }) {
+function GrantedEntityListing({
+  entity,
+  parentCompact,
+}: {
+  entity: SURefEntity
+  parentCompact: boolean
+}) {
   const name = 'name' in entity && typeof entity.name === 'string' ? entity.name : 'entity'
   const href = getEntityDetailHref(entity)
 
@@ -73,11 +79,18 @@ function GrantedEntityListing({ entity }: { entity: SURefEntity }) {
       ]
     : undefined
 
+  // When the granting ability itself is shown compact (in lists / nested
+  // contexts), collapse the granted entity to header-only — its name + resolved
+  // stat row in the header, no body. When the ability is shown full, the nested
+  // equipment expands (intro + resolved row + choice cards). Actions are hidden
+  // (the redundant same-named pilot-equipment action lives on the ability).
   return (
-    /* Full nested compact equipment (not header-only listing): its intro
-       paragraph, the resolved dataview row + choice cards all render inside its
-       body. Actions are hidden (the redundant same-named pilot-equipment action
-       lives on the granting ability, not duplicated here). */
-    <ReferenceEntityDisplay hide={{ actions: true }} data={entity} compact controls={controls} />
+    <ReferenceEntityDisplay
+      hide={{ actions: true }}
+      data={entity}
+      compact
+      listing={parentCompact}
+      controls={controls}
+    />
   )
 }

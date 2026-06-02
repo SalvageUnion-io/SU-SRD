@@ -39,21 +39,29 @@ describe('AbilitySchema optionality audit', () => {
     ])
   })
 
-  it('grants field is only present on 6 abilities', () => {
+  it('grants field is only present on 14 abilities', () => {
     const abilities = SalvageUnionReference.Abilities.all()
 
     const withGrants = abilities.filter((a) => a.grants !== undefined)
-    expect(withGrants.length).toBe(6)
+    expect(withGrants.length).toBe(14)
 
     // Verify the abilities that have it
     const names = withGrants.map((a) => a.name).sort()
     expect(names).toEqual([
       'Auto-Turret',
+      'Camo Suit',
+      'Custom Missile Launcher',
       'Custom Sniper Rifle',
+      'Hacking Kit',
       'Holo Companion',
+      'Knife Missile',
       'Mecha Companion',
       'Mecha Packmaster',
+      'Miniaturised EMP',
+      'Stealth Field Generator',
       'Survey Drone',
+      'Teleport Beacon',
+      'Wingsuit',
     ])
   })
 

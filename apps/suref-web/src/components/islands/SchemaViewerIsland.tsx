@@ -85,7 +85,7 @@ export function SchemaViewerIsland({
     <GameDataGate>
       <div className={containerClass}>
         {hasFilters && (
-          <aside className="mb-4 flex w-full flex-col gap-4 lg:mb-0 lg:py-6">
+          <aside className="mb-4 flex w-full flex-col gap-4 lg:mb-0 lg:pt-2 lg:pb-6">
             {techLevels.length > 1 && (
               <FilterRow label="Tech Level">
                 <FilterChip
@@ -134,7 +134,7 @@ export function SchemaViewerIsland({
         )}
 
         {/* Entity Grid */}
-        <div className="w-full min-w-0 flex-1 px-2 py-6 md:p-6 lg:px-0">
+        <div className="w-full min-w-0 flex-1 px-2 pt-2 pb-6 md:p-6 md:pt-2 lg:px-0">
           <div className="columns-1 gap-4 md:columns-2 xl:columns-3 [&>*]:mb-4 [&>*]:break-inside-avoid">
             {filteredData.map((item: SURefEntity) => {
               const tree = schemaId === 'abilities' ? (getTree(item) as string) : undefined

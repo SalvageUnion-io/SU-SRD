@@ -85,17 +85,21 @@ function ChoiceCardHeader({
 function ChoiceCardBody({
   accent,
   compact,
+  topGap,
   children,
 }: {
   accent: string
   compact: boolean
+  /** Add a top margin so the coloured frame shows above the box (headerless cards). */
+  topGap?: boolean
   children: ReactNode
 }) {
   return (
     <div
       className={cn(
         'min-w-0 border-l-[3px] bg-su-white',
-        compact ? 'mx-1.5 mb-1.5 px-2 py-1' : 'mx-2 mb-2 px-3 py-2'
+        compact ? 'mx-1.5 mb-1.5 px-2 py-1' : 'mx-2 mb-2 px-3 py-2',
+        topGap && (compact ? 'mt-1.5' : 'mt-2')
       )}
       style={{ borderLeftColor: accent }}
     >
@@ -245,6 +249,46 @@ export function FreeTextChoiceCard({
           />
         )}
       </ChoiceCardBody>
+    </div>
+  )
+}
+
+type StaticChoiceCardProps = ChoiceCardShellProps & {
+  label?: string
+  description?: string
+}
+
+/**
+ * StaticChoiceCard — the choice-card chrome for display-only list items (e.g. NPC
+ * motivations, "scour the wastelands for one of the following" options): a
+ * coloured frame over a white inset body. With a `label` it leads with the
+ * black-stamp title header; without one (unlabelled bullets) it's just the framed
+ * white body. No selectable status, toggle, or fade — it just borrows the look.
+ */
+export function StaticChoiceCard({
+  label,
+  description,
+  compact = false,
+  parentHeaderBg,
+  parentHeaderBgColor,
+}: StaticChoiceCardProps) {
+  const parsedDescription = useParseTraitReferences(description)
+  const fontSize = compact ? 'text-xs' : 'text-sm'
+  const accent = choiceAccent(parentHeaderBg, parentHeaderBgColor)
+
+  return (
+    <div
+      className="relative w-full min-w-0 overflow-hidden rounded-[3px] border"
+      style={choiceCardColors(false, parentHeaderBg, parentHeaderBgColor)}
+    >
+      {label && <ChoiceCardHeader label={label} chosen compact={compact} />}
+      {description && (
+        <ChoiceCardBody accent={accent} compact={compact} topGap={!label}>
+          <Text as="span" className={cn('block text-su-black', fontSize)}>
+            {parsedDescription}
+          </Text>
+        </ChoiceCardBody>
+      )}
     </div>
   )
 }

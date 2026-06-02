@@ -204,7 +204,7 @@
     "source": "Salvage Union Workshop Manual",
     "page": 35,
     "indexable": false,
-    "techLevel": 0,
+    "techLevel": 3,
     "actions": ["Holo Companion", "Project", "Un-Project"],
     "id": "dd96f7c0-3760-4b71-9451-77ced25a3b09",
     "content": [
@@ -212,6 +212,18 @@
         "type": "paragraph",
         "lead": true,
         "value": "You have created an intelligent, holographic, A.I. companion that only you can use."
+      },
+      {
+        "type": "paragraph",
+        "value": "Your Holo Companion cannot interact physically with the material world, but can see, be seen, speak, and traverse it. You can project or un-project them as a Turn Action, and they can appear anywhere within Medium Range of the device. Nominate another player at the table to voice your companion."
+      },
+      {
+        "type": "paragraph",
+        "value": "Their personality develops over time, based on a learning algorithm. During Downtime, they gain an A.I. [[Personality]] Trait based on their recent experiences. You can use the A.I. [[Personality]] Trait Table p. 91 for this or consider your own."
+      },
+      {
+        "type": "paragraph",
+        "value": "If your projection device is misplaced or destroyed you can acquire a new one during Downtime. Your A.I. is downloaded onto the device from a backup stored on your Union Crawler."
       }
     ],
     "choices": [
@@ -830,16 +842,60 @@
     "techLevel": 1,
     "actions": ["Camo Suit"],
     "page": 51,
-    "id": "12345678-90ab-4cd1-82e3-456789012345"
+    "id": "12345678-90ab-4cd1-82e3-456789012345",
+    "content": [
+      {
+        "type": "paragraph",
+        "lead": true,
+        "value": "You acquire and train in the use of a specialised Camo Suit that only you can use. It has miniature optical refractors which bend light away from you, allowing you to be effectively invisible for short periods of time as long as you do not move too quickly, make too much noise, or take any sudden actions."
+      },
+      {
+        "type": "datavalues",
+        "value": [
+          {
+            "label": "3 AP",
+            "type": "cost"
+          },
+          {
+            "label": "Turn Action",
+            "type": "keyword"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "value": "When activated, you are hidden from sight and sensors for the next hour. You are effectively invisible. You cannot be noticed unless you make a lot of noise or perform a significant action like attacking."
+      }
+    ]
   },
   {
-    "name": "WingSuit",
+    "name": "Wingsuit",
     "indexable": false,
     "source": "Salvage Union Workshop Manual",
     "techLevel": 1,
     "actions": ["Wingsuit"],
     "page": 51,
-    "id": "21aa5d3f-2dfd-415f-8f60-86913aeb797b"
+    "id": "21aa5d3f-2dfd-415f-8f60-86913aeb797b",
+    "content": [
+      {
+        "type": "paragraph",
+        "lead": true,
+        "value": "You acquire and train in the use of a Wingsuit that only you can use. It is made out of an advanced, lightweight, polycarbonate mesh that allows for limited flight and propulsion."
+      },
+      {
+        "type": "datavalues",
+        "value": [
+          {
+            "label": "1 AP",
+            "type": "cost"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "value": "When activated, the Wingsuit propels you into the air, and then allows you to fly. You can move freely over obstacles and terrain and see targets clearly from your bird's-eye view. All attacks made against you whilst flying are made as though you are always at Long Range. The flight lasts for an hour or until you land."
+      }
+    ]
   },
   {
     "name": "Hacking Kit",
@@ -848,7 +904,30 @@
     "techLevel": 1,
     "actions": ["Hacking Kit"],
     "page": 51,
-    "id": "c9929a61-d5fc-4362-827f-d0c7644ddd3d"
+    "id": "c9929a61-d5fc-4362-827f-d0c7644ddd3d",
+    "content": [
+      {
+        "type": "paragraph",
+        "lead": true,
+        "value": "You acquire and train in the use of a Hacking Kit that only you can use. Add this to your Pilot Inventory. This has a basic suite of hacking transmitters and tools that can be utilised by programming hacks into it."
+      },
+      {
+        "type": "paragraph",
+        "value": "When you acquire the Hacking Kit you may program a single Ability with the [[Hacking]] Trait from any System, Module, or Mech Chassis Ability you have access to into your Hacking Kit. The Hacking Kit can store a number of Abilities equal to the Tech Level of your Union Crawler, additional Abilities can be added during Downtime."
+      },
+      {
+        "type": "paragraph",
+        "value": "Once programmed, you can use the Abilities stored on your Hacking Kit as your Pilot, and can spend AP instead of EP when using them."
+      },
+      {
+        "type": "paragraph",
+        "value": "In addition, any Pilot Ability you have with the [[Hacking]] Trait may be performed from your Mech. You can spend EP for this Ability instead of AP."
+      },
+      {
+        "type": "paragraph",
+        "value": "If your Hacking Kit is misplaced or destroyed you can acquire a new one during Downtime, it still has all your stored abilities backed up."
+      }
+    ]
   },
   {
     "name": "Teleport Beacon",
@@ -857,7 +936,35 @@
     "techLevel": 1,
     "actions": ["Teleport Beacon"],
     "page": 51,
-    "id": "b0de76c5-18e3-42b3-a5b3-8bcee8794ad0"
+    "id": "b0de76c5-18e3-42b3-a5b3-8bcee8794ad0",
+    "content": [
+      {
+        "type": "paragraph",
+        "lead": true,
+        "value": "You acquire and train in the use of a Teleport Beacon that only you can use. Add this to your Pilot Inventory. It comes in two halves, a beacon and a controller. The beacon must be physically placed in a location when deployed."
+      },
+      {
+        "type": "datavalues",
+        "value": [
+          {
+            "label": "2 AP",
+            "type": "cost"
+          },
+          {
+            "label": "Turn Action",
+            "type": "keyword"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "value": "When you activate this Ability via the controller, it allows you to teleport yourself and up to five other creatures of your choice to the location you placed the beacon in."
+      },
+      {
+        "type": "paragraph",
+        "value": "If the Teleport Beacon is misplaced, damaged, or destroyed, you can acquire a new one during Downtime."
+      }
+    ]
   },
   {
     "name": "Stealth Field Generator",
@@ -866,7 +973,35 @@
     "techLevel": 1,
     "actions": ["Stealth Field Generator"],
     "page": 73,
-    "id": "f09dddca-4cf3-45fd-8ce7-640048a5c43d"
+    "id": "f09dddca-4cf3-45fd-8ce7-640048a5c43d",
+    "content": [
+      {
+        "type": "paragraph",
+        "lead": true,
+        "value": "You acquire and train in the use of a Stealth Field Generator that only you can use. This creates a sphere of invisibility around you and up to five Mechs, Creatures, or Vehicles of your choice within Close Range. This makes you and everything you choose under the sphere effectively invisible to both radar and scanning systems, as well as optics and the naked eye. None of the Mechs, Creatures, or Vehicles within the effect of the Stealth Field Generator can be seen with the [[Scanner]] Trait, or targeted by anything with the [[Targeter]] Trait."
+      },
+      {
+        "type": "datavalues",
+        "value": [
+          {
+            "label": "4 AP",
+            "type": "cost"
+          },
+          {
+            "label": "Turn Action",
+            "type": "keyword"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "value": "The Stealth Field Generator effect lasts until you choose to deactivate it as a Free Action for no cost."
+      },
+      {
+        "type": "paragraph",
+        "value": "If your Stealth Field Generator is misplaced, damaged, or destroyed, you can acquire a new one during Downtime. You can only ever have one Stealth Field Generator at a time."
+      }
+    ]
   },
   {
     "name": "Knife Missile",
@@ -875,7 +1010,72 @@
     "techLevel": 1,
     "actions": ["Knife Missile"],
     "page": 73,
-    "id": "256126db-8ba3-4a57-975a-2ed74832b983"
+    "id": "256126db-8ba3-4a57-975a-2ed74832b983",
+    "content": [
+      {
+        "type": "paragraph",
+        "lead": true,
+        "value": "You acquire and train in the use of a Knife Missile that only you can use. Add this to your Pilot Equipment. A Knife Missile is a miniscule, tadpole-sized assassination device that flies towards a target and penetrates their skull, instantly killing them."
+      },
+      {
+        "type": "datavalues",
+        "value": [
+          {
+            "label": "3 AP",
+            "type": "cost"
+          },
+          {
+            "label": "Turn Action",
+            "type": "keyword"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "value": "You control the Knife Missile remotely via a Knife Missile Controller. The Knife Missile can be set to attack any creature within Far Range. You do not need to be able to see the creature. The Knife Missile is able to fly directly to the target, avoiding detection as well as any obstacles, it can fly through vents, cracks, and get into significantly hard to reach places. The Knife Missile does not affect Meld or Bio-Titans."
+      }
+    ]
+  },
+  {
+    "name": "Miniaturised EMP",
+    "indexable": false,
+    "source": "Salvage Union Workshop Manual",
+    "techLevel": 1,
+    "actions": ["Miniaturised EMP"],
+    "page": 64,
+    "id": "663e628e-cf26-48a2-9c90-6714078d7418",
+    "content": [
+      {
+        "type": "paragraph",
+        "lead": true,
+        "value": "You acquire and train in the use of a Miniaturised EMP that only you can use. Add this to your Pilot Equipment."
+      },
+      {
+        "type": "datavalues",
+        "value": [
+          {
+            "label": "4 AP",
+            "type": "cost"
+          },
+          {
+            "label": "Turn Action",
+            "type": "keyword"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "value": "This handheld device when triggered causes a localised electromagnetic pulse that can disable a wide range of electronic equipment."
+      },
+      {
+        "type": "paragraph",
+        "value": "When you activate the Miniaturised EMP all Mechs, Systems, Modules, and any other electronic or technological equipment or hardware within Close Range are Shutdown and inoperable for 10 minutes. This Ability affects Meld, causing them to become inert for 10 minutes and be unable to act. This Ability does not affect Bio-Titans unless they are significantly made up of material that an electromagnetic pulse can affect."
+      },
+      {
+        "type": "paragraph",
+        "value": "If your Miniaturised EMP is misplaced or destroyed, you can acquire a new one during Downtime. You may only ever have one Miniaturised EMP at a time."
+      }
+    ]
   },
   {
     "name": "Custom Missile Launcher",

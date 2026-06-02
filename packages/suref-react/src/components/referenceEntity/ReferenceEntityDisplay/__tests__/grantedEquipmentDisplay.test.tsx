@@ -119,11 +119,13 @@ describe('Custom Sniper Rifle granting ability display', () => {
     expect(screen.getByText('Modification')).toBeTruthy()
   })
 
-  test('grants are visible in compact mode', () => {
+  test('grants are visible in compact mode, with the nested equipment collapsed to header-only', () => {
     render(<ReferenceEntityDisplay data={rifleAbility} compact />)
     expect(screen.getByText('Grants')).toBeTruthy()
-    // The nested equipment's interactive choice cards render in compact too.
-    expect(screen.getByText('Weapon Type')).toBeTruthy()
+    // The nested equipment renders header-only when the ability is compact, so
+    // its interactive choice groups (body) are NOT shown.
+    expect(screen.queryByText('Weapon Type')).toBeNull()
+    expect(screen.queryByText('Modification')).toBeNull()
   })
 
   test('does not render an Actions section for the granting ability', () => {

@@ -6,6 +6,7 @@ import { DataValueDisplayView } from './DataValueDisplayView'
 import { borderColorFromHeaderBg } from './referenceEntityHelpers'
 import { cn } from '../../utils/cn'
 import { SectionSeparator } from './ReferenceEntityDisplay/SectionSeparator'
+import { StaticChoiceCard } from './choiceCard/ChoiceCard'
 
 type BlockContentRendererViewProps = {
   /** Content blocks to render */
@@ -140,6 +141,7 @@ export function BlockContentRendererView({
                     fontSize={fontSize}
                     compact={compact}
                     chassisName={chassisName}
+                    borderColor={borderColor}
                   />
                 ))}
               </div>
@@ -215,38 +217,18 @@ function ContentBlock({
     }
 
     case 'list-item': {
-      // Square accent marker, shared by the labeled and unlabeled branches so the
-      // size/offset/colour-fallback live in one place.
-      const bulletMarker = (
-        <span
-          aria-hidden="true"
-          className="mt-[0.45em] inline-block size-[5px] shrink-0 self-start"
-          style={{ backgroundColor: borderColor ?? 'currentColor' }}
-        />
-      )
+      // List items render as display-only choice cards: a coloured frame over a
+      // white body. Labelled items (e.g. NPC motivations) lead with the black-stamp
+      // title; unlabelled bullets (e.g. "scour the wastelands for one of the
+      // following" options) are just the framed white body.
       return (
-        <div className={cn('mb-2 font-medium leading-snug text-pretty text-su-black', fontSize)}>
-          {block.label ? (
-            <>
-              <span className="flex items-baseline gap-2">
-                {bulletMarker}
-                <Text as="span" className="font-bold">
-                  {block.label}:
-                </Text>
-              </span>
-              <div className="mt-1 mb-2 pl-4">
-                <Text as="span" className="mr-1 font-bold">
-                  &#8226;
-                </Text>
-                {parsedValue}
-              </div>
-            </>
-          ) : (
-            <span className="flex items-baseline gap-2">
-              {bulletMarker}
-              <span className="min-w-0">{parsedValue}</span>
-            </span>
-          )}
+        <div className="mb-2">
+          <StaticChoiceCard
+            label={block.label ? String(block.label) : undefined}
+            description={typeof stringValue === 'string' ? stringValue : undefined}
+            compact={compact}
+            parentHeaderBgColor={borderColor}
+          />
         </div>
       )
     }

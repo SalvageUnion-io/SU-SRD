@@ -10,6 +10,7 @@ import {
   getGrants,
   getChoices,
   getModel,
+  getBooklet,
   isEntityData,
   isAbility,
   isClass,
@@ -113,6 +114,23 @@ function resolveGrantedEntities(data: SURefEntity): SURefEntity[] {
     .filter((entity): entity is SURefEntity => entity !== null)
 }
 
+/**
+ * The entity a footer's source/page/booklet should read from. Actions carry no
+ * own source/page — they derive it from the same-named entry in their
+ * `actionSource` schema (e.g. the source ability). Returns the entity itself
+ * when it already has a source or can't be resolved.
+ */
+function resolveFooterEntity(data: SURefEntity): SURefEntity {
+  const hasOwnSource = 'source' in data && !!data.source
+  const actionSource = 'actionSource' in data ? data.actionSource : undefined
+  if (hasOwnSource || typeof actionSource !== 'string' || !('name' in data)) {
+    return data
+  }
+  const model = getModel(actionSource)
+  const parent = model?.find((e: SURefEntity) => 'name' in e && e.name === data.name)
+  return parent ?? data
+}
+
 export function ReferenceEntityDisplayContent({
   children,
   controls,
@@ -151,7 +169,6 @@ export function ReferenceEntityDisplayContent({
     actionsToDisplay,
     matchingAction,
     source,
-    booklet,
     label,
     techLevel,
     subtitleExtra,
@@ -365,10 +382,15 @@ export function ReferenceEntityDisplayContent({
     entityHasChoices ||
     shouldShowExtraContent
 
-  // Footer data — sources entities are self-referencing, so hide page/source
+  // Footer data — sources entities are self-referencing, so hide page/source.
+  // Actions resolve their source/page/booklet from their `actionSource` parent.
+  const footerEntity = resolveFooterEntity(data)
   const isSources = schemaName === 'sources'
-  const hasPage = !isSources && 'page' in data && !!data.page
-  const hasSource = !isSources && 'source' in data && !!data.source
+  const footerSource = 'source' in footerEntity ? footerEntity.source : undefined
+  const footerPage = 'page' in footerEntity ? footerEntity.page : undefined
+  const footerBooklet = getBooklet(footerEntity)
+  const hasPage = !isSources && !!footerPage
+  const hasSource = !isSources && !!footerSource
   const footerDisplayName = getDisplayName(schemaName)
   const hasFooter = !hide.footer && (hasPage || hasSource)
 
@@ -387,9 +409,9 @@ export function ReferenceEntityDisplayContent({
   ) : hasFooter ? (
     <ReferenceEntityFooter
       footerDisplayName={footerDisplayName}
-      source={hasSource ? data.source : undefined}
-      booklet={booklet}
-      page={hasPage ? data.page : undefined}
+      source={hasSource ? footerSource : undefined}
+      booklet={footerBooklet}
+      page={hasPage ? footerPage : undefined}
       headerBg={headerBg}
       headerBgColor={headerBgColor}
     />

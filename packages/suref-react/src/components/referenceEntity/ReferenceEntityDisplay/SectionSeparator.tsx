@@ -19,7 +19,9 @@ export function SectionSeparator({
   children,
 }: SectionSeparatorProps) {
   const isSticky = useStickyHeader()
-  const resolvedFontSize = fontSize ?? (compact ? 'text-base' : 'text-lg')
+  // Default to the subtitle data-row pseudoheader size so section subheaders
+  // (Actions, Grants, choice groups…) read at the same scale as the data tags.
+  const resolvedFontSize = fontSize ?? (compact ? 'text-xs' : 'text-sm')
   return (
     <div
       className={cn('relative flex items-center gap-3', isSticky && 'sticky z-10 py-1')}
