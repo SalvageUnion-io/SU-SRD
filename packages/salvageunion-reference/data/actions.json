@@ -2697,19 +2697,6 @@
     "actionSource": "modules"
   },
   {
-    "id": "78dd32b6-334c-454d-bdf1-97847716fea0",
-    "name": "Hack",
-    "traits": [
-      {
-        "type": "hacking"
-      }
-    ],
-    "actionType": "Turn",
-    "range": ["Medium"],
-    "activationCost": 2,
-    "tableName": "Hack"
-  },
-  {
     "id": "c0af420b-1690-42c9-99b4-b17f084a1191",
     "name": "Eggs",
     "content": [

@@ -285,6 +285,50 @@ for (const item of equipment as EntityWithChoices[]) {
   }
 }
 
+// Validate that every `tableName` reference resolves to a real roll table.
+// Actions roll on a named table; a dangling tableName silently resolves to
+// nothing in the app (this is how the orphan "Hack" action's `tableName: "Hack"`
+// went unnoticed — there is no table named "Hack").
+console.log('Validating tableName references...')
+const rollTables = loadData('roll-tables.json')
+const tableNames = new Set(rollTables.map((t) => t.name as string))
+
+function validateTableNames(node: unknown, file: string, entityName: string): void {
+  if (Array.isArray(node)) {
+    for (const item of node) validateTableNames(item, file, entityName)
+  } else if (node !== null && typeof node === 'object') {
+    for (const [key, value] of Object.entries(node)) {
+      if (key === 'tableName' && typeof value === 'string' && !tableNames.has(value)) {
+        errors.push({
+          file,
+          entityName,
+          field: 'tableName',
+          referencedName: value,
+          message: `Table "${value}" not found in roll-tables.json`,
+        })
+      }
+      validateTableNames(value, file, entityName)
+    }
+  }
+}
+
+for (const file of [
+  'actions.json',
+  'systems.json',
+  'modules.json',
+  'abilities.json',
+  'equipment.json',
+  'chassis.json',
+  'crawlers.json',
+  'crawler-bays.json',
+  'drones.json',
+  'titans.json',
+]) {
+  for (const entity of loadData(file)) {
+    validateTableNames(entity, file, String(entity.name ?? entity.id ?? 'unknown'))
+  }
+}
+
 // Report results
 console.log('\n' + '='.repeat(80))
 if (errors.length === 0) {
