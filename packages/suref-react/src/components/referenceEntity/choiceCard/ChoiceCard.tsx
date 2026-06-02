@@ -48,7 +48,9 @@ function choiceCardColors(
  */
 function ChoiceStatusCallout({ chosen, compact }: { chosen: boolean; compact: boolean }) {
   return (
-    <span className="absolute top-0 right-0 z-20 mr-1.5 -translate-y-1/2">
+    // aria-hidden: the visual stamp is decorative — `aria-pressed` on the button
+    // is the sole accessible signal of chosen state.
+    <span className="absolute top-0 right-0 z-20 mr-1.5 -translate-y-1/2" aria-hidden="true">
       <CalloutMetaStamp rust={chosen} compact={compact}>
         {chosen ? 'Chosen' : 'Not Chosen'}
       </CalloutMetaStamp>
@@ -184,8 +186,9 @@ type FreeTextChoiceCardProps = ChoiceCardShellProps & {
 
 /**
  * ChoiceCard (free-text variant) — the same coloured header + white inset body,
- * wrapping an editable field (Name / Appearance / A.I. Personality). Reads as
- * chosen once the field is non-empty, surfacing the same callout-row status.
+ * wrapping an editable field (Name / Appearance / A.I. Personality). Always
+ * renders fully active (full accent fill + full title); no Chosen/Not-Chosen
+ * status, and the prompt becomes the field placeholder.
  */
 export function FreeTextChoiceCard({
   label,

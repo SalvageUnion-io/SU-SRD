@@ -182,8 +182,9 @@ function applyAddDamage(
   const damage = findByLabel(datavalues, 'Damage')
   const numericDelta = typeof value === 'number' ? value : Number(value)
   if (!damage) {
-    const label = unit !== undefined ? `${value} ${unit}` : value
-    datavalues.push({ label: 'Damage', type: 'keyword', value: label })
+    // Set the `unit` field (not concatenated into the value) so this matches the
+    // mutate path and renders via the same [LABEL][value][unit] segmented chrome.
+    datavalues.push({ label: 'Damage', type: 'keyword', value, unit })
     return
   }
   const current = damage.value

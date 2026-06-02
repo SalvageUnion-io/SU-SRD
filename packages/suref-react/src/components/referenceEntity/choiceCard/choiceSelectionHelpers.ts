@@ -1,11 +1,11 @@
 import type { SURefObjectChoice } from 'salvageunion-reference'
 
 /**
- * Selections keyed by choice id, each holding the selected option values.
- * Mirrors `ChoiceSelections` from salvageunion-reference's resolver so the same
- * map can be fed to both the cards and `resolveChoiceView`.
+ * Canonical selections type (keyed by choice id, each holding the selected
+ * option values) — re-exported from salvageunion-reference so the cards and
+ * `resolveChoiceView` share one definition.
  */
-export type ChoiceSelections = Record<string, string[]>
+export type { ChoiceSelections } from 'salvageunion-reference'
 
 /**
  * A single selectable option distilled from a choice. Either a structured
