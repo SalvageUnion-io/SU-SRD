@@ -92,6 +92,17 @@ const ogImageUrl = ogImage.startsWith('http') ? ogImage : new URL(ogImage, SITE_
     ))}
 
     <ClientRouter />
+
+    {/* The per-entity static block (data-static-fallback) is an SEO / no-JS
+        fallback only — the hydrated card is the real view. Strip it for JS users
+        on initial load AND after every view-transition navigation, so the
+        duplicate naked text never appears anywhere. */}
+    <script>
+      const stripStaticFallback = () =>
+        document.querySelectorAll('[data-static-fallback]').forEach((el) => el.remove())
+      stripStaticFallback()
+      document.addEventListener('astro:page-load', stripStaticFallback)
+    </script>
   </head>
   <body>
     <div class="flex min-h-screen flex-col bg-su-white">
