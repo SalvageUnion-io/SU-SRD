@@ -45,7 +45,11 @@ export function ReferenceEntityGrants({ data, spacing, compact }: ReferenceEntit
   return (
     <div className={cn('flex flex-col', spacing.sectionSpaceYClass)}>
       {/* `Grants` divider matches the `Actions` divider exactly (SectionSeparator). */}
-      <SectionSeparator label="Grants" compact={compact} />
+      <SectionSeparator
+        label="Grants"
+        compact={compact}
+        fontSize={compact ? 'text-xs' : 'text-sm'}
+      />
       <div className={cn('flex flex-col', spacing.smallSpaceYClass)}>
         {grantedEntities.map((entity, idx) => (
           <GrantedEntityListing key={idx} entity={entity} parentCompact={!!compact} />

@@ -58,7 +58,11 @@ export function ReferenceEntityActions({
     <div className={cn('flex flex-col', spacing.smallSpaceYClass)}>
       {regularActions.length > 0 && (
         <>
-          <SectionSeparator label="Actions" compact={compact} />
+          <SectionSeparator
+            label="Actions"
+            compact={compact}
+            fontSize={compact ? 'text-xs' : 'text-sm'}
+          />
 
           {/* Masonry via CSS multi-column: each card keeps its NATURAL height
               (a grid would stretch a card to its row-neighbour's height, leaving
@@ -104,7 +108,11 @@ export function ReferenceEntityActions({
       {/* Edge case: only a titanic action, no regular actions */}
       {regularActions.length === 0 && titanicAction && (
         <>
-          <SectionSeparator label="Actions" compact={compact} />
+          <SectionSeparator
+            label="Actions"
+            compact={compact}
+            fontSize={compact ? 'text-xs' : 'text-sm'}
+          />
           <div className="mt-2">
             <ActionCard
               data={titanicAction}

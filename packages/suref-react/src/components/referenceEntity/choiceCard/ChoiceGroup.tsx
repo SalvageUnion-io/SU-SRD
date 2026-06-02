@@ -71,7 +71,12 @@ export function ChoiceGroup({
 
   return (
     <div className={cn('flex flex-col gap-2')}>
-      <SectionSeparator label={choice.name} value={counter} compact={compact} />
+      <SectionSeparator
+        label={choice.name}
+        value={counter}
+        compact={compact}
+        fontSize={compact ? 'text-xs' : 'text-sm'}
+      />
       {/* Masonry: up to 3 columns, dropping to 2 then 1 as the container narrows
           (@container queries). `break-inside-avoid` keeps each card whole. The
           `pt-3` / `mb-4` leave room for each card's Chosen/Not callout stamp,
