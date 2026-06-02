@@ -10,7 +10,7 @@ export default defineConfig({
   integrations: [
     react(),
     sitemap({
-      filter: (page) => !page.includes('/image'),
+      filter: (page) => !page.includes('/image') && !page.includes('/greembeem'),
       serialize(item) {
         item.lastmod = new Date().toISOString()
         return item
