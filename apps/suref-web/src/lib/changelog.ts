@@ -6,6 +6,13 @@ type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    date: '2026-06-03',
+    title: 'Mobile fix for guide entity grids',
+    items: [
+      'Side-by-side entity cards in guides (e.g. the Base Classes and abilities on Create a Pilot) now stack into a single column on mobile instead of overflowing off the right edge, and still show two balanced columns on wider screens.',
+    ],
+  },
+  {
     date: '2026-06-01',
     title: 'Site restyle + interactive equipment customisation',
     items: [

@@ -4,12 +4,7 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import { BlockContentRendererView } from './BlockContentRendererView'
 import { RollTable } from '../shared/RollTable'
 import { borderColorFromHeaderBg } from './referenceEntityHelpers'
-import {
-  matchesFilter,
-  enrichForFiltering,
-  sortGuideEntities,
-  balancedTwoColumnSplit,
-} from './guideStepsHelpers'
+import { matchesFilter, enrichForFiltering, sortGuideEntities } from './guideStepsHelpers'
 import { SectionSeparator } from './ReferenceEntityDisplay/SectionSeparator'
 import type { getReferenceEntityFontSizes } from './ReferenceEntityDisplay/referenceEntityDisplayTypes'
 import type { ReferenceEntityControl } from './ReferenceEntityDisplay/referenceEntityControlTypes'
@@ -468,28 +463,28 @@ export function GuideStepsDisplay({
                         )
                         return { ...entity, entityId, isGreyedOut, entityControls }
                       })
-                      const [left, right] = balancedTwoColumnSplit(enriched, () => false)
-
-                      const renderColumn = (items: typeof enriched) =>
-                        items.map((e) => (
-                          <div key={`${step.id}-${e.schemaName}-${e.entityId}`} className="mb-2">
-                            {renderEntityListing(
-                              e.data,
-                              e.schemaName,
-                              `${step.id}-${e.schemaName}-${e.entityId}`,
-                              // listing: guide step entities render header-only
-                              true,
-                              true,
-                              e.entityControls,
-                              e.disabled || e.isGreyedOut
-                            )}
-                          </div>
-                        ))
-
+                      // Single column on mobile (natural order, "tree by tree");
+                      // two balanced columns at sm+ via native CSS multi-column.
+                      // break-inside-avoid keeps each card intact across columns.
                       return (
-                        <div className="mt-2 flex gap-2">
-                          <div className="flex flex-1 flex-col">{renderColumn(left)}</div>
-                          <div className="flex flex-1 flex-col">{renderColumn(right)}</div>
+                        <div className="mt-2 gap-2 sm:columns-2">
+                          {enriched.map((e) => (
+                            <div
+                              key={`${step.id}-${e.schemaName}-${e.entityId}`}
+                              className="mb-2 break-inside-avoid"
+                            >
+                              {renderEntityListing(
+                                e.data,
+                                e.schemaName,
+                                `${step.id}-${e.schemaName}-${e.entityId}`,
+                                // listing: guide step entities render header-only
+                                true,
+                                true,
+                                e.entityControls,
+                                e.disabled || e.isGreyedOut
+                              )}
+                            </div>
+                          ))}
                         </div>
                       )
                     })()
