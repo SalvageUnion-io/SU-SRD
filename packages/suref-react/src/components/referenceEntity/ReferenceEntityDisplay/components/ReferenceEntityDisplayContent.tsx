@@ -91,6 +91,17 @@ export type ReferenceEntityDisplayContentProps = ReferenceEntityDisplayStateInpu
    * (where it would be redundant with the granting ability's own description).
    */
   hideLeadContent?: boolean
+  /**
+   * Controlled choice selections for the granted-equipment choice cards
+   * (`ChoiceSelections`, keyed by choice id). When provided, selection state is
+   * owned by the consumer (e.g. ITUN, backed by persistence) rather than the
+   * internal ephemeral `useState`. Omit it (the SRD default) to stay uncontrolled.
+   * Passing `selections` without `onSelectionChange` yields a read-only controlled
+   * view (e.g. a published snapshot) — toggles render but don't mutate.
+   */
+  selections?: ChoiceSelections
+  /** Next-state callback fired when a choice card toggles, in controlled mode. */
+  onSelectionChange?: (selections: ChoiceSelections) => void
 }
 
 // Bottom padding of the content float-zone, as a ratio of the default content
@@ -129,6 +140,8 @@ export function ReferenceEntityDisplayContent({
   cardClickable,
   stats: statsProp,
   hideLeadContent = false,
+  selections: controlledSelections,
+  onSelectionChange,
   ...inputProps
 }: ReferenceEntityDisplayContentProps) {
   const state = useReferenceEntityDisplayState(inputProps)
@@ -184,11 +197,21 @@ export function ReferenceEntityDisplayContent({
       ? actionsToDisplay.filter((action) => action.name !== entityName)
       : actionsToDisplay
 
-  // Choice-bearing entities own their ephemeral selection state here so the
-  // header data row (ReferenceEntityResolvedDataRow) and the body choice cards
-  // (ReferenceEntityResolvedChoices) share one source of truth — toggling a card
-  // recomputes the header row live. ITUN can later thread controlled selections.
-  const [choiceSelections, setChoiceSelections] = useState<ChoiceSelections>({})
+  // Choice-bearing entities share one source of truth between the header data row
+  // (ReferenceEntityResolvedDataRow) and the body choice cards
+  // (ReferenceEntityResolvedChoices) — toggling a card recomputes the header live.
+  //
+  // Uncontrolled by default: ephemeral `useState`, owned here (the SRD). A consumer
+  // can control + persist by passing `selections` (+ `onSelectionChange`); ITUN does
+  // this against its store. Controlled `selections` without `onSelectionChange` is a
+  // read-only view (e.g. a published snapshot) — cards render but toggles no-op. The
+  // uncontrolled path keeps the original stable `useState` setter unchanged.
+  const [internalSelections, setInternalSelections] = useState<ChoiceSelections>({})
+  const isChoiceControlled = controlledSelections !== undefined
+  const choiceSelections = isChoiceControlled ? controlledSelections : internalSelections
+  const setChoiceSelections = isChoiceControlled
+    ? (next: ChoiceSelections) => onSelectionChange?.(next)
+    : setInternalSelections
   const resolvedDataRow = entityHasChoices ? (
     <ReferenceEntityResolvedDataRow data={data} selections={choiceSelections} compact={compact} />
   ) : null
