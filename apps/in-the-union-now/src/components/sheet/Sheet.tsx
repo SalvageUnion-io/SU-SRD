@@ -42,6 +42,7 @@ import { CrawlerSheet } from './CrawlerSheet'
 import { PilotStandIn } from '../shared/PilotStandIn'
 import { MechStandIn } from '../shared/MechStandIn'
 import { PublishButton } from './PublishButton'
+import { sheetAccentFor } from './sheetAccent'
 
 // ---------------------------------------------------------------------------
 // Dep-injection types for testing
@@ -279,7 +280,7 @@ export function Sheet({
 
   return (
     <main className="mx-auto max-w-7xl p-3 sm:p-6">
-      <SheetHeader name={displayName} mode={resolved.mode} />
+      <SheetHeader name={displayName} mode={resolved.mode} accent={sheetAccentFor(kind)} />
       {!readOnly && (
         <div className="flex justify-end mb-4">
           <PublishButton entityKind={kind} entityId={id} entityStore={entityStoreOverride} />

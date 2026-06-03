@@ -35,6 +35,7 @@ import { useEntityChoices } from '../shared/useEntityChoices'
 import { ConditionsEditor } from './ConditionsEditor'
 import { EditableStatRow } from './EditableStatRow'
 import { InlineEditField } from './InlineEditField'
+import { SheetSectionHeading } from './SheetSectionHeading'
 
 function resolveAbility(slug: string): SURefAbility | null {
   const all = SalvageUnionReference.Abilities.all() as ReadonlyArray<SURefAbility>
@@ -316,9 +317,7 @@ export function PilotSheet({ pilot, store = useEntityStore, readOnly = false }: 
 
       {/* Stats — HP + AP (live-play tracking, #245) */}
       <div>
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-2">
-          Stats
-        </h3>
+        <SheetSectionHeading kind="pilot">Stats</SheetSectionHeading>
         <dl className="grid grid-cols-2 gap-2">
           <div className="flex min-h-16 flex-col items-center justify-center rounded border-[1.5px] border-su-black bg-su-paper py-2 text-center">
             <dt className="font-cond text-[10px] font-bold uppercase tracking-wide text-su-ink-soft">
@@ -378,9 +377,7 @@ export function PilotSheet({ pilot, store = useEntityStore, readOnly = false }: 
 
       {/* Conditions — live-play tracker (design board-screens.jsx:237) */}
       <div>
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-2">
-          Conditions
-        </h3>
+        <SheetSectionHeading kind="pilot">Conditions</SheetSectionHeading>
         <ConditionsEditor
           conditions={pilot.conditions}
           onChange={(next) => {
@@ -394,9 +391,7 @@ export function PilotSheet({ pilot, store = useEntityStore, readOnly = false }: 
           the pilot is linked to a crawler, that crawler's Tech Level is the
           source (read-only); when unlinked, a manual editable fallback. */}
       <div>
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-2">
-          Crawler Level
-        </h3>
+        <SheetSectionHeading kind="pilot">Crawler Level</SheetSectionHeading>
         {linkedCrawler ? (
           <p className="text-sm">
             <span className="font-mono text-lg font-bold text-su-black">
@@ -430,9 +425,7 @@ export function PilotSheet({ pilot, store = useEntityStore, readOnly = false }: 
       {/* Abilities */}
       {pilot.abilities.length > 0 && (
         <div>
-          <h3 className="font-cond text-sm font-bold uppercase tracking-wide text-su-ink-soft mb-2">
-            Abilities
-          </h3>
+          <SheetSectionHeading kind="pilot">Abilities</SheetSectionHeading>
           <div className="flex flex-col gap-3">
             {pilot.abilities.map((slug) => {
               const ability = resolveAbility(slug)
@@ -469,9 +462,7 @@ export function PilotSheet({ pilot, store = useEntityStore, readOnly = false }: 
       {/* Equipment */}
       {pilot.equipment.length > 0 && (
         <div>
-          <h3 className="font-cond text-sm font-bold uppercase tracking-wide text-su-ink-soft mb-2">
-            Equipment
-          </h3>
+          <SheetSectionHeading kind="pilot">Equipment</SheetSectionHeading>
           <div className="flex flex-col gap-3">
             {pilot.equipment.map((slug) => (
               <PilotEquipmentItem
@@ -494,9 +485,9 @@ export function PilotSheet({ pilot, store = useEntityStore, readOnly = false }: 
 
       {/* Identity */}
       <div className="flex flex-col gap-2">
-        <h3 className="font-cond text-sm font-bold uppercase tracking-wide text-su-ink-soft">
+        <SheetSectionHeading kind="pilot" className="mb-0">
           Identity
-        </h3>
+        </SheetSectionHeading>
         {pilot.motto && (
           <p className="text-sm">
             <span className="font-medium">Motto:</span> {pilot.motto}

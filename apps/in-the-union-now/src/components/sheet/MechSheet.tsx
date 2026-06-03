@@ -35,6 +35,7 @@ import { ConditionToggle } from '../shared/ConditionToggle'
 import { EditableStatRow } from './EditableStatRow'
 import { HeatCheckControl } from './HeatCheckControl'
 import { PipTracker } from './PipTracker'
+import { SheetSectionHeading } from './SheetSectionHeading'
 
 /**
  * Stable `hide` object literal shared across MechItem (and PilotAbilityItem)
@@ -184,9 +185,7 @@ export function MechSheet({
       {/* Stats — inline-editable via EditableStatRow (AC-1 + AC-2) */}
       {/* Rendered regardless of chassis resolution; falls back to stored values or 0 when chassis is null */}
       <div>
-        <h3 className="font-cond text-sm font-bold uppercase tracking-wide text-su-ink-soft mb-2">
-          Stats
-        </h3>
+        <SheetSectionHeading kind="mech">Stats</SheetSectionHeading>
         {!chassis && (
           <p
             role="alert"
@@ -342,9 +341,9 @@ export function MechSheet({
       {/* Systems */}
       {mech.systems.length > 0 && (
         <div>
-          <h3 className="font-cond text-sm font-bold uppercase tracking-wide text-su-ink-soft mb-1">
+          <SheetSectionHeading kind="mech" className="mb-1">
             Systems
-          </h3>
+          </SheetSectionHeading>
           <div className="flex flex-col gap-3">
             {mech.systems.map((slug) => (
               <MechItem
@@ -365,9 +364,9 @@ export function MechSheet({
       {/* Modules */}
       {mech.modules.length > 0 && (
         <div>
-          <h3 className="font-cond text-sm font-bold uppercase tracking-wide text-su-ink-soft mb-1">
+          <SheetSectionHeading kind="mech" className="mb-1">
             Modules
-          </h3>
+          </SheetSectionHeading>
           <div className="flex flex-col gap-3">
             {mech.modules.map((slug) => (
               <MechItem
@@ -388,9 +387,9 @@ export function MechSheet({
       {/* Cargo */}
       {mech.cargo.length > 0 && (
         <div>
-          <h3 className="font-cond text-sm font-bold uppercase tracking-wide text-su-ink-soft mb-1">
+          <SheetSectionHeading kind="mech" className="mb-1">
             Cargo
-          </h3>
+          </SheetSectionHeading>
           <ul className="flex flex-col gap-1">
             {mech.cargo.map((slug, i) => (
               <li key={`${slug}-${i}`} className="rounded border border-border px-2 py-1 text-sm">

@@ -21,6 +21,7 @@ import { useEntityChoices } from '../shared/useEntityChoices'
 import { EditableStatRow } from './EditableStatRow'
 import { InlineEditField } from './InlineEditField'
 import { PipTracker } from './PipTracker'
+import { SheetSectionHeading } from './SheetSectionHeading'
 
 type CrawlerBayEntry = NonNullable<Crawler['crawlerBays']>[number]
 
@@ -196,9 +197,7 @@ export function CrawlerSheet({
 
       {/* Stats — SP (live-play tracking, #245) */}
       <div>
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-2">
-          Stats
-        </h3>
+        <SheetSectionHeading kind="crawler">Stats</SheetSectionHeading>
         <dl className="grid grid-cols-1 gap-2">
           <div className="flex min-h-16 flex-col items-center justify-center rounded border-[1.5px] border-su-black bg-su-paper py-2 text-center">
             <dt className="font-cond text-[10px] font-bold uppercase tracking-wide text-su-ink-soft">
@@ -231,9 +230,7 @@ export function CrawlerSheet({
           an editable HP tracker. */}
       {(crawler.crawlerBays ?? []).length > 0 && (
         <div>
-          <h3 className="font-cond text-sm font-bold uppercase tracking-wide text-su-ink-soft mb-2">
-            Crawler Bays
-          </h3>
+          <SheetSectionHeading kind="crawler">Crawler Bays</SheetSectionHeading>
           <div className="flex flex-col gap-3">
             {(crawler.crawlerBays ?? []).map((entry, i) => (
               <CrawlerBayCard
@@ -254,9 +251,9 @@ export function CrawlerSheet({
       {/* Systems */}
       {crawler.systems.length > 0 && (
         <div>
-          <h3 className="font-cond text-sm font-bold uppercase tracking-wide text-su-ink-soft mb-1">
+          <SheetSectionHeading kind="crawler" className="mb-1">
             Systems
-          </h3>
+          </SheetSectionHeading>
           <ul className="flex flex-col gap-1">
             {crawler.systems.map((slug) => (
               <li key={slug} className="rounded border border-border px-2 py-1 text-sm">
@@ -269,9 +266,9 @@ export function CrawlerSheet({
 
       {/* Pilot Roster */}
       <div>
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-1">
+        <SheetSectionHeading kind="crawler" className="mb-1">
           Pilot Roster
-        </h3>
+        </SheetSectionHeading>
         {pilots.length === 0 ? (
           <CrawlerPilotsStandIn />
         ) : (
