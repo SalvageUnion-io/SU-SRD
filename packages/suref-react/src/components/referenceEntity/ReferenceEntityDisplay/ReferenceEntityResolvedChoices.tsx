@@ -17,6 +17,16 @@ type ReferenceEntityResolvedChoicesProps = {
    */
   selections: ChoiceSelections
   onSelectionChange: (selections: ChoiceSelections) => void
+  /**
+   * Optional scaling parent for `constraints.scalesWithField` caps (e.g. the
+   * Modification choice scaling with `techLevel`). A consumer with a play/build
+   * context (ITUN) passes e.g. `{ techLevel: effectiveCrawlerLevel }` so the cap
+   * resolves and the `n/max` counter + at-cap disabling engage.
+   *
+   * SRD passes nothing — caps stay unbounded, behaviour is unchanged. Additive
+   * optional prop.
+   */
+  scalingParent?: Record<string, unknown>
 }
 
 /**
@@ -36,6 +46,7 @@ export function ReferenceEntityResolvedChoices({
   parentHeaderBgColor,
   selections,
   onSelectionChange,
+  scalingParent,
 }: ReferenceEntityResolvedChoicesProps) {
   const choices = getChoices(data) ?? []
 
@@ -44,14 +55,15 @@ export function ReferenceEntityResolvedChoices({
   }
 
   return (
-    // No scaling `parent` is passed: `scalesWithField` caps (e.g. Modification
-    // "at each Tech Level") scale with a play/build context — the crawler or
-    // character — which the read-only SRD reference doesn't have. So those caps
-    // don't resolve here and the choice is unbounded, while any intrinsic
-    // `constraints.max` would still apply. A build context (ITUN) would pass its
-    // own parent. This keeps the behavior generic — no per-entity callouts.
+    // `scalesWithField` caps (e.g. Modification "at each Tech Level") scale with a
+    // play/build context — the crawler or character — which the read-only SRD
+    // reference doesn't have, so it passes no `scalingParent` and those caps stay
+    // unbounded (any intrinsic `constraints.max` still applies). A build context
+    // (ITUN) passes `scalingParent` (e.g. `{ techLevel }`) so the cap resolves.
+    // This keeps the behavior generic — no per-entity callouts.
     <ChoiceGroups
       choices={choices}
+      parent={scalingParent}
       selections={selections}
       onSelectionChange={onSelectionChange}
       compact={compact}

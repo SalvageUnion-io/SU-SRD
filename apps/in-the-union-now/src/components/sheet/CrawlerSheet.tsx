@@ -11,11 +11,13 @@
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
 import { ReferenceEntityDisplay } from 'suref-react'
+import type { ChoiceSelections } from 'suref-react'
 
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Pilot } from '../../lib/schemas/pilot'
 import { useEntityStore } from '../../stores/entityStore'
 import { CrawlerPilotsStandIn } from '../shared/CrawlerPilotsStandIn'
+import { useEntityChoices } from '../shared/useEntityChoices'
 import { EditableStatRow } from './EditableStatRow'
 import { InlineEditField } from './InlineEditField'
 import { PipTracker } from './PipTracker'
@@ -63,6 +65,7 @@ function CrawlerBayCard({
   entry,
   index,
   bays,
+  seedSelections,
   store,
   readOnly,
 }: {
@@ -70,10 +73,24 @@ function CrawlerBayCard({
   entry: CrawlerBayEntry
   index: number
   bays: CrawlerBayEntry[]
+  /**
+   * Persisted choice selections for this bay, sourced from the canonical crawler
+   * prop (keyed by `entry.bayRef`). Used directly as the controlled `selections`
+   * so read-only/snapshot rendering does not depend on the live store.
+   */
+  seedSelections: ChoiceSelections | undefined
   store: typeof useEntityStore
   readOnly: boolean
 }) {
   const storeState = store()
+  const { selections, setSelections } = useEntityChoices(
+    'crawler',
+    crawlerId,
+    entry.bayRef,
+    'bayChoices',
+    seedSelections,
+    store
+  )
   const bay = resolveCrawlerBay(entry.bayRef)
   if (!bay) {
     return (
@@ -87,7 +104,16 @@ function CrawlerBayCard({
   const currentHP = entry.npcCurrentHP ?? maxHP
 
   function patchEntry(patch: Partial<CrawlerBayEntry>) {
-    const next = bays.map((b, i) => (i === index ? { ...b, ...patch } : b))
+    // Read the freshest crawlerBays array from the store (not the render-time
+    // `bays` prop) so concurrent edits to different bays/fields don't clobber
+    // each other — the db layer merges only at the top level, replacing the
+    // whole array. Mirrors the sibling freshest-read writers (PilotSheet,
+    // MechSheet, HeatCheckControl). Target the entry by bayRef + index so
+    // matching is stable even if entries share a bayRef.
+    const fresh = storeState.get('crawler', crawlerId)?.crawlerBays ?? bays
+    const next = fresh.map((b, i) =>
+      i === index && b.bayRef === entry.bayRef ? { ...b, ...patch } : b
+    )
     void storeState.update('crawler', crawlerId, { crawlerBays: next })
   }
 
@@ -116,7 +142,8 @@ function CrawlerBayCard({
     <ReferenceEntityDisplay
       data={bay as unknown as SURefEntity}
       compact
-      hide={{ choices: true }}
+      selections={selections}
+      onSelectionChange={readOnly ? undefined : setSelections}
       npcConfig={{
         hpSlot,
         name: entry.npcName ?? '',
@@ -215,6 +242,7 @@ export function CrawlerSheet({
                 entry={entry}
                 index={i}
                 bays={crawler.crawlerBays ?? []}
+                seedSelections={crawler.bayChoices?.[entry.bayRef]}
                 store={store}
                 readOnly={readOnly}
               />

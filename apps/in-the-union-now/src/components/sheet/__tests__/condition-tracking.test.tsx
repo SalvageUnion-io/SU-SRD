@@ -22,9 +22,10 @@ import type { Mech } from '../../../lib/schemas/mech'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import type { useEntityStore } from '../../../stores/entityStore'
 
-// PilotSheet resolves equipment/ability slugs via salvageunion-reference at render
+// PilotSheet resolves equipment/ability slugs and MechSheet resolves
+// system/module slugs via salvageunion-reference at render.
 beforeAll(async () => {
-  await SalvageUnionReference.preload(['equipment', 'abilities'])
+  await SalvageUnionReference.preload(['equipment', 'abilities', 'systems', 'modules'])
 })
 
 afterEach(() => {

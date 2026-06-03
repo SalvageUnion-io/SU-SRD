@@ -2,8 +2,12 @@
  * MechSheet — mech section for the sheet view.
  *
  * Renders: mech name + chassis (resolved via salvageunion-reference), chassis
- * stats (HP/AP/TP/SP/EP/Heat) as inline-editable fields, systems list,
- * modules list (each with a ConditionToggle), and cargo.
+ * stats (HP/AP/TP/SP/EP/Heat) as inline-editable fields, systems and modules
+ * (each resolved to its reference entity and rendered as an interactive
+ * ReferenceEntityDisplay card with an in-context ConditionToggle), and cargo.
+ *
+ * Mech systems/modules carry no choices in the data, so the cards hide the
+ * choices section. A slug that does not resolve falls back to plain text.
  *
  * Editable stats: HP, AP, TP, SP, EP, Heat — backed by optional `currentXxx`
  * fields on the Mech schema. The display falls back to chassis defaults when
@@ -21,12 +25,81 @@
  */
 
 import { SalvageUnionReference } from 'salvageunion-reference'
+import type { SURefEntity, SURefModule, SURefSystem } from 'salvageunion-reference'
+import { ReferenceEntityDisplay } from 'suref-react'
 import type { ItemCondition } from '../../lib/schemas/mech'
 import type { Mech } from '../../lib/schemas/mech'
+import type { Roll } from '../../lib/rules/heatCheck'
 import { useEntityStore } from '../../stores/entityStore'
 import { ConditionToggle } from '../shared/ConditionToggle'
 import { EditableStatRow } from './EditableStatRow'
+import { HeatCheckControl } from './HeatCheckControl'
 import { PipTracker } from './PipTracker'
+
+/**
+ * Stable `hide` object literal shared across MechItem (and PilotAbilityItem)
+ * renders. Hoisted to module scope so its referential identity is constant —
+ * a fresh `{ choices: true }` literal on every render would defeat the
+ * React.memo on the (heavy) ReferenceEntityDisplay subtree.
+ */
+export const HIDE_CHOICES = { choices: true } as const
+
+function resolveSystem(slug: string): SURefSystem | null {
+  const all = SalvageUnionReference.Systems.all() as ReadonlyArray<SURefSystem>
+  return all.find((s) => s.id === slug || s.name === slug) ?? null
+}
+
+function resolveModule(slug: string): SURefModule | null {
+  const all = SalvageUnionReference.Modules.all() as ReadonlyArray<SURefModule>
+  return all.find((m) => m.id === slug || m.name === slug) ?? null
+}
+
+type MechItemProps = {
+  /** System/module slug as stored on the mech. */
+  slug: string
+  /** Resolved reference entity, or null when the slug does not resolve. */
+  entity: SURefSystem | SURefModule | null
+  /** Current condition for this item. */
+  condition: ItemCondition
+  /** Persist a new condition for this item. */
+  onConditionChange: (slug: string, next: ItemCondition) => void
+  /** When true, the condition toggle is locked. */
+  readOnly: boolean
+}
+
+/**
+ * Renders ONE mech system or module as an interactive ReferenceEntityDisplay
+ * (compact, choices hidden — mech systems/modules carry no choices) paired with
+ * a ConditionToggle. Falls back to the plain-text slug when the entity does not
+ * resolve, so an unknown slug never crashes the sheet.
+ */
+function MechItem({ slug, entity, condition, onConditionChange, readOnly }: MechItemProps) {
+  return (
+    <div className="flex items-start gap-2">
+      <div className="flex-1">
+        {entity ? (
+          <ReferenceEntityDisplay
+            data={entity as unknown as SURefEntity}
+            compact
+            hide={HIDE_CHOICES}
+          />
+        ) : (
+          <div className="rounded border border-border px-2 py-1 text-sm text-muted-foreground">
+            {slug}
+          </div>
+        )}
+      </div>
+      <ConditionToggle
+        value={condition}
+        onChange={(next) => {
+          onConditionChange(slug, next)
+        }}
+        ariaLabelPrefix={slug}
+        readOnly={readOnly}
+      />
+    </div>
+  )
+}
 
 // Narrow subset of chassis data we actually need
 type ChassisLike = {
@@ -56,6 +129,11 @@ type MechSheetProps = {
    * Use in read-only contexts like published snapshots.
    */
   readOnly?: boolean
+  /**
+   * Injectable d20 roller for the Heat Check loop — defaults to a Math.random
+   * roll. Pass a deterministic roller in tests.
+   */
+  roll?: Roll
 }
 
 function resolveChassis(mech: Mech, override?: ChassisLike | null): ChassisLike | null {
@@ -68,9 +146,13 @@ export function MechSheet({
   chassis: chassisOverride,
   store = useEntityStore,
   readOnly = false,
+  roll,
 }: MechSheetProps) {
   const chassis = resolveChassis(mech, chassisOverride)
   const storeState = store()
+  const heatCap = chassis?.heatCapacity ?? 0
+  const currentHeat = mech.currentHeat ?? heatCap
+  const currentSP = mech.currentSP ?? chassis?.structurePoints ?? 0
 
   async function handleSystemConditionChange(slug: string, next: ItemCondition) {
     // Read the freshest map from the store (not the render-time prop) so rapid
@@ -177,6 +259,8 @@ export function MechSheet({
                 entityId={mech.id}
                 fieldPath="currentSP"
                 min={0}
+                max={chassis?.structurePoints ?? undefined}
+                step={1}
                 store={store}
                 readOnly={readOnly}
               />
@@ -201,6 +285,8 @@ export function MechSheet({
                 entityId={mech.id}
                 fieldPath="currentEP"
                 min={0}
+                max={chassis?.energyPoints ?? undefined}
+                step={1}
                 store={store}
                 readOnly={readOnly}
               />
@@ -225,6 +311,8 @@ export function MechSheet({
                 entityId={mech.id}
                 fieldPath="currentHeat"
                 min={0}
+                max={heatCap}
+                step={1}
                 store={store}
                 readOnly={readOnly}
               />
@@ -240,30 +328,37 @@ export function MechSheet({
         </dl>
       </div>
 
+      {/* Heat Check / Reactor Overload loop (Slice C) */}
+      <HeatCheckControl
+        mech={mech}
+        heatCap={heatCap}
+        currentSP={currentSP}
+        currentHeat={currentHeat}
+        store={store}
+        roll={roll}
+        readOnly={readOnly}
+      />
+
       {/* Systems */}
       {mech.systems.length > 0 && (
         <div>
           <h3 className="font-cond text-sm font-bold uppercase tracking-wide text-su-ink-soft mb-1">
             Systems
           </h3>
-          <ul className="flex flex-col gap-1">
+          <div className="flex flex-col gap-3">
             {mech.systems.map((slug) => (
-              <li
+              <MechItem
                 key={slug}
-                className="flex items-center justify-between rounded border border-border px-2 py-1 text-sm"
-              >
-                <span>{slug}</span>
-                <ConditionToggle
-                  value={mech.systemConditions?.[slug] ?? 'intact'}
-                  onChange={(next) => {
-                    void handleSystemConditionChange(slug, next)
-                  }}
-                  ariaLabelPrefix={slug}
-                  readOnly={readOnly}
-                />
-              </li>
+                slug={slug}
+                entity={resolveSystem(slug)}
+                condition={mech.systemConditions?.[slug] ?? 'intact'}
+                onConditionChange={(itemSlug, next) => {
+                  void handleSystemConditionChange(itemSlug, next)
+                }}
+                readOnly={readOnly}
+              />
             ))}
-          </ul>
+          </div>
         </div>
       )}
 
@@ -273,24 +368,20 @@ export function MechSheet({
           <h3 className="font-cond text-sm font-bold uppercase tracking-wide text-su-ink-soft mb-1">
             Modules
           </h3>
-          <ul className="flex flex-col gap-1">
+          <div className="flex flex-col gap-3">
             {mech.modules.map((slug) => (
-              <li
+              <MechItem
                 key={slug}
-                className="flex items-center justify-between rounded border border-border px-2 py-1 text-sm"
-              >
-                <span>{slug}</span>
-                <ConditionToggle
-                  value={mech.moduleConditions?.[slug] ?? 'intact'}
-                  onChange={(next) => {
-                    void handleModuleConditionChange(slug, next)
-                  }}
-                  ariaLabelPrefix={slug}
-                  readOnly={readOnly}
-                />
-              </li>
+                slug={slug}
+                entity={resolveModule(slug)}
+                condition={mech.moduleConditions?.[slug] ?? 'intact'}
+                onConditionChange={(itemSlug, next) => {
+                  void handleModuleConditionChange(itemSlug, next)
+                }}
+                readOnly={readOnly}
+              />
             ))}
-          </ul>
+          </div>
         </div>
       )}
 

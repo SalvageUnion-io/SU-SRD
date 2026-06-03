@@ -46,7 +46,7 @@ import { SnapshotPageInner } from '../../../routes/s/$id'
 // ---------------------------------------------------------------------------
 
 beforeAll(async () => {
-  await SalvageUnionReference.preload(['chassis'])
+  await SalvageUnionReference.preload(['chassis', 'systems', 'modules'])
 })
 
 afterEach(() => {

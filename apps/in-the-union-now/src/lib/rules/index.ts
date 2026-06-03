@@ -15,6 +15,14 @@ export { computeCrawlerCapacity } from './crawlerCapacity'
 export { salvageValueFor, scrapCostFor, tierUpgradeCost } from './scrap'
 export { computeCargoCapacity } from './cargo'
 export { evaluateSoftWarnings, evaluatePilotWarnings, evaluateMechWarnings } from './softWarnings'
+export {
+  clampHeat,
+  reactorOverloadOutcome,
+  performHeatCheck,
+  performPush,
+  defaultRoll,
+} from './heatCheck'
+export type { Roll, HeatCheckEffect, PushResult } from './heatCheck'
 
 export type {
   // Shared primitives

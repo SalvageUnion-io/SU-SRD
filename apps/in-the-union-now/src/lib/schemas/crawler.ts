@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { ChoiceSelectionsSchema } from './pilot'
 
 /**
  * Crawler tech levels are I–VI per the Salvage Union ruleset.
@@ -39,6 +40,18 @@ export const CrawlerSchema = z
       .optional(),
     /** Slugs of crawler system items installed */
     systems: z.array(z.string()),
+    /**
+     * Persisted crawler-bay choice selections, keyed by bay ref (the same
+     * `crawlerBays[].bayRef` slug/id used to resolve the SRD bay), then by
+     * choiceId → selected option values. Some SRD bays carry `choices` (e.g.
+     * the Armament Bay's "Armament Bay Weapons System" permanent pick); this
+     * persists the player's selection so it survives reloads.
+     *
+     * Optional: when absent or a key is missing, the display layer treats that
+     * bay as having no selections. Additive optional field — no DB migration
+     * needed (same tactic as Pilot.equipmentChoices / crawlerBays).
+     */
+    bayChoices: z.record(z.string(), ChoiceSelectionsSchema).optional(),
     /** Optional: links this crawler to a workspace */
     workspaceId: z.string().optional(),
     // ---------------------------------------------------------------------------

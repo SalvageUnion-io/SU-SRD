@@ -89,13 +89,16 @@ function makeStore(mech: Mech, captured: CapturedUpdate[]): typeof useEntityStor
 }
 
 // ---------------------------------------------------------------------------
-// Helper: click stat button at given index, type value, press Enter
+// Helper: click the click-to-edit value for a stat (by its "Edit {label}"
+// aria-label), type a value, press Enter. Targeting by label (not positional
+// index) keeps the helper robust against the Slice D stepper buttons that
+// surround some stat values.
 // ---------------------------------------------------------------------------
 
-async function editStatByIndex(index: number, value: string): Promise<void> {
-  const buttons = screen.getAllByRole('button')
+async function editStatByLabel(label: string, value: string): Promise<void> {
+  const editTrigger = screen.getByRole('button', { name: `Edit ${label}` })
   await act(async () => {
-    fireEvent.click(buttons[index]!)
+    fireEvent.click(editTrigger)
   })
   const input = screen.getByRole('spinbutton')
   await act(async () => {
@@ -116,7 +119,7 @@ describe('MechSheet — editable stat: HP', () => {
       <MechSheet mech={fakeMech} chassis={fakeChassis} store={makeStore(fakeMech, captured)} />
     )
 
-    await editStatByIndex(0, '7')
+    await editStatByLabel('HP', '7')
 
     expect(captured.length).toBe(1)
     expect(captured[0]!.id).toBe('mech-editable-1')
@@ -131,7 +134,7 @@ describe('MechSheet — editable stat: AP', () => {
       <MechSheet mech={fakeMech} chassis={fakeChassis} store={makeStore(fakeMech, captured)} />
     )
 
-    await editStatByIndex(1, '5')
+    await editStatByLabel('AP', '5')
 
     expect(captured.length).toBe(1)
     expect(captured[0]!.id).toBe('mech-editable-1')
@@ -146,7 +149,7 @@ describe('MechSheet — editable stat: TP', () => {
       <MechSheet mech={fakeMech} chassis={fakeChassis} store={makeStore(fakeMech, captured)} />
     )
 
-    await editStatByIndex(2, '4')
+    await editStatByLabel('TP', '4')
 
     expect(captured.length).toBe(1)
     expect(captured[0]!.id).toBe('mech-editable-1')
@@ -161,7 +164,7 @@ describe('MechSheet — editable stat: SP', () => {
       <MechSheet mech={fakeMech} chassis={fakeChassis} store={makeStore(fakeMech, captured)} />
     )
 
-    await editStatByIndex(3, '6')
+    await editStatByLabel('SP', '6')
 
     expect(captured.length).toBe(1)
     expect(captured[0]!.id).toBe('mech-editable-1')
@@ -176,7 +179,7 @@ describe('MechSheet — editable stat: EP', () => {
       <MechSheet mech={fakeMech} chassis={fakeChassis} store={makeStore(fakeMech, captured)} />
     )
 
-    await editStatByIndex(4, '3')
+    await editStatByLabel('EP', '3')
 
     expect(captured.length).toBe(1)
     expect(captured[0]!.id).toBe('mech-editable-1')
@@ -191,10 +194,11 @@ describe('MechSheet — editable stat: Heat', () => {
       <MechSheet mech={fakeMech} chassis={fakeChassis} store={makeStore(fakeMech, captured)} />
     )
 
-    await editStatByIndex(5, '9')
+    // Heat is now capped at the chassis heatCapacity (8); use an in-cap value.
+    await editStatByLabel('Heat', '7')
 
     expect(captured.length).toBe(1)
     expect(captured[0]!.id).toBe('mech-editable-1')
-    expect(captured[0]!.patch).toMatchObject({ currentHeat: 9 })
+    expect(captured[0]!.patch).toMatchObject({ currentHeat: 7 })
   })
 })

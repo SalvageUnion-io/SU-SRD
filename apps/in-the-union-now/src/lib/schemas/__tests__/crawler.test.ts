@@ -52,6 +52,23 @@ describe('CrawlerSchema', () => {
     expect(result.crawlerBays).toEqual([{ bayRef: 'mech-bay' }])
   })
 
+  test('happy path: bayChoices is optional (pre-change records load)', () => {
+    const result = CrawlerSchema.parse(validCrawler)
+    expect(result.bayChoices).toBeUndefined()
+  })
+
+  test('happy path: bayChoices persists per-bay choice selections', () => {
+    const result = CrawlerSchema.parse({
+      ...validCrawler,
+      bayChoices: {
+        'armament-bay': { 'weapon-choice': ['Autocannon'] },
+      },
+    })
+    expect(result.bayChoices).toEqual({
+      'armament-bay': { 'weapon-choice': ['Autocannon'] },
+    })
+  })
+
   test('rejects missing required field: name', () => {
     expect(() => CrawlerSchema.parse(omit(validCrawler, 'name'))).toThrow()
   })

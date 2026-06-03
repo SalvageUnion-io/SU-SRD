@@ -13,22 +13,28 @@
  * affordances (stat cells render as plain text; ConditionToggle is locked).
  */
 
+import { useMemo } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefAbility, SURefEntity, SURefEquipment } from 'salvageunion-reference'
 import { ReferenceEntityDisplay } from 'suref-react'
 import type { ChoiceSelections } from 'suref-react'
 
+import { HIDE_CHOICES } from './MechSheet'
 import { PipTracker } from './PipTracker'
 
 import type { ItemCondition } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
+import { resolveAbilityApCost } from '../../lib/abilityCost'
 import { resolveClassName } from '../../lib/classRef'
+import { resolveEffectiveCrawlerLevel } from '../../lib/crawlerLevel'
 import { PILOT_MAX_HP, PILOT_MAX_AP } from '../../lib/pilotStats'
 import { useEntityStore } from '../../stores/entityStore'
+import { useSoftLinks } from '../wiring/useSoftLinks'
 import { ConditionToggle } from '../shared/ConditionToggle'
 import { useEntityChoices } from '../shared/useEntityChoices'
 import { ConditionsEditor } from './ConditionsEditor'
 import { EditableStatRow } from './EditableStatRow'
+import { InlineEditField } from './InlineEditField'
 
 function resolveAbility(slug: string): SURefAbility | null {
   const all = SalvageUnionReference.Abilities.all() as ReadonlyArray<SURefAbility>
@@ -57,6 +63,13 @@ type PilotEquipmentItemProps = {
   onConditionChange: (slug: string, next: ItemCondition) => void
   /** When true, choices + condition render but are not editable. */
   readOnly: boolean
+  /**
+   * Scaling parent for `scalesWithField` choice caps (e.g. the Modification
+   * choice scaling with `techLevel`). When the pilot has an effective crawler
+   * level, this is `{ techLevel: level }` so the cap resolves; undefined leaves
+   * the cap unbounded.
+   */
+  scalingParent: Record<string, unknown> | undefined
   /** Injectable store — forwarded to useEntityChoices for tests. */
   store: typeof useEntityStore
 }
@@ -76,6 +89,7 @@ function PilotEquipmentItem({
   condition,
   onConditionChange,
   readOnly,
+  scalingParent,
   store,
 }: PilotEquipmentItemProps) {
   const equipment = resolveEquipment(slug)
@@ -97,6 +111,7 @@ function PilotEquipmentItem({
             compact
             selections={selections}
             onSelectionChange={readOnly ? undefined : setSelections}
+            scalingParent={scalingParent}
           />
         ) : (
           <div className="rounded border border-border px-2 py-1 text-sm text-muted-foreground">
@@ -112,6 +127,97 @@ function PilotEquipmentItem({
         ariaLabelPrefix={slug}
         readOnly={readOnly}
       />
+    </div>
+  )
+}
+
+type PilotAbilityItemProps = {
+  /** Resolved ability entity to display. */
+  ability: SURefAbility
+  /** Pilot's current AP — gates whether the spend action is enabled. */
+  currentAP: number
+  /** Whether this ability has been marked used (once-per-rest tracking). */
+  used: boolean
+  /**
+   * Spend this ability's fixed AP cost from the pilot's current AP. Only invoked
+   * when the cost is a fixed number and the pilot has enough AP.
+   */
+  onSpend: (cost: number) => void
+  /** Toggle the used/recharge state for this ability. */
+  onToggleUsed: (next: boolean) => void
+  /** When true, renders the cost + state read-only (no spend / no toggle). */
+  readOnly: boolean
+}
+
+/**
+ * Renders ONE pilot ability: its ReferenceEntityDisplay plus live-play
+ * affordances (Slice D) — the AP cost, a "Spend AP" button that decrements the
+ * pilot's current AP by that cost, and a used/recharge toggle for once-per-rest
+ * abilities.
+ *
+ * AP cost is resolved from the ability's actions (see resolveAbilityApCost):
+ * `null` means there is no FIXED numeric cost (variable 'X' cost or none), in
+ * which case no spend button renders — we never spend an undefined amount.
+ */
+function PilotAbilityItem({
+  ability,
+  currentAP,
+  used,
+  onSpend,
+  onToggleUsed,
+  readOnly,
+}: PilotAbilityItemProps) {
+  const apCost = resolveAbilityApCost(ability)
+  const canSpend = apCost !== null && currentAP >= apCost
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <ReferenceEntityDisplay
+        data={ability as unknown as SURefEntity}
+        compact
+        label={ability.tree}
+        hide={HIDE_CHOICES}
+      />
+      <div className="flex flex-wrap items-center gap-2 text-sm">
+        <span className="font-cond text-[10px] font-bold uppercase tracking-wide text-su-ink-soft">
+          AP Cost: {apCost ?? '—'}
+        </span>
+        {!readOnly && apCost !== null && (
+          <button
+            type="button"
+            disabled={!canSpend}
+            aria-label={`Spend ${apCost} AP for ${ability.name}`}
+            onClick={() => {
+              onSpend(apCost)
+            }}
+            className="inline-flex items-center justify-center rounded border-[1.5px] border-su-black bg-su-paper px-2 py-0.5 font-cond text-[10px] font-bold uppercase tracking-wide text-su-black hover:bg-su-black hover:text-su-paper focus:outline-none focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-su-paper disabled:hover:text-su-black"
+          >
+            Spend AP
+          </button>
+        )}
+        {!readOnly && (
+          <button
+            type="button"
+            aria-pressed={used}
+            aria-label={used ? `Recharge ${ability.name}` : `Mark ${ability.name} used`}
+            onClick={() => {
+              onToggleUsed(!used)
+            }}
+            className={
+              used
+                ? 'inline-flex items-center justify-center rounded border-[1.5px] border-su-black bg-su-black px-2 py-0.5 font-cond text-[10px] font-bold uppercase tracking-wide text-su-paper hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-ring'
+                : 'inline-flex items-center justify-center rounded border-[1.5px] border-su-black bg-su-paper px-2 py-0.5 font-cond text-[10px] font-bold uppercase tracking-wide text-su-black hover:bg-su-black hover:text-su-paper focus:outline-none focus:ring-2 focus:ring-ring'
+            }
+          >
+            {used ? 'Recharge' : 'Mark Used'}
+          </button>
+        )}
+        {readOnly && used && (
+          <span className="font-cond text-[10px] font-bold uppercase tracking-wide text-su-ink-soft">
+            Used
+          </span>
+        )}
+      </div>
     </div>
   )
 }
@@ -133,12 +239,58 @@ type PilotSheetProps = {
 export function PilotSheet({ pilot, store = useEntityStore, readOnly = false }: PilotSheetProps) {
   const storeState = store()
 
+  // Resolve the pilot's associated crawler (if any) via the pilot-to-crawler
+  // SoftLink, then compute the EFFECTIVE crawler Tech Level used to scale choice
+  // caps (e.g. the Modification choice). A linked crawler's techLevel wins; with
+  // no link the pilot's manual `crawlerLevel` is used; with neither it is
+  // undefined and caps stay unbounded.
+  const { outgoing } = useSoftLinks({
+    entityType: 'pilot',
+    entityId: pilot.id,
+    // Forward the injected store snapshot so tests drive SoftLinks through the
+    // same stub; in production `storeState` is the live Zustand snapshot.
+    store: storeState,
+  })
+  const crawlerLink = outgoing.find((link) => link.type === 'pilot-to-crawler')
+  const linkedCrawler = crawlerLink ? storeState.get('crawler', crawlerLink.to.id) : null
+  const effectiveCrawlerLevel = resolveEffectiveCrawlerLevel(pilot, linkedCrawler)
+  // Memoized so the {techLevel} object's identity is stable across renders —
+  // a fresh literal each render would defeat the React.memo on the (heavy)
+  // ReferenceEntityDisplay subtree it is threaded into.
+  const scalingParent = useMemo(
+    () => (effectiveCrawlerLevel !== undefined ? { techLevel: effectiveCrawlerLevel } : undefined),
+    [effectiveCrawlerLevel]
+  )
+
   async function handleEquipmentConditionChange(slug: string, next: ItemCondition) {
     // Read the freshest map from the store (not the render-time prop) so rapid
     // sequential toggles don't stomp each other with a stale-closure overwrite.
     const prev =
       storeState.get('pilot', pilot.id)?.equipmentConditions ?? pilot.equipmentConditions ?? {}
     await storeState.update('pilot', pilot.id, { equipmentConditions: { ...prev, [slug]: next } })
+  }
+
+  async function handleSpendAP(cost: number) {
+    // Read the freshest currentAP from the store (not the render-time prop) so
+    // rapid spends don't stomp each other, then clamp the result at 0.
+    const fresh = storeState.get('pilot', pilot.id)
+    const current = fresh?.currentAP ?? pilot.currentAP ?? 0
+    const next = Math.max(0, current - cost)
+    if (next === current) return
+    await storeState.update('pilot', pilot.id, { currentAP: next })
+  }
+
+  async function handleAbilityUsedChange(slug: string, next: boolean) {
+    // Read the freshest set from the store so concurrent toggles on sibling
+    // abilities aren't clobbered by a stale-closure overwrite.
+    const fresh = storeState.get('pilot', pilot.id)
+    const prev = new Set(fresh?.usedAbilities ?? pilot.usedAbilities ?? [])
+    if (next) {
+      prev.add(slug)
+    } else {
+      prev.delete(slug)
+    }
+    await storeState.update('pilot', pilot.id, { usedAbilities: Array.from(prev) })
   }
 
   async function handleConditionsChange(next: string[]) {
@@ -181,6 +333,7 @@ export function PilotSheet({ pilot, store = useEntityStore, readOnly = false }: 
                 entityId={pilot.id}
                 fieldPath="currentHP"
                 min={0}
+                step={1}
                 store={store}
                 readOnly={readOnly}
               />
@@ -206,6 +359,8 @@ export function PilotSheet({ pilot, store = useEntityStore, readOnly = false }: 
                 entityId={pilot.id}
                 fieldPath="currentAP"
                 min={0}
+                max={PILOT_MAX_AP}
+                step={1}
                 store={store}
                 readOnly={readOnly}
               />
@@ -235,6 +390,43 @@ export function PilotSheet({ pilot, store = useEntityStore, readOnly = false }: 
         />
       </div>
 
+      {/* Crawler Level — scales choice caps (e.g. the Modification choice). When
+          the pilot is linked to a crawler, that crawler's Tech Level is the
+          source (read-only); when unlinked, a manual editable fallback. */}
+      <div>
+        <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+          Crawler Level
+        </h3>
+        {linkedCrawler ? (
+          <p className="text-sm">
+            <span className="font-mono text-lg font-bold text-su-black">
+              {effectiveCrawlerLevel ?? '—'}
+            </span>{' '}
+            <span className="text-muted-foreground">
+              from associated crawler{linkedCrawler.name ? ` "${linkedCrawler.name}"` : ''}
+            </span>
+          </p>
+        ) : (
+          <div className="flex items-center gap-2">
+            <span className="font-cond text-[10px] font-bold uppercase tracking-wide text-su-ink-soft">
+              Tech Level
+            </span>
+            <InlineEditField
+              value={pilot.crawlerLevel ?? 1}
+              type="number"
+              min={1}
+              max={6}
+              ariaLabel="Edit Crawler Level"
+              readOnly={readOnly}
+              onSave={async (next) => {
+                const numValue = typeof next === 'string' ? Number(next) : next
+                await storeState.update('pilot', pilot.id, { crawlerLevel: numValue })
+              }}
+            />
+          </div>
+        )}
+      </div>
+
       {/* Abilities */}
       {pilot.abilities.length > 0 && (
         <div>
@@ -255,12 +447,18 @@ export function PilotSheet({ pilot, store = useEntityStore, readOnly = false }: 
                 )
               }
               return (
-                <ReferenceEntityDisplay
+                <PilotAbilityItem
                   key={ability.id}
-                  data={ability as unknown as SURefEntity}
-                  compact
-                  label={ability.tree}
-                  hide={{ choices: true }}
+                  ability={ability}
+                  currentAP={pilot.currentAP ?? 0}
+                  used={pilot.usedAbilities?.includes(slug) ?? false}
+                  onSpend={(cost) => {
+                    void handleSpendAP(cost)
+                  }}
+                  onToggleUsed={(next) => {
+                    void handleAbilityUsedChange(slug, next)
+                  }}
+                  readOnly={readOnly}
                 />
               )
             })}
@@ -286,6 +484,7 @@ export function PilotSheet({ pilot, store = useEntityStore, readOnly = false }: 
                   void handleEquipmentConditionChange(itemSlug, next)
                 }}
                 readOnly={readOnly}
+                scalingParent={scalingParent}
                 store={store}
               />
             ))}

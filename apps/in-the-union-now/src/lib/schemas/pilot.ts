@@ -71,6 +71,23 @@ export const PilotSchema = z
      * equipmentConditions).
      */
     equipmentChoices: z.record(z.string(), ChoiceSelectionsSchema).optional(),
+    /**
+     * Manual fallback for the pilot's effective Crawler Tech Level (1–6), used
+     * to scale choice caps (e.g. the Custom Sniper Rifle's Modification choice,
+     * "at each Tech Level you may select an additional Modification"). Only used
+     * when the pilot is NOT linked to a crawler; when a crawler is associated its
+     * techLevel takes precedence (see resolveEffectiveCrawlerLevel). Optional and
+     * additive — no DB migration needed (same tactic as equipmentChoices).
+     */
+    crawlerLevel: z.number().int().min(1).max(6).optional(),
+    /**
+     * Slugs of pilot abilities that have been "used" this rest (live-play, Slice
+     * D). Used for once-per-rest abilities: the per-ability toggle adds/removes a
+     * slug here. When absent or a slug is missing, the ability reads as available
+     * (not yet used). Additive optional field — no DB migration needed (same
+     * tactic as equipmentChoices).
+     */
+    usedAbilities: z.array(z.string()).optional(),
     createdAt: z.string().datetime(),
     updatedAt: z.string().datetime(),
   })

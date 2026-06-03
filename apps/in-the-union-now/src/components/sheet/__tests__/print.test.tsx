@@ -30,7 +30,7 @@ import { mock } from 'bun:test'
 // ---------------------------------------------------------------------------
 
 beforeAll(async () => {
-  await SalvageUnionReference.preload(['chassis', 'crawler-tech-levels'])
+  await SalvageUnionReference.preload(['chassis', 'crawler-tech-levels', 'systems', 'modules'])
 })
 
 afterEach(() => {

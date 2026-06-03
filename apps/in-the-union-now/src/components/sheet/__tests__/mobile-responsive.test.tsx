@@ -42,7 +42,7 @@ import type { PublishResult, SnapshotPayload } from '../../../lib/snapshot/clien
 // ---------------------------------------------------------------------------
 
 beforeAll(async () => {
-  await SalvageUnionReference.preload(['chassis'])
+  await SalvageUnionReference.preload(['chassis', 'systems', 'modules'])
 })
 
 afterEach(() => {

@@ -102,6 +102,14 @@ export type ReferenceEntityDisplayContentProps = ReferenceEntityDisplayStateInpu
   selections?: ChoiceSelections
   /** Next-state callback fired when a choice card toggles, in controlled mode. */
   onSelectionChange?: (selections: ChoiceSelections) => void
+  /**
+   * Optional scaling parent for `constraints.scalesWithField` choice caps (e.g.
+   * Modification "at each Tech Level"). A consumer with a play/build context
+   * (ITUN) passes e.g. `{ techLevel: effectiveCrawlerLevel }` so caps resolve.
+   * Omit it (the SRD default) for unbounded caps — unchanged behaviour. Additive
+   * optional prop.
+   */
+  scalingParent?: Record<string, unknown>
 }
 
 // Bottom padding of the content float-zone, as a ratio of the default content
@@ -142,6 +150,7 @@ export function ReferenceEntityDisplayContent({
   hideLeadContent = false,
   selections: controlledSelections,
   onSelectionChange,
+  scalingParent,
   ...inputProps
 }: ReferenceEntityDisplayContentProps) {
   const state = useReferenceEntityDisplayState(inputProps)
@@ -758,6 +767,7 @@ export function ReferenceEntityDisplayContent({
                 parentHeaderBgColor={headerBgColor}
                 selections={choiceSelections}
                 onSelectionChange={setChoiceSelections}
+                scalingParent={scalingParent}
               />
               <ReferenceEntityIntegratedSystems data={data} compact={compact} />
 
