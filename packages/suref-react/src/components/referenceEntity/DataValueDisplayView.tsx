@@ -78,7 +78,7 @@ export function DataValueDisplayView({
         )}
       >
         <Text
-          variant="pseudoheader"
+          variant="pseudoheaderInverse"
           as="span"
           className={cn('!self-auto uppercase', fontSize, fontWeight)}
         >
@@ -87,7 +87,7 @@ export function DataValueDisplayView({
         {trees.map((tree, i) => (
           <span key={i} className="contents">
             <Text
-              variant="pseudoheaderInverse"
+              variant="pseudoheader"
               as="span"
               className={cn('!self-auto uppercase', fontSize, fontWeight)}
             >
@@ -95,7 +95,7 @@ export function DataValueDisplayView({
             </Text>
             {i < trees.length - 1 && (
               <Text
-                variant="pseudoheader"
+                variant="pseudoheaderInverse"
                 as="span"
                 className={cn('!self-auto uppercase', fontSize, fontWeight)}
               >
