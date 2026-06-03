@@ -3,6 +3,17 @@ import { STARTING_ABILITY_BUDGET, STARTING_EQUIPMENT_BUDGET } from '../constants
 import { ItemConditionMapSchema } from './mech'
 
 /**
+ * Persisted choice selections for an entity that carries `choices`
+ * (e.g. granted equipment with permanent/multi-select picks).
+ *
+ * Mirrors suref-react's `ChoiceSelections` type exactly:
+ *   Record<choiceId, selectedOptionValues[]>
+ * so it can be passed straight into ReferenceEntityDisplay's controlled
+ * `selections` prop. Free-text choices store their value as a single-element array.
+ */
+export const ChoiceSelectionsSchema = z.record(z.string(), z.array(z.string()))
+
+/**
  * classRef: slug reference to a class in salvageunion-reference.
  * Resolution against game data is handled at the presentation/query layer.
  */
@@ -52,6 +63,14 @@ export const PilotSchema = z
      * When absent or key missing, the display layer defaults to 'intact'.
      */
     equipmentConditions: ItemConditionMapSchema.optional(),
+    /**
+     * Persisted granted-equipment choice selections, keyed by equipment slug,
+     * then by choiceId → selected option values. Optional: when absent or a key
+     * is missing, the display layer treats that item as having no selections.
+     * Additive optional field — no DB migration needed (same tactic as
+     * equipmentConditions).
+     */
+    equipmentChoices: z.record(z.string(), ChoiceSelectionsSchema).optional(),
     createdAt: z.string().datetime(),
     updatedAt: z.string().datetime(),
   })

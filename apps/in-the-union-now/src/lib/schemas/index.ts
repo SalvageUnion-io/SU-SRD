@@ -4,7 +4,7 @@ export type { EntityRef } from './entity'
 export { ExportBundleSchema } from './exportBundle'
 export type { ExportBundle } from './exportBundle'
 
-export { PilotSchema } from './pilot'
+export { PilotSchema, ChoiceSelectionsSchema } from './pilot'
 export type { Pilot } from './pilot'
 
 export { MechSchema, ItemConditionSchema, ItemConditionMapSchema } from './mech'

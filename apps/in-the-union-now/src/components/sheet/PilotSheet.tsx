@@ -16,6 +16,7 @@
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefAbility, SURefEntity, SURefEquipment } from 'salvageunion-reference'
 import { ReferenceEntityDisplay } from 'suref-react'
+import type { ChoiceSelections } from 'suref-react'
 
 import { PipTracker } from './PipTracker'
 
@@ -25,6 +26,7 @@ import { resolveClassName } from '../../lib/classRef'
 import { PILOT_MAX_HP, PILOT_MAX_AP } from '../../lib/pilotStats'
 import { useEntityStore } from '../../stores/entityStore'
 import { ConditionToggle } from '../shared/ConditionToggle'
+import { useEntityChoices } from '../shared/useEntityChoices'
 import { ConditionsEditor } from './ConditionsEditor'
 import { EditableStatRow } from './EditableStatRow'
 
@@ -36,6 +38,82 @@ function resolveAbility(slug: string): SURefAbility | null {
 function resolveEquipment(slug: string): SURefEquipment | null {
   const all = SalvageUnionReference.Equipment.all() as ReadonlyArray<SURefEquipment>
   return all.find((e) => e.id === slug || e.name === slug) ?? null
+}
+
+type PilotEquipmentItemProps = {
+  /** Equipment slug as stored on the pilot. */
+  slug: string
+  /** Owning pilot id — choice selections persist under this entity. */
+  pilotId: string
+  /**
+   * Persisted choice selections for this item, sourced from the canonical pilot
+   * prop. Used directly as the controlled `selections` so read-only/snapshot
+   * rendering does not depend on the live store.
+   */
+  seedSelections: ChoiceSelections | undefined
+  /** Current condition for this equipment item. */
+  condition: ItemCondition
+  /** Persist a new condition for this item. */
+  onConditionChange: (slug: string, next: ItemCondition) => void
+  /** When true, choices + condition render but are not editable. */
+  readOnly: boolean
+  /** Injectable store — forwarded to useEntityChoices for tests. */
+  store: typeof useEntityStore
+}
+
+/**
+ * Renders ONE pilot equipment item with its ReferenceEntityDisplay (choice cards
+ * enabled) and a ConditionToggle.
+ *
+ * Extracted out of PilotSheet's `equipment.map(...)` so it can legally call the
+ * useEntityChoices hook (Rules of Hooks forbid calling hooks inside a map body).
+ * Choice selections persist per-slug under the pilot's `equipmentChoices` field.
+ */
+function PilotEquipmentItem({
+  slug,
+  pilotId,
+  seedSelections,
+  condition,
+  onConditionChange,
+  readOnly,
+  store,
+}: PilotEquipmentItemProps) {
+  const equipment = resolveEquipment(slug)
+  const { selections, setSelections } = useEntityChoices(
+    'pilot',
+    pilotId,
+    slug,
+    'equipmentChoices',
+    seedSelections,
+    store
+  )
+
+  return (
+    <div className="flex items-start gap-2">
+      <div className="flex-1">
+        {equipment ? (
+          <ReferenceEntityDisplay
+            data={equipment as unknown as SURefEntity}
+            compact
+            selections={selections}
+            onSelectionChange={readOnly ? undefined : setSelections}
+          />
+        ) : (
+          <div className="rounded border border-border px-2 py-1 text-sm text-muted-foreground">
+            {slug}
+          </div>
+        )}
+      </div>
+      <ConditionToggle
+        value={condition}
+        onChange={(next) => {
+          onConditionChange(slug, next)
+        }}
+        ariaLabelPrefix={slug}
+        readOnly={readOnly}
+      />
+    </div>
+  )
 }
 
 type PilotSheetProps = {
@@ -197,34 +275,20 @@ export function PilotSheet({ pilot, store = useEntityStore, readOnly = false }: 
             Equipment
           </h3>
           <div className="flex flex-col gap-3">
-            {pilot.equipment.map((slug) => {
-              const equipment = resolveEquipment(slug)
-              return (
-                <div key={slug} className="flex items-start gap-2">
-                  <div className="flex-1">
-                    {equipment ? (
-                      <ReferenceEntityDisplay
-                        data={equipment as unknown as SURefEntity}
-                        compact
-                        hide={{ choices: true }}
-                      />
-                    ) : (
-                      <div className="rounded border border-border px-2 py-1 text-sm text-muted-foreground">
-                        {slug}
-                      </div>
-                    )}
-                  </div>
-                  <ConditionToggle
-                    value={pilot.equipmentConditions?.[slug] ?? 'intact'}
-                    onChange={(next) => {
-                      void handleEquipmentConditionChange(slug, next)
-                    }}
-                    ariaLabelPrefix={slug}
-                    readOnly={readOnly}
-                  />
-                </div>
-              )
-            })}
+            {pilot.equipment.map((slug) => (
+              <PilotEquipmentItem
+                key={slug}
+                slug={slug}
+                pilotId={pilot.id}
+                seedSelections={pilot.equipmentChoices?.[slug]}
+                condition={pilot.equipmentConditions?.[slug] ?? 'intact'}
+                onConditionChange={(itemSlug, next) => {
+                  void handleEquipmentConditionChange(itemSlug, next)
+                }}
+                readOnly={readOnly}
+                store={store}
+              />
+            ))}
           </div>
         </div>
       )}
