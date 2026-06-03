@@ -82,6 +82,9 @@ function GrantedEntityListing({
       compact
       listing={parentCompact}
       controls={controls}
+      // The granted prompt opens with the equipment's `lead`-marked intro line
+      // only — the explicit "shows in a granted prompt" selector.
+      leadContentOnly
     />
   )
 }

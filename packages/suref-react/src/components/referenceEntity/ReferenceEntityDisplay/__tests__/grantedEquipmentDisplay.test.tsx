@@ -144,4 +144,17 @@ describe('Custom Sniper Rifle granting ability display', () => {
     const viewDetails = screen.getByRole('button', { name: /View Custom Sniper Rifle details/i })
     expect(viewDetails).toBeTruthy()
   })
+
+  test("granted prompt shows only the lead intro line, not the equipment's other prose", () => {
+    // leadContentOnly: in the Grants view, "shows in a granted prompt" === lead.
+    // The lead-marked intro renders; the non-lead "At each Tech Level" paragraph
+    // (which DOES render on the standalone equipment page above) is filtered out.
+    render(<ReferenceEntityDisplay data={rifleAbility} />)
+    expect(
+      screen.getByText(/You acquire and train in the use of a Custom Sniper Rifle/i)
+    ).toBeTruthy()
+    expect(
+      screen.queryByText(/At each Tech Level, you may select an additional Modification/i)
+    ).toBeNull()
+  })
 })
