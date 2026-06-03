@@ -85,13 +85,6 @@ export type ReferenceEntityDisplayContentProps = ReferenceEntityDisplayStateInpu
   cardClickable?: boolean
   /** Override stats in the card header (passed to DisplayCard.stats) */
   stats?: StatItem[]
-  /**
-   * When true, only content blocks explicitly marked `lead: true` render — the
-   * granted-equipment intro sentence shown "in a granted prompt". Used by the
-   * Grants view so the opener is selected by the schema flag, not by source
-   * order. Falls back to all content when the entity has no `lead` block.
-   */
-  leadContentOnly?: boolean
 }
 
 // Bottom padding of the content float-zone, as a ratio of the default content
@@ -129,7 +122,6 @@ export function ReferenceEntityDisplayContent({
   onCardClick,
   cardClickable,
   stats: statsProp,
-  leadContentOnly = false,
   ...inputProps
 }: ReferenceEntityDisplayContentProps) {
   const state = useReferenceEntityDisplayState(inputProps)
@@ -215,17 +207,6 @@ export function ReferenceEntityDisplayContent({
   // prose paragraph(s) still render.
   if (contentBlocks && entityHasChoices) {
     contentBlocks = contentBlocks.filter((block) => block.type !== 'datavalues')
-  }
-
-  // "Shows in a granted prompt" === `lead`: in the Grants view only the content
-  // block(s) explicitly marked `lead: true` render as the intro, selected by the
-  // schema flag rather than by source order. Falls back to all content when the
-  // entity has no `lead` block, so an untagged grant never renders an empty body.
-  if (contentBlocks && leadContentOnly) {
-    const leadBlocks = contentBlocks.filter((block) => block.lead === true)
-    if (leadBlocks.length > 0) {
-      contentBlocks = leadBlocks
-    }
   }
 
   // In compact list view (hide.actions), only show content before the first heading

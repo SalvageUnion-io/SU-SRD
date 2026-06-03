@@ -145,14 +145,15 @@ describe('Custom Sniper Rifle granting ability display', () => {
     expect(viewDetails).toBeTruthy()
   })
 
-  test("granted prompt shows only the lead intro line, not the equipment's other prose", () => {
-    // leadContentOnly: in the Grants view, "shows in a granted prompt" === lead.
-    // The lead-marked intro renders; the non-lead "At each Tech Level" paragraph
-    // (which DOES render on the standalone equipment page above) is filtered out.
+  test("hoists only the lead intro above the Grants divider, dropping the equipment's other prose", () => {
+    // "shows in a granted prompt" === lead. The lead-marked intro is hoisted to
+    // the Grants opener, above the divider; the non-lead "At each Tech Level"
+    // paragraph (which DOES render on the standalone equipment page above) is gone.
     render(<ReferenceEntityDisplay data={rifleAbility} />)
-    expect(
-      screen.getByText(/You acquire and train in the use of a Custom Sniper Rifle/i)
-    ).toBeTruthy()
+    const lead = screen.getByText(/You acquire and train in the use of a Custom Sniper Rifle/i)
+    const grants = screen.getByText('Grants')
+    // The lead line precedes the Grants divider in document order.
+    expect(lead.compareDocumentPosition(grants) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     expect(
       screen.queryByText(/At each Tech Level, you may select an additional Modification/i)
     ).toBeNull()

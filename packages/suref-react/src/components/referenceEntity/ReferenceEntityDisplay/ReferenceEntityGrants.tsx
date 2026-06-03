@@ -1,8 +1,9 @@
-import type { SURefEntity } from 'salvageunion-reference'
+import type { SURefEntity, SURefObjectContentBlock } from 'salvageunion-reference'
 import { resolveGrantedEntities } from 'salvageunion-reference'
 import { ReferenceEntityDisplay } from './index'
 import { SectionSeparator } from './SectionSeparator'
 import { useEntityHref } from './entityHrefContext'
+import { BlockContentRendererView } from '../BlockContentRendererView'
 import type { ReferenceEntityControl } from './referenceEntityControlTypes'
 import { cn } from '../../../utils/cn'
 import type { getReferenceEntitySpacing } from './referenceEntityDisplayTypes'
@@ -13,6 +14,22 @@ type ReferenceEntityGrantsProps = {
   compact?: boolean
 }
 
+/**
+ * The `lead`-marked intro block of the first granted entity that has one — the
+ * "shows in a granted prompt" line, surfaced as the granting ability's body
+ * opener above the `Grants` divider (explicit schema flag, not source order).
+ */
+function firstLeadBlock(entities: SURefEntity[]): SURefObjectContentBlock | undefined {
+  for (const entity of entities) {
+    const content = 'content' in entity ? entity.content : undefined
+    if (Array.isArray(content)) {
+      const lead = content.find((block) => block?.lead === true)
+      if (lead) return lead
+    }
+  }
+  return undefined
+}
+
 export function ReferenceEntityGrants({ data, spacing, compact }: ReferenceEntityGrantsProps) {
   // Shared resolver (single source of truth — see salvageunion-reference).
   const grantedEntities = resolveGrantedEntities(data)
@@ -21,8 +38,19 @@ export function ReferenceEntityGrants({ data, spacing, compact }: ReferenceEntit
     return null
   }
 
+  // The lead opener shows only in the full view; compact/listing collapses to
+  // the header + Grants divider + header-only nested cards.
+  const leadBlock = compact ? undefined : firstLeadBlock(grantedEntities)
+
   return (
     <div className={cn('flex flex-col', spacing.sectionSpaceYClass)}>
+      {leadBlock && (
+        <BlockContentRendererView
+          content={[leadBlock]}
+          fontSize={compact ? 'text-xs' : 'text-sm'}
+          compact={compact}
+        />
+      )}
       {/* `Grants` divider matches the `Actions` divider exactly (SectionSeparator). */}
       <SectionSeparator
         label="Grants"
@@ -73,18 +101,16 @@ function GrantedEntityListing({
   // When the granting ability itself is shown compact (in lists / nested
   // contexts), collapse the granted entity to header-only — its name + resolved
   // stat row in the header, no body. When the ability is shown full, the nested
-  // equipment expands (intro + resolved row + choice cards). Actions are hidden
-  // (the redundant same-named pilot-equipment action lives on the ability).
+  // equipment expands (resolved row + choice cards). Content prose is hidden: the
+  // intro `lead` line is hoisted to the Grants opener above, and Actions are
+  // hidden (the redundant same-named pilot-equipment action lives on the ability).
   return (
     <ReferenceEntityDisplay
-      hide={{ actions: true }}
+      hide={{ actions: true, content: true }}
       data={entity}
       compact
       listing={parentCompact}
       controls={controls}
-      // The granted prompt opens with the equipment's `lead`-marked intro line
-      // only — the explicit "shows in a granted prompt" selector.
-      leadContentOnly
     />
   )
 }
