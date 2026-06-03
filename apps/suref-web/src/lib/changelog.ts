@@ -7,10 +7,11 @@ type ChangelogEntry = {
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: '2026-06-01',
-    title: 'Site restyle: new brand header + refreshed entity cards',
+    title: 'Site restyle + interactive equipment customisation',
     items: [
       "New Salvage Union 'Cargo' brand header with a breadcrumb description sub-bar that surfaces each schema's description as you browse.",
       'Refreshed entity-card and typography styling across the SRD, and the old landing-page hero has been removed.',
+      'Pilot equipment with player choices (weapon type, modifications) now shows an interactive customisation panel — toggle options to watch the damage, range, and traits update live.',
     ],
   },
   {

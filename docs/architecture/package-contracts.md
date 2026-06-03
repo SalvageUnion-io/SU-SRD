@@ -154,7 +154,7 @@ Consuming apps' Vite/Astro bundlers compile `.ts/.tsx` files directly. No interm
 ### Public API (64 named exports from `src/index.ts`)
 
 **Types:**
-`DataValue`, `PatternOverrideData`, `ReferenceEntityControl`, `ChoiceInputRenderer`, `DisplayCardTab`, `StatItem`, `StatConfig`, `GuideStepsInteractiveConfig`, `GuideStepRollState`, `ChoiceSelections`, `ChoiceCardOption`
+`DataValue`, `PatternOverrideData`, `ReferenceEntityControl`, `DisplayCardTab`, `StatItem`, `StatConfig`, `GuideStepsInteractiveConfig`, `GuideStepRollState`, `ChoiceSelections`, `ChoiceCardOption`
 
 **Constants:**
 `ENTITY_STATS_CONFIG`, `TECH_LEVEL_STYLES`, `TECH_LEVEL_BG`, `techLevelLabel`
