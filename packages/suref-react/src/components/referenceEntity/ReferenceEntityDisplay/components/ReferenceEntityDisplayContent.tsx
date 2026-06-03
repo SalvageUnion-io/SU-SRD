@@ -666,13 +666,24 @@ export function ReferenceEntityDisplayContent({
               {showGrants && (
                 <ReferenceEntityGrants data={data} spacing={spacing} compact={compact} />
               )}
-              {/* Titan-equipped systems/modules render as compact listings under actions */}
+              {/* Titan-equipped systems/modules render as compact listings under
+                  actions. When the image floats, use plain block flow with each
+                  listing as its own flow-root so they wrap around the image like
+                  the body text (a flex container would stay shrunk beside the
+                  float); otherwise keep the flex column. */}
               {titanSystems && titanSystems.length > 0 && (
                 <>
                   <SectionSeparator label="Mech Systems" compact={compact} />
-                  <div className={cn('flex flex-col', spacing.sectionSpaceYClass)}>
+                  <div
+                    className={cn(!wrapImageFloat && 'flex flex-col', spacing.sectionSpaceYClass)}
+                  >
                     {titanSystems.map((system) => (
-                      <PatternEquipmentItem key={`titan-system-${system.id}`} data={system} />
+                      <div
+                        key={`titan-system-${system.id}`}
+                        className={cn(wrapImageFloat && '[display:flow-root]')}
+                      >
+                        <PatternEquipmentItem data={system} />
+                      </div>
                     ))}
                   </div>
                 </>
@@ -680,9 +691,16 @@ export function ReferenceEntityDisplayContent({
               {titanModules && titanModules.length > 0 && (
                 <>
                   <SectionSeparator label="Mech Modules" compact={compact} />
-                  <div className={cn('flex flex-col', spacing.sectionSpaceYClass)}>
+                  <div
+                    className={cn(!wrapImageFloat && 'flex flex-col', spacing.sectionSpaceYClass)}
+                  >
                     {titanModules.map((mod) => (
-                      <PatternEquipmentItem key={`titan-module-${mod.id}`} data={mod} />
+                      <div
+                        key={`titan-module-${mod.id}`}
+                        className={cn(wrapImageFloat && '[display:flow-root]')}
+                      >
+                        <PatternEquipmentItem data={mod} />
+                      </div>
                     ))}
                   </div>
                 </>
@@ -698,7 +716,11 @@ export function ReferenceEntityDisplayContent({
                 selections={choiceSelections}
                 onSelectionChange={setChoiceSelections}
               />
-              <ReferenceEntityIntegratedSystems data={data} compact={compact} />
+              <ReferenceEntityIntegratedSystems
+                data={data}
+                compact={compact}
+                wrapImageFloat={wrapImageFloat}
+              />
 
               <ReferenceEntityBonusPerTechLevel
                 bonusPerTechLevel={'bonusPerTechLevel' in data ? data.bonusPerTechLevel : undefined}

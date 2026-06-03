@@ -8,11 +8,18 @@ import { cn } from '../../../utils/cn'
 type ReferenceEntityIntegratedSystemsProps = {
   data: SURefEntity
   compact: boolean
+  /**
+   * When true, the entity's image floats, so each listing renders as its own
+   * flow-root box in plain block flow — narrow beside the image, full-width once
+   * below it — matching how the body text and actions wrap around the image.
+   */
+  wrapImageFloat?: boolean
 }
 
 export function ReferenceEntityIntegratedSystems({
   data,
   compact,
+  wrapImageFloat = false,
 }: ReferenceEntityIntegratedSystemsProps) {
   if (!('systems' in data) || !Array.isArray(data.systems)) return null
 
@@ -32,17 +39,27 @@ export function ReferenceEntityIntegratedSystems({
         // Index-suffixed: an entity may legitimately integrate the same system
         // more than once (e.g. the Power Loader's two Rigging Arms), so the id
         // alone is not a unique key.
-        <IntegratedSystemListing key={`${system.id}-${idx}`} entity={system} />
+        <IntegratedSystemListing
+          key={`${system.id}-${idx}`}
+          entity={system}
+          wrapImageFloat={wrapImageFloat}
+        />
       ))}
     </div>
   )
 }
 
-function IntegratedSystemListing({ entity }: { entity: SURefEntity }) {
+function IntegratedSystemListing({
+  entity,
+  wrapImageFloat,
+}: {
+  entity: SURefEntity
+  wrapImageFloat: boolean
+}) {
   const detailModal = useDetailModal(entity)
 
   return (
-    <>
+    <div className={cn(wrapImageFloat && '[display:flow-root]')}>
       <ReferenceEntityDisplay
         hide={{ actions: true }}
         data={entity}
@@ -51,6 +68,6 @@ function IntegratedSystemListing({ entity }: { entity: SURefEntity }) {
         controls={[{ ...detailModal.control, hidden: false, cardClick: false }]}
       />
       {detailModal.modal}
-    </>
+    </div>
   )
 }
