@@ -309,6 +309,14 @@ export function ReferenceEntityDisplayContent({
   const hasTopMatterContent =
     !!showContent || hasChassisAbilities || !!assetUrl || hasDisplayableActions || showGrants
 
+  // The image renders as a left-float (CardImage `md:float-left`) on every path
+  // EXCEPT the two grid layouts (chassis abilities, afterExtraContent), which
+  // place it in a grid cell. When it floats, actions should wrap around it like
+  // the body text — narrow beside the image, full-width once below it — rather
+  // than render in a multi-column block that stays shrunk beside the float.
+  const wrapImageFloat =
+    !!assetUrl && !(!compact && ((hasChassisAbilities && !hide.actions) || !!afterExtraContent))
+
   // Resolve drone entity from chassis abilities (rendered below the fold)
   const droneAbility = chassisAbilities?.find((a) => a.drone)
   const droneEntity = droneAbility?.drone
@@ -642,20 +650,15 @@ export function ReferenceEntityDisplayContent({
                 </>
               )}
               {(!hide.actions || (compact && schemaName !== 'titans' && !rightContent)) && (
-                <>
-                  {/* Clear the image float so actions flow full-width below the
-                      image rather than wrapping into the narrow column beside it.
-                      No-op when there is no floated image. */}
-                  <div className="clear-both" />
-                  <ReferenceEntityActions
-                    suppressActions={hasChassisAbilities || isGrantingAbility}
-                    spacing={spacing}
-                    compact={compact}
-                    actionsToDisplay={visibleActions}
-                    headerBg={headerBg}
-                    sectionHeaders={schemaName === 'crawlers'}
-                  />
-                </>
+                <ReferenceEntityActions
+                  suppressActions={hasChassisAbilities || isGrantingAbility}
+                  spacing={spacing}
+                  compact={compact}
+                  actionsToDisplay={visibleActions}
+                  headerBg={headerBg}
+                  sectionHeaders={schemaName === 'crawlers'}
+                  wrapImageFloat={wrapImageFloat}
+                />
               )}
               {/* Granting ability: a `Grants` block — the nested compact equipment
                   renders its own intro paragraph, resolved row + choice cards.
