@@ -293,11 +293,11 @@ The shared library does not know app routes. `EntityHrefProvider` supplies an `E
 When a class ability grants equipment (e.g. "Custom Sniper Rifle"), the entity display re-skins its body:
 
 1. `resolveGrantedEntities(data)` is called; if the result is non-empty **and** the entity is an ability (`isAbility(data)`), `isGrantingAbility` is set to `true`.
-2. **Body substitution:** the ability's own `content` blocks and `Actions` section are suppressed. The body renders the granted equipment's `lead`-marked intro line as the opener, then the `ReferenceEntityGrants` block — the `Grants` divider plus the nested granted-equipment card (resolved data row + choice cards). The nested card hides its own content prose (`hide.content`), so the intro is not duplicated.
+2. **Body substitution:** the ability's own `content` blocks and `Actions` section are suppressed. The body renders the `ReferenceEntityGrants` block — the `Grants` divider plus the nested granted-equipment card (its non-lead content + resolved data row + choice cards).
 3. **Header flavor preserved:** the ability's own `description` still renders in the right-header flavor slot — it does not conflict with the Grants block.
-4. **Compact collapse:** in compact/listing contexts the nested granted-equipment card collapses to header-only (`listing: true` on the inner `ReferenceEntityDisplay`), and the lead opener is omitted.
+4. **Compact collapse:** in compact/listing contexts the nested granted-equipment card collapses to header-only (`listing: true` on the inner `ReferenceEntityDisplay`).
 
-The `lead` field on `ContentBlock` is the explicit "shows in a granted prompt" selector: `ReferenceEntityGrants` hoists the first granted entity's `lead: true` block above the `Grants` divider as the ability's body opener (full view only), selected by the schema flag rather than by source order. Every other content block renders solely on the entity's own page. If no granted entity has a `lead` block, no opener renders.
+The `lead` field on `ContentBlock` marks a granted entity's intro sentence. It renders on the entity's **own page**, but `ReferenceEntityGrants` passes `hideLeadContent` to the nested card so the `lead` block is **hidden when nested in a grant** — there it would duplicate the granting ability's own `description`. Every other content block renders in both places.
 
 ---
 

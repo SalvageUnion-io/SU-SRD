@@ -85,6 +85,12 @@ export type ReferenceEntityDisplayContentProps = ReferenceEntityDisplayStateInpu
   cardClickable?: boolean
   /** Override stats in the card header (passed to DisplayCard.stats) */
   stats?: StatItem[]
+  /**
+   * Hide content blocks marked `lead: true`. Set by the Grants view so a granted
+   * entity's intro sentence shows on its own page but not when nested in a grant
+   * (where it would be redundant with the granting ability's own description).
+   */
+  hideLeadContent?: boolean
 }
 
 // Bottom padding of the content float-zone, as a ratio of the default content
@@ -122,6 +128,7 @@ export function ReferenceEntityDisplayContent({
   onCardClick,
   cardClickable,
   stats: statsProp,
+  hideLeadContent = false,
   ...inputProps
 }: ReferenceEntityDisplayContentProps) {
   const state = useReferenceEntityDisplayState(inputProps)
@@ -207,6 +214,12 @@ export function ReferenceEntityDisplayContent({
   // prose paragraph(s) still render.
   if (contentBlocks && entityHasChoices) {
     contentBlocks = contentBlocks.filter((block) => block.type !== 'datavalues')
+  }
+
+  // Hide the `lead` intro block when nested in a grant — it shows on the entity's
+  // own page, but in a grant it duplicates the granting ability's description.
+  if (contentBlocks && hideLeadContent) {
+    contentBlocks = contentBlocks.filter((block) => block.lead !== true)
   }
 
   // In compact list view (hide.actions), only show content before the first heading

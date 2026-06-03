@@ -69,7 +69,7 @@ When an ability entity has `grants` that resolve to equipment (`resolveGrantedEn
 - The ability's `description` still renders in the right-header flavor slot.
 - In compact/listing contexts the nested equipment card collapses further to header-only (`listing: true` on the inner `ReferenceEntityDisplay`).
 
-The `lead: true` field on a `ContentBlock` is the explicit "shows in a granted prompt" selector: `ReferenceEntityGrants` hoists the granted equipment's `lead` block above the `Grants` divider as the ability's body opener (full view only); the nested card hides its own content prose so the intro isn't duplicated. All other content renders solely on the entity's own page.
+The `lead: true` field on a `ContentBlock` marks a granted entity's intro sentence: it renders on the entity's own page, but `ReferenceEntityGrants` passes `hideLeadContent` to the nested card so the `lead` block is hidden when nested in a grant (there it would duplicate the granting ability's own description). All other content renders in both places.
 
 ## Stats
 
