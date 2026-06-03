@@ -1,6 +1,6 @@
 # squads
 
-NPC squads and groups in Salvage Union
+NPC squads and groups
 
 ## Metadata
 

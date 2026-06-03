@@ -2,7 +2,7 @@ import { describe, it, expect } from 'bun:test'
 import {
   calculateBackgroundColor,
   borderColorFromHeaderBg,
-  getSourceStyles,
+  accentSurface,
 } from '../referenceEntityHelpers'
 
 describe('calculateBackgroundColor', () => {
@@ -104,65 +104,25 @@ describe('borderColorFromHeaderBg', () => {
   })
 })
 
-describe('getSourceStyles', () => {
-  it('should return scanline texture class for Mech Monday header', () => {
-    const result = getSourceStyles('Mech Monday', false, 'header', true)
-    expect(result.className).toBe('expansion-scanline-texture')
-    expect(result.style).toEqual({})
+describe('accentSurface', () => {
+  it('should fall back to bg-su-white with no inline style when headerBg is undefined', () => {
+    expect(accentSurface(undefined, undefined)).toEqual({
+      className: 'bg-su-white',
+      style: undefined,
+    })
   })
 
-  it('should return scanline texture class for Mech Monday footer', () => {
-    const result = getSourceStyles('Mech Monday', false, 'footer', true)
-    expect(result.className).toBe('expansion-scanline-texture')
-    expect(result.style).toEqual({})
+  it('should use the passed bg class with no inline style', () => {
+    expect(accentSurface('bg-su-green', undefined)).toEqual({
+      className: 'bg-su-green',
+      style: undefined,
+    })
   })
 
-  it('should return empty when disabled', () => {
-    const result = getSourceStyles('Mech Monday', true, 'header', true)
-    expect(result.className).toBe('')
-  })
-
-  it('should return empty for footer when not expanded', () => {
-    const result = getSourceStyles('Mech Monday', false, 'footer', false)
-    expect(result.className).toBe('')
-  })
-
-  it('should return empty for undefined source', () => {
-    const result = getSourceStyles(undefined, false, 'header', true)
-    expect(result.className).toBe('')
-  })
-
-  it('should return beast texture for We Were Here First!', () => {
-    expect(getSourceStyles('We Were Here First!', false, 'header', true).className).toBe(
-      'expansion-beast-texture'
-    )
-    expect(getSourceStyles('We Were Here First!', false, 'footer', true).className).toBe(
-      'expansion-beast-texture'
-    )
-  })
-
-  it('should return rain texture for Rainmaker', () => {
-    expect(getSourceStyles('Rainmaker', false, 'header', true).className).toBe(
-      'expansion-rain-texture'
-    )
-    expect(getSourceStyles('Rainmaker', false, 'footer', true).className).toBe(
-      'expansion-rain-texture'
-    )
-  })
-
-  it('should return beveled border for False Flag', () => {
-    const result = getSourceStyles('False Flag', false, 'header', true)
-    expect(result.className).toBe('relative')
-    expect(result.style.borderTop).toBeDefined()
-    expect(result.style.boxShadow).toBeDefined()
-  })
-
-  it('should reuse scanline texture for Salvage Union Starter Set (placeholder styling)', () => {
-    expect(getSourceStyles('Salvage Union Starter Set', false, 'header', true).className).toBe(
-      'expansion-scanline-texture'
-    )
-    expect(getSourceStyles('Salvage Union Starter Set', false, 'footer', true).className).toBe(
-      'expansion-scanline-texture'
-    )
+  it('should emit an inline backgroundColor when headerBgColor is truthy', () => {
+    expect(accentSurface('bg-su-green', '#D46A30')).toEqual({
+      className: 'bg-su-green',
+      style: { backgroundColor: '#D46A30' },
+    })
   })
 })

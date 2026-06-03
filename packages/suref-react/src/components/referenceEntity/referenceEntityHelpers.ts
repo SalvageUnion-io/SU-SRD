@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import type {
   SURefMetaEntity,
   SURefEnumSchemaName,
@@ -10,6 +11,22 @@ import {
   isEntityData,
   getHybridClasses,
 } from 'salvageunion-reference'
+
+/**
+ * The card's accent surface: a Tailwind bg class (or the white fallback) plus an
+ * optional inline backgroundColor for dynamic per-source accents. Shared by the
+ * body wrapper, the interactive footer wrapper, and ReferenceEntityFooter so the
+ * `headerBg || 'bg-su-white'` + `headerBgColor` fallback lives in one place.
+ */
+export function accentSurface(
+  headerBg: string | undefined,
+  headerBgColor: string | undefined
+): { className: string; style: CSSProperties | undefined } {
+  return {
+    className: headerBg || 'bg-su-white',
+    style: headerBgColor ? { backgroundColor: headerBgColor } : undefined,
+  }
+}
 
 /** Set of tree names that belong to hybrid classes (e.g. "Fabricator", "Cyborg") */
 let _hybridTreeNames: Set<string> | null = null
@@ -111,6 +128,32 @@ export function borderColorFromHeaderBg(
 }
 
 /**
+ * Lighter tint of the card's accent (header) colour — a pale variant of the base
+ * layer, used for the flavour/"accent" text that sits on the coloured field.
+ * Derived via color-mix so it works for every accent (tokens are inconsistent —
+ * su-rust/su-pink have no -light variant). Undefined when there is no accent.
+ */
+export function accentTextColor(
+  headerBg: string | undefined,
+  headerBgColor?: string
+): string | undefined {
+  const base = borderColorFromHeaderBg(headerBg, headerBgColor)
+  return base ? `color-mix(in srgb, ${base} 30%, white)` : undefined
+}
+
+/**
+ * Deeper (darker) tint of the card's accent (header) colour — the "deep" variant,
+ * used for the white body box's 3px left accent border.
+ */
+export function accentDeepColor(
+  headerBg: string | undefined,
+  headerBgColor?: string
+): string | undefined {
+  const base = borderColorFromHeaderBg(headerBg, headerBgColor)
+  return base ? `color-mix(in srgb, ${base} 65%, black)` : undefined
+}
+
+/**
  * Get a themed border color for expansion-sourced entities.
  * Returns undefined for core-book sources so the caller can fall back to defaults.
  */
@@ -136,119 +179,5 @@ export function getSourceBorderColor(source: SURefEnumSource | undefined): strin
       return 'rgb(85, 70, 50)'
     default:
       return undefined
-  }
-}
-
-/**
- * Get source-specific styles for entity display.
- * Returns { className, style } for use with Tailwind + inline styles.
- *
- * Variants:
- * - 'header' / 'footer': Textural overlays contained within header/footer boundaries
- * - 'card': Card-level shadow class (replaces default shadow-lg)
- *
- * Effects by expansion:
- * - We Were Here First!: Beast claw-scratch crosshatch texture + inner border
- * - Rainmaker: Driving rain-streak diagonal texture + inner shadow
- * - False Flag: Windows 95-esque beveled border (inline styles)
- * - Mech Monday: CRT horizontal scanline texture + double inner border
- */
-export function getSourceStyles(
-  source: SURefEnumSource | undefined,
-  disabled: boolean = false,
-  variant: 'header' | 'footer' | 'card' = 'header',
-  isExpanded: boolean = true
-): { className: string; style: React.CSSProperties } {
-  if (!source || disabled) return { className: '', style: {} }
-  if (!isExpanded && variant === 'footer') return { className: '', style: {} }
-
-  if (variant === 'card') {
-    switch (source) {
-      case 'We Were Here First!':
-        return { className: 'expansion-beast-card', style: {} }
-      case 'False Flag':
-        return { className: 'expansion-falseflag-card', style: {} }
-      case 'Rainmaker':
-        return { className: 'expansion-rain-card', style: {} }
-      case 'Mech Monday':
-        return { className: 'expansion-scanline-card', style: {} }
-      case 'Salvage Union Starter Set':
-        return { className: 'expansion-scanline-card', style: {} }
-      case 'Reclamation of the Wastes':
-        return { className: 'expansion-wastes-card', style: {} }
-      case 'The Hive':
-        return { className: 'expansion-hive-card', style: {} }
-      case "Thatcher's Mech Base":
-        return { className: 'expansion-mechbase-card', style: {} }
-      case 'Relics of a Time Gone By':
-        return { className: 'expansion-relics-card', style: {} }
-      default:
-        return { className: '', style: {} }
-    }
-  }
-
-  switch (source) {
-    case 'We Were Here First!': {
-      return {
-        className: 'expansion-beast-texture',
-        style: {},
-      }
-    }
-    case 'False Flag': {
-      return {
-        className: 'relative',
-        style: {
-          borderTop: '3px solid #dfdfdf',
-          borderLeft: '3px solid #dfdfdf',
-          borderBottom: '3px solid #404040',
-          borderRight: '3px solid #404040',
-          boxShadow: 'inset 2px 2px 0 0 #fff, inset -2px -2px 0 0 #808080, 1px 1px 0 0 #000',
-        },
-      }
-    }
-    case 'Rainmaker': {
-      return {
-        className: 'expansion-rain-texture',
-        style: {},
-      }
-    }
-    case 'Mech Monday': {
-      return {
-        className: 'expansion-scanline-texture',
-        style: {},
-      }
-    }
-    case 'Salvage Union Starter Set': {
-      return {
-        className: 'expansion-scanline-texture',
-        style: {},
-      }
-    }
-    case 'Reclamation of the Wastes': {
-      return {
-        className: 'expansion-wastes-texture',
-        style: {},
-      }
-    }
-    case 'The Hive': {
-      return {
-        className: 'expansion-hive-texture',
-        style: {},
-      }
-    }
-    case "Thatcher's Mech Base": {
-      return {
-        className: 'expansion-mechbase-texture',
-        style: {},
-      }
-    }
-    case 'Relics of a Time Gone By': {
-      return {
-        className: 'expansion-relics-texture',
-        style: {},
-      }
-    }
-    default:
-      return { className: '', style: {} }
   }
 }

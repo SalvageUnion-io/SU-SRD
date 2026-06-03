@@ -1,43 +1,47 @@
 import { cn } from '../../../../utils/cn'
 import { Text } from '../../../base/Text'
+import { accentSurface } from '../../referenceEntityHelpers'
 
 type ReferenceEntityFooterProps = {
   footerDisplayName: string | undefined
   source: string | undefined
   booklet: string | undefined
   page: string | number | undefined
-  compact: boolean
   headerBg: string | undefined
   headerBgColor: string | undefined
-  contentPaddingX: number
-  sourceFooterStyles: { className: string; style: React.CSSProperties }
 }
+
+// Shared type scale for the three footer tags (name / source / page) — one source
+// of truth for the footer's size/weight/transform so they can't drift.
+const footerTagClass = 'whitespace-nowrap text-[0.6rem] font-medium uppercase'
 
 export function ReferenceEntityFooter({
   footerDisplayName,
   source,
   booklet,
   page,
-  compact,
   headerBg,
   headerBgColor,
-  contentPaddingX,
-  sourceFooterStyles,
 }: ReferenceEntityFooterProps) {
-  const sourceLabel = source && booklet ? `${source} (${booklet})` : source
+  // Drop the "Salvage Union " prefix in footers — "Salvage Union Workshop
+  // Manual" reads as "Workshop Manual", "Salvage Union Starter Set" as
+  // "Starter Set" — keeping the source tag short.
+  const shortSource = source?.replace(/^Salvage Union\s+/i, '')
+  const sourceLabel = shortSource && booklet ? `${shortSource} (${booklet})` : shortSource
+  const accent = accentSurface(headerBg, headerBgColor)
   return (
     <div
       className={cn(
-        'flex w-full items-center justify-between gap-4 py-3 text-su-black',
-        headerBg || 'bg-su-white',
-        sourceFooterStyles.className
+        // Slim footer: half the vertical padding, text vertically centred.
+        'flex w-full items-center justify-between gap-4 py-1.5 text-su-black',
+        accent.className
       )}
       style={{
-        paddingLeft: `${contentPaddingX}rem`,
-        paddingRight: `${contentPaddingX}rem`,
-        ...(headerBgColor ? { backgroundColor: headerBgColor } : {}),
-        ...sourceFooterStyles.style,
-        borderTop: `${compact ? 2 : 3}px solid black`,
+        // Align the footer's left/right extremes with the white body block
+        // edges (the body box is inset by mx-3 = 0.75rem).
+        paddingLeft: '0.75rem',
+        paddingRight: '0.75rem',
+        ...accent.style,
       }}
     >
       <div className="flex min-w-0 shrink items-center gap-2">
@@ -45,10 +49,7 @@ export function ReferenceEntityFooter({
           <Text
             variant="pseudoheader"
             as="span"
-            className={cn(
-              'shrink-0 overflow-hidden text-ellipsis whitespace-nowrap text-xs uppercase',
-              compact ? 'font-semibold' : 'font-bold'
-            )}
+            className={cn('shrink-0 overflow-hidden text-ellipsis', footerTagClass)}
           >
             {footerDisplayName}
           </Text>
@@ -57,23 +58,12 @@ export function ReferenceEntityFooter({
 
       <div className="flex shrink-0">
         {sourceLabel && (
-          <Text
-            variant="pseudoheader"
-            as="span"
-            className={cn('whitespace-nowrap text-xs font-semibold uppercase', page && 'mr-4')}
-          >
+          <Text variant="pseudoheader" as="span" className={cn(footerTagClass, page && 'mr-4')}>
             {sourceLabel}
           </Text>
         )}
         {page && (
-          <Text
-            variant="pseudoheader"
-            as="span"
-            className={cn(
-              'whitespace-nowrap text-xs uppercase',
-              compact ? 'font-semibold' : 'font-bold'
-            )}
-          >
+          <Text variant="pseudoheader" as="span" className={footerTagClass}>
             Page {page}
           </Text>
         )}

@@ -1,6 +1,6 @@
 # roll-tables
 
-Random tables and roll tables in Salvage Union
+Random tables and roll tables
 
 ## Metadata
 

@@ -1,6 +1,6 @@
 # npcs
 
-Non-player characters and people in Salvage Union
+Non-player characters and people
 
 ## Metadata
 

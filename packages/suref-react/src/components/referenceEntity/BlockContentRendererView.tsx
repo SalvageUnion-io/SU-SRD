@@ -6,6 +6,7 @@ import { DataValueDisplayView } from './DataValueDisplayView'
 import { borderColorFromHeaderBg } from './referenceEntityHelpers'
 import { cn } from '../../utils/cn'
 import { SectionSeparator } from './ReferenceEntityDisplay/SectionSeparator'
+import { StaticChoiceCard } from './choiceCard/ChoiceCard'
 
 type BlockContentRendererViewProps = {
   /** Content blocks to render */
@@ -45,29 +46,36 @@ export function BlockContentRendererView({
     return null
   }
 
+  // borderColor now only colours the list-item bullet square (see ContentBlock,
+  // ~line 217); the source-texture treatment that once bordered each section is gone.
   const borderColor = borderColorFromHeaderBg(headerBg, headerBgColor)
 
+  // Section grouping (heading/datavalues blocks start a new section with top spacing)
+  // is gated on borderColor: entities without a derived colour render the flat,
+  // ungrouped block flow. Kept intentional to preserve current rendered spacing.
+  const groupSections = Boolean(borderColor)
+
   // Group content blocks into sections: blocks before any heading/datavalues are ungrouped,
-  // each heading or datavalues block starts a new bordered section
+  // each heading or datavalues block starts a new section
   const sectionStarters = new Set(['heading', 'datavalues'])
   const sections: {
-    isBorderedSection: boolean
+    startsSection: boolean
     blocks: { block: SURefObjectContentBlock; originalIndex: number }[]
   }[] = []
   let current: {
-    isBorderedSection: boolean
+    startsSection: boolean
     blocks: { block: SURefObjectContentBlock; originalIndex: number }[]
-  } = { isBorderedSection: false, blocks: [] }
+  } = { startsSection: false, blocks: [] }
 
   for (let i = 0; i < content.length; i++) {
     const block = content[i]!
-    if (block.type && sectionStarters.has(block.type) && borderColor) {
+    if (block.type && sectionStarters.has(block.type) && groupSections) {
       // Push current section if it has blocks
       if (current.blocks.length > 0) {
         sections.push(current)
       }
-      // Start a new bordered section
-      current = { isBorderedSection: true, blocks: [{ block, originalIndex: i }] }
+      // Start a new section
+      current = { startsSection: true, blocks: [{ block, originalIndex: i }] }
     } else {
       current.blocks.push({ block, originalIndex: i })
     }
@@ -79,7 +87,7 @@ export function BlockContentRendererView({
   return (
     <div>
       {sections.map((section, sIdx) => {
-        if (!section.isBorderedSection) {
+        if (!section.startsSection) {
           return section.blocks.map(({ block, originalIndex }) => (
             <ContentBlock
               key={originalIndex}
@@ -125,10 +133,7 @@ export function BlockContentRendererView({
               </div>
             )}
             {contentBlocks.length > 0 && (
-              <div
-                className={compact ? 'pl-2' : 'pl-3'}
-                style={{ borderLeft: `3px solid ${borderColor}` }}
-              >
+              <div>
                 {contentBlocks.map(({ block, originalIndex }) => (
                   <ContentBlock
                     key={originalIndex}
@@ -136,6 +141,7 @@ export function BlockContentRendererView({
                     fontSize={fontSize}
                     compact={compact}
                     chassisName={chassisName}
+                    borderColor={borderColor}
                   />
                 ))}
               </div>
@@ -187,18 +193,10 @@ function ContentBlock({
       return (
         <div
           className={cn(
-            'mb-1 break-words pl-2 font-medium leading-snug whitespace-normal text-pretty text-su-black',
+            'mb-1 break-words font-medium leading-snug whitespace-normal text-pretty text-su-black',
             fontSize
           )}
-          style={{
-            overflowWrap: 'break-word',
-            ...(borderColor
-              ? {
-                  borderLeft: `3px solid ${borderColor}`,
-                  paddingLeft: compact ? '0.5rem' : '0.75rem',
-                }
-              : {}),
-          }}
+          style={{ overflowWrap: 'break-word' }}
         >
           {parsedValue}
         </div>
@@ -218,41 +216,22 @@ function ContentBlock({
       return <SectionSeparator label={stringValue} fontSize={headingFontSize} />
     }
 
-    case 'list-item':
+    case 'list-item': {
+      // List items render as display-only choice cards: a coloured frame over a
+      // white body. Labelled items (e.g. NPC motivations) lead with the black-stamp
+      // title; unlabelled bullets (e.g. "scour the wastelands for one of the
+      // following" options) are just the framed white body.
       return (
-        <div
-          className={cn('mb-2 pl-2 font-medium leading-snug text-pretty text-su-black', fontSize)}
-          style={
-            borderColor
-              ? {
-                  borderLeft: `3px solid ${borderColor}`,
-                  paddingLeft: compact ? '0.5rem' : '0.75rem',
-                }
-              : undefined
-          }
-        >
-          {block.label ? (
-            <>
-              <Text as="span" className="font-bold">
-                - {block.label}:
-              </Text>
-              <div className="mt-1 mb-2 pl-4">
-                <Text as="span" className="mr-1 font-bold">
-                  &#8226;
-                </Text>
-                {parsedValue}
-              </div>
-            </>
-          ) : (
-            <>
-              <Text as="span" className="mr-1 font-bold">
-                -
-              </Text>
-              {parsedValue}
-            </>
-          )}
+        <div className="mb-2">
+          <StaticChoiceCard
+            label={block.label ? String(block.label) : undefined}
+            description={typeof stringValue === 'string' ? stringValue : undefined}
+            compact={compact}
+            parentHeaderBgColor={borderColor}
+          />
         </div>
       )
+    }
     case 'hint':
       return (
         <div
@@ -270,18 +249,10 @@ function ContentBlock({
       return (
         <div
           className={cn(
-            'mb-1 break-words pl-2 font-normal italic leading-snug whitespace-normal text-pretty text-su-grey-dark',
+            'mb-1 break-words font-normal italic leading-snug whitespace-normal text-pretty text-su-grey-dark',
             fontSize
           )}
-          style={{
-            overflowWrap: 'break-word',
-            ...(borderColor
-              ? {
-                  borderLeft: `3px solid ${borderColor}`,
-                  paddingLeft: compact ? '0.5rem' : '0.75rem',
-                }
-              : {}),
-          }}
+          style={{ overflowWrap: 'break-word' }}
         >
           {parsedValue}
         </div>
@@ -289,17 +260,7 @@ function ContentBlock({
 
     case 'label':
       return (
-        <div
-          className="pl-2"
-          style={
-            borderColor
-              ? {
-                  borderLeft: `3px solid ${borderColor}`,
-                  paddingLeft: compact ? '0.5rem' : '0.75rem',
-                }
-              : undefined
-          }
-        >
+        <div>
           {block.label && (
             <Text variant="pseudoheader" className="mb-1 text-xs">
               {block.label}
@@ -314,17 +275,7 @@ function ContentBlock({
     default:
       // Fallback for unknown types - render as paragraph
       return (
-        <div
-          className={cn('pl-2 font-medium leading-snug text-pretty text-su-black', fontSize)}
-          style={
-            borderColor
-              ? {
-                  borderLeft: `3px solid ${borderColor}`,
-                  paddingLeft: compact ? '0.5rem' : '0.75rem',
-                }
-              : undefined
-          }
-        >
+        <div className={cn('font-medium leading-snug text-pretty text-su-black', fontSize)}>
           {parsedValue}
         </div>
       )

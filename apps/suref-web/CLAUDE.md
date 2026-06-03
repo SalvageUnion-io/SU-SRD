@@ -26,7 +26,6 @@ Static SRD reference site for Salvage Union game data.
 - `/schema/[schemaId]` - Schema list view
 - `/schema/[schemaId]/item/[itemId]` - Individual item view
 - `/about` - About page
-- `/randsum` - Random table roller
 - `/404` - Not found
 
 ## Key Directories

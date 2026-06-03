@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test'
-import { render } from '@testing-library/react'
+import { render, within } from '@testing-library/react'
 import {
   getEntitySchemas,
   getModel,
@@ -18,7 +18,7 @@ describe('SchemaViewerIsland', () => {
     const model = getModel(firstSchema.id)!
     const entities = model.all()
 
-    const { getByText } = render(
+    const { container } = render(
       <SchemaViewerIsland
         initialData={entities}
         schemaId={firstSchema.id}
@@ -27,9 +27,12 @@ describe('SchemaViewerIsland', () => {
       />
     )
 
-    // FilterRow renders the label as visible text in a <span>
-    expect(getByText('Tech Level')).toBeTruthy()
-    expect(getByText('Source')).toBeTruthy()
+    // FilterRow renders the label as visible text in a <span>. Scope to the
+    // filter rail — entity cards (e.g. granted equipment) also surface a
+    // "Tech Level" badge in the grid.
+    const filterRail = container.querySelector('aside')!
+    expect(within(filterRail).getByText('Tech Level')).toBeTruthy()
+    expect(within(filterRail).getByText('Source')).toBeTruthy()
   })
 
   for (const schema of entitySchemas) {

@@ -120,9 +120,13 @@ export const DataValueSchema = z
     label: z.union([z.string(), z.number()]).describe('Display label for this data value'),
     value: z.union([z.string(), z.number()]).describe('The data value').optional(),
     type: z.string().describe('Type classification for this data value').optional(),
+    unit: z
+      .string()
+      .describe('Optional unit shown after the value (e.g. damage type "SP")')
+      .optional(),
   })
   .strict()
-  .describe('A data value with label, optional value, and optional type')
+  .describe('A data value with label, optional value, optional type, and optional unit')
 
 /**
  * Block of structured content for rendering (paragraph, heading, list item, etc.)
@@ -133,6 +137,7 @@ export const ContentBlockSchema: z.ZodType<{
   value?: string | z.infer<typeof DataValueSchema>[]
   label?: string
   level?: number
+  lead?: boolean
   items?: Array<{
     type?: z.infer<typeof ContentTypeSchema>
     value?: string | z.infer<typeof DataValueSchema>[]
@@ -152,6 +157,7 @@ export const ContentBlockSchema: z.ZodType<{
           .optional(),
         label: z.string().optional(),
         level: z.number().int().min(1).max(6).optional(),
+        lead: z.boolean().optional(),
         items: z
           .array(
             z
@@ -389,6 +395,49 @@ export const SystemModuleSchema = StatsSchema.extend({
 }).describe('A system or module that can be installed on a mech')
 
 /**
+ * Choice effect schema — describes a mechanical effect applied when a choice option is selected
+ */
+/**
+ * A single mechanical effect of a choice option, discriminated by `op` so each
+ * operation only permits the fields it actually uses (no `removeTrait` with an
+ * `amount`, no `addDamage` with an `amount`, etc.):
+ *
+ * - `addTrait`    — add a trait by name; optional `amount` is its magnitude
+ *                   (e.g. Burn 1). Adding a trait that already exists upgrades it.
+ * - `removeTrait` — strip a trait by name.
+ * - `setRange`    — replace the Range datavalue.
+ * - `addDamage`   — increase the Damage datavalue; optional `unit` (e.g. "SP").
+ */
+export const ChoiceEffectSchema = z.discriminatedUnion('op', [
+  z
+    .object({
+      op: z.literal('addTrait'),
+      value: z.string(),
+      amount: z.union([z.string(), z.number()]).optional(),
+    })
+    .strict(),
+  z
+    .object({
+      op: z.literal('removeTrait'),
+      value: z.string(),
+    })
+    .strict(),
+  z
+    .object({
+      op: z.literal('setRange'),
+      value: z.union([z.string(), z.number()]),
+    })
+    .strict(),
+  z
+    .object({
+      op: z.literal('addDamage'),
+      value: z.union([z.string(), z.number()]),
+      unit: z.string().optional(),
+    })
+    .strict(),
+])
+
+/**
  * Choice options schema
  */
 const ChoiceOptionSchema = z
@@ -396,6 +445,7 @@ const ChoiceOptionSchema = z
     label: z.string(),
     value: z.string(),
     description: z.string().optional(),
+    effects: z.array(ChoiceEffectSchema).optional(),
   })
   .strict()
 

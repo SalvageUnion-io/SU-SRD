@@ -220,6 +220,12 @@
     "source": "Salvage Union Workshop Manual",
     "tree": "Hacking",
     "level": 1,
+    "grants": [
+      {
+        "name": "Hacking Kit",
+        "schema": "equipment"
+      }
+    ],
     "page": 34,
     "actions": ["Hacking Kit"],
     "description": "Versatile tool for allowing Mech Module hacks on foot and vice-versa.",
@@ -819,6 +825,12 @@
     "source": "Salvage Union Workshop Manual",
     "tree": "Advanced Scout",
     "level": 2,
+    "grants": [
+      {
+        "name": "Camo Suit",
+        "schema": "equipment"
+      }
+    ],
     "page": 51,
     "actions": ["Camo Suit"],
     "description": "Gain the use of an advanced Camo Suit that will make you invisible for short periods of time."
@@ -829,6 +841,12 @@
     "source": "Salvage Union Workshop Manual",
     "tree": "Advanced Scout",
     "level": 3,
+    "grants": [
+      {
+        "name": "Wingsuit",
+        "schema": "equipment"
+      }
+    ],
     "page": 51,
     "actions": ["Wingsuit"],
     "description": "Gain a Wingsuit which allows you to fly."
@@ -849,6 +867,12 @@
     "source": "Salvage Union Workshop Manual",
     "tree": "Legendary Scout",
     "level": "L",
+    "grants": [
+      {
+        "name": "Teleport Beacon",
+        "schema": "equipment"
+      }
+    ],
     "page": 51,
     "actions": ["Teleport Beacon"],
     "description": "Gain a beacon and controller. Activate the controller to be teleported to the beacon."
@@ -937,6 +961,12 @@
     "source": "Salvage Union Workshop Manual",
     "tree": "Survivalist",
     "level": 3,
+    "grants": [
+      {
+        "name": "Custom Missile Launcher",
+        "schema": "equipment"
+      }
+    ],
     "page": 55,
     "actions": ["Custom Missile Launcher"],
     "description": "Gain a specialised Missile Launcher that only you can use.",
@@ -1115,6 +1145,12 @@
     "source": "Salvage Union Workshop Manual",
     "tree": "Fabricator",
     "level": 2,
+    "grants": [
+      {
+        "name": "Miniaturised EMP",
+        "schema": "equipment"
+      }
+    ],
     "page": 64,
     "actions": ["Miniaturised EMP"],
     "description": "Gain a mini-EMP that when activated shuts down all electronics in Close Range for 10 mins."
@@ -1251,6 +1287,12 @@
     "source": "Salvage Union Workshop Manual",
     "tree": "Legendary Smuggler",
     "level": "L",
+    "grants": [
+      {
+        "name": "Knife Missile",
+        "schema": "equipment"
+      }
+    ],
     "page": 73,
     "actions": ["Knife Missile"],
     "description": "Gain a Knife Missile, a small floating assassination device you control."
@@ -1261,6 +1303,12 @@
     "source": "Salvage Union Workshop Manual",
     "tree": "Legendary Smuggler",
     "level": "L",
+    "grants": [
+      {
+        "name": "Stealth Field Generator",
+        "schema": "equipment"
+      }
+    ],
     "page": 73,
     "actions": ["Stealth Field Generator"],
     "description": "This makes you and everything in Close range invisible indefinitely."

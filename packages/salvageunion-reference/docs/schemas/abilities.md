@@ -1,6 +1,6 @@
 # abilities
 
-Pilot abilities and skills in Salvage Union
+Pilot abilities and skills
 
 ## Metadata
 

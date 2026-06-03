@@ -1,6 +1,6 @@
 # keywords
 
-Game keywords and terminology in Salvage Union
+Game keywords and terminology
 
 ## Metadata
 

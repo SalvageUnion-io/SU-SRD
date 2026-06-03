@@ -2374,74 +2374,6 @@
     "actionSource": "abilities"
   },
   {
-    "id": "1fc25daa-b959-46f9-8e52-94ef76f0b0b5",
-    "traits": [
-      {
-        "type": "ballistic"
-      }
-    ],
-    "damage": {
-      "damageType": "SP",
-      "amount": 2
-    },
-    "range": ["Long"],
-    "name": "Custom Sniper Rifle (Custom Sniper Rifle)",
-    "displayName": "Custom Sniper Rifle",
-    "content": [
-      {
-        "type": "paragraph",
-        "value": "Attack with your custom sniper rifle. Base damage is 2 SP at Tech 1, increasing by 1 SP per Tech Level."
-      },
-      {
-        "type": "list-item",
-        "value": "The Custom Sniper Rifle increases its Range to Far.",
-        "label": "Rangefinder"
-      },
-      {
-        "type": "list-item",
-        "value": "You may spend 2 AP to automatically hit with the Custom Sniper Rifle. It also gains the [[Targeter]] Trait.",
-        "label": "Laser Guidance"
-      },
-      {
-        "type": "list-item",
-        "value": "You may spend 2 AP when you make an attack. If it hits, a System, Module, or appendage of your choice on the target is damaged. It also gains the [[Targeter]] Trait.",
-        "label": "Pinpoint Targeter"
-      },
-      {
-        "type": "list-item",
-        "value": "The Custom Sniper Rifle gains the [[Anti-Organic]] Trait.",
-        "label": "Dum Dum Rounds"
-      },
-      {
-        "type": "list-item",
-        "value": "The Custom Sniper Rifle deals an additional 1 SP damage.",
-        "label": "High Calibre Rounds"
-      },
-      {
-        "type": "list-item",
-        "value": "The Custom Sniper Rifle gains the [[Deadly]] Trait.",
-        "label": "Anti-Matter"
-      },
-      {
-        "type": "list-item",
-        "value": "The Custom Sniper Rifle gains the [[Flashy]] Trait.",
-        "label": "Flashy"
-      },
-      {
-        "type": "list-item",
-        "value": "The Custom Sniper Rifle gains the [[Silent]] Trait.",
-        "label": "Silencer"
-      },
-      {
-        "type": "list-item",
-        "value": "The Custom Sniper Rifle is designed to fold down into a briefcase, making it easily concealable.",
-        "label": "Compact Design"
-      }
-    ],
-    "actionSource": "abilities",
-    "actionType": "Turn"
-  },
-  {
     "name": "Cybernetic Neuralink",
     "id": "d6ccd961-09a0-41cb-924d-17f8e83ebae4",
     "content": [
@@ -2763,19 +2695,6 @@
       }
     ],
     "actionSource": "modules"
-  },
-  {
-    "id": "78dd32b6-334c-454d-bdf1-97847716fea0",
-    "name": "Hack",
-    "traits": [
-      {
-        "type": "hacking"
-      }
-    ],
-    "actionType": "Turn",
-    "range": ["Medium"],
-    "activationCost": 2,
-    "tableName": "Hack"
   },
   {
     "id": "c0af420b-1690-42c9-99b4-b17f084a1191",

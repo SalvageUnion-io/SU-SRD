@@ -77,7 +77,7 @@ function NpcNameInput({
       <span
         ref={measureRef}
         aria-hidden
-        className={`pointer-events-none invisible absolute whitespace-pre font-mono ${fontClass} font-bold uppercase leading-none`}
+        className={`pointer-events-none invisible absolute whitespace-pre font-cond ${fontClass} font-bold uppercase leading-none`}
       >
         {value || placeholder}
       </span>
@@ -100,7 +100,7 @@ function NpcNameInput({
           onBlur={onBlur}
           className={cn(
             'border-none bg-transparent p-0 outline-none',
-            'font-mono font-bold uppercase leading-none tracking-tight',
+            'font-cond font-bold uppercase leading-none tracking-tight',
             'text-su-white placeholder:normal-case placeholder:text-su-white/50',
             fontClass
           )}

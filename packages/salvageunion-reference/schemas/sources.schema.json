@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://salvageunion.com/schemas/sources.schema.json",
   "title": "sources",
-  "description": "Source books and expansions for Salvage Union content",
+  "description": "Source books and expansions",
   "type": "array",
   "items": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -52,11 +52,15 @@
                       "type": {
                         "type": "string",
                         "description": "Type classification for this data value"
+                      },
+                      "unit": {
+                        "type": "string",
+                        "description": "Optional unit shown after the value (e.g. damage type \"SP\")"
                       }
                     },
                     "required": ["label"],
                     "additionalProperties": false,
-                    "description": "A data value with label, optional value, and optional type"
+                    "description": "A data value with label, optional value, optional type, and optional unit"
                   },
                   "description": "Array of data values when type is 'datavalues'"
                 }
@@ -64,6 +68,7 @@
             },
             "label": { "type": "string" },
             "level": { "type": "integer", "minimum": 1, "maximum": 6 },
+            "lead": { "type": "boolean" },
             "items": {
               "type": "array",
               "items": {
@@ -102,11 +107,15 @@
                             "type": {
                               "type": "string",
                               "description": "Type classification for this data value"
+                            },
+                            "unit": {
+                              "type": "string",
+                              "description": "Optional unit shown after the value (e.g. damage type \"SP\")"
                             }
                           },
                           "required": ["label"],
                           "additionalProperties": false,
-                          "description": "A data value with label, optional value, and optional type"
+                          "description": "A data value with label, optional value, optional type, and optional unit"
                         },
                         "description": "Array of data values when type is 'datavalues'"
                       }
@@ -211,6 +220,6 @@
     },
     "required": ["id", "indexable", "blackMarket", "name", "source", "page"],
     "additionalProperties": false,
-    "description": "Source books and expansions for Salvage Union content"
+    "description": "Source books and expansions"
   }
 }

@@ -59,6 +59,10 @@ Dated `2026-03-10-*` and `audit-*` files are historical snapshots; prefer AUDIT-
 
 Forward-looking design docs. If a doc here describes implemented code, it should be archived (open task).
 
+### [`superpowers/specs/`](superpowers/specs/) — Feature design specifications
+
+Detailed feature specs produced during planning. Describes the intended design and rationale for a feature before and during implementation (e.g. `2026-06-01-granted-equipment-choices-design.md`). Reference these when implementing or reviewing a feature from the same planning cycle.
+
 ### Per-package CLAUDE.md
 
 Each app and shared package has its own `CLAUDE.md` with stack-specific conventions:

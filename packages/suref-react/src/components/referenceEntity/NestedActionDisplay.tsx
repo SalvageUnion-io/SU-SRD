@@ -10,7 +10,7 @@ import { DataValueDisplayView } from './DataValueDisplayView'
 import { RollTable } from '../shared/RollTable'
 import { borderColorFromHeaderBg } from './referenceEntityHelpers'
 import { SectionSeparator } from './ReferenceEntityDisplay/SectionSeparator'
-import { Text } from '../base/Text'
+import { ActionCard } from './ActionCard'
 import { cn } from '../../utils/cn'
 
 type NestedActionDisplayProps = {
@@ -22,18 +22,20 @@ type NestedActionDisplayProps = {
   hideContent?: boolean
   /** Header background class (e.g. 'bg-su-orange') for left border color */
   headerBg?: string
-  /** When true, renders title as a SectionSeparator instead of a pseudoheader */
+  /**
+   * When true, renders title as a SectionSeparator instead of an action card.
+   * When false (default), renders the new ActionCard entity-card treatment.
+   */
   sectionHeader?: boolean
 }
 
 /**
- * NestedActionDisplay - Renders sub-actions in a visually subordinate style
+ * NestedActionDisplay — renders sub-actions in one of two modes:
  *
- * Used for rendering nested actions from entity.actions arrays.
- * Visually distinct from ReferenceEntityDisplay with:
- * - Border to separate from main content
- * - Simpler, more compact layout
- * - Lower visual priority than full ReferenceEntityDisplay
+ * - sectionHeader=true (legacy/crawler path): title as SectionSeparator + left-border
+ *   content block. Kept for backward compat with callers that pass sectionHeaders.
+ * - sectionHeader=false (default): delegates to ActionCard for the new entity-card
+ *   treatment. This is the standard path for titans, NPCs, creatures, squads, etc.
  */
 export function NestedActionDisplay({
   data,
@@ -42,12 +44,24 @@ export function NestedActionDisplay({
   headerBg,
   sectionHeader = false,
 }: NestedActionDisplayProps) {
+  // New path: render as an entity card.
+  if (!sectionHeader) {
+    return (
+      <ActionCard
+        data={data}
+        compact={compact}
+        hideContent={hideContent}
+        parentHeaderBg={headerBg}
+      />
+    )
+  }
+
+  // Legacy path: SectionSeparator title + left-border content block.
   // Regular actions use AP currency
   const details = extractReferenceEntityDetails(data, undefined, 'AP')
 
   // Match ReferenceEntityDisplay fontSize.sm: compact ? 'xs' : 'sm'
   const fontSize = compact ? 'text-xs' : 'text-sm'
-  const titleFontSize = compact ? 'text-sm' : 'text-xl'
   const verticalSpacing = compact ? 'py-1 gap-1' : 'py-2 gap-2'
   const hasContent = data.content && data.content.length > 0
   // Resolve table: direct property first, then look up roll table by action name
@@ -67,17 +81,9 @@ export function NestedActionDisplay({
 
   return (
     <div className="overflow-hidden bg-transparent">
-      {sectionHeader ? (
-        <div className={verticalSpacing}>
-          <SectionSeparator label={displayName} compact={compact} />
-        </div>
-      ) : (
-        <div className={cn('flex flex-row flex-wrap items-center', verticalSpacing)}>
-          <Text as="span" variant="pseudoheader" className={titleFontSize}>
-            {displayName}
-          </Text>
-        </div>
-      )}
+      <div className={verticalSpacing}>
+        <SectionSeparator label={displayName} compact={compact} />
+      </div>
 
       {/* Bordered section: text content only */}
       {(details.length > 0 || requiredTraits.length > 0 || hasContentToRender) && (

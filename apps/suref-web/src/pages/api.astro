@@ -30,16 +30,13 @@ const baseUrl = SITE_URL
   <div class="flex w-full flex-1 flex-col py-12">
     <div class="mx-auto flex w-full max-w-5xl flex-col gap-8 px-6">
 
-      <h1
-        class="box-decoration-clone bg-su-black px-2 py-1 font-mono text-3xl font-bold uppercase leading-none tracking-tight text-su-white"
-        style="line-height: 1;"
-      >
+      <h1 class="page-heading">
         JSON API Reference
       </h1>
 
       <!-- Overview -->
       <section class="flex flex-col gap-3 text-sm leading-relaxed">
-        <h2 class="font-mono text-lg font-bold uppercase">Overview</h2>
+        <h2 class="page-subheading">Overview</h2>
         <p>
           All game data on salvageunion.io is available as machine-readable JSON. The API is static — every endpoint is a plain file served directly from the site. No authentication is required.
         </p>
@@ -60,7 +57,7 @@ const baseUrl = SITE_URL
 
       <!-- Endpoints -->
       <section class="flex flex-col gap-6">
-        <h2 class="font-mono text-lg font-bold uppercase">Endpoints</h2>
+        <h2 class="page-subheading">Endpoints</h2>
 
         <!-- Schema data array -->
         <div class="rounded-md border-2 border-su-grey-light bg-su-white">
@@ -168,7 +165,7 @@ const baseUrl = SITE_URL
 
       <!-- Usage example -->
       <section class="flex flex-col gap-3">
-        <h2 class="font-mono text-lg font-bold uppercase">Usage Example</h2>
+        <h2 class="page-subheading">Usage Example</h2>
         <p class="text-sm leading-relaxed">
           Fetch all chassis data in browser JavaScript:
         </p>
@@ -179,7 +176,7 @@ console.log(chassis[0].name) // "Iron Mongrel"`}</code></pre>
 
       <!-- Available schemas -->
       <section class="flex flex-col gap-4">
-        <h2 class="font-mono text-lg font-bold uppercase">Available Schemas</h2>
+        <h2 class="page-subheading">Available Schemas</h2>
         <p class="text-sm leading-relaxed">
           The following schema IDs are available. Use them in the endpoint patterns above.
         </p>
@@ -217,7 +214,7 @@ console.log(chassis[0].name) // "Iron Mongrel"`}</code></pre>
 
       <!-- CORS & headers -->
       <section class="flex flex-col gap-3">
-        <h2 class="font-mono text-lg font-bold uppercase">CORS Policy</h2>
+        <h2 class="page-subheading">CORS Policy</h2>
         <p class="text-sm leading-relaxed">
           All <code class="rounded bg-su-blue-pale px-1 py-0.5">/schema/</code> endpoints include the following response headers:
         </p>
@@ -231,7 +228,7 @@ Content-Type: application/json</code></pre>
 
       <!-- Licensing note -->
       <section class="flex flex-col gap-3 text-sm leading-relaxed">
-        <h2 class="font-mono text-lg font-bold uppercase">Licensing</h2>
+        <h2 class="page-subheading">Licensing</h2>
         <p>
           Data returned by this API is published under the{' '}
           <a

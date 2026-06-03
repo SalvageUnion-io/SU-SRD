@@ -1,14 +1,15 @@
 import { useState, useCallback } from 'react'
 import type { ReactNode } from 'react'
 import { cn } from '../../utils/cn'
-import { Text } from '../base/Text'
 import { ControlButtons } from './ControlButtons'
 import { StatsBar } from './StatsBar'
+import { ValueDisplay } from './ValueDisplay'
 import type { StatItem } from './statsBarTypes'
 import { borderColorFromHeaderBg } from '../referenceEntity/referenceEntityHelpers'
 import type { ReferenceEntityControl } from '../referenceEntity/ReferenceEntityDisplay/referenceEntityControlTypes'
 import { StickyHeaderContext, StickyOffsetContext } from './StickyHeaderContext'
 import { useStickyCard } from './useStickyCard'
+import { CalloutMetaStamp } from '../referenceEntity/ReferenceEntityDisplay/components/CalloutMetaStamp'
 
 export type DisplayCardTab = {
   key: string
@@ -37,6 +38,10 @@ type DisplayCardProps = {
   children?: ReactNode
   /** Optional pseudoheader label above the card */
   label?: string
+  /** Optional small badge rendered as a second stamp beside the label (e.g. ability level) */
+  labelBadge?: string
+  /** Optional node rendered FIRST in the label callout row (e.g. a "Recommended" stamp) */
+  labelLead?: ReactNode
   /** Compact sizing: reduced min-height, padding, border width, font/stat sizes */
   compact?: boolean
   /** Header-only rendering: hides body, footer, and tabs. Orthogonal to compact. */
@@ -57,7 +62,7 @@ type DisplayCardProps = {
   bodyPadding?: string
   /** Override card wrapper className (replaces default shadow) and inline style */
   cardStyle?: { className?: string; style?: React.CSSProperties }
-  /** Override header className and inline style (e.g., texture overlays) */
+  /** Override header className and inline style (e.g., the pilot/crawler stripe accent) */
   headerStyle?: { className?: string; style?: React.CSSProperties }
   /** Override footer className and inline style */
   footerStyle?: { className?: string; style?: React.CSSProperties }
@@ -86,6 +91,8 @@ export function DisplayCard({
   footerContent,
   children,
   label,
+  labelBadge,
+  labelLead,
   compact: compactProp,
   listing: listingProp,
   onCardClick,
@@ -96,7 +103,7 @@ export function DisplayCard({
   cardStyle,
   headerStyle: headerStyleProp,
   footerStyle: footerStyleProp,
-  borderColor: borderColorProp = 'black',
+  borderColor: borderColorProp = 'var(--color-su-black)',
   headerTestId,
   stickyHeader = false,
   tabs,
@@ -106,6 +113,7 @@ export function DisplayCard({
 }: DisplayCardProps) {
   const isListing = !!listingProp
   const isCompact = !!compactProp
+  const hasCallout = !!(labelLead || label || labelBadge)
   const hasTabs = !isListing && tabs && tabs.length > 0
 
   const [activeTabKey, setActiveTabKey] = useState(DEFAULT_TAB_KEY)
@@ -175,7 +183,7 @@ export function DisplayCard({
       role={resolvedCardClick ? 'button' : undefined}
       tabIndex={resolvedCardClick ? 0 : undefined}
       className={cn(
-        'relative flex shrink-0 flex-col overflow-visible rounded-md',
+        'relative flex shrink-0 flex-col overflow-visible rounded-[3px]',
         cardStyle?.className || 'shadow-lg',
         disabled && 'opacity-50',
         // Focus ring for button mode: uses a dark inner ring + white outer offset
@@ -193,23 +201,26 @@ export function DisplayCard({
       onClick={resolvedCardClick}
       onKeyDown={resolvedCardClick ? handleCardKeyDown : undefined}
     >
-      {label && !isCompact && (
-        <Text
-          variant="pseudoheader"
-          as="span"
-          className="absolute z-30 ml-3 -mt-2 text-sm uppercase"
+      {hasCallout && (
+        <div
+          className={cn(
+            'absolute z-30 ml-3 flex items-center gap-1',
+            isCompact ? 'top-0 -translate-y-1/2' : '-mt-2'
+          )}
         >
-          {label}
-        </Text>
-      )}
-      {label && isCompact && (
-        <Text
-          variant="pseudoheader"
-          as="span"
-          className="absolute top-0 z-30 ml-3 -translate-y-1/2 whitespace-nowrap text-xs uppercase"
-        >
-          {label}
-        </Text>
+          {labelLead}
+          {/* A label + badge pair (e.g. TECH LEVEL · 1, or a tree + ability level)
+              renders as one segmented value — label on the dark stamp, value in a
+              bounded white box — matching the data-row tags (e.g. RANGE · LONG).
+              A lone label or badge stays a single dark stamp. */}
+          {label && labelBadge ? (
+            <ValueDisplay label={label} value={labelBadge} compact={isCompact} />
+          ) : label ? (
+            <CalloutMetaStamp compact={isCompact}>{label}</CalloutMetaStamp>
+          ) : labelBadge ? (
+            <CalloutMetaStamp compact={isCompact}>{labelBadge}</CalloutMetaStamp>
+          ) : null}
+        </div>
       )}
 
       {controls && (
@@ -232,7 +243,7 @@ export function DisplayCard({
           isSticky ? 'overflow-visible' : 'overflow-hidden',
           !isListing && 'flex-col'
         )}
-        style={{ borderRadius: `calc(0.375rem - ${borderWidth}px)` }}
+        style={{ borderRadius: `calc(3px - ${borderWidth}px)` }}
       >
         {/* Header wrapper — contains content row + optional tab bar.
             When stickyHeader, both stick together. headerRef measures the full height. */}
@@ -246,10 +257,25 @@ export function DisplayCard({
           {/* Content row — existing header layout */}
           <div
             className={cn(
-              'flex w-full flex-wrap items-center justify-between gap-2 overflow-visible',
-              isCompact ? 'min-h-[60px] px-0.5 py-1' : 'min-h-[80px] px-1.5 py-1.5',
-              !isCompact && label && 'pb-4 pt-4',
-              isCompact && label && 'pt-2',
+              'flex w-full flex-wrap justify-between gap-2 overflow-visible',
+              // Vertically centre the header content normally, but TOP-align it when
+              // the floating callout row is present (non-compact). Centring made the
+              // gap below the callout vary with header height — short headers
+              // (modules/systems) centred high and collided with the callout, tall
+              // ones (chassis) sat low. Top-aligning + a fixed top padding gives a
+              // consistent thin gap under the callout regardless of content height.
+              hasCallout ? 'items-start' : 'items-center',
+              // px-3 (12px) aligns the header content L/R extremes with the
+              // inset white body block (which uses mx-3) and the footer.
+              isCompact ? 'min-h-[60px] px-3 py-1' : 'min-h-[80px] px-3 py-1.5',
+              // Top padding clears the callout so the gap below it is consistent.
+              // Non-compact: every callout stamp is text-sm (lone stamps now match
+              // the segmented ValueDisplay), so pt-6 clears all of them uniformly
+              // and never runs into the title.
+              // Compact: callout sits centred on the edge (~8px of it below the
+              // top) → pt-3 ≈ 4px gap, tighter to suit dense listings.
+              !isCompact && hasCallout && 'pb-4 pt-6',
+              isCompact && hasCallout && 'pt-3',
               actualHeaderBg,
               headerStyleProp?.className,
               headerStyleProp?.className && 'h-full'
@@ -257,9 +283,6 @@ export function DisplayCard({
             style={{
               ...(headerBgColor ? { backgroundColor: headerBgColor } : {}),
               ...headerStyleProp?.style,
-              ...(!isListing && (children || footerContent || hasTabs)
-                ? { borderBottom: `${borderWidth}px solid ${effectiveBorderColor}` }
-                : {}),
             }}
             data-testid={headerTestId}
           >
@@ -379,7 +402,6 @@ export function DisplayCard({
                 ? { backgroundColor: headerBgColor }
                 : {}),
               ...footerStyleProp?.style,
-              borderTop: `${borderWidth}px solid ${effectiveBorderColor}`,
             }}
           >
             {footerContent}

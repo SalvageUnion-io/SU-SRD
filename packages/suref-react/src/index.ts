@@ -2,7 +2,6 @@
 export type { DataValue } from './types/common'
 export type { PatternOverrideData } from './components/referenceEntity/ReferenceEntityDisplay/referenceEntityDisplayTypes'
 export type { ReferenceEntityControl } from './components/referenceEntity/ReferenceEntityDisplay/referenceEntityControlTypes'
-export type { ChoiceInputRenderer } from './components/referenceEntity/ReferenceEntityDisplay/ReferenceEntityChoice'
 export type { DisplayCardTab } from './components/shared/DisplayCard'
 export type { StatItem } from './components/shared/statsBarTypes'
 export type { StatConfig } from './components/referenceEntity/ReferenceEntityDisplay/referenceEntityStatsConfig'
@@ -18,9 +17,15 @@ export { Toaster } from './components/ui/toaster'
 export { ReferenceEntityDisplay } from './components/referenceEntity/ReferenceEntityDisplay/index'
 export { ReferenceEntityDisplayTooltip } from './components/referenceEntity/ReferenceEntityDisplayTooltip'
 export { SectionSeparator } from './components/referenceEntity/ReferenceEntityDisplay/SectionSeparator'
+export {
+  EntityHrefProvider,
+  useEntityHref,
+} from './components/referenceEntity/ReferenceEntityDisplay/entityHrefContext'
+export type { EntityHrefBuilder } from './components/referenceEntity/ReferenceEntityDisplay/entityHrefContext'
 export { ReferenceEntityChassisAbilitiesContent } from './components/referenceEntity/ReferenceEntityDisplay/ReferenceEntityChassisAbilitiesContent'
 export { ClassAbilityTreeDisplay } from './components/referenceEntity/ClassAbilityTreeDisplay'
 export { NestedActionDisplay } from './components/referenceEntity/NestedActionDisplay'
+export { ActionCard } from './components/referenceEntity/ActionCard'
 export { getReferenceEntitySpacing } from './components/referenceEntity/ReferenceEntityDisplay/referenceEntityDisplayTypes'
 
 // Entity controls
@@ -74,3 +79,17 @@ export {
   getActivationCurrency,
 } from './lib/referenceEntityDataExtraction'
 export { DataValueDisplayView } from './components/referenceEntity/DataValueDisplayView'
+
+// Interactive choice cards (granted-equipment choices)
+export { ChoiceGroups } from './components/referenceEntity/choiceCard/ChoiceGroups'
+export { ChoiceGroup } from './components/referenceEntity/choiceCard/ChoiceGroup'
+export { ChoiceCard, FreeTextChoiceCard } from './components/referenceEntity/choiceCard/ChoiceCard'
+export type { ChoiceCardOption } from './components/referenceEntity/choiceCard/choiceSelectionHelpers'
+export {
+  isFreeTextChoice,
+  isMultiSelectChoice,
+  getChoiceCardOptions,
+  resolveMultiSelectCap,
+  toggleSelection,
+} from './components/referenceEntity/choiceCard/choiceSelectionHelpers'
+export type { ChoiceSelections } from './components/referenceEntity/choiceCard/choiceSelectionHelpers'

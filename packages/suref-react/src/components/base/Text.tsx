@@ -2,14 +2,14 @@ import { forwardRef } from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '../../utils/cn'
 
-const textVariants = cva('font-mono', {
+const textVariants = cva('', {
   variants: {
     variant: {
-      default: 'text-[var(--foreground)]',
+      default: 'font-mono text-[var(--foreground)]',
       pseudoheader:
-        'block w-fit self-start bg-su-black text-su-white px-1 py-0.5 font-bold uppercase leading-tight tracking-tight',
+        'block w-fit self-start bg-su-black text-su-white px-1 py-0.5 font-cond font-bold uppercase leading-tight tracking-[0.04em]',
       pseudoheaderInverse:
-        'block w-fit self-start bg-su-white text-su-black px-1 py-0.5 font-bold uppercase leading-tight tracking-tight',
+        'block w-fit self-start bg-su-white text-su-black px-1 py-0.5 font-cond font-bold uppercase leading-tight tracking-[0.04em]',
     },
   },
   defaultVariants: {

@@ -187,7 +187,6 @@ SU brand colors are designed for WCAG 2.1 AA compliance:
 **Key principle**: Brand colors (green, pink, orange) are used as background accents or on large header text, never as small body text on white. Recent fixes (commit `5a87011`) addressed:
 - Darkened `su-orange-dark` for 5.5:1 contrast ratio
 - FilterChip inactive state: replaced `opacity-30` with explicit `text-su-grey-dark`
-- Added missing `<h1>` on Randsum page
 - Added proper landmark structure across all pages
 
 ### Mobile Accessibility

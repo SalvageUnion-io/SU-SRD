@@ -89,6 +89,30 @@ describe('CardHeader', () => {
     expect(topLevelDivs.length).toBe(1)
   })
 
+  test('rightContent caps the left flex group at content-width with a 50% ceiling (non-compact)', () => {
+    const { container } = render(<CardHeader title="Title" rightContent={<span>Stats</span>} />)
+    // The left flex group is the first child div of the root flex container.
+    const leftGroup = container.querySelector(':scope > div > div') as HTMLElement
+    expect(leftGroup.className).toContain('flex-[0_1_auto]')
+    expect(leftGroup.className).toContain('max-w-[50%]')
+  })
+
+  test('rightContent caps the left flex group with a 60% ceiling (compact)', () => {
+    const { container } = render(
+      <CardHeader title="Title" rightContent={<span>Stats</span>} compact />
+    )
+    const leftGroup = container.querySelector(':scope > div > div') as HTMLElement
+    expect(leftGroup.className).toContain('flex-[0_1_auto]')
+    expect(leftGroup.className).toContain('max-w-[60%]')
+  })
+
+  test('without rightContent the left flex group fills the header and has no max-w cap', () => {
+    const { container } = render(<CardHeader title="Title only" />)
+    const leftGroup = container.querySelector(':scope > div > div') as HTMLElement
+    expect(leftGroup.className).toContain('flex-1')
+    expect(leftGroup.className).not.toContain('max-w-')
+  })
+
   test('disabled adds opacity-50 to string title', () => {
     render(<CardHeader title="Disabled Title" disabled />)
     const title = screen.getByText('Disabled Title')

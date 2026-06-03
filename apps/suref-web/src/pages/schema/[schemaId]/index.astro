@@ -13,9 +13,6 @@ const { schema, data } = Astro.props
 const { schemaId } = Astro.params
 
 const schemaName = schema.displayName || 'Schema'
-const capitalizedTitle =
-  schema.displayNamePlural ||
-  schema.title.charAt(0).toUpperCase() + schema.title.slice(1)
 const canonicalUrl = `${SITE_URL}/schema/${schemaId}/`
 
 // Pre-compute filter facets at build time
@@ -54,21 +51,14 @@ const structuredData = {
     { name: 'SRD', url: `${SITE_URL}/` },
     { name: schemaName, url: canonicalUrl },
   ]}
+  breadcrumbDescription={schema.description}
 >
   <div class="flex min-h-full flex-col">
-    <!-- Static header -->
-    <div class="flex flex-0 flex-col items-center bg-su-blue-pale px-2 py-8 md:p-8">
-      <h1
-        class="mb-2 box-decoration-clone bg-su-black px-2 py-1 text-center font-mono text-3xl font-bold uppercase leading-none tracking-tight text-su-white"
-        style="line-height: 1;"
-      >
-        {capitalizedTitle}
-      </h1>
-      <p class="mb-3 max-w-[800px] text-center text-su-black">
-        {schema.description}
-      </p>
-
-      <!-- Island handles search + filters + grid -->
+    <div class="flex flex-0 flex-col items-center bg-su-blue-pale px-2 pt-4 pb-8 md:p-8 md:pt-4">
+      {/* Visible heading band + description removed; the description now renders in
+          the breadcrumb bar (SRD / Class — <description>). Keep a screen-reader h1
+          so the listing page retains a heading for SEO/accessibility. */}
+      <h1 class="sr-only">{schema.displayNamePlural || schemaName}</h1>
       <SchemaViewerIsland
         client:visible
         initialData={data}

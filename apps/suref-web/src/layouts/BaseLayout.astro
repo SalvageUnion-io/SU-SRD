@@ -21,6 +21,8 @@ type Props = {
   noindex?: boolean
   preloadImage?: string
   breadcrumbs?: BreadcrumbItem[]
+  /** Optional descriptive tail shown after the breadcrumb trail (e.g. a schema description) */
+  breadcrumbDescription?: string
 }
 
 const {
@@ -34,6 +36,7 @@ const {
   noindex = false,
   preloadImage,
   breadcrumbs,
+  breadcrumbDescription,
 } = Astro.props
 
 const pathname = Astro.url.pathname.endsWith('/') ? Astro.url.pathname : Astro.url.pathname + '/'
@@ -49,9 +52,11 @@ const ogImageUrl = ogImage.startsWith('http') ? ogImage : new URL(ogImage, SITE_
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonicalUrl} />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <!-- Cargo "SU" mark — solid su-black plate, white SU + orange stripes -->
+    <link rel="icon" type="image/svg+xml" href="/favicons/su/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicons/su/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicons/su/favicon-16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicons/su/favicon-180.png" />
     <link rel="manifest" href="/site.webmanifest" />
 
     <!-- Open Graph -->
@@ -72,8 +77,10 @@ const ogImageUrl = ogImage.startsWith('http') ? ogImage : new URL(ogImage, SITE_
 
     {noindex && <meta name="robots" content="noindex, nofollow" />}
 
-    <!-- Preload critical font -->
-    <link rel="preload" href="/fonts/FiraCode-Variable.woff2" as="font" type="font/woff2" crossorigin />
+    <!-- Web fonts: Barlow superfamily via Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Semi+Condensed:wght@500;600;700&display=swap" rel="stylesheet" />
 
     {preloadImage && <link rel="preload" href={preloadImage} as="image" />}
 
@@ -85,10 +92,21 @@ const ogImageUrl = ogImage.startsWith('http') ? ogImage : new URL(ogImage, SITE_
     ))}
 
     <ClientRouter />
+
+    {/* The per-entity static block (data-static-fallback) is an SEO / no-JS
+        fallback only — the hydrated card is the real view. Strip it for JS users
+        on initial load AND after every view-transition navigation, so the
+        duplicate naked text never appears anywhere. */}
+    <script>
+      const stripStaticFallback = () =>
+        document.querySelectorAll('[data-static-fallback]').forEach((el) => el.remove())
+      stripStaticFallback()
+      document.addEventListener('astro:page-load', stripStaticFallback)
+    </script>
   </head>
   <body>
     <div class="flex min-h-screen flex-col bg-su-white">
-      <TopNavigation breadcrumbs={breadcrumbs} />
+      <TopNavigation breadcrumbs={breadcrumbs} breadcrumbDescription={breadcrumbDescription} />
       <main class="flex flex-1 flex-col bg-su-blue-pale" transition:animate="fade">
         <slot />
       </main>

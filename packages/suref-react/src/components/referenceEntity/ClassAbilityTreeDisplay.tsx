@@ -74,7 +74,7 @@ function TreeSection({
   activeAbilityIds,
 }: TreeGroup & { activeAbilityIds?: Set<string> }) {
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-4">
       <div className="pt-2">
         <SectionSeparator label={tree} value="Tree" compact />
       </div>

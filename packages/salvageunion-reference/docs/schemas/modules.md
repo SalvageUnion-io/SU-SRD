@@ -1,6 +1,6 @@
 # modules
 
-Mech modules in Salvage Union
+Mech modules
 
 ## Metadata
 

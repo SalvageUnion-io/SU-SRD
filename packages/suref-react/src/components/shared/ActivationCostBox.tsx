@@ -18,8 +18,11 @@ export function ActivationCostBox({
     <span className="inline-flex items-center overflow-visible p-0">
       <span
         className={cn(
-          'z-[2] inline-flex items-center justify-center whitespace-nowrap bg-su-black font-bold uppercase leading-none text-su-white',
-          compact ? 'px-0.5 text-xs' : 'px-0.5 text-base'
+          // py-0.5 matches the pseudoheader datavalue tags (TURN ACTION, …) so
+          // the AP badge box is the same height as the other datavalue cells.
+          'z-[2] inline-flex items-center justify-center whitespace-nowrap bg-su-black py-0.5 uppercase leading-none text-su-white',
+          // Match the datavalue tags' weight (font-normal compact / semibold)
+          compact ? 'px-1 text-xs font-normal' : 'px-1.5 text-sm font-semibold'
         )}
         style={{ lineHeight: 1 }}
       >
@@ -29,11 +32,13 @@ export function ActivationCostBox({
         className="z-[1] ml-0 h-0 w-0 self-center"
         aria-hidden="true"
         style={{
-          borderTop: compact ? '0.4em solid transparent' : '7px solid transparent',
-          borderBottom: compact ? '0.4em solid transparent' : '7px solid transparent',
+          // Pennant tip spans the full box height (font + 2×py-0.5) so the
+          // arrow matches the box and the neighbouring datavalue tags.
+          borderTop: compact ? '8px solid transparent' : '9px solid transparent',
+          borderBottom: compact ? '8px solid transparent' : '9px solid transparent',
           borderLeft: compact
-            ? '6px solid var(--color-su-black)'
-            : '7px solid var(--color-su-black)',
+            ? '7px solid var(--color-su-black)'
+            : '8px solid var(--color-su-black)',
         }}
       />
     </span>

@@ -1,6 +1,6 @@
 # equipment
 
-Pilot equipment and gear in Salvage Union
+Pilot equipment and gear
 
 ## Metadata
 

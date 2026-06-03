@@ -477,7 +477,8 @@ export function GuideStepsDisplay({
                               e.data,
                               e.schemaName,
                               `${step.id}-${e.schemaName}-${e.entityId}`,
-                              false,
+                              // listing: guide step entities render header-only
+                              true,
                               true,
                               e.entityControls,
                               e.disabled || e.isGreyedOut

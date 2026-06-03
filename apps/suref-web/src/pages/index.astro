@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro'
+import CatalogTile from '../components/CatalogTile.astro'
 import { getSchemaCatalog, SalvageUnionReference, getReferenceEntityData } from '../lib/gameData'
 import { getCatalogBg, getCatalogLabel } from '../lib/catalogColors'
 import { buildCatalogCategories } from '../lib/catalogHelpers'
@@ -30,8 +31,11 @@ const categories = buildCatalogCategories({
     url: SITE_URL,
   }}
 >
-  <div class="flex w-full flex-1 flex-col justify-center py-6">
+  <div class="flex w-full flex-1 flex-col py-6">
     <div class="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4">
+      {/* Visually-hidden page heading — preserves the landing-page h1 for SEO /
+          accessibility now that the visible hero band is gone. Search lives in
+          the top nav (and mobile nav). */}
       <h1 class="sr-only">Salvage Union System Reference Document</h1>
 
       <!-- Schema list -->
@@ -39,21 +43,16 @@ const categories = buildCatalogCategories({
         {categories.map((cat) => (
           <div>
             <div class="catalog-header mb-2">
-              <h2 class="bg-su-black px-1 font-mono font-bold uppercase tracking-tight text-su-white" style="line-height: 1; font-size: inherit;">
-                {cat.label}
-              </h2>
+              <h2 class="catalog-group-title">{cat.label}</h2>
             </div>
             <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {cat.schemas.map((card) => (
-                <a
+                <CatalogTile
                   href={card.href}
-                  class:list={['btn text-center catalog-item']}
-                  style={`--catalog-bg: ${card.catalogBg}${card.catalogLabel ? `; --catalog-label: ${card.catalogLabel}` : ''}`}
-                >
-                  {card.catalogLabel
-                    ? <span class="catalog-item-label">{card.label}</span>
-                    : card.label}
-                </a>
+                  name={card.label}
+                  catalogBg={card.catalogBg}
+                  catalogLabel={card.catalogLabel}
+                />
               ))}
             </div>
           </div>

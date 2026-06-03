@@ -1,7 +1,8 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro'
+import CatalogTile from '../components/CatalogTile.astro'
 import { getSchemaCatalog } from '../lib/gameData'
-import { getCatalogBg } from '../lib/catalogColors'
+import { getCatalogBg, getCatalogLabel } from '../lib/catalogColors'
 
 const catalog = getSchemaCatalog()
 const schemas = catalog.schemas.filter((s) => !s.meta).slice(0, 6)
@@ -27,20 +28,14 @@ const schemas = catalog.schemas.filter((s) => !s.meta).slice(0, 6)
       </p>
 
       <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        <a
-          href="/"
-          class="btn btn-inactive text-center"
-        >
-          Return to Home
-        </a>
+        <a href="/" class="catalog-item catalog-item--ghost">Return to Home</a>
         {schemas.map((schema) => (
-          <a
+          <CatalogTile
             href={`/schema/${schema.id}/`}
-            class:list={['btn text-center catalog-item']}
-            style={`--catalog-bg: ${getCatalogBg(schema.id)}`}
-          >
-            {schema.displayName}
-          </a>
+            name={schema.displayName}
+            catalogBg={getCatalogBg(schema.id)}
+            catalogLabel={getCatalogLabel(schema.id)}
+          />
         ))}
       </div>
     </div>

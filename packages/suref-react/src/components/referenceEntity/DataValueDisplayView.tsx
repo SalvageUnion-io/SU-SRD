@@ -68,7 +68,7 @@ export function DataValueDisplayView({
 
   if (item.type === 'requirement') {
     const trees = String(item.value ?? '').split('||')
-    const fontSize = compact ? 'text-xs' : 'text-base'
+    const fontSize = compact ? 'text-xs' : 'text-sm'
     const fontWeight = compact ? 'font-normal' : 'font-semibold'
     return (
       <span
@@ -117,7 +117,7 @@ export function DataValueDisplayView({
 
   if (item.type === 'segmented') {
     const segments = String(item.value ?? '').split('||')
-    const fontSize = compact ? 'text-xs' : 'text-base'
+    const fontSize = compact ? 'text-xs' : 'text-sm'
     const fontWeight = compact ? 'font-normal' : 'font-semibold'
     return (
       <span

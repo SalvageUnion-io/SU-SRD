@@ -91,6 +91,8 @@ const ogImage = displayData?.assetUrl || '/og-image.png'
 >
   <article class="flex min-h-full flex-1 flex-col items-center justify-center p-4">
     <ReferenceEntityIsland client:visible item={item} titleAs="h1" />
+    {/* SEO / no-JS fallback only — BaseLayout strips it for JS users on load +
+        every view-transition navigation, so the naked text never shows. */}
     {staticSummary && <StaticEntityContent summary={staticSummary} />}
   </article>
 </BaseLayout>

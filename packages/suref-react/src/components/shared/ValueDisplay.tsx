@@ -22,7 +22,7 @@ export function ValueDisplay({
   textColor,
   borderColor,
 }: ValueDisplayProps) {
-  const fontSize = compact ? 'text-xs' : 'text-base'
+  const fontSize = compact ? 'text-xs' : 'text-sm'
   const mainVariant = inverse ? 'pseudoheaderInverse' : 'pseudoheader'
   const valueVariant = inverse ? 'pseudoheader' : 'pseudoheaderInverse'
 

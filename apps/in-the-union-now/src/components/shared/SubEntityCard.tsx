@@ -1,7 +1,6 @@
-import { useCallback, useMemo, useState, useRef, useEffect } from 'react'
+import { useMemo, useState, useRef, useEffect } from 'react'
 import type { SURefEntity, ItemCondition } from 'salvageunion-reference'
 import {
-  getParagraphString,
   getEnergyPoints,
   getHeatCapacity,
   getChoices,
@@ -9,11 +8,10 @@ import {
 } from 'salvageunion-reference'
 import type { SURefEnumSchemaName } from 'salvageunion-reference'
 import { ReferenceEntityDisplay, ENTITY_STATS_CONFIG, ValueDisplay, Text } from 'suref-react'
-import type { ChoiceInputRenderer, StatItem } from 'suref-react'
+import type { StatItem } from 'suref-react'
 import { hasModificationSlots } from '../../lib/entityModificationUtils'
 import { useComradeChoices } from '../../hooks/useComradeChoices'
 import { EntityModificationSlots } from './EntityModificationSlots'
-import { LabeledInput } from './LabeledInput'
 import type { EntityRefRow } from '../../types/common'
 
 type SubEntityCardProps = {
@@ -58,33 +56,6 @@ export function SubEntityCard({
   const customName = nameChoice ? getLocalValue(nameChoice.id) : ''
   const entityName = 'name' in entity ? String(entity.name) : ''
   const schemaName = 'schemaName' in entity ? (entity.schemaName as SURefEnumSchemaName) : undefined
-
-  const choiceInputRenderer: ChoiceInputRenderer = useCallback(
-    (choice, isCompact) => {
-      // Filter "Name" choice from body — it's rendered in the header
-      if (choice.name === 'Name') return null
-
-      const choiceId = choice.id ?? ''
-      const placeholder = getParagraphString(choice.content) || 'Enter value...'
-      const hasRollTable = 'rollTable' in choice && !!choice.rollTable
-
-      return (
-        <LabeledInput
-          key={choiceId}
-          label={choice.name}
-          value={getLocalValue(choiceId)}
-          onChange={(val) => setLocalValue(choiceId, val)}
-          onBlur={() => saveChoice(choice, getLocalValue(choiceId))}
-          placeholder={placeholder}
-          variant={hasRollTable ? 'roll' : 'input'}
-          rollTableName={hasRollTable ? choice.rollTable : undefined}
-          compact={isCompact}
-          readOnly={isInputDisabled}
-        />
-      )
-    },
-    [getLocalValue, setLocalValue, saveChoice, isInputDisabled]
-  )
 
   const showModSlots = !!mechId && !!mechRefs && hasModificationSlots(entity)
   const canTrackCondition = !!mechId && !!userId
@@ -184,7 +155,6 @@ export function SubEntityCard({
       data={entity}
       compact={compact}
       hide={{ footer: true, ...hide }}
-      choiceInputRenderer={choiceInputRenderer}
       stats={interactiveStats}
       titleOverride={nameChoice && customName ? customName : undefined}
       titleSlot={titleSlot}

@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://salvageunion.com/schemas/actions.schema.json",
   "title": "actions",
-  "description": "Actions, abilities, and attacks that can be performed in Salvage Union",
+  "description": "Actions, abilities, and attacks that can be performed",
   "type": "array",
   "items": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -56,11 +56,15 @@
                           "type": {
                             "type": "string",
                             "description": "Type classification for this data value"
+                          },
+                          "unit": {
+                            "type": "string",
+                            "description": "Optional unit shown after the value (e.g. damage type \"SP\")"
                           }
                         },
                         "required": ["label"],
                         "additionalProperties": false,
-                        "description": "A data value with label, optional value, and optional type"
+                        "description": "A data value with label, optional value, optional type, and optional unit"
                       },
                       "description": "Array of data values when type is 'datavalues'"
                     }
@@ -68,6 +72,7 @@
                 },
                 "label": { "type": "string" },
                 "level": { "type": "integer", "minimum": 1, "maximum": 6 },
+                "lead": { "type": "boolean" },
                 "items": {
                   "type": "array",
                   "items": {
@@ -106,11 +111,15 @@
                                 "type": {
                                   "type": "string",
                                   "description": "Type classification for this data value"
+                                },
+                                "unit": {
+                                  "type": "string",
+                                  "description": "Optional unit shown after the value (e.g. damage type \"SP\")"
                                 }
                               },
                               "required": ["label"],
                               "additionalProperties": false,
-                              "description": "A data value with label, optional value, and optional type"
+                              "description": "A data value with label, optional value, optional type, and optional unit"
                             },
                             "description": "Array of data values when type is 'datavalues'"
                           }
@@ -289,11 +298,15 @@
                                 "type": {
                                   "type": "string",
                                   "description": "Type classification for this data value"
+                                },
+                                "unit": {
+                                  "type": "string",
+                                  "description": "Optional unit shown after the value (e.g. damage type \"SP\")"
                                 }
                               },
                               "required": ["label"],
                               "additionalProperties": false,
-                              "description": "A data value with label, optional value, and optional type"
+                              "description": "A data value with label, optional value, optional type, and optional unit"
                             },
                             "description": "Array of data values when type is 'datavalues'"
                           }
@@ -301,6 +314,7 @@
                       },
                       "label": { "type": "string" },
                       "level": { "type": "integer", "minimum": 1, "maximum": 6 },
+                      "lead": { "type": "boolean" },
                       "items": {
                         "type": "array",
                         "items": {
@@ -339,11 +353,15 @@
                                       "type": {
                                         "type": "string",
                                         "description": "Type classification for this data value"
+                                      },
+                                      "unit": {
+                                        "type": "string",
+                                        "description": "Optional unit shown after the value (e.g. damage type \"SP\")"
                                       }
                                     },
                                     "required": ["label"],
                                     "additionalProperties": false,
-                                    "description": "A data value with label, optional value, and optional type"
+                                    "description": "A data value with label, optional value, optional type, and optional unit"
                                   },
                                   "description": "Array of data values when type is 'datavalues'"
                                 }
@@ -504,7 +522,52 @@
                     "properties": {
                       "label": { "type": "string" },
                       "value": { "type": "string" },
-                      "description": { "type": "string" }
+                      "description": { "type": "string" },
+                      "effects": {
+                        "type": "array",
+                        "items": {
+                          "oneOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "op": { "type": "string", "const": "addTrait" },
+                                "value": { "type": "string" },
+                                "amount": { "anyOf": [{ "type": "string" }, { "type": "number" }] }
+                              },
+                              "required": ["op", "value"],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "op": { "type": "string", "const": "removeTrait" },
+                                "value": { "type": "string" }
+                              },
+                              "required": ["op", "value"],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "op": { "type": "string", "const": "setRange" },
+                                "value": { "anyOf": [{ "type": "string" }, { "type": "number" }] }
+                              },
+                              "required": ["op", "value"],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "op": { "type": "string", "const": "addDamage" },
+                                "value": { "anyOf": [{ "type": "string" }, { "type": "number" }] },
+                                "unit": { "type": "string" }
+                              },
+                              "required": ["op", "value"],
+                              "additionalProperties": false
+                            }
+                          ]
+                        }
+                      }
                     },
                     "required": ["label", "value"],
                     "additionalProperties": false
@@ -3567,6 +3630,6 @@
         "additionalProperties": false
       }
     ],
-    "description": "Actions, abilities, and attacks that can be performed in Salvage Union"
+    "description": "Actions, abilities, and attacks that can be performed"
   }
 }

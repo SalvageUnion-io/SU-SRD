@@ -30,7 +30,7 @@ export function MobileNavIsland({ categories, currentPath }: MobileNavIslandProp
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Trigger
         render={
-          <button className="rounded-md p-2" aria-label="Open menu">
+          <button className="rounded-md p-2 text-su-white" aria-label="Open menu">
             <svg
               width="24"
               height="24"
@@ -129,14 +129,6 @@ export function MobileNavIsland({ categories, currentPath }: MobileNavIslandProp
 
             {/* Bottom links */}
             <div className="mt-auto flex flex-col gap-2 border-t border-su-grey-light pt-4">
-              <Button
-                href="/randsum/"
-                active={isActive('/randsum')}
-                className="block text-sm"
-                onClick={() => setOpen(false)}
-              >
-                RANDSUM
-              </Button>
               <Button
                 href="/about/"
                 active={isActive('/about')}

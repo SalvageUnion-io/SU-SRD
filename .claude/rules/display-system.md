@@ -49,6 +49,28 @@ Use preset factories from `referenceEntityControls.ts`:
 
 Prefer data-shape checks (`'coreTrees' in data`) over schema-name checks (`schemaName === 'classes'`). This keeps the display layer schema-agnostic.
 
+## Choice-Card Layer (Granted Equipment)
+
+For entities with `choices` (e.g. Custom Sniper Rifle granted by a class ability):
+
+- `ReferenceEntityResolvedChoices` renders the interactive `ChoiceGroups` in the card body.
+- `ReferenceEntityResolvedDataRow` renders live resolved stat tags in the header (base datavalues + applied choice effects + trait list + unresolved "Choose: …" prompts), via `resolveChoiceView` from `salvageunion-reference`.
+- Both components share a single `selections: ChoiceSelections` / `onSelectionChange` pair owned by the parent display.
+- `ChoiceGroups` is uncontrolled (ephemeral state) in suref-web; controlled (persistence-wired) in ITUN.
+- `StaticChoiceCard` is the display-only variant used by `BlockContentRendererView` to render `list-item` content blocks with the same bordered frame (no toggle/status).
+- `ReferenceEntityGrants` renders a `Grants` section + compact nested `ReferenceEntityDisplay` cards, resolved by `resolveGrantedEntities` from `salvageunion-reference`.
+
+## isGrantingAbility — Ability → Grants Collapse
+
+When an ability entity has `grants` that resolve to equipment (`resolveGrantedEntities` returns non-empty), `isGrantingAbility` is `true`. This collapses the ability's body:
+
+- **Suppresses** the ability's own `content` blocks and `Actions` section.
+- **Shows** the `Grants` block (nested compact equipment cards with resolved data row + choice cards).
+- The ability's `description` still renders in the right-header flavor slot.
+- In compact/listing contexts the nested equipment card collapses further to header-only (`listing: true` on the inner `ReferenceEntityDisplay`).
+
+The `lead: true` field on a `ContentBlock` marks a granted entity's intro sentence: it renders on the entity's own page, but `ReferenceEntityGrants` passes `hideLeadContent` to the nested card so the `lead` block is hidden when nested in a grant (there it would duplicate the granting ability's own description). All other content renders in both places.
+
 ## Stats
 
 Interactive stats use `onChange` on `StatItem` (renders +/- buttons). Read-only stats omit `onChange`. Both go through `StatsBar`.

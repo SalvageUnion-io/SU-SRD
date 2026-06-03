@@ -204,13 +204,26 @@
     "source": "Salvage Union Workshop Manual",
     "page": 35,
     "indexable": false,
-    "techLevel": 0,
+    "techLevel": 3,
     "actions": ["Holo Companion", "Project", "Un-Project"],
     "id": "dd96f7c0-3760-4b71-9451-77ced25a3b09",
     "content": [
       {
         "type": "paragraph",
-        "value": "You have created an intelligent, holographic, A.I. companion that only you can use. Describe your Companion's appearance, and name them. They project from a small, portable device which you can hold on your person. Add this to your Pilot Inventory.  Your Holo Companion cannot interact physi- cally with the material world, but can see, be seen, speak, and traverse it. You can project or un-project them as a Turn Action, and they can appear anywhere within Medium Range of the device. Nominate another player at the table to voice your companion."
+        "lead": true,
+        "value": "You have created an intelligent, holographic, A.I. companion that only you can use."
+      },
+      {
+        "type": "paragraph",
+        "value": "Your Holo Companion cannot interact physically with the material world, but can see, be seen, speak, and traverse it. You can project or un-project them as a Turn Action, and they can appear anywhere within Medium Range of the device. Nominate another player at the table to voice your companion."
+      },
+      {
+        "type": "paragraph",
+        "value": "Their personality develops over time, based on a learning algorithm. During Downtime, they gain an A.I. [[Personality]] Trait based on their recent experiences. You can use the A.I. [[Personality]] Trait Table p. 91 for this or consider your own."
+      },
+      {
+        "type": "paragraph",
+        "value": "If your projection device is misplaced or destroyed you can acquire a new one during Downtime. Your A.I. is downloaded onto the device from a backup stored on your Union Crawler."
       }
     ],
     "choices": [
@@ -632,7 +645,32 @@
     "content": [
       {
         "type": "paragraph",
-        "value": "You acquire and train in the use of a Custom Sniper Rifle that only you can use. Choose if it is a Ballistic or Energy weapon and it gains the respective Energy or Ballistic Trait. At each Tech Level you may choose an additional modification for your Custom Sniper Rifle."
+        "lead": true,
+        "value": "You acquire and train in the use of a Custom Sniper Rifle that only you can use."
+      },
+      {
+        "type": "paragraph",
+        "value": "Choose if your Custom Sniper Rifle is a Ballistic or Energy weapon. It gains the respective Energy or Ballistic Trait."
+      },
+      {
+        "type": "paragraph",
+        "value": "At each Tech Level, you may select an additional Modification for your Custom Sniper Rifle."
+      },
+      {
+        "type": "datavalues",
+        "value": [
+          {
+            "label": "Damage",
+            "type": "keyword",
+            "value": 2,
+            "unit": "SP"
+          },
+          {
+            "label": "Range",
+            "type": "keyword",
+            "value": "Long"
+          }
+        ]
       }
     ],
     "choices": [
@@ -666,42 +704,60 @@
           {
             "label": "Rangefinder",
             "value": "Rangefinder",
-            "description": "The Custom Sniper Rifle increases its Range to Far."
+            "description": "The Custom Sniper Rifle increases its Range to Far.",
+            "effects": [{ "op": "setRange", "value": "Far" }]
           },
           {
             "label": "Laser Guidance",
             "value": "Laser Guidance",
-            "description": "You may spend 2 AP to automatically hit with the Custom Sniper Rifle. It also gains the [[Targeter]] Trait."
+            "description": "You may spend 2 AP to automatically hit with the Custom Sniper Rifle. It also gains the [[Targeter]] Trait.",
+            "effects": [
+              {
+                "op": "addTrait",
+                "value": "Targeter"
+              }
+            ]
           },
           {
             "label": "Pinpoint Targeter",
             "value": "Pinpoint Targeter",
-            "description": "You may spend 2 AP when you make an attack. If it hits, a System, Module, or appendage of your choice on the target is damaged. It also gains the [[Targeter]] Trait."
+            "description": "You may spend 2 AP when you make an attack. If it hits, a System, Module, or appendage of your choice on the target is damaged. It also gains the [[Targeter]] Trait.",
+            "effects": [
+              {
+                "op": "addTrait",
+                "value": "Targeter"
+              }
+            ]
           },
           {
             "label": "Dum Dum Rounds",
             "value": "Dum Dum Rounds",
-            "description": "The Custom Sniper Rifle gains the [[Anti-Organic]] Trait."
+            "description": "The Custom Sniper Rifle gains the [[Anti-Organic]] Trait.",
+            "effects": [{ "op": "addTrait", "value": "Anti-Organic" }]
           },
           {
             "label": "High Calibre Rounds",
             "value": "High Calibre Rounds",
-            "description": "The Custom Sniper Rifle deals an additional 1 SP damage."
+            "description": "The Custom Sniper Rifle deals an additional 1 SP damage.",
+            "effects": [{ "op": "addDamage", "value": 1, "unit": "SP" }]
           },
           {
             "label": "Anti-Matter",
             "value": "Anti-Matter",
-            "description": "The Custom Sniper Rifle gains the [[Deadly]] Trait."
+            "description": "The Custom Sniper Rifle gains the [[Deadly]] Trait.",
+            "effects": [{ "op": "addTrait", "value": "Deadly" }]
           },
           {
             "label": "Flashy",
             "value": "Flashy",
-            "description": "The Custom Sniper Rifle gains the [[Flashy]] Trait."
+            "description": "The Custom Sniper Rifle gains the [[Flashy]] Trait.",
+            "effects": [{ "op": "addTrait", "value": "Flashy" }]
           },
           {
             "label": "Silencer",
             "value": "Silencer",
-            "description": "The Custom Sniper Rifle gains the [[Silent]] Trait."
+            "description": "The Custom Sniper Rifle gains the [[Silent]] Trait.",
+            "effects": [{ "op": "addTrait", "value": "Silent" }]
           },
           {
             "label": "Compact Design",
@@ -746,6 +802,13 @@
       }
     ],
     "id": "f5f04072-9e81-4c9d-a835-b71f45120d66",
+    "content": [
+      {
+        "type": "paragraph",
+        "lead": true,
+        "value": "You construct an immobile Auto-Turret and train yourself in using it."
+      }
+    ],
     "choices": [
       {
         "id": "b9c0d1e2-f3a4-4b5c-9d0e-1f2a3b4c5d6e",
@@ -779,16 +842,60 @@
     "techLevel": 1,
     "actions": ["Camo Suit"],
     "page": 51,
-    "id": "12345678-90ab-4cd1-82e3-456789012345"
+    "id": "12345678-90ab-4cd1-82e3-456789012345",
+    "content": [
+      {
+        "type": "paragraph",
+        "lead": true,
+        "value": "You acquire and train in the use of a specialised Camo Suit that only you can use. It has miniature optical refractors which bend light away from you, allowing you to be effectively invisible for short periods of time as long as you do not move too quickly, make too much noise, or take any sudden actions."
+      },
+      {
+        "type": "datavalues",
+        "value": [
+          {
+            "label": "3 AP",
+            "type": "cost"
+          },
+          {
+            "label": "Turn Action",
+            "type": "keyword"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "value": "When activated, you are hidden from sight and sensors for the next hour. You are effectively invisible. You cannot be noticed unless you make a lot of noise or perform a significant action like attacking."
+      }
+    ]
   },
   {
-    "name": "WingSuit",
+    "name": "Wingsuit",
     "indexable": false,
     "source": "Salvage Union Workshop Manual",
     "techLevel": 1,
     "actions": ["Wingsuit"],
     "page": 51,
-    "id": "21aa5d3f-2dfd-415f-8f60-86913aeb797b"
+    "id": "21aa5d3f-2dfd-415f-8f60-86913aeb797b",
+    "content": [
+      {
+        "type": "paragraph",
+        "lead": true,
+        "value": "You acquire and train in the use of a Wingsuit that only you can use. It is made out of an advanced, lightweight, polycarbonate mesh that allows for limited flight and propulsion."
+      },
+      {
+        "type": "datavalues",
+        "value": [
+          {
+            "label": "1 AP",
+            "type": "cost"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "value": "When activated, the Wingsuit propels you into the air, and then allows you to fly. You can move freely over obstacles and terrain and see targets clearly from your bird's-eye view. All attacks made against you whilst flying are made as though you are always at Long Range. The flight lasts for an hour or until you land."
+      }
+    ]
   },
   {
     "name": "Hacking Kit",
@@ -797,7 +904,30 @@
     "techLevel": 1,
     "actions": ["Hacking Kit"],
     "page": 51,
-    "id": "c9929a61-d5fc-4362-827f-d0c7644ddd3d"
+    "id": "c9929a61-d5fc-4362-827f-d0c7644ddd3d",
+    "content": [
+      {
+        "type": "paragraph",
+        "lead": true,
+        "value": "You acquire and train in the use of a Hacking Kit that only you can use. Add this to your Pilot Inventory. This has a basic suite of hacking transmitters and tools that can be utilised by programming hacks into it."
+      },
+      {
+        "type": "paragraph",
+        "value": "When you acquire the Hacking Kit you may program a single Ability with the [[Hacking]] Trait from any System, Module, or Mech Chassis Ability you have access to into your Hacking Kit. The Hacking Kit can store a number of Abilities equal to the Tech Level of your Union Crawler, additional Abilities can be added during Downtime."
+      },
+      {
+        "type": "paragraph",
+        "value": "Once programmed, you can use the Abilities stored on your Hacking Kit as your Pilot, and can spend AP instead of EP when using them."
+      },
+      {
+        "type": "paragraph",
+        "value": "In addition, any Pilot Ability you have with the [[Hacking]] Trait may be performed from your Mech. You can spend EP for this Ability instead of AP."
+      },
+      {
+        "type": "paragraph",
+        "value": "If your Hacking Kit is misplaced or destroyed you can acquire a new one during Downtime, it still has all your stored abilities backed up."
+      }
+    ]
   },
   {
     "name": "Teleport Beacon",
@@ -806,7 +936,35 @@
     "techLevel": 1,
     "actions": ["Teleport Beacon"],
     "page": 51,
-    "id": "b0de76c5-18e3-42b3-a5b3-8bcee8794ad0"
+    "id": "b0de76c5-18e3-42b3-a5b3-8bcee8794ad0",
+    "content": [
+      {
+        "type": "paragraph",
+        "lead": true,
+        "value": "You acquire and train in the use of a Teleport Beacon that only you can use. Add this to your Pilot Inventory. It comes in two halves, a beacon and a controller. The beacon must be physically placed in a location when deployed."
+      },
+      {
+        "type": "datavalues",
+        "value": [
+          {
+            "label": "2 AP",
+            "type": "cost"
+          },
+          {
+            "label": "Turn Action",
+            "type": "keyword"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "value": "When you activate this Ability via the controller, it allows you to teleport yourself and up to five other creatures of your choice to the location you placed the beacon in."
+      },
+      {
+        "type": "paragraph",
+        "value": "If the Teleport Beacon is misplaced, damaged, or destroyed, you can acquire a new one during Downtime."
+      }
+    ]
   },
   {
     "name": "Stealth Field Generator",
@@ -815,7 +973,35 @@
     "techLevel": 1,
     "actions": ["Stealth Field Generator"],
     "page": 73,
-    "id": "f09dddca-4cf3-45fd-8ce7-640048a5c43d"
+    "id": "f09dddca-4cf3-45fd-8ce7-640048a5c43d",
+    "content": [
+      {
+        "type": "paragraph",
+        "lead": true,
+        "value": "You acquire and train in the use of a Stealth Field Generator that only you can use. This creates a sphere of invisibility around you and up to five Mechs, Creatures, or Vehicles of your choice within Close Range. This makes you and everything you choose under the sphere effectively invisible to both radar and scanning systems, as well as optics and the naked eye. None of the Mechs, Creatures, or Vehicles within the effect of the Stealth Field Generator can be seen with the [[Scanner]] Trait, or targeted by anything with the [[Targeter]] Trait."
+      },
+      {
+        "type": "datavalues",
+        "value": [
+          {
+            "label": "4 AP",
+            "type": "cost"
+          },
+          {
+            "label": "Turn Action",
+            "type": "keyword"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "value": "The Stealth Field Generator effect lasts until you choose to deactivate it as a Free Action for no cost."
+      },
+      {
+        "type": "paragraph",
+        "value": "If your Stealth Field Generator is misplaced, damaged, or destroyed, you can acquire a new one during Downtime. You can only ever have one Stealth Field Generator at a time."
+      }
+    ]
   },
   {
     "name": "Knife Missile",
@@ -824,7 +1010,72 @@
     "techLevel": 1,
     "actions": ["Knife Missile"],
     "page": 73,
-    "id": "256126db-8ba3-4a57-975a-2ed74832b983"
+    "id": "256126db-8ba3-4a57-975a-2ed74832b983",
+    "content": [
+      {
+        "type": "paragraph",
+        "lead": true,
+        "value": "You acquire and train in the use of a Knife Missile that only you can use. Add this to your Pilot Equipment. A Knife Missile is a miniscule, tadpole-sized assassination device that flies towards a target and penetrates their skull, instantly killing them."
+      },
+      {
+        "type": "datavalues",
+        "value": [
+          {
+            "label": "3 AP",
+            "type": "cost"
+          },
+          {
+            "label": "Turn Action",
+            "type": "keyword"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "value": "You control the Knife Missile remotely via a Knife Missile Controller. The Knife Missile can be set to attack any creature within Far Range. You do not need to be able to see the creature. The Knife Missile is able to fly directly to the target, avoiding detection as well as any obstacles, it can fly through vents, cracks, and get into significantly hard to reach places. The Knife Missile does not affect Meld or Bio-Titans."
+      }
+    ]
+  },
+  {
+    "name": "Miniaturised EMP",
+    "indexable": false,
+    "source": "Salvage Union Workshop Manual",
+    "techLevel": 1,
+    "actions": ["Miniaturised EMP"],
+    "page": 64,
+    "id": "663e628e-cf26-48a2-9c90-6714078d7418",
+    "content": [
+      {
+        "type": "paragraph",
+        "lead": true,
+        "value": "You acquire and train in the use of a Miniaturised EMP that only you can use. Add this to your Pilot Equipment."
+      },
+      {
+        "type": "datavalues",
+        "value": [
+          {
+            "label": "4 AP",
+            "type": "cost"
+          },
+          {
+            "label": "Turn Action",
+            "type": "keyword"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "value": "This handheld device when triggered causes a localised electromagnetic pulse that can disable a wide range of electronic equipment."
+      },
+      {
+        "type": "paragraph",
+        "value": "When you activate the Miniaturised EMP all Mechs, Systems, Modules, and any other electronic or technological equipment or hardware within Close Range are Shutdown and inoperable for 10 minutes. This Ability affects Meld, causing them to become inert for 10 minutes and be unable to act. This Ability does not affect Bio-Titans unless they are significantly made up of material that an electromagnetic pulse can affect."
+      },
+      {
+        "type": "paragraph",
+        "value": "If your Miniaturised EMP is misplaced or destroyed, you can acquire a new one during Downtime. You may only ever have one Miniaturised EMP at a time."
+      }
+    ]
   },
   {
     "name": "Custom Missile Launcher",
@@ -837,9 +1088,31 @@
     "content": [
       {
         "type": "paragraph",
-        "value": "You acquire and train in the use of a Custom Missile Launcher that only you can use. It can be customised how you desire. At each Tech Level you may choose an additional modification for your Custom Missile Launcher."
+        "lead": true,
+        "value": "You acquire and train in the use of a Custom Missile Launcher that only you can use."
+      },
+      {
+        "type": "paragraph",
+        "value": "At each Tech Level, you may select an additional Modification for your Custom Missile Launcher."
+      },
+      {
+        "type": "datavalues",
+        "value": [
+          {
+            "label": "Damage",
+            "type": "keyword",
+            "value": 3,
+            "unit": "SP"
+          },
+          {
+            "label": "Range",
+            "type": "keyword",
+            "value": "Medium"
+          }
+        ]
       }
     ],
+    "traits": [{ "type": "missile" }, { "type": "explosive", "amount": 1 }, { "type": "heavy" }],
     "choices": [
       {
         "name": "Modification",
@@ -859,7 +1132,8 @@
           {
             "label": "Rangefinder",
             "value": "Rangefinder",
-            "description": "The Custom Missile increases its Range to Long."
+            "description": "The Custom Missile increases its Range to Long.",
+            "effects": [{ "op": "setRange", "value": "Long" }]
           },
           {
             "label": "Laser Guidance",
@@ -874,27 +1148,35 @@
           {
             "label": "Napalm Rounds",
             "value": "Napalm Rounds",
-            "description": "The Custom Missile Launcher gains the Anti-Organic and [[[Burn] (1)]] Trait."
+            "description": "The Custom Missile Launcher gains the Anti-Organic and [[[Burn] (1)]] Trait.",
+            "effects": [
+              { "op": "addTrait", "value": "Anti-Organic" },
+              { "op": "addTrait", "value": "Burn", "amount": 1 }
+            ]
           },
           {
             "label": "Bigger Boom",
             "value": "Bigger Boom",
-            "description": "The Custom Missile Launcher gains the [[[Explosive] (2)]] Trait."
+            "description": "The Custom Missile Launcher gains the [[[Explosive] (2)]] Trait.",
+            "effects": [{ "op": "addTrait", "value": "Explosive", "amount": 2 }]
           },
           {
             "label": "Flashy",
             "value": "Flashy",
-            "description": "The Custom Missile Launcher gains the [[Flashy]] Trait."
+            "description": "The Custom Missile Launcher gains the [[Flashy]] Trait.",
+            "effects": [{ "op": "addTrait", "value": "Flashy" }]
           },
           {
             "label": "Expanded Warhead",
             "value": "Expanded Warhead",
-            "description": "The Custom Missile Launcher deals an additional 1 SP damage."
+            "description": "The Custom Missile Launcher deals an additional 1 SP damage.",
+            "effects": [{ "op": "addDamage", "value": 1, "unit": "SP" }]
           },
           {
             "label": "Portable",
             "value": "Portable",
-            "description": "The Custom Missile Launcher loses the [[Heavy]] Trait."
+            "description": "The Custom Missile Launcher loses the [[Heavy]] Trait.",
+            "effects": [{ "op": "removeTrait", "value": "Heavy" }]
           }
         ]
       }
@@ -927,6 +1209,11 @@
     "id": "4b6483d0-811e-40f9-8808-d88e940f5e61",
     "content": [
       {
+        "type": "paragraph",
+        "lead": true,
+        "value": "You acquire and train in the use of a Survey Drone and Drone Controller that only you can use."
+      },
+      {
         "label": "Integrated Hover Locomotion System",
         "type": "paragraph",
         "value": "Your Survey Drone has the Hover trait."
@@ -958,6 +1245,13 @@
     "page": 68,
     "id": "248c2e65-5159-4518-a0ce-9d8083794871",
     "source": "Salvage Union Workshop Manual",
+    "content": [
+      {
+        "type": "paragraph",
+        "lead": true,
+        "value": "You have constructed a mechanical companion."
+      }
+    ],
     "choices": [
       {
         "id": "c0d1e2f3-a4b5-4c6d-9e0f-1a2b3c4d5e6f",

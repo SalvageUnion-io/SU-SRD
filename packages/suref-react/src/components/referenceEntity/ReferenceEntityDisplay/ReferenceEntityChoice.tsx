@@ -1,4 +1,3 @@
-import type { ReactNode } from 'react'
 import type { SURefObjectChoice } from 'salvageunion-reference'
 import { Text } from '../../base/Text'
 import { ReferenceEntitySubheader } from './ReferenceEntitySubheader'
@@ -9,23 +8,19 @@ import type {
   getReferenceEntitySpacing,
 } from './referenceEntityDisplayTypes'
 
-export type ChoiceInputRenderer = (choice: SURefObjectChoice, compact: boolean) => ReactNode
-
 type ReferenceEntityChoiceProps = {
   choice: SURefObjectChoice
   fontSize: ReturnType<typeof getReferenceEntityFontSizes>
   spacing: ReturnType<typeof getReferenceEntitySpacing>
-  compact?: boolean
-  choiceInputRenderer?: ChoiceInputRenderer
 }
 
-export function ReferenceEntityChoice({
-  choice,
-  fontSize,
-  spacing,
-  compact,
-  choiceInputRenderer,
-}: ReferenceEntityChoiceProps) {
+/**
+ * Read-only display of a single choice: option/schemaEntity/customSystem choices
+ * render as a "(choose one/multiple)" list. Used by NestedChassisAbility to show
+ * chassis-ability choices. Interactive, selectable choices (granted equipment)
+ * are handled by the resolved-choice system (ChoiceGroups), not this component.
+ */
+export function ReferenceEntityChoice({ choice, fontSize, spacing }: ReferenceEntityChoiceProps) {
   const hasSchemaEntities = 'schemaEntities' in choice && choice.schemaEntities
   const hasCustomSystemOptions = 'customSystemOptions' in choice && choice.customSystemOptions
   const hasChoiceOptions = 'choiceOptions' in choice && choice.choiceOptions
@@ -58,8 +53,6 @@ export function ReferenceEntityChoice({
           spacing={spacing}
         />
       )}
-
-      {isSimpleChoice && choiceInputRenderer && choiceInputRenderer(choice, compact ?? false)}
     </div>
   )
 }

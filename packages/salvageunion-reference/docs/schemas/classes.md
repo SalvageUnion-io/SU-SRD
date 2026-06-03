@@ -1,6 +1,6 @@
 # classes
 
-Character classes in Salvage Union (base, advanced, and hybrid)
+Pilot Classes (Base and Hybrid)
 
 ## Metadata
 
