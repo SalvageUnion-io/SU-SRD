@@ -642,14 +642,20 @@ export function ReferenceEntityDisplayContent({
                 </>
               )}
               {(!hide.actions || (compact && schemaName !== 'titans' && !rightContent)) && (
-                <ReferenceEntityActions
-                  suppressActions={hasChassisAbilities || isGrantingAbility}
-                  spacing={spacing}
-                  compact={compact}
-                  actionsToDisplay={visibleActions}
-                  headerBg={headerBg}
-                  sectionHeaders={schemaName === 'crawlers'}
-                />
+                <>
+                  {/* Clear the image float so actions flow full-width below the
+                      image rather than wrapping into the narrow column beside it.
+                      No-op when there is no floated image. */}
+                  <div className="clear-both" />
+                  <ReferenceEntityActions
+                    suppressActions={hasChassisAbilities || isGrantingAbility}
+                    spacing={spacing}
+                    compact={compact}
+                    actionsToDisplay={visibleActions}
+                    headerBg={headerBg}
+                    sectionHeaders={schemaName === 'crawlers'}
+                  />
+                </>
               )}
               {/* Granting ability: a `Grants` block — the nested compact equipment
                   renders its own intro paragraph, resolved row + choice cards.
