@@ -1,2 +1,4 @@
 playwright-report/
 test-results/
+# Throwaway dev-scaffold screenshot output (#239) — remove with the scaffold.
+.tmp-shots/

@@ -41,7 +41,10 @@ import { STORE_NAMES } from './stores'
 /** Singleton promise — openDB is called once per page load. */
 let dbPromise: Promise<IDBPDatabase> | null = null
 
-function getDb(): Promise<IDBPDatabase> {
+// Exported so the throwaway dev seed (scaffold/seed.ts) opens the DB through the
+// canonical opener — which runs the `upgrade` that creates the object stores.
+// (Opening bare with `openDB('itun-v1', 2)` on a fresh DB yields no stores.)
+export function getDb(): Promise<IDBPDatabase> {
   if (dbPromise === null) {
     dbPromise = openDB('itun-v1', 2, {
       upgrade(db, oldVersion) {

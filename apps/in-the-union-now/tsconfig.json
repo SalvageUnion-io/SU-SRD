@@ -16,5 +16,5 @@
     "declarationMap": false,
     "jsx": "react-jsx"
   },
-  "include": ["src/**/*", "test/**/*", "netlify/**/*", "vite.config.ts"]
+  "include": ["src/**/*", "test/**/*", "netlify/**/*", "scaffold/**/*", "vite.config.ts"]
 }
