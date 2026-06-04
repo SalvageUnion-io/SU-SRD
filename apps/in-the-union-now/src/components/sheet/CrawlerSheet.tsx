@@ -20,6 +20,8 @@ import { CrawlerPilotsStandIn } from '../shared/CrawlerPilotsStandIn'
 import { useEntityChoices } from '../shared/useEntityChoices'
 import { EditableStatRow } from './EditableStatRow'
 import { InlineEditField } from './InlineEditField'
+import { InlineEditTextArea } from './InlineEditTextArea'
+import { NpcFactsEditor } from './NpcFactsEditor'
 import { PipTracker } from './PipTracker'
 import { SheetSectionHeading } from './SheetSectionHeading'
 
@@ -139,6 +141,39 @@ function CrawlerBayCard({
       </div>
     ) : undefined
 
+  const npcLabel = bay.name
+  const npcFacts = entry.npcFacts ?? []
+
+  // Editable NPC fields rendered below the SRD bay rules text + NPC block. The
+  // bay's own rules description (`content`) is surfaced read-only by
+  // ReferenceEntityDisplay's compact content rendering.
+  const afterContent = (
+    <div className="mt-2 flex flex-col gap-2">
+      <div className="flex flex-col gap-1">
+        <span className="font-cond text-[10px] font-bold uppercase tracking-wide text-su-ink-soft">
+          NPC Description
+        </span>
+        <InlineEditTextArea
+          value={entry.npcDescription ?? ''}
+          onSave={(next) => patchEntry({ npcDescription: next })}
+          ariaLabel={`Edit ${npcLabel} NPC description`}
+          readOnly={readOnly}
+        />
+      </div>
+      <div className="flex flex-col gap-1">
+        <span className="font-cond text-[10px] font-bold uppercase tracking-wide text-su-ink-soft">
+          NPC Facts
+        </span>
+        <NpcFactsEditor
+          facts={npcFacts}
+          onChange={(next) => patchEntry({ npcFacts: next })}
+          npcLabel={npcLabel}
+          readOnly={readOnly}
+        />
+      </div>
+    </div>
+  )
+
   return (
     <ReferenceEntityDisplay
       data={bay as unknown as SURefEntity}
@@ -151,6 +186,7 @@ function CrawlerBayCard({
         onNameChange: readOnly ? undefined : (name) => patchEntry({ npcName: name }),
         readOnly,
         damaged: maxHP > 0 && currentHP <= 0,
+        afterContent,
       }}
     />
   )

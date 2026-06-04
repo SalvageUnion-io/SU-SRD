@@ -43,6 +43,16 @@ export default defineConfig({
       },
     }),
   ],
+  // Pre-bundle the game-data package so esbuild inlines its dynamic
+  // `import('../data/*.json', { with: { type: 'json' } })` (+ schema) imports.
+  // Without this, vite dev serves those JSON modules as `text/javascript`, which
+  // strict browsers reject under import-attribute enforcement ("Failed to fetch
+  // dynamically imported module"), breaking all reference-data loading in dev.
+  // Mirrors the suref-web astro.config optimizeDeps fix (#260).
+  optimizeDeps: {
+    include: ['salvageunion-reference'],
+    entries: ['index.html', 'src/**/*.{ts,tsx}'],
+  },
   server: {
     watch: {
       ignored: ['**/routeTree.gen.ts'],

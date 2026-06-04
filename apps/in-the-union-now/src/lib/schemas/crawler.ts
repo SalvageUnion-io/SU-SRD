@@ -35,6 +35,19 @@ export const CrawlerSchema = z
           npcName: z.string().optional(),
           /** NPC's current HP (max from the SRD bay's `npc.hitPoints`, 4). */
           npcCurrentHP: z.number().int().min(0).optional(),
+          /**
+           * Player-editable freeform description of the bay's embedded NPC
+           * (appearance, personality, etc.). Distinct from the SRD bay's own
+           * rules text (`content`), which is read-only and resolved from the
+           * reference entity. Optional — additive field, no DB migration needed.
+           */
+          npcDescription: z.string().optional(),
+          /**
+           * Player-decided facts about the bay's NPC — a freeform list of short
+           * strings the table has established in play (add/remove). Optional;
+           * read sites treat a missing value as an empty list.
+           */
+          npcFacts: z.array(z.string()).optional(),
         })
       )
       .optional(),
