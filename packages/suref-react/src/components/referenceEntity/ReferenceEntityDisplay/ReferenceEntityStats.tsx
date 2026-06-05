@@ -1,4 +1,8 @@
-import type { SURefObjectBonusPerTechLevel, SURefMetaEntity } from 'salvageunion-reference'
+import type {
+  SURefObjectBonusPerTechLevel,
+  SURefMetaEntity,
+  SURefEnumSchemaName,
+} from 'salvageunion-reference'
 import { Text } from '../../base/Text'
 import { StatsBar } from '../../shared/StatsBar'
 import { buildReferenceEntityStats } from './referenceEntityStatsConfig'
@@ -14,6 +18,7 @@ type ReferenceEntityStatsProps = {
   prefix?: string
   primaryOnly?: boolean
   svOverride?: SvOverride
+  schemaName?: SURefEnumSchemaName
 }
 
 export function ReferenceEntityStats({
@@ -25,6 +30,7 @@ export function ReferenceEntityStats({
   prefix = '',
   primaryOnly = false,
   svOverride,
+  schemaName,
 }: ReferenceEntityStatsProps) {
   const stats = buildReferenceEntityStats(data, {
     compact,
@@ -33,6 +39,7 @@ export function ReferenceEntityStats({
     svOverride,
     techLevel,
     prefix,
+    schemaName,
   })
 
   if (stats.length === 0) return null

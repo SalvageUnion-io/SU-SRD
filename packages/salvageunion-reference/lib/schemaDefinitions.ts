@@ -20,7 +20,7 @@ import npcsSchema from '../schemas/npcs.schema.json' with { type: 'json' }
 import rollTablesSchema from '../schemas/roll-tables.schema.json' with { type: 'json' }
 import squadsSchema from '../schemas/squads.schema.json' with { type: 'json' }
 import systemsSchema from '../schemas/systems.schema.json' with { type: 'json' }
-import titansSchema from '../schemas/titans.schema.json' with { type: 'json' }
+import bioTitansSchema from '../schemas/bio-titans.schema.json' with { type: 'json' }
 import traitsSchema from '../schemas/traits.schema.json' with { type: 'json' }
 import vehiclesSchema from '../schemas/vehicles.schema.json' with { type: 'json' }
 import sourcesSchema from '../schemas/sources.schema.json' with { type: 'json' }
@@ -49,7 +49,7 @@ const SCHEMA_DEFINITIONS: Record<string, Record<string, unknown>> = {
   'roll-tables': rollTablesSchema as Record<string, unknown>,
   squads: squadsSchema as Record<string, unknown>,
   systems: systemsSchema as Record<string, unknown>,
-  titans: titansSchema as Record<string, unknown>,
+  'bio-titans': bioTitansSchema as Record<string, unknown>,
   traits: traitsSchema as Record<string, unknown>,
   vehicles: vehiclesSchema as Record<string, unknown>,
   sources: sourcesSchema as Record<string, unknown>,

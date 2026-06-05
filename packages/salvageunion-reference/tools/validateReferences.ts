@@ -322,7 +322,7 @@ for (const file of [
   'crawlers.json',
   'crawler-bays.json',
   'drones.json',
-  'titans.json',
+  'bio-titans.json',
 ]) {
   for (const entity of loadData(file)) {
     validateTableNames(entity, file, String(entity.name ?? entity.id ?? 'unknown'))

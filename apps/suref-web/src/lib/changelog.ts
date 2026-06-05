@@ -6,6 +6,14 @@ type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    date: '2026-06-04',
+    title: 'Bio-Titans restored; Iron Lady reclassified',
+    items: [
+      'The Titans schema is once again Bio-Titans, and each Bio-Titan now shows its bio-salvage value (equal to its Structure Points).',
+      'The Iron Lady — an android, not a Bio-Titan — now lives under Drones with a salvage value, while keeping her Titanic Actions and equipped Mech Modules.',
+    ],
+  },
+  {
     date: '2026-06-03',
     title: 'Mobile fix for guide entity grids',
     items: [

@@ -67,7 +67,7 @@ import {
   AbilitySchema,
   AbilityTreeRequirementSchema,
   MetaActionSchema,
-  TitanSchema,
+  BioTitanSchema,
   ChassisSchema,
   ClassSchema,
   CrawlerBaySchema,
@@ -156,7 +156,7 @@ export type SURefObjectActionOptions = Array<{ label: string; value: string }>
 export type SURefAbility = z.infer<typeof AbilitySchema>
 export type SURefMetaAbilityTreeRequirement = z.infer<typeof AbilityTreeRequirementSchema>
 export type SURefMetaAction = z.infer<typeof MetaActionSchema>
-export type SURefTitan = z.infer<typeof TitanSchema>
+export type SURefBioTitan = z.infer<typeof BioTitanSchema>
 export type SURefChassis = z.infer<typeof ChassisSchema>
 export type SURefClass = z.infer<typeof ClassSchema>
 export type SURefCrawlerBay = z.infer<typeof CrawlerBaySchema>
@@ -203,7 +203,7 @@ export type SURefEntity =
   | SURefSquad
   | SURefSystem
   | SURefTechLevel
-  | SURefTitan
+  | SURefBioTitan
   | SURefTrait
   | SURefVehicle
 
@@ -226,7 +226,7 @@ export type SURefMetaEntity =
   | SURefGuide
   | SURefSource
   | SURefTechLevel
-  | SURefTitan
+  | SURefBioTitan
   | SURefModule
   | SURefNPC
   | SURefRollTable

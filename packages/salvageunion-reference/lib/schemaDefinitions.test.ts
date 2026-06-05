@@ -22,6 +22,6 @@ describe('getAllJsonSchemaDefinitions', () => {
     expect(all['chassis']).toBeDefined()
     expect(all['abilities']).toBeDefined()
     expect(all['roll-tables']).toBeDefined()
-    expect(all['titans']).toBeDefined()
+    expect(all['bio-titans']).toBeDefined()
   })
 })

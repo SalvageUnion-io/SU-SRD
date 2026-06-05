@@ -1,8 +1,8 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://salvageunion.com/schemas/titans.schema.json",
-  "title": "titans",
-  "description": "Mech-scale single-threat enemies (monsters and bosses)",
+  "$id": "https://salvageunion.com/schemas/bio-titans.schema.json",
+  "title": "bio-titans",
+  "description": "Mech-scale biological monsters",
   "type": "array",
   "items": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -212,31 +212,26 @@
         },
         "description": "Other source books where this entity is reprinted"
       },
-      "kind": {
-        "type": "string",
-        "enum": ["monster", "boss"],
-        "description": "Monster (instinctual creature) or Boss (named antagonist with goals and motivations)"
-      },
       "structurePoints": {
         "type": "integer",
         "exclusiveMinimum": 0,
         "maximum": 9007199254740991,
-        "description": "Structure points of this titan"
+        "description": "Structure points of this bio-titan"
       },
       "actions": {
         "type": "array",
         "items": { "type": "string" },
-        "description": "Action names this titan can perform"
+        "description": "Action names this bio-titan can perform"
       },
       "systems": {
         "type": "array",
         "items": { "type": "string" },
-        "description": "Mech system names this titan is equipped with"
+        "description": "Mech system names this bio-titan is equipped with"
       },
       "modules": {
         "type": "array",
         "items": { "type": "string" },
-        "description": "Mech module names this titan is equipped with"
+        "description": "Mech module names this bio-titan is equipped with"
       },
       "traits": {
         "type": "array",
@@ -271,11 +266,10 @@
       "name",
       "source",
       "page",
-      "kind",
       "structurePoints",
       "actions"
     ],
     "additionalProperties": false,
-    "description": "Mech-scale single-threat enemies (monsters and bosses)"
+    "description": "Mech-scale biological monsters"
   }
 }

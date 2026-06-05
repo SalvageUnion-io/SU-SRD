@@ -296,6 +296,19 @@ export function ReferenceEntityDisplayContent({
   const chassisName = 'name' in data ? data.name : undefined
   const hasChassisAbilities = !!chassisAbilities && chassisAbilities.length > 0
 
+  // Bio-Titans — and drone-class bosses with a mech-style statblock (the Iron
+  // Lady) — get the "titanic" treatment: full-width actions plus equipped
+  // systems/modules rendered as inline compact listings, and their actions
+  // section is suppressed in compact listings. Gate on data shape (actions +
+  // equipment) rather than a lone schema name, since the Titanic Actions
+  // mechanic is not Bio-Titan-specific and the Iron Lady now lives in `drones`.
+  const hasEquippedActions =
+    'actions' in data &&
+    Array.isArray((data as { actions?: unknown }).actions) &&
+    (('systems' in data && Array.isArray(data.systems)) ||
+      ('modules' in data && Array.isArray(data.modules)))
+  const isTitanicStatblock = schemaName === 'bio-titans' || hasEquippedActions
+
   // Check if entity has actions that will be displayed (after filtering).
   // A granting ability suppresses its Actions section (its redundant same-named
   // action lives on the granted equipment instead).
@@ -304,7 +317,7 @@ export function ReferenceEntityDisplayContent({
     !!visibleActions &&
     visibleActions.length > 0 &&
     (!hide.actions || compact) &&
-    !(compact && schemaName === 'titans')
+    !(compact && isTitanicStatblock)
 
   const hasTopMatterContent =
     !!showContent || hasChassisAbilities || !!assetUrl || hasDisplayableActions || showGrants
@@ -323,24 +336,24 @@ export function ReferenceEntityDisplayContent({
     ? SalvageUnionReference.findIn('drones', (d) => d.name === droneAbility.drone)
     : undefined
 
-  // Resolve titan-equipped systems/modules into entities for inline listing
-  const isTitan = schemaName === 'titans'
-  const titanSystemNames =
-    isTitan && 'systems' in data && Array.isArray(data.systems)
+  // Resolve statblock-equipped systems/modules into entities for inline listing
+  const statblockSystemNames =
+    isTitanicStatblock && 'systems' in data && Array.isArray(data.systems)
       ? (data.systems as string[])
       : undefined
-  const titanModuleNames =
-    isTitan && 'modules' in data && Array.isArray(data.modules)
+  const statblockModuleNames =
+    isTitanicStatblock && 'modules' in data && Array.isArray(data.modules)
       ? (data.modules as string[])
       : undefined
-  const titanSystems = titanSystemNames
+  const statblockSystems = statblockSystemNames
     ?.map((name) => SalvageUnionReference.findIn('systems', (s) => s.name === name))
     .filter((entity): entity is NonNullable<typeof entity> => !!entity)
-  const titanModules = titanModuleNames
+  const statblockModules = statblockModuleNames
     ?.map((name) => SalvageUnionReference.findIn('modules', (m) => m.name === name))
     .filter((entity): entity is NonNullable<typeof entity> => !!entity)
-  const hasTitanEquipment =
-    (titanSystems && titanSystems.length > 0) || (titanModules && titanModules.length > 0)
+  const hasStatblockEquipment =
+    (statblockSystems && statblockSystems.length > 0) ||
+    (statblockModules && statblockModules.length > 0)
 
   // Pre-built block for chassis abilities (reused at multiple render positions)
   // When abilitiesSection is provided by the caller, it replaces the entire built-in block
@@ -374,7 +387,7 @@ export function ReferenceEntityDisplayContent({
     !!afterExtraContent ||
     !!afterChoicesContent ||
     !!droneEntity ||
-    hasTitanEquipment ||
+    hasStatblockEquipment ||
     hasFactionContent ||
     hasGuideSteps ||
     ('bonusPerTechLevel' in data && !!data.bonusPerTechLevel) ||
@@ -428,6 +441,7 @@ export function ReferenceEntityDisplayContent({
           primaryOnly: primaryStatsOnlyProp,
           svOverride: statsOverride,
           techLevel,
+          schemaName,
         })
       : undefined
 
@@ -649,7 +663,7 @@ export function ReferenceEntityDisplayContent({
                   {!compact && !hide.actions && chassisAbilitiesBlock}
                 </>
               )}
-              {(!hide.actions || (compact && schemaName !== 'titans' && !rightContent)) && (
+              {(!hide.actions || (compact && !isTitanicStatblock && !rightContent)) && (
                 <ReferenceEntityActions
                   suppressActions={hasChassisAbilities || isGrantingAbility}
                   spacing={spacing}
@@ -671,15 +685,15 @@ export function ReferenceEntityDisplayContent({
                   listing as its own flow-root so they wrap around the image like
                   the body text (a flex container would stay shrunk beside the
                   float); otherwise keep the flex column. */}
-              {titanSystems && titanSystems.length > 0 && (
+              {statblockSystems && statblockSystems.length > 0 && (
                 <>
                   <SectionSeparator label="Mech Systems" compact={compact} />
                   <div
                     className={cn(!wrapImageFloat && 'flex flex-col', spacing.sectionSpaceYClass)}
                   >
-                    {titanSystems.map((system) => (
+                    {statblockSystems.map((system) => (
                       <div
-                        key={`titan-system-${system.id}`}
+                        key={`statblock-system-${system.id}`}
                         className={cn(wrapImageFloat && '[display:flow-root]')}
                       >
                         <PatternEquipmentItem data={system} />
@@ -688,15 +702,15 @@ export function ReferenceEntityDisplayContent({
                   </div>
                 </>
               )}
-              {titanModules && titanModules.length > 0 && (
+              {statblockModules && statblockModules.length > 0 && (
                 <>
                   <SectionSeparator label="Mech Modules" compact={compact} />
                   <div
                     className={cn(!wrapImageFloat && 'flex flex-col', spacing.sectionSpaceYClass)}
                   >
-                    {titanModules.map((mod) => (
+                    {statblockModules.map((mod) => (
                       <div
-                        key={`titan-module-${mod.id}`}
+                        key={`statblock-module-${mod.id}`}
                         className={cn(wrapImageFloat && '[display:flow-root]')}
                       >
                         <PatternEquipmentItem data={mod} />

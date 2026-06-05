@@ -93,7 +93,7 @@ const dataFiles = [
   'roll-tables.json',
   'squads.json',
   'systems.json',
-  'titans.json',
+  'bio-titans.json',
   'traits.json',
   'vehicles.json',
 ]

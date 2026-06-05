@@ -96,13 +96,13 @@ type CollectReferencedSystemsInput = {
   vehicles: EntityEntry[]
   drones: EntityEntry[]
   /** Mech-scale boss/monster entries that may be equipped with named systems */
-  titans?: EntityEntry[]
+  bioTitans?: EntityEntry[]
   /** Optional: the full set of known system names — used to disambiguate drone.systems entries */
   allSystemNames?: Set<string>
 }
 
 /**
- * Traverse chassis patterns, vehicles, drones, and titans to collect all referenced system names.
+ * Traverse chassis patterns, vehicles, drones, and bio-titans to collect all referenced system names.
  */
 export function collectReferencedSystemNames(input: CollectReferencedSystemsInput): Set<string> {
   const referenced = new Set<string>()
@@ -167,8 +167,8 @@ export function collectReferencedSystemNames(input: CollectReferencedSystemsInpu
   }
 
   // Titan-equipped systems
-  if (input.titans) {
-    for (const titan of input.titans) {
+  if (input.bioTitans) {
+    for (const titan of input.bioTitans) {
       const systems = titan.systems
       if (Array.isArray(systems)) {
         for (const s of systems) {
@@ -187,7 +187,7 @@ type CollectReferencedModulesInput = {
   chassis: EntityEntry[]
   drones: EntityEntry[]
   /** Mech-scale boss/monster entries that may be equipped with named modules */
-  titans?: EntityEntry[]
+  bioTitans?: EntityEntry[]
   /** Optional: the full set of known module names — used to disambiguate drone.systems entries */
   allModuleNames?: Set<string>
 }
@@ -245,8 +245,8 @@ export function collectReferencedModuleNames(input: CollectReferencedModulesInpu
   }
 
   // Titan-equipped modules
-  if (input.titans) {
-    for (const titan of input.titans) {
+  if (input.bioTitans) {
+    for (const titan of input.bioTitans) {
       const modules = titan.modules
       if (Array.isArray(modules)) {
         for (const m of modules) {

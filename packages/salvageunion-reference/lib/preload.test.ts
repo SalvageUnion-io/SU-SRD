@@ -59,6 +59,7 @@ describe('SalvageUnionReference.isLoaded', () => {
     const schemaIds = [
       'abilities',
       'ability-tree-requirements',
+      'bio-titans',
       'actions',
       'chassis',
       'classes',
@@ -78,7 +79,6 @@ describe('SalvageUnionReference.isLoaded', () => {
       'roll-tables',
       'squads',
       'systems',
-      'titans',
       'traits',
       'vehicles',
       'sources',

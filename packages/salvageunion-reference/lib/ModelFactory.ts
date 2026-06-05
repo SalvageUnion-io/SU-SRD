@@ -13,7 +13,7 @@ import {
   AbilitySchema,
   AbilityTreeRequirementSchema,
   MetaActionSchema,
-  TitanSchema,
+  BioTitanSchema,
   ChassisSchema,
   ClassSchema,
   CrawlerBaySchema,
@@ -102,8 +102,10 @@ const dataLoaders: Record<string, () => Promise<unknown[]>> = {
     import('../data/squads.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
   systems: () =>
     import('../data/systems.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
-  titans: () =>
-    import('../data/titans.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
+  'bio-titans': () =>
+    import('../data/bio-titans.json', { with: { type: 'json' } }).then(
+      (m) => m.default as unknown[]
+    ),
   traits: () =>
     import('../data/traits.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
   vehicles: () =>
@@ -205,8 +207,8 @@ const jsonSchemaLoaders: Record<string, () => Promise<Record<string, unknown>>> 
     import('../schemas/systems.schema.json', { with: { type: 'json' } }).then(
       (m) => m.default as Record<string, unknown>
     ),
-  titans: () =>
-    import('../schemas/titans.schema.json', { with: { type: 'json' } }).then(
+  'bio-titans': () =>
+    import('../schemas/bio-titans.schema.json', { with: { type: 'json' } }).then(
       (m) => m.default as Record<string, unknown>
     ),
   traits: () =>
@@ -256,7 +258,7 @@ const zodSchemaMap: Record<string, z.ZodType<unknown>> = {
   'roll-tables': RollTableSchema,
   squads: SquadSchema,
   systems: SystemSchema,
-  titans: TitanSchema,
+  'bio-titans': BioTitanSchema,
   traits: TraitEntitySchema,
   vehicles: VehicleSchema,
   sources: SourceEntitySchema,
@@ -467,7 +469,7 @@ const schemaDisplayNames: Record<string, { singular: string; plural: string }> =
   'roll-tables': { singular: 'Roll Table', plural: 'Roll Tables' },
   squads: { singular: 'Squad', plural: 'Squads' },
   systems: { singular: 'System', plural: 'Systems' },
-  titans: { singular: 'Titan', plural: 'Titans' },
+  'bio-titans': { singular: 'Bio-Titan', plural: 'Bio-Titans' },
   traits: { singular: 'Trait', plural: 'Traits' },
   vehicles: { singular: 'Vehicle', plural: 'Vehicles' },
   sources: { singular: 'Source', plural: 'Sources' },

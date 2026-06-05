@@ -54,7 +54,7 @@ const dataFiles = [
   'systems.json',
   'modules.json',
   'equipment.json',
-  'titans.json',
+  'bio-titans.json',
   'crawlers.json',
   'creatures.json',
   'meld.json',

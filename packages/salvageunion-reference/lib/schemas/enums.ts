@@ -134,7 +134,7 @@ export const SchemaNameSchema = z
     'squads',
     'tech-levels',
     'systems',
-    'titans',
+    'bio-titans',
     'traits',
     'vehicles',
   ])
