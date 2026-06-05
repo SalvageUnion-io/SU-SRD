@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test'
-import type { SURefMetaEntity } from 'salvageunion-reference'
+import type { SURefMetaEntity, SURefEnumSchemaName } from 'salvageunion-reference'
 import { buildReferenceEntityStats } from '../referenceEntityStatsConfig'
 
 /**
@@ -22,7 +22,14 @@ describe('Bio-Titan bio-salvage derivation', () => {
   })
 
   it('does NOT derive bio-salvage for non-bio-titan schemas with structurePoints', () => {
-    for (const schemaName of ['drones', 'meld', 'npcs', 'vehicles', undefined]) {
+    const nonBioTitanSchemas: (SURefEnumSchemaName | undefined)[] = [
+      'drones',
+      'meld',
+      'npcs',
+      'vehicles',
+      undefined,
+    ]
+    for (const schemaName of nonBioTitanSchemas) {
       const stats = buildReferenceEntityStats(bioTitan, { compact: false, schemaName })
       expect(findBioSalvage(stats)).toBeUndefined()
     }

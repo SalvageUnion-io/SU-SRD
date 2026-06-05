@@ -1,4 +1,8 @@
-import type { SURefMetaEntity, SURefObjectBonusPerTechLevel } from 'salvageunion-reference'
+import type {
+  SURefMetaEntity,
+  SURefObjectBonusPerTechLevel,
+  SURefEnumSchemaName,
+} from 'salvageunion-reference'
 import {
   getSlotsRequired,
   getSalvageValue,
@@ -155,7 +159,7 @@ type BuildReferenceEntityStatsOptions = {
   techLevel?: number | 'B' | 'N'
   prefix?: string
   /** Schema name of the entity — used to scope schema-specific stat derivations. */
-  schemaName?: string
+  schemaName?: SURefEnumSchemaName
 }
 
 /**

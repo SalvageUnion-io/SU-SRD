@@ -337,22 +337,23 @@ export function ReferenceEntityDisplayContent({
     : undefined
 
   // Resolve statblock-equipped systems/modules into entities for inline listing
-  const titanSystemNames =
+  const statblockSystemNames =
     isTitanicStatblock && 'systems' in data && Array.isArray(data.systems)
       ? (data.systems as string[])
       : undefined
-  const titanModuleNames =
+  const statblockModuleNames =
     isTitanicStatblock && 'modules' in data && Array.isArray(data.modules)
       ? (data.modules as string[])
       : undefined
-  const titanSystems = titanSystemNames
+  const statblockSystems = statblockSystemNames
     ?.map((name) => SalvageUnionReference.findIn('systems', (s) => s.name === name))
     .filter((entity): entity is NonNullable<typeof entity> => !!entity)
-  const titanModules = titanModuleNames
+  const statblockModules = statblockModuleNames
     ?.map((name) => SalvageUnionReference.findIn('modules', (m) => m.name === name))
     .filter((entity): entity is NonNullable<typeof entity> => !!entity)
-  const hasTitanEquipment =
-    (titanSystems && titanSystems.length > 0) || (titanModules && titanModules.length > 0)
+  const hasStatblockEquipment =
+    (statblockSystems && statblockSystems.length > 0) ||
+    (statblockModules && statblockModules.length > 0)
 
   // Pre-built block for chassis abilities (reused at multiple render positions)
   // When abilitiesSection is provided by the caller, it replaces the entire built-in block
@@ -386,7 +387,7 @@ export function ReferenceEntityDisplayContent({
     !!afterExtraContent ||
     !!afterChoicesContent ||
     !!droneEntity ||
-    hasTitanEquipment ||
+    hasStatblockEquipment ||
     hasFactionContent ||
     hasGuideSteps ||
     ('bonusPerTechLevel' in data && !!data.bonusPerTechLevel) ||
@@ -684,15 +685,15 @@ export function ReferenceEntityDisplayContent({
                   listing as its own flow-root so they wrap around the image like
                   the body text (a flex container would stay shrunk beside the
                   float); otherwise keep the flex column. */}
-              {titanSystems && titanSystems.length > 0 && (
+              {statblockSystems && statblockSystems.length > 0 && (
                 <>
                   <SectionSeparator label="Mech Systems" compact={compact} />
                   <div
                     className={cn(!wrapImageFloat && 'flex flex-col', spacing.sectionSpaceYClass)}
                   >
-                    {titanSystems.map((system) => (
+                    {statblockSystems.map((system) => (
                       <div
-                        key={`titan-system-${system.id}`}
+                        key={`statblock-system-${system.id}`}
                         className={cn(wrapImageFloat && '[display:flow-root]')}
                       >
                         <PatternEquipmentItem data={system} />
@@ -701,15 +702,15 @@ export function ReferenceEntityDisplayContent({
                   </div>
                 </>
               )}
-              {titanModules && titanModules.length > 0 && (
+              {statblockModules && statblockModules.length > 0 && (
                 <>
                   <SectionSeparator label="Mech Modules" compact={compact} />
                   <div
                     className={cn(!wrapImageFloat && 'flex flex-col', spacing.sectionSpaceYClass)}
                   >
-                    {titanModules.map((mod) => (
+                    {statblockModules.map((mod) => (
                       <div
-                        key={`titan-module-${mod.id}`}
+                        key={`statblock-module-${mod.id}`}
                         className={cn(wrapImageFloat && '[display:flow-root]')}
                       >
                         <PatternEquipmentItem data={mod} />
