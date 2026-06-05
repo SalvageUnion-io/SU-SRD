@@ -253,6 +253,7 @@
     "source": "Thatcher's Mech Base",
     "name": "The Iron Lady",
     "structurePoints": 87,
+    "salvageValue": 87,
     "actions": [
       "Iron Claws (The Iron Lady)",
       "Corrosive M.I.L.K. Spray (The Iron Lady)",

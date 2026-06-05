@@ -43,6 +43,7 @@ describe('Bio-Titan / Iron Lady redistribution', () => {
     const ironLady = getReference().Drones.find((d) => d.name === 'The Iron Lady')
     expect(ironLady).toBeDefined()
     expect(ironLady!.structurePoints).toBe(87)
+    expect(ironLady!.salvageValue).toBe(87)
     expect(ironLady!.actions).toBeDefined()
     expect(ironLady!.modules).toEqual(['Comms Module', 'IR Night Vision Optics', 'Firewall'])
   })
