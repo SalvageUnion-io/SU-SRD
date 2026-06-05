@@ -14,6 +14,7 @@ type ReferenceEntityStatsProps = {
   prefix?: string
   primaryOnly?: boolean
   svOverride?: SvOverride
+  schemaName?: string
 }
 
 export function ReferenceEntityStats({
@@ -25,6 +26,7 @@ export function ReferenceEntityStats({
   prefix = '',
   primaryOnly = false,
   svOverride,
+  schemaName,
 }: ReferenceEntityStatsProps) {
   const stats = buildReferenceEntityStats(data, {
     compact,
@@ -33,6 +35,7 @@ export function ReferenceEntityStats({
     svOverride,
     techLevel,
     prefix,
+    schemaName,
   })
 
   if (stats.length === 0) return null

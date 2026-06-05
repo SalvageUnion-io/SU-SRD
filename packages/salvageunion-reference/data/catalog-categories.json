@@ -17,7 +17,16 @@
   {
     "id": "denizens",
     "name": "Denizens",
-    "schemas": ["creatures", "drones", "factions", "meld", "npcs", "squads", "titans", "vehicles"]
+    "schemas": [
+      "bio-titans",
+      "creatures",
+      "drones",
+      "factions",
+      "meld",
+      "npcs",
+      "squads",
+      "vehicles"
+    ]
   },
   {
     "id": "reference",

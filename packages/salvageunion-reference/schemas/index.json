@@ -3,7 +3,7 @@
   "title": "Salvage Union Data Schema Catalog",
   "description": "Catalog of all available schemas in the salvageunion-data repository",
   "version": "2.3.5",
-  "generated": "2026-05-12T05:26:18.760Z",
+  "generated": "2026-06-05T02:03:33.465Z",
   "schemas": [
     {
       "id": "abilities",
@@ -42,10 +42,29 @@
       "description": "Actions, abilities, and attacks that can be performed",
       "dataFile": "data/actions.json",
       "schemaFile": "schemas/actions.schema.json",
-      "itemCount": 688,
+      "itemCount": 686,
       "requiredFields": [],
       "displayName": "actions",
       "meta": true
+    },
+    {
+      "id": "bio-titans",
+      "title": "bio-titans",
+      "description": "Mech-scale biological monsters",
+      "dataFile": "data/bio-titans.json",
+      "schemaFile": "schemas/bio-titans.schema.json",
+      "itemCount": 12,
+      "requiredFields": [
+        "id",
+        "indexable",
+        "blackMarket",
+        "name",
+        "source",
+        "page",
+        "structurePoints",
+        "actions"
+      ],
+      "displayName": "Bio-Titans"
     },
     {
       "id": "catalog-categories",
@@ -174,7 +193,7 @@
       "description": "Autonomous drones",
       "dataFile": "data/drones.json",
       "schemaFile": "schemas/drones.schema.json",
-      "itemCount": 13,
+      "itemCount": 14,
       "requiredFields": ["id", "indexable", "blackMarket", "name", "source", "page"],
       "displayName": "Drones"
     },
@@ -184,7 +203,7 @@
       "description": "Pilot equipment and gear",
       "dataFile": "data/equipment.json",
       "schemaFile": "schemas/equipment.schema.json",
-      "itemCount": 81,
+      "itemCount": 82,
       "requiredFields": [
         "id",
         "indexable",
@@ -348,26 +367,6 @@
       "itemCount": 6,
       "requiredFields": ["id", "indexable", "blackMarket", "name", "source", "page", "techLevel"],
       "displayName": "tech-levels"
-    },
-    {
-      "id": "titans",
-      "title": "titans",
-      "description": "Mech-scale single-threat enemies (monsters and bosses)",
-      "dataFile": "data/titans.json",
-      "schemaFile": "schemas/titans.schema.json",
-      "itemCount": 13,
-      "requiredFields": [
-        "id",
-        "indexable",
-        "blackMarket",
-        "name",
-        "source",
-        "page",
-        "kind",
-        "structurePoints",
-        "actions"
-      ],
-      "displayName": "Titans"
     },
     {
       "id": "traits",

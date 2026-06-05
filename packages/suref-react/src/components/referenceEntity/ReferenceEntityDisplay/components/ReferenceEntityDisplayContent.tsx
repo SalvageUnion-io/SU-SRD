@@ -296,6 +296,19 @@ export function ReferenceEntityDisplayContent({
   const chassisName = 'name' in data ? data.name : undefined
   const hasChassisAbilities = !!chassisAbilities && chassisAbilities.length > 0
 
+  // Bio-Titans — and drone-class bosses with a mech-style statblock (the Iron
+  // Lady) — get the "titanic" treatment: full-width actions plus equipped
+  // systems/modules rendered as inline compact listings, and their actions
+  // section is suppressed in compact listings. Gate on data shape (actions +
+  // equipment) rather than a lone schema name, since the Titanic Actions
+  // mechanic is not Bio-Titan-specific and the Iron Lady now lives in `drones`.
+  const hasEquippedActions =
+    'actions' in data &&
+    Array.isArray((data as { actions?: unknown }).actions) &&
+    (('systems' in data && Array.isArray(data.systems)) ||
+      ('modules' in data && Array.isArray(data.modules)))
+  const isTitanicStatblock = schemaName === 'bio-titans' || hasEquippedActions
+
   // Check if entity has actions that will be displayed (after filtering).
   // A granting ability suppresses its Actions section (its redundant same-named
   // action lives on the granted equipment instead).
@@ -304,7 +317,7 @@ export function ReferenceEntityDisplayContent({
     !!visibleActions &&
     visibleActions.length > 0 &&
     (!hide.actions || compact) &&
-    !(compact && schemaName === 'titans')
+    !(compact && isTitanicStatblock)
 
   const hasTopMatterContent =
     !!showContent || hasChassisAbilities || !!assetUrl || hasDisplayableActions || showGrants
@@ -323,14 +336,13 @@ export function ReferenceEntityDisplayContent({
     ? SalvageUnionReference.findIn('drones', (d) => d.name === droneAbility.drone)
     : undefined
 
-  // Resolve titan-equipped systems/modules into entities for inline listing
-  const isTitan = schemaName === 'titans'
+  // Resolve statblock-equipped systems/modules into entities for inline listing
   const titanSystemNames =
-    isTitan && 'systems' in data && Array.isArray(data.systems)
+    isTitanicStatblock && 'systems' in data && Array.isArray(data.systems)
       ? (data.systems as string[])
       : undefined
   const titanModuleNames =
-    isTitan && 'modules' in data && Array.isArray(data.modules)
+    isTitanicStatblock && 'modules' in data && Array.isArray(data.modules)
       ? (data.modules as string[])
       : undefined
   const titanSystems = titanSystemNames
@@ -428,6 +440,7 @@ export function ReferenceEntityDisplayContent({
           primaryOnly: primaryStatsOnlyProp,
           svOverride: statsOverride,
           techLevel,
+          schemaName,
         })
       : undefined
 
@@ -649,7 +662,7 @@ export function ReferenceEntityDisplayContent({
                   {!compact && !hide.actions && chassisAbilitiesBlock}
                 </>
               )}
-              {(!hide.actions || (compact && schemaName !== 'titans' && !rightContent)) && (
+              {(!hide.actions || (compact && !isTitanicStatblock && !rightContent)) && (
                 <ReferenceEntityActions
                   suppressActions={hasChassisAbilities || isGrantingAbility}
                   spacing={spacing}

@@ -103,6 +103,7 @@ describe('Model Metadata', () => {
       const expectedSchemas = [
         'abilities',
         'ability-tree-requirements',
+        'bio-titans',
         'chassis',
         'classes',
         'crawler-bays',
@@ -118,7 +119,6 @@ describe('Model Metadata', () => {
         'roll-tables',
         'squads',
         'systems',
-        'titans',
         'traits',
         'vehicles',
       ]

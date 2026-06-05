@@ -32,7 +32,7 @@ import type {
   SURefTechLevel,
   SURefSquad,
   SURefSystem,
-  SURefTitan,
+  SURefBioTitan,
   SURefTrait,
   SURefVehicle,
 } from '../schemas/index.js'
@@ -61,7 +61,7 @@ export type SURefEntity =
   | SURefSquad
   | SURefSystem
   | SURefTechLevel
-  | SURefTitan
+  | SURefBioTitan
   | SURefTrait
   | SURefVehicle
 
@@ -87,7 +87,7 @@ export type SURefMetaEntity =
   | SURefRollTable
   | SURefSource
   | SURefTechLevel
-  | SURefTitan
+  | SURefBioTitan
   | SURefSquad
   | SURefSystem
   | SURefTrait

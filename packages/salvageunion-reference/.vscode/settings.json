@@ -13,6 +13,10 @@
       "url": "./schemas/actions.schema.json"
     },
     {
+      "fileMatch": ["data/bio-titans.json"],
+      "url": "./schemas/bio-titans.schema.json"
+    },
+    {
       "fileMatch": ["data/catalog-categories.json"],
       "url": "./schemas/catalog-categories.schema.json"
     },
@@ -95,10 +99,6 @@
     {
       "fileMatch": ["data/tech-levels.json"],
       "url": "./schemas/tech-levels.schema.json"
-    },
-    {
-      "fileMatch": ["data/titans.json"],
-      "url": "./schemas/titans.schema.json"
     },
     {
       "fileMatch": ["data/traits.json"],

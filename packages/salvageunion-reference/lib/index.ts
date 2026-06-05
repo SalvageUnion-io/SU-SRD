@@ -31,7 +31,7 @@ import type {
   SURefRollTable,
   SURefSquad,
   SURefSystem,
-  SURefTitan,
+  SURefBioTitan,
   SURefTrait,
   SURefVehicle,
   SURefMetaAbilityTreeRequirement,
@@ -238,7 +238,11 @@ const lazyRollTables = new LazyModel<SchemaToEntityMap['roll-tables']>(
 )
 const lazySquads = new LazyModel<SchemaToEntityMap['squads']>('squads', 'Squads', 'Squad')
 const lazySystems = new LazyModel<SchemaToEntityMap['systems']>('systems', 'Systems', 'System')
-const lazyTitans = new LazyModel<SchemaToEntityMap['titans']>('titans', 'Titans', 'Titan')
+const lazyBioTitans = new LazyModel<SchemaToEntityMap['bio-titans']>(
+  'bio-titans',
+  'BioTitans',
+  'Bio-Titan'
+)
 const lazyTraits = new LazyModel<SchemaToEntityMap['traits']>('traits', 'Traits', 'Trait')
 const lazyVehicles = new LazyModel<SchemaToEntityMap['vehicles']>('vehicles', 'Vehicles', 'Vehicle')
 const lazySources = new LazyModel<SURefSource>('sources', 'Sources', 'Source')
@@ -272,7 +276,7 @@ const lazyModelMap: Record<string, LazyModel<unknown>> = {
   'roll-tables': lazyRollTables as LazyModel<unknown>,
   squads: lazySquads as LazyModel<unknown>,
   systems: lazySystems as LazyModel<unknown>,
-  titans: lazyTitans as LazyModel<unknown>,
+  'bio-titans': lazyBioTitans as LazyModel<unknown>,
   traits: lazyTraits as LazyModel<unknown>,
   vehicles: lazyVehicles as LazyModel<unknown>,
   sources: lazySources as LazyModel<unknown>,
@@ -307,7 +311,7 @@ export type SchemaToEntityMap = {
   'roll-tables': SURefRollTable
   squads: SURefSquad
   systems: SURefSystem
-  titans: SURefTitan
+  'bio-titans': SURefBioTitan
   traits: SURefTrait
   vehicles: SURefVehicle
   sources: SURefSource
@@ -346,7 +350,7 @@ const SCHEMA_REGISTRY = {
   'roll-tables': { model: 'RollTables', display: 'Roll Table' },
   squads: { model: 'Squads', display: 'Squad' },
   systems: { model: 'Systems', display: 'System' },
-  titans: { model: 'Titans', display: 'Titan' },
+  'bio-titans': { model: 'BioTitans', display: 'Bio-Titan' },
   traits: { model: 'Traits', display: 'Trait' },
   vehicles: { model: 'Vehicles', display: 'Vehicle' },
   sources: { model: 'Sources', display: 'Source' },
@@ -413,7 +417,7 @@ export class SalvageUnionReference {
   static RollTables = lazyRollTables as ModelWithMetadata<SchemaToEntityMap['roll-tables']>
   static Squads = lazySquads as ModelWithMetadata<SchemaToEntityMap['squads']>
   static Systems = lazySystems as ModelWithMetadata<SchemaToEntityMap['systems']>
-  static Titans = lazyTitans as ModelWithMetadata<SchemaToEntityMap['titans']>
+  static BioTitans = lazyBioTitans as ModelWithMetadata<SchemaToEntityMap['bio-titans']>
   static Traits = lazyTraits as ModelWithMetadata<SchemaToEntityMap['traits']>
   static Vehicles = lazyVehicles as ModelWithMetadata<SchemaToEntityMap['vehicles']>
   static Sources = lazySources as ModelWithMetadata<SURefSource>

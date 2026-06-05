@@ -292,6 +292,16 @@
         "maximum": 9007199254740991,
         "description": "Cargo carrying capacity"
       },
+      "actions": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "Action names this drone can perform"
+      },
+      "modules": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "Mech module names this drone is equipped with"
+      },
       "choices": {
         "type": "array",
         "items": {
@@ -466,7 +476,7 @@
                   "squads",
                   "tech-levels",
                   "systems",
-                  "titans",
+                  "bio-titans",
                   "traits",
                   "vehicles"
                 ],

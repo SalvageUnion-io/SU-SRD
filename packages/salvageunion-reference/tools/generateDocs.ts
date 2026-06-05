@@ -121,7 +121,7 @@ function parseSchemaFile(schemaFile: string): SchemaInfo | null {
     else if (displayName === 'roll-tables') displayName = 'Roll Tables'
     else if (displayName === 'squads') displayName = 'Squads'
     else if (displayName === 'systems') displayName = 'Systems'
-    else if (displayName === 'titans') displayName = 'Titans'
+    else if (displayName === 'bio-titans') displayName = 'Bio-Titans'
     else if (displayName === 'traits') displayName = 'Traits'
     else if (displayName === 'vehicles') displayName = 'Vehicles'
     else if (displayName === 'catalog-categories') displayName = 'Catalog Categories'

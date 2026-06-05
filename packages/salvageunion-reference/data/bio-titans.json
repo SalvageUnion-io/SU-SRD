@@ -3,7 +3,6 @@
     "id": "8e5b04e5-9532-48c1-86ae-5960da416ede",
     "source": "Salvage Union Workshop Manual",
     "name": "Scylla",
-    "kind": "monster",
     "actions": [
       "Scythe Attack",
       "Tail Sweep",
@@ -26,7 +25,6 @@
     "id": "8bab65a1-d9ee-445e-97d6-9d13602831ee",
     "source": "Salvage Union Workshop Manual",
     "name": "Typhon",
-    "kind": "monster",
     "actions": [
       "Burrower",
       "Armour Plating (Typhon)",
@@ -48,7 +46,6 @@
     "id": "a6cc074f-2e23-48d0-8448-4825d803d153",
     "source": "Salvage Union Workshop Manual",
     "name": "Chrysalis",
-    "kind": "monster",
     "actions": [
       "Flying",
       "Cluster Energy Bombs",
@@ -71,7 +68,6 @@
     "id": "9c548eba-0fbe-4eb5-8752-a0cfe4c319f9",
     "source": "Salvage Union Workshop Manual",
     "name": "Phantom",
-    "kind": "monster",
     "actions": ["Nether Teleport", "Phasic Core", "Morph Scythes", "Titanic Actions (Phantom)"],
     "structurePoints": 54,
     "asset_url": "https://opxrguskxuogghzcnppk.supabase.co/storage/v1/object/public/LP-Assets/bio-titans/phantom.jpg",
@@ -87,7 +83,6 @@
     "id": "ba63bfa7-9e90-4c81-bcc6-90e4ddfac939",
     "source": "Salvage Union Workshop Manual",
     "name": "Electrophorus",
-    "kind": "monster",
     "actions": [
       "Electrified Spines",
       "Static Field",
@@ -110,7 +105,6 @@
     "id": "a7952eaa-4621-4f4f-8944-ee249d9a04a3",
     "source": "Salvage Union Workshop Manual",
     "name": "Tyrant",
-    "kind": "monster",
     "actions": [
       "Claw Swipes",
       "Amphibious",
@@ -136,7 +130,6 @@
     "source": "Reclamation of the Wastes",
     "page": 110,
     "name": "Ygdriss",
-    "kind": "monster",
     "actions": [
       "Immobile (Ygdriss)",
       "Thickened Bark",
@@ -159,7 +152,6 @@
     "id": "ab560707-8448-47be-9cfb-4dca5ead08c1",
     "source": "We Were Here First!",
     "name": "Cortex Bio-Titan",
-    "kind": "monster",
     "actions": [
       "One Step Ahead (Cortex Bio-Titan)",
       "Proboscis (Cortex Bio-Titan)",
@@ -180,7 +172,6 @@
     "id": "47373f75-5014-4549-a6de-b087dda6eedf",
     "source": "Rainmaker",
     "name": "Apophis",
-    "kind": "monster",
     "actions": [
       "Camouflaged Scales (Apophis)",
       "Venomous Bite (Apophis)",
@@ -202,7 +193,6 @@
     "source": "Rainmaker",
     "page": 80,
     "name": "Hill Worm Pattern Typhon",
-    "kind": "monster",
     "actions": [
       "Metallic Reconstitution",
       "Burrower",
@@ -228,7 +218,6 @@
     "name": "Genbu",
     "source": "Rainmaker",
     "page": 82,
-    "kind": "monster",
     "structurePoints": 47,
     "actions": [
       "Aquatic Ambusher (Genbu)",
@@ -250,7 +239,6 @@
     "id": "283e9165-721c-4543-8def-d6a88af366e3",
     "source": "Rainmaker",
     "name": "Physalis",
-    "kind": "monster",
     "actions": [
       "Pilot Seeker Tendrils",
       "Puppeteer Tendrils",
@@ -265,30 +253,6 @@
       {
         "type": "paragraph",
         "value": "A sea of floating tendrils, Physalis is a Bio-Titan able to liquify a Pilot in their cockpit and turn their Mech into a marionette under its control. Its lair is surrounded by Mech carcasses and the liquified remains of their pilots."
-      }
-    ]
-  },
-  {
-    "id": "5bb5a243-e4ec-40ae-a6e2-dba236e11e37",
-    "name": "The Iron Lady",
-    "source": "Thatcher's Mech Base",
-    "page": 2,
-    "kind": "boss",
-    "structurePoints": 87,
-    "actions": [
-      "Iron Claws (The Iron Lady)",
-      "Corrosive M.I.L.K. Spray (The Iron Lady)",
-      "TRIDENT Missile Pod (The Iron Lady)",
-      "TRIDENT Defence System (The Iron Lady)",
-      "M.I.L.K. Injector (The Iron Lady)",
-      "Control Signal (The Iron Lady)",
-      "Titanic Actions (The Iron Lady)"
-    ],
-    "modules": ["Comms Module", "IR Night Vision Optics", "Firewall"],
-    "content": [
-      {
-        "type": "paragraph",
-        "value": "A monstrous mecha-android built specifically to house the Thatcher Steel CEO. A reinforced glass cockpit reveals her emaciated body, allowing her worshippers to look upon her terrible visage. Sustained far beyond her mortal years, she requires only 4 hours sleep."
       }
     ]
   }

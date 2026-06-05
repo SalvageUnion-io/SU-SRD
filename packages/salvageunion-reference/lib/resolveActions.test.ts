@@ -151,8 +151,8 @@ describe('SalvageUnionReference.resolveActions', () => {
       expect(actions!.length).toBeGreaterThan(0)
     })
 
-    it('should handle titans with actions', () => {
-      const titan = getReference().Titans.all()[0]!
+    it('should handle bio-titans with actions', () => {
+      const titan = getReference().BioTitans.all()[0]!
       const actions = getReference().resolveActions(titan)
       expect(actions).toBeDefined()
       expect(Array.isArray(actions)).toBe(true)

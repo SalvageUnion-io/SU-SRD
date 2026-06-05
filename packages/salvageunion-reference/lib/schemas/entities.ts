@@ -84,29 +84,28 @@ export const MetaActionSchema = ActionSchema.and(
 ).describe('Actions, abilities, and attacks that can be performed')
 
 /**
- * Mech-scale single-threat enemies (monsters and bosses).
+ * Bio-Titans: mech-scale biological monsters.
  *
- * `kind` distinguishes:
- * - `monster`: instinctual creatures (e.g. Scylla, Typhon, Chrysalis)
- * - `boss`: named antagonists with goals and motivations (e.g. The Iron Lady)
- *
- * Both share the same statblock shape: structurePoints + actions (often
- * including a "Titanic Actions" entry) and optional traits.
+ * Instinctual, mech-scale creatures (e.g. Scylla, Typhon, Chrysalis) with a
+ * structurePoints + actions statblock — actions often include a "Titanic
+ * Actions" entry. Bio-salvage extracted from a Bio-Titan equals its starting
+ * Structure Points (derived at the display layer).
  */
-export const TitanSchema = BaseEntitySchema.extend({
-  kind: z
-    .enum(['monster', 'boss'])
-    .describe(
-      'Monster (instinctual creature) or Boss (named antagonist with goals and motivations)'
-    ),
-  structurePoints: PositiveIntegerSchema.describe('Structure points of this titan'),
-  actions: z.array(z.string()).describe('Action names this titan can perform'),
-  systems: z.array(z.string()).describe('Mech system names this titan is equipped with').optional(),
-  modules: z.array(z.string()).describe('Mech module names this titan is equipped with').optional(),
+export const BioTitanSchema = BaseEntitySchema.extend({
+  structurePoints: PositiveIntegerSchema.describe('Structure points of this bio-titan'),
+  actions: z.array(z.string()).describe('Action names this bio-titan can perform'),
+  systems: z
+    .array(z.string())
+    .describe('Mech system names this bio-titan is equipped with')
+    .optional(),
+  modules: z
+    .array(z.string())
+    .describe('Mech module names this bio-titan is equipped with')
+    .optional(),
   traits: z.array(TraitSchema).describe('Traits and special properties').optional(),
 })
   .strict()
-  .describe('Mech-scale single-threat enemies (monsters and bosses)')
+  .describe('Mech-scale biological monsters')
 
 /**
  * Mech chassis definitions
@@ -236,10 +235,19 @@ export const TechLevelEntitySchema = BaseEntitySchema.extend({
   .describe('Tech level descriptions')
 
 /**
- * Autonomous drones
+ * Autonomous drones.
+ *
+ * Most drones are configured from `systems`, but some drone-class threats
+ * (e.g. The Iron Lady) carry named `actions` — sometimes including a "Titanic
+ * Actions" entry — and equipped `modules`, mirroring a mech statblock.
  */
 export const DroneSchema = BaseEntitySchema.extend({ ...MechanicalEntitySchema.shape })
   .extend({
+    actions: z.array(z.string()).describe('Action names this drone can perform').optional(),
+    modules: z
+      .array(z.string())
+      .describe('Mech module names this drone is equipped with')
+      .optional(),
     choices: ChoicesSchema.describe('Configuration choices for this drone').optional(),
   })
   .strict()

@@ -416,7 +416,7 @@
                       "squads",
                       "tech-levels",
                       "systems",
-                      "titans",
+                      "bio-titans",
                       "traits",
                       "vehicles"
                     ],
@@ -3597,7 +3597,7 @@
               "squads",
               "tech-levels",
               "systems",
-              "titans",
+              "bio-titans",
               "traits",
               "vehicles"
             ],

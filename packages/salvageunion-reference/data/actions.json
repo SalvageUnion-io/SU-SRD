@@ -395,7 +395,7 @@
         "value": "Unless detected, Scylla always acts first in combat."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "name": "Amphibious",
@@ -407,7 +407,7 @@
         "value": "The Tyrant is able to move swiftly in all bodies of water at any depth as well as on land. It can breathe underwater as well as on land."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "id": "7360911b-e7e4-4b05-81da-0f14aaa09758",
@@ -532,7 +532,7 @@
         "value": "When Scylla takes damage, instead destroy a layer of Armour Plating and negate all of the damage and any effects."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "name": "Armour Plating (Typhon)",
@@ -551,7 +551,7 @@
         "value": "When Typhon takes damage, instead destroy a layer of Armour Plating and negate all of the damage and any effects."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "id": "bf8c765f-cc1a-4c05-9469-8161dff85d2e",
@@ -1035,7 +1035,7 @@
         "value": "Electrophorus fires an arc of bioelectricity. Choose up to three targets in Medium Range and make a single attack roll. On a successful hit the first target takes 10 SP damage, the second target takes 5 SP damage, and the third target takes 3 SP damage."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "name": "Bio-Electric Shield",
@@ -1052,7 +1052,7 @@
         "value": "As a Reaction may when hit by an attack, Electrophorus may trigger its Bio-Electric Shield to deflect the blow."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "id": "ab8b327f-3f29-406a-af7e-5719bfffaccd",
@@ -1227,7 +1227,7 @@
         "value": "Chrysalis Lays d20 Egg Sacs in an area within Close Range. At the start of its next turn they are born as a Child of Chrysalis and join the combat. Egg Sacs have 1 SP before they hatch."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "name": "Bite",
@@ -1420,7 +1420,7 @@
         "value": "Typhon can move freely on land and traverse underground through earth, even through the hardest of rock deposits. It can burrow into the earth as a Turn Action and unburrow as a Free Action. Whilst burrowed, it cannot be seen or targeted by anything on the ground, but can be spotted via the huge amounts of earth it kicks up."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "id": "2e67cdca-2fbb-446a-948b-ed8fa48500ed",
@@ -1820,7 +1820,7 @@
         "value": "The Tyrant makes a frenetic series of claw swipes."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "name": "Climb",
@@ -1832,7 +1832,7 @@
         "value": "Scylla can effortlessly climb over difficult and vertical terrain, rocky surfaces, and other obstacles."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "name": "Close Range Protocols",
@@ -1874,7 +1874,7 @@
         "value": "Chrysalis scatters a series of glowing cluster bombs upon its foes."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "name": "Cocoon",
@@ -1886,7 +1886,7 @@
         "value": "Chrysalis forms itself into a Cocoon. Whilst in the Cocoon it cannot move or take any other actions, but regains 10 SP at the start of each round. The Cocoon has 50 SP; if it is destroyed Chrysalis cannot use this Ability again for 24 hours."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "id": "4a6d5bbf-5da8-4d66-b1a1-2da9b13be155",
@@ -2551,7 +2551,7 @@
         "value": "The destructive power of The Tyrant is unparalleled. It will destroy any Arco, City, Settlement, or Crawler within a day of attacking it."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "name": "Devour",
@@ -2774,7 +2774,7 @@
         "value": "Electrophorus gouges a target with its spines."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "id": "7bcbcd9c-10a5-441d-9b6f-732f63488833",
@@ -2962,7 +2962,7 @@
         "value": "Chrysalis emits an entrancing song by vibrating its wings at a series of different frequencies. This Ability affects all targets that can hear Chrysalis within Medium Range including those in a Mech unless it is somehow sound sealed."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "id": "4d313bcd-751e-4d74-aa2f-e8600915d571",
@@ -3340,7 +3340,7 @@
         "value": "Chrysalis can fly in the air, moving over all obstacles and terrain. All attacks against Chrysalis when it is flying treat it as though it is in Long Range."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "id": "416526f5-d704-4437-a0ed-5d6d10cbf0f6",
@@ -4137,7 +4137,7 @@
         "value": "Electrophorus is able to use its bioelectric energy to hover over obstacles, creatures, Mechs, and terrain as a Free Action."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "name": "Hover Drone",
@@ -4990,7 +4990,7 @@
         "value": "The Tyrant produces a humongous beam of Irradiated energy from its maw. This must recharge after being fired, and can only be made every other turn. Any target hit by the Irradiated Beam as well as the entire area within Close Range becomes Irradiated."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "name": "Juggernaut",
@@ -6080,7 +6080,7 @@
         "value": "The molecular structure of a target hit by Phantom's Morph Scythes begins to unravel with bizarre results."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "actionType": "Turn",
@@ -6221,7 +6221,7 @@
         "value": "Fanatical devotees of the Cortex Bio-Titan who have twisted themselves into complete servitude to the creature. They will sacrifice themselves to keep its fragile form alive. When an attack hits the Cortex Bio-Titan, any **Chimerium Mutant**, **Chimerium Mutant Squad**, or **Chimerium Chosen** within Medium Range may take the hit instead as a reaction, suffering all effects of the attack."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "id": "35dec542-51ff-4377-8e39-bab20debb96a",
@@ -6545,7 +6545,7 @@
         "value": "Phantom teleports itself to the Nether Zone or teleports from the Nether Zone to the material world. After Phantom uses this Ability it may not act on its next turn."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "id": "df658854-feab-4c76-bff9-061a847194bb",
@@ -6699,7 +6699,7 @@
         "value": "The Cortex Bio-Titan is hyper-intelligent and always one step ahead of those around it. During any encounter with the Cortex Bio-Titan, each player must declare what action they intend to do in advance, whether they wish to attack, parley, flee, or do anything else. The Cortex Bio-Titan may then act first, assuming all of that knowledge."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "id": "7c1cdc03-7966-4294-9e25-8e5924a8a839",
@@ -7068,7 +7068,7 @@
         "value": "Phantom is permanently phased. It can move through walls and obstacles and is invisible except for a faint blue outline. Phantom can make attacks whilst phased."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "name": "Physio",
@@ -7422,7 +7422,7 @@
         "value": "If the proboscis is connected to the skull of a human, it can communicate with them via telepathy. This requires them presenting their skull and tendril-like probes piercing through into their cranial membrane. This is unpleasant, but not deadly - unless the Cortex Bio-Titan chooses it to be."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "id": "4a4b4f90-1abe-4738-add9-6e554dd3cc99",
@@ -7444,7 +7444,7 @@
         "value": "If a human or creature is hit with this attack, they die as their brain is sucked out of their skull."
       }
     ],
-    "actionSource": "titans",
+    "actionSource": "bio-titans",
     "actionType": "Turn"
   },
   {
@@ -7975,7 +7975,7 @@
         "value": "The Tyrant regains 10 SP at the start of its turn. This triggers even when reduced to 0 SP."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "name": "Reinforced Chassis",
@@ -8072,7 +8072,7 @@
         "value": "The Tyrant rips apart a target with a mammoth bite."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "id": "4649d724-1cf6-4517-8814-2077291331ae",
@@ -8456,7 +8456,7 @@
         "value": "Scylla stabs with its forearms attempting to pierce it's prey."
       }
     ],
-    "actionSource": "titans",
+    "actionSource": "bio-titans",
     "actionType": "Turn"
   },
   {
@@ -8842,7 +8842,7 @@
         "value": "When Typhon unborrows all targets within Close Range of the area it unburrows up to take 5 SP damage from its spiked carapace. In addition, any target that attacks Typhon with an attack that has the [[Melee]] Trait takes 3 SP damage on a hit."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "name": "Split",
@@ -9004,7 +9004,7 @@
         "value": "Anything that starts its turn or enters within Close Range of the Electrophorus will take 5 SP damage."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "id": "6b889072-bfb5-4479-8a23-f6f650ea8d60",
@@ -9152,7 +9152,7 @@
         "value": "Typhon attempts to swallow a target into its humongous maw. Typhon may have multiple targets swallowed at once."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "name": "Swing",
@@ -9396,7 +9396,7 @@
         "value": "The Tyrant swipes with its tail, casually knocking over skyscrapers and swatting away projectiles."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "name": "Tail Sweep",
@@ -9413,7 +9413,7 @@
         "value": "Scylla makes one giant sweeping attack with their tail. This hits every target within Medium Range, dealing 3 SP damage on a hit. Targets hit are knocked Prone and gain the [[Vulnerable]] Trait."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "id": "7a8ba47f-0815-403c-a840-6ee05db36e2a",
@@ -9738,7 +9738,7 @@
         "value": "Chrysalis uses its Cocoon Ability (Costs 2 Titanic Actions)."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "id": "4c103043-2ef5-4812-9aaa-f81dca9bd9e8",
@@ -9762,7 +9762,7 @@
         "value": "The Cortex Bio-Titan wills one of its Mutant Followers to attack. Any Chimerium Mutant, Chimerium Mutant Squad, or Chimerium Beast within Long Range may make an attack against a target of the Cortex Bio-Titan's choice as a reaction. (Costs 1 Titanic Action)"
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "name": "Titanic Actions (Electrophorus)",
@@ -9786,7 +9786,7 @@
         "value": "Electrophorus makes a Bio-Electric Arc Attack (Uses 2 Titanic Actions)."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "name": "Titanic Actions (Meld Behemoth)",
@@ -9834,7 +9834,7 @@
         "value": "Phantom uses its Nether Teleport Ability."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "name": "Titanic Actions (Scylla)",
@@ -9858,7 +9858,7 @@
         "value": "Scylla makes a Tail Sweep Attack (Costs 2 Titanic Actions)."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "name": "Titanic Actions (Typhon)",
@@ -9882,7 +9882,7 @@
         "value": "Typhon makes a Swallow Whole Attack (Costs three Titanic Actions)."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "name": "Titanic Actions (Tyrant)",
@@ -9906,7 +9906,7 @@
         "value": "Tyrant makes a single Claw Swipe Attack. This does not have the [[Multi-Attack]] Trait."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "id": "0946ece1-ca7e-4aac-9bfe-31adcf40d455",
@@ -11608,7 +11608,7 @@
         "value": "Apophis scales are an array of hypnotic colours designed to confuse foes and throw off targeting, scanning and optical systems. Apophis cannot be targeted with anything with the Targeter Trait. It also cannot be seen by anything with the Optics Trait or Scanner Trait."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "id": "5cf942e4-d588-402a-bea2-135dda076c89",
@@ -11640,7 +11640,7 @@
         "value": "This attack does not affect Mechs or Vehicles."
       }
     ],
-    "actionSource": "titans",
+    "actionSource": "bio-titans",
     "actionType": "Turn"
   },
   {
@@ -11659,7 +11659,7 @@
         "value": "Apophis wraps itself around its prey. It may target one Mech, Bio-Titan or Vehicle or up to 4 Creatures with this Ability. Make an attack roll as normal. On a hit each target is constricted. They immediately take 6 SP damage and gain the Vulnerable and Immobile Traits. A target caught may attempt to escape as a Turn Action. Apophis may only constrict one Mech or 3 Creatures at a time."
       }
     ],
-    "actionSource": "titans",
+    "actionSource": "bio-titans",
     "actionType": "Turn"
   },
   {
@@ -11673,7 +11673,7 @@
         "value": "Apophis crushes all targets that it has constricted. This automatically deals 12 SP damage to the targets, and a random System or Module on a Mech is destroyed. (THe₂x damage of the Vulnerable Trait is factored into this damage.)"
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "id": "b239d9c5-ea33-4f5e-b7bf-5b0805efa3d4",
@@ -11701,7 +11701,7 @@
         "value": "Apophis makes a Venomous Bite Attack."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "id": "32c1b47f-38cd-4de3-8447-8ff898aa73b9",
@@ -11729,7 +11729,7 @@
         "value": "Make a melee attack against a target within Range."
       }
     ],
-    "actionSource": "titans",
+    "actionSource": "bio-titans",
     "actionType": "Turn"
   },
   {
@@ -11748,7 +11748,7 @@
         "value": "Puppeteer tendrils can target any Mech without a Pilot in Range. The Mech comes under the control of Physalis. It acts when Physalis wills it via its Mech Marionette Ability."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "id": "c07208c2-f5fc-40b3-a8d1-368039f82b0b",
@@ -11761,7 +11761,7 @@
         "value": "A Mech in Range under the control of Physalis may either Move or take a Turn Action. It may also take as many Free Actions as it is able to. It cannot take Reactions."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "id": "6788277f-10af-40c7-be9f-5d0049972929",
@@ -11773,7 +11773,7 @@
         "value": "When Physalis is hit by an attack it may redirect the attack to one of the Mechs under its control. The attack deals its damage and any effects to the chosen Mech. During a round, Physalis may use this Reaction once per Mech it has under its control."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "id": "653ade99-a3b0-4094-b822-1f1edca5f507",
@@ -11790,7 +11790,7 @@
         "value": "Physalis uses electro-magnetic propulsion to hover over terrain and obstacles. It has the Hover Trait."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "id": "a4733b36-8ef0-48e9-9c41-a76b14cc6868",
@@ -11818,7 +11818,7 @@
         "value": "Physalis Moves a Range Band"
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "id": "e0b63ff6-7541-49d7-bc8f-94308c415cec",
@@ -11831,7 +11831,7 @@
         "value": "If undetected in an aquatic environment, Genbu always acts first in an Action Scene."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "id": "8e6b4dc1-863d-4581-94a5-9c0742e9435e",
@@ -11852,7 +11852,7 @@
         "value": "Make a ranged attack against a target within Range."
       }
     ],
-    "actionSource": "titans",
+    "actionSource": "bio-titans",
     "actionType": "Turn"
   },
   {
@@ -11883,7 +11883,7 @@
         "value": "Make a melee attack against a target within Range."
       }
     ],
-    "actionSource": "titans",
+    "actionSource": "bio-titans",
     "actionType": "Turn"
   },
   {
@@ -11897,7 +11897,7 @@
         "value": "Genbu regenerates a layer of Armour Plating on its shell, regaining 1 Armour Plating up to its maximum of 6."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "id": "c33a9caf-aac3-423d-b6dc-4685472bd049",
@@ -11916,7 +11916,7 @@
         "value": "When Genbu takes damage, instead remove a layer of Armour Plating and it takes no damage or effect from the attack."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "id": "055bf8d4-9a9f-43bb-a82b-9a791f90ea10",
@@ -11929,7 +11929,7 @@
         "value": "Genbu can move effortlessly in water, swamp, rivers, and other aquatic environments. Genbu is slow on areas of land. It must choose to either attack or move on its turn when on land."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "id": "bf9470f6-5df0-405b-b550-b9f1feb0d228",
@@ -11957,7 +11957,7 @@
         "value": "Genbu uses its Shell Regeneration Ability."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "id": "05957294-9d2b-4ce2-a77a-b55f744bbe53",
@@ -12059,7 +12059,7 @@
         "value": "The Worm's physiology extracts metals and extrudes them as defensive rings. It gains an additional Armour Plating when it reduces a Mech or Vehicle to 0 SP."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "id": "72b054eb-28c5-4363-bf5c-27e0b3e766f9",
@@ -12981,7 +12981,7 @@
     "damage": { "damageType": "SP", "amount": 6 },
     "traits": [{ "type": "melee" }, { "type": "multi-attack", "amount": 2 }],
     "content": [{ "type": "paragraph", "value": "The Iron Lady swipes with her clawed limbs." }],
-    "actionSource": "titans"
+    "actionSource": "drones"
   },
   {
     "id": "159a2729-48b1-43c3-b358-6f6776456ab3",
@@ -12992,7 +12992,7 @@
     "damage": { "damageType": "SP", "amount": 3 },
     "traits": [{ "type": "burn", "amount": 3 }],
     "content": [{ "type": "paragraph", "value": "Hits every target in Medium Range." }],
-    "actionSource": "titans"
+    "actionSource": "drones"
   },
   {
     "id": "deb2486f-443f-4b8b-99de-e068fc037ae6",
@@ -13009,7 +13009,7 @@
     "content": [
       { "type": "paragraph", "value": "The Iron Lady fires off a salvo of irradiated warheads." }
     ],
-    "actionSource": "titans"
+    "actionSource": "drones"
   },
   {
     "id": "74e3153d-a3bb-476d-a814-19e4c43e4ae7",
@@ -13022,7 +13022,7 @@
         "value": "If the Iron Lady is hit by a Ranged Weapon attack, she may immediately fire a Trident Missile as a reaction."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "drones"
   },
   {
     "id": "5d9d5d89-496e-42d7-a30f-34ac468a6a84",
@@ -13035,7 +13035,7 @@
         "value": "The Iron Lady can inject herself with M.I.L.K. This allows her to act twice in a round, but reduces her SP by d20."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "drones"
   },
   {
     "id": "28ce4d04-73a8-4edd-8c22-0dbfb7af9319",
@@ -13054,7 +13054,7 @@
         "value": "Further, the control signal keeps the androids under her steely spell. If she is destroyed the signal will be broken, freeing the android workers from her control."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "drones"
   },
   {
     "id": "e6b0a773-736c-4b81-a07a-6762e68225ff",
@@ -13078,7 +13078,7 @@
         "value": "The Iron Lady makes a M.I.L.K Spray attack (costs 2 Titanic Actions)."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "drones"
   },
   {
     "id": "2413bb3d-f312-4f9e-9d64-7de00ca665c1",
@@ -13530,7 +13530,7 @@
         "value": "Ygdriss uses her Summon Bio-Fauna Ability (Costs 2 Titanic Actions)"
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "id": "294733bf-e788-4ccb-805c-558d405a9617",
@@ -13543,7 +13543,7 @@
         "value": "Ygdriss is rooted to the ground and cannot move."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "id": "3285e4a2-9a58-40fe-9e9c-14b8d2bade51",
@@ -13555,7 +13555,7 @@
         "value": "Ygdriss counts as having 2 x Armour Plating Systems."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "id": "1736c548-3ac4-4a28-975a-b65e8b369b12",
@@ -13567,7 +13567,7 @@
         "value": "Melee attacks against Ygdriss cause 2 SP damage to the attacker."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "id": "c1e95208-2a68-4dba-a247-02c03e423ea1",
@@ -13579,7 +13579,7 @@
         "value": "Pilots within Close Range of Ygdriss gain a minor mutation, which can be treated as a Pilot Keepsake (p.46 PH). They may describe this form of minor mutation however they wish. If the Pilot is hostile to Ygdriss, their mutation will instead cause a Minor Injury that they can describe as they wish."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "id": "36686c6c-7bf9-4f91-8aaf-bcaeaefaa191",
@@ -13594,7 +13594,7 @@
         "value": "Ygdriss swipes with her barbed branches. On a successful hit, the target is rooted in place, gaining the Immobile and Vulnerable Traits until they escape."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "id": "d78e7d16-8c19-4a10-af74-5087421086ae",
@@ -13606,7 +13606,7 @@
         "value": "Ygdriss emits a cloud of rust spores. All Mechs and Vehicles within Far Range take 2 SP damage with Burn 2."
       }
     ],
-    "actionSource": "titans"
+    "actionSource": "bio-titans"
   },
   {
     "id": "dd5a7429-429e-4831-b37a-2fe9cb308fa0",
@@ -13619,7 +13619,7 @@
         "value": "Ygdriss summons Creatures from within her branches to defend herself. They start in Close Range to her."
       }
     ],
-    "actionSource": "titans",
+    "actionSource": "bio-titans",
     "tableName": "Summon Bio-Fauna"
   },
   {

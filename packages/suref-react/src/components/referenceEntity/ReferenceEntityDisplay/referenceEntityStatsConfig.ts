@@ -154,6 +154,8 @@ type BuildReferenceEntityStatsOptions = {
   svOverride?: SvOverride
   techLevel?: number | 'B' | 'N'
   prefix?: string
+  /** Schema name of the entity — used to scope schema-specific stat derivations. */
+  schemaName?: string
 }
 
 /**
@@ -171,6 +173,7 @@ export function buildReferenceEntityStats(
     svOverride,
     techLevel,
     prefix = '',
+    schemaName,
   } = options
   const entityData = data as SURefMetaEntity
   const isBioTechLevel = techLevel === 'B'
@@ -197,7 +200,17 @@ export function buildReferenceEntityStats(
       continue
     }
 
-    const value = config.getter(entityData)
+    let value = config.getter(entityData)
+    // Bio-Titans surface bio-salvage equal to their Structure Points (core-book
+    // rule). There is no stored bioSalvageValue field — derive it from SP here,
+    // scoped strictly to bio-titans so no other entity gains a derived stat.
+    if (
+      value === undefined &&
+      config.getter === getBioSalvageValue &&
+      schemaName === 'bio-titans'
+    ) {
+      value = getStructurePoints(entityData)
+    }
     const displayValue = applyStatLabel(value, prefix)
     if (displayValue === undefined) continue
 

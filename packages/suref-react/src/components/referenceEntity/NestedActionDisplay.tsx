@@ -35,7 +35,7 @@ type NestedActionDisplayProps = {
  * - sectionHeader=true (legacy/crawler path): title as SectionSeparator + left-border
  *   content block. Kept for backward compat with callers that pass sectionHeaders.
  * - sectionHeader=false (default): delegates to ActionCard for the new entity-card
- *   treatment. This is the standard path for titans, NPCs, creatures, squads, etc.
+ *   treatment. This is the standard path for bio-titans, NPCs, creatures, squads, etc.
  */
 export function NestedActionDisplay({
   data,
