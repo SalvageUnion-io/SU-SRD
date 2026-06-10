@@ -11,10 +11,6 @@ export default defineConfig({
     react(),
     sitemap({
       filter: (page) => !page.includes('/image') && !page.includes('/greembeem'),
-      serialize(item) {
-        item.lastmod = new Date().toISOString()
-        return item
-      },
     }),
   ],
   prefetch: {
