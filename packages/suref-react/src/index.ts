@@ -13,7 +13,7 @@ export { ENTITY_STATS_CONFIG } from './components/referenceEntity/ReferenceEntit
 export { Text } from './components/base/Text'
 
 // UI primitives
-export { Toaster } from './components/ui/toaster'
+export { Toaster, toast } from './components/ui/toaster'
 
 // Entity display system
 export { ReferenceEntityDisplay } from './components/referenceEntity/ReferenceEntityDisplay/index'
