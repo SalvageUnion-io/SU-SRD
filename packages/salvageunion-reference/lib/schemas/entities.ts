@@ -97,7 +97,9 @@ export const BioTitanSchema = BaseEntitySchema.extend({
 /**
  * Mech chassis definitions
  */
-export const ChassisSchema = BaseEntitySchema.extend({ ...ChassisStatsSchema.shape })
+export const ChassisSchema = BaseEntitySchema.extend({
+  ...ChassisStatsSchema.shape,
+})
   .extend({
     chassisAbilities: z
       .array(z.string())
@@ -225,7 +227,9 @@ export const CrawlerSchema = BaseEntitySchema.extend({
 /**
  * Creatures and wildlife
  */
-export const CreatureSchema = BaseEntitySchema.extend({ ...CombatEntitySchema.shape })
+export const CreatureSchema = BaseEntitySchema.extend({
+  ...CombatEntitySchema.shape,
+})
   .extend({
     hitPoints: NonNegativeIntegerSchema.describe('Hit points of this creature'),
   })
@@ -258,7 +262,9 @@ export const TechLevelEntitySchema = BaseEntitySchema.extend({
  * (e.g. The Iron Lady) carry named `actions` — sometimes including a "Titanic
  * Actions" entry — and equipped `modules`, mirroring a mech statblock.
  */
-export const DroneSchema = BaseEntitySchema.extend({ ...MechanicalEntitySchema.shape })
+export const DroneSchema = BaseEntitySchema.extend({
+  ...MechanicalEntitySchema.shape,
+})
   .extend({
     actions: z.array(z.string()).describe('Action names this drone can perform').optional(),
     modules: z
@@ -334,7 +340,7 @@ export const ModuleSchema = BaseEntitySchema.extend({
   ...SystemModuleSchema.shape,
   // Re-assert required name: SystemModuleSchema's optional `name` (for custom
   // system options) must not weaken the entity-level required name.
-  name: NameSchema.describe('Display name of this entity'),
+  name: BaseEntitySchema.shape.name,
 })
   .strict()
   .describe('Mech modules')
@@ -342,7 +348,9 @@ export const ModuleSchema = BaseEntitySchema.extend({
 /**
  * Non-player characters and people
  */
-export const NPCSchema = BaseEntitySchema.extend({ ...CombatEntitySchema.shape })
+export const NPCSchema = BaseEntitySchema.extend({
+  ...CombatEntitySchema.shape,
+})
   .extend({
     hitPoints: NonNegativeIntegerSchema.describe(
       'Hit points (HP) or structure points (SP) of this NPC; see damageType to disambiguate.'
@@ -386,7 +394,7 @@ export const SystemSchema = BaseEntitySchema.extend({
   ...SystemModuleSchema.shape,
   // Re-assert required name: SystemModuleSchema's optional `name` (for custom
   // system options) must not weaken the entity-level required name.
-  name: NameSchema.describe('Display name of this entity'),
+  name: BaseEntitySchema.shape.name,
 })
   .strict()
   .describe('Mech systems (weapons and utilities)')
