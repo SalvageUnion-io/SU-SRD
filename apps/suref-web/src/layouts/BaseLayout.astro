@@ -1,5 +1,12 @@
 ---
 import { ClientRouter } from 'astro:transitions'
+import '@fontsource/barlow/400.css'
+import '@fontsource/barlow/500.css'
+import '@fontsource/barlow/600.css'
+import '@fontsource/barlow/700.css'
+import '@fontsource/barlow-semi-condensed/500.css'
+import '@fontsource/barlow-semi-condensed/600.css'
+import '@fontsource/barlow-semi-condensed/700.css'
 import '../styles/global.css'
 import TopNavigation from '../components/TopNavigation.astro'
 import { Footer } from 'suref-react'
@@ -81,11 +88,6 @@ const isDefaultOgImage = ogImage === DEFAULT_OG_IMAGE
     <meta name="twitter:image" content={ogImageUrl} />
 
     {noindex && <meta name="robots" content="noindex, nofollow" />}
-
-    <!-- Web fonts: Barlow superfamily via Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Semi+Condensed:wght@500;600;700&display=swap" rel="stylesheet" />
 
     {preloadImage && <link rel="preload" href={preloadImage} as="image" />}
 

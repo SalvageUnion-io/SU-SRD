@@ -79,6 +79,8 @@
         "@astrojs/react": "^4.2.0",
         "@astrojs/sitemap": "^3.3.0",
         "@base-ui/react": "1.2.0",
+        "@fontsource/barlow": "5.2.8",
+        "@fontsource/barlow-semi-condensed": "5.2.7",
         "astro": "^5.5.0",
         "react": "^19.2.0",
         "react-dom": "^19.2.0",
@@ -321,6 +323,10 @@
     "@floating-ui/react-dom": ["@floating-ui/react-dom@2.1.7", "", { "dependencies": { "@floating-ui/dom": "^1.7.5" }, "peerDependencies": { "react": ">=16.8.0", "react-dom": ">=16.8.0" } }, "sha512-0tLRojf/1Go2JgEVm+3Frg9A3IW8bJgKgdO0BN5RkF//ufuz2joZM63Npau2ff3J6lUVYgDSNzNkR+aH3IVfjg=="],
 
     "@floating-ui/utils": ["@floating-ui/utils@0.2.10", "", {}, "sha512-aGTxbpbg8/b5JfU1HXSrbH3wXZuLPJcNEcZQFMxLs3oSzgtVu6nFPkbbGGUvBcUjKV2YyB9Wxxabo+HEH9tcRQ=="],
+
+    "@fontsource/barlow": ["@fontsource/barlow@5.2.8", "", {}, "sha512-iuFOnY4OI2cd1STrJ3NdJNzWjhcwv6JarmqfdoZzAmz9g0jTVjES86MNbuBxqVR3ydbTEjo4opEl24GXScRM7w=="],
+
+    "@fontsource/barlow-semi-condensed": ["@fontsource/barlow-semi-condensed@5.2.7", "", {}, "sha512-jkNDrHJe1+rUQkd71f9fdwPmJf7SF506AHfwMChlDrCPx5eLAE28tcmpGDB487yE1fQIEGfgfL4YnE4/KEniuA=="],
 
     "@happy-dom/global-registrator": ["@happy-dom/global-registrator@20.8.4", "", { "dependencies": { "@types/node": ">=20.0.0", "happy-dom": "^20.8.4" } }, "sha512-cXGYd3xIAcviiGO6lPXdG6Yg244xwRgtY2dicAQ6HiB87E2IL2ekgfR5QIos18UtjiAsnCpLS3m78JfDorJcYg=="],
 
