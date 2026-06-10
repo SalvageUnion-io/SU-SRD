@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect, useId } from 'react'
+import { useState, useRef, useCallback, useEffect, useId, useMemo } from 'react'
 import { search, getEntitySchemas } from 'salvageunion-reference'
 import type { SearchResult } from 'salvageunion-reference'
 import { getEntitySlug } from 'salvageunion-reference'
@@ -60,6 +60,11 @@ export function SearchIsland({ navigate }: SearchIslandProps = {}) {
   const listboxId = `${idPrefix}-search-results`
   const optionId = (i: number) => `${idPrefix}-search-result-${i}`
 
+  // Only expose results to the UI once data is loaded — prevents phantom
+  // aria-live announcements, invisible keyboard-selectable options, and
+  // Enter navigating to an unseen result while the loading row is shown.
+  const visibleResults = useMemo(() => (ready ? results : []), [ready, results])
+
   const doNavigate = useCallback(
     (url: string) => {
       if (navigate) {
@@ -100,11 +105,24 @@ export function SearchIsland({ navigate }: SearchIslandProps = {}) {
     [performSearch]
   )
 
-  // Re-run the pending query when data finishes loading
+  // Re-run the pending query when data finishes loading.
+  // Also cancels any stale debounce timer that fired with the pre-ready
+  // closure (which returns [] for entity hits) so results are immediately
+  // refreshed with real data rather than waiting for the next keystroke.
   useEffect(() => {
-    if (ready && query.trim() && hasSearched) performSearch(query)
+    if (ready && query.trim()) {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+      performSearch(query)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready])
+
+  // Debounce timer cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+    }
+  }, [])
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -112,13 +130,13 @@ export function SearchIsland({ navigate }: SearchIslandProps = {}) {
 
       if (e.key === 'ArrowDown') {
         e.preventDefault()
-        setSelectedIndex((prev) => Math.min(prev + 1, results.length - 1))
+        setSelectedIndex((prev) => Math.min(prev + 1, visibleResults.length - 1))
       } else if (e.key === 'ArrowUp') {
         e.preventDefault()
         setSelectedIndex((prev) => Math.max(prev - 1, -1))
       } else if (e.key === 'Enter') {
         e.preventDefault()
-        const target = selectedIndex >= 0 ? results[selectedIndex] : results[0]
+        const target = selectedIndex >= 0 ? visibleResults[selectedIndex] : visibleResults[0]
         if (target) {
           doNavigate(target.url)
         }
@@ -127,7 +145,7 @@ export function SearchIsland({ navigate }: SearchIslandProps = {}) {
         inputRef.current?.blur()
       }
     },
-    [isOpen, results, selectedIndex, doNavigate]
+    [isOpen, visibleResults, selectedIndex, doNavigate]
   )
 
   // Close dropdown when clicking outside
@@ -156,10 +174,13 @@ export function SearchIsland({ navigate }: SearchIslandProps = {}) {
   return (
     <div className="relative" ref={containerRef}>
       <div className="sr-only" aria-live="polite">
-        {hasSearched &&
-          (results.length > 0
-            ? `${results.length} result${results.length === 1 ? '' : 's'} found`
-            : 'No results found')}
+        {hasSearched && ready
+          ? visibleResults.length > 0
+            ? `${visibleResults.length} result${visibleResults.length === 1 ? '' : 's'} found`
+            : 'No results found'
+          : hasSearched && query.trim()
+            ? 'Loading game data'
+            : null}
       </div>
       {/* Search container — .srd-search treatment: bordered su-black, tight radius, font-mono.
           The inner input keeps focus:outline-none, so the container carries the
@@ -195,7 +216,11 @@ export function SearchIsland({ navigate }: SearchIslandProps = {}) {
           aria-expanded={isOpen}
           role="combobox"
           aria-controls={listboxId}
-          aria-activedescendant={selectedIndex >= 0 ? optionId(selectedIndex) : undefined}
+          aria-activedescendant={
+            selectedIndex >= 0 && visibleResults[selectedIndex]
+              ? optionId(selectedIndex)
+              : undefined
+          }
         />
       </div>
 
@@ -207,8 +232,8 @@ export function SearchIsland({ navigate }: SearchIslandProps = {}) {
         >
           {!ready ? (
             <div className="px-4 py-3 text-sm text-su-grey-dark">Loading game data…</div>
-          ) : results.length > 0 ? (
-            results.map((result, index) => (
+          ) : visibleResults.length > 0 ? (
+            visibleResults.map((result, index) => (
               <a
                 key={result.id}
                 id={optionId(index)}

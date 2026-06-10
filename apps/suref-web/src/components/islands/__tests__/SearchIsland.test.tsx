@@ -93,10 +93,15 @@ describe('SearchIsland', () => {
     })
 
     const options = screen.getAllByRole('option')
-    expect(options.length).toBeGreaterThan(0)
+    expect(options.length).toBeGreaterThan(1)
 
-    // Arrow down once (selectedIndex: -1 → 0) then Enter — each in its own act
-    // so React flushes the state update before the next event fires.
+    // Arrow down TWICE (selectedIndex: -1 → 0 → 1) then Enter — each in its own
+    // act so React flushes the state update before the next event fires.
+    // Two presses distinguishes "navigates to selection" from the Enter-with-no-selection
+    // fallback that also resolves to options[0].
+    await act(async () => {
+      fireEvent.keyDown(input, { key: 'ArrowDown' })
+    })
     await act(async () => {
       fireEvent.keyDown(input, { key: 'ArrowDown' })
     })
@@ -105,8 +110,8 @@ describe('SearchIsland', () => {
     })
 
     expect(navigate).toHaveBeenCalledTimes(1)
-    const firstHref = (options[0] as HTMLAnchorElement).getAttribute('href')
-    expect(navigate).toHaveBeenCalledWith(firstHref)
+    const secondHref = (options[1] as HTMLAnchorElement).getAttribute('href')
+    expect(navigate).toHaveBeenCalledWith(secondHref)
   })
 
   test('category rows are capped so entity hits are never crowded out', async () => {

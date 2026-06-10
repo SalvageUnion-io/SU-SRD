@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { search, searchIn, getSuggestions, invalidateSearchIndex } from './search.js'
-import { SalvageUnionReference } from './index.js'
+import { SalvageUnionReference, resetAllForTesting } from './index.js'
 
 describe('Search API', () => {
   describe('search()', () => {
@@ -271,32 +271,47 @@ describe('Search API', () => {
   })
 
   describe('invalidateSearchIndex()', () => {
-    test('rebuilds a valid index after invalidation — results are still correct', () => {
-      // Warm the index via a search
-      const before = search({ query: 'laser', schemas: ['systems'] })
-      expect(before.length).toBeGreaterThan(0)
-
-      // Invalidate (simulates what preload() does)
+    test('returns empty results before data is loaded, hits after preload', async () => {
+      // These tests run after the module-level searches have already populated
+      // the lazy index. Reset all load state so we can observe the unloaded → loaded
+      // transition — this is the real scenario invalidateSearchIndex guards against:
+      // an index built before preload() must not survive into the loaded state.
+      resetAllForTesting()
       invalidateSearchIndex()
 
-      // Search again — index must be rebuilt from scratch and return identical results
-      const after = search({ query: 'laser', schemas: ['systems'] })
-      expect(after.length).toBe(before.length)
-      expect(after.map((r) => r.entityId)).toEqual(before.map((r) => r.entityId))
+      // With no data loaded, the search index rebuilds from an empty data map → []
+      const beforeLoad = search({ query: 'laser', schemas: ['systems'] })
+      expect(beforeLoad).toEqual([])
+
+      // Load data — preload() calls invalidateSearchIndex() internally so the stale
+      // empty index is cleared and rebuilt from real data on the next search.
+      await SalvageUnionReference.preload('all')
+
+      // Now the same query must return real hits, proving the index was rebuilt
+      // rather than returning the cached empty result.
+      const afterLoad = search({ query: 'laser', schemas: ['systems'] })
+      expect(afterLoad.length).toBeGreaterThan(0)
+      expect(afterLoad[0]!.schemaName).toBe('systems')
     })
 
-    test('clears the result cache so stale cached results are not returned', () => {
-      // Populate the cache
+    test('clears result cache so a post-invalidation search is never served stale data', async () => {
+      // Ensure data is loaded (may already be from the test above)
+      await SalvageUnionReference.preload('all')
+
+      // Populate the cache with a known-good result
       const cached = search({ query: 'railgun' })
       expect(cached.length).toBeGreaterThan(0)
 
-      // Invalidate — this should also clear the cache
+      // Invalidate flushes both the index and the result cache
       invalidateSearchIndex()
 
-      // The same query must still return correct results (rebuilt, not from old cache)
+      // The same query must re-execute against the rebuilt index, not return the
+      // old cached value (which would be indistinguishable if cache were not cleared)
       const fresh = search({ query: 'railgun' })
       expect(fresh.length).toBeGreaterThan(0)
+      // Verify the rebuilt result is correct, not a cache artifact
       expect(fresh[0]!.entityName).toBe(cached[0]!.entityName)
+      expect(fresh[0]!.entityId).toBe(cached[0]!.entityId)
     })
   })
 })
