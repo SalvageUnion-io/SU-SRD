@@ -16,10 +16,6 @@
  *     (TraitKeywordDisplayView), so they never surface as visible errors.
  */
 
-import { readdirSync, readFileSync } from 'fs'
-import { join, dirname } from 'path'
-import { fileURLToPath } from 'url'
-
 export type TraitIssue = {
   file: string
   entity: string
@@ -137,14 +133,14 @@ export function findUnresolvableRemoveTraitIssues(file: string, entities: Entity
   return issues
 }
 
-/** Run both checks across a set of loaded data files. */
+/** Run all checks across a set of loaded data files. */
 export function findTraitIssues(filesByName: Record<string, Entity[]>): TraitIssue[] {
   const issues: TraitIssue[] = []
   for (const [file, entities] of Object.entries(filesByName)) {
     issues.push(...findTraitCasingIssues(file, entities))
     issues.push(...findUnresolvableRemoveTraitIssues(file, entities))
   }
-  issues.push(...findUnknownTraitTypes())
+  issues.push(...findUnknownTraitTypes(filesByName))
   return issues
 }
 
@@ -162,29 +158,6 @@ const KNOWN_NON_TRAIT_TYPES = new Set([
   'meld infection',
 ])
 
-export type UnknownTraitType = {
-  type: string
-  file: string
-  entityName: string
-}
-
-function loadDataDir(): Record<string, Record<string, unknown>[]> {
-  const __filename = fileURLToPath(import.meta.url)
-  const __dirname = dirname(__filename)
-  const dataDir = join(__dirname, '..', 'data')
-  const result: Record<string, Record<string, unknown>[]> = {}
-  for (const filename of readdirSync(dataDir)) {
-    if (!filename.endsWith('.json')) continue
-    try {
-      const parsed = JSON.parse(readFileSync(join(dataDir, filename), 'utf-8'))
-      if (Array.isArray(parsed)) result[filename] = parsed
-    } catch {
-      // skip unparseable files
-    }
-  }
-  return result
-}
-
 function buildKnownVocabulary(filesByName: Record<string, Record<string, unknown>[]>): Set<string> {
   const vocab = new Set<string>()
   for (const filename of ['traits.json', 'keywords.json']) {
@@ -201,10 +174,11 @@ function buildKnownVocabulary(filesByName: Record<string, Record<string, unknown
  * defined in neither traits.json nor keywords.json and is not in the
  * KNOWN_NON_TRAIT_TYPES allowlist.
  */
-export function findUnknownTraitTypes(): UnknownTraitType[] {
-  const filesByName = loadDataDir()
+export function findUnknownTraitTypes(
+  filesByName: Record<string, Record<string, unknown>[]>
+): TraitIssue[] {
   const vocab = buildKnownVocabulary(filesByName)
-  const issues: UnknownTraitType[] = []
+  const issues: TraitIssue[] = []
 
   for (const [filename, entities] of Object.entries(filesByName)) {
     for (const entity of entities) {
@@ -212,7 +186,12 @@ export function findUnknownTraitTypes(): UnknownTraitType[] {
       for (const type of collectTraitTypes(entity)) {
         if (vocab.has(type)) continue
         if (KNOWN_NON_TRAIT_TYPES.has(type)) continue
-        issues.push({ type, file: filename, entityName: name })
+        issues.push({
+          file: filename,
+          entity: name,
+          kind: 'unknown-trait-type',
+          detail: `trait type "${type}" is not defined in traits.json or keywords.json`,
+        })
       }
     }
   }

@@ -40,7 +40,9 @@ const issues = findTraitIssues(filesByName)
 
 console.log('='.repeat(80))
 if (issues.length === 0) {
-  console.log('✅ All trait types are lowercase and all removeTrait effects resolve!')
+  console.log(
+    '✅ All trait types are lowercase, all removeTrait effects resolve, and all trait types are in the known vocabulary!'
+  )
   process.exit(0)
 }
 
