@@ -1,24 +1,31 @@
 /**
- * HeatCheckControl — the Heat Check / Reactor Overload live-play loop (Slice C, #199).
+ * HeatCheckControl — the Heat Check / Reactor Overload live-play loop (Slice C, #199;
+ * restyled onto the LiveSheet body in plan 4.5).
  *
  * Core Book p.233-235. Renders two controls — "Heat Check" and "Push" — plus a
  * readout of the last result. Semi-automated: deterministic effects (SP damage,
  * shutdown/vulnerable, destroyed) are applied to the mech via the store, but the
  * 2-5 / 6-10 bands (System / Module destroyed) only show an advisory prompting
- * the player to mark the affected item via the existing ConditionToggle — this
- * component never auto-picks a System/Module.
+ * the player to mark the affected item via its status badge — this component
+ * never auto-picks a System/Module.
  *
  * Heat Check: rolls d20 vs current Heat; overloads when roll <= heat, then rolls
  * the Reactor Overload Table and applies/records the outcome.
  *
  * Push: +2 Heat (clamped to cap), then an immediate Heat Check.
  *
- * readOnly: renders the last-result readout only — no roll buttons, no mutation.
+ * The automation-written shutdown / vulnerable / destroyed flags each carry a
+ * manual 'Clear' affordance (gap 8) — restart-after-shutdown and hand-corrections
+ * are player calls, never automated.
+ *
+ * readOnly: renders the last-result readout only — no roll buttons, no clears,
+ * no mutation.
  *
  * The d20 is dep-injectable via `roll` so tests are deterministic.
  */
 
 import { useState } from 'react'
+import { Btn, MiniBtn } from 'suref-react'
 
 import { performHeatCheck, performPush } from '../../lib/rules/heatCheck'
 import type { HeatCheckEffect, Roll } from '../../lib/rules/heatCheck'
@@ -28,7 +35,7 @@ import type { useEntityStore } from '../../stores/entityStore'
 
 type HeatCheckControlProps = {
   mech: Mech
-  /** Heat Cap from the resolved chassis (current heat is clamped to this). */
+  /** Derived Heat Cap (chassis + modifiers — current heat clamps to this). */
   heatCap: number
   /** Current SP — used for overheat damage. */
   currentSP: number
@@ -71,8 +78,9 @@ export function HeatCheckControl({
   const [choicePrompt, setChoicePrompt] = useState<ReactorOverloadOutcome | null>(null)
 
   async function applyEffect(effect: HeatCheckEffect, heatToPersist?: number) {
-    // Read the freshest mech from the store so rapid actions don't stomp.
-    const fresh = (storeState.get('mech', mech.id) ?? mech) as Mech
+    // Read the freshest mech from the store (not the render-time prop) so rapid
+    // sequential actions don't stomp each other with a stale-closure overwrite.
+    const fresh = storeState.get('mech', mech.id) ?? mech
     const patch: Partial<Mech> = { lastHeatCheck: effect.result }
 
     if (heatToPersist !== undefined && heatToPersist !== fresh.currentHeat) {
@@ -106,42 +114,55 @@ export function HeatCheckControl({
     await applyEffect(effect, nextHeat)
   }
 
+  /** Manual clear for an automation-written flag (gap 8). */
+  async function clearFlag(flag: 'shutdown' | 'vulnerable' | 'destroyed') {
+    const patch: Partial<Mech> =
+      flag === 'shutdown'
+        ? { shutdown: false }
+        : flag === 'vulnerable'
+          ? { vulnerable: false }
+          : { destroyed: false }
+    await storeState.update('mech', mech.id, patch)
+  }
+
   const last = mech.lastHeatCheck
 
   return (
-    <div className="rounded border-[1.5px] border-su-black bg-su-paper p-3">
-      <h3 className="font-cond text-sm font-bold uppercase tracking-wide text-su-ink-soft mb-2">
+    <div className="rounded-[3px] border-2 border-ink bg-paper p-3">
+      <h3
+        className="mb-2 font-cond text-sm font-bold uppercase tracking-[0.12em]"
+        style={{ color: 'var(--tone-deep, var(--color-ink))' }}
+      >
         Heat Check
       </h3>
 
       {!readOnly && (
         <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
+          <Btn
+            size="sm"
+            variant="primary"
             onClick={() => {
               void handleHeatCheck()
             }}
-            className="rounded border-[1.5px] border-su-black bg-su-black px-3 py-1.5 font-cond text-xs font-bold uppercase tracking-wide text-su-paper transition-colors hover:bg-su-rust focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
           >
             Heat Check
-          </button>
-          <button
-            type="button"
+          </Btn>
+          <Btn
+            size="sm"
+            title="+2 Heat, then a Heat Check"
             onClick={() => {
               void handlePush()
             }}
-            className="rounded border-[1.5px] border-su-rust bg-su-paper px-3 py-1.5 font-cond text-xs font-bold uppercase tracking-wide text-su-rust transition-colors hover:bg-su-rust hover:text-su-paper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
-            title="+2 Heat, then a Heat Check"
           >
             Push (+2 Heat)
-          </button>
+          </Btn>
         </div>
       )}
 
       {last && (
         <p
           role="status"
-          className="mt-2 text-sm text-su-black"
+          className="mt-2 font-body text-sm text-ink"
           data-overloaded={last.overloaded}
           data-outcome={last.outcome ?? ''}
         >
@@ -152,22 +173,60 @@ export function HeatCheckControl({
       {!readOnly && choicePrompt && (
         <p
           role="alert"
-          className="mt-2 rounded border-[1.5px] border-su-sickly-yellow bg-su-paper px-3 py-2 text-sm text-su-rust"
+          className="mt-2 rounded-[3px] border-[1.5px] border-status-warn bg-paper px-3 py-2 font-body text-sm text-rust"
         >
           {choicePrompt === 'system-destroyed'
-            ? 'Mark one System as Destroyed using its condition toggle below.'
-            : 'Mark one Module as Destroyed using its condition toggle below.'}
+            ? 'Mark one System as Destroyed using its status badge below.'
+            : 'Mark one Module as Destroyed using its status badge below.'}
         </p>
       )}
 
       {mech.destroyed && (
-        <p role="alert" className="mt-2 font-cond text-sm font-bold uppercase text-su-rust">
+        <p
+          role="alert"
+          className="mt-2 flex flex-wrap items-center gap-2 font-cond text-sm font-bold uppercase text-status-bad"
+        >
           Mech destroyed
+          {!readOnly && (
+            <MiniBtn
+              aria-label="Clear destroyed"
+              onClick={() => {
+                void clearFlag('destroyed')
+              }}
+            >
+              Clear
+            </MiniBtn>
+          )}
         </p>
       )}
       {mech.shutdown && !mech.destroyed && (
-        <p className="mt-1 font-cond text-xs font-bold uppercase text-su-rust">
-          Shut down · Vulnerable
+        <p className="mt-1 flex flex-wrap items-center gap-2 font-cond text-xs font-bold uppercase text-rust">
+          Shut down
+          {!readOnly && (
+            <MiniBtn
+              aria-label="Clear shutdown"
+              onClick={() => {
+                void clearFlag('shutdown')
+              }}
+            >
+              Clear
+            </MiniBtn>
+          )}
+        </p>
+      )}
+      {mech.vulnerable && !mech.destroyed && (
+        <p className="mt-1 flex flex-wrap items-center gap-2 font-cond text-xs font-bold uppercase text-rust">
+          Vulnerable
+          {!readOnly && (
+            <MiniBtn
+              aria-label="Clear vulnerable"
+              onClick={() => {
+                void clearFlag('vulnerable')
+              }}
+            >
+              Clear
+            </MiniBtn>
+          )}
         </p>
       )}
     </div>

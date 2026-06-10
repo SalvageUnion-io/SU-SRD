@@ -60,3 +60,95 @@ export async function clickNext(page: Page): Promise<void> {
 export async function clickNavLink(page: Page, name: RegExp | string): Promise<void> {
   await page.getByRole('link', { name }).click()
 }
+
+// ---------------------------------------------------------------------------
+// Entity builders — drive the Phase-3 WizShell wizards end to end.
+// Each returns once the dashboard redirect lands (the IndexedDB write is
+// complete), so subsequent steps can rely on the entity existing.
+// ---------------------------------------------------------------------------
+
+/** Build a pilot (Class → Abilities → Equipment → Identity → Background → Review). */
+export async function buildPilot(page: Page, name: string, callsign: string): Promise<void> {
+  await page.goto('/pilots/new')
+  await waitForReady(page)
+  await pickByName(page, 'Engineer')
+  await clickNext(page) // -> Abilities
+  await pickByName(page, 'Engineering Expertise')
+  await clickNext(page) // -> Equipment
+  await page.locator('div[role="button"]').first().click()
+  await clickNext(page) // -> Identity
+  await page.getByLabel(/^Name/).fill(name)
+  await page.getByLabel(/Callsign/).fill(callsign)
+  await clickNext(page) // -> Background
+  await clickNext(page) // -> Review
+  await page.getByRole('button', { name: /Create Pilot/i }).click()
+  await page.waitForURL((url) => url.pathname === '/', { timeout: 15_000 })
+}
+
+/** Build a mech (Chassis → Systems → Modules → Identity → Review). */
+export async function buildMech(page: Page, name: string): Promise<void> {
+  await page.goto('/mechs/new')
+  await waitForReady(page)
+  await pickByName(page, 'Mule')
+  await clickNext(page) // -> Systems
+  await clickNext(page) // -> Modules
+  await clickNext(page) // -> Identity
+  await page.getByLabel(/Mech name/i).fill(name)
+  await clickNext(page) // -> Review
+  await page.getByRole('button', { name: /Create Mech/i }).click()
+  await page.waitForURL((url) => url.pathname === '/', { timeout: 15_000 })
+}
+
+/** Build a crawler (Crawler → Systems → Identity → Review). */
+export async function buildCrawler(page: Page, name: string): Promise<void> {
+  await page.goto('/crawlers/new')
+  await waitForReady(page)
+  await pickByName(page, 'Hamlet Crawler')
+  await clickNext(page) // -> Systems
+  await clickNext(page) // -> Identity
+  await page.getByLabel(/Crawler Name/i).fill(name)
+  await clickNext(page) // -> Review
+  await page.getByRole('button', { name: /Create Crawler/i }).click()
+  await page.waitForURL((url) => url.pathname === '/', { timeout: 15_000 })
+}
+
+/**
+ * Open the live sheet for the named entity from the dashboard's saved rows
+ * (each row is an <li> with a 'Sheet' link).
+ */
+export async function openSheetFor(page: Page, name: string): Promise<void> {
+  await page.goto('/')
+  await waitForReady(page)
+  const row = page.locator('li', { hasText: name }).first()
+  await expect(row, `dashboard row for "${name}" should render`).toBeVisible({
+    timeout: 15_000,
+  })
+  await row.getByRole('link', { name: /^Sheet$/ }).click()
+  await page.waitForURL(/\/sheet\//, { timeout: 10_000 })
+}
+
+/**
+ * Wire a pilot onto the mech sheet currently open, via the rail's
+ * 'Assign Pilot' dialog. Resolves when the pilot's RailChip renders.
+ */
+export async function assignPilotOnMechSheet(page: Page, pilotName: string): Promise<void> {
+  await page.getByRole('button', { name: /assign pilot to mech/i }).click()
+  await page.getByRole('dialog').getByText(pilotName).click()
+  await page.getByRole('button', { name: /confirm pilot assignment/i }).click()
+  await expect(
+    page.getByRole('link', { name: new RegExp(`Assigned Pilot: ${pilotName}`, 'i') })
+  ).toBeVisible({ timeout: 10_000 })
+}
+
+/**
+ * Wire a crawler onto the pilot sheet currently open, via the rail's
+ * 'Assign Crawler' dialog. Resolves when the crawler's RailChip renders.
+ */
+export async function assignCrawlerOnPilotSheet(page: Page, crawlerName: string): Promise<void> {
+  await page.getByRole('button', { name: /assign crawler to pilot/i }).click()
+  await page.getByRole('dialog').getByText(crawlerName).click()
+  await page.getByRole('button', { name: /confirm crawler assignment/i }).click()
+  await expect(
+    page.getByRole('link', { name: new RegExp(`Home Crawler: ${crawlerName}`, 'i') })
+  ).toBeVisible({ timeout: 10_000 })
+}

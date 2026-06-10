@@ -106,7 +106,7 @@ describe('SnapshotPageInner — error state', () => {
 describe('SnapshotPageInner — success path', () => {
   test('renders SnapshotView content for a pilot snapshot', () => {
     render(<SnapshotPageInner snapshot={pilotSnapshot} notFound={false} error={null} />)
-    // SnapshotView shows the entity name via SheetHeader and PilotSheet
+    // SnapshotView shows the entity name via the LiveSheet hero
     expect(screen.getAllByText(/Zara Heln/).length).toBeGreaterThan(0)
   })
 
@@ -126,9 +126,13 @@ describe('SnapshotView — pilot payload', () => {
     expect(screen.getAllByText(/Zara Heln/).length).toBeGreaterThan(0)
   })
 
-  test('renders pilot composition mode badge', () => {
-    render(<SnapshotView snapshot={pilotSnapshot as Record<string, unknown>} />)
-    expect(screen.getByLabelText('Composition mode: Pilot')).toBeTruthy()
+  test('renders the pilot variant shell, read-only (no Edit / no Share)', () => {
+    const { container } = render(
+      <SnapshotView snapshot={pilotSnapshot as Record<string, unknown>} />
+    )
+    expect(container.querySelector('.sheet--pilot')).toBeTruthy()
+    expect(screen.queryByRole('link', { name: /edit this pilot/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /share/i })).toBeNull()
   })
 })
 
@@ -138,9 +142,11 @@ describe('SnapshotView — mech payload', () => {
     expect(screen.getAllByText(/Iron Jaw/).length).toBeGreaterThan(0)
   })
 
-  test('renders mech composition mode badge', () => {
-    render(<SnapshotView snapshot={mechSnapshot as Record<string, unknown>} />)
-    expect(screen.getByLabelText('Composition mode: Mech')).toBeTruthy()
+  test('renders the mech variant shell', () => {
+    const { container } = render(
+      <SnapshotView snapshot={mechSnapshot as Record<string, unknown>} />
+    )
+    expect(container.querySelector('.sheet--mech')).toBeTruthy()
   })
 
   test('renders a pre-rename snapshot carrying legacy cargo: string[]', () => {

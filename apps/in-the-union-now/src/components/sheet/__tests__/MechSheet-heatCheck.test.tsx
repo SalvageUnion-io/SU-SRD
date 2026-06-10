@@ -9,13 +9,19 @@
  * Conventions: toBeTruthy() not toBeInTheDocument(), dep-injection not mock.module().
  */
 
-import { afterEach, describe, expect, mock, test } from 'bun:test'
+import { afterEach, beforeAll, describe, expect, mock, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { SalvageUnionReference } from 'salvageunion-reference'
 
 import { MechSheet } from '../MechSheet'
 import type { Roll } from '../../../lib/rules/heatCheck'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { useEntityStore } from '../../../stores/entityStore'
+
+// The body resolves chassis/cargo caps against the reference ORM at render.
+beforeAll(async () => {
+  await SalvageUnionReference.preload('all')
+})
 
 afterEach(() => {
   cleanup()
@@ -64,8 +70,11 @@ function makeStore(mech: Mech, captured: CapturedUpdate[]): typeof useEntityStor
     hydrated: { pilots: false, mechs: true, crawlers: false, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [current]),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    get: mock((_type: string, id: string) => (id === current.id ? current : null)) as any,
+
+    get: mock(
+      (_type: string, id: string) => (id === current.id ? current : null)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ) as any,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     create: mock(async () => mech) as any,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -197,5 +206,51 @@ describe('MechSheet — Heat Check UI', () => {
 
     expect(screen.queryByRole('button')).toBeNull()
     expect(captured.length).toBe(0)
+  })
+})
+
+describe('MechSheet — manual flag clears (gap 8)', () => {
+  test('Clear shutdown patches shutdown:false (vulnerable untouched)', async () => {
+    const captured: CapturedUpdate[] = []
+    const shutdownMech: Mech = {
+      ...fakeMech,
+      shutdown: true,
+      vulnerable: true,
+    }
+    render(
+      <MechSheet
+        mech={shutdownMech}
+        chassis={fakeChassis}
+        store={makeStore(shutdownMech, captured)}
+      />
+    )
+
+    expect(screen.getByText(/shut down/i)).toBeTruthy()
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /clear shutdown/i }))
+    })
+
+    expect(captured.length).toBe(1)
+    expect(captured[0]!.patch).toEqual({ shutdown: false })
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /clear vulnerable/i }))
+    })
+    expect(captured[1]!.patch).toEqual({ vulnerable: false })
+  })
+
+  test('Clear destroyed un-bricks the mech', async () => {
+    const captured: CapturedUpdate[] = []
+    const deadMech: Mech = { ...fakeMech, destroyed: true }
+    render(
+      <MechSheet mech={deadMech} chassis={fakeChassis} store={makeStore(deadMech, captured)} />
+    )
+
+    expect(screen.getByText(/mech destroyed/i)).toBeTruthy()
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /clear destroyed/i }))
+    })
+
+    expect(captured[0]!.patch).toEqual({ destroyed: false })
   })
 })

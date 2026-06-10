@@ -11,8 +11,8 @@
  *   2.  Mech-only sheet renders (no links → MechSheet visible)
  *   3.  Crawler-only sheet renders (no links → CrawlerSheet visible)
  *   4.  Wired composition: mech-to-pilot link → both PilotSheet + MechSheet
- *   5.  Stand-in case: mech with no link → PilotStandIn visible
- *   6.  Click-to-edit round-trip via MechSheet: click HP → type → Enter → store.update called
+ *   5.  Empty-rail case: mech with no link → pilot RailEmpty visible
+ *   6.  Stat-edit round-trip via the Sheet hero trackers (StatBlock steppers)
  *   7.  PublishButton click flow via Sheet: Share → dialog appears with URL
  *   8.  SnapshotPageInner 404 path: notFound=true → "Snapshot not found" heading
  *   9.  Read-only mode: Sheet readOnly=true → PublishButton NOT rendered
@@ -35,7 +35,6 @@ import type { SoftLink } from '../../../lib/schemas/softLink'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { Crawler } from '../../../lib/schemas/crawler'
-import { MechSheet } from '../MechSheet'
 import type { useEntityStore } from '../../../stores/entityStore'
 import type { PublishResult } from '../../../lib/snapshot/client'
 import { PublishButton } from '../PublishButton'
@@ -46,7 +45,7 @@ import { SnapshotPageInner } from '../../../routes/s/$id'
 // ---------------------------------------------------------------------------
 
 beforeAll(async () => {
-  await SalvageUnionReference.preload(['chassis', 'systems', 'modules'])
+  await SalvageUnionReference.preload('all')
 })
 
 afterEach(() => {
@@ -193,7 +192,7 @@ describe('Smoke — pilot-only sheet', () => {
         softLinkStore={makeSoftLinkStore([])}
       />
     )
-    expect(screen.getByText(/mechanic/i)).toBeTruthy()
+    expect(screen.getAllByText(/mechanic/i).length).toBeGreaterThan(0)
   })
 })
 
@@ -244,7 +243,7 @@ describe('Smoke — crawler-only sheet', () => {
     expect(screen.getAllByText(/Rust Colossus/).length).toBeGreaterThan(0)
   })
 
-  test('crawler tech level appears in the sheet', () => {
+  test('crawler tech level appears in the sheet (hero Tech LV mchip)', () => {
     render(
       <Sheet
         kind="crawler"
@@ -253,7 +252,7 @@ describe('Smoke — crawler-only sheet', () => {
         softLinkStore={makeSoftLinkStore([])}
       />
     )
-    expect(screen.getByText(/tech-2/i)).toBeTruthy()
+    expect(screen.getByText('Tech LV')).toBeTruthy()
   })
 })
 
@@ -275,11 +274,11 @@ describe('Smoke — wired composition (mech→pilot)', () => {
     )
     // Pilot name — PilotSheet renders it
     expect(screen.getAllByText(/Riko Vane/).length).toBeGreaterThan(0)
-    // Mech name — MechSheet renders it (SheetHeader shows it in h1 too)
+    // Mech name — rendered by the LiveSheet hero (and condensed strip)
     expect(screen.getAllByText(/Steel Coffin/).length).toBeGreaterThan(0)
   })
 
-  test('no PilotStandIn when pilot is wired', () => {
+  test('no pilot RailEmpty when pilot is wired', () => {
     render(
       <Sheet
         kind="mech"
@@ -293,11 +292,11 @@ describe('Smoke — wired composition (mech→pilot)', () => {
 })
 
 // ---------------------------------------------------------------------------
-// Scenario 5 — Stand-in case: mech with no link → PilotStandIn visible
+// Scenario 5 — Empty-rail case: mech with no link → pilot RailEmpty visible
 // ---------------------------------------------------------------------------
 
 describe('Smoke — mech stand-in (no pilot link)', () => {
-  test('PilotStandIn renders when mech has no wired pilot', () => {
+  test('pilot RailEmpty renders when mech has no wired pilot', () => {
     render(
       <Sheet
         kind="mech"
@@ -306,7 +305,7 @@ describe('Smoke — mech stand-in (no pilot link)', () => {
         softLinkStore={makeSoftLinkStore([])}
       />
     )
-    expect(screen.getByLabelText('No pilot assigned')).toBeTruthy()
+    expect(screen.getByText(/No pilot assigned/)).toBeTruthy()
   })
 
   test('PilotSheet NOT rendered when mech has no wired pilot', () => {
@@ -324,52 +323,42 @@ describe('Smoke — mech stand-in (no pilot link)', () => {
 })
 
 // ---------------------------------------------------------------------------
-// Scenario 6 — Click-to-edit round-trip via MechSheet
+// Scenario 6 — Stat-edit round-trip via the Sheet hero trackers
 //
-// Sheet.tsx does not pass a `store` prop through to MechSheet, so we test
-// MechSheet directly with an injected store stub. This still exercises the
-// full MechSheet → EditableStatRow → InlineEditField → store.update pipeline.
+// Stat editing lives in the hero StatBlocks now (Sheet.tsx): the '–'/'+'
+// steppers patch current* fields through the injected store. This exercises
+// the Sheet → SheetHero → StatBlock → store.update pipeline.
 // ---------------------------------------------------------------------------
 
-describe('Smoke — click-to-edit round-trip (MechSheet)', () => {
-  test('clicking HP field, typing new value, and pressing Enter calls store.update', async () => {
-    const captured: Array<{ id: string; patch: Partial<Mech> }> = []
-    const store = makeZustandLikeStore([fakeMech], (id, patch) => captured.push({ id, patch }))
-
-    const fakeChassis = {
-      name: 'Iron Mongrel',
-      structurePoints: 10,
-      energyPoints: 6,
-      heatCapacity: 8,
-      systemSlots: 3,
-      moduleSlots: 2,
-      cargoCapacity: 4,
+describe('Smoke — stat-edit round-trip (Sheet hero trackers)', () => {
+  test('clicking the Structure stepper calls store.update with currentSP', async () => {
+    const statMech: Mech = {
+      ...fakeMech,
+      id: 'mech-smoke-stat',
+      // Real chassis (Scrapper, SP 9) — the hero derives maxima from the ORM.
+      chassisRef: 'Scrapper',
+      currentSP: 5,
     }
+    const captured: Array<{ id: string; patch: Partial<Mech> }> = []
+    const store = makeZustandLikeStore([statMech], (id, patch) => captured.push({ id, patch }))
 
-    render(<MechSheet mech={fakeMech} chassis={fakeChassis} store={store} />)
-
-    // EditableStatRow for HP renders a role=button (display mode)
-    const hpButtons = screen.getAllByRole('button')
-    expect(hpButtons.length).toBeGreaterThan(0)
-
-    // Click the first button (HP is first in the stat grid)
-    await act(async () => {
-      fireEvent.click(hpButtons[0]!)
-    })
-
-    // Now in edit mode — spinbutton input is rendered
-    const input = screen.getByRole('spinbutton')
-    expect(input).toBeTruthy()
+    render(
+      <Sheet
+        kind="mech"
+        id="mech-smoke-stat"
+        entityStore={makeEntityStore([statMech])}
+        softLinkStore={makeSoftLinkStore([])}
+        store={store}
+      />
+    )
 
     await act(async () => {
-      fireEvent.change(input, { target: { value: '5' } })
-      fireEvent.keyDown(input, { key: 'Enter' })
+      fireEvent.click(screen.getByRole('button', { name: 'Decrease Structure' }))
     })
 
-    // store.update should have been called with the correct patch shape
     expect(captured.length).toBe(1)
-    expect(captured[0]!.id).toBe('mech-smoke-1')
-    expect(captured[0]!.patch).toMatchObject({ currentHP: 5 })
+    expect(captured[0]!.id).toBe('mech-smoke-stat')
+    expect(captured[0]!.patch).toMatchObject({ currentSP: 4 })
   })
 })
 
@@ -465,11 +454,11 @@ describe('Smoke — readOnly mode', () => {
 })
 
 // ---------------------------------------------------------------------------
-// Scenario 10 — Composition-mode badge per scenario
+// Scenario 10 — Wired/Offline toggle per scenario
 // ---------------------------------------------------------------------------
 
-describe('Smoke — composition badge labels', () => {
-  test('pilot-only → badge shows "Pilot"', () => {
+describe('Smoke — wired toggle states', () => {
+  test('pilot-only → wired toggle reads Offline', () => {
     render(
       <Sheet
         kind="pilot"
@@ -478,10 +467,10 @@ describe('Smoke — composition badge labels', () => {
         softLinkStore={makeSoftLinkStore([])}
       />
     )
-    expect(screen.getByLabelText('Composition mode: Pilot')).toBeTruthy()
+    expect(screen.getByRole('switch', { name: /offline/i })).toBeTruthy()
   })
 
-  test('mech-only → badge shows "Mech"', () => {
+  test('mech-only → wired toggle reads Offline', () => {
     render(
       <Sheet
         kind="mech"
@@ -490,10 +479,10 @@ describe('Smoke — composition badge labels', () => {
         softLinkStore={makeSoftLinkStore([])}
       />
     )
-    expect(screen.getByLabelText('Composition mode: Mech')).toBeTruthy()
+    expect(screen.getByRole('switch', { name: /offline/i })).toBeTruthy()
   })
 
-  test('crawler-only → badge shows "Crawler"', () => {
+  test('crawler-only → wired toggle reads Offline', () => {
     render(
       <Sheet
         kind="crawler"
@@ -502,10 +491,10 @@ describe('Smoke — composition badge labels', () => {
         softLinkStore={makeSoftLinkStore([])}
       />
     )
-    expect(screen.getByLabelText('Composition mode: Crawler')).toBeTruthy()
+    expect(screen.getByRole('switch', { name: /offline/i })).toBeTruthy()
   })
 
-  test('wired (mech+pilot) → badge shows "Wired"', () => {
+  test('wired (mech+pilot) → wired toggle reads Wired', () => {
     const link = makeMechToPilotLink('mech-smoke-1', 'pilot-smoke-1')
     render(
       <Sheet
@@ -515,6 +504,6 @@ describe('Smoke — composition badge labels', () => {
         softLinkStore={makeSoftLinkStore([link])}
       />
     )
-    expect(screen.getByLabelText('Composition mode: Wired')).toBeTruthy()
+    expect(screen.getByRole('switch', { name: /wired/i })).toBeTruthy()
   })
 })

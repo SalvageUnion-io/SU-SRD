@@ -7,7 +7,8 @@
  * changes in this codebase (see mobile-responsive.test.tsx).
  *
  * Coverage:
- *  1. Sheet — wired composition uses lg:flex-row 2-pane wrapper (max-w-7xl)
+ *  1. Sheet — LiveSheet shell carries the variant tone class + sticky header;
+ *     the hero rail rows at sm+ (sm:flex-row)
  *  2. Sheet — missing entity still renders without crash (guard path)
  *  3. SnapshotView — uses max-w-7xl container
  *  4. Dashboard — sections wrapper uses flex flex-col (mobile) and the
@@ -40,7 +41,7 @@ import type { SoftLink } from '../../../lib/schemas/softLink'
 // ---------------------------------------------------------------------------
 
 beforeAll(async () => {
-  await SalvageUnionReference.preload(['chassis'])
+  await SalvageUnionReference.preload('all')
 })
 
 afterEach(() => {
@@ -124,8 +125,8 @@ function makeMechToPilotLink(mechId: string, pilotId: string): SoftLink {
 // 1. Sheet — wired composition uses max-w-7xl container
 // ---------------------------------------------------------------------------
 
-describe('Sheet responsive layout — wired composition', () => {
-  test('Sheet wired (mech+pilot) renders with max-w-7xl main container', () => {
+describe('Sheet responsive layout — wired composition (LiveSheet shell)', () => {
+  test('Sheet wired (mech+pilot) renders the variant-toned shell root', () => {
     const link = makeMechToPilotLink('mech-resp-1', 'pilot-resp-1')
     const { container } = render(
       <Sheet
@@ -135,12 +136,11 @@ describe('Sheet responsive layout — wired composition', () => {
         softLinkStore={makeSoftLinkStore([link])}
       />
     )
-    const main = container.querySelector('main')
-    expect(main).toBeTruthy()
-    expect((main as HTMLElement).className).toContain('max-w-7xl')
+    expect(container.querySelector('.sheet--mech')).toBeTruthy()
+    expect(container.querySelector('[data-variant="mech"]')).toBeTruthy()
   })
 
-  test('Sheet wired content wrapper uses lg:flex-row for 2-pane layout', () => {
+  test('Sheet wired rail stacks on mobile and rows at sm+ (sm:flex-row)', () => {
     const link = makeMechToPilotLink('mech-resp-1', 'pilot-resp-1')
     const { container } = render(
       <Sheet
@@ -150,18 +150,18 @@ describe('Sheet responsive layout — wired composition', () => {
         softLinkStore={makeSoftLinkStore([link])}
       />
     )
-    // The wired composition div should have lg:flex-row
-    const flexRow = container.querySelector('[class*="lg:flex-row"]')
-    expect(flexRow).toBeTruthy()
+    // The hero rail strip is a column on mobile, a row at sm+.
+    const rail = container.querySelector('[class*="sm:flex-row"]')
+    expect(rail).toBeTruthy()
   })
 })
 
 // ---------------------------------------------------------------------------
-// 2. Sheet — single entity (mech-only) uses max-w-7xl
+// 2. Sheet — single entity shells carry their variant tone class
 // ---------------------------------------------------------------------------
 
 describe('Sheet responsive layout — single entity', () => {
-  test('mech-only Sheet main uses max-w-7xl', () => {
+  test('mech-only Sheet renders the mech-toned shell with a sticky header', () => {
     const { container } = render(
       <Sheet
         kind="mech"
@@ -170,12 +170,13 @@ describe('Sheet responsive layout — single entity', () => {
         softLinkStore={makeSoftLinkStore([])}
       />
     )
-    const main = container.querySelector('main')
-    expect(main).toBeTruthy()
-    expect((main as HTMLElement).className).toContain('max-w-7xl')
+    expect(container.querySelector('.sheet--mech')).toBeTruthy()
+    const header = container.querySelector('header')
+    expect(header).toBeTruthy()
+    expect((header as HTMLElement).className).toContain('sticky')
   })
 
-  test('pilot-only Sheet main uses max-w-7xl', () => {
+  test('pilot-only Sheet renders the pilot-toned shell with a sticky header', () => {
     const { container } = render(
       <Sheet
         kind="pilot"
@@ -184,37 +185,36 @@ describe('Sheet responsive layout — single entity', () => {
         softLinkStore={makeSoftLinkStore([])}
       />
     )
-    const main = container.querySelector('main')
-    expect(main).toBeTruthy()
-    expect((main as HTMLElement).className).toContain('max-w-7xl')
+    expect(container.querySelector('.sheet--pilot')).toBeTruthy()
+    const header = container.querySelector('header')
+    expect(header).toBeTruthy()
+    expect((header as HTMLElement).className).toContain('sticky')
   })
 })
 
 // ---------------------------------------------------------------------------
-// 3. SnapshotView — uses max-w-7xl container
+// 3. SnapshotView — renders the LiveSheet shell (plan 4.8 port)
 // ---------------------------------------------------------------------------
 
 describe('SnapshotView responsive layout', () => {
-  test('SnapshotView pilot snapshot uses max-w-7xl container', () => {
+  test('SnapshotView pilot snapshot renders the variant shell + banner', () => {
     const snapshot = { kind: 'pilot', entity: { ...fakePilot } }
     const { container } = render(<SnapshotView snapshot={snapshot as Record<string, unknown>} />)
-    const main = container.querySelector('main')
-    expect(main).toBeTruthy()
-    expect((main as HTMLElement).className).toContain('max-w-7xl')
+    expect(container.querySelector('.sheet--pilot')).toBeTruthy()
+    expect(container.querySelector('[aria-label="Read-only snapshot"]')).toBeTruthy()
   })
 })
 
 // ---------------------------------------------------------------------------
-// 4. CrawlerSheet — stats grid uses grid-cols-1 (not grid-cols-2)
+// 4. CrawlerSheet — body section stacks as a single column of slabs
 // ---------------------------------------------------------------------------
 
-describe('CrawlerSheet responsive layout — stats grid', () => {
-  test('stats dl uses grid-cols-1 class', () => {
+describe('CrawlerSheet responsive layout — body section', () => {
+  test('body renders as a single flex column (slabs stack at every width)', () => {
     const { container } = render(<CrawlerSheet crawler={fakeCrawler} />)
-    const dl = container.querySelector('dl')
-    expect(dl).toBeTruthy()
-    expect((dl as HTMLElement).className).toContain('grid-cols-1')
-    expect((dl as HTMLElement).className).not.toContain('grid-cols-2')
+    const section = container.querySelector('section')
+    expect(section).toBeTruthy()
+    expect((section as HTMLElement).className).toContain('flex-col')
   })
 })
 

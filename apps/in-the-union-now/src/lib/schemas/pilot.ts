@@ -144,6 +144,11 @@ export const PilotSchema = z
     /** Training/passive bonuses to max AP (Stat Training +1 per tier). Absent = 0. */
     maxApModifier: z.number().int().optional(),
     /**
+     * Passive bonuses to inventory capacity over the base 6 (rules A13 —
+     * e.g. Beefcake +4). Absent = 0.
+     */
+    maxInventorySlotsModifier: z.number().int().optional(),
+    /**
      * Per-equipment Uses (X) counters (rules A14), keyed by equipment slug.
      * Value = uses remaining; absent key = item at full uses. All uses
      * recharge after a week of Downtime (Orbital Lance never — hand-managed).

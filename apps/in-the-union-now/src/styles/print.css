@@ -87,16 +87,9 @@
     display: none !important;
   }
 
-  /* Back-to-dashboard link in SheetHeader */
+  /* LiveSheet top-bar links (back-to-dashboard, Edit, segment switch) */
   header a {
     display: none !important;
-  }
-
-  /* Mode badge in SheetHeader — keep for context */
-  header span[aria-label^='Composition mode'] {
-    border: 1px solid #000 !important;
-    padding: 1pt 4pt;
-    font-size: 10pt;
   }
 
   /* -------------------------------------------------------------------------
@@ -180,7 +173,7 @@
   }
 
   /* -------------------------------------------------------------------------
-   * Stat pip rows (PipTracker) — keep trackable boxes on paper.
+   * Stat pips (suref-react StatBlock/MiniStat) — keep trackable boxes on paper.
    *
    * The global `*` reset above forces every background to white, which would
    * erase a filled pip's fill and make it indistinguishable from an empty one.

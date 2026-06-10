@@ -154,7 +154,7 @@ describe('Sheet — pilot-only (no links)', () => {
     expect(screen.getAllByText(/Yara Voss/).length).toBeGreaterThan(0)
   })
 
-  test('composition badge shows pilot mode', () => {
+  test('wired toggle reads Offline (no links)', () => {
     render(
       <Sheet
         kind="pilot"
@@ -163,7 +163,7 @@ describe('Sheet — pilot-only (no links)', () => {
         softLinkStore={makeSoftLinkStore([])}
       />
     )
-    expect(screen.getByLabelText('Composition mode: Pilot')).toBeTruthy()
+    expect(screen.getByRole('switch', { name: /offline/i })).toBeTruthy()
   })
 
   test('no stand-in rendered (pilot-only)', () => {
@@ -175,7 +175,7 @@ describe('Sheet — pilot-only (no links)', () => {
         softLinkStore={makeSoftLinkStore([])}
       />
     )
-    expect(screen.queryByLabelText('No pilot assigned')).toBeNull()
+    expect(screen.queryByText(/No pilot assigned/)).toBeNull()
   })
 })
 
@@ -193,11 +193,11 @@ describe('Sheet — mech-only (no links)', () => {
         softLinkStore={makeSoftLinkStore([])}
       />
     )
-    // Name appears in SheetHeader (h1) and MechSheet (h2) — use getAllByText
+    // Name appears in the hero chip and condensed strip — use getAllByText
     expect(screen.getAllByText('Iron Fist').length).toBeGreaterThan(0)
   })
 
-  test('composition badge shows mech mode', () => {
+  test('wired toggle reads Offline (no links)', () => {
     render(
       <Sheet
         kind="mech"
@@ -206,10 +206,10 @@ describe('Sheet — mech-only (no links)', () => {
         softLinkStore={makeSoftLinkStore([])}
       />
     )
-    expect(screen.getByLabelText('Composition mode: Mech')).toBeTruthy()
+    expect(screen.getByRole('switch', { name: /offline/i })).toBeTruthy()
   })
 
-  test('PilotStandIn appears in "assigned pilot" slot', () => {
+  test('pilot RailEmpty appears in the "assigned pilot" slot', () => {
     render(
       <Sheet
         kind="mech"
@@ -218,7 +218,7 @@ describe('Sheet — mech-only (no links)', () => {
         softLinkStore={makeSoftLinkStore([])}
       />
     )
-    expect(screen.getByLabelText('No pilot assigned')).toBeTruthy()
+    expect(screen.getByText(/No pilot assigned/)).toBeTruthy()
   })
 })
 
@@ -236,11 +236,11 @@ describe('Sheet — crawler-only (no links)', () => {
         softLinkStore={makeSoftLinkStore([])}
       />
     )
-    // Name appears in SheetHeader (h1) and CrawlerSheet (h2) — use getAllByText
+    // Name appears in the hero chip and condensed strip — use getAllByText
     expect(screen.getAllByText('Iron Tortoise').length).toBeGreaterThan(0)
   })
 
-  test('composition badge shows crawler mode', () => {
+  test('wired toggle reads Offline (no links)', () => {
     render(
       <Sheet
         kind="crawler"
@@ -249,10 +249,10 @@ describe('Sheet — crawler-only (no links)', () => {
         softLinkStore={makeSoftLinkStore([])}
       />
     )
-    expect(screen.getByLabelText('Composition mode: Crawler')).toBeTruthy()
+    expect(screen.getByRole('switch', { name: /offline/i })).toBeTruthy()
   })
 
-  test('CrawlerPilotsStandIn appears when no pilots wired', () => {
+  test('lead-pilot RailEmpty appears when no pilots wired', () => {
     render(
       <Sheet
         kind="crawler"
@@ -261,7 +261,7 @@ describe('Sheet — crawler-only (no links)', () => {
         softLinkStore={makeSoftLinkStore([])}
       />
     )
-    expect(screen.getByLabelText('No pilots assigned')).toBeTruthy()
+    expect(screen.getByText(/No lead pilot set/)).toBeTruthy()
   })
 })
 
@@ -283,11 +283,11 @@ describe('Sheet — wired (mech WITH pilot link)', () => {
     )
     // Pilot name — PilotSheet h2 also includes callsign, use partial match
     expect(screen.getAllByText(/Yara Voss/).length).toBeGreaterThan(0)
-    // Mech name — in SheetHeader (h1) and MechSheet (h2)
+    // Mech name — in the hero chip and condensed strip
     expect(screen.getAllByText('Iron Fist').length).toBeGreaterThan(0)
   })
 
-  test('composition badge shows wired mode', () => {
+  test('wired toggle reads Wired', () => {
     render(
       <Sheet
         kind="mech"
@@ -296,10 +296,10 @@ describe('Sheet — wired (mech WITH pilot link)', () => {
         softLinkStore={makeSoftLinkStore([mechToPilotLink])}
       />
     )
-    expect(screen.getByLabelText('Composition mode: Wired')).toBeTruthy()
+    expect(screen.getByRole('switch', { name: /wired/i })).toBeTruthy()
   })
 
-  test('PilotStandIn NOT rendered when pilot is wired', () => {
+  test('pilot RailEmpty NOT rendered when pilot is wired', () => {
     render(
       <Sheet
         kind="mech"
@@ -308,16 +308,16 @@ describe('Sheet — wired (mech WITH pilot link)', () => {
         softLinkStore={makeSoftLinkStore([mechToPilotLink])}
       />
     )
-    expect(screen.queryByLabelText('No pilot assigned')).toBeNull()
+    expect(screen.queryByText(/No pilot assigned/)).toBeNull()
   })
 })
 
 // ---------------------------------------------------------------------------
-// MechStandIn: pilot-only mode
+// Mech RailEmpty: pilot-only mode
 // ---------------------------------------------------------------------------
 
-describe('Sheet — MechStandIn in pilot-only mode', () => {
-  test('MechStandIn renders when pilot has no mech wired', () => {
+describe('Sheet — mech RailEmpty in pilot-only mode', () => {
+  test('mech RailEmpty renders when pilot has no mech wired', () => {
     render(
       <Sheet
         kind="pilot"
@@ -326,10 +326,10 @@ describe('Sheet — MechStandIn in pilot-only mode', () => {
         softLinkStore={makeSoftLinkStore([])}
       />
     )
-    expect(screen.getByLabelText('No mech assigned')).toBeTruthy()
+    expect(screen.getByText(/No mech assigned/)).toBeTruthy()
   })
 
-  test('MechStandIn is ABSENT when a mech is wired', () => {
+  test('mech RailEmpty is ABSENT when a mech is wired', () => {
     const mechToPilotLink = makeLink(
       'link-1',
       'mech',
@@ -346,15 +346,15 @@ describe('Sheet — MechStandIn in pilot-only mode', () => {
         softLinkStore={makeSoftLinkStore([mechToPilotLink])}
       />
     )
-    expect(screen.queryByLabelText('No mech assigned')).toBeNull()
+    expect(screen.queryByText(/No mech assigned/)).toBeNull()
   })
 })
 
 // ---------------------------------------------------------------------------
-// MechStandIn: wired pilot+crawler (no mech)
+// Mech RailEmpty: wired pilot+crawler (no mech)
 // ---------------------------------------------------------------------------
 
-describe('Sheet — MechStandIn in wired pilot+crawler (no mech)', () => {
+describe('Sheet — mech RailEmpty in wired pilot+crawler (no mech)', () => {
   const pilotToCrawlerLink = makeLink(
     'link-2',
     'pilot',
@@ -364,7 +364,7 @@ describe('Sheet — MechStandIn in wired pilot+crawler (no mech)', () => {
     'pilot-to-crawler'
   )
 
-  test('MechStandIn renders when wired pilot+crawler but no mech', () => {
+  test('mech RailEmpty renders when wired pilot+crawler but no mech', () => {
     render(
       <Sheet
         kind="pilot"
@@ -373,10 +373,10 @@ describe('Sheet — MechStandIn in wired pilot+crawler (no mech)', () => {
         softLinkStore={makeSoftLinkStore([pilotToCrawlerLink])}
       />
     )
-    expect(screen.getByLabelText('No mech assigned')).toBeTruthy()
+    expect(screen.getByText(/No mech assigned/)).toBeTruthy()
   })
 
-  test('MechStandIn is ABSENT when mech is also wired (full wired)', () => {
+  test('mech RailEmpty is ABSENT when mech is also wired (full wired)', () => {
     const mechToPilotLink = makeLink(
       'link-1',
       'mech',
@@ -393,7 +393,7 @@ describe('Sheet — MechStandIn in wired pilot+crawler (no mech)', () => {
         softLinkStore={makeSoftLinkStore([mechToPilotLink, pilotToCrawlerLink])}
       />
     )
-    expect(screen.queryByLabelText('No mech assigned')).toBeNull()
+    expect(screen.queryByText(/No mech assigned/)).toBeNull()
   })
 })
 
@@ -411,8 +411,9 @@ describe('Sheet — ConditionToggle renders in editable sheet context', () => {
         softLinkStore={makeSoftLinkStore([])}
       />
     )
-    // fakePilot has equipment: ['pistol'], so a ConditionToggle with ariaLabelPrefix "pistol" renders
-    const toggle = screen.getByRole('button', { name: /pistol condition/i })
+    // fakePilot has equipment: ['pistol'] — its condition cycles via the card
+    // status badge (design §4.5)
+    const toggle = screen.getByRole('button', { name: /status: intact/i })
     expect(toggle).toBeTruthy()
   })
 
@@ -448,7 +449,7 @@ describe('Sheet — readOnly propagates to sub-sheets', () => {
     )
     // InlineEditField renders role="button" only when NOT readOnly.
     // In a readOnly Sheet, stat cells should be plain spans with no button role.
-    // ariaLabel for stat cells is "Edit " (empty label string from EditableStatRow).
+    // ariaLabel for stat cells starts with "Edit " (InlineEditField).
     const statButtons = screen
       .queryAllByRole('button')
       .filter((el) => (el.getAttribute('aria-label') ?? '').startsWith('Edit '))
@@ -497,7 +498,7 @@ describe('Sheet — readOnly propagates to sub-sheets', () => {
       />
     )
     // Without readOnly, InlineEditField renders role="button" on the value span
-    // ariaLabel is "Edit " (EditableStatRow passes label="" to EditableStatRow)
+    // ariaLabel starts with "Edit " (InlineEditField)
     const statButtons = screen
       .queryAllByRole('button')
       .filter((el) => (el.getAttribute('aria-label') ?? '').startsWith('Edit '))

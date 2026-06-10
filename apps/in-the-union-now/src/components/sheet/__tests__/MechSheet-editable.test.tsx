@@ -1,14 +1,20 @@
 /**
- * MechSheet — editable stat tests (#244).
+ * MechSheet — per-item action economy (plan 4.5, S12).
  *
- * Verifies that clicking each of the six stat cells (HP, AP, TP, SP, EP, Heat),
- * typing a new value, and pressing Enter calls store.update with the correct
- * field patch: { currentXxx: N }.
+ * Stat editing moved to the hero trackers (Sheet.tsx); the body's edit
+ * surface is the per-card action economy:
+ *   - Use spends the primary action's EP cost (and ticks the uses counter).
+ *   - Damaged DISABLES Use and promotes Repair to primary, showing the
+ *     half-SV scrap cost.
+ *   - Repair flips the item to Intact; the crawler scrap-pool deduction is
+ *     optional and never blocks (S12) — both paths covered.
+ *   - Uses steppers persist per-item counters for systems AND modules.
+ *   - Chassis ability Use spends EP and is blocked while shut down.
  *
- * HP is covered by sheet-smoke.test.tsx (Scenario 6). All six are tested here
- * for completeness. Uses dep-injection (no mock.module()).
+ * Real reference data: Smoke Machine (TL2, SV2, EP 2), AFF Coolant Foam
+ * (TL3, EP 1, Uses 5), Spectrum chassis (Data Scanner, EP 2).
  *
- * Conventions: toBeTruthy() not toBeInTheDocument(), no mock.module().
+ * Conventions: toBeTruthy() not toBeInTheDocument(), dep-injected store.
  */
 
 import { afterEach, beforeAll, describe, expect, mock, test } from 'bun:test'
@@ -16,39 +22,17 @@ import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 
 import { MechSheet } from '../MechSheet'
+import type { Crawler } from '../../../lib/schemas/crawler'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { useEntityStore } from '../../../stores/entityStore'
 
 beforeAll(async () => {
-  await SalvageUnionReference.preload(['chassis'])
+  await SalvageUnionReference.preload('all')
 })
 
 afterEach(() => {
   cleanup()
 })
-
-// ---------------------------------------------------------------------------
-// Shared fixture
-// ---------------------------------------------------------------------------
-
-const fakeMech: Mech = {
-  id: 'mech-editable-1',
-  schemaVersion: 1,
-  name: 'Edit Test Mech',
-  chassisRef: 'iron-mongrel',
-  systems: [],
-  modules: [],
-  cargoLots: [],
-  conditions: [],
-  currentHP: 10,
-  currentAP: 3,
-  currentTP: 2,
-  currentSP: 8,
-  currentEP: 5,
-  currentHeat: 4,
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
-}
 
 const fakeChassis = {
   name: 'Iron Mongrel',
@@ -60,145 +44,258 @@ const fakeChassis = {
   cargoCapacity: 4,
 }
 
-type CapturedUpdate = { id: string; patch: Partial<Mech> }
+function makeMech(overrides: Partial<Mech>): Mech {
+  return {
+    id: 'mech-economy-1',
+    schemaVersion: 1,
+    name: 'Economy Test Mech',
+    chassisRef: 'iron-mongrel',
+    systems: [],
+    modules: [],
+    cargoLots: [],
+    conditions: [],
+    currentEP: 5,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    ...overrides,
+  }
+}
 
-function makeStore(mech: Mech, captured: CapturedUpdate[]): typeof useEntityStore {
-  const updateMock = mock(async (_type: string, id: string, patch: Partial<Mech>) => {
-    captured.push({ id, patch })
-    return { ...mech, ...patch } as Mech
-  })
+function makeCrawler(overrides: Partial<Crawler> = {}): Crawler {
+  return {
+    id: 'crawler-economy-1',
+    schemaVersion: 1,
+    name: 'Pool Crawler',
+    techLevel: 'tech-2',
+    systems: [],
+    cargoLots: [],
+    scrapPool: { tl2: 5 },
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    ...overrides,
+  } as Crawler
+}
 
+type CapturedUpdate = {
+  type: string
+  id: string
+  patch: Record<string, unknown>
+}
+
+function makeStore(mech: Mech, captured: CapturedUpdate[], crawler?: Crawler) {
+  let currentMech = mech
   const storeState = {
     pilots: [],
     mechs: [mech],
-    crawlers: [],
+    crawlers: crawler ? [crawler] : [],
     softLinks: [],
-    hydrated: { pilots: false, mechs: true, crawlers: false, softLinks: false },
+    hydrated: { pilots: false, mechs: true, crawlers: true, softLinks: false },
     hydrate: mock(async () => {}),
-    list: mock(() => [mech]),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    get: mock((_type: string, id: string) => (id === mech.id ? mech : null)) as any,
+    list: mock(() => [currentMech]),
+    get: mock((type: string, id: string) => {
+      if (type === 'mech' && id === currentMech.id) return currentMech
+      if (type === 'crawler' && crawler && id === crawler.id) return crawler
+      return null
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    }) as any,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     create: mock(async () => mech) as any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    update: updateMock as any,
+    update: mock(
+      async (type: string, id: string, patch: Record<string, unknown>) => {
+        captured.push({ type, id, patch })
+        if (type === 'mech') currentMech = { ...currentMech, ...patch }
+        return currentMech
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ) as any,
     delete: mock(async () => {}),
   }
-
   return (() => storeState) as unknown as typeof useEntityStore
 }
 
-// ---------------------------------------------------------------------------
-// Helper: click the click-to-edit value for a stat (by its "Edit {label}"
-// aria-label), type a value, press Enter. Targeting by label (not positional
-// index) keeps the helper robust against the Slice D stepper buttons that
-// surround some stat values.
-// ---------------------------------------------------------------------------
-
-async function editStatByLabel(label: string, value: string): Promise<void> {
-  const editTrigger = screen.getByRole('button', { name: `Edit ${label}` })
-  await act(async () => {
-    fireEvent.click(editTrigger)
-  })
-  const input = screen.getByRole('spinbutton')
-  await act(async () => {
-    fireEvent.change(input, { target: { value } })
-    fireEvent.keyDown(input, { key: 'Enter' })
-  })
+function clickButton(name: RegExp) {
+  const btn = screen.getByRole('button', { name })
+  fireEvent.click(btn)
 }
 
-// ---------------------------------------------------------------------------
-// Tests — one per stat
-// The MechSheet renders stats in order: HP(0), AP(1), TP(2), SP(3), EP(4), Heat(5)
-// ---------------------------------------------------------------------------
-
-describe('MechSheet — editable stat: HP', () => {
-  test('click HP, type new value, Enter → store.update called with { currentHP: N }', async () => {
+describe('MechSheet — Use action economy', () => {
+  test('Use spends the EP cost through the store', async () => {
     const captured: CapturedUpdate[] = []
-    render(
-      <MechSheet mech={fakeMech} chassis={fakeChassis} store={makeStore(fakeMech, captured)} />
-    )
+    const mech = makeMech({ systems: ['Smoke Machine'], currentEP: 5 })
+    render(<MechSheet mech={mech} chassis={fakeChassis} store={makeStore(mech, captured)} />)
 
-    await editStatByLabel('HP', '7')
+    await act(async () => {
+      clickButton(/^use smoke machine$/i)
+    })
 
     expect(captured.length).toBe(1)
-    expect(captured[0]!.id).toBe('mech-editable-1')
-    expect(captured[0]!.patch).toMatchObject({ currentHP: 7 })
+    expect(captured[0]!.patch).toEqual({ currentEP: 3 })
+  })
+
+  test('Use ticks the uses counter down alongside the EP spend', async () => {
+    const captured: CapturedUpdate[] = []
+    const mech = makeMech({
+      systems: ['AFF Coolant Foam'],
+      currentEP: 4,
+      itemUses: { 'AFF Coolant Foam': 3 },
+    })
+    render(<MechSheet mech={mech} chassis={fakeChassis} store={makeStore(mech, captured)} />)
+
+    await act(async () => {
+      clickButton(/^use aff coolant foam$/i)
+    })
+
+    expect(captured[0]!.patch).toEqual({
+      currentEP: 3,
+      itemUses: { 'AFF Coolant Foam': 2 },
+    })
+  })
+
+  test('Use is disabled when EP cannot cover the cost', () => {
+    const mech = makeMech({ systems: ['Smoke Machine'], currentEP: 1 })
+    render(<MechSheet mech={mech} chassis={fakeChassis} store={makeStore(mech, [])} />)
+
+    const btn = screen.getByRole('button', { name: /^use smoke machine$/i })
+    expect((btn as HTMLButtonElement).disabled).toBe(true)
+    expect(btn.getAttribute('title')).toMatch(/not enough ep/i)
   })
 })
 
-describe('MechSheet — editable stat: AP', () => {
-  test('click AP, type new value, Enter → store.update called with { currentAP: N }', async () => {
-    const captured: CapturedUpdate[] = []
-    render(
-      <MechSheet mech={fakeMech} chassis={fakeChassis} store={makeStore(fakeMech, captured)} />
-    )
+describe('MechSheet — Damaged disables function, promotes Repair (S12)', () => {
+  test('Damaged: Use disabled, Repair primary with half-SV cost', () => {
+    const mech = makeMech({
+      systems: ['Smoke Machine'],
+      systemConditions: { 'Smoke Machine': 'damaged' },
+    })
+    render(<MechSheet mech={mech} chassis={fakeChassis} store={makeStore(mech, [])} />)
 
-    await editStatByLabel('AP', '5')
+    const use = screen.getByRole('button', { name: /^use smoke machine$/i })
+    expect((use as HTMLButtonElement).disabled).toBe(true)
+    expect(use.getAttribute('title')).toMatch(/damaged/i)
+
+    // Smoke Machine SV 2 → half SV = 1 Scrap, shown on the button.
+    const repair = screen.getByRole('button', {
+      name: /^repair smoke machine$/i,
+    })
+    expect(repair.textContent).toMatch(/1 scrap/i)
+  })
+
+  test('Repair without deducting flips the item to Intact (never blocks)', async () => {
+    const captured: CapturedUpdate[] = []
+    const mech = makeMech({
+      systems: ['Smoke Machine'],
+      systemConditions: { 'Smoke Machine': 'damaged' },
+    })
+    // No crawler linked — the deduction option is disabled, repair is not.
+    render(<MechSheet mech={mech} chassis={fakeChassis} store={makeStore(mech, captured)} />)
+
+    await act(async () => {
+      clickButton(/^repair smoke machine$/i)
+    })
+    const deduct = screen.getByRole('button', { name: /deduct scrap/i })
+    expect((deduct as HTMLButtonElement).disabled).toBe(true)
+    expect(deduct.getAttribute('title')).toMatch(/no crawler linked/i)
+
+    await act(async () => {
+      clickButton(/repair smoke machine without deducting/i)
+    })
 
     expect(captured.length).toBe(1)
-    expect(captured[0]!.id).toBe('mech-editable-1')
-    expect(captured[0]!.patch).toMatchObject({ currentAP: 5 })
+    expect(captured[0]!.type).toBe('mech')
+    expect(captured[0]!.patch).toEqual({
+      systemConditions: { 'Smoke Machine': 'intact' },
+    })
+  })
+
+  test('Repair with deduction decrements the crawler TL pool bucket', async () => {
+    const captured: CapturedUpdate[] = []
+    const mech = makeMech({
+      systems: ['Smoke Machine'],
+      systemConditions: { 'Smoke Machine': 'damaged' },
+    })
+    const crawler = makeCrawler({ scrapPool: { tl2: 5 } })
+    render(
+      <MechSheet
+        mech={mech}
+        chassis={fakeChassis}
+        store={makeStore(mech, captured, crawler)}
+        crawler={crawler}
+      />
+    )
+
+    await act(async () => {
+      clickButton(/^repair smoke machine$/i)
+    })
+    await act(async () => {
+      clickButton(/repair smoke machine and deduct scrap/i)
+    })
+
+    expect(captured.length).toBe(2)
+    expect(captured[0]!.patch).toEqual({
+      systemConditions: { 'Smoke Machine': 'intact' },
+    })
+    expect(captured[1]!.type).toBe('crawler')
+    expect(captured[1]!.patch).toEqual({ scrapPool: { tl2: 4 } })
   })
 })
 
-describe('MechSheet — editable stat: TP', () => {
-  test('click TP, type new value, Enter → store.update called with { currentTP: N }', async () => {
+describe('MechSheet — per-item uses counters (rules B13)', () => {
+  test('the stepper decrements the per-item uses counter', async () => {
     const captured: CapturedUpdate[] = []
-    render(
-      <MechSheet mech={fakeMech} chassis={fakeChassis} store={makeStore(fakeMech, captured)} />
-    )
+    const mech = makeMech({
+      systems: ['AFF Coolant Foam'],
+      itemUses: { 'AFF Coolant Foam': 3 },
+    })
+    render(<MechSheet mech={mech} chassis={fakeChassis} store={makeStore(mech, captured)} />)
 
-    await editStatByLabel('TP', '4')
+    expect(screen.getByText('Uses 3/5')).toBeTruthy()
+    await act(async () => {
+      clickButton(/decrease aff coolant foam uses/i)
+    })
 
-    expect(captured.length).toBe(1)
-    expect(captured[0]!.id).toBe('mech-editable-1')
-    expect(captured[0]!.patch).toMatchObject({ currentTP: 4 })
+    expect(captured[0]!.patch).toEqual({ itemUses: { 'AFF Coolant Foam': 2 } })
+  })
+
+  test('the stepper increments back up (downtime recharge by hand)', async () => {
+    const captured: CapturedUpdate[] = []
+    const mech = makeMech({
+      systems: ['AFF Coolant Foam'],
+      itemUses: { 'AFF Coolant Foam': 3 },
+    })
+    render(<MechSheet mech={mech} chassis={fakeChassis} store={makeStore(mech, captured)} />)
+
+    await act(async () => {
+      clickButton(/increase aff coolant foam uses/i)
+    })
+
+    expect(captured[0]!.patch).toEqual({ itemUses: { 'AFF Coolant Foam': 4 } })
   })
 })
 
-describe('MechSheet — editable stat: SP', () => {
-  test('click SP, type new value, Enter → store.update called with { currentSP: N }', async () => {
+describe('MechSheet — chassis ability slab', () => {
+  test('Use spends the ability EP cost', async () => {
     const captured: CapturedUpdate[] = []
-    render(
-      <MechSheet mech={fakeMech} chassis={fakeChassis} store={makeStore(fakeMech, captured)} />
-    )
+    // Spectrum's Data Scanner costs 2 EP. Real chassis → real ability slab.
+    const mech = makeMech({ chassisRef: 'Spectrum', currentEP: 5 })
+    render(<MechSheet mech={mech} store={makeStore(mech, captured)} />)
 
-    await editStatByLabel('SP', '6')
+    await act(async () => {
+      clickButton(/^use data scanner$/i)
+    })
 
-    expect(captured.length).toBe(1)
-    expect(captured[0]!.id).toBe('mech-editable-1')
-    expect(captured[0]!.patch).toMatchObject({ currentSP: 6 })
+    expect(captured[0]!.patch).toEqual({ currentEP: 3 })
   })
-})
 
-describe('MechSheet — editable stat: EP', () => {
-  test('click EP, type new value, Enter → store.update called with { currentEP: N }', async () => {
-    const captured: CapturedUpdate[] = []
-    render(
-      <MechSheet mech={fakeMech} chassis={fakeChassis} store={makeStore(fakeMech, captured)} />
-    )
+  test('Use is blocked while the mech is shut down', () => {
+    const mech = makeMech({
+      chassisRef: 'Spectrum',
+      currentEP: 5,
+      shutdown: true,
+    })
+    render(<MechSheet mech={mech} store={makeStore(mech, [])} />)
 
-    await editStatByLabel('EP', '3')
-
-    expect(captured.length).toBe(1)
-    expect(captured[0]!.id).toBe('mech-editable-1')
-    expect(captured[0]!.patch).toMatchObject({ currentEP: 3 })
-  })
-})
-
-describe('MechSheet — editable stat: Heat', () => {
-  test('click Heat, type new value, Enter → store.update called with { currentHeat: N }', async () => {
-    const captured: CapturedUpdate[] = []
-    render(
-      <MechSheet mech={fakeMech} chassis={fakeChassis} store={makeStore(fakeMech, captured)} />
-    )
-
-    // Heat is now capped at the chassis heatCapacity (8); use an in-cap value.
-    await editStatByLabel('Heat', '7')
-
-    expect(captured.length).toBe(1)
-    expect(captured[0]!.id).toBe('mech-editable-1')
-    expect(captured[0]!.patch).toMatchObject({ currentHeat: 7 })
+    const btn = screen.getByRole('button', { name: /^use data scanner$/i })
+    expect((btn as HTMLButtonElement).disabled).toBe(true)
+    expect(btn.getAttribute('title')).toMatch(/shut down/i)
   })
 })

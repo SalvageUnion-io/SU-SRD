@@ -23,7 +23,7 @@
  */
 
 import { afterEach, beforeAll, describe, expect, mock, test } from 'bun:test'
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 
 import { Sheet } from '../Sheet'
@@ -42,7 +42,7 @@ import type { PublishResult, SnapshotPayload } from '../../../lib/snapshot/clien
 // ---------------------------------------------------------------------------
 
 beforeAll(async () => {
-  await SalvageUnionReference.preload(['chassis', 'systems', 'modules'])
+  await SalvageUnionReference.preload('all')
 })
 
 afterEach(() => {
@@ -257,23 +257,12 @@ describe('Mobile responsive — touch targets min-h-11', () => {
 })
 
 // ---------------------------------------------------------------------------
-// #255: mobile segment switcher
+// LiveSheet shell: linked entities live in the rail (the #255 segment
+// switcher was removed with the Header C rebuild — one entity per sheet).
 // ---------------------------------------------------------------------------
 
-describe('Mobile segment switcher (#255)', () => {
-  test('single-entity Sheet renders no switcher (only one segment)', () => {
-    render(
-      <Sheet
-        kind="pilot"
-        id="pilot-1"
-        entityStore={makeEntityStore([fakePilot])}
-        softLinkStore={makeSoftLinkStore([])}
-      />
-    )
-    expect(screen.queryByRole('tablist', { name: /sheet section/i })).toBeNull()
-  })
-
-  test('wired (mech+pilot) Sheet renders Pilot + Mech segments but not Crawler', () => {
+describe('LiveSheet rail replaces the segment switcher', () => {
+  test('no tablist renders on any sheet', () => {
     const link = makeMechToPilotLink('mech-1', 'pilot-1')
     render(
       <Sheet
@@ -283,13 +272,10 @@ describe('Mobile segment switcher (#255)', () => {
         softLinkStore={makeSoftLinkStore([link])}
       />
     )
-    expect(screen.getByRole('tablist', { name: /sheet section/i })).toBeTruthy()
-    expect(screen.getByRole('tab', { name: 'Pilot' })).toBeTruthy()
-    expect(screen.getByRole('tab', { name: 'Mech' })).toBeTruthy()
-    expect(screen.queryByRole('tab', { name: 'Crawler' })).toBeNull()
+    expect(screen.queryByRole('tablist')).toBeNull()
   })
 
-  test('tapping a segment swaps the active tab (aria-selected)', () => {
+  test('wired (mech+pilot) Sheet shows the pilot as a navigating rail chip', () => {
     const link = makeMechToPilotLink('mech-1', 'pilot-1')
     render(
       <Sheet
@@ -299,15 +285,8 @@ describe('Mobile segment switcher (#255)', () => {
         softLinkStore={makeSoftLinkStore([link])}
       />
     )
-    // kind=mech defaults the active segment to Mech.
-    const mechTab = screen.getByRole('tab', { name: 'Mech' })
-    const pilotTab = screen.getByRole('tab', { name: 'Pilot' })
-    expect(mechTab.getAttribute('aria-selected')).toBe('true')
-    expect(pilotTab.getAttribute('aria-selected')).toBe('false')
-
-    fireEvent.click(pilotTab)
-
-    expect(screen.getByRole('tab', { name: 'Pilot' }).getAttribute('aria-selected')).toBe('true')
-    expect(screen.getByRole('tab', { name: 'Mech' }).getAttribute('aria-selected')).toBe('false')
+    const chip = screen.getByLabelText(/Assigned Pilot: Yara Voss/i)
+    expect(chip).toBeTruthy()
+    expect(chip.getAttribute('href')).toBe('/sheet/pilot/pilot-1')
   })
 })

@@ -1,16 +1,15 @@
 /**
- * MechSheet — interactive system/module cards (Slice A).
+ * MechSheet — system/module entity cards on the LiveSheet body (plan 4.5).
  *
- * Mech systems and modules used to render as plain `<span>{slug}</span>` rows.
- * They now resolve to their reference entity and render via
- * ReferenceEntityDisplay (compact, choices hidden), with the ConditionToggle
- * moved into the card.
+ * Systems and modules render as Erow'd full ReferenceEntityDisplay cards with
+ * a status badge (Intact → Damaged → Destroyed cycle persists through the
+ * store) — the per-item conditions vocabulary from rules B12.
  *
  * Asserts:
- *   1. A choice-free system resolves and renders as a card (name + a stat).
- *   2. Its in-card condition toggle still persists via store.update.
- *   3. An unresolvable slug falls back to plain text (no crash) and its toggle
- *      still persists.
+ *   1. A real system resolves and renders as a card (name + a stat).
+ *   2. The status badge cycle persists via store.update (intact → damaged).
+ *   3. An unresolvable slug falls back to plain text (no crash) and its
+ *      status badge still persists.
  *
  * Conventions: toBeTruthy() not toBeInTheDocument(), no mock.module(),
  * dep-injected store.
@@ -26,7 +25,8 @@ import type { useEntityStore } from '../../../stores/entityStore'
 
 // MechSheet resolves system/module slugs against the reference data at render.
 beforeAll(async () => {
-  await SalvageUnionReference.preload(['systems', 'modules'])
+  // Full entity cards resolve actions/keywords/traits/distances — load all.
+  await SalvageUnionReference.preload('all')
 })
 
 afterEach(() => {
@@ -34,7 +34,7 @@ afterEach(() => {
 })
 
 // A real, choice-free system. ".50 Cal Machine Gun" is TL1 and renders with a
-// recognisable name + a "Tech Level" stat in the compact display.
+// recognisable name + a "Tech Level" stat.
 const REAL_SYSTEM = '.50 Cal Machine Gun'
 
 const fakeChassis = {
@@ -47,17 +47,20 @@ const fakeChassis = {
   cargoCapacity: 4,
 }
 
-const fakeMech: Mech = {
-  id: 'mech-cards-1',
-  schemaVersion: 1,
-  name: 'Card Test Mech',
-  chassisRef: 'iron-mongrel',
-  systems: [REAL_SYSTEM],
-  modules: ['totally-not-a-real-module'],
-  cargoLots: [],
-  conditions: [],
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
+function makeMech(overrides: Partial<Mech>): Mech {
+  return {
+    id: 'mech-cards-1',
+    schemaVersion: 1,
+    name: 'Card Test Mech',
+    chassisRef: 'iron-mongrel',
+    systems: [],
+    modules: [],
+    cargoLots: [],
+    conditions: [],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    ...overrides,
+  }
 }
 
 function makeStubStore(mech: Mech, updateSpy?: ReturnType<typeof mock>): typeof useEntityStore {
@@ -70,8 +73,11 @@ function makeStubStore(mech: Mech, updateSpy?: ReturnType<typeof mock>): typeof 
     hydrated: { pilots: false, mechs: true, crawlers: false, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [mech]),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    get: mock((_type: string, id: string) => (id === mech.id ? mech : null)) as any,
+
+    get: mock(
+      (_type: string, id: string) => (id === mech.id ? mech : null)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ) as any,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     create: mock(async () => mech) as any,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -81,52 +87,65 @@ function makeStubStore(mech: Mech, updateSpy?: ReturnType<typeof mock>): typeof 
   return (() => storeState) as unknown as typeof useEntityStore
 }
 
-describe('MechSheet — interactive system cards (Slice A)', () => {
-  test('a choice-free system renders as a card with its name and a stat', () => {
-    render(<MechSheet mech={fakeMech} chassis={fakeChassis} store={makeStubStore(fakeMech)} />)
+describe('MechSheet — system/module entity cards (plan 4.5)', () => {
+  test('a real system renders as a card with its name and a stat', () => {
+    const mech = makeMech({ systems: [REAL_SYSTEM] })
+    render(<MechSheet mech={mech} chassis={fakeChassis} store={makeStubStore(mech)} />)
 
     // Name (from the reference entity, not the bare slug span).
-    expect(screen.getByText(REAL_SYSTEM)).toBeTruthy()
-    // A stat surfaced by the compact ReferenceEntityDisplay.
-    expect(screen.getByText('Tech Level')).toBeTruthy()
+    expect(screen.getAllByText(REAL_SYSTEM).length).toBeGreaterThan(0)
+    // A stat surfaced by the entity display.
+    expect(screen.getAllByText('Tech Level').length).toBeGreaterThan(0)
   })
 
-  test('the in-card condition toggle still persists via store.update', async () => {
-    const updateSpy = mock(async () => fakeMech)
-    render(
-      <MechSheet mech={fakeMech} chassis={fakeChassis} store={makeStubStore(fakeMech, updateSpy)} />
-    )
+  test('the status badge cycle persists via store.update (intact → damaged)', async () => {
+    const mech = makeMech({ systems: [REAL_SYSTEM] })
+    const updateSpy = mock(async () => mech)
+    render(<MechSheet mech={mech} chassis={fakeChassis} store={makeStubStore(mech, updateSpy)} />)
 
-    const toggle = screen.getByRole('button', {
-      name: new RegExp(`${REAL_SYSTEM.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} condition`, 'i'),
-    })
+    const badge = screen.getByRole('button', { name: /status: intact/i })
     await act(async () => {
-      fireEvent.click(toggle)
+      fireEvent.click(badge)
     })
 
-    expect(updateSpy).toHaveBeenCalledWith('mech', fakeMech.id, {
+    expect(updateSpy).toHaveBeenCalledWith('mech', mech.id, {
       systemConditions: { [REAL_SYSTEM]: 'damaged' },
     })
   })
 
-  test('an unresolvable module slug falls back to plain text and still toggles', async () => {
-    const updateSpy = mock(async () => fakeMech)
-    render(
-      <MechSheet mech={fakeMech} chassis={fakeChassis} store={makeStubStore(fakeMech, updateSpy)} />
-    )
+  test('an unresolvable module slug falls back to plain text and still cycles', async () => {
+    const mech = makeMech({ modules: ['totally-not-a-real-module'] })
+    const updateSpy = mock(async () => mech)
+    render(<MechSheet mech={mech} chassis={fakeChassis} store={makeStubStore(mech, updateSpy)} />)
 
     // Fallback: the raw slug text is rendered (no crash).
     expect(screen.getByText('totally-not-a-real-module')).toBeTruthy()
 
-    const toggle = screen.getByRole('button', {
-      name: /totally-not-a-real-module condition/i,
-    })
+    const badge = screen.getByRole('button', { name: /status: intact/i })
     await act(async () => {
-      fireEvent.click(toggle)
+      fireEvent.click(badge)
     })
 
-    expect(updateSpy).toHaveBeenCalledWith('mech', fakeMech.id, {
+    expect(updateSpy).toHaveBeenCalledWith('mech', mech.id, {
       moduleConditions: { 'totally-not-a-real-module': 'damaged' },
+    })
+  })
+
+  test('a damaged status badge cycles on to destroyed', async () => {
+    const mech = makeMech({
+      systems: [REAL_SYSTEM],
+      systemConditions: { [REAL_SYSTEM]: 'damaged' },
+    })
+    const updateSpy = mock(async () => mech)
+    render(<MechSheet mech={mech} chassis={fakeChassis} store={makeStubStore(mech, updateSpy)} />)
+
+    const badge = screen.getByRole('button', { name: /status: damaged/i })
+    await act(async () => {
+      fireEvent.click(badge)
+    })
+
+    expect(updateSpy).toHaveBeenCalledWith('mech', mech.id, {
+      systemConditions: { [REAL_SYSTEM]: 'destroyed' },
     })
   })
 })

@@ -22,10 +22,10 @@ import type { Mech } from '../../../lib/schemas/mech'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import type { useEntityStore } from '../../../stores/entityStore'
 
-// PilotSheet resolves equipment/ability slugs and MechSheet resolves
-// system/module slugs via salvageunion-reference at render.
+// PilotSheet resolves equipment/ability slugs; MechSheet resolves
+// system/module slugs, chassis stats and cargo caps at render — load all.
 beforeAll(async () => {
-  await SalvageUnionReference.preload(['equipment', 'abilities', 'systems', 'modules'])
+  await SalvageUnionReference.preload('all')
 })
 
 afterEach(() => {
@@ -143,25 +143,22 @@ const fakePilotWithConditions: Pilot = {
 // Mech system condition tests
 // ---------------------------------------------------------------------------
 
-describe('MechSheet — system condition toggle (REQ-011 #240)', () => {
-  test('clicking a system toggle calls store.update with systemConditions patch', async () => {
+describe('MechSheet — system status badge (REQ-011 #240, plan 4.5)', () => {
+  // Item condition now cycles via the card status badge (design §4.5):
+  // aria label is `Status: <Label> — click to change`.
+  test('clicking a system status badge calls store.update with systemConditions patch', async () => {
     const updateSpy = mock(async () => fakeMech)
+    const mech: Mech = { ...fakeMech, modules: [] } // one badge only
     render(
-      <MechSheet
-        mech={fakeMech}
-        chassis={fakeChassis}
-        store={makeMechStubStore(fakeMech, updateSpy)}
-      />
+      <MechSheet mech={mech} chassis={fakeChassis} store={makeMechStubStore(mech, updateSpy)} />
     )
 
-    // The system 'plasma-torch' should show as 'Intact' initially
-    const toggle = screen.getByRole('button', { name: /plasma-torch condition/i })
+    const badge = screen.getByRole('button', { name: /status: intact/i })
     await act(async () => {
-      fireEvent.click(toggle)
+      fireEvent.click(badge)
     })
 
-    // Should update systemConditions: { 'plasma-torch': 'damaged' }
-    expect(updateSpy).toHaveBeenCalledWith('mech', fakeMech.id, {
+    expect(updateSpy).toHaveBeenCalledWith('mech', mech.id, {
       systemConditions: { 'plasma-torch': 'damaged' },
     })
   })
@@ -175,12 +172,12 @@ describe('MechSheet — system condition toggle (REQ-011 #240)', () => {
       />
     )
 
-    // 'plasma-torch' is stored as 'damaged'
-    const toggle = screen.getByRole('button', { name: /plasma-torch condition: damaged/i })
-    expect(toggle).toBeTruthy()
+    // 'plasma-torch' is stored as 'damaged', 'reinforced-hull' as 'destroyed'
+    expect(screen.getByRole('button', { name: /status: damaged/i })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /status: destroyed/i })).toBeTruthy()
   })
 
-  test('readOnly: clicking system toggle does not call store.update', async () => {
+  test('readOnly: no interactive status badges, store.update never called', async () => {
     const updateSpy = mock(async () => fakeMech)
     render(
       <MechSheet
@@ -191,8 +188,7 @@ describe('MechSheet — system condition toggle (REQ-011 #240)', () => {
       />
     )
 
-    // In readOnly mode, no role=button toggles should appear
-    expect(screen.queryByRole('button', { name: /plasma-torch condition/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /status:/i })).toBeNull()
     expect(updateSpy).not.toHaveBeenCalled()
   })
 })
@@ -201,54 +197,22 @@ describe('MechSheet — system condition toggle (REQ-011 #240)', () => {
 // Mech module condition tests
 // ---------------------------------------------------------------------------
 
-describe('MechSheet — module condition toggle (REQ-011 #240)', () => {
-  test('clicking a module toggle calls store.update with moduleConditions patch', async () => {
+describe('MechSheet — module status badge (REQ-011 #240, plan 4.5)', () => {
+  test('clicking a module status badge calls store.update with moduleConditions patch', async () => {
     const updateSpy = mock(async () => fakeMech)
+    const mech: Mech = { ...fakeMech, systems: [] } // one badge only
     render(
-      <MechSheet
-        mech={fakeMech}
-        chassis={fakeChassis}
-        store={makeMechStubStore(fakeMech, updateSpy)}
-      />
+      <MechSheet mech={mech} chassis={fakeChassis} store={makeMechStubStore(mech, updateSpy)} />
     )
 
-    const toggle = screen.getByRole('button', { name: /reinforced-hull condition/i })
+    const badge = screen.getByRole('button', { name: /status: intact/i })
     await act(async () => {
-      fireEvent.click(toggle)
+      fireEvent.click(badge)
     })
 
-    expect(updateSpy).toHaveBeenCalledWith('mech', fakeMech.id, {
+    expect(updateSpy).toHaveBeenCalledWith('mech', mech.id, {
       moduleConditions: { 'reinforced-hull': 'damaged' },
     })
-  })
-
-  test('displayed condition reflects stored moduleConditions value', () => {
-    render(
-      <MechSheet
-        mech={fakeMechWithConditions}
-        chassis={fakeChassis}
-        store={makeMechStubStore(fakeMechWithConditions)}
-      />
-    )
-
-    // 'reinforced-hull' is stored as 'destroyed'
-    const toggle = screen.getByRole('button', { name: /reinforced-hull condition: destroyed/i })
-    expect(toggle).toBeTruthy()
-  })
-
-  test('readOnly: clicking module toggle does not call store.update', async () => {
-    const updateSpy = mock(async () => fakeMech)
-    render(
-      <MechSheet
-        mech={fakeMech}
-        chassis={fakeChassis}
-        store={makeMechStubStore(fakeMech, updateSpy)}
-        readOnly
-      />
-    )
-
-    expect(screen.queryByRole('button', { name: /reinforced-hull condition/i })).toBeNull()
-    expect(updateSpy).not.toHaveBeenCalled()
   })
 })
 
@@ -257,11 +221,13 @@ describe('MechSheet — module condition toggle (REQ-011 #240)', () => {
 // ---------------------------------------------------------------------------
 
 describe('PilotSheet — equipment condition toggle (REQ-011 #240)', () => {
-  test('clicking an equipment toggle calls store.update with equipmentConditions patch', async () => {
+  // Equipment condition now cycles via the card status badge (design §4.5):
+  // aria label is `Status: <Label> — click to change`.
+  test('clicking an equipment status badge calls store.update with equipmentConditions patch', async () => {
     const updateSpy = mock(async () => fakePilot)
     render(<PilotSheet pilot={fakePilot} store={makePilotStubStore(fakePilot, updateSpy)} />)
 
-    const toggle = screen.getByRole('button', { name: /pistol condition/i })
+    const toggle = screen.getByRole('button', { name: /status: intact/i })
     await act(async () => {
       fireEvent.click(toggle)
     })
@@ -280,18 +246,19 @@ describe('PilotSheet — equipment condition toggle (REQ-011 #240)', () => {
     )
 
     // 'pistol' is stored as 'damaged'
-    const toggle = screen.getByRole('button', { name: /pistol condition: damaged/i })
+    const toggle = screen.getByRole('button', { name: /status: damaged/i })
     expect(toggle).toBeTruthy()
   })
 
-  test('readOnly: clicking equipment toggle does not call store.update', async () => {
+  test('readOnly: no interactive status badge, store.update never called', async () => {
     const updateSpy = mock(async () => fakePilot)
     render(
       <PilotSheet pilot={fakePilot} store={makePilotStubStore(fakePilot, updateSpy)} readOnly />
     )
 
-    // In readOnly mode, no interactive toggle button should appear
-    expect(screen.queryByRole('button', { name: /pistol condition/i })).toBeNull()
+    // In readOnly mode the badge renders as a static span, not a button
+    expect(screen.queryByRole('button', { name: /status:/i })).toBeNull()
+    expect(screen.getByText('Intact')).toBeTruthy()
     expect(updateSpy).not.toHaveBeenCalled()
   })
 })
@@ -316,7 +283,12 @@ describe('MechSheet — condition merge reads live store, not stale prop (#240 r
       mechs: [freshMech],
       crawlers: [],
       softLinks: [],
-      hydrated: { pilots: false, mechs: true, crawlers: false, softLinks: false },
+      hydrated: {
+        pilots: false,
+        mechs: true,
+        crawlers: false,
+        softLinks: false,
+      },
       hydrate: mock(async () => {}),
       list: mock(() => [freshMech]),
       // get returns the FRESH mech (with the prior condition), unlike the prop
@@ -332,15 +304,20 @@ describe('MechSheet — condition merge reads live store, not stale prop (#240 r
 
     render(<MechSheet mech={propMech} chassis={fakeChassis} store={store} />)
 
-    const toggle = screen.getByRole('button', { name: /plasma-torch condition/i })
+    const badge = screen.getAllByRole('button', {
+      name: /status: intact/i,
+    })[0]!
     await act(async () => {
-      fireEvent.click(toggle)
+      fireEvent.click(badge)
     })
 
     // The patch must include BOTH the prior store condition and the new one —
     // proving the merge base came from store.get, not the empty prop map.
     expect(updateSpy).toHaveBeenCalledWith('mech', fakeMech.id, {
-      systemConditions: { 'prior-system': 'destroyed', 'plasma-torch': 'damaged' },
+      systemConditions: {
+        'prior-system': 'destroyed',
+        'plasma-torch': 'damaged',
+      },
     })
   })
 })

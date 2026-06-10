@@ -8,7 +8,7 @@
  *   B. full wired: mech + pilot + crawler — all three sub-sheets render
  *   C. crawler + pilots (wired) — CrawlerSheet renders with wired pilot names
  *
- * These complement the MechStandIn tests in Sheet.test.tsx (which verify
+ * These complement the rail-empty tests in Sheet.test.tsx (which verify
  * stand-ins appear/disappear) by asserting entity content is actually rendered.
  *
  * Conventions: toBeTruthy() not toBeInTheDocument(), no mock.module().
@@ -27,7 +27,7 @@ import type { Crawler } from '../../../lib/schemas/crawler'
 import type { SoftLink } from '../../../lib/schemas/softLink'
 
 beforeAll(async () => {
-  await SalvageUnionReference.preload(['chassis'])
+  await SalvageUnionReference.preload(['chassis', 'crawler-tech-levels'])
 })
 
 afterEach(() => {
@@ -176,7 +176,7 @@ describe('Sheet — pilot+crawler wired composition (no mech)', () => {
     expect(screen.getAllByText(/The Hive/).length).toBeGreaterThan(0)
   })
 
-  test('composition badge shows "Wired"', () => {
+  test('wired toggle reads Wired', () => {
     render(
       <Sheet
         kind="pilot"
@@ -185,10 +185,10 @@ describe('Sheet — pilot+crawler wired composition (no mech)', () => {
         softLinkStore={makeSoftLinkStore([pilotToCrawlerLink])}
       />
     )
-    expect(screen.getByLabelText('Composition mode: Wired')).toBeTruthy()
+    expect(screen.getByRole('switch', { name: /wired/i })).toBeTruthy()
   })
 
-  test('MechStandIn renders (no mech is wired)', () => {
+  test('mech RailEmpty renders (no mech is wired)', () => {
     render(
       <Sheet
         kind="pilot"
@@ -197,7 +197,7 @@ describe('Sheet — pilot+crawler wired composition (no mech)', () => {
         softLinkStore={makeSoftLinkStore([pilotToCrawlerLink])}
       />
     )
-    expect(screen.getByLabelText('No mech assigned')).toBeTruthy()
+    expect(screen.getByText(/No mech assigned/)).toBeTruthy()
   })
 })
 
@@ -260,7 +260,7 @@ describe('Sheet — full wired (mech+pilot+crawler)', () => {
     expect(screen.getAllByText(/The Hive/).length).toBeGreaterThan(0)
   })
 
-  test('composition badge shows "Wired"', () => {
+  test('wired toggle reads Wired', () => {
     render(
       <Sheet
         kind="pilot"
@@ -269,7 +269,7 @@ describe('Sheet — full wired (mech+pilot+crawler)', () => {
         softLinkStore={makeSoftLinkStore([mechToPilotLink, pilotToCrawlerLink])}
       />
     )
-    expect(screen.getByLabelText('Composition mode: Wired')).toBeTruthy()
+    expect(screen.getByRole('switch', { name: /wired/i })).toBeTruthy()
   })
 
   test('no stand-ins rendered (all three entities are wired)', () => {
@@ -281,8 +281,8 @@ describe('Sheet — full wired (mech+pilot+crawler)', () => {
         softLinkStore={makeSoftLinkStore([mechToPilotLink, pilotToCrawlerLink])}
       />
     )
-    expect(screen.queryByLabelText('No mech assigned')).toBeNull()
-    expect(screen.queryByLabelText('No pilot assigned')).toBeNull()
+    expect(screen.queryByText(/No mech assigned/)).toBeNull()
+    expect(screen.queryByText(/No pilot assigned/)).toBeNull()
   })
 })
 
@@ -321,7 +321,7 @@ describe('Sheet — crawler+pilots wired composition', () => {
     expect(screen.getAllByText(/The Hive/).length).toBeGreaterThan(0)
   })
 
-  test('first wired pilot name is visible in CrawlerSheet', () => {
+  test('lead pilot (first wired) appears in the rail chip', () => {
     render(
       <Sheet
         kind="crawler"
@@ -333,7 +333,7 @@ describe('Sheet — crawler+pilots wired composition', () => {
     expect(screen.getAllByText(/Desta Oryn/).length).toBeGreaterThan(0)
   })
 
-  test('second wired pilot name is visible in CrawlerSheet', () => {
+  test('non-lead pilots do not render — the rail carries only the lead (design §4.4)', () => {
     render(
       <Sheet
         kind="crawler"
@@ -342,10 +342,10 @@ describe('Sheet — crawler+pilots wired composition', () => {
         softLinkStore={makeSoftLinkStore([pilot1ToCrawlerLink, pilot2ToCrawlerLink])}
       />
     )
-    expect(screen.getAllByText(/Hann Vex/).length).toBeGreaterThan(0)
+    expect(screen.queryByText(/Hann Vex/)).toBeNull()
   })
 
-  test('composition badge shows "Wired"', () => {
+  test('wired toggle reads Wired', () => {
     render(
       <Sheet
         kind="crawler"
@@ -354,10 +354,10 @@ describe('Sheet — crawler+pilots wired composition', () => {
         softLinkStore={makeSoftLinkStore([pilot1ToCrawlerLink, pilot2ToCrawlerLink])}
       />
     )
-    expect(screen.getByLabelText('Composition mode: Wired')).toBeTruthy()
+    expect(screen.getByRole('switch', { name: /wired/i })).toBeTruthy()
   })
 
-  test('CrawlerPilotsStandIn not rendered when pilots are wired', () => {
+  test('lead-pilot RailEmpty not rendered when pilots are wired', () => {
     render(
       <Sheet
         kind="crawler"
@@ -366,6 +366,6 @@ describe('Sheet — crawler+pilots wired composition', () => {
         softLinkStore={makeSoftLinkStore([pilot1ToCrawlerLink, pilot2ToCrawlerLink])}
       />
     )
-    expect(screen.queryByLabelText('No pilots assigned')).toBeNull()
+    expect(screen.queryByText(/No lead pilot set/)).toBeNull()
   })
 })

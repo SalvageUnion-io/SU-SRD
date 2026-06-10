@@ -21,9 +21,10 @@ import type { Pilot } from '../../../lib/schemas/pilot'
 import type { useEntityStore } from '../../../stores/entityStore'
 
 beforeAll(async () => {
-  // PilotSheet resolves abilities + their action AP costs from reference data;
-  // preload the lazy schemas so resolution works in the test runtime.
-  await SalvageUnionReference.preload(['abilities', 'actions', 'equipment', 'classes'])
+  // PilotSheet resolves abilities + their action AP costs from reference data,
+  // and the entity-card foot (footMeta/footActions) renders keyword tooltips —
+  // preload everything so resolution works in the test runtime.
+  await SalvageUnionReference.preload('all')
 })
 
 afterEach(() => {
@@ -78,9 +79,12 @@ function makeStubStore(pilot: Pilot, updateSpy?: ReturnType<typeof mock>): typeo
 }
 
 describe('PilotSheet — ability AP cost (Slice D)', () => {
-  test('displays the ability AP cost', () => {
+  test('displays the ability AP cost in the card foot', () => {
     render(<PilotSheet pilot={makePilot()} store={makeStubStore(makePilot())} />)
-    expect(screen.getByText(/AP Cost: 3/)).toBeTruthy()
+    // footMeta renders the label and value as adjacent spans in the card foot
+    const label = screen.getByText('AP Cost')
+    expect(label).toBeTruthy()
+    expect(label.parentElement?.textContent).toContain('3')
   })
 })
 
@@ -153,7 +157,9 @@ describe('PilotSheet — used/recharge toggle (Slice D)', () => {
       fireEvent.click(screen.getByRole('button', { name: /recharge talk shop/i }))
     })
 
-    expect(updateSpy).toHaveBeenCalledWith('pilot', pilot.id, { usedAbilities: [] })
+    expect(updateSpy).toHaveBeenCalledWith('pilot', pilot.id, {
+      usedAbilities: [],
+    })
   })
 })
 
@@ -165,7 +171,8 @@ describe('PilotSheet — abilities readOnly (Slice D)', () => {
     expect(screen.queryByRole('button', { name: /spend/i })).toBeNull()
     expect(screen.queryByRole('button', { name: /mark .* used/i })).toBeNull()
     expect(screen.queryByRole('button', { name: /recharge/i })).toBeNull()
-    // AP cost still shown read-only
-    expect(screen.getByText(/AP Cost: 3/)).toBeTruthy()
+    // AP cost still shown read-only, plus a static Used stamp
+    expect(screen.getByText('AP Cost')).toBeTruthy()
+    expect(screen.getByText('Used')).toBeTruthy()
   })
 })

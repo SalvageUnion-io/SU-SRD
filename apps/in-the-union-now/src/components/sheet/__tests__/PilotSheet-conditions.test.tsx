@@ -1,5 +1,9 @@
 /**
- * PilotSheet — editable conditions tests (W2-3, #254)
+ * Pilot conditions tests (W2-3, #254 — plan 4.4)
+ *
+ * Conditions live in the pilot hero as the Conditions inset (design §4.2), so
+ * these tests render the full Sheet (pilot branch) rather than the body-only
+ * PilotSheet.
  *
  * Asserts that:
  *   1. Existing conditions render as chips.
@@ -9,12 +13,19 @@
  *   4. readOnly: chips render but no add/remove affordance, store.update unused.
  */
 
-import { afterEach, describe, expect, mock, test } from 'bun:test'
+import { afterEach, beforeAll, describe, expect, mock, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { SalvageUnionReference } from 'salvageunion-reference'
 
-import { PilotSheet } from '../PilotSheet'
+import { Sheet } from '../Sheet'
+import type { EntityLookup } from '../Sheet'
+import type { SoftLinkStore } from '../../wiring/useSoftLinks'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import type { useEntityStore } from '../../../stores/entityStore'
+
+beforeAll(async () => {
+  await SalvageUnionReference.preload('all')
+})
 
 afterEach(() => {
   cleanup()
@@ -65,28 +76,58 @@ function makeStubStore(pilot: Pilot, updateSpy?: ReturnType<typeof mock>): typeo
   return (() => storeState) as unknown as typeof useEntityStore
 }
 
+function makeEntityStore(pilot: Pilot): EntityLookup {
+  return {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    get: (_type, id) => (id === pilot.id ? pilot : null) as any,
+  }
+}
+
+function makeSoftLinkStore(): SoftLinkStore {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const createMock = mock(async () => undefined) as any
+  return {
+    softLinks: [],
+    create: createMock,
+    delete: mock(async () => undefined),
+  }
+}
+
+function renderPilotSheet(pilot: Pilot, updateSpy?: ReturnType<typeof mock>, readOnly = false) {
+  return render(
+    <Sheet
+      kind="pilot"
+      id={pilot.id}
+      entityStore={makeEntityStore(pilot)}
+      softLinkStore={makeSoftLinkStore()}
+      store={makeStubStore(pilot, updateSpy)}
+      readOnly={readOnly}
+    />
+  )
+}
+
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
 
-describe('PilotSheet — conditions display (#254)', () => {
-  test('renders existing conditions as chips', () => {
+describe('Pilot sheet — conditions display (#254)', () => {
+  test('renders existing conditions as chips in the hero inset', () => {
     const pilot: Pilot = { ...basePilot, conditions: ['Exposed', 'Impaired'] }
-    render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} />)
+    renderPilotSheet(pilot)
     expect(screen.getByText('Exposed')).toBeTruthy()
     expect(screen.getByText('Impaired')).toBeTruthy()
   })
 
   test('shows "None" empty state with no conditions', () => {
-    render(<PilotSheet pilot={basePilot} store={makeStubStore(basePilot)} />)
+    renderPilotSheet(basePilot)
     expect(screen.getByText('None')).toBeTruthy()
   })
 })
 
-describe('PilotSheet — adding conditions (#254)', () => {
+describe('Pilot sheet — adding conditions (#254)', () => {
   test('adding a condition calls store.update with appended conditions', async () => {
     const updateSpy = mock(async () => basePilot)
-    render(<PilotSheet pilot={basePilot} store={makeStubStore(basePilot, updateSpy)} />)
+    renderPilotSheet(basePilot, updateSpy)
 
     const addButton = screen.getByRole('button', { name: /add condition/i })
     await act(async () => {
@@ -99,13 +140,15 @@ describe('PilotSheet — adding conditions (#254)', () => {
       fireEvent.keyDown(input, { key: 'Enter' })
     })
 
-    expect(updateSpy).toHaveBeenCalledWith('pilot', basePilot.id, { conditions: ['Exposed'] })
+    expect(updateSpy).toHaveBeenCalledWith('pilot', basePilot.id, {
+      conditions: ['Exposed'],
+    })
   })
 
   test('appends to existing conditions rather than replacing', async () => {
     const pilot: Pilot = { ...basePilot, conditions: ['Impaired'] }
     const updateSpy = mock(async () => pilot)
-    render(<PilotSheet pilot={pilot} store={makeStubStore(pilot, updateSpy)} />)
+    renderPilotSheet(pilot, updateSpy)
 
     const addButton = screen.getByRole('button', { name: /add condition/i })
     await act(async () => {
@@ -125,7 +168,7 @@ describe('PilotSheet — adding conditions (#254)', () => {
 
   test('does not add a blank condition', async () => {
     const updateSpy = mock(async () => basePilot)
-    render(<PilotSheet pilot={basePilot} store={makeStubStore(basePilot, updateSpy)} />)
+    renderPilotSheet(basePilot, updateSpy)
 
     const addButton = screen.getByRole('button', { name: /add condition/i })
     await act(async () => {
@@ -144,7 +187,7 @@ describe('PilotSheet — adding conditions (#254)', () => {
   test('does not add a case-insensitive duplicate', async () => {
     const pilot: Pilot = { ...basePilot, conditions: ['Exposed'] }
     const updateSpy = mock(async () => pilot)
-    render(<PilotSheet pilot={pilot} store={makeStubStore(pilot, updateSpy)} />)
+    renderPilotSheet(pilot, updateSpy)
 
     const addButton = screen.getByRole('button', { name: /add condition/i })
     await act(async () => {
@@ -161,25 +204,29 @@ describe('PilotSheet — adding conditions (#254)', () => {
   })
 })
 
-describe('PilotSheet — removing conditions (#254)', () => {
+describe('Pilot sheet — removing conditions (#254)', () => {
   test('removing a condition calls store.update with it filtered out', async () => {
     const pilot: Pilot = { ...basePilot, conditions: ['Exposed', 'Impaired'] }
     const updateSpy = mock(async () => pilot)
-    render(<PilotSheet pilot={pilot} store={makeStubStore(pilot, updateSpy)} />)
+    renderPilotSheet(pilot, updateSpy)
 
-    const removeButton = screen.getByRole('button', { name: /remove condition exposed/i })
+    const removeButton = screen.getByRole('button', {
+      name: /remove condition exposed/i,
+    })
     await act(async () => {
       fireEvent.click(removeButton)
     })
 
-    expect(updateSpy).toHaveBeenCalledWith('pilot', pilot.id, { conditions: ['Impaired'] })
+    expect(updateSpy).toHaveBeenCalledWith('pilot', pilot.id, {
+      conditions: ['Impaired'],
+    })
   })
 })
 
-describe('PilotSheet — conditions readOnly (#254)', () => {
+describe('Pilot sheet — conditions readOnly (#254)', () => {
   test('renders chips but no add/remove affordance', () => {
     const pilot: Pilot = { ...basePilot, conditions: ['Exposed'] }
-    render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} readOnly />)
+    renderPilotSheet(pilot, undefined, true)
 
     expect(screen.getByText('Exposed')).toBeTruthy()
     expect(screen.queryByRole('button', { name: /add condition/i })).toBeNull()
@@ -189,7 +236,7 @@ describe('PilotSheet — conditions readOnly (#254)', () => {
   test('store.update is never called in readOnly mode', () => {
     const pilot: Pilot = { ...basePilot, conditions: ['Exposed'] }
     const updateSpy = mock(async () => pilot)
-    render(<PilotSheet pilot={pilot} store={makeStubStore(pilot, updateSpy)} readOnly />)
+    renderPilotSheet(pilot, updateSpy, true)
 
     expect(updateSpy).not.toHaveBeenCalled()
   })

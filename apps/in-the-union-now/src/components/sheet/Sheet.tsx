@@ -1,214 +1,216 @@
 /**
- * Sheet — root sheet component. Resolves composition mode from SoftLinks,
- * then renders the appropriate section components.
+ * Sheet — root live-sheet component on the Header C LiveSheet shell (plan
+ * 4.1–4.3). Resolves the entity + its SoftLink composition (the ported
+ * resolver in composition.ts), then renders ONE entity's sheet: hero =
+ * entity-card-writ-large with live trackers, linked entities as rail chips
+ * (live mini stats, whole-chip navigation), and the variant sheet as the
+ * body.
  *
- * Composition mode algorithm:
+ * This replaces the old multi-pane composition layout (SheetHeader +
+ * SheetSegmentSwitcher + stand-ins): linked entities are no longer
+ * co-rendered as full sheets — they live in the rail and navigate.
  *
- *   kind=mech  + mech-to-pilot outgoing → wired (mech+pilot)
- *   kind=mech  + no links               → mech-only
- *   kind=pilot + mech-to-pilot incoming + pilot-to-crawler outgoing
- *                                       → wired (full: mech+pilot+crawler)
- *   kind=pilot + mech-to-pilot incoming only → wired (mech+pilot)
- *   kind=pilot + pilot-to-crawler outgoing only → wired (pilot+crawler)
- *   kind=pilot + no links               → pilot-only
- *   kind=crawler + pilot-to-crawler incoming → wired (crawler+pilots)
- *   kind=crawler + no links             → crawler-only
- *
- * All state is read from dep-injectable stores. In production, `entityStore`
- * and `softLinkStore` default to the real Zustand store. In tests, pass a
- * snapshot of the store state directly.
+ * Stats are store-backed: hero trackers write current* fields through the
+ * entity store; the condensed strip reads the same record, so hero and strip
+ * stay in lockstep (§4.1).
  */
 
-import { useState } from 'react'
+import { SalvageUnionReference } from 'salvageunion-reference'
+import { btnVariants, MChip, Pill, StatBlock } from 'suref-react'
+import type { PillTone, StatBlockState } from 'suref-react'
 
-import type { Pilot } from '../../lib/schemas/pilot'
-import type { Mech } from '../../lib/schemas/mech'
+import { resolveClassName } from '../../lib/classRef'
+import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
+import { totalLotUnits } from '../../lib/schemas/cargoLot'
 import type { Crawler } from '../../lib/schemas/crawler'
-import type { SoftLink } from '../../lib/schemas/softLink'
 import type { EntityRef } from '../../lib/schemas/entity'
-
+import type { Mech } from '../../lib/schemas/mech'
+import type { Pilot } from '../../lib/schemas/pilot'
+import {
+  crawlerMaxSP,
+  isPilotDead,
+  mechMaxCargo,
+  mechMaxEP,
+  mechMaxHeat,
+  mechMaxSP,
+  pilotMaxAP,
+  pilotMaxHP,
+} from '../../lib/rules/derivedStats'
+import { computeMechCapacity } from '../../lib/rules/capacity'
 import { cn } from '../../lib/utils'
 import { useEntityStore } from '../../stores/entityStore'
-import { useSoftLinks } from '../wiring/useSoftLinks'
 import type { SoftLinkStore } from '../wiring/useSoftLinks'
+import { AppLink } from '../shared/AppLink'
+import { AssignCrawlerToPilot } from '../wiring/AssignCrawlerToPilot'
+import { AssignPilotToMech } from '../wiring/AssignPilotToMech'
 
-import { SheetHeader } from './SheetHeader'
-import type { CompositionMode } from './SheetHeader'
-import { SheetSegmentSwitcher } from './SheetSegmentSwitcher'
-import type { SheetSegment } from './SheetSegmentSwitcher'
+import { resolveSheetComposition } from './composition'
+import type { EntityLookup, SheetComposition } from './composition'
+import { ConditionsEditor } from './ConditionsEditor'
+import { LiveSheet } from './LiveSheet'
+import type { LiveSheetSegment, LiveSheetStripItem } from './LiveSheet'
+import { SheetHero, ChassisStats } from './SheetHero'
+import type { ChassisStatItem } from './SheetHero'
+import { RailChip, RailEmpty } from './SheetRail'
+import { PilotIdentityLines } from './PilotIdentity'
+import type { UsedToggleKey } from './PilotIdentity'
 import { PilotSheet } from './PilotSheet'
 import { MechSheet } from './MechSheet'
+import { MechConditionsEditor } from './MechConditionsEditor'
 import { CrawlerSheet } from './CrawlerSheet'
-import { PilotStandIn } from '../shared/PilotStandIn'
-import { MechStandIn } from '../shared/MechStandIn'
 import { PublishButton } from './PublishButton'
-import { sheetAccentFor } from './sheetAccent'
 
-// ---------------------------------------------------------------------------
-// Dep-injection types for testing
-// ---------------------------------------------------------------------------
-
-export type EntityLookup = {
-  get: <T extends EntityRef['type']>(
-    type: T,
-    id: string
-  ) => (T extends 'pilot' ? Pilot : T extends 'mech' ? Mech : Crawler) | null
-}
+// Re-exported so existing consumers (PublishButton, tests) keep their import.
+export type { EntityLookup } from './composition'
 
 type SheetProps = {
   kind: EntityRef['type']
   id: string
-  /**
-   * Injectable entity store for testing. When omitted, uses the real
-   * Zustand useEntityStore.
-   */
+  /** Injectable entity lookup for testing; the live store when omitted. */
   entityStore?: EntityLookup
-  /**
-   * Injectable soft-link store for testing. Passed through to useSoftLinks.
-   * When omitted, useSoftLinks reads from the real Zustand store.
-   */
+  /** Injectable soft-link snapshot for testing; the live store when omitted. */
   softLinkStore?: SoftLinkStore
-  /**
-   * When true, the PublishButton is hidden. Use for snapshot-view contexts
-   * where publishing is not applicable.
-   */
+  /** Injectable store hook (writes); the real Zustand store when omitted. */
+  store?: typeof useEntityStore
+  /** Hides publish + disables all stat editing (snapshot contexts). */
   readOnly?: boolean
+}
+
+/** Anchor CTA for rail empty slots ('+ Create'). */
+function RailCta({ href, label, primary }: { href: string; label: string; primary?: boolean }) {
+  return (
+    <AppLink
+      href={href}
+      className={cn(
+        'rounded-[3px] border-[1.5px] px-2.5 py-1.5 text-center font-body text-xs font-medium no-underline transition-colors duration-[120ms]',
+        primary
+          ? 'border-rust bg-rust text-su-white hover:bg-rust-hi'
+          : 'border-ink bg-paper text-ink hover:bg-wk-bg-2'
+      )}
+    >
+      {label}
+    </AppLink>
+  )
+}
+
+/** Live mini stats for a linked mech (rail chip body). */
+function MechRailStats({ mech }: { mech: Mech }) {
+  const maxSP = mechMaxSP(mech)
+  const maxEP = mechMaxEP(mech)
+  const maxHeat = mechMaxHeat(mech)
+  return (
+    <>
+      <StatBlock
+        code="SP"
+        size="sm"
+        stat="sp"
+        value={mech.currentSP ?? maxSP}
+        max={maxSP}
+        editable={false}
+      />
+      <StatBlock
+        code="EP"
+        size="sm"
+        stat="ep"
+        value={mech.currentEP ?? maxEP}
+        max={maxEP}
+        editable={false}
+      />
+      <StatBlock
+        code="HEAT"
+        size="sm"
+        stat="heat"
+        value={mech.currentHeat ?? maxHeat}
+        max={maxHeat}
+        editable={false}
+      />
+    </>
+  )
+}
+
+/** Live mini stats for a linked pilot (rail chip body). */
+function PilotRailStats({ pilot }: { pilot: Pilot }) {
+  const maxHP = Math.max(0, pilotMaxHP(pilot))
+  const maxAP = Math.max(0, pilotMaxAP(pilot))
+  return (
+    <>
+      <StatBlock
+        code="HP"
+        size="sm"
+        stat="hp"
+        value={pilot.currentHP ?? maxHP}
+        max={maxHP}
+        editable={false}
+      />
+      <StatBlock
+        code="AP"
+        size="sm"
+        stat="ap"
+        value={pilot.currentAP ?? maxAP}
+        max={maxAP}
+        editable={false}
+      />
+    </>
+  )
+}
+
+/** Live mini stats for a linked crawler (rail chip body). */
+function CrawlerRailStats({ crawler }: { crawler: Crawler }) {
+  const maxSP = crawlerMaxSP(crawler)
+  const states = bayStates(crawler)
+  return (
+    <>
+      <StatBlock
+        code="SP"
+        size="sm"
+        stat="sp"
+        value={crawler.currentSP ?? maxSP}
+        max={maxSP}
+        editable={false}
+      />
+      {states.length > 0 && <StatBlock code="BAYS" size="sm" states={states} />}
+    </>
+  )
+}
+
+function bayStates(crawler: Crawler): StatBlockState[] {
+  return (crawler.crawlerBays ?? []).map((bay) => bay.condition ?? 'intact')
+}
+
+function mechStatusPill(mech: Mech): { label: string; tone: PillTone } {
+  if (mech.destroyed) return { label: 'Destroyed', tone: 'bad' }
+  const anyDamaged = [
+    ...Object.values(mech.systemConditions ?? {}),
+    ...Object.values(mech.moduleConditions ?? {}),
+  ].some((c) => c !== 'intact')
+  return anyDamaged ? { label: 'Damaged', tone: 'warn' } : { label: 'Intact', tone: 'ok' }
 }
 
 export function Sheet({
   kind,
   id,
-  entityStore: entityStoreOverride,
+  entityStore,
   softLinkStore,
+  store = useEntityStore,
   readOnly = false,
 }: SheetProps) {
-  // ---------------------------------------------------------------------------
-  // Always call hooks (Rules of Hooks) — real store used when no override.
-  // ---------------------------------------------------------------------------
-  const realStore = useEntityStore()
-  const store: EntityLookup = entityStoreOverride ?? {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    get: (type, entityId) => realStore.get(type as any, entityId) as any,
-  }
+  const storeState = store()
 
-  const { outgoing, incoming } = useSoftLinks({
-    entityType: kind,
-    entityId: id,
-    store: softLinkStore,
+  const lookup: EntityLookup =
+    entityStore ??
+    ({
+      get: (type, entityId) => storeState.get(type, entityId),
+    } as EntityLookup)
+  const links = softLinkStore ? softLinkStore.softLinks : storeState.softLinks
+
+  const composition = resolveSheetComposition({
+    kind,
+    id,
+    links,
+    store: lookup,
   })
+  const entity = lookup.get(kind, id)
 
-  // Mobile-only segment switcher state (#255). `null` means "default to the
-  // first present segment" — resolved once segments are known below, so the
-  // initial render shows the sheet's own kind without an effect.
-  const [activeSegment, setActiveSegment] = useState<SheetSegment | null>(null)
-
-  // ---------------------------------------------------------------------------
-  // Resolve main entity
-  // ---------------------------------------------------------------------------
-  const entity =
-    kind === 'pilot'
-      ? (store.get('pilot', id) as Pilot | null)
-      : kind === 'mech'
-        ? (store.get('mech', id) as Mech | null)
-        : (store.get('crawler', id) as Crawler | null)
-
-  // ---------------------------------------------------------------------------
-  // Composition mode + related entity resolution
-  // ---------------------------------------------------------------------------
-  type Resolved = {
-    mode: CompositionMode
-    pilot: Pilot | null
-    mech: Mech | null
-    crawler: Crawler | null
-    crawlerPilots: Pilot[]
-  }
-
-  const resolved = ((): Resolved => {
-    if (kind === 'mech') {
-      const mechToPilotLink = outgoing.find((l: SoftLink) => l.type === 'mech-to-pilot')
-      if (mechToPilotLink) {
-        const pilot = store.get('pilot', mechToPilotLink.to.id) as Pilot | null
-        return {
-          mode: 'wired',
-          pilot,
-          mech: entity as Mech | null,
-          crawler: null,
-          crawlerPilots: [],
-        }
-      }
-      return {
-        mode: 'mech-only',
-        pilot: null,
-        mech: entity as Mech | null,
-        crawler: null,
-        crawlerPilots: [],
-      }
-    }
-
-    if (kind === 'pilot') {
-      const mechLink = incoming.find((l: SoftLink) => l.type === 'mech-to-pilot')
-      const crawlerLink = outgoing.find((l: SoftLink) => l.type === 'pilot-to-crawler')
-
-      if (mechLink && crawlerLink) {
-        const mech = store.get('mech', mechLink.from.id) as Mech | null
-        const crawler = store.get('crawler', crawlerLink.to.id) as Crawler | null
-        return { mode: 'wired', pilot: entity as Pilot | null, mech, crawler, crawlerPilots: [] }
-      }
-      if (mechLink) {
-        const mech = store.get('mech', mechLink.from.id) as Mech | null
-        return {
-          mode: 'wired',
-          pilot: entity as Pilot | null,
-          mech,
-          crawler: null,
-          crawlerPilots: [],
-        }
-      }
-      if (crawlerLink) {
-        const crawler = store.get('crawler', crawlerLink.to.id) as Crawler | null
-        return {
-          mode: 'wired',
-          pilot: entity as Pilot | null,
-          mech: null,
-          crawler,
-          crawlerPilots: [],
-        }
-      }
-      return {
-        mode: 'pilot-only',
-        pilot: entity as Pilot | null,
-        mech: null,
-        crawler: null,
-        crawlerPilots: [],
-      }
-    }
-
-    // kind === 'crawler'
-    const pilotLinks = incoming.filter((l: SoftLink) => l.type === 'pilot-to-crawler')
-    if (pilotLinks.length > 0) {
-      const crawlerPilots = pilotLinks
-        .map((l: SoftLink) => store.get('pilot', l.from.id) as Pilot | null)
-        .filter((p): p is Pilot => p !== null)
-      return {
-        mode: 'wired',
-        pilot: null,
-        mech: null,
-        crawler: entity as Crawler | null,
-        crawlerPilots,
-      }
-    }
-    return {
-      mode: 'crawler-only',
-      pilot: null,
-      mech: null,
-      crawler: entity as Crawler | null,
-      crawlerPilots: [],
-    }
-  })()
-
-  // ---------------------------------------------------------------------------
-  // Missing entity guard
-  // ---------------------------------------------------------------------------
   if (!entity) {
     return (
       <main className="mx-auto max-w-7xl p-3 sm:p-6">
@@ -217,130 +219,568 @@ export function Sheet({
     )
   }
 
-  const displayName =
-    kind === 'pilot'
-      ? (entity as Pilot).name
-      : kind === 'mech'
-        ? (entity as Mech).name
-        : (entity as Crawler).name
+  const wired = composition.mode === 'wired'
+  const back = { href: '/', label: 'Dashboard' }
+  // Top-bar trailing actions (§1.3): Edit as a sm ghost btn linking the
+  // entity's edit wizard route, then Share (publish).
+  const actions = !readOnly ? (
+    <>
+      <AppLink
+        href={`/${kind}s/${id}/edit`}
+        aria-label={`Edit this ${kind}`}
+        className={cn(btnVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
+      >
+        Edit
+      </AppLink>
+      <PublishButton entityKind={kind} entityId={id} entityStore={entityStore} />
+    </>
+  ) : undefined
 
-  // ---------------------------------------------------------------------------
-  // Render
-  // ---------------------------------------------------------------------------
-  // Determine if wired composition warrants a 2-pane layout at lg+.
-  // Only activate 2-pane when the left pane has content (pilot present).
-  // kind=crawler wired (crawler with assigned pilots) has pilot=null/mech=null,
-  // so the left pane would be empty — render single-column in that case.
-  const isWired = resolved.mode === 'wired' && resolved.pilot !== null
+  // Mobile segmented Pilot/Mech/Crawler switch (design §3.7) — wired sheets
+  // only; each present counterpart gets a segment, the viewed kind is active.
+  let segments: LiveSheetSegment[] | undefined
+  if (wired) {
+    segments = []
+    if (composition.pilot) {
+      segments.push({
+        key: 'pilot',
+        label: 'Pilot',
+        href: `/sheet/pilot/${composition.pilot.id}`,
+        active: kind === 'pilot',
+      })
+    }
+    if (composition.mech) {
+      segments.push({
+        key: 'mech',
+        label: 'Mech',
+        href: `/sheet/mech/${composition.mech.id}`,
+        active: kind === 'mech',
+      })
+    }
+    if (composition.crawler) {
+      segments.push({
+        key: 'crawler',
+        label: 'Crawler',
+        href: `/sheet/crawler/${composition.crawler.id}`,
+        active: kind === 'crawler',
+      })
+    }
+  }
 
-  // ---------------------------------------------------------------------------
-  // Mobile segment switcher (#255)
-  // Only surface segments for entities that actually exist on the sheet. The
-  // pilot/mech stand-ins (shown for the sheet's own kind when its counterpart
-  // is missing) ride along with the pilot/mech segments rather than getting
-  // their own tab, so a pilot-only sheet shows just "Pilot".
-  //
-  // Sections are mounted exactly once and toggled per-viewport via Tailwind
-  // visibility classes: below `lg` only the active segment is shown; at `lg+`
-  // every present section is shown and the original two-pane / single-column
-  // layout is restored untouched. `mobileVis()` builds the per-section class.
-  // ---------------------------------------------------------------------------
-  const segments: SheetSegment[] = [
-    ...(resolved.pilot || (kind === 'pilot' && resolved.mode !== 'wired')
-      ? (['pilot'] as const)
+  /** Persist a partial patch on the sheet's own entity (fire-and-forget). */
+  function patch(fields: Partial<Pilot> & Partial<Mech> & Partial<Crawler>) {
+    void storeState.update(kind, id, fields)
+  }
+  const editable = !readOnly
+
+  // -------------------------------------------------------------------------
+  // Pilot sheet
+  // -------------------------------------------------------------------------
+  if (kind === 'pilot') {
+    const pilot = entity as Pilot
+    const maxHP = Math.max(0, pilotMaxHP(pilot))
+    const maxAP = Math.max(0, pilotMaxAP(pilot))
+    const hp = Math.min(pilot.currentHP ?? maxHP, maxHP)
+    const ap = Math.min(pilot.currentAP ?? maxAP, maxAP)
+    const tp = pilot.trainingPoints ?? 0
+
+    const strip: LiveSheetStripItem[] = [
+      { key: 'hp', label: 'HP', stat: 'hp', value: hp, max: maxHP },
+      { key: 'ap', label: 'AP', stat: 'ap', value: ap, max: maxAP },
+    ]
+
+    const dead = isPilotDead(pilot)
+
+    /** Toggle one of the once-per-Downtime used flags (rules A8–A10). */
+    function toggleUsed(key: UsedToggleKey, next: boolean) {
+      // Read the freshest flags from the store (not the render-time prop) so
+      // rapid toggles on sibling lines don't stomp each other.
+      const fresh = storeState.get('pilot', pilot.id)
+      const prev = fresh?.usedToggles ?? pilot.usedToggles ?? {}
+      void storeState.update('pilot', pilot.id, {
+        usedToggles: { ...prev, [key]: next },
+      })
+    }
+
+    /** Persist the full conditions list (flat string set, no partial merge). */
+    function handleConditionsChange(next: string[]) {
+      void storeState.update('pilot', pilot.id, { conditions: next })
+    }
+
+    const rail = (
+      <>
+        {composition.mech ? (
+          <RailChip
+            tone="mech"
+            roleLabel="Assigned Mech"
+            name={composition.mech.name}
+            href={`/sheet/mech/${composition.mech.id}`}
+            status={mechStatusPill(composition.mech)}
+            stats={<MechRailStats mech={composition.mech} />}
+          />
+        ) : (
+          <RailEmpty
+            tone="mech"
+            roleLabel="Assigned Mech"
+            message="No mech assigned — build one to track its loadout and heat from here."
+            actions={editable ? <RailCta href="/mechs/new" label="+ Create" primary /> : undefined}
+          />
+        )}
+        {composition.crawler ? (
+          <RailChip
+            tone="crawler"
+            roleLabel="Home Crawler"
+            name={composition.crawler.name}
+            href={`/sheet/crawler/${composition.crawler.id}`}
+            tl={parseCrawlerTechLevel(composition.crawler.techLevel)}
+            stats={<CrawlerRailStats crawler={composition.crawler} />}
+          />
+        ) : (
+          <RailEmpty
+            tone="crawler"
+            roleLabel="Home Crawler"
+            message="No crawler linked. Set the crawler level by hand until your union home is wired in."
+            mock={
+              <StatBlock
+                code="CRAWLER"
+                name="Level"
+                unit="Tech Level"
+                max={6}
+                value={pilot.crawlerLevel ?? 1}
+                onChange={editable ? (v) => patch({ crawlerLevel: Math.max(1, v) }) : undefined}
+                editable={editable}
+              />
+            }
+            actions={
+              editable ? (
+                <>
+                  <RailCta href="/crawlers/new" label="+ Create" primary />
+                  <AssignCrawlerToPilot pilotId={pilot.id} />
+                </>
+              ) : undefined
+            }
+          />
+        )}
+      </>
+    )
+
+    return (
+      <LiveSheet
+        variant="pilot"
+        name={pilot.name}
+        strip={strip}
+        back={back}
+        pill={dead ? { label: 'Dead', tone: 'bad' } : { label: 'Pilot', tone: 'pilot' }}
+        wired={wired}
+        rail={rail}
+        segments={segments}
+        actions={actions}
+        renderHero={({ heroRef, rail: heroRail }) => (
+          <SheetHero
+            heroRef={heroRef}
+            cat="Pilot"
+            name={pilot.name}
+            meta={
+              <>
+                <MChip label="Callsign" value={`“${pilot.callsign}”`} variant="call" />
+                <MChip label="Class" value={resolveClassName(pilot.classRef)} variant="class" />
+                {dead && <Pill tone="bad">Dead</Pill>}
+              </>
+            }
+            specs={
+              <PilotIdentityLines pilot={pilot} onToggleUsed={editable ? toggleUsed : undefined} />
+            }
+            trackers={
+              <>
+                <StatBlock
+                  code="HP"
+                  name="Hit Points"
+                  unit="Points"
+                  stat="hp"
+                  max={maxHP}
+                  value={hp}
+                  onChange={editable ? (v) => patch({ currentHP: v }) : undefined}
+                  editable={editable}
+                />
+                <StatBlock
+                  code="AP"
+                  name="Ability Points"
+                  unit="Points"
+                  stat="ap"
+                  max={maxAP}
+                  value={ap}
+                  onChange={editable ? (v) => patch({ currentAP: v }) : undefined}
+                  editable={editable}
+                />
+                <StatBlock
+                  code="TP"
+                  name="Training"
+                  unit="Points"
+                  value={tp}
+                  onChange={editable ? (v) => patch({ trainingPoints: v }) : undefined}
+                  editable={editable}
+                />
+              </>
+            }
+            inset={
+              <div className="w-full sm:max-w-[360px]">
+                <span className="mb-1 block text-right font-cond text-[10px] font-bold uppercase leading-none tracking-[0.08em] text-ink">
+                  Conditions
+                </span>
+                <ConditionsEditor
+                  conditions={pilot.conditions}
+                  onChange={handleConditionsChange}
+                  readOnly={readOnly}
+                />
+              </div>
+            }
+            rail={heroRail}
+          />
+        )}
+        renderBody={() => <PilotSheet pilot={pilot} store={store} readOnly={readOnly} />}
+      />
+    )
+  }
+
+  // -------------------------------------------------------------------------
+  // Mech sheet
+  // -------------------------------------------------------------------------
+  if (kind === 'mech') {
+    const mech = entity as Mech
+    const chassis = SalvageUnionReference.Chassis.find((c) => c.name === mech.chassisRef) ?? null
+    const maxSP = mechMaxSP(mech, chassis)
+    const maxEP = mechMaxEP(mech, chassis)
+    const maxHeat = mechMaxHeat(mech, chassis)
+    const maxCargo = mechMaxCargo(mech, chassis)
+    const cargoUsed = totalLotUnits(mech.cargoLots)
+    const sp = Math.min(mech.currentSP ?? maxSP, maxSP)
+    const ep = Math.min(mech.currentEP ?? maxEP, maxEP)
+    const heat = Math.min(mech.currentHeat ?? maxHeat, maxHeat)
+
+    const capacity = computeMechCapacity({
+      chassisRef: mech.chassisRef,
+      systems: mech.systems.map((ref) => ({ ref })),
+      modules: mech.modules.map((ref) => ({ ref })),
+    })
+
+    const specs: ChassisStatItem[] = [
+      {
+        code: 'SYS',
+        name: 'Slots',
+        value: capacity.systemSlotsUsed,
+        max: capacity.systemSlotsMax,
+        pips: capacity.systemSlotsMax <= 12,
+      },
+      {
+        code: 'MOD',
+        name: 'Slots',
+        value: capacity.moduleSlotsUsed,
+        max: capacity.moduleSlotsMax,
+        pips: capacity.moduleSlotsMax <= 12,
+      },
+      ...(typeof chassis?.salvageValue === 'number'
+        ? [{ code: 'SV', name: 'Salvage', value: chassis.salvageValue }]
+        : []),
+    ]
+
+    const strip: LiveSheetStripItem[] = [
+      { key: 'sp', label: 'SP', stat: 'sp', value: sp, max: maxSP },
+      { key: 'ep', label: 'EP', stat: 'ep', value: ep, max: maxEP },
+      { key: 'heat', label: 'Heat', stat: 'heat', value: heat, max: maxHeat },
+      {
+        key: 'cargo',
+        label: 'Hold',
+        stat: 'cargo',
+        value: cargoUsed,
+        max: maxCargo,
+      },
+    ]
+
+    const rail = (
+      <>
+        {composition.pilot ? (
+          <RailChip
+            tone="pilot"
+            roleLabel="Assigned Pilot"
+            name={composition.pilot.name}
+            href={`/sheet/pilot/${composition.pilot.id}`}
+            status={{ label: 'Active', tone: 'pilot' }}
+            stats={<PilotRailStats pilot={composition.pilot} />}
+          />
+        ) : (
+          <RailEmpty
+            tone="pilot"
+            roleLabel="Assigned Pilot"
+            message="No pilot assigned. Link a pilot to speak for this machine."
+            actions={
+              editable ? (
+                <>
+                  <RailCta href="/pilots/new" label="+ Create" primary />
+                  <AssignPilotToMech mechId={mech.id} />
+                </>
+              ) : undefined
+            }
+          />
+        )}
+        {composition.crawler ? (
+          <RailChip
+            tone="crawler"
+            roleLabel="Home Crawler"
+            name={composition.crawler.name}
+            href={`/sheet/crawler/${composition.crawler.id}`}
+            tl={parseCrawlerTechLevel(composition.crawler.techLevel)}
+            stats={<CrawlerRailStats crawler={composition.crawler} />}
+          />
+        ) : (
+          <RailEmpty
+            tone="crawler"
+            roleLabel="Home Crawler"
+            message="No crawler linked — the assigned pilot's home crawler appears here."
+            actions={
+              editable ? <RailCta href="/crawlers/new" label="+ Create" primary /> : undefined
+            }
+          />
+        )}
+      </>
+    )
+
+    return (
+      <LiveSheet
+        variant="mech"
+        name={mech.name}
+        strip={strip}
+        back={back}
+        pill={mechStatusPill(mech)}
+        wired={wired}
+        rail={rail}
+        segments={segments}
+        syncStats={{ cargo: cargoUsed }}
+        actions={actions}
+        renderHero={({ heroRef, rail: heroRail }) => (
+          <SheetHero
+            heroRef={heroRef}
+            cat="Mech"
+            name={mech.name}
+            meta={
+              <>
+                <MChip label="Chassis" value={chassis?.name ?? mech.chassisRef} variant="class" />
+                {chassis && typeof chassis.techLevel === 'number' && (
+                  <MChip label="Tech LV" value={chassis.techLevel} />
+                )}
+              </>
+            }
+            identity={mech.patternName ? [{ label: 'Pattern', value: mech.patternName }] : []}
+            specs={<ChassisStats items={specs} />}
+            trackers={
+              <>
+                <StatBlock
+                  code="Structure"
+                  name="Points"
+                  unit="Points"
+                  stat="sp"
+                  max={maxSP}
+                  value={sp}
+                  onChange={editable ? (v) => patch({ currentSP: v }) : undefined}
+                  editable={editable}
+                />
+                <StatBlock
+                  code="Energy"
+                  name="Points"
+                  unit="Points"
+                  stat="ep"
+                  max={maxEP}
+                  value={ep}
+                  onChange={editable ? (v) => patch({ currentEP: v }) : undefined}
+                  editable={editable}
+                />
+                <StatBlock
+                  code="Heat"
+                  name="Capacity"
+                  unit="Heat"
+                  stat="heat"
+                  max={maxHeat}
+                  value={heat}
+                  onChange={editable ? (v) => patch({ currentHeat: v }) : undefined}
+                  editable={editable}
+                />
+                {/* Cargo derives from hold usage (syncStats) — never editable. */}
+                <StatBlock
+                  code="Cargo"
+                  name="Slots"
+                  unit="Slots"
+                  stat="cargo"
+                  max={maxCargo}
+                  value={cargoUsed}
+                  editable={false}
+                />
+              </>
+            }
+            inset={
+              <div className="flex w-full max-w-[360px] flex-col items-stretch gap-1">
+                <span className="font-cond text-[10px] font-bold uppercase tracking-[0.08em] text-ink">
+                  Conditions
+                </span>
+                <MechConditionsEditor mech={mech} store={store} readOnly={readOnly} />
+              </div>
+            }
+            rail={heroRail}
+          />
+        )}
+        renderBody={() => (
+          <MechSheet mech={mech} store={store} readOnly={readOnly} crawler={composition.crawler} />
+        )}
+      />
+    )
+  }
+
+  // -------------------------------------------------------------------------
+  // Crawler sheet
+  // -------------------------------------------------------------------------
+  const crawler = entity as Crawler
+  const maxSP = crawlerMaxSP(crawler)
+  const sp = Math.min(crawler.currentSP ?? maxSP, maxSP)
+  const states = bayStates(crawler)
+  const intactBays = states.filter((s) => s === 'intact').length
+  const tl = parseCrawlerTechLevel(crawler.techLevel)
+
+  const strip: LiveSheetStripItem[] = [
+    { key: 'sp', label: 'SP', stat: 'sp', value: sp, max: maxSP },
+    ...(states.length > 0
+      ? [
+          {
+            key: 'bays',
+            label: 'Bays',
+            stat: 'cw' as const,
+            value: intactBays,
+            max: states.length,
+          },
+        ]
       : []),
-    ...(resolved.mech || resolved.mode === 'mech-only' ? (['mech'] as const) : []),
-    ...(resolved.crawler ? (['crawler'] as const) : []),
   ]
-  const fallbackSegment: SheetSegment =
-    kind === 'pilot' ? 'pilot' : kind === 'mech' ? 'mech' : 'crawler'
-  const resolvedActive: SheetSegment =
-    activeSegment && segments.includes(activeSegment)
-      ? activeSegment
-      : segments.includes(fallbackSegment)
-        ? fallbackSegment
-        : (segments[0] ?? fallbackSegment)
 
-  // Per-section mobile visibility: shown below lg only when it is the active
-  // segment; always shown (flex-flow) at lg+.
-  const mobileVis = (segment: SheetSegment) =>
-    cn(resolvedActive === segment ? 'block' : 'hidden', 'lg:block')
+  // UPKEEP / UPGRADE-pool / CREW spec lozenges (design §4.4): upkeep is 5
+  // Scrap of crawler TL per Downtime (rules C3); the Upgrade Pool fills
+  // toward 30× TL (rules C4); crew leads = one per installed bay (rules C11).
+  const crawlerSpecs: ChassisStatItem[] = [
+    ...(tl !== undefined
+      ? [
+          {
+            code: 'UPKEEP',
+            name: 'Scrap/wk',
+            unit: `Tech ${tl}`,
+            value: 5,
+            pips: false,
+          },
+        ]
+      : []),
+    {
+      code: 'UPGRADE',
+      name: 'Pool',
+      value: crawler.upgradePool ?? 0,
+      max: 30,
+      pips: false,
+    },
+    ...(states.length > 0
+      ? [{ code: 'CREW', name: 'Leads', value: states.length, pips: false }]
+      : []),
+  ]
 
-  const pilotSection = resolved.pilot ? (
-    <PilotSheet pilot={resolved.pilot} readOnly={readOnly} />
-  ) : null
-  const mechSection = resolved.mech ? <MechSheet mech={resolved.mech} readOnly={readOnly} /> : null
-  const crawlerSection = resolved.crawler ? (
-    <CrawlerSheet crawler={resolved.crawler} pilots={resolved.crawlerPilots} readOnly={readOnly} />
-  ) : null
+  /** Bays are Intact/Damaged ONLY (rules C8) — clicking a pip toggles. */
+  function toggleBay(index: number) {
+    const bay = (crawler.crawlerBays ?? [])[index]
+    if (!bay || typeof storeState.updateCrawlerBay !== 'function') return
+    const next = (bay.condition ?? 'intact') === 'intact' ? 'damaged' : 'intact'
+    void storeState.updateCrawlerBay(crawler.id, bay.bayRef, { condition: next }, index)
+  }
 
-  // Stand-ins shown for the sheet's own kind when a counterpart is missing.
-  const showMechStandIn = kind === 'pilot' && !resolved.mech
-  const showPilotStandIn = resolved.mode === 'mech-only'
-
-  return (
-    <main className="mx-auto max-w-7xl p-3 sm:p-6">
-      <SheetHeader name={displayName} mode={resolved.mode} accent={sheetAccentFor(kind)} />
-      {!readOnly && (
-        <div className="flex justify-end mb-4">
-          <PublishButton entityKind={kind} entityId={id} entityStore={entityStoreOverride} />
-        </div>
-      )}
-
-      {/* Mobile-only segmented switcher (< lg). Hidden when only one segment. */}
-      {segments.length > 1 && (
-        <SheetSegmentSwitcher
-          segments={segments}
-          active={resolvedActive}
-          onChange={setActiveSegment}
-          className="sticky top-0 z-10 -mx-3 mb-6 bg-su-paper px-3 py-2 lg:hidden"
+  const rail = (
+    <>
+      {composition.mech ? (
+        <RailChip
+          tone="mech"
+          roleLabel="Docked Mech"
+          name={composition.mech.name}
+          href={`/sheet/mech/${composition.mech.id}`}
+          status={mechStatusPill(composition.mech)}
+          stats={<MechRailStats mech={composition.mech} />}
+        />
+      ) : (
+        <RailEmpty
+          tone="mech"
+          roleLabel="Docked Mech"
+          message="No mech in the bay — dock one to repair, re-arm and track it from here."
+          actions={editable ? <RailCta href="/mechs/new" label="+ Create" primary /> : undefined}
         />
       )}
-
-      {isWired ? (
-        /* Wired composition: single mobile column; 2-pane at lg+ */
-        <div className="flex flex-col gap-8 lg:flex-row lg:gap-6">
-          {/* Left pane (pilot + mech). `contents` on mobile so its children
-              flow into the outer column; restored to a pane at lg+. */}
-          <div className="contents lg:flex lg:flex-col lg:gap-8 lg:flex-1 lg:min-w-0">
-            {pilotSection && <div className={mobileVis('pilot')}>{pilotSection}</div>}
-            {mechSection && <div className={mobileVis('mech')}>{mechSection}</div>}
-            {showMechStandIn && (
-              <div className={mobileVis('pilot')}>
-                <MechStandIn />
-              </div>
-            )}
-          </div>
-          {/* Right pane: crawler */}
-          {crawlerSection && (
-            <div className={cn(mobileVis('crawler'), 'lg:w-80 lg:shrink-0')}>{crawlerSection}</div>
-          )}
-        </div>
+      {composition.pilot ? (
+        <RailChip
+          tone="pilot"
+          roleLabel="Lead Pilot"
+          name={composition.pilot.name}
+          href={`/sheet/pilot/${composition.pilot.id}`}
+          status={{ label: 'Active', tone: 'pilot' }}
+          stats={<PilotRailStats pilot={composition.pilot} />}
+        />
       ) : (
-        /* Single-entity / non-2-pane: single column at all sizes */
-        <div className="flex flex-col gap-8">
-          {pilotSection && <div className={mobileVis('pilot')}>{pilotSection}</div>}
-
-          {/* Pilot stand-in: shown in mech-only mode (no wired pilot) */}
-          {showPilotStandIn && (
-            <div className={mobileVis('mech')}>
-              <PilotStandIn />
-            </div>
-          )}
-
-          {mechSection && <div className={mobileVis('mech')}>{mechSection}</div>}
-
-          {/* Mech stand-in: shown in pilot-only mode (no mech) */}
-          {showMechStandIn && (
-            <div className={mobileVis('pilot')}>
-              <MechStandIn />
-            </div>
-          )}
-
-          {/* Crawler section — pilots=[] triggers the stand-in in crawler-only mode */}
-          {crawlerSection && <div className={mobileVis('crawler')}>{crawlerSection}</div>}
-        </div>
+        <RailEmpty
+          tone="pilot"
+          roleLabel="Lead Pilot"
+          message="No lead pilot set. Assign a crew member to speak for the crawler."
+          actions={editable ? <RailCta href="/pilots/new" label="+ Create" primary /> : undefined}
+        />
       )}
-    </main>
+    </>
+  )
+
+  return (
+    <LiveSheet
+      variant="crawler"
+      name={crawler.name}
+      strip={strip}
+      back={back}
+      pill={{ label: 'Crawler', tone: 'crawler' }}
+      wired={wired}
+      rail={rail}
+      segments={segments}
+      actions={actions}
+      renderHero={({ heroRef, rail: heroRail }) => (
+        <SheetHero
+          heroRef={heroRef}
+          cat="Crawler"
+          name={crawler.name}
+          meta={tl !== undefined ? <MChip label="Tech LV" value={tl} /> : undefined}
+          specs={crawlerSpecs.length > 0 ? <ChassisStats items={crawlerSpecs} /> : undefined}
+          trackers={
+            <>
+              <StatBlock
+                code="Structure"
+                name="Points"
+                unit="Points"
+                stat="sp"
+                max={maxSP}
+                value={sp}
+                onChange={editable ? (v) => patch({ currentSP: v }) : undefined}
+                editable={editable}
+              />
+              {states.length > 0 && (
+                <StatBlock
+                  code="Bays"
+                  name="Condition"
+                  unit="Bays"
+                  states={states}
+                  onBay={editable ? toggleBay : undefined}
+                />
+              )}
+            </>
+          }
+          rail={heroRail}
+        />
+      )}
+      renderBody={() => (
+        <CrawlerSheet crawler={crawler} mech={composition.mech} store={store} readOnly={readOnly} />
+      )}
+    />
   )
 }
+
+export type { SheetComposition }

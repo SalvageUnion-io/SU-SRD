@@ -4,8 +4,9 @@
  * kind: 'pilot' | 'mech' | 'crawler'
  * id:   entity id stored in entityStore
  *
- * The loader hydrates the entity store for the requested kind and all
- * SoftLinks so composition mode resolution works synchronously in Sheet.tsx.
+ * The loader hydrates the entity store for all kinds and SoftLinks so
+ * composition mode resolution (and linked-entity rails) works synchronously
+ * in Sheet.tsx.
  *
  * Unknown kinds throw TanStack's notFound() and render the styled
  * SheetKindNotFound component (plan 2.8) instead of an unstyled router error.
@@ -14,6 +15,7 @@
 import { createFileRoute, notFound } from '@tanstack/react-router'
 
 import { useEntityStore } from '../../../stores/entityStore'
+import { AppLink } from '../../../components/shared/AppLink'
 import { Sheet } from '../../../components/sheet/Sheet'
 import { buttonVariants } from '../../../components/ui/buttonVariants'
 import { cn } from '../../../lib/utils'
@@ -30,9 +32,12 @@ export function SheetKindNotFound() {
         &ldquo;{params.kind}&rdquo; is not a sheet type. Sheets exist for pilots, mechs, and
         crawlers.
       </p>
-      <a href="/" className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}>
+      <AppLink
+        href="/"
+        className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
+      >
         &larr; Back to dashboard
-      </a>
+      </AppLink>
     </main>
   )
 }
@@ -44,7 +49,15 @@ export const Route = createFileRoute('/sheet/$kind/$id')({
       throw notFound()
     }
     const store = useEntityStore.getState()
-    await Promise.all([store.hydrate(kind), store.hydrate('softLink')])
+    // Hydrate ALL entity kinds (not just the viewed one): wired compositions
+    // resolve linked entities (rail chips, Hold ← Load targets) from the
+    // other kinds' stores via SoftLinks.
+    await Promise.all([
+      store.hydrate('pilot'),
+      store.hydrate('mech'),
+      store.hydrate('crawler'),
+      store.hydrate('softLink'),
+    ])
   },
   component: SheetPage,
   notFoundComponent: SheetKindNotFound,

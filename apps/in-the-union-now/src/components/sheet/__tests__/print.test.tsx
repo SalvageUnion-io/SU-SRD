@@ -5,7 +5,7 @@
  * These tests confirm that:
  *   1. The sheet sections that the print stylesheet targets are present in the
  *      DOM (i.e., the selectors have real targets in the markup).
- *   2. The SheetHeader renders a <header> element (targeted by `header a` hide rule).
+ *   2. The LiveSheet top bar renders a <header> element (targeted by `header a` hide rule).
  *   3. No programmatic print-quality assertion is made — that is maintainer-
  *      reviewed per milestones-data.md §2C.
  *
@@ -30,7 +30,7 @@ import { mock } from 'bun:test'
 // ---------------------------------------------------------------------------
 
 beforeAll(async () => {
-  await SalvageUnionReference.preload(['chassis', 'crawler-tech-levels', 'systems', 'modules'])
+  await SalvageUnionReference.preload('all')
 })
 
 afterEach(() => {
@@ -132,12 +132,12 @@ describe('Print markup — PilotSheet', () => {
         softLinkStore={makeEmptySoftLinkStore()}
       />
     )
-    // PilotSheet renders <section aria-labelledby="pilot-sheet-heading">
-    const section = container.querySelector('section[aria-labelledby="pilot-sheet-heading"]')
+    // PilotSheet renders <section class="sheet-section"> (print page-break target)
+    const section = container.querySelector('section.sheet-section')
     expect(section).toBeTruthy()
   })
 
-  test('renders a <header> element for the SheetHeader (nav-hide rule target)', () => {
+  test('renders a <header> element for the LiveSheet top bar (nav-hide rule target)', () => {
     const { container } = render(
       <Sheet
         kind="pilot"
@@ -150,7 +150,7 @@ describe('Print markup — PilotSheet', () => {
     expect(header).toBeTruthy()
   })
 
-  test('SheetHeader back-link is inside <header> (targeted by print hide)', () => {
+  test('top-bar back-link is inside <header> (targeted by print hide)', () => {
     const { container } = render(
       <Sheet
         kind="pilot"
@@ -187,7 +187,7 @@ describe('Print markup — MechSheet', () => {
         softLinkStore={makeEmptySoftLinkStore()}
       />
     )
-    // MechSheet renders stat blocks (now via EditableStatRow components after Wave 6 cycle-1)
+    // MechSheet renders stat blocks (suref-react StatBlock after the Header C rebuild)
     // — print stylesheet's section/card selectors target the encompassing structure.
     // Confirm the mech section renders at all.
     const mechSection = container.querySelector('[aria-labelledby], section, article')
@@ -233,7 +233,7 @@ describe('Print markup — CrawlerSheet', () => {
         softLinkStore={makeEmptySoftLinkStore()}
       />
     )
-    const section = container.querySelector('section[aria-labelledby="crawler-sheet-heading"]')
+    const section = container.querySelector('section[aria-label$="crawler sheet"]')
     expect(section).toBeTruthy()
   })
 })
@@ -262,9 +262,11 @@ describe('Print markup — stat pip rows', () => {
     )
     const onPips = container.querySelectorAll('[data-pip="on"]')
     const offPips = container.querySelectorAll('[data-pip="off"]')
-    // HP (6 on / 4 off) + AP (3 on / 2 off) = 9 on, 6 off
-    expect(onPips.length).toBe(9)
-    expect(offPips.length).toBe(6)
+    // HP (6 on / 4 off) + AP (3 on / 2 off) appear in the hero StatBlocks,
+    // the condensed MiniStat strip AND the PilotSheet body pip rows — assert
+    // the print hook is present with both states rather than an exact count.
+    expect(onPips.length).toBeGreaterThanOrEqual(9)
+    expect(offPips.length).toBeGreaterThanOrEqual(6)
   })
 
   test('MechSheet renders SP/EP/Heat pip rows with data-pip hooks', () => {
@@ -295,8 +297,8 @@ describe('Print markup — stat pip rows', () => {
   })
 })
 
-describe('Print markup — composition mode badge', () => {
-  test('mode badge renders with aria-label (print border rule target)', () => {
+describe('Print markup — wired toggle', () => {
+  test('wired/offline toggle renders as a switch (replaces the mode badge)', () => {
     render(
       <Sheet
         kind="mech"
@@ -305,7 +307,7 @@ describe('Print markup — composition mode badge', () => {
         softLinkStore={makeEmptySoftLinkStore()}
       />
     )
-    const badge = screen.getByLabelText('Composition mode: Mech')
-    expect(badge).toBeTruthy()
+    const toggle = screen.getByRole('switch', { name: /offline/i })
+    expect(toggle).toBeTruthy()
   })
 })
