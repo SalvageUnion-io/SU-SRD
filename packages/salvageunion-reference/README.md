@@ -1,5 +1,11 @@
 # Salvage Union Reference
 
+> **npm deprecation notice:** This package is no longer published to npm. The
+> same dataset and JSON Schemas are served publicly (CORS-enabled) at
+> `https://salvageunion.io/schema/{schemaId}.json` — see
+> https://salvageunion.io/llms.txt for the full endpoint list. Within this
+> monorepo the package is consumed via `workspace:*` and is unaffected.
+
 A comprehensive, schema-validated JSON reference and TypeScript ORM for the **Salvage Union** tabletop RPG, published by [Leyline Press](https://leyline.press/).
 
 ## Features
