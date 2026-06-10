@@ -2,7 +2,7 @@
 
 > An open-source, searchable reference for the Salvage Union tabletop RPG by Leyline Press.
 
-salvageunion.io is a community-built System Reference Document (SRD) for Salvage Union, a post-apocalyptic mech TTRPG. It provides stats, descriptions, abilities, and rules for all game content released under the Salvage Union Open Game License.
+salvageunion.io is a community-built System Reference Document (SRD) for Salvage Union, a post-apocalyptic mech TTRPG. It provides stats, descriptions, abilities, and rules for game text and mechanics released under the Salvage Union Open Game Licence.
 
 ## Content Categories
 

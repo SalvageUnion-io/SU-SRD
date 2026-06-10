@@ -87,9 +87,9 @@
   "author": "Alex Jarvis",
   "license": "SEE LICENSE IN LICENCE",
   "bugs": {
-    "url": "https://github.com/alxjrvs/salvageunion-data/issues"
+    "url": "https://github.com/SalvageUnion-io/SU-SRD/issues"
   },
-  "homepage": "https://github.com/alxjrvs/salvageunion-data#readme",
+  "homepage": "https://github.com/SalvageUnion-io/SU-SRD#readme",
   "dependencies": {
     "zod": "^4.3.6"
   },
