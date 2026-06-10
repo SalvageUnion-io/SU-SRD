@@ -101,15 +101,9 @@ const isDefaultOgImage = ogImage === DEFAULT_OG_IMAGE
     <ClientRouter />
 
     {/* The per-entity static block (data-static-fallback) is an SEO / no-JS
-        fallback only — the hydrated card is the real view. Strip it for JS users
-        on initial load AND after every view-transition navigation, so the
-        duplicate naked text never appears anywhere. */}
-    <script>
-      const stripStaticFallback = () =>
-        document.querySelectorAll('[data-static-fallback]').forEach((el) => el.remove())
-      stripStaticFallback()
-      document.addEventListener('astro:page-load', stripStaticFallback)
-    </script>
+        fallback only — the hydrated card is the real view. ReferenceEntityIsland
+        hides it at hydration and removes it once game data is ready, so a data
+        or render failure never leaves the page blank. */}
   </head>
   <body>
     <div class="flex min-h-screen flex-col bg-su-white">

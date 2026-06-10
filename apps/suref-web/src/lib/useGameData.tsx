@@ -10,6 +10,15 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 
 let preloadPromise: Promise<void> | null = null
 
+/**
+ * Test-only escape hatch: clears the module-level preload promise so tests
+ * that mock SalvageUnionReference.preload() don't leak state into each other.
+ * Production code must never call this.
+ */
+export function resetPreloadForTests(): void {
+  preloadPromise = null
+}
+
 function ensurePreloaded(): Promise<void> {
   if (SalvageUnionReference.isLoaded('chassis')) return Promise.resolve()
   if (!preloadPromise) {
@@ -26,28 +35,46 @@ function ensurePreloaded(): Promise<void> {
  */
 export function useGameData(options?: { defer?: boolean }): {
   ready: boolean
+  error: Error | null
   load: () => void
 } {
   const [ready, setReady] = useState(SalvageUnionReference.isLoaded('chassis'))
   const [wanted, setWanted] = useState(!options?.defer)
+  const [error, setError] = useState<Error | null>(null)
 
   useEffect(() => {
-    if (ready || !wanted) return
+    // After a failure, `error` blocks re-fetching until load() clears it —
+    // clearing it re-runs this effect, which retries the (reset) preload.
+    if (ready || !wanted || error) return
     let cancelled = false
-    ensurePreloaded().then(() => {
-      if (!cancelled) setReady(true)
-    })
+    ensurePreloaded()
+      .then(() => {
+        if (!cancelled) setReady(true)
+      })
+      .catch((e: unknown) => {
+        // Reset the module-level promise so a retry issues a fresh request
+        // instead of re-awaiting the same rejection.
+        preloadPromise = null
+        if (!cancelled) setError(e instanceof Error ? e : new Error(String(e)))
+      })
     return () => {
       cancelled = true
     }
-  }, [ready, wanted])
+  }, [ready, wanted, error])
 
-  return { ready, load: () => setWanted(true) }
+  const load = () => {
+    setWanted(true)
+    setError(null)
+  }
+
+  return { ready, error, load }
 }
 
 /**
  * Gate component — renders children only after game data is preloaded.
  * Use this to wrap island content that depends on ORM calls.
+ * On preload failure it renders a retry affordance instead of the fallback,
+ * so a network error never leaves a permanent skeleton.
  */
 export function GameDataGate({
   children,
@@ -56,7 +83,17 @@ export function GameDataGate({
   children: ReactNode
   fallback?: ReactNode
 }) {
-  const { ready } = useGameData()
+  const { ready, error, load } = useGameData()
+  if (error) {
+    return (
+      <div className="flex flex-col items-start gap-3 p-4">
+        <p className="text-sm">Failed to load game data.</p>
+        <button type="button" className="btn btn-inactive" onClick={load}>
+          Retry loading game data
+        </button>
+      </div>
+    )
+  }
   if (!ready) return fallback ?? null
   return children
 }
