@@ -1,4 +1,4 @@
 export { useEntityStore } from './entityStore'
-export type { AssignableType, CreateInput, EntityForType, EntityType } from './entityStore'
+export type { EntityType } from './entityStore'
 
 export { useWorkspaceStore } from './workspaceStore'

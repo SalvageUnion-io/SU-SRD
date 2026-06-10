@@ -21,7 +21,7 @@ export type BackupNudgeState = {
   lastExportAt: string | null
 }
 
-export type BackupNudgeListener = (state: BackupNudgeState) => void
+type BackupNudgeListener = (state: BackupNudgeState) => void
 
 /** Nudge after this many writes since the last full export… */
 export const BACKUP_NUDGE_WRITE_THRESHOLD = 25

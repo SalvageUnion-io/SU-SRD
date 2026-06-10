@@ -15,7 +15,7 @@ import { StatBlock } from 'suref-react'
 
 import { cn } from '../../lib/utils'
 
-export type HeroIdentityLine = {
+type HeroIdentityLine = {
   label: string
   value: string
 }

@@ -10,7 +10,7 @@ type SURClassesAccessor = {
  * are true base classes (Engineer, Hauler, etc.). Advanced/Hybrid
  * specialisation classes in salvageunion-reference do NOT expose coreTrees.
  */
-export function isBaseClass(cls: unknown): cls is SURefClass & { coreTrees: string[] } {
+function isBaseClass(cls: unknown): cls is SURefClass & { coreTrees: string[] } {
   return (
     typeof cls === 'object' &&
     cls !== null &&
@@ -21,7 +21,7 @@ export function isBaseClass(cls: unknown): cls is SURefClass & { coreTrees: stri
 }
 
 /** Advanced/Hybrid specialisation guard (advancedTree, no core trees). */
-export function isSpecialisationClass(cls: unknown): cls is SURefClass {
+function isSpecialisationClass(cls: unknown): cls is SURefClass {
   return (
     typeof cls === 'object' &&
     cls !== null &&

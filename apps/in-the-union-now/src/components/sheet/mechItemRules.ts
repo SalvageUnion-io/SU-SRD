@@ -48,7 +48,7 @@ function traitAmount(trait: { amount?: unknown }): number {
   return typeof trait.amount === 'number' ? trait.amount : 0
 }
 
-export function itemActions(entity: MechItem): SURefMetaAction[] {
+function itemActions(entity: MechItem): SURefMetaAction[] {
   return SalvageUnionReference.resolveActions(entity as unknown as SURefMetaEntity) ?? []
 }
 

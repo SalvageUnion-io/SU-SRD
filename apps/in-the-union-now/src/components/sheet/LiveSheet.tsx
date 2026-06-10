@@ -48,14 +48,14 @@ export type LiveSheetStripItem = {
   max?: number
 }
 
-export type LiveSheetHeroContext = {
+type LiveSheetHeroContext = {
   /** Must reach the hero root element — the condense sentinel observes it. */
   heroRef: RefObject<HTMLElement | null>
   /** The rail strip — slot into the hero frame (SheetHero `rail` prop). */
   rail: ReactNode
 }
 
-export type LiveSheetBodyContext = {
+type LiveSheetBodyContext = {
   cardActions: 'card' | 'rail'
 }
 

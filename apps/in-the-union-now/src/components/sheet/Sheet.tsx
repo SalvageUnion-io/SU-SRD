@@ -45,7 +45,7 @@ import { AssignCrawlerToPilot } from '../wiring/AssignCrawlerToPilot'
 import { AssignPilotToMech } from '../wiring/AssignPilotToMech'
 
 import { resolveSheetComposition } from './composition'
-import type { EntityLookup, SheetComposition } from './composition'
+import type { EntityLookup } from './composition'
 import { ConditionsEditor } from './ConditionsEditor'
 import { LiveSheet } from './LiveSheet'
 import type { LiveSheetSegment, LiveSheetStripItem } from './LiveSheet'
@@ -782,5 +782,3 @@ export function Sheet({
     />
   )
 }
-
-export type { SheetComposition }

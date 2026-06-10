@@ -26,7 +26,7 @@ import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
 import type { SoftLink } from '../../lib/schemas/softLink'
 
-export type CompositionMode = 'wired' | 'pilot-only' | 'mech-only' | 'crawler-only'
+type CompositionMode = 'wired' | 'pilot-only' | 'mech-only' | 'crawler-only'
 
 /** Minimal read surface — matches the old Sheet.tsx dep-injection type. */
 export type EntityLookup = {
@@ -36,7 +36,7 @@ export type EntityLookup = {
   ) => (T extends 'pilot' ? Pilot : T extends 'mech' ? Mech : Crawler) | null
 }
 
-export type SheetComposition = {
+type SheetComposition = {
   mode: CompositionMode
   /** The linked pilot (for crawlers: the lead pilot — first wired). */
   pilot: Pilot | null

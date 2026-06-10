@@ -17,7 +17,7 @@ import type { StoreName } from './stores'
 const CHANNEL_NAME = 'itun-db'
 const STORAGE_PING_KEY = 'itun-db-ping'
 
-export type StoreChangeListener = (store: StoreName) => void
+type StoreChangeListener = (store: StoreName) => void
 
 const listeners = new Set<StoreChangeListener>()
 

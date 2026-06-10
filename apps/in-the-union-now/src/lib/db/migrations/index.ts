@@ -29,20 +29,20 @@ export type UpgradeTransaction = IDBPTransaction<
   'versionchange'
 >
 
-export type MigrationFn = (
+type MigrationFn = (
   tx: UpgradeTransaction,
   db: IDBPDatabase,
   oldVersion: number
 ) => Promise<void> | void
 
-export type Migration = {
+type Migration = {
   /** The DB version this migration upgrades TO. */
   toVersion: number
   description: string
   migrate: MigrationFn
 }
 
-export const MIGRATIONS: ReadonlyArray<Migration> = [
+const MIGRATIONS: ReadonlyArray<Migration> = [
   {
     toVersion: 3,
     description: 'cargo-to-cargo-lots',

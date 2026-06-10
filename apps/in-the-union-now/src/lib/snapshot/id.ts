@@ -14,7 +14,7 @@ const MAX_RETRIES = 5
  * Generates a random 8-character base32 ID.
  * Uses crypto.getRandomValues for cryptographic randomness.
  */
-export function generateId(): string {
+function generateId(): string {
   const bytes = new Uint8Array(ID_LENGTH)
   crypto.getRandomValues(bytes)
   return Array.from(bytes)

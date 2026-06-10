@@ -51,10 +51,7 @@ export function mechToFormState(mech: Mech): MechWizardFormState {
 }
 
 /** Wizard-owned mech fields — the only fields an edit save may touch. */
-export type MechWizardPatch = Pick<
-  Mech,
-  'name' | 'chassisRef' | 'systems' | 'modules' | 'cargoLots'
->
+type MechWizardPatch = Pick<Mech, 'name' | 'chassisRef' | 'systems' | 'modules' | 'cargoLots'>
 
 export function mechFormToUpdatePatch(form: MechWizardFormState): MechWizardPatch {
   return {

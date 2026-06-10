@@ -44,13 +44,6 @@ import { cycleCondition, resolveModule, resolveSystem } from './mechItemRules'
 import type { MechItemEconomy } from './mechItemRules'
 import { StorageManifest } from './StorageManifest'
 
-/**
- * Stable `hide` object literal shared across entity-card renders. Hoisted so
- * its referential identity is constant — a fresh `{ choices: true }` literal
- * on every render would defeat ReferenceEntityDisplay's memo.
- */
-export const HIDE_CHOICES = { choices: true } as const
-
 // Narrow subset of chassis data the stat derivations need
 type ChassisLike = {
   name: string

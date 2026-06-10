@@ -58,7 +58,7 @@ export function pilotToFormState(pilot: Pilot): PilotWizardFormState {
 }
 
 /** Wizard-owned pilot fields — the only fields an edit save may touch. */
-export type PilotWizardPatch = Pick<
+type PilotWizardPatch = Pick<
   Pilot,
   | 'name'
   | 'callsign'

@@ -12,7 +12,7 @@ type WindowState = {
   windowStart: number
 }
 
-export type RateLimiterOptions = {
+type RateLimiterOptions = {
   /** Maximum requests per window. Default: 10. */
   limit?: number
   /** Window duration in milliseconds. Default: 60_000 (1 minute). */

@@ -23,7 +23,7 @@ import type { EntityRef } from '../../../lib/schemas/entity'
 
 const VALID_KINDS: EntityRef['type'][] = ['pilot', 'mech', 'crawler']
 
-export function SheetKindNotFound() {
+function SheetKindNotFound() {
   const params = Route.useParams()
   return (
     <main className="mx-auto max-w-5xl p-6">

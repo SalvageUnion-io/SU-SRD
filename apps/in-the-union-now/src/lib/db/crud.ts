@@ -4,12 +4,12 @@ import type { ZodSchema } from 'zod'
 /**
  * Minimal shape every entity managed by the CRUD wrapper must have.
  */
-export type EntityBase = {
+type EntityBase = {
   id: string
   createdAt: string
 }
 
-export type EntityStore<T extends EntityBase> = {
+type EntityStore<T extends EntityBase> = {
   /** Returns all records sorted newest-first by createdAt. */
   list: () => Promise<T[]>
   /** Returns the record or null when id is not found. */
@@ -29,7 +29,7 @@ export type EntityStore<T extends EntityBase> = {
   delete: (id: string) => Promise<void>
 }
 
-export type MakeStoreOptions<T extends EntityBase> = {
+type MakeStoreOptions<T extends EntityBase> = {
   /**
    * Set true when T includes an `updatedAt` field. Controls whether
    * create/update inject the timestamp.

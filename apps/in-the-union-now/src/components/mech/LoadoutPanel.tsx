@@ -18,7 +18,7 @@ type BudgetTrackProps = {
  * max(max, value) pips so over-capacity is displayed honestly (red pips,
  * never clamped) — capacity stays a soft warning.
  */
-export function BudgetTrack({ label, value, max, tone = 'default' }: BudgetTrackProps) {
+function BudgetTrack({ label, value, max, tone = 'default' }: BudgetTrackProps) {
   const total = Math.max(max, value)
   const isOver = value > max
   const fill = tone === 'ap' ? 'border-rust bg-rust' : 'border-ink bg-ink'

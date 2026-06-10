@@ -20,7 +20,7 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import type { Crawler, ScrapPool } from '../schemas/crawler'
 import { parseCrawlerTechLevel } from '../crawlerLevel'
 
-export type CrawlerBayEntry = NonNullable<Crawler['crawlerBays']>[number]
+type CrawlerBayEntry = NonNullable<Crawler['crawlerBays']>[number]
 
 /** Scrap-pool form shape: every TL bucket present (zeros allowed). */
 export type ScrapPoolForm = Required<ScrapPool>
@@ -79,7 +79,7 @@ export function toScrapPoolPatch(pool: ScrapPoolForm): ScrapPool {
 }
 
 /** Wizard-owned crawler fields — the only fields an edit save may touch. */
-export type CrawlerWizardPatch = Pick<
+type CrawlerWizardPatch = Pick<
   Crawler,
   'name' | 'techLevel' | 'systems' | 'scrapPool' | 'upgradePool'
 >

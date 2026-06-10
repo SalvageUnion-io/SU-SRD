@@ -41,7 +41,7 @@ import { STORE_NAMES } from './stores'
 /** Current IndexedDB schema version. Bump together with a migrations/ entry. */
 export const DB_VERSION = 4
 
-export const DB_NAME = 'itun-v1'
+const DB_NAME = 'itun-v1'
 
 /** Singleton promise — openDB is called once per page load. */
 let dbPromise: Promise<IDBPDatabase> | null = null
