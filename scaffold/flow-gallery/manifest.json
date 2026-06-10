@@ -1,0 +1,170 @@
+{
+  "generatedAt": "2026-06-04T00:24:53.057Z",
+  "totalShots": 16,
+  "flows": [
+    {
+      "flow": "Overview",
+      "steps": [
+        {
+          "stem": "00-dev-flow-index",
+          "flow": "Overview",
+          "order": 0,
+          "label": "Dev Flow Index",
+          "shots": [
+            {
+              "file": "shots/00-dev-flow-index-desktop-1440.png",
+              "viewport": "desktop-1440",
+              "viewportLabel": "Desktop (1440px)"
+            },
+            {
+              "file": "shots/00-dev-flow-index-mobile-375.png",
+              "viewport": "mobile-375",
+              "viewportLabel": "Mobile (375px)"
+            }
+          ]
+        },
+        {
+          "stem": "01-dashboard",
+          "flow": "Overview",
+          "order": 0,
+          "label": "Dashboard",
+          "shots": [
+            {
+              "file": "shots/01-dashboard-desktop-1440.png",
+              "viewport": "desktop-1440",
+              "viewportLabel": "Desktop (1440px)"
+            },
+            {
+              "file": "shots/01-dashboard-mobile-375.png",
+              "viewport": "mobile-375",
+              "viewportLabel": "Mobile (375px)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "flow": "Pilot",
+      "steps": [
+        {
+          "stem": "02-pilot-create",
+          "flow": "Pilot",
+          "order": 1,
+          "label": "Pilot Create",
+          "shots": [
+            {
+              "file": "shots/02-pilot-create-desktop-1440.png",
+              "viewport": "desktop-1440",
+              "viewportLabel": "Desktop (1440px)"
+            },
+            {
+              "file": "shots/02-pilot-create-mobile-375.png",
+              "viewport": "mobile-375",
+              "viewportLabel": "Mobile (375px)"
+            }
+          ]
+        },
+        {
+          "stem": "05-pilot-sheet",
+          "flow": "Pilot",
+          "order": 1,
+          "label": "Pilot Sheet",
+          "shots": [
+            {
+              "file": "shots/05-pilot-sheet-desktop-1440.png",
+              "viewport": "desktop-1440",
+              "viewportLabel": "Desktop (1440px)"
+            },
+            {
+              "file": "shots/05-pilot-sheet-mobile-375.png",
+              "viewport": "mobile-375",
+              "viewportLabel": "Mobile (375px)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "flow": "Mech",
+      "steps": [
+        {
+          "stem": "03-mech-create",
+          "flow": "Mech",
+          "order": 2,
+          "label": "Mech Create",
+          "shots": [
+            {
+              "file": "shots/03-mech-create-desktop-1440.png",
+              "viewport": "desktop-1440",
+              "viewportLabel": "Desktop (1440px)"
+            },
+            {
+              "file": "shots/03-mech-create-mobile-375.png",
+              "viewport": "mobile-375",
+              "viewportLabel": "Mobile (375px)"
+            }
+          ]
+        },
+        {
+          "stem": "06-mech-sheet",
+          "flow": "Mech",
+          "order": 2,
+          "label": "Mech Sheet",
+          "shots": [
+            {
+              "file": "shots/06-mech-sheet-desktop-1440.png",
+              "viewport": "desktop-1440",
+              "viewportLabel": "Desktop (1440px)"
+            },
+            {
+              "file": "shots/06-mech-sheet-mobile-375.png",
+              "viewport": "mobile-375",
+              "viewportLabel": "Mobile (375px)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "flow": "Crawler",
+      "steps": [
+        {
+          "stem": "04-crawler-create",
+          "flow": "Crawler",
+          "order": 3,
+          "label": "Crawler Create",
+          "shots": [
+            {
+              "file": "shots/04-crawler-create-desktop-1440.png",
+              "viewport": "desktop-1440",
+              "viewportLabel": "Desktop (1440px)"
+            },
+            {
+              "file": "shots/04-crawler-create-mobile-375.png",
+              "viewport": "mobile-375",
+              "viewportLabel": "Mobile (375px)"
+            }
+          ]
+        },
+        {
+          "stem": "07-crawler-sheet",
+          "flow": "Crawler",
+          "order": 3,
+          "label": "Crawler Sheet",
+          "shots": [
+            {
+              "file": "shots/07-crawler-sheet-desktop-1440.png",
+              "viewport": "desktop-1440",
+              "viewportLabel": "Desktop (1440px)"
+            },
+            {
+              "file": "shots/07-crawler-sheet-mobile-375.png",
+              "viewport": "mobile-375",
+              "viewportLabel": "Mobile (375px)"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
