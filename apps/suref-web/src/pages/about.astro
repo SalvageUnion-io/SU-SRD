@@ -3,6 +3,9 @@ import { Image } from 'astro:assets'
 import BaseLayout from '../layouts/BaseLayout.astro'
 import eldridgeCoastMap from '../assets/eldridge-coast-map.png'
 import { SITE_URL } from '../lib/constants'
+import { SalvageUnionReference } from 'salvageunion-reference'
+
+const sources = SalvageUnionReference.Sources.all()
 
 const imageAltText = 'Map of The Eldridge Coast, created using Shmeppy.com'
 
@@ -132,6 +135,32 @@ const structuredData = {
       <!-- Main content -->
       <div>
         <div class="flex flex-col gap-8">
+
+          <!-- Data Sources -->
+          <section class="flex flex-col gap-4 text-center">
+            <h2 class="page-subheading">Data Sources</h2>
+            <p class="text-sm">This SRD draws from the following Salvage Union publications:</p>
+            <ul class="mx-auto flex flex-col gap-2 text-sm text-left max-w-md">
+              {sources.map((s) => (
+                <li>
+                  {s.purchaseLink ? (
+                    <a
+                      href={s.purchaseLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="font-bold text-su-orange-dark hover:underline"
+                    >
+                      {s.name}
+                    </a>
+                  ) : (
+                    <span class="font-bold">{s.name}</span>
+                  )}
+                  {s.version && <span class="text-su-black/60"> — printing {s.version}</span>}
+                  {s.verifiedAgainst && <span class="text-su-black/60"> (verified {s.verifiedAgainst})</span>}
+                </li>
+              ))}
+            </ul>
+          </section>
 
           <!-- Thanks + Links -->
           <section class="flex flex-col gap-4 text-center">

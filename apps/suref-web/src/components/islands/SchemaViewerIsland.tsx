@@ -28,6 +28,7 @@ export function SchemaViewerIsland({
 }: SchemaViewerIslandProps) {
   const [techLevelFilters, setTechLevelFilters] = useState<Set<string>>(new Set())
   const [sourceFilters, setSourceFilters] = useState<Set<string>>(new Set())
+  const [nameFilter, setNameFilter] = useState('')
 
   const filteredData = useMemo(() => {
     return initialData.filter((item) => {
@@ -46,9 +47,15 @@ export function SchemaViewerIsland({
         }
       }
 
+      if (nameFilter) {
+        if (!item.name.toLowerCase().includes(nameFilter.toLowerCase())) {
+          return false
+        }
+      }
+
       return true
     })
-  }, [initialData, techLevelFilters, sourceFilters])
+  }, [initialData, techLevelFilters, sourceFilters, nameFilter])
 
   const toggleTechLevel = (level: number | 'B' | 'N') => {
     setTechLevelFilters((prev) => {
@@ -74,20 +81,24 @@ export function SchemaViewerIsland({
   }
 
   const hasFilters = techLevels.length > 1 || sources.length > 1
+  // Show the name input whenever the dataset is large enough to benefit from it
+  const hasNameFilter = initialData.length > 12
 
   // Browse layout: a fixed left filter rail beside the entity grid on desktop
   // (design board-srd.jsx:96), collapsing to stacked filters above the grid on
   // mobile. When there are no facets to filter, the grid spans full width.
   const browseBase = 'mx-auto w-full max-w-[1400px]'
-  const containerClass = hasFilters
+  const showAside = hasFilters || hasNameFilter
+  const containerClass = showAside
     ? `${browseBase} lg:grid lg:grid-cols-[230px_minmax(0,1fr)] lg:gap-8`
     : browseBase
 
-  const hasActiveFilters = techLevelFilters.size > 0 || sourceFilters.size > 0
+  const hasActiveFilters = techLevelFilters.size > 0 || sourceFilters.size > 0 || nameFilter !== ''
 
   const clearFilters = () => {
     setTechLevelFilters(new Set())
     setSourceFilters(new Set())
+    setNameFilter('')
   }
 
   return (
@@ -105,8 +116,20 @@ export function SchemaViewerIsland({
       }
     >
       <div className={containerClass}>
-        {hasFilters && (
+        {showAside && (
           <aside className="mb-4 flex w-full flex-col gap-4 lg:mb-0 lg:pt-2 lg:pb-6 print:hidden">
+            {hasNameFilter && (
+              <FilterRow label="Name">
+                <input
+                  type="search"
+                  value={nameFilter}
+                  onChange={(e) => setNameFilter(e.target.value)}
+                  placeholder="Filter by name…"
+                  aria-label="Filter items by name"
+                  className="w-full rounded border border-su-black bg-su-white px-2 py-1 font-mono text-[13px]"
+                />
+              </FilterRow>
+            )}
             {techLevels.length > 1 && (
               <FilterRow label="Tech Level">
                 <FilterChip

@@ -445,6 +445,14 @@ export const GuideSchema = BaseEntitySchema.extend({
  */
 export const SourceEntitySchema = BaseEntitySchema.extend({
   purchaseLink: z.string().url().describe('URL where this source can be purchased').optional(),
+  version: z
+    .string()
+    .describe('Printing/edition of the source this dataset reflects (e.g. "1.5")')
+    .optional(),
+  verifiedAgainst: z
+    .string()
+    .describe('ISO date the dataset was last verified against this printing')
+    .optional(),
 })
   .strict()
   .describe('Source books and expansions')
