@@ -1461,7 +1461,7 @@
         "type": "pilot equipment"
       },
       {
-        "type": "armor"
+        "type": "armour"
       }
     ],
     "name": "Camo Suit",
@@ -3058,7 +3058,7 @@
     "id": "57cca86e-352d-4a10-9f87-d56fa6a6ad2b",
     "traits": [
       {
-        "type": "armor"
+        "type": "armour"
       },
       {
         "type": "flashy"
@@ -3744,7 +3744,7 @@
     "id": "1edc18d4-c3c2-41ab-b594-675a2eaf015e",
     "traits": [
       {
-        "type": "armor"
+        "type": "armour"
       },
       {
         "type": "heavy"
@@ -7229,7 +7229,7 @@
     "id": "0766ba42-5339-4fae-97bf-5dc3bea32a1f",
     "traits": [
       {
-        "type": "armor",
+        "type": "armour",
         "amount": 2
       },
       {
@@ -7654,7 +7654,7 @@
     "id": "43d6fbfd-6fac-4b36-b4ff-833286cad3d7",
     "traits": [
       {
-        "type": "armor",
+        "type": "armour",
         "amount": 1
       },
       {
@@ -10435,7 +10435,7 @@
         "type": "pilot equipment"
       },
       {
-        "type": "armor"
+        "type": "armour"
       }
     ],
     "name": "Wingsuit",

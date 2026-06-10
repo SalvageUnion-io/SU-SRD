@@ -1,18 +1,25 @@
-import { describe, it, expect } from 'bun:test'
+import { describe, it, expect, test } from 'bun:test'
 import {
   collectTraitTypes,
   findTraitCasingIssues,
   findUnresolvableRemoveTraitIssues,
+  findUnknownTraitTypes,
 } from './validateTraitsLogic.js'
 
 describe('collectTraitTypes', () => {
   it('collects trait types from a top-level traits[] array', () => {
-    const entity = { name: 'X', traits: [{ type: 'heavy' }, { type: 'explosive', amount: 1 }] }
+    const entity = {
+      name: 'X',
+      traits: [{ type: 'heavy' }, { type: 'explosive', amount: 1 }],
+    }
     expect(collectTraitTypes(entity)).toEqual(['heavy', 'explosive'])
   })
 
   it('collects trait types nested under actions[].traits', () => {
-    const entity = { name: 'X', actions: [{ name: 'A', traits: [{ type: 'melee' }] }] }
+    const entity = {
+      name: 'X',
+      actions: [{ name: 'A', traits: [{ type: 'melee' }] }],
+    }
     expect(collectTraitTypes(entity)).toEqual(['melee'])
   })
 
@@ -48,7 +55,13 @@ describe('findTraitCasingIssues', () => {
 
 describe('findUnresolvableRemoveTraitIssues', () => {
   const choice = (effects: { op: string; value: string }[]) => ({
-    choices: [{ id: 'c', name: 'Mod', choiceOptions: [{ label: 'O', value: 'O', effects }] }],
+    choices: [
+      {
+        id: 'c',
+        name: 'Mod',
+        choiceOptions: [{ label: 'O', value: 'O', effects }],
+      },
+    ],
   })
 
   it('accepts removeTrait targeting a base trait', () => {
@@ -71,8 +84,16 @@ describe('findUnresolvableRemoveTraitIssues', () => {
             id: 'c',
             name: 'Mod',
             choiceOptions: [
-              { label: 'add', value: 'add', effects: [{ op: 'addTrait', value: 'Shielded' }] },
-              { label: 'rm', value: 'rm', effects: [{ op: 'removeTrait', value: 'Shielded' }] },
+              {
+                label: 'add',
+                value: 'add',
+                effects: [{ op: 'addTrait', value: 'Shielded' }],
+              },
+              {
+                label: 'rm',
+                value: 'rm',
+                effects: [{ op: 'removeTrait', value: 'Shielded' }],
+              },
             ],
           },
         ],
@@ -91,7 +112,10 @@ describe('findUnresolvableRemoveTraitIssues', () => {
     ]
     const issues = findUnresolvableRemoveTraitIssues('equipment.json', entities)
     expect(issues).toHaveLength(1)
-    expect(issues[0]).toMatchObject({ entity: 'X', kind: 'unresolvable-removeTrait' })
+    expect(issues[0]).toMatchObject({
+      entity: 'X',
+      kind: 'unresolvable-removeTrait',
+    })
   })
 
   it('catches the original bug shape: base trait stored as a datavalue, not in traits[]', () => {
@@ -105,5 +129,12 @@ describe('findUnresolvableRemoveTraitIssues', () => {
       },
     ]
     expect(findUnresolvableRemoveTraitIssues('equipment.json', entities)).toHaveLength(1)
+  })
+})
+
+describe('findUnknownTraitTypes', () => {
+  test('returns no unknown types after armor→armour fix and allowlist covers pending types', () => {
+    const issues = findUnknownTraitTypes()
+    expect(issues).toEqual([])
   })
 })
