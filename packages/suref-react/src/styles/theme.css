@@ -4,9 +4,8 @@
  */
 @theme {
   /* === Typography === */
-  --font-mono: "Barlow", system-ui, -apple-system, sans-serif;
-  --font-cond:
-    "Barlow Semi Condensed", "Barlow", system-ui, -apple-system, sans-serif;
+  --font-mono: 'Barlow', system-ui, -apple-system, sans-serif;
+  --font-cond: 'Barlow Semi Condensed', 'Barlow', system-ui, -apple-system, sans-serif;
 
   /* === Brand Colors === */
   --color-su-orange: rgb(239, 137, 79);
@@ -74,7 +73,7 @@
 /* Mobile-first touch targets */
 @media (pointer: coarse) {
   button,
-  [role="button"],
+  [role='button'],
   input,
   select,
   textarea {
