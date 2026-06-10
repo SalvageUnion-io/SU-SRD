@@ -70,7 +70,6 @@
     "test:react": "bun --filter suref-react test",
     "test:web": "bun --filter suref-web test",
     "test:itun": "bun --filter in-the-union-now test",
-    "publish:package": "bun --filter salvageunion-reference publish",
     "validate:ids": "bun --filter salvageunion-reference validate:ids",
     "validate:references": "bun --filter salvageunion-reference validate:references",
     "validate:actions": "bun --filter salvageunion-reference validate:actions",
