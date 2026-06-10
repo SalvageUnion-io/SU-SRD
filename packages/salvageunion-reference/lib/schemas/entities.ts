@@ -74,14 +74,9 @@ export const AbilityTreeRequirementSchema = BaseEntitySchema.extend({
 /**
  * Actions, abilities, and attacks that can be performed
  */
-export const MetaActionSchema = ActionSchema.and(
-  z.object({
-    displayName: z.string().min(1).describe('Alternative display name for this action').optional(),
-    activationCurrency: ActivationCurrencySchema.describe(
-      'Currency type used for activation'
-    ).optional(),
-  })
-).describe('Actions, abilities, and attacks that can be performed')
+export const MetaActionSchema = ActionSchema.describe(
+  'Actions, abilities, and attacks that can be performed'
+)
 
 /**
  * Bio-Titans: mech-scale biological monsters.
@@ -94,14 +89,6 @@ export const MetaActionSchema = ActionSchema.and(
 export const BioTitanSchema = BaseEntitySchema.extend({
   structurePoints: PositiveIntegerSchema.describe('Structure points of this bio-titan'),
   actions: z.array(z.string()).describe('Action names this bio-titan can perform'),
-  systems: z
-    .array(z.string())
-    .describe('Mech system names this bio-titan is equipped with')
-    .optional(),
-  modules: z
-    .array(z.string())
-    .describe('Mech module names this bio-titan is equipped with')
-    .optional(),
   traits: z.array(TraitSchema).describe('Traits and special properties').optional(),
 })
   .strict()
@@ -116,7 +103,6 @@ export const ChassisSchema = BaseEntitySchema.extend({ ...ChassisStatsSchema.sha
       .array(z.string())
       .describe('Array of chassis ability names that reference actions.json'),
     patterns: z.array(PatternSchema).describe('Available mech patterns for this chassis'),
-    npc: NpcSchema.describe('NPC crew member associated with this chassis').optional(),
   })
   .strict()
   .describe('Mech chassis definitions')
@@ -188,7 +174,6 @@ export const CrawlerBaySchema = BaseEntitySchema.extend({
   choices: ChoicesSchema.describe(
     'Choices available to the player when interacting with the NPC'
   ).optional(),
-  table: TableSchema.describe('Roll table associated with this bay').optional(),
   tableName: z.string().describe('Reference to a roll table name').optional(),
 })
   .strict()
@@ -345,7 +330,12 @@ export const MeldSchema = BaseEntitySchema.extend({
 /**
  * Mech modules
  */
-export const ModuleSchema = BaseEntitySchema.extend({ ...SystemModuleSchema.shape })
+export const ModuleSchema = BaseEntitySchema.extend({
+  ...SystemModuleSchema.shape,
+  // Re-assert required name: SystemModuleSchema's optional `name` (for custom
+  // system options) must not weaken the entity-level required name.
+  name: NameSchema.describe('Display name of this entity'),
+})
   .strict()
   .describe('Mech modules')
 
@@ -359,9 +349,6 @@ export const NPCSchema = BaseEntitySchema.extend({ ...CombatEntitySchema.shape }
     ),
     damageType: DamageTypeSchema.describe(
       'Whether this NPC tracks HP (organic) or SP (mechanical/cybernetic). Defaults to HP when omitted.'
-    ).optional(),
-    structurePoints: NonNegativeIntegerSchema.describe(
-      'Structure points for mech-scale NPCs. Use instead of hitPoints when the NPC is mech-scale.'
     ).optional(),
     bioSalvageValue: NonNegativeIntegerSchema.describe(
       'Bio-salvage value for Chimerium mutants'
@@ -395,7 +382,12 @@ export const SquadSchema = BaseEntitySchema.extend({
 /**
  * Mech systems
  */
-export const SystemSchema = BaseEntitySchema.extend({ ...SystemModuleSchema.shape })
+export const SystemSchema = BaseEntitySchema.extend({
+  ...SystemModuleSchema.shape,
+  // Re-assert required name: SystemModuleSchema's optional `name` (for custom
+  // system options) must not weaken the entity-level required name.
+  name: NameSchema.describe('Display name of this entity'),
+})
   .strict()
   .describe('Mech systems (weapons and utilities)')
 

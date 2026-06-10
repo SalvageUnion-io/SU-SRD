@@ -45,8 +45,8 @@ export const ActivationCostSchema = z
   .describe('Cost in ability points to activate an ability')
 
 /**
- * Technology level of the item or entity (number, 'B' for Bio, or 'N' for Nanite)
+ * Technology level of the item or entity (integer 1-6, 'B' for Bio, or 'N' for Nanite)
  */
 export const TechLevelSchema = z
-  .union([z.number().int().nonnegative(), z.literal('B'), z.literal('N')])
-  .describe("Technology level of the item or entity (number, 'B' for Bio, or 'N' for Nanite)")
+  .union([z.number().int().min(1).max(6), z.literal('B'), z.literal('N')])
+  .describe("Technology level of the item or entity (integer 1-6, 'B' for Bio, or 'N' for Nanite)")
