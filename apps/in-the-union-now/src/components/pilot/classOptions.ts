@@ -1,0 +1,62 @@
+import { SalvageUnionReference } from 'salvageunion-reference'
+import type { SURefClass } from 'salvageunion-reference'
+
+type SURClassesAccessor = {
+  all: () => unknown[]
+}
+
+/**
+ * Semantic base-class guard: only classes with a non-empty `coreTrees` field
+ * are true base classes (Engineer, Hauler, etc.). Advanced/Hybrid
+ * specialisation classes in salvageunion-reference do NOT expose coreTrees.
+ */
+export function isBaseClass(cls: unknown): cls is SURefClass & { coreTrees: string[] } {
+  return (
+    typeof cls === 'object' &&
+    cls !== null &&
+    'coreTrees' in cls &&
+    Array.isArray((cls as { coreTrees: unknown }).coreTrees) &&
+    ((cls as { coreTrees: string[] }).coreTrees?.length ?? 0) > 0
+  )
+}
+
+/** Advanced/Hybrid specialisation guard (advancedTree, no core trees). */
+export function isSpecialisationClass(cls: unknown): cls is SURefClass {
+  return (
+    typeof cls === 'object' &&
+    cls !== null &&
+    'advancedTree' in cls &&
+    !isBaseClass(cls) &&
+    'name' in cls
+  )
+}
+
+/** First text content block — used as the OptRow description line. */
+export function classDescription(cls: SURefClass): string | undefined {
+  const content = (cls as { content?: unknown }).content
+  if (Array.isArray(content)) {
+    const firstText = content.find(
+      (b) =>
+        typeof b === 'object' && b !== null && typeof (b as { text?: unknown }).text === 'string'
+    ) as { text: string } | undefined
+    return firstText?.text
+  }
+  return undefined
+}
+
+/**
+ * Selectable classes for the wizard. Create mode: base classes only.
+ * Edit mode (`includeSpecialisations`): base classes plus Advanced/Hybrid
+ * specialisation classes — selection is allowed regardless of prerequisites;
+ * unmet prereqs surface as pre-save soft warnings (plan 3.3, never block).
+ */
+export function selectableClasses(
+  sur: SURClassesAccessor | undefined,
+  includeSpecialisations: boolean
+): { base: SURefClass[]; specialisations: SURefClass[] } {
+  const all = (sur ?? SalvageUnionReference.Classes).all()
+  return {
+    base: all.filter(isBaseClass),
+    specialisations: includeSpecialisations ? all.filter(isSpecialisationClass) : [],
+  }
+}

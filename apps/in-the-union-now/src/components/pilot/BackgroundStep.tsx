@@ -1,3 +1,4 @@
+import { Field } from 'suref-react'
 import type { RollTableDeps } from './rollTableHelpers'
 import { RollTableButton } from './RollTableButton'
 
@@ -9,38 +10,34 @@ type BackgroundStepProps = {
 }
 
 /**
- * Step 5: Pilot background — roll-table driven or freeform.
+ * Background step — roll-table driven or freeform (slot exists in the design
+ * stepper; the UI itself is undesigned, so it follows the Identity form
+ * vocabulary).
  */
 export function BackgroundStep({ background, onChange, _rollDeps }: BackgroundStepProps) {
   return (
-    <div className="space-y-4">
-      <p className="text-sm opacity-70">
+    <div className="max-w-[760px] space-y-4">
+      <p className="text-sm text-wk-muted">
         Describe your pilot&apos;s background. Roll for a random prompt or write your own story.
       </p>
-      <div className="space-y-1">
-        <label
-          className="block font-cond text-xs font-semibold uppercase tracking-[0.04em] text-su-black"
-          htmlFor="background-field"
-        >
-          Background
-        </label>
-        <div className="flex gap-2">
+      <Field label="Background" htmlFor="background-field">
+        <div className="space-y-2">
           <RollTableButton
             field="background"
             onRoll={(value) => onChange(value)}
             label="Roll background"
             _deps={_rollDeps}
           />
+          <textarea
+            id="background-field"
+            value={background}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder="Where did you come from? What drives you?"
+            rows={5}
+            className="w-full rounded-[3px] border-[1.5px] border-ink bg-paper px-3 py-2.5 font-body text-sm text-ink placeholder:text-wk-faint focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22]"
+          />
         </div>
-        <textarea
-          id="background-field"
-          value={background}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder="Where did you come from? What drives you?"
-          rows={5}
-          className="mt-2 w-full rounded border border-su-black bg-white px-3 py-2.5 text-sm text-su-black placeholder:text-su-grey focus:outline-none focus:ring-2 focus:ring-su-orange"
-        />
-      </div>
+      </Field>
     </div>
   )
 }

@@ -1,4 +1,4 @@
-import { Button } from '../ui/button'
+import { Btn } from 'suref-react'
 import type { PilotRollField, RollTableDeps } from './rollTableHelpers'
 import { rollForPilotField } from './rollTableHelpers'
 
@@ -11,8 +11,9 @@ type RollTableButtonProps = {
 }
 
 /**
- * Fires the appropriate roll table and passes the result string to onRoll.
- * Silently no-ops when the table is unavailable (pre-load race).
+ * Fires the appropriate roll table and passes the result string to onRoll
+ * (design §3.2 '⚄ Roll'). Silently no-ops when the table is unavailable
+ * (pre-load race).
  */
 export function RollTableButton({ field, onRoll, label = 'Roll', _deps }: RollTableButtonProps) {
   function handleClick() {
@@ -23,8 +24,8 @@ export function RollTableButton({ field, onRoll, label = 'Roll', _deps }: RollTa
   }
 
   return (
-    <Button type="button" variant="outline" size="sm" onClick={handleClick}>
-      {label}
-    </Button>
+    <Btn size="sm" onClick={handleClick} className="shrink-0 self-center">
+      <span aria-hidden="true">⚄</span> {label}
+    </Btn>
   )
 }

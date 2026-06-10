@@ -1,9 +1,9 @@
 /**
- * Integration tests for PilotWizard (the end-to-end pilot creation flow).
+ * Integration tests for PilotWizard (create + edit on the WizShell skeleton).
  *
- * Mirrors MechBuilder.test.tsx — exercises ClassStep → AbilitiesStep →
- * EquipmentStep → IdentityStep → BackgroundStep → Review → submit using the
- * real wizard, real SalvageUnionReference data, real Zod validation, and a
+ * Exercises ClassStep → AbilitiesStep → EquipmentStep → IdentityStep →
+ * BackgroundStep → Review → submit using the real wizard, real
+ * SalvageUnionReference data, real Zod validation, and a
  * fake-indexeddb-backed entityStore.
  *
  * fake-indexeddb/auto is preloaded via bunfig.toml.
@@ -15,6 +15,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-libra
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { useEntityStore } from '../../../stores/entityStore'
 import { _clearAllStores, _resetDbSingleton } from '../../../lib/db/index'
+import { pilotFormToCreateInput, pilotToFormState } from '../../../lib/wizard/pilotFormState'
 import { PilotWizard } from '../PilotWizard'
 
 // ---------------------------------------------------------------------------
@@ -37,7 +38,12 @@ function resetEntityStore(): void {
     mechs: [],
     crawlers: [],
     softLinks: [],
-    hydrated: { pilots: false, mechs: false, crawlers: false, softLinks: false },
+    hydrated: {
+      pilots: false,
+      mechs: false,
+      crawlers: false,
+      softLinks: false,
+    },
   })
 }
 
@@ -57,30 +63,46 @@ afterEach(async () => {
 })
 
 // ---------------------------------------------------------------------------
-// Helpers
+// Helpers (WizShell skeleton)
 // ---------------------------------------------------------------------------
 
 /**
- * EntityChoiceCard renders a <div role="button"> as the card root (via
- * DisplayCard's cardClickable wiring). Inner native <button> tags also
- * report role=button — prefer the div root so the onClick from
- * cardClick:true fires.
+ * Class rows are OptRow <button>s whose accessible text starts with the
+ * class name; ability/equipment cards are Sel wrappers — div[role="button"]
+ * with aria-label set to the entity name. Both report role=button, so a
+ * name match across role=button covers the whole wizard.
  */
-function getChoiceCardByName(name: string): HTMLElement {
-  const cardRoots = Array.from(document.querySelectorAll('div[role="button"]'))
-  const card = cardRoots.find((b) => (b.textContent ?? '').includes(name))
-  if (!card) throw new Error(`No card div[role=button] containing "${name}"`)
-  return card as HTMLElement
+function getPickByName(name: string): HTMLElement {
+  const candidates = screen.getAllByRole('button')
+  const exact = candidates.find((b) => b.getAttribute('aria-label') === name)
+  if (exact) return exact
+  // OptRows lead with the 44px 'art' placeholder, so match by inclusion.
+  const row = candidates.find((b) => (b.textContent ?? '').includes(name))
+  if (!row) throw new Error(`No role=button pick for "${name}"`)
+  return row
 }
 
+async function pick(name: string): Promise<void> {
+  await act(async () => {
+    fireEvent.click(getPickByName(name))
+  })
+}
+
+/** The primary CTA is labeled from the steps array: 'Next · {step} →'. */
 function getNextButton(): HTMLElement {
-  return screen.getByRole('button', { name: /^Next$/ })
+  return screen.getByRole('button', { name: /^Next ·/ })
 }
 
 async function clickNext(): Promise<void> {
   await act(async () => {
     fireEvent.click(getNextButton())
   })
+}
+
+function idOf(name: string, accessor: { find: (fn: (x: { name: string }) => boolean) => unknown }) {
+  const found = accessor.find((x) => x.name === name) as { id: string } | undefined
+  if (!found) throw new Error(`Reference entity "${name}" not found`)
+  return found.id
 }
 
 // ---------------------------------------------------------------------------
@@ -93,37 +115,25 @@ describe('PilotWizard — happy path', () => {
     const onCancel = mock(() => {})
     render(<PilotWizard onComplete={onComplete} onCancel={onCancel} />)
 
-    // --- Step 1: Class ---
-    // Engineer is a base class with three core trees: Mechanical Knowledge,
-    // Forging, Mech-Tech.
-    await act(async () => {
-      fireEvent.click(getChoiceCardByName('Engineer'))
-    })
+    // --- Step 1: Class (master-detail OptRow list) ---
+    await pick('Engineer')
     await clickNext()
 
-    // --- Step 2: Abilities ---
-    // Three level-1 abilities — one per Engineer tree.
-    await act(async () => {
-      fireEvent.click(getChoiceCardByName('Engineering Expertise'))
-    })
-    await act(async () => {
-      fireEvent.click(getChoiceCardByName('Jury Rig'))
-    })
-    await act(async () => {
-      fireEvent.click(getChoiceCardByName('Mass Field Maintenance'))
-    })
+    // --- Step 2: Abilities — three level-1 picks, live count in subtitle ---
+    await pick('Engineering Expertise')
+    expect(screen.getByTestId('ability-count').textContent).toContain('1 / 3')
+    await pick('Jury Rig')
+    await pick('Mass Field Maintenance')
+    expect(screen.getByTestId('ability-count').textContent).toContain('3 / 3')
     await clickNext()
 
     // --- Step 3: Equipment ---
-    // Just one starting equipment pick to keep the test data-light.
     const equipment = SalvageUnionReference.Equipment.findAll(
       (e: unknown) => (e as { techLevel: number }).techLevel === 1
     )
     expect(equipment.length).toBeGreaterThan(0)
     const firstEquipment = equipment[0] as { name: string }
-    await act(async () => {
-      fireEvent.click(getChoiceCardByName(firstEquipment.name))
-    })
+    await pick(firstEquipment.name)
     await clickNext()
 
     // --- Step 4: Identity (name + callsign required) ---
@@ -138,7 +148,7 @@ describe('PilotWizard — happy path', () => {
     // --- Step 5: Background (optional) ---
     await clickNext()
 
-    // --- Step 6: Review → submit ---
+    // --- Step 6: Review → submit ('Create Pilot ✦') ---
     const submit = screen.getByRole('button', { name: /Create Pilot/i })
     await act(async () => {
       fireEvent.click(submit)
@@ -173,21 +183,13 @@ describe('PilotWizard — background field round-trips', () => {
     render(<PilotWizard onComplete={onComplete} onCancel={() => {}} />)
 
     // Step 1: Class
-    await act(async () => {
-      fireEvent.click(getChoiceCardByName('Engineer'))
-    })
+    await pick('Engineer')
     await clickNext()
 
     // Step 2: Abilities — pick three
-    await act(async () => {
-      fireEvent.click(getChoiceCardByName('Engineering Expertise'))
-    })
-    await act(async () => {
-      fireEvent.click(getChoiceCardByName('Jury Rig'))
-    })
-    await act(async () => {
-      fireEvent.click(getChoiceCardByName('Mass Field Maintenance'))
-    })
+    await pick('Engineering Expertise')
+    await pick('Jury Rig')
+    await pick('Mass Field Maintenance')
     await clickNext()
 
     // Step 3: Equipment — skip (just proceed)
@@ -228,46 +230,129 @@ describe('PilotWizard — background field round-trips', () => {
 })
 
 // ---------------------------------------------------------------------------
-// Edge case: 3-ability hard cap
+// Edge case: 3-ability creation budget
 // ---------------------------------------------------------------------------
 
-describe('PilotWizard — ability budget cap', () => {
+describe('PilotWizard — ability budget cap (create mode)', () => {
   it('blocks selection of a 4th ability once the 3-pick budget is reached', async () => {
     render(<PilotWizard onComplete={() => {}} onCancel={() => {}} />)
 
     // Select Engineer
-    await act(async () => {
-      fireEvent.click(getChoiceCardByName('Engineer'))
-    })
+    await pick('Engineer')
     await clickNext()
 
     // Pick three abilities
-    await act(async () => {
-      fireEvent.click(getChoiceCardByName('Engineering Expertise'))
-    })
-    await act(async () => {
-      fireEvent.click(getChoiceCardByName('Jury Rig'))
-    })
-    await act(async () => {
-      fireEvent.click(getChoiceCardByName('Mass Field Maintenance'))
-    })
+    await pick('Engineering Expertise')
+    await pick('Jury Rig')
+    await pick('Mass Field Maintenance')
 
-    // The fourth potential ability — pick any other level-1 ability that
-    // exists in the engineer trees. After 3 picks, the wizard re-renders
-    // remaining picks as disabled EntityChoiceCard (rust ring + inline
-    // "Budget reached" reason). Any further click should be ignored.
-    // (We can't always find a 4th option per tree — Engineer's tree-1
-    // abilities are level-1 and unique — so instead assert the inline
-    // reason renders on at least one remaining card. If no candidate
-    // remains the budget is enforced trivially.)
+    expect(screen.getByTestId('ability-count').textContent).toContain('3 / 3')
+
+    // Remaining unselected cards (if any) render the disabled Budget-reached
+    // affordance. If no candidate remains the budget is enforced trivially.
     const budgetReachedNotes = screen.queryAllByText(/Budget reached/i)
-    // Either there are remaining options now showing the reason, or there
-    // simply aren't any (every level-1 ability for Engineer was already
-    // chosen). Both states satisfy the cap.
     if (budgetReachedNotes.length === 0) {
-      // No further options at all — cap is naturally enforced. Move on.
       return
     }
     expect(budgetReachedNotes.length).toBeGreaterThan(0)
+  }, 30000)
+})
+
+// ---------------------------------------------------------------------------
+// Edit mode: upsert branch + advancement beyond the creation budget
+// ---------------------------------------------------------------------------
+
+async function seedEngineerPilot() {
+  const classId = idOf('Engineer', SalvageUnionReference.Classes)
+  const input = pilotFormToCreateInput({
+    name: 'Mira Voss',
+    classId,
+    abilities: [
+      idOf('Engineering Expertise', SalvageUnionReference.Abilities),
+      idOf('Jury Rig', SalvageUnionReference.Abilities),
+      idOf('Mass Field Maintenance', SalvageUnionReference.Abilities),
+    ],
+    equipment: [],
+    callsign: 'Sparks',
+    motto: 'Measure twice',
+    keepsake: 'A bent wrench',
+    appearance: 'Grease-stained',
+    background: 'Workshop kid.',
+  })
+  return useEntityStore.getState().create('pilot', input)
+}
+
+describe('PilotWizard — edit mode', () => {
+  it('prefills from the pilot, allows a 4th (level-2) ability, and updates without duplicating', async () => {
+    const pilot = await seedEngineerPilot()
+    const onComplete = mock(() => {})
+
+    render(
+      <PilotWizard
+        pilotId={pilot.id}
+        initialState={pilotToFormState(pilot)}
+        onComplete={onComplete}
+        onCancel={() => {}}
+      />
+    )
+
+    // Eyebrow flips to edit mode; class is prefilled so Next is enabled.
+    expect(screen.getByText('Edit Pilot')).toBeTruthy()
+    await clickNext()
+
+    // Abilities step in edit mode: all levels offered, uncapped, TP visible.
+    expect(screen.getByText(/TP available/i)).toBeTruthy()
+    await pick('Talk Shop') // Mechanical Knowledge level 2 — in order
+    await clickNext() // Equipment
+    await clickNext() // Identity (prefilled name/callsign)
+    await clickNext() // Background
+    await clickNext() // Review
+    // Review → 'Save Pilot' (never 'Create')
+    const save = screen.getByRole('button', { name: /Save Pilot/i })
+    await act(async () => {
+      fireEvent.click(save)
+    })
+
+    await waitFor(() => {
+      const pilots = useEntityStore.getState().list('pilot')
+      // Upsert branch: same record updated — never a duplicate create.
+      expect(pilots.length).toBe(1)
+      const p = pilots[0]!
+      expect(p.id).toBe(pilot.id)
+      expect(p.abilities.length).toBe(4)
+      expect(p.abilities).toContain(idOf('Talk Shop', SalvageUnionReference.Abilities))
+      // Live-play state untouched by the wizard patch.
+      expect(p.currentHP).toBe(pilot.currentHP)
+      expect(p.callsign).toBe('Sparks')
+    })
+    expect(onComplete).toHaveBeenCalledWith(pilot.id)
+  }, 30000)
+
+  it('shows a pre-save soft warning for an out-of-order pick but never blocks saving', async () => {
+    const pilot = await seedEngineerPilot()
+    render(
+      <PilotWizard
+        pilotId={pilot.id}
+        initialState={pilotToFormState(pilot)}
+        onComplete={() => {}}
+        onCancel={() => {}}
+      />
+    )
+
+    await clickNext() // Abilities
+    // 'Auto-Turret' is Forging level 3; level 2 ('Mech-Gyver') is not taken.
+    await pick('Auto-Turret')
+    await clickNext() // Equipment
+    await clickNext() // Identity
+    await clickNext() // Background
+    await clickNext() // Review
+
+    // Advisory banner present…
+    await waitFor(() => {
+      expect(screen.getByRole('alert').textContent).toContain('taken in order')
+    })
+    // …and the save CTA is still enabled (warnings never block).
+    const save = screen.getByRole('button', { name: /Save Pilot/i })
+    expect((save as HTMLButtonElement).disabled).toBe(false)
   }, 30000)
 })

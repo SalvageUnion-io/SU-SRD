@@ -1,9 +1,10 @@
 /**
  * CrawlerBuilder responsive layout tests.
  *
- * The builder is a stepper wizard (mirroring MechBuilder/PilotWizard): a
- * left stepper rail beside a content column on desktop, stacked on mobile.
- * Asserts that responsive layout scaffolding is present on initial render.
+ * The builder sits on the shared WizShell skeleton (design §3.2): a 196px
+ * stepper rail beside the panes on desktop (lg:flex-row), stacked full-width
+ * with a horizontal stepper on mobile. Asserts the responsive scaffolding is
+ * present on initial render.
  *
  * Conventions:
  *  - toBeTruthy() not toBeInTheDocument()
@@ -11,25 +12,34 @@
  *  - className string assertions for layout classes (happy-dom has no layout engine)
  */
 
-import { render } from '@testing-library/react'
-import { describe, expect, test } from 'bun:test'
+import { act, render } from '@testing-library/react'
+import { beforeAll, describe, expect, test } from 'bun:test'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import { CrawlerBuilder } from '../CrawlerBuilder'
 
+beforeAll(async () => {
+  // The builder preloads these on mount; warming the cache here lets the
+  // act() flush below absorb the resulting state update.
+  await SalvageUnionReference.preload(['crawler-tech-levels', 'systems', 'crawler-bays'])
+})
+
+async function renderBuilder() {
+  const result = render(<CrawlerBuilder onComplete={() => {}} onCancel={() => {}} />)
+  // Flush the mount-effect preload chain so its setState lands inside act.
+  await act(async () => {})
+  return result
+}
+
 describe('CrawlerBuilder — responsive wizard layout', () => {
-  test('renders a responsive stepper + content grid on desktop', () => {
-    const { container } = render(
-      <CrawlerBuilder onCreated={() => undefined} onCancel={() => undefined} />
-    )
-    // The wizard shell uses a 2-column grid (stepper rail + content) at lg.
-    const grid = container.querySelector('[class*="lg:grid-cols-"]')
-    expect(grid).toBeTruthy()
+  test('renders the WizShell row layout (stacked on mobile, rail beside panes at lg)', async () => {
+    const { container } = await renderBuilder()
+    const shell = container.querySelector('[class*="lg:flex-row"]')
+    expect(shell).toBeTruthy()
   })
 
-  test('renders a stepper navigation rail', () => {
-    const { container } = render(
-      <CrawlerBuilder onCreated={() => undefined} onCancel={() => undefined} />
-    )
-    const stepper = container.querySelector('nav[aria-label="Wizard steps"]')
+  test('renders a stepper navigation rail', async () => {
+    const { container } = await renderBuilder()
+    const stepper = container.querySelector('nav[aria-label="Steps"]')
     expect(stepper).toBeTruthy()
   })
 })

@@ -8,7 +8,7 @@
  * 404 rendered inline when the pilot is not found after hydration.
  */
 
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 
 import { useEntityStore } from '../../stores/entityStore'
 import { AssignCrawlerToPilot } from '../../components/wiring/AssignCrawlerToPilot'
@@ -49,9 +49,9 @@ function PilotDetailPage() {
     return (
       <main className="mx-auto max-w-7xl px-4 py-8">
         <p className="text-muted-foreground">Pilot not found.</p>
-        <a href="/" className={cn(buttonVariants({ variant: 'link', size: 'sm' }))}>
+        <Link to="/" className={cn(buttonVariants({ variant: 'link', size: 'sm' }))}>
           Back to dashboard
-        </a>
+        </Link>
       </main>
     )
   }
@@ -71,12 +71,21 @@ function PilotDetailPage() {
             Class: {resolveClassName(pilot.classRef)}
           </p>
         </div>
-        <a
-          href="/"
-          className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
-        >
-          Back
-        </a>
+        <div className="flex gap-2">
+          <Link
+            to="/pilots/$id/edit"
+            params={{ id }}
+            className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'no-underline')}
+          >
+            Edit
+          </Link>
+          <Link
+            to="/"
+            className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
+          >
+            Back
+          </Link>
+        </div>
       </div>
 
       {/* 2-pane at lg+: left = sheet/summary, right = wiring/actions */}
@@ -156,12 +165,13 @@ function PilotDetailPage() {
 
           {/* Actions */}
           <div className="flex flex-wrap gap-3">
-            <a
-              href={`/sheet/pilot/${id}`}
+            <Link
+              to="/sheet/$kind/$id"
+              params={{ kind: 'pilot', id }}
               className={cn(buttonVariants({ variant: 'default' }), 'no-underline')}
             >
               View Sheet
-            </a>
+            </Link>
             <ExportEntityButton type="pilot" id={id} name={pilot.name} />
           </div>
         </div>

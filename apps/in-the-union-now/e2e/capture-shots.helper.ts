@@ -18,7 +18,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 import { fileURLToPath } from 'url'
 import { test, expect } from '@playwright/test'
-import { pickByName, waitForReady } from './_helpers'
+import { clickNext, pickByName, waitForReady } from './_helpers'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -38,7 +38,10 @@ async function shot(
   await page.setViewportSize({ width, height })
   // Brief settle after viewport change
   await page.waitForTimeout(300)
-  await page.screenshot({ path: path.join(SHOTS_DIR, `${name}.png`), fullPage: false })
+  await page.screenshot({
+    path: path.join(SHOTS_DIR, `${name}.png`),
+    fullPage: false,
+  })
 }
 
 test('capture sheet + detail route screenshots', async ({ page }) => {
@@ -48,26 +51,27 @@ test('capture sheet + detail route screenshots', async ({ page }) => {
   await page.goto('/pilots/new')
   await waitForReady(page)
 
+  // Class -> Abilities -> Equipment -> Identity -> Background -> Review
   await pickByName(page, 'Engineer')
-  await page.getByRole('button', { name: /^Next$/ }).click()
+  await clickNext(page) // -> Abilities
 
   // Abilities step — pick first available
   await page.locator('div[role="button"]').first().click()
-  await page.getByRole('button', { name: /^Next$/ }).click()
+  await clickNext(page) // -> Equipment
 
   // Equipment step — pick first available
   await page.locator('div[role="button"]').first().click()
-  await page.getByRole('button', { name: /^Next$/ }).click()
+  await clickNext(page) // -> Identity
 
   // Identity
   await page.getByLabel(/^Name/).fill('Test Pilot')
   await page.getByLabel(/Callsign/).fill('Tester')
-  await page.getByRole('button', { name: /^Next$/ }).click()
+  await clickNext(page) // -> Background
 
   // Background (skip)
-  await page.getByRole('button', { name: /^Next$/ }).click()
+  await clickNext(page) // -> Review
 
-  // Create
+  // Review -> create
   await page.getByRole('button', { name: /Create Pilot/i }).click()
   await page.waitForURL((url) => url.pathname === '/', { timeout: 15_000 })
 
@@ -78,7 +82,9 @@ test('capture sheet + detail route screenshots', async ({ page }) => {
   await waitForReady(page)
 
   // Find the pilot's name link to get its ID
-  await expect(page.getByText('Test Pilot').first()).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByText('Test Pilot').first()).toBeVisible({
+    timeout: 15_000,
+  })
 
   // The EntityListItem renders a "View" link for the detail route.
   // We grab the first "View" link in the pilots section (it's the first on the page).
@@ -97,7 +103,9 @@ test('capture sheet + detail route screenshots', async ({ page }) => {
   // Go back to dashboard and use the Sheet link
   await page.goto('/')
   await waitForReady(page)
-  await expect(page.getByText('Test Pilot').first()).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByText('Test Pilot').first()).toBeVisible({
+    timeout: 15_000,
+  })
 
   const sheetLink = page.getByRole('link', { name: /^Sheet$/i }).first()
   await sheetLink.click()
@@ -112,10 +120,15 @@ test('capture sheet + detail route screenshots', async ({ page }) => {
   // 4. Build a mech, wire pilot → mech via the mech detail page,
   //    then capture the wired sheet
   // ----------------------------------------------------------------
+  // Chassis -> Systems -> Modules -> Identity -> Review
   await page.goto('/mechs/new')
   await waitForReady(page)
   await pickByName(page, 'Mule')
+  await clickNext(page) // -> Systems
+  await clickNext(page) // -> Modules
+  await clickNext(page) // -> Identity
   await page.getByLabel(/Mech name/i).fill('Iron Fist')
+  await clickNext(page) // -> Review
   await page.getByRole('button', { name: /Create Mech/i }).click()
   await page.waitForURL((url) => url.pathname === '/', { timeout: 15_000 })
 
@@ -124,7 +137,9 @@ test('capture sheet + detail route screenshots', async ({ page }) => {
   // so we use getByRole with exact text and filter to the one that links to /mechs/.
   await page.goto('/')
   await waitForReady(page)
-  await expect(page.getByText('Iron Fist').first()).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByText('Iron Fist').first()).toBeVisible({
+    timeout: 15_000,
+  })
 
   // Navigate to the mech detail page.
   // "Iron Fist" text is rendered as a link in EntityListItem; use it directly.
@@ -163,7 +178,9 @@ test('capture sheet + detail route screenshots', async ({ page }) => {
   // Now navigate to the pilot's sheet (pilot is still the primary wired entity)
   await page.goto('/')
   await waitForReady(page)
-  await expect(page.getByText('Test Pilot').first()).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByText('Test Pilot').first()).toBeVisible({
+    timeout: 15_000,
+  })
   const wiredSheetLink = page.getByRole('link', { name: /^Sheet$/i }).first()
   await wiredSheetLink.click()
   await page.waitForURL(/\/sheet\//, { timeout: 10_000 })

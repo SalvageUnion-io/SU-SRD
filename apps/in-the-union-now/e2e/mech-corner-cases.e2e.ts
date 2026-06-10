@@ -1,53 +1,62 @@
 import { test, expect } from '@playwright/test'
-import { pickByName, waitForReady } from './_helpers'
+import { clickNext, pickByName, waitForReady } from './_helpers'
 
 /**
- * MechBuilder corner cases (chassis-first stepper wizard):
+ * MechWizard corner cases (chassis-first WizShell wizard):
  *  - The stepper gates progress: Next is disabled until a chassis is chosen,
  *    then disabled again on Identity until a name is entered, and Create is
  *    enabled on Review.
- *  - The Loadout step renders the systems/modules grid with capacity counters.
+ *  - The install steps render the 1fr/300px grid: TL filter chips on the
+ *    left, the 'Loadout · {name}' panel with budget tracks on the right.
  *
- * The Next button is matched with `exact: true` because chassis/system cards
- * are themselves role=button and some contain "next" in their body text.
+ * The primary CTA is labeled from the steps array ('Next · Systems →'), so
+ * the shared clickNext/^Next ·/ matcher is used throughout.
  */
 
 test('wizard gates progress until chassis + name are set', async ({ page }) => {
   await page.goto('/mechs/new')
   await waitForReady(page)
 
-  const next = page.getByRole('button', { name: 'Next', exact: true })
+  const next = page.getByRole('button', { name: /^Next ·/ })
 
   // Chassis step — Next disabled until a chassis is chosen.
   await expect(next).toBeDisabled()
   await pickByName(page, 'Mule')
   await expect(next).toBeEnabled()
 
-  // Chassis -> Loadout -> Identity
-  await next.click()
-  await next.click()
+  // Chassis -> Systems -> Modules -> Identity
+  await clickNext(page)
+  await clickNext(page)
+  await clickNext(page)
 
   // Identity step — Next disabled until a name is entered.
-  await expect(page.getByRole('button', { name: 'Next', exact: true })).toBeDisabled()
+  await expect(page.getByRole('button', { name: /^Next ·/ })).toBeDisabled()
   await page.getByLabel(/Mech name/i).fill('Iron Fist')
-  await expect(page.getByRole('button', { name: 'Next', exact: true })).toBeEnabled()
+  await expect(page.getByRole('button', { name: /^Next ·/ })).toBeEnabled()
 
   // Identity -> Review — Create is enabled.
-  await page.getByRole('button', { name: 'Next', exact: true }).click()
+  await clickNext(page)
   await expect(page.getByRole('button', { name: /Create Mech/i })).toBeEnabled()
 })
 
-test('Loadout step shows the systems/modules grid after chassis pick', async ({ page }) => {
+test('install steps show TL filter chips and the Loadout budget panel', async ({ page }) => {
   await page.goto('/mechs/new')
   await waitForReady(page)
 
-  // Chassis step -> pick -> advance to Loadout.
+  // Chassis step -> pick -> advance to Install Systems.
   await pickByName(page, 'Mule')
-  await page.getByRole('button', { name: 'Next', exact: true }).click()
+  await clickNext(page)
 
-  // Loadout step — capacity-counter tab buttons visible.
-  // Anchored regexes (^) match only the SystemModuleGrid tab buttons
-  // (e.g. "Systems (0/16)"), not chassis cards that contain "Systems".
-  await expect(page.getByRole('button', { name: /^Systems \(/ })).toBeVisible()
-  await expect(page.getByRole('button', { name: /^Modules \(/ })).toBeVisible()
+  // Left column — TL filter chips.
+  await expect(page.getByRole('button', { name: 'TL1' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'TL6' })).toBeVisible()
+
+  // Right column — Loadout panel with the pip budget tracks.
+  await expect(page.getByText(/Loadout ·/)).toBeVisible()
+  await expect(page.getByText(/System Slots ·/i)).toBeVisible()
+  await expect(page.getByText(/Energy ·/i).first()).toBeVisible()
+
+  // Modules step shows its own budget track.
+  await clickNext(page)
+  await expect(page.getByText(/Module Slots ·/i)).toBeVisible()
 })

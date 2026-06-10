@@ -5,7 +5,7 @@
  * input (cargo lots get fresh ids), appends ' (from pattern)' to the name,
  * and calls entityStore.create('mech'). The new mech gets a fresh id and
  * fresh timestamps from the db layer, and is seeded with live stats exactly
- * like the MechBuilder path (plan 2.3, gap 7): full SP/EP from the chassis
+ * like the MechWizard path (plan 2.3, gap 7): full SP/EP from the chassis
  * and currentHeat 0 — never Heat-at-capacity.
  */
 

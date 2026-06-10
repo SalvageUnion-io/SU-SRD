@@ -1,55 +1,86 @@
+import { Field, Input } from 'suref-react'
 import type { RollTableDeps } from './rollTableHelpers'
 import { RollTableButton } from './RollTableButton'
 
+type IdentityField = 'name' | 'callsign' | 'motto' | 'keepsake' | 'appearance'
+
 type IdentityStepProps = {
+  name: string
   callsign: string
   motto: string
   keepsake: string
   appearance: string
-  onChange: (field: 'callsign' | 'motto' | 'keepsake' | 'appearance', value: string) => void
+  onChange: (field: IdentityField, value: string) => void
   /** Injectable deps for testing. */
   _rollDeps?: RollTableDeps
 }
 
-type FieldConfig = {
-  key: 'callsign' | 'motto' | 'keepsake' | 'appearance'
+type RollFieldConfig = {
+  key: Exclude<IdentityField, 'name'>
   label: string
   placeholder: string
-  rollField: 'callsign' | 'motto' | 'keepsake' | 'appearance'
+  required?: boolean
 }
 
-const FIELDS: FieldConfig[] = [
+const ROLL_ROWS: RollFieldConfig[] = [
   {
     key: 'callsign',
-    label: 'Callsign *',
+    label: 'Callsign',
     placeholder: 'Your pilot callsign',
-    rollField: 'callsign',
+    required: true,
   },
-  {
-    key: 'motto',
-    label: 'Motto',
-    placeholder: 'A phrase your pilot lives by',
-    rollField: 'motto',
-  },
+  { key: 'motto', label: 'Motto', placeholder: 'A phrase your pilot lives by' },
+]
+
+const ROLL_COLS: RollFieldConfig[] = [
   {
     key: 'keepsake',
     label: 'Keepsake',
     placeholder: 'Something precious from your past',
-    rollField: 'keepsake',
   },
   {
     key: 'appearance',
     label: 'Appearance',
     placeholder: 'How does your pilot look?',
-    rollField: 'appearance',
   },
 ]
 
+function RollField({
+  config,
+  value,
+  onChange,
+  _rollDeps,
+}: {
+  config: RollFieldConfig
+  value: string
+  onChange: (value: string) => void
+  _rollDeps?: RollTableDeps
+}) {
+  const id = `identity-${config.key}`
+  return (
+    <Field label={config.label} required={config.required} htmlFor={id}>
+      <div className="flex gap-2">
+        <Input
+          id={id}
+          type="text"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={config.placeholder}
+        />
+        <RollTableButton field={config.key} onRoll={onChange} _deps={_rollDeps} />
+      </div>
+    </Field>
+  )
+}
+
 /**
- * Step 4: Pilot identity — callsign, motto, keepsake, appearance.
- * Each field has a roll-table button and a free-text input for hand-editing.
+ * Identity step (design §3.2 Identity): max-w-760 form — plain Name (required),
+ * roll-to-fill rows for Callsign (required) and Motto, 2-col Keepsake and
+ * Appearance. Each roll field populates from salvageunion-reference roll
+ * tables; free typing allowed.
  */
 export function IdentityStep({
+  name,
   callsign,
   motto,
   keepsake,
@@ -57,39 +88,49 @@ export function IdentityStep({
   onChange,
   _rollDeps,
 }: IdentityStepProps) {
-  const values: Record<string, string> = { callsign, motto, keepsake, appearance }
+  const values: Record<Exclude<IdentityField, 'name'>, string> = {
+    callsign,
+    motto,
+    keepsake,
+    appearance,
+  }
 
   return (
-    <div className="space-y-6">
-      <p className="text-sm opacity-70">
-        Define your pilot&apos;s identity. Roll for random results or type your own.
-      </p>
-      {FIELDS.map(({ key, label, placeholder, rollField }) => (
-        <div key={key} className="space-y-1">
-          <label
-            className="block font-cond text-xs font-semibold uppercase tracking-[0.04em] text-su-black"
-            htmlFor={`identity-${key}`}
-          >
-            {label}
-          </label>
-          <div className="flex gap-2">
-            <input
-              id={`identity-${key}`}
-              type="text"
-              value={values[key] ?? ''}
-              onChange={(e) => onChange(key, e.target.value)}
-              placeholder={placeholder}
-              className="flex-1 rounded border border-su-black bg-white px-3 py-2.5 text-sm text-su-black placeholder:text-su-grey focus:outline-none focus:ring-2 focus:ring-su-orange"
-            />
-            <RollTableButton
-              field={rollField}
-              onRoll={(value) => onChange(key, value)}
-              label="Roll"
-              _deps={_rollDeps}
-            />
-          </div>
-        </div>
+    <div className="max-w-[760px] space-y-5">
+      <p className="text-sm text-wk-muted">Roll for random results or type your own.</p>
+
+      <Field label="Name" required htmlFor="pilot-name">
+        <Input
+          id="pilot-name"
+          type="text"
+          value={name}
+          onChange={(e) => onChange('name', e.target.value)}
+          placeholder="Your pilot's real name"
+          required
+        />
+      </Field>
+
+      {ROLL_ROWS.map((config) => (
+        <RollField
+          key={config.key}
+          config={config}
+          value={values[config.key]}
+          onChange={(v) => onChange(config.key, v)}
+          _rollDeps={_rollDeps}
+        />
       ))}
+
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+        {ROLL_COLS.map((config) => (
+          <RollField
+            key={config.key}
+            config={config}
+            value={values[config.key]}
+            onChange={(v) => onChange(config.key, v)}
+            _rollDeps={_rollDeps}
+          />
+        ))}
+      </div>
     </div>
   )
 }

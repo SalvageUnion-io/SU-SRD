@@ -1,5 +1,5 @@
 import type { SURefSystem } from 'salvageunion-reference'
-import { EntityChoiceCard } from '../shared/EntityChoiceCard'
+import { SelCard } from '../wizard/SelCard'
 
 type SystemsListProps = {
   /** All available systems, already filtered by tech level by the parent. */
@@ -8,6 +8,11 @@ type SystemsListProps = {
   onChange: (slugs: string[]) => void
 }
 
+/**
+ * Systems step grid — 3-col Sel-grid WizShell variant (design §3.2). The
+ * parent owns the TL filter (systems at the crawler's tech level and below);
+ * selection is uncapped — capacity is a soft warning, never a block.
+ */
 export function SystemsList({ systems, selectedSystemSlugs, onChange }: SystemsListProps) {
   function toggle(systemId: string) {
     if (selectedSystemSlugs.includes(systemId)) {
@@ -18,31 +23,20 @@ export function SystemsList({ systems, selectedSystemSlugs, onChange }: SystemsL
   }
 
   if (systems.length === 0) {
-    return (
-      <fieldset>
-        <legend className="mb-2 font-cond text-xs font-bold uppercase tracking-[0.08em] text-su-grey-dark">
-          Systems
-        </legend>
-        <p className="text-sm opacity-50">Select a tech level to see available systems.</p>
-      </fieldset>
-    )
+    return <p className="text-sm text-wk-muted">Select a tech level to see available systems.</p>
   }
 
   return (
-    <fieldset className="w-full">
-      <legend className="mb-2 font-cond text-xs font-bold uppercase tracking-[0.08em] text-su-grey-dark">
-        Systems
-      </legend>
-      <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
-        {systems.map((system) => (
-          <EntityChoiceCard
-            key={system.id}
-            entity={system}
-            selected={selectedSystemSlugs.includes(system.id)}
-            onSelect={() => toggle(system.id)}
-          />
-        ))}
-      </div>
-    </fieldset>
+    <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2 xl:grid-cols-3">
+      {systems.map((system) => (
+        <SelCard
+          key={system.id}
+          entity={system}
+          name={system.name}
+          selected={selectedSystemSlugs.includes(system.id)}
+          onToggle={() => toggle(system.id)}
+        />
+      ))}
+    </div>
   )
 }

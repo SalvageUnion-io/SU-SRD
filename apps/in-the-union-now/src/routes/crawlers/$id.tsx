@@ -8,7 +8,7 @@
  * 404 rendered inline when the crawler is not found after hydration.
  */
 
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 
 import { useEntityStore } from '../../stores/entityStore'
 import { useSoftLinks } from '../../components/wiring/useSoftLinks'
@@ -69,12 +69,21 @@ function CrawlerDetailPage() {
             Tech level: {crawler.techLevel}
           </p>
         </div>
-        <a
-          href="/"
-          className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
-        >
-          Back
-        </a>
+        <div className="flex gap-2">
+          <Link
+            to="/crawlers/$id/edit"
+            params={{ id }}
+            className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'no-underline')}
+          >
+            Edit
+          </Link>
+          <a
+            href="/"
+            className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
+          >
+            Back
+          </a>
+        </div>
       </div>
 
       {/* 2-pane at lg+: left = summary/stats, right = wiring/actions */}

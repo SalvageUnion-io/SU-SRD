@@ -1,12 +1,12 @@
 import { test, expect } from '@playwright/test'
-import { pickByName, waitForReady } from './_helpers'
+import { clickNext, pickByName, waitForReady } from './_helpers'
 
 /**
  * Wired build + snapshot publish/open round-trip.
  *
- * Builds pilot + mech + crawler, navigates to a sheet, publishes a
- * snapshot, then opens the resulting share URL in the same browser
- * context and verifies the snapshot renders.
+ * Builds pilot + mech + crawler through the WizShell wizards, navigates to
+ * a sheet, publishes a snapshot, then opens the resulting share URL in the
+ * same browser context and verifies the snapshot renders.
  *
  * Notes:
  *  - The snapshot backend lives in Netlify Functions; in local dev
@@ -18,54 +18,53 @@ import { pickByName, waitForReady } from './_helpers'
  *    works without state plumbing.
  */
 test('pilot + mech + crawler build and snapshot share URL', async ({ page }) => {
-  // --- Pilot ---
+  // --- Pilot (Class -> Abilities -> Equipment -> Identity -> Background -> Review) ---
   await page.goto('/pilots/new')
   await waitForReady(page)
   await pickByName(page, 'Engineer')
-  await page.getByRole('button', { name: /^Next$/ }).click()
+  await clickNext(page) // -> Abilities
   await pickByName(page, 'Engineering Expertise')
-  await page.getByRole('button', { name: /^Next$/ }).click()
-  // Equipment: pick first available
+  await clickNext(page) // -> Equipment
   await page.locator('div[role="button"]').first().click()
-  await page.getByRole('button', { name: /^Next$/ }).click()
+  await clickNext(page) // -> Identity
   await page.getByLabel(/^Name/).fill('Mira Voss')
   await page.getByLabel(/Callsign/).fill('Sparks')
-  await page.getByRole('button', { name: /^Next$/ }).click()
-  await page.getByRole('button', { name: /^Next$/ }).click()
+  await clickNext(page) // -> Background
+  await clickNext(page) // -> Review
   await page.getByRole('button', { name: /Create Pilot/i }).click()
   // Wait for navigation to the dashboard root ('/') — not '/pilots/new' — so we
   // know the async IndexedDB write completed before we move to the next step.
-  // The broken regex /\/(pilots\/|$)/ also matched the *current* URL '/pilots/new'
-  // (because it contains '/pilots/'), causing waitForURL to return immediately and
-  // interrupting the in-flight entity-store write.
   await page.waitForURL((url) => url.pathname === '/', { timeout: 15_000 })
 
-  // --- Mech (Chassis -> Loadout -> Identity -> Review wizard) ---
+  // --- Mech (Chassis -> Systems -> Modules -> Identity -> Review) ---
   await page.goto('/mechs/new')
   await waitForReady(page)
   await pickByName(page, 'Mule')
-  await page.getByRole('button', { name: 'Next', exact: true }).click() // -> Loadout
-  await page.getByRole('button', { name: 'Next', exact: true }).click() // -> Identity
+  await clickNext(page) // -> Systems
+  await clickNext(page) // -> Modules
+  await clickNext(page) // -> Identity
   await page.getByLabel(/Mech name/i).fill('Iron Fist')
-  await page.getByRole('button', { name: 'Next', exact: true }).click() // -> Review
+  await clickNext(page) // -> Review
   await page.getByRole('button', { name: /Create Mech/i }).click()
   await page.waitForURL((url) => url.pathname === '/', { timeout: 15_000 })
 
-  // --- Crawler (Tech Level -> Loadout -> Identity -> Review wizard) ---
+  // --- Crawler (Crawler -> Systems -> Identity -> Review) ---
   await page.goto('/crawlers/new')
   await waitForReady(page)
-  await page.getByRole('button', { name: /TL 1/i }).click()
-  await page.getByRole('button', { name: 'Next', exact: true }).click() // -> Loadout
-  await page.getByRole('button', { name: 'Next', exact: true }).click() // -> Identity
-  await page.getByLabel(/Crawler name/i).fill('Iron Wagon')
-  await page.getByRole('button', { name: 'Next', exact: true }).click() // -> Review
+  await pickByName(page, 'Hamlet Crawler')
+  await clickNext(page) // -> Systems
+  await clickNext(page) // -> Identity
+  await page.getByLabel(/Crawler Name/i).fill('Iron Wagon')
+  await clickNext(page) // -> Review
   await page.getByRole('button', { name: /Create Crawler/i }).click()
   await page.waitForURL((url) => url.pathname === '/', { timeout: 15_000 })
 
   // --- Open the pilot sheet and try to publish a snapshot ---
   await page.goto('/')
   await waitForReady(page)
-  await expect(page.getByText('Mira Voss').first()).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByText('Mira Voss').first()).toBeVisible({
+    timeout: 15_000,
+  })
 
   // Click the pilot's "Sheet" link (rendered by EntityListItem).
   const sheetLink = page.getByRole('link', { name: /^Sheet$/i }).first()
@@ -110,5 +109,7 @@ test('pilot + mech + crawler build and snapshot share URL', async ({ page }) => 
   const snapshotPage = await ctx.newPage()
   await snapshotPage.goto(urlText)
   await snapshotPage.waitForLoadState('domcontentloaded')
-  await expect(snapshotPage.getByText('Mira Voss').first()).toBeVisible({ timeout: 15_000 })
+  await expect(snapshotPage.getByText('Mira Voss').first()).toBeVisible({
+    timeout: 15_000,
+  })
 })

@@ -165,25 +165,47 @@ export type SoftWarning = {
 }
 
 /**
- * Minimal ability shape for soft-warning checks.
+ * Tier of an ability tree (advancement rules, plan S5):
+ * - core: a class's three core trees (Salvager: any core tree)
+ * - advanced: an Advanced/Hybrid specialisation tree (2 TP, gated on 6 core)
+ * - legendary: a Legendary tree (3 TP, gated on 6 core + 3 advanced; max one)
+ */
+export type AbilityTier = 'core' | 'advanced' | 'legendary'
+
+/**
+ * Minimal ability shape for soft-warning checks. `tree`/`level`/`tier` are
+ * resolved from salvageunion-reference by `enrichPilotSnapshot`; checks that
+ * need them no-op when they are absent (un-enriched snapshots).
  */
 export type AbilityInput = {
   ref: string
-  /** Minimum pilot level required, if known (optional) */
-  minLevel?: number
+  /** Display name for warning messages (defaults to ref). */
+  name?: string
+  /** Ability tree this ability belongs to, if known. */
+  tree?: string
+  /** Tree level (1–3 numeric; 'L' legendary, 'G' general), if known. */
+  level?: number | 'L' | 'G'
+  /** Tier classification of the ability's tree, if known. */
+  tier?: AbilityTier
 }
 
 /**
  * Minimal pilot shape consumed by `evaluateSoftWarnings`.
  */
 export type PilotSnapshot = {
-  level: number
   abilities: AbilityInput[]
   /**
    * True when the pilot's class is Salvager — raises the ability soft cap
    * from 10 to 12 (Core trees only, per the core rules).
    */
   isSalvager?: boolean
+  /**
+   * 'base' for the six core classes; 'advanced-hybrid' for an Advanced or
+   * Hybrid specialisation class. Undefined when unresolvable.
+   */
+  classTier?: 'base' | 'advanced-hybrid'
+  /** Class display name for warning messages, if known. */
+  className?: string
 }
 
 /**

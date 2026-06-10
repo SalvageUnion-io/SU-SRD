@@ -12,6 +12,8 @@
  */
 
 import type {
+  AbilityInput,
+  AbilityTier,
   EditSnapshot,
   MechSnapshot,
   PilotSnapshot,
@@ -28,35 +30,132 @@ function warn(code: string, message: string): SoftWarning {
 }
 
 // ---------------------------------------------------------------------------
-// Pilot warning checks
+// Pilot warning checks (advancement prerequisites, plan S5 / 3.3–3.4)
+//
+// All checks are tier/tree-driven and evaluate the AFTER state — they need an
+// enriched snapshot (enrichPilotSnapshot resolves tree/level/tier from
+// salvageunion-reference). Un-enriched abilities (no tree/tier) are skipped,
+// so raw string[]-shaped callers degrade to "no warnings", never to noise.
 // ---------------------------------------------------------------------------
 
+function abilityLabel(a: AbilityInput): string {
+  return a.name ?? a.ref
+}
+
+/** Count of abilities in the given tier. */
+function tierCount(abilities: AbilityInput[], tier: AbilityTier): number {
+  return abilities.filter((a) => a.tier === tier).length
+}
+
+/** True when at least one core tree has 3+ selected abilities (a complete tree). */
+function hasCompleteCoreTree(abilities: AbilityInput[]): boolean {
+  const perTree = new Map<string, number>()
+  for (const a of abilities) {
+    if (a.tier !== 'core' || a.tree === undefined) continue
+    perTree.set(a.tree, (perTree.get(a.tree) ?? 0) + 1)
+  }
+  return [...perTree.values()].some((n) => n >= 3)
+}
+
 /**
- * Warn when a pilot has an ability whose `minLevel` requirement is not met
- * by the pilot's current level.
- *
- * "This ability is normally available at level N. This pilot is level M."
+ * Core trees are taken in order: an ability at numeric level n requires every
+ * lower level of the same tree. Applies to any tree with numeric levels
+ * (core AND advanced trees both run 1→3).
  */
-function checkAbilityPrerequisites(before: PilotSnapshot, after: PilotSnapshot): SoftWarning[] {
+function checkTreeOrder(after: PilotSnapshot): SoftWarning[] {
   const warnings: SoftWarning[] = []
-
-  // Only check abilities that are new in the `after` snapshot
-  const beforeRefs = new Set(before.abilities.map((a) => a.ref))
-
-  for (const ability of after.abilities) {
-    if (beforeRefs.has(ability.ref)) continue // already had it — not a new addition
-    if (ability.minLevel !== undefined && after.level < ability.minLevel) {
+  const levelsByTree = new Map<string, Set<number>>()
+  for (const a of after.abilities) {
+    if (a.tree === undefined || typeof a.level !== 'number') continue
+    const set = levelsByTree.get(a.tree) ?? new Set<number>()
+    set.add(a.level)
+    levelsByTree.set(a.tree, set)
+  }
+  for (const a of after.abilities) {
+    if (a.tree === undefined || typeof a.level !== 'number' || a.level <= 1) continue
+    const taken = levelsByTree.get(a.tree)
+    const missing: number[] = []
+    for (let lvl = 1; lvl < a.level; lvl++) {
+      if (!taken?.has(lvl)) missing.push(lvl)
+    }
+    if (missing.length > 0) {
       warnings.push(
         warn(
-          'ABILITY_LEVEL_PREREQUISITE',
-          `"${ability.ref}" is normally available at level ${ability.minLevel}. ` +
-            `This pilot is level ${after.level}.`
+          'ABILITY_TREE_ORDER',
+          `"${abilityLabel(a)}" is level ${a.level} in the ${a.tree} tree, but level ` +
+            `${missing.join(' and ')} of that tree ${missing.length === 1 ? "hasn't" : "haven't"} ` +
+            `been taken — trees are taken in order.`
         )
       )
     }
   }
-
   return warnings
+}
+
+/**
+ * Advanced/Hybrid abilities require 6 Core abilities including a complete
+ * core tree (rules: "6 Core abilities incl. all 3 in the linked tree").
+ */
+function checkAdvancedGate(after: PilotSnapshot): SoftWarning[] {
+  const advanced = after.abilities.filter((a) => a.tier === 'advanced')
+  if (advanced.length === 0) return []
+  const coreCount = tierCount(after.abilities, 'core')
+  if (coreCount >= 6 && hasCompleteCoreTree(after.abilities)) return []
+  const first = advanced[0]!
+  return [
+    warn(
+      'ADVANCED_ABILITY_PREREQUISITE',
+      `"${abilityLabel(first)}" is an Advanced/Hybrid ability — it normally requires ` +
+        `6 Core abilities including a complete core tree (this pilot has ${coreCount}).`
+    ),
+  ]
+}
+
+/** Legendary abilities require 6 Core + 3 Advanced/Hybrid abilities. */
+function checkLegendaryGate(after: PilotSnapshot): SoftWarning[] {
+  const legendary = after.abilities.filter((a) => a.tier === 'legendary')
+  if (legendary.length === 0) return []
+  const warnings: SoftWarning[] = []
+  const coreCount = tierCount(after.abilities, 'core')
+  const advancedCount = tierCount(after.abilities, 'advanced')
+  if (coreCount < 6 || advancedCount < 3) {
+    warnings.push(
+      warn(
+        'LEGENDARY_ABILITY_PREREQUISITE',
+        `"${abilityLabel(legendary[0]!)}" is a Legendary ability — it normally requires ` +
+          `6 Core and 3 Advanced/Hybrid abilities (this pilot has ${coreCount} core, ` +
+          `${advancedCount} advanced).`
+      )
+    )
+  }
+  if (legendary.length > 1) {
+    warnings.push(
+      warn(
+        'ONE_LEGENDARY_LIMIT',
+        `This pilot has ${legendary.length} Legendary abilities; the rules allow at most one — ever.`
+      )
+    )
+  }
+  return warnings
+}
+
+/**
+ * Switching to an Advanced/Hybrid specialisation class normally requires the
+ * 6-core gate. Only warns when the class CHANGED to advanced-hybrid in this
+ * edit — an already-specialised pilot is not nagged on every save.
+ */
+function checkClassPrerequisite(before: PilotSnapshot, after: PilotSnapshot): SoftWarning[] {
+  if (after.classTier !== 'advanced-hybrid') return []
+  if (before.classTier === 'advanced-hybrid') return []
+  const coreCount = tierCount(after.abilities, 'core')
+  if (coreCount >= 6 && hasCompleteCoreTree(after.abilities)) return []
+  return [
+    warn(
+      'CLASS_PREREQUISITE',
+      `${after.className ?? 'This specialisation'} is an Advanced/Hybrid class — it normally ` +
+        `requires 6 Core abilities including a complete core tree (this pilot has ${coreCount}).`
+    ),
+  ]
 }
 
 /**
@@ -154,8 +253,12 @@ function checkTechLevelDowngrade(context: SoftWarningContext): SoftWarning[] {
 /**
  * Evaluate soft warnings for a pilot edit.
  *
- * Documented cases:
- * - Pilot ability added whose `minLevel` requirement exceeds the pilot's level
+ * Documented cases (all advisory, never blocking — plan 3.3/3.4):
+ * - Tree order violated (level n taken without the levels below it)
+ * - Advanced/Hybrid ability without the 6-core gate
+ * - Legendary ability without 6 core + 3 advanced; more than one Legendary
+ * - Class switched to Advanced/Hybrid without the 6-core gate
+ * - Ability count beyond the rules cap (10 / Salvager 12)
  *
  * Returns an empty array when no warnings apply.
  */
@@ -164,7 +267,10 @@ export function evaluatePilotWarnings(
   context: SoftWarningContext
 ): SoftWarning[] {
   const warnings: SoftWarning[] = []
-  warnings.push(...checkAbilityPrerequisites(snapshot.before, snapshot.after))
+  warnings.push(...checkTreeOrder(snapshot.after))
+  warnings.push(...checkAdvancedGate(snapshot.after))
+  warnings.push(...checkLegendaryGate(snapshot.after))
+  warnings.push(...checkClassPrerequisite(snapshot.before, snapshot.after))
   warnings.push(...checkAbilityCountCap(snapshot.after))
   warnings.push(...checkTechLevelDowngrade(context))
   return warnings

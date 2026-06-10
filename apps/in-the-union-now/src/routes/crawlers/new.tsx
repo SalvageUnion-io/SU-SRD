@@ -9,7 +9,7 @@ export const Route = createFileRoute('/crawlers/new')({
 function CrawlersNewPage() {
   const navigate = useNavigate()
 
-  function handleCreated() {
+  function handleComplete() {
     void navigate({ to: '/' })
   }
 
@@ -18,9 +18,8 @@ function CrawlersNewPage() {
   }
 
   return (
-    <main className="mx-auto max-w-7xl px-4 py-8">
-      <h1 className="mb-6 text-2xl font-bold">New Crawler</h1>
-      <CrawlerBuilder onCreated={handleCreated} onCancel={handleCancel} />
+    <main className="min-h-dvh bg-background">
+      <CrawlerBuilder onComplete={handleComplete} onCancel={handleCancel} />
     </main>
   )
 }

@@ -1,9 +1,10 @@
 /**
- * Unit tests for softWarnings.ts — non-blocking rule violation detection (AC-5, REQ-012).
+ * Unit tests for softWarnings.ts — non-blocking rule violation detection
+ * (REQ-012; advancement prerequisites per plan S5 / 3.3–3.4).
  *
  * All tests use hand-crafted fixtures — soft warnings are intentionally
  * independent of salvageunion-reference data so they can be tested in
- * complete isolation.
+ * complete isolation (enrichment is pilotSnapshot.ts's job).
  */
 import { describe, expect, it } from 'bun:test'
 import {
@@ -13,15 +14,49 @@ import {
   PILOT_ABILITY_CAP,
   SALVAGER_ABILITY_CAP,
 } from '../softWarnings'
-import type { EditSnapshot, MechSnapshot, PilotSnapshot, SoftWarningContext } from '../types'
+import type {
+  AbilityInput,
+  EditSnapshot,
+  MechSnapshot,
+  PilotSnapshot,
+  SoftWarningContext,
+} from '../types'
 
 // ---------------------------------------------------------------------------
 // Fixtures
 // ---------------------------------------------------------------------------
 
+function core(ref: string, tree: string, level: number): AbilityInput {
+  return { ref, name: ref, tree, level, tier: 'core' }
+}
+
+function adv(ref: string, tree = 'Advanced Engineer', level = 1): AbilityInput {
+  return { ref, name: ref, tree, level, tier: 'advanced' }
+}
+
+function leg(ref: string, tree = 'Legendary Engineer'): AbilityInput {
+  return { ref, name: ref, tree, level: 'L', tier: 'legendary' }
+}
+
+/** A pilot with two complete core trees (6 core abilities). */
+function sixCorePilot(extra: AbilityInput[] = []): PilotSnapshot {
+  return {
+    abilities: [
+      core('A1', 'Mechanical Knowledge', 1),
+      core('A2', 'Mechanical Knowledge', 2),
+      core('A3', 'Mechanical Knowledge', 3),
+      core('B1', 'Forging', 1),
+      core('B2', 'Forging', 2),
+      core('B3', 'Forging', 3),
+      ...extra,
+    ],
+    classTier: 'base',
+  }
+}
+
 const basePilot: PilotSnapshot = {
-  level: 2,
-  abilities: [{ ref: 'Basic Training', minLevel: 1 }],
+  abilities: [core('Basic Training', 'Mechanical Knowledge', 1)],
+  classTier: 'base',
 }
 
 const baseMech: MechSnapshot = {
@@ -33,80 +68,163 @@ const pilotCtx: SoftWarningContext = { entityType: 'pilot' }
 const mechCtx: SoftWarningContext = { entityType: 'mech' }
 const crawlerCtx: SoftWarningContext = { entityType: 'crawler' }
 
+function evalPilot(before: PilotSnapshot, after: PilotSnapshot) {
+  const snapshot: EditSnapshot<PilotSnapshot> = { before, after }
+  return evaluatePilotWarnings(snapshot, pilotCtx)
+}
+
 // ---------------------------------------------------------------------------
-// Pilot warnings — ability prerequisite
+// Pilot warnings — tree order
 // ---------------------------------------------------------------------------
 
-describe('evaluatePilotWarnings — ability prerequisite', () => {
-  it('returns no warnings when no new abilities are added', () => {
-    const snapshot: EditSnapshot<PilotSnapshot> = { before: basePilot, after: basePilot }
-    const warnings = evaluatePilotWarnings(snapshot, pilotCtx)
-    expect(warnings).toHaveLength(0)
-  })
-
-  it('returns no warnings when a new ability has a met minLevel requirement', () => {
+describe('evaluatePilotWarnings — tree order', () => {
+  it('returns no warnings for an in-order tree', () => {
     const after: PilotSnapshot = {
-      level: 4,
-      abilities: [...basePilot.abilities, { ref: 'Advanced Strike', minLevel: 3 }],
+      abilities: [core('A1', 'Forging', 1), core('A2', 'Forging', 2)],
     }
-    const snapshot: EditSnapshot<PilotSnapshot> = { before: basePilot, after }
-    const warnings = evaluatePilotWarnings(snapshot, pilotCtx)
-    expect(warnings).toHaveLength(0)
+    expect(evalPilot(basePilot, after)).toHaveLength(0)
   })
 
-  it('warns when a new ability has an unmet minLevel requirement', () => {
+  it('warns when a level-2 ability is taken without level 1 of its tree', () => {
     const after: PilotSnapshot = {
-      level: 2,
-      abilities: [...basePilot.abilities, { ref: 'Legendary Strike', minLevel: 4 }],
+      abilities: [core('Mech-Gyver', 'Forging', 2)],
     }
-    const snapshot: EditSnapshot<PilotSnapshot> = { before: basePilot, after }
-    const warnings = evaluatePilotWarnings(snapshot, pilotCtx)
-
-    expect(warnings).toHaveLength(1)
-    expect(warnings[0]?.code).toBe('ABILITY_LEVEL_PREREQUISITE')
-    expect(warnings[0]?.severity).toBe('warn')
-    expect(warnings[0]?.message).toContain('Legendary Strike')
-    expect(warnings[0]?.message).toContain('level 4')
-    expect(warnings[0]?.message).toContain('level 2')
+    const warnings = evalPilot(basePilot, after)
+    expect(warnings.some((w) => w.code === 'ABILITY_TREE_ORDER')).toBe(true)
+    const warning = warnings.find((w) => w.code === 'ABILITY_TREE_ORDER')
+    expect(warning?.severity).toBe('warn')
+    expect(warning?.message).toContain('Mech-Gyver')
+    expect(warning?.message).toContain('Forging')
   })
 
-  it('warns once per unmet prerequisite ability', () => {
+  it('lists every missing lower level', () => {
     const after: PilotSnapshot = {
-      level: 1,
+      abilities: [core('Auto-Turret', 'Forging', 3)],
+    }
+    const warnings = evalPilot(basePilot, after)
+    const warning = warnings.find((w) => w.code === 'ABILITY_TREE_ORDER')
+    expect(warning?.message).toContain('1 and 2')
+  })
+
+  it('skips un-enriched abilities (no tree/level data)', () => {
+    const after: PilotSnapshot = {
+      abilities: [{ ref: 'mystery-slug' }],
+    }
+    expect(evalPilot(basePilot, after)).toHaveLength(0)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Pilot warnings — advanced / legendary gates
+// ---------------------------------------------------------------------------
+
+describe('evaluatePilotWarnings — advanced gate', () => {
+  it('no warning when 6 core abilities incl. a complete tree are present', () => {
+    const after = sixCorePilot([adv('Union Engineer')])
+    expect(
+      evalPilot(basePilot, after).filter((w) => w.code === 'ADVANCED_ABILITY_PREREQUISITE')
+    ).toHaveLength(0)
+  })
+
+  it('warns when an advanced ability is taken without 6 core abilities', () => {
+    const after: PilotSnapshot = {
+      abilities: [core('A1', 'Forging', 1), adv('Union Engineer')],
+    }
+    const warnings = evalPilot(basePilot, after)
+    const warning = warnings.find((w) => w.code === 'ADVANCED_ABILITY_PREREQUISITE')
+    expect(warning).toBeDefined()
+    expect(warning?.message).toContain('Union Engineer')
+    expect(warning?.message).toContain('6 Core')
+  })
+
+  it('warns when 6 core abilities exist but no tree is complete', () => {
+    const after: PilotSnapshot = {
       abilities: [
-        ...basePilot.abilities,
-        { ref: 'Power Surge', minLevel: 3 },
-        { ref: 'Ultra Strike', minLevel: 5 },
+        core('A1', 'Mechanical Knowledge', 1),
+        core('A2', 'Mechanical Knowledge', 2),
+        core('B1', 'Forging', 1),
+        core('B2', 'Forging', 2),
+        core('C1', 'Mech-Tech', 1),
+        core('C2', 'Mech-Tech', 2),
+        adv('Union Engineer'),
       ],
     }
-    const snapshot: EditSnapshot<PilotSnapshot> = { before: basePilot, after }
-    const warnings = evaluatePilotWarnings(snapshot, pilotCtx)
+    expect(
+      evalPilot(basePilot, after).some((w) => w.code === 'ADVANCED_ABILITY_PREREQUISITE')
+    ).toBe(true)
+  })
+})
 
-    // Two new abilities, both unmet → two warnings
-    expect(warnings.filter((w) => w.code === 'ABILITY_LEVEL_PREREQUISITE')).toHaveLength(2)
+describe('evaluatePilotWarnings — legendary gates', () => {
+  it('no warning when 6 core + 3 advanced are present', () => {
+    const after = sixCorePilot([
+      adv('X1', 'Advanced Engineer', 1),
+      adv('X2', 'Advanced Engineer', 2),
+      adv('X3', 'Advanced Engineer', 3),
+      leg('Omega'),
+    ])
+    expect(
+      evalPilot(basePilot, after).filter((w) => w.code === 'LEGENDARY_ABILITY_PREREQUISITE')
+    ).toHaveLength(0)
   })
 
-  it('does not re-warn for abilities already present in the before snapshot', () => {
-    const pilotWithHighAbility: PilotSnapshot = {
-      level: 1,
-      abilities: [{ ref: 'Overpower', minLevel: 4 }],
-    }
-    const snapshot: EditSnapshot<PilotSnapshot> = {
-      before: pilotWithHighAbility,
-      after: pilotWithHighAbility, // same — no new abilities
-    }
-    const warnings = evaluatePilotWarnings(snapshot, pilotCtx)
-    expect(warnings).toHaveLength(0)
+  it('warns when a legendary ability lacks the 6-core + 3-advanced gate', () => {
+    const after = sixCorePilot([leg('Omega')])
+    const warning = evalPilot(basePilot, after).find(
+      (w) => w.code === 'LEGENDARY_ABILITY_PREREQUISITE'
+    )
+    expect(warning).toBeDefined()
+    expect(warning?.message).toContain('Omega')
   })
 
-  it('does not warn for abilities with no minLevel set', () => {
+  it('warns when more than one legendary ability is held', () => {
+    const after = sixCorePilot([
+      adv('X1', 'Advanced Engineer', 1),
+      adv('X2', 'Advanced Engineer', 2),
+      adv('X3', 'Advanced Engineer', 3),
+      leg('Omega'),
+      leg('Alpha', 'Legendary Hauler'),
+    ])
+    expect(evalPilot(basePilot, after).some((w) => w.code === 'ONE_LEGENDARY_LIMIT')).toBe(true)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Pilot warnings — class prerequisite
+// ---------------------------------------------------------------------------
+
+describe('evaluatePilotWarnings — class prerequisite', () => {
+  it('warns when switching to an advanced/hybrid class without the 6-core gate', () => {
     const after: PilotSnapshot = {
-      level: 1,
-      abilities: [...basePilot.abilities, { ref: 'Free Ability' }], // no minLevel
+      abilities: basePilot.abilities,
+      classTier: 'advanced-hybrid',
+      className: 'Cyborg',
     }
-    const snapshot: EditSnapshot<PilotSnapshot> = { before: basePilot, after }
-    const warnings = evaluatePilotWarnings(snapshot, pilotCtx)
-    expect(warnings).toHaveLength(0)
+    const warning = evalPilot(basePilot, after).find((w) => w.code === 'CLASS_PREREQUISITE')
+    expect(warning).toBeDefined()
+    expect(warning?.message).toContain('Cyborg')
+  })
+
+  it('no warning when the gate is met', () => {
+    const after: PilotSnapshot = {
+      ...sixCorePilot(),
+      classTier: 'advanced-hybrid',
+      className: 'Cyborg',
+    }
+    expect(
+      evalPilot(sixCorePilot(), after).filter((w) => w.code === 'CLASS_PREREQUISITE')
+    ).toHaveLength(0)
+  })
+
+  it('does not re-warn a pilot who was already specialised', () => {
+    const specialised: PilotSnapshot = {
+      abilities: basePilot.abilities,
+      classTier: 'advanced-hybrid',
+      className: 'Cyborg',
+    }
+    expect(
+      evalPilot(specialised, specialised).filter((w) => w.code === 'CLASS_PREREQUISITE')
+    ).toHaveLength(0)
   })
 })
 
@@ -117,8 +235,9 @@ describe('evaluatePilotWarnings — ability prerequisite', () => {
 describe('evaluatePilotWarnings — ability count cap', () => {
   function pilotWithAbilities(count: number, isSalvager = false): PilotSnapshot {
     return {
-      level: 2,
-      abilities: Array.from({ length: count }, (_, i) => ({ ref: `Ability ${i}` })),
+      abilities: Array.from({ length: count }, (_, i) => ({
+        ref: `Ability ${i}`,
+      })),
       isSalvager,
     }
   }
@@ -158,7 +277,10 @@ describe('evaluatePilotWarnings — ability count cap', () => {
 
 describe('evaluateMechWarnings — system dependency', () => {
   it('returns no warnings when no systems are removed', () => {
-    const snapshot: EditSnapshot<MechSnapshot> = { before: baseMech, after: baseMech }
+    const snapshot: EditSnapshot<MechSnapshot> = {
+      before: baseMech,
+      after: baseMech,
+    }
     const warnings = evaluateMechWarnings(snapshot, mechCtx)
     expect(warnings).toHaveLength(0)
   })
@@ -199,8 +321,14 @@ describe('evaluateMechWarnings — system dependency', () => {
 
 describe('evaluateSoftWarnings — tech-level downgrade', () => {
   it('warns on tech-level downgrade for a mech', () => {
-    const ctx: SoftWarningContext = { entityType: 'mech', techLevelDowngraded: true }
-    const snapshot: EditSnapshot<MechSnapshot> = { before: baseMech, after: baseMech }
+    const ctx: SoftWarningContext = {
+      entityType: 'mech',
+      techLevelDowngraded: true,
+    }
+    const snapshot: EditSnapshot<MechSnapshot> = {
+      before: baseMech,
+      after: baseMech,
+    }
     const warnings = evaluateSoftWarnings(snapshot.before, snapshot.after, ctx)
 
     expect(warnings.some((w) => w.code === 'TECH_LEVEL_DOWNGRADE')).toBe(true)
@@ -212,7 +340,10 @@ describe('evaluateSoftWarnings — tech-level downgrade', () => {
       techLevelDowngraded: true,
       scrapRefundSkipped: true,
     }
-    const snapshot: EditSnapshot<MechSnapshot> = { before: baseMech, after: baseMech }
+    const snapshot: EditSnapshot<MechSnapshot> = {
+      before: baseMech,
+      after: baseMech,
+    }
     const warnings = evaluateSoftWarnings(snapshot.before, snapshot.after, ctx)
 
     expect(warnings.some((w) => w.code === 'TECH_LEVEL_DOWNGRADE')).toBe(true)
@@ -220,15 +351,24 @@ describe('evaluateSoftWarnings — tech-level downgrade', () => {
   })
 
   it('does not warn when techLevelDowngraded is false', () => {
-    const ctx: SoftWarningContext = { entityType: 'mech', techLevelDowngraded: false }
-    const snapshot: EditSnapshot<MechSnapshot> = { before: baseMech, after: baseMech }
+    const ctx: SoftWarningContext = {
+      entityType: 'mech',
+      techLevelDowngraded: false,
+    }
+    const snapshot: EditSnapshot<MechSnapshot> = {
+      before: baseMech,
+      after: baseMech,
+    }
     const warnings = evaluateSoftWarnings(snapshot.before, snapshot.after, ctx)
 
     expect(warnings.filter((w) => w.code === 'TECH_LEVEL_DOWNGRADE')).toHaveLength(0)
   })
 
   it('warns on tech-level downgrade for a crawler', () => {
-    const ctx: SoftWarningContext = { entityType: 'crawler', techLevelDowngraded: true }
+    const ctx: SoftWarningContext = {
+      entityType: 'crawler',
+      techLevelDowngraded: true,
+    }
     const fakeCrawler: MechSnapshot = { systems: [] }
     const warnings = evaluateSoftWarnings(fakeCrawler, fakeCrawler, ctx)
 
@@ -243,11 +383,10 @@ describe('evaluateSoftWarnings — tech-level downgrade', () => {
 describe('evaluateSoftWarnings — dispatch by entityType', () => {
   it('dispatches pilot warnings correctly', () => {
     const after: PilotSnapshot = {
-      level: 1,
-      abilities: [...basePilot.abilities, { ref: 'High Level Ability', minLevel: 5 }],
+      abilities: [core('Out of Order', 'Forging', 3)],
     }
     const warnings = evaluateSoftWarnings(basePilot, after, pilotCtx)
-    expect(warnings.some((w) => w.code === 'ABILITY_LEVEL_PREREQUISITE')).toBe(true)
+    expect(warnings.some((w) => w.code === 'ABILITY_TREE_ORDER')).toBe(true)
   })
 
   it('dispatches mech warnings correctly', () => {
@@ -257,12 +396,14 @@ describe('evaluateSoftWarnings — dispatch by entityType', () => {
         { ref: 'Weapon', requires: ['Core'] },
       ],
     }
-    const after: MechSnapshot = { systems: [{ ref: 'Weapon', requires: ['Core'] }] }
+    const after: MechSnapshot = {
+      systems: [{ ref: 'Weapon', requires: ['Core'] }],
+    }
     const warnings = evaluateSoftWarnings(before, after, mechCtx)
     expect(warnings.some((w) => w.code === 'SYSTEM_DEPENDENCY_REMOVED')).toBe(true)
   })
 
-  it('returns empty array for pilot with no new abilities and no downgrade', () => {
+  it('returns empty array for an unchanged in-order pilot', () => {
     const warnings = evaluateSoftWarnings(basePilot, basePilot, pilotCtx)
     expect(warnings).toHaveLength(0)
   })

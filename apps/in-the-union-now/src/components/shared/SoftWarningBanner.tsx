@@ -22,8 +22,13 @@ import type { SoftWarning, SoftWarningSeverity } from '../../lib/rules/types'
 
 type SoftWarningBannerProps = {
   warnings: SoftWarning[]
-  onSaveAnyway: () => void
-  onFixIt: () => void
+  /**
+   * Optional confirm-and-proceed actions. Omit BOTH for the passive pre-save
+   * variant (wizard Review step): warnings render purely as information and
+   * the wizard's own CTA proceeds regardless — never blocking (plan 3.4).
+   */
+  onSaveAnyway?: () => void
+  onFixIt?: () => void
   className?: string
 }
 
@@ -59,7 +64,7 @@ export function SoftWarningBanner({
       aria-live="polite"
       className={cn('rounded border px-4 py-3 text-sm', className)}
     >
-      <ul className="mb-3 space-y-1">
+      <ul className={cn('space-y-1', (onSaveAnyway || onFixIt) && 'mb-3')}>
         {warnings.map((w) => (
           <li
             key={w.code}
@@ -76,14 +81,20 @@ export function SoftWarningBanner({
         ))}
       </ul>
 
-      <div className="flex gap-2">
-        <Button variant="outline" size="sm" onClick={onSaveAnyway}>
-          Save anyway
-        </Button>
-        <Button variant="ghost" size="sm" onClick={onFixIt}>
-          Fix it
-        </Button>
-      </div>
+      {(onSaveAnyway || onFixIt) && (
+        <div className="flex gap-2">
+          {onSaveAnyway && (
+            <Button variant="outline" size="sm" onClick={onSaveAnyway}>
+              Save anyway
+            </Button>
+          )}
+          {onFixIt && (
+            <Button variant="ghost" size="sm" onClick={onFixIt}>
+              Fix it
+            </Button>
+          )}
+        </div>
+      )}
     </div>
   )
 }

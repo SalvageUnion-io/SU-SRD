@@ -3,14 +3,15 @@ import { type Page, type Locator, expect } from '@playwright/test'
 /**
  * Shared helpers for ITUN end-to-end tests.
  *
- * Selection cards in the wizards are rendered by `EntityChoiceCard`, which
- * wraps `ReferenceEntityDisplay` with `cardClick: true`. The card root is a
- * `<div role="button">`. We locate cards by walking role=button divs whose
- * accessible text contains the entity name — the same pattern used by the
- * in-app integration tests.
+ * Wizard picks are role=button targets of two shapes: `Sel`-wrapped entity
+ * cards and `EntityChoiceCard`s render a `<div role="button">` (Sel carries
+ * an aria-label with the entity name); WizShell master panes render native
+ * `OptRow` <button>s. `getByRole('button')` covers both — we match by
+ * accessible text/name containing the entity name, the same pattern used by
+ * the in-app integration tests.
  */
 export function choiceCardByName(page: Page, name: string): Locator {
-  return page.locator('div[role="button"]').filter({ hasText: name }).first()
+  return page.getByRole('button').filter({ hasText: name }).first()
 }
 
 /**
@@ -46,10 +47,11 @@ export async function pickByName(page: Page, name: string): Promise<void> {
 }
 
 /**
- * Click the wizard's Next button.
+ * Click the wizard's Next button. WizShell wizards label the CTA from the
+ * steps array ('Next · Abilities →'); legacy builders use a bare 'Next'.
  */
 export async function clickNext(page: Page): Promise<void> {
-  await page.getByRole('button', { name: /^Next$/ }).click()
+  await page.getByRole('button', { name: /^Next( ·|$)/ }).click()
 }
 
 /**

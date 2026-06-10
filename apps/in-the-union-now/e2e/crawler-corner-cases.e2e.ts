@@ -1,55 +1,56 @@
 import { test, expect } from '@playwright/test'
-import { waitForReady } from './_helpers'
+import { clickNext, pickByName, waitForReady } from './_helpers'
 
 /**
- * CrawlerBuilder corner cases (Tech Level -> Loadout -> Identity -> Review
- * stepper wizard):
- *  - Next is gated: disabled on Tech Level until a TL is chosen, disabled again
- *    on Identity until a name is entered.
- *  - The Loadout step reveals the systems list for the chosen TL.
+ * CrawlerBuilder corner cases (WizShell flow: Crawler -> Systems -> Identity
+ * -> Review):
+ *  - The CTA is gated: disabled on the Crawler step until a tech level OptRow
+ *    is picked, disabled again on Identity until a name is entered.
+ *  - The Systems step reveals the Sel grid for the chosen TL.
  *  - Raising the TL (via Back) exposes more systems.
  *
- * TL selector: each option is a <button> whose accessible name is
- * "TL {n} {tier-name}" — e.g. "TL 1 Hamlet Crawler", "TL 6 Megacity Crawler".
- * Systems render as EntityChoiceCard roots: <div role="button">. The Next nav
- * button is matched with `exact: true` so card text containing "next" / "TL"
- * does not collide with it.
+ * Tech levels render as native OptRow <button>s in the 320px master pane —
+ * accessible name includes the TL name ('Hamlet Crawler' … 'Megacity
+ * Crawler'). Systems render as Sel-wrapped `<div role="button">` cards, so
+ * `div[role="button"]` counts only system cards, never the nav buttons. The
+ * primary CTA is labelled from the steps array ('Next · Systems →' etc.) and
+ * matched via the /^Next ·/ prefix.
  */
 
 test('wizard gates progress until TL + name are set', async ({ page }) => {
   await page.goto('/crawlers/new')
   await waitForReady(page)
 
-  const next = page.getByRole('button', { name: 'Next', exact: true })
+  const next = page.getByRole('button', { name: /^Next ·/ })
 
-  // Tech Level step — Next disabled until a TL is chosen.
+  // Crawler step — CTA disabled until a tech level is chosen.
   await expect(next).toBeDisabled()
-  await page.getByRole('button', { name: /TL 1 Hamlet Crawler/i }).click()
+  await pickByName(page, 'Hamlet Crawler')
   await expect(next).toBeEnabled()
 
-  // Tech Level -> Loadout -> Identity
-  await next.click()
-  await next.click()
+  // Crawler -> Systems -> Identity
+  await clickNext(page)
+  await clickNext(page)
 
-  // Identity step — Next disabled until a name is entered.
-  await expect(page.getByRole('button', { name: 'Next', exact: true })).toBeDisabled()
+  // Identity step — CTA disabled until a name is entered.
+  await expect(page.getByRole('button', { name: /^Next ·/ })).toBeDisabled()
   await page.getByLabel(/Crawler Name/i).fill('Wagon')
-  await expect(page.getByRole('button', { name: 'Next', exact: true })).toBeEnabled()
+  await expect(page.getByRole('button', { name: /^Next ·/ })).toBeEnabled()
 
   // Identity -> Review — Create is enabled.
-  await page.getByRole('button', { name: 'Next', exact: true }).click()
+  await clickNext(page)
   await expect(page.getByRole('button', { name: /Create Crawler/i })).toBeEnabled()
 })
 
-test('Loadout step reveals the systems list for the chosen TL', async ({ page }) => {
+test('Systems step reveals the Sel grid for the chosen TL', async ({ page }) => {
   await page.goto('/crawlers/new')
   await waitForReady(page)
 
-  // Tech Level -> pick TL 1 -> advance to Loadout.
-  await page.getByRole('button', { name: /TL 1 Hamlet Crawler/i }).click()
-  await page.getByRole('button', { name: 'Next', exact: true }).click()
+  // Crawler step -> pick TL 1 -> advance to Systems.
+  await pickByName(page, 'Hamlet Crawler')
+  await clickNext(page)
 
-  // At least one system EntityChoiceCard (div[role="button"]) should be visible.
+  // At least one system Sel card (div[role="button"]) should be visible.
   await expect(page.locator('div[role="button"]').first()).toBeVisible()
 })
 
@@ -57,16 +58,16 @@ test('raising TL adds more systems to the list', async ({ page }) => {
   await page.goto('/crawlers/new')
   await waitForReady(page)
 
-  // TL 1 -> Loadout, count systems.
-  await page.getByRole('button', { name: /TL 1 Hamlet Crawler/i }).click()
-  await page.getByRole('button', { name: 'Next', exact: true }).click()
+  // TL 1 -> Systems, count system cards.
+  await pickByName(page, 'Hamlet Crawler')
+  await clickNext(page)
   await expect(page.locator('div[role="button"]').first()).toBeVisible()
   const tl1Count = await page.locator('div[role="button"]').count()
 
-  // Back to Tech Level, raise to TL 6 (Megacity Crawler), return to Loadout.
+  // Back to the Crawler step, raise to TL 6 (Megacity), return to Systems.
   await page.getByRole('button', { name: /^Back$/ }).click()
-  await page.getByRole('button', { name: /TL 6 Megacity Crawler/i }).click()
-  await page.getByRole('button', { name: 'Next', exact: true }).click()
+  await pickByName(page, 'Megacity Crawler')
+  await clickNext(page)
   await expect(page.locator('div[role="button"]').nth(tl1Count)).toBeVisible()
   const tl6Count = await page.locator('div[role="button"]').count()
 

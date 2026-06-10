@@ -1,348 +1,325 @@
 /**
- * CrawlerBuilder tests.
+ * Integration tests for CrawlerBuilder (create + edit on the WizShell
+ * skeleton).
  *
- * NOTE: This file avoids a direct top-level import of `salvageunion-reference`
- * because the bun workspace package resolver does not follow the link in git
- * worktrees (the same limitation affects the pre-existing rules/__tests__
- * files). We instead mock SalvageUnionReference via property replacement at
- * runtime after React+Testing-Library have already set up the DOM.
+ * Exercises Crawler (master-detail tech-level pick with bay preview) →
+ * Systems (TL-filtered Sel grid) → Identity (name + starting resources) →
+ * Review → submit using the real wizard, real SalvageUnionReference data,
+ * real Zod validation, and a fake-indexeddb-backed entityStore.
+ *
+ * fake-indexeddb/auto is preloaded via bunfig.toml.
+ * SalvageUnionReference is preloaded in beforeAll.
  */
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { describe, expect, mock, test, beforeEach, afterEach } from 'bun:test'
 
-import { CrawlerSchema } from '../../../lib/schemas/crawler'
+import { afterEach, beforeAll, beforeEach, describe, expect, it, mock } from 'bun:test'
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import { useEntityStore } from '../../../stores/entityStore'
+import { _clearAllStores, _resetDbSingleton } from '../../../lib/db/index'
+import {
+  EMPTY_SCRAP_POOL,
+  crawlerFormToCreateInput,
+  crawlerToFormState,
+  seedDefaultCrawlerBays,
+} from '../../../lib/wizard/crawlerFormState'
 import { CrawlerBuilder } from '../CrawlerBuilder'
 
 // ---------------------------------------------------------------------------
-// Inline mock data — shaped like SURefMetaCrawlerTechLevel / SURefSystem
-// without importing the types (avoids workspace resolution failure).
+// Pre-load reference data
 // ---------------------------------------------------------------------------
 
-const MOCK_TECH_LEVELS = [
-  {
-    id: 'tl-1',
-    name: 'Hamlet Crawler',
-    techLevel: 1,
-    structurePoints: 20,
-    upkeepCost: 5,
-    upgradeCost: 30,
-    populationMin: 100,
-    populationMax: 500,
-    schemaName: 'crawler-tech-levels',
-  },
-  {
-    id: 'tl-2',
-    name: 'Village Crawler',
-    techLevel: 2,
-    structurePoints: 25,
-    upkeepCost: 5,
-    upgradeCost: 30,
-    populationMin: 500,
-    populationMax: 2000,
-    schemaName: 'crawler-tech-levels',
-  },
-]
-
-const MOCK_SYSTEMS = [
-  { id: 'system-drill', name: 'Drill', techLevel: 1, schemaName: 'systems', actions: [], slots: 1 },
-  {
-    id: 'system-shield',
-    name: 'Shield',
-    techLevel: 2,
-    schemaName: 'systems',
-    actions: [],
-    slots: 1,
-  },
-]
-
-// Two SRD bays — the builder seeds the full set on creation, each NPC at full HP.
-const MOCK_BAYS = [
-  {
-    id: 'command-bay',
-    name: 'Command Bay',
-    schemaName: 'crawler-bays',
-    npc: { position: 'Princeps', hitPoints: 4 },
-  },
-  {
-    id: 'mech-bay',
-    name: 'Mech Bay',
-    schemaName: 'crawler-bays',
-    npc: { position: 'Greaser', hitPoints: 4 },
-  },
-]
+beforeAll(async () => {
+  await SalvageUnionReference.preload('all')
+})
 
 // ---------------------------------------------------------------------------
-// Patch SalvageUnionReference dynamically (after module load)
+// Store reset helpers
 // ---------------------------------------------------------------------------
 
-type Restore = () => void
-
-async function patchSalvageUnionReference(): Promise<Restore> {
-  // Dynamic import avoids the top-level workspace resolution failure.
-  const { SalvageUnionReference } = await import('salvageunion-reference')
-
-  const originalPreload = SalvageUnionReference.preload.bind(SalvageUnionReference)
-  SalvageUnionReference.preload = mock(async () => undefined)
-
-  const originalCtlAll = SalvageUnionReference.CrawlerTechLevels.all.bind(
-    SalvageUnionReference.CrawlerTechLevels
-  )
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  SalvageUnionReference.CrawlerTechLevels.all = mock(() => MOCK_TECH_LEVELS as any)
-
-  const originalSysAll = SalvageUnionReference.Systems.all.bind(SalvageUnionReference.Systems)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  SalvageUnionReference.Systems.all = mock(() => MOCK_SYSTEMS as any)
-
-  const originalBaysAll = SalvageUnionReference.CrawlerBays.all.bind(
-    SalvageUnionReference.CrawlerBays
-  )
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  SalvageUnionReference.CrawlerBays.all = mock(() => MOCK_BAYS as any)
-
-  return () => {
-    SalvageUnionReference.preload = originalPreload
-    SalvageUnionReference.CrawlerTechLevels.all = originalCtlAll
-    SalvageUnionReference.Systems.all = originalSysAll
-    SalvageUnionReference.CrawlerBays.all = originalBaysAll
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Patch entityStore.create
-// ---------------------------------------------------------------------------
-
-type StorePatch = {
-  createMock: ReturnType<typeof mock>
-  restore: () => void
-}
-
-function patchEntityStore(): StorePatch {
-  const originalCreate = useEntityStore.getState().create
-  const createMock = mock(async (_type: unknown, input: Record<string, unknown>) => {
-    const now = new Date().toISOString()
-    return CrawlerSchema.parse({ id: 'test-id', createdAt: now, updatedAt: now, ...input })
-  })
+function resetEntityStore(): void {
   useEntityStore.setState({
-    create: createMock as unknown as typeof originalCreate,
+    pilots: [],
+    mechs: [],
+    crawlers: [],
+    softLinks: [],
+    hydrated: {
+      pilots: false,
+      mechs: false,
+      crawlers: false,
+      softLinks: false,
+    },
   })
-  return {
-    createMock,
-    restore: () => useEntityStore.setState({ create: originalCreate }),
-  }
+}
+
+beforeEach(async () => {
+  _resetDbSingleton()
+  await _clearAllStores()
+  resetEntityStore()
+  await useEntityStore.getState().hydrate('crawler')
+})
+
+afterEach(async () => {
+  await act(async () => {
+    cleanup()
+  })
+  await _clearAllStores()
+  resetEntityStore()
+})
+
+// ---------------------------------------------------------------------------
+// Helpers (WizShell skeleton)
+// ---------------------------------------------------------------------------
+
+/**
+ * Tech-level rows are OptRow <button>s whose accessible text starts with the
+ * level name; system cards are Sel wrappers — div[role="button"] with
+ * aria-label set to the entity name. Both report role=button.
+ */
+function getPickByName(name: string): HTMLElement {
+  const candidates = screen.getAllByRole('button')
+  const exact = candidates.find((b) => b.getAttribute('aria-label') === name)
+  if (exact) return exact
+  const row = candidates.find((b) => (b.textContent ?? '').includes(name))
+  if (!row) throw new Error(`No role=button pick for "${name}"`)
+  return row
+}
+
+async function pick(name: string): Promise<void> {
+  await act(async () => {
+    fireEvent.click(getPickByName(name))
+  })
+}
+
+/** The primary CTA is labeled from the steps array: 'Next · {step} →'. */
+function getNextButton(): HTMLButtonElement {
+  return screen.getByRole('button', { name: /^Next ·/ }) as HTMLButtonElement
+}
+
+async function clickNext(): Promise<void> {
+  await act(async () => {
+    fireEvent.click(getNextButton())
+  })
+}
+
+/** First system at exactly this TL from the real catalog. */
+function systemAtTL(tl: number): { id: string; name: string } {
+  const found = SalvageUnionReference.Systems.findAll(
+    (s) => typeof s.techLevel === 'number' && s.techLevel === tl
+  )[0]
+  if (!found) throw new Error(`No system at TL ${tl} in reference data`)
+  return found as { id: string; name: string }
 }
 
 // ---------------------------------------------------------------------------
-// Tests
+// Create mode
 // ---------------------------------------------------------------------------
 
-describe('CrawlerBuilder', () => {
-  let restoreRef: Restore
-  let storePatch: StorePatch
+describe('CrawlerBuilder — create mode', () => {
+  it('renders the master-detail Crawler step with tech-level rows and bay preview', async () => {
+    render(<CrawlerBuilder onComplete={() => {}} onCancel={() => {}} />)
 
-  beforeEach(async () => {
-    restoreRef = await patchSalvageUnionReference()
-    storePatch = patchEntityStore()
-  })
-
-  afterEach(() => {
-    restoreRef()
-    storePatch.restore()
-  })
-
-  test('renders the first wizard step (Tech Level)', () => {
-    render(<CrawlerBuilder onCreated={() => undefined} onCancel={() => undefined} />)
-    expect(screen.getByText('Choose a Tech Level')).toBeDefined()
-  })
-
-  test('shows TL buttons after async load', async () => {
-    render(<CrawlerBuilder onCreated={() => undefined} onCancel={() => undefined} />)
+    expect(screen.getByText('Choose Your Crawler')).toBeTruthy()
     await waitFor(() => {
-      expect(screen.getByText('TL 1')).toBeDefined()
-      expect(screen.getByText('TL 2')).toBeDefined()
-    })
-  })
-
-  test('selecting TL 1 shows only TL-1 systems on the Loadout step', async () => {
-    render(<CrawlerBuilder onCreated={() => undefined} onCancel={() => undefined} />)
-
-    await waitFor(() => screen.getByText('TL 1'))
-    act(() => {
-      fireEvent.click(screen.getByText('TL 1').closest('button')!)
-    })
-    // Tech Level -> Loadout (systems render here)
-    act(() => {
-      fireEvent.click(screen.getByRole('button', { name: 'Next' }))
+      expect(getPickByName('Hamlet Crawler')).toBeTruthy()
     })
 
+    // No selection yet — Next is disabled, detail pane shows the empty hint.
+    expect(getNextButton().disabled).toBe(true)
+    expect(screen.getByText(/Select a crawler tech level/i)).toBeTruthy()
+
+    // Selecting a level expands its detail card with the 2-col bay head grid.
+    await pick('Village Crawler')
     await waitFor(() => {
-      expect(screen.getByText('Drill')).toBeDefined()
-      expect(screen.queryByText('Shield')).toBeNull()
+      expect(screen.getByText('Command Bay')).toBeTruthy()
+      expect(screen.getByText('Mech Bay')).toBeTruthy()
     })
-  })
+    expect(getNextButton().disabled).toBe(false)
+  }, 30000)
 
-  test('selecting TL 2 shows both systems on the Loadout step', async () => {
-    render(<CrawlerBuilder onCreated={() => undefined} onCancel={() => undefined} />)
+  it('TL-filters the Systems step to the crawler tech level and below', async () => {
+    render(<CrawlerBuilder onComplete={() => {}} onCancel={() => {}} />)
 
-    await waitFor(() => screen.getByText('TL 2'))
-    act(() => {
-      fireEvent.click(screen.getByText('TL 2').closest('button')!)
-    })
-    // Tech Level -> Loadout (systems render here)
-    act(() => {
-      fireEvent.click(screen.getByRole('button', { name: 'Next' }))
-    })
+    await waitFor(() => getPickByName('Hamlet Crawler'))
+    await pick('Hamlet Crawler')
+    await clickNext()
 
+    const tl1 = systemAtTL(1)
+    const tl2 = systemAtTL(2)
     await waitFor(() => {
-      expect(screen.getByText('Drill')).toBeDefined()
-      expect(screen.getByText('Shield')).toBeDefined()
+      expect(screen.getByRole('button', { name: tl1.name })).toBeTruthy()
     })
-  })
+    expect(screen.queryByRole('button', { name: tl2.name })).toBeNull()
+  }, 30000)
 
-  test('submit calls entityStore.create with valid Crawler shape', async () => {
-    const onCreated = mock(() => undefined)
+  it('walks through every step and creates a valid crawler with seeded bays + resources', async () => {
+    const onComplete = mock(() => {})
+    render(<CrawlerBuilder onComplete={onComplete} onCancel={() => {}} />)
 
-    render(<CrawlerBuilder onCreated={onCreated} onCancel={() => undefined} />)
+    // --- Step 1: Crawler (master-detail OptRow list) ---
+    await waitFor(() => getPickByName('Hamlet Crawler'))
+    await pick('Hamlet Crawler')
+    await clickNext()
 
-    // Step 1 — Tech Level
-    await waitFor(() => screen.getByText('TL 1'))
-    act(() => {
-      fireEvent.click(screen.getByText('TL 1').closest('button')!)
-    })
-    // Tech Level -> Loadout -> Identity
-    act(() => {
-      fireEvent.click(screen.getByRole('button', { name: 'Next' }))
-    })
-    act(() => {
-      fireEvent.click(screen.getByRole('button', { name: 'Next' }))
-    })
+    // --- Step 2: Systems — live count in subtitle ---
+    const tl1 = systemAtTL(1)
+    await pick(tl1.name)
+    expect(screen.getByTestId('system-count').textContent).toContain('1 /')
+    await clickNext()
 
-    // Step 3 — Identity
-    fireEvent.change(screen.getByLabelText(/Crawler Name/i), {
-      target: { value: 'My Test Crawler' },
-    })
-    // Identity -> Review
-    act(() => {
-      fireEvent.click(screen.getByRole('button', { name: 'Next' }))
-    })
-
-    // Step 4 — submit from Review
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /Create Crawler/i }))
-    })
-
-    await waitFor(() => {
-      expect(storePatch.createMock).toHaveBeenCalledTimes(1)
-    })
-
-    const [callType, callInput] = storePatch.createMock.mock.calls[0] as [
-      string,
-      Record<string, unknown>,
-    ]
-    expect(callType).toBe('crawler')
-    expect(callInput.name).toBe('My Test Crawler')
-    expect(callInput.techLevel).toBe('tech-1')
-    expect(callInput.schemaVersion).toBe(1)
-    expect(Array.isArray(callInput.systems)).toBe(true)
-    expect(onCreated).toHaveBeenCalledTimes(1)
-  })
-
-  test('submit seeds the full SRD bay set with NPC HP at max', async () => {
-    render(<CrawlerBuilder onCreated={() => undefined} onCancel={() => undefined} />)
-
-    await waitFor(() => screen.getByText('TL 1'))
-    act(() => {
-      fireEvent.click(screen.getByText('TL 1').closest('button')!)
-    })
-    act(() => {
-      fireEvent.click(screen.getByRole('button', { name: 'Next' }))
-    })
-    act(() => {
-      fireEvent.click(screen.getByRole('button', { name: 'Next' }))
-    })
-
+    // --- Step 3: Identity — name + starting resources ---
     fireEvent.change(screen.getByLabelText(/Crawler Name/i), {
       target: { value: 'Bay Wagon' },
     })
-    act(() => {
-      fireEvent.click(screen.getByRole('button', { name: 'Next' }))
+    fireEvent.change(screen.getByLabelText(/Scrap T2/i), {
+      target: { value: '3' },
     })
+    fireEvent.change(screen.getByLabelText(/Upgrade Pool/i), {
+      target: { value: '12' },
+    })
+    await clickNext()
 
+    // --- Step 4: Review → submit ('Create Crawler ✦') ---
+    expect(screen.getByText(/seeded automatically/i)).toBeTruthy()
+    const submit = screen.getByRole('button', { name: /Create Crawler/i })
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /Create Crawler/i }))
+      fireEvent.click(submit)
     })
 
     await waitFor(() => {
-      expect(storePatch.createMock).toHaveBeenCalledTimes(1)
+      const crawlers = useEntityStore.getState().list('crawler')
+      expect(crawlers.length).toBe(1)
+      const c = crawlers[0]!
+      expect(c.name).toBe('Bay Wagon')
+      expect(c.techLevel).toBe('tech-1')
+      expect(c.schemaVersion).toBe(1)
+      expect(c.systems).toEqual([tl1.id])
+      expect(c.scrapPool).toEqual({ tl2: 3 })
+      expect(c.upgradePool).toBe(12)
+
+      // Full SRD bay set seeded, NPCs at max HP (4) where the bay has one.
+      const srdBays = SalvageUnionReference.CrawlerBays.all()
+      expect(c.crawlerBays?.length).toBe(srdBays.length)
+      const commandBay = srdBays.find((b) => b.name === 'Command Bay')!
+      const seeded = c.crawlerBays?.find((e) => e.bayRef === commandBay.id)
+      expect(seeded?.npcCurrentHP).toBe(4)
+
+      // Fresh crawlers start at full SP for their tech level.
+      const tl = SalvageUnionReference.CrawlerTechLevels.find((t) => t.techLevel === 1)!
+      expect(c.currentSP).toBe(tl.structurePoints)
     })
+    expect(onComplete).toHaveBeenCalledTimes(1)
+  }, 30000)
 
-    const [, callInput] = storePatch.createMock.mock.calls[0] as [string, Record<string, unknown>]
-    expect(callInput.crawlerBays).toEqual([
-      { bayRef: 'command-bay', npcCurrentHP: 4 },
-      { bayRef: 'mech-bay', npcCurrentHP: 4 },
-    ])
-  })
+  it('name gate: cannot reach Create with an empty name', async () => {
+    render(<CrawlerBuilder onComplete={() => {}} onCancel={() => {}} />)
 
-  test('cannot advance past Tech Level without a TL selected', async () => {
-    render(<CrawlerBuilder onCreated={() => undefined} onCancel={() => undefined} />)
+    await waitFor(() => getPickByName('Hamlet Crawler'))
+    await pick('Hamlet Crawler')
+    await clickNext() // Systems
+    await clickNext() // Identity
 
-    // No TL chosen yet — the Next button is disabled, so the Loadout/Identity/
-    // Review steps (and Create) are unreachable and no crawler is created.
-    await waitFor(() => screen.getByText('TL 1'))
-    const next = screen.getByRole('button', { name: 'Next' }) as HTMLButtonElement
-    expect(next.disabled).toBe(true)
-    expect(storePatch.createMock).not.toHaveBeenCalled()
-  })
+    // Name left empty — Next stays disabled, Review/Create is unreachable.
+    expect(getNextButton().disabled).toBe(true)
+    expect(useEntityStore.getState().list('crawler').length).toBe(0)
+  }, 30000)
 
-  test('cancel calls onCancel', () => {
-    const onCancel = mock(() => undefined)
-    render(<CrawlerBuilder onCreated={() => undefined} onCancel={onCancel} />)
+  it('cancel calls onCancel', async () => {
+    const onCancel = mock(() => {})
+    render(<CrawlerBuilder onComplete={() => {}} onCancel={onCancel} />)
 
-    fireEvent.click(screen.getByRole('button', { name: /Cancel/i }))
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /Cancel/i }))
+    })
     expect(onCancel).toHaveBeenCalledTimes(1)
   })
 
-  test('name gate: cannot reach Create with an empty name', async () => {
-    render(<CrawlerBuilder onCreated={() => undefined} onCancel={() => undefined} />)
+  it('offers no bay catalog or free-text crew editor — bays are seeded, not chosen', async () => {
+    render(<CrawlerBuilder onComplete={() => {}} onCancel={() => {}} />)
 
-    // Select a TL, then advance Tech Level -> Loadout -> Identity.
-    await waitFor(() => screen.getByText('TL 1'))
-    act(() => {
-      fireEvent.click(screen.getByText('TL 1').closest('button')!)
-    })
-    act(() => {
-      fireEvent.click(screen.getByRole('button', { name: 'Next' }))
-    })
-    act(() => {
-      fireEvent.click(screen.getByRole('button', { name: 'Next' }))
-    })
+    await waitFor(() => getPickByName('Hamlet Crawler'))
+    await pick('Hamlet Crawler')
+    await clickNext()
 
-    // Identity step with the name left empty — Next stays disabled, so Review/
-    // Create is unreachable and no crawler is created.
-    const next = screen.getByRole('button', { name: 'Next' }) as HTMLButtonElement
-    expect(next.disabled).toBe(true)
-    expect(storePatch.createMock).not.toHaveBeenCalled()
-  })
-
-  test('Loadout step no longer offers a bay catalog or free-text crew editor', async () => {
-    render(<CrawlerBuilder onCreated={() => undefined} onCancel={() => undefined} />)
-
-    // Select TL 1, then advance to the Loadout step.
-    await waitFor(() => screen.getByText('TL 1'))
-    act(() => {
-      fireEvent.click(screen.getByText('TL 1').closest('button')!)
-    })
-    act(() => {
-      fireEvent.click(screen.getByRole('button', { name: 'Next' }))
-    })
-
-    // Bays are seeded automatically — no catalog multi-select, no crew editor.
     expect(screen.queryByLabelText('Bay entity slug')).toBeNull()
     expect(screen.queryByRole('button', { name: /Add Bay/i })).toBeNull()
-    // The systems list still renders on the Loadout step.
-    await waitFor(() => {
-      expect(screen.getByText('Drill')).toBeDefined()
+  }, 30000)
+})
+
+// ---------------------------------------------------------------------------
+// Edit mode: upsert branch — live-play state never clobbered
+// ---------------------------------------------------------------------------
+
+async function seedCrawler() {
+  const input = crawlerFormToCreateInput(
+    {
+      name: 'The Wandering Kettle',
+      techLevel: 1,
+      systems: [],
+      scrapPool: { ...EMPTY_SCRAP_POOL },
+      upgradePool: 0,
+    },
+    { maxSP: 20, crawlerBays: seedDefaultCrawlerBays() }
+  )
+  return useEntityStore.getState().create('crawler', input)
+}
+
+describe('CrawlerBuilder — edit mode', () => {
+  it('prefills from the crawler and updates without duplicating or touching live state', async () => {
+    const crawler = await seedCrawler()
+    // Simulate play: SP knocked down + a bay NPC wounded.
+    const playedBayRef = crawler.crawlerBays![0]!.bayRef
+    await useEntityStore.getState().update('crawler', crawler.id, { currentSP: 5 })
+    await useEntityStore.getState().updateCrawlerBay(crawler.id, playedBayRef, {
+      npcCurrentHP: 1,
+      condition: 'damaged',
     })
-  })
+
+    const played = useEntityStore.getState().get('crawler', crawler.id)!
+    const onComplete = mock(() => {})
+    render(
+      <CrawlerBuilder
+        crawlerId={crawler.id}
+        initialState={crawlerToFormState(played)}
+        onComplete={onComplete}
+        onCancel={() => {}}
+      />
+    )
+
+    // Eyebrow flips to edit mode; TL is prefilled so Next is enabled.
+    expect(screen.getByText('Edit Crawler')).toBeTruthy()
+    await waitFor(() => {
+      expect(getNextButton().disabled).toBe(false)
+    })
+    await clickNext() // Systems
+
+    // Add a system in edit mode.
+    const tl1 = systemAtTL(1)
+    await waitFor(() => screen.getByRole('button', { name: tl1.name }))
+    await pick(tl1.name)
+    await clickNext() // Identity (name prefilled)
+    await clickNext() // Review
+
+    // Review → 'Save Crawler' (never 'Create')
+    const save = screen.getByRole('button', { name: /Save Crawler/i })
+    await act(async () => {
+      fireEvent.click(save)
+    })
+
+    await waitFor(() => {
+      const crawlers = useEntityStore.getState().list('crawler')
+      // Upsert branch: same record updated — never a duplicate create.
+      expect(crawlers.length).toBe(1)
+      const c = crawlers[0]!
+      expect(c.id).toBe(crawler.id)
+      expect(c.name).toBe('The Wandering Kettle')
+      expect(c.systems).toEqual([tl1.id])
+      // Live-play state untouched by the wizard patch.
+      expect(c.currentSP).toBe(5)
+      const bay = c.crawlerBays?.find((e) => e.bayRef === playedBayRef)
+      expect(bay?.npcCurrentHP).toBe(1)
+      expect(bay?.condition).toBe('damaged')
+      expect(c.crawlerBays?.length).toBe(crawler.crawlerBays!.length)
+    })
+    expect(onComplete).toHaveBeenCalledWith(crawler.id)
+  }, 30000)
 })
