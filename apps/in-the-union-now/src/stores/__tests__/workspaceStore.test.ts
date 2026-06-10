@@ -101,7 +101,7 @@ describe('workspaceStore — delete', () => {
     expect(fetched).toBeNull()
   })
 
-  test('delete workspace does NOT cascade to entities — entities keep workspaceId', async () => {
+  test('delete workspace CASCADES — members return to the unassigned pool (plan 2.7)', async () => {
     // Create workspace and assign a pilot
     const ws = await useWorkspaceStore.getState().create({ name: 'Campaign' })
     await useEntityStore.getState().hydrate('pilot')
@@ -115,14 +115,28 @@ describe('workspaceStore — delete', () => {
     // Delete workspace
     await useWorkspaceStore.getState().delete(ws.id)
 
-    // Entity still exists with workspaceId set (orphaned, not auto-cleaned)
-    const stillHasWorkspaceId = useEntityStore.getState().get('pilot', pilot.id)
-    expect(stillHasWorkspaceId?.workspaceId).toBe(ws.id)
+    // Entity still exists but its workspaceId was cleared by the cascade
+    const member = useEntityStore.getState().get('pilot', pilot.id)
+    expect(member).not.toBeNull()
+    expect(member?.workspaceId).toBeUndefined()
 
-    // It no longer appears in listUnassigned (has workspaceId) or listForWorkspace
-    // for the deleted ws (ws is gone but this is a query on entity data, not ws data)
+    // It returns to the unassigned pool — never invisible
     const unassigned = useWorkspaceStore.getState().listUnassigned('pilot')
-    expect(unassigned.find((p) => p.id === pilot.id)).toBeUndefined()
+    expect(unassigned.find((p) => p.id === pilot.id)).toBeDefined()
+  })
+
+  test('listUnassigned treats an unknown workspaceId as unassigned (dashboard fallback)', async () => {
+    await useEntityStore.getState().hydrate('pilot')
+    await useWorkspaceStore.getState().hydrate()
+    // Simulate a record written before the cascade existed (or imported):
+    // workspaceId points at a workspace that no longer exists.
+    const pilot = await useEntityStore.getState().create('pilot', {
+      ...basePilotInput,
+      workspaceId: 'ghost-workspace-id',
+    })
+
+    const unassigned = useWorkspaceStore.getState().listUnassigned('pilot')
+    expect(unassigned.find((p) => p.id === pilot.id)).toBeDefined()
   })
 })
 

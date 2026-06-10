@@ -59,6 +59,30 @@ function checkAbilityPrerequisites(before: PilotSnapshot, after: PilotSnapshot):
   return warnings
 }
 
+/**
+ * The pilot ability soft cap (plan 2.2): 10 abilities, 12 for Salvager.
+ * The schema no longer caps the array — exceeding the rules cap is a soft
+ * warning, never a parse failure or a blocked save.
+ */
+export const PILOT_ABILITY_CAP = 10
+export const SALVAGER_ABILITY_CAP = 12
+
+/**
+ * Warn when a pilot's ability count exceeds the rules cap
+ * (10, or 12 for Salvager — Core trees only).
+ */
+function checkAbilityCountCap(after: PilotSnapshot): SoftWarning[] {
+  const cap = after.isSalvager ? SALVAGER_ABILITY_CAP : PILOT_ABILITY_CAP
+  if (after.abilities.length <= cap) return []
+  return [
+    warn(
+      'PILOT_ABILITY_CAP_EXCEEDED',
+      `This pilot has ${after.abilities.length} abilities; the rules cap is ${cap}` +
+        `${after.isSalvager ? ' (Salvager)' : ''}.`
+    ),
+  ]
+}
+
 // ---------------------------------------------------------------------------
 // Mech warning checks
 // ---------------------------------------------------------------------------
@@ -141,6 +165,7 @@ export function evaluatePilotWarnings(
 ): SoftWarning[] {
   const warnings: SoftWarning[] = []
   warnings.push(...checkAbilityPrerequisites(snapshot.before, snapshot.after))
+  warnings.push(...checkAbilityCountCap(snapshot.after))
   warnings.push(...checkTechLevelDowngrade(context))
   return warnings
 }

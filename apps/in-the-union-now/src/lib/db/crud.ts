@@ -29,20 +29,36 @@ export type EntityStore<T extends EntityBase> = {
   delete: (id: string) => Promise<void>
 }
 
+export type MakeStoreOptions<T extends EntityBase> = {
+  /**
+   * Set true when T includes an `updatedAt` field. Controls whether
+   * create/update inject the timestamp.
+   */
+  hasUpdatedAt?: boolean
+  /**
+   * Salvage-path schema for READS (plan 2.1): typically the same object shape
+   * with `.strip()` instead of `.strict()`, so records that drifted (e.g. an
+   * old field a newer build no longer knows, or a field written by a newer
+   * build under PWA autoUpdate version skew) are stripped/defaulted with a
+   * console warning instead of bricking the whole store hydration.
+   * Writes always validate against the strict `schema`.
+   */
+  salvageSchema?: ZodSchema<T>
+}
+
 /**
  * Creates a typed CRUD store accessor backed by an IndexedDB object store.
  *
  * @param getDb - Lazy accessor for the opened IDBPDatabase instance.
  * @param schema - Zod schema for the entity type T. Used for validation on
- *   every read and write path.
+ *   every write path and as the first attempt on reads.
  * @param storeName - Name of the IDB object store (keyPath = "id").
- * @param hasUpdatedAt - Set true when T includes an `updatedAt` field. Controls
- *   whether create/update inject the timestamp. Defaults to false so Workspace
- *   and SoftLink (which have no updatedAt) work without schema rejection.
+ * @param options - hasUpdatedAt + optional salvage schema (see MakeStoreOptions).
  *
- * Validation: every write calls schema.parse() before db.put(). Every read
- * calls schema.parse(); schema-drift failures throw a descriptive error rather
- * than returning invalid data.
+ * Read validation order: strict parse → salvage parse (warn) → skip the
+ * record entirely (warn). A single drifted record can therefore never brick
+ * hydration of its store; it is healed on its next write (update re-parses
+ * the salvaged shape strictly before putting).
  *
  * UUID: crypto.randomUUID() — no external dependency.
  */
@@ -50,22 +66,43 @@ export function makeStore<T extends EntityBase>(
   getDb: () => Promise<IDBPDatabase>,
   schema: ZodSchema<T>,
   storeName: string,
-  hasUpdatedAt = false
+  options: MakeStoreOptions<T> = {}
 ): EntityStore<T> {
+  const { hasUpdatedAt = false, salvageSchema } = options
+
+  /**
+   * Parse a raw record for the read path. Returns null when the record cannot
+   * be made valid even by the salvage schema — callers skip it (list) or
+   * report it missing (get) rather than throwing.
+   */
+  function salvageRead(raw: unknown, context: string): T | null {
+    const strict = schema.safeParse(raw)
+    if (strict.success) return strict.data
+
+    if (salvageSchema) {
+      const salvaged = salvageSchema.safeParse(raw)
+      if (salvaged.success) {
+        console.warn(
+          `[itun-db] Record in "${storeName}" (${context}) did not match the strict schema; ` +
+            `loaded via salvage path (unknown fields stripped, defaults applied). ` +
+            `Original error: ${strict.error.message}`
+        )
+        return salvaged.data
+      }
+    }
+
+    console.warn(
+      `[itun-db] Skipping unreadable record in "${storeName}" (${context}): ${strict.error.message}`
+    )
+    return null
+  }
+
   async function list(): Promise<T[]> {
     const db = await getDb()
     const all = await db.getAll(storeName)
     return (all as unknown[])
-      .map((raw) => {
-        try {
-          return schema.parse(raw)
-        } catch (err) {
-          throw new Error(
-            `[itun-db] Schema validation failed reading store "${storeName}": ${String(err)}`,
-            { cause: err }
-          )
-        }
-      })
+      .map((raw, i) => salvageRead(raw, `index ${i}`))
+      .filter((record): record is T => record !== null)
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
   }
 
@@ -73,14 +110,7 @@ export function makeStore<T extends EntityBase>(
     const db = await getDb()
     const raw = await db.get(storeName, id)
     if (raw === undefined) return null
-    try {
-      return schema.parse(raw)
-    } catch (err) {
-      throw new Error(
-        `[itun-db] Schema validation failed reading "${storeName}" id="${id}": ${String(err)}`,
-        { cause: err }
-      )
-    }
+    return salvageRead(raw, `id="${id}"`)
   }
 
   async function create(input: Omit<T, 'id' | 'createdAt' | 'updatedAt'>): Promise<T> {
@@ -102,10 +132,13 @@ export function makeStore<T extends EntityBase>(
 
   async function update(id: string, patch: Partial<Omit<T, 'id'>>): Promise<T> {
     const db = await getDb()
-    const existing = await db.get(storeName, id)
-    if (existing === undefined) {
+    const raw = await db.get(storeName, id)
+    if (raw === undefined) {
       throw new Error(`[itun-db] Cannot update: record id="${id}" not found in "${storeName}"`)
     }
+    // Base the merge on the salvaged read so a drifted record heals on its
+    // next write instead of failing the strict parse below forever.
+    const existing = salvageRead(raw, `id="${id}"`) ?? (raw as Record<string, unknown>)
     const now = new Date().toISOString()
     const candidate: Record<string, unknown> = {
       ...(existing as Record<string, unknown>),

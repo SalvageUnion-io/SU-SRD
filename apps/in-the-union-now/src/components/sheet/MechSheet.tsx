@@ -30,6 +30,7 @@ import { ReferenceEntityDisplay } from 'suref-react'
 import type { ItemCondition } from '../../lib/schemas/mech'
 import type { Mech } from '../../lib/schemas/mech'
 import type { Roll } from '../../lib/rules/heatCheck'
+import { mechMaxSP, mechMaxEP, mechMaxHeat } from '../../lib/rules/derivedStats'
 import { useEntityStore } from '../../stores/entityStore'
 import { ConditionToggle } from '../shared/ConditionToggle'
 import { EditableStatRow } from './EditableStatRow'
@@ -151,9 +152,13 @@ export function MechSheet({
 }: MechSheetProps) {
   const chassis = resolveChassis(mech, chassisOverride)
   const storeState = store()
-  const heatCap = chassis?.heatCapacity ?? 0
+  // Derived maxima (plan 2.5): chassis stat + hand-edited modifiers
+  // (heat sinks, capacitance banks, composite armour).
+  const maxSP = mechMaxSP(mech, chassis)
+  const maxEP = mechMaxEP(mech, chassis)
+  const heatCap = mechMaxHeat(mech, chassis)
   const currentHeat = mech.currentHeat ?? heatCap
-  const currentSP = mech.currentSP ?? chassis?.structurePoints ?? 0
+  const currentSP = mech.currentSP ?? maxSP
 
   async function handleSystemConditionChange(slug: string, next: ItemCondition) {
     // Read the freshest map from the store (not the render-time prop) so rapid
@@ -253,22 +258,22 @@ export function MechSheet({
             <dd className="font-mono text-lg font-bold text-su-black">
               <EditableStatRow
                 label="SP"
-                value={mech.currentSP ?? chassis?.structurePoints ?? 0}
+                value={mech.currentSP ?? maxSP}
                 entityKind="mech"
                 entityId={mech.id}
                 fieldPath="currentSP"
                 min={0}
-                max={chassis?.structurePoints ?? undefined}
+                max={maxSP}
                 step={1}
                 store={store}
                 readOnly={readOnly}
               />
             </dd>
             <PipTracker
-              max={chassis?.structurePoints ?? 0}
-              value={mech.currentSP ?? chassis?.structurePoints ?? 0}
+              max={maxSP}
+              value={mech.currentSP ?? maxSP}
               tone="hp"
-              ariaLabel={`SP ${mech.currentSP ?? chassis?.structurePoints ?? 0} of ${chassis?.structurePoints ?? 0}`}
+              ariaLabel={`SP ${mech.currentSP ?? maxSP} of ${maxSP}`}
               className="mt-1.5"
             />
           </div>
@@ -279,22 +284,22 @@ export function MechSheet({
             <dd className="font-mono text-lg font-bold text-su-black">
               <EditableStatRow
                 label="EP"
-                value={mech.currentEP ?? chassis?.energyPoints ?? 0}
+                value={mech.currentEP ?? maxEP}
                 entityKind="mech"
                 entityId={mech.id}
                 fieldPath="currentEP"
                 min={0}
-                max={chassis?.energyPoints ?? undefined}
+                max={maxEP}
                 step={1}
                 store={store}
                 readOnly={readOnly}
               />
             </dd>
             <PipTracker
-              max={chassis?.energyPoints ?? 0}
-              value={mech.currentEP ?? chassis?.energyPoints ?? 0}
+              max={maxEP}
+              value={mech.currentEP ?? maxEP}
               tone="ap"
-              ariaLabel={`EP ${mech.currentEP ?? chassis?.energyPoints ?? 0} of ${chassis?.energyPoints ?? 0}`}
+              ariaLabel={`EP ${mech.currentEP ?? maxEP} of ${maxEP}`}
               className="mt-1.5"
             />
           </div>
@@ -305,7 +310,7 @@ export function MechSheet({
             <dd className="font-mono text-lg font-bold text-su-black">
               <EditableStatRow
                 label="Heat"
-                value={mech.currentHeat ?? chassis?.heatCapacity ?? 0}
+                value={currentHeat}
                 entityKind="mech"
                 entityId={mech.id}
                 fieldPath="currentHeat"
@@ -317,10 +322,10 @@ export function MechSheet({
               />
             </dd>
             <PipTracker
-              max={chassis?.heatCapacity ?? 0}
-              value={mech.currentHeat ?? chassis?.heatCapacity ?? 0}
+              max={heatCap}
+              value={currentHeat}
               tone="ap"
-              ariaLabel={`Heat ${mech.currentHeat ?? chassis?.heatCapacity ?? 0} of ${chassis?.heatCapacity ?? 0}`}
+              ariaLabel={`Heat ${currentHeat} of ${heatCap}`}
               className="mt-1.5"
             />
           </div>
@@ -385,15 +390,19 @@ export function MechSheet({
       )}
 
       {/* Cargo */}
-      {mech.cargo.length > 0 && (
+      {mech.cargoLots.length > 0 && (
         <div>
           <SheetSectionHeading kind="mech" className="mb-1">
             Cargo
           </SheetSectionHeading>
           <ul className="flex flex-col gap-1">
-            {mech.cargo.map((slug, i) => (
-              <li key={`${slug}-${i}`} className="rounded border border-border px-2 py-1 text-sm">
-                {slug}
+            {mech.cargoLots.map((lot) => (
+              <li key={lot.id} className="rounded border border-border px-2 py-1 text-sm">
+                {lot.name}
+                {lot.kind === 'bulk' && lot.qty !== undefined ? ` ×${lot.qty}` : ''}
+                <span className="ml-1 text-muted-foreground">
+                  ({lot.units} {lot.units === 1 ? 'unit' : 'units'})
+                </span>
               </li>
             ))}
           </ul>

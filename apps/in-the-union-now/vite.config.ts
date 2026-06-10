@@ -57,5 +57,27 @@ export default defineConfig({
     watch: {
       ignored: ['**/routeTree.gen.ts'],
     },
+    // Snapshot API dev proxy (plan 2.9). In production Netlify redirects map
+    // /api/snapshots[/:id] to the two functions (netlify.toml); plain
+    // `vite dev` has no such layer, so PublishButton would 404. Run
+    //   bunx netlify functions:serve        (port 9999)
+    // alongside `bun run dev:itun` and this proxy replicates the redirect
+    // mapping. Without the functions server, publish requests fail with a
+    // connection error and the UI's feature-detection treats publishing as
+    // unavailable. See README.md ("Snapshot publishing in dev").
+    proxy: {
+      '/api/snapshots': {
+        target: 'http://localhost:9999',
+        changeOrigin: true,
+        rewrite: (path) => {
+          // /api/snapshots/<id> → snapshot-retrieve (id read from last path segment)
+          // /api/snapshots      → snapshot-publish (method handling inside the fn)
+          const match = path.match(/^\/api\/snapshots\/([^/?#]+)/)
+          return match
+            ? `/.netlify/functions/snapshot-retrieve/${match[1]}`
+            : '/.netlify/functions/snapshot-publish'
+        },
+      },
+    },
   },
 })

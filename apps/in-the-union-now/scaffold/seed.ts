@@ -160,7 +160,7 @@ function buildMech(now: string, refs: ReturnType<typeof resolveRefs>): Mech {
     chassisRef: refs.sampleChassis?.name ?? 'Mule',
     systems,
     modules,
-    cargo: [],
+    cargoLots: [],
     patternName: 'Wasteland Ochre',
     conditions: ['Vulnerable'],
     // Near-cap live values so steppers / Heat Check controls show interesting state.

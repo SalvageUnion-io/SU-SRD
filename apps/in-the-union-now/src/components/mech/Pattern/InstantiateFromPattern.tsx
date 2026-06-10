@@ -1,14 +1,16 @@
 /**
  * InstantiateFromPattern — creates a fresh Mech from a MechPattern.
  *
- * Copies the pattern's chassis/systems/modules/cargo into a new Mech input,
- * appends ' (from pattern)' to the name, and calls entityStore.create('mech').
- * The new mech gets a fresh id and fresh timestamps from the db layer.
- *
- * onSuccess is called with the new mech id so the parent route can navigate.
+ * Copies the pattern's chassis/systems/modules/cargoLots into a new Mech
+ * input (cargo lots get fresh ids), appends ' (from pattern)' to the name,
+ * and calls entityStore.create('mech'). The new mech gets a fresh id and
+ * fresh timestamps from the db layer, and is seeded with live stats exactly
+ * like the MechBuilder path (plan 2.3, gap 7): full SP/EP from the chassis
+ * and currentHeat 0 — never Heat-at-capacity.
  */
 
 import { useState } from 'react'
+import { findChassisByRef } from '../../../lib/rules/derivedStats'
 import { useEntityStore } from '../../../stores/entityStore'
 import type { MechPattern } from '../../../lib/schemas/pattern'
 import { Button } from '../../ui/button'
@@ -28,14 +30,19 @@ export function InstantiateFromPattern({ pattern, onSuccess }: InstantiateFromPa
     setError(null)
 
     try {
+      const chassis = findChassisByRef(pattern.chassisRef)
       const mech = await useEntityStore.getState().create('mech', {
         schemaVersion: 1,
         name: `${pattern.name} (from pattern)`,
         chassisRef: pattern.chassisRef,
         systems: [...pattern.systems],
         modules: [...pattern.modules],
-        cargo: [...pattern.cargo],
+        cargoLots: pattern.cargoLots.map((lot) => ({ ...lot, id: crypto.randomUUID() })),
         conditions: [],
+        // Fresh mechs start at full SP/EP from the chassis; Heat starts at 0.
+        currentSP: chassis?.structurePoints,
+        currentEP: chassis?.energyPoints,
+        currentHeat: 0,
       })
       onSuccess(mech.id)
     } catch (err) {

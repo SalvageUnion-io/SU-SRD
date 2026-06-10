@@ -59,7 +59,7 @@ const mechSnapshot: SnapshotPayload = {
     chassisRef: 'iron-mongrel',
     systems: [],
     modules: [],
-    cargo: [],
+    cargoLots: [],
     conditions: [],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -141,6 +141,18 @@ describe('SnapshotView — mech payload', () => {
   test('renders mech composition mode badge', () => {
     render(<SnapshotView snapshot={mechSnapshot as Record<string, unknown>} />)
     expect(screen.getByLabelText('Composition mode: Mech')).toBeTruthy()
+  })
+
+  test('renders a pre-rename snapshot carrying legacy cargo: string[]', () => {
+    const legacyEntity: Record<string, unknown> = {
+      ...(mechSnapshot.entity as Record<string, unknown>),
+      cargo: ['Salvaged plating'],
+    }
+    delete legacyEntity['cargoLots']
+    const legacySnapshot = { kind: 'mech', entity: legacyEntity }
+    render(<SnapshotView snapshot={legacySnapshot as Record<string, unknown>} />)
+    expect(screen.getAllByText(/Iron Jaw/).length).toBeGreaterThan(0)
+    expect(screen.getByText(/Salvaged plating/)).toBeTruthy()
   })
 })
 

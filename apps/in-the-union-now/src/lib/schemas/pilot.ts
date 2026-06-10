@@ -1,5 +1,4 @@
 import { z } from 'zod'
-import { STARTING_ABILITY_BUDGET, STARTING_EQUIPMENT_BUDGET } from '../constants'
 import { ItemConditionMapSchema } from './mech'
 
 /**
@@ -12,6 +11,39 @@ import { ItemConditionMapSchema } from './mech'
  * `selections` prop. Free-text choices store their value as a single-element array.
  */
 export const ChoiceSelectionsSchema = z.record(z.string(), z.array(z.string()))
+
+/**
+ * A pilot injury (rules A11). Minor = −1 max HP (heals at Med Bay T3–4);
+ * Major = −2 max HP (heals at T5–6). Injuries stack; when derived max HP
+ * reaches 0 the pilot dies. The severity enum drives the max-HP derivation in
+ * lib/rules/derivedStats.ts; `note` records the source/description.
+ */
+export const InjurySchema = z
+  .object({
+    severity: z.enum(['minor', 'major']),
+    note: z.string(),
+  })
+  .strict()
+export type Injury = z.infer<typeof InjurySchema>
+
+/**
+ * A free-form inventory entry with an explicit slot cost (plan S7). Used for
+ * anything the pilot carries that is not a reference equipment slug — most
+ * importantly Scrap (3 slots each per rules A13). Slot math at the display
+ * layer sums `slotCost` truthfully alongside reference equipment.
+ */
+export const GenericInventoryEntrySchema = z
+  .object({
+    id: z.string(),
+    name: z.string().min(1),
+    /** Explicit inventory-slot cost for this entry (Scrap = 3). */
+    slotCost: z.number().int().min(0),
+    /** Optional quantity for stackable entries; absent means 1. */
+    qty: z.number().int().min(1).optional(),
+    note: z.string().optional(),
+  })
+  .strict()
+export type GenericInventoryEntry = z.infer<typeof GenericInventoryEntrySchema>
 
 /**
  * classRef: slug reference to a class in salvageunion-reference.
@@ -29,15 +61,16 @@ export const PilotSchema = z
     classRef: z.string(),
     /**
      * Slugs of class abilities selected for this pilot.
-     * Capped at STARTING_ABILITY_BUDGET for character creation.
-     * Reference-data maxAbilities per class is the preferred source when available.
+     * Uncapped at the schema level so advancement beyond the creation budget
+     * can persist (plan 2.2). The rules cap — 10 abilities, 12 for Salvager —
+     * is a SOFT warning (lib/rules/softWarnings.ts), never a parse failure.
      */
-    abilities: z.array(z.string()).max(STARTING_ABILITY_BUDGET),
+    abilities: z.array(z.string()),
     /**
-     * Slugs of equipment items carried.
-     * Capped at STARTING_EQUIPMENT_BUDGET for character creation.
+     * Slugs of equipment items carried. Uncapped at the schema level — the
+     * creation budget (3 at TL1) is wizard guidance, not a persistence cap.
      */
-    equipment: z.array(z.string()).max(STARTING_EQUIPMENT_BUDGET),
+    equipment: z.array(z.string()),
     /** Freeform roll result strings (injury table, etc.) */
     rollResults: z.array(z.string()),
     motto: z.string(),
@@ -88,6 +121,51 @@ export const PilotSchema = z
      * tactic as equipmentChoices).
      */
     usedAbilities: z.array(z.string()).optional(),
+    // ---------------------------------------------------------------------------
+    // Advancement + derived-maxima state (plan 2.2, rules A2/A4/A5/A11/A14).
+    // All additive-optional — no DB migration required; absent reads as the
+    // documented default.
+    // ---------------------------------------------------------------------------
+    /** Training Points available to spend (rules A5: +1 per Downtime). Absent = 0. */
+    trainingPoints: z.number().int().min(0).optional(),
+    /**
+     * Injuries list (enum severity, not free-form). Drives the max-HP
+     * derivation: maxHP = 10 + maxHpModifier − Σ(minor: 1, major: 2).
+     * Absent = no injuries.
+     */
+    injuries: z.array(InjurySchema).optional(),
+    /**
+     * Training/passive bonuses to max HP ONLY (Stat Training +2 per tier,
+     * Beefcake, Defy Death, …). Injury penalties are NOT folded in here — they
+     * are derived from `injuries` so healing an injury restores max HP without
+     * bookkeeping. Absent = 0.
+     */
+    maxHpModifier: z.number().int().optional(),
+    /** Training/passive bonuses to max AP (Stat Training +1 per tier). Absent = 0. */
+    maxApModifier: z.number().int().optional(),
+    /**
+     * Per-equipment Uses (X) counters (rules A14), keyed by equipment slug.
+     * Value = uses remaining; absent key = item at full uses. All uses
+     * recharge after a week of Downtime (Orbital Lance never — hand-managed).
+     */
+    equipmentUses: z.record(z.string(), z.number().int().min(0)).optional(),
+    /**
+     * The three once-per-Downtime 'Used' toggles from the official pilot
+     * sheet (rules A8–A10). true = used this cycle; reset at Downtime.
+     */
+    usedToggles: z
+      .object({
+        background: z.boolean().optional(),
+        keepsake: z.boolean().optional(),
+        motto: z.boolean().optional(),
+      })
+      .strict()
+      .optional(),
+    /**
+     * Free-form inventory entries with explicit slot costs — the pilot-side
+     * home for Scrap (3 slots each) and other non-reference items (plan S7).
+     */
+    genericInventory: z.array(GenericInventoryEntrySchema).optional(),
     createdAt: z.string().datetime(),
     updatedAt: z.string().datetime(),
   })

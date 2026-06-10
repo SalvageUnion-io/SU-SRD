@@ -9,7 +9,7 @@ const validMech = {
   chassisRef: 'iron-mongrel',
   systems: ['system-plasma-torch'],
   modules: ['module-reinforced-hull'],
-  cargo: [],
+  cargoLots: [],
   conditions: [],
   createdAt: '2026-05-18T00:00:00.000Z',
   updatedAt: '2026-05-18T00:00:00.000Z',

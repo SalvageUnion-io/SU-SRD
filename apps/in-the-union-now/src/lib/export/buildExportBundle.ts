@@ -1,4 +1,7 @@
+import { recordExport } from '../backupNudge'
+import * as db from '../db/index'
 import type { ExportBundle } from '../schemas/exportBundle'
+import type { MechPattern } from '../schemas/pattern'
 import type { EntityType } from '../../stores/types'
 
 /**
@@ -19,6 +22,14 @@ type ExportWorkspaceStore = {
 }
 
 /**
+ * Minimal pattern source for export. Patterns are not in entityStore — they
+ * are read straight from the db layer; tests may pass a double.
+ */
+type ExportPatternStore = {
+  list: () => Promise<MechPattern[]>
+}
+
+/**
  * buildExportBundle — full backup of all entities, workspaces, and softLinks.
  *
  * Hydrates every store type first so the caller does not need to pre-hydrate.
@@ -26,9 +37,11 @@ type ExportWorkspaceStore = {
  */
 export async function buildExportBundle(
   entityStore: ExportStore,
-  workspaceStore: ExportWorkspaceStore
+  workspaceStore: ExportWorkspaceStore,
+  patternStore: ExportPatternStore = db.mechPatterns
 ): Promise<ExportBundle> {
-  await Promise.all([
+  const [mechPatterns] = await Promise.all([
+    patternStore.list(),
     entityStore.hydrate('pilot'),
     entityStore.hydrate('mech'),
     entityStore.hydrate('crawler'),
@@ -36,7 +49,7 @@ export async function buildExportBundle(
     workspaceStore.hydrate(),
   ])
 
-  return {
+  const bundle: ExportBundle = {
     schemaVersion: 1,
     exportedAt: new Date().toISOString(),
     entities: {
@@ -46,7 +59,11 @@ export async function buildExportBundle(
     },
     workspaces: workspaceStore.list(),
     softLinks: entityStore.list('softLink'),
+    mechPatterns,
   }
+  // A full backup resets the backup-nudge clock (plan 2.6).
+  recordExport()
+  return bundle
 }
 
 /**
@@ -83,6 +100,7 @@ export async function buildEntityExport(
         entities: { ...emptyEntities, pilots: pilot ? [pilot] : [] },
         workspaces: [],
         softLinks: attachedLinks,
+        mechPatterns: [],
       }
     }
     case 'mech': {
@@ -93,6 +111,7 @@ export async function buildEntityExport(
         entities: { ...emptyEntities, mechs: mech ? [mech] : [] },
         workspaces: [],
         softLinks: attachedLinks,
+        mechPatterns: [],
       }
     }
     case 'crawler': {
@@ -103,6 +122,7 @@ export async function buildEntityExport(
         entities: { ...emptyEntities, crawlers: crawler ? [crawler] : [] },
         workspaces: [],
         softLinks: attachedLinks,
+        mechPatterns: [],
       }
     }
   }

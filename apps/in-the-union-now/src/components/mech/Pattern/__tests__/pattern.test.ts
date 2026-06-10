@@ -38,7 +38,16 @@ const validPatternBase = {
   chassisRef: 'mule',
   systems: ['targeting-system'],
   modules: ['armor-plating'],
-  cargo: ['medkit'],
+  cargoLots: [
+    {
+      id: 'lot-medkit',
+      kind: 'unit' as const,
+      name: 'medkit',
+      cat: 'SEALED' as const,
+      units: 1,
+      code: 'MED',
+    },
+  ],
 }
 
 describe('MechPatternSchema — valid input', () => {
@@ -51,7 +60,7 @@ describe('MechPatternSchema — valid input', () => {
     expect(result.success).toBe(true)
   })
 
-  test('accepts empty arrays for systems, modules, cargo', () => {
+  test('accepts empty arrays for systems, modules, cargoLots', () => {
     const result = MechPatternSchema.safeParse({
       id: 'pattern-2',
       createdAt: new Date().toISOString(),
@@ -60,7 +69,7 @@ describe('MechPatternSchema — valid input', () => {
       chassisRef: 'iron-mongrel',
       systems: [],
       modules: [],
-      cargo: [],
+      cargoLots: [],
     })
     expect(result.success).toBe(true)
   })
@@ -211,7 +220,16 @@ describe('instantiate from pattern — fresh mech with pattern fields', () => {
       chassisRef: 'mule',
       systems: ['sys-a', 'sys-b'],
       modules: ['mod-x'],
-      cargo: ['fuel-cell'],
+      cargoLots: [
+        {
+          id: 'lot-fuel',
+          kind: 'unit' as const,
+          name: 'fuel-cell',
+          cat: 'SEALED' as const,
+          units: 1,
+          code: 'FUE',
+        },
+      ],
     })
 
     // Simulate a small delay so timestamps differ
@@ -224,7 +242,7 @@ describe('instantiate from pattern — fresh mech with pattern fields', () => {
       chassisRef: pattern.chassisRef,
       systems: [...pattern.systems],
       modules: [...pattern.modules],
-      cargo: [...pattern.cargo],
+      cargoLots: pattern.cargoLots.map((lot) => ({ ...lot, id: crypto.randomUUID() })),
       conditions: [],
     })
 
@@ -240,7 +258,10 @@ describe('instantiate from pattern — fresh mech with pattern fields', () => {
     expect(mech.chassisRef).toBe(pattern.chassisRef)
     expect(mech.systems).toEqual(pattern.systems)
     expect(mech.modules).toEqual(pattern.modules)
-    expect(mech.cargo).toEqual(pattern.cargo)
+    // Cargo lots are copied with fresh lot ids
+    const withoutId = (lot: (typeof mech.cargoLots)[number]) => ({ ...lot, id: 'ignored' })
+    expect(mech.cargoLots.map(withoutId)).toEqual(pattern.cargoLots.map(withoutId))
+    expect(mech.cargoLots[0]?.id).not.toBe(pattern.cargoLots[0]?.id)
 
     // Name convention
     expect(mech.name).toBe('Heavy Hauler (from pattern)')

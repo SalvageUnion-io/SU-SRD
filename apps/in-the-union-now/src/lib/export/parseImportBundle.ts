@@ -1,5 +1,40 @@
+import { normalizeLegacyCargoRecord } from '../schemas/cargoLot'
 import { ExportBundleSchema } from '../schemas/exportBundle'
 import type { ExportBundle } from '../schemas/exportBundle'
+
+/**
+ * Bundles written before the cargo→cargoLots rename carry mechs (and
+ * patterns) with a legacy `cargo: string[]` field. Convert them in place —
+ * the same rewrite the v3 IndexedDB migration applies — so old backups stay
+ * importable.
+ */
+function normalizeLegacyBundle(raw: unknown): unknown {
+  if (typeof raw !== 'object' || raw === null) return raw
+  const bundle = { ...(raw as Record<string, unknown>) }
+
+  const entities = bundle['entities']
+  if (typeof entities === 'object' && entities !== null) {
+    const entitiesCopy = { ...(entities as Record<string, unknown>) }
+    if (Array.isArray(entitiesCopy['mechs'])) {
+      entitiesCopy['mechs'] = (entitiesCopy['mechs'] as unknown[]).map((m) =>
+        typeof m === 'object' && m !== null
+          ? normalizeLegacyCargoRecord(m as Record<string, unknown>)
+          : m
+      )
+    }
+    bundle['entities'] = entitiesCopy
+  }
+
+  if (Array.isArray(bundle['mechPatterns'])) {
+    bundle['mechPatterns'] = (bundle['mechPatterns'] as unknown[]).map((p) =>
+      typeof p === 'object' && p !== null
+        ? normalizeLegacyCargoRecord(p as Record<string, unknown>)
+        : p
+    )
+  }
+
+  return bundle
+}
 
 /**
  * parseImportBundle — parse and validate a raw JSON string as an ExportBundle.
@@ -8,6 +43,10 @@ import type { ExportBundle } from '../schemas/exportBundle'
  *   - The string is not valid JSON.
  *   - The parsed value does not conform to ExportBundleSchema.
  *   - schemaVersion is not 1 (incompatible format).
+ *
+ * Legacy compatibility: mechs/patterns carrying the pre-rename
+ * `cargo: string[]` field are normalized to `cargoLots` before validation;
+ * bundles without `mechPatterns` get an empty array (schema default).
  *
  * On success returns the validated ExportBundle.
  */
@@ -18,6 +57,7 @@ export function parseImportBundle(jsonText: string): ExportBundle {
   } catch {
     throw new Error('Import failed: file is not valid JSON.')
   }
+  raw = normalizeLegacyBundle(raw)
 
   // Check schemaVersion early to give a clearer error before full Zod parse.
   if (

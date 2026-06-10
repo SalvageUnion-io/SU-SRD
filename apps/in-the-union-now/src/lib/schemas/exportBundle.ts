@@ -2,6 +2,7 @@ import { z } from 'zod'
 
 import { CrawlerSchema } from './crawler'
 import { MechSchema } from './mech'
+import { MechPatternSchema } from './pattern'
 import { PilotSchema } from './pilot'
 import { SoftLinkSchema } from './softLink'
 import { WorkspaceSchema } from './workspace'
@@ -30,6 +31,12 @@ export const ExportBundleSchema = z.object({
   }),
   workspaces: z.array(WorkspaceSchema),
   softLinks: z.array(SoftLinkSchema),
+  /**
+   * Saved mech patterns (gap 6: export is the ONLY backup path for local-first
+   * data — omitting patterns silently loses them). Defaulted so bundles
+   * written before this field existed still import.
+   */
+  mechPatterns: z.array(MechPatternSchema).default([]),
 })
 
 export type ExportBundle = z.infer<typeof ExportBundleSchema>

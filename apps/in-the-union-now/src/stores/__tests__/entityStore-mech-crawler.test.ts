@@ -28,7 +28,7 @@ const baseMechInput = {
   chassisRef: 'iron-mongrel',
   systems: [],
   modules: [],
-  cargo: [],
+  cargoLots: [],
   conditions: [],
 }
 

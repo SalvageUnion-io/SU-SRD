@@ -17,6 +17,8 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import { computeMechCapacity } from '../../lib/rules/capacity'
 import { computeCargoCapacity } from '../../lib/rules/cargo'
 import { useEntityStore } from '../../stores/entityStore'
+import { makeUnitLot } from '../../lib/schemas/cargoLot'
+import type { CargoLot } from '../../lib/schemas/cargoLot'
 import { MechSchema } from '../../lib/schemas/mech'
 import type { MechSystemSlot, MechModuleSlot, CargoItem } from '../../lib/rules/types'
 import { ChassisSelector } from './ChassisSelector'
@@ -117,6 +119,20 @@ export function MechBuilder({ onSuccess, mechId, className }: MechBuilderProps) 
     return computeCargoCapacity({ cargoCapacity: cargoMax }, cargoItems)
   }, [chassis, cargoItems])
 
+  /**
+   * Convert the builder's CargoItem entries to persisted cargo lots
+   * (design §2.12). Each entry becomes an atomic unit-lot; explicit
+   * slotCount overrides become the lot's units (default 1 — the historical
+   * accounting for builder cargo entries).
+   */
+  function cargoItemsToLots(items: CargoItem[]): CargoLot[] {
+    return items.map((item) =>
+      item.kind === 'ref'
+        ? makeUnitLot(item.ref, { units: item.slotCount ?? 1 })
+        : makeUnitLot(item.name, { units: item.slotCount })
+    )
+  }
+
   // ---------------------------------------------------------------------------
   // Submit handler
   // ---------------------------------------------------------------------------
@@ -141,7 +157,7 @@ export function MechBuilder({ onSuccess, mechId, className }: MechBuilderProps) 
         chassisRef: chassisName,
         systems: systems.map((s) => s.ref),
         modules: modules.map((m) => m.ref),
-        cargo: cargoItems.map((item) => (item.kind === 'ref' ? item.ref : item.name)),
+        cargoLots: cargoItemsToLots(cargoItems),
         conditions: [],
         // Fresh mechs start at full SP/EP from the chassis; Heat starts at 0.
         currentSP: chassis?.structurePoints,
@@ -347,7 +363,7 @@ export function MechBuilder({ onSuccess, mechId, className }: MechBuilderProps) 
                   chassisRef={chassisName}
                   systems={systems.map((s) => s.ref)}
                   modules={modules.map((m) => m.ref)}
-                  cargo={cargoItems.map((item) => (item.kind === 'ref' ? item.ref : item.name))}
+                  cargoLots={cargoItemsToLots(cargoItems)}
                 />
               )}
             </div>

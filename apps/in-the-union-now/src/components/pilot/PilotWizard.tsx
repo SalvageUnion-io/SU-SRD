@@ -14,7 +14,7 @@ import type { RollTableDeps } from './rollTableHelpers'
 // Wire into edit flow once /pilots/$id gains inline editing (deferred to later wave).
 import { SoftWarningBanner } from '../shared/SoftWarningBanner'
 import { useSoftWarnings } from '../shared/useSoftWarnings'
-import { PILOT_MAX_HP, PILOT_MAX_AP } from '../../lib/pilotStats'
+import { PILOT_BASE_HP, PILOT_BASE_AP } from '../../lib/rules/derivedStats'
 
 /** Shape of form state carried through the wizard. */
 type WizardFormState = {
@@ -190,9 +190,10 @@ export function PilotWizard({ onComplete, onCancel, pilotId, _rollDeps, _sur }: 
         appearance: form.appearance.trim(),
         background: form.background.trim(),
         conditions: [],
-        // Fresh pilots start at full HP/AP (core-rules maxima).
-        currentHP: PILOT_MAX_HP,
-        currentAP: PILOT_MAX_AP,
+        // Fresh pilots start at full HP/AP (core-rules base — no injuries or
+        // training modifiers exist yet at creation).
+        currentHP: PILOT_BASE_HP,
+        currentAP: PILOT_BASE_AP,
       }
 
       // Validate against PilotSchema before submitting (surface errors in-UI)

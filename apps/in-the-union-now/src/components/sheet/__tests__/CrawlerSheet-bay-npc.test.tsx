@@ -84,6 +84,10 @@ function makeStubStore(
     create: mock(async () => crawler) as any,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     update: updateMock as any,
+    // CrawlerBayCard persists bay edits via the store-level per-bay merge
+    // (plan 2.7) — same spy so existing not-called assertions still hold.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    updateCrawlerBay: updateMock as any,
     delete: mock(async () => {}),
   }
   return (() => storeState) as unknown as typeof useEntityStore
@@ -113,7 +117,7 @@ describe('CrawlerSheet — NPC Description (Slice F)', () => {
     expect(screen.getByText('A stern veteran.')).toBeTruthy()
   })
 
-  test('editing the description persists merged into crawlerBays (no sibling clobber)', async () => {
+  test('editing the description persists via the per-bay merge (no sibling clobber)', async () => {
     restore = await patchCrawlerBays()
     const updateSpy = mock(async () => crawlerTwoBays)
     render(
@@ -130,12 +134,12 @@ describe('CrawlerSheet — NPC Description (Slice F)', () => {
       fireEvent.blur(textarea)
     })
 
-    expect(updateSpy).toHaveBeenCalledWith('crawler', crawlerTwoBays.id, {
-      crawlerBays: [
-        { bayRef: 'command-bay', npcCurrentHP: 4, npcDescription: 'A grizzled commander.' },
-        { bayRef: 'mech-bay', npcCurrentHP: 4 },
-      ],
-    })
+    expect(updateSpy).toHaveBeenCalledWith(
+      crawlerTwoBays.id,
+      'command-bay',
+      { npcDescription: 'A grizzled commander.' },
+      0
+    )
   })
 
   test('readOnly shows description value but no edit control', async () => {
@@ -207,7 +211,7 @@ describe('CrawlerSheet — NPC Facts (Slice F)', () => {
     expect(screen.getByText('Hates synths')).toBeTruthy()
   })
 
-  test('adding a fact persists merged into crawlerBays (no sibling clobber)', async () => {
+  test('adding a fact persists via the per-bay merge (no sibling clobber)', async () => {
     restore = await patchCrawlerBays()
     const updateSpy = mock(async () => crawlerTwoBays)
     render(
@@ -224,15 +228,15 @@ describe('CrawlerSheet — NPC Facts (Slice F)', () => {
       fireEvent.keyDown(input, { key: 'Enter' })
     })
 
-    expect(updateSpy).toHaveBeenCalledWith('crawler', crawlerTwoBays.id, {
-      crawlerBays: [
-        { bayRef: 'command-bay', npcCurrentHP: 4, npcFacts: ['Hates synths', 'Owes a debt'] },
-        { bayRef: 'mech-bay', npcCurrentHP: 4 },
-      ],
-    })
+    expect(updateSpy).toHaveBeenCalledWith(
+      crawlerTwoBays.id,
+      'command-bay',
+      { npcFacts: ['Hates synths', 'Owes a debt'] },
+      0
+    )
   })
 
-  test('removing a fact persists merged into crawlerBays', async () => {
+  test('removing a fact persists via the per-bay merge', async () => {
     restore = await patchCrawlerBays()
     const updateSpy = mock(async () => crawlerTwoBays)
     render(
@@ -244,12 +248,7 @@ describe('CrawlerSheet — NPC Facts (Slice F)', () => {
       fireEvent.click(removeBtn)
     })
 
-    expect(updateSpy).toHaveBeenCalledWith('crawler', crawlerTwoBays.id, {
-      crawlerBays: [
-        { bayRef: 'command-bay', npcCurrentHP: 4, npcFacts: [] },
-        { bayRef: 'mech-bay', npcCurrentHP: 4 },
-      ],
-    })
+    expect(updateSpy).toHaveBeenCalledWith(crawlerTwoBays.id, 'command-bay', { npcFacts: [] }, 0)
   })
 
   test('readOnly shows facts but exposes no add/remove controls', async () => {

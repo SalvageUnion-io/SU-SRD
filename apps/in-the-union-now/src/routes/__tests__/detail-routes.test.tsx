@@ -28,7 +28,7 @@ const baseMechInput = {
   chassisRef: 'titan',
   systems: ['shield-gen'],
   modules: [],
-  cargo: [],
+  cargoLots: [],
   conditions: [],
 }
 

@@ -18,13 +18,15 @@
  * schemaVersion: literal(1) follows the same convention as MechSchema,
  * PilotSchema, etc. — enables future incremental migrations.
  *
- * Item arrays (systems, modules, cargo): mirror the slug-string arrays in
- * MechSchema verbatim. The intent is that a MechPattern can be instantiated
- * into a Mech without any data transformation beyond assigning a new id and
- * fresh timestamps.
+ * Item arrays (systems, modules, cargoLots): mirror the fields in MechSchema
+ * verbatim. The intent is that a MechPattern can be instantiated into a Mech
+ * without any data transformation beyond assigning a new id, fresh cargo-lot
+ * ids, fresh timestamps, and seeding live stats (currentHeat 0, full SP/EP).
  */
 
 import { z } from 'zod'
+
+import { CargoLotSchema } from './cargoLot'
 
 export const MechPatternSchema = z
   .object({
@@ -38,8 +40,8 @@ export const MechPatternSchema = z
     systems: z.array(z.string()),
     /** Slugs of mech module items — mirrors MechSchema.modules. */
     modules: z.array(z.string()),
-    /** Slugs or custom names of cargo items — mirrors MechSchema.cargo. */
-    cargo: z.array(z.string()),
+    /** Cargo lots — mirrors MechSchema.cargoLots (v3 migration rewrites legacy `cargo`). */
+    cargoLots: z.array(CargoLotSchema),
     createdAt: z.string().datetime(),
   })
   .strict()

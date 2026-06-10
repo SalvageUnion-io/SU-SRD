@@ -78,7 +78,16 @@ const fakeMech: Mech = {
   chassisRef: 'iron-mongrel',
   systems: ['heavy-blaster'],
   modules: ['shield-cell'],
-  cargo: ['med-kit'],
+  cargoLots: [
+    {
+      id: 'lot-medkit',
+      kind: 'unit' as const,
+      name: 'med-kit',
+      cat: 'SEALED' as const,
+      units: 1,
+      code: 'MED',
+    },
+  ],
   conditions: [],
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),

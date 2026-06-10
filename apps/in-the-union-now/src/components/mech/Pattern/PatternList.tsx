@@ -97,7 +97,7 @@ export function PatternList({ onInstantiated }: PatternListProps) {
             <span className="text-xs text-muted-foreground">
               Chassis: {pattern.chassisRef} &mdash; {pattern.systems.length} system
               {pattern.systems.length !== 1 ? 's' : ''}, {pattern.modules.length} module
-              {pattern.modules.length !== 1 ? 's' : ''}, {pattern.cargo.length} cargo
+              {pattern.modules.length !== 1 ? 's' : ''}, {pattern.cargoLots.length} cargo
             </span>
           </div>
           <InstantiateFromPattern pattern={pattern} onSuccess={handleInstantiated} />

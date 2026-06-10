@@ -12,11 +12,26 @@
  * Write-through: create/update/delete persist to IndexedDB first. On success
  * the in-memory state is updated atomically via Zustand's set(). On failure
  * the db error propagates to the caller; in-memory state is not mutated.
+ *
+ * Multi-tab (plan 2.7): every successful write publishes the affected object
+ * store via lib/db/broadcast; writes made by OTHER tabs invalidate this tab's
+ * cache (already-hydrated stores are re-read from IndexedDB). Crawler-bay
+ * edits go through updateCrawlerBay(), which merges a single bay entry onto
+ * the freshest persisted record instead of replacing the whole array from a
+ * possibly-stale in-memory copy.
+ *
+ * Integrity (plan 2.7): deleting a pilot/mech/crawler also prunes every
+ * SoftLink whose `from` or `to` endpoint references it — no more orphaned
+ * "Unknown pilot (id)" rows.
  */
 
 import { create } from 'zustand'
 
+import { recordDataWrite } from '../lib/backupNudge'
+import { publishStoreChange, subscribeStoreChanges } from '../lib/db/broadcast'
 import * as db from '../lib/db/index'
+import { STORE_NAMES } from '../lib/db/stores'
+import type { StoreName } from '../lib/db/stores'
 import type { Crawler } from '../lib/schemas/crawler'
 import type { Mech } from '../lib/schemas/mech'
 import type { Pilot } from '../lib/schemas/pilot'
@@ -25,6 +40,8 @@ import type { AssignableType, CreateInput, EntityForType, EntityType } from './t
 
 // Re-export for consumers that only import from the stores barrel.
 export type { AssignableType, CreateInput, EntityForType, EntityType }
+
+type CrawlerBayEntry = NonNullable<Crawler['crawlerBays']>[number]
 
 type EntityState = {
   pilots: Pilot[]
@@ -43,6 +60,13 @@ type EntityState = {
    * Idempotent: subsequent calls when already hydrated are no-ops.
    */
   hydrate: (type: EntityType) => Promise<void>
+
+  /**
+   * Re-reads the given type from IndexedDB even when already hydrated.
+   * Used for cross-tab invalidation; no-op when the type was never hydrated
+   * (lazy hydration will read fresh data anyway).
+   */
+  rehydrate: (type: EntityType) => Promise<void>
 
   /**
    * Sync list — returns the in-memory array.
@@ -64,7 +88,28 @@ type EntityState = {
     patch: Partial<EntityForType<T>>
   ) => Promise<EntityForType<T>>
 
-  /** Deletes from db and removes from in-memory state. */
+  /**
+   * Merges a patch into ONE crawler bay entry (matched by bayRef) on top of
+   * the freshest persisted record — concurrent edits to different bays from
+   * different tabs no longer clobber each other's whole-array writes.
+   * Throws when the crawler or the bay entry does not exist.
+   */
+  updateCrawlerBay: (
+    crawlerId: string,
+    bayRef: string,
+    patch: Partial<Omit<CrawlerBayEntry, 'bayRef'>>,
+    /**
+     * Disambiguates when multiple entries share a bayRef: the entry at this
+     * index is patched when its bayRef matches; otherwise the first bayRef
+     * match wins.
+     */
+    index?: number
+  ) => Promise<Crawler>
+
+  /**
+   * Deletes from db and removes from in-memory state. Deleting a
+   * pilot/mech/crawler also deletes every SoftLink referencing it.
+   */
   delete: (type: EntityType, id: string) => Promise<void>
 }
 
@@ -88,6 +133,25 @@ function dbStoreFor(type: EntityType) {
   }
 }
 
+/** Object-store name for broadcast messages. */
+function broadcastNameFor(type: EntityType): StoreName {
+  switch (type) {
+    case 'pilot':
+      return STORE_NAMES.pilots
+    case 'mech':
+      return STORE_NAMES.mechs
+    case 'crawler':
+      return STORE_NAMES.crawlers
+    case 'softLink':
+      return STORE_NAMES.softLinks
+  }
+}
+
+function afterWrite(type: EntityType): void {
+  publishStoreChange(broadcastNameFor(type))
+  recordDataWrite()
+}
+
 export const useEntityStore = create<EntityState>((set, get) => ({
   pilots: [],
   mechs: [],
@@ -103,7 +167,11 @@ export const useEntityStore = create<EntityState>((set, get) => ({
   async hydrate(type) {
     const key = storeKeyFor(type)
     if (get().hydrated[key]) return
+    await get().rehydrate(type)
+  },
 
+  async rehydrate(type) {
+    const key = storeKeyFor(type)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const records = await (dbStoreFor(type).list() as Promise<any[]>)
     set((state) => ({
@@ -139,6 +207,7 @@ export const useEntityStore = create<EntityState>((set, get) => ({
     set((state) => ({
       [key]: [record, ...(state[key] as EntityForType<T>[])],
     }))
+    afterWrite(type)
     return record
   },
 
@@ -153,14 +222,73 @@ export const useEntityStore = create<EntityState>((set, get) => ({
     set((state) => ({
       [key]: (state[key] as EntityForType<T>[]).map((e) => (e.id === id ? updated : e)),
     }))
+    afterWrite(type)
     return updated
+  },
+
+  async updateCrawlerBay(crawlerId, bayRef, patch, index) {
+    // Read the freshest persisted record — NOT the in-memory copy — so two
+    // tabs editing different bays merge instead of clobbering (plan 2.7).
+    const fresh = await db.crawlers.get(crawlerId)
+    if (fresh === null) {
+      throw new Error(`[itun-store] Cannot update bay: crawler id="${crawlerId}" not found`)
+    }
+    const bays = fresh.crawlerBays ?? []
+    const targetIndex =
+      index !== undefined && bays[index]?.bayRef === bayRef
+        ? index
+        : bays.findIndex((b) => b.bayRef === bayRef)
+    if (targetIndex === -1) {
+      throw new Error(
+        `[itun-store] Cannot update bay: bayRef="${bayRef}" not found on crawler "${crawlerId}"`
+      )
+    }
+    const next = bays.map((b, i) => (i === targetIndex ? { ...b, ...patch, bayRef } : b))
+    return get().update('crawler', crawlerId, { crawlerBays: next })
   },
 
   async delete(type, id) {
     const key = storeKeyFor(type)
+
+    // Cascade: deleting an entity prunes its SoftLinks (plan 2.7, gap 9).
+    if (type !== 'softLink') {
+      const attached = (await db.softLinks.list()).filter((l) => l.from.id === id || l.to.id === id)
+      for (const link of attached) {
+        await db.softLinks.delete(link.id)
+      }
+      if (attached.length > 0) {
+        const prunedIds = new Set(attached.map((l) => l.id))
+        set((state) => ({
+          softLinks: state.softLinks.filter((l) => !prunedIds.has(l.id)),
+        }))
+        publishStoreChange(STORE_NAMES.softLinks)
+      }
+    }
+
     await dbStoreFor(type).delete(id)
     set((state) => ({
       [key]: (state[key] as { id: string }[]).filter((e) => e.id !== id),
     }))
+    afterWrite(type)
   },
 }))
+
+// ---------------------------------------------------------------------------
+// Cross-tab invalidation: when ANOTHER tab announces a write to one of our
+// object stores, re-read it from IndexedDB (only if this tab already holds a
+// hydrated copy — otherwise lazy hydration will fetch fresh data on demand).
+// ---------------------------------------------------------------------------
+const BROADCAST_TO_TYPE: Partial<Record<StoreName, EntityType>> = {
+  [STORE_NAMES.pilots]: 'pilot',
+  [STORE_NAMES.mechs]: 'mech',
+  [STORE_NAMES.crawlers]: 'crawler',
+  [STORE_NAMES.softLinks]: 'softLink',
+}
+
+subscribeStoreChanges((storeName) => {
+  const type = BROADCAST_TO_TYPE[storeName]
+  if (type === undefined) return
+  const state = useEntityStore.getState()
+  if (!state.hydrated[storeKeyFor(type)]) return
+  void state.rehydrate(type)
+})

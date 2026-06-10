@@ -14,16 +14,15 @@
  *   - Typing: idb's `IDBPDatabase` generic is structurally compatible with
  *     our store; Dexie's `Table<T>` inference requires a full class pattern.
  *
- * Migration strategy:
- *   - v1 schema (this file) is the floor. Each entity Zod schema carries
- *     `schemaVersion: z.literal(1)`.
- *   - Future schema upgrades land in `migrations/<n>-<description>.ts` and
- *     are called from the `upgrade` callback in openDB() below.
- *   - The `upgrade` callback receives `oldVersion`; add a `case` per version
- *     (no fall-through) to apply incremental changes (addObjectStore,
- *     createIndex, etc.).
- *   - Consumers should never write migrations inline here — one file per
- *     migration keeps git blame clean.
+ * Migration strategy (plan 2.1):
+ *   - Object-store creation lives in the `upgrade` callback below.
+ *   - Record rewrites live in `migrations/<n>-<description>.ts`, registered
+ *     in `migrations/index.ts` and run via runMigrations() with the
+ *     versionchange transaction.
+ *   - Reads additionally get a salvage path (see makeStore options): drifted
+ *     records are stripped/defaulted with a console warning instead of
+ *     bricking store hydration — the safety net for PWA autoUpdate version
+ *     skew where new code may meet old data (or vice versa).
  */
 
 import { openDB } from 'idb'
@@ -36,42 +35,66 @@ import { PilotSchema } from '../schemas/pilot'
 import { SoftLinkSchema } from '../schemas/softLink'
 import { WorkspaceSchema } from '../schemas/workspace'
 import { makeStore } from './crud'
+import { runMigrations } from './migrations/index'
 import { STORE_NAMES } from './stores'
+
+/** Current IndexedDB schema version. Bump together with a migrations/ entry. */
+export const DB_VERSION = 3
+
+export const DB_NAME = 'itun-v1'
 
 /** Singleton promise — openDB is called once per page load. */
 let dbPromise: Promise<IDBPDatabase> | null = null
+
+/**
+ * The canonical opener: object-store creation + registered record-rewrite
+ * migrations. Exported (with a name parameter) so the migration test suite
+ * can exercise the full upgrade path against a dedicated throwaway database
+ * without touching the app database other test files share.
+ */
+export function openItunDatabase(name: string = DB_NAME): Promise<IDBPDatabase> {
+  return openDB(name, DB_VERSION, {
+    upgrade(db, oldVersion, _newVersion, transaction) {
+      // v1: create all core object stores with keyPath = 'id'
+      if (oldVersion < 1) {
+        for (const storeName of [
+          STORE_NAMES.pilots,
+          STORE_NAMES.mechs,
+          STORE_NAMES.crawlers,
+          STORE_NAMES.workspaces,
+          STORE_NAMES.softLinks,
+        ]) {
+          if (!db.objectStoreNames.contains(storeName)) {
+            db.createObjectStore(storeName, { keyPath: 'id' })
+          }
+        }
+      }
+      // v2 (Wave 4, cycle-1): add mechPatterns object store.
+      // See ADR in src/lib/schemas/pattern.ts.
+      if (oldVersion < 2) {
+        if (!db.objectStoreNames.contains(STORE_NAMES.mechPatterns)) {
+          db.createObjectStore(STORE_NAMES.mechPatterns, { keyPath: 'id' })
+        }
+      }
+      // v3+: record rewrites live in migrations/ — one file per version.
+      // runMigrations only awaits IDB operations on `transaction`, so the
+      // versionchange transaction stays open until every rewrite lands.
+      // On failure the transaction is aborted so the version bump never
+      // commits over half-migrated data.
+      void runMigrations(db, transaction, oldVersion).catch((err: unknown) => {
+        console.error('[itun-db] Migration failed — aborting upgrade transaction.', err)
+        transaction.abort()
+      })
+    },
+  })
+}
 
 // Exported so the throwaway dev seed (scaffold/seed.ts) opens the DB through the
 // canonical opener — which runs the `upgrade` that creates the object stores.
 // (Opening bare with `openDB('itun-v1', 2)` on a fresh DB yields no stores.)
 export function getDb(): Promise<IDBPDatabase> {
   if (dbPromise === null) {
-    dbPromise = openDB('itun-v1', 2, {
-      upgrade(db, oldVersion) {
-        // v1: create all core object stores with keyPath = 'id'
-        if (oldVersion < 1) {
-          for (const storeName of [
-            STORE_NAMES.pilots,
-            STORE_NAMES.mechs,
-            STORE_NAMES.crawlers,
-            STORE_NAMES.workspaces,
-            STORE_NAMES.softLinks,
-          ]) {
-            if (!db.objectStoreNames.contains(storeName)) {
-              db.createObjectStore(storeName, { keyPath: 'id' })
-            }
-          }
-        }
-        // v2 (Wave 4, cycle-1): add mechPatterns object store.
-        // See ADR in src/lib/schemas/pattern.ts.
-        if (oldVersion < 2) {
-          if (!db.objectStoreNames.contains(STORE_NAMES.mechPatterns)) {
-            db.createObjectStore(STORE_NAMES.mechPatterns, { keyPath: 'id' })
-          }
-        }
-        // Future migrations: see migrations/ directory.
-      },
-    })
+    dbPromise = openItunDatabase()
   }
   return dbPromise
 }
@@ -103,10 +126,27 @@ export async function _clearAllStores(): Promise<void> {
 // hasUpdatedAt=true for Pilot, Mech, Crawler (their schemas include updatedAt)
 // hasUpdatedAt=false (default) for Workspace (createdAt only), SoftLink (createdAt only),
 // and MechPattern (createdAt only — patterns are immutable after creation).
+// salvageSchema = the same object shape with `.strip()` — reads tolerate
+// drifted records (unknown fields stripped) instead of bricking hydration.
 
-export const pilots = makeStore(getDb, PilotSchema, STORE_NAMES.pilots, true)
-export const mechs = makeStore(getDb, MechSchema, STORE_NAMES.mechs, true)
-export const crawlers = makeStore(getDb, CrawlerSchema, STORE_NAMES.crawlers, true)
-export const workspaces = makeStore(getDb, WorkspaceSchema, STORE_NAMES.workspaces, false)
-export const softLinks = makeStore(getDb, SoftLinkSchema, STORE_NAMES.softLinks, false)
-export const mechPatterns = makeStore(getDb, MechPatternSchema, STORE_NAMES.mechPatterns, false)
+export const pilots = makeStore(getDb, PilotSchema, STORE_NAMES.pilots, {
+  hasUpdatedAt: true,
+  salvageSchema: PilotSchema.strip(),
+})
+export const mechs = makeStore(getDb, MechSchema, STORE_NAMES.mechs, {
+  hasUpdatedAt: true,
+  salvageSchema: MechSchema.strip(),
+})
+export const crawlers = makeStore(getDb, CrawlerSchema, STORE_NAMES.crawlers, {
+  hasUpdatedAt: true,
+  salvageSchema: CrawlerSchema.strip(),
+})
+export const workspaces = makeStore(getDb, WorkspaceSchema, STORE_NAMES.workspaces, {
+  salvageSchema: WorkspaceSchema.strip(),
+})
+export const softLinks = makeStore(getDb, SoftLinkSchema, STORE_NAMES.softLinks, {
+  salvageSchema: SoftLinkSchema.strip(),
+})
+export const mechPatterns = makeStore(getDb, MechPatternSchema, STORE_NAMES.mechPatterns, {
+  salvageSchema: MechPatternSchema.strip(),
+})

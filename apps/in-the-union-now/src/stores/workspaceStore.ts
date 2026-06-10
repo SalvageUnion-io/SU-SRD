@@ -10,20 +10,26 @@
  * should subscribe to entityStore directly; these helpers are convenience
  * accessors for one-shot reads or derive-at-call-time patterns.
  *
- * Delete workspace semantics: deleting a workspace does NOT cascade to
- * entities. Entities keep their workspaceId pointing at the deleted workspace.
- * They will appear in neither listForWorkspace() (wrong id) nor listUnassigned()
- * (has a non-null workspaceId). Callers must explicitly unassign entities before
- * or after deletion if they want them to return to the unassigned pool. This
- * matches the "soft reference" pattern used throughout the codebase.
+ * Delete workspace semantics (plan 2.7, gap 9): deleting a workspace CASCADES
+ * — every member entity's `workspaceId` is cleared first, so members return
+ * to the unassigned pool instead of becoming invisible (assigned to a
+ * workspace that no longer exists). As a second line of defence,
+ * listUnassigned() also treats entities whose workspaceId points at an
+ * unknown workspace as unassigned (records written before the cascade
+ * existed, or imported from another browser).
  */
 
 import { create } from 'zustand'
 
+import { recordDataWrite } from '../lib/backupNudge'
+import { publishStoreChange, subscribeStoreChanges } from '../lib/db/broadcast'
 import * as db from '../lib/db/index'
+import { STORE_NAMES } from '../lib/db/stores'
 import type { Workspace } from '../lib/schemas/workspace'
 import type { AssignableType, EntityForType } from './types'
 import { useEntityStore } from './entityStore'
+
+const ASSIGNABLE_TYPES: AssignableType[] = ['pilot', 'mech', 'crawler']
 
 type WorkspaceState = {
   workspaces: Workspace[]
@@ -31,6 +37,9 @@ type WorkspaceState = {
 
   /** Loads all workspaces from IndexedDB. Idempotent. */
   hydrate: () => Promise<void>
+
+  /** Re-reads workspaces from IndexedDB even when already hydrated. */
+  rehydrate: () => Promise<void>
 
   /** Sync list — returns in-memory workspaces. Auto-triggers hydrate if needed. */
   list: () => Workspace[]
@@ -45,8 +54,8 @@ type WorkspaceState = {
   rename: (id: string, name: string) => Promise<Workspace>
 
   /**
-   * Deletes the workspace record. Does NOT cascade to entities — entities
-   * retain their workspaceId. See module docblock for rationale.
+   * Deletes the workspace record AND clears workspaceId on every member
+   * entity (cascade) so members return to the unassigned pool.
    */
   delete: (id: string) => Promise<void>
 
@@ -71,9 +80,10 @@ type WorkspaceState = {
   listForWorkspace: <T extends AssignableType>(workspaceId: string, type: T) => EntityForType<T>[]
 
   /**
-   * Returns all entities of the given type with no workspaceId.
-   * Reads from entityStore in-memory state. Caller should ensure hydration
-   * of the entity type before calling.
+   * Returns all entities of the given type with no workspaceId — plus, as the
+   * dashboard fallback, entities whose workspaceId points at a workspace that
+   * no longer exists. Caller should ensure hydration of both the entity type
+   * and workspaces before calling.
    */
   listUnassigned: <T extends AssignableType>(type: T) => EntityForType<T>[]
 }
@@ -84,6 +94,10 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
 
   async hydrate() {
     if (get().hydrated) return
+    await get().rehydrate()
+  },
+
+  async rehydrate() {
     const records = await db.workspaces.list()
     set({ workspaces: records, hydrated: true })
   },
@@ -110,6 +124,8 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
       name: input.name,
     })
     set((state) => ({ workspaces: [record, ...state.workspaces] }))
+    publishStoreChange(STORE_NAMES.workspaces)
+    recordDataWrite()
     return record
   },
 
@@ -118,12 +134,35 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
     set((state) => ({
       workspaces: state.workspaces.map((w) => (w.id === id ? updated : w)),
     }))
+    publishStoreChange(STORE_NAMES.workspaces)
+    recordDataWrite()
     return updated
   },
 
   async delete(id) {
+    // Cascade FIRST: clear workspaceId on every member so nothing is left
+    // pointing at a workspace that no longer exists (plan 2.7, gap 9).
+    const entityStore = useEntityStore.getState()
+    for (const type of ASSIGNABLE_TYPES) {
+      await entityStore.hydrate(type)
+      const members = (
+        entityStore.list(type) as (EntityForType<typeof type> & {
+          workspaceId?: string
+        })[]
+      ).filter((e) => e.workspaceId === id)
+      for (const member of members) {
+        await entityStore.update(type, member.id, {
+          workspaceId: undefined,
+        } as Partial<EntityForType<typeof type>>)
+      }
+    }
+
     await db.workspaces.delete(id)
-    set((state) => ({ workspaces: state.workspaces.filter((w) => w.id !== id) }))
+    set((state) => ({
+      workspaces: state.workspaces.filter((w) => w.id !== id),
+    }))
+    publishStoreChange(STORE_NAMES.workspaces)
+    recordDataWrite()
   },
 
   async assign(entityType, entityId, workspaceId) {
@@ -148,9 +187,22 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
   },
 
   listUnassigned<T extends AssignableType>(type: T): EntityForType<T>[] {
+    const knownIds = new Set(
+      get()
+        .list()
+        .map((w) => w.id)
+    )
     const entities = useEntityStore.getState().list(type)
     return (entities as (EntityForType<T> & { workspaceId?: string })[]).filter(
-      (e) => !e.workspaceId
+      (e) => !e.workspaceId || !knownIds.has(e.workspaceId)
     )
   },
 }))
+
+// Cross-tab invalidation for the workspaces store (plan 2.7).
+subscribeStoreChanges((storeName) => {
+  if (storeName !== STORE_NAMES.workspaces) return
+  const state = useWorkspaceStore.getState()
+  if (!state.hydrated) return
+  void state.rehydrate()
+})

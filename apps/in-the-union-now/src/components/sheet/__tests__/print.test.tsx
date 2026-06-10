@@ -68,7 +68,16 @@ const fakeMech: Mech = {
   chassisRef: 'Mule',
   systems: ['laser-lance'],
   modules: ['stealth-cell'],
-  cargo: ['ration-pack'],
+  cargoLots: [
+    {
+      id: 'lot-ration',
+      kind: 'unit' as const,
+      name: 'ration-pack',
+      cat: 'SEALED' as const,
+      units: 1,
+      code: 'RAT',
+    },
+  ],
   conditions: [],
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),

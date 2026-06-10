@@ -13,6 +13,7 @@ import type { SURefEntity } from 'salvageunion-reference'
 import { ReferenceEntityDisplay } from 'suref-react'
 import type { ChoiceSelections } from 'suref-react'
 
+import { crawlerMaxSP } from '../../lib/rules/derivedStats'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Pilot } from '../../lib/schemas/pilot'
 import { useEntityStore } from '../../stores/entityStore'
@@ -40,25 +41,6 @@ function resolveCrawlerBay(ref: string): ResolvedBay | null {
 }
 
 /**
- * Resolve a crawler's max Structure Points from its tech level. The stored
- * techLevel is a slug like "tech-3"; crawler-tech-levels data exposes the
- * structurePoints per level (20/25/30/35/40/50 for I–VI).
- */
-function resolveCrawlerMaxSP(techLevel: string): number {
-  try {
-    const n = Number.parseInt(techLevel.replace(/[^0-9]/g, ''), 10)
-    if (!Number.isFinite(n)) return 0
-    const all = SalvageUnionReference.CrawlerTechLevels.all() as ReadonlyArray<{
-      techLevel: number
-      structurePoints: number
-    }>
-    return all.find((t) => t.techLevel === n)?.structurePoints ?? 0
-  } catch {
-    return 0
-  }
-}
-
-/**
  * CrawlerBayCard — a single installed crawler bay rendered as a pink entity
  * card with its embedded NPC. The NPC's name + current HP are editable and
  * persist back onto the crawler's `crawlerBays` array.
@@ -67,7 +49,6 @@ function CrawlerBayCard({
   crawlerId,
   entry,
   index,
-  bays,
   seedSelections,
   store,
   readOnly,
@@ -75,7 +56,6 @@ function CrawlerBayCard({
   crawlerId: string
   entry: CrawlerBayEntry
   index: number
-  bays: CrawlerBayEntry[]
   /**
    * Persisted choice selections for this bay, sourced from the canonical crawler
    * prop (keyed by `entry.bayRef`). Used directly as the controlled `selections`
@@ -107,17 +87,12 @@ function CrawlerBayCard({
   const currentHP = entry.npcCurrentHP ?? maxHP
 
   function patchEntry(patch: Partial<CrawlerBayEntry>) {
-    // Read the freshest crawlerBays array from the store (not the render-time
-    // `bays` prop) so concurrent edits to different bays/fields don't clobber
-    // each other — the db layer merges only at the top level, replacing the
-    // whole array. Mirrors the sibling freshest-read writers (PilotSheet,
-    // MechSheet, HeatCheckControl). Target the entry by bayRef + index so
-    // matching is stable even if entries share a bayRef.
-    const fresh = storeState.get('crawler', crawlerId)?.crawlerBays ?? bays
-    const next = fresh.map((b, i) =>
-      i === index && b.bayRef === entry.bayRef ? { ...b, ...patch } : b
-    )
-    void storeState.update('crawler', crawlerId, { crawlerBays: next })
+    // Per-bay merge at the store level (plan 2.7): updateCrawlerBay re-reads
+    // the freshest persisted record and patches only this entry, so
+    // concurrent edits to different bays — including from another tab — don't
+    // clobber each other with whole-array writes. index disambiguates
+    // duplicate bayRefs.
+    void storeState.updateCrawlerBay(crawlerId, entry.bayRef, patch, index)
   }
 
   const hpSlot =
@@ -217,7 +192,7 @@ export function CrawlerSheet({
   store = useEntityStore,
   readOnly = false,
 }: CrawlerSheetProps) {
-  const maxSP = resolveCrawlerMaxSP(crawler.techLevel)
+  const maxSP = crawlerMaxSP(crawler)
   return (
     <section aria-labelledby="crawler-sheet-heading" className="flex flex-col gap-4">
       {/* Header */}
@@ -274,7 +249,6 @@ export function CrawlerSheet({
                 crawlerId={crawler.id}
                 entry={entry}
                 index={i}
-                bays={crawler.crawlerBays ?? []}
                 seedSelections={crawler.bayChoices?.[entry.bayRef]}
                 store={store}
                 readOnly={readOnly}

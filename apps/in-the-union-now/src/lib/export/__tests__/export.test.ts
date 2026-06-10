@@ -47,7 +47,7 @@ const baseMechInput = {
   chassisRef: 'iron-mongrel',
   systems: [],
   modules: [],
-  cargo: [],
+  cargoLots: [],
   conditions: [],
 }
 
@@ -101,6 +101,7 @@ describe('parseImportBundle', () => {
       entities: { pilots: [], mechs: [], crawlers: [] },
       workspaces: [],
       softLinks: [],
+      mechPatterns: [],
     }
     const result = parseImportBundle(JSON.stringify(bundle))
     expect(result.schemaVersion).toBe(1)
@@ -118,6 +119,7 @@ describe('parseImportBundle', () => {
       entities: { pilots: [], mechs: [], crawlers: [] },
       workspaces: [],
       softLinks: [],
+      mechPatterns: [],
     }
     expect(() => parseImportBundle(JSON.stringify(badBundle))).toThrow('unsupported schemaVersion')
   })
@@ -411,6 +413,7 @@ describe('mergeImport — round-trip', () => {
       },
       workspaces: [],
       softLinks: [],
+      mechPatterns: [],
     }
 
     const summary = await mergeImport(bundle, entityStore, workspaceStore)

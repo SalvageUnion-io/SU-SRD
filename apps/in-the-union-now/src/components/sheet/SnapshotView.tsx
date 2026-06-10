@@ -24,6 +24,7 @@ import type { Crawler } from '../../lib/schemas/crawler'
 import { PilotSchema } from '../../lib/schemas/pilot'
 import { MechSchema } from '../../lib/schemas/mech'
 import { CrawlerSchema } from '../../lib/schemas/crawler'
+import { normalizeLegacyCargoRecord } from '../../lib/schemas/cargoLot'
 
 type SnapshotViewProps = {
   /** The raw payload returned by retrieveSnapshot — not yet validated. */
@@ -47,15 +48,25 @@ function parseSnapshot(snapshot: Record<string, unknown>): ParseResult {
   if (kind === 'pilot') {
     const parsed = PilotSchema.safeParse(entity)
     if (!parsed.success) {
-      return { ok: false, reason: `Invalid pilot data: ${parsed.error.message}` }
+      return {
+        ok: false,
+        reason: `Invalid pilot data: ${parsed.error.message}`,
+      }
     }
     return { ok: true, kind: 'pilot', entity: parsed.data }
   }
 
   if (kind === 'mech') {
-    const parsed = MechSchema.safeParse(entity)
+    // Snapshots published before the cargo→cargoLots rename carry a legacy
+    // `cargo: string[]` field — same rewrite parseImportBundle applies.
+    const parsed = MechSchema.safeParse(
+      normalizeLegacyCargoRecord(entity as Record<string, unknown>)
+    )
     if (!parsed.success) {
-      return { ok: false, reason: `Invalid mech data: ${parsed.error.message}` }
+      return {
+        ok: false,
+        reason: `Invalid mech data: ${parsed.error.message}`,
+      }
     }
     return { ok: true, kind: 'mech', entity: parsed.data }
   }
@@ -63,7 +74,10 @@ function parseSnapshot(snapshot: Record<string, unknown>): ParseResult {
   if (kind === 'crawler') {
     const parsed = CrawlerSchema.safeParse(entity)
     if (!parsed.success) {
-      return { ok: false, reason: `Invalid crawler data: ${parsed.error.message}` }
+      return {
+        ok: false,
+        reason: `Invalid crawler data: ${parsed.error.message}`,
+      }
     }
     return { ok: true, kind: 'crawler', entity: parsed.data }
   }

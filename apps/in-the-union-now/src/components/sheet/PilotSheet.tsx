@@ -27,7 +27,7 @@ import type { Pilot } from '../../lib/schemas/pilot'
 import { resolveAbilityApCost } from '../../lib/abilityCost'
 import { resolveClassName } from '../../lib/classRef'
 import { resolveEffectiveCrawlerLevel } from '../../lib/crawlerLevel'
-import { PILOT_MAX_HP, PILOT_MAX_AP } from '../../lib/pilotStats'
+import { pilotMaxHP, pilotMaxAP } from '../../lib/rules/derivedStats'
 import { useEntityStore } from '../../stores/entityStore'
 import { useSoftLinks } from '../wiring/useSoftLinks'
 import { ConditionToggle } from '../shared/ConditionToggle'
@@ -239,6 +239,9 @@ type PilotSheetProps = {
 
 export function PilotSheet({ pilot, store = useEntityStore, readOnly = false }: PilotSheetProps) {
   const storeState = store()
+  // Derived maxima (plan 2.5): base 10/5 + training modifiers − injuries.
+  const maxHP = Math.max(0, pilotMaxHP(pilot))
+  const maxAP = Math.max(0, pilotMaxAP(pilot))
 
   // Resolve the pilot's associated crawler (if any) via the pilot-to-crawler
   // SoftLink, then compute the EFFECTIVE crawler Tech Level used to scale choice
@@ -324,7 +327,6 @@ export function PilotSheet({ pilot, store = useEntityStore, readOnly = false }: 
               HP
             </dt>
             <dd className="font-mono text-lg font-bold text-su-black">
-              {/* TODO: source base value from rules once pilot class data exposes HP */}
               <EditableStatRow
                 label="HP"
                 value={pilot.currentHP ?? 0}
@@ -332,16 +334,17 @@ export function PilotSheet({ pilot, store = useEntityStore, readOnly = false }: 
                 entityId={pilot.id}
                 fieldPath="currentHP"
                 min={0}
+                max={maxHP}
                 step={1}
                 store={store}
                 readOnly={readOnly}
               />
             </dd>
             <PipTracker
-              max={PILOT_MAX_HP}
+              max={maxHP}
               value={pilot.currentHP ?? 0}
               tone="hp"
-              ariaLabel={`HP ${pilot.currentHP ?? 0} of ${PILOT_MAX_HP}`}
+              ariaLabel={`HP ${pilot.currentHP ?? 0} of ${maxHP}`}
               className="mt-1.5"
             />
           </div>
@@ -350,7 +353,6 @@ export function PilotSheet({ pilot, store = useEntityStore, readOnly = false }: 
               AP
             </dt>
             <dd className="font-mono text-lg font-bold text-su-black">
-              {/* TODO: source base value from rules once pilot class data exposes AP */}
               <EditableStatRow
                 label="AP"
                 value={pilot.currentAP ?? 0}
@@ -358,17 +360,17 @@ export function PilotSheet({ pilot, store = useEntityStore, readOnly = false }: 
                 entityId={pilot.id}
                 fieldPath="currentAP"
                 min={0}
-                max={PILOT_MAX_AP}
+                max={maxAP}
                 step={1}
                 store={store}
                 readOnly={readOnly}
               />
             </dd>
             <PipTracker
-              max={PILOT_MAX_AP}
+              max={maxAP}
               value={pilot.currentAP ?? 0}
               tone="ap"
-              ariaLabel={`AP ${pilot.currentAP ?? 0} of ${PILOT_MAX_AP}`}
+              ariaLabel={`AP ${pilot.currentAP ?? 0} of ${maxAP}`}
               className="mt-1.5"
             />
           </div>

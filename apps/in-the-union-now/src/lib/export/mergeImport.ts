@@ -1,4 +1,6 @@
+import * as db from '../db/index'
 import type { ExportBundle } from '../schemas/exportBundle'
+import type { MechPattern } from '../schemas/pattern'
 import type { EntityType } from '../../stores/types'
 
 /**
@@ -20,6 +22,15 @@ type MergeWorkspaceStore = {
   create: (input: { name: string }) => Promise<import('../schemas/workspace').Workspace>
 }
 
+/**
+ * Minimal pattern store for import. Patterns are not in entityStore — they
+ * default to the db layer; tests may pass a double.
+ */
+type MergePatternStore = {
+  list: () => Promise<MechPattern[]>
+  create: (input: Omit<MechPattern, 'id' | 'createdAt'>) => Promise<MechPattern>
+}
+
 export type MergeSummary = {
   created: {
     pilots: number
@@ -27,6 +38,7 @@ export type MergeSummary = {
     crawlers: number
     workspaces: number
     softLinks: number
+    mechPatterns: number
   }
   remappedLinks: number
   skippedDuplicates: number
@@ -54,7 +66,8 @@ export type MergeSummary = {
 export async function mergeImport(
   bundle: ExportBundle,
   entityStore: MergeEntityStore,
-  workspaceStore: MergeWorkspaceStore
+  workspaceStore: MergeWorkspaceStore,
+  patternStore: MergePatternStore = db.mechPatterns
 ): Promise<MergeSummary> {
   // Hydrate so we can check for existing ids.
   await Promise.all([
@@ -75,7 +88,14 @@ export async function mergeImport(
   const idMap = new Map<string, string>()
 
   const summary: MergeSummary = {
-    created: { pilots: 0, mechs: 0, crawlers: 0, workspaces: 0, softLinks: 0 },
+    created: {
+      pilots: 0,
+      mechs: 0,
+      crawlers: 0,
+      workspaces: 0,
+      softLinks: 0,
+      mechPatterns: 0,
+    },
     remappedLinks: 0,
     skippedDuplicates: 0,
   }
@@ -189,6 +209,22 @@ export async function mergeImport(
       to: { ...link.to, id: newToId },
     })
     summary.created.softLinks++
+  }
+
+  // -------------------------------------------------------------------------
+  // 6. Mech patterns — fresh UUIDs, exact-id dedupe (same policy as entities).
+  //    Patterns reference no other bundle entities, so no remapping needed.
+  // -------------------------------------------------------------------------
+  const existingPatternIds = new Set((await patternStore.list()).map((p) => p.id))
+  for (const pattern of bundle.mechPatterns) {
+    if (existingPatternIds.has(pattern.id)) {
+      summary.skippedDuplicates++
+      continue
+    }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { id: _id, createdAt: _ca, ...rest } = pattern
+    await patternStore.create(rest)
+    summary.created.mechPatterns++
   }
 
   return summary

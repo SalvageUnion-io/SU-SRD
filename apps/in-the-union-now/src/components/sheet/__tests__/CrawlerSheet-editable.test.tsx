@@ -4,7 +4,7 @@
  * Asserts that:
  *   1. Editing SP calls store.update with { currentSP: <value> }
  *   2. readOnly suppresses editing (no spinbutton, no store.update)
- *   3. Editing a bay's NPC HP persists the whole crawlerBays array.
+ *   3. Editing a bay's NPC HP persists via the store-level per-bay merge.
  */
 
 import { afterEach, describe, expect, mock, test } from 'bun:test'
@@ -75,6 +75,10 @@ function makeStubStore(
     create: mock(async () => crawler) as any,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     update: updateMock as any,
+    // CrawlerBayCard persists bay edits via the store-level per-bay merge
+    // (plan 2.7) — same spy so existing not-called assertions still hold.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    updateCrawlerBay: updateMock as any,
     delete: mock(async () => {}),
   }
   return (() => storeState) as unknown as typeof useEntityStore
@@ -155,7 +159,7 @@ describe('CrawlerSheet — per-bay NPC HP editing (#256)', () => {
     restore?.()
   })
 
-  test('editing a bay NPC HP persists the full crawlerBays array', async () => {
+  test('editing a bay NPC HP persists via the per-bay merge', async () => {
     restore = await patchCrawlerBays()
     const updateSpy = mock(async () => crawlerWithBay)
     render(
@@ -172,9 +176,7 @@ describe('CrawlerSheet — per-bay NPC HP editing (#256)', () => {
       fireEvent.blur(input)
     })
 
-    expect(updateSpy).toHaveBeenCalledWith('crawler', crawlerWithBay.id, {
-      crawlerBays: [{ bayRef: 'command-bay', npcCurrentHP: 2 }],
-    })
+    expect(updateSpy).toHaveBeenCalledWith(crawlerWithBay.id, 'command-bay', { npcCurrentHP: 2 }, 0)
   })
 
   test('readOnly suppresses bay NPC HP editing', async () => {

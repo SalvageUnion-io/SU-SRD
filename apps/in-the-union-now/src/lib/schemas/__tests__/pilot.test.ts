@@ -77,10 +77,12 @@ describe('PilotSchema', () => {
     expect(() => PilotSchema.parse({ ...validPilot, callsign: '' })).toThrow()
   })
 
-  // Schema hardening: abilities array must not exceed STARTING_ABILITY_BUDGET
-  test(`rejects abilities array exceeding STARTING_ABILITY_BUDGET (${STARTING_ABILITY_BUDGET})`, () => {
-    const tooMany = Array.from({ length: STARTING_ABILITY_BUDGET + 1 }, (_, i) => `ability-${i}`)
-    expect(() => PilotSchema.parse({ ...validPilot, abilities: tooMany })).toThrow()
+  // Advancement (plan 2.2): the schema no longer caps abilities — growth past
+  // the creation budget persists; the rules cap (10/12) is a SOFT warning.
+  test(`accepts abilities array exceeding STARTING_ABILITY_BUDGET (${STARTING_ABILITY_BUDGET})`, () => {
+    const grown = Array.from({ length: STARTING_ABILITY_BUDGET + 1 }, (_, i) => `ability-${i}`)
+    const result = PilotSchema.parse({ ...validPilot, abilities: grown })
+    expect(result.abilities).toHaveLength(STARTING_ABILITY_BUDGET + 1)
   })
 
   test(`accepts abilities array exactly at STARTING_ABILITY_BUDGET (${STARTING_ABILITY_BUDGET})`, () => {
@@ -89,10 +91,11 @@ describe('PilotSchema', () => {
     expect(result.abilities).toHaveLength(STARTING_ABILITY_BUDGET)
   })
 
-  // Schema hardening: equipment array must not exceed STARTING_EQUIPMENT_BUDGET
-  test(`rejects equipment array exceeding STARTING_EQUIPMENT_BUDGET (${STARTING_EQUIPMENT_BUDGET})`, () => {
-    const tooMany = Array.from({ length: STARTING_EQUIPMENT_BUDGET + 1 }, (_, i) => `item-${i}`)
-    expect(() => PilotSchema.parse({ ...validPilot, equipment: tooMany })).toThrow()
+  // Equipment is likewise uncapped at the schema level (plan 2.2).
+  test(`accepts equipment array exceeding STARTING_EQUIPMENT_BUDGET (${STARTING_EQUIPMENT_BUDGET})`, () => {
+    const grown = Array.from({ length: STARTING_EQUIPMENT_BUDGET + 1 }, (_, i) => `item-${i}`)
+    const result = PilotSchema.parse({ ...validPilot, equipment: grown })
+    expect(result.equipment).toHaveLength(STARTING_EQUIPMENT_BUDGET + 1)
   })
 
   test(`accepts equipment array exactly at STARTING_EQUIPMENT_BUDGET (${STARTING_EQUIPMENT_BUDGET})`, () => {

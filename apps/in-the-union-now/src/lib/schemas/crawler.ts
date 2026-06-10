@@ -1,5 +1,24 @@
 import { z } from 'zod'
+import { CargoLotSchema } from './cargoLot'
 import { ChoiceSelectionsSchema } from './pilot'
+
+/**
+ * The party's shared scrap pool, bucketed by tech level (rules C5: "the party
+ * economy — 6 numbers"). Salvage deposits in; upkeep/craft/repair/trade
+ * withdraw. SCRAP cargo lots crossing the crawler boundary deposit/withdraw
+ * the matching bucket. Absent buckets read as 0.
+ */
+export const ScrapPoolSchema = z
+  .object({
+    tl1: z.number().int().min(0).optional(),
+    tl2: z.number().int().min(0).optional(),
+    tl3: z.number().int().min(0).optional(),
+    tl4: z.number().int().min(0).optional(),
+    tl5: z.number().int().min(0).optional(),
+    tl6: z.number().int().min(0).optional(),
+  })
+  .strict()
+export type ScrapPool = z.infer<typeof ScrapPoolSchema>
 
 /**
  * Crawler tech levels are I–VI per the Salvage Union ruleset.
@@ -48,6 +67,13 @@ export const CrawlerSchema = z
            * read sites treat a missing value as an empty list.
            */
           npcFacts: z.array(z.string()).optional(),
+          /**
+           * Bay condition (rules C8). Bays are Intact/Damaged ONLY — never
+           * Destroyed (unlike mech items). Damaged disables the bay's
+           * function; repair costs 5 Scrap of crawler TL or higher. Absent
+           * reads as 'intact'.
+           */
+          condition: z.enum(['intact', 'damaged']).optional(),
         })
       )
       .optional(),
@@ -73,6 +99,28 @@ export const CrawlerSchema = z
     // ---------------------------------------------------------------------------
     /** Current structure points */
     currentSP: z.number().int().min(0).optional(),
+    // ---------------------------------------------------------------------------
+    // Shared party economy + cargo (plan 2.4, rules C4/C5/C6).
+    // All additive-optional — absent reads as the documented default.
+    // ---------------------------------------------------------------------------
+    /** Shared scrap pool bucketed by TL 1–6. Absent = all buckets 0. */
+    scrapPool: ScrapPoolSchema.optional(),
+    /**
+     * Upgrade Pool progress (rules C4): paid Upkeep accumulates here plus
+     * voluntary scrap; upgrade at 30× TL. Absent = 0.
+     */
+    upgradePool: z.number().int().min(0).optional(),
+    /**
+     * Cargo lots in the crawler's hold. Unlimited capacity (Storage Bay,
+     * rules C6) — no cap math, unlike mech cargoLots. Absent = empty.
+     */
+    cargoLots: z.array(CargoLotSchema).optional(),
+    /**
+     * Hand-edited bonus to max SP on top of the tech-level base — the Battle
+     * Crawler type's +5 Max SP (rules C1) lives here. Derived max SP =
+     * tech-level structurePoints + this (lib/rules/derivedStats.ts). Absent = 0.
+     */
+    maxSpModifier: z.number().int().optional(),
     createdAt: z.string().datetime(),
     updatedAt: z.string().datetime(),
   })

@@ -122,7 +122,11 @@ export type CargoParent = {
  * Discriminated union of cargo violations.
  */
 export type CargoViolation =
-  | { kind: 'over-capacity'; message: string; details: { used: number; max: number } }
+  | {
+      kind: 'over-capacity'
+      message: string
+      details: { used: number; max: number }
+    }
   | { kind: 'missing-ref'; message: string; details: { ref: string } }
 
 /**
@@ -175,6 +179,11 @@ export type AbilityInput = {
 export type PilotSnapshot = {
   level: number
   abilities: AbilityInput[]
+  /**
+   * True when the pilot's class is Salvager — raises the ability soft cap
+   * from 10 to 12 (Core trees only, per the core rules).
+   */
+  isSalvager?: boolean
 }
 
 /**

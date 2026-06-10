@@ -27,7 +27,7 @@ const fakeMech: Mech = {
   chassisRef: 'iron-mongrel',
   systems: [],
   modules: [],
-  cargo: [],
+  cargoLots: [],
   conditions: [],
   currentHP: 12,
   currentAP: 3,

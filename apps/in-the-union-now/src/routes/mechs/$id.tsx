@@ -99,7 +99,7 @@ function MechDetailPage() {
                 <dt className="font-cond font-semibold uppercase tracking-wide text-su-ink-soft">
                   Cargo slots used:
                 </dt>
-                <dd>{mech.cargo.length}</dd>
+                <dd>{mech.cargoLots.length}</dd>
               </div>
               {mech.conditions.length > 0 && (
                 <div className="flex gap-2">

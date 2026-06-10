@@ -54,7 +54,7 @@ const fakeMech: Mech = {
   chassisRef: 'iron-mongrel',
   systems: [REAL_SYSTEM],
   modules: ['totally-not-a-real-module'],
-  cargo: [],
+  cargoLots: [],
   conditions: [],
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),

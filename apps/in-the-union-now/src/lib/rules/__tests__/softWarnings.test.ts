@@ -6,7 +6,13 @@
  * complete isolation.
  */
 import { describe, expect, it } from 'bun:test'
-import { evaluateSoftWarnings, evaluatePilotWarnings, evaluateMechWarnings } from '../softWarnings'
+import {
+  evaluateSoftWarnings,
+  evaluatePilotWarnings,
+  evaluateMechWarnings,
+  PILOT_ABILITY_CAP,
+  SALVAGER_ABILITY_CAP,
+} from '../softWarnings'
 import type { EditSnapshot, MechSnapshot, PilotSnapshot, SoftWarningContext } from '../types'
 
 // ---------------------------------------------------------------------------
@@ -101,6 +107,48 @@ describe('evaluatePilotWarnings — ability prerequisite', () => {
     const snapshot: EditSnapshot<PilotSnapshot> = { before: basePilot, after }
     const warnings = evaluatePilotWarnings(snapshot, pilotCtx)
     expect(warnings).toHaveLength(0)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Pilot warnings — ability count soft cap (plan 2.2: schema caps lifted)
+// ---------------------------------------------------------------------------
+
+describe('evaluatePilotWarnings — ability count cap', () => {
+  function pilotWithAbilities(count: number, isSalvager = false): PilotSnapshot {
+    return {
+      level: 2,
+      abilities: Array.from({ length: count }, (_, i) => ({ ref: `Ability ${i}` })),
+      isSalvager,
+    }
+  }
+
+  it('no warning at the cap (10)', () => {
+    const after = pilotWithAbilities(PILOT_ABILITY_CAP)
+    const warnings = evaluatePilotWarnings({ before: after, after }, pilotCtx)
+    expect(warnings.filter((w) => w.code === 'PILOT_ABILITY_CAP_EXCEEDED')).toHaveLength(0)
+  })
+
+  it('warns beyond 10 abilities', () => {
+    const after = pilotWithAbilities(PILOT_ABILITY_CAP + 1)
+    const warnings = evaluatePilotWarnings({ before: after, after }, pilotCtx)
+    expect(warnings.some((w) => w.code === 'PILOT_ABILITY_CAP_EXCEEDED')).toBe(true)
+  })
+
+  it('Salvager cap is 12', () => {
+    const at12 = pilotWithAbilities(SALVAGER_ABILITY_CAP, true)
+    expect(
+      evaluatePilotWarnings({ before: at12, after: at12 }, pilotCtx).filter(
+        (w) => w.code === 'PILOT_ABILITY_CAP_EXCEEDED'
+      )
+    ).toHaveLength(0)
+
+    const at13 = pilotWithAbilities(SALVAGER_ABILITY_CAP + 1, true)
+    expect(
+      evaluatePilotWarnings({ before: at13, after: at13 }, pilotCtx).some(
+        (w) => w.code === 'PILOT_ABILITY_CAP_EXCEEDED'
+      )
+    ).toBe(true)
   })
 })
 

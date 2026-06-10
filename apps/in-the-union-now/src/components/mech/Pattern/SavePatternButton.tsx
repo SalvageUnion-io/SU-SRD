@@ -15,6 +15,7 @@
 
 import { useRef, useState } from 'react'
 import * as db from '../../../lib/db/index'
+import type { CargoLot } from '../../../lib/schemas/cargoLot'
 import { useDialogA11y } from '../../shared/useDialogA11y'
 import { Button } from '../../ui/button'
 import { cn } from '../../../lib/utils'
@@ -25,7 +26,7 @@ type SavePatternButtonProps = {
   chassisRef: string
   systems: string[]
   modules: string[]
-  cargo: string[]
+  cargoLots: CargoLot[]
   /** Called after the pattern is successfully saved. */
   onSaved?: (patternId: string) => void
   className?: string
@@ -36,7 +37,7 @@ export function SavePatternButton({
   chassisRef,
   systems,
   modules,
-  cargo,
+  cargoLots,
   onSaved,
   className,
 }: SavePatternButtonProps) {
@@ -72,7 +73,7 @@ export function SavePatternButton({
         chassisRef,
         systems,
         modules,
-        cargo,
+        cargoLots,
       })
       setIsOpen(false)
       onSaved?.(pattern.id)

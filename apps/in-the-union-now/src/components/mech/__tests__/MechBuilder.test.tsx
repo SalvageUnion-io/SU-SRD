@@ -338,7 +338,7 @@ describe('MechBuilder — submit', () => {
       expect(mechs[0]!.chassisRef).toBe(mule.name)
       expect(mechs[0]!.systems).toEqual([])
       expect(mechs[0]!.modules).toEqual([])
-      expect(mechs[0]!.cargo).toEqual([])
+      expect(mechs[0]!.cargoLots).toEqual([])
       expect(mechs[0]!.conditions).toEqual([])
       expect(mechs[0]!.schemaVersion).toBe(1)
     })
