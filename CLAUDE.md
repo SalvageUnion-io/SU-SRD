@@ -58,7 +58,7 @@ bun --filter in-the-union-now test         # Test ITUN app only
 bun run lint             # Lint all packages
 bun run format           # Format all packages with Prettier
 bun run typecheck        # TypeScript check all packages
-bun run check:all        # Full CI check (lint, format, typecheck, test, validate)
+bun run check:all        # Full CI check (lint, format, typecheck, test, validate, knip)
 
 # Build package (compiles TypeScript + generates JSON schemas from Zod)
 bun run build:package
@@ -164,8 +164,8 @@ For styling bugs, check Tailwind configuration (@source paths, plugin setup) ear
 
 ### Pre-commit Hooks (Lefthook)
 
-Pre-commit runs: lint --fix, format, typecheck (parallel).
-Pre-push runs: test, validate:all (parallel).
+Pre-commit runs: lint --fix, format (parallel). Typecheck does NOT run pre-commit.
+Pre-push runs: typecheck, test, validate:all, knip (parallel).
 
 ### Project Skills (`.claude/skills/`)
 

@@ -186,7 +186,9 @@ export function getCoreClasses(): (SURefClass & { schemaName: string })[] {
  * Get all hybrid classes (classes with hybrid=true)
  * @returns Array of hybrid classes
  */
-export function getHybridClasses(): (SURefObjectAdvancedClass & { schemaName: string })[] {
+export function getHybridClasses(): (SURefObjectAdvancedClass & {
+  schemaName: string
+})[] {
   return SalvageUnionReference.Classes.all().filter(
     (c): c is SURefObjectAdvancedClass & { schemaName: string } =>
       'hybrid' in c && c.hybrid === true
@@ -696,7 +698,11 @@ export function extractStaticEntitySummary(entity: SURefEntity): StaticEntitySum
   if (range) stats.push({ label: 'Range', value: range.join(', ') })
 
   const damage = getDamage(entity)
-  if (damage) stats.push({ label: 'Damage', value: `${damage.amount} ${damage.damageType}` })
+  if (damage)
+    stats.push({
+      label: 'Damage',
+      value: `${damage.amount} ${damage.damageType}`,
+    })
 
   // Extract trait names
   const traits: string[] = []
@@ -709,5 +715,14 @@ export function extractStaticEntitySummary(entity: SURefEntity): StaticEntitySum
     }
   }
 
-  return { name, description, source, page, techLevel, contentParagraphs, stats, traits }
+  return {
+    name,
+    description,
+    source,
+    page,
+    techLevel,
+    contentParagraphs,
+    stats,
+    traits,
+  }
 }
