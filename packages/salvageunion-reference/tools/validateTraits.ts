@@ -4,9 +4,11 @@
  *   1. every `traits[].type` is lowercase (case-sensitive consumers such as
  *      getInventorySlots depend on it);
  *   2. every choice-effect `removeTrait` targets a trait the entity carries
- *      (otherwise it is a silent no-op — usually a misplaced base trait).
+ *      (otherwise it is a silent no-op — usually a misplaced base trait);
+ *   3. every `traits[].type` names a trait defined in traits.json or a keyword
+ *      defined in keywords.json (otherwise the UI silently drops its tooltip).
  *
- * Both checks are data-driven: they apply to every entity in every data file, so
+ * All checks are data-driven: they apply to every entity in every data file, so
  * they cover all cases without depending on any specific fixture entity.
  */
 
