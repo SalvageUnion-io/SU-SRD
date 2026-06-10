@@ -83,8 +83,27 @@ export function SchemaViewerIsland({
     ? `${browseBase} lg:grid lg:grid-cols-[230px_minmax(0,1fr)] lg:gap-8`
     : browseBase
 
+  const hasActiveFilters = techLevelFilters.size > 0 || sourceFilters.size > 0
+
+  const clearFilters = () => {
+    setTechLevelFilters(new Set())
+    setSourceFilters(new Set())
+  }
+
   return (
-    <GameDataGate>
+    <GameDataGate
+      fallback={
+        <div className={containerClass}>
+          <div className="w-full min-w-0 flex-1 px-2 pt-2 pb-6 md:p-6 md:pt-2 lg:px-0">
+            <div className="columns-1 gap-4 md:columns-2 xl:columns-3 [&>*]:mb-4 [&>*]:break-inside-avoid">
+              {Array.from({ length: 9 }, (_, i) => (
+                <ReferenceEntityCardSkeleton key={i} compact />
+              ))}
+            </div>
+          </div>
+        </div>
+      }
+    >
       <div className={containerClass}>
         {hasFilters && (
           <aside className="mb-4 flex w-full flex-col gap-4 lg:mb-0 lg:pt-2 lg:pb-6">
@@ -137,31 +156,46 @@ export function SchemaViewerIsland({
 
         {/* Entity Grid */}
         <div className="w-full min-w-0 flex-1 px-2 pt-2 pb-6 md:p-6 md:pt-2 lg:px-0">
-          <EntityHrefProvider value={srdEntityHref}>
-            <div className="columns-1 gap-4 md:columns-2 xl:columns-3 [&>*]:mb-4 [&>*]:break-inside-avoid">
-              {filteredData.map((item: SURefEntity) => {
-                const tree = schemaId === 'abilities' ? (getTree(item) as string) : undefined
-                return (
-                  <a
-                    key={item.id}
-                    href={`/schema/${schemaId}/item/${getEntitySlug(item)}/`}
-                    aria-label={item.name}
-                    className="relative block"
-                  >
-                    <Suspense fallback={<ReferenceEntityCardSkeleton compact />}>
-                      <ReferenceEntityDisplay
-                        hide={{ actions: true, choices: true }}
-                        data={item}
-                        compact
-                        label={tree}
-                        cardClickable
-                      />
-                    </Suspense>
-                  </a>
-                )
-              })}
+          {filteredData.length === 0 ? (
+            <div className="flex flex-col items-start gap-3 p-4">
+              <p className="text-sm text-su-grey-dark">No items match the current filters.</p>
+              {hasActiveFilters && (
+                <button
+                  type="button"
+                  onClick={clearFilters}
+                  className="cursor-pointer rounded px-2 py-0.5 font-mono text-xs font-semibold uppercase transition-colors bg-su-grey-light text-su-black hover:bg-su-grey-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-su-orange"
+                >
+                  Clear filters
+                </button>
+              )}
             </div>
-          </EntityHrefProvider>
+          ) : (
+            <EntityHrefProvider value={srdEntityHref}>
+              <div className="columns-1 gap-4 md:columns-2 xl:columns-3 [&>*]:mb-4 [&>*]:break-inside-avoid">
+                {filteredData.map((item: SURefEntity) => {
+                  const tree = schemaId === 'abilities' ? (getTree(item) as string) : undefined
+                  return (
+                    <a
+                      key={item.id}
+                      href={`/schema/${schemaId}/item/${getEntitySlug(item)}/`}
+                      aria-label={item.name}
+                      className="relative block"
+                    >
+                      <Suspense fallback={<ReferenceEntityCardSkeleton compact />}>
+                        <ReferenceEntityDisplay
+                          hide={{ actions: true, choices: true }}
+                          data={item}
+                          compact
+                          label={tree}
+                          cardClickable
+                        />
+                      </Suspense>
+                    </a>
+                  )
+                })}
+              </div>
+            </EntityHrefProvider>
+          )}
         </div>
       </div>
     </GameDataGate>

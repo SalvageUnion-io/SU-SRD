@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test'
-import { render, within } from '@testing-library/react'
+import { render, within, fireEvent, screen } from '@testing-library/react'
 import {
   getEntitySchemas,
   getModel,
@@ -73,5 +73,34 @@ describe('SchemaViewerIsland', () => {
 
     const filterButtons = container.querySelectorAll('button[aria-pressed]')
     expect(filterButtons.length).toBeGreaterThan(0)
+  })
+
+  it('shows an empty state with a clear-filters action when filters match nothing', () => {
+    const firstSchema = entitySchemas[0]!
+    const model = getModel(firstSchema.id)!
+    const entities = model.all()
+
+    render(
+      <SchemaViewerIsland
+        initialData={entities}
+        schemaId={firstSchema.id}
+        techLevels={[1, 2, 3]}
+        sources={['Core', 'Rig', 'Nope']}
+      />
+    )
+
+    // Click the FilterChip for 'Nope' — no entity carries this source, so the
+    // grid should be empty and the empty-state message + clear button appear.
+    const nopeChip = screen.getByRole('button', { name: 'Nope' })
+    fireEvent.click(nopeChip)
+
+    expect(screen.getByText('No items match the current filters.')).toBeTruthy()
+
+    // Clicking "Clear filters" should restore entity cards.
+    const clearBtn = screen.getByRole('button', { name: 'Clear filters' })
+    fireEvent.click(clearBtn)
+
+    const links = document.querySelectorAll('a[aria-label]')
+    expect(links.length).toBe(entities.length)
   })
 })
