@@ -1,6 +1,8 @@
+import type { ReactNode } from 'react'
 import { cn } from '../../../../utils/cn'
 import { Text } from '../../../base/Text'
 import { accentSurface } from '../../referenceEntityHelpers'
+import type { CardFootMeta } from '../../../shared/DisplayCard'
 
 type ReferenceEntityFooterProps = {
   footerDisplayName: string | undefined
@@ -9,6 +11,10 @@ type ReferenceEntityFooterProps = {
   page: string | number | undefined
   headerBg: string | undefined
   headerBgColor: string | undefined
+  /** Action buttons folded into the foot band (design-spec §2.1 `.ec__acts`) */
+  footActions?: ReactNode
+  /** Inline label/value meta (`.ec__metafoot`), e.g. AP COST · 1 */
+  footMeta?: CardFootMeta[]
 }
 
 // Shared type scale for the three footer tags (name / source / page) — one source
@@ -22,6 +28,8 @@ export function ReferenceEntityFooter({
   page,
   headerBg,
   headerBgColor,
+  footActions,
+  footMeta,
 }: ReferenceEntityFooterProps) {
   // Drop the "Salvage Union " prefix in footers — "Salvage Union Workshop
   // Manual" reads as "Workshop Manual", "Salvage Union Starter Set" as
@@ -55,6 +63,22 @@ export function ReferenceEntityFooter({
           </Text>
         )}
       </div>
+
+      {/* Foot extras (design .ec__metafoot + .ec__acts): inline meta + action
+          buttons folded into the same band, before the source/page tags. */}
+      {(footActions || (footMeta && footMeta.length > 0)) && (
+        <div className="ml-auto flex flex-wrap items-center justify-end gap-1.5">
+          {footMeta?.map(({ label, value }, i) => (
+            <span key={`${label}-${i}`} className="mr-1 inline-flex items-baseline gap-1">
+              <span className="font-cond text-[10.5px] font-bold uppercase leading-none opacity-75">
+                {label}
+              </span>
+              <span className="font-body text-[13px] font-bold leading-none">{value}</span>
+            </span>
+          ))}
+          {footActions}
+        </div>
+      )}
 
       <div className="flex shrink-0">
         {sourceLabel && (

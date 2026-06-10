@@ -62,6 +62,9 @@ import type { ReferenceEntityDisplayStateInput } from '../useReferenceEntityDisp
 import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
 import type { NpcConfig } from '../referenceEntityDisplayTypes'
 import { ReferenceEntityFooter } from './ReferenceEntityFooter'
+import { Tag } from '../../../chrome/Tag'
+import type { EntityStatus } from '../../../chrome/StatusBadge'
+import type { CardFootMeta } from '../../../shared/DisplayCard'
 import { CalloutMetaStamp } from './CalloutMetaStamp'
 import { ReferenceEntityFactionData } from './ReferenceEntityFactionData'
 import { GuideEntityListing } from './GuideEntityListing'
@@ -110,6 +113,35 @@ export type ReferenceEntityDisplayContentProps = ReferenceEntityDisplayStateInpu
    * optional prop.
    */
   scalingParent?: Record<string, unknown>
+  /**
+   * Intact/Damaged/Destroyed badge (design-spec §2.1 `.ec__status`), top-right.
+   * Supersets `damaged`: 'damaged'/'destroyed' also apply the grey-header
+   * treatment (resolved by ReferenceEntityDisplay). Opt-in.
+   */
+  status?: EntityStatus
+  /** Cycle handler for the status badge (Intact → Damaged → Destroyed) */
+  onStatusClick?: () => void
+  /**
+   * Expansion slot (design-spec §2.1 `.ec__expand`): arbitrary content
+   * rendered on the accent field after the white body box, before the footer
+   * — class ability trees, chassis integrated systems, bay crew insets.
+   */
+  expand?: ReactNode
+  /**
+   * Action buttons folded into the footer band (design-spec §2.1 `.ec__acts`).
+   * Named `footActions` to avoid the game-rules Actions section / `hide.actions`.
+   */
+  footActions?: ReactNode
+  /** Inline label/value foot meta (`.ec__metafoot`), e.g. AP COST · 1 */
+  footMeta?: CardFootMeta[]
+  /**
+   * Append a trailing type-label tag to the header data row (design-spec §2.1:
+   * "a type-label tag is ALWAYS appended last"). Opt-in: pass `showTypeLabel`
+   * to derive the label from the schema display name, or `typeLabel` to
+   * override the text (implies show).
+   */
+  showTypeLabel?: boolean
+  typeLabel?: string
 }
 
 // Bottom padding of the content float-zone, as a ratio of the default content
@@ -151,6 +183,13 @@ export function ReferenceEntityDisplayContent({
   selections: controlledSelections,
   onSelectionChange,
   scalingParent,
+  status,
+  onStatusClick,
+  expand,
+  footActions,
+  footMeta,
+  showTypeLabel = false,
+  typeLabel,
   ...inputProps
 }: ReferenceEntityDisplayContentProps) {
   const state = useReferenceEntityDisplayState(inputProps)
@@ -427,6 +466,7 @@ export function ReferenceEntityDisplayContent({
     (effects && effects.length > 0) ||
     !!table ||
     entityHasChoices ||
+    !!expand ||
     shouldShowExtraContent
 
   // Footer data. Sources are self-referencing books: they keep their source
@@ -440,7 +480,10 @@ export function ReferenceEntityDisplayContent({
   const hasPage = !isSources && !!footerPage
   const hasSource = !!footerSource
   const footerDisplayName = getDisplayName(schemaName)
-  const hasFooter = !hide.footer && (hasPage || hasSource)
+  // Foot extras (footActions/footMeta) force the foot band even without
+  // source/page data — they are live-play affordances, not source chrome.
+  const hasFootExtras = !!footActions || (!!footMeta && footMeta.length > 0)
+  const hasFooter = (!hide.footer && (hasPage || hasSource)) || hasFootExtras
 
   // Themed border for expansion-sourced entities (the source-specific header /
   // footer / card textural patterns have been removed).
@@ -456,12 +499,14 @@ export function ReferenceEntityDisplayContent({
     footerOverride
   ) : hasFooter ? (
     <ReferenceEntityFooter
-      footerDisplayName={footerDisplayName}
-      source={hasSource ? footerSource : undefined}
+      footerDisplayName={!hide.footer ? footerDisplayName : undefined}
+      source={!hide.footer && hasSource ? footerSource : undefined}
       booklet={footerBooklet}
-      page={hasPage ? footerPage : undefined}
+      page={!hide.footer && hasPage ? footerPage : undefined}
       headerBg={headerBg}
       headerBgColor={headerBgColor}
+      footActions={footActions}
+      footMeta={footMeta}
     />
   ) : null
 
@@ -498,6 +543,14 @@ export function ReferenceEntityDisplayContent({
     </div>
   ) : null
 
+  // Trailing type-label tag (design-spec §2.1), appended last to the header
+  // data row. Opt-in via showTypeLabel/typeLabel; label falls back to the
+  // schema display name (e.g. 'System', 'Module').
+  const typeLabelNode =
+    showTypeLabel || typeLabel != null ? (
+      <Tag label={typeLabel ?? getDisplayName(schemaName)} />
+    ) : null
+
   const headerContent = (
     <CardHeader
       title={titleSlot ?? titleNode ?? ''}
@@ -509,10 +562,11 @@ export function ReferenceEntityDisplayContent({
           compact={compact}
           suppressExtractedDetails={entityHasChoices}
           subtitleExtra={
-            resolvedDataRow ? (
+            resolvedDataRow || typeLabelNode ? (
               <>
                 {subtitleExtra}
                 {resolvedDataRow}
+                {typeLabelNode}
               </>
             ) : (
               subtitleExtra
@@ -583,6 +637,8 @@ export function ReferenceEntityDisplayContent({
       stats={resolvedStats}
       onCardClick={onCardClick}
       cardClickable={cardClickable}
+      status={status}
+      onStatusClick={onStatusClick}
     >
       {!listing && hasBodyContent && (
         <div className={cn('w-full', accent.className)} style={accent.style}>
@@ -915,6 +971,10 @@ export function ReferenceEntityDisplayContent({
               </div>
             )}
           </div>
+          {/* Expansion slot (design .ec__expand): on the accent field after
+              the white body box, before the footer — same horizontal inset
+              as the body box. */}
+          {expand && <div className="mx-3 mt-2 min-w-0 pb-2">{expand}</div>}
           {/* Footer — full-width accent bar (design itun.css .ec__foot: no
               margin, accent background spanning the full card width). */}
           {interactive?.renderFooter ? (

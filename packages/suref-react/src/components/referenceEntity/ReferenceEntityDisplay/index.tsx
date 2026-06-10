@@ -2,6 +2,9 @@ import { memo } from 'react'
 import type { SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
 import { ReferenceEntityDisplayContent } from './components/ReferenceEntityDisplayContent'
 import type { ReferenceEntityDisplayContentProps } from './components/ReferenceEntityDisplayContent'
+import { resolveDisplayMode } from '../../shared/displayMode'
+import type { EntityDisplayMode } from '../../shared/displayMode'
+import type { EntityStatus } from '../../chrome/StatusBadge'
 
 /** Fields that ReferenceEntityDisplay overrides from ReferenceEntityDisplayContentProps */
 type OverriddenFields =
@@ -20,6 +23,10 @@ type ReferenceEntityDisplayProps = Omit<ReferenceEntityDisplayContentProps, Over
   disabled?: boolean
   listing?: boolean
   compact?: boolean
+  /** Display-mode sugar over `compact`/`listing` (design-spec §2.1):
+   * full = neither, compact = compact only, head = compact + listing.
+   * Explicit booleans take precedence when both are provided. */
+  mode?: EntityDisplayMode
   damaged?: boolean
   lightweight?: boolean
 }
@@ -29,8 +36,9 @@ export const ReferenceEntityDisplay = memo(function ReferenceEntityDisplay({
   damaged = false,
   dimHeader = false,
   disabled = false,
-  listing = false,
-  compact = false,
+  listing: listingProp,
+  compact: compactProp,
+  mode,
   lightweight = false,
   ...rest
 }: ReferenceEntityDisplayProps) {
@@ -46,6 +54,13 @@ export const ReferenceEntityDisplay = memo(function ReferenceEntityDisplay({
     return null
   }
 
+  const { compact, listing } = resolveDisplayMode(mode, compactProp, listingProp)
+
+  // `status` supersets `damaged` (kept as alias): a damaged/destroyed status
+  // applies the same grey-header treatment the boolean always has.
+  const status: EntityStatus | undefined = rest.status
+  const effectiveDamaged = damaged || status === 'damaged' || status === 'destroyed'
+
   return (
     <ReferenceEntityDisplayContent
       data={data}
@@ -54,7 +69,7 @@ export const ReferenceEntityDisplay = memo(function ReferenceEntityDisplay({
       dimHeader={dimHeader}
       disabled={disabled}
       listing={listing}
-      damaged={damaged}
+      damaged={effectiveDamaged}
       lightweight={lightweight}
       {...rest}
     />
