@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from 'react'
+import { useState, useRef, useCallback, useEffect, useId } from 'react'
 import { search, getEntitySchemas } from 'salvageunion-reference'
 import type { SearchResult } from 'salvageunion-reference'
 import { getEntitySlug } from 'salvageunion-reference'
@@ -9,6 +9,12 @@ type DisplayResult = {
   url: string
   title: string
   schema: string
+}
+
+type SearchIslandProps = {
+  /** Injectable navigation function — defaults to window.location.assign.
+   *  Override in tests to spy on navigation without happy-dom limitations. */
+  navigate?: (url: string) => void
 }
 
 function toDisplayResult(result: SearchResult): DisplayResult {
@@ -40,8 +46,8 @@ function matchSchemas(query: string): DisplayResult[] {
     }))
 }
 
-export function SearchIsland() {
-  useGameData()
+export function SearchIsland({ navigate }: SearchIslandProps = {}) {
+  const { ready } = useGameData()
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<DisplayResult[]>([])
   const [isOpen, setIsOpen] = useState(false)
@@ -50,23 +56,40 @@ export function SearchIsland() {
   const inputRef = useRef<HTMLInputElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const idPrefix = useId()
+  const listboxId = `${idPrefix}-search-results`
+  const optionId = (i: number) => `${idPrefix}-search-result-${i}`
 
-  const performSearch = useCallback((searchQuery: string) => {
-    if (!searchQuery.trim()) {
-      setResults([])
-      setIsOpen(false)
-      setHasSearched(false)
-      return
-    }
+  const doNavigate = useCallback(
+    (url: string) => {
+      if (navigate) {
+        navigate(url)
+      } else {
+        window.location.assign(url)
+      }
+    },
+    [navigate]
+  )
 
-    const schemaResults = matchSchemas(searchQuery)
-    const hits = search({ query: searchQuery, limit: 10 - schemaResults.length })
-    const displayResults = [...schemaResults, ...hits.map(toDisplayResult)]
-    setResults(displayResults)
-    setIsOpen(true)
-    setHasSearched(true)
-    setSelectedIndex(-1)
-  }, [])
+  const performSearch = useCallback(
+    (searchQuery: string) => {
+      if (!searchQuery.trim()) {
+        setResults([])
+        setIsOpen(false)
+        setHasSearched(false)
+        return
+      }
+
+      const schemaResults = matchSchemas(searchQuery).slice(0, 3)
+      const hits = ready ? search({ query: searchQuery, limit: 10 - schemaResults.length }) : []
+      const displayResults = [...schemaResults, ...hits.map(toDisplayResult)]
+      setResults(displayResults)
+      setIsOpen(true)
+      setHasSearched(true)
+      setSelectedIndex(-1)
+    },
+    [ready]
+  )
 
   const handleInput = useCallback(
     (value: string) => {
@@ -76,6 +99,12 @@ export function SearchIsland() {
     },
     [performSearch]
   )
+
+  // Re-run the pending query when data finishes loading
+  useEffect(() => {
+    if (ready && query.trim() && hasSearched) performSearch(query)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready])
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -87,18 +116,18 @@ export function SearchIsland() {
       } else if (e.key === 'ArrowUp') {
         e.preventDefault()
         setSelectedIndex((prev) => Math.max(prev - 1, -1))
-      } else if (e.key === 'Enter' && selectedIndex >= 0) {
+      } else if (e.key === 'Enter') {
         e.preventDefault()
-        const el = document.getElementById(`search-result-${selectedIndex}`)
-        if (el instanceof HTMLAnchorElement) {
-          el.click()
+        const target = selectedIndex >= 0 ? results[selectedIndex] : results[0]
+        if (target) {
+          doNavigate(target.url)
         }
       } else if (e.key === 'Escape') {
         setIsOpen(false)
         inputRef.current?.blur()
       }
     },
-    [isOpen, results, selectedIndex]
+    [isOpen, results, selectedIndex, doNavigate]
   )
 
   // Close dropdown when clicking outside
@@ -165,22 +194,24 @@ export function SearchIsland() {
           aria-label="Search the SRD"
           aria-expanded={isOpen}
           role="combobox"
-          aria-controls="search-results"
-          aria-activedescendant={selectedIndex >= 0 ? `search-result-${selectedIndex}` : undefined}
+          aria-controls={listboxId}
+          aria-activedescendant={selectedIndex >= 0 ? optionId(selectedIndex) : undefined}
         />
       </div>
 
       {isOpen && (
         <div
-          id="search-results"
+          id={listboxId}
           role="listbox"
           className="absolute right-0 top-full z-50 mt-1 max-h-96 w-80 overflow-y-auto rounded-md border border-su-grey-light bg-su-white shadow-lg"
         >
-          {results.length > 0 ? (
+          {!ready ? (
+            <div className="px-4 py-3 text-sm text-su-grey-dark">Loading game data…</div>
+          ) : results.length > 0 ? (
             results.map((result, index) => (
               <a
                 key={result.id}
-                id={`search-result-${index}`}
+                id={optionId(index)}
                 role="option"
                 aria-selected={index === selectedIndex}
                 href={result.url}

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { search, searchIn, getSuggestions } from './search.js'
+import { search, searchIn, getSuggestions, invalidateSearchIndex } from './search.js'
 import { SalvageUnionReference } from './index.js'
 
 describe('Search API', () => {
@@ -267,6 +267,36 @@ describe('Search API', () => {
       // All results should be identical
       expect(results2).toEqual(results1)
       expect(results3).toEqual(results1)
+    })
+  })
+
+  describe('invalidateSearchIndex()', () => {
+    test('rebuilds a valid index after invalidation — results are still correct', () => {
+      // Warm the index via a search
+      const before = search({ query: 'laser', schemas: ['systems'] })
+      expect(before.length).toBeGreaterThan(0)
+
+      // Invalidate (simulates what preload() does)
+      invalidateSearchIndex()
+
+      // Search again — index must be rebuilt from scratch and return identical results
+      const after = search({ query: 'laser', schemas: ['systems'] })
+      expect(after.length).toBe(before.length)
+      expect(after.map((r) => r.entityId)).toEqual(before.map((r) => r.entityId))
+    })
+
+    test('clears the result cache so stale cached results are not returned', () => {
+      // Populate the cache
+      const cached = search({ query: 'railgun' })
+      expect(cached.length).toBeGreaterThan(0)
+
+      // Invalidate — this should also clear the cache
+      invalidateSearchIndex()
+
+      // The same query must still return correct results (rebuilt, not from old cache)
+      const fresh = search({ query: 'railgun' })
+      expect(fresh.length).toBeGreaterThan(0)
+      expect(fresh[0]!.entityName).toBe(cached[0]!.entityName)
     })
   })
 })
