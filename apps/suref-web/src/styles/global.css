@@ -370,3 +370,23 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+@media print {
+  body,
+  main {
+    background: #fff !important;
+    color: #000 !important;
+  }
+  /* Page chrome — TopNavigation renders two <nav> elements; Footer renders <footer>.
+     Both are semantic, so element selectors suffice. MobileNavIsland and SearchIsland
+     live inside the <nav>, so they are automatically hidden with it. */
+  nav,
+  footer,
+  [data-print-hide] {
+    display: none !important;
+  }
+  main a {
+    text-decoration: none;
+    color: inherit;
+  }
+}
