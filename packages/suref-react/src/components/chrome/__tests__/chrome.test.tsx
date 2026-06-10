@@ -177,4 +177,13 @@ describe('StatusBadge', () => {
     fireEvent.click(screen.getByRole('button'))
     expect(onClick).toHaveBeenCalled()
   })
+
+  test('subject disambiguates the accessible name', () => {
+    render(<StatusBadge status="intact" onClick={() => {}} subject="Plasma Torch" />)
+    expect(
+      screen.getByRole('button', {
+        name: 'Plasma Torch status: Intact — click to change',
+      })
+    ).toBeTruthy()
+  })
 })

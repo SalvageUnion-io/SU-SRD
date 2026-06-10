@@ -99,6 +99,7 @@ export type { ChoiceSelections } from './components/referenceEntity/choiceCard/c
 // Chrome primitives (ITUN design handoff — design-spec §2)
 export { Tag } from './components/chrome/Tag'
 export { Btn } from './components/chrome/Btn'
+export { btnVariants } from './components/chrome/btnVariants'
 export { Field, Input } from './components/chrome/Field'
 export { Pill, Chip } from './components/chrome/Pill'
 export type { PillTone } from './components/chrome/Pill'

@@ -62,6 +62,9 @@ type DisplayCardProps = {
   status?: EntityStatus
   /** Cycle handler for the status badge (Intact → Damaged → Destroyed) */
   onStatusClick?: () => void
+  /** Entity name for the status badge's accessible label, so multiple badges
+   * on one page get distinct accessible names */
+  statusSubject?: string
   /** Expansion slot rendered after the body, before the footer (design-spec
    * §2.1 `.ec__expand`) — ability trees, integrated systems, bay crew insets.
    * Hidden in listing/head mode like the body. */
@@ -123,6 +126,7 @@ export function DisplayCard({
   mode,
   status,
   onStatusClick,
+  statusSubject,
   expand,
   footActions,
   footMeta,
@@ -270,7 +274,7 @@ export function DisplayCard({
           controls share the top-right corner. */}
       {status && (
         <div className={cn('absolute top-2.5 z-20', controls ? 'right-10' : 'right-2.5')}>
-          <StatusBadge status={status} onClick={onStatusClick} />
+          <StatusBadge status={status} onClick={onStatusClick} subject={statusSubject} />
         </div>
       )}
 

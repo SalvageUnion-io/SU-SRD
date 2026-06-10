@@ -13,6 +13,12 @@ type StatusBadgeProps = {
   status: EntityStatus
   /** Cycle handler (Intact → Damaged → Destroyed → Intact) */
   onClick?: () => void
+  /**
+   * Entity name for the accessible label ("<subject> status: <Label>") so
+   * multiple badges on one page get distinct accessible names. Without it
+   * the label is the generic "Status: <Label>".
+   */
+  subject?: string
   className?: string
 }
 
@@ -21,7 +27,7 @@ type StatusBadgeProps = {
  * status-colored fill, uppercase cond label. Clickable when a cycle handler
  * is provided.
  */
-export function StatusBadge({ status, onClick, className }: StatusBadgeProps) {
+export function StatusBadge({ status, onClick, subject, className }: StatusBadgeProps) {
   const { label, className: fill } = STATUS_STYLES[status]
   const shared = cn(
     'inline-flex items-center rounded-[2px] border-2 border-ink px-[9px] py-[3px] font-cond text-[11px] font-semibold uppercase leading-none text-su-white',
@@ -33,7 +39,11 @@ export function StatusBadge({ status, onClick, className }: StatusBadgeProps) {
       <button
         type="button"
         onClick={onClick}
-        aria-label={`Status: ${label} — click to change`}
+        aria-label={
+          subject
+            ? `${subject} status: ${label} — click to change`
+            : `Status: ${label} — click to change`
+        }
         className={cn(shared, 'cursor-pointer')}
       >
         {label}

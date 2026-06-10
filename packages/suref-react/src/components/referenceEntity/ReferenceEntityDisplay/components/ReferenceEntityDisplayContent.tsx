@@ -639,6 +639,7 @@ export function ReferenceEntityDisplayContent({
       cardClickable={cardClickable}
       status={status}
       onStatusClick={onStatusClick}
+      statusSubject={typeof data.name === 'string' ? data.name : undefined}
     >
       {!listing && hasBodyContent && (
         <div className={cn('w-full', accent.className)} style={accent.style}>
