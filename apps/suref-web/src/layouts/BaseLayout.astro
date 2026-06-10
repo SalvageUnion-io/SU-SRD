@@ -69,6 +69,9 @@ const isDefaultOgImage = ogImage === DEFAULT_OG_IMAGE
     <link rel="icon" type="image/png" sizes="16x16" href="/favicons/su/favicon-16.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/favicons/su/favicon-180.png" />
     <link rel="manifest" href="/site.webmanifest" />
+    {/* Service-worker registration emitted by @vite-pwa/astro; Astro pages
+        bypass Vite's transformIndexHtml so the script must be linked here. */}
+    <script is:inline defer src="/registerSW.js"></script>
 
     <!-- Open Graph -->
     <meta property="og:title" content={title} />
