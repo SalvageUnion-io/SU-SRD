@@ -21,7 +21,6 @@ const storedPilot: Pilot = {
   classRef: 'class-engineer',
   abilities: ['a-1', 'a-2'],
   equipment: ['e-1'],
-  rollResults: [],
   motto: 'Measure twice',
   keepsake: 'A bent wrench',
   appearance: 'Grease-stained',
@@ -97,7 +96,6 @@ describe('pilotFormToCreateInput', () => {
     expect(input.currentHP).toBe(10)
     expect(input.currentAP).toBe(5)
     expect(input.conditions).toEqual([])
-    expect(input.rollResults).toEqual([])
     expect(input.classRef).toBe('class-engineer')
   })
 })

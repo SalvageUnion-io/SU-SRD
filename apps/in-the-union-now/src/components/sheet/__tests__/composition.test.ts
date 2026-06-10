@@ -22,7 +22,6 @@ const pilot: Pilot = {
   classRef: 'engineer',
   abilities: [],
   equipment: [],
-  rollResults: [],
   motto: '',
   keepsake: '',
   appearance: '',

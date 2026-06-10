@@ -43,7 +43,6 @@ const fakePilot: Pilot = {
   classRef: 'engineer',
   abilities: [],
   equipment: [],
-  rollResults: [],
   motto: 'Hold the line.',
   keepsake: 'A bent coin.',
   appearance: 'Tall, weathered.',

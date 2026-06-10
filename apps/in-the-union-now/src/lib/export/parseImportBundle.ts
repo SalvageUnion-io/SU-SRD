@@ -1,12 +1,14 @@
 import { normalizeLegacyCargoRecord } from '../schemas/cargoLot'
 import { ExportBundleSchema } from '../schemas/exportBundle'
 import type { ExportBundle } from '../schemas/exportBundle'
+import { normalizeLegacyPilotRecord } from '../schemas/pilot'
 
 /**
  * Bundles written before the cargo→cargoLots rename carry mechs (and
- * patterns) with a legacy `cargo: string[]` field. Convert them in place —
- * the same rewrite the v3 IndexedDB migration applies — so old backups stay
- * importable.
+ * patterns) with a legacy `cargo: string[]` field, and bundles written before
+ * the vestigial `rollResults` removal carry it on pilots. Convert them in
+ * place — the same rewrites the v3/v4 IndexedDB migrations apply — so old
+ * backups stay importable.
  */
 function normalizeLegacyBundle(raw: unknown): unknown {
   if (typeof raw !== 'object' || raw === null) return raw
@@ -20,6 +22,13 @@ function normalizeLegacyBundle(raw: unknown): unknown {
         typeof m === 'object' && m !== null
           ? normalizeLegacyCargoRecord(m as Record<string, unknown>)
           : m
+      )
+    }
+    if (Array.isArray(entitiesCopy['pilots'])) {
+      entitiesCopy['pilots'] = (entitiesCopy['pilots'] as unknown[]).map((p) =>
+        typeof p === 'object' && p !== null
+          ? normalizeLegacyPilotRecord(p as Record<string, unknown>)
+          : p
       )
     }
     bundle['entities'] = entitiesCopy
@@ -45,7 +54,8 @@ function normalizeLegacyBundle(raw: unknown): unknown {
  *   - schemaVersion is not 1 (incompatible format).
  *
  * Legacy compatibility: mechs/patterns carrying the pre-rename
- * `cargo: string[]` field are normalized to `cargoLots` before validation;
+ * `cargo: string[]` field are normalized to `cargoLots` and pilots carrying
+ * the removed `rollResults` field have it dropped before validation;
  * bundles without `mechPatterns` get an empty array (schema default).
  *
  * On success returns the validated ExportBundle.

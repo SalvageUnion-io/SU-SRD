@@ -63,7 +63,6 @@ const fakePilot: Pilot = {
   classRef: 'mechanic',
   abilities: ['fast-repair'],
   equipment: ['wrench'],
-  rollResults: [],
   motto: 'Fix it fast.',
   keepsake: 'Worn goggles.',
   appearance: 'Compact, oil-stained.',

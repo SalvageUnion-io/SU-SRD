@@ -40,7 +40,6 @@ const fakePilot: Pilot = {
   classRef: 'scavenger',
   abilities: [],
   equipment: [],
-  rollResults: [],
   motto: 'Waste not.',
   keepsake: 'A bent coin.',
   appearance: 'Tall, weathered.',

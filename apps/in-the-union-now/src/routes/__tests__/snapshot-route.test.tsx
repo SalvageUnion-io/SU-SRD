@@ -39,7 +39,6 @@ const pilotSnapshot: SnapshotPayload = {
     classRef: 'scavenger',
     abilities: [],
     equipment: [],
-    rollResults: [],
     motto: 'Keep moving.',
     keepsake: 'Old photo.',
     appearance: 'Short.',

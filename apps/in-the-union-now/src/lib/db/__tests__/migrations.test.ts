@@ -20,7 +20,7 @@ import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { MechPatternSchema } from '../../schemas/pattern'
 import { MechSchema } from '../../schemas/mech'
 import { PilotSchema } from '../../schemas/pilot'
-import { DB_VERSION, _clearAllStores, getDb, openItunDatabase, pilots } from '../index'
+import { DB_VERSION, _clearAllStores, openItunDatabase, pilots } from '../index'
 import { STORE_NAMES } from '../stores'
 
 const TEST_DB_NAME = 'itun-migrations-test'
@@ -103,7 +103,7 @@ const v2Pilot = {
   updatedAt: NOW,
 }
 
-describe('v2 → v3 migration (cargo → cargoLots)', () => {
+describe('v2 → current migrations (v3 cargo → cargoLots, v4 rollResults removal)', () => {
   beforeEach(async () => {
     await destroyTestDatabase()
   })
@@ -145,9 +145,12 @@ describe('v2 → v3 migration (cargo → cargoLots)', () => {
       )
       expect(pattern.cargoLots.map((l) => l.name)).toEqual(['fuel-cell'])
 
-      // Pilots are untouched by v3 — new optional fields simply read absent,
-      // and the record still strict-parses.
-      const pilot = PilotSchema.parse(await db.get(STORE_NAMES.pilots, 'pilot-v2-1'))
+      // Pilot: v4 drops the vestigial `rollResults` field the v2 record
+      // carries; the rewritten record strict-parses, new optional fields
+      // simply read absent.
+      const rawPilot = await db.get(STORE_NAMES.pilots, 'pilot-v2-1')
+      expect('rollResults' in (rawPilot as Record<string, unknown>)).toBe(false)
+      const pilot = PilotSchema.parse(rawPilot)
       expect(pilot.abilities).toEqual(['a-1', 'a-2', 'a-3'])
       expect(pilot.trainingPoints).toBeUndefined()
     } finally {
@@ -213,7 +216,9 @@ describe('salvage read path', () => {
   })
 
   test('a drifted record (unknown field) is stripped with a console warning, not a brick', async () => {
-    const db = await getDb()
+    // getDb is module-private — raw writes use a second connection to the
+    // same shared app database via the canonical opener.
+    const db = await openItunDatabase()
     // Simulate version skew: a record written by some other build with a
     // field the current strict schema does not know.
     await db.put(STORE_NAMES.pilots, {
@@ -221,6 +226,7 @@ describe('salvage read path', () => {
       id: 'pilot-drifted',
       fieldFromTheFuture: 'whatever',
     })
+    db.close()
 
     const warnings: string[] = []
     const originalWarn = console.warn
@@ -243,7 +249,7 @@ describe('salvage read path', () => {
   })
 
   test('an unreadable record is skipped (with a warning) instead of failing the whole list', async () => {
-    const db = await getDb()
+    const db = await openItunDatabase()
     await pilots.create({
       schemaVersion: 1,
       name: 'Good Pilot',
@@ -251,7 +257,6 @@ describe('salvage read path', () => {
       classRef: 'scavenger',
       abilities: [],
       equipment: [],
-      rollResults: [],
       motto: '',
       keepsake: '',
       appearance: '',
@@ -260,6 +265,7 @@ describe('salvage read path', () => {
     })
     // Garbage beyond salvage: required fields missing entirely.
     await db.put(STORE_NAMES.pilots, { id: 'pilot-garbage', createdAt: NOW })
+    db.close()
 
     const originalWarn = console.warn
     console.warn = () => {}
@@ -273,23 +279,27 @@ describe('salvage read path', () => {
   })
 
   test('a drifted record heals on its next write (strict shape persisted)', async () => {
-    const db = await getDb()
-    await db.put(STORE_NAMES.pilots, {
-      ...v2Pilot,
-      id: 'pilot-heal',
-      fieldFromTheFuture: true,
-    })
-
-    const originalWarn = console.warn
-    console.warn = () => {}
+    const db = await openItunDatabase()
     try {
-      await pilots.update('pilot-heal', { motto: 'Healed.' })
-    } finally {
-      console.warn = originalWarn
-    }
+      await db.put(STORE_NAMES.pilots, {
+        ...v2Pilot,
+        id: 'pilot-heal',
+        fieldFromTheFuture: true,
+      })
 
-    const raw = await db.get(STORE_NAMES.pilots, 'pilot-heal')
-    expect('fieldFromTheFuture' in (raw as Record<string, unknown>)).toBe(false)
-    expect((raw as Record<string, unknown>)['motto']).toBe('Healed.')
+      const originalWarn = console.warn
+      console.warn = () => {}
+      try {
+        await pilots.update('pilot-heal', { motto: 'Healed.' })
+      } finally {
+        console.warn = originalWarn
+      }
+
+      const raw = await db.get(STORE_NAMES.pilots, 'pilot-heal')
+      expect('fieldFromTheFuture' in (raw as Record<string, unknown>)).toBe(false)
+      expect((raw as Record<string, unknown>)['motto']).toBe('Healed.')
+    } finally {
+      db.close()
+    }
   })
 })

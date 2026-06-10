@@ -20,6 +20,7 @@
 import type { IDBPDatabase, IDBPTransaction, StoreNames } from 'idb'
 
 import { migrate as migrate3CargoToCargoLots } from './3-cargo-to-cargo-lots'
+import { migrate as migrate4RemovePilotRollResults } from './4-remove-pilot-roll-results'
 
 /** The untyped versionchange transaction handed to the idb upgrade callback. */
 export type UpgradeTransaction = IDBPTransaction<
@@ -46,6 +47,11 @@ export const MIGRATIONS: ReadonlyArray<Migration> = [
     toVersion: 3,
     description: 'cargo-to-cargo-lots',
     migrate: (tx) => migrate3CargoToCargoLots(tx),
+  },
+  {
+    toVersion: 4,
+    description: 'remove-pilot-roll-results',
+    migrate: (tx) => migrate4RemovePilotRollResults(tx),
   },
 ]
 

@@ -34,7 +34,6 @@ function makePilot(equipmentChoices?: Pilot['equipmentChoices']): Pilot {
     classRef: 'scavenger',
     abilities: [],
     equipment: ['custom-sniper-rifle', 'auto-turret'],
-    rollResults: [],
     motto: '',
     keepsake: '',
     appearance: '',

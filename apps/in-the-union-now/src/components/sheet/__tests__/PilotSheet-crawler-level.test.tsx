@@ -57,7 +57,6 @@ function makePilot(overrides?: Partial<Pilot>): Pilot {
     classRef: 'scavenger',
     abilities: [],
     equipment: [SNIPER_ID],
-    rollResults: [],
     motto: '',
     keepsake: '',
     appearance: '',

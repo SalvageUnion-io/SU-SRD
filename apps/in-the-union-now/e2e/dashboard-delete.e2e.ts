@@ -19,7 +19,7 @@ import { pickByName, waitForReady, clickNext } from './_helpers'
  * completes — not while still on "/pilots/new" (whose path also contains
  * "/pilots/", which tripped the old regex).
  *
- * Dashboard entity hydration is async (Supabase fetch inside useEffect). We
+ * Dashboard entity hydration is async (IndexedDB read inside useEffect). We
  * wait for the pilot's name to become visible in the entity list rather than
  * relying solely on waitForReady (which only signals game-data preload).
  *
@@ -61,9 +61,11 @@ test('create then delete a pilot from the dashboard', async ({ page }) => {
   await waitForReady(page)
 
   // ── Step 2: Verify pilot appears and trigger delete ─────────────────────────
-  // Wait for Supabase entity hydration to complete (hydratedAll = true)
+  // Wait for IndexedDB entity hydration to complete (hydratedAll = true)
   // and the pilot to appear in the Pilots list.
-  await expect(page.getByLabel('Loading saved builds')).not.toBeVisible({ timeout: 20_000 })
+  await expect(page.getByLabel('Loading saved builds')).not.toBeVisible({
+    timeout: 20_000,
+  })
   await expect(page.getByRole('region', { name: 'Pilots' }).getByText('Delete Me')).toBeVisible({
     timeout: 15_000,
   })
@@ -119,7 +121,9 @@ test('cancel delete keeps the pilot visible', async ({ page }) => {
   await waitForReady(page)
 
   // ── Step 2: Verify pilot appears and open delete dialog ─────────────────────
-  await expect(page.getByLabel('Loading saved builds')).not.toBeVisible({ timeout: 20_000 })
+  await expect(page.getByLabel('Loading saved builds')).not.toBeVisible({
+    timeout: 20_000,
+  })
   await expect(page.getByRole('region', { name: 'Pilots' }).getByText('Keep Me')).toBeVisible({
     timeout: 15_000,
   })

@@ -14,7 +14,7 @@ Navigation hub for documentation in the SU-SRD monorepo. Start here if you're ex
 
 **I need to know how a Salvage Union rule actually works** → run `bun run rules:regen` to produce the agent-readable rules digest in `docs/rules/` (gitignored — condensed from the PDFs in `rules/`, also gitignored). Covers the turn loop, heat, damage, salvage, pilot/mech/crawler creation, GM guidance, and the expansions. Read those instead of re-parsing the PDFs.
 
-**I'm writing a Supabase migration** → `apps/in-the-union-now/CLAUDE.md` + [architecture/data-flow.md](architecture/data-flow.md)
+**I'm changing ITUN's local data layer (IndexedDB schemas/migrations)** → `apps/in-the-union-now/src/lib/db/migrations/` + [architecture/data-flow.md](architecture/data-flow.md)
 
 **I'm shipping SEO/a11y work** → [architecture/seo-accessibility.md](architecture/seo-accessibility.md)
 
@@ -29,7 +29,7 @@ Navigation hub for documentation in the SU-SRD monorepo. Start here if you're ex
 | Doc                                                               | Scope                                                                  |
 | ----------------------------------------------------------------- | ---------------------------------------------------------------------- |
 | [display-system.md](architecture/display-system.md)               | 3-layer render stack: DisplayCard → ReferenceEntityDisplay → consumers |
-| [data-flow.md](architecture/data-flow.md)                         | Reference data + player data hydration, TanStack Query, Supabase       |
+| [data-flow.md](architecture/data-flow.md)                         | Reference data + player data hydration, TanStack Query, IndexedDB      |
 | [package-contracts.md](architecture/package-contracts.md)         | Package APIs, dependency rules, cross-package change checklist         |
 | [rules-engine-boundary.md](architecture/rules-engine-boundary.md) | What the engine decides vs what the GM/player decides                  |
 | [combat-loop.md](architecture/combat-loop.md)                     | Combat flow, heat/push/salvage mechanics                               |
@@ -75,9 +75,8 @@ Detailed feature specs produced during planning. Describes the intended design a
 
 ### Per-package CLAUDE.md
 
-Each app and shared package has its own `CLAUDE.md` with stack-specific conventions:
+Most apps and shared packages have their own `CLAUDE.md` with stack-specific conventions (ITUN currently does not — see the root `CLAUDE.md`):
 
-- `apps/in-the-union-now/CLAUDE.md` — ITUN character builder (React + Supabase)
 - `apps/suref-web/CLAUDE.md` — Static reference site (Astro + islands)
 - `apps/discord-bot/CLAUDE.md` — Discord.js bot
 - `packages/salvageunion-reference/CLAUDE.md` — Game data ORM + schemas

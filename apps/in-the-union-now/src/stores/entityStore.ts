@@ -120,17 +120,31 @@ function storeKeyFor(type: EntityType): StoreKey {
   return (type + 's') as StoreKey
 }
 
-function dbStoreFor(type: EntityType) {
-  switch (type) {
-    case 'pilot':
-      return db.pilots
-    case 'mech':
-      return db.mechs
-    case 'crawler':
-      return db.crawlers
-    case 'softLink':
-      return db.softLinks
-  }
+/**
+ * The db accessor surface entityStore needs, expressed against EntityForType
+ * so call sites keep the discriminant↔record-type link without `as any`
+ * adapters (gap 36).
+ */
+type DbStoreApi<T extends EntityType> = {
+  list: () => Promise<EntityForType<T>[]>
+  get: (id: string) => Promise<EntityForType<T> | null>
+  create: (input: CreateInput<T>) => Promise<EntityForType<T>>
+  update: (id: string, patch: Partial<EntityForType<T>>) => Promise<EntityForType<T>>
+  delete: (id: string) => Promise<void>
+}
+
+const DB_STORES: { [K in EntityType]: DbStoreApi<K> } = {
+  pilot: db.pilots,
+  mech: db.mechs,
+  crawler: db.crawlers,
+  softLink: db.softLinks,
+}
+
+function dbStoreFor<T extends EntityType>(type: T): DbStoreApi<T> {
+  // Single correlated-union assertion: TS cannot carry the runtime
+  // discriminant↔record-type invariant through the map lookup for a
+  // generic T (microsoft/TypeScript#30581).
+  return DB_STORES[type] as DbStoreApi<T>
 }
 
 /** Object-store name for broadcast messages. */
@@ -172,8 +186,7 @@ export const useEntityStore = create<EntityState>((set, get) => ({
 
   async rehydrate(type) {
     const key = storeKeyFor(type)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const records = await (dbStoreFor(type).list() as Promise<any[]>)
+    const records = await dbStoreFor(type).list()
     set((state) => ({
       [key]: records,
       hydrated: { ...state.hydrated, [key]: true },
@@ -202,8 +215,7 @@ export const useEntityStore = create<EntityState>((set, get) => ({
 
   async create<T extends EntityType>(type: T, input: CreateInput<T>): Promise<EntityForType<T>> {
     const key = storeKeyFor(type)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const record = await (dbStoreFor(type).create(input as any) as Promise<EntityForType<T>>)
+    const record = await dbStoreFor(type).create(input)
     set((state) => ({
       [key]: [record, ...(state[key] as EntityForType<T>[])],
     }))
@@ -217,8 +229,7 @@ export const useEntityStore = create<EntityState>((set, get) => ({
     patch: Partial<EntityForType<T>>
   ): Promise<EntityForType<T>> {
     const key = storeKeyFor(type)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const updated = await (dbStoreFor(type).update(id, patch as any) as Promise<EntityForType<T>>)
+    const updated = await dbStoreFor(type).update(id, patch)
     set((state) => ({
       [key]: (state[key] as EntityForType<T>[]).map((e) => (e.id === id ? updated : e)),
     }))

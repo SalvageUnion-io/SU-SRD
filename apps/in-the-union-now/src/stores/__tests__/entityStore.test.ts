@@ -23,7 +23,6 @@ const basePilotInput = {
   classRef: 'scavenger',
   abilities: [],
   equipment: [],
-  rollResults: [],
   motto: 'Everything burns.',
   keepsake: 'A compass.',
   appearance: 'Tall.',

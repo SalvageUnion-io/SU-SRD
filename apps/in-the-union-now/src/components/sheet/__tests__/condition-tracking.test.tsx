@@ -123,7 +123,6 @@ const fakePilot: Pilot = {
   classRef: 'scavenger',
   abilities: [],
   equipment: ['pistol'],
-  rollResults: [],
   motto: '',
   keepsake: '',
   appearance: '',

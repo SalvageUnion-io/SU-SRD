@@ -49,7 +49,6 @@ const fakePilot: Pilot = {
   classRef: 'engineer',
   abilities: ['field-repair'],
   equipment: ['wrench'],
-  rollResults: [],
   motto: 'Fix it or lose it.',
   keepsake: 'A cracked circuit board.',
   appearance: 'Short, quick-eyed.',

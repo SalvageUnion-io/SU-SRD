@@ -39,7 +39,7 @@ import { runMigrations } from './migrations/index'
 import { STORE_NAMES } from './stores'
 
 /** Current IndexedDB schema version. Bump together with a migrations/ entry. */
-export const DB_VERSION = 3
+export const DB_VERSION = 4
 
 export const DB_NAME = 'itun-v1'
 
@@ -89,10 +89,8 @@ export function openItunDatabase(name: string = DB_NAME): Promise<IDBPDatabase> 
   })
 }
 
-// Exported so the throwaway dev seed (scaffold/seed.ts) opens the DB through the
-// canonical opener — which runs the `upgrade` that creates the object stores.
-// (Opening bare with `openDB('itun-v1', 2)` on a fresh DB yields no stores.)
-export function getDb(): Promise<IDBPDatabase> {
+/** Lazy singleton accessor for the app database — module-private. */
+function getDb(): Promise<IDBPDatabase> {
   if (dbPromise === null) {
     dbPromise = openItunDatabase()
   }

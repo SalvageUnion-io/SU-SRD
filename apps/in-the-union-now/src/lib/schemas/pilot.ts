@@ -71,8 +71,6 @@ export const PilotSchema = z
      * creation budget (3 at TL1) is wizard guidance, not a persistence cap.
      */
     equipment: z.array(z.string()),
-    /** Freeform roll result strings (injury table, etc.) */
-    rollResults: z.array(z.string()),
     motto: z.string(),
     keepsake: z.string(),
     appearance: z.string(),
@@ -177,3 +175,18 @@ export const PilotSchema = z
   .strict()
 
 export type Pilot = z.infer<typeof PilotSchema>
+
+/**
+ * Pilots persisted (or exported/published) before the vestigial `rollResults`
+ * field was removed still carry it — and the strict PilotSchema would reject
+ * them. Drop the field before parsing. Mirrors normalizeLegacyCargoRecord;
+ * the v4 IndexedDB migration applies the same rewrite on local records.
+ */
+export function normalizeLegacyPilotRecord(
+  record: Record<string, unknown>
+): Record<string, unknown> {
+  if (!('rollResults' in record)) return record
+  const rest = { ...record }
+  delete rest['rollResults']
+  return rest
+}

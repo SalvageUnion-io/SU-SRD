@@ -4,7 +4,7 @@
  * Hydrates entityStore on load, reads the mech by id.
  * Renders: name, chassis ref, system/module counts, the installed loadout as
  * compact entity cards (gap 24), wiring affordances.
- * Links to the sheet view (cycle-1) and the mech builder for edits.
+ * Links to the sheet view and the edit wizard (/mechs/$id/edit).
  *
  * 404 rendered inline when the mech is not found after hydration.
  */

@@ -11,7 +11,6 @@ const validPilot = {
   classRef: 'scavenger',
   abilities: ['ability-scrap', 'ability-jury-rig'],
   equipment: ['item-pistol', 'item-med-kit'],
-  rollResults: [],
   motto: 'Everything burns.',
   keepsake: 'A broken compass.',
   appearance: 'Tall, with oil-stained overalls.',

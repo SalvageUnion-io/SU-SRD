@@ -32,7 +32,7 @@ React component patterns using functional components and TypeScript.
 - Use ShadCN components from `src/components/ui/`
 - Custom Tailwind theme in `src/index.css` with `@theme` block (SU brand colors)
 - State management via Zustand stores + TanStack Query (no React Context)
-- Validation via Zod schemas in `src/lib/validation.ts`
+- Validation via Zod schemas in `src/lib/schemas/`
 
 **suref-react** (shared components):
 - No build step - exports TypeScript source directly

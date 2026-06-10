@@ -24,7 +24,7 @@ import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
 import { CrawlerSchema } from '../../lib/schemas/crawler'
 import { MechSchema } from '../../lib/schemas/mech'
-import { PilotSchema } from '../../lib/schemas/pilot'
+import { PilotSchema, normalizeLegacyPilotRecord } from '../../lib/schemas/pilot'
 import { normalizeLegacyCargoRecord } from '../../lib/schemas/cargoLot'
 import { useEntityStore } from '../../stores/entityStore'
 import type { EntityType } from '../../stores/entityStore'
@@ -52,7 +52,11 @@ function parseSnapshot(snapshot: Record<string, unknown>): ParseResult {
   }
 
   if (kind === 'pilot') {
-    const parsed = PilotSchema.safeParse(entity)
+    // Snapshots published before the vestigial `rollResults` removal still
+    // carry the field — same rewrite parseImportBundle applies.
+    const parsed = PilotSchema.safeParse(
+      normalizeLegacyPilotRecord(entity as Record<string, unknown>)
+    )
     if (!parsed.success) {
       return {
         ok: false,

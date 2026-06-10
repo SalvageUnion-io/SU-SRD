@@ -93,7 +93,6 @@ export function pilotFormToCreateInput(form: PilotWizardFormState) {
   return {
     schemaVersion: 1 as const,
     ...pilotFormToUpdatePatch(form),
-    rollResults: [],
     conditions: [],
     currentHP: PILOT_BASE_HP,
     currentAP: PILOT_BASE_AP,
