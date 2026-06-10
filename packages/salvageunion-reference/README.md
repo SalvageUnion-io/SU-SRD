@@ -8,29 +8,30 @@
 
 A comprehensive, schema-validated JSON reference and TypeScript ORM for the **Salvage Union** tabletop RPG, published by [Leyline Press](https://leyline.press/).
 
+## Status
+
+**This package is private and workspace-internal.** It is not published to npm and cannot be installed via `npm install` or `bun add`. It is consumed only by other packages in this monorepo via the `workspace:*` protocol.
+
+**External consumers** should use the public JSON API at `https://salvageunion.io/api/` instead. Every schema is available as a CORS-enabled JSON endpoint — see [salvageunion.io/api](https://salvageunion.io/api/) for endpoint documentation and [salvageunion.io/llms.txt](https://salvageunion.io/llms.txt) for the full index.
+
 ## Features
 
-✅ **513+ game data items** across 18 categories
-✅ **Type-safe TypeScript ORM** with inferred types
-✅ **Powerful search API** with relevance scoring
-✅ **JSON Schema validation** for all data
-✅ **Zero runtime dependencies**
-✅ **ESM-only** for modern JavaScript
-✅ **Full page references** to source material
+- **513+ game data items** across 18 categories
+- **Type-safe TypeScript ORM** with inferred types
+- **Powerful search API** with relevance scoring
+- **JSON Schema validation** for all data
+- **Zero runtime dependencies**
+- **ESM-only** for modern JavaScript
+- **Full page references** to source material
 
-## Installation
+## Monorepo Usage
 
-```bash
-npm install salvageunion-data
-# or
-bun add salvageunion-data
-```
-
-## Quick Start
+Within this monorepo the package is imported directly from its workspace path — no install step required:
 
 ```typescript
-import { SalvageUnionReference } from 'salvageunion-data'
+import { SalvageUnionReference, type SURefChassis } from 'salvageunion-reference'
 
+// All models extend BaseModel<T>, created via ModelFactory
 const { Abilities, Chassis, Equipment, Systems, Modules } = SalvageUnionReference
 
 // Get all chassis
@@ -50,16 +51,11 @@ const t3Equipment = Equipment.findAll((e) => e.techLevel === 3)
 const weapons = Systems.findAll((s) =>
   s.traits?.some((t) => ['melee', 'ballistic', 'energy', 'missile'].includes(t.type))
 )
-
-// Advanced queries
-const heavyArmor = Equipment.findAll(
-  (e) => e.traits?.some((t) => t.type === 'armor') && (e.techLevel ?? 0) >= 3
-)
 ```
 
 ## Available Models
 
-All models are auto-generated from the schema catalog and accessible via the `SalvageUnionReference` export:
+All models are accessible via the `SalvageUnionReference` export:
 
 | Model                     | Count | Description                      |
 | ------------------------- | ----- | -------------------------------- |
@@ -86,10 +82,8 @@ All models are auto-generated from the schema catalog and accessible via the `Sa
 
 ### Search API
 
-The package includes a powerful search API for finding entities across all schemas:
-
 ```typescript
-import { SalvageUnionReference } from 'salvageunion-data'
+import { SalvageUnionReference } from 'salvageunion-reference'
 
 // Search across all schemas
 const results = SalvageUnionReference.search({ query: 'laser' })
@@ -126,54 +120,18 @@ All models provide a simple, consistent API with just three methods:
 .findAll(predicate: (item: T) => boolean): T[]
 ```
 
-### Examples
-
-```typescript
-// Get all items
-const allChassis = Chassis.all()
-
-// Find by name
-const atlas = Chassis.find((c) => c.name === 'Atlas')
-
-// Find by tech level
-const t3Equipment = Equipment.findAll((e) => e.techLevel === 3)
-
-// Find by trait
-const armorItems = Equipment.findAll((e) => e.traits?.some((t) => t.type === 'armor'))
-
-// Find weapons
-const weapons = Systems.findAll((s) =>
-  s.traits?.some((t) => ['melee', 'ballistic', 'energy', 'missile'].includes(t.type))
-)
-
-// Find by level
-const level1Abilities = Abilities.findAll((a) => a.level === 1)
-
-// Find by tree
-const mechanicalAbilities = Abilities.findAll((a) => a.tree === 'Mechanical Knowledge')
-
-// Complex queries
-const heavyWeapons = Systems.findAll(
-  (s) =>
-    s.traits?.some((t) => ['melee', 'ballistic', 'energy', 'missile'].includes(t.type)) &&
-    (s.techLevel ?? 0) >= 3
-)
-```
-
 ## Direct Data Access
-
-You can also import raw JSON data and schemas:
 
 ```typescript
 // Import raw data
-import chassisData from 'salvageunion-data/data/chassis.json'
-import equipmentData from 'salvageunion-data/data/equipment.json'
+import chassisData from 'salvageunion-reference/data/chassis.json'
+import equipmentData from 'salvageunion-reference/data/equipment.json'
 
 // Import schemas
-import chassisSchema from 'salvageunion-data/schemas/chassis.schema.json'
+import chassisSchema from 'salvageunion-reference/schemas/chassis.schema.json'
 
 // Or use the data maps
-import { getDataMaps, getSchemaCatalog, toPascalCase } from 'salvageunion-data'
+import { getDataMaps, getSchemaCatalog, toPascalCase } from 'salvageunion-reference'
 
 const { dataMap, schemaMap } = getDataMaps()
 const chassisData = dataMap['chassis']
@@ -190,11 +148,9 @@ toPascalCase('classes.core') // => 'CoreClasses'
 
 ## TypeScript Support
 
-Full TypeScript support with inferred types from JSON data:
-
 ```typescript
-import { SalvageUnionReference } from 'salvageunion-data'
-import type { SURefChassis, SURefEquipment, SURefSystem } from 'salvageunion-data'
+import { SalvageUnionReference } from 'salvageunion-reference'
+import type { SURefChassis, SURefEquipment, SURefSystem } from 'salvageunion-reference'
 
 const { Chassis, Equipment } = SalvageUnionReference
 
@@ -205,48 +161,45 @@ const atlas: SURefChassis | undefined = Chassis.find((c) => c.name === 'Atlas')
 const heavyEquipment: SURefEquipment[] = Equipment.findAll((e) => (e.techLevel ?? 0) >= 3)
 ```
 
-## 🛠️ Development Scripts
+## Development Scripts
 
 ### Data Validation
 
 ```bash
 # Validate all data against JSON schemas
-npm run validate
+bun run validate
 
 # Validate all IDs are unique UUIDs (including nested objects)
-npm run validate:ids
-
-# Generate missing UUIDs and fix invalid ones
-npm run fix:ids
+bun run validate:ids
 ```
 
 ### Other Scripts
 
 ```bash
-# Build the package
-npm run build
+# Build the package (from repo root)
+bun run build:package
 
 # Run type checking
-npm run typecheck
+bun run typecheck
 
 # Run tests
-npm test
+bun test
 
 # Lint code
-npm run lint
+bun run lint
 
 # Format code
-npm run format
+bun run format
 ```
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please:
 
 1. Ensure all data includes page references
-2. Ensure all items have unique UUIDs (run `npm run validate:ids`)
-3. Validate changes with `npm run validate`
-4. Run type checking with `npm run typecheck`
+2. Ensure all items have unique UUIDs (run `bun run validate:ids`)
+3. Validate changes with `bun run validate`
+4. Run type checking with `bun run typecheck`
 5. Follow existing data structure patterns
 
 ### ID Requirements
@@ -257,14 +210,14 @@ All data items must have a unique UUID v4 identifier in the `id` field. This inc
 - Nested `choices` objects in NPCs and abilities
 - Any other nested objects with an `id` field
 
-Use `npm run fix:ids` to automatically generate missing UUIDs or fix invalid ones.
+Use `bun run validate:ids` to check for invalid or missing UUIDs.
 
-## 📜 License
+## License
 
 Salvage Union Open Game Licence 1.0b
 
-## 🙏 Credits
+## Credits
 
 This data was originally copied from [wfreinhart/salvage-union-tracker](https://github.com/wfreinhart/salvage-union-tracker) and later forked from [sbergot/salvageunion-data](https://github.com/sbergot/salvageunion-data).
 
-Salvage Union is copyrighted by Leyline Press. Salvage Union and the “Powered by Salvage” logo are used with permission of Leyline Press, under the Salvage Union Open Game Licence 1.0b
+Salvage Union is copyrighted by Leyline Press. Salvage Union and the "Powered by Salvage" logo are used with permission of Leyline Press, under the Salvage Union Open Game Licence 1.0b
