@@ -57,4 +57,10 @@ apps/suref-web/.vite
 # Netlify
 .netlify
 
+# Salvage Union rules content is NOT checked into git. The source PDFs and their
+# text extract / authoring briefs (rules/) are copyright-bearing verbatim
+# material; the condensed digest (docs/rules/) is derived from them. Both are
+# generated and local-only — produce them with `bun run rules:regen`. Only the
+# tooling (tools/rules-digest/, tools/extract-rules.ts) lives in git.
 rules/*
+docs/rules/

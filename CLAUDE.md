@@ -8,6 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - [`docs/audit/AUDIT-BACKLOG.md`](docs/audit/AUDIT-BACKLOG.md) — 69-finding prioritized cleanup backlog (epics + stories). Consult before proposing cleanup/refactor work; it probably already has a story for it.
 - [`docs/adrs/`](docs/adrs/) — architecture decision records. Consult the matching ADR before revisiting a prior decision (e.g. ADR-008 automation boundary before building rules-driven features).
+- `docs/rules/` — agent-readable digest of the Salvage Union core rules + expansions (turn loop, heat, damage, salvage, creation, GM guidance, Meld/Chimerium subsystems). **Generated, gitignored, not committed** (condensed from the copyright-bearing PDFs in `rules/`, also gitignored) — produce it locally with `bun run rules:regen`, then read it instead of re-parsing the PDFs. Generator/manifest: `tools/rules-digest/`.
 
 ## Critical Rules
 
@@ -79,6 +80,7 @@ bun run build:bot        # Build Discord bot
 ### Architecture
 
 **Workspace structure:**
+
 - `apps/suref-web/` - Static SRD reference site (Astro 5, React 19 islands, Tailwind v4, Vite). No auth, no Supabase.
 - `apps/in-the-union-now/` - Character builder & game manager (React 19, TanStack Router/Query, ShadCN + Tailwind v4, Supabase, Vite). Has auth, dashboard, live sheets.
 - `apps/discord-bot/` - Discord.js bot for rolling on Salvage Union tables
@@ -86,6 +88,7 @@ bun run build:bot        # Build Discord bot
 - `packages/salvageunion-reference/` - TypeScript ORM + schema-validated JSON dataset for game data
 
 **Dependency graph:**
+
 ```
 salvageunion-reference (game data ORM)
   └── suref-react (shared UI components)
