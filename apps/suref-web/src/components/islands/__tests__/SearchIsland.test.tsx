@@ -114,6 +114,24 @@ describe('SearchIsland', () => {
     expect(navigate).toHaveBeenCalledWith(secondHref)
   })
 
+  test('deferred loading: search works after focusing the input and typing', async () => {
+    // SearchIsland defers the game-data preload to first intent (focus/typing).
+    // Behavioral check: focus then type — results must still appear.
+    render(<SearchIsland />)
+    const input = screen.getByRole('combobox')
+
+    await act(async () => {
+      fireEvent.focus(input)
+    })
+    await act(async () => {
+      fireEvent.change(input, { target: { value: 'chassis' } })
+      await new Promise((r) => setTimeout(r, 200))
+    })
+
+    const options = screen.getAllByRole('option')
+    expect(options.length).toBeGreaterThan(0)
+  })
+
   test('category rows are capped so entity hits are never crowded out', async () => {
     render(<SearchIsland />)
     const input = screen.getByRole('combobox')

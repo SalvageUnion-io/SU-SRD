@@ -47,7 +47,9 @@ function matchSchemas(query: string): DisplayResult[] {
 }
 
 export function SearchIsland({ navigate }: SearchIslandProps = {}) {
-  const { ready } = useGameData()
+  // Deferred: the game-data chunks don't download until first user intent
+  // (focusing the input or typing) — keeps them off every page's critical path.
+  const { ready, load } = useGameData({ defer: true })
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<DisplayResult[]>([])
   const [isOpen, setIsOpen] = useState(false)
@@ -98,11 +100,12 @@ export function SearchIsland({ navigate }: SearchIslandProps = {}) {
 
   const handleInput = useCallback(
     (value: string) => {
+      load()
       setQuery(value)
       if (debounceRef.current) clearTimeout(debounceRef.current)
       debounceRef.current = setTimeout(() => performSearch(value), 150)
     },
-    [performSearch]
+    [load, performSearch]
   )
 
   // Re-run the pending query when data finishes loading.
@@ -210,7 +213,10 @@ export function SearchIsland({ navigate }: SearchIslandProps = {}) {
           value={query}
           onChange={(e) => handleInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          onFocus={() => hasSearched && setIsOpen(true)}
+          onFocus={() => {
+            load()
+            if (hasSearched) setIsOpen(true)
+          }}
           className="w-52 bg-transparent font-mono text-[13px] text-su-black placeholder:text-su-grey-dark focus:outline-none"
           aria-label="Search the SRD"
           aria-expanded={isOpen}

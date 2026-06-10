@@ -56,9 +56,11 @@ export default defineConfig({
             ) {
               return 'react-vendor'
             }
-            if (id.includes('salvageunion-reference')) {
-              return 'game-data'
-            }
+            // No manual chunk for salvageunion-reference: its JSON data files
+            // are dynamically imported (ModelFactory dataLoaders), so Rollup
+            // naturally splits them into per-schema chunks that only load when
+            // preload() runs. Forcing them into one chunk made every page ship
+            // the full ~1.4 MB data corpus via SearchIsland's static imports.
           },
         },
       },

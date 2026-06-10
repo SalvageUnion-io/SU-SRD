@@ -18,15 +18,31 @@ function ensurePreloaded(): Promise<void> {
   return preloadPromise
 }
 
-export function useGameData(): { ready: boolean } {
+/**
+ * @param options.defer When true, the preload does not start on mount —
+ * it waits until `load()` is called (first user intent, e.g. focusing the
+ * search input). Keeps the ~1.4 MB data corpus off the critical path of
+ * pages that only need it on interaction. Defaults to eager preload.
+ */
+export function useGameData(options?: { defer?: boolean }): {
+  ready: boolean
+  load: () => void
+} {
   const [ready, setReady] = useState(SalvageUnionReference.isLoaded('chassis'))
+  const [wanted, setWanted] = useState(!options?.defer)
 
   useEffect(() => {
-    if (ready) return
-    ensurePreloaded().then(() => setReady(true))
-  }, [ready])
+    if (ready || !wanted) return
+    let cancelled = false
+    ensurePreloaded().then(() => {
+      if (!cancelled) setReady(true)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [ready, wanted])
 
-  return { ready }
+  return { ready, load: () => setWanted(true) }
 }
 
 /**
