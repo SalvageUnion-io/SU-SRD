@@ -16,11 +16,11 @@
  */
 
 import { useRef, useState } from 'react'
+import { Btn, Input } from 'suref-react'
 
 import type { Workspace } from '../../lib/schemas/workspace'
 import { useWorkspaceStore } from '../../stores/workspaceStore'
 import { useDialogA11y } from '../shared/useDialogA11y'
-import { Button } from '../ui/button'
 
 // ---------------------------------------------------------------------------
 // Injectable store type (for dep-injection in tests)
@@ -151,38 +151,43 @@ function WorkspaceListInner({ onClose, store }: WorkspaceListInnerProps) {
   // ---------------------------------------------------------------------------
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
       <div
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="workspace-list-title"
-        className="w-full max-w-md rounded-lg border bg-background p-6 shadow-lg"
+        className="w-full max-w-md rounded-[6px] border-2 border-ink bg-paper p-6 shadow-[0_18px_40px_rgba(0,0,0,0.35)]"
       >
         <div className="mb-4 flex items-center justify-between">
-          <h2 id="workspace-list-title" className="text-base font-semibold">
+          <h2
+            id="workspace-list-title"
+            className="font-cond text-base font-bold uppercase tracking-[.06em] text-ink"
+          >
             Manage Workspaces
           </h2>
-          <Button variant="ghost" size="sm" onClick={onClose} aria-label="Close workspace manager">
+          <Btn variant="ghost" size="sm" onClick={onClose} aria-label="Close workspace manager">
             ✕
-          </Button>
+          </Btn>
         </div>
 
         {/* Workspace rows */}
         {activeStore.workspaces.length === 0 ? (
-          <p className="mb-4 text-sm text-muted-foreground">No workspaces yet. Create one below.</p>
+          <p className="mb-4 font-body text-sm text-wk-muted">
+            No workspaces yet. Create one below.
+          </p>
         ) : (
           <ul className="mb-4 space-y-2" aria-label="Workspace list">
             {activeStore.workspaces.map((ws) => (
               <li
                 key={ws.id}
-                className="flex items-center gap-2 rounded-md border border-border p-2"
+                className="flex items-center gap-2 rounded-[3px] border-[1.5px] border-ink bg-paper p-2"
               >
                 {editingId === ws.id ? (
                   /* Editing row */
                   <div className="flex flex-1 flex-col gap-1">
                     <div className="flex gap-2">
-                      <input
+                      <Input
                         type="text"
                         value={editName}
                         onChange={(e) => setEditName(e.target.value)}
@@ -190,19 +195,19 @@ function WorkspaceListInner({ onClose, store }: WorkspaceListInnerProps) {
                           if (e.key === 'Enter') void handleRename(ws.id)
                           if (e.key === 'Escape') cancelEditing()
                         }}
-                        className="flex-1 rounded border border-input bg-transparent px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                        className="flex-1 px-2 py-1"
                         aria-label={`Rename workspace ${ws.name}`}
                       />
-                      <Button
-                        variant="default"
+                      <Btn
+                        variant="primary"
                         size="sm"
                         onClick={() => void handleRename(ws.id)}
                         disabled={renamePending}
                         aria-label={`Confirm rename workspace`}
                       >
                         Save
-                      </Button>
-                      <Button
+                      </Btn>
+                      <Btn
                         variant="ghost"
                         size="sm"
                         onClick={cancelEditing}
@@ -210,10 +215,10 @@ function WorkspaceListInner({ onClose, store }: WorkspaceListInnerProps) {
                         aria-label={`Cancel rename workspace ${ws.name}`}
                       >
                         Cancel
-                      </Button>
+                      </Btn>
                     </div>
                     {renameError && (
-                      <p className="text-xs text-destructive" role="alert">
+                      <p className="font-body text-xs text-danger" role="alert">
                         {renameError}
                       </p>
                     )}
@@ -221,24 +226,24 @@ function WorkspaceListInner({ onClose, store }: WorkspaceListInnerProps) {
                 ) : (
                   /* Idle row */
                   <>
-                    <span className="flex-1 text-sm font-medium">{ws.name}</span>
-                    <Button
+                    <span className="flex-1 font-body text-sm font-medium text-ink">{ws.name}</span>
+                    <Btn
                       variant="ghost"
                       size="sm"
                       onClick={() => startEditing(ws)}
                       aria-label={`Rename workspace ${ws.name}`}
                     >
                       Rename
-                    </Button>
-                    <Button
+                    </Btn>
+                    <Btn
                       variant="ghost"
                       size="sm"
                       onClick={() => void handleDelete(ws.id)}
                       aria-label={`Delete workspace ${ws.name}`}
-                      className="text-destructive hover:text-destructive"
+                      className="text-danger hover:text-danger"
                     >
                       Delete
-                    </Button>
+                    </Btn>
                   </>
                 )}
               </li>
@@ -247,12 +252,12 @@ function WorkspaceListInner({ onClose, store }: WorkspaceListInnerProps) {
         )}
 
         {/* Create form */}
-        <div className="border-t border-border pt-4">
-          <p className="mb-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+        <div className="border-t-[1.5px] border-ink pt-4">
+          <p className="font-cond mb-2 text-[13px] font-bold uppercase tracking-[.1em] text-rust">
             New Workspace
           </p>
           <div className="flex gap-2">
-            <input
+            <Input
               type="text"
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
@@ -260,21 +265,21 @@ function WorkspaceListInner({ onClose, store }: WorkspaceListInnerProps) {
                 if (e.key === 'Enter') void handleCreate()
               }}
               placeholder="Campaign name…"
-              className="flex-1 rounded border border-input bg-transparent px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              className="flex-1 px-3 py-1.5"
               aria-label="New workspace name"
             />
-            <Button
-              variant="default"
+            <Btn
+              variant="primary"
               size="sm"
               onClick={() => void handleCreate()}
               disabled={createPending}
               aria-label="Create workspace"
             >
               {createPending ? 'Creating…' : 'Create'}
-            </Button>
+            </Btn>
           </div>
           {createError && (
-            <p className="mt-1 text-xs text-destructive" role="alert">
+            <p className="font-body mt-1 text-xs text-danger" role="alert">
               {createError}
             </p>
           )}

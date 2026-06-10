@@ -6,6 +6,7 @@
  */
 
 import { useState } from 'react'
+import { toast } from 'suref-react'
 
 import { buildEntityExport } from '../../lib/export/buildExportBundle'
 import { downloadJson } from '../../lib/export/downloadJson'
@@ -35,8 +36,11 @@ export function ExportEntityButton({ type, id, name }: ExportEntityButtonProps) 
         .replace(/[^a-z0-9]+/g, '-')
         .slice(0, 40)
       downloadJson(`itun-${type}-${safeName}.json`, bundle)
+      toast.success(`Exported ${name}.`)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Export failed.')
+      const message = err instanceof Error ? err.message : 'Export failed.'
+      setError(message)
+      toast.error(message)
     } finally {
       setBusy(false)
     }

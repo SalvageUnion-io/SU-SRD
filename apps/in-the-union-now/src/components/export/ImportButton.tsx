@@ -13,13 +13,13 @@
  */
 
 import { useRef, useState } from 'react'
+import { Btn, toast } from 'suref-react'
 
 import { mergeImport } from '../../lib/export/mergeImport'
 import { parseImportBundle } from '../../lib/export/parseImportBundle'
 import type { MergeSummary } from '../../lib/export/mergeImport'
 import { useEntityStore } from '../../stores/entityStore'
 import { useWorkspaceStore } from '../../stores/workspaceStore'
-import { Button } from '../ui/button'
 
 export function ImportButton() {
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -46,8 +46,16 @@ export function ImportButton() {
       const workspaceStore = useWorkspaceStore.getState()
       const result = await mergeImport(bundle, entityStore, workspaceStore)
       setSummary(result)
+      const total =
+        result.created.pilots +
+        result.created.mechs +
+        result.created.crawlers +
+        result.created.workspaces
+      toast.success(`Import complete — ${total} entit${total === 1 ? 'y' : 'ies'} created.`)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Import failed.')
+      const message = err instanceof Error ? err.message : 'Import failed.'
+      setError(message)
+      toast.error(message)
     } finally {
       setBusy(false)
       // Reset input so the same file can be re-selected.
@@ -59,15 +67,9 @@ export function ImportButton() {
 
   return (
     <div className="flex flex-col gap-1">
-      <Button
-        variant="outline"
-        size="sm"
-        disabled={busy}
-        onClick={handleClick}
-        className="min-h-[44px]"
-      >
+      <Btn size="sm" disabled={busy} onClick={handleClick}>
         {busy ? 'Importing…' : 'Import…'}
-      </Button>
+      </Btn>
       {/* Hidden file input */}
       <input
         ref={fileInputRef}
@@ -77,9 +79,9 @@ export function ImportButton() {
         aria-hidden="true"
         onChange={(e) => void handleFileChange(e)}
       />
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {error && <p className="font-body text-xs text-danger">{error}</p>}
       {summary && !error && (
-        <p className="text-sm text-muted-foreground">
+        <p className="font-body text-xs text-wk-muted">
           Imported: {summary.created.pilots} pilot(s), {summary.created.mechs} mech(s),{' '}
           {summary.created.crawlers} crawler(s), {summary.created.softLinks} link(s),{' '}
           {summary.created.workspaces} workspace(s).

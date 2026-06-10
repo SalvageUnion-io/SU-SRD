@@ -10,9 +10,9 @@
  */
 
 import { useRef } from 'react'
+import { Btn } from 'suref-react'
 
 import { useDialogA11y } from '../shared/useDialogA11y'
-import { Button } from '../ui/button'
 
 type DeleteConfirmDialogProps = {
   open: boolean
@@ -37,21 +37,24 @@ function DeleteConfirmDialogInner({
         role="dialog"
         aria-modal="true"
         aria-labelledby="delete-dialog-title"
-        className="w-full max-w-sm rounded-[6px] border border-[var(--color-su-black)] bg-[var(--color-su-white)] p-6 shadow-xl"
+        className="w-full max-w-sm rounded-[6px] border-2 border-ink bg-paper p-6 shadow-[0_18px_40px_rgba(0,0,0,0.35)]"
       >
-        <h2 id="delete-dialog-title" className="mb-2 text-lg font-semibold">
+        <h2
+          id="delete-dialog-title"
+          className="font-cond mb-2 text-lg font-bold uppercase tracking-[.04em] text-ink"
+        >
           Delete {entityName}?
         </h2>
-        <p className="mb-6 text-sm text-muted-foreground">
+        <p className="mb-6 font-body text-sm text-wk-muted">
           This action cannot be undone. {entityName} will be permanently removed.
         </p>
         <div className="flex justify-end gap-3">
-          <Button type="button" variant="outline" onClick={onCancel}>
+          <Btn variant="ghost" onClick={onCancel}>
             Cancel
-          </Button>
-          <Button type="button" variant="destructive" onClick={onConfirm}>
+          </Btn>
+          <Btn variant="danger" onClick={onConfirm}>
             Delete
-          </Button>
+          </Btn>
         </div>
       </div>
     </div>

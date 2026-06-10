@@ -28,6 +28,7 @@ import { PilotSchema } from '../../lib/schemas/pilot'
 import { normalizeLegacyCargoRecord } from '../../lib/schemas/cargoLot'
 import { useEntityStore } from '../../stores/entityStore'
 import type { EntityType } from '../../stores/entityStore'
+import { AppLink } from '../shared/AppLink'
 
 import { Sheet } from './Sheet'
 
@@ -131,11 +132,24 @@ export function SnapshotView({ snapshot }: SnapshotViewProps) {
   const store = useMemo(() => (result.ok ? makeSnapshotStore(result) : null), [result])
 
   if (!result.ok || !store) {
+    // Styled validation-failure state (plan 5.2) — invalid payloads land
+    // here, never in a crash: the Zod parse above is the only consumer of
+    // the untrusted payload.
     return (
-      <main className="mx-auto max-w-7xl p-6">
-        <p className="text-sm text-muted-foreground">
-          Could not render snapshot: {!result.ok ? result.reason : ''}
+      <main className="mx-auto max-w-5xl p-6">
+        <h1 className="mb-2 text-xl font-bold">Could not render snapshot</h1>
+        <p className="text-muted-foreground mb-1 text-sm">
+          This snapshot&rsquo;s data doesn&rsquo;t match any build this app knows how to show. It
+          may have been published by a newer or older version.
         </p>
+        {!result.ok && (
+          <p className="text-muted-foreground mb-4 break-words font-mono text-xs">
+            {result.reason}
+          </p>
+        )}
+        <AppLink href="/" className="text-sm underline">
+          &larr; Back to dashboard
+        </AppLink>
       </main>
     )
   }

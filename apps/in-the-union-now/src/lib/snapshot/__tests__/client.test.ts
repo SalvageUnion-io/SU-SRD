@@ -15,7 +15,12 @@
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 
-import { publishSnapshot, retrieveSnapshot, SnapshotNotFoundError } from '../client'
+import {
+  probeSnapshotService,
+  publishSnapshot,
+  retrieveSnapshot,
+  SnapshotNotFoundError,
+} from '../client'
 import type { SnapshotPayload, PublishResult } from '../client'
 
 // ---------------------------------------------------------------------------
@@ -64,11 +69,17 @@ afterEach(() => {
 
 describe('publishSnapshot — success', () => {
   test('returns PublishResult from server response', async () => {
-    const serverResult: PublishResult = { id: 'abc123', url: '/api/snapshots/abc123' }
+    const serverResult: PublishResult = {
+      id: 'abc123',
+      url: '/api/snapshots/abc123',
+    }
     const { fn } = makeFetchStub({ ok: true, status: 200, body: serverResult })
     global.fetch = fn
 
-    const payload: SnapshotPayload = { kind: 'pilot', entity: { id: 'p-1', name: 'Test' } }
+    const payload: SnapshotPayload = {
+      kind: 'pilot',
+      entity: { id: 'p-1', name: 'Test' },
+    }
     const result = await publishSnapshot(payload)
 
     expect(result.id).toBe('abc123')
@@ -76,8 +87,15 @@ describe('publishSnapshot — success', () => {
   })
 
   test('sends POST to /api/snapshots with correct content-type', async () => {
-    const serverResult: PublishResult = { id: 'xyz', url: '/api/snapshots/xyz' }
-    const { fn, calls } = makeFetchStub({ ok: true, status: 200, body: serverResult })
+    const serverResult: PublishResult = {
+      id: 'xyz',
+      url: '/api/snapshots/xyz',
+    }
+    const { fn, calls } = makeFetchStub({
+      ok: true,
+      status: 200,
+      body: serverResult,
+    })
     global.fetch = fn
 
     const payload: SnapshotPayload = { kind: 'mech', entity: { id: 'm-1' } }
@@ -111,7 +129,11 @@ describe('retrieveSnapshot — success', () => {
       kind: 'pilot',
       entity: { id: 'p-1', name: 'Zara Heln' },
     }
-    const { fn } = makeFetchStub({ ok: true, status: 200, body: storedPayload })
+    const { fn } = makeFetchStub({
+      ok: true,
+      status: 200,
+      body: storedPayload,
+    })
     global.fetch = fn
 
     const result = await retrieveSnapshot('abc123')
@@ -177,10 +199,17 @@ describe('publish → retrieve round-trip', () => {
   test('a published payload can be retrieved and contains the same data', async () => {
     const payload: SnapshotPayload = {
       kind: 'pilot',
-      entity: { id: 'pilot-roundtrip-1', name: 'Roundtrip Pilot', callsign: 'RT' },
+      entity: {
+        id: 'pilot-roundtrip-1',
+        name: 'Roundtrip Pilot',
+        callsign: 'RT',
+      },
     }
 
-    const publishResult: PublishResult = { id: 'rt-001', url: '/api/snapshots/rt-001' }
+    const publishResult: PublishResult = {
+      id: 'rt-001',
+      url: '/api/snapshots/rt-001',
+    }
     let callCount = 0
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -201,5 +230,53 @@ describe('publish → retrieve round-trip', () => {
     const retrieved = await retrieveSnapshot(published.id)
     expect(retrieved).toMatchObject({ kind: 'pilot' })
     expect((retrieved as { entity: { name: string } }).entity.name).toBe('Roundtrip Pilot')
+  })
+})
+
+// ---------------------------------------------------------------------------
+// probeSnapshotService — S6 feature-detect
+// ---------------------------------------------------------------------------
+
+describe('probeSnapshotService', () => {
+  test('sends HEAD to /api/snapshots', async () => {
+    const { fn, calls } = makeFetchStub({ ok: false, status: 405, body: null })
+    global.fetch = fn
+
+    await probeSnapshotService()
+
+    expect(calls.length).toBe(1)
+    expect(calls[0]![0]).toBe('/api/snapshots')
+    expect(calls[0]![1]?.method).toBe('HEAD')
+  })
+
+  test('resolves true on 405 (the publish function answers non-POST with 405)', async () => {
+    const { fn } = makeFetchStub({ ok: false, status: 405, body: null })
+    global.fetch = fn
+    expect(await probeSnapshotService()).toBe(true)
+  })
+
+  test('resolves true on 204 (explicit HEAD support)', async () => {
+    const { fn } = makeFetchStub({ ok: true, status: 204, body: null })
+    global.fetch = fn
+    expect(await probeSnapshotService()).toBe(true)
+  })
+
+  test('resolves false on 404 (no function deployed)', async () => {
+    const { fn } = makeFetchStub({ ok: false, status: 404, body: null })
+    global.fetch = fn
+    expect(await probeSnapshotService()).toBe(false)
+  })
+
+  test('resolves false on a 200 SPA-fallback response', async () => {
+    const { fn } = makeFetchStub({ ok: true, status: 200, body: '<html>' })
+    global.fetch = fn
+    expect(await probeSnapshotService()).toBe(false)
+  })
+
+  test('resolves false (never throws) on a network error', async () => {
+    global.fetch = (async () => {
+      throw new TypeError('Failed to fetch')
+    }) as unknown as typeof fetch
+    expect(await probeSnapshotService()).toBe(false)
   })
 })

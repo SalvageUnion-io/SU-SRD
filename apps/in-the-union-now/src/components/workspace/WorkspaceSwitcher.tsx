@@ -77,24 +77,36 @@ export function WorkspaceSwitcher({ activeWorkspaceId, onSelect, store }: Worksp
   return (
     <>
       <div className="flex items-center gap-2">
-        <label htmlFor="workspace-switcher" className="text-sm font-medium text-muted-foreground">
-          Workspace:
-        </label>
-        <select
-          id="workspace-switcher"
-          value={selectValue}
-          onChange={handleChange}
-          className="rounded border border-input bg-background px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-11 sm:min-h-9"
-          aria-label="Select workspace"
+        <label
+          htmlFor="workspace-switcher"
+          className="font-cond text-[13px] font-semibold uppercase tracking-[.04em] text-ink"
         >
-          <option value={ALL_BUILDS_VALUE}>All Builds</option>
-          {activeStore.workspaces.map((ws) => (
-            <option key={ws.id} value={ws.id}>
-              {ws.name}
-            </option>
-          ))}
-          <option value={MANAGE_VALUE}>Manage workspaces…</option>
-        </select>
+          Workspace
+        </label>
+        {/* Faux-select (design-spec §2.5): reuses the `.input` recipe */}
+        <span className="relative inline-block">
+          <select
+            id="workspace-switcher"
+            value={selectValue}
+            onChange={handleChange}
+            className="w-[200px] min-h-11 cursor-pointer appearance-none rounded-[3px] border-[1.5px] border-ink bg-paper py-2 pl-3 pr-8 font-body text-sm text-ink focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22] sm:min-h-9"
+            aria-label="Select workspace"
+          >
+            <option value={ALL_BUILDS_VALUE}>All Builds</option>
+            {activeStore.workspaces.map((ws) => (
+              <option key={ws.id} value={ws.id}>
+                {ws.name}
+              </option>
+            ))}
+            <option value={MANAGE_VALUE}>Manage workspaces…</option>
+          </select>
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-wk-muted"
+          >
+            ▾
+          </span>
+        </span>
       </div>
 
       <WorkspaceList open={manageOpen} onClose={() => setManageOpen(false)} store={activeStore} />

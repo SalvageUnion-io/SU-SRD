@@ -1,8 +1,9 @@
 /**
  * snapshot/client — typed fetch wrappers for the snapshot endpoints.
  *
- * publishSnapshot  — POST /api/snapshots (returns { id, url })
- * retrieveSnapshot — GET  /api/snapshots/:id (returns payload or throws)
+ * publishSnapshot      — POST /api/snapshots (returns { id, url })
+ * retrieveSnapshot     — GET  /api/snapshots/:id (returns payload or throws)
+ * probeSnapshotService — HEAD /api/snapshots (feature-detect, plan S6)
  *
  * Designed for dep-injection in tests: the functions are plain async
  * functions with no module-level side effects, so tests can supply
@@ -41,6 +42,25 @@ export async function publishSnapshot(payload: SnapshotPayload): Promise<Publish
     throw new Error(`publish failed: ${res.status}`)
   }
   return res.json() as Promise<PublishResult>
+}
+
+/**
+ * Feature-detects the snapshot backend (S6): HEAD /api/snapshots.
+ *
+ * The publish function answers 405 to every non-POST method, so a reachable
+ * backend yields exactly 405 (or 204 if HEAD support is ever added). Anything
+ * else — 404 (no function deployed), a 200 SPA-fallback HTML page, a dev-proxy
+ * 5xx, or a network error — means publishing is unavailable.
+ *
+ * Never throws; resolves false on any failure.
+ */
+export async function probeSnapshotService(): Promise<boolean> {
+  try {
+    const res = await fetch('/api/snapshots', { method: 'HEAD' })
+    return res.status === 405 || res.status === 204
+  } catch {
+    return false
+  }
 }
 
 /**

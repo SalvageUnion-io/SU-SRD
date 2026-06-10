@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { toast } from 'suref-react'
 import { computeMechCapacity } from '../../lib/rules/capacity'
 import { findChassisByRef } from '../../lib/rules/derivedStats'
 import { evaluateMechWarnings } from '../../lib/rules/softWarnings'
@@ -173,6 +174,7 @@ export function MechWizard({ onComplete, onCancel, mechId, initialState }: MechW
       // Upsert branch (plan 3.1): update when editing — NEVER a second create.
       if (mechId) {
         await store.update('mech', mechId, mechFormToUpdatePatch(form))
+        toast.success(`Saved ${form.name.trim() || 'mech'}.`)
         onComplete(mechId)
         return
       }
@@ -197,6 +199,7 @@ export function MechWizard({ onComplete, onCancel, mechId, initialState }: MechW
       }
 
       const created = await store.create('mech', rawInput)
+      toast.success(`Saved ${form.name.trim() || 'mech'}.`)
       onComplete(created.id)
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : 'Failed to save mech. Please retry.')

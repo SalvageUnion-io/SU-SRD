@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefClass } from 'salvageunion-reference'
+import { toast } from 'suref-react'
 import { PilotSchema } from '../../lib/schemas/pilot'
 import { useEntityStore } from '../../stores/entityStore'
 import { STARTING_ABILITY_BUDGET, STARTING_EQUIPMENT_BUDGET } from '../../lib/constants'
@@ -176,6 +177,7 @@ export function PilotWizard({
       // Upsert branch (plan 3.1): update when editing — NEVER a second create.
       if (pilotId) {
         await store.update('pilot', pilotId, pilotFormToUpdatePatch(form))
+        toast.success(`Saved ${form.name.trim() || 'pilot'}.`)
         onComplete(pilotId)
         return
       }
@@ -200,6 +202,7 @@ export function PilotWizard({
       }
 
       const created = await store.create('pilot', rawInput)
+      toast.success(`Saved ${form.name.trim() || 'pilot'}.`)
       onComplete(created.id)
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : 'Failed to save pilot. Please retry.')

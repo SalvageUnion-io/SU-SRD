@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity, SURefMetaCrawlerTechLevel, SURefSystem } from 'salvageunion-reference'
+import { toast } from 'suref-react'
 
 import { useEntityStore } from '../../stores/entityStore'
 import { CrawlerSchema } from '../../lib/schemas/crawler'
@@ -142,6 +143,7 @@ export function CrawlerBuilder({
       // The patch touches only wizard-owned fields; bays/NPC live state stays.
       if (crawlerId) {
         await store.update('crawler', crawlerId, crawlerFormToUpdatePatch(form))
+        toast.success(`Saved ${form.name.trim() || 'crawler'}.`)
         onComplete(crawlerId)
         return
       }
@@ -171,6 +173,7 @@ export function CrawlerBuilder({
       }
 
       const created = await store.create('crawler', rawInput)
+      toast.success(`Saved ${form.name.trim() || 'crawler'}.`)
       onComplete(created.id)
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : 'Failed to save crawler.')

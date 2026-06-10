@@ -13,9 +13,9 @@
  *   4.  Wired composition: mech-to-pilot link → both PilotSheet + MechSheet
  *   5.  Empty-rail case: mech with no link → pilot RailEmpty visible
  *   6.  Stat-edit round-trip via the Sheet hero trackers (StatBlock steppers)
- *   7.  PublishButton click flow via Sheet: Share → dialog appears with URL
+ *   7.  Top-bar Share entry: PublishButton links to /sheet/:kind/:id/share
  *   8.  SnapshotPageInner 404 path: notFound=true → "Snapshot not found" heading
- *   9.  Read-only mode: Sheet readOnly=true → PublishButton NOT rendered
+ *   9.  Read-only mode: Sheet readOnly=true → Share link NOT rendered
  *   10. Composition badge per scenario: wired mode shows "Wired" badge
  *
  * Conventions:
@@ -25,7 +25,7 @@
  */
 
 import { afterEach, beforeAll, describe, expect, mock, test } from 'bun:test'
-import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 
 import { Sheet } from '../Sheet'
@@ -36,7 +36,6 @@ import type { Pilot } from '../../../lib/schemas/pilot'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { useEntityStore } from '../../../stores/entityStore'
-import type { PublishResult } from '../../../lib/snapshot/client'
 import { PublishButton } from '../PublishButton'
 import { SnapshotPageInner } from '../../../routes/s/$id'
 
@@ -363,46 +362,25 @@ describe('Smoke — stat-edit round-trip (Sheet hero trackers)', () => {
 })
 
 // ---------------------------------------------------------------------------
-// Scenario 7 — PublishButton click flow
+// Scenario 7 — top-bar Share entry point
 //
-// Sheet.tsx does not propagate a `publishFn` prop to PublishButton, so we
-// test PublishButton directly with an injected publishFn + entityStore.
-// This validates the publish → dialog flow as a standalone integration path.
+// Publishing moved to the Share Snapshot screen (plan 5.2): the top-bar
+// PublishButton is now a link into /sheet/:kind/:id/share. The publish flow
+// itself is covered in ShareSnapshotScreen.test.tsx.
 // ---------------------------------------------------------------------------
 
-describe('Smoke — PublishButton click → ShareURLDialog appears', () => {
-  test('clicking Share opens ShareURLDialog with the snapshot URL', async () => {
-    Object.defineProperty(window, 'location', {
-      value: { ...window.location, origin: 'https://itun.example.com' },
-      configurable: true,
-    })
-
-    const publishFn = mock(
-      async (): Promise<PublishResult> => ({
-        id: 'smoke-abc',
-        url: '/api/snapshots/smoke-abc',
-      })
-    )
-
+describe('Smoke — PublishButton links to the share screen', () => {
+  test('Share links to /sheet/pilot/:id/share', () => {
     render(
       <PublishButton
         entityKind="pilot"
         entityId="pilot-smoke-1"
         entityStore={makeEntityStore([fakePilot])}
-        publishFn={publishFn}
       />
     )
 
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /publish snapshot/i }))
-    })
-
-    await waitFor(() => {
-      expect(screen.getByRole('dialog')).toBeTruthy()
-    })
-
-    const urlEl = screen.getByLabelText('Share URL')
-    expect((urlEl as HTMLElement).textContent).toContain('smoke-abc')
+    const link = screen.getByRole('link', { name: /share this pilot/i })
+    expect(link.getAttribute('href')).toBe('/sheet/pilot/pilot-smoke-1/share')
   })
 })
 
@@ -427,7 +405,7 @@ describe('Smoke — SnapshotPageInner 404', () => {
 // ---------------------------------------------------------------------------
 
 describe('Smoke — readOnly mode', () => {
-  test('Sheet with readOnly=true does NOT render the Share button', () => {
+  test('Sheet with readOnly=true does NOT render the Share link', () => {
     render(
       <Sheet
         kind="pilot"
@@ -437,10 +415,10 @@ describe('Smoke — readOnly mode', () => {
         readOnly={true}
       />
     )
-    expect(screen.queryByRole('button', { name: /publish snapshot/i })).toBeNull()
+    expect(screen.queryByRole('link', { name: /share this pilot/i })).toBeNull()
   })
 
-  test('Sheet with readOnly=false (default) renders the Share button', () => {
+  test('Sheet with readOnly=false (default) renders the Share link', () => {
     render(
       <Sheet
         kind="pilot"
@@ -449,7 +427,7 @@ describe('Smoke — readOnly mode', () => {
         softLinkStore={makeSoftLinkStore([])}
       />
     )
-    expect(screen.getByRole('button', { name: /publish snapshot/i })).toBeTruthy()
+    expect(screen.getByRole('link', { name: /share this pilot/i })).toBeTruthy()
   })
 })
 

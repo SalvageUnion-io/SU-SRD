@@ -3,16 +3,17 @@
  * crawlers, workspaces, and softLinks) as a single JSON file.
  *
  * Uses buildExportBundle + downloadJson from lib/export.
- * Renders inline error text on failure rather than a toast.
+ * Success/failure surface as toasts; errors also render inline so the
+ * failure stays visible next to the retry affordance.
  */
 
 import { useState } from 'react'
+import { Btn, toast } from 'suref-react'
 
 import { buildExportBundle } from '../../lib/export/buildExportBundle'
 import { downloadJson } from '../../lib/export/downloadJson'
 import { useEntityStore } from '../../stores/entityStore'
 import { useWorkspaceStore } from '../../stores/workspaceStore'
-import { Button } from '../ui/button'
 
 export function ExportAllButton() {
   const [busy, setBusy] = useState(false)
@@ -27,8 +28,11 @@ export function ExportAllButton() {
       const bundle = await buildExportBundle(entityStore, workspaceStore)
       const date = new Date().toISOString().slice(0, 10)
       downloadJson(`itun-backup-${date}.json`, bundle)
+      toast.success('Backup downloaded.')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Export failed.')
+      const message = err instanceof Error ? err.message : 'Export failed.'
+      setError(message)
+      toast.error(message)
     } finally {
       setBusy(false)
     }
@@ -36,16 +40,10 @@ export function ExportAllButton() {
 
   return (
     <div className="flex flex-col gap-1">
-      <Button
-        variant="outline"
-        size="sm"
-        disabled={busy}
-        onClick={() => void handleExportAll()}
-        className="min-h-[44px]"
-      >
+      <Btn size="sm" disabled={busy} onClick={() => void handleExportAll()}>
         {busy ? 'Exporting…' : 'Download all'}
-      </Button>
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      </Btn>
+      {error && <p className="font-body text-xs text-danger">{error}</p>}
     </div>
   )
 }

@@ -14,6 +14,7 @@
  */
 
 import { useRef, useState } from 'react'
+import { toast } from 'suref-react'
 import * as db from '../../../lib/db/index'
 import type { CargoLot } from '../../../lib/schemas/cargoLot'
 import { useDialogA11y } from '../../shared/useDialogA11y'
@@ -76,6 +77,7 @@ export function SavePatternButton({
         cargoLots,
       })
       setIsOpen(false)
+      toast.success(`Saved pattern ${pattern.name}.`)
       onSaved?.(pattern.id)
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : 'Failed to save pattern.')

@@ -174,4 +174,13 @@ describe('SnapshotView — invalid payload', () => {
     render(<SnapshotView snapshot={badSnapshot as Record<string, unknown>} />)
     expect(screen.getByText(/could not render snapshot/i)).toBeTruthy()
   })
+
+  test('renders a STYLED error (heading + reason + escape hatch) on schema mismatch', () => {
+    // A recognized kind whose entity fails Zod validation (plan 5.2)
+    const badSnapshot = { kind: 'pilot', entity: { id: 42, name: null } }
+    render(<SnapshotView snapshot={badSnapshot as Record<string, unknown>} />)
+    expect(screen.getByRole('heading', { name: /could not render snapshot/i })).toBeTruthy()
+    expect(screen.getByText(/invalid pilot data/i)).toBeTruthy()
+    expect(screen.getByRole('link', { name: /back to dashboard/i })).toBeTruthy()
+  })
 })

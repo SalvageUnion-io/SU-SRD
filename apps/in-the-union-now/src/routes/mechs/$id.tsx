@@ -2,13 +2,16 @@
  * /mechs/$id — minimal mech detail route.
  *
  * Hydrates entityStore on load, reads the mech by id.
- * Renders: name, chassis ref, system/module counts, wiring affordances.
+ * Renders: name, chassis ref, system/module counts, the installed loadout as
+ * compact entity cards (gap 24), wiring affordances.
  * Links to the sheet view (cycle-1) and the mech builder for edits.
  *
  * 404 rendered inline when the mech is not found after hydration.
  */
 
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
+import type { SURefModule, SURefSystem } from 'salvageunion-reference'
+import { ReferenceEntityDisplay } from 'suref-react'
 
 import { useEntityStore } from '../../stores/entityStore'
 import { AssignPilotToMech } from '../../components/wiring/AssignPilotToMech'
@@ -19,6 +22,8 @@ import { useWorkspaceStore } from '../../stores/workspaceStore'
 import { buttonVariants } from '../../components/ui/buttonVariants'
 import { cn } from '../../lib/utils'
 import { ExportEntityButton } from '../../components/export/ExportEntityButton'
+import { resolveModule, resolveSystem } from '../../components/sheet/mechItemRules'
+import type { ItemConditionMap } from '../../lib/schemas/mech'
 
 export const Route = createFileRoute('/mechs/$id')({
   loader: async ({ params }) => {
@@ -47,9 +52,9 @@ function MechDetailPage() {
     return (
       <main className="mx-auto max-w-7xl px-4 py-8">
         <p className="text-muted-foreground">Mech not found.</p>
-        <a href="/" className={cn(buttonVariants({ variant: 'link', size: 'sm' }))}>
+        <Link to="/" className={cn(buttonVariants({ variant: 'link', size: 'sm' }))}>
           Back to dashboard
-        </a>
+        </Link>
       </main>
     )
   }
@@ -74,12 +79,12 @@ function MechDetailPage() {
           >
             Edit
           </Link>
-          <a
-            href="/"
+          <Link
+            to="/"
             className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
           >
             Back
-          </a>
+          </Link>
         </div>
       </div>
 
@@ -120,6 +125,22 @@ function MechDetailPage() {
               )}
             </dl>
           </section>
+
+          {/* Loadout listing (gap 24) — compact entity cards */}
+          <LoadoutSection
+            title="Systems"
+            refs={mech.systems}
+            conditions={mech.systemConditions}
+            resolve={resolveSystem}
+            emptyLabel="No systems installed."
+          />
+          <LoadoutSection
+            title="Modules"
+            refs={mech.modules}
+            conditions={mech.moduleConditions}
+            resolve={resolveModule}
+            emptyLabel="No modules installed."
+          />
         </div>
 
         {/* Right pane — wiring + actions */}
@@ -167,16 +188,67 @@ function MechDetailPage() {
 
           {/* Actions */}
           <div className="flex flex-wrap gap-3">
-            <a
-              href={`/sheet/mech/${id}`}
+            <Link
+              to="/sheet/$kind/$id"
+              params={{ kind: 'mech', id }}
               className={cn(buttonVariants({ variant: 'default' }), 'no-underline')}
             >
               View Sheet
-            </a>
+            </Link>
             <ExportEntityButton type="mech" id={id} name={mech.name} />
           </div>
         </div>
       </div>
     </main>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Sub-component
+// ---------------------------------------------------------------------------
+
+type LoadoutSectionProps = {
+  title: string
+  /** Installed item refs as stored on the mech (slug or name). */
+  refs: string[]
+  /** Per-item condition map keyed by the same ref. */
+  conditions?: ItemConditionMap
+  resolve: (ref: string) => SURefSystem | SURefModule | null
+  emptyLabel: string
+}
+
+/** Installed systems/modules as compact entity cards (gap 24). */
+function LoadoutSection({ title, refs, conditions, resolve, emptyLabel }: LoadoutSectionProps) {
+  return (
+    <section className="mb-6 rounded-sm border border-su-black bg-white p-4">
+      <h2 className="mb-3 font-cond text-sm font-bold uppercase tracking-widest text-su-black">
+        {title} · {refs.length}
+      </h2>
+      {refs.length === 0 ? (
+        <p className="text-sm text-wk-muted">{emptyLabel}</p>
+      ) : (
+        <div className="space-y-3">
+          {refs.map((ref, i) => {
+            const entity = resolve(ref)
+            if (!entity) {
+              return (
+                <p key={`${ref}-${i}`} className="font-mono text-xs text-wk-muted">
+                  {ref} (unknown reference)
+                </p>
+              )
+            }
+            return (
+              <ReferenceEntityDisplay
+                key={`${ref}-${i}`}
+                data={entity}
+                compact
+                status={conditions?.[ref] ?? 'intact'}
+                hide={{ actions: true, choices: true }}
+              />
+            )
+          })}
+        </div>
+      )}
+    </section>
   )
 }

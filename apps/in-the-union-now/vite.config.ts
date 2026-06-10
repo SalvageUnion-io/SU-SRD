@@ -17,6 +17,7 @@ export default defineConfig({
     }),
     VitePWA({
       registerType: 'autoUpdate',
+      includeAssets: ['favicon.svg'],
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
       },
@@ -24,11 +25,12 @@ export default defineConfig({
         name: 'ITUN — In The Union Now',
         short_name: 'ITUN',
         description: 'Local-first character builder for Salvage Union',
-        theme_color: '#000000',
-        background_color: '#ffffff',
+        // Cargo hazard-stripe brand (design §1.5): ink plate / paper ground.
+        theme_color: '#282019',
+        background_color: '#f3ede2',
         display: 'standalone',
         icons: [
-          // Placeholder icons — replace with real artwork before M3 launch.
+          // Rasterized from public/favicon.svg (Cargo hazard-stripe plate).
           {
             src: 'icon-192.png',
             sizes: '192x192',

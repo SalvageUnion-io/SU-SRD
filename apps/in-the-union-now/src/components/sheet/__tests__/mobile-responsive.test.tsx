@@ -35,7 +35,6 @@ import type { Pilot } from '../../../lib/schemas/pilot'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { SoftLink } from '../../../lib/schemas/softLink'
-import type { PublishResult, SnapshotPayload } from '../../../lib/snapshot/client'
 
 // ---------------------------------------------------------------------------
 // Preload salvageunion-reference so MechSheet.chassis resolution doesn't throw
@@ -121,12 +120,6 @@ function makeSoftLinkStore(links: SoftLink[]): SoftLinkStore {
     create: createMock,
     delete: mock(async () => undefined),
   }
-}
-
-function makePublishFn(
-  result: PublishResult
-): (payload: SnapshotPayload) => Promise<PublishResult> {
-  return mock(async () => result)
 }
 
 function makeMechToPilotLink(mechId: string, pilotId: string): SoftLink {
@@ -242,17 +235,16 @@ describe('Mobile responsive — touch targets min-h-11', () => {
     expect((span as HTMLElement).className).toContain('min-h-11')
   })
 
-  test('PublishButton carries min-h-11 class on the Share button', () => {
+  test('PublishButton carries min-h-11 class on the Share link', () => {
     render(
       <PublishButton
         entityKind="pilot"
         entityId="pilot-1"
         entityStore={makeEntityStore([fakePilot])}
-        publishFn={makePublishFn({ id: 'abc', url: '/api/snapshots/abc' })}
       />
     )
-    const btn = screen.getByRole('button', { name: /publish snapshot/i })
-    expect((btn as HTMLElement).className).toContain('min-h-11')
+    const link = screen.getByRole('link', { name: /share this pilot/i })
+    expect((link as HTMLElement).className).toContain('min-h-11')
   })
 })
 
