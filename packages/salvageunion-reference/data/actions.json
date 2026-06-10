@@ -6519,6 +6519,10 @@
       },
       {
         "type": "targeter"
+      },
+      {
+        "type": "uses",
+        "amount": 30
       }
     ],
     "name": "Needle Missile Pod",
