@@ -389,4 +389,9 @@ body {
     text-decoration: none;
     color: inherit;
   }
+  /* Browsers strip backgrounds when printing, so light-on-dark labels
+     (pseudoheaders, NPC name spans) would print white-on-white. Force dark. */
+  main .text-su-white {
+    color: #000 !important;
+  }
 }
