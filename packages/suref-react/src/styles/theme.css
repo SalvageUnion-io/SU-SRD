@@ -4,8 +4,9 @@
  */
 @theme {
   /* === Typography === */
-  --font-mono: 'Barlow', system-ui, -apple-system, sans-serif;
-  --font-cond: 'Barlow Semi Condensed', 'Barlow', system-ui, -apple-system, sans-serif;
+  --font-mono: "Barlow", system-ui, -apple-system, sans-serif;
+  --font-cond:
+    "Barlow Semi Condensed", "Barlow", system-ui, -apple-system, sans-serif;
 
   /* === Brand Colors === */
   --color-su-orange: rgb(239, 137, 79);
@@ -46,10 +47,6 @@
   --color-tl-5: rgb(30, 83, 100);
   --color-tl-6: rgb(6, 52, 65);
 
-  /* Discord */
-  --color-discord: rgb(88, 101, 242);
-  --color-discord-hover: rgb(71, 82, 196);
-
   /* Entity colors (semantic) */
   --color-pilot: var(--color-su-orange);
   --color-pilot-light: var(--color-su-orange-light);
@@ -77,7 +74,7 @@
 /* Mobile-first touch targets */
 @media (pointer: coarse) {
   button,
-  [role='button'],
+  [role="button"],
   input,
   select,
   textarea {
