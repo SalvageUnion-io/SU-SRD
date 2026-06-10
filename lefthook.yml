@@ -10,8 +10,10 @@ pre-commit:
       stage_fixed: true
 
     format:
-      glob: '*.{ts,tsx,js,jsx,json,md,astro,css,yml,yaml}'
-      run: bunx prettier --write {staged_files}
+      # No astro in the glob: the repo has no prettier-plugin-astro, and
+      # prettier hard-errors when handed an explicit file it cannot parse.
+      glob: '*.{ts,tsx,js,jsx,json,md,css,yml,yaml}'
+      run: bunx prettier --write --ignore-unknown {staged_files}
       stage_fixed: true
 
 pre-push:
