@@ -324,10 +324,11 @@ export function ReferenceEntityDisplayContent({
 
   // The image renders as a left-float (CardImage `md:float-left`) on every path
   // EXCEPT the two grid layouts (chassis abilities, afterExtraContent), which
-  // place it in a grid cell. When it floats, actions should wrap around it like
-  // the body text — narrow beside the image, full-width once below it — rather
-  // than render in a multi-column block that stays shrunk beside the float.
-  const wrapImageFloat =
+  // place it in a grid cell. When it floats, only the body prose wraps around it;
+  // the structured sections below (actions, systems, integrated systems, etc.)
+  // are boxy and would be squeezed into the narrow column beside the float, so we
+  // clear the float after the prose and render them full-width below the image.
+  const imageFloats =
     !!assetUrl && !(!compact && ((hasChassisAbilities && !hide.actions) || !!afterExtraContent))
 
   // Resolve drone entity from chassis abilities (rendered below the fold)
@@ -623,6 +624,11 @@ export function ReferenceEntityDisplayContent({
                       {children}
                     </>
                   )}
+                  {/* Only the body prose wraps the floated image; clear the float
+                      here so the structured sections below render full-width
+                      beneath the image instead of squeezed into the narrow column
+                      beside it. */}
+                  {imageFloats && <div className="clear-both" />}
                   <ReferenceEntityFactionData
                     data={data}
                     compact={compact}
@@ -671,7 +677,6 @@ export function ReferenceEntityDisplayContent({
                   actionsToDisplay={visibleActions}
                   headerBg={headerBg}
                   sectionHeaders={schemaName === 'crawlers'}
-                  wrapImageFloat={wrapImageFloat}
                 />
               )}
               {/* Granting ability: a `Grants` block — the nested compact equipment
@@ -681,23 +686,13 @@ export function ReferenceEntityDisplayContent({
                 <ReferenceEntityGrants data={data} spacing={spacing} compact={compact} />
               )}
               {/* Titan-equipped systems/modules render as compact listings under
-                  actions. When the image floats, use plain block flow with each
-                  listing as its own flow-root so they wrap around the image like
-                  the body text (a flex container would stay shrunk beside the
-                  float); otherwise keep the flex column. */}
+                  actions, full-width below the (cleared) image float. */}
               {statblockSystems && statblockSystems.length > 0 && (
                 <>
                   <SectionSeparator label="Mech Systems" compact={compact} />
-                  <div
-                    className={cn(!wrapImageFloat && 'flex flex-col', spacing.sectionSpaceYClass)}
-                  >
+                  <div className={cn('flex flex-col', spacing.sectionSpaceYClass)}>
                     {statblockSystems.map((system) => (
-                      <div
-                        key={`statblock-system-${system.id}`}
-                        className={cn(wrapImageFloat && '[display:flow-root]')}
-                      >
-                        <PatternEquipmentItem data={system} />
-                      </div>
+                      <PatternEquipmentItem key={`statblock-system-${system.id}`} data={system} />
                     ))}
                   </div>
                 </>
@@ -705,16 +700,9 @@ export function ReferenceEntityDisplayContent({
               {statblockModules && statblockModules.length > 0 && (
                 <>
                   <SectionSeparator label="Mech Modules" compact={compact} />
-                  <div
-                    className={cn(!wrapImageFloat && 'flex flex-col', spacing.sectionSpaceYClass)}
-                  >
+                  <div className={cn('flex flex-col', spacing.sectionSpaceYClass)}>
                     {statblockModules.map((mod) => (
-                      <div
-                        key={`statblock-module-${mod.id}`}
-                        className={cn(wrapImageFloat && '[display:flow-root]')}
-                      >
-                        <PatternEquipmentItem data={mod} />
-                      </div>
+                      <PatternEquipmentItem key={`statblock-module-${mod.id}`} data={mod} />
                     ))}
                   </div>
                 </>
@@ -730,11 +718,7 @@ export function ReferenceEntityDisplayContent({
                 selections={choiceSelections}
                 onSelectionChange={setChoiceSelections}
               />
-              <ReferenceEntityIntegratedSystems
-                data={data}
-                compact={compact}
-                wrapImageFloat={wrapImageFloat}
-              />
+              <ReferenceEntityIntegratedSystems data={data} compact={compact} />
 
               <ReferenceEntityBonusPerTechLevel
                 bonusPerTechLevel={'bonusPerTechLevel' in data ? data.bonusPerTechLevel : undefined}
