@@ -151,11 +151,10 @@ export function findTraitIssues(filesByName: Record<string, Entity[]>): TraitIss
 /** Trait types that intentionally resolve via keywords.json or are pending
  *  trait definitions sourced from the books. Shrink this list over time. */
 const KNOWN_NON_TRAIT_TYPES = new Set([
-  // pending trait definitions (need book text):
+  // pending trait definition — printed on the Salvaging Drill (Starter Set
+  // Parts Catalogue p. 57) but defined in no available book; the Workshop
+  // Manual trait glossary (pp. 318+) does not include it:
   'reliable',
-  'deployable',
-  'bio-equipment',
-  'meld infection',
 ])
 
 function buildKnownVocabulary(filesByName: Record<string, Record<string, unknown>[]>): Set<string> {
