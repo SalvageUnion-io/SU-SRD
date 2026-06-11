@@ -839,5 +839,41 @@
         "value": "This weapon won't break, jam, or otherwise suffer any adverse effects through use, including through Tough Choices and Setbacks."
       }
     ]
+  },
+  {
+    "id": "6f0371cd-8730-48e3-895c-9eebfd765b2b",
+    "source": "Salvage Union Workshop Manual",
+    "name": "meld infection",
+    "page": 288,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A target hit by Meld Infection becomes infected by the nanite swarm. If an infected Mech is reduced to 0 SP, it becomes a Meld Behemoth under the control of the Meld. If an infected creature is reduced to 0 SP, it becomes a Meld Drone under the control of the Meld. Meld Infection does not go away unless removed. The only widely known method of cleansing a Meld Infection is fire, but that will burn and harm the infected."
+      }
+    ]
+  },
+  {
+    "id": "3a593058-bd49-4c15-882a-1bac9ea0cf10",
+    "source": "Rainmaker",
+    "name": "deployable",
+    "page": 77,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A weapon with the Deployable Trait must be set up before it can fire, requiring a Turn Action. Whilst deployed it is Immobile."
+      }
+    ]
+  },
+  {
+    "id": "fdddbaf0-a807-4a8e-bed1-0118cec1176e",
+    "source": "We Were Here First!",
+    "name": "bio-equipment",
+    "page": 54,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Equipment with this Trait is Bio-Tech, grown from Chimerium-mutated organic material rather than manufactured from scrap."
+      }
+    ]
   }
 ]

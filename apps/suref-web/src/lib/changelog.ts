@@ -14,6 +14,16 @@ export const CHANGELOG: ChangelogEntry[] = [
     ],
   },
   {
+    date: '2026-06-11',
+    title: 'Audit sweep: search fixes, offline support, faster pages',
+    items: [
+      'Search no longer breaks if you type before game data finishes loading, Enter now jumps to the top result, and category matches no longer crowd out item hits.',
+      'The SRD now works offline after your first visit — install it to your phone for table use on bad venue wifi.',
+      'Every page loads ~1.3 MB less JavaScript, schema listings gained a name filter plus loading skeletons and clearer empty states, and printed pages drop the site chrome.',
+      'Item pages link their traits and keywords directly, trait tooltips fixed for six pilot-equipment items (armor/armour mismatch), and the Salvage Cache Table now references SRD listings instead of print-book page numbers.',
+    ],
+  },
+  {
     date: '2026-06-09',
     title: 'Expansion crawler bays added',
     items: [

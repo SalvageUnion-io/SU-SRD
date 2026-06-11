@@ -46,10 +46,6 @@
   --color-tl-5: rgb(30, 83, 100);
   --color-tl-6: rgb(6, 52, 65);
 
-  /* Discord */
-  --color-discord: rgb(88, 101, 242);
-  --color-discord-hover: rgb(71, 82, 196);
-
   /* Entity colors (semantic) */
   --color-pilot: var(--color-su-orange);
   --color-pilot-light: var(--color-su-orange-light);

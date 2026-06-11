@@ -55,22 +55,18 @@ export const StatsSchema = z
   .describe('Statistics for mechs, chassis, and vehicles')
 
 /**
- * Statistics specific to chassis
+ * Statistics specific to chassis — all stats required
  */
-export const ChassisStatsSchema = z
-  .object({
-    structurePoints: NonNegativeIntegerSchema.describe('Structure points (mech health)').optional(),
-    energyPoints: NonNegativeIntegerSchema.describe(
-      'Energy points for powering systems'
-    ).optional(),
-    heatCapacity: NonNegativeIntegerSchema.describe('Maximum heat before overheating').optional(),
-    systemSlots: NonNegativeIntegerSchema.describe('Number of system slots available').optional(),
-    moduleSlots: NonNegativeIntegerSchema.describe('Number of module slots available').optional(),
-    cargoCapacity: NonNegativeIntegerSchema.describe('Cargo carrying capacity').optional(),
-    techLevel: TechLevelSchema.optional(),
-    salvageValue: NonNegativeIntegerSchema.describe('Scrap value when salvaged').optional(),
-  })
-  .describe('Statistics specific to chassis')
+export const ChassisStatsSchema = StatsSchema.required({
+  structurePoints: true,
+  energyPoints: true,
+  heatCapacity: true,
+  systemSlots: true,
+  moduleSlots: true,
+  cargoCapacity: true,
+  techLevel: true,
+  salvageValue: true,
+}).describe('Statistics specific to chassis — all stats required')
 
 /**
  * Statistics for equipment (systems and modules)
@@ -383,6 +379,7 @@ export const PatternSystemModuleSchema = z
  * A system or module that can be installed on a mech
  */
 export const SystemModuleSchema = StatsSchema.extend({
+  name: z.string().min(1).describe('Display name (used by custom system options)').optional(),
   techLevel: TechLevelSchema,
   slotsRequired: NonNegativeIntegerSchema.describe('Number of slots this system/module occupies'),
   salvageValue: NonNegativeIntegerSchema.describe('Scrap value when salvaged'),
@@ -663,45 +660,47 @@ export const ActionSchema: z.ZodType<{
   requiredTraits?: string[]
 }> = z
   .lazy(() =>
-    z.object({
-      id: IdSchema.describe('Unique identifier for this action'),
-      name: NameSchema.describe('Display name of this action'),
-      content: ContentSchema.describe('Descriptive content for this action').optional(),
-      structurePoints: z.number().describe('SP modifier from this action').optional(),
-      energyPoints: z.number().describe('EP modifier from this action').optional(),
-      heatCapacity: z.number().describe('Heat capacity modifier from this action').optional(),
-      systemSlots: z.number().describe('System slot modifier from this action').optional(),
-      moduleSlots: z.number().describe('Module slot modifier from this action').optional(),
-      cargoCapacity: z.number().describe('Cargo capacity modifier from this action').optional(),
-      techLevel: TechLevelSchema.optional(),
-      salvageValue: z.number().describe('Scrap value when salvaged').optional(),
-      displayName: NameSchema.describe('Alternative display name for this action').optional(),
-      activationCost: ActivationCostSchema.describe('AP cost to activate this action').optional(),
-      range: RangeSchema.describe('Range bands for this action').optional(),
-      actionType: ActionTypeSchema.describe(
-        'Type of action (Turn, Free, Reaction, etc.)'
-      ).optional(),
-      traits: z.array(TraitSchema).describe('Traits applied by this action').optional(),
-      damage: DamageSchema.describe('Damage dealt by this action').optional(),
-      choices: z.array(ChoiceSchema).describe('Choices presented by this action').optional(),
-      table: TableSchema.describe('Embedded roll table for this action').optional(),
-      tableName: z.string().describe('Reference to a roll table name').optional(),
-      hidden: z
-        .boolean()
-        .describe('If true, this action will not affect the rendering of the entity display')
-        .optional(),
-      activationCurrency: ActivationCurrencySchema.describe(
-        'Currency type used for activation (EP or AP, SP or HP, Variable)'
-      ).optional(),
-      source: SourceSchema.describe('Source book for this action').optional(),
-      page: PositiveIntegerSchema.describe('Page number in the source book').optional(),
-      actionSource: SchemaNameSchema.describe('Schema this action originates from').optional(),
-      drone: z.string().describe('Drone name this action is associated with').optional(),
-      requiredTraits: z
-        .array(z.string())
-        .describe('Trait names required to use this action')
-        .optional(),
-    })
+    z
+      .object({
+        id: IdSchema.describe('Unique identifier for this action'),
+        name: NameSchema.describe('Display name of this action'),
+        content: ContentSchema.describe('Descriptive content for this action').optional(),
+        structurePoints: z.number().describe('SP modifier from this action').optional(),
+        energyPoints: z.number().describe('EP modifier from this action').optional(),
+        heatCapacity: z.number().describe('Heat capacity modifier from this action').optional(),
+        systemSlots: z.number().describe('System slot modifier from this action').optional(),
+        moduleSlots: z.number().describe('Module slot modifier from this action').optional(),
+        cargoCapacity: z.number().describe('Cargo capacity modifier from this action').optional(),
+        techLevel: TechLevelSchema.optional(),
+        salvageValue: z.number().describe('Scrap value when salvaged').optional(),
+        displayName: NameSchema.describe('Alternative display name for this action').optional(),
+        activationCost: ActivationCostSchema.describe('AP cost to activate this action').optional(),
+        range: RangeSchema.describe('Range bands for this action').optional(),
+        actionType: ActionTypeSchema.describe(
+          'Type of action (Turn, Free, Reaction, etc.)'
+        ).optional(),
+        traits: z.array(TraitSchema).describe('Traits applied by this action').optional(),
+        damage: DamageSchema.describe('Damage dealt by this action').optional(),
+        choices: z.array(ChoiceSchema).describe('Choices presented by this action').optional(),
+        table: TableSchema.describe('Embedded roll table for this action').optional(),
+        tableName: z.string().describe('Reference to a roll table name').optional(),
+        hidden: z
+          .boolean()
+          .describe('If true, this action will not affect the rendering of the entity display')
+          .optional(),
+        activationCurrency: ActivationCurrencySchema.describe(
+          'Currency type used for activation (EP or AP, SP or HP, Variable)'
+        ).optional(),
+        source: SourceSchema.describe('Source book for this action').optional(),
+        page: PositiveIntegerSchema.describe('Page number in the source book').optional(),
+        actionSource: SchemaNameSchema.describe('Schema this action originates from').optional(),
+        drone: z.string().describe('Drone name this action is associated with').optional(),
+        requiredTraits: z
+          .array(z.string())
+          .describe('Trait names required to use this action')
+          .optional(),
+      })
+      .strict()
   )
   .describe('An action, ability, or attack that can be performed')
 

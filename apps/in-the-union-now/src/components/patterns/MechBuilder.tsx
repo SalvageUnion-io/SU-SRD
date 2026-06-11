@@ -148,7 +148,7 @@ export function MechBuilder({
       {
         key: 'cargo',
         label: c ? 'Crgo' : 'Cargo',
-        value: chassis.cargoCapacity ?? 0,
+        value: chassis.cargoCapacity,
         bottomLabel: c ? 'Cap' : 'Capacity',
       },
       {

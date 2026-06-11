@@ -722,7 +722,7 @@
         "type": "paragraph"
       },
       {
-        "value": "Your Auto-Turret has a unique personality.  Choose this or roll on the A.I. Personality Table p. 91. Name your Auto-Turret if you want to get especially attached.",
+        "value": "Your Auto-Turret has a unique personality.  Choose this or roll on the A.I. Personality Table. Name your Auto-Turret if you want to get especially attached.",
         "type": "paragraph"
       },
       {
@@ -1461,7 +1461,7 @@
         "type": "pilot equipment"
       },
       {
-        "type": "armor"
+        "type": "armour"
       }
     ],
     "name": "Camo Suit",
@@ -3058,7 +3058,7 @@
     "id": "57cca86e-352d-4a10-9f87-d56fa6a6ad2b",
     "traits": [
       {
-        "type": "armor"
+        "type": "armour"
       },
       {
         "type": "flashy"
@@ -3744,7 +3744,7 @@
     "id": "1edc18d4-c3c2-41ab-b594-675a2eaf015e",
     "traits": [
       {
-        "type": "armor"
+        "type": "armour"
       },
       {
         "type": "heavy"
@@ -4047,7 +4047,7 @@
       },
       {
         "type": "paragraph",
-        "value": "Their personality develops over time, based on a learning algorithm. During Downtime, they gain an A.I. [[Personality]] Trait based on their recent experiences. You can use the A.I. [[Personality]] Trait Table p. 91 for this or consider your own."
+        "value": "Their personality develops over time, based on a learning algorithm. During Downtime, they gain an A.I. [[Personality]] Trait based on their recent experiences. You can use the A.I. [[Personality]] Trait Table for this or consider your own."
       },
       {
         "type": "paragraph",
@@ -5416,7 +5416,7 @@
         "type": "paragraph"
       },
       {
-        "value": "This becomes available to purchase in Intact Condition within your Trading Bay as per the normal trading rules (see p. 222).",
+        "value": "This becomes available to purchase in Intact Condition within your Trading Bay as per the normal trading rules.",
         "type": "paragraph"
       }
     ],
@@ -5552,7 +5552,7 @@
     "content": [
       {
         "type": "paragraph",
-        "value": "You have constructed a mechanical companion. Name and describe your new best friend and choose an A.I. [[Personality]] Trait for them. You may choose your own or roll on the A.I. Personality Table (see p. 91)."
+        "value": "You have constructed a mechanical companion. Name and describe your new best friend and choose an A.I. [[Personality]] Trait for them. You may choose your own or roll on the A.I. Personality Table."
       },
       {
         "type": "paragraph",
@@ -5594,7 +5594,7 @@
     "content": [
       {
         "type": "paragraph",
-        "value": "You have trained to be able to construct and control an additional Mecha Companion. This follows all of the normal rules for the Mecha Companion Ability (see p. 68), but allows you to have up to two Mecha Companions active in the field at any one time."
+        "value": "You have trained to be able to construct and control an additional Mecha Companion. This follows all of the normal rules for the Mecha Companion Ability, but allows you to have up to two Mecha Companions active in the field at any one time."
       }
     ],
     "actionSource": "abilities"
@@ -5632,7 +5632,7 @@
       },
       {
         "type": "paragraph",
-        "value": "You have formed symbiotically with the Meld. You have all of the strengths and weaknesses of Meld as detailed in the Meld Section p. 288."
+        "value": "You have formed symbiotically with the Meld. You have all of the strengths and weaknesses of Meld as detailed in the Meld Section."
       },
       {
         "type": "datavalues",
@@ -6150,7 +6150,7 @@
     "content": [
       {
         "type": "paragraph",
-        "value": "This Module combines Zoom Optics p. 193, Thermal Optics p. 204, and IR Night Vision Optics p. 195, into one. You gain the use of all three and may activate each separately."
+        "value": "This Module combines Zoom Optics, Thermal Optics, and IR Night Vision Optics into one. You gain the use of all three and may activate each separately."
       }
     ],
     "actionSource": "modules"
@@ -6519,6 +6519,10 @@
       },
       {
         "type": "targeter"
+      },
+      {
+        "type": "uses",
+        "amount": 30
       }
     ],
     "name": "Needle Missile Pod",
@@ -6583,11 +6587,11 @@
     "content": [
       {
         "type": "paragraph",
-        "value": "Developed by Ascension PLC, this Module connects directly to your Pilot's brain whilst in the Cockpit, and allows telepathic communication with anything that has the Communicator Trait within Range. In addition, you may choose what the output of your brain frequencies sounds like, altering the pitch and tone to your liking. This works as a Voice Modulator p. 202. These communications are also encrypted, working as an Encrypted Comms p. 200."
+        "value": "Developed by Ascension PLC, this Module connects directly to your Pilot's brain whilst in the Cockpit, and allows telepathic communication with anything that has the Communicator Trait within Range. In addition, you may choose what the output of your brain frequencies sounds like, altering the pitch and tone to your liking. This works as a Voice Modulator. These communications are also encrypted, working as an Encrypted Comms."
       },
       {
         "type": "paragraph",
-        "value": "The Neuralink Communicator may also be detached and used by your Pilot in the field as a Portable Communications Unit p. 81."
+        "value": "The Neuralink Communicator may also be detached and used by your Pilot in the field as a Portable Communications Unit."
       }
     ],
     "actionSource": "modules"
@@ -7229,7 +7233,7 @@
     "id": "0766ba42-5339-4fae-97bf-5dc3bea32a1f",
     "traits": [
       {
-        "type": "armor",
+        "type": "armour",
         "amount": 2
       },
       {
@@ -7600,7 +7604,7 @@
     "content": [
       {
         "type": "paragraph",
-        "value": "Roll on the Chimerium Mutant Ability Table (p. 59)."
+        "value": "Roll on the Chimerium Mutant Ability Table."
       }
     ],
     "actionSource": "npcs"
@@ -7654,7 +7658,7 @@
     "id": "43d6fbfd-6fac-4b36-b4ff-833286cad3d7",
     "traits": [
       {
-        "type": "armor",
+        "type": "armour",
         "amount": 1
       },
       {
@@ -10435,7 +10439,7 @@
         "type": "pilot equipment"
       },
       {
-        "type": "armor"
+        "type": "armour"
       }
     ],
     "name": "Wingsuit",
@@ -11020,7 +11024,7 @@
     "content": [
       {
         "type": "paragraph",
-        "value": "This is a Stefanus-developed hacking tool designed to detonate an opposing Mech's reactor. It transfers energy from the host Mech to the opposing Mech, causing it to rapidly overload. When you activate this Module, choose the amount of EP you wish to spend (minimum 1EP). A target Mech in Range must then roll on the Reactor Overload Table p.235. Reduce the amount rolled by the amount of EP you spent on this Ability. For example, if you spent 5 EP on the ability, reduce the die roll on the Reactor Overload Table by 5. Any results lower than 1 count as 1."
+        "value": "This is a Stefanus-developed hacking tool designed to detonate an opposing Mech's reactor. It transfers energy from the host Mech to the opposing Mech, causing it to rapidly overload. When you activate this Module, choose the amount of EP you wish to spend (minimum 1EP). A target Mech in Range must then roll on the Reactor Overload Table. Reduce the amount rolled by the amount of EP you spent on this Ability. For example, if you spent 5 EP on the ability, reduce the die roll on the Reactor Overload Table by 5. Any results lower than 1 count as 1."
       }
     ],
     "actionSource": "modules"
@@ -12512,7 +12516,7 @@
     "content": [
       {
         "type": "paragraph",
-        "value": "Ghosts are biological horrors. They are treated as creatures for the purposes of all Traits and Abilities, for example the Anti-Organic Trait (p.318 SU Core Book)."
+        "value": "Ghosts are biological horrors. They are treated as creatures for the purposes of all Traits and Abilities, for example the Anti-Organic Trait."
       }
     ],
     "actionSource": "creatures"
@@ -13598,7 +13602,7 @@
     "content": [
       {
         "type": "paragraph",
-        "value": "Pilots within Close Range of Ygdriss gain a minor mutation, which can be treated as a Pilot Keepsake (p.46 PH). They may describe this form of minor mutation however they wish. If the Pilot is hostile to Ygdriss, their mutation will instead cause a Minor Injury that they can describe as they wish."
+        "value": "Pilots within Close Range of Ygdriss gain a minor mutation, which can be treated as a Pilot Keepsake. They may describe this form of minor mutation however they wish. If the Pilot is hostile to Ygdriss, their mutation will instead cause a Minor Injury that they can describe as they wish."
       }
     ],
     "actionSource": "bio-titans"
@@ -13676,14 +13680,6 @@
     "id": "d8d77481-3641-43ec-9442-9b77093cef96",
     "actionType": "Short",
     "activationCost": 1,
-    "traits": [
-      {
-        "type": "reliable"
-      },
-      {
-        "type": "salvaging"
-      }
-    ],
     "content": [
       {
         "type": "paragraph",
@@ -13703,12 +13699,6 @@
       "amount": 1
     },
     "traits": [
-      {
-        "type": "reliable"
-      },
-      {
-        "type": "salvaging"
-      },
       {
         "type": "melee"
       }

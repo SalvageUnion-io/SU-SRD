@@ -1,5 +1,6 @@
 ---
 import type { StaticEntitySummary } from 'salvageunion-reference'
+import { resolveTraitHref } from '../lib/staticLinks'
 
 type Props = {
   summary: StaticEntitySummary
@@ -39,7 +40,15 @@ const { summary } = Astro.props
   {summary.traits.length > 0 && (
     <p class="mb-3">
       <span class="font-mono font-bold uppercase">Traits:</span>{' '}
-      {summary.traits.join(', ')}
+      {summary.traits.map((t, i) => {
+        const href = resolveTraitHref(t)
+        return (
+          <Fragment>
+            {i > 0 && ', '}
+            {href ? <a href={href} class="underline">{t}</a> : t}
+          </Fragment>
+        )
+      })}
     </p>
   )}
 

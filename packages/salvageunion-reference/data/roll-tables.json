@@ -440,7 +440,7 @@
       },
       {
         "type": "paragraph",
-        "value": "Sakura is developing a cure for Chimerium Mutation, but requires Chimerium Samples to research it. (See p. 42)"
+        "value": "Sakura is developing a cure for Chimerium Mutation, but requires Chimerium Samples to research it."
       }
     ],
     "indexable": true
@@ -1800,7 +1800,7 @@
       },
       "14": {
         "label": "IRRADIATED ANOMALY",
-        "value": "This anomaly causes radiation to spike to dangerous levels, making the area count as Irradiated (per Salvage Union Core Rules p.323). Anything Meld-infected in the area also becomes irradiated."
+        "value": "This anomaly causes radiation to spike to dangerous levels, making the area count as Irradiated. Anything Meld-infected in the area also becomes irradiated."
       },
       "15": {
         "label": "MELD SPLITTER",
@@ -3853,32 +3853,32 @@
         "value": "Data Cache - Pilots ask the Mediator 3 questions about the Region."
       },
       "20": {
-        "value": "Random Intact T3 Chassis p.38 - 44 [PC]"
+        "value": "Random Intact Tech 3 Chassis (Mediator's choice or roll from the Chassis listings)"
       },
       "type": "salvage-cache",
       "18-19": {
-        "value": "Random Intact T3 System or Module p.59,60,74 [PC]"
+        "value": "Random Intact Tech 3 System or Module"
       },
       "16-17": {
-        "value": "Random Intact T2 Chassis p.68- 73 [PC]"
+        "value": "Random Intact Tech 2 Chassis"
       },
       "14-15": {
-        "value": "Random Intact T2 System p.53 - 58 [PC]"
+        "value": "Random Intact Tech 2 System"
       },
       "12-13": {
-        "value": "Random Intact T2 Module p.68 - 73 [PC]"
+        "value": "Random Intact Tech 2 Module"
       },
       "10-11": {
         "value": "5 x T2 Scrap"
       },
       "8-9": {
-        "value": "Random Intact T1 Chassis p.10 - 20 [PC]"
+        "value": "Random Intact Tech 1 Chassis"
       },
       "6-7": {
-        "value": "Random Intact T1 System p.48 - 53 [PC]"
+        "value": "Random Intact Tech 1 System"
       },
       "4-5": {
-        "value": "Random Intact T1 Module p.64 - 67 [PC]"
+        "value": "Random Intact Tech 1 Module"
       },
       "2-3": {
         "value": "5 x T1 Scrap"

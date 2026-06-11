@@ -5,13 +5,15 @@ pre-commit:
   parallel: true
   commands:
     lint-fix:
-      glob: "*.{ts,tsx,js,jsx}"
+      glob: '*.{ts,tsx,js,jsx}'
       run: bun run lint -- --fix
       stage_fixed: true
 
     format:
-      glob: "*.{ts,tsx,js,jsx,json,md,yml,yaml}"
-      run: bun run format
+      # No astro in the glob: the repo has no prettier-plugin-astro, and
+      # prettier hard-errors when handed an explicit file it cannot parse.
+      glob: '*.{ts,tsx,js,jsx,json,md,css,yml,yaml}'
+      run: bunx prettier --write --ignore-unknown {staged_files}
       stage_fixed: true
 
 pre-push:

@@ -1605,6 +1605,14 @@
     "slotsRequired": 3,
     "salvageValue": 2,
     "page": 57,
+    "traits": [
+      {
+        "type": "dependable"
+      },
+      {
+        "type": "salvaging"
+      }
+    ],
     "actions": ["Auger", "Drill"],
     "content": [
       {

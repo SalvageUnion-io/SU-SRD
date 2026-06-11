@@ -1,6 +1,6 @@
 [
   {
-    "id": "d1a2b3c4-5e6f-7a8b-9c0d-1e2f3a4b5c6d",
+    "id": "844461f9-db56-4ce3-9a8b-aa7600f6cc06",
     "source": "Salvage Union Workshop Manual",
     "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 20 }],
     "name": "Close",
@@ -17,7 +17,7 @@
     ]
   },
   {
-    "id": "e2b3c4d5-6f7a-8b9c-0d1e-2f3a4b5c6d7e",
+    "id": "71b723d7-f7da-479b-a5d2-b819a587ea73",
     "source": "Salvage Union Workshop Manual",
     "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 20 }],
     "name": "Medium",
@@ -34,7 +34,7 @@
     ]
   },
   {
-    "id": "f3c4d5e6-7a8b-9c0d-1e2f-3a4b5c6d7e8f",
+    "id": "70e9ffdd-d68d-4bf8-a1c2-1436ee1cef27",
     "source": "Salvage Union Workshop Manual",
     "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 20 }],
     "name": "Long",
@@ -51,7 +51,7 @@
     ]
   },
   {
-    "id": "a4d5e6f7-8b9c-0d1e-2f3a-4b5c6d7e8f9a",
+    "id": "66d2e3a3-d3e6-4fea-acbe-393258878ad9",
     "source": "Salvage Union Workshop Manual",
     "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 20 }],
     "name": "Far",

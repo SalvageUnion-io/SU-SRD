@@ -36,6 +36,13 @@ type SearchIndexEntry = {
 
 let searchIndex: SearchIndexEntry[] | null = null
 
+/** Reset the lazy index — called by preload() so an index built before data
+ *  loaded never survives a successful preload. */
+export function invalidateSearchIndex(): void {
+  searchIndex = null
+  searchCache.clear()
+}
+
 /**
  * Build the search index lazily on first access
  * Pre-computes searchable text for all entities
@@ -56,7 +63,10 @@ function buildSearchIndex(): SearchIndexEntry[] {
     }
 
     for (const entity of data as SURefEntity[]) {
-      const entityWithSchema = { ...entity, schemaName: schemaId } as SURefEntity & {
+      const entityWithSchema = {
+        ...entity,
+        schemaName: schemaId,
+      } as SURefEntity & {
         schemaName: SURefEnumSchemaName
       }
 

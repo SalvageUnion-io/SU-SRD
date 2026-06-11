@@ -30,7 +30,7 @@ type Props = {
 - Twitter Cards: `twitter:card`, `twitter:title`, `twitter:description`, `twitter:image`
 - Favicons: SVG, PNG 96x96, Apple Touch Icon 180x180
 - Web manifest: `site.webmanifest`
-- Font preloading: Fira Code Variable (`font/woff2`, `crossorigin`)
+- Web fonts: Barlow superfamily self-hosted via `@fontsource/barlow` and `@fontsource/barlow-semi-condensed`; served same-origin under the strict `font-src 'self'` CSP, bundled into `/_astro/` by Vite with `font-display: swap`
 
 ### Structured Data (JSON-LD)
 

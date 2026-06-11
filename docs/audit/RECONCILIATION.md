@@ -299,3 +299,30 @@
 | 7 | Adrenal Glands | modules.json | content | Missing "May only be Mounted on a Bio-Mech Chassis" restriction | missing |
 | 8 | Regeneration Glands | modules.json | content | Missing Bio-Mech mount restriction | missing |
 | 9 | Salvage Cache Table entry 5 | roll-tables.json | table value | "An Acid Spitter" should be "An Acid Spitter Mule" | wrong-data |
+
+## Inline page citations remaining (guides.json)
+
+Deferred from the 2026-06 citation purge (audit Task 6) — long-form guide prose
+needs editorial rewrites rather than mechanical deletion:
+
+- line 119: `"Make a copy of the Character Sheet on p. 24; your Pilot starts with 10 Hit Points, 5 Ability Points, and 6 Inventory Slots."`
+- line 123: `"Full details on Pilot Stats can be found on p. 20."`
+- line 154: `"Pilot Classes can be found from p. 26 to p. 77."`
+- line 226: `"Pilot Equipment can be found from p. 78 to p. 87."`
+- line 322: `"Full details on The Union Crawler can be found on p. 212."`
+- line 345: `"Mech Chassis can be found from p. 100 to p. 159."`
+- line 366: `"Details on these can be found on p. 96."`
+- line 415: `"The System list can be found on p. 162."`
+- line 456: `"The Modules list can be found on p. 188."`
+- line 530: `"Crawler types can be found from p. 216 to p. 217."`
+- line 551: `"Details on Crawler Stats can be found on p. 218."`
+- line 585: `"The System list can be found on p. 162."`
+- line 601: `"The Crawler Bay list can be found on p. 221."`
+- line 772: `"Full details on the Crawler Pilot Bay can be found on p. 223."`
+- line 939: `"...You must roll on the Reactor Overload Table p. 235 to see what happens to your Mech..."`
+- line 1071: `"...All Mechs and Pilots can use the Patch Up Ability to restore Mech SP (see p. 249)...the Welding Laser System (see p. 172) or the Engineer's Mass Field Repair Ability (see p. 29)."`
+- line 1090: `"...Damaged Mech Chassis...can also be repaired using the Repair Ability...which all Pilots and Mechs have access to (see p. 248)."`
+- line 1094: `"...the Welding Laser System (see p. 170) or the Engineer's Mass Field Repair Ability (see p. 29)."`
+- line 1239: `"The Patch Up and Repair Ability (see p. 249)..."`
+- line 1301: `"The Area Salvage Ability on p. 248 allows a Pilot to Area Salvage."`
+- line 1312: `"The Mech Salvage Ability (see p. 248) is intended to emulate..."`

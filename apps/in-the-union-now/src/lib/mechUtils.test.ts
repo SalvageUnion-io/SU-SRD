@@ -28,10 +28,10 @@ const testMechId = 'test-mech-id'
 describe('computeMechStatsFromChassis', () => {
   test('returns stats from Iron Mongrel chassis', () => {
     const stats = computeMechStatsFromChassis(ironMongrel)
-    expect(stats.max_sp).toBe(ironMongrel.structurePoints ?? 0)
-    expect(stats.max_ep).toBe(ironMongrel.energyPoints ?? 0)
-    expect(stats.heat_capacity).toBe(ironMongrel.heatCapacity ?? 0)
-    expect(stats.cargo_capacity).toBe(ironMongrel.cargoCapacity ?? 0)
+    expect(stats.max_sp).toBe(ironMongrel.structurePoints)
+    expect(stats.max_ep).toBe(ironMongrel.energyPoints)
+    expect(stats.heat_capacity).toBe(ironMongrel.heatCapacity)
+    expect(stats.cargo_capacity).toBe(ironMongrel.cargoCapacity)
   })
 
   test('all stats are numbers', () => {
@@ -51,7 +51,7 @@ describe('computeMechStatsFromRef', () => {
   test('returns stats for valid chassis ref', () => {
     const stats = computeMechStatsFromRef(ironMongrel.id)
     expect(stats).not.toBeNull()
-    expect(stats!.max_sp).toBe(ironMongrel.structurePoints ?? 0)
+    expect(stats!.max_sp).toBe(ironMongrel.structurePoints)
   })
 
   test('returns null for invalid chassis ref', () => {
@@ -219,8 +219,16 @@ describe('builderStateToPatchOps', () => {
       visible: true,
       customImageUrl: null,
       items: [
-        { schema_name: 'systems' as const, schema_ref_id: 'sys-a', sort_order: 0 },
-        { schema_name: 'modules' as const, schema_ref_id: 'mod-a', sort_order: 1 },
+        {
+          schema_name: 'systems' as const,
+          schema_ref_id: 'sys-a',
+          sort_order: 0,
+        },
+        {
+          schema_name: 'modules' as const,
+          schema_ref_id: 'mod-a',
+          sort_order: 1,
+        },
       ],
     }
     const ops = builderStateToPatchOps(oldRefs, newState, testMechId, testUserId)
@@ -235,7 +243,13 @@ describe('builderStateToPatchOps', () => {
       description: '',
       visible: true,
       customImageUrl: null,
-      items: [{ schema_name: 'systems' as const, schema_ref_id: 'sys-a', sort_order: 0 }],
+      items: [
+        {
+          schema_name: 'systems' as const,
+          schema_ref_id: 'sys-a',
+          sort_order: 0,
+        },
+      ],
     }
     const ops = builderStateToPatchOps(oldRefs, newState, testMechId, testUserId)
     expect(ops.deleteIds).toContain('ref-2')
@@ -249,9 +263,21 @@ describe('builderStateToPatchOps', () => {
       visible: true,
       customImageUrl: null,
       items: [
-        { schema_name: 'systems' as const, schema_ref_id: 'sys-a', sort_order: 0 },
-        { schema_name: 'modules' as const, schema_ref_id: 'mod-a', sort_order: 1 },
-        { schema_name: 'systems' as const, schema_ref_id: 'sys-b', sort_order: 2 },
+        {
+          schema_name: 'systems' as const,
+          schema_ref_id: 'sys-a',
+          sort_order: 0,
+        },
+        {
+          schema_name: 'modules' as const,
+          schema_ref_id: 'mod-a',
+          sort_order: 1,
+        },
+        {
+          schema_name: 'systems' as const,
+          schema_ref_id: 'sys-b',
+          sort_order: 2,
+        },
       ],
     }
     const ops = builderStateToPatchOps(oldRefs, newState, testMechId, testUserId)

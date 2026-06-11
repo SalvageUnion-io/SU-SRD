@@ -4,7 +4,7 @@ import { getItemStaticPaths } from '../../../../lib/staticPaths'
 import { ReferenceEntityIsland } from '../../../../components/islands/ReferenceEntityIsland'
 import { getReferenceEntityData, extractStaticEntitySummary } from '../../../../lib/gameData'
 import StaticEntityContent from '../../../../components/StaticEntityContent.astro'
-import { SITE_URL } from '../../../../lib/constants'
+import { SITE_URL, DEFAULT_OG_IMAGE } from '../../../../lib/constants'
 
 export function getStaticPaths() {
   return getItemStaticPaths()
@@ -19,14 +19,26 @@ const canonicalUrl = `${SITE_URL}/schema/${schemaId}/item/${itemId}/`
 const displayData = item ? getReferenceEntityData(item) : null
 const staticSummary = item ? extractStaticEntitySummary(item) : null
 
-// Build meta description from first content paragraph or fallback
+// Build meta description: first content paragraph > stat line > schema fallback
 const firstParagraph = staticSummary?.contentParagraphs[0]
+const statLine = staticSummary?.stats
+  .slice(0, 4)
+  .map((s) => `${s.label} ${s.value}`)
+  .join(', ')
+const traitLine = staticSummary?.traits.length
+  ? ` Traits: ${staticSummary.traits.join(', ')}.`
+  : ''
 const metaDescription = firstParagraph
   ? firstParagraph.length > 155
     ? firstParagraph.slice(0, 152) + '...'
     : firstParagraph
-  : itemDescription ||
-    `${itemName}: ${schemaName} reference for the Salvage Union tabletop RPG.`
+  : statLine
+    ? `${itemName} — ${schemaName} for the Salvage Union TTRPG. ${statLine}.${traitLine}`.slice(
+        0,
+        158,
+      )
+    : itemDescription ||
+      `${itemName}: ${schemaName} reference for the Salvage Union tabletop RPG.`
 
 const structuredData: Record<string, unknown> = {
   '@context': 'https://schema.org',
@@ -72,7 +84,7 @@ if (displayData?.techLevel != null) {
 }
 
 const preloadImage = displayData?.assetUrl
-const ogImage = displayData?.assetUrl || '/og-image.png'
+const ogImage = displayData?.assetUrl || DEFAULT_OG_IMAGE
 ---
 
 <BaseLayout
@@ -81,6 +93,7 @@ const ogImage = displayData?.assetUrl || '/og-image.png'
   canonical={canonicalUrl}
   ogType="article"
   ogImage={ogImage}
+  ogImageAlt={itemName}
   structuredData={structuredData}
   preloadImage={preloadImage}
   breadcrumbs={[

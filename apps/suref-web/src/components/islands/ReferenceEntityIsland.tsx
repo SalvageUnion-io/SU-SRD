@@ -1,4 +1,4 @@
-import { Suspense, useMemo } from 'react'
+import { Suspense, useEffect, useMemo } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { isAbility } from 'salvageunion-reference'
 import {
@@ -8,8 +8,9 @@ import {
   ClassAbilityTreeDisplay,
   EntityHrefProvider,
 } from 'suref-react'
-import { GameDataGate } from '../../lib/useGameData'
+import { GameDataGate, useGameData } from '../../lib/useGameData'
 import { srdEntityHref } from '../../lib/entityHref'
+import { IslandErrorBoundary } from './IslandErrorBoundary'
 
 type ReferenceEntityIslandProps = {
   item: SURefEntity
@@ -25,32 +26,51 @@ export function ReferenceEntityIsland({
   const classSelections = useMemo(() => getClassSelections(item), [item])
   const classEntity = classSelections.selectedClass || classSelections.selectedAdvancedClass
 
-  // (The static SEO/no-JS fallback is stripped globally in BaseLayout — on load
-  // and after every view-transition navigation — so no per-island removal here.)
+  const { ready } = useGameData()
+
+  // The static SEO/no-JS fallback stays in the served HTML (crawlers and no-JS
+  // users keep the content, including the page's only <h1>). For JS users it
+  // is hidden as soon as the island hydrates (avoids a duplicate-<h1> flash
+  // next to the skeleton)…
+  useEffect(() => {
+    document
+      .querySelectorAll('[data-static-fallback]')
+      .forEach((el) => el.setAttribute('hidden', ''))
+  }, [])
+
+  // …and only removed once game data is ready, so a failed preload leaves the
+  // static content recoverable instead of a blank page. View transitions swap
+  // in fresh HTML and remount the island, so both effects re-run per page.
+  useEffect(() => {
+    if (!ready) return
+    document.querySelectorAll('[data-static-fallback]').forEach((el) => el.remove())
+  }, [ready])
 
   return (
-    <GameDataGate
-      fallback={
+    <IslandErrorBoundary>
+      <GameDataGate
+        fallback={
+          <div className="mx-auto w-full max-w-6xl p-4">
+            <ReferenceEntityCardSkeleton compact={compact} />
+          </div>
+        }
+      >
         <div className="mx-auto w-full max-w-6xl p-4">
-          <ReferenceEntityCardSkeleton compact={compact} />
+          <Suspense fallback={<ReferenceEntityCardSkeleton compact={compact} />}>
+            <EntityHrefProvider value={srdEntityHref}>
+              <ReferenceEntityDisplay
+                data={item}
+                compact={compact}
+                titleAs={titleAs}
+                afterExtraContent={
+                  classEntity ? <ClassAbilityTreeDisplay classEntity={classEntity} /> : undefined
+                }
+                label={isAbility(item) && item.tree ? `${item.tree} tree` : undefined}
+              />
+            </EntityHrefProvider>
+          </Suspense>
         </div>
-      }
-    >
-      <div className="mx-auto w-full max-w-6xl p-4">
-        <Suspense fallback={<ReferenceEntityCardSkeleton compact={compact} />}>
-          <EntityHrefProvider value={srdEntityHref}>
-            <ReferenceEntityDisplay
-              data={item}
-              compact={compact}
-              titleAs={titleAs}
-              afterExtraContent={
-                classEntity ? <ClassAbilityTreeDisplay classEntity={classEntity} /> : undefined
-              }
-              label={isAbility(item) && item.tree ? `${item.tree} tree` : undefined}
-            />
-          </EntityHrefProvider>
-        </Suspense>
-      </div>
-    </GameDataGate>
+      </GameDataGate>
+    </IslandErrorBoundary>
   )
 }

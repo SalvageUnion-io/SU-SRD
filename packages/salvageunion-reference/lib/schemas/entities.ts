@@ -74,14 +74,9 @@ export const AbilityTreeRequirementSchema = BaseEntitySchema.extend({
 /**
  * Actions, abilities, and attacks that can be performed
  */
-export const MetaActionSchema = ActionSchema.and(
-  z.object({
-    displayName: z.string().min(1).describe('Alternative display name for this action').optional(),
-    activationCurrency: ActivationCurrencySchema.describe(
-      'Currency type used for activation'
-    ).optional(),
-  })
-).describe('Actions, abilities, and attacks that can be performed')
+export const MetaActionSchema = ActionSchema.describe(
+  'Actions, abilities, and attacks that can be performed'
+)
 
 /**
  * Bio-Titans: mech-scale biological monsters.
@@ -94,14 +89,6 @@ export const MetaActionSchema = ActionSchema.and(
 export const BioTitanSchema = BaseEntitySchema.extend({
   structurePoints: PositiveIntegerSchema.describe('Structure points of this bio-titan'),
   actions: z.array(z.string()).describe('Action names this bio-titan can perform'),
-  systems: z
-    .array(z.string())
-    .describe('Mech system names this bio-titan is equipped with')
-    .optional(),
-  modules: z
-    .array(z.string())
-    .describe('Mech module names this bio-titan is equipped with')
-    .optional(),
   traits: z.array(TraitSchema).describe('Traits and special properties').optional(),
 })
   .strict()
@@ -110,13 +97,14 @@ export const BioTitanSchema = BaseEntitySchema.extend({
 /**
  * Mech chassis definitions
  */
-export const ChassisSchema = BaseEntitySchema.extend({ ...ChassisStatsSchema.shape })
+export const ChassisSchema = BaseEntitySchema.extend({
+  ...ChassisStatsSchema.shape,
+})
   .extend({
     chassisAbilities: z
       .array(z.string())
       .describe('Array of chassis ability names that reference actions.json'),
     patterns: z.array(PatternSchema).describe('Available mech patterns for this chassis'),
-    npc: NpcSchema.describe('NPC crew member associated with this chassis').optional(),
   })
   .strict()
   .describe('Mech chassis definitions')
@@ -188,7 +176,6 @@ export const CrawlerBaySchema = BaseEntitySchema.extend({
   choices: ChoicesSchema.describe(
     'Choices available to the player when interacting with the NPC'
   ).optional(),
-  table: TableSchema.describe('Roll table associated with this bay').optional(),
   tableName: z.string().describe('Reference to a roll table name').optional(),
 })
   .strict()
@@ -240,7 +227,9 @@ export const CrawlerSchema = BaseEntitySchema.extend({
 /**
  * Creatures and wildlife
  */
-export const CreatureSchema = BaseEntitySchema.extend({ ...CombatEntitySchema.shape })
+export const CreatureSchema = BaseEntitySchema.extend({
+  ...CombatEntitySchema.shape,
+})
   .extend({
     hitPoints: NonNegativeIntegerSchema.describe('Hit points of this creature'),
   })
@@ -273,7 +262,9 @@ export const TechLevelEntitySchema = BaseEntitySchema.extend({
  * (e.g. The Iron Lady) carry named `actions` — sometimes including a "Titanic
  * Actions" entry — and equipped `modules`, mirroring a mech statblock.
  */
-export const DroneSchema = BaseEntitySchema.extend({ ...MechanicalEntitySchema.shape })
+export const DroneSchema = BaseEntitySchema.extend({
+  ...MechanicalEntitySchema.shape,
+})
   .extend({
     actions: z.array(z.string()).describe('Action names this drone can perform').optional(),
     modules: z
@@ -345,23 +336,27 @@ export const MeldSchema = BaseEntitySchema.extend({
 /**
  * Mech modules
  */
-export const ModuleSchema = BaseEntitySchema.extend({ ...SystemModuleSchema.shape })
+export const ModuleSchema = BaseEntitySchema.extend({
+  ...SystemModuleSchema.shape,
+  // Re-assert required name: SystemModuleSchema's optional `name` (for custom
+  // system options) must not weaken the entity-level required name.
+  name: BaseEntitySchema.shape.name,
+})
   .strict()
   .describe('Mech modules')
 
 /**
  * Non-player characters and people
  */
-export const NPCSchema = BaseEntitySchema.extend({ ...CombatEntitySchema.shape })
+export const NPCSchema = BaseEntitySchema.extend({
+  ...CombatEntitySchema.shape,
+})
   .extend({
     hitPoints: NonNegativeIntegerSchema.describe(
       'Hit points (HP) or structure points (SP) of this NPC; see damageType to disambiguate.'
     ),
     damageType: DamageTypeSchema.describe(
       'Whether this NPC tracks HP (organic) or SP (mechanical/cybernetic). Defaults to HP when omitted.'
-    ).optional(),
-    structurePoints: NonNegativeIntegerSchema.describe(
-      'Structure points for mech-scale NPCs. Use instead of hitPoints when the NPC is mech-scale.'
     ).optional(),
     bioSalvageValue: NonNegativeIntegerSchema.describe(
       'Bio-salvage value for Chimerium mutants'
@@ -395,7 +390,16 @@ export const SquadSchema = BaseEntitySchema.extend({
 /**
  * Mech systems
  */
-export const SystemSchema = BaseEntitySchema.extend({ ...SystemModuleSchema.shape })
+export const SystemSchema = BaseEntitySchema.extend({
+  ...SystemModuleSchema.shape,
+  // Re-assert required name: SystemModuleSchema's optional `name` (for custom
+  // system options) must not weaken the entity-level required name.
+  name: BaseEntitySchema.shape.name,
+  // Traits printed on the system's own statline (e.g. the Salvaging Drill's
+  // "Reliable // Salvaging") — distinct from its actions' traits, which are
+  // not inherited from the containing system.
+  traits: z.array(TraitSchema).describe('Traits and special properties').optional(),
+})
   .strict()
   .describe('Mech systems (weapons and utilities)')
 
@@ -445,6 +449,14 @@ export const GuideSchema = BaseEntitySchema.extend({
  */
 export const SourceEntitySchema = BaseEntitySchema.extend({
   purchaseLink: z.string().url().describe('URL where this source can be purchased').optional(),
+  version: z
+    .string()
+    .describe('Printing/edition of the source this dataset reflects (e.g. "1.5")')
+    .optional(),
+  verifiedAgainst: z
+    .string()
+    .describe('ISO date the dataset was last verified against this printing')
+    .optional(),
 })
   .strict()
   .describe('Source books and expansions')

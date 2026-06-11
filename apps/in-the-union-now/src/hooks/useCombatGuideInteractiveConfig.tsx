@@ -8,10 +8,10 @@ import { RollInput } from '../components/shared/RollInput'
 // ---------------------------------------------------------------------------
 
 export const COMBAT_GUIDE_IDS: readonly string[] = [
-  'e4b5c6d7-f8a9-4b0c-1d2e-3f4a5b6c7d8e', // Pushing a Mech
-  'c6d7e8f9-a0b1-4c2d-3e4f-5a6b7c8d9e0f', // Mech Damage
-  'd8e9f0a1-b2c3-4d4e-5f6a-7b8c9d0e1f2a', // Pilot Damage
-  'b6c7d8e9-f0a1-4b2c-3d4e-5f6a7b8c9d0e', // Salvaging
+  'e20e13d5-7fdc-40e7-a301-68f5e2f03c0e', // Pushing a Mech
+  '4da07865-196c-4897-a1cc-91bb89fd190a', // Mech Damage
+  '4bded796-5062-41bb-b97d-1f324bfb5255', // Pilot Damage
+  '8a018b6f-a0ad-4765-ac66-25a98ac8fef9', // Salvaging
 ]
 
 // The step ID of "Push Procedure" within the Pushing a Mech guide

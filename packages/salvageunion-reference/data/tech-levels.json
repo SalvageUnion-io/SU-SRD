@@ -1,6 +1,6 @@
 [
   {
-    "id": "b7a1c2d3-4e5f-6a7b-8c9d-0e1f2a3b4c01",
+    "id": "496b0ce2-c154-41c1-9d77-08bc9d2149b3",
     "name": "Tech 1",
     "techLevel": 1,
     "source": "Salvage Union Workshop Manual",
@@ -13,7 +13,7 @@
     ]
   },
   {
-    "id": "b7a1c2d3-4e5f-6a7b-8c9d-0e1f2a3b4c02",
+    "id": "ae3ee368-813d-4ead-86cd-82804e0d2920",
     "name": "Tech 2",
     "techLevel": 2,
     "source": "Salvage Union Workshop Manual",
@@ -26,7 +26,7 @@
     ]
   },
   {
-    "id": "b7a1c2d3-4e5f-6a7b-8c9d-0e1f2a3b4c03",
+    "id": "be5dd38c-001f-4cf9-9fd0-e9110117b2be",
     "name": "Tech 3",
     "techLevel": 3,
     "source": "Salvage Union Workshop Manual",
@@ -39,7 +39,7 @@
     ]
   },
   {
-    "id": "b7a1c2d3-4e5f-6a7b-8c9d-0e1f2a3b4c04",
+    "id": "6e500299-98ab-42da-b0a8-678cda4e45a2",
     "name": "Tech 4",
     "techLevel": 4,
     "source": "Salvage Union Workshop Manual",
@@ -52,7 +52,7 @@
     ]
   },
   {
-    "id": "b7a1c2d3-4e5f-6a7b-8c9d-0e1f2a3b4c05",
+    "id": "1d60df75-d716-4a04-8969-3ace3c8c7f8b",
     "name": "Tech 5",
     "techLevel": 5,
     "source": "Salvage Union Workshop Manual",
@@ -65,7 +65,7 @@
     ]
   },
   {
-    "id": "b7a1c2d3-4e5f-6a7b-8c9d-0e1f2a3b4c06",
+    "id": "1eb0517f-6b66-46f3-8dec-edb7bd201a00",
     "name": "Tech 6",
     "techLevel": 6,
     "source": "Salvage Union Workshop Manual",
