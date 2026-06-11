@@ -148,11 +148,43 @@ export const ClassSchema = z
   .describe('Pilot Classes (Base and Hybrid)')
 
 /**
- * Bays and facilities on Union Crawlers
+ * Resource cost to build or add an upgrade bay to a Union Crawler.
+ * Expansion "upgrade" bays (e.g. Bio-Mech Bay, Nanite Processing Bay) are
+ * bought with a mix of Scrap (at a given Tech level) and/or Bio-Salvage.
+ */
+export const CrawlerBayCostSchema = z
+  .object({
+    scrap: NonNegativeIntegerSchema.describe(
+      'Amount of Scrap required to build this bay'
+    ).optional(),
+    scrapTechLevel: TechLevelSchema.describe('Tech level of the Scrap required').optional(),
+    bioSalvage: NonNegativeIntegerSchema.describe(
+      'Amount of Bio-Salvage required to build this bay'
+    ).optional(),
+  })
+  .strict()
+  .describe('Resource cost to build or add this bay to a Union Crawler')
+
+/**
+ * Bays and facilities on Union Crawlers.
+ *
+ * Two shapes are supported:
+ * - Core fixed facilities (Workshop Manual / Starter Set) have a crew `npc`
+ *   and a `damagedEffect`.
+ * - Expansion "upgrade" / found bays (e.g. Bio-Mech Bay, Nanite Processing Bay,
+ *   Training Bay) are player-addable or scenario facilities with a build `cost`
+ *   and/or `techLevel`, and typically no crew NPC or damaged effect.
  */
 export const CrawlerBaySchema = BaseEntitySchema.extend({
-  damagedEffect: z.string().describe('Effect when this bay is damaged'),
-  npc: NpcSchema.describe('NPC crew member who operates this bay'),
+  damagedEffect: z.string().describe('Effect when this bay is damaged').optional(),
+  npc: NpcSchema.describe('NPC crew member who operates this bay').optional(),
+  techLevel: TechLevelSchema.describe('Tech level of this bay').optional(),
+  salvageValue: NonNegativeIntegerSchema.describe(
+    'Scrap value when this bay is salvaged'
+  ).optional(),
+  cost: CrawlerBayCostSchema.describe(
+    'Resource cost to build or add this bay to a Union Crawler'
+  ).optional(),
   choices: ChoicesSchema.describe(
     'Choices available to the player when interacting with the NPC'
   ).optional(),

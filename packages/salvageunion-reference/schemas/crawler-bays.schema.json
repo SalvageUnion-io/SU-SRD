@@ -715,6 +715,47 @@
         "required": ["position", "hitPoints"],
         "additionalProperties": false
       },
+      "techLevel": {
+        "anyOf": [
+          { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+          { "type": "string", "const": "B" },
+          { "type": "string", "const": "N" }
+        ],
+        "description": "Tech level of this bay"
+      },
+      "salvageValue": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 9007199254740991,
+        "description": "Scrap value when this bay is salvaged"
+      },
+      "cost": {
+        "type": "object",
+        "properties": {
+          "scrap": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991,
+            "description": "Amount of Scrap required to build this bay"
+          },
+          "scrapTechLevel": {
+            "anyOf": [
+              { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+              { "type": "string", "const": "B" },
+              { "type": "string", "const": "N" }
+            ],
+            "description": "Tech level of the Scrap required"
+          },
+          "bioSalvage": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991,
+            "description": "Amount of Bio-Salvage required to build this bay"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Resource cost to build or add this bay to a Union Crawler"
+      },
       "choices": {
         "type": "array",
         "items": {
@@ -3814,16 +3855,7 @@
       },
       "tableName": { "type": "string", "description": "Reference to a roll table name" }
     },
-    "required": [
-      "id",
-      "indexable",
-      "blackMarket",
-      "name",
-      "source",
-      "page",
-      "damagedEffect",
-      "npc"
-    ],
+    "required": ["id", "indexable", "blackMarket", "name", "source", "page"],
     "additionalProperties": false,
     "description": "Bays and facilities on Union Crawlers"
   }
