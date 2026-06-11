@@ -1,6 +1,8 @@
-import { describe, test, expect, afterEach, mock } from 'bun:test'
+import { describe, test, expect, afterEach, mock, spyOn } from 'bun:test'
 import { render, screen, cleanup, fireEvent, act } from '@testing-library/react'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import { SearchIsland } from '../SearchIsland'
+import { resetPreloadForTests } from '../../../lib/useGameData'
 
 describe('SearchIsland', () => {
   afterEach(cleanup)
@@ -130,6 +132,45 @@ describe('SearchIsland', () => {
 
     const options = screen.getAllByRole('option')
     expect(options.length).toBeGreaterThan(0)
+  })
+
+  test('typing before data is ready shows the loading row, then real hits once ready', async () => {
+    // Force the deferred pre-ready state: isLoaded() false at mount and a
+    // preload promise we resolve by hand. This exercises the stale-debounce
+    // re-run in SearchIsland's useEffect([ready]) that the other deferred test
+    // (which mounts with data already loaded) never reaches.
+    resetPreloadForTests()
+    const isLoadedSpy = spyOn(SalvageUnionReference, 'isLoaded').mockReturnValue(false)
+    let resolvePreload!: () => void
+    const preloadSpy = spyOn(SalvageUnionReference, 'preload').mockImplementation(
+      () => new Promise<void>((res) => (resolvePreload = res))
+    )
+
+    try {
+      render(<SearchIsland />)
+      const input = screen.getByRole('combobox')
+
+      // Type while the preload is still pending — the debounce fires against the
+      // pre-ready closure, so the dropdown shows the loading row and no options.
+      await act(async () => {
+        fireEvent.focus(input)
+        fireEvent.change(input, { target: { value: 'chassis' } })
+        await new Promise((r) => setTimeout(r, 200))
+      })
+      expect(screen.getByRole('listbox').textContent).toContain('Loading game data')
+      expect(screen.queryAllByRole('option').length).toBe(0)
+
+      // Data lands → the [ready] effect re-runs the pending query with real data.
+      await act(async () => {
+        resolvePreload()
+        await new Promise((r) => setTimeout(r, 0))
+      })
+      expect(screen.getAllByRole('option').length).toBeGreaterThan(0)
+    } finally {
+      isLoadedSpy.mockRestore()
+      preloadSpy.mockRestore()
+      resetPreloadForTests()
+    }
   })
 
   test('category rows are capped so entity hits are never crowded out', async () => {

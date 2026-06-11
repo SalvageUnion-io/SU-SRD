@@ -1,8 +1,9 @@
 # Salvage Union Reference
 
 > **npm deprecation notice:** This package is no longer published to npm. The
-> same dataset and JSON Schemas are served publicly (CORS-enabled) at
-> `https://salvageunion.io/schema/{schemaId}.json` — see
+> same data and JSON Schemas are served publicly (CORS-enabled) — the dataset
+> at `https://salvageunion.io/schema/{schemaId}.json` and the JSON Schema at
+> `https://salvageunion.io/schema/{schemaId}.schema.json` — see
 > https://salvageunion.io/llms.txt for the full endpoint list. Within this
 > monorepo the package is consumed via `workspace:*` and is unaffected.
 

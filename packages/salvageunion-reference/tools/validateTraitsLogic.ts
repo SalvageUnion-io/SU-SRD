@@ -148,14 +148,6 @@ export function findTraitIssues(filesByName: Record<string, Entity[]>): TraitIss
 // Vocabulary check
 // ---------------------------------------------------------------------------
 
-/** Trait types that intentionally resolve via keywords.json or are pending
- *  trait definitions sourced from the books. Keep this empty: every trait
- *  type in the data should be defined in traits.json or keywords.json.
- *  (The last entry, 'reliable' — printed on the Salvaging Drill, SUSS Parts
- *  Catalogue p. 57, but defined in no book — was renamed to the defined
- *  'dependable' trait by operator decision, 2026-06-10.) */
-const KNOWN_NON_TRAIT_TYPES = new Set<string>([])
-
 function buildKnownVocabulary(filesByName: Record<string, Record<string, unknown>[]>): Set<string> {
   const vocab = new Set<string>()
   for (const filename of ['traits.json', 'keywords.json']) {
@@ -169,8 +161,7 @@ function buildKnownVocabulary(filesByName: Record<string, Record<string, unknown
 
 /**
  * Walk every traits[].type in every data file and flag any type that is
- * defined in neither traits.json nor keywords.json and is not in the
- * KNOWN_NON_TRAIT_TYPES allowlist.
+ * defined in neither traits.json nor keywords.json.
  */
 export function findUnknownTraitTypes(
   filesByName: Record<string, Record<string, unknown>[]>
@@ -183,7 +174,6 @@ export function findUnknownTraitTypes(
       const name = String(entity.name ?? entity.id ?? 'unknown')
       for (const type of collectTraitTypes(entity)) {
         if (vocab.has(type)) continue
-        if (KNOWN_NON_TRAIT_TYPES.has(type)) continue
         issues.push({
           file: filename,
           entity: name,

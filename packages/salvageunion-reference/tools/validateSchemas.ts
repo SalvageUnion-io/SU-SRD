@@ -14,71 +14,11 @@
 import { readFileSync, readdirSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { z } from 'zod'
-import {
-  AbilitySchema,
-  AbilityTreeRequirementSchema,
-  MetaActionSchema,
-  BioTitanSchema,
-  ChassisSchema,
-  ClassSchema,
-  CrawlerBaySchema,
-  CrawlerTechLevelSchema,
-  CrawlerSchema,
-  CreatureSchema,
-  DistanceSchema,
-  DroneSchema,
-  EquipmentSchema,
-  FactionSchema,
-  GuideSchema,
-  KeywordSchema,
-  MeldSchema,
-  ModuleSchema,
-  NPCSchema,
-  RollTableSchema,
-  SourceEntitySchema,
-  SquadSchema,
-  SystemSchema,
-  TechLevelEntitySchema,
-  TraitEntitySchema,
-  VehicleSchema,
-  CatalogCategorySchema,
-} from '../lib/schemas/entities.js'
+import { zodSchemaMap } from '../lib/ModelFactory.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 const dataDir = join(__dirname, '..', 'data')
-
-/** Maps schema ID (= data file stem) to its Zod schema — mirrors ModelFactory's zodSchemaMap */
-const zodSchemaMap: Record<string, z.ZodType<unknown>> = {
-  abilities: AbilitySchema,
-  'ability-tree-requirements': AbilityTreeRequirementSchema,
-  actions: MetaActionSchema,
-  'bio-titans': BioTitanSchema,
-  'catalog-categories': CatalogCategorySchema,
-  chassis: ChassisSchema,
-  classes: ClassSchema,
-  'crawler-bays': CrawlerBaySchema,
-  'crawler-tech-levels': CrawlerTechLevelSchema,
-  crawlers: CrawlerSchema,
-  creatures: CreatureSchema,
-  distances: DistanceSchema,
-  drones: DroneSchema,
-  equipment: EquipmentSchema,
-  factions: FactionSchema,
-  guides: GuideSchema,
-  keywords: KeywordSchema,
-  meld: MeldSchema,
-  modules: ModuleSchema,
-  npcs: NPCSchema,
-  'roll-tables': RollTableSchema,
-  sources: SourceEntitySchema,
-  squads: SquadSchema,
-  systems: SystemSchema,
-  'tech-levels': TechLevelEntitySchema,
-  traits: TraitEntitySchema,
-  vehicles: VehicleSchema,
-}
 
 type FailureEntry = {
   index: number

@@ -5,7 +5,7 @@
  * and wait for `ready` before making any ORM calls. The preload runs once
  * and is shared across all islands via the module-scoped promise.
  */
-import { useState, useEffect, type ReactNode } from 'react'
+import { useState, useEffect, useCallback, type ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 
 let preloadPromise: Promise<void> | null = null
@@ -32,6 +32,13 @@ function ensurePreloaded(): Promise<void> {
  * it waits until `load()` is called (first user intent, e.g. focusing the
  * search input). Keeps the ~1.4 MB data corpus off the critical path of
  * pages that only need it on interaction. Defaults to eager preload.
+ *
+ * Note: the preload promise is module-shared, so `defer` only keeps data off
+ * the critical path on pages that render *no* eager consumer. On a page that
+ * also mounts an eager `useGameData()` (e.g. item pages with a
+ * ReferenceEntityIsland, which need the entity immediately), that eager
+ * consumer starts the shared preload on mount and the deferred consumer simply
+ * rides the in-flight promise — by design, not a missed optimization.
  */
 export function useGameData(options?: { defer?: boolean }): {
   ready: boolean
@@ -62,10 +69,13 @@ export function useGameData(options?: { defer?: boolean }): {
     }
   }, [ready, wanted, error])
 
-  const load = () => {
+  // Stable identity: consumers (e.g. SearchIsland) put `load` in callback
+  // dependency arrays, so recreating it each render would churn their memoized
+  // handlers. setWanted/setError are stable, so [] deps are correct.
+  const load = useCallback(() => {
     setWanted(true)
     setError(null)
-  }
+  }, [])
 
   return { ready, error, load }
 }
