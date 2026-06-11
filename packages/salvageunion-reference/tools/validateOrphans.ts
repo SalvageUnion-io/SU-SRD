@@ -105,6 +105,7 @@ const referencedActionNames = collectReferencedActionNames({
     ...squads,
     ...traits,
     ...keywords,
+    ...vehicles,
   ],
 })
 

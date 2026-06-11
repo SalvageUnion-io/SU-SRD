@@ -8216,6 +8216,34 @@
     "actionType": "Turn"
   },
   {
+    "name": "Rigging Arm (Vehicle)",
+    "displayName": "Rigging Arm",
+    "range": ["Close"],
+    "damage": {
+      "amount": 1,
+      "damageType": "SP"
+    },
+    "traits": [
+      {
+        "type": "melee"
+      },
+      {
+        "type": "rigging"
+      }
+    ],
+    "id": "ddff4e0a-542d-4187-a22f-721502ceddb1",
+    "actionSource": "vehicles",
+    "actionType": "Turn",
+    "source": "Salvage Union Workshop Manual",
+    "page": 292,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A heavy rigging arm mounted on a vehicle, swung as an improvised melee weapon for 1 SP. Its Rigging Trait also lets it perform the 'Load' Action to pick up and carry Scrap and salvage."
+      }
+    ]
+  },
+  {
     "id": "34d4a7d5-8911-4a8d-bf68-42d93768286d",
     "traits": [
       {
@@ -13172,12 +13200,6 @@
       }
     ],
     "actionSource": "equipment"
-  },
-  {
-    "id": "900c83b0-bf02-4a24-b7f5-5e7346cc18ed",
-    "name": "Integrated Amphibious Locomotion System",
-    "actionType": "Passive",
-    "actionSource": "systems"
   },
   {
     "id": "4ea8fc40-6ee7-4905-8d64-1fbfac7de27e",

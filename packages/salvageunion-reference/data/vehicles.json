@@ -3,7 +3,7 @@
     "id": "c1d53d2d-9abd-4a72-8e78-2674eb7d7329",
     "source": "Salvage Union Workshop Manual",
     "name": "Power Loader",
-    "systems": ["Locomotion System", "Rigging Arm", "Rigging Arm"],
+    "actions": ["Locomotion System", "Rigging Arm (Vehicle)", "Rigging Arm (Vehicle)"],
     "techLevel": 1,
     "salvageValue": 1,
     "structurePoints": 1,
@@ -20,7 +20,7 @@
     "id": "cc95bd31-30c2-4f47-b1b3-a881eb228c0d",
     "source": "Salvage Union Workshop Manual",
     "name": "Box Wheel",
-    "systems": ["Locomotion System"],
+    "actions": ["Locomotion System"],
     "traits": [
       {
         "type": "personnel capacity",
@@ -46,7 +46,7 @@
     "id": "b31e45ef-412a-46ae-bf21-83ef01477199",
     "source": "Salvage Union Workshop Manual",
     "name": "Fighting Box Wheel",
-    "systems": ["Locomotion System", ".50 Cal Machine Gun"],
+    "actions": ["Locomotion System", ".50 Cal Machine Gun"],
     "traits": [
       {
         "type": "personnel capacity",
@@ -71,7 +71,7 @@
     "id": "92f28dba-4b4b-4e4d-81f8-bc9e279d92f5",
     "source": "Salvage Union Workshop Manual",
     "name": "Armoured Box Wheel",
-    "systems": ["Locomotion System", "30mm Autocannon"],
+    "actions": ["Locomotion System", "30mm Autocannon"],
     "traits": [
       {
         "type": "personnel capacity",
@@ -98,7 +98,7 @@
     "id": "2ee55c7e-c8fb-406f-93f9-93a5b2a9ba37",
     "source": "Salvage Union Workshop Manual",
     "name": "Tank",
-    "systems": ["Locomotion System", "120mm Cannon"],
+    "actions": ["Locomotion System", "120mm Cannon"],
     "techLevel": 3,
     "salvageValue": 4,
     "structurePoints": 6,
@@ -115,7 +115,7 @@
     "id": "1e582dbd-3d2c-4408-a43c-d961ba63fb37",
     "source": "Salvage Union Workshop Manual",
     "name": "Rotorcraft",
-    "systems": ["Hover Locomotion System", "Rotary Minigun"],
+    "actions": ["Hover Locomotion System", "Rotary Minigun"],
     "traits": [
       {
         "type": "personnel capacity",
@@ -142,7 +142,7 @@
     "source": "Reclamation of the Wastes",
     "page": 102,
     "name": "E-Boat",
-    "systems": ["Integrated Amphibious Locomotion System"],
+    "actions": ["Integrated Amphibious Locomotion System"],
     "traits": [
       {
         "type": "personnel capacity",
@@ -164,7 +164,7 @@
     "source": "Reclamation of the Wastes",
     "page": 102,
     "name": "Tombstone Trackbox",
-    "systems": ["Locomotion System", "Shanty Home"],
+    "actions": ["Locomotion System", "Shanty Home"],
     "traits": [
       {
         "type": "personnel capacity",
@@ -185,7 +185,7 @@
     "id": "79640c87-2166-44fa-a9e5-396de3fe865a",
     "source": "Salvage Union Workshop Manual",
     "name": "Machine Gun Turret",
-    "systems": [".50 Cal Machine Gun"],
+    "actions": [".50 Cal Machine Gun"],
     "traits": [
       {
         "type": "immobile"
@@ -208,7 +208,7 @@
     "source": "Reclamation of the Wastes",
     "page": 103,
     "name": "Green Laser Turret",
-    "systems": ["Green Laser"],
+    "actions": ["Green Laser"],
     "traits": [
       {
         "type": "immobile"
@@ -223,7 +223,7 @@
     "source": "Reclamation of the Wastes",
     "page": 103,
     "name": "Missile Pod Turret",
-    "systems": ["Missile Pod"],
+    "actions": ["Missile Pod"],
     "traits": [
       {
         "type": "immobile"
