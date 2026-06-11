@@ -13680,14 +13680,6 @@
     "id": "d8d77481-3641-43ec-9442-9b77093cef96",
     "actionType": "Short",
     "activationCost": 1,
-    "traits": [
-      {
-        "type": "reliable"
-      },
-      {
-        "type": "salvaging"
-      }
-    ],
     "content": [
       {
         "type": "paragraph",
@@ -13707,12 +13699,6 @@
       "amount": 1
     },
     "traits": [
-      {
-        "type": "reliable"
-      },
-      {
-        "type": "salvaging"
-      },
       {
         "type": "melee"
       }

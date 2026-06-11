@@ -395,6 +395,10 @@ export const SystemSchema = BaseEntitySchema.extend({
   // Re-assert required name: SystemModuleSchema's optional `name` (for custom
   // system options) must not weaken the entity-level required name.
   name: BaseEntitySchema.shape.name,
+  // Traits printed on the system's own statline (e.g. the Salvaging Drill's
+  // "Reliable // Salvaging") — distinct from its actions' traits, which are
+  // not inherited from the containing system.
+  traits: z.array(TraitSchema).describe('Traits and special properties').optional(),
 })
   .strict()
   .describe('Mech systems (weapons and utilities)')

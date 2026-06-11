@@ -282,6 +282,31 @@
         "type": "array",
         "items": { "type": "string" },
         "description": "Action names this system/module provides"
+      },
+      "traits": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "amount": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991,
+                  "description": "Non-negative integer (0 or greater)"
+                },
+                { "type": "string" }
+              ],
+              "description": "Numeric or variable amount for this trait"
+            },
+            "type": { "type": "string", "description": "Trait type identifier" }
+          },
+          "required": ["type"],
+          "additionalProperties": false,
+          "description": "Special traits and properties of items, systems, or abilities"
+        },
+        "description": "Traits and special properties"
       }
     },
     "required": [
