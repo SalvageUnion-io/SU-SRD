@@ -409,9 +409,18 @@ export const TraitEntitySchema = BaseEntitySchema.extend({
   .describe('Traits and special properties')
 
 /**
- * Conventional vehicles
+ * Conventional vehicles.
+ *
+ * Unlike mechs, vehicles are not built from the system/module install economy:
+ * their capabilities are expressed directly as named `actions`. The `systems`
+ * field inherited from MechanicalEntitySchema is omitted here, and there is no
+ * `modules` field — a vehicle carries neither (the schema is strict).
  */
 export const VehicleSchema = BaseEntitySchema.extend({ ...MechanicalEntitySchema.shape })
+  .omit({ systems: true })
+  .extend({
+    actions: z.array(z.string()).describe('Action names this vehicle can perform').optional(),
+  })
   .strict()
   .describe('Conventional vehicles')
 

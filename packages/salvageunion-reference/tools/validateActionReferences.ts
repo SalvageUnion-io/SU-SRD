@@ -61,6 +61,7 @@ const dataFiles = [
   'npcs.json',
   'squads.json',
   'chassis.json',
+  'vehicles.json',
 ]
 
 function findSimilarAction(referencedName: string): string | undefined {

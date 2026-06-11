@@ -1546,32 +1546,6 @@
     ]
   },
   {
-    "id": "05bc4e29-9487-4559-9cbf-1244b4b06ea4",
-    "source": "Reclamation of the Wastes",
-    "name": "Integrated Amphibious Locomotion System",
-    "techLevel": 1,
-    "slotsRequired": 2,
-    "salvageValue": 2,
-    "page": 102,
-    "actions": ["Integrated Amphibious Locomotion System"]
-  },
-  {
-    "id": "4b79a534-38c0-4beb-b43c-c222007fad51",
-    "source": "Reclamation of the Wastes",
-    "name": "Shanty Home",
-    "techLevel": 1,
-    "slotsRequired": 2,
-    "salvageValue": 1,
-    "page": 102,
-    "actions": ["Shanty Home"],
-    "content": [
-      {
-        "type": "paragraph",
-        "value": "Can safely transport a family of people across the wastes."
-      }
-    ]
-  },
-  {
     "id": "2745be06-5961-49e0-acfa-177b87210dea",
     "source": "Salvage Union Starter Set",
     "booklet": "PC",

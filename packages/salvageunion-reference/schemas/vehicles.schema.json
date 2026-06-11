@@ -232,11 +232,6 @@
         "maximum": 9007199254740991,
         "description": "Scrap value when salvaged"
       },
-      "systems": {
-        "type": "array",
-        "items": { "type": "string" },
-        "description": "Installed system names"
-      },
       "traits": {
         "type": "array",
         "items": {
@@ -291,6 +286,11 @@
         "minimum": 0,
         "maximum": 9007199254740991,
         "description": "Cargo carrying capacity"
+      },
+      "actions": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "Action names this vehicle can perform"
       }
     },
     "required": ["id", "indexable", "blackMarket", "name", "source", "page"],
