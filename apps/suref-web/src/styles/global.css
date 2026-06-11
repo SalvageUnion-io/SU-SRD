@@ -169,7 +169,9 @@
   text-transform: uppercase;
 }
 
-/* Tile name line — font-cond, bold, uppercase, text-shadow for legibility on gradients */
+/* Tile name line — font-cond, bold, uppercase, text-shadow for legibility on gradients.
+   Shadow alpha must stay ≥ 0.75: axe contrast-checks white text against the shadow
+   blended over the lightest gradients, and 0.5 lands just under the 4.5:1 AA bar. */
 .catalog-item__name {
   font-family: var(--font-cond);
   font-weight: 600;
@@ -177,7 +179,7 @@
   letter-spacing: 0.02em;
   text-transform: uppercase;
   color: var(--color-su-white);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.75);
   line-height: 1.2;
   text-align: center;
 }
