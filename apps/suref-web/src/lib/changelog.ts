@@ -6,6 +6,14 @@ type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    date: '2026-06-11',
+    title: 'Vehicles read as actions, not installable systems',
+    items: [
+      'Conventional vehicles now list their loadout — weapons and locomotion — as actions, the way their statblocks read, rather than as installable Mech Systems.',
+      "The Power Loader's rigging arm now shows its own melee profile (Close, 1 SP), distinct from the mech utility arm, and two placeholder systems (Integrated Amphibious Locomotion System and Shanty Home) were folded into the vehicles that use them.",
+    ],
+  },
+  {
     date: '2026-06-09',
     title: 'Expansion crawler bays added',
     items: [
