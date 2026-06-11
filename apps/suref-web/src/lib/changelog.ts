@@ -14,7 +14,7 @@ export const CHANGELOG: ChangelogEntry[] = [
     ],
   },
   {
-    date: '2026-06-10',
+    date: '2026-06-11',
     title: 'Audit sweep: search fixes, offline support, faster pages',
     items: [
       'Search no longer breaks if you type before game data finishes loading, Enter now jumps to the top result, and category matches no longer crowd out item hits.',
