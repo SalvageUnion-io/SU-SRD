@@ -1,4 +1,0 @@
-{"ts":"2026-05-18T05:00:00Z","event":"phase_bootstrap_started","run_id":"2026-05-18-itun-revamp-wave-3","base_branch":"yitun-revamp","base_sha":"226c85135d168310a3ff2aa4903c4e9585b0b965","issues":[189,190,191,188,197],"parallel_concurrency":4}
-{"ts":"2026-05-18T05:01:00Z","event":"phase_bootstrap_complete","run_id":"2026-05-18-itun-revamp-wave-3","run_branch":"run/2026-05-18-itun-revamp-wave-3/work"}
-{"ts":"2026-05-18T05:02:00Z","event":"phase_define_complete","run_id":"2026-05-18-itun-revamp-wave-3","intent_path":"docs/implement/2026-05-18-itun-revamp-wave-3/intent.md","ac_count":6,"issues":[189,190,191,188,197]}
-{"ts":"2026-05-18T05:03:00Z","event":"phase_scope_complete","run_id":"2026-05-18-itun-revamp-wave-3","cycle_count":4,"parallel_concurrency":4}

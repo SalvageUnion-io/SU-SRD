@@ -12,9 +12,6 @@
  * directly, so we expose the retrieve function as a module-level export
  * for testability. Tests render SnapshotPage directly and stub
  * retrieveSnapshot at the import boundary via test utilities.
- *
- * See docs/implement/2026-05-18-itun-revamp-wave-6/cycles/cycle-3.md
- * for the dep-injection strategy used in snapshot-route.test.tsx.
  */
 
 import { createFileRoute } from '@tanstack/react-router'

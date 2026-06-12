@@ -1,8 +1,0 @@
-{"ts":"2026-05-19T00:00:00Z","event":"phase_bootstrap_started","run_id":"2026-05-18-itun-revamp-wave-9","base_branch":"yitun-revamp","base_sha":"9b2f99b9da623f8d0b2477075e19ce838c2866ce","issues":[212,213,214,215],"parallel_concurrency":3}
-{"ts":"2026-05-19T00:01:00Z","event":"phase_bootstrap_complete","run_id":"2026-05-18-itun-revamp-wave-9"}
-{"ts":"2026-05-19T00:02:00Z","event":"phase_define_complete","run_id":"2026-05-18-itun-revamp-wave-9","ac_count":6}
-{"ts":"2026-05-19T00:03:00Z","event":"phase_scope_complete","run_id":"2026-05-18-itun-revamp-wave-9","cycle_count":3}
-{"ts":"2026-05-18T18:00:00Z","event":"phase_cycles_inline_salvage","run_id":"2026-05-18-itun-revamp-wave-9","reason":"3/3 workers stalled at 600s watchdog","strategy":"orchestrator-authored docs in lieu of code"}
-{"ts":"2026-05-18T18:01:00Z","event":"phase_integrate_complete","run_id":"2026-05-18-itun-revamp-wave-9","notes":"no merge required; inline deliverables"}
-{"ts":"2026-05-18T18:02:00Z","event":"phase_review_complete","run_id":"2026-05-18-itun-revamp-wave-9","ac_done":1,"ac_partial":1,"ac_deferred":4}
-{"ts":"2026-05-18T18:03:00Z","event":"phase_ship_complete","run_id":"2026-05-18-itun-revamp-wave-9","closes_issues":[215],"defers_issues":[212,213,214]}

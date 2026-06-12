@@ -1,6 +1,6 @@
 # ITUN a11y findings
 
-Per PRD REQ-NF-10 (WCAG 2.1 AAA on sheet view) + REQ-NF-11 (AA elsewhere). Maintainer-run audit per `ideate/milestones-data.md` §3C.
+Per PRD REQ-NF-10 (WCAG 2.1 AAA on sheet view) + REQ-NF-11 (AA elsewhere). Maintainer-run audit per the M3 → Release gate in [`README.md`](./README.md).
 
 ## Audit approach
 

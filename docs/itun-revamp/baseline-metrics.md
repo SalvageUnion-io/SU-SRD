@@ -7,7 +7,7 @@
 Tracks the PRD's success and outcome metrics at the moment of the M3 → Release
 swap, so post-release drift can be measured against a fixed reference.
 
-- Source: `ideate/PRD.md` §2.3 (Success Metrics) and §6.1 (Outcome Metrics).
+- Source: the PRD's Success Metrics (§2.3) and Outcome Metrics (§6.1).
 - Scope of "release": the first commit on `main` after the
   `yitun-revamp → main` integration merge ships at the canonical ITUN URL.
 - Cadence after baseline: maintainer self-reports on community / sustainability

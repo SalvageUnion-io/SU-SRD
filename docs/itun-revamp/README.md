@@ -12,13 +12,13 @@ and via pinned tracking epic
 > M4, and any follow-on work. `yitun-revamp` is not closed at the M3
 > release; it stays alive as the long-lived home for the rebuild lineage.**
 
-| Phase | Story branches off | PR base |
-| :---- | :----------------- | :------ |
-| M1 (Foundation) | `yitun-revamp` | `yitun-revamp` |
-| M2 (Sheet, Print, Snapshot) | `yitun-revamp` | `yitun-revamp` |
-| M3 (Polish, A11y, Launch) | `yitun-revamp` | `yitun-revamp` |
-| M3 → Release | `yitun-revamp` (entire branch) | `main` (one-time integration merge) |
-| M4 (Post-Release Backlog) | `yitun-revamp` | `yitun-revamp` |
+| Phase                       | Story branches off             | PR base                             |
+| :-------------------------- | :----------------------------- | :---------------------------------- |
+| M1 (Foundation)             | `yitun-revamp`                 | `yitun-revamp`                      |
+| M2 (Sheet, Print, Snapshot) | `yitun-revamp`                 | `yitun-revamp`                      |
+| M3 (Polish, A11y, Launch)   | `yitun-revamp`                 | `yitun-revamp`                      |
+| M3 → Release                | `yitun-revamp` (entire branch) | `main` (one-time integration merge) |
+| M4 (Post-Release Backlog)   | `yitun-revamp`                 | `yitun-revamp`                      |
 
 **Every wave stays on `yitun-revamp` — through M3 release, M4 backlog, and any follow-on work afterward.** The integration branch is permanent. `yitun-revamp → main` happens only at the maintainer's discretion (e.g., a coordinated swap when the rebuild is judged production-equivalent); short of that explicit decision, all ITUN-revamp work continues on `yitun-revamp` indefinitely.
 
@@ -44,27 +44,16 @@ gh pr create --base yitun-revamp \
 Use conventional-commit prefixes (`feat:`, `fix:`, `chore:`, `refactor:`,
 `test:`, `docs:`, `perf:`) on commits and PR titles.
 
-## Source-of-truth planning docs
-
-All under [`ideate/`](../../ideate/) on the `yitun-revamp` branch:
-
-- [`PRD.md`](../../ideate/PRD.md) — 62 traced REQ-NNN with MoSCoW priorities
-- [`architecture.md`](../../ideate/architecture.md) — Arc42 architecture
-- [`milestones-data.md`](../../ideate/milestones-data.md) — milestone breakdown, DoD, deliverable groups
-- [`techspec-data.md`](../../ideate/techspec-data.md) — tech spec
-- [`architecture-audit.md`](../../ideate/architecture-audit.md) — audit findings
-- [`prd-audit.md`](../../ideate/prd-audit.md) — PRD discovery Q&A
-
 ## Milestone gates
 
-Gate-out criteria (from `milestones-data.md`):
+Gate-out criteria:
 
-| Gate | Trigger |
-| :--- | :------ |
-| M1 → M2 | All M1 DoD pass; `bun run check:all` green; manual end-to-end build + save + load for all three entity types. |
-| M2 → M3 | All M2 DoD pass; print output reviewed by maintainer on A4 + US Letter; snapshot publish + open round-trip passes for all four composition modes. |
-| M3 → Release | All M3 DoD pass; `a11y-scan` CI reports zero WCAG 2.1 AAA violations on sheet view + zero AA violations elsewhere; maintainer completes fresh pilot + mech + crawler build without consulting the codebase. |
-| M4 (optional) | Post-release; driven by maintainer availability. |
+| Gate          | Trigger                                                                                                                                                                                                     |
+| :------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| M1 → M2       | All M1 DoD pass; `bun run check:all` green; manual end-to-end build + save + load for all three entity types.                                                                                               |
+| M2 → M3       | All M2 DoD pass; print output reviewed by maintainer on A4 + US Letter; snapshot publish + open round-trip passes for all four composition modes.                                                           |
+| M3 → Release  | All M3 DoD pass; `a11y-scan` CI reports zero WCAG 2.1 AAA violations on sheet view + zero AA violations elsewhere; maintainer completes fresh pilot + mech + crawler build without consulting the codebase. |
+| M4 (optional) | Post-release; driven by maintainer availability.                                                                                                                                                            |
 
 ## Story tracker
 

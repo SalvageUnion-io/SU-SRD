@@ -5,9 +5,6 @@
  * available by printing to a US Letter destination from the browser's print
  * dialog (browser scales automatically; no separate JS class-toggle is needed
  * in Wave 6 — user-selectable variant deferred to a later iteration).
- *
- * Manual-review checklist for the release-gate is in:
- *   docs/implement/2026-05-18-itun-revamp-wave-6/cycles/cycle-2.md
  */
 
 @media print {

@@ -1,9 +1,0 @@
-{"ts":"2026-05-17T00:00:00Z","event":"phase_bootstrap_started","run_id":"2026-05-17-itun-revamp-wave-0","base_branch":"yitun-revamp","base_sha":"0428e1c7ea4e88c04a27233ce4507554f904af54","issues":[183,184]}
-{"ts":"2026-05-17T00:01:00Z","event":"phase_bootstrap_complete","run_id":"2026-05-17-itun-revamp-wave-0","run_branch":"run/2026-05-17-itun-revamp-wave-0/work"}
-{"ts":"2026-05-17T00:02:00Z","event":"phase_define_complete","run_id":"2026-05-17-itun-revamp-wave-0","intent_path":"docs/implement/2026-05-17-itun-revamp-wave-0/intent.md","ac_count":6,"issues":[183,184]}
-{"ts":"2026-05-17T20:00:00Z","event":"phase_cycles_complete","run_id":"2026-05-17-itun-revamp-wave-0","cycle_id":"cycle-1","branch":"run/2026-05-17-itun-revamp-wave-0/cycle-1","final_sha":"8e18073b","acs_covered":["AC-1","AC-2","AC-3","AC-4","AC-5"]}
-{"ts":"2026-05-17T20:30:00Z","event":"phase_integrate_complete","run_id":"2026-05-17-itun-revamp-wave-0","merge_strategy":"ff-only","run_branch_sha":"8e18073b"}
-{"ts":"2026-05-17T20:45:00Z","event":"phase_review_complete","run_id":"2026-05-17-itun-revamp-wave-0","verdict":"APPROVED-WITH-NOTES","notes_count":2}
-{"ts":"2026-05-17T21:00:00Z","event":"phase_ship_started","run_id":"2026-05-17-itun-revamp-wave-0","pr_strategy":"one","base":"yitun-revamp"}
-{"ts":"2026-05-17T21:30:00Z","event":"phase_ship_complete","run_id":"2026-05-17-itun-revamp-wave-0","pr_url":"https://github.com/SalvageUnion-io/SU-SRD/pull/229","pr_number":229,"issues_commented":[183,184]}
-{"ts":"2026-05-17T21:31:00Z","event":"phase_deliver_complete","run_id":"2026-05-17-itun-revamp-wave-0","status":"shipped"}
