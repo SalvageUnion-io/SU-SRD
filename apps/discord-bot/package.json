@@ -20,7 +20,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "discord.js": "^14.14.1",
+    "discord.js": "^14.26.4",
     "salvageunion-reference": "workspace:*"
   },
   "devDependencies": {}

@@ -141,17 +141,21 @@ describe('snapshot-publish', () => {
     })
 
     it('window resets after windowMs', async () => {
-      const limiter = new RateLimiter({ limit: 1, windowMs: 1 }) // 1ms window
+      // 50ms window: the two synchronous checks below land inside it reliably,
+      // while the 70ms sleep reliably crosses it (a 1ms window races the scheduler).
+      const limiter = new RateLimiter({ limit: 1, windowMs: 50 })
       expect(limiter.check('10.0.0.1')).toBe(true)
       expect(limiter.check('10.0.0.1')).toBe(false) // within window
 
       // Wait for window to expire
-      await new Promise((resolve) => setTimeout(resolve, 5))
+      await new Promise((resolve) => setTimeout(resolve, 70))
       expect(limiter.check('10.0.0.1')).toBe(true) // new window
     })
 
     it('expired windows are evicted (map does not grow unbounded)', async () => {
-      const limiter = new RateLimiter({ limit: 1, windowMs: 1 })
+      // 50ms window so both initial checks are comfortably inside it; the 70ms
+      // sleep then expires them so the third check sweeps the stale entries.
+      const limiter = new RateLimiter({ limit: 1, windowMs: 50 })
       // Reach into the private window map to assert eviction behaviour.
       const internals = limiter as unknown as {
         check(ip: string): boolean
@@ -160,7 +164,7 @@ describe('snapshot-publish', () => {
       internals.check('10.0.0.1')
       internals.check('10.0.0.2')
       expect(internals.windows.size).toBe(2)
-      await new Promise((resolve) => setTimeout(resolve, 5))
+      await new Promise((resolve) => setTimeout(resolve, 70))
       // A check after expiry sweeps the stale entries before recording the new one
       internals.check('10.0.0.3')
       expect(internals.windows.size).toBe(1)
