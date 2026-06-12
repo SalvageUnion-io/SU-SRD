@@ -15,14 +15,6 @@ type ReferenceEntityActionsProps = {
   suppressActions?: boolean
   /** When true, renders action titles as SectionSeparators instead of action-cards */
   sectionHeaders?: boolean
-  /**
-   * When true, the entity's image is rendered as a left-float, so actions flow
-   * around it like the body text: each card is its own block-formatting-context
-   * box in plain block flow, narrow beside the image and full-width once below
-   * it. (The default multi-column masonry establishes a formatting context that
-   * stays shrunk beside the float, so it is only used when there is no float.)
-   */
-  wrapImageFloat?: boolean
 }
 
 export function ReferenceEntityActions({
@@ -32,7 +24,6 @@ export function ReferenceEntityActions({
   headerBg,
   suppressActions,
   sectionHeaders = false,
-  wrapImageFloat = false,
 }: ReferenceEntityActionsProps) {
   if (suppressActions) return null
 
@@ -62,55 +53,6 @@ export function ReferenceEntityActions({
   const regularActions = actionsToDisplay.filter(
     (a) => getReferenceEntityName(a) !== 'Titanic Actions'
   )
-
-  // Float-wrap layout: plain block flow (NO flex / grid / multi-column /
-  // container-query wrapper between the float and the cards — each of those
-  // establishes a formatting context that shrinks beside the float and never
-  // re-expands below it). Each card is its own flow-root, so it sits narrow
-  // beside the floated image and takes full width once it clears the image,
-  // exactly like the body text wraps. The titanic action clears the float so
-  // its wide reminder + option list always span the full card width.
-  if (wrapImageFloat) {
-    return (
-      <div className={spacing.smallSpaceYClass}>
-        {regularActions.length > 0 && (
-          <>
-            <SectionSeparator
-              label="Actions"
-              compact={compact}
-              fontSize={compact ? 'text-xs' : 'text-sm'}
-            />
-            <div className="mt-2">
-              {regularActions.map((action) => (
-                <div key={action.id} className="mb-3 [display:flow-root]">
-                  <ActionCard data={action} compact parentHeaderBg={headerBg} />
-                </div>
-              ))}
-            </div>
-          </>
-        )}
-
-        {regularActions.length === 0 && titanicAction && (
-          <SectionSeparator
-            label="Actions"
-            compact={compact}
-            fontSize={compact ? 'text-xs' : 'text-sm'}
-          />
-        )}
-
-        {titanicAction && (
-          <div className={cn('clear-both', regularActions.length > 0 ? 'mt-4' : 'mt-2')}>
-            <ActionCard
-              data={titanicAction}
-              compact={compact}
-              parentHeaderBg={headerBg}
-              titanicMode
-            />
-          </div>
-        )}
-      </div>
-    )
-  }
 
   return (
     <div className={cn('flex flex-col', spacing.smallSpaceYClass)}>
