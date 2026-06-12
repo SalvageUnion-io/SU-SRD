@@ -3,9 +3,6 @@ import { Image } from 'astro:assets'
 import BaseLayout from '../layouts/BaseLayout.astro'
 import eldridgeCoastMap from '../assets/eldridge-coast-map.png'
 import { SITE_URL } from '../lib/constants'
-import { SalvageUnionReference } from 'salvageunion-reference'
-
-const sources = SalvageUnionReference.Sources.all()
 
 const imageAltText = 'Map of The Eldridge Coast, created using Shmeppy.com'
 
@@ -131,113 +128,6 @@ const structuredData = {
           The site is open source and contributions are welcome.
         </p>
       </section>
-
-      <!-- Main content -->
-      <div>
-        <div class="flex flex-col gap-8">
-
-          <!-- Data Sources -->
-          <section class="flex flex-col gap-4 text-center">
-            <h2 class="page-subheading">Data Sources</h2>
-            <p class="text-sm">This SRD draws from the following Salvage Union publications:</p>
-            <ul class="mx-auto flex flex-col gap-2 text-sm text-left max-w-md">
-              {sources.map((s) => (
-                <li>
-                  {s.purchaseLink ? (
-                    <a
-                      href={s.purchaseLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      class="font-bold text-su-orange-dark hover:underline"
-                    >
-                      {s.name}
-                    </a>
-                  ) : (
-                    <span class="font-bold">{s.name}</span>
-                  )}
-                  {s.version && <span class="text-su-black/60"> — printing {s.version}</span>}
-                  {s.verifiedAgainst && <span class="text-su-black/60"> (verified {s.verifiedAgainst})</span>}
-                </li>
-              ))}
-            </ul>
-          </section>
-
-          <!-- Thanks + Links -->
-          <section class="flex flex-col gap-4 text-center">
-            <h2 class="page-subheading">Acknowledgments</h2>
-            <p class="text-sm">
-              Many thanks to{' '}
-              <a
-                href="https://bsky.app/profile/unpanny-valley.bsky.social/"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="font-bold text-su-orange-dark hover:underline"
-              >
-                Panny
-              </a>{' '}
-              and the fine folks at{' '}
-              <a
-                href="https://leyline.press"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="font-bold text-su-orange-dark hover:underline"
-              >
-                Leyline Press
-              </a>{' '}
-              for their support.
-            </p>
-
-            <div class="flex items-center justify-center gap-2">
-              <span class="text-sm">Development ongoing at</span>
-              <a
-                href="https://github.com/alxjrvs/SU-SRD"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="GitHub repository"
-                class="inline-block hover:opacity-80"
-              >
-                <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                  <path
-                    fill-rule="evenodd"
-                    d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
-                    clip-rule="evenodd"
-                  ></path>
-                </svg>
-              </a>
-            </div>
-
-            <p class="text-sm">
-              Feedback? Bug Report? File an issue on{' '}
-              <a
-                href="https://github.com/alxjrvs/SU-SRD/issues"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="font-bold text-su-orange-dark hover:underline"
-              >
-                GitHub
-              </a>{' '}
-              or report in{' '}
-              <a
-                href="https://discord.com/channels/874613501124042793/1442144225469796382"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="font-bold text-su-orange-dark hover:underline"
-              >
-                #salvage-union-io
-              </a>{' '}
-              on the{' '}
-              <a
-                href="https://discord.gg/kMwD2bWgtC"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="font-bold text-su-orange-dark hover:underline"
-              >
-                Salvage Union Discord
-              </a>.
-            </p>
-          </section>
-        </div>
-      </div>
     </div>
   </div>
 
