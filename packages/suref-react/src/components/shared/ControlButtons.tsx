@@ -147,6 +147,10 @@ function ControlButtonWithHover({
 
 export function ControlButtons({ controls, compact = false, className }: ControlButtonsProps) {
   const handleClick = useCallback((e: React.MouseEvent, onClick: () => void) => {
+    // preventDefault so a control nested inside a wrapping navigation <a> (e.g.
+    // the schema list cards) doesn't also trigger that anchor's navigation; a
+    // no-op for the standalone case. stopPropagation keeps it off onCardClick.
+    e.preventDefault()
     e.stopPropagation()
     onClick()
   }, [])

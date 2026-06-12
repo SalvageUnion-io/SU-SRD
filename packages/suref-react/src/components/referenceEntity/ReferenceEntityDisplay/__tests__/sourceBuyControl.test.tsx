@@ -5,9 +5,9 @@ import { ReferenceEntityDisplay } from '../index'
 
 /**
  * Sources carry a `purchaseLink` to the publisher's store. The display surfaces
- * it as a "Buy" header control — but only on the full card. Compact source cards
- * are wrapped in a navigation <a> by the list view, so a nested button there
- * would be invalid markup and would double-activate on click.
+ * it as a "Buy" header control on both the full and compact cards. Clicking it
+ * opens the store and calls preventDefault, so it stays safe inside the schema
+ * list view's wrapping navigation <a> (opens the store without navigating).
  */
 const source = SalvageUnionReference.Sources.find((e) => e.name === 'Salvage Union Workshop Manual')
 const purchaseLink =
@@ -37,8 +37,28 @@ describe('source Buy control', () => {
     }
   })
 
-  test('compact card omits the Buy control', () => {
-    render(<ReferenceEntityDisplay data={source} compact />)
-    expect(screen.queryByRole('button', { name: /Buy/i })).toBeNull()
+  test('compact card also renders the Buy control', () => {
+    const openSpy = spyOn(window, 'open').mockImplementation(() => null)
+    try {
+      render(<ReferenceEntityDisplay data={source} compact />)
+      const buy = screen.getByRole('button', { name: /Buy Salvage Union Workshop Manual/i })
+      fireEvent.click(buy)
+      expect(openSpy).toHaveBeenCalledWith(purchaseLink, '_blank', 'noopener,noreferrer')
+    } finally {
+      openSpy.mockRestore()
+    }
+  })
+
+  test('clicking the Buy control prevents the default action (safe inside a wrapping <a>)', () => {
+    const openSpy = spyOn(window, 'open').mockImplementation(() => null)
+    try {
+      render(<ReferenceEntityDisplay data={source} compact />)
+      const buy = screen.getByRole('button', { name: /Buy Salvage Union Workshop Manual/i })
+      // fireEvent.click returns false when a handler called preventDefault.
+      const notCancelled = fireEvent.click(buy)
+      expect(notCancelled).toBe(false)
+    } finally {
+      openSpy.mockRestore()
+    }
   })
 })

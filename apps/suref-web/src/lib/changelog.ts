@@ -9,7 +9,7 @@ export const CHANGELOG: ChangelogEntry[] = [
     date: '2026-06-12',
     title: 'Buy links on source books',
     items: [
-      "Each source book and expansion now shows a Buy button on its page, linking straight to the publisher's store.",
+      "Each source book and expansion now shows a Buy button — in both the catalog listing and on its page — linking straight to the publisher's store.",
     ],
   },
   {

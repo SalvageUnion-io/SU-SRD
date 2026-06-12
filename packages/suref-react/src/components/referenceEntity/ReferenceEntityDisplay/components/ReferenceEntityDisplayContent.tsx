@@ -397,15 +397,16 @@ export function ReferenceEntityDisplayContent({
     entityHasChoices ||
     shouldShowExtraContent
 
-  // Footer data — sources entities are self-referencing, so hide page/source.
-  // Actions resolve their source/page/booklet from their `actionSource` parent.
+  // Footer data. Sources are self-referencing books: they keep their source
+  // tag in the footer but hide the (placeholder) page number. Actions resolve
+  // their source/page/booklet from their `actionSource` parent.
   const footerEntity = resolveFooterEntity(data)
   const isSources = schemaName === 'sources'
   const footerSource = 'source' in footerEntity ? footerEntity.source : undefined
   const footerPage = 'page' in footerEntity ? footerEntity.page : undefined
   const footerBooklet = getBooklet(footerEntity)
   const hasPage = !isSources && !!footerPage
-  const hasSource = !isSources && !!footerSource
+  const hasSource = !!footerSource
   const footerDisplayName = getDisplayName(schemaName)
   const hasFooter = !hide.footer && (hasPage || hasSource)
 
@@ -510,20 +511,20 @@ export function ReferenceEntityDisplayContent({
   const accent = accentSurface(headerBg, headerBgColor)
 
   // Sources carry a `purchaseLink` to the publisher's store — surface it as a
-  // "Buy" header control opening the store in a new tab. Only on the full card:
-  // compact source cards are wrapped in a navigation <a> by the list view, so a
-  // nested button would be invalid markup and double-activate on click.
+  // "Buy" control in the top-right of the card header (compact + full), opening
+  // the store in a new tab. ControlButtons calls preventDefault on click, so the
+  // button is safe inside the list view's navigation <a> (it opens the store
+  // without also navigating the card).
   const purchaseLink =
     'purchaseLink' in data && typeof data.purchaseLink === 'string' ? data.purchaseLink : undefined
-  const buyControl: ReferenceEntityControl | undefined =
-    purchaseLink && !compact
-      ? {
-          key: 'buy',
-          label: 'Buy',
-          ariaLabel: title ? `Buy ${title}` : 'Buy this source',
-          onClick: () => window.open(purchaseLink, '_blank', 'noopener,noreferrer'),
-        }
-      : undefined
+  const buyControl: ReferenceEntityControl | undefined = purchaseLink
+    ? {
+        key: 'buy',
+        label: 'Buy',
+        ariaLabel: title ? `Buy ${title}` : 'Buy this source',
+        onClick: () => window.open(purchaseLink, '_blank', 'noopener,noreferrer'),
+      }
+    : undefined
   const resolvedControls = buyControl ? [...(controls ?? []), buyControl] : controls
 
   const card = (
