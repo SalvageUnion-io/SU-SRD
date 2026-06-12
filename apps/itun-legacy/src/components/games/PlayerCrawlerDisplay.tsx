@@ -39,7 +39,6 @@ type PlayerCrawlerDisplayProps = {
   readOnly?: boolean
   // Sheet data (only needed when !listing)
   crawlerType?: SURefEntity | null
-  tlStats?: { max_sp: number; upkeep: number; upgrade_cost: number | null }
   populationStr?: string
   weaponRefs?: EntityRefRow[]
   userId?: string
@@ -55,7 +54,6 @@ export function PlayerCrawlerDisplay({
   controls: controlsProp,
   readOnly = false,
   crawlerType: crawlerTypeProp,
-  tlStats,
   populationStr,
   weaponRefs,
   userId,
@@ -131,7 +129,7 @@ export function PlayerCrawlerDisplay({
           : {}),
       },
     ]
-  }, [listing, crawler, editConfig, tlStats])
+  }, [listing, crawler, editConfig])
 
   // --- Tabs (only used in non-listing mode) ---
   const CRAWLER_TAB_COLOR = 'rgb(201, 111, 146)'

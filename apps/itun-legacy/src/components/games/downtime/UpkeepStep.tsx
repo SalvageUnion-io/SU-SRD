@@ -255,7 +255,6 @@ function UpkeepMediatorView({
     crawlerTL,
     totalPayment,
     crawler.id,
-    activeDowntime.id,
     payUpkeepMutation,
     onComplete,
     markUpkeepPaid,

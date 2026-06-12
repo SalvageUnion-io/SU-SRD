@@ -43,7 +43,6 @@ export function HydratedCrawlerDisplay({
       controls={controls}
       readOnly={readOnly}
       crawlerType={sheet.crawlerType}
-      tlStats={sheet.tlStats}
       populationStr={sheet.populationStr}
       weaponRefs={sheet.weaponRefs}
       userId={sheet.userId}

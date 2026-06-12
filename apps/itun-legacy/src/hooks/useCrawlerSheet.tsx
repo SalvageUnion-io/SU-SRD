@@ -29,7 +29,6 @@ import { useActivityFeed } from './useActivityFeed'
 import { isMediator } from '../lib/gameUtils'
 import { getErrorMessage } from '../lib/errors'
 import { changeLogApi } from '../lib/api/changeLogApi'
-import { computeCrawlerStatsFromTechLevel } from '../lib/crawlerUtils'
 import type { CrawlerUpdate, EntityRefRow } from '../types/common'
 
 export type WeaponSlot = { index: number; oldRefId: string | null }
@@ -283,9 +282,6 @@ export function useCrawlerSheet(gameId: string) {
   const crawlerType = crawler
     ? SalvageUnionReference.get('crawlers', crawler.crawler_ref)
     : undefined
-  const tlStats = crawler
-    ? computeCrawlerStatsFromTechLevel(crawler.tech_level, crawler.crawler_ref)
-    : undefined
   const techLevelData = crawler ? findCrawlerTechLevel(crawler.tech_level) : undefined
   const populationStr = techLevelData
     ? techLevelData.populationMax > 0
@@ -315,7 +311,6 @@ export function useCrawlerSheet(gameId: string) {
     crawlerRefs: crawlerRefs ?? [],
     isLoading: gameLoading || crawlerLoading,
     crawlerType,
-    tlStats,
     populationStr,
     weaponRefs,
     userId: user?.id,
