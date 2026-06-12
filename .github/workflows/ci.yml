@@ -126,17 +126,14 @@ jobs:
     # high/critical advisories so a vulnerable dependency blocks merge; lower
     # severities are reported by `bun audit` locally but do not gate CI.
     #
-    # Most high/critical advisories were remediated by forcing patched
-    # transitive versions in the root package.json `overrides` block. The six
-    # GHSA IDs ignored below are the irreducible remainder: minimatch,
-    # picomatch, and fast-uri appear at MULTIPLE incompatible majors across the
-    # dev/build toolchain (eslint, vite/astro, *-plugin-pwa), so no single
-    # global override can patch them without breaking a consumer. They are all
-    # dev/build-time (not shipped runtime) ReDoS / host-confusion issues.
-    # Re-audit and prune this list whenever deps are bumped:
-    #   - minimatch: GHSA-23c5-xmqv-rm74, GHSA-3ppc-4f35-3m26, GHSA-7r86-cg39-jmmj
-    #   - picomatch: GHSA-c2c7-rcm5-vvqj
-    #   - fast-uri:  GHSA-q3j6-qgpj-74h6, GHSA-v39h-62p7-jpjc
+    # The lockfile resolves every high/critical advisory to a patched version
+    # on its own — NO package.json `overrides` are required. The one ignored
+    # advisory is esbuild GHSA-gv7w-rqvm-qjhr: vite (^0.27) and astro (^0.27.3)
+    # both pin esbuild below the patched 0.28.1, so it is unreachable without
+    # forcing an out-of-range version or a major vite/astro bump. It is a Deno
+    # install-time RCE (NPM_CONFIG_REGISTRY) that does not apply to our bun/npm
+    # CI or shipped runtime. Drop this --ignore once vite/astro ship esbuild
+    # >=0.28.1.
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -146,14 +143,7 @@ jobs:
         uses: ./.github/actions/setup-bun
 
       - name: Audit dependencies
-        run: |
-          bun audit --audit-level=high \
-            --ignore GHSA-23c5-xmqv-rm74 \
-            --ignore GHSA-3ppc-4f35-3m26 \
-            --ignore GHSA-7r86-cg39-jmmj \
-            --ignore GHSA-c2c7-rcm5-vvqj \
-            --ignore GHSA-q3j6-qgpj-74h6 \
-            --ignore GHSA-v39h-62p7-jpjc
+        run: bun audit --audit-level=high --ignore GHSA-gv7w-rqvm-qjhr
 
   build-suref-web:
     needs: [lint, typecheck, test, validate, knip, audit]
