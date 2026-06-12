@@ -6,6 +6,13 @@ type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    date: '2026-06-12',
+    title: 'Buy links on source books',
+    items: [
+      "Each source book and expansion now shows a Buy button — in both the catalog listing and on its page — linking straight to the publisher's store.",
+    ],
+  },
+  {
     date: '2026-06-11',
     title: 'Vehicles read as actions, not installable systems',
     items: [
