@@ -509,6 +509,23 @@ export function ReferenceEntityDisplayContent({
   // Shared accent-surface fallback (bg class + optional dynamic backgroundColor).
   const accent = accentSurface(headerBg, headerBgColor)
 
+  // Sources carry a `purchaseLink` to the publisher's store — surface it as a
+  // "Buy" header control opening the store in a new tab. Only on the full card:
+  // compact source cards are wrapped in a navigation <a> by the list view, so a
+  // nested button would be invalid markup and double-activate on click.
+  const purchaseLink =
+    'purchaseLink' in data && typeof data.purchaseLink === 'string' ? data.purchaseLink : undefined
+  const buyControl: ReferenceEntityControl | undefined =
+    purchaseLink && !compact
+      ? {
+          key: 'buy',
+          label: 'Buy',
+          ariaLabel: title ? `Buy ${title}` : 'Buy this source',
+          onClick: () => window.open(purchaseLink, '_blank', 'noopener,noreferrer'),
+        }
+      : undefined
+  const resolvedControls = buyControl ? [...(controls ?? []), buyControl] : controls
+
   const card = (
     <DisplayCard
       headerBg={headerBg}
@@ -529,7 +546,7 @@ export function ReferenceEntityDisplayContent({
       headerTestId="frame-header-container"
       borderColor={sourceBorderColor}
       disabled={disabled}
-      controls={controls}
+      controls={resolvedControls}
       stats={resolvedStats}
       onCardClick={onCardClick}
       cardClickable={cardClickable}
