@@ -1,5 +1,0 @@
-dist/
-.netlify/
-node_modules/
-src/types/database-generated.types.ts
-src/routeTree.gen.ts

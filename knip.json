@@ -36,11 +36,6 @@
       ],
       "project": ["src/**/*.{ts,tsx}", "netlify/**/*.ts"]
     },
-    "apps/itun-legacy": {
-      "entry": [],
-      "project": [],
-      "ignore": ["**/*"]
-    },
     "apps/discord-bot": {
       "project": ["src/**/*.ts"]
     }
