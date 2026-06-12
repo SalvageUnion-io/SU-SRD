@@ -51,10 +51,18 @@ let dbPromise: Promise<IDBPDatabase> | null = null
  * migrations. Exported (with a name parameter) so the migration test suite
  * can exercise the full upgrade path against a dedicated throwaway database
  * without touching the app database other test files share.
+ *
+ * `runMigrationsFn` is a test-only seam: production callers omit it and get
+ * the registered migrations. The migration suite injects a throwing runner to
+ * verify that a failed migration aborts the upgrade and rejects the open
+ * (rather than being swallowed) — see migrations.test.ts.
  */
-export function openItunDatabase(name: string = DB_NAME): Promise<IDBPDatabase> {
+export function openItunDatabase(
+  name: string = DB_NAME,
+  runMigrationsFn: typeof runMigrations = runMigrations
+): Promise<IDBPDatabase> {
   return openDB(name, DB_VERSION, {
-    upgrade(db, oldVersion, _newVersion, transaction) {
+    async upgrade(db, oldVersion, _newVersion, transaction) {
       // v1: create all core object stores with keyPath = 'id'
       if (oldVersion < 1) {
         for (const storeName of [
@@ -79,12 +87,29 @@ export function openItunDatabase(name: string = DB_NAME): Promise<IDBPDatabase> 
       // v3+: record rewrites live in migrations/ — one file per version.
       // runMigrations only awaits IDB operations on `transaction`, so the
       // versionchange transaction stays open until every rewrite lands.
-      // On failure the transaction is aborted so the version bump never
-      // commits over half-migrated data.
-      void runMigrations(db, transaction, oldVersion).catch((err: unknown) => {
+      // On failure we abort the transaction: that rolls back the version bump
+      // AND surfaces as an error on the open request, so openItunDatabase()
+      // rejects rather than handing back a half-migrated database. We do NOT
+      // rethrow — idb does not await the upgrade callback's promise, so a
+      // rejected upgrade would become an unhandled rejection; abort() alone
+      // already fails the open with the failure logged below.
+      try {
+        await runMigrationsFn(db, transaction, oldVersion)
+      } catch (err) {
         console.error('[itun-db] Migration failed — aborting upgrade transaction.', err)
-        transaction.abort()
-      })
+        // Guard against a transaction that already settled (e.g. auto-committed
+        // if a migration ever awaited a non-IDB promise) so abort() throwing
+        // cannot itself become an unhandled rejection.
+        try {
+          // idb eagerly wires `transaction.done`; aborting rejects it. Nothing
+          // on the upgrade path awaits .done, so mark that rejection handled to
+          // keep it from surfacing as an unhandled rejection.
+          void transaction.done.catch(() => {})
+          transaction.abort()
+        } catch {
+          // already aborted/committed — nothing more to do
+        }
+      }
     },
   })
 }
@@ -118,6 +143,41 @@ export async function _clearAllStores(): Promise<void> {
   const tx = db.transaction(Object.values(STORE_NAMES), 'readwrite')
   await Promise.all(Object.values(STORE_NAMES).map((name) => tx.objectStore(name).clear()))
   await tx.done
+}
+
+/**
+ * Atomically deletes an entity and every SoftLink that references it (by
+ * `from.id` or `to.id`) in a single readwrite transaction spanning the entity
+ * store and the softLinks store. Either the entity and all its links are
+ * removed together, or — on any error — the transaction aborts and nothing
+ * changes (no orphaned links, no half-applied delete). Returns the ids of the
+ * pruned SoftLinks so the caller can update in-memory state to match.
+ *
+ * `entityStoreName` must be a pilot/mech/crawler store — the only entities
+ * SoftLinks point at.
+ */
+export async function deleteEntityWithSoftLinks(
+  entityStoreName: string,
+  id: string
+): Promise<string[]> {
+  const db = await getDb()
+  const tx = db.transaction([entityStoreName, STORE_NAMES.softLinks], 'readwrite')
+  const linkStore = tx.objectStore(STORE_NAMES.softLinks)
+  const allLinks = (await linkStore.getAll()) as Array<{
+    id: string
+    from: { id: string }
+    to: { id: string }
+  }>
+  const prunedIds: string[] = []
+  for (const link of allLinks) {
+    if (link.from.id === id || link.to.id === id) {
+      await linkStore.delete(link.id)
+      prunedIds.push(link.id)
+    }
+  }
+  await tx.objectStore(entityStoreName).delete(id)
+  await tx.done
+  return prunedIds
 }
 
 // Per-entity store accessors

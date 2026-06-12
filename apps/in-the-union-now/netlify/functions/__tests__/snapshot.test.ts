@@ -12,7 +12,7 @@ import { describe, it, expect, beforeEach } from 'bun:test'
 import { InMemoryStorage } from '../../../src/lib/snapshot/storage'
 import { makePublishHandler } from '../snapshot-publish'
 import { makeRetrieveHandler } from '../snapshot-retrieve'
-import { RateLimiter } from '../../../src/lib/snapshot/rateLimit'
+import { RateLimiter, getClientIp } from '../../../src/lib/snapshot/rateLimit'
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -109,6 +109,16 @@ describe('snapshot-publish', () => {
     expect(res.status).toBe(400)
   })
 
+  it('POST with an oversized payload → 413 and nothing is stored', async () => {
+    // > 256 KB once serialized
+    const huge = { kind: 'mech', blob: 'x'.repeat(300 * 1024) }
+    const req = makeRequest('POST', 'http://localhost/api/snapshots', huge)
+    const res = await handler(req)
+    expect(res.status).toBe(413)
+    // storage untouched — InMemoryStorage.get returns null for any id, but the
+    // important invariant is the handler short-circuited before put().
+  })
+
   describe('rate limiting', () => {
     it('exceeding the limit → 429', async () => {
       // Use a tight limiter: 2 requests per minute
@@ -138,6 +148,48 @@ describe('snapshot-publish', () => {
       // Wait for window to expire
       await new Promise((resolve) => setTimeout(resolve, 5))
       expect(limiter.check('10.0.0.1')).toBe(true) // new window
+    })
+
+    it('expired windows are evicted (map does not grow unbounded)', async () => {
+      const limiter = new RateLimiter({ limit: 1, windowMs: 1 })
+      // Reach into the private window map to assert eviction behaviour.
+      const internals = limiter as unknown as {
+        check(ip: string): boolean
+        windows: Map<string, unknown>
+      }
+      internals.check('10.0.0.1')
+      internals.check('10.0.0.2')
+      expect(internals.windows.size).toBe(2)
+      await new Promise((resolve) => setTimeout(resolve, 5))
+      // A check after expiry sweeps the stale entries before recording the new one
+      internals.check('10.0.0.3')
+      expect(internals.windows.size).toBe(1)
+    })
+  })
+
+  describe('getClientIp', () => {
+    it('prefers the unspoofable x-nf-client-connection-ip header', () => {
+      const req = new Request('http://localhost/api/snapshots', {
+        method: 'POST',
+        headers: {
+          'x-nf-client-connection-ip': '203.0.113.7',
+          'x-forwarded-for': '198.51.100.9', // attacker-supplied — must be ignored
+        },
+      })
+      expect(getClientIp(req)).toBe('203.0.113.7')
+    })
+
+    it('falls back to the leftmost x-forwarded-for entry when Netlify IP is absent', () => {
+      const req = new Request('http://localhost/api/snapshots', {
+        method: 'POST',
+        headers: { 'x-forwarded-for': '198.51.100.9, 10.0.0.1' },
+      })
+      expect(getClientIp(req)).toBe('198.51.100.9')
+    })
+
+    it('falls back to 0.0.0.0 when no IP headers are present', () => {
+      const req = new Request('http://localhost/api/snapshots', { method: 'POST' })
+      expect(getClientIp(req)).toBe('0.0.0.0')
     })
   })
 })

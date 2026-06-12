@@ -54,6 +54,7 @@ MADR-style records of architecturally significant decisions. Read the matching A
 | [ADR-007](adrs/ADR-007-sequential-mutations-for-action-execution.md) | Sequential mutations for action execution                               |
 | [ADR-008](adrs/ADR-008-automation-boundary.md)                       | **Automation boundary** — consult before building rules-driven features |
 | [ADR-009](adrs/ADR-009-encounter-route-data-model.md)                | Encounter route data model                                              |
+| [ADR-010](adrs/ADR-010-snapshot-backend.md)                          | Snapshot backend — Netlify Functions + Blobs                            |
 
 ### [`audit/`](audit/) — Audit findings + backlog
 

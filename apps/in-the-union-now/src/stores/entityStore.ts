@@ -262,18 +262,23 @@ export const useEntityStore = create<EntityState>((set, get) => ({
     const key = storeKeyFor(type)
 
     // Cascade: deleting an entity prunes its SoftLinks (plan 2.7, gap 9).
+    // The entity delete and its link pruning run in a single IDB transaction
+    // (deleteEntityWithSoftLinks) so a crash/error can never leave orphaned
+    // links or a half-applied delete — it is all-or-nothing on disk.
     if (type !== 'softLink') {
-      const attached = (await db.softLinks.list()).filter((l) => l.from.id === id || l.to.id === id)
-      for (const link of attached) {
-        await db.softLinks.delete(link.id)
-      }
-      if (attached.length > 0) {
-        const prunedIds = new Set(attached.map((l) => l.id))
+      const prunedIds = await db.deleteEntityWithSoftLinks(broadcastNameFor(type), id)
+      if (prunedIds.length > 0) {
+        const pruned = new Set(prunedIds)
         set((state) => ({
-          softLinks: state.softLinks.filter((l) => !prunedIds.has(l.id)),
+          softLinks: state.softLinks.filter((l) => !pruned.has(l.id)),
         }))
         publishStoreChange(STORE_NAMES.softLinks)
       }
+      set((state) => ({
+        [key]: (state[key] as { id: string }[]).filter((e) => e.id !== id),
+      }))
+      afterWrite(type)
+      return
     }
 
     await dbStoreFor(type).delete(id)

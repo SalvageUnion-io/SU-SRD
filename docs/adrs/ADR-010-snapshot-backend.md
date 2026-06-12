@@ -20,11 +20,11 @@ Wave 5 of the ITUN revamp (M2) introduces anonymous snapshot publishing: a user 
 
 Three candidate backends were considered:
 
-| Candidate | Notes |
-|-----------|-------|
-| Netlify Functions + Blobs | Same Netlify account as suref-web; no separate infra; Blobs are pay-as-you-go; Functions are included on all Netlify plans. |
-| Cloudflare Workers + KV | Excellent globally distributed latency, but requires a separate Cloudflare account + wiring that the project does not currently have. |
-| Supabase Storage | Already provisioned for ITUN auth, but Storage is designed for user-owned files, not anonymous blobs; RLS would be awkward; no natural URL routing. |
+| Candidate                 | Notes                                                                                                                                               |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Netlify Functions + Blobs | Same Netlify account as suref-web; no separate infra; Blobs are pay-as-you-go; Functions are included on all Netlify plans.                         |
+| Cloudflare Workers + KV   | Excellent globally distributed latency, but requires a separate Cloudflare account + wiring that the project does not currently have.               |
+| Supabase Storage          | Already provisioned for ITUN auth, but Storage is designed for user-owned files, not anonymous blobs; RLS would be awkward; no natural URL routing. |
 
 ---
 
@@ -44,9 +44,16 @@ Justifications:
 ## Rate Limiting
 
 - **Limit:** 10 POST requests per minute per originating IP.
-- **Enforcement:** In-memory per-Lambda-instance map (`Map<string, { count: number; windowStart: number }>`).
-- **Production caveat:** Netlify spins up multiple Lambda instances; the in-memory store is per-instance, not globally shared. For v1 this is acceptable — a single IP can exceed 10 rps by hitting different instances, but the attack surface for anonymous blob flooding is low. A shared counter via Netlify Blobs is documented as the upgrade path (see *Consequences* below).
+- **Enforcement:** In-memory per-Lambda-instance map (`Map<string, { count: number; windowStart: number }>`). Expired windows are swept on each check so the map cannot grow unbounded as distinct IPs accumulate on a warm instance.
+- **Client IP source:** `x-nf-client-connection-ip` (set by Netlify's edge from the real TCP peer, not client-forgeable). The handler only falls back to the leftmost `x-forwarded-for` entry when that header is absent (e.g. `netlify dev`). Trusting `X-Forwarded-For` alone would let a caller rotate the header to dodge the limit entirely.
+- **Production caveat:** Netlify spins up multiple Lambda instances; the in-memory store is per-instance, not globally shared. For v1 this is acceptable — a single IP can exceed 10 rps by hitting different instances, but the attack surface for anonymous blob flooding is bounded by the payload size cap below. A shared counter via Netlify Blobs is documented as the upgrade path (see _Consequences_ below).
 - **Response on limit exceeded:** `429 Too Many Requests`.
+
+### Payload size cap
+
+- **Limit:** 256 KB per POST (measured in UTF-8 bytes). A snapshot is a single pilot/mech/crawler with its resolved choices, so this is generous headroom.
+- **Enforcement:** A declared `Content-Length` over the cap is rejected before the body is read; the actual byte length is then re-checked after reading (chunked transfer may omit/understate `Content-Length`).
+- **Response on exceeded:** `413 Payload Too Large`. This bounds the storage/cost amplification an unauthenticated caller can cause even if the per-instance limiter is partially bypassed.
 
 ---
 
@@ -56,6 +63,7 @@ Justifications:
 - **Entropy:** ~40 bits. At 10 million snapshots (a conservative upper bound for v1), collision probability remains below 1 %.
 - **Collision handling:** On insert, check if the key already exists in the blob store. If so, retry with a fresh random ID (up to 5 attempts before returning 500).
 - **URL shape:** `GET /api/snapshots/:id` (mapped via `netlify.toml` redirect `[[redirects]]`).
+- **Security model — capability URL, not a secret:** Retrieval is unauthenticated and IDs are not rate-limited, so an 8-character (~40-bit) ID is a _capability token_, not a confidentiality boundary. At scale the keyspace is enumerable (e.g. ~1M stored snapshots ⇒ roughly 1-in-1000 hit per random guess). This is acceptable **only because snapshot contents are non-sensitive, user-published, immutable character sheets** — anyone with the link can already read them by design. Do **not** store private or PII-bearing data behind a snapshot ID. If snapshots ever carry sensitive data, raise the ID length (entropy) and/or add an unguessable auth token before relying on the URL for access control.
 
 ---
 
@@ -89,7 +97,11 @@ A thin `SnapshotStorage` interface (`apps/in-the-union-now/src/lib/snapshot/stor
 ```ts
 type SnapshotStorage = {
   get(id: string): Promise<unknown | null>
-  put(id: string, payload: unknown, options?: { onlyIfNew?: boolean }): Promise<{ modified: boolean }>
+  put(
+    id: string,
+    payload: unknown,
+    options?: { onlyIfNew?: boolean }
+  ): Promise<{ modified: boolean }>
 }
 ```
 
@@ -114,8 +126,8 @@ type SnapshotStorage = {
 
 ### Rejected Alternatives
 
-| Alternative | Reason rejected |
-|-------------|-----------------|
-| Cloudflare Workers + KV | Requires separate Cloudflare account not currently in the project. |
-| Supabase Storage | RLS complexity; designed for user-scoped files, not anonymous blobs. |
-| Supabase table (jsonb) | Adds DB row per snapshot; overkill; rate-limit query complexity. |
+| Alternative             | Reason rejected                                                      |
+| ----------------------- | -------------------------------------------------------------------- |
+| Cloudflare Workers + KV | Requires separate Cloudflare account not currently in the project.   |
+| Supabase Storage        | RLS complexity; designed for user-scoped files, not anonymous blobs. |
+| Supabase table (jsonb)  | Adds DB row per snapshot; overkill; rate-limit query complexity.     |

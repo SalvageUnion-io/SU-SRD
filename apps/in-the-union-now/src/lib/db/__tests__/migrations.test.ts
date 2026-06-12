@@ -170,6 +170,53 @@ describe('v2 → current migrations (v3 cargo → cargoLots, v4 rollResults remo
     }
   })
 
+  test('a migration that throws aborts the upgrade and rejects openItunDatabase', async () => {
+    // Silence the intentional console.error the failure path emits.
+    const originalError = console.error
+    console.error = () => {}
+    try {
+      await expect(
+        openItunDatabase(TEST_DB_NAME, async () => {
+          throw new Error('boom — simulated migration failure')
+        })
+      ).rejects.toThrow()
+    } finally {
+      console.error = originalError
+    }
+  })
+
+  test('a failed migration does not commit the version bump — a clean reopen still migrates', async () => {
+    // Seed a v2-shaped database (version 2, legacy cargo on disk).
+    await seedV2Database([{ store: STORE_NAMES.mechs, value: v2Mech }])
+
+    // First open at DB_VERSION with a throwing migration: the versionchange
+    // transaction aborts, so the bump to DB_VERSION must NOT commit.
+    const originalError = console.error
+    console.error = () => {}
+    try {
+      await expect(
+        openItunDatabase(TEST_DB_NAME, async () => {
+          throw new Error('boom')
+        })
+      ).rejects.toThrow()
+    } finally {
+      console.error = originalError
+    }
+
+    // A second, clean open (real migrations) must succeed from the still-v2
+    // database and rewrite cargo → cargoLots. If the failed attempt had
+    // half-committed the version bump, this record would never be migrated.
+    const db = await openItunDatabase(TEST_DB_NAME)
+    try {
+      expect(db.version).toBe(DB_VERSION)
+      const mech = MechSchema.parse(await db.get(STORE_NAMES.mechs, 'mech-v2-1'))
+      expect(mech.cargoLots.map((l) => l.name)).toEqual(['Salvaged plating', 'ration-pack'])
+      expect('cargo' in (mech as unknown as Record<string, unknown>)).toBe(false)
+    } finally {
+      db.close()
+    }
+  })
+
   test('records already shaped as cargoLots are not double-converted', async () => {
     const lots = [
       {

@@ -35,6 +35,7 @@ export class RateLimiter {
    */
   check(ip: string): boolean {
     const now = Date.now()
+    this.evictExpired(now)
     const state = this.windows.get(ip)
 
     if (!state || now - state.windowStart >= this.windowMs) {
@@ -49,19 +50,44 @@ export class RateLimiter {
     state.count++
     return true
   }
+
+  /**
+   * Drops windows that have fully expired so the Map cannot grow without
+   * bound as distinct IPs accumulate over the lifetime of a warm instance.
+   * Cheap O(n) sweep; n is bounded by the number of IPs seen within one
+   * window, which for a rate-limited endpoint stays small.
+   */
+  private evictExpired(now: number): void {
+    for (const [ip, state] of this.windows) {
+      if (now - state.windowStart >= this.windowMs) {
+        this.windows.delete(ip)
+      }
+    }
+  }
 }
 
 /**
  * Extracts the client IP from a Request object.
- * Prefers the X-Forwarded-For header (set by Netlify's proxy).
- * Falls back to '0.0.0.0' if no IP can be determined.
+ *
+ * Prefers `x-nf-client-connection-ip`, which Netlify's edge sets from the
+ * real TCP peer and a client cannot forge. Only falls back to the leftmost
+ * `x-forwarded-for` entry when that header is absent (e.g. `netlify dev`),
+ * and finally to '0.0.0.0'. Trusting X-Forwarded-For alone would let a
+ * caller rotate the header to dodge the limit entirely.
  */
 export function getClientIp(req: Request): string {
+  const netlifyIp = req.headers.get('x-nf-client-connection-ip')
+  if (netlifyIp && netlifyIp.trim() !== '') {
+    return netlifyIp.trim()
+  }
+
   const forwarded = req.headers.get('x-forwarded-for')
   if (forwarded) {
     // X-Forwarded-For may contain a comma-separated list; take the first
     const first = forwarded.split(',')[0]
-    return first !== undefined ? first.trim() : '0.0.0.0'
+    if (first !== undefined && first.trim() !== '') {
+      return first.trim()
+    }
   }
   return '0.0.0.0'
 }
