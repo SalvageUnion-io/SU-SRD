@@ -4,7 +4,7 @@ services:
     runtime: node
     region: oregon
     plan: starter
-    buildCommand: 'bun install --ignore-scripts && bun run build:bot'
+    buildCommand: 'bun install --ignore-scripts && bun run build:package && bun run build:bot'
     startCommand: 'node apps/discord-bot/dist/index.js'
     envVars:
       - key: DISCORD_TOKEN
