@@ -39,8 +39,9 @@ The apps deploy to two platforms, each with an official MCP server wired up in t
 
 - **Netlify** — hosts `apps/suref-web` (static) and `apps/in-the-union-now` (static SPA + the snapshot backend Netlify Functions + Blobs; see `apps/*/netlify.toml` and [ADR-010](docs/adrs/ADR-010-snapshot-backend.md)). MCP server: official `@netlify/mcp` (stdio); authenticates via the Netlify CLI/OAuth — no token in the file.
 - **Render** — hosts `apps/discord-bot` as a worker (see `render.yaml`). MCP server: official hosted server at `https://mcp.render.com/mcp`; reads `RENDER_API_KEY` from your shell env.
+- **GitHub** — repo host + Actions CI + PR workflow. MCP server: official remote `https://api.githubcopilot.com/mcp/`; reads `GITHUB_PAT` from your shell env.
 
-`.mcp.json` is **secret-free by design** — never put tokens in it; auth is via env vars (`RENDER_API_KEY`) or OAuth. Set the env var before launching Claude Code if you want the Render server to connect (e.g. `export RENDER_API_KEY=...`).
+`.mcp.json` is **secret-free by design** — never put tokens in it; auth is via env vars (`RENDER_API_KEY`, `GITHUB_PAT`) or OAuth. Set the env vars before launching Claude Code if you want those servers to connect (e.g. `export RENDER_API_KEY=...`).
 
 ## SU-SRD Monorepo
 
