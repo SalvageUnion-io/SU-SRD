@@ -1,4 +1,5 @@
 import { Client, GatewayIntentBits, Events } from 'discord.js'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import { config } from './config.js'
 import { commands } from './commands/index.js'
 import { handleReady } from './events/ready.js'
@@ -34,4 +35,8 @@ process.on('uncaughtException', (error) => {
 
 // Login
 console.log('Starting Salvage Union Discord Bot...')
-client.login(config.discordToken)
+
+// Load reference data before handling any interactions (models throw until preloaded).
+await SalvageUnionReference.preload('all')
+
+await client.login(config.discordToken)

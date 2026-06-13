@@ -12,9 +12,15 @@ import {
   isColumnsTable,
 } from 'salvageunion-reference'
 
-// Get all roll table names for autocomplete
-const rollTables = SalvageUnionReference.RollTables.all()
-const rollTableNames = rollTables.map((t) => t.name)
+// Roll tables load lazily once SalvageUnionReference.preload() has run at startup.
+// Accessing them at module load would throw before preload completes, so defer to first use.
+let cachedRollTables: ReturnType<typeof SalvageUnionReference.RollTables.all> | null = null
+function getRollTables(): ReturnType<typeof SalvageUnionReference.RollTables.all> {
+  if (cachedRollTables === null) {
+    cachedRollTables = SalvageUnionReference.RollTables.all()
+  }
+  return cachedRollTables
+}
 
 /**
  * Get embed color based on roll result (d20)
@@ -49,7 +55,8 @@ export const rollCommand = {
   async autocomplete(interaction: AutocompleteInteraction): Promise<void> {
     const focusedValue = interaction.options.getFocused().toLowerCase()
 
-    const filtered = rollTableNames
+    const filtered = getRollTables()
+      .map((t) => t.name)
       .filter((name) => name.toLowerCase().includes(focusedValue))
       .slice(0, 25) // Discord limits to 25 choices
 
@@ -60,7 +67,7 @@ export const rollCommand = {
     const tableName = interaction.options.getString('table') ?? 'Core Mechanic'
 
     // Find the table
-    const table = rollTables.find((t) => t.name.toLowerCase() === tableName.toLowerCase())
+    const table = getRollTables().find((t) => t.name.toLowerCase() === tableName.toLowerCase())
 
     if (!table) {
       await interaction.reply({
