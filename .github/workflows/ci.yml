@@ -6,8 +6,64 @@ on:
   pull_request:
     branches: ['main']
 
+permissions:
+  contents: read
+  pull-requests: read
+  statuses: read
+
 jobs:
+  # ---------------------------------------------------------------------------
+  # Path filter — decide which areas a change touches so we can skip heavy jobs
+  # for unrelated PRs. The dependency graph is baked into each filter:
+  #   salvageunion-reference + root config → affect EVERYTHING
+  #   suref-react                          → affects suref-web + in-the-union-now
+  # so an `itun`/`web` change is "itun/web OR suref-react OR reference OR root".
+  # `code` = any source/config change (false only for docs-only PRs).
+  # ---------------------------------------------------------------------------
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      itun: ${{ steps.filter.outputs.itun }}
+      web: ${{ steps.filter.outputs.web }}
+      bot: ${{ steps.filter.outputs.bot }}
+      code: ${{ steps.filter.outputs.code }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            shared: &shared
+              - 'packages/salvageunion-reference/**'
+              - 'package.json'
+              - 'bun.lock'
+              - 'knip.json'
+              - 'tsconfig*.json'
+              - '.bun-version'
+              - 'eslint.config.*'
+              - 'lefthook.yml'
+              - '.github/workflows/**'
+              - '.github/actions/**'
+            itun:
+              - *shared
+              - 'apps/in-the-union-now/**'
+              - 'packages/suref-react/**'
+            web:
+              - *shared
+              - 'apps/suref-web/**'
+              - 'packages/suref-react/**'
+            bot:
+              - *shared
+              - 'apps/discord-bot/**'
+            code:
+              - *shared
+              - 'apps/**'
+              - 'packages/**'
+
   lint:
+    # Always runs — format:check covers docs (markdown/yaml) too.
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -23,6 +79,8 @@ jobs:
         run: bun run format:check
 
   build-package:
+    needs: [changes]
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -53,7 +111,8 @@ jobs:
           retention-days: 1
 
   knip:
-    needs: [build-package]
+    needs: [changes, build-package]
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -72,7 +131,8 @@ jobs:
         run: bun run knip
 
   typecheck:
-    needs: [build-package]
+    needs: [changes, build-package]
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -91,7 +151,8 @@ jobs:
         run: bun run typecheck
 
   test:
-    needs: [build-package]
+    needs: [changes, build-package]
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -110,6 +171,8 @@ jobs:
         run: bun run test
 
   validate:
+    needs: [changes]
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -134,6 +197,8 @@ jobs:
     # install-time RCE (NPM_CONFIG_REGISTRY) that does not apply to our bun/npm
     # CI or shipped runtime. Drop this --ignore once vite/astro ship esbuild
     # >=0.28.1.
+    needs: [changes]
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -146,7 +211,8 @@ jobs:
         run: bun audit --audit-level=high --ignore GHSA-gv7w-rqvm-qjhr
 
   build-suref-web:
-    needs: [lint, typecheck, test, validate, knip, audit]
+    needs: [changes, build-package, lint, typecheck, test, validate, knip, audit]
+    if: needs.changes.outputs.web == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -165,7 +231,8 @@ jobs:
         run: bun --filter suref-web build
 
   build-itun:
-    needs: [lint, typecheck, test, validate, knip, audit]
+    needs: [changes, build-package, lint, typecheck, test, validate, knip, audit]
+    if: needs.changes.outputs.itun == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -184,7 +251,8 @@ jobs:
         run: bun --filter in-the-union-now build
 
   build-discord-bot:
-    needs: [lint, typecheck, test, validate, knip, audit]
+    needs: [changes, build-package, lint, typecheck, test, validate, knip, audit]
+    if: needs.changes.outputs.bot == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -202,23 +270,68 @@ jobs:
       - name: Build discord-bot
         run: bun --filter @suref/discord-bot build
 
-  e2e-itun:
-    # End-to-end Playwright suite against ITUN — runs the full e2e/ suite
-    # against a production-built preview server (vite build + vite preview)
-    # in a real Chromium session. The data-hydration race that previously
-    # plagued the flow specs is fixed by a root-level `GameDataReady`
-    # Suspense barrier that preloads salvageunion-reference and sets a
-    # `body[data-game-data-ready]` marker the test helper waits on.
-    #
-    # Fail-fast: gate this 30-min job behind the cheap checks (lint, typecheck,
-    # test, validate, knip, audit) and the package build so a PR that already
-    # broke one of those never burns an e2e runner. build-package is included
-    # both for the dist artifact and so the schema-freshness check gates e2e too.
-    needs: [build-package, lint, typecheck, test, validate, knip, audit]
+  e2e-itun-preview:
+    # On PRs, run the FULL Playwright suite against the live Netlify Deploy
+    # Preview (https://deploy-preview-<PR#>--in-the-union-now.netlify.app),
+    # which serves the real Netlify Functions + Blobs — so the snapshot
+    # publish→retrieve round-trip is exercised end to end (no soft-skip).
+    # No app build needed here: the specs hit the deployed URL directly.
+    needs: [changes, lint, typecheck, test]
+    if: github.event_name == 'pull_request' && needs.changes.outputs.itun == 'true'
     runs-on: ubuntu-latest
-    # Serial Playwright suite (workers:1) over ~32 specs against a freshly-built
-    # preview server runs ~12 min on a GHA runner; the prior 20 min cap killed
-    # the run mid-suite. 30 min leaves headroom for the build + occasional retry.
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Bun
+        uses: ./.github/actions/setup-bun
+
+      - name: Wait for Netlify deploy preview
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          echo "Waiting for the deploy/netlify status on $SHA…"
+          for i in $(seq 1 60); do
+            STATE=$(gh api "repos/${{ github.repository }}/commits/$SHA/status" \
+              --jq '[.statuses[] | select(.context=="deploy/netlify")][0].state // "pending"')
+            echo "  [$i/60] deploy/netlify=$STATE"
+            case "$STATE" in
+              success) exit 0 ;;
+              failure | error) echo "::error::Netlify deploy preview failed"; exit 1 ;;
+            esac
+            sleep 15
+          done
+          echo "::error::Timed out waiting for the Netlify deploy preview"; exit 1
+
+      - name: Install Playwright browsers (Chromium)
+        working-directory: apps/in-the-union-now
+        run: bunx playwright install --with-deps chromium
+
+      - name: Run E2E against the deploy preview
+        working-directory: apps/in-the-union-now
+        env:
+          E2E_BASE_URL: https://deploy-preview-${{ github.event.number }}--in-the-union-now.netlify.app
+        run: bunx playwright test
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-preview
+          path: apps/in-the-union-now/playwright-report/
+          retention-days: 7
+
+  e2e-itun:
+    # On pushes to main there is no deploy preview (main gets a production
+    # deploy), so fall back to a self-contained run: build a static bundle and
+    # serve it with `vite preview`. The snapshot publish step soft-skips here
+    # (no Functions backend) — that path is covered by the PR preview run above
+    # plus the snapshot unit tests.
+    needs: [changes, build-package, lint, typecheck, test, knip, validate, audit]
+    if: github.event_name == 'push' && needs.changes.outputs.itun == 'true'
+    runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - name: Checkout
@@ -248,3 +361,39 @@ jobs:
           name: playwright-report
           path: apps/in-the-union-now/playwright-report/
           retention-days: 7
+
+  # ---------------------------------------------------------------------------
+  # Single aggregate gate. Always runs; fails if any job actually failed (a
+  # path-filtered "skipped" job is fine). Branch protection should require just
+  # this one check (`quality-checks`) so the per-area gating above never leaves
+  # a required check stuck pending.
+  # ---------------------------------------------------------------------------
+  quality-checks:
+    if: always()
+    needs:
+      - changes
+      - lint
+      - build-package
+      - knip
+      - typecheck
+      - test
+      - validate
+      - audit
+      - build-suref-web
+      - build-itun
+      - build-discord-bot
+      - e2e-itun-preview
+      - e2e-itun
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify no job failed
+        run: |
+          results="${{ join(needs.*.result, ' ') }}"
+          echo "job results: $results"
+          for r in $results; do
+            if [ "$r" = "failure" ] || [ "$r" = "cancelled" ]; then
+              echo "::error::A CI job did not pass (results: $results)"
+              exit 1
+            fi
+          done
+          echo "All CI jobs passed or were skipped."

@@ -16,6 +16,12 @@ import { defineConfig, devices } from '@playwright/test'
  * or `--project=webkit` against the same suite when investigating cross-
  * engine regressions (covers REQ-NF-15: evergreen browsers only).
  */
+// When E2E_BASE_URL is set (e.g. a Netlify Deploy Preview), run the suite
+// against that live URL — which serves the real Netlify Functions + Blobs, so
+// the snapshot publish→retrieve round-trip is exercised for real. In that mode
+// Playwright must NOT boot a local server. Unset → local dev/preview as before.
+const externalBaseURL = process.env.E2E_BASE_URL
+
 export default defineConfig({
   testDir: './e2e',
   // Spec files use the `.e2e.ts` extension (instead of the default
@@ -35,7 +41,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',
   use: {
-    baseURL: 'http://localhost:5173',
+    baseURL: externalBaseURL ?? 'http://localhost:5173',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
@@ -51,19 +57,23 @@ export default defineConfig({
   // first request and that cost lands inside per-test timeouts.
   // Locally we still reuse the dev server when one is already running on
   // 5173 (the dev experience expectation).
-  webServer: {
-    // Both paths run from the repo root so the workspace bun scripts
-    // resolve consistently. CI builds a static bundle and serves it with
-    // `vite preview` (no per-request compile); locally we reuse the
-    // running dev server when one exists.
-    command: process.env.CI
-      ? 'bun --filter salvageunion-reference build:ci && bun --filter in-the-union-now build && cd apps/in-the-union-now && bunx --bun vite preview --port 5173 --strictPort'
-      : 'bun run dev:itun',
-    cwd: '../..',
-    url: 'http://localhost:5173',
-    reuseExistingServer: !process.env.CI,
-    timeout: 240_000,
-    stdout: process.env.CI ? 'pipe' : 'ignore',
-    stderr: 'pipe',
-  },
+  // Skip the local server entirely when targeting an external deployed URL
+  // (E2E_BASE_URL) — there is nothing to boot.
+  webServer: externalBaseURL
+    ? undefined
+    : {
+        // Both paths run from the repo root so the workspace bun scripts
+        // resolve consistently. CI builds a static bundle and serves it with
+        // `vite preview` (no per-request compile); locally we reuse the
+        // running dev server when one exists.
+        command: process.env.CI
+          ? 'bun --filter salvageunion-reference build:ci && bun --filter in-the-union-now build && cd apps/in-the-union-now && bunx --bun vite preview --port 5173 --strictPort'
+          : 'bun run dev:itun',
+        cwd: '../..',
+        url: 'http://localhost:5173',
+        reuseExistingServer: !process.env.CI,
+        timeout: 240_000,
+        stdout: process.env.CI ? 'pipe' : 'ignore',
+        stderr: 'pipe',
+      },
 })
