@@ -70,7 +70,7 @@ type MechSheetProps = {
   /** Suppresses every edit affordance (published snapshots). */
   readOnly?: boolean
   /**
-   * Injectable d20 roller for the Heat Check loop — defaults to a Math.random
+   * Injectable d20 roller for the Heat Check loop — defaults to a randsum
    * roll. Pass a deterministic roller in tests.
    */
   roll?: Roll

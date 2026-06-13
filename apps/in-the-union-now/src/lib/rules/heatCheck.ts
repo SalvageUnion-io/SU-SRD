@@ -27,13 +27,15 @@
  * to the player via the existing ConditionToggle — this module never auto-picks.
  */
 
+import { roll } from '@randsum/roller'
+
 import type { HeatCheckResult, ReactorOverloadOutcome } from '../schemas/mech'
 
 /** A function that returns an integer die roll in [1, sides]. Injectable. */
 export type Roll = (sides: number) => number
 
-/** Default roller — cryptographically-irrelevant uniform d-sides via Math.random. */
-export const defaultRoll: Roll = (sides: number) => Math.floor(Math.random() * sides) + 1
+/** Default roller — a uniform d-sides via randsum. Injectable for deterministic tests. */
+export const defaultRoll: Roll = (sides: number) => roll(`1d${sides}`).total
 
 /**
  * Clamps a heat value into [0, cap]. Heat can never exceed Heat Cap (rule 1).

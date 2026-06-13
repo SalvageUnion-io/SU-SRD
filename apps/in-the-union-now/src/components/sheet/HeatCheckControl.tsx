@@ -43,7 +43,7 @@ type HeatCheckControlProps = {
   currentHeat: number
   /** Injectable store — defaults to useEntityStore. */
   store: typeof useEntityStore
-  /** Injectable d20 roller — defaults to a Math.random-backed roll. */
+  /** Injectable d20 roller — defaults to a randsum-backed roll. */
   roll?: Roll
   /** When true, no roll controls render and nothing mutates. */
   readOnly?: boolean

@@ -3,6 +3,7 @@
  * Isolated from React so they can be tested without a DOM.
  */
 
+import { roll } from '@randsum/roller'
 import { SalvageUnionReference, resultForTable } from 'salvageunion-reference'
 import type { SURefRollTable } from 'salvageunion-reference'
 
@@ -30,7 +31,7 @@ export type RollTableDeps = {
  */
 const defaultRollTableDeps: RollTableDeps = {
   findTable: (name) => SalvageUnionReference.RollTables.find((t) => t.name === name),
-  rollD20: () => Math.floor(Math.random() * 20) + 1,
+  rollD20: () => roll('1d20').total,
 }
 
 /**
