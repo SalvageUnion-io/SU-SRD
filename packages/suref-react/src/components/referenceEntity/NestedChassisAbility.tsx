@@ -1,5 +1,5 @@
 import type { SURefMetaAction, SURefObjectChoice } from 'salvageunion-reference'
-import { getTable } from 'salvageunion-reference'
+import { getTable, resolveActivationCurrency } from 'salvageunion-reference'
 import { Text } from '../base/Text'
 import { BlockContentRendererView } from './BlockContentRendererView'
 import { ReferenceEntityChoice } from './ReferenceEntityDisplay/ReferenceEntityChoice'
@@ -41,8 +41,12 @@ export function NestedChassisAbility({
   hideChoices = false,
   chassisName,
 }: NestedChassisAbilityProps) {
-  // Chassis abilities use EP currency
-  const details = extractReferenceEntityDetails(data, undefined, 'EP')
+  // Currency follows the action's source; chassis abilities are mech-level (EP).
+  const details = extractReferenceEntityDetails(
+    data,
+    undefined,
+    resolveActivationCurrency(data.actionSource ?? 'chassis')
+  )
 
   const fontSize = compact ? 'text-xs' : 'text-sm'
   const titleFontSize = compact ? 'text-sm' : 'text-base'
