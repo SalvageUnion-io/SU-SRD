@@ -24,9 +24,11 @@ import type { SURefEntity } from 'salvageunion-reference'
 import { Btn, ReferenceEntityDisplay, Slab, StepBtn, useDetailModal } from 'suref-react'
 import type { CardFootMeta, ChoiceSelections } from 'suref-react'
 
+import { cn } from '../../lib/utils'
 import { addToScrapPool, scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
 import { useCargo } from '../../lib/cargo/useCargo'
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
+import { findNpcChoiceByName, resolveCrawlerBay, resolveCrawlerType } from '../../lib/crawlerRefs'
 import type { Crawler, ScrapPool } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
 import { useEntityStore } from '../../stores/entityStore'
@@ -36,24 +38,6 @@ import { NpcInset } from './NpcInset'
 import { StorageManifest } from './StorageManifest'
 
 type CrawlerBayEntry = NonNullable<Crawler['crawlerBays']>[number]
-
-type ResolvedBayNpc = {
-  position?: string
-  hitPoints?: number
-  choices?: ReadonlyArray<{ id: string; name: string }>
-}
-
-type ResolvedBay = { id: string; name: string; npc?: ResolvedBayNpc }
-
-/** Resolve a stored crawler-bay ref (id or name) to its SRD entity. */
-function resolveCrawlerBay(ref: string): ResolvedBay | null {
-  try {
-    const all = SalvageUnionReference.CrawlerBays.all() as ReadonlyArray<ResolvedBay>
-    return all.find((b) => b.id === ref || b.name === ref) ?? null
-  } catch {
-    return null
-  }
-}
 
 /** Resolve a stored crawler-system ref (id or name) to its SRD entity [gap 20]. */
 function resolveCrawlerSystem(ref: string): SURefEntity | null {
@@ -164,15 +148,24 @@ function CrawlerBayCard({
     patchEntry({ condition: damaged ? 'intact' : 'damaged' })
   }
 
-  // Keepsake persists through the bay NPC's SRD freeform 'Keepsake' choice —
-  // same bayChoices map as the bay's own choices, no extra schema field.
-  const keepsakeChoice = npc?.choices?.find((c) => c.name === 'Keepsake')
+  // Keepsake/Motto persist through the bay NPC's SRD freeform choices — same
+  // bayChoices map as the bay's own choices, no extra schema field.
+  const keepsakeChoice = findNpcChoiceByName(npc, 'Keepsake')
   const keepsake = keepsakeChoice ? (selections[keepsakeChoice.id]?.[0] ?? '') : ''
   function setKeepsake(next: string) {
     if (!keepsakeChoice) return
     setSelections({
       ...selections,
       [keepsakeChoice.id]: next.trim().length > 0 ? [next] : [],
+    })
+  }
+  const mottoChoice = findNpcChoiceByName(npc, 'Motto')
+  const motto = mottoChoice ? (selections[mottoChoice.id]?.[0] ?? '') : ''
+  function setMotto(next: string) {
+    if (!mottoChoice) return
+    setSelections({
+      ...selections,
+      [mottoChoice.id]: next.trim().length > 0 ? [next] : [],
     })
   }
 
@@ -184,11 +177,13 @@ function CrawlerBayCard({
       hp={entry.npcCurrentHP ?? maxHP}
       maxHp={maxHP}
       keepsake={keepsake}
+      motto={motto}
       detail={entry.npcDescription ?? ''}
       facts={entry.npcFacts ?? []}
       onNameChange={readOnly ? undefined : (next) => patchEntry({ npcName: next })}
       onHpChange={readOnly ? undefined : (next) => patchEntry({ npcCurrentHP: next })}
       onKeepsakeChange={readOnly || !keepsakeChoice ? undefined : setKeepsake}
+      onMottoChange={readOnly || !mottoChoice ? undefined : setMotto}
       onDetailChange={readOnly ? undefined : (next) => patchEntry({ npcDescription: next })}
       onFactsChange={readOnly ? undefined : (next) => patchEntry({ npcFacts: next })}
       readOnly={readOnly}
@@ -257,6 +252,111 @@ function CrawlerBayCard({
       />
       {detail.modal}
     </>
+  )
+}
+
+type CrawlerNpcState = NonNullable<Crawler['typeNpc']>
+
+type CrawlerTypeCardProps = {
+  crawlerId: string
+  /** The crawler-type ref (SRD id) — also the bayChoices key for its NPC. */
+  typeRef: string
+  /** Live state for the type's special NPC. */
+  typeNpc: CrawlerNpcState | undefined
+  /** Persisted Keepsake/Motto selections for the type NPC (from the crawler prop). */
+  seedSelections: ChoiceSelections | undefined
+  store: typeof useEntityStore
+  readOnly: boolean
+}
+
+/**
+ * CrawlerTypeCard — the chosen crawler type as an entity card (description +
+ * special action(s)), with its special NPC rendered as an NpcInset in the
+ * expand slot. Mirrors CrawlerBayCard: the SRD npc block is stripped from the
+ * card (it lives in the inset); Keepsake/Motto persist through the NPC's
+ * freeform choices into the crawler's bayChoices map keyed by the type ref;
+ * structured name/HP/description/facts persist into the `typeNpc` field.
+ */
+function CrawlerTypeCard({
+  crawlerId,
+  typeRef,
+  typeNpc,
+  seedSelections,
+  store,
+  readOnly,
+}: CrawlerTypeCardProps) {
+  const storeState = store()
+  const { selections, setSelections } = useEntityChoices(
+    'crawler',
+    crawlerId,
+    typeRef,
+    'bayChoices',
+    seedSelections,
+    store
+  )
+  const type = resolveCrawlerType(typeRef)
+  if (!type) return null
+
+  const npc = type.npc
+  const maxHP = npc?.hitPoints ?? 0
+
+  function patchNpc(patch: Partial<CrawlerNpcState>) {
+    const fresh = storeState.get('crawler', crawlerId)
+    void storeState.update('crawler', crawlerId, {
+      typeNpc: { ...(fresh?.typeNpc ?? {}), ...patch },
+    })
+  }
+
+  const keepsakeChoice = findNpcChoiceByName(npc, 'Keepsake')
+  const keepsake = keepsakeChoice ? (selections[keepsakeChoice.id]?.[0] ?? '') : ''
+  function setKeepsake(next: string) {
+    if (!keepsakeChoice) return
+    setSelections({
+      ...selections,
+      [keepsakeChoice.id]: next.trim().length > 0 ? [next] : [],
+    })
+  }
+  const mottoChoice = findNpcChoiceByName(npc, 'Motto')
+  const motto = mottoChoice ? (selections[mottoChoice.id]?.[0] ?? '') : ''
+  function setMotto(next: string) {
+    if (!mottoChoice) return
+    setSelections({
+      ...selections,
+      [mottoChoice.id]: next.trim().length > 0 ? [next] : [],
+    })
+  }
+
+  const crew = npc ? (
+    <NpcInset
+      bayName={type.name}
+      title={npc.position}
+      name={typeNpc?.npcName ?? ''}
+      hp={typeNpc?.npcCurrentHP ?? maxHP}
+      maxHp={maxHP}
+      keepsake={keepsake}
+      motto={motto}
+      detail={typeNpc?.npcDescription ?? ''}
+      facts={typeNpc?.npcFacts ?? []}
+      onNameChange={readOnly ? undefined : (next) => patchNpc({ npcName: next })}
+      onHpChange={readOnly ? undefined : (next) => patchNpc({ npcCurrentHP: next })}
+      onKeepsakeChange={readOnly || !keepsakeChoice ? undefined : setKeepsake}
+      onMottoChange={readOnly || !mottoChoice ? undefined : setMotto}
+      onDetailChange={readOnly ? undefined : (next) => patchNpc({ npcDescription: next })}
+      onFactsChange={readOnly ? undefined : (next) => patchNpc({ npcFacts: next })}
+      readOnly={readOnly}
+    />
+  ) : undefined
+
+  // Card renders WITHOUT the SRD npc block — the special NPC lives in the inset.
+  const cardData = { ...type, npc: undefined } as unknown as SURefEntity
+
+  return (
+    <ReferenceEntityDisplay
+      data={cardData}
+      selections={selections}
+      onSelectionChange={readOnly ? undefined : setSelections}
+      expand={crew}
+    />
   )
 }
 
@@ -383,8 +483,66 @@ export function CrawlerSheet({
     })
   }
 
+  /** Set the crawler's tech level (1–6), recomputing SP/capacity downstream. */
+  function setTechLevel(next: number) {
+    if (readOnly) return
+    if (next < 1 || next > 6 || next === tl) return
+    void storeState.update('crawler', crawler.id, { techLevel: `tech-${next}` })
+  }
+
+  const TECH_LEVELS = [1, 2, 3, 4, 5, 6] as const
+
   return (
     <section aria-label={`${crawler.name} crawler sheet`} className="flex flex-col gap-7">
+      {/* Crawler Type — only when a type was chosen (legacy crawlers have none) */}
+      {crawler.type && (
+        <div>
+          <Slab label="Crawler Type" count="special action + special NPC" />
+          <Ecflow>
+            <Erow>
+              <CrawlerTypeCard
+                crawlerId={crawler.id}
+                typeRef={crawler.type}
+                typeNpc={crawler.typeNpc}
+                seedSelections={crawler.bayChoices?.[crawler.type]}
+                store={store}
+                readOnly={readOnly}
+              />
+            </Erow>
+          </Ecflow>
+        </div>
+      )}
+
+      {/* Tech Level — editable stepper (rules: upgraded on the live sheet) */}
+      <div>
+        <Slab label="Tech Level" count={`Tech ${tl} crawler`} />
+        {readOnly ? (
+          <p className="font-body text-sm text-ink">Tech Level {tl}</p>
+        ) : (
+          <div
+            role="group"
+            aria-label="Crawler tech level"
+            className="inline-flex items-stretch overflow-hidden rounded-[2px] border-[1.5px] border-ink bg-paper"
+          >
+            {TECH_LEVELS.map((n) => (
+              <button
+                key={n}
+                type="button"
+                aria-label={`Set tech level ${n}`}
+                aria-pressed={n === tl}
+                onClick={() => setTechLevel(n)}
+                className={cn(
+                  'min-w-9 px-2 py-1 font-cond text-sm font-bold leading-none',
+                  n === tl ? 'bg-ink text-su-white' : 'text-ink hover:bg-su-paper'
+                )}
+              >
+                {n}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
       {/* Crawler Bays */}
       {bays.length > 0 && (
         <div>

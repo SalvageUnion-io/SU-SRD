@@ -28,11 +28,13 @@ type NpcInsetProps = {
   hp: number
   maxHp: number
   keepsake: string
+  motto: string
   detail: string
   facts: ReadonlyArray<string>
   onNameChange?: (next: string) => void
   onHpChange?: (next: number) => void
   onKeepsakeChange?: (next: string) => void
+  onMottoChange?: (next: string) => void
   onDetailChange?: (next: string) => void
   onFactsChange?: (next: string[]) => void
   readOnly?: boolean
@@ -45,11 +47,13 @@ export function NpcInset({
   hp,
   maxHp,
   keepsake,
+  motto,
   detail,
   facts,
   onNameChange,
   onHpChange,
   onKeepsakeChange,
+  onMottoChange,
   onDetailChange,
   onFactsChange,
   readOnly = false,
@@ -115,6 +119,23 @@ export function NpcInset({
                 />
               ) : (
                 keepsake || '—'
+              )}
+            </dd>
+          </div>
+          <div className="flex items-baseline gap-1.5">
+            <dt className="shrink-0 font-cond text-[9px] font-bold uppercase leading-none tracking-[0.1em] text-ink">
+              Motto
+            </dt>
+            <dd className="m-0 min-w-0 font-body text-[11.5px] leading-snug text-ink-2">
+              {editable && onMottoChange ? (
+                <InlineEditField
+                  value={motto}
+                  onSave={(next) => onMottoChange(String(next))}
+                  type="text"
+                  ariaLabel={`Edit ${bayName} crew motto`}
+                />
+              ) : (
+                motto || '—'
               )}
             </dd>
           </div>

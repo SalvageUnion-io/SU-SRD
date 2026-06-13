@@ -1,7 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 
 import { SalvageUnionReference } from 'salvageunion-reference'
-import type { SURefEntity, SURefMetaCrawlerTechLevel, SURefSystem } from 'salvageunion-reference'
+import type {
+  SURefCrawler,
+  SURefEntity,
+  SURefMetaCrawlerTechLevel,
+  SURefSystem,
+} from 'salvageunion-reference'
 import { toast } from 'suref-react'
 
 import { useEntityStore } from '../../stores/entityStore'
@@ -9,24 +14,28 @@ import { CrawlerSchema } from '../../lib/schemas/crawler'
 import { computeCrawlerCapacity } from '../../lib/rules/crawlerCapacity'
 import {
   EMPTY_CRAWLER_FORM_STATE,
+  crawlerFormCrewToPatches,
   crawlerFormToCreateInput,
   crawlerFormToUpdatePatch,
+  defaultTypeNpcState,
   seedDefaultCrawlerBays,
 } from '../../lib/wizard/crawlerFormState'
 import type { CrawlerWizardFormState } from '../../lib/wizard/crawlerFormState'
 import { WizShell } from '../wizard/WizShell'
+import { CrawlerCrewStep } from './CrawlerCrewStep'
 import { CrawlerIdentityStep } from './CrawlerIdentityStep'
 import { CrawlerReviewStep } from './CrawlerReviewStep'
 import { CrawlerTypeOptionList, CrawlerTypeDetail } from './CrawlerTypeStep'
 import { SystemsList } from './SystemsList'
 
-const STEPS = ['Crawler', 'Systems', 'Identity', 'Review'] as const
+const STEPS = ['Crawler', 'Systems', 'Crew', 'Identity', 'Review'] as const
 type Step = (typeof STEPS)[number]
 
 /** Step heading copy (design §3.2). */
 const STEP_TITLES: Record<Step, string> = {
   Crawler: 'Choose Your Crawler',
   Systems: 'Install Systems',
+  Crew: 'Meet Your Crew',
   Identity: 'Name Your Crawler',
   Review: 'Review',
 }
@@ -83,6 +92,7 @@ export function CrawlerBuilder({
   const [techLevels, setTechLevels] = useState<SURefMetaCrawlerTechLevel[]>([])
   const [allSystems, setAllSystems] = useState<SURefSystem[]>([])
   const [allBays, setAllBays] = useState<SURefEntity[]>([])
+  const [types, setTypes] = useState<SURefCrawler[]>([])
   const [form, setForm] = useState<CrawlerWizardFormState>(initialState ?? EMPTY_CRAWLER_FORM_STATE)
   const [step, setStep] = useState<Step>('Crawler')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -91,32 +101,54 @@ export function CrawlerBuilder({
   const currentIndex = STEPS.indexOf(step)
 
   useEffect(() => {
-    // crawler-bays is preloaded so the bay preview grid and the default-bay
-    // seeding at submit time can read the SRD catalog synchronously.
-    void SalvageUnionReference.preload(['crawler-tech-levels', 'systems', 'crawler-bays']).then(
-      () => {
-        const tls = SalvageUnionReference.CrawlerTechLevels.all()
-        setTechLevels([...tls].sort((a, b) => a.techLevel - b.techLevel))
-        setAllSystems(SalvageUnionReference.Systems.all())
-        setAllBays(SalvageUnionReference.CrawlerBays.all() as unknown as SURefEntity[])
-      }
-    )
+    // crawlers drives the type selection; crawler-bays seeds the default bays
+    // + the Crew step; crawler-tech-levels stays for the SP/capacity lookup.
+    void SalvageUnionReference.preload([
+      'crawlers',
+      'crawler-tech-levels',
+      'systems',
+      'crawler-bays',
+    ]).then(() => {
+      const tls = SalvageUnionReference.CrawlerTechLevels.all()
+      setTechLevels([...tls].sort((a, b) => a.techLevel - b.techLevel))
+      setAllSystems(SalvageUnionReference.Systems.all())
+      setAllBays(SalvageUnionReference.CrawlerBays.all() as unknown as SURefEntity[])
+      setTypes(SalvageUnionReference.Crawlers.all())
+    })
   }, [])
 
   function updateForm(patch: Partial<CrawlerWizardFormState>) {
     setForm((prev) => ({ ...prev, ...patch }))
   }
 
+  /**
+   * Choose a crawler type. When switching away from a previously-chosen type,
+   * drop that old type's crew entry (keyed by the old type id) so it can never
+   * be persisted as a phantom bay / stale type NPC on save.
+   */
+  function selectType(type: string) {
+    setForm((prev) => {
+      if (prev.type === type) return { ...prev, type }
+      const nextCrew = { ...prev.crew }
+      if (prev.type !== null) delete nextCrew[prev.type]
+      return { ...prev, type, crew: nextCrew }
+    })
+  }
+
   function canAdvance(): boolean {
     switch (step) {
       case 'Crawler':
-        return form.techLevel !== null
+        // New crawlers must choose a type; editing a legacy (untyped) crawler
+        // can advance without one (type stays absent, TL is preserved).
+        return isEdit || form.type !== null
       case 'Systems':
         return true // systems are optional
+      case 'Crew':
+        return true // crew details are all optional
       case 'Identity':
         return form.name.trim() !== ''
       case 'Review':
-        return form.techLevel !== null && form.name.trim() !== ''
+        return (isEdit || form.type !== null) && form.name.trim() !== ''
     }
   }
 
@@ -142,7 +174,51 @@ export function CrawlerBuilder({
       // Upsert branch (plan 3.1): update when editing — NEVER a second create.
       // The patch touches only wizard-owned fields; bays/NPC live state stays.
       if (crawlerId) {
+        // Read the stored record BEFORE the wizard patch so we know the old
+        // type (the patch overwrites `type`).
+        const stored = store.get('crawler', crawlerId)
+        const oldType = stored?.type ?? null
+        const typeChanged = oldType !== form.type
+
         await store.update('crawler', crawlerId, crawlerFormToUpdatePatch(form))
+
+        // Crew/NPC edits route through targeted updateCrawlerBay calls + a
+        // single bayChoices merge + a typeNpc patch (mirroring how the sheet
+        // writes), so live HP/condition on bays + the type NPC survive an edit.
+        const crewPatches = crawlerFormCrewToPatches(form)
+        for (const [bayRef, patch] of Object.entries(crewPatches.bayPatches)) {
+          if (Object.keys(patch).length === 0) continue
+          await store.updateCrawlerBay(crawlerId, bayRef, patch)
+        }
+
+        // Merge the crew's Keepsake/Motto selections. When the type changed,
+        // also drop the orphaned old type's bayChoices key so a stale NPC's
+        // selections don't bleed onto the new type.
+        if (typeChanged || Object.keys(crewPatches.bayChoices).length > 0) {
+          const fresh = store.get('crawler', crawlerId)
+          const nextBayChoices = { ...(fresh?.bayChoices ?? {}) }
+          if (typeChanged && oldType !== null) delete nextBayChoices[oldType]
+          Object.assign(nextBayChoices, crewPatches.bayChoices)
+          await store.update('crawler', crawlerId, { bayChoices: nextBayChoices })
+        }
+
+        // The type NPC. When the type changed, RESET it to the new type's
+        // default (HP from the new type's npc.hitPoints, if any) plus the
+        // wizard's edits — never merge onto the old type's NPC. When the type
+        // is unchanged, merge so live HP/condition survive an edit pass.
+        if (typeChanged) {
+          const baseNpc = form.type ? defaultTypeNpcState(types, form.type) : undefined
+          const nextTypeNpc = { ...(baseNpc ?? {}), ...(crewPatches.typeNpc ?? {}) }
+          await store.update('crawler', crawlerId, {
+            typeNpc: Object.keys(nextTypeNpc).length > 0 ? nextTypeNpc : undefined,
+          })
+        } else if (crewPatches.typeNpc) {
+          const fresh = store.get('crawler', crawlerId)
+          await store.update('crawler', crawlerId, {
+            typeNpc: { ...(fresh?.typeNpc ?? {}), ...crewPatches.typeNpc },
+          })
+        }
+
         toast.success(`Saved ${form.name.trim() || 'crawler'}.`)
         onComplete(crawlerId)
         return
@@ -182,6 +258,15 @@ export function CrawlerBuilder({
   }
 
   const selectedTechLevel = techLevels.find((t) => t.techLevel === form.techLevel)
+  const selectedType = types.find((t) => t.id === form.type)
+  // Bays with an embedded crew NPC (the 10 base bays) — the Crew step's roster.
+  const crewBays = allBays.filter(
+    (b): b is SURefEntity & { npc: object } => (b as { npc?: unknown }).npc != null
+  ) as unknown as Array<{
+    id: string
+    name: string
+    npc?: { position?: string; choices?: ReadonlyArray<{ id: string; name: string }> }
+  }>
   const filteredSystems = filterSystemsByTL(allSystems, form.techLevel)
   const chosenSystems = form.systems
     .map((id) => allSystems.find((s) => s.id === id))
@@ -217,7 +302,7 @@ export function CrawlerBuilder({
   const subtitle = (() => {
     switch (step) {
       case 'Crawler':
-        return 'Pick a tech level. It sets Structure Points and which systems you can install — every crawler ships with the full bay set.'
+        return 'Pick a crawler type. It grants a special action and a special NPC — every crawler ships with the full bay set and starts at Tech Level 1.'
       case 'Systems':
         return (
           <>
@@ -228,6 +313,8 @@ export function CrawlerBuilder({
             · Tech Level {form.techLevel ?? '—'} and below. Capacity warns, never blocks.
           </>
         )
+      case 'Crew':
+        return 'Name and detail each bay’s crew lead and your crawler type’s special NPC. All optional.'
       case 'Identity':
         return 'Name your crawler and set its starting resources.'
       case 'Review':
@@ -245,15 +332,7 @@ export function CrawlerBuilder({
       subtitle={subtitle}
       optionPane={
         step === 'Crawler' ? (
-          <CrawlerTypeOptionList
-            techLevels={techLevels}
-            selectedTechLevel={form.techLevel}
-            onSelect={(techLevel) => {
-              // Creation resets systems on TL change (the offer changes);
-              // edit keeps them — an upgraded crawler retains its loadout.
-              updateForm(isEdit ? { techLevel } : { techLevel, systems: [] })
-            }}
-          />
+          <CrawlerTypeOptionList types={types} selectedType={form.type} onSelect={selectType} />
         ) : undefined
       }
       notice={capacityNotice}
@@ -264,12 +343,20 @@ export function CrawlerBuilder({
       busy={isSubmitting}
       submitLabel={isEdit ? 'Save Crawler' : 'Create Crawler ✦'}
     >
-      {step === 'Crawler' && <CrawlerTypeDetail selected={selectedTechLevel} bays={allBays} />}
+      {step === 'Crawler' && <CrawlerTypeDetail selected={selectedType} />}
       {step === 'Systems' && (
         <SystemsList
           systems={filteredSystems}
           selectedSystemSlugs={form.systems}
           onChange={(systems) => updateForm({ systems })}
+        />
+      )}
+      {step === 'Crew' && (
+        <CrawlerCrewStep
+          bays={crewBays}
+          selectedType={selectedType}
+          crew={form.crew}
+          onChange={updateForm}
         />
       )}
       {step === 'Identity' && (

@@ -34,6 +34,7 @@ afterEach(() => {
 // ---------------------------------------------------------------------------
 
 const KEEPSAKE_CHOICE_ID = 'command-bay-keepsake-1'
+const MOTTO_CHOICE_ID = 'command-bay-motto-1'
 
 const MOCK_BAYS = [
   {
@@ -46,6 +47,7 @@ const MOCK_BAYS = [
       choices: [
         { id: 'command-bay-name-1', name: 'Name', choiceType: 'freeform' },
         { id: KEEPSAKE_CHOICE_ID, name: 'Keepsake', choiceType: 'freeform' },
+        { id: MOTTO_CHOICE_ID, name: 'Motto', choiceType: 'freeform' },
       ],
     },
   },
@@ -287,6 +289,55 @@ describe('CrawlerSheet — crew keepsake via bayChoices', () => {
     render(<CrawlerSheet crawler={baseCrawler} store={makeStubStore(baseCrawler)} />)
     // Mech Bay's mock npc carries no choices — keepsake cannot persist.
     expect(screen.queryByLabelText('Edit Mech Bay crew keepsake')).toBeNull()
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Motto — persists through the SRD freeform 'Motto' choice (bayChoices)
+// ---------------------------------------------------------------------------
+
+describe('CrawlerSheet — crew motto via bayChoices', () => {
+  let restore: () => void
+  afterEach(() => {
+    restore?.()
+  })
+
+  test('renders the persisted motto from bayChoices', async () => {
+    restore = await patchCrawlerBays()
+    const withMotto: Crawler = {
+      ...baseCrawler,
+      bayChoices: { 'command-bay': { [MOTTO_CHOICE_ID]: ['No retreat'] } },
+    }
+    render(<CrawlerSheet crawler={withMotto} store={makeStubStore(withMotto)} />)
+    const inset = screen.getByLabelText('Command Bay crew lead')
+    expect(within(inset).getByText('No retreat')).toBeTruthy()
+  })
+
+  test('editing the motto persists into bayChoices via store.update', async () => {
+    restore = await patchCrawlerBays()
+    const update = mock(async () => baseCrawler)
+    render(<CrawlerSheet crawler={baseCrawler} store={makeStubStore(baseCrawler, { update })} />)
+
+    const field = screen.getByLabelText('Edit Command Bay crew motto')
+    await act(async () => {
+      fireEvent.click(field)
+    })
+    const input = screen.getByLabelText('Edit Command Bay crew motto')
+    await act(async () => {
+      fireEvent.change(input, { target: { value: 'No retreat' } })
+      fireEvent.blur(input)
+    })
+
+    expect(update).toHaveBeenCalledWith('crawler', baseCrawler.id, {
+      bayChoices: { 'command-bay': { [MOTTO_CHOICE_ID]: ['No retreat'] } },
+    })
+  })
+
+  test('a bay whose NPC has no Motto choice renders a read-only dash', async () => {
+    restore = await patchCrawlerBays()
+    render(<CrawlerSheet crawler={baseCrawler} store={makeStubStore(baseCrawler)} />)
+    // Mech Bay's mock npc carries no choices — motto cannot persist.
+    expect(screen.queryByLabelText('Edit Mech Bay crew motto')).toBeNull()
   })
 })
 

@@ -21,6 +21,40 @@ export const ScrapPoolSchema = z
 export type ScrapPool = z.infer<typeof ScrapPoolSchema>
 
 /**
+ * Per-NPC live state shared by crawler-bay crew leads and the crawler-type's
+ * special NPC (rules C11). Extracted from the inline `crawlerBays` entry so the
+ * type NPC (`typeNpc`) reuses the same shape. The NPC's freeform identity
+ * fields (Keepsake/Motto) persist in the crawler's `bayChoices` map, NOT here —
+ * this schema holds only the structured live-play state.
+ */
+export const CrawlerNpcStateSchema = z
+  .object({
+    /** Freeform name the player gave this NPC. */
+    npcName: z.string().optional(),
+    /** NPC's current HP (max from the SRD entity's `npc.hitPoints`). */
+    npcCurrentHP: z.number().int().min(0).optional(),
+    /**
+     * Player-editable freeform description of the NPC (appearance, personality,
+     * etc.). Distinct from the SRD entity's own rules text (`content`), which is
+     * read-only and resolved from the reference entity.
+     */
+    npcDescription: z.string().optional(),
+    /**
+     * Player-decided facts about the NPC — a freeform list of short strings the
+     * table has established in play (add/remove). Read sites treat a missing
+     * value as an empty list.
+     */
+    npcFacts: z.array(z.string()).optional(),
+    /**
+     * NPC condition (rules C8). Intact/Damaged ONLY — never Destroyed. Absent
+     * reads as 'intact'.
+     */
+    condition: z.enum(['intact', 'damaged']).optional(),
+  })
+  .strict()
+export type CrawlerNpcState = z.infer<typeof CrawlerNpcStateSchema>
+
+/**
  * Crawler tech levels are I–VI per the Salvage Union ruleset.
  */
 export const CrawlerSchema = z
@@ -30,6 +64,23 @@ export const CrawlerSchema = z
     name: z.string().min(1),
     /** Tech level (I–VI) expressed as a string slug, e.g. "tech-1" */
     techLevel: z.string(),
+    /**
+     * Chosen crawler-type ref (SRD `id` of the Augmented/Battle/Engineering/
+     * Exploratory/Trade Caravan type; resolve by id-or-name like the bay refs).
+     *
+     * Additive-optional — no DB migration, no `schemaVersion` bump. Legacy
+     * crawlers persisted before this feature (no `type`, any techLevel) validate
+     * unchanged; a missing value reads as an untyped crawler.
+     */
+    type: z.string().optional(),
+    /**
+     * Live state for the crawler-type's special NPC (the Battle type's Grizzled
+     * Veteran, etc.). Same shape as a bay's embedded NPC state. The freeform
+     * Keepsake/Motto persist in `bayChoices` keyed by the type ref.
+     *
+     * Additive-optional — absent on legacy / untyped crawlers.
+     */
+    typeNpc: CrawlerNpcStateSchema.optional(),
     /**
      * Installed SRD crawler bays (Command Bay, Mech Bay, Storage Bay, …). The
      * official crawler sheets pre-print all bays as fixed sections, so every
@@ -47,33 +98,9 @@ export const CrawlerSchema = z
      */
     crawlerBays: z
       .array(
-        z.object({
+        CrawlerNpcStateSchema.extend({
           /** SRD crawler-bay id (or name) this entry installs. */
           bayRef: z.string(),
-          /** Freeform name the player gave the bay's embedded NPC. */
-          npcName: z.string().optional(),
-          /** NPC's current HP (max from the SRD bay's `npc.hitPoints`, 4). */
-          npcCurrentHP: z.number().int().min(0).optional(),
-          /**
-           * Player-editable freeform description of the bay's embedded NPC
-           * (appearance, personality, etc.). Distinct from the SRD bay's own
-           * rules text (`content`), which is read-only and resolved from the
-           * reference entity. Optional — additive field, no DB migration needed.
-           */
-          npcDescription: z.string().optional(),
-          /**
-           * Player-decided facts about the bay's NPC — a freeform list of short
-           * strings the table has established in play (add/remove). Optional;
-           * read sites treat a missing value as an empty list.
-           */
-          npcFacts: z.array(z.string()).optional(),
-          /**
-           * Bay condition (rules C8). Bays are Intact/Damaged ONLY — never
-           * Destroyed (unlike mech items). Damaged disables the bay's
-           * function; repair costs 5 Scrap of crawler TL or higher. Absent
-           * reads as 'intact'.
-           */
-          condition: z.enum(['intact', 'damaged']).optional(),
         })
       )
       .optional(),

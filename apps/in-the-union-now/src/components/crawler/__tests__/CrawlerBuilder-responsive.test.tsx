@@ -20,7 +20,12 @@ import { CrawlerBuilder } from '../CrawlerBuilder'
 beforeAll(async () => {
   // The builder preloads these on mount; warming the cache here lets the
   // act() flush below absorb the resulting state update.
-  await SalvageUnionReference.preload(['crawler-tech-levels', 'systems', 'crawler-bays'])
+  await SalvageUnionReference.preload([
+    'crawlers',
+    'crawler-tech-levels',
+    'systems',
+    'crawler-bays',
+  ])
 })
 
 async function renderBuilder() {
@@ -37,9 +42,12 @@ describe('CrawlerBuilder — responsive wizard layout', () => {
     expect(shell).toBeTruthy()
   })
 
-  test('renders a stepper navigation rail', async () => {
+  test('renders a stepper navigation rail with all five steps', async () => {
     const { container } = await renderBuilder()
     const stepper = container.querySelector('nav[aria-label="Steps"]')
     expect(stepper).toBeTruthy()
+    for (const label of ['Crawler', 'Systems', 'Crew', 'Identity', 'Review']) {
+      expect(stepper?.textContent).toContain(label)
+    }
   })
 })
