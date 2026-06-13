@@ -52,7 +52,7 @@ test('create then delete a pilot from the dashboard', async ({ page }) => {
   await clickNext(page)
 
   // Review step — submit.
-  await page.getByRole('button', { name: /^Create Pilot$/i }).click()
+  await page.getByRole('button', { name: /Create Pilot/i }).click()
 
   // Wait for the wizard to navigate to "/" after successful creation.
   // Use the exact path "/" to avoid matching "/pilots/new" which also
@@ -114,7 +114,7 @@ test('cancel delete keeps the pilot visible', async ({ page }) => {
   await clickNext(page)
 
   // Review step — submit.
-  await page.getByRole('button', { name: /^Create Pilot$/i }).click()
+  await page.getByRole('button', { name: /Create Pilot/i }).click()
 
   // Wait for navigation to "/" after creation.
   await page.waitForURL('/', { timeout: 20_000 })

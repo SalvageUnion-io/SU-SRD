@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { pickByName, waitForReady } from './_helpers'
+import { pickByName, waitForReady, clickNext } from './_helpers'
 
 /**
  * Display verification — confirms that the right *information* renders on
@@ -38,7 +38,7 @@ test.describe('ability cards show their descriptions', () => {
     await page.goto('/pilots/new')
     await waitForReady(page)
     await pickByName(page, 'Engineer')
-    await page.getByRole('button', { name: /^Next$/ }).click()
+    await clickNext(page)
 
     // The description (per SU SRD) mentions "questions" about
     // mechanical/engineering topics. Match a phrase fragment to stay
@@ -71,13 +71,13 @@ test.describe('dashboard surfaces created entities with their identity', () => {
     await page.goto('/pilots/new')
     await waitForReady(page)
     await pickByName(page, 'Engineer')
-    await page.getByRole('button', { name: /^Next$/ }).click()
-    await page.getByRole('button', { name: /^Next$/ }).click()
-    await page.getByRole('button', { name: /^Next$/ }).click()
+    await clickNext(page)
+    await clickNext(page)
+    await clickNext(page)
     await page.getByLabel(/^Name/).fill('Display Test Pilot')
     await page.getByLabel(/Callsign/).fill('DTP')
-    await page.getByRole('button', { name: /^Next$/ }).click()
-    await page.getByRole('button', { name: /^Next$/ }).click()
+    await clickNext(page)
+    await clickNext(page)
     await page.getByRole('button', { name: /Create Pilot/i }).click()
 
     // onComplete navigates to '/'; wait for that navigation then assert
@@ -99,15 +99,15 @@ test.describe('sheet renders the right pilot identity', () => {
     await page.goto('/pilots/new')
     await waitForReady(page)
     await pickByName(page, 'Engineer')
-    await page.getByRole('button', { name: /^Next$/ }).click()
+    await clickNext(page)
     await pickByName(page, 'Engineering Expertise')
-    await page.getByRole('button', { name: /^Next$/ }).click()
+    await clickNext(page)
     await page.locator('div[role="button"]').first().click()
-    await page.getByRole('button', { name: /^Next$/ }).click()
+    await clickNext(page)
     await page.getByLabel(/^Name/).fill('Sheet Name')
     await page.getByLabel(/Callsign/).fill('SN')
-    await page.getByRole('button', { name: /^Next$/ }).click()
-    await page.getByRole('button', { name: /^Next$/ }).click()
+    await clickNext(page)
+    await clickNext(page)
     await page.getByRole('button', { name: /Create Pilot/i }).click()
 
     // onComplete navigates to '/'; wait then interact from there — no extra
