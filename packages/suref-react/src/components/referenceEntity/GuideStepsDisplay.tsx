@@ -463,15 +463,18 @@ export function GuideStepsDisplay({
                         )
                         return { ...entity, entityId, isGreyedOut, entityControls }
                       })
-                      // Single column on mobile (natural order, "tree by tree");
-                      // two balanced columns at sm+ via native CSS multi-column.
+                      // Masonry layout via native CSS multi-column: the column
+                      // count auto-scales to the available width (column-width
+                      // 15rem floor), so options pack to fill horizontal space
+                      // instead of squishing into a fixed 2-column grid. One
+                      // column on narrow viewports, more as width grows.
                       // break-inside-avoid keeps each card intact across columns.
                       return (
-                        <div className="mt-2 gap-2 sm:columns-2">
+                        <div className="mt-2 gap-3 columns-[15rem]">
                           {enriched.map((e) => (
                             <div
                               key={`${step.id}-${e.schemaName}-${e.entityId}`}
-                              className="mb-2 break-inside-avoid"
+                              className="mb-3 break-inside-avoid"
                             >
                               {renderEntityListing(
                                 e.data,
