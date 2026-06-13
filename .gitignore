@@ -20,6 +20,7 @@ core
 # Test/E2E output
 **/playwright-report/
 **/test-results/
+**/.playwright-mcp/
 
 # Vite
 .vite
