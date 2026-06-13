@@ -116,45 +116,59 @@ export function SchemaViewerIsland({
       >
         <div className={containerClass}>
           {showAside && (
-            <aside className="mb-2 flex w-full flex-col gap-4 px-2 pt-2 md:px-6 print:hidden">
-              {hasNameFilter && (
-                <FilterRow label="Name">
-                  <input
-                    type="search"
-                    name="name-filter"
-                    value={nameFilter}
-                    onChange={(e) => setNameFilter(e.target.value)}
-                    placeholder="Filter by name…"
-                    aria-label="Filter items by name"
-                    className="w-full rounded border border-su-black bg-su-white px-2 py-1 font-mono text-[13px]"
-                  />
-                </FilterRow>
-              )}
-              {techLevels.length > 1 && (
-                <FilterRow label="Tech Level">
-                  <FilterChip
-                    label="All"
-                    active={techLevelFilters.size === 0}
-                    onClick={() => setTechLevelFilters(new Set())}
-                  />
-                  {techLevels.map((level) => {
-                    const numericLevel = typeof level === 'number' ? level : undefined
-                    const swatchStyle =
-                      numericLevel !== undefined ? `var(--color-tl-${numericLevel})` : undefined
-                    return (
-                      // colorClass is only consumed in the non-swatch (B/N) branch; a
-                      // numeric chip renders the swatch and ignores it, so omit it there.
-                      <FilterChip
-                        key={String(level)}
-                        label={techLevelLabel(level)}
-                        active={techLevelFilters.has(String(level))}
-                        onClick={() => toggleTechLevel(level)}
-                        colorClass={swatchStyle ? undefined : TECH_LEVEL_STYLES[String(level)]}
-                        swatchStyle={swatchStyle}
-                      />
-                    )
-                  })}
-                </FilterRow>
+            <aside className="mb-6 flex w-full flex-col gap-4 px-2 pt-2 md:px-6 print:hidden">
+              {/* Search + Tech Level sit side by side on normal-sized screens
+                  (md+), stacking on narrow viewports. Source stays on its own row. */}
+              {(hasNameFilter || techLevels.length > 1) && (
+                <div className="flex flex-col gap-4 md:flex-row md:items-start md:gap-6">
+                  {hasNameFilter && (
+                    <div className="md:shrink-0">
+                      <FilterRow label="Name">
+                        <input
+                          type="search"
+                          name="name-filter"
+                          value={nameFilter}
+                          onChange={(e) => setNameFilter(e.target.value)}
+                          placeholder="Filter by name…"
+                          aria-label="Filter items by name"
+                          className="w-full rounded border border-su-black bg-su-white px-2 py-1 font-mono text-[13px] md:w-64"
+                        />
+                      </FilterRow>
+                    </div>
+                  )}
+                  {techLevels.length > 1 && (
+                    <div className="md:flex-1">
+                      <FilterRow label="Tech Level">
+                        <FilterChip
+                          label="All"
+                          active={techLevelFilters.size === 0}
+                          onClick={() => setTechLevelFilters(new Set())}
+                        />
+                        {techLevels.map((level) => {
+                          const numericLevel = typeof level === 'number' ? level : undefined
+                          const swatchStyle =
+                            numericLevel !== undefined
+                              ? `var(--color-tl-${numericLevel})`
+                              : undefined
+                          return (
+                            // colorClass is only consumed in the non-swatch (B/N) branch; a
+                            // numeric chip renders the swatch and ignores it, so omit it there.
+                            <FilterChip
+                              key={String(level)}
+                              label={techLevelLabel(level)}
+                              active={techLevelFilters.has(String(level))}
+                              onClick={() => toggleTechLevel(level)}
+                              colorClass={
+                                swatchStyle ? undefined : TECH_LEVEL_STYLES[String(level)]
+                              }
+                              swatchStyle={swatchStyle}
+                            />
+                          )
+                        })}
+                      </FilterRow>
+                    </div>
+                  )}
+                </div>
               )}
 
               {sources.length > 1 && (
