@@ -2,7 +2,7 @@
  * Schema index - exports all Zod schemas and inferred TypeScript types
  */
 
-import { z } from 'zod'
+import { z } from '../zod.js'
 
 // Re-export all schemas
 export * from './enums.js'

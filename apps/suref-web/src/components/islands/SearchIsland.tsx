@@ -211,6 +211,7 @@ export function SearchIsland({ navigate }: SearchIslandProps = {}) {
           <input
             ref={inputRef}
             type="text"
+            name="srd-search"
             placeholder="Search…"
             value={query}
             onChange={(e) => handleInput(e.target.value)}

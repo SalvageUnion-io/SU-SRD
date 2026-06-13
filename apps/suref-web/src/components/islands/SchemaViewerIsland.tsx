@@ -124,6 +124,7 @@ export function SchemaViewerIsland({
                 <FilterRow label="Name">
                   <input
                     type="search"
+                    name="name-filter"
                     value={nameFilter}
                     onChange={(e) => setNameFilter(e.target.value)}
                     placeholder="Filter by name…"
