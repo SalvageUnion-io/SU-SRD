@@ -69,6 +69,46 @@ describe('CrawlerSchema', () => {
     })
   })
 
+  test('happy path: type + typeNpc are optional (legacy records load)', () => {
+    const result = CrawlerSchema.parse(validCrawler)
+    expect(result.type).toBeUndefined()
+    expect(result.typeNpc).toBeUndefined()
+  })
+
+  test('happy path: round-trips a chosen type + its special NPC state', () => {
+    const result = CrawlerSchema.parse({
+      ...validCrawler,
+      type: 'battle-type-id',
+      typeNpc: {
+        npcName: 'Vex',
+        npcCurrentHP: 8,
+        npcDescription: 'A scarred veteran.',
+        npcFacts: ['Owes a debt'],
+        condition: 'damaged',
+      },
+    })
+    expect(result.type).toBe('battle-type-id')
+    expect(result.typeNpc).toEqual({
+      npcName: 'Vex',
+      npcCurrentHP: 8,
+      npcDescription: 'A scarred veteran.',
+      npcFacts: ['Owes a debt'],
+      condition: 'damaged',
+    })
+  })
+
+  test('happy path: legacy crawler with no type and a high tech level validates', () => {
+    const result = CrawlerSchema.parse({ ...validCrawler, techLevel: 'tech-5' })
+    expect(result.techLevel).toBe('tech-5')
+    expect(result.type).toBeUndefined()
+  })
+
+  test('rejects unknown fields inside typeNpc (strict)', () => {
+    expect(() =>
+      CrawlerSchema.parse({ ...validCrawler, typeNpc: { npcName: 'Vex', bogus: 'nope' } })
+    ).toThrow()
+  })
+
   test('rejects missing required field: name', () => {
     expect(() => CrawlerSchema.parse(omit(validCrawler, 'name'))).toThrow()
   })

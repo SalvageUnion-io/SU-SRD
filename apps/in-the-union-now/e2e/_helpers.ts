@@ -99,12 +99,13 @@ export async function buildMech(page: Page, name: string): Promise<void> {
   await page.waitForURL((url) => url.pathname === '/', { timeout: 15_000 })
 }
 
-/** Build a crawler (Crawler → Systems → Identity → Review). */
+/** Build a crawler (Crawler type → Systems → Crew → Identity → Review). */
 export async function buildCrawler(page: Page, name: string): Promise<void> {
   await page.goto('/crawlers/new')
   await waitForReady(page)
-  await pickByName(page, 'Hamlet Crawler')
+  await pickByName(page, 'Battle')
   await clickNext(page) // -> Systems
+  await clickNext(page) // -> Crew
   await clickNext(page) // -> Identity
   await page.getByLabel(/Crawler Name/i).fill(name)
   await clickNext(page) // -> Review

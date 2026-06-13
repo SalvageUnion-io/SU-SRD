@@ -2,10 +2,11 @@
  * Integration tests for CrawlerBuilder (create + edit on the WizShell
  * skeleton).
  *
- * Exercises Crawler (master-detail tech-level pick with bay preview) →
- * Systems (TL-filtered Sel grid) → Identity (name + starting resources) →
- * Review → submit using the real wizard, real SalvageUnionReference data,
- * real Zod validation, and a fake-indexeddb-backed entityStore.
+ * Exercises Crawler (master-detail TYPE pick with feature preview) →
+ * Systems (TL-filtered Sel grid) → Crew (NPC details) → Identity (name +
+ * starting resources) → Review → submit using the real wizard, real
+ * SalvageUnionReference data, real Zod validation, and a fake-indexeddb-backed
+ * entityStore.
  *
  * fake-indexeddb/auto is preloaded via bunfig.toml.
  * SalvageUnionReference is preloaded in beforeAll.
@@ -115,32 +116,34 @@ function systemAtTL(tl: number): { id: string; name: string } {
 // ---------------------------------------------------------------------------
 
 describe('CrawlerBuilder — create mode', () => {
-  it('renders the master-detail Crawler step with tech-level rows and bay preview', async () => {
+  it('renders the master-detail Crawler step with TYPE rows and a feature preview', async () => {
     render(<CrawlerBuilder onComplete={() => {}} onCancel={() => {}} />)
 
     expect(screen.getByText('Choose Your Crawler')).toBeTruthy()
     await waitFor(() => {
-      expect(getPickByName('Hamlet Crawler')).toBeTruthy()
+      expect(getPickByName('Battle')).toBeTruthy()
     })
 
     // No selection yet — Next is disabled, detail pane shows the empty hint.
     expect(getNextButton().disabled).toBe(true)
-    expect(screen.getByText(/Select a crawler tech level/i)).toBeTruthy()
+    expect(screen.getByText(/Select a crawler type to preview/i)).toBeTruthy()
 
-    // Selecting a level expands its detail card with the 2-col bay head grid.
-    await pick('Village Crawler')
+    // Selecting a type shows its feature card (special action + NPC), NOT a bay grid.
+    await pick('Battle')
     await waitFor(() => {
-      expect(screen.getByText('Command Bay')).toBeTruthy()
-      expect(screen.getByText('Mech Bay')).toBeTruthy()
+      // The special action is unique to the detail card.
+      expect(screen.getByText('Improved Armour and Armaments')).toBeTruthy()
+      // The special NPC's position surfaces (also in the OptRow desc → multiple).
+      expect(screen.getAllByText('Grizzled Veteran').length).toBeGreaterThan(0)
     })
     expect(getNextButton().disabled).toBe(false)
   }, 30000)
 
-  it('TL-filters the Systems step to the crawler tech level and below', async () => {
+  it('TL-filters the Systems step to Tech Level 1 (fixed for new crawlers)', async () => {
     render(<CrawlerBuilder onComplete={() => {}} onCancel={() => {}} />)
 
-    await waitFor(() => getPickByName('Hamlet Crawler'))
-    await pick('Hamlet Crawler')
+    await waitFor(() => getPickByName('Battle'))
+    await pick('Battle')
     await clickNext()
 
     const tl1 = systemAtTL(1)
@@ -151,13 +154,16 @@ describe('CrawlerBuilder — create mode', () => {
     expect(screen.queryByRole('button', { name: tl2.name })).toBeNull()
   }, 30000)
 
-  it('walks through every step and creates a valid crawler with seeded bays + resources', async () => {
+  it('walks through every step and creates a TL1 typed crawler with seeded bays, crew + resources', async () => {
     const onComplete = mock(() => {})
     render(<CrawlerBuilder onComplete={onComplete} onCancel={() => {}} />)
 
-    // --- Step 1: Crawler (master-detail OptRow list) ---
-    await waitFor(() => getPickByName('Hamlet Crawler'))
-    await pick('Hamlet Crawler')
+    const battle = SalvageUnionReference.Crawlers.find((c) => c.name === 'Battle')!
+    const commandBay = SalvageUnionReference.CrawlerBays.find((b) => b.name === 'Command Bay')!
+
+    // --- Step 1: Crawler — pick a TYPE ---
+    await waitFor(() => getPickByName('Battle'))
+    await pick('Battle')
     await clickNext()
 
     // --- Step 2: Systems — live count in subtitle ---
@@ -166,7 +172,28 @@ describe('CrawlerBuilder — create mode', () => {
     expect(screen.getByTestId('system-count').textContent).toContain('1 /')
     await clickNext()
 
-    // --- Step 3: Identity — name + starting resources ---
+    // --- Step 3: Crew — fill the Command Bay lead + the type NPC ---
+    const byId = (id: string): HTMLElement => {
+      const el = document.getElementById(id)
+      if (!el) throw new Error(`No element #${id}`)
+      return el
+    }
+    await waitFor(() => byId(`crew-${commandBay.id}-name`))
+    fireEvent.change(byId(`crew-${commandBay.id}-name`), {
+      target: { value: 'Maddox' },
+    })
+    fireEvent.change(byId(`crew-${commandBay.id}-keepsake`), {
+      target: { value: 'A medal' },
+    })
+    fireEvent.change(byId(`crew-${battle.id}-name`), {
+      target: { value: 'Vex' },
+    })
+    fireEvent.change(byId(`crew-${battle.id}-motto`), {
+      target: { value: 'No retreat' },
+    })
+    await clickNext()
+
+    // --- Step 4: Identity — name + starting resources ---
     fireEvent.change(screen.getByLabelText(/Crawler Name/i), {
       target: { value: 'Bay Wagon' },
     })
@@ -178,8 +205,7 @@ describe('CrawlerBuilder — create mode', () => {
     })
     await clickNext()
 
-    // --- Step 4: Review → submit ('Create Crawler ✦') ---
-    expect(screen.getByText(/seeded automatically/i)).toBeTruthy()
+    // --- Step 5: Review → submit ('Create Crawler ✦') ---
     const submit = screen.getByRole('button', { name: /Create Crawler/i })
     await act(async () => {
       fireEvent.click(submit)
@@ -191,6 +217,7 @@ describe('CrawlerBuilder — create mode', () => {
       const c = crawlers[0]!
       expect(c.name).toBe('Bay Wagon')
       expect(c.techLevel).toBe('tech-1')
+      expect(c.type).toBe(battle.id)
       expect(c.schemaVersion).toBe(1)
       expect(c.systems).toEqual([tl1.id])
       expect(c.scrapPool).toEqual({ tl2: 3 })
@@ -199,11 +226,18 @@ describe('CrawlerBuilder — create mode', () => {
       // Full SRD bay set seeded, NPCs at max HP (4) where the bay has one.
       const srdBays = SalvageUnionReference.CrawlerBays.all()
       expect(c.crawlerBays?.length).toBe(srdBays.length)
-      const commandBay = srdBays.find((b) => b.name === 'Command Bay')!
       const seeded = c.crawlerBays?.find((e) => e.bayRef === commandBay.id)
       expect(seeded?.npcCurrentHP).toBe(4)
+      expect(seeded?.npcName).toBe('Maddox')
 
-      // Fresh crawlers start at full SP for their tech level.
+      // Crew Keepsake routed to bayChoices; type NPC persisted to typeNpc.
+      const keepsakeId = commandBay.npc!.choices!.find((ch) => ch.name === 'Keepsake')!.id
+      expect(c.bayChoices?.[commandBay.id]?.[keepsakeId]).toEqual(['A medal'])
+      expect(c.typeNpc?.npcName).toBe('Vex')
+      const mottoId = battle.npc!.choices!.find((ch) => ch.name === 'Motto')!.id
+      expect(c.bayChoices?.[battle.id]?.[mottoId]).toEqual(['No retreat'])
+
+      // Fresh crawlers start at full SP for Tech Level 1.
       const tl = SalvageUnionReference.CrawlerTechLevels.find((t) => t.techLevel === 1)!
       expect(c.currentSP).toBe(tl.structurePoints)
     })
@@ -213,9 +247,10 @@ describe('CrawlerBuilder — create mode', () => {
   it('name gate: cannot reach Create with an empty name', async () => {
     render(<CrawlerBuilder onComplete={() => {}} onCancel={() => {}} />)
 
-    await waitFor(() => getPickByName('Hamlet Crawler'))
-    await pick('Hamlet Crawler')
+    await waitFor(() => getPickByName('Battle'))
+    await pick('Battle')
     await clickNext() // Systems
+    await clickNext() // Crew
     await clickNext() // Identity
 
     // Name left empty — Next stays disabled, Review/Create is unreachable.
@@ -233,13 +268,13 @@ describe('CrawlerBuilder — create mode', () => {
     expect(onCancel).toHaveBeenCalledTimes(1)
   })
 
-  it('offers no bay catalog or free-text crew editor — bays are seeded, not chosen', async () => {
+  it('offers no bay catalog in the Crawler step — bays are seeded, not chosen', async () => {
     render(<CrawlerBuilder onComplete={() => {}} onCancel={() => {}} />)
 
-    await waitFor(() => getPickByName('Hamlet Crawler'))
-    await pick('Hamlet Crawler')
-    await clickNext()
+    await waitFor(() => getPickByName('Battle'))
+    await pick('Battle')
 
+    // The type detail card shows features, not a 2-col bay head grid.
     expect(screen.queryByLabelText('Bay entity slug')).toBeNull()
     expect(screen.queryByRole('button', { name: /Add Bay/i })).toBeNull()
   }, 30000)
@@ -249,12 +284,14 @@ describe('CrawlerBuilder — create mode', () => {
 // Edit mode: upsert branch — live-play state never clobbered
 // ---------------------------------------------------------------------------
 
-async function seedCrawler() {
+async function seedCrawler(overrides?: { techLevel?: number; type?: string }) {
   const input = crawlerFormToCreateInput(
     {
       name: 'The Wandering Kettle',
-      techLevel: 1,
+      techLevel: overrides?.techLevel ?? 1,
+      type: overrides?.type ?? null,
       systems: [],
+      crew: {},
       scrapPool: { ...EMPTY_SCRAP_POOL },
       upgradePool: 0,
     },
@@ -296,6 +333,7 @@ describe('CrawlerBuilder — edit mode', () => {
     const tl1 = systemAtTL(1)
     await waitFor(() => screen.getByRole('button', { name: tl1.name }))
     await pick(tl1.name)
+    await clickNext() // Crew (all optional)
     await clickNext() // Identity (name prefilled)
     await clickNext() // Review
 
@@ -321,5 +359,113 @@ describe('CrawlerBuilder — edit mode', () => {
       expect(c.crawlerBays?.length).toBe(crawler.crawlerBays!.length)
     })
     expect(onComplete).toHaveBeenCalledWith(crawler.id)
+  }, 30000)
+
+  it('preserves a higher stored tech level on save (only create fixes TL1)', async () => {
+    // A pre-feature crawler at Tech 3 with no chosen type.
+    const crawler = await seedCrawler({ techLevel: 3 })
+    expect(crawler.techLevel).toBe('tech-3')
+    const played = useEntityStore.getState().get('crawler', crawler.id)!
+
+    render(
+      <CrawlerBuilder
+        crawlerId={crawler.id}
+        initialState={crawlerToFormState(played)}
+        onComplete={() => {}}
+        onCancel={() => {}}
+      />
+    )
+
+    // Type-unselected (legacy crawler), but TL is preserved so Next gates on name.
+    await waitFor(() => {
+      expect(getNextButton().disabled).toBe(false)
+    })
+    await clickNext() // Systems
+    await clickNext() // Crew
+    await clickNext() // Identity
+    await clickNext() // Review
+
+    const save = screen.getByRole('button', { name: /Save Crawler/i })
+    await act(async () => {
+      fireEvent.click(save)
+    })
+
+    await waitFor(() => {
+      const c = useEntityStore.getState().get('crawler', crawler.id)!
+      expect(c.techLevel).toBe('tech-3')
+    })
+  }, 30000)
+
+  it('changing the crawler TYPE on edit drops the old type NPC + bayChoices (no phantom bay)', async () => {
+    const battle = SalvageUnionReference.Crawlers.find((c) => c.name === 'Battle')!
+    const engineering = SalvageUnionReference.Crawlers.find((c) => c.name === 'Engineering')!
+
+    // Seed a Battle crawler with a named Grizzled Veteran (type NPC) and a
+    // Keepsake persisted in bayChoices keyed by the Battle type id.
+    const input = crawlerFormToCreateInput(
+      {
+        name: 'War Wagon',
+        techLevel: 1,
+        type: battle.id,
+        systems: [],
+        crew: { [battle.id]: { name: 'Old Vex', keepsake: 'A dog tag' } },
+        scrapPool: { ...EMPTY_SCRAP_POOL },
+        upgradePool: 0,
+      },
+      { maxSP: 20, crawlerBays: seedDefaultCrawlerBays() }
+    )
+    const crawler = await useEntityStore.getState().create('crawler', input)
+    expect(crawler.typeNpc?.npcName).toBe('Old Vex')
+    expect(crawler.bayChoices?.[battle.id]).toBeTruthy()
+
+    // Wound a real bay's NPC so we can prove live HP is preserved on save.
+    const playedBayRef = crawler.crawlerBays![0]!.bayRef
+    await useEntityStore.getState().updateCrawlerBay(crawler.id, playedBayRef, { npcCurrentHP: 1 })
+
+    const played = useEntityStore.getState().get('crawler', crawler.id)!
+    render(
+      <CrawlerBuilder
+        crawlerId={crawler.id}
+        initialState={crawlerToFormState(played)}
+        onComplete={() => {}}
+        onCancel={() => {}}
+      />
+    )
+
+    // Switch the type: Battle → Engineering on the Crawler step.
+    await waitFor(() => getPickByName('Engineering'))
+    await pick('Engineering')
+    await clickNext() // Systems
+    await clickNext() // Crew
+    await clickNext() // Identity
+    await clickNext() // Review
+
+    const save = screen.getByRole('button', { name: /Save Crawler/i })
+    await act(async () => {
+      fireEvent.click(save)
+    })
+
+    await waitFor(() => {
+      const c = useEntityStore.getState().get('crawler', crawler.id)!
+      expect(c.type).toBe(engineering.id)
+
+      // No phantom bay keyed by a type id (neither old nor new type).
+      const srdBayIds = new Set(SalvageUnionReference.CrawlerBays.all().map((b) => b.id))
+      for (const entry of c.crawlerBays ?? []) {
+        expect(srdBayIds.has(entry.bayRef)).toBe(true)
+      }
+      expect(c.crawlerBays?.some((e) => e.bayRef === battle.id)).toBe(false)
+      expect(c.crawlerBays?.some((e) => e.bayRef === engineering.id)).toBe(false)
+
+      // The old type's NPC name does NOT carry over to the new type.
+      expect(c.typeNpc?.npcName).not.toBe('Old Vex')
+
+      // The orphaned old-type bayChoices key is cleared.
+      expect(c.bayChoices?.[battle.id]).toBeUndefined()
+
+      // Live bay HP is preserved through the type switch.
+      const bay = c.crawlerBays?.find((e) => e.bayRef === playedBayRef)
+      expect(bay?.npcCurrentHP).toBe(1)
+    })
   }, 30000)
 })
