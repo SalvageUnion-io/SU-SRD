@@ -82,7 +82,7 @@ export function InstallStep({
           ))}
         </div>
 
-        <div className="mt-[25px] grid grid-cols-1 gap-3.5 md:grid-cols-2">
+        <div className="mt-[25px] grid grid-cols-[repeat(auto-fill,minmax(15rem,1fr))] gap-3.5">
           {visible.map((item) => (
             <SelCard
               key={item.id}

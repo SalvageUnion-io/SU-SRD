@@ -110,24 +110,19 @@ export function WizShell({
 
         {notice && <div className="mt-6">{notice}</div>}
 
-        <footer
-          className={cn(
-            'mt-6 border-t-[1.5px] border-wk-faint pt-4',
-            ctaFullWidth ? 'flex flex-col gap-3' : 'flex items-center justify-between gap-3'
-          )}
-        >
-          {ctaFullWidth && (
-            <Btn
-              variant="primary"
-              size="lg"
-              className="w-full"
-              onClick={onNext}
-              disabled={nextDisabled || busy}
-            >
-              {busy ? 'Saving…' : ctaLabel}
-            </Btn>
-          )}
-          <div className="flex gap-2">
+        {/* Footer — floats sticky at the bottom-right of the viewport as the
+            content scrolls, so confirm/nav stays reachable without a full-width
+            bar eating vertical space. The footer itself is click-through
+            (pointer-events-none); only the action pill is interactive. On mech
+            install steps (ctaFullWidth) the pill stacks full-width on mobile to
+            emphasise the primary CTA. */}
+        <footer className="pointer-events-none sticky bottom-4 z-40 mt-6 flex justify-end">
+          <div
+            className={cn(
+              'pointer-events-auto flex items-center gap-2 rounded-xl border-[1.5px] border-wk-faint bg-wk-bg/95 p-2 shadow-lg backdrop-blur',
+              ctaFullWidth && 'w-full flex-col items-stretch sm:w-auto sm:flex-row sm:items-center'
+            )}
+          >
             {onBack && (
               <Btn variant="ghost" onClick={onBack} disabled={busy}>
                 Back
@@ -136,12 +131,16 @@ export function WizShell({
             <Btn variant="ghost" onClick={onCancel} disabled={busy}>
               Cancel
             </Btn>
-          </div>
-          {!ctaFullWidth && (
-            <Btn variant="primary" size="lg" onClick={onNext} disabled={nextDisabled || busy}>
+            <Btn
+              variant="primary"
+              size="lg"
+              className={cn(ctaFullWidth && 'w-full sm:w-auto')}
+              onClick={onNext}
+              disabled={nextDisabled || busy}
+            >
               {busy ? 'Saving…' : ctaLabel}
             </Btn>
-          )}
+          </div>
         </footer>
       </main>
     </div>

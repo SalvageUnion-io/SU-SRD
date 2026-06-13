@@ -169,7 +169,11 @@ export function Dashboard() {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h1 className="font-cond text-xl font-bold uppercase leading-none tracking-[.02em] text-ink md:text-[31px]">
-              ITUN <span className="text-rust">—</span> Saved Builds
+              ITUN
+              <span className="ml-1.5 inline-block rounded bg-rust px-1.5 py-0.5 align-[0.35em] font-cond text-[10px] font-bold uppercase leading-none tracking-[0.12em] text-wk-bg md:text-[11px]">
+                Beta
+              </span>{' '}
+              <span className="text-rust">—</span> Saved Builds
             </h1>
             <div className="mt-3 flex flex-wrap items-start gap-2.5">
               <ExportAllButton />
