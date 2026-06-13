@@ -2,7 +2,7 @@
  * Zod object schemas from objects.schema.json
  */
 
-import { z } from 'zod'
+import { z } from '../zod.js'
 import {
   NonNegativeIntegerSchema,
   PositiveIntegerSchema,

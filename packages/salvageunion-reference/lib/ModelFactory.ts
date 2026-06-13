@@ -8,7 +8,7 @@
  */
 import { BaseModel } from './BaseModel.js'
 import schemaIndex from '../schemas/index.json' with { type: 'json' }
-import { z } from 'zod'
+import { z } from './zod.js'
 import {
   AbilitySchema,
   AbilityTreeRequirementSchema,

@@ -2,7 +2,7 @@
  * Zod common primitive schemas from common.schema.json
  */
 
-import { z } from 'zod'
+import { z } from '../zod.js'
 
 /**
  * Unique identifier for the entry

@@ -2,7 +2,7 @@
  * Zod entity schemas - all 24 entity types
  */
 
-import { z } from 'zod'
+import { z } from '../zod.js'
 import {
   BaseEntitySchema,
   ContentSchema,

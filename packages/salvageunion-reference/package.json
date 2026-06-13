@@ -32,7 +32,10 @@
     },
     "./package.json": "./package.json"
   },
-  "sideEffects": false,
+  "sideEffects": [
+    "./dist/zod.js",
+    "./lib/zod.ts"
+  ],
   "files": [
     "dist",
     "lib",
