@@ -2,6 +2,7 @@ import type { SURefMetaAction, SURefObjectTable } from 'salvageunion-reference'
 import {
   getReferenceEntityName,
   getRequiredTraits,
+  resolveActivationCurrency,
   SalvageUnionReference,
 } from 'salvageunion-reference'
 import { BlockContentRendererView } from './BlockContentRendererView'
@@ -57,8 +58,12 @@ export function NestedActionDisplay({
   }
 
   // Legacy path: SectionSeparator title + left-border content block.
-  // Regular actions use AP currency
-  const details = extractReferenceEntityDetails(data, undefined, 'AP')
+  // Currency follows the action's source: systems/modules cost EP, everything else AP.
+  const details = extractReferenceEntityDetails(
+    data,
+    undefined,
+    resolveActivationCurrency(data.actionSource)
+  )
 
   // Match ReferenceEntityDisplay fontSize.sm: compact ? 'xs' : 'sm'
   const fontSize = compact ? 'text-xs' : 'text-sm'
