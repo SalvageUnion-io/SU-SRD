@@ -89,4 +89,24 @@ describe('rollForPilotField', () => {
     )
     expect(result).toBe('A tarnished medal')
   })
+
+  test('navigates a columns-type table (Callsign Table) via two rolls', () => {
+    // The real Callsign Table is `type: columns`, keyed 1-4 / 5-8 / … A flat
+    // resultForTable can't walk it and returns failure → the roll button no-ops.
+    // Both d20 rolls stub to 5: column roll 5 → the "5-8" column, entry roll 5 → "5".
+    const columnsTable = {
+      id: 'rt-callsign',
+      name: 'Callsign Table',
+      schemaName: 'roll-tables' as const,
+      table: {
+        type: 'columns',
+        '5-8': { '5': { value: 'Candyman' } },
+      },
+    }
+    const result = rollForPilotField('callsign', {
+      findTable: () => columnsTable as never,
+      rollD20: () => 5,
+    })
+    expect(result).toBe('Candyman')
+  })
 })
