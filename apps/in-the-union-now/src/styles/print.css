@@ -1,0 +1,205 @@
+/**
+ * print.css — @media print rules for the ITUN sheet view.
+ *
+ * A4 is the default page size. US Letter is documented as an alternate
+ * available by printing to a US Letter destination from the browser's print
+ * dialog (browser scales automatically; no separate JS class-toggle is needed
+ * in Wave 6 — user-selectable variant deferred to a later iteration).
+ */
+
+@media print {
+  /* -------------------------------------------------------------------------
+   * Page setup — A4 default
+   * US Letter alternate: change size to "letter" in the browser print dialog,
+   * or override with a user-selectable body class in a future iteration.
+   * ------------------------------------------------------------------------- */
+  @page {
+    size: A4 portrait;
+    margin: 10mm;
+  }
+
+  @page :first {
+    size: A4 portrait;
+    margin: 10mm;
+  }
+
+  /* -------------------------------------------------------------------------
+   * Reset backgrounds to white / ink-safe
+   * ------------------------------------------------------------------------- */
+  *,
+  *::before,
+  *::after {
+    background-color: #fff !important;
+    color: #000 !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* -------------------------------------------------------------------------
+   * Typography — minimum 12pt body; clear heading scale
+   *
+   * Browser default 1pt ≈ 1.333px at 96dpi. 12pt ≈ 16px.
+   * We use pt for print to guarantee physical size.
+   * ------------------------------------------------------------------------- */
+  body {
+    font-size: 12pt;
+    line-height: 1.4;
+    font-family: 'Barlow', system-ui, sans-serif;
+  }
+
+  h1 {
+    font-size: 20pt;
+    font-weight: 700;
+    margin-bottom: 6pt;
+  }
+
+  h2 {
+    font-size: 16pt;
+    font-weight: 700;
+    margin-bottom: 4pt;
+  }
+
+  h3 {
+    font-size: 14pt;
+    font-weight: 600;
+    margin-bottom: 3pt;
+  }
+
+  p,
+  li,
+  dd,
+  dt,
+  span {
+    font-size: 12pt;
+  }
+
+  /* -------------------------------------------------------------------------
+   * Hide non-printable elements
+   * ------------------------------------------------------------------------- */
+  nav,
+  .no-print,
+  button:not([data-print]) {
+    display: none !important;
+  }
+
+  /* LiveSheet top-bar links (back-to-dashboard, Edit, segment switch) */
+  header a {
+    display: none !important;
+  }
+
+  /* -------------------------------------------------------------------------
+   * Container overrides — full-width, no padding
+   * ------------------------------------------------------------------------- */
+  main,
+  .sheet-wrapper {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* -------------------------------------------------------------------------
+   * Page-break rules
+   *
+   * .sheet-section:  top-level sections (PilotSheet/MechSheet/CrawlerSheet)
+   *                  each render as <section> with aria-labelledby; we target
+   *                  the rendered <section> element directly as well.
+   * .card:           DisplayCard-style containers in suref-react
+   * .stat-row:       stat grid rows
+   * dl:              the stats <dl> in MechSheet
+   * li:              individual list items (systems, modules, cargo)
+   * img:             never break inside an image
+   * ------------------------------------------------------------------------- */
+  section[aria-labelledby],
+  .sheet-section {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  section[aria-labelledby]:not(:first-child),
+  .sheet-section:not(:first-child) {
+    page-break-before: auto;
+    break-before: auto;
+  }
+
+  /* Force page-break when a section is explicitly marked */
+  section[data-page-break],
+  [data-page-break] {
+    page-break-before: always;
+    break-before: page;
+  }
+
+  /* .card targets DisplayCard-style containers in suref-react;
+   * section[class*="border-su-black"] targets the restyled SU panel sections. */
+  .card,
+  .stat-row,
+  section[class*='border-su-black'] {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  dl {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  li {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  img {
+    page-break-inside: avoid;
+    break-inside: avoid;
+    max-width: 100% !important;
+  }
+
+  /* -------------------------------------------------------------------------
+   * Border adjustments for ink-friendliness
+   * ------------------------------------------------------------------------- */
+  .border,
+  [class*='border-'] {
+    border-color: #000 !important;
+  }
+
+  /* Stat blocks in MechSheet (grid of SP/EP/Heat etc.) */
+  dl > div {
+    border: 1px solid #000 !important;
+    padding: 3pt 6pt !important;
+  }
+
+  /* -------------------------------------------------------------------------
+   * Stat pips (suref-react StatBlock/MiniStat) — keep trackable boxes on paper.
+   *
+   * The global `*` reset above forces every background to white, which would
+   * erase a filled pip's fill and make it indistinguishable from an empty one.
+   * Re-assert an ink-black fill on filled pips (`data-pip="on"`) and force
+   * exact colour rendering so the fill survives the print pipeline.
+   * Empty pips (`data-pip="off"`) stay white with a black border.
+   * ------------------------------------------------------------------------- */
+  [data-pip] {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    border-color: #000 !important;
+  }
+
+  [data-pip='on'] {
+    background-color: #000 !important;
+  }
+
+  [data-pip='off'] {
+    background-color: #fff !important;
+  }
+
+  /* -------------------------------------------------------------------------
+   * Links — print the URL after the text (informational)
+   * Exclude nav links (already hidden) and the dashboard link.
+   * ------------------------------------------------------------------------- */
+  a[href]:not([href^='#']):not([aria-label='Back to dashboard'])::after {
+    content: ' (' attr(href) ')';
+    font-size: 9pt;
+    color: #444 !important;
+    word-break: break-all;
+  }
+}

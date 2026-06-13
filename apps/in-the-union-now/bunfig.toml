@@ -1,7 +1,5 @@
 [test]
-preload = ["../../test/happydom.ts", "../../test/testing-library.ts", "./test/preload-reference.ts"]
+preload = ["../../test/happydom.ts", "../../test/testing-library.ts", "fake-indexeddb/auto"]
 
 [test.env]
 NODE_ENV = "test"
-VITE_SUPABASE_URL = "https://test.supabase.co"
-VITE_SUPABASE_ANON_KEY = "test-anon-key"

@@ -1,48 +1,101 @@
-import type { ItemCondition } from 'salvageunion-reference'
-import type { ReferenceEntityControl } from 'suref-react'
+/**
+ * ConditionToggle — tri-state toggle for intact / damaged / destroyed.
+ *
+ * Controlled component. Cycles intact → damaged → destroyed → intact on
+ * click or keyboard activation (Enter / Space). Keyboard-accessible via
+ * role="button" with tabIndex.
+ */
 
-const CONDITION_CYCLE: ItemCondition[] = ['intact', 'damaged', 'destroyed']
+import type { KeyboardEvent } from 'react'
 
-const CONDITION_STYLES: Record<
-  ItemCondition,
-  { label: string; variant: ReferenceEntityControl['variant']; bgColor?: string }
-> = {
-  intact: {
-    label: 'Intact',
-    variant: 'primary',
-  },
-  damaged: {
-    label: 'Damaged',
-    variant: 'danger',
-    bgColor: 'var(--color-su-orange)',
-  },
-  destroyed: {
-    label: 'Destroyed',
-    variant: 'danger',
-  },
+import { cn } from '../../lib/utils'
+
+export type ItemCondition = 'intact' | 'damaged' | 'destroyed'
+
+const CYCLE: Record<ItemCondition, ItemCondition> = {
+  intact: 'damaged',
+  damaged: 'destroyed',
+  destroyed: 'intact',
 }
 
-function getNextCondition(condition: ItemCondition): ItemCondition {
-  const nextIndex = (CONDITION_CYCLE.indexOf(condition) + 1) % CONDITION_CYCLE.length
-  return CONDITION_CYCLE[nextIndex] ?? 'intact'
+const LABELS: Record<ItemCondition, string> = {
+  intact: 'Intact',
+  damaged: 'Damaged',
+  destroyed: 'Destroyed',
 }
 
-export function makeConditionControl(
-  condition: ItemCondition,
-  onChange: (condition: ItemCondition) => void,
-  disabled?: boolean
-): ReferenceEntityControl {
-  const style = CONDITION_STYLES[condition]
-  const next = getNextCondition(condition)
-  const nextLabel = CONDITION_STYLES[next].label
+const STYLES: Record<ItemCondition, string> = {
+  intact: 'bg-roll-success text-white border-su-black',
+  damaged: 'bg-roll-failure text-su-black border-su-black',
+  destroyed: 'bg-roll-cascade text-white border-su-black',
+}
 
-  return {
-    key: 'condition',
-    label: style.label,
-    onClick: () => onChange(next),
-    ariaLabel: disabled ? `Condition: ${style.label}` : `Click to change to ${nextLabel}`,
-    variant: style.variant,
-    bgColor: style.bgColor,
-    disabled,
+type ConditionToggleProps = {
+  value: ItemCondition
+  onChange: (next: ItemCondition) => void
+  /** Optional class override for the outer element. */
+  className?: string
+  /** Optional accessible label prefix, e.g. the item name. */
+  ariaLabelPrefix?: string
+  /**
+   * When true, renders as a static badge with no interactive affordance.
+   * Used in read-only contexts like published snapshots.
+   */
+  readOnly?: boolean
+}
+
+export function ConditionToggle({
+  value,
+  onChange,
+  className,
+  ariaLabelPrefix,
+  readOnly = false,
+}: ConditionToggleProps) {
+  function cycle() {
+    onChange(CYCLE[value])
   }
+
+  function handleKeyDown(e: KeyboardEvent<HTMLSpanElement>) {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      cycle()
+    }
+  }
+
+  const label = ariaLabelPrefix
+    ? `${ariaLabelPrefix} condition: ${LABELS[value]}`
+    : `Condition: ${LABELS[value]}`
+
+  const badgeClass = cn(
+    'inline-flex select-none items-center rounded border-2 px-2 py-0.5 font-cond text-xs font-bold uppercase tracking-wide',
+    STYLES[value],
+    className
+  )
+
+  if (readOnly) {
+    return (
+      <span aria-label={label} className={badgeClass}>
+        {LABELS[value]}
+      </span>
+    )
+  }
+
+  return (
+    <span
+      role="button"
+      tabIndex={0}
+      aria-label={label}
+      onClick={cycle}
+      onKeyDown={handleKeyDown}
+      className={cn(
+        badgeClass,
+        // min-h-11 ensures 44px touch target on mobile; sm:min-h-0 lets the
+        // badge return to its natural (text-driven) height on larger viewports.
+        'cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1',
+        'min-h-11 sm:min-h-0'
+      )}
+    >
+      {LABELS[value]}
+    </span>
+  )
 }

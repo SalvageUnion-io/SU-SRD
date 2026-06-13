@@ -38,8 +38,8 @@ Testing patterns using Bun's test runner and Testing Library for component tests
 
 ## Mocking
 
-- Mock Supabase client for API tests
-- Use `vi.mock()` for module mocking (Vitest/Bun)
+- ITUN data-layer tests run against `fake-indexeddb` (preloaded via `bunfig.toml`)
+- Use `mock()` from `bun:test` for module/function mocking
 - Mock external dependencies appropriately
 
 ## Examples

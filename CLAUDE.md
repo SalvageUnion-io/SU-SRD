@@ -33,6 +33,16 @@ This is a TypeScript monorepo with shared packages (suref-react, etc.). After an
 
 Bun monorepo ("SURef") for Salvage Union (tabletop RPG) tools, located in the `SU-SRD/` subdirectory. Contains a static reference site, a character builder app, a Discord bot, and shared packages.
 
+## External Integrations & MCP Servers
+
+The apps deploy to two platforms, each with an official MCP server wired up in the project-scoped [`.mcp.json`](.mcp.json) (committed; Claude Code prompts each contributor to approve it per-project):
+
+- **Netlify** — hosts `apps/suref-web` (static) and `apps/in-the-union-now` (static SPA + the snapshot backend Netlify Functions + Blobs; see `apps/*/netlify.toml` and [ADR-010](docs/adrs/ADR-010-snapshot-backend.md)). MCP server: official `@netlify/mcp` (stdio); authenticates via the Netlify CLI/OAuth — no token in the file.
+- **Render** — hosts `apps/discord-bot` as a worker (see `render.yaml`). MCP server: official hosted server at `https://mcp.render.com/mcp`; reads `RENDER_API_KEY` from your shell env.
+- **GitHub** — repo host + Actions CI + PR workflow. MCP server: official remote `https://api.githubcopilot.com/mcp/`; reads `GITHUB_PAT` from your shell env.
+
+`.mcp.json` is **secret-free by design** — never put tokens in it; auth is via env vars (`RENDER_API_KEY`, `GITHUB_PAT`) or OAuth. Set the env vars before launching Claude Code if you want those servers to connect (e.g. `export RENDER_API_KEY=...`).
+
 ## SU-SRD Monorepo
 
 ### Quick Reference
@@ -82,7 +92,7 @@ bun run build:bot        # Build Discord bot
 **Workspace structure:**
 
 - `apps/suref-web/` - Static SRD reference site (Astro 5, React 19 islands, Tailwind v4, Vite). No auth, no Supabase.
-- `apps/in-the-union-now/` - Character builder & game manager (React 19, TanStack Router/Query, ShadCN + Tailwind v4, Supabase, Vite). Has auth, dashboard, live sheets.
+- `apps/in-the-union-now/` - Character builder & game manager (React 19, TanStack Router/Query, ShadCN + Tailwind v4, Vite). Local-first: IndexedDB persistence, no auth, no backend. Has dashboard, live sheets, snapshot sharing.
 - `apps/discord-bot/` - Discord.js bot for rolling on Salvage Union tables
 - `packages/suref-react/` - Shared React component library (ShadCN + Tailwind, entity display system, base typography, UI primitives). No build step, exports TypeScript source.
 - `packages/salvageunion-reference/` - TypeScript ORM + schema-validated JSON dataset for game data
@@ -104,7 +114,7 @@ discord-bot (standalone, depends on salvageunion-reference)
 Detailed cross-cutting architecture docs live in `docs/architecture/`:
 
 - **[display-system.md](docs/architecture/display-system.md)** — Three-layer rendering stack: DisplayCard -> ReferenceEntityDisplay -> consumer patterns
-- **[data-flow.md](docs/architecture/data-flow.md)** — Reference data + player data resolution, TanStack Query patterns, Supabase hydration
+- **[data-flow.md](docs/architecture/data-flow.md)** — Reference data + player data resolution, TanStack Query patterns, IndexedDB hydration
 - **[seo-accessibility.md](docs/architecture/seo-accessibility.md)** — SEO strategy (suref-web) and WCAG 2.1 AA compliance patterns
 - **[package-contracts.md](docs/architecture/package-contracts.md)** — Package APIs, dependency rules, cross-package change checklist
 

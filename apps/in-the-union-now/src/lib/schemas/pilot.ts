@@ -1,0 +1,192 @@
+import { z } from 'zod'
+import { ItemConditionMapSchema } from './mech'
+
+/**
+ * Persisted choice selections for an entity that carries `choices`
+ * (e.g. granted equipment with permanent/multi-select picks).
+ *
+ * Mirrors suref-react's `ChoiceSelections` type exactly:
+ *   Record<choiceId, selectedOptionValues[]>
+ * so it can be passed straight into ReferenceEntityDisplay's controlled
+ * `selections` prop. Free-text choices store their value as a single-element array.
+ */
+export const ChoiceSelectionsSchema = z.record(z.string(), z.array(z.string()))
+
+/**
+ * A pilot injury (rules A11). Minor = −1 max HP (heals at Med Bay T3–4);
+ * Major = −2 max HP (heals at T5–6). Injuries stack; when derived max HP
+ * reaches 0 the pilot dies. The severity enum drives the max-HP derivation in
+ * lib/rules/derivedStats.ts; `note` records the source/description.
+ */
+export const InjurySchema = z
+  .object({
+    severity: z.enum(['minor', 'major']),
+    note: z.string(),
+  })
+  .strict()
+export type Injury = z.infer<typeof InjurySchema>
+
+/**
+ * A free-form inventory entry with an explicit slot cost (plan S7). Used for
+ * anything the pilot carries that is not a reference equipment slug — most
+ * importantly Scrap (3 slots each per rules A13). Slot math at the display
+ * layer sums `slotCost` truthfully alongside reference equipment.
+ */
+export const GenericInventoryEntrySchema = z
+  .object({
+    id: z.string(),
+    name: z.string().min(1),
+    /** Explicit inventory-slot cost for this entry (Scrap = 3). */
+    slotCost: z.number().int().min(0),
+    /** Optional quantity for stackable entries; absent means 1. */
+    qty: z.number().int().min(1).optional(),
+    note: z.string().optional(),
+  })
+  .strict()
+export type GenericInventoryEntry = z.infer<typeof GenericInventoryEntrySchema>
+
+/**
+ * classRef: slug reference to a class in salvageunion-reference.
+ * Resolution against game data is handled at the presentation/query layer.
+ */
+export const PilotSchema = z
+  .object({
+    id: z.string(),
+    schemaVersion: z.literal(1),
+    /** Pilot's real name — must not be empty. */
+    name: z.string().min(1),
+    /** Pilot's callsign / handle — must not be empty. */
+    callsign: z.string().min(1),
+    /** Slug reference to a Pilot Class in salvageunion-reference */
+    classRef: z.string(),
+    /**
+     * Slugs of class abilities selected for this pilot.
+     * Uncapped at the schema level so advancement beyond the creation budget
+     * can persist (plan 2.2). The rules cap — 10 abilities, 12 for Salvager —
+     * is a SOFT warning (lib/rules/softWarnings.ts), never a parse failure.
+     */
+    abilities: z.array(z.string()),
+    /**
+     * Slugs of equipment items carried. Uncapped at the schema level — the
+     * creation budget (3 at TL1) is wizard guidance, not a persistence cap.
+     */
+    equipment: z.array(z.string()),
+    motto: z.string(),
+    keepsake: z.string(),
+    appearance: z.string(),
+    background: z.string().default(''),
+    /** Active condition slugs */
+    conditions: z.array(z.string()),
+    /** Optional: links this pilot to a workspace */
+    workspaceId: z.string().optional(),
+    // ---------------------------------------------------------------------------
+    // Live-play current stat tracking (#245).
+    // These are current values for the active session — separate from any
+    // class/rules defaults. When absent the sheet falls back to 0.
+    // TODO: source base value from rules once pilot class data exposes HP/AP.
+    // ---------------------------------------------------------------------------
+    /** Current hit points */
+    currentHP: z.number().int().min(0).optional(),
+    /** Current action points */
+    currentAP: z.number().int().min(0).optional(),
+    /**
+     * Per-equipment condition map (REQ-011 #240). Keyed by equipment slug.
+     * When absent or key missing, the display layer defaults to 'intact'.
+     */
+    equipmentConditions: ItemConditionMapSchema.optional(),
+    /**
+     * Persisted granted-equipment choice selections, keyed by equipment slug,
+     * then by choiceId → selected option values. Optional: when absent or a key
+     * is missing, the display layer treats that item as having no selections.
+     * Additive optional field — no DB migration needed (same tactic as
+     * equipmentConditions).
+     */
+    equipmentChoices: z.record(z.string(), ChoiceSelectionsSchema).optional(),
+    /**
+     * Manual fallback for the pilot's effective Crawler Tech Level (1–6), used
+     * to scale choice caps (e.g. the Custom Sniper Rifle's Modification choice,
+     * "at each Tech Level you may select an additional Modification"). Only used
+     * when the pilot is NOT linked to a crawler; when a crawler is associated its
+     * techLevel takes precedence (see resolveEffectiveCrawlerLevel). Optional and
+     * additive — no DB migration needed (same tactic as equipmentChoices).
+     */
+    crawlerLevel: z.number().int().min(1).max(6).optional(),
+    /**
+     * Slugs of pilot abilities that have been "used" this rest (live-play, Slice
+     * D). Used for once-per-rest abilities: the per-ability toggle adds/removes a
+     * slug here. When absent or a slug is missing, the ability reads as available
+     * (not yet used). Additive optional field — no DB migration needed (same
+     * tactic as equipmentChoices).
+     */
+    usedAbilities: z.array(z.string()).optional(),
+    // ---------------------------------------------------------------------------
+    // Advancement + derived-maxima state (plan 2.2, rules A2/A4/A5/A11/A14).
+    // All additive-optional — no DB migration required; absent reads as the
+    // documented default.
+    // ---------------------------------------------------------------------------
+    /** Training Points available to spend (rules A5: +1 per Downtime). Absent = 0. */
+    trainingPoints: z.number().int().min(0).optional(),
+    /**
+     * Injuries list (enum severity, not free-form). Drives the max-HP
+     * derivation: maxHP = 10 + maxHpModifier − Σ(minor: 1, major: 2).
+     * Absent = no injuries.
+     */
+    injuries: z.array(InjurySchema).optional(),
+    /**
+     * Training/passive bonuses to max HP ONLY (Stat Training +2 per tier,
+     * Beefcake, Defy Death, …). Injury penalties are NOT folded in here — they
+     * are derived from `injuries` so healing an injury restores max HP without
+     * bookkeeping. Absent = 0.
+     */
+    maxHpModifier: z.number().int().optional(),
+    /** Training/passive bonuses to max AP (Stat Training +1 per tier). Absent = 0. */
+    maxApModifier: z.number().int().optional(),
+    /**
+     * Passive bonuses to inventory capacity over the base 6 (rules A13 —
+     * e.g. Beefcake +4). Absent = 0.
+     */
+    maxInventorySlotsModifier: z.number().int().optional(),
+    /**
+     * Per-equipment Uses (X) counters (rules A14), keyed by equipment slug.
+     * Value = uses remaining; absent key = item at full uses. All uses
+     * recharge after a week of Downtime (Orbital Lance never — hand-managed).
+     */
+    equipmentUses: z.record(z.string(), z.number().int().min(0)).optional(),
+    /**
+     * The three once-per-Downtime 'Used' toggles from the official pilot
+     * sheet (rules A8–A10). true = used this cycle; reset at Downtime.
+     */
+    usedToggles: z
+      .object({
+        background: z.boolean().optional(),
+        keepsake: z.boolean().optional(),
+        motto: z.boolean().optional(),
+      })
+      .strict()
+      .optional(),
+    /**
+     * Free-form inventory entries with explicit slot costs — the pilot-side
+     * home for Scrap (3 slots each) and other non-reference items (plan S7).
+     */
+    genericInventory: z.array(GenericInventoryEntrySchema).optional(),
+    createdAt: z.string().datetime(),
+    updatedAt: z.string().datetime(),
+  })
+  .strict()
+
+export type Pilot = z.infer<typeof PilotSchema>
+
+/**
+ * Pilots persisted (or exported/published) before the vestigial `rollResults`
+ * field was removed still carry it — and the strict PilotSchema would reject
+ * them. Drop the field before parsing. Mirrors normalizeLegacyCargoRecord;
+ * the v4 IndexedDB migration applies the same rewrite on local records.
+ */
+export function normalizeLegacyPilotRecord(
+  record: Record<string, unknown>
+): Record<string, unknown> {
+  if (!('rollResults' in record)) return record
+  const rest = { ...record }
+  delete rest['rollResults']
+  return rest
+}

@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!--
+    ITUN brand mark: Cargo hazard-stripe plate, light variant (design spec §1.5).
+    Font-free geometric SVG — ink plate #282019, paper knockout #f3ede2, hazard
+    footer: 140px band from y=372 (#1d1812) with rust #a85222 parallelogram
+    stripes (42px stripe / 84px period, 45° slant). Rounded square rx 30.
+    PNGs in this directory are rasterized from this file via rsvg-convert.
+  -->
+  <defs>
+    <clipPath id="plate">
+      <rect x="0" y="0" width="512" height="512" rx="30" />
+    </clipPath>
+  </defs>
+  <g clip-path="url(#plate)">
+    <!-- Ink plate -->
+    <rect x="0" y="0" width="512" height="512" fill="#282019" />
+    <!-- Paper knockout panel above the hazard footer -->
+    <rect x="48" y="48" width="416" height="276" rx="12" fill="#f3ede2" />
+    <!-- Hazard footer band -->
+    <rect x="0" y="372" width="512" height="140" fill="#1d1812" />
+    <!-- Rust hazard stripes: 42px parallelograms on an 84px period -->
+    <g fill="#a85222">
+      <path d="M -140 512 L -98 512 L 42 372 L 0 372 Z" />
+      <path d="M -56 512 L -14 512 L 126 372 L 84 372 Z" />
+      <path d="M 28 512 L 70 512 L 210 372 L 168 372 Z" />
+      <path d="M 112 512 L 154 512 L 294 372 L 252 372 Z" />
+      <path d="M 196 512 L 238 512 L 378 372 L 336 372 Z" />
+      <path d="M 280 512 L 322 512 L 462 372 L 420 372 Z" />
+      <path d="M 364 512 L 406 512 L 546 372 L 504 372 Z" />
+      <path d="M 448 512 L 490 512 L 630 372 L 588 372 Z" />
+    </g>
+  </g>
+</svg>

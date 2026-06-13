@@ -4,6 +4,7 @@ import {
   type ChatInputCommandInteraction,
   type AutocompleteInteraction,
 } from 'discord.js'
+import { roll as rollDie } from '@randsum/roller'
 import {
   SalvageUnionReference,
   resultForTable,
@@ -30,7 +31,7 @@ function getColor(roll: number): number {
  * Roll a d20
  */
 function rollD20(): number {
-  return Math.floor(Math.random() * 20) + 1
+  return rollDie('1d20').total
 }
 
 export const rollCommand = {

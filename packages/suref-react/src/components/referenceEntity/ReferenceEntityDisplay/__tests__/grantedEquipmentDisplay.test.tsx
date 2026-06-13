@@ -1,6 +1,7 @@
 import { describe, test, expect, afterEach } from 'bun:test'
 import { render, screen, fireEvent, cleanup, within } from '@testing-library/react'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { SalvageUnionReference, getChoices } from 'salvageunion-reference'
+import type { ChoiceSelections } from '../../choiceCard/choiceSelectionHelpers'
 import { ReferenceEntityDisplay } from '../index'
 import { EntityHrefProvider } from '../entityHrefContext'
 
@@ -157,5 +158,50 @@ describe('Custom Sniper Rifle granting ability display', () => {
     )
     const viewDetails = screen.getByRole('button', { name: /View Custom Sniper Rifle details/i })
     expect(viewDetails).toBeTruthy()
+  })
+})
+
+describe('controlled choice selections (ITUN persistence path)', () => {
+  const weaponTypeId = getChoices(rifleEquipment!)!.find((c) => c.name === 'Weapon Type')!.id
+
+  test('seeded controlled selections render: Ballistic resolves, the prompt is gone', () => {
+    // ITUN seeds persisted selections via the `selections` prop — the resolved row
+    // reflects them on first render (no toggle needed).
+    render(
+      <ReferenceEntityDisplay
+        data={rifleEquipment}
+        compact
+        selections={{ [weaponTypeId]: ['Ballistic'] }}
+        onSelectionChange={() => {}}
+      />
+    )
+    expect(screen.getAllByText('Ballistic').length).toBeGreaterThan(0)
+    expect(screen.queryByText('Choose')).toBeNull()
+  })
+
+  test('toggling notifies the parent via onSelectionChange with the next selections', () => {
+    let next: ChoiceSelections | undefined
+    render(
+      <ReferenceEntityDisplay
+        data={rifleEquipment}
+        compact
+        selections={{}}
+        onSelectionChange={(s) => {
+          next = s
+        }}
+      />
+    )
+    fireEvent.click(screen.getByRole('button', { name: /Ballistic/ }))
+    expect(next).toBeDefined()
+    expect(next![weaponTypeId]).toEqual(['Ballistic'])
+  })
+
+  test('controlled with no onSelectionChange is read-only: toggle no-ops, no crash', () => {
+    // A published snapshot renders persisted choices read-only — clicking does not
+    // mutate (the parent owns `selections` and supplies no change handler).
+    render(<ReferenceEntityDisplay data={rifleEquipment} compact selections={{}} />)
+    fireEvent.click(screen.getByRole('button', { name: /Ballistic/ }))
+    // Still unresolved — the click changed nothing.
+    expect(screen.getByText('Choose')).toBeTruthy()
   })
 })

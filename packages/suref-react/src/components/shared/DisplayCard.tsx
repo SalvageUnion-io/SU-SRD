@@ -10,6 +10,13 @@ import type { ReferenceEntityControl } from '../referenceEntity/ReferenceEntityD
 import { StickyHeaderContext, StickyOffsetContext } from './StickyHeaderContext'
 import { useStickyCard } from './useStickyCard'
 import { CalloutMetaStamp } from '../referenceEntity/ReferenceEntityDisplay/components/CalloutMetaStamp'
+import { StatusBadge } from '../chrome/StatusBadge'
+import type { EntityStatus } from '../chrome/StatusBadge'
+import { resolveDisplayMode } from './displayMode'
+import type { EntityDisplayMode } from './displayMode'
+
+/** Inline foot meta entry (design-spec §2.1 `.ec__metafoot`), e.g. AP COST · 1 */
+export type CardFootMeta = { label: string; value: ReactNode }
 
 export type DisplayCardTab = {
   key: string
@@ -46,6 +53,27 @@ type DisplayCardProps = {
   compact?: boolean
   /** Header-only rendering: hides body, footer, and tabs. Orthogonal to compact. */
   listing?: boolean
+  /** Display-mode sugar over `compact`/`listing` (design-spec §2.1):
+   * full = neither, compact = compact only, head = compact + listing.
+   * Explicit booleans take precedence when both are provided. */
+  mode?: EntityDisplayMode
+  /** Intact/Damaged/Destroyed badge, absolute top-right (design-spec §2.1
+   * `.ec__status`). Opt-in; purely visual at this layer. */
+  status?: EntityStatus
+  /** Cycle handler for the status badge (Intact → Damaged → Destroyed) */
+  onStatusClick?: () => void
+  /** Entity name for the status badge's accessible label, so multiple badges
+   * on one page get distinct accessible names */
+  statusSubject?: string
+  /** Expansion slot rendered after the body, before the footer (design-spec
+   * §2.1 `.ec__expand`) — ability trees, integrated systems, bay crew insets.
+   * Hidden in listing/head mode like the body. */
+  expand?: ReactNode
+  /** Action buttons folded into the footer band (design-spec §2.1 `.ec__acts`).
+   * Named to avoid the game-rules Actions section. */
+  footActions?: ReactNode
+  /** Inline label/value meta folded into the footer band (`.ec__metafoot`) */
+  footMeta?: CardFootMeta[]
   /** Click handler for the entire card. Adds hover enlarge effect + cursor-pointer.
    * Controls with `cardClick: true` also contribute (fallback when this is not set). */
   onCardClick?: () => void
@@ -95,6 +123,13 @@ export function DisplayCard({
   labelLead,
   compact: compactProp,
   listing: listingProp,
+  mode,
+  status,
+  onStatusClick,
+  statusSubject,
+  expand,
+  footActions,
+  footMeta,
   onCardClick,
   cardClickable = false,
   controls,
@@ -111,8 +146,9 @@ export function DisplayCard({
   defaultTabActiveColor,
   stats,
 }: DisplayCardProps) {
-  const isListing = !!listingProp
-  const isCompact = !!compactProp
+  const resolvedMode = resolveDisplayMode(mode, compactProp, listingProp)
+  const isListing = resolvedMode.listing
+  const isCompact = resolvedMode.compact
   const hasCallout = !!(labelLead || label || labelBadge)
   const hasTabs = !isListing && tabs && tabs.length > 0
 
@@ -231,6 +267,14 @@ export function DisplayCard({
           )}
         >
           <ControlButtons controls={controls} compact={isCompact} />
+        </div>
+      )}
+
+      {/* Status badge (design .ec__status: top 10 right 10). Shifts left when
+          controls share the top-right corner. */}
+      {status && (
+        <div className={cn('absolute top-2.5 z-20', controls ? 'right-10' : 'right-2.5')}>
+          <StatusBadge status={status} onClick={onStatusClick} subject={statusSubject} />
         </div>
       )}
 
@@ -390,11 +434,16 @@ export function DisplayCard({
           </StickyOffsetContext.Provider>
         )}
 
-        {/* Footer — hidden in listing mode */}
-        {!isListing && footerContent && (
+        {/* Expansion slot — after the body, before the footer (.ec__expand).
+            Hidden in listing mode like the body. */}
+        {!isListing && expand && <div className="w-full">{expand}</div>}
+
+        {/* Footer — hidden in listing mode. Renders when there is footer
+            content OR foot extras (actions/meta) to fold into the band. */}
+        {!isListing && (footerContent || footActions || (footMeta && footMeta.length > 0)) && (
           <div
             className={cn(
-              'flex w-full items-center justify-between px-3 py-2',
+              'flex w-full items-center justify-between gap-2 px-3 py-2',
               footerStyleProp?.className ?? actualHeaderBg
             )}
             style={{
@@ -405,6 +454,19 @@ export function DisplayCard({
             }}
           >
             {footerContent}
+            {(footActions || (footMeta && footMeta.length > 0)) && (
+              <div className="ml-auto flex flex-wrap items-center justify-end gap-1.5">
+                {footMeta?.map(({ label: metaLabel, value }, i) => (
+                  <span key={`${metaLabel}-${i}`} className="mr-1 inline-flex items-baseline gap-1">
+                    <span className="font-cond text-[10.5px] font-bold uppercase leading-none opacity-75">
+                      {metaLabel}
+                    </span>
+                    <span className="font-body text-[13px] font-bold leading-none">{value}</span>
+                  </span>
+                ))}
+                {footActions}
+              </div>
+            )}
           </div>
         )}
       </div>

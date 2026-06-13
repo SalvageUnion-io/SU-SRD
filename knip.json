@@ -19,10 +19,22 @@
       "ignoreDependencies": ["sharp"]
     },
     "apps/in-the-union-now": {
-      "entry": ["src/routes/**/*.tsx"],
-      "project": ["src/**/*.{ts,tsx}"],
-      "ignore": ["src/types/database-generated.types.ts"],
-      "ignoreDependencies": ["@tanstack/router-plugin"]
+      "entry": [
+        "src/routes/**/*.tsx",
+        "netlify/functions/**/*.ts",
+        "src/lib/schemas/index.ts",
+        "src/lib/db/index.ts",
+        "src/lib/db/stores.ts",
+        "src/lib/db/crud.ts",
+        "src/lib/snapshot/storage.ts",
+        "src/lib/snapshot/id.ts",
+        "src/lib/snapshot/rateLimit.ts",
+        "src/stores/index.ts",
+        "src/stores/entityStore.ts",
+        "src/stores/workspaceStore.ts",
+        "src/stores/types.ts"
+      ],
+      "project": ["src/**/*.{ts,tsx}", "netlify/**/*.ts"]
     },
     "apps/discord-bot": {
       "project": ["src/**/*.ts"]

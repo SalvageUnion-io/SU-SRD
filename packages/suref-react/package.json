@@ -20,10 +20,10 @@
   },
   "peerDependencies": {
     "@base-ui/react": "^1.2.0",
-    "@randsum/roller": "^0.27.0",
+    "@randsum/roller": "^2.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "lucide-react": "^0.474.0",
+    "lucide-react": "^1.18.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "salvageunion-reference": "workspace:*",
@@ -31,20 +31,20 @@
     "tailwind-merge": "^3.0.2"
   },
   "devDependencies": {
-    "@base-ui/react": "1.2.0",
-    "@ladle/react": "^4.1.0",
-    "@randsum/roller": "^0.27.0",
-    "@vitejs/plugin-react": "^5.1.1",
+    "@base-ui/react": "1.5.0",
+    "@ladle/react": "^5.1.1",
+    "@randsum/roller": "^2.0.0",
+    "@vitejs/plugin-react": "^5.2.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "eslint-plugin-react-refresh": "^0.4.24",
-    "lucide-react": "^0.474.0",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
+    "lucide-react": "^1.18.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
     "salvageunion-reference": "workspace:*",
-    "sonner": "^2.0.3",
-    "tailwind-merge": "^3.0.2",
-    "vite": "^7.2.2"
+    "sonner": "^2.0.7",
+    "tailwind-merge": "^3.6.0",
+    "vite": "^7.3.5"
   },
   "dependencies": {}
 }

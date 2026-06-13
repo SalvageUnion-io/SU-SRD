@@ -17,17 +17,11 @@ TypeScript style conventions for type safety, imports, and code style.
 
 ## Import Conventions
 
-- Import types with `import type` syntax: `import type { Tables, TablesInsert } from '../types/database-generated.types'`
+- Import types with `import type` syntax: `import type { SURefChassis } from 'salvageunion-reference'`
 - Always use relative imports - never use `@/` path aliases
 - Use relative imports to make file relationships explicit and clear
 
-## Generated Types
-
-Use generated types from `database-generated.types.ts`:
-
-- `Tables<'table_name'>` for row types
-- `TablesInsert<'table_name'>` for insert types
-- `TablesUpdate<'table_name'>` for update types
+## Game-Data Types
 
 Import types from `salvageunion-reference` package:
 
