@@ -33,6 +33,15 @@ This is a TypeScript monorepo with shared packages (suref-react, etc.). After an
 
 Bun monorepo ("SURef") for Salvage Union (tabletop RPG) tools, located in the `SU-SRD/` subdirectory. Contains a static reference site, a character builder app, a Discord bot, and shared packages.
 
+## External Integrations & MCP Servers
+
+The apps deploy to two platforms, each with an official MCP server wired up in the project-scoped [`.mcp.json`](.mcp.json) (committed; Claude Code prompts each contributor to approve it per-project):
+
+- **Netlify** — hosts `apps/suref-web` (static) and `apps/in-the-union-now` (static SPA + the snapshot backend Netlify Functions + Blobs; see `apps/*/netlify.toml` and [ADR-010](docs/adrs/ADR-010-snapshot-backend.md)). MCP server: official `@netlify/mcp` (stdio); authenticates via the Netlify CLI/OAuth — no token in the file.
+- **Render** — hosts `apps/discord-bot` as a worker (see `render.yaml`). MCP server: official hosted server at `https://mcp.render.com/mcp`; reads `RENDER_API_KEY` from your shell env.
+
+`.mcp.json` is **secret-free by design** — never put tokens in it; auth is via env vars (`RENDER_API_KEY`) or OAuth. Set the env var before launching Claude Code if you want the Render server to connect (e.g. `export RENDER_API_KEY=...`).
+
 ## SU-SRD Monorepo
 
 ### Quick Reference
