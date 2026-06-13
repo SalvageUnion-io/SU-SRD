@@ -34,6 +34,15 @@ jobs:
       - name: Build package
         run: bun run build:package
 
+      - name: Verify generated schemas are up to date
+        run: |
+          if ! git diff --quiet -- packages/salvageunion-reference/schemas; then
+            echo "::error::Generated JSON schemas are out of date. Run 'bun run build:package' locally and commit the result."
+            git --no-pager diff --stat -- packages/salvageunion-reference/schemas
+            git --no-pager diff -- packages/salvageunion-reference/schemas
+            exit 1
+          fi
+
       - name: Upload package dist
         uses: actions/upload-artifact@v4
         with:
