@@ -27,7 +27,7 @@ export function SystemsList({ systems, selectedSystemSlugs, onChange }: SystemsL
   }
 
   return (
-    <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2 xl:grid-cols-3">
+    <div className="grid grid-cols-[repeat(auto-fill,minmax(15rem,1fr))] gap-3.5">
       {systems.map((system) => (
         <SelCard
           key={system.id}
