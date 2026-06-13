@@ -33,10 +33,10 @@ type MechStats = {
 /** Compute base stats from a chassis entity */
 export function computeMechStatsFromChassis(chassis: SURefChassis): MechStats {
   return {
-    max_sp: chassis.structurePoints ?? 0,
-    max_ep: chassis.energyPoints ?? 0,
-    heat_capacity: chassis.heatCapacity ?? 0,
-    cargo_capacity: chassis.cargoCapacity ?? 0,
+    max_sp: chassis.structurePoints,
+    max_ep: chassis.energyPoints,
+    heat_capacity: chassis.heatCapacity,
+    cargo_capacity: chassis.cargoCapacity,
   }
 }
 

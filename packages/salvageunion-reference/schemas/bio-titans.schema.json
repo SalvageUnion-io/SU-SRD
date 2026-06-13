@@ -223,16 +223,6 @@
         "items": { "type": "string" },
         "description": "Action names this bio-titan can perform"
       },
-      "systems": {
-        "type": "array",
-        "items": { "type": "string" },
-        "description": "Mech system names this bio-titan is equipped with"
-      },
-      "modules": {
-        "type": "array",
-        "items": { "type": "string" },
-        "description": "Mech module names this bio-titan is equipped with"
-      },
       "traits": {
         "type": "array",
         "items": {

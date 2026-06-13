@@ -1,7 +1,7 @@
 /**
  * Pure logic for trait-data validation in Salvage Union data.
  *
- * Two checks, both fixture-free (they flow from the schema/data, not from any
+ * Three checks, all fixture-free (they flow from the schema/data, not from any
  * named entity):
  *
  *  1. Trait casing — every `traits[].type` must be lowercase. The convention is
@@ -11,12 +11,15 @@
  *     trait the entity actually carries (a base `traits[]` entry, or one added by
  *     an `addTrait` effect on the same entity). Otherwise it is a silent no-op,
  *     which usually means the base trait lives somewhere the resolver can't see.
+ *  3. Vocabulary membership — every `traits[].type` must resolve against traits.json
+ *     or keywords.json. Unknown types silently fall back to plain text in the UI
+ *     (TraitKeywordDisplayView), so they never surface as visible errors.
  */
 
 export type TraitIssue = {
   file: string
   entity: string
-  kind: 'casing' | 'unresolvable-removeTrait'
+  kind: 'casing' | 'unresolvable-removeTrait' | 'unknown-trait-type'
   detail: string
 }
 
@@ -130,12 +133,55 @@ export function findUnresolvableRemoveTraitIssues(file: string, entities: Entity
   return issues
 }
 
-/** Run both checks across a set of loaded data files. */
+/** Run all checks across a set of loaded data files. */
 export function findTraitIssues(filesByName: Record<string, Entity[]>): TraitIssue[] {
   const issues: TraitIssue[] = []
   for (const [file, entities] of Object.entries(filesByName)) {
     issues.push(...findTraitCasingIssues(file, entities))
     issues.push(...findUnresolvableRemoveTraitIssues(file, entities))
+  }
+  issues.push(...findUnknownTraitTypes(filesByName))
+  return issues
+}
+
+// ---------------------------------------------------------------------------
+// Vocabulary check
+// ---------------------------------------------------------------------------
+
+function buildKnownVocabulary(filesByName: Record<string, Record<string, unknown>[]>): Set<string> {
+  const vocab = new Set<string>()
+  for (const filename of ['traits.json', 'keywords.json']) {
+    const entries = filesByName[filename] ?? []
+    for (const entry of entries) {
+      if (typeof entry.name === 'string') vocab.add(entry.name)
+    }
+  }
+  return vocab
+}
+
+/**
+ * Walk every traits[].type in every data file and flag any type that is
+ * defined in neither traits.json nor keywords.json.
+ */
+export function findUnknownTraitTypes(
+  filesByName: Record<string, Record<string, unknown>[]>
+): TraitIssue[] {
+  const vocab = buildKnownVocabulary(filesByName)
+  const issues: TraitIssue[] = []
+
+  for (const [filename, entities] of Object.entries(filesByName)) {
+    for (const entity of entities) {
+      const name = String(entity.name ?? entity.id ?? 'unknown')
+      for (const type of collectTraitTypes(entity)) {
+        if (vocab.has(type)) continue
+        issues.push({
+          file: filename,
+          entity: name,
+          kind: 'unknown-trait-type',
+          detail: `trait type "${type}" is not defined in traits.json or keywords.json`,
+        })
+      }
+    }
   }
   return issues
 }

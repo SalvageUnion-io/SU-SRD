@@ -1410,7 +1410,7 @@
       },
       {
         "type": "paragraph",
-        "value": "Bio-Chassis roll on an alternate Bio-Chassis Damage Table (see p. 78) when they are reduced to 0 SP."
+        "value": "Bio-Chassis roll on an alternate Bio-Chassis Damage Table when they are reduced to 0 SP."
       }
     ]
   },
@@ -1438,7 +1438,7 @@
       },
       {
         "type": "paragraph",
-        "value": "Bio-Chassis roll on an alternate Bio-Chassis Damage Table (see p. 78) when they are reduced to 0 SP."
+        "value": "Bio-Chassis roll on an alternate Bio-Chassis Damage Table when they are reduced to 0 SP."
       }
     ]
   },
@@ -1450,7 +1450,7 @@
     "content": [
       {
         "type": "paragraph",
-        "value": "Bio-Chassis roll on an alternate Bio-Chassis Overload Table (see p. 79) when they fail a Heat Check."
+        "value": "Bio-Chassis roll on an alternate Bio-Chassis Overload Table when they fail a Heat Check."
       },
       {
         "type": "paragraph",

@@ -7,6 +7,7 @@
 
     /* Bundler mode */
     "allowImportingTsExtensions": true,
+    "customConditions": ["development"],
     "verbatimModuleSyntax": true,
     "moduleDetection": "force",
     "noEmit": true,

@@ -1031,5 +1031,69 @@
         "page": 62
       }
     ]
+  },
+  {
+    "id": "9ed4cb34-718a-4515-a1a5-b718c2cbe23d",
+    "name": "Bio-Mech Bay",
+    "source": "We Were Here First!",
+    "cost": {
+      "scrap": 5,
+      "scrapTechLevel": 1,
+      "bioSalvage": 10
+    },
+    "page": 61,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Pilots may upgrade their Union Crawler with a Bio-Mech Bay at a cost of 10 Bio-Salvage and 5 Tech 1 Scrap. The Bio-Mech Bay fully restores Bio-Tech during downtime. Other Bio-Crafting Bays may be found whilst playing."
+      }
+    ]
+  },
+  {
+    "id": "fb183632-8b3e-4962-82a8-df28e2d9479e",
+    "name": "Bio-Crafting Bay",
+    "source": "We Were Here First!",
+    "cost": {
+      "scrap": 5,
+      "scrapTechLevel": 1,
+      "bioSalvage": 10
+    },
+    "page": 61,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Pilots may upgrade their Union Crawler with a Bio-Crafting Bay at a cost of 10 Bio-Salvage and 5 Tech 1 Scrap. The Bio-Crafting Bay allows them to craft Bio-Tech. Other Bio-Crafting Bays may be found whilst playing."
+      }
+    ]
+  },
+  {
+    "id": "3d0b6a77-6213-4596-bc90-00eb1c7eb6ee",
+    "name": "Nanite Processing Bay",
+    "source": "False Flag",
+    "cost": {
+      "scrap": 5,
+      "scrapTechLevel": 6
+    },
+    "page": 66,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A Nanite Processing Bay can be added to the Union Crawler at the cost of 5 Tech 6 Scrap. This allows you to safely process Inert Meld Nanites, safely store an unlimited amount of Active Meld Nanites on the Union Crawler, and Craft Nanite Tech."
+      }
+    ]
+  },
+  {
+    "id": "f9fe912f-5a92-4c00-8648-18432ea2988b",
+    "name": "VR Tubes",
+    "source": "Rainmaker",
+    "techLevel": 5,
+    "salvageValue": 1,
+    "page": 57,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Eight large cylinders, protruding cables, are set in a circle. Each is large enough to contain a human being. They are Mech simulators, used to rapidly train Pilots without expenditure in resources and material. This area counts as a Tech 5 Training Bay. Any Mech configuration up to Tech 5 may also be tested in combat simulation. Each cylinder can be salvaged for 1 Tech 5 Scrap."
+      }
+    ]
   }
 ]

@@ -37,7 +37,6 @@ function loadData(filename: string): Record<string, unknown>[] {
 const systems = loadData('systems.json')
 const modules = loadData('modules.json')
 const chassis = loadData('chassis.json')
-const vehicles = loadData('vehicles.json')
 const drones = loadData('drones.json')
 const actions = loadData('actions.json')
 const equipment = loadData('equipment.json')
@@ -134,26 +133,6 @@ for (const chassisItem of chassis) {
           }
         }
       }
-    }
-  }
-}
-
-// Validate vehicle systems
-console.log('Validating vehicle systems...')
-for (const vehicle of vehicles) {
-  const systems = vehicle.systems
-  if (!systems || !Array.isArray(systems)) continue
-
-  for (const systemName of systems) {
-    if (typeof systemName !== 'string') continue
-    if (!systemNames.has(systemName)) {
-      errors.push({
-        file: 'vehicles.json',
-        entityName: String(vehicle.name ?? 'unknown'),
-        field: 'systems',
-        referencedName: systemName,
-        message: `System "${systemName}" not found in systems.json`,
-      })
     }
   }
 }

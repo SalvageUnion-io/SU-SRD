@@ -169,7 +169,9 @@
   text-transform: uppercase;
 }
 
-/* Tile name line — font-cond, bold, uppercase, text-shadow for legibility on gradients */
+/* Tile name line — font-cond, bold, uppercase, text-shadow for legibility on gradients.
+   Shadow alpha must stay ≥ 0.75: axe contrast-checks white text against the shadow
+   blended over the lightest gradients, and 0.5 lands just under the 4.5:1 AA bar. */
 .catalog-item__name {
   font-family: var(--font-cond);
   font-weight: 600;
@@ -177,7 +179,7 @@
   letter-spacing: 0.02em;
   text-transform: uppercase;
   color: var(--color-su-white);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.75);
   line-height: 1.2;
   text-align: center;
 }
@@ -369,4 +371,29 @@ body {
   font-family: var(--font-mono);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+@media print {
+  body,
+  main {
+    background: #fff !important;
+    color: #000 !important;
+  }
+  /* Page chrome — TopNavigation renders two <nav> elements; Footer renders <footer>.
+     Both are semantic, so element selectors suffice. MobileNavIsland and SearchIsland
+     live inside the <nav>, so they are automatically hidden with it. */
+  nav,
+  footer,
+  [data-print-hide] {
+    display: none !important;
+  }
+  main a {
+    text-decoration: none;
+    color: inherit;
+  }
+  /* Browsers strip backgrounds when printing, so light-on-dark labels
+     (pseudoheaders, NPC name spans) would print white-on-white. Force dark. */
+  main .text-su-white {
+    color: #000 !important;
+  }
 }

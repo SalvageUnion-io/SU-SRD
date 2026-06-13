@@ -1,6 +1,7 @@
 {
   "name": "salvageunion-reference",
   "version": "2.3.5",
+  "private": true,
   "description": "Comprehensive, schema-validated JSON dataset and TypeScript ORM for the Salvage Union tabletop RPG",
   "type": "module",
   "main": "./dist/index.js",
@@ -38,14 +39,13 @@
     "data",
     "schemas",
     "README.md",
-    "LICENSE"
+    "LICENCE"
   ],
   "scripts": {
     "build": "tsc --project tsconfig.build.json && bun run generate:json-schemas",
     "build:full": "bun run build && bun run format && bun run lint",
     "build:ci": "tsc --project tsconfig.build.json",
     "watch": "tsc --project tsconfig.build.json --watch",
-    "prepublishOnly": "bun run build && bun run typecheck",
     "validate:ids": "bun tools/checkUniqueIds.ts",
     "fix:ids": "bun tools/generateMissingIds.ts",
     "docs": "bun tools/generateDocs.ts",
@@ -55,7 +55,8 @@
     "validate:actions": "bun tools/validateActionReferences.ts",
     "validate:orphans": "bun tools/validateOrphans.ts",
     "validate:traits": "bun tools/validateTraits.ts",
-    "validate:all": "bun run validate:ids && bun run validate:references && bun run validate:actions && bun run validate:orphans && bun run validate:traits",
+    "validate:schemas": "bun tools/validateSchemas.ts",
+    "validate:all": "bun run validate:ids && bun run validate:references && bun run validate:actions && bun run validate:orphans && bun run validate:traits && bun run validate:schemas",
     "typecheck": "tsc --project tsconfig.json --noEmit",
     "test": "bun test",
     "test:coverage": "bun test --coverage",
@@ -66,7 +67,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/alxjrvs/salvageunion-data.git"
+    "url": "https://github.com/SalvageUnion-io/SU-SRD.git"
   },
   "keywords": [
     "salvage-union",
@@ -85,11 +86,11 @@
     "type-safe"
   ],
   "author": "Alex Jarvis",
-  "license": "Salvage Union Open Game Licence 1.0b",
+  "license": "SEE LICENSE IN LICENCE",
   "bugs": {
-    "url": "https://github.com/alxjrvs/salvageunion-data/issues"
+    "url": "https://github.com/SalvageUnion-io/SU-SRD/issues"
   },
-  "homepage": "https://github.com/alxjrvs/salvageunion-data#readme",
+  "homepage": "https://github.com/SalvageUnion-io/SU-SRD#readme",
   "dependencies": {
     "zod": "^4.3.6"
   },

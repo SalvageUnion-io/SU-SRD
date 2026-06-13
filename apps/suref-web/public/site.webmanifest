@@ -1,6 +1,7 @@
 {
   "name": "Salvage Union SRD",
   "short_name": "SU SRD",
+  "start_url": "/",
   "icons": [
     {
       "src": "/web-app-manifest-192x192.png",

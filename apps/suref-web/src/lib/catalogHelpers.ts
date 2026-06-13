@@ -1,4 +1,8 @@
-import type { EnhancedSchemaMetadata } from 'salvageunion-reference'
+import type {
+  EnhancedSchemaMetadata,
+  SURefEnumSchemaName,
+  SURefEntity,
+} from 'salvageunion-reference'
 
 export type CatalogCategory = {
   id: string
@@ -46,19 +50,20 @@ export function pluralize(name: string, count: number): string {
 
 type SchemaMapEntry = Pick<EnhancedSchemaMetadata, 'id' | 'title' | 'displayName' | 'itemCount'>
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 type BuildCatalogCategoriesOptions = {
   catalogCategories: CatalogCategory[]
   schemaMap: Map<string, SchemaMapEntry>
   findAllIn: (
-    schemaName: any,
-    predicate: (entity: any) => boolean
+    schemaName: SURefEnumSchemaName,
+    predicate: (entity: SURefEntity) => boolean
   ) => Array<{ id: string; name: string; [key: string]: unknown }>
-  getReferenceEntityData: (item: any) => { slug: string; [key: string]: unknown }
+  getReferenceEntityData: (item: SURefEntity) => {
+    slug: string
+    [key: string]: unknown
+  }
   getCatalogBg: (schemaId: string) => string
   getCatalogLabel: (schemaId: string) => string | undefined
 }
-/* eslint-enable @typescript-eslint/no-explicit-any */
 
 export function buildCatalogCategories({
   catalogCategories,
@@ -70,12 +75,12 @@ export function buildCatalogCategories({
 }: BuildCatalogCategoriesOptions): CatalogSection[] {
   return catalogCategories.map((cat) => {
     if (cat.flat) {
-      const schemaName = cat.schemas[0]!
+      const schemaName = cat.schemas[0]! as SURefEnumSchemaName
       const items = findAllIn(schemaName, () => true)
       return {
         label: cat.name.toUpperCase(),
         schemas: items.map((item) => {
-          const display = getReferenceEntityData(item)
+          const display = getReferenceEntityData(item as SURefEntity)
           const rawName = item.name
           const labelText = catalogNameOverrides[rawName] ?? rawName
           return {

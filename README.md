@@ -108,7 +108,6 @@ bun --filter "*" <script>
 - `test` / `test:all` - Test suref-web / all packages
 - `typecheck` - Type check suref-web
 - `sanity` / `sanity:all` - Run lint, format, and typecheck
-- `publish:package` - Publish salvageunion-reference to npm
 
 ## Making Changes to salvageunion-reference
 

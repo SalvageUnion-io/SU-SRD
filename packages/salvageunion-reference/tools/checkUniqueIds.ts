@@ -3,25 +3,36 @@
 /**
  * Check all data files for unique UUIDs
  * This script validates that:
- * 1. All IDs are valid UUIDs (v4 format)
+ * 1. All IDs are valid UUIDs (v4 format) — except files in SLUG_ID_FILES
  * 2. All IDs are unique within each file
  * 3. All IDs are unique across all files
  */
 
-import { readFileSync } from 'fs'
-import { join } from 'path'
+import { readFileSync, readdirSync } from 'fs'
+import { join, dirname } from 'path'
+import { fileURLToPath } from 'url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 // UUID v4 regex pattern
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
-interface Action {
+/**
+ * Files that use documented semantic slug IDs instead of UUIDv4.
+ * catalog-categories uses short slug IDs (e.g. "pilot", "mech") by design —
+ * they are exempt from the UUIDv4 format check but still checked for duplicates.
+ */
+const SLUG_ID_FILES = new Set(['catalog-categories.json'])
+
+type Action = {
   id?: string
   name?: string
   actions?: Action[]
   [key: string]: unknown
 }
 
-interface Choice {
+type Choice = {
   id?: string
   name?: string
   description?: string
@@ -29,7 +40,7 @@ interface Choice {
   [key: string]: unknown
 }
 
-interface NPC {
+type NPC = {
   position?: string
   description?: string
   hitPoints?: number
@@ -37,14 +48,14 @@ interface NPC {
   [key: string]: unknown
 }
 
-interface Ability {
+type Ability = {
   name?: string
   description?: string
   choices?: Choice[]
   [key: string]: unknown
 }
 
-interface DataItem {
+type DataItem = {
   id?: string
   choices?: Choice[]
   actions?: Action[]
@@ -53,7 +64,7 @@ interface DataItem {
   [key: string]: unknown
 }
 
-interface FileResult {
+type FileResult = {
   file: string
   totalItems: number
   itemsWithIds: number
@@ -61,7 +72,7 @@ interface FileResult {
   duplicatesInFile: Array<{ id: string; indices: number[] }>
 }
 
-interface ValidationResult {
+type ValidationResult = {
   files: FileResult[]
   globalDuplicates: Array<{
     id: string
@@ -73,37 +84,19 @@ interface ValidationResult {
   duplicateIds: number
 }
 
-// List of data files to check
-const dataFiles = [
-  'abilities.json',
-  'ability-tree-requirements.json',
-  'actions.json',
-  'chassis.json',
-  'classes.json',
-  'crawler-bays.json',
-  'crawler-tech-levels.json',
-  'crawlers.json',
-  'creatures.json',
-  'drones.json',
-  'equipment.json',
-  'keywords.json',
-  'meld.json',
-  'modules.json',
-  'npcs.json',
-  'roll-tables.json',
-  'squads.json',
-  'systems.json',
-  'bio-titans.json',
-  'traits.json',
-  'vehicles.json',
-]
+const dataDir = join(__dirname, '..', 'data')
+
+// Derive the file list from the data directory — covers all present and future data files
+const dataFiles = readdirSync(dataDir)
+  .filter((f) => f.endsWith('.json'))
+  .sort()
 
 function validateUUID(id: string): boolean {
   return UUID_PATTERN.test(id)
 }
 
 function checkFile(filename: string): FileResult {
-  const filePath = join(process.cwd(), 'data', filename)
+  const filePath = join(dataDir, filename)
   const data = JSON.parse(readFileSync(filePath, 'utf-8')) as DataItem[]
 
   const result: FileResult = {
@@ -119,12 +112,12 @@ function checkFile(filename: string): FileResult {
   function checkId(id: string, index: number, context: string = 'root') {
     result.itemsWithIds++
 
-    // Check if valid UUID
-    if (!validateUUID(id)) {
+    // Check if valid UUID — skip format check for files with documented slug IDs
+    if (!SLUG_ID_FILES.has(filename) && !validateUUID(id)) {
       result.invalidUUIDs.push({ id: `${id} (${context})`, index })
     }
 
-    // Track for duplicates
+    // Track for duplicates (always — slug-id files are still checked for uniqueness)
     const indices = idMap.get(id) || []
     indices.push(index)
     idMap.set(id, indices)
@@ -218,7 +211,7 @@ function checkAllFiles(): ValidationResult {
     fileResults.push(result)
 
     // Build global ID map
-    const filePath = join(process.cwd(), 'data', filename)
+    const filePath = join(dataDir, filename)
     const data = JSON.parse(readFileSync(filePath, 'utf-8')) as DataItem[]
 
     const addToGlobalMap = (id: string, index: number) => {

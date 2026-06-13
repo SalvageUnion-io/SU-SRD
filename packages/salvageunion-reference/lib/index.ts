@@ -13,6 +13,7 @@ import {
   resetLoadStateForTesting,
 } from './ModelFactory.js'
 import { extractActions, getChassisAbilities, invalidateActionMap } from './utilities.js'
+import { invalidateSearchIndex } from './search.js'
 import type {
   SURefAbility,
   SURefChassis,
@@ -78,6 +79,7 @@ export {
   search,
   searchIn,
   getSuggestions,
+  invalidateSearchIndex,
   type SearchOptions,
   type SearchResult,
 } from './search.js'
@@ -335,7 +337,10 @@ const SCHEMA_REGISTRY = {
   chassis: { model: 'Chassis', display: 'Chassis' },
   classes: { model: 'Classes', display: 'Class' },
   'crawler-bays': { model: 'CrawlerBays', display: 'Crawler Bay' },
-  'crawler-tech-levels': { model: 'CrawlerTechLevels', display: 'Crawler Tech Level' },
+  'crawler-tech-levels': {
+    model: 'CrawlerTechLevels',
+    display: 'Crawler Tech Level',
+  },
   crawlers: { model: 'Crawlers', display: 'Crawler' },
   creatures: { model: 'Creatures', display: 'Creature' },
   distances: { model: 'Distances', display: 'Distance' },
@@ -380,12 +385,16 @@ export const EntitySchemaNames = new Set<EntitySchemaName>(
 // Runtime mapping from schema names to model property names (derived from registry)
 export const SchemaToModelMap = Object.fromEntries(
   Object.entries(SCHEMA_REGISTRY).map(([k, v]) => [k, v.model])
-) as { readonly [K in keyof typeof SCHEMA_REGISTRY]: (typeof SCHEMA_REGISTRY)[K]['model'] }
+) as {
+  readonly [K in keyof typeof SCHEMA_REGISTRY]: (typeof SCHEMA_REGISTRY)[K]['model']
+}
 
 // Runtime mapping from schema names to display names (derived from registry)
 export const SchemaToDisplayName = Object.fromEntries(
   Object.entries(SCHEMA_REGISTRY).map(([k, v]) => [k, v.display])
-) as { readonly [K in keyof typeof SCHEMA_REGISTRY]: (typeof SCHEMA_REGISTRY)[K]['display'] }
+) as {
+  readonly [K in keyof typeof SCHEMA_REGISTRY]: (typeof SCHEMA_REGISTRY)[K]['display']
+}
 
 /**
  * Main ORM class with static model accessors
@@ -459,8 +468,9 @@ export class SalvageUnionReference {
       }
     }
 
-    // Invalidate the action map so it is rebuilt with fresh data
+    // Invalidate the action map and search index so they are rebuilt with fresh data
     invalidateActionMap()
+    invalidateSearchIndex()
   }
 
   /**
@@ -496,7 +506,9 @@ export class SalvageUnionReference {
     predicate: (entity: SchemaToEntityMap[T]) => boolean
   ): (SchemaToEntityMap[T] & { schemaName: T })[] {
     const model = lazyModelMap[schemaName] as unknown as BaseModel<SchemaToEntityMap[T]>
-    return model.findAll(predicate) as (SchemaToEntityMap[T] & { schemaName: T })[]
+    return model.findAll(predicate) as (SchemaToEntityMap[T] & {
+      schemaName: T
+    })[]
   }
 
   /**
@@ -520,10 +532,10 @@ export class SalvageUnionReference {
   /**
    * Get multiple entities by schema name and IDs
    */
-  public static getMany(
-    requests: Array<{ schemaName: keyof SchemaToEntityMap; id: string }>
-  ): (
-    | (SchemaToEntityMap[keyof SchemaToEntityMap] & { schemaName: keyof SchemaToEntityMap })
+  public static getMany(requests: Array<{ schemaName: keyof SchemaToEntityMap; id: string }>): (
+    | (SchemaToEntityMap[keyof SchemaToEntityMap] & {
+        schemaName: keyof SchemaToEntityMap
+      })
     | undefined
   )[] {
     return requests.map((req) => this.get(req.schemaName, req.id))
@@ -551,10 +563,10 @@ export class SalvageUnionReference {
   /**
    * Get an entity by reference string
    */
-  public static getByRef(
-    ref: string
-  ):
-    | (SchemaToEntityMap[keyof SchemaToEntityMap] & { schemaName: keyof SchemaToEntityMap })
+  public static getByRef(ref: string):
+    | (SchemaToEntityMap[keyof SchemaToEntityMap] & {
+        schemaName: keyof SchemaToEntityMap
+      })
     | undefined {
     const parsed = this.parseRef(ref)
     if (!parsed) return undefined
@@ -609,7 +621,10 @@ export class SalvageUnionReference {
   public static getAllBySchemaNames(
     schemaNames: (keyof SchemaToEntityMap)[]
   ): Array<{ schemaName: keyof SchemaToEntityMap; entity: SURefMetaEntity }> {
-    const result: Array<{ schemaName: keyof SchemaToEntityMap; entity: SURefMetaEntity }> = []
+    const result: Array<{
+      schemaName: keyof SchemaToEntityMap
+      entity: SURefMetaEntity
+    }> = []
     for (const schemaName of schemaNames) {
       const model = lazyModelMap[schemaName] as unknown as BaseModel<SURefMetaEntity>
       for (const entity of model.all()) {

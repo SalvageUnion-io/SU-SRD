@@ -16,12 +16,12 @@
       "Bash(chmod *)",
       "Bash(gh *)"
     ],
-    "deny": [
-      "Bash(npm *)",
-      "Bash(yarn *)",
-      "Bash(npx *)",
-      "Bash(git stash*)"
-    ]
+    "deny": ["Bash(npm *)", "Bash(yarn *)", "Bash(npx *)", "Bash(git stash*)"]
+  },
+  "sandbox": {
+    "network": {
+      "allowUnixSockets": ["~/.cache/chrome-a11y"]
+    }
   },
   "hooks": {
     "PostToolUse": [

@@ -6,6 +6,39 @@ type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    date: '2026-06-12',
+    title: 'Buy links on source books',
+    items: [
+      "Each source book and expansion now shows a Buy button — in both the catalog listing and on its page — linking straight to the publisher's store.",
+    ],
+  },
+  {
+    date: '2026-06-11',
+    title: 'Vehicles read as actions, not installable systems',
+    items: [
+      'Conventional vehicles now list their loadout — weapons and locomotion — as actions, the way their statblocks read, rather than as installable Mech Systems.',
+      "The Power Loader's rigging arm now shows its own melee profile (Close, 1 SP), distinct from the mech utility arm, and two placeholder systems (Integrated Amphibious Locomotion System and Shanty Home) were folded into the vehicles that use them.",
+    ],
+  },
+  {
+    date: '2026-06-11',
+    title: 'Audit sweep: search fixes, offline support, faster pages',
+    items: [
+      'Search no longer breaks if you type before game data finishes loading, Enter now jumps to the top result, and category matches no longer crowd out item hits.',
+      'The SRD now works offline after your first visit — install it to your phone for table use on bad venue wifi.',
+      'Every page loads ~1.3 MB less JavaScript, schema listings gained a name filter plus loading skeletons and clearer empty states, and printed pages drop the site chrome.',
+      'Item pages link their traits and keywords directly, trait tooltips fixed for six pilot-equipment items (armor/armour mismatch), and the Salvage Cache Table now references SRD listings instead of print-book page numbers.',
+    ],
+  },
+  {
+    date: '2026-06-09',
+    title: 'Expansion crawler bays added',
+    items: [
+      'Four expansion / found Crawler bays now appear in the reference: the Bio-Mech Bay and Bio-Crafting Bay (We Were Here First!), the Nanite Processing Bay (False Flag), and the VR Tubes (Rainmaker).',
+      'Unlike the core fixed facilities, these are player-addable upgrade bays — each shows its build cost (Scrap and/or Bio-Salvage), tech level, or salvage value instead of a crew member and damaged effect.',
+    ],
+  },
+  {
     date: '2026-06-04',
     title: 'Bio-Titans restored; Iron Lady reclassified',
     items: [

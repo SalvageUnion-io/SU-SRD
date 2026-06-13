@@ -234,9 +234,12 @@ const jsonSchemaLoaders: Record<string, () => Promise<Record<string, unknown>>> 
 }
 
 /**
- * Zod schema map — statically available, these are code not data
+ * Zod schema map — statically available, these are code not data.
+ * Exported so the `validate:schemas` tool validates data against the exact
+ * same schemas runtime uses, rather than maintaining a parallel literal that
+ * could silently drift.
  */
-const zodSchemaMap: Record<string, z.ZodType<unknown>> = {
+export const zodSchemaMap: Record<string, z.ZodType<unknown>> = {
   abilities: AbilitySchema,
   'ability-tree-requirements': AbilityTreeRequirementSchema,
   actions: MetaActionSchema,

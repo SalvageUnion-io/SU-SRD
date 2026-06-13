@@ -36,8 +36,7 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
 
-    /* Project References */
-    "composite": true,
+    /* Incremental builds */
     "incremental": true
   }
 }

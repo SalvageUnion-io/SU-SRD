@@ -7,10 +7,8 @@ import { COMBAT_GUIDE_IDS, buildCombatGuideConfig } from '../useCombatGuideInter
 // Fixtures
 // ---------------------------------------------------------------------------
 
-const PUSHING_GUIDE_ID = 'e4b5c6d7-f8a9-4b0c-1d2e-3f4a5b6c7d8e'
-const MECH_DAMAGE_GUIDE_ID = 'c6d7e8f9-a0b1-4c2d-3e4f-5a6b7c8d9e0f'
-const PILOT_DAMAGE_GUIDE_ID = 'd8e9f0a1-b2c3-4d4e-5f6a-7b8c9d0e1f2a'
-const SALVAGING_GUIDE_ID = 'b6c7d8e9-f0a1-4b2c-3d4e-5f6a7b8c9d0e'
+const [PUSHING_GUIDE_ID, MECH_DAMAGE_GUIDE_ID, PILOT_DAMAGE_GUIDE_ID, SALVAGING_GUIDE_ID] =
+  COMBAT_GUIDE_IDS as [string, string, string, string]
 
 // ---------------------------------------------------------------------------
 // COMBAT_GUIDE_IDS constant
