@@ -3,6 +3,7 @@ import type { SURefMetaAction, SURefObjectTable } from 'salvageunion-reference'
 import {
   getReferenceEntityName,
   getRequiredTraits,
+  resolveActivationCurrency,
   SalvageUnionReference,
   parseContentBlockString,
 } from 'salvageunion-reference'
@@ -73,7 +74,12 @@ export function ActionCard({
 
   // The action type (e.g. "TURN ACTION") stays in the data-value row alongside
   // range/damage/traits — it is NOT lifted into a callout.
-  const details = extractReferenceEntityDetails(data, undefined, 'AP')
+  // Currency follows the action's source: systems/modules cost EP, everything else AP.
+  const details = extractReferenceEntityDetails(
+    data,
+    undefined,
+    resolveActivationCurrency(data.actionSource)
+  )
 
   const fontSize = compact ? 'text-xs' : 'text-sm'
 

@@ -496,14 +496,15 @@ export const UPKEEP_RULES = {
 
 /**
  * Resolve the activation currency for a given schema/entity category.
- * Systems and modules cost EP; variable-cost abilities cost XP; everything else costs AP.
+ * Mech-level sources (chassis, systems, modules) cost EP; variable-cost abilities
+ * cost XP; everything else costs AP.
  */
 export function resolveActivationCurrency(
   schemaName: SURefEnumSchemaName | 'actions' | undefined,
   variable: boolean = false
 ): 'AP' | 'EP' | 'XP' {
   if (variable) return 'XP'
-  if (schemaName === 'systems' || schemaName === 'modules') return 'EP'
+  if (schemaName === 'chassis' || schemaName === 'systems' || schemaName === 'modules') return 'EP'
   return 'AP'
 }
 
