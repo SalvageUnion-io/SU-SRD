@@ -1,38 +1,52 @@
 # In The Union Now (ITUN)
 
-Character builder & game manager for [Salvage Union](https://leyline-press.itch.io/salvage-union). React + Supabase SPA for players and mediators running a SU campaign.
+Local-first character builder and game manager for [Salvage Union](https://leyline.press/).
+React 19 + TanStack Router, Tailwind v4, Zustand write-through stores over
+IndexedDB (`idb`). No auth, no backend for user data — everything lives in the
+browser. Shared UI comes from `suref-react`; game data from
+`salvageunion-reference`.
 
-## Quick start
+## Development
 
 ```bash
-# from repo root
-bun install
-bun run build:package   # build salvageunion-reference (required once)
-bun run dev:itun        # start ITUN dev server
+# from the repo root
+bun install && bun run build:package   # first-time setup
+bun run dev:itun                       # vite dev server
+bun --filter in-the-union-now test     # tests (bun test runner)
 ```
 
-Environment: copy `.env.example` to `.env` and populate the Supabase URL + anon key.
+## Snapshot publishing in dev
 
-## Scripts
+Sharing publishes read-only snapshots to Netlify Blobs via two Netlify
+Functions (`netlify/functions/snapshot-publish.ts`, `snapshot-retrieve.ts`)
+routed under `/api/snapshots` (see `netlify.toml` and ADR-010). Plain
+`vite dev` has no Netlify redirect layer, so `vite.config.ts` proxies
+`/api/snapshots` to a locally-running functions server:
 
-Run from the repo root:
+```bash
+# terminal 1 — functions on port 9999
+bunx netlify functions:serve
 
-| Script                               | What it does                                            |
-| ------------------------------------ | ------------------------------------------------------- |
-| `bun run dev:itun`                   | Dev server                                              |
-| `bun run build:itun`                 | Production build                                        |
-| `bun --filter in-the-union-now test` | Run ITUN tests                                          |
-| `bun run typecheck`                  | Typecheck all packages                                  |
-| `bun run check:all`                  | Full CI suite (lint, format, typecheck, test, validate) |
+# terminal 2 — the app
+bun run dev:itun
+```
 
-## Tech stack
+Without the functions server, publish requests fail with a connection error
+and publishing is treated as unavailable; the rest of the app is unaffected.
+(Alternatively `netlify dev` serves app + functions together on port 8888.)
 
-React 19 + Vite, TanStack Router (file-based), TanStack Query, Zustand, ShadCN + Tailwind v4, Supabase, Zod validation.
+## Data durability
 
-## Documentation
-
-- [`CLAUDE.md`](CLAUDE.md) — stack-specific conventions for this app
-- [`plan-docs/`](plan-docs/) — design docs for in-progress features
-- [`/docs/architecture/data-flow.md`](../../docs/architecture/data-flow.md) — how reference + player data hydrate
-- [`/docs/architecture/display-system.md`](../../docs/architecture/display-system.md) — entity rendering stack
-- [`/docs/README.md`](../../docs/README.md) — docs navigation hub
+- **IndexedDB schema**: database `itun-v1`, version pinned in
+  `src/lib/db/index.ts` (`DB_VERSION`). Object-store creation lives in the
+  `upgrade` callback; record rewrites live in `src/lib/db/migrations/` —
+  one file per version (see that directory's README).
+- **Salvage-path reads**: records that fail strict Zod validation are
+  re-parsed with unknown keys stripped (console warning) and only skipped as
+  a last resort — one drifted record never bricks a store.
+- **Multi-tab**: writes broadcast store invalidations over a
+  `BroadcastChannel` (localStorage fallback) so concurrent tabs re-read
+  instead of clobbering each other.
+- **Backups**: export (Download all) is the only backup path for local-first
+  data. `src/lib/backupNudge.ts` tracks un-exported writes and exposes a
+  toast-ready nudge subscription.

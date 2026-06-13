@@ -1,9 +1,2 @@
-# Build output
-dist/
-
-# Local Netlify folder
-.netlify/
-
-# TanStack Router generated route tree
-# Committed so CI typecheck works without a Vite build step
-# src/routeTree.gen.ts
+playwright-report/
+test-results/

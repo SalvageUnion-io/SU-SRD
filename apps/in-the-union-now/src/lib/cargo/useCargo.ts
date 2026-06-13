@@ -1,0 +1,106 @@
+/**
+ * useCargo — store-backed wrapper around the pure `cargoTransfer` reducer
+ * (plan 4.1/4.7). Owns persistence only: state is derived from the passed
+ * entities on every render, an action runs the reducer, and on success the
+ * changed sides are written back through the entity store (mech `cargoLots`;
+ * crawler `cargoLots` + `scrapPool`).
+ *
+ * The mech/crawler variant lanes consume this read-only — the reducer
+ * semantics (whole-lot stow, cap-checked load, bulk split, scrap TL-bucket
+ * round-trip) live in cargoTransfer.ts.
+ */
+
+import { useEntityStore } from '../../stores/entityStore'
+import { mechMaxCargo } from '../rules/derivedStats'
+import type { Crawler } from '../schemas/crawler'
+import type { Mech } from '../schemas/mech'
+import {
+  cargoTransfer,
+  mechCargoUsage,
+  scrapPoolBucket,
+  type CargoBoundaryState,
+  type CargoTransferAction,
+  type CargoTransferResult,
+  type CargoUsage,
+} from './cargoTransfer'
+
+type UseCargoOptions = {
+  /** The mech side of the boundary (null/undefined when no mech is docked). */
+  mech?: Mech | null
+  /** The crawler side (null/undefined when no crawler is linked). */
+  crawler?: Crawler | null
+  /** Injectable store hook for testing; the real Zustand store otherwise. */
+  store?: typeof useEntityStore
+  /** When true every transfer refuses — read-only sheet contexts. */
+  readOnly?: boolean
+}
+
+export type UseCargoResult = {
+  state: CargoBoundaryState
+  /** Mech hold usage (used/cap/free/over). `over` renders honest red pips. */
+  usage: CargoUsage
+  /** Read a crawler scrap-pool TL bucket (absent buckets read as 0). */
+  poolBucket: (tl: number) => number
+  /** Mech → crawler, whole lot. SCRAP lots deposit the TL pool bucket. */
+  stow: (lotId: string) => Promise<CargoTransferResult>
+  /** Crawler → mech, cap-checked; bulk lots split and mint a new lot. */
+  load: (lotId: string, qty?: number) => Promise<CargoTransferResult>
+  /** Pool → mech as a bulk SCRAP lot (merges into a same-TL lot). */
+  withdrawScrap: (tl: number, qty: number) => Promise<CargoTransferResult>
+}
+
+export function useCargo({
+  mech,
+  crawler,
+  store = useEntityStore,
+  readOnly = false,
+}: UseCargoOptions): UseCargoResult {
+  const storeState = store()
+
+  const state: CargoBoundaryState = {
+    mechLots: mech?.cargoLots ?? [],
+    mechCargoCap: mech ? mechMaxCargo(mech) : 0,
+    crawlerLots: crawler?.cargoLots ?? [],
+    scrapPool: crawler?.scrapPool ?? {},
+  }
+
+  async function dispatch(action: CargoTransferAction): Promise<CargoTransferResult> {
+    if (readOnly) return { ok: false, reason: 'This sheet is read-only.' }
+    if (!mech)
+      return {
+        ok: false,
+        reason: 'No mech is docked — nothing to transfer to or from.',
+      }
+    if (!crawler) {
+      return {
+        ok: false,
+        reason: 'No crawler is linked — nothing to transfer to or from.',
+      }
+    }
+
+    const result = cargoTransfer(state, action)
+    if (!result.ok) return result
+
+    if (result.changed.mech) {
+      await storeState.update('mech', mech.id, {
+        cargoLots: result.state.mechLots,
+      })
+    }
+    if (result.changed.crawler) {
+      await storeState.update('crawler', crawler.id, {
+        cargoLots: result.state.crawlerLots,
+        scrapPool: result.state.scrapPool,
+      })
+    }
+    return result
+  }
+
+  return {
+    state,
+    usage: mechCargoUsage(state.mechLots, state.mechCargoCap),
+    poolBucket: (tl) => scrapPoolBucket(state.scrapPool, tl),
+    stow: (lotId) => dispatch({ type: 'stow', lotId }),
+    load: (lotId, qty) => dispatch({ type: 'load', lotId, qty }),
+    withdrawScrap: (tl, qty) => dispatch({ type: 'withdraw-scrap', tl, qty }),
+  }
+}

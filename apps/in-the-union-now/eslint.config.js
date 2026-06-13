@@ -12,22 +12,25 @@ export default [
   {
     ignores: [
       '.netlify',
-      '.ladle',
       'dist',
       'node_modules',
       '.git',
       'coverage',
       'build',
-      'build-ladle',
       '.vite',
-      'src/types/database-generated.types.ts',
       'src/routeTree.gen.ts',
+      // Playwright lives outside the app tsconfig project (it has its own
+      // TypeScript pipeline at `playwright test` time), so exclude its
+      // config + spec dirs from the app-level ESLint pass.
+      'playwright.config.ts',
+      'e2e/**',
+      'playwright-report/**',
+      'test-results/**',
     ],
   },
   ...base,
   {
     files: ['**/*.{ts,tsx}'],
-    ignores: ['happydom.ts', 'testing-library.ts'],
     plugins: {
       'react-hooks': reactHooks,
       'react-refresh': reactRefresh,

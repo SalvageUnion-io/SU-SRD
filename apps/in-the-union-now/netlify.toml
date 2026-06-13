@@ -1,40 +1,57 @@
-# Netlify configuration for InTheUnionNow
-# Separate Netlify site from suref-web
+# Netlify configuration for in-the-union-now (character builder + snapshot backend)
+#
+# Netlify site base directory is the repo root (unchanged from pre-revamp).
+# All paths in this file are root-relative.
+#
+# Snapshot endpoints are Netlify Functions (TypeScript, ESM).
+# The /api/snapshots/* path family is mapped to the two handlers.
+# See docs/adrs/ADR-010-snapshot-backend.md.
 
 [build]
   command = "bun install --frozen-lockfile && bun run build:package:ci && bun --filter in-the-union-now build"
-  publish = "apps/in-the-union-now/dist/client"
+  publish = "apps/in-the-union-now/dist"
+  functions = "apps/in-the-union-now/netlify/functions"
 
 [build.environment]
-  BUN_VERSION = "1.3.9"
-  BUN_FLAGS = "--no-optional --ignore-scripts"
+  BUN_VERSION = "1.3.14"
   NODE_ENV = "production"
 
-[build.processing]
-  skip_processing = false
+# ---------------------------------------------------------------------------
+# Snapshot API routing
+# ---------------------------------------------------------------------------
 
-# Skip CSS/JS processing - Vite already handles bundling and minification
-[build.processing.css]
-  bundle = false
-  minify = false
+# POST /api/snapshots  →  snapshot-publish function
+[[redirects]]
+  from = "/api/snapshots"
+  to = "/.netlify/functions/snapshot-publish"
+  status = 200
+  force = true
+  conditions = { Method = ["POST"] }
 
-[build.processing.js]
-  bundle = false
-  minify = false
+# PATCH/PUT/DELETE /api/snapshots  →  snapshot-publish function (returns 405)
+[[redirects]]
+  from = "/api/snapshots"
+  to = "/.netlify/functions/snapshot-publish"
+  status = 200
+  force = true
 
-[build.processing.html]
-  pretty_urls = true
+# GET /api/snapshots/:id  →  snapshot-retrieve function
+[[redirects]]
+  from = "/api/snapshots/:id"
+  to = "/.netlify/functions/snapshot-retrieve"
+  status = 200
+  force = true
 
-[build.processing.images]
-  compress = true
-
-# SPA redirects
+# SPA fallback — serve index.html for all unmatched paths
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
 
-# Security and performance headers
+# ---------------------------------------------------------------------------
+# Security headers
+# ---------------------------------------------------------------------------
+
 [[headers]]
   for = "/*"
   [headers.values]
@@ -43,21 +60,8 @@
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "geolocation=(), microphone=(), camera=()"
     Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://*.supabase.co https://*.netlify.app;"
-    X-DNS-Prefetch-Control = "on"
 
 [[headers]]
   for = "/assets/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
-
-# Self-hosted fonts - immutable cache
-[[headers]]
-  for = "/fonts/*"
-  [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
-
-[[headers]]
-  for = "/*.html"
-  [headers.values]
-    Cache-Control = "public, max-age=0, must-revalidate"
