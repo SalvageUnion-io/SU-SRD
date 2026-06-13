@@ -6,6 +6,7 @@ import {
   ReferenceEntityCardSkeleton,
   FilterChip,
   FilterRow,
+  MasonryColumns,
   TECH_LEVEL_STYLES,
   techLevelLabel,
   EntityHrefProvider,
@@ -85,14 +86,10 @@ export function SchemaViewerIsland({
   // Show the name input whenever the dataset is large enough to benefit from it
   const hasNameFilter = initialData.length > 12
 
-  // Browse layout: a fixed left filter rail beside the entity grid on desktop
-  // (design board-srd.jsx:96), collapsing to stacked filters above the grid on
-  // mobile. When there are no facets to filter, the grid spans full width.
-  const browseBase = 'mx-auto w-full max-w-[1400px]'
+  // Browse layout: filters always stack in a bar above the entity grid (at every
+  // breakpoint), with the grid spanning full width below them.
+  const containerClass = 'mx-auto w-full max-w-[1400px]'
   const showAside = hasFilters || hasNameFilter
-  const containerClass = showAside
-    ? `${browseBase} lg:grid lg:grid-cols-[230px_minmax(0,1fr)] lg:gap-8`
-    : browseBase
 
   const hasActiveFilters = techLevelFilters.size > 0 || sourceFilters.size > 0 || nameFilter !== ''
 
@@ -107,19 +104,19 @@ export function SchemaViewerIsland({
       <GameDataGate
         fallback={
           <div className={containerClass}>
-            <div className="w-full min-w-0 flex-1 px-2 pt-2 pb-6 md:p-6 md:pt-2 lg:px-0">
-              <div className="columns-1 gap-4 md:columns-2 xl:columns-3 print:columns-1 [&>*]:mb-4 [&>*]:break-inside-avoid">
+            <div className="w-full min-w-0 px-2 pb-6 md:px-6">
+              <MasonryColumns>
                 {Array.from({ length: 9 }, (_, i) => (
                   <ReferenceEntityCardSkeleton key={i} compact />
                 ))}
-              </div>
+              </MasonryColumns>
             </div>
           </div>
         }
       >
         <div className={containerClass}>
           {showAside && (
-            <aside className="mb-4 flex w-full flex-col gap-4 lg:mb-0 lg:pt-2 lg:pb-6 print:hidden">
+            <aside className="mb-2 flex w-full flex-col gap-4 px-2 pt-2 md:px-6 print:hidden">
               {hasNameFilter && (
                 <FilterRow label="Name">
                   <input
@@ -181,7 +178,7 @@ export function SchemaViewerIsland({
           )}
 
           {/* Entity Grid */}
-          <div className="w-full min-w-0 flex-1 px-2 pt-2 pb-6 md:p-6 md:pt-2 lg:px-0">
+          <div className="w-full min-w-0 px-2 pb-6 md:px-6">
             {filteredData.length === 0 ? (
               <div className="flex flex-col items-start gap-3 p-4">
                 <p className="text-sm text-su-grey-dark">No items match the current filters.</p>
@@ -197,7 +194,7 @@ export function SchemaViewerIsland({
               </div>
             ) : (
               <EntityHrefProvider value={srdEntityHref}>
-                <div className="columns-1 gap-4 md:columns-2 xl:columns-3 print:columns-1 [&>*]:mb-4 [&>*]:break-inside-avoid">
+                <MasonryColumns>
                   {filteredData.map((item: SURefEntity) => {
                     const tree = schemaId === 'abilities' ? (getTree(item) as string) : undefined
                     return (
@@ -219,7 +216,7 @@ export function SchemaViewerIsland({
                       </a>
                     )
                   })}
-                </div>
+                </MasonryColumns>
               </EntityHrefProvider>
             )}
           </div>
