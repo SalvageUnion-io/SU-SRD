@@ -7,6 +7,14 @@ type ChangelogEntry = {
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: '2026-06-13',
+    title: 'Filters above the catalog, smoother window resizing',
+    items: [
+      'Catalog filters (name, tech level, source) now sit in a bar above the results at every screen size, instead of in a left sidebar on desktop.',
+      'The catalog grid no longer stutters when you resize the window — large schemas (chassis, abilities, equipment) stay smooth.',
+    ],
+  },
+  {
+    date: '2026-06-13',
     title: 'Smoother loads on catalog & entity pages',
     items: [
       'Fixed a hydration mismatch that could make a catalog or entity page throw away the server-rendered HTML and re-render (a brief flicker) once game data finished loading.',
