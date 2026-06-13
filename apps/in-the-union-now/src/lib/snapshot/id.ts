@@ -11,6 +11,18 @@ const ID_LENGTH = 8
 const MAX_RETRIES = 5
 
 /**
+ * Matches a well-formed snapshot ID: exactly 8 uppercase Crockford-base32
+ * characters (0-9, A-Z minus I, L, O, U). Used to reject malformed IDs before
+ * they reach the blob store — a cheap input-validation guard (CWE-20).
+ */
+export const SNAPSHOT_ID_PATTERN = /^[0-9A-HJKMNP-TV-Z]{8}$/
+
+/** True when `id` is a syntactically valid snapshot ID. */
+export function isValidSnapshotId(id: string): boolean {
+  return SNAPSHOT_ID_PATTERN.test(id)
+}
+
+/**
  * Generates a random 8-character base32 ID.
  * Uses crypto.getRandomValues for cryptographic randomness.
  */

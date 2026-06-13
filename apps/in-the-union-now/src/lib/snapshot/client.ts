@@ -26,6 +26,31 @@ export class SnapshotNotFoundError extends Error {
   }
 }
 
+/** Default per-request timeout for snapshot fetches (ms). */
+const REQUEST_TIMEOUT_MS = 10_000
+
+/**
+ * fetch with an AbortController timeout so the share UI can never hang on a
+ * stalled connection. Throws an Error tagged `SnapshotTimeoutError` on timeout;
+ * other network failures propagate as-is.
+ */
+async function fetchWithTimeout(input: string, init?: RequestInit): Promise<Response> {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
+  try {
+    return await fetch(input, { ...init, signal: controller.signal })
+  } catch (err) {
+    if (err instanceof DOMException && err.name === 'AbortError') {
+      const timeout = new Error(`snapshot request timed out after ${REQUEST_TIMEOUT_MS}ms`)
+      timeout.name = 'SnapshotTimeoutError'
+      throw timeout
+    }
+    throw err
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
 /**
  * Publishes a snapshot payload to the backend.
  *
@@ -33,7 +58,7 @@ export class SnapshotNotFoundError extends Error {
  * @returns PublishResult with the snapshot id and share URL path.
  */
 export async function publishSnapshot(payload: SnapshotPayload): Promise<PublishResult> {
-  const res = await fetch('/api/snapshots', {
+  const res = await fetchWithTimeout('/api/snapshots', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(payload),
@@ -70,7 +95,7 @@ export async function probeSnapshotService(): Promise<boolean> {
  * @throws Error for other non-OK statuses.
  */
 export async function retrieveSnapshot(id: string): Promise<SnapshotPayload> {
-  const res = await fetch(`/api/snapshots/${id}`)
+  const res = await fetchWithTimeout(`/api/snapshots/${id}`)
   if (res.status === 404) {
     throw new SnapshotNotFoundError(id)
   }

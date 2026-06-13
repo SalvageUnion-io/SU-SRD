@@ -15,6 +15,7 @@ import { generateUniqueId } from '../../src/lib/snapshot/id'
 import { RateLimiter, getClientIp } from '../../src/lib/snapshot/rateLimit'
 import { createNetlifyBlobsStorage } from '../../src/lib/snapshot/storage'
 import type { SnapshotStorage } from '../../src/lib/snapshot/storage'
+import { captureException, initObservability } from './_observability'
 
 // ---------------------------------------------------------------------------
 // Module-level rate limiter — persists across invocations within one instance
@@ -91,8 +92,15 @@ export function makePublishHandler(storage: SnapshotStorage) {
 
     // Persist — onlyIfNew is belt-and-suspenders; uniqueness is already
     // checked above, but this prevents a race between two concurrent publishes
-    // that happen to collide after the check.
-    const result = await storage.put(id, payload, { onlyIfNew: true })
+    // that happen to collide after the check. A Blobs outage must surface as a
+    // controlled 503, not an unhandled 500.
+    let result: Awaited<ReturnType<SnapshotStorage['put']>>
+    try {
+      result = await storage.put(id, payload, { onlyIfNew: true })
+    } catch (error) {
+      captureException(error, { fn: 'snapshot-publish', op: 'storage.put' })
+      return new Response('Snapshot storage unavailable', { status: 503 })
+    }
     if (!result.modified) {
       // Collision race — extremely unlikely; caller can retry
       return new Response('ID collision — please retry', { status: 409 })
@@ -108,6 +116,12 @@ export function makePublishHandler(storage: SnapshotStorage) {
 // ---------------------------------------------------------------------------
 
 export default async function (req: Request): Promise<Response> {
-  const storage = await createNetlifyBlobsStorage()
-  return makePublishHandler(storage)(req)
+  initObservability()
+  try {
+    const storage = await createNetlifyBlobsStorage()
+    return await makePublishHandler(storage)(req)
+  } catch (error) {
+    captureException(error, { fn: 'snapshot-publish' })
+    return new Response('Internal Server Error', { status: 500 })
+  }
 }

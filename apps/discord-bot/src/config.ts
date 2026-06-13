@@ -14,4 +14,7 @@ export const config = {
   discordToken: requireEnv('DISCORD_TOKEN'),
   discordClientId: requireEnv('DISCORD_CLIENT_ID'),
   discordGuildId: optionalEnv('DISCORD_GUILD_ID'),
+  // Optional error tracking. When SENTRY_DSN is unset, observability is a no-op.
+  sentryDsn: optionalEnv('SENTRY_DSN'),
+  nodeEnv: optionalEnv('NODE_ENV'),
 } as const

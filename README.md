@@ -1,187 +1,98 @@
 # SURef Monorepo
 
-A Bun monorepo containing the SURef web application and the Salvage Union Reference package.
+A Bun monorepo of tools for **Salvage Union** (tabletop RPG): a static SRD
+reference site, a local-first character builder & game manager, a Discord dice
+bot, and two shared packages.
 
-> **Note**: For detailed documentation, see [docs/README.md](docs/README.md)
+> **Detailed documentation lives in [docs/README.md](docs/README.md)** — it maps
+> intent → the right doc (architecture, ADRs, per-package guides). Agent/build
+> guidance is in [CLAUDE.md](CLAUDE.md).
 
 ## Quick Start
 
-### First Time Setup
-
 ```bash
-# Install all dependencies (sets up workspace links)
+# Install all workspace dependencies
 bun install
 
-# Build the reference package (required for types)
+# Build the reference package (required before apps can resolve types)
 bun run build:package
-```
 
-### Daily Development
-
-```bash
-# Start development server (builds package and starts app)
-bun run dev
-
-# Or work on a specific package
-cd apps/suref-web
+# Start the reference site dev server (builds package, then serves suref-web)
 bun run dev
 ```
+
+Other dev servers: `bun run dev:itun` (character builder), `bun run dev:bot`
+(Discord bot).
 
 ## Structure
 
 ```
 .
 ├── apps/
-│   └── suref-web/              # Main web application
+│   ├── suref-web/              # Static SRD reference site (Astro 5 + React islands)
+│   ├── in-the-union-now/       # Character builder & game manager (React 19, local-first)
+│   └── discord-bot/            # Discord.js bot for rolling on SU tables
 ├── packages/
-│   └── salvageunion-reference/ # Salvage Union game data package
+│   ├── salvageunion-reference/ # Game-data ORM + schema-validated JSON dataset (built)
+│   └── suref-react/            # Shared React component library (no build step)
+├── docs/                       # Architecture docs, ADRs, audit backlog
 ├── package.json                # Root workspace configuration
 ├── .prettierrc.json            # Shared Prettier config
-├── eslint.config.base.js      # Shared ESLint base config
+├── eslint.config.base.js       # Shared ESLint base config
 └── tsconfig.base.json          # Shared TypeScript base config
 ```
 
+**Dependency graph:** `salvageunion-reference → suref-react → {suref-web,
+in-the-union-now}`; `discord-bot` is standalone. The reference package must be
+built (`bun run build:package`) before the apps can resolve its types.
+
 ## Common Commands
 
-### Development
-
 ```bash
-# Start dev server (builds package + starts app)
-bun run dev
+# Development
+bun run dev          # Reference site (suref-web)
+bun run dev:itun     # Character builder (in-the-union-now)
+bun run dev:bot      # Discord bot
 
-# Build package only (quick, skips tests/lint)
-bun run build:package:quick
+# Build
+bun run build            # Everything (package + all apps)
+bun run build:package    # Reference package only
 
-# Build package (full, includes tests/lint)
-bun run build:package
+# Quality (run across all workspaces)
+bun run lint
+bun run format        # bun run format:check to verify only
+bun run typecheck
+bun test
+bun run validate:all  # Data integrity: IDs, cross-refs, action refs
+bun run check:all     # Full CI suite (lint, format, typecheck, test, validate, knip)
 ```
 
-### Quality Checks
-
-```bash
-# Run all checks on all packages
-bun run lint:all
-bun run format:check:all
-bun run test:all
-bun run sanity:all
-
-# Run checks on specific package
-bun --filter suref-web lint
-bun --filter salvageunion-reference test
-```
-
-### Building
-
-```bash
-# Build everything (package + app)
-bun run build
-
-# Build specific package
-bun --filter salvageunion-reference build
-bun --filter suref-web build
-```
-
-## Workspace Scripts
-
-All root scripts use `bun --filter` to target specific packages. You can also run scripts directly:
-
-```bash
-# Run scripts in suref-web app
-bun --filter suref-web <script>
-
-# Run scripts in salvageunion-reference package
-bun --filter salvageunion-reference <script>
-
-# Run scripts in all packages
-bun --filter "*" <script>
-```
-
-### Available Root Scripts
-
-- `dev` - Start development server
-- `build` - Build package and app
-- `build:package` - Build reference package (full)
-- `build:package:quick` - Build reference package (quick, dev mode)
-- `lint` / `lint:all` - Lint suref-web / all packages
-- `format` / `format:all` - Format suref-web / all packages
-- `format:check` / `format:check:all` - Check formatting
-- `test` / `test:all` - Test suref-web / all packages
-- `typecheck` - Type check suref-web
-- `sanity` / `sanity:all` - Run lint, format, and typecheck
+All root scripts use `bun --filter` to target workspaces; you can also run a
+script in a single workspace directly, e.g. `bun --filter suref-web build` or
+`bun --filter salvageunion-reference test`.
 
 ## Making Changes to salvageunion-reference
 
-1. Edit files in `packages/salvageunion-reference/lib/` or `data/`
-2. Rebuild the package:
-   ```bash
-   bun run build:package:quick  # Quick rebuild (dev)
-   # or
-   bun run build:package        # Full rebuild (includes tests/lint)
-   ```
-3. Changes are immediately available to `suref-web` via workspace linking
+1. Edit Zod schemas in `packages/salvageunion-reference/lib/schemas/` or data
+   files in `data/`.
+2. Rebuild: `bun run build:package` (compiles TypeScript and regenerates
+   `schemas/*.schema.json` from the Zod sources).
+3. Changes are immediately available to consuming apps via workspace linking.
 
-**Note**: The package must be built for TypeScript types to resolve correctly.
+`schemas/*.schema.json` and `dist/` are generated — never edit them by hand.
 
-## Troubleshooting
+## Deployment
 
-### TypeScript can't find salvageunion-reference
+- **suref-web** and **in-the-union-now** → Netlify (config in each app's
+  `netlify.toml`). ITUN also serves the snapshot-sharing backend as Netlify
+  Functions — see [ADR-010](docs/adrs/ADR-010-snapshot-backend.md).
+- **discord-bot** → Render worker (Blueprint in `render.yaml`).
 
-**Solution**: Build the package first:
-```bash
-bun run build:package:quick
-```
+## Monorepo Conventions
 
-### Workspace not linking correctly
-
-**Solution**: Reinstall dependencies:
-```bash
-bun install
-```
-
-### Build fails with lint errors
-
-The package build includes linting. Fix lint errors or run quick build:
-```bash
-bun run build:package:quick  # Skips lint
-```
-
-### Dependencies not found
-
-**Solution**: Ensure you've run `bun install` from the root directory. Workspace dependencies are hoisted to root.
-
-## Apps
-
-### suref-web
-
-The main web application for viewing and exploring Salvage Union game data.
-
-- **Dynamic Schema Loading**: Automatically reads all schemas from the reference package
-- **Search**: Search items by name or description
-- **Filtering**: Filter data by any field with multiple values
-- **Sorting**: Click column headers to sort data
-- **Detail View**: Click "View Details" to see all fields for any item
-
-## Packages
-
-### salvageunion-reference
-
-Comprehensive, schema-validated JSON dataset and TypeScript ORM for the Salvage Union tabletop RPG.
-
-See [packages/salvageunion-reference/README.md](packages/salvageunion-reference/README.md) for details.
-
-## Monorepo Best Practices
-
-- **Shared Configs**: Prettier, ESLint base, and TypeScript base configs are at root
-- **Hoisted Dependencies**: Shared dev dependencies (prettier, eslint, typescript) are in root `package.json`
-- **Workspace Protocol**: Packages use `workspace:*` to reference each other
-- **Filter Commands**: Use `bun --filter` instead of `cd` for better monorepo support
-- **Single Lockfile**: Only `bun.lock` at root (no package-lock.json files)
-
-## Documentation
-
-For more detailed documentation, see:
-- [docs/README.md](docs/README.md) - Full documentation
-- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) - Architecture overview
-- [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) - Development guide
-- [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) - Troubleshooting guide
-
+- **Bun** for all package management (not npm/yarn); single `bun.lock` at root.
+- Workspace packages reference each other via the `workspace:*` protocol.
+- Relative imports only (no `@/` path aliases); `type` over `interface`; named
+  exports. See [CLAUDE.md](CLAUDE.md) and `.claude/rules/` for the full set.
+- Pre-commit (Lefthook): lint --fix + format. Pre-push: typecheck, test,
+  validate:all, knip.
