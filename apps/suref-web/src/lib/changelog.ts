@@ -6,6 +6,13 @@ type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    date: '2026-06-13',
+    title: 'Smoother loads on catalog & entity pages',
+    items: [
+      'Fixed a hydration mismatch that could make a catalog or entity page throw away the server-rendered HTML and re-render (a brief flicker) once game data finished loading.',
+    ],
+  },
+  {
     date: '2026-06-12',
     title: 'Buy links on source books',
     items: [

@@ -5,24 +5,64 @@
  * and wait for `ready` before making any ORM calls. The preload runs once
  * and is shared across all islands via the module-scoped promise.
  */
-import { useState, useEffect, useCallback, type ReactNode } from 'react'
+import { useState, useEffect, useCallback, useSyncExternalStore, type ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 
 let preloadPromise: Promise<void> | null = null
+let preloadDone = false
+const readyListeners = new Set<() => void>()
 
 /**
- * Test-only escape hatch: clears the module-level preload promise so tests
+ * Test-only escape hatch: clears the module-level preload state so tests
  * that mock SalvageUnionReference.preload() don't leak state into each other.
  * Production code must never call this.
  */
 export function resetPreloadForTests(): void {
   preloadPromise = null
+  preloadDone = false
+}
+
+function emitReady(): void {
+  for (const listener of readyListeners) listener()
+}
+
+function subscribeReady(onChange: () => void): () => void {
+  readyListeners.add(onChange)
+  return () => {
+    readyListeners.delete(onChange)
+  }
+}
+
+/**
+ * Client snapshot: ready once the shared preload has resolved (or the data was
+ * already loaded at mount).
+ */
+function getReadySnapshot(): boolean {
+  return preloadDone || SalvageUnionReference.isLoaded('chassis')
+}
+
+/**
+ * Server snapshot: ALWAYS false. SSR has no preloaded data and runs no effects,
+ * so islands must server-render the fallback. React reuses this value for the
+ * first client (hydration) render too, so the initial client tree matches the
+ * SSR HTML — reading the live load state here instead caused a hydration
+ * mismatch (React #418) on islands that hydrate after the shared preload
+ * finished (client:idle / client:visible).
+ */
+function getReadyServerSnapshot(): boolean {
+  return false
 }
 
 function ensurePreloaded(): Promise<void> {
-  if (SalvageUnionReference.isLoaded('chassis')) return Promise.resolve()
+  if (SalvageUnionReference.isLoaded('chassis')) {
+    preloadDone = true
+    return Promise.resolve()
+  }
   if (!preloadPromise) {
-    preloadPromise = SalvageUnionReference.preload('all')
+    preloadPromise = SalvageUnionReference.preload('all').then(() => {
+      preloadDone = true
+      emitReady()
+    })
   }
   return preloadPromise
 }
@@ -45,7 +85,11 @@ export function useGameData(options?: { defer?: boolean }): {
   error: Error | null
   load: () => void
 } {
-  const [ready, setReady] = useState(SalvageUnionReference.isLoaded('chassis'))
+  // `ready` is read through useSyncExternalStore so the server (and the first
+  // hydration render) always sees the fallback while the client tracks the live
+  // preload state — keeping hydration consistent without seeding state from a
+  // client-only value during render.
+  const ready = useSyncExternalStore(subscribeReady, getReadySnapshot, getReadyServerSnapshot)
   const [wanted, setWanted] = useState(!options?.defer)
   const [error, setError] = useState<Error | null>(null)
 
@@ -54,16 +98,12 @@ export function useGameData(options?: { defer?: boolean }): {
     // clearing it re-runs this effect, which retries the (reset) preload.
     if (ready || !wanted || error) return
     let cancelled = false
-    ensurePreloaded()
-      .then(() => {
-        if (!cancelled) setReady(true)
-      })
-      .catch((e: unknown) => {
-        // Reset the module-level promise so a retry issues a fresh request
-        // instead of re-awaiting the same rejection.
-        preloadPromise = null
-        if (!cancelled) setError(e instanceof Error ? e : new Error(String(e)))
-      })
+    ensurePreloaded().catch((e: unknown) => {
+      // Reset the module-level promise so a retry issues a fresh request
+      // instead of re-awaiting the same rejection.
+      preloadPromise = null
+      if (!cancelled) setError(e instanceof Error ? e : new Error(String(e)))
+    })
     return () => {
       cancelled = true
     }
