@@ -189,7 +189,7 @@ Consuming apps' Vite/Astro bundlers compile `.ts/.tsx` files directly. No interm
 ### Dependencies
 
 - **Peer dependencies** (must be provided by consuming apps): `react`, `react-dom`, `@radix-ui/react-dialog`, `@radix-ui/react-hover-card`, `@radix-ui/react-tooltip`, `salvageunion-reference`, `lucide-react`, `sonner`, `class-variance-authority`, `clsx`, `tailwind-merge`, `@randsum/roller`
-- **No Supabase dependency** — data-source agnostic
+- **No backend/data-source dependency** — fully data-source agnostic
 
 ### Design Principles
 
@@ -206,20 +206,20 @@ Consuming apps' Vite/Astro bundlers compile `.ts/.tsx` files directly. No interm
 
 ### Consumes
 
-- `salvageunion-reference` (workspace:*) — game data
-- `suref-react` (workspace:*) — shared components + theme
+- `salvageunion-reference` (workspace:\*) — game data
+- `suref-react` (workspace:\*) — shared components + theme
 - `@radix-ui/react-dialog` — search modal
 
 ### Does Not Use
 
-- Supabase, auth, user data, TanStack Query/Router, Zustand
+- Auth, user data, persistence, TanStack Query/Router, Zustand (pure static site)
 
 ### Tailwind Source Path
 
 ```css
 /* apps/suref-web/src/styles/global.css */
 @source "../../../../packages/suref-react/src";
-@import "suref-react/styles/theme.css";
+@import 'suref-react/styles/theme.css';
 ```
 
 ---
@@ -231,20 +231,24 @@ Consuming apps' Vite/Astro bundlers compile `.ts/.tsx` files directly. No interm
 
 ### Consumes
 
-- `salvageunion-reference` (workspace:*) — game data
-- `suref-react` (workspace:*) — shared components + theme
-- `@supabase/supabase-js` — database + auth
-- `@tanstack/react-router`, `@tanstack/react-query` — routing + data fetching
-- `zustand` — auth state
-- `zod` — input validation
+- `salvageunion-reference` (workspace:\*) — game data
+- `suref-react` (workspace:\*) — shared components + theme
+- `idb` — IndexedDB wrapper for local-first persistence (`src/lib/db/`)
+- `@tanstack/react-router`, `@tanstack/react-query` — routing + async/derived data
+- `zustand` — write-through entity/workspace stores (`src/stores/`)
+- `zod` — schema validation for player records + input
 - Radix UI (dialog, dropdown-menu, separator, slot, tabs, tooltip)
+
+Local-first: there is no auth, no Supabase, and no backend other than the
+stateless snapshot-sharing Netlify Functions (see
+[ADR-010](../adrs/ADR-010-snapshot-backend.md)). Player data lives in IndexedDB.
 
 ### Tailwind Source Path
 
 ```css
 /* apps/in-the-union-now/src/index.css */
 @source "../../../packages/suref-react/src";
-@import "suref-react/styles/theme.css";
+@import 'suref-react/styles/theme.css';
 ```
 
 ---
@@ -256,7 +260,7 @@ Consuming apps' Vite/Astro bundlers compile `.ts/.tsx` files directly. No interm
 
 ### Consumes
 
-- `salvageunion-reference` (workspace:*) — game data for table rolling
+- `salvageunion-reference` (workspace:\*) — game data for table rolling
 
 ### Does Not Use
 
@@ -297,16 +301,21 @@ function buildOptions() {
 
 If you need a module-level constant derived from reference data, compute it lazily (e.g. via a getter function) or call it from a hook/effect that runs after the app's preload bootstrap.
 
-### Circular Dependency: Package vs. HTTP API
+### One-Way Dependency: Reference Package → Apps
 
-`salvageunion-reference` generates the data model that the ITUN app uses to build its HTTP API layer (Supabase RPCs, TanStack Query keys, Zod validation schemas). The dependency flows one way:
+`salvageunion-reference` provides the game-data model that ITUN's local-first
+layer builds on (IndexedDB store shapes, slug references, Zod validation, and
+TanStack Query keys all derive from the reference schema). The dependency flows
+one way:
 
 ```
 salvageunion-reference (game data schema)
-  --> in-the-union-now (derives DB schema, API layer, validation from game data)
+  --> in-the-union-now (derives store shapes, validation, and refs from game data)
 ```
 
-The reference package must never import from the apps. If you find yourself wanting to add app-specific logic (e.g. Supabase row types, player state) to `salvageunion-reference`, that logic belongs in the consuming app instead.
+The reference package must never import from the apps. If you find yourself
+wanting to add app-specific logic (e.g. IndexedDB record types or player state)
+to `salvageunion-reference`, that logic belongs in the consuming app instead.
 
 ### Test Preload Setup
 

@@ -1,6 +1,18 @@
 # Data Flow Architecture
 
-Two data domains meet at render time: **static reference data** (game rules from `salvageunion-reference`) and **dynamic player data** (Supabase). The ITUN app hydrates player records by resolving schema references against the bundled game data.
+Two data domains meet at render time: **static reference data** (game rules from
+`salvageunion-reference`) and **dynamic player data**. The ITUN app is
+**local-first** — player records live in the browser's IndexedDB, never on a
+server — and hydrates those records by resolving schema references against the
+bundled game data.
+
+> **Architecture note (local-first rebuild):** ITUN previously used a Supabase
+> Postgres backend with auth, RLS, and realtime subscriptions. That was removed
+> in favour of a local-first IndexedDB model with no auth and no backend. The
+> only server-side surface that remains is the stateless snapshot-sharing
+> service (Netlify Functions + Blobs); see
+> [ADR-010](../adrs/ADR-010-snapshot-backend.md). This document describes the
+> current local-first design.
 
 ## Static Reference Data
 
@@ -8,339 +20,175 @@ Two data domains meet at render time: **static reference data** (game rules from
 
 ### How It Works
 
-All game data is bundled as JSON and loaded synchronously at import time. Zod schemas validate data at model construction. Each entity type gets a `BaseModel<T>` instance with O(1) ID lookups via an internal `Map`.
+Game data ships as JSON and is loaded via `preload()` (dynamic `import()`, so
+the corpus can be code-split). Zod schemas validate data at model construction.
+Each entity type gets a `BaseModel<T>` with O(1) ID lookups via an internal
+`Map`. See [package-contracts.md](package-contracts.md) for the `preload()` API
+and the module-scope-call hazard.
 
 ### Access Patterns
 
 ```typescript
 import { SalvageUnionReference } from 'salvageunion-reference'
 
-// Direct model access (27 models)
-SalvageUnionReference.Chassis.getById('iron-mongrel')     // O(1) lookup
-SalvageUnionReference.Chassis.all()                        // All entities
-SalvageUnionReference.Chassis.find(c => c.techLevel === 2) // Predicate search
-SalvageUnionReference.Chassis.findAll(c => c.source === 'Core Rules')
+await SalvageUnionReference.preload('all') // load before access
 
-// Generic schema access (cross-schema queries)
-SalvageUnionReference.get('chassis', 'iron-mongrel')       // By schema name + ID
-SalvageUnionReference.exists('abilities', 'bionic-senses')
-SalvageUnionReference.getMany([{ schemaName: 'abilities', id: 'id1' }, ...])
-
-// Reference strings (double-colon format: "schemaName::id")
-SalvageUnionReference.composeRef('abilities', 'bionic-senses')  // -> 'abilities::bionic-senses'
-SalvageUnionReference.parseRef('abilities::bionic-senses')      // -> { schemaName, id }
-SalvageUnionReference.getByRef('abilities::bionic-senses')
-SalvageUnionReference.getManyByRef(['abilities::bionic-senses', 'systems::laser'])
-
-// Metadata extraction
-SalvageUnionReference.getTechLevel(entity)      // number | 'B' | 'N' | undefined
-SalvageUnionReference.getTechLevelNumber(entity) // number | undefined (normalizes B/N to 1)
-SalvageUnionReference.getSalvageValue(entity)
-
-// Search
-SalvageUnionReference.search({ query: 'laser', limit: 10 })
-SalvageUnionReference.searchIn('equipment', 'laser')
-SalvageUnionReference.getSuggestions('las')
+SalvageUnionReference.Chassis.getById('iron-mongrel') // O(1) lookup
+SalvageUnionReference.get('chassis', 'iron-mongrel') // by schema name + ID
+SalvageUnionReference.getByRef('chassis::iron-mongrel') // by reference string
+SalvageUnionReference.search({ query: 'laser', limit: 10 }) // in-memory search
 ```
 
-### Type System
-
-Entity types follow the pattern `SURef{EntityName}` (e.g., `SURefChassis`, `SURefAbility`). The `SchemaToEntityMap` maps schema name strings to their TypeScript types for type-safe generic access.
-
-```typescript
-type SchemaToEntityMap = {
-  abilities: SURefAbility
-  chassis: SURefChassis
-  classes: SURefClass
-  // ... 27 total schema mappings
-}
-
-type SURefEntity = SURefAbility | SURefChassis | SURefClass | ... // Union of all
-type SURefEnumSchemaName = keyof SchemaToEntityMap                // String union
-```
+ITUN preloads the full dataset once at the root via `GameDataReady`
+(`src/components/shared/GameDataReady.tsx`) so every route can render any
+cross-referenced entity without per-route preload lists.
 
 ---
 
-## Dynamic Player Data (Supabase)
+## Dynamic Player Data (IndexedDB, local-first)
 
-**Project:** `dshtuchbleipwqacyokz` (us-east-2)
+**Location:** `apps/in-the-union-now/src/lib/db/`
 
-### Core Tables
+Player data is persisted to a single IndexedDB database via the [`idb`](https://github.com/jakearchibald/idb)
+wrapper (chosen over Dexie for size + Zod-as-schema-of-record — see the ADR
+comment at the top of `src/lib/db/index.ts`).
 
-| Table | Purpose | Key columns |
-|-------|---------|-------------|
-| `pilots` | Player characters | `callsign`, `class_ref`, `hp/ap/tp`, `mech_id`, `crawler_id`, `is_boarded`, `in_downtime` |
-| `mechs` | Player mechs | `chassis_ref`, `pattern_name`, `current_hp/sp`, `pattern_items` (JSON) |
-| `crawlers` | Player crawlers | `crawler_ref`, `name`, `tech_level`, `current_sp`, `scrap_tl1`-`scrap_tl6`, `bay_npcs` (JSON) |
-| `entity_refs` | Bridge: player data -> game data | `parent_id`, `parent_type`, `schema_name`, `schema_ref_id`, `condition`, `sort_order` |
-| `player_choices` | User selections (class, comrade name, etc.) | `parent_id`, `parent_type`, `choice_key`, `choice_value` |
-| `cargo` | Inventory items | `parent_id`, `parent_type`, `name`, `amount`, `schema_name`, `schema_ref_id` |
-| `change_log` | Audit trail | `target_id`, `target_type`, `action`, `field`, `old_value`, `new_value`, `description` |
-| `campaigns` | Multiplayer games | `name`, `owner_id`, `invite_code` |
-| `campaign_members` | Player-campaign links | `campaign_id`, `pilot_id`, `role` |
-| `mech_patterns` | Saved mech builds | `chassis_ref`, `pattern_name`, `pattern_items` |
+- **Database:** `itun-v1`, current `DB_VERSION = 4`.
+- **Object stores** (all keyed on `id`):
 
-### The entity_refs Hydration Pattern
+  | Store          | Holds                                                             |
+  | -------------- | ----------------------------------------------------------------- |
+  | `pilots`       | Player pilots (callsign, class ref, HP/AP/TP, embedded choices)   |
+  | `mechs`        | Player mechs (chassis ref, pattern, current HP/SP, pattern items) |
+  | `crawlers`     | Player crawler instances (crawler ref, tech level, bays, scrap)   |
+  | `mechPatterns` | Saved mech builds (immutable after creation)                      |
+  | `workspaces`   | Grouping container for a player's entities                        |
+  | `softLinks`    | Typed relationships between pilots/mechs/crawlers                 |
 
-Player data stores only references to game data, not copies. The `entity_refs` table bridges the two domains:
+Player records store **slug references** into reference entities (e.g.
+`class_ref: 'hybrid-wolf'`), never copies of game data — the same
+reference-by-slug pattern the dataset uses internally. There is no `entity_refs`
+bridge table and no Postgres; references are plain fields on the record,
+resolved against `SalvageUnionReference` at render time.
 
-```sql
--- Example: pilot "Nova" has the ability "Bionic Senses"
--- pilots table
-id: 'p1', callsign: 'Nova', class_ref: 'hybrid-wolf'
+### CRUD layer (`src/lib/db/crud.ts`)
 
--- entity_refs table
-parent_id: 'p1', parent_type: 'pilot',
-schema_name: 'abilities', schema_ref_id: 'bionic-senses',
-condition: 'intact', sort_order: 0
-```
+`makeStore(getDb, schema, storeName, opts)` builds a typed per-store accessor.
+Key behaviours:
 
-At render time, ITUN hydrates by calling `SalvageUnionReference.get(ref.schema_name, ref.schema_ref_id)` to get the full entity data:
+- **Validation on write:** records are parsed against their Zod schema before
+  persisting.
+- **Salvage path on read:** reads use `schema.strip()` so a drifted record
+  (e.g. after a PWA auto-update version skew) has unknown fields stripped with a
+  console warning instead of bricking hydration.
+- **`hasUpdatedAt`:** Pilot/Mech/Crawler stamp `updatedAt` on write; Workspace,
+  SoftLink, and MechPattern carry `createdAt` only.
 
-```typescript
-// In usePilotSheet hook
-const pilotClass = useMemo(
-  () => pilot ? SalvageUnionReference.get('classes', pilot.class_ref) : undefined,
-  [pilot]
-)
+### Migrations (`src/lib/db/migrations/`)
 
-// For entity_refs
-const entity = SalvageUnionReference.get(
-  ref.schema_name as EntitySchemaName,
-  ref.schema_ref_id
-)
-```
+- Object-store **creation** lives in the `openDB` `upgrade` callback (v1 created
+  the core stores; v2 added `mechPatterns`).
+- Record **rewrites** are one file per version under `migrations/`, registered
+  in `migrations/index.ts` and run by `runMigrations()` inside the
+  `versionchange` transaction.
+- **Atomicity:** if any migration throws, the upgrade transaction is aborted —
+  rolling back the version bump and rejecting the open, so callers never receive
+  a half-migrated database.
 
-### Enums
+### Referential integrity
 
-```typescript
-parent_type: 'pilot' | 'mech' | 'crawler'
-item_condition: 'intact' | 'damaged' | 'destroyed'
-```
-
-All tables have RLS policies scoped to `user_id` (owned data) or via campaign membership (shared data).
+`deleteEntityWithSoftLinks()` removes an entity and every SoftLink referencing
+it (`from.id`/`to.id`) in a single readwrite transaction spanning both stores —
+either all are removed together, or nothing changes (no orphaned links).
 
 ---
 
-## Full Data Flow Trace: Loading a Pilot Sheet
+## State Management (Zustand, write-through)
 
-### Route -> Hook -> Queries -> Hydration -> Render
+**Location:** `apps/in-the-union-now/src/stores/`
 
-**1. Route** (`src/routes/pilots/$pilotId.tsx`): Extracts `pilotId` from URL params.
+ITUN uses Zustand stores layered over the db/ CRUD layer (no React Context for
+shared state):
 
-**2. Orchestration Hook** (`usePilotSheet`): Coordinates ~10 queries and all mutations for the pilot view.
+- **`entityStore`** — pilots, mechs, crawlers, softLinks.
+  - **Lazy auto-hydration:** `list(type)` hydrates that type from IndexedDB on
+    first call (returning a Promise); later reads return the in-memory array
+    synchronously.
+  - **Write-through:** create/update/delete persist to IndexedDB _first_; only
+    on success is in-memory state updated via `set()`. On failure the db error
+    propagates and in-memory state is untouched.
+  - **Multi-tab:** every successful write publishes the affected store via
+    `lib/db/broadcast`; writes from other tabs invalidate this tab's cache so
+    already-hydrated stores re-read from IndexedDB.
+- **`workspaceStore`** — the active workspace and workspace membership.
 
-**3. Core Queries** (TanStack Query):
-```typescript
-const { data: pilot } = usePilot(pilotId)               // pilots table
-const { data: pilotRefs } = usePilotEntityRefs(pilotId)  // entity_refs where parent_id = pilotId
-const { data: mech } = useMech(pilot?.mech_id)           // mechs table (if boarded)
-const { data: mechRefs } = useMechEntityRefs(mech?.id)   // entity_refs for mech
-```
-
-**4. Realtime Subscriptions** (4 channels):
-```typescript
-useRealtimeSubscription('pilots', `id=eq.${pilotId}`, [pilotKeys.detail(pilotId)])
-useRealtimeSubscription('entity_refs', `parent_id=eq.${pilotId}`, [pilotKeys.entityRefs(pilotId)])
-useRealtimeSubscription('mechs', mechFilter, [mechKeys.detail(mechId)])
-useRealtimeSubscription('entity_refs', mechRefsFilter, [mechKeys.entityRefs(mechId)])
-```
-
-**5. Hydration** (useMemo, synchronous):
-```typescript
-const pilotClass = SalvageUnionReference.get('classes', pilot.class_ref)
-const mechChassis = findChassisById(mech.chassis_ref)
-const comrades = extractComrades(pilotRefs, mechRefs, mechChassis)
-```
-
-**6. Mutation Handlers**: Each handler calls the mutation, logs to `changeLogApi`, and shows a toast.
-
-**7. Return**: `{ pilot, pilotRefs, mech, mechRefs, mechChassis, pilotClass, comrades, editConfig }` — consumed by `PlayerPilotDisplay`.
+Writes also call `recordDataWrite()` (`lib/backupNudge`), which periodically
+nudges the user to export a backup — the local-first analogue of durability.
 
 ---
 
-## TanStack Query Patterns
+## TanStack Query
 
-### Configuration
+**File:** `apps/in-the-union-now/src/lib/queryClient.ts`
 
-```typescript
-// src/lib/queryClient.ts
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60 * 5,     // 5 minutes
-      gcTime: 1000 * 60 * 10,       // 10 minutes
-      retry: 1,
-      refetchOnWindowFocus: false,
-    },
-    mutations: { retry: 0 },
-  },
-})
-```
-
-### Query Key Factories
-
-Hierarchical key structure enables targeted invalidation:
+TanStack Query coordinates async/derived data (e.g. snapshot retrieval, derived
+sheet views). Default options:
 
 ```typescript
-export const pilotKeys = {
-  all: ['pilots'] as const,
-  lists: () => [...pilotKeys.all, 'list'] as const,
-  list: (userId: string) => [...pilotKeys.lists(), userId] as const,
-  details: () => [...pilotKeys.all, 'detail'] as const,
-  detail: (id: string) => [...pilotKeys.details(), id] as const,
-  entityRefs: (pilotId: string) => [...pilotKeys.all, 'entityRefs', pilotId] as const,
-}
+queries:   { staleTime: 5 min, gcTime: 10 min, retry: 1, refetchOnWindowFocus: false }
+mutations: { retry: 0 }
 ```
 
-Each resource (`mechs`, `crawlers`, `campaigns`, etc.) follows the same factory pattern.
-
-### Optimistic Updates
-
-```typescript
-export function useUpdatePilot() {
-  return useMutation({
-    mutationFn: ({ pilotId, input }) => updatePilot(pilotId, input),
-
-    // 1. Optimistic update (immediate UI feedback)
-    onMutate: async ({ pilotId, input }) => {
-      await queryClient.cancelQueries({ queryKey: pilotKeys.detail(pilotId) })
-      const previous = queryClient.getQueryData(pilotKeys.detail(pilotId))
-      queryClient.setQueryData(pilotKeys.detail(pilotId), { ...previous, ...input })
-      return { previous }
-    },
-
-    // 2. Rollback on error
-    onError: (_err, { pilotId }, context) => {
-      queryClient.setQueryData(pilotKeys.detail(pilotId), context?.previous)
-    },
-
-    // 3. Canonical update on success
-    onSuccess: (data, { userId }) => {
-      queryClient.invalidateQueries({ queryKey: pilotKeys.list(userId) })
-      queryClient.setQueryData(pilotKeys.detail(data.id), data)
-    },
-  })
-}
-```
+Persistent entity state lives in Zustand/IndexedDB, not in the Query cache.
 
 ---
 
-## API Layer
+## Snapshot Sharing (the only backend)
 
-**Location:** `apps/in-the-union-now/src/lib/api/`
+Read-only share links are the one server-touching feature. See
+[ADR-010](../adrs/ADR-010-snapshot-backend.md).
 
-One file per resource: `pilotApi.ts`, `mechApi.ts`, `crawlerApi.ts`, `entityRefApi.ts`, `playerChoiceApi.ts`, `cargoApi.ts`, `changeLogApi.ts`, `campaignMemberApi.ts`, `gameApi.ts`, `patternApi.ts`.
-
-All functions are async/await, use the typed Supabase client, and throw via `handleSupabaseError(error)` on failure. TanStack Query's `onError` callback handles the thrown error.
-
-```typescript
-export async function getPilotById(pilotId: string): Promise<PilotRow> {
-  const { data, error } = await supabase.from('pilots').select('*').eq('id', pilotId).single()
-  if (error) handleSupabaseError(error)
-  return data!
-}
-```
-
----
-
-## Realtime Subscriptions
-
-**File:** `apps/in-the-union-now/src/hooks/useRealtimeSubscription.ts`
-
-Subscribes to Postgres changes and invalidates TanStack Query caches. No API changes required.
-
-```typescript
-function useRealtimeSubscription(table: string, filter: string | undefined, queryKeys: QueryKey[]) {
-  // Subscribes to INSERT/UPDATE/DELETE on table with filter
-  // On any change: invalidates all provided query keys
-  // Cleanup: removes channel on unmount
-}
-```
-
-This is additive: the existing query/mutation flow works without realtime. Realtime just ensures multi-client consistency by triggering cache invalidation.
+- **Client:** `src/lib/snapshot/client.ts` — `publishSnapshot(payload)` POSTs to
+  `/api/snapshots` and returns `{ id, url }`; `retrieveSnapshot(id)` GETs
+  `/api/snapshots/:id`; `probeSnapshotService()` feature-detects the backend.
+- **Backend:** two Netlify Functions (`netlify/functions/snapshot-publish.ts`,
+  `snapshot-retrieve.ts`) backed by **Netlify Blobs**. The store is
+  unauthenticated and anonymous: no PII, a 256 KB payload cap, per-IP rate
+  limiting, and crypto-random 8-char Crockford-base32 IDs.
+- **Trust boundary:** retrieved payloads are re-validated with Zod
+  (`safeParse`) on the client before rendering, so a tampered blob cannot inject
+  unexpected shapes.
 
 ---
 
-## State Management
-
-### Zustand: Auth Only
-
-**File:** `apps/in-the-union-now/src/stores/authStore.ts`
-
-Zustand manages only auth state (user identity/session). Uses `supabase.auth.onAuthStateChange()` to stay in sync.
-
-```typescript
-type AuthState = {
-  user: User | null
-  loading: boolean
-  initialize: () => () => void   // Returns unsubscribe function
-  signIn, signUp, resetPassword, signOut
-}
-```
-
-All entity data lives in TanStack Query caches, not Zustand.
-
-### Change Log: Fire-and-Forget Audit Trail
-
-**File:** `apps/in-the-union-now/src/lib/api/changeLogApi.ts`
-
-```typescript
-changeLogApi.log(userId, {
-  targetId: pilot.id,
-  targetType: 'pilot',
-  action: 'update',
-  field: 'hp',
-  oldValue: 10, newValue: 8,
-  description: 'Nova HP 10 -> 8',
-})
-```
-
-Called from mutation handlers. Does not block the mutation flow.
-
----
-
-## Complete Data Flow Diagram
+## Full Data Flow Trace: Editing a Pilot's HP
 
 ```
-User Action (click +/- on HP stat)
-    |
-    v
-Mutation Hook (useUpdatePilot)
-    |
-    v
-onMutate: Optimistic update in TanStack Query cache -> UI updates immediately
-    |
-    v
-mutationFn: pilotApi.updatePilot(pilotId, { hp: newValue })
-    |
-    v
-Supabase: UPDATE pilots SET hp = newValue WHERE id = pilotId
-    |
-    +---> change_log INSERT (fire-and-forget audit)
-    |
-    v
-Realtime: Postgres notifies subscribed clients
-    |
-    v
-useRealtimeSubscription: Invalidates pilotKeys.detail(pilotId)
-    |
-    v
-TanStack Query: Refetches pilot data from Supabase
-    |
-    v
-onSuccess: Sets canonical cache data, shows toast
-    |
-    v
-Components: Re-render with confirmed data
+User clicks +/- on the HP stat
+    │
+    ▼
+Component handler → entityStore.update('pilots', id, { hp: next })
+    │
+    ▼
+db.pilots.put(record)  ──►  Zod validate ──►  IndexedDB write (itun-v1 / pilots)
+    │  (on success)
+    ▼
+Zustand set(): in-memory pilots array updated   ──►  React re-renders
+    │
+    ├──►  broadcast: publishStoreChange('pilots')  ──►  other tabs re-hydrate
+    └──►  recordDataWrite(): maybe show backup nudge
+
+Reference data (class, abilities, traits) is resolved synchronously in a
+useMemo via SalvageUnionReference.get(...) using the slug refs on the record.
 ```
 
-**Error path:** `onError` -> rollback optimistic update -> show error toast.
+**Error path:** a failed IndexedDB write rejects out of `entityStore.update`;
+in-memory state is not mutated and the caller surfaces a toast.
 
 ---
 
 ## Cross-References
 
-- `.claude/rules/tanstack-query-hooks.md` — Query key factory conventions, hook naming, mutation patterns
-- `.claude/rules/supabase-api.md` — Client setup, typed queries, RLS, error handling
-- `.claude/rules/entity-data-resolution.md` — Quick-reference rule for editing hooks/API layer
+- `.claude/rules/tanstack-query-hooks.md` — Query key factory conventions, hook patterns
+- `.claude/rules/entity-data-resolution.md` — Resolving player refs against reference data
+- [ADR-010](../adrs/ADR-010-snapshot-backend.md) — Snapshot backend rationale

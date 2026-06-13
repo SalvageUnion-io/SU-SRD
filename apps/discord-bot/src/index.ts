@@ -4,6 +4,10 @@ import { config } from './config.js'
 import { commands } from './commands/index.js'
 import { handleReady } from './events/ready.js'
 import { handleInteractionCreate } from './events/interactionCreate.js'
+import { initObservability, captureException } from './observability.js'
+
+// Initialize error tracking as early as possible (no-op without SENTRY_DSN).
+initObservability()
 
 // Create client with minimal intents (only Guilds needed for slash commands)
 const client = new Client({
@@ -22,14 +26,17 @@ client.on(Events.InteractionCreate, (interaction) => {
 // Error handling
 client.on('error', (error) => {
   console.error('Discord client error:', error)
+  captureException(error, { source: 'discord-client' })
 })
 
 process.on('unhandledRejection', (error) => {
   console.error('Unhandled promise rejection:', error)
+  captureException(error, { source: 'unhandledRejection' })
 })
 
 process.on('uncaughtException', (error) => {
   console.error('Uncaught exception:', error)
+  captureException(error, { source: 'uncaughtException' })
   process.exit(1)
 })
 

@@ -10,8 +10,10 @@
  * See ADR-010-snapshot-backend.md for full rationale.
  */
 
+import { isValidSnapshotId } from '../../src/lib/snapshot/id'
 import { createNetlifyBlobsStorage } from '../../src/lib/snapshot/storage'
 import type { SnapshotStorage } from '../../src/lib/snapshot/storage'
+import { captureException, initObservability } from './_observability'
 
 // ---------------------------------------------------------------------------
 // Handler factory — accepts injected storage for testability
@@ -33,7 +35,21 @@ export function makeRetrieveHandler(storage: SnapshotStorage) {
       return new Response('Missing snapshot ID', { status: 400 })
     }
 
-    const payload = await storage.get(id)
+    // Reject malformed IDs before touching the blob store. A valid snapshot ID
+    // is always 8 Crockford-base32 chars; anything else cannot exist and skips
+    // a pointless store lookup (input validation, CWE-20).
+    if (!isValidSnapshotId(id)) {
+      return new Response('Invalid snapshot ID', { status: 400 })
+    }
+
+    // A Blobs outage must surface as a controlled 503, not an unhandled 500.
+    let payload: unknown
+    try {
+      payload = await storage.get(id)
+    } catch (error) {
+      captureException(error, { fn: 'snapshot-retrieve', op: 'storage.get', id })
+      return new Response('Snapshot storage unavailable', { status: 503 })
+    }
 
     if (payload === null) {
       return new Response('Not found', { status: 404 })
@@ -48,6 +64,12 @@ export function makeRetrieveHandler(storage: SnapshotStorage) {
 // ---------------------------------------------------------------------------
 
 export default async function (req: Request): Promise<Response> {
-  const storage = await createNetlifyBlobsStorage()
-  return makeRetrieveHandler(storage)(req)
+  initObservability()
+  try {
+    const storage = await createNetlifyBlobsStorage()
+    return await makeRetrieveHandler(storage)(req)
+  } catch (error) {
+    captureException(error, { fn: 'snapshot-retrieve' })
+    return new Response('Internal Server Error', { status: 500 })
+  }
 }

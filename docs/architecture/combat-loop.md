@@ -1,5 +1,16 @@
 # Combat Loop Architecture
 
+> **Architecture note (local-first rebuild):** this design doc predates ITUN's
+> move to local-first. The self-service mutation model and the pure-function
+> combat logic in `combatUtils.ts` still hold, but the **persistence mechanics**
+> described below — Supabase RLS policies, realtime subscriptions, and any
+> "Supabase Postgres function / RPC" — no longer exist. Player state now lives
+> in IndexedDB (no auth, no backend; see
+> [data-flow.md](data-flow.md) and [ADR-010](../adrs/ADR-010-snapshot-backend.md)).
+> Multi-client "realtime" is limited to same-device cross-tab broadcast. Read
+> the RLS/realtime/RPC references as historical context for the design decision,
+> not the current implementation.
+
 The combat loop gives players a structured way to spend resources, track heat, apply damage, and record conditions during a Salvage Union session. The system is built around a self-service model: each player manages their own mech and pilot state. The app is a shared living character sheet, not a game engine.
 
 ## Core Design Principles
@@ -8,9 +19,9 @@ The combat loop gives players a structured way to spend resources, track heat, a
 
 **No turn enforcement.** All users can always act. The app does not gate mutations behind a "your turn" check. This removes significant server-side complexity and matches how Salvage Union is actually played at the table.
 
-**No cross-player mutations.** Current RLS policies (owner-only writes) are correct and sufficient for the combat loop. No security-definer RPCs are required. The Mediator sees changes live via realtime sync but does not initiate them remotely.
+**No cross-player mutations.** Each player owns their own records; the app never writes another player's state. (Historically this was enforced by owner-only RLS policies; under the local-first model the data simply never leaves the player's device.)
 
-**Realtime visibility.** All state changes sync to other clients via the existing Supabase realtime subscriptions already wired in `usePilotSheet`. No new channels are needed.
+**Local persistence.** State changes are written to the player's own IndexedDB and reflected in their other open tabs via cross-tab broadcast. There is no cross-device realtime sync.
 
 **Data-first.** Game logic lives in `salvageunion-reference` as pure functions. The ITUN app calls these functions from mutation handlers — it does not reimplement game rules.
 
@@ -33,10 +44,10 @@ Pure functions with no side effects and no Supabase dependency. All combat math 
 function getHeatGenerated(entity: SURefEntity): number | 'variable'
 function applyHeat(currentHeat: number, heatGenerated: number, heatCap: number): number
 function canActivateAction(currentHeat: number, heatCost: number, heatCap: number): boolean
-function shouldTriggerHeatCheck(newHeat: number): boolean  // d20 <= newHeat
+function shouldTriggerHeatCheck(newHeat: number): boolean // d20 <= newHeat
 
 // Pushing
-function canPush(currentHeat: number, heatCap: number): boolean  // pushing adds 2 heat
+function canPush(currentHeat: number, heatCap: number): boolean // pushing adds 2 heat
 
 // Conditions
 function nextCondition(current: ItemCondition): ItemCondition
@@ -72,10 +83,10 @@ The name `useActivateAction` is chosen deliberately. `useActionAction` would be 
 
 **API function naming:** Mechanical names are used, not game concepts.
 
-| Function | Meaning |
-|----------|---------|
-| `spendMechEP(mechId, amount)` | Decrements `current_ep` on the mech row |
-| `spendPilotAP(pilotId, amount)` | Decrements `ap` on the pilot row |
+| Function                        | Meaning                                 |
+| ------------------------------- | --------------------------------------- |
+| `spendMechEP(mechId, amount)`   | Decrements `current_ep` on the mech row |
+| `spendPilotAP(pilotId, amount)` | Decrements `ap` on the pilot row        |
 
 This avoids collision with the `Action` entity type from the reference package.
 
@@ -87,12 +98,12 @@ This avoids collision with the `Action` entity type from the reference package.
 
 **Visual feedback for heat state:**
 
-| Heat range | `StatDisplay` appearance |
-|------------|--------------------------|
-| 0 — 49% of cap | Default (no color change) |
-| 50 — 79% of cap | Warning color |
-| 80 — 99% of cap | Danger color |
-| At cap | Max/critical color |
+| Heat range      | `StatDisplay` appearance  |
+| --------------- | ------------------------- |
+| 0 — 49% of cap  | Default (no color change) |
+| 50 — 79% of cap | Warning color             |
+| 80 — 99% of cap | Danger color              |
+| At cap          | Max/critical color        |
 
 Heat thresholds are calculated as percentages of the mech's heat cap at render time.
 
@@ -197,12 +208,12 @@ The function runs as the calling user's role (not `SECURITY DEFINER`) so RLS sti
 
 Combat events are logged with reversibility set by event type. See ADR-004 for the full rationale.
 
-| Event | `reversible` |
-|-------|-------------|
-| AP spent | `true` |
-| EP spent | `true` |
-| Heat applied | `true` |
-| Condition changed (damaged/destroyed) | `false` |
+| Event                                 | `reversible` |
+| ------------------------------------- | ------------ |
+| AP spent                              | `true`       |
+| EP spent                              | `true`       |
+| Heat applied                          | `true`       |
+| Condition changed (damaged/destroyed) | `false`      |
 
 ---
 
@@ -289,10 +300,7 @@ type ModalPhase =
 The `resolveRollTable(tableSlug, roll)` function is the canonical helper for all roll-table lookups that accept a pre-rolled value. It differs from `rollOnTable` in `pilotUtils.ts`, which rolls internally and returns `{ text, roll }`.
 
 ```typescript
-function resolveRollTable(
-  tableSlug: string,
-  roll: number
-): { label?: string; value: string } | null
+function resolveRollTable(tableSlug: string, roll: number): { label?: string; value: string } | null
 ```
 
 Returns `null` if the table does not exist or no entry matches the roll. All future roll-table resolution with a caller-supplied roll value should use this function, not implement lookup inline.

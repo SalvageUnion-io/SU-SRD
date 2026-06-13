@@ -2,7 +2,17 @@
 
 ## Status
 
-Accepted
+Accepted — **mechanics partially superseded by the local-first rebuild.**
+
+> The _decision_ still holds: the app is a self-service shared character sheet
+> that never crosses player write boundaries or enforces turn order. The
+> _mechanism_ described below (Supabase RLS policies scoped to `user_id`,
+> realtime subscriptions) no longer exists — ITUN is now local-first
+> (IndexedDB, no auth, no backend; see [ADR-010](ADR-010-snapshot-backend.md)
+> and [data-flow.md](../architecture/data-flow.md)). Read the references to
+> "RLS", "`user_id`", and "realtime sync" below as historical context for why
+> the self-service model was chosen, not as a description of the current
+> implementation.
 
 ## Context
 

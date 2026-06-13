@@ -223,10 +223,19 @@ describe('snapshot-retrieve', () => {
     expect(body).toEqual(payload)
   })
 
-  it('GET with unknown id → 404', async () => {
-    const req = makeRequest('GET', 'http://localhost/api/snapshots/NOTEXIST')
+  it('GET with unknown (but well-formed) id → 404', async () => {
+    // ZZZZZZZZ is a valid 8-char Crockford-base32 id that was never stored.
+    const req = makeRequest('GET', 'http://localhost/api/snapshots/ZZZZZZZZ')
     const res = await handler(req)
     expect(res.status).toBe(404)
+  })
+
+  it('GET with malformed id → 400 (before any store lookup)', async () => {
+    // Contains I and O (excluded from Crockford base32) and is rejected by the
+    // format guard without touching the blob store.
+    const req = makeRequest('GET', 'http://localhost/api/snapshots/NOTEXIST')
+    const res = await handler(req)
+    expect(res.status).toBe(400)
   })
 
   it('POST → 405 Method Not Allowed', async () => {
