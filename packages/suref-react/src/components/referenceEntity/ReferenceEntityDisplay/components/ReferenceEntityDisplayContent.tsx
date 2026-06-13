@@ -882,16 +882,14 @@ export function ReferenceEntityDisplayContent({
               </div>
             )}
           </div>
-          {/* Footer — full-width accent bar (design itun.css .ec__foot: no
-              margin, accent background spanning the full card width). */}
+          {/* Footer. Interactive wizards (renderFooter present) get a floating
+              action that sticks to the bottom-right of the viewport as the form
+              scrolls — keeping confirm/nav reachable without a full-width bar
+              eating vertical space. Static (suref-web) cards keep the plain
+              full-width accent footer below. The wrapper is click-through
+              (pointer-events-none) so only the action itself is interactive. */}
           {interactive?.renderFooter ? (
-            <div
-              className={cn('w-full py-3', accent.className)}
-              style={{
-                ...spacing.contentPaddingXStyle,
-                ...accent.style,
-              }}
-            >
+            <div className="pointer-events-none sticky bottom-4 z-40 flex justify-end px-4 pb-2 [&>*]:pointer-events-auto [&_button]:shadow-lg">
               {interactive.renderFooter()}
             </div>
           ) : (

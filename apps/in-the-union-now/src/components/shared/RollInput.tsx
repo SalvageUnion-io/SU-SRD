@@ -1,19 +1,37 @@
 import { useState, useCallback, useMemo } from 'react'
 import { Dialog } from '@base-ui/react/dialog'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import {
+  SalvageUnionReference,
+  isColumnsTable,
+  resultForTable,
+  resultForColumnsTable,
+} from 'salvageunion-reference'
 import type { SURefObjectTable } from 'salvageunion-reference'
 import { ReferenceEntityDisplay } from 'suref-react'
 import { cn } from '../../lib/utils'
 import { Input } from '../ui/input'
 
+function rollD20(): number {
+  return Math.floor(Math.random() * 20) + 1
+}
+
+function formatRollResult(entry: { label?: string; value: string }): string {
+  return entry.label ? `${entry.label}: ${entry.value}` : entry.value
+}
+
+/**
+ * Roll a result off any roll table, including `columns`-type tables (e.g. the
+ * Callsign Table, keyed `1-4`/`5-8` with nested entries) which the naive
+ * "pick a random key" approach cannot navigate — it returned an empty string,
+ * which is why the callsign roller appeared to do nothing.
+ */
 function rollOnTable(table: SURefObjectTable): string {
-  const keys = Object.keys(table).filter((k) => k !== 'type')
-  const key = keys[Math.floor(Math.random() * keys.length)]!
-  const entry = (table as Record<string, unknown>)[key]
-  if (typeof entry === 'string') return entry
-  if (entry && typeof entry === 'object' && 'value' in entry)
-    return String((entry as { value: string }).value)
-  return ''
+  if (isColumnsTable(table)) {
+    const result = resultForColumnsTable(table, rollD20(), rollD20())
+    return result.success ? formatRollResult(result.result) : ''
+  }
+  const result = resultForTable(table, rollD20())
+  return result.success ? formatRollResult(result.result) : ''
 }
 
 type RollButtonsProps = {
@@ -137,45 +155,43 @@ export function RollInput({
   const btnSize = 'text-xs px-2 py-0'
 
   return (
-    <div className="relative flex flex-col">
+    <div className="flex flex-col gap-1">
       {rollTableName && (
-        <div className="z-[1] -mb-2.5 flex h-5 justify-end">
-          <div className="mr-3 flex items-end gap-1">
+        <div className="flex justify-end gap-1">
+          <button
+            type="button"
+            onClick={onRoll}
+            className={cn(
+              'flex cursor-pointer items-center gap-1 border border-su-black bg-su-black font-mono font-bold uppercase leading-tight text-su-white transition-colors hover:bg-brand-srd',
+              btnSize
+            )}
+            aria-label={`Roll on ${rollTableName} table`}
+          >
+            <span>Roll</span>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              height="12"
+              viewBox="0 -960 960 960"
+              width="12"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path d="M240-120q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm480 0q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35ZM240-600q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm240 240q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm240-240q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Z" />
+            </svg>
+          </button>
+          {rollTableEntity && (
             <button
               type="button"
-              onClick={onRoll}
+              onClick={() => setShowTable(true)}
               className={cn(
-                'flex cursor-pointer items-center gap-1 border border-su-black bg-su-black font-mono font-bold uppercase leading-tight text-su-white transition-colors hover:bg-brand-srd',
+                'cursor-pointer border border-su-black bg-su-white font-mono font-bold uppercase leading-tight text-su-black transition-colors hover:bg-su-grey-light',
                 btnSize
               )}
-              aria-label={`Roll on ${rollTableName} table`}
+              aria-label={`View ${rollTableName} table`}
             >
-              <span>Roll</span>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                height="12"
-                viewBox="0 -960 960 960"
-                width="12"
-                fill="currentColor"
-                aria-hidden="true"
-              >
-                <path d="M240-120q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm480 0q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35ZM240-600q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm240 240q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm240-240q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Z" />
-              </svg>
+              See Table
             </button>
-            {rollTableEntity && (
-              <button
-                type="button"
-                onClick={() => setShowTable(true)}
-                className={cn(
-                  'cursor-pointer border border-su-black bg-su-white font-mono font-bold uppercase leading-tight text-su-black transition-colors hover:bg-su-grey-light',
-                  btnSize
-                )}
-                aria-label={`View ${rollTableName} table`}
-              >
-                See Table
-              </button>
-            )}
-          </div>
+          )}
         </div>
       )}
       <Input

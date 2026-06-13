@@ -23,6 +23,9 @@ export function AppNav({ user }: AppNavProps) {
           <span className="bg-su-white px-1 text-su-black">Union</span>
           <span className="bg-su-black px-1 text-su-white">Now</span>
         </Link>
+        <span className="rounded-sm border border-su-orange px-1.5 py-0.5 font-mono text-[10px] font-bold uppercase leading-none tracking-wider text-su-orange">
+          Beta
+        </span>
         <div className="hidden items-center gap-4 sm:flex">
           <Link
             to="/"
