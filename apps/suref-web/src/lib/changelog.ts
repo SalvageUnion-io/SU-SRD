@@ -6,6 +6,13 @@ type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    date: '2026-06-15',
+    title: 'Fabrication Bay options restored',
+    items: [
+      'The Fabrication Bay system now lists its four activation options — restore up to 15 SP, restore up to 2 EP, repair damaged Systems/Modules, or repair damaged Chassis/Vehicles. Previously the text promised "choose one of the following options" but showed none.',
+    ],
+  },
+  {
     date: '2026-06-13',
     title: 'Filters above the catalog, smoother window resizing',
     items: [
