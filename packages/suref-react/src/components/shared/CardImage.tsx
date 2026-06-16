@@ -31,6 +31,16 @@ export function CardImage({ url, alt, compact, editable, width, height }: CardIm
 
   const displayUrl = editable?.customUrl ?? url
 
+  // Reset the fade-in when the image URL changes so a swapped image fades in
+  // instead of snapping to full opacity with the previous image's `loaded`
+  // state. Adjusting state during render (vs. an effect) re-renders before
+  // commit — no flash of the new image at opacity 1, no extra paint.
+  const [loadedUrl, setLoadedUrl] = useState(displayUrl)
+  if (displayUrl !== loadedUrl) {
+    setLoadedUrl(displayUrl)
+    setLoaded(false)
+  }
+
   // Catch images that finished loading before React attached its onLoad handler
   // (cached / preloaded) — for those the load event already fired and won't fire
   // again. Run this in an effect (not a ref callback) and defer the state update to
