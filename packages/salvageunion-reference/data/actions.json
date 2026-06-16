@@ -3156,6 +3156,22 @@
       {
         "type": "paragraph",
         "value": "When activated, choose one of the following options. You may not use these Abilities on your own Mech."
+      },
+      {
+        "type": "list-item",
+        "value": "Restore up to 15 SP to a target Mech within the Fabrication Bay with at least 1 SP."
+      },
+      {
+        "type": "list-item",
+        "value": "Restore up to 2 EP to a target Mech within the Fabrication Bay."
+      },
+      {
+        "type": "list-item",
+        "value": "Repair up to 3 damaged Systems or Modules of Tech 1-5 within the Fabrication Bay to Intact Condition."
+      },
+      {
+        "type": "list-item",
+        "value": "Repair up to 2 damaged Mech Chassis or Vehicles of Tech 1-5 within the Fabrication Bay to Intact Condition."
       }
     ],
     "actionSource": "systems"
