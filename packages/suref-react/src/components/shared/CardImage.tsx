@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { cn } from '../../utils/cn'
 
 type CardImageEditable = {
@@ -27,15 +27,32 @@ export function CardImage({ url, alt, compact, editable, width, height }: CardIm
   const [showImage, setShowImage] = useState(true)
   const [loaded, setLoaded] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const imgRef = useRef<HTMLImageElement>(null)
 
   const displayUrl = editable?.customUrl ?? url
 
-  // Catch images that loaded before React attached onLoad
-  const imgRef = useCallback((node: HTMLImageElement | null) => {
+  // Reset the fade-in when the image URL changes so a swapped image fades in
+  // instead of snapping to full opacity with the previous image's `loaded`
+  // state. Adjusting state during render (vs. an effect) re-renders before
+  // commit — no flash of the new image at opacity 1, no extra paint.
+  const [loadedUrl, setLoadedUrl] = useState(displayUrl)
+  if (displayUrl !== loadedUrl) {
+    setLoadedUrl(displayUrl)
+    setLoaded(false)
+  }
+
+  // Catch images that finished loading before React attached its onLoad handler
+  // (cached / preloaded) — for those the load event already fired and won't fire
+  // again. Run this in an effect (not a ref callback) and defer the state update to
+  // a microtask so it lands after the hydration commit instead of mutating state
+  // during it, which would desync the server-rendered markup and force a tree
+  // regeneration (React #418).
+  useEffect(() => {
+    const node = imgRef.current
     if (node?.complete && node.naturalWidth > 0) {
-      setLoaded(true)
+      queueMicrotask(() => setLoaded(true))
     }
-  }, [])
+  }, [displayUrl])
 
   function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
