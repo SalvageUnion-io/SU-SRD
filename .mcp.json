@@ -3,20 +3,6 @@
     "netlify": {
       "command": "npx",
       "args": ["-y", "@netlify/mcp"]
-    },
-    "render": {
-      "type": "http",
-      "url": "https://mcp.render.com/mcp",
-      "headers": {
-        "Authorization": "Bearer ${RENDER_API_KEY}"
-      }
-    },
-    "github": {
-      "type": "http",
-      "url": "https://api.githubcopilot.com/mcp/",
-      "headers": {
-        "Authorization": "Bearer ${GITHUB_PAT}"
-      }
     }
   }
 }
