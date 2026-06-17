@@ -24,26 +24,6 @@ export function resolvePatternOverride(
   return patterns.find((p) => normalizePatternName(p.name) === normalizedOverride)
 }
 
-/**
- * Check whether a pattern override qualifies as a legal starting mech (total SV <= 20).
- */
-export function checkLegalStartingMech(
-  data: SURefEntity,
-  patternOverride: PatternOverrideData
-): boolean {
-  const STARTING_MECH_BUDGET = 20
-  let total = getSalvageValue(data) ?? 0
-  for (const sys of patternOverride.systems) {
-    const entity = SalvageUnionReference.Systems.find((s) => s.name === sys.name)
-    if (entity) total += getSalvageValue(entity) ?? 0
-  }
-  for (const mod of patternOverride.modules) {
-    const entity = SalvageUnionReference.Modules.find((m) => m.name === mod.name)
-    if (entity) total += getSalvageValue(entity) ?? 0
-  }
-  return total <= STARTING_MECH_BUDGET
-}
-
 /** Sum SV * TL for a list of pattern items (systems or modules). */
 function sumItemTL1(
   items: PatternItem[],
