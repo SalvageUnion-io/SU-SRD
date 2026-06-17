@@ -71,8 +71,6 @@ export type NpcConfig = {
   afterContent?: ReactNode
   damaged?: boolean
   name?: string
-  onNameChange?: (name: string) => void
-  onNameBlur?: () => void
   readOnly?: boolean
   /** Show an "NPC" section separator above the NPC name/HP block */
   showNpcSeparator?: boolean

@@ -19,6 +19,8 @@ type ChoiceGroupProps = {
   onFreeTextChange: (value: string) => void
   /** Resolved multi-select cap, when one applies. */
   cap?: number
+  /** Render free-text choices as static text (no input) — the SRD reference. */
+  readOnly?: boolean
   compact?: boolean
   parentHeaderBg?: string
   parentHeaderBgColor?: string
@@ -39,6 +41,7 @@ export function ChoiceGroup({
   onToggleOption,
   onFreeTextChange,
   cap,
+  readOnly,
   compact,
   parentHeaderBg,
   parentHeaderBgColor,
@@ -60,6 +63,7 @@ export function ChoiceGroup({
         value={currentValue}
         onValueChange={onFreeTextChange}
         multiline={choice.name.toLowerCase() !== 'name'}
+        readOnly={readOnly}
         compact={compact}
         parentHeaderBg={parentHeaderBg}
         parentHeaderBgColor={parentHeaderBgColor}

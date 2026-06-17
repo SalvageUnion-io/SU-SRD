@@ -824,6 +824,7 @@ export function ReferenceEntityDisplayContent({
                 parentHeaderBgColor={headerBgColor}
                 selections={choiceSelections}
                 onSelectionChange={setChoiceSelections}
+                readOnly={onSelectionChange === undefined}
                 scalingParent={scalingParent}
               />
               <ReferenceEntityIntegratedSystems data={data} compact={compact} />
@@ -879,8 +880,6 @@ export function ReferenceEntityDisplayContent({
                       headerBg={headerBg}
                       headerBgColor={headerBgColor}
                       npcName={npcConfig?.name}
-                      onNpcNameChange={npcConfig?.onNameChange}
-                      onNpcNameBlur={npcConfig?.onNameBlur}
                       readOnly={npcConfig?.readOnly}
                       showSeparator={npcConfig?.showNpcSeparator}
                       hideHeader={npcConfig?.hideNpcHeader}
