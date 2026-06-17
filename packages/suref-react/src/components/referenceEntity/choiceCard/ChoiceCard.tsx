@@ -182,12 +182,20 @@ type FreeTextChoiceCardProps = ChoiceCardShellProps & {
   multiline?: boolean
   /** Placeholder text for the field. */
   placeholder?: string
+  /**
+   * Render as a static, non-editable card (no input). The SRD reference (and
+   * read-only snapshots) have no persistence, so they show the prompt — or the
+   * saved value — as plain text instead of an editable field. Editable surfaces
+   * (ITUN's live builder) leave this false.
+   */
+  readOnly?: boolean
 }
 
 /**
- * ChoiceCard (free-text variant) — the same coloured header + white inset body,
- * wrapping an editable field (Name / Appearance / A.I. Personality). Always
- * renders fully active (full accent fill + full title); no Chosen/Not-Chosen
+ * ChoiceCard (free-text variant) — the same coloured header + white inset body.
+ * When editable it wraps an input field (Name / Appearance / A.I. Personality);
+ * when `readOnly` it renders the saved value (or the prompt) as static text.
+ * Always renders fully active (full accent fill + full title); no Chosen/Not-Chosen
  * status, and the prompt becomes the field placeholder.
  */
 export function FreeTextChoiceCard({
@@ -200,11 +208,16 @@ export function FreeTextChoiceCard({
   compact = false,
   parentHeaderBg,
   parentHeaderBgColor,
+  readOnly = false,
 }: FreeTextChoiceCardProps) {
   const accent = choiceAccent(parentHeaderBg, parentHeaderBgColor)
   // The prompt becomes the field's placeholder — these are inputs, not text
   // description fields.
   const effectivePlaceholder = placeholder ?? description
+  const fontSize = compact ? 'text-xs' : 'text-sm'
+  // Static view shows the saved value, falling back to the prompt (muted).
+  const staticText = value || effectivePlaceholder || '—'
+  const parsedStaticText = useParseTraitReferences(staticText)
 
   const handleChange = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     onValueChange?.(event.target.value)
@@ -225,7 +238,11 @@ export function FreeTextChoiceCard({
     >
       <ChoiceCardHeader label={label} chosen compact={compact} />
       <ChoiceCardBody accent={accent} compact={compact}>
-        {multiline ? (
+        {readOnly ? (
+          <Text as="span" className={cn('block text-su-black', fontSize, !value && 'opacity-70')}>
+            {parsedStaticText}
+          </Text>
+        ) : multiline ? (
           <textarea
             aria-label={label}
             className={fieldClasses}

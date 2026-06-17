@@ -1,4 +1,3 @@
-import { useState, useEffect, useRef } from 'react'
 import type { ReactNode } from 'react'
 import { getNpc } from 'salvageunion-reference'
 import type { SURefMetaEntity } from 'salvageunion-reference'
@@ -36,79 +35,14 @@ type ReferenceEntityNpcDisplayProps = {
   headerBg?: string
   /** Parent raw CSS color (for content-block border color) */
   headerBgColor?: string
-  /** NPC name value (for inline editing in embedded mode) */
+  /** NPC name value (rendered as static text) */
   npcName?: string
-  /** Callback when NPC name changes */
-  onNpcNameChange?: (name: string) => void
-  /** Callback when NPC name input loses focus */
-  onNpcNameBlur?: () => void
   /** Whether the NPC fields are read-only */
   readOnly?: boolean
   /** Show an "NPC" section separator above the NPC name/HP block */
   showSeparator?: boolean
   /** Hide the header row (name, position, HP) in embedded mode */
   hideHeader?: boolean
-}
-
-function NpcNameInput({
-  value,
-  onChange,
-  onBlur,
-  compact,
-}: {
-  value: string
-  onChange: (value: string) => void
-  onBlur?: () => void
-  compact?: boolean
-}) {
-  const measureRef = useRef<HTMLSpanElement>(null)
-  const [inputWidth, setInputWidth] = useState(0)
-  const fontClass = compact ? 'text-base' : 'text-[1.75rem]'
-  const placeholder = 'Name...'
-
-  useEffect(() => {
-    if (measureRef.current) {
-      setInputWidth(measureRef.current.scrollWidth)
-    }
-  }, [value])
-
-  return (
-    <span className="relative inline-flex items-baseline">
-      <span
-        ref={measureRef}
-        aria-hidden
-        className={`pointer-events-none invisible absolute whitespace-pre font-cond ${fontClass} font-bold uppercase leading-none`}
-      >
-        {value || placeholder}
-      </span>
-      <Text
-        variant="pseudoheader"
-        as="span"
-        className={cn(
-          'inline-flex items-center box-decoration-clone bg-su-black px-1 text-su-white',
-          fontClass,
-          compact ? 'py-[3px]' : 'py-1'
-        )}
-        style={compact ? { lineHeight: 1 } : undefined}
-      >
-        <input
-          type="text"
-          size={1}
-          placeholder={placeholder}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          onBlur={onBlur}
-          className={cn(
-            'border-none bg-transparent p-0 outline-none',
-            'font-cond font-bold uppercase leading-none tracking-tight',
-            'text-su-white placeholder:normal-case placeholder:text-su-white/50',
-            fontClass
-          )}
-          style={{ width: inputWidth || undefined, lineHeight: compact ? 1 : undefined }}
-        />
-      </Text>
-    </span>
-  )
 }
 
 export function ReferenceEntityNpcDisplay({
@@ -124,8 +58,6 @@ export function ReferenceEntityNpcDisplay({
   headerBg,
   headerBgColor,
   npcName,
-  onNpcNameChange,
-  onNpcNameBlur,
   readOnly = false,
   showSeparator,
   hideHeader = false,
@@ -134,8 +66,8 @@ export function ReferenceEntityNpcDisplay({
   if (!npc) return null
 
   const hasContent = !hideContent && npc.content && npc.content.length > 0
-  // Static when explicitly readOnly OR when no interactive props are provided
-  const isStatic = readOnly || (!npcChildren && !onNpcNameChange && !hpSlot)
+  // Static when explicitly readOnly OR when no interactive slots are provided
+  const isStatic = readOnly || (!npcChildren && !hpSlot)
   // showSeparator: explicit true/false overrides, undefined defaults to isStatic
   const renderSeparator = showSeparator ?? isStatic
 
@@ -153,26 +85,17 @@ export function ReferenceEntityNpcDisplay({
             <div className="min-w-0">
               {hasName && (
                 <div>
-                  {readOnly || !onNpcNameChange ? (
-                    <Text
-                      variant="pseudoheader"
-                      as="span"
-                      className={cn(
-                        'box-decoration-clone bg-su-black px-1 text-su-white uppercase tracking-[-0.02em]',
-                        compact ? 'py-[3px] text-base' : 'py-1 text-[1.75rem]'
-                      )}
-                      style={compact ? { lineHeight: 1 } : undefined}
-                    >
-                      {npcName || '\u2014'}
-                    </Text>
-                  ) : (
-                    <NpcNameInput
-                      value={npcName}
-                      onChange={onNpcNameChange}
-                      onBlur={onNpcNameBlur}
-                      compact={compact}
-                    />
-                  )}
+                  <Text
+                    variant="pseudoheader"
+                    as="span"
+                    className={cn(
+                      'box-decoration-clone bg-su-black px-1 text-su-white uppercase tracking-[-0.02em]',
+                      compact ? 'py-[3px] text-base' : 'py-1 text-[1.75rem]'
+                    )}
+                    style={compact ? { lineHeight: 1 } : undefined}
+                  >
+                    {npcName || '\u2014'}
+                  </Text>
                 </div>
               )}
               {npc.position && (
@@ -210,19 +133,8 @@ export function ReferenceEntityNpcDisplay({
   // Full card framing for standalone NPC display
   const hasName = npcName !== undefined
 
-  // Build title: editable input or static name (falls back to position)
-  const titleContent = hasName
-    ? readOnly || !onNpcNameChange
-      ? npcName || '\u2014'
-      : ((
-          <NpcNameInput
-            value={npcName}
-            onChange={onNpcNameChange}
-            onBlur={onNpcNameBlur}
-            compact={compact}
-          />
-        ) as React.ReactNode)
-    : (npc.position ?? '')
+  // Build title: static name (falls back to position)
+  const titleContent = hasName ? npcName || '\u2014' : (npc.position ?? '')
 
   // HP as stats on DisplayCard (when no custom hpSlot), or as rightContent (when hpSlot)
   const npcStats: StatItem[] | undefined =

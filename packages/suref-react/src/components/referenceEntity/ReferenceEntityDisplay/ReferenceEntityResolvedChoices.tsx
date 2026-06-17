@@ -18,6 +18,12 @@ type ReferenceEntityResolvedChoicesProps = {
   selections: ChoiceSelections
   onSelectionChange: (selections: ChoiceSelections) => void
   /**
+   * Render free-text choices (Name / Appearance / A.I. Personality) as static
+   * text rather than editable inputs. The SRD reference has no persistence, so
+   * it reads-only; ITUN's live builder leaves this false to allow editing.
+   */
+  readOnly?: boolean
+  /**
    * Optional scaling parent for `constraints.scalesWithField` caps (e.g. the
    * Modification choice scaling with `techLevel`). A consumer with a play/build
    * context (ITUN) passes e.g. `{ techLevel: effectiveCrawlerLevel }` so the cap
@@ -46,6 +52,7 @@ export function ReferenceEntityResolvedChoices({
   parentHeaderBgColor,
   selections,
   onSelectionChange,
+  readOnly,
   scalingParent,
 }: ReferenceEntityResolvedChoicesProps) {
   const choices = getChoices(data) ?? []
@@ -66,6 +73,7 @@ export function ReferenceEntityResolvedChoices({
       parent={scalingParent}
       selections={selections}
       onSelectionChange={onSelectionChange}
+      readOnly={readOnly}
       compact={compact}
       parentHeaderBg={parentHeaderBg}
       parentHeaderBgColor={parentHeaderBgColor}

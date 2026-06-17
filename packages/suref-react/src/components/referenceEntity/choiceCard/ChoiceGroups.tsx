@@ -25,6 +25,12 @@ type ChoiceGroupsProps = {
   selections?: ChoiceSelections
   /** Called with the next selections map whenever a selection changes. */
   onSelectionChange?: (selections: ChoiceSelections) => void
+  /**
+   * Render free-text choices as static text instead of editable inputs. The SRD
+   * reference (and read-only snapshots) have no persistence, so their Name /
+   * Appearance / A.I. Personality fields show as plain text, not inputs.
+   */
+  readOnly?: boolean
   compact?: boolean
   parentHeaderBg?: string
   parentHeaderBgColor?: string
@@ -49,6 +55,7 @@ export function ChoiceGroups({
   parent,
   selections: controlledSelections,
   onSelectionChange,
+  readOnly,
   compact,
   parentHeaderBg,
   parentHeaderBgColor,
@@ -102,6 +109,7 @@ export function ChoiceGroups({
           cap={resolveMultiSelectCap(choice, parent)}
           onToggleOption={(value) => handleToggleOption(choice, value)}
           onFreeTextChange={(value) => handleFreeTextChange(choice, value)}
+          readOnly={readOnly}
           compact={compact}
           parentHeaderBg={parentHeaderBg}
           parentHeaderBgColor={parentHeaderBgColor}
