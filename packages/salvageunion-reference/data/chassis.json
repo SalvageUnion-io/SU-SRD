@@ -6178,7 +6178,6 @@
     "patterns": [
       {
         "name": "10 Finger Pattern",
-        "legalStarting": true,
         "systems": [
           {
             "name": "Rigging Arm"
@@ -6271,7 +6270,6 @@
     "patterns": [
       {
         "name": "DronTek Pattern",
-        "legalStarting": true,
         "systems": [
           {
             "name": "K4 Rifle"
@@ -6348,7 +6346,6 @@
     "patterns": [
       {
         "name": "Deerstalker Pattern",
-        "legalStarting": true,
         "systems": [
           {
             "name": "Mech Melee Armament"
@@ -6420,7 +6417,6 @@
     "patterns": [
       {
         "name": "Stefanus Pattern",
-        "legalStarting": true,
         "systems": [
           {
             "name": "Needle Missile Pod",
@@ -6802,7 +6798,6 @@
     "patterns": [
       {
         "name": "Hunchback Pattern",
-        "legalStarting": false,
         "systems": [
           {
             "name": "Long Barrelled Green Laser"
@@ -7132,7 +7127,6 @@
       },
       {
         "name": "Warrior Pattern",
-        "legalStarting": true,
         "systems": [
           {
             "name": "Armoured Shield"
@@ -7235,7 +7229,6 @@
     "patterns": [
       {
         "name": "Moth Pattern",
-        "legalStarting": true,
         "systems": [
           {
             "name": ".50 Cal Machine Gun"

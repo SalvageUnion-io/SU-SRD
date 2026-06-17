@@ -10,11 +10,7 @@ import { cn } from '../../../utils/cn'
 import { Text } from '../../base/Text'
 import { BlockContentRendererView } from '../BlockContentRendererView'
 import { ReferenceEntityChassisAbilitiesContent } from './ReferenceEntityChassisAbilitiesContent'
-import {
-  resolvePatternOverride,
-  checkLegalStartingMech,
-  computeSvOverride,
-} from './patternOverrideUtils'
+import { resolvePatternOverride, computeSvOverride } from './patternOverrideUtils'
 import {
   getReferenceEntityFontSizes,
   getReferenceEntitySpacing,
@@ -59,10 +55,10 @@ export function useChassisPatternConfig(
     () => (patternOverride ? resolvePatternOverride(data, patternOverride) : undefined),
     [data, patternOverride]
   )
-  const isLegalStartingMech = useMemo(
-    () => (patternOverride ? checkLegalStartingMech(data, patternOverride) : false),
-    [data, patternOverride]
-  )
+  // "Legal Starting Pattern" is an explicit data tag on the pattern (set only
+  // where the source book calls it out), not a value computed from tech level or
+  // salvage value. The badge shows iff the resolved pattern record carries it.
+  const isLegalStartingMech = overridePatternData?.legalStarting === true
   const svOverride = useMemo(
     () => (patternOverride ? computeSvOverride(data, patternOverride) : undefined),
     [data, patternOverride]
