@@ -4,7 +4,7 @@
  * Production: NetlifyBlobsStorage (uses @netlify/blobs getStore()).
  * Tests: InMemoryStorage (a Map-backed stub — no mock.module() needed).
  *
- * See ADR-010-snapshot-backend.md for rationale.
+ * See ADR-004-snapshot-netlify-functions.md for rationale.
  */
 
 export type PutOptions = {

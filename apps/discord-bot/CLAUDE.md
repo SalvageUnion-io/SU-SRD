@@ -1,6 +1,9 @@
 # Discord Bot
 
-Discord.js bot for rolling on Salvage Union random tables.
+Discord.js bot for rolling on Salvage Union random tables. Standalone consumer of
+`salvageunion-reference` — it reuses the same pure rules/data logic the apps do
+([ADR-006](../../docs/adrs/ADR-006-pure-rules-logic.md)) and preloads the dataset
+at startup ([ADR-005](../../docs/adrs/ADR-005-reference-data-orm.md)).
 
 ## Stack
 

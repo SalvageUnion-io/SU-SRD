@@ -12,7 +12,7 @@ This document codifies that boundary, places every identified gray-zone mechanic
 
 **ITUN does not enforce procedural adjudication.** These are table-governance concerns — who acts when, what consequences a roll implies, how narrative outcomes unfold — that depend on Mediator judgment and social coordination. The app may surface relevant rules text or prompt for input, but it never blocks or controls the outcome.
 
-This boundary maps onto a deeper principle already present in the codebase: the honor system of ADR-001 (Self-Service Combat Model). The app trusts players to act in turn and trusts the Mediator to govern the table. What the app does own is the math: costs, caps, conditions, prerequisites.
+This boundary maps onto a deeper principle already present in the codebase: the honor system that follows from [ADR-001](../adrs/ADR-001-local-first-no-backend.md) (Local-First, No Backend) — with no server-side game state there is no turn enforcement or cross-player writes. The app trusts players to act in turn and trusts the Mediator to govern the table. What the app does own is the math: costs, caps, conditions, prerequisites.
 
 ---
 
@@ -38,7 +38,7 @@ System slots, module slots, and cargo slots each have a defined capacity. Adding
 
 ### Equipment Condition Tracking
 
-Item condition transitions (`intact` -> `damaged` -> `destroyed`) are tracked in the `entity_refs` table. ITUN surfaces condition state on every entity card and prevents use of destroyed items. Condition writes always require explicit player confirmation (see ADR-008).
+Item condition transitions (`intact` -> `damaged` -> `destroyed`) are tracked on the player record in IndexedDB and driven by the `ConditionToggle` component. ITUN surfaces condition state on every entity card and prevents use of destroyed items. Condition writes always require explicit player confirmation (see [ADR-007](../adrs/ADR-007-automation-boundary.md) and [ADR-009](../adrs/ADR-009-condition-model-destroyed-color.md)).
 
 ### Heat Capacity Limits
 
@@ -86,7 +86,7 @@ The Heat Check triggers whenever heat is gained (`shouldTriggerHeatCheck` in `co
 
 What happens after the roll (the Reactor Overload Table) is hybrid — see below. But the trigger itself is economic: a computable threshold crossed.
 
-**Placement: economic (trigger), hybrid (consequence). Trigger is enforced. Consequences are partially automated per ADR-006.**
+**Placement: economic (trigger), hybrid (consequence). Trigger is enforced. Consequences are partially automated per [ADR-007](../adrs/ADR-007-automation-boundary.md).**
 
 ### Keepsake / Background / Motto Re-roll — Economic
 
@@ -98,7 +98,7 @@ Each pilot's special re-roll (keepsake, background, motto) has a binary used/unu
 
 When a mech reaches 0 SP, the Critical Damage Table applies. The trigger is economic: an HP/SP threshold reached. But the consequence (which system or module is destroyed, or whether the player chooses vs. rolls randomly) involves Mediator input for some outcomes.
 
-**Placement: hybrid. The trigger should fire automatically when SP reaches 0. Consequence selection (random target picker or Mediator-directed choice) requires player confirmation before any write. No condition change is applied without the player seeing and confirming the outcome (ADR-008).**
+**Placement: hybrid. The trigger should fire automatically when SP reaches 0. Consequence selection (random target picker or Mediator-directed choice) requires player confirmation before any write. No condition change is applied without the player seeing and confirming the outcome ([ADR-007](../adrs/ADR-007-automation-boundary.md)).**
 
 ### Push Mechanic — Hybrid
 
@@ -115,7 +115,7 @@ The Reactor Overload Table fires after a failed Heat Check. The trigger is econo
 - Roll 6–10 or 2–5: module or system destroyed — requires target selection and confirmation.
 - Roll 1: catastrophic meltdown — Mediator handles manually.
 
-**Placement: hybrid per outcome. See ADR-006 for the full decision. The pattern is: non-destructive math is auto-applied; destructive outcomes require confirmation; narrative extremes are left to the Mediator.**
+**Placement: hybrid per outcome. See [ADR-007](../adrs/ADR-007-automation-boundary.md) for the full decision. The pattern is: non-destructive math is auto-applied; destructive outcomes require confirmation; narrative extremes are left to the Mediator.**
 
 ---
 
@@ -123,17 +123,17 @@ The Reactor Overload Table fires after a failed Heat Check. The trigger is econo
 
 **Classify before implementing.** When a new feature involves a game rule, place it in one of three categories before writing any code:
 
-| Category | Definition | App behavior |
-|----------|------------|--------------|
-| Economic | Deterministic constraint computable from structured data | Enforce in code. Block violations. |
-| Procedural | Requires Mediator judgment or table-social coordination | Surface relevant rules text, prompt for inputs, but do not enforce. |
-| Hybrid | Has an economic trigger and a procedural or player-confirmed consequence | Trigger automatically. Present outcomes for Mediator or player confirmation before writing. |
+| Category   | Definition                                                               | App behavior                                                                                |
+| ---------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------- |
+| Economic   | Deterministic constraint computable from structured data                 | Enforce in code. Block violations.                                                          |
+| Procedural | Requires Mediator judgment or table-social coordination                  | Surface relevant rules text, prompt for inputs, but do not enforce.                         |
+| Hybrid     | Has an economic trigger and a procedural or player-confirmed consequence | Trigger automatically. Present outcomes for Mediator or player confirmation before writing. |
 
 **Economic constraints should be enforced in code.** If a rule can be expressed as a comparison against a value in the database or the reference data, ITUN should enforce it. Advisory warnings for checkable constraints are a weaker substitute.
 
 **Procedural mechanics should be surfaced, not enforced.** For mechanics the app cannot resolve without Mediator input, display the relevant rules text, show a prompt with the relevant roll or decision context, and let the player or Mediator apply the outcome using existing tools.
 
-**Hybrid mechanics should trigger automatically and present outcomes for confirmation.** The trigger condition (threshold crossed, resource spent) fires without user initiation. The consequence write requires the player to see and confirm the result before it is persisted. This is the automation boundary from ADR-008: smart bookkeeping, hands-off on permanent consequences.
+**Hybrid mechanics should trigger automatically and present outcomes for confirmation.** The trigger condition (threshold crossed, resource spent) fires without user initiation. The consequence write requires the player to see and confirm the result before it is persisted. This is the automation boundary from [ADR-007](../adrs/ADR-007-automation-boundary.md): smart bookkeeping, hands-off on permanent consequences.
 
 **Gray zones should be resolved here, not in code comments.** If a new mechanic is ambiguous, update this document with the explicit placement and rationale before implementation begins. That record prevents inconsistent design decisions across stories.
 
@@ -141,8 +141,8 @@ The Reactor Overload Table fires after a failed Heat Check. The trigger is econo
 
 ## Cross-References
 
-- `docs/adrs/ADR-001-self-service-combat-model.md` — Honor system foundation; no turn enforcement
-- `docs/adrs/ADR-006-reactor-overload-partial-automation.md` — Hybrid mechanic example: Reactor Overload outcomes
-- `docs/adrs/ADR-008-automation-boundary.md` — Smart bookkeeping, confirmation required for destructive outcomes
-- `docs/architecture/combat-loop.md` — Implementation details for the combat resource loop
-- `docs/architecture/data-flow.md` — How economic constraints are stored and hydrated
+- [ADR-001](../adrs/ADR-001-local-first-no-backend.md) — Local-first; honor system, no turn enforcement
+- [ADR-007](../adrs/ADR-007-automation-boundary.md) — Smart bookkeeping, confirmation required for destructive outcomes
+- [ADR-009](../adrs/ADR-009-condition-model-destroyed-color.md) — Item condition model
+- [combat-loop.md](combat-loop.md) — Implementation details for the combat resource loop
+- [data-flow.md](data-flow.md) — How economic constraints are stored and hydrated

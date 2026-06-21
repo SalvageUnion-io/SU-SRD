@@ -5,7 +5,7 @@
 #
 # Snapshot endpoints are Netlify Functions (TypeScript, ESM).
 # The /api/snapshots/* path family is mapped to the two handlers.
-# See docs/adrs/ADR-010-snapshot-backend.md.
+# See docs/adrs/ADR-004-snapshot-netlify-functions.md.
 
 [build]
   command = "bun install --frozen-lockfile && bun run build:package:ci && bun --filter in-the-union-now build"

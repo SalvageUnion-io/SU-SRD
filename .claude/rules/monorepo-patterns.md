@@ -43,13 +43,13 @@ Following [Bun workspace conventions](https://bun.com/docs/guides/install/worksp
 ```typescript
 // Correct - use relative imports
 import { MyComponent } from '../../components/MyComponent'
-import { supabase } from '../lib/supabase'
+import { useEntityStore } from '../stores/entityStore'
 
 // Never - path aliases hide file structure
 import { MyComponent } from '@/components/MyComponent'
-import { supabase } from '@/lib/supabase'
+import { useEntityStore } from '@/stores/entityStore'
 ```
 
 ## Generated Files
 
-- Generated files (like `routeTree.gen.ts`, `database-generated.types.ts`) are ignored in linting
+- Generated files (like `routeTree.gen.ts` from TanStack Router, and `schemas/*.schema.json` / `dist/` in `salvageunion-reference`) are ignored in linting and must not be hand-edited

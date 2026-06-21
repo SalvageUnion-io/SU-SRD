@@ -3,7 +3,7 @@
  *
  * IMPORTANT: This is per-Lambda-instance. Netlify may spin up multiple
  * instances, so a single IP can exceed the limit by hitting different
- * instances. For v1 this is acceptable. See ADR-010-snapshot-backend.md
+ * instances. For v1 this is acceptable. See ADR-004-snapshot-netlify-functions.md
  * §Rate Limiting for the upgrade path (shared counter via Netlify Blobs).
  */
 

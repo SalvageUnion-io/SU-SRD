@@ -1,6 +1,11 @@
 # salvageunion-reference (Game Data Package)
 
 TypeScript ORM + schema-validated JSON dataset for Salvage Union game data.
+Design rationale: [ADR-005](../../docs/adrs/ADR-005-reference-data-orm.md) (Zod →
+generated JSON Schema, BaseModel/ModelFactory, lazy data loading). All Zod usage
+goes through `lib/zod.ts` for CSP-safe (jitless) parsing
+([ADR-013](../../docs/adrs/ADR-013-csp-zod-jitless.md)). Pure rules math lives
+here too ([ADR-006](../../docs/adrs/ADR-006-pure-rules-logic.md)).
 
 ## Build & JSON Schema Generation
 
