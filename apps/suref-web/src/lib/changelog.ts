@@ -6,6 +6,13 @@ type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    date: '2026-06-21',
+    title: 'Branded link previews for every entity',
+    items: [
+      'Sharing a link to any chassis, system, ability, creature (or any other entity) now shows a branded Salvage Union preview card — the entity name, tech level, key stats, traits, and source — instead of a generic banner. Generated at build time for all entity pages.',
+    ],
+  },
+  {
     date: '2026-06-15',
     title: 'Fabrication Bay options restored',
     items: [
