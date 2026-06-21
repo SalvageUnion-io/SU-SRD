@@ -14,6 +14,7 @@ import { createRequire } from 'node:module'
 import { readFileSync } from 'node:fs'
 import satori from 'satori'
 import { Resvg } from '@resvg/resvg-js'
+import { techLevelLabel } from 'suref-react'
 
 const OG_WIDTH = 1200
 const OG_HEIGHT = 630
@@ -36,12 +37,6 @@ const TL_COLORS: Record<string, { bg: string; fg: string }> = {
   '6': { bg: 'rgb(6,52,65)', fg: SU_WHITE },
   B: { bg: 'rgb(215,195,125)', fg: SU_BLACK },
   N: { bg: 'rgb(192,192,192)', fg: SU_BLACK },
-}
-
-function techLevelLabel(tl: number | 'B' | 'N'): string {
-  if (tl === 'B') return 'BIO'
-  if (tl === 'N') return 'NANITE'
-  return `TL${tl}`
 }
 
 // --- Fonts (loaded once per build) ------------------------------------------
@@ -97,17 +92,24 @@ const h = (type: string, style: Record<string, unknown>, children?: unknown): El
 })
 
 function statChip(label: string, value: string | number): El {
-  return h('div', { display: 'flex', flexDirection: 'column' }, [
+  // Most values are short numbers (SP, slots, …) but some are strings that can
+  // be long (Range "Close, Medium, Far", Damage "2 Damage"). Shrink the font for
+  // longer values, keep them on one line, and truncate as a hard backstop so a
+  // chip never overflows its column or collides with its neighbours.
+  const text = truncate(String(value), 16)
+  const valueFontSize = text.length <= 4 ? 44 : text.length <= 8 ? 32 : 24
+  return h('div', { display: 'flex', flexDirection: 'column', maxWidth: 240, overflow: 'hidden' }, [
     h(
       'div',
       {
         fontFamily: 'Barlow Semi Condensed',
         fontWeight: 700,
-        fontSize: 44,
+        fontSize: valueFontSize,
         color: SU_ORANGE,
         lineHeight: 1,
+        whiteSpace: 'nowrap',
       },
-      String(value)
+      text
     ),
     h(
       'div',
@@ -119,6 +121,7 @@ function statChip(label: string, value: string | number): El {
         textTransform: 'uppercase',
         letterSpacing: 1,
         marginTop: 6,
+        whiteSpace: 'nowrap',
       },
       label
     ),
