@@ -4,7 +4,7 @@ import { getItemStaticPaths } from '../../../../lib/staticPaths'
 import { ReferenceEntityIsland } from '../../../../components/islands/ReferenceEntityIsland'
 import { getReferenceEntityData, extractStaticEntitySummary } from '../../../../lib/gameData'
 import StaticEntityContent from '../../../../components/StaticEntityContent.astro'
-import { SITE_URL, DEFAULT_OG_IMAGE } from '../../../../lib/constants'
+import { SITE_URL } from '../../../../lib/constants'
 
 export function getStaticPaths() {
   return getItemStaticPaths()
@@ -83,8 +83,10 @@ if (displayData?.techLevel != null) {
   }
 }
 
+// Per-entity branded OG card generated at build time ([itemId].og.png.ts).
+// Real artwork (assetUrl) still preloads for the on-page view.
 const preloadImage = displayData?.assetUrl
-const ogImage = displayData?.assetUrl || DEFAULT_OG_IMAGE
+const ogImage = `/schema/${schemaId}/item/${itemId}.og.png`
 ---
 
 <BaseLayout
