@@ -6,8 +6,7 @@
 # redistribute"), so it must not enter this public repo. Bytes are uploaded
 # out-of-band via tools/upload-lp-assets.ts; only the serving code lives here.
 #
-# Replaces the former hosted Storage bucket. See
-# plan-docs/supabase-image-migration.md.
+# Replaces the former hosted Storage bucket.
 #
 # Base directory is the repo root (matches the other SU-SRD Netlify sites).
 

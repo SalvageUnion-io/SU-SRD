@@ -143,7 +143,7 @@ the current local-first app — do not document or assume them:
 - Salvage in ITUN (`SalvageModal` / `salvageUtils.ts`) — salvage tables live in
   the Discord bot, not ITUN.
 - Any change log, undo/redo, or `reversible` tracking.
-- Any Supabase RPC (`apply_mech_damage`), `entity_refs` table, or `useUpdateMech`
+- Any backend RPC (`apply_mech_damage`), `entity_refs` table, or `useUpdateMech`
   hook — state is plain `entityStore.update(...)` write-through.
 
 ---

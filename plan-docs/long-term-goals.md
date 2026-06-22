@@ -8,34 +8,34 @@ Comprehensive audit of every Salvage Union game mechanic encoded in `salvageunio
 
 ## What ITUN Fully Supports Today (26 Mechanics)
 
-| Mechanic | Status |
-|----------|--------|
-| Pilot creation (wizard, all guide steps) | Done |
-| Class selection (6 core + 5 hybrid) | Done |
-| Ability selection (level 1 from core trees) | Done |
-| Equipment selection (pilot gear) | Done |
-| Roll tables (callsign, background, motto, keepsake, appearance) | Done |
-| Mech creation (chassis, systems, modules, budget) | Done |
-| Pattern system (save, load, share mech configurations) | Done |
-| Capacity enforcement (slots, cargo, scrap budget) | Done |
-| Condition tracking (intact/damaged/destroyed on systems, modules, abilities, equipment) | Done |
-| Live stat editing (HP, AP, TP, SP, EP, Heat) | Done |
-| Crawler creation (type selection, weapon mounting, NPC naming) | Done |
-| Crawler tech level display + upgrade with scrap cost | Done |
-| Scrap inventory (TL1-TL6 tiers, translation between tiers) | Done |
-| Cargo management (custom items, ref-linked items, capacity) | Done |
-| Game/campaign creation and basic management | Done |
-| Pilot-to-crawler assignment | Done |
-| Member roster (mediator/player roles) | Done |
-| Realtime subscriptions (live sync across clients) | Done |
-| Change logging + activity feed (toast notifications) | Done |
-| Comrade/drone display from mech entity refs | Done |
-| Comrade EP tracking + custom naming | Done |
-| Comrade action availability rules (pilot-sourced vs mech-sourced) | Done |
-| Player choices (roll results, freeform text, selections) | Done |
-| Visibility toggles (public/private entities) | Done |
-| Background/motto/keepsake "used" flags | Done |
-| RLS + shared access policies (campaign members, crawler crew) | Done |
+| Mechanic                                                                                | Status |
+| --------------------------------------------------------------------------------------- | ------ |
+| Pilot creation (wizard, all guide steps)                                                | Done   |
+| Class selection (6 core + 5 hybrid)                                                     | Done   |
+| Ability selection (level 1 from core trees)                                             | Done   |
+| Equipment selection (pilot gear)                                                        | Done   |
+| Roll tables (callsign, background, motto, keepsake, appearance)                         | Done   |
+| Mech creation (chassis, systems, modules, budget)                                       | Done   |
+| Pattern system (save, load, share mech configurations)                                  | Done   |
+| Capacity enforcement (slots, cargo, scrap budget)                                       | Done   |
+| Condition tracking (intact/damaged/destroyed on systems, modules, abilities, equipment) | Done   |
+| Live stat editing (HP, AP, TP, SP, EP, Heat)                                            | Done   |
+| Crawler creation (type selection, weapon mounting, NPC naming)                          | Done   |
+| Crawler tech level display + upgrade with scrap cost                                    | Done   |
+| Scrap inventory (TL1-TL6 tiers, translation between tiers)                              | Done   |
+| Cargo management (custom items, ref-linked items, capacity)                             | Done   |
+| Game/campaign creation and basic management                                             | Done   |
+| Pilot-to-crawler assignment                                                             | Done   |
+| Member roster (mediator/player roles)                                                   | Done   |
+| Realtime subscriptions (live sync across clients)                                       | Done   |
+| Change logging + activity feed (toast notifications)                                    | Done   |
+| Comrade/drone display from mech entity refs                                             | Done   |
+| Comrade EP tracking + custom naming                                                     | Done   |
+| Comrade action availability rules (pilot-sourced vs mech-sourced)                       | Done   |
+| Player choices (roll results, freeform text, selections)                                | Done   |
+| Visibility toggles (public/private entities)                                            | Done   |
+| Background/motto/keepsake "used" flags                                                  | Done   |
+| RLS + shared access policies (campaign members, crawler crew)                           | Done   |
 
 ---
 
@@ -267,7 +267,7 @@ These are mechanics that players use every session and are central to the game.
 
 **Current state:** `image_path` fields exist but only accept URLs. No upload flow.
 
-**Gap:** No image upload to Supabase Storage.
+**Gap:** No image upload flow (URLs only).
 
 **Impact:** Low -- URLs work as a workaround.
 
@@ -285,30 +285,30 @@ These are mechanics that players use every session and are central to the game.
 
 ## Priority Matrix
 
-| Priority | Gap | Gameplay Impact | Effort |
-|----------|-----|----------------|--------|
-| **P0** | Action Execution (AP/EP spending) | Every combat turn | Medium |
-| **P0** | Downtime Flow (guided 10-step) | Every session transition | Large |
-| **P1** | Heat Management (action -> heat link) | Every combat turn | Small-Medium |
-| **P1** | Damage Application (guided flow) | Every combat round | Medium |
-| **P1** | Ability Training UI | Every downtime | Medium |
-| **P1** | Invite Code Join Flow | Onboarding blocker | Small |
-| **P2** | Pushing Mechanics | Frequent in combat | Small |
-| **P2** | Crafting System | Every downtime | Medium |
-| **P2** | Salvage Tallying | Every session end | Small-Medium |
-| **P2** | Class Advancement UI | Once per character | Medium |
-| **P2** | NPC/Enemy Encounter Tracking | Every combat (mediator) | Large |
-| **P3** | Campaign Archive UI | Campaign management | Tiny |
-| **P3** | Rumor Gathering | Downtime flavor | Small |
-| **P3** | Bay Damage Tracking | Rare events | Small |
-| **P3** | Dice Rolling Integration | Every session | Medium |
-| **P4** | Faction/Formation Tracking | GM tool | Medium |
-| **P4** | Vehicle Management | Rare usage | Small |
-| **P4** | Creature/Bio-Titan Tracking | GM encounters | Medium-Large |
-| **P4** | Image Uploads | Cosmetic | Small |
-| **P4** | Export/Import (PDF sheets) | Convenience | Medium |
-| **P4** | Blackmarket Enforcement | Flavor | Tiny |
-| **P4** | Population Flavor Text | Cosmetic | Tiny |
+| Priority | Gap                                   | Gameplay Impact          | Effort       |
+| -------- | ------------------------------------- | ------------------------ | ------------ |
+| **P0**   | Action Execution (AP/EP spending)     | Every combat turn        | Medium       |
+| **P0**   | Downtime Flow (guided 10-step)        | Every session transition | Large        |
+| **P1**   | Heat Management (action -> heat link) | Every combat turn        | Small-Medium |
+| **P1**   | Damage Application (guided flow)      | Every combat round       | Medium       |
+| **P1**   | Ability Training UI                   | Every downtime           | Medium       |
+| **P1**   | Invite Code Join Flow                 | Onboarding blocker       | Small        |
+| **P2**   | Pushing Mechanics                     | Frequent in combat       | Small        |
+| **P2**   | Crafting System                       | Every downtime           | Medium       |
+| **P2**   | Salvage Tallying                      | Every session end        | Small-Medium |
+| **P2**   | Class Advancement UI                  | Once per character       | Medium       |
+| **P2**   | NPC/Enemy Encounter Tracking          | Every combat (mediator)  | Large        |
+| **P3**   | Campaign Archive UI                   | Campaign management      | Tiny         |
+| **P3**   | Rumor Gathering                       | Downtime flavor          | Small        |
+| **P3**   | Bay Damage Tracking                   | Rare events              | Small        |
+| **P3**   | Dice Rolling Integration              | Every session            | Medium       |
+| **P4**   | Faction/Formation Tracking            | GM tool                  | Medium       |
+| **P4**   | Vehicle Management                    | Rare usage               | Small        |
+| **P4**   | Creature/Bio-Titan Tracking           | GM encounters            | Medium-Large |
+| **P4**   | Image Uploads                         | Cosmetic                 | Small        |
+| **P4**   | Export/Import (PDF sheets)            | Convenience              | Medium       |
+| **P4**   | Blackmarket Enforcement               | Flavor                   | Tiny         |
+| **P4**   | Population Flavor Text                | Cosmetic                 | Tiny         |
 
 ---
 
@@ -336,5 +336,3 @@ Everything else in the gap list above is **not currently on any roadmap**.
 - `updateMechEntityRefs`
 - `updateCrawlerWeapon`
 - `joinGame`
-
-These are tracked in `plan-docs/audit-follow-up.md`.
