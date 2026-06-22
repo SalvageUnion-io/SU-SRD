@@ -5,7 +5,7 @@ Shared React component library for the SURef monorepo. Consumed by `apps/suref-w
 ## Design constraints
 
 - **No build step.** Exports TypeScript source directly via `src/index.ts`. Consuming apps compile via their own Vite/Astro setup.
-- **No Supabase dependency.** Data-source agnostic. Apps pass data in; the library renders it.
+- **No backend dependency.** Data-source agnostic. Apps pass data in; the library renders it.
 - **Reusable across a static Astro site and a dynamic React SPA.** No framework-specific hooks that assume SSR, routing, or auth.
 
 ## Contents

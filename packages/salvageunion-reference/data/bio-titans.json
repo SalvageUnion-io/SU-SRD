@@ -12,7 +12,7 @@
       "Titanic Actions (Scylla)"
     ],
     "structurePoints": 39,
-    "asset_url": "https://opxrguskxuogghzcnppk.supabase.co/storage/v1/object/public/LP-Assets/bio-titans/scylla.jpg",
+    "asset_url": "https://assets.salvageunion.io/bio-titans/scylla.jpg",
     "page": 276,
     "content": [
       {
@@ -33,7 +33,7 @@
       "Titanic Actions (Typhon)"
     ],
     "structurePoints": 67,
-    "asset_url": "https://opxrguskxuogghzcnppk.supabase.co/storage/v1/object/public/LP-Assets/bio-titans/typhon.jpg",
+    "asset_url": "https://assets.salvageunion.io/bio-titans/typhon.jpg",
     "page": 278,
     "content": [
       {
@@ -55,7 +55,7 @@
       "Titanic Actions (Chrysalis)"
     ],
     "structurePoints": 80,
-    "asset_url": "https://opxrguskxuogghzcnppk.supabase.co/storage/v1/object/public/LP-Assets/bio-titans/chrysalis.jpg",
+    "asset_url": "https://assets.salvageunion.io/bio-titans/chrysalis.jpg",
     "page": 280,
     "content": [
       {
@@ -70,7 +70,7 @@
     "name": "Phantom",
     "actions": ["Nether Teleport", "Phasic Core", "Morph Scythes", "Titanic Actions (Phantom)"],
     "structurePoints": 54,
-    "asset_url": "https://opxrguskxuogghzcnppk.supabase.co/storage/v1/object/public/LP-Assets/bio-titans/phantom.jpg",
+    "asset_url": "https://assets.salvageunion.io/bio-titans/phantom.jpg",
     "page": 282,
     "content": [
       {
@@ -92,7 +92,7 @@
       "Titanic Actions (Electrophorus)"
     ],
     "structurePoints": 96,
-    "asset_url": "https://opxrguskxuogghzcnppk.supabase.co/storage/v1/object/public/LP-Assets/bio-titans/electrophorus.jpg",
+    "asset_url": "https://assets.salvageunion.io/bio-titans/electrophorus.jpg",
     "page": 284,
     "content": [
       {
@@ -116,7 +116,7 @@
       "Titanic Actions (Tyrant)"
     ],
     "structurePoints": 215,
-    "asset_url": "https://opxrguskxuogghzcnppk.supabase.co/storage/v1/object/public/LP-Assets/bio-titans/tyrant.jpg",
+    "asset_url": "https://assets.salvageunion.io/bio-titans/tyrant.jpg",
     "page": 286,
     "content": [
       {

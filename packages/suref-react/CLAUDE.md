@@ -5,7 +5,7 @@ Shared React component library consumed by both `suref-web` and `in-the-union-no
 ## Key Facts
 
 - **No build step** - exports TypeScript source directly via `src/index.ts` barrel
-- **No Supabase dependency** - agnostic to data source
+- **No backend dependency** - agnostic to data source
 - Vite in consuming apps handles `.ts/.tsx` compilation
 - Uses Tailwind + `cn()` utility for styling
 
@@ -27,7 +27,7 @@ The entity display uses **generic slot props** (`afterExtraContent`, `abilitiesS
 ## Testing
 
 - Own `bunfig.toml` with happy-dom preload
-- No Supabase env vars needed
+- No backend env vars needed
 - Run: `bun --filter suref-react test`
 
 ## Conventions

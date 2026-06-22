@@ -1,6 +1,6 @@
 ---
 paths:
-  - "**/*.tsx"
+  - '**/*.tsx'
 ---
 
 # React Components
@@ -24,21 +24,24 @@ React component patterns using functional components and TypeScript.
 ## UI Frameworks
 
 **suref-web** uses Astro 5 with React 19 islands:
+
 - Shared components imported from `suref-react` package
 - Tailwind v4 with theme from suref-react
 - React islands hydrated via `client:load` or `client:visible` directives
 
 **in-the-union-now** uses ShadCN + Tailwind v4:
+
 - Use ShadCN components from `src/components/ui/`
 - Custom Tailwind theme in `src/index.css` with `@theme` block (SU brand colors)
 - State management via Zustand stores + TanStack Query (no React Context)
 - Validation via Zod schemas in `src/lib/schemas/`
 
 **suref-react** (shared components):
+
 - No build step - exports TypeScript source directly
 - Uses Tailwind + `cn()` utility for styling
 - Entity display system with render prop pattern
-- No Supabase dependency - agnostic to data source
+- No backend dependency - agnostic to data source
 
 ## State Management
 

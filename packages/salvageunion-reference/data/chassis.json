@@ -4,7 +4,7 @@
     "name": "Mule",
     "source": "Salvage Union Workshop Manual",
     "page": 100,
-    "asset_url": "https://opxrguskxuogghzcnppk.supabase.co/storage/v1/object/public/LP-Assets/chassis/mule.png",
+    "asset_url": "https://assets.salvageunion.io/chassis/mule.png",
     "patterns": [
       {
         "name": "Hauler Pattern",
@@ -229,7 +229,7 @@
     "name": "Mazona",
     "source": "Salvage Union Workshop Manual",
     "page": 102,
-    "asset_url": "https://opxrguskxuogghzcnppk.supabase.co/storage/v1/object/public/LP-Assets/chassis/mazona.png",
+    "asset_url": "https://assets.salvageunion.io/chassis/mazona.png",
     "patterns": [
       {
         "name": "Buzzard Pattern",
@@ -553,7 +553,7 @@
     "name": "Scrapper",
     "source": "Salvage Union Workshop Manual",
     "page": 104,
-    "asset_url": "https://opxrguskxuogghzcnppk.supabase.co/storage/v1/object/public/LP-Assets/chassis/scrapper.png",
+    "asset_url": "https://assets.salvageunion.io/chassis/scrapper.png",
     "patterns": [
       {
         "name": "Leaky Pattern",
@@ -767,7 +767,7 @@
     "name": "Spectrum",
     "source": "Salvage Union Workshop Manual",
     "page": 106,
-    "asset_url": "https://opxrguskxuogghzcnppk.supabase.co/storage/v1/object/public/LP-Assets/chassis/spectrum.png",
+    "asset_url": "https://assets.salvageunion.io/chassis/spectrum.png",
     "patterns": [
       {
         "name": "Settler Pattern",
@@ -990,7 +990,7 @@
     "name": "Thresher",
     "source": "Salvage Union Workshop Manual",
     "page": 108,
-    "asset_url": "https://opxrguskxuogghzcnppk.supabase.co/storage/v1/object/public/LP-Assets/chassis/thresher.png",
+    "asset_url": "https://assets.salvageunion.io/chassis/thresher.png",
     "patterns": [
       {
         "name": "Shepherd Pattern",
@@ -1212,7 +1212,7 @@
     "name": "Forge",
     "source": "Salvage Union Workshop Manual",
     "page": 110,
-    "asset_url": "https://opxrguskxuogghzcnppk.supabase.co/storage/v1/object/public/LP-Assets/chassis/forge.png",
+    "asset_url": "https://assets.salvageunion.io/chassis/forge.png",
     "patterns": [
       {
         "name": "Beam Pattern",
@@ -1418,7 +1418,7 @@
     "name": "Gopher",
     "source": "Salvage Union Workshop Manual",
     "page": 112,
-    "asset_url": "https://opxrguskxuogghzcnppk.supabase.co/storage/v1/object/public/LP-Assets/chassis/gopher.jpg",
+    "asset_url": "https://assets.salvageunion.io/chassis/gopher.jpg",
     "patterns": [
       {
         "name": "Legion Pattern",
@@ -1644,7 +1644,7 @@
     "name": "Hussar",
     "source": "Salvage Union Workshop Manual",
     "page": 114,
-    "asset_url": "https://opxrguskxuogghzcnppk.supabase.co/storage/v1/object/public/LP-Assets/chassis/hussar.png",
+    "asset_url": "https://assets.salvageunion.io/chassis/hussar.png",
     "patterns": [
       {
         "name": "Mauler Pattern",
@@ -1822,7 +1822,7 @@
     "name": "Jackhammer",
     "source": "Salvage Union Workshop Manual",
     "page": 116,
-    "asset_url": "https://opxrguskxuogghzcnppk.supabase.co/storage/v1/object/public/LP-Assets/chassis/jackhammer.png",
+    "asset_url": "https://assets.salvageunion.io/chassis/jackhammer.png",
     "patterns": [
       {
         "name": "Cackler Pattern",
@@ -2141,7 +2141,7 @@
     "name": "Kraken",
     "source": "Salvage Union Workshop Manual",
     "page": 118,
-    "asset_url": "https://opxrguskxuogghzcnppk.supabase.co/storage/v1/object/public/LP-Assets/chassis/kraken.png",
+    "asset_url": "https://assets.salvageunion.io/chassis/kraken.png",
     "patterns": [
       {
         "name": "Blackbeard Pattern",
@@ -2383,7 +2383,7 @@
     "name": "Magpie",
     "source": "Salvage Union Workshop Manual",
     "page": 120,
-    "asset_url": "https://opxrguskxuogghzcnppk.supabase.co/storage/v1/object/public/LP-Assets/chassis/magpie.png",
+    "asset_url": "https://assets.salvageunion.io/chassis/magpie.png",
     "patterns": [
       {
         "name": "Ironmonger Pattern",
@@ -2587,7 +2587,7 @@
     "name": "Mirrorball",
     "source": "Salvage Union Workshop Manual",
     "page": 122,
-    "asset_url": "https://opxrguskxuogghzcnppk.supabase.co/storage/v1/object/public/LP-Assets/chassis/mirrorball.png",
+    "asset_url": "https://assets.salvageunion.io/chassis/mirrorball.png",
     "patterns": [
       {
         "name": "Junker Pattern",
@@ -2769,7 +2769,7 @@
     "name": "Atlas",
     "source": "Salvage Union Workshop Manual",
     "page": 124,
-    "asset_url": "https://opxrguskxuogghzcnppk.supabase.co/storage/v1/object/public/LP-Assets/chassis/atlas.png",
+    "asset_url": "https://assets.salvageunion.io/chassis/atlas.png",
     "patterns": [
       {
         "name": "Thunder Storm Pattern",
@@ -3075,7 +3075,7 @@
     "name": "Brawler",
     "source": "Salvage Union Workshop Manual",
     "page": 126,
-    "asset_url": "https://opxrguskxuogghzcnppk.supabase.co/storage/v1/object/public/LP-Assets/chassis/brawler.png",
+    "asset_url": "https://assets.salvageunion.io/chassis/brawler.png",
     "patterns": [
       {
         "name": "Rifleman Pattern",
@@ -3303,7 +3303,7 @@
     "name": "Little Sestra",
     "source": "Salvage Union Workshop Manual",
     "page": 128,
-    "asset_url": "https://opxrguskxuogghzcnppk.supabase.co/storage/v1/object/public/LP-Assets/chassis/little%20sestra.png",
+    "asset_url": "https://assets.salvageunion.io/chassis/little%20sestra.png",
     "patterns": [
       {
         "name": "Surveyor Pattern",
@@ -3441,7 +3441,7 @@
     "name": "Mantis",
     "source": "Salvage Union Workshop Manual",
     "page": 130,
-    "asset_url": "https://opxrguskxuogghzcnppk.supabase.co/storage/v1/object/public/LP-Assets/chassis/mantis.png",
+    "asset_url": "https://assets.salvageunion.io/chassis/mantis.png",
     "patterns": [
       {
         "name": "Painter Pattern",
@@ -3592,7 +3592,7 @@
     "name": "Photon",
     "source": "Salvage Union Workshop Manual",
     "page": 132,
-    "asset_url": "https://opxrguskxuogghzcnppk.supabase.co/storage/v1/object/public/LP-Assets/chassis/photon.png",
+    "asset_url": "https://assets.salvageunion.io/chassis/photon.png",
     "patterns": [
       {
         "name": "Stitcher Pattern",
@@ -3726,7 +3726,7 @@
     "name": "Solo",
     "source": "Salvage Union Workshop Manual",
     "page": 134,
-    "asset_url": "https://opxrguskxuogghzcnppk.supabase.co/storage/v1/object/public/LP-Assets/chassis/solo.png",
+    "asset_url": "https://assets.salvageunion.io/chassis/solo.png",
     "patterns": [
       {
         "name": "Smuggler Pattern",
@@ -4007,7 +4007,7 @@
     "name": "Terra",
     "source": "Salvage Union Workshop Manual",
     "page": 136,
-    "asset_url": "https://opxrguskxuogghzcnppk.supabase.co/storage/v1/object/public/LP-Assets/chassis/terra.png",
+    "asset_url": "https://assets.salvageunion.io/chassis/terra.png",
     "patterns": [
       {
         "name": "Sifter Pattern",
@@ -4145,7 +4145,7 @@
     "name": "Aegis",
     "source": "Salvage Union Workshop Manual",
     "page": 138,
-    "asset_url": "https://opxrguskxuogghzcnppk.supabase.co/storage/v1/object/public/LP-Assets/chassis/aegis.png",
+    "asset_url": "https://assets.salvageunion.io/chassis/aegis.png",
     "patterns": [
       {
         "name": "Giant Dad Pattern",
@@ -4292,7 +4292,7 @@
     "name": "Colossus",
     "source": "Salvage Union Workshop Manual",
     "page": 140,
-    "asset_url": "https://opxrguskxuogghzcnppk.supabase.co/storage/v1/object/public/LP-Assets/chassis/colossus.png",
+    "asset_url": "https://assets.salvageunion.io/chassis/colossus.png",
     "patterns": [
       {
         "name": "Sellsword Pattern",
@@ -4432,7 +4432,7 @@
     "name": "Consul",
     "source": "Salvage Union Workshop Manual",
     "page": 142,
-    "asset_url": "https://opxrguskxuogghzcnppk.supabase.co/storage/v1/object/public/LP-Assets/chassis/consul.png",
+    "asset_url": "https://assets.salvageunion.io/chassis/consul.png",
     "patterns": [
       {
         "name": "Primus Pattern",
@@ -4569,7 +4569,7 @@
     "name": "Drop Bear",
     "source": "Salvage Union Workshop Manual",
     "page": 144,
-    "asset_url": "https://opxrguskxuogghzcnppk.supabase.co/storage/v1/object/public/LP-Assets/chassis/drop%20bear.png",
+    "asset_url": "https://assets.salvageunion.io/chassis/drop%20bear.png",
     "patterns": [
       {
         "name": "Scavenger Pattern",
@@ -4720,7 +4720,7 @@
     "name": "Vorpal",
     "source": "Salvage Union Workshop Manual",
     "page": 146,
-    "asset_url": "https://opxrguskxuogghzcnppk.supabase.co/storage/v1/object/public/LP-Assets/chassis/vorpal.png",
+    "asset_url": "https://assets.salvageunion.io/chassis/vorpal.png",
     "patterns": [
       {
         "name": "Fissure Pattern",
@@ -4850,7 +4850,7 @@
     "name": "Carrier",
     "source": "Salvage Union Workshop Manual",
     "page": 148,
-    "asset_url": "https://opxrguskxuogghzcnppk.supabase.co/storage/v1/object/public/LP-Assets/chassis/carrier.png",
+    "asset_url": "https://assets.salvageunion.io/chassis/carrier.png",
     "patterns": [
       {
         "name": "Crawler Pattern",
@@ -4994,7 +4994,7 @@
     "name": "Eidolon",
     "source": "Salvage Union Workshop Manual",
     "page": 150,
-    "asset_url": "https://opxrguskxuogghzcnppk.supabase.co/storage/v1/object/public/LP-Assets/chassis/eidolon.png",
+    "asset_url": "https://assets.salvageunion.io/chassis/eidolon.png",
     "patterns": [
       {
         "name": "Commando Pattern",
@@ -5156,7 +5156,7 @@
     "name": "Neura-Phage",
     "source": "Salvage Union Workshop Manual",
     "page": 152,
-    "asset_url": "https://opxrguskxuogghzcnppk.supabase.co/storage/v1/object/public/LP-Assets/chassis/neura-phage.png",
+    "asset_url": "https://assets.salvageunion.io/chassis/neura-phage.png",
     "patterns": [
       {
         "name": "Screamer Pattern",
@@ -5332,7 +5332,7 @@
     "name": "Iron Wyrm",
     "source": "Salvage Union Workshop Manual",
     "page": 154,
-    "asset_url": "https://opxrguskxuogghzcnppk.supabase.co/storage/v1/object/public/LP-Assets/chassis/iron%20wyrm.png",
+    "asset_url": "https://assets.salvageunion.io/chassis/iron%20wyrm.png",
     "patterns": [
       {
         "name": "Churner Pattern",
@@ -5477,7 +5477,7 @@
     "name": "Leviathan",
     "source": "Salvage Union Workshop Manual",
     "page": 156,
-    "asset_url": "https://opxrguskxuogghzcnppk.supabase.co/storage/v1/object/public/LP-Assets/chassis/leviathan.png",
+    "asset_url": "https://assets.salvageunion.io/chassis/leviathan.png",
     "patterns": [
       {
         "name": "Destroyer Pattern",
@@ -5626,7 +5626,7 @@
     "name": "Shaitan",
     "source": "Salvage Union Workshop Manual",
     "page": 158,
-    "asset_url": "https://opxrguskxuogghzcnppk.supabase.co/storage/v1/object/public/LP-Assets/chassis/shaitan.png",
+    "asset_url": "https://assets.salvageunion.io/chassis/shaitan.png",
     "patterns": [
       {
         "name": "Skimmer Pattern",

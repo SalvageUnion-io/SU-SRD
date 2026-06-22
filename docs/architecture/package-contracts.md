@@ -239,7 +239,7 @@ Consuming apps' Vite/Astro bundlers compile `.ts/.tsx` files directly. No interm
 - `zod` — schema validation for player records + input
 - Radix UI (dialog, dropdown-menu, separator, slot, tabs, tooltip)
 
-Local-first: there is no auth, no Supabase, and no backend other than the
+Local-first: there is no auth and no backend other than the
 stateless snapshot-sharing Netlify Functions (see
 [ADR-010](../adrs/ADR-010-snapshot-backend.md)). Player data lives in IndexedDB.
 
@@ -264,7 +264,7 @@ stateless snapshot-sharing Netlify Functions (see
 
 ### Does Not Use
 
-- React, suref-react, Supabase, Tailwind
+- React, suref-react, Tailwind
 
 ---
 

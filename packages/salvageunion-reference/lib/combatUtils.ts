@@ -1,7 +1,7 @@
 /**
  * Combat utility functions for Salvage Union game logic.
  *
- * Pure functions with no side effects. No Supabase dependency.
+ * Pure functions with no side effects. No backend dependency.
  * All combat math and rule checks live here so the logic is testable
  * in isolation and reusable across any consumer (ITUN, Discord bot, etc.).
  */

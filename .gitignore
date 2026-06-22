@@ -32,9 +32,6 @@ apps/suref-web/.vite
 # Ladle
 .ladle
 
-# Supabase CLI cache
-**/supabase/.temp/
-
 # Environment variables
 .env
 .env.local

@@ -36,6 +36,10 @@
       ],
       "project": ["src/**/*.{ts,tsx}", "netlify/**/*.ts"]
     },
+    "apps/su-assets": {
+      "entry": ["netlify/functions/**/*.ts"],
+      "project": ["netlify/**/*.ts"]
+    },
     "apps/discord-bot": {
       "project": ["src/**/*.ts"]
     }

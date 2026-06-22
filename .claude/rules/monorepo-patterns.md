@@ -43,11 +43,11 @@ Following [Bun workspace conventions](https://bun.com/docs/guides/install/worksp
 ```typescript
 // Correct - use relative imports
 import { MyComponent } from '../../components/MyComponent'
-import { supabase } from '../lib/supabase'
+import { formatDate } from '../lib/utils'
 
 // Never - path aliases hide file structure
 import { MyComponent } from '@/components/MyComponent'
-import { supabase } from '@/lib/supabase'
+import { formatDate } from '@/lib/utils'
 ```
 
 ## Generated Files
