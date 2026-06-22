@@ -8,7 +8,7 @@ islands). Read-only — choices render ephemerally/non-editably
 ## Stack
 
 - **Framework:** Astro 5 with React 19 islands architecture
-- **Output:** Static site (no SSR, no auth, no Supabase)
+- **Output:** Static site (no SSR, no auth, no backend)
 - **UI:** Tailwind v4 with theme from `suref-react` package
 - **Components:** Shared components from `suref-react`, React islands for interactivity
 - **Game data:** `salvageunion-reference` workspace package
@@ -40,7 +40,7 @@ islands). Read-only — choices render ephemerally/non-editably
 
 ## Conventions
 
-- **No auth, no Supabase, no user data** - pure static reference
+- **No auth, no backend, no user data** - pure static reference
 - Search: In-memory via `salvageunion-reference` package `search()` function
 - Cmd+K/Ctrl+K shortcut to focus search
 - Imports from `suref-react` for shared UI components

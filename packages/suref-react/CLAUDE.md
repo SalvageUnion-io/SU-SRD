@@ -27,7 +27,7 @@ The entity display uses **generic slot props** (`afterExtraContent`, `abilitiesS
 ## Testing
 
 - Own `bunfig.toml` with happy-dom preload
-- No Supabase env vars needed
+- No backend env vars needed
 - Run: `bun --filter suref-react test`
 
 ## Conventions

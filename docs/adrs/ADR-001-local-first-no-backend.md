@@ -12,8 +12,8 @@ and a Discord dice bot. None of these need a shared server of record: the SRD is
 public read-only data, and a player's pilots/mechs/crawlers are private working
 documents, not multiplayer state.
 
-An earlier iteration of ITUN used a hosted backend (Supabase: Postgres, auth,
-RLS, realtime). That coupling bought nothing the product needed — it required
+An earlier iteration of ITUN used a hosted backend (Postgres, auth,
+row-level security, realtime). That coupling bought nothing the product needed — it required
 accounts, network availability, and an operational burden — while standing in
 the way of an offline-capable, zero-friction "open the app and build" workflow.
 

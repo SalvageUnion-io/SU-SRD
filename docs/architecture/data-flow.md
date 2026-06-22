@@ -6,8 +6,8 @@ Two data domains meet at render time: **static reference data** (game rules from
 server — and hydrates those records by resolving schema references against the
 bundled game data.
 
-> **Architecture note (local-first rebuild):** ITUN previously used a Supabase
-> Postgres backend with auth, RLS, and realtime subscriptions. That was removed
+> **Architecture note (local-first rebuild):** ITUN previously used a hosted
+> Postgres backend with auth and realtime sync. That was removed
 > in favour of a local-first IndexedDB model with no auth and no backend. The
 > only server-side surface that remains is the stateless snapshot-sharing
 > service (Netlify Functions + Blobs); see

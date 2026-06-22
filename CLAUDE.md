@@ -91,7 +91,7 @@ bun run build:bot        # Build Discord bot
 
 **Workspace structure:**
 
-- `apps/suref-web/` - Static SRD reference site (Astro 5, React 19 islands, Tailwind v4, Vite). No auth, no Supabase.
+- `apps/suref-web/` - Static SRD reference site (Astro 5, React 19 islands, Tailwind v4, Vite). No auth, no backend.
 - `apps/in-the-union-now/` - Character builder & game manager (React 19, TanStack Router/Query, ShadCN + Tailwind v4, Vite). Local-first: IndexedDB persistence, no auth, no backend. Has dashboard, live sheets, snapshot sharing.
 - `apps/discord-bot/` - Discord.js bot for rolling on Salvage Union tables
 - `packages/suref-react/` - Shared React component library (ShadCN + Tailwind, entity display system, base typography, UI primitives). No build step, exports TypeScript source.
@@ -140,18 +140,18 @@ Models extend `BaseModel<T>`, created via `ModelFactory`, accessed via `SalvageU
 
 - **No build step** - exports TypeScript source directly via `src/index.ts` barrel. Vite in consuming apps handles `.ts/.tsx`.
 - **Contents:** Theme system (colors, recipes), base typography (Heading, Text), UI primitives (Tooltip, Toaster), entity display system (~30 files), shared components (Card, ValueDisplay, SheetDisplay, RollTable, Modal, etc.), skeletons, utilities (slug, parseTraitReferences), constants.
-- **No Supabase dependency** - agnostic to data source.
+- **No backend dependency** - agnostic to data source.
 - **Entity display** uses a render prop pattern (`classAbilitiesRenderer`) so consuming apps can inject app-specific renderers.
-- **Testing:** Own `bunfig.toml` with happy-dom preload (no Supabase env vars).
+- **Testing:** Own `bunfig.toml` with happy-dom preload (no backend env vars).
 
 ### suref-web App (Static Reference Site)
 
 - **Framework:** Astro 5 with React 19 islands architecture. Static output, no SSR.
 - **Routing:** File-based routing in `src/pages/` via Astro. Routes: `/` (landing), `/schema/[schemaId]`, `/schema/[schemaId]/item/[itemId]`, `/about`, `/404`.
-- **No auth, no Supabase, no user data.** Pure static reference site.
+- **No auth, no backend, no user data.** Pure static reference site.
 - **UI:** Tailwind v4 with theme from `suref-react`. React islands for interactive components (search, schema viewer, entity display). Components import from `suref-react` for shared UI.
 - **Search:** In-memory search via `salvageunion-reference` package `search()` function. Cmd+K/Ctrl+K shortcut to focus.
-- **Testing:** Bun test runner with React Testing Library + happy-dom. No Supabase env vars needed.
+- **Testing:** Bun test runner with React Testing Library + happy-dom. No backend env vars needed.
 - **Deployment:** Netlify (static site, no server functions)
 
 ### Data Conventions

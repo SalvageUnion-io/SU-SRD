@@ -18,7 +18,7 @@
     "id": "204c855b-e13b-4326-9355-24be3a38ae34",
     "source": "Salvage Union Workshop Manual",
     "name": "Artl",
-    "asset_url": "https://opxrguskxuogghzcnppk.supabase.co/storage/v1/object/public/LP-Assets/creatures/artl.jpg",
+    "asset_url": "https://assets.salvageunion.io/creatures/artl.jpg",
     "traits": [
       {
         "type": "burrower"
@@ -39,7 +39,7 @@
     "id": "6718545a-0261-4e4c-874c-079f1a9fcd80",
     "source": "Salvage Union Workshop Manual",
     "name": "Chimeripede",
-    "asset_url": "https://opxrguskxuogghzcnppk.supabase.co/storage/v1/object/public/LP-Assets/creatures/chimeripede.jpg",
+    "asset_url": "https://assets.salvageunion.io/creatures/chimeripede.jpg",
     "actions": ["Barbed Tentacles"],
     "hitPoints": 10,
     "page": 296,
@@ -73,7 +73,7 @@
     "id": "f32c1706-6bc0-476b-af22-01f0e4339034",
     "source": "Salvage Union Workshop Manual",
     "name": "Molebear",
-    "asset_url": "https://opxrguskxuogghzcnppk.supabase.co/storage/v1/object/public/LP-Assets/creatures/molebear.jpg",
+    "asset_url": "https://assets.salvageunion.io/creatures/molebear.jpg",
     "traits": [
       {
         "type": "burrower"

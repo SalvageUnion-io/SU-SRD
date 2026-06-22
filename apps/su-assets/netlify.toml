@@ -1,0 +1,26 @@
+# Netlify configuration for su-assets — the dedicated artwork host.
+#
+# This site serves Salvage Union entity artwork from a Netlify Blobs store
+# ("lp-assets"). The image BYTES live only in Blobs — never in git. The artwork
+# is licensed from Leyline Press ("used with special permission … do not
+# redistribute"), so it must not enter this public repo. Bytes are uploaded
+# out-of-band via tools/upload-lp-assets.ts; only the serving code lives here.
+#
+# Replaces the former hosted Storage bucket.
+#
+# Base directory is the repo root (matches the other SU-SRD Netlify sites).
+
+[build]
+  publish = "apps/su-assets/public"
+  functions = "apps/su-assets/netlify/functions"
+
+[build.environment]
+  NODE_ENV = "production"
+
+# Long-lived immutable caching for served artwork (the asset function also sets
+# these per-response; this covers anything served statically from public/).
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Access-Control-Allow-Origin = "*"

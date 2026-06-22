@@ -45,7 +45,7 @@ Mech-scale biological monsters
     "Titanic Actions (Scylla)"
   ],
   "structurePoints": 39,
-  "asset_url": "https://opxrguskxuogghzcnppk.supabase.co/storage/v1/object/public/LP-Assets/bio-titans/scylla.jpg",
+  "asset_url": "https://assets.salvageunion.io/bio-titans/scylla.jpg",
   "page": 276,
   "content": [
     {

@@ -25,7 +25,7 @@ Mech chassis definitions
   "name": "Mule",
   "source": "Salvage Union Workshop Manual",
   "page": 100,
-  "asset_url": "https://opxrguskxuogghzcnppk.supabase.co/storage/v1/object/public/LP-Assets/chassis/mule.png",
+  "asset_url": "https://assets.salvageunion.io/chassis/mule.png",
   "actions": [
     {
       "name": "Integrated Cargo Bay",

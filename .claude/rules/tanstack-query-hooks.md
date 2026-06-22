@@ -26,7 +26,7 @@ data:
 - Do **not** route pilots/mechs/crawlers through `useQuery`/`useMutation`. Read
   them from `entityStore` (synchronous after lazy hydration) and mutate via
   `entityStore.update(...)` / `create` / `delete`.
-- Do **not** reintroduce `fetchEntity`/`updateEntity`, Supabase `Tables<...>`
+- Do **not** reintroduce `fetchEntity`/`updateEntity`, hosted-DB `Tables<...>`
   types, or `isLocalId` checks — those are from the removed backend era.
 
 ## Client defaults
