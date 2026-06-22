@@ -57,6 +57,7 @@ describe('mechToFormState', () => {
     expect(form).toEqual({
       name: 'Iron Fist',
       chassisName: 'Mule',
+      patternName: '',
       systems: ['Cargo Pod', 'Armour Plating'],
       modules: ['Comms Module'],
       cargoLots: storedMech.cargoLots,
@@ -80,6 +81,7 @@ describe('mechFormToUpdatePatch', () => {
       'chassisRef',
       'modules',
       'name',
+      'patternName',
       'systems',
     ])
   })
@@ -91,6 +93,20 @@ describe('mechFormToUpdatePatch', () => {
       chassisName: 'Mule',
     })
     expect(patch.name).toBe('Iron Fist')
+  })
+
+  it('carries the pattern name (canonical or custom), undefined when blank', () => {
+    expect(
+      mechFormToUpdatePatch({ ...EMPTY_MECH_FORM_STATE, patternName: 'Hauler Pattern' }).patternName
+    ).toBe('Hauler Pattern')
+    expect(
+      mechFormToUpdatePatch({ ...EMPTY_MECH_FORM_STATE, patternName: '   ' }).patternName
+    ).toBeUndefined()
+  })
+
+  it('round-trips patternName off a stored mech', () => {
+    const form = mechToFormState({ ...storedMech, patternName: 'Hauler Pattern' })
+    expect(form.patternName).toBe('Hauler Pattern')
   })
 })
 

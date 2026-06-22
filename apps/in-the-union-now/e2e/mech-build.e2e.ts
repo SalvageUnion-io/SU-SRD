@@ -3,9 +3,10 @@ import { clickNext, pickByName, waitForReady } from './_helpers'
 
 /**
  * Mech-only build — steps through the chassis-first WizShell wizard
- * (Chassis -> Systems -> Modules -> Identity -> Review) and submits.
- * Verifies the OptRow master-detail chassis step + install steps work in a
- * real browser and that submit lands on the dashboard with the mech visible.
+ * (Chassis -> Pattern -> Loadout -> Identity -> Review) and submits.
+ * Verifies the OptRow master-detail chassis + pattern steps and the combined
+ * Loadout step work in a real browser and that submit lands on the dashboard
+ * with the mech visible.
  */
 test('build a mech from scratch', async ({ page }) => {
   await page.goto('/mechs/new')
@@ -13,13 +14,15 @@ test('build a mech from scratch', async ({ page }) => {
 
   // Step 1 — Chassis. Mule is a guaranteed SU starter chassis.
   await pickByName(page, 'Mule')
-  await clickNext(page) // -> Systems
+  await clickNext(page) // -> Pattern
 
-  // Step 2 — Install Systems (optional; soft budget)
+  // Step 2 — Pattern. Build a custom, named loadout.
+  await pickByName(page, 'Custom Pattern')
+  await page.getByLabel(/Pattern name/i).fill('Field Rig')
+  await clickNext(page) // -> Loadout
+
+  // Step 3 — Loadout (Systems tab by default; optional, soft budget)
   await pickByName(page, 'Cargo Pod')
-  await clickNext(page) // -> Modules
-
-  // Step 3 — Install Modules (optional)
   await clickNext(page) // -> Identity
 
   // Step 4 — Identity
@@ -45,8 +48,10 @@ test('edit a mech loadout via /mechs/$id/edit', async ({ page }) => {
   await page.goto('/mechs/new')
   await waitForReady(page)
   await pickByName(page, 'Mule')
-  await clickNext(page) // -> Systems
-  await clickNext(page) // -> Modules
+  await clickNext(page) // -> Pattern
+  await pickByName(page, 'Custom Pattern')
+  await page.getByLabel(/Pattern name/i).fill('Field Rig')
+  await clickNext(page) // -> Loadout
   await clickNext(page) // -> Identity
   await page.getByLabel(/Mech name/i).fill('Iron Fist')
   await clickNext(page) // -> Review
@@ -63,11 +68,12 @@ test('edit a mech loadout via /mechs/$id/edit', async ({ page }) => {
   await page.waitForURL(/\/mechs\/.+\/edit/, { timeout: 15_000 })
   await waitForReady(page)
 
-  // Wizard is prefilled (chassis chosen), eyebrow flips to edit mode.
+  // Wizard is prefilled (chassis chosen), eyebrow flips to edit mode. Edit
+  // lands on the custom-loadout path, so the Loadout step is present.
   await expect(page.getByText('Edit Mech')).toBeVisible()
-  await clickNext(page) // -> Systems
+  await clickNext(page) // -> Pattern
+  await clickNext(page) // -> Loadout
   await pickByName(page, 'Cargo Pod') // install a system in edit mode
-  await clickNext(page) // -> Modules
   await clickNext(page) // -> Identity
   await clickNext(page) // -> Review
   await page.getByRole('button', { name: /Save Mech/i }).click()

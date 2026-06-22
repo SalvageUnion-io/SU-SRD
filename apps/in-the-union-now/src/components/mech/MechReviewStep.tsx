@@ -44,6 +44,7 @@ export function MechReviewStep({ form, isEdit, submitError }: MechReviewStepProp
   const rows: [string, string | null][] = [
     ['Name', form.name.trim() || null],
     ['Chassis', form.chassisName || null],
+    ['Pattern', form.patternName.trim() || 'none'],
     ['Systems', form.systems.length > 0 ? form.systems.join(', ') : 'none'],
     ['Modules', form.modules.length > 0 ? form.modules.join(', ') : 'none'],
     [
