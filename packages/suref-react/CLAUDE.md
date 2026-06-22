@@ -4,8 +4,8 @@ Shared React component library consumed by both `suref-web` and `in-the-union-no
 
 ## Key Facts
 
-- **No build step** - exports TypeScript source directly via `src/index.ts` barrel
-- **No Supabase dependency** - agnostic to data source
+- **No build step** - exports TypeScript source directly via `src/index.ts` barrel ([ADR-011](../../docs/adrs/ADR-011-suref-react-source-no-build.md))
+- **Data-source agnostic** - no backend/persistence dependency; consumers inject behavior via slot props, and choice components are persistence-agnostic ([ADR-010](../../docs/adrs/ADR-010-srd-choices-ephemeral-vs-persisted.md))
 - Vite in consuming apps handles `.ts/.tsx` compilation
 - Uses Tailwind + `cn()` utility for styling
 
@@ -13,9 +13,9 @@ Shared React component library consumed by both `suref-web` and `in-the-union-no
 
 - **Theme:** Colors, recipes, design tokens
 - **Base typography:** `Text` component
-- **UI primitives:** `Tooltip`, `Toaster`, `Modal`
-- **Entity display system:** ~53 source files for rendering game data entities (plus tests + stories)
-- **Shared components:** `Card`, `ValueDisplay`, `SheetDisplay`, `RollTable`, etc.
+- **UI primitives:** `Toaster` / `toast`, `ModalShell`, `ReferenceEntityDisplayTooltip`
+- **Entity display system:** ~58 source files for rendering game data entities (plus tests + stories)
+- **Shared components:** `DisplayCard`, `ValueDisplay`, `StatDisplay`, `StatsBar`, `RollTable`, `FilterChip`, etc.
 - **Skeletons:** Loading state components
 - **Utilities:** `slug()`, `parseTraitReferences()`, `cn()`
 - **Constants:** Shared constants

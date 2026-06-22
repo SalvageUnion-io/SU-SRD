@@ -35,7 +35,7 @@ Other dev servers: `bun run dev:itun` (character builder), `bun run dev:bot`
 ├── packages/
 │   ├── salvageunion-reference/ # Game-data ORM + schema-validated JSON dataset (built)
 │   └── suref-react/            # Shared React component library (no build step)
-├── docs/                       # Architecture docs, ADRs, audit backlog
+├── docs/                       # Architecture docs + ADRs (see docs/README.md)
 ├── package.json                # Root workspace configuration
 ├── .prettierrc.json            # Shared Prettier config
 ├── eslint.config.base.js       # Shared ESLint base config
@@ -85,7 +85,7 @@ script in a single workspace directly, e.g. `bun --filter suref-web build` or
 
 - **suref-web** and **in-the-union-now** → Netlify (config in each app's
   `netlify.toml`). ITUN also serves the snapshot-sharing backend as Netlify
-  Functions — see [ADR-010](docs/adrs/ADR-010-snapshot-backend.md).
+  Functions — see [ADR-004](docs/adrs/ADR-004-snapshot-netlify-functions.md).
 - **discord-bot** → Render worker (Blueprint in `render.yaml`).
 
 ## Monorepo Conventions

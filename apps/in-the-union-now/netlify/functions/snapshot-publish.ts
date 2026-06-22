@@ -8,7 +8,7 @@
  * PATCH / PUT / DELETE return 405.
  * No PII is stored — only the client-supplied JSON body.
  *
- * See ADR-010-snapshot-backend.md for full rationale.
+ * See ADR-004-snapshot-netlify-functions.md for full rationale.
  */
 
 import { generateUniqueId } from '../../src/lib/snapshot/id'

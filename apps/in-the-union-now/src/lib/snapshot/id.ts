@@ -2,7 +2,7 @@
  * Short ID generation for snapshot keys.
  *
  * Uses Crockford base32 (0-9 + A-Z minus I, L, O, U) for ~40 bits of entropy
- * in 8 characters. See ADR-010-snapshot-backend.md §ID Scheme.
+ * in 8 characters. See ADR-004-snapshot-netlify-functions.md §ID Scheme.
  */
 
 // Crockford base32 alphabet — unambiguous alphanumeric characters
