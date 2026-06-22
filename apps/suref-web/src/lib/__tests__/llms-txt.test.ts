@@ -29,7 +29,7 @@ describe('GET /llms.txt', () => {
       'Game text and mechanics are published under the Salvage Union Open Game Licence (OGL 1.0b): https://leyline.press/pages/salvage-union-open-game-licence-1-0b'
     )
     expect(text).toContain(
-      'Artwork (asset_url fields) is NOT covered by the licence — used with special permission of Leyline Press; do not redistribute.'
+      'Artwork is NOT covered by the licence — used with special permission of Leyline Press; do not redistribute.'
     )
     expect(text).toContain(
       'Republication of licensed text must include the legal notices required by OGL 1.0b.'

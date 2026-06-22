@@ -10,10 +10,10 @@
       {
         "type": "object",
         "properties": {
-          "asset_url": {
+          "assetExtension": {
             "type": "string",
-            "format": "uri",
-            "description": "URL to an image asset for this entity"
+            "enum": ["png", "jpg", "jpeg", "webp", "gif", "avif", "svg"],
+            "description": "Image file extension for this entity's artwork; the URL is derived from schema + slug"
           },
           "content": {
             "type": "array",
@@ -375,10 +375,10 @@
       {
         "type": "object",
         "properties": {
-          "asset_url": {
+          "assetExtension": {
             "type": "string",
-            "format": "uri",
-            "description": "URL to an image asset for this entity"
+            "enum": ["png", "jpg", "jpeg", "webp", "gif", "avif", "svg"],
+            "description": "Image file extension for this entity's artwork; the URL is derived from schema + slug"
           },
           "content": {
             "type": "array",

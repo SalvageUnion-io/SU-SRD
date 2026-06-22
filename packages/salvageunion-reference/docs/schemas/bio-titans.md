@@ -13,7 +13,7 @@ Mech-scale biological monsters
 
 | Field               | Type          | Required | Description                                                                                                                                               |
 | ------------------- | ------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `asset_url`         | string        | ❌       | URL to an image asset for this entity                                                                                                                     |
+| `assetExtension`    | string        | ❌       | Image file extension; the URL is derived from the entity schema + slug                                                                                    |
 | `content`           | Array<object> | ❌       | Descriptive content blocks for this entity                                                                                                                |
 | `id`                | string        | ✅       | Unique identifier for this entity                                                                                                                         |
 | `indexable`         | boolean       | ✅       | Whether this entity appears in search results                                                                                                             |
@@ -45,7 +45,7 @@ Mech-scale biological monsters
     "Titanic Actions (Scylla)"
   ],
   "structurePoints": 39,
-  "asset_url": "https://assets.salvageunion.io/bio-titans/scylla.jpg",
+  "assetExtension": "jpg",
   "page": 276,
   "content": [
     {

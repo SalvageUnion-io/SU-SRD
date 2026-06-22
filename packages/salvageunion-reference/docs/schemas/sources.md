@@ -13,7 +13,7 @@ Source books and expansions
 
 | Field               | Type          | Required | Description                                                                                                                                               |
 | ------------------- | ------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `asset_url`         | string        | ❌       | URL to an image asset for this entity                                                                                                                     |
+| `assetExtension`    | string        | ❌       | Image file extension; the URL is derived from the entity schema + slug                                                                                    |
 | `content`           | Array<object> | ❌       | Descriptive content blocks for this entity                                                                                                                |
 | `id`                | string        | ✅       | Unique identifier for this entity                                                                                                                         |
 | `indexable`         | boolean       | ✅       | Whether this entity appears in search results                                                                                                             |
