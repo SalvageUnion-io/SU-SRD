@@ -135,7 +135,7 @@ export function AbilitiesStep({
           return (
             <section key={tree} className="space-y-3">
               <TreeSep name={tree} />
-              <div className="grid grid-cols-[repeat(auto-fill,minmax(15rem,1fr))] gap-3.5">
+              <div className="columns-1 gap-3.5 sm:columns-2 [&>*]:mb-3.5 [&>*]:break-inside-avoid">
                 {treeAbilities.map(renderCard)}
               </div>
             </section>

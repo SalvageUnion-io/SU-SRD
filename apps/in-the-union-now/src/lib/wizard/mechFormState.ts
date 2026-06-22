@@ -24,6 +24,12 @@ export type MechWizardFormState = {
   name: string
   /** Chassis NAME ref (matching Mech.chassisRef); '' while unchosen. */
   chassisName: string
+  /**
+   * Loadout pattern name (maps to Mech.patternName): the chosen chassis
+   * pattern's name, or the user-supplied name for a custom build. '' while
+   * unchosen.
+   */
+  patternName: string
   /** Installed system name refs. */
   systems: string[]
   /** Installed module name refs. */
@@ -34,6 +40,7 @@ export type MechWizardFormState = {
 export const EMPTY_MECH_FORM_STATE: MechWizardFormState = {
   name: '',
   chassisName: '',
+  patternName: '',
   systems: [],
   modules: [],
   cargoLots: [],
@@ -44,6 +51,7 @@ export function mechToFormState(mech: Mech): MechWizardFormState {
   return {
     name: mech.name,
     chassisName: mech.chassisRef,
+    patternName: mech.patternName ?? '',
     systems: [...mech.systems],
     modules: [...mech.modules],
     cargoLots: mech.cargoLots.map((lot) => ({ ...lot })),
@@ -51,12 +59,16 @@ export function mechToFormState(mech: Mech): MechWizardFormState {
 }
 
 /** Wizard-owned mech fields — the only fields an edit save may touch. */
-type MechWizardPatch = Pick<Mech, 'name' | 'chassisRef' | 'systems' | 'modules' | 'cargoLots'>
+type MechWizardPatch = Pick<
+  Mech,
+  'name' | 'chassisRef' | 'patternName' | 'systems' | 'modules' | 'cargoLots'
+>
 
 export function mechFormToUpdatePatch(form: MechWizardFormState): MechWizardPatch {
   return {
     name: form.name.trim(),
     chassisRef: form.chassisName,
+    patternName: form.patternName.trim() || undefined,
     systems: form.systems,
     modules: form.modules,
     cargoLots: form.cargoLots,

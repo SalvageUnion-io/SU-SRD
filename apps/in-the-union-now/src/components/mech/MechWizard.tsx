@@ -16,18 +16,19 @@ import { useEntityStore } from '../../stores/entityStore'
 import { SoftWarningBanner } from '../shared/SoftWarningBanner'
 import { WizShell } from '../wizard/WizShell'
 import { ChassisDetail, ChassisOptionList } from './ChassisStep'
-import { InstallStep } from './InstallStep'
+import { LoadoutStep } from './LoadoutStep'
 import { MechIdentityStep } from './MechIdentityStep'
 import { MechReviewStep } from './MechReviewStep'
+import { PatternDetail, PatternOptionList } from './PatternStep'
+import type { PatternLike } from './patternData'
 
-const STEPS = ['Chassis', 'Systems', 'Modules', 'Identity', 'Review'] as const
-type Step = (typeof STEPS)[number]
+type Step = 'Chassis' | 'Pattern' | 'Loadout' | 'Identity' | 'Review'
 
-/** Step heading copy (design §3.2). */
+/** Step heading copy. */
 const STEP_TITLES: Record<Step, string> = {
   Chassis: 'Choose Your Chassis',
-  Systems: 'Install Systems',
-  Modules: 'Install Modules',
+  Pattern: 'Choose a Pattern',
+  Loadout: 'Customize Loadout',
   Identity: 'Name Your Mech',
   Review: 'Review',
 }
@@ -55,9 +56,11 @@ type MechWizardProps = {
  * entity→form mapping lives in lib/wizard/mechFormState.ts, the upsert
  * branch lives in handleSubmit, and step components carry NO edit logic.
  *
- * Capacity is SOFT everywhere (plan 3.4): over-slot/over-cargo selections
- * surface as advisory warnings (budget tracks + banner) and never block
- * navigation or saving.
+ * Pattern step: pick a canonical chassis pattern (auto-fills systems/modules
+ * and skips the Loadout step) or "Custom Pattern" (a named, manual loadout on
+ * the combined Systems/Modules Loadout step). Capacity is SOFT everywhere
+ * (plan 3.4): over-slot/over-cargo selections surface as advisory warnings and
+ * never block navigation or saving.
  */
 export function MechWizard({ onComplete, onCancel, mechId, initialState }: MechWizardProps) {
   const isEdit = mechId !== undefined
@@ -67,10 +70,22 @@ export function MechWizard({ onComplete, onCancel, mechId, initialState }: MechW
 
   const [step, setStep] = useState<Step>('Chassis')
   const [form, setForm] = useState<MechWizardFormState>(initialState ?? EMPTY_MECH_FORM_STATE)
+  // Custom (manual) vs canonical-pattern loadout. Not persisted — editing an
+  // existing mech always lands in the manual loadout path so its install can
+  // be tweaked.
+  const [isCustomPattern, setIsCustomPattern] = useState(isEdit)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const currentIndex = STEPS.indexOf(step)
+  // Loadout step only exists on the custom path; a chosen pattern skips it.
+  const steps = useMemo<Step[]>(
+    () =>
+      isCustomPattern
+        ? ['Chassis', 'Pattern', 'Loadout', 'Identity', 'Review']
+        : ['Chassis', 'Pattern', 'Identity', 'Review'],
+    [isCustomPattern]
+  )
+  const currentIndex = steps.indexOf(step)
 
   function updateForm(patch: Partial<MechWizardFormState>) {
     setForm((prev) => ({ ...prev, ...patch }))
@@ -78,6 +93,31 @@ export function MechWizard({ onComplete, onCancel, mechId, initialState }: MechW
 
   function toggleIn(list: string[], name: string): string[] {
     return list.includes(name) ? list.filter((x) => x !== name) : [...list, name]
+  }
+
+  // Changing the chassis invalidates any chosen pattern/loadout.
+  function selectChassis(chassisName: string) {
+    if (chassisName === form.chassisName) return
+    setIsCustomPattern(false)
+    updateForm({ chassisName, patternName: '', systems: [], modules: [] })
+  }
+
+  // Canonical pattern: fill systems/modules from it and skip the Loadout step.
+  function selectPattern(pattern: PatternLike) {
+    setIsCustomPattern(false)
+    updateForm({
+      patternName: pattern.name,
+      systems: (pattern.systems ?? []).map((s) => s.name),
+      modules: (pattern.modules ?? []).map((m) => m.name),
+    })
+  }
+
+  // Custom pattern: clear the loadout for a manual build (idempotent — never
+  // wipes an in-progress custom loadout if already on the custom path).
+  function selectCustom() {
+    if (isCustomPattern) return
+    setIsCustomPattern(true)
+    updateForm({ patternName: '', systems: [], modules: [] })
   }
 
   // ---------------------------------------------------------------------------
@@ -139,10 +179,12 @@ export function MechWizard({ onComplete, onCancel, mechId, initialState }: MechW
     switch (step) {
       case 'Chassis':
         return form.chassisName !== ''
-      case 'Systems':
+      case 'Pattern':
+        // Canonical pattern chosen, or a custom build with a name (edit mode
+        // relaxes the name requirement so legacy mechs aren't blocked).
+        return isCustomPattern ? isEdit || form.patternName.trim() !== '' : form.patternName !== ''
+      case 'Loadout':
         return true // installs are optional; capacity is soft
-      case 'Modules':
-        return true
       case 'Identity':
         return form.name.trim() !== ''
       case 'Review':
@@ -151,16 +193,16 @@ export function MechWizard({ onComplete, onCancel, mechId, initialState }: MechW
   }
 
   function goNext() {
-    if (step === 'Review') {
+    if (currentIndex >= steps.length - 1) {
       void handleSubmit()
       return
     }
-    setStep(STEPS[currentIndex + 1]!)
+    setStep(steps[currentIndex + 1]!)
   }
 
   function goBack() {
     if (currentIndex > 0) {
-      setStep(STEPS[currentIndex - 1]!)
+      setStep(steps[currentIndex - 1]!)
     }
   }
 
@@ -208,23 +250,25 @@ export function MechWizard({ onComplete, onCancel, mechId, initialState }: MechW
   }
 
   const loadoutName = form.name.trim() || form.chassisName || 'Mech'
+  const selectedPatternName = isCustomPattern ? null : form.patternName || null
 
   const subtitle = (() => {
     switch (step) {
       case 'Chassis':
         return 'Choose your chassis. This sets slots, stats, and cargo capacity.'
-      case 'Systems':
+      case 'Pattern':
+        return 'Pick a ready-made pattern, or build a custom loadout.'
+      case 'Loadout':
         return (
-          <span data-testid="system-slot-count">
-            {capacity.systemSlotsUsed} / {capacity.systemSlotsMax} system slots used · over-capacity
-            warns, never blocks
-          </span>
-        )
-      case 'Modules':
-        return (
-          <span data-testid="module-slot-count">
-            {capacity.moduleSlotsUsed} / {capacity.moduleSlotsMax} module slots used · over-capacity
-            warns, never blocks
+          <span>
+            <span data-testid="system-slot-count">
+              {capacity.systemSlotsUsed} / {capacity.systemSlotsMax} system
+            </span>{' '}
+            ·{' '}
+            <span data-testid="module-slot-count">
+              {capacity.moduleSlotsUsed} / {capacity.moduleSlotsMax} module
+            </span>{' '}
+            slots used · over-capacity warns, never blocks
           </span>
         )
       case 'Identity':
@@ -237,16 +281,21 @@ export function MechWizard({ onComplete, onCancel, mechId, initialState }: MechW
   return (
     <WizShell
       eyebrow={isEdit ? 'Edit Mech' : 'New Mech'}
-      steps={STEPS}
+      steps={steps}
       active={currentIndex}
-      onStepClick={(i) => setStep(STEPS[i]!)}
+      onStepClick={(i) => setStep(steps[i]!)}
       title={STEP_TITLES[step]}
       subtitle={subtitle}
       optionPane={
         step === 'Chassis' ? (
-          <ChassisOptionList
-            selectedChassis={form.chassisName}
-            onSelect={(chassisName) => updateForm({ chassisName })}
+          <ChassisOptionList selectedChassis={form.chassisName} onSelect={selectChassis} />
+        ) : step === 'Pattern' ? (
+          <PatternOptionList
+            chassisName={form.chassisName}
+            selectedPatternName={selectedPatternName}
+            isCustom={isCustomPattern}
+            onSelectPattern={selectPattern}
+            onSelectCustom={selectCustom}
           />
         ) : undefined
       }
@@ -259,29 +308,29 @@ export function MechWizard({ onComplete, onCancel, mechId, initialState }: MechW
       nextDisabled={!canAdvance()}
       busy={isSubmitting}
       submitLabel={isEdit ? 'Save Mech' : 'Create Mech ✦'}
-      ctaFullWidth={step === 'Systems' || step === 'Modules'}
+      ctaFullWidth={step === 'Loadout'}
     >
       {step === 'Chassis' && <ChassisDetail chassisName={form.chassisName} />}
-      {step === 'Systems' && (
-        <InstallStep
-          kind="systems"
-          selected={form.systems}
-          onToggle={(name) => updateForm({ systems: toggleIn(form.systems, name) })}
-          loadoutName={loadoutName}
-          slotsUsed={capacity.systemSlotsUsed}
-          slotsMax={capacity.systemSlotsMax}
-          energyValue={energyValue}
-          energyMax={energyMax}
+      {step === 'Pattern' && (
+        <PatternDetail
+          chassisName={form.chassisName}
+          isCustom={isCustomPattern}
+          selectedPatternName={selectedPatternName}
+          customName={form.patternName}
+          onCustomNameChange={(patternName) => updateForm({ patternName })}
         />
       )}
-      {step === 'Modules' && (
-        <InstallStep
-          kind="modules"
-          selected={form.modules}
-          onToggle={(name) => updateForm({ modules: toggleIn(form.modules, name) })}
+      {step === 'Loadout' && (
+        <LoadoutStep
+          systems={form.systems}
+          modules={form.modules}
+          onToggleSystem={(name) => updateForm({ systems: toggleIn(form.systems, name) })}
+          onToggleModule={(name) => updateForm({ modules: toggleIn(form.modules, name) })}
           loadoutName={loadoutName}
-          slotsUsed={capacity.moduleSlotsUsed}
-          slotsMax={capacity.moduleSlotsMax}
+          systemSlotsUsed={capacity.systemSlotsUsed}
+          systemSlotsMax={capacity.systemSlotsMax}
+          moduleSlotsUsed={capacity.moduleSlotsUsed}
+          moduleSlotsMax={capacity.moduleSlotsMax}
           energyValue={energyValue}
           energyMax={energyMax}
         />

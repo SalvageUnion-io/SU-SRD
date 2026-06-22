@@ -85,14 +85,16 @@ export async function buildPilot(page: Page, name: string, callsign: string): Pr
   await page.waitForURL((url) => url.pathname === '/', { timeout: 15_000 })
 }
 
-/** Build a mech (Chassis → Systems → Modules → Identity → Review). */
+/** Build a mech (Chassis → Pattern → Loadout → Identity → Review). */
 export async function buildMech(page: Page, name: string): Promise<void> {
   await page.goto('/mechs/new')
   await waitForReady(page)
   await pickByName(page, 'Mule')
-  await clickNext(page) // -> Systems
-  await clickNext(page) // -> Modules
-  await clickNext(page) // -> Identity
+  await clickNext(page) // -> Pattern
+  await pickByName(page, 'Custom Pattern')
+  await page.getByLabel(/Pattern name/i).fill('Custom')
+  await clickNext(page) // -> Loadout
+  await clickNext(page) // -> Identity (loadout optional)
   await page.getByLabel(/Mech name/i).fill(name)
   await clickNext(page) // -> Review
   await page.getByRole('button', { name: /Create Mech/i }).click()
