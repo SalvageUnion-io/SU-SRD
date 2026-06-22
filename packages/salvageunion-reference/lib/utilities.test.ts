@@ -651,7 +651,7 @@ describe('Property Extractors', () => {
       const assetUrl = getAssetUrl(coreClass!)
       expect(assetUrl).toBeDefined()
       expect(typeof assetUrl).toBe('string')
-      expect(assetUrl).toContain('classes.core/engineer.jpg')
+      expect(assetUrl).toContain('classes/engineer.jpg')
     })
 
     it('should extract asset_url from hybrid classes', () => {
@@ -662,7 +662,7 @@ describe('Property Extractors', () => {
       const assetUrl = getAssetUrl(hybridClass!)
       expect(assetUrl).toBeDefined()
       expect(typeof assetUrl).toBe('string')
-      expect(assetUrl).toContain('classes.hybrid/cyborg.jpg')
+      expect(assetUrl).toContain('classes/cyborg.jpg')
     })
 
     it('should return undefined for entities without asset_url', () => {

@@ -3303,7 +3303,7 @@
     "name": "Little Sestra",
     "source": "Salvage Union Workshop Manual",
     "page": 128,
-    "asset_url": "https://assets.salvageunion.io/chassis/little%20sestra.png",
+    "asset_url": "https://assets.salvageunion.io/chassis/little-sestra.png",
     "patterns": [
       {
         "name": "Surveyor Pattern",
@@ -4569,7 +4569,7 @@
     "name": "Drop Bear",
     "source": "Salvage Union Workshop Manual",
     "page": 144,
-    "asset_url": "https://assets.salvageunion.io/chassis/drop%20bear.png",
+    "asset_url": "https://assets.salvageunion.io/chassis/drop-bear.png",
     "patterns": [
       {
         "name": "Scavenger Pattern",
@@ -5332,7 +5332,7 @@
     "name": "Iron Wyrm",
     "source": "Salvage Union Workshop Manual",
     "page": 154,
-    "asset_url": "https://assets.salvageunion.io/chassis/iron%20wyrm.png",
+    "asset_url": "https://assets.salvageunion.io/chassis/iron-wyrm.png",
     "patterns": [
       {
         "name": "Churner Pattern",
