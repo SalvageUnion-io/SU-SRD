@@ -41,7 +41,7 @@
     "techLevel": 1,
     "salvageValue": 1,
     "structurePoints": 1,
-    "asset_url": "https://assets.salvageunion.io/drones/survey%20drone.jpg",
+    "asset_url": "https://assets.salvageunion.io/drones/survey-drone.jpg",
     "page": 294,
     "additionalSources": [
       { "source": "Salvage Union Starter Set", "booklet": "AP", "page": 2 },
@@ -96,7 +96,7 @@
     "techLevel": 2,
     "salvageValue": 3,
     "structurePoints": 6,
-    "asset_url": "https://assets.salvageunion.io/drones/walker%20drone.jpg",
+    "asset_url": "https://assets.salvageunion.io/drones/walker-drone.jpg",
     "page": 295,
     "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "AP", "page": 2 }],
     "content": [
