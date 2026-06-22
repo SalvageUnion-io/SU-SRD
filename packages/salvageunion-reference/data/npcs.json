@@ -3,7 +3,7 @@
     "id": "c6bfc845-b1dc-43e9-8f79-fd4854842949",
     "source": "Salvage Union Workshop Manual",
     "name": "Wastelander",
-    "asset_url": "https://assets.salvageunion.io/npcs/wastelander.jpg",
+    "assetExtension": "jpg",
     "actions": ["Improvised Melee Weapon (Wastelander)", "Salvaging Tools (NPC)"],
     "hitPoints": 2,
     "page": 298,

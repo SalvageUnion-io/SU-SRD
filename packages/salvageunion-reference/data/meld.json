@@ -43,7 +43,7 @@
     "actions": ["Nanoid Tendrils"],
     "structurePoints": 5,
     "salvageValue": 5,
-    "asset_url": "https://assets.salvageunion.io/meld/meld-nanoid.jpg",
+    "assetExtension": "jpg",
     "page": 289,
     "additionalSources": [{ "source": "Reclamation of the Wastes", "page": 113 }],
     "content": [
@@ -60,7 +60,7 @@
     "actions": ["Splitter Tendrils", "Split"],
     "structurePoints": 10,
     "salvageValue": 10,
-    "asset_url": "https://assets.salvageunion.io/meld/meld-splitter.jpg",
+    "assetExtension": "jpg",
     "page": 289,
     "additionalSources": [{ "source": "Reclamation of the Wastes", "page": 113 }],
     "content": [
@@ -76,7 +76,7 @@
     "name": "Meld Behemoth",
     "actions": ["Behemoth Tendrils", "Assimilation", "Titanic Actions (Meld Behemoth)"],
     "structurePoints": 60,
-    "asset_url": "https://assets.salvageunion.io/meld/meld-behemoth.jpg",
+    "assetExtension": "jpg",
     "page": 290,
     "additionalSources": [{ "source": "Reclamation of the Wastes", "page": 114 }],
     "content": [

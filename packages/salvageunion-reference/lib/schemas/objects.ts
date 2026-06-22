@@ -9,7 +9,7 @@ import {
   TechLevelSchema,
   NameSchema,
   IdSchema,
-  AssetUrlSchema,
+  AssetExtensionSchema,
   ActivationCostSchema,
 } from './common.js'
 import {
@@ -732,7 +732,9 @@ export const AdditionalSourceSchema = z
  */
 export const BaseEntitySchema = z
   .object({
-    asset_url: AssetUrlSchema.describe('URL to an image asset for this entity').optional(),
+    assetExtension: AssetExtensionSchema.describe(
+      "Image file extension for this entity's artwork; the URL is derived from schema + slug"
+    ).optional(),
     content: ContentSchema.describe('Descriptive content blocks for this entity').optional(),
     id: IdSchema.describe('Unique identifier for this entity'),
     indexable: z.boolean().default(true).describe('Whether this entity appears in search results'),

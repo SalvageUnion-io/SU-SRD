@@ -22,7 +22,7 @@ Non-player characters and people
   "id": "c6bfc845-b1dc-43e9-8f79-fd4854842949",
   "source": "Salvage Union Workshop Manual",
   "name": "Wastelander",
-  "asset_url": "https://assets.salvageunion.io/npcs/wastelander.jpg",
+  "assetExtension": "jpg",
   "actions": [
     {
       "name": "Improvised Melee Weapon",

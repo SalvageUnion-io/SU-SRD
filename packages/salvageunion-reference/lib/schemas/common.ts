@@ -33,9 +33,13 @@ export const PositiveIntegerSchema = z
   .describe('Positive integer (1 or greater)')
 
 /**
- * URL to an image asset for this entry
+ * Image file extension for this entry's artwork (e.g. "png", "jpg").
+ * The full asset URL is derived from the entity's schema name and slug — see
+ * getAssetUrl() — so only the non-derivable extension is stored.
  */
-export const AssetUrlSchema = z.string().url().describe('URL to an image asset for this entry')
+export const AssetExtensionSchema = z
+  .enum(['png', 'jpg', 'jpeg', 'webp', 'gif', 'avif', 'svg'])
+  .describe("Image file extension for this entry's artwork; the URL is derived from schema + slug")
 
 /**
  * Cost in ability points to activate an ability

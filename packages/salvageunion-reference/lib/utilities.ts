@@ -31,6 +31,14 @@ import type {
 import { getDataMaps } from './ModelFactory.js'
 import { getModel } from './helpers.js'
 import { SalvageUnionReference } from './index.js'
+import { getEntitySlug } from './slug.js'
+
+/**
+ * Base URL of the Netlify-hosted artwork CDN (the su-assets site, backed by a
+ * Netlify Blobs store). Asset URLs are derived from this base plus the entity's
+ * schema name and slug — see getAssetUrl().
+ */
+export const ASSET_BASE_URL = 'https://assets.salvageunion.io'
 
 // Cached action map - built once since action data is static
 let _actionMap: Map<string, SURefMetaAction> | null = null
@@ -318,14 +326,23 @@ export function getHitPoints(entity: SURefMetaEntity): number | undefined {
 }
 
 /**
- * Extract asset URL from an entity
- * @param entity - The entity to extract from
- * @returns The asset URL or undefined
+ * Derive an entity's asset URL from its schema name and slug.
+ *
+ * Only the file extension is stored on the entity (`assetExtension`); the rest
+ * of the URL is inferred, so `{ASSET_BASE_URL}/{schemaName}/{slug}.{ext}`. The
+ * slug matches `getEntitySlug`, so the artwork path lines up with the entity's
+ * canonical reference path.
+ *
+ * @param entity - The entity to derive from (must carry a stamped `schemaName`)
+ * @returns The asset URL, or undefined if the entity has no artwork
  */
 export function getAssetUrl(entity: SURefMetaEntity): string | undefined {
-  return 'asset_url' in entity && typeof entity.asset_url === 'string'
-    ? entity.asset_url
-    : undefined
+  const meta = entity as { assetExtension?: unknown; schemaName?: unknown }
+  if (typeof meta.assetExtension !== 'string' || typeof meta.schemaName !== 'string') {
+    return undefined
+  }
+  const slug = getEntitySlug(entity as unknown as SURefEntity)
+  return `${ASSET_BASE_URL}/${meta.schemaName}/${slug}.${meta.assetExtension}`
 }
 
 /**
