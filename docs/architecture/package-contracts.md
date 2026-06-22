@@ -241,7 +241,8 @@ Consuming apps' Vite/Astro bundlers compile `.ts/.tsx` files directly. No interm
 
 Local-first: there is no auth and no backend other than the
 stateless snapshot-sharing Netlify Functions (see
-[ADR-010](../adrs/ADR-010-snapshot-backend.md)). Player data lives in IndexedDB.
+[ADR-004](../adrs/ADR-004-snapshot-netlify-functions.md)). Player data lives in
+IndexedDB.
 
 ### Tailwind Source Path
 

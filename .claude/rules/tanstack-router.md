@@ -1,6 +1,6 @@
 ---
 paths:
-  - "apps/*/src/routes/**"
+  - 'apps/*/src/routes/**'
 ---
 
 # TanStack Router
@@ -33,11 +33,16 @@ const search = useSearch({ strict: false })
 const pattern = (search as { pattern?: string }).pattern
 ```
 
-## Data Fetching Strategy
+## Data Loading Strategy
 
-- Prefer `beforeLoad` for server-side data fetching
-- Use TanStack Query in components for client-side data
-- Pass prefetched data via route context
+ITUN is local-first (no server). Use route `loader`/`beforeLoad` for
+load-time preparation and guards, and read persistent entity data from the
+Zustand stores in components (not via fetch). Reserve TanStack Query for genuinely
+async work like snapshot retrieval (see `.claude/rules/tanstack-query-hooks.md`).
+
+- Use `beforeLoad` for route guards / load-time setup, not network fetches
+- Read persistent data from `entityStore`/`workspaceStore` in components
+- Pass any prefetched/derived data via route context
 
 ## Route Context
 

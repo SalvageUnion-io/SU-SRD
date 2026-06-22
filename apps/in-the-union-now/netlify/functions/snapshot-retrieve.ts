@@ -7,7 +7,7 @@
  * The :id segment is extracted from the URL path (Netlify Functions receive
  * the full request URL; routing is configured in netlify.toml).
  *
- * See ADR-010-snapshot-backend.md for full rationale.
+ * See ADR-004-snapshot-netlify-functions.md for full rationale.
  */
 
 import { isValidSnapshotId } from '../../src/lib/snapshot/id'

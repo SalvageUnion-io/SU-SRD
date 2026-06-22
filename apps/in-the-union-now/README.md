@@ -19,7 +19,7 @@ bun --filter in-the-union-now test     # tests (bun test runner)
 
 Sharing publishes read-only snapshots to Netlify Blobs via two Netlify
 Functions (`netlify/functions/snapshot-publish.ts`, `snapshot-retrieve.ts`)
-routed under `/api/snapshots` (see `netlify.toml` and ADR-010). Plain
+routed under `/api/snapshots` (see `netlify.toml` and ADR-004). Plain
 `vite dev` has no Netlify redirect layer, so `vite.config.ts` proxies
 `/api/snapshots` to a locally-running functions server:
 

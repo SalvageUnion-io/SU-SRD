@@ -1,6 +1,9 @@
 # SURef Web (Static Reference Site)
 
-Static SRD reference site for Salvage Union game data.
+Static SRD reference site for Salvage Union game data. Architecture rationale:
+[ADR-012](../../docs/adrs/ADR-012-suref-web-astro-static.md) (Astro static + React
+islands). Read-only — choices render ephemerally/non-editably
+([ADR-010](../../docs/adrs/ADR-010-srd-choices-ephemeral-vs-persisted.md)).
 
 ## Stack
 

@@ -11,8 +11,8 @@ bundled game data.
 > in favour of a local-first IndexedDB model with no auth and no backend. The
 > only server-side surface that remains is the stateless snapshot-sharing
 > service (Netlify Functions + Blobs); see
-> [ADR-010](../adrs/ADR-010-snapshot-backend.md). This document describes the
-> current local-first design.
+> [ADR-004](../adrs/ADR-004-snapshot-netlify-functions.md). This document
+> describes the current local-first design.
 
 ## Static Reference Data
 
@@ -146,7 +146,7 @@ Persistent entity state lives in Zustand/IndexedDB, not in the Query cache.
 ## Snapshot Sharing (the only backend)
 
 Read-only share links are the one server-touching feature. See
-[ADR-010](../adrs/ADR-010-snapshot-backend.md).
+[ADR-004](../adrs/ADR-004-snapshot-netlify-functions.md).
 
 - **Client:** `src/lib/snapshot/client.ts` — `publishSnapshot(payload)` POSTs to
   `/api/snapshots` and returns `{ id, url }`; `retrieveSnapshot(id)` GETs
@@ -190,5 +190,6 @@ in-memory state is not mutated and the caller surfaces a toast.
 ## Cross-References
 
 - `.claude/rules/tanstack-query-hooks.md` — Query key factory conventions, hook patterns
-- `.claude/rules/entity-data-resolution.md` — Resolving player refs against reference data
-- [ADR-010](../adrs/ADR-010-snapshot-backend.md) — Snapshot backend rationale
+- [ADR-002](../adrs/ADR-002-indexeddb-idb-zod.md) — IndexedDB / `idb` / Zod-as-schema persistence
+- [ADR-003](../adrs/ADR-003-zustand-hydration.md) — Zustand store hydration + write-through
+- [ADR-004](../adrs/ADR-004-snapshot-netlify-functions.md) — Snapshot backend rationale

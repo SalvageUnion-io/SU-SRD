@@ -11,11 +11,14 @@ Shared React component library for the SURef monorepo. Consumed by `apps/suref-w
 ## Contents
 
 - **Theme** — colors, tech-level tokens, recipes
-- **Typography** — `Heading`, `Text`
-- **UI primitives** — `Tooltip`, `Toaster`, `Modal`
-- **Entity display system** (~30 files) — `DisplayCard`, `ReferenceEntityDisplay` and its slot components, `EntityControls`
-- **Shared components** — `Card`, `ValueDisplay`, `SheetDisplay`, `RollTable`, filter chips, skeletons
-- **Utilities** — `slug()`, `parseTraitReferences()`, `cn()`
+- **Typography** — `Text`
+- **UI primitives** — `Toaster` / `toast`, `ModalShell`, `ReferenceEntityDisplayTooltip`
+- **Entity display system** — `DisplayCard`, `ReferenceEntityDisplay` and its slot components, the choice-card layer, and control factories (`addControl`, `deleteControl`, `navigateControl`)
+- **Shared components** — `ValueDisplay`, `StatDisplay`, `StatsBar`, `RollTable`, `FilterChip`, skeletons
+- **Utilities** — `nameToSlug`, `getEntitySlug`, `parseTraitReferences` helpers, `cn()`
+
+See [package-contracts.md](../../docs/architecture/package-contracts.md) for the
+full export list.
 
 ## Consuming
 
