@@ -38,7 +38,7 @@ export function EquipmentStep({ selectedEquipment, onToggle, budget, _sur }: Equ
 
   return (
     <div className="w-full">
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(15rem,1fr))] gap-3.5">
+      <div className="columns-1 gap-3.5 sm:columns-2 [&>*]:mb-3.5 [&>*]:break-inside-avoid">
         {allEquipment.map((item) => {
           const isSelected = selectedEquipment.includes(item.id)
           const isDisabled = !isSelected && isAtBudget
