@@ -13,6 +13,12 @@
  * Snapshot payload shape (as published by PublishButton v1):
  *   { kind: 'pilot' | 'mech' | 'crawler', entity: <entity object> }
  *
+ * Mech *patterns* (REQ-026 / M4) are also publishable as snapshots
+ * ({ kind: 'pattern', entity: <MechPattern> }); they don't render through the
+ * Sheet shell (patterns aren't a sheet kind) but as a read-only preview with a
+ * "Clone to my builds" action that instantiates the pattern into the visitor's
+ * local IndexedDB — see PatternSnapshotView.
+ *
  * Payloads are Zod-validated; a graceful error state renders on mismatch.
  */
 
@@ -22,14 +28,17 @@ import { create } from 'zustand'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
+import type { MechPattern } from '../../lib/schemas/pattern'
 import { CrawlerSchema } from '../../lib/schemas/crawler'
 import { MechSchema } from '../../lib/schemas/mech'
+import { MechPatternSchema } from '../../lib/schemas/pattern'
 import { PilotSchema, normalizeLegacyPilotRecord } from '../../lib/schemas/pilot'
 import { normalizeLegacyCargoRecord } from '../../lib/schemas/cargoLot'
 import { useEntityStore } from '../../stores/entityStore'
 import type { EntityType } from '../../stores/entityStore'
 import { AppLink } from '../shared/AppLink'
 
+import { PatternSnapshotView } from './PatternSnapshotView'
 import { Sheet } from './Sheet'
 
 type SnapshotViewProps = {
@@ -41,7 +50,11 @@ type ParseResult =
   | { ok: true; kind: 'pilot'; entity: Pilot }
   | { ok: true; kind: 'mech'; entity: Mech }
   | { ok: true; kind: 'crawler'; entity: Crawler }
+  | { ok: true; kind: 'pattern'; entity: MechPattern }
   | { ok: false; reason: string }
+
+/** Sheet-renderable kinds — pattern is rendered via its own preview, not Sheet. */
+type SheetParseResult = Exclude<Extract<ParseResult, { ok: true }>, { kind: 'pattern' }>
 
 function parseSnapshot(snapshot: Record<string, unknown>): ParseResult {
   const kind = snapshot['kind']
@@ -92,6 +105,21 @@ function parseSnapshot(snapshot: Record<string, unknown>): ParseResult {
     return { ok: true, kind: 'crawler', entity: parsed.data }
   }
 
+  if (kind === 'pattern') {
+    // Mech pattern snapshots (REQ-026 / M4) carry the MechPattern template.
+    // Legacy `cargo` → `cargoLots` rewrite mirrors the mech path above.
+    const parsed = MechPatternSchema.safeParse(
+      normalizeLegacyCargoRecord(entity as Record<string, unknown>)
+    )
+    if (!parsed.success) {
+      return {
+        ok: false,
+        reason: `Invalid pattern data: ${parsed.error.message}`,
+      }
+    }
+    return { ok: true, kind: 'pattern', entity: parsed.data }
+  }
+
   return { ok: false, reason: `Unknown entity kind: ${String(kind)}` }
 }
 
@@ -101,7 +129,7 @@ type EntityState = ReturnType<typeof useEntityStore.getState>
  * A read-only entity store containing ONLY the snapshot entity. Reads serve
  * the frozen record; writes throw (unreachable behind `readOnly`).
  */
-function makeSnapshotStore(parsed: Extract<ParseResult, { ok: true }>): typeof useEntityStore {
+function makeSnapshotStore(parsed: SheetParseResult): typeof useEntityStore {
   const readOnlyWrite = async (): Promise<never> => {
     throw new Error('Snapshots are read-only.')
   }
@@ -133,7 +161,17 @@ function makeSnapshotStore(parsed: Extract<ParseResult, { ok: true }>): typeof u
 
 export function SnapshotView({ snapshot }: SnapshotViewProps) {
   const result = useMemo(() => parseSnapshot(snapshot), [snapshot])
-  const store = useMemo(() => (result.ok ? makeSnapshotStore(result) : null), [result])
+  // Patterns render via their own preview (PatternSnapshotView), not the Sheet
+  // shell, so they never get a read-only entity store.
+  const store = useMemo(
+    () => (result.ok && result.kind !== 'pattern' ? makeSnapshotStore(result) : null),
+    [result]
+  )
+
+  // Mech pattern snapshots (REQ-026 / M4): read-only preview + clone action.
+  if (result.ok && result.kind === 'pattern') {
+    return <PatternSnapshotView pattern={result.entity} />
+  }
 
   if (!result.ok || !store) {
     // Styled validation-failure state (plan 5.2) — invalid payloads land

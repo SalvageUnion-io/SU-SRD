@@ -16,6 +16,7 @@ import { useEffect, useState } from 'react'
 import * as db from '../../../lib/db/index'
 import type { MechPattern } from '../../../lib/schemas/pattern'
 import { InstantiateFromPattern } from './InstantiateFromPattern'
+import { PublishPatternButton } from './PublishPatternButton'
 
 type PatternListProps = {
   /** Called with the new mech id when a pattern is instantiated. */
@@ -100,7 +101,10 @@ export function PatternList({ onInstantiated }: PatternListProps) {
               {pattern.modules.length !== 1 ? 's' : ''}, {pattern.cargoLots.length} cargo
             </span>
           </div>
-          <InstantiateFromPattern pattern={pattern} onSuccess={handleInstantiated} />
+          <div className="flex flex-col items-end gap-2 shrink-0">
+            <InstantiateFromPattern pattern={pattern} onSuccess={handleInstantiated} />
+            <PublishPatternButton pattern={pattern} />
+          </div>
         </li>
       ))}
     </ul>
