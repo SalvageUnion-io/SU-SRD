@@ -133,9 +133,45 @@ describe('ShareSnapshotScreen — layout', () => {
       )
     })
     expect(screen.getByRole('heading', { name: /qr code/i })).toBeTruthy()
-    expect(screen.getByText(/scan to open/i)).toBeTruthy()
+    // Pre-publish: a neutral placeholder, no scannable QR image yet.
+    expect(screen.getByText(/publish to generate a qr code/i)).toBeTruthy()
+    expect(screen.queryByRole('img', { name: /qr code for the share url/i })).toBeNull()
     const printLink = screen.getByRole('link', { name: /open print view/i })
     expect(printLink.getAttribute('href')).toBe('/sheet/mech/mech-1')
+  })
+
+  test('renders a real scannable QR (role=img) for the published share URL', async () => {
+    render(
+      <ShareSnapshotScreen
+        kind="pilot"
+        id="pilot-1"
+        entityStore={makeEntityStore([fakePilot])}
+        probeFn={probeUp}
+        publishFn={makePublishFn({ id: 'qr123ab', url: '/api/snapshots/qr123ab' })}
+      />
+    )
+
+    // No QR before publish.
+    expect(screen.queryByRole('img', { name: /qr code for the share url/i })).toBeNull()
+
+    await waitFor(() => {
+      expect(
+        (screen.getByRole('button', { name: /publish snapshot/i }) as HTMLButtonElement).disabled
+      ).toBe(false)
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /publish snapshot/i }))
+    })
+
+    // After publish: a labelled QR <svg> with rendered dark modules + caption.
+    await waitFor(() => {
+      const qr = screen.getByRole('img', { name: /qr code for the share url/i })
+      expect(qr.tagName.toLowerCase()).toBe('svg')
+      const path = qr.querySelector('path')
+      expect(path).toBeTruthy()
+      expect((path?.getAttribute('d') ?? '').length).toBeGreaterThan(0)
+    })
+    expect(screen.getByText(/scan to open/i)).toBeTruthy()
   })
 
   test('renders Nothing-to-share state when the entity is missing', async () => {
