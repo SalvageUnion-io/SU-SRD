@@ -10,17 +10,31 @@ type ReferenceEntityRightHeaderContentProps = {
   /** Accent text colour — a lighter variant of the card's base/header colour.
    *  Falls back to white when not provided. */
   accentColor?: string
+  /**
+   * Flavor string for non-ability entities, hoisted out of the body `content`
+   * array (the first `type: 'flavor'` block) by the orchestrator so it renders
+   * in the header-right slot instead of the body. Abilities ignore this and use
+   * their top-level `description` field as before.
+   */
+  flavor?: string
 }
 
 export function ReferenceEntityRightHeaderContent({
   data,
   fontSize,
   accentColor,
+  flavor,
 }: ReferenceEntityRightHeaderContentProps) {
-  const description = 'description' in data ? data.description : undefined
+  // Abilities surface their top-level `description`; all other entities surface
+  // the hoisted `flavor` content block passed down by the orchestrator.
+  const description = isAbility(data)
+    ? 'description' in data
+      ? data.description
+      : undefined
+    : flavor
   const parsedDescription = useParseTraitReferences(description)
 
-  if (!description || !isAbility(data)) return null
+  if (!description) return null
 
   return (
     <div

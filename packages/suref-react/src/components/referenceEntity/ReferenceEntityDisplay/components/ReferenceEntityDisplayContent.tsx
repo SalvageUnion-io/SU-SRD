@@ -293,6 +293,21 @@ export function ReferenceEntityDisplayContent({
     contentBlocks = contentBlocks.filter((block) => block.lead !== true)
   }
 
+  // Hoist a non-ability entity's first `type: 'flavor'` content block out of the
+  // body into the header-right italic flavor slot (mirroring how abilities render
+  // their top-level `description` there). Abilities keep using `description`, so
+  // their flavor blocks (if any) stay in the body. The hoisted block is filtered
+  // out of `contentBlocks` below so it isn't shown twice.
+  const hoistedFlavor =
+    !isAbility(data) && contentBlocks
+      ? contentBlocks.find((block) => block.type === 'flavor' && typeof block.value === 'string')
+      : undefined
+  const hoistedFlavorText =
+    hoistedFlavor && typeof hoistedFlavor.value === 'string' ? hoistedFlavor.value : undefined
+  if (contentBlocks && hoistedFlavor) {
+    contentBlocks = contentBlocks.filter((block) => block !== hoistedFlavor)
+  }
+
   // In compact list view (hide.actions), only show content before the first heading
   if (contentBlocks && compact && hide.actions) {
     const firstHeadingIndex = contentBlocks.findIndex((block) => block.type === 'heading')
@@ -360,8 +375,11 @@ export function ReferenceEntityDisplayContent({
   // membership check is needed; this mirrors ReferenceEntityRightHeaderContent's
   // own early-return guard so we never pass a truthy-but-empty node to CardHeader.
   // Granting abilities still show their description in the header-right flavor
-  // slot (the Grants block lives in the body — they don't conflict).
-  const hasHeaderFlavor = isAbilityEntity && !!data.description
+  // slot (the Grants block lives in the body — they don't conflict). Non-ability
+  // entities qualify when they carry a hoisted `flavor` content block.
+  const hasHeaderFlavor = isAbilityEntity
+    ? !!data.description
+    : hoistedFlavorText != null && hoistedFlavorText.length > 0
 
   // Consolidate chassis abilities logic — data-shape driven
   const chassisName = 'name' in data ? data.name : undefined
@@ -575,15 +593,18 @@ export function ReferenceEntityDisplayContent({
         />
       }
       rightContent={
-        // The ability description always renders in the header-right flavor slot
-        // (nothing suppresses it). `hasHeaderFlavor` already means "ability with a
-        // description", so the node is never truthy-but-empty — only abilities
-        // reach this branch; systems/modules render their stats via `stats`.
+        // The flavor quip renders in the header-right slot. Abilities source it
+        // from their top-level `description`; non-ability entities source it from
+        // their hoisted first `type: 'flavor'` content block (passed as `flavor`).
+        // `hasHeaderFlavor` already guarantees a non-empty value, so the node is
+        // never truthy-but-empty. Systems/modules without a flavor block fall
+        // through to `undefined` and render their stats via `stats`.
         hasHeaderFlavor ? (
           <ReferenceEntityRightHeaderContent
             data={data}
             fontSize={fontSize}
             accentColor={accentText}
+            flavor={hoistedFlavorText}
           />
         ) : undefined
       }
