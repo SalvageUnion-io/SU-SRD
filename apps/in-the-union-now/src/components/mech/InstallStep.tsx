@@ -8,11 +8,18 @@ import { LoadoutPanel } from './LoadoutPanel'
 type InstallItemLike = {
   id: string
   name: string
-  techLevel: number
+  techLevel: TechLevel
   slotsRequired: number
 }
 
-const ALL_TLS: TechLevel[] = [1, 2, 3, 4, 5, 6]
+const ALL_TLS: TechLevel[] = [1, 2, 3, 4, 5, 6, 'B', 'N']
+
+/** Sort rank for a tech level: numeric tiers 1–6, then Bio (B), then Nanite (N). */
+function tlRank(tl: TechLevel): number {
+  if (tl === 'B') return 7
+  if (tl === 'N') return 8
+  return tl
+}
 
 type InstallStepProps = {
   /** Which dataset this step installs from. */
@@ -54,13 +61,13 @@ export function InstallStep({
     const accessor =
       kind === 'systems' ? SalvageUnionReference.Systems : SalvageUnionReference.Modules
     const items = accessor.all() as unknown as InstallItemLike[]
-    return [...items].sort((a, b) => a.techLevel - b.techLevel || a.name.localeCompare(b.name))
+    return [...items].sort(
+      (a, b) => tlRank(a.techLevel) - tlRank(b.techLevel) || a.name.localeCompare(b.name)
+    )
   }, [kind])
 
   const visible =
-    activeTls.length === 0
-      ? allItems
-      : allItems.filter((i) => activeTls.includes(i.techLevel as TechLevel))
+    activeTls.length === 0 ? allItems : allItems.filter((i) => activeTls.includes(i.techLevel))
 
   function toggleTl(tl: TechLevel) {
     setActiveTls((prev) => (prev.includes(tl) ? prev.filter((t) => t !== tl) : [...prev, tl]))
@@ -74,7 +81,7 @@ export function InstallStep({
           {ALL_TLS.map((tl) => (
             <FilterChip
               key={tl}
-              label={`TL${tl}`}
+              label={typeof tl === 'number' ? `TL${tl}` : tl === 'B' ? 'Bio' : 'Nanite'}
               active={activeTls.includes(tl)}
               onClick={() => toggleTl(tl)}
               swatchStyle={`var(--color-tl-${tl})`}
