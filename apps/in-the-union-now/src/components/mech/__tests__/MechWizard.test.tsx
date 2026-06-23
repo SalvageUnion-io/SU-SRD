@@ -93,6 +93,28 @@ async function clickTab(name: 'Systems' | 'Modules'): Promise<void> {
   })
 }
 
+/**
+ * Loadout install cards expose a per-entity "Add" button (aria-label
+ * "Add {name}"). Each click appends one copy — duplicates are rules-legal.
+ */
+async function addInstall(name: string): Promise<void> {
+  await act(async () => {
+    fireEvent.click(screen.getByRole('button', { name: `Add ${name}` }))
+  })
+}
+
+/**
+ * Each chosen loadout entry in the right-hand panel has a "Remove {name}"
+ * button that drops a single copy (remove-by-index). When duplicates exist
+ * there are multiple matching buttons; click the first.
+ */
+async function removeInstall(name: string): Promise<void> {
+  const buttons = screen.getAllByRole('button', { name: `Remove ${name}` })
+  await act(async () => {
+    fireEvent.click(buttons[0]!)
+  })
+}
+
 async function typeInto(label: RegExp, value: string): Promise<void> {
   const input = screen.getByLabelText(label) as HTMLInputElement
   await act(async () => {
@@ -134,10 +156,10 @@ describe('MechWizard — custom pattern happy path', () => {
 
     // --- Step 3: Loadout — combined Systems / Modules tabs ---
     expect(screen.getByTestId('system-slot-count').textContent).toContain('0 /')
-    await pick('Cargo Pod')
+    await addInstall('Cargo Pod')
     expect(screen.getByTestId('system-slot-count').textContent).toContain('1 /')
     await clickTab('Modules')
-    await pick('Comms Module')
+    await addInstall('Comms Module')
     expect(screen.getByTestId('module-slot-count').textContent).toContain('1 /')
     await clickNext()
 
@@ -246,15 +268,85 @@ describe('MechWizard — gates', () => {
 
     // Mule has 2 module slots — install three 1-slot modules to breach it.
     await clickTab('Modules')
-    await pick('Comms Module')
-    await pick('Equipment Locker')
-    await pick('Firewall')
+    await addInstall('Comms Module')
+    await addInstall('Equipment Locker')
+    await addInstall('Firewall')
 
     // Soft warning banner appears…
     expect(screen.getByTestId('module-slot-count').textContent).toContain('3 /')
     expect(screen.getByText(/Module slots exceeded/i)).toBeTruthy()
     // …and Next stays enabled (capacity is soft — warn, never block).
     expect(getNextButton().disabled).toBe(false)
+  }, 30000)
+})
+
+// ---------------------------------------------------------------------------
+// Duplicate installs: per-entity "Add" appends copies; remove drops ONE
+// ---------------------------------------------------------------------------
+
+describe('MechWizard — duplicate installs', () => {
+  it('adds multiple copies of the same system and persists every copy', async () => {
+    render(<MechWizard onComplete={() => {}} onCancel={() => {}} />)
+
+    await pick('Mule')
+    await clickNext() // Pattern
+    await pick('Custom Pattern')
+    await typeInto(/Pattern name/i, 'Twin Rig')
+    await clickNext() // Loadout
+
+    // First click installs one; the card flips to an "Add another" affordance
+    // and an "N Installed" count.
+    await addInstall('Cargo Pod')
+    expect(screen.getByTestId('install-count').textContent).toContain('1 Installed')
+    await addInstall('Cargo Pod') // "Add another"
+    expect(screen.getByTestId('install-count').textContent).toContain('2 Installed')
+    expect(screen.getByTestId('system-slot-count').textContent).toContain('2 /')
+    // The Loadout panel lists each copy as its own removable entry.
+    expect(screen.getAllByTestId('loadout-entry').length).toBe(2)
+
+    await clickNext() // Identity
+    await typeInto(/Mech name/i, 'Iron Fist')
+    await clickNext() // Review
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /Create Mech/i }))
+    })
+
+    await waitFor(() => {
+      const m = useEntityStore.getState().list('mech')[0]!
+      expect(m.systems).toEqual(['Cargo Pod', 'Cargo Pod'])
+    })
+  }, 30000)
+
+  it('removes a single copy (by index) leaving the other duplicate intact', async () => {
+    render(<MechWizard onComplete={() => {}} onCancel={() => {}} />)
+
+    await pick('Mule')
+    await clickNext() // Pattern
+    await pick('Custom Pattern')
+    await typeInto(/Pattern name/i, 'Twin Rig')
+    await clickNext() // Loadout
+
+    await addInstall('Cargo Pod')
+    await addInstall('Cargo Pod')
+    expect(screen.getAllByTestId('loadout-entry').length).toBe(2)
+
+    // Remove ONE copy — the count drops to 1, one entry remains.
+    await removeInstall('Cargo Pod')
+    expect(screen.getAllByTestId('loadout-entry').length).toBe(1)
+    expect(screen.getByTestId('install-count').textContent).toContain('1 Installed')
+    expect(screen.getByTestId('system-slot-count').textContent).toContain('1 /')
+
+    await clickNext() // Identity
+    await typeInto(/Mech name/i, 'Iron Fist')
+    await clickNext() // Review
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /Create Mech/i }))
+    })
+
+    await waitFor(() => {
+      const m = useEntityStore.getState().list('mech')[0]!
+      expect(m.systems).toEqual(['Cargo Pod'])
+    })
   }, 30000)
 })
 
@@ -303,9 +395,9 @@ describe('MechWizard — edit mode', () => {
 
     // Loadout panel shows the prefilled install (no empty-state message).
     expect(screen.queryByText(/Nothing installed yet/i)).toBeNull()
-    await pick('Armour Plating') // add a second system
+    await addInstall('Armour Plating') // add a second system
     await clickTab('Modules')
-    await pick('Comms Module')
+    await addInstall('Comms Module')
     await clickNext() // Identity (name prefilled)
     await clickNext() // Review
 
@@ -344,7 +436,7 @@ describe('MechWizard — edit mode', () => {
 
     await clickNext() // Pattern
     await clickNext() // Loadout
-    await pick('Cargo Pod') // toggle OFF the only system
+    await removeInstall('Cargo Pod') // remove the only system via the Loadout panel
     await clickNext() // Identity
     await clickNext() // Review
 

@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { FilterChip } from 'suref-react'
 import type { TechLevel } from '../../lib/rules/types'
-import { SelCard } from '../wizard/SelCard'
+import { InstallCard } from './InstallCard'
 import { LoadoutPanel } from './LoadoutPanel'
 
 type InstallItemLike = {
@@ -24,9 +24,12 @@ function tlRank(tl: TechLevel): number {
 type InstallStepProps = {
   /** Which dataset this step installs from. */
   kind: 'systems' | 'modules'
-  /** Name refs currently installed. */
+  /** Name refs currently installed (may contain duplicates). */
   selected: string[]
-  onToggle: (name: string) => void
+  /** Append one copy of the named entity. */
+  onAdd: (name: string) => void
+  /** Remove the single chosen entry at `index` (drops one copy). */
+  onRemove: (index: number) => void
   /** Loadout panel header name (mech name, falling back to chassis). */
   loadoutName: string
   /** 'SYSTEM SLOTS' / 'MODULE SLOTS' budget figures (soft — never blocks). */
@@ -48,7 +51,8 @@ type InstallStepProps = {
 export function InstallStep({
   kind,
   selected,
-  onToggle,
+  onAdd,
+  onRemove,
   loadoutName,
   slotsUsed,
   slotsMax,
@@ -91,12 +95,12 @@ export function InstallStep({
 
         <div className="mt-[25px] columns-1 gap-3.5 sm:columns-2 [&>*]:mb-3.5 [&>*]:break-inside-avoid">
           {visible.map((item) => (
-            <SelCard
+            <InstallCard
               key={item.id}
               entity={item}
               name={item.name}
-              selected={selected.includes(item.name)}
-              onToggle={() => onToggle(item.name)}
+              count={selected.filter((ref) => ref === item.name).length}
+              onAdd={() => onAdd(item.name)}
             />
           ))}
         </div>
@@ -114,6 +118,7 @@ export function InstallStep({
         energyValue={energyValue}
         energyMax={energyMax}
         chosen={selected}
+        onRemove={onRemove}
         kind={kind}
         className="lg:sticky lg:top-4"
       />
