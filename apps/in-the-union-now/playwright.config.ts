@@ -45,6 +45,13 @@ export default defineConfig({
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
+    // The app is a PWA (vite-plugin-pwa, registerType: 'autoUpdate'). When the
+    // service worker activates it triggers a page reload; if that reload lands
+    // mid-navigation, page.goto/page.reload abort with
+    // `net::ERR_ABORTED; maybe frame was detached?`. This flaked the preview
+    // suite (E2E_BASE_URL) where a real SW registers. No e2e here exercises
+    // offline/installability, so block SW registration to remove the race.
+    serviceWorkers: 'block',
   },
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
