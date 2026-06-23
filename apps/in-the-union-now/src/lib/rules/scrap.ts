@@ -14,7 +14,7 @@
  */
 
 import { SalvageUnionReference } from 'salvageunion-reference'
-import type { ScrapableItem, TechLevel } from './types'
+import type { NumericTechLevel, ScrapableItem } from './types'
 
 /**
  * Returns the sell (salvage) value of an item in units of its own tech level's
@@ -55,7 +55,7 @@ export function scrapCostFor(item: ScrapableItem): number {
  * Callers should treat `null` as "cannot determine cost" and surface a
  * manual-review warning rather than blocking.
  */
-export function tierUpgradeCost(fromTL: TechLevel, toTL: TechLevel): number | null {
+export function tierUpgradeCost(fromTL: NumericTechLevel, toTL: NumericTechLevel): number | null {
   if (fromTL === toTL) return 0
   if (fromTL > toTL) return null // downgrade; use a soft warning instead
 

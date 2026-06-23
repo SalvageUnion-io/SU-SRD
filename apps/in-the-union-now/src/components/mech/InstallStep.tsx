@@ -8,11 +8,18 @@ import { LoadoutPanel } from './LoadoutPanel'
 type InstallItemLike = {
   id: string
   name: string
-  techLevel: number
+  techLevel: TechLevel
   slotsRequired: number
 }
 
-const ALL_TLS: TechLevel[] = [1, 2, 3, 4, 5, 6]
+// Tech tiers, in display order: numeric 1–6 then Bio (B) then Nanite (N).
+// Bio/Nanite are real equipment tiers in the SRD catalog (Core Book p.244 /
+// Quick Ref "Tech Levels"), so the filter must offer them — otherwise their
+// systems/modules become unreachable the moment any numeric chip is active.
+const ALL_TLS: TechLevel[] = [1, 2, 3, 4, 5, 6, 'B', 'N']
+
+// Sort rank for a tech tier: 1–6 keep their value, then B, then N last.
+const TL_RANK: Record<TechLevel, number> = { 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, B: 7, N: 8 }
 
 type InstallStepProps = {
   /** Which dataset this step installs from. */
@@ -54,13 +61,13 @@ export function InstallStep({
     const accessor =
       kind === 'systems' ? SalvageUnionReference.Systems : SalvageUnionReference.Modules
     const items = accessor.all() as unknown as InstallItemLike[]
-    return [...items].sort((a, b) => a.techLevel - b.techLevel || a.name.localeCompare(b.name))
+    return [...items].sort(
+      (a, b) => TL_RANK[a.techLevel] - TL_RANK[b.techLevel] || a.name.localeCompare(b.name)
+    )
   }, [kind])
 
   const visible =
-    activeTls.length === 0
-      ? allItems
-      : allItems.filter((i) => activeTls.includes(i.techLevel as TechLevel))
+    activeTls.length === 0 ? allItems : allItems.filter((i) => activeTls.includes(i.techLevel))
 
   function toggleTl(tl: TechLevel) {
     setActiveTls((prev) => (prev.includes(tl) ? prev.filter((t) => t !== tl) : [...prev, tl]))
@@ -74,7 +81,7 @@ export function InstallStep({
           {ALL_TLS.map((tl) => (
             <FilterChip
               key={tl}
-              label={`TL${tl}`}
+              label={typeof tl === 'number' ? `TL${tl}` : tl === 'B' ? 'Bio' : 'Nanite'}
               active={activeTls.includes(tl)}
               onClick={() => toggleTl(tl)}
               swatchStyle={`var(--color-tl-${tl})`}

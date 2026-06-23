@@ -48,6 +48,9 @@
   --color-tl-4: rgb(48, 107, 128);
   --color-tl-5: rgb(30, 83, 100);
   --color-tl-6: rgb(6, 52, 65);
+  /* Non-numeric tiers (Core Book p.244): Bio reads organic green, Nanite silver. */
+  --color-tl-B: rgb(106, 153, 78);
+  --color-tl-N: rgb(192, 192, 192);
 
   /* Entity colors (semantic) */
   --color-pilot: var(--color-su-orange);
