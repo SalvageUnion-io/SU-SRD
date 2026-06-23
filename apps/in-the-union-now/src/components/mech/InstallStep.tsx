@@ -24,9 +24,12 @@ const TL_RANK: Record<TechLevel, number> = { 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6,
 type InstallStepProps = {
   /** Which dataset this step installs from. */
   kind: 'systems' | 'modules'
-  /** Name refs currently installed. */
+  /** Name refs currently installed (duplicates allowed — stacking). */
   selected: string[]
-  onToggle: (name: string) => void
+  /** Append a copy of `name` to the installed list. */
+  onAdd: (name: string) => void
+  /** Remove the single installed copy at `index` (not all matches). */
+  onRemoveAt: (index: number) => void
   /** Loadout panel header name (mech name, falling back to chassis). */
   loadoutName: string
   /** 'SYSTEM SLOTS' / 'MODULE SLOTS' budget figures (soft — never blocks). */
@@ -48,7 +51,8 @@ type InstallStepProps = {
 export function InstallStep({
   kind,
   selected,
-  onToggle,
+  onAdd,
+  onRemoveAt,
   loadoutName,
   slotsUsed,
   slotsMax,
@@ -56,6 +60,14 @@ export function InstallStep({
   energyMax,
 }: InstallStepProps) {
   const [activeTls, setActiveTls] = useState<TechLevel[]>([])
+
+  // Per-name installed count drives each card's "× N" badge. The installed
+  // list is a multiset (duplicates allowed) so an item can stack.
+  const countByName = useMemo(() => {
+    const counts = new Map<string, number>()
+    for (const ref of selected) counts.set(ref, (counts.get(ref) ?? 0) + 1)
+    return counts
+  }, [selected])
 
   const allItems = useMemo(() => {
     const accessor =
@@ -95,8 +107,9 @@ export function InstallStep({
               key={item.id}
               entity={item}
               name={item.name}
-              selected={selected.includes(item.name)}
-              onToggle={() => onToggle(item.name)}
+              selected={false}
+              count={countByName.get(item.name) ?? 0}
+              onToggle={() => onAdd(item.name)}
             />
           ))}
         </div>
@@ -114,6 +127,7 @@ export function InstallStep({
         energyValue={energyValue}
         energyMax={energyMax}
         chosen={selected}
+        onRemoveAt={onRemoveAt}
         kind={kind}
         className="lg:sticky lg:top-4"
       />

@@ -68,13 +68,20 @@ afterEach(async () => {
 
 /**
  * Chassis/pattern rows are OptRow <button>s whose accessible text contains the
- * name; system/module cards are Sel wrappers — div[role="button"] with
- * aria-label set to the entity name.
+ * name; system/module install cards are Sel wrappers — div[role="button"] —
+ * which in the add-and-stack model carry an aria-label of `Add {name}` (or
+ * `Add {name} ({n} installed)`). Match the exact name first, then the
+ * stack-mode `Add {name}` prefix, then fall back to text content.
  */
 function getPickByName(name: string): HTMLElement {
   const candidates = screen.getAllByRole('button')
   const exact = candidates.find((b) => b.getAttribute('aria-label') === name)
   if (exact) return exact
+  const add = candidates.find((b) => {
+    const al = b.getAttribute('aria-label') ?? ''
+    return al === `Add ${name}` || al.startsWith(`Add ${name} (`)
+  })
+  if (add) return add
   const row = candidates.find((b) => (b.textContent ?? '').includes(name))
   if (!row) throw new Error(`No role=button pick for "${name}"`)
   return row
@@ -83,6 +90,17 @@ function getPickByName(name: string): HTMLElement {
 async function pick(name: string): Promise<void> {
   await act(async () => {
     fireEvent.click(getPickByName(name))
+  })
+}
+
+/**
+ * Remove a single installed copy via the loadout panel's `Remove {name}` ×
+ * control. When the item is stacked there is one such control per copy; this
+ * clicks the first, dropping exactly one occurrence.
+ */
+async function removeFromLoadout(name: string): Promise<void> {
+  await act(async () => {
+    fireEvent.click(screen.getAllByRole('button', { name: `Remove ${name}` })[0]!)
   })
 }
 
@@ -165,6 +183,48 @@ describe('MechWizard — custom pattern happy path', () => {
     })
 
     expect(onComplete).toHaveBeenCalledTimes(1)
+  }, 30000)
+})
+
+// ---------------------------------------------------------------------------
+// Add-and-stack: the same System/Module can be installed multiple times
+// ---------------------------------------------------------------------------
+
+describe('MechWizard — loadout stacking', () => {
+  it('stacks duplicate systems on repeated add and removes a single copy', async () => {
+    render(<MechWizard onComplete={() => {}} onCancel={() => {}} />)
+
+    await pick('Mule')
+    await clickNext() // Pattern
+    await pick('Custom Pattern')
+    await typeInto(/Pattern name/i, 'Stacker')
+    await clickNext() // Loadout
+
+    // Add the same system three times — slot count tracks the multiset.
+    await pick('Cargo Pod')
+    await pick('Cargo Pod')
+    await pick('Cargo Pod')
+    expect(screen.getByTestId('system-slot-count').textContent).toContain('3 /')
+    // Three individually-removable entries are listed in the loadout panel.
+    expect(screen.getAllByRole('button', { name: 'Remove Cargo Pod' }).length).toBe(3)
+
+    // Remove one copy → two remain (a single occurrence dropped, not all).
+    await removeFromLoadout('Cargo Pod')
+    expect(screen.getByTestId('system-slot-count').textContent).toContain('2 /')
+    expect(screen.getAllByRole('button', { name: 'Remove Cargo Pod' }).length).toBe(2)
+
+    await clickNext() // Identity
+    await typeInto(/Mech name/i, 'Double Cargo')
+    await clickNext() // Review
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /Create Mech/i }))
+    })
+
+    await waitFor(() => {
+      const m = useEntityStore.getState().list('mech')[0]!
+      // Duplicates round-trip through persistence unchanged (z.array(z.string)).
+      expect(m.systems).toEqual(['Cargo Pod', 'Cargo Pod'])
+    })
   }, 30000)
 })
 
@@ -344,7 +404,7 @@ describe('MechWizard — edit mode', () => {
 
     await clickNext() // Pattern
     await clickNext() // Loadout
-    await pick('Cargo Pod') // toggle OFF the only system
+    await removeFromLoadout('Cargo Pod') // remove the only system via the × control
     await clickNext() // Identity
     await clickNext() // Review
 

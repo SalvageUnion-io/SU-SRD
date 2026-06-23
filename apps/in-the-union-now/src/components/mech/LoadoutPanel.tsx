@@ -76,8 +76,14 @@ type LoadoutPanelProps = {
   /** Current/max Energy Points — informational is-ap track. */
   energyValue: number
   energyMax: number
-  /** Name refs of the chosen systems or modules (head-mode cards). */
+  /**
+   * Name refs of the chosen systems or modules (head-mode cards). A multiset:
+   * duplicates are allowed and rendered as separate, individually-removable
+   * entries so the same item can be stacked.
+   */
   chosen: string[]
+  /** Remove the single chosen entry at `index` (not all matching names). */
+  onRemoveAt?: (index: number) => void
   /** Which dataset resolves the chosen refs. */
   kind: 'systems' | 'modules'
   className?: string
@@ -86,7 +92,9 @@ type LoadoutPanelProps = {
 /**
  * Right-hand Loadout panel for the install steps (design §3.2 mech wizard):
  * 'Loadout · {name}' header, pip budget tracks (slots default-ink, energy
- * is-ap rust), then the chosen items as head-mode entity cards.
+ * is-ap rust), then the chosen items as head-mode entity cards. Each entry —
+ * including repeated copies of the same item — gets its own remove control so
+ * a single occurrence can be dropped without clearing the rest of a stack.
  */
 export function LoadoutPanel({
   name,
@@ -96,15 +104,19 @@ export function LoadoutPanel({
   energyValue,
   energyMax,
   chosen,
+  onRemoveAt,
   kind,
   className,
 }: LoadoutPanelProps) {
   const accessor =
     kind === 'systems' ? SalvageUnionReference.Systems : SalvageUnionReference.Modules
-  const chosenEntities = chosen.flatMap((ref) => {
-    const found = accessor.find((x) => x.name === ref)
-    return found ? [found as unknown as SURefEntity] : []
-  })
+  // Map over `chosen` by index (NOT flatMap) so each rendered entry's index
+  // lines up with onRemoveAt — removing by index drops exactly one copy.
+  const chosenEntries = chosen.map((ref, index) => ({
+    index,
+    ref,
+    entity: (accessor.find((x) => x.name === ref) as unknown as SURefEntity | undefined) ?? null,
+  }))
 
   return (
     <Panel className={cn('self-start px-4 py-4', className)}>
@@ -118,15 +130,30 @@ export function LoadoutPanel({
       </div>
 
       <div className="mt-4 space-y-2">
-        {chosenEntities.map((entity, i) => (
-          <ReferenceEntityDisplay
-            key={`${(entity as { id?: string }).id ?? i}`}
-            data={entity}
-            mode="head"
-            hide={{ actions: true, choices: true }}
-          />
+        {chosenEntries.map(({ index, ref, entity }) => (
+          <div key={`${ref}-${index}`} className="relative">
+            {entity ? (
+              <ReferenceEntityDisplay
+                data={entity}
+                mode="head"
+                hide={{ actions: true, choices: true }}
+              />
+            ) : (
+              <p className="font-body text-xs text-wk-muted">{ref}</p>
+            )}
+            {onRemoveAt && (
+              <button
+                type="button"
+                aria-label={`Remove ${ref}`}
+                onClick={() => onRemoveAt(index)}
+                className="absolute -right-1.5 -top-1.5 z-10 inline-flex h-5 w-5 items-center justify-center rounded-full border-[1.5px] border-ink bg-paper font-cond text-xs font-bold leading-none text-ink transition-colors hover:border-rust hover:text-rust focus-visible:outline-none focus-visible:ring-[2px] focus-visible:ring-rust/30"
+              >
+                ×
+              </button>
+            )}
+          </div>
         ))}
-        {chosenEntities.length === 0 && (
+        {chosenEntries.length === 0 && (
           <p className="font-body text-xs text-wk-muted">Nothing installed yet.</p>
         )}
       </div>

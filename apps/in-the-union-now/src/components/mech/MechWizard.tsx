@@ -91,8 +91,18 @@ export function MechWizard({ onComplete, onCancel, mechId, initialState }: MechW
     setForm((prev) => ({ ...prev, ...patch }))
   }
 
-  function toggleIn(list: string[], name: string): string[] {
-    return list.includes(name) ? list.filter((x) => x !== name) : [...list, name]
+  // Loadout installs are a multiset (add-and-stack): the same System/Module
+  // can be installed more than once. `addItem` always appends a copy;
+  // `removeAt` drops exactly the one occurrence at `index` (NOT every match),
+  // so removing one copy of a stacked item leaves the rest intact. Duplicates
+  // are rules-legal — the only limit is slot capacity, which stays a soft
+  // warning (Core Book p.96, "Mech Stats Explained: System Slots").
+  function addItem(list: string[], name: string): string[] {
+    return [...list, name]
+  }
+
+  function removeAt(list: string[], index: number): string[] {
+    return list.filter((_, i) => i !== index)
   }
 
   // Changing the chassis invalidates any chosen pattern/loadout.
@@ -324,8 +334,10 @@ export function MechWizard({ onComplete, onCancel, mechId, initialState }: MechW
         <LoadoutStep
           systems={form.systems}
           modules={form.modules}
-          onToggleSystem={(name) => updateForm({ systems: toggleIn(form.systems, name) })}
-          onToggleModule={(name) => updateForm({ modules: toggleIn(form.modules, name) })}
+          onAddSystem={(name) => updateForm({ systems: addItem(form.systems, name) })}
+          onRemoveSystemAt={(index) => updateForm({ systems: removeAt(form.systems, index) })}
+          onAddModule={(name) => updateForm({ modules: addItem(form.modules, name) })}
+          onRemoveModuleAt={(index) => updateForm({ modules: removeAt(form.modules, index) })}
           loadoutName={loadoutName}
           systemSlotsUsed={capacity.systemSlotsUsed}
           systemSlotsMax={capacity.systemSlotsMax}

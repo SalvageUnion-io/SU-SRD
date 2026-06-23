@@ -7,8 +7,10 @@ type LoadoutTab = 'systems' | 'modules'
 type LoadoutStepProps = {
   systems: string[]
   modules: string[]
-  onToggleSystem: (name: string) => void
-  onToggleModule: (name: string) => void
+  onAddSystem: (name: string) => void
+  onRemoveSystemAt: (index: number) => void
+  onAddModule: (name: string) => void
+  onRemoveModuleAt: (index: number) => void
   loadoutName: string
   systemSlotsUsed: number
   systemSlotsMax: number
@@ -53,8 +55,10 @@ function TabButton({
 export function LoadoutStep({
   systems,
   modules,
-  onToggleSystem,
-  onToggleModule,
+  onAddSystem,
+  onRemoveSystemAt,
+  onAddModule,
+  onRemoveModuleAt,
   loadoutName,
   systemSlotsUsed,
   systemSlotsMax,
@@ -84,7 +88,8 @@ export function LoadoutStep({
         <InstallStep
           kind="systems"
           selected={systems}
-          onToggle={onToggleSystem}
+          onAdd={onAddSystem}
+          onRemoveAt={onRemoveSystemAt}
           loadoutName={loadoutName}
           slotsUsed={systemSlotsUsed}
           slotsMax={systemSlotsMax}
@@ -95,7 +100,8 @@ export function LoadoutStep({
         <InstallStep
           kind="modules"
           selected={modules}
-          onToggle={onToggleModule}
+          onAdd={onAddModule}
+          onRemoveAt={onRemoveModuleAt}
           loadoutName={loadoutName}
           slotsUsed={moduleSlotsUsed}
           slotsMax={moduleSlotsMax}
