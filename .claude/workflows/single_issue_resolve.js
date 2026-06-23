@@ -17,7 +17,10 @@ export const meta = {
 // ── args contract ────────────────────────────────────────────────────────────
 //   string  → raw feedback text (this workflow infers the UX area + rules itself)
 //   object  → a triage record from batch_issue_response:
-//             { title, summary, uxArea, files?, rules?, approach?, inScope?, source? }
+//             { title, summary, uxArea, files?, rules?, approach?, inScope?, source?, baseBranch? }
+//             baseBranch: if set (and not "main"), this PR is STACKED on that branch — the new branch
+//             is cut from origin/<baseBranch> and the PR opened with --base <baseBranch>, so a chain of
+//             dependent items lands as a stack rather than as conflicting independent diffs off main.
 const input = args
 const triage =
   typeof input === 'string'
@@ -33,6 +36,10 @@ const triage =
 if (!triage.summary && !triage.title) {
   throw new Error('single_issue_resolve requires feedback text or a triage object as args')
 }
+
+// Base branch for this PR: "main" normally, or the previous item's branch when stacking.
+const baseBranch = (triage.baseBranch && String(triage.baseBranch)) || 'main'
+const stacked = baseBranch !== 'main'
 
 // Canonical Salvage Union rules, outside the repo so always present in a fresh worktree.
 const RULES =
@@ -79,7 +86,14 @@ const impl = await agent(
   [
     'You are resolving ONE piece of user feedback for the In-The-Union-Now (ITUN) app',
     '(apps/in-the-union-now) in the SU-SRD bun monorepo. You are running in a FRESH git worktree',
-    'branched off the latest origin/main — this is your isolated copy; do not touch other worktrees.',
+    `branched off the latest origin/main — this is your isolated copy; do not touch other worktrees.`,
+    stacked
+      ? `THIS PR IS STACKED on "${baseBranch}" (a previous item in the same dependency chain). Your ` +
+        `work must build ON TOP of that branch, not main: run "git fetch origin ${baseBranch}" and ` +
+        `cut your new branch from "origin/${baseBranch}" (e.g. "git checkout -B fix/itun-<slug> ` +
+        `origin/${baseBranch}"). Do NOT merge or rebase onto main. Your diff must contain ONLY your ` +
+        `own change on top of "${baseBranch}".`
+      : '',
     '',
     'FEEDBACK / ISSUE',
     `  Title:   ${triage.title || '(none)'}`,
@@ -108,11 +122,12 @@ const impl = await agent(
     '   If you touched the salvageunion-reference package, "bun run build:package" first.',
     '   Run "bun run format" before committing (the PostToolUse prettier hook uses defaults, not the',
     '   repo .prettierrc, so format explicitly).',
-    '5. Commit on a new branch named fix/itun-<short-slug>. Use a conventional-commit message and the',
+    `5. Commit on a new branch named fix/itun-<short-slug>${stacked ? ` cut from origin/${baseBranch} (see above)` : ''}. Use a conventional-commit message and the`,
     '   Co-Authored-By / Claude-Session trailers required by CLAUDE.md.',
-    '6. Push the branch and open a PR against main with "gh pr create". The PR body MUST: restate the',
-    '   feedback, name the UX area changed, cite the SURules reference(s), summarize the fix, and list',
-    '   which checks passed. End the body with the "Generated with Claude Code" footer from CLAUDE.md.',
+    `6. Push the branch and open a PR with "gh pr create --base ${baseBranch}". The PR body MUST: restate`,
+    '   the feedback, name the UX area changed, cite the SURules reference(s), summarize the fix, and list',
+    `   which checks passed.${stacked ? ` Note at the top that this PR is STACKED on "${baseBranch}" and should merge after it.` : ''}`,
+    '   End the body with the "Generated with Claude Code" footer from CLAUDE.md.',
     '',
     'Return the PR number and url. If you could not open a PR (e.g. no actionable change, checks fail',
     'and cannot be fixed in scope), set prNumber and prUrl to null and explain why in notes.',
