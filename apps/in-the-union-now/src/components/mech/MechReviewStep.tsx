@@ -86,7 +86,7 @@ export function MechReviewStep({ form, isEdit, submitError }: MechReviewStepProp
       <div className="space-y-3">
         {[...chosenSystems, ...chosenModules].map((entity, i) => (
           <ReferenceEntityDisplay
-            key={`${(entity as { id?: string }).id ?? i}`}
+            key={`${(entity as { id?: string }).id ?? 'entity'}-${i}`}
             data={entity}
             compact
             status={isEdit ? undefined : 'intact'}
