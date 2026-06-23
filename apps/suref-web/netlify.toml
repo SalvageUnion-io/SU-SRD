@@ -3,6 +3,15 @@
 [build]
   command = "bun install --frozen-lockfile && bun run build:package:ci && bun --filter suref-web build"
   publish = "apps/suref-web/dist"
+  # Skip the build when nothing affecting suref-web changed since the last
+  # published deploy. `git diff --quiet` exits 0 (→ Netlify cancels the build)
+  # when none of these paths differ, and 1 (→ build proceeds) when they do.
+  # Paths: this app + the shared packages it consumes (suref-react, which itself
+  # depends on salvageunion-reference) + the root build inputs (lockfile, root
+  # scripts/config). On the first deploy $CACHED_COMMIT_REF is empty so git
+  # errors non-zero and the build runs — the safe default. Applies to every
+  # context: production (main), branch deploys, and deploy previews.
+  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- apps/suref-web packages/suref-react packages/salvageunion-reference bun.lock package.json bunfig.toml tsconfig.json"
 
 [build.environment]
   BUN_VERSION = "1.3.10" # keep in sync with .bun-version
