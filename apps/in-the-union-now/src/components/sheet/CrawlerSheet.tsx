@@ -19,6 +19,8 @@
  * readOnly suppresses every edit affordance (snapshot contexts).
  */
 
+import { useState } from 'react'
+
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
 import { Btn, ReferenceEntityDisplay, Slab, StepBtn, useDetailModal } from 'suref-react'
@@ -29,9 +31,13 @@ import { addToScrapPool, scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
 import { useCargo } from '../../lib/cargo/useCargo'
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
 import { findNpcChoiceByName, resolveCrawlerBay, resolveCrawlerType } from '../../lib/crawlerRefs'
+import { evaluateCrawlerWarnings } from '../../lib/rules/softWarnings'
+import { tierUpgradeCost } from '../../lib/rules/scrap'
+import type { TechLevel } from '../../lib/rules/types'
 import type { Crawler, ScrapPool } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
 import { useEntityStore } from '../../stores/entityStore'
+import { SoftWarningBanner } from '../shared/SoftWarningBanner'
 import { useEntityChoices } from '../shared/useEntityChoices'
 import { Ecflow, Erow } from './Erow'
 import { NpcInset } from './NpcInset'
@@ -483,11 +489,92 @@ export function CrawlerSheet({
     })
   }
 
-  /** Set the crawler's tech level (1–6), recomputing SP/capacity downstream. */
+  // Scrap available toward an upgrade: the Upgrade Pool plus every TL+ bucket
+  // (TL or higher scrap may be spent, mirroring repairBay's spill — S12).
+  const upgradePool = crawler.upgradePool ?? 0
+  const upgradeAvailable = upgradePool + repairable
+
+  /**
+   * A pending tech-level UPGRADE awaiting confirmation. Downgrades and no-ops
+   * commit immediately; only an upward step opens the advisory confirm panel
+   * (SRD p.218 — upgrading is a deliberate scrap spend).
+   */
+  const [pendingUpgrade, setPendingUpgrade] = useState<TechLevel | null>(null)
+
+  // Cost + advisory warnings for the pending upgrade (pure rule layer).
+  const upgradeCost =
+    pendingUpgrade !== null ? tierUpgradeCost(tl as TechLevel, pendingUpgrade) : null
+  const damagedBayCount = bays.filter((b) => (b.condition ?? 'intact') === 'damaged').length
+  const upgradeWarnings =
+    pendingUpgrade !== null
+      ? evaluateCrawlerWarnings({
+          entityType: 'crawler',
+          crawlerUpgrade: {
+            fromTL: tl as TechLevel,
+            toTL: pendingUpgrade,
+            cost: upgradeCost,
+            available: upgradeAvailable,
+            damagedBayCount,
+          },
+        })
+      : []
+
+  /**
+   * Set the crawler's tech level (1–6). Downgrades and no-ops commit straight
+   * away (downgrade warnings live in the shared TECH_LEVEL_DOWNGRADE path);
+   * an upward step stages a confirm panel instead of writing immediately.
+   */
   function setTechLevel(next: number) {
     if (readOnly) return
     if (next < 1 || next > 6 || next === tl) return
+    if (next > tl) {
+      setPendingUpgrade(next as TechLevel)
+      return
+    }
     void storeState.update('crawler', crawler.id, { techLevel: `tech-${next}` })
+  }
+
+  /**
+   * Confirm the staged upgrade (SRD p.218). One write-through:
+   *   - set techLevel to the target,
+   *   - debit the cost from the Upgrade Pool first, then spill into scrap-pool
+   *     buckets at the current TL or higher (mirrors repairBay; advisory — a
+   *     short pool still upgrades, S12 / ADR-007),
+   *   - then flip every damaged bay to Intact (SRD p.219).
+   */
+  function confirmUpgrade() {
+    if (readOnly || pendingUpgrade === null) return
+    const target = pendingUpgrade
+    const fresh = storeState.get('crawler', crawler.id) ?? crawler
+    const cost = tierUpgradeCost(tl as TechLevel, target) ?? 0
+
+    let remaining = cost
+    const fromPool = Math.min(fresh.upgradePool ?? 0, remaining)
+    remaining -= fromPool
+    let nextPool: ScrapPool = { ...(fresh.scrapPool ?? {}) }
+    for (let t = tl; t <= 6 && remaining > 0; t++) {
+      const take = Math.min(scrapPoolBucket(nextPool, t), remaining)
+      if (take > 0) {
+        nextPool = addToScrapPool(nextPool, t, -take)
+        remaining -= take
+      }
+    }
+
+    void storeState.update('crawler', crawler.id, {
+      techLevel: `tech-${target}`,
+      upgradePool: (fresh.upgradePool ?? 0) - fromPool,
+      scrapPool: nextPool,
+    })
+
+    // Damaged bays are repaired during the upgrade (SRD p.219).
+    const freshBays = fresh.crawlerBays ?? []
+    freshBays.forEach((bay, i) => {
+      if ((bay.condition ?? 'intact') === 'damaged') {
+        void storeState.updateCrawlerBay(crawler.id, bay.bayRef, { condition: 'intact' }, i)
+      }
+    })
+
+    setPendingUpgrade(null)
   }
 
   const TECH_LEVELS = [1, 2, 3, 4, 5, 6] as const
@@ -513,32 +600,61 @@ export function CrawlerSheet({
         </div>
       )}
 
-      {/* Tech Level — editable stepper (rules: upgraded on the live sheet) */}
+      {/* Tech Level — editable stepper; upgrades route through a confirm flow
+          that spends scrap and repairs bays (SRD p.218–219). */}
       <div>
         <Slab label="Tech Level" count={`Tech ${tl} crawler`} />
         {readOnly ? (
           <p className="font-body text-sm text-ink">Tech Level {tl}</p>
         ) : (
-          <div
-            role="group"
-            aria-label="Crawler tech level"
-            className="inline-flex items-stretch overflow-hidden rounded-[2px] border-[1.5px] border-ink bg-paper"
-          >
-            {TECH_LEVELS.map((n) => (
-              <button
-                key={n}
-                type="button"
-                aria-label={`Set tech level ${n}`}
-                aria-pressed={n === tl}
-                onClick={() => setTechLevel(n)}
-                className={cn(
-                  'min-w-9 px-2 py-1 font-cond text-sm font-bold leading-none',
-                  n === tl ? 'bg-ink text-su-white' : 'text-ink hover:bg-su-paper'
-                )}
+          <div className="flex flex-col gap-3">
+            <div
+              role="group"
+              aria-label="Crawler tech level"
+              className="inline-flex w-fit items-stretch overflow-hidden rounded-[2px] border-[1.5px] border-ink bg-paper"
+            >
+              {TECH_LEVELS.map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  aria-label={`Set tech level ${n}`}
+                  aria-pressed={n === tl}
+                  onClick={() => setTechLevel(n)}
+                  className={cn(
+                    'min-w-9 px-2 py-1 font-cond text-sm font-bold leading-none',
+                    n === tl ? 'bg-ink text-su-white' : 'text-ink hover:bg-su-paper'
+                  )}
+                >
+                  {n}
+                </button>
+              ))}
+            </div>
+
+            {pendingUpgrade !== null && (
+              <div
+                role="group"
+                aria-label="Confirm tech level upgrade"
+                className="flex max-w-prose flex-col gap-3 rounded border border-ink/30 bg-su-paper p-3"
               >
-                {n}
-              </button>
-            ))}
+                <p className="font-body text-sm font-bold text-ink">
+                  {upgradeCost !== null
+                    ? `Upgrade to Tech ${pendingUpgrade} — costs ${upgradeCost} Tech-${tl} Scrap`
+                    : `Upgrade to Tech ${pendingUpgrade}`}
+                </p>
+                <p className="font-body text-xs text-ink/70">
+                  {`Available: ${upgradeAvailable} Scrap (Upgrade Pool ${upgradePool} + Tech ${tl}+ buckets ${repairable}).`}
+                </p>
+                <SoftWarningBanner warnings={upgradeWarnings} />
+                <div className="flex gap-2">
+                  <Btn size="sm" variant="primary" onClick={confirmUpgrade}>
+                    Confirm upgrade
+                  </Btn>
+                  <Btn size="sm" variant="ghost" onClick={() => setPendingUpgrade(null)}>
+                    Cancel
+                  </Btn>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

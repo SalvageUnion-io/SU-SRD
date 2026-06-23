@@ -204,15 +204,28 @@ describe('CrawlerSheet — Crawler Type slab', () => {
 // ---------------------------------------------------------------------------
 
 describe('CrawlerSheet — editable tech level', () => {
-  test('clicking a tech-level button writes techLevel via store.update', async () => {
+  test('upgrading via the confirm flow writes techLevel + scrap debit via store.update', async () => {
+    const { SalvageUnionReference } = await import('salvageunion-reference')
+    await SalvageUnionReference.preload(['crawler-tech-levels'])
     const update = mock(async () => makeCrawler())
-    const crawler = makeCrawler({ techLevel: 'tech-2' })
+    // tech-2 → tech-4: 30 (T2) + 30 (T3) = 60 cost; fund it from the Upgrade Pool.
+    const crawler = makeCrawler({ techLevel: 'tech-2', upgradePool: 60 })
     render(<CrawlerSheet crawler={crawler} store={makeStubStore(crawler, update)} />)
 
+    // Stepping up stages the confirm panel — no write yet.
     await act(async () => {
       fireEvent.click(screen.getByLabelText('Set tech level 4'))
     })
-    expect(update).toHaveBeenCalledWith('crawler', crawler.id, { techLevel: 'tech-4' })
+    expect(update).not.toHaveBeenCalled()
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Confirm upgrade' }))
+    })
+    expect(update).toHaveBeenCalledWith('crawler', crawler.id, {
+      techLevel: 'tech-4',
+      upgradePool: 0,
+      scrapPool: {},
+    })
   })
 
   test('readOnly renders static tech-level text, no buttons', async () => {

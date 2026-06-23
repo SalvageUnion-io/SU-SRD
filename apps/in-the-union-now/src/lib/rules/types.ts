@@ -226,6 +226,30 @@ export type MechSnapshot = {
 }
 
 /**
+ * Crawler tech-level upgrade context (SRD p.218). Describes a pending
+ * upgrade so the rule layer can surface advisory warnings before the player
+ * confirms the spend. All checks are non-blocking (ADR-007).
+ */
+export type CrawlerUpgradeContext = {
+  /** Crawler's current tech level (before the upgrade). */
+  fromTL: TechLevel
+  /** Tech level the player is stepping to. */
+  toTL: TechLevel
+  /**
+   * Cost in scrap to perform the upgrade (30× the current TL's scrap per the
+   * SRD), or null when the cost cannot be determined (e.g. already at TL6).
+   */
+  cost: number | null
+  /**
+   * Scrap currently available to cover the cost — the Upgrade Pool plus any
+   * scrap-pool buckets at the current TL or higher (TL+ scrap is allowed).
+   */
+  available: number
+  /** Number of damaged crawler bays that will be repaired by the upgrade. */
+  damagedBayCount: number
+}
+
+/**
  * Context object passed to `evaluateSoftWarnings`.
  * Describes what was changed and who is being saved.
  */
@@ -239,6 +263,12 @@ export type SoftWarningContext = {
    * Set to true when the edit skips the refund step.
    */
   scrapRefundSkipped?: boolean
+  /**
+   * Pending crawler tech-level upgrade (SRD p.218). When present, the crawler
+   * evaluator surfaces advisory upgrade warnings (TL cap, short pool) and an
+   * informational note that damaged bays are repaired by the upgrade.
+   */
+  crawlerUpgrade?: CrawlerUpgradeContext
 }
 
 /**

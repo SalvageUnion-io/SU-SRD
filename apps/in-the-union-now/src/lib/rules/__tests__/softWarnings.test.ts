@@ -11,6 +11,7 @@ import {
   evaluateSoftWarnings,
   evaluatePilotWarnings,
   evaluateMechWarnings,
+  evaluateCrawlerWarnings,
   PILOT_ABILITY_CAP,
   SALVAGER_ABILITY_CAP,
 } from '../softWarnings'
@@ -373,6 +374,69 @@ describe('evaluateSoftWarnings — tech-level downgrade', () => {
     const warnings = evaluateSoftWarnings(fakeCrawler, fakeCrawler, ctx)
 
     expect(warnings.some((w) => w.code === 'TECH_LEVEL_DOWNGRADE')).toBe(true)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Crawler upgrade warnings (SRD p.218–219)
+// ---------------------------------------------------------------------------
+
+describe('evaluateCrawlerWarnings — tech-level upgrade', () => {
+  it('returns no warnings for a covered upgrade with no damaged bays', () => {
+    const warnings = evaluateCrawlerWarnings({
+      entityType: 'crawler',
+      crawlerUpgrade: { fromTL: 1, toTL: 2, cost: 30, available: 30, damagedBayCount: 0 },
+    })
+    expect(warnings).toHaveLength(0)
+  })
+
+  it('warns when the available scrap is short of the upgrade cost', () => {
+    const warnings = evaluateCrawlerWarnings({
+      entityType: 'crawler',
+      crawlerUpgrade: { fromTL: 1, toTL: 2, cost: 30, available: 18, damagedBayCount: 0 },
+    })
+    const warning = warnings.find((w) => w.code === 'CRAWLER_UPGRADE_POOL_SHORT')
+    expect(warning).toBeDefined()
+    expect(warning?.severity).toBe('warn')
+    expect(warning?.message).toContain('30 Tech-1 Scrap')
+    expect(warning?.message).toContain('12 short')
+  })
+
+  it('warns that TL6 is the cap and cannot be upgraded', () => {
+    const warnings = evaluateCrawlerWarnings({
+      entityType: 'crawler',
+      crawlerUpgrade: { fromTL: 6, toTL: 6, cost: null, available: 999, damagedBayCount: 0 },
+    })
+    // toTL <= fromTL routes to no upgrade check; force an upward step at the cap.
+    const cap = evaluateCrawlerWarnings({
+      entityType: 'crawler',
+      crawlerUpgrade: { fromTL: 6, toTL: 7 as 6, cost: null, available: 999, damagedBayCount: 0 },
+    })
+    expect(warnings.some((w) => w.code === 'CRAWLER_TL_MAX')).toBe(false)
+    expect(cap.some((w) => w.code === 'CRAWLER_TL_MAX')).toBe(true)
+  })
+
+  it('adds an info note when damaged bays will be repaired by the upgrade', () => {
+    const warnings = evaluateCrawlerWarnings({
+      entityType: 'crawler',
+      crawlerUpgrade: { fromTL: 2, toTL: 3, cost: 30, available: 99, damagedBayCount: 2 },
+    })
+    const note = warnings.find((w) => w.code === 'CRAWLER_BAYS_REPAIRED')
+    expect(note).toBeDefined()
+    expect(note?.severity).toBe('info')
+    expect(note?.message).toContain('2 damaged bays')
+  })
+
+  it('returns no upgrade warnings when no upgrade is pending', () => {
+    expect(evaluateCrawlerWarnings({ entityType: 'crawler' })).toHaveLength(0)
+  })
+
+  it('does not emit upgrade warnings for a downgrade (handled by TECH_LEVEL_DOWNGRADE)', () => {
+    const warnings = evaluateCrawlerWarnings({
+      entityType: 'crawler',
+      crawlerUpgrade: { fromTL: 3, toTL: 2, cost: null, available: 0, damagedBayCount: 3 },
+    })
+    expect(warnings.some((w) => w.code.startsWith('CRAWLER_'))).toBe(false)
   })
 })
 

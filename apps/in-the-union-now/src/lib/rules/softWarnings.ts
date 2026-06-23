@@ -29,6 +29,10 @@ function warn(code: string, message: string): SoftWarning {
   return { code, message, severity: 'warn' }
 }
 
+function info(code: string, message: string): SoftWarning {
+  return { code, message, severity: 'info' }
+}
+
 // ---------------------------------------------------------------------------
 // Pilot warning checks (advancement prerequisites, plan S5 / 3.3–3.4)
 //
@@ -247,6 +251,62 @@ function checkTechLevelDowngrade(context: SoftWarningContext): SoftWarning[] {
 }
 
 // ---------------------------------------------------------------------------
+// Crawler upgrade checks (SRD p.218, M4)
+//
+// Upgrading a Union Crawler costs 30× the crawler's CURRENT Tech Level in Scrap,
+// paid out of the Upgrade Pool (which voluntary scrap may top up). All checks
+// are advisory — the player always confirms and proceeds (ADR-007):
+//   - TL6 (Megacity) is the cap and cannot be upgraded further.
+//   - The Upgrade Pool / scrap may be short of the cost.
+//   - Damaged bays are repaired by the upgrade (informational, SRD p.219).
+// Downgrades are handled by the shared TECH_LEVEL_DOWNGRADE check.
+// ---------------------------------------------------------------------------
+
+function checkCrawlerUpgrade(context: SoftWarningContext): SoftWarning[] {
+  const upgrade = context.crawlerUpgrade
+  if (!upgrade) return []
+  // Downgrades route to checkTechLevelDowngrade, not here.
+  if (upgrade.toTL <= upgrade.fromTL) return []
+
+  const warnings: SoftWarning[] = []
+
+  // TL6 is the cap — cost is null because there is no next level.
+  if (upgrade.fromTL >= 6 || upgrade.cost === null) {
+    warnings.push(
+      warn(
+        'CRAWLER_TL_MAX',
+        'Tech 6 (Megacity) is the highest Union Crawler Tech Level and cannot be upgraded further.'
+      )
+    )
+    return warnings
+  }
+
+  if (upgrade.available < upgrade.cost) {
+    warnings.push(
+      warn(
+        'CRAWLER_UPGRADE_POOL_SHORT',
+        `Upgrading to Tech ${upgrade.toTL} costs ${upgrade.cost} Tech-${upgrade.fromTL} Scrap, ` +
+          `but only ${upgrade.available} Scrap (Upgrade Pool + Tech ${upgrade.fromTL}+ buckets) ` +
+          `is available — ${upgrade.cost - upgrade.available} short. Upgrading anyway is the table's call.`
+      )
+    )
+  }
+
+  if (upgrade.damagedBayCount > 0) {
+    warnings.push(
+      info(
+        'CRAWLER_BAYS_REPAIRED',
+        `${upgrade.damagedBayCount} damaged ${
+          upgrade.damagedBayCount === 1 ? 'bay' : 'bays'
+        } will be repaired to Intact during the upgrade (SRD p.219).`
+      )
+    )
+  }
+
+  return warnings
+}
+
+// ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
 
@@ -296,15 +356,34 @@ export function evaluateMechWarnings(
 }
 
 /**
+ * Evaluate soft warnings for a crawler edit (SRD p.218–219).
+ *
+ * Documented cases (all advisory, never blocking — ADR-007):
+ * - Tech level is being downgraded (shared TECH_LEVEL_DOWNGRADE check)
+ * - A pending tech-level upgrade hits the TL6 cap
+ * - A pending upgrade's cost exceeds the available Upgrade Pool / scrap
+ * - Informational: damaged bays will be repaired by the upgrade
+ *
+ * Returns an empty array when no warnings apply.
+ */
+export function evaluateCrawlerWarnings(context: SoftWarningContext): SoftWarning[] {
+  const warnings: SoftWarning[] = []
+  warnings.push(...checkTechLevelDowngrade(context))
+  warnings.push(...checkCrawlerUpgrade(context))
+  return warnings
+}
+
+/**
  * Unified entry point for soft-warning evaluation.
  *
  * Dispatches to the appropriate entity-specific evaluator based on
  * `context.entityType`. For 'pilot', `before`/`after` must be `PilotSnapshot`.
- * For 'mech', they must be `MechSnapshot`. For 'crawler', only the
- * tech-level downgrade check applies (crawler-specific rules are M4).
+ * For 'mech', they must be `MechSnapshot`. For 'crawler', the tech-level
+ * downgrade check and the pending-upgrade checks apply (SRD p.218–219); pass
+ * the upgrade details in `context.crawlerUpgrade`.
  *
  * When `entityType` is 'crawler', pass any object satisfying `MechSnapshot`
- * (only the `techLevel` field is read; `systems` can be an empty array).
+ * (the snapshots are unused — crawler warnings derive from `context`).
  *
  * Returns an empty array when no warnings apply.
  */
@@ -321,8 +400,7 @@ export function evaluateSoftWarnings(
     case 'mech':
       return evaluateMechWarnings(snapshot as EditSnapshot<MechSnapshot>, context)
     case 'crawler':
-      // Crawler-specific rules beyond tech-level downgrade are deferred to M4.
-      return checkTechLevelDowngrade(context)
+      return evaluateCrawlerWarnings(context)
     default: {
       // Exhaustiveness guard — TypeScript will catch this at compile time if
       // a new entityType is added without a corresponding case.
