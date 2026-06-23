@@ -13,9 +13,20 @@
  */
 
 /**
- * Tech level — 1 through 6 as defined in salvageunion-reference tech-levels.json.
+ * Tech level — mirrors salvageunion-reference's `TechLevelSchema`: the numeric
+ * tiers 1 through 6 plus 'B' (Bio) and 'N' (Nanite). Bio and Nanite are
+ * legitimate equipment tech tiers (Core Book TECH LEVELS box: "TECH 6 … BIO
+ * AND NANITE TECH"), so any consumer browsing the Systems/Modules catalog must
+ * accommodate them.
  */
-export type TechLevel = 1 | 2 | 3 | 4 | 5 | 6
+export type TechLevel = 1 | 2 | 3 | 4 | 5 | 6 | 'B' | 'N'
+
+/**
+ * The numeric subset of {@link TechLevel} (1–6). Used by crawler-tier
+ * arithmetic (e.g. upgrade-cost stepping), which the rules define only over
+ * the numeric tiers — Bio/Nanite are equipment tiers, not crawler tiers.
+ */
+export type NumericTechLevel = 1 | 2 | 3 | 4 | 5 | 6
 
 /**
  * A system installed on a mech, identified by a name reference into the

@@ -48,6 +48,9 @@
   --color-tl-4: rgb(48, 107, 128);
   --color-tl-5: rgb(30, 83, 100);
   --color-tl-6: rgb(6, 52, 65);
+  /* Bio (organic) and Nanite tech tiers — non-numeric equipment tiers */
+  --color-tl-B: rgb(86, 138, 74);
+  --color-tl-N: rgb(140, 122, 168);
 
   /* Entity colors (semantic) */
   --color-pilot: var(--color-su-orange);

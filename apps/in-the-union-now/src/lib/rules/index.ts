@@ -53,6 +53,7 @@ export type { Roll, HeatCheckEffect, PushResult } from './heatCheck'
 export type {
   // Shared primitives
   TechLevel,
+  NumericTechLevel,
   SoftWarning,
   SoftWarningSeverity,
   SoftWarningContext,

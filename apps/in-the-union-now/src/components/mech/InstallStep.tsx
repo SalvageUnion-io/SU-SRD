@@ -1,18 +1,28 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { FilterChip } from 'suref-react'
+import { MiniBtn, ReferenceEntityDisplay } from 'suref-react'
+import type { SURefEntity } from 'salvageunion-reference'
 import type { TechLevel } from '../../lib/rules/types'
-import { SelCard } from '../wizard/SelCard'
 import { LoadoutPanel } from './LoadoutPanel'
 
 type InstallItemLike = {
   id: string
   name: string
-  techLevel: number
+  techLevel: TechLevel
   slotsRequired: number
 }
 
-const ALL_TLS: TechLevel[] = [1, 2, 3, 4, 5, 6]
+/**
+ * Sort key for a tech level. Numeric tiers keep their value; Bio and Nanite
+ * (the non-numeric equipment tiers) sort after TL6, in B → N order, so the
+ * available list reads 1…6, B, N. Per the Core Book TECH LEVELS box ("TECH 6
+ * … BIO AND NANITE TECH") these are legitimate tiers and must be browsable.
+ */
+function tlSortKey(tl: TechLevel): number {
+  if (tl === 'B') return 7
+  if (tl === 'N') return 8
+  return tl
+}
 
 type InstallStepProps = {
   /** Which dataset this step installs from. */
@@ -32,11 +42,14 @@ type InstallStepProps = {
 
 /**
  * Install Systems / Install Modules step (design §3.2 mech wizard — NOT the
- * master-detail skeleton): a `1fr 300px` grid. Left: TL filter chips over a
- * 2-col grid of compact Sel-wrapped entity cards (gap 25 between columns).
- * Right: the 'Loadout · {name}' panel with pip budget tracks + head-mode
- * chosen cards. Selection is never blocked — over-capacity shows honestly in
- * the budget track (capacity stays soft, plan 3.4).
+ * master-detail skeleton): a `1fr 300px` grid. Left: the full Systems/Modules
+ * catalog as header-only compact rows, each with an "Add" control that appends
+ * the item to the loadout. The list is NOT tier-gated, so every tier — including
+ * Bio (B) and Nanite (N) — is reachable (Core Book TECH LEVELS box; Systems /
+ * Modules tables pp.183-189). A small tier swatch badge labels each row.
+ * Right: the 'Loadout · {name}' panel with pip budget tracks + head-mode chosen
+ * cards. Selection is never blocked — over-capacity shows honestly in the
+ * budget track (capacity stays soft, plan 3.4).
  */
 export function InstallStep({
   kind,
@@ -48,53 +61,53 @@ export function InstallStep({
   energyValue,
   energyMax,
 }: InstallStepProps) {
-  const [activeTls, setActiveTls] = useState<TechLevel[]>([])
-
   const allItems = useMemo(() => {
     const accessor =
       kind === 'systems' ? SalvageUnionReference.Systems : SalvageUnionReference.Modules
     const items = accessor.all() as unknown as InstallItemLike[]
-    return [...items].sort((a, b) => a.techLevel - b.techLevel || a.name.localeCompare(b.name))
+    return [...items].sort(
+      (a, b) => tlSortKey(a.techLevel) - tlSortKey(b.techLevel) || a.name.localeCompare(b.name)
+    )
   }, [kind])
-
-  const visible =
-    activeTls.length === 0
-      ? allItems
-      : allItems.filter((i) => activeTls.includes(i.techLevel as TechLevel))
-
-  function toggleTl(tl: TechLevel) {
-    setActiveTls((prev) => (prev.includes(tl) ? prev.filter((t) => t !== tl) : [...prev, tl]))
-  }
 
   return (
     <div className="grid grid-cols-1 gap-[25px] lg:grid-cols-[minmax(0,1fr)_300px]">
-      {/* Left — TL filter chips + 2-col compact Sel grid */}
+      {/* Left — full catalog as header-only rows, each with an Add control */}
       <div className="min-w-0">
-        <div className="flex flex-wrap gap-2" role="group" aria-label="Filter by tech level">
-          {ALL_TLS.map((tl) => (
-            <FilterChip
-              key={tl}
-              label={`TL${tl}`}
-              active={activeTls.includes(tl)}
-              onClick={() => toggleTl(tl)}
-              swatchStyle={`var(--color-tl-${tl})`}
-            />
-          ))}
+        <div className="columns-1 gap-3.5 sm:columns-2 [&>*]:mb-3.5 [&>*]:break-inside-avoid">
+          {allItems.map((item) => {
+            const isAdded = selected.includes(item.name)
+            return (
+              <div key={item.id} className="flex items-start gap-2">
+                <span
+                  className="mt-0.5 inline-flex h-5 min-w-[22px] items-center justify-center rounded-[3px] px-1 font-cond text-[11px] font-bold leading-none text-paper"
+                  style={{ backgroundColor: `var(--color-tl-${item.techLevel})` }}
+                  title={`Tech Level ${item.techLevel}`}
+                  aria-label={`Tech Level ${item.techLevel}`}
+                >
+                  {item.techLevel}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <ReferenceEntityDisplay
+                    data={item as unknown as SURefEntity}
+                    mode="head"
+                    hide={{ actions: true, choices: true }}
+                  />
+                </div>
+                <MiniBtn
+                  onClick={() => onToggle(item.name)}
+                  aria-label={`${isAdded ? 'Remove' : 'Add'} ${item.name}`}
+                  aria-pressed={isAdded}
+                  className={isAdded ? 'border-rust text-rust' : undefined}
+                >
+                  {isAdded ? 'Added' : 'Add'}
+                </MiniBtn>
+              </div>
+            )
+          })}
         </div>
-
-        <div className="mt-[25px] columns-1 gap-3.5 sm:columns-2 [&>*]:mb-3.5 [&>*]:break-inside-avoid">
-          {visible.map((item) => (
-            <SelCard
-              key={item.id}
-              entity={item}
-              name={item.name}
-              selected={selected.includes(item.name)}
-              onToggle={() => onToggle(item.name)}
-            />
-          ))}
-        </div>
-        {visible.length === 0 && (
-          <p className="mt-4 text-sm text-wk-muted">No {kind} at the selected tech levels.</p>
+        {allItems.length === 0 && (
+          <p className="mt-4 text-sm text-wk-muted">No {kind} available.</p>
         )}
       </div>
 
