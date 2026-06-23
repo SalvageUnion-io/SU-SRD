@@ -33,6 +33,14 @@ describe('salvageValueFor', () => {
     expect(salvageValueFor(zeroValueItem)).toBe(0)
   })
 
+  it('min tech level (TL1) item returns its salvageValue unchanged', () => {
+    expect(salvageValueFor(tl1Item)).toBe(2)
+  })
+
+  it('max tech level (TL6) item returns its salvageValue unchanged', () => {
+    expect(salvageValueFor(tl6Item)).toBe(12)
+  })
+
   it('works with real system data from salvageunion-reference', () => {
     const system = SalvageUnionReference.Systems.find((s) => s.name === '.50 Cal Machine Gun')
     expect(system).toBeDefined()
@@ -85,6 +93,25 @@ describe('tierUpgradeCost', () => {
     // TL6 record has upgradeCost: null in the dataset
     const result = tierUpgradeCost(6, 7 as 6) // 7 coerced to test null path
     expect(result).toBeNull()
+  })
+
+  it('min→max full span (TL1→TL6) sums all five intermediate upgrade costs', () => {
+    // crawler-tech-levels.json: TL1–TL5 each have upgradeCost 30 → 5 × 30 = 150
+    const expected = [1, 2, 3, 4, 5].reduce((sum, tl) => {
+      const record = SalvageUnionReference.CrawlerTechLevels.find((r) => r.techLevel === tl)
+      return sum + (record?.upgradeCost ?? 0)
+    }, 0)
+    expect(tierUpgradeCost(1, 6)).toBe(expected)
+  })
+
+  it('boundary: single step at the top of the range (TL5→TL6) is priced', () => {
+    const tl5 = SalvageUnionReference.CrawlerTechLevels.find((r) => r.techLevel === 5)
+    expect(tl5?.upgradeCost).not.toBeNull()
+    expect(tierUpgradeCost(5, 6)).toBe(tl5?.upgradeCost ?? -1)
+  })
+
+  it('boundary: a one-step downgrade (TL2→TL1) returns null', () => {
+    expect(tierUpgradeCost(2, 1)).toBeNull()
   })
 
   it('verifies crawler tech level data is present for all levels 1-5', () => {

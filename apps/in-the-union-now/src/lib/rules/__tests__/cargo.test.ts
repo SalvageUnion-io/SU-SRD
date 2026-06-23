@@ -101,6 +101,28 @@ describe('computeCargoCapacity — over-capacity violation', () => {
     const violation = result.violations.find((v) => v.kind === 'over-capacity')
     expect(violation).toBeDefined()
   })
+
+  it('boundary: exactly at capacity (used === max) does NOT raise over-capacity', () => {
+    const items: CargoItem[] = [{ kind: 'custom', name: 'Filled To Cap', slotCount: 6 }]
+    const result = computeCargoCapacity(parent6, items)
+    expect(result.used).toBe(6)
+    expect(result.violations.filter((v) => v.kind === 'over-capacity')).toHaveLength(0)
+  })
+
+  it('boundary: exactly one over capacity (used === max + 1) raises over-capacity', () => {
+    const items: CargoItem[] = [{ kind: 'custom', name: 'One Too Many', slotCount: 7 }]
+    const result = computeCargoCapacity(parent6, items)
+    const violation = result.violations.find((v) => v.kind === 'over-capacity')
+    expect(violation).toBeDefined()
+    expect(violation?.details.used).toBe(7)
+    expect(violation?.details.max).toBe(6)
+  })
+
+  it('boundary: a zero-capacity parent with an empty item list raises no violation', () => {
+    const result = computeCargoCapacity(parent0, [])
+    expect(result.used).toBe(0)
+    expect(result.violations).toHaveLength(0)
+  })
 })
 
 describe('computeCargoCapacity — missing-ref violation', () => {

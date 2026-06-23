@@ -110,4 +110,53 @@ describe('computeCrawlerCapacity — violations', () => {
     expect(kindsWithViolations).toContain('bays-over-capacity')
     expect(kindsWithViolations).toContain('systems-over-capacity')
   })
+
+  it('boundary: exactly at bay cap (used === baysMax) does NOT raise a violation', () => {
+    // TL1 baysMax = 2 — fill exactly to cap
+    const bays = ['bay-0', 'bay-1']
+    const result = computeCrawlerCapacity({ techLevel: 1, bays, systems: [] })
+    expect(result.baysUsed).toBe(result.baysMax)
+    expect(result.violations.filter((v) => v.kind === 'bays-over-capacity')).toHaveLength(0)
+  })
+
+  it('boundary: exactly one over bay cap (used === baysMax + 1) raises a violation', () => {
+    // TL1 baysMax = 2 — one over with 3
+    const result = computeCrawlerCapacity({
+      techLevel: 1,
+      bays: ['bay-0', 'bay-1', 'bay-2'],
+      systems: [],
+    })
+    const v = result.violations.find((x) => x.kind === 'bays-over-capacity')
+    expect(v).toBeDefined()
+    expect(v?.details.used).toBe(result.baysMax + 1)
+  })
+})
+
+describe('computeCrawlerCapacity — tech-level extremes', () => {
+  it('min tech level (TL1): baysMax 2, systemsMax 4', () => {
+    const result = computeCrawlerCapacity({ techLevel: 1, bays: [], systems: [] })
+    expect(result.baysMax).toBe(2)
+    expect(result.systemsMax).toBe(4)
+  })
+
+  it('max tech level (TL6): baysMax 12, systemsMax 24, fillable to cap with no violation', () => {
+    const bays = Array.from({ length: 12 }, (_, i) => `bay-${i}`)
+    const systems = Array.from({ length: 24 }, (_, i) => `sys-${i}`)
+    const result = computeCrawlerCapacity({ techLevel: 6, bays, systems })
+    expect(result.baysMax).toBe(12)
+    expect(result.systemsMax).toBe(24)
+    expect(result.violations).toHaveLength(0)
+  })
+
+  it('above max tech level (TL7) is treated as unknown, not the highest cap', () => {
+    const result = computeCrawlerCapacity({ techLevel: 7, bays: ['b1'], systems: [] })
+    expect(result.violations.find((v) => v.kind === 'tech-level-unknown')).toBeDefined()
+    expect(result.baysMax).toBe(0)
+    expect(result.systemsMax).toBe(0)
+  })
+
+  it('negative tech level is treated as unknown', () => {
+    const result = computeCrawlerCapacity({ techLevel: -1, bays: [], systems: [] })
+    expect(result.violations.find((v) => v.kind === 'tech-level-unknown')).toBeDefined()
+  })
 })

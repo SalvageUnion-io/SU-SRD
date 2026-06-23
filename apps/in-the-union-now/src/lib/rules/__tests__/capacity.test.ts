@@ -86,6 +86,47 @@ describe('computeMechCapacity — happy path', () => {
     expect(result.systemSlotsUsed).toBe(max)
     expect(result.violations.filter((v) => v.kind === 'system-over-slots')).toHaveLength(0)
   })
+
+  it('boundary: one under the system cap (used === max − 1) produces no violation', () => {
+    const chassis = SalvageUnionReference.Chassis.find((c) => c.name === MULE_CHASSIS)
+    const max = chassis?.systemSlots ?? 0
+    const mech: MechInput = {
+      chassisRef: MULE_CHASSIS,
+      systems: [{ ref: 'Filler', slotCost: max - 1 }],
+      modules: [],
+    }
+    const result = computeMechCapacity(mech)
+    expect(result.systemSlotsUsed).toBe(max - 1)
+    expect(result.violations.filter((v) => v.kind === 'system-over-slots')).toHaveLength(0)
+  })
+
+  it('boundary: exactly one over the system cap (used === max + 1) raises system-over-slots', () => {
+    const chassis = SalvageUnionReference.Chassis.find((c) => c.name === MULE_CHASSIS)
+    const max = chassis?.systemSlots ?? 0
+    const mech: MechInput = {
+      chassisRef: MULE_CHASSIS,
+      systems: [{ ref: 'OneTooMany', slotCost: max + 1 }],
+      modules: [],
+    }
+    const result = computeMechCapacity(mech)
+    const v = result.violations.find((x) => x.kind === 'system-over-slots')
+    expect(v).toBeDefined()
+    expect(v?.details.used).toBe(max + 1)
+    expect(v?.details.max).toBe(max)
+  })
+
+  it('boundary: modules exactly at the module cap produce no module-over-slots', () => {
+    const chassis = SalvageUnionReference.Chassis.find((c) => c.name === MULE_CHASSIS)
+    const moduleMax = chassis?.moduleSlots ?? 0
+    const modules = Array.from({ length: moduleMax }, (_, i) => ({
+      ref: `FakeModule${i}`,
+      slotCost: 1,
+    }))
+    const mech: MechInput = { chassisRef: MULE_CHASSIS, systems: [], modules }
+    const result = computeMechCapacity(mech)
+    expect(result.moduleSlotsUsed).toBe(moduleMax)
+    expect(result.violations.filter((v) => v.kind === 'module-over-slots')).toHaveLength(0)
+  })
 })
 
 describe('computeMechCapacity — system-over-slots violation', () => {
