@@ -22,18 +22,21 @@ conventions, then the relevant architecture doc below.
 
 **I'm shipping SEO/a11y work** → [architecture/seo-accessibility.md](architecture/seo-accessibility.md)
 
+**I'm changing the live sheet / its scroll behaviour** → [architecture/sheet-scroll-performance.md](architecture/sheet-scroll-performance.md)
+
 ## Directory Map
 
 ### [`architecture/`](architecture/) — Cross-cutting architecture
 
-| Doc                                                               | Scope                                                                      |
-| ----------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| [display-system.md](architecture/display-system.md)               | 3-layer render stack: DisplayCard → ReferenceEntityDisplay → consumers     |
-| [data-flow.md](architecture/data-flow.md)                         | Reference data + player data hydration, IndexedDB, Zustand, TanStack Query |
-| [package-contracts.md](architecture/package-contracts.md)         | Package APIs, dependency rules, cross-package change checklist             |
-| [rules-engine-boundary.md](architecture/rules-engine-boundary.md) | What the app enforces vs what the Mediator/player decides                  |
-| [combat-loop.md](architecture/combat-loop.md)                     | Action activation, heat checks, conditions — current local-first flow      |
-| [seo-accessibility.md](architecture/seo-accessibility.md)         | SEO strategy (suref-web) + WCAG 2.1 AA patterns                            |
+| Doc                                                                     | Scope                                                                         |
+| ----------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| [display-system.md](architecture/display-system.md)                     | 3-layer render stack: DisplayCard → ReferenceEntityDisplay → consumers        |
+| [data-flow.md](architecture/data-flow.md)                               | Reference data + player data hydration, IndexedDB, Zustand, TanStack Query    |
+| [package-contracts.md](architecture/package-contracts.md)               | Package APIs, dependency rules, cross-package change checklist                |
+| [rules-engine-boundary.md](architecture/rules-engine-boundary.md)       | What the app enforces vs what the Mediator/player decides                     |
+| [combat-loop.md](architecture/combat-loop.md)                           | Action activation, heat checks, conditions — current local-first flow         |
+| [seo-accessibility.md](architecture/seo-accessibility.md)               | SEO strategy (suref-web) + WCAG 2.1 AA patterns                               |
+| [sheet-scroll-performance.md](architecture/sheet-scroll-performance.md) | ITUN live-sheet 60-FPS scroll bar (REQ-NF-03): why it's fast + how to measure |
 
 ### `docs/rules/` — Agent-readable rules digest (generated, gitignored)
 
