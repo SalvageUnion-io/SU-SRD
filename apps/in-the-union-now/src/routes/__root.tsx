@@ -6,6 +6,7 @@ import { queryClient } from '../lib/queryClient'
 import { itunEntityHref } from '../lib/entityHref'
 import { GameDataReady } from '../components/shared/GameDataReady'
 import { BackupNudgeToast } from '../components/shared/BackupNudgeToast'
+import { DiceRoller } from '../components/shared/DiceRoller'
 import '../index.css'
 
 export const Route = createRootRoute({
@@ -54,6 +55,7 @@ function RootComponent() {
         </GameDataReady>
         <Toaster />
         <BackupNudgeToast />
+        <DiceRoller />
       </EntityHrefProvider>
     </QueryClientProvider>
   )
