@@ -1,9 +1,10 @@
 /**
  * Unit tests for computeCrawlerCapacity — bay and system cap enforcement.
  *
- * Crawler capacity is derived from tech level per the Salvage Union Workshop Manual:
- * - Bays: equal to techLevel × 2  (Hamlet TL1=2, Village TL2=4, ... Megacity TL6=12)
- * - Systems: equal to techLevel × 4 (TL1=4, TL2=8, ... TL6=24)
+ * - Bays: derived from tech level (techLevel × 2: TL1=2, TL2=4, ... TL6=12).
+ * - Weapons Systems: gated by CRAWLER TYPE, not tech level. Every crawler
+ *   mounts one system (Core Book p. 213, step 3); the Battle Crawler mounts two
+ *   (p. 216, "Improved Armour and Armaments").
  *
  * These caps are soft — violations are warnings, not hard blocks.
  */
@@ -49,11 +50,54 @@ describe('computeCrawlerCapacity — happy path', () => {
     expect(result.systemsUsed).toBe(2)
   })
 
-  it('baysMax and systemsMax scale with tech level', () => {
+  it('baysMax scales with tech level', () => {
     const tl1 = computeCrawlerCapacity({ techLevel: 1, bays: [], systems: [] })
     const tl3 = computeCrawlerCapacity({ techLevel: 3, bays: [], systems: [] })
     expect(tl3.baysMax).toBeGreaterThan(tl1.baysMax)
-    expect(tl3.systemsMax).toBeGreaterThan(tl1.systemsMax)
+  })
+
+  it('systemsMax is gated by crawler type, not tech level', () => {
+    // Every non-Battle crawler mounts one system regardless of tech level
+    // (Core Book p. 213, step 3).
+    const tl1 = computeCrawlerCapacity({ techLevel: 1, bays: [], systems: [] })
+    const tl6 = computeCrawlerCapacity({ techLevel: 6, bays: [], systems: [] })
+    expect(tl1.systemsMax).toBe(1)
+    expect(tl6.systemsMax).toBe(1)
+  })
+
+  it('a Battle Crawler mounts two systems, others one', () => {
+    // Battle Crawler ability "Improved Armour and Armaments" (Core Book p. 216).
+    const battle = computeCrawlerCapacity({
+      techLevel: 1,
+      bays: [],
+      systems: [],
+      isBattleCrawler: true,
+    })
+    const nonBattle = computeCrawlerCapacity({ techLevel: 1, bays: [], systems: [] })
+    expect(battle.systemsMax).toBe(2)
+    expect(nonBattle.systemsMax).toBe(1)
+  })
+
+  it('a Battle Crawler permits two systems without violation', () => {
+    const result = computeCrawlerCapacity({
+      techLevel: 1,
+      bays: [],
+      systems: ['weapon-a', 'weapon-b'],
+      isBattleCrawler: true,
+    })
+    expect(result.violations.filter((v) => v.kind === 'systems-over-capacity')).toHaveLength(0)
+  })
+
+  it('a non-Battle crawler with two systems is over capacity', () => {
+    const result = computeCrawlerCapacity({
+      techLevel: 1,
+      bays: [],
+      systems: ['weapon-a', 'weapon-b'],
+    })
+    const v = result.violations.find((x) => x.kind === 'systems-over-capacity')
+    expect(v).toBeDefined()
+    expect(v?.details.max).toBe(1)
+    expect(v?.details.used).toBe(2)
   })
 
   it('produces no violations when at cap', () => {
@@ -82,7 +126,7 @@ describe('computeCrawlerCapacity — violations', () => {
   })
 
   it('raises systems-over-capacity when systems exceed cap', () => {
-    // TL1 has systemsMax = 4 — overflow with 5
+    // A non-Battle crawler has systemsMax = 1 — overflow with 2
     const tl1 = computeCrawlerCapacity({ techLevel: 1, bays: [], systems: [] })
     const systems = Array.from({ length: tl1.systemsMax + 1 }, (_, i) => `sys-${i}`)
     const input: CrawlerCapacityInput = { techLevel: 1, bays: [], systems }

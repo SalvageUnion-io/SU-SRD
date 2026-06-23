@@ -272,6 +272,13 @@ export function CrawlerBuilder({
     .map((id) => allSystems.find((s) => s.id === id))
     .filter((s): s is SURefSystem => s !== undefined)
 
+  // The Weapons System cap is gated by crawler type, not tech level: every
+  // crawler mounts one system, except the Battle Crawler (two). The Battle
+  // Crawler is the type whose special ability is "Improved Armour and
+  // Armaments" (Core Book p. 216) — gating off the action name rather than the
+  // display name keeps this stable if the type is renamed.
+  const isBattleCrawler = selectedType?.actions?.includes('Improved Armour and Armaments') ?? false
+
   // Live capacity computation (soft-warn only — does NOT block submit).
   // Crawler bays are the fixed SRD set, so only the system soft-cap surfaces.
   const crawlerCapacity = useMemo(
@@ -280,12 +287,11 @@ export function CrawlerBuilder({
         techLevel: form.techLevel ?? 0,
         bays: [],
         systems: form.systems,
+        isBattleCrawler,
       }),
-    [form.techLevel, form.systems]
+    [form.techLevel, form.systems, isBattleCrawler]
   )
-  const isOverCapacity =
-    form.techLevel !== null &&
-    crawlerCapacity.violations.some((v) => v.kind === 'systems-over-capacity')
+  const isOverCapacity = crawlerCapacity.violations.some((v) => v.kind === 'systems-over-capacity')
 
   const capacityNotice =
     isOverCapacity && (step === 'Systems' || step === 'Review') ? (
@@ -294,8 +300,8 @@ export function CrawlerBuilder({
         className="rounded-[3px] border-[1.5px] border-rust bg-rust/10 px-3 py-2 text-sm text-ink"
       >
         <strong>Over capacity</strong> — {crawlerCapacity.systemsUsed} systems installed,{' '}
-        {crawlerCapacity.systemsMax} supported at this tech level. You can still save; review before
-        play.
+        {crawlerCapacity.systemsMax} supported for this crawler type. You can still save; review
+        before play.
       </p>
     ) : undefined
 
