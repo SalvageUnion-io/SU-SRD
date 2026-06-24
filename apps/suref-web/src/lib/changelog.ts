@@ -6,6 +6,13 @@ type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    date: '2026-06-24',
+    title: 'Non-advanceable classes call it out',
+    items: [
+      'Classes that cannot advance to a hybrid class now show a "Non-Advanceable" tag, instead of silently omitting the "Advanceable" label and leaving it ambiguous.',
+    ],
+  },
+  {
     date: '2026-06-23',
     title: 'Steadier catalog grid on load',
     items: [
