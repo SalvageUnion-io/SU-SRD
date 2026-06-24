@@ -24,6 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       itun: ${{ steps.filter.outputs.itun }}
+      itun_deploy: ${{ steps.filter.outputs.itun_deploy }}
       web: ${{ steps.filter.outputs.web }}
       bot: ${{ steps.filter.outputs.bot }}
       code: ${{ steps.filter.outputs.code }}
@@ -50,6 +51,21 @@ jobs:
               - *shared
               - 'apps/in-the-union-now/**'
               - 'packages/suref-react/**'
+            # Mirrors apps/in-the-union-now/netlify.toml's `ignore` paths — the
+            # exact set that triggers an ITUN deploy preview. Deliberately does
+            # NOT include `*shared` (.github, eslint, tsconfig*, etc.): a change
+            # to those makes CI consider ITUN affected but does NOT cause Netlify
+            # to build a preview. The preview-e2e gates on this so it only runs
+            # when there is actually a preview to test (otherwise it waits for a
+            # deploy that never comes and times out).
+            itun_deploy:
+              - 'apps/in-the-union-now/**'
+              - 'packages/suref-react/**'
+              - 'packages/salvageunion-reference/**'
+              - 'bun.lock'
+              - 'package.json'
+              - 'bunfig.toml'
+              - 'tsconfig.json'
             web:
               - *shared
               - 'apps/suref-web/**'
@@ -276,8 +292,10 @@ jobs:
     # which serves the real Netlify Functions + Blobs — so the snapshot
     # publish→retrieve round-trip is exercised end to end (no soft-skip).
     # No app build needed here: the specs hit the deployed URL directly.
+    # Gated on `itun_deploy` (Netlify's actual preview-trigger paths), NOT the
+    # broader `itun` — so this never waits on a preview Netlify won't build.
     needs: [changes, lint, typecheck, test]
-    if: github.event_name == 'pull_request' && needs.changes.outputs.itun == 'true'
+    if: github.event_name == 'pull_request' && needs.changes.outputs.itun_deploy == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -292,11 +310,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           SHA: ${{ github.event.pull_request.head.sha }}
         run: |
-          echo "Waiting for the deploy/netlify status on $SHA…"
+          CONTEXT="netlify/in-the-union-now/deploy-preview"
+          echo "Waiting for the $CONTEXT status on $SHA…"
           for i in $(seq 1 60); do
             STATE=$(gh api "repos/${{ github.repository }}/commits/$SHA/status" \
-              --jq '[.statuses[] | select(.context=="deploy/netlify")][0].state // "pending"')
-            echo "  [$i/60] deploy/netlify=$STATE"
+              --jq "[.statuses[] | select(.context==\"$CONTEXT\")][0].state // \"pending\"")
+            echo "  [$i/60] $CONTEXT=$STATE"
             case "$STATE" in
               success) exit 0 ;;
               failure | error) echo "::error::Netlify deploy preview failed"; exit 1 ;;
