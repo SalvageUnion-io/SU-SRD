@@ -60,14 +60,18 @@ type CrawlerBuilderProps = {
 }
 
 /**
- * Returns systems whose numeric techLevel <= the crawler's selected TL.
- * Systems with non-numeric TL (Bio/Nanite) are excluded from TL filtering.
+ * Returns WEAPONS systems whose numeric techLevel <= the crawler's selected TL.
+ * The Systems step installs into the Armament Bay, which holds weapons systems
+ * only (Core Book p. 213), so non-weapon systems (Armour Plating, Cargo Pod, …)
+ * are excluded outright. Systems with non-numeric TL (Bio/Nanite) are also
+ * excluded from TL filtering.
  */
 function filterSystemsByTL(allSystems: SURefSystem[], tl: number | null): SURefSystem[] {
   if (tl === null) return []
   return allSystems.filter((s) => {
     if (typeof s.techLevel !== 'number') return false
-    return s.techLevel <= tl
+    if (s.techLevel > tl) return false
+    return isWeaponSystem(s)
   })
 }
 
@@ -103,12 +107,15 @@ export function CrawlerBuilder({
 
   useEffect(() => {
     // crawlers drives the type selection; crawler-bays seeds the default bays
-    // + the Crew step; crawler-tech-levels stays for the SP/capacity lookup.
+    // + the Crew step; crawler-tech-levels stays for the SP/capacity lookup;
+    // actions resolves each system's damage so isWeaponSystem can filter the
+    // Systems list down to weapons.
     void SalvageUnionReference.preload([
       'crawlers',
       'crawler-tech-levels',
       'systems',
       'crawler-bays',
+      'actions',
     ]).then(() => {
       const tls = SalvageUnionReference.CrawlerTechLevels.all()
       setTechLevels([...tls].sort((a, b) => a.techLevel - b.techLevel))
@@ -363,6 +370,7 @@ export function CrawlerBuilder({
         <SystemsList
           systems={filteredSystems}
           selectedSystemSlugs={form.systems}
+          maxSelectable={crawlerCapacity.weaponSystemsMax}
           onChange={(systems) => updateForm({ systems })}
         />
       )}
