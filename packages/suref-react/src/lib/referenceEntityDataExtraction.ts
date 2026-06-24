@@ -300,8 +300,11 @@ export function extractReferenceEntityDetails(
       details.push({ label: 'Max Abilities', value: data.maxAbilities })
     }
 
-    if (!isHybrid && 'advanceable' in data && data.advanceable) {
-      details.push({ label: 'Advanceable', type: 'meta' })
+    if (!isHybrid && 'advanceable' in data) {
+      details.push({
+        label: data.advanceable ? 'Advanceable' : 'Non-Advanceable',
+        type: 'meta',
+      })
     }
 
     if (isHybrid && 'advancedTree' in data) {
