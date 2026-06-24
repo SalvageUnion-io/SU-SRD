@@ -1,4 +1,4 @@
-import { Children, useEffect, useState, type ReactNode } from 'react'
+import { Children, useSyncExternalStore, type ReactNode } from 'react'
 
 type MasonryColumnsProps = {
   children: ReactNode
@@ -23,25 +23,26 @@ function columnsForViewport(): number {
   return 1
 }
 
+// useSyncExternalStore only subscribes after hydration, so `window` is defined
+// whenever this runs.
+function subscribeColumns(onChange: () => void): () => void {
+  const md = window.matchMedia(MD)
+  const xl = window.matchMedia(XL)
+  md.addEventListener('change', onChange)
+  xl.addEventListener('change', onChange)
+  return () => {
+    md.removeEventListener('change', onChange)
+    xl.removeEventListener('change', onChange)
+  }
+}
+
 function useColumnCount(): number {
-  // Islands hydrate client-side, so `window` exists at first render — seeding
-  // from it avoids a 1-column flash before the effect runs.
-  const [count, setCount] = useState(columnsForViewport)
-
-  useEffect(() => {
-    const md = window.matchMedia(MD)
-    const xl = window.matchMedia(XL)
-    const update = () => setCount(columnsForViewport())
-    update()
-    md.addEventListener('change', update)
-    xl.addEventListener('change', update)
-    return () => {
-      md.removeEventListener('change', update)
-      xl.removeEventListener('change', update)
-    }
-  }, [])
-
-  return count
+  // The server snapshot (1 column) is used for SSR *and* the first hydration
+  // render, so the client's initial tree matches the SSR HTML; React then
+  // reconciles to the live viewport column count without a hydration mismatch
+  // (React #418). Seeding useState from `window` instead rendered 1 column on
+  // the server but 2–3 on the client's first render, breaking hydration.
+  return useSyncExternalStore(subscribeColumns, columnsForViewport, () => 1)
 }
 
 /**
