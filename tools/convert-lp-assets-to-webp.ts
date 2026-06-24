@@ -65,20 +65,31 @@ async function main(): Promise<void> {
   }
 
   const keys = listKeys(prefix)
-  const existing = new Set(keys)
-  const toConvert = keys.filter((k) => RASTER_EXT.has(extOf(k)) && !existing.has(webpKey(k)))
+  // `webp` set tracks every webp blob that exists (or will, once converted) —
+  // it's the authority for which originals are safe to delete.
+  const webp = new Set(keys.filter((k) => extOf(k) === 'webp'))
+  const rasters = keys.filter((k) => RASTER_EXT.has(extOf(k)))
+  const toConvert = rasters.filter((k) => !webp.has(webpKey(k)))
 
   console.log(
     `store "${STORE}": ${keys.length} blobs, ${toConvert.length} to convert to webp` +
+      (deleteOriginals ? `, ${rasters.length} originals to prune` : '') +
       (dryRun ? ' (dry run)' : '')
   )
   if (dryRun) {
     for (const k of toConvert) console.log(`  would convert ${k} -> ${webpKey(k)}`)
+    // A raster is prunable once its webp sibling exists — after this run's
+    // conversions, that's every raster whose webp is present or pending.
+    if (deleteOriginals) {
+      for (const k of rasters) {
+        if (webp.has(webpKey(k)) || toConvert.includes(k)) console.log(`  would delete ${k}`)
+      }
+    }
     return
   }
 
   const work = mkdtempSync(join(tmpdir(), 'lp-webp-'))
-  let ok = 0
+  let converted = 0
   const failed: string[] = []
   try {
     for (const key of toConvert) {
@@ -90,9 +101,9 @@ async function main(): Promise<void> {
         // chrome, so favour fidelity.
         await sharp(src).webp({ quality: 82 }).toFile(out)
         netlify(['blobs:set', STORE, webpKey(key), '--input', out])
-        if (deleteOriginals) netlify(['blobs:delete', STORE, key])
-        ok++
-        console.log(`  ✓ ${key} -> ${webpKey(key)}${deleteOriginals ? ' (original deleted)' : ''}`)
+        webp.add(webpKey(key))
+        converted++
+        console.log(`  ✓ ${key} -> ${webpKey(key)}`)
       } catch (err) {
         failed.push(key)
         console.error(`  ✗ ${key}: ${(err as Error).message}`)
@@ -101,8 +112,27 @@ async function main(): Promise<void> {
   } finally {
     rmSync(work, { recursive: true, force: true })
   }
+  console.log(`converted ${converted}/${toConvert.length} to webp in store "${STORE}"`)
 
-  console.log(`\nconverted ${ok}/${toConvert.length} to webp in store "${STORE}"`)
+  // Separate, idempotent prune pass: delete any raster original whose webp
+  // sibling now exists — independent of whether this run created it, so cleanup
+  // works on a later run too (the original bug only deleted just-converted ones).
+  let deleted = 0
+  if (deleteOriginals) {
+    for (const key of rasters) {
+      if (!webp.has(webpKey(key))) continue // no webp sibling — keep the original
+      try {
+        netlify(['blobs:delete', STORE, key])
+        deleted++
+        console.log(`  🗑  ${key}`)
+      } catch (err) {
+        failed.push(key)
+        console.error(`  ✗ delete ${key}: ${(err as Error).message}`)
+      }
+    }
+    console.log(`pruned ${deleted} originals in store "${STORE}"`)
+  }
+
   if (failed.length) {
     console.error(`failed:\n${failed.map((k) => `  ${k}`).join('\n')}`)
     process.exit(1)
