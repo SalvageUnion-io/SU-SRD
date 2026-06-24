@@ -44,10 +44,6 @@ export function SystemsList({
     )
   }
 
-  const capReason = `Only ${maxSelectable} weapons system${
-    maxSelectable === 1 ? '' : 's'
-  } for this crawler type — remove one to swap.`
-
   return (
     <div className="columns-1 gap-3.5 sm:columns-2 [&>*]:mb-3.5 [&>*]:break-inside-avoid">
       {systems.map((system) => {
@@ -60,7 +56,6 @@ export function SystemsList({
             name={system.name}
             selected={selected}
             disabled={disabled}
-            disabledReason={disabled ? capReason : undefined}
             onToggle={() => toggle(system.id)}
           />
         )
