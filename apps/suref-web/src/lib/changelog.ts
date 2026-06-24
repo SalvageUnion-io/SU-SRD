@@ -6,6 +6,13 @@ type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    date: '2026-06-23',
+    title: 'Steadier catalog grid on load',
+    items: [
+      'Fixed a hydration mismatch on catalog (/schema) pages where the masonry grid rendered one column on the server but two or three in the browser, throwing a React error and forcing the whole grid to re-render on tablet and desktop widths.',
+    ],
+  },
+  {
     date: '2026-06-21',
     title: 'Branded link previews for every entity',
     items: [
