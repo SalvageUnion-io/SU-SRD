@@ -293,7 +293,12 @@ jobs:
     # publish→retrieve round-trip is exercised end to end (no soft-skip).
     # No app build needed here: the specs hit the deployed URL directly.
     # Gated on `itun_deploy` (Netlify's actual preview-trigger paths), NOT the
-    # broader `itun` — so this never waits on a preview Netlify won't build.
+    # broader `itun` — so this only runs when an ITUN preview is expected. That
+    # path filter compares against the PR base, while Netlify's `ignore` compares
+    # against the last preview, so the two can still disagree (e.g. a rebase that
+    # absorbs only non-ITUN commits): Netlify cancels the incremental preview but
+    # reports a *success* status. The wait step below detects that and skips the
+    # suite rather than testing a stale/missing preview URL.
     needs: [changes, lint, typecheck, test]
     if: github.event_name == 'pull_request' && needs.changes.outputs.itun_deploy == 'true'
     runs-on: ubuntu-latest
@@ -306,6 +311,7 @@ jobs:
         uses: ./.github/actions/setup-bun
 
       - name: Wait for Netlify deploy preview
+        id: preview
         env:
           GH_TOKEN: ${{ github.token }}
           SHA: ${{ github.event.pull_request.head.sha }}
@@ -313,11 +319,29 @@ jobs:
           CONTEXT="netlify/in-the-union-now/deploy-preview"
           echo "Waiting for the $CONTEXT status on $SHA…"
           for i in $(seq 1 60); do
-            STATE=$(gh api "repos/${{ github.repository }}/commits/$SHA/status" \
-              --jq "[.statuses[] | select(.context==\"$CONTEXT\")][0].state // \"pending\"")
-            echo "  [$i/60] $CONTEXT=$STATE"
+            STATUS=$(gh api "repos/${{ github.repository }}/commits/$SHA/status" \
+              --jq "[.statuses[] | select(.context==\"$CONTEXT\")][0] // {}")
+            STATE=$(echo "$STATUS" | jq -r '.state // "pending"')
+            DESC=$(echo "$STATUS" | jq -r '.description // ""')
+            echo "  [$i/60] $CONTEXT=$STATE ($DESC)"
             case "$STATE" in
-              success) exit 0 ;;
+              success)
+                # Netlify's `ignore` command cancels a build when nothing
+                # affecting ITUN changed since the last preview — but it still
+                # reports a *success* commit status, with a description like
+                # "Deploy Preview canceled." There is then NO fresh preview at
+                # the deploy-preview-<PR>--… URL for THIS commit, so running the
+                # suite would hit a stale or missing site (net::ERR_ABORTED /
+                # timeouts). Mirror the deploy skip: skip the e2e run too.
+                case "$DESC" in
+                  *[Cc]ancel* | *[Ss]kip*)
+                    echo "Deploy preview was skipped/canceled — no fresh preview to test; skipping e2e."
+                    echo "skipped=true" >> "$GITHUB_OUTPUT"
+                    exit 0 ;;
+                  *)
+                    echo "skipped=false" >> "$GITHUB_OUTPUT"
+                    exit 0 ;;
+                esac ;;
               failure | error) echo "::error::Netlify deploy preview failed"; exit 1 ;;
             esac
             sleep 15
@@ -325,17 +349,19 @@ jobs:
           echo "::error::Timed out waiting for the Netlify deploy preview"; exit 1
 
       - name: Install Playwright browsers (Chromium)
+        if: steps.preview.outputs.skipped != 'true'
         working-directory: apps/in-the-union-now
         run: bunx playwright install --with-deps chromium
 
       - name: Run E2E against the deploy preview
+        if: steps.preview.outputs.skipped != 'true'
         working-directory: apps/in-the-union-now
         env:
           E2E_BASE_URL: https://deploy-preview-${{ github.event.number }}--in-the-union-now.netlify.app
         run: bunx playwright test
 
       - name: Upload Playwright report on failure
-        if: failure()
+        if: failure() && steps.preview.outputs.skipped != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report-preview
