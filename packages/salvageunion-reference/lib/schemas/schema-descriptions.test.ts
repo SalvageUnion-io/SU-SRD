@@ -83,7 +83,6 @@ import {
   NameSchema,
   NonNegativeIntegerSchema,
   PositiveIntegerSchema,
-  AssetExtensionSchema,
   ActivationCostSchema,
   TechLevelSchema,
 } from './common.js'
@@ -237,7 +236,6 @@ const commonSchemas: Record<string, z.ZodType> = {
   NameSchema,
   NonNegativeIntegerSchema,
   PositiveIntegerSchema,
-  AssetExtensionSchema,
   ActivationCostSchema,
   TechLevelSchema,
 }

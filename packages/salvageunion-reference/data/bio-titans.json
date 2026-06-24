@@ -12,7 +12,7 @@
       "Titanic Actions (Scylla)"
     ],
     "structurePoints": 39,
-    "assetExtension": "jpg",
+    "hasArtwork": true,
     "page": 276,
     "content": [
       {
@@ -33,7 +33,7 @@
       "Titanic Actions (Typhon)"
     ],
     "structurePoints": 67,
-    "assetExtension": "jpg",
+    "hasArtwork": true,
     "page": 278,
     "content": [
       {
@@ -55,7 +55,7 @@
       "Titanic Actions (Chrysalis)"
     ],
     "structurePoints": 80,
-    "assetExtension": "jpg",
+    "hasArtwork": true,
     "page": 280,
     "content": [
       {
@@ -70,7 +70,7 @@
     "name": "Phantom",
     "actions": ["Nether Teleport", "Phasic Core", "Morph Scythes", "Titanic Actions (Phantom)"],
     "structurePoints": 54,
-    "assetExtension": "jpg",
+    "hasArtwork": true,
     "page": 282,
     "content": [
       {
@@ -92,7 +92,7 @@
       "Titanic Actions (Electrophorus)"
     ],
     "structurePoints": 96,
-    "assetExtension": "jpg",
+    "hasArtwork": true,
     "page": 284,
     "content": [
       {
@@ -116,7 +116,7 @@
       "Titanic Actions (Tyrant)"
     ],
     "structurePoints": 215,
-    "assetExtension": "jpg",
+    "hasArtwork": true,
     "page": 286,
     "content": [
       {

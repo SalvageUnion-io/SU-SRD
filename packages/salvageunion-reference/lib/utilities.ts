@@ -328,21 +328,21 @@ export function getHitPoints(entity: SURefMetaEntity): number | undefined {
 /**
  * Derive an entity's asset URL from its schema name and slug.
  *
- * Only the file extension is stored on the entity (`assetExtension`); the rest
- * of the URL is inferred, so `{ASSET_BASE_URL}/{schemaName}/{slug}.{ext}`. The
- * slug matches `getEntitySlug`, so the artwork path lines up with the entity's
- * canonical reference path.
+ * Artwork is unified on WebP, so the whole URL is inferred:
+ * `{ASSET_BASE_URL}/{schemaName}/{slug}.webp`. The boolean `hasArtwork` flag
+ * marks which entities have artwork; the slug matches `getEntitySlug`, so the
+ * artwork path lines up with the entity's canonical reference path.
  *
  * @param entity - The entity to derive from (must carry a stamped `schemaName`)
  * @returns The asset URL, or undefined if the entity has no artwork
  */
 export function getAssetUrl(entity: SURefMetaEntity): string | undefined {
-  const meta = entity as { assetExtension?: unknown; schemaName?: unknown }
-  if (typeof meta.assetExtension !== 'string' || typeof meta.schemaName !== 'string') {
+  const meta = entity as { hasArtwork?: unknown; schemaName?: unknown }
+  if (meta.hasArtwork !== true || typeof meta.schemaName !== 'string') {
     return undefined
   }
   const slug = getEntitySlug(entity as unknown as SURefEntity)
-  return `${ASSET_BASE_URL}/${meta.schemaName}/${slug}.${meta.assetExtension}`
+  return `${ASSET_BASE_URL}/${meta.schemaName}/${slug}.webp`
 }
 
 /**

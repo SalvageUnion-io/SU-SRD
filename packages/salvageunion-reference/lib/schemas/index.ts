@@ -28,7 +28,6 @@ import {
   NameSchema,
   NonNegativeIntegerSchema,
   PositiveIntegerSchema,
-  AssetExtensionSchema,
   ActivationCostSchema,
   TechLevelSchema,
 } from './common.js'
@@ -111,7 +110,6 @@ export type SURefCommonId = z.infer<typeof IdSchema>
 export type SURefCommonName = z.infer<typeof NameSchema>
 export type SURefCommonNonNegativeInteger = z.infer<typeof NonNegativeIntegerSchema>
 export type SURefCommonPositiveInteger = z.infer<typeof PositiveIntegerSchema>
-export type SURefCommonAssetExtension = z.infer<typeof AssetExtensionSchema>
 export type SURefCommonActivationCost = z.infer<typeof ActivationCostSchema>
 export type SURefCommonTechLevel = z.infer<typeof TechLevelSchema>
 export type SURefCommonSalvageValue = z.infer<typeof NonNegativeIntegerSchema>
