@@ -18,6 +18,7 @@ import {
   clampPilotCurrentStats,
   crawlerMaxSP,
   injuryMaxHpPenalty,
+  installedStatBonus,
   isPilotDead,
   mechMaxCargo,
   mechMaxEP,
@@ -30,7 +31,7 @@ import {
 import type { ChassisStats } from '../derivedStats'
 
 beforeAll(async () => {
-  await SalvageUnionReference.preload(['crawler-tech-levels', 'chassis'])
+  await SalvageUnionReference.preload(['crawler-tech-levels', 'chassis', 'systems', 'modules'])
 })
 
 // ---------------------------------------------------------------------------
@@ -159,6 +160,58 @@ describe('mech derivation', () => {
       currentSP: 10,
       currentHeat: 4,
     })
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Installed system/module stat bonuses (data-driven, real ORM items).
+//
+// Reference data (packages/salvageunion-reference/data/systems.json):
+//   Cargo Pod        -> statBonus.cargoCapacity = 1  (Core Book p.164)
+//   Transport Hold   -> statBonus.cargoCapacity = 4  (Core Book p.168)
+//   Heat Sink        -> statBonus.heatCapacity  = 1  (Core Book p.170)
+//   Capacitance Bank -> statBonus.energyPoints  = 2  (Core Book p.173)
+// ---------------------------------------------------------------------------
+describe('installed system/module stat bonuses', () => {
+  const bare = { chassisRef: 'no-such-chassis' }
+
+  it('sums a single installed item bonus into the relevant maximum', () => {
+    const mech = { ...bare, systems: ['Cargo Pod'] }
+    // base cargoCapacity 6 + Cargo Pod +1 = 7
+    expect(mechMaxCargo(mech, chassis)).toBe(7)
+    expect(installedStatBonus(mech, 'cargoCapacity')).toBe(1)
+  })
+
+  it('stacks bonuses across multiple installed copies (2× Heat Sink = +2)', () => {
+    const mech = { ...bare, systems: ['Heat Sink', 'Heat Sink'] }
+    // base heatCapacity 5 + 2 Heat Sinks (+1 each) = 7
+    expect(mechMaxHeat(mech, chassis)).toBe(7)
+    expect(installedStatBonus(mech, 'heatCapacity')).toBe(2)
+  })
+
+  it('adds installed bonuses on top of the hand-edited modifier', () => {
+    const mech = {
+      ...bare,
+      maxEpModifier: 1,
+      systems: ['Capacitance Bank', 'Capacitance Bank'],
+    }
+    // base energyPoints 6 + modifier 1 + 2 banks (+2 each = +4) = 11
+    expect(mechMaxEP(mech, chassis)).toBe(11)
+  })
+
+  it('mixes system and module refs and ignores unresolved / no-bonus items', () => {
+    const mech = {
+      ...bare,
+      systems: ['Cargo Pod', 'Transport Hold', 'Made Up System'],
+      modules: [],
+    }
+    // base 6 + Cargo Pod 1 + Transport Hold 4 = 11; unknown item contributes 0
+    expect(mechMaxCargo(mech, chassis)).toBe(11)
+  })
+
+  it('contributes 0 when no installed lists are provided', () => {
+    expect(installedStatBonus(bare, 'cargoCapacity')).toBe(0)
+    expect(mechMaxCargo(bare, chassis)).toBe(6)
   })
 })
 

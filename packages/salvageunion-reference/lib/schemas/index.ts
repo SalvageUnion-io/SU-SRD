@@ -45,6 +45,7 @@ import {
   TableContentSchema,
   TableSchema,
   PatternSystemModuleSchema,
+  MechStatBonusSchema,
   SystemModuleSchema,
   ChoiceSchema,
   ChoicesSchema,
@@ -129,6 +130,7 @@ export type SURefObjectContent = z.infer<typeof ContentSchema>
 export type SURefObjectTableContent = z.infer<typeof TableContentSchema>
 export type SURefObjectTable = z.infer<typeof TableSchema>
 export type SURefObjectPatternSystemModule = z.infer<typeof PatternSystemModuleSchema>
+export type SURefObjectMechStatBonus = z.infer<typeof MechStatBonusSchema>
 export type SURefObjectSystemModule = z.infer<typeof SystemModuleSchema>
 export type SURefObjectChoice = z.infer<typeof ChoiceSchema>
 export type SURefObjectChoices = z.infer<typeof ChoicesSchema>

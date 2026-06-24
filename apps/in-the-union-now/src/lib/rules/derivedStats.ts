@@ -96,7 +96,17 @@ export type ChassisStats = {
 type MechDerivationInput = Pick<
   Mech,
   'chassisRef' | 'maxSpModifier' | 'maxEpModifier' | 'maxHeatModifier' | 'maxCargoModifier'
->
+  // `systems`/`modules` are optional here so the legacy single-arg call form
+  // (e.g. tests, cargo cap) still compiles; absent means "no installed
+  // bonuses to sum" and the derivation falls back to chassis stat + modifier.
+> &
+  Partial<Pick<Mech, 'systems' | 'modules'>>
+
+/**
+ * The mech-stat-bonus key each derivation sums over installed systems/modules.
+ * Mirrors the `statBonus` field names declared on the reference item schema.
+ */
+type StatBonusKey = 'structurePoints' | 'energyPoints' | 'heatCapacity' | 'cargoCapacity'
 
 /**
  * Resolve a mech's chassis from the reference ORM. `chassisRef` stores the
@@ -111,29 +121,77 @@ function resolveChassis(mech: MechDerivationInput, chassis?: ChassisStats | null
 }
 
 /**
- * Derived mech maxima: chassis stat + hand-edited modifier (heat sinks,
- * capacitance banks, composite armour, holds — rules B2/B4/B6/B14).
- * Pass a pre-resolved `chassis` to avoid repeated ORM lookups; floored at 0
- * so a negative modifier never produces a negative maximum.
+ * Resolve an installed system/module ref (stored as the item id or name) to its
+ * reference record. Returns null when the ref does not resolve (custom items,
+ * stale data) — such items simply contribute no bonus.
+ */
+function resolveInstalledItem(
+  ref: string
+): { statBonus?: Record<string, number | undefined> } | null {
+  return (
+    SalvageUnionReference.Systems.find((s) => s.id === ref || s.name === ref) ??
+    SalvageUnionReference.Modules.find((m) => m.id === ref || m.name === ref) ??
+    null
+  )
+}
+
+/**
+ * Σ(declared statBonus × installed count) for one stat across every installed
+ * system and module (rules B2/B4/B6/B14 — Heat Sink +1 Max Heat each,
+ * Capacitance Bank +2 EP each, Cargo Pod/Holds/Bays +N Cargo, etc.). Each ref
+ * in the arrays counts as one installed copy, so two Heat Sinks sum to +2.
+ * Items with no `statBonus` data contribute 0 — bonuses are never inferred from
+ * prose (only flat, explicitly-declared modifiers are summed).
+ */
+export function installedStatBonus(mech: MechDerivationInput, stat: StatBonusKey): number {
+  const refs = [...(mech.systems ?? []), ...(mech.modules ?? [])]
+  return refs.reduce((sum, ref) => {
+    const value = resolveInstalledItem(ref)?.statBonus?.[stat]
+    return sum + (typeof value === 'number' ? value : 0)
+  }, 0)
+}
+
+/**
+ * Derived mech maxima: chassis stat + hand-edited modifier (composite armour,
+ * etc.) + Σ(installed system/module `statBonus` × count) (heat sinks,
+ * capacitance banks, holds — rules B2/B4/B6/B14). Pass a pre-resolved `chassis`
+ * to avoid repeated ORM lookups; floored at 0 so a negative total never
+ * produces a negative maximum.
  */
 export function mechMaxSP(mech: MechDerivationInput, chassis?: ChassisStats | null): number {
   const c = resolveChassis(mech, chassis)
-  return Math.max(0, (c.structurePoints ?? 0) + (mech.maxSpModifier ?? 0))
+  return Math.max(
+    0,
+    (c.structurePoints ?? 0) +
+      (mech.maxSpModifier ?? 0) +
+      installedStatBonus(mech, 'structurePoints')
+  )
 }
 
 export function mechMaxEP(mech: MechDerivationInput, chassis?: ChassisStats | null): number {
   const c = resolveChassis(mech, chassis)
-  return Math.max(0, (c.energyPoints ?? 0) + (mech.maxEpModifier ?? 0))
+  return Math.max(
+    0,
+    (c.energyPoints ?? 0) + (mech.maxEpModifier ?? 0) + installedStatBonus(mech, 'energyPoints')
+  )
 }
 
 export function mechMaxHeat(mech: MechDerivationInput, chassis?: ChassisStats | null): number {
   const c = resolveChassis(mech, chassis)
-  return Math.max(0, (c.heatCapacity ?? 0) + (mech.maxHeatModifier ?? 0))
+  return Math.max(
+    0,
+    (c.heatCapacity ?? 0) + (mech.maxHeatModifier ?? 0) + installedStatBonus(mech, 'heatCapacity')
+  )
 }
 
 export function mechMaxCargo(mech: MechDerivationInput, chassis?: ChassisStats | null): number {
   const c = resolveChassis(mech, chassis)
-  return Math.max(0, (c.cargoCapacity ?? 0) + (mech.maxCargoModifier ?? 0))
+  return Math.max(
+    0,
+    (c.cargoCapacity ?? 0) +
+      (mech.maxCargoModifier ?? 0) +
+      installedStatBonus(mech, 'cargoCapacity')
+  )
 }
 
 /**

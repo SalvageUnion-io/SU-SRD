@@ -40,6 +40,7 @@
     "techLevel": 1,
     "slotsRequired": 1,
     "salvageValue": 1,
+    "statBonus": { "cargoCapacity": 1 },
     "page": 164,
     "actions": ["Cargo Pod"],
     "additionalSources": [
@@ -280,6 +281,7 @@
     "techLevel": 1,
     "slotsRequired": 2,
     "salvageValue": 2,
+    "statBonus": { "cargoCapacity": 4 },
     "page": 168,
     "actions": ["Transport Hold"],
     "additionalSources": [
@@ -382,6 +384,7 @@
     "techLevel": 2,
     "slotsRequired": 4,
     "salvageValue": 2,
+    "statBonus": { "cargoCapacity": 10 },
     "page": 169,
     "actions": ["Cargo Bay"],
     "additionalSources": [
@@ -467,6 +470,7 @@
     "techLevel": 2,
     "slotsRequired": 2,
     "salvageValue": 1,
+    "statBonus": { "heatCapacity": 1 },
     "page": 170,
     "actions": ["Heat Sink"],
     "additionalSources": [
@@ -552,6 +556,7 @@
     "techLevel": 2,
     "slotsRequired": 4,
     "salvageValue": 1,
+    "statBonus": { "moduleSlots": 1 },
     "page": 170,
     "actions": ["Module Switch"],
     "additionalSources": [
@@ -713,6 +718,7 @@
     "techLevel": 3,
     "slotsRequired": 4,
     "salvageValue": 2,
+    "statBonus": { "energyPoints": 2 },
     "page": 173,
     "actions": ["Capacitance Bank"]
   },
@@ -868,6 +874,7 @@
     "techLevel": 3,
     "slotsRequired": 5,
     "salvageValue": 2,
+    "statBonus": { "cargoCapacity": 8 },
     "page": 176,
     "actions": ["Smuggling Hold"]
   },
@@ -990,6 +997,7 @@
     "techLevel": 4,
     "slotsRequired": 5,
     "salvageValue": 4,
+    "statBonus": { "cargoCapacity": 20 },
     "page": 179,
     "actions": ["Grav Assisted Cargo Bay"]
   },
@@ -1235,6 +1243,7 @@
     "techLevel": 6,
     "slotsRequired": 5,
     "salvageValue": 4,
+    "statBonus": { "cargoCapacity": 10 },
     "page": 185,
     "actions": ["Experimental Teleportation Hold"]
   },

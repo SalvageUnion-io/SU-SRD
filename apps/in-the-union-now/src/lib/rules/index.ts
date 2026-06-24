@@ -20,6 +20,7 @@ export {
   isPilotDead,
   clampPilotCurrentStats,
   findChassisByRef,
+  installedStatBonus,
   mechMaxSP,
   mechMaxEP,
   mechMaxHeat,
