@@ -28,6 +28,7 @@ This is a TypeScript monorepo with shared packages (suref-react, etc.). After an
 ### Root Dev Dependencies (Intentional)
 
 - **`puppeteer-core`** — Used by `tools/a11y-scan.ts` for WCAG accessibility audits. Not dead code.
+- **`sharp`** — Used by `tools/convert-lp-assets-to-webp.ts` to transcode the `lp-assets` Netlify Blobs artwork to WebP (`bun run assets:webp`). Not dead code.
 
 ## Repository Overview
 

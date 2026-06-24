@@ -617,7 +617,7 @@ describe('Property Extractors', () => {
       const assetUrl = getAssetUrl(chassis!)
       expect(assetUrl).toBeDefined()
       expect(typeof assetUrl).toBe('string')
-      expect(assetUrl).toContain('chassis/mule.png')
+      expect(assetUrl).toContain('chassis/mule.webp')
     })
 
     it('should extract asset_url from bio-titans', () => {
@@ -625,7 +625,7 @@ describe('Property Extractors', () => {
       const assetUrl = getAssetUrl(titan!)
       expect(assetUrl).toBeDefined()
       expect(typeof assetUrl).toBe('string')
-      expect(assetUrl).toContain('bio-titans/typhon.jpg')
+      expect(assetUrl).toContain('bio-titans/typhon.webp')
     })
 
     it('should extract asset_url from creatures', () => {
@@ -633,7 +633,7 @@ describe('Property Extractors', () => {
       const assetUrl = getAssetUrl(creature!)
       expect(assetUrl).toBeDefined()
       expect(typeof assetUrl).toBe('string')
-      expect(assetUrl).toContain('creatures/artl.jpg')
+      expect(assetUrl).toContain('creatures/artl.webp')
     })
 
     it('should extract asset_url from NPCs', () => {
@@ -641,7 +641,7 @@ describe('Property Extractors', () => {
       const assetUrl = getAssetUrl(npc!)
       expect(assetUrl).toBeDefined()
       expect(typeof assetUrl).toBe('string')
-      expect(assetUrl).toContain('npcs/wastelander.jpg')
+      expect(assetUrl).toContain('npcs/wastelander.webp')
     })
 
     it('should extract asset_url from core classes', () => {
@@ -651,7 +651,7 @@ describe('Property Extractors', () => {
       const assetUrl = getAssetUrl(coreClass!)
       expect(assetUrl).toBeDefined()
       expect(typeof assetUrl).toBe('string')
-      expect(assetUrl).toContain('classes/engineer.jpg')
+      expect(assetUrl).toContain('classes/engineer.webp')
     })
 
     it('should extract asset_url from hybrid classes', () => {
@@ -662,7 +662,7 @@ describe('Property Extractors', () => {
       const assetUrl = getAssetUrl(hybridClass!)
       expect(assetUrl).toBeDefined()
       expect(typeof assetUrl).toBe('string')
-      expect(assetUrl).toContain('classes/cyborg.jpg')
+      expect(assetUrl).toContain('classes/cyborg.webp')
     })
 
     it('should return undefined for entities without asset_url', () => {

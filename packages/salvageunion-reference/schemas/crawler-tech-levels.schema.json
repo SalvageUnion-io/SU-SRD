@@ -8,10 +8,9 @@
     "$schema": "http://json-schema.org/draft-07/schema#",
     "type": "object",
     "properties": {
-      "assetExtension": {
-        "type": "string",
-        "enum": ["png", "jpg", "jpeg", "webp", "gif", "avif", "svg"],
-        "description": "Image file extension for this entity's artwork; the URL is derived from schema + slug"
+      "hasArtwork": {
+        "type": "boolean",
+        "description": "Whether this entity has artwork; the .webp URL is derived from schema + slug"
       },
       "content": {
         "type": "array",

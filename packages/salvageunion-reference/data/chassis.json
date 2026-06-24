@@ -4,7 +4,7 @@
     "name": "Mule",
     "source": "Salvage Union Workshop Manual",
     "page": 100,
-    "assetExtension": "png",
+    "hasArtwork": true,
     "patterns": [
       {
         "name": "Hauler Pattern",
@@ -229,7 +229,7 @@
     "name": "Mazona",
     "source": "Salvage Union Workshop Manual",
     "page": 102,
-    "assetExtension": "png",
+    "hasArtwork": true,
     "patterns": [
       {
         "name": "Buzzard Pattern",
@@ -553,7 +553,7 @@
     "name": "Scrapper",
     "source": "Salvage Union Workshop Manual",
     "page": 104,
-    "assetExtension": "png",
+    "hasArtwork": true,
     "patterns": [
       {
         "name": "Leaky Pattern",
@@ -767,7 +767,7 @@
     "name": "Spectrum",
     "source": "Salvage Union Workshop Manual",
     "page": 106,
-    "assetExtension": "png",
+    "hasArtwork": true,
     "patterns": [
       {
         "name": "Settler Pattern",
@@ -990,7 +990,7 @@
     "name": "Thresher",
     "source": "Salvage Union Workshop Manual",
     "page": 108,
-    "assetExtension": "png",
+    "hasArtwork": true,
     "patterns": [
       {
         "name": "Shepherd Pattern",
@@ -1212,7 +1212,7 @@
     "name": "Forge",
     "source": "Salvage Union Workshop Manual",
     "page": 110,
-    "assetExtension": "png",
+    "hasArtwork": true,
     "patterns": [
       {
         "name": "Beam Pattern",
@@ -1418,7 +1418,7 @@
     "name": "Gopher",
     "source": "Salvage Union Workshop Manual",
     "page": 112,
-    "assetExtension": "jpg",
+    "hasArtwork": true,
     "patterns": [
       {
         "name": "Legion Pattern",
@@ -1644,7 +1644,7 @@
     "name": "Hussar",
     "source": "Salvage Union Workshop Manual",
     "page": 114,
-    "assetExtension": "png",
+    "hasArtwork": true,
     "patterns": [
       {
         "name": "Mauler Pattern",
@@ -1822,7 +1822,7 @@
     "name": "Jackhammer",
     "source": "Salvage Union Workshop Manual",
     "page": 116,
-    "assetExtension": "png",
+    "hasArtwork": true,
     "patterns": [
       {
         "name": "Cackler Pattern",
@@ -2141,7 +2141,7 @@
     "name": "Kraken",
     "source": "Salvage Union Workshop Manual",
     "page": 118,
-    "assetExtension": "png",
+    "hasArtwork": true,
     "patterns": [
       {
         "name": "Blackbeard Pattern",
@@ -2383,7 +2383,7 @@
     "name": "Magpie",
     "source": "Salvage Union Workshop Manual",
     "page": 120,
-    "assetExtension": "png",
+    "hasArtwork": true,
     "patterns": [
       {
         "name": "Ironmonger Pattern",
@@ -2587,7 +2587,7 @@
     "name": "Mirrorball",
     "source": "Salvage Union Workshop Manual",
     "page": 122,
-    "assetExtension": "png",
+    "hasArtwork": true,
     "patterns": [
       {
         "name": "Junker Pattern",
@@ -2769,7 +2769,7 @@
     "name": "Atlas",
     "source": "Salvage Union Workshop Manual",
     "page": 124,
-    "assetExtension": "png",
+    "hasArtwork": true,
     "patterns": [
       {
         "name": "Thunder Storm Pattern",
@@ -3075,7 +3075,7 @@
     "name": "Brawler",
     "source": "Salvage Union Workshop Manual",
     "page": 126,
-    "assetExtension": "png",
+    "hasArtwork": true,
     "patterns": [
       {
         "name": "Rifleman Pattern",
@@ -3303,7 +3303,7 @@
     "name": "Little Sestra",
     "source": "Salvage Union Workshop Manual",
     "page": 128,
-    "assetExtension": "png",
+    "hasArtwork": true,
     "patterns": [
       {
         "name": "Surveyor Pattern",
@@ -3441,7 +3441,7 @@
     "name": "Mantis",
     "source": "Salvage Union Workshop Manual",
     "page": 130,
-    "assetExtension": "png",
+    "hasArtwork": true,
     "patterns": [
       {
         "name": "Painter Pattern",
@@ -3592,7 +3592,7 @@
     "name": "Photon",
     "source": "Salvage Union Workshop Manual",
     "page": 132,
-    "assetExtension": "png",
+    "hasArtwork": true,
     "patterns": [
       {
         "name": "Stitcher Pattern",
@@ -3726,7 +3726,7 @@
     "name": "Solo",
     "source": "Salvage Union Workshop Manual",
     "page": 134,
-    "assetExtension": "png",
+    "hasArtwork": true,
     "patterns": [
       {
         "name": "Smuggler Pattern",
@@ -4007,7 +4007,7 @@
     "name": "Terra",
     "source": "Salvage Union Workshop Manual",
     "page": 136,
-    "assetExtension": "png",
+    "hasArtwork": true,
     "patterns": [
       {
         "name": "Sifter Pattern",
@@ -4145,7 +4145,7 @@
     "name": "Aegis",
     "source": "Salvage Union Workshop Manual",
     "page": 138,
-    "assetExtension": "png",
+    "hasArtwork": true,
     "patterns": [
       {
         "name": "Giant Dad Pattern",
@@ -4292,7 +4292,7 @@
     "name": "Colossus",
     "source": "Salvage Union Workshop Manual",
     "page": 140,
-    "assetExtension": "png",
+    "hasArtwork": true,
     "patterns": [
       {
         "name": "Sellsword Pattern",
@@ -4432,7 +4432,7 @@
     "name": "Consul",
     "source": "Salvage Union Workshop Manual",
     "page": 142,
-    "assetExtension": "png",
+    "hasArtwork": true,
     "patterns": [
       {
         "name": "Primus Pattern",
@@ -4569,7 +4569,7 @@
     "name": "Drop Bear",
     "source": "Salvage Union Workshop Manual",
     "page": 144,
-    "assetExtension": "png",
+    "hasArtwork": true,
     "patterns": [
       {
         "name": "Scavenger Pattern",
@@ -4720,7 +4720,7 @@
     "name": "Vorpal",
     "source": "Salvage Union Workshop Manual",
     "page": 146,
-    "assetExtension": "png",
+    "hasArtwork": true,
     "patterns": [
       {
         "name": "Fissure Pattern",
@@ -4850,7 +4850,7 @@
     "name": "Carrier",
     "source": "Salvage Union Workshop Manual",
     "page": 148,
-    "assetExtension": "png",
+    "hasArtwork": true,
     "patterns": [
       {
         "name": "Crawler Pattern",
@@ -4994,7 +4994,7 @@
     "name": "Eidolon",
     "source": "Salvage Union Workshop Manual",
     "page": 150,
-    "assetExtension": "png",
+    "hasArtwork": true,
     "patterns": [
       {
         "name": "Commando Pattern",
@@ -5156,7 +5156,7 @@
     "name": "Neura-Phage",
     "source": "Salvage Union Workshop Manual",
     "page": 152,
-    "assetExtension": "png",
+    "hasArtwork": true,
     "patterns": [
       {
         "name": "Screamer Pattern",
@@ -5332,7 +5332,7 @@
     "name": "Iron Wyrm",
     "source": "Salvage Union Workshop Manual",
     "page": 154,
-    "assetExtension": "png",
+    "hasArtwork": true,
     "patterns": [
       {
         "name": "Churner Pattern",
@@ -5477,7 +5477,7 @@
     "name": "Leviathan",
     "source": "Salvage Union Workshop Manual",
     "page": 156,
-    "assetExtension": "png",
+    "hasArtwork": true,
     "patterns": [
       {
         "name": "Destroyer Pattern",
@@ -5626,7 +5626,7 @@
     "name": "Shaitan",
     "source": "Salvage Union Workshop Manual",
     "page": 158,
-    "assetExtension": "png",
+    "hasArtwork": true,
     "patterns": [
       {
         "name": "Skimmer Pattern",

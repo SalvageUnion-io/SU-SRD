@@ -41,7 +41,7 @@
     "techLevel": 1,
     "salvageValue": 1,
     "structurePoints": 1,
-    "assetExtension": "jpg",
+    "hasArtwork": true,
     "page": 294,
     "additionalSources": [
       { "source": "Salvage Union Starter Set", "booklet": "AP", "page": 2 },
@@ -96,7 +96,7 @@
     "techLevel": 2,
     "salvageValue": 3,
     "structurePoints": 6,
-    "assetExtension": "jpg",
+    "hasArtwork": true,
     "page": 295,
     "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "AP", "page": 2 }],
     "content": [

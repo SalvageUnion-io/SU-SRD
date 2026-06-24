@@ -84,7 +84,7 @@
     "techLevel": 2,
     "salvageValue": 3,
     "structurePoints": 4,
-    "assetExtension": "jpg",
+    "hasArtwork": true,
     "page": 293,
     "additionalSources": [{ "source": "Reclamation of the Wastes", "page": 102 }],
     "content": [
