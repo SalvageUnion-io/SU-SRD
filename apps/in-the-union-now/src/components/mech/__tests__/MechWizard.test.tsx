@@ -351,6 +351,56 @@ describe('MechWizard — duplicate installs', () => {
 })
 
 // ---------------------------------------------------------------------------
+// Canonical patterns: duplicate equipment in a pre-made pattern survives copy
+// ---------------------------------------------------------------------------
+
+describe('MechWizard — pattern duplicates', () => {
+  it('preserves duplicate systems/modules when copying a canonical pattern', async () => {
+    // Find a chassis whose pattern data contains a repeated system or module.
+    const allChassis = SalvageUnionReference.Chassis.all()
+    let target:
+      | { chassisName: string; pattern: ReturnType<typeof patternsForChassis>[number] }
+      | undefined
+    for (const c of allChassis) {
+      for (const p of patternsForChassis(c.name)) {
+        const sysNames = (p.systems ?? []).map((s) => s.name)
+        const modNames = (p.modules ?? []).map((m) => m.name)
+        const hasDup =
+          new Set(sysNames).size !== sysNames.length || new Set(modNames).size !== modNames.length
+        if (hasDup) {
+          target = { chassisName: c.name, pattern: p }
+          break
+        }
+      }
+      if (target) break
+    }
+
+    if (!target) {
+      // No canonical pattern ships with duplicates today — nothing to assert.
+      return
+    }
+
+    render(<MechWizard onComplete={() => {}} onCancel={() => {}} />)
+    await pick(target.chassisName)
+    await clickNext() // Pattern
+    await pick(target.pattern.name) // canonical pattern — skips Loadout
+    await clickNext() // Identity
+    await typeInto(/Mech name/i, 'Pattern Build')
+    await clickNext() // Review
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /Create Mech/i }))
+    })
+
+    await waitFor(() => {
+      const m = useEntityStore.getState().list('mech')[0]!
+      // Duplicates from the canonical pattern survive the copy + render path.
+      expect(m.systems).toEqual((target!.pattern.systems ?? []).map((s) => s.name))
+      expect(m.modules).toEqual((target!.pattern.modules ?? []).map((mod) => mod.name))
+    })
+  }, 30000)
+})
+
+// ---------------------------------------------------------------------------
 // Edit mode: upsert branch — loadout edits without duplicating
 // ---------------------------------------------------------------------------
 

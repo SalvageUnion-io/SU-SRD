@@ -4,16 +4,21 @@ import { Field, Input, OptRow, ReferenceEntityDisplay, SectionSeparator } from '
 import { patternsForChassis } from './patternData'
 import type { PatternLike } from './patternData'
 
-/** Resolve a pattern's system/module name refs to display entities. */
+/**
+ * Resolve a pattern's system/module name refs to display entities. Keys carry
+ * the source index so a pattern that installs duplicate equipment renders one
+ * card per copy (duplicates are valid — slots are the only limit), instead of
+ * colliding on a name-based key and silently dropping the repeat.
+ */
 function resolvePatternEntities(pattern: PatternLike): { key: string; entity: SURefEntity }[] {
   return [
-    ...(pattern.systems ?? []).flatMap((s) => {
+    ...(pattern.systems ?? []).flatMap((s, i) => {
       const found = SalvageUnionReference.Systems.find((x) => x.name === s.name)
-      return found ? [{ key: `sys-${s.name}`, entity: found as unknown as SURefEntity }] : []
+      return found ? [{ key: `sys-${i}-${s.name}`, entity: found as unknown as SURefEntity }] : []
     }),
-    ...(pattern.modules ?? []).flatMap((m) => {
+    ...(pattern.modules ?? []).flatMap((m, i) => {
       const found = SalvageUnionReference.Modules.find((x) => x.name === m.name)
-      return found ? [{ key: `mod-${m.name}`, entity: found as unknown as SURefEntity }] : []
+      return found ? [{ key: `mod-${i}-${m.name}`, entity: found as unknown as SURefEntity }] : []
     }),
   ]
 }
