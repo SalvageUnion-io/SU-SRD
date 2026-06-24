@@ -164,6 +164,12 @@ export const CrawlerBayCostSchema = z
  *   and/or `techLevel`, and typically no crew NPC or damaged effect.
  */
 export const CrawlerBaySchema = BaseEntitySchema.extend({
+  expansion: z
+    .boolean()
+    .describe(
+      'True for expansion "upgrade"/found bays acquired during play (built for a resource cost or found as a scenario facility); absent/false for base facilities pre-installed on every Union Crawler. A stored data tag (mirrors the legalStarting convention) — never computed from source/cost/techLevel.'
+    )
+    .optional(),
   damagedEffect: z.string().describe('Effect when this bay is damaged').optional(),
   npc: NpcSchema.describe('NPC crew member who operates this bay').optional(),
   techLevel: TechLevelSchema.describe('Tech level of this bay').optional(),

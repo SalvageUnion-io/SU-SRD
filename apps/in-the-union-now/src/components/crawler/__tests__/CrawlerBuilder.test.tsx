@@ -295,9 +295,16 @@ describe('CrawlerBuilder — create mode', () => {
       expect(c.scrapPool).toEqual({ tl2: 3 })
       expect(c.upgradePool).toBe(12)
 
-      // Full SRD bay set seeded, NPCs at max HP (4) where the bay has one.
-      const srdBays = SalvageUnionReference.CrawlerBays.all()
-      expect(c.crawlerBays?.length).toBe(srdBays.length)
+      // Base bay set seeded (expansion bays excluded), NPCs at max HP (4)
+      // where the bay has one.
+      const baseBays = SalvageUnionReference.CrawlerBays.all().filter((b) => !b.expansion)
+      expect(c.crawlerBays?.length).toBe(baseBays.length)
+      // No expansion bay is ever auto-installed on a fresh crawler.
+      const expansionBays = SalvageUnionReference.CrawlerBays.all().filter((b) => b.expansion)
+      expect(expansionBays.length).toBeGreaterThan(0)
+      for (const exp of expansionBays) {
+        expect(c.crawlerBays?.some((e) => e.bayRef === exp.id)).toBe(false)
+      }
       const seeded = c.crawlerBays?.find((e) => e.bayRef === commandBay.id)
       expect(seeded?.npcCurrentHP).toBe(4)
       expect(seeded?.npcName).toBe('Maddox')
