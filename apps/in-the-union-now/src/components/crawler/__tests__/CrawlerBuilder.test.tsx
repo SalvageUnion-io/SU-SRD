@@ -24,6 +24,7 @@ import {
   seedDefaultCrawlerBays,
 } from '../../../lib/wizard/crawlerFormState'
 import { CrawlerBuilder } from '../CrawlerBuilder'
+import { isWeaponSystem } from '../../../lib/rules/crawlerSystems'
 
 // ---------------------------------------------------------------------------
 // Pre-load reference data
@@ -111,6 +112,19 @@ function systemAtTL(tl: number): { id: string; name: string } {
   return found as { id: string; name: string }
 }
 
+/**
+ * First WEAPONS (damage-dealing) system at a tech level. The crawler subtitle
+ * counts only weapons systems toward the Armament-Bay cap, so count assertions
+ * must install a weapon, not just any system.
+ */
+function weaponSystemAtTL(tl: number): { id: string; name: string } {
+  const found = SalvageUnionReference.Systems.findAll(
+    (s) => typeof s.techLevel === 'number' && s.techLevel === tl && isWeaponSystem(s)
+  )[0]
+  if (!found) throw new Error(`No weapons system at TL ${tl} in reference data`)
+  return found as { id: string; name: string }
+}
+
 // ---------------------------------------------------------------------------
 // Create mode
 // ---------------------------------------------------------------------------
@@ -166,10 +180,10 @@ describe('CrawlerBuilder — create mode', () => {
     await pick('Battle')
     await clickNext()
 
-    // --- Step 2: Systems — live count in subtitle ---
-    const tl1 = systemAtTL(1)
+    // --- Step 2: Systems — live weapon-system count in subtitle ---
+    const tl1 = weaponSystemAtTL(1)
     await pick(tl1.name)
-    expect(screen.getByTestId('system-count').textContent).toContain('1 /')
+    expect(screen.getByTestId('weapon-system-count').textContent).toContain('1 /')
     await clickNext()
 
     // --- Step 3: Crew — fill the Command Bay lead + the type NPC ---

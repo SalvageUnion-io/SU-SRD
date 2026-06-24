@@ -12,6 +12,7 @@ import { toast } from 'suref-react'
 import { useEntityStore } from '../../stores/entityStore'
 import { CrawlerSchema } from '../../lib/schemas/crawler'
 import { computeCrawlerCapacity } from '../../lib/rules/crawlerCapacity'
+import { isWeaponSystem } from '../../lib/rules/crawlerSystems'
 import {
   EMPTY_CRAWLER_FORM_STATE,
   crawlerFormCrewToPatches,
@@ -281,17 +282,24 @@ export function CrawlerBuilder({
 
   // Live capacity computation (soft-warn only — does NOT block submit).
   // Crawler bays are the fixed SRD set, so only the system soft-cap surfaces.
-  const crawlerCapacity = useMemo(
-    () =>
-      computeCrawlerCapacity({
-        techLevel: form.techLevel ?? 0,
-        bays: [],
-        systems: form.systems,
-        isBattleCrawler,
-      }),
-    [form.techLevel, form.systems, isBattleCrawler]
+  const crawlerCapacity = useMemo(() => {
+    // Only WEAPONS systems count toward the Armament-Bay cap (Core Book p. 213 /
+    // p. 216); non-weapon systems (Armour Plating, Cargo Pod, …) are unlimited.
+    // Resolve each chosen system and keep the damage-dealing ones.
+    const weaponSystems = form.systems.filter((id) => {
+      const system = allSystems.find((s) => s.id === id)
+      return system ? isWeaponSystem(system) : false
+    })
+    return computeCrawlerCapacity({
+      techLevel: form.techLevel ?? 0,
+      bays: [],
+      weaponSystems,
+      isBattleCrawler,
+    })
+  }, [form.techLevel, form.systems, allSystems, isBattleCrawler])
+  const isOverCapacity = crawlerCapacity.violations.some(
+    (v) => v.kind === 'weapon-systems-over-capacity'
   )
-  const isOverCapacity = crawlerCapacity.violations.some((v) => v.kind === 'systems-over-capacity')
 
   const capacityNotice =
     isOverCapacity && (step === 'Systems' || step === 'Review') ? (
@@ -299,9 +307,9 @@ export function CrawlerBuilder({
         role="status"
         className="rounded-[3px] border-[1.5px] border-rust bg-rust/10 px-3 py-2 text-sm text-ink"
       >
-        <strong>Over capacity</strong> — {crawlerCapacity.systemsUsed} systems installed,{' '}
-        {crawlerCapacity.systemsMax} supported for this crawler type. You can still save; review
-        before play.
+        <strong>Over capacity</strong> — {crawlerCapacity.weaponSystemsUsed} weapon systems
+        installed, {crawlerCapacity.weaponSystemsMax} supported for this crawler type. You can still
+        save; review before play.
       </p>
     ) : undefined
 
@@ -312,9 +320,10 @@ export function CrawlerBuilder({
       case 'Systems':
         return (
           <>
-            <span data-testid="system-count">
-              {crawlerCapacity.systemsUsed} /{' '}
-              {crawlerCapacity.systemsMax > 0 ? crawlerCapacity.systemsMax : '—'} systems
+            <span data-testid="weapon-system-count">
+              {crawlerCapacity.weaponSystemsUsed} /{' '}
+              {crawlerCapacity.weaponSystemsMax > 0 ? crawlerCapacity.weaponSystemsMax : '—'} weapon
+              systems
             </span>{' '}
             · Tech Level {form.techLevel ?? '—'} and below. Capacity warns, never blocks.
           </>
