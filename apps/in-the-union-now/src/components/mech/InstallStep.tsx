@@ -84,7 +84,7 @@ export function InstallStep({
               label={typeof tl === 'number' ? `TL${tl}` : tl === 'B' ? 'Bio' : 'Nanite'}
               active={activeTls.includes(tl)}
               onClick={() => toggleTl(tl)}
-              swatchStyle={`var(--color-tl-${tl})`}
+              swatchStyle={`var(--color-tl-${typeof tl === 'number' ? tl : tl.toLowerCase()})`}
             />
           ))}
         </div>
