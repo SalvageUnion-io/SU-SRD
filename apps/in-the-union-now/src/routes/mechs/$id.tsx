@@ -50,8 +50,8 @@ function MechDetailPage() {
 
   if (!mech) {
     return (
-      <main className="mx-auto max-w-7xl px-4 py-8">
-        <p className="text-muted-foreground">Mech not found.</p>
+      <main className="mx-auto max-w-7xl p-6">
+        <p className="text-wk-muted">Mech not found.</p>
         <Link to="/" className={cn(buttonVariants({ variant: 'link', size: 'sm' }))}>
           Back to dashboard
         </Link>
@@ -60,14 +60,14 @@ function MechDetailPage() {
   }
 
   return (
-    <main className="mx-auto max-w-7xl px-4 py-8">
+    <main className="mx-auto max-w-7xl p-6">
       {/* Page header */}
       <div className="mb-6 flex items-start justify-between gap-4">
         <div>
           <h1 className="font-cond text-2xl font-bold uppercase tracking-wide text-su-black">
             {mech.name}
           </h1>
-          <p className="mt-1 font-cond text-xs font-semibold uppercase tracking-widest text-su-ink-soft">
+          <p className="mt-1 font-cond text-xs font-semibold uppercase tracking-widest text-wk-muted">
             Chassis: {mech.chassisRef}
           </p>
         </div>
@@ -92,32 +92,32 @@ function MechDetailPage() {
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
         {/* Left pane — mech stats summary */}
         <div className="min-w-0 flex-1">
-          <section className="mb-6 rounded-sm border border-su-black bg-white p-4 text-sm">
+          <section className="mb-6 rounded-[3px] border-[1.5px] border-ink bg-paper p-4 text-sm">
             <h2 className="mb-3 font-cond text-sm font-bold uppercase tracking-widest text-su-black">
               Stats
             </h2>
             <dl className="space-y-2">
               <div className="flex gap-2">
-                <dt className="font-cond font-semibold uppercase tracking-wide text-su-ink-soft">
+                <dt className="font-cond font-semibold uppercase tracking-wide text-wk-muted">
                   Systems:
                 </dt>
                 <dd>{mech.systems.length}</dd>
               </div>
               <div className="flex gap-2">
-                <dt className="font-cond font-semibold uppercase tracking-wide text-su-ink-soft">
+                <dt className="font-cond font-semibold uppercase tracking-wide text-wk-muted">
                   Modules:
                 </dt>
                 <dd>{mech.modules.length}</dd>
               </div>
               <div className="flex gap-2">
-                <dt className="font-cond font-semibold uppercase tracking-wide text-su-ink-soft">
+                <dt className="font-cond font-semibold uppercase tracking-wide text-wk-muted">
                   Cargo slots used:
                 </dt>
                 <dd>{mech.cargoLots.length}</dd>
               </div>
               {mech.conditions.length > 0 && (
                 <div className="flex gap-2">
-                  <dt className="font-cond font-semibold uppercase tracking-wide text-su-ink-soft">
+                  <dt className="font-cond font-semibold uppercase tracking-wide text-wk-muted">
                     Conditions:
                   </dt>
                   <dd>{mech.conditions.join(', ')}</dd>
@@ -146,13 +146,13 @@ function MechDetailPage() {
         {/* Right pane — wiring + actions */}
         <div className="w-full shrink-0 space-y-6 lg:w-72">
           {/* Pilot assignment */}
-          <section className="rounded-sm border border-su-black bg-white p-4">
+          <section className="rounded-[3px] border-[1.5px] border-ink bg-paper p-4">
             <h2 className="mb-3 font-cond text-sm font-bold uppercase tracking-widest text-su-black">
               Pilot
             </h2>
             {pilotLink ? (
               <div className="flex items-center gap-3 text-sm">
-                <span className="flex-1 text-muted-foreground">
+                <span className="flex-1 text-wk-muted">
                   Pilot linked:{' '}
                   <span className="font-medium text-foreground">{pilotLink.to.id}</span>
                 </span>
@@ -164,7 +164,7 @@ function MechDetailPage() {
               </div>
             ) : (
               <div className="flex items-center gap-3">
-                <p className="text-sm text-muted-foreground">No pilot assigned.</p>
+                <p className="text-sm text-wk-muted">No pilot assigned.</p>
                 <AssignPilotToMech
                   mechId={id}
                   onAssigned={() => void navigate({ to: '/mechs/$id', params: { id } })}
@@ -174,7 +174,7 @@ function MechDetailPage() {
           </section>
 
           {/* Workspace assignment */}
-          <section className="rounded-sm border border-su-black bg-white p-4">
+          <section className="rounded-[3px] border-[1.5px] border-ink bg-paper p-4">
             <h2 className="mb-3 font-cond text-sm font-bold uppercase tracking-widest text-su-black">
               Workspace
             </h2>
@@ -220,7 +220,7 @@ type LoadoutSectionProps = {
 /** Installed systems/modules as compact entity cards (gap 24). */
 function LoadoutSection({ title, refs, conditions, resolve, emptyLabel }: LoadoutSectionProps) {
   return (
-    <section className="mb-6 rounded-sm border border-su-black bg-white p-4">
+    <section className="mb-6 rounded-[3px] border-[1.5px] border-ink bg-paper p-4">
       <h2 className="mb-3 font-cond text-sm font-bold uppercase tracking-widest text-su-black">
         {title} · {refs.length}
       </h2>

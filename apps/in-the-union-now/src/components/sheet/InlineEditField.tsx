@@ -114,7 +114,7 @@ export function InlineEditField({
               }
         }
         className={cn(
-          'inline-flex items-center justify-center min-h-11 sm:min-h-9 font-mono text-lg font-bold text-su-black',
+          'inline-flex items-center justify-center min-h-11 sm:min-h-9 font-mono text-lg font-bold text-ink',
           !readOnly &&
             'cursor-pointer rounded px-1 hover:bg-su-paper focus:outline-none focus:ring-2 focus:ring-ring',
           className
@@ -154,12 +154,12 @@ export function InlineEditField({
           }
         }}
         className={cn(
-          'w-16 rounded border-[1.5px] bg-su-paper px-1 py-0.5 text-center font-mono text-lg font-bold text-su-black focus:outline-none focus:ring-2 focus:ring-ring',
-          error ? 'border-destructive focus:ring-destructive' : 'border-su-black'
+          'w-16 rounded border-[1.5px] bg-su-paper px-1 py-0.5 text-center font-mono text-lg font-bold text-ink focus:outline-none focus:ring-2 focus:ring-ring',
+          error ? 'border-danger focus:ring-danger' : 'border-ink'
         )}
       />
       {error && (
-        <span role="alert" className="text-xs text-destructive">
+        <span role="alert" className="text-xs text-danger">
           {error}
         </span>
       )}

@@ -26,7 +26,7 @@ import { cva } from 'class-variance-authority'
 export const buttonVariants = cva(
   [
     'inline-flex cursor-pointer select-none items-center justify-center gap-2 whitespace-nowrap',
-    'rounded-[0.375rem] border text-sm font-medium leading-5',
+    'rounded-md border text-sm font-medium leading-5',
     'transition-[color,background-color,border-color] duration-150',
     'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-su-orange)] focus-visible:ring-0',
     'disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50',
@@ -64,8 +64,8 @@ export const buttonVariants = cva(
         // min-h-11 (44px) on mobile keeps touch targets WCAG-compliant at the table.
         // sm:min-h-* restores the designed height on larger viewports.
         default: 'h-10 min-h-11 sm:min-h-10 px-4 py-1.5',
-        sm: 'h-9 min-h-11 sm:min-h-9 rounded-[0.375rem] px-3',
-        lg: 'h-11 rounded-[0.375rem] px-6',
+        sm: 'h-9 min-h-11 sm:min-h-9 px-3',
+        lg: 'h-11 px-6',
         icon: 'h-10 w-10 min-h-11 sm:min-h-10',
       },
     },

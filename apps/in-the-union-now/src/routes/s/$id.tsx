@@ -58,7 +58,7 @@ export function SnapshotPageInner({ snapshot, notFound, error }: SnapshotPageInn
     return (
       <main className="mx-auto max-w-5xl p-6">
         <h1 className="mb-2 text-xl font-bold">Snapshot not found</h1>
-        <p className="mb-4 text-sm text-muted-foreground">
+        <p className="mb-4 text-sm text-wk-muted">
           This snapshot link may have expired or never existed.
         </p>
         <AppLink
@@ -75,7 +75,7 @@ export function SnapshotPageInner({ snapshot, notFound, error }: SnapshotPageInn
     return (
       <main className="mx-auto max-w-5xl p-6">
         <h1 className="mb-2 text-xl font-bold">Failed to load snapshot</h1>
-        <p className="mb-4 text-sm text-muted-foreground">{error}</p>
+        <p className="mb-4 text-sm text-wk-muted">{error}</p>
         <AppLink
           href="/"
           className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}

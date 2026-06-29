@@ -29,7 +29,7 @@ export function CrawlerIdentityStep({
   onChange,
 }: CrawlerIdentityStepProps) {
   return (
-    <div className="max-w-[760px] space-y-5">
+    <div className="max-w-3xl space-y-5">
       <Field label="Crawler Name" required htmlFor="crawler-name">
         <Input
           id="crawler-name"
@@ -43,7 +43,7 @@ export function CrawlerIdentityStep({
 
       <section className="space-y-4 rounded-[3px] border-[1.5px] border-wk-faint p-4">
         <header>
-          <h2 className="font-cond text-[13px] font-bold uppercase tracking-[0.1em] text-ink">
+          <h2 className="font-cond text-sm font-bold uppercase tracking-[0.1em] text-ink">
             Starting Resources
           </h2>
           <p className="mt-0.5 font-body text-xs text-wk-muted">

@@ -226,7 +226,7 @@ export function MechSheet({
   }
 
   return (
-    <section aria-labelledby="mech-sheet-heading" className="flex flex-col gap-7">
+    <section aria-labelledby="mech-sheet-heading" className="flex flex-col gap-6">
       {/* The hero already shows the name — this heading is for a11y/print. */}
       <h2 id="mech-sheet-heading" className="sr-only">
         {mech.name}
@@ -311,14 +311,13 @@ export function MechSheet({
       <div>
         <Slab
           label="The Hold"
-          count={`${cargo.state.mechLots.length} ${
-            cargo.state.mechLots.length === 1 ? 'lot' : 'lots'
-          } · ${cargo.usage.used}/${cargo.usage.cap} slots`}
+          count={
+            <span className="tabular-nums">
+              {cargo.state.mechLots.length} {cargo.state.mechLots.length === 1 ? 'lot' : 'lots'} ·{' '}
+              {cargo.usage.used}/{cargo.usage.cap} slots
+            </span>
+          }
         />
-        <p className="mb-3 mt-0 font-body text-xs leading-snug text-wk-muted">
-          Stow moves a whole lot to the crawler hold; SCRAP lots deposit the crawler&rsquo;s
-          matching TL scrap pool. Over-capacity is shown honestly — red pips, never clamped.
-        </p>
         <StorageManifest
           side="mech"
           cargo={cargo}

@@ -24,7 +24,7 @@ function NewPilotRoute() {
   }
 
   return (
-    <main className="min-h-dvh bg-background">
+    <main>
       <PilotWizard onComplete={handleComplete} onCancel={handleCancel} />
     </main>
   )

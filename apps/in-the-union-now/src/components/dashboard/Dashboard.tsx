@@ -163,12 +163,12 @@ export function Dashboard() {
   }
 
   return (
-    <main className="min-h-screen bg-wk-bg px-4 py-5 sm:px-12 sm:py-10">
+    <main className="min-h-screen bg-wk-bg px-4 py-5 sm:px-8 sm:py-10 lg:px-12">
       {/* Header: h1 + Download all/Import row · workspace faux-select */}
       <div className="border-b-2 border-ink pb-5">
-        <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 className="font-cond text-xl font-bold uppercase leading-none tracking-[.02em] text-ink md:text-[31px]">
+            <h1 className="font-cond text-xl font-bold uppercase leading-none tracking-[0.04em] text-ink md:text-[31px]">
               ITUN
               <span className="ml-1.5 inline-block rounded bg-rust px-1.5 py-0.5 align-[0.35em] font-cond text-[10px] font-bold uppercase leading-none tracking-[0.12em] text-wk-bg md:text-[11px]">
                 Beta
@@ -187,131 +187,135 @@ export function Dashboard() {
         </div>
       </div>
 
-      {!hydratedAll ? (
-        <div aria-label="Loading saved builds" className="py-12 text-center text-wk-muted">
-          Loading…
-        </div>
-      ) : (
-        <>
-          {/* Mobile-endpoint segmented Pilot/Mech/Crawler switch (design §3.7) */}
-          <div className="mt-5 flex gap-2 md:hidden">
-            {SEGMENTS.map((seg) => (
-              <Btn
-                key={seg.kind}
-                size="sm"
-                variant={activeSegment === seg.kind ? 'primary' : 'default'}
-                aria-pressed={activeSegment === seg.kind}
-                onClick={() => setActiveSegment(seg.kind)}
-                className="min-h-11 flex-1"
-              >
-                {seg.label}
-              </Btn>
-            ))}
+      {/* Reserve a stable footprint so the grid replacing "Loading…" doesn't
+          shift the rest of the page on hydration. */}
+      <div className="min-h-[60vh]">
+        {!hydratedAll ? (
+          <div aria-label="Loading saved builds" className="py-12 text-center text-wk-muted">
+            Loading…
           </div>
-
-          <div className="mt-5 grid grid-cols-1 gap-[30px] md:mt-[26px] md:grid-cols-3">
-            <DashboardColumn
-              title="Pilots"
-              headingId="pilots-heading"
-              active={activeSegment === 'pilot'}
-              createHref="/pilots/new"
-              createLabel="Create Pilot"
-              emptyLabel="No pilots yet."
-            >
-              {pilots.map((p) => {
-                const mechLink = softLinks.find(
-                  (l) => l.type === 'mech-to-pilot' && l.to.id === p.id
-                )
-                const crawlerLink = softLinks.find(
-                  (l) => l.type === 'pilot-to-crawler' && l.from.id === p.id
-                )
-                return (
-                  <EntityListItem
-                    key={p.id}
-                    id={p.id}
-                    name={p.name}
-                    href={`/pilots/${p.id}`}
-                    sheetHref={`/sheet/pilot/${p.id}`}
-                    onDeleteClick={(id, name) => openDeleteDialog('pilot', id, name)}
-                    meta={joinMeta([
-                      p.callsign ? `"${p.callsign}"` : null,
-                      resolveClassName(p.classRef),
-                      linkSegment(mechLink && mechNameById.get(mechLink.from.id)),
-                      linkSegment(crawlerLink && crawlerNameById.get(crawlerLink.to.id)),
-                    ])}
-                  />
-                )
-              })}
-            </DashboardColumn>
-
-            <DashboardColumn
-              title="Mechs"
-              headingId="mechs-heading"
-              active={activeSegment === 'mech'}
-              createHref="/mechs/new"
-              createLabel="Create Mech"
-              emptyLabel="No mechs yet."
-              headExtra={
-                <AppLink
-                  href="/mechs/patterns"
-                  className={cn(btnVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
+        ) : (
+          <>
+            {/* Mobile-endpoint segmented Pilot/Mech/Crawler switch (design §3.7) */}
+            <div className="mt-5 flex gap-2 md:hidden">
+              {SEGMENTS.map((seg) => (
+                <Btn
+                  key={seg.kind}
+                  size="sm"
+                  variant={activeSegment === seg.kind ? 'primary' : 'default'}
+                  aria-pressed={activeSegment === seg.kind}
+                  onClick={() => setActiveSegment(seg.kind)}
+                  className="min-h-11 flex-1"
                 >
-                  Patterns
-                </AppLink>
-              }
-            >
-              {mechs.map((m) => {
-                const pilotLink = softLinks.find(
-                  (l) => l.type === 'mech-to-pilot' && l.from.id === m.id
-                )
-                return (
-                  <EntityListItem
-                    key={m.id}
-                    id={m.id}
-                    name={m.name}
-                    href={`/mechs/${m.id}`}
-                    sheetHref={`/sheet/mech/${m.id}`}
-                    onDeleteClick={(id, name) => openDeleteDialog('mech', id, name)}
-                    meta={joinMeta([
-                      mechChassisMeta(m.chassisRef),
-                      linkSegment(pilotLink && pilotNameById.get(pilotLink.to.id)),
-                    ])}
-                  />
-                )
-              })}
-            </DashboardColumn>
+                  {seg.label}
+                </Btn>
+              ))}
+            </div>
 
-            <DashboardColumn
-              title="Crawlers"
-              headingId="crawlers-heading"
-              active={activeSegment === 'crawler'}
-              createHref="/crawlers/new"
-              createLabel="Create Crawler"
-              emptyLabel="No crawlers yet."
-            >
-              {crawlers.map((c) => {
-                const crewLinks = softLinks.filter(
-                  (l) => l.type === 'pilot-to-crawler' && l.to.id === c.id
-                )
-                return (
-                  <EntityListItem
-                    key={c.id}
-                    id={c.id}
-                    name={c.name}
-                    href={`/crawlers/${c.id}`}
-                    sheetHref={`/sheet/crawler/${c.id}`}
-                    onDeleteClick={(id, name) => openDeleteDialog('crawler', id, name)}
-                    meta={joinMeta([
-                      crawlerTypeMeta(c.techLevel, c.crawlerBays?.length ?? 0),
-                      ...crewLinks.map((l) => linkSegment(pilotNameById.get(l.from.id))),
-                    ])}
-                  />
-                )
-              })}
-            </DashboardColumn>
-          </div>
-        </>
-      )}
+            <div className="mt-5 grid grid-cols-1 gap-8 md:mt-6 md:grid-cols-3">
+              <DashboardColumn
+                title="Pilots"
+                headingId="pilots-heading"
+                active={activeSegment === 'pilot'}
+                createHref="/pilots/new"
+                createLabel="Create Pilot"
+                emptyLabel="No pilots yet."
+              >
+                {pilots.map((p) => {
+                  const mechLink = softLinks.find(
+                    (l) => l.type === 'mech-to-pilot' && l.to.id === p.id
+                  )
+                  const crawlerLink = softLinks.find(
+                    (l) => l.type === 'pilot-to-crawler' && l.from.id === p.id
+                  )
+                  return (
+                    <EntityListItem
+                      key={p.id}
+                      id={p.id}
+                      name={p.name}
+                      href={`/pilots/${p.id}`}
+                      sheetHref={`/sheet/pilot/${p.id}`}
+                      onDeleteClick={(id, name) => openDeleteDialog('pilot', id, name)}
+                      meta={joinMeta([
+                        p.callsign ? `"${p.callsign}"` : null,
+                        resolveClassName(p.classRef),
+                        linkSegment(mechLink && mechNameById.get(mechLink.from.id)),
+                        linkSegment(crawlerLink && crawlerNameById.get(crawlerLink.to.id)),
+                      ])}
+                    />
+                  )
+                })}
+              </DashboardColumn>
+
+              <DashboardColumn
+                title="Mechs"
+                headingId="mechs-heading"
+                active={activeSegment === 'mech'}
+                createHref="/mechs/new"
+                createLabel="Create Mech"
+                emptyLabel="No mechs yet."
+                headExtra={
+                  <AppLink
+                    href="/mechs/patterns"
+                    className={cn(btnVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
+                  >
+                    Patterns
+                  </AppLink>
+                }
+              >
+                {mechs.map((m) => {
+                  const pilotLink = softLinks.find(
+                    (l) => l.type === 'mech-to-pilot' && l.from.id === m.id
+                  )
+                  return (
+                    <EntityListItem
+                      key={m.id}
+                      id={m.id}
+                      name={m.name}
+                      href={`/mechs/${m.id}`}
+                      sheetHref={`/sheet/mech/${m.id}`}
+                      onDeleteClick={(id, name) => openDeleteDialog('mech', id, name)}
+                      meta={joinMeta([
+                        mechChassisMeta(m.chassisRef),
+                        linkSegment(pilotLink && pilotNameById.get(pilotLink.to.id)),
+                      ])}
+                    />
+                  )
+                })}
+              </DashboardColumn>
+
+              <DashboardColumn
+                title="Crawlers"
+                headingId="crawlers-heading"
+                active={activeSegment === 'crawler'}
+                createHref="/crawlers/new"
+                createLabel="Create Crawler"
+                emptyLabel="No crawlers yet."
+              >
+                {crawlers.map((c) => {
+                  const crewLinks = softLinks.filter(
+                    (l) => l.type === 'pilot-to-crawler' && l.to.id === c.id
+                  )
+                  return (
+                    <EntityListItem
+                      key={c.id}
+                      id={c.id}
+                      name={c.name}
+                      href={`/crawlers/${c.id}`}
+                      sheetHref={`/sheet/crawler/${c.id}`}
+                      onDeleteClick={(id, name) => openDeleteDialog('crawler', id, name)}
+                      meta={joinMeta([
+                        crawlerTypeMeta(c.techLevel, c.crawlerBays?.length ?? 0),
+                        ...crewLinks.map((l) => linkSegment(pilotNameById.get(l.from.id))),
+                      ])}
+                    />
+                  )
+                })}
+              </DashboardColumn>
+            </div>
+          </>
+        )}
+      </div>
 
       <DeleteConfirmDialog
         open={deleteTarget !== null}
@@ -362,12 +366,16 @@ function DashboardColumn({
         </h2>
         <div className="flex items-center gap-1.5">
           {headExtra}
-          <AppLink
-            href={createHref}
-            className={cn(btnVariants({ variant: 'default', size: 'sm' }), 'no-underline')}
-          >
-            + {createLabel}
-          </AppLink>
+          {/* One create CTA per column: the header link shows only when the
+              column has rows; the empty state renders its own create CTA. */}
+          {children.length > 0 && (
+            <AppLink
+              href={createHref}
+              className={cn(btnVariants({ variant: 'default', size: 'sm' }), 'no-underline')}
+            >
+              + {createLabel}
+            </AppLink>
+          )}
         </div>
       </div>
       {children.length === 0 ? (

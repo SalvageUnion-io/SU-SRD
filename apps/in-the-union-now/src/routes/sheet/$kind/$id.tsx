@@ -28,7 +28,7 @@ function SheetKindNotFound() {
   return (
     <main className="mx-auto max-w-5xl p-6">
       <h1 className="mb-2 text-xl font-bold">Sheet not found</h1>
-      <p className="mb-4 text-sm text-muted-foreground">
+      <p className="mb-4 text-sm text-wk-muted">
         &ldquo;{params.kind}&rdquo; is not a sheet type. Sheets exist for pilots, mechs, and
         crawlers.
       </p>

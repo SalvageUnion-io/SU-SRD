@@ -33,8 +33,8 @@ function EditMechRoute() {
 
   if (!mech) {
     return (
-      <main className="mx-auto max-w-7xl px-4 py-8">
-        <p className="text-muted-foreground">Mech not found.</p>
+      <main className="mx-auto max-w-7xl p-6">
+        <p className="text-wk-muted">Mech not found.</p>
         <Link to="/" className="text-sm underline">
           Back to dashboard
         </Link>
@@ -51,7 +51,7 @@ function EditMechRoute() {
   }
 
   return (
-    <main className="min-h-dvh bg-background">
+    <main>
       <MechWizard
         key={mech.id}
         mechId={mech.id}

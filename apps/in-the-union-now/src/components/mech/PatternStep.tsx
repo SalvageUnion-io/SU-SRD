@@ -87,7 +87,7 @@ export function PatternDetail({
 }: PatternDetailProps) {
   if (isCustom) {
     return (
-      <div className="max-w-[760px] space-y-3">
+      <div className="max-w-3xl space-y-3">
         <Field label="Pattern name" required htmlFor="custom-pattern-name">
           <Input
             id="custom-pattern-name"
@@ -123,7 +123,7 @@ export function PatternDetail({
     <div className="space-y-3">
       <SectionSeparator label={`${pattern.name} · Loadout`} fontSize="text-xs" />
       {entities.length > 0 ? (
-        <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {entities.map(({ key, entity }) => (
             <ReferenceEntityDisplay
               key={key}

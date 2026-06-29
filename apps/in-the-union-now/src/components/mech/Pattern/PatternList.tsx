@@ -56,7 +56,7 @@ export function PatternList({ onInstantiated }: PatternListProps) {
 
   if (isLoading) {
     return (
-      <p className="text-sm text-muted-foreground" aria-live="polite">
+      <p className="text-sm text-wk-muted" aria-live="polite">
         Loading patterns…
       </p>
     )
@@ -64,7 +64,7 @@ export function PatternList({ onInstantiated }: PatternListProps) {
 
   if (loadError) {
     return (
-      <p className="text-sm text-destructive" role="alert">
+      <p className="text-sm text-danger" role="alert">
         {loadError}
       </p>
     )
@@ -72,8 +72,8 @@ export function PatternList({ onInstantiated }: PatternListProps) {
 
   if (patterns.length === 0) {
     return (
-      <div className="rounded-md border border-dashed border-border p-6 text-center">
-        <p className="text-sm text-muted-foreground">
+      <div className="rounded-[3px] border-[1.5px] border-dashed border-wk-faint p-6 text-center">
+        <p className="text-sm text-wk-muted">
           No patterns saved yet. Use &ldquo;Save as pattern&rdquo; from the mech builder to save a
           reusable template.
         </p>
@@ -89,12 +89,14 @@ export function PatternList({ onInstantiated }: PatternListProps) {
       {patterns.map((pattern) => (
         <li
           key={pattern.id}
-          className="rounded-md border border-border p-4 flex items-start justify-between gap-4"
+          className="rounded-[3px] border-[1.5px] border-ink p-4 flex items-start justify-between gap-4"
           data-testid="pattern-list-item"
         >
           <div className="flex flex-col gap-0.5 min-w-0">
-            <span className="font-medium text-sm truncate">{pattern.name}</span>
-            <span className="text-xs text-muted-foreground">
+            <span className="truncate font-cond text-sm font-bold uppercase text-ink">
+              {pattern.name}
+            </span>
+            <span className="text-xs text-wk-muted">
               Chassis: {pattern.chassisRef} &mdash; {pattern.systems.length} system
               {pattern.systems.length !== 1 ? 's' : ''}, {pattern.modules.length} module
               {pattern.modules.length !== 1 ? 's' : ''}, {pattern.cargoLots.length} cargo

@@ -38,20 +38,23 @@ export function OptRow({ name, desc, active = false, onClick, img, className }: 
         </span>
       )}
       <span className="min-w-0 flex-1">
-        <span className="block font-cond text-[19px] font-bold uppercase leading-tight text-ink">
+        <span className="block font-cond text-lg font-bold uppercase leading-tight text-ink">
           {name}
         </span>
         {desc && (
-          <span className="mt-0.5 line-clamp-2 block font-body text-[11.5px] leading-snug text-wk-muted">
+          <span className="mt-0.5 line-clamp-2 block font-body text-xs leading-snug text-wk-muted">
             {desc}
           </span>
         )}
       </span>
-      {active && (
-        <span aria-hidden="true" className="shrink-0 font-cond text-lg font-bold text-rust">
-          ▸
-        </span>
-      )}
+      {/* Always reserve the caret slot so selecting a row doesn't reflow the
+          flex-1 name column (caret only paints when active). */}
+      <span
+        aria-hidden="true"
+        className="w-[1ch] shrink-0 text-center font-cond text-lg font-bold text-rust"
+      >
+        {active ? '▸' : ''}
+      </span>
     </button>
   )
 }

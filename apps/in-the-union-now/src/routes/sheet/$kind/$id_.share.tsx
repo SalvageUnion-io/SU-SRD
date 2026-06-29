@@ -23,7 +23,7 @@ function ShareKindNotFound() {
   return (
     <main className="mx-auto max-w-5xl p-6">
       <h1 className="mb-2 text-xl font-bold">Nothing to share</h1>
-      <p className="text-muted-foreground mb-4 text-sm">
+      <p className="text-wk-muted mb-4 text-sm">
         &ldquo;{params.kind}&rdquo; is not a sheet type. Snapshots exist for pilots, mechs, and
         crawlers.
       </p>

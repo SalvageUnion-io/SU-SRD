@@ -29,8 +29,8 @@ function EditCrawlerRoute() {
 
   if (!crawler) {
     return (
-      <main className="mx-auto max-w-7xl px-4 py-8">
-        <p className="text-muted-foreground">Crawler not found.</p>
+      <main className="mx-auto max-w-7xl p-6">
+        <p className="text-wk-muted">Crawler not found.</p>
         <Link to="/" className="text-sm underline">
           Back to dashboard
         </Link>
@@ -47,7 +47,7 @@ function EditCrawlerRoute() {
   }
 
   return (
-    <main className="min-h-dvh bg-background">
+    <main>
       <CrawlerBuilder
         key={crawler.id}
         crawlerId={crawler.id}

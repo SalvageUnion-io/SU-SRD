@@ -139,7 +139,7 @@ export function MechItemCard({
           >
             &ndash;
           </StepBtn>
-          <span className="font-cond text-[11px] font-bold uppercase leading-none text-ink">
+          <span className="min-w-[4.5rem] text-center font-cond text-[11px] font-bold uppercase leading-none tabular-nums text-ink">
             Uses {remaining}/{maxUses}
           </span>
           <StepBtn
@@ -151,46 +151,52 @@ export function MechItemCard({
           </StepBtn>
         </span>
       )}
-      {condition === 'damaged' &&
-        (confirmingRepair ? (
-          <span className="inline-flex flex-wrap items-center gap-1.5">
+      {condition === 'damaged' && (
+        // Reserve the repair affordance its own full-width foot row so toggling
+        // between the single Repair button and the 3-button confirm cluster
+        // never changes the foot's row count — keeps the equal-height Erow steady.
+        <span className="flex basis-full flex-wrap items-center justify-end gap-1.5">
+          {confirmingRepair ? (
+            <>
+              <Btn
+                size="sm"
+                variant="primary"
+                disabled={deductTl === null}
+                title={deductDisabledReason ?? undefined}
+                aria-label={`Repair ${entity.name} and deduct scrap`}
+                onClick={() => {
+                  onRepair(deductTl, cost)
+                  setConfirmingRepair(false)
+                }}
+              >
+                Deduct {cost} from TL {deductTl ?? Math.max(1, itemTl ?? 1)} pool
+              </Btn>
+              <Btn
+                size="sm"
+                aria-label={`Repair ${entity.name} without deducting scrap`}
+                onClick={() => {
+                  onRepair(null, cost)
+                  setConfirmingRepair(false)
+                }}
+              >
+                Repair without deducting
+              </Btn>
+              <Btn size="sm" variant="ghost" onClick={() => setConfirmingRepair(false)}>
+                Cancel
+              </Btn>
+            </>
+          ) : (
             <Btn
               size="sm"
               variant="primary"
-              disabled={deductTl === null}
-              title={deductDisabledReason ?? undefined}
-              aria-label={`Repair ${entity.name} and deduct scrap`}
-              onClick={() => {
-                onRepair(deductTl, cost)
-                setConfirmingRepair(false)
-              }}
+              aria-label={`Repair ${entity.name}`}
+              onClick={() => setConfirmingRepair(true)}
             >
-              Deduct {cost} from TL {deductTl ?? Math.max(1, itemTl ?? 1)} pool
+              Repair &middot; {cost} Scrap
             </Btn>
-            <Btn
-              size="sm"
-              aria-label={`Repair ${entity.name} without deducting scrap`}
-              onClick={() => {
-                onRepair(null, cost)
-                setConfirmingRepair(false)
-              }}
-            >
-              Repair without deducting
-            </Btn>
-            <Btn size="sm" variant="ghost" onClick={() => setConfirmingRepair(false)}>
-              Cancel
-            </Btn>
-          </span>
-        ) : (
-          <Btn
-            size="sm"
-            variant="primary"
-            aria-label={`Repair ${entity.name}`}
-            onClick={() => setConfirmingRepair(true)}
-          >
-            Repair &middot; {cost} Scrap
-          </Btn>
-        ))}
+          )}
+        </span>
+      )}
     </>
   )
 

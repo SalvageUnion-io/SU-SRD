@@ -56,7 +56,7 @@ export function SystemsList({
   }
 
   return (
-    <div className="columns-1 gap-3.5 sm:columns-2 [&>*]:mb-3.5 [&>*]:break-inside-avoid">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
       {systems.map((system) => {
         const selected = selectedSystemSlugs.includes(system.id)
         const disabled = !selected && atCap

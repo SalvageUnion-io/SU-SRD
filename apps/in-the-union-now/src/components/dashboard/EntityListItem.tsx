@@ -7,6 +7,7 @@
  * so the component works in tests without a RouterProvider.
  */
 
+import { Trash2 } from 'lucide-react'
 import { Btn, btnVariants, Row } from 'suref-react'
 
 import { cn } from '../../lib/utils'
@@ -96,9 +97,9 @@ export function EntityListItem({
               size="sm"
               aria-label={`Delete ${name}`}
               onClick={() => onDeleteClick(id, name)}
-              className="text-danger hover:text-danger"
+              className="px-2 text-danger hover:text-danger"
             >
-              Delete
+              <Trash2 aria-hidden="true" />
             </Btn>
           </>
         }

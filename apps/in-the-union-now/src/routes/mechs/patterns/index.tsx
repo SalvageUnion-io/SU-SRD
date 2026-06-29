@@ -9,10 +9,12 @@ function MechPatternsPage() {
   const navigate = useNavigate()
 
   return (
-    <main className="mx-auto max-w-6xl p-6 flex flex-col gap-6">
+    <main className="mx-auto max-w-5xl p-6 flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-bold">Mech Patterns</h1>
-        <p className="text-sm text-muted-foreground mt-1">
+        <h1 className="font-cond text-2xl font-bold uppercase tracking-[0.04em] text-ink">
+          Mech Patterns
+        </h1>
+        <p className="font-body text-sm text-wk-muted mt-1">
           Saved mech templates. Instantiate one to create a fresh mech with the same chassis,
           systems, modules, and cargo.
         </p>

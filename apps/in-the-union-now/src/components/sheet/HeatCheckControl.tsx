@@ -25,7 +25,7 @@
  */
 
 import { useState } from 'react'
-import { Btn, MiniBtn } from 'suref-react'
+import { Btn, MiniBtn, Slab } from 'suref-react'
 
 import { performHeatCheck, performPush } from '../../lib/rules/heatCheck'
 import type { HeatCheckEffect, Roll } from '../../lib/rules/heatCheck'
@@ -128,13 +128,8 @@ export function HeatCheckControl({
   const last = mech.lastHeatCheck
 
   return (
-    <div className="rounded-[3px] border-2 border-ink bg-paper p-3">
-      <h3
-        className="mb-2 font-cond text-sm font-bold uppercase tracking-[0.12em]"
-        style={{ color: 'var(--tone-deep, var(--color-ink))' }}
-      >
-        Heat Check
-      </h3>
+    <div>
+      <Slab label="Heat Check" />
 
       {!readOnly && (
         <div className="flex flex-wrap gap-2">
@@ -159,32 +154,34 @@ export function HeatCheckControl({
         </div>
       )}
 
-      {last && (
-        <p
-          role="status"
-          className="mt-2 font-body text-sm text-ink"
-          data-overloaded={last.overloaded}
-          data-outcome={last.outcome ?? ''}
-        >
-          {describeResult(last)}
-        </p>
-      )}
+      <div className="mt-2 min-h-[1.5rem]">
+        {last && (
+          <p
+            role="status"
+            className="font-body text-sm text-ink"
+            data-overloaded={last.overloaded}
+            data-outcome={last.outcome ?? ''}
+          >
+            {describeResult(last)}
+          </p>
+        )}
 
-      {!readOnly && choicePrompt && (
-        <p
-          role="alert"
-          className="mt-2 rounded-[3px] border-[1.5px] border-status-warn bg-paper px-3 py-2 font-body text-sm text-rust"
-        >
-          {choicePrompt === 'system-destroyed'
-            ? 'Mark one System as Destroyed using its status badge below.'
-            : 'Mark one Module as Destroyed using its status badge below.'}
-        </p>
-      )}
+        {!readOnly && choicePrompt && (
+          <p
+            role="alert"
+            className="mt-2 rounded-[3px] border-[1.5px] border-status-warn bg-paper px-3 py-2 font-body text-sm text-rust"
+          >
+            {choicePrompt === 'system-destroyed'
+              ? 'Mark one System as Destroyed using its status badge below.'
+              : 'Mark one Module as Destroyed using its status badge below.'}
+          </p>
+        )}
+      </div>
 
       {mech.destroyed && (
         <p
           role="alert"
-          className="mt-2 flex flex-wrap items-center gap-2 font-cond text-sm font-bold uppercase text-status-bad"
+          className="mt-1.5 flex flex-wrap items-center gap-2 font-cond text-xs font-bold uppercase text-status-bad"
         >
           Mech destroyed
           {!readOnly && (
@@ -200,7 +197,7 @@ export function HeatCheckControl({
         </p>
       )}
       {mech.shutdown && !mech.destroyed && (
-        <p className="mt-1 flex flex-wrap items-center gap-2 font-cond text-xs font-bold uppercase text-rust">
+        <p className="mt-1.5 flex flex-wrap items-center gap-2 font-cond text-xs font-bold uppercase text-rust">
           Shut down
           {!readOnly && (
             <MiniBtn
@@ -215,7 +212,7 @@ export function HeatCheckControl({
         </p>
       )}
       {mech.vulnerable && !mech.destroyed && (
-        <p className="mt-1 flex flex-wrap items-center gap-2 font-cond text-xs font-bold uppercase text-rust">
+        <p className="mt-1.5 flex flex-wrap items-center gap-2 font-cond text-xs font-bold uppercase text-rust">
           Vulnerable
           {!readOnly && (
             <MiniBtn

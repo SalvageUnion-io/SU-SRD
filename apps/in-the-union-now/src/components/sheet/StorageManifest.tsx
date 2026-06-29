@@ -124,8 +124,12 @@ function CargoChit({ lot, side, cargo, linked, readOnly }: CargoChitProps) {
         </span>
       </span>
 
-      {/* Units cost cell */}
-      <span className="flex w-9 shrink-0 flex-col items-center justify-center border-l-[1.5px] border-ink py-1">
+      {/* Units cost cell — tinted ground (not a border) separates it from the
+          name cell and, in turn, sets the move button off on its other edge. */}
+      <span
+        className="flex w-9 shrink-0 flex-col items-center justify-center py-1"
+        style={{ background: 'var(--ground-2)' }}
+      >
         <span className="font-body text-[15px] font-bold leading-none text-ink">{lot.units}</span>
         <span className="font-cond text-[8px] uppercase text-wk-muted">U</span>
       </span>
@@ -138,7 +142,7 @@ function CargoChit({ lot, side, cargo, linked, readOnly }: CargoChitProps) {
           title={disabledReason ?? undefined}
           aria-label={`${side === 'mech' ? 'Stow' : 'Load'} ${lot.name}`}
           onClick={handleMove}
-          className="shrink-0 cursor-pointer border-l-[1.5px] border-ink px-2.5 font-cond text-[10px] font-bold uppercase tracking-[0.04em] text-ink transition-colors duration-[120ms] hover:bg-[var(--color-cargo-pale)] disabled:cursor-not-allowed disabled:opacity-40"
+          className="shrink-0 cursor-pointer px-2.5 font-cond text-[10px] font-bold uppercase tracking-[0.04em] text-ink transition-colors duration-[120ms] hover:bg-[var(--color-cargo-pale)] disabled:cursor-not-allowed disabled:opacity-40"
         >
           {label}
         </button>

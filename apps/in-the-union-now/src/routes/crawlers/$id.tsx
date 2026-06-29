@@ -48,8 +48,8 @@ function CrawlerDetailPage() {
 
   if (!crawler) {
     return (
-      <main className="mx-auto max-w-7xl px-4 py-8">
-        <p className="text-muted-foreground">Crawler not found.</p>
+      <main className="mx-auto max-w-7xl p-6">
+        <p className="text-wk-muted">Crawler not found.</p>
         <a href="/" className={cn(buttonVariants({ variant: 'link', size: 'sm' }))}>
           Back to dashboard
         </a>
@@ -58,14 +58,14 @@ function CrawlerDetailPage() {
   }
 
   return (
-    <main className="mx-auto max-w-7xl px-4 py-8">
+    <main className="mx-auto max-w-7xl p-6">
       {/* Page header */}
       <div className="mb-6 flex items-start justify-between gap-4">
         <div>
           <h1 className="font-cond text-2xl font-bold uppercase tracking-wide text-su-black">
             {crawler.name}
           </h1>
-          <p className="mt-1 font-cond text-xs font-semibold uppercase tracking-widest text-su-ink-soft">
+          <p className="mt-1 font-cond text-xs font-semibold uppercase tracking-widest text-wk-muted">
             Tech level: {crawler.techLevel}
           </p>
         </div>
@@ -90,19 +90,19 @@ function CrawlerDetailPage() {
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
         {/* Left pane — crawler stats summary */}
         <div className="min-w-0 flex-1">
-          <section className="mb-6 rounded-sm border border-su-black bg-white p-4 text-sm">
+          <section className="mb-6 rounded-[3px] border-[1.5px] border-ink bg-paper p-4 text-sm">
             <h2 className="mb-3 font-cond text-sm font-bold uppercase tracking-widest text-su-black">
               Stats
             </h2>
-            <dl className="space-y-2">
+            <dl className="grid grid-cols-2 gap-2">
               <div className="flex gap-2">
-                <dt className="font-cond font-semibold uppercase tracking-wide text-su-ink-soft">
+                <dt className="font-cond font-semibold uppercase tracking-wide text-wk-muted">
                   Bays:
                 </dt>
                 <dd>{(crawler.crawlerBays ?? []).length}</dd>
               </div>
               <div className="flex gap-2">
-                <dt className="font-cond font-semibold uppercase tracking-wide text-su-ink-soft">
+                <dt className="font-cond font-semibold uppercase tracking-wide text-wk-muted">
                   Systems:
                 </dt>
                 <dd>{crawler.systems.length}</dd>
@@ -114,12 +114,12 @@ function CrawlerDetailPage() {
         {/* Right pane — assigned pilots + workspace/actions */}
         <div className="w-full shrink-0 space-y-6 lg:w-72">
           {/* Assigned pilots (via incoming SoftLinks) */}
-          <section className="rounded-sm border border-su-black bg-white p-4">
+          <section className="rounded-[3px] border-[1.5px] border-ink bg-paper p-4">
             <h2 className="mb-3 font-cond text-sm font-bold uppercase tracking-widest text-su-black">
               Assigned Pilots
             </h2>
             {assignedPilots.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-wk-muted">
                 No pilots assigned. Pilots can be assigned from their detail page.
               </p>
             ) : (
@@ -127,7 +127,7 @@ function CrawlerDetailPage() {
                 {assignedPilots.map(({ link, pilot }) => (
                   <li
                     key={link.id}
-                    className="flex items-center gap-2 rounded-sm border border-su-black px-3 py-2 text-sm"
+                    className="flex items-center gap-2 rounded-[3px] border-[1.5px] border-ink px-3 py-2 text-sm"
                   >
                     <span className="flex-1">
                       {pilot ? (
@@ -138,9 +138,7 @@ function CrawlerDetailPage() {
                           {pilot.name}
                         </a>
                       ) : (
-                        <span className="text-muted-foreground">
-                          Unknown pilot ({link.from.id})
-                        </span>
+                        <span className="text-wk-muted">Unknown pilot ({link.from.id})</span>
                       )}
                     </span>
                   </li>
@@ -150,7 +148,7 @@ function CrawlerDetailPage() {
           </section>
 
           {/* Workspace assignment */}
-          <section className="rounded-sm border border-su-black bg-white p-4">
+          <section className="rounded-[3px] border-[1.5px] border-ink bg-paper p-4">
             <h2 className="mb-3 font-cond text-sm font-bold uppercase tracking-widest text-su-black">
               Workspace
             </h2>

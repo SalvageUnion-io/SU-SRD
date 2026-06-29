@@ -39,9 +39,9 @@ const WARN_CONDITIONS = new Set(['exposed'])
 
 function chipToneClasses(condition: string): string {
   if (WARN_CONDITIONS.has(condition.trim().toLowerCase())) {
-    return 'bg-su-sickly-yellow text-su-black'
+    return 'bg-su-sickly-yellow text-ink'
   }
-  return 'bg-su-blue-pale text-su-ink-soft'
+  return 'bg-su-blue-pale text-wk-muted'
 }
 
 // ---------------------------------------------------------------------------
@@ -92,9 +92,9 @@ export function ConditionsEditor({
     'inline-flex items-center gap-1 rounded-[2px] px-2 py-0.5 font-cond text-[11px] font-semibold uppercase tracking-[.05em]'
 
   return (
-    <div className="flex min-h-12 flex-wrap items-center gap-1.5 rounded border-[1.5px] border-su-black bg-su-paper p-2.5">
+    <div className="flex min-h-12 flex-wrap items-center gap-1.5 rounded border-[1.5px] border-ink bg-su-paper p-2.5">
       {conditions.length === 0 && !adding && (
-        <span className="font-mono text-xs text-muted-foreground">None</span>
+        <span className="font-mono text-xs text-wk-muted">None</span>
       )}
 
       {conditions.map((condition, index) =>
@@ -111,7 +111,7 @@ export function ConditionsEditor({
               onClick={() => {
                 void removeAt(index)
               }}
-              className="inline-flex h-3.5 w-3.5 items-center justify-center rounded-[1px] leading-none hover:bg-su-black/10"
+              className="inline-flex h-3.5 w-3.5 items-center justify-center rounded-[1px] leading-none hover:bg-ink/10"
             >
               <span aria-hidden className="text-[12px]">
                 ×
@@ -141,7 +141,7 @@ export function ConditionsEditor({
             onBlur={() => {
               void commitAdd()
             }}
-            className="w-28 rounded-[2px] border border-su-black bg-su-white px-1.5 py-0.5 font-cond text-[11px] uppercase tracking-[.05em] text-su-black focus:outline-none focus:ring-1 focus:ring-su-orange"
+            className="w-28 rounded-[2px] border border-ink bg-su-white px-1.5 py-0.5 font-cond text-[11px] uppercase tracking-[.05em] text-ink focus:outline-none focus:ring-1 focus:ring-su-orange"
           />
         ) : (
           <button
@@ -150,7 +150,7 @@ export function ConditionsEditor({
             onClick={startAdd}
             className={cn(
               chipBase,
-              'border border-dashed border-su-black/40 bg-transparent text-su-ink-soft hover:border-su-black hover:text-su-black'
+              'border border-dashed border-ink/40 bg-transparent text-wk-muted hover:border-ink hover:text-ink'
             )}
           >
             + Add

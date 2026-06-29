@@ -64,24 +64,18 @@ export function NpcFactsEditor({
     'inline-flex items-center gap-1 rounded-[2px] px-2 py-0.5 font-cond text-[11px] font-semibold tracking-[.03em]'
 
   return (
-    <div className="flex min-h-10 flex-wrap items-center gap-1.5 rounded border-[1.5px] border-su-black bg-su-paper p-2">
+    <div className="flex min-h-10 flex-wrap items-center gap-1.5 rounded border-[1.5px] border-ink bg-su-paper p-2">
       {facts.length === 0 && !adding && (
-        <span className="font-mono text-xs text-muted-foreground">No facts yet</span>
+        <span className="font-mono text-xs text-wk-muted">No facts yet</span>
       )}
 
       {facts.map((fact, index) =>
         readOnly ? (
-          <span
-            key={`${fact}-${index}`}
-            className={cn(chipBase, 'bg-su-blue-pale text-su-ink-soft')}
-          >
+          <span key={`${fact}-${index}`} className={cn(chipBase, 'bg-su-blue-pale text-wk-muted')}>
             {fact}
           </span>
         ) : (
-          <span
-            key={`${fact}-${index}`}
-            className={cn(chipBase, 'bg-su-blue-pale text-su-ink-soft')}
-          >
+          <span key={`${fact}-${index}`} className={cn(chipBase, 'bg-su-blue-pale text-wk-muted')}>
             {fact}
             <button
               type="button"
@@ -89,7 +83,7 @@ export function NpcFactsEditor({
               onClick={() => {
                 void removeAt(index)
               }}
-              className="inline-flex h-3.5 w-3.5 items-center justify-center rounded-[1px] leading-none hover:bg-su-black/10"
+              className="inline-flex h-3.5 w-3.5 items-center justify-center rounded-[1px] leading-none hover:bg-ink/10"
             >
               <span aria-hidden className="text-[12px]">
                 ×
@@ -119,7 +113,7 @@ export function NpcFactsEditor({
             onBlur={() => {
               void commitAdd()
             }}
-            className="w-40 rounded-[2px] border border-su-black bg-su-white px-1.5 py-0.5 font-cond text-[11px] tracking-[.03em] text-su-black focus:outline-none focus:ring-1 focus:ring-su-orange"
+            className="w-40 rounded-[2px] border border-ink bg-su-white px-1.5 py-0.5 font-cond text-[11px] tracking-[.03em] text-ink focus:outline-none focus:ring-1 focus:ring-su-orange"
           />
         ) : (
           <button
@@ -128,7 +122,7 @@ export function NpcFactsEditor({
             onClick={startAdd}
             className={cn(
               chipBase,
-              'border border-dashed border-su-black/40 bg-transparent text-su-ink-soft hover:border-su-black hover:text-su-black'
+              'border border-dashed border-ink/40 bg-transparent text-wk-muted hover:border-ink hover:text-ink'
             )}
           >
             + Add Fact

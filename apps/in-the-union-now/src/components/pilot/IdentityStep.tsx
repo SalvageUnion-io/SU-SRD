@@ -96,9 +96,7 @@ export function IdentityStep({
   }
 
   return (
-    <div className="max-w-[760px] space-y-5">
-      <p className="text-sm text-wk-muted">Roll for random results or type your own.</p>
-
+    <div className="max-w-3xl space-y-5">
       <Field label="Name" required htmlFor="pilot-name">
         <Input
           id="pilot-name"

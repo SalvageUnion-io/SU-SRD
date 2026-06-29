@@ -195,7 +195,7 @@ function WorkspaceListInner({ onClose, store }: WorkspaceListInnerProps) {
                           if (e.key === 'Enter') void handleRename(ws.id)
                           if (e.key === 'Escape') cancelEditing()
                         }}
-                        className="flex-1 px-2 py-1"
+                        className="min-h-11 flex-1 px-3 py-1.5 sm:min-h-9"
                         aria-label={`Rename workspace ${ws.name}`}
                       />
                       <Btn
