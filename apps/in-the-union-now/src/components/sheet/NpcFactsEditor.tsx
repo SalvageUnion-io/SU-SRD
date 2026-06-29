@@ -71,11 +71,17 @@ export function NpcFactsEditor({
 
       {facts.map((fact, index) =>
         readOnly ? (
-          <span key={`${fact}-${index}`} className={cn(chipBase, 'bg-su-blue-pale text-wk-muted')}>
+          <span
+            key={`${fact}-${index}`}
+            className={cn(chipBase, 'bg-su-blue-pale text-su-ink-soft')}
+          >
             {fact}
           </span>
         ) : (
-          <span key={`${fact}-${index}`} className={cn(chipBase, 'bg-su-blue-pale text-wk-muted')}>
+          <span
+            key={`${fact}-${index}`}
+            className={cn(chipBase, 'bg-su-blue-pale text-su-ink-soft')}
+          >
             {fact}
             <button
               type="button"

@@ -41,7 +41,9 @@ function chipToneClasses(condition: string): string {
   if (WARN_CONDITIONS.has(condition.trim().toLowerCase())) {
     return 'bg-su-sickly-yellow text-ink'
   }
-  return 'bg-su-blue-pale text-wk-muted'
+  // text-su-ink-soft (not wk-muted) on blue-pale: wk-muted is ~3.96:1 here,
+  // below WCAG AA 4.5:1 for this 11px chip text; su-ink-soft is ~9.2:1.
+  return 'bg-su-blue-pale text-su-ink-soft'
 }
 
 // ---------------------------------------------------------------------------
