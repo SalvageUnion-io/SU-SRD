@@ -211,6 +211,10 @@
         },
         "description": "Other source books where this entity is reprinted"
       },
+      "expansion": {
+        "type": "boolean",
+        "description": "True for expansion \"upgrade\"/found bays acquired during play (built for a resource cost or found as a scenario facility); absent/false for base facilities pre-installed on every Union Crawler. A stored data tag (mirrors the legalStarting convention) — never computed from source/cost/techLevel."
+      },
       "damagedEffect": { "type": "string", "description": "Effect when this bay is damaged" },
       "npc": {
         "description": "NPC crew member who operates this bay",

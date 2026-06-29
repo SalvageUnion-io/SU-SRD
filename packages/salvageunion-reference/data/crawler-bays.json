@@ -1035,6 +1035,7 @@
   {
     "id": "9ed4cb34-718a-4515-a1a5-b718c2cbe23d",
     "name": "Bio-Mech Bay",
+    "expansion": true,
     "source": "We Were Here First!",
     "cost": {
       "scrap": 5,
@@ -1052,6 +1053,7 @@
   {
     "id": "fb183632-8b3e-4962-82a8-df28e2d9479e",
     "name": "Bio-Crafting Bay",
+    "expansion": true,
     "source": "We Were Here First!",
     "cost": {
       "scrap": 5,
@@ -1069,6 +1071,7 @@
   {
     "id": "3d0b6a77-6213-4596-bc90-00eb1c7eb6ee",
     "name": "Nanite Processing Bay",
+    "expansion": true,
     "source": "False Flag",
     "cost": {
       "scrap": 5,
@@ -1085,6 +1088,7 @@
   {
     "id": "f9fe912f-5a92-4c00-8648-18432ea2988b",
     "name": "VR Tubes",
+    "expansion": true,
     "source": "Rainmaker",
     "techLevel": 5,
     "salvageValue": 1,

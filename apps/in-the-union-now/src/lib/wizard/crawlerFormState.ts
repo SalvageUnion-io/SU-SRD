@@ -175,26 +175,32 @@ export function crawlerFormToUpdatePatch(form: CrawlerWizardFormState): CrawlerW
 /**
  * Build the default crawler-bay set seeded onto every new crawler.
  *
- * The official crawler sheets pre-print all SRD bays as fixed sections, so a
- * fresh crawler installs the full catalog. Each entry seeds the embedded NPC's
- * current HP from the bay's `npc.hitPoints` (4). The array is extensible — a
- * crawler can gain more bays later.
+ * Only the BASE crawler facilities are pre-installed: the Core Book's Union
+ * Crawler Bays (Command, Mech, Storage, …; "Your Union Crawler has the
+ * following Bays", Core Book p.221). Expansion bays (`expansion: true` —
+ * Bio-Mech Bay, Bio-Crafting Bay, Nanite Processing Bay, VR Tubes) are
+ * acquired during play (built for a resource cost or found as a scenario
+ * facility), so they are filtered out of the seed. Each seeded entry seeds the
+ * embedded NPC's current HP from the bay's `npc.hitPoints` (4). The array is
+ * extensible — a crawler can gain expansion bays later.
  */
 export function seedDefaultCrawlerBays(): CrawlerBayEntry[] {
-  type BayWithNpc = { id: string; npc?: { hitPoints?: number } }
+  type BayWithNpc = { id: string; expansion?: boolean; npc?: { hitPoints?: number } }
   let bays: BayWithNpc[]
   try {
     bays = SalvageUnionReference.CrawlerBays.all() as unknown as BayWithNpc[]
   } catch {
     bays = []
   }
-  return bays.map((bay) => {
-    const maxHP = bay.npc?.hitPoints
-    return {
-      bayRef: bay.id,
-      ...(typeof maxHP === 'number' ? { npcCurrentHP: maxHP } : {}),
-    }
-  })
+  return bays
+    .filter((bay) => !bay.expansion)
+    .map((bay) => {
+      const maxHP = bay.npc?.hitPoints
+      return {
+        bayRef: bay.id,
+        ...(typeof maxHP === 'number' ? { npcCurrentHP: maxHP } : {}),
+      }
+    })
 }
 
 /** Structured npcName/npcDescription patch from a crew form (only set keys). */
