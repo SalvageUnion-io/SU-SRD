@@ -104,7 +104,7 @@ describe('computeCrawlerCapacity — happy path', () => {
     expect(v?.details.used).toBe(2)
   })
 
-  it('a single weapons system plus many non-weapon systems is within cap', () => {
+  it('a single weapons system is within cap (non-weapon systems are filtered out upstream)', () => {
     // Non-weapon systems are filtered out by the caller, so they never reach
     // here — one weapons system at the cap is fine no matter how many other
     // systems the crawler installs.

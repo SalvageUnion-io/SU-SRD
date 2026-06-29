@@ -6,12 +6,22 @@ type SystemsListProps = {
   systems: SURefSystem[]
   selectedSystemSlugs: string[]
   /**
-   * Hard cap on how many systems may be installed — the crawler type's
+   * Hard cap on how many WEAPONS systems may be installed — the crawler type's
    * Armament-Bay weapons-system allowance (1, or 2 for a Battle Crawler; Core
-   * Book p. 213 / p. 216). Once this many are selected, the remaining cards are
-   * disabled until one is removed.
+   * Book p. 213 / p. 216). Once this many weapons are installed, the remaining
+   * cards are disabled until one is removed.
    */
   maxSelectable: number
+  /**
+   * How many WEAPONS systems are currently installed. The cap counts weapons
+   * only — NOT `selectedSystemSlugs.length`. A crawler may also carry
+   * non-weapon systems (Cargo Pod, Armour Plating, …) which this rule does not
+   * limit and which never appear in the weapons-only catalog, so counting all
+   * selected slugs would wrongly lock the picker for a legacy crawler that
+   * carries any non-weapon system (it could neither add the allowed weapon nor
+   * remove the stranded system).
+   */
+  installedWeaponCount: number
   onChange: (slugs: string[]) => void
 }
 
@@ -26,9 +36,10 @@ export function SystemsList({
   systems,
   selectedSystemSlugs,
   maxSelectable,
+  installedWeaponCount,
   onChange,
 }: SystemsListProps) {
-  const atCap = selectedSystemSlugs.length >= maxSelectable
+  const atCap = installedWeaponCount >= maxSelectable
 
   function toggle(systemId: string) {
     if (selectedSystemSlugs.includes(systemId)) {

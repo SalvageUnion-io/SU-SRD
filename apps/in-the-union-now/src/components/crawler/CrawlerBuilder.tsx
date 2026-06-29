@@ -332,7 +332,8 @@ export function CrawlerBuilder({
               {crawlerCapacity.weaponSystemsMax > 0 ? crawlerCapacity.weaponSystemsMax : '—'} weapon
               systems
             </span>{' '}
-            · Tech Level {form.techLevel ?? '—'} and below. Capacity warns, never blocks.
+            · Tech Level {form.techLevel ?? '—'} and below. The Armament-Bay cap is enforced — one
+            Weapons System per crawler (two for a Battle Crawler).
           </>
         )
       case 'Crew':
@@ -371,6 +372,7 @@ export function CrawlerBuilder({
           systems={filteredSystems}
           selectedSystemSlugs={form.systems}
           maxSelectable={crawlerCapacity.weaponSystemsMax}
+          installedWeaponCount={crawlerCapacity.weaponSystemsUsed}
           onChange={(systems) => updateForm({ systems })}
         />
       )}

@@ -540,4 +540,69 @@ describe('CrawlerBuilder — edit mode', () => {
       expect(bay?.npcCurrentHP).toBe(1)
     })
   }, 30000)
+
+  it('a legacy crawler carrying a non-weapon system does not lock the weapons picker', async () => {
+    // Regression: the Armament-Bay cap counts WEAPONS only. A legacy crawler
+    // that carries a non-weapon system (Cargo Pod, Armour Plating, …) — which
+    // the old wizard allowed and which never appears in the weapons-only
+    // catalog — must NOT count toward the cap. Counting all selected slugs
+    // would lock the picker (can't add the allowed weapon, can't remove the
+    // stranded system → permanent dead-end).
+    const nonWeapon = nonWeaponSystemAtTL(1)
+    const input = crawlerFormToCreateInput(
+      {
+        name: 'Old Hauler',
+        techLevel: 1,
+        type: null,
+        systems: [nonWeapon.id],
+        crew: {},
+        scrapPool: { ...EMPTY_SCRAP_POOL },
+        upgradePool: 0,
+      },
+      { maxSP: 20, crawlerBays: seedDefaultCrawlerBays() }
+    )
+    const crawler = await useEntityStore.getState().create('crawler', input)
+    const played = useEntityStore.getState().get('crawler', crawler.id)!
+
+    render(
+      <CrawlerBuilder
+        crawlerId={crawler.id}
+        initialState={crawlerToFormState(played)}
+        onComplete={() => {}}
+        onCancel={() => {}}
+      />
+    )
+
+    await waitFor(() => {
+      expect(getNextButton().disabled).toBe(false)
+    })
+    await clickNext() // -> Systems
+
+    // The stranded non-weapon system does NOT count toward the weapons cap.
+    const weapon = weaponSystemAtTL(1)
+    await waitFor(() => {
+      expect(screen.getByTestId('weapon-system-count').textContent).toContain('0 / 1')
+    })
+    // The allowed weapon is still selectable — the picker is not locked.
+    const weaponBtn = screen.getByRole('button', { name: weapon.name })
+    expect(weaponBtn).toBeTruthy()
+
+    // Installing it ticks the weapon count to the cap; the non-weapon system
+    // is preserved alongside it on save (never silently dropped).
+    await pick(weapon.name)
+    expect(screen.getByTestId('weapon-system-count').textContent).toContain('1 / 1')
+
+    await clickNext() // Crew
+    await clickNext() // Identity
+    await clickNext() // Review
+    const save = screen.getByRole('button', { name: /Save Crawler/i })
+    await act(async () => {
+      fireEvent.click(save)
+    })
+    await waitFor(() => {
+      const c = useEntityStore.getState().get('crawler', crawler.id)!
+      expect(c.systems).toContain(nonWeapon.id)
+      expect(c.systems).toContain(weapon.id)
+    })
+  }, 30000)
 })
