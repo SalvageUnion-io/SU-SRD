@@ -23,7 +23,7 @@ function NewMechRoute() {
   }
 
   return (
-    <main className="min-h-dvh bg-background">
+    <main>
       <MechWizard onComplete={handleComplete} onCancel={handleCancel} />
     </main>
   )

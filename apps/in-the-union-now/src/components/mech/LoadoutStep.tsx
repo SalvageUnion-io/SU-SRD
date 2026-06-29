@@ -76,7 +76,7 @@ export function LoadoutStep({
       <div
         role="tablist"
         aria-label="Loadout"
-        className="mb-5 flex gap-1 border-b-[1.5px] border-wk-faint"
+        className="mb-6 flex gap-1 border-b-[1.5px] border-wk-faint"
       >
         <TabButton active={tab === 'systems'} onClick={() => setTab('systems')}>
           Systems

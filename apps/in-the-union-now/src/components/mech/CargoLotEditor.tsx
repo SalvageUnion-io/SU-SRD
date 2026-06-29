@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Btn, Field, Input } from 'suref-react'
+import { Btn, Field, Input, MiniBtn } from 'suref-react'
 import type { CargoLot, CargoLotCategory } from '../../lib/schemas/cargoLot'
 import { makeScrapLot, makeUnitLot, totalLotUnits } from '../../lib/schemas/cargoLot'
 import { cn } from '../../lib/utils'
@@ -51,7 +51,7 @@ export function CargoLotEditor({ lots, onChange, className }: CargoLotEditorProp
             <li
               key={lot.id}
               data-testid="cargo-lot"
-              className="flex items-center gap-3 rounded-[2px] border-[1.5px] border-ink bg-paper px-3 py-1.5 text-sm"
+              className="flex items-center gap-3 rounded-[3px] border-[1.5px] border-ink bg-paper px-3 py-1.5 text-sm"
             >
               <span className="min-w-0 flex-1">
                 <span className="block truncate font-cond text-sm font-bold uppercase text-ink">
@@ -67,21 +67,20 @@ export function CargoLotEditor({ lots, onChange, className }: CargoLotEditorProp
                 {lot.units}
                 <span className="text-[10px] text-wk-muted">U</span>
               </span>
-              <Btn
-                variant="ghost"
-                size="sm"
+              <MiniBtn
                 aria-label={`Remove ${lot.name}`}
                 onClick={() => removeLot(lot.id)}
+                className="shrink-0"
               >
-                Remove
-              </Btn>
+                ✕ Remove
+              </MiniBtn>
             </li>
           ))}
         </ul>
       )}
 
       {/* Add-lot form */}
-      <div className="flex flex-wrap items-end gap-2">
+      <div className="grid grid-cols-2 items-end gap-2">
         {cat !== 'SCRAP' && (
           <Field label="Item name" htmlFor="cargo-lot-name" className="min-w-40 flex-1">
             <Input

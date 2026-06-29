@@ -99,7 +99,7 @@ export function AssignToWorkspaceButton({
       <div className="flex items-center gap-2">
         <label
           htmlFor={`workspace-assign-${entityId}`}
-          className="text-sm font-medium text-muted-foreground"
+          className="text-sm font-medium text-wk-muted"
         >
           Workspace:
         </label>
@@ -108,7 +108,7 @@ export function AssignToWorkspaceButton({
           value={selectValue}
           onChange={(e) => void handleChange(e)}
           disabled={pending}
-          className="rounded border border-input bg-background px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
+          className="min-h-11 rounded-[3px] border-[1.5px] border-ink bg-paper py-2 pl-3 pr-8 text-sm focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22] disabled:opacity-50 sm:min-h-9"
           aria-label="Assign to workspace"
         >
           <option value={UNASSIGNED_VALUE}>Unassigned</option>
@@ -120,7 +120,7 @@ export function AssignToWorkspaceButton({
         </select>
       </div>
       {error && (
-        <p className="mt-1 text-xs text-destructive" role="alert">
+        <p className="mt-1 text-xs text-danger" role="alert">
           {error}
         </p>
       )}

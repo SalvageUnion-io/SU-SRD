@@ -47,8 +47,8 @@ function PilotDetailPage() {
 
   if (!pilot) {
     return (
-      <main className="mx-auto max-w-7xl px-4 py-8">
-        <p className="text-muted-foreground">Pilot not found.</p>
+      <main className="mx-auto max-w-7xl p-6">
+        <p className="text-wk-muted">Pilot not found.</p>
         <Link to="/" className={cn(buttonVariants({ variant: 'link', size: 'sm' }))}>
           Back to dashboard
         </Link>
@@ -57,7 +57,7 @@ function PilotDetailPage() {
   }
 
   return (
-    <main className="mx-auto max-w-7xl px-4 py-8">
+    <main className="mx-auto max-w-7xl p-6">
       {/* Page header */}
       <div className="mb-6 flex items-start justify-between gap-4">
         <div>
@@ -65,9 +65,9 @@ function PilotDetailPage() {
             {pilot.name}
           </h1>
           {pilot.callsign && (
-            <p className="mt-0.5 text-sm text-muted-foreground">&ldquo;{pilot.callsign}&rdquo;</p>
+            <p className="mt-0.5 text-sm text-wk-muted">&ldquo;{pilot.callsign}&rdquo;</p>
           )}
-          <p className="mt-1 font-cond text-xs font-semibold uppercase tracking-widest text-su-ink-soft">
+          <p className="mt-1 font-cond text-xs font-semibold uppercase tracking-widest text-wk-muted">
             Class: {resolveClassName(pilot.classRef)}
           </p>
         </div>
@@ -93,26 +93,31 @@ function PilotDetailPage() {
         {/* Left pane — summary + sheet */}
         <div className="min-w-0 flex-1">
           {/* Summary */}
-          <section className="mb-6 rounded-sm border border-su-black bg-white p-4 text-sm">
-            <dl className="space-y-2">
-              {pilot.conditions.length > 0 && (
-                <div className="flex gap-2">
-                  <dt className="font-cond font-semibold uppercase tracking-wide text-su-ink-soft">
-                    Conditions:
-                  </dt>
-                  <dd>{pilot.conditions.join(', ')}</dd>
-                </div>
-              )}
-              {pilot.motto && (
-                <div className="flex gap-2">
-                  <dt className="font-cond font-semibold uppercase tracking-wide text-su-ink-soft">
-                    Motto:
-                  </dt>
-                  <dd>{pilot.motto}</dd>
-                </div>
-              )}
-            </dl>
-          </section>
+          {(pilot.conditions.length > 0 || pilot.motto) && (
+            <section className="mb-6 rounded-[3px] border-[1.5px] border-ink bg-paper p-4 text-sm">
+              <h2 className="mb-3 font-cond text-sm font-bold uppercase tracking-widest text-su-black">
+                Summary
+              </h2>
+              <dl className="space-y-2">
+                {pilot.conditions.length > 0 && (
+                  <div className="flex gap-2">
+                    <dt className="font-cond font-semibold uppercase tracking-wide text-wk-muted">
+                      Conditions:
+                    </dt>
+                    <dd>{pilot.conditions.join(', ')}</dd>
+                  </div>
+                )}
+                {pilot.motto && (
+                  <div className="flex gap-2">
+                    <dt className="font-cond font-semibold uppercase tracking-wide text-wk-muted">
+                      Motto:
+                    </dt>
+                    <dd>{pilot.motto}</dd>
+                  </div>
+                )}
+              </dl>
+            </section>
+          )}
 
           {/* Abilities + Equipment via the SRD entity display */}
           <section className="mb-6">
@@ -123,13 +128,13 @@ function PilotDetailPage() {
         {/* Right pane — wiring + actions */}
         <div className="w-full shrink-0 space-y-6 lg:w-72">
           {/* Crawler assignment */}
-          <section className="rounded-sm border border-su-black bg-white p-4">
+          <section className="rounded-[3px] border-[1.5px] border-ink bg-paper p-4">
             <h2 className="mb-3 font-cond text-sm font-bold uppercase tracking-widest text-su-black">
               Crawler
             </h2>
             {crawlerLink ? (
               <div className="flex items-center gap-3 text-sm">
-                <span className="flex-1 text-muted-foreground">
+                <span className="flex-1 text-wk-muted">
                   Crawler linked:{' '}
                   <span className="font-medium text-foreground">{crawlerLink.to.id}</span>
                 </span>
@@ -141,7 +146,7 @@ function PilotDetailPage() {
               </div>
             ) : (
               <div className="flex items-center gap-3">
-                <p className="text-sm text-muted-foreground">No crawler assigned.</p>
+                <p className="text-sm text-wk-muted">No crawler assigned.</p>
                 <AssignCrawlerToPilot
                   pilotId={id}
                   onAssigned={() => void navigate({ to: '/pilots/$id', params: { id } })}
@@ -151,7 +156,7 @@ function PilotDetailPage() {
           </section>
 
           {/* Workspace assignment */}
-          <section className="rounded-sm border border-su-black bg-white p-4">
+          <section className="rounded-[3px] border-[1.5px] border-ink bg-paper p-4">
             <h2 className="mb-3 font-cond text-sm font-bold uppercase tracking-widest text-su-black">
               Workspace
             </h2>

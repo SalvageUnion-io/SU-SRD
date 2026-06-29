@@ -13,7 +13,7 @@ import { useState } from 'react'
 import { findChassisByRef } from '../../../lib/rules/derivedStats'
 import { useEntityStore } from '../../../stores/entityStore'
 import type { MechPattern } from '../../../lib/schemas/pattern'
-import { Button } from '../../ui/button'
+import { Btn } from 'suref-react'
 
 type InstantiateFromPatternProps = {
   pattern: MechPattern
@@ -53,18 +53,17 @@ export function InstantiateFromPattern({ pattern, onSuccess }: InstantiateFromPa
 
   return (
     <div className="flex flex-col gap-1">
-      <Button
+      <Btn
         type="button"
-        variant="outline"
         size="sm"
         onClick={() => void handleInstantiate()}
         disabled={isInstantiating}
         aria-label={`Instantiate mech from pattern ${pattern.name}`}
       >
         {isInstantiating ? 'Creating…' : 'Instantiate'}
-      </Button>
+      </Btn>
       {error && (
-        <p className="text-xs text-destructive" role="alert">
+        <p className="text-xs text-danger" role="alert">
           {error}
         </p>
       )}

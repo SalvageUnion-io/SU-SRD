@@ -20,7 +20,7 @@ function KvRow({ label, value }: { label: string; value: string | null }) {
       <span className="w-[120px] shrink-0 font-cond text-xs font-bold uppercase tracking-[0.1em] text-wk-muted">
         {label}
       </span>
-      <span className={value ? 'font-body text-[13.5px] text-ink' : 'text-rust'}>
+      <span className={value ? 'font-body text-sm text-ink' : 'text-rust'}>
         {value ?? 'required'}
       </span>
     </div>
@@ -57,7 +57,7 @@ export function CrawlerReviewStep({
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.1fr_1fr]">
       {/* kv-panel */}
-      <div className="self-start rounded-md border-[1.5px] border-ink bg-paper px-6 py-4 text-sm">
+      <div className="self-start rounded-[3px] border-[1.5px] border-ink bg-paper p-4 text-sm">
         {rows.map(([k, v]) => (
           <KvRow key={k} label={k} value={v} />
         ))}

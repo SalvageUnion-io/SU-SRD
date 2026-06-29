@@ -96,7 +96,7 @@ export function SheetHero({
 
         {(trackers || inset) && (
           <div className="flex flex-col items-end gap-2.5 sm:ml-auto">
-            {trackers && <div className="flex flex-wrap justify-end gap-[9px]">{trackers}</div>}
+            {trackers && <div className="flex flex-wrap justify-end gap-2">{trackers}</div>}
             {inset}
           </div>
         )}

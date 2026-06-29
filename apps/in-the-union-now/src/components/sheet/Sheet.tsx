@@ -214,7 +214,7 @@ export function Sheet({
   if (!entity) {
     return (
       <main className="mx-auto max-w-7xl p-3 sm:p-6">
-        <p className="text-muted-foreground text-sm">Entity not found.</p>
+        <p className="text-wk-muted text-sm">Entity not found.</p>
       </main>
     )
   }

@@ -119,7 +119,7 @@ export function ShareSnapshotScreen({
     return (
       <main className="mx-auto max-w-5xl p-6">
         <h1 className="mb-2 text-xl font-bold">Nothing to share</h1>
-        <p className="text-muted-foreground mb-4 text-sm">
+        <p className="text-wk-muted mb-4 text-sm">
           This {kind} no longer exists, so there is nothing to publish.
         </p>
         <AppLink href="/" className="text-sm underline">

@@ -43,7 +43,7 @@ type InstallStepProps = {
 /**
  * Install Systems / Install Modules step (design §3.2 mech wizard — NOT the
  * master-detail skeleton): a `1fr 300px` grid. Left: TL filter chips over a
- * 2-col grid of compact Sel-wrapped entity cards (gap 25 between columns).
+ * row-major 2-col grid of compact entity cards (gap-4).
  * Right: the 'Loadout · {name}' panel with pip budget tracks + head-mode
  * chosen cards. Selection is never blocked — over-capacity shows honestly in
  * the budget track (capacity stays soft, plan 3.4).
@@ -78,7 +78,7 @@ export function InstallStep({
   }
 
   return (
-    <div className="grid grid-cols-1 gap-[25px] lg:grid-cols-[minmax(0,1fr)_300px]">
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
       {/* Left — TL filter chips + 2-col compact Sel grid */}
       <div className="min-w-0">
         <div className="flex flex-wrap gap-2" role="group" aria-label="Filter by tech level">
@@ -93,7 +93,7 @@ export function InstallStep({
           ))}
         </div>
 
-        <div className="mt-[25px] columns-1 gap-3.5 sm:columns-2 [&>*]:mb-3.5 [&>*]:break-inside-avoid">
+        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
           {visible.map((item) => (
             <InstallCard
               key={item.id}

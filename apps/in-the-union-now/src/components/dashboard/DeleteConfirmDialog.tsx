@@ -41,7 +41,7 @@ function DeleteConfirmDialogInner({
       >
         <h2
           id="delete-dialog-title"
-          className="font-cond mb-2 text-lg font-bold uppercase tracking-[.04em] text-ink"
+          className="font-cond mb-2 text-base font-bold uppercase tracking-[.06em] text-ink"
         >
           Delete {entityName}?
         </h2>
@@ -49,10 +49,10 @@ function DeleteConfirmDialogInner({
           This action cannot be undone. {entityName} will be permanently removed.
         </p>
         <div className="flex justify-end gap-3">
-          <Btn variant="ghost" onClick={onCancel}>
+          <Btn variant="ghost" size="sm" onClick={onCancel}>
             Cancel
           </Btn>
-          <Btn variant="danger" onClick={onConfirm}>
+          <Btn variant="danger" size="sm" onClick={onConfirm}>
             Delete
           </Btn>
         </div>

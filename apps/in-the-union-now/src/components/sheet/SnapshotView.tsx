@@ -142,14 +142,12 @@ export function SnapshotView({ snapshot }: SnapshotViewProps) {
     return (
       <main className="mx-auto max-w-5xl p-6">
         <h1 className="mb-2 text-xl font-bold">Could not render snapshot</h1>
-        <p className="text-muted-foreground mb-1 text-sm">
+        <p className="text-wk-muted mb-1 text-sm">
           This snapshot&rsquo;s data doesn&rsquo;t match any build this app knows how to show. It
           may have been published by a newer or older version.
         </p>
         {!result.ok && (
-          <p className="text-muted-foreground mb-4 break-words font-mono text-xs">
-            {result.reason}
-          </p>
+          <p className="text-wk-muted mb-4 break-words font-mono text-xs">{result.reason}</p>
         )}
         <AppLink href="/" className="text-sm underline">
           &larr; Back to dashboard

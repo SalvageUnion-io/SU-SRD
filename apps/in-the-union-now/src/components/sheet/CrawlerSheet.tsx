@@ -124,7 +124,7 @@ function CrawlerBayCard({
 
   if (!bay) {
     return (
-      <div className="rounded border border-border px-2 py-1 text-sm text-muted-foreground">
+      <div className="rounded border border-ink px-2 py-1 text-sm text-wk-muted">
         {entry.bayRef}
       </div>
     )
@@ -582,7 +582,7 @@ export function CrawlerSheet({
                   {system ? (
                     <ReferenceEntityDisplay data={system} compact />
                   ) : (
-                    <div className="rounded border border-border px-2 py-1 text-sm text-muted-foreground">
+                    <div className="rounded border border-ink px-2 py-1 text-sm text-wk-muted">
                       {slug}
                     </div>
                   )}

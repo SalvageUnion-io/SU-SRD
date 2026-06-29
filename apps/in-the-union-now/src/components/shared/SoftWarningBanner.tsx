@@ -38,7 +38,7 @@ type SoftWarningBannerProps = {
 
 const SEVERITY_STRIP: Record<SoftWarningSeverity, string> = {
   info: 'border-[var(--color-su-blue)] bg-[var(--color-su-blue-pale)] text-[var(--color-su-black)]',
-  warn: 'border-[var(--color-roll-failure)] bg-[#d7c37d33] text-[var(--color-su-black)]',
+  warn: 'border-[var(--color-roll-failure)] bg-[var(--color-su-sickly-yellow)]/20 text-[var(--color-su-black)]',
 }
 
 const SEVERITY_ICON: Record<SoftWarningSeverity, string> = {
@@ -59,11 +59,7 @@ export function SoftWarningBanner({
   if (warnings.length === 0) return null
 
   return (
-    <div
-      role="alert"
-      aria-live="polite"
-      className={cn('rounded border px-4 py-3 text-sm', className)}
-    >
+    <div role="alert" aria-live="polite" className={cn('px-4 py-3 text-sm', className)}>
       <ul className={cn('space-y-1', (onSaveAnyway || onFixIt) && 'mb-3')}>
         {warnings.map((w) => (
           <li

@@ -18,7 +18,7 @@ function CrawlersNewPage() {
   }
 
   return (
-    <main className="min-h-dvh bg-background">
+    <main>
       <CrawlerBuilder onComplete={handleComplete} onCancel={handleCancel} />
     </main>
   )

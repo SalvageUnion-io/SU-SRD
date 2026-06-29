@@ -73,7 +73,7 @@ export function WizShell({
 
   const heading = (
     <header>
-      <h1 className="font-cond text-[23px] font-bold uppercase leading-tight tracking-[0.01em] text-ink">
+      <h1 className="font-cond text-2xl font-bold uppercase leading-tight tracking-[0.01em] text-ink">
         {title}
       </h1>
       {subtitle && <div className="mt-1 font-body text-[13px] text-wk-muted">{subtitle}</div>}
@@ -95,18 +95,19 @@ export function WizShell({
         />
       </aside>
 
-      {/* (b) optional 320px option pane — owns the step heading when present */}
+      {/* (b) optional 320px option pane — carries only its list; the step
+          heading always renders in the main pane so the h1 stays anchored
+          horizontally across every step (option-pane steps and others alike) */}
       {optionPane && (
         <section className="shrink-0 border-b-[1.5px] border-ink px-5 py-5 lg:w-[320px] lg:overflow-y-auto lg:border-b-0 lg:border-r-[1.5px] lg:px-[26px] lg:py-9">
-          {heading}
-          <div className="mt-4">{optionPane}</div>
+          {optionPane}
         </section>
       )}
 
-      {/* (c) flex-1 main pane */}
+      {/* (c) flex-1 main pane — always owns the step heading */}
       <main className="flex min-w-0 flex-1 flex-col px-5 py-5 lg:px-10 lg:py-[34px]">
-        {!optionPane && heading}
-        <div className={cn('min-h-0 flex-1', !optionPane && 'mt-4')}>{children}</div>
+        {heading}
+        <div className="mt-4 min-h-0 flex-1 pb-24">{children}</div>
 
         {notice && <div className="mt-6">{notice}</div>}
 
@@ -119,7 +120,7 @@ export function WizShell({
         <footer className="pointer-events-none sticky bottom-4 z-40 mt-6 flex justify-end">
           <div
             className={cn(
-              'pointer-events-auto flex items-center gap-2 rounded-xl border-[1.5px] border-wk-faint bg-wk-bg/95 p-2 shadow-lg backdrop-blur',
+              'pointer-events-auto flex items-center gap-2 rounded-lg border-[1.5px] border-wk-faint bg-wk-bg/95 p-2 shadow-md backdrop-blur',
               ctaFullWidth && 'w-full flex-col items-stretch sm:w-auto sm:flex-row sm:items-center'
             )}
           >

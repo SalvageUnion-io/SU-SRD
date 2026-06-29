@@ -50,7 +50,7 @@ export function CrawlerCrewStep({ bays, selectedType, crew, onChange }: CrawlerC
   }
 
   return (
-    <div className="max-w-[760px] space-y-5">
+    <div className="max-w-3xl space-y-5">
       <p className="font-body text-xs text-wk-muted">
         Each crewed bay is run by its own lead, and your crawler type brings a special NPC. Name and
         detail them now, or leave them blank and fill them in during play.
@@ -67,7 +67,7 @@ export function CrawlerCrewStep({ bays, selectedType, crew, onChange }: CrawlerC
             className="space-y-3 rounded-[3px] border-[1.5px] border-wk-faint p-4"
           >
             <header>
-              <h3 className="font-cond text-[13px] font-bold uppercase tracking-[0.1em] text-ink">
+              <h3 className="font-cond text-sm font-bold uppercase tracking-[0.1em] text-ink">
                 {source.label}
               </h3>
               {source.npc.position && (

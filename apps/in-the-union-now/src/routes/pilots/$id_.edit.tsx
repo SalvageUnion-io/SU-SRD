@@ -29,8 +29,8 @@ function EditPilotRoute() {
 
   if (!pilot) {
     return (
-      <main className="mx-auto max-w-7xl px-4 py-8">
-        <p className="text-muted-foreground">Pilot not found.</p>
+      <main className="mx-auto max-w-7xl p-6">
+        <p className="text-wk-muted">Pilot not found.</p>
         <Link to="/" className="text-sm underline">
           Back to dashboard
         </Link>
@@ -47,7 +47,7 @@ function EditPilotRoute() {
   }
 
   return (
-    <main className="min-h-dvh bg-background">
+    <main>
       <PilotWizard
         key={pilot.id}
         pilotId={pilot.id}

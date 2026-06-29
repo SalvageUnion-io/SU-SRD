@@ -26,7 +26,7 @@ function RootErrorComponent({ error }: ErrorComponentProps) {
       className="mx-auto flex min-h-dvh w-full max-w-2xl flex-col items-center justify-center gap-4 p-6 text-center"
     >
       <h1 className="text-lg font-bold">Something went wrong</h1>
-      <p className="text-sm text-muted-foreground">
+      <p className="text-sm text-wk-muted">
         The app hit an unexpected error. Your saved data is stored locally and is not affected.
       </p>
       {import.meta.env.DEV && (

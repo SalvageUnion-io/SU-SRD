@@ -1,7 +1,7 @@
 /**
  * SavePatternButton — captures a mech's configuration as a named reusable pattern.
  *
- * Renders as an outline Button. On click, opens an inline dialog where the user
+ * Renders as a Btn. On click, opens an inline dialog where the user
  * enters a pattern name. On confirm, builds a MechPattern from the supplied
  * configuration and persists it via db.mechPatterns.create().
  *
@@ -14,11 +14,10 @@
  */
 
 import { useRef, useState } from 'react'
-import { toast } from 'suref-react'
+import { Btn, toast } from 'suref-react'
 import * as db from '../../../lib/db/index'
 import type { CargoLot } from '../../../lib/schemas/cargoLot'
 import { useDialogA11y } from '../../shared/useDialogA11y'
-import { Button } from '../../ui/button'
 import { cn } from '../../../lib/utils'
 
 type SavePatternButtonProps = {
@@ -88,15 +87,14 @@ export function SavePatternButton({
 
   return (
     <>
-      <Button
+      <Btn
         type="button"
-        variant="outline"
         onClick={handleOpen}
         className={cn(className)}
         aria-label="Save as pattern"
       >
         Save as pattern
-      </Button>
+      </Btn>
 
       {isOpen && (
         <SavePatternDialog
@@ -168,23 +166,24 @@ function SavePatternDialog({
         </div>
 
         {saveError && (
-          <p className="text-sm text-destructive" role="alert">
+          <p className="text-sm text-danger" role="alert">
             {saveError}
           </p>
         )}
 
         <div className="flex gap-2 justify-end">
-          <Button type="button" variant="outline" onClick={onCancel} disabled={isSaving}>
+          <Btn type="button" variant="ghost" onClick={onCancel} disabled={isSaving}>
             Cancel
-          </Button>
-          <Button
+          </Btn>
+          <Btn
             type="button"
+            variant="primary"
             onClick={() => void onSave()}
             disabled={isSaving || !patternName.trim()}
             aria-label="Save pattern"
           >
             {isSaving ? 'Saving…' : 'Save'}
-          </Button>
+          </Btn>
         </div>
       </div>
     </div>

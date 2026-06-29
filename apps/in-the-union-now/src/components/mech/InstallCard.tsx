@@ -1,5 +1,6 @@
 import type { SURefEntity } from 'salvageunion-reference'
 import { MiniBtn, ReferenceEntityDisplay } from 'suref-react'
+import { cn } from '../../lib/utils'
 
 type InstallCardProps = {
   /** The reference entity to render as a compact card. */
@@ -31,7 +32,15 @@ export function InstallCard({ entity, name, count, onAdd }: InstallCardProps) {
   const installed = count > 0
 
   return (
-    <div>
+    <div
+      className={cn(
+        'rounded-[5px]',
+        // Card-level selected affordance, matching the wizard Sel ring: a
+        // non-layout-shifting 3px rust box-shadow when one or more copies are
+        // installed (count-based, not a toggle — see component doc above).
+        installed && 'shadow-[0_0_0_3px_var(--color-rust)]'
+      )}
+    >
       <ReferenceEntityDisplay
         data={entity as SURefEntity}
         compact

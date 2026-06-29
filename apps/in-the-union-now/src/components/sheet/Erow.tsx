@@ -25,7 +25,7 @@ type EcflowProps = {
 
 /** Justified card row container (design `.ecflow`). */
 export function Ecflow({ children, className }: EcflowProps) {
-  return <div className={cn('flex flex-wrap items-stretch gap-3.5', className)}>{children}</div>
+  return <div className={cn('flex flex-wrap items-stretch gap-4', className)}>{children}</div>
 }
 
 /** The card props Erow may inject (ReferenceEntityDisplay accepts these). */

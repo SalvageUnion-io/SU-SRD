@@ -29,7 +29,7 @@ export function MechIdentityStep({
   const isOver = cargoUsed > cargoMax
 
   return (
-    <div className="max-w-[760px] space-y-6">
+    <div className="max-w-3xl space-y-6">
       <Field label="Mech name" required htmlFor="mech-name">
         <Input
           id="mech-name"

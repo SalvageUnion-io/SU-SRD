@@ -22,6 +22,8 @@ import {
   seedDefaultCrawlerBays,
 } from '../../lib/wizard/crawlerFormState'
 import type { CrawlerWizardFormState } from '../../lib/wizard/crawlerFormState'
+import type { SoftWarning } from '../../lib/rules/types'
+import { SoftWarningBanner } from '../shared/SoftWarningBanner'
 import { WizShell } from '../wizard/WizShell'
 import { CrawlerCrewStep } from './CrawlerCrewStep'
 import { CrawlerIdentityStep } from './CrawlerIdentityStep'
@@ -308,16 +310,18 @@ export function CrawlerBuilder({
     (v) => v.kind === 'weapon-systems-over-capacity'
   )
 
+  const capacityWarnings: SoftWarning[] = isOverCapacity
+    ? [
+        {
+          code: 'weapon-systems-over-capacity',
+          severity: 'warn',
+          message: `Over capacity — ${crawlerCapacity.weaponSystemsUsed} weapon systems installed, ${crawlerCapacity.weaponSystemsMax} supported for this crawler type. You can still save; review before play.`,
+        },
+      ]
+    : []
   const capacityNotice =
-    isOverCapacity && (step === 'Systems' || step === 'Review') ? (
-      <p
-        role="status"
-        className="rounded-[3px] border-[1.5px] border-rust bg-rust/10 px-3 py-2 text-sm text-ink"
-      >
-        <strong>Over capacity</strong> — {crawlerCapacity.weaponSystemsUsed} weapon systems
-        installed, {crawlerCapacity.weaponSystemsMax} supported for this crawler type. You can still
-        save; review before play.
-      </p>
+    step === 'Systems' || step === 'Review' ? (
+      <SoftWarningBanner warnings={capacityWarnings} />
     ) : undefined
 
   const subtitle = (() => {

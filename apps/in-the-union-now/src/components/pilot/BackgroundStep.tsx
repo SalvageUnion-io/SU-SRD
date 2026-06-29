@@ -16,7 +16,7 @@ type BackgroundStepProps = {
  */
 export function BackgroundStep({ background, onChange, _rollDeps }: BackgroundStepProps) {
   return (
-    <div className="max-w-[760px] space-y-4">
+    <div className="max-w-3xl space-y-5">
       <p className="text-sm text-wk-muted">
         Describe your pilot&apos;s background. Roll for a random prompt or write your own story.
       </p>

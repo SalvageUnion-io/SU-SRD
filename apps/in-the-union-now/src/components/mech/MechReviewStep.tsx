@@ -59,7 +59,7 @@ export function MechReviewStep({ form, isEdit, submitError }: MechReviewStepProp
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.1fr_1fr]">
       {/* kv-panel */}
       <div className="self-start">
-        <div className="rounded-md border-[1.5px] border-ink bg-paper px-6 py-4 text-sm">
+        <div className="rounded-[3px] border-[1.5px] border-ink bg-paper px-6 py-4 text-sm">
           {rows.map(([k, v]) => (
             <KvRow key={k} label={k} value={v} />
           ))}
