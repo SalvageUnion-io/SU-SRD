@@ -303,18 +303,6 @@
             "minimum": -9007199254740991,
             "maximum": 9007199254740991,
             "description": "Flat bonus to the mech Cargo Capacity per installed item"
-          },
-          "systemSlots": {
-            "type": "integer",
-            "minimum": -9007199254740991,
-            "maximum": 9007199254740991,
-            "description": "Flat bonus to the mech system-slot count per installed item"
-          },
-          "moduleSlots": {
-            "type": "integer",
-            "minimum": -9007199254740991,
-            "maximum": 9007199254740991,
-            "description": "Flat bonus to the mech module-slot count per installed item"
           }
         },
         "additionalProperties": false,

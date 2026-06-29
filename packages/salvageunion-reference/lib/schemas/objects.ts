@@ -409,16 +409,6 @@ export const MechStatBonusSchema = z
       .int()
       .describe('Flat bonus to the mech Cargo Capacity per installed item')
       .optional(),
-    systemSlots: z
-      .number()
-      .int()
-      .describe('Flat bonus to the mech system-slot count per installed item')
-      .optional(),
-    moduleSlots: z
-      .number()
-      .int()
-      .describe('Flat bonus to the mech module-slot count per installed item')
-      .optional(),
   })
   .strict()
   .describe('Flat per-installed-item bonuses this system/module applies to a mech’s derived maxima')

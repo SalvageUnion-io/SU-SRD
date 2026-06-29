@@ -556,7 +556,6 @@
     "techLevel": 2,
     "slotsRequired": 4,
     "salvageValue": 1,
-    "statBonus": { "moduleSlots": 1 },
     "page": 170,
     "actions": ["Module Switch"],
     "additionalSources": [
