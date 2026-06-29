@@ -57,6 +57,9 @@ export function scrapCostFor(item: ScrapableItem): number {
  */
 export function tierUpgradeCost(fromTL: TechLevel, toTL: TechLevel): number | null {
   if (fromTL === toTL) return 0
+  // Upgrade costs are only defined for the numeric crawler tiers (1–6). The
+  // non-numeric equipment tiers ('B'/'N') have no sequential upgrade path.
+  if (typeof fromTL !== 'number' || typeof toTL !== 'number') return null
   if (fromTL > toTL) return null // downgrade; use a soft warning instead
 
   let total = 0
