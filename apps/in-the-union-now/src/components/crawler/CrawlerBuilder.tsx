@@ -12,6 +12,7 @@ import { toast } from 'suref-react'
 import { useEntityStore } from '../../stores/entityStore'
 import { CrawlerSchema } from '../../lib/schemas/crawler'
 import { computeCrawlerCapacity } from '../../lib/rules/crawlerCapacity'
+import { isWeaponSystem } from '../../lib/rules/crawlerSystems'
 import {
   EMPTY_CRAWLER_FORM_STATE,
   crawlerFormCrewToPatches,
@@ -59,14 +60,18 @@ type CrawlerBuilderProps = {
 }
 
 /**
- * Returns systems whose numeric techLevel <= the crawler's selected TL.
- * Systems with non-numeric TL (Bio/Nanite) are excluded from TL filtering.
+ * Returns WEAPONS systems whose numeric techLevel <= the crawler's selected TL.
+ * The Systems step installs into the Armament Bay, which holds weapons systems
+ * only (Core Book p. 213), so non-weapon systems (Armour Plating, Cargo Pod, …)
+ * are excluded outright. Systems with non-numeric TL (Bio/Nanite) are also
+ * excluded from TL filtering.
  */
 function filterSystemsByTL(allSystems: SURefSystem[], tl: number | null): SURefSystem[] {
   if (tl === null) return []
   return allSystems.filter((s) => {
     if (typeof s.techLevel !== 'number') return false
-    return s.techLevel <= tl
+    if (s.techLevel > tl) return false
+    return isWeaponSystem(s)
   })
 }
 
@@ -102,12 +107,15 @@ export function CrawlerBuilder({
 
   useEffect(() => {
     // crawlers drives the type selection; crawler-bays seeds the default bays
-    // + the Crew step; crawler-tech-levels stays for the SP/capacity lookup.
+    // + the Crew step; crawler-tech-levels stays for the SP/capacity lookup;
+    // actions resolves each system's damage so isWeaponSystem can filter the
+    // Systems list down to weapons.
     void SalvageUnionReference.preload([
       'crawlers',
       'crawler-tech-levels',
       'systems',
       'crawler-bays',
+      'actions',
     ]).then(() => {
       const tls = SalvageUnionReference.CrawlerTechLevels.all()
       setTechLevels([...tls].sort((a, b) => a.techLevel - b.techLevel))
@@ -272,20 +280,33 @@ export function CrawlerBuilder({
     .map((id) => allSystems.find((s) => s.id === id))
     .filter((s): s is SURefSystem => s !== undefined)
 
+  // The Weapons System cap is gated by crawler type, not tech level: every
+  // crawler mounts one system, except the Battle Crawler (two). The Battle
+  // Crawler is the type whose special ability is "Improved Armour and
+  // Armaments" (Core Book p. 216) — gating off the action name rather than the
+  // display name keeps this stable if the type is renamed.
+  const isBattleCrawler = selectedType?.actions?.includes('Improved Armour and Armaments') ?? false
+
   // Live capacity computation (soft-warn only — does NOT block submit).
   // Crawler bays are the fixed SRD set, so only the system soft-cap surfaces.
-  const crawlerCapacity = useMemo(
-    () =>
-      computeCrawlerCapacity({
-        techLevel: form.techLevel ?? 0,
-        bays: [],
-        systems: form.systems,
-      }),
-    [form.techLevel, form.systems]
+  const crawlerCapacity = useMemo(() => {
+    // Only WEAPONS systems count toward the Armament-Bay cap (Core Book p. 213 /
+    // p. 216); non-weapon systems (Armour Plating, Cargo Pod, …) are unlimited.
+    // Resolve each chosen system and keep the damage-dealing ones.
+    const weaponSystems = form.systems.filter((id) => {
+      const system = allSystems.find((s) => s.id === id)
+      return system ? isWeaponSystem(system) : false
+    })
+    return computeCrawlerCapacity({
+      techLevel: form.techLevel ?? 0,
+      bays: [],
+      weaponSystems,
+      isBattleCrawler,
+    })
+  }, [form.techLevel, form.systems, allSystems, isBattleCrawler])
+  const isOverCapacity = crawlerCapacity.violations.some(
+    (v) => v.kind === 'weapon-systems-over-capacity'
   )
-  const isOverCapacity =
-    form.techLevel !== null &&
-    crawlerCapacity.violations.some((v) => v.kind === 'systems-over-capacity')
 
   const capacityNotice =
     isOverCapacity && (step === 'Systems' || step === 'Review') ? (
@@ -293,9 +314,9 @@ export function CrawlerBuilder({
         role="status"
         className="rounded-[3px] border-[1.5px] border-rust bg-rust/10 px-3 py-2 text-sm text-ink"
       >
-        <strong>Over capacity</strong> — {crawlerCapacity.systemsUsed} systems installed,{' '}
-        {crawlerCapacity.systemsMax} supported at this tech level. You can still save; review before
-        play.
+        <strong>Over capacity</strong> — {crawlerCapacity.weaponSystemsUsed} weapon systems
+        installed, {crawlerCapacity.weaponSystemsMax} supported for this crawler type. You can still
+        save; review before play.
       </p>
     ) : undefined
 
@@ -306,11 +327,13 @@ export function CrawlerBuilder({
       case 'Systems':
         return (
           <>
-            <span data-testid="system-count">
-              {crawlerCapacity.systemsUsed} /{' '}
-              {crawlerCapacity.systemsMax > 0 ? crawlerCapacity.systemsMax : '—'} systems
+            <span data-testid="weapon-system-count">
+              {crawlerCapacity.weaponSystemsUsed} /{' '}
+              {crawlerCapacity.weaponSystemsMax > 0 ? crawlerCapacity.weaponSystemsMax : '—'} weapon
+              systems
             </span>{' '}
-            · Tech Level {form.techLevel ?? '—'} and below. Capacity warns, never blocks.
+            · Tech Level {form.techLevel ?? '—'} and below. The Armament-Bay cap is enforced — one
+            Weapons System per crawler (two for a Battle Crawler).
           </>
         )
       case 'Crew':
@@ -348,6 +371,8 @@ export function CrawlerBuilder({
         <SystemsList
           systems={filteredSystems}
           selectedSystemSlugs={form.systems}
+          maxSelectable={crawlerCapacity.weaponSystemsMax}
+          installedWeaponCount={crawlerCapacity.weaponSystemsUsed}
           onChange={(systems) => updateForm({ systems })}
         />
       )}
