@@ -41,7 +41,7 @@ export function InstallCard({ entity, name, count, onAdd }: InstallCardProps) {
         {installed && (
           <span
             className="font-cond text-[11px] font-bold uppercase tracking-[0.08em] text-rust"
-            data-testid="install-count"
+            data-testid={`install-count-${name}`}
           >
             {count} Installed
           </span>

@@ -134,6 +134,12 @@ export function LoadoutPanel({
       <div className="mt-4 space-y-2">
         {chosenEntries.map(({ entity, ref, index, copy }) => {
           const total = totals.get(ref) ?? 1
+          // `index` (the original chosen-array position) is a deliberate,
+          // safe key here: duplicates are allowed so name/ref is non-unique,
+          // and these rows are stateless (head-mode display + stateless
+          // MiniBtn, onRemove closes over the live index each render). Do NOT
+          // add per-row local state on this index key without switching to a
+          // stable id — a removal shifts indices and would desync it.
           return (
             <div key={index} data-testid="loadout-entry" className="flex items-start gap-2">
               <div className="min-w-0 flex-1">

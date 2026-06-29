@@ -297,9 +297,9 @@ describe('MechWizard — duplicate installs', () => {
     // First click installs one; the card flips to an "Add another" affordance
     // and an "N Installed" count.
     await addInstall('Cargo Pod')
-    expect(screen.getByTestId('install-count').textContent).toContain('1 Installed')
+    expect(screen.getByTestId('install-count-Cargo Pod').textContent).toContain('1 Installed')
     await addInstall('Cargo Pod') // "Add another"
-    expect(screen.getByTestId('install-count').textContent).toContain('2 Installed')
+    expect(screen.getByTestId('install-count-Cargo Pod').textContent).toContain('2 Installed')
     expect(screen.getByTestId('system-slot-count').textContent).toContain('2 /')
     // The Loadout panel lists each copy as its own removable entry.
     expect(screen.getAllByTestId('loadout-entry').length).toBe(2)
@@ -333,7 +333,7 @@ describe('MechWizard — duplicate installs', () => {
     // Remove ONE copy — the count drops to 1, one entry remains.
     await removeInstall('Cargo Pod')
     expect(screen.getAllByTestId('loadout-entry').length).toBe(1)
-    expect(screen.getByTestId('install-count').textContent).toContain('1 Installed')
+    expect(screen.getByTestId('install-count-Cargo Pod').textContent).toContain('1 Installed')
     expect(screen.getByTestId('system-slot-count').textContent).toContain('1 /')
 
     await clickNext() // Identity
