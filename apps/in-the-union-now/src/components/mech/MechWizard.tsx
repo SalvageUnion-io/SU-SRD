@@ -91,8 +91,16 @@ export function MechWizard({ onComplete, onCancel, mechId, initialState }: MechW
     setForm((prev) => ({ ...prev, ...patch }))
   }
 
-  function toggleIn(list: string[], name: string): string[] {
-    return list.includes(name) ? list.filter((x) => x !== name) : [...list, name]
+  // Append one copy of `name`. Duplicates are rules-legal (Core Book p.94/96 —
+  // only slot capacity limits installs, and capacity is soft here).
+  function addCopy(list: string[], name: string): string[] {
+    return [...list, name]
+  }
+
+  // Remove the single occurrence at `index` (not filter-all-matches, so other
+  // copies of the same item survive).
+  function removeAt(list: string[], index: number): string[] {
+    return list.filter((_, i) => i !== index)
   }
 
   // Changing the chassis invalidates any chosen pattern/loadout.
@@ -324,8 +332,10 @@ export function MechWizard({ onComplete, onCancel, mechId, initialState }: MechW
         <LoadoutStep
           systems={form.systems}
           modules={form.modules}
-          onToggleSystem={(name) => updateForm({ systems: toggleIn(form.systems, name) })}
-          onToggleModule={(name) => updateForm({ modules: toggleIn(form.modules, name) })}
+          onAddSystem={(name) => updateForm({ systems: addCopy(form.systems, name) })}
+          onAddModule={(name) => updateForm({ modules: addCopy(form.modules, name) })}
+          onRemoveSystem={(index) => updateForm({ systems: removeAt(form.systems, index) })}
+          onRemoveModule={(index) => updateForm({ modules: removeAt(form.modules, index) })}
           loadoutName={loadoutName}
           systemSlotsUsed={capacity.systemSlotsUsed}
           systemSlotsMax={capacity.systemSlotsMax}

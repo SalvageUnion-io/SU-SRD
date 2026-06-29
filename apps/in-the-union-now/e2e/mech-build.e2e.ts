@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { clickNext, pickByName, waitForReady } from './_helpers'
+import { clickNext, installLoadoutItem, pickByName, waitForReady } from './_helpers'
 
 /**
  * Mech-only build — steps through the chassis-first WizShell wizard
@@ -22,7 +22,7 @@ test('build a mech from scratch', async ({ page }) => {
   await clickNext(page) // -> Loadout
 
   // Step 3 — Loadout (Systems tab by default; optional, soft budget)
-  await pickByName(page, 'Cargo Pod')
+  await installLoadoutItem(page, 'Cargo Pod')
   await clickNext(page) // -> Identity
 
   // Step 4 — Identity
@@ -73,7 +73,7 @@ test('edit a mech loadout via /mechs/$id/edit', async ({ page }) => {
   await expect(page.getByText('Edit Mech')).toBeVisible()
   await clickNext(page) // -> Pattern
   await clickNext(page) // -> Loadout
-  await pickByName(page, 'Cargo Pod') // install a system in edit mode
+  await installLoadoutItem(page, 'Cargo Pod') // install a system in edit mode
   await clickNext(page) // -> Identity
   await clickNext(page) // -> Review
   await page.getByRole('button', { name: /Save Mech/i }).click()

@@ -39,7 +39,8 @@ function renderStep(kind: 'systems' | 'modules') {
     <InstallStep
       kind={kind}
       selected={[]}
-      onToggle={() => {}}
+      onAdd={() => {}}
+      onRemove={() => {}}
       loadoutName="Test Mech"
       slotsUsed={0}
       slotsMax={4}
@@ -48,6 +49,10 @@ function renderStep(kind: 'systems' | 'modules') {
     />
   )
 }
+
+// Each catalog cell is an InstallCard whose add affordance is a MiniBtn with
+// aria-label `Add {name}` — so an item is present iff its Add button renders.
+const addBtn = (name: string) => ({ name: `Add ${name}` })
 
 describe('InstallStep — Bio/Nanite tech-tier filter', () => {
   it('renders the Bio and Nanite chips alongside the numeric tiers', () => {
@@ -63,13 +68,13 @@ describe('InstallStep — Bio/Nanite tech-tier filter', () => {
     renderStep('systems')
 
     // Unfiltered: both a Bio system and a numeric-TL system are reachable.
-    expect(screen.getByRole('button', { name: bio.name })).toBeTruthy()
-    expect(screen.getByRole('button', { name: numeric.name })).toBeTruthy()
+    expect(screen.getByRole('button', addBtn(bio.name))).toBeTruthy()
+    expect(screen.getByRole('button', addBtn(numeric.name))).toBeTruthy()
 
     // Activate the Bio filter — only Bio-tier systems remain.
     fireEvent.click(screen.getByRole('button', { name: 'Bio' }))
-    expect(screen.getByRole('button', { name: bio.name })).toBeTruthy()
-    expect(screen.queryByRole('button', { name: numeric.name })).toBeNull()
+    expect(screen.getByRole('button', addBtn(bio.name))).toBeTruthy()
+    expect(screen.queryByRole('button', addBtn(numeric.name))).toBeNull()
   })
 
   it('the Nanite chip narrows the modules catalog to Nanite-tier modules', () => {
@@ -78,7 +83,7 @@ describe('InstallStep — Bio/Nanite tech-tier filter', () => {
     renderStep('modules')
 
     fireEvent.click(screen.getByRole('button', { name: 'Nanite' }))
-    expect(screen.getByRole('button', { name: nanite.name })).toBeTruthy()
-    expect(screen.queryByRole('button', { name: numeric.name })).toBeNull()
+    expect(screen.getByRole('button', addBtn(nanite.name))).toBeTruthy()
+    expect(screen.queryByRole('button', addBtn(numeric.name))).toBeNull()
   })
 })

@@ -80,6 +80,21 @@ export async function pickByName(page: Page, name: string): Promise<void> {
 }
 
 /**
+ * Install a Loadout System/Module by name. The mech wizard's Loadout step
+ * (InstallStep) is no longer a one-shot Sel toggle on the card itself — each
+ * entity card carries its own aria-labelled "Add {name}" button that appends
+ * one copy (installing the same System/Module twice is rules-legal), so we
+ * target that button rather than clicking the card.
+ */
+export async function installLoadoutItem(page: Page, name: string): Promise<void> {
+  const add = page.getByRole('button', { name: `Add ${name}` })
+  await expect(add, `"Add ${name}" install button should render`).toBeVisible({
+    timeout: 15_000,
+  })
+  await add.click()
+}
+
+/**
  * Click the wizard's Next button. WizShell wizards label the CTA from the
  * steps array ('Next · Abilities →'); legacy builders use a bare 'Next'.
  */
