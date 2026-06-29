@@ -277,6 +277,37 @@
         "maximum": 9007199254740991,
         "description": "Number of this system/module installed"
       },
+      "statBonus": {
+        "type": "object",
+        "properties": {
+          "structurePoints": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "Flat bonus to the mech max Structure Points per installed item"
+          },
+          "energyPoints": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "Flat bonus to the mech max Energy Points per installed item"
+          },
+          "heatCapacity": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "Flat bonus to the mech max Heat Capacity per installed item"
+          },
+          "cargoCapacity": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "Flat bonus to the mech Cargo Capacity per installed item"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Explicit flat bonuses this item applies to the host mech’s derived maxima, summed per installed copy"
+      },
       "actions": {
         "type": "array",
         "items": { "type": "string" },

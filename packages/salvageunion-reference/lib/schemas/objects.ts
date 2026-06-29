@@ -375,6 +375,45 @@ export const PatternSystemModuleSchema = z
   .describe('System or module configuration within a pattern')
 
 /**
+ * Explicit, per-installed-item bonuses a system/module applies to a mech's
+ * derived core maxima. Each field is the FLAT amount this one installed item
+ * adds to the corresponding mech maximum; consumers sum (bonus × installed
+ * count) across all installed systems/modules.
+ *
+ * This is deliberately distinct from the absolute-stat fields in StatsSchema
+ * (which describe an entity's own stats): these are signed modifiers applied to
+ * the host mech. Only populate items whose rule text states a flat numeric
+ * core-stat change (e.g. Cargo Pod +1 Cargo Capacity, Heat Sink +1 Max Heat,
+ * Capacitance Bank +2 EP). Items with prose-only or conditional benefits get
+ * no bonus data — never infer a number from prose.
+ */
+export const MechStatBonusSchema = z
+  .object({
+    structurePoints: z
+      .number()
+      .int()
+      .describe('Flat bonus to the mech max Structure Points per installed item')
+      .optional(),
+    energyPoints: z
+      .number()
+      .int()
+      .describe('Flat bonus to the mech max Energy Points per installed item')
+      .optional(),
+    heatCapacity: z
+      .number()
+      .int()
+      .describe('Flat bonus to the mech max Heat Capacity per installed item')
+      .optional(),
+    cargoCapacity: z
+      .number()
+      .int()
+      .describe('Flat bonus to the mech Cargo Capacity per installed item')
+      .optional(),
+  })
+  .strict()
+  .describe('Flat per-installed-item bonuses this system/module applies to a mech’s derived maxima')
+
+/**
  * A system or module that can be installed on a mech
  */
 export const SystemModuleSchema = StatsSchema.extend({
@@ -387,6 +426,9 @@ export const SystemModuleSchema = StatsSchema.extend({
     .describe('Whether this is a recommended starting system/module')
     .optional(),
   count: NonNegativeIntegerSchema.describe('Number of this system/module installed').optional(),
+  statBonus: MechStatBonusSchema.describe(
+    'Explicit flat bonuses this item applies to the host mech’s derived maxima, summed per installed copy'
+  ).optional(),
   actions: z.array(z.string()).describe('Action names this system/module provides'),
 }).describe('A system or module that can be installed on a mech')
 

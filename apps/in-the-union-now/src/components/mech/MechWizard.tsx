@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { toast } from 'suref-react'
 import { computeMechCapacity } from '../../lib/rules/capacity'
-import { findChassisByRef } from '../../lib/rules/derivedStats'
+import { findChassisByRef, mechMaxCargo, mechMaxEP } from '../../lib/rules/derivedStats'
 import { evaluateMechWarnings } from '../../lib/rules/softWarnings'
 import type { SoftWarning } from '../../lib/rules/types'
 import { totalLotUnits } from '../../lib/schemas/cargoLot'
@@ -146,9 +146,19 @@ export function MechWizard({ onComplete, onCancel, mechId, initialState }: MechW
     [form.chassisName, form.systems, form.modules]
   )
 
-  const cargoMax = (chassis?.cargoCapacity ?? 0) + (existingMech?.maxCargoModifier ?? 0)
+  // Derivation input from the live loadout (form systems/modules) + the stored
+  // mech's hand-edited modifiers, so installed-item bonuses (Cargo Pod +1,
+  // Capacitance Bank +2 EP, etc.) are reflected as the wizard edits the loadout.
+  const derivationInput = {
+    chassisRef: form.chassisName,
+    systems: form.systems,
+    modules: form.modules,
+    maxCargoModifier: existingMech?.maxCargoModifier,
+    maxEpModifier: existingMech?.maxEpModifier,
+  }
+  const cargoMax = mechMaxCargo(derivationInput, chassis)
   const cargoUsed = totalLotUnits(form.cargoLots)
-  const energyMax = (chassis?.energyPoints ?? 0) + (existingMech?.maxEpModifier ?? 0)
+  const energyMax = mechMaxEP(derivationInput, chassis)
   const energyValue = Math.min(existingMech?.currentEP ?? energyMax, energyMax)
 
   // Live capacity warnings (soft) — shown on every step via the notice slot.
