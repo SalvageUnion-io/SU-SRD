@@ -15,6 +15,39 @@ export function choiceCardByName(page: Page, name: string): Locator {
 }
 
 /**
+ * Navigate to `path`, tolerating the transient
+ * `net::ERR_ABORTED; maybe frame was detached?` that the preview build
+ * occasionally throws.
+ *
+ * The builders end on a *client-side* router redirect to `/` (the create flow
+ * pushes the dashboard route). A full `page.goto('/')` issued right afterward
+ * can race the tail of that client navigation and the browser aborts the
+ * superseded load — this is why `goto('/')` flakes while `goto('/pilots/new')`
+ * (a distinct URL) does not. The abort is transient: the competing navigation
+ * settles within a tick, so an immediate re-`goto` lands. Playwright's
+ * test-level `retries` re-run the whole `beforeEach` and re-hit the same race,
+ * so we retry at the `goto` boundary instead. Only the ERR_ABORTED /
+ * detached-frame class is swallowed; any other navigation error rethrows.
+ */
+export async function gotoStable(page: Page, path: string): Promise<void> {
+  const MAX_ATTEMPTS = 4
+  let lastError: unknown
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    try {
+      await page.goto(path)
+      return
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      if (!/ERR_ABORTED|frame was detached/i.test(message)) throw error
+      lastError = error
+      // Let the competing client navigation settle before re-issuing the goto.
+      await page.waitForTimeout(500)
+    }
+  }
+  throw lastError
+}
+
+/**
  * Wait for the page to finish hydrating (router + game data preload).
  *
  * The router root wraps its Outlet in `<GameDataReady>`, which suspends until
@@ -69,7 +102,7 @@ export async function clickNavLink(page: Page, name: RegExp | string): Promise<v
 
 /** Build a pilot (Class → Abilities → Equipment → Identity → Background → Review). */
 export async function buildPilot(page: Page, name: string, callsign: string): Promise<void> {
-  await page.goto('/pilots/new')
+  await gotoStable(page, '/pilots/new')
   await waitForReady(page)
   await pickByName(page, 'Engineer')
   await clickNext(page) // -> Abilities
@@ -87,7 +120,7 @@ export async function buildPilot(page: Page, name: string, callsign: string): Pr
 
 /** Build a mech (Chassis → Pattern → Loadout → Identity → Review). */
 export async function buildMech(page: Page, name: string): Promise<void> {
-  await page.goto('/mechs/new')
+  await gotoStable(page, '/mechs/new')
   await waitForReady(page)
   await pickByName(page, 'Mule')
   await clickNext(page) // -> Pattern
@@ -103,7 +136,7 @@ export async function buildMech(page: Page, name: string): Promise<void> {
 
 /** Build a crawler (Crawler type → Systems → Crew → Identity → Review). */
 export async function buildCrawler(page: Page, name: string): Promise<void> {
-  await page.goto('/crawlers/new')
+  await gotoStable(page, '/crawlers/new')
   await waitForReady(page)
   await pickByName(page, 'Battle')
   await clickNext(page) // -> Systems
@@ -120,7 +153,7 @@ export async function buildCrawler(page: Page, name: string): Promise<void> {
  * (each row is an <li> with a 'Sheet' link).
  */
 export async function openSheetFor(page: Page, name: string): Promise<void> {
-  await page.goto('/')
+  await gotoStable(page, '/')
   await waitForReady(page)
   const row = page.locator('li', { hasText: name }).first()
   await expect(row, `dashboard row for "${name}" should render`).toBeVisible({
