@@ -355,36 +355,57 @@ describe('MechWizard — duplicate installs', () => {
 // ---------------------------------------------------------------------------
 
 describe('MechWizard — pattern duplicates', () => {
-  it('preserves duplicate systems/modules when copying a canonical pattern', async () => {
-    // Find a chassis whose pattern data contains a repeated system or module.
+  it('renders one preview card per copy and preserves duplicates when copying a canonical pattern', async () => {
+    // Find a chassis whose pattern data contains a repeated system or module,
+    // and capture the repeated name + its copy count.
     const allChassis = SalvageUnionReference.Chassis.all()
     let target:
-      | { chassisName: string; pattern: ReturnType<typeof patternsForChassis>[number] }
+      | {
+          chassisName: string
+          pattern: ReturnType<typeof patternsForChassis>[number]
+          dupName: string
+          dupCount: number
+        }
       | undefined
     for (const c of allChassis) {
       for (const p of patternsForChassis(c.name)) {
-        const sysNames = (p.systems ?? []).map((s) => s.name)
-        const modNames = (p.modules ?? []).map((m) => m.name)
-        const hasDup =
-          new Set(sysNames).size !== sysNames.length || new Set(modNames).size !== modNames.length
-        if (hasDup) {
-          target = { chassisName: c.name, pattern: p }
+        const names = [...(p.systems ?? []), ...(p.modules ?? [])].map((e) => e.name)
+        const counts = new Map<string, number>()
+        for (const n of names) counts.set(n, (counts.get(n) ?? 0) + 1)
+        const dup = [...counts.entries()].find(([, count]) => count > 1)
+        if (dup) {
+          target = { chassisName: c.name, pattern: p, dupName: dup[0], dupCount: dup[1] }
           break
         }
       }
       if (target) break
     }
 
-    if (!target) {
-      // No canonical pattern ships with duplicates today — nothing to assert.
-      return
-    }
+    // Fail loudly rather than silently no-op: a canonical pattern with
+    // duplicate equipment is required fixture data (today: Trooper / DronTek,
+    // with Articulated Rigging Arm ×2). If this ever returns undefined the
+    // fixture has drifted and the test must be updated, not silently skipped.
+    expect(
+      target,
+      'expected a canonical pattern shipping duplicate equipment (fixture drift?)'
+    ).toBeDefined()
+    const { chassisName, pattern, dupName, dupCount } = target!
 
     render(<MechWizard onComplete={() => {}} onCancel={() => {}} />)
-    await pick(target.chassisName)
+    await pick(chassisName)
     await clickNext() // Pattern
-    await pick(target.pattern.name) // canonical pattern — skips Loadout
-    await clickNext() // Identity
+
+    // Select the canonical pattern — its Loadout preview renders below.
+    await pick(pattern.name)
+
+    // The preview renders one head card per copy: the repeated entity's name
+    // appears `dupCount` times (the per-index keys keep both copies mounted
+    // instead of collapsing the repeat onto a single name-keyed card).
+    await waitFor(() => {
+      expect(screen.getAllByText(dupName).length).toBe(dupCount)
+    })
+
+    await clickNext() // Identity (canonical pattern skips Loadout)
     await typeInto(/Mech name/i, 'Pattern Build')
     await clickNext() // Review
     await act(async () => {
@@ -393,9 +414,9 @@ describe('MechWizard — pattern duplicates', () => {
 
     await waitFor(() => {
       const m = useEntityStore.getState().list('mech')[0]!
-      // Duplicates from the canonical pattern survive the copy + render path.
-      expect(m.systems).toEqual((target!.pattern.systems ?? []).map((s) => s.name))
-      expect(m.modules).toEqual((target!.pattern.modules ?? []).map((mod) => mod.name))
+      // Duplicates from the canonical pattern survive the copy + persistence.
+      expect(m.systems).toEqual((pattern.systems ?? []).map((s) => s.name))
+      expect(m.modules).toEqual((pattern.modules ?? []).map((mod) => mod.name))
     })
   }, 30000)
 })
