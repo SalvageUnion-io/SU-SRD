@@ -22,6 +22,8 @@ export { SectionSeparator } from './components/referenceEntity/ReferenceEntityDi
 export {
   EntityHrefProvider,
   useEntityHref,
+  EntityDetailLinkProvider,
+  useEntityDetailLink,
 } from './components/referenceEntity/ReferenceEntityDisplay/entityHrefContext'
 export type { EntityHrefBuilder } from './components/referenceEntity/ReferenceEntityDisplay/entityHrefContext'
 export { ReferenceEntityChassisAbilitiesContent } from './components/referenceEntity/ReferenceEntityDisplay/ReferenceEntityChassisAbilitiesContent'

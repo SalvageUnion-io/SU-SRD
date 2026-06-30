@@ -6,6 +6,13 @@ type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    date: '2026-06-29',
+    title: '"View details" opens the full entity page',
+    items: [
+      'Clicking "View details" on a nested entity (chassis pattern, formation member, integrated system, ability) now opens that entity\'s own page in a new tab instead of a modal, so you can read it alongside the original and link straight to it.',
+    ],
+  },
+  {
     date: '2026-06-24',
     title: 'Non-advanceable classes call it out',
     items: [
