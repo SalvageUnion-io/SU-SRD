@@ -8,6 +8,7 @@
     "dev": "astro dev",
     "typecheck": "astro check && tsc --noEmit -p tsconfig.json",
     "build": "astro build && bun scripts/og-screenshots.ts",
+    "og:install-browser": "playwright install chromium",
     "preview": "astro preview",
     "lint": "eslint .",
     "format": "prettier --write .",

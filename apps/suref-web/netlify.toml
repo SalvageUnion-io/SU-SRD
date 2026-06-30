@@ -1,11 +1,14 @@
 # Netlify configuration for suref-web (Astro static site)
 
 [build]
-  # `playwright install chromium` provisions the headless browser that
-  # scripts/og-screenshots.ts drives to render each entity's 1:1 og:image card
-  # (chained into `bun --filter suref-web build`). If the Netlify image ever
-  # lacks chromium's shared libs, switch to `playwright install --with-deps`.
-  command = "bun install --frozen-lockfile && bunx playwright install chromium && bun run build:package:ci && bun --filter suref-web build"
+  # Provision the headless browser that scripts/og-screenshots.ts drives to
+  # render each entity's 1:1 og:image card (chained into the suref-web build).
+  # Use the `og:install-browser` package script — NOT `bunx playwright …` —
+  # so the install resolves suref-web's pinned `playwright` and downloads the
+  # exact browser build its imported `playwright-core` expects (`bunx` resolves
+  # a registry copy, which installed a mismatched build). If the Netlify image
+  # ever lacks chromium's shared libs, add `--with-deps` to that script.
+  command = "bun install --frozen-lockfile && bun --filter suref-web og:install-browser && bun run build:package:ci && bun --filter suref-web build"
   publish = "apps/suref-web/dist"
   # Skip the build when nothing affecting suref-web changed since the last
   # published deploy. `git diff --quiet` exits 0 (→ Netlify cancels the build)
