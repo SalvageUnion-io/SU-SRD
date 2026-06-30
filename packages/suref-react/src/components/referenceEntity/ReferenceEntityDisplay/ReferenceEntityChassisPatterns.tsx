@@ -4,6 +4,7 @@ import { ReferenceEntityDisplay } from './index'
 import { SectionSeparator } from './SectionSeparator'
 import { useDetailModal } from './useDetailModal'
 import { useChassisPatternConfig } from './useChassisPatternConfig'
+import { EntityDetailLinkProvider } from './entityHrefContext'
 import type { PatternOverrideData } from './referenceEntityDisplayTypes'
 
 type ReferenceEntityChassisPatternsProps = {
@@ -57,8 +58,13 @@ function PatternListing({
     hide: { patterns: true },
   })
 
+  // A pattern is a modal-only configured view of the chassis (per-pattern title,
+  // stats, loadout) with no standalone URL — its `data` is the chassis itself.
+  // So we force the detail to stay a modal even where the app enables link mode
+  // (suref-web); linking out would just reopen the same chassis page and drop
+  // the pattern-specific view.
   return (
-    <>
+    <EntityDetailLinkProvider value={false}>
       <ReferenceEntityDisplay
         data={chassisEntity}
         listing
@@ -72,6 +78,6 @@ function PatternListing({
         controls={[detailModal.control]}
       />
       {detailModal.modal}
-    </>
+    </EntityDetailLinkProvider>
   )
 }

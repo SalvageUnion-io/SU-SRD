@@ -10,6 +10,7 @@ import {
   TECH_LEVEL_STYLES,
   techLevelLabel,
   EntityHrefProvider,
+  EntityDetailLinkProvider,
 } from 'suref-react'
 import { GameDataGate } from '../../lib/useGameData'
 import { srdEntityHref } from '../../lib/entityHref'
@@ -208,29 +209,31 @@ export function SchemaViewerIsland({
               </div>
             ) : (
               <EntityHrefProvider value={srdEntityHref}>
-                <MasonryColumns>
-                  {filteredData.map((item: SURefEntity) => {
-                    const tree = schemaId === 'abilities' ? (getTree(item) as string) : undefined
-                    return (
-                      <a
-                        key={item.id}
-                        href={`/schema/${schemaId}/item/${getEntitySlug(item)}/`}
-                        aria-label={item.name}
-                        className="relative block"
-                      >
-                        <Suspense fallback={<ReferenceEntityCardSkeleton compact />}>
-                          <ReferenceEntityDisplay
-                            hide={{ actions: true, choices: true }}
-                            data={item}
-                            compact
-                            label={tree}
-                            cardClickable
-                          />
-                        </Suspense>
-                      </a>
-                    )
-                  })}
-                </MasonryColumns>
+                <EntityDetailLinkProvider value={true}>
+                  <MasonryColumns>
+                    {filteredData.map((item: SURefEntity) => {
+                      const tree = schemaId === 'abilities' ? (getTree(item) as string) : undefined
+                      return (
+                        <a
+                          key={item.id}
+                          href={`/schema/${schemaId}/item/${getEntitySlug(item)}/`}
+                          aria-label={item.name}
+                          className="relative block"
+                        >
+                          <Suspense fallback={<ReferenceEntityCardSkeleton compact />}>
+                            <ReferenceEntityDisplay
+                              hide={{ actions: true, choices: true }}
+                              data={item}
+                              compact
+                              label={tree}
+                              cardClickable
+                            />
+                          </Suspense>
+                        </a>
+                      )
+                    })}
+                  </MasonryColumns>
+                </EntityDetailLinkProvider>
               </EntityHrefProvider>
             )}
           </div>

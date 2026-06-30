@@ -5,6 +5,7 @@ import { Dialog } from '@base-ui/react/dialog'
 import { X } from 'lucide-react'
 import { ReferenceEntityDisplayContent } from './components/ReferenceEntityDisplayContent'
 import { DetailIcon } from './DetailIcon'
+import { useEntityHref, useEntityDetailLink } from './entityHrefContext'
 import type { ReferenceEntityControl } from './referenceEntityControlTypes'
 import type { ReferenceEntityHideConfig } from './referenceEntityDisplayTypes'
 
@@ -34,6 +35,14 @@ export function useDetailModal(
 } {
   const [open, setOpen] = useState(false)
 
+  // When the consuming app opts into link mode (suref-web) and the entity
+  // resolves to an href, "View details" navigates to the entity's show page in
+  // a new tab instead of opening the in-place modal. ITUN leaves link mode off,
+  // so it keeps the modal (its href would deep-link out to suref-web).
+  const href = useEntityHref(data)
+  const linkMode = useEntityDetailLink()
+  const openInNewTab = linkMode && !!href
+
   const schemaName =
     data && 'schemaName' in data && typeof data.schemaName === 'string'
       ? (data.schemaName as Parameters<typeof ReferenceEntityDisplayContent>[0]['schemaName'])
@@ -45,14 +54,16 @@ export function useDetailModal(
   const control: ReferenceEntityControl = {
     key: 'detail',
     icon: DetailIcon,
-    onClick: () => setOpen(true),
+    onClick: openInNewTab
+      ? () => window.open(href, '_blank', 'noopener,noreferrer')
+      : () => setOpen(true),
     ariaLabel: 'View details',
     hidden: true,
     cardClick: true,
   }
 
   const modal =
-    data && schemaName ? (
+    !openInNewTab && data && schemaName ? (
       <Dialog.Root open={open} onOpenChange={setOpen}>
         <Dialog.Portal>
           <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/60 data-[open]:animate-in data-[closed]:animate-out data-[closed]:fade-out-0 data-[open]:fade-in-0" />
