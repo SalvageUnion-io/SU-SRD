@@ -13,6 +13,13 @@ export const CHANGELOG: ChangelogEntry[] = [
     ],
   },
   {
+    date: '2026-06-29',
+    title: 'Link previews now mirror the entity card exactly',
+    items: [
+      'The preview image shown when you share an entity link is now a 1:1 render of the actual entity display card — the same header, stats, traits, and styling you see on the page — instead of a separately-designed preview.',
+    ],
+  },
+  {
     date: '2026-06-24',
     title: 'Non-advanceable classes call it out',
     items: [
