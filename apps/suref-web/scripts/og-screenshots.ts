@@ -18,15 +18,14 @@
  * Runs after `astro build` (see package.json `build`). Requires a chromium
  * binary: provision it via the `og:install-browser` package script (resolves
  * suref-web's pinned playwright so the build matches its playwright-core). Set
- * OG_CHROME_PATH to use a specific executable, or OG_SCREENSHOTS_SKIP=1 to skip.
+ * OG_CHROME_PATH to use a specific executable, or OG_SCREENSHOTS_SKIP=1 to skip
+ * (the GH compile-check job sets it; the Netlify deploy generates for real).
  *
- * The run writes a machine-readable outcome to `dist/_og-status.json` and, while
- * we confirm the Netlify build path, does NOT fail the build on render errors —
- * so the deploy publishes and the status file is inspectable from the deploy
- * URL. (To be tightened to fail-on-error once confirmed.)
+ * Fails the build if chromium can't be provisioned or any entity fails to
+ * render, so a deploy never ships a page whose og:image 404s.
  */
 /* eslint-disable no-console -- build-time CLI: stdout progress is intended output */
-import { mkdirSync, writeFileSync } from 'node:fs'
+import { mkdirSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { getItemStaticPaths } from '../src/lib/staticPaths'
@@ -39,10 +38,6 @@ const CONCURRENCY = Number(process.env.OG_SCREENSHOTS_CONCURRENCY ?? 5)
 const RELOAD_EVERY = Number(process.env.OG_SCREENSHOTS_RELOAD_EVERY ?? 200)
 const CARD_SELECTOR = '[data-testid="frame-header-container"]'
 const NAV_TIMEOUT = 30_000
-// Stop past this wall-clock budget so the script always exits cleanly (publishing
-// dist + status) instead of being killed mid-run by the Netlify build timeout.
-const BUDGET_MS = Number(process.env.OG_SCREENSHOTS_BUDGET_MS ?? 11 * 60_000)
-const startedAt = Date.now()
 // Container-hardening flags: no GPU process (it gets OOM-killed, exit_code=9,
 // and takes the browser down) and a small shared-memory footprint.
 const LAUNCH_ARGS = [
@@ -54,30 +49,11 @@ const LAUNCH_ARGS = [
 
 const APP_ROOT = fileURLToPath(new URL('..', import.meta.url))
 const DIST_DIR = join(APP_ROOT, 'dist')
-const STATUS_PATH = join(DIST_DIR, '_og-status.json')
 
 type Entity = { schemaId: string; itemId: string }
-type Status = {
-  ok: boolean
-  total: number
-  generated: number
-  failed: number
-  browserError?: string
-  sampleFailures: string[]
-  finishedAt: string
-}
 
 function log(msg: string) {
   console.log(`[og-screenshots] ${msg}`)
-}
-
-function writeStatus(status: Status) {
-  try {
-    mkdirSync(DIST_DIR, { recursive: true })
-    writeFileSync(STATUS_PATH, JSON.stringify(status, null, 2))
-  } catch {
-    // best-effort diagnostic; never let status writing mask the real result
-  }
 }
 
 /** Wait until the preview server answers, or throw after `timeoutMs`. */
@@ -115,18 +91,10 @@ async function main() {
   try {
     ;({ chromium } = await import('playwright'))
   } catch (err) {
-    const browserError = `Playwright not importable: ${err instanceof Error ? err.message : String(err)}`
-    log(browserError)
-    writeStatus({
-      ok: false,
-      total: entities.length,
-      generated: 0,
-      failed: entities.length,
-      browserError,
-      sampleFailures: [],
-      finishedAt: new Date().toISOString(),
-    })
-    return
+    throw new Error(
+      'Playwright not importable — run `bun --filter suref-web og:install-browser`.',
+      { cause: err }
+    )
   }
 
   // Serve the built site. `astro preview` honours trailingSlash + content types.
@@ -190,27 +158,11 @@ async function main() {
   try {
     await waitForServer(`${base}/og-card/`)
 
-    let browser: Awaited<ReturnType<typeof chromium.launch>>
-    try {
-      browser = await chromium.launch({
-        headless: true,
-        executablePath: process.env.OG_CHROME_PATH || undefined,
-        args: LAUNCH_ARGS,
-      })
-    } catch (err) {
-      const browserError = `chromium.launch failed: ${err instanceof Error ? err.message : String(err)}`
-      log(browserError)
-      writeStatus({
-        ok: false,
-        total: entities.length,
-        generated: 0,
-        failed: entities.length,
-        browserError,
-        sampleFailures: [],
-        finishedAt: new Date().toISOString(),
-      })
-      return
-    }
+    const browser = await chromium.launch({
+      headless: true,
+      executablePath: process.env.OG_CHROME_PATH || undefined,
+      args: LAUNCH_ARGS,
+    })
 
     try {
       const context = await browser.newContext({
@@ -219,22 +171,13 @@ async function main() {
       })
 
       let cursor = 0
-      let budgetHit = false
       const worker = async () => {
         let page = await freshPage(context)
         let sinceReload = 0
         try {
           for (;;) {
-            if (budgetHit) break
             const index = cursor++
             if (index >= entities.length) break
-            if (Date.now() - startedAt > BUDGET_MS) {
-              budgetHit = true
-              log(
-                `time budget (${Math.round(BUDGET_MS / 1000)}s) reached at ${done}/${entities.length} — stopping early.`
-              )
-              break
-            }
             const entity = entities[index]!
             try {
               await captureInPage(page, entity)
@@ -280,32 +223,16 @@ async function main() {
     await preview.exited
   }
 
-  for (const f of failures.slice(0, 20)) {
-    log(`FAILED ${f.entity.schemaId}/${f.entity.itemId}: ${f.error}`)
+  if (failures.length > 0) {
+    for (const f of failures.slice(0, 20)) {
+      log(`FAILED ${f.entity.schemaId}/${f.entity.itemId}: ${f.error}`)
+    }
+    throw new Error(`${failures.length}/${entities.length} og:image(s) failed to render.`)
   }
-  writeStatus({
-    ok: failures.length === 0,
-    total: entities.length,
-    generated,
-    failed: failures.length,
-    sampleFailures: failures
-      .slice(0, 10)
-      .map((f) => `${f.entity.schemaId}/${f.entity.itemId}: ${f.error}`),
-    finishedAt: new Date().toISOString(),
-  })
-  log(`done — ${generated}/${entities.length} og:images written, ${failures.length} failed.`)
+  log(`done — ${generated}/${entities.length} og:images written.`)
 }
 
 main().catch((err) => {
   console.error('[og-screenshots]', err)
-  // Diagnostic phase: don't fail the build on unexpected errors — record them.
-  writeStatus({
-    ok: false,
-    total: 0,
-    generated: 0,
-    failed: 0,
-    browserError: `unexpected: ${err instanceof Error ? (err.stack ?? err.message) : String(err)}`,
-    sampleFailures: [],
-    finishedAt: new Date().toISOString(),
-  })
+  process.exit(1)
 })
