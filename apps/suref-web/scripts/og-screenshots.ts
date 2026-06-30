@@ -9,20 +9,21 @@
  *   1. Enumerate entities via getItemStaticPaths (same source as the routes, so
  *      every og.png path matches a real item page).
  *   2. Serve the freshly-built `dist/` with `astro preview`.
- *   3. Drive headless chromium (Playwright) across `/og-card/?schema=&item=` for
- *      each entity, capturing the fixed 1200×630 canvas.
+ *   3. Drive headless chromium (Playwright). Each worker loads `/og-card/` ONCE
+ *      (game-data corpus + island loaded a single time) and re-renders each
+ *      entity in place via `window.__ogSetEntity` — far faster and lighter than
+ *      a navigation per entity, and it avoids the under-load dynamic-import
+ *      failures that per-navigation rendering hit on the Netlify builder.
  *
  * Runs after `astro build` (see package.json `build`). Requires a chromium
- * binary: Playwright resolves its own after `bunx playwright install chromium`
- * (the Netlify build installs it; locally it is shared with the ITUN e2e cache).
- * Set OG_CHROME_PATH to use a specific executable, or OG_SCREENSHOTS_SKIP=1 to
- * skip.
+ * binary: provision it via the `og:install-browser` package script (resolves
+ * suref-web's pinned playwright so the build matches its playwright-core). Set
+ * OG_CHROME_PATH to use a specific executable, or OG_SCREENSHOTS_SKIP=1 to skip.
  *
  * The run writes a machine-readable outcome to `dist/_og-status.json` and, while
- * we confirm chromium runs in the Netlify build container, does NOT fail the
- * build on render errors — so the deploy publishes and the status file is
- * inspectable from the deploy URL. (To be tightened to fail-on-error once the
- * Netlify path is confirmed.)
+ * we confirm the Netlify build path, does NOT fail the build on render errors —
+ * so the deploy publishes and the status file is inspectable from the deploy
+ * URL. (To be tightened to fail-on-error once confirmed.)
  */
 /* eslint-disable no-console -- build-time CLI: stdout progress is intended output */
 import { mkdirSync, writeFileSync } from 'node:fs'
@@ -33,17 +34,13 @@ import { getItemStaticPaths } from '../src/lib/staticPaths'
 const OG_WIDTH = 1200
 const OG_HEIGHT = 630
 const PORT = Number(process.env.OG_SCREENSHOTS_PORT ?? 4399)
-// Conservative on memory: the Netlify build container OOM-kills chromium under
-// many concurrent long-lived pages. Keep concurrency low and recycle the whole
-// browser every RECYCLE_EVERY screenshots so memory never accumulates.
 const CONCURRENCY = Number(process.env.OG_SCREENSHOTS_CONCURRENCY ?? 5)
-const RECYCLE_EVERY = Number(process.env.OG_SCREENSHOTS_RECYCLE_EVERY ?? 100)
+// Reload each worker's page every N captures to release accumulated memory.
+const RELOAD_EVERY = Number(process.env.OG_SCREENSHOTS_RELOAD_EVERY ?? 200)
 const CARD_SELECTOR = '[data-testid="frame-header-container"]'
 const NAV_TIMEOUT = 30_000
-// Stop launching new chunks past this wall-clock budget so the script always
-// exits cleanly (publishing dist + status) instead of being killed mid-run by
-// the Netlify build timeout. Leaves headroom under the platform's 15-min cap
-// for install + astro build + the rest of the build command.
+// Stop past this wall-clock budget so the script always exits cleanly (publishing
+// dist + status) instead of being killed mid-run by the Netlify build timeout.
 const BUDGET_MS = Number(process.env.OG_SCREENSHOTS_BUDGET_MS ?? 11 * 60_000)
 const startedAt = Date.now()
 // Container-hardening flags: no GPU process (it gets OOM-killed, exit_code=9,
@@ -145,120 +142,138 @@ async function main() {
     }
   )
 
+  type Context = Awaited<ReturnType<Awaited<ReturnType<typeof chromium.launch>>['newContext']>>
+  type Page = import('playwright').Page
+
   const base = `http://127.0.0.1:${PORT}`
   const failures: { entity: Entity; error: string }[] = []
   let generated = 0
   let done = 0
 
-  const captureOne = async (page: import('playwright').Page, entity: Entity): Promise<void> => {
-    const url = `${base}/og-card/?schema=${encodeURIComponent(entity.schemaId)}&item=${encodeURIComponent(entity.itemId)}`
-    // 'domcontentloaded' (not 'networkidle') — the card renders after the island
-    // hydrates + loads game data, which we gate on precisely via waitForSelector
-    // below. Waiting for full network idle added ~2s/page and blew the Netlify
-    // build timeout; the selector wait is both correct and much faster.
-    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: NAV_TIMEOUT })
+  // Load /og-card/ once and wait until game data is ready; the page then renders
+  // any entity in place via window.__ogSetEntity (exposed when data-og-ready
+  // appears).
+  const freshPage = async (context: Context): Promise<Page> => {
+    const page = await context.newPage()
+    await page.goto(`${base}/og-card/`, { waitUntil: 'domcontentloaded', timeout: NAV_TIMEOUT })
+    await page.waitForFunction(() => document.documentElement.hasAttribute('data-og-ready'), null, {
+      timeout: NAV_TIMEOUT,
+    })
+    return page
+  }
+
+  // Swap the in-page entity and capture it — no navigation, so the island + data
+  // corpus stay loaded across the whole run.
+  const captureInPage = async (page: Page, entity: Entity): Promise<void> => {
+    const key = `${entity.schemaId}/${entity.itemId}`
+    await page.evaluate(([schema, item]) => window.__ogSetEntity?.(schema, item), [
+      entity.schemaId,
+      entity.itemId,
+    ] as [string, string])
+    // Wait until that exact entity is the one committed to the DOM.
+    await page.waitForFunction(
+      (k) => document.documentElement.getAttribute('data-og-current') === k,
+      key,
+      { timeout: NAV_TIMEOUT }
+    )
     await page.waitForSelector(CARD_SELECTOR, { timeout: NAV_TIMEOUT })
     await page.evaluate(() => document.fonts.ready)
+    // One paint frame so the swapped card is fully rendered before capture.
+    await page.evaluate(
+      () => new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r())))
+    )
     const outPath = join(DIST_DIR, 'schema', entity.schemaId, 'item', `${entity.itemId}.og.png`)
     mkdirSync(dirname(outPath), { recursive: true })
     await page.screenshot({ path: outPath, type: 'png' })
   }
 
-  // Render one chunk in a FRESH browser, then tear it down — bounding peak
-  // memory and recovering from any browser death (only that chunk is affected).
-  const renderChunk = async (
-    browser: Awaited<ReturnType<typeof chromium.launch>>,
-    chunk: Entity[]
-  ): Promise<void> => {
-    const context = await browser.newContext({
-      viewport: { width: OG_WIDTH, height: OG_HEIGHT },
-      deviceScaleFactor: 1,
-    })
-    let cursor = 0
-    const worker = async () => {
-      let page = await context.newPage()
-      try {
-        for (;;) {
-          const index = cursor++
-          if (index >= chunk.length) break
-          const entity = chunk[index]!
-          try {
-            await captureOne(page, entity)
-            generated++
-          } catch (firstErr) {
-            // Retry on a FRESH page so a wedged renderer (hung hydration, lost
-            // context) can't cascade into this worker's remaining entities.
-            try {
-              await page.close().catch(() => {})
-              page = await context.newPage()
-              await captureOne(page, entity)
-              generated++
-            } catch (retryErr) {
-              failures.push({
-                entity,
-                error: `${firstErr instanceof Error ? firstErr.message : String(firstErr)} | retry: ${retryErr instanceof Error ? retryErr.message : String(retryErr)}`,
-              })
-            }
-          }
-          done++
-          if (done % 200 === 0 || done === entities.length) {
-            log(`${done}/${entities.length}`)
-          }
-        }
-      } finally {
-        await page.close().catch(() => {})
-      }
-    }
-    await Promise.all(Array.from({ length: Math.max(1, CONCURRENCY) }, worker))
-    await context.close().catch(() => {})
-  }
-
   try {
     await waitForServer(`${base}/og-card/`)
 
-    for (let start = 0; start < entities.length; start += RECYCLE_EVERY) {
-      if (Date.now() - startedAt > BUDGET_MS) {
-        log(
-          `time budget (${Math.round(BUDGET_MS / 1000)}s) reached at ${done}/${entities.length} — stopping early.`
-        )
-        break
-      }
-      const chunk = entities.slice(start, start + RECYCLE_EVERY)
-      let browser: Awaited<ReturnType<typeof chromium.launch>> | null = null
-      try {
-        browser = await chromium.launch({
-          headless: true,
-          executablePath: process.env.OG_CHROME_PATH || undefined,
-          args: LAUNCH_ARGS,
-        })
-      } catch (err) {
-        const browserError = `chromium.launch failed: ${err instanceof Error ? err.message : String(err)}`
-        log(browserError)
-        // First chunk can't even launch → environment problem; record and stop.
-        if (start === 0) {
-          writeStatus({
-            ok: false,
-            total: entities.length,
-            generated: 0,
-            failed: entities.length,
-            browserError,
-            sampleFailures: [],
-            finishedAt: new Date().toISOString(),
-          })
-          return
+    let browser: Awaited<ReturnType<typeof chromium.launch>>
+    try {
+      browser = await chromium.launch({
+        headless: true,
+        executablePath: process.env.OG_CHROME_PATH || undefined,
+        args: LAUNCH_ARGS,
+      })
+    } catch (err) {
+      const browserError = `chromium.launch failed: ${err instanceof Error ? err.message : String(err)}`
+      log(browserError)
+      writeStatus({
+        ok: false,
+        total: entities.length,
+        generated: 0,
+        failed: entities.length,
+        browserError,
+        sampleFailures: [],
+        finishedAt: new Date().toISOString(),
+      })
+      return
+    }
+
+    try {
+      const context = await browser.newContext({
+        viewport: { width: OG_WIDTH, height: OG_HEIGHT },
+        deviceScaleFactor: 1,
+      })
+
+      let cursor = 0
+      let budgetHit = false
+      const worker = async () => {
+        let page = await freshPage(context)
+        let sinceReload = 0
+        try {
+          for (;;) {
+            if (budgetHit) break
+            const index = cursor++
+            if (index >= entities.length) break
+            if (Date.now() - startedAt > BUDGET_MS) {
+              budgetHit = true
+              log(
+                `time budget (${Math.round(BUDGET_MS / 1000)}s) reached at ${done}/${entities.length} — stopping early.`
+              )
+              break
+            }
+            const entity = entities[index]!
+            try {
+              await captureInPage(page, entity)
+              generated++
+            } catch (firstErr) {
+              // Recover on a fresh page (reloads the island + data) so a wedged
+              // renderer can't cascade into this worker's remaining entities.
+              try {
+                await page.close().catch(() => {})
+                page = await freshPage(context)
+                sinceReload = 0
+                await captureInPage(page, entity)
+                generated++
+              } catch (retryErr) {
+                failures.push({
+                  entity,
+                  error: `${firstErr instanceof Error ? firstErr.message : String(firstErr)} | retry: ${retryErr instanceof Error ? retryErr.message : String(retryErr)}`,
+                })
+              }
+            }
+            done++
+            if (done % 200 === 0 || done === entities.length) {
+              log(`${done}/${entities.length}`)
+            }
+            if (++sinceReload >= RELOAD_EVERY) {
+              await page.close().catch(() => {})
+              page = await freshPage(context)
+              sinceReload = 0
+            }
+          }
+        } finally {
+          await page.close().catch(() => {})
         }
-        for (const entity of chunk) failures.push({ entity, error: browserError })
-        continue
       }
-      try {
-        await renderChunk(browser, chunk)
-      } catch (err) {
-        // A browser death mid-chunk drops its in-flight items; the fresh browser
-        // for the next chunk recovers. Record whatever didn't get captured.
-        log(`chunk @${start} aborted: ${err instanceof Error ? err.message : String(err)}`)
-      } finally {
-        await browser.close().catch(() => {})
-      }
+
+      await Promise.all(Array.from({ length: Math.max(1, CONCURRENCY) }, worker))
+      await context.close().catch(() => {})
+    } finally {
+      await browser.close().catch(() => {})
     }
   } finally {
     preview.kill()
