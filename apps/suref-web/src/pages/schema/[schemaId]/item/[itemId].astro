@@ -83,7 +83,8 @@ if (displayData?.techLevel != null) {
   }
 }
 
-// Per-entity branded OG card generated at build time ([itemId].og.png.ts).
+// Per-entity OG image: a 1:1 screenshot of the real ReferenceEntityDisplay card,
+// generated post-build by scripts/og-screenshots.ts and written to this path.
 // Real artwork (assetUrl) still preloads for the on-page view.
 const preloadImage = displayData?.assetUrl
 const ogImage = `/schema/${schemaId}/item/${itemId}.og.png`
