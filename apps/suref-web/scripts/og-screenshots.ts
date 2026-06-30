@@ -139,6 +139,11 @@ async function main() {
       browser = await chromium.launch({
         headless: true,
         executablePath: process.env.OG_CHROME_PATH || undefined,
+        // Netlify's build container has no usable GPU — chromium's GPU process
+        // crashes repeatedly and takes the whole browser down ("GPU process
+        // isn't usable. Goodbye."). Disable it; SwiftShader/software paths are
+        // unnecessary for static card screenshots.
+        args: ['--disable-gpu', '--disable-software-rasterizer'],
       })
     } catch (err) {
       const browserError = `chromium.launch failed: ${err instanceof Error ? err.message : String(err)}`
