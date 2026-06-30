@@ -16,11 +16,16 @@
  * binary: Playwright resolves its own after `bunx playwright install chromium`
  * (the Netlify build installs it; locally it is shared with the ITUN e2e cache).
  * Set OG_CHROME_PATH to use a specific executable, or OG_SCREENSHOTS_SKIP=1 to
- * skip. When chromium is unavailable the script fails the build under CI/Netlify
- * and warns-and-skips elsewhere, so a local `bun run build` never hard-breaks.
+ * skip.
+ *
+ * The run writes a machine-readable outcome to `dist/_og-status.json` and, while
+ * we confirm chromium runs in the Netlify build container, does NOT fail the
+ * build on render errors — so the deploy publishes and the status file is
+ * inspectable from the deploy URL. (To be tightened to fail-on-error once the
+ * Netlify path is confirmed.)
  */
 /* eslint-disable no-console -- build-time CLI: stdout progress is intended output */
-import { mkdirSync } from 'node:fs'
+import { mkdirSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { getItemStaticPaths } from '../src/lib/staticPaths'
@@ -34,12 +39,30 @@ const NAV_TIMEOUT = 30_000
 
 const APP_ROOT = fileURLToPath(new URL('..', import.meta.url))
 const DIST_DIR = join(APP_ROOT, 'dist')
-const isCi = !!(process.env.NETLIFY || process.env.CI)
+const STATUS_PATH = join(DIST_DIR, '_og-status.json')
 
 type Entity = { schemaId: string; itemId: string }
+type Status = {
+  ok: boolean
+  total: number
+  generated: number
+  failed: number
+  browserError?: string
+  sampleFailures: string[]
+  finishedAt: string
+}
 
 function log(msg: string) {
   console.log(`[og-screenshots] ${msg}`)
+}
+
+function writeStatus(status: Status) {
+  try {
+    mkdirSync(DIST_DIR, { recursive: true })
+    writeFileSync(STATUS_PATH, JSON.stringify(status, null, 2))
+  } catch {
+    // best-effort diagnostic; never let status writing mask the real result
+  }
 }
 
 /** Wait until the preview server answers, or throw after `timeoutMs`. */
@@ -73,14 +96,21 @@ async function main() {
   }
   log(`generating ${entities.length} og:images (${CONCURRENCY} concurrent)…`)
 
-  // Resolve chromium up front so a missing browser fails fast (and cleanly).
   let chromium: typeof import('playwright').chromium
   try {
     ;({ chromium } = await import('playwright'))
-  } catch {
-    const msg = 'Playwright not installed — run `bunx playwright install chromium`.'
-    if (isCi) throw new Error(msg)
-    log(`${msg} Skipping (non-CI).`)
+  } catch (err) {
+    const browserError = `Playwright not importable: ${err instanceof Error ? err.message : String(err)}`
+    log(browserError)
+    writeStatus({
+      ok: false,
+      total: entities.length,
+      generated: 0,
+      failed: entities.length,
+      browserError,
+      sampleFailures: [],
+      finishedAt: new Date().toISOString(),
+    })
     return
   }
 
@@ -100,6 +130,7 @@ async function main() {
   let browser: Awaited<ReturnType<typeof chromium.launch>> | null = null
   const base = `http://127.0.0.1:${PORT}`
   const failures: { entity: Entity; error: string }[] = []
+  let generated = 0
 
   try {
     await waitForServer(`${base}/og-card/`)
@@ -110,9 +141,17 @@ async function main() {
         executablePath: process.env.OG_CHROME_PATH || undefined,
       })
     } catch (err) {
-      const msg = `failed to launch chromium: ${err instanceof Error ? err.message : String(err)}`
-      if (isCi) throw new Error(`${msg}\nRun \`bunx playwright install chromium\`.`, { cause: err })
-      log(`${msg} — skipping (non-CI).`)
+      const browserError = `chromium.launch failed: ${err instanceof Error ? err.message : String(err)}`
+      log(browserError)
+      writeStatus({
+        ok: false,
+        total: entities.length,
+        generated: 0,
+        failed: entities.length,
+        browserError,
+        sampleFailures: [],
+        finishedAt: new Date().toISOString(),
+      })
       return
     }
 
@@ -143,6 +182,7 @@ async function main() {
           const entity = entities[index]!
           try {
             await captureOne(page, entity)
+            generated++
           } catch (firstErr) {
             // Retry on a FRESH page so a wedged renderer (hung hydration, lost
             // context) can't cascade into this worker's remaining entities.
@@ -150,6 +190,7 @@ async function main() {
               await page.close().catch(() => {})
               page = await context.newPage()
               await captureOne(page, entity)
+              generated++
             } catch (retryErr) {
               failures.push({
                 entity,
@@ -175,16 +216,32 @@ async function main() {
     await preview.exited
   }
 
-  if (failures.length > 0) {
-    for (const f of failures.slice(0, 20)) {
-      log(`FAILED ${f.entity.schemaId}/${f.entity.itemId}: ${f.error}`)
-    }
-    throw new Error(`${failures.length} og:image(s) failed to render.`)
+  for (const f of failures.slice(0, 20)) {
+    log(`FAILED ${f.entity.schemaId}/${f.entity.itemId}: ${f.error}`)
   }
-  log(`done — ${entities.length} og:images written.`)
+  writeStatus({
+    ok: failures.length === 0,
+    total: entities.length,
+    generated,
+    failed: failures.length,
+    sampleFailures: failures
+      .slice(0, 10)
+      .map((f) => `${f.entity.schemaId}/${f.entity.itemId}: ${f.error}`),
+    finishedAt: new Date().toISOString(),
+  })
+  log(`done — ${generated}/${entities.length} og:images written, ${failures.length} failed.`)
 }
 
 main().catch((err) => {
   console.error('[og-screenshots]', err)
-  process.exit(1)
+  // Diagnostic phase: don't fail the build on unexpected errors — record them.
+  writeStatus({
+    ok: false,
+    total: 0,
+    generated: 0,
+    failed: 0,
+    browserError: `unexpected: ${err instanceof Error ? (err.stack ?? err.message) : String(err)}`,
+    sampleFailures: [],
+    finishedAt: new Date().toISOString(),
+  })
 })

@@ -244,7 +244,12 @@ jobs:
           path: packages/salvageunion-reference/dist/
 
       - name: Build suref-web
+        # Skip the headless-chromium og:image pass here — this job only verifies
+        # the build compiles. The real og:images are generated in the Netlify
+        # deploy (which provisions chromium); see scripts/og-screenshots.ts.
         run: bun --filter suref-web build
+        env:
+          OG_SCREENSHOTS_SKIP: '1'
 
   build-itun:
     needs: [changes, build-package, lint, typecheck, test, validate, knip, audit]
