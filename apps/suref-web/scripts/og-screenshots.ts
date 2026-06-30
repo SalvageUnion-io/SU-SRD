@@ -36,10 +36,16 @@ const PORT = Number(process.env.OG_SCREENSHOTS_PORT ?? 4399)
 // Conservative on memory: the Netlify build container OOM-kills chromium under
 // many concurrent long-lived pages. Keep concurrency low and recycle the whole
 // browser every RECYCLE_EVERY screenshots so memory never accumulates.
-const CONCURRENCY = Number(process.env.OG_SCREENSHOTS_CONCURRENCY ?? 3)
-const RECYCLE_EVERY = Number(process.env.OG_SCREENSHOTS_RECYCLE_EVERY ?? 150)
+const CONCURRENCY = Number(process.env.OG_SCREENSHOTS_CONCURRENCY ?? 5)
+const RECYCLE_EVERY = Number(process.env.OG_SCREENSHOTS_RECYCLE_EVERY ?? 100)
 const CARD_SELECTOR = '[data-testid="frame-header-container"]'
 const NAV_TIMEOUT = 30_000
+// Stop launching new chunks past this wall-clock budget so the script always
+// exits cleanly (publishing dist + status) instead of being killed mid-run by
+// the Netlify build timeout. Leaves headroom under the platform's 15-min cap
+// for install + astro build + the rest of the build command.
+const BUDGET_MS = Number(process.env.OG_SCREENSHOTS_BUDGET_MS ?? 11 * 60_000)
+const startedAt = Date.now()
 // Container-hardening flags: no GPU process (it gets OOM-killed, exit_code=9,
 // and takes the browser down) and a small shared-memory footprint.
 const LAUNCH_ARGS = [
@@ -146,7 +152,11 @@ async function main() {
 
   const captureOne = async (page: import('playwright').Page, entity: Entity): Promise<void> => {
     const url = `${base}/og-card/?schema=${encodeURIComponent(entity.schemaId)}&item=${encodeURIComponent(entity.itemId)}`
-    await page.goto(url, { waitUntil: 'networkidle', timeout: NAV_TIMEOUT })
+    // 'domcontentloaded' (not 'networkidle') — the card renders after the island
+    // hydrates + loads game data, which we gate on precisely via waitForSelector
+    // below. Waiting for full network idle added ~2s/page and blew the Netlify
+    // build timeout; the selector wait is both correct and much faster.
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: NAV_TIMEOUT })
     await page.waitForSelector(CARD_SELECTOR, { timeout: NAV_TIMEOUT })
     await page.evaluate(() => document.fonts.ready)
     const outPath = join(DIST_DIR, 'schema', entity.schemaId, 'item', `${entity.itemId}.og.png`)
@@ -207,6 +217,12 @@ async function main() {
     await waitForServer(`${base}/og-card/`)
 
     for (let start = 0; start < entities.length; start += RECYCLE_EVERY) {
+      if (Date.now() - startedAt > BUDGET_MS) {
+        log(
+          `time budget (${Math.round(BUDGET_MS / 1000)}s) reached at ${done}/${entities.length} — stopping early.`
+        )
+        break
+      }
       const chunk = entities.slice(start, start + RECYCLE_EVERY)
       let browser: Awaited<ReturnType<typeof chromium.launch>> | null = null
       try {
