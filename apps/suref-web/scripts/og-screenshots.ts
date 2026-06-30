@@ -33,9 +33,21 @@ import { getItemStaticPaths } from '../src/lib/staticPaths'
 const OG_WIDTH = 1200
 const OG_HEIGHT = 630
 const PORT = Number(process.env.OG_SCREENSHOTS_PORT ?? 4399)
-const CONCURRENCY = Number(process.env.OG_SCREENSHOTS_CONCURRENCY ?? 6)
+// Conservative on memory: the Netlify build container OOM-kills chromium under
+// many concurrent long-lived pages. Keep concurrency low and recycle the whole
+// browser every RECYCLE_EVERY screenshots so memory never accumulates.
+const CONCURRENCY = Number(process.env.OG_SCREENSHOTS_CONCURRENCY ?? 3)
+const RECYCLE_EVERY = Number(process.env.OG_SCREENSHOTS_RECYCLE_EVERY ?? 150)
 const CARD_SELECTOR = '[data-testid="frame-header-container"]'
 const NAV_TIMEOUT = 30_000
+// Container-hardening flags: no GPU process (it gets OOM-killed, exit_code=9,
+// and takes the browser down) and a small shared-memory footprint.
+const LAUNCH_ARGS = [
+  '--disable-gpu',
+  '--disable-software-rasterizer',
+  '--disable-dev-shm-usage',
+  '--disable-accelerated-2d-canvas',
+]
 
 const APP_ROOT = fileURLToPath(new URL('..', import.meta.url))
 const DIST_DIR = join(APP_ROOT, 'dist')
@@ -127,64 +139,39 @@ async function main() {
     }
   )
 
-  let browser: Awaited<ReturnType<typeof chromium.launch>> | null = null
   const base = `http://127.0.0.1:${PORT}`
   const failures: { entity: Entity; error: string }[] = []
   let generated = 0
+  let done = 0
 
-  try {
-    await waitForServer(`${base}/og-card/`)
+  const captureOne = async (page: import('playwright').Page, entity: Entity): Promise<void> => {
+    const url = `${base}/og-card/?schema=${encodeURIComponent(entity.schemaId)}&item=${encodeURIComponent(entity.itemId)}`
+    await page.goto(url, { waitUntil: 'networkidle', timeout: NAV_TIMEOUT })
+    await page.waitForSelector(CARD_SELECTOR, { timeout: NAV_TIMEOUT })
+    await page.evaluate(() => document.fonts.ready)
+    const outPath = join(DIST_DIR, 'schema', entity.schemaId, 'item', `${entity.itemId}.og.png`)
+    mkdirSync(dirname(outPath), { recursive: true })
+    await page.screenshot({ path: outPath, type: 'png' })
+  }
 
-    try {
-      browser = await chromium.launch({
-        headless: true,
-        executablePath: process.env.OG_CHROME_PATH || undefined,
-        // Netlify's build container has no usable GPU — chromium's GPU process
-        // crashes repeatedly and takes the whole browser down ("GPU process
-        // isn't usable. Goodbye."). Disable it; SwiftShader/software paths are
-        // unnecessary for static card screenshots.
-        args: ['--disable-gpu', '--disable-software-rasterizer'],
-      })
-    } catch (err) {
-      const browserError = `chromium.launch failed: ${err instanceof Error ? err.message : String(err)}`
-      log(browserError)
-      writeStatus({
-        ok: false,
-        total: entities.length,
-        generated: 0,
-        failed: entities.length,
-        browserError,
-        sampleFailures: [],
-        finishedAt: new Date().toISOString(),
-      })
-      return
-    }
-
+  // Render one chunk in a FRESH browser, then tear it down — bounding peak
+  // memory and recovering from any browser death (only that chunk is affected).
+  const renderChunk = async (
+    browser: Awaited<ReturnType<typeof chromium.launch>>,
+    chunk: Entity[]
+  ): Promise<void> => {
     const context = await browser.newContext({
       viewport: { width: OG_WIDTH, height: OG_HEIGHT },
       deviceScaleFactor: 1,
     })
-
-    const captureOne = async (page: import('playwright').Page, entity: Entity): Promise<void> => {
-      const url = `${base}/og-card/?schema=${encodeURIComponent(entity.schemaId)}&item=${encodeURIComponent(entity.itemId)}`
-      await page.goto(url, { waitUntil: 'networkidle', timeout: NAV_TIMEOUT })
-      await page.waitForSelector(CARD_SELECTOR, { timeout: NAV_TIMEOUT })
-      await page.evaluate(() => document.fonts.ready)
-      const outPath = join(DIST_DIR, 'schema', entity.schemaId, 'item', `${entity.itemId}.og.png`)
-      mkdirSync(dirname(outPath), { recursive: true })
-      await page.screenshot({ path: outPath, type: 'png' })
-    }
-
-    // Worker pool: each worker owns one page and pulls from a shared cursor.
     let cursor = 0
-    let done = 0
     const worker = async () => {
       let page = await context.newPage()
       try {
         for (;;) {
           const index = cursor++
-          if (index >= entities.length) break
-          const entity = entities[index]!
+          if (index >= chunk.length) break
+          const entity = chunk[index]!
           try {
             await captureOne(page, entity)
             generated++
@@ -212,11 +199,52 @@ async function main() {
         await page.close().catch(() => {})
       }
     }
-
     await Promise.all(Array.from({ length: Math.max(1, CONCURRENCY) }, worker))
-    await context.close()
+    await context.close().catch(() => {})
+  }
+
+  try {
+    await waitForServer(`${base}/og-card/`)
+
+    for (let start = 0; start < entities.length; start += RECYCLE_EVERY) {
+      const chunk = entities.slice(start, start + RECYCLE_EVERY)
+      let browser: Awaited<ReturnType<typeof chromium.launch>> | null = null
+      try {
+        browser = await chromium.launch({
+          headless: true,
+          executablePath: process.env.OG_CHROME_PATH || undefined,
+          args: LAUNCH_ARGS,
+        })
+      } catch (err) {
+        const browserError = `chromium.launch failed: ${err instanceof Error ? err.message : String(err)}`
+        log(browserError)
+        // First chunk can't even launch → environment problem; record and stop.
+        if (start === 0) {
+          writeStatus({
+            ok: false,
+            total: entities.length,
+            generated: 0,
+            failed: entities.length,
+            browserError,
+            sampleFailures: [],
+            finishedAt: new Date().toISOString(),
+          })
+          return
+        }
+        for (const entity of chunk) failures.push({ entity, error: browserError })
+        continue
+      }
+      try {
+        await renderChunk(browser, chunk)
+      } catch (err) {
+        // A browser death mid-chunk drops its in-flight items; the fresh browser
+        // for the next chunk recovers. Record whatever didn't get captured.
+        log(`chunk @${start} aborted: ${err instanceof Error ? err.message : String(err)}`)
+      } finally {
+        await browser.close().catch(() => {})
+      }
+    }
   } finally {
-    await browser?.close()
     preview.kill()
     await preview.exited
   }
