@@ -25,7 +25,7 @@
  */
 
 import { useState } from 'react'
-import { Btn, MiniBtn, Slab } from 'suref-react'
+import { Btn, MiniBtn, Slab, heatLevel } from 'suref-react'
 
 import { performHeatCheck, performPush } from '../../lib/rules/heatCheck'
 import type { HeatCheckEffect, Roll } from '../../lib/rules/heatCheck'
@@ -127,6 +127,9 @@ export function HeatCheckControl({
 
   const last = mech.lastHeatCheck
 
+  // Push gets riskier as heat climbs (U-1): danger styling at >= ~70% of cap.
+  const pushIsRisky = heatLevel(currentHeat, heatCap) !== 'normal'
+
   return (
     <div>
       <Slab label="Heat Check" />
@@ -144,6 +147,7 @@ export function HeatCheckControl({
           </Btn>
           <Btn
             size="sm"
+            variant={pushIsRisky ? 'danger' : undefined}
             title="+2 Heat, then a Heat Check"
             onClick={() => {
               void handlePush()

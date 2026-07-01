@@ -12,8 +12,9 @@
  * That is deferred to Wave 5 polish (see cycle-3.md).
  */
 
+import { Btn } from 'suref-react'
+
 import { cn } from '../../lib/utils'
-import { Button } from '../ui/button'
 import type { SoftWarning, SoftWarningSeverity } from '../../lib/rules/types'
 
 // ---------------------------------------------------------------------------
@@ -80,14 +81,14 @@ export function SoftWarningBanner({
       {(onSaveAnyway || onFixIt) && (
         <div className="flex gap-2">
           {onSaveAnyway && (
-            <Button variant="outline" size="sm" onClick={onSaveAnyway}>
+            <Btn size="sm" onClick={onSaveAnyway}>
               Save anyway
-            </Button>
+            </Btn>
           )}
           {onFixIt && (
-            <Button variant="ghost" size="sm" onClick={onFixIt}>
+            <Btn variant="ghost" size="sm" onClick={onFixIt}>
               Fix it
-            </Button>
+            </Btn>
           )}
         </div>
       )}

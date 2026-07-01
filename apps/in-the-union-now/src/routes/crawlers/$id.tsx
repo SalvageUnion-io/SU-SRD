@@ -14,7 +14,7 @@ import { useEntityStore } from '../../stores/entityStore'
 import { useSoftLinks } from '../../components/wiring/useSoftLinks'
 import { AssignToWorkspaceButton } from '../../components/workspace/AssignToWorkspaceButton'
 import { useWorkspaceStore } from '../../stores/workspaceStore'
-import { buttonVariants } from '../../components/ui/buttonVariants'
+import { btnVariants } from 'suref-react'
 import { cn } from '../../lib/utils'
 import { ExportEntityButton } from '../../components/export/ExportEntityButton'
 
@@ -50,7 +50,7 @@ function CrawlerDetailPage() {
     return (
       <main className="mx-auto max-w-7xl p-6">
         <p className="text-wk-muted">Crawler not found.</p>
-        <a href="/" className={cn(buttonVariants({ variant: 'link', size: 'sm' }))}>
+        <a href="/" className={cn(btnVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}>
           Back to dashboard
         </a>
       </main>
@@ -73,14 +73,11 @@ function CrawlerDetailPage() {
           <Link
             to="/crawlers/$id/edit"
             params={{ id }}
-            className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'no-underline')}
+            className={cn(btnVariants({ variant: 'default', size: 'sm' }), 'no-underline')}
           >
             Edit
           </Link>
-          <a
-            href="/"
-            className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
-          >
+          <a href="/" className={cn(btnVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}>
             Back
           </a>
         </div>
@@ -133,7 +130,7 @@ function CrawlerDetailPage() {
                       {pilot ? (
                         <a
                           href={`/pilots/${pilot.id}`}
-                          className="font-medium text-primary underline-offset-2 hover:underline"
+                          className="font-medium text-rust underline-offset-2 hover:underline"
                         >
                           {pilot.name}
                         </a>
@@ -164,7 +161,7 @@ function CrawlerDetailPage() {
           <div className="flex flex-wrap gap-3">
             <a
               href={`/sheet/crawler/${id}`}
-              className={cn(buttonVariants({ variant: 'default' }), 'no-underline')}
+              className={cn(btnVariants({ variant: 'primary' }), 'no-underline')}
             >
               View Sheet
             </a>

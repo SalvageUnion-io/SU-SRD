@@ -1,7 +1,7 @@
 /**
  * SavePatternButton — captures a mech's configuration as a named reusable pattern.
  *
- * Renders as a Btn. On click, opens an inline dialog where the user
+ * Renders as a Btn. On click, opens a ModalShell dialog where the user
  * enters a pattern name. On confirm, builds a MechPattern from the supplied
  * configuration and persists it via db.mechPatterns.create().
  *
@@ -13,11 +13,10 @@
  * toast so the user can retry without losing the dialog state.
  */
 
-import { useRef, useState } from 'react'
-import { Btn, toast } from 'suref-react'
+import { useState } from 'react'
+import { Btn, Field, Input, ModalShell, toast } from 'suref-react'
 import * as db from '../../../lib/db/index'
 import type { CargoLot } from '../../../lib/schemas/cargoLot'
-import { useDialogA11y } from '../../shared/useDialogA11y'
 import { cn } from '../../../lib/utils'
 
 type SavePatternButtonProps = {
@@ -96,96 +95,54 @@ export function SavePatternButton({
         Save as pattern
       </Btn>
 
-      {isOpen && (
-        <SavePatternDialog
-          patternName={patternName}
-          setPatternName={setPatternName}
-          saveError={saveError}
-          isSaving={isSaving}
-          onSave={handleSave}
-          onCancel={handleCancel}
-        />
-      )}
-    </>
-  )
-}
-
-// ---------------------------------------------------------------------------
-// Dialog sub-component (mounted only when open, so useDialogA11y runs once)
-// ---------------------------------------------------------------------------
-
-type SavePatternDialogProps = {
-  patternName: string
-  setPatternName: (name: string) => void
-  saveError: string | null
-  isSaving: boolean
-  onSave: () => Promise<void>
-  onCancel: () => void
-}
-
-function SavePatternDialog({
-  patternName,
-  setPatternName,
-  saveError,
-  isSaving,
-  onSave,
-  onCancel,
-}: SavePatternDialogProps) {
-  const dialogRef = useRef<HTMLDivElement>(null)
-  useDialogA11y({ ref: dialogRef, onClose: onCancel })
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div
-        ref={dialogRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="save-pattern-dialog-title"
-        className="rounded-lg border border-border bg-background p-6 shadow-lg w-full max-w-sm mx-4 flex flex-col gap-4"
+      <ModalShell
+        open={isOpen}
+        onOpenChange={(next) => {
+          if (!next) handleCancel()
+        }}
+        title="Save as pattern"
+        headerBg="bg-su-orange"
+        maxWidth="max-w-md"
+        align="center"
       >
-        <h2 id="save-pattern-dialog-title" className="text-lg font-semibold">
-          Save as pattern
-        </h2>
+        <div className="flex flex-col gap-4 bg-paper p-5">
+          <Field label="Pattern name" htmlFor="pattern-name-input">
+            <Input
+              id="pattern-name-input"
+              type="text"
+              aria-label="Pattern name"
+              value={patternName}
+              onChange={(e) => setPatternName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') void handleSave()
+                // Escape is handled by the ModalShell dialog
+              }}
+            />
+          </Field>
 
-        <div className="flex flex-col gap-1">
-          <label htmlFor="pattern-name-input" className="text-sm font-medium">
-            Pattern name
-          </label>
-          <input
-            id="pattern-name-input"
-            type="text"
-            aria-label="Pattern name"
-            value={patternName}
-            onChange={(e) => setPatternName(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') void onSave()
-              // Escape is handled globally by useDialogA11y
-            }}
-            className="rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-          />
+          {saveError && (
+            <p className="font-body text-sm text-danger" role="alert">
+              {saveError}
+            </p>
+          )}
+
+          <div className="flex justify-end gap-2">
+            <Btn type="button" variant="ghost" size="sm" onClick={handleCancel} disabled={isSaving}>
+              Cancel
+            </Btn>
+            <Btn
+              type="button"
+              variant="primary"
+              size="sm"
+              onClick={() => void handleSave()}
+              disabled={isSaving || !patternName.trim()}
+              aria-label="Save pattern"
+            >
+              {isSaving ? 'Saving…' : 'Save'}
+            </Btn>
+          </div>
         </div>
-
-        {saveError && (
-          <p className="text-sm text-danger" role="alert">
-            {saveError}
-          </p>
-        )}
-
-        <div className="flex gap-2 justify-end">
-          <Btn type="button" variant="ghost" onClick={onCancel} disabled={isSaving}>
-            Cancel
-          </Btn>
-          <Btn
-            type="button"
-            variant="primary"
-            onClick={() => void onSave()}
-            disabled={isSaving || !patternName.trim()}
-            aria-label="Save pattern"
-          >
-            {isSaving ? 'Saving…' : 'Save'}
-          </Btn>
-        </div>
-      </div>
-    </div>
+      </ModalShell>
+    </>
   )
 }

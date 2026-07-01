@@ -91,7 +91,7 @@ export function ConditionToggle({
         badgeClass,
         // min-h-11 ensures 44px touch target on mobile; sm:min-h-0 lets the
         // badge return to its natural (text-driven) height on larger viewports.
-        'cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1',
+        'cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-su-orange focus-visible:ring-offset-1',
         'min-h-11 sm:min-h-0'
       )}
     >

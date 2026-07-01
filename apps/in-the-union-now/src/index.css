@@ -54,6 +54,23 @@
   --radius: 0.375rem;
 }
 
+/*
+ * Indeterminate loader bar (branded loading states, e.g. GameDataReady).
+ * Registered through @theme so `animate-loader-slide` is a real utility.
+ */
+@theme {
+  --animate-loader-slide: loader-slide 1.4s ease-in-out infinite;
+
+  @keyframes loader-slide {
+    0% {
+      transform: translateX(-150%);
+    }
+    100% {
+      transform: translateX(400%);
+    }
+  }
+}
+
 /* === Base layout === */
 html,
 body {

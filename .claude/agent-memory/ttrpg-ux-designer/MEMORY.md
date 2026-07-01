@@ -40,10 +40,21 @@
 - Heat colors need NEW tokens: critical red (200,50,50), atCap red (180,30,30)
 - Expansion source theming: claw-scratch, beveled border, rain-streak, CRT scanlines
 
-## ITUN UX Review (Feb 2025)
+## ITUN UX Review (Feb 2025 — historical)
 
 - Key issues: sticky header too tall on mobile (needs auto-collapse), actions tab should filter by action type not source, 3-col grids need responsive breakpoints, needs FAB for d20 roll, condition cycling needs undo protection
 - Recommended: collapsible sticky header, action-type filter chips, responsive 1/2/3-col grid, floating d20 FAB, segmented control for conditions
+
+## ITUN UX Review (2026-07 — current state, post design-spec rebuild)
+
+App is now built on a rigorous internal "design-spec" (§ references in every component). Mature & tidy. Key remaining gaps:
+
+- NO global app chrome/brand header. `__root.tsx` renders bare `<Outlet/>` + Toaster. Dashboard invents its own plaintext "ITUN Beta — Saved Builds" h1. SRD site's branded dark header (TopNavigation.astro: su-ink-dark ground + 3px su-orange-dark bottom border + SU mark + wordmark) is NOT mirrored. Biggest SRD-consistency gap. But live sheets (`Sheet.tsx`/`LiveSheet.tsx`) already have a sticky top bar at top:0 → a global header would double-stack; suppress global header on `/sheet/*` or let the sheet bar carry the brand.
+- Heat has NO escalating urgency. StatBlock/MiniStat heat pips are always `status-warn` orange regardless of value/max (pip fill = which-stat, not danger-level). Heat is the dramatic mechanic — needs red escalation near cap (the critical/atCap red tokens flagged above still unused).
+- Loading = plain text, not skeletons. `GameDataReady` gates WHOLE app behind one Suspense showing "Loading reference data…"; Dashboard shows "Loading…". No branded skeletons.
+- Still no in-app d20 roller (only Heat Check automation + char-gen roll tables). `--color-roll-*` tier tokens (cascade/failure/tough/success/nailed) exist but are unused in sheet UI — ready for a roll FAB.
+- Dashboard '↳ Name' cross-links (pilot↔mech↔crawler) are plain text in row meta, NOT navigable.
+- Shell files: `components/sheet/LiveSheet.tsx` (sticky condense bar, IntersectionObserver, mobile segmented switch), `SheetHero.tsx` (entity-card-writ-large), `Sheet.tsx` (variant dispatch). Wizards share `components/wizard/WizShell.tsx` (196px stepper rail + optional 320px option pane + floating bottom-right CTA pill). All three wizards (Pilot/Mech/Crawler) reuse it.
 
 ## Accessibility Patterns
 

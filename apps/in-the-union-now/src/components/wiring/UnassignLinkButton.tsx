@@ -2,8 +2,8 @@
  * UnassignLinkButton — confirm dialog → entityStore.delete('softLink', linkId).
  *
  * Surfaces copy explaining that removing the link does NOT delete either
- * endpoint entity. The dialog is intentionally minimal (inline confirm, not
- * a full modal) to avoid a separate dependency.
+ * endpoint entity. Confirmation runs through the shared ConfirmDialog
+ * (ModalShell-based).
  *
  * Props:
  *   linkId      — id of the SoftLink to remove
@@ -13,11 +13,11 @@
  *   className   — optional class override for the trigger button
  */
 
-import { useRef, useState } from 'react'
+import { useState } from 'react'
+import { Btn } from 'suref-react'
 
 import { useEntityStore } from '../../stores/entityStore'
-import { useDialogA11y } from '../shared/useDialogA11y'
-import { Button } from '../ui/button'
+import { ConfirmDialog } from '../shared/ConfirmDialog'
 import { cn } from '../../lib/utils'
 
 /** Minimal store slice needed by UnassignLinkButton. */
@@ -72,77 +72,31 @@ export function UnassignLinkButton({
 
   return (
     <>
-      <Button
+      <Btn
         variant="ghost"
         size="sm"
         onClick={openConfirm}
-        className={cn('text-destructive hover:text-destructive', className)}
+        className={cn('text-danger hover:text-danger', className)}
         aria-label={`${label} — remove soft link`}
       >
         {label}
-      </Button>
+      </Btn>
 
-      {open && (
-        <UnassignConfirmDialog
-          error={error}
-          pending={pending}
-          onConfirm={handleConfirm}
-          onClose={closeConfirm}
-        />
-      )}
-    </>
-  )
-}
-
-// ---------------------------------------------------------------------------
-// Dialog sub-component (mounted only when open, so useDialogA11y runs once)
-// ---------------------------------------------------------------------------
-
-type UnassignConfirmDialogProps = {
-  error: string | null
-  pending: boolean
-  onConfirm: () => Promise<void>
-  onClose: () => void
-}
-
-function UnassignConfirmDialog({ error, pending, onConfirm, onClose }: UnassignConfirmDialogProps) {
-  const dialogRef = useRef<HTMLDivElement>(null)
-  useDialogA11y({ ref: dialogRef, onClose })
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div
-        ref={dialogRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="unassign-confirm-title"
-        className="w-full max-w-sm rounded-lg border bg-background p-6 shadow-lg"
+      <ConfirmDialog
+        open={open}
+        title="Remove assignment?"
+        danger
+        confirmLabel="Remove link"
+        pendingLabel="Removing…"
+        confirmAriaLabel="Confirm unassign"
+        pending={pending}
+        error={error}
+        onConfirm={() => void handleConfirm()}
+        onCancel={closeConfirm}
       >
-        <h2 id="unassign-confirm-title" className="mb-2 text-base font-semibold">
-          Remove assignment?
-        </h2>
-        <p className="mb-4 text-sm text-muted-foreground">
-          This only removes the link between the entities &mdash; it does <strong>not</strong>{' '}
-          delete either the pilot, mech, or crawler.
-        </p>
-
-        {error && <p className="mb-3 text-sm text-destructive">{error}</p>}
-
-        <div className="flex justify-end gap-2">
-          <Button variant="ghost" size="sm" onClick={onClose} disabled={pending}>
-            Cancel
-          </Button>
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={() => void onConfirm()}
-            disabled={pending}
-            aria-label="Confirm unassign"
-          >
-            {pending ? 'Removing…' : 'Remove link'}
-          </Button>
-        </div>
-      </div>
-    </div>
+        This only removes the link between the entities &mdash; it does <strong>not</strong> delete
+        either the pilot, mech, or crawler.
+      </ConfirmDialog>
+    </>
   )
 }

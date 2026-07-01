@@ -1,7 +1,7 @@
 import { createRootRoute, Outlet } from '@tanstack/react-router'
 import type { ErrorComponentProps } from '@tanstack/react-router'
 import { QueryClientProvider } from '@tanstack/react-query'
-import { EntityHrefProvider, Toaster } from 'suref-react'
+import { Btn, EntityHrefProvider, Toaster } from 'suref-react'
 import { queryClient } from '../lib/queryClient'
 import { itunEntityHref } from '../lib/entityHref'
 import { GameDataReady } from '../components/shared/GameDataReady'
@@ -21,27 +21,24 @@ export const Route = createRootRoute({
  */
 function RootErrorComponent({ error }: ErrorComponentProps) {
   return (
-    <div
-      role="alert"
-      className="mx-auto flex min-h-dvh w-full max-w-2xl flex-col items-center justify-center gap-4 p-6 text-center"
-    >
-      <h1 className="text-lg font-bold">Something went wrong</h1>
-      <p className="text-sm text-wk-muted">
-        The app hit an unexpected error. Your saved data is stored locally and is not affected.
-      </p>
-      {import.meta.env.DEV && (
-        <pre className="max-w-full overflow-auto rounded bg-muted p-3 text-left text-xs">
-          {error.message}
-        </pre>
-      )}
-      <button
-        type="button"
-        className="rounded bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
-        onClick={() => window.location.reload()}
-      >
-        Reload app
-      </button>
-    </div>
+    <main role="alert" className="flex min-h-dvh items-center justify-center bg-wk-bg p-6">
+      <div className="flex w-full max-w-xl flex-col items-center gap-4 rounded-[6px] border-[1.5px] border-ink bg-paper p-6 text-center sm:p-8">
+        <h1 className="font-cond text-xl font-bold uppercase tracking-[0.04em] text-ink">
+          Something went wrong
+        </h1>
+        <p className="font-body text-sm text-wk-muted">
+          The app hit an unexpected error. Your saved data is stored locally and is not affected.
+        </p>
+        {import.meta.env.DEV && (
+          <pre className="max-w-full overflow-auto rounded-[3px] border-[1.5px] border-ink/20 bg-wk-bg p-3 text-left text-xs text-ink">
+            {error.message}
+          </pre>
+        )}
+        <Btn variant="primary" onClick={() => window.location.reload()}>
+          Reload app
+        </Btn>
+      </div>
+    </main>
   )
 }
 

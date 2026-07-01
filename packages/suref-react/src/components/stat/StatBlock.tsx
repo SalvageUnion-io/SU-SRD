@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { cn } from '../../utils/cn'
 import { StepBtn } from '../chrome/SmallButtons'
 import { statBlockRowStarts, pipClickValue } from './pipRows'
+import { heatDangerFrom, heatLevel } from './heatLevel'
 
 /** Pip fill semantics: hp red, ap/ep rust, heat warn, cargo bronze, sp/default ink. */
 export type StatBlockTone = 'hp' | 'ap' | 'ep' | 'sp' | 'heat' | 'cargo' | 'default'
@@ -100,6 +101,11 @@ export function StatBlock({
   const showSteppers = !isStates && !isSm && isEditable
   const showPips = !isStates && pips && max !== undefined && max > 0
 
+  // Heat escalation (U-1): heat tone only — inert without a positive max.
+  const isHeat = stat === 'heat'
+  const level = isHeat && !isStates ? heatLevel(value, max) : 'normal'
+  const heatDanger = isHeat && max !== undefined && max > 0 ? heatDangerFrom(max) : Infinity
+
   const pipFill = PIP_FILL[stat]
   const pipBox = isSm
     ? 'h-2 w-2 rounded-[1px] border-[1.25px]'
@@ -122,8 +128,10 @@ export function StatBlock({
           ? `${code} ${states.length} bays`
           : `${code} ${value}${max !== undefined ? ` of ${max}` : ''}`
       }
+      data-heat={level !== 'normal' ? level : undefined}
       className={cn(
-        'inline-flex flex-col overflow-hidden rounded-[3px] border-2 border-ink bg-paper shadow-[0_2px_6px_-2px_rgba(40,32,25,0.4)]',
+        'inline-flex flex-col overflow-hidden rounded-[3px] border-2 bg-paper shadow-[0_2px_6px_-2px_rgba(40,32,25,0.4)]',
+        level === 'critical' ? 'border-status-bad motion-safe:animate-heat-pulse' : 'border-ink',
         isSm && 'min-w-[96px]',
         className
       )}
@@ -228,7 +236,9 @@ export function StatBlock({
                   {Array.from({ length: count }).map((_, c) => {
                     const i = start + c
                     const on = i < value
-                    const pipClass = cn(pipBox, on ? pipFill : 'border-ink bg-transparent')
+                    // Heat pips past the ~70% line escalate to status-bad (U-1).
+                    const fill = on && i >= heatDanger ? 'border-status-bad bg-status-bad' : pipFill
+                    const pipClass = cn(pipBox, on ? fill : 'border-ink bg-transparent')
                     return isEditable ? (
                       <button
                         key={i}

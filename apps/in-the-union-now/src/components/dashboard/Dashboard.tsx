@@ -5,7 +5,7 @@
  * softLinks + workspaceStore.hydrate().
  * After hydration: renders the header (h1 + Download all/Import row + the
  * workspace faux-select) over a 3-col Pilots/Mechs/Crawlers grid of SavedRows.
- * Row meta encodes cross-links by NAME via '↳ Name' (mech-to-pilot,
+ * Row meta encodes cross-links via '↳ Name' sheet links (mech-to-pilot,
  * pilot-to-crawler softLinks). At the mobile endpoint (≤ md) the columns
  * collapse to a single column behind a segmented Pilot/Mech/Crawler switch
  * (active = rust fill).
@@ -17,7 +17,7 @@
  *      listing immediately (Zustand in-memory update is synchronous).
  */
 
-import { useEffect, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { Btn, btnVariants, Empty } from 'suref-react'
@@ -32,6 +32,7 @@ import { ExportAllButton } from '../export/ExportAllButton'
 import { ImportButton } from '../export/ImportButton'
 import { AppLink } from '../shared/AppLink'
 import { WorkspaceSwitcher } from '../workspace/WorkspaceSwitcher'
+import { DashboardSkeleton } from './DashboardSkeleton'
 import { DeleteConfirmDialog } from './DeleteConfirmDialog'
 import { EntityListItem } from './EntityListItem'
 
@@ -64,9 +65,15 @@ function crawlerTypeMeta(techLevel: string, bayCount: number): string {
 }
 
 /** Join meta segments with the design's ' · ' separator, dropping blanks. */
-function joinMeta(parts: Array<string | null | undefined>): string | undefined {
-  const joined = parts.filter(Boolean).join(' · ')
-  return joined || undefined
+function joinMeta(parts: Array<ReactNode | null | undefined>): ReactNode | undefined {
+  const kept = parts.filter((part) => part != null && part !== '')
+  if (kept.length === 0) return undefined
+  return kept.map((part, i) => (
+    <Fragment key={i}>
+      {i > 0 && ' · '}
+      {part}
+    </Fragment>
+  ))
 }
 
 // ---------------------------------------------------------------------------
@@ -129,9 +136,24 @@ export function Dashboard() {
   const mechNameById = new Map(allMechs.map((m) => [m.id, m.name]))
   const crawlerNameById = new Map(allCrawlers.map((c) => [c.id, c.name]))
 
-  /** '↳ Name' segment, or undefined when the target id can't be resolved. */
-  function linkSegment(name: string | undefined): string | undefined {
-    return name ? `↳ ${name}` : undefined
+  /**
+   * '↳ Name' segment as a link to the target entity's live sheet (design
+   * review U-4), or undefined when the target id/name can't be resolved.
+   */
+  function linkSegment(
+    kind: SegmentKind,
+    id: string | undefined,
+    name: string | undefined
+  ): ReactNode | undefined {
+    if (!id || !name) return undefined
+    return (
+      <AppLink
+        href={`/sheet/${kind}/${id}`}
+        className="text-wk-muted underline decoration-wk-muted/50 underline-offset-2 hover:text-rust"
+      >
+        ↳ {name}
+      </AppLink>
+    )
   }
 
   // Filter by active workspace. "All Builds" (null) shows all entities.
@@ -191,9 +213,7 @@ export function Dashboard() {
           shift the rest of the page on hydration. */}
       <div className="min-h-[60vh]">
         {!hydratedAll ? (
-          <div aria-label="Loading saved builds" className="py-12 text-center text-wk-muted">
-            Loading…
-          </div>
+          <DashboardSkeleton />
         ) : (
           <>
             {/* Mobile-endpoint segmented Pilot/Mech/Crawler switch (design §3.7) */}
@@ -239,8 +259,16 @@ export function Dashboard() {
                       meta={joinMeta([
                         p.callsign ? `"${p.callsign}"` : null,
                         resolveClassName(p.classRef),
-                        linkSegment(mechLink && mechNameById.get(mechLink.from.id)),
-                        linkSegment(crawlerLink && crawlerNameById.get(crawlerLink.to.id)),
+                        linkSegment(
+                          'mech',
+                          mechLink?.from.id,
+                          mechLink && mechNameById.get(mechLink.from.id)
+                        ),
+                        linkSegment(
+                          'crawler',
+                          crawlerLink?.to.id,
+                          crawlerLink && crawlerNameById.get(crawlerLink.to.id)
+                        ),
                       ])}
                     />
                   )
@@ -277,7 +305,11 @@ export function Dashboard() {
                       onDeleteClick={(id, name) => openDeleteDialog('mech', id, name)}
                       meta={joinMeta([
                         mechChassisMeta(m.chassisRef),
-                        linkSegment(pilotLink && pilotNameById.get(pilotLink.to.id)),
+                        linkSegment(
+                          'pilot',
+                          pilotLink?.to.id,
+                          pilotLink && pilotNameById.get(pilotLink.to.id)
+                        ),
                       ])}
                     />
                   )
@@ -306,7 +338,9 @@ export function Dashboard() {
                       onDeleteClick={(id, name) => openDeleteDialog('crawler', id, name)}
                       meta={joinMeta([
                         crawlerTypeMeta(c.techLevel, c.crawlerBays?.length ?? 0),
-                        ...crewLinks.map((l) => linkSegment(pilotNameById.get(l.from.id))),
+                        ...crewLinks.map((l) =>
+                          linkSegment('pilot', l.from.id, pilotNameById.get(l.from.id))
+                        ),
                       ])}
                     />
                   )

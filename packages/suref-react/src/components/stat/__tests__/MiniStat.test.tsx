@@ -45,3 +45,53 @@ describe('MiniStat', () => {
     expect(screen.getByRole('group', { name: 'HP 7 of 10' })).toBeTruthy()
   })
 })
+
+describe('MiniStat — heat escalation (U-1)', () => {
+  test('below ~70% heat stays on the warn fill with no escalation', () => {
+    const { container } = render(<MiniStat label="HEAT" value={6} max={10} stat="heat" />)
+    const root = screen.getByRole('group')
+    expect(root.getAttribute('data-heat')).toBeNull()
+    expect(root.className).toContain('border-ink')
+    expect(container.querySelector('[data-pip].bg-status-bad')).toBeNull()
+  })
+
+  test('at >= ~70% the lit pips past the line and the value go status-bad', () => {
+    const { container } = render(<MiniStat label="HEAT" value={8} max={10} stat="heat" />)
+    const root = screen.getByRole('group')
+    expect(root.getAttribute('data-heat')).toBe('high')
+    const pips = Array.from(container.querySelectorAll('[data-pip]'))
+    const danger = pips.filter((p) => p.className.includes('bg-status-bad'))
+    expect(danger.length).toBe(2)
+    expect(pips.indexOf(danger[0]!)).toBe(6)
+    expect(screen.getByText('8').className).toContain('text-status-bad')
+    // border only escalates at cap
+    expect(root.className).toContain('border-ink')
+  })
+
+  test('at cap the chip gets the red border + pulse', () => {
+    render(<MiniStat label="HEAT" value={10} max={10} stat="heat" />)
+    const root = screen.getByRole('group')
+    expect(root.getAttribute('data-heat')).toBe('critical')
+    expect(root.className).toContain('border-status-bad')
+    expect(root.className).toContain('motion-safe:animate-heat-pulse')
+  })
+
+  test('number-only readout (max > 12) still reads danger via the value', () => {
+    const { container } = render(<MiniStat label="HEAT" value={20} max={20} stat="heat" />)
+    expect(container.querySelectorAll('[data-pip]').length).toBe(0)
+    const root = screen.getByRole('group')
+    expect(root.getAttribute('data-heat')).toBe('critical')
+    expect(root.className).toContain('border-status-bad')
+    expect(screen.getByText('20').className).toContain('text-status-bad')
+  })
+
+  test('inert without a max and for non-heat tones at cap', () => {
+    render(<MiniStat label="HEAT" value={9} stat="heat" />)
+    expect(screen.getByRole('group').getAttribute('data-heat')).toBeNull()
+    cleanup()
+    render(<MiniStat label="HP" value={10} max={10} stat="hp" />)
+    const root = screen.getByRole('group')
+    expect(root.getAttribute('data-heat')).toBeNull()
+    expect(root.className).toContain('border-ink')
+  })
+})

@@ -1,12 +1,13 @@
 /**
  * EntityListItem — single SavedRow in a dashboard entity column (design-spec
  * §3.1 / §2.10 `.row`): name + muted meta caption (cross-links encoded as
- * '↳ Name') + trailing View / Sheet / Delete actions.
+ * '↳ Name' sheet links) + trailing View / Sheet / Delete actions.
  *
  * Links render through AppLink (TanStack <Link> with a plain-anchor fallback)
  * so the component works in tests without a RouterProvider.
  */
 
+import type { ReactNode } from 'react'
 import { Trash2 } from 'lucide-react'
 import { Btn, btnVariants, Row } from 'suref-react'
 
@@ -30,9 +31,10 @@ type EntityListItemProps = {
   entityType?: EntityType
   /**
    * Optional secondary line under the name (design row__meta), e.g.
-   * `"Wrench" · Engineer · ↳ Iron Fist` for a pilot.
+   * `"Wrench" · Engineer · ↳ Iron Fist` for a pilot — '↳ Name' segments are
+   * links to the target entity's sheet, so this accepts nodes, not just text.
    */
-  meta?: string
+  meta?: ReactNode
 }
 
 /** Pill badge colours matching the design: pilot=orange, mech=green, crawler=pink */

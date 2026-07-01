@@ -16,7 +16,7 @@ import { UnassignLinkButton } from '../../components/wiring/UnassignLinkButton'
 import { useSoftLinks } from '../../components/wiring/useSoftLinks'
 import { AssignToWorkspaceButton } from '../../components/workspace/AssignToWorkspaceButton'
 import { useWorkspaceStore } from '../../stores/workspaceStore'
-import { buttonVariants } from '../../components/ui/buttonVariants'
+import { btnVariants } from 'suref-react'
 import { cn } from '../../lib/utils'
 import { PilotSheet } from '../../components/sheet/PilotSheet'
 import { resolveClassName } from '../../lib/classRef'
@@ -49,7 +49,7 @@ function PilotDetailPage() {
     return (
       <main className="mx-auto max-w-7xl p-6">
         <p className="text-wk-muted">Pilot not found.</p>
-        <Link to="/" className={cn(buttonVariants({ variant: 'link', size: 'sm' }))}>
+        <Link to="/" className={cn(btnVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}>
           Back to dashboard
         </Link>
       </main>
@@ -75,13 +75,13 @@ function PilotDetailPage() {
           <Link
             to="/pilots/$id/edit"
             params={{ id }}
-            className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'no-underline')}
+            className={cn(btnVariants({ variant: 'default', size: 'sm' }), 'no-underline')}
           >
             Edit
           </Link>
           <Link
             to="/"
-            className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
+            className={cn(btnVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
           >
             Back
           </Link>
@@ -135,8 +135,7 @@ function PilotDetailPage() {
             {crawlerLink ? (
               <div className="flex items-center gap-3 text-sm">
                 <span className="flex-1 text-wk-muted">
-                  Crawler linked:{' '}
-                  <span className="font-medium text-foreground">{crawlerLink.to.id}</span>
+                  Crawler linked: <span className="font-medium text-ink">{crawlerLink.to.id}</span>
                 </span>
                 <UnassignLinkButton
                   linkId={crawlerLink.id}
@@ -173,7 +172,7 @@ function PilotDetailPage() {
             <Link
               to="/sheet/$kind/$id"
               params={{ kind: 'pilot', id }}
-              className={cn(buttonVariants({ variant: 'default' }), 'no-underline')}
+              className={cn(btnVariants({ variant: 'primary' }), 'no-underline')}
             >
               View Sheet
             </Link>

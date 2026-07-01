@@ -101,6 +101,20 @@
   --color-sheet-mech-deep: rgb(47, 67, 56); /* #2f4338 */
   --color-sheet-crawler: var(--color-su-pink); /* #ce5898 */
   --color-sheet-crawler-deep: rgb(126, 42, 91); /* #7e2a5b */
+
+  /* Heat-at-cap pulse (design review U-1): a subtle status-bad ring that
+     breathes outward. Use as `motion-safe:animate-heat-pulse` so
+     prefers-reduced-motion suppresses it. */
+  --animate-heat-pulse: heat-pulse 1.5s ease-in-out infinite;
+  @keyframes heat-pulse {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-status-bad) 45%, transparent);
+    }
+    50% {
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-status-bad) 0%, transparent);
+    }
+  }
 }
 
 /*

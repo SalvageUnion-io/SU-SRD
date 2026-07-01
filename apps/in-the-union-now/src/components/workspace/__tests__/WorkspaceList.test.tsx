@@ -106,7 +106,7 @@ describe('WorkspaceList — open with no workspaces', () => {
     const store = makeStore()
     render(<WorkspaceList open={true} onClose={onClose} store={store} />)
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /close workspace manager/i }))
+      fireEvent.click(screen.getByRole('button', { name: /close/i }))
     })
     expect(onClose).toHaveBeenCalledTimes(1)
   })

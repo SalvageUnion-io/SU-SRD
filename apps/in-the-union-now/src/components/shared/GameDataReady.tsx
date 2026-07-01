@@ -33,19 +33,38 @@ function PreloadGate({ children }: { children: ReactNode }) {
   return <>{children}</>
 }
 
+/**
+ * Branded full-viewport loading fallback (design-spec brand chrome): SU mark
+ * on the su-ink-dark ground with an indeterminate rust loader bar. The status
+ * text stays in the accessibility tree for screen readers.
+ */
+function GameDataFallback() {
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      className="flex min-h-dvh flex-col items-center justify-center gap-6 bg-su-ink-dark px-6"
+    >
+      <img
+        src="/logos/su-cargo-dark.svg"
+        alt=""
+        width={96}
+        height={96}
+        className="size-20 rounded-xl sm:size-24"
+      />
+      <p className="font-cond text-sm font-semibold uppercase tracking-[0.22em] text-su-paper">
+        Loading reference data…
+      </p>
+      <div aria-hidden="true" className="h-1 w-56 overflow-hidden rounded-full bg-su-paper/20">
+        <div className="animate-loader-slide h-full w-1/3 rounded-full bg-rust" />
+      </div>
+    </div>
+  )
+}
+
 export function GameDataReady({ children }: { children: ReactNode }) {
   return (
-    <Suspense
-      fallback={
-        <div
-          role="status"
-          aria-live="polite"
-          className="flex min-h-dvh items-center justify-center text-sm text-muted-foreground"
-        >
-          Loading reference data…
-        </div>
-      }
-    >
+    <Suspense fallback={<GameDataFallback />}>
       <PreloadGate>{children}</PreloadGate>
     </Suspense>
   )
