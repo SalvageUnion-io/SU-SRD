@@ -326,7 +326,6 @@ export function MechWizard({ onComplete, onCancel, mechId, initialState }: MechW
       nextDisabled={!canAdvance()}
       busy={isSubmitting}
       submitLabel={isEdit ? 'Save Mech' : 'Create Mech ✦'}
-      ctaFullWidth={step === 'Loadout'}
     >
       {step === 'Chassis' && <ChassisDetail chassisName={form.chassisName} />}
       {step === 'Pattern' && (

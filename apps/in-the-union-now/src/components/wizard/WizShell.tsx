@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react'
 import { Btn, Stepper } from 'suref-react'
-import { cn } from '../../lib/utils'
 
 type WizShellProps = {
   /** Rail eyebrow, e.g. 'New Pilot' / 'Edit Pilot'. */
@@ -34,12 +33,6 @@ type WizShellProps = {
   busy?: boolean
   /** Final-step CTA label, e.g. 'Create Pilot ✦' / 'Save Pilot'. */
   submitLabel: string
-  /**
-   * Renders the primary CTA full-width below the content instead of in the
-   * right-aligned footer slot — design §3.2 mech install steps
-   * ('full-width Next · Modules → below').
-   */
-  ctaFullWidth?: boolean
 }
 
 /**
@@ -66,7 +59,6 @@ export function WizShell({
   nextDisabled = false,
   busy = false,
   submitLabel,
-  ctaFullWidth = false,
 }: WizShellProps) {
   const isLast = active >= steps.length - 1
   const ctaLabel = isLast ? submitLabel : `Next · ${steps[active + 1]} →`
@@ -114,28 +106,26 @@ export function WizShell({
         {/* Footer — floats sticky at the bottom-right of the viewport as the
             content scrolls, so confirm/nav stays reachable without a full-width
             bar eating vertical space. The footer itself is click-through
-            (pointer-events-none); only the action pill is interactive. On mech
-            install steps (ctaFullWidth) the pill stacks full-width on mobile to
-            emphasise the primary CTA. */}
+            (pointer-events-none); only the action pill is interactive. Below
+            the sm endpoint the pill stacks with a full-width primary CTA on
+            EVERY step (design review U-6) — Back/Cancel share a row above it. */}
         <footer className="pointer-events-none sticky bottom-4 z-40 mt-6 flex justify-end">
-          <div
-            className={cn(
-              'pointer-events-auto flex items-center gap-2 rounded-lg border-[1.5px] border-wk-faint bg-wk-bg/95 p-2 shadow-md backdrop-blur',
-              ctaFullWidth && 'w-full flex-col items-stretch sm:w-auto sm:flex-row sm:items-center'
-            )}
-          >
-            {onBack && (
-              <Btn variant="ghost" onClick={onBack} disabled={busy}>
-                Back
+          <div className="pointer-events-auto flex w-full flex-col items-stretch gap-2 rounded-lg border-[1.5px] border-wk-faint bg-wk-bg/95 p-2 shadow-md backdrop-blur sm:w-auto sm:flex-row sm:items-center">
+            {/* Ghost nav row on phones; dissolves into the pill row ≥ sm. */}
+            <div className="flex items-center justify-end gap-2 sm:contents">
+              {onBack && (
+                <Btn variant="ghost" onClick={onBack} disabled={busy}>
+                  Back
+                </Btn>
+              )}
+              <Btn variant="ghost" onClick={onCancel} disabled={busy}>
+                Cancel
               </Btn>
-            )}
-            <Btn variant="ghost" onClick={onCancel} disabled={busy}>
-              Cancel
-            </Btn>
+            </div>
             <Btn
               variant="primary"
               size="lg"
-              className={cn(ctaFullWidth && 'w-full sm:w-auto')}
+              className="w-full sm:w-auto"
               onClick={onNext}
               disabled={nextDisabled || busy}
             >

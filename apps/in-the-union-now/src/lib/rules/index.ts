@@ -50,6 +50,23 @@ export {
   defaultRoll,
 } from './heatCheck'
 export type { Roll, HeatCheckEffect, PushResult } from './heatCheck'
+export {
+  mechEffectiveDamage,
+  applyMechDamage,
+  criticalDamageOutcome,
+  performCriticalDamage,
+  pilotEffectiveDamage,
+  applyPilotDamage,
+  criticalInjuryOutcome,
+  performCriticalInjury,
+} from './takeDamage'
+export type {
+  DamageKind,
+  MechDamageEffect,
+  PilotDamageEffect,
+  CriticalDamageEffect,
+  CriticalInjuryEffect,
+} from './takeDamage'
 
 export type {
   // Shared primitives

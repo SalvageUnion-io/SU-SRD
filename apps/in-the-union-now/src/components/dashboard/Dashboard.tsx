@@ -19,6 +19,7 @@
 
 import { Fragment, useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
+import { Bot, UserRound, Warehouse } from 'lucide-react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { Btn, btnVariants, Empty } from 'suref-react'
 
@@ -234,6 +235,7 @@ export function Dashboard() {
                 createHref="/pilots/new"
                 createLabel="Create Pilot"
                 emptyLabel="No pilots yet."
+                emptyIcon={<UserRound className="size-7 text-sheet-pilot-deep" />}
               >
                 {pilots.map((p) => {
                   const mechLink = softLinks.find(
@@ -276,6 +278,7 @@ export function Dashboard() {
                 createHref="/mechs/new"
                 createLabel="Create Mech"
                 emptyLabel="No mechs yet."
+                emptyIcon={<Bot className="size-7 text-sheet-mech-deep" />}
                 headExtra={
                   <AppLink
                     href="/mechs/patterns"
@@ -317,6 +320,7 @@ export function Dashboard() {
                 createHref="/crawlers/new"
                 createLabel="Create Crawler"
                 emptyLabel="No crawlers yet."
+                emptyIcon={<Warehouse className="size-7 text-sheet-crawler-deep" />}
               >
                 {crawlers.map((c) => {
                   const crewLinks = softLinks.filter(
@@ -367,6 +371,8 @@ type DashboardColumnProps = {
   createHref: string
   createLabel: string
   emptyLabel: string
+  /** Entity-tone glyph shown above the empty-state message (design review U-6). */
+  emptyIcon?: ReactNode
   /** Extra head action (e.g. the Mechs column's 'Patterns' link). */
   headExtra?: ReactNode
   /** SavedRow <EntityListItem> children; empty → dashed create empty. */
@@ -380,6 +386,7 @@ function DashboardColumn({
   createHref,
   createLabel,
   emptyLabel,
+  emptyIcon,
   headExtra,
   children,
 }: DashboardColumnProps) {
@@ -407,7 +414,7 @@ function DashboardColumn({
         </div>
       </div>
       {children.length === 0 ? (
-        <Empty message={emptyLabel}>
+        <Empty message={emptyLabel} icon={emptyIcon}>
           <AppLink
             href={createHref}
             className={cn(btnVariants({ variant: 'primary', size: 'sm' }), 'no-underline')}

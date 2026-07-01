@@ -37,12 +37,14 @@ import type { Crawler } from '../../lib/schemas/crawler'
 import type { ItemCondition, Mech } from '../../lib/schemas/mech'
 import { useEntityStore } from '../../stores/entityStore'
 import { ActionCardErow } from './ActionCardErow'
+import { destroyedUndoToast } from './destroyedUndoToast'
 import { Ecflow, Erow } from './Erow'
 import { HeatCheckControl } from './HeatCheckControl'
 import { MechItemCard } from './MechItemCard'
 import { cycleCondition, resolveModule, resolveSystem } from './mechItemRules'
 import type { MechItemEconomy } from './mechItemRules'
 import { StorageManifest } from './StorageManifest'
+import { TakeDamageControl } from './TakeDamageControl'
 
 // Narrow subset of chassis data the stat derivations need
 type ChassisLike = {
@@ -121,15 +123,31 @@ export function MechSheet({
     return storeState.get('mech', mech.id) ?? mech
   }
 
-  async function cycleItemCondition(kind: ItemKind, slug: string) {
+  /** Write one item's condition (used by the cycle and the toast Undo). */
+  async function setItemCondition(kind: ItemKind, slug: string, condition: ItemCondition) {
     const fresh = freshMech()
     const prev = (kind === 'system' ? fresh.systemConditions : fresh.moduleConditions) ?? {}
-    const nextMap = { ...prev, [slug]: cycleCondition(prev[slug] ?? 'intact') }
+    const nextMap = { ...prev, [slug]: condition }
     await storeState.update(
       'mech',
       mech.id,
       kind === 'system' ? { systemConditions: nextMap } : { moduleConditions: nextMap }
     )
+  }
+
+  async function cycleItemCondition(kind: ItemKind, slug: string) {
+    const fresh = freshMech()
+    const prev = (kind === 'system' ? fresh.systemConditions : fresh.moduleConditions) ?? {}
+    const prevCondition = prev[slug] ?? 'intact'
+    const next = cycleCondition(prevCondition)
+    await setItemCondition(kind, slug, next)
+    // U-6: landing on 'destroyed' offers a one-tap Undo (mis-tap mid-combat).
+    if (next === 'destroyed') {
+      const name = (kind === 'system' ? resolveSystem(slug) : resolveModule(slug))?.name ?? slug
+      destroyedUndoToast(name, () => {
+        void setItemCondition(kind, slug, prevCondition)
+      })
+    }
   }
 
   /** One activation: spend EP, take Hot heat, tick the uses counter down. */
@@ -248,6 +266,16 @@ export function MechSheet({
         heatCap={heatCap}
         currentSP={currentSP}
         currentHeat={currentHeat}
+        store={store}
+        roll={roll}
+        readOnly={readOnly}
+      />
+
+      {/* Take Damage / Critical Damage loop (R-1) — SP intake with the p.240
+          conversions, prompting the Critical Damage Table roll at 0 SP. */}
+      <TakeDamageControl
+        mech={mech}
+        currentSP={currentSP}
         store={store}
         roll={roll}
         readOnly={readOnly}

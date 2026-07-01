@@ -9,11 +9,17 @@ export {
   ChoiceSelectionsSchema,
   InjurySchema,
   GenericInventoryEntrySchema,
+  CriticalInjuryResultSchema,
 } from './pilot'
-export type { Pilot, Injury, GenericInventoryEntry } from './pilot'
+export type { Pilot, Injury, GenericInventoryEntry, CriticalInjuryResult } from './pilot'
 
-export { MechSchema, ItemConditionSchema, ItemConditionMapSchema } from './mech'
-export type { Mech, ItemCondition, ItemConditionMap } from './mech'
+export {
+  MechSchema,
+  ItemConditionSchema,
+  ItemConditionMapSchema,
+  CriticalDamageResultSchema,
+} from './mech'
+export type { Mech, ItemCondition, ItemConditionMap, CriticalDamageResult } from './mech'
 
 export {
   CargoLotSchema,

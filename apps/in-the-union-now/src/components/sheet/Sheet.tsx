@@ -37,6 +37,8 @@ import {
   pilotMaxHP,
 } from '../../lib/rules/derivedStats'
 import { computeMechCapacity } from '../../lib/rules/capacity'
+import { describePushOutcome } from '../../lib/rules/coreMechanic'
+import { defaultRoll, performPush } from '../../lib/rules/heatCheck'
 import { cn } from '../../lib/utils'
 import { useEntityStore } from '../../stores/entityStore'
 import type { SoftLinkStore } from '../wiring/useSoftLinks'
@@ -59,6 +61,8 @@ import { MechSheet } from './MechSheet'
 import { MechConditionsEditor } from './MechConditionsEditor'
 import { CrawlerSheet } from './CrawlerSheet'
 import { PublishButton } from './PublishButton'
+import { QuickRollFab } from './QuickRollFab'
+import { SheetActionsMenu } from './SheetActionsMenu'
 
 // Re-exported so existing consumers (PublishButton, tests) keep their import.
 export type { EntityLookup } from './composition'
@@ -222,17 +226,29 @@ export function Sheet({
   const wired = composition.mode === 'wired'
   const back = { href: '/', label: 'Dashboard' }
   // Top-bar trailing actions (§1.3): Edit as a sm ghost btn linking the
-  // entity's edit wizard route, then Share (publish).
+  // entity's edit wizard route, then Share (publish). Below the sm endpoint
+  // both fold into a "⋯" overflow menu (design review U-5) so the condensed
+  // bar keeps its width for the priority MiniStats; the menu items mount only
+  // while open, so the inline copies stay the unique Edit/Share in the DOM.
+  const editLink = (
+    <AppLink
+      href={`/${kind}s/${id}/edit`}
+      aria-label={`Edit this ${kind}`}
+      className={cn(btnVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
+    >
+      Edit
+    </AppLink>
+  )
   const actions = !readOnly ? (
     <>
-      <AppLink
-        href={`/${kind}s/${id}/edit`}
-        aria-label={`Edit this ${kind}`}
-        className={cn(btnVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
-      >
-        Edit
-      </AppLink>
-      <PublishButton entityKind={kind} entityId={id} entityStore={entityStore} />
+      <div className="hidden items-center gap-2.5 sm:flex">
+        {editLink}
+        <PublishButton entityKind={kind} entityId={id} entityStore={entityStore} />
+      </div>
+      <SheetActionsMenu className="sm:hidden">
+        {editLink}
+        <PublishButton entityKind={kind} entityId={id} entityStore={entityStore} />
+      </SheetActionsMenu>
     </>
   ) : undefined
 
@@ -375,6 +391,7 @@ export function Sheet({
         rail={rail}
         segments={segments}
         actions={actions}
+        fab={editable ? <QuickRollFab /> : undefined}
         renderHero={({ heroRef, rail: heroRail }) => (
           <SheetHero
             heroRef={heroRef}
@@ -483,9 +500,11 @@ export function Sheet({
         : []),
     ]
 
+    // U-5: on phones the condensed bar leads with Heat + SP; EP/Hold fold
+    // until the sm breakpoint.
     const strip: LiveSheetStripItem[] = [
       { key: 'sp', label: 'SP', stat: 'sp', value: sp, max: maxSP },
-      { key: 'ep', label: 'EP', stat: 'ep', value: ep, max: maxEP },
+      { key: 'ep', label: 'EP', stat: 'ep', value: ep, max: maxEP, mobilePriority: false },
       { key: 'heat', label: 'Heat', stat: 'heat', value: heat, max: maxHeat },
       {
         key: 'cargo',
@@ -493,8 +512,39 @@ export function Sheet({
         stat: 'cargo',
         value: cargoUsed,
         max: maxCargo,
+        mobilePriority: false,
       },
     ]
+
+    /**
+     * Push (design review R-6/U-3): +2 Heat then an immediate Heat Check,
+     * written through the store exactly like HeatCheckControl (ADR-007 —
+     * deterministic bookkeeping auto-applies; marking a destroyed System or
+     * Module stays a player call via its status badge). Reads the freshest
+     * mech so rapid sequential actions don't stomp each other.
+     */
+    async function pushMech(): Promise<string> {
+      const fresh = lookup.get('mech', mech.id) ?? mech
+      const cap = mechMaxHeat(fresh, chassis)
+      const freshMaxSP = mechMaxSP(fresh, chassis)
+      const { nextHeat, effect } = performPush({
+        heat: Math.min(fresh.currentHeat ?? cap, cap),
+        heatCap: cap,
+        currentSP: Math.min(fresh.currentSP ?? freshMaxSP, freshMaxSP),
+        roll: defaultRoll,
+      })
+      const mechPatch: Partial<Mech> = { lastHeatCheck: effect.result, currentHeat: nextHeat }
+      if (effect.shutdown) {
+        mechPatch.shutdown = true
+        mechPatch.vulnerable = true
+        mechPatch.currentSP = effect.nextSP
+      }
+      if (effect.destroyed) {
+        mechPatch.destroyed = true
+      }
+      await storeState.update('mech', mech.id, mechPatch)
+      return describePushOutcome(nextHeat, effect)
+    }
 
     const rail = (
       <>
@@ -556,6 +606,7 @@ export function Sheet({
         segments={segments}
         syncStats={{ cargo: cargoUsed }}
         actions={actions}
+        fab={editable ? <QuickRollFab onPush={pushMech} /> : undefined}
         renderHero={({ heroRef, rail: heroRail }) => (
           <SheetHero
             heroRef={heroRef}
@@ -743,6 +794,7 @@ export function Sheet({
       rail={rail}
       segments={segments}
       actions={actions}
+      fab={editable ? <QuickRollFab /> : undefined}
       renderHero={({ heroRef, rail: heroRail }) => (
         <SheetHero
           heroRef={heroRef}

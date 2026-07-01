@@ -27,6 +27,39 @@ export const InjurySchema = z
 export type Injury = z.infer<typeof InjurySchema>
 
 /**
+ * Critical Injury Table outcome bands (Core Book p.241; mirrors the
+ * "Critical Injury" entry in salvageunion-reference data/roll-tables.json).
+ * - fatal: roll 1 — the pilot dies (never auto-applied; player marks it)
+ * - major-injury: roll 2-5 — −2 max HP until healed (T5-6 Med Bay) + Unconscious
+ * - minor-injury: roll 6-10 — −1 max HP until healed (T3-4 Med Bay) + Unconscious
+ * - unconscious: roll 11-19 — stable at 0 HP, unconscious until ≥1 HP
+ * - miraculous-survival: roll 20 — 1 HP, conscious, acts normally
+ */
+export const CriticalInjuryOutcomeSchema = z.enum([
+  'fatal',
+  'major-injury',
+  'minor-injury',
+  'unconscious',
+  'miraculous-survival',
+])
+export type CriticalInjuryOutcome = z.infer<typeof CriticalInjuryOutcomeSchema>
+
+/**
+ * Recorded result of a Critical Injury Table roll (rolled when the pilot
+ * reaches 0 HP). Snapshot-safe plain data stored on the pilot — same shape
+ * discipline as the mech's HeatCheckResult/CriticalDamageResult.
+ */
+export const CriticalInjuryResultSchema = z
+  .object({
+    roll: z.number().int().min(1).max(20),
+    outcome: CriticalInjuryOutcomeSchema,
+    /** ISO timestamp of when this result was rolled. */
+    rolledAt: z.string().datetime(),
+  })
+  .strict()
+export type CriticalInjuryResult = z.infer<typeof CriticalInjuryResultSchema>
+
+/**
  * A free-form inventory entry with an explicit slot cost (plan S7). Used for
  * anything the pilot carries that is not a reference equipment slug — most
  * importantly Scrap (3 slots each per rules A13). Slot math at the display
@@ -169,6 +202,11 @@ export const PilotSchema = z
      * home for Scrap (3 slots each) and other non-reference items (plan S7).
      */
     genericInventory: z.array(GenericInventoryEntrySchema).optional(),
+    /**
+     * The most recent Critical Injury Table result (rolled on reaching 0 HP —
+     * design-review R-1). Additive optional field, snapshot-safe plain data.
+     */
+    lastCriticalInjury: CriticalInjuryResultSchema.optional(),
     createdAt: z.string().datetime(),
     updatedAt: z.string().datetime(),
   })

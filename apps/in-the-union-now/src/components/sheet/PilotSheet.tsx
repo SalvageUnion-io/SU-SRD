@@ -4,6 +4,8 @@
  * Slab/Erow layout (identity, stats and conditions live in the hero — see
  * Sheet.tsx pilot branch):
  *   - dead-state banner when derived max HP ≤ 0 (rules A2)
+ *   - 'Take Damage' slab — HP intake with the p.241 SP↔HP conversions and the
+ *     Critical Injury Table prompt at 0 HP (PilotTakeDamageControl, R-1)
  *   - 'Abilities · N' slab — entity cards with Spend AP (fixed costs only) and
  *     a used/recharge toggle in the card foot
  *   - 'Inventory · used / cap slots' slab — truthful slot math (equipment 1,
@@ -33,11 +35,14 @@ import {
   injuryMaxHpPenalty,
   isPilotDead,
 } from '../../lib/rules/derivedStats'
+import type { Roll } from '../../lib/rules/heatCheck'
 import { useEntityStore } from '../../stores/entityStore'
 import { useSoftLinks } from '../wiring/useSoftLinks'
 import { useEntityChoices } from '../shared/useEntityChoices'
+import { destroyedUndoToast } from './destroyedUndoToast'
 import { Ecflow, Erow } from './Erow'
 import { InlineEditField } from './InlineEditField'
+import { PilotTakeDamageControl } from './PilotTakeDamageControl'
 import {
   equipmentMaxUses,
   equipmentSlotCost,
@@ -450,9 +455,19 @@ type PilotSheetProps = {
   store?: typeof useEntityStore
   /** When true, every edit affordance is suppressed (published snapshots). */
   readOnly?: boolean
+  /**
+   * Injectable d20 roller for the Take Damage / Critical Injury loop —
+   * defaults to a randsum roll. Pass a deterministic roller in tests.
+   */
+  roll?: Roll
 }
 
-export function PilotSheet({ pilot, store = useEntityStore, readOnly = false }: PilotSheetProps) {
+export function PilotSheet({
+  pilot,
+  store = useEntityStore,
+  readOnly = false,
+  roll,
+}: PilotSheetProps) {
   const storeState = store()
 
   // Resolve the pilot's crawler (if any) via the pilot-to-crawler SoftLink,
@@ -493,9 +508,17 @@ export function PilotSheet({ pilot, store = useEntityStore, readOnly = false }: 
 
   async function handleEquipmentConditionChange(slug: string, next: ItemCondition) {
     const prev = freshPilot().equipmentConditions ?? {}
+    const prevCondition = prev[slug] ?? 'intact'
     await storeState.update('pilot', pilot.id, {
       equipmentConditions: { ...prev, [slug]: next },
     })
+    // U-6: landing on 'destroyed' offers a one-tap Undo (mis-tap mid-combat).
+    if (next === 'destroyed' && prevCondition !== 'destroyed') {
+      const name = resolveEquipment(slug)?.name ?? slug
+      destroyedUndoToast(name, () => {
+        void handleEquipmentConditionChange(slug, prevCondition)
+      })
+    }
   }
 
   async function handleUsesChange(slug: string, next: number) {
@@ -561,6 +584,10 @@ export function PilotSheet({ pilot, store = useEntityStore, readOnly = false }: 
           </p>
         </div>
       )}
+
+      {/* Take Damage / Critical Injury loop (R-1) — HP intake with the p.241
+          conversions, prompting the Critical Injury Table roll at 0 HP. */}
+      <PilotTakeDamageControl pilot={pilot} store={store} roll={roll} readOnly={readOnly} />
 
       {/* Abilities */}
       {pilot.abilities.length > 0 && (

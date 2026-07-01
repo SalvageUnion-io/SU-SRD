@@ -46,6 +46,12 @@ export type LiveSheetStripItem = {
   stat?: MiniStatTone
   value: number
   max?: number
+  /**
+   * When false, this MiniStat hides below the sm breakpoint so the condensed
+   * bar keeps only the priority readouts (design review U-5 — Heat + SP
+   * first; EP/Hold fold on phones). Defaults to true (always shown).
+   */
+  mobilePriority?: boolean
 }
 
 type LiveSheetHeroContext = {
@@ -88,6 +94,12 @@ type LiveSheetProps = {
   syncStats?: Record<string, number>
   /** Trailing top-bar actions (Share/Publish). */
   actions?: ReactNode
+  /**
+   * Floating thumb-zone affordance (the d20 QuickRollFab, design review
+   * R-6/U-3) — rendered outside the body flow so it never fights the sticky
+   * bar; the node positions itself (fixed, safe-area aware).
+   */
+  fab?: ReactNode
   className?: string
 }
 
@@ -139,6 +151,7 @@ export function LiveSheet({
   renderBody,
   syncStats,
   actions,
+  fab,
   className,
 }: LiveSheetProps) {
   const heroRef = useRef<HTMLElement | null>(null)
@@ -205,6 +218,9 @@ export function LiveSheet({
                 value={item.value}
                 max={item.max}
                 stat={item.stat}
+                // U-5: non-priority readouts fold below sm so the condensed
+                // bar leads with Heat + SP on phones.
+                className={item.mobilePriority === false ? 'hidden sm:inline-flex' : undefined}
               />
             ))}
           </div>
@@ -254,10 +270,16 @@ export function LiveSheet({
         {renderHero({ heroRef, rail })}
       </div>
 
-      {/* Body slabs */}
-      <div className="px-4 pb-[34px] pt-[18px] sm:px-[30px] sm:pb-[60px] sm:pt-6">
+      {/* Body slabs — extra phone bottom padding when the FAB floats so the
+          last card's controls stay reachable behind the thumb zone. */}
+      <div
+        className={cn('px-4 pb-[34px] pt-[18px] sm:px-[30px] sm:pb-[60px] sm:pt-6', fab && 'pb-24')}
+      >
         {renderBody({ cardActions })}
       </div>
+
+      {/* Floating thumb-zone affordance (d20 quick-roll FAB) — self-positioned. */}
+      {fab}
     </div>
   )
 }

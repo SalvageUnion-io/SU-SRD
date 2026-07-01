@@ -138,6 +138,28 @@ describe('LiveSheet — strip values and syncStats', () => {
     const { container } = renderShell()
     expect(container.querySelector('.sheet--pilot')).toBeTruthy()
   })
+
+  test('mobilePriority:false strip items fold below sm (U-5)', () => {
+    renderShell({
+      strip: [
+        { key: 'sp', label: 'SP', stat: 'sp', value: 5, max: 8 },
+        { key: 'ep', label: 'EP', stat: 'ep', value: 3, max: 4, mobilePriority: false },
+      ],
+    })
+    act(() => {
+      observerCallbacks[0]!([{ isIntersecting: false }])
+    })
+    // Priority readout always visible; non-priority carries the fold classes.
+    expect(screen.getByLabelText('SP 5 of 8').className).not.toContain('hidden')
+    const folded = screen.getByLabelText('EP 3 of 4')
+    expect(folded.className).toContain('hidden')
+    expect(folded.className).toContain('sm:inline-flex')
+  })
+
+  test('fab slot renders the floating node', () => {
+    renderShell({ fab: <button type="button">Roll d20</button> })
+    expect(screen.getByRole('button', { name: 'Roll d20' })).toBeTruthy()
+  })
 })
 
 // ---------------------------------------------------------------------------

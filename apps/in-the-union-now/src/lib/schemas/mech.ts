@@ -51,6 +51,44 @@ export const HeatCheckResultSchema = z
 export type HeatCheckResult = z.infer<typeof HeatCheckResultSchema>
 
 /**
+ * Critical Damage Table outcome bands (Core Book p.239-240; mirrors the
+ * "Critical Damage" entry in salvageunion-reference data/roll-tables.json).
+ * Distinct from the raw d20 roll: maps the band to its deterministic effect.
+ * - catastrophic: roll 1 — mech + all mounted Systems/Modules + Cargo destroyed;
+ *   pilot dies unless they have a means to escape
+ * - system-destruction: roll 2-5 — a System is destroyed (player marks which);
+ *   chassis Damaged and inoperable until repaired
+ * - module-destruction: roll 6-10 — a Module is destroyed (player marks which);
+ *   chassis Damaged and inoperable until repaired
+ * - core-damage: roll 11-19 — chassis Damaged and inoperable; pilot reduced to
+ *   0 HP unless they can escape the mech
+ * - miraculous-survival: roll 20 — mech Intact at 1 SP, fully operational
+ */
+export const CriticalDamageOutcomeSchema = z.enum([
+  'catastrophic',
+  'system-destruction',
+  'module-destruction',
+  'core-damage',
+  'miraculous-survival',
+])
+export type CriticalDamageOutcome = z.infer<typeof CriticalDamageOutcomeSchema>
+
+/**
+ * Recorded result of a Critical Damage Table roll (rolled when the mech
+ * reaches 0 SP). Snapshot-safe plain data stored on the mech so the sheet can
+ * render the last outcome — same shape discipline as HeatCheckResult.
+ */
+export const CriticalDamageResultSchema = z
+  .object({
+    roll: z.number().int().min(1).max(20),
+    outcome: CriticalDamageOutcomeSchema,
+    /** ISO timestamp of when this result was rolled. */
+    rolledAt: z.string().datetime(),
+  })
+  .strict()
+export type CriticalDamageResult = z.infer<typeof CriticalDamageResultSchema>
+
+/**
  * chassisRef: reference to a Chassis in salvageunion-reference by its `name`
  * (e.g. "Ghost Chassis"), matching how the builder stores it and how the rules
  * layer (lib/rules/capacity.ts) resolves it. Not a slug.
@@ -164,6 +202,11 @@ export const MechSchema = z
      * sheet can display it. Snapshot-safe (plain data).
      */
     lastHeatCheck: HeatCheckResultSchema.optional(),
+    /**
+     * The most recent Critical Damage Table result (rolled on reaching 0 SP —
+     * design-review R-1). Additive optional field, snapshot-safe plain data.
+     */
+    lastCriticalDamage: CriticalDamageResultSchema.optional(),
     createdAt: z.string().datetime(),
     updatedAt: z.string().datetime(),
   })
