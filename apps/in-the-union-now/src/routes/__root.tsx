@@ -1,10 +1,13 @@
-import { createRootRoute, Outlet } from '@tanstack/react-router'
+import { useState } from 'react'
+import { createRootRoute, Outlet, useRouterState } from '@tanstack/react-router'
 import type { ErrorComponentProps } from '@tanstack/react-router'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { Btn, EntityHrefProvider, Toaster } from 'suref-react'
 import { queryClient } from '../lib/queryClient'
 import { itunEntityHref } from '../lib/entityHref'
+import { AppHeader } from '../components/shared/AppHeader'
 import { GameDataReady } from '../components/shared/GameDataReady'
+import { GlobalSearch } from '../components/shared/GlobalSearch'
 import { BackupNudgeToast } from '../components/shared/BackupNudgeToast'
 import '../index.css'
 
@@ -42,12 +45,31 @@ function RootErrorComponent({ error }: ErrorComponentProps) {
   )
 }
 
+/**
+ * Brand chrome is suppressed on the edge-to-edge play surfaces: live sheets
+ * (/sheet/*) carry their own sticky bar (a global header would double-stack),
+ * and shared snapshots (/s/*) are the same read-only sheet surface, kept
+ * chrome-light for recipients.
+ */
+function useShowAppHeader(): boolean {
+  const pathname = useRouterState({ select: (s) => s.location.pathname })
+  return !pathname.startsWith('/sheet/') && !pathname.startsWith('/s/')
+}
+
 function RootComponent() {
+  const showAppHeader = useShowAppHeader()
+  const [searchOpen, setSearchOpen] = useState(false)
+
   return (
     <QueryClientProvider client={queryClient}>
       <EntityHrefProvider value={itunEntityHref}>
         <GameDataReady>
+          {showAppHeader && <AppHeader onSearchClick={() => setSearchOpen(true)} />}
           <Outlet />
+          {/* Mounted on every route (inside the game-data gate, so search()
+              is always safe) — the Cmd/Ctrl+K shortcut works on live sheets
+              and snapshots too, where the AppHeader trigger is suppressed. */}
+          <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} />
         </GameDataReady>
         <Toaster />
         <BackupNudgeToast />

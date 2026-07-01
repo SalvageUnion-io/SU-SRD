@@ -167,9 +167,18 @@ export function LiveSheet({
           <AppLink
             href={back.href}
             aria-label={`Back to ${back.label.toLowerCase()}`}
-            className="shrink-0 font-cond text-[13px] font-semibold uppercase tracking-[0.04em] text-ink no-underline hover:text-rust"
+            className="flex shrink-0 items-center gap-2 font-cond text-[13px] font-semibold uppercase tracking-[0.04em] text-ink no-underline hover:text-rust"
           >
-            &larr; {back.label}
+            {/* Small SU mark keeps the brand chrome present on sheets — the
+                global AppHeader is suppressed on /sheet/* (play surface). */}
+            <img
+              src="/logos/su-cargo-dark.svg"
+              alt=""
+              width={28}
+              height={28}
+              className="block size-7 shrink-0 rounded-[6px]"
+            />
+            <span>&larr; {back.label}</span>
           </AppLink>
         )}
 

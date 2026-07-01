@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test'
-import { deepLinkTo } from '../suref-web-deep-link'
+import { deepLinkTo, hasSRDPage } from '../suref-web-deep-link'
 
 describe('suref-web-deep-link', () => {
   it('builds a chassis deep-link URL', () => {
@@ -31,5 +31,21 @@ describe('suref-web-deep-link', () => {
     const url = deepLinkTo({ schemaName: 'roll-tables', slug: 'some-slug' })
     expect(url).toContain('some-slug')
     expect(url).not.toContain('uuid')
+  })
+})
+
+describe('hasSRDPage', () => {
+  it('recognizes catalog schemas as having SRD pages', () => {
+    expect(hasSRDPage('chassis')).toBe(true)
+    expect(hasSRDPage('equipment')).toBe(true)
+    expect(hasSRDPage('abilities')).toBe(true)
+    expect(hasSRDPage('classes')).toBe(true)
+    expect(hasSRDPage('systems')).toBe(true)
+    expect(hasSRDPage('modules')).toBe(true)
+  })
+
+  it('rejects names outside the schema catalog', () => {
+    expect(hasSRDPage('not-a-schema')).toBe(false)
+    expect(hasSRDPage('')).toBe(false)
   })
 })

@@ -24,8 +24,13 @@ export {
   useEntityHref,
   EntityDetailLinkProvider,
   useEntityDetailLink,
+  EntityExternalLinkProvider,
+  useEntityExternalLink,
 } from './components/referenceEntity/ReferenceEntityDisplay/entityHrefContext'
-export type { EntityHrefBuilder } from './components/referenceEntity/ReferenceEntityDisplay/entityHrefContext'
+export type {
+  EntityHrefBuilder,
+  EntityExternalLinkBuilder,
+} from './components/referenceEntity/ReferenceEntityDisplay/entityHrefContext'
 export { ReferenceEntityChassisAbilitiesContent } from './components/referenceEntity/ReferenceEntityDisplay/ReferenceEntityChassisAbilitiesContent'
 export { ClassAbilityTreeDisplay } from './components/referenceEntity/ClassAbilityTreeDisplay'
 export { NestedActionDisplay } from './components/referenceEntity/NestedActionDisplay'
