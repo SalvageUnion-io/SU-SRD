@@ -126,6 +126,14 @@ export type ChassisStatItem = {
   max?: number
   /** Set false to suppress pips for big tracks (e.g. SYS 5/20). */
   pips?: boolean
+  /**
+   * Makes the lozenge actionable (design-review R-4: the UPKEEP/UPGRADE/TRADE
+   * spec lozenges are the crawler-economy entry points) — the StatBlock is
+   * wrapped in a button.
+   */
+  onClick?: () => void
+  /** Accessible label + tooltip for the action, e.g. 'Pay Upkeep'. */
+  actionLabel?: string
 }
 
 type ChassisStatsProps = {
@@ -141,19 +149,34 @@ export function ChassisStats({ items, className }: ChassisStatsProps) {
   if (items.length === 0) return null
   return (
     <div className={cn('flex flex-wrap items-start gap-2', className)}>
-      {items.map((item) => (
-        <StatBlock
-          key={item.code}
-          code={item.code}
-          name={item.name}
-          unit={item.unit}
-          size="sm"
-          value={item.value}
-          max={item.max}
-          pips={item.pips ?? true}
-          editable={false}
-        />
-      ))}
+      {items.map((item) => {
+        const block = (
+          <StatBlock
+            code={item.code}
+            name={item.name}
+            unit={item.unit}
+            size="sm"
+            value={item.value}
+            max={item.max}
+            pips={item.pips ?? true}
+            editable={false}
+          />
+        )
+        return item.onClick ? (
+          <button
+            key={item.code}
+            type="button"
+            aria-label={item.actionLabel ?? item.code}
+            title={item.actionLabel}
+            onClick={item.onClick}
+            className="cursor-pointer rounded-[3px] text-left transition-transform duration-[120ms] hover:-translate-y-px focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rust/[0.22]"
+          >
+            {block}
+          </button>
+        ) : (
+          <span key={item.code}>{block}</span>
+        )
+      })}
     </div>
   )
 }

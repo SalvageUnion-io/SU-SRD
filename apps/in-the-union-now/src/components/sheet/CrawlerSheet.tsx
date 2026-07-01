@@ -35,6 +35,7 @@ import { useEntityStore } from '../../stores/entityStore'
 import { useEntityChoices } from '../shared/useEntityChoices'
 import { Ecflow, Erow } from './Erow'
 import { NpcInset } from './NpcInset'
+import { SalvageControl } from './SalvageControl'
 import { StorageManifest } from './StorageManifest'
 
 type CrawlerBayEntry = NonNullable<Crawler['crawlerBays']>[number]
@@ -602,6 +603,15 @@ export function CrawlerSheet({
           readOnly={readOnly}
         />
       </div>
+
+      {/* Salvaging — Area + Mech Salvage rollers (design-review R-3, pp.244-248).
+          Live-play only: rolls are ephemeral, so snapshots have nothing to show. */}
+      {!readOnly && (
+        <div>
+          <Slab label="Salvaging" count="Area & Mech Salvage · deposits to the pool and hold" />
+          <SalvageControl crawler={crawler} store={store} />
+        </div>
+      )}
 
       {/* The Hold — unlimited crawler storage (rules C6) */}
       <div>

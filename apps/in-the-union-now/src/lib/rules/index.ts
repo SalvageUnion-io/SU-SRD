@@ -67,6 +67,84 @@ export type {
   CriticalDamageEffect,
   CriticalInjuryEffect,
 } from './takeDamage'
+export {
+  DOWNTIME_STEP_KEYS,
+  DOWNTIME_UPKEEP_SCRAP,
+  CHASSIS_DAMAGED_CONDITION,
+  NEVER_RECHARGE_EQUIPMENT,
+  allDowntimeSteps,
+  resolveDowntimeScope,
+  medBayStatus,
+  repairableItems,
+  healableInjuries,
+  downtimeMechPatch,
+  downtimePilotPatch,
+} from './downtime'
+export type {
+  DowntimeStepKey,
+  DowntimeSteps,
+  DowntimeScope,
+  MedBayStatus,
+  RepairableItems,
+  HealableInjuries,
+} from './downtime'
+export {
+  AREA_SALVAGE_DEFAULT_SUPPLY,
+  AREA_SALVAGE_LABEL,
+  MECH_SALVAGE_LABEL,
+  EMPTY_CLAIM,
+  areaSalvageBand,
+  performAreaSalvage,
+  areaJackpotClaim,
+  claimAllows,
+  takeFromClaim,
+  claimExhausted,
+  mechSalvageBand,
+  halfSalvageScrap,
+  performMechSalvage,
+  damagedSalvageLot,
+} from './salvage'
+export type {
+  AreaSalvageBand,
+  AreaSalvageResult,
+  SalvageClaim,
+  SalvageTakeKind,
+  MechSalvageBand,
+  MechSalvageResult,
+  WreckChassis,
+  SalvagedItem,
+} from './salvage'
+export {
+  UPKEEP_SCRAP,
+  DETERIORATION_SP_LOSS,
+  TRADING_AVAILABILITY_LABEL,
+  poolAvailableAtOrAbove,
+  drawFromPool,
+  upkeepShortfall,
+  payUpkeep,
+  contributeToUpgradePool,
+  deteriorationOutcome,
+  performDeterioration,
+  crawlerUpgradeQuote,
+  scrapValue,
+  exchangeStep,
+  convertedCount,
+  convertScrap,
+  tradingAvailability,
+  tradingSourceTl,
+  performTradingRoll,
+  bayGate,
+} from './crawlerEconomy'
+export type {
+  PoolDraw,
+  UpkeepPayment,
+  DeteriorationOutcome,
+  DeteriorationEffect,
+  CrawlerUpgradeQuote,
+  TradingAvailability,
+  TradingRollResult,
+  BayGate,
+} from './crawlerEconomy'
 
 export type {
   // Shared primitives

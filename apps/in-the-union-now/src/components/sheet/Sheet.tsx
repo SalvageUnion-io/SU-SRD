@@ -15,6 +15,7 @@
  * stay in lockstep (§4.1).
  */
 
+import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { btnVariants, MChip, Pill, StatBlock } from 'suref-react'
 import type { PillTone, StatBlockState } from 'suref-react'
@@ -38,6 +39,7 @@ import {
 } from '../../lib/rules/derivedStats'
 import { computeMechCapacity } from '../../lib/rules/capacity'
 import { describePushOutcome } from '../../lib/rules/coreMechanic'
+import { bayGate, tradingSourceTl } from '../../lib/rules/crawlerEconomy'
 import { defaultRoll, performPush } from '../../lib/rules/heatCheck'
 import { cn } from '../../lib/utils'
 import { useEntityStore } from '../../stores/entityStore'
@@ -59,6 +61,8 @@ import type { UsedToggleKey } from './PilotIdentity'
 import { PilotSheet } from './PilotSheet'
 import { MechSheet } from './MechSheet'
 import { MechConditionsEditor } from './MechConditionsEditor'
+import { CrawlerEconomyControl } from './CrawlerEconomyControl'
+import type { CrawlerEconomyDialog } from './CrawlerEconomyControl'
 import { CrawlerSheet } from './CrawlerSheet'
 import { PublishButton } from './PublishButton'
 import { QuickRollFab } from './QuickRollFab'
@@ -199,6 +203,9 @@ export function Sheet({
   readOnly = false,
 }: SheetProps) {
   const storeState = store()
+  // Crawler-economy dialog behind the UPKEEP/UPGRADE/TRADE lozenges (R-4).
+  // Top-level (unconditional hook) — only the crawler branch reads it.
+  const [econDialog, setEconDialog] = useState<CrawlerEconomyDialog | null>(null)
 
   const lookup: EntityLookup =
     entityStore ??
@@ -709,9 +716,12 @@ export function Sheet({
       : []),
   ]
 
-  // UPKEEP / UPGRADE-pool / CREW spec lozenges (design §4.4): upkeep is 5
-  // Scrap of crawler TL per Downtime (rules C3); the Upgrade Pool fills
-  // toward 30× TL (rules C4); crew leads = one per installed bay (rules C11).
+  // UPKEEP / UPGRADE-pool / TRADE / CREW spec lozenges (design §4.4): upkeep
+  // is 5 Scrap of crawler TL per Downtime (rules C3); the Upgrade Pool fills
+  // toward 30× TL (rules C4); the Trading Bay sources TL+1 wares (p.223);
+  // crew leads = one per installed bay (rules C11). On editable sheets the
+  // economy lozenges are the R-4 action entry points (CrawlerEconomyControl).
+  const trading = bayGate(crawler, 'Trading Bay')
   const crawlerSpecs: ChassisStatItem[] = [
     ...(tl !== undefined
       ? [
@@ -721,6 +731,8 @@ export function Sheet({
             unit: `Tech ${tl}`,
             value: 5,
             pips: false,
+            onClick: editable ? () => setEconDialog('upkeep') : undefined,
+            actionLabel: 'Pay Upkeep',
           },
         ]
       : []),
@@ -730,7 +742,22 @@ export function Sheet({
       value: crawler.upgradePool ?? 0,
       max: 30,
       pips: false,
+      onClick: editable ? () => setEconDialog('upgrade') : undefined,
+      actionLabel: 'Upgrade Crawler',
     },
+    ...(trading.present && tl !== undefined
+      ? [
+          {
+            code: 'TRADE',
+            name: 'Wares',
+            unit: `Tech ${tradingSourceTl(tl)}`,
+            value: tradingSourceTl(tl),
+            pips: false,
+            onClick: editable ? () => setEconDialog('trade') : undefined,
+            actionLabel: 'Open the Trading Bay',
+          },
+        ]
+      : []),
     ...(states.length > 0
       ? [{ code: 'CREW', name: 'Leads', value: states.length, pips: false }]
       : []),
@@ -784,53 +811,68 @@ export function Sheet({
   )
 
   return (
-    <LiveSheet
-      variant="crawler"
-      name={crawler.name}
-      strip={strip}
-      back={back}
-      pill={{ label: 'Crawler', tone: 'crawler' }}
-      wired={wired}
-      rail={rail}
-      segments={segments}
-      actions={actions}
-      fab={editable ? <QuickRollFab /> : undefined}
-      renderHero={({ heroRef, rail: heroRail }) => (
-        <SheetHero
-          heroRef={heroRef}
-          cat="Crawler"
-          name={crawler.name}
-          meta={tl !== undefined ? <MChip label="Tech LV" value={tl} /> : undefined}
-          specs={crawlerSpecs.length > 0 ? <ChassisStats items={crawlerSpecs} /> : undefined}
-          trackers={
-            <>
-              <StatBlock
-                code="Structure"
-                name="Points"
-                unit="Points"
-                stat="sp"
-                max={maxSP}
-                value={sp}
-                onChange={editable ? (v) => patch({ currentSP: v }) : undefined}
-                editable={editable}
-              />
-              {states.length > 0 && (
+    <>
+      <LiveSheet
+        variant="crawler"
+        name={crawler.name}
+        strip={strip}
+        back={back}
+        pill={{ label: 'Crawler', tone: 'crawler' }}
+        wired={wired}
+        rail={rail}
+        segments={segments}
+        actions={actions}
+        fab={editable ? <QuickRollFab /> : undefined}
+        renderHero={({ heroRef, rail: heroRail }) => (
+          <SheetHero
+            heroRef={heroRef}
+            cat="Crawler"
+            name={crawler.name}
+            meta={tl !== undefined ? <MChip label="Tech LV" value={tl} /> : undefined}
+            specs={crawlerSpecs.length > 0 ? <ChassisStats items={crawlerSpecs} /> : undefined}
+            trackers={
+              <>
                 <StatBlock
-                  code="Bays"
-                  name="Condition"
-                  unit="Bays"
-                  states={states}
-                  onBay={editable ? toggleBay : undefined}
+                  code="Structure"
+                  name="Points"
+                  unit="Points"
+                  stat="sp"
+                  max={maxSP}
+                  value={sp}
+                  onChange={editable ? (v) => patch({ currentSP: v }) : undefined}
+                  editable={editable}
                 />
-              )}
-            </>
-          }
-          rail={heroRail}
+                {states.length > 0 && (
+                  <StatBlock
+                    code="Bays"
+                    name="Condition"
+                    unit="Bays"
+                    states={states}
+                    onBay={editable ? toggleBay : undefined}
+                  />
+                )}
+              </>
+            }
+            rail={heroRail}
+          />
+        )}
+        renderBody={() => (
+          <CrawlerSheet
+            crawler={crawler}
+            mech={composition.mech}
+            store={store}
+            readOnly={readOnly}
+          />
+        )}
+      />
+      {editable && (
+        <CrawlerEconomyControl
+          crawler={crawler}
+          store={store}
+          open={econDialog}
+          onClose={() => setEconDialog(null)}
         />
       )}
-      renderBody={() => (
-        <CrawlerSheet crawler={crawler} mech={composition.mech} store={store} readOnly={readOnly} />
-      )}
-    />
+    </>
   )
 }
