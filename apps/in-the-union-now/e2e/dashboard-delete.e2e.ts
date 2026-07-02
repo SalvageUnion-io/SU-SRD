@@ -74,9 +74,11 @@ test('create then delete a pilot from the dashboard', async ({ page }) => {
   await page.getByRole('button', { name: /^Delete Delete Me$/i }).click()
 
   // ── Step 3: Confirm dialog ──────────────────────────────────────────────────
-  // DeleteConfirmDialog renders role="dialog" with heading "Delete {name}?"
+  // The ModalShell-backed ConfirmDialog renders the "Delete {name}?" title
+  // three times (visible pseudoheader span + sr-only Dialog.Title/Description),
+  // so assert containment on the dialog rather than a unique text locator.
   await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10_000 })
-  await expect(page.getByText(/Delete Delete Me\?/i)).toBeVisible()
+  await expect(page.getByRole('dialog')).toContainText('Delete Delete Me?')
 
   // Confirm button inside the dialog.
   await page
