@@ -56,6 +56,22 @@ App is now built on a rigorous internal "design-spec" (§ references in every co
 - Dashboard '↳ Name' cross-links (pilot↔mech↔crawler) are plain text in row meta, NOT navigable.
 - Shell files: `components/sheet/LiveSheet.tsx` (sticky condense bar, IntersectionObserver, mobile segmented switch), `SheetHero.tsx` (entity-card-writ-large), `Sheet.tsx` (variant dispatch). Wizards share `components/wizard/WizShell.tsx` (196px stepper rail + optional 320px option pane + floating bottom-right CTA pill). All three wizards (Pilot/Mech/Crawler) reuse it.
 
+## ITUN Dialog / Roll-Prompt Family Templates (verified on itun-design-review branch, Jul 2026 — NOT yet on main)
+
+Two canonical templates every new ITUN surface should match:
+
+- **Dialog family** = suref-react `ModalShell` (base-ui Dialog, backdrop `bg-black/80`, DisplayCard pseudoheader, close top-right). ITUN wrappers: `shared/ConfirmDialog.tsx` (body `flex flex-col gap-4 bg-paper p-5`, action row `flex justify-end gap-2`, ghost Cancel + primary/danger confirm, headerBg su-orange / su-rust danger) and `shared/SelectorDialog.tsx` (radio pick-one). Downtime/Crafting/ScrapMech/CrawlerEconomy/GlobalSearch route through ModalShell.
+- **Roll-prompt family** = `sheet/HeatCheckControl.tsx`: `<Slab label>` header, `Btn size="sm"` primary/danger, readout `<p role="status" className="font-body text-sm text-ink">`, advisory `<p role="alert" className="mt-2 rounded-[3px] border-chrome border-status-warn bg-paper px-3 py-2 ... text-rust">`, flags `font-cond text-xs font-bold uppercase text-status-bad/text-rust` + MiniBtn Clear. TakeDamage/PilotTakeDamage/Salvage-ClaimPicker/QuickRollFab-pushNote conform.
+- **Popover chrome** (non-modal): QuickRollFab + SheetActionsMenu share `z-30 rounded-[6px] border-2 border-ink bg-paper shadow-[0_14px_28px_-14px_rgba(40,32,25,0.55)]` + `shared/useDismiss.ts`.
+
+## suref-react chrome primitives (confirmed)
+
+- `Btn` variants = `default` (paper/ink base — the CVA defaultVariant), `primary` (rust), `ghost`, `danger`; sizes sm/md/lg. `btnVariants` cva exported. `MiniBtn`/`StepBtn` in SmallButtons.
+- `Slab` = dashed-leader uppercase section header (NOT a black bar), `tracking-[0.12em]`, tone-deep color, optional `count`.
+- `Panel` = plain `rounded-[6px] border-[1.5px] bg-paper` (NO head bar). `Row`, `Empty` (has `icon` slot for entity-tone glyph) same file.
+- **Black-bar-card idiom** ("ink head bar over paper body") has NO shared component — hand-inlined in SalvageControl, CraftingControl, StorageManifest, NpcInset, EncounterScreen.Section, EncounterNpcCard with weight drift (border-2 vs border-chrome, px-3 vs px-2). Extraction candidate.
+- **Roll-tier badge text convention** (`shared/ConditionToggle.tsx`): white text on saturated fills — bg-roll-success→text-white, bg-roll-cascade→text-white, bg-roll-failure(amber)→text-su-black. Tokens: cascade=red, failure=orange, tough=amber, success=green, nailed=blue. QuickRollFab band chip diverges (text-ink on all fills — contrast risk on red/green/blue).
+
 ## Accessibility Patterns
 
 - `eslint-plugin-jsx-a11y` in all ESLint configs

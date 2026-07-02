@@ -27,7 +27,7 @@
 import { useState } from 'react'
 import { Btn, MiniBtn, Slab, heatLevel } from 'suref-react'
 
-import { performHeatCheck, performPush } from '../../lib/rules/heatCheck'
+import { heatCheckPatch, performHeatCheck, performPush } from '../../lib/rules/heatCheck'
 import type { HeatCheckEffect, Roll } from '../../lib/rules/heatCheck'
 import { defaultRoll } from '../../lib/rules/heatCheck'
 import type { HeatCheckResult, Mech, ReactorOverloadOutcome } from '../../lib/schemas/mech'
@@ -81,19 +81,10 @@ export function HeatCheckControl({
     // Read the freshest mech from the store (not the render-time prop) so rapid
     // sequential actions don't stomp each other with a stale-closure overwrite.
     const fresh = storeState.get('mech', mech.id) ?? mech
-    const patch: Partial<Mech> = { lastHeatCheck: effect.result }
-
-    if (heatToPersist !== undefined && heatToPersist !== fresh.currentHeat) {
-      patch.currentHeat = heatToPersist
-    }
-    if (effect.shutdown) {
-      patch.shutdown = true
-      patch.vulnerable = true
-      patch.currentSP = effect.nextSP
-    }
-    if (effect.destroyed) {
-      patch.destroyed = true
-    }
+    const patch = heatCheckPatch(
+      effect,
+      heatToPersist !== undefined && heatToPersist !== fresh.currentHeat ? heatToPersist : undefined
+    )
 
     setChoicePrompt(effect.requiresPlayerChoice ? (effect.result.outcome ?? null) : null)
     await storeState.update('mech', mech.id, patch)

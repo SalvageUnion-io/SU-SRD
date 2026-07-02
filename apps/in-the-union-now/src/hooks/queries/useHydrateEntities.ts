@@ -19,26 +19,33 @@ type UseHydrateEntitiesOptions = {
   workspaces?: boolean
 }
 
+/**
+ * useHydrateOnMount — the generalization for stores outside entityStore
+ * (e.g. the encounter tray's injectable store): run the given hydrator once
+ * on mount and flip to true when it resolves. The hydrator is captured on
+ * first render only, matching the entity variant's once-on-mount semantics.
+ */
+export function useHydrateOnMount(hydrate: () => Promise<unknown>): boolean {
+  const [hydrated, setHydrated] = useState(false)
+
+  useEffect(() => {
+    void hydrate().then(() => setHydrated(true))
+    // Only run once on mount; hydrators close over stable Zustand singletons.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  return hydrated
+}
+
 export function useHydrateEntities(
   types: readonly EntityType[],
   options?: UseHydrateEntitiesOptions
 ): boolean {
-  const [hydratedAll, setHydratedAll] = useState(false)
-
-  useEffect(() => {
-    const run = async () => {
-      const store = useEntityStore.getState()
-      await Promise.all([
-        ...types.map((type) => store.hydrate(type)),
-        ...(options?.workspaces ? [useWorkspaceStore.getState().hydrate()] : []),
-      ])
-      setHydratedAll(true)
-    }
-    void run()
-    // Only run once on mount; stores are stable (Zustand singletons) and the
-    // requested types are fixed for a page's lifetime.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  return hydratedAll
+  return useHydrateOnMount(() => {
+    const store = useEntityStore.getState()
+    return Promise.all([
+      ...types.map((type) => store.hydrate(type)),
+      ...(options?.workspaces ? [useWorkspaceStore.getState().hydrate()] : []),
+    ])
+  })
 }

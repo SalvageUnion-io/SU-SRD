@@ -14,7 +14,14 @@ import { Search } from 'lucide-react'
 import { AppLink } from './AppLink'
 
 // Shortcut hint mirrors the platform convention (⌘K on Apple, Ctrl K elsewhere).
-const IS_APPLE = typeof navigator !== 'undefined' && /Mac|iP(hone|ad|od)/.test(navigator.platform)
+// Prefer the modern UA-Client-Hints platform; navigator.platform is the
+// fallback for browsers without it (Safari/Firefox). Cosmetic-only either way.
+const IS_APPLE =
+  typeof navigator !== 'undefined' &&
+  /Mac|iP(hone|ad|od)/.test(
+    (navigator as Navigator & { userAgentData?: { platform?: string } }).userAgentData?.platform ??
+      navigator.platform
+  )
 
 type AppHeaderProps = {
   /** Opens the global reference search dialog (also bound to Cmd/Ctrl+K). */
@@ -31,7 +38,7 @@ export function AppHeader({ onSearchClick }: AppHeaderProps) {
           alt="Salvage Union"
           width={44}
           height={44}
-          className="block size-10 shrink-0 rounded-lg sm:size-11"
+          className="block size-10 shrink-0 rounded-md sm:size-11"
         />
         <span className="flex min-w-0 flex-col">
           <span className="font-cond text-xl font-bold leading-none tracking-[0.005em] text-su-paper sm:text-2xl">
@@ -40,7 +47,7 @@ export function AppHeader({ onSearchClick }: AppHeaderProps) {
               Beta
             </span>
           </span>
-          <span className="mt-1.5 whitespace-nowrap font-cond text-xs font-semibold uppercase leading-none tracking-[0.22em] text-su-orange">
+          <span className="mt-1.5 whitespace-nowrap font-cond text-xs font-semibold uppercase leading-none tracking-eyebrow text-su-orange">
             In The Union Now
           </span>
         </span>

@@ -46,6 +46,7 @@ import type { CargoLot } from '../../lib/schemas/cargoLot'
 import type { Crawler } from '../../lib/schemas/crawler'
 import { useEntityStore } from '../../stores/entityStore'
 import { cn } from '../../lib/utils'
+import { SectionCard } from '../shared/SectionCard'
 
 const TECH_LEVELS = [1, 2, 3, 4, 5, 6] as const
 
@@ -151,6 +152,10 @@ function ClaimPicker({
       className="mt-2 flex flex-col gap-2 rounded-[3px] border-chrome border-status-warn bg-paper px-3 py-2"
     >
       <p className="m-0 font-body text-sm text-rust">{prompt}</p>
+      {/* Honest about the honor-system tradeoff: claims are page state only. */}
+      <p className="m-0 font-body text-xs text-wk-muted">
+        Open claims don&rsquo;t survive leaving this sheet — take or skip before you go.
+      </p>
 
       {wreck !== null && claimAllows(claim, 'chassis') && onTakeWreckChassis && (
         <Btn size="sm" variant="primary" onClick={onTakeWreckChassis}>
@@ -388,183 +393,172 @@ export function SalvageControl({
   return (
     <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
       {/* --- Area Salvage --------------------------------------------------- */}
-      <div className="overflow-hidden rounded-[3px] border-2 border-ink bg-paper">
-        <div className="flex items-center justify-between gap-2 bg-ink px-3 py-1.5">
-          <span className="font-cond text-xs font-bold uppercase tracking-wider text-su-white">
-            Area Salvage
+      <SectionCard
+        title="Area Salvage"
+        hint="1 Supply per roll"
+        bodyClassName="flex flex-col gap-2.5"
+      >
+        {/* Area TL — Mediator-set */}
+        <div className="flex flex-wrap items-center gap-2">
+          <span id={areaTlId} className="font-cond text-xs font-bold uppercase text-ink">
+            Area Tech Level
           </span>
-          <span className="font-cond text-xs uppercase text-su-white/60">1 Supply per roll</span>
-        </div>
-        <div className="flex flex-col gap-2.5 px-3 py-2.5">
-          {/* Area TL — Mediator-set */}
-          <div className="flex flex-wrap items-center gap-2">
-            <span id={areaTlId} className="font-cond text-xs font-bold uppercase text-ink">
-              Area Tech Level
-            </span>
-            <div
-              role="group"
-              aria-labelledby={areaTlId}
-              className="inline-flex items-stretch overflow-hidden rounded-[2px] border-chrome border-ink bg-paper"
-            >
-              {TECH_LEVELS.map((n) => (
-                <button
-                  key={n}
-                  type="button"
-                  aria-label={`Set area tech level ${n}`}
-                  aria-pressed={n === areaTl}
-                  onClick={() => setAreaTl(n)}
-                  className={cn(
-                    'min-w-8 px-2 py-1 font-cond text-sm font-bold leading-none',
-                    n === areaTl ? 'bg-ink text-su-white' : 'text-ink hover:bg-su-paper'
-                  )}
-                >
-                  {n}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Supply tracker — hand-editable (honor system, p.245) */}
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="font-cond text-xs font-bold uppercase text-ink">Supply</span>
-            <StepBtn
-              aria-label="Decrease supply"
-              disabled={supply <= 0}
-              onClick={() => setSupply((s) => Math.max(0, s - 1))}
-            >
-              &ndash;
-            </StepBtn>
-            <span
-              className="min-w-6 text-center font-body text-sm font-bold text-ink"
-              aria-label={`Supply remaining: ${supply}`}
-            >
-              {supply}
-            </span>
-            <StepBtn aria-label="Increase supply" onClick={() => setSupply((s) => s + 1)}>
-              +
-            </StepBtn>
-            <span className="font-body text-xs text-wk-muted">
-              {attemptsUsed} {attemptsUsed === 1 ? 'attempt' : 'attempts'} used
-            </span>
-            <MiniBtn onClick={resetArea} title="Reset Supply and attempts for a new area.">
-              New area
-            </MiniBtn>
-          </div>
-
-          <div>
-            <Btn
-              size="sm"
-              variant="primary"
-              disabled={supplyExhausted}
-              title={
-                supplyExhausted
-                  ? 'Supply exhausted — this area is picked clean (step Supply up if the Mediator allows).'
-                  : `Roll the die: Scrap or a Damaged find at Tech ${areaTl}.`
-              }
-              onClick={handleAreaRoll}
-            >
-              Roll Area Salvage
-            </Btn>
-          </div>
-
-          <div className="min-h-6">
-            {lastArea && (
-              <p role="status" className="m-0 font-body text-sm text-ink" data-band={lastArea.band}>
-                {describeAreaResult(lastArea)}
-              </p>
-            )}
-            {areaClaim && lastArea && (
-              <ClaimPicker
-                key={`area-${attemptsUsed}`}
-                claim={areaClaim}
-                prompt={`Jackpot! Pick the Tech ${lastArea.areaTl} Chassis, System, or Module you found — it lands in the hold, Damaged.`}
-                options={areaOptions}
-                onTake={takeAreaOption}
-                onSkip={() => setAreaClaim(null)}
-              />
-            )}
+          <div
+            role="group"
+            aria-labelledby={areaTlId}
+            className="inline-flex items-stretch overflow-hidden rounded-[2px] border-chrome border-ink bg-paper"
+          >
+            {TECH_LEVELS.map((n) => (
+              <button
+                key={n}
+                type="button"
+                aria-label={`Set area tech level ${n}`}
+                aria-pressed={n === areaTl}
+                onClick={() => setAreaTl(n)}
+                className={cn(
+                  'min-w-8 px-2 py-1 font-cond text-sm font-bold leading-none',
+                  n === areaTl ? 'bg-ink text-su-white' : 'text-ink hover:bg-su-paper'
+                )}
+              >
+                {n}
+              </button>
+            ))}
           </div>
         </div>
-      </div>
+
+        {/* Supply tracker — hand-editable (honor system, p.245) */}
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="font-cond text-xs font-bold uppercase text-ink">Supply</span>
+          <StepBtn
+            aria-label="Decrease supply"
+            disabled={supply <= 0}
+            onClick={() => setSupply((s) => Math.max(0, s - 1))}
+          >
+            &ndash;
+          </StepBtn>
+          <span
+            className="min-w-6 text-center font-body text-sm font-bold text-ink"
+            aria-label={`Supply remaining: ${supply}`}
+          >
+            {supply}
+          </span>
+          <StepBtn aria-label="Increase supply" onClick={() => setSupply((s) => s + 1)}>
+            +
+          </StepBtn>
+          <span className="font-body text-xs text-wk-muted">
+            {attemptsUsed} {attemptsUsed === 1 ? 'attempt' : 'attempts'} used
+          </span>
+          <MiniBtn onClick={resetArea} title="Reset Supply and attempts for a new area.">
+            New area
+          </MiniBtn>
+        </div>
+
+        <div>
+          <Btn
+            size="sm"
+            variant="primary"
+            disabled={supplyExhausted}
+            title={
+              supplyExhausted
+                ? 'Supply exhausted — this area is picked clean (step Supply up if the Mediator allows).'
+                : `Roll the die: Scrap or a Damaged find at Tech ${areaTl}.`
+            }
+            onClick={handleAreaRoll}
+          >
+            Roll Area Salvage
+          </Btn>
+        </div>
+
+        <div className="min-h-6">
+          {lastArea && (
+            <p role="status" className="m-0 font-body text-sm text-ink" data-band={lastArea.band}>
+              {describeAreaResult(lastArea)}
+            </p>
+          )}
+          {areaClaim && lastArea && (
+            <ClaimPicker
+              key={`area-${attemptsUsed}`}
+              claim={areaClaim}
+              prompt={`Jackpot! Pick the Tech ${lastArea.areaTl} Chassis, System, or Module you found — it lands in the hold, Damaged.`}
+              options={areaOptions}
+              onTake={takeAreaOption}
+              onSkip={() => setAreaClaim(null)}
+            />
+          )}
+        </div>
+      </SectionCard>
 
       {/* --- Mech Salvage --------------------------------------------------- */}
-      <div className="overflow-hidden rounded-[3px] border-2 border-ink bg-paper">
-        <div className="flex items-center justify-between gap-2 bg-ink px-3 py-1.5">
-          <span className="font-cond text-xs font-bold uppercase tracking-wider text-su-white">
-            Mech Salvage
-          </span>
-          <span className="font-cond text-xs uppercase text-su-white/60">pick over a wreck</span>
+      <SectionCard
+        title="Mech Salvage"
+        hint="pick over a wreck"
+        bodyClassName="flex flex-col gap-2.5"
+      >
+        <div className="flex flex-col gap-1">
+          <label htmlFor={wreckSelectId} className="font-cond text-xs font-bold uppercase text-ink">
+            Wreck chassis
+          </label>
+          <select
+            id={wreckSelectId}
+            value={wreckId}
+            onChange={(e) => setWreckId(e.target.value)}
+            className={SELECT_CLASS}
+          >
+            <option value="">Pick the wreck&rsquo;s chassis…</option>
+            {toOptions('chassis', chassisItems).map((option) => (
+              <option key={option.key} value={option.key.replace('chassis:', '')}>
+                {optionLabel(option)}
+              </option>
+            ))}
+          </select>
         </div>
-        <div className="flex flex-col gap-2.5 px-3 py-2.5">
-          <div className="flex flex-col gap-1">
-            <label
-              htmlFor={wreckSelectId}
-              className="font-cond text-xs font-bold uppercase text-ink"
-            >
-              Wreck chassis
-            </label>
-            <select
-              id={wreckSelectId}
-              value={wreckId}
-              onChange={(e) => setWreckId(e.target.value)}
-              className={SELECT_CLASS}
-            >
-              <option value="">Pick the wreck&rsquo;s chassis…</option>
-              {toOptions('chassis', chassisItems).map((option) => (
-                <option key={option.key} value={option.key.replace('chassis:', '')}>
-                  {optionLabel(option)}
-                </option>
-              ))}
-            </select>
-          </div>
 
-          <div>
-            <Btn
-              size="sm"
-              variant="primary"
-              disabled={wreck === null}
-              title={
-                wreck === null
-                  ? "Pick the wreck's chassis first."
-                  : 'Roll the die: what survives on this wreck?'
+        <div>
+          <Btn
+            size="sm"
+            variant="primary"
+            disabled={wreck === null}
+            title={
+              wreck === null
+                ? "Pick the wreck's chassis first."
+                : 'Roll the die: what survives on this wreck?'
+            }
+            onClick={handleMechRoll}
+          >
+            Roll Mech Salvage
+          </Btn>
+        </div>
+
+        <div className="min-h-6">
+          {lastMech && (
+            <p
+              role="status"
+              className="m-0 font-body text-sm text-ink"
+              data-band={lastMech.result.band}
+            >
+              {describeMechResult(lastMech.result, lastMech.wreck)}
+            </p>
+          )}
+          {mechClaim && lastMech && (
+            <ClaimPicker
+              key={`mech-${lastMech.result.roll}-${lastMech.wreck.name}`}
+              claim={mechClaim}
+              prompt={
+                mechClaim.systemPicks > 0 || mechClaim.modulePicks > 0
+                  ? 'Claim one System and one Module off the wreck — they land in the hold, Damaged.'
+                  : mechClaim.chassis
+                    ? 'Claim the Chassis OR one System/Module off the wreck — it lands in the hold, Damaged.'
+                    : 'Claim one System or Module off the wreck — it lands in the hold, Damaged.'
               }
-              onClick={handleMechRoll}
-            >
-              Roll Mech Salvage
-            </Btn>
-          </div>
-
-          <div className="min-h-6">
-            {lastMech && (
-              <p
-                role="status"
-                className="m-0 font-body text-sm text-ink"
-                data-band={lastMech.result.band}
-              >
-                {describeMechResult(lastMech.result, lastMech.wreck)}
-              </p>
-            )}
-            {mechClaim && lastMech && (
-              <ClaimPicker
-                key={`mech-${lastMech.result.roll}-${lastMech.wreck.name}`}
-                claim={mechClaim}
-                prompt={
-                  mechClaim.systemPicks > 0 || mechClaim.modulePicks > 0
-                    ? 'Claim one System and one Module off the wreck — they land in the hold, Damaged.'
-                    : mechClaim.chassis
-                      ? 'Claim the Chassis OR one System/Module off the wreck — it lands in the hold, Damaged.'
-                      : 'Claim one System or Module off the wreck — it lands in the hold, Damaged.'
-                }
-                options={mechOptions}
-                wreck={lastMech.wreck}
-                onTakeWreckChassis={takeMechWreckChassis}
-                onTake={takeMechOption}
-                onSkip={() => setMechClaim(null)}
-              />
-            )}
-          </div>
+              options={mechOptions}
+              wreck={lastMech.wreck}
+              onTakeWreckChassis={takeMechWreckChassis}
+              onTake={takeMechOption}
+              onSkip={() => setMechClaim(null)}
+            />
+          )}
         </div>
-      </div>
+      </SectionCard>
     </div>
   )
 }

@@ -189,7 +189,7 @@ export function LiveSheet({
               alt=""
               width={28}
               height={28}
-              className="block size-7 shrink-0 rounded-[6px]"
+              className="block size-7 shrink-0 rounded-md"
             />
             <span>&larr; {back.label}</span>
           </AppLink>

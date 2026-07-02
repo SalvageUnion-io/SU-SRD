@@ -17,6 +17,7 @@ import type { FindRollTable } from '../../lib/rules/mediatorTables'
 import type { EncounterNpc, MediatorRollResult } from '../../lib/schemas/encounterNpc'
 import type { useEncounterStore } from '../../stores/encounterStore'
 import { ConfirmDialog } from '../shared/ConfirmDialog'
+import { SectionCard } from '../shared/SectionCard'
 import { InlineEditField } from '../sheet/InlineEditField'
 import { MediatorRollControl } from './MediatorRollControl'
 import { ENCOUNTER_SCHEMA_LABEL, resolveCandidate } from './referenceNpcs'
@@ -73,43 +74,49 @@ export function EncounterNpcCard({ npc, store, roll, findTable }: EncounterNpcCa
   const downed = npc.maxHp > 0 && npc.currentHp === 0
 
   return (
-    <div className="overflow-hidden rounded-[2px] border-chrome border-ink bg-paper">
-      {/* Black head bar: schema tag + instance name + reference name + remove */}
-      <div className="flex flex-wrap items-center gap-2 bg-ink px-2 py-1.5">
-        <span className="rounded-[1px] bg-rust px-1.5 pb-px pt-[2px] font-cond text-nano font-bold uppercase leading-none tracking-caps-wide text-su-white">
-          {ENCOUNTER_SCHEMA_LABEL[npc.refSchema]}
-        </span>
-        <span className="min-w-0 font-cond text-lede font-bold uppercase leading-none text-su-white">
-          <InlineEditField
-            value={npc.name}
-            onSave={(next) => void patch({ name: String(next) })}
-            type="text"
-            ariaLabel={`Edit ${npc.name} instance name`}
-            className="text-su-white"
-          />
-        </span>
-        {npc.name !== npc.refName && (
-          <span className="font-cond text-micro uppercase leading-none tracking-caps text-su-white/60">
-            {npc.refName}
-          </span>
-        )}
-        <span className="ml-auto flex shrink-0 items-center gap-1.5">
-          {refEntity && (
-            <MiniBtn aria-label={`View ${npc.refName} details`} onClick={detailControl.onClick}>
-              Details
+    <>
+      <SectionCard
+        variant="card"
+        // Head bar: schema tag + instance name + reference name; Details/Remove ride the hint slot.
+        title={
+          <>
+            <span className="rounded-[1px] bg-rust px-1.5 pb-px pt-[2px] font-cond text-nano font-bold uppercase leading-none tracking-caps-wide text-su-white">
+              {ENCOUNTER_SCHEMA_LABEL[npc.refSchema]}
+            </span>
+            <span className="min-w-0 font-cond text-lede font-bold uppercase leading-none text-su-white">
+              <InlineEditField
+                value={npc.name}
+                onSave={(next) => void patch({ name: String(next) })}
+                type="text"
+                ariaLabel={`Edit ${npc.name} instance name`}
+                className="text-su-white"
+              />
+            </span>
+            {npc.name !== npc.refName && (
+              <span className="font-cond text-micro uppercase leading-none tracking-caps text-su-white/60">
+                {npc.refName}
+              </span>
+            )}
+          </>
+        }
+        hint={
+          <>
+            {refEntity && (
+              <MiniBtn aria-label={`View ${npc.refName} details`} onClick={detailControl.onClick}>
+                Details
+              </MiniBtn>
+            )}
+            <MiniBtn
+              aria-label={`Remove ${npc.name} from the tray`}
+              onClick={() => setConfirmRemove(true)}
+            >
+              Remove
             </MiniBtn>
-          )}
-          <MiniBtn
-            aria-label={`Remove ${npc.name} from the tray`}
-            onClick={() => setConfirmRemove(true)}
-          >
-            Remove
-          </MiniBtn>
-        </span>
-      </div>
-
-      {/* Body: HP/SP block + conditions + Mediator rolls */}
-      <div className="flex flex-wrap items-start gap-3 p-2.5">
+          </>
+        }
+        // Body: HP/SP block + conditions + Mediator rolls
+        bodyClassName="flex flex-wrap items-start gap-3"
+      >
         {npc.maxHp > 0 && (
           <StatBlock
             code={npc.statKind === 'sp' ? 'SP' : 'HP'}
@@ -188,7 +195,7 @@ export function EncounterNpcCard({ npc, store, roll, findTable }: EncounterNpcCa
             findTable={findTable}
           />
         </div>
-      </div>
+      </SectionCard>
 
       <ConfirmDialog
         open={confirmRemove}
@@ -206,6 +213,6 @@ export function EncounterNpcCard({ npc, store, roll, findTable }: EncounterNpcCa
       </ConfirmDialog>
 
       {detailModal}
-    </div>
+    </>
   )
 }

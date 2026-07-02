@@ -108,6 +108,8 @@
   --tracking-caps-snug: 0.06em;
   --tracking-caps: 0.08em;
   --tracking-caps-wide: 0.12em;
+  /* Brand eyebrow (AppHeader / GameDataReady) — the SRD header's tracked caption. */
+  --tracking-eyebrow: 0.22em;
 }
 
 /*

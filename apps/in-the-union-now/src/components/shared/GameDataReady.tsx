@@ -53,9 +53,9 @@ function GameDataFallback() {
         alt=""
         width={96}
         height={96}
-        className="size-20 rounded-xl sm:size-24"
+        className="size-20 rounded-md sm:size-24"
       />
-      <p className="font-cond text-sm font-semibold uppercase tracking-[0.22em] text-su-paper">
+      <p className="font-cond text-sm font-semibold uppercase tracking-eyebrow text-su-paper">
         Loading reference data…
       </p>
       {/* motion-safe: prefers-reduced-motion users get a static bar instead

@@ -29,6 +29,7 @@ import { bayGate } from '../../lib/rules/crawlerEconomy'
 import type { Crawler } from '../../lib/schemas/crawler'
 import { useEntityStore } from '../../stores/entityStore'
 import { ConfirmDialog } from '../shared/ConfirmDialog'
+import { SectionCard } from '../shared/SectionCard'
 
 /** Minimal shape read off the reference models for catalog entries. */
 type RefItem = {
@@ -178,17 +179,12 @@ export function CraftingControl({ crawler, store = useEntityStore }: CraftingCon
   }
 
   return (
-    <div className="overflow-hidden rounded-[3px] border-2 border-ink bg-paper">
-      <div className="flex items-center justify-between gap-2 bg-ink px-3 py-1.5">
-        <span className="font-cond text-xs font-bold uppercase tracking-wider text-su-white">
-          Crafting Bay
-        </span>
-        <span className="font-cond text-xs uppercase text-su-white/60">
-          Downtime only · Tech {tl} or lower
-        </span>
-      </div>
-
-      <div className="flex flex-col gap-2.5 px-3 py-2.5">
+    <>
+      <SectionCard
+        title="Crafting Bay"
+        hint={`Downtime only · Tech ${tl} or lower`}
+        bodyClassName="flex flex-col gap-2.5"
+      >
         <p className="m-0 font-body text-sm text-wk-muted">
           Crafting costs an item&rsquo;s Salvage Value in Scrap of its Tech Level or higher (p.244),
           drawn from the pool. The crafted item lands in the hold, Intact.
@@ -251,7 +247,7 @@ export function CraftingControl({ crawler, store = useEntityStore }: CraftingCon
             {note}
           </p>
         )}
-      </div>
+      </SectionCard>
 
       {pending && pendingQuote && (
         <ConfirmDialog
@@ -287,6 +283,6 @@ export function CraftingControl({ crawler, store = useEntityStore }: CraftingCon
           </div>
         </ConfirmDialog>
       )}
-    </div>
+    </>
   )
 }

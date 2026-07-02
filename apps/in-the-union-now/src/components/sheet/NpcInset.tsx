@@ -15,6 +15,7 @@
 
 import { StatBlock } from 'suref-react'
 
+import { SectionCard } from '../shared/SectionCard'
 import { InlineEditField } from './InlineEditField'
 import { InlineEditTextArea } from './InlineEditTextArea'
 import { NpcFactsEditor } from './NpcFactsEditor'
@@ -61,118 +62,120 @@ export function NpcInset({
   const editable = !readOnly
 
   return (
-    <div
+    <SectionCard
+      variant="card"
       aria-label={`${bayName} crew lead`}
-      className="overflow-hidden rounded-[2px] border-chrome border-ink bg-paper"
-    >
-      {/* Black head bar: CREW tag + name + role title */}
-      <div className="flex flex-wrap items-center gap-2 bg-ink px-2 py-1.5">
-        <span className="rounded-[1px] bg-crawler px-1.5 pb-px pt-[2px] font-cond text-nano font-bold uppercase leading-none tracking-caps-wide text-su-white">
-          Crew
-        </span>
-        <span className="min-w-0 font-cond text-lede font-bold uppercase leading-none text-su-white">
-          {editable && onNameChange ? (
-            <InlineEditField
-              value={name}
-              onSave={(next) => onNameChange(String(next))}
-              type="text"
-              ariaLabel={`Edit ${bayName} crew name`}
-              className="text-su-white"
-            />
-          ) : (
-            name || '—'
-          )}
-        </span>
-        {title && (
-          <span className="ml-auto font-cond text-micro uppercase leading-none tracking-caps text-su-white/60">
+      // Head bar: CREW tag + name; role title rides the right edge as the hint.
+      title={
+        <>
+          <span className="rounded-[1px] bg-crawler px-1.5 pb-px pt-[2px] font-cond text-nano font-bold uppercase leading-none tracking-caps-wide text-su-white">
+            Crew
+          </span>
+          <span className="min-w-0 font-cond text-lede font-bold uppercase leading-none text-su-white">
+            {editable && onNameChange ? (
+              <InlineEditField
+                value={name}
+                onSave={(next) => onNameChange(String(next))}
+                type="text"
+                ariaLabel={`Edit ${bayName} crew name`}
+                className="text-su-white"
+              />
+            ) : (
+              name || '—'
+            )}
+          </span>
+        </>
+      }
+      hint={
+        title ? (
+          <span className="font-cond text-micro uppercase leading-none tracking-caps text-su-white/60">
             {title}
           </span>
-        )}
-      </div>
+        ) : undefined
+      }
+      // Body: HP block + id lines
+      bodyClassName="flex flex-wrap items-start gap-[11px]"
+    >
+      {maxHp > 0 && (
+        <StatBlock
+          code="HP"
+          size="sm"
+          stat="hp"
+          max={maxHp}
+          value={hp}
+          onChange={editable ? onHpChange : undefined}
+          editable={editable && onHpChange !== undefined}
+        />
+      )}
 
-      {/* Body: HP block + id lines */}
-      <div className="flex flex-wrap items-start gap-[11px] p-2.5">
-        {maxHp > 0 && (
-          <StatBlock
-            code="HP"
-            size="sm"
-            stat="hp"
-            max={maxHp}
-            value={hp}
-            onChange={editable ? onHpChange : undefined}
-            editable={editable && onHpChange !== undefined}
-          />
+      <dl className="m-0 min-w-0 flex-1 space-y-1.5">
+        <div className="flex items-baseline gap-1.5">
+          <dt className="shrink-0 font-cond text-micro font-bold uppercase leading-none tracking-widest text-ink">
+            Keepsake
+          </dt>
+          <dd className="m-0 min-w-0 font-body text-note leading-snug text-ink-2">
+            {editable && onKeepsakeChange ? (
+              <InlineEditField
+                value={keepsake}
+                onSave={(next) => onKeepsakeChange(String(next))}
+                type="text"
+                ariaLabel={`Edit ${bayName} crew keepsake`}
+              />
+            ) : (
+              keepsake || '—'
+            )}
+          </dd>
+        </div>
+        <div className="flex items-baseline gap-1.5">
+          <dt className="shrink-0 font-cond text-micro font-bold uppercase leading-none tracking-widest text-ink">
+            Motto
+          </dt>
+          <dd className="m-0 min-w-0 font-body text-note leading-snug text-ink-2">
+            {editable && onMottoChange ? (
+              <InlineEditField
+                value={motto}
+                onSave={(next) => onMottoChange(String(next))}
+                type="text"
+                ariaLabel={`Edit ${bayName} crew motto`}
+              />
+            ) : (
+              motto || '—'
+            )}
+          </dd>
+        </div>
+        <div className="flex items-baseline gap-1.5">
+          <dt className="shrink-0 font-cond text-micro font-bold uppercase leading-none tracking-widest text-ink">
+            Detail
+          </dt>
+          <dd className="m-0 min-w-0 flex-1 font-body text-note leading-snug text-ink-2">
+            {editable && onDetailChange ? (
+              <InlineEditTextArea
+                value={detail}
+                onSave={onDetailChange}
+                ariaLabel={`Edit ${bayName} crew detail`}
+                placeholder="Add a detail…"
+              />
+            ) : (
+              detail || '—'
+            )}
+          </dd>
+        </div>
+        {(editable || facts.length > 0) && (
+          <div className="flex items-baseline gap-1.5">
+            <dt className="shrink-0 font-cond text-micro font-bold uppercase leading-none tracking-widest text-ink">
+              Facts
+            </dt>
+            <dd className="m-0 min-w-0 flex-1">
+              <NpcFactsEditor
+                facts={facts}
+                onChange={(next) => onFactsChange?.(next)}
+                npcLabel={`${bayName} crew`}
+                readOnly={readOnly || onFactsChange === undefined}
+              />
+            </dd>
+          </div>
         )}
-
-        <dl className="m-0 min-w-0 flex-1 space-y-1.5">
-          <div className="flex items-baseline gap-1.5">
-            <dt className="shrink-0 font-cond text-micro font-bold uppercase leading-none tracking-widest text-ink">
-              Keepsake
-            </dt>
-            <dd className="m-0 min-w-0 font-body text-note leading-snug text-ink-2">
-              {editable && onKeepsakeChange ? (
-                <InlineEditField
-                  value={keepsake}
-                  onSave={(next) => onKeepsakeChange(String(next))}
-                  type="text"
-                  ariaLabel={`Edit ${bayName} crew keepsake`}
-                />
-              ) : (
-                keepsake || '—'
-              )}
-            </dd>
-          </div>
-          <div className="flex items-baseline gap-1.5">
-            <dt className="shrink-0 font-cond text-micro font-bold uppercase leading-none tracking-widest text-ink">
-              Motto
-            </dt>
-            <dd className="m-0 min-w-0 font-body text-note leading-snug text-ink-2">
-              {editable && onMottoChange ? (
-                <InlineEditField
-                  value={motto}
-                  onSave={(next) => onMottoChange(String(next))}
-                  type="text"
-                  ariaLabel={`Edit ${bayName} crew motto`}
-                />
-              ) : (
-                motto || '—'
-              )}
-            </dd>
-          </div>
-          <div className="flex items-baseline gap-1.5">
-            <dt className="shrink-0 font-cond text-micro font-bold uppercase leading-none tracking-widest text-ink">
-              Detail
-            </dt>
-            <dd className="m-0 min-w-0 flex-1 font-body text-note leading-snug text-ink-2">
-              {editable && onDetailChange ? (
-                <InlineEditTextArea
-                  value={detail}
-                  onSave={onDetailChange}
-                  ariaLabel={`Edit ${bayName} crew detail`}
-                  placeholder="Add a detail…"
-                />
-              ) : (
-                detail || '—'
-              )}
-            </dd>
-          </div>
-          {(editable || facts.length > 0) && (
-            <div className="flex items-baseline gap-1.5">
-              <dt className="shrink-0 font-cond text-micro font-bold uppercase leading-none tracking-widest text-ink">
-                Facts
-              </dt>
-              <dd className="m-0 min-w-0 flex-1">
-                <NpcFactsEditor
-                  facts={facts}
-                  onChange={(next) => onFactsChange?.(next)}
-                  npcLabel={`${bayName} crew`}
-                  readOnly={readOnly || onFactsChange === undefined}
-                />
-              </dd>
-            </div>
-          )}
-        </dl>
-      </div>
-    </div>
+      </dl>
+    </SectionCard>
   )
 }

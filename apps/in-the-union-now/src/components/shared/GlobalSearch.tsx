@@ -21,10 +21,10 @@
 
 import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import type { SearchResult, SURefEntity } from 'salvageunion-reference'
-import { getEntitySchemas, getEntitySlug, search } from 'salvageunion-reference'
+import { getEntitySchemas, search } from 'salvageunion-reference'
 import { ModalShell, useDetailModal } from 'suref-react'
 
-import { deepLinkTo, deepLinkToSchema } from '../../lib/suref-web-deep-link'
+import { deepLinkToSchema } from '../../lib/suref-web-deep-link'
 
 type DisplayResult =
   | {
@@ -142,16 +142,6 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
       if (result.kind === 'schema') {
         // No in-app schema listing — open the SRD category page in a new tab.
         window.open(result.url, '_blank', 'noopener,noreferrer')
-        return
-      }
-      const schemaName = result.entity.schemaName
-      if (typeof schemaName !== 'string') {
-        // Defensive fallback: no detail rendering — deep-link to the SRD page.
-        window.open(
-          deepLinkTo({ schemaName: String(schemaName), slug: getEntitySlug(result.entity) }),
-          '_blank',
-          'noopener,noreferrer'
-        )
         return
       }
       onOpenChange(false)

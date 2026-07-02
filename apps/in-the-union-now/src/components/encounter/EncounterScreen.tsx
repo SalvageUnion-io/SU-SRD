@@ -15,15 +15,17 @@
  * (null = All Builds). New instances are stamped with the active workspace.
  */
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Users } from 'lucide-react'
 import { Empty } from 'suref-react'
 
+import { useHydrateOnMount } from '../../hooks/queries/useHydrateEntities'
 import type { Roll } from '../../lib/rules/heatCheck'
 import type { FindRollTable } from '../../lib/rules/mediatorTables'
 import type { MediatorRollResult } from '../../lib/schemas/encounterNpc'
 import { useEncounterStore } from '../../stores/encounterStore'
 import { useWorkspaceStore } from '../../stores/workspaceStore'
+import { SectionCard } from '../shared/SectionCard'
 import { WorkspaceSwitcher } from '../workspace/WorkspaceSwitcher'
 import { AddNpcControl } from './AddNpcControl'
 import { EncounterNpcCard } from './EncounterNpcCard'
@@ -39,7 +41,7 @@ type EncounterScreenProps = {
   findTable?: FindRollTable
 }
 
-/** Section frame: ink head bar over a paper body (SalvageControl style). */
+/** Section frame: SectionCard panel as an h2 document-outline section. */
 function Section({
   title,
   hint,
@@ -50,15 +52,9 @@ function Section({
   children: React.ReactNode
 }) {
   return (
-    <section className="overflow-hidden rounded-[3px] border-2 border-ink bg-paper">
-      <div className="flex items-center justify-between gap-2 bg-ink px-3 py-1.5">
-        <h2 className="m-0 font-cond text-xs font-bold uppercase tracking-wider text-su-white">
-          {title}
-        </h2>
-        {hint && <span className="font-cond text-xs uppercase text-su-white/60">{hint}</span>}
-      </div>
-      <div className="px-3 py-2.5">{children}</div>
-    </section>
+    <SectionCard as="section" titleAs="h2" title={title} hint={hint}>
+      {children}
+    </SectionCard>
   )
 }
 
@@ -68,22 +64,15 @@ export function EncounterScreen({
   findTable,
 }: EncounterScreenProps) {
   const storeState = store()
-  const [hydrated, setHydrated] = useState(false)
   /** null = "All Builds" — same semantics as the dashboard filter. */
   const [activeWorkspaceId, setActiveWorkspaceId] = useState<string | null>(null)
   /** Whole-group roll result — page state, not persisted (per-NPC rolls are). */
   const [groupResult, setGroupResult] = useState<MediatorRollResult | null>(null)
 
-  useEffect(() => {
-    const run = async () => {
-      // Imperative hydrate — WorkspaceSwitcher owns the reactive subscription.
-      await Promise.all([storeState.hydrate(), useWorkspaceStore.getState().hydrate()])
-      setHydrated(true)
-    }
-    void run()
-    // Only run once on mount; stores are stable (Zustand singletons).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  // Imperative hydrate — WorkspaceSwitcher owns the reactive subscription.
+  const hydrated = useHydrateOnMount(() =>
+    Promise.all([storeState.hydrate(), useWorkspaceStore.getState().hydrate()])
+  )
 
   const npcs = storeState.listForWorkspace(activeWorkspaceId)
 
@@ -141,7 +130,14 @@ export function EncounterScreen({
         <div className="flex flex-col gap-3">
           <Section title="Tracked NPCs" hint={`${npcs.length} in play`}>
             {!hydrated ? (
-              <p className="m-0 font-body text-sm text-wk-muted">Loading encounter…</p>
+              // Same pulse-skeleton idiom as DashboardSkeleton/SheetSkeleton:
+              // placeholder rows shaped like the NPC cards they stand in for.
+              <div role="status" aria-label="Loading encounter" className="animate-pulse">
+                <div className="flex flex-col gap-2.5">
+                  <div className="h-16 rounded-[3px] border-chrome border-ink/15 bg-ink/10" />
+                  <div className="h-16 rounded-[3px] border-chrome border-ink/15 bg-ink/10" />
+                </div>
+              </div>
             ) : npcs.length === 0 ? (
               <Empty
                 icon={<Users className="size-7 text-wk-muted" aria-hidden="true" />}

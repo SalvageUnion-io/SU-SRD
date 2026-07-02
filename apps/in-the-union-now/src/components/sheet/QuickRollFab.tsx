@@ -58,13 +58,18 @@ type RollEntry = {
 /** Recent-rolls kept in memory (latest + a short history). */
 const MAX_ENTRIES = 5
 
-/** Band chip fill — the roll-tier theme tokens (theme.css "Roll result tiers"). */
+/**
+ * Band chip fill + text — the roll-tier theme tokens (theme.css "Roll result
+ * tiers"), paired with ConditionToggle's contrast map (white on the dark
+ * cascade/success/nailed fills, dark on the light tough/failure ambers) so the
+ * chip agrees with the condition badges rendered on the same sheet.
+ */
 const BAND_BG: Record<CoreRollBand, string> = {
-  nailed: 'bg-roll-nailed',
-  success: 'bg-roll-success',
-  tough: 'bg-roll-tough',
-  failure: 'bg-roll-failure',
-  cascade: 'bg-roll-cascade',
+  nailed: 'bg-roll-nailed text-white',
+  success: 'bg-roll-success text-white',
+  tough: 'bg-roll-tough text-su-black',
+  failure: 'bg-roll-failure text-su-black',
+  cascade: 'bg-roll-cascade text-white',
 }
 
 export function QuickRollFab({
@@ -151,7 +156,7 @@ export function QuickRollFab({
               <span
                 data-band={latest.band}
                 className={cn(
-                  'rounded-[2px] border-chrome border-ink px-1.5 py-0.5 font-cond text-xs font-bold uppercase leading-none text-ink',
+                  'rounded-[2px] border-chrome border-ink px-1.5 py-0.5 font-cond text-xs font-bold uppercase leading-none',
                   BAND_BG[latest.band]
                 )}
               >

@@ -38,8 +38,8 @@ type SoftWarningBannerProps = {
 // ---------------------------------------------------------------------------
 
 const SEVERITY_STRIP: Record<SoftWarningSeverity, string> = {
-  info: 'border-[var(--color-su-blue)] bg-[var(--color-su-blue-pale)] text-[var(--color-su-black)]',
-  warn: 'border-[var(--color-roll-failure)] bg-[var(--color-su-sickly-yellow)]/20 text-[var(--color-su-black)]',
+  info: 'border-su-blue bg-su-blue-pale text-su-black',
+  warn: 'border-roll-failure bg-su-sickly-yellow/20 text-su-black',
 }
 
 const SEVERITY_ICON: Record<SoftWarningSeverity, string> = {

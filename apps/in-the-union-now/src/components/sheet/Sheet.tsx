@@ -40,7 +40,7 @@ import {
 import { computeMechCapacity } from '../../lib/rules/capacity'
 import { describePushOutcome } from '../../lib/rules/coreMechanic'
 import { bayGate, tradingSourceTl } from '../../lib/rules/crawlerEconomy'
-import { defaultRoll, performPush } from '../../lib/rules/heatCheck'
+import { defaultRoll, heatCheckPatch, performPush } from '../../lib/rules/heatCheck'
 import { cn } from '../../lib/utils'
 import { useEntityStore } from '../../stores/entityStore'
 import type { SoftLinkStore } from '../wiring/useSoftLinks'
@@ -547,16 +547,7 @@ export function Sheet({
         currentSP: Math.min(fresh.currentSP ?? freshMaxSP, freshMaxSP),
         roll: defaultRoll,
       })
-      const mechPatch: Partial<Mech> = { lastHeatCheck: effect.result, currentHeat: nextHeat }
-      if (effect.shutdown) {
-        mechPatch.shutdown = true
-        mechPatch.vulnerable = true
-        mechPatch.currentSP = effect.nextSP
-      }
-      if (effect.destroyed) {
-        mechPatch.destroyed = true
-      }
-      await storeState.update('mech', mech.id, mechPatch)
+      await storeState.update('mech', mech.id, heatCheckPatch(effect, nextHeat))
       return describePushOutcome(nextHeat, effect)
     }
 

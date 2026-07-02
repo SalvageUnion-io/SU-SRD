@@ -20,6 +20,7 @@ import type { UseCargoResult } from '../../lib/cargo/useCargo'
 import type { CargoLot } from '../../lib/schemas/cargoLot'
 import { totalLotUnits } from '../../lib/schemas/cargoLot'
 import { cn } from '../../lib/utils'
+import { SectionCard } from '../shared/SectionCard'
 
 type StorageManifestSide = 'mech' | 'crawler'
 
@@ -169,16 +170,12 @@ export function StorageManifest({
       data-storage-side={side}
     >
       {/* Hold panel */}
-      <div className="overflow-hidden rounded-[3px] border-rail border-ink bg-paper shadow-[0_2px_8px_-3px_rgba(40,32,25,0.4)]">
-        <div className="flex items-center gap-2 bg-ink px-3 py-1.5">
-          <span className="font-cond text-badge font-bold uppercase tracking-caps-wide text-su-white">
-            {side === 'mech' ? 'Mech Hold' : 'Crawler Hold'}
-          </span>
-          <span className="min-w-0 truncate font-cond text-badge uppercase tracking-caps-wide text-su-white/60">
-            {side === 'mech' ? mechName : crawlerName}
-          </span>
-        </div>
-
+      <SectionCard
+        title={side === 'mech' ? 'Mech Hold' : 'Crawler Hold'}
+        hint={side === 'mech' ? mechName : crawlerName}
+        className="shadow-[0_2px_8px_-3px_rgba(40,32,25,0.4)]"
+        unpaddedBody
+      >
         {/* Capacity strip */}
         <div
           className="flex flex-wrap items-center gap-3 border-b-2 border-ink px-3 py-2"
@@ -260,7 +257,7 @@ export function StorageManifest({
             ))}
           </ul>
         )}
-      </div>
+      </SectionCard>
 
       {/* Counterpart panel */}
       <div
