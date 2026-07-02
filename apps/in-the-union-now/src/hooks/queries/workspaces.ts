@@ -14,14 +14,14 @@ import type { Workspace } from '../../lib/schemas/workspace'
 import { useWorkspaceStore } from '../../stores/workspaceStore'
 
 /** Full workspaceStore state+actions shape (what selectors receive). */
-export type WorkspaceStoreState = ReturnType<typeof useWorkspaceStore.getState>
+type WorkspaceStoreState = ReturnType<typeof useWorkspaceStore.getState>
 
 /**
  * The workspace mutation surface, picked off the store. Matches the
  * injectable-store shapes used by the workspace components
  * (WorkspaceList/WorkspaceSwitcher/AssignToWorkspaceButton).
  */
-export type WorkspaceActions = Pick<
+type WorkspaceActions = Pick<
   WorkspaceStoreState,
   'create' | 'rename' | 'delete' | 'assign' | 'unassign'
 >
@@ -30,11 +30,11 @@ export type WorkspaceActions = Pick<
 // Selectors
 // ---------------------------------------------------------------------------
 
-export function selectWorkspaces(state: WorkspaceStoreState): Workspace[] {
+function selectWorkspaces(state: WorkspaceStoreState): Workspace[] {
   return state.workspaces
 }
 
-export function selectWorkspaceById(
+function selectWorkspaceById(
   state: WorkspaceStoreState,
   id: string | null | undefined
 ): Workspace | null {

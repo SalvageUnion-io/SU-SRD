@@ -16,8 +16,7 @@
  *     untouched elements. No `useShallow` needed for either shape.
  *
  * Imperative reads inside event handlers should keep using
- * `useEntityStore.getState()` (legitimate — no subscription needed); recurring
- * selector logic there can reuse the exported `select*` functions.
+ * `useEntityStore.getState()` (legitimate — no subscription needed).
  */
 
 import type { Crawler } from '../../lib/schemas/crawler'
@@ -29,7 +28,7 @@ import type { EntityType } from '../../stores/entityStore'
 import type { EntityForType } from '../../stores/types'
 
 /** Full entityStore state+actions shape (what selectors receive). */
-export type EntityStoreState = ReturnType<typeof useEntityStore.getState>
+type EntityStoreState = ReturnType<typeof useEntityStore.getState>
 
 type ListKey = 'pilots' | 'mechs' | 'crawlers' | 'softLinks'
 
@@ -38,12 +37,11 @@ function listKeyFor(type: EntityType): ListKey {
 }
 
 // ---------------------------------------------------------------------------
-// Selector functions — exported so imperative getState() reads in event
-// handlers can share the exact same logic as the reactive hooks.
+// Selector functions — shared by the reactive hooks below.
 // ---------------------------------------------------------------------------
 
 /** All records of `type` from in-memory state (the store's array reference). */
-export function selectEntityList<T extends EntityType>(
+function selectEntityList<T extends EntityType>(
   state: EntityStoreState,
   type: T
 ): EntityForType<T>[] {
@@ -52,29 +50,13 @@ export function selectEntityList<T extends EntityType>(
 }
 
 /** The record of `type` with `id`, or null (null when id is undefined). */
-export function selectEntityById<T extends EntityType>(
+function selectEntityById<T extends EntityType>(
   state: EntityStoreState,
   type: T,
   id: string | undefined
 ): EntityForType<T> | null {
   if (!id) return null
   return selectEntityList(state, type).find((e) => e.id === id) ?? null
-}
-
-export function selectPilots(state: EntityStoreState): Pilot[] {
-  return state.pilots
-}
-
-export function selectMechs(state: EntityStoreState): Mech[] {
-  return state.mechs
-}
-
-export function selectCrawlers(state: EntityStoreState): Crawler[] {
-  return state.crawlers
-}
-
-export function selectSoftLinks(state: EntityStoreState): SoftLink[] {
-  return state.softLinks
 }
 
 // ---------------------------------------------------------------------------
@@ -96,7 +78,7 @@ function ensureHydrated(type: EntityType): void {
 // ---------------------------------------------------------------------------
 
 /** Reactive list of all records of `type`. Auto-triggers lazy hydration. */
-export function useEntityList<T extends EntityType>(type: T): EntityForType<T>[] {
+function useEntityList<T extends EntityType>(type: T): EntityForType<T>[] {
   ensureHydrated(type)
   return useEntityStore((s) => selectEntityList(s, type))
 }
