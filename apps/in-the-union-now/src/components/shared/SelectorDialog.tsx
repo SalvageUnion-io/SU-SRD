@@ -71,7 +71,7 @@ export function SelectorDialog({
             {options.map((option) => (
               <label
                 key={option.id}
-                className="flex cursor-pointer items-center gap-2 rounded-[3px] border-[1.5px] border-ink bg-paper p-2 hover:bg-wk-bg-2"
+                className="flex cursor-pointer items-center gap-2 rounded-[3px] border-chrome border-ink bg-paper p-2 hover:bg-wk-bg-2"
               >
                 <input
                   type="radio"

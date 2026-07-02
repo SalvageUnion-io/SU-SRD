@@ -135,7 +135,7 @@ export function PilotTakeDamageControl({
 
   const last = pilot.lastCriticalInjury
   const inputClass =
-    'w-16 rounded-[3px] border-[1.5px] border-ink bg-paper px-2 py-1.5 font-body text-sm text-ink focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22]'
+    'w-16 rounded-[3px] border-chrome border-ink bg-paper px-2 py-1.5 font-body text-sm text-ink focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22]'
 
   return (
     <div>
@@ -212,7 +212,7 @@ export function PilotTakeDamageControl({
         {!readOnly && currentHP === 0 && maxHP > 0 && (
           <div
             role="alert"
-            className="mt-2 rounded-[3px] border-[1.5px] border-status-warn bg-paper px-3 py-2"
+            className="mt-2 rounded-[3px] border-chrome border-status-warn bg-paper px-3 py-2"
           >
             <p className="m-0 font-body text-sm text-rust">
               0 HP — roll on the Critical Injury Table.
@@ -234,7 +234,7 @@ export function PilotTakeDamageControl({
         {!readOnly && pendingInjury && (
           <div
             role="alert"
-            className="mt-2 rounded-[3px] border-[1.5px] border-status-warn bg-paper px-3 py-2"
+            className="mt-2 rounded-[3px] border-chrome border-status-warn bg-paper px-3 py-2"
           >
             <p className="m-0 font-body text-sm text-rust">
               {pendingInjury === 'major'

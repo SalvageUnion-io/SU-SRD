@@ -118,7 +118,7 @@ export function TakeDamageControl({
 
   const last = mech.lastCriticalDamage
   const inputClass =
-    'w-16 rounded-[3px] border-[1.5px] border-ink bg-paper px-2 py-1.5 font-body text-sm text-ink focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22]'
+    'w-16 rounded-[3px] border-chrome border-ink bg-paper px-2 py-1.5 font-body text-sm text-ink focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22]'
 
   return (
     <div>
@@ -195,7 +195,7 @@ export function TakeDamageControl({
         {!readOnly && currentSP === 0 && !mech.destroyed && (
           <div
             role="alert"
-            className="mt-2 rounded-[3px] border-[1.5px] border-status-warn bg-paper px-3 py-2"
+            className="mt-2 rounded-[3px] border-chrome border-status-warn bg-paper px-3 py-2"
           >
             <p className="m-0 font-body text-sm text-rust">
               0 SP — roll on the Critical Damage Table.
@@ -217,7 +217,7 @@ export function TakeDamageControl({
         {!readOnly && choicePrompt && (
           <p
             role="alert"
-            className="mt-2 rounded-[3px] border-[1.5px] border-status-warn bg-paper px-3 py-2 font-body text-sm text-rust"
+            className="mt-2 rounded-[3px] border-chrome border-status-warn bg-paper px-3 py-2 font-body text-sm text-rust"
           >
             {choicePrompt === 'system'
               ? 'Mark one System as Destroyed using its status badge below (Mediator picks, or roll it at the table).'

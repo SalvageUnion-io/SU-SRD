@@ -134,7 +134,7 @@ function useCondensed(target: RefObject<HTMLElement | null>, enabled: boolean): 
 
 /** Design §2.4 `.btn.btn--sm` recipe as utilities, shared by both segment states. */
 const SEGMENT_BTN_CLASS =
-  'inline-flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-[3px] border-[1.5px] px-[11px] py-[6px] font-body text-xs font-medium tracking-[0.01em] no-underline transition-colors duration-[120ms]'
+  'inline-flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-[3px] border-chrome px-[11px] py-[6px] font-body text-xs font-medium tracking-[0.01em] no-underline transition-colors duration-[120ms]'
 
 export function LiveSheet({
   variant,
@@ -180,7 +180,7 @@ export function LiveSheet({
           <AppLink
             href={back.href}
             aria-label={`Back to ${back.label.toLowerCase()}`}
-            className="flex shrink-0 items-center gap-2 font-cond text-[13px] font-semibold uppercase tracking-[0.04em] text-ink no-underline hover:text-rust"
+            className="flex shrink-0 items-center gap-2 font-cond text-caption font-semibold uppercase tracking-caps-tight text-ink no-underline hover:text-rust"
           >
             {/* Small SU mark keeps the brand chrome present on sheets — the
                 global AppHeader is suppressed on /sheet/* (play surface). */}

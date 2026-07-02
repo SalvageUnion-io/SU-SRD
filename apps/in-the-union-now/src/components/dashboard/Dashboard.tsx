@@ -17,18 +17,24 @@
  *      listing immediately (Zustand in-memory update is synchronous).
  */
 
-import { Fragment, useEffect, useState } from 'react'
+import { Fragment, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Bot, UserRound, Warehouse } from 'lucide-react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { Btn, btnVariants, Empty } from 'suref-react'
 
+import {
+  useCrawlers,
+  useHydrateEntities,
+  useMechs,
+  usePilots,
+  useSoftLinkList,
+} from '../../hooks/queries'
 import type { SoftLink } from '../../lib/schemas/softLink'
 import { resolveClassName } from '../../lib/classRef'
 import { cn } from '../../lib/utils'
 import type { EntityType } from '../../stores/entityStore'
 import { useEntityStore } from '../../stores/entityStore'
-import { useWorkspaceStore } from '../../stores/workspaceStore'
 import { ExportAllButton } from '../export/ExportAllButton'
 import { ImportButton } from '../export/ImportButton'
 import { AppLink } from '../shared/AppLink'
@@ -100,9 +106,6 @@ const SEGMENTS: ReadonlyArray<{ kind: SegmentKind; label: string }> = [
 // ---------------------------------------------------------------------------
 
 export function Dashboard() {
-  const store = useEntityStore()
-  const workspaceStore = useWorkspaceStore()
-  const [hydratedAll, setHydratedAll] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null)
   /** null = "All Builds" (show all), string = filter by workspace id */
   const [activeWorkspaceId, setActiveWorkspaceId] = useState<string | null>(null)
@@ -110,26 +113,14 @@ export function Dashboard() {
   const [activeSegment, setActiveSegment] = useState<SegmentKind>('pilot')
 
   // Hydrate all three entity types + softLinks + workspaces on mount.
-  useEffect(() => {
-    const run = async () => {
-      await Promise.all([
-        store.hydrate('pilot'),
-        store.hydrate('mech'),
-        store.hydrate('crawler'),
-        store.hydrate('softLink'),
-        workspaceStore.hydrate(),
-      ])
-      setHydratedAll(true)
-    }
-    void run()
-    // Only run once on mount; stores are stable (Zustand singletons).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  const hydratedAll = useHydrateEntities(['pilot', 'mech', 'crawler', 'softLink'], {
+    workspaces: true,
+  })
 
-  const allPilots = store.list('pilot')
-  const allMechs = store.list('mech')
-  const allCrawlers = store.list('crawler')
-  const softLinks: SoftLink[] = store.list('softLink')
+  const allPilots = usePilots()
+  const allMechs = useMechs()
+  const allCrawlers = useCrawlers()
+  const softLinks: SoftLink[] = useSoftLinkList()
 
   // Name lookups for '↳ Name' cross-links — built from the UNFILTERED lists so
   // links resolve across workspace boundaries.
@@ -395,7 +386,7 @@ function DashboardColumn({
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <h2
           id={headingId}
-          className="font-cond text-base font-bold uppercase tracking-[.1em] text-rust"
+          className="font-cond text-base font-bold uppercase tracking-widest text-rust"
         >
           {title}
         </h2>

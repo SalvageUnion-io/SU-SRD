@@ -11,6 +11,7 @@ import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { SalvageUnionReference } from 'salvageunion-reference'
 
 import { MechWizard } from '../../components/mech/MechWizard'
+import { useMech } from '../../hooks/queries'
 import { mechToFormState } from '../../lib/wizard/mechFormState'
 import { useEntityStore } from '../../stores/entityStore'
 
@@ -29,7 +30,7 @@ function EditMechRoute() {
   const { id } = Route.useParams()
   const navigate = useNavigate()
 
-  const mech = useEntityStore((s) => s.mechs.find((m) => m.id === id) ?? null)
+  const mech = useMech(id)
 
   if (!mech) {
     return (

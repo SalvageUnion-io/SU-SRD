@@ -145,6 +145,22 @@ export type {
   TradingRollResult,
   BayGate,
 } from './crawlerEconomy'
+export { CRAFTING_BAY, craftableAtTl, craftQuote, craftedLot } from './crafting'
+export type { CraftableItem, CraftQuote } from './crafting'
+export {
+  mechScrapComponents,
+  scrapMechBreakdown,
+  depositScrapDeposits,
+  handOffCargo,
+} from './scrapMech'
+export type {
+  ScrapMechComponent,
+  ScrapMechComponentKind,
+  ScrapMechSkip,
+  ScrapMechSkipReason,
+  ScrapMechBreakdown,
+  ScrapMechInput,
+} from './scrapMech'
 
 export type {
   // Shared primitives
@@ -180,3 +196,11 @@ export type {
   CrawlerCapacityResult,
   CrawlerCapacityViolation,
 } from './crawlerCapacity'
+
+export {
+  MEDIATOR_TABLE_NAMES,
+  MEDIATOR_TABLE_LABEL,
+  performMediatorRoll,
+  describeMediatorRoll,
+} from './mediatorTables'
+export type { FindRollTable } from './mediatorTables'

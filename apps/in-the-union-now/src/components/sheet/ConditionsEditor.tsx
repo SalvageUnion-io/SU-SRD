@@ -91,10 +91,10 @@ export function ConditionsEditor({
   }
 
   const chipBase =
-    'inline-flex items-center gap-1 rounded-[2px] px-2 py-0.5 font-cond text-[11px] font-semibold uppercase tracking-[.05em]'
+    'inline-flex items-center gap-1 rounded-[2px] px-2 py-0.5 font-cond text-badge font-semibold uppercase tracking-wider'
 
   return (
-    <div className="flex min-h-12 flex-wrap items-center gap-1.5 rounded border-[1.5px] border-ink bg-su-paper p-2.5">
+    <div className="flex min-h-12 flex-wrap items-center gap-1.5 rounded border-chrome border-ink bg-su-paper p-2.5">
       {conditions.length === 0 && !adding && (
         <span className="font-mono text-xs text-wk-muted">None</span>
       )}
@@ -143,7 +143,7 @@ export function ConditionsEditor({
             onBlur={() => {
               void commitAdd()
             }}
-            className="w-28 rounded-[2px] border border-ink bg-su-white px-1.5 py-0.5 font-cond text-[11px] uppercase tracking-[.05em] text-ink focus:outline-none focus:ring-1 focus:ring-su-orange"
+            className="w-28 rounded-[2px] border border-ink bg-su-white px-1.5 py-0.5 font-cond text-badge uppercase tracking-wider text-ink focus:outline-none focus:ring-1 focus:ring-su-orange"
           />
         ) : (
           <button

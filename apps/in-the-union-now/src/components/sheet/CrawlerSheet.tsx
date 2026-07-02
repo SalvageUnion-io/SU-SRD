@@ -33,6 +33,7 @@ import type { Crawler, ScrapPool } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
 import { useEntityStore } from '../../stores/entityStore'
 import { useEntityChoices } from '../shared/useEntityChoices'
+import { CraftingControl } from './CraftingControl'
 import { Ecflow, Erow } from './Erow'
 import { NpcInset } from './NpcInset'
 import { SalvageControl } from './SalvageControl'
@@ -385,7 +386,7 @@ function ScrapPoolSlab({ pool, onAdjust, readOnly }: ScrapPoolSlabProps) {
             key={tl}
             role="group"
             aria-label={`Tech ${tl} scrap: ${value}`}
-            className="inline-flex items-stretch overflow-hidden rounded-[2px] border-[1.5px] border-cargo-deep bg-paper"
+            className="inline-flex items-stretch overflow-hidden rounded-[2px] border-chrome border-cargo-deep bg-paper"
           >
             <span className="flex items-center bg-cargo-deep px-1.5 font-cond text-[9.5px] font-bold uppercase leading-none text-su-white">
               T{tl}
@@ -394,7 +395,7 @@ function ScrapPoolSlab({ pool, onAdjust, readOnly }: ScrapPoolSlabProps) {
               {value}
             </span>
             {editable && (
-              <span className="flex items-center gap-1 border-l-[1.5px] border-cargo-deep px-1 py-0.5">
+              <span className="flex items-center gap-1 border-l-chrome border-cargo-deep px-1 py-0.5">
                 <StepBtn
                   aria-label={`Decrease Tech ${tl} scrap`}
                   disabled={value <= 0}
@@ -523,7 +524,7 @@ export function CrawlerSheet({
           <div
             role="group"
             aria-label="Crawler tech level"
-            className="inline-flex items-stretch overflow-hidden rounded-[2px] border-[1.5px] border-ink bg-paper"
+            className="inline-flex items-stretch overflow-hidden rounded-[2px] border-chrome border-ink bg-paper"
           >
             {TECH_LEVELS.map((n) => (
               <button
@@ -610,6 +611,15 @@ export function CrawlerSheet({
         <div>
           <Slab label="Salvaging" count="Area & Mech Salvage · deposits to the pool and hold" />
           <SalvageControl crawler={crawler} store={store} />
+        </div>
+      )}
+
+      {/* Crafting — the Crafting Bay flow (design-review R-7, p.222/p.244).
+          Live-play only: crafting writes only pool/hold bookkeeping. */}
+      {!readOnly && (
+        <div>
+          <Slab label="Crafting" count="salvage-value cost · deducts the pool, fills the hold" />
+          <CraftingControl crawler={crawler} store={store} />
         </div>
       )}
 

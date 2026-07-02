@@ -103,7 +103,7 @@ export function InlineEditTextArea({
           cancel()
         }
       }}
-      className="w-full rounded border-[1.5px] border-ink bg-su-paper px-1.5 py-1 font-mono text-sm text-ink focus:outline-none focus:ring-2 focus:ring-su-orange"
+      className="w-full rounded border-chrome border-ink bg-su-paper px-1.5 py-1 font-mono text-sm text-ink focus:outline-none focus:ring-2 focus:ring-su-orange"
     />
   )
 }

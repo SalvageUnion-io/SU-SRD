@@ -10,6 +10,7 @@
 
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 
+import { useCrawler, usePilots } from '../../hooks/queries'
 import { useEntityStore } from '../../stores/entityStore'
 import { useSoftLinks } from '../../components/wiring/useSoftLinks'
 import { AssignToWorkspaceButton } from '../../components/workspace/AssignToWorkspaceButton'
@@ -35,8 +36,8 @@ function CrawlerDetailPage() {
   const { id } = Route.useParams()
   const navigate = useNavigate()
 
-  const crawler = useEntityStore((s) => s.crawlers.find((c) => c.id === id) ?? null)
-  const pilots = useEntityStore((s) => s.pilots)
+  const crawler = useCrawler(id)
+  const pilots = usePilots()
   const { incoming } = useSoftLinks({ entityType: 'crawler', entityId: id })
 
   // Incoming pilot-to-crawler links — pilots assigned to this crawler
@@ -87,7 +88,7 @@ function CrawlerDetailPage() {
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
         {/* Left pane — crawler stats summary */}
         <div className="min-w-0 flex-1">
-          <section className="mb-6 rounded-[3px] border-[1.5px] border-ink bg-paper p-4 text-sm">
+          <section className="mb-6 rounded-[3px] border-chrome border-ink bg-paper p-4 text-sm">
             <h2 className="mb-3 font-cond text-sm font-bold uppercase tracking-widest text-su-black">
               Stats
             </h2>
@@ -111,7 +112,7 @@ function CrawlerDetailPage() {
         {/* Right pane — assigned pilots + workspace/actions */}
         <div className="w-full shrink-0 space-y-6 lg:w-72">
           {/* Assigned pilots (via incoming SoftLinks) */}
-          <section className="rounded-[3px] border-[1.5px] border-ink bg-paper p-4">
+          <section className="rounded-[3px] border-chrome border-ink bg-paper p-4">
             <h2 className="mb-3 font-cond text-sm font-bold uppercase tracking-widest text-su-black">
               Assigned Pilots
             </h2>
@@ -124,7 +125,7 @@ function CrawlerDetailPage() {
                 {assignedPilots.map(({ link, pilot }) => (
                   <li
                     key={link.id}
-                    className="flex items-center gap-2 rounded-[3px] border-[1.5px] border-ink px-3 py-2 text-sm"
+                    className="flex items-center gap-2 rounded-[3px] border-chrome border-ink px-3 py-2 text-sm"
                   >
                     <span className="flex-1">
                       {pilot ? (
@@ -145,7 +146,7 @@ function CrawlerDetailPage() {
           </section>
 
           {/* Workspace assignment */}
-          <section className="rounded-[3px] border-[1.5px] border-ink bg-paper p-4">
+          <section className="rounded-[3px] border-chrome border-ink bg-paper p-4">
             <h2 className="mb-3 font-cond text-sm font-bold uppercase tracking-widest text-su-black">
               Workspace
             </h2>

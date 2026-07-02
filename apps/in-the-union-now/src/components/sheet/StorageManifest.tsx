@@ -84,7 +84,7 @@ function CargoChit({ lot, side, cargo, linked, readOnly }: CargoChitProps) {
 
   return (
     <li
-      className="flex items-stretch overflow-hidden rounded-[2px] border-[1.5px] border-ink bg-paper"
+      className="flex items-stretch overflow-hidden rounded-[2px] border-chrome border-ink bg-paper"
       style={{ boxShadow: `inset 3px 0 0 -1px ${SIDE_TINT[side]}` }}
     >
       {/* Marker cell: BULK ×N bronze stripes / UNIT ink diamond */}
@@ -100,15 +100,15 @@ function CargoChit({ lot, side, cargo, linked, readOnly }: CargoChitProps) {
         }
       >
         {lot.kind === 'bulk' ? (
-          <span className="font-body text-[15px] font-bold leading-none">
+          <span className="font-body text-lede font-bold leading-none">
             &times;{lot.qty ?? lot.units}
           </span>
         ) : (
-          <span aria-hidden="true" className="text-[13px] leading-none">
+          <span aria-hidden="true" className="text-caption leading-none">
             &#9670;
           </span>
         )}
-        <span className="font-cond text-[7px] font-semibold uppercase tracking-[0.08em]">
+        <span className="font-cond text-[7px] font-semibold uppercase tracking-caps">
           {lot.kind === 'bulk' ? 'Bulk' : 'Unit'}
         </span>
       </span>
@@ -118,7 +118,7 @@ function CargoChit({ lot, side, cargo, linked, readOnly }: CargoChitProps) {
         <span className="truncate font-cond text-sm font-bold uppercase leading-none text-ink">
           {lot.name}
         </span>
-        <span className="font-body text-[10px] uppercase tracking-[0.04em] text-wk-muted">
+        <span className="font-body text-label uppercase tracking-caps-tight text-wk-muted">
           {lot.cat}
           {lot.tl !== undefined ? ` T${lot.tl}` : ''} &middot; {lot.code}
         </span>
@@ -130,8 +130,8 @@ function CargoChit({ lot, side, cargo, linked, readOnly }: CargoChitProps) {
         className="flex w-9 shrink-0 flex-col items-center justify-center py-1"
         style={{ background: 'var(--ground-2)' }}
       >
-        <span className="font-body text-[15px] font-bold leading-none text-ink">{lot.units}</span>
-        <span className="font-cond text-[8px] uppercase text-wk-muted">U</span>
+        <span className="font-body text-lede font-bold leading-none text-ink">{lot.units}</span>
+        <span className="font-cond text-nano uppercase text-wk-muted">U</span>
       </span>
 
       {/* Move button */}
@@ -142,7 +142,7 @@ function CargoChit({ lot, side, cargo, linked, readOnly }: CargoChitProps) {
           title={disabledReason ?? undefined}
           aria-label={`${side === 'mech' ? 'Stow' : 'Load'} ${lot.name}`}
           onClick={handleMove}
-          className="shrink-0 cursor-pointer px-2.5 font-cond text-[10px] font-bold uppercase tracking-[0.04em] text-ink transition-colors duration-[120ms] hover:bg-[var(--color-cargo-pale)] disabled:cursor-not-allowed disabled:opacity-40"
+          className="shrink-0 cursor-pointer px-2.5 font-cond text-label font-bold uppercase tracking-caps-tight text-ink transition-colors duration-[120ms] hover:bg-[var(--color-cargo-pale)] disabled:cursor-not-allowed disabled:opacity-40"
         >
           {label}
         </button>
@@ -169,12 +169,12 @@ export function StorageManifest({
       data-storage-side={side}
     >
       {/* Hold panel */}
-      <div className="overflow-hidden rounded-[3px] border-[2.5px] border-ink bg-paper shadow-[0_2px_8px_-3px_rgba(40,32,25,0.4)]">
+      <div className="overflow-hidden rounded-[3px] border-rail border-ink bg-paper shadow-[0_2px_8px_-3px_rgba(40,32,25,0.4)]">
         <div className="flex items-center gap-2 bg-ink px-3 py-1.5">
-          <span className="font-cond text-[11px] font-bold uppercase tracking-[0.12em] text-su-white">
+          <span className="font-cond text-badge font-bold uppercase tracking-caps-wide text-su-white">
             {side === 'mech' ? 'Mech Hold' : 'Crawler Hold'}
           </span>
-          <span className="min-w-0 truncate font-cond text-[11px] uppercase tracking-[0.12em] text-su-white/60">
+          <span className="min-w-0 truncate font-cond text-badge uppercase tracking-caps-wide text-su-white/60">
             {side === 'mech' ? mechName : crawlerName}
           </span>
         </div>
@@ -189,7 +189,7 @@ export function StorageManifest({
               <span className="font-body text-2xl font-bold leading-none text-ink">
                 {used}/{cap}
               </span>
-              <span className="font-cond text-[10px] font-bold uppercase tracking-[0.08em] text-ink opacity-70">
+              <span className="font-cond text-label font-bold uppercase tracking-caps text-ink opacity-70">
                 Units
               </span>
               <span
@@ -201,7 +201,7 @@ export function StorageManifest({
                   <span
                     key={i}
                     data-cpip={i < used ? (i >= cap ? 'over' : 'on') : 'off'}
-                    className="h-[13px] w-[13px] rounded-[2px] border-[1.5px] border-ink"
+                    className="h-[13px] w-[13px] rounded-[2px] border-chrome border-ink"
                     style={{
                       background:
                         i < used
@@ -214,12 +214,12 @@ export function StorageManifest({
                 ))}
               </span>
               {free > 0 && (
-                <span className="font-cond text-[10px] font-bold uppercase text-ink opacity-70">
+                <span className="font-cond text-label font-bold uppercase text-ink opacity-70">
                   {free} free
                 </span>
               )}
               {over && (
-                <span className="font-cond text-[10px] font-bold uppercase text-status-bad">
+                <span className="font-cond text-label font-bold uppercase text-status-bad">
                   Over capacity
                 </span>
               )}
@@ -232,7 +232,7 @@ export function StorageManifest({
               >
                 &infin;
               </span>
-              <span className="font-cond text-[10px] font-bold uppercase tracking-[0.08em] text-ink opacity-70">
+              <span className="font-cond text-label font-bold uppercase tracking-caps text-ink opacity-70">
                 Unlimited
               </span>
               <span className="font-body text-xs text-ink">
@@ -271,7 +271,7 @@ export function StorageManifest({
         style={{ background: 'var(--ground-2)' }}
       >
         <span
-          className="font-cond text-[10.5px] font-bold uppercase tracking-[0.08em]"
+          className="font-cond text-label-lg font-bold uppercase tracking-caps"
           style={{ color: 'var(--tone-deep, var(--color-ink))' }}
         >
           {side === 'mech' ? 'Stow target →' : '← Load target'}
@@ -292,7 +292,7 @@ export function StorageManifest({
             )}
           </>
         ) : (
-          <p className="m-0 font-body text-[11.5px] leading-snug text-wk-muted">
+          <p className="m-0 font-body text-note leading-snug text-wk-muted">
             {side === 'mech'
               ? 'No crawler linked — stow is disabled until a home crawler is wired.'
               : 'No mech docked — load is disabled until a mech is wired.'}

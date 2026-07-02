@@ -43,6 +43,7 @@ import { HeatCheckControl } from './HeatCheckControl'
 import { MechItemCard } from './MechItemCard'
 import { cycleCondition, resolveModule, resolveSystem } from './mechItemRules'
 import type { MechItemEconomy } from './mechItemRules'
+import { ScrapMechControl } from './ScrapMechControl'
 import { StorageManifest } from './StorageManifest'
 import { TakeDamageControl } from './TakeDamageControl'
 
@@ -253,7 +254,7 @@ export function MechSheet({
       {!chassis && (
         <p
           role="alert"
-          className="m-0 rounded-[3px] border-[1.5px] border-status-warn bg-paper px-3 py-2 font-body text-sm text-rust"
+          className="m-0 rounded-[3px] border-chrome border-status-warn bg-paper px-3 py-2 font-body text-sm text-rust"
         >
           Unknown chassis &ldquo;{mech.chassisRef}&rdquo; — using stored/zero defaults
         </p>
@@ -354,6 +355,15 @@ export function MechSheet({
           readOnly={readOnly}
         />
       </div>
+
+      {/* Retire — the scrap-a-mech helper (design-review R-7, p.248).
+          Live-play only: it ends in a delete, so snapshots never show it. */}
+      {!readOnly && (
+        <div>
+          <Slab label="Retire" count="full Salvage Value in Scrap · deletes the mech" />
+          <ScrapMechControl mech={mech} crawler={crawler} store={store} />
+        </div>
+      )}
     </section>
   )
 }

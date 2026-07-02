@@ -25,15 +25,15 @@ export const Route = createRootRoute({
 function RootErrorComponent({ error }: ErrorComponentProps) {
   return (
     <main role="alert" className="flex min-h-dvh items-center justify-center bg-wk-bg p-6">
-      <div className="flex w-full max-w-xl flex-col items-center gap-4 rounded-[6px] border-[1.5px] border-ink bg-paper p-6 text-center sm:p-8">
-        <h1 className="font-cond text-xl font-bold uppercase tracking-[0.04em] text-ink">
+      <div className="flex w-full max-w-xl flex-col items-center gap-4 rounded-[6px] border-chrome border-ink bg-paper p-6 text-center sm:p-8">
+        <h1 className="font-cond text-xl font-bold uppercase tracking-caps-tight text-ink">
           Something went wrong
         </h1>
         <p className="font-body text-sm text-wk-muted">
           The app hit an unexpected error. Your saved data is stored locally and is not affected.
         </p>
         {import.meta.env.DEV && (
-          <pre className="max-w-full overflow-auto rounded-[3px] border-[1.5px] border-ink/20 bg-wk-bg p-3 text-left text-xs text-ink">
+          <pre className="max-w-full overflow-auto rounded-[3px] border-chrome border-ink/20 bg-wk-bg p-3 text-left text-xs text-ink">
             {error.message}
           </pre>
         )}

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefClass } from 'salvageunion-reference'
 import { toast } from 'suref-react'
+import { usePilot } from '../../hooks/queries'
 import { PilotSchema } from '../../lib/schemas/pilot'
 import { useEntityStore } from '../../stores/entityStore'
 import { STARTING_ABILITY_BUDGET, STARTING_EQUIPMENT_BUDGET } from '../../lib/constants'
@@ -105,9 +106,7 @@ export function PilotWizard({
   }
 
   const isEdit = pilotId !== undefined
-  const existingPilot = useEntityStore((s) =>
-    pilotId ? (s.pilots.find((p) => p.id === pilotId) ?? null) : null
-  )
+  const existingPilot = usePilot(pilotId)
 
   const [step, setStep] = useState<Step>('Class')
   const [form, setForm] = useState<PilotWizardFormState>(initialState ?? EMPTY_PILOT_FORM_STATE)

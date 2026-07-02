@@ -63,14 +63,14 @@ export function NpcInset({
   return (
     <div
       aria-label={`${bayName} crew lead`}
-      className="overflow-hidden rounded-[2px] border-[1.5px] border-ink bg-paper"
+      className="overflow-hidden rounded-[2px] border-chrome border-ink bg-paper"
     >
       {/* Black head bar: CREW tag + name + role title */}
       <div className="flex flex-wrap items-center gap-2 bg-ink px-2 py-1.5">
-        <span className="rounded-[1px] bg-crawler px-1.5 pb-px pt-[2px] font-cond text-[8px] font-bold uppercase leading-none tracking-[0.14em] text-su-white">
+        <span className="rounded-[1px] bg-crawler px-1.5 pb-px pt-[2px] font-cond text-nano font-bold uppercase leading-none tracking-[0.14em] text-su-white">
           Crew
         </span>
-        <span className="min-w-0 font-cond text-[15px] font-bold uppercase leading-none text-su-white">
+        <span className="min-w-0 font-cond text-lede font-bold uppercase leading-none text-su-white">
           {editable && onNameChange ? (
             <InlineEditField
               value={name}
@@ -84,7 +84,7 @@ export function NpcInset({
           )}
         </span>
         {title && (
-          <span className="ml-auto font-cond text-[9.5px] uppercase leading-none tracking-[0.08em] text-su-white/60">
+          <span className="ml-auto font-cond text-[9.5px] uppercase leading-none tracking-caps text-su-white/60">
             {title}
           </span>
         )}
@@ -106,10 +106,10 @@ export function NpcInset({
 
         <dl className="m-0 min-w-0 flex-1 space-y-1.5">
           <div className="flex items-baseline gap-1.5">
-            <dt className="shrink-0 font-cond text-[9px] font-bold uppercase leading-none tracking-[0.1em] text-ink">
+            <dt className="shrink-0 font-cond text-micro font-bold uppercase leading-none tracking-widest text-ink">
               Keepsake
             </dt>
-            <dd className="m-0 min-w-0 font-body text-[11.5px] leading-snug text-ink-2">
+            <dd className="m-0 min-w-0 font-body text-note leading-snug text-ink-2">
               {editable && onKeepsakeChange ? (
                 <InlineEditField
                   value={keepsake}
@@ -123,10 +123,10 @@ export function NpcInset({
             </dd>
           </div>
           <div className="flex items-baseline gap-1.5">
-            <dt className="shrink-0 font-cond text-[9px] font-bold uppercase leading-none tracking-[0.1em] text-ink">
+            <dt className="shrink-0 font-cond text-micro font-bold uppercase leading-none tracking-widest text-ink">
               Motto
             </dt>
-            <dd className="m-0 min-w-0 font-body text-[11.5px] leading-snug text-ink-2">
+            <dd className="m-0 min-w-0 font-body text-note leading-snug text-ink-2">
               {editable && onMottoChange ? (
                 <InlineEditField
                   value={motto}
@@ -140,10 +140,10 @@ export function NpcInset({
             </dd>
           </div>
           <div className="flex items-baseline gap-1.5">
-            <dt className="shrink-0 font-cond text-[9px] font-bold uppercase leading-none tracking-[0.1em] text-ink">
+            <dt className="shrink-0 font-cond text-micro font-bold uppercase leading-none tracking-widest text-ink">
               Detail
             </dt>
-            <dd className="m-0 min-w-0 flex-1 font-body text-[11.5px] leading-snug text-ink-2">
+            <dd className="m-0 min-w-0 flex-1 font-body text-note leading-snug text-ink-2">
               {editable && onDetailChange ? (
                 <InlineEditTextArea
                   value={detail}
@@ -158,7 +158,7 @@ export function NpcInset({
           </div>
           {(editable || facts.length > 0) && (
             <div className="flex items-baseline gap-1.5">
-              <dt className="shrink-0 font-cond text-[9px] font-bold uppercase leading-none tracking-[0.1em] text-ink">
+              <dt className="shrink-0 font-cond text-micro font-bold uppercase leading-none tracking-widest text-ink">
                 Facts
               </dt>
               <dd className="m-0 min-w-0 flex-1">

@@ -49,7 +49,7 @@ export function InstallCard({ entity, name, count, onAdd }: InstallCardProps) {
       <div className="mt-1.5 flex items-center gap-2 px-1">
         {installed && (
           <span
-            className="font-cond text-[11px] font-bold uppercase tracking-[0.08em] text-rust"
+            className="font-cond text-badge font-bold uppercase tracking-caps text-rust"
             data-testid={`install-count-${name}`}
           >
             {count} Installed

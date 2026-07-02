@@ -15,7 +15,7 @@
 import { useState } from 'react'
 import { Btn } from 'suref-react'
 
-import { useEntityStore } from '../../stores/entityStore'
+import { usePilots } from '../../hooks/queries'
 import type { Pilot } from '../../lib/schemas/pilot'
 import type { SoftLinkStore } from './useSoftLinks'
 import { useSoftLinks } from './useSoftLinks'
@@ -49,7 +49,7 @@ export function AssignPilotToMech({
   const { assign } = useSoftLinks({ entityType: 'mech', entityId: mechId, store })
 
   // Subscribe to pilots from real store when not injected
-  const zustandPilots = useEntityStore((s) => s.pilots)
+  const zustandPilots = usePilots()
   const pilots: Pilot[] = store ? store.pilots : zustandPilots
 
   function openDialog() {

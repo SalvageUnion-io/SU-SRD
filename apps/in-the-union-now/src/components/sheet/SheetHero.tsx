@@ -59,11 +59,11 @@ export function SheetHero({
     <section
       ref={heroRef}
       aria-label={`${name} sheet header`}
-      className={cn('relative overflow-hidden rounded-[3px] border-[3px] border-ink', className)}
+      className={cn('relative overflow-hidden rounded-[3px] border-entity border-ink', className)}
       style={{ background: 'var(--tone)' }}
     >
       {/* Category tab — overhangs the top border like .ec__cat */}
-      <span className="absolute -top-px left-[18px] bg-ink px-[7px] pb-px pt-[2px] font-cond text-[11px] font-semibold uppercase leading-none tracking-[0.06em] text-su-white">
+      <span className="absolute -top-px left-[18px] bg-ink px-[7px] pb-px pt-[2px] font-cond text-badge font-semibold uppercase leading-none tracking-caps-snug text-su-white">
         {cat}
       </span>
 
@@ -79,7 +79,7 @@ export function SheetHero({
             <dl className="mt-3 space-y-1">
               {identityLines.map((line) => (
                 <div key={line.label} className="flex items-baseline gap-1.5">
-                  <dt className="shrink-0 font-cond text-[10px] font-bold uppercase leading-none tracking-[0.08em] text-ink">
+                  <dt className="shrink-0 font-cond text-label font-bold uppercase leading-none tracking-caps text-ink">
                     {line.label}
                   </dt>
                   <dd

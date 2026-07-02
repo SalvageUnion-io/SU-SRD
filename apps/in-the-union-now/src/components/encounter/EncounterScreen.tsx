@@ -1,0 +1,169 @@
+/**
+ * EncounterScreen — the local GM encounter tray (design-review R-5).
+ *
+ * Three surfaces on one page:
+ *   1. Global Mediator tables (Reaction / Morale / Retreat) — HeatCheckControl-
+ *      style roll buttons + readout, for whole-group rolls (result held in
+ *      page state; per-NPC rolls persist on the instance instead).
+ *   2. Add NPCs — search/browse the six reference NPC schemas as compact
+ *      head-mode listings; every Add creates a tracked instance.
+ *   3. The tray — one EncounterNpcCard per tracked instance with live HP/SP,
+ *      condition ticks, per-NPC Mediator rolls, and Remove.
+ *
+ * Local-first: instances persist to IndexedDB via encounterStore and are
+ * workspace-scoped through the same WorkspaceSwitcher the dashboard uses
+ * (null = All Builds). New instances are stamped with the active workspace.
+ */
+
+import { useEffect, useState } from 'react'
+import { Users } from 'lucide-react'
+import { Empty } from 'suref-react'
+
+import type { Roll } from '../../lib/rules/heatCheck'
+import type { FindRollTable } from '../../lib/rules/mediatorTables'
+import type { MediatorRollResult } from '../../lib/schemas/encounterNpc'
+import { useEncounterStore } from '../../stores/encounterStore'
+import { useWorkspaceStore } from '../../stores/workspaceStore'
+import { WorkspaceSwitcher } from '../workspace/WorkspaceSwitcher'
+import { AddNpcControl } from './AddNpcControl'
+import { EncounterNpcCard } from './EncounterNpcCard'
+import { MediatorRollControl } from './MediatorRollControl'
+import type { EncounterCandidate } from './referenceNpcs'
+
+type EncounterScreenProps = {
+  /** Injectable store — defaults to useEncounterStore. */
+  store?: typeof useEncounterStore
+  /** Injectable d20 roller for all Mediator rolls on the page. */
+  roll?: Roll
+  /** Injectable roll-table lookup for all Mediator rolls on the page. */
+  findTable?: FindRollTable
+}
+
+/** Section frame: ink head bar over a paper body (SalvageControl style). */
+function Section({
+  title,
+  hint,
+  children,
+}: {
+  title: string
+  hint?: string
+  children: React.ReactNode
+}) {
+  return (
+    <section className="overflow-hidden rounded-[3px] border-2 border-ink bg-paper">
+      <div className="flex items-center justify-between gap-2 bg-ink px-3 py-1.5">
+        <h2 className="m-0 font-cond text-xs font-bold uppercase tracking-wider text-su-white">
+          {title}
+        </h2>
+        {hint && <span className="font-cond text-xs uppercase text-su-white/60">{hint}</span>}
+      </div>
+      <div className="px-3 py-2.5">{children}</div>
+    </section>
+  )
+}
+
+export function EncounterScreen({
+  store = useEncounterStore,
+  roll,
+  findTable,
+}: EncounterScreenProps) {
+  const storeState = store()
+  const [hydrated, setHydrated] = useState(false)
+  /** null = "All Builds" — same semantics as the dashboard filter. */
+  const [activeWorkspaceId, setActiveWorkspaceId] = useState<string | null>(null)
+  /** Whole-group roll result — page state, not persisted (per-NPC rolls are). */
+  const [groupResult, setGroupResult] = useState<MediatorRollResult | null>(null)
+
+  useEffect(() => {
+    const run = async () => {
+      // Imperative hydrate — WorkspaceSwitcher owns the reactive subscription.
+      await Promise.all([storeState.hydrate(), useWorkspaceStore.getState().hydrate()])
+      setHydrated(true)
+    }
+    void run()
+    // Only run once on mount; stores are stable (Zustand singletons).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const npcs = storeState.listForWorkspace(activeWorkspaceId)
+
+  async function handleAdd(candidate: EncounterCandidate) {
+    // Number repeat instances of the same reference NPC: 'Raider', 'Raider 2', …
+    const siblings = storeState
+      .listForWorkspace(activeWorkspaceId)
+      .filter((n) => n.refSlug === candidate.slug && n.refSchema === candidate.schema).length
+    await storeState.create({
+      schemaVersion: 1,
+      ...(activeWorkspaceId !== null ? { workspaceId: activeWorkspaceId } : {}),
+      refSchema: candidate.schema,
+      refSlug: candidate.slug,
+      refName: candidate.name,
+      name: siblings > 0 ? `${candidate.name} ${siblings + 1}` : candidate.name,
+      currentHp: candidate.maxHp,
+      maxHp: candidate.maxHp,
+      statKind: candidate.statKind,
+      conditions: [],
+    })
+  }
+
+  return (
+    <main className="min-h-screen bg-wk-bg px-4 py-5 sm:px-8 sm:py-10 lg:px-12">
+      <div className="border-b-2 border-ink pb-5">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <h1 className="m-0 font-cond text-xl font-bold uppercase tracking-caps-tight text-ink">
+            Encounter Tray
+          </h1>
+          <WorkspaceSwitcher
+            activeWorkspaceId={activeWorkspaceId}
+            onSelect={setActiveWorkspaceId}
+          />
+        </div>
+        <p className="mb-0 mt-2 max-w-2xl font-body text-sm text-wk-muted">
+          Track reference NPCs through a fight — HP/SP, conditions, and the Mediator&rsquo;s
+          Reaction, Morale, and Retreat tables. Everything stays on this device.
+        </p>
+      </div>
+
+      <div className="mt-5 grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+        {/* Left: the tray */}
+        <div className="flex flex-col gap-3">
+          <Section title="Tracked NPCs" hint={`${npcs.length} in play`}>
+            {!hydrated ? (
+              <p className="m-0 font-body text-sm text-wk-muted">Loading encounter…</p>
+            ) : npcs.length === 0 ? (
+              <Empty
+                icon={<Users className="size-7 text-wk-muted" aria-hidden="true" />}
+                message="No NPCs in play — add some from the reference lists."
+              />
+            ) : (
+              <ul className="m-0 flex list-none flex-col gap-2.5 p-0">
+                {npcs.map((npc) => (
+                  <li key={npc.id}>
+                    <EncounterNpcCard npc={npc} store={store} roll={roll} findTable={findTable} />
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Section>
+        </div>
+
+        {/* Right rail: group rolls + add */}
+        <div className="flex flex-col gap-3">
+          <Section title="Mediator Tables" hint="whole group">
+            <MediatorRollControl
+              scopeLabel="the encounter"
+              lastResult={groupResult}
+              onResult={setGroupResult}
+              roll={roll}
+              findTable={findTable}
+            />
+          </Section>
+
+          <Section title="Add NPCs" hint="reference data">
+            <AddNpcControl onAdd={handleAdd} />
+          </Section>
+        </div>
+      </div>
+    </main>
+  )
+}

@@ -37,7 +37,7 @@ export function SheetActionsMenu({ children, className }: SheetActionsMenuProps)
         aria-haspopup="true"
         aria-expanded={open}
         onClick={() => setOpen((prev) => !prev)}
-        className="flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-[3px] border-[1.5px] border-ink bg-paper text-ink transition-colors duration-[120ms] hover:bg-wk-bg-2 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rust/25"
+        className="flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-[3px] border-chrome border-ink bg-paper text-ink transition-colors duration-[120ms] hover:bg-wk-bg-2 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rust/25"
       >
         <Ellipsis className="size-5" aria-hidden="true" />
       </button>

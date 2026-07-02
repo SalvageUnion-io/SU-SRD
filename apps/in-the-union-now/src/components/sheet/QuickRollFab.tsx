@@ -119,7 +119,7 @@ export function QuickRollFab({ roll = defaultRoll, onPush, className }: QuickRol
           className="absolute bottom-full right-0 mb-2.5 w-[272px] rounded-[6px] border-2 border-ink bg-paper p-3 shadow-[0_14px_28px_-14px_rgba(40,32,25,0.55)]"
         >
           <div className="mb-2 flex items-center justify-between gap-2">
-            <span className="font-cond text-xs font-bold uppercase tracking-[0.08em] text-wk-muted">
+            <span className="font-cond text-xs font-bold uppercase tracking-caps text-wk-muted">
               Core Mechanic · d20
             </span>
             <button
@@ -141,13 +141,13 @@ export function QuickRollFab({ roll = defaultRoll, onPush, className }: QuickRol
               <span
                 data-band={latest.band}
                 className={cn(
-                  'rounded-[2px] border-[1.5px] border-ink px-1.5 py-0.5 font-cond text-xs font-bold uppercase leading-none text-ink',
+                  'rounded-[2px] border-chrome border-ink px-1.5 py-0.5 font-cond text-xs font-bold uppercase leading-none text-ink',
                   BAND_BG[latest.band]
                 )}
               >
                 {CORE_ROLL_BANDS[latest.band].label}
               </span>
-              <span className="ml-auto font-cond text-[10px] font-bold uppercase text-wk-muted">
+              <span className="ml-auto font-cond text-label font-bold uppercase text-wk-muted">
                 {CORE_ROLL_BANDS[latest.band].range}
               </span>
             </div>
@@ -155,7 +155,7 @@ export function QuickRollFab({ roll = defaultRoll, onPush, className }: QuickRol
               {CORE_ROLL_BANDS[latest.band].summary}
             </p>
             {latest.pushNote && (
-              <p className="mt-1.5 rounded-[3px] border-[1.5px] border-status-warn bg-paper px-2 py-1.5 font-body text-xs leading-snug text-rust">
+              <p className="mt-1.5 rounded-[3px] border-chrome border-status-warn bg-paper px-2 py-1.5 font-body text-xs leading-snug text-rust">
                 {latest.pushNote}
               </p>
             )}
@@ -181,7 +181,7 @@ export function QuickRollFab({ roll = defaultRoll, onPush, className }: QuickRol
           </div>
 
           {history.length > 0 && (
-            <ol aria-label="Recent rolls" className="mt-2.5 border-t-[1.5px] border-wk-faint pt-2">
+            <ol aria-label="Recent rolls" className="mt-2.5 border-t-chrome border-wk-faint pt-2">
               {history.map((entry) => (
                 <li
                   key={entry.id}
@@ -197,9 +197,7 @@ export function QuickRollFab({ roll = defaultRoll, onPush, className }: QuickRol
                   <span className="w-5 text-right font-bold text-ink">{entry.roll}</span>
                   <span>{CORE_ROLL_BANDS[entry.band].label}</span>
                   {entry.pushed && (
-                    <span className="ml-auto font-cond text-[10px] font-bold uppercase">
-                      Pushed
-                    </span>
+                    <span className="ml-auto font-cond text-label font-bold uppercase">Pushed</span>
                   )}
                 </li>
               ))}
@@ -213,7 +211,7 @@ export function QuickRollFab({ roll = defaultRoll, onPush, className }: QuickRol
         aria-label="Roll d20"
         title="Roll the Core Mechanic d20"
         onClick={handleFabClick}
-        className="flex size-14 cursor-pointer items-center justify-center rounded-full border-[2.5px] border-ink bg-rust text-su-white shadow-[0_10px_22px_-10px_rgba(40,32,25,0.65)] transition-colors duration-[120ms] hover:bg-rust-hi focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rust/25"
+        className="flex size-14 cursor-pointer items-center justify-center rounded-full border-rail border-ink bg-rust text-su-white shadow-[0_10px_22px_-10px_rgba(40,32,25,0.65)] transition-colors duration-[120ms] hover:bg-rust-hi focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rust/25"
       >
         <Dices className="size-6" aria-hidden="true" />
       </button>

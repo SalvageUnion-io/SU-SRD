@@ -13,6 +13,7 @@ import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import type { SURefModule, SURefSystem } from 'salvageunion-reference'
 import { ReferenceEntityDisplay, btnVariants } from 'suref-react'
 
+import { useMech } from '../../hooks/queries'
 import { useEntityStore } from '../../stores/entityStore'
 import { AssignPilotToMech } from '../../components/wiring/AssignPilotToMech'
 import { UnassignLinkButton } from '../../components/wiring/UnassignLinkButton'
@@ -41,7 +42,7 @@ function MechDetailPage() {
   const { id } = Route.useParams()
   const navigate = useNavigate()
 
-  const mech = useEntityStore((s) => s.mechs.find((m) => m.id === id) ?? null)
+  const mech = useMech(id)
   const { outgoing } = useSoftLinks({ entityType: 'mech', entityId: id })
 
   // Outgoing mech-to-pilot links
@@ -91,7 +92,7 @@ function MechDetailPage() {
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
         {/* Left pane — mech stats summary */}
         <div className="min-w-0 flex-1">
-          <section className="mb-6 rounded-[3px] border-[1.5px] border-ink bg-paper p-4 text-sm">
+          <section className="mb-6 rounded-[3px] border-chrome border-ink bg-paper p-4 text-sm">
             <h2 className="mb-3 font-cond text-sm font-bold uppercase tracking-widest text-su-black">
               Stats
             </h2>
@@ -145,7 +146,7 @@ function MechDetailPage() {
         {/* Right pane — wiring + actions */}
         <div className="w-full shrink-0 space-y-6 lg:w-72">
           {/* Pilot assignment */}
-          <section className="rounded-[3px] border-[1.5px] border-ink bg-paper p-4">
+          <section className="rounded-[3px] border-chrome border-ink bg-paper p-4">
             <h2 className="mb-3 font-cond text-sm font-bold uppercase tracking-widest text-su-black">
               Pilot
             </h2>
@@ -172,7 +173,7 @@ function MechDetailPage() {
           </section>
 
           {/* Workspace assignment */}
-          <section className="rounded-[3px] border-[1.5px] border-ink bg-paper p-4">
+          <section className="rounded-[3px] border-chrome border-ink bg-paper p-4">
             <h2 className="mb-3 font-cond text-sm font-bold uppercase tracking-widest text-su-black">
               Workspace
             </h2>
@@ -218,7 +219,7 @@ type LoadoutSectionProps = {
 /** Installed systems/modules as compact entity cards (gap 24). */
 function LoadoutSection({ title, refs, conditions, resolve, emptyLabel }: LoadoutSectionProps) {
   return (
-    <section className="mb-6 rounded-[3px] border-[1.5px] border-ink bg-paper p-4">
+    <section className="mb-6 rounded-[3px] border-chrome border-ink bg-paper p-4">
       <h2 className="mb-3 font-cond text-sm font-bold uppercase tracking-widest text-su-black">
         {title} · {refs.length}
       </h2>

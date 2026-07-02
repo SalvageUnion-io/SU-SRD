@@ -40,3 +40,17 @@ export type { Workspace } from './workspace'
 
 export { SoftLinkSchema } from './softLink'
 export type { SoftLink } from './softLink'
+
+export {
+  EncounterNpcSchema,
+  EncounterRefSchemaSchema,
+  ENCOUNTER_REF_SCHEMAS,
+  MediatorRollResultSchema,
+  MediatorTableIdSchema,
+} from './encounterNpc'
+export type {
+  EncounterNpc,
+  EncounterRefSchema,
+  MediatorRollResult,
+  MediatorTableId,
+} from './encounterNpc'

@@ -41,9 +41,9 @@ export function CrawlerIdentityStep({
         />
       </Field>
 
-      <section className="space-y-4 rounded-[3px] border-[1.5px] border-wk-faint p-4">
+      <section className="space-y-4 rounded-[3px] border-chrome border-wk-faint p-4">
         <header>
-          <h2 className="font-cond text-sm font-bold uppercase tracking-[0.1em] text-ink">
+          <h2 className="font-cond text-sm font-bold uppercase tracking-widest text-ink">
             Starting Resources
           </h2>
           <p className="mt-0.5 font-body text-xs text-wk-muted">

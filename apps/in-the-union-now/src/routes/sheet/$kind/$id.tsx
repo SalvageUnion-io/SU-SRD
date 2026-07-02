@@ -28,8 +28,8 @@ function SheetKindNotFound() {
   const params = Route.useParams()
   return (
     <main className="flex min-h-dvh items-center justify-center bg-wk-bg p-6">
-      <div className="flex w-full max-w-xl flex-col items-start gap-4 rounded-[6px] border-[1.5px] border-ink bg-paper p-6 sm:p-8">
-        <h1 className="font-cond text-xl font-bold uppercase tracking-[0.04em] text-ink">
+      <div className="flex w-full max-w-xl flex-col items-start gap-4 rounded-[6px] border-chrome border-ink bg-paper p-6 sm:p-8">
+        <h1 className="font-cond text-xl font-bold uppercase tracking-caps-tight text-ink">
           Sheet not found
         </h1>
         <p className="font-body text-sm text-wk-muted">

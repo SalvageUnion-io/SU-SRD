@@ -214,7 +214,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
             aria-activedescendant={
               selectedIndex >= 0 && results[selectedIndex] ? optionId(selectedIndex) : undefined
             }
-            className="w-full rounded-[3px] border-[1.5px] border-ink bg-paper px-3 py-2 font-body text-sm text-ink placeholder:text-wk-muted focus:outline-2 focus:outline-offset-2 focus:outline-rust"
+            className="w-full rounded-[3px] border-chrome border-ink bg-paper px-3 py-2 font-body text-sm text-ink placeholder:text-wk-muted focus:outline-2 focus:outline-offset-2 focus:outline-rust"
           />
 
           {hasSearched &&
@@ -233,7 +233,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
                     role="option"
                     aria-selected={index === selectedIndex}
                     onClick={() => pick(result)}
-                    className={`flex w-full cursor-pointer items-baseline justify-between gap-3 rounded-[3px] border-[1.5px] px-3 py-2 text-left transition-colors ${
+                    className={`flex w-full cursor-pointer items-baseline justify-between gap-3 rounded-[3px] border-chrome px-3 py-2 text-left transition-colors ${
                       index === selectedIndex
                         ? 'border-rust bg-wk-bg-2'
                         : 'border-transparent hover:bg-wk-bg-2'
@@ -242,7 +242,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
                     <span className="min-w-0 truncate font-body text-sm font-medium text-ink">
                       {result.title}
                     </span>
-                    <span className="shrink-0 font-cond text-xs font-semibold uppercase tracking-[0.06em] text-wk-muted">
+                    <span className="shrink-0 font-cond text-xs font-semibold uppercase tracking-caps-snug text-wk-muted">
                       {result.group}
                       {result.kind === 'schema' && <span aria-hidden="true"> &#8599;</span>}
                     </span>

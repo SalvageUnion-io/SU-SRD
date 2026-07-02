@@ -90,7 +90,7 @@ function RailCta({ href, label, primary }: { href: string; label: string; primar
     <AppLink
       href={href}
       className={cn(
-        'rounded-[3px] border-[1.5px] px-2.5 py-1.5 text-center font-body text-xs font-medium no-underline transition-colors duration-[120ms]',
+        'rounded-[3px] border-chrome px-2.5 py-1.5 text-center font-body text-xs font-medium no-underline transition-colors duration-[120ms]',
         primary
           ? 'border-rust bg-rust text-su-white hover:bg-rust-hi'
           : 'border-ink bg-paper text-ink hover:bg-wk-bg-2'
@@ -448,7 +448,7 @@ export function Sheet({
             }
             inset={
               <div className="w-full sm:max-w-[360px]">
-                <span className="mb-1 block text-right font-cond text-[10px] font-bold uppercase leading-none tracking-[0.08em] text-ink">
+                <span className="mb-1 block text-right font-cond text-label font-bold uppercase leading-none tracking-caps text-ink">
                   Conditions
                 </span>
                 <ConditionsEditor
@@ -675,7 +675,7 @@ export function Sheet({
             }
             inset={
               <div className="flex w-full max-w-[360px] flex-col items-stretch gap-1">
-                <span className="font-cond text-[10px] font-bold uppercase tracking-[0.08em] text-ink">
+                <span className="font-cond text-label font-bold uppercase tracking-caps text-ink">
                   Conditions
                 </span>
                 <MechConditionsEditor mech={mech} store={store} readOnly={readOnly} />

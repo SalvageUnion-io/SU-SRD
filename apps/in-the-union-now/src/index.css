@@ -69,6 +69,78 @@
       transform: translateX(400%);
     }
   }
+
+  /*
+   * === ITUN semantic type scale (design review T-5) ===
+   *
+   * Named steps for the sub-`text-xs` sizes the design spec uses but
+   * Tailwind lacks. Font-size ONLY — deliberately no `--text-*--line-height`
+   * companions, so each utility behaves exactly like the arbitrary
+   * `text-[Npx]` value it replaces (line-height stays inherited).
+   *
+   * Roles:
+   *   nano     8px    smallest markers — TL glyphs, unit suffixes
+   *   micro    9px    dense caps meta labels (NPC insets, encounter cards)
+   *   label    10px   standard uppercase font-cond field/section label
+   *   label-lg 10.5px pseudoheader / rail caps label
+   *   badge    11px   badges, pills, compact caps values
+   *   note     11.5px small body copy in rails and insets
+   *   caption  13px   small body copy — hints, empty states, subtitles
+   *   lede     15px   emphasized inline values, inset titles
+   */
+  --text-nano: 8px;
+  --text-micro: 9px;
+  --text-label: 10px;
+  --text-label-lg: 10.5px;
+  --text-badge: 11px;
+  --text-note: 11.5px;
+  --text-caption: 13px;
+  --text-lede: 15px;
+
+  /*
+   * === Caps tracking steps (design review T-5) ===
+   *
+   * The recurring letter-spacing steps for uppercase font-cond text,
+   * slotting around Tailwind's built-ins (wide 0.025em / wider 0.05em /
+   * widest 0.1em — use those where they match exactly).
+   */
+  --tracking-caps-tight: 0.04em;
+  --tracking-caps-snug: 0.06em;
+  --tracking-caps: 0.08em;
+  --tracking-caps-wide: 0.12em;
+}
+
+/*
+ * === Semantic border-width utilities (design review T-5) ===
+ *
+ * Named after the load-bearing border-weight tokens in the suref-react
+ * theme (design-spec §1.3): chrome 1.5px / pill 2px / rail 2.5px /
+ * entity 3px. `border-2` covers the pill weight natively; these fill the
+ * non-integer and 3px steps so ITUN code never hardcodes `border-[1.5px]`.
+ */
+@utility border-chrome {
+  border-width: var(--bw-chrome);
+}
+@utility border-t-chrome {
+  border-top-width: var(--bw-chrome);
+}
+@utility border-b-chrome {
+  border-bottom-width: var(--bw-chrome);
+}
+@utility border-l-chrome {
+  border-left-width: var(--bw-chrome);
+}
+@utility border-r-chrome {
+  border-right-width: var(--bw-chrome);
+}
+@utility border-rail {
+  border-width: var(--bw-rail);
+}
+@utility border-entity {
+  border-width: var(--bw-entity);
+}
+@utility border-b-entity {
+  border-bottom-width: var(--bw-entity);
 }
 
 /* === Base layout === */

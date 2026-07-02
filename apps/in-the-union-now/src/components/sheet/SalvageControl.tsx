@@ -50,7 +50,7 @@ import { cn } from '../../lib/utils'
 const TECH_LEVELS = [1, 2, 3, 4, 5, 6] as const
 
 const SELECT_CLASS =
-  'w-full rounded-[3px] border-[1.5px] border-ink bg-paper px-2 py-1.5 font-body text-sm text-ink focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22]'
+  'w-full rounded-[3px] border-chrome border-ink bg-paper px-2 py-1.5 font-body text-sm text-ink focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22]'
 
 /** Minimal shape read off the reference models for picker options. */
 type RefItem = {
@@ -148,7 +148,7 @@ function ClaimPicker({
   return (
     <div
       role="alert"
-      className="mt-2 flex flex-col gap-2 rounded-[3px] border-[1.5px] border-status-warn bg-paper px-3 py-2"
+      className="mt-2 flex flex-col gap-2 rounded-[3px] border-chrome border-status-warn bg-paper px-3 py-2"
     >
       <p className="m-0 font-body text-sm text-rust">{prompt}</p>
 
@@ -388,7 +388,7 @@ export function SalvageControl({
             <div
               role="group"
               aria-labelledby={areaTlId}
-              className="inline-flex items-stretch overflow-hidden rounded-[2px] border-[1.5px] border-ink bg-paper"
+              className="inline-flex items-stretch overflow-hidden rounded-[2px] border-chrome border-ink bg-paper"
             >
               {TECH_LEVELS.map((n) => (
                 <button

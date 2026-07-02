@@ -18,8 +18,8 @@
 import { useState } from 'react'
 import { Btn, Input, ModalShell } from 'suref-react'
 
+import { useWorkspaceActions, useWorkspaces } from '../../hooks/queries'
 import type { Workspace } from '../../lib/schemas/workspace'
-import { useWorkspaceStore } from '../../stores/workspaceStore'
 
 // ---------------------------------------------------------------------------
 // Injectable store type (for dep-injection in tests)
@@ -63,12 +63,13 @@ type WorkspaceListInnerProps = {
 }
 
 function WorkspaceListInner({ onClose, store }: WorkspaceListInnerProps) {
-  const zustandStore = useWorkspaceStore()
+  const zustandWorkspaces = useWorkspaces()
+  const workspaceActions = useWorkspaceActions()
   const activeStore: WorkspaceListStore = store ?? {
-    workspaces: zustandStore.workspaces,
-    create: zustandStore.create,
-    rename: zustandStore.rename,
-    delete: zustandStore.delete,
+    workspaces: zustandWorkspaces,
+    create: workspaceActions.create,
+    rename: workspaceActions.rename,
+    delete: workspaceActions.delete,
   }
 
   const [newName, setNewName] = useState('')
@@ -168,7 +169,7 @@ function WorkspaceListInner({ onClose, store }: WorkspaceListInnerProps) {
             {activeStore.workspaces.map((ws) => (
               <li
                 key={ws.id}
-                className="flex items-center gap-2 rounded-[3px] border-[1.5px] border-ink bg-paper p-2"
+                className="flex items-center gap-2 rounded-[3px] border-chrome border-ink bg-paper p-2"
               >
                 {editingId === ws.id ? (
                   /* Editing row */
@@ -239,8 +240,8 @@ function WorkspaceListInner({ onClose, store }: WorkspaceListInnerProps) {
         )}
 
         {/* Create form */}
-        <div className="border-t-[1.5px] border-ink pt-4">
-          <p className="font-cond mb-2 text-[13px] font-bold uppercase tracking-[.1em] text-rust">
+        <div className="border-t-chrome border-ink pt-4">
+          <p className="font-cond mb-2 text-caption font-bold uppercase tracking-widest text-rust">
             New Workspace
           </p>
           <div className="flex gap-2">

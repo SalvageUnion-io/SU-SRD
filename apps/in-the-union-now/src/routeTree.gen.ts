@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as EncounterRouteImport } from './routes/encounter'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SIdRouteImport } from './routes/s/$id'
 import { Route as PilotsNewRouteImport } from './routes/pilots/new'
@@ -24,6 +25,11 @@ import { Route as MechsIdEditRouteImport } from './routes/mechs/$id_.edit'
 import { Route as CrawlersIdEditRouteImport } from './routes/crawlers/$id_.edit'
 import { Route as SheetKindIdShareRouteImport } from './routes/sheet/$kind/$id_.share'
 
+const EncounterRoute = EncounterRouteImport.update({
+  id: '/encounter',
+  path: '/encounter',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -97,6 +103,7 @@ const SheetKindIdShareRoute = SheetKindIdShareRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/encounter': typeof EncounterRoute
   '/crawlers/$id': typeof CrawlersIdRoute
   '/crawlers/new': typeof CrawlersNewRoute
   '/mechs/$id': typeof MechsIdRoute
@@ -113,6 +120,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/encounter': typeof EncounterRoute
   '/crawlers/$id': typeof CrawlersIdRoute
   '/crawlers/new': typeof CrawlersNewRoute
   '/mechs/$id': typeof MechsIdRoute
@@ -130,6 +138,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/encounter': typeof EncounterRoute
   '/crawlers/$id': typeof CrawlersIdRoute
   '/crawlers/new': typeof CrawlersNewRoute
   '/mechs/$id': typeof MechsIdRoute
@@ -148,6 +157,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/encounter'
     | '/crawlers/$id'
     | '/crawlers/new'
     | '/mechs/$id'
@@ -164,6 +174,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/encounter'
     | '/crawlers/$id'
     | '/crawlers/new'
     | '/mechs/$id'
@@ -180,6 +191,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/encounter'
     | '/crawlers/$id'
     | '/crawlers/new'
     | '/mechs/$id'
@@ -197,6 +209,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  EncounterRoute: typeof EncounterRoute
   CrawlersIdRoute: typeof CrawlersIdRoute
   CrawlersNewRoute: typeof CrawlersNewRoute
   MechsIdRoute: typeof MechsIdRoute
@@ -214,6 +227,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/encounter': {
+      id: '/encounter'
+      path: '/encounter'
+      fullPath: '/encounter'
+      preLoaderRoute: typeof EncounterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -317,6 +337,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  EncounterRoute: EncounterRoute,
   CrawlersIdRoute: CrawlersIdRoute,
   CrawlersNewRoute: CrawlersNewRoute,
   MechsIdRoute: MechsIdRoute,

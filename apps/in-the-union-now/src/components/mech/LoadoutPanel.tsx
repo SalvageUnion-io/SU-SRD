@@ -25,7 +25,7 @@ function BudgetTrack({ label, value, max, tone = 'default' }: BudgetTrackProps) 
 
   return (
     <div>
-      <p className="font-cond text-[11px] font-bold uppercase tracking-[0.1em] text-ink">
+      <p className="font-cond text-badge font-bold uppercase tracking-widest text-ink">
         {label} ·{' '}
         <span className={cn('font-body text-xs font-bold', isOver ? 'text-status-bad' : '')}>
           {value} / {max}
@@ -48,7 +48,7 @@ function BudgetTrack({ label, value, max, tone = 'default' }: BudgetTrackProps) 
                     key={i}
                     data-pip={on ? 'on' : 'off'}
                     className={cn(
-                      'h-[13px] w-[13px] rounded-[2px] border-[1.5px]',
+                      'h-[13px] w-[13px] rounded-[2px] border-chrome',
                       on
                         ? over
                           ? 'border-status-bad bg-status-bad'
@@ -122,7 +122,7 @@ export function LoadoutPanel({
 
   return (
     <Panel className={cn('self-start px-4 py-4', className)}>
-      <h2 className="font-cond text-sm font-bold uppercase tracking-[0.08em] text-ink">
+      <h2 className="font-cond text-sm font-bold uppercase tracking-caps text-ink">
         Loadout · <span className="text-rust">{name}</span>
       </h2>
 
@@ -149,7 +149,7 @@ export function LoadoutPanel({
                   hide={{ actions: true, choices: true }}
                 />
                 {total > 1 && (
-                  <span className="mt-0.5 block px-1 font-cond text-[10px] font-bold uppercase tracking-[0.08em] text-wk-muted">
+                  <span className="mt-0.5 block px-1 font-cond text-label font-bold uppercase tracking-caps text-wk-muted">
                     Copy {copy} of {total}
                   </span>
                 )}

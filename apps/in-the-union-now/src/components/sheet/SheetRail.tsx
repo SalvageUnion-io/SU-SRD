@@ -85,12 +85,12 @@ export function RailChip({
       href={href}
       aria-label={`${roleLabel}: ${name} — open sheet`}
       className={cn(
-        'relative flex min-w-0 flex-[1_1_0%] flex-col overflow-hidden rounded-[3px] border-[2.5px] border-ink no-underline transition-transform duration-[120ms] hover:-translate-y-px hover:shadow-[0_12px_26px_-14px_rgba(40,32,25,0.55)]',
+        'relative flex min-w-0 flex-[1_1_0%] flex-col overflow-hidden rounded-[3px] border-rail border-ink no-underline transition-transform duration-[120ms] hover:-translate-y-px hover:shadow-[0_12px_26px_-14px_rgba(40,32,25,0.55)]',
         className
       )}
       style={{ background: RAIL_BG[tone] }}
     >
-      <span className="self-start bg-ink px-2 pb-0.5 pt-[3px] font-cond text-[10.5px] font-bold uppercase leading-none tracking-[0.12em] text-su-white">
+      <span className="self-start bg-ink px-2 pb-0.5 pt-[3px] font-cond text-label-lg font-bold uppercase leading-none tracking-caps-wide text-su-white">
         {roleLabel}
       </span>
       {status && (
@@ -103,7 +103,7 @@ export function RailChip({
         {tl !== undefined && (
           <span className="flex h-[26px] w-[26px] shrink-0 flex-col items-center justify-center bg-ink leading-none text-su-white">
             <span className="font-body text-xs font-bold">{tl}</span>
-            <span className="font-cond text-[8px] opacity-85">TL</span>
+            <span className="font-cond text-nano opacity-85">TL</span>
           </span>
         )}
         <span className="min-w-0 truncate bg-ink px-1.5 py-0.5 font-cond text-[17px] font-bold uppercase leading-tight text-su-white">
@@ -117,7 +117,7 @@ export function RailChip({
         className="mt-auto flex items-center justify-between gap-2 border-t-2 border-ink px-2.5 py-1.5"
         style={{ background: RAIL_BG[tone] }}
       >
-        <span className="bg-ink px-2 py-1 font-cond text-[10.5px] font-bold uppercase leading-none tracking-[0.06em] text-su-white">
+        <span className="bg-ink px-2 py-1 font-cond text-label-lg font-bold uppercase leading-none tracking-caps-snug text-su-white">
           Open sheet &rarr;
         </span>
         {onSwap && <MiniBtn onClick={handleSwap}>&#8644; Swap</MiniBtn>}
@@ -150,7 +150,7 @@ export function RailEmpty({ tone, roleLabel, message, mock, actions, className }
       )}
       style={{ background: RAIL_EMPTY_BG[tone] }}
     >
-      <span className="self-start bg-ink px-2 pb-0.5 pt-[3px] font-cond text-[10.5px] font-bold uppercase leading-none tracking-[0.12em] text-su-white">
+      <span className="self-start bg-ink px-2 pb-0.5 pt-[3px] font-cond text-label-lg font-bold uppercase leading-none tracking-caps-wide text-su-white">
         {roleLabel}
       </span>
       <div className="flex flex-wrap items-center gap-3 px-2.5 py-2">
@@ -158,7 +158,7 @@ export function RailEmpty({ tone, roleLabel, message, mock, actions, className }
         <Icon aria-hidden="true" className={cn('size-6 shrink-0', RAIL_EMPTY_ICON_COLOR[tone])} />
         {mock}
         <p
-          className="m-0 min-w-[140px] flex-1 font-body text-[11.5px] leading-snug"
+          className="m-0 min-w-[140px] flex-1 font-body text-note leading-snug"
           style={{ color: 'var(--tone-deep)' }}
         >
           {message}

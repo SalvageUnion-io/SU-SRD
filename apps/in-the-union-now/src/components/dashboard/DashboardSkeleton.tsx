@@ -13,7 +13,7 @@ import { cn } from '../../lib/utils'
 function SkeletonRow() {
   return (
     <li className="list-none">
-      <div className="rounded-[3px] border-[1.5px] border-ink/15 bg-paper px-3 py-2.5">
+      <div className="rounded-[3px] border-chrome border-ink/15 bg-paper px-3 py-2.5">
         <div className="h-4 w-2/5 rounded bg-ink/10" />
         <div className="mt-2 h-3 w-3/5 rounded bg-ink/5" />
       </div>
@@ -26,7 +26,7 @@ function SkeletonColumn({ hiddenOnMobile = false }: { hiddenOnMobile?: boolean }
     <section aria-hidden="true" className={cn(hiddenOnMobile && 'hidden md:block')}>
       <div className="mb-3 flex items-center justify-between">
         <div className="h-5 w-24 rounded bg-rust/25" />
-        <div className="h-7 w-28 rounded-[3px] border-[1.5px] border-ink/10 bg-paper" />
+        <div className="h-7 w-28 rounded-[3px] border-chrome border-ink/10 bg-paper" />
       </div>
       <ul className="flex flex-col gap-2.5">
         <SkeletonRow />

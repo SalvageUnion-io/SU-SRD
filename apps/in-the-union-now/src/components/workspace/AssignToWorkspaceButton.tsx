@@ -18,9 +18,9 @@
 
 import { useState } from 'react'
 
+import { useWorkspaceActions, useWorkspaces } from '../../hooks/queries'
 import type { Workspace } from '../../lib/schemas/workspace'
 import type { AssignableType } from '../../stores/types'
-import { useWorkspaceStore } from '../../stores/workspaceStore'
 
 // ---------------------------------------------------------------------------
 // Injectable store type
@@ -64,11 +64,12 @@ export function AssignToWorkspaceButton({
   onChanged,
   className,
 }: AssignToWorkspaceButtonProps) {
-  const zustandStore = useWorkspaceStore()
+  const zustandWorkspaces = useWorkspaces()
+  const workspaceActions = useWorkspaceActions()
   const activeStore: AssignToWorkspaceStore = store ?? {
-    workspaces: zustandStore.workspaces,
-    assign: zustandStore.assign,
-    unassign: zustandStore.unassign,
+    workspaces: zustandWorkspaces,
+    assign: workspaceActions.assign,
+    unassign: workspaceActions.unassign,
   }
 
   const [pending, setPending] = useState(false)
@@ -108,7 +109,7 @@ export function AssignToWorkspaceButton({
           value={selectValue}
           onChange={(e) => void handleChange(e)}
           disabled={pending}
-          className="min-h-11 rounded-[3px] border-[1.5px] border-ink bg-paper py-2 pl-3 pr-8 text-sm focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22] disabled:opacity-50 sm:min-h-9"
+          className="min-h-11 rounded-[3px] border-chrome border-ink bg-paper py-2 pl-3 pr-8 text-sm focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22] disabled:opacity-50 sm:min-h-9"
           aria-label="Assign to workspace"
         >
           <option value={UNASSIGNED_VALUE}>Unassigned</option>

@@ -10,6 +10,7 @@
 
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 
+import { usePilot } from '../../hooks/queries'
 import { useEntityStore } from '../../stores/entityStore'
 import { AssignCrawlerToPilot } from '../../components/wiring/AssignCrawlerToPilot'
 import { UnassignLinkButton } from '../../components/wiring/UnassignLinkButton'
@@ -39,7 +40,7 @@ function PilotDetailPage() {
   const { id } = Route.useParams()
   const navigate = useNavigate()
 
-  const pilot = useEntityStore((s) => s.pilots.find((p) => p.id === id) ?? null)
+  const pilot = usePilot(id)
   const { outgoing } = useSoftLinks({ entityType: 'pilot', entityId: id })
 
   // Outgoing pilot-to-crawler links
@@ -94,7 +95,7 @@ function PilotDetailPage() {
         <div className="min-w-0 flex-1">
           {/* Summary */}
           {(pilot.conditions.length > 0 || pilot.motto) && (
-            <section className="mb-6 rounded-[3px] border-[1.5px] border-ink bg-paper p-4 text-sm">
+            <section className="mb-6 rounded-[3px] border-chrome border-ink bg-paper p-4 text-sm">
               <h2 className="mb-3 font-cond text-sm font-bold uppercase tracking-widest text-su-black">
                 Summary
               </h2>
@@ -128,7 +129,7 @@ function PilotDetailPage() {
         {/* Right pane — wiring + actions */}
         <div className="w-full shrink-0 space-y-6 lg:w-72">
           {/* Crawler assignment */}
-          <section className="rounded-[3px] border-[1.5px] border-ink bg-paper p-4">
+          <section className="rounded-[3px] border-chrome border-ink bg-paper p-4">
             <h2 className="mb-3 font-cond text-sm font-bold uppercase tracking-widest text-su-black">
               Crawler
             </h2>
@@ -155,7 +156,7 @@ function PilotDetailPage() {
           </section>
 
           {/* Workspace assignment */}
-          <section className="rounded-[3px] border-[1.5px] border-ink bg-paper p-4">
+          <section className="rounded-[3px] border-chrome border-ink bg-paper p-4">
             <h2 className="mb-3 font-cond text-sm font-bold uppercase tracking-widest text-su-black">
               Workspace
             </h2>

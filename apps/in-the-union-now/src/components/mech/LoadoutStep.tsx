@@ -38,7 +38,7 @@ function TabButton({
       aria-selected={active}
       onClick={onClick}
       className={cn(
-        '-mb-[1.5px] border-b-[3px] px-3 pb-2 pt-1 font-cond text-[15px] font-bold uppercase tracking-[0.06em] transition-colors',
+        '-mb-[1.5px] border-b-entity px-3 pb-2 pt-1 font-cond text-lede font-bold uppercase tracking-caps-snug transition-colors',
         active
           ? 'border-rust text-ink'
           : 'border-transparent text-wk-muted hover:text-ink focus-visible:text-ink'
@@ -76,7 +76,7 @@ export function LoadoutStep({
       <div
         role="tablist"
         aria-label="Loadout"
-        className="mb-6 flex gap-1 border-b-[1.5px] border-wk-faint"
+        className="mb-6 flex gap-1 border-b-chrome border-wk-faint"
       >
         <TabButton active={tab === 'systems'} onClick={() => setTab('systems')}>
           Systems

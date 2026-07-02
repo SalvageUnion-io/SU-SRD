@@ -173,7 +173,7 @@ export function HeatCheckControl({
         {!readOnly && choicePrompt && (
           <p
             role="alert"
-            className="mt-2 rounded-[3px] border-[1.5px] border-status-warn bg-paper px-3 py-2 font-body text-sm text-rust"
+            className="mt-2 rounded-[3px] border-chrome border-status-warn bg-paper px-3 py-2 font-body text-sm text-rust"
           >
             {choicePrompt === 'system-destroyed'
               ? 'Mark one System as Destroyed using its status badge below.'

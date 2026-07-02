@@ -10,6 +10,7 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 
 import { CrawlerBuilder } from '../../components/crawler/CrawlerBuilder'
+import { useCrawler } from '../../hooks/queries'
 import { crawlerToFormState } from '../../lib/wizard/crawlerFormState'
 import { useEntityStore } from '../../stores/entityStore'
 
@@ -25,7 +26,7 @@ function EditCrawlerRoute() {
   const { id } = Route.useParams()
   const navigate = useNavigate()
 
-  const crawler = useEntityStore((s) => s.crawlers.find((c) => c.id === id) ?? null)
+  const crawler = useCrawler(id)
 
   if (!crawler) {
     return (

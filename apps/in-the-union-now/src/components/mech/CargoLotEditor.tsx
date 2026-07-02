@@ -51,21 +51,21 @@ export function CargoLotEditor({ lots, onChange, className }: CargoLotEditorProp
             <li
               key={lot.id}
               data-testid="cargo-lot"
-              className="flex items-center gap-3 rounded-[3px] border-[1.5px] border-ink bg-paper px-3 py-1.5 text-sm"
+              className="flex items-center gap-3 rounded-[3px] border-chrome border-ink bg-paper px-3 py-1.5 text-sm"
             >
               <span className="min-w-0 flex-1">
                 <span className="block truncate font-cond text-sm font-bold uppercase text-ink">
                   {lot.name}
                   {lot.kind === 'bulk' && lot.qty !== undefined && ` ×${lot.qty}`}
                 </span>
-                <span className="block font-mono text-[10px] uppercase text-wk-muted">
+                <span className="block font-mono text-label uppercase text-wk-muted">
                   {lot.cat}
                   {lot.tl !== undefined && ` T${lot.tl}`} · {lot.code}
                 </span>
               </span>
               <span className="shrink-0 font-mono text-sm font-bold text-ink">
                 {lot.units}
-                <span className="text-[10px] text-wk-muted">U</span>
+                <span className="text-label text-wk-muted">U</span>
               </span>
               <MiniBtn
                 aria-label={`Remove ${lot.name}`}
@@ -103,7 +103,7 @@ export function CargoLotEditor({ lots, onChange, className }: CargoLotEditorProp
             id="cargo-lot-cat"
             value={cat}
             onChange={(e) => setCat(e.target.value as CargoLotCategory)}
-            className="rounded-[3px] border-[1.5px] border-ink bg-paper px-3 py-2.5 font-body text-sm text-ink focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22]"
+            className="rounded-[3px] border-chrome border-ink bg-paper px-3 py-2.5 font-body text-sm text-ink focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22]"
           >
             {CATEGORIES.map((c) => (
               <option key={c} value={c}>
@@ -118,7 +118,7 @@ export function CargoLotEditor({ lots, onChange, className }: CargoLotEditorProp
               id="cargo-lot-tl"
               value={tl}
               onChange={(e) => setTl(Number(e.target.value))}
-              className="rounded-[3px] border-[1.5px] border-ink bg-paper px-3 py-2.5 font-body text-sm text-ink focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22]"
+              className="rounded-[3px] border-chrome border-ink bg-paper px-3 py-2.5 font-body text-sm text-ink focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22]"
             >
               {[1, 2, 3, 4, 5, 6].map((n) => (
                 <option key={n} value={n}>
@@ -143,7 +143,7 @@ export function CargoLotEditor({ lots, onChange, className }: CargoLotEditorProp
         </Btn>
       </div>
 
-      <p className="font-mono text-[11px] uppercase text-wk-muted">
+      <p className="font-mono text-badge uppercase text-wk-muted">
         {lots.length} lot{lots.length === 1 ? '' : 's'} · {totalLotUnits(lots)} units
       </p>
     </div>

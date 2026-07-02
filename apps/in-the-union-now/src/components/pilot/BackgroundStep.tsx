@@ -34,7 +34,7 @@ export function BackgroundStep({ background, onChange, _rollDeps }: BackgroundSt
             onChange={(e) => onChange(e.target.value)}
             placeholder="Where did you come from? What drives you?"
             rows={5}
-            className="w-full rounded-[3px] border-[1.5px] border-ink bg-paper px-3 py-2.5 font-body text-sm text-ink placeholder:text-wk-faint focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22]"
+            className="w-full rounded-[3px] border-chrome border-ink bg-paper px-3 py-2.5 font-body text-sm text-ink placeholder:text-wk-faint focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22]"
           />
         </div>
       </Field>

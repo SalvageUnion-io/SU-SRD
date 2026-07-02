@@ -68,7 +68,7 @@ export function EntityListItem({
               <span className="truncate">{name}</span>
               <span
                 className={cn(
-                  'font-cond shrink-0 rounded-[2px] border-2 px-2 py-0.5 text-[11px] font-semibold uppercase leading-tight tracking-[.05em]',
+                  'font-cond shrink-0 rounded-[2px] border-2 px-2 py-0.5 text-badge font-semibold uppercase leading-tight tracking-wider',
                   PILL_STYLES[entityType]
                 )}
               >

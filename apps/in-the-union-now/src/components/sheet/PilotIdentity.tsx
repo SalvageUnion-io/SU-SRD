@@ -42,7 +42,7 @@ function UsedChip({
   onToggle?: (next: boolean) => void
 }) {
   const base =
-    'inline-flex items-center rounded-[2px] px-[7px] pb-[1px] pt-[2px] font-cond text-[10px] font-semibold uppercase leading-tight tracking-[0.06em]'
+    'inline-flex items-center rounded-[2px] px-[7px] pb-[1px] pt-[2px] font-cond text-label font-semibold uppercase leading-tight tracking-caps-snug'
   if (!onToggle) {
     if (!used) return null
     return <span className={cn(base, 'bg-ink text-paper')}>Used</span>
@@ -91,7 +91,7 @@ export function PilotIdentityLines({ pilot, onToggleUsed, className }: PilotIden
     <dl className={cn('w-full space-y-1', className)}>
       {lines.map((line) => (
         <div key={line.key} className="flex items-baseline gap-1.5">
-          <dt className="shrink-0 font-cond text-[10px] font-bold uppercase leading-none tracking-[0.08em] text-ink">
+          <dt className="shrink-0 font-cond text-label font-bold uppercase leading-none tracking-caps text-ink">
             {line.label}
           </dt>
           <dd

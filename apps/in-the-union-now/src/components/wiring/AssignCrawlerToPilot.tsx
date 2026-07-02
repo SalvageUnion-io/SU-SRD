@@ -16,7 +16,7 @@
 import { useState } from 'react'
 import { Btn } from 'suref-react'
 
-import { useEntityStore } from '../../stores/entityStore'
+import { useCrawlers } from '../../hooks/queries'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { SoftLinkStore } from './useSoftLinks'
 import { useSoftLinks } from './useSoftLinks'
@@ -50,7 +50,7 @@ export function AssignCrawlerToPilot({
   const { assign } = useSoftLinks({ entityType: 'pilot', entityId: pilotId, store })
 
   // Subscribe to crawlers from real store when not injected
-  const zustandCrawlers = useEntityStore((s) => s.crawlers)
+  const zustandCrawlers = useCrawlers()
   const crawlers: Crawler[] = store ? store.crawlers : zustandCrawlers
 
   function openDialog() {

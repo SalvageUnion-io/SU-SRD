@@ -55,7 +55,7 @@ const TRADING_BAY = 'Trading Bay'
 const SCRAP_TLS = [1, 2, 3, 4, 5, 6] as const
 
 const SELECT_CLASS =
-  'rounded-[3px] border-[1.5px] border-ink bg-paper px-2 py-1.5 font-body text-sm text-ink focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22]'
+  'rounded-[3px] border-chrome border-ink bg-paper px-2 py-1.5 font-body text-sm text-ink focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22]'
 
 type CrawlerEconomyControlProps = {
   crawler: Crawler
@@ -210,7 +210,7 @@ function UpkeepDialog({ crawler, store, roll, onClose }: DialogProps & { roll: R
         {!done && shortfall > 0 && (
           <p
             role="alert"
-            className="rounded-[3px] border-[1.5px] border-status-warn bg-paper px-3 py-2 font-body text-sm text-rust"
+            className="rounded-[3px] border-chrome border-status-warn bg-paper px-3 py-2 font-body text-sm text-rust"
           >
             The pool is {shortfall} scrap short — Upkeep fails unless the table rules otherwise.
             Trade Scrap between Tech Levels at the Trading Bay, or roll Deterioration.
@@ -225,7 +225,7 @@ function UpkeepDialog({ crawler, store, roll, onClose }: DialogProps & { roll: R
         {choosePrompt && (
           <p
             role="alert"
-            className="rounded-[3px] border-[1.5px] border-status-warn bg-paper px-3 py-2 font-body text-sm text-rust"
+            className="rounded-[3px] border-chrome border-status-warn bg-paper px-3 py-2 font-body text-sm text-rust"
           >
             Choose a Bay and mark it Damaged using its status badge on the sheet.
           </p>
@@ -332,7 +332,7 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
             </p>
           )}
           <div className="flex flex-wrap items-center gap-2">
-            <span className="font-cond text-xs font-bold uppercase tracking-[0.06em] text-ink">
+            <span className="font-cond text-xs font-bold uppercase tracking-caps-snug text-ink">
               Contribute scrap (Tech {tl}+)
             </span>
             <span className="inline-flex items-center gap-1.5">
@@ -445,7 +445,7 @@ function TradeDialog({ crawler, store, roll, onClose }: DialogProps & { roll: Ro
         {gate.damaged && (
           <p
             role="alert"
-            className="rounded-[3px] border-[1.5px] border-status-warn bg-paper px-3 py-2 font-body text-sm text-rust"
+            className="rounded-[3px] border-chrome border-status-warn bg-paper px-3 py-2 font-body text-sm text-rust"
           >
             The Trading Bay is Damaged — Scrap cannot be traded and the Trading Bay Table cannot be
             rolled until it is repaired to Intact (p.223).
@@ -457,7 +457,7 @@ function TradeDialog({ crawler, store, roll, onClose }: DialogProps & { roll: Ro
             <div>
               <Slab label="Trade Scrap" count="fixed equal-value rates · no bartering" />
               <div className="flex flex-wrap items-end gap-3">
-                <label className="flex flex-col gap-1 font-cond text-[10px] font-bold uppercase tracking-[0.08em] text-ink">
+                <label className="flex flex-col gap-1 font-cond text-label font-bold uppercase tracking-caps text-ink">
                   From
                   <select
                     className={SELECT_CLASS}
@@ -471,7 +471,7 @@ function TradeDialog({ crawler, store, roll, onClose }: DialogProps & { roll: Ro
                     ))}
                   </select>
                 </label>
-                <label className="flex flex-col gap-1 font-cond text-[10px] font-bold uppercase tracking-[0.08em] text-ink">
+                <label className="flex flex-col gap-1 font-cond text-label font-bold uppercase tracking-caps text-ink">
                   To
                   <select
                     className={SELECT_CLASS}

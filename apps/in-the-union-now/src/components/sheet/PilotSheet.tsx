@@ -335,10 +335,10 @@ function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
   }
 
   const inputClass =
-    'rounded-[3px] border-[1.5px] border-ink bg-paper px-2 py-1.5 font-body text-xs text-ink focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22]'
+    'rounded-[3px] border-chrome border-ink bg-paper px-2 py-1.5 font-body text-xs text-ink focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22]'
 
   return (
-    <div className="flex flex-wrap items-center gap-2 rounded-[3px] border-[1.5px] border-dashed border-wk-faint p-2.5">
+    <div className="flex flex-wrap items-center gap-2 rounded-[3px] border-chrome border-dashed border-wk-faint p-2.5">
       <Btn
         size="sm"
         aria-label="Add Scrap (3 slots)"
@@ -356,7 +356,7 @@ function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
         onChange={(e) => setName(e.target.value)}
         className={`${inputClass} w-36 flex-1`}
       />
-      <label className="flex items-center gap-1 font-cond text-[10px] font-bold uppercase tracking-wide text-wk-muted">
+      <label className="flex items-center gap-1 font-cond text-label font-bold uppercase tracking-wide text-wk-muted">
         Slots
         <input
           type="number"
@@ -367,7 +367,7 @@ function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
           className={`${inputClass} w-14`}
         />
       </label>
-      <label className="flex items-center gap-1 font-cond text-[10px] font-bold uppercase tracking-wide text-wk-muted">
+      <label className="flex items-center gap-1 font-cond text-label font-bold uppercase tracking-wide text-wk-muted">
         Qty
         <input
           type="number"
@@ -419,7 +419,7 @@ function InjuryRow({ injury, index, onChange, onRemove }: InjuryRowProps) {
             severity: e.target.value === 'major' ? 'major' : 'minor',
           })
         }}
-        className="rounded-[3px] border-[1.5px] border-ink bg-paper px-2 py-1.5 font-cond text-xs font-semibold uppercase text-ink focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22]"
+        className="rounded-[3px] border-chrome border-ink bg-paper px-2 py-1.5 font-cond text-xs font-semibold uppercase text-ink focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22]"
       >
         <option value="minor">Minor (−1 max HP)</option>
         <option value="major">Major (−2 max HP)</option>
@@ -433,7 +433,7 @@ function InjuryRow({ injury, index, onChange, onRemove }: InjuryRowProps) {
           const next = e.target.value
           if (next !== injury.note) onChange({ ...injury, note: next })
         }}
-        className="w-40 min-w-0 flex-1 rounded-[3px] border-[1.5px] border-ink bg-paper px-2 py-1.5 font-body text-xs text-ink focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22]"
+        className="w-40 min-w-0 flex-1 rounded-[3px] border-chrome border-ink bg-paper px-2 py-1.5 font-body text-xs text-ink focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22]"
       />
       <Btn size="sm" variant="ghost" aria-label={`Remove injury ${index + 1}`} onClick={onRemove}>
         Remove
@@ -573,9 +573,9 @@ export function PilotSheet({
       {dead && (
         <div
           role="alert"
-          className="rounded-[3px] border-[3px] border-status-bad bg-paper px-4 py-3"
+          className="rounded-[3px] border-entity border-status-bad bg-paper px-4 py-3"
         >
-          <p className="m-0 font-cond text-lg font-bold uppercase tracking-[0.08em] text-status-bad">
+          <p className="m-0 font-cond text-lg font-bold uppercase tracking-caps text-status-bad">
             Killed in Action
           </p>
           <p className="m-0 font-body text-sm text-ink">
@@ -635,7 +635,7 @@ export function PilotSheet({
           }
         />
         {pilot.equipment.length === 0 && genericInventory.length === 0 ? (
-          <p className="font-body text-[13px] text-wk-muted">Nothing carried.</p>
+          <p className="font-body text-caption text-wk-muted">Nothing carried.</p>
         ) : (
           <Ecflow>
             {pilot.equipment.map((slug) => (
@@ -691,7 +691,7 @@ export function PilotSheet({
       <div>
         <Slab label="Injuries" count={hpPenalty > 0 ? `−${hpPenalty} max HP` : injuries.length} />
         {injuries.length === 0 ? (
-          <p className="font-body text-[13px] text-wk-muted">No injuries — keep it that way.</p>
+          <p className="font-body text-caption text-wk-muted">No injuries — keep it that way.</p>
         ) : (
           <div className="flex flex-col gap-2">
             {injuries.map((injury, index) => (
@@ -756,7 +756,7 @@ export function PilotSheet({
           </p>
         ) : (
           <div className="flex items-center gap-2">
-            <span className="font-cond text-[10px] font-bold uppercase tracking-wide text-wk-muted">
+            <span className="font-cond text-label font-bold uppercase tracking-wide text-wk-muted">
               Tech Level
             </span>
             <InlineEditField

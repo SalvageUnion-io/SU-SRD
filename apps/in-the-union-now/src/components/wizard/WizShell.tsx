@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react'
 import { Btn, Stepper } from 'suref-react'
+import { LAYOUT } from '../../lib/layout'
+import { cn } from '../../lib/utils'
 
 type WizShellProps = {
   /** Rail eyebrow, e.g. 'New Pilot' / 'Edit Pilot'. */
@@ -68,15 +70,20 @@ export function WizShell({
       <h1 className="font-cond text-2xl font-bold uppercase leading-tight tracking-[0.01em] text-ink">
         {title}
       </h1>
-      {subtitle && <div className="mt-1 font-body text-[13px] text-wk-muted">{subtitle}</div>}
+      {subtitle && <div className="mt-1 font-body text-caption text-wk-muted">{subtitle}</div>}
     </header>
   )
 
   return (
     <div className="flex min-h-dvh flex-col bg-wk-bg lg:flex-row">
       {/* (a) 196px stepper rail */}
-      <aside className="shrink-0 border-b-[1.5px] border-ink px-4 py-4 lg:w-[196px] lg:border-b-0 lg:border-r-[1.5px] lg:px-5 lg:py-9">
-        <p className="mb-3 font-cond text-sm font-bold uppercase tracking-[0.12em] text-rust">
+      <aside
+        className={cn(
+          'shrink-0 border-b-chrome border-ink px-4 py-4 lg:border-b-0 lg:border-r-chrome lg:px-5 lg:py-9',
+          LAYOUT.stepperRail
+        )}
+      >
+        <p className="mb-3 font-cond text-sm font-bold uppercase tracking-caps-wide text-rust">
           {eyebrow}
         </p>
         <Stepper
@@ -91,7 +98,12 @@ export function WizShell({
           heading always renders in the main pane so the h1 stays anchored
           horizontally across every step (option-pane steps and others alike) */}
       {optionPane && (
-        <section className="shrink-0 border-b-[1.5px] border-ink px-5 py-5 lg:w-[320px] lg:overflow-y-auto lg:border-b-0 lg:border-r-[1.5px] lg:px-[26px] lg:py-9">
+        <section
+          className={cn(
+            'shrink-0 border-b-chrome border-ink px-5 py-5 lg:overflow-y-auto lg:border-b-0 lg:border-r-chrome lg:px-[26px] lg:py-9',
+            LAYOUT.optionPane
+          )}
+        >
           {optionPane}
         </section>
       )}
@@ -110,7 +122,7 @@ export function WizShell({
             the sm endpoint the pill stacks with a full-width primary CTA on
             EVERY step (design review U-6) — Back/Cancel share a row above it. */}
         <footer className="pointer-events-none sticky bottom-4 z-40 mt-6 flex justify-end">
-          <div className="pointer-events-auto flex w-full flex-col items-stretch gap-2 rounded-lg border-[1.5px] border-wk-faint bg-wk-bg/95 p-2 shadow-md backdrop-blur sm:w-auto sm:flex-row sm:items-center">
+          <div className="pointer-events-auto flex w-full flex-col items-stretch gap-2 rounded-lg border-chrome border-wk-faint bg-wk-bg/95 p-2 shadow-md backdrop-blur sm:w-auto sm:flex-row sm:items-center">
             {/* Ghost nav row on phones; dissolves into the pill row ≥ sm. */}
             <div className="flex items-center justify-end gap-2 sm:contents">
               {onBack && (

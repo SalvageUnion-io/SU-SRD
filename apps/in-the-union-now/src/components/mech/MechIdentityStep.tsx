@@ -42,7 +42,7 @@ export function MechIdentityStep({
       </Field>
 
       <section>
-        <h2 className="mb-3 font-cond text-sm font-bold uppercase tracking-[0.12em] text-ink">
+        <h2 className="mb-3 font-cond text-sm font-bold uppercase tracking-caps-wide text-ink">
           Cargo ·{' '}
           <span className={cn('font-body text-xs font-bold', isOver ? 'text-status-bad' : '')}>
             {cargoUsed} / {cargoMax} slots
