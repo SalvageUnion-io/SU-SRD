@@ -8,6 +8,10 @@
 - Game data: `packages/salvageunion-reference/` (ORM-like API, `SalvageUnionReference.get(schemaName, id)`)
 - ITUN app: `apps/in-the-union-now/` (React 19 + TanStack Router/Query + ShadCN + Tailwind v4)
 
+## Dataviz Idioms (pips/tracks/roll readouts)
+
+See [dataviz-idioms.md](dataviz-idioms.md) — pip magnitude consistency, the UNIFIED over-capacity red idiom (StatBlock/MiniStat/BudgetTrack/StorageManifest), heat escalation, roll-result severity colouring (band colours are QuickRollFab-only; table rolls colour by outcome severity), TL colour scale usage.
+
 ## Three-Layer Display System
 
 1. **DisplayCard** (`packages/suref-react/src/components/shared/DisplayCard.tsx`): Low-level card with two boolean props (`compact` for reduced spacing, `listing` for header-only), controls architecture, stats system (StatsBar), tabs, sticky headers

@@ -22,6 +22,7 @@
 import { useState } from 'react'
 import { Btn, Slab } from 'suref-react'
 
+import { cn } from '../../lib/utils'
 import { defaultRoll } from '../../lib/rules/heatCheck'
 import type { Roll } from '../../lib/rules/heatCheck'
 import { applyMechDamage, performCriticalDamage } from '../../lib/rules/takeDamage'
@@ -51,6 +52,20 @@ const OUTCOME_LABEL: Record<CriticalDamageOutcome, string> = {
   'core-damage':
     'Core Damage — chassis Damaged and inoperable until repaired. Your Pilot is reduced to 0 HP unless they can escape the mech.',
   'miraculous-survival': 'Miraculous Survival — mech Intact at 1 SP, still fully operational.',
+}
+
+/**
+ * Severity tone for the critical-damage readout: a Catastrophic result must
+ * not read the same ink as a Miraculous Survival (pre-attentive glanceability,
+ * dataviz review — the outcome text still carries the meaning, colour only
+ * reinforces it).
+ */
+const OUTCOME_TONE: Record<CriticalDamageOutcome, string> = {
+  catastrophic: 'text-status-bad',
+  'system-destruction': 'text-rust',
+  'module-destruction': 'text-rust',
+  'core-damage': 'text-rust',
+  'miraculous-survival': 'text-ink',
 }
 
 const CHASSIS_DAMAGED_CONDITION = 'Chassis Damaged'
@@ -187,7 +202,11 @@ export function TakeDamageControl({
         )}
 
         {last && (
-          <p role="status" className="font-body text-sm text-ink" data-outcome={last.outcome}>
+          <p
+            role="status"
+            className={cn('font-body text-sm', OUTCOME_TONE[last.outcome])}
+            data-outcome={last.outcome}
+          >
             Critical Damage {last.roll}: {OUTCOME_LABEL[last.outcome]}
           </p>
         )}

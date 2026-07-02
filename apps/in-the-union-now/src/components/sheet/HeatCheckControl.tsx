@@ -27,6 +27,7 @@
 import { useState } from 'react'
 import { Btn, MiniBtn, Slab, heatLevel } from 'suref-react'
 
+import { cn } from '../../lib/utils'
 import { heatCheckPatch, performHeatCheck, performPush } from '../../lib/rules/heatCheck'
 import type { HeatCheckEffect, Roll } from '../../lib/rules/heatCheck'
 import { defaultRoll } from '../../lib/rules/heatCheck'
@@ -63,6 +64,18 @@ function describeResult(result: HeatCheckResult): string {
   }
   const band = result.outcome ? OUTCOME_LABEL[result.outcome] : ''
   return `OVERLOAD: rolled ${result.heatCheckRoll} vs Heat ${result.heatAtCheck}. Reactor Overload ${result.overloadRoll}: ${band}`
+}
+
+/**
+ * Severity tone for the last-result readout: a Catastrophic Meltdown must not
+ * read the same calm ink as a passed check (pre-attentive glanceability, data-
+ * viz review — the text still carries the meaning, so colour only reinforces).
+ */
+function resultTone(result: HeatCheckResult): string {
+  if (!result.overloaded) return 'text-ink'
+  if (result.outcome === 'meltdown') return 'text-status-bad'
+  if (result.outcome === 'safe') return 'text-ink'
+  return 'text-rust'
 }
 
 export function HeatCheckControl({
@@ -161,7 +174,7 @@ export function HeatCheckControl({
         {last && (
           <p
             role="status"
-            className="font-body text-sm text-ink"
+            className={cn('font-body text-sm', resultTone(last))}
             data-overloaded={last.overloaded}
             data-outcome={last.outcome ?? ''}
           >

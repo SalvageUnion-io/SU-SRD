@@ -34,8 +34,14 @@ type MiniStatProps = {
  * red while dangerous, and at cap the chip gets a red border + subtle pulse.
  */
 export function MiniStat({ label, value, max, stat = 'default', className }: MiniStatProps) {
-  const clamped = Math.max(0, max !== undefined ? Math.min(value, max) : value)
-  const showPips = max !== undefined && max > 0 && max <= MINISTAT_PIP_MAX
+  // Over-capacity honesty (design review): the derived mech Hold (cargo tone)
+  // can exceed its soft cap — show the true value + red over-pips rather than
+  // clamping to a lie, matching the StatBlock hero tracker and the Hold panel.
+  // Other tones stay clamped 0..max (a bounded resource never reads over).
+  const isOver = stat === 'cargo' && max !== undefined && value > max
+  const clamped = isOver ? value : Math.max(0, max !== undefined ? Math.min(value, max) : value)
+  const total = isOver ? value : (max ?? 0)
+  const showPips = max !== undefined && max > 0 && total <= MINISTAT_PIP_MAX
 
   // Heat escalation (U-1): heat tone only — inert without a positive max.
   const level = stat === 'heat' ? heatLevel(clamped, max) : 'normal'
@@ -45,7 +51,9 @@ export function MiniStat({ label, value, max, stat = 'default', className }: Min
   return (
     <span
       role="group"
-      aria-label={`${label} ${clamped}${max !== undefined ? ` of ${max}` : ''}`}
+      aria-label={`${label} ${clamped}${max !== undefined ? ` of ${max}` : ''}${
+        isOver ? ' — over capacity' : ''
+      }`}
       data-heat={level !== 'normal' ? level : undefined}
       className={cn(
         'inline-flex items-center gap-1.5 rounded-[2px] border-[1.5px] bg-paper px-2 py-[3px]',
@@ -58,14 +66,14 @@ export function MiniStat({ label, value, max, stat = 'default', className }: Min
       </span>
       {showPips && (
         <span className="flex items-center gap-[3px]" aria-hidden="true">
-          {Array.from({ length: max }).map((_, i) => (
+          {Array.from({ length: total }).map((_, i) => (
             <span
               key={i}
               data-pip={i < clamped ? 'on' : 'off'}
               className={cn(
                 'h-[7px] w-[7px] rounded-[1px] border-[1.25px]',
                 i < clamped
-                  ? i >= heatDanger
+                  ? i >= max! || i >= heatDanger
                     ? 'border-status-bad bg-status-bad'
                     : MPIP_FILL[stat]
                   : 'border-ink bg-transparent'
@@ -77,7 +85,7 @@ export function MiniStat({ label, value, max, stat = 'default', className }: Min
       <span
         className={cn(
           'font-body text-sm font-bold leading-none',
-          level !== 'normal' ? 'text-status-bad' : 'text-ink'
+          level !== 'normal' || isOver ? 'text-status-bad' : 'text-ink'
         )}
       >
         {clamped}
