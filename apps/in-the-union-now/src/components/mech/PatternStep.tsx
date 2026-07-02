@@ -1,6 +1,7 @@
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
 import { Field, Input, OptRow, ReferenceEntityDisplay, SectionSeparator } from 'suref-react'
+import { SelMasonry } from '../wizard/SelMasonry'
 import { patternsForChassis } from './patternData'
 import type { PatternLike } from './patternData'
 
@@ -123,7 +124,7 @@ export function PatternDetail({
     <div className="space-y-3">
       <SectionSeparator label={`${pattern.name} · Loadout`} fontSize="text-xs" />
       {entities.length > 0 ? (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <SelMasonry>
           {entities.map(({ key, entity }) => (
             <ReferenceEntityDisplay
               key={key}
@@ -132,7 +133,7 @@ export function PatternDetail({
               hide={{ actions: true, choices: true }}
             />
           ))}
-        </div>
+        </SelMasonry>
       ) : (
         <p className="text-sm text-wk-muted">This pattern installs no systems or modules.</p>
       )}

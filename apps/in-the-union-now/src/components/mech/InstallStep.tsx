@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { FilterChip } from 'suref-react'
 import type { TechLevel } from '../../lib/rules/types'
+import { SelMasonry } from '../wizard/SelMasonry'
 import { InstallCard } from './InstallCard'
 import { LoadoutPanel } from './LoadoutPanel'
 
@@ -93,16 +94,18 @@ export function InstallStep({
           ))}
         </div>
 
-        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {visible.map((item) => (
-            <InstallCard
-              key={item.id}
-              entity={item}
-              name={item.name}
-              count={selected.filter((ref) => ref === item.name).length}
-              onAdd={() => onAdd(item.name)}
-            />
-          ))}
+        <div className="mt-6">
+          <SelMasonry>
+            {visible.map((item) => (
+              <InstallCard
+                key={item.id}
+                entity={item}
+                name={item.name}
+                count={selected.filter((ref) => ref === item.name).length}
+                onAdd={() => onAdd(item.name)}
+              />
+            ))}
+          </SelMasonry>
         </div>
         {visible.length === 0 && (
           <p className="mt-4 text-sm text-wk-muted">No {kind} at the selected tech levels.</p>

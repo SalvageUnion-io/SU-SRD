@@ -26,6 +26,12 @@ type WizShellProps = {
   children: ReactNode
   /** Rendered between content and footer — soft warnings, submit errors. */
   notice?: ReactNode
+  /**
+   * One-line step status shown inside the sticky action pill, beside the
+   * buttons — the single home for budget-cap notices like 'Max Abilities
+   * selected (3 / 3)'.
+   */
+  footerNote?: ReactNode
   onBack?: () => void
   onCancel: () => void
   /** Advances to the next step, or submits on the last step. */
@@ -55,6 +61,7 @@ export function WizShell({
   optionPane,
   children,
   notice,
+  footerNote,
   onBack,
   onCancel,
   onNext,
@@ -123,6 +130,14 @@ export function WizShell({
             EVERY step (design review U-6) — Back/Cancel share a row above it. */}
         <footer className="pointer-events-none sticky bottom-4 z-40 mt-6 flex justify-end">
           <div className="pointer-events-auto flex w-full flex-col items-stretch gap-2 rounded-lg border-chrome border-wk-faint bg-wk-bg/95 p-2 shadow-md backdrop-blur sm:w-auto sm:flex-row sm:items-center">
+            {footerNote && (
+              <p
+                role="status"
+                className="m-0 px-2 text-center font-cond text-xs font-semibold uppercase tracking-caps text-rust sm:text-left"
+              >
+                {footerNote}
+              </p>
+            )}
             {/* Ghost nav row on phones; dissolves into the pill row ≥ sm. */}
             <div className="flex items-center justify-end gap-2 sm:contents">
               {onBack && (

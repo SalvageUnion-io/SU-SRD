@@ -2,6 +2,7 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefClass } from 'salvageunion-reference'
 import { TreeSep } from 'suref-react'
 import { SelCard } from '../wizard/SelCard'
+import { SelMasonry } from '../wizard/SelMasonry'
 
 type SURAbilitiesAccessor = {
   findAll: (fn: (x: unknown) => boolean) => unknown[]
@@ -104,6 +105,8 @@ export function AbilitiesStep({
 
   const renderCard = (ability: AbilityLike) => {
     const isSelected = selectedAbilities.includes(ability.id)
+    // At-budget cards grey out; the "Max Abilities" notice lives once in the
+    // WizShell footer beside the buttons, not under every blocked card.
     const isDisabled = !isSelected && isAtBudget
     return (
       <SelCard
@@ -112,11 +115,6 @@ export function AbilitiesStep({
         name={ability.name}
         selected={isSelected}
         disabled={isDisabled}
-        disabledReason={
-          isDisabled
-            ? `Budget reached (${selectedAbilities.length} / ${budget} selected)`
-            : undefined
-        }
         label={ability.tree}
         onToggle={() => onToggle(ability.id)}
       />
@@ -135,17 +133,13 @@ export function AbilitiesStep({
           return (
             <section key={tree} className="space-y-3">
               <TreeSep name={tree} />
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                {treeAbilities.map(renderCard)}
-              </div>
+              <SelMasonry>{treeAbilities.map(renderCard)}</SelMasonry>
             </section>
           )
         })
       ) : (
-        // Create mode — flat grid, tree label on the card frame.
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {trees.flatMap((tree) => abilitiesIn(tree).map(renderCard))}
-        </div>
+        // Create mode — flat masonry, tree label on the card frame.
+        <SelMasonry>{trees.flatMap((tree) => abilitiesIn(tree).map(renderCard))}</SelMasonry>
       )}
       {!anyAbilities && <p className="text-sm text-wk-muted">No abilities found for this class.</p>}
     </div>

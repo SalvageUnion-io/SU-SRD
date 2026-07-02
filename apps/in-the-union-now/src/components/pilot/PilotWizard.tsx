@@ -286,6 +286,17 @@ export function PilotWizard({
         ) : undefined
       }
       notice={step === 'Review' ? <SoftWarningBanner warnings={softWarnings} /> : undefined}
+      footerNote={
+        step === 'Abilities' &&
+        abilityBudget !== undefined &&
+        form.abilities.length >= abilityBudget
+          ? `Max Abilities selected (${form.abilities.length} / ${abilityBudget})`
+          : step === 'Equipment' &&
+              equipmentBudget !== undefined &&
+              form.equipment.length >= equipmentBudget
+            ? `Max Equipment selected (${form.equipment.length} / ${equipmentBudget})`
+            : undefined
+      }
       onBack={currentIndex > 0 ? goBack : undefined}
       onCancel={onCancel}
       onNext={goNext}
