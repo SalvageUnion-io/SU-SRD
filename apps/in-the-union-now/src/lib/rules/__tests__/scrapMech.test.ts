@@ -163,6 +163,31 @@ describe('mechScrapComponents (real reference data)', () => {
     expect(components[0]!.condition).toBe('destroyed')
   })
 
+  it('marks EVERY mounted item destroyed when the mech is destroyed (p.234/p.240 total loss)', () => {
+    const chassis = SalvageUnionReference.Chassis.all()[0]!
+    const system = SalvageUnionReference.Systems.all().find(
+      (s) => typeof s.techLevel === 'number' && typeof s.salvageValue === 'number'
+    )!
+    const module = SalvageUnionReference.Modules.all()[0]!
+
+    const components = mechScrapComponents({
+      chassisRef: chassis.name,
+      systems: [system.id],
+      modules: [module.id],
+      // Stored per-item conditions say intact — the mech-level destroyed
+      // flag overrides them: "any mounted Systems and Modules … is destroyed".
+      systemConditions: { [system.id]: 'intact' },
+      moduleConditions: { [module.id]: 'damaged' },
+      destroyed: true,
+    })
+
+    expect(components.map((c) => c.condition)).toEqual(['destroyed', 'destroyed', 'destroyed'])
+    const breakdown = scrapMechBreakdown(components)
+    expect(breakdown.total).toBe(0)
+    expect(breakdown.deposits).toEqual([])
+    expect(breakdown.skipped.map((s) => s.reason)).toEqual(['destroyed', 'destroyed', 'destroyed'])
+  })
+
   it('keeps unresolved refs with SV 0 so the breakdown can report them', () => {
     const components = mechScrapComponents({
       chassisRef: 'No Such Chassis',

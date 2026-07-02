@@ -129,6 +129,9 @@ export function HeatCheckControl({
 
   // Push gets riskier as heat climbs (U-1): danger styling at >= ~70% of cap.
   const pushIsRisky = heatLevel(currentHeat, heatCap) !== 'normal'
+  // Quick Ref p.233: "Can't Push if it'd take you over your Heat Cap" —
+  // disabled (never clamped) when +2 Heat would exceed the cap.
+  const pushLocked = currentHeat + 2 > heatCap
 
   return (
     <div>
@@ -148,7 +151,12 @@ export function HeatCheckControl({
           <Btn
             size="sm"
             variant={pushIsRisky ? 'danger' : undefined}
-            title="+2 Heat, then a Heat Check"
+            disabled={pushLocked}
+            title={
+              pushLocked
+                ? `Can't Push at Heat ${currentHeat}/${heatCap} — +2 Heat would take the mech over its Heat Cap (p.233).`
+                : '+2 Heat, then a Heat Check'
+            }
             onClick={() => {
               void handlePush()
             }}

@@ -69,7 +69,12 @@ export function ScrapMechControl({ mech, crawler, store = useEntityStore }: Scra
     const freshCrawler = storeState.get('crawler', crawler.id) ?? crawler
     const fresh = scrapMechBreakdown(mechScrapComponents(freshMech))
     const pool = depositScrapDeposits(freshCrawler.scrapPool ?? {}, fresh.deposits)
-    const handOff = handOffCargo(freshMech.cargoLots, freshCrawler.cargoLots ?? [], pool)
+    // A destroyed mech's cargo went up with it ("all Cargo, is destroyed" —
+    // p.234/p.240): nothing is handed off. Only a retired (intact) mech's
+    // hold moves to the crawler.
+    const handOff = freshMech.destroyed
+      ? { crawlerLots: freshCrawler.cargoLots ?? [], pool }
+      : handOffCargo(freshMech.cargoLots, freshCrawler.cargoLots ?? [], pool)
     await storeState.update('crawler', crawler.id, {
       scrapPool: handOff.pool,
       cargoLots: handOff.crawlerLots,
@@ -113,6 +118,12 @@ export function ScrapMechControl({ mech, crawler, store = useEntityStore }: Scra
           onCancel={() => setConfirming(false)}
         >
           <div className="flex flex-col gap-2">
+            {mech.destroyed && (
+              <p className="m-0 font-bold text-rust">
+                {mech.name} was destroyed — its Chassis, mounted Systems and Modules, and all Cargo
+                were lost with it and yield nothing (p.240). Scrapping just clears the wreck.
+              </p>
+            )}
             <p className="m-0">
               Breaking down {mech.name} deposits <strong>{depositText}</strong>
               {breakdown.total > 0 && <> ({breakdown.total} Scrap total)</>} into {crawler.name}
@@ -131,7 +142,7 @@ export function ScrapMechControl({ mech, crawler, store = useEntityStore }: Scra
                 .
               </p>
             )}
-            {cargoCount > 0 && (
+            {cargoCount > 0 && !mech.destroyed && (
               <p className="m-0">
                 {cargoCount} cargo {cargoCount === 1 ? 'lot' : 'lots'} still in the hold move to{' '}
                 {crawler.name} (Scrap lots join the pool).

@@ -75,6 +75,7 @@ export {
   allDowntimeSteps,
   resolveDowntimeScope,
   medBayStatus,
+  mechBayStatus,
   repairableItems,
   healableInjuries,
   downtimeMechPatch,
@@ -85,6 +86,7 @@ export type {
   DowntimeSteps,
   DowntimeScope,
   MedBayStatus,
+  MechBayStatus,
   RepairableItems,
   HealableInjuries,
 } from './downtime'

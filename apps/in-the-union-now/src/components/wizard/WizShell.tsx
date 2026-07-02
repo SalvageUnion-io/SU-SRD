@@ -100,7 +100,7 @@ export function WizShell({
       {optionPane && (
         <section
           className={cn(
-            'shrink-0 border-b-chrome border-ink px-5 py-5 lg:overflow-y-auto lg:border-b-0 lg:border-r-chrome lg:px-[26px] lg:py-9',
+            'shrink-0 border-b-chrome border-ink px-5 py-5 lg:overflow-y-auto lg:border-b-0 lg:border-r-chrome lg:px-6 lg:py-9',
             LAYOUT.optionPane
           )}
         >

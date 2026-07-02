@@ -31,10 +31,12 @@ export function SheetActionsMenu({ children, className }: SheetActionsMenuProps)
 
   return (
     <div ref={rootRef} className={cn('relative', className)}>
+      {/* Disclosure pattern (aria-expanded only): the popup is a plain group
+          of links, not a role=menu widget — aria-haspopup would promise
+          menuitem semantics + arrow-key navigation we don't implement. */}
       <button
         type="button"
         aria-label="More actions"
-        aria-haspopup="true"
         aria-expanded={open}
         onClick={() => setOpen((prev) => !prev)}
         className="flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-[3px] border-chrome border-ink bg-paper text-ink transition-colors duration-[120ms] hover:bg-wk-bg-2 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rust/25"

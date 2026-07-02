@@ -108,7 +108,7 @@ function CargoChit({ lot, side, cargo, linked, readOnly }: CargoChitProps) {
             &#9670;
           </span>
         )}
-        <span className="font-cond text-[7px] font-semibold uppercase tracking-caps">
+        <span className="font-cond text-nano font-semibold uppercase tracking-caps">
           {lot.kind === 'bulk' ? 'Bulk' : 'Unit'}
         </span>
       </span>
@@ -278,7 +278,7 @@ export function StorageManifest({
         </span>
         {linkedCounterpart !== null ? (
           <>
-            <span className="self-start bg-ink px-2 py-0.5 font-cond text-[17px] font-bold uppercase leading-tight text-su-white">
+            <span className="self-start bg-ink px-2 py-0.5 font-cond text-base font-bold uppercase leading-tight text-su-white">
               {linkedCounterpart}
             </span>
             {side === 'mech' ? (

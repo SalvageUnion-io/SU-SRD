@@ -523,6 +523,13 @@ export function Sheet({
       },
     ]
 
+    // Quick Ref p.233: "Can't Push if it'd take you over your Heat Cap" —
+    // the FAB's Push is disabled (never clamped) when +2 Heat would exceed it.
+    const pushLocked =
+      heat + 2 > maxHeat
+        ? `Can't Push at Heat ${heat}/${maxHeat} — +2 Heat would take the mech over its Heat Cap (p.233).`
+        : undefined
+
     /**
      * Push (design review R-6/U-3): +2 Heat then an immediate Heat Check,
      * written through the store exactly like HeatCheckControl (ADR-007 —
@@ -613,7 +620,7 @@ export function Sheet({
         segments={segments}
         syncStats={{ cargo: cargoUsed }}
         actions={actions}
-        fab={editable ? <QuickRollFab onPush={pushMech} /> : undefined}
+        fab={editable ? <QuickRollFab onPush={pushMech} pushLocked={pushLocked} /> : undefined}
         renderHero={({ heroRef, rail: heroRail }) => (
           <SheetHero
             heroRef={heroRef}

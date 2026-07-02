@@ -67,7 +67,7 @@ export function NpcInset({
     >
       {/* Black head bar: CREW tag + name + role title */}
       <div className="flex flex-wrap items-center gap-2 bg-ink px-2 py-1.5">
-        <span className="rounded-[1px] bg-crawler px-1.5 pb-px pt-[2px] font-cond text-nano font-bold uppercase leading-none tracking-[0.14em] text-su-white">
+        <span className="rounded-[1px] bg-crawler px-1.5 pb-px pt-[2px] font-cond text-nano font-bold uppercase leading-none tracking-caps-wide text-su-white">
           Crew
         </span>
         <span className="min-w-0 font-cond text-lede font-bold uppercase leading-none text-su-white">
@@ -84,7 +84,7 @@ export function NpcInset({
           )}
         </span>
         {title && (
-          <span className="ml-auto font-cond text-[9.5px] uppercase leading-none tracking-caps text-su-white/60">
+          <span className="ml-auto font-cond text-micro uppercase leading-none tracking-caps text-su-white/60">
             {title}
           </span>
         )}

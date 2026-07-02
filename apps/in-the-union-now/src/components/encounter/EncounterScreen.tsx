@@ -89,16 +89,28 @@ export function EncounterScreen({
 
   async function handleAdd(candidate: EncounterCandidate) {
     // Number repeat instances of the same reference NPC: 'Raider', 'Raider 2', …
+    // The suffix derives from the MAX existing numeric suffix, not the sibling
+    // COUNT — counting would mint a duplicate after a mid-sequence removal
+    // (add ×3, remove 'Raider 2', add again → count says 'Raider 3' twice).
     const siblings = storeState
       .listForWorkspace(activeWorkspaceId)
-      .filter((n) => n.refSlug === candidate.slug && n.refSchema === candidate.schema).length
+      .filter((n) => n.refSlug === candidate.slug && n.refSchema === candidate.schema)
+    let maxSuffix = 0
+    for (const sibling of siblings) {
+      if (sibling.name === candidate.name) {
+        maxSuffix = Math.max(maxSuffix, 1)
+      } else if (sibling.name.startsWith(`${candidate.name} `)) {
+        const suffix = Number(sibling.name.slice(candidate.name.length + 1))
+        if (Number.isInteger(suffix) && suffix > 1) maxSuffix = Math.max(maxSuffix, suffix)
+      }
+    }
     await storeState.create({
       schemaVersion: 1,
       ...(activeWorkspaceId !== null ? { workspaceId: activeWorkspaceId } : {}),
       refSchema: candidate.schema,
       refSlug: candidate.slug,
       refName: candidate.name,
-      name: siblings > 0 ? `${candidate.name} ${siblings + 1}` : candidate.name,
+      name: maxSuffix > 0 ? `${candidate.name} ${maxSuffix + 1}` : candidate.name,
       currentHp: candidate.maxHp,
       maxHp: candidate.maxHp,
       statKind: candidate.statKind,

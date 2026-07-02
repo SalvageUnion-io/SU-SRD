@@ -8,6 +8,10 @@
  *   and its Heat drops to 0. Damaged Mech Chassis, Systems and Modules are
  *   repaired to Intact as long as their Tech Level is ≤ the Crawler's
  *   (Destroyed items are never repaired — they are salvage).
+ * - Mech Bay (p.221): restore and repair happen IN the Mech Bay. "If the
+ *   Mech Bay becomes damaged, your Mechs can no longer restore SP and EP
+ *   during Downtime. Their Chassis as well as any Systems or Modules will
+ *   not be repaired if they are damaged." Mirrors the Med Bay gate below.
  * - Med Bay (p.223): Tech 1-2 heals a pilot to full HP; Tech 3-4 also heals
  *   Minor Injuries; Tech 5-6 also heals Major Injuries. "If the Med Bay is
  *   damaged, you cannot heal any of your Pilot's Hit Points or injuries."
@@ -161,6 +165,37 @@ export function medBayStatus(crawler: Pick<Crawler, 'crawlerBays' | 'techLevel'>
 }
 
 // ---------------------------------------------------------------------------
+// Mech Bay gate (p.221)
+// ---------------------------------------------------------------------------
+
+export type MechBayStatus = {
+  /** A Mech Bay is installed on the crawler. */
+  present: boolean
+  /** The installed Mech Bay is currently Damaged. */
+  damaged: boolean
+  /** present && !damaged — SP/EP/Heat restore and Downtime repairs can run. */
+  operational: boolean
+}
+
+const MECH_BAY_NAME = 'Mech Bay'
+
+/**
+ * The crawler's Mech Bay capability this Downtime. Every Union Crawler has a
+ * Mech Bay at the crawler's own Tech Level (p.240), but a Damaged one blocks
+ * SP/EP restoration and all Downtime repairs (p.221) — and a missing entry
+ * (data drift) is reported so the runner can surface it instead of silently
+ * restoring anyway.
+ */
+export function mechBayStatus(crawler: Pick<Crawler, 'crawlerBays'>): MechBayStatus {
+  const entry = (crawler.crawlerBays ?? []).find(
+    (bay) => resolveCrawlerBay(bay.bayRef)?.name === MECH_BAY_NAME
+  )
+  const present = entry !== undefined
+  const damaged = present && (entry.condition ?? 'intact') === 'damaged'
+  return { present, damaged, operational: present && !damaged }
+}
+
+// ---------------------------------------------------------------------------
 // Mech patch (restore + repair + recharge)
 // ---------------------------------------------------------------------------
 
@@ -250,16 +285,22 @@ function repairConditionMap(
  * included — an empty patch means "skip the write". A Destroyed mech is
  * skipped entirely: Downtime repairs Damaged, never resurrects Destroyed
  * (build a new mech in the Crafting Bay instead).
+ *
+ * `mechBay` gates restore + repair (p.221: a Damaged — or missing — Mech Bay
+ * blocks both; Uses still recharge, that is Downtime rest, not the bay).
+ * Omitted = assume operational, for callers outside the crawler context.
  */
 export function downtimeMechPatch(
   mech: Mech,
   crawlerTl: number,
-  steps: DowntimeSteps
+  steps: DowntimeSteps,
+  mechBay?: Pick<MechBayStatus, 'operational'>
 ): Partial<Mech> {
   if (mech.destroyed) return {}
   const patch: Partial<Mech> = {}
+  const bayOperational = mechBay?.operational ?? true
 
-  if (steps.restoreMechs) {
+  if (steps.restoreMechs && bayOperational) {
     const maxSP = mechMaxSP(mech)
     const maxEP = mechMaxEP(mech)
     if (mech.currentSP !== undefined && mech.currentSP !== maxSP) patch.currentSP = maxSP
@@ -267,7 +308,7 @@ export function downtimeMechPatch(
     if ((mech.currentHeat ?? 0) !== 0) patch.currentHeat = 0
   }
 
-  if (steps.repairItems) {
+  if (steps.repairItems && bayOperational) {
     const { repairable, chassisRepairable } = repairableItems(mech, crawlerTl)
     const repairSet = new Set(repairable)
     const nextSystems = repairConditionMap(mech.systemConditions, repairSet)

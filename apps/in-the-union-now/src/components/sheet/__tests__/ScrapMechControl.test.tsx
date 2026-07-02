@@ -184,4 +184,33 @@ describe('ScrapMechControl (p.248)', () => {
     // …then the mech record is deleted (SoftLinks cascade in the real store).
     expect(del).toHaveBeenCalledWith('mech', mech.id)
   })
+
+  test('a destroyed mech yields NO scrap and its cargo is lost (p.234/p.240 total loss)', async () => {
+    restore = patchReference()
+    const mech = makeMech({
+      destroyed: true,
+      // Stored conditions say intact — the mech-level flag overrides them.
+      systemConditions: { 'red-laser': 'intact' },
+      cargoLots: [makeScrapLot(2, 3), makeUnitLot('Sealed Crate')],
+    })
+    const crawler = makeCrawler()
+    const { store, update, del } = makeStubStore(mech, crawler)
+    render(<ScrapMechControl mech={mech} crawler={crawler} store={store} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Scrap this Mech' }))
+    expect(screen.getByText(/was destroyed/)).toBeTruthy()
+    expect(screen.getByText('no Scrap', { exact: false })).toBeTruthy()
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Scrap it' }))
+    })
+
+    // The crawler write books nothing: pool untouched, no cargo hand-off.
+    expect(update).toHaveBeenCalledTimes(1)
+    const [, , patch] = update.mock.calls[0] as [string, string, Partial<Crawler>]
+    expect(patch.scrapPool).toEqual({ tl1: 1 })
+    expect(patch.cargoLots).toEqual([])
+
+    expect(del).toHaveBeenCalledWith('mech', mech.id)
+  })
 })

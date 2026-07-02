@@ -22,6 +22,7 @@ import {
   downtimePilotPatch,
   healableInjuries,
   medBayStatus,
+  mechBayStatus,
   repairableItems,
   resolveDowntimeScope,
 } from '../downtime'
@@ -247,6 +248,34 @@ describe('medBayStatus', () => {
 })
 
 // ---------------------------------------------------------------------------
+// mechBayStatus (p.221)
+// ---------------------------------------------------------------------------
+
+describe('mechBayStatus', () => {
+  it('intact Mech Bay → operational', () => {
+    const status = mechBayStatus(makeCrawler({ crawlerBays: [{ bayRef: 'Mech Bay' }] }))
+    expect(status.present).toBe(true)
+    expect(status.damaged).toBe(false)
+    expect(status.operational).toBe(true)
+  })
+
+  it('damaged Mech Bay → present but not operational (p.221)', () => {
+    const status = mechBayStatus(
+      makeCrawler({ crawlerBays: [{ bayRef: 'Mech Bay', condition: 'damaged' }] })
+    )
+    expect(status.present).toBe(true)
+    expect(status.damaged).toBe(true)
+    expect(status.operational).toBe(false)
+  })
+
+  it('no Mech Bay entry → not operational (surfaced, never silently restored)', () => {
+    const status = mechBayStatus(makeCrawler({ crawlerBays: [{ bayRef: 'Med Bay' }] }))
+    expect(status.present).toBe(false)
+    expect(status.operational).toBe(false)
+  })
+})
+
+// ---------------------------------------------------------------------------
 // repairableItems / downtimeMechPatch
 // ---------------------------------------------------------------------------
 
@@ -300,6 +329,33 @@ describe('downtimeMechPatch', () => {
   it('produces an empty patch when everything is already at rest', () => {
     const mech = makeMech()
     expect(downtimeMechPatch(mech, 3, allDowntimeSteps())).toEqual({})
+  })
+
+  it('a non-operational Mech Bay blocks restore + repair but not Uses recharge (p.221)', () => {
+    const mech = makeMech({
+      currentSP: 2,
+      currentEP: 1,
+      currentHeat: 4,
+      systemConditions: { [TL1_SYSTEM]: 'damaged' },
+      conditions: [CHASSIS_DAMAGED_CONDITION],
+      itemUses: { [TL1_SYSTEM]: 1 },
+    })
+    const patch = downtimeMechPatch(mech, 3, allDowntimeSteps(), { operational: false })
+    // No SP/EP/Heat restore, no repairs…
+    expect(patch.currentSP).toBeUndefined()
+    expect(patch.currentEP).toBeUndefined()
+    expect(patch.currentHeat).toBeUndefined()
+    expect(patch.systemConditions).toBeUndefined()
+    expect(patch.conditions).toBeUndefined()
+    // …but Uses still recharge (Downtime rest, not the bay).
+    expect(patch.itemUses).toEqual({})
+  })
+
+  it('an operational Mech Bay passed explicitly behaves like the default', () => {
+    const mech = makeMech({ currentSP: 2, currentHeat: 4 })
+    const gated = downtimeMechPatch(mech, 3, allDowntimeSteps(), { operational: true })
+    const defaulted = downtimeMechPatch(mech, 3, allDowntimeSteps())
+    expect(gated).toEqual(defaulted)
   })
 
   it('repairs damaged system/module conditions and clears Chassis Damaged', () => {

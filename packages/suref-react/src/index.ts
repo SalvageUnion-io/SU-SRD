@@ -108,6 +108,11 @@ export type { ChoiceSelections } from './components/referenceEntity/choiceCard/c
 export { Tag } from './components/chrome/Tag'
 export { Btn } from './components/chrome/Btn'
 export { btnVariants } from './components/chrome/btnVariants'
+
+// Utilities — the ONE cn(): its tailwind-merge config knows the custom
+// text/tracking/border-width utilities (consumers must not re-wrap twMerge
+// with the default config, which drops them as unknown "colors").
+export { cn } from './utils/cn'
 export { Field, Input } from './components/chrome/Field'
 export { Pill, Chip } from './components/chrome/Pill'
 export type { PillTone } from './components/chrome/Pill'

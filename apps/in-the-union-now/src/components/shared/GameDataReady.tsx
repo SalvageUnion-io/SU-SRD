@@ -58,8 +58,10 @@ function GameDataFallback() {
       <p className="font-cond text-sm font-semibold uppercase tracking-[0.22em] text-su-paper">
         Loading reference data…
       </p>
+      {/* motion-safe: prefers-reduced-motion users get a static bar instead
+          of the infinite translateX sweep (matches the heat-pulse guard). */}
       <div aria-hidden="true" className="h-1 w-56 overflow-hidden rounded-full bg-su-paper/20">
-        <div className="animate-loader-slide h-full w-1/3 rounded-full bg-rust" />
+        <div className="h-full w-1/3 rounded-full bg-rust motion-safe:animate-loader-slide" />
       </div>
     </div>
   )

@@ -80,6 +80,19 @@ describe('QuickRollFab — rolling', () => {
 
     expect(screen.queryByText('Success')).toBeNull()
   })
+
+  test('the live region mounts with the FAB, BEFORE the first roll, so it announces', () => {
+    render(<QuickRollFab roll={seqRoll(9)} />)
+
+    // Live regions only announce changes to an existing region — it must be
+    // in the DOM (empty) before the first result lands in it.
+    const region = screen.getByRole('status')
+    expect(region.textContent).toBe('')
+
+    fireEvent.click(screen.getByRole('button', { name: /roll d20/i }))
+    expect(region.textContent).toContain('Rolled 9')
+    expect(region.textContent).toContain('Tough Choice')
+  })
 })
 
 describe('QuickRollFab — Push affordance (mech sheets)', () => {
@@ -106,8 +119,29 @@ describe('QuickRollFab — Push affordance (mech sheets)', () => {
     })
     expect(onPush).toHaveBeenCalledTimes(1)
     expect(screen.getByText('Success')).toBeTruthy()
-    expect(screen.getByText(/passed \(no overload\)/i)).toBeTruthy()
+    // Rendered twice: the visible outcome note + the sr-only live region.
+    expect(screen.getAllByText(/passed \(no overload\)/i).length).toBeGreaterThan(0)
     // A pushed result cannot be pushed again (one re-roll per roll).
     expect(screen.queryByRole('button', { name: /push \(\+2 heat\)/i })).toBeNull()
+  })
+
+  test("pushLocked disables Push with the reason (p.233 — can't exceed Heat Cap)", () => {
+    const onPush = mock(async () => 'never called')
+    render(
+      <QuickRollFab
+        roll={seqRoll(4)}
+        onPush={onPush}
+        pushLocked="Can't Push at Heat 5/6 — +2 Heat would take the mech over its Heat Cap (p.233)."
+      />
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /roll d20/i }))
+
+    const push = screen.getByRole('button', { name: /push \(\+2 heat\)/i }) as HTMLButtonElement
+    expect(push.disabled).toBe(true)
+    expect(push.getAttribute('title')).toContain('Heat Cap')
+
+    fireEvent.click(push)
+    expect(onPush).not.toHaveBeenCalled()
   })
 })

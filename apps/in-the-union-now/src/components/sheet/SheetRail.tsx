@@ -106,7 +106,7 @@ export function RailChip({
             <span className="font-cond text-nano opacity-85">TL</span>
           </span>
         )}
-        <span className="min-w-0 truncate bg-ink px-1.5 py-0.5 font-cond text-[17px] font-bold uppercase leading-tight text-su-white">
+        <span className="min-w-0 truncate bg-ink px-1.5 py-0.5 font-cond text-base font-bold uppercase leading-tight text-su-white">
           {name}
         </span>
       </span>

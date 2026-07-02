@@ -17,7 +17,7 @@
  * Pure roll/claim logic lives in lib/rules/salvage.ts (injectable d20).
  */
 
-import { useId, useMemo, useState } from 'react'
+import { useId, useMemo, useRef, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { Btn, MiniBtn, StepBtn } from 'suref-react'
 
@@ -274,19 +274,35 @@ export function SalvageControl({
 
   // --- Deposits (auto-applied bookkeeping, ADR-007) -----------------------
 
+  // Deposits are serialized through a promise chain: each one reads the
+  // freshest crawler only AFTER the previous write (including its IndexedDB
+  // round-trip) has landed. Without this, two rapid rolls — or a roll + an
+  // immediate claim take — both read the pre-deposit record and the second
+  // write silently clobbers the first (last-write-wins on scrapPool /
+  // cargoLots). The roll buttons stay enabled; ordering does the work.
+  const depositChain = useRef<Promise<void>>(Promise.resolve())
+
+  function enqueueDeposit(apply: () => Promise<void>): void {
+    depositChain.current = depositChain.current.then(apply, apply)
+  }
+
   /** Deposit scrap into the crawler's TL pool bucket (freshest record wins). */
-  async function depositScrap(tl: number, qty: number) {
-    const fresh = storeState.get('crawler', crawler.id) ?? crawler
-    await storeState.update('crawler', crawler.id, {
-      scrapPool: addToScrapPool(fresh.scrapPool ?? {}, tl, qty),
+  function depositScrap(tl: number, qty: number) {
+    enqueueDeposit(async () => {
+      const fresh = storeState.get('crawler', crawler.id) ?? crawler
+      await storeState.update('crawler', crawler.id, {
+        scrapPool: addToScrapPool(fresh.scrapPool ?? {}, tl, qty),
+      })
     })
   }
 
   /** Prepend a lot to the crawler hold (unlimited — no cap check). */
-  async function depositLot(lot: CargoLot) {
-    const fresh = storeState.get('crawler', crawler.id) ?? crawler
-    await storeState.update('crawler', crawler.id, {
-      cargoLots: [lot, ...(fresh.cargoLots ?? [])],
+  function depositLot(lot: CargoLot) {
+    enqueueDeposit(async () => {
+      const fresh = storeState.get('crawler', crawler.id) ?? crawler
+      await storeState.update('crawler', crawler.id, {
+        cargoLots: [lot, ...(fresh.cargoLots ?? [])],
+      })
     })
   }
 
@@ -298,7 +314,7 @@ export function SalvageControl({
     setLastArea(result)
     setAttemptsUsed((n) => n + 1)
     setSupply((s) => Math.max(0, s - 1))
-    if (result.scrapQty > 0) void depositScrap(result.areaTl, result.scrapQty)
+    if (result.scrapQty > 0) depositScrap(result.areaTl, result.scrapQty)
     setAreaClaim(result.requiresPlayerChoice ? areaJackpotClaim() : null)
   }
 
@@ -310,7 +326,7 @@ export function SalvageControl({
   }
 
   function takeAreaOption(option: ClaimOption) {
-    void depositLot(damagedSalvageLot(option))
+    depositLot(damagedSalvageLot(option))
     setAreaClaim((claim) => {
       if (!claim) return null
       const next = takeFromClaim(claim, option.kind)
@@ -324,13 +340,13 @@ export function SalvageControl({
     if (!wreck) return
     const result = performMechSalvage({ chassis: wreck, roll })
     setLastMech({ result, wreck })
-    if (result.scrapQty > 0) void depositScrap(result.scrapTl, result.scrapQty)
-    if (result.chassisGranted) void depositLot(damagedSalvageLot(wreck))
+    if (result.scrapQty > 0) depositScrap(result.scrapTl, result.scrapQty)
+    if (result.chassisGranted) depositLot(damagedSalvageLot(wreck))
     setMechClaim(result.requiresPlayerChoice ? result.claim : null)
   }
 
   function takeMechOption(option: ClaimOption) {
-    void depositLot(damagedSalvageLot(option))
+    depositLot(damagedSalvageLot(option))
     setMechClaim((claim) => {
       if (!claim) return null
       const next = takeFromClaim(claim, option.kind)
@@ -340,7 +356,7 @@ export function SalvageControl({
 
   function takeMechWreckChassis() {
     if (!lastMech) return
-    void depositLot(damagedSalvageLot(lastMech.wreck))
+    depositLot(damagedSalvageLot(lastMech.wreck))
     setMechClaim((claim) => {
       if (!claim) return null
       const next = takeFromClaim(claim, 'chassis')

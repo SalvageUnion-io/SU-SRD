@@ -37,6 +37,11 @@ type QuickRollFabProps = {
    * omitted, no Push affordance renders.
    */
   onPush?: () => Promise<string>
+  /**
+   * Rules gate: when set, the Push button is disabled with this reason
+   * (p.233 — can't Push if +2 Heat would take the mech over its Heat Cap).
+   */
+  pushLocked?: string
   className?: string
 }
 
@@ -62,7 +67,12 @@ const BAND_BG: Record<CoreRollBand, string> = {
   cascade: 'bg-roll-cascade',
 }
 
-export function QuickRollFab({ roll = defaultRoll, onPush, className }: QuickRollFabProps) {
+export function QuickRollFab({
+  roll = defaultRoll,
+  onPush,
+  pushLocked,
+  className,
+}: QuickRollFabProps) {
   const rootRef = useRef<HTMLDivElement | null>(null)
   const [open, setOpen] = useState(false)
   const [entries, setEntries] = useState<RollEntry[]>([])
@@ -132,8 +142,8 @@ export function QuickRollFab({ roll = defaultRoll, onPush, className }: QuickRol
             </button>
           </div>
 
-          {/* Latest roll — announced politely so screen readers hear each result. */}
-          <div role="status" aria-live="polite">
+          {/* Latest roll — announced via the always-mounted live region below. */}
+          <div>
             <div className="flex items-center gap-2.5">
               <span className="font-cond text-3xl font-bold leading-none text-ink">
                 {latest.roll}
@@ -169,8 +179,8 @@ export function QuickRollFab({ roll = defaultRoll, onPush, className }: QuickRol
               <Btn
                 size="sm"
                 variant="danger"
-                title="Re-roll at the cost of +2 Heat, then a Heat Check"
-                disabled={pushing}
+                title={pushLocked ?? 'Re-roll at the cost of +2 Heat, then a Heat Check'}
+                disabled={pushing || pushLocked !== undefined}
                 onClick={() => {
                   void handlePush()
                 }}
@@ -205,6 +215,22 @@ export function QuickRollFab({ roll = defaultRoll, onPush, className }: QuickRol
           )}
         </section>
       )}
+
+      {/*
+       * Screen-reader announcement channel. Mounted with the FAB itself —
+       * BEFORE any roll — because live regions only announce CHANGES to an
+       * existing region: if the region mounted together with its first
+       * result (panel open), that first roll would be silent. The keyed span
+       * forces a fresh DOM node per roll so repeat values re-announce.
+       */}
+      <div role="status" aria-live="polite" className="sr-only">
+        {latest && (
+          <span key={latest.id}>
+            Rolled {latest.roll} — {CORE_ROLL_BANDS[latest.band].label}.
+            {latest.pushNote ? ` ${latest.pushNote}` : ''}
+          </span>
+        )}
+      </div>
 
       <button
         type="button"

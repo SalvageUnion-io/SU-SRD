@@ -34,6 +34,7 @@ import type { Mech } from '../../lib/schemas/mech'
 import { useEntityStore } from '../../stores/entityStore'
 import { useEntityChoices } from '../shared/useEntityChoices'
 import { CraftingControl } from './CraftingControl'
+import { DowntimeControl } from './DowntimeControl'
 import { Ecflow, Erow } from './Erow'
 import { NpcInset } from './NpcInset'
 import { SalvageControl } from './SalvageControl'
@@ -388,7 +389,7 @@ function ScrapPoolSlab({ pool, onAdjust, readOnly }: ScrapPoolSlabProps) {
             aria-label={`Tech ${tl} scrap: ${value}`}
             className="inline-flex items-stretch overflow-hidden rounded-[2px] border-chrome border-cargo-deep bg-paper"
           >
-            <span className="flex items-center bg-cargo-deep px-1.5 font-cond text-[9.5px] font-bold uppercase leading-none text-su-white">
+            <span className="flex items-center bg-cargo-deep px-1.5 font-cond text-micro font-bold uppercase leading-none text-su-white">
               T{tl}
             </span>
             <span className="flex min-w-7 items-center justify-center px-1.5 font-body text-sm font-bold leading-none text-cargo-deep">
@@ -604,6 +605,15 @@ export function CrawlerSheet({
           readOnly={readOnly}
         />
       </div>
+
+      {/* Downtime — the one-click p.227-228 checklist runner for the crew
+          (design-review R-2). Live-play only: pure bookkeeping writes. */}
+      {!readOnly && (
+        <div>
+          <Slab label="Downtime" count="restore · repair · heal · train · recharge · Upkeep" />
+          <DowntimeControl crawler={crawler} store={store} />
+        </div>
+      )}
 
       {/* Salvaging — Area + Mech Salvage rollers (design-review R-3, pp.244-248).
           Live-play only: rolls are ephemeral, so snapshots have nothing to show. */}

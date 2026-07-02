@@ -76,7 +76,7 @@ export function EncounterNpcCard({ npc, store, roll, findTable }: EncounterNpcCa
     <div className="overflow-hidden rounded-[2px] border-chrome border-ink bg-paper">
       {/* Black head bar: schema tag + instance name + reference name + remove */}
       <div className="flex flex-wrap items-center gap-2 bg-ink px-2 py-1.5">
-        <span className="rounded-[1px] bg-rust px-1.5 pb-px pt-[2px] font-cond text-nano font-bold uppercase leading-none tracking-[0.14em] text-su-white">
+        <span className="rounded-[1px] bg-rust px-1.5 pb-px pt-[2px] font-cond text-nano font-bold uppercase leading-none tracking-caps-wide text-su-white">
           {ENCOUNTER_SCHEMA_LABEL[npc.refSchema]}
         </span>
         <span className="min-w-0 font-cond text-lede font-bold uppercase leading-none text-su-white">
@@ -89,7 +89,7 @@ export function EncounterNpcCard({ npc, store, roll, findTable }: EncounterNpcCa
           />
         </span>
         {npc.name !== npc.refName && (
-          <span className="font-cond text-[9.5px] uppercase leading-none tracking-caps text-su-white/60">
+          <span className="font-cond text-micro uppercase leading-none tracking-caps text-su-white/60">
             {npc.refName}
           </span>
         )}
@@ -142,11 +142,13 @@ export function EncounterNpcCard({ npc, store, roll, findTable }: EncounterNpcCa
                   className="inline-flex items-center gap-1 rounded-[2px] border-chrome border-status-warn bg-paper px-1.5 py-0.5 font-cond text-xs font-semibold uppercase text-rust"
                 >
                   {condition}
+                  {/* 24px hit area (WCAG 2.5.8) — negative margin keeps the
+                      pill visually compact while the target stays tappable. */}
                   <button
                     type="button"
                     aria-label={`Clear ${condition} on ${npc.name}`}
                     onClick={() => removeCondition(index)}
-                    className="cursor-pointer leading-none text-rust hover:text-status-bad"
+                    className="-my-1 -mr-1 inline-flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-[2px] leading-none text-rust hover:bg-status-warn/20 hover:text-status-bad"
                   >
                     ×
                   </button>

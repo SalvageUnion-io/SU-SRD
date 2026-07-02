@@ -121,7 +121,12 @@ export function mechScrapComponents(mech: ScrapMechInput): ScrapMechComponent[] 
       name: item?.name ?? slug,
       techLevel: numericTl(item?.techLevel),
       salvageValue: numericSv(item?.salvageValue),
-      condition: conditions[slug] ?? 'intact',
+      // Both meltdown paths destroy the WHOLE mech: "The Mech, as well as any
+      // mounted Systems and Modules as well as all Cargo, is destroyed"
+      // (Catastrophic Damage 1, p.240; Reactor Overload 1, p.234) — so a
+      // destroyed mech's mounted items are destroyed regardless of their
+      // stored per-item condition.
+      condition: mech.destroyed ? 'destroyed' : (conditions[slug] ?? 'intact'),
     })
   }
   for (const slug of mech.systems) push('system', slug, systemItems)
@@ -181,6 +186,10 @@ export function depositScrapDeposits(pool: ScrapPool, deposits: PoolDraw[]): Scr
  * silent data loss). Mirrors the stow semantics of `cargoTransfer`: SCRAP
  * lots deposit their TL pool bucket; every other lot moves into the crawler
  * hold whole.
+ *
+ * NOT for destroyed mechs: both meltdown paths destroy "all Cargo" with the
+ * mech (p.234/p.240) — the caller must skip the hand-off when
+ * `mech.destroyed` is true.
  */
 export function handOffCargo(
   mechLots: CargoLot[],
