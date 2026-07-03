@@ -353,6 +353,13 @@ jobs:
           done
           echo "::error::Timed out waiting for the Netlify deploy preview"; exit 1
 
+      - name: Cache Playwright browsers
+        if: steps.preview.outputs.skipped != 'true'
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+
       - name: Install Playwright browsers (Chromium)
         if: steps.preview.outputs.skipped != 'true'
         working-directory: apps/in-the-union-now
@@ -395,6 +402,12 @@ jobs:
         with:
           name: package-dist
           path: packages/salvageunion-reference/dist/
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
 
       - name: Install Playwright browsers (Chromium)
         working-directory: apps/in-the-union-now

@@ -38,7 +38,10 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  // 2 CI workers (was 1): the suite is fullyParallel and targets a static
+  // preview / Netlify deploy that handles concurrency fine; retries: 2 stays
+  // as the flake net. Halve back to 1 if flake telemetry regresses.
+  workers: process.env.CI ? 2 : undefined,
   reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',
   use: {
     baseURL: externalBaseURL ?? 'http://localhost:5173',
