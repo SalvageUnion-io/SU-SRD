@@ -51,9 +51,9 @@ function CrawlerDetailPage() {
     return (
       <main className="mx-auto max-w-7xl p-6">
         <p className="text-wk-muted">Crawler not found.</p>
-        <a href="/" className={cn(btnVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}>
+        <Link to="/" className={cn(btnVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}>
           Back to dashboard
-        </a>
+        </Link>
       </main>
     )
   }
@@ -78,9 +78,12 @@ function CrawlerDetailPage() {
           >
             Edit
           </Link>
-          <a href="/" className={cn(btnVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}>
+          <Link
+            to="/"
+            className={cn(btnVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
+          >
             Back
-          </a>
+          </Link>
         </div>
       </div>
 
@@ -129,12 +132,13 @@ function CrawlerDetailPage() {
                   >
                     <span className="flex-1">
                       {pilot ? (
-                        <a
-                          href={`/pilots/${pilot.id}`}
+                        <Link
+                          to="/pilots/$id"
+                          params={{ id: pilot.id }}
                           className="font-medium text-rust underline-offset-2 hover:underline"
                         >
                           {pilot.name}
-                        </a>
+                        </Link>
                       ) : (
                         <span className="text-wk-muted">Unknown pilot ({link.from.id})</span>
                       )}
@@ -160,12 +164,13 @@ function CrawlerDetailPage() {
 
           {/* Actions */}
           <div className="flex flex-wrap gap-3">
-            <a
-              href={`/sheet/crawler/${id}`}
+            <Link
+              to="/sheet/$kind/$id"
+              params={{ kind: 'crawler', id }}
               className={cn(btnVariants({ variant: 'primary' }), 'no-underline')}
             >
               View Sheet
-            </a>
+            </Link>
             <ExportEntityButton type="crawler" id={id} name={crawler.name} />
           </div>
         </div>

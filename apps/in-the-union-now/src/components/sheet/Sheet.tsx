@@ -223,9 +223,24 @@ export function Sheet({
   const entity = lookup.get(kind, id)
 
   if (!entity) {
+    // Styled not-found with an exit path — this is the most-visited surface
+    // in the app; a bare one-liner stranded the user (audit item 7).
     return (
-      <main className="mx-auto max-w-7xl p-3 sm:p-6">
-        <p className="text-wk-muted text-sm">Entity not found.</p>
+      <main className="flex min-h-dvh items-center justify-center bg-wk-bg p-6">
+        <div className="flex w-full max-w-xl flex-col items-start gap-4 rounded-[6px] border-chrome border-ink bg-paper p-6 sm:p-8">
+          <h1 className="font-cond text-xl font-bold uppercase tracking-caps-tight text-ink">
+            {kind} not found
+          </h1>
+          <p className="font-body text-sm text-wk-muted">
+            This {kind} may have been deleted, or the link may be stale.
+          </p>
+          <AppLink
+            href="/"
+            className={cn(btnVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
+          >
+            &larr; Back to dashboard
+          </AppLink>
+        </div>
       </main>
     )
   }

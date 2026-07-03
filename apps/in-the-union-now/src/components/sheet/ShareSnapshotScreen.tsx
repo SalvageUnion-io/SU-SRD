@@ -48,6 +48,7 @@ import { AppLink } from '../shared/AppLink'
 
 import type { EntityLookup } from './composition'
 import { SheetHero, ChassisStats } from './SheetHero'
+import { SnapshotQr } from './SnapshotQr'
 import type { ChassisStatItem } from './SheetHero'
 import { resolveChassisRef } from '../../lib/rules/resolveRefs'
 
@@ -277,18 +278,21 @@ export function ShareSnapshotScreen({
           <Panel className="p-4 sm:p-5">
             <h2 className={PANEL_HEADING_CLASS}>QR code</h2>
             <div className="flex items-center gap-3.5">
-              {/* TODO(post-beta): render a real QR for the share URL — needs a
-                  zero-dependency QR encoder; until then this is the design's
-                  checker placeholder (§3.4). */}
-              <div
-                aria-hidden="true"
-                className="h-[84px] w-[84px] shrink-0 rounded-[3px] border-chrome border-ink"
-                style={{
-                  background:
-                    'repeating-conic-gradient(var(--color-ink) 0 25%, #fff 0 50%) 0 / 16px 16px',
-                }}
-              />
-              <p className="text-wk-muted mb-0 font-body text-caption">Scan to open</p>
+              {shareUrl ? (
+                <SnapshotQr url={shareUrl} />
+              ) : (
+                <div
+                  aria-hidden="true"
+                  className="h-[84px] w-[84px] shrink-0 rounded-[3px] border-chrome border-ink"
+                  style={{
+                    background:
+                      'repeating-conic-gradient(var(--color-ink) 0 25%, #fff 0 50%) 0 / 16px 16px',
+                  }}
+                />
+              )}
+              <p className="text-wk-muted mb-0 font-body text-caption">
+                {shareUrl ? 'Scan to open' : 'Publish to generate a QR code'}
+              </p>
             </div>
           </Panel>
 

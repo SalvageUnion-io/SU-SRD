@@ -133,7 +133,9 @@ describe('ShareSnapshotScreen — layout', () => {
       )
     })
     expect(screen.getByRole('heading', { name: /qr code/i })).toBeTruthy()
-    expect(screen.getByText(/scan to open/i)).toBeTruthy()
+    // Pre-publish the panel shows the generate hint; 'Scan to open' appears
+    // only once a share URL exists (audit item 14).
+    expect(screen.getByText(/publish to generate a qr code/i)).toBeTruthy()
     const printLink = screen.getByRole('link', { name: /open print view/i })
     expect(printLink.getAttribute('href')).toBe('/sheet/mech/mech-1')
   })
@@ -318,5 +320,52 @@ describe('ShareSnapshotScreen — backend feature-detect (S6)', () => {
     const note = screen.getByRole('note')
     expect(note.textContent).toContain('Publishing unavailable')
     expect(note.getAttribute('title')).toContain('/api/snapshots')
+  })
+})
+
+// ---------------------------------------------------------------------------
+// QR code (audit item 14): a real QR renders once a share URL exists;
+// before publish the decorative placeholder + hint copy show instead.
+// ---------------------------------------------------------------------------
+
+describe('ShareSnapshotScreen — QR code', () => {
+  test('pre-publish: placeholder only, no QR image', async () => {
+    await act(async () => {
+      render(
+        <ShareSnapshotScreen
+          kind="pilot"
+          id="pilot-1"
+          entityStore={makeEntityStore([fakePilot])}
+          probeFn={probeUp}
+          publishFn={makePublishFn({ id: 'a', url: '/api/snapshots/a' })}
+        />
+      )
+    })
+    expect(screen.queryByTestId('snapshot-qr')).toBeNull()
+    expect(screen.getByText('Publish to generate a QR code')).toBeTruthy()
+  })
+
+  test('after publish: renders the QR image labeled for screen readers', async () => {
+    render(
+      <ShareSnapshotScreen
+        kind="pilot"
+        id="pilot-1"
+        entityStore={makeEntityStore([fakePilot])}
+        probeFn={probeUp}
+        publishFn={makePublishFn({ id: 'snap-qr-1', url: '/api/snapshots/snap-qr-1' })}
+      />
+    )
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /publish snapshot/i })).toBeTruthy()
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /publish snapshot/i }))
+    })
+    const qr = await screen.findByTestId('snapshot-qr')
+    expect(qr.getAttribute('role')).toBe('img')
+    expect(qr.getAttribute('aria-label')).toBe('QR code linking to this snapshot')
+    await waitFor(() => {
+      expect(qr.querySelector('svg')).not.toBeNull()
+    })
   })
 })
