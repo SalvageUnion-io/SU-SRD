@@ -29,6 +29,7 @@ import { applyMechDamage, performCriticalDamage } from '../../lib/rules/takeDama
 import type { DamageKind } from '../../lib/rules/takeDamage'
 import type { CriticalDamageOutcome, Mech } from '../../lib/schemas/mech'
 import type { useEntityStore } from '../../stores/entityStore'
+import { destroyedUndoToast } from './destroyedUndoToast'
 
 type TakeDamageControlProps = {
   mech: Mech
@@ -129,6 +130,15 @@ export function TakeDamageControl({
     setChoicePrompt(effect.requiresPlayerChoice)
     setLastApplied(null)
     await storeState.update('mech', mech.id, patch)
+    // Destructive-write policy (audit item 25): automation-written destroyed
+    // flags surface the same one-click Undo as item destruction (U-6), on
+    // top of HeatCheckControl's persistent Clear strip — a mis-rolled or
+    // mis-read table result shouldn't require hunting for the Clear button.
+    if (effect.destroyed) {
+      destroyedUndoToast(mech.name || 'Mech', () => {
+        void storeState.update('mech', mech.id, { destroyed: undefined })
+      })
+    }
   }
 
   const last = mech.lastCriticalDamage
