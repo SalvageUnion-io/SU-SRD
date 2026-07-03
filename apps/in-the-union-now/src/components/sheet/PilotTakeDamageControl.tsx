@@ -16,6 +16,8 @@
  * readOnly renders the last-result readout only — no inputs, no mutation.
  *
  * The d20 is dep-injectable via `roll` so tests are deterministic.
+ * Intake row / advisory boxes / fresh-record read come from
+ * controlPrimitives (audit item 24).
  */
 
 import { useState } from 'react'
@@ -28,6 +30,8 @@ import { applyPilotDamage, performCriticalInjury } from '../../lib/rules/takeDam
 import type { DamageKind } from '../../lib/rules/takeDamage'
 import type { CriticalInjuryOutcome, Injury, Pilot } from '../../lib/schemas/pilot'
 import type { useEntityStore } from '../../stores/entityStore'
+import { AdvisoryBox, DamageIntakeRow, freshEntity, useDamageAmount } from './controlPrimitives'
+import type { DamageKindOption } from './controlPrimitives'
 
 type PilotTakeDamageControlProps = {
   pilot: Pilot
@@ -54,6 +58,12 @@ const OUTCOME_LABEL: Record<CriticalInjuryOutcome, string> = {
 
 const UNCONSCIOUS_CONDITION = 'Unconscious'
 
+/** Pilots: HP applies 1:1; listed SP damage doubles (p.241). */
+const PILOT_DAMAGE_KINDS: readonly [DamageKindOption, DamageKindOption] = [
+  { kind: 'hp', label: 'HP damage', title: 'Weapon lists HP damage — applies 1:1' },
+  { kind: 'sp', label: 'SP damage (×2)', title: 'Weapon lists SP damage — pilots take double' },
+]
+
 export function PilotTakeDamageControl({
   pilot,
   store,
@@ -61,7 +71,7 @@ export function PilotTakeDamageControl({
   readOnly = false,
 }: PilotTakeDamageControlProps) {
   const storeState = store()
-  const [amountText, setAmountText] = useState('')
+  const { amountText, setAmountText, amount, amountValid } = useDamageAmount()
   const [kind, setKind] = useState<DamageKind>('hp')
   // Vulnerable ×2 tracks the pilot's condition list until the player overrides.
   const [vulnerableOverride, setVulnerableOverride] = useState<boolean | null>(null)
@@ -73,17 +83,9 @@ export function PilotTakeDamageControl({
   const maxHP = Math.max(0, pilotMaxHP(pilot))
   const currentHP = Math.min(pilot.currentHP ?? maxHP, maxHP)
 
-  const amount = Number.parseInt(amountText, 10)
-  const amountValid = Number.isInteger(amount) && amount > 0
-
-  /** Freshest pilot record from the store, falling back to the render prop. */
-  function freshPilot(): Pilot {
-    return storeState.get('pilot', pilot.id) ?? pilot
-  }
-
   async function applyDamage() {
     if (!amountValid) return
-    const fresh = freshPilot()
+    const fresh = freshEntity(storeState, 'pilot', pilot)
     const hp = Math.min(fresh.currentHP ?? maxHP, maxHP)
     const effect = applyPilotDamage({ currentHP: hp, amount, kind, vulnerable })
     setLastApplied(
@@ -97,7 +99,7 @@ export function PilotTakeDamageControl({
 
   async function rollCritical() {
     const effect = performCriticalInjury({ roll })
-    const fresh = freshPilot()
+    const fresh = freshEntity(storeState, 'pilot', pilot)
     const patch: Partial<Pilot> = { lastCriticalInjury: effect.result }
     if (effect.nextHP !== null) {
       patch.currentHP = effect.nextHP
@@ -119,7 +121,7 @@ export function PilotTakeDamageControl({
    *  (severity drives the derived max HP) with current stats re-clamped. */
   async function acceptInjury() {
     if (!pendingInjury) return
-    const fresh = freshPilot()
+    const fresh = freshEntity(storeState, 'pilot', pilot)
     const rolled = fresh.lastCriticalInjury?.roll
     const injuries: Injury[] = [
       ...(fresh.injuries ?? []),
@@ -134,66 +136,25 @@ export function PilotTakeDamageControl({
   }
 
   const last = pilot.lastCriticalInjury
-  const inputClass =
-    'w-16 rounded-[3px] border-chrome border-ink bg-paper px-2 py-1.5 font-body text-sm text-ink focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22]'
 
   return (
     <div>
       <Slab label="Take Damage" />
 
       {!readOnly && (
-        <div className="flex flex-wrap items-center gap-2">
-          <input
-            type="number"
-            min={1}
-            value={amountText}
-            aria-label="Damage amount"
-            placeholder="0"
-            onChange={(e) => setAmountText(e.target.value)}
-            className={inputClass}
-          />
-          <span role="group" aria-label="Weapon damage type" className="inline-flex gap-1">
-            <Btn
-              size="sm"
-              variant={kind === 'hp' ? 'primary' : undefined}
-              aria-pressed={kind === 'hp'}
-              title="Weapon lists HP damage — applies 1:1"
-              onClick={() => setKind('hp')}
-            >
-              HP damage
-            </Btn>
-            <Btn
-              size="sm"
-              variant={kind === 'sp' ? 'primary' : undefined}
-              aria-pressed={kind === 'sp'}
-              title="Weapon lists SP damage — pilots take double"
-              onClick={() => setKind('sp')}
-            >
-              SP damage (×2)
-            </Btn>
-          </span>
-          <label className="flex items-center gap-1.5 font-cond text-xs font-bold uppercase text-wk-muted">
-            <input
-              type="checkbox"
-              checked={vulnerable}
-              aria-label="Vulnerable — takes double damage"
-              onChange={(e) => setVulnerableOverride(e.target.checked)}
-              className="accent-rust"
-            />
-            Vulnerable ×2
-          </label>
-          <Btn
-            size="sm"
-            variant="primary"
-            disabled={!amountValid}
-            aria-label="Apply damage"
-            onClick={() => {
-              void applyDamage()
-            }}
-          >
-            Apply
-          </Btn>
-        </div>
+        <DamageIntakeRow
+          amountText={amountText}
+          onAmountChange={setAmountText}
+          kindOptions={PILOT_DAMAGE_KINDS}
+          kind={kind}
+          onKindChange={setKind}
+          vulnerable={vulnerable}
+          onVulnerableChange={setVulnerableOverride}
+          applyDisabled={!amountValid}
+          onApply={() => {
+            void applyDamage()
+          }}
+        />
       )}
 
       <div className="mt-2 min-h-[1.5rem]">
@@ -210,10 +171,7 @@ export function PilotTakeDamageControl({
         )}
 
         {!readOnly && currentHP === 0 && maxHP > 0 && (
-          <div
-            role="alert"
-            className="mt-2 rounded-[3px] border-chrome border-status-warn bg-paper px-3 py-2"
-          >
+          <AdvisoryBox className="mt-2">
             <p className="m-0 font-body text-sm text-rust">
               0 HP — roll on the Critical Injury Table.
             </p>
@@ -228,14 +186,11 @@ export function PilotTakeDamageControl({
             >
               Roll Critical Injury
             </Btn>
-          </div>
+          </AdvisoryBox>
         )}
 
         {!readOnly && pendingInjury && (
-          <div
-            role="alert"
-            className="mt-2 rounded-[3px] border-chrome border-status-warn bg-paper px-3 py-2"
-          >
+          <AdvisoryBox className="mt-2">
             <p className="m-0 font-body text-sm text-rust">
               {pendingInjury === 'major'
                 ? 'Major Injury — accept to record −2 max HP (heals in a Tech 5-6 Med Bay).'
@@ -256,7 +211,7 @@ export function PilotTakeDamageControl({
                 Dismiss
               </Btn>
             </span>
-          </div>
+          </AdvisoryBox>
         )}
       </div>
     </div>

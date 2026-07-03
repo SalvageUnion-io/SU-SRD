@@ -37,6 +37,7 @@ import {
 import type { DowntimeStepKey, DowntimeSteps } from '../../lib/rules/downtime'
 import type { Crawler } from '../../lib/schemas/crawler'
 import { useEntityStore } from '../../stores/entityStore'
+import { AdvisoryText, freshEntity } from './controlPrimitives'
 
 type DowntimeControlProps = {
   crawler: Crawler
@@ -120,7 +121,7 @@ export function DowntimeControl({ crawler, store = useEntityStore }: DowntimeCon
     if (pending) return
     setPending(true)
     try {
-      const freshCrawler = storeState.get('crawler', crawler.id) ?? crawler
+      const freshCrawler = freshEntity(storeState, 'crawler', crawler)
       const tlNow = parseCrawlerTechLevel(freshCrawler.techLevel) ?? 1
       const medBayNow = medBayStatus(freshCrawler)
       const mechBayNow = mechBayStatus(freshCrawler)
@@ -133,7 +134,7 @@ export function DowntimeControl({ crawler, store = useEntityStore }: DowntimeCon
 
       let mechWrites = 0
       for (const mech of scopeNow.mechs) {
-        const fresh = storeState.get('mech', mech.id) ?? mech
+        const fresh = freshEntity(storeState, 'mech', mech)
         const patch = downtimeMechPatch(fresh, tlNow, steps, mechBayNow)
         if (Object.keys(patch).length > 0) {
           await storeState.update('mech', mech.id, patch)
@@ -142,7 +143,7 @@ export function DowntimeControl({ crawler, store = useEntityStore }: DowntimeCon
       }
       let pilotWrites = 0
       for (const pilot of scopeNow.pilots) {
-        const fresh = storeState.get('pilot', pilot.id) ?? pilot
+        const fresh = freshEntity(storeState, 'pilot', pilot)
         const patch = downtimePilotPatch(fresh, medBayNow, steps)
         if (Object.keys(patch).length > 0) {
           await storeState.update('pilot', pilot.id, patch)
@@ -205,24 +206,18 @@ export function DowntimeControl({ crawler, store = useEntityStore }: DowntimeCon
                 </p>
 
                 {!mechBay.operational && (
-                  <p
-                    role="alert"
-                    className="m-0 rounded-[3px] border-chrome border-status-warn bg-paper px-3 py-2 font-body text-sm text-rust"
-                  >
+                  <AdvisoryText>
                     {mechBay.present
                       ? 'The Mech Bay is Damaged — mechs cannot restore SP/EP or be repaired until it is repaired (p.221).'
                       : 'No Mech Bay is installed — mechs cannot restore SP/EP or be repaired this Downtime.'}
-                  </p>
+                  </AdvisoryText>
                 )}
                 {!medBay.operational && (
-                  <p
-                    role="alert"
-                    className="m-0 rounded-[3px] border-chrome border-status-warn bg-paper px-3 py-2 font-body text-sm text-rust"
-                  >
+                  <AdvisoryText>
                     {medBay.present
                       ? 'The Med Bay is Damaged — pilot HP and injuries cannot heal until it is repaired (p.223). AP still rests back.'
                       : 'No Med Bay is installed — pilot HP and injuries cannot heal this Downtime. AP still rests back.'}
-                  </p>
+                  </AdvisoryText>
                 )}
 
                 <fieldset

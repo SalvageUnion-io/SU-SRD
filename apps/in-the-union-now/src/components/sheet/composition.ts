@@ -36,7 +36,7 @@ export type EntityLookup = {
   ) => (T extends 'pilot' ? Pilot : T extends 'mech' ? Mech : Crawler) | null
 }
 
-type SheetComposition = {
+export type SheetComposition = {
   mode: CompositionMode
   /** The linked pilot (for crawlers: the lead pilot — first wired). */
   pilot: Pilot | null

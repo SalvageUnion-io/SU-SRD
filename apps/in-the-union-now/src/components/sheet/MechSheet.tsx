@@ -47,6 +47,7 @@ import { ScrapMechControl } from './ScrapMechControl'
 import { StorageManifest } from './StorageManifest'
 import { TakeDamageControl } from './TakeDamageControl'
 import { resolveChassisRef } from '../../lib/rules/resolveRefs'
+import { AdvisoryText, freshEntity } from './controlPrimitives'
 
 // Narrow subset of chassis data the stat derivations need
 type ChassisLike = {
@@ -122,7 +123,7 @@ export function MechSheet({
 
   /** Freshest mech from the store — rapid actions must not stomp each other. */
   function freshMech(): Mech {
-    return storeState.get('mech', mech.id) ?? mech
+    return freshEntity(storeState, 'mech', mech)
   }
 
   /** Write one item's condition (used by the cycle and the toast Undo). */
@@ -198,7 +199,7 @@ export function MechSheet({
       kind === 'system' ? { systemConditions: nextMap } : { moduleConditions: nextMap }
     )
     if (deductTl !== null && crawler) {
-      const freshCrawler = storeState.get('crawler', crawler.id) ?? crawler
+      const freshCrawler = freshEntity(storeState, 'crawler', crawler)
       await storeState.update('crawler', crawler.id, {
         scrapPool: addToScrapPool(freshCrawler.scrapPool ?? {}, deductTl, -cost),
       })
@@ -253,12 +254,9 @@ export function MechSheet({
       </h2>
 
       {!chassis && (
-        <p
-          role="alert"
-          className="m-0 rounded-[3px] border-chrome border-status-warn bg-paper px-3 py-2 font-body text-sm text-rust"
-        >
+        <AdvisoryText>
           Unknown chassis &ldquo;{mech.chassisRef}&rdquo; — using stored/zero defaults
-        </p>
+        </AdvisoryText>
       )}
 
       {/* Heat Check / Push / Reactor Overload loop — wired to the same

@@ -33,6 +33,7 @@ import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
 import { useEntityStore } from '../../stores/entityStore'
 import { ConfirmDialog } from '../shared/ConfirmDialog'
+import { freshEntity } from './controlPrimitives'
 
 type ScrapMechControlProps = {
   mech: Mech
@@ -67,8 +68,8 @@ export function ScrapMechControl({ mech, crawler, store = useEntityStore }: Scra
     if (!crawler || pending) return
     setPending(true)
     try {
-      const freshMech = storeState.get('mech', mech.id) ?? mech
-      const freshCrawler = storeState.get('crawler', crawler.id) ?? crawler
+      const freshMech = freshEntity(storeState, 'mech', mech)
+      const freshCrawler = freshEntity(storeState, 'crawler', crawler)
       const fresh = scrapMechBreakdown(mechScrapComponents(freshMech))
       const pool = depositScrapDeposits(freshCrawler.scrapPool ?? {}, fresh.deposits)
       // A destroyed mech's cargo went up with it ("all Cargo, is destroyed" —

@@ -33,6 +33,7 @@ import type { HeatCheckEffect, Roll } from '../../lib/rules/heatCheck'
 import { defaultRoll } from '../../lib/rules/heatCheck'
 import type { HeatCheckResult, Mech, ReactorOverloadOutcome } from '../../lib/schemas/mech'
 import type { useEntityStore } from '../../stores/entityStore'
+import { AdvisoryText, freshEntity } from './controlPrimitives'
 
 type HeatCheckControlProps = {
   mech: Mech
@@ -93,7 +94,7 @@ export function HeatCheckControl({
   async function applyEffect(effect: HeatCheckEffect, heatToPersist?: number) {
     // Read the freshest mech from the store (not the render-time prop) so rapid
     // sequential actions don't stomp each other with a stale-closure overwrite.
-    const fresh = storeState.get('mech', mech.id) ?? mech
+    const fresh = freshEntity(storeState, 'mech', mech)
     const patch = heatCheckPatch(
       effect,
       heatToPersist !== undefined && heatToPersist !== fresh.currentHeat ? heatToPersist : undefined
@@ -183,14 +184,11 @@ export function HeatCheckControl({
         )}
 
         {!readOnly && choicePrompt && (
-          <p
-            role="alert"
-            className="mt-2 rounded-[3px] border-chrome border-status-warn bg-paper px-3 py-2 font-body text-sm text-rust"
-          >
+          <AdvisoryText className="mt-2">
             {choicePrompt === 'system-destroyed'
               ? 'Mark one System as Destroyed using its status badge below.'
               : 'Mark one Module as Destroyed using its status badge below.'}
-          </p>
+          </AdvisoryText>
         )}
       </div>
 

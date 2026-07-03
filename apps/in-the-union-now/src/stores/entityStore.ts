@@ -43,7 +43,7 @@ export type { EntityType }
 
 type CrawlerBayEntry = NonNullable<Crawler['crawlerBays']>[number]
 
-type EntityState = {
+export type EntityState = {
   pilots: Pilot[]
   mechs: Mech[]
   crawlers: Crawler[]

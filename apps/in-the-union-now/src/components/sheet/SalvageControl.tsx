@@ -47,19 +47,14 @@ import type { Crawler } from '../../lib/schemas/crawler'
 import { useEntityStore } from '../../stores/entityStore'
 import { cn } from '../../lib/utils'
 import { SectionCard } from '../shared/SectionCard'
+import { freshEntity } from './controlPrimitives'
+import { loadRef, numericTl } from './refCatalog'
+import type { RefItem } from './refCatalog'
 
 const TECH_LEVELS = [1, 2, 3, 4, 5, 6] as const
 
 const SELECT_CLASS =
   'w-full rounded-[3px] border-chrome border-ink bg-paper px-2 py-1.5 font-body text-sm text-ink focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22]'
-
-/** Minimal shape read off the reference models for picker options. */
-type RefItem = {
-  id: string
-  name: string
-  techLevel?: unknown
-  salvageValue?: unknown
-}
 
 type ClaimOption = {
   key: string
@@ -67,21 +62,6 @@ type ClaimOption = {
   name: string
   techLevel?: number
   salvageValue: number
-}
-
-/** Read a reference model defensively — empty when data isn't preloaded (tests). */
-function loadRef(all: () => ReadonlyArray<unknown>): RefItem[] {
-  try {
-    return (all() as ReadonlyArray<RefItem>).slice()
-  } catch {
-    return []
-  }
-}
-
-function numericTl(value: unknown): number | undefined {
-  return typeof value === 'number' && Number.isInteger(value) && value >= 1 && value <= 6
-    ? value
-    : undefined
 }
 
 /** Build sorted claim options of one kind, optionally restricted to a TL. */
@@ -301,7 +281,7 @@ export function SalvageControl({
   /** Deposit scrap into the crawler's TL pool bucket (freshest record wins). */
   function depositScrap(tl: number, qty: number) {
     enqueueDeposit(async () => {
-      const fresh = storeState.get('crawler', crawler.id) ?? crawler
+      const fresh = freshEntity(storeState, 'crawler', crawler)
       await storeState.update('crawler', crawler.id, {
         scrapPool: addToScrapPool(fresh.scrapPool ?? {}, tl, qty),
       })
@@ -311,7 +291,7 @@ export function SalvageControl({
   /** Prepend a lot to the crawler hold (unlimited — no cap check). */
   function depositLot(lot: CargoLot) {
     enqueueDeposit(async () => {
-      const fresh = storeState.get('crawler', crawler.id) ?? crawler
+      const fresh = freshEntity(storeState, 'crawler', crawler)
       await storeState.update('crawler', crawler.id, {
         cargoLots: [lot, ...(fresh.cargoLots ?? [])],
       })
