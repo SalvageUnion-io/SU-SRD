@@ -117,14 +117,29 @@ export function Sheet({
       Edit
     </AppLink>
   )
+  // Print/PDF export (#82/#258): the print stylesheet (index.css @media
+  // print) turns the live sheet into a clean paper layout; "Save as PDF"
+  // in the browser dialog covers the PDF ask without a rendering dep.
+  const printButton = (
+    <button
+      type="button"
+      aria-label={`Print this ${kind} sheet`}
+      onClick={() => window.print()}
+      className={cn(btnVariants({ variant: 'ghost', size: 'sm' }), 'cursor-pointer')}
+    >
+      Print
+    </button>
+  )
   const actions = !readOnly ? (
     <>
       <div className="hidden items-center gap-2.5 sm:flex">
         {editLink}
+        {printButton}
         <PublishButton entityKind={kind} entityId={id} entityStore={entityStore} />
       </div>
       <SheetActionsMenu className="sm:hidden">
         {editLink}
+        {printButton}
         <PublishButton entityKind={kind} entityId={id} entityStore={entityStore} />
       </SheetActionsMenu>
     </>
