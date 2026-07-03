@@ -16,7 +16,6 @@
  */
 
 import { useState } from 'react'
-import { SalvageUnionReference } from 'salvageunion-reference'
 import { btnVariants, MChip, Pill, StatBlock } from 'suref-react'
 import type { PillTone, StatBlockState } from 'suref-react'
 
@@ -67,6 +66,7 @@ import { CrawlerSheet } from './CrawlerSheet'
 import { PublishButton } from './PublishButton'
 import { QuickRollFab } from './QuickRollFab'
 import { SheetActionsMenu } from './SheetActionsMenu'
+import { resolveChassisRef } from '../../lib/rules/resolveRefs'
 
 // Re-exported so existing consumers (PublishButton, tests) keep their import.
 export type { EntityLookup } from './composition'
@@ -471,7 +471,7 @@ export function Sheet({
   // -------------------------------------------------------------------------
   if (kind === 'mech') {
     const mech = entity as Mech
-    const chassis = SalvageUnionReference.Chassis.find((c) => c.name === mech.chassisRef) ?? null
+    const chassis = resolveChassisRef(mech.chassisRef)
     const maxSP = mechMaxSP(mech, chassis)
     const maxEP = mechMaxEP(mech, chassis)
     const maxHeat = mechMaxHeat(mech, chassis)

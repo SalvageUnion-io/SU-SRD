@@ -42,6 +42,7 @@ import type { ItemConditionMap, Mech } from '../schemas/mech'
 import type { Pilot } from '../schemas/pilot'
 import type { SoftLink } from '../schemas/softLink'
 import { mechMaxEP, mechMaxSP, pilotMaxAP, pilotMaxHP } from './derivedStats'
+import { matchesRef, resolveChassisRef, resolveInstalledRef } from './resolveRefs'
 
 // ---------------------------------------------------------------------------
 // Steps
@@ -202,17 +203,15 @@ export function mechBayStatus(crawler: Pick<Crawler, 'crawlerBays'>): MechBaySta
 /** The 'Chassis Damaged' condition label written by the Critical Damage flow. */
 export const CHASSIS_DAMAGED_CONDITION = 'Chassis Damaged'
 
-/** Resolve an installed system/module ref (id or name) to its Tech Level. */
+/** Resolve an installed system/module ref (slug; legacy id/name) to its Tech Level. */
 function installedItemTechLevel(ref: string): number | undefined {
-  const item =
-    SalvageUnionReference.Systems.find((s) => s.id === ref || s.name === ref) ??
-    SalvageUnionReference.Modules.find((m) => m.id === ref || m.name === ref)
+  const item = resolveInstalledRef(ref)
   return typeof item?.techLevel === 'number' ? item.techLevel : undefined
 }
 
-/** Resolve the mech's chassis Tech Level (chassisRef stores the NAME). */
+/** Resolve the mech's chassis Tech Level (chassisRef is a slug; legacy names tolerated). */
 function chassisTechLevel(chassisRef: string): number | undefined {
-  const chassis = SalvageUnionReference.Chassis.find((c) => c.name === chassisRef)
+  const chassis = resolveChassisRef(chassisRef)
   return typeof chassis?.techLevel === 'number' ? chassis.techLevel : undefined
 }
 
@@ -340,9 +339,9 @@ export function downtimeMechPatch(
  */
 export const NEVER_RECHARGE_EQUIPMENT = ['Orbital Lance Controller'] as const
 
-/** True when an equipmentUses key (id or name ref) is a never-recharge item. */
+/** True when an equipmentUses key (slug, id, or name ref) is a never-recharge item. */
 function isNeverRecharge(ref: string): boolean {
-  const equipment = SalvageUnionReference.Equipment.find((e) => e.id === ref || e.name === ref)
+  const equipment = SalvageUnionReference.Equipment.find((e) => matchesRef(e, ref))
   const name = equipment?.name ?? ref
   return NEVER_RECHARGE_EQUIPMENT.some((n) => n === name)
 }

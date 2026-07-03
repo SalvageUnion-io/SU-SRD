@@ -27,6 +27,7 @@ import type { CargoLot } from '../schemas/cargoLot'
 import type { ScrapPool } from '../schemas/crawler'
 import type { ItemCondition, Mech } from '../schemas/mech'
 import type { PoolDraw } from './crawlerEconomy'
+import { matchesRef } from './resolveRefs'
 
 export type ScrapMechComponentKind = 'chassis' | 'system' | 'module'
 
@@ -100,7 +101,7 @@ export function mechScrapComponents(mech: ScrapMechInput): ScrapMechComponent[] 
   const systemItems = loadRef(() => SalvageUnionReference.Systems.all())
   const moduleItems = loadRef(() => SalvageUnionReference.Modules.all())
 
-  const chassis = chassisItems.find((c) => c.name === mech.chassisRef || c.id === mech.chassisRef)
+  const chassis = chassisItems.find((c) => matchesRef(c, mech.chassisRef))
   const components: ScrapMechComponent[] = [
     {
       kind: 'chassis',
@@ -114,7 +115,7 @@ export function mechScrapComponents(mech: ScrapMechInput): ScrapMechComponent[] 
   ]
 
   const push = (kind: 'system' | 'module', slug: string, items: RefItem[]) => {
-    const item = items.find((entry) => entry.id === slug || entry.name === slug)
+    const item = items.find((entry) => matchesRef(entry, slug))
     const conditions = (kind === 'system' ? mech.systemConditions : mech.moduleConditions) ?? {}
     components.push({
       kind,

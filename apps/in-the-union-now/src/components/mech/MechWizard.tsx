@@ -1,7 +1,9 @@
 import { useMemo, useState } from 'react'
+import { nameToSlug } from 'salvageunion-reference'
 import { toast } from 'suref-react'
 import { computeMechCapacity } from '../../lib/rules/capacity'
 import { findChassisByRef, mechMaxCargo, mechMaxEP } from '../../lib/rules/derivedStats'
+import { resolveChassisRef } from '../../lib/rules/resolveRefs'
 import { evaluateMechWarnings } from '../../lib/rules/softWarnings'
 import type { SoftWarning } from '../../lib/rules/types'
 import { totalLotUnits } from '../../lib/schemas/cargoLot'
@@ -114,8 +116,8 @@ export function MechWizard({ onComplete, onCancel, mechId, initialState }: MechW
     setIsCustomPattern(false)
     updateForm({
       patternName: pattern.name,
-      systems: (pattern.systems ?? []).map((s) => s.name),
-      modules: (pattern.modules ?? []).map((m) => m.name),
+      systems: (pattern.systems ?? []).map((s) => nameToSlug(s.name)),
+      modules: (pattern.modules ?? []).map((m) => nameToSlug(m.name)),
     })
   }
 
@@ -266,7 +268,8 @@ export function MechWizard({ onComplete, onCancel, mechId, initialState }: MechW
     }
   }
 
-  const loadoutName = form.name.trim() || form.chassisName || 'Mech'
+  const loadoutName =
+    form.name.trim() || resolveChassisRef(form.chassisName)?.name || form.chassisName || 'Mech'
   const selectedPatternName = isCustomPattern ? null : form.patternName || null
 
   const subtitle = (() => {
@@ -340,8 +343,8 @@ export function MechWizard({ onComplete, onCancel, mechId, initialState }: MechW
         <LoadoutStep
           systems={form.systems}
           modules={form.modules}
-          onAddSystem={(name) => updateForm({ systems: addCopy(form.systems, name) })}
-          onAddModule={(name) => updateForm({ modules: addCopy(form.modules, name) })}
+          onAddSystem={(name) => updateForm({ systems: addCopy(form.systems, nameToSlug(name)) })}
+          onAddModule={(name) => updateForm({ modules: addCopy(form.modules, nameToSlug(name)) })}
           onRemoveSystem={(index) => updateForm({ systems: removeAt(form.systems, index) })}
           onRemoveModule={(index) => updateForm({ modules: removeAt(form.modules, index) })}
           loadoutName={loadoutName}

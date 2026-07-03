@@ -40,7 +40,7 @@ import { runMigrations } from './migrations/index'
 import { STORE_NAMES } from './stores'
 
 /** Current IndexedDB schema version. Bump together with a migrations/ entry. */
-export const DB_VERSION = 5
+export const DB_VERSION = 6
 
 const DB_NAME = 'itun-v1'
 

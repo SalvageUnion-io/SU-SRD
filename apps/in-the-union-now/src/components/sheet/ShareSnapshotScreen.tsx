@@ -21,7 +21,6 @@
  */
 
 import { useEffect, useState } from 'react'
-import { SalvageUnionReference } from 'salvageunion-reference'
 import { Btn, Input, MChip, Panel, Pill, Row, StatBlock, toast } from 'suref-react'
 import type { PillTone } from 'suref-react'
 
@@ -50,6 +49,7 @@ import { AppLink } from '../shared/AppLink'
 import type { EntityLookup } from './composition'
 import { SheetHero, ChassisStats } from './SheetHero'
 import type { ChassisStatItem } from './SheetHero'
+import { resolveChassisRef } from '../../lib/rules/resolveRefs'
 
 type ShareSnapshotScreenProps = {
   kind: EntityRef['type']
@@ -380,7 +380,7 @@ function SnapshotPreviewCard({ kind, entity }: SnapshotPreviewCardProps) {
 
   if (kind === 'mech') {
     const mech = entity as Mech
-    const chassis = SalvageUnionReference.Chassis.find((c) => c.name === mech.chassisRef) ?? null
+    const chassis = resolveChassisRef(mech.chassisRef)
     const maxSP = mechMaxSP(mech, chassis)
     const maxEP = mechMaxEP(mech, chassis)
     const maxHeat = mechMaxHeat(mech, chassis)

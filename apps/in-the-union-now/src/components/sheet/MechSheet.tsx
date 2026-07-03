@@ -46,6 +46,7 @@ import type { MechItemEconomy } from './mechItemRules'
 import { ScrapMechControl } from './ScrapMechControl'
 import { StorageManifest } from './StorageManifest'
 import { TakeDamageControl } from './TakeDamageControl'
+import { resolveChassisRef } from '../../lib/rules/resolveRefs'
 
 // Narrow subset of chassis data the stat derivations need
 type ChassisLike = {
@@ -86,7 +87,7 @@ type MechSheetProps = {
 
 function resolveChassis(mech: Mech, override?: ChassisLike | null): ChassisLike | null {
   if (override !== undefined) return override
-  return SalvageUnionReference.Chassis.find((c) => c.name === mech.chassisRef) ?? null
+  return resolveChassisRef(mech.chassisRef)
 }
 
 type ItemKind = 'system' | 'module'
@@ -112,7 +113,7 @@ export function MechSheet({
 
   // Chassis abilities come from the FULL reference chassis (the injectable
   // override only carries stats). Unresolved chassis → no ability slab.
-  const chassisEntity = SalvageUnionReference.Chassis.find((c) => c.name === mech.chassisRef)
+  const chassisEntity = resolveChassisRef(mech.chassisRef)
   const chassisAbilities = chassisEntity
     ? (SalvageUnionReference.resolveActions(chassisEntity) ?? [])
     : []

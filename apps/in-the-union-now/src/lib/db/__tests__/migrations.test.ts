@@ -139,11 +139,18 @@ describe('v2 → current migrations (v3 cargo → cargoLots, v4 rollResults remo
       // Untouched live state survives the rewrite.
       expect(mech.currentSP).toBe(8)
 
+      // v6: name-based refs came out as slugs (systems/modules were already
+      // slug-shaped, so they pass through unchanged — slugify is idempotent).
+      expect(mech.chassisRef).toBe('iron-mongrel-chassis')
+      expect(mech.systems).toEqual(['welding-rig'])
+      expect(mech.modules).toEqual(['armor-plating'])
+
       // Pattern store gets the same rewrite.
       const pattern = MechPatternSchema.parse(
         await db.get(STORE_NAMES.mechPatterns, 'pattern-v2-1')
       )
       expect(pattern.cargoLots.map((l) => l.name)).toEqual(['fuel-cell'])
+      expect(pattern.chassisRef).toBe('iron-mongrel-chassis')
 
       // Pilot: v4 drops the vestigial `rollResults` field the v2 record
       // carries; the rewritten record strict-parses, new optional fields

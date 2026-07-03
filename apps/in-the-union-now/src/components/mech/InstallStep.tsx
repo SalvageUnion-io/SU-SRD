@@ -5,6 +5,7 @@ import type { TechLevel } from '../../lib/rules/types'
 import { SelMasonry } from '../wizard/SelMasonry'
 import { InstallCard } from './InstallCard'
 import { LoadoutPanel } from './LoadoutPanel'
+import { matchesRef } from '../../lib/rules/resolveRefs'
 
 type InstallItemLike = {
   id: string
@@ -25,7 +26,7 @@ function tlRank(tl: TechLevel): number {
 type InstallStepProps = {
   /** Which dataset this step installs from. */
   kind: 'systems' | 'modules'
-  /** Name refs currently installed (may contain duplicates). */
+  /** Slug refs currently installed (may contain duplicates). */
   selected: string[]
   /** Append one copy of the named entity. */
   onAdd: (name: string) => void
@@ -101,7 +102,7 @@ export function InstallStep({
                 key={item.id}
                 entity={item}
                 name={item.name}
-                count={selected.filter((ref) => ref === item.name).length}
+                count={selected.filter((ref) => matchesRef(item, ref)).length}
                 onAdd={() => onAdd(item.name)}
               />
             ))}
