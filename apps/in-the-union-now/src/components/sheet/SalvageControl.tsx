@@ -19,7 +19,7 @@
 
 import { useId, useMemo, useRef, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { Btn, MiniBtn, StepBtn } from 'suref-react'
+import { Btn, MiniBtn, StepBtn, toast } from 'suref-react'
 
 import { addToScrapPool } from '../../lib/cargo/cargoTransfer'
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
@@ -288,7 +288,14 @@ export function SalvageControl({
   const depositChain = useRef<Promise<void>>(Promise.resolve())
 
   function enqueueDeposit(apply: () => Promise<void>): void {
-    depositChain.current = depositChain.current.then(apply, apply)
+    // .then(apply).catch(...) — NOT .then(apply, apply): the second form ran
+    // the next deposit as the rejection handler, silently swallowing the
+    // failed one while the UI reported success (audit item 2). The catch
+    // surfaces the failure and resolves, so later deposits still run.
+    depositChain.current = depositChain.current.then(apply).catch((err: unknown) => {
+      console.error('[itun] Salvage deposit failed.', err)
+      toast.error('A salvage deposit failed to save — check the crawler pool and re-add it.')
+    })
   }
 
   /** Deposit scrap into the crawler's TL pool bucket (freshest record wins). */

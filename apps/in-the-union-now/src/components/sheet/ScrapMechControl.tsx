@@ -21,7 +21,7 @@
 
 import { useState } from 'react'
 import { useRouter } from '@tanstack/react-router'
-import { Btn } from 'suref-react'
+import { Btn, toast } from 'suref-react'
 
 import {
   depositScrapDeposits,
@@ -59,29 +59,42 @@ export function ScrapMechControl({ mech, crawler, store = useEntityStore }: Scra
     breakdown.deposits.map((d) => `${d.count}× T${d.tl}`).join(' + ') || 'no Scrap'
 
   /**
-   * Confirm: deposit the breakdown + hand off cargo onto the crawler (one
-   * write), delete the mech (SoftLinks cascade), then leave the dead sheet.
+   * Confirm: deposit the breakdown + hand off cargo onto the crawler AND
+   * delete the mech (SoftLinks cascade) in ONE atomic transfer — a failure
+   * changes nothing on disk, so scrap value can never duplicate or vanish.
    */
   async function handleScrap() {
     if (!crawler || pending) return
     setPending(true)
-    const freshMech = storeState.get('mech', mech.id) ?? mech
-    const freshCrawler = storeState.get('crawler', crawler.id) ?? crawler
-    const fresh = scrapMechBreakdown(mechScrapComponents(freshMech))
-    const pool = depositScrapDeposits(freshCrawler.scrapPool ?? {}, fresh.deposits)
-    // A destroyed mech's cargo went up with it ("all Cargo, is destroyed" —
-    // p.234/p.240): nothing is handed off. Only a retired (intact) mech's
-    // hold moves to the crawler.
-    const handOff = freshMech.destroyed
-      ? { crawlerLots: freshCrawler.cargoLots ?? [], pool }
-      : handOffCargo(freshMech.cargoLots, freshCrawler.cargoLots ?? [], pool)
-    await storeState.update('crawler', crawler.id, {
-      scrapPool: handOff.pool,
-      cargoLots: handOff.crawlerLots,
-    })
-    await storeState.delete('mech', mech.id)
-    setConfirming(false)
-    void router?.navigate({ to: `/sheet/crawler/${crawler.id}` })
+    try {
+      const freshMech = storeState.get('mech', mech.id) ?? mech
+      const freshCrawler = storeState.get('crawler', crawler.id) ?? crawler
+      const fresh = scrapMechBreakdown(mechScrapComponents(freshMech))
+      const pool = depositScrapDeposits(freshCrawler.scrapPool ?? {}, fresh.deposits)
+      // A destroyed mech's cargo went up with it ("all Cargo, is destroyed" —
+      // p.234/p.240): nothing is handed off. Only a retired (intact) mech's
+      // hold moves to the crawler.
+      const handOff = freshMech.destroyed
+        ? { crawlerLots: freshCrawler.cargoLots ?? [], pool }
+        : handOffCargo(freshMech.cargoLots, freshCrawler.cargoLots ?? [], pool)
+      await storeState.transfer({
+        updates: [
+          {
+            type: 'crawler',
+            id: crawler.id,
+            patch: { scrapPool: handOff.pool, cargoLots: handOff.crawlerLots },
+          },
+        ],
+        deletes: [{ type: 'mech', id: mech.id }],
+      })
+      setConfirming(false)
+      void router?.navigate({ to: `/sheet/crawler/${crawler.id}` })
+    } catch (err) {
+      console.error('[itun] Scrap mech failed — nothing was changed.', err)
+      toast.error('Scrapping failed — nothing was changed. Try again.')
+    } finally {
+      setPending(false)
+    }
   }
 
   return (

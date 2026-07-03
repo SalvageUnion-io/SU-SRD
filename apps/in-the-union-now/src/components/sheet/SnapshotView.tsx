@@ -126,6 +126,7 @@ function makeSnapshotStore(parsed: Extract<ParseResult, { ok: true }>): typeof u
     update: readOnlyWrite,
     updateCrawlerBay: readOnlyWrite,
     delete: readOnlyWrite,
+    transfer: readOnlyWrite,
   }
 
   return create<EntityState>(() => state)

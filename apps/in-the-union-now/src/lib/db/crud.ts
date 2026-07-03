@@ -20,6 +20,11 @@ type EntityStore<T extends EntityBase> = {
    */
   create: (input: Omit<T, 'id' | 'createdAt' | 'updatedAt'>) => Promise<T>
   /**
+   * update() minus the write: merge + stamp + strict-parse, returning the
+   * validated record. Feed the result to an atomicWrite() transaction.
+   */
+  prepareUpdate: (id: string, patch: Partial<Omit<T, 'id'>>) => Promise<T>
+  /**
    * Merges patch into the existing record, bumps updatedAt when the schema
    * includes it, validates merged result, writes to IDB.
    * Throws if id not found.
@@ -130,7 +135,13 @@ export function makeStore<T extends EntityBase>(
     return record
   }
 
-  async function update(id: string, patch: Partial<Omit<T, 'id'>>): Promise<T> {
+  /**
+   * Everything update() does EXCEPT the write: read the current record,
+   * merge the patch, stamp updatedAt, and strict-parse. Used by the
+   * multi-entity atomic transfer path, which validates every record first
+   * and then commits all writes in one IDB transaction.
+   */
+  async function prepareUpdate(id: string, patch: Partial<Omit<T, 'id'>>): Promise<T> {
     const db = await getDb()
     const raw = await db.get(storeName, id)
     if (raw === undefined) {
@@ -148,7 +159,12 @@ export function makeStore<T extends EntityBase>(
     if (hasUpdatedAt) {
       candidate['updatedAt'] = now
     }
-    const record = schema.parse(candidate)
+    return schema.parse(candidate)
+  }
+
+  async function update(id: string, patch: Partial<Omit<T, 'id'>>): Promise<T> {
+    const db = await getDb()
+    const record = await prepareUpdate(id, patch)
     await db.put(storeName, record)
     return record
   }
@@ -160,5 +176,5 @@ export function makeStore<T extends EntityBase>(
     await db.delete(storeName, id)
   }
 
-  return { list, get, create, update, delete: del }
+  return { list, get, create, update, prepareUpdate, delete: del }
 }

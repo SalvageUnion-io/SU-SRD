@@ -81,17 +81,21 @@ export function useCargo({
     const result = cargoTransfer(state, action)
     if (!result.ok) return result
 
+    // Both sides of the boundary commit in ONE IDB transaction — a crash
+    // between two sequential writes could otherwise vanish or duplicate the
+    // moved lot (audit item 2).
+    const updates: Parameters<typeof storeState.transfer>[0]['updates'] = []
     if (result.changed.mech) {
-      await storeState.update('mech', mech.id, {
-        cargoLots: result.state.mechLots,
-      })
+      updates.push({ type: 'mech', id: mech.id, patch: { cargoLots: result.state.mechLots } })
     }
     if (result.changed.crawler) {
-      await storeState.update('crawler', crawler.id, {
-        cargoLots: result.state.crawlerLots,
-        scrapPool: result.state.scrapPool,
+      updates.push({
+        type: 'crawler',
+        id: crawler.id,
+        patch: { cargoLots: result.state.crawlerLots, scrapPool: result.state.scrapPool },
       })
     }
+    if (updates.length > 0) await storeState.transfer({ updates })
     return result
   }
 

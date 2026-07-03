@@ -68,11 +68,19 @@ type CapturedUpdate = {
 }
 
 function makeStore(captured: CapturedUpdate[]): typeof useEntityStore {
+  const update = mock(async (type: string, id: string, patch: Record<string, unknown>) => {
+    captured.push({ type, id, patch })
+    return { id, ...patch }
+  })
   const storeState = {
-    update: mock(async (type: string, id: string, patch: Record<string, unknown>) => {
-      captured.push({ type, id, patch })
-      return { id, ...patch }
-    }),
+    update,
+    // The hook commits through transfer() (atomic multi-entity write);
+    // forward each update onto the capture list so assertions stay simple.
+    transfer: mock(
+      async (ops: { updates?: { type: string; id: string; patch: Record<string, unknown> }[] }) => {
+        for (const u of ops.updates ?? []) await update(u.type, u.id, u.patch)
+      }
+    ),
   }
   return (() => storeState) as unknown as typeof useEntityStore
 }
