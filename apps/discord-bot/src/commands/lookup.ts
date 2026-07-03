@@ -10,7 +10,10 @@ import type { SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
 
 import { buildLookupEmbedData } from '../format.js'
 
-type Hit = { schemaName: SURefEnumSchemaName; entity: SURefEntity & { schemaName: SURefEnumSchemaName } }
+type Hit = {
+  schemaName: SURefEnumSchemaName
+  entity: SURefEntity & { schemaName: SURefEnumSchemaName }
+}
 
 /**
  * Stable autocomplete choice value: `schemaName::slug` (well under Discord's
@@ -53,7 +56,8 @@ export const lookupCommand = {
     const results = search({ query: focusedValue, limit: 25 })
     await interaction.respond(
       results.slice(0, 25).map((hit) => {
-        const name = 'name' in hit.entity && hit.entity.name ? String(hit.entity.name) : hit.entity.id
+        const name =
+          'name' in hit.entity && hit.entity.name ? String(hit.entity.name) : hit.entity.id
         return {
           name: name.slice(0, 100),
           value: choiceValue({ schemaName: hit.schemaName, entity: hit.entity }),

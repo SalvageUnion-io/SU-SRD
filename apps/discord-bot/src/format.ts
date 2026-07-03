@@ -55,7 +55,11 @@ export function buildRollEmbedData(tableName: string, outcome: RollOnTableOutcom
       color: getColor(outcome.entryRoll),
       fields: [
         { name: 'Table', value: tableName, inline: true },
-        { name: 'Column Roll', value: `${outcome.columnRoll} (${outcome.columnKey})`, inline: true },
+        {
+          name: 'Column Roll',
+          value: `${outcome.columnRoll} (${outcome.columnKey})`,
+          inline: true,
+        },
         { name: 'Entry Roll', value: `${outcome.entryRoll} (#${outcome.entryKey})`, inline: true },
       ],
     }
@@ -83,8 +87,7 @@ export function buildLookupEmbedData(
   schemaName: SURefEnumSchemaName
 ): EmbedData {
   const raw = entity as unknown as Record<string, unknown>
-  const displayName =
-    (SchemaToDisplayName as Record<string, string>)[schemaName] ?? schemaName
+  const displayName = (SchemaToDisplayName as Record<string, string>)[schemaName] ?? schemaName
   const fields: EmbedData['fields'] = [{ name: 'Type', value: displayName, inline: true }]
 
   const techLevel = raw['techLevel']
