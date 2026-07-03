@@ -4,12 +4,7 @@
  */
 
 import { roll } from '@randsum/roller'
-import {
-  SalvageUnionReference,
-  resultForTable,
-  resultForColumnsTable,
-  isColumnsTable,
-} from 'salvageunion-reference'
+import { SalvageUnionReference, rollOnTable } from 'salvageunion-reference'
 import type { SURefRollTable } from 'salvageunion-reference'
 
 /** Roll IDs for pilot wizard identity fields. */
@@ -51,15 +46,11 @@ export function rollForPilotField(
   const table = deps.findTable(tableName)
   if (!table) return null
 
-  // Columns-type tables (e.g. the Callsign Table, keyed 1-4 / 5-8) need two d20
-  // rolls — one to pick the column, one for the entry. resultForTable only walks
-  // flat d20 tables and reports failure on columns tables, silently no-op'ing the
-  // roll button, so delegate those to the columns-aware helper.
-  const result = isColumnsTable(table.table)
-    ? resultForColumnsTable(table.table, deps.rollD20(), deps.rollD20())
-    : resultForTable(table.table, deps.rollD20())
-  if (!result.success) return null
+  // rollOnTable (salvageunion-reference, ADR-006) owns the flat-vs-columns
+  // branch — columns tables like the Callsign Table roll two d20s (column,
+  // then entry). Shared with the Discord bot's /roll command.
+  const outcome = rollOnTable(table.table, deps.rollD20)
+  if (!outcome.success) return null
 
-  const { label, value } = result.result
-  return label ? `${label}: ${value}` : value
+  return outcome.label ? `${outcome.label}: ${outcome.value}` : outcome.value
 }

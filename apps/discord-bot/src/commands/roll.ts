@@ -1,16 +1,14 @@
 import {
   SlashCommandBuilder,
   EmbedBuilder,
+  MessageFlags,
   type ChatInputCommandInteraction,
   type AutocompleteInteraction,
 } from 'discord.js'
 import { roll as rollDie } from '@randsum/roller'
-import {
-  SalvageUnionReference,
-  resultForTable,
-  resultForColumnsTable,
-  isColumnsTable,
-} from 'salvageunion-reference'
+import { SalvageUnionReference, rollOnTable } from 'salvageunion-reference'
+
+import { buildRollEmbedData } from '../format.js'
 
 // Roll tables load lazily once SalvageUnionReference.preload() has run at startup.
 // Accessing them at module load would throw before preload completes, so defer to first use.
@@ -20,17 +18,6 @@ function getRollTables(): ReturnType<typeof SalvageUnionReference.RollTables.all
     cachedRollTables = SalvageUnionReference.RollTables.all()
   }
   return cachedRollTables
-}
-
-/**
- * Get embed color based on roll result (d20)
- */
-function getColor(roll: number): number {
-  if (roll === 20) return 0x00ff00 // Green - Critical success
-  if (roll >= 11) return 0x228b22 // Dark green - Success
-  if (roll >= 6) return 0xffd700 // Gold - Partial success
-  if (roll >= 2) return 0xff4500 // Orange-red - Failure
-  return 0x8b0000 // Dark red - Critical failure
 }
 
 /**
@@ -72,74 +59,33 @@ export const rollCommand = {
     if (!table) {
       await interaction.reply({
         content: `Could not find table: "${tableName}". Use autocomplete to see available tables.`,
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       })
       return
     }
 
-    // Handle columns-type tables (two d20 rolls)
-    if (isColumnsTable(table.table)) {
-      const columnRoll = rollD20()
-      const entryRoll = rollD20()
-      const { success, result, columnKey, entryKey } = resultForColumnsTable(
-        table.table,
-        columnRoll,
-        entryRoll
-      )
+    // rollOnTable (salvageunion-reference, ADR-006) owns the flat-vs-columns
+    // branch — shared with ITUN's pilot-identity roll buttons.
+    const outcome = rollOnTable(table.table, rollD20)
 
-      if (!success) {
-        await interaction.reply({
-          content: `Error rolling on table "${table.name}": ${result.value}`,
-          ephemeral: true,
-        })
-        return
-      }
-
-      const embed = new EmbedBuilder()
-        .setTitle(result.value)
-        .setColor(getColor(entryRoll))
-        .addFields(
-          { name: 'Table', value: table.name, inline: true },
-          { name: 'Column Roll', value: `${columnRoll} (${columnKey})`, inline: true },
-          { name: 'Entry Roll', value: `${entryRoll} (#${entryKey})`, inline: true }
-        )
-        .setFooter({ text: 'Salvage Union Reference' })
-        .setTimestamp()
-
-      await interaction.reply({ embeds: [embed] })
-      return
-    }
-
-    // Roll the dice
-    const roll = rollD20()
-
-    // Get the result
-    const { success, result, key } = resultForTable(table.table, roll)
-
-    if (!success) {
+    if (!outcome.success) {
       await interaction.reply({
-        content: `Error rolling on table "${table.name}": ${result.value}`,
-        ephemeral: true,
+        content: `Error rolling on table "${table.name}": ${outcome.error}`,
+        flags: MessageFlags.Ephemeral,
       })
       return
     }
 
-    // Build the embed
+    const data = buildRollEmbedData(table.name, outcome)
     const embed = new EmbedBuilder()
-      .setTitle(result.label ?? `Roll: ${roll}`)
-      .setColor(getColor(roll))
-      .addFields(
-        { name: 'Table', value: table.name, inline: true },
-        { name: 'Roll', value: roll.toString(), inline: true },
-        { name: 'Range', value: key, inline: true }
-      )
-
-    if (result.value) {
-      embed.setDescription(result.value)
+      .setTitle(data.title)
+      .setColor(data.color)
+      .addFields(data.fields)
+      .setFooter({ text: 'Salvage Union Reference' })
+      .setTimestamp()
+    if (data.description) {
+      embed.setDescription(data.description)
     }
-
-    embed.setFooter({ text: 'Salvage Union Reference' })
-    embed.setTimestamp()
 
     await interaction.reply({ embeds: [embed] })
   },

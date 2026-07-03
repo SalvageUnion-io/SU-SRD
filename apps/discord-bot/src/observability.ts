@@ -13,16 +13,39 @@ let enabled = false
 
 /**
  * Initializes Sentry if SENTRY_DSN is configured. Idempotent and safe to call
- * once at startup. No-op (and logs nothing) when the DSN is absent.
+ * once at startup. Warns (once) when the DSN is absent so a mis-provisioned
+ * production worker is visible in the Render logs instead of silently blind.
  */
 export function initObservability(): void {
-  if (enabled || !config.sentryDsn) return
+  if (enabled) return
+  if (!config.sentryDsn) {
+    console.warn(
+      '[observability] SENTRY_DSN not set — error tracking disabled. ' +
+        'Set it in the Render dashboard (render.yaml declares it sync:false).'
+    )
+    return
+  }
   Sentry.init({
     dsn: config.sentryDsn,
     environment: config.nodeEnv ?? 'production',
   })
   enabled = true
   console.log('[observability] Sentry error tracking enabled')
+}
+
+/**
+ * Flush buffered events before process exit. The Sentry transport is async —
+ * a synchronous process.exit() right after captureException drops the one
+ * event you most need (the crash Render restarts the worker for). Resolves
+ * after the flush completes or the timeout elapses; never rejects.
+ */
+export async function flushObservability(timeoutMs = 2000): Promise<void> {
+  if (!enabled) return
+  try {
+    await Sentry.flush(timeoutMs)
+  } catch {
+    // Exiting anyway — nothing useful to do with a flush failure.
+  }
 }
 
 /**

@@ -1,5 +1,6 @@
-import type { Interaction } from 'discord.js'
+import { MessageFlags, type Interaction } from 'discord.js'
 import type { Command } from '../commands/index.js'
+import { captureException } from '../observability.js'
 
 // Extend Client type to include commands
 declare module 'discord.js' {
@@ -22,6 +23,7 @@ export async function handleInteractionCreate(interaction: Interaction): Promise
       await command.autocomplete(interaction)
     } catch (error) {
       console.error(`Error in autocomplete for ${interaction.commandName}:`, error)
+      captureException(error, { source: 'autocomplete', command: interaction.commandName })
     }
     return
   }
@@ -40,16 +42,24 @@ export async function handleInteractionCreate(interaction: Interaction): Promise
     await command.execute(interaction)
   } catch (error) {
     console.error(`Error executing ${interaction.commandName}:`, error)
+    captureException(error, { source: 'command', command: interaction.commandName })
 
-    const reply = {
-      content: 'There was an error while executing this command!',
-      ephemeral: true,
-    }
+    // The fallback reply itself can reject (e.g. the 3-second interaction
+    // token already expired) — guard it so the error handler never escapes
+    // as an unhandledRejection.
+    try {
+      const reply = {
+        content: 'There was an error while executing this command!',
+        flags: MessageFlags.Ephemeral,
+      } as const
 
-    if (interaction.replied || interaction.deferred) {
-      await interaction.followUp(reply)
-    } else {
-      await interaction.reply(reply)
+      if (interaction.replied || interaction.deferred) {
+        await interaction.followUp(reply)
+      } else {
+        await interaction.reply(reply)
+      }
+    } catch (replyError) {
+      console.error(`Failed to send error reply for ${interaction.commandName}:`, replyError)
     }
   }
 }

@@ -59,7 +59,7 @@
     "rules:briefs": "bun tools/rules-digest/regenerate.ts briefs",
     "rules:regen": "bun tools/rules-digest/regenerate.ts",
     "assets:webp": "bun tools/convert-lp-assets-to-webp.ts",
-    "typecheck": "bun --filter salvageunion-reference typecheck && concurrently -g 'bun --filter suref-react typecheck' 'bun --filter suref-web typecheck' 'bun --filter in-the-union-now typecheck'",
+    "typecheck": "bun --filter salvageunion-reference typecheck && concurrently -g 'bun --filter suref-react typecheck' 'bun --filter suref-web typecheck' 'bun --filter in-the-union-now typecheck' 'bun --filter @suref/discord-bot typecheck'",
     "typecheck:package": "bun --filter salvageunion-reference typecheck",
     "typecheck:react": "bun --filter suref-react typecheck",
     "typecheck:web": "bun --filter suref-web typecheck",

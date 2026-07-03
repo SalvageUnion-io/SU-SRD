@@ -59,6 +59,8 @@ export {
   type ColumnsTableRollResult,
 } from './utils/resultForTable.js'
 
+export { rollOnTable, type RollOnTableOutcome, type D20Roller } from './rollOnTable.js'
+
 // Export utility functions (type guards and property extractors)
 export * from './utilities.js'
 
