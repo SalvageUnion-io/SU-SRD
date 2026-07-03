@@ -326,8 +326,14 @@ export type SchemaToEntityMap = {
 // Type for entity schema names (includes entity schemas and meta schemas, excludes non-entity schemas)
 export type EntitySchemaName = keyof SchemaToEntityMap
 
-// Single authoritative registry: maps every schema name to its model key and display name.
-// Adding a new schema only requires one entry here (plus its type in SchemaToEntityMap).
+// Registry mapping every schema name to its model key and display name.
+// NOTE: this is NOT the only touch-point. Adding a new schema currently
+// requires parallel entries in: ModelFactory.ts (dataLoaders,
+// jsonSchemaLoaders, zodSchemaMap, schemaDisplayNames), this file (the
+// LazyModel instance, lazyModelMap, SchemaToEntityMap, this registry, the
+// static accessor), and tools/generateJsonSchemas.ts — see the
+// package-contracts.md checklist. Keep them in lockstep or preload()/codegen
+// breaks silently.
 // Set `entity: false` for non-entity metadata schemas (excluded from EntitySchemaNames).
 const SCHEMA_REGISTRY = {
   abilities: { model: 'Abilities', display: 'Ability' },
@@ -591,7 +597,7 @@ export class SalvageUnionReference {
   public static searchIn<T extends SURefEntity>(
     schemaName: SURefEnumSchemaName,
     query: string,
-    options?: { limit?: number; caseSensitive?: boolean }
+    options?: { limit?: number }
   ): (T & { schemaName: SURefEnumSchemaName })[] {
     return searchInFn(schemaName, query, options)
   }
@@ -604,7 +610,6 @@ export class SalvageUnionReference {
     options?: {
       schemas?: SURefEnumSchemaName[]
       limit?: number
-      caseSensitive?: boolean
     }
   ): string[] {
     return getSuggestionsFn(query, options)

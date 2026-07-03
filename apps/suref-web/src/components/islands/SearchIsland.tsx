@@ -1,16 +1,9 @@
-import { useState, useRef, useCallback, useEffect, useId, useMemo } from 'react'
-import { search, getEntitySchemas } from 'salvageunion-reference'
-import type { SearchResult } from 'salvageunion-reference'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { getEntitySlug } from 'salvageunion-reference'
+import { useSearchCombobox } from 'suref-react'
+import type { SearchComboboxResult } from 'suref-react'
 import { useGameData } from '../../lib/useGameData'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
-
-type DisplayResult = {
-  id: string
-  url: string
-  title: string
-  schema: string
-}
 
 type SearchIslandProps = {
   /** Injectable navigation function — defaults to window.location.assign.
@@ -18,55 +11,23 @@ type SearchIslandProps = {
   navigate?: (url: string) => void
 }
 
-function toDisplayResult(result: SearchResult): DisplayResult {
-  const slug = getEntitySlug(result.entity)
-  return {
-    id: result.entityId,
-    url: `/schema/${result.schemaName}/item/${slug}/`,
-    title: result.entityName,
-    schema: result.schemaTitle.replace('Salvage Union ', ''),
-  }
-}
-
-function matchSchemas(query: string): DisplayResult[] {
-  const q = query.toLowerCase().trim()
-  if (!q) return []
-
-  return getEntitySchemas()
-    .filter(
-      (s) =>
-        s.displayName.toLowerCase().includes(q) ||
-        s.displayNamePlural.toLowerCase().includes(q) ||
-        s.id.includes(q)
-    )
-    .map((s) => ({
-      id: `schema:${s.id}`,
-      url: `/schema/${s.id}/`,
-      title: s.displayNamePlural,
-      schema: 'Category',
-    }))
+/** Site URL for a combobox result: category listing or entity item page. */
+function resultUrl(result: SearchComboboxResult): string {
+  if (result.kind === 'schema') return `/schema/${result.schemaId}/`
+  return `/schema/${result.schemaId}/item/${getEntitySlug(result.entity)}/`
 }
 
 export function SearchIsland({ navigate }: SearchIslandProps = {}) {
   // Deferred: the game-data chunks don't download until first user intent
   // (focusing the input or typing) — keeps them off every page's critical path.
   const { ready, load } = useGameData({ defer: true })
-  const [query, setQuery] = useState('')
-  const [results, setResults] = useState<DisplayResult[]>([])
-  const [isOpen, setIsOpen] = useState(false)
-  const [hasSearched, setHasSearched] = useState(false)
-  const [selectedIndex, setSelectedIndex] = useState(-1)
+  // Dropdown-open is DERIVED: open while a search has run, unless the user
+  // dismissed THIS results set (Escape/outside click). A new search run
+  // produces a fresh results reference, which re-opens automatically —
+  // mirroring the pre-hook behavior without a setState-in-effect.
+  const [dismissedResults, setDismissedResults] = useState<unknown>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const idPrefix = useId()
-  const listboxId = `${idPrefix}-search-results`
-  const optionId = (i: number) => `${idPrefix}-search-result-${i}`
-
-  // Only expose results to the UI once data is loaded — prevents phantom
-  // aria-live announcements, invisible keyboard-selectable options, and
-  // Enter navigating to an unseen result while the loading row is shown.
-  const visibleResults = useMemo(() => (ready ? results : []), [ready, results])
 
   const doNavigate = useCallback(
     (url: string) => {
@@ -79,89 +40,55 @@ export function SearchIsland({ navigate }: SearchIslandProps = {}) {
     [navigate]
   )
 
-  const performSearch = useCallback(
-    (searchQuery: string) => {
-      if (!searchQuery.trim()) {
-        setResults([])
-        setIsOpen(false)
-        setHasSearched(false)
-        return
-      }
+  const {
+    query,
+    results,
+    hasSearched,
+    selectedIndex,
+    handleInput,
+    handleKeyDown,
+    listboxId,
+    optionId,
+    inputProps,
+    announcement,
+  } = useSearchCombobox({
+    ready,
+    onSubmit: (result) => doNavigate(resultUrl(result)),
+  })
 
-      const schemaResults = matchSchemas(searchQuery).slice(0, 3)
-      const hits = ready ? search({ query: searchQuery, limit: 10 - schemaResults.length }) : []
-      const displayResults = [...schemaResults, ...hits.map(toDisplayResult)]
-      setResults(displayResults)
-      setIsOpen(true)
-      setHasSearched(true)
-      setSelectedIndex(-1)
-    },
-    [ready]
-  )
-
-  const handleInput = useCallback(
+  const onInput = useCallback(
     (value: string) => {
       load()
-      setQuery(value)
-      if (debounceRef.current) clearTimeout(debounceRef.current)
-      debounceRef.current = setTimeout(() => performSearch(value), 150)
+      handleInput(value)
     },
-    [load, performSearch]
+    [load, handleInput]
   )
 
-  // Re-run the pending query when data finishes loading.
-  // Also cancels any stale debounce timer that fired with the pre-ready
-  // closure (which returns [] for entity hits) so results are immediately
-  // refreshed with real data rather than waiting for the next keystroke.
-  useEffect(() => {
-    if (ready && query.trim()) {
-      if (debounceRef.current) clearTimeout(debounceRef.current)
-      performSearch(query)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready])
+  const isOpen = hasSearched && dismissedResults !== results
 
-  // Debounce timer cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current)
-    }
-  }, [])
-
-  const handleKeyDown = useCallback(
+  const onKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (!isOpen) return
-
-      if (e.key === 'ArrowDown') {
-        e.preventDefault()
-        setSelectedIndex((prev) => Math.min(prev + 1, visibleResults.length - 1))
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault()
-        setSelectedIndex((prev) => Math.max(prev - 1, -1))
-      } else if (e.key === 'Enter') {
-        e.preventDefault()
-        const target = selectedIndex >= 0 ? visibleResults[selectedIndex] : visibleResults[0]
-        if (target) {
-          doNavigate(target.url)
-        }
-      } else if (e.key === 'Escape') {
-        setIsOpen(false)
+      if (e.key === 'Escape') {
+        setDismissedResults(results)
         inputRef.current?.blur()
+        return
       }
+      handleKeyDown(e)
     },
-    [isOpen, visibleResults, selectedIndex, doNavigate]
+    [isOpen, results, handleKeyDown]
   )
 
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setIsOpen(false)
+        setDismissedResults(results)
       }
     }
     document.addEventListener('click', handleClick)
     return () => document.removeEventListener('click', handleClick)
-  }, [])
+  }, [results])
 
   // Cmd+K / Ctrl+K to focus search
   useEffect(() => {
@@ -179,13 +106,7 @@ export function SearchIsland({ navigate }: SearchIslandProps = {}) {
     <IslandErrorBoundary>
       <div className="relative" ref={containerRef}>
         <div className="sr-only" aria-live="polite">
-          {hasSearched && ready
-            ? visibleResults.length > 0
-              ? `${visibleResults.length} result${visibleResults.length === 1 ? '' : 's'} found`
-              : 'No results found'
-            : hasSearched && query.trim()
-              ? 'Loading game data'
-              : null}
+          {announcement}
         </div>
         {/* Search container — .srd-search treatment: bordered su-black, tight radius, font-mono.
           The inner input keeps focus:outline-none, so the container carries the
@@ -214,22 +135,18 @@ export function SearchIsland({ navigate }: SearchIslandProps = {}) {
             name="srd-search"
             placeholder="Search…"
             value={query}
-            onChange={(e) => handleInput(e.target.value)}
-            onKeyDown={handleKeyDown}
+            onChange={(e) => onInput(e.target.value)}
+            onKeyDown={onKeyDown}
             onFocus={() => {
               load()
-              if (hasSearched) setIsOpen(true)
+              setDismissedResults(null)
             }}
             className="w-52 bg-transparent font-mono text-[13px] text-su-black placeholder:text-su-grey-dark focus:outline-none"
+            {...inputProps}
             aria-label="Search the SRD"
-            aria-expanded={isOpen}
             role="combobox"
+            aria-expanded={isOpen}
             aria-controls={listboxId}
-            aria-activedescendant={
-              selectedIndex >= 0 && visibleResults[selectedIndex]
-                ? optionId(selectedIndex)
-                : undefined
-            }
           />
         </div>
 
@@ -241,20 +158,20 @@ export function SearchIsland({ navigate }: SearchIslandProps = {}) {
           >
             {!ready ? (
               <div className="px-4 py-3 text-sm text-su-grey-dark">Loading game data…</div>
-            ) : visibleResults.length > 0 ? (
-              visibleResults.map((result, index) => (
+            ) : results.length > 0 ? (
+              results.map((result, index) => (
                 <a
                   key={result.id}
                   id={optionId(index)}
                   role="option"
                   aria-selected={index === selectedIndex}
-                  href={result.url}
+                  href={resultUrl(result)}
                   className={`block px-4 py-3 text-sm transition-colors ${
                     index === selectedIndex ? 'bg-su-blue-pale' : 'hover:bg-su-blue-pale'
                   }`}
                 >
                   <div className="font-medium text-su-black">{result.title}</div>
-                  <div className="mt-0.5 text-xs text-su-grey-dark">{result.schema}</div>
+                  <div className="mt-0.5 text-xs text-su-grey-dark">{result.group}</div>
                 </a>
               ))
             ) : (

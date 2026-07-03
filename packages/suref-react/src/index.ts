@@ -51,6 +51,11 @@ export { getClassSelections } from './components/referenceEntity/ReferenceEntity
 export { CardImage } from './components/shared/CardImage'
 export { DualColumnLayout } from './components/shared/DualColumnLayout'
 export { DisplayCard } from './components/shared/DisplayCard'
+export { useSearchCombobox } from './components/shared/useSearchCombobox'
+export type {
+  SearchComboboxResult,
+  UseSearchComboboxOptions,
+} from './components/shared/useSearchCombobox'
 export { Footer } from './components/shared/Footer'
 export { ValueDisplay } from './components/shared/ValueDisplay'
 export { StatDisplay } from './components/shared/StatDisplay'

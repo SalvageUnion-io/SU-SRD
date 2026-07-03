@@ -104,22 +104,37 @@ describe('Search API', () => {
       expect(mixedResults.length).toBe(lowerResults.length)
     })
 
-    test('should support case-sensitive search', () => {
-      const results = search({
-        query: 'Railgun',
-        caseSensitive: true,
-      })
+    test('multi-token queries AND across the name ("mining laser")', () => {
+      // Pre-tokenization this returned 0 results: nothing contains the
+      // contiguous substring "mining laser", but "Blue Mining Laser" holds
+      // both tokens.
+      const results = search({ query: 'mining laser' })
 
       expect(results.length).toBeGreaterThan(0)
+      const topNames = results.slice(0, 3).map((r) => r.entityName.toLowerCase())
+      expect(topNames.some((n) => n.includes('mining') && n.includes('laser'))).toBe(true)
+    })
 
-      // Should not match lowercase "railgun" in descriptions
-      const lowerResults = search({
-        query: 'railgun',
-        caseSensitive: true,
-      })
+    test('tokens may match across different fields (AND semantics)', () => {
+      const results = search({ query: 'heavy laser' })
+      // Every result contains every token SOMEWHERE (name or other fields).
+      expect(results.length).toBeGreaterThan(0)
+      expect(results.every((r) => r.matchedFields.length > 0)).toBe(true)
+    })
 
-      // Case-sensitive should have different results
-      expect(lowerResults.length).not.toBe(results.length)
+    test('single-character typos in the name still match ("railgon")', () => {
+      const results = search({ query: 'railgon' })
+      expect(results.some((r) => r.entityName === 'Railgun')).toBe(true)
+    })
+
+    test('typo-assisted matches rank below literal matches', () => {
+      const literal = search({ query: 'railgun' })
+      const typo = search({ query: 'railgon' })
+      const literalTop = literal.find((r) => r.entityName === 'Railgun')
+      const typoTop = typo.find((r) => r.entityName === 'Railgun')
+      expect(literalTop).toBeDefined()
+      expect(typoTop).toBeDefined()
+      expect(typoTop!.matchScore).toBeLessThan(literalTop!.matchScore)
     })
 
     test('should include matched fields in results', () => {
@@ -166,8 +181,8 @@ describe('Search API', () => {
       expect(systems.length).toBeLessThanOrEqual(5)
     })
 
-    test('should support case-sensitive search', () => {
-      const results = searchIn('systems', 'Laser', { caseSensitive: true })
+    test('is case-insensitive', () => {
+      const results = searchIn('systems', 'LASER')
 
       expect(results.length).toBeGreaterThan(0)
     })
