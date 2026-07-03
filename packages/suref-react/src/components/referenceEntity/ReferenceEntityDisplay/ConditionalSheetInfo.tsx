@@ -6,6 +6,7 @@ import { borderColorFromHeaderBg } from '../referenceEntityHelpers'
 import { cn } from '../../../utils/cn'
 import type { getReferenceEntityFontSizes } from './referenceEntityDisplayTypes'
 import { SectionSeparator } from './SectionSeparator'
+import { useDisplayFontSize } from './displayStateContext'
 
 type ConditionalSheetInfoProps = {
   /** Property name to check in data (for backwards compatibility) */
@@ -23,7 +24,8 @@ type ConditionalSheetInfoProps = {
   /** Compact mode */
   compact: boolean
   /** Font sizes */
-  fontSize: ReturnType<typeof getReferenceEntityFontSizes>
+  /** Optional override; falls back to the card display-state context. */
+  fontSize?: ReturnType<typeof getReferenceEntityFontSizes>
   /** Header background color */
   headerBg: string
 }
@@ -40,9 +42,10 @@ export function ConditionalSheetInfo({
   children,
   data,
   compact,
-  fontSize,
+  fontSize: fontSizeProp,
   headerBg,
 }: ConditionalSheetInfoProps) {
+  const fontSize = useDisplayFontSize(fontSizeProp, compact)
   let displayValue: string | undefined
   if (explicitValue !== undefined) {
     displayValue = explicitValue

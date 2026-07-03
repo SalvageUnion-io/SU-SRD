@@ -8,11 +8,13 @@ import {
 import { DataValueDisplayView } from '../DataValueDisplayView'
 import { cn } from '../../../utils/cn'
 import type { getReferenceEntitySpacing } from './referenceEntityDisplayTypes'
+import { useDisplaySpacing } from './displayStateContext'
 
 type ReferenceEntitySubTitleElementProps = {
   data: SURefEntity
   schemaName: SURefEnumSchemaName
-  spacing: ReturnType<typeof getReferenceEntitySpacing>
+  /** Optional override; falls back to the card display-state context. */
+  spacing?: ReturnType<typeof getReferenceEntitySpacing>
   compact: boolean
   /** Extra content appended after standard subtitle values */
   subtitleExtra?: ReactNode
@@ -27,11 +29,12 @@ type ReferenceEntitySubTitleElementProps = {
 export function ReferenceEntitySubTitleElement({
   data,
   schemaName,
-  spacing,
+  spacing: spacingProp,
   compact,
   subtitleExtra,
   suppressExtractedDetails,
 }: ReferenceEntitySubTitleElementProps) {
+  const spacing = useDisplaySpacing(spacingProp, compact)
   // Determine currency for activation cost
   const variableCost = 'activationCurrency' in data && schemaName === 'abilities'
   const currency = getActivationCurrency(schemaName, variableCost)

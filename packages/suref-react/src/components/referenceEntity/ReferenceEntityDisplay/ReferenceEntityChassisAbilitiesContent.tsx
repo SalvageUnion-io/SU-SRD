@@ -6,10 +6,12 @@ import { SectionSeparator } from './SectionSeparator'
 import { PatternEquipmentItem } from './PatternEquipmentItem'
 import { cn } from '../../../utils/cn'
 import type { getReferenceEntitySpacing } from './referenceEntityDisplayTypes'
+import { useDisplaySpacing } from './displayStateContext'
 
 type ReferenceEntityChassisAbilitiesContentProps = {
   chassisName?: string
-  spacing: ReturnType<typeof getReferenceEntitySpacing>
+  /** Optional override; falls back to the card display-state context. */
+  spacing?: ReturnType<typeof getReferenceEntitySpacing>
   compact: boolean
   chassisAbilities?: SURefMetaAction[]
   /** Drone equipment from pattern (pre-baked mode only) */
@@ -20,12 +22,13 @@ type ReferenceEntityChassisAbilitiesContentProps = {
 
 export function ReferenceEntityChassisAbilitiesContent({
   chassisName,
-  spacing,
+  spacing: spacingProp,
   compact,
   chassisAbilities,
   droneEquipment,
   hideDrone,
 }: ReferenceEntityChassisAbilitiesContentProps) {
+  const spacing = useDisplaySpacing(spacingProp, compact)
   if (!chassisAbilities || chassisAbilities.length === 0) return null
 
   const droneAbility = chassisAbilities.find((a) => a.drone)

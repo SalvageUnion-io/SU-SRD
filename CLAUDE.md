@@ -169,7 +169,7 @@ Models extend `BaseModel<T>`, created via `ModelFactory`, accessed via `SalvageU
 
 ### Development Workflow
 
-After making component changes, always verify all props are passed through to child/nested components (e.g., fontSize, spacing, damaged). Run typecheck immediately after edits to catch missing props before moving on.
+In the entity display system, card-level display state (compact, spacing, fontSize, damaged, disabled) flows through ReferenceEntityDisplayContext (packages/suref-react .../displayStateContext.ts) — nested components read it automatically, with explicit props as overrides. When adding NEW props that must reach nested components, verify the pass-through; run typecheck immediately after edits.
 
 ### Debugging
 

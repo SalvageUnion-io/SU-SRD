@@ -2,11 +2,13 @@ import type { SURefEntity } from 'salvageunion-reference'
 import { getGoals, getAssets, getWeaknesses } from 'salvageunion-reference'
 import { cn } from '../../../../utils/cn'
 import type { getReferenceEntityFontSizes } from '../referenceEntityDisplayTypes'
+import { useDisplayFontSize } from '../displayStateContext'
 
 type ReferenceEntityFactionDataProps = {
   data: SURefEntity
   compact: boolean
-  fontSize: ReturnType<typeof getReferenceEntityFontSizes>
+  /** Optional override; falls back to the card display-state context. */
+  fontSize?: ReturnType<typeof getReferenceEntityFontSizes>
   borderColor: string | undefined
 }
 
@@ -19,9 +21,10 @@ const FACTION_FIELDS = [
 export function ReferenceEntityFactionData({
   data,
   compact,
-  fontSize,
+  fontSize: fontSizeProp,
   borderColor,
 }: ReferenceEntityFactionDataProps) {
+  const fontSize = useDisplayFontSize(fontSizeProp, compact)
   const entries = FACTION_FIELDS.map(({ label, getter }) => ({
     label,
     value: getter(data),

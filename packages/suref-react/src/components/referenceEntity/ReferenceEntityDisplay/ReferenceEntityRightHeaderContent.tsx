@@ -3,10 +3,12 @@ import { isAbility } from 'salvageunion-reference'
 import { useParseTraitReferences } from '../../../utils/parseTraitReferences'
 import { cn } from '../../../utils/cn'
 import type { getReferenceEntityFontSizes } from './referenceEntityDisplayTypes'
+import { useDisplayFontSize } from './displayStateContext'
 
 type ReferenceEntityRightHeaderContentProps = {
   data: SURefEntity
-  fontSize: ReturnType<typeof getReferenceEntityFontSizes>
+  /** Optional override; falls back to the card display-state context. */
+  fontSize?: ReturnType<typeof getReferenceEntityFontSizes>
   /** Accent text colour — a lighter variant of the card's base/header colour.
    *  Falls back to white when not provided. */
   accentColor?: string
@@ -14,9 +16,10 @@ type ReferenceEntityRightHeaderContentProps = {
 
 export function ReferenceEntityRightHeaderContent({
   data,
-  fontSize,
+  fontSize: fontSizeProp,
   accentColor,
 }: ReferenceEntityRightHeaderContentProps) {
+  const fontSize = useDisplayFontSize(fontSizeProp, false)
   const description = 'description' in data ? data.description : undefined
   const parsedDescription = useParseTraitReferences(description)
 
