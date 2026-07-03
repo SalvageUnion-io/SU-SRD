@@ -105,26 +105,20 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
-      - name: Build package
+      # The package ships TypeScript source (no dist; audit item 16) — this
+      # job only guards the one remaining generated artifact: the committed
+      # JSON schemas. If they drift from the Zod generator output, fail so
+      # stale schemas never ship (as a stale crawler-bays.schema.json once
+      # did on main).
+      - name: Regenerate JSON schemas
         run: bun run build:package
 
       - name: Verify generated schemas are up to date
-        # build:package regenerates packages/salvageunion-reference/schemas/*.schema.json
-        # from the Zod sources. If the committed artifacts drift from the
-        # generator output, fail here so stale schemas never ship (as a stale
-        # crawler-bays.schema.json once did on main).
         run: |
           if ! git diff --exit-code -- packages/salvageunion-reference/schemas; then
             echo "::error::Committed JSON schemas are stale. Run 'bun run build:package' and commit packages/salvageunion-reference/schemas/." >&2
             exit 1
           fi
-
-      - name: Upload package dist
-        uses: actions/upload-artifact@v4
-        with:
-          name: package-dist
-          path: packages/salvageunion-reference/dist/
-          retention-days: 1
 
   knip:
     needs: [changes, build-package]
@@ -137,11 +131,6 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
-      - name: Download package dist
-        uses: actions/download-artifact@v4
-        with:
-          name: package-dist
-          path: packages/salvageunion-reference/dist/
 
       - name: Knip
         run: bun run knip
@@ -157,11 +146,6 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
-      - name: Download package dist
-        uses: actions/download-artifact@v4
-        with:
-          name: package-dist
-          path: packages/salvageunion-reference/dist/
 
       - name: Typecheck
         run: bun run typecheck
@@ -177,11 +161,6 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
-      - name: Download package dist
-        uses: actions/download-artifact@v4
-        with:
-          name: package-dist
-          path: packages/salvageunion-reference/dist/
 
       - name: Test
         run: bun run test
@@ -237,11 +216,6 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
-      - name: Download package dist
-        uses: actions/download-artifact@v4
-        with:
-          name: package-dist
-          path: packages/salvageunion-reference/dist/
 
       - name: Build suref-web
         # Skip the headless-chromium og:image pass here — this job only verifies
@@ -262,11 +236,6 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
-      - name: Download package dist
-        uses: actions/download-artifact@v4
-        with:
-          name: package-dist
-          path: packages/salvageunion-reference/dist/
 
       - name: Build in-the-union-now
         run: bun --filter in-the-union-now build
@@ -282,11 +251,6 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
-      - name: Download package dist
-        uses: actions/download-artifact@v4
-        with:
-          name: package-dist
-          path: packages/salvageunion-reference/dist/
 
       - name: Build discord-bot
         run: bun --filter @suref/discord-bot build
@@ -353,6 +317,13 @@ jobs:
           done
           echo "::error::Timed out waiting for the Netlify deploy preview"; exit 1
 
+      - name: Cache Playwright browsers
+        if: steps.preview.outputs.skipped != 'true'
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+
       - name: Install Playwright browsers (Chromium)
         if: steps.preview.outputs.skipped != 'true'
         working-directory: apps/in-the-union-now
@@ -390,11 +361,12 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
-      - name: Download package dist
-        uses: actions/download-artifact@v4
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
         with:
-          name: package-dist
-          path: packages/salvageunion-reference/dist/
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
 
       - name: Install Playwright browsers (Chromium)
         working-directory: apps/in-the-union-now

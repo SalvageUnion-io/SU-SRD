@@ -18,22 +18,20 @@ When encoding any game data, **always start by modeling it in this package first
 - `data/` - JSON data files
 - `schemas/` - JSON Schema files (generated from Zod schemas during build)
 - `tools/` - Validation and generation scripts
-- `dist/` - Compiled output (generated, don't edit)
 
 ## Build & JSON Schema Generation
 
-Building the package compiles TypeScript and generates JSON Schema files:
+Building the package regenerates JSON Schema files (the package ships TypeScript source — no compile step):
 
 ```bash
 bun run build:package   # from repo root
 ```
 
-This runs `tsc` followed by `generate:json-schemas`. There is no standalone `generate` command.
+This runs `generate:json-schemas`. There is no standalone `generate` command.
 
 **Auto-generated files (DO NOT EDIT):**
 
 - `schemas/*.schema.json` - Generated from Zod schemas via `tools/generateJsonSchemas.ts`
-- `dist/` - TypeScript compilation output
 
 To change generated output:
 

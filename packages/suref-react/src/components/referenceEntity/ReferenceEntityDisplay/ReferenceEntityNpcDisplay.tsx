@@ -15,12 +15,15 @@ import type {
   getReferenceEntityFontSizes,
   getReferenceEntitySpacing,
 } from './referenceEntityDisplayTypes'
+import { useDisplaySpacing, useDisplayFontSize } from './displayStateContext'
 
 type ReferenceEntityNpcDisplayProps = {
   data: SURefMetaEntity
   compact: boolean
-  fontSize: ReturnType<typeof getReferenceEntityFontSizes>
-  spacing: ReturnType<typeof getReferenceEntitySpacing>
+  /** Optional override; falls back to the card display-state context. */
+  fontSize?: ReturnType<typeof getReferenceEntityFontSizes>
+  /** Optional override; falls back to the card display-state context. */
+  spacing?: ReturnType<typeof getReferenceEntitySpacing>
   /** Optional children to render inside the NPC card body (e.g. editable fields) */
   npcChildren?: ReactNode
   /** Optional slot to replace the default HP display (e.g. editable HP control) */
@@ -48,8 +51,8 @@ type ReferenceEntityNpcDisplayProps = {
 export function ReferenceEntityNpcDisplay({
   data,
   compact,
-  fontSize,
-  spacing,
+  fontSize: fontSizeProp,
+  spacing: spacingProp,
   npcChildren,
   hpSlot,
   hideContent = false,
@@ -62,6 +65,8 @@ export function ReferenceEntityNpcDisplay({
   showSeparator,
   hideHeader = false,
 }: ReferenceEntityNpcDisplayProps) {
+  const spacing = useDisplaySpacing(spacingProp, compact)
+  const fontSize = useDisplayFontSize(fontSizeProp, compact)
   const npc = getNpc(data)
   if (!npc) return null
 

@@ -3,7 +3,8 @@
  *
  * Renders as a Btn. On click, opens a ModalShell dialog where the user
  * enters a pattern name. On confirm, builds a MechPattern from the supplied
- * configuration and persists it via db.mechPatterns.create().
+ * configuration and persists it via the patternStore (cross-tab broadcast +
+ * backup nudge included — audit item 22).
  *
  * Design choice: the pattern name defaults to the mech name so the user can
  * confirm quickly. It is editable so patterns can have descriptive template names
@@ -15,9 +16,9 @@
 
 import { useState } from 'react'
 import { Btn, Field, Input, ModalShell, toast } from 'suref-react'
-import * as db from '../../../lib/db/index'
 import type { CargoLot } from '../../../lib/schemas/cargoLot'
 import { cn } from '../../../lib/utils'
+import { usePatternStore } from '../../../stores/patternStore'
 
 type SavePatternButtonProps = {
   /** Name of the source mech — pre-fills the pattern name field. */
@@ -66,7 +67,7 @@ export function SavePatternButton({
     setSaveError(null)
 
     try {
-      const pattern = await db.mechPatterns.create({
+      const pattern = await usePatternStore.getState().create({
         schemaVersion: 1,
         name: patternName.trim(),
         chassisRef,

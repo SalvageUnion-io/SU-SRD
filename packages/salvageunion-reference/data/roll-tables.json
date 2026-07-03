@@ -1423,7 +1423,7 @@
   {
     "id": "8b0c74d6-4358-4191-86cc-615a51639a40",
     "source": "We Were Here First!",
-    "name": "Salvage Cache Table",
+    "name": "Salvage Cache Table (We Were Here First!)",
     "table": {
       "1": {
         "value": "d20 Bio-Salvage"
@@ -3841,7 +3841,7 @@
     "id": "dd4d6469-fd9d-4eeb-86fc-b8202477d5e3",
     "source": "Reclamation of the Wastes",
     "page": 10,
-    "name": "Salvage Cache Table",
+    "name": "Salvage Cache Table (Reclamation of the Wastes)",
     "content": [
       {
         "type": "paragraph",

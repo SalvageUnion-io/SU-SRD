@@ -17,6 +17,8 @@
  * readOnly renders the last-result readout only — no inputs, no mutation.
  *
  * The d20 is dep-injectable via `roll` so tests are deterministic.
+ * Intake row / advisory boxes / fresh-record read come from
+ * controlPrimitives (audit item 24).
  */
 
 import { useState } from 'react'
@@ -29,6 +31,15 @@ import { applyMechDamage, performCriticalDamage } from '../../lib/rules/takeDama
 import type { DamageKind } from '../../lib/rules/takeDamage'
 import type { CriticalDamageOutcome, Mech } from '../../lib/schemas/mech'
 import type { useEntityStore } from '../../stores/entityStore'
+import {
+  AdvisoryBox,
+  AdvisoryText,
+  DamageIntakeRow,
+  freshEntity,
+  useDamageAmount,
+} from './controlPrimitives'
+import type { DamageKindOption } from './controlPrimitives'
+import { destroyedUndoToast } from './destroyedUndoToast'
 
 type TakeDamageControlProps = {
   mech: Mech
@@ -70,6 +81,12 @@ const OUTCOME_TONE: Record<CriticalDamageOutcome, string> = {
 
 const CHASSIS_DAMAGED_CONDITION = 'Chassis Damaged'
 
+/** Mechs: SP applies 1:1; listed HP damage halves (p.240). */
+const MECH_DAMAGE_KINDS: readonly [DamageKindOption, DamageKindOption] = [
+  { kind: 'sp', label: 'SP damage', title: 'Weapon lists SP damage — applies 1:1' },
+  { kind: 'hp', label: 'HP damage (½)', title: 'Weapon lists HP damage — mechs take half' },
+]
+
 export function TakeDamageControl({
   mech,
   currentSP,
@@ -78,7 +95,7 @@ export function TakeDamageControl({
   readOnly = false,
 }: TakeDamageControlProps) {
   const storeState = store()
-  const [amountText, setAmountText] = useState('')
+  const { amountText, setAmountText, amount, amountValid } = useDamageAmount()
   const [kind, setKind] = useState<DamageKind>('sp')
   // Vulnerable ×2 tracks the mech's own flag until the player overrides it.
   const [vulnerableOverride, setVulnerableOverride] = useState<boolean | null>(null)
@@ -86,17 +103,9 @@ export function TakeDamageControl({
   const [lastApplied, setLastApplied] = useState<string | null>(null)
   const [choicePrompt, setChoicePrompt] = useState<'system' | 'module' | null>(null)
 
-  const amount = Number.parseInt(amountText, 10)
-  const amountValid = Number.isInteger(amount) && amount > 0
-
-  /** Freshest mech from the store — rapid actions must not stomp each other. */
-  function freshMech(): Mech {
-    return storeState.get('mech', mech.id) ?? mech
-  }
-
   async function applyDamage() {
     if (!amountValid) return
-    const fresh = freshMech()
+    const fresh = freshEntity(storeState, 'mech', mech)
     const sp = fresh.currentSP ?? currentSP
     const effect = applyMechDamage({ currentSP: sp, amount, kind, vulnerable })
     setLastApplied(
@@ -110,7 +119,7 @@ export function TakeDamageControl({
 
   async function rollCritical() {
     const effect = performCriticalDamage({ roll })
-    const fresh = freshMech()
+    const fresh = freshEntity(storeState, 'mech', mech)
     const patch: Partial<Mech> = { lastCriticalDamage: effect.result }
     if (effect.nextSP !== null) {
       patch.currentSP = effect.nextSP
@@ -129,69 +138,37 @@ export function TakeDamageControl({
     setChoicePrompt(effect.requiresPlayerChoice)
     setLastApplied(null)
     await storeState.update('mech', mech.id, patch)
+    // Destructive-write policy (audit item 25): automation-written destroyed
+    // flags surface the same one-click Undo as item destruction (U-6), on
+    // top of HeatCheckControl's persistent Clear strip — a mis-rolled or
+    // mis-read table result shouldn't require hunting for the Clear button.
+    if (effect.destroyed) {
+      destroyedUndoToast(mech.name || 'Mech', () => {
+        void storeState.update('mech', mech.id, { destroyed: undefined })
+      })
+    }
   }
 
   const last = mech.lastCriticalDamage
-  const inputClass =
-    'w-16 rounded-[3px] border-chrome border-ink bg-paper px-2 py-1.5 font-body text-sm text-ink focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22]'
 
   return (
     <div>
       <Slab label="Take Damage" />
 
       {!readOnly && (
-        <div className="flex flex-wrap items-center gap-2">
-          <input
-            type="number"
-            min={1}
-            value={amountText}
-            aria-label="Damage amount"
-            placeholder="0"
-            onChange={(e) => setAmountText(e.target.value)}
-            className={inputClass}
-          />
-          <span role="group" aria-label="Weapon damage type" className="inline-flex gap-1">
-            <Btn
-              size="sm"
-              variant={kind === 'sp' ? 'primary' : undefined}
-              aria-pressed={kind === 'sp'}
-              title="Weapon lists SP damage — applies 1:1"
-              onClick={() => setKind('sp')}
-            >
-              SP damage
-            </Btn>
-            <Btn
-              size="sm"
-              variant={kind === 'hp' ? 'primary' : undefined}
-              aria-pressed={kind === 'hp'}
-              title="Weapon lists HP damage — mechs take half"
-              onClick={() => setKind('hp')}
-            >
-              HP damage (½)
-            </Btn>
-          </span>
-          <label className="flex items-center gap-1.5 font-cond text-xs font-bold uppercase text-wk-muted">
-            <input
-              type="checkbox"
-              checked={vulnerable}
-              aria-label="Vulnerable — takes double damage"
-              onChange={(e) => setVulnerableOverride(e.target.checked)}
-              className="accent-rust"
-            />
-            Vulnerable ×2
-          </label>
-          <Btn
-            size="sm"
-            variant="primary"
-            disabled={!amountValid}
-            aria-label="Apply damage"
-            onClick={() => {
-              void applyDamage()
-            }}
-          >
-            Apply
-          </Btn>
-        </div>
+        <DamageIntakeRow
+          amountText={amountText}
+          onAmountChange={setAmountText}
+          kindOptions={MECH_DAMAGE_KINDS}
+          kind={kind}
+          onKindChange={setKind}
+          vulnerable={vulnerable}
+          onVulnerableChange={setVulnerableOverride}
+          applyDisabled={!amountValid}
+          onApply={() => {
+            void applyDamage()
+          }}
+        />
       )}
 
       <div className="mt-2 min-h-[1.5rem]">
@@ -212,10 +189,7 @@ export function TakeDamageControl({
         )}
 
         {!readOnly && currentSP === 0 && !mech.destroyed && (
-          <div
-            role="alert"
-            className="mt-2 rounded-[3px] border-chrome border-status-warn bg-paper px-3 py-2"
-          >
+          <AdvisoryBox className="mt-2">
             <p className="m-0 font-body text-sm text-rust">
               0 SP — roll on the Critical Damage Table.
             </p>
@@ -230,18 +204,15 @@ export function TakeDamageControl({
             >
               Roll Critical Damage
             </Btn>
-          </div>
+          </AdvisoryBox>
         )}
 
         {!readOnly && choicePrompt && (
-          <p
-            role="alert"
-            className="mt-2 rounded-[3px] border-chrome border-status-warn bg-paper px-3 py-2 font-body text-sm text-rust"
-          >
+          <AdvisoryText className="mt-2">
             {choicePrompt === 'system'
               ? 'Mark one System as Destroyed using its status badge below (Mediator picks, or roll it at the table).'
               : 'Mark one Module as Destroyed using its status badge below (Mediator picks, or roll it at the table).'}
-          </p>
+          </AdvisoryText>
         )}
       </div>
     </div>

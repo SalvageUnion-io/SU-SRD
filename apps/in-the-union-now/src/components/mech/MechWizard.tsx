@@ -1,7 +1,9 @@
 import { useMemo, useState } from 'react'
+import { nameToSlug } from 'salvageunion-reference'
 import { toast } from 'suref-react'
 import { computeMechCapacity } from '../../lib/rules/capacity'
 import { findChassisByRef, mechMaxCargo, mechMaxEP } from '../../lib/rules/derivedStats'
+import { resolveChassisRef } from '../../lib/rules/resolveRefs'
 import { evaluateMechWarnings } from '../../lib/rules/softWarnings'
 import type { SoftWarning } from '../../lib/rules/types'
 import { totalLotUnits } from '../../lib/schemas/cargoLot'
@@ -22,6 +24,12 @@ import { MechIdentityStep } from './MechIdentityStep'
 import { MechReviewStep } from './MechReviewStep'
 import { PatternDetail, PatternOptionList } from './PatternStep'
 import type { PatternLike } from './patternData'
+import {
+  clearWizardDraft,
+  readWizardDraft,
+  useWizardDraftSync,
+  wizardDraftKey,
+} from '../../lib/wizard/wizardDraft'
 
 type Step = 'Chassis' | 'Pattern' | 'Loadout' | 'Identity' | 'Review'
 
@@ -68,7 +76,13 @@ export function MechWizard({ onComplete, onCancel, mechId, initialState }: MechW
   const existingMech = useMech(mechId)
 
   const [step, setStep] = useState<Step>('Chassis')
-  const [form, setForm] = useState<MechWizardFormState>(initialState ?? EMPTY_MECH_FORM_STATE)
+  // Draft-aware init: a stored session draft (refresh, back-nav, PWA reload)
+  // wins over the pristine initial state; cleared on submit/cancelled exit.
+  const draftKey = wizardDraftKey('mech', mechId)
+  const [form, setForm] = useState<MechWizardFormState>(
+    () => readWizardDraft<MechWizardFormState>(draftKey) ?? initialState ?? EMPTY_MECH_FORM_STATE
+  )
+  const formDirty = useWizardDraftSync(draftKey, form, initialState ?? EMPTY_MECH_FORM_STATE)
   // Custom (manual) vs canonical-pattern loadout. Not persisted — editing an
   // existing mech always lands in the manual loadout path so its install can
   // be tweaked.
@@ -114,8 +128,8 @@ export function MechWizard({ onComplete, onCancel, mechId, initialState }: MechW
     setIsCustomPattern(false)
     updateForm({
       patternName: pattern.name,
-      systems: (pattern.systems ?? []).map((s) => s.name),
-      modules: (pattern.modules ?? []).map((m) => m.name),
+      systems: (pattern.systems ?? []).map((s) => nameToSlug(s.name)),
+      modules: (pattern.modules ?? []).map((m) => nameToSlug(m.name)),
     })
   }
 
@@ -234,6 +248,7 @@ export function MechWizard({ onComplete, onCancel, mechId, initialState }: MechW
       if (mechId) {
         await store.update('mech', mechId, mechFormToUpdatePatch(form))
         toast.success(`Saved ${form.name.trim() || 'mech'}.`)
+        clearWizardDraft(draftKey)
         onComplete(mechId)
         return
       }
@@ -259,6 +274,7 @@ export function MechWizard({ onComplete, onCancel, mechId, initialState }: MechW
 
       const created = await store.create('mech', rawInput)
       toast.success(`Saved ${form.name.trim() || 'mech'}.`)
+      clearWizardDraft(draftKey)
       onComplete(created.id)
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : 'Failed to save mech. Please retry.')
@@ -266,7 +282,8 @@ export function MechWizard({ onComplete, onCancel, mechId, initialState }: MechW
     }
   }
 
-  const loadoutName = form.name.trim() || form.chassisName || 'Mech'
+  const loadoutName =
+    form.name.trim() || resolveChassisRef(form.chassisName)?.name || form.chassisName || 'Mech'
   const selectedPatternName = isCustomPattern ? null : form.patternName || null
 
   const subtitle = (() => {
@@ -320,7 +337,11 @@ export function MechWizard({ onComplete, onCancel, mechId, initialState }: MechW
         noticeWarnings.length > 0 ? <SoftWarningBanner warnings={noticeWarnings} /> : undefined
       }
       onBack={currentIndex > 0 ? goBack : undefined}
-      onCancel={onCancel}
+      onCancel={() => {
+        clearWizardDraft(draftKey)
+        onCancel()
+      }}
+      confirmCancel={formDirty}
       onNext={goNext}
       nextDisabled={!canAdvance()}
       busy={isSubmitting}
@@ -340,8 +361,8 @@ export function MechWizard({ onComplete, onCancel, mechId, initialState }: MechW
         <LoadoutStep
           systems={form.systems}
           modules={form.modules}
-          onAddSystem={(name) => updateForm({ systems: addCopy(form.systems, name) })}
-          onAddModule={(name) => updateForm({ modules: addCopy(form.modules, name) })}
+          onAddSystem={(name) => updateForm({ systems: addCopy(form.systems, nameToSlug(name)) })}
+          onAddModule={(name) => updateForm({ modules: addCopy(form.modules, nameToSlug(name)) })}
           onRemoveSystem={(index) => updateForm({ systems: removeAt(form.systems, index) })}
           onRemoveModule={(index) => updateForm({ modules: removeAt(form.modules, index) })}
           loadoutName={loadoutName}

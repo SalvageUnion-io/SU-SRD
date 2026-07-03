@@ -30,14 +30,9 @@ import type { Crawler } from '../../lib/schemas/crawler'
 import { useEntityStore } from '../../stores/entityStore'
 import { ConfirmDialog } from '../shared/ConfirmDialog'
 import { SectionCard } from '../shared/SectionCard'
-
-/** Minimal shape read off the reference models for catalog entries. */
-type RefItem = {
-  id: string
-  name: string
-  techLevel?: unknown
-  salvageValue?: unknown
-}
+import { AdvisoryText, freshEntity } from './controlPrimitives'
+import { loadRef, numericTl } from './refCatalog'
+import type { RefItem } from './refCatalog'
 
 type CatalogKind = 'chassis' | 'system' | 'module'
 
@@ -54,21 +49,6 @@ const KIND_LABEL: Record<CatalogKind, string> = {
 
 /** Cap on rendered matches — refine the search past this. */
 const MAX_RESULTS = 30
-
-/** Read a reference model defensively — empty when data isn't preloaded (tests). */
-function loadRef(all: () => ReadonlyArray<unknown>): RefItem[] {
-  try {
-    return (all() as ReadonlyArray<RefItem>).slice()
-  } catch {
-    return []
-  }
-}
-
-function numericTl(value: unknown): number | undefined {
-  return typeof value === 'number' && Number.isInteger(value) && value >= 1 && value <= 6
-    ? value
-    : undefined
-}
 
 /** Flatten one reference model into craftable catalog entries (numeric TL only). */
 function toEntries(kind: CatalogKind, items: RefItem[]): CatalogEntry[] {
@@ -142,7 +122,7 @@ export function CraftingControl({ crawler, store = useEntityStore }: CraftingCon
   /** Deduct the pool and deposit the Intact lot — one write (ADR-008). */
   async function handleCraft() {
     if (!pending) return
-    const fresh = storeState.get('crawler', crawler.id) ?? crawler
+    const fresh = freshEntity(storeState, 'crawler', crawler)
     const freshTl = parseCrawlerTechLevel(fresh.techLevel) ?? 1
     const quote = craftQuote(pending, fresh.scrapPool ?? {}, freshTl)
     if (!quote.eligible || !quote.affordable) {
@@ -169,12 +149,9 @@ export function CraftingControl({ crawler, store = useEntityStore }: CraftingCon
 
   if (gate.damaged) {
     return (
-      <p
-        role="alert"
-        className="m-0 rounded-[3px] border-chrome border-status-warn bg-paper px-3 py-2 font-body text-sm text-rust"
-      >
+      <AdvisoryText>
         The Crafting Bay is Damaged — nothing can be crafted until it is repaired to Intact (p.222).
-      </p>
+      </AdvisoryText>
     )
   }
 

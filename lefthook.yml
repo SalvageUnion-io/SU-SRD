@@ -5,8 +5,10 @@ pre-commit:
   parallel: true
   commands:
     lint-fix:
+      # Staged files only — the old `bun run lint -- --fix` linted the whole
+      # monorepo (~60s) on every commit; pre-push/CI still run the full lint.
       glob: '*.{ts,tsx,js,jsx}'
-      run: bun run lint -- --fix
+      run: bunx eslint --fix {staged_files}
       stage_fixed: true
 
     format:

@@ -10,6 +10,7 @@ import type { getReferenceEntityFontSizes } from './ReferenceEntityDisplay/refer
 import type { ReferenceEntityControl } from './ReferenceEntityDisplay/referenceEntityControlTypes'
 import { selectControl } from './ReferenceEntityDisplay/referenceEntityControls'
 import { cn } from '../../utils/cn'
+import { useDisplayFontSize } from './ReferenceEntityDisplay/displayStateContext'
 
 // ---------------------------------------------------------------------------
 // Interactive types (exported for consuming apps)
@@ -68,7 +69,8 @@ type GuideStepsDisplayProps = {
   compact: boolean
   headerBg: string
   headerBgColor?: string
-  fontSize: ReturnType<typeof getReferenceEntityFontSizes>
+  /** Optional override; falls back to the card display-state context. */
+  fontSize?: ReturnType<typeof getReferenceEntityFontSizes>
   renderEntityListing?: (
     entityData: unknown,
     schemaName: string,
@@ -260,10 +262,11 @@ export function GuideStepsDisplay({
   compact,
   headerBg,
   headerBgColor,
-  fontSize,
+  fontSize: fontSizeProp,
   renderEntityListing,
   interactive,
 }: GuideStepsDisplayProps) {
+  const fontSize = useDisplayFontSize(fontSizeProp, compact)
   if (!steps || steps.length === 0) return null
 
   const borderColor = borderColorFromHeaderBg(headerBg, headerBgColor)

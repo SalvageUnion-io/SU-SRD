@@ -34,7 +34,12 @@ export function getItemStaticPaths() {
     }
   }[] = []
 
-  for (const schema of catalog.schemas) {
+  // Entity schemas only — meta schemas (actions, ability-tree-requirements,
+  // catalog-categories) have no /schema/<id>/ listing page (see
+  // getSchemaStaticPaths above), so item pages for them would be sitemap
+  // orphans with 404 breadcrumbs. Their content renders inline on the pages
+  // of the entities that own it.
+  for (const schema of catalog.schemas.filter((s) => !s.meta)) {
     try {
       const items = SalvageUnionReference.findAllIn(schema.id as SURefEnumSchemaName, () => true)
       for (const item of items) {

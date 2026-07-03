@@ -4,7 +4,7 @@ services:
     runtime: node
     region: oregon
     plan: starter
-    buildCommand: 'bun install --ignore-scripts && bun run build:package && bun run build:bot'
+    buildCommand: 'bun install --ignore-scripts && bun run build:bot && bun run --filter @suref/discord-bot deploy-commands:global'
     startCommand: 'node apps/discord-bot/dist/index.js'
     envVars:
       - key: DISCORD_TOKEN
@@ -12,4 +12,7 @@ services:
       - key: DISCORD_CLIENT_ID
         sync: false
       - key: DISCORD_GUILD_ID
+        sync: false
+      # Sentry error tracking — set the value in the Render dashboard.
+      - key: SENTRY_DSN
         sync: false

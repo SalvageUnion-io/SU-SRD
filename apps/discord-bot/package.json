@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "bun run src/index.ts",
     "dev:watch": "bun --watch run src/index.ts",
-    "build": "tsc",
+    "build": "bun build src/index.ts src/deploy-commands.ts --outdir dist --target node --external discord.js --external @sentry/node --external @randsum/roller",
     "start": "node dist/index.js",
     "deploy-commands": "bun run src/deploy-commands.ts",
     "deploy-commands:global": "DEPLOY_GLOBAL=true bun run src/deploy-commands.ts",
@@ -16,7 +16,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "echo 'No tests configured'",
+    "test": "bun test",
     "clean": "rm -rf dist"
   },
   "dependencies": {

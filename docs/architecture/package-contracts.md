@@ -52,8 +52,8 @@ In development, consuming apps resolve `lib/index.ts` directly (via the `develop
 **Reference strings:**
 `.parseRef()`, `.getByRef()`
 
-**Metadata:**
-`.getTechLevel()`, `.getTechLevelNumber()`, `.getSalvageValue()`
+**Metadata (standalone exports from `lib/utilities.ts`, re-exported via the barrel — NOT `SalvageUnionReference` methods):**
+`getTechLevel(entity)`, `getTechLevelNumber(entity)`, `getSalvageValue(entity)`
 
 **Search:**
 `.search()`, `.searchIn()`, `.getSuggestions()`
@@ -61,8 +61,8 @@ In development, consuming apps resolve `lib/index.ts` directly (via the `develop
 **Type exports:**
 All entity types (`SURef*`), enum types (`SURefEnum*`), common types (`SURefCommon*`), object types (`SURefObject*`), `SchemaToEntityMap`, `EntitySchemaNames` (runtime Set).
 
-**Utility exports:**
-`nameToSlug`, `getEntitySlug`, `findEntityBySlug`, `getParagraphString`, `replaceChassisPlaceholder`, `parseContentBlockString`, `resultForTable`, `BaseModel`, `getDataMaps`, `getSchemaCatalog`, `resolveGrantedEntities`, `resolveChoiceView`
+**Utility exports (representative — `lib/index.ts` is the source of truth):**
+`nameToSlug`, `getEntitySlug`, `findEntityBySlug`, `getParagraphString`, `replaceChassisPlaceholder`, `parseContentBlockString`, `resultForTable`, `resultForColumnsTable`, `isColumnsTable`, `rollOnTable` (shared roll orchestration with injectable roller — consumed by the Discord bot and ITUN), `BaseModel`, `getDataMaps`, `getSchemaCatalog`, `resolveGrantedEntities`, `resolveChoiceView`
 
 **Choice-resolver types:**
 `ChoiceSelections` (`Record<string, string[]>`), `ResolvedChoiceView` (`{ datavalues, traits, prompts }`), `ChoicePrompt`
@@ -70,7 +70,7 @@ All entity types (`SURef*`), enum types (`SURefEnum*`), common types (`SURefComm
 ### Dependencies
 
 - **Runtime:** `zod` (^4.3.6)
-- **Dev only:** `ajv`, `ajv-formats`, `json-schema-to-typescript`, `jsonschema`
+- **Dev only:** none (`devDependencies` is empty — validation tooling runs on Bun + the runtime deps)
 
 ### Generated Files (do not edit)
 
@@ -117,7 +117,7 @@ Schema "chassis" not loaded. Call SalvageUnionReference.preload(['chassis']) or 
 
 ### Reference String Protocol
 
-Reference strings are the cross-schema pointer format used in JSON data and throughout the codebase. The format is `"schemaId::entityId"` (e.g. `"chassis::iron-mongrel"`).
+Reference strings are the cross-schema pointer format used in JSON data and throughout the codebase. The format is `"schemaId::entityId"`. Entity ids are UUIDs for nearly the whole dataset (1706/1712 — only `catalog-categories` uses semantic slug ids), so real refs look like `"chassis::550e8400-e29b-41d4-a716-446655440000"`; the examples below use a readable id for clarity only.
 
 ```typescript
 // Parse a reference string:
@@ -151,40 +151,26 @@ When storing cross-entity references in new JSON data files, always use the `"sc
 
 Consuming apps' Vite/Astro bundlers compile `.ts/.tsx` files directly. No intermediate build step.
 
-### Public API (64 named exports from `src/index.ts`)
+### Public API (`src/index.ts` is the source of truth)
 
-**Types:**
-`DataValue`, `PatternOverrideData`, `ReferenceEntityControl`, `DisplayCardTab`, `StatItem`, `StatConfig`, `GuideStepsInteractiveConfig`, `GuideStepRollState`, `ChoiceSelections`, `ChoiceCardOption`
+The barrel exports ~100 names. Do NOT trust any hand-maintained list (an
+earlier revision of this doc said "64 named exports" and drifted); instead,
+know the categories and check the barrel:
 
-**Constants:**
-`ENTITY_STATS_CONFIG`, `TECH_LEVEL_STYLES`, `TECH_LEVEL_BG`, `techLevelLabel`
+- **Types** — display/config types (`DataValue`, `StatConfig`, `DisplayCardTab`, choice-card types, …)
+- **Constants** — `ENTITY_STATS_CONFIG`, tech-level style maps
+- **Base typography** — `Text`, `Heading`
+- **UI primitives** — `Toaster`, `ModalShell`
+- **Chrome primitives** (`src/components/chrome/`) — `Btn`, `MiniBtn`, `Tag`, `Pill`, `Panel`, `OptRow`, `Stepper`, `Field`, `Input`, and friends
+- **Stat display** (`src/components/stat/`) — `StatBlock`, `MiniStat`, heat-level helpers
+- **Entity display system** — `ReferenceEntityDisplay` + tooltips/sections/skeletons, `getReferenceEntitySpacing`
+- **Interactive choice cards** — `ChoiceGroups`/`ChoiceGroup`/`ChoiceCard` + selection helpers
+- **Shared components** — `DisplayCard`, `RollTable`, `FilterChip`/`FilterRow`, `ValueDisplay`, `Footer`, …
+- **Utilities** — color helpers, `cn`, filtering/enrichment helpers
+- **Content rendering** — `BlockContentRendererView`, `DataValueDisplayView`
 
-**Base Typography:**
-`Text`
-
-**UI Primitives:**
-`Toaster`
-
-**Entity Display System:**
-`ReferenceEntityDisplay`, `ReferenceEntityDisplayTooltip`, `SectionSeparator`, `ReferenceEntityChassisAbilitiesContent`, `ClassAbilityTreeDisplay`, `NestedActionDisplay`, `ActionCard`, `getReferenceEntitySpacing`
-
-**Controls & Interactions:**
-`addControl`, `deleteControl`, `navigateControl`, `useDetailModal`, `useChassisPatternConfig`, `getClassSelections`
-
-**Interactive Choice Cards (granted-equipment):**
-`ChoiceGroups`, `ChoiceGroup`, `ChoiceCard`, `FreeTextChoiceCard`, `getChoiceCardOptions`, `isFreeTextChoice`, `isMultiSelectChoice`, `resolveMultiSelectCap`, `toggleSelection`
-
-**Shared Components:**
-`DisplayCard`, `CardHeader`, `CardImage`, `DualColumnLayout`, `ValueDisplay`, `StatDisplay`, `StatControl`, `StatsBar`, `ControlButtons`, `RollTable`, `FilterChip`, `FilterRow`, `Footer`, `ModalShell`
-
-**Skeletons:**
-`ReferenceEntityCardSkeleton`
-
-**Utilities:**
-`borderColorFromHeaderBg`, `calculateBackgroundColor`, `getSourceBorderColor`, `extractReferenceEntityDetails`, `getActivationCurrency`, `matchesFilter`, `enrichForFiltering`
-
-**Content Rendering:**
-`BlockContentRendererView`, `DataValueDisplayView`
+Note: there is no exported `Tooltip` primitive — entity tooltips ship as
+`ReferenceEntityDisplayTooltip`.
 
 ### Dependencies
 
@@ -353,7 +339,8 @@ When modifying shared packages, follow this checklist:
 - [ ] Run typecheck: `bun run typecheck`
 - [ ] Run validation: `bun run validate:all`
 - [ ] Run tests: `bun test`
-- [ ] If adding a new schema: add data loader to `ModelFactory.ts`, add `LazyModel` instance to `index.ts`, add entry to `SchemaToEntityMap`, and verify `preload(['new-schema-id'])` resolves without error
+- [ ] If adding a new schema, ALL of these registries must gain an entry together (they are hand-maintained in parallel today): `ModelFactory.ts` `dataLoaders` + `jsonSchemaLoaders` + `zodSchemaMap` + `schemaDisplayNames`; `index.ts` `LazyModel` instance + `lazyModelMap` + `SchemaToEntityMap` + `SCHEMA_REGISTRY` + static accessor; `tools/generateJsonSchemas.ts` map. Then verify `preload(['new-schema-id'])` resolves without error
+- [ ] Data integrity: `bun run validate:all` (includes `validate:slugs` — same-named entities in one file shadow each other's slug URLs and will fail the gate)
 
 ### 2. After changing `suref-react`
 

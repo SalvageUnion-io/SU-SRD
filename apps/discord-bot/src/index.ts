@@ -4,7 +4,7 @@ import { config } from './config.js'
 import { commands } from './commands/index.js'
 import { handleReady } from './events/ready.js'
 import { handleInteractionCreate } from './events/interactionCreate.js'
-import { initObservability, captureException } from './observability.js'
+import { initObservability, captureException, flushObservability } from './observability.js'
 
 // Initialize error tracking as early as possible (no-op without SENTRY_DSN).
 initObservability()
@@ -37,7 +37,9 @@ process.on('unhandledRejection', (error) => {
 process.on('uncaughtException', (error) => {
   console.error('Uncaught exception:', error)
   captureException(error, { source: 'uncaughtException' })
-  process.exit(1)
+  // Flush before exiting — the Sentry transport is async and a synchronous
+  // exit would drop the very crash event Render restarts the worker for.
+  void flushObservability().finally(() => process.exit(1))
 })
 
 // Login

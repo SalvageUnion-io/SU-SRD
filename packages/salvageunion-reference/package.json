@@ -4,23 +4,12 @@
   "private": true,
   "description": "Comprehensive, schema-validated JSON dataset and TypeScript ORM for the Salvage Union tabletop RPG",
   "type": "module",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "typesVersions": {
-    "*": {
-      "*": [
-        "./dist/*",
-        "./lib/*"
-      ]
-    }
-  },
+  "main": "./lib/index.ts",
+  "types": "./lib/index.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "development": "./lib/index.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.js",
-      "default": "./dist/index.js"
+      "types": "./lib/index.ts",
+      "default": "./lib/index.ts"
     },
     "./data/*": {
       "import": "./data/*.json",
@@ -33,11 +22,9 @@
     "./package.json": "./package.json"
   },
   "sideEffects": [
-    "./dist/zod.js",
     "./lib/zod.ts"
   ],
   "files": [
-    "dist",
     "lib",
     "data",
     "schemas",
@@ -45,11 +32,10 @@
     "LICENCE"
   ],
   "scripts": {
-    "build": "tsc --project tsconfig.build.json && bun run generate:json-schemas",
+    "build": "bun run generate:json-schemas",
     "build:full": "bun run build && bun run format && bun run lint",
-    "build:ci": "tsc --project tsconfig.build.json",
-    "watch": "tsc --project tsconfig.build.json --watch",
     "validate:ids": "bun tools/checkUniqueIds.ts",
+    "validate:slugs": "bun tools/validateSlugs.ts",
     "fix:ids": "bun tools/generateMissingIds.ts",
     "docs": "bun tools/generateDocs.ts",
     "docs:schemas": "bun tools/generateSchemaDocs.ts",
@@ -59,7 +45,7 @@
     "validate:orphans": "bun tools/validateOrphans.ts",
     "validate:traits": "bun tools/validateTraits.ts",
     "validate:schemas": "bun tools/validateSchemas.ts",
-    "validate:all": "bun run validate:ids && bun run validate:references && bun run validate:actions && bun run validate:orphans && bun run validate:traits && bun run validate:schemas",
+    "validate:all": "bun run validate:ids && bun run validate:slugs && bun run validate:references && bun run validate:actions && bun run validate:orphans && bun run validate:traits && bun run validate:schemas",
     "typecheck": "tsc --project tsconfig.json --noEmit",
     "test": "bun test",
     "test:coverage": "bun test --coverage",

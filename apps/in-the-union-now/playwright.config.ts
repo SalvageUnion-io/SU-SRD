@@ -38,7 +38,10 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  // 2 CI workers (was 1): the suite is fullyParallel and targets a static
+  // preview / Netlify deploy that handles concurrency fine; retries: 2 stays
+  // as the flake net. Halve back to 1 if flake telemetry regresses.
+  workers: process.env.CI ? 2 : undefined,
   reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',
   use: {
     baseURL: externalBaseURL ?? 'http://localhost:5173',
@@ -74,7 +77,7 @@ export default defineConfig({
         // `vite preview` (no per-request compile); locally we reuse the
         // running dev server when one exists.
         command: process.env.CI
-          ? 'bun --filter salvageunion-reference build:ci && bun --filter in-the-union-now build && cd apps/in-the-union-now && bunx --bun vite preview --port 5173 --strictPort'
+          ? 'bun --filter in-the-union-now build && cd apps/in-the-union-now && bunx --bun vite preview --port 5173 --strictPort'
           : 'bun run dev:itun',
         cwd: '../..',
         url: 'http://localhost:5173',

@@ -89,10 +89,13 @@ export const CriticalDamageResultSchema = z
 export type CriticalDamageResult = z.infer<typeof CriticalDamageResultSchema>
 
 /**
- * chassisRef: reference to a Chassis in salvageunion-reference by its `name`
- * (e.g. "Ghost Chassis"), matching how the builder stores it and how the rules
- * layer (lib/rules/capacity.ts) resolves it. Not a slug.
- * Resolution against game data is handled at the presentation/query layer.
+ * chassisRef / systems / modules store SLUG references into
+ * salvageunion-reference (e.g. "ghost-chassis"), the same convention as pilot
+ * `classRef` and encounter `refSlug`. The v6 IndexedDB migration
+ * (lib/db/migrations/6-mech-refs-to-slugs.ts) rewrote legacy name-based refs;
+ * resolution (lib/rules/resolveRefs.ts) stays tolerant of names/ids for
+ * snapshots published by older clients. Resolution against game data is
+ * handled at the rules/presentation layer.
  */
 export const MechSchema = z
   .object({

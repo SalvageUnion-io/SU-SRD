@@ -91,6 +91,14 @@ function makeStore(mech: Mech, captured: CapturedUpdate[], crawler?: Crawler) {
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ) as any,
+    // Cargo stow/load commits through transfer(); capture its updates the
+    // same way so assertions on `captured` keep working.
+    transfer: mock(
+      async (ops: { updates?: { type: string; id: string; patch: Record<string, unknown> }[] }) => {
+        for (const u of ops.updates ?? []) captured.push({ type: u.type, id: u.id, patch: u.patch })
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ) as any,
     delete: mock(async () => {}),
   }
   return (() => storeState) as unknown as typeof useEntityStore

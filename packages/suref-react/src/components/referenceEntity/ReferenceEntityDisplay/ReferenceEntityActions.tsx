@@ -5,9 +5,11 @@ import { ActionCard } from '../ActionCard'
 import { SectionSeparator } from './SectionSeparator'
 import { cn } from '../../../utils/cn'
 import type { getReferenceEntitySpacing } from './referenceEntityDisplayTypes'
+import { useDisplaySpacing } from './displayStateContext'
 
 type ReferenceEntityActionsProps = {
-  spacing: ReturnType<typeof getReferenceEntitySpacing>
+  /** Optional override; falls back to the card display-state context. */
+  spacing?: ReturnType<typeof getReferenceEntitySpacing>
   compact: boolean
   actionsToDisplay?: SURefMetaAction[]
   headerBg: string
@@ -18,13 +20,14 @@ type ReferenceEntityActionsProps = {
 }
 
 export function ReferenceEntityActions({
-  spacing,
+  spacing: spacingProp,
   compact,
   actionsToDisplay,
   headerBg,
   suppressActions,
   sectionHeaders = false,
 }: ReferenceEntityActionsProps) {
+  const spacing = useDisplaySpacing(spacingProp, compact)
   if (suppressActions) return null
 
   if (!actionsToDisplay || actionsToDisplay.length === 0) return null

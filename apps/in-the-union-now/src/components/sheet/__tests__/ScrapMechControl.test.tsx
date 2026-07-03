@@ -98,6 +98,15 @@ function makeStubStore(mech: Mech, crawler: Crawler) {
     (type: string, id: string, patch: Partial<Crawler | Mech>) => Promise<Crawler>
   >(async () => crawler)
   const del = mock<(type: string, id: string) => Promise<void>>(async () => {})
+  const transfer = mock(
+    async (ops: {
+      updates?: { type: string; id: string; patch: Partial<Crawler | Mech> }[]
+      deletes?: { type: string; id: string }[]
+    }) => {
+      for (const u of ops.updates ?? []) await update(u.type, u.id, u.patch)
+      for (const d of ops.deletes ?? []) await del(d.type, d.id)
+    }
+  )
   const storeState = {
     pilots: [],
     mechs: [mech],
@@ -115,6 +124,7 @@ function makeStubStore(mech: Mech, crawler: Crawler) {
     update,
     updateCrawlerBay: mock(async () => crawler),
     delete: del,
+    transfer,
   }
   return { store: (() => storeState) as unknown as typeof useEntityStore, update, del }
 }

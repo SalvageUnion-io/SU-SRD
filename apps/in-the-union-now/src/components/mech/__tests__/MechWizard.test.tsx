@@ -11,7 +11,7 @@
 
 import { afterEach, beforeAll, beforeEach, describe, expect, it, mock } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { SalvageUnionReference, nameToSlug } from 'salvageunion-reference'
 import { useEntityStore } from '../../../stores/entityStore'
 import { _clearAllStores, _resetDbSingleton } from '../../../lib/db/index'
 import { mechFormToCreateInput, mechToFormState } from '../../../lib/wizard/mechFormState'
@@ -177,10 +177,10 @@ describe('MechWizard — custom pattern happy path', () => {
       expect(mechs.length).toBe(1)
       const m = mechs[0]!
       expect(m.name).toBe('Iron Fist')
-      expect(m.chassisRef).toBe('Mule')
+      expect(m.chassisRef).toBe('mule')
       expect(m.patternName).toBe('Field Rig')
-      expect(m.systems).toEqual(['Cargo Pod'])
-      expect(m.modules).toEqual(['Comms Module'])
+      expect(m.systems).toEqual(['cargo-pod'])
+      expect(m.modules).toEqual(['comms-module'])
       expect(m.cargoLots).toEqual([])
       expect(m.currentHeat).toBe(0)
       expect(m.schemaVersion).toBe(1)
@@ -221,8 +221,8 @@ describe('MechWizard — canonical pattern', () => {
     await waitFor(() => {
       const m = useEntityStore.getState().list('mech')[0]!
       expect(m.patternName).toBe(pattern!.name)
-      expect(m.systems).toEqual((pattern!.systems ?? []).map((s) => s.name))
-      expect(m.modules).toEqual((pattern!.modules ?? []).map((mod) => mod.name))
+      expect(m.systems).toEqual((pattern!.systems ?? []).map((s) => nameToSlug(s.name)))
+      expect(m.modules).toEqual((pattern!.modules ?? []).map((mod) => nameToSlug(mod.name)))
     })
   }, 30000)
 })
@@ -313,7 +313,7 @@ describe('MechWizard — duplicate installs', () => {
 
     await waitFor(() => {
       const m = useEntityStore.getState().list('mech')[0]!
-      expect(m.systems).toEqual(['Cargo Pod', 'Cargo Pod'])
+      expect(m.systems).toEqual(['cargo-pod', 'cargo-pod'])
     })
   }, 30000)
 
@@ -345,7 +345,7 @@ describe('MechWizard — duplicate installs', () => {
 
     await waitFor(() => {
       const m = useEntityStore.getState().list('mech')[0]!
-      expect(m.systems).toEqual(['Cargo Pod'])
+      expect(m.systems).toEqual(['cargo-pod'])
     })
   }, 30000)
 })
@@ -415,8 +415,8 @@ describe('MechWizard — pattern duplicates', () => {
     await waitFor(() => {
       const m = useEntityStore.getState().list('mech')[0]!
       // Duplicates from the canonical pattern survive the copy + persistence.
-      expect(m.systems).toEqual((pattern.systems ?? []).map((s) => s.name))
-      expect(m.modules).toEqual((pattern.modules ?? []).map((mod) => mod.name))
+      expect(m.systems).toEqual((pattern.systems ?? []).map((s) => nameToSlug(s.name)))
+      expect(m.modules).toEqual((pattern.modules ?? []).map((mod) => nameToSlug(mod.name)))
     })
   }, 30000)
 })
@@ -428,9 +428,9 @@ describe('MechWizard — pattern duplicates', () => {
 async function seedMuleMech() {
   const input = mechFormToCreateInput({
     name: 'Iron Fist',
-    chassisName: 'Mule',
+    chassisName: 'mule',
     patternName: '',
-    systems: ['Cargo Pod'],
+    systems: ['cargo-pod'],
     modules: [],
     cargoLots: [],
   })
@@ -444,7 +444,7 @@ describe('MechWizard — edit mode', () => {
     await useEntityStore.getState().update('mech', mech.id, {
       currentSP: 5,
       conditions: ['Vulnerable'],
-      systemConditions: { 'Cargo Pod': 'damaged' },
+      systemConditions: { 'cargo-pod': 'damaged' },
     })
     const onComplete = mock(() => {})
 
@@ -484,12 +484,12 @@ describe('MechWizard — edit mode', () => {
       expect(mechs.length).toBe(1)
       const m = mechs[0]!
       expect(m.id).toBe(mech.id)
-      expect(m.systems.sort()).toEqual(['Armour Plating', 'Cargo Pod'])
-      expect(m.modules).toEqual(['Comms Module'])
+      expect(m.systems.sort()).toEqual(['armour-plating', 'cargo-pod'])
+      expect(m.modules).toEqual(['comms-module'])
       // Live-play state untouched by the wizard patch.
       expect(m.currentSP).toBe(5)
       expect(m.conditions).toEqual(['Vulnerable'])
-      expect(m.systemConditions).toEqual({ 'Cargo Pod': 'damaged' })
+      expect(m.systemConditions).toEqual({ 'cargo-pod': 'damaged' })
     })
     expect(onComplete).toHaveBeenCalledWith(mech.id)
   }, 30000)

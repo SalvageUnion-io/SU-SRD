@@ -1,5 +1,7 @@
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { SalvageUnionReference, nameToSlug } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
+
+import { matchesRef, resolveChassisRef } from '../../lib/rules/resolveRefs'
 import { OptRow, ReferenceEntityDisplay } from 'suref-react'
 
 type ChassisLike = {
@@ -24,8 +26,8 @@ export function ChassisOptionList({ selectedChassis, onSelect }: ChassisOptionLi
         <OptRow
           key={chassis.id}
           name={chassis.name}
-          active={chassis.name === selectedChassis}
-          onClick={() => onSelect(chassis.name)}
+          active={matchesRef(chassis, selectedChassis)}
+          onClick={() => onSelect(nameToSlug(chassis.name))}
         />
       ))}
     </div>
@@ -44,9 +46,7 @@ type ChassisDetailProps = {
  */
 export function ChassisDetail({ chassisName }: ChassisDetailProps) {
   const chassis = chassisName
-    ? (SalvageUnionReference.Chassis.find((c) => c.name === chassisName) as unknown as
-        | ChassisLike
-        | undefined)
+    ? ((resolveChassisRef(chassisName) ?? undefined) as unknown as ChassisLike | undefined)
     : undefined
 
   if (!chassis) {

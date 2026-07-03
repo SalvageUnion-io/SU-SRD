@@ -50,16 +50,18 @@ The apps deploy to two platforms, each with an official MCP server wired up in t
 
 ```bash
 # First-time setup
-cd SU-SRD && bun install && bun run build:package
+cd SU-SRD && bun install && bun run build:package   # generates JSON schemas (package ships TS source — no compile step)
 
 # Development
 bun run dev              # Build package + start reference site dev server
-bun run dev:watch        # Watch package changes + start reference site
+bun run dev:watch        # Alias of dev — package TS is consumed directly, nothing to watch
 bun run dev:bot          # Start Discord bot locally
 bun run dev:itun         # Build package + start ITUN app dev server
 
 # Testing
-bun test                 # Run all tests (Bun test runner)
+bun run test             # Run all tests, per workspace. NEVER raw `bun test` at the
+                         # root: it skips workspace bunfig preloads (fake-indexeddb,
+                         # reference preload) and fails by the hundreds
 bun --filter salvageunion-reference test   # Test package only
 bun --filter suref-react test              # Test shared components only
 bun --filter suref-web test                # Test reference site only
@@ -71,7 +73,7 @@ bun run format           # Format all packages with Prettier
 bun run typecheck        # TypeScript check all packages
 bun run check:all        # Full CI check (lint, format, typecheck, test, validate, knip)
 
-# Build package (compiles TypeScript + generates JSON schemas from Zod)
+# Regenerate JSON schemas from Zod (the package ships TypeScript source — no compile step)
 bun run build:package
 
 # Data validation
@@ -108,7 +110,7 @@ salvageunion-reference (game data ORM)
 discord-bot (standalone, depends on salvageunion-reference)
 ```
 
-**Key dependency:** The `salvageunion-reference` package must be built before the apps can resolve types. Run `bun run build:package` after cloning or after changes to `packages/salvageunion-reference/`.
+**Key dependency:** `salvageunion-reference` ships TypeScript source directly (like `suref-react`) — apps resolve `lib/index.ts` with no build step. `bun run build:package` now only regenerates `schemas/*.schema.json` from the Zod sources; run it after schema or data changes and commit the result (CI fails on drift). The Discord bot bundles the package source into its own `dist/` via `bun build`.
 
 ### Architecture Reference
 
@@ -131,9 +133,9 @@ Detailed cross-cutting architecture docs live in `docs/architecture/`:
 
 ### salvageunion-reference Package
 
-All TypeScript source in `lib/` is hand-written (Zod schemas in `lib/schemas/`, models in `lib/index.ts`, etc.). The only auto-generated files are `schemas/*.schema.json` (from Zod schemas) and `dist/` (from TypeScript compilation) — both produced by `bun run build:package`.
+All TypeScript source in `lib/` is hand-written (Zod schemas in `lib/schemas/`, models in `lib/index.ts`, etc.). The only auto-generated files are `schemas/*.schema.json` (from Zod schemas), produced by `bun run build:package`. The package has no compile step — consumers import the TS source.
 
-**Do not manually edit** `schemas/*.schema.json` or `dist/`. To change JSON Schema output, edit Zod schemas in `lib/schemas/` and rebuild.
+**Do not manually edit** `schemas/*.schema.json`. To change JSON Schema output, edit Zod schemas in `lib/schemas/` and rebuild.
 
 Models extend `BaseModel<T>`, created via `ModelFactory`, accessed via `SalvageUnionReference.{SchemaName}` static properties (e.g., `SalvageUnionReference.Chassis.find(...)`).
 
@@ -167,7 +169,7 @@ Models extend `BaseModel<T>`, created via `ModelFactory`, accessed via `SalvageU
 
 ### Development Workflow
 
-After making component changes, always verify all props are passed through to child/nested components (e.g., fontSize, spacing, damaged). Run typecheck immediately after edits to catch missing props before moving on.
+In the entity display system, card-level display state (compact, spacing, fontSize, damaged, disabled) flows through ReferenceEntityDisplayContext (packages/suref-react .../displayStateContext.ts) — nested components read it automatically, with explicit props as overrides. When adding NEW props that must reach nested components, verify the pass-through; run typecheck immediately after edits.
 
 ### Debugging
 

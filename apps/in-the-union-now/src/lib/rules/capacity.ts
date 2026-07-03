@@ -10,27 +10,25 @@
  * 'systems', 'modules'])`) before the first call to `computeMechCapacity`.
  */
 
-import { SalvageUnionReference } from 'salvageunion-reference'
 import type { MechCapacityResult, MechInput, CapacityViolation } from './types'
+import { resolveChassisRef, resolveModuleRef, resolveSystemRef } from './resolveRefs'
 
 /**
- * Look up the slot cost of a system by name.
+ * Look up the slot cost of a system by ref (slug; legacy name/id tolerated).
  * Returns the canonical `slotsRequired` from the dataset, or 1 as fallback
  * if the system is not found (to still count it against the total).
  */
 function resolveSystemSlotCost(ref: string, slotCostOverride?: number): number {
   if (slotCostOverride !== undefined) return slotCostOverride
-  const system = SalvageUnionReference.Systems.find((s) => s.name === ref)
-  return system?.slotsRequired ?? 1
+  return resolveSystemRef(ref)?.slotsRequired ?? 1
 }
 
 /**
- * Look up the slot cost of a module by name.
+ * Look up the slot cost of a module by ref (slug; legacy name/id tolerated).
  */
 function resolveModuleSlotCost(ref: string, slotCostOverride?: number): number {
   if (slotCostOverride !== undefined) return slotCostOverride
-  const module = SalvageUnionReference.Modules.find((m) => m.name === ref)
-  return module?.slotsRequired ?? 1
+  return resolveModuleRef(ref)?.slotsRequired ?? 1
 }
 
 /**
@@ -49,7 +47,7 @@ export function computeMechCapacity(mech: MechInput): MechCapacityResult {
   const violations: CapacityViolation[] = []
 
   // Resolve chassis
-  const chassis = SalvageUnionReference.Chassis.find((c) => c.name === mech.chassisRef)
+  const chassis = resolveChassisRef(mech.chassisRef)
 
   if (!chassis) {
     violations.push({

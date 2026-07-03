@@ -1,4 +1,3 @@
-import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
 import { ReferenceEntityDisplay } from 'suref-react'
 import { LAYOUT } from '../../lib/layout'
@@ -6,6 +5,7 @@ import { cn } from '../../lib/utils'
 import type { MechWizardFormState } from '../../lib/wizard/mechFormState'
 import { totalLotUnits } from '../../lib/schemas/cargoLot'
 import { SavePatternButton } from './Pattern/SavePatternButton'
+import { resolveModuleRef, resolveSystemRef } from '../../lib/rules/resolveRefs'
 
 type MechReviewStepProps = {
   form: MechWizardFormState
@@ -40,11 +40,11 @@ function KvRow({ label, value }: { label: string; value: string | null }) {
  */
 export function MechReviewStep({ form, isEdit, submitError }: MechReviewStepProps) {
   const chosenSystems = form.systems.flatMap((ref) => {
-    const found = SalvageUnionReference.Systems.find((s) => s.name === ref)
+    const found = resolveSystemRef(ref)
     return found ? [found as unknown as SURefEntity] : []
   })
   const chosenModules = form.modules.flatMap((ref) => {
-    const found = SalvageUnionReference.Modules.find((m) => m.name === ref)
+    const found = resolveModuleRef(ref)
     return found ? [found as unknown as SURefEntity] : []
   })
 

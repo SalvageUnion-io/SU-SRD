@@ -5,3 +5,6 @@ export { useWorkspaceStore } from './workspaceStore'
 
 export { useEncounterStore } from './encounterStore'
 export type { EncounterNpcCreateInput } from './encounterStore'
+
+export { usePatternStore } from './patternStore'
+export type { MechPatternCreateInput } from './patternStore'

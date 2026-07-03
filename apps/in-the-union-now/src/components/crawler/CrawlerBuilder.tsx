@@ -30,6 +30,12 @@ import { CrawlerIdentityStep } from './CrawlerIdentityStep'
 import { CrawlerReviewStep } from './CrawlerReviewStep'
 import { CrawlerTypeOptionList, CrawlerTypeDetail } from './CrawlerTypeStep'
 import { SystemsList } from './SystemsList'
+import {
+  clearWizardDraft,
+  readWizardDraft,
+  useWizardDraftSync,
+  wizardDraftKey,
+} from '../../lib/wizard/wizardDraft'
 
 const STEPS = ['Crawler', 'Systems', 'Crew', 'Identity', 'Review'] as const
 type Step = (typeof STEPS)[number]
@@ -100,7 +106,14 @@ export function CrawlerBuilder({
   const [allSystems, setAllSystems] = useState<SURefSystem[]>([])
   const [allBays, setAllBays] = useState<SURefEntity[]>([])
   const [types, setTypes] = useState<SURefCrawler[]>([])
-  const [form, setForm] = useState<CrawlerWizardFormState>(initialState ?? EMPTY_CRAWLER_FORM_STATE)
+  // Draft-aware init: a stored session draft (refresh, back-nav, PWA reload)
+  // wins over the pristine initial state; cleared on submit/cancelled exit.
+  const draftKey = wizardDraftKey('crawler', crawlerId)
+  const [form, setForm] = useState<CrawlerWizardFormState>(
+    () =>
+      readWizardDraft<CrawlerWizardFormState>(draftKey) ?? initialState ?? EMPTY_CRAWLER_FORM_STATE
+  )
+  const formDirty = useWizardDraftSync(draftKey, form, initialState ?? EMPTY_CRAWLER_FORM_STATE)
   const [step, setStep] = useState<Step>('Crawler')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -230,6 +243,7 @@ export function CrawlerBuilder({
         }
 
         toast.success(`Saved ${form.name.trim() || 'crawler'}.`)
+        clearWizardDraft(draftKey)
         onComplete(crawlerId)
         return
       }
@@ -260,6 +274,7 @@ export function CrawlerBuilder({
 
       const created = await store.create('crawler', rawInput)
       toast.success(`Saved ${form.name.trim() || 'crawler'}.`)
+      clearWizardDraft(draftKey)
       onComplete(created.id)
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : 'Failed to save crawler.')
@@ -364,7 +379,11 @@ export function CrawlerBuilder({
       }
       notice={capacityNotice}
       onBack={currentIndex > 0 ? goBack : undefined}
-      onCancel={onCancel}
+      onCancel={() => {
+        clearWizardDraft(draftKey)
+        onCancel()
+      }}
+      confirmCancel={formDirty}
       onNext={goNext}
       nextDisabled={!canAdvance()}
       busy={isSubmitting}

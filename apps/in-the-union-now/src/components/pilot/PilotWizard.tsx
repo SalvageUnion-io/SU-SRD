@@ -24,6 +24,12 @@ import { EquipmentStep } from './EquipmentStep'
 import { IdentityStep } from './IdentityStep'
 import { ReviewStep } from './ReviewStep'
 import type { RollTableDeps } from './rollTableHelpers'
+import {
+  clearWizardDraft,
+  readWizardDraft,
+  useWizardDraftSync,
+  wizardDraftKey,
+} from '../../lib/wizard/wizardDraft'
 
 const STEPS = ['Class', 'Abilities', 'Equipment', 'Identity', 'Background', 'Review'] as const
 type Step = (typeof STEPS)[number]
@@ -109,7 +115,13 @@ export function PilotWizard({
   const existingPilot = usePilot(pilotId)
 
   const [step, setStep] = useState<Step>('Class')
-  const [form, setForm] = useState<PilotWizardFormState>(initialState ?? EMPTY_PILOT_FORM_STATE)
+  // Draft-aware init: a stored session draft (refresh, back-nav, PWA reload)
+  // wins over the pristine initial state; cleared on submit/cancelled exit.
+  const draftKey = wizardDraftKey('pilot', pilotId)
+  const [form, setForm] = useState<PilotWizardFormState>(
+    () => readWizardDraft<PilotWizardFormState>(draftKey) ?? initialState ?? EMPTY_PILOT_FORM_STATE
+  )
+  const formDirty = useWizardDraftSync(draftKey, form, initialState ?? EMPTY_PILOT_FORM_STATE)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -177,6 +189,7 @@ export function PilotWizard({
       if (pilotId) {
         await store.update('pilot', pilotId, pilotFormToUpdatePatch(form))
         toast.success(`Saved ${form.name.trim() || 'pilot'}.`)
+        clearWizardDraft(draftKey)
         onComplete(pilotId)
         return
       }
@@ -202,6 +215,7 @@ export function PilotWizard({
 
       const created = await store.create('pilot', rawInput)
       toast.success(`Saved ${form.name.trim() || 'pilot'}.`)
+      clearWizardDraft(draftKey)
       onComplete(created.id)
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : 'Failed to save pilot. Please retry.')
@@ -298,7 +312,11 @@ export function PilotWizard({
             : undefined
       }
       onBack={currentIndex > 0 ? goBack : undefined}
-      onCancel={onCancel}
+      onCancel={() => {
+        clearWizardDraft(draftKey)
+        onCancel()
+      }}
+      confirmCancel={formDirty}
       onNext={goNext}
       nextDisabled={!canAdvance()}
       busy={isSubmitting}

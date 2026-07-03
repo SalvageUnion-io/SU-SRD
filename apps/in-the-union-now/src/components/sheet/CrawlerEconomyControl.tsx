@@ -47,6 +47,7 @@ import type { Roll } from '../../lib/rules/heatCheck'
 import type { Crawler } from '../../lib/schemas/crawler'
 import { useEntityStore } from '../../stores/entityStore'
 import { ConfirmDialog } from '../shared/ConfirmDialog'
+import { AdvisoryText, freshEntity } from './controlPrimitives'
 
 /** Which economy dialog is open (the lozenge that was clicked). */
 export type CrawlerEconomyDialog = 'upkeep' | 'upgrade' | 'trade'
@@ -133,7 +134,7 @@ function UpkeepDialog({ crawler, store, roll, onClose }: DialogProps & { roll: R
 
   /** Pay: draw 5×TL+ scrap, credit the Upgrade Pool in full (auto-applies). */
   async function handlePay() {
-    const fresh = storeState.get('crawler', crawler.id) ?? crawler
+    const fresh = freshEntity(storeState, 'crawler', crawler)
     const freshTl = parseCrawlerTechLevel(fresh.techLevel) ?? 1
     const payment = payUpkeep(fresh.scrapPool ?? {}, freshTl)
     if (!payment) {
@@ -160,7 +161,7 @@ function UpkeepDialog({ crawler, store, roll, onClose }: DialogProps & { roll: R
    * player (ADR-007).
    */
   async function handleDeterioration() {
-    const fresh = storeState.get('crawler', crawler.id) ?? crawler
+    const fresh = freshEntity(storeState, 'crawler', crawler)
     const bays = fresh.crawlerBays ?? []
     const maxSP = crawlerMaxSP(fresh)
     const currentSP = Math.min(fresh.currentSP ?? maxSP, maxSP)
@@ -208,13 +209,10 @@ function UpkeepDialog({ crawler, store, roll, onClose }: DialogProps & { roll: R
         </p>
 
         {!done && shortfall > 0 && (
-          <p
-            role="alert"
-            className="rounded-[3px] border-chrome border-status-warn bg-paper px-3 py-2 font-body text-sm text-rust"
-          >
+          <AdvisoryText>
             The pool is {shortfall} scrap short — Upkeep fails unless the table rules otherwise.
             Trade Scrap between Tech Levels at the Trading Bay, or roll Deterioration.
-          </p>
+          </AdvisoryText>
         )}
 
         {result && (
@@ -223,12 +221,9 @@ function UpkeepDialog({ crawler, store, roll, onClose }: DialogProps & { roll: R
           </p>
         )}
         {choosePrompt && (
-          <p
-            role="alert"
-            className="rounded-[3px] border-chrome border-status-warn bg-paper px-3 py-2 font-body text-sm text-rust"
-          >
+          <AdvisoryText>
             Choose a Bay and mark it Damaged using its status badge on the sheet.
-          </p>
+          </AdvisoryText>
         )}
 
         <div className="flex justify-end gap-2">
@@ -278,7 +273,7 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
 
   /** Voluntary acceleration (p.218): move pool scrap into the Upgrade Pool. */
   async function handleContribute() {
-    const fresh = storeState.get('crawler', crawler.id) ?? crawler
+    const fresh = freshEntity(storeState, 'crawler', crawler)
     const freshTl = parseCrawlerTechLevel(fresh.techLevel) ?? 1
     const result = contributeToUpgradePool(fresh.scrapPool ?? {}, freshTl, contribution)
     if (!result) return
@@ -290,7 +285,7 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
 
   /** Consume the pool, bump the Tech Level, repair damaged Bays (p.219). */
   async function handleUpgrade() {
-    const fresh = storeState.get('crawler', crawler.id) ?? crawler
+    const fresh = freshEntity(storeState, 'crawler', crawler)
     const freshTl = parseCrawlerTechLevel(fresh.techLevel) ?? 1
     const freshQuote = crawlerUpgradeQuote(freshTl, fresh.upgradePool ?? 0)
     if (!freshQuote?.affordable) return
@@ -410,7 +405,7 @@ function TradeDialog({ crawler, store, roll, onClose }: DialogProps & { roll: Ro
 
   /** Apply the fixed equal-value exchange to the pool buckets (auto-applies). */
   async function handleConvert() {
-    const fresh = storeState.get('crawler', crawler.id) ?? crawler
+    const fresh = freshEntity(storeState, 'crawler', crawler)
     const result = convertScrap(fresh.scrapPool ?? {}, fromTl, count, toTl)
     if (!result) {
       setConvertNote('The pool no longer covers that trade.')
@@ -443,13 +438,10 @@ function TradeDialog({ crawler, store, roll, onClose }: DialogProps & { roll: Ro
           </p>
         )}
         {gate.damaged && (
-          <p
-            role="alert"
-            className="rounded-[3px] border-chrome border-status-warn bg-paper px-3 py-2 font-body text-sm text-rust"
-          >
+          <AdvisoryText>
             The Trading Bay is Damaged — Scrap cannot be traded and the Trading Bay Table cannot be
             rolled until it is repaired to Intact (p.223).
-          </p>
+          </AdvisoryText>
         )}
 
         {gate.operational && (

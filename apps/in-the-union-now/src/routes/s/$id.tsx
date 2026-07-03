@@ -19,6 +19,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { retrieveSnapshot, SnapshotNotFoundError } from '../../lib/snapshot/client'
 import type { SnapshotPayload } from '../../lib/snapshot/client'
 import { AppLink } from '../../components/shared/AppLink'
+import { SheetSkeleton } from '../../components/sheet/SheetSkeleton'
 import { SnapshotView } from '../../components/sheet/SnapshotView'
 import { btnVariants } from 'suref-react'
 import { cn } from '../../lib/utils'
@@ -41,6 +42,9 @@ export const Route = createFileRoute('/s/$id')({
     }
   },
   component: SnapshotPage,
+  // The loader does a real network fetch with a 10s timeout — show the
+  // sheet-shaped skeleton instead of a blank page while it resolves.
+  pendingComponent: SheetSkeleton,
 })
 
 // ---------------------------------------------------------------------------

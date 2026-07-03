@@ -1,0 +1,37 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Automated dependency updates (audit item 26). Before this, no automation existed and majors accumulated (astro 6→7, vite 7→8) with a CI audit-job esbuild ignore waiting on a bump nothing was driving.",
+  "extends": [
+    "config:recommended",
+    ":semanticCommits",
+    ":semanticCommitTypeAll(chore)",
+    "group:monorepos"
+  ],
+  "timezone": "America/New_York",
+  "schedule": ["before 9am on monday"],
+  "prConcurrentLimit": 5,
+  "labels": ["dependencies"],
+  "rangeStrategy": "bump",
+  "postUpdateOptions": ["bunInstall"],
+  "packageRules": [
+    {
+      "description": "Batch all non-major updates into one weekly PR",
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "non-major dependencies"
+    },
+    {
+      "description": "Majors ride separate PRs, one per package family",
+      "matchUpdateTypes": ["major"],
+      "dependencyDashboardApproval": true
+    },
+    {
+      "description": "Keep bun-types in lockstep with .bun-version (tools/check-bun-version.ts gates drift) — bump manually alongside the pin",
+      "matchPackageNames": ["bun-types"],
+      "enabled": false
+    }
+  ],
+  "vulnerabilityAlerts": {
+    "labels": ["security"],
+    "schedule": ["at any time"]
+  }
+}

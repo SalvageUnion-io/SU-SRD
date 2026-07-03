@@ -10,7 +10,6 @@ export interface SearchOptions {
   query: string
   schemas?: SURefEnumSchemaName[]
   limit?: number
-  caseSensitive?: boolean
 }
 
 // Cache for search results with size limit
@@ -32,6 +31,10 @@ type SearchIndexEntry = {
   weaknessesText: string
   contentText: string
   actionsText: string
+  /** [fieldName, loweredText] pairs for every non-empty searchable field. */
+  fields: ReadonlyArray<readonly [string, string]>
+  /** Lowercased name words for bounded typo matching. */
+  nameWords: string[]
 }
 
 let searchIndex: SearchIndexEntry[] | null = null
@@ -82,13 +85,14 @@ function buildSearchIndex(): SearchIndexEntry[] {
             .toLowerCase()
         : ''
 
+      const nameText = entity.name.toLowerCase()
       entries.push({
         schemaName: schemaId,
         schemaTitle: schema.title,
         entity: entityWithSchema,
         entityId: entity.id,
         entityName: entity.name,
-        nameText: entity.name.toLowerCase(),
+        nameText,
         descriptionText:
           'description' in entity && typeof entity.description === 'string'
             ? entity.description.toLowerCase()
@@ -112,7 +116,19 @@ function buildSearchIndex(): SearchIndexEntry[] {
             ? extractContentText(entity.content).toLowerCase()
             : '',
         actionsText,
+        fields: [],
+        nameWords: nameText.split(/[^a-z0-9]+/).filter(Boolean),
       })
+      const entry = entries[entries.length - 1]!
+      const fieldPairs: Array<readonly [string, string]> = [['name', entry.nameText]]
+      if (entry.descriptionText) fieldPairs.push(['description', entry.descriptionText])
+      if (entry.effectText) fieldPairs.push(['effect', entry.effectText])
+      if (entry.goalsText) fieldPairs.push(['goals', entry.goalsText])
+      if (entry.assetsText) fieldPairs.push(['assets', entry.assetsText])
+      if (entry.weaknessesText) fieldPairs.push(['weaknesses', entry.weaknessesText])
+      if (entry.contentText) fieldPairs.push(['content', entry.contentText])
+      if (entry.actionsText) fieldPairs.push(['actions.content', entry.actionsText])
+      ;(entry as { fields: ReadonlyArray<readonly [string, string]> }).fields = fieldPairs
     }
   }
 
@@ -200,120 +216,123 @@ function extractContentText(content: unknown): string {
 }
 
 /**
- * Calculate a relevance score for a search match
- * Higher scores = better matches
+ * True when `token` is within edit distance 1 of `word` (insert, delete, or
+ * substitute one character). Two-pointer scan — no DP table, O(len) time.
  */
-function calculateScore(entity: SURefEntity, query: string, matchedFields: string[]): number {
+function withinEditDistance1(token: string, word: string): boolean {
+  const lenDiff = token.length - word.length
+  if (lenDiff < -1 || lenDiff > 1) return false
+  // Walk both strings past the common prefix, then compare the remainder
+  // according to which edit (substitute / insert / delete) could reconcile.
+  let i = 0
+  while (i < token.length && i < word.length && token[i] === word[i]) i++
+  if (i === token.length && i === word.length) return true // identical
+  if (lenDiff === 0) return token.slice(i + 1) === word.slice(i + 1) // substitute
+  if (lenDiff === 1) return token.slice(i + 1) === word.slice(i) // delete from token
+  return token.slice(i) === word.slice(i + 1) // insert into token
+}
+
+/** Minimum token length before typo (edit-distance-1) matching applies. */
+const TYPO_MIN_TOKEN_LENGTH = 4
+
+/**
+ * Calculate a relevance score for a search match.
+ * Higher scores = better matches. Token-aware (audit item 11): whole-query
+ * name hits rank above all-tokens-in-name, which ranks above hits scattered
+ * across other fields; typo-assisted matches rank below every literal hit.
+ */
+function calculateScore(
+  entry: SearchIndexEntry,
+  loweredQuery: string,
+  tokens: string[],
+  matchedFields: string[],
+  usedTypo: boolean
+): number {
   let score = 0
-  const lowerQuery = query.toLowerCase()
 
-  // Exact name match gets highest score
-  if (entity.name.toLowerCase() === lowerQuery) {
+  if (entry.nameText === loweredQuery) {
     score += 100
-  }
-  // Name starts with query
-  else if (entity.name.toLowerCase().startsWith(lowerQuery)) {
+  } else if (entry.nameText.startsWith(loweredQuery)) {
     score += 50
-  }
-  // Name contains query
-  else if (entity.name.toLowerCase().includes(lowerQuery)) {
+  } else if (entry.nameText.includes(loweredQuery)) {
     score += 25
+  } else if (tokens.every((t) => entry.nameText.includes(t))) {
+    // All tokens appear in the name, just not contiguously ("heavy laser"
+    // → "Heavy Arc Laser").
+    score += 20
   }
 
-  // Description match gets lower score
-  if (
-    'description' in entity &&
-    typeof entity.description === 'string' &&
-    entity.description.toLowerCase().includes(lowerQuery)
-  ) {
+  if (entry.descriptionText.includes(loweredQuery)) {
     score += 10
   }
 
-  // Boost score based on number of matched fields
   score += matchedFields.length * 5
+
+  // A match that needed typo forgiveness always ranks below literal hits.
+  if (usedTypo) score -= 15
 
   return score
 }
 
 /**
- * Check if an entity matches the search query using pre-computed indexed text
+ * Check if an entity matches the tokenized query using the pre-computed
+ * index. Every token must match somewhere (substring across any field, or —
+ * for tokens of 4+ chars — edit-distance-1 against a name word). matchedFields
+ * lists every field containing at least one token.
  */
 function matchesQuery(
   indexEntry: SearchIndexEntry,
-  query: string,
-  caseSensitive: boolean
-): { matches: boolean; matchedFields: string[] } {
+  tokens: string[]
+): { matches: boolean; matchedFields: string[]; usedTypo: boolean } {
   const matchedFields: string[] = []
-  const searchQuery = caseSensitive ? query : query.toLowerCase()
+  let usedTypo = false
 
-  // Check name field (all entities have this)
-  const nameText = caseSensitive ? indexEntry.entity.name : indexEntry.nameText
-  if (nameText.includes(searchQuery)) {
-    matchedFields.push('name')
-  }
-
-  // Check description field if it exists
-  if (indexEntry.descriptionText) {
-    if (indexEntry.descriptionText.includes(searchQuery)) {
-      matchedFields.push('description')
+  // Which fields contain at least one token (drives matchedFields)?
+  for (const [fieldName, text] of indexEntry.fields) {
+    for (const token of tokens) {
+      if (text.includes(token)) {
+        matchedFields.push(fieldName)
+        break
+      }
     }
   }
 
-  // Check effect field if it exists
-  if (indexEntry.effectText) {
-    if (indexEntry.effectText.includes(searchQuery)) {
-      matchedFields.push('effect')
+  // AND semantics: every token must land somewhere.
+  for (const token of tokens) {
+    let found = false
+    for (const [, text] of indexEntry.fields) {
+      if (text.includes(token)) {
+        found = true
+        break
+      }
+    }
+    if (!found && token.length >= TYPO_MIN_TOKEN_LENGTH) {
+      // Name-only typo forgiveness: "hellfyre" → "Hellfire".
+      if (indexEntry.nameWords.some((word) => withinEditDistance1(token, word))) {
+        found = true
+        usedTypo = true
+        if (!matchedFields.includes('name')) matchedFields.push('name')
+      }
+    }
+    if (!found) {
+      return { matches: false, matchedFields: [], usedTypo: false }
     }
   }
 
-  // Check goals field if it exists (factions)
-  if (indexEntry.goalsText) {
-    if (indexEntry.goalsText.includes(searchQuery)) {
-      matchedFields.push('goals')
-    }
-  }
-
-  // Check assets field if it exists (factions)
-  if (indexEntry.assetsText) {
-    if (indexEntry.assetsText.includes(searchQuery)) {
-      matchedFields.push('assets')
-    }
-  }
-
-  // Check weaknesses field if it exists (factions)
-  if (indexEntry.weaknessesText) {
-    if (indexEntry.weaknessesText.includes(searchQuery)) {
-      matchedFields.push('weaknesses')
-    }
-  }
-
-  // Check content blocks if they exist
-  if (indexEntry.contentText) {
-    if (indexEntry.contentText.includes(searchQuery)) {
-      matchedFields.push('content')
-    }
-  }
-
-  // Check actions text
-  if (indexEntry.actionsText && indexEntry.actionsText.includes(searchQuery)) {
-    matchedFields.push('actions.content')
-  }
-
-  return {
-    matches: matchedFields.length > 0,
-    matchedFields,
-  }
+  return { matches: matchedFields.length > 0, matchedFields, usedTypo }
 }
 
 /**
  * Search across all or specific schemas
  */
 export function search(options: SearchOptions): SearchResult[] {
-  const { query, schemas: schemaFilter, limit, caseSensitive = false } = options
+  const { query, schemas: schemaFilter, limit } = options
 
-  if (!query.trim()) {
+  const loweredQuery = query.trim().toLowerCase()
+  if (!loweredQuery) {
     return []
   }
+  const tokens = loweredQuery.split(/\s+/)
 
   // Create cache key from search options
   const cacheKey = JSON.stringify(options)
@@ -337,10 +356,10 @@ export function search(options: SearchOptions): SearchResult[] {
       continue
     }
 
-    const { matches, matchedFields } = matchesQuery(indexEntry, query, caseSensitive)
+    const { matches, matchedFields, usedTypo } = matchesQuery(indexEntry, tokens)
 
     if (matches) {
-      const matchScore = calculateScore(indexEntry.entity, query, matchedFields)
+      const matchScore = calculateScore(indexEntry, loweredQuery, tokens, matchedFields, usedTypo)
 
       results.push({
         schemaName: indexEntry.schemaName,
@@ -373,13 +392,12 @@ export function search(options: SearchOptions): SearchResult[] {
 export function searchIn<T extends SURefEntity>(
   schemaName: SURefEnumSchemaName,
   query: string,
-  options?: { limit?: number; caseSensitive?: boolean }
+  options?: { limit?: number }
 ): (T & { schemaName: SURefEnumSchemaName })[] {
   const results = search({
     query,
     schemas: [schemaName],
     limit: options?.limit,
-    caseSensitive: options?.caseSensitive,
   })
 
   return results.map((r) => r.entity as T & { schemaName: SURefEnumSchemaName })
@@ -394,14 +412,12 @@ export function getSuggestions(
   options?: {
     schemas?: SURefEnumSchemaName[]
     limit?: number
-    caseSensitive?: boolean
   }
 ): string[] {
   const results = search({
     query,
     schemas: options?.schemas,
     limit: options?.limit || 10,
-    caseSensitive: options?.caseSensitive,
   })
 
   // Return unique names

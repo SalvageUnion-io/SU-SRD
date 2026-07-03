@@ -19,7 +19,7 @@
 
 import { useId, useMemo, useRef, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { Btn, MiniBtn, StepBtn } from 'suref-react'
+import { Btn, MiniBtn, StepBtn, toast } from 'suref-react'
 
 import { addToScrapPool } from '../../lib/cargo/cargoTransfer'
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
@@ -47,19 +47,11 @@ import type { Crawler } from '../../lib/schemas/crawler'
 import { useEntityStore } from '../../stores/entityStore'
 import { cn } from '../../lib/utils'
 import { SectionCard } from '../shared/SectionCard'
+import { CONTROL_SELECT_CLASS, freshEntity } from './controlPrimitives'
+import { loadRef, numericTl } from './refCatalog'
+import type { RefItem } from './refCatalog'
 
 const TECH_LEVELS = [1, 2, 3, 4, 5, 6] as const
-
-const SELECT_CLASS =
-  'w-full rounded-[3px] border-chrome border-ink bg-paper px-2 py-1.5 font-body text-sm text-ink focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22]'
-
-/** Minimal shape read off the reference models for picker options. */
-type RefItem = {
-  id: string
-  name: string
-  techLevel?: unknown
-  salvageValue?: unknown
-}
 
 type ClaimOption = {
   key: string
@@ -67,21 +59,6 @@ type ClaimOption = {
   name: string
   techLevel?: number
   salvageValue: number
-}
-
-/** Read a reference model defensively — empty when data isn't preloaded (tests). */
-function loadRef(all: () => ReadonlyArray<unknown>): RefItem[] {
-  try {
-    return (all() as ReadonlyArray<RefItem>).slice()
-  } catch {
-    return []
-  }
-}
-
-function numericTl(value: unknown): number | undefined {
-  return typeof value === 'number' && Number.isInteger(value) && value >= 1 && value <= 6
-    ? value
-    : undefined
 }
 
 /** Build sorted claim options of one kind, optionally restricted to a TL. */
@@ -171,7 +148,7 @@ function ClaimPicker({
           id={selectId}
           value={selectedKey}
           onChange={(e) => setSelectedKey(e.target.value)}
-          className={cn(SELECT_CLASS, 'min-w-0 flex-1')}
+          className={cn(CONTROL_SELECT_CLASS, 'min-w-0 flex-1')}
         >
           <option value="">Pick an item…</option>
           {pickableKinds.map((kind) =>
@@ -288,13 +265,20 @@ export function SalvageControl({
   const depositChain = useRef<Promise<void>>(Promise.resolve())
 
   function enqueueDeposit(apply: () => Promise<void>): void {
-    depositChain.current = depositChain.current.then(apply, apply)
+    // .then(apply).catch(...) — NOT .then(apply, apply): the second form ran
+    // the next deposit as the rejection handler, silently swallowing the
+    // failed one while the UI reported success (audit item 2). The catch
+    // surfaces the failure and resolves, so later deposits still run.
+    depositChain.current = depositChain.current.then(apply).catch((err: unknown) => {
+      console.error('[itun] Salvage deposit failed.', err)
+      toast.error('A salvage deposit failed to save — check the crawler pool and re-add it.')
+    })
   }
 
   /** Deposit scrap into the crawler's TL pool bucket (freshest record wins). */
   function depositScrap(tl: number, qty: number) {
     enqueueDeposit(async () => {
-      const fresh = storeState.get('crawler', crawler.id) ?? crawler
+      const fresh = freshEntity(storeState, 'crawler', crawler)
       await storeState.update('crawler', crawler.id, {
         scrapPool: addToScrapPool(fresh.scrapPool ?? {}, tl, qty),
       })
@@ -304,7 +288,7 @@ export function SalvageControl({
   /** Prepend a lot to the crawler hold (unlimited — no cap check). */
   function depositLot(lot: CargoLot) {
     enqueueDeposit(async () => {
-      const fresh = storeState.get('crawler', crawler.id) ?? crawler
+      const fresh = freshEntity(storeState, 'crawler', crawler)
       await storeState.update('crawler', crawler.id, {
         cargoLots: [lot, ...(fresh.cargoLots ?? [])],
       })
@@ -502,7 +486,7 @@ export function SalvageControl({
             id={wreckSelectId}
             value={wreckId}
             onChange={(e) => setWreckId(e.target.value)}
-            className={SELECT_CLASS}
+            className={CONTROL_SELECT_CLASS}
           >
             <option value="">Pick the wreck&rsquo;s chassis…</option>
             {toOptions('chassis', chassisItems).map((option) => (

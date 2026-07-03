@@ -2,6 +2,7 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
 import { MiniBtn, Panel, ReferenceEntityDisplay, statBlockRowStarts } from 'suref-react'
 import { cn } from '../../lib/utils'
+import { matchesRef } from '../../lib/rules/resolveRefs'
 
 type BudgetTrackProps = {
   /** Track label, e.g. 'SYSTEM SLOTS', 'ENERGY'. */
@@ -111,7 +112,7 @@ export function LoadoutPanel({
   // more than one copy of an item so each entry reads as "Name · N".
   const seen = new Map<string, number>()
   const chosenEntries = chosen.flatMap((ref, index) => {
-    const found = accessor.find((x) => x.name === ref)
+    const found = accessor.find((x) => matchesRef(x, ref))
     if (!found) return []
     const copy = (seen.get(ref) ?? 0) + 1
     seen.set(ref, copy)
@@ -156,7 +157,7 @@ export function LoadoutPanel({
               </div>
               <MiniBtn
                 onClick={() => onRemove(index)}
-                aria-label={`Remove ${ref}`}
+                aria-label={`Remove ${(entity as { name?: string }).name ?? ref}`}
                 className="mt-0.5 shrink-0"
               >
                 ✕ Remove

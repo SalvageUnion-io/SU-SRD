@@ -9,18 +9,17 @@ here too ([ADR-006](../../docs/adrs/ADR-006-pure-rules-logic.md)).
 
 ## Build & JSON Schema Generation
 
-Building the package compiles TypeScript and generates JSON Schema files from Zod schemas:
+Building the package regenerates JSON Schema files from Zod schemas (the package ships TypeScript source — no compile step):
 
 ```bash
 bun run build:package   # from repo root
 ```
 
-This runs `tsc` followed by `generate:json-schemas` (which converts Zod schemas in `lib/schemas/` to JSON Schema files in `schemas/`).
+This runs `generate:json-schemas` (which converts Zod schemas in `lib/schemas/` to JSON Schema files in `schemas/`).
 
 ### Auto-Generated Files (DO NOT EDIT)
 
 - `schemas/*.schema.json` - Generated from Zod schemas via `tools/generateJsonSchemas.ts`
-- `dist/` - TypeScript compilation output
 
 To change JSON Schema output, edit the Zod schemas in `lib/schemas/` and rebuild.
 
@@ -41,7 +40,6 @@ All TypeScript source in `lib/` is hand-written and safe to edit directly:
 - `data/` - JSON data files
 - `schemas/` - JSON Schema files (generated from Zod schemas)
 - `tools/` - Validation and generation scripts
-- `dist/` - Compiled output (don't edit)
 
 ## Model Access Pattern
 
@@ -59,7 +57,7 @@ const allWeapons = SalvageUnionReference.Equipment.all()
 2. Add Zod schema to `lib/schemas/entities.ts`
 3. Add schema to the map in `tools/generateJsonSchemas.ts`
 4. Add model to `lib/index.ts`
-5. Run `bun run build:package` to compile and generate JSON schemas
+5. Run `bun run build:package` to regenerate JSON schemas
 6. Run `bun test` to verify
 
 ## Validation

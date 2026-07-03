@@ -10,36 +10,9 @@ import { fileURLToPath } from 'url'
 import { z } from 'zod'
 import * as prettier from 'prettier'
 
-// Import all entity schemas
-import {
-  AbilitySchema,
-  AbilityTreeRequirementSchema,
-  MetaActionSchema,
-  BioTitanSchema,
-  ChassisSchema,
-  ClassSchema,
-  CrawlerBaySchema,
-  CrawlerTechLevelSchema,
-  CrawlerSchema,
-  CreatureSchema,
-  DistanceSchema,
-  DroneSchema,
-  EquipmentSchema,
-  FactionSchema,
-  KeywordSchema,
-  MeldSchema,
-  ModuleSchema,
-  NPCSchema,
-  RollTableSchema,
-  SquadSchema,
-  SystemSchema,
-  TraitEntitySchema,
-  VehicleSchema,
-  GuideSchema,
-  SourceEntitySchema,
-  TechLevelEntitySchema,
-  CatalogCategorySchema,
-} from '../lib/schemas/entities.js'
+// The canonical schema-id -> Zod map lives in ModelFactory (one registry,
+// audit item 23) — the generator no longer keeps its own copy.
+import { zodSchemaMap } from '../lib/ModelFactory.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -50,36 +23,7 @@ const sharedDir = join(schemasDir, 'shared')
 // Ensure directories exist
 mkdirSync(sharedDir, { recursive: true })
 
-// Schema mapping: schema ID -> Zod schema
-const entitySchemaMap: Record<string, z.ZodType> = {
-  abilities: AbilitySchema,
-  'ability-tree-requirements': AbilityTreeRequirementSchema,
-  actions: MetaActionSchema,
-  chassis: ChassisSchema,
-  classes: ClassSchema,
-  'crawler-bays': CrawlerBaySchema,
-  'crawler-tech-levels': CrawlerTechLevelSchema,
-  crawlers: CrawlerSchema,
-  creatures: CreatureSchema,
-  distances: DistanceSchema,
-  drones: DroneSchema,
-  equipment: EquipmentSchema,
-  factions: FactionSchema,
-  guides: GuideSchema,
-  keywords: KeywordSchema,
-  meld: MeldSchema,
-  modules: ModuleSchema,
-  npcs: NPCSchema,
-  'roll-tables': RollTableSchema,
-  squads: SquadSchema,
-  systems: SystemSchema,
-  'bio-titans': BioTitanSchema,
-  traits: TraitEntitySchema,
-  vehicles: VehicleSchema,
-  sources: SourceEntitySchema,
-  'tech-levels': TechLevelEntitySchema,
-  'catalog-categories': CatalogCategorySchema,
-}
+const entitySchemaMap: Record<string, z.ZodType> = zodSchemaMap as Record<string, z.ZodType>
 
 // Convert schema ID to schema filename
 function schemaIdToFilename(schemaId: string): string {

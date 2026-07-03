@@ -43,7 +43,7 @@ export type { EntityType }
 
 type CrawlerBayEntry = NonNullable<Crawler['crawlerBays']>[number]
 
-type EntityState = {
+export type EntityState = {
   pilots: Pilot[]
   mechs: Mech[]
   crawlers: Crawler[]
@@ -111,7 +111,24 @@ type EntityState = {
    * pilot/mech/crawler also deletes every SoftLink referencing it.
    */
   delete: (type: EntityType, id: string) => Promise<void>
+
+  /**
+   * Cross-entity value transfer: validates every patch, then commits all
+   * updates and deletes in ONE IndexedDB transaction (all-or-nothing). Use
+   * for flows that move value between entities — scrap-mech, cargo
+   * stow/load, salvage hand-offs — where a partial write would duplicate or
+   * destroy player data. Deletes cascade SoftLinks like delete().
+   */
+  transfer: (ops: {
+    updates?: TransferUpdate[]
+    deletes?: { type: EntityType; id: string }[]
+  }) => Promise<void>
 }
+
+/** One update inside a transfer() — the discriminant ties patch to type. */
+export type TransferUpdate = {
+  [T in EntityType]: { type: T; id: string; patch: Partial<EntityForType<T>> }
+}[EntityType]
 
 /** Maps EntityType discriminant to its db accessor and Zustand state key. */
 type StoreKey = 'pilots' | 'mechs' | 'crawlers' | 'softLinks'
@@ -130,6 +147,7 @@ type DbStoreApi<T extends EntityType> = {
   get: (id: string) => Promise<EntityForType<T> | null>
   create: (input: CreateInput<T>) => Promise<EntityForType<T>>
   update: (id: string, patch: Partial<EntityForType<T>>) => Promise<EntityForType<T>>
+  prepareUpdate: (id: string, patch: Partial<EntityForType<T>>) => Promise<EntityForType<T>>
   delete: (id: string) => Promise<void>
 }
 
@@ -235,6 +253,72 @@ export const useEntityStore = create<EntityState>((set, get) => ({
     }))
     afterWrite(type)
     return updated
+  },
+
+  async transfer(ops) {
+    const updates = ops.updates ?? []
+    const deletes = ops.deletes ?? []
+    if (updates.length === 0 && deletes.length === 0) return
+
+    // Phase 1 — validate everything BEFORE touching disk. prepareUpdate
+    // merges + strict-parses without writing, so a Zod failure on any patch
+    // aborts the whole transfer with nothing changed.
+    const prepared = await Promise.all(
+      updates.map(async (u) => ({
+        type: u.type,
+        record: await (
+          dbStoreFor(u.type).prepareUpdate as (id: string, patch: object) => Promise<{ id: string }>
+        )(u.id, u.patch),
+      }))
+    )
+
+    // Phase 2 — one IDB transaction for every put and delete.
+    const prunedIds = await db.atomicWrite([
+      ...prepared.map((pu) => ({
+        op: 'put' as const,
+        storeName: broadcastNameFor(pu.type),
+        record: pu.record,
+      })),
+      ...deletes.map((d) => ({
+        op: 'delete' as const,
+        storeName: broadcastNameFor(d.type),
+        id: d.id,
+        pruneSoftLinks: d.type !== 'softLink',
+      })),
+    ])
+
+    // Phase 3 — sync in-memory state + broadcasts, mirroring update()/delete().
+    const deletedByKey = new Map<StoreKey, Set<string>>()
+    for (const d of deletes) {
+      const key = storeKeyFor(d.type)
+      deletedByKey.set(key, (deletedByKey.get(key) ?? new Set()).add(d.id))
+    }
+    const pruned = new Set(prunedIds)
+    set((state) => {
+      const next: Partial<Record<StoreKey, unknown[]>> = {}
+      for (const pu of prepared) {
+        const key = storeKeyFor(pu.type)
+        const base = (next[key] ?? state[key]) as { id: string }[]
+        next[key] = base.map((e) => (e.id === pu.record.id ? pu.record : e))
+      }
+      for (const [key, ids] of deletedByKey) {
+        const base = (next[key] ?? state[key]) as { id: string }[]
+        next[key] = base.filter((e) => !ids.has(e.id))
+      }
+      if (pruned.size > 0) {
+        const base = (next.softLinks ?? state.softLinks) as { id: string }[]
+        next.softLinks = base.filter((l) => !pruned.has(l.id))
+      }
+      return next as Partial<EntityState>
+    })
+    const touched = new Set<EntityType>([
+      ...prepared.map((pu) => pu.type),
+      ...deletes.map((d) => d.type),
+    ])
+    for (const type of touched) afterWrite(type)
+    if (pruned.size > 0 && !touched.has('softLink')) {
+      publishStoreChange(STORE_NAMES.softLinks)
+    }
   },
 
   async updateCrawlerBay(crawlerId, bayRef, patch, index) {

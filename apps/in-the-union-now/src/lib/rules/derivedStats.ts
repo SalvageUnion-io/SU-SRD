@@ -18,6 +18,7 @@
 import { SalvageUnionReference } from 'salvageunion-reference'
 
 import { parseCrawlerTechLevel } from '../crawlerLevel'
+import { resolveChassisRef, resolveInstalledRef } from './resolveRefs'
 import type { Crawler } from '../schemas/crawler'
 import type { Mech } from '../schemas/mech'
 import type { Pilot } from '../schemas/pilot'
@@ -85,7 +86,7 @@ export function clampPilotCurrentStats(
 // Mech
 // ---------------------------------------------------------------------------
 
-/** The chassis stats the mech derivations need (resolved from the ORM by name). */
+/** The chassis stats the mech derivations need (resolved from the ORM by ref). */
 export type ChassisStats = {
   structurePoints?: number
   energyPoints?: number
@@ -110,10 +111,10 @@ type StatBonusKey = 'structurePoints' | 'energyPoints' | 'heatCapacity' | 'cargo
 
 /**
  * Resolve a mech's chassis from the reference ORM. `chassisRef` stores the
- * chassis NAME (matching the builder and lib/rules/capacity.ts), not a slug.
+ * chassis SLUG (v6 migration); legacy names/ids are tolerated at resolution.
  */
 export function findChassisByRef(chassisRef: string): ChassisStats | null {
-  return SalvageUnionReference.Chassis.find((c) => c.name === chassisRef) ?? null
+  return resolveChassisRef(chassisRef)
 }
 
 function resolveChassis(mech: MechDerivationInput, chassis?: ChassisStats | null): ChassisStats {
@@ -121,18 +122,14 @@ function resolveChassis(mech: MechDerivationInput, chassis?: ChassisStats | null
 }
 
 /**
- * Resolve an installed system/module ref (stored as the item id or name) to its
- * reference record. Returns null when the ref does not resolve (custom items,
- * stale data) — such items simply contribute no bonus.
+ * Resolve an installed system/module ref (a slug; legacy id/name tolerated)
+ * to its reference record. Returns null when the ref does not resolve
+ * (custom items, stale data) — such items simply contribute no bonus.
  */
 function resolveInstalledItem(
   ref: string
 ): { statBonus?: Record<string, number | undefined> } | null {
-  return (
-    SalvageUnionReference.Systems.find((s) => s.id === ref || s.name === ref) ??
-    SalvageUnionReference.Modules.find((m) => m.id === ref || m.name === ref) ??
-    null
-  )
+  return resolveInstalledRef(ref)
 }
 
 /**

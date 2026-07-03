@@ -6,14 +6,21 @@ import { useEntityHref } from './entityHrefContext'
 import type { ReferenceEntityControl } from './referenceEntityControlTypes'
 import { cn } from '../../../utils/cn'
 import type { getReferenceEntitySpacing } from './referenceEntityDisplayTypes'
+import { useDisplaySpacing } from './displayStateContext'
 
 type ReferenceEntityGrantsProps = {
   data: SURefEntity
-  spacing: ReturnType<typeof getReferenceEntitySpacing>
+  /** Optional override; falls back to the card display-state context. */
+  spacing?: ReturnType<typeof getReferenceEntitySpacing>
   compact?: boolean
 }
 
-export function ReferenceEntityGrants({ data, spacing, compact }: ReferenceEntityGrantsProps) {
+export function ReferenceEntityGrants({
+  data,
+  spacing: spacingProp,
+  compact,
+}: ReferenceEntityGrantsProps) {
+  const spacing = useDisplaySpacing(spacingProp, compact ?? false)
   // Shared resolver (single source of truth — see salvageunion-reference).
   const grantedEntities = resolveGrantedEntities(data)
 

@@ -22,7 +22,7 @@ import { findChassisByRef } from '../rules/derivedStats'
 /** Shape of form state carried through the mech wizard. */
 export type MechWizardFormState = {
   name: string
-  /** Chassis NAME ref (matching Mech.chassisRef); '' while unchosen. */
+  /** Chassis SLUG ref (matching Mech.chassisRef); '' while unchosen. */
   chassisName: string
   /**
    * Loadout pattern name (maps to Mech.patternName): the chosen chassis
@@ -30,9 +30,9 @@ export type MechWizardFormState = {
    * unchosen.
    */
   patternName: string
-  /** Installed system name refs. */
+  /** Installed system slug refs. */
   systems: string[]
-  /** Installed module name refs. */
+  /** Installed module slug refs. */
   modules: string[]
   cargoLots: CargoLot[]
 }

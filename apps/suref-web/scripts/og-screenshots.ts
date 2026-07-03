@@ -25,7 +25,8 @@
  * render, so a deploy never ships a page whose og:image 404s.
  */
 /* eslint-disable no-console -- build-time CLI: stdout progress is intended output */
-import { mkdirSync } from 'node:fs'
+import { createHash } from 'node:crypto'
+import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { getItemStaticPaths } from '../src/lib/staticPaths'
@@ -50,7 +51,52 @@ const LAUNCH_ARGS = [
 const APP_ROOT = fileURLToPath(new URL('..', import.meta.url))
 const DIST_DIR = join(APP_ROOT, 'dist')
 
-type Entity = { schemaId: string; itemId: string }
+// ---------------------------------------------------------------------------
+// Incremental cache (audit item 29).
+//
+// `astro build` wipes dist/, so "skip unchanged" needs the PNGs to survive
+// OUTSIDE dist: a cache dir under node_modules/.cache keyed by a manifest of
+// content hashes. Hash input = the entity's JSON + SCRIPT_VERSION — bump
+// SCRIPT_VERSION whenever the card RENDERING changes (og-card page, the
+// ReferenceEntityDisplay stack in suref-react, fonts, dimensions), since the
+// entity data alone can't see those.
+//
+// Unchanged entity + cached PNG → copy into dist, no screenshot. The cache is
+// best-effort: locally and in CI it persists across builds via node_modules;
+// on a cold Netlify builder (or after `OG_SCREENSHOTS_NO_CACHE=1`) everything
+// re-renders exactly as before.
+// ---------------------------------------------------------------------------
+const SCRIPT_VERSION = 1
+const CACHE_DIR = join(APP_ROOT, 'node_modules', '.cache', 'suref-web-og')
+const MANIFEST_PATH = join(CACHE_DIR, 'manifest.json')
+
+type Manifest = Record<string, string> // "schemaId/itemId" -> content hash
+
+function readManifest(): Manifest {
+  if (process.env.OG_SCREENSHOTS_NO_CACHE) return {}
+  try {
+    return JSON.parse(readFileSync(MANIFEST_PATH, 'utf8')) as Manifest
+  } catch {
+    return {}
+  }
+}
+
+function entityHash(item: unknown): string {
+  return createHash('sha1')
+    .update(`v${SCRIPT_VERSION}:${OG_WIDTH}x${OG_HEIGHT}:`)
+    .update(JSON.stringify(item))
+    .digest('hex')
+}
+
+function cachePngPath(entity: Entity): string {
+  return join(CACHE_DIR, entity.schemaId, `${entity.itemId}.og.png`)
+}
+
+function distPngPath(entity: Entity): string {
+  return join(DIST_DIR, 'schema', entity.schemaId, 'item', `${entity.itemId}.og.png`)
+}
+
+type Entity = { schemaId: string; itemId: string; hash: string }
 
 function log(msg: string) {
   console.log(`[og-screenshots] ${msg}`)
@@ -77,12 +123,46 @@ async function main() {
     return
   }
 
-  const entities: Entity[] = getItemStaticPaths().map((p) => ({
+  const allEntities: Entity[] = getItemStaticPaths().map((p) => ({
     schemaId: p.params.schemaId,
     itemId: p.params.itemId,
+    hash: entityHash(p.props.item),
   }))
-  if (entities.length === 0) {
+  if (allEntities.length === 0) {
     log('no entities found — nothing to render.')
+    return
+  }
+
+  // Partition: unchanged entities with a cached PNG restore straight into
+  // dist; only the rest get screenshotted.
+  const previous = readManifest()
+  const entities: Entity[] = []
+  let restored = 0
+  for (const entity of allEntities) {
+    const key = `${entity.schemaId}/${entity.itemId}`
+    const cached = cachePngPath(entity)
+    if (previous[key] === entity.hash && existsSync(cached)) {
+      mkdirSync(dirname(distPngPath(entity)), { recursive: true })
+      copyFileSync(cached, distPngPath(entity))
+      restored++
+    } else {
+      entities.push(entity)
+    }
+  }
+
+  // Manifest for THIS build: every current entity, hashed. Stale keys drop out.
+  const nextManifest: Manifest = Object.fromEntries(
+    allEntities.map((e) => [`${e.schemaId}/${e.itemId}`, e.hash])
+  )
+  const writeManifest = () => {
+    mkdirSync(CACHE_DIR, { recursive: true })
+    writeFileSync(MANIFEST_PATH, JSON.stringify(nextManifest))
+  }
+
+  if (restored > 0) log(`${restored}/${allEntities.length} unchanged — restored from cache.`)
+  if (entities.length === 0) {
+    writeManifest()
+    log('all og:images restored from cache — nothing to render.')
     return
   }
   log(`generating ${entities.length} og:images (${CONCURRENCY} concurrent)…`)
@@ -150,9 +230,13 @@ async function main() {
     await page.evaluate(
       () => new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r())))
     )
-    const outPath = join(DIST_DIR, 'schema', entity.schemaId, 'item', `${entity.itemId}.og.png`)
+    const outPath = distPngPath(entity)
     mkdirSync(dirname(outPath), { recursive: true })
     await page.screenshot({ path: outPath, type: 'png' })
+    // Mirror into the incremental cache so the next build can skip this one.
+    const cached = cachePngPath(entity)
+    mkdirSync(dirname(cached), { recursive: true })
+    copyFileSync(outPath, cached)
   }
 
   try {
@@ -223,13 +307,20 @@ async function main() {
     await preview.exited
   }
 
+  // Persist the manifest minus any failures — a failed entity must not be
+  // "restored" from a stale cached PNG on the next run.
+  for (const f of failures) {
+    delete nextManifest[`${f.entity.schemaId}/${f.entity.itemId}`]
+  }
+  writeManifest()
+
   if (failures.length > 0) {
     for (const f of failures.slice(0, 20)) {
       log(`FAILED ${f.entity.schemaId}/${f.entity.itemId}: ${f.error}`)
     }
     throw new Error(`${failures.length}/${entities.length} og:image(s) failed to render.`)
   }
-  log(`done — ${generated}/${entities.length} og:images written.`)
+  log(`done — ${generated} rendered, ${restored} restored from cache.`)
 }
 
 main().catch((err) => {

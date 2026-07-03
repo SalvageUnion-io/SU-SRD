@@ -24,7 +24,7 @@ Following [Bun workspace conventions](https://bun.com/docs/guides/install/worksp
 
 - Use `bun` as package manager (not npm/yarn)
 - Root scripts use `bun --filter` to target packages
-- Package builds must run before app builds: `bun run build:package && bun --filter suref-web build`
+- `bun run build:package` only regenerates the package's JSON schemas — apps consume its TypeScript source directly, so no build ordering exists
 - Dev commands: `bun run dev` (suref-web), `bun run dev:itun` (ITUN), `bun run dev:bot` (Discord bot)
 - Watch mode: `bun run dev:watch` (watches package changes and app)
 - Type checking: `bun run typecheck` (checks all packages)
@@ -32,7 +32,7 @@ Following [Bun workspace conventions](https://bun.com/docs/guides/install/worksp
 
 ## Workspace Packages
 
-- `salvageunion-reference` is built before apps can resolve types (`bun run build:package`)
+- `salvageunion-reference` exports TypeScript source directly via `lib/index.ts` (no compile step; `bun run build:package` = JSON-schema regeneration only)
 - `suref-react` has no build step - exports TypeScript source directly via `src/index.ts` barrel
 - Both are imported via workspace protocol in consuming apps
 
@@ -52,4 +52,4 @@ import { useEntityStore } from '@/stores/entityStore'
 
 ## Generated Files
 
-- Generated files (like `routeTree.gen.ts` from TanStack Router, and `schemas/*.schema.json` / `dist/` in `salvageunion-reference`) are ignored in linting and must not be hand-edited
+- Generated files (like `routeTree.gen.ts` from TanStack Router, and `schemas/*.schema.json` in `salvageunion-reference`) are ignored in linting and must not be hand-edited

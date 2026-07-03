@@ -1,6 +1,5 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
-import type { SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
 import {
   getDisplayName,
   getGoals,
@@ -8,7 +7,6 @@ import {
   getWeaknesses,
   getRecommended,
   getChoices,
-  getModel,
   getBooklet,
   resolveGrantedEntities,
   isEntityData,
@@ -24,13 +22,7 @@ import { ReferenceEntitySubTitleElement } from '../ReferenceEntitySubTitleConten
 import { ReferenceEntityRightHeaderContent } from '../ReferenceEntityRightHeaderContent'
 import { buildReferenceEntityStats } from '../referenceEntityStatsConfig'
 import type { StatItem } from '../../../shared/statsBarTypes'
-import { ReferenceEntityChassisPatterns } from '../ReferenceEntityChassisPatterns'
-import { ReferenceEntityFormation } from '../ReferenceEntityFormation'
-import { ReferenceEntityNpcDisplay } from '../ReferenceEntityNpcDisplay'
 import { ReferenceEntityChassisAbilitiesContent } from '../ReferenceEntityChassisAbilitiesContent'
-import { SectionSeparator } from '../SectionSeparator'
-import { ReferenceEntityDisplay } from '../index'
-import { PatternEquipmentItem } from '../PatternEquipmentItem'
 import { ReferenceEntityRequirementDisplay } from '../ReferenceEntityRequirementDisplay'
 import { ReferenceEntityResolvedChoices } from '../ReferenceEntityResolvedChoices'
 import { ReferenceEntityResolvedDataRow } from '../ReferenceEntityResolvedDataRow'
@@ -40,9 +32,7 @@ import { ReferenceEntityBonusPerTechLevel } from '../ReferenceEntityBonusPerTech
 import { ReferenceEntityIntegratedSystems } from '../ReferenceEntityIntegratedSystems'
 import { ConditionalSheetInfo } from '../ConditionalSheetInfo'
 import { ReferenceEntityActions } from '../ReferenceEntityActions'
-import { CardImage } from '../../../shared/CardImage'
-import { BlockContentRendererView } from '../../BlockContentRendererView'
-import { GuideStepsDisplay } from '../../GuideStepsDisplay'
+import { ReferenceEntityFormation } from '../ReferenceEntityFormation'
 import type { GuideStepsInteractiveConfig } from '../../GuideStepsDisplay'
 import { cn } from '../../../../utils/cn'
 import {
@@ -62,13 +52,24 @@ import { useReferenceEntityDisplayState } from '../useReferenceEntityDisplayStat
 import type { ReferenceEntityDisplayStateInput } from '../useReferenceEntityDisplayState'
 import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
 import type { NpcConfig } from '../referenceEntityDisplayTypes'
+import { ReferenceEntityDisplayStateProvider } from '../displayStateContext'
 import { ReferenceEntityFooter } from './ReferenceEntityFooter'
 import { Tag } from '../../../chrome/Tag'
 import type { EntityStatus } from '../../../chrome/StatusBadge'
 import type { CardFootMeta } from '../../../shared/DisplayCard'
 import { CalloutMetaStamp } from './CalloutMetaStamp'
-import { ReferenceEntityFactionData } from './ReferenceEntityFactionData'
-import { GuideEntityListing } from './GuideEntityListing'
+import {
+  EntityBodyTopMatter,
+  EntityExtraSections,
+  EntityNpcSection,
+  EntityStatblockEquipment,
+} from './EntityBodySections'
+import type { ContentBlocks } from './EntityBodySections'
+import {
+  deriveContentBlocks,
+  deriveTitanicStatblock,
+  resolveFooterEntity,
+} from './deriveEntityContent'
 
 export type ReferenceEntityDisplayContentProps = ReferenceEntityDisplayStateInput & {
   children?: ReactNode
@@ -151,23 +152,6 @@ export type ReferenceEntityDisplayContentProps = ReferenceEntityDisplayStateInpu
 // (~1/3 of the default content padding), not derived.
 const CONTENT_PADDING_BOTTOM_RATIO = 0.34
 
-/**
- * The entity a footer's source/page/booklet should read from. Actions carry no
- * own source/page — they derive it from the same-named entry in their
- * `actionSource` schema (e.g. the source ability). Returns the entity itself
- * when it already has a source or can't be resolved.
- */
-function resolveFooterEntity(data: SURefEntity): SURefEntity {
-  const hasOwnSource = 'source' in data && !!data.source
-  const actionSource = 'actionSource' in data ? data.actionSource : undefined
-  if (hasOwnSource || typeof actionSource !== 'string' || !('name' in data)) {
-    return data
-  }
-  const model = getModel(actionSource)
-  const parent = model?.find((e: SURefEntity) => 'name' in e && e.name === data.name)
-  return parent ?? data
-}
-
 export function ReferenceEntityDisplayContent({
   children,
   controls,
@@ -229,11 +213,15 @@ export function ReferenceEntityDisplayContent({
     titleAs,
   } = state
 
+  // Display-state context (audit item 20): provided once here; nested section
+  // components consume it instead of having every value hand-threaded.
+  const displayState = useMemo(
+    () => ({ compact, spacing, fontSize, damaged, disabled }),
+    [compact, spacing, fontSize, damaged, disabled]
+  )
+
   // Resolved unconditionally (hook rules); gated to full displays below.
   const externalLinkNode = useEntityExternalLink(data)
-
-  // Determine which content to render (from EntityTopMatter)
-  let contentBlocks = hide.content ? undefined : 'content' in data ? data.content : undefined
 
   // Entities with choices render a live, resolved dataview row (base datavalues +
   // applied choice effects) via ReferenceEntityResolvedChoices.
@@ -268,55 +256,26 @@ export function ReferenceEntityDisplayContent({
     <ReferenceEntityResolvedDataRow data={data} selections={choiceSelections} compact={compact} />
   ) : null
 
-  // Check if any action name matches the entity name - if so, use that action's
-  // content. Skipped for granted equipment (entities carrying their own choices):
-  // their same-named action holds the legacy verbose prose (the choice-describing
-  // sentences + list-items), whereas the entity's own `content` is the trimmed
-  // intro + base datavalues that the resolved row / choice cards render from. The
-  // override is also gated on `hide.content` so suppression is honoured.
-  if (
-    !hide.content &&
-    !entityHasChoices &&
-    matchingAction &&
-    matchingAction.content &&
-    matchingAction.content.length > 0
-  ) {
-    contentBlocks = matchingAction.content
-  }
-
-  // Suppress the static `datavalues` content block when choices are present — the
-  // resolved row renders it instead (avoids rendering the row twice). The intro
-  // prose paragraph(s) still render.
-  if (contentBlocks && entityHasChoices) {
-    contentBlocks = contentBlocks.filter((block) => block.type !== 'datavalues')
-  }
-
-  // Hide the `lead` intro block when nested in a grant — it shows on the entity's
-  // own page, but in a grant it duplicates the granting ability's description.
-  if (contentBlocks && hideLeadContent) {
-    contentBlocks = contentBlocks.filter((block) => block.lead !== true)
-  }
-
-  // In compact list view (hide.actions), only show content before the first heading
-  if (contentBlocks && compact && hide.actions) {
-    const firstHeadingIndex = contentBlocks.findIndex((block) => block.type === 'heading')
-    if (firstHeadingIndex > 0) {
-      contentBlocks = contentBlocks.slice(0, firstHeadingIndex)
-    }
-  }
+  // Content-block munging (override/suppression/truncation rules) lives in
+  // deriveEntityContent.ts — pure and unit-testable.
+  const contentBlocks = deriveContentBlocks<ContentBlocks[number]>({
+    data,
+    hideContent: !!hide.content,
+    hideActions: !!hide.actions,
+    compact,
+    entityHasChoices,
+    matchingAction,
+    hideLeadContent,
+  })
 
   // An ability that grants equipment (e.g. Custom Sniper Rifle) re-skins its body:
   // it suppresses its own description/content + Actions and instead surfaces the
   // granted equipment's intro (lead) line + a `Grants` block (the nested compact
-  // equipment with its resolved row + choice cards). Resolve the granted entities
-  // here so the gates below (header flavor, content, actions) can react.
+  // equipment with its resolved row + choice cards).
   const grantedEntities = resolveGrantedEntities(data)
   const isGrantingAbility = isAbility(data) && grantedEntities.length > 0
-  // Whether the Grants block renders. A granting ability ALWAYS shows its Grants
-  // (so the index list / compact cards surface what's granted) — in compact the
-  // nested equipment collapses to header-only (see GrantedEntityListing), so
-  // `hide.choices` no longer needs to suppress the whole block. The block still
-  // only renders when the card has a body (i.e. not a header-only `listing`).
+  // A granting ability ALWAYS shows its Grants (the block only renders when the
+  // card has a body — i.e. not a header-only `listing`).
   const showGrants = isGrantingAbility
 
   // Show content if entity has content blocks. A granting ability suppresses its
@@ -328,8 +287,7 @@ export function ReferenceEntityDisplayContent({
   //  - basic/advanced abilities (numeric level 1-3) show their level beside the
   //    tree label; legendary ('L') and generic ('G') omit it entirely;
   //  - tech-level entities show their tech level beside a "Tech Level" label.
-  // Gate on data shape, not schemaName, per .claude/rules/display-system.md — keeps
-  // the label-callout logic schema-agnostic (works for app-injected entities too).
+  // Gate on data shape, not schemaName, per .claude/rules/display-system.md.
   const isAbilityEntity = isAbility(data)
   const isTechLevelEntity = !isAbilityEntity && techLevel != null
   const abilityLevel = 'level' in data ? data.level : undefined
@@ -344,14 +302,11 @@ export function ReferenceEntityDisplayContent({
       : undefined
   // Classes surface their type ("Base Class" / "Hybrid Class") as the label;
   // tech-level entities surface "Tech Level". (Both move out of the data row.)
-  // getClassTypeLabel is the shared producer of the label string (one source of
-  // truth with the data-extraction layer + the subtitle de-dup filter).
   const classTypeLabel = isClass(data) ? getClassTypeLabel(data) : undefined
   const effectiveLabel = label ?? classTypeLabel ?? (isTechLevelEntity ? 'Tech Level' : undefined)
 
   // "Recommended" moves from the data row into the label callout row, ordered
-  // first, in the same rust as its data value. (It is filtered out of the
-  // subtitle below.) Renders in header-only/compact/full like the rest of the row.
+  // first, in the same rust as its data value.
   const isRecommended = isEntityData(data) && getRecommended(data) === true
   const labelLead = isRecommended ? (
     <CalloutMetaStamp rust compact={compact}>
@@ -359,34 +314,20 @@ export function ReferenceEntityDisplayContent({
     </CalloutMetaStamp>
   ) : undefined
 
-  // Whether the right header column will actually render flavor. isAbility narrows
-  // to SURefAbility (description is a declared optional field), so no cast/extra
-  // membership check is needed; this mirrors ReferenceEntityRightHeaderContent's
-  // own early-return guard so we never pass a truthy-but-empty node to CardHeader.
-  // Granting abilities still show their description in the header-right flavor
-  // slot (the Grants block lives in the body — they don't conflict).
+  // Whether the right header column will actually render flavor — mirrors
+  // ReferenceEntityRightHeaderContent's own early-return guard.
   const hasHeaderFlavor = isAbilityEntity && !!data.description
 
   // Consolidate chassis abilities logic — data-shape driven
   const chassisName = 'name' in data ? data.name : undefined
   const hasChassisAbilities = !!chassisAbilities && chassisAbilities.length > 0
 
-  // Bio-Titans — and drone-class bosses with a mech-style statblock (the Iron
-  // Lady) — get the "titanic" treatment: full-width actions plus equipped
-  // systems/modules rendered as inline compact listings, and their actions
-  // section is suppressed in compact listings. Gate on data shape (actions +
-  // equipment) rather than a lone schema name, since the Titanic Actions
-  // mechanic is not Bio-Titan-specific and the Iron Lady now lives in `drones`.
-  const hasEquippedActions =
-    'actions' in data &&
-    Array.isArray((data as { actions?: unknown }).actions) &&
-    (('systems' in data && Array.isArray(data.systems)) ||
-      ('modules' in data && Array.isArray(data.modules)))
-  const isTitanicStatblock = schemaName === 'bio-titans' || hasEquippedActions
+  // Titanic statblocks (Bio-Titans + statblock-equipped bosses) — see
+  // deriveTitanicStatblock for the data-shape gating rationale.
+  const { isTitanicStatblock, statblockSystems, statblockModules, hasStatblockEquipment } =
+    deriveTitanicStatblock(data, schemaName)
 
   // Check if entity has actions that will be displayed (after filtering).
-  // A granting ability suppresses its Actions section (its redundant same-named
-  // action lives on the granted equipment instead).
   const hasDisplayableActions =
     !isGrantingAbility &&
     !!visibleActions &&
@@ -397,12 +338,7 @@ export function ReferenceEntityDisplayContent({
   const hasTopMatterContent =
     !!showContent || hasChassisAbilities || !!assetUrl || hasDisplayableActions || showGrants
 
-  // The image renders as a left-float (CardImage `md:float-left`) on every path
-  // EXCEPT the two grid layouts (chassis abilities, afterExtraContent), which
-  // place it in a grid cell. When it floats, only the body prose wraps around it;
-  // the structured sections below (actions, systems, integrated systems, etc.)
-  // are boxy and would be squeezed into the narrow column beside the float, so we
-  // clear the float after the prose and render them full-width below the image.
+  // See EntityBodyTopMatter for the float-vs-grid rationale.
   const imageFloats =
     !!assetUrl && !(!compact && ((hasChassisAbilities && !hide.actions) || !!afterExtraContent))
 
@@ -412,33 +348,13 @@ export function ReferenceEntityDisplayContent({
     ? SalvageUnionReference.findIn('drones', (d) => d.name === droneAbility.drone)
     : undefined
 
-  // Resolve statblock-equipped systems/modules into entities for inline listing
-  const statblockSystemNames =
-    isTitanicStatblock && 'systems' in data && Array.isArray(data.systems)
-      ? (data.systems as string[])
-      : undefined
-  const statblockModuleNames =
-    isTitanicStatblock && 'modules' in data && Array.isArray(data.modules)
-      ? (data.modules as string[])
-      : undefined
-  const statblockSystems = statblockSystemNames
-    ?.map((name) => SalvageUnionReference.findIn('systems', (s) => s.name === name))
-    .filter((entity): entity is NonNullable<typeof entity> => !!entity)
-  const statblockModules = statblockModuleNames
-    ?.map((name) => SalvageUnionReference.findIn('modules', (m) => m.name === name))
-    .filter((entity): entity is NonNullable<typeof entity> => !!entity)
-  const hasStatblockEquipment =
-    (statblockSystems && statblockSystems.length > 0) ||
-    (statblockModules && statblockModules.length > 0)
-
   // Pre-built block for chassis abilities (reused at multiple render positions)
-  // When abilitiesSection is provided by the caller, it replaces the entire built-in block
+  // When abilitiesSection is provided by the caller, it replaces the built-in block
   const chassisAbilitiesBlock = abilitiesSection ? (
     abilitiesSection
   ) : hasChassisAbilities ? (
     <ReferenceEntityChassisAbilitiesContent
       chassisName={chassisName}
-      spacing={spacing}
       compact={compact}
       chassisAbilities={chassisAbilities}
       hideDrone={!!droneEntity}
@@ -489,17 +405,15 @@ export function ReferenceEntityDisplayContent({
   // renders full content, so it picks the link up too.
   const externalLink = !compact && !listing ? externalLinkNode : undefined
 
-  // Foot extras (footActions/footMeta/externalLink) force the foot band even
-  // without source/page data — they are live-play affordances, not source chrome.
+  // Foot extras force the foot band even without source/page data — they are
+  // live-play affordances, not source chrome.
   const hasFootExtras = !!footActions || (!!footMeta && footMeta.length > 0) || !!externalLink
   const hasFooter = (!hide.footer && (hasPage || hasSource)) || hasFootExtras
 
-  // Themed border for expansion-sourced entities (the source-specific header /
-  // footer / card textural patterns have been removed).
+  // Themed border for expansion-sourced entities.
   const sourceBorderColor = getSourceBorderColor(source) ?? 'var(--color-su-black)'
 
-  // Accessible alt text for the entity illustration: "{Title} {schema display name} illustration"
-  // (e.g. "Iron Mongrel Chassis illustration"). Falls back to a generic label when title is absent.
+  // Accessible alt text for the entity illustration.
   const imageAltText = title
     ? `${title} ${getDisplayName(schemaName)} illustration`
     : `${getDisplayName(schemaName)} illustration`
@@ -554,8 +468,7 @@ export function ReferenceEntityDisplayContent({
   ) : null
 
   // Trailing type-label tag (design-spec §2.1), appended last to the header
-  // data row. Opt-in via showTypeLabel/typeLabel; label falls back to the
-  // schema display name (e.g. 'System', 'Module').
+  // data row.
   const typeLabelNode =
     showTypeLabel || typeLabel != null ? (
       <Tag label={typeLabel ?? getDisplayName(schemaName)} />
@@ -568,7 +481,6 @@ export function ReferenceEntityDisplayContent({
         <ReferenceEntitySubTitleElement
           data={data}
           schemaName={schemaName}
-          spacing={spacing}
           compact={compact}
           suppressExtractedDetails={entityHasChoices}
           subtitleExtra={
@@ -585,16 +497,10 @@ export function ReferenceEntityDisplayContent({
         />
       }
       rightContent={
-        // The ability description always renders in the header-right flavor slot
-        // (nothing suppresses it). `hasHeaderFlavor` already means "ability with a
-        // description", so the node is never truthy-but-empty — only abilities
-        // reach this branch; systems/modules render their stats via `stats`.
+        // `hasHeaderFlavor` already means "ability with a description", so the
+        // node is never truthy-but-empty.
         hasHeaderFlavor ? (
-          <ReferenceEntityRightHeaderContent
-            data={data}
-            fontSize={fontSize}
-            accentColor={accentText}
-          />
+          <ReferenceEntityRightHeaderContent data={data} accentColor={accentText} />
         ) : undefined
       }
       compact={compact}
@@ -607,10 +513,8 @@ export function ReferenceEntityDisplayContent({
   const accent = accentSurface(headerBg, headerBgColor)
 
   // Sources carry a `purchaseLink` to the publisher's store — surface it as a
-  // "Buy" control in the top-right of the card header (compact + full), opening
-  // the store in a new tab. ControlButtons calls preventDefault on click, so the
-  // button is safe inside the list view's navigation <a> (it opens the store
-  // without also navigating the card).
+  // "Buy" control in the top-right of the card header, opening the store in a
+  // new tab.
   const purchaseLink =
     'purchaseLink' in data && typeof data.purchaseLink === 'string' ? data.purchaseLink : undefined
   const buyControl: ReferenceEntityControl | undefined = purchaseLink
@@ -658,8 +562,7 @@ export function ReferenceEntityDisplayContent({
               through the mx-3/mb-2 insets so colour surrounds the text. */}
           <div
             // No bottom margin: the footer's own symmetric py provides the gap
-            // above its content, so the footer isn't top-heavy (the body box's
-            // bottom edge meets the footer directly).
+            // above its content, so the footer isn't top-heavy.
             // 3px left accent border in the card's "deep" (darker) accent tint.
             className={cn(
               'mx-3 min-w-0 bg-su-white p-0',
@@ -680,116 +583,31 @@ export function ReferenceEntityDisplayContent({
                   source !== 'Salvage Union Workshop Manual' && hasTopMatterContent
                     ? `calc(${spacing.contentPadding * 0.25}rem + 5px)`
                     : `${spacing.contentPadding}rem`,
-                // See CONTENT_PADDING_BOTTOM_RATIO for the rationale behind the ratio.
+                // See CONTENT_PADDING_BOTTOM_RATIO for the ratio rationale.
                 paddingBottom: `${spacing.contentPadding * CONTENT_PADDING_BOTTOM_RATIO}rem`,
               }}
             >
-              {assetUrl && hasChassisAbilities && !compact && !hide.actions ? (
-                // Grid layout for chassis with images: ability anchored to bottom of image
-                <div className="md:grid md:grid-cols-[auto_1fr]">
-                  <CardImage url={assetUrl} alt={imageAltText} compact={compact} />
-                  <div className="flex flex-col justify-evenly">
-                    <div>
-                      {showContent && (
-                        <BlockContentRendererView
-                          content={contentBlocks!}
-                          fontSize={fontSize.sm}
-                          compact={compact}
-                          headerBg={headerBg}
-                          headerBgColor={headerBgColor}
-                        />
-                      )}
-                      {children}
-                    </div>
-                    {chassisAbilitiesBlock}
-                  </div>
-                </div>
-              ) : (
-                <>
-                  {assetUrl && afterExtraContent && !compact ? (
-                    // Grid layout: vertically center content beside image when
-                    // afterExtraContent (e.g. class ability trees) will render below
-                    <div className="md:grid md:grid-cols-[auto_1fr] md:items-center">
-                      <CardImage url={assetUrl} alt={imageAltText} compact={compact} />
-                      <div>
-                        {showContent && (
-                          <BlockContentRendererView
-                            content={contentBlocks!}
-                            fontSize={fontSize.sm}
-                            compact={compact}
-                            headerBg={headerBg}
-                            headerBgColor={headerBgColor}
-                          />
-                        )}
-                        {children}
-                      </div>
-                    </div>
-                  ) : (
-                    <>
-                      {assetUrl && (
-                        <CardImage url={assetUrl} alt={imageAltText} compact={compact} />
-                      )}
-                      {showContent && (
-                        <BlockContentRendererView
-                          content={contentBlocks!}
-                          fontSize={fontSize.sm}
-                          compact={compact}
-                          headerBg={headerBg}
-                          headerBgColor={headerBgColor}
-                        />
-                      )}
-                      {children}
-                    </>
-                  )}
-                  {/* Only the body prose wraps the floated image; clear the float
-                      here so the structured sections below render full-width
-                      beneath the image instead of squeezed into the narrow column
-                      beside it. */}
-                  {imageFloats && <div className="clear-both" />}
-                  <ReferenceEntityFactionData
-                    data={data}
-                    compact={compact}
-                    fontSize={fontSize}
-                    borderColor={borderColor}
-                  />
-                  {/* Guide steps — data-shape driven */}
-                  {'steps' in data && Array.isArray(data.steps) && data.steps.length > 0 && (
-                    <GuideStepsDisplay
-                      steps={data.steps}
-                      compact={compact}
-                      headerBg={headerBg}
-                      headerBgColor={headerBgColor}
-                      fontSize={fontSize}
-                      interactive={interactive}
-                      renderEntityListing={(
-                        entityData,
-                        entitySchemaName,
-                        key,
-                        isListing,
-                        forceCompact,
-                        entityControls,
-                        entityDisabled
-                      ) => (
-                        <GuideEntityListing
-                          key={key}
-                          data={entityData as SURefEntity}
-                          schemaName={entitySchemaName as SURefEnumSchemaName}
-                          compact={forceCompact ?? isListing}
-                          listing={isListing}
-                          disabled={!!entityDisabled}
-                          controls={entityControls}
-                        />
-                      )}
-                    />
-                  )}
-                  {/* Non-compact: chassis abilities render before actions */}
-                  {!compact && !hide.actions && chassisAbilitiesBlock}
-                </>
-              )}
+              <EntityBodyTopMatter
+                assetUrl={assetUrl}
+                imageAltText={imageAltText}
+                showContent={showContent}
+                contentBlocks={contentBlocks}
+                chassisAbilitiesBlock={chassisAbilitiesBlock}
+                hasChassisAbilities={hasChassisAbilities}
+                hideActions={!!hide.actions}
+                afterExtraContent={afterExtraContent}
+                imageFloats={imageFloats}
+                headerBg={headerBg}
+                headerBgColor={headerBgColor}
+                borderColor={borderColor}
+                data={data}
+                interactive={interactive}
+              >
+                {children}
+              </EntityBodyTopMatter>
               {(!hide.actions || (compact && !isTitanicStatblock && !rightContent)) && (
                 <ReferenceEntityActions
                   suppressActions={hasChassisAbilities || isGrantingAbility}
-                  spacing={spacing}
                   compact={compact}
                   actionsToDisplay={visibleActions}
                   headerBg={headerBg}
@@ -799,31 +617,8 @@ export function ReferenceEntityDisplayContent({
               {/* Granting ability: a `Grants` block — the nested compact equipment
                   renders its own intro paragraph, resolved row + choice cards.
                   Rendered in the main body flow so it is visible in compact mode. */}
-              {showGrants && (
-                <ReferenceEntityGrants data={data} spacing={spacing} compact={compact} />
-              )}
-              {/* Titan-equipped systems/modules render as compact listings under
-                  actions, full-width below the (cleared) image float. */}
-              {statblockSystems && statblockSystems.length > 0 && (
-                <>
-                  <SectionSeparator label="Mech Systems" compact={compact} />
-                  <div className={cn('flex flex-col', spacing.sectionSpaceYClass)}>
-                    {statblockSystems.map((system) => (
-                      <PatternEquipmentItem key={`statblock-system-${system.id}`} data={system} />
-                    ))}
-                  </div>
-                </>
-              )}
-              {statblockModules && statblockModules.length > 0 && (
-                <>
-                  <SectionSeparator label="Mech Modules" compact={compact} />
-                  <div className={cn('flex flex-col', spacing.sectionSpaceYClass)}>
-                    {statblockModules.map((mod) => (
-                      <PatternEquipmentItem key={`statblock-module-${mod.id}`} data={mod} />
-                    ))}
-                  </div>
-                </>
-              )}
+              {showGrants && <ReferenceEntityGrants data={data} compact={compact} />}
+              <EntityStatblockEquipment systems={statblockSystems} modules={statblockModules} />
               {/* Compact: chassis abilities render after actions */}
               {compact && chassisAbilitiesBlock}
               <ReferenceEntityResolvedChoices
@@ -841,7 +636,6 @@ export function ReferenceEntityDisplayContent({
 
               <ReferenceEntityBonusPerTechLevel
                 bonusPerTechLevel={'bonusPerTechLevel' in data ? data.bonusPerTechLevel : undefined}
-                spacing={spacing}
                 compact={compact}
                 techLevel={techLevel}
               />
@@ -853,7 +647,6 @@ export function ReferenceEntityDisplayContent({
                   value={effect.value}
                   data={data}
                   compact={compact}
-                  fontSize={fontSize}
                   headerBg={headerBg}
                 />
               ))}
@@ -875,80 +668,23 @@ export function ReferenceEntityDisplayContent({
                 headerFontSize={fontSize.lg}
                 compact={compact}
               />
-              {(() => {
-                const npcBlock = (
-                  <>
-                    <ReferenceEntityNpcDisplay
-                      data={data}
-                      compact={compact}
-                      embedded
-                      fontSize={fontSize}
-                      spacing={spacing}
-                      npcChildren={npcConfig?.children}
-                      hpSlot={npcConfig?.hpSlot}
-                      damaged={npcConfig?.damaged ?? damaged}
-                      headerBg={headerBg}
-                      headerBgColor={headerBgColor}
-                      npcName={npcConfig?.name}
-                      readOnly={npcConfig?.readOnly}
-                      showSeparator={npcConfig?.showNpcSeparator}
-                      hideHeader={npcConfig?.hideNpcHeader}
-                    />
-                    {npcConfig?.afterContent}
-                  </>
-                )
-                return rightContent ? (
-                  <>
-                    <div
-                      className={
-                        npcPosition === 'right'
-                          ? 'md:float-right md:ml-4 md:w-1/2 md:border-l md:border-su-grey-light md:pl-4'
-                          : 'md:float-left md:mr-4 md:w-1/2 md:border-r md:border-su-grey-light md:pr-4'
-                      }
-                      style={{ shapeOutside: 'margin-box' }}
-                    >
-                      {npcBlock}
-                    </div>
-                    {rightContent}
-                    <div className="clear-both !mt-0" />
-                  </>
-                ) : (
-                  npcBlock
-                )
-              })()}
+              <EntityNpcSection
+                data={data}
+                npcConfig={npcConfig}
+                damaged={damaged}
+                headerBg={headerBg}
+                headerBgColor={headerBgColor}
+                rightContent={rightContent}
+                npcPosition={npcPosition}
+              />
               {shouldShowExtraContent && (
-                <>
-                  {droneEntity && (
-                    <>
-                      <SectionSeparator label="Drone" compact={compact} />
-                      <ReferenceEntityDisplay
-                        data={droneEntity}
-                        compact
-                        hide={{ actions: true, patterns: true }}
-                      />
-                    </>
-                  )}
-                  {!hide.patterns && (
-                    <ReferenceEntityChassisPatterns
-                      patterns={'patterns' in data ? data.patterns : undefined}
-                      headerFontSize={fontSize.lg}
-                      chassisEntity={data}
-                    />
-                  )}
-                  {!hide.damagedEffect && 'damagedEffect' in data && data.damagedEffect && (
-                    <ConditionalSheetInfo
-                      propertyName="damagedEffect"
-                      labelBgColor="text-brand-srd"
-                      label="Damaged Effect"
-                      data={data}
-                      compact={compact}
-                      fontSize={fontSize}
-                      headerBg={headerBg}
-                    />
-                  )}
-                  {/* Grants render in the main body flow above (granting abilities,
-                      visible in compact) — not here. */}
-                </>
+                <EntityExtraSections
+                  data={data}
+                  droneEntity={droneEntity}
+                  hidePatterns={!!hide.patterns}
+                  hideDamagedEffect={!!hide.damagedEffect}
+                  headerBg={headerBg}
+                />
               )}
               {/* Caller-provided slot — renders whenever supplied, independent of
                 the actions-gated extra content above. Compact selection cards
@@ -987,10 +723,9 @@ export function ReferenceEntityDisplayContent({
           {expand && <div className="mx-3 mt-2 min-w-0 pb-2">{expand}</div>}
           {/* Footer. Interactive wizards (renderFooter present) get a floating
               action that sticks to the bottom-right of the viewport as the form
-              scrolls — keeping confirm/nav reachable without a full-width bar
-              eating vertical space. Static (suref-web) cards keep the plain
-              full-width accent footer below. The wrapper is click-through
-              (pointer-events-none) so only the action itself is interactive. */}
+              scrolls. Static (suref-web) cards keep the plain full-width accent
+              footer below. The wrapper is click-through (pointer-events-none)
+              so only the action itself is interactive. */}
           {interactive?.renderFooter ? (
             <div className="pointer-events-none sticky bottom-4 z-40 flex justify-end px-4 pb-2 [&>*]:pointer-events-auto [&_button]:shadow-lg">
               {interactive.renderFooter()}
@@ -1003,5 +738,9 @@ export function ReferenceEntityDisplayContent({
     </DisplayCard>
   )
 
-  return card
+  return (
+    <ReferenceEntityDisplayStateProvider value={displayState}>
+      {card}
+    </ReferenceEntityDisplayStateProvider>
+  )
 }
