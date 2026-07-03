@@ -26,11 +26,34 @@ type Props = {
 
 **Renders:**
 - `<title>`, `<meta name="description">`, `<link rel="canonical">`
-- Open Graph: `og:title`, `og:description`, `og:url`, `og:type`, `og:site_name`, `og:image` (790x352)
-- Twitter Cards: `twitter:card`, `twitter:title`, `twitter:description`, `twitter:image`
+- Open Graph: `og:title`, `og:description`, `og:url`, `og:type`, `og:site_name`, `og:image` + `og:image:width`/`height`/`alt` — **all OG images are 1200×630** (the default banner and the per-entity screenshots below)
+- Twitter Cards: `twitter:card` (`summary_large_image`), `twitter:title`, `twitter:description`, `twitter:image`
 - Favicons: SVG, PNG 96x96, Apple Touch Icon 180x180
 - Web manifest: `site.webmanifest`
 - Web fonts: Barlow superfamily self-hosted via `@fontsource/barlow` and `@fontsource/barlow-semi-condensed`; served same-origin under the strict `font-src 'self'` CSP, bundled into `/_astro/` by Vite with `font-display: swap`
+
+### Per-entity OG images (`scripts/og-screenshots.ts`)
+
+After `astro build`, a Playwright pass renders the REAL `ReferenceEntityDisplay`
+card for every entity via the `/og-card/` harness page and screenshots it to
+`dist/schema/{schemaId}/item/{itemId}.og.png` — the path each item page
+references as its og:image (PR #331). The pass is **incremental**: a
+content-hash manifest + PNG cache under `node_modules/.cache/suref-web-og/`
+restores unchanged entities and only re-renders what changed; when nothing
+changed the browser never launches. `OG_SCREENSHOTS_NO_CACHE=1` forces a full
+regen; `OG_SCREENSHOTS_SKIP=1` skips the pass entirely.
+
+### Machine-readable surfaces
+
+- **`/llms.txt`** (`src/pages/llms.txt.ts`) — an LLM-oriented site map of the
+  reference content.
+- **Public JSON API** — every schema and item page has a JSON twin:
+  `/schema/{schemaId}.json`, `/schema/{schemaId}.schema.json`, and
+  `/schema/{schemaId}/item/{itemId}.json` (see `src/pages/schema/`). CORS for
+  these paths is opened via `public/_headers`
+  (`Access-Control-Allow-Origin: *`, GET only).
+- **PWA** — `@vite-pwa/astro` in `astro.config.mjs` makes the site installable
+  and offline-capable (service worker, autoUpdate).
 
 ### Structured Data (JSON-LD)
 
@@ -79,7 +102,14 @@ On React hydration, removes `[data-static-fallback]` element and replaces with t
 `staticPaths.ts` pre-computes all routes at build time:
 - `getSchemaStaticPaths()` — Routes for all schemas
 - `getItemStaticPaths()` — Routes for all items within schemas
-- Slug-based routing: `/schema/{schemaId}/item/{slug}/` (never UUIDs)
+- **Meta schemas are excluded from BOTH** (`!s.meta`): entity types like
+  `actions` render inline inside their parents and get no listing or item
+  pages — a test pins the "every item page has a parent listing" invariant
+  (`src/lib/__tests__/staticPaths.test.ts`)
+- Slug-based routing: `/schema/{schemaId}/item/{slug}/` (never UUIDs);
+  per-file slug uniqueness is enforced by the package's `validate:slugs`
+- Trait/keyword mentions in static fallback content are auto-linked via
+  `staticLinks.ts` so crawlers see real anchors without JS
 
 ---
 

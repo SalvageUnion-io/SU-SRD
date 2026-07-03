@@ -6,6 +6,15 @@ type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    date: '2026-07-02',
+    title: 'Shadowed table restored, smarter search, tidier sitemap',
+    items: [
+      'The two "Salvage Cache Table" roll tables (We Were Here First! and Reclamation of the Wastes) shared one URL, so only the first was reachable — they are now disambiguated by source and both have their own page.',
+      'Search understands multi-word queries: "heavy laser" now finds Heavy Laser instead of returning nothing, with word-prefix matching and better ranking.',
+      'Removed 712 orphaned internal pages (inline-only entries like raw actions) from the sitemap and breadcrumbs — every indexed page now has a working parent listing.',
+    ],
+  },
+  {
     date: '2026-06-29',
     title: '"View details" opens the full entity page',
     items: [

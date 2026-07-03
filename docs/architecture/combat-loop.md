@@ -72,9 +72,24 @@ write-through** ([ADR-008](../adrs/ADR-008-sequential-mutations.md)):
 4. `await storeState.update('mech', mech.id, patch)` — persists to IndexedDB,
    then updates in-memory state and broadcasts to other tabs.
 
-There is no atomic transaction; the rare partial-write risk is accepted, and
-affordability is checked up front ([ADR-007](../adrs/ADR-007-automation-boundary.md),
-[ADR-008](../adrs/ADR-008-sequential-mutations.md)).
+Single-entity patches stay sequential; the rare partial-write risk is accepted,
+and affordability is checked up front ([ADR-007](../adrs/ADR-007-automation-boundary.md),
+[ADR-008](../adrs/ADR-008-sequential-mutations.md)). Flows that move value
+**between** entities (scrap-mech, cargo stow/load) instead use
+`entityStore.transfer()`, which validates every patch and commits all writes in
+one IndexedDB transaction — ADR-008's own escape hatch for cases that cannot
+tolerate partial application.
+
+**Destructive-write policy** (one vocabulary across every control):
+
+- **Irreversible cross-entity moves** (scrap-mech, entity delete) → a
+  `ConfirmDialog` before anything is written.
+- **Reversible destructive writes** (item marked Destroyed, an automation
+  rule setting `destroyed`) → the write applies immediately (player stays in
+  control, ADR-007) with a visible reversal affordance: the inline **Clear**
+  strip when it sits next to the flag (HeatCheckControl), plus the one-click
+  **Undo toast** (`destroyedUndoToast`) when the write happens away from a
+  Clear affordance (item badges, Critical Damage results).
 
 ---
 
@@ -133,18 +148,49 @@ modifiers (`maxSpModifier`, `maxEpModifier`, `maxHeatModifier`,
 
 ---
 
+## The rules controls (design-review R-1…R-7, shipped in #333)
+
+Each control follows the HeatCheckControl / ADR-007 pattern — deterministic
+bookkeeping auto-applies; destructive or narrative choices stay player-driven.
+Pure math lives in `src/lib/rules/*` (injectable rollers, fully unit-tested);
+the control is a thin stateful wrapper.
+
+- **Take Damage** — `TakeDamageControl.tsx` (mech, Core Book p.239-240) +
+  `PilotTakeDamageControl.tsx` (pilot, p.241) over `lib/rules/takeDamage.ts`.
+  SP/HP reduction, halving rules, and the Critical Damage / Critical Injury
+  d20 bands auto-apply their deterministic effects (recorded roll, 1 SP/HP on
+  Miraculous Survival, `destroyed` on Catastrophic, 'Chassis Damaged' /
+  'Unconscious' conditions). WHICH System/Module dies is marked by the player;
+  a Fatal Injury is advisory — the app never kills a pilot automatically.
+- **Salvage** — `SalvageControl.tsx` over `lib/rules/salvage.ts` (pp.244-248):
+  Area Salvage and Mech Salvage rollers on the crawler sheet. Found Scrap
+  deposits into the crawler's TL pool buckets; 20-band wreck chassis lands in
+  the hold as a Damaged lot; Jackpot!/system claims open a player-driven picker.
+- **Scrap a mech** — `ScrapMechControl.tsx` over `lib/rules/scrapMech.ts`
+  (p.248): deposits the breakdown and hands off cargo, then deletes the mech —
+  in one atomic `transfer()`.
+- **Downtime** — `DowntimeControl.tsx` over `lib/rules/downtime.ts`
+  (p.227-228): the one-click per-session loop (restore, repair ≤ crawler TL,
+  Med-Bay healing bands, +1 TP, recharge Uses).
+- **Crawler economy** — `CrawlerEconomyControl.tsx` over
+  `lib/rules/crawlerEconomy.ts` (p.218-223): Upkeep + Deterioration roll,
+  Upgrade, Scrap exchange, Trading Bay availability.
+- **Crafting** — `CraftingControl.tsx` over `lib/rules/crafting.ts`
+  (p.222/p.244): craft ≤ crawler TL, cost drawn from the shared pool.
+- **Dice & Mediator** — `QuickRollFab.tsx` (sheet-wide roller) and the
+  encounter tray's `MediatorRollControl.tsx` over `lib/rules/coreMechanic.ts`
+  / `mediatorTables.ts`.
+
 ## Not implemented
 
 The following appeared in earlier (backend-era) designs and **do not exist** in
 the current local-first app — do not document or assume them:
 
-- A standalone "Take Damage" modal or Critical Damage Table flow (SP damage today
-  comes only from the 11–19 overheat band).
-- Salvage in ITUN (`SalvageModal` / `salvageUtils.ts`) — salvage tables live in
-  the Discord bot, not ITUN.
-- Any change log, undo/redo, or `reversible` tracking.
+- Any change log, undo/redo, or `reversible` tracking (a narrow exception: the
+  destroyed-item undo toast, `destroyedUndoToast.ts`).
 - Any backend RPC (`apply_mech_damage`), `entity_refs` table, or `useUpdateMech`
-  hook — state is plain `entityStore.update(...)` write-through.
+  hook — state is plain `entityStore.update(...)` write-through (or
+  `entityStore.transfer(...)` for cross-entity moves).
 
 ---
 

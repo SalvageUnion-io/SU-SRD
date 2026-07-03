@@ -35,23 +35,13 @@
   BUN_FLAGS = "--no-optional --ignore-scripts"
   NODE_ENV = "production"
 
-# Skip Netlify post-processing - Astro/Vite already handles bundling and minification
+# Skip Netlify post-processing entirely — Astro/Vite already bundles and
+# minifies, and the build's artifacts (including the pre-rendered 1200x630
+# og-screenshot PNGs) are final; legacy Netlify processing must not rewrite
+# them. skip_processing=true supersedes the old per-type false flags, which
+# contradicted this comment while leaving image compression enabled.
 [build.processing]
-  skip_processing = false
-
-[build.processing.css]
-  bundle = false
-  minify = false
-
-[build.processing.js]
-  bundle = false
-  minify = false
-
-[build.processing.html]
-  pretty_urls = true
-
-[build.processing.images]
-  compress = true
+  skip_processing = true
 
 # Sitemap redirect (Astro generates sitemap-index.xml, not sitemap.xml)
 [[redirects]]

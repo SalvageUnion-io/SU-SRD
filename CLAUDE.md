@@ -59,7 +59,9 @@ bun run dev:bot          # Start Discord bot locally
 bun run dev:itun         # Build package + start ITUN app dev server
 
 # Testing
-bun test                 # Run all tests (Bun test runner)
+bun run test             # Run all tests, per workspace. NEVER raw `bun test` at the
+                         # root: it skips workspace bunfig preloads (fake-indexeddb,
+                         # reference preload) and fails by the hundreds
 bun --filter salvageunion-reference test   # Test package only
 bun --filter suref-react test              # Test shared components only
 bun --filter suref-web test                # Test reference site only
