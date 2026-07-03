@@ -10,6 +10,7 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 
 import { PilotWizard } from '../../components/pilot/PilotWizard'
+import { usePilot } from '../../hooks/queries'
 import { pilotToFormState } from '../../lib/wizard/pilotFormState'
 import { useEntityStore } from '../../stores/entityStore'
 
@@ -25,7 +26,7 @@ function EditPilotRoute() {
   const { id } = Route.useParams()
   const navigate = useNavigate()
 
-  const pilot = useEntityStore((s) => s.pilots.find((p) => p.id === id) ?? null)
+  const pilot = usePilot(id)
 
   if (!pilot) {
     return (

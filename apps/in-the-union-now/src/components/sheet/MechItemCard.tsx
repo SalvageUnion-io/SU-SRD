@@ -76,7 +76,7 @@ export function MechItemCard({
     // Unresolvable slug: plain chit, never a crash. The status badge still
     // cycles so conditions stay editable for unknown items.
     return (
-      <div className="flex h-full items-center justify-between gap-2 rounded-[3px] border-[1.5px] border-ink bg-paper px-3 py-2">
+      <div className="flex h-full items-center justify-between gap-2 rounded-[3px] border-chrome border-ink bg-paper px-3 py-2">
         <span className="font-body text-sm text-ink">{slug}</span>
         <StatusBadge status={condition} onClick={readOnly ? undefined : onStatusCycle} />
       </div>
@@ -139,7 +139,7 @@ export function MechItemCard({
           >
             &ndash;
           </StepBtn>
-          <span className="min-w-[4.5rem] text-center font-cond text-[11px] font-bold uppercase leading-none tabular-nums text-ink">
+          <span className="min-w-[4.5rem] text-center font-cond text-badge font-bold uppercase leading-none tabular-nums text-ink">
             Uses {remaining}/{maxUses}
           </span>
           <StepBtn

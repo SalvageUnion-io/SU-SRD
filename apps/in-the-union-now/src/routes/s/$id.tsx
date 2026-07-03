@@ -20,7 +20,7 @@ import { retrieveSnapshot, SnapshotNotFoundError } from '../../lib/snapshot/clie
 import type { SnapshotPayload } from '../../lib/snapshot/client'
 import { AppLink } from '../../components/shared/AppLink'
 import { SnapshotView } from '../../components/sheet/SnapshotView'
-import { buttonVariants } from '../../components/ui/buttonVariants'
+import { btnVariants } from 'suref-react'
 import { cn } from '../../lib/utils'
 
 // ---------------------------------------------------------------------------
@@ -63,7 +63,7 @@ export function SnapshotPageInner({ snapshot, notFound, error }: SnapshotPageInn
         </p>
         <AppLink
           href="/"
-          className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
+          className={cn(btnVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
         >
           &larr; Back to dashboard
         </AppLink>
@@ -78,7 +78,7 @@ export function SnapshotPageInner({ snapshot, notFound, error }: SnapshotPageInn
         <p className="mb-4 text-sm text-wk-muted">{error}</p>
         <AppLink
           href="/"
-          className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
+          className={cn(btnVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
         >
           &larr; Back to dashboard
         </AppLink>

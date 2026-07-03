@@ -46,6 +46,12 @@ export type LiveSheetStripItem = {
   stat?: MiniStatTone
   value: number
   max?: number
+  /**
+   * When false, this MiniStat hides below the sm breakpoint so the condensed
+   * bar keeps only the priority readouts (design review U-5 — Heat + SP
+   * first; EP/Hold fold on phones). Defaults to true (always shown).
+   */
+  mobilePriority?: boolean
 }
 
 type LiveSheetHeroContext = {
@@ -88,6 +94,12 @@ type LiveSheetProps = {
   syncStats?: Record<string, number>
   /** Trailing top-bar actions (Share/Publish). */
   actions?: ReactNode
+  /**
+   * Floating thumb-zone affordance (the d20 QuickRollFab, design review
+   * R-6/U-3) — rendered outside the body flow so it never fights the sticky
+   * bar; the node positions itself (fixed, safe-area aware).
+   */
+  fab?: ReactNode
   className?: string
 }
 
@@ -122,7 +134,7 @@ function useCondensed(target: RefObject<HTMLElement | null>, enabled: boolean): 
 
 /** Design §2.4 `.btn.btn--sm` recipe as utilities, shared by both segment states. */
 const SEGMENT_BTN_CLASS =
-  'inline-flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-[3px] border-[1.5px] px-[11px] py-[6px] font-body text-xs font-medium tracking-[0.01em] no-underline transition-colors duration-[120ms]'
+  'inline-flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-[3px] border-chrome px-[11px] py-[6px] font-body text-xs font-medium tracking-[0.01em] no-underline transition-colors duration-[120ms]'
 
 export function LiveSheet({
   variant,
@@ -139,6 +151,7 @@ export function LiveSheet({
   renderBody,
   syncStats,
   actions,
+  fab,
   className,
 }: LiveSheetProps) {
   const heroRef = useRef<HTMLElement | null>(null)
@@ -167,9 +180,18 @@ export function LiveSheet({
           <AppLink
             href={back.href}
             aria-label={`Back to ${back.label.toLowerCase()}`}
-            className="shrink-0 font-cond text-[13px] font-semibold uppercase tracking-[0.04em] text-ink no-underline hover:text-rust"
+            className="flex shrink-0 items-center gap-2 font-cond text-caption font-semibold uppercase tracking-caps-tight text-ink no-underline hover:text-rust"
           >
-            &larr; {back.label}
+            {/* Small SU mark keeps the brand chrome present on sheets — the
+                global AppHeader is suppressed on /sheet/* (play surface). */}
+            <img
+              src="/logos/su-cargo-dark.svg"
+              alt=""
+              width={28}
+              height={28}
+              className="block size-7 shrink-0 rounded-md"
+            />
+            <span>&larr; {back.label}</span>
           </AppLink>
         )}
 
@@ -196,6 +218,9 @@ export function LiveSheet({
                 value={item.value}
                 max={item.max}
                 stat={item.stat}
+                // U-5: non-priority readouts fold below sm so the condensed
+                // bar leads with Heat + SP on phones.
+                className={item.mobilePriority === false ? 'hidden sm:inline-flex' : undefined}
               />
             ))}
           </div>
@@ -245,10 +270,16 @@ export function LiveSheet({
         {renderHero({ heroRef, rail })}
       </div>
 
-      {/* Body slabs */}
-      <div className="px-4 pb-[34px] pt-[18px] sm:px-[30px] sm:pb-[60px] sm:pt-6">
+      {/* Body slabs — extra phone bottom padding when the FAB floats so the
+          last card's controls stay reachable behind the thumb zone. */}
+      <div
+        className={cn('px-4 pb-[34px] pt-[18px] sm:px-[30px] sm:pb-[60px] sm:pt-6', fab && 'pb-24')}
+      >
         {renderBody({ cardActions })}
       </div>
+
+      {/* Floating thumb-zone affordance (d20 quick-roll FAB) — self-positioned. */}
+      {fab}
     </div>
   )
 }

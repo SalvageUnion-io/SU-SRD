@@ -15,6 +15,7 @@ import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { act, render, screen } from '@testing-library/react'
 
 import { _clearAllStores, _resetDbSingleton } from '../../lib/db/index'
+import { useCrawler, useMech, usePilot } from '../../hooks/queries'
 import { useEntityStore } from '../../stores/entityStore'
 import { EntityListItem } from '../../components/dashboard/EntityListItem'
 
@@ -144,9 +145,9 @@ describe('Mech detail — store state', () => {
       hydrated: { ...s.hydrated, mechs: true },
     }))
 
-    // Render a minimal component that pulls from the store (same logic as the route)
+    // Render a minimal component that pulls from the store (same hook as the route)
     function MechName() {
-      const m = useEntityStore((s) => s.mechs.find((x) => x.id === mech.id) ?? null)
+      const m = useMech(mech.id)
       if (!m) return <p>Not found</p>
       return <h1>{m.name}</h1>
     }
@@ -166,7 +167,7 @@ describe('Mech detail — store state', () => {
     }))
 
     function MechName() {
-      const m = useEntityStore((s) => s.mechs.find((x) => x.id === 'nonexistent') ?? null)
+      const m = useMech('nonexistent')
       if (!m) return <p>Not found</p>
       return <h1>{m.name}</h1>
     }
@@ -195,7 +196,7 @@ describe('Pilot detail — store state', () => {
     }))
 
     function PilotName() {
-      const p = useEntityStore((s) => s.pilots.find((x) => x.id === pilot.id) ?? null)
+      const p = usePilot(pilot.id)
       if (!p) return <p>Not found</p>
       return <h1>{p.name}</h1>
     }
@@ -224,7 +225,7 @@ describe('Crawler detail — store state', () => {
     }))
 
     function CrawlerName() {
-      const c = useEntityStore((s) => s.crawlers.find((x) => x.id === crawler.id) ?? null)
+      const c = useCrawler(crawler.id)
       if (!c) return <p>Not found</p>
       return <h1>{c.name}</h1>
     }

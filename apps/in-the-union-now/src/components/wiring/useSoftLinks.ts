@@ -11,6 +11,7 @@
  * the case where an endpoint entity no longer exists in the store.
  */
 
+import { useSoftLinkList } from '../../hooks/queries'
 import { useEntityStore } from '../../stores/entityStore'
 import type { SoftLink } from '../../lib/schemas/softLink'
 import type { EntityRef } from '../../lib/schemas/entity'
@@ -56,7 +57,7 @@ export function useSoftLinks({
 }: UseSoftLinksOptions): SoftLinkActions {
   // Always call the hook (Rules of Hooks). In test-with-injection path the
   // subscription result is unused; we use the injected snapshot instead.
-  const subscribedLinks = useEntityStore((s) => s.softLinks)
+  const subscribedLinks = useSoftLinkList()
   const allLinks: SoftLink[] = store ? store.softLinks : subscribedLinks
 
   const outgoing = allLinks.filter(

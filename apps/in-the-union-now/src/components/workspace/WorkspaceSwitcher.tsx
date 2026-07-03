@@ -16,8 +16,8 @@
 
 import { useState } from 'react'
 
+import { useWorkspaceActions, useWorkspaces } from '../../hooks/queries'
 import type { Workspace } from '../../lib/schemas/workspace'
-import { useWorkspaceStore } from '../../stores/workspaceStore'
 import { WorkspaceList } from './WorkspaceList'
 import type { WorkspaceListStore } from './WorkspaceList'
 
@@ -53,12 +53,13 @@ type WorkspaceSwitcherProps = {
 // ---------------------------------------------------------------------------
 
 export function WorkspaceSwitcher({ activeWorkspaceId, onSelect, store }: WorkspaceSwitcherProps) {
-  const zustandStore = useWorkspaceStore()
+  const zustandWorkspaces = useWorkspaces()
+  const workspaceActions = useWorkspaceActions()
   const activeStore: WorkspaceSwitcherStore = store ?? {
-    workspaces: zustandStore.workspaces,
-    create: zustandStore.create,
-    rename: zustandStore.rename,
-    delete: zustandStore.delete,
+    workspaces: zustandWorkspaces,
+    create: workspaceActions.create,
+    rename: workspaceActions.rename,
+    delete: workspaceActions.delete,
   }
 
   const [manageOpen, setManageOpen] = useState(false)
@@ -79,7 +80,7 @@ export function WorkspaceSwitcher({ activeWorkspaceId, onSelect, store }: Worksp
       <div className="flex items-center gap-2">
         <label
           htmlFor="workspace-switcher"
-          className="font-cond text-[13px] font-semibold uppercase tracking-[.04em] text-ink"
+          className="font-cond text-caption font-semibold uppercase tracking-caps-tight text-ink"
         >
           Workspace
         </label>
@@ -89,7 +90,7 @@ export function WorkspaceSwitcher({ activeWorkspaceId, onSelect, store }: Worksp
             id="workspace-switcher"
             value={selectValue}
             onChange={handleChange}
-            className="w-[200px] min-h-11 cursor-pointer appearance-none rounded-[3px] border-[1.5px] border-ink bg-paper py-2 pl-3 pr-8 font-body text-sm text-ink focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22] sm:min-h-9"
+            className="w-[200px] min-h-11 cursor-pointer appearance-none rounded-[3px] border-chrome border-ink bg-paper py-2 pl-3 pr-8 font-body text-sm text-ink focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22] sm:min-h-9"
             aria-label="Select workspace"
           >
             <option value={ALL_BUILDS_VALUE}>All Builds</option>

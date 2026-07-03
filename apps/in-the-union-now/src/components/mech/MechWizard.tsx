@@ -12,6 +12,7 @@ import {
   mechFormToUpdatePatch,
 } from '../../lib/wizard/mechFormState'
 import type { MechWizardFormState } from '../../lib/wizard/mechFormState'
+import { useMech } from '../../hooks/queries'
 import { useEntityStore } from '../../stores/entityStore'
 import { SoftWarningBanner } from '../shared/SoftWarningBanner'
 import { WizShell } from '../wizard/WizShell'
@@ -64,9 +65,7 @@ type MechWizardProps = {
  */
 export function MechWizard({ onComplete, onCancel, mechId, initialState }: MechWizardProps) {
   const isEdit = mechId !== undefined
-  const existingMech = useEntityStore((s) =>
-    mechId ? (s.mechs.find((m) => m.id === mechId) ?? null) : null
-  )
+  const existingMech = useMech(mechId)
 
   const [step, setStep] = useState<Step>('Chassis')
   const [form, setForm] = useState<MechWizardFormState>(initialState ?? EMPTY_MECH_FORM_STATE)
@@ -326,7 +325,6 @@ export function MechWizard({ onComplete, onCancel, mechId, initialState }: MechW
       nextDisabled={!canAdvance()}
       busy={isSubmitting}
       submitLabel={isEdit ? 'Save Mech' : 'Create Mech ✦'}
-      ctaFullWidth={step === 'Loadout'}
     >
       {step === 'Chassis' && <ChassisDetail chassisName={form.chassisName} />}
       {step === 'Pattern' && (

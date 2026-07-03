@@ -42,9 +42,9 @@ import {
   pilotMaxAP,
   pilotMaxHP,
 } from '../../lib/rules/derivedStats'
+import { useEntity } from '../../hooks/queries'
 import { probeSnapshotService, publishSnapshot } from '../../lib/snapshot/client'
 import type { PublishResult, SnapshotPayload } from '../../lib/snapshot/client'
-import { useEntityStore } from '../../stores/entityStore'
 import { AppLink } from '../shared/AppLink'
 
 import type { EntityLookup } from './composition'
@@ -79,7 +79,7 @@ const KIND_PILL: Record<EntityRef['type'], { label: string; tone: PillTone }> = 
 }
 
 const PANEL_HEADING_CLASS =
-  'mb-3 font-cond text-[13px] font-semibold uppercase tracking-[0.06em] text-ink'
+  'mb-3 font-cond text-caption font-semibold uppercase tracking-caps-snug text-ink'
 
 export function ShareSnapshotScreen({
   kind,
@@ -89,12 +89,9 @@ export function ShareSnapshotScreen({
   probeFn = probeSnapshotService,
   clipboardWriter = (text) => navigator.clipboard.writeText(text),
 }: ShareSnapshotScreenProps) {
-  const storeState = useEntityStore()
-  const lookup: EntityLookup =
-    entityStore ??
-    ({
-      get: (type, entityId) => storeState.get(type, entityId),
-    } as EntityLookup)
+  // Reactive read from the live store; unused when a lookup is injected
+  // (hook is still called unconditionally — Rules of Hooks).
+  const liveEntity = useEntity(kind, id)
 
   const [service, setService] = useState<ServiceState>('checking')
   const [publishState, setPublishState] = useState<PublishState>({
@@ -113,7 +110,7 @@ export function ShareSnapshotScreen({
     }
   }, [probeFn])
 
-  const entity = lookup.get(kind, id)
+  const entity = entityStore ? entityStore.get(kind, id) : liveEntity
 
   if (!entity) {
     return (
@@ -186,7 +183,7 @@ export function ShareSnapshotScreen({
         <AppLink
           href={sheetHref}
           aria-label={`Back to ${entity.name}`}
-          className="shrink-0 font-cond text-[13px] font-semibold uppercase tracking-[0.04em] text-ink no-underline hover:text-rust"
+          className="shrink-0 font-cond text-caption font-semibold uppercase tracking-caps-tight text-ink no-underline hover:text-rust"
         >
           &larr; {entity.name}
         </AppLink>
@@ -203,7 +200,7 @@ export function ShareSnapshotScreen({
         <Panel className="p-4 sm:p-5">
           <h2 className={PANEL_HEADING_CLASS}>Snapshot preview</h2>
           <SnapshotPreviewCard kind={kind} entity={entity} />
-          <p className="text-wk-muted mb-0 mt-3.5 font-body text-[13px] leading-relaxed">
+          <p className="text-wk-muted mb-0 mt-3.5 font-body text-caption leading-relaxed">
             A snapshot is frozen at publish time — later edits to {entity.name} won&rsquo;t change
             what the link shows. Publish again to share an updated build.
           </p>
@@ -246,7 +243,7 @@ export function ShareSnapshotScreen({
                 <p
                   role="note"
                   title="The snapshot service could not be reached — publishing needs the deployed /api/snapshots endpoint."
-                  className="text-wk-muted mb-0 rounded-[3px] border-[1.5px] border-dashed border-wk-faint px-3 py-2.5 font-body text-[13px]"
+                  className="text-wk-muted mb-0 rounded-[3px] border-chrome border-dashed border-wk-faint px-3 py-2.5 font-body text-caption"
                 >
                   Publishing unavailable — the snapshot service could not be reached.
                 </p>
@@ -285,13 +282,13 @@ export function ShareSnapshotScreen({
                   checker placeholder (§3.4). */}
               <div
                 aria-hidden="true"
-                className="h-[84px] w-[84px] shrink-0 rounded-[3px] border-[1.5px] border-ink"
+                className="h-[84px] w-[84px] shrink-0 rounded-[3px] border-chrome border-ink"
                 style={{
                   background:
                     'repeating-conic-gradient(var(--color-ink) 0 25%, #fff 0 50%) 0 / 16px 16px',
                 }}
               />
-              <p className="text-wk-muted mb-0 font-body text-[13px]">Scan to open</p>
+              <p className="text-wk-muted mb-0 font-body text-caption">Scan to open</p>
             </div>
           </Panel>
 
@@ -301,7 +298,7 @@ export function ShareSnapshotScreen({
             actions={
               <AppLink
                 href={sheetHref}
-                className="rounded-[3px] border-[1.5px] border-ink bg-paper px-[11px] py-[6px] font-body text-xs font-medium text-ink no-underline transition-colors duration-[120ms] hover:bg-wk-bg-2"
+                className="rounded-[3px] border-chrome border-ink bg-paper px-[11px] py-[6px] font-body text-xs font-medium text-ink no-underline transition-colors duration-[120ms] hover:bg-wk-bg-2"
               >
                 Open print view
               </AppLink>

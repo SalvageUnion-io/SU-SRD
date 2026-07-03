@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { cn } from '../../utils/cn'
 import { StepBtn } from '../chrome/SmallButtons'
 import { statBlockRowStarts, pipClickValue } from './pipRows'
+import { heatDangerFrom, heatLevel } from './heatLevel'
 
 /** Pip fill semantics: hp red, ap/ep rust, heat warn, cargo bronze, sp/default ink. */
 export type StatBlockTone = 'hp' | 'ap' | 'ep' | 'sp' | 'heat' | 'cargo' | 'default'
@@ -83,11 +84,19 @@ export function StatBlock({
   const [internal, setInternal] = useState(init ?? max ?? 0)
   const rawValue = isControlled ? valueProp : internal
   const clamp = (v: number) => Math.max(0, max !== undefined ? Math.min(v, max) : v)
-  const value = clamp(rawValue)
 
   // Editable when controlled-with-onChange or self-managed; a bare `value`
   // (e.g. mech Cargo derived from hold usage) is read-only.
   const isEditable = editable ?? (onChange !== undefined || !isControlled)
+
+  // Over-capacity honesty (design review): a read-only DERIVED stat (mech Hold,
+  // SYS/MOD slots) can legitimately exceed a soft cap — show the true value +
+  // red over-pips past the cap rather than clamping the measurement down to a
+  // lie, matching the wizard BudgetTrack and the StorageManifest capacity strip.
+  // Editable trackers stay clamped 0..max (a bounded resource never reads over).
+  const isOver = !isEditable && max !== undefined && rawValue > max
+  const value = isOver ? rawValue : clamp(rawValue)
+
   const setValue = (next: number) => {
     if (!isEditable) return
     const clamped = clamp(next)
@@ -99,6 +108,11 @@ export function StatBlock({
   const isSm = size === 'sm'
   const showSteppers = !isStates && !isSm && isEditable
   const showPips = !isStates && pips && max !== undefined && max > 0
+
+  // Heat escalation (U-1): heat tone only — inert without a positive max.
+  const isHeat = stat === 'heat'
+  const level = isHeat && !isStates ? heatLevel(value, max) : 'normal'
+  const heatDanger = isHeat && max !== undefined && max > 0 ? heatDangerFrom(max) : Infinity
 
   const pipFill = PIP_FILL[stat]
   const pipBox = isSm
@@ -120,10 +134,14 @@ export function StatBlock({
       aria-label={
         isStates
           ? `${code} ${states.length} bays`
-          : `${code} ${value}${max !== undefined ? ` of ${max}` : ''}`
+          : `${code} ${value}${max !== undefined ? ` of ${max}` : ''}${
+              isOver ? ' — over capacity' : ''
+            }`
       }
+      data-heat={level !== 'normal' ? level : undefined}
       className={cn(
-        'inline-flex flex-col overflow-hidden rounded-[3px] border-2 border-ink bg-paper shadow-[0_2px_6px_-2px_rgba(40,32,25,0.4)]',
+        'inline-flex flex-col overflow-hidden rounded-[3px] border-2 bg-paper shadow-[0_2px_6px_-2px_rgba(40,32,25,0.4)]',
+        level === 'critical' ? 'border-status-bad motion-safe:animate-heat-pulse' : 'border-ink',
         isSm && 'min-w-[96px]',
         className
       )}
@@ -166,14 +184,19 @@ export function StatBlock({
           )}
           <span
             className={cn(
-              'font-body font-bold leading-none text-ink',
-              isSm ? 'text-base' : 'text-[23px]'
+              'font-body font-bold leading-none',
+              isSm ? 'text-base' : 'text-[23px]',
+              isOver ? 'text-status-bad' : 'text-ink'
             )}
           >
             {value}
             {max !== undefined && (
               <small
-                className={cn('font-bold text-wk-muted', isSm ? 'text-[10px]' : 'text-[13px]')}
+                className={cn(
+                  'font-bold',
+                  isSm ? 'text-[10px]' : 'text-[13px]',
+                  isOver ? 'text-status-bad' : 'text-wk-muted'
+                )}
               >
                 /{max}
               </small>
@@ -220,15 +243,21 @@ export function StatBlock({
           <div
             className="flex flex-col items-center gap-1 px-2.5 pb-2"
             role="img"
-            aria-label={`${value} of ${max}`}
+            aria-label={`${value} of ${max}${isOver ? ' — over capacity' : ''}`}
           >
-            {statBlockRowStarts(max!).map(({ count, start }, r) => {
+            {statBlockRowStarts(Math.max(max!, value)).map(({ count, start }, r) => {
               return (
                 <div key={r} className="flex justify-center gap-1">
                   {Array.from({ length: count }).map((_, c) => {
                     const i = start + c
                     const on = i < value
-                    const pipClass = cn(pipBox, on ? pipFill : 'border-ink bg-transparent')
+                    // Lit pips past the cap (over-capacity) or past the ~70%
+                    // heat danger line (U-1) escalate to status-bad red.
+                    const fill =
+                      on && (i >= max! || i >= heatDanger)
+                        ? 'border-status-bad bg-status-bad'
+                        : pipFill
+                    const pipClass = cn(pipBox, on ? fill : 'border-ink bg-transparent')
                     return isEditable ? (
                       <button
                         key={i}

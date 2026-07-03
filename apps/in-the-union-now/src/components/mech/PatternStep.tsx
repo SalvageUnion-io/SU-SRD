@@ -1,6 +1,7 @@
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
 import { Field, Input, OptRow, ReferenceEntityDisplay, SectionSeparator } from 'suref-react'
+import { SelMasonry } from '../wizard/SelMasonry'
 import { patternsForChassis } from './patternData'
 import type { PatternLike } from './patternData'
 
@@ -56,7 +57,7 @@ export function PatternOptionList({
           onClick={() => onSelectPattern(pattern)}
         />
       ))}
-      <p className="mb-2 mt-5 font-cond text-xs font-bold uppercase tracking-[0.1em] text-wk-muted">
+      <p className="mb-2 mt-5 font-cond text-xs font-bold uppercase tracking-widest text-wk-muted">
         Or build your own
       </p>
       <OptRow name="Custom Pattern" active={isCustom} onClick={onSelectCustom} />
@@ -98,7 +99,7 @@ export function PatternDetail({
             required
           />
         </Field>
-        <p className="font-body text-[13px] text-wk-muted">
+        <p className="font-body text-caption text-wk-muted">
           Name your custom pattern. You&rsquo;ll choose its systems and modules next.
         </p>
       </div>
@@ -111,7 +112,7 @@ export function PatternDetail({
 
   if (!pattern) {
     return (
-      <div className="flex h-full min-h-40 items-center justify-center rounded-[3px] border-[1.5px] border-dashed border-wk-faint p-6 text-center text-sm text-wk-muted">
+      <div className="flex h-full min-h-40 items-center justify-center rounded-[3px] border-chrome border-dashed border-wk-faint p-6 text-center text-sm text-wk-muted">
         Select a pattern to preview its loadout, or choose Custom Pattern to build your own.
       </div>
     )
@@ -123,7 +124,7 @@ export function PatternDetail({
     <div className="space-y-3">
       <SectionSeparator label={`${pattern.name} · Loadout`} fontSize="text-xs" />
       {entities.length > 0 ? (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <SelMasonry>
           {entities.map(({ key, entity }) => (
             <ReferenceEntityDisplay
               key={key}
@@ -132,7 +133,7 @@ export function PatternDetail({
               hide={{ actions: true, choices: true }}
             />
           ))}
-        </div>
+        </SelMasonry>
       ) : (
         <p className="text-sm text-wk-muted">This pattern installs no systems or modules.</p>
       )}

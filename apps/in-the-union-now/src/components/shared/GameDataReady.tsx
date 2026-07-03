@@ -1,5 +1,8 @@
 import { Suspense, use, type ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import { EntityExternalLinkProvider } from 'suref-react'
+
+import { srdEntityExternalLink } from '../contextual/srdEntityExternalLink'
 
 /**
  * Suspends until the full SalvageUnionReference dataset is loaded, then sets
@@ -33,20 +36,49 @@ function PreloadGate({ children }: { children: ReactNode }) {
   return <>{children}</>
 }
 
-export function GameDataReady({ children }: { children: ReactNode }) {
+/**
+ * Branded full-viewport loading fallback (design-spec brand chrome): SU mark
+ * on the su-ink-dark ground with an indeterminate rust loader bar. The status
+ * text stays in the accessibility tree for screen readers.
+ */
+function GameDataFallback() {
   return (
-    <Suspense
-      fallback={
-        <div
-          role="status"
-          aria-live="polite"
-          className="flex min-h-dvh items-center justify-center text-sm text-muted-foreground"
-        >
-          Loading reference data…
-        </div>
-      }
+    <div
+      role="status"
+      aria-live="polite"
+      className="flex min-h-dvh flex-col items-center justify-center gap-6 bg-su-ink-dark px-6"
     >
-      <PreloadGate>{children}</PreloadGate>
+      <img
+        src="/logos/su-cargo-dark.svg"
+        alt=""
+        width={96}
+        height={96}
+        className="size-20 rounded-md sm:size-24"
+      />
+      <p className="font-cond text-sm font-semibold uppercase tracking-eyebrow text-su-paper">
+        Loading reference data…
+      </p>
+      {/* motion-safe: prefers-reduced-motion users get a static bar instead
+          of the infinite translateX sweep (matches the heat-pulse guard). */}
+      <div aria-hidden="true" className="h-1 w-56 overflow-hidden rounded-full bg-su-paper/20">
+        <div className="h-full w-1/3 rounded-full bg-rust motion-safe:animate-loader-slide" />
+      </div>
+    </div>
+  )
+}
+
+export function GameDataReady({ children }: { children: ReactNode }) {
+  // App-wide "View in SRD →" cross-link injection (design review P-3): full
+  // entity cards and detail modals render srdEntityExternalLink in their foot
+  // band. Provided here — beside the preload gate that already wraps every
+  // route — so the builder only runs once the reference dataset is loaded.
+  return (
+    <Suspense fallback={<GameDataFallback />}>
+      <PreloadGate>
+        <EntityExternalLinkProvider value={srdEntityExternalLink}>
+          {children}
+        </EntityExternalLinkProvider>
+      </PreloadGate>
     </Suspense>
   )
 }

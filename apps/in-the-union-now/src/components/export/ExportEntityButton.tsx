@@ -6,12 +6,11 @@
  */
 
 import { useState } from 'react'
-import { toast } from 'suref-react'
+import { Btn, toast } from 'suref-react'
 
 import { buildEntityExport } from '../../lib/export/buildExportBundle'
 import { downloadJson } from '../../lib/export/downloadJson'
 import { useEntityStore } from '../../stores/entityStore'
-import { Button } from '../ui/button'
 
 type ExportEntityButtonProps = {
   type: 'pilot' | 'mech' | 'crawler'
@@ -48,16 +47,10 @@ export function ExportEntityButton({ type, id, name }: ExportEntityButtonProps) 
 
   return (
     <div className="flex flex-col gap-1">
-      <Button
-        variant="outline"
-        size="sm"
-        disabled={busy}
-        onClick={() => void handleExport()}
-        className="min-h-[44px]"
-      >
+      <Btn size="sm" disabled={busy} onClick={() => void handleExport()} className="min-h-11">
         {busy ? 'Exporting…' : 'Export'}
-      </Button>
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      </Btn>
+      {error && <p className="text-sm text-danger">{error}</p>}
     </div>
   )
 }

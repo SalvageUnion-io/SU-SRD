@@ -87,6 +87,52 @@ describe('StatBlock — numeric mode', () => {
   })
 })
 
+describe('StatBlock — heat escalation (U-1)', () => {
+  test('below ~70% heat renders plain warn pips and no escalation', () => {
+    const { container } = render(<StatBlock code="HEAT" value={6} max={10} stat="heat" />)
+    const root = screen.getByRole('group')
+    expect(root.getAttribute('data-heat')).toBeNull()
+    expect(root.className).toContain('border-ink')
+    expect(container.querySelector('[data-pip].bg-status-bad')).toBeNull()
+  })
+
+  test('at >= ~70% heat the lit pips past the line go status-bad', () => {
+    const { container } = render(<StatBlock code="HEAT" value={8} max={10} stat="heat" />)
+    expect(screen.getByRole('group').getAttribute('data-heat')).toBe('high')
+    const pips = Array.from(container.querySelectorAll('[data-pip]'))
+    const danger = pips.filter((p) => p.className.includes('bg-status-bad'))
+    // pips 7 and 8 (indices 6,7) are lit and past the 70% line
+    expect(danger.length).toBe(2)
+    expect(pips.indexOf(danger[0]!)).toBe(6)
+    // pips below the line keep the warn fill
+    expect(pips[0]!.className).toContain('bg-status-warn')
+  })
+
+  test('at cap the block gets the red border + pulse', () => {
+    render(<StatBlock code="HEAT" value={10} max={10} stat="heat" />)
+    const root = screen.getByRole('group')
+    expect(root.getAttribute('data-heat')).toBe('critical')
+    expect(root.className).toContain('border-status-bad')
+    expect(root.className).toContain('motion-safe:animate-heat-pulse')
+    expect(root.className).not.toContain('border-ink')
+  })
+
+  test('inert without a max (suref-web static render)', () => {
+    render(<StatBlock code="HEAT" init={9} stat="heat" />)
+    const root = screen.getByRole('group')
+    expect(root.getAttribute('data-heat')).toBeNull()
+    expect(root.className).toContain('border-ink')
+  })
+
+  test('non-heat tones never escalate, even at cap', () => {
+    render(<StatBlock code="HP" value={10} max={10} stat="hp" />)
+    const root = screen.getByRole('group')
+    expect(root.getAttribute('data-heat')).toBeNull()
+    expect(root.className).toContain('border-ink')
+    expect(root.className).not.toContain('animate-heat-pulse')
+  })
+})
+
 describe('StatBlock — states[] tally mode (crawler bays)', () => {
   const states = [
     'intact',

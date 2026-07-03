@@ -59,11 +59,11 @@ export function SheetHero({
     <section
       ref={heroRef}
       aria-label={`${name} sheet header`}
-      className={cn('relative overflow-hidden rounded-[3px] border-[3px] border-ink', className)}
+      className={cn('relative overflow-hidden rounded-[3px] border-entity border-ink', className)}
       style={{ background: 'var(--tone)' }}
     >
       {/* Category tab — overhangs the top border like .ec__cat */}
-      <span className="absolute -top-px left-[18px] bg-ink px-[7px] pb-px pt-[2px] font-cond text-[11px] font-semibold uppercase leading-none tracking-[0.06em] text-su-white">
+      <span className="absolute -top-px left-[18px] bg-ink px-[7px] pb-px pt-[2px] font-cond text-badge font-semibold uppercase leading-none tracking-caps-snug text-su-white">
         {cat}
       </span>
 
@@ -79,7 +79,7 @@ export function SheetHero({
             <dl className="mt-3 space-y-1">
               {identityLines.map((line) => (
                 <div key={line.label} className="flex items-baseline gap-1.5">
-                  <dt className="shrink-0 font-cond text-[10px] font-bold uppercase leading-none tracking-[0.08em] text-ink">
+                  <dt className="shrink-0 font-cond text-label font-bold uppercase leading-none tracking-caps text-ink">
                     {line.label}
                   </dt>
                   <dd
@@ -126,6 +126,14 @@ export type ChassisStatItem = {
   max?: number
   /** Set false to suppress pips for big tracks (e.g. SYS 5/20). */
   pips?: boolean
+  /**
+   * Makes the lozenge actionable (design-review R-4: the UPKEEP/UPGRADE/TRADE
+   * spec lozenges are the crawler-economy entry points) — the StatBlock is
+   * wrapped in a button.
+   */
+  onClick?: () => void
+  /** Accessible label + tooltip for the action, e.g. 'Pay Upkeep'. */
+  actionLabel?: string
 }
 
 type ChassisStatsProps = {
@@ -141,19 +149,34 @@ export function ChassisStats({ items, className }: ChassisStatsProps) {
   if (items.length === 0) return null
   return (
     <div className={cn('flex flex-wrap items-start gap-2', className)}>
-      {items.map((item) => (
-        <StatBlock
-          key={item.code}
-          code={item.code}
-          name={item.name}
-          unit={item.unit}
-          size="sm"
-          value={item.value}
-          max={item.max}
-          pips={item.pips ?? true}
-          editable={false}
-        />
-      ))}
+      {items.map((item) => {
+        const block = (
+          <StatBlock
+            code={item.code}
+            name={item.name}
+            unit={item.unit}
+            size="sm"
+            value={item.value}
+            max={item.max}
+            pips={item.pips ?? true}
+            editable={false}
+          />
+        )
+        return item.onClick ? (
+          <button
+            key={item.code}
+            type="button"
+            aria-label={item.actionLabel ?? item.code}
+            title={item.actionLabel}
+            onClick={item.onClick}
+            className="cursor-pointer rounded-[3px] text-left transition-transform duration-[120ms] hover:-translate-y-px focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rust/[0.22]"
+          >
+            {block}
+          </button>
+        ) : (
+          <span key={item.code}>{block}</span>
+        )
+      })}
     </div>
   )
 }

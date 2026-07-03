@@ -64,10 +64,10 @@ export function CrawlerCrewStep({ bays, selectedType, crew, onChange }: CrawlerC
         return (
           <section
             key={source.ref}
-            className="space-y-3 rounded-[3px] border-[1.5px] border-wk-faint p-4"
+            className="space-y-3 rounded-[3px] border-chrome border-wk-faint p-4"
           >
             <header>
-              <h3 className="font-cond text-sm font-bold uppercase tracking-[0.1em] text-ink">
+              <h3 className="font-cond text-sm font-bold uppercase tracking-widest text-ink">
                 {source.label}
               </h3>
               {source.npc.position && (

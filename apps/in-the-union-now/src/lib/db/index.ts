@@ -29,6 +29,7 @@ import { openDB } from 'idb'
 import type { IDBPDatabase } from 'idb'
 
 import { CrawlerSchema } from '../schemas/crawler'
+import { EncounterNpcSchema } from '../schemas/encounterNpc'
 import { MechSchema } from '../schemas/mech'
 import { MechPatternSchema } from '../schemas/pattern'
 import { PilotSchema } from '../schemas/pilot'
@@ -39,7 +40,7 @@ import { runMigrations } from './migrations/index'
 import { STORE_NAMES } from './stores'
 
 /** Current IndexedDB schema version. Bump together with a migrations/ entry. */
-export const DB_VERSION = 4
+export const DB_VERSION = 5
 
 const DB_NAME = 'itun-v1'
 
@@ -82,6 +83,13 @@ export function openItunDatabase(
       if (oldVersion < 2) {
         if (!db.objectStoreNames.contains(STORE_NAMES.mechPatterns)) {
           db.createObjectStore(STORE_NAMES.mechPatterns, { keyPath: 'id' })
+        }
+      }
+      // v5 (design-review R-5): add encounterNpcs object store (GM encounter
+      // tray). Store creation only — no record rewrites.
+      if (oldVersion < 5) {
+        if (!db.objectStoreNames.contains(STORE_NAMES.encounterNpcs)) {
+          db.createObjectStore(STORE_NAMES.encounterNpcs, { keyPath: 'id' })
         }
       }
       // v3+: record rewrites live in migrations/ — one file per version.
@@ -207,4 +215,8 @@ export const softLinks = makeStore(getDb, SoftLinkSchema, STORE_NAMES.softLinks,
 })
 export const mechPatterns = makeStore(getDb, MechPatternSchema, STORE_NAMES.mechPatterns, {
   salvageSchema: MechPatternSchema.strip(),
+})
+export const encounterNpcs = makeStore(getDb, EncounterNpcSchema, STORE_NAMES.encounterNpcs, {
+  hasUpdatedAt: true,
+  salvageSchema: EncounterNpcSchema.strip(),
 })

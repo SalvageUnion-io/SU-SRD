@@ -10,13 +10,14 @@
 
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 
+import { usePilot } from '../../hooks/queries'
 import { useEntityStore } from '../../stores/entityStore'
 import { AssignCrawlerToPilot } from '../../components/wiring/AssignCrawlerToPilot'
 import { UnassignLinkButton } from '../../components/wiring/UnassignLinkButton'
 import { useSoftLinks } from '../../components/wiring/useSoftLinks'
 import { AssignToWorkspaceButton } from '../../components/workspace/AssignToWorkspaceButton'
 import { useWorkspaceStore } from '../../stores/workspaceStore'
-import { buttonVariants } from '../../components/ui/buttonVariants'
+import { btnVariants } from 'suref-react'
 import { cn } from '../../lib/utils'
 import { PilotSheet } from '../../components/sheet/PilotSheet'
 import { resolveClassName } from '../../lib/classRef'
@@ -39,7 +40,7 @@ function PilotDetailPage() {
   const { id } = Route.useParams()
   const navigate = useNavigate()
 
-  const pilot = useEntityStore((s) => s.pilots.find((p) => p.id === id) ?? null)
+  const pilot = usePilot(id)
   const { outgoing } = useSoftLinks({ entityType: 'pilot', entityId: id })
 
   // Outgoing pilot-to-crawler links
@@ -49,7 +50,7 @@ function PilotDetailPage() {
     return (
       <main className="mx-auto max-w-7xl p-6">
         <p className="text-wk-muted">Pilot not found.</p>
-        <Link to="/" className={cn(buttonVariants({ variant: 'link', size: 'sm' }))}>
+        <Link to="/" className={cn(btnVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}>
           Back to dashboard
         </Link>
       </main>
@@ -75,13 +76,13 @@ function PilotDetailPage() {
           <Link
             to="/pilots/$id/edit"
             params={{ id }}
-            className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'no-underline')}
+            className={cn(btnVariants({ variant: 'default', size: 'sm' }), 'no-underline')}
           >
             Edit
           </Link>
           <Link
             to="/"
-            className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
+            className={cn(btnVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
           >
             Back
           </Link>
@@ -94,7 +95,7 @@ function PilotDetailPage() {
         <div className="min-w-0 flex-1">
           {/* Summary */}
           {(pilot.conditions.length > 0 || pilot.motto) && (
-            <section className="mb-6 rounded-[3px] border-[1.5px] border-ink bg-paper p-4 text-sm">
+            <section className="mb-6 rounded-[3px] border-chrome border-ink bg-paper p-4 text-sm">
               <h2 className="mb-3 font-cond text-sm font-bold uppercase tracking-widest text-su-black">
                 Summary
               </h2>
@@ -128,15 +129,14 @@ function PilotDetailPage() {
         {/* Right pane — wiring + actions */}
         <div className="w-full shrink-0 space-y-6 lg:w-72">
           {/* Crawler assignment */}
-          <section className="rounded-[3px] border-[1.5px] border-ink bg-paper p-4">
+          <section className="rounded-[3px] border-chrome border-ink bg-paper p-4">
             <h2 className="mb-3 font-cond text-sm font-bold uppercase tracking-widest text-su-black">
               Crawler
             </h2>
             {crawlerLink ? (
               <div className="flex items-center gap-3 text-sm">
                 <span className="flex-1 text-wk-muted">
-                  Crawler linked:{' '}
-                  <span className="font-medium text-foreground">{crawlerLink.to.id}</span>
+                  Crawler linked: <span className="font-medium text-ink">{crawlerLink.to.id}</span>
                 </span>
                 <UnassignLinkButton
                   linkId={crawlerLink.id}
@@ -156,7 +156,7 @@ function PilotDetailPage() {
           </section>
 
           {/* Workspace assignment */}
-          <section className="rounded-[3px] border-[1.5px] border-ink bg-paper p-4">
+          <section className="rounded-[3px] border-chrome border-ink bg-paper p-4">
             <h2 className="mb-3 font-cond text-sm font-bold uppercase tracking-widest text-su-black">
               Workspace
             </h2>
@@ -173,7 +173,7 @@ function PilotDetailPage() {
             <Link
               to="/sheet/$kind/$id"
               params={{ kind: 'pilot', id }}
-              className={cn(buttonVariants({ variant: 'default' }), 'no-underline')}
+              className={cn(btnVariants({ variant: 'primary' }), 'no-underline')}
             >
               View Sheet
             </Link>

@@ -57,6 +57,7 @@ import {
   borderColorFromHeaderBg,
   getSourceBorderColor,
 } from '../../referenceEntityHelpers'
+import { useEntityExternalLink } from '../entityHrefContext'
 import { useReferenceEntityDisplayState } from '../useReferenceEntityDisplayState'
 import type { ReferenceEntityDisplayStateInput } from '../useReferenceEntityDisplayState'
 import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
@@ -227,6 +228,9 @@ export function ReferenceEntityDisplayContent({
     titleSlot,
     titleAs,
   } = state
+
+  // Resolved unconditionally (hook rules); gated to full displays below.
+  const externalLinkNode = useEntityExternalLink(data)
 
   // Determine which content to render (from EntityTopMatter)
   let contentBlocks = hide.content ? undefined : 'content' in data ? data.content : undefined
@@ -480,9 +484,14 @@ export function ReferenceEntityDisplayContent({
   const hasPage = !isSources && !!footerPage
   const hasSource = !!footerSource
   const footerDisplayName = getDisplayName(schemaName)
-  // Foot extras (footActions/footMeta) force the foot band even without
-  // source/page data — they are live-play affordances, not source chrome.
-  const hasFootExtras = !!footActions || (!!footMeta && footMeta.length > 0)
+  // App-supplied external cross-link (e.g. ITUN's "View in SRD →"). Full
+  // displays only — compact/listing cards stay uncluttered; the detail modal
+  // renders full content, so it picks the link up too.
+  const externalLink = !compact && !listing ? externalLinkNode : undefined
+
+  // Foot extras (footActions/footMeta/externalLink) force the foot band even
+  // without source/page data — they are live-play affordances, not source chrome.
+  const hasFootExtras = !!footActions || (!!footMeta && footMeta.length > 0) || !!externalLink
   const hasFooter = (!hide.footer && (hasPage || hasSource)) || hasFootExtras
 
   // Themed border for expansion-sourced entities (the source-specific header /
@@ -507,6 +516,7 @@ export function ReferenceEntityDisplayContent({
       headerBgColor={headerBgColor}
       footActions={footActions}
       footMeta={footMeta}
+      externalLink={externalLink}
     />
   ) : null
 

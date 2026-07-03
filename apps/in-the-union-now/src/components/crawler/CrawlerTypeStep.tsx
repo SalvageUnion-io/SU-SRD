@@ -49,7 +49,7 @@ type CrawlerTypeDetailProps = {
 export function CrawlerTypeDetail({ selected }: CrawlerTypeDetailProps) {
   if (!selected) {
     return (
-      <div className="flex h-full min-h-40 items-center justify-center rounded-[3px] border-[1.5px] border-dashed border-wk-faint p-6 text-center text-sm text-wk-muted">
+      <div className="flex h-full min-h-40 items-center justify-center rounded-[3px] border-chrome border-dashed border-wk-faint p-6 text-center text-sm text-wk-muted">
         Select a crawler type to preview its features.
       </div>
     )

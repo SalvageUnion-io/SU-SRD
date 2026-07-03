@@ -11,15 +11,15 @@
 
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import type { SURefModule, SURefSystem } from 'salvageunion-reference'
-import { ReferenceEntityDisplay } from 'suref-react'
+import { ReferenceEntityDisplay, btnVariants } from 'suref-react'
 
+import { useMech } from '../../hooks/queries'
 import { useEntityStore } from '../../stores/entityStore'
 import { AssignPilotToMech } from '../../components/wiring/AssignPilotToMech'
 import { UnassignLinkButton } from '../../components/wiring/UnassignLinkButton'
 import { useSoftLinks } from '../../components/wiring/useSoftLinks'
 import { AssignToWorkspaceButton } from '../../components/workspace/AssignToWorkspaceButton'
 import { useWorkspaceStore } from '../../stores/workspaceStore'
-import { buttonVariants } from '../../components/ui/buttonVariants'
 import { cn } from '../../lib/utils'
 import { ExportEntityButton } from '../../components/export/ExportEntityButton'
 import { resolveModule, resolveSystem } from '../../components/sheet/mechItemRules'
@@ -42,7 +42,7 @@ function MechDetailPage() {
   const { id } = Route.useParams()
   const navigate = useNavigate()
 
-  const mech = useEntityStore((s) => s.mechs.find((m) => m.id === id) ?? null)
+  const mech = useMech(id)
   const { outgoing } = useSoftLinks({ entityType: 'mech', entityId: id })
 
   // Outgoing mech-to-pilot links
@@ -52,7 +52,7 @@ function MechDetailPage() {
     return (
       <main className="mx-auto max-w-7xl p-6">
         <p className="text-wk-muted">Mech not found.</p>
-        <Link to="/" className={cn(buttonVariants({ variant: 'link', size: 'sm' }))}>
+        <Link to="/" className={cn(btnVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}>
           Back to dashboard
         </Link>
       </main>
@@ -75,13 +75,13 @@ function MechDetailPage() {
           <Link
             to="/mechs/$id/edit"
             params={{ id }}
-            className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'no-underline')}
+            className={cn(btnVariants({ variant: 'default', size: 'sm' }), 'no-underline')}
           >
             Edit
           </Link>
           <Link
             to="/"
-            className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
+            className={cn(btnVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
           >
             Back
           </Link>
@@ -92,7 +92,7 @@ function MechDetailPage() {
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
         {/* Left pane — mech stats summary */}
         <div className="min-w-0 flex-1">
-          <section className="mb-6 rounded-[3px] border-[1.5px] border-ink bg-paper p-4 text-sm">
+          <section className="mb-6 rounded-[3px] border-chrome border-ink bg-paper p-4 text-sm">
             <h2 className="mb-3 font-cond text-sm font-bold uppercase tracking-widest text-su-black">
               Stats
             </h2>
@@ -146,15 +146,14 @@ function MechDetailPage() {
         {/* Right pane — wiring + actions */}
         <div className="w-full shrink-0 space-y-6 lg:w-72">
           {/* Pilot assignment */}
-          <section className="rounded-[3px] border-[1.5px] border-ink bg-paper p-4">
+          <section className="rounded-[3px] border-chrome border-ink bg-paper p-4">
             <h2 className="mb-3 font-cond text-sm font-bold uppercase tracking-widest text-su-black">
               Pilot
             </h2>
             {pilotLink ? (
               <div className="flex items-center gap-3 text-sm">
                 <span className="flex-1 text-wk-muted">
-                  Pilot linked:{' '}
-                  <span className="font-medium text-foreground">{pilotLink.to.id}</span>
+                  Pilot linked: <span className="font-medium text-ink">{pilotLink.to.id}</span>
                 </span>
                 <UnassignLinkButton
                   linkId={pilotLink.id}
@@ -174,7 +173,7 @@ function MechDetailPage() {
           </section>
 
           {/* Workspace assignment */}
-          <section className="rounded-[3px] border-[1.5px] border-ink bg-paper p-4">
+          <section className="rounded-[3px] border-chrome border-ink bg-paper p-4">
             <h2 className="mb-3 font-cond text-sm font-bold uppercase tracking-widest text-su-black">
               Workspace
             </h2>
@@ -191,7 +190,7 @@ function MechDetailPage() {
             <Link
               to="/sheet/$kind/$id"
               params={{ kind: 'mech', id }}
-              className={cn(buttonVariants({ variant: 'default' }), 'no-underline')}
+              className={cn(btnVariants({ variant: 'primary' }), 'no-underline')}
             >
               View Sheet
             </Link>
@@ -220,7 +219,7 @@ type LoadoutSectionProps = {
 /** Installed systems/modules as compact entity cards (gap 24). */
 function LoadoutSection({ title, refs, conditions, resolve, emptyLabel }: LoadoutSectionProps) {
   return (
-    <section className="mb-6 rounded-[3px] border-[1.5px] border-ink bg-paper p-4">
+    <section className="mb-6 rounded-[3px] border-chrome border-ink bg-paper p-4">
       <h2 className="mb-3 font-cond text-sm font-bold uppercase tracking-widest text-su-black">
         {title} · {refs.length}
       </h2>

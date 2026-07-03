@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { Btn, Stepper } from 'suref-react'
+import { LAYOUT } from '../../lib/layout'
 import { cn } from '../../lib/utils'
 
 type WizShellProps = {
@@ -25,6 +26,12 @@ type WizShellProps = {
   children: ReactNode
   /** Rendered between content and footer — soft warnings, submit errors. */
   notice?: ReactNode
+  /**
+   * One-line step status shown inside the sticky action pill, beside the
+   * buttons — the single home for budget-cap notices like 'Max Abilities
+   * selected (3 / 3)'.
+   */
+  footerNote?: ReactNode
   onBack?: () => void
   onCancel: () => void
   /** Advances to the next step, or submits on the last step. */
@@ -34,12 +41,6 @@ type WizShellProps = {
   busy?: boolean
   /** Final-step CTA label, e.g. 'Create Pilot ✦' / 'Save Pilot'. */
   submitLabel: string
-  /**
-   * Renders the primary CTA full-width below the content instead of in the
-   * right-aligned footer slot — design §3.2 mech install steps
-   * ('full-width Next · Modules → below').
-   */
-  ctaFullWidth?: boolean
 }
 
 /**
@@ -60,13 +61,13 @@ export function WizShell({
   optionPane,
   children,
   notice,
+  footerNote,
   onBack,
   onCancel,
   onNext,
   nextDisabled = false,
   busy = false,
   submitLabel,
-  ctaFullWidth = false,
 }: WizShellProps) {
   const isLast = active >= steps.length - 1
   const ctaLabel = isLast ? submitLabel : `Next · ${steps[active + 1]} →`
@@ -76,15 +77,20 @@ export function WizShell({
       <h1 className="font-cond text-2xl font-bold uppercase leading-tight tracking-[0.01em] text-ink">
         {title}
       </h1>
-      {subtitle && <div className="mt-1 font-body text-[13px] text-wk-muted">{subtitle}</div>}
+      {subtitle && <div className="mt-1 font-body text-caption text-wk-muted">{subtitle}</div>}
     </header>
   )
 
   return (
     <div className="flex min-h-dvh flex-col bg-wk-bg lg:flex-row">
       {/* (a) 196px stepper rail */}
-      <aside className="shrink-0 border-b-[1.5px] border-ink px-4 py-4 lg:w-[196px] lg:border-b-0 lg:border-r-[1.5px] lg:px-5 lg:py-9">
-        <p className="mb-3 font-cond text-sm font-bold uppercase tracking-[0.12em] text-rust">
+      <aside
+        className={cn(
+          'shrink-0 border-b-chrome border-ink px-4 py-4 lg:border-b-0 lg:border-r-chrome lg:px-5 lg:py-9',
+          LAYOUT.stepperRail
+        )}
+      >
+        <p className="mb-3 font-cond text-sm font-bold uppercase tracking-caps-wide text-rust">
           {eyebrow}
         </p>
         <Stepper
@@ -99,7 +105,12 @@ export function WizShell({
           heading always renders in the main pane so the h1 stays anchored
           horizontally across every step (option-pane steps and others alike) */}
       {optionPane && (
-        <section className="shrink-0 border-b-[1.5px] border-ink px-5 py-5 lg:w-[320px] lg:overflow-y-auto lg:border-b-0 lg:border-r-[1.5px] lg:px-[26px] lg:py-9">
+        <section
+          className={cn(
+            'shrink-0 border-b-chrome border-ink px-5 py-5 lg:overflow-y-auto lg:border-b-0 lg:border-r-chrome lg:px-6 lg:py-9',
+            LAYOUT.optionPane
+          )}
+        >
           {optionPane}
         </section>
       )}
@@ -114,28 +125,34 @@ export function WizShell({
         {/* Footer — floats sticky at the bottom-right of the viewport as the
             content scrolls, so confirm/nav stays reachable without a full-width
             bar eating vertical space. The footer itself is click-through
-            (pointer-events-none); only the action pill is interactive. On mech
-            install steps (ctaFullWidth) the pill stacks full-width on mobile to
-            emphasise the primary CTA. */}
+            (pointer-events-none); only the action pill is interactive. Below
+            the sm endpoint the pill stacks with a full-width primary CTA on
+            EVERY step (design review U-6) — Back/Cancel share a row above it. */}
         <footer className="pointer-events-none sticky bottom-4 z-40 mt-6 flex justify-end">
-          <div
-            className={cn(
-              'pointer-events-auto flex items-center gap-2 rounded-lg border-[1.5px] border-wk-faint bg-wk-bg/95 p-2 shadow-md backdrop-blur',
-              ctaFullWidth && 'w-full flex-col items-stretch sm:w-auto sm:flex-row sm:items-center'
+          <div className="pointer-events-auto flex w-full flex-col items-stretch gap-2 rounded-lg border-chrome border-wk-faint bg-wk-bg/95 p-2 shadow-md backdrop-blur sm:w-auto sm:flex-row sm:items-center">
+            {footerNote && (
+              <p
+                role="status"
+                className="m-0 px-2 text-center font-cond text-xs font-semibold uppercase tracking-caps text-rust sm:text-left"
+              >
+                {footerNote}
+              </p>
             )}
-          >
-            {onBack && (
-              <Btn variant="ghost" onClick={onBack} disabled={busy}>
-                Back
+            {/* Ghost nav row on phones; dissolves into the pill row ≥ sm. */}
+            <div className="flex items-center justify-end gap-2 sm:contents">
+              {onBack && (
+                <Btn variant="ghost" onClick={onBack} disabled={busy}>
+                  Back
+                </Btn>
+              )}
+              <Btn variant="ghost" onClick={onCancel} disabled={busy}>
+                Cancel
               </Btn>
-            )}
-            <Btn variant="ghost" onClick={onCancel} disabled={busy}>
-              Cancel
-            </Btn>
+            </div>
             <Btn
               variant="primary"
               size="lg"
-              className={cn(ctaFullWidth && 'w-full sm:w-auto')}
+              className="w-full sm:w-auto"
               onClick={onNext}
               disabled={nextDisabled || busy}
             >

@@ -248,13 +248,11 @@ describe('PilotWizard — ability budget cap (create mode)', () => {
 
     expect(screen.getByTestId('ability-count').textContent).toContain('3 / 3')
 
-    // Remaining unselected cards (if any) render the disabled Budget-reached
-    // affordance. If no candidate remains the budget is enforced trivially.
-    const budgetReachedNotes = screen.queryAllByText(/Budget reached/i)
-    if (budgetReachedNotes.length === 0) {
-      return
-    }
-    expect(budgetReachedNotes.length).toBeGreaterThan(0)
+    // The budget notice renders ONCE, in the WizShell footer beside the
+    // buttons — never per-card.
+    const maxNotes = screen.getAllByText(/Max Abilities selected \(3 \/ 3\)/i)
+    expect(maxNotes.length).toBe(1)
+    expect(screen.queryByText(/Budget reached/i)).toBeNull()
   }, 30000)
 })
 

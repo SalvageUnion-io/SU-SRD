@@ -16,6 +16,7 @@ import { cloneElement } from 'react'
 import type { ReactElement, ReactNode } from 'react'
 import type { CardFootMeta } from 'suref-react'
 
+import { LAYOUT } from '../../lib/layout'
 import { cn } from '../../lib/utils'
 
 type EcflowProps = {
@@ -66,7 +67,7 @@ export function Erow({
           })
         : children
     return (
-      <div className={cn('min-w-[min(340px,100%)]', className)} style={style}>
+      <div className={cn(LAYOUT.cardMin, className)} style={style}>
         {card}
       </div>
     )
@@ -75,25 +76,22 @@ export function Erow({
   // mode 'rail': 152px right callout — meta k/v header + full-width actions.
   return (
     <div
-      className={cn(
-        'grid min-w-[min(340px,100%)] grid-cols-1 gap-2 sm:grid-cols-[1fr_152px]',
-        className
-      )}
+      className={cn('grid grid-cols-1 gap-2', LAYOUT.cardMin, LAYOUT.erowGrid, className)}
       style={style}
     >
       {children}
       <div
-        className="flex flex-col gap-2 rounded-[3px] border-[1.5px] border-wk-faint p-2.5"
+        className="flex flex-col gap-2 rounded-[3px] border-chrome border-wk-faint p-2.5"
         style={{ background: 'var(--ground-2)' }}
       >
         {footMeta && footMeta.length > 0 && (
           <dl className="m-0 space-y-1">
             {footMeta.map((meta) => (
               <div key={meta.label} className="flex items-baseline justify-between gap-2">
-                <dt className="font-cond text-[10.5px] font-bold uppercase leading-none tracking-[0.04em] text-ink opacity-75">
+                <dt className="font-cond text-label-lg font-bold uppercase leading-none tracking-caps-tight text-ink opacity-75">
                   {meta.label}
                 </dt>
-                <dd className="m-0 font-body text-[13px] font-bold leading-none text-ink">
+                <dd className="m-0 font-body text-caption font-bold leading-none text-ink">
                   {meta.value}
                 </dd>
               </div>

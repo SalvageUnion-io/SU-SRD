@@ -83,17 +83,9 @@ test('4th ability pick is blocked once the budget is reached', async ({ page }) 
   await pickByName(page, 'Mass Field Maintenance')
   await expect(page.getByTestId('ability-count')).toHaveText(/3 \/ 3 selected/)
 
-  // Any further pick must NOT change the counter. If no 4th candidate
-  // exists for Engineer (trees may only have 3 level-1 abilities total)
-  // the cap is naturally enforced — both states satisfy the rule.
-  const budgetMessages = await page.getByText(/Budget reached/i).count()
-  if (budgetMessages > 0) {
-    // The blocked card's wrapper is pointer-events-none (SelCard disabled).
-    const blocked = page.getByText(/Budget reached/i).first()
-    await blocked.scrollIntoViewIfNeeded()
-    const wrapper = blocked.locator('xpath=ancestor::div[contains(@class,"pointer-events-none")]')
-    await expect(wrapper).toBeVisible()
-  }
+  // At budget the notice renders ONCE, in the wizard footer beside the
+  // buttons ("Max Abilities selected") — blocked cards just grey out.
+  await expect(page.getByText(/Max Abilities selected \(3 \/ 3\)/i)).toBeVisible()
   await expect(page.getByTestId('ability-count')).toHaveText(/3 \/ 3 selected/)
 })
 
@@ -110,13 +102,8 @@ test('4th equipment pick is blocked once the budget is reached', async ({ page }
   await cards.nth(2).click()
   await expect(page.getByTestId('equipment-count')).toHaveText(/3 \/ 3 selected/)
 
-  // The 4th card (if more than 3 TL1 equipment exist) should now be
-  // budget-reached. Disabled SelCards drop their role=button (Sel without a
-  // toggle), so the blocked state is the inline reason text.
-  const budgetReachedLabels = page.getByText(/Budget reached \(3 \/ 3 selected\)/)
-  const hasBudgetReached = (await budgetReachedLabels.count()) > 0
-  if (hasBudgetReached) {
-    await expect(budgetReachedLabels.first()).toBeVisible()
-  }
+  // At budget the notice renders ONCE, in the wizard footer beside the
+  // buttons ("Max Equipment selected") — blocked cards just grey out.
+  await expect(page.getByText(/Max Equipment selected \(3 \/ 3\)/i)).toBeVisible()
   await expect(page.getByTestId('equipment-count')).toHaveText(/3 \/ 3 selected/)
 })

@@ -15,6 +15,7 @@
  * stay in lockstep (§4.1).
  */
 
+import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { btnVariants, MChip, Pill, StatBlock } from 'suref-react'
 import type { PillTone, StatBlockState } from 'suref-react'
@@ -37,6 +38,9 @@ import {
   pilotMaxHP,
 } from '../../lib/rules/derivedStats'
 import { computeMechCapacity } from '../../lib/rules/capacity'
+import { describePushOutcome } from '../../lib/rules/coreMechanic'
+import { bayGate, tradingSourceTl } from '../../lib/rules/crawlerEconomy'
+import { defaultRoll, heatCheckPatch, performPush } from '../../lib/rules/heatCheck'
 import { cn } from '../../lib/utils'
 import { useEntityStore } from '../../stores/entityStore'
 import type { SoftLinkStore } from '../wiring/useSoftLinks'
@@ -57,8 +61,12 @@ import type { UsedToggleKey } from './PilotIdentity'
 import { PilotSheet } from './PilotSheet'
 import { MechSheet } from './MechSheet'
 import { MechConditionsEditor } from './MechConditionsEditor'
+import { CrawlerEconomyControl } from './CrawlerEconomyControl'
+import type { CrawlerEconomyDialog } from './CrawlerEconomyControl'
 import { CrawlerSheet } from './CrawlerSheet'
 import { PublishButton } from './PublishButton'
+import { QuickRollFab } from './QuickRollFab'
+import { SheetActionsMenu } from './SheetActionsMenu'
 
 // Re-exported so existing consumers (PublishButton, tests) keep their import.
 export type { EntityLookup } from './composition'
@@ -82,7 +90,7 @@ function RailCta({ href, label, primary }: { href: string; label: string; primar
     <AppLink
       href={href}
       className={cn(
-        'rounded-[3px] border-[1.5px] px-2.5 py-1.5 text-center font-body text-xs font-medium no-underline transition-colors duration-[120ms]',
+        'rounded-[3px] border-chrome px-2.5 py-1.5 text-center font-body text-xs font-medium no-underline transition-colors duration-[120ms]',
         primary
           ? 'border-rust bg-rust text-su-white hover:bg-rust-hi'
           : 'border-ink bg-paper text-ink hover:bg-wk-bg-2'
@@ -195,6 +203,9 @@ export function Sheet({
   readOnly = false,
 }: SheetProps) {
   const storeState = store()
+  // Crawler-economy dialog behind the UPKEEP/UPGRADE/TRADE lozenges (R-4).
+  // Top-level (unconditional hook) — only the crawler branch reads it.
+  const [econDialog, setEconDialog] = useState<CrawlerEconomyDialog | null>(null)
 
   const lookup: EntityLookup =
     entityStore ??
@@ -222,17 +233,29 @@ export function Sheet({
   const wired = composition.mode === 'wired'
   const back = { href: '/', label: 'Dashboard' }
   // Top-bar trailing actions (§1.3): Edit as a sm ghost btn linking the
-  // entity's edit wizard route, then Share (publish).
+  // entity's edit wizard route, then Share (publish). Below the sm endpoint
+  // both fold into a "⋯" overflow menu (design review U-5) so the condensed
+  // bar keeps its width for the priority MiniStats; the menu items mount only
+  // while open, so the inline copies stay the unique Edit/Share in the DOM.
+  const editLink = (
+    <AppLink
+      href={`/${kind}s/${id}/edit`}
+      aria-label={`Edit this ${kind}`}
+      className={cn(btnVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
+    >
+      Edit
+    </AppLink>
+  )
   const actions = !readOnly ? (
     <>
-      <AppLink
-        href={`/${kind}s/${id}/edit`}
-        aria-label={`Edit this ${kind}`}
-        className={cn(btnVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
-      >
-        Edit
-      </AppLink>
-      <PublishButton entityKind={kind} entityId={id} entityStore={entityStore} />
+      <div className="hidden items-center gap-2.5 sm:flex">
+        {editLink}
+        <PublishButton entityKind={kind} entityId={id} entityStore={entityStore} />
+      </div>
+      <SheetActionsMenu className="sm:hidden">
+        {editLink}
+        <PublishButton entityKind={kind} entityId={id} entityStore={entityStore} />
+      </SheetActionsMenu>
     </>
   ) : undefined
 
@@ -375,6 +398,7 @@ export function Sheet({
         rail={rail}
         segments={segments}
         actions={actions}
+        fab={editable ? <QuickRollFab /> : undefined}
         renderHero={({ heroRef, rail: heroRail }) => (
           <SheetHero
             heroRef={heroRef}
@@ -424,7 +448,7 @@ export function Sheet({
             }
             inset={
               <div className="w-full sm:max-w-[360px]">
-                <span className="mb-1 block text-right font-cond text-[10px] font-bold uppercase leading-none tracking-[0.08em] text-ink">
+                <span className="mb-1 block text-right font-cond text-label font-bold uppercase leading-none tracking-caps text-ink">
                   Conditions
                 </span>
                 <ConditionsEditor
@@ -483,9 +507,11 @@ export function Sheet({
         : []),
     ]
 
+    // U-5: on phones the condensed bar leads with Heat + SP; EP/Hold fold
+    // until the sm breakpoint.
     const strip: LiveSheetStripItem[] = [
       { key: 'sp', label: 'SP', stat: 'sp', value: sp, max: maxSP },
-      { key: 'ep', label: 'EP', stat: 'ep', value: ep, max: maxEP },
+      { key: 'ep', label: 'EP', stat: 'ep', value: ep, max: maxEP, mobilePriority: false },
       { key: 'heat', label: 'Heat', stat: 'heat', value: heat, max: maxHeat },
       {
         key: 'cargo',
@@ -493,8 +519,37 @@ export function Sheet({
         stat: 'cargo',
         value: cargoUsed,
         max: maxCargo,
+        mobilePriority: false,
       },
     ]
+
+    // Quick Ref p.233: "Can't Push if it'd take you over your Heat Cap" —
+    // the FAB's Push is disabled (never clamped) when +2 Heat would exceed it.
+    const pushLocked =
+      heat + 2 > maxHeat
+        ? `Can't Push at Heat ${heat}/${maxHeat} — +2 Heat would take the mech over its Heat Cap (p.233).`
+        : undefined
+
+    /**
+     * Push (design review R-6/U-3): +2 Heat then an immediate Heat Check,
+     * written through the store exactly like HeatCheckControl (ADR-007 —
+     * deterministic bookkeeping auto-applies; marking a destroyed System or
+     * Module stays a player call via its status badge). Reads the freshest
+     * mech so rapid sequential actions don't stomp each other.
+     */
+    async function pushMech(): Promise<string> {
+      const fresh = lookup.get('mech', mech.id) ?? mech
+      const cap = mechMaxHeat(fresh, chassis)
+      const freshMaxSP = mechMaxSP(fresh, chassis)
+      const { nextHeat, effect } = performPush({
+        heat: Math.min(fresh.currentHeat ?? cap, cap),
+        heatCap: cap,
+        currentSP: Math.min(fresh.currentSP ?? freshMaxSP, freshMaxSP),
+        roll: defaultRoll,
+      })
+      await storeState.update('mech', mech.id, heatCheckPatch(effect, nextHeat))
+      return describePushOutcome(nextHeat, effect)
+    }
 
     const rail = (
       <>
@@ -556,6 +611,7 @@ export function Sheet({
         segments={segments}
         syncStats={{ cargo: cargoUsed }}
         actions={actions}
+        fab={editable ? <QuickRollFab onPush={pushMech} pushLocked={pushLocked} /> : undefined}
         renderHero={({ heroRef, rail: heroRail }) => (
           <SheetHero
             heroRef={heroRef}
@@ -617,7 +673,7 @@ export function Sheet({
             }
             inset={
               <div className="flex w-full max-w-[360px] flex-col items-stretch gap-1">
-                <span className="font-cond text-[10px] font-bold uppercase tracking-[0.08em] text-ink">
+                <span className="font-cond text-label font-bold uppercase tracking-caps text-ink">
                   Conditions
                 </span>
                 <MechConditionsEditor mech={mech} store={store} readOnly={readOnly} />
@@ -658,9 +714,12 @@ export function Sheet({
       : []),
   ]
 
-  // UPKEEP / UPGRADE-pool / CREW spec lozenges (design §4.4): upkeep is 5
-  // Scrap of crawler TL per Downtime (rules C3); the Upgrade Pool fills
-  // toward 30× TL (rules C4); crew leads = one per installed bay (rules C11).
+  // UPKEEP / UPGRADE-pool / TRADE / CREW spec lozenges (design §4.4): upkeep
+  // is 5 Scrap of crawler TL per Downtime (rules C3); the Upgrade Pool fills
+  // toward 30× TL (rules C4); the Trading Bay sources TL+1 wares (p.223);
+  // crew leads = one per installed bay (rules C11). On editable sheets the
+  // economy lozenges are the R-4 action entry points (CrawlerEconomyControl).
+  const trading = bayGate(crawler, 'Trading Bay')
   const crawlerSpecs: ChassisStatItem[] = [
     ...(tl !== undefined
       ? [
@@ -670,6 +729,8 @@ export function Sheet({
             unit: `Tech ${tl}`,
             value: 5,
             pips: false,
+            onClick: editable ? () => setEconDialog('upkeep') : undefined,
+            actionLabel: 'Pay Upkeep',
           },
         ]
       : []),
@@ -679,7 +740,22 @@ export function Sheet({
       value: crawler.upgradePool ?? 0,
       max: 30,
       pips: false,
+      onClick: editable ? () => setEconDialog('upgrade') : undefined,
+      actionLabel: 'Upgrade Crawler',
     },
+    ...(trading.present && tl !== undefined
+      ? [
+          {
+            code: 'TRADE',
+            name: 'Wares',
+            unit: `Tech ${tradingSourceTl(tl)}`,
+            value: tradingSourceTl(tl),
+            pips: false,
+            onClick: editable ? () => setEconDialog('trade') : undefined,
+            actionLabel: 'Open the Trading Bay',
+          },
+        ]
+      : []),
     ...(states.length > 0
       ? [{ code: 'CREW', name: 'Leads', value: states.length, pips: false }]
       : []),
@@ -733,52 +809,68 @@ export function Sheet({
   )
 
   return (
-    <LiveSheet
-      variant="crawler"
-      name={crawler.name}
-      strip={strip}
-      back={back}
-      pill={{ label: 'Crawler', tone: 'crawler' }}
-      wired={wired}
-      rail={rail}
-      segments={segments}
-      actions={actions}
-      renderHero={({ heroRef, rail: heroRail }) => (
-        <SheetHero
-          heroRef={heroRef}
-          cat="Crawler"
-          name={crawler.name}
-          meta={tl !== undefined ? <MChip label="Tech LV" value={tl} /> : undefined}
-          specs={crawlerSpecs.length > 0 ? <ChassisStats items={crawlerSpecs} /> : undefined}
-          trackers={
-            <>
-              <StatBlock
-                code="Structure"
-                name="Points"
-                unit="Points"
-                stat="sp"
-                max={maxSP}
-                value={sp}
-                onChange={editable ? (v) => patch({ currentSP: v }) : undefined}
-                editable={editable}
-              />
-              {states.length > 0 && (
+    <>
+      <LiveSheet
+        variant="crawler"
+        name={crawler.name}
+        strip={strip}
+        back={back}
+        pill={{ label: 'Crawler', tone: 'crawler' }}
+        wired={wired}
+        rail={rail}
+        segments={segments}
+        actions={actions}
+        fab={editable ? <QuickRollFab /> : undefined}
+        renderHero={({ heroRef, rail: heroRail }) => (
+          <SheetHero
+            heroRef={heroRef}
+            cat="Crawler"
+            name={crawler.name}
+            meta={tl !== undefined ? <MChip label="Tech LV" value={tl} /> : undefined}
+            specs={crawlerSpecs.length > 0 ? <ChassisStats items={crawlerSpecs} /> : undefined}
+            trackers={
+              <>
                 <StatBlock
-                  code="Bays"
-                  name="Condition"
-                  unit="Bays"
-                  states={states}
-                  onBay={editable ? toggleBay : undefined}
+                  code="Structure"
+                  name="Points"
+                  unit="Points"
+                  stat="sp"
+                  max={maxSP}
+                  value={sp}
+                  onChange={editable ? (v) => patch({ currentSP: v }) : undefined}
+                  editable={editable}
                 />
-              )}
-            </>
-          }
-          rail={heroRail}
+                {states.length > 0 && (
+                  <StatBlock
+                    code="Bays"
+                    name="Condition"
+                    unit="Bays"
+                    states={states}
+                    onBay={editable ? toggleBay : undefined}
+                  />
+                )}
+              </>
+            }
+            rail={heroRail}
+          />
+        )}
+        renderBody={() => (
+          <CrawlerSheet
+            crawler={crawler}
+            mech={composition.mech}
+            store={store}
+            readOnly={readOnly}
+          />
+        )}
+      />
+      {editable && (
+        <CrawlerEconomyControl
+          crawler={crawler}
+          store={store}
+          open={econDialog}
+          onClose={() => setEconDialog(null)}
         />
       )}
-      renderBody={() => (
-        <CrawlerSheet crawler={crawler} mech={composition.mech} store={store} readOnly={readOnly} />
-      )}
-    />
+    </>
   )
 }

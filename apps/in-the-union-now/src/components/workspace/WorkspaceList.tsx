@@ -15,12 +15,11 @@
  * module docblock for the "orphaned entity" semantics).
  */
 
-import { useRef, useState } from 'react'
-import { Btn, Input } from 'suref-react'
+import { useState } from 'react'
+import { Btn, Input, ModalShell } from 'suref-react'
 
+import { useWorkspaceActions, useWorkspaces } from '../../hooks/queries'
 import type { Workspace } from '../../lib/schemas/workspace'
-import { useWorkspaceStore } from '../../stores/workspaceStore'
-import { useDialogA11y } from '../shared/useDialogA11y'
 
 // ---------------------------------------------------------------------------
 // Injectable store type (for dep-injection in tests)
@@ -46,7 +45,7 @@ type WorkspaceListProps = {
 
 // ---------------------------------------------------------------------------
 // Outer component — gates rendering on `open` so the inner component's hooks
-// (including useDialogA11y) only run when the dialog is visible.
+// only run when the dialog is visible (and its state resets per open).
 // ---------------------------------------------------------------------------
 
 export function WorkspaceList({ open, onClose, store }: WorkspaceListProps) {
@@ -64,12 +63,13 @@ type WorkspaceListInnerProps = {
 }
 
 function WorkspaceListInner({ onClose, store }: WorkspaceListInnerProps) {
-  const zustandStore = useWorkspaceStore()
+  const zustandWorkspaces = useWorkspaces()
+  const workspaceActions = useWorkspaceActions()
   const activeStore: WorkspaceListStore = store ?? {
-    workspaces: zustandStore.workspaces,
-    create: zustandStore.create,
-    rename: zustandStore.rename,
-    delete: zustandStore.delete,
+    workspaces: zustandWorkspaces,
+    create: workspaceActions.create,
+    rename: workspaceActions.rename,
+    delete: workspaceActions.delete,
   }
 
   const [newName, setNewName] = useState('')
@@ -81,9 +81,6 @@ function WorkspaceListInner({ onClose, store }: WorkspaceListInnerProps) {
   const [editName, setEditName] = useState('')
   const [renamePending, setRenamePending] = useState(false)
   const [renameError, setRenameError] = useState<string | null>(null)
-
-  const dialogRef = useRef<HTMLDivElement>(null)
-  useDialogA11y({ ref: dialogRef, onClose })
 
   // ---------------------------------------------------------------------------
   // Handlers
@@ -151,26 +148,17 @@ function WorkspaceListInner({ onClose, store }: WorkspaceListInnerProps) {
   // ---------------------------------------------------------------------------
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <div
-        ref={dialogRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="workspace-list-title"
-        className="w-full max-w-md rounded-[6px] border-2 border-ink bg-paper p-6 shadow-[0_18px_40px_rgba(0,0,0,0.35)]"
-      >
-        <div className="mb-4 flex items-center justify-between">
-          <h2
-            id="workspace-list-title"
-            className="font-cond text-base font-bold uppercase tracking-[.06em] text-ink"
-          >
-            Manage Workspaces
-          </h2>
-          <Btn variant="ghost" size="sm" onClick={onClose} aria-label="Close workspace manager">
-            ✕
-          </Btn>
-        </div>
-
+    <ModalShell
+      open
+      onOpenChange={(next) => {
+        if (!next) onClose()
+      }}
+      title="Manage Workspaces"
+      headerBg="bg-su-orange"
+      maxWidth="max-w-md"
+      align="center"
+    >
+      <div className="bg-paper p-5">
         {/* Workspace rows */}
         {activeStore.workspaces.length === 0 ? (
           <p className="mb-4 font-body text-sm text-wk-muted">
@@ -181,7 +169,7 @@ function WorkspaceListInner({ onClose, store }: WorkspaceListInnerProps) {
             {activeStore.workspaces.map((ws) => (
               <li
                 key={ws.id}
-                className="flex items-center gap-2 rounded-[3px] border-[1.5px] border-ink bg-paper p-2"
+                className="flex items-center gap-2 rounded-[3px] border-chrome border-ink bg-paper p-2"
               >
                 {editingId === ws.id ? (
                   /* Editing row */
@@ -252,8 +240,8 @@ function WorkspaceListInner({ onClose, store }: WorkspaceListInnerProps) {
         )}
 
         {/* Create form */}
-        <div className="border-t-[1.5px] border-ink pt-4">
-          <p className="font-cond mb-2 text-[13px] font-bold uppercase tracking-[.1em] text-rust">
+        <div className="border-t-chrome border-ink pt-4">
+          <p className="font-cond mb-2 text-caption font-bold uppercase tracking-widest text-rust">
             New Workspace
           </p>
           <div className="flex gap-2">
@@ -285,6 +273,6 @@ function WorkspaceListInner({ onClose, store }: WorkspaceListInnerProps) {
           )}
         </div>
       </div>
-    </div>
+    </ModalShell>
   )
 }

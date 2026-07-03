@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import type { ReactNode, RefObject } from 'react'
 import { Dialog } from '@base-ui/react/dialog'
 import { X } from 'lucide-react'
 import { DisplayCard } from './DisplayCard'
@@ -14,6 +14,10 @@ type ModalShellProps = {
   headerBg?: string
   maxWidth?: string
   align?: 'center' | 'top'
+  /** Element to focus when the dialog opens (defaults to base-ui's first
+   *  tabbable — the header close button). Pass a ref for input-first dialogs
+   *  like search. */
+  initialFocus?: RefObject<HTMLElement | null>
   children?: ReactNode
 }
 
@@ -26,6 +30,7 @@ export function ModalShell({
   headerBg = 'bg-su-orange',
   maxWidth = 'max-w-3xl',
   align = 'top',
+  initialFocus,
   children,
 }: ModalShellProps) {
   const isLightClose = headerBg === 'bg-su-rust'
@@ -35,6 +40,7 @@ export function ModalShell({
       <Dialog.Portal>
         <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/80 data-[open]:animate-in data-[closed]:animate-out data-[closed]:fade-out-0 data-[open]:fade-in-0" />
         <Dialog.Popup
+          initialFocus={initialFocus}
           className={`fixed inset-0 z-50 h-fit max-h-[calc(100vh-4rem)] w-full ${maxWidth} overflow-y-auto bg-transparent outline-none ${align === 'center' ? 'm-auto' : 'mx-auto mt-8 mb-auto'}`}
         >
           <Dialog.Title className="sr-only">{title}</Dialog.Title>

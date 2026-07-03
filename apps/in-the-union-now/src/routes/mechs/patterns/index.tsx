@@ -11,7 +11,7 @@ function MechPatternsPage() {
   return (
     <main className="mx-auto max-w-5xl p-6 flex flex-col gap-6">
       <div>
-        <h1 className="font-cond text-2xl font-bold uppercase tracking-[0.04em] text-ink">
+        <h1 className="font-cond text-2xl font-bold uppercase tracking-caps-tight text-ink">
           Mech Patterns
         </h1>
         <p className="font-body text-sm text-wk-muted mt-1">

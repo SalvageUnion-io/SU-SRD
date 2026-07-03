@@ -50,6 +50,119 @@ export {
   defaultRoll,
 } from './heatCheck'
 export type { Roll, HeatCheckEffect, PushResult } from './heatCheck'
+export {
+  mechEffectiveDamage,
+  applyMechDamage,
+  criticalDamageOutcome,
+  performCriticalDamage,
+  pilotEffectiveDamage,
+  applyPilotDamage,
+  criticalInjuryOutcome,
+  performCriticalInjury,
+} from './takeDamage'
+export type {
+  DamageKind,
+  MechDamageEffect,
+  PilotDamageEffect,
+  CriticalDamageEffect,
+  CriticalInjuryEffect,
+} from './takeDamage'
+export {
+  DOWNTIME_STEP_KEYS,
+  DOWNTIME_UPKEEP_SCRAP,
+  CHASSIS_DAMAGED_CONDITION,
+  NEVER_RECHARGE_EQUIPMENT,
+  allDowntimeSteps,
+  resolveDowntimeScope,
+  medBayStatus,
+  mechBayStatus,
+  repairableItems,
+  healableInjuries,
+  downtimeMechPatch,
+  downtimePilotPatch,
+} from './downtime'
+export type {
+  DowntimeStepKey,
+  DowntimeSteps,
+  DowntimeScope,
+  MedBayStatus,
+  MechBayStatus,
+  RepairableItems,
+  HealableInjuries,
+} from './downtime'
+export {
+  AREA_SALVAGE_DEFAULT_SUPPLY,
+  AREA_SALVAGE_LABEL,
+  MECH_SALVAGE_LABEL,
+  EMPTY_CLAIM,
+  areaSalvageBand,
+  performAreaSalvage,
+  areaJackpotClaim,
+  claimAllows,
+  takeFromClaim,
+  claimExhausted,
+  mechSalvageBand,
+  halfSalvageScrap,
+  performMechSalvage,
+  damagedSalvageLot,
+} from './salvage'
+export type {
+  AreaSalvageBand,
+  AreaSalvageResult,
+  SalvageClaim,
+  SalvageTakeKind,
+  MechSalvageBand,
+  MechSalvageResult,
+  WreckChassis,
+  SalvagedItem,
+} from './salvage'
+export {
+  UPKEEP_SCRAP,
+  DETERIORATION_SP_LOSS,
+  TRADING_AVAILABILITY_LABEL,
+  poolAvailableAtOrAbove,
+  drawFromPool,
+  upkeepShortfall,
+  payUpkeep,
+  contributeToUpgradePool,
+  deteriorationOutcome,
+  performDeterioration,
+  crawlerUpgradeQuote,
+  scrapValue,
+  exchangeStep,
+  convertedCount,
+  convertScrap,
+  tradingAvailability,
+  tradingSourceTl,
+  performTradingRoll,
+  bayGate,
+} from './crawlerEconomy'
+export type {
+  PoolDraw,
+  UpkeepPayment,
+  DeteriorationOutcome,
+  DeteriorationEffect,
+  CrawlerUpgradeQuote,
+  TradingAvailability,
+  TradingRollResult,
+  BayGate,
+} from './crawlerEconomy'
+export { CRAFTING_BAY, craftableAtTl, craftQuote, craftedLot } from './crafting'
+export type { CraftableItem, CraftQuote } from './crafting'
+export {
+  mechScrapComponents,
+  scrapMechBreakdown,
+  depositScrapDeposits,
+  handOffCargo,
+} from './scrapMech'
+export type {
+  ScrapMechComponent,
+  ScrapMechComponentKind,
+  ScrapMechSkip,
+  ScrapMechSkipReason,
+  ScrapMechBreakdown,
+  ScrapMechInput,
+} from './scrapMech'
 
 export type {
   // Shared primitives
@@ -85,3 +198,11 @@ export type {
   CrawlerCapacityResult,
   CrawlerCapacityViolation,
 } from './crawlerCapacity'
+
+export {
+  MEDIATOR_TABLE_NAMES,
+  MEDIATOR_TABLE_LABEL,
+  performMediatorRoll,
+  describeMediatorRoll,
+} from './mediatorTables'
+export type { FindRollTable } from './mediatorTables'

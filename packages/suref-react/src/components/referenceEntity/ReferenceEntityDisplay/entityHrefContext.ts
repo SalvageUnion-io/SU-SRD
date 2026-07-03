@@ -1,4 +1,5 @@
 import { createContext, useContext } from 'react'
+import type { ReactNode } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 
 /**
@@ -32,4 +33,25 @@ export const EntityDetailLinkProvider = EntityDetailLinkContext.Provider
 /** Whether "View details" should link out (new tab) instead of opening a modal. */
 export function useEntityDetailLink(): boolean {
   return useContext(EntityDetailLinkContext)
+}
+
+/**
+ * Builds an external cross-link node for an entity (e.g. ITUN's
+ * "View in SRD →" deep link out to suref-web). Full — non-compact,
+ * non-listing — entity cards render it in their foot band, which includes the
+ * `useDetailModal` detail view (its content renders full). Return `undefined`
+ * for entities without an external page. suref-web (which *is* the SRD)
+ * provides no builder, so nothing renders there.
+ */
+export type EntityExternalLinkBuilder = (entity: SURefEntity) => ReactNode | undefined
+
+const EntityExternalLinkContext = createContext<EntityExternalLinkBuilder | undefined>(undefined)
+
+/** Provide an app-specific external cross-link builder to nested entity displays. */
+export const EntityExternalLinkProvider = EntityExternalLinkContext.Provider
+
+/** Resolve an entity's external cross-link via the provided builder (undefined when none). */
+export function useEntityExternalLink(entity: SURefEntity | undefined): ReactNode | undefined {
+  const builder = useContext(EntityExternalLinkContext)
+  return builder && entity ? builder(entity) : undefined
 }

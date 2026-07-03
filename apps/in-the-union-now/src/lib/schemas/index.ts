@@ -9,11 +9,17 @@ export {
   ChoiceSelectionsSchema,
   InjurySchema,
   GenericInventoryEntrySchema,
+  CriticalInjuryResultSchema,
 } from './pilot'
-export type { Pilot, Injury, GenericInventoryEntry } from './pilot'
+export type { Pilot, Injury, GenericInventoryEntry, CriticalInjuryResult } from './pilot'
 
-export { MechSchema, ItemConditionSchema, ItemConditionMapSchema } from './mech'
-export type { Mech, ItemCondition, ItemConditionMap } from './mech'
+export {
+  MechSchema,
+  ItemConditionSchema,
+  ItemConditionMapSchema,
+  CriticalDamageResultSchema,
+} from './mech'
+export type { Mech, ItemCondition, ItemConditionMap, CriticalDamageResult } from './mech'
 
 export {
   CargoLotSchema,
@@ -34,3 +40,17 @@ export type { Workspace } from './workspace'
 
 export { SoftLinkSchema } from './softLink'
 export type { SoftLink } from './softLink'
+
+export {
+  EncounterNpcSchema,
+  EncounterRefSchemaSchema,
+  ENCOUNTER_REF_SCHEMAS,
+  MediatorRollResultSchema,
+  MediatorTableIdSchema,
+} from './encounterNpc'
+export type {
+  EncounterNpc,
+  EncounterRefSchema,
+  MediatorRollResult,
+  MediatorTableId,
+} from './encounterNpc'

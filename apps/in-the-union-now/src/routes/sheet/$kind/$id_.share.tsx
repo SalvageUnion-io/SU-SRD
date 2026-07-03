@@ -8,10 +8,10 @@
  */
 
 import { createFileRoute, notFound } from '@tanstack/react-router'
+import { btnVariants } from 'suref-react'
 
 import { ShareSnapshotScreen } from '../../../components/sheet/ShareSnapshotScreen'
 import { AppLink } from '../../../components/shared/AppLink'
-import { buttonVariants } from '../../../components/ui/buttonVariants'
 import type { EntityRef } from '../../../lib/schemas/entity'
 import { cn } from '../../../lib/utils'
 import { useEntityStore } from '../../../stores/entityStore'
@@ -29,7 +29,7 @@ function ShareKindNotFound() {
       </p>
       <AppLink
         href="/"
-        className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
+        className={cn(btnVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
       >
         &larr; Back to dashboard
       </AppLink>

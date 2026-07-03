@@ -1,5 +1,6 @@
 import type { SURefSystem } from 'salvageunion-reference'
 import { SelCard } from '../wizard/SelCard'
+import { SelMasonry } from '../wizard/SelMasonry'
 
 type SystemsListProps = {
   /** Weapons systems available to install, already filtered by tech level. */
@@ -56,7 +57,7 @@ export function SystemsList({
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+    <SelMasonry>
       {systems.map((system) => {
         const selected = selectedSystemSlugs.includes(system.id)
         const disabled = !selected && atCap
@@ -71,6 +72,6 @@ export function SystemsList({
           />
         )
       })}
-    </div>
+    </SelMasonry>
   )
 }

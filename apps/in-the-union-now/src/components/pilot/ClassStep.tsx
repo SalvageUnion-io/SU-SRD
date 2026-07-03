@@ -32,7 +32,7 @@ export function ClassOptionList({
       ))}
       {specialisations.length > 0 && (
         <>
-          <p className="mb-2 mt-5 font-cond text-xs font-bold uppercase tracking-[0.1em] text-wk-muted">
+          <p className="mb-2 mt-5 font-cond text-xs font-bold uppercase tracking-widest text-wk-muted">
             Advanced / Hybrid — requires 6 core abilities
           </p>
           {specialisations.map((cls) => (
@@ -63,7 +63,7 @@ type ClassDetailProps = {
 export function ClassDetail({ selectedClass }: ClassDetailProps) {
   if (!selectedClass) {
     return (
-      <div className="flex h-full min-h-40 items-center justify-center rounded-[3px] border-[1.5px] border-dashed border-wk-faint p-6 text-center text-sm text-wk-muted">
+      <div className="flex h-full min-h-40 items-center justify-center rounded-[3px] border-chrome border-dashed border-wk-faint p-6 text-center text-sm text-wk-muted">
         Select a class to preview its ability trees.
       </div>
     )

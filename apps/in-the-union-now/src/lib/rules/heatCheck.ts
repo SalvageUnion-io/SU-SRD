@@ -29,7 +29,7 @@
 
 import { roll } from '@randsum/roller'
 
-import type { HeatCheckResult, ReactorOverloadOutcome } from '../schemas/mech'
+import type { HeatCheckResult, Mech, ReactorOverloadOutcome } from '../schemas/mech'
 
 /** A function that returns an integer die roll in [1, sides]. Injectable. */
 export type Roll = (sides: number) => number
@@ -183,4 +183,27 @@ export function performPush({ heat, heatCap, currentSP, roll, now }: PushInput):
   const nextHeat = clampHeat(heat + 2, heatCap)
   const effect = performHeatCheck({ heat: nextHeat, currentSP, roll, now })
   return { nextHeat, effect }
+}
+
+/**
+ * The single write-path mapping from a resolved Heat Check effect to the mech
+ * patch (ADR-007: deterministic bookkeeping auto-applies; destructive picks
+ * stay player calls). Shared by HeatCheckControl and the quick-roll FAB's Push
+ * so the reactor-overload bookkeeping can't drift between the two surfaces.
+ * `currentHeat`, when provided, is persisted alongside the result.
+ */
+export function heatCheckPatch(effect: HeatCheckEffect, currentHeat?: number): Partial<Mech> {
+  const patch: Partial<Mech> = { lastHeatCheck: effect.result }
+  if (currentHeat !== undefined) {
+    patch.currentHeat = currentHeat
+  }
+  if (effect.shutdown) {
+    patch.shutdown = true
+    patch.vulnerable = true
+    patch.currentSP = effect.nextSP
+  }
+  if (effect.destroyed) {
+    patch.destroyed = true
+  }
+  return patch
 }

@@ -1,5 +1,6 @@
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { SelCard } from '../wizard/SelCard'
+import { SelMasonry } from '../wizard/SelMasonry'
 
 type SUREquipmentAccessor = {
   findAll: (fn: (x: unknown) => boolean) => unknown[]
@@ -38,9 +39,11 @@ export function EquipmentStep({ selectedEquipment, onToggle, budget, _sur }: Equ
 
   return (
     <div className="w-full">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <SelMasonry>
         {allEquipment.map((item) => {
           const isSelected = selectedEquipment.includes(item.id)
+          // At-budget cards grey out; the "Max Equipment" notice lives once in
+          // the WizShell footer beside the buttons.
           const isDisabled = !isSelected && isAtBudget
           return (
             <SelCard
@@ -49,16 +52,11 @@ export function EquipmentStep({ selectedEquipment, onToggle, budget, _sur }: Equ
               name={item.name}
               selected={isSelected}
               disabled={isDisabled}
-              disabledReason={
-                isDisabled
-                  ? `Budget reached (${selectedEquipment.length} / ${budget} selected)`
-                  : undefined
-              }
               onToggle={() => onToggle(item.id)}
             />
           )
         })}
-      </div>
+      </SelMasonry>
       {allEquipment.length === 0 && (
         <p className="text-sm text-wk-muted">No tech level 1 equipment found.</p>
       )}

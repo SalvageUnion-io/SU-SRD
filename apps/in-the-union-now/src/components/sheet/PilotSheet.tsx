@@ -4,6 +4,8 @@
  * Slab/Erow layout (identity, stats and conditions live in the hero — see
  * Sheet.tsx pilot branch):
  *   - dead-state banner when derived max HP ≤ 0 (rules A2)
+ *   - 'Take Damage' slab — HP intake with the p.241 SP↔HP conversions and the
+ *     Critical Injury Table prompt at 0 HP (PilotTakeDamageControl, R-1)
  *   - 'Abilities · N' slab — entity cards with Spend AP (fixed costs only) and
  *     a used/recharge toggle in the card foot
  *   - 'Inventory · used / cap slots' slab — truthful slot math (equipment 1,
@@ -33,11 +35,14 @@ import {
   injuryMaxHpPenalty,
   isPilotDead,
 } from '../../lib/rules/derivedStats'
+import type { Roll } from '../../lib/rules/heatCheck'
 import { useEntityStore } from '../../stores/entityStore'
 import { useSoftLinks } from '../wiring/useSoftLinks'
 import { useEntityChoices } from '../shared/useEntityChoices'
+import { destroyedUndoToast } from './destroyedUndoToast'
 import { Ecflow, Erow } from './Erow'
 import { InlineEditField } from './InlineEditField'
+import { PilotTakeDamageControl } from './PilotTakeDamageControl'
 import {
   equipmentMaxUses,
   equipmentSlotCost,
@@ -330,10 +335,10 @@ function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
   }
 
   const inputClass =
-    'rounded-[3px] border-[1.5px] border-ink bg-paper px-2 py-1.5 font-body text-xs text-ink focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22]'
+    'rounded-[3px] border-chrome border-ink bg-paper px-2 py-1.5 font-body text-xs text-ink focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22]'
 
   return (
-    <div className="flex flex-wrap items-center gap-2 rounded-[3px] border-[1.5px] border-dashed border-wk-faint p-2.5">
+    <div className="flex flex-wrap items-center gap-2 rounded-[3px] border-chrome border-dashed border-wk-faint p-2.5">
       <Btn
         size="sm"
         aria-label="Add Scrap (3 slots)"
@@ -351,7 +356,7 @@ function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
         onChange={(e) => setName(e.target.value)}
         className={`${inputClass} w-36 flex-1`}
       />
-      <label className="flex items-center gap-1 font-cond text-[10px] font-bold uppercase tracking-wide text-wk-muted">
+      <label className="flex items-center gap-1 font-cond text-label font-bold uppercase tracking-wide text-wk-muted">
         Slots
         <input
           type="number"
@@ -362,7 +367,7 @@ function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
           className={`${inputClass} w-14`}
         />
       </label>
-      <label className="flex items-center gap-1 font-cond text-[10px] font-bold uppercase tracking-wide text-wk-muted">
+      <label className="flex items-center gap-1 font-cond text-label font-bold uppercase tracking-wide text-wk-muted">
         Qty
         <input
           type="number"
@@ -414,7 +419,7 @@ function InjuryRow({ injury, index, onChange, onRemove }: InjuryRowProps) {
             severity: e.target.value === 'major' ? 'major' : 'minor',
           })
         }}
-        className="rounded-[3px] border-[1.5px] border-ink bg-paper px-2 py-1.5 font-cond text-xs font-semibold uppercase text-ink focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22]"
+        className="rounded-[3px] border-chrome border-ink bg-paper px-2 py-1.5 font-cond text-xs font-semibold uppercase text-ink focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22]"
       >
         <option value="minor">Minor (−1 max HP)</option>
         <option value="major">Major (−2 max HP)</option>
@@ -428,7 +433,7 @@ function InjuryRow({ injury, index, onChange, onRemove }: InjuryRowProps) {
           const next = e.target.value
           if (next !== injury.note) onChange({ ...injury, note: next })
         }}
-        className="w-40 min-w-0 flex-1 rounded-[3px] border-[1.5px] border-ink bg-paper px-2 py-1.5 font-body text-xs text-ink focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22]"
+        className="w-40 min-w-0 flex-1 rounded-[3px] border-chrome border-ink bg-paper px-2 py-1.5 font-body text-xs text-ink focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22]"
       />
       <Btn size="sm" variant="ghost" aria-label={`Remove injury ${index + 1}`} onClick={onRemove}>
         Remove
@@ -450,9 +455,19 @@ type PilotSheetProps = {
   store?: typeof useEntityStore
   /** When true, every edit affordance is suppressed (published snapshots). */
   readOnly?: boolean
+  /**
+   * Injectable d20 roller for the Take Damage / Critical Injury loop —
+   * defaults to a randsum roll. Pass a deterministic roller in tests.
+   */
+  roll?: Roll
 }
 
-export function PilotSheet({ pilot, store = useEntityStore, readOnly = false }: PilotSheetProps) {
+export function PilotSheet({
+  pilot,
+  store = useEntityStore,
+  readOnly = false,
+  roll,
+}: PilotSheetProps) {
   const storeState = store()
 
   // Resolve the pilot's crawler (if any) via the pilot-to-crawler SoftLink,
@@ -493,9 +508,17 @@ export function PilotSheet({ pilot, store = useEntityStore, readOnly = false }: 
 
   async function handleEquipmentConditionChange(slug: string, next: ItemCondition) {
     const prev = freshPilot().equipmentConditions ?? {}
+    const prevCondition = prev[slug] ?? 'intact'
     await storeState.update('pilot', pilot.id, {
       equipmentConditions: { ...prev, [slug]: next },
     })
+    // U-6: landing on 'destroyed' offers a one-tap Undo (mis-tap mid-combat).
+    if (next === 'destroyed' && prevCondition !== 'destroyed') {
+      const name = resolveEquipment(slug)?.name ?? slug
+      destroyedUndoToast(name, () => {
+        void handleEquipmentConditionChange(slug, prevCondition)
+      })
+    }
   }
 
   async function handleUsesChange(slug: string, next: number) {
@@ -550,9 +573,9 @@ export function PilotSheet({ pilot, store = useEntityStore, readOnly = false }: 
       {dead && (
         <div
           role="alert"
-          className="rounded-[3px] border-[3px] border-status-bad bg-paper px-4 py-3"
+          className="rounded-[3px] border-entity border-status-bad bg-paper px-4 py-3"
         >
-          <p className="m-0 font-cond text-lg font-bold uppercase tracking-[0.08em] text-status-bad">
+          <p className="m-0 font-cond text-lg font-bold uppercase tracking-caps text-status-bad">
             Killed in Action
           </p>
           <p className="m-0 font-body text-sm text-ink">
@@ -561,6 +584,10 @@ export function PilotSheet({ pilot, store = useEntityStore, readOnly = false }: 
           </p>
         </div>
       )}
+
+      {/* Take Damage / Critical Injury loop (R-1) — HP intake with the p.241
+          conversions, prompting the Critical Injury Table roll at 0 HP. */}
+      <PilotTakeDamageControl pilot={pilot} store={store} roll={roll} readOnly={readOnly} />
 
       {/* Abilities */}
       {pilot.abilities.length > 0 && (
@@ -608,7 +635,7 @@ export function PilotSheet({ pilot, store = useEntityStore, readOnly = false }: 
           }
         />
         {pilot.equipment.length === 0 && genericInventory.length === 0 ? (
-          <p className="font-body text-[13px] text-wk-muted">Nothing carried.</p>
+          <p className="font-body text-caption text-wk-muted">Nothing carried.</p>
         ) : (
           <Ecflow>
             {pilot.equipment.map((slug) => (
@@ -664,7 +691,7 @@ export function PilotSheet({ pilot, store = useEntityStore, readOnly = false }: 
       <div>
         <Slab label="Injuries" count={hpPenalty > 0 ? `−${hpPenalty} max HP` : injuries.length} />
         {injuries.length === 0 ? (
-          <p className="font-body text-[13px] text-wk-muted">No injuries — keep it that way.</p>
+          <p className="font-body text-caption text-wk-muted">No injuries — keep it that way.</p>
         ) : (
           <div className="flex flex-col gap-2">
             {injuries.map((injury, index) => (
@@ -729,7 +756,7 @@ export function PilotSheet({ pilot, store = useEntityStore, readOnly = false }: 
           </p>
         ) : (
           <div className="flex items-center gap-2">
-            <span className="font-cond text-[10px] font-bold uppercase tracking-wide text-wk-muted">
+            <span className="font-cond text-label font-bold uppercase tracking-wide text-wk-muted">
               Tech Level
             </span>
             <InlineEditField

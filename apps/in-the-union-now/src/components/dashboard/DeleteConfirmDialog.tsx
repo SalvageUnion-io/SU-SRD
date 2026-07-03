@@ -5,14 +5,11 @@
  * dismissal. The parent is responsible for calling entityStore.delete() inside
  * onConfirm.
  *
- * Accessibility: role="dialog" with aria-modal + aria-labelledby. Focus is
- * trapped inside and restored to the trigger on close. Escape dismisses.
+ * Rendered through the shared ConfirmDialog (ModalShell-based: portal, focus
+ * trap, Escape/backdrop dismiss).
  */
 
-import { useRef } from 'react'
-import { Btn } from 'suref-react'
-
-import { useDialogA11y } from '../shared/useDialogA11y'
+import { ConfirmDialog } from '../shared/ConfirmDialog'
 
 type DeleteConfirmDialogProps = {
   open: boolean
@@ -21,54 +18,22 @@ type DeleteConfirmDialogProps = {
   onCancel: () => void
 }
 
-function DeleteConfirmDialogInner({
-  entityName,
-  onConfirm,
-  onCancel,
-}: Omit<DeleteConfirmDialogProps, 'open'>) {
-  const dialogRef = useRef<HTMLDivElement>(null)
-  useDialogA11y({ ref: dialogRef, onClose: onCancel })
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      {/* Dialog panel */}
-      <div
-        ref={dialogRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="delete-dialog-title"
-        className="w-full max-w-sm rounded-[6px] border-2 border-ink bg-paper p-6 shadow-[0_18px_40px_rgba(0,0,0,0.35)]"
-      >
-        <h2
-          id="delete-dialog-title"
-          className="font-cond mb-2 text-base font-bold uppercase tracking-[.06em] text-ink"
-        >
-          Delete {entityName}?
-        </h2>
-        <p className="mb-6 font-body text-sm text-wk-muted">
-          This action cannot be undone. {entityName} will be permanently removed.
-        </p>
-        <div className="flex justify-end gap-3">
-          <Btn variant="ghost" size="sm" onClick={onCancel}>
-            Cancel
-          </Btn>
-          <Btn variant="danger" size="sm" onClick={onConfirm}>
-            Delete
-          </Btn>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 export function DeleteConfirmDialog({
   open,
   entityName,
   onConfirm,
   onCancel,
 }: DeleteConfirmDialogProps) {
-  if (!open) return null
   return (
-    <DeleteConfirmDialogInner entityName={entityName} onConfirm={onConfirm} onCancel={onCancel} />
+    <ConfirmDialog
+      open={open}
+      title={`Delete ${entityName}?`}
+      danger
+      confirmLabel="Delete"
+      onConfirm={onConfirm}
+      onCancel={onCancel}
+    >
+      This action cannot be undone. {entityName} will be permanently removed.
+    </ConfirmDialog>
   )
 }

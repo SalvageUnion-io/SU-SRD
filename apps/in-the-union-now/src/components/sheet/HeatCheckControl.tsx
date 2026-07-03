@@ -25,9 +25,10 @@
  */
 
 import { useState } from 'react'
-import { Btn, MiniBtn, Slab } from 'suref-react'
+import { Btn, MiniBtn, Slab, heatLevel } from 'suref-react'
 
-import { performHeatCheck, performPush } from '../../lib/rules/heatCheck'
+import { cn } from '../../lib/utils'
+import { heatCheckPatch, performHeatCheck, performPush } from '../../lib/rules/heatCheck'
 import type { HeatCheckEffect, Roll } from '../../lib/rules/heatCheck'
 import { defaultRoll } from '../../lib/rules/heatCheck'
 import type { HeatCheckResult, Mech, ReactorOverloadOutcome } from '../../lib/schemas/mech'
@@ -65,6 +66,18 @@ function describeResult(result: HeatCheckResult): string {
   return `OVERLOAD: rolled ${result.heatCheckRoll} vs Heat ${result.heatAtCheck}. Reactor Overload ${result.overloadRoll}: ${band}`
 }
 
+/**
+ * Severity tone for the last-result readout: a Catastrophic Meltdown must not
+ * read the same calm ink as a passed check (pre-attentive glanceability, data-
+ * viz review — the text still carries the meaning, so colour only reinforces).
+ */
+function resultTone(result: HeatCheckResult): string {
+  if (!result.overloaded) return 'text-ink'
+  if (result.outcome === 'meltdown') return 'text-status-bad'
+  if (result.outcome === 'safe') return 'text-ink'
+  return 'text-rust'
+}
+
 export function HeatCheckControl({
   mech,
   heatCap,
@@ -81,19 +94,10 @@ export function HeatCheckControl({
     // Read the freshest mech from the store (not the render-time prop) so rapid
     // sequential actions don't stomp each other with a stale-closure overwrite.
     const fresh = storeState.get('mech', mech.id) ?? mech
-    const patch: Partial<Mech> = { lastHeatCheck: effect.result }
-
-    if (heatToPersist !== undefined && heatToPersist !== fresh.currentHeat) {
-      patch.currentHeat = heatToPersist
-    }
-    if (effect.shutdown) {
-      patch.shutdown = true
-      patch.vulnerable = true
-      patch.currentSP = effect.nextSP
-    }
-    if (effect.destroyed) {
-      patch.destroyed = true
-    }
+    const patch = heatCheckPatch(
+      effect,
+      heatToPersist !== undefined && heatToPersist !== fresh.currentHeat ? heatToPersist : undefined
+    )
 
     setChoicePrompt(effect.requiresPlayerChoice ? (effect.result.outcome ?? null) : null)
     await storeState.update('mech', mech.id, patch)
@@ -127,6 +131,12 @@ export function HeatCheckControl({
 
   const last = mech.lastHeatCheck
 
+  // Push gets riskier as heat climbs (U-1): danger styling at >= ~70% of cap.
+  const pushIsRisky = heatLevel(currentHeat, heatCap) !== 'normal'
+  // Quick Ref p.233: "Can't Push if it'd take you over your Heat Cap" —
+  // disabled (never clamped) when +2 Heat would exceed the cap.
+  const pushLocked = currentHeat + 2 > heatCap
+
   return (
     <div>
       <Slab label="Heat Check" />
@@ -144,7 +154,13 @@ export function HeatCheckControl({
           </Btn>
           <Btn
             size="sm"
-            title="+2 Heat, then a Heat Check"
+            variant={pushIsRisky ? 'danger' : undefined}
+            disabled={pushLocked}
+            title={
+              pushLocked
+                ? `Can't Push at Heat ${currentHeat}/${heatCap} — +2 Heat would take the mech over its Heat Cap (p.233).`
+                : '+2 Heat, then a Heat Check'
+            }
             onClick={() => {
               void handlePush()
             }}
@@ -158,7 +174,7 @@ export function HeatCheckControl({
         {last && (
           <p
             role="status"
-            className="font-body text-sm text-ink"
+            className={cn('font-body text-sm', resultTone(last))}
             data-overloaded={last.overloaded}
             data-outcome={last.outcome ?? ''}
           >
@@ -169,7 +185,7 @@ export function HeatCheckControl({
         {!readOnly && choicePrompt && (
           <p
             role="alert"
-            className="mt-2 rounded-[3px] border-[1.5px] border-status-warn bg-paper px-3 py-2 font-body text-sm text-rust"
+            className="mt-2 rounded-[3px] border-chrome border-status-warn bg-paper px-3 py-2 font-body text-sm text-rust"
           >
             {choicePrompt === 'system-destroyed'
               ? 'Mark one System as Destroyed using its status badge below.'

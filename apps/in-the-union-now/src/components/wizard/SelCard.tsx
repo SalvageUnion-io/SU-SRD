@@ -11,8 +11,6 @@ type SelCardProps = {
   onToggle: () => void
   /** Blocks interaction (budget reached) and greys the card. */
   disabled?: boolean
-  /** Inline reason shown under a disabled card. */
-  disabledReason?: string
   /** Optional pseudo-header label on the card frame (e.g. tree name). */
   label?: string
 }
@@ -20,8 +18,9 @@ type SelCardProps = {
 /**
  * Wizard multi-select cell (design §3.2 Sel-grid variant): a compact entity
  * card inside a Sel selection-ring wrapper. The card stays selection-agnostic;
- * the 3px rust ring is non-layout-shifting. Disabled cells keep the existing
- * pointer-events-none + inline "Budget reached" affordance.
+ * the 3px rust ring is non-layout-shifting. Disabled cells grey out and drop
+ * pointer events; the budget notice renders ONCE in the WizShell footer
+ * beside the buttons, never per-card.
  */
 export function SelCard({
   entity,
@@ -29,7 +28,6 @@ export function SelCard({
   selected,
   onToggle,
   disabled = false,
-  disabledReason,
   label,
 }: SelCardProps) {
   return (
@@ -43,9 +41,6 @@ export function SelCard({
           label={label}
         />
       </Sel>
-      {disabled && disabledReason && (
-        <p className="px-3 pb-2 pt-1 text-xs text-rust">{disabledReason}</p>
-      )}
     </div>
   )
 }

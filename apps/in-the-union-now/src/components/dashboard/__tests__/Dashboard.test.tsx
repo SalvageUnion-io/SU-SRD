@@ -243,9 +243,10 @@ describe('Dashboard — delete flow', () => {
       fireEvent.click(screen.getByRole('button', { name: /Delete Mira Cole/i }))
     })
 
-    // Dialog should open with the entity name
+    // Dialog should open with the entity name (title renders visibly in the
+    // ModalShell header plus sr-only Dialog.Title/Description)
     expect(screen.getByRole('dialog')).toBeTruthy()
-    expect(screen.getByText(/Delete Mira Cole/i)).toBeTruthy()
+    expect(screen.getAllByText(/Delete Mira Cole/i).length).toBeGreaterThan(0)
   })
 
   test('confirming delete removes entity from listing', async () => {

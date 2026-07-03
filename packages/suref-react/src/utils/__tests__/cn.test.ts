@@ -28,4 +28,35 @@ describe('cn', () => {
   test('handles array input', () => {
     expect(cn(['foo', 'bar'])).toBe('foo bar')
   })
+
+  // The custom T-5 utilities registered in the extended tailwind-merge
+  // config — the default config classifies these as COLORS and drops them
+  // whenever a real color class shares the merged list.
+  describe('custom semantic utilities (design-review T-5)', () => {
+    test('keeps semantic border widths alongside border colors', () => {
+      expect(cn('border-entity border-ink')).toBe('border-entity border-ink')
+      expect(cn('border-rail border-ink')).toBe('border-rail border-ink')
+      expect(cn('border-b-entity border-rust')).toBe('border-b-entity border-rust')
+    })
+
+    test('resolves semantic border-width conflicts (last wins)', () => {
+      expect(cn('border-rail', 'border-chrome')).toBe('border-chrome')
+      expect(cn('border-entity', 'border-2')).toBe('border-2')
+    })
+
+    test('keeps semantic font sizes alongside text colors', () => {
+      expect(cn('text-badge text-ink')).toBe('text-badge text-ink')
+      expect(cn('text-label-lg text-su-white')).toBe('text-label-lg text-su-white')
+    })
+
+    test('resolves semantic font-size conflicts (last wins)', () => {
+      expect(cn('text-nano', 'text-micro')).toBe('text-micro')
+      expect(cn('text-sm', 'text-caption')).toBe('text-caption')
+    })
+
+    test('resolves caps tracking conflicts (last wins)', () => {
+      expect(cn('tracking-caps', 'tracking-caps-wide')).toBe('tracking-caps-wide')
+      expect(cn('tracking-widest', 'tracking-caps')).toBe('tracking-caps')
+    })
+  })
 })

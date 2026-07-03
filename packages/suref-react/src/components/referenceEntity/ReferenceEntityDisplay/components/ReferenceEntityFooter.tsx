@@ -15,6 +15,12 @@ type ReferenceEntityFooterProps = {
   footActions?: ReactNode
   /** Inline label/value meta (`.ec__metafoot`), e.g. AP COST · 1 */
   footMeta?: CardFootMeta[]
+  /**
+   * App-supplied external cross-link (e.g. ITUN's "View in SRD →"), rendered
+   * in the trailing tag group before the source/page tags. See
+   * `EntityExternalLinkProvider`.
+   */
+  externalLink?: ReactNode
 }
 
 // Shared type scale for the three footer tags (name / source / page) — one source
@@ -30,6 +36,7 @@ export function ReferenceEntityFooter({
   headerBgColor,
   footActions,
   footMeta,
+  externalLink,
 }: ReferenceEntityFooterProps) {
   // Drop the "Salvage Union " prefix in footers — "Salvage Union Workshop
   // Manual" reads as "Workshop Manual", "Salvage Union Starter Set" as
@@ -81,6 +88,15 @@ export function ReferenceEntityFooter({
       )}
 
       <div className="flex shrink-0">
+        {externalLink && (
+          <Text
+            variant="pseudoheader"
+            as="span"
+            className={cn(footerTagClass, (sourceLabel || page) && 'mr-4')}
+          >
+            {externalLink}
+          </Text>
+        )}
         {sourceLabel && (
           <Text variant="pseudoheader" as="span" className={cn(footerTagClass, page && 'mr-4')}>
             {sourceLabel}

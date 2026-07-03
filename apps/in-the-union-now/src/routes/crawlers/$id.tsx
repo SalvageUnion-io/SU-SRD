@@ -10,11 +10,12 @@
 
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 
+import { useCrawler, usePilots } from '../../hooks/queries'
 import { useEntityStore } from '../../stores/entityStore'
 import { useSoftLinks } from '../../components/wiring/useSoftLinks'
 import { AssignToWorkspaceButton } from '../../components/workspace/AssignToWorkspaceButton'
 import { useWorkspaceStore } from '../../stores/workspaceStore'
-import { buttonVariants } from '../../components/ui/buttonVariants'
+import { btnVariants } from 'suref-react'
 import { cn } from '../../lib/utils'
 import { ExportEntityButton } from '../../components/export/ExportEntityButton'
 
@@ -35,8 +36,8 @@ function CrawlerDetailPage() {
   const { id } = Route.useParams()
   const navigate = useNavigate()
 
-  const crawler = useEntityStore((s) => s.crawlers.find((c) => c.id === id) ?? null)
-  const pilots = useEntityStore((s) => s.pilots)
+  const crawler = useCrawler(id)
+  const pilots = usePilots()
   const { incoming } = useSoftLinks({ entityType: 'crawler', entityId: id })
 
   // Incoming pilot-to-crawler links — pilots assigned to this crawler
@@ -50,7 +51,7 @@ function CrawlerDetailPage() {
     return (
       <main className="mx-auto max-w-7xl p-6">
         <p className="text-wk-muted">Crawler not found.</p>
-        <a href="/" className={cn(buttonVariants({ variant: 'link', size: 'sm' }))}>
+        <a href="/" className={cn(btnVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}>
           Back to dashboard
         </a>
       </main>
@@ -73,14 +74,11 @@ function CrawlerDetailPage() {
           <Link
             to="/crawlers/$id/edit"
             params={{ id }}
-            className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'no-underline')}
+            className={cn(btnVariants({ variant: 'default', size: 'sm' }), 'no-underline')}
           >
             Edit
           </Link>
-          <a
-            href="/"
-            className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
-          >
+          <a href="/" className={cn(btnVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}>
             Back
           </a>
         </div>
@@ -90,7 +88,7 @@ function CrawlerDetailPage() {
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
         {/* Left pane — crawler stats summary */}
         <div className="min-w-0 flex-1">
-          <section className="mb-6 rounded-[3px] border-[1.5px] border-ink bg-paper p-4 text-sm">
+          <section className="mb-6 rounded-[3px] border-chrome border-ink bg-paper p-4 text-sm">
             <h2 className="mb-3 font-cond text-sm font-bold uppercase tracking-widest text-su-black">
               Stats
             </h2>
@@ -114,7 +112,7 @@ function CrawlerDetailPage() {
         {/* Right pane — assigned pilots + workspace/actions */}
         <div className="w-full shrink-0 space-y-6 lg:w-72">
           {/* Assigned pilots (via incoming SoftLinks) */}
-          <section className="rounded-[3px] border-[1.5px] border-ink bg-paper p-4">
+          <section className="rounded-[3px] border-chrome border-ink bg-paper p-4">
             <h2 className="mb-3 font-cond text-sm font-bold uppercase tracking-widest text-su-black">
               Assigned Pilots
             </h2>
@@ -127,13 +125,13 @@ function CrawlerDetailPage() {
                 {assignedPilots.map(({ link, pilot }) => (
                   <li
                     key={link.id}
-                    className="flex items-center gap-2 rounded-[3px] border-[1.5px] border-ink px-3 py-2 text-sm"
+                    className="flex items-center gap-2 rounded-[3px] border-chrome border-ink px-3 py-2 text-sm"
                   >
                     <span className="flex-1">
                       {pilot ? (
                         <a
                           href={`/pilots/${pilot.id}`}
-                          className="font-medium text-primary underline-offset-2 hover:underline"
+                          className="font-medium text-rust underline-offset-2 hover:underline"
                         >
                           {pilot.name}
                         </a>
@@ -148,7 +146,7 @@ function CrawlerDetailPage() {
           </section>
 
           {/* Workspace assignment */}
-          <section className="rounded-[3px] border-[1.5px] border-ink bg-paper p-4">
+          <section className="rounded-[3px] border-chrome border-ink bg-paper p-4">
             <h2 className="mb-3 font-cond text-sm font-bold uppercase tracking-widest text-su-black">
               Workspace
             </h2>
@@ -164,7 +162,7 @@ function CrawlerDetailPage() {
           <div className="flex flex-wrap gap-3">
             <a
               href={`/sheet/crawler/${id}`}
-              className={cn(buttonVariants({ variant: 'default' }), 'no-underline')}
+              className={cn(btnVariants({ variant: 'primary' }), 'no-underline')}
             >
               View Sheet
             </a>

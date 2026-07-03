@@ -1,6 +1,8 @@
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
 import { ReferenceEntityDisplay } from 'suref-react'
+import { LAYOUT } from '../../lib/layout'
+import { cn } from '../../lib/utils'
 import type { PilotWizardFormState } from '../../lib/wizard/pilotFormState'
 
 type SURFindAll = { findAll: (fn: (x: unknown) => boolean) => unknown[] }
@@ -20,7 +22,12 @@ type Named = { id: string; name: string }
 function KvRow({ label, value }: { label: string; value: string | null }) {
   return (
     <div className="flex gap-4 border-b border-wk-bg-2 py-2.5 last:border-0">
-      <span className="w-[120px] shrink-0 font-cond text-xs font-bold uppercase tracking-[0.1em] text-wk-muted">
+      <span
+        className={cn(
+          LAYOUT.reviewLabelRail,
+          'shrink-0 font-cond text-xs font-bold uppercase tracking-widest text-wk-muted'
+        )}
+      >
         {label}
       </span>
       <span className={value ? 'font-body text-sm text-ink' : 'text-rust'}>
@@ -74,7 +81,7 @@ export function ReviewStep({ form, trainingPoints, submitError, _sur }: ReviewSt
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.1fr_1fr]">
       {/* kv-panel */}
-      <div className="self-start rounded-[3px] border-[1.5px] border-ink bg-paper p-4 text-sm">
+      <div className="self-start rounded-[3px] border-chrome border-ink bg-paper p-4 text-sm">
         {rows.map(([k, v]) => (
           <KvRow key={k} label={k} value={v} />
         ))}
