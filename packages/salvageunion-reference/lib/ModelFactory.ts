@@ -411,13 +411,25 @@ export function getDataMaps(): {
  *
  * Exposed for client use
  */
-function toPascalCase(id: string): string {
+export function toPascalCase(id: string): string {
   if (id === 'classes') return 'Classes'
   if (id === 'npcs') return 'NPCs'
   return id
     .split(/[-.]/)
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join('')
+}
+
+/**
+ * Registry key sets, exported for the consistency test ONLY — the loader
+ * maps themselves stay private (they must remain static-literal for
+ * bundler-analyzable dynamic imports). Every map here must cover exactly
+ * the same schema ids; lib/registryConsistency.test.ts enforces it.
+ */
+export const _registryKeySets = {
+  dataLoaders: Object.keys(dataLoaders),
+  jsonSchemaLoaders: Object.keys(jsonSchemaLoaders),
+  zodSchemaMap: Object.keys(zodSchemaMap),
 }
 
 /**
@@ -445,8 +457,9 @@ function validateAndParseData<T>(
 /**
  * Schema display name mappings
  */
-const schemaDisplayNames: Record<string, { singular: string; plural: string }> = {
+export const schemaDisplayNames: Record<string, { singular: string; plural: string }> = {
   abilities: { singular: 'Ability', plural: 'Abilities' },
+  actions: { singular: 'Action', plural: 'Actions' },
   'ability-tree-requirements': {
     singular: 'Ability Tree Requirement',
     plural: 'Ability Tree Requirements',

@@ -11,6 +11,7 @@ import {
   isSchemaLoaded,
   loadSchemas,
   resetLoadStateForTesting,
+  toPascalCase,
 } from './ModelFactory.js'
 import { extractActions, getChassisAbilities, invalidateActionMap } from './utilities.js'
 import { invalidateSearchIndex } from './search.js'
@@ -469,7 +470,7 @@ export class SalvageUnionReference {
       if (!isSchemaLoaded(id)) continue
 
       try {
-        const backing = getLoadedModel(id, toPascalCaseLocal(id))
+        const backing = getLoadedModel(id, toPascalCase(id))
         lazyModel._install(backing as BaseModel<unknown>)
       } catch {
         // Already logged during load; skip gracefully
@@ -645,15 +646,6 @@ export class SalvageUnionReference {
 // ---------------------------------------------------------------------------
 // Module-level helpers
 // ---------------------------------------------------------------------------
-
-function toPascalCaseLocal(id: string): string {
-  if (id === 'classes') return 'Classes'
-  if (id === 'npcs') return 'NPCs'
-  return id
-    .split(/[-.]/)
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join('')
-}
 
 // ---------------------------------------------------------------------------
 // Testing utilities
