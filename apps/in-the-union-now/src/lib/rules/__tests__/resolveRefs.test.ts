@@ -2,7 +2,7 @@
  * Ref resolution (slug canonical; legacy name/id tolerated) — audit item 1.
  * Uses real reference data: preloaded via the shared test preload.
  */
-import { describe, expect, test } from 'bun:test'
+import { beforeAll, describe, expect, test } from 'bun:test'
 import { SalvageUnionReference, getEntitySlug } from 'salvageunion-reference'
 
 import {
@@ -25,6 +25,12 @@ const anySystem = () => {
 }
 
 describe('resolveRefs', () => {
+  // Own preload — CI runs test files in a different order than local, and
+  // this file must not depend on another file having loaded the schemas.
+  beforeAll(async () => {
+    await SalvageUnionReference.preload('all')
+  })
+
   test('resolves a chassis by slug (canonical form)', () => {
     const chassis = anyChassis()
     expect(resolveChassisRef(getEntitySlug(chassis))?.id).toBe(chassis.id)

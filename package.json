@@ -51,7 +51,6 @@
     "build:itun": "bun --filter in-the-union-now build",
     "build:bot": "bun --filter @suref/discord-bot build",
     "build:package": "bun --filter salvageunion-reference build",
-    "build:package:ci": "bun --filter salvageunion-reference build:ci",
     "build:package:watch": "bun --filter salvageunion-reference watch",
     "deploy-commands": "bun --filter @suref/discord-bot deploy-commands",
     "deploy-commands:global": "bun --filter @suref/discord-bot deploy-commands:global",

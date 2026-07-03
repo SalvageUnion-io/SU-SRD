@@ -8,7 +8,7 @@
 # See docs/adrs/ADR-004-snapshot-netlify-functions.md.
 
 [build]
-  command = "bun install --frozen-lockfile && bun run build:package:ci && bun --filter in-the-union-now build"
+  command = "bun install --frozen-lockfile && bun --filter in-the-union-now build"
   publish = "apps/in-the-union-now/dist"
   functions = "apps/in-the-union-now/netlify/functions"
   # Skip the build when nothing affecting ITUN changed since the last published
