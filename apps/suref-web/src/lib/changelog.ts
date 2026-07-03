@@ -6,12 +6,57 @@ type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    date: '2026-07-03',
+    title: '55 community Mech Monday patterns',
+    items: [
+      'Seven chassis — Mule, Scrapper, Thresher, Spectrum, Mazona, Goliath, and Bobcat — now carry the community-designed patterns from Leyline Press\u2019s official Mech Monday compilations: 55 new patterns in all, each transcribed from the published cards.',
+      'A handful of cards that reference homebrew or ambiguous items were left out rather than guessed at.',
+    ],
+  },
+  {
+    date: '2026-07-03',
+    title: 'Builder: safer data, session drafts, printable sheets',
+    items: [
+      'Wizard progress survives refreshes and accidental taps — pilot/mech/crawler builds save a session draft as you go, and Cancel asks before discarding changes.',
+      'Scrapping a mech, moving cargo, and salvage deposits now apply all-or-nothing, so scrap value can no longer duplicate or vanish if something goes wrong mid-action.',
+      'Every sheet has a Print action with a clean paper layout (pips and current stats included) — use "Save as PDF" in the print dialog for a PDF copy.',
+      'Snapshot sharing renders a real scannable QR code, and internal links no longer trigger full page reloads on crawler pages.',
+    ],
+  },
+  {
+    date: '2026-07-03',
+    title: 'Discord bot: /lookup and full table coverage',
+    items: [
+      'New /lookup command searches every entity type — chassis, systems, modules, equipment, keywords, and more — with autocomplete and a link to the entity\u2019s SRD page.',
+      'Both "Salvage Cache Table" roll tables are now individually rollable (one previously shadowed the other), and slash commands re-register automatically on every deploy.',
+    ],
+  },
+  {
+    date: '2026-07-03',
+    title: 'Builder: live-play rules controls across every sheet',
+    items: [
+      'Mech sheets gained Take Damage (with the Critical Damage table), Heat Check escalation, Salvage rolls, Scrap-this-Mech, and per-item condition tracking; pilot sheets take damage and injuries; crawler sheets run the full economy — upkeep, upgrades, and trade.',
+      'A Downtime control walks the between-mission steps (repairs, healing, training, crafting), and a floating quick-roll button rolls any table from anywhere.',
+      'GMs get an encounter tray: track reference NPCs with live HP/SP and roll on the Mediator tables.',
+      'Global search (Cmd+K) finds any rule or entity from anywhere in the builder.',
+    ],
+  },
+  {
     date: '2026-07-02',
     title: 'Shadowed table restored, smarter search, tidier sitemap',
     items: [
       'The two "Salvage Cache Table" roll tables (We Were Here First! and Reclamation of the Wastes) shared one URL, so only the first was reachable — they are now disambiguated by source and both have their own page.',
       'Search understands multi-word queries: "heavy laser" now finds Heavy Laser instead of returning nothing, with word-prefix matching and better ranking.',
       'Removed 712 orphaned internal pages (inline-only entries like raw actions) from the sitemap and breadcrumbs — every indexed page now has a working parent listing.',
+    ],
+  },
+  {
+    date: '2026-06-29',
+    title: 'Builder: smarter mech & crawler building',
+    items: [
+      'Installed Heat Sinks, Capacitance Banks, cargo holds and similar passives now raise your mech\u2019s maximum Heat/EP/SP/Cargo automatically.',
+      'The mech loadout supports duplicate systems and modules (two Heat Sinks are two Heat Sinks), with per-item Add buttons, installed counts, and remove-one controls, plus Bio and Nanite tiers in the tech filter.',
+      'New crawlers seed only their base bays — the three expansion bays (Bio Bays, Nanite Processing Bay, VR Tubes) are add-ons you install — and crawler system capacity follows the crawler type.',
     ],
   },
   {
@@ -26,6 +71,13 @@ export const CHANGELOG: ChangelogEntry[] = [
     title: 'Link previews now mirror the entity card exactly',
     items: [
       'The preview image shown when you share an entity link is now a 1:1 render of the actual entity display card — the same header, stats, traits, and styling you see on the page — instead of a separately-designed preview.',
+    ],
+  },
+  {
+    date: '2026-06-24',
+    title: 'Faster, lighter artwork',
+    items: [
+      'All entity artwork now serves as WebP from a dedicated asset store — noticeably smaller downloads on art-heavy pages, with the about-page map shrunk to a fraction of its old size.',
     ],
   },
   {
@@ -50,10 +102,29 @@ export const CHANGELOG: ChangelogEntry[] = [
     ],
   },
   {
+    date: '2026-06-17',
+    title: 'Small data & display fixes',
+    items: [
+      'The "Legal Starting Pattern" badge is driven by each pattern\u2019s data tag instead of being computed, fixing patterns that were mislabeled.',
+      'The Adv. Epoxy Applicator\u2019s self-action now bubbles up correctly, and entities whose stats live on a matching action show those stats in the resolved data row.',
+      'First Aid Kit no longer shows a spurious 2 AP cost.',
+    ],
+  },
+  {
     date: '2026-06-15',
     title: 'Fabrication Bay options restored',
     items: [
       'The Fabrication Bay system now lists its four activation options — restore up to 15 SP, restore up to 2 EP, repair damaged Systems/Modules, or repair damaged Chassis/Vehicles. Previously the text promised "choose one of the following options" but showed none.',
+    ],
+  },
+  {
+    date: '2026-06-13',
+    title: 'In The Union Now rebuilt — local-first, no account needed',
+    items: [
+      'The character builder & game manager was rebuilt from the ground up as a local-first app: your pilots, mechs, and crawlers live in your browser (with export/import backups) — no account, no server, works offline.',
+      'Redesigned pilot/mech/crawler wizards with auto-fill selection grids, a floating step footer, and a crawler Crew step with selectable crawler types and editable tech level.',
+      'Share read-only snapshots of any sheet via link — the one place a server is involved, and only when you ask for it.',
+      'The Discord bot also got steadier: it now finishes loading game data before answering commands.',
     ],
   },
   {
