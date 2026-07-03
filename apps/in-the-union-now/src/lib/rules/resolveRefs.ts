@@ -25,19 +25,58 @@ export function matchesRef(entity: RefEntity, ref: string): boolean {
   return entity.name === ref || nameToSlug(entity.name) === ref
 }
 
+/**
+ * Lazy per-model lookup maps (audit item 18): derived-stat computations call
+ * these resolvers once per installed ref per render, and the linear
+ * `.find()` scans over the full Systems+Modules catalogs were the dominant
+ * per-render cost on the sheet surfaces. Each map indexes id, name, AND slug
+ * so every tolerated ref form is O(1). Reference data is immutable after
+ * preload, so the maps build once on first successful access; a throw from
+ * `.all()` (schema not yet loaded) propagates exactly like the old `.find()`
+ * path and leaves the cache unbuilt for the next attempt.
+ */
+type ModelLike<T extends RefEntity> = { all: () => readonly T[] }
+
+function buildRefMap<T extends RefEntity>(model: ModelLike<T>): Map<string, T> {
+  const map = new Map<string, T>()
+  // First writer wins on collisions, matching Array.prototype.find order.
+  const claim = (key: string, entity: T) => {
+    if (!map.has(key)) map.set(key, entity)
+  }
+  for (const entity of model.all()) {
+    claim(entity.id, entity)
+    if (entity.name) {
+      claim(entity.name, entity)
+      claim(nameToSlug(entity.name), entity)
+    }
+  }
+  return map
+}
+
+const refMaps = new WeakMap<object, Map<string, RefEntity>>()
+
+function resolveVia<T extends RefEntity>(model: ModelLike<T>, ref: string): T | null {
+  let map = refMaps.get(model)
+  if (!map) {
+    map = buildRefMap(model)
+    refMaps.set(model, map)
+  }
+  return (map.get(ref) as T | undefined) ?? null
+}
+
 /** Resolve a mech `chassisRef` (slug; legacy name/id tolerated). */
 export function resolveChassisRef(ref: string) {
-  return SalvageUnionReference.Chassis.find((c) => matchesRef(c, ref)) ?? null
+  return resolveVia(SalvageUnionReference.Chassis, ref)
 }
 
 /** Resolve an installed system ref (slug; legacy name/id tolerated). */
 export function resolveSystemRef(ref: string) {
-  return SalvageUnionReference.Systems.find((s) => matchesRef(s, ref)) ?? null
+  return resolveVia(SalvageUnionReference.Systems, ref)
 }
 
 /** Resolve an installed module ref (slug; legacy name/id tolerated). */
 export function resolveModuleRef(ref: string) {
-  return SalvageUnionReference.Modules.find((m) => matchesRef(m, ref)) ?? null
+  return resolveVia(SalvageUnionReference.Modules, ref)
 }
 
 /**
