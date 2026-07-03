@@ -354,3 +354,37 @@ describe('PilotWizard — edit mode', () => {
     expect((save as HTMLButtonElement).disabled).toBe(false)
   }, 30000)
 })
+
+// ---------------------------------------------------------------------------
+// Draft persistence (audit item 3): unmount → remount restores the session
+// draft; a confirmed Cancel discards it.
+// ---------------------------------------------------------------------------
+
+describe('PilotWizard — session drafts', () => {
+  it('restores in-progress state after unmount and clears it on confirmed cancel', async () => {
+    const { unmount } = render(<PilotWizard onComplete={() => {}} onCancel={() => {}} />)
+    await pick('Engineer')
+
+    // Simulate a refresh/navigation: unmount, then mount a fresh wizard.
+    await act(async () => {
+      unmount()
+    })
+    expect(sessionStorage.getItem('itun-wizard-draft:pilot:new')).not.toBeNull()
+
+    const onCancel = mock(() => {})
+    render(<PilotWizard onComplete={() => {}} onCancel={onCancel} />)
+    // The Class pick survived: Engineer's OptRow is the active selection and
+    // the Next CTA is enabled (a pristine wizard has it disabled).
+    expect((getNextButton() as HTMLButtonElement).disabled).toBe(false)
+
+    // Cancel on a dirty form asks first; confirming discards the draft.
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Discard' }))
+    })
+    expect(onCancel).toHaveBeenCalledTimes(1)
+    expect(sessionStorage.getItem('itun-wizard-draft:pilot:new')).toBeNull()
+  }, 30000)
+})

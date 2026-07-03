@@ -1,5 +1,7 @@
+import { useState } from 'react'
 import type { ReactNode } from 'react'
 import { Btn, Stepper } from 'suref-react'
+import { ConfirmDialog } from '../shared/ConfirmDialog'
 import { LAYOUT } from '../../lib/layout'
 import { cn } from '../../lib/utils'
 
@@ -34,6 +36,12 @@ type WizShellProps = {
   footerNote?: ReactNode
   onBack?: () => void
   onCancel: () => void
+  /**
+   * When true (a dirty form), Cancel asks for confirmation before
+   * discarding — a mis-tap can no longer destroy a multi-step build
+   * (audit item 3). Default false keeps pristine forms one-click.
+   */
+  confirmCancel?: boolean
   /** Advances to the next step, or submits on the last step. */
   onNext: () => void
   nextDisabled?: boolean
@@ -68,7 +76,9 @@ export function WizShell({
   nextDisabled = false,
   busy = false,
   submitLabel,
+  confirmCancel = false,
 }: WizShellProps) {
+  const [confirmingCancel, setConfirmingCancel] = useState(false)
   const isLast = active >= steps.length - 1
   const ctaLabel = isLast ? submitLabel : `Next · ${steps[active + 1]} →`
 
@@ -145,9 +155,27 @@ export function WizShell({
                   Back
                 </Btn>
               )}
-              <Btn variant="ghost" onClick={onCancel} disabled={busy}>
+              <Btn
+                variant="ghost"
+                onClick={() => (confirmCancel ? setConfirmingCancel(true) : onCancel())}
+                disabled={busy}
+              >
                 Cancel
               </Btn>
+              <ConfirmDialog
+                open={confirmingCancel}
+                title="Discard this draft?"
+                confirmLabel="Discard"
+                cancelLabel="Keep editing"
+                danger
+                onConfirm={() => {
+                  setConfirmingCancel(false)
+                  onCancel()
+                }}
+                onCancel={() => setConfirmingCancel(false)}
+              >
+                Your unsaved changes will be lost.
+              </ConfirmDialog>
             </div>
             <Btn
               variant="primary"
