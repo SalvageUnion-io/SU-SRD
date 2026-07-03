@@ -84,7 +84,7 @@ export function deriveContentBlocks<T extends ContentBlock>(options: {
   return contentBlocks
 }
 
-export type TitanicStatblock = {
+type TitanicStatblock = {
   /** Bio-Titans and drone-class bosses with a mech-style statblock. */
   isTitanicStatblock: boolean
   statblockSystems: SURefEntity[] | undefined

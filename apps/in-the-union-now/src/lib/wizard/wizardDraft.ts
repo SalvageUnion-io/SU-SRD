@@ -18,7 +18,7 @@ import { useEffect, useMemo, useRef } from 'react'
 
 const PREFIX = 'itun-wizard-draft'
 
-export type WizardKind = 'pilot' | 'mech' | 'crawler'
+type WizardKind = 'pilot' | 'mech' | 'crawler'
 
 /** Draft slot: one per kind for creates, one per entity for edits. */
 export function wizardDraftKey(kind: WizardKind, entityId?: string): string {

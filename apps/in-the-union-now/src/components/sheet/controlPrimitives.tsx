@@ -17,11 +17,11 @@ import type { DamageKind } from '../../lib/rules/takeDamage'
 import type { EntityForType, EntityType } from '../../stores/types'
 
 /** Numeric/text input chrome shared by the sheet controls (w-16 variant). */
-// eslint-disable-next-line react-refresh/only-export-components -- shared control helpers, colocated by design (audit items 24/19)
-export const CONTROL_INPUT_CLASS =
+
+const CONTROL_INPUT_CLASS =
   'w-16 rounded-[3px] border-chrome border-ink bg-paper px-2 py-1.5 font-body text-sm text-ink focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22]'
 
-/** Full-width select/input chrome (SalvageControl/CraftingControl pickers). */
+/** Full-width select/input chrome (SalvageControl pickers). */
 // eslint-disable-next-line react-refresh/only-export-components -- shared control helpers, colocated by design (audit items 24/19)
 export const CONTROL_SELECT_CLASS =
   'w-full rounded-[3px] border-chrome border-ink bg-paper px-2 py-1.5 font-body text-sm text-ink focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22]'

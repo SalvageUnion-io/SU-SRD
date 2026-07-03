@@ -22,7 +22,7 @@ import {
  * from their own `compact` prop exactly as before. Nested cards mount their
  * own provider, so inner compact cards never inherit outer full-card sizes.
  */
-export type ReferenceEntityDisplayState = {
+type ReferenceEntityDisplayState = {
   compact: boolean
   spacing: ReturnType<typeof getReferenceEntitySpacing>
   fontSize: ReturnType<typeof getReferenceEntityFontSizes>

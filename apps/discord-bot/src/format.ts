@@ -7,10 +7,10 @@ import type { RollOnTableOutcome } from 'salvageunion-reference'
 import { SchemaToDisplayName, getEntitySlug } from 'salvageunion-reference'
 import type { SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
 
-export const SUREF_WEB_BASE_URL = 'https://salvageunion.io'
+const SUREF_WEB_BASE_URL = 'https://salvageunion.io'
 
 /** Neutral SU rust tone for embeds without pass/fail semantics. */
-export const NEUTRAL_EMBED_COLOR = 0xb7410e
+const NEUTRAL_EMBED_COLOR = 0xb7410e
 
 /**
  * Core Mechanic tier color for a d20 roll (20 crit → 1 cascade failure).
@@ -31,7 +31,7 @@ export function truncate(text: string, max: number): string {
   return `${cut.slice(0, lastSpace > max * 0.6 ? lastSpace : max - 1)}…`
 }
 
-export type EmbedData = {
+type EmbedData = {
   title: string
   color: number
   description?: string

@@ -38,8 +38,8 @@ export function resolveCrawlerSystem(ref: string): SURefEntity | null {
 export const BAY_REPAIR_COST = 5
 
 /** Each bay's function-action verb (design §4.4 — Dock/Craft/Heal/Mount…). */
-// eslint-disable-next-line react-refresh/only-export-components -- shared control helpers, colocated by design (audit items 24/19)
-export const BAY_FUNCTIONS: Record<string, string> = {
+
+const BAY_FUNCTIONS: Record<string, string> = {
   'Command Bay': 'Scan',
   'Mech Bay': 'Dock',
   'Storage Bay': 'Store',
@@ -53,7 +53,7 @@ export const BAY_FUNCTIONS: Record<string, string> = {
 }
 
 /** Stable hide literal — the bay's long rules text lives in the detail modal. */
-export const HIDE_BAY_CONTENT = { content: true } as const
+const HIDE_BAY_CONTENT = { content: true } as const
 
 type CrawlerBayCardProps = {
   crawlerId: string
@@ -238,7 +238,7 @@ export function CrawlerBayCard({
   )
 }
 
-export type CrawlerNpcState = NonNullable<Crawler['typeNpc']>
+type CrawlerNpcState = NonNullable<Crawler['typeNpc']>
 
 type CrawlerTypeCardProps = {
   crawlerId: string

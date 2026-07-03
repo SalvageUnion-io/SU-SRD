@@ -47,14 +47,11 @@ import type { Crawler } from '../../lib/schemas/crawler'
 import { useEntityStore } from '../../stores/entityStore'
 import { cn } from '../../lib/utils'
 import { SectionCard } from '../shared/SectionCard'
-import { freshEntity } from './controlPrimitives'
+import { CONTROL_SELECT_CLASS, freshEntity } from './controlPrimitives'
 import { loadRef, numericTl } from './refCatalog'
 import type { RefItem } from './refCatalog'
 
 const TECH_LEVELS = [1, 2, 3, 4, 5, 6] as const
-
-const SELECT_CLASS =
-  'w-full rounded-[3px] border-chrome border-ink bg-paper px-2 py-1.5 font-body text-sm text-ink focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22]'
 
 type ClaimOption = {
   key: string
@@ -151,7 +148,7 @@ function ClaimPicker({
           id={selectId}
           value={selectedKey}
           onChange={(e) => setSelectedKey(e.target.value)}
-          className={cn(SELECT_CLASS, 'min-w-0 flex-1')}
+          className={cn(CONTROL_SELECT_CLASS, 'min-w-0 flex-1')}
         >
           <option value="">Pick an item…</option>
           {pickableKinds.map((kind) =>
@@ -489,7 +486,7 @@ export function SalvageControl({
             id={wreckSelectId}
             value={wreckId}
             onChange={(e) => setWreckId(e.target.value)}
-            className={SELECT_CLASS}
+            className={CONTROL_SELECT_CLASS}
           >
             <option value="">Pick the wreck&rsquo;s chassis…</option>
             {toOptions('chassis', chassisItems).map((option) => (
