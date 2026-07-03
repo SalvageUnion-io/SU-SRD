@@ -1,20 +1,19 @@
 /**
- * PatternList — lists all saved MechPatterns from the mechPatterns db store.
+ * PatternList — lists all saved MechPatterns via the patternStore.
  *
  * Each pattern row shows its name, chassisRef, and slot counts, along with an
  * InstantiateFromPattern button.
  *
- * Data fetching: reads directly from db.mechPatterns (no entityStore layer for
- * patterns — patterns are a simple local store without the Zustand hydration
- * complexity). This keeps the component self-contained.
+ * Data fetching: subscribes to usePatternStore (audit item 22) — patterns get
+ * the same lazy hydration, cross-tab broadcast, and backup-nudge discipline
+ * as every other collection (they previously bypassed the store layer with a
+ * one-shot db read into local state).
  *
  * onInstantiated is forwarded from the route so navigation can happen at the
  * route boundary.
  */
 
-import { useEffect, useState } from 'react'
-import * as db from '../../../lib/db/index'
-import type { MechPattern } from '../../../lib/schemas/pattern'
+import { usePatternStore } from '../../../stores/patternStore'
 import { InstantiateFromPattern } from './InstantiateFromPattern'
 
 type PatternListProps = {
@@ -23,32 +22,11 @@ type PatternListProps = {
 }
 
 export function PatternList({ onInstantiated }: PatternListProps) {
-  const [patterns, setPatterns] = useState<MechPattern[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [loadError, setLoadError] = useState<string | null>(null)
-
-  useEffect(() => {
-    let cancelled = false
-
-    db.mechPatterns
-      .list()
-      .then((results) => {
-        if (!cancelled) {
-          setPatterns(results)
-          setIsLoading(false)
-        }
-      })
-      .catch((err: unknown) => {
-        if (!cancelled) {
-          setLoadError(err instanceof Error ? err.message : 'Failed to load patterns.')
-          setIsLoading(false)
-        }
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [])
+  // Subscribing keeps the list live — saves from this tab (or another tab,
+  // via broadcast) appear without a refetch. list() lazily hydrates.
+  const patterns = usePatternStore((s) => s.mechPatterns)
+  const isLoading = !usePatternStore((s) => s.hydrated)
+  usePatternStore.getState().list()
 
   function handleInstantiated(mechId: string) {
     onInstantiated(mechId)
@@ -58,14 +36,6 @@ export function PatternList({ onInstantiated }: PatternListProps) {
     return (
       <p className="text-sm text-wk-muted" aria-live="polite">
         Loading patterns…
-      </p>
-    )
-  }
-
-  if (loadError) {
-    return (
-      <p className="text-sm text-danger" role="alert">
-        {loadError}
       </p>
     )
   }
