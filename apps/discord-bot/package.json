@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "bun run src/index.ts",
     "dev:watch": "bun --watch run src/index.ts",
-    "build": "tsc -p tsconfig.build.json",
+    "build": "bun build src/index.ts src/deploy-commands.ts --outdir dist --target node --external discord.js --external @sentry/node --external @randsum/roller",
     "start": "node dist/index.js",
     "deploy-commands": "bun run src/deploy-commands.ts",
     "deploy-commands:global": "DEPLOY_GLOBAL=true bun run src/deploy-commands.ts",

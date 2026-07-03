@@ -77,7 +77,7 @@ export default defineConfig({
         // `vite preview` (no per-request compile); locally we reuse the
         // running dev server when one exists.
         command: process.env.CI
-          ? 'bun --filter salvageunion-reference build:ci && bun --filter in-the-union-now build && cd apps/in-the-union-now && bunx --bun vite preview --port 5173 --strictPort'
+          ? 'bun --filter in-the-union-now build && cd apps/in-the-union-now && bunx --bun vite preview --port 5173 --strictPort'
           : 'bun run dev:itun',
         cwd: '../..',
         url: 'http://localhost:5173',

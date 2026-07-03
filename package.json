@@ -42,7 +42,7 @@
   "scripts": {
     "prepare": "[ -z \"$CI\" ] && [ -d .git ] && command -v lefthook >/dev/null && lefthook install || true",
     "dev": "bun run build:package && bun --filter suref-web dev",
-    "dev:watch": "concurrently -g 'bun --filter salvageunion-reference watch' 'bun --filter suref-web dev'",
+    "dev:watch": "bun run dev",
     "dev:bot": "bun run build:package && bun --filter @suref/discord-bot dev",
     "dev:bot:watch": "bun --filter @suref/discord-bot dev:watch",
     "dev:itun": "bun run build:package && bun --filter in-the-union-now dev",
