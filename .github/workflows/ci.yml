@@ -456,10 +456,14 @@ jobs:
           key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
 
       - name: Install Playwright browsers (Chromium)
+        # Run from the app dir so bunx resolves suref-web's exact Playwright
+        # version and installs the matching browser revision (mirrors e2e-itun).
+        working-directory: apps/suref-web
         run: bunx playwright install --with-deps chromium
 
       - name: Run E2E tests
-        run: bun --filter suref-web test:e2e
+        working-directory: apps/suref-web
+        run: bunx playwright test
 
       - name: Upload Playwright report on failure
         if: failure()
