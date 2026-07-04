@@ -13,9 +13,12 @@
 #
 # GROUPING STRATEGY: this repo intentionally rides bleeding-edge majors
 # (TypeScript 6, ESLint 10, Astro 6, Vite 7). Minor/patch bumps are grouped
-# (one PR for dev-deps, one for prod-deps) to keep churn manageable, while MAJOR
-# bumps are deliberately left OUT of the groups so each lands as its own
-# reviewable PR (a major TS/ESLint/Astro/Vite bump is never a "just merge it").
+# (one PR for dev-deps, one for prod-deps) to keep churn manageable. MAJOR bumps
+# are consolidated into a SINGLE `major-updates` PR rather than one-per-dep-per-
+# directory: the same dependency (e.g. Vite) lives in several workspace
+# package.json files, so ungrouped majors opened a separate PR for each — a
+# flood of a dozen PRs on the first run. Majors are still held for deliberate
+# review (never a "just merge it"); they just arrive as one reviewable batch.
 version: 2
 updates:
   # ------------------------------------------------------------------ Bun / npm
@@ -42,6 +45,13 @@ updates:
         update-types:
           - 'minor'
           - 'patch'
+      # All major bumps (any dependency, any workspace) land in ONE PR instead
+      # of a separate per-directory PR each. Held for deliberate review.
+      major-updates:
+        patterns:
+          - '*'
+        update-types:
+          - 'major'
     commit-message:
       prefix: 'chore'
       prefix-development: 'chore'
