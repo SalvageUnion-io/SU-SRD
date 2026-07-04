@@ -1,12 +1,12 @@
 # Action Variant Reconciliation — Proposal & Classification
 
-> **Status: review proposal.** This document re-examines the "numbered / parenthetical
-> action variant" divergences in `data/actions.json`. It is a reviewable classification
-> intended for maintainer (game-content) sign-off — **not** an authoritative fix. Every
-> verdict below is evidence-based, but "which stat block is canonical" is ultimately a
-> game-content judgment call. **No data edits were applied** by this proposal; see
-> [Edits applied](#edits-applied) for why, and [Flagged for maintainer review](#flagged-for-maintainer-review)
-> for the borderline cases left to your judgment.
+> **Status: maintainer-reviewed.** This document re-examines the "numbered / parenthetical
+> action variant" divergences in `data/actions.json`. It is an evidence-based classification
+> that received maintainer (game-content) sign-off. Every verdict below is evidence-based,
+> but "which stat block is canonical" is ultimately a game-content judgment call. The two
+> borderline items were resolved by the maintainer — **Flag A: left intentional (no change);
+> Flag B: `displayName` metadata added.** See [Flagged for maintainer review](#flagged-for-maintainer-review)
+> for the resolutions and [Edits applied](#edits-applied) for exactly what changed.
 
 ## TL;DR
 
@@ -23,9 +23,10 @@
 - A sweep of all **686 records** finds **42 name-families with 2+ members** and
   **0 duplicate IDs**. Every divergence traces to a **distinct game entity**.
 - **High-confidence data-entry errors found: 0.** Under the project's "when in doubt,
-  treat as intentional and leave it" rule, no automated reconciling edits are warranted.
-- **2 borderline items are flagged** for maintainer judgment (a possibly-dropped trait
-  and some metadata inconsistencies) — deliberately _not_ auto-edited.
+  treat as intentional and leave it" rule, no automated stat reconciling edits were warranted.
+- **2 borderline items were flagged** for maintainer judgment (a possibly-dropped trait
+  and some metadata inconsistencies). Maintainer resolutions: **Flag A — left intentional,
+  no change; Flag B — `displayName` metadata added** to the two records that lacked it.
 
 ## The architecture (why these are not duplicates)
 
@@ -130,7 +131,8 @@ upgrade). All distinct entities or documented ability upgrades.
 
 ## Flagged for maintainer review
 
-These are **not** auto-edited — they need a game-content decision:
+Both borderline items were referred to the maintainer for a game-content decision.
+**Resolutions are recorded inline below.**
 
 - **Flag A — `Improvised Melee Weapon (Wastelander)` is missing the `silent` trait.**
   The base (`equipment`) has `melee, silent`; the Wastelander (`npcs`) copy has `melee`
@@ -138,31 +140,44 @@ These are **not** auto-edited — they need a game-content decision:
   other NPC weapon copy replicates the base traits exactly. It reads plausibly as a
   dropped trait. **But** re-adding `silent` is a game-content change (it makes the
   Wastelander's attack undetectable), and a loud improvised weapon could be a deliberate
-  choice, so it is left for maintainer judgment rather than edited. _(Note: the sibling
+  choice, so it was left for maintainer judgment rather than edited. _(Note: the sibling
   `Monomolecular Sword (Elite Blade Squad)` also drops `silent`, but there it is explained
   by the squad buff pattern — many attackers are not stealthy.)_
-- **Flag B — metadata inconsistencies (out of scope for stat reconciliation).**
+  **→ Resolution (maintainer): LEFT AS-IS — treated as intentional. No change made.**
+- **Flag B — metadata inconsistencies (missing `displayName`).**
   `Improvised Explosive Device (Flint Children Squad)` and the standalone `Bite (Bio-Maw)`
-  lack a `displayName`, whereas their sibling variants carry one. Adding `displayName`
-  is a metadata/grouping enhancement, not a stat-divergence fix, so it is flagged rather
-  than implemented (stays within the reconciliation scope).
+  lacked a `displayName`, whereas their sibling variants carry one. Adding `displayName`
+  is a metadata/grouping change with no mechanical effect.
+  **→ Resolution (maintainer): APPLIED.** `displayName` added, mirroring the exact sibling
+  values: `"Improvised Explosive Device"` (matching `Improvised Explosive Device (Saboteur)`)
+  and `"Bite"` (matching `Bite (Scrap Termite)`). Text-level edits only; no other fields
+  or formatting touched.
 
 ## Edits applied
 
-**None.** After per-variant evidence review, there are **zero high-confidence
-data-entry errors**: every divergence maps to a distinct entity or a documented
-convention. Per the project's data-safety rule ("when in doubt, treat it as intentional
-and leave it — flag for maintainer review rather than editing"), the correct action is
-to correct this analysis and flag the borderline cases, not to mutate copyright-bearing
-game data on a judgment call. JSON key-order differences noted historically are cosmetic
-and are intentionally **not** "fixed" — reordering keys is pure reformatting churn the
-data conventions forbid.
+**Two `displayName` additions** to `data/actions.json`, both resolving Flag B under
+maintainer sign-off (metadata only, no mechanical effect):
+
+- `Bite (Bio-Maw)` — added `"displayName": "Bite"`.
+- `Improvised Explosive Device (Flint Children Squad)` — added
+  `"displayName": "Improvised Explosive Device"`.
+
+Both were text-level insertions immediately after the `name` line, mirroring the exact
+`displayName` value their sibling variants already carry; no IDs, stats, or existing
+formatting were changed.
+
+**No stat divergences were reconciled.** Per-variant review found **zero high-confidence
+data-entry errors** — every stat divergence maps to a distinct entity or a documented
+convention — and Flag A (`Improvised Melee Weapon (Wastelander)` `silent`) was left
+intentional by maintainer decision. Per the project's data-safety rule ("when in doubt,
+treat it as intentional and leave it"), no stat/trait/range/damage fields were mutated.
+JSON key-order differences noted historically are cosmetic and are intentionally **not**
+"fixed" — reordering keys is pure reformatting churn the data conventions forbid.
 
 ## Recommendation
 
 1. Treat the parenthetical variants as first-class, entity-scoped stat blocks; do **not**
    merge/collapse them.
-2. Decide Flag A (`Improvised Melee Weapon (Wastelander)` `silent`). If it should match
-   the base, add the trait in a follow-up; if the Wastelander is meant to be loud, no
-   change.
-3. Optionally address Flag B (missing `displayName`s) as a separate metadata pass.
+2. Flag A (`Improvised Melee Weapon (Wastelander)` `silent`) — **resolved: left as-is**
+   (maintainer treats the loud improvised weapon as intentional).
+3. Flag B (missing `displayName`s) — **resolved: applied** in this change.
