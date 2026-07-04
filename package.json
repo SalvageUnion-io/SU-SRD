@@ -37,7 +37,7 @@
     "typescript-eslint": "8.61.0"
   },
   "optionalDependencies": {
-    "lefthook": "2.1.4"
+    "lefthook": "2.1.9"
   },
   "scripts": {
     "prepare": "[ -z \"$CI\" ] && [ -d .git ] && command -v lefthook >/dev/null && lefthook install || true",

@@ -26,7 +26,7 @@
     "@randsum/roller": "^2.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "lucide-react": "^1.18.0",
+    "lucide-react": "^1.23.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "salvageunion-reference": "workspace:*",
@@ -34,7 +34,7 @@
     "tailwind-merge": "^3.0.2"
   },
   "devDependencies": {
-    "@base-ui/react": "1.5.0",
+    "@base-ui/react": "1.6.0",
     "@ladle/react": "^5.1.1",
     "@playwright/test": "1.60.0",
     "@randsum/roller": "^2.0.0",
@@ -42,7 +42,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "eslint-plugin-react-refresh": "^0.4.24",
-    "lucide-react": "^1.18.0",
+    "lucide-react": "^1.23.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "salvageunion-reference": "workspace:*",
