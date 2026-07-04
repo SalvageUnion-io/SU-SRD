@@ -8,7 +8,7 @@ import {
 import { search, getEntitySlug, findEntityBySlug } from 'salvageunion-reference'
 import type { SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
 
-import { buildLookupEmbedData } from '../format.js'
+import { buildLookupEmbed } from '../lookupEmbed.js'
 
 type Hit = {
   schemaName: SURefEnumSchemaName
@@ -88,13 +88,13 @@ export const lookupCommand = {
       return
     }
 
-    const data = buildLookupEmbedData(hit.entity, hit.schemaName)
+    const data = buildLookupEmbed(hit.entity, hit.schemaName)
     const embed = new EmbedBuilder()
       .setTitle(data.title)
       .setColor(data.color)
-      .addFields(data.fields)
-      .setFooter({ text: 'Salvage Union Reference' })
+      .setFooter({ text: data.footer })
       .setTimestamp()
+    if (data.fields.length) embed.addFields(data.fields)
     if (data.url) embed.setURL(data.url)
     if (data.description) embed.setDescription(data.description)
 

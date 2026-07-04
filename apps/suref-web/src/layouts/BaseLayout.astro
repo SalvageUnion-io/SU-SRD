@@ -59,6 +59,13 @@ const ogImageUrl = ogImage.startsWith('http') ? ogImage : new URL(ogImage, SITE_
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    {/* Mark the document as JS-capable synchronously, before first paint, so
+        `.js [data-static-fallback] { display:none }` (global.css) hides the
+        SEO/no-JS text block for JS users. Without this the naked static text
+        painted until the client:visible island hydrated — a text-only flash
+        on every entity load. documentElement persists across ClientRouter
+        view transitions, so this runs once and holds. */}
+    <script is:inline>document.documentElement.classList.add('js')</script>
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonicalUrl} />
@@ -105,9 +112,11 @@ const ogImageUrl = ogImage.startsWith('http') ? ogImage : new URL(ogImage, SITE_
     <ClientRouter />
 
     {/* The per-entity static block (data-static-fallback) is an SEO / no-JS
-        fallback only — the hydrated card is the real view. ReferenceEntityIsland
-        hides it at hydration and removes it once game data is ready, so a data
-        or render failure never leaves the page blank. */}
+        fallback only — the hydrated card is the real view. It is hidden
+        pre-paint for JS users by the `.js` class set above (see global.css),
+        so the naked text never flashes; ReferenceEntityIsland then removes it
+        from the DOM once game data is ready. No-JS users and crawlers keep the
+        content. */}
   </head>
   <body>
     <div class="flex min-h-screen flex-col bg-su-white">
