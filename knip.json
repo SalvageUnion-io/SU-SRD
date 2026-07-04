@@ -8,6 +8,7 @@
       "project": ["tools/**/*.ts"]
     },
     "packages/salvageunion-reference": {
+      "entry": ["lib/index.ts", "tools/**/*.ts"],
       "project": ["lib/**/*.ts", "tools/**/*.ts"]
     },
     "packages/suref-react": {

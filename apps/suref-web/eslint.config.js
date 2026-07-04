@@ -19,6 +19,13 @@ export default [
       '.astro',
       '*.astro',
       'src/**/*.astro',
+      // Playwright lives outside the app tsconfig project (it has its own
+      // TypeScript pipeline at `playwright test` time), so exclude its
+      // config + spec dirs from the app-level ESLint pass.
+      'playwright.config.ts',
+      'e2e/**',
+      'playwright-report/**',
+      'test-results/**',
     ],
   },
   ...base,

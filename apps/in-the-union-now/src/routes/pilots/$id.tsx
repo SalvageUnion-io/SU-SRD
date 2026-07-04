@@ -8,9 +8,12 @@
  * 404 rendered inline when the pilot is not found after hydration.
  */
 
+import { useMemo } from 'react'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 
-import { usePilot } from '../../hooks/queries'
+import { useCrawlers, useMechs, usePilot } from '../../hooks/queries'
+import { SoftWarningBanner } from '../../components/shared/SoftWarningBanner'
+import { pilotDetailWarnings } from '../../lib/rules/detailWarnings'
 import { useEntityStore } from '../../stores/entityStore'
 import { AssignCrawlerToPilot } from '../../components/wiring/AssignCrawlerToPilot'
 import { UnassignLinkButton } from '../../components/wiring/UnassignLinkButton'
@@ -28,6 +31,7 @@ export const Route = createFileRoute('/pilots/$id')({
     await Promise.all([
       useEntityStore.getState().hydrate('pilot'),
       useEntityStore.getState().hydrate('crawler'),
+      useEntityStore.getState().hydrate('mech'),
       useEntityStore.getState().hydrate('softLink'),
       useWorkspaceStore.getState().hydrate(),
     ])
@@ -38,13 +42,38 @@ export const Route = createFileRoute('/pilots/$id')({
 
 function PilotDetailPage() {
   const { id } = Route.useParams()
+  return <PilotDetailInner id={id} />
+}
+
+/**
+ * Page body, split out (dep-injectable `id`) so it can be rendered under a
+ * minimal test router — mirrors the `SnapshotPageInner` seam.
+ */
+export function PilotDetailInner({ id }: { id: string }) {
   const navigate = useNavigate()
 
   const pilot = usePilot(id)
-  const { outgoing } = useSoftLinks({ entityType: 'pilot', entityId: id })
+  const crawlers = useCrawlers()
+  const mechs = useMechs()
+  const { outgoing, incoming } = useSoftLinks({ entityType: 'pilot', entityId: id })
 
-  // Outgoing pilot-to-crawler links
+  // Outgoing pilot-to-crawler link (the pilot's crawler), resolved to its record.
   const crawlerLink = outgoing.find((l) => l.type === 'pilot-to-crawler') ?? null
+  const assignedCrawler = crawlerLink
+    ? (crawlers.find((c) => c.id === crawlerLink.to.id) ?? null)
+    : null
+
+  // Incoming mech-to-pilot links — mechs assigned to this pilot.
+  const assignedMechs = incoming
+    .filter((l) => l.type === 'mech-to-pilot')
+    .map((link) => ({ link, mech: mechs.find((m) => m.id === link.from.id) ?? null }))
+
+  // Passive soft warnings for the stored pilot's current state (advisory).
+  const warnings = useMemo(
+    () =>
+      pilot ? pilotDetailWarnings({ abilities: pilot.abilities, classRef: pilot.classRef }) : [],
+    [pilot]
+  )
 
   if (!pilot) {
     return (
@@ -88,6 +117,9 @@ function PilotDetailPage() {
           </Link>
         </div>
       </div>
+
+      {/* Passive soft-warning strip — renders nothing when there are none. */}
+      <SoftWarningBanner warnings={warnings} className="mb-6 px-0" />
 
       {/* 2-pane at lg+: left = sheet/summary, right = wiring/actions */}
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
@@ -135,8 +167,18 @@ function PilotDetailPage() {
             </h2>
             {crawlerLink ? (
               <div className="flex items-center gap-3 text-sm">
-                <span className="flex-1 text-wk-muted">
-                  Crawler linked: <span className="font-medium text-ink">{crawlerLink.to.id}</span>
+                <span className="flex-1">
+                  {assignedCrawler ? (
+                    <Link
+                      to="/crawlers/$id"
+                      params={{ id: assignedCrawler.id }}
+                      className="font-medium text-rust underline-offset-2 hover:underline"
+                    >
+                      {assignedCrawler.name}
+                    </Link>
+                  ) : (
+                    <span className="text-wk-muted">Unknown crawler ({crawlerLink.to.id})</span>
+                  )}
                 </span>
                 <UnassignLinkButton
                   linkId={crawlerLink.id}
@@ -152,6 +194,41 @@ function PilotDetailPage() {
                   onAssigned={() => void navigate({ to: '/pilots/$id', params: { id } })}
                 />
               </div>
+            )}
+          </section>
+
+          {/* Assigned mechs (via incoming SoftLinks) */}
+          <section className="rounded-[3px] border-chrome border-ink bg-paper p-4">
+            <h2 className="mb-3 font-cond text-sm font-bold uppercase tracking-widest text-su-black">
+              Assigned Mechs
+            </h2>
+            {assignedMechs.length === 0 ? (
+              <p className="text-sm text-wk-muted">
+                No mechs assigned. Mechs can be assigned from their detail page.
+              </p>
+            ) : (
+              <ul className="space-y-2">
+                {assignedMechs.map(({ link, mech }) => (
+                  <li
+                    key={link.id}
+                    className="flex items-center gap-2 rounded-[3px] border-chrome border-ink px-3 py-2 text-sm"
+                  >
+                    <span className="flex-1">
+                      {mech ? (
+                        <Link
+                          to="/mechs/$id"
+                          params={{ id: mech.id }}
+                          className="font-medium text-rust underline-offset-2 hover:underline"
+                        >
+                          {mech.name}
+                        </Link>
+                      ) : (
+                        <span className="text-wk-muted">Unknown mech ({link.from.id})</span>
+                      )}
+                    </span>
+                  </li>
+                ))}
+              </ul>
             )}
           </section>
 

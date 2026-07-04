@@ -17,6 +17,8 @@
     "test": "bun test",
     "test:coverage": "bun test --coverage",
     "test:watch": "bun test --watch",
+    "test:e2e": "playwright test",
+    "e2e:install": "playwright install --with-deps chromium",
     "clean": "rm -rf dist node_modules/.vite .astro",
     "check": "bun run lint && bun run format:check && bun run typecheck"
   },
@@ -27,6 +29,7 @@
     "@base-ui/react": "1.5.0",
     "@fontsource/barlow": "5.2.8",
     "@fontsource/barlow-semi-condensed": "5.2.7",
+    "@sentry/browser": "10.57.0",
     "astro": "^6.4.6",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
@@ -34,6 +37,7 @@
     "suref-react": "workspace:*"
   },
   "devDependencies": {
+    "@playwright/test": "1.60.0",
     "@vite-pwa/astro": "1.2.0",
     "playwright": "1.60.0",
     "sharp": "0.35.1"

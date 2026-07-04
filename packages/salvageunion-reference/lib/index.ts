@@ -155,6 +155,17 @@ class LazyModel<T> extends BaseModel<T> {
     this.schema = backing.schema
   }
 
+  /**
+   * Reset to the pre-load state (testing only). Clears the backing model and
+   * schema so subsequent data access throws again. Owning the private
+   * `_backing` field here lets resetAllForTesting() avoid an `as unknown as`
+   * reach-in to poke the private field from outside the class.
+   */
+  _reset(): void {
+    this._backing = null
+    this.schema = {}
+  }
+
   private _assertLoaded(): void {
     if (!this._backing) {
       throw new Error(
@@ -258,36 +269,57 @@ const lazyCatalogCategories = new LazyModel<SURefCatalogCategory>(
   'Catalog Category'
 )
 
+/**
+ * Precise per-schema type for {@link lazyModelMap}: each key maps to a
+ * `LazyModel` parameterised with that schema's entity type. Annotating the map
+ * with this homomorphic mapped type lets each entry be its exact
+ * `LazyModel<SURefX>` (no per-entry `as LazyModel<unknown>` cast), enforces that
+ * the map covers exactly the SchemaToEntityMap key set, AND makes a generic
+ * indexed access `lazyModelMap[schemaName]` simplify to
+ * `LazyModel<SchemaToEntityMap[T]>` — so the typed query accessors need no
+ * model-level cast either.
+ */
+type LazyModelMap = { readonly [K in keyof SchemaToEntityMap]: LazyModel<SchemaToEntityMap[K]> }
+
 /** Map from schema ID to its LazyModel instance — used by preload() to install backing models */
-const lazyModelMap: Record<string, LazyModel<unknown>> = {
-  abilities: lazyAbilities as LazyModel<unknown>,
-  'ability-tree-requirements': lazyAbilityTreeRequirements as LazyModel<unknown>,
-  actions: lazyActions as LazyModel<unknown>,
-  chassis: lazyChassis as LazyModel<unknown>,
-  classes: lazyClasses as LazyModel<unknown>,
-  'crawler-bays': lazyCrawlerBays as LazyModel<unknown>,
-  'crawler-tech-levels': lazyCrawlerTechLevels as LazyModel<unknown>,
-  crawlers: lazyCrawlers as LazyModel<unknown>,
-  creatures: lazyCreatures as LazyModel<unknown>,
-  distances: lazyDistances as LazyModel<unknown>,
-  drones: lazyDrones as LazyModel<unknown>,
-  equipment: lazyEquipment as LazyModel<unknown>,
-  factions: lazyFactions as LazyModel<unknown>,
-  guides: lazyGuides as LazyModel<unknown>,
-  keywords: lazyKeywords as LazyModel<unknown>,
-  meld: lazyMeld as LazyModel<unknown>,
-  modules: lazyModules as LazyModel<unknown>,
-  npcs: lazyNPCs as LazyModel<unknown>,
-  'roll-tables': lazyRollTables as LazyModel<unknown>,
-  squads: lazySquads as LazyModel<unknown>,
-  systems: lazySystems as LazyModel<unknown>,
-  'bio-titans': lazyBioTitans as LazyModel<unknown>,
-  traits: lazyTraits as LazyModel<unknown>,
-  vehicles: lazyVehicles as LazyModel<unknown>,
-  sources: lazySources as LazyModel<unknown>,
-  'tech-levels': lazyTechLevels as LazyModel<unknown>,
-  'catalog-categories': lazyCatalogCategories as LazyModel<unknown>,
+const lazyModelMap: LazyModelMap = {
+  abilities: lazyAbilities,
+  'ability-tree-requirements': lazyAbilityTreeRequirements,
+  actions: lazyActions,
+  chassis: lazyChassis,
+  classes: lazyClasses,
+  'crawler-bays': lazyCrawlerBays,
+  'crawler-tech-levels': lazyCrawlerTechLevels,
+  crawlers: lazyCrawlers,
+  creatures: lazyCreatures,
+  distances: lazyDistances,
+  drones: lazyDrones,
+  equipment: lazyEquipment,
+  factions: lazyFactions,
+  guides: lazyGuides,
+  keywords: lazyKeywords,
+  meld: lazyMeld,
+  modules: lazyModules,
+  npcs: lazyNPCs,
+  'roll-tables': lazyRollTables,
+  squads: lazySquads,
+  systems: lazySystems,
+  'bio-titans': lazyBioTitans,
+  traits: lazyTraits,
+  vehicles: lazyVehicles,
+  sources: lazySources,
+  'tech-levels': lazyTechLevels,
+  'catalog-categories': lazyCatalogCategories,
 }
+
+/**
+ * Erased view of {@link lazyModelMap} for dynamic (arbitrary string id) access,
+ * where the caller cannot statically know which schema's entity type applies
+ * (e.g. preload() iterating a runtime list of ids). The single `as` here is the
+ * one deliberate soundness boundary for the lazy-loading indirection: the id →
+ * backing-model correspondence is guaranteed at runtime by loadSchemas().
+ */
+const lazyModelsById = lazyModelMap as Record<string, LazyModel<unknown>>
 
 export type * from './types/index.js'
 
@@ -412,35 +444,38 @@ export const SchemaToDisplayName = Object.fromEntries(
  * specific array of schema IDs) before accessing any model.
  */
 export class SalvageUnionReference {
-  // Static model properties — these are LazyModel instances that throw until preload() is called
-  static Abilities = lazyAbilities as ModelWithMetadata<SchemaToEntityMap['abilities']>
-  static AbilityTreeRequirements =
-    lazyAbilityTreeRequirements as ModelWithMetadata<SURefMetaAbilityTreeRequirement>
-  static Actions = lazyActions as ModelWithMetadata<SURefMetaAction>
-  static Chassis = lazyChassis as ModelWithMetadata<SchemaToEntityMap['chassis']>
-  static Classes = lazyClasses as ModelWithMetadata<SchemaToEntityMap['classes']>
-  static CrawlerBays = lazyCrawlerBays as ModelWithMetadata<SchemaToEntityMap['crawler-bays']>
-  static CrawlerTechLevels = lazyCrawlerTechLevels as ModelWithMetadata<SURefMetaCrawlerTechLevel>
-  static Crawlers = lazyCrawlers as ModelWithMetadata<SchemaToEntityMap['crawlers']>
-  static Creatures = lazyCreatures as ModelWithMetadata<SchemaToEntityMap['creatures']>
-  static Distances = lazyDistances as ModelWithMetadata<SchemaToEntityMap['distances']>
-  static Drones = lazyDrones as ModelWithMetadata<SchemaToEntityMap['drones']>
-  static Equipment = lazyEquipment as ModelWithMetadata<SchemaToEntityMap['equipment']>
-  static Factions = lazyFactions as ModelWithMetadata<SchemaToEntityMap['factions']>
-  static Guides = lazyGuides as ModelWithMetadata<SURefGuide>
-  static Keywords = lazyKeywords as ModelWithMetadata<SchemaToEntityMap['keywords']>
-  static Meld = lazyMeld as ModelWithMetadata<SchemaToEntityMap['meld']>
-  static Modules = lazyModules as ModelWithMetadata<SchemaToEntityMap['modules']>
-  static NPCs = lazyNPCs as ModelWithMetadata<SchemaToEntityMap['npcs']>
-  static RollTables = lazyRollTables as ModelWithMetadata<SchemaToEntityMap['roll-tables']>
-  static Squads = lazySquads as ModelWithMetadata<SchemaToEntityMap['squads']>
-  static Systems = lazySystems as ModelWithMetadata<SchemaToEntityMap['systems']>
-  static BioTitans = lazyBioTitans as ModelWithMetadata<SchemaToEntityMap['bio-titans']>
-  static Traits = lazyTraits as ModelWithMetadata<SchemaToEntityMap['traits']>
-  static Vehicles = lazyVehicles as ModelWithMetadata<SchemaToEntityMap['vehicles']>
-  static Sources = lazySources as ModelWithMetadata<SURefSource>
-  static TechLevels = lazyTechLevels as ModelWithMetadata<SURefTechLevel>
-  static CatalogCategories = lazyCatalogCategories as ModelWithMetadata<SURefCatalogCategory>
+  // Static model properties — these are LazyModel instances that throw until
+  // preload() is called. Each is exposed under its public ModelWithMetadata
+  // type via a type annotation (not a cast): LazyModel<T> structurally
+  // satisfies ModelWithMetadata<T>, so assignment is checked, not asserted.
+  static Abilities: ModelWithMetadata<SchemaToEntityMap['abilities']> = lazyAbilities
+  static AbilityTreeRequirements: ModelWithMetadata<SURefMetaAbilityTreeRequirement> =
+    lazyAbilityTreeRequirements
+  static Actions: ModelWithMetadata<SURefMetaAction> = lazyActions
+  static Chassis: ModelWithMetadata<SchemaToEntityMap['chassis']> = lazyChassis
+  static Classes: ModelWithMetadata<SchemaToEntityMap['classes']> = lazyClasses
+  static CrawlerBays: ModelWithMetadata<SchemaToEntityMap['crawler-bays']> = lazyCrawlerBays
+  static CrawlerTechLevels: ModelWithMetadata<SURefMetaCrawlerTechLevel> = lazyCrawlerTechLevels
+  static Crawlers: ModelWithMetadata<SchemaToEntityMap['crawlers']> = lazyCrawlers
+  static Creatures: ModelWithMetadata<SchemaToEntityMap['creatures']> = lazyCreatures
+  static Distances: ModelWithMetadata<SchemaToEntityMap['distances']> = lazyDistances
+  static Drones: ModelWithMetadata<SchemaToEntityMap['drones']> = lazyDrones
+  static Equipment: ModelWithMetadata<SchemaToEntityMap['equipment']> = lazyEquipment
+  static Factions: ModelWithMetadata<SchemaToEntityMap['factions']> = lazyFactions
+  static Guides: ModelWithMetadata<SURefGuide> = lazyGuides
+  static Keywords: ModelWithMetadata<SchemaToEntityMap['keywords']> = lazyKeywords
+  static Meld: ModelWithMetadata<SchemaToEntityMap['meld']> = lazyMeld
+  static Modules: ModelWithMetadata<SchemaToEntityMap['modules']> = lazyModules
+  static NPCs: ModelWithMetadata<SchemaToEntityMap['npcs']> = lazyNPCs
+  static RollTables: ModelWithMetadata<SchemaToEntityMap['roll-tables']> = lazyRollTables
+  static Squads: ModelWithMetadata<SchemaToEntityMap['squads']> = lazySquads
+  static Systems: ModelWithMetadata<SchemaToEntityMap['systems']> = lazySystems
+  static BioTitans: ModelWithMetadata<SchemaToEntityMap['bio-titans']> = lazyBioTitans
+  static Traits: ModelWithMetadata<SchemaToEntityMap['traits']> = lazyTraits
+  static Vehicles: ModelWithMetadata<SchemaToEntityMap['vehicles']> = lazyVehicles
+  static Sources: ModelWithMetadata<SURefSource> = lazySources
+  static TechLevels: ModelWithMetadata<SURefTechLevel> = lazyTechLevels
+  static CatalogCategories: ModelWithMetadata<SURefCatalogCategory> = lazyCatalogCategories
 
   // ---------------------------------------------------------------------------
   // preload / isLoaded API
@@ -463,9 +498,9 @@ export class SalvageUnionReference {
     await loadSchemas(schemas)
 
     // Install backing models into all LazyModel wrappers for loaded schemas
-    const ids = schemas === 'all' ? Object.keys(lazyModelMap) : schemas
+    const ids = schemas === 'all' ? Object.keys(lazyModelsById) : schemas
     for (const id of ids) {
-      const lazyModel = lazyModelMap[id]
+      const lazyModel = lazyModelsById[id]
       if (!lazyModel) continue
       if (!isSchemaLoaded(id)) continue
 
@@ -503,7 +538,9 @@ export class SalvageUnionReference {
     schemaName: T,
     predicate: (entity: SchemaToEntityMap[T]) => boolean
   ): (SchemaToEntityMap[T] & { schemaName: T }) | undefined {
-    const model = lazyModelMap[schemaName] as unknown as BaseModel<SchemaToEntityMap[T]>
+    // lazyModelMap[schemaName] is already LazyModel<SchemaToEntityMap[T]> (a
+    // BaseModel<...>); only the schemaName literal narrowing needs an `as`.
+    const model = lazyModelMap[schemaName]
     return model.find(predicate) as (SchemaToEntityMap[T] & { schemaName: T }) | undefined
   }
 
@@ -514,7 +551,7 @@ export class SalvageUnionReference {
     schemaName: T,
     predicate: (entity: SchemaToEntityMap[T]) => boolean
   ): (SchemaToEntityMap[T] & { schemaName: T })[] {
-    const model = lazyModelMap[schemaName] as unknown as BaseModel<SchemaToEntityMap[T]>
+    const model = lazyModelMap[schemaName]
     return model.findAll(predicate) as (SchemaToEntityMap[T] & {
       schemaName: T
     })[]
@@ -527,7 +564,7 @@ export class SalvageUnionReference {
     schemaName: T,
     id: string
   ): (SchemaToEntityMap[T] & { schemaName: T }) | undefined {
-    const model = lazyModelMap[schemaName] as unknown as BaseModel<SchemaToEntityMap[T]>
+    const model = lazyModelMap[schemaName]
     return model.getById(id) as (SchemaToEntityMap[T] & { schemaName: T }) | undefined
   }
 
@@ -634,6 +671,12 @@ export class SalvageUnionReference {
       entity: SURefMetaEntity
     }> = []
     for (const schemaName of schemaNames) {
+      // Irreducible cast: lazyModelMap[schemaName] is a union of per-schema
+      // LazyModels, but that union includes non-meta entity types (e.g.
+      // catalog-categories -> SURefCatalogCategory, which is intentionally NOT
+      // in SURefMetaEntity), so neither a plain `as` nor a mapped-type narrowing
+      // applies. Callers only ever pass entity/meta schema names, so the
+      // narrowed entities are valid SURefMetaEntity in practice.
       const model = lazyModelMap[schemaName] as unknown as BaseModel<SURefMetaEntity>
       for (const entity of model.all()) {
         result.push({ schemaName, entity })
@@ -659,9 +702,6 @@ export class SalvageUnionReference {
 export function resetAllForTesting(): void {
   resetLoadStateForTesting()
   for (const lazyModel of Object.values(lazyModelMap)) {
-    lazyModel._install(new BaseModel([], {}, '', '') as BaseModel<unknown>)
-    // Mark as not installed by setting _backing to null directly
-    ;(lazyModel as unknown as { _backing: null })._backing = null
-    lazyModel.schema = {}
+    lazyModel._reset()
   }
 }
