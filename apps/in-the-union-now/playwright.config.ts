@@ -33,8 +33,14 @@ export default defineConfig({
   // + builder routes pull in salvageunion-reference (large JSON dataset) so
   // the first navigation per test takes ~30-60 s on GHA Ubuntu runners.
   // 90 s gives enough headroom without masking real hangs.
-  timeout: 90_000,
-  expect: { timeout: 15_000 },
+  //
+  // Against an external Netlify Deploy Preview (E2E_BASE_URL) every test pays
+  // cold-load costs (preview cold start + real Functions/Blobs round-trips), so
+  // widen the per-test and per-assertion budgets ONLY in that mode. The local
+  // static-preview path keeps the tighter budgets so it stays fast and still
+  // surfaces real hangs.
+  timeout: externalBaseURL ? 150_000 : 90_000,
+  expect: { timeout: externalBaseURL ? 20_000 : 15_000 },
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,

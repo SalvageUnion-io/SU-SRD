@@ -40,8 +40,12 @@ export async function gotoStable(page: Page, path: string): Promise<void> {
       const message = error instanceof Error ? error.message : String(error)
       if (!/ERR_ABORTED|frame was detached/i.test(message)) throw error
       lastError = error
-      // Let the competing client navigation settle before re-issuing the goto.
-      await page.waitForTimeout(500)
+      // Let the competing client navigation settle deterministically before
+      // re-issuing the goto — wait for the superseding load to reach
+      // `domcontentloaded` rather than blindly sleeping a fixed delay. Swallow:
+      // the aborted load may already be gone, in which case there is nothing to
+      // wait for and we retry immediately.
+      await page.waitForLoadState('domcontentloaded').catch(() => {})
     }
   }
   throw lastError
@@ -130,7 +134,7 @@ export async function buildPilot(page: Page, name: string, callsign: string): Pr
   await clickNext(page) // -> Background
   await clickNext(page) // -> Review
   await page.getByRole('button', { name: /Create Pilot/i }).click()
-  await page.waitForURL((url) => url.pathname === '/', { timeout: 15_000 })
+  await page.waitForURL((url) => url.pathname === '/', { timeout: 30_000 })
 }
 
 /** Build a mech (Chassis → Pattern → Loadout → Identity → Review). */
@@ -146,7 +150,7 @@ export async function buildMech(page: Page, name: string): Promise<void> {
   await page.getByLabel(/Mech name/i).fill(name)
   await clickNext(page) // -> Review
   await page.getByRole('button', { name: /Create Mech/i }).click()
-  await page.waitForURL((url) => url.pathname === '/', { timeout: 15_000 })
+  await page.waitForURL((url) => url.pathname === '/', { timeout: 30_000 })
 }
 
 /** Build a crawler (Crawler type → Systems → Crew → Identity → Review). */
@@ -160,7 +164,7 @@ export async function buildCrawler(page: Page, name: string): Promise<void> {
   await page.getByLabel(/Crawler Name/i).fill(name)
   await clickNext(page) // -> Review
   await page.getByRole('button', { name: /Create Crawler/i }).click()
-  await page.waitForURL((url) => url.pathname === '/', { timeout: 15_000 })
+  await page.waitForURL((url) => url.pathname === '/', { timeout: 30_000 })
 }
 
 /**
@@ -175,7 +179,7 @@ export async function openSheetFor(page: Page, name: string): Promise<void> {
     timeout: 15_000,
   })
   await row.getByRole('link', { name: /^Sheet$/ }).click()
-  await page.waitForURL(/\/sheet\//, { timeout: 10_000 })
+  await page.waitForURL(/\/sheet\//, { timeout: 20_000 })
 }
 
 /**

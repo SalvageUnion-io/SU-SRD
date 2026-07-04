@@ -15,6 +15,9 @@ import { buildPilot, openSheetFor } from './_helpers'
  */
 test.describe('sheet print preview', () => {
   test.beforeEach(async ({ page }) => {
+    // This spec's beforeEach pays two full cold page-loads (buildPilot +
+    // openSheetFor), so triple Playwright's time budget for the whole test.
+    test.slow()
     await buildPilot(page, 'Print Test', 'PT')
     await openSheetFor(page, 'Print Test')
   })
