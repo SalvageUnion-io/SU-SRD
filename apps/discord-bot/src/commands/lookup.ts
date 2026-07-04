@@ -1,9 +1,9 @@
 import {
-  SlashCommandBuilder,
   EmbedBuilder,
   MessageFlags,
   type ChatInputCommandInteraction,
   type AutocompleteInteraction,
+  type SlashCommandSubcommandBuilder,
 } from 'discord.js'
 import { search, getEntitySlug, findEntityBySlug } from 'salvageunion-reference'
 import type { SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
@@ -36,16 +36,19 @@ function findByChoiceValue(value: string): Hit | null {
 }
 
 export const lookupCommand = {
-  data: new SlashCommandBuilder()
-    .setName('lookup')
-    .setDescription('Look up any Salvage Union entity (equipment, chassis, systems, keywords, …)')
-    .addStringOption((option) =>
-      option
-        .setName('entity')
-        .setDescription('What to look up')
-        .setRequired(true)
-        .setAutocomplete(true)
-    ),
+  /** Options for the `/su lookup` subcommand (registered by su.ts). */
+  subcommand(sub: SlashCommandSubcommandBuilder): SlashCommandSubcommandBuilder {
+    return sub
+      .setName('lookup')
+      .setDescription('Look up any Salvage Union entity (equipment, chassis, systems, keywords, …)')
+      .addStringOption((option) =>
+        option
+          .setName('entity')
+          .setDescription('What to look up')
+          .setRequired(true)
+          .setAutocomplete(true)
+      )
+  },
 
   async autocomplete(interaction: AutocompleteInteraction): Promise<void> {
     const focusedValue = interaction.options.getFocused()

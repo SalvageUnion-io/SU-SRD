@@ -1,9 +1,9 @@
 import {
-  SlashCommandBuilder,
   EmbedBuilder,
   MessageFlags,
   type ChatInputCommandInteraction,
   type AutocompleteInteraction,
+  type SlashCommandSubcommandBuilder,
 } from 'discord.js'
 import { roll as rollDie } from '@randsum/roller'
 import { SalvageUnionReference, rollOnTable } from 'salvageunion-reference'
@@ -28,16 +28,19 @@ function rollD20(): number {
 }
 
 export const rollCommand = {
-  data: new SlashCommandBuilder()
-    .setName('roll')
-    .setDescription('Roll on a Salvage Union table')
-    .addStringOption((option) =>
-      option
-        .setName('table')
-        .setDescription('The table to roll on (defaults to Core Mechanic)')
-        .setRequired(false)
-        .setAutocomplete(true)
-    ),
+  /** Options for the `/su roll` subcommand (registered by su.ts). */
+  subcommand(sub: SlashCommandSubcommandBuilder): SlashCommandSubcommandBuilder {
+    return sub
+      .setName('roll')
+      .setDescription('Roll on a Salvage Union table')
+      .addStringOption((option) =>
+        option
+          .setName('table')
+          .setDescription('The table to roll on (defaults to Core Mechanic)')
+          .setRequired(false)
+          .setAutocomplete(true)
+      )
+  },
 
   async autocomplete(interaction: AutocompleteInteraction): Promise<void> {
     const focusedValue = interaction.options.getFocused().toLowerCase()
