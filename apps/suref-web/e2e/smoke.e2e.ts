@@ -39,8 +39,10 @@ test('a chassis entity page renders its card', async ({ page }) => {
   await page.goto('/schema/chassis/item/mule/')
   // Title is server-rendered, so this asserts the static page exists.
   await expect(page).toHaveTitle(/Mule/i)
-  // Heading is present in both the SEO fallback and the hydrated card.
-  await expect(page.getByRole('heading', { name: /Mule/i }).first()).toBeVisible({
+  // The entity name renders on the page (breadcrumb + card header). Assert the
+  // text rather than a heading role: the card header hydrates from a semantic
+  // heading into a styled pseudo-header, so role=heading is not reliable.
+  await expect(page.getByText(/Mule/i).first()).toBeVisible({
     timeout: 30_000,
   })
 })
