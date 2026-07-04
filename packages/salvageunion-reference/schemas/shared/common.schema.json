@@ -18,11 +18,6 @@
       "type": "string",
       "description": "Unique identifier for the entry"
     },
-    "asset_url": {
-      "type": "string",
-      "format": "uri",
-      "description": "URL to an image asset for this entry"
-    },
     "activationCost": {
       "description": "Cost in ability points to activate an ability",
       "oneOf": [
