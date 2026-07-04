@@ -4,8 +4,8 @@
  */
 
 import type { RollOnTableOutcome } from 'salvageunion-reference'
-import { SchemaToDisplayName, getEntitySlug } from 'salvageunion-reference'
-import type { SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
+import { getEntitySlug } from 'salvageunion-reference'
+import type { SURefEntity } from 'salvageunion-reference'
 
 const SUREF_WEB_BASE_URL = 'https://salvageunion.io'
 
@@ -25,6 +25,7 @@ export function getColor(roll: number): number {
 
 /** Truncate to Discord's limits without splitting mid-word when possible. */
 export function truncate(text: string, max: number): string {
+  if (max <= 0) return ''
   if (text.length <= max) return text
   const cut = text.slice(0, max - 1)
   const lastSpace = cut.lastIndexOf(' ')
@@ -86,43 +87,4 @@ export function buildRollEmbedData(tableName: string, outcome: RollOnTableOutcom
 /** Item-page URL on the reference site (matches suref-web staticPaths). */
 export function entityUrl(schemaName: string, entity: SURefEntity): string {
   return `${SUREF_WEB_BASE_URL}/schema/${schemaName}/item/${getEntitySlug(entity)}`
-}
-
-/** Shape a /lookup hit into embed data. */
-export function buildLookupEmbedData(
-  entity: SURefEntity & { schemaName: SURefEnumSchemaName },
-  schemaName: SURefEnumSchemaName
-): EmbedData {
-  const raw = entity as unknown as Record<string, unknown>
-  const displayName = (SchemaToDisplayName as Record<string, string>)[schemaName] ?? schemaName
-  const fields: EmbedData['fields'] = [{ name: 'Type', value: displayName, inline: true }]
-
-  const techLevel = raw['techLevel']
-  if (typeof techLevel === 'number' || typeof techLevel === 'string') {
-    fields.push({ name: 'Tech Level', value: String(techLevel), inline: true })
-  }
-  const salvageValue = raw['salvageValue']
-  if (typeof salvageValue === 'number') {
-    fields.push({ name: 'Salvage Value', value: String(salvageValue), inline: true })
-  }
-  const slots = raw['slotsRequired']
-  if (typeof slots === 'number') {
-    fields.push({ name: 'Slots', value: String(slots), inline: true })
-  }
-
-  const description =
-    typeof raw['description'] === 'string' && raw['description']
-      ? raw['description']
-      : typeof raw['effect'] === 'string'
-        ? raw['effect']
-        : ''
-
-  const name = typeof raw['name'] === 'string' ? (raw['name'] as string) : entity.id
-  return {
-    title: truncate(name, 256),
-    color: NEUTRAL_EMBED_COLOR,
-    description: description ? truncate(description, 2048) : undefined,
-    url: entityUrl(schemaName, entity),
-    fields,
-  }
 }

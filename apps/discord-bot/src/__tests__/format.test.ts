@@ -3,16 +3,9 @@
  * Uses real reference data (preloaded) so /lookup shapes match production.
  */
 import { beforeAll, describe, expect, test } from 'bun:test'
-import { SalvageUnionReference, rollOnTable, getEntitySlug, search } from 'salvageunion-reference'
+import { SalvageUnionReference, rollOnTable } from 'salvageunion-reference'
 
-import {
-  ROLL_EMBED_FOOTER,
-  buildLookupEmbedData,
-  buildRollEmbedData,
-  entityUrl,
-  getColor,
-  truncate,
-} from '../format.js'
+import { ROLL_EMBED_FOOTER, buildRollEmbedData, entityUrl, getColor, truncate } from '../format.js'
 
 beforeAll(async () => {
   await SalvageUnionReference.preload('all')
@@ -76,19 +69,8 @@ describe('buildRollEmbedData', () => {
   })
 })
 
-describe('buildLookupEmbedData / entityUrl', () => {
-  test('links to the suref-web item page and carries stat fields', () => {
-    const [hit] = search({ query: 'welding', limit: 1 })
-    expect(hit).toBeDefined()
-    const data = buildLookupEmbedData(hit!.entity, hit!.schemaName)
-    expect(data.url).toBe(
-      `https://salvageunion.io/schema/${hit!.schemaName}/item/${getEntitySlug(hit!.entity)}`
-    )
-    expect(data.fields[0]!.name).toBe('Type')
-    expect(data.title.length).toBeGreaterThan(0)
-  })
-
-  test('entityUrl matches the schema/item route shape', () => {
+describe('entityUrl', () => {
+  test('matches the schema/item route shape', () => {
     const chassis = SalvageUnionReference.Chassis.all()[0]!
     expect(entityUrl('chassis', chassis)).toMatch(
       /^https:\/\/salvageunion\.io\/schema\/chassis\/item\/[a-z0-9-]+$/

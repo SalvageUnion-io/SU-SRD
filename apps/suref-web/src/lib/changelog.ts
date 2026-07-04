@@ -6,6 +6,13 @@ type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    date: '2026-07-04',
+    title: 'No more text flash when opening an entity',
+    items: [
+      'Opening a chassis, system, ability, or any other entity no longer briefly flashes an unstyled text-only version before the full card appears — the styled card (or its loading skeleton) is what you see from the first paint.',
+    ],
+  },
+  {
     date: '2026-07-03',
     title: 'Discord bot: install page and the /su command',
     items: [

@@ -3,6 +3,18 @@
 
 @source "../../../../packages/suref-react/src";
 
+/*
+ * SEO / no-JS entity fallback (data-static-fallback): hidden pre-paint for
+ * JS-capable browsers. BaseLayout adds `.js` to <html> synchronously in
+ * <head>, and this render-blocking stylesheet applies before first paint, so
+ * the static text block never flashes before the hydrated card appears. No-JS
+ * users and crawlers (no `.js`) keep the fallback content. See BaseLayout.astro
+ * and ReferenceEntityIsland.tsx.
+ */
+.js [data-static-fallback] {
+  display: none;
+}
+
 /* Button system */
 .btn {
   display: inline-flex;

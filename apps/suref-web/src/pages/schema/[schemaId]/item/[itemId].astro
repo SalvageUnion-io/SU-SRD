@@ -107,8 +107,10 @@ const ogImage = `/schema/${schemaId}/item/${itemId}.og.png`
 >
   <article class="flex min-h-full flex-1 flex-col items-center justify-center p-4">
     <ReferenceEntityIsland client:visible item={item} titleAs="h1" />
-    {/* SEO / no-JS fallback only — BaseLayout strips it for JS users on load +
-        every view-transition navigation, so the naked text never shows. */}
+    {/* SEO / no-JS fallback only. The `.js` class BaseLayout sets pre-paint
+        hides this for JS users via global.css before first paint (no text
+        flash); the island removes it once game data is ready. No-JS users and
+        crawlers keep the content. */}
     {staticSummary && <StaticEntityContent summary={staticSummary} />}
   </article>
 </BaseLayout>
