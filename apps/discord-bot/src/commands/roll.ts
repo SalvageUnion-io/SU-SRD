@@ -8,7 +8,7 @@ import {
 import { roll as rollDie } from '@randsum/roller'
 import { SalvageUnionReference, rollOnTable } from 'salvageunion-reference'
 
-import { buildRollEmbedData } from '../format.js'
+import { ROLL_EMBED_FOOTER, buildRollEmbedData } from '../format.js'
 
 // Roll tables load lazily once SalvageUnionReference.preload() has run at startup.
 // Accessing them at module load would throw before preload completes, so defer to first use.
@@ -84,7 +84,7 @@ export const rollCommand = {
       .setTitle(data.title)
       .setColor(data.color)
       .addFields(data.fields)
-      .setFooter({ text: 'Salvage Union Reference' })
+      .setFooter({ text: ROLL_EMBED_FOOTER })
       .setTimestamp()
     if (data.description) {
       embed.setDescription(data.description)

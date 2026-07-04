@@ -6,6 +6,7 @@ import { beforeAll, describe, expect, test } from 'bun:test'
 import { SalvageUnionReference, rollOnTable, getEntitySlug, search } from 'salvageunion-reference'
 
 import {
+  ROLL_EMBED_FOOTER,
   buildLookupEmbedData,
   buildRollEmbedData,
   entityUrl,
@@ -92,5 +93,12 @@ describe('buildLookupEmbedData / entityUrl', () => {
     expect(entityUrl('chassis', chassis)).toMatch(
       /^https:\/\/salvageunion\.io\/schema\/chassis\/item\/[a-z0-9-]+$/
     )
+  })
+})
+
+describe('roll embed footer attribution', () => {
+  test('credits Randsum.dev, since rolls are powered by @randsum/roller', () => {
+    expect(ROLL_EMBED_FOOTER).toContain('Powered by Randsum.dev')
+    expect(ROLL_EMBED_FOOTER).toContain('Salvage Union Reference')
   })
 })
