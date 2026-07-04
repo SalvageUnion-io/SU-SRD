@@ -29,7 +29,7 @@
     "@base-ui/react": "1.5.0",
     "@fontsource/barlow": "5.2.8",
     "@fontsource/barlow-semi-condensed": "5.2.7",
-    "@sentry/browser": "10.57.0",
+    "@sentry/browser": "10.63.0",
     "astro": "^6.4.6",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
