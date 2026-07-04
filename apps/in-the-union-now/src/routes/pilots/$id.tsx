@@ -8,9 +8,12 @@
  * 404 rendered inline when the pilot is not found after hydration.
  */
 
+import { useMemo } from 'react'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 
 import { usePilot } from '../../hooks/queries'
+import { SoftWarningBanner } from '../../components/shared/SoftWarningBanner'
+import { pilotDetailWarnings } from '../../lib/rules/detailWarnings'
 import { useEntityStore } from '../../stores/entityStore'
 import { AssignCrawlerToPilot } from '../../components/wiring/AssignCrawlerToPilot'
 import { UnassignLinkButton } from '../../components/wiring/UnassignLinkButton'
@@ -45,6 +48,13 @@ function PilotDetailPage() {
 
   // Outgoing pilot-to-crawler links
   const crawlerLink = outgoing.find((l) => l.type === 'pilot-to-crawler') ?? null
+
+  // Passive soft warnings for the stored pilot's current state (advisory).
+  const warnings = useMemo(
+    () =>
+      pilot ? pilotDetailWarnings({ abilities: pilot.abilities, classRef: pilot.classRef }) : [],
+    [pilot]
+  )
 
   if (!pilot) {
     return (
@@ -88,6 +98,9 @@ function PilotDetailPage() {
           </Link>
         </div>
       </div>
+
+      {/* Passive soft-warning strip — renders nothing when there are none. */}
+      <SoftWarningBanner warnings={warnings} className="mb-6 px-0" />
 
       {/* 2-pane at lg+: left = sheet/summary, right = wiring/actions */}
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start">

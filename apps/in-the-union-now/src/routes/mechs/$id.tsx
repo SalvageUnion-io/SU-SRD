@@ -9,11 +9,14 @@
  * 404 rendered inline when the mech is not found after hydration.
  */
 
+import { useMemo } from 'react'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import type { SURefModule, SURefSystem } from 'salvageunion-reference'
 import { ReferenceEntityDisplay, btnVariants } from 'suref-react'
 
 import { useMech } from '../../hooks/queries'
+import { SoftWarningBanner } from '../../components/shared/SoftWarningBanner'
+import { mechDetailWarnings } from '../../lib/rules/detailWarnings'
 import { useEntityStore } from '../../stores/entityStore'
 import { AssignPilotToMech } from '../../components/wiring/AssignPilotToMech'
 import { UnassignLinkButton } from '../../components/wiring/UnassignLinkButton'
@@ -47,6 +50,19 @@ function MechDetailPage() {
 
   // Outgoing mech-to-pilot links
   const pilotLink = outgoing.find((l) => l.type === 'mech-to-pilot') ?? null
+
+  // Passive over-capacity soft warnings for the stored loadout (advisory).
+  const warnings = useMemo(
+    () =>
+      mech
+        ? mechDetailWarnings({
+            chassisRef: mech.chassisRef,
+            systems: mech.systems,
+            modules: mech.modules,
+          })
+        : [],
+    [mech]
+  )
 
   if (!mech) {
     return (
@@ -87,6 +103,9 @@ function MechDetailPage() {
           </Link>
         </div>
       </div>
+
+      {/* Passive soft-warning strip — renders nothing when there are none. */}
+      <SoftWarningBanner warnings={warnings} className="mb-6 px-0" />
 
       {/* 2-pane at lg+: left = summary/stats, right = wiring/actions */}
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
