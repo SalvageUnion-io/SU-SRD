@@ -34,6 +34,16 @@ updates:
       interval: 'weekly'
       day: 'monday'
     open-pull-requests-limit: 10
+    ignore:
+      # Astro / @astrojs majors are HELD pending the frontend-tooling upgrade
+      # path (plan-docs/upgrade-astro-7.md): astro 7 hard-requires vite 8 and its
+      # prerender build fails on the shared ORM's import-attribute JSON loaders,
+      # which need a non-trivial rework. Without this ignore the major-updates
+      # group keeps bundling astro 7 and can never go green. Remove when adopted.
+      - dependency-name: 'astro'
+        update-types: ['version-update:semver-major']
+      - dependency-name: '@astrojs/*'
+        update-types: ['version-update:semver-major']
     groups:
       dev-dependencies:
         dependency-type: 'development'
