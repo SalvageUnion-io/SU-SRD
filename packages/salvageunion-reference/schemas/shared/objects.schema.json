@@ -617,9 +617,6 @@
       "description": "Basic entity with name, content, source, and page reference",
       "required": ["id", "name", "page", "source"],
       "properties": {
-        "asset_url": {
-          "$ref": "common.schema.json#/definitions/asset_url"
-        },
         "content": {
           "$ref": "#/definitions/content"
         },
@@ -680,9 +677,6 @@
       "description": "Advanced or hybrid character class",
       "required": ["advancedTree", "legendaryTree"],
       "properties": {
-        "asset_url": {
-          "$ref": "common.schema.json#/definitions/asset_url"
-        },
         "content": {
           "$ref": "#/definitions/content"
         },
