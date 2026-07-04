@@ -45,8 +45,7 @@ const EMPTY_SELECTIONS: ChoiceSelections = Object.freeze({})
 /** Keys of an entity whose value is a per-item choice map (slug → ChoiceSelections). */
 type ChoiceMapField<T extends EntityType> = {
   [K in keyof EntityForType<T>]: EntityForType<T>[K] extends
-    | Record<string, ChoiceSelections>
-    | undefined
+    Record<string, ChoiceSelections> | undefined
     ? K
     : never
 }[keyof EntityForType<T>] &

@@ -11,15 +11,15 @@ Pilot abilities and skills
 
 ## Fields
 
-| Field                | Type         | Required | Description |
+| Field | Type | Required | Description |
 | -------------------- | ------------ | -------- | ----------- | --- | --- |
-| `description`        | string       | ❌       |             |
-| `tree`               | `tree`       | ✅       |             |
-| `level`              | integer      | string   | string      | ✅  |     |
-| `mechActionType`     | `actionType` | ❌       |             |
-| `grants`             | `grants`     | ❌       |             |
-| `activationCurrency` | string       | ❌       |             |
-| `actions`            | `actions`    | ❌       |             |
+| `description` | string | ❌ | |
+| `tree` | `tree` | ✅ | |
+| `level` | integer | string | string | ✅ | |
+| `mechActionType` | `actionType` | ❌ | |
+| `grants` | `grants` | ❌ | |
+| `activationCurrency` | string | ❌ | |
+| `actions` | `actions` | ❌ | |
 
 ## Example
 
