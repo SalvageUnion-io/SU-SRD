@@ -23,7 +23,14 @@ test('cancel mid-wizard leaves the dashboard with no new pilot', async ({ page }
   await page.goto('/pilots/new')
   await waitForReady(page)
   await pickByName(page, 'Engineer')
+  // The form is now dirty (a class was picked), so #334's `confirmCancel`
+  // routes Cancel through a confirm dialog instead of navigating directly.
+  // Confirm the discard, then the wizard abandons and navigates home.
   await page.getByRole('button', { name: /^Cancel$/ }).click()
+  await page
+    .getByRole('dialog')
+    .getByRole('button', { name: /^Discard$/ })
+    .click()
   await page.waitForURL(/\/$/)
   await waitForReady(page)
 

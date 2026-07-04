@@ -37,6 +37,7 @@
     "validate:ids": "bun tools/checkUniqueIds.ts",
     "validate:slugs": "bun tools/validateSlugs.ts",
     "fix:ids": "bun tools/generateMissingIds.ts",
+    "scaffold:entity": "bun tools/scaffold-entity.ts",
     "docs": "bun tools/generateDocs.ts",
     "docs:schemas": "bun tools/generateSchemaDocs.ts",
     "generate:json-schemas": "bun tools/generateJsonSchemas.ts",

@@ -21,6 +21,9 @@ core
 **/playwright-report/
 **/test-results/
 **/.playwright-mcp/
+# Coverage output (bun test --coverage lcov reporter / CI capture file)
+**/coverage/
+coverage-output.txt
 
 # Vite
 .vite
@@ -39,6 +42,9 @@ apps/suref-web/.vite
 
 # Claude Code
 .claude/settings.local.json
+# Agent/background-job worktrees: full checkouts that must never be committed.
+# Prune abandoned ones with tools/prune-stale-worktrees.sh.
+.claude/worktrees/
 # .mcp.json IS tracked: it is the shared, secret-free project MCP config
 # (Netlify + Render). Auth is via env vars (e.g. RENDER_API_KEY) / OAuth —
 # never put tokens in it.

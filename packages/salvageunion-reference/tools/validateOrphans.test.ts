@@ -6,6 +6,7 @@ import {
   findOrphanedActions,
   findOrphanedSystems,
   findOrphanedModules,
+  findStaleRootFiles,
   type OrphanResult,
 } from './validateOrphansLogic.js'
 
@@ -323,5 +324,32 @@ describe('findOrphanedModules', () => {
     expect(orphan).toBeDefined()
     expect(orphan!.name).toBe('Orphan Module')
     expect(orphan!.file).toBe('modules.json')
+  })
+})
+
+// ─── findStaleRootFiles (allowlist drift detection) ─────────────────────────
+
+describe('findStaleRootFiles', () => {
+  it('returns empty when every allowlisted root file still exists', () => {
+    const rootFiles = ['chassis.json', 'classes.json', 'roll-tables.json']
+    const existing = new Set([...rootFiles, 'systems.json', 'modules.json'])
+    expect(findStaleRootFiles(rootFiles, existing)).toEqual([])
+  })
+
+  it('flags an allowlist entry whose data file no longer exists', () => {
+    const rootFiles = ['chassis.json', 'renamed-away.json', 'classes.json']
+    const existing = new Set(['chassis.json', 'classes.json'])
+    expect(findStaleRootFiles(rootFiles, existing)).toEqual(['renamed-away.json'])
+  })
+
+  it('reports multiple stale entries sorted and deduplicated', () => {
+    const rootFiles = ['zed.json', 'alpha.json', 'zed.json', 'kept.json']
+    const existing = new Set(['kept.json'])
+    expect(findStaleRootFiles(rootFiles, existing)).toEqual(['alpha.json', 'zed.json'])
+  })
+
+  it('accepts an array of existing files as well as a Set', () => {
+    const rootFiles = ['a.json', 'b.json']
+    expect(findStaleRootFiles(rootFiles, ['a.json'])).toEqual(['b.json'])
   })
 })

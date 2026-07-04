@@ -1,5 +1,32 @@
 # Long-Term Goals: Salvage Union Rules vs ITUN Gap Analysis
 
+> **Historical framing note (added 2026-07-03).** This document predates the
+> project's move to a **local-first** architecture, and its infrastructure and
+> multiplayer framing is **historical — abandoned**. Everything it describes in
+> terms of a hosted backend — Supabase/Postgres, row-level security (RLS),
+> realtime subscriptions, multi-user campaigns with member/mediator roles,
+> invite-code join flows, and RPC migrations to make multiplayer writes atomic —
+> belonged to an earlier stack that was **dropped**. It was replaced by a
+> local-first design: all user data lives on-device in IndexedDB with **no auth
+> and no application backend**
+> ([ADR-001](../docs/adrs/ADR-001-local-first-no-backend.md)), and cross-device
+> sharing happens through **immutable, unauthenticated snapshots** stored via
+> Netlify Functions + Blobs
+> ([ADR-004](../docs/adrs/ADR-004-snapshot-netlify-functions.md)). Multi-user
+> "Games" (cross-user pilot↔crawler interaction, shared server state) are
+> explicitly **deferred** under ADR-001; there is no realtime sync, no RLS, and
+> no RPC layer.
+>
+> The **game-mechanic gap analysis remains current.** The supported-vs-gaps
+> inventory and the P0–P4 priority matrix are an accurate audit of Salvage Union
+> mechanics against ITUN and are independent of the storage layer — read those as
+> live. Read anything about Supabase/RLS/realtime/multiplayer/invite codes/RPC as
+> historical, whether or not it carries an inline marker. The `(historical —
+abandoned, see note at top)` markers below flag the most load-bearing spots;
+> matrix and inventory rows are left physically intact per this doc's purpose, so
+> multi-user entries there (e.g. the "Invite Code Join Flow" P1 row) are likewise
+> historical.
+
 ## Context
 
 Comprehensive audit of every Salvage Union game mechanic encoded in `salvageunion-reference` cross-referenced against what the ITUN app currently supports. Surfaces every gap from critical missing gameplay features to nice-to-haves.
@@ -8,34 +35,34 @@ Comprehensive audit of every Salvage Union game mechanic encoded in `salvageunio
 
 ## What ITUN Fully Supports Today (26 Mechanics)
 
-| Mechanic                                                                                | Status |
-| --------------------------------------------------------------------------------------- | ------ |
-| Pilot creation (wizard, all guide steps)                                                | Done   |
-| Class selection (6 core + 5 hybrid)                                                     | Done   |
-| Ability selection (level 1 from core trees)                                             | Done   |
-| Equipment selection (pilot gear)                                                        | Done   |
-| Roll tables (callsign, background, motto, keepsake, appearance)                         | Done   |
-| Mech creation (chassis, systems, modules, budget)                                       | Done   |
-| Pattern system (save, load, share mech configurations)                                  | Done   |
-| Capacity enforcement (slots, cargo, scrap budget)                                       | Done   |
-| Condition tracking (intact/damaged/destroyed on systems, modules, abilities, equipment) | Done   |
-| Live stat editing (HP, AP, TP, SP, EP, Heat)                                            | Done   |
-| Crawler creation (type selection, weapon mounting, NPC naming)                          | Done   |
-| Crawler tech level display + upgrade with scrap cost                                    | Done   |
-| Scrap inventory (TL1-TL6 tiers, translation between tiers)                              | Done   |
-| Cargo management (custom items, ref-linked items, capacity)                             | Done   |
-| Game/campaign creation and basic management                                             | Done   |
-| Pilot-to-crawler assignment                                                             | Done   |
-| Member roster (mediator/player roles)                                                   | Done   |
-| Realtime subscriptions (live sync across clients)                                       | Done   |
-| Change logging + activity feed (toast notifications)                                    | Done   |
-| Comrade/drone display from mech entity refs                                             | Done   |
-| Comrade EP tracking + custom naming                                                     | Done   |
-| Comrade action availability rules (pilot-sourced vs mech-sourced)                       | Done   |
-| Player choices (roll results, freeform text, selections)                                | Done   |
-| Visibility toggles (public/private entities)                                            | Done   |
-| Background/motto/keepsake "used" flags                                                  | Done   |
-| RLS + shared access policies (campaign members, crawler crew)                           | Done   |
+| Mechanic                                                                                                    | Status     |
+| ----------------------------------------------------------------------------------------------------------- | ---------- |
+| Pilot creation (wizard, all guide steps)                                                                    | Done       |
+| Class selection (6 core + 5 hybrid)                                                                         | Done       |
+| Ability selection (level 1 from core trees)                                                                 | Done       |
+| Equipment selection (pilot gear)                                                                            | Done       |
+| Roll tables (callsign, background, motto, keepsake, appearance)                                             | Done       |
+| Mech creation (chassis, systems, modules, budget)                                                           | Done       |
+| Pattern system (save, load, share mech configurations)                                                      | Done       |
+| Capacity enforcement (slots, cargo, scrap budget)                                                           | Done       |
+| Condition tracking (intact/damaged/destroyed on systems, modules, abilities, equipment)                     | Done       |
+| Live stat editing (HP, AP, TP, SP, EP, Heat)                                                                | Done       |
+| Crawler creation (type selection, weapon mounting, NPC naming)                                              | Done       |
+| Crawler tech level display + upgrade with scrap cost                                                        | Done       |
+| Scrap inventory (TL1-TL6 tiers, translation between tiers)                                                  | Done       |
+| Cargo management (custom items, ref-linked items, capacity)                                                 | Done       |
+| Game/campaign creation and basic management                                                                 | Done       |
+| Pilot-to-crawler assignment                                                                                 | Done       |
+| ~~Member roster (mediator/player roles)~~ (historical — abandoned, see note at top)                         | Historical |
+| ~~Realtime subscriptions (live sync across clients)~~ (historical — abandoned, see note at top)             | Historical |
+| Change logging + activity feed (toast notifications)                                                        | Done       |
+| Comrade/drone display from mech entity refs                                                                 | Done       |
+| Comrade EP tracking + custom naming                                                                         | Done       |
+| Comrade action availability rules (pilot-sourced vs mech-sourced)                                           | Done       |
+| Player choices (roll results, freeform text, selections)                                                    | Done       |
+| Visibility toggles (public/private entities)                                                                | Done       |
+| Background/motto/keepsake "used" flags                                                                      | Done       |
+| ~~RLS + shared access policies (campaign members, crawler crew)~~ (historical — abandoned, see note at top) | Historical |
 
 ---
 
@@ -141,7 +168,9 @@ These are mechanics that players use every session and are central to the game.
 
 ---
 
-### Tier 3 -- Multiplayer & Campaign Features
+### Tier 3 -- Multiplayer & Campaign Features (historical — abandoned, see note at top)
+
+_This entire tier assumed the abandoned multi-user backend (Supabase campaigns, invite codes, member roles). It is retained for historical context; multi-user "Games" are deferred under ADR-001. The gaps below are preserved as written but the "DB infrastructure exists" claims no longer hold._
 
 #### 10. Invite Code Join Flow (UI)
 
@@ -312,22 +341,26 @@ These are mechanics that players use every session and are central to the game.
 
 ---
 
-## Overlap with Phase 5II Deferred Items
+## Overlap with Phase 5II Deferred Items (historical — abandoned, see note at top)
+
+_"Phase 5II" was planning under the abandoned backend stack; the references below are historical. The underlying **game-mechanic** gaps (Action Execution, Downtime Wizard, Class Advancement UI) remain current — see the priority matrix above._
 
 These gaps overlap with items explicitly deferred in the Phase 5II planning:
 
 - **Action Execution** -- deferred as "action execution (AP/EP onClick)"
 - **Downtime Wizard** -- deferred as "downtime wizard"
 - **Class Advancement UI** -- deferred as "class advancement UI"
-- **Rollback UI** -- deferred (change_log infrastructure exists)
+- **Rollback UI** -- deferred (change_log infrastructure exists — historical, part of the abandoned backend)
 
 Everything else in the gap list above is **not currently on any roadmap**.
 
 ---
 
-## Race Conditions (Multiplayer Blockers)
+## Race Conditions (Multiplayer Blockers) (historical — abandoned, see note at top)
 
-7 non-atomic multi-table operations that need RPC migration before multiplayer is reliable:
+_This entire section is moot under the local-first architecture: there is no server, no multiplayer, and no RPC layer (see ADR-001). It described operations that would have needed atomic RPCs in the abandoned Supabase stack._
+
+~~7 non-atomic multi-table operations that need RPC migration before multiplayer is reliable:~~
 
 - `createGame`
 - `createPilot`

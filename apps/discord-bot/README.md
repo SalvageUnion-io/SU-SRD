@@ -1,10 +1,23 @@
 # Salvage Union Discord Bot
 
-A Discord bot for rolling on Salvage Union tables.
+A Discord bot for Salvage Union: roll on tables and look up any game entity.
 
 ## Commands
 
-- `/roll [table]` - Roll on a Salvage Union table (defaults to Core Mechanic)
+Everything lives under one namespaced top-level command, `/su` — typing `/su`
+filters the Discord command picker to this bot (no collision with the many
+other bots that register a bare `/roll`).
+
+- `/su roll [table]` — Roll on a Salvage Union table. The optional `table`
+  argument autocompletes across every roll table by name; omit it to roll the
+  **Core Mechanic** table. The reply is an embed colored by the d20 outcome
+  tier (crit → cascade failure).
+- `/su lookup <entity>` — Look up any Salvage Union entity (equipment, chassis,
+  systems, keywords, traits, …). The required `entity` argument autocompletes
+  via full-text search; picking a suggestion (or free-typing, which falls back
+  to the top search hit) replies with a rich embed whose title links out to the
+  entity's page on [salvageunion.io](https://salvageunion.io)
+  (`/schema/<schema>/item/<slug>`).
 
 ## Setup
 
@@ -45,7 +58,8 @@ A Discord bot for rolling on Salvage Union tables.
    bun install
    ```
 
-4. Deploy slash commands to your test server:
+4. Deploy slash commands to your test server (instant, guild-scoped — needs
+   `DISCORD_GUILD_ID` set):
 
    ```bash
    bun run deploy-commands
@@ -57,19 +71,37 @@ A Discord bot for rolling on Salvage Union tables.
    bun run dev:bot
    ```
 
+### Registering slash commands
+
+Command registration is **separate from running the bot and separate from
+deploying**. Discord only needs to be told about a command's _shape_ (its name,
+subcommands, and options) — so you only re-register when that shape changes
+(e.g. adding a subcommand or an option). Day-to-day code changes to the handler
+logic do **not** require re-registering.
+
+- `bun run deploy-commands` — register to the test guild in `DISCORD_GUILD_ID`
+  (instant; use during development).
+- `bun run deploy-commands:global` — register globally for production (can take
+  up to ~1 hour to propagate). Run this deliberately, only after changing the
+  command shape.
+
+Both scripts bulk-overwrite the registered set, so retired commands (e.g. the
+old standalone `/roll` and `/lookup`) deregister automatically on the next run.
+
 ### Production Deployment
 
-1. Deploy commands globally (takes up to 1 hour to propagate):
-
-   ```bash
-   bun run deploy-commands:global
-   ```
-
-2. Build and start:
+1. Build and start:
 
    ```bash
    bun run build:bot
    node apps/discord-bot/dist/index.js
+   ```
+
+2. If (and only if) the command shape changed, register globally as a separate,
+   intentional step:
+
+   ```bash
+   bun run deploy-commands:global
    ```
 
 ### Render Deployment
@@ -82,6 +114,14 @@ This bot is configured to deploy to Render using the `render.yaml` blueprint at 
    - `DISCORD_TOKEN`
    - `DISCORD_CLIENT_ID`
    - `DISCORD_GUILD_ID` (optional)
+   - `SENTRY_DSN` (optional — error tracking; observability is a no-op without it)
+
+**The Render build does _not_ register slash commands.** The `buildCommand`
+only installs deps and builds the bot (`bun install --ignore-scripts && bun run
+build:bot`); deploying never silently re-registers global commands. When the
+command shape changes, register it once, out-of-band, by running
+`bun run deploy-commands:global` locally (with production `DISCORD_TOKEN` /
+`DISCORD_CLIENT_ID` in your environment).
 
 ## Scripts
 

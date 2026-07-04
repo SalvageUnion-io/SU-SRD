@@ -1,0 +1,135 @@
+name: E2E (nightly)
+
+# Browser end-to-end suites run here on a daily schedule against `main`, NOT as
+# per-PR gates. They are slow and (for the Netlify deploy-preview variant)
+# flaky against cold previews, so gating every PR on them stalled merges. This
+# job keeps full e2e coverage — it just runs it once a day against the merged
+# main branch instead. Failures surface in the Actions tab (and can be wired to
+# notifications later); they do not block PR merges.
+#
+# Trigger manually any time via the "Run workflow" button (workflow_dispatch).
+
+on:
+  schedule:
+    - cron: '0 7 * * *' # 07:00 UTC daily
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: e2e-nightly
+  cancel-in-progress: true
+
+jobs:
+  e2e-itun:
+    # ITUN Playwright suite against a self-contained static build (no deploy
+    # preview on main): Playwright's webServer builds the bundle and serves it
+    # with `vite preview`. The snapshot publish path soft-skips (no Functions
+    # backend); that round-trip is covered by the snapshot unit tests.
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Bun
+        uses: ./.github/actions/setup-bun
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+
+      - name: Install Playwright browsers (Chromium)
+        working-directory: apps/in-the-union-now
+        run: bunx playwright install --with-deps chromium
+
+      - name: Run E2E tests
+        working-directory: apps/in-the-union-now
+        run: bunx playwright test
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report-itun
+          path: apps/in-the-union-now/playwright-report/
+          retention-days: 7
+
+  e2e-suref-web:
+    # suref-web Playwright smoke suite: builds the Astro static bundle and
+    # serves it with `astro preview` via Playwright's webServer.
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Bun
+        uses: ./.github/actions/setup-bun
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+
+      - name: Install Playwright browsers (Chromium)
+        # Run from the app dir so bunx resolves suref-web's exact Playwright
+        # version and installs the matching browser revision.
+        working-directory: apps/suref-web
+        run: bunx playwright install --with-deps chromium
+
+      - name: Run E2E tests
+        working-directory: apps/suref-web
+        run: bunx playwright test
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report-suref-web
+          path: apps/suref-web/playwright-report/
+          retention-days: 7
+
+  visual-regression:
+    # Visual-regression snapshots of the suref-react Ladle stories (issue #30)
+    # via Playwright's toHaveScreenshot. Requires committed per-OS baselines
+    # under packages/suref-react/visual/__screenshots__ (generate with
+    # `bun --filter suref-react ladle:build && test:visual:update` on a Linux
+    # runner). Until baselines land this job reports "no baseline" — nightly is
+    # the right home for it (informational, non-blocking).
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Bun
+        uses: ./.github/actions/setup-bun
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+
+      - name: Install Playwright browsers (Chromium)
+        run: bunx playwright install --with-deps chromium
+
+      - name: Build Ladle
+        run: bun --filter suref-react ladle:build
+
+      - name: Run visual regression
+        working-directory: packages/suref-react
+        run: bunx playwright test --config playwright.visual.config.ts
+
+      - name: Upload visual diff report on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: visual-regression-report
+          path: packages/suref-react/playwright-report/
+          retention-days: 7

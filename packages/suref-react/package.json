@@ -14,7 +14,10 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "bun test",
+    "test:coverage": "bun test --coverage",
     "test:watch": "bun test --watch",
+    "test:visual": "bunx playwright test --config playwright.visual.config.ts",
+    "test:visual:update": "bunx playwright test --config playwright.visual.config.ts --update-snapshots",
     "ladle": "ladle serve",
     "ladle:build": "ladle build"
   },
@@ -33,6 +36,7 @@
   "devDependencies": {
     "@base-ui/react": "1.5.0",
     "@ladle/react": "^5.1.1",
+    "@playwright/test": "1.60.0",
     "@randsum/roller": "^2.0.0",
     "@vitejs/plugin-react": "^5.2.0",
     "class-variance-authority": "^0.7.1",
