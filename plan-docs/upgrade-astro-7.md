@@ -1,124 +1,133 @@
 # Upgrade Path: Astro 6 → 7 (suref-web)
 
-**Status:** Deferred / not yet started. Held because it requires a non-trivial
-change to the shared game-data ORM. Everything else in the frontend-tooling
-bump (Vite 8, `@vitejs/plugin-react` 6) has already been adopted; this doc
-covers the remaining, harder step.
+**Status:** Implemented in this branch (`chore/astro-7-upgrade`), opened as a
+**draft PR** for review. The build is fully green, but two of the changes are
+decisions that were deliberately deferred and need a maintainer sign-off before
+merge (see **Decisions for review** below).
 
-Dependabot is configured to **ignore Astro / `@astrojs/*` major bumps** while
-this is open (see `.github/dependabot.yml`) so it stops re-proposing a build it
-cannot pass. Remove that ignore when this upgrade lands.
+## What landed
 
-## Why it's deferred (the blocker)
+Four coordinated changes, all in one commit (Astro 7 hard-requires Vite 8, so
+this is all-or-nothing for `apps/suref-web`):
 
-`astro@7` hard-depends on `vite: ^8` and `esbuild: ^0.28` — there is no
-Astro 7 + Vite 7 option, so this is all-or-nothing for `apps/suref-web`.
+1. **ORM JSON loaders made bundler-inline-safe** —
+   `packages/salvageunion-reference/lib/ModelFactory.ts`. Dropped the
+   `with: { type: 'json' }` import attribute from the ~27 **dynamic** data
+   loaders and ~27 **dynamic** schema loaders. This is the documented blocker's
+   fix (see below). The one **static** `import schemaIndex from
+'../schemas/index.json' with { type: 'json' }` KEEPS its attribute — TS
+   `NodeNext` requires it on static default imports (`TS1543`), and it was never
+   part of the blocker.
+2. **Removed the suref-web Vite-7 pin** — deleted `vite` and `@tailwindcss/vite`
+   from `apps/suref-web/package.json` devDependencies; suref-web now rides the
+   monorepo Vite 8 (root-hoisted `@tailwindcss/vite`).
+3. **Bumped the Astro stack** — `astro` → `^7.0.6`, `@astrojs/react` → `^6.0.1`.
+   `@astrojs/check` (0.9.9) and `@astrojs/sitemap` (3.7.3) needed no bump —
+   `astro check` passes clean on 7.
+4. **`trailingSlash: 'always'` → `'ignore'`** in `astro.config.mjs` — works
+   around a second, undocumented Astro 7 routing break (see below).
+5. Removed the Dependabot `ignore` for `astro` / `@astrojs/*` majors.
 
-With Astro 7 + Vite 8, `astro build` fails during **static-route generation**:
+## Blocker 1 (documented) — solved by dropping the import attribute
+
+`astro@7` hard-depends on `vite: ^8`. Under Vite 8's rolldown SSR build (Astro's
+prerender **is** an SSR build), the ORM's `import('../data/*.json', { with: {
+type: 'json' } })` loaders were preserved as **literal Node runtime imports** in
+the prerender chunk, but rolldown did **not emit** the JSON asset next to them —
+so `astro build` failed static-route generation with `Cannot find module
+'.../dist/.prerender/data/abilities.json'`.
+
+- **`build.ssrEmitAssets: true` does NOT fix it** (verified on 7.0.6). A
+  preserved import-attribute dynamic import isn't tracked as an emittable asset,
+  so there's nothing for `ssrEmitAssets` to emit. Confirmed: `.prerender/` still
+  had no `data/` dir and the import stayed verbatim in the chunk.
+- **Dropping the `with: { type: 'json' }` attribute DOES fix it.** Without the
+  attribute rolldown inlines the JSON into the chunk (self-contained, no runtime
+  import), and the build completes (881 pages).
+
+### Cross-consumer validation of the loader change (the deferred concern)
+
+The doc's whole reason for deferral was the loader contract's blast radius. All
+four consumers were validated green with the attribute dropped:
+
+| Consumer    | Command                                    | Result                 |
+| ----------- | ------------------------------------------ | ---------------------- |
+| suref-web   | `astro build` (Astro 7 / Vite 8)           | ✅ 881 pages           |
+| package     | `bun --filter salvageunion-reference test` | ✅ 605 pass / 0 fail   |
+| discord-bot | `bun run build:bot` (`bun build`)          | ✅ 165 modules bundled |
+| ITUN        | `bun run build:itun` (Vite 8)              | ✅ built + PWA         |
+
+Plus full `bun run check:all`: lint, format, typecheck (all 5 workspaces incl.
+`astro check`), **3,199 tests / 0 fail**, `validate:all` (27 files), knip — all
+green. The attribute is only required at **raw-Node-ESM runtime**; every consumer
+either bundles the JSON (suref-web / ITUN / bot) or runs via Bun (tests), so none
+of them ever needs it.
+
+## Blocker 2 (NEW — not anticipated by the original deferral) — trailingSlash
+
+Once Blocker 1 was cleared, the build hit a second, independent Astro 7 failure:
 
 ```
-Cannot find module '.../dist/.prerender/data/abilities.json'
-  imported from '.../dist/.prerender/chunks/lib_*.mjs'
+TypeError: Missing parameter: schemaId
+  rendering /schema/abilities.json/
 ```
 
-**Root cause.** The shared ORM loads its dataset with import-attribute dynamic
-imports — ~30 loaders of the form:
+Under Astro 7's routing, `trailingSlash: 'always'` appends a slash to the
+**dotted `.json` endpoint routes** (`src/pages/schema/[schemaId].json.ts` and
+`[schemaId].schema.json.ts`), producing `/schema/abilities.json/`, and param
+resolution then throws during static generation. Setting `trailingSlash:
+'ignore'` makes the build pass. This is not in the official v6→v7 upgrade guide.
 
-```ts
-// packages/salvageunion-reference/lib/ModelFactory.ts
-import('../data/abilities.json', { with: { type: 'json' } })
-```
+## Decisions for review (why this is a draft, not a merge)
 
-Under Vite 8's rolldown-based SSR build (Astro's prerender **is** an SSR build),
-rolldown preserves these as **literal Node runtime imports** in the prerender
-chunk but does **not emit** the JSON asset next to them. Vite's documented SSR
-behavior is that "static assets aren't emitted [in the SSR build] as it is
-assumed they would be emitted as part of the client build" — and preserved
-import-attribute JSON falls through that gap. Verified: the emitted
-`dist/.prerender/chunks/*.mjs` contains
-`import("../data/abilities.json", { with: { type: "json" } })` verbatim, and
-`dist/.prerender/` has no `data/` directory.
+1. **ORM loader contract change** — dropping `with: { type: 'json' }` was the
+   change deliberately deferred here. It is validated green across all four
+   consumers and 3,199 tests, but it does change the package's data-loading
+   contract, so it wants an explicit sign-off rather than a silent ship.
+2. **`trailingSlash: 'ignore'` (SEO)** — the site was intentionally `'always'`.
+   A 1-line diff, but on paper it touches URL canonicalization for all 881
+   indexed HTML pages, whereas the bug it works around is confined to 3 internal
+   JSON data endpoints with no SEO relevance. So the framing to weigh is
+   "tiny diff, site-wide surface" vs. the alternative (restructure the dotted
+   `.json` endpoints, or await an upstream Astro patch) — "bigger diff, endpoint-
+   local surface."
 
-`astro check` (typecheck) passes clean on Astro 7 — the break is purely the
-runtime prerender emission, not types.
+   **Measured impact on this site, however, is effectively nil.** The emitted
+   SEO signals are unchanged under `'ignore'` — verified in the Astro 7 build:
+   - `<link rel="canonical">`, `<meta property="og:url">`, and the sitemap all
+     still carry trailing slashes (`/schema/abilities/`, `/about/`, `/`), because
+     those derive from the page's directory-index `pathname`, not from the
+     enforcement mode.
+   - HTML pages still emit as `dir/index.html` (served at `/path/`).
+   - The `.json` endpoints are pure `APIRoute` endpoints — `trailingSlash` never
+     applied to them; they emit flat `schema/{id}.json` files under both 6 and 7,
+     which is why the live app's `fetch('/schema/chassis.json')` already works.
+   - Netlify carries no trailing-slash redirect config, so hosting behavior is
+     unchanged.
 
-## Prerequisites (already done)
-
-- **Vite 8 + `@vitejs/plugin-react` 6** adopted for ITUN + suref-react.
-- **suref-web pinned to Vite 7** (`apps/suref-web/package.json`:
-  `"@tailwindcss/vite": "4.3.1"`, `"vite": "^7.3.5"`). This pin exists **only**
-  because the monorepo now also carries Vite 8: the root-hoisted
-  `@tailwindcss/vite` would otherwise bind to Vite 8 and feed Astro 6's build a
-  config shape rolldown rejects (`Missing field 'tsconfigPaths'`). **This pin is
-  removed as step 2 of this upgrade** — once Astro is on 7/Vite 8 there is no
-  Vite-7 island to preserve.
-
-## The work (in order)
-
-Vite 8, plugin-react 6, Astro 7, and `@astrojs/react` 6 must land **together in
-one commit** — Astro 7 requires Vite 8, and any partial Vite-8 adoption breaks
-Astro 6's suref-web build via the shared `@tailwindcss/vite` hoist.
-
-1. **Make the ORM JSON loaders emit-safe under rolldown SSR (the hard blocker).**
-   `packages/salvageunion-reference/lib/ModelFactory.ts` — the ~30
-   `import('../data/*.json', { with: { type: 'json' } })` loaders must be made
-   to work in Astro's SSR/prerender build. Options, roughly in order of
-   preference:
-   - **Spike Vite `build.ssrEmitAssets: true`** (or Astro's prerender asset
-     handling) — the upstream lever for "emit assets in the SSR build too." It
-     is _not confirmed_ to cover preserved import-attribute dynamic imports;
-     this needs a proof-of-concept before committing to it.
-   - **Rework the loaders to a bundler-friendly form** — e.g. `import.meta.glob`
-     eager JSON, or drop the `with: { type: 'json' }` attribute so rolldown
-     inlines the JSON rather than preserving the import. This is the reliable
-     fallback but has the largest blast radius (see below).
-   - **Blast radius of a loader change:** the `salvageunion-reference` package is
-     consumed by **ITUN, suref-web, the Discord bot, and its own test suite**.
-     Any change to the loader contract must be validated across all four
-     consumers (Vite build, Astro build, `bun build` for the bot, and Bun test
-     with its `fake-indexeddb`/preload setup). This is the reason the upgrade is
-     deferred rather than done inline.
-
-2. **Remove the suref-web Vite-7 pin** — delete `@tailwindcss/vite` + `vite`
-   from `apps/suref-web/package.json` devDependencies so suref-web rides the
-   monorepo Vite 8.
-
-3. **Bump the Astro stack together:** `astro` → `^7.0.6`, `@astrojs/react` →
-   `^6.0.1` (peers only on react/react-dom 19, already satisfied).
-   `@astrojs/check` / `@astrojs/sitemap` needed no bump when last evaluated —
-   re-verify.
-
-4. **Verify the rolldown CSS serialization change.** Astro 7's Rust/rolldown CSS
-   pipeline serializes named colors to hex (e.g. `rebeccapurple` → `#639`).
-   Cosmetic, but visually diff suref-web's built CSS / a few rendered pages to
-   confirm no regressions in the SU brand theme.
-
-5. **Confirm `@vite-pwa/astro` against Astro 7.** It currently peers `astro
-^1–^5` (already stale vs. Astro 6, satisfied by a nested copy). Confirm the
-   PWA integration functions against Astro 7 or bump it.
+   What `'ignore'` actually relaxes is Astro's **build-time** trailing-slash
+   enforcement — the thing that was (incorrectly, in 7) slashing the endpoint
+   routes. Recommend accepting `'ignore'`; the endpoint-restructure alternative
+   buys no measurable SEO benefit here.
 
 ## Verification checklist (definition of done)
 
-- `bunx astro build` in `apps/suref-web` completes (881+ pages, static routes
-  generated, no missing-module error).
-- ITUN + suref-react still build (they're already on Vite 8 — regression check).
-- `bun run check:all` green; `bun --filter suref-web test` and the suref-web
-  e2e smoke suite (nightly) green.
-- The `data/*.json` assets are present in `dist/.prerender/` (or the loaders no
-  longer need them at prerender time).
-- Suref-web deploy preview renders correctly (visual spot-check of the CSS
-  serialization change).
-- Remove the Dependabot `ignore` for `astro` / `@astrojs/*` majors.
-
-## Notes
-
-- **Bonus already banked:** the Vite 8 bump pulled `esbuild` to 0.28.1, clearing
-  advisory GHSA-gv7w-rqvm-qjhr — the `--ignore` flag was dropped from the CI
-  `audit` job. Astro 7 is not required for that.
+- [x] `astro build` in `apps/suref-web` completes (881 pages, no missing-module).
+- [x] ITUN + suref-react + bot still build (regression check).
+- [x] `bun run check:all` green; all workspace tests green.
+- [x] `data/*.json` no longer needed at prerender time (inlined into the chunk).
+- [x] Data endpoints emit at their fetched paths — `dist/schema/{id}.json` is a
+      flat file matching the app's `fetch('/schema/{id}.json')` (no-slash) calls;
+      HTML canonical/og/sitemap URLs unchanged (still trailing-slash).
+- [x] CSS serialization spot-check — SU theme uses hex/oklch, not CSS named
+      colors, so Astro 7's named-color→hex change is a no-op here.
+- [x] `@vite-pwa/astro` 1.2.0 functions against Astro 7 (suref-web PWA emitted in
+      the build; its stale `astro ^1–^5` peer is satisfied by a nested copy and
+      is only a warning).
+- [x] Dependabot `ignore` for `astro` / `@astrojs/*` majors removed.
 
 ## Sources
 
 - [Astro 7.0 release](https://astro.build/blog/astro-7/)
-- [Upgrade to Astro v7](https://v7.docs.astro.build/en/guides/upgrade-to/v7/)
+- [Upgrade to Astro v7](https://docs.astro.build/en/guides/upgrade-to/v7/)
 - [Vite Build Options — `ssrEmitAssets`](https://vite.dev/config/build-options)
-- [rolldown-vite SSR architecture](https://deepwiki.com/vitejs/rolldown-vite/6.1-ssr-architecture)

@@ -7,7 +7,13 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   site: 'https://salvageunion.io',
   output: 'static',
-  trailingSlash: 'always',
+  // 'ignore' (was 'always'): under Astro 7's routing, trailingSlash 'always'
+  // appends a slash to the dotted `.json` endpoint routes
+  // (src/pages/schema/[schemaId].json.ts → /schema/abilities.json/) and their
+  // param resolution then throws "Missing parameter: schemaId" during static
+  // generation. 'ignore' stops enforcing trailing slashes on endpoints and the
+  // build succeeds. See plan-docs/upgrade-astro-7.md for the SEO trade-off.
+  trailingSlash: 'ignore',
   integrations: [
     react(),
     sitemap({
@@ -62,8 +68,8 @@ export default defineConfig({
     },
     // Pre-bundle game-data + every dependency the island components pull in
     // transitively through the `suref-react` workspace source package. The
-    // game-data package also needs this so esbuild inlines its native JSON
-    // attribute imports (import(... { with: { type: 'json' } })).
+    // game-data package also needs this so esbuild inlines its dynamic JSON
+    // data imports (import('../data/*.json')).
     //
     // The other deps live in node_modules but are only *discovered* when an
     // island first imports a suref-react component — which made Vite re-run its
