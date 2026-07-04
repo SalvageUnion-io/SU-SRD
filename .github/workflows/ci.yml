@@ -230,13 +230,11 @@ jobs:
     # severities are reported by `bun audit` locally but do not gate CI.
     #
     # The lockfile resolves every high/critical advisory to a patched version
-    # on its own — NO package.json `overrides` are required. The one ignored
-    # advisory is esbuild GHSA-gv7w-rqvm-qjhr: vite (^0.27) and astro (^0.27.3)
-    # both pin esbuild below the patched 0.28.1, so it is unreachable without
-    # forcing an out-of-range version or a major vite/astro bump. It is a Deno
-    # install-time RCE (NPM_CONFIG_REGISTRY) that does not apply to our bun/npm
-    # CI or shipped runtime. Drop this --ignore once vite/astro ship esbuild
-    # >=0.28.1.
+    # on its own — NO package.json `overrides` are required. The formerly
+    # ignored advisory GHSA-gv7w-rqvm-qjhr no longer appears in the resolved
+    # lockfile after the vite 8 upgrade, so no --ignore is needed. Any residual
+    # esbuild advisory pulled by the vite-7-pinned suref-web subtree is `low`
+    # severity and sits below this `--audit-level=high` gate.
     needs: [changes]
     if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
@@ -248,7 +246,7 @@ jobs:
         uses: ./.github/actions/setup-bun
 
       - name: Audit dependencies
-        run: bun audit --audit-level=high --ignore GHSA-gv7w-rqvm-qjhr
+        run: bun audit --audit-level=high
 
   build-suref-web:
     needs: [changes, build-package, lint, typecheck, test, validate, knip, audit]

@@ -1,7 +1,8 @@
 {
   "$schema": "https://unpkg.com/knip@latest/schema.json",
-  "ignoreBinaries": ["lefthook"],
+  "ignoreBinaries": ["lefthook", "netlify"],
   "ignoreDependencies": ["tailwindcss"],
+  "ignoreExportsUsedInFile": true,
   "workspaces": {
     ".": {
       "entry": ["tools/**/*.ts", "eslint.base.js"],

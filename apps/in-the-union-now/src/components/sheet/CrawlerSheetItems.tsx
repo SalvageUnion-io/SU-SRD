@@ -350,6 +350,7 @@ type ScrapPoolSlabProps = {
   readOnly: boolean
 }
 
+// eslint-disable-next-line react-refresh/only-export-components -- shared tech-level constant, colocated with the scrap-pool UI by design
 export const SCRAP_TLS = [1, 2, 3, 4, 5, 6] as const
 
 /**

@@ -56,4 +56,19 @@ export default [
       ],
     },
   },
+  {
+    // TanStack Router file-based routes export a `Route` (from
+    // createFileRoute()) and keep their page component LOCAL, referenced via
+    // `component:`. Under eslint-plugin-react-refresh 0.5, that trips
+    // only-export-components' `localComponents` check (a module with exports
+    // but no *exported* component). `allowExportNames: ['Route']` silences the
+    // Route export itself but not that structural check, and exporting every
+    // route component purely to satisfy the linter would break TanStack's
+    // local-component convention. Fast refresh of route modules is a non-issue
+    // in practice, so disable the rule for the routes glob.
+    files: ['src/routes/**/*.{ts,tsx}'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
+  },
 ]
