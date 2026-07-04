@@ -122,7 +122,10 @@ export const CrawlerSchema = z
     workspaceId: z.string().optional(),
     // ---------------------------------------------------------------------------
     // Live-play current stat tracking (#245).
-    // TODO: source base value from rules once crawler tech-level data exposes SP.
+    // A freshly created crawler is seeded at its tech-level base SP from the
+    // rules data (crawler-tech-levels `structurePoints`, via crawlerFormState).
+    // Kept optional so legacy/imported records still parse; read sites fall back
+    // to the derived `crawlerMaxSP`.
     // ---------------------------------------------------------------------------
     /** Current structure points */
     currentSP: z.number().int().min(0).optional(),
