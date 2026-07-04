@@ -21,6 +21,9 @@ core
 **/playwright-report/
 **/test-results/
 **/.playwright-mcp/
+# Coverage output (bun test --coverage lcov reporter / CI capture file)
+**/coverage/
+coverage-output.txt
 
 # Vite
 .vite

@@ -1,0 +1,62 @@
+# Dependabot configuration (issue #29).
+#
+# Two ecosystems: the Bun/npm workspace and the GitHub Actions used by the
+# workflows in this directory. Weekly schedule, grouped to avoid PR spam.
+#
+# BUN CAVEAT: `package-ecosystem: bun` went GA in Feb 2025 and keeps the
+# package.json ranges up to date, but Dependabot's bun support is known to be
+# unreliable at regenerating a single root `bun.lock` across a workspace
+# (dependabot/dependabot-core#11602, #14223). Expect the manifest ranges to be
+# bumped; a maintainer may need to run `bun install` locally to refresh
+# bun.lock before merging. CI's `bun install --frozen-lockfile` will surface any
+# drift.
+#
+# GROUPING STRATEGY: this repo intentionally rides bleeding-edge majors
+# (TypeScript 6, ESLint 10, Astro 6, Vite 7). Minor/patch bumps are grouped
+# (one PR for dev-deps, one for prod-deps) to keep churn manageable, while MAJOR
+# bumps are deliberately left OUT of the groups so each lands as its own
+# reviewable PR (a major TS/ESLint/Astro/Vite bump is never a "just merge it").
+version: 2
+updates:
+  # ------------------------------------------------------------------ Bun / npm
+  - package-ecosystem: 'bun'
+    # Root manifest + every workspace manifest (single root lockfile). The glob
+    # `directories` form lets Dependabot surface updates declared in each
+    # workspace's package.json, not just the root.
+    directories:
+      - '/'
+      - '/apps/*'
+      - '/packages/*'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+    open-pull-requests-limit: 10
+    groups:
+      dev-dependencies:
+        dependency-type: 'development'
+        update-types:
+          - 'minor'
+          - 'patch'
+      production-dependencies:
+        dependency-type: 'production'
+        update-types:
+          - 'minor'
+          - 'patch'
+    commit-message:
+      prefix: 'chore'
+      prefix-development: 'chore'
+      include: 'scope'
+
+  # ------------------------------------------------------------- GitHub Actions
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+    open-pull-requests-limit: 5
+    groups:
+      github-actions:
+        patterns:
+          - '*'
+    commit-message:
+      prefix: 'ci'

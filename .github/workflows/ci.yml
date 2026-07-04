@@ -131,7 +131,6 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
-
       - name: Knip
         run: bun run knip
 
@@ -145,7 +144,6 @@ jobs:
 
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
-
 
       - name: Typecheck
         run: bun run typecheck
@@ -161,9 +159,56 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
-
       - name: Test
         run: bun run test
+
+  coverage:
+    # Test coverage report (issue #28). Runs each workspace's `test:coverage`
+    # (bun test --coverage) and surfaces the per-file summary in the job log and
+    # the GitHub step summary.
+    #
+    # NON-BLOCKING BY DESIGN, but still listed in the quality-checks gate:
+    #   - Bun 1.3 exposes no `--coverage-threshold` CLI flag (only the bunfig
+    #     `[test] coverageThreshold` key), so we do NOT hard-gate on a percentage
+    #     here — real test failures are already caught by the blocking `test`
+    #     job, and picking a numeric floor blind would either be meaningless
+    #     (too low) or flaky (too high).
+    #   - The coverage run is wrapped in a `continue-on-error` step so a coverage
+    #     *instrumentation* hiccup can never false-fail the merge gate.
+    #
+    # TO TURN THIS INTO A NON-REGRESSION GATE: add
+    #     [test]
+    #     coverageThreshold = <today's number>
+    # to each workspace bunfig.toml (set to the CURRENT numbers reported below so
+    # it cannot regress), then drop the `continue-on-error` on the run step.
+    needs: [changes, build-package]
+    if: needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Bun
+        uses: ./.github/actions/setup-bun
+
+      - name: Test with coverage
+        id: cov
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          bun run test:coverage 2>&1 | tee coverage-output.txt
+
+      - name: Publish coverage summary
+        if: always()
+        run: |
+          {
+            echo '## Test coverage'
+            echo ''
+            echo '```'
+            # Strip any ANSI escapes (none expected without a TTY, but be safe).
+            sed -E 's/\x1b\[[0-9;]*m//g' coverage-output.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
 
   validate:
     needs: [changes]
@@ -216,7 +261,6 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
-
       - name: Build suref-web
         # Skip the headless-chromium og:image pass here — this job only verifies
         # the build compiles. The real og:images are generated in the Netlify
@@ -236,7 +280,6 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
-
       - name: Build in-the-union-now
         run: bun --filter in-the-union-now build
 
@@ -250,7 +293,6 @@ jobs:
 
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
-
 
       - name: Build discord-bot
         run: bun --filter @suref/discord-bot build
@@ -361,7 +403,6 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
-
       - name: Cache Playwright browsers
         uses: actions/cache@v4
         with:
@@ -384,6 +425,103 @@ jobs:
           path: apps/in-the-union-now/playwright-report/
           retention-days: 7
 
+  e2e-suref-web:
+    # Playwright smoke suite for the static suref-web reference site.
+    #
+    # Unlike ITUN there is NO Netlify PR deploy-preview counterpart for
+    # suref-web, so a literal push-only mirror of `e2e-itun` would never run on
+    # PRs — a real gap. The suite is self-contained (it builds the Astro static
+    # bundle and serves it with `astro preview` via Playwright's `webServer`, the
+    # same shape as ITUN's static-preview run), so it can and does run on BOTH
+    # PRs and pushes to main. Gated on the `web` path filter.
+    #
+    # ASSUMPTION: apps/suref-web exposes a `test:e2e` script + a Playwright
+    # config (added by the e2e worker). If that script is named differently,
+    # update the run step below.
+    needs: [changes, build-package, lint, typecheck, test, knip, validate, audit]
+    if: needs.changes.outputs.web == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Bun
+        uses: ./.github/actions/setup-bun
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+
+      - name: Install Playwright browsers (Chromium)
+        run: bunx playwright install --with-deps chromium
+
+      - name: Run E2E tests
+        run: bun --filter suref-web test:e2e
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-suref-web
+          path: apps/suref-web/playwright-report/
+          retention-days: 7
+
+  visual-regression:
+    # Visual-regression snapshots of the suref-react Ladle stories (issue #30)
+    # via Playwright's toHaveScreenshot. Builds the static Ladle bundle
+    # (`ladle build`), serves it with `ladle preview`, then navigates every
+    # story listed in build-ladle/meta.json and diffs against committed baselines
+    # under packages/suref-react/visual/__screenshots__.
+    #
+    # ALLOWED TO FAIL / DELIBERATELY NOT in the quality-checks gate.
+    # Baselines are rendered per-OS and CANNOT be produced in the authoring
+    # environment, so none are committed yet — this job will fail ("no baseline")
+    # until they exist, which is why it is not wired into the merge gate.
+    #
+    # TO ADOPT (one-time, run on a Linux runner / container to match CI):
+    #   1. bun --filter suref-react ladle:build
+    #   2. bun --filter suref-react test:visual:update   # writes CI baselines
+    #   3. git add packages/suref-react/visual/__screenshots__ && commit
+    #   4. add `visual-regression` to the quality-checks `needs:` list to make it
+    #      a blocking gate.
+    needs: [changes]
+    if: needs.changes.outputs.web == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Bun
+        uses: ./.github/actions/setup-bun
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+
+      - name: Install Playwright browsers (Chromium)
+        run: bunx playwright install --with-deps chromium
+
+      - name: Build Ladle
+        run: bun --filter suref-react ladle:build
+
+      - name: Run visual regression
+        working-directory: packages/suref-react
+        run: bunx playwright test --config playwright.visual.config.ts
+
+      - name: Upload visual diff report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-regression-report
+          path: packages/suref-react/playwright-report/
+          retention-days: 7
+
   # ---------------------------------------------------------------------------
   # Single aggregate gate. Always runs; fails if any job actually failed (a
   # path-filtered "skipped" job is fine). Branch protection should require just
@@ -399,6 +537,7 @@ jobs:
       - knip
       - typecheck
       - test
+      - coverage
       - validate
       - audit
       - build-suref-web
@@ -406,6 +545,10 @@ jobs:
       - build-discord-bot
       - e2e-itun-preview
       - e2e-itun
+      - e2e-suref-web
+      # NOTE: `visual-regression` is intentionally omitted — it is allowed to
+      # fail until baseline screenshots are committed (see that job). Add it here
+      # once baselines land to make it a blocking gate.
     runs-on: ubuntu-latest
     steps:
       - name: Verify no job failed
