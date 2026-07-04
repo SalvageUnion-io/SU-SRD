@@ -63,9 +63,11 @@ const ogImageUrl = ogImage.startsWith('http') ? ogImage : new URL(ogImage, SITE_
         `.js [data-static-fallback] { display:none }` (global.css) hides the
         SEO/no-JS text block for JS users. Without this the naked static text
         painted until the client:visible island hydrated — a text-only flash
-        on every entity load. documentElement persists across ClientRouter
-        view transitions, so this runs once and holds. */}
-    <script is:inline>document.documentElement.classList.add('js')</script>
+        on every entity load. `data-astro-rerun` re-runs it on every
+        ClientRouter view transition: Astro resets <html>'s attributes to the
+        incoming (server) document on swap, which drops `.js`, so it must be
+        re-added on each navigation, not just the first load. */}
+    <script is:inline data-astro-rerun>document.documentElement.classList.add('js')</script>
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonicalUrl} />

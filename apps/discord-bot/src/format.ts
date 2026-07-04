@@ -25,6 +25,7 @@ export function getColor(roll: number): number {
 
 /** Truncate to Discord's limits without splitting mid-word when possible. */
 export function truncate(text: string, max: number): string {
+  if (max <= 0) return ''
   if (text.length <= max) return text
   const cut = text.slice(0, max - 1)
   const lastSpace = cut.lastIndexOf(' ')

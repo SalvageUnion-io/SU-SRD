@@ -120,6 +120,21 @@ describe('buildLookupEmbed — content depth', () => {
     expect(e.description).toContain('Patterns')
   })
 
+  test('chassis ability text resolves [(CHASSIS)] to the chassis name', () => {
+    // Every chassis with a [(CHASSIS)] placeholder in its ability text must
+    // render the name, never the literal token (regression: PR #336 review).
+    const chassis = (getDataMaps().dataMap['chassis'] as { name: string }[]) ?? []
+    for (const c of chassis) {
+      const e = buildLookupEmbed(
+        { ...c, schemaName: 'chassis' } as unknown as SURefEntity & {
+          schemaName: SURefEnumSchemaName
+        },
+        'chassis'
+      )
+      expect(e.description ?? '', `${c.name} leaks the placeholder`).not.toContain('[(CHASSIS)]')
+    }
+  })
+
   test('a roll-table links out instead of inlining its rows', () => {
     const table = SalvageUnionReference.RollTables.all()[0]!
     const e = buildLookupEmbed(

@@ -29,6 +29,7 @@ import {
   getSlotsRequired,
   getTechLevel,
   nameToSlug,
+  replaceChassisPlaceholder,
 } from 'salvageunion-reference'
 import type { SURefEntity, SURefEnumSchemaName, SURefMetaAction } from 'salvageunion-reference'
 
@@ -96,7 +97,7 @@ function renderDataValues(values: DataValue[]): string {
 }
 
 /** Flatten structured content blocks into Discord-flavored markdown. */
-function flattenContent(blocks: ContentBlock[] | undefined): string {
+function flattenContent(blocks: ContentBlock[] | undefined, chassisName?: string): string {
   if (!Array.isArray(blocks)) return ''
   const sections: string[] = []
   for (const block of blocks) {
@@ -106,7 +107,10 @@ function flattenContent(blocks: ContentBlock[] | undefined): string {
       if (dv) sections.push(dv)
       continue
     }
-    const text = typeof block.value === 'string' ? block.value.trim() : ''
+    const text = replaceChassisPlaceholder(
+      typeof block.value === 'string' ? block.value : '',
+      chassisName
+    ).trim()
     let line = ''
     if (text) {
       switch (type) {
@@ -133,7 +137,12 @@ function flattenContent(blocks: ContentBlock[] | undefined): string {
     }
     const items = Array.isArray(block.items)
       ? block.items
-          .map((it) => (typeof it.value === 'string' ? it.value.trim() : ''))
+          .map((it) =>
+            replaceChassisPlaceholder(
+              typeof it.value === 'string' ? it.value : '',
+              chassisName
+            ).trim()
+          )
           .filter(Boolean)
           .map((v) => `• ${v}`)
       : []
@@ -181,7 +190,7 @@ function actionStatLine(action: AnyRecord): string {
 
 /** Render one resolved action to a markdown chunk. `ownName` suppresses a
  *  redundant title when the action shares the entity's name. */
-function renderAction(action: SURefMetaAction, ownName: string): string {
+function renderAction(action: SURefMetaAction, ownName: string, chassisName?: string): string {
   const a = action as unknown as AnyRecord
   const title = (a['displayName'] as string) || (a['name'] as string) || ''
   const lines: string[] = []
@@ -190,7 +199,7 @@ function renderAction(action: SURefMetaAction, ownName: string): string {
   const stat = actionStatLine(a)
   if (stat) lines.push(stat)
 
-  const body = flattenContent(a['content'] as ContentBlock[] | undefined)
+  const body = flattenContent(a['content'] as ContentBlock[] | undefined, chassisName)
   if (body) lines.push(body)
 
   const traits = renderTraits(a['traits'])
@@ -206,7 +215,7 @@ function renderAction(action: SURefMetaAction, ownName: string): string {
   if (Array.isArray(choices)) {
     for (const c of choices as AnyRecord[]) {
       const cname = typeof c['name'] === 'string' ? c['name'] : 'Choice'
-      const cbody = flattenContent(c['content'] as ContentBlock[] | undefined)
+      const cbody = flattenContent(c['content'] as ContentBlock[] | undefined, chassisName)
       const table =
         typeof c['rollTable'] === 'string' && c['rollTable']
           ? ` (${entityLink('roll-tables', c['rollTable'] as string)})`
@@ -268,6 +277,20 @@ function footerFor(entity: AnyRecord): string {
 }
 
 /**
+ * A truncation cut can land mid-`[label](url)`, which Discord renders as
+ * broken markdown. If the tail holds an unterminated link (a trailing `[`
+ * with no complete `](url)` after it), drop it back to before that `[`.
+ */
+function stripDanglingLink(text: string): string {
+  const lastOpen = text.lastIndexOf('[')
+  if (lastOpen === -1) return text
+  const tail = text.slice(lastOpen)
+  // A complete link at the tail is fine; anything else is a dangling cut.
+  if (/^\[[^\]]*\]\([^)]*\)/.test(tail)) return text
+  return text.slice(0, lastOpen).trimEnd()
+}
+
+/**
  * Trim an assembled embed to Discord's limits: field caps first (title,
  * field names/values, field count, description), then the 6000-char total —
  * shed trailing description with a link-out note rather than emit an invalid
@@ -287,7 +310,8 @@ function enforce(embed: LookupEmbed): LookupEmbed {
   const linkNote = embed.url ? `\n\n[Full entry on salvageunion.io](${embed.url})` : ''
   const budget = LIMIT.total - fixed - linkNote.length
   if (embed.description && embed.description.length > budget) {
-    embed.description = truncate(embed.description, Math.max(0, budget)) + linkNote
+    embed.description =
+      stripDanglingLink(truncate(embed.description, Math.max(0, budget))) + linkNote
   }
   return embed
 }
@@ -311,7 +335,11 @@ export function buildLookupEmbed(
   if (typeof e['description'] === 'string' && e['description']) {
     sections.push(e['description'] as string)
   }
-  const ownContent = flattenContent(e['content'] as ContentBlock[] | undefined)
+  // Chassis ability/flavor text carries [(CHASSIS)] placeholders — replace
+  // with the chassis name, as the web does. Non-chassis entities have no
+  // chassis context, so the token is left as-is (also matching the web).
+  const chassisName = schemaName === 'chassis' ? name : undefined
+  const ownContent = flattenContent(e['content'] as ContentBlock[] | undefined, chassisName)
   if (ownContent) sections.push(ownContent)
 
   if (schemaName === 'chassis') {
@@ -322,7 +350,7 @@ export function buildLookupEmbed(
     if (sv !== undefined) fields.push({ name: 'Salvage Value', value: String(sv), inline: true })
     fields.push(...chassisFields)
     for (const ability of getChassisAbilities(entity) ?? []) {
-      sections.push(renderAction(ability, name))
+      sections.push(renderAction(ability, name, chassisName))
     }
     if (patterns) sections.push(patterns)
   } else if (schemaName === 'roll-tables') {
