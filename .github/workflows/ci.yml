@@ -131,7 +131,6 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
-
       - name: Knip
         run: bun run knip
 
@@ -145,7 +144,6 @@ jobs:
 
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
-
 
       - name: Typecheck
         run: bun run typecheck
@@ -161,9 +159,56 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
-
       - name: Test
         run: bun run test
+
+  coverage:
+    # Test coverage report (issue #28). Runs each workspace's `test:coverage`
+    # (bun test --coverage) and surfaces the per-file summary in the job log and
+    # the GitHub step summary.
+    #
+    # NON-BLOCKING BY DESIGN, but still listed in the quality-checks gate:
+    #   - Bun 1.3 exposes no `--coverage-threshold` CLI flag (only the bunfig
+    #     `[test] coverageThreshold` key), so we do NOT hard-gate on a percentage
+    #     here — real test failures are already caught by the blocking `test`
+    #     job, and picking a numeric floor blind would either be meaningless
+    #     (too low) or flaky (too high).
+    #   - The coverage run is wrapped in a `continue-on-error` step so a coverage
+    #     *instrumentation* hiccup can never false-fail the merge gate.
+    #
+    # TO TURN THIS INTO A NON-REGRESSION GATE: add
+    #     [test]
+    #     coverageThreshold = <today's number>
+    # to each workspace bunfig.toml (set to the CURRENT numbers reported below so
+    # it cannot regress), then drop the `continue-on-error` on the run step.
+    needs: [changes, build-package]
+    if: needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Bun
+        uses: ./.github/actions/setup-bun
+
+      - name: Test with coverage
+        id: cov
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          bun run test:coverage 2>&1 | tee coverage-output.txt
+
+      - name: Publish coverage summary
+        if: always()
+        run: |
+          {
+            echo '## Test coverage'
+            echo ''
+            echo '```'
+            # Strip any ANSI escapes (none expected without a TTY, but be safe).
+            sed -E 's/\x1b\[[0-9;]*m//g' coverage-output.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
 
   validate:
     needs: [changes]
@@ -216,7 +261,6 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
-
       - name: Build suref-web
         # Skip the headless-chromium og:image pass here — this job only verifies
         # the build compiles. The real og:images are generated in the Netlify
@@ -236,7 +280,6 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
-
       - name: Build in-the-union-now
         run: bun --filter in-the-union-now build
 
@@ -251,138 +294,8 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
-
       - name: Build discord-bot
         run: bun --filter @suref/discord-bot build
-
-  e2e-itun-preview:
-    # On PRs, run the FULL Playwright suite against the live Netlify Deploy
-    # Preview (https://deploy-preview-<PR#>--in-the-union-now.netlify.app),
-    # which serves the real Netlify Functions + Blobs — so the snapshot
-    # publish→retrieve round-trip is exercised end to end (no soft-skip).
-    # No app build needed here: the specs hit the deployed URL directly.
-    # Gated on `itun_deploy` (Netlify's actual preview-trigger paths), NOT the
-    # broader `itun` — so this only runs when an ITUN preview is expected. That
-    # path filter compares against the PR base, while Netlify's `ignore` compares
-    # against the last preview, so the two can still disagree (e.g. a rebase that
-    # absorbs only non-ITUN commits): Netlify cancels the incremental preview but
-    # reports a *success* status. The wait step below detects that and skips the
-    # suite rather than testing a stale/missing preview URL.
-    needs: [changes, lint, typecheck, test]
-    if: github.event_name == 'pull_request' && needs.changes.outputs.itun_deploy == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-
-      - name: Setup Bun
-        uses: ./.github/actions/setup-bun
-
-      - name: Wait for Netlify deploy preview
-        id: preview
-        env:
-          GH_TOKEN: ${{ github.token }}
-          SHA: ${{ github.event.pull_request.head.sha }}
-        run: |
-          CONTEXT="netlify/in-the-union-now/deploy-preview"
-          echo "Waiting for the $CONTEXT status on $SHA…"
-          for i in $(seq 1 60); do
-            STATUS=$(gh api "repos/${{ github.repository }}/commits/$SHA/status" \
-              --jq "[.statuses[] | select(.context==\"$CONTEXT\")][0] // {}")
-            STATE=$(echo "$STATUS" | jq -r '.state // "pending"')
-            DESC=$(echo "$STATUS" | jq -r '.description // ""')
-            echo "  [$i/60] $CONTEXT=$STATE ($DESC)"
-            case "$STATE" in
-              success)
-                # Netlify's `ignore` command cancels a build when nothing
-                # affecting ITUN changed since the last preview — but it still
-                # reports a *success* commit status, with a description like
-                # "Deploy Preview canceled." There is then NO fresh preview at
-                # the deploy-preview-<PR>--… URL for THIS commit, so running the
-                # suite would hit a stale or missing site (net::ERR_ABORTED /
-                # timeouts). Mirror the deploy skip: skip the e2e run too.
-                case "$DESC" in
-                  *[Cc]ancel* | *[Ss]kip*)
-                    echo "Deploy preview was skipped/canceled — no fresh preview to test; skipping e2e."
-                    echo "skipped=true" >> "$GITHUB_OUTPUT"
-                    exit 0 ;;
-                  *)
-                    echo "skipped=false" >> "$GITHUB_OUTPUT"
-                    exit 0 ;;
-                esac ;;
-              failure | error) echo "::error::Netlify deploy preview failed"; exit 1 ;;
-            esac
-            sleep 15
-          done
-          echo "::error::Timed out waiting for the Netlify deploy preview"; exit 1
-
-      - name: Cache Playwright browsers
-        if: steps.preview.outputs.skipped != 'true'
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
-
-      - name: Install Playwright browsers (Chromium)
-        if: steps.preview.outputs.skipped != 'true'
-        working-directory: apps/in-the-union-now
-        run: bunx playwright install --with-deps chromium
-
-      - name: Run E2E against the deploy preview
-        if: steps.preview.outputs.skipped != 'true'
-        working-directory: apps/in-the-union-now
-        env:
-          E2E_BASE_URL: https://deploy-preview-${{ github.event.number }}--in-the-union-now.netlify.app
-        run: bunx playwright test
-
-      - name: Upload Playwright report on failure
-        if: failure() && steps.preview.outputs.skipped != 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-report-preview
-          path: apps/in-the-union-now/playwright-report/
-          retention-days: 7
-
-  e2e-itun:
-    # On pushes to main there is no deploy preview (main gets a production
-    # deploy), so fall back to a self-contained run: build a static bundle and
-    # serve it with `vite preview`. The snapshot publish step soft-skips here
-    # (no Functions backend) — that path is covered by the PR preview run above
-    # plus the snapshot unit tests.
-    needs: [changes, build-package, lint, typecheck, test, knip, validate, audit]
-    if: github.event_name == 'push' && needs.changes.outputs.itun == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-
-      - name: Setup Bun
-        uses: ./.github/actions/setup-bun
-
-
-      - name: Cache Playwright browsers
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
-
-      - name: Install Playwright browsers (Chromium)
-        working-directory: apps/in-the-union-now
-        run: bunx playwright install --with-deps chromium
-
-      - name: Run E2E tests
-        working-directory: apps/in-the-union-now
-        run: bunx playwright test
-
-      - name: Upload Playwright report on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-report
-          path: apps/in-the-union-now/playwright-report/
-          retention-days: 7
 
   # ---------------------------------------------------------------------------
   # Single aggregate gate. Always runs; fails if any job actually failed (a
@@ -399,13 +312,16 @@ jobs:
       - knip
       - typecheck
       - test
+      - coverage
       - validate
       - audit
       - build-suref-web
       - build-itun
       - build-discord-bot
-      - e2e-itun-preview
-      - e2e-itun
+      # NOTE: browser e2e (ITUN + suref-web) and visual-regression no longer
+      # gate PRs — they moved to a scheduled daily run against main
+      # (.github/workflows/e2e-nightly.yml). This keeps the PR gate fast and
+      # free of preview/browser flakiness; regressions are caught nightly.
     runs-on: ubuntu-latest
     steps:
       - name: Verify no job failed

@@ -81,6 +81,13 @@ const ogImageUrl = ogImage.startsWith('http') ? ogImage : new URL(ogImage, SITE_
         bypass Vite's transformIndexHtml so the script must be linked here. */}
     <script is:inline defer src="/registerSW.js"></script>
 
+    {/* Optional, env-gated browser error tracking. Bundled (hashed, CSP 'self')
+        — a no-op unless PUBLIC_SENTRY_DSN is set at build time. */}
+    <script>
+      import { initBrowserObservability } from '../lib/observability'
+      void initBrowserObservability()
+    </script>
+
     <!-- Open Graph -->
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />

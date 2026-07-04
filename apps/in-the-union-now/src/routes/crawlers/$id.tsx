@@ -8,9 +8,12 @@
  * 404 rendered inline when the crawler is not found after hydration.
  */
 
+import { useMemo } from 'react'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 
 import { useCrawler, usePilots } from '../../hooks/queries'
+import { SoftWarningBanner } from '../../components/shared/SoftWarningBanner'
+import { crawlerDetailWarnings } from '../../lib/rules/detailWarnings'
 import { useEntityStore } from '../../stores/entityStore'
 import { useSoftLinks } from '../../components/wiring/useSoftLinks'
 import { AssignToWorkspaceButton } from '../../components/workspace/AssignToWorkspaceButton'
@@ -46,6 +49,19 @@ function CrawlerDetailPage() {
     link,
     pilot: pilots.find((p) => p.id === link.from.id) ?? null,
   }))
+
+  // Passive over-capacity soft warnings for the stored crawler (advisory).
+  const warnings = useMemo(
+    () =>
+      crawler
+        ? crawlerDetailWarnings({
+            type: crawler.type,
+            techLevel: crawler.techLevel,
+            systems: crawler.systems,
+          })
+        : [],
+    [crawler]
+  )
 
   if (!crawler) {
     return (
@@ -86,6 +102,9 @@ function CrawlerDetailPage() {
           </Link>
         </div>
       </div>
+
+      {/* Passive soft-warning strip — renders nothing when there are none. */}
+      <SoftWarningBanner warnings={warnings} className="mb-6 px-0" />
 
       {/* 2-pane at lg+: left = summary/stats, right = wiring/actions */}
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start">

@@ -71,6 +71,7 @@
     "format": "bun --filter \"*\" format",
     "format:check": "bun --filter \"*\" format:check",
     "test": "bun --filter \"*\" test",
+    "test:coverage": "bun --filter \"*\" test:coverage",
     "test:package": "bun --filter salvageunion-reference test",
     "test:react": "bun --filter suref-react test",
     "test:web": "bun --filter suref-web test",

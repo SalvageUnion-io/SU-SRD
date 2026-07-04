@@ -1,0 +1,43 @@
+name: CodeQL
+
+# Static analysis / SAST (issue #29). Scans the JavaScript/TypeScript sources on
+# every push to main, every PR into main, and weekly (to catch newly-disclosed
+# query-pack findings on code that hasn't changed).
+on:
+  push:
+    branches: ['main']
+  pull_request:
+    branches: ['main']
+  schedule:
+    # Mondays at 05:30 UTC — same cadence as Dependabot, offset from the
+    # top of the hour to avoid the scheduling stampede.
+    - cron: '30 5 * * 1'
+
+# CodeQL needs its own permissions block — the ci.yml block does not apply here.
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+jobs:
+  analyze:
+    name: Analyze (javascript-typescript)
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          # Single identifier covers both JS and TS.
+          languages: javascript-typescript
+          # Interpreted languages need no compilation — skip the build phase.
+          build-mode: none
+          queries: security-and-quality
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: '/language:javascript-typescript'
