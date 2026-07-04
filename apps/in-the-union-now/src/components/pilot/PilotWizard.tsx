@@ -228,8 +228,7 @@ export function PilotWizard({
   const classes = selectableClasses(sur.Classes, isEdit)
   const selectedClass = form.classId
     ? ([...classes.base, ...classes.specialisations].find((c) => c.id === form.classId) as
-        | SURefClass
-        | undefined)
+        SURefClass | undefined)
     : undefined
 
   // Selection budgets: creation caps picks; edit lifts the cap (plan 3.3).

@@ -140,6 +140,7 @@ export function useSearchCombobox({
   useEffect(() => {
     if (ready && query.trim()) {
       if (debounceRef.current) clearTimeout(debounceRef.current)
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: re-run the pending query once data becomes ready
       performSearch(query)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

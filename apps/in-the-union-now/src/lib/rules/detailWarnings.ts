@@ -60,13 +60,11 @@ export function mechDetailWarnings(mech: {
   })
   return capacity.violations
     .filter((v) => v.kind === 'system-over-slots' || v.kind === 'module-over-slots')
-    .map(
-      (v): SoftWarning => ({
-        code: v.kind.toUpperCase().replace(/-/g, '_'),
-        message: v.message,
-        severity: 'warn',
-      })
-    )
+    .map((v): SoftWarning => ({
+      code: v.kind.toUpperCase().replace(/-/g, '_'),
+      message: v.message,
+      severity: 'warn',
+    }))
 }
 
 /**
@@ -100,11 +98,9 @@ export function crawlerDetailWarnings(crawler: {
 
   return capacity.violations
     .filter((v) => v.kind === 'weapon-systems-over-capacity')
-    .map(
-      (): SoftWarning => ({
-        code: 'weapon-systems-over-capacity',
-        severity: 'warn',
-        message: `Over capacity — ${capacity.weaponSystemsUsed} weapon systems installed, ${capacity.weaponSystemsMax} supported for this crawler type. You can still save; review before play.`,
-      })
-    )
+    .map((): SoftWarning => ({
+      code: 'weapon-systems-over-capacity',
+      severity: 'warn',
+      message: `Over capacity — ${capacity.weaponSystemsUsed} weapon systems installed, ${capacity.weaponSystemsMax} supported for this crawler type. You can still save; review before play.`,
+    }))
 }
