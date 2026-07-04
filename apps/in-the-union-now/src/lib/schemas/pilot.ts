@@ -114,9 +114,10 @@ export const PilotSchema = z
     workspaceId: z.string().optional(),
     // ---------------------------------------------------------------------------
     // Live-play current stat tracking (#245).
-    // These are current values for the active session — separate from any
-    // class/rules defaults. When absent the sheet falls back to 0.
-    // TODO: source base value from rules once pilot class data exposes HP/AP.
+    // A freshly created pilot is seeded with the base HP/AP rule constants
+    // (PILOT_BASE_HP / PILOT_BASE_AP in lib/rules/derivedStats, via
+    // pilotFormState). Kept optional so legacy/imported records still parse;
+    // read sites fall back to the derived maxHP/maxAP.
     // ---------------------------------------------------------------------------
     /** Current hit points */
     currentHP: z.number().int().min(0).optional(),

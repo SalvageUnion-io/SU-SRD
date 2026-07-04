@@ -13,7 +13,7 @@
  *   - modules.json   — must appear in at least one chassis pattern or drone
  */
 
-import { readFileSync } from 'fs'
+import { readFileSync, readdirSync } from 'fs'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 import {
@@ -23,6 +23,7 @@ import {
   findOrphanedActions,
   findOrphanedSystems,
   findOrphanedModules,
+  findStaleRootFiles,
   type OrphanResult,
 } from './validateOrphansLogic.js'
 
@@ -60,6 +61,26 @@ const ROOT_FILES = [
 console.log('Root entities (intentionally unreferenced):')
 for (const file of ROOT_FILES) {
   console.log(`  ${file}`)
+}
+
+// ─── Allowlist drift detection ───────────────────────────────────────────────
+// A ROOT_FILES entry that no longer maps to a real data file is a stale
+// allowlist entry: it rots silently and can mask a genuinely-orphaned
+// successor. Detect these up front and fail loudly so the list stays honest.
+const existingDataFiles = new Set(readdirSync(dataDir).filter((f) => f.endsWith('.json')))
+const staleRootFiles = findStaleRootFiles(ROOT_FILES, existingDataFiles)
+
+if (staleRootFiles.length > 0) {
+  console.error('\n' + '='.repeat(80))
+  console.error(`Stale allowlist entries: ${staleRootFiles.length} root file(s) no longer exist.`)
+  for (const file of staleRootFiles) {
+    console.error(`  - ${file} (listed in ROOT_FILES but missing from data/)`)
+  }
+  console.error(
+    '\nRemove these from ROOT_FILES in tools/validateOrphans.ts — a stale allowlist' +
+      '\nentry can mask a genuinely-orphaned entity that replaces it.'
+  )
+  process.exit(1)
 }
 
 // ─── Load data ───────────────────────────────────────────────────────────────
@@ -138,10 +159,13 @@ console.log('\n' + '='.repeat(80))
 
 if (allOrphans.length === 0) {
   console.log('All entities are referenced — no orphans detected.')
+  console.log(`Allowlist OK: all ${ROOT_FILES.length} root file(s) exist.`)
   process.exit(0)
 }
 
-console.log(`Found ${allOrphans.length} potential orphan(s):\n`)
+// These orphans are the non-allowlisted entities (actions/systems/modules) that
+// nothing references — reported distinctly from the root-file allowlist above.
+console.log(`Found ${allOrphans.length} potential orphan(s) (none are allowlisted roots):\n`)
 
 // Group by file for readability
 const orphansByFile = new Map<string, OrphanResult[]>()

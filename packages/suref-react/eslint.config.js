@@ -18,6 +18,8 @@ export default [
       '.ladle',
       'vite.config.ts',
       'build-ladle',
+      'playwright.visual.config.ts',
+      'visual/**',
     ],
   },
   ...base,

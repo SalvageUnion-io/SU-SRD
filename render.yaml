@@ -4,7 +4,10 @@ services:
     runtime: node
     region: oregon
     plan: starter
-    buildCommand: 'bun install --ignore-scripts && bun run build:bot && bun run --filter @suref/discord-bot deploy-commands:global'
+    # Command registration is intentionally NOT part of the deploy build.
+    # Global slash commands are registered manually (an explicit step) only
+    # when the command shape changes — see apps/discord-bot/README.md.
+    buildCommand: 'bun install --ignore-scripts && bun run build:bot'
     startCommand: 'node apps/discord-bot/dist/index.js'
     envVars:
       - key: DISCORD_TOKEN

@@ -30,6 +30,7 @@ import {
   clampPilotCurrentStats,
   injuryMaxHpPenalty,
   isPilotDead,
+  pilotMaxAP,
 } from '../../lib/rules/derivedStats'
 import type { Roll } from '../../lib/rules/heatCheck'
 import { useEntityStore } from '../../stores/entityStore'
@@ -135,7 +136,8 @@ export function PilotSheet({
   }
 
   async function handleSpendAP(cost: number) {
-    const current = freshPilot().currentAP ?? 0
+    const p = freshPilot()
+    const current = p.currentAP ?? pilotMaxAP(p)
     const next = Math.max(0, current - cost)
     if (next === current) return
     await storeState.update('pilot', pilot.id, { currentAP: next })
@@ -213,7 +215,7 @@ export function PilotSheet({
                 <Erow key={ability.id}>
                   <PilotAbilityItem
                     ability={ability}
-                    currentAP={pilot.currentAP ?? 0}
+                    currentAP={pilot.currentAP ?? pilotMaxAP(pilot)}
                     used={pilot.usedAbilities?.includes(slug) ?? false}
                     onSpend={(cost) => {
                       void handleSpendAP(cost)

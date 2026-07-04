@@ -60,6 +60,21 @@ const allWeapons = SalvageUnionReference.Equipment.all()
 5. Run `bun run build:package` to regenerate JSON schemas
 6. Run `bun test` to verify
 
+## Adding a New Entity **Type** (schema)
+
+Adding a whole new schema (not just rows in an existing file) touches ~7
+hand-maintained sites kept in lockstep by `lib/registryConsistency.test.ts`.
+Run the scaffold generator to print an exact, ordered checklist (with
+ready-to-paste snippets) derived from the live registry — it does not edit
+files, it tells you precisely what to add and where:
+
+```bash
+bun run scaffold:entity <schema-id> [Singular] [Plural] [--non-entity]
+# e.g. bun run scaffold:entity power-cores "Power Core" "Power Cores"
+```
+
+See the header of `tools/scaffold-entity.ts` for full usage.
+
 ## Validation
 
 - `bun run validate:all` - Check IDs, cross-references, action references
