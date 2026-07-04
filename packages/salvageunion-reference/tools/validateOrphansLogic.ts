@@ -12,6 +12,27 @@ export type OrphanResult = {
   name: string
 }
 
+// ─── allowlist drift detection ──────────────────────────────────────────────
+
+/**
+ * Detect stale entries in the root-entity allowlist.
+ *
+ * The orphan checker treats a hand-maintained list of "root" data files as
+ * intentionally-unreferenced. That allowlist rots silently: if a file is
+ * renamed or removed, its allowlist entry lingers and can mask a genuinely
+ * orphaned successor. Given the allowlisted file names and the set of data
+ * files that actually exist on disk, return the allowlist entries that no
+ * longer correspond to a real file (sorted, deduplicated).
+ */
+export function findStaleRootFiles(rootFiles: string[], existingFiles: Iterable<string>): string[] {
+  const existing = existingFiles instanceof Set ? existingFiles : new Set(existingFiles)
+  const stale = new Set<string>()
+  for (const file of rootFiles) {
+    if (!existing.has(file)) stale.add(file)
+  }
+  return [...stale].sort()
+}
+
 type ActionEntry = Record<string, unknown>
 type EntityEntry = Record<string, unknown>
 
