@@ -14,7 +14,7 @@ import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import type { SURefModule, SURefSystem } from 'salvageunion-reference'
 import { ReferenceEntityDisplay, btnVariants } from 'suref-react'
 
-import { useMech } from '../../hooks/queries'
+import { useMech, usePilots } from '../../hooks/queries'
 import { SoftWarningBanner } from '../../components/shared/SoftWarningBanner'
 import { mechDetailWarnings } from '../../lib/rules/detailWarnings'
 import { useEntityStore } from '../../stores/entityStore'
@@ -43,13 +43,23 @@ export const Route = createFileRoute('/mechs/$id')({
 
 function MechDetailPage() {
   const { id } = Route.useParams()
+  return <MechDetailInner id={id} />
+}
+
+/**
+ * Page body, split out (dep-injectable `id`) so it can be rendered under a
+ * minimal test router — mirrors the `SnapshotPageInner` seam.
+ */
+export function MechDetailInner({ id }: { id: string }) {
   const navigate = useNavigate()
 
   const mech = useMech(id)
+  const pilots = usePilots()
   const { outgoing } = useSoftLinks({ entityType: 'mech', entityId: id })
 
-  // Outgoing mech-to-pilot links
+  // Outgoing mech-to-pilot link (the mech's pilot), resolved to its record.
   const pilotLink = outgoing.find((l) => l.type === 'mech-to-pilot') ?? null
+  const linkedPilot = pilotLink ? (pilots.find((p) => p.id === pilotLink.to.id) ?? null) : null
 
   // Passive over-capacity soft warnings for the stored loadout (advisory).
   const warnings = useMemo(
@@ -171,8 +181,18 @@ function MechDetailPage() {
             </h2>
             {pilotLink ? (
               <div className="flex items-center gap-3 text-sm">
-                <span className="flex-1 text-wk-muted">
-                  Pilot linked: <span className="font-medium text-ink">{pilotLink.to.id}</span>
+                <span className="flex-1">
+                  {linkedPilot ? (
+                    <Link
+                      to="/pilots/$id"
+                      params={{ id: linkedPilot.id }}
+                      className="font-medium text-rust underline-offset-2 hover:underline"
+                    >
+                      {linkedPilot.name}
+                    </Link>
+                  ) : (
+                    <span className="text-wk-muted">Unknown pilot ({pilotLink.to.id})</span>
+                  )}
                 </span>
                 <UnassignLinkButton
                   linkId={pilotLink.id}
