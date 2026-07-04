@@ -39,6 +39,13 @@ type EmbedData = {
   fields: { name: string; value: string; inline: boolean }[]
 }
 
+/**
+ * Footer for /su roll embeds. Rolls are powered by @randsum/roller, so the
+ * roll output carries a "Powered by Randsum.dev" attribution (Discord embed
+ * footers are plain text — not clickable — so the URL reads as bare text).
+ */
+export const ROLL_EMBED_FOOTER = 'Salvage Union Reference · Powered by Randsum.dev'
+
 /** Shape a /roll outcome into embed data (works for flat + columns tables). */
 export function buildRollEmbedData(tableName: string, outcome: RollOnTableOutcome): EmbedData {
   if (!outcome.success) {

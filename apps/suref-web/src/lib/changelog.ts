@@ -7,6 +7,14 @@ type ChangelogEntry = {
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: '2026-07-03',
+    title: 'Discord bot: install page and the /su command',
+    items: [
+      'New Discord page (in the nav) with a one-click install button and a reference for using the bot at your table.',
+      'Bot commands now live under a single /su namespace \u2014 /su roll and /su lookup \u2014 so they no longer collide with other bots\u2019 /roll in the command picker.',
+    ],
+  },
+  {
+    date: '2026-07-03',
     title: '55 community Mech Monday patterns',
     items: [
       'Seven chassis — Mule, Scrapper, Thresher, Spectrum, Mazona, Goliath, and Bobcat — now carry the community-designed patterns from Leyline Press\u2019s official Mech Monday compilations: 55 new patterns in all, each transcribed from the published cards.',

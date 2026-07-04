@@ -145,6 +145,14 @@ export function MobileNavIsland({ categories, currentPath }: MobileNavIslandProp
               >
                 CHANGELOG
               </Button>
+              <Button
+                href="/discord/"
+                active={isActive('/discord')}
+                className="block text-sm"
+                onClick={() => setOpen(false)}
+              >
+                DISCORD
+              </Button>
               <a
                 href="https://leyline.press/collections/salvage-union"
                 target="_blank"
