@@ -10598,6 +10598,7 @@
   {
     "id": "2d55bd6c-1e38-48b5-8d4e-0e1699420537",
     "name": "Bite (Bio-Maw)",
+    "displayName": "Bite",
     "actionType": "Turn",
     "range": ["Close"],
     "damage": {
@@ -11464,6 +11465,7 @@
   {
     "id": "355d08a3-c640-49f9-9eca-7ad9c02055bc",
     "name": "Improvised Explosive Device (Flint Children Squad)",
+    "displayName": "Improvised Explosive Device",
     "range": ["Close"],
     "damage": {
       "damageType": "SP",
