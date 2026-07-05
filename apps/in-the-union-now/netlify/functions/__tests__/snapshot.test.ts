@@ -12,6 +12,7 @@ import { describe, it, expect, beforeEach } from 'bun:test'
 import { InMemoryStorage } from '../../../src/lib/snapshot/storage'
 import { makePublishHandler } from '../snapshot-publish'
 import { makeRetrieveHandler } from '../snapshot-retrieve'
+import { makeDeleteHandler } from '../snapshot-delete'
 import { RateLimiter, getClientIp } from '../../../src/lib/snapshot/rateLimit'
 
 // ---------------------------------------------------------------------------
@@ -281,6 +282,74 @@ describe('snapshot-retrieve', () => {
 })
 
 // ---------------------------------------------------------------------------
+// Delete endpoint (revoke / un-publish)
+// ---------------------------------------------------------------------------
+
+describe('snapshot-delete', () => {
+  let storage: InMemoryStorage
+  let handler: (req: Request) => Promise<Response>
+
+  beforeEach(() => {
+    storage = new InMemoryStorage()
+    handler = makeDeleteHandler(storage)
+  })
+
+  // Distinct IP so the module-level rate limiter is never a factor across tests.
+  function del(id: string, ip = '198.51.100.50'): Request {
+    return new Request(`http://localhost/api/snapshots/${id}`, {
+      method: 'DELETE',
+      headers: { 'x-nf-client-connection-ip': ip },
+    })
+  }
+
+  it('DELETE existing id → 204 and the snapshot is gone', async () => {
+    // Valid 8-char Crockford id (no I/L/O/U).
+    await storage.put('TESTDE01', { kind: 'pilot', name: 'Revoke Me' })
+    const res = await handler(del('TESTDE01'))
+    expect(res.status).toBe(204)
+    expect(await storage.get('TESTDE01')).toBeNull()
+  })
+
+  it('DELETE unknown but well-formed id → 204 (idempotent)', async () => {
+    const res = await handler(del('ZZZZZZZZ'))
+    expect(res.status).toBe(204)
+  })
+
+  it('DELETE malformed id → 400 (contains excluded I/O chars)', async () => {
+    const res = await handler(del('NOTEXIST'))
+    expect(res.status).toBe(400)
+  })
+
+  it('GET → 405 Method Not Allowed', async () => {
+    const res = await handler(makeRequest('GET', 'http://localhost/api/snapshots/TESTDEL1'))
+    expect(res.status).toBe(405)
+  })
+
+  it('POST → 405 Method Not Allowed', async () => {
+    const res = await handler(
+      makeRequest('POST', 'http://localhost/api/snapshots/TESTDEL1', { x: 1 })
+    )
+    expect(res.status).toBe(405)
+  })
+
+  it('round-trip: published snapshot is 404 after a revoke', async () => {
+    const publish = makePublishHandler(storage)
+    const retrieve = makeRetrieveHandler(storage)
+
+    const publishRes = await publish(
+      makeRequest('POST', 'http://localhost/api/snapshots', { kind: 'mech', name: 'Ghost' })
+    )
+    const { id } = (await publishRes.json()) as { id: string }
+
+    const delRes = await handler(del(id))
+    expect(delRes.status).toBe(204)
+
+    const getRes = await retrieve(makeRequest('GET', `http://localhost/api/snapshots/${id}`))
+    expect(getRes.status).toBe(404)
+  })
+})
+
+// ---------------------------------------------------------------------------
 // Storage abstraction (InMemoryStorage unit tests)
 // ---------------------------------------------------------------------------
 
@@ -310,5 +379,18 @@ describe('InMemoryStorage', () => {
     const result = await s.put('k1', { v: 2 })
     expect(result.modified).toBe(true)
     expect(await s.get('k1')).toEqual({ v: 2 })
+  })
+
+  it('delete removes a stored key', async () => {
+    const s = new InMemoryStorage()
+    await s.put('k1', { v: 1 })
+    await s.delete('k1')
+    expect(await s.get('k1')).toBeNull()
+  })
+
+  it('delete on a missing key is a no-op (does not throw)', async () => {
+    const s = new InMemoryStorage()
+    await s.delete('nope')
+    expect(await s.get('nope')).toBeNull()
   })
 })

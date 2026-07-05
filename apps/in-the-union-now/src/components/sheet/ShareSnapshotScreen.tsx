@@ -42,8 +42,14 @@ import {
   pilotMaxHP,
 } from '../../lib/rules/derivedStats'
 import { useEntity } from '../../hooks/queries'
-import { probeSnapshotService, publishSnapshot } from '../../lib/snapshot/client'
+import { deleteSnapshot, probeSnapshotService, publishSnapshot } from '../../lib/snapshot/client'
 import type { PublishResult, SnapshotPayload } from '../../lib/snapshot/client'
+import {
+  listPublishedSnapshotsFor,
+  recordPublishedSnapshot,
+  removePublishedSnapshot,
+} from '../../lib/snapshot/publishedSnapshots'
+import type { PublishedSnapshot } from '../../lib/snapshot/publishedSnapshots'
 import { AppLink } from '../shared/AppLink'
 
 import type { EntityLookup } from './composition'
@@ -59,6 +65,8 @@ type ShareSnapshotScreenProps = {
   entityStore?: EntityLookup
   /** Injectable publish function for testing. */
   publishFn?: (payload: SnapshotPayload) => Promise<PublishResult>
+  /** Injectable revoke/un-publish function for testing. */
+  deleteFn?: (id: string) => Promise<void>
   /** Injectable backend feature-detect for testing (S6). */
   probeFn?: () => Promise<boolean>
   /** Injectable clipboard writer for testing. */
@@ -87,6 +95,7 @@ export function ShareSnapshotScreen({
   id,
   entityStore,
   publishFn = publishSnapshot,
+  deleteFn = deleteSnapshot,
   probeFn = probeSnapshotService,
   clipboardWriter = (text) => navigator.clipboard.writeText(text),
 }: ShareSnapshotScreenProps) {
@@ -100,6 +109,10 @@ export function ShareSnapshotScreen({
   })
   const [copied, setCopied] = useState(false)
   const [copyError, setCopyError] = useState<string | null>(null)
+  // Locally-tracked links published from THIS build — the revoke ledger. The
+  // snapshot id is the only capability (local-first, no auth), so it lives in
+  // localStorage and is the user's handle on their own shared links.
+  const [links, setLinks] = useState<PublishedSnapshot[]>(() => listPublishedSnapshotsFor(kind, id))
 
   useEffect(() => {
     let cancelled = false
@@ -129,6 +142,9 @@ export function ShareSnapshotScreen({
 
   const sheetHref = `/sheet/${kind}/${id}`
   const shareUrl = publishState.status === 'published' ? publishState.shareUrl : null
+  // Narrowed local — `entity` is non-null past the guard above, but the async
+  // closures below don't inherit that narrowing.
+  const entityName = entity.name
 
   async function handlePublish() {
     setPublishState({ status: 'publishing' })
@@ -147,6 +163,14 @@ export function ShareSnapshotScreen({
         status: 'published',
         shareUrl: `${window.location.origin}/s/${result.id}`,
       })
+      recordPublishedSnapshot({
+        id: result.id,
+        kind,
+        entityId: id,
+        name: entityName,
+        publishedAt: new Date().toISOString(),
+      })
+      setLinks(listPublishedSnapshotsFor(kind, id))
       toast.success('Snapshot published.')
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unknown error'
@@ -167,6 +191,28 @@ export function ShareSnapshotScreen({
       setTimeout(() => setCopied(false), 2000)
     } catch {
       setCopyError('Failed to copy — select the URL and copy it manually.')
+    }
+  }
+
+  /**
+   * Revoke a shared link: DELETE the blob, then forget it locally. The delete
+   * only actually removes the snapshot once the backend is deployed, so failure
+   * surfaces as a toast and the local record is kept for a retry.
+   */
+  async function handleRevoke(snapId: string) {
+    try {
+      await deleteFn(snapId)
+      removePublishedSnapshot(snapId)
+      setLinks(listPublishedSnapshotsFor(kind, id))
+      // If the just-published link was the one revoked, reset the panel so the
+      // URL/QR no longer advertise a dead link.
+      if (publishState.status === 'published' && publishState.shareUrl.endsWith(`/s/${snapId}`)) {
+        setPublishState({ status: 'idle' })
+      }
+      toast.success('Shared link removed.')
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unknown error'
+      toast.error(`Failed to remove shared link: ${message}`)
     }
   }
 
@@ -274,6 +320,34 @@ export function ShareSnapshotScreen({
               No account needed. The snapshot stores no personal data — just the build.
             </p>
           </Panel>
+
+          {links.length > 0 && (
+            <Panel className="p-4 sm:p-5">
+              <h2 className={PANEL_HEADING_CLASS}>Shared links</h2>
+              <p className="text-wk-muted mb-3 mt-0 font-body text-caption leading-relaxed">
+                Links you&rsquo;ve published for {entity.name}. Removing one revokes it — the shared
+                page then shows &ldquo;not found&rdquo;.
+              </p>
+              <ul className="m-0 flex list-none flex-col gap-2 p-0">
+                {links.map((link) => (
+                  <li key={link.id} className="flex items-center gap-2">
+                    <code className="min-w-0 flex-1 truncate font-mono text-xs text-ink">
+                      /s/{link.id}
+                    </code>
+                    <Btn
+                      size="sm"
+                      variant="danger"
+                      className="min-h-11 shrink-0 sm:min-h-9"
+                      aria-label={`Remove shared link ${link.id}`}
+                      onClick={() => void handleRevoke(link.id)}
+                    >
+                      Remove
+                    </Btn>
+                  </li>
+                ))}
+              </ul>
+            </Panel>
+          )}
 
           <Panel className="p-4 sm:p-5">
             <h2 className={PANEL_HEADING_CLASS}>QR code</h2>

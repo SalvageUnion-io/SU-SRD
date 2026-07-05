@@ -16,6 +16,7 @@
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 
 import {
+  deleteSnapshot,
   probeSnapshotService,
   publishSnapshot,
   retrieveSnapshot,
@@ -230,6 +231,42 @@ describe('publish → retrieve round-trip', () => {
     const retrieved = await retrieveSnapshot(published.id)
     expect(retrieved).toMatchObject({ kind: 'pilot' })
     expect((retrieved as { entity: { name: string } }).entity.name).toBe('Roundtrip Pilot')
+  })
+})
+
+// ---------------------------------------------------------------------------
+// deleteSnapshot — revoke / un-publish
+// ---------------------------------------------------------------------------
+
+describe('deleteSnapshot', () => {
+  test('sends DELETE to /api/snapshots/:id', async () => {
+    const { fn, calls } = makeFetchStub({ ok: true, status: 204, body: null })
+    global.fetch = fn
+
+    await deleteSnapshot('abc123')
+
+    expect(calls.length).toBe(1)
+    const [url, options] = calls[0]!
+    expect(url).toBe('/api/snapshots/abc123')
+    expect(options?.method).toBe('DELETE')
+  })
+
+  test('resolves on 204 (success)', async () => {
+    const { fn } = makeFetchStub({ ok: true, status: 204, body: null })
+    global.fetch = fn
+    await expect(deleteSnapshot('abc123')).resolves.toBeUndefined()
+  })
+
+  test('resolves on 404 (already gone — idempotent)', async () => {
+    const { fn } = makeFetchStub({ ok: false, status: 404, body: null })
+    global.fetch = fn
+    await expect(deleteSnapshot('gone')).resolves.toBeUndefined()
+  })
+
+  test('throws on other non-OK statuses', async () => {
+    const { fn } = makeFetchStub({ ok: false, status: 503, body: null })
+    global.fetch = fn
+    await expect(deleteSnapshot('any')).rejects.toThrow('delete failed: 503')
   })
 })
 

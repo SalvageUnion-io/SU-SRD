@@ -104,3 +104,19 @@ export async function retrieveSnapshot(id: string): Promise<SnapshotPayload> {
   }
   return res.json() as Promise<SnapshotPayload>
 }
+
+/**
+ * Deletes (un-publishes / revokes) a snapshot by ID.
+ *
+ * The delete is idempotent server-side, so a 404 is treated as success — the
+ * snapshot is gone either way, which is all the caller wanted.
+ *
+ * @throws Error for non-OK statuses other than 404.
+ */
+export async function deleteSnapshot(id: string): Promise<void> {
+  const res = await fetchWithTimeout(`/api/snapshots/${id}`, { method: 'DELETE' })
+  if (res.ok || res.status === 404) {
+    return
+  }
+  throw new Error(`delete failed: ${res.status}`)
+}

@@ -19,6 +19,7 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import { ShareSnapshotScreen } from '../ShareSnapshotScreen'
 import type { EntityLookup } from '../composition'
 import type { PublishResult, SnapshotPayload } from '../../../lib/snapshot/client'
+import { recordPublishedSnapshot } from '../../../lib/snapshot/publishedSnapshots'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { Pilot } from '../../../lib/schemas/pilot'
 
@@ -28,6 +29,9 @@ beforeAll(async () => {
 })
 
 afterEach(() => {
+  // The publish flow now records the shared link in localStorage — clear it so
+  // the revoke-ledger never leaks between tests.
+  localStorage.clear()
   cleanup()
 })
 
@@ -277,6 +281,95 @@ describe('ShareSnapshotScreen — publish flow', () => {
       const alert = screen.getByRole('alert')
       expect(alert.textContent).toContain('network timeout')
     })
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Revoke / un-publish (FIX #10)
+// ---------------------------------------------------------------------------
+
+describe('ShareSnapshotScreen — revoke / un-publish', () => {
+  test('publishing records the link and reveals a Remove affordance', async () => {
+    const publishFn = makePublishFn({ id: 'REV00001', url: '/api/snapshots/REV00001' })
+    render(
+      <ShareSnapshotScreen
+        kind="pilot"
+        id="pilot-1"
+        entityStore={makeEntityStore([fakePilot])}
+        probeFn={probeUp}
+        publishFn={publishFn}
+      />
+    )
+
+    await waitFor(() => {
+      expect(
+        (screen.getByRole('button', { name: /publish snapshot/i }) as HTMLButtonElement).disabled
+      ).toBe(false)
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /publish snapshot/i }))
+    })
+
+    expect(await screen.findByRole('heading', { name: /shared links/i })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /remove shared link REV00001/i })).toBeTruthy()
+  })
+
+  test('Remove calls the delete fn and drops the link from the panel', async () => {
+    const deleteFn = mock(async () => {})
+    const publishFn = makePublishFn({ id: 'REV00002', url: '/api/snapshots/REV00002' })
+    render(
+      <ShareSnapshotScreen
+        kind="pilot"
+        id="pilot-1"
+        entityStore={makeEntityStore([fakePilot])}
+        probeFn={probeUp}
+        publishFn={publishFn}
+        deleteFn={deleteFn}
+      />
+    )
+
+    await waitFor(() => {
+      expect(
+        (screen.getByRole('button', { name: /publish snapshot/i }) as HTMLButtonElement).disabled
+      ).toBe(false)
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /publish snapshot/i }))
+    })
+
+    const removeBtn = await screen.findByRole('button', {
+      name: /remove shared link REV00002/i,
+    })
+    await act(async () => {
+      fireEvent.click(removeBtn)
+    })
+
+    expect(deleteFn).toHaveBeenCalledTimes(1)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect((deleteFn as any).mock.calls[0][0]).toBe('REV00002')
+    await waitFor(() => {
+      expect(screen.queryByRole('button', { name: /remove shared link REV00002/i })).toBeNull()
+    })
+  })
+
+  test('surfaces previously-tracked links for this entity on mount', async () => {
+    recordPublishedSnapshot({
+      id: 'PRIOR001',
+      kind: 'pilot',
+      entityId: 'pilot-1',
+      name: 'Mara Vex',
+      publishedAt: new Date().toISOString(),
+    })
+    render(
+      <ShareSnapshotScreen
+        kind="pilot"
+        id="pilot-1"
+        entityStore={makeEntityStore([fakePilot])}
+        probeFn={probeUp}
+        publishFn={makePublishFn({ id: 'a', url: '/api/snapshots/a' })}
+      />
+    )
+    expect(await screen.findByRole('button', { name: /remove shared link PRIOR001/i })).toBeTruthy()
   })
 })
 
