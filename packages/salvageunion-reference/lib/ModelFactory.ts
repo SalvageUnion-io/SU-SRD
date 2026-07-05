@@ -44,191 +44,97 @@ import {
 // ---------------------------------------------------------------------------
 
 const dataLoaders: Record<string, () => Promise<unknown[]>> = {
-  abilities: () =>
-    import('../data/abilities.json', { with: { type: 'json' } }).then(
-      (m) => m.default as unknown[]
-    ),
+  abilities: () => import('../data/abilities.json').then((m) => m.default as unknown[]),
   'ability-tree-requirements': () =>
-    import('../data/ability-tree-requirements.json', { with: { type: 'json' } }).then(
-      (m) => m.default as unknown[]
-    ),
-  actions: () =>
-    import('../data/actions.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
-  chassis: () =>
-    import('../data/chassis.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
-  classes: () =>
-    import('../data/classes.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
-  'crawler-bays': () =>
-    import('../data/crawler-bays.json', { with: { type: 'json' } }).then(
-      (m) => m.default as unknown[]
-    ),
+    import('../data/ability-tree-requirements.json').then((m) => m.default as unknown[]),
+  actions: () => import('../data/actions.json').then((m) => m.default as unknown[]),
+  chassis: () => import('../data/chassis.json').then((m) => m.default as unknown[]),
+  classes: () => import('../data/classes.json').then((m) => m.default as unknown[]),
+  'crawler-bays': () => import('../data/crawler-bays.json').then((m) => m.default as unknown[]),
   'crawler-tech-levels': () =>
-    import('../data/crawler-tech-levels.json', { with: { type: 'json' } }).then(
-      (m) => m.default as unknown[]
-    ),
-  crawlers: () =>
-    import('../data/crawlers.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
-  creatures: () =>
-    import('../data/creatures.json', { with: { type: 'json' } }).then(
-      (m) => m.default as unknown[]
-    ),
-  distances: () =>
-    import('../data/distances.json', { with: { type: 'json' } }).then(
-      (m) => m.default as unknown[]
-    ),
-  drones: () =>
-    import('../data/drones.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
-  equipment: () =>
-    import('../data/equipment.json', { with: { type: 'json' } }).then(
-      (m) => m.default as unknown[]
-    ),
-  guides: () =>
-    import('../data/guides.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
-  keywords: () =>
-    import('../data/keywords.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
-  factions: () =>
-    import('../data/factions.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
-  meld: () =>
-    import('../data/meld.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
-  modules: () =>
-    import('../data/modules.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
-  npcs: () =>
-    import('../data/npcs.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
-  'roll-tables': () =>
-    import('../data/roll-tables.json', { with: { type: 'json' } }).then(
-      (m) => m.default as unknown[]
-    ),
-  squads: () =>
-    import('../data/squads.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
-  systems: () =>
-    import('../data/systems.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
-  'bio-titans': () =>
-    import('../data/bio-titans.json', { with: { type: 'json' } }).then(
-      (m) => m.default as unknown[]
-    ),
-  traits: () =>
-    import('../data/traits.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
-  vehicles: () =>
-    import('../data/vehicles.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
-  sources: () =>
-    import('../data/sources.json', { with: { type: 'json' } }).then((m) => m.default as unknown[]),
-  'tech-levels': () =>
-    import('../data/tech-levels.json', { with: { type: 'json' } }).then(
-      (m) => m.default as unknown[]
-    ),
+    import('../data/crawler-tech-levels.json').then((m) => m.default as unknown[]),
+  crawlers: () => import('../data/crawlers.json').then((m) => m.default as unknown[]),
+  creatures: () => import('../data/creatures.json').then((m) => m.default as unknown[]),
+  distances: () => import('../data/distances.json').then((m) => m.default as unknown[]),
+  drones: () => import('../data/drones.json').then((m) => m.default as unknown[]),
+  equipment: () => import('../data/equipment.json').then((m) => m.default as unknown[]),
+  guides: () => import('../data/guides.json').then((m) => m.default as unknown[]),
+  keywords: () => import('../data/keywords.json').then((m) => m.default as unknown[]),
+  factions: () => import('../data/factions.json').then((m) => m.default as unknown[]),
+  meld: () => import('../data/meld.json').then((m) => m.default as unknown[]),
+  modules: () => import('../data/modules.json').then((m) => m.default as unknown[]),
+  npcs: () => import('../data/npcs.json').then((m) => m.default as unknown[]),
+  'roll-tables': () => import('../data/roll-tables.json').then((m) => m.default as unknown[]),
+  squads: () => import('../data/squads.json').then((m) => m.default as unknown[]),
+  systems: () => import('../data/systems.json').then((m) => m.default as unknown[]),
+  'bio-titans': () => import('../data/bio-titans.json').then((m) => m.default as unknown[]),
+  traits: () => import('../data/traits.json').then((m) => m.default as unknown[]),
+  vehicles: () => import('../data/vehicles.json').then((m) => m.default as unknown[]),
+  sources: () => import('../data/sources.json').then((m) => m.default as unknown[]),
+  'tech-levels': () => import('../data/tech-levels.json').then((m) => m.default as unknown[]),
   'catalog-categories': () =>
-    import('../data/catalog-categories.json', { with: { type: 'json' } }).then(
-      (m) => m.default as unknown[]
-    ),
+    import('../data/catalog-categories.json').then((m) => m.default as unknown[]),
 }
 
 const jsonSchemaLoaders: Record<string, () => Promise<Record<string, unknown>>> = {
   abilities: () =>
-    import('../schemas/abilities.schema.json', { with: { type: 'json' } }).then(
-      (m) => m.default as Record<string, unknown>
-    ),
+    import('../schemas/abilities.schema.json').then((m) => m.default as Record<string, unknown>),
   'ability-tree-requirements': () =>
-    import('../schemas/ability-tree-requirements.schema.json', { with: { type: 'json' } }).then(
+    import('../schemas/ability-tree-requirements.schema.json').then(
       (m) => m.default as Record<string, unknown>
     ),
   actions: () =>
-    import('../schemas/actions.schema.json', { with: { type: 'json' } }).then(
-      (m) => m.default as Record<string, unknown>
-    ),
+    import('../schemas/actions.schema.json').then((m) => m.default as Record<string, unknown>),
   chassis: () =>
-    import('../schemas/chassis.schema.json', { with: { type: 'json' } }).then(
-      (m) => m.default as Record<string, unknown>
-    ),
+    import('../schemas/chassis.schema.json').then((m) => m.default as Record<string, unknown>),
   classes: () =>
-    import('../schemas/classes.schema.json', { with: { type: 'json' } }).then(
-      (m) => m.default as Record<string, unknown>
-    ),
+    import('../schemas/classes.schema.json').then((m) => m.default as Record<string, unknown>),
   'crawler-bays': () =>
-    import('../schemas/crawler-bays.schema.json', { with: { type: 'json' } }).then(
-      (m) => m.default as Record<string, unknown>
-    ),
+    import('../schemas/crawler-bays.schema.json').then((m) => m.default as Record<string, unknown>),
   'crawler-tech-levels': () =>
-    import('../schemas/crawler-tech-levels.schema.json', { with: { type: 'json' } }).then(
+    import('../schemas/crawler-tech-levels.schema.json').then(
       (m) => m.default as Record<string, unknown>
     ),
   crawlers: () =>
-    import('../schemas/crawlers.schema.json', { with: { type: 'json' } }).then(
-      (m) => m.default as Record<string, unknown>
-    ),
+    import('../schemas/crawlers.schema.json').then((m) => m.default as Record<string, unknown>),
   creatures: () =>
-    import('../schemas/creatures.schema.json', { with: { type: 'json' } }).then(
-      (m) => m.default as Record<string, unknown>
-    ),
+    import('../schemas/creatures.schema.json').then((m) => m.default as Record<string, unknown>),
   distances: () =>
-    import('../schemas/distances.schema.json', { with: { type: 'json' } }).then(
-      (m) => m.default as Record<string, unknown>
-    ),
+    import('../schemas/distances.schema.json').then((m) => m.default as Record<string, unknown>),
   drones: () =>
-    import('../schemas/drones.schema.json', { with: { type: 'json' } }).then(
-      (m) => m.default as Record<string, unknown>
-    ),
+    import('../schemas/drones.schema.json').then((m) => m.default as Record<string, unknown>),
   equipment: () =>
-    import('../schemas/equipment.schema.json', { with: { type: 'json' } }).then(
-      (m) => m.default as Record<string, unknown>
-    ),
+    import('../schemas/equipment.schema.json').then((m) => m.default as Record<string, unknown>),
   guides: () =>
-    import('../schemas/guides.schema.json', { with: { type: 'json' } }).then(
-      (m) => m.default as Record<string, unknown>
-    ),
+    import('../schemas/guides.schema.json').then((m) => m.default as Record<string, unknown>),
   keywords: () =>
-    import('../schemas/keywords.schema.json', { with: { type: 'json' } }).then(
-      (m) => m.default as Record<string, unknown>
-    ),
+    import('../schemas/keywords.schema.json').then((m) => m.default as Record<string, unknown>),
   factions: () =>
-    import('../schemas/factions.schema.json', { with: { type: 'json' } }).then(
-      (m) => m.default as Record<string, unknown>
-    ),
+    import('../schemas/factions.schema.json').then((m) => m.default as Record<string, unknown>),
   meld: () =>
-    import('../schemas/meld.schema.json', { with: { type: 'json' } }).then(
-      (m) => m.default as Record<string, unknown>
-    ),
+    import('../schemas/meld.schema.json').then((m) => m.default as Record<string, unknown>),
   modules: () =>
-    import('../schemas/modules.schema.json', { with: { type: 'json' } }).then(
-      (m) => m.default as Record<string, unknown>
-    ),
+    import('../schemas/modules.schema.json').then((m) => m.default as Record<string, unknown>),
   npcs: () =>
-    import('../schemas/npcs.schema.json', { with: { type: 'json' } }).then(
-      (m) => m.default as Record<string, unknown>
-    ),
+    import('../schemas/npcs.schema.json').then((m) => m.default as Record<string, unknown>),
   'roll-tables': () =>
-    import('../schemas/roll-tables.schema.json', { with: { type: 'json' } }).then(
-      (m) => m.default as Record<string, unknown>
-    ),
+    import('../schemas/roll-tables.schema.json').then((m) => m.default as Record<string, unknown>),
   squads: () =>
-    import('../schemas/squads.schema.json', { with: { type: 'json' } }).then(
-      (m) => m.default as Record<string, unknown>
-    ),
+    import('../schemas/squads.schema.json').then((m) => m.default as Record<string, unknown>),
   systems: () =>
-    import('../schemas/systems.schema.json', { with: { type: 'json' } }).then(
-      (m) => m.default as Record<string, unknown>
-    ),
+    import('../schemas/systems.schema.json').then((m) => m.default as Record<string, unknown>),
   'bio-titans': () =>
-    import('../schemas/bio-titans.schema.json', { with: { type: 'json' } }).then(
-      (m) => m.default as Record<string, unknown>
-    ),
+    import('../schemas/bio-titans.schema.json').then((m) => m.default as Record<string, unknown>),
   traits: () =>
-    import('../schemas/traits.schema.json', { with: { type: 'json' } }).then(
-      (m) => m.default as Record<string, unknown>
-    ),
+    import('../schemas/traits.schema.json').then((m) => m.default as Record<string, unknown>),
   vehicles: () =>
-    import('../schemas/vehicles.schema.json', { with: { type: 'json' } }).then(
-      (m) => m.default as Record<string, unknown>
-    ),
+    import('../schemas/vehicles.schema.json').then((m) => m.default as Record<string, unknown>),
   sources: () =>
-    import('../schemas/sources.schema.json', { with: { type: 'json' } }).then(
-      (m) => m.default as Record<string, unknown>
-    ),
+    import('../schemas/sources.schema.json').then((m) => m.default as Record<string, unknown>),
   'tech-levels': () =>
-    import('../schemas/tech-levels.schema.json', { with: { type: 'json' } }).then(
-      (m) => m.default as Record<string, unknown>
-    ),
+    import('../schemas/tech-levels.schema.json').then((m) => m.default as Record<string, unknown>),
   'catalog-categories': () =>
-    import('../schemas/catalog-categories.schema.json', { with: { type: 'json' } }).then(
+    import('../schemas/catalog-categories.schema.json').then(
       (m) => m.default as Record<string, unknown>
     ),
 }
