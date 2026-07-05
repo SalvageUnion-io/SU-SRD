@@ -3,6 +3,7 @@
  * interaction objects, so everything here is unit-testable.
  */
 
+import type { RollerRollResult } from '@randsum/roller'
 import type { RollOnTableOutcome } from 'salvageunion-reference'
 import { getEntitySlug } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
@@ -80,6 +81,41 @@ export function buildRollEmbedData(tableName: string, outcome: RollOnTableOutcom
       { name: 'Table', value: tableName, inline: true },
       { name: 'Roll', value: String(outcome.roll), inline: true },
       { name: 'Range', value: outcome.key, inline: true },
+    ],
+  }
+}
+
+/**
+ * The most individual dice we spell out in a `/su check` embed. Randsum is the
+ * source of truth for what notation is *valid* (it parsed the string fine), but
+ * `999d20` is valid and would blow past Discord's field limits — so we cap the
+ * rendered dice list, not the roll itself. The total stays exact.
+ */
+const CHECK_MAX_SHOWN_DICE = 100
+
+/**
+ * Shape a free-form `/su check` roll (raw notation passed straight to
+ * @randsum/roller) into embed data: echo the parsed notation, list the
+ * individual dice, and show the total. Pure — takes the roller result, no
+ * discord.js. Uses the neutral tone (2d6 has no d20 pass/fail semantics).
+ */
+export function buildCheckEmbedData(input: string, result: RollerRollResult<unknown>): EmbedData {
+  const notation = result.rolls.map((r) => r.notation).join(', ') || input
+  const values = result.values.map((v) => String(v))
+  const shown = values.slice(0, CHECK_MAX_SHOWN_DICE)
+  const overflow = values.length - shown.length
+  const diceLine = shown.length
+    ? `${shown.join(', ')}${overflow > 0 ? `, …(+${overflow} more)` : ''}`
+    : '—'
+  const descriptions = result.rolls.flatMap((r) => r.description)
+  return {
+    title: truncate(`🎲 ${input}`, 256),
+    color: NEUTRAL_EMBED_COLOR,
+    description: descriptions.length ? truncate(descriptions.join('\n'), 4096) : undefined,
+    fields: [
+      { name: 'Notation', value: truncate(notation, 1024), inline: true },
+      { name: 'Total', value: String(result.total), inline: true },
+      { name: 'Dice', value: truncate(diceLine, 1024), inline: false },
     ],
   }
 }

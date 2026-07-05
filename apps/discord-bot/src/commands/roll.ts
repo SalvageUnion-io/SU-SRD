@@ -1,4 +1,6 @@
 import {
+  ActionRowBuilder,
+  ButtonBuilder,
   EmbedBuilder,
   MessageFlags,
   type ChatInputCommandInteraction,
@@ -8,6 +10,7 @@ import {
 import { roll as rollDie } from '@randsum/roller'
 import { SalvageUnionReference, rollOnTable } from 'salvageunion-reference'
 
+import { rollAgainRow } from '../customId.js'
 import { ROLL_EMBED_FOOTER, buildRollEmbedData } from '../format.js'
 
 // Roll tables load lazily once SalvageUnionReference.preload() has run at startup.
@@ -25,6 +28,45 @@ function getRollTables(): ReturnType<typeof SalvageUnionReference.RollTables.all
  */
 function rollD20(): number {
   return rollDie('1d20').total
+}
+
+/** A message payload ready for `interaction.reply`, or a user-facing error. */
+export type RollMessage =
+  { embeds: EmbedBuilder[]; components: ActionRowBuilder<ButtonBuilder>[] } | { error: string }
+
+/**
+ * Roll on a named table and shape the result into a reply. Shared by the slash
+ * `/su roll` handler and the "Roll again" button router so both produce an
+ * identical embed carrying its own re-roll button.
+ */
+export function buildRollMessage(tableName: string): RollMessage {
+  const table = getRollTables().find((t) => t.name.toLowerCase() === tableName.toLowerCase())
+  if (!table) {
+    return {
+      error: `Could not find table: "${tableName}". Use autocomplete to see available tables.`,
+    }
+  }
+
+  // rollOnTable (salvageunion-reference, ADR-006) owns the flat-vs-columns
+  // branch — shared with ITUN's pilot-identity roll buttons.
+  const outcome = rollOnTable(table.table, rollD20)
+  if (!outcome.success) {
+    return { error: `Error rolling on table "${table.name}": ${outcome.error}` }
+  }
+
+  const data = buildRollEmbedData(table.name, outcome)
+  const embed = new EmbedBuilder()
+    .setTitle(data.title)
+    .setColor(data.color)
+    .addFields(data.fields)
+    .setFooter({ text: ROLL_EMBED_FOOTER })
+    .setTimestamp()
+  if (data.description) {
+    embed.setDescription(data.description)
+  }
+
+  const row = rollAgainRow('roll', table.name, 'Roll again')
+  return { embeds: [embed], components: row ? [row] : [] }
 }
 
 export const rollCommand = {
@@ -55,41 +97,11 @@ export const rollCommand = {
 
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     const tableName = interaction.options.getString('table') ?? 'Core Mechanic'
-
-    // Find the table
-    const table = getRollTables().find((t) => t.name.toLowerCase() === tableName.toLowerCase())
-
-    if (!table) {
-      await interaction.reply({
-        content: `Could not find table: "${tableName}". Use autocomplete to see available tables.`,
-        flags: MessageFlags.Ephemeral,
-      })
+    const message = buildRollMessage(tableName)
+    if ('error' in message) {
+      await interaction.reply({ content: message.error, flags: MessageFlags.Ephemeral })
       return
     }
-
-    // rollOnTable (salvageunion-reference, ADR-006) owns the flat-vs-columns
-    // branch — shared with ITUN's pilot-identity roll buttons.
-    const outcome = rollOnTable(table.table, rollD20)
-
-    if (!outcome.success) {
-      await interaction.reply({
-        content: `Error rolling on table "${table.name}": ${outcome.error}`,
-        flags: MessageFlags.Ephemeral,
-      })
-      return
-    }
-
-    const data = buildRollEmbedData(table.name, outcome)
-    const embed = new EmbedBuilder()
-      .setTitle(data.title)
-      .setColor(data.color)
-      .addFields(data.fields)
-      .setFooter({ text: ROLL_EMBED_FOOTER })
-      .setTimestamp()
-    if (data.description) {
-      embed.setDescription(data.description)
-    }
-
-    await interaction.reply({ embeds: [embed] })
+    await interaction.reply(message)
   },
 }

@@ -19,6 +19,7 @@ import {
   type ChatInputCommandInteraction,
 } from 'discord.js'
 
+import { checkCommand } from './check.js'
 import { lookupCommand } from './lookup.js'
 import { rollCommand } from './roll.js'
 
@@ -27,12 +28,15 @@ export const suCommand = {
     .setName('su')
     .setDescription('Salvage Union reference tools')
     .addSubcommand((sub) => rollCommand.subcommand(sub))
+    .addSubcommand((sub) => checkCommand.subcommand(sub))
     .addSubcommand((sub) => lookupCommand.subcommand(sub)),
 
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     switch (interaction.options.getSubcommand()) {
       case 'roll':
         return rollCommand.execute(interaction)
+      case 'check':
+        return checkCommand.execute(interaction)
       case 'lookup':
         return lookupCommand.execute(interaction)
       default:
