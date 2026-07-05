@@ -61,7 +61,7 @@ describe('SearchIsland', () => {
     expect(listbox.textContent).toContain('No results found')
   })
 
-  test('Enter with no arrow selection navigates to the first result', async () => {
+  test('Enter with no arrow selection navigates to the full results page', async () => {
     const navigate = mock(() => {})
     render(<SearchIsland navigate={navigate} />)
     const input = screen.getByRole('combobox')
@@ -78,10 +78,10 @@ describe('SearchIsland', () => {
       fireEvent.keyDown(input, { key: 'Enter' })
     })
 
-    // Should navigate to the URL of the first result (no arrow key pressed)
+    // With no highlighted row, Enter opens the uncapped /search page for the term
+    // rather than jumping to the first dropdown hit.
     expect(navigate).toHaveBeenCalledTimes(1)
-    const firstHref = (options[0] as HTMLAnchorElement).getAttribute('href')
-    expect(navigate).toHaveBeenCalledWith(firstHref)
+    expect(navigate).toHaveBeenCalledWith('/search?q=chassis')
   })
 
   test('Enter with arrow selection navigates to the selected result', async () => {

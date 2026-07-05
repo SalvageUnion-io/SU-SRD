@@ -74,9 +74,18 @@ export function SearchIsland({ navigate }: SearchIslandProps = {}) {
         inputRef.current?.blur()
         return
       }
+      // Enter with no highlighted row → the full results page (uncapped), rather
+      // than jumping to the first dropdown hit. Arrow-selected Enter still opens
+      // that specific result (handled by the shared hook below).
+      if (e.key === 'Enter' && selectedIndex < 0) {
+        e.preventDefault()
+        const term = query.trim()
+        if (term) doNavigate(`/search?q=${encodeURIComponent(term)}`)
+        return
+      }
       handleKeyDown(e)
     },
-    [isOpen, results, handleKeyDown]
+    [isOpen, results, handleKeyDown, selectedIndex, query, doNavigate]
   )
 
   // Close dropdown when clicking outside

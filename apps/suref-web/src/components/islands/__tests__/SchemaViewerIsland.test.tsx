@@ -1,16 +1,26 @@
-import { describe, it, expect } from 'bun:test'
+import { describe, it, expect, afterEach, spyOn } from 'bun:test'
 import { render, within, fireEvent, screen, cleanup } from '@testing-library/react'
 import {
   getEntitySchemas,
   getModel,
   getUniqueTechLevels,
   getUniqueSources,
+  getTechLevel,
 } from 'salvageunion-reference'
 import { SchemaViewerIsland } from '../SchemaViewerIsland'
 
 const entitySchemas = getEntitySchemas()
 
 describe('SchemaViewerIsland', () => {
+  // The island now reads/writes filter state to the URL. Reset the location
+  // between tests so a leaked ?q=/?tl= doesn't silently filter later renders.
+  // (happy-dom only reflects a location change from an href assignment, not from
+  // a relative replaceState, so reset via href.)
+  afterEach(() => {
+    cleanup()
+    window.location.href = 'http://localhost/'
+  })
+
   it('renders FilterRow labels as visible text for filter sections', () => {
     // FilterRow renders a visible <span> label — old code used aria-label (not visible text)
     // Verifies FilterRow is used rather than the old manual div+role="group" pattern
@@ -179,5 +189,86 @@ describe('SchemaViewerIsland', () => {
 
     const links = document.querySelectorAll('a[aria-label]')
     expect(links.length).toBe(entities.length)
+  })
+
+  it('URL sync: initializes the name filter from ?q= on mount', () => {
+    const systemsModel = getModel('systems')!
+    const entities = systemsModel.all()
+    const knownName = '.50 Cal Machine Gun'
+    window.location.href = `http://localhost/schema/systems/?q=${encodeURIComponent(knownName)}`
+
+    render(
+      <SchemaViewerIsland
+        initialData={entities}
+        schemaId="systems"
+        techLevels={getUniqueTechLevels(entities)}
+        sources={getUniqueSources(entities)}
+      />
+    )
+
+    const nameInput = screen.getByRole('searchbox', { name: 'Filter items by name' })
+    expect((nameInput as HTMLInputElement).value).toBe(knownName)
+
+    // Only the matching card(s) render — the shared view was restored.
+    const links = document.querySelectorAll('a[aria-label]')
+    const matching = entities.filter((e) => e.name.toLowerCase().includes(knownName.toLowerCase()))
+    expect(links.length).toBe(matching.length)
+    expect(links.length).toBeGreaterThan(0)
+  })
+
+  it('URL sync: initializes the tech-level filter from ?tl= on mount', () => {
+    const systemsModel = getModel('systems')!
+    const entities = systemsModel.all()
+    const techLevels = getUniqueTechLevels(entities)
+    // Pick a numeric tech level that partitions the dataset (some in, some out).
+    const level = techLevels.find(
+      (tl) =>
+        typeof tl === 'number' && entities.some((e) => getTechLevel(e)?.toString() === String(tl))
+    )!
+    window.location.href = `http://localhost/schema/systems/?tl=${level}`
+
+    render(
+      <SchemaViewerIsland
+        initialData={entities}
+        schemaId="systems"
+        techLevels={techLevels}
+        sources={getUniqueSources(entities)}
+      />
+    )
+
+    const links = document.querySelectorAll('a[aria-label]')
+    const matching = entities.filter((e) => getTechLevel(e)?.toString() === String(level))
+    expect(links.length).toBe(matching.length)
+    expect(links.length).toBeGreaterThan(0)
+    expect(links.length).toBeLessThan(entities.length)
+  })
+
+  it('URL sync: writes the name filter to the URL on change (replaceState)', () => {
+    const systemsModel = getModel('systems')!
+    const entities = systemsModel.all()
+    window.location.href = 'http://localhost/schema/systems/'
+    // Spy after mount so the initial (idempotent) sync doesn't count; assert the
+    // change-driven write. happy-dom doesn't reflect a relative replaceState into
+    // location, so verify the call argument rather than location.search.
+    const replaceSpy = spyOn(window.history, 'replaceState')
+
+    try {
+      render(
+        <SchemaViewerIsland
+          initialData={entities}
+          schemaId="systems"
+          techLevels={getUniqueTechLevels(entities)}
+          sources={getUniqueSources(entities)}
+        />
+      )
+
+      const nameInput = screen.getByRole('searchbox', { name: 'Filter items by name' })
+      fireEvent.change(nameInput, { target: { value: 'machine' } })
+
+      const urls = replaceSpy.mock.calls.map((c) => String(c[2]))
+      expect(urls.some((u) => u.includes('q=machine'))).toBe(true)
+    } finally {
+      replaceSpy.mockRestore()
+    }
   })
 })

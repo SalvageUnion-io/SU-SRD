@@ -77,13 +77,36 @@ async function settle(done: () => boolean): Promise<void> {
   }
 }
 
-/** Render Dashboard and wait for hydration to complete (inside act). */
+/**
+ * Render Dashboard and wait for hydration to complete (inside act). After
+ * hydration the tree is either the normal grid (Pilots heading) or the
+ * first-run welcome panel (Welcome heading) — poll on whichever appears so the
+ * helper works for both an empty store and a seeded one.
+ */
 async function renderDashboard() {
   await act(async () => {
     render(<Dashboard />)
   })
-  await settle(() => screen.queryByRole('heading', { name: 'Pilots' }) !== null)
-  expect(screen.getByRole('heading', { name: 'Pilots' })).toBeTruthy()
+  await settle(
+    () =>
+      screen.queryByRole('heading', { name: 'Pilots' }) !== null ||
+      screen.queryByRole('heading', { name: /Welcome/i }) !== null
+  )
+}
+
+/**
+ * Seed one entity so the normal 3-column grid renders (any non-empty total
+ * exits the first-run aggregate empty state). Returns after resetting the
+ * in-memory store so the subsequent render re-hydrates from IndexedDB.
+ */
+async function seedEntity(type: 'pilot' | 'mech', name: string): Promise<void> {
+  const store = useEntityStore.getState()
+  await store.hydrate(type)
+  await store.create(
+    type,
+    type === 'pilot' ? { ...basePilotInput, name } : { ...baseMechInput, name }
+  )
+  resetEntityStore()
 }
 
 // ---------------------------------------------------------------------------
@@ -111,6 +134,7 @@ afterEach(async () => {
 
 describe('Dashboard — section headings', () => {
   test('renders three sections: Pilots, Mechs, Crawlers', async () => {
+    await seedEntity('pilot', 'Seed Pilot')
     await renderDashboard()
 
     expect(screen.getByRole('heading', { name: 'Pilots' })).toBeTruthy()
@@ -119,6 +143,7 @@ describe('Dashboard — section headings', () => {
   })
 
   test('renders the mobile segmented entity switch with Pilots active', async () => {
+    await seedEntity('pilot', 'Seed Pilot')
     await renderDashboard()
 
     const pilotsBtn = screen.getByRole('button', { name: 'Pilots' })
@@ -136,6 +161,7 @@ describe('Dashboard — section headings', () => {
   })
 
   test('links the mech patterns route from the Mechs column head', async () => {
+    await seedEntity('pilot', 'Seed Pilot')
     await renderDashboard()
 
     const patternsLink = screen.getByRole('link', { name: 'Patterns' })
@@ -151,7 +177,12 @@ describe('Dashboard — section headings', () => {
 })
 
 describe('Dashboard — empty states', () => {
+  // Per-column empty states are only reachable once at least one entity exists
+  // (a wholly empty store shows the first-run welcome panel instead), so each
+  // test seeds a NON-target entity to render the grid with the target column
+  // empty.
   test('shows Create Pilot CTA when no pilots exist', async () => {
+    await seedEntity('mech', 'Seed Mech')
     await renderDashboard()
     const createPilotLinks = screen.getAllByRole('link', {
       name: /Create Pilot/i,
@@ -160,6 +191,7 @@ describe('Dashboard — empty states', () => {
   })
 
   test('shows Create Mech CTA when no mechs exist', async () => {
+    await seedEntity('pilot', 'Seed Pilot')
     await renderDashboard()
     const createMechLinks = screen.getAllByRole('link', {
       name: /Create Mech/i,
@@ -168,11 +200,32 @@ describe('Dashboard — empty states', () => {
   })
 
   test('shows Create Crawler CTA when no crawlers exist', async () => {
+    await seedEntity('pilot', 'Seed Pilot')
     await renderDashboard()
     const createCrawlerLinks = screen.getAllByRole('link', {
       name: /Create Crawler/i,
     })
     expect(createCrawlerLinks.length).toBeGreaterThan(0)
+  })
+})
+
+describe('Dashboard — first-run welcome', () => {
+  test('shows the welcome panel and build CTA when the store is wholly empty', async () => {
+    await renderDashboard()
+
+    expect(screen.getByRole('heading', { name: /Welcome to In the Union Now/i })).toBeTruthy()
+    const buildLink = screen.getByRole('link', { name: /Build your first pilot/i })
+    expect((buildLink as HTMLAnchorElement).href).toContain('/pilots/new')
+    // Normal grid headings are absent in the first-run state.
+    expect(screen.queryByRole('heading', { name: 'Pilots' })).toBeFalsy()
+  })
+
+  test('reverts to the normal grid once any entity exists', async () => {
+    await seedEntity('pilot', 'Seed Pilot')
+    await renderDashboard()
+
+    expect(screen.getByRole('heading', { name: 'Pilots' })).toBeTruthy()
+    expect(screen.queryByRole('heading', { name: /Welcome to In the Union Now/i })).toBeFalsy()
   })
 })
 

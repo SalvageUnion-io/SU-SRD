@@ -20,6 +20,8 @@ export type PutResult = {
 export type SnapshotStorage = {
   get(id: string): Promise<unknown | null>
   put(id: string, payload: unknown, options?: PutOptions): Promise<PutResult>
+  /** Removes a snapshot by id. Idempotent — deleting a missing id is a no-op. */
+  delete(id: string): Promise<void>
 }
 
 // ---------------------------------------------------------------------------
@@ -39,6 +41,10 @@ export class InMemoryStorage implements SnapshotStorage {
     }
     this.store.set(id, payload)
     return { modified: true }
+  }
+
+  async delete(id: string): Promise<void> {
+    this.store.delete(id)
   }
 }
 
@@ -75,6 +81,10 @@ export async function createNetlifyBlobsStorage(): Promise<SnapshotStorage> {
       }
       await blobStore.set(id, body)
       return { modified: true }
+    },
+
+    async delete(id: string): Promise<void> {
+      await blobStore.delete(id)
     },
   }
 }

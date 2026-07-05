@@ -53,6 +53,16 @@
   status = 200
   force = true
 
+# DELETE /api/snapshots/:id  →  snapshot-delete function (revoke/un-publish)
+# MUST precede the unconditioned retrieve redirect below — first match wins, and
+# that one has no Method condition, so it would otherwise swallow DELETE → 405.
+[[redirects]]
+  from = "/api/snapshots/:id"
+  to = "/.netlify/functions/snapshot-delete"
+  status = 200
+  force = true
+  conditions = { Method = ["DELETE"] }
+
 # GET /api/snapshots/:id  →  snapshot-retrieve function
 [[redirects]]
   from = "/api/snapshots/:id"

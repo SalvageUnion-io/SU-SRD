@@ -8,6 +8,7 @@ import {
 import { search, getEntitySlug, findEntityBySlug } from 'salvageunion-reference'
 import type { SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
 
+import { rollAgainRow } from '../customId.js'
 import { buildLookupEmbed } from '../lookupEmbed.js'
 
 type Hit = {
@@ -98,6 +99,15 @@ export const lookupCommand = {
     if (data.url) embed.setURL(data.url)
     if (data.description) embed.setDescription(data.description)
 
-    await interaction.reply({ embeds: [embed] })
+    // A roll-table entity IS a rollable table — offer a one-click roll instead
+    // of making the user retype `/su roll table: <name>`. Reuses the same
+    // stateless `su:roll:<name>` button the roll results carry.
+    const tableName = 'name' in hit.entity && hit.entity.name ? String(hit.entity.name) : null
+    const row =
+      hit.schemaName === 'roll-tables' && tableName
+        ? rollAgainRow('roll', tableName, 'Roll on this table')
+        : null
+
+    await interaction.reply({ embeds: [embed], ...(row ? { components: [row] } : {}) })
   },
 }

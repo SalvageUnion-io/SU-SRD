@@ -12,6 +12,7 @@
 import { afterEach, beforeAll, describe, expect, mock, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import { Toaster, toast } from 'suref-react'
 
 import { PilotSheet } from '../PilotSheet'
 import type { Roll } from '../../../lib/rules/heatCheck'
@@ -23,6 +24,10 @@ beforeAll(async () => {
 })
 
 afterEach(() => {
+  // Toast state + sticky-kind sessionStorage are module-global — clear both so
+  // the undo toast and last-used kind never leak into the SP-default tests.
+  toast.dismiss()
+  sessionStorage.clear()
   cleanup()
 })
 
@@ -128,6 +133,45 @@ describe('PilotSheet — Take Damage intake', () => {
 
     // 7 × 2 = 14 → clamps to 0
     expect(captured[0]!.patch).toEqual({ currentHP: 0 })
+  })
+})
+
+describe('PilotSheet — Take Damage friction reducers (audit item 25)', () => {
+  test('pressing Enter in the amount input applies the hit', async () => {
+    const pilot = makePilot()
+    const captured: CapturedUpdate[] = []
+    render(<PilotSheet pilot={pilot} store={makeStore(pilot, captured)} />)
+
+    const input = screen.getByLabelText('Damage amount')
+    fireEvent.change(input, { target: { value: '2' } })
+    await act(async () => {
+      fireEvent.keyDown(input, { key: 'Enter' })
+    })
+
+    expect(captured.length).toBe(1)
+    expect(captured[0]!.patch).toEqual({ currentHP: 8 })
+  })
+
+  test('applying damage offers an Undo toast that reverts the HP write', async () => {
+    const pilot = makePilot()
+    const captured: CapturedUpdate[] = []
+    render(
+      <>
+        <Toaster />
+        <PilotSheet pilot={pilot} store={makeStore(pilot, captured)} />
+      </>
+    )
+
+    await enterAndApply('2')
+    expect(captured[0]!.patch).toEqual({ currentHP: 8 })
+
+    const undoBtn = await screen.findByRole('button', { name: /undo/i })
+    await act(async () => {
+      fireEvent.click(undoBtn)
+    })
+
+    expect(captured.length).toBe(2)
+    expect(captured[1]!.patch).toEqual({ currentHP: 10 })
   })
 })
 

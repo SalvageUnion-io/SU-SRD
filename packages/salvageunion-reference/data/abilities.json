@@ -352,7 +352,7 @@
     "tree": "Augmentation",
     "level": 2,
     "page": 35,
-    "actions": ["Bionic Arms Attack"],
+    "actions": ["Bionic Arms Attack", "Bionic Arms"],
     "content": [
       {
         "type": "paragraph",

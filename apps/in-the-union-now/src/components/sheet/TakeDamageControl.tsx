@@ -28,7 +28,6 @@ import { cn } from '../../lib/utils'
 import { defaultRoll } from '../../lib/rules/heatCheck'
 import type { Roll } from '../../lib/rules/heatCheck'
 import { applyMechDamage, performCriticalDamage } from '../../lib/rules/takeDamage'
-import type { DamageKind } from '../../lib/rules/takeDamage'
 import type { CriticalDamageOutcome, Mech } from '../../lib/schemas/mech'
 import type { useEntityStore } from '../../stores/entityStore'
 import {
@@ -37,9 +36,10 @@ import {
   DamageIntakeRow,
   freshEntity,
   useDamageAmount,
+  useStickyDamageKind,
 } from './controlPrimitives'
 import type { DamageKindOption } from './controlPrimitives'
-import { destroyedUndoToast } from './destroyedUndoToast'
+import { destroyedUndoToast, statUndoToast } from './destroyedUndoToast'
 
 type TakeDamageControlProps = {
   mech: Mech
@@ -96,7 +96,7 @@ export function TakeDamageControl({
 }: TakeDamageControlProps) {
   const storeState = store()
   const { amountText, setAmountText, amount, amountValid } = useDamageAmount()
-  const [kind, setKind] = useState<DamageKind>('sp')
+  const [kind, setKind] = useStickyDamageKind('mech', 'sp')
   // Vulnerable ×2 tracks the mech's own flag until the player overrides it.
   const [vulnerableOverride, setVulnerableOverride] = useState<boolean | null>(null)
   const vulnerable = vulnerableOverride ?? mech.vulnerable === true
@@ -115,6 +115,13 @@ export function TakeDamageControl({
     setChoicePrompt(null)
     setAmountText('')
     await storeState.update('mech', mech.id, { currentSP: effect.nextSP })
+    // Routine-damage Undo (audit item 25): the apply lands immediately but a
+    // transient toast reverts the SP write for a mis-typed/mis-toggled hit.
+    if (effect.nextSP !== sp) {
+      statUndoToast(`SP ${sp} → ${effect.nextSP}`, () => {
+        void storeState.update('mech', mech.id, { currentSP: sp })
+      })
+    }
   }
 
   async function rollCritical() {

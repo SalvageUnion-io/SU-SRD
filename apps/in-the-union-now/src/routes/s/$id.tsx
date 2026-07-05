@@ -63,7 +63,7 @@ export function SnapshotPageInner({ snapshot, notFound, error }: SnapshotPageInn
       <main className="mx-auto max-w-5xl p-6">
         <h1 className="mb-2 text-xl font-bold">Snapshot not found</h1>
         <p className="mb-4 text-sm text-wk-muted">
-          This snapshot link may have expired or never existed.
+          This snapshot link was removed by its owner, or never existed.
         </p>
         <AppLink
           href="/"

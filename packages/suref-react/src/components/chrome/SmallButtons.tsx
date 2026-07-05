@@ -6,7 +6,10 @@ type StepBtnProps = ComponentPropsWithoutRef<'button'>
 
 /**
  * 24×24 stat stepper button (design-spec §2.10 `stepbtn`): '–'/'+' beside a
- * StatBlock value. Hovers to the sheet `--ground` when present.
+ * StatBlock value. Hovers to the sheet `--ground` when present. Stays visually
+ * h-6 w-6 on desktop; `min-h-11 min-w-11 sm:min-h-0 sm:min-w-0` grows the tap
+ * area to the 44px touch minimum below `sm` without changing the desktop layout.
+ * The accessible name comes from the caller (pass an `aria-label`).
  */
 export const StepBtn = forwardRef<HTMLButtonElement, StepBtnProps>(function StepBtn(
   { className, type = 'button', ...props },
@@ -17,7 +20,7 @@ export const StepBtn = forwardRef<HTMLButtonElement, StepBtnProps>(function Step
       ref={ref}
       type={type}
       className={cn(
-        'inline-flex h-6 w-6 cursor-pointer items-center justify-center rounded-[3px] border-[1.5px] border-ink bg-paper font-body text-[15px] font-bold leading-none text-ink hover:bg-[var(--ground,var(--color-wk-bg-2))] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rust/25 disabled:pointer-events-none disabled:opacity-40',
+        'inline-flex h-6 w-6 min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-[3px] border-[1.5px] border-ink bg-paper font-body text-[15px] font-bold leading-none text-ink hover:bg-[var(--ground,var(--color-wk-bg-2))] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rust/25 disabled:pointer-events-none disabled:opacity-40 sm:min-h-0 sm:min-w-0',
         className
       )}
       {...props}

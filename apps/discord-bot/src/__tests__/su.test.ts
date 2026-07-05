@@ -3,7 +3,7 @@
  *
  * The handlers' behavior is covered by format.test.ts (pure functions);
  * these tests pin the registration contract: one top-level command named
- * `su` carrying exactly the roll and lookup subcommands, with execute/
+ * `su` carrying exactly the roll, check, and lookup subcommands, with execute/
  * autocomplete routed by getSubcommand().
  */
 import { describe, expect, test } from 'bun:test'
@@ -16,17 +16,21 @@ describe('/su command', () => {
     expect([...commands.keys()]).toEqual(['su'])
   })
 
-  test('registers roll and lookup as subcommands with their options', () => {
+  test('registers roll, check, and lookup as subcommands with their options', () => {
     const json = suCommand.data.toJSON()
     expect(json.name).toBe('su')
     const subs = (json.options ?? []).map((o) => o.name).sort()
-    expect(subs).toEqual(['lookup', 'roll'])
+    expect(subs).toEqual(['check', 'lookup', 'roll'])
 
     const roll = (json.options ?? []).find((o) => o.name === 'roll')
+    const check = (json.options ?? []).find((o) => o.name === 'check')
     const lookup = (json.options ?? []).find((o) => o.name === 'lookup')
     expect(
       (roll as { options?: { name: string; autocomplete?: boolean }[] }).options?.[0]
     ).toMatchObject({ name: 'table', autocomplete: true, required: false })
+    expect(
+      (check as { options?: { name: string; required?: boolean }[] }).options?.[0]
+    ).toMatchObject({ name: 'dice', required: true })
     expect(
       (lookup as { options?: { name: string; autocomplete?: boolean }[] }).options?.[0]
     ).toMatchObject({ name: 'entity', autocomplete: true, required: true })

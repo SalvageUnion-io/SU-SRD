@@ -1,9 +1,11 @@
 # Upgrade Path: Astro 6 → 7 (suref-web)
 
-**Status:** Implemented in this branch (`chore/astro-7-upgrade`), opened as a
-**draft PR** for review. The build is fully green, but two of the changes are
-decisions that were deliberately deferred and need a maintainer sign-off before
-merge (see **Decisions for review** below).
+**Status:** ✅ **Merged** in #365. suref-web now runs Astro 7 + Vite 8. This doc
+is kept as the historical record of how the deferred blocker was resolved (the
+loader change and the `trailingSlash` decision are described under **Decisions
+for review** below). Two notes for anyone revisiting the loaders: `ssrEmitAssets`
+was verified NOT to fix the blocker; dropping the `with: { type: 'json' }`
+attribute did, and was validated across all four consumers.
 
 ## What landed
 

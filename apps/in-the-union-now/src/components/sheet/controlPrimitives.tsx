@@ -8,7 +8,7 @@
  * stays in lib/rules per ADR-006) and nothing mutates the store.
  */
 
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Btn } from 'suref-react'
 
@@ -51,6 +51,42 @@ export function useDamageAmount() {
   const amount = Number.parseInt(amountText, 10)
   const amountValid = Number.isInteger(amount) && amount > 0
   return { amountText, setAmountText, amount, amountValid }
+}
+
+/** sessionStorage key prefix for the last-used damage kind (per entity type). */
+const DAMAGE_KIND_STORAGE_PREFIX = 'itun-damage:lastKind:'
+
+function readStickyKind(storageKey: string, fallback: DamageKind): DamageKind {
+  if (typeof sessionStorage === 'undefined') return fallback
+  const raw = sessionStorage.getItem(storageKey)
+  return raw === 'sp' || raw === 'hp' ? raw : fallback
+}
+
+/**
+ * Damage-kind toggle state that remembers the last pick for the session
+ * (sessionStorage, per entity type — mirrors wizardDraft's session scoping).
+ * The rules-correct kind is usually the same hit after hit, so defaulting to
+ * it removes a tap without hiding the toggle. Dies with the tab.
+ */
+// eslint-disable-next-line react-refresh/only-export-components -- shared control helpers, colocated by design (audit items 24/19)
+export function useStickyDamageKind(
+  type: 'mech' | 'pilot',
+  fallback: DamageKind
+): readonly [DamageKind, (next: DamageKind) => void] {
+  const storageKey = `${DAMAGE_KIND_STORAGE_PREFIX}${type}`
+  const [kind, setKindState] = useState<DamageKind>(() => readStickyKind(storageKey, fallback))
+  const setKind = useCallback(
+    (next: DamageKind) => {
+      setKindState(next)
+      try {
+        sessionStorage.setItem(storageKey, next)
+      } catch {
+        // sessionStorage unavailable/full — stickiness degrades gracefully.
+      }
+    },
+    [storageKey]
+  )
+  return [kind, setKind] as const
 }
 
 type AdvisoryBoxProps = {
@@ -130,6 +166,14 @@ export function DamageIntakeRow({
         aria-label="Damage amount"
         placeholder="0"
         onChange={(e) => onAmountChange(e.target.value)}
+        onKeyDown={(e) => {
+          // Enter applies the hit — the routine path shouldn't need a reach to
+          // the Apply button after typing the amount.
+          if (e.key === 'Enter' && !applyDisabled) {
+            e.preventDefault()
+            onApply()
+          }
+        }}
         className={CONTROL_INPUT_CLASS}
       />
       <span role="group" aria-label="Weapon damage type" className="inline-flex gap-1">
@@ -162,6 +206,9 @@ export function DamageIntakeRow({
         disabled={applyDisabled}
         aria-label="Apply damage"
         onClick={onApply}
+        // 44px touch target on mobile (app-wide pattern); back to compact on
+        // pointer-precise viewports.
+        className="min-h-11 px-4 sm:min-h-9"
       >
         Apply
       </Btn>
