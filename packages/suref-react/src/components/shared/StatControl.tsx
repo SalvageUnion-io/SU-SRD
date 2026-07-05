@@ -58,9 +58,10 @@ export function StatControl({
         <div className="flex flex-col gap-0.5">
           <button
             type="button"
+            aria-label={`Increase ${label}`}
             onClick={() => onChange(max !== undefined ? Math.min(max, value + 1) : value + 1)}
             disabled={!!atMax}
-            className={`flex items-center justify-center border font-mono font-bold leading-none transition-colors ${btnSize} ${btnResting} ${
+            className={`flex min-h-11 min-w-11 items-center justify-center border font-mono font-bold leading-none transition-colors sm:min-h-0 sm:min-w-0 ${btnSize} ${btnResting} ${
               atMax ? 'cursor-not-allowed opacity-30' : `cursor-pointer ${btnHover}`
             }`}
           >
@@ -68,9 +69,10 @@ export function StatControl({
           </button>
           <button
             type="button"
+            aria-label={`Decrease ${label}`}
             onClick={() => onChange(Math.max(min, value - 1))}
             disabled={atMin}
-            className={`flex items-center justify-center border font-mono font-bold leading-none transition-colors ${btnSize} ${btnResting} ${
+            className={`flex min-h-11 min-w-11 items-center justify-center border font-mono font-bold leading-none transition-colors sm:min-h-0 sm:min-w-0 ${btnSize} ${btnResting} ${
               atMin ? 'cursor-not-allowed opacity-30' : `cursor-pointer ${btnHover}`
             }`}
           >
