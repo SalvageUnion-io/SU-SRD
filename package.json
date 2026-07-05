@@ -29,6 +29,7 @@
     "eslint-plugin-react-hooks": "7.1.1",
     "globals": "17.7.0",
     "knip": "6.24.0",
+    "lefthook": "2.1.9",
     "prettier": "3.9.4",
     "puppeteer-core": "25.3.0",
     "sharp": "0.35.3",
@@ -36,11 +37,8 @@
     "typescript": "6.0.3",
     "typescript-eslint": "8.62.1"
   },
-  "optionalDependencies": {
-    "lefthook": "2.1.9"
-  },
   "scripts": {
-    "prepare": "[ -z \"$CI\" ] && [ -d .git ] && command -v lefthook >/dev/null && lefthook install || true",
+    "prepare": "[ -z \"$CI\" ] && [ -d .git ] && bunx lefthook install || true",
     "dev": "bun run build:package && bun --filter suref-web dev",
     "dev:watch": "bun run dev",
     "dev:bot": "bun run build:package && bun --filter @suref/discord-bot dev",
@@ -85,7 +83,9 @@
     "validate:all": "bun --filter salvageunion-reference validate:all && bun tools/check-bun-version.ts",
     "clean": "bun --filter \"*\" clean || true",
     "knip": "knip",
-    "check:all": "concurrently -g 'bun run lint' 'bun run format:check' && bun run typecheck && concurrently -g 'bun run test' 'bun run validate:all' 'bun run knip'",
+    "check:schemas": "bun run build:package && git diff --exit-code -- packages/salvageunion-reference/schemas",
+    "check:audit": "bun audit --audit-level=high",
+    "check:all": "bun run check:schemas && concurrently -g 'bun run lint' 'bun run format:check' && bun run typecheck && concurrently -g 'bun run test' 'bun run validate:all' 'bun run knip' 'bun run check:audit'",
     "fix:all": "bun run lint -- --fix && bun run format",
     "ladle": "bun --filter suref-react ladle",
     "ladle:web": "bun --filter suref-web ladle",
