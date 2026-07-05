@@ -7,6 +7,8 @@ import {
   findOrphanedSystems,
   findOrphanedModules,
   findStaleRootFiles,
+  partitionOrphansByAllowlist,
+  type AllowlistEntry,
   type OrphanResult,
 } from './validateOrphansLogic.js'
 
@@ -351,5 +353,71 @@ describe('findStaleRootFiles', () => {
   it('accepts an array of existing files as well as a Set', () => {
     const rootFiles = ['a.json', 'b.json']
     expect(findStaleRootFiles(rootFiles, ['a.json'])).toEqual(['b.json'])
+  })
+})
+
+// ─── partitionOrphansByAllowlist ────────────────────────────────────────────
+
+describe('partitionOrphansByAllowlist', () => {
+  const ORPHANS: OrphanResult[] = [
+    { file: 'actions.json', name: 'Automated Machine Gun Turret' },
+    { file: 'systems.json', name: 'Meld Injector' },
+    { file: 'actions.json', name: 'Bionic Arms' },
+  ]
+
+  const ALLOWLIST: AllowlistEntry[] = [
+    { file: 'actions.json', name: 'Automated Machine Gun Turret' },
+    { file: 'systems.json', name: 'Meld Injector' },
+  ]
+
+  it('separates allowlisted orphans from unexpected ones', () => {
+    const { unexpected, allowlisted } = partitionOrphansByAllowlist(ORPHANS, ALLOWLIST)
+    expect(allowlisted.map((o) => o.name).sort()).toEqual([
+      'Automated Machine Gun Turret',
+      'Meld Injector',
+    ])
+    expect(unexpected).toEqual([{ file: 'actions.json', name: 'Bionic Arms' }])
+  })
+
+  it('matches on file AND name so same-named entries in different files do not collide', () => {
+    const orphans: OrphanResult[] = [
+      { file: 'systems.json', name: 'Overlap' },
+      { file: 'modules.json', name: 'Overlap' },
+    ]
+    // Only the systems.json variant is allowlisted.
+    const allowlist: AllowlistEntry[] = [{ file: 'systems.json', name: 'Overlap' }]
+    const { unexpected, allowlisted } = partitionOrphansByAllowlist(orphans, allowlist)
+    expect(allowlisted).toEqual([{ file: 'systems.json', name: 'Overlap' }])
+    expect(unexpected).toEqual([{ file: 'modules.json', name: 'Overlap' }])
+  })
+
+  it('flags an allowlist entry that is no longer an orphan as stale', () => {
+    const allowlist: AllowlistEntry[] = [
+      ...ALLOWLIST,
+      { file: 'modules.json', name: 'Now Referenced Module' }, // no longer an orphan
+    ]
+    const { staleAllowlist } = partitionOrphansByAllowlist(ORPHANS, allowlist)
+    expect(staleAllowlist).toEqual([{ file: 'modules.json', name: 'Now Referenced Module' }])
+  })
+
+  it('reports no stale entries when every allowlist entry still matches an orphan', () => {
+    const { staleAllowlist } = partitionOrphansByAllowlist(ORPHANS, ALLOWLIST)
+    expect(staleAllowlist).toEqual([])
+  })
+
+  it('deduplicates repeated stale allowlist entries', () => {
+    const allowlist: AllowlistEntry[] = [
+      { file: 'modules.json', name: 'Dupe' },
+      { file: 'modules.json', name: 'Dupe' },
+    ]
+    const { staleAllowlist } = partitionOrphansByAllowlist(ORPHANS, allowlist)
+    expect(staleAllowlist).toEqual([{ file: 'modules.json', name: 'Dupe' }])
+  })
+
+  it('treats all orphans as unexpected when the allowlist is empty', () => {
+    const { unexpected, allowlisted, staleAllowlist } = partitionOrphansByAllowlist(ORPHANS, [])
+    expect(unexpected).toEqual(ORPHANS)
+    expect(allowlisted).toEqual([])
+    expect(staleAllowlist).toEqual([])
   })
 })
