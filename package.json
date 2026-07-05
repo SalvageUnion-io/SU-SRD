@@ -80,6 +80,7 @@
     "validate:ids": "bun --filter salvageunion-reference validate:ids",
     "validate:references": "bun --filter salvageunion-reference validate:references",
     "validate:actions": "bun --filter salvageunion-reference validate:actions",
+    "validate:action-backrefs": "bun --filter salvageunion-reference validate:action-backrefs",
     "validate:all": "bun --filter salvageunion-reference validate:all && bun tools/check-bun-version.ts",
     "clean": "bun --filter \"*\" clean || true",
     "knip": "knip",
