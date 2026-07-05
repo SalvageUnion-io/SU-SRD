@@ -11,6 +11,12 @@ permissions:
   pull-requests: read
   statuses: read
 
+# Cancel superseded runs: pushing again to a PR (or main) aborts the previous
+# in-flight run for that ref instead of letting both full matrices finish.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   # ---------------------------------------------------------------------------
   # Path filter — decide which areas a change touches so we can skip heavy jobs
@@ -24,7 +30,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       itun: ${{ steps.filter.outputs.itun }}
-      itun_deploy: ${{ steps.filter.outputs.itun_deploy }}
       web: ${{ steps.filter.outputs.web }}
       bot: ${{ steps.filter.outputs.bot }}
       code: ${{ steps.filter.outputs.code }}
@@ -51,21 +56,6 @@ jobs:
               - *shared
               - 'apps/in-the-union-now/**'
               - 'packages/suref-react/**'
-            # Mirrors apps/in-the-union-now/netlify.toml's `ignore` paths — the
-            # exact set that triggers an ITUN deploy preview. Deliberately does
-            # NOT include `*shared` (.github, eslint, tsconfig*, etc.): a change
-            # to those makes CI consider ITUN affected but does NOT cause Netlify
-            # to build a preview. The preview-e2e gates on this so it only runs
-            # when there is actually a preview to test (otherwise it waits for a
-            # deploy that never comes and times out).
-            itun_deploy:
-              - 'apps/in-the-union-now/**'
-              - 'packages/suref-react/**'
-              - 'packages/salvageunion-reference/**'
-              - 'bun.lock'
-              - 'package.json'
-              - 'bunfig.toml'
-              - 'tsconfig.json'
             web:
               - *shared
               - 'apps/suref-web/**'
@@ -161,54 +151,6 @@ jobs:
 
       - name: Test
         run: bun run test
-
-  coverage:
-    # Test coverage report (issue #28). Runs each workspace's `test:coverage`
-    # (bun test --coverage) and surfaces the per-file summary in the job log and
-    # the GitHub step summary.
-    #
-    # NON-BLOCKING BY DESIGN, but still listed in the quality-checks gate:
-    #   - Bun 1.3 exposes no `--coverage-threshold` CLI flag (only the bunfig
-    #     `[test] coverageThreshold` key), so we do NOT hard-gate on a percentage
-    #     here — real test failures are already caught by the blocking `test`
-    #     job, and picking a numeric floor blind would either be meaningless
-    #     (too low) or flaky (too high).
-    #   - The coverage run is wrapped in a `continue-on-error` step so a coverage
-    #     *instrumentation* hiccup can never false-fail the merge gate.
-    #
-    # TO TURN THIS INTO A NON-REGRESSION GATE: add
-    #     [test]
-    #     coverageThreshold = <today's number>
-    # to each workspace bunfig.toml (set to the CURRENT numbers reported below so
-    # it cannot regress), then drop the `continue-on-error` on the run step.
-    needs: [changes, build-package]
-    if: needs.changes.outputs.code == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-
-      - name: Setup Bun
-        uses: ./.github/actions/setup-bun
-
-      - name: Test with coverage
-        id: cov
-        continue-on-error: true
-        run: |
-          set -o pipefail
-          bun run test:coverage 2>&1 | tee coverage-output.txt
-
-      - name: Publish coverage summary
-        if: always()
-        run: |
-          {
-            echo '## Test coverage'
-            echo ''
-            echo '```'
-            # Strip any ANSI escapes (none expected without a TTY, but be safe).
-            sed -E 's/\x1b\[[0-9;]*m//g' coverage-output.txt
-            echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
 
   validate:
     needs: [changes]
@@ -310,7 +252,6 @@ jobs:
       - knip
       - typecheck
       - test
-      - coverage
       - validate
       - audit
       - build-suref-web
