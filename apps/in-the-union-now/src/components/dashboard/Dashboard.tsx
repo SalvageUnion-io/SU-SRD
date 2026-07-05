@@ -122,6 +122,14 @@ export function Dashboard() {
   const allCrawlers = useCrawlers()
   const softLinks: SoftLink[] = useSoftLinkList()
 
+  /**
+   * First-run: a brand-new user with ZERO builds of any type. Measured against
+   * the UNFILTERED totals (not the workspace-filtered lists) so it means "no
+   * data at all", not "this workspace is empty". Once any entity exists, the
+   * normal 3-column dashboard renders.
+   */
+  const isFirstRun = allPilots.length === 0 && allMechs.length === 0 && allCrawlers.length === 0
+
   // Name lookups for '↳ Name' cross-links — built from the UNFILTERED lists so
   // links resolve across workspace boundaries.
   const pilotNameById = new Map(allPilots.map((p) => [p.id, p.name]))
@@ -193,6 +201,12 @@ export function Dashboard() {
             onSelect={setActiveWorkspaceId}
           />
         </div>
+        {/* Standing durability notice (not the recurring backup-nudge toast):
+            ITUN is local-first with no backend, so this line is always visible
+            next to the export controls to keep the "browser-only" fact honest. */}
+        <p className="mt-2.5 font-body text-xs text-wk-muted">
+          Your data lives only in this browser — export a backup regularly.
+        </p>
       </div>
 
       {/* Reserve a stable footprint so the grid replacing "Loading…" doesn't
@@ -200,6 +214,8 @@ export function Dashboard() {
       <div className="min-h-[60vh]">
         {!hydratedAll ? (
           <DashboardSkeleton />
+        ) : isFirstRun ? (
+          <FirstRunWelcome />
         ) : (
           <>
             {/* Mobile-endpoint segmented Pilot/Mech/Crawler switch (design §3.7) */}
@@ -347,6 +363,42 @@ export function Dashboard() {
         onCancel={handleCancelDelete}
       />
     </main>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// First-run welcome
+// ---------------------------------------------------------------------------
+
+/**
+ * Aggregate empty state shown to a brand-new user (zero pilots + mechs +
+ * crawlers). Orients them on what the app is and the pilot → mech → crawler
+ * build order, with a single primary CTA (start a pilot). Styled as a sibling
+ * of the per-column dashed Empty states (same dashed frame + rust accents),
+ * not a bolted-on splash.
+ */
+function FirstRunWelcome() {
+  return (
+    <div className="mt-6 flex flex-col items-center gap-4 rounded-[3px] border-[1.5px] border-dashed border-wk-faint p-8 text-center sm:p-12">
+      <UserRound aria-hidden="true" className="size-9 text-sheet-pilot-deep" />
+      <h2 className="font-cond text-xl font-bold uppercase tracking-widest text-rust">
+        Welcome to In the Union Now
+      </h2>
+      <p className="max-w-prose font-body text-sm text-wk-muted">
+        Build and run your Salvage Union crew — start with a pilot, kit them out with a mech, then
+        anchor your crew to a Union Crawler.
+      </p>
+      <AppLink
+        href="/pilots/new"
+        className={cn(btnVariants({ variant: 'primary', size: 'md' }), 'no-underline')}
+      >
+        Build your first pilot
+      </AppLink>
+      <p className="max-w-prose font-body text-xs text-wk-muted">
+        Workspaces let you group builds by campaign — everything you make lives only in this
+        browser.
+      </p>
+    </div>
   )
 }
 

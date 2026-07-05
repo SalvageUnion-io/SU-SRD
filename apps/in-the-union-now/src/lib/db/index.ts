@@ -122,10 +122,36 @@ export function openItunDatabase(
   })
 }
 
+/**
+ * Best-effort request for persistent (eviction-resistant) storage.
+ *
+ * ITUN keeps every pilot/mech/crawler in this one browser's IndexedDB with no
+ * backend, so a UA that evicts "best-effort" storage under disk pressure (or
+ * Safari's ITP 7-day cap) can silently wipe all player data. Asking for the
+ * `persistent` bucket makes the store eviction-resistant. This is hardening,
+ * never a hard requirement: we ask once (skip if already granted so we don't
+ * re-prompt), guard on API existence, and swallow every error — the whole body
+ * is try/caught so the returned promise can NEVER reject (a fire-and-forget
+ * rejection would surface as an unhandled rejection).
+ */
+export async function requestPersistentStorage(): Promise<void> {
+  try {
+    const storage = typeof navigator !== 'undefined' ? navigator.storage : undefined
+    if (!storage?.persist || !storage.persisted) return
+    if (await storage.persisted()) return
+    await storage.persist()
+  } catch {
+    // best-effort only — never block or surface
+  }
+}
+
 /** Lazy singleton accessor for the app database — module-private. */
 function getDb(): Promise<IDBPDatabase> {
   if (dbPromise === null) {
     dbPromise = openItunDatabase()
+    // Fire-and-forget on first open: ask the UA to make this origin's storage
+    // eviction-resistant. Never awaited, never rejects (see helper).
+    void requestPersistentStorage()
   }
   return dbPromise
 }
