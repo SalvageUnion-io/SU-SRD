@@ -27,11 +27,17 @@ import { clampPilotCurrentStats, pilotMaxHP } from '../../lib/rules/derivedStats
 import { defaultRoll } from '../../lib/rules/heatCheck'
 import type { Roll } from '../../lib/rules/heatCheck'
 import { applyPilotDamage, performCriticalInjury } from '../../lib/rules/takeDamage'
-import type { DamageKind } from '../../lib/rules/takeDamage'
 import type { CriticalInjuryOutcome, Injury, Pilot } from '../../lib/schemas/pilot'
 import type { useEntityStore } from '../../stores/entityStore'
-import { AdvisoryBox, DamageIntakeRow, freshEntity, useDamageAmount } from './controlPrimitives'
+import {
+  AdvisoryBox,
+  DamageIntakeRow,
+  freshEntity,
+  useDamageAmount,
+  useStickyDamageKind,
+} from './controlPrimitives'
 import type { DamageKindOption } from './controlPrimitives'
+import { statUndoToast } from './destroyedUndoToast'
 
 type PilotTakeDamageControlProps = {
   pilot: Pilot
@@ -72,7 +78,7 @@ export function PilotTakeDamageControl({
 }: PilotTakeDamageControlProps) {
   const storeState = store()
   const { amountText, setAmountText, amount, amountValid } = useDamageAmount()
-  const [kind, setKind] = useState<DamageKind>('hp')
+  const [kind, setKind] = useStickyDamageKind('pilot', 'hp')
   // Vulnerable ×2 tracks the pilot's condition list until the player overrides.
   const [vulnerableOverride, setVulnerableOverride] = useState<boolean | null>(null)
   const vulnerable =
@@ -95,6 +101,13 @@ export function PilotTakeDamageControl({
     setPendingInjury(null)
     setAmountText('')
     await storeState.update('pilot', pilot.id, { currentHP: effect.nextHP })
+    // Routine-damage Undo (audit item 25): the apply lands immediately but a
+    // transient toast reverts the HP write for a mis-typed/mis-toggled hit.
+    if (effect.nextHP !== hp) {
+      statUndoToast(`HP ${hp} → ${effect.nextHP}`, () => {
+        void storeState.update('pilot', pilot.id, { currentHP: hp })
+      })
+    }
   }
 
   async function rollCritical() {

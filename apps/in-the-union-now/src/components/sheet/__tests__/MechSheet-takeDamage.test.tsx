@@ -15,6 +15,7 @@
 import { afterEach, beforeAll, describe, expect, mock, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import { Toaster, toast } from 'suref-react'
 
 import { MechSheet } from '../MechSheet'
 import type { Roll } from '../../../lib/rules/heatCheck'
@@ -26,6 +27,11 @@ beforeAll(async () => {
 })
 
 afterEach(() => {
+  // Sonner's toast state and the sticky-kind sessionStorage are module-global —
+  // clear both so the undo toast and the last-used damage kind never leak
+  // between tests (the intake suite depends on the SP default).
+  toast.dismiss()
+  sessionStorage.clear()
   cleanup()
 })
 
@@ -148,6 +154,63 @@ describe('MechSheet — Take Damage intake', () => {
     await enterAndApply('99')
 
     expect(captured[0]!.patch).toEqual({ currentSP: 0 })
+  })
+})
+
+describe('MechSheet — Take Damage friction reducers (audit item 25)', () => {
+  test('pressing Enter in the amount input applies the hit', async () => {
+    const captured: CapturedUpdate[] = []
+    render(
+      <MechSheet mech={baseMech} chassis={fakeChassis} store={makeStore(baseMech, captured)} />
+    )
+
+    const input = screen.getByLabelText('Damage amount')
+    fireEvent.change(input, { target: { value: '3' } })
+    await act(async () => {
+      fireEvent.keyDown(input, { key: 'Enter' })
+    })
+
+    expect(captured.length).toBe(1)
+    expect(captured[0]!.patch).toEqual({ currentSP: 7 })
+  })
+
+  test('applying damage offers an Undo toast that reverts the SP write', async () => {
+    const captured: CapturedUpdate[] = []
+    render(
+      <>
+        <Toaster />
+        <MechSheet mech={baseMech} chassis={fakeChassis} store={makeStore(baseMech, captured)} />
+      </>
+    )
+
+    await enterAndApply('3')
+    expect(captured[0]!.patch).toEqual({ currentSP: 7 })
+
+    const undoBtn = await screen.findByRole('button', { name: /undo/i })
+    await act(async () => {
+      fireEvent.click(undoBtn)
+    })
+
+    expect(captured.length).toBe(2)
+    expect(captured[1]!.patch).toEqual({ currentSP: 10 })
+  })
+
+  test('remembers the last-used damage kind across remounts (session)', async () => {
+    const captured: CapturedUpdate[] = []
+    const { unmount } = render(
+      <MechSheet mech={baseMech} chassis={fakeChassis} store={makeStore(baseMech, captured)} />
+    )
+
+    // Default is SP; switch to HP damage, then remount.
+    fireEvent.click(screen.getByRole('button', { name: /HP damage/ }))
+    unmount()
+
+    render(
+      <MechSheet mech={baseMech} chassis={fakeChassis} store={makeStore(baseMech, captured)} />
+    )
+    expect(screen.getByRole('button', { name: /HP damage/ }).getAttribute('aria-pressed')).toBe(
+      'true'
+    )
   })
 })
 
