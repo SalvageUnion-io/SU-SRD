@@ -7,6 +7,16 @@ type ChangelogEntry = {
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: '2026-07-04',
+    title: 'First-class search and shareable filtered views',
+    items: [
+      'A dedicated search page shows the full, uncapped list of matches (press Enter in the search box, or open it directly at /search?q=…) with type filters to narrow by category.',
+      'On phones, a search button now sits right in the top bar — no need to open the menu first.',
+      'Filtered listing views are now bookmarkable and shareable: your Tech Level, Source, and name filters live in the URL and survive back-navigation.',
+      'Entity pages gained Previous/Next links to page through the rest of their category.',
+    ],
+  },
+  {
+    date: '2026-07-04',
     title: 'No more text flash when opening an entity',
     items: [
       'Opening a chassis, system, ability, or any other entity no longer briefly flashes an unstyled text-only version before the full card appears — the styled card (or its loading skeleton) is what you see from the first paint.',

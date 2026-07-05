@@ -23,6 +23,9 @@ export function getSchemaStaticPaths() {
   })
 }
 
+/** A prev/next sibling reference within the same schema listing. */
+type SiblingLink = { slug: string; name: string }
+
 export function getItemStaticPaths() {
   const paths: {
     params: { schemaId: string; itemId: string }
@@ -31,6 +34,10 @@ export function getItemStaticPaths() {
       schema: (typeof catalog.schemas)[number]
       itemName: string
       itemDescription: string
+      /** Previous sibling in this schema's listing order, or null at the start. */
+      prevItem: SiblingLink | null
+      /** Next sibling in this schema's listing order, or null at the end. */
+      nextItem: SiblingLink | null
     }
   }[] = []
 
@@ -42,21 +49,28 @@ export function getItemStaticPaths() {
   for (const schema of catalog.schemas.filter((s) => !s.meta)) {
     try {
       const items = SalvageUnionReference.findAllIn(schema.id as SURefEnumSchemaName, () => true)
-      for (const item of items) {
-        if ('id' in item && item.id) {
-          const displayData = getReferenceEntityData(item)
+      // Resolve display data once so prev/next can reference sibling slugs/names
+      // from the same ordered list (no wrap-around: ends omit the missing side).
+      const entries = items
+        .filter((item): item is typeof item & { id: string } => 'id' in item && !!item.id)
+        .map((item) => ({ item, displayData: getReferenceEntityData(item) }))
 
-          paths.push({
-            params: { schemaId: schema.id, itemId: displayData.slug },
-            props: {
-              item,
-              schema,
-              itemName: displayData.name,
-              itemDescription: displayData.description ?? '',
-            },
-          })
-        }
-      }
+      entries.forEach(({ item, displayData }, index) => {
+        const prev = index > 0 ? entries[index - 1] : undefined
+        const next = index < entries.length - 1 ? entries[index + 1] : undefined
+
+        paths.push({
+          params: { schemaId: schema.id, itemId: displayData.slug },
+          props: {
+            item,
+            schema,
+            itemName: displayData.name,
+            itemDescription: displayData.description ?? '',
+            prevItem: prev ? { slug: prev.displayData.slug, name: prev.displayData.name } : null,
+            nextItem: next ? { slug: next.displayData.slug, name: next.displayData.name } : null,
+          },
+        })
+      })
     } catch {
       // Skip schemas that can't be loaded
     }

@@ -1,4 +1,4 @@
-import { useState, useMemo, Suspense } from 'react'
+import { useState, useMemo, useEffect, Suspense } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { getTechLevel, getSource, getEntitySlug, getTree } from 'salvageunion-reference'
 import {
@@ -16,6 +16,33 @@ import { GameDataGate } from '../../lib/useGameData'
 import { srdEntityHref } from '../../lib/entityHref'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 
+// Hoisted to a stable module-level reference so the `memo()` on
+// ReferenceEntityDisplay is not defeated by a fresh inline object literal on
+// every render (e.g. each keystroke in the name filter re-rendering every card).
+const HIDE_ACTIONS_AND_CHOICES = { actions: true, choices: true } as const
+
+// URL query-param keys the filter state is synced to, so a filtered view is
+// bookmarkable/shareable and survives back-navigation.
+const PARAM_TECH_LEVEL = 'tl'
+const PARAM_SOURCE = 'source'
+const PARAM_NAME = 'q'
+
+/**
+ * Read a single query-param value from the current URL. SSR-safe: during
+ * `astro build` this island is server-rendered in Node (no `window`), so guard
+ * every location read.
+ */
+function readUrlParam(name: string): string {
+  if (typeof window === 'undefined') return ''
+  return new URLSearchParams(window.location.search).get(name) ?? ''
+}
+
+/** Read a comma-separated query param into a Set of tokens. */
+function readUrlSet(name: string): Set<string> {
+  const raw = readUrlParam(name)
+  return new Set(raw ? raw.split(',').filter(Boolean) : [])
+}
+
 type SchemaViewerIslandProps = {
   initialData: SURefEntity[]
   schemaId: string
@@ -29,9 +56,36 @@ export function SchemaViewerIsland({
   techLevels,
   sources,
 }: SchemaViewerIslandProps) {
-  const [techLevelFilters, setTechLevelFilters] = useState<Set<string>>(new Set())
-  const [sourceFilters, setSourceFilters] = useState<Set<string>>(new Set())
-  const [nameFilter, setNameFilter] = useState('')
+  // Filter state initializes from the URL on mount so a shared/bookmarked link
+  // restores the exact filtered view. Lazy initializers run once; the reads are
+  // window-guarded for SSR.
+  const [techLevelFilters, setTechLevelFilters] = useState<Set<string>>(() =>
+    readUrlSet(PARAM_TECH_LEVEL)
+  )
+  const [sourceFilters, setSourceFilters] = useState<Set<string>>(() => readUrlSet(PARAM_SOURCE))
+  const [nameFilter, setNameFilter] = useState(() => readUrlParam(PARAM_NAME))
+
+  // Push filter state back into the URL (replaceState — bookmarkable/shareable
+  // without spamming history on every keystroke). Idempotent: only writes when
+  // the resulting query string actually differs from the current one, so the
+  // mount-time run never clobbers an incoming shared link.
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const params = new URLSearchParams(window.location.search)
+    const setOrDelete = (key: string, value: string) => {
+      if (value) params.set(key, value)
+      else params.delete(key)
+    }
+    setOrDelete(PARAM_TECH_LEVEL, [...techLevelFilters].join(','))
+    setOrDelete(PARAM_SOURCE, [...sourceFilters].join(','))
+    setOrDelete(PARAM_NAME, nameFilter)
+    const qs = params.toString()
+    const nextUrl = qs ? `${window.location.pathname}?${qs}` : window.location.pathname
+    const currentUrl = `${window.location.pathname}${window.location.search}`
+    if (nextUrl !== currentUrl) {
+      window.history.replaceState(window.history.state, '', nextUrl)
+    }
+  }, [techLevelFilters, sourceFilters, nameFilter])
 
   const filteredData = useMemo(() => {
     return initialData.filter((item) => {
@@ -222,7 +276,7 @@ export function SchemaViewerIsland({
                         >
                           <Suspense fallback={<ReferenceEntityCardSkeleton compact />}>
                             <ReferenceEntityDisplay
-                              hide={{ actions: true, choices: true }}
+                              hide={HIDE_ACTIONS_AND_CHOICES}
                               data={item}
                               compact
                               label={tree}

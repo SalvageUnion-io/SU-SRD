@@ -1,6 +1,7 @@
 ---
 import { getSchemaCatalog, SalvageUnionReference, getReferenceEntityData } from '../lib/gameData'
 import { MobileNavIsland } from './islands/MobileNavIsland'
+import { MobileSearchIsland } from './islands/MobileSearchIsland'
 import { SearchIsland } from './islands/SearchIsland'
 import { getCatalogBg, getCatalogLabel } from '../lib/catalogColors'
 import { buildCatalogCategories } from '../lib/catalogHelpers'
@@ -90,8 +91,9 @@ function isActive(path: string) {
     </a>
   </div>
 
-  <!-- Mobile: hamburger -->
-  <div class="flex lg:hidden items-center gap-2 ml-auto">
+  <!-- Mobile: persistent search trigger + hamburger -->
+  <div class="flex lg:hidden items-center gap-1 ml-auto">
+    <MobileSearchIsland client:idle />
     <MobileNavIsland
       client:idle
       categories={categories}
