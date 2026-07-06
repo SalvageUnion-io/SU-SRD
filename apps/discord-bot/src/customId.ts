@@ -17,6 +17,14 @@ import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js'
 /** Namespace prefix for every one of this bot's component ids. */
 export const CUSTOM_ID_NS = 'su'
 
+/**
+ * Leading glyph on every re-roll button label. A typographic symbol (U+21BB
+ * clockwise open circle arrow), NOT an emoji — it reads as "roll again / repeat"
+ * and has broad font coverage across Discord clients, where a colored emoji
+ * would clash with the plain-text embed styling.
+ */
+const REROLL_SYMBOL = '↻'
+
 /** Discord caps a component customId at 100 characters. */
 const CUSTOM_ID_MAX = 100
 
@@ -63,8 +71,7 @@ export function rollAgainRow(
   if (!customId) return null
   const button = new ButtonBuilder()
     .setCustomId(customId)
-    .setLabel(label)
+    .setLabel(`${REROLL_SYMBOL} ${label}`)
     .setStyle(ButtonStyle.Secondary)
-    .setEmoji('🎲')
   return new ActionRowBuilder<ButtonBuilder>().addComponents(button)
 }

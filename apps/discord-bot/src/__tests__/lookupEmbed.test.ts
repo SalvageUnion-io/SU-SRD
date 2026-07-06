@@ -135,14 +135,50 @@ describe('buildLookupEmbed — content depth', () => {
     }
   })
 
-  test('a roll-table links out instead of inlining its rows', () => {
-    const table = SalvageUnionReference.RollTables.all()[0]!
+  test('[[Trait]] references in body text become links, never literal brackets', () => {
+    const overpower = SalvageUnionReference.Abilities.find((a) => a.name === 'Overpower')
+    expect(overpower).toBeDefined()
+    const e = buildLookupEmbed(
+      { ...overpower!, schemaName: 'abilities' } as unknown as SURefEntity & {
+        schemaName: SURefEnumSchemaName
+      },
+      'abilities'
+    )
+    // [[Vulnerable]] resolves to a masked link, and no raw bracket ref survives.
+    expect(e.description).toContain(
+      '[Vulnerable](https://salvageunion.io/schema/traits/item/vulnerable)'
+    )
+    expect(e.description).not.toContain('[[')
+  })
+
+  test('a standard roll-table inlines its full rows and keeps a roll hint', () => {
+    const table = SalvageUnionReference.RollTables.all().find((t) => t.table.type === 'standard')!
     const e = buildLookupEmbed(
       { ...table, schemaName: 'roll-tables' } as unknown as SURefEntity & {
         schemaName: SURefEnumSchemaName
       },
       'roll-tables'
     )
+    // The roll hint survives, and every d20 bucket is inlined as a row (backtick key).
     expect(e.description).toContain('/su roll')
+    expect(e.description).toContain('`20`')
+    expect(e.description).toContain('`11-19`')
+    expect(e.description).toContain('`1`')
+  })
+
+  test('a columns roll-table inlines each column bucket as a field', () => {
+    const table = SalvageUnionReference.RollTables.all().find((t) => t.table.type === 'columns')!
+    const e = buildLookupEmbed(
+      { ...table, schemaName: 'roll-tables' } as unknown as SURefEntity & {
+        schemaName: SURefEnumSchemaName
+      },
+      'roll-tables'
+    )
+    const fieldNames = e.fields.map((f) => f.name)
+    expect(fieldNames).toContain('Roll 1-4')
+    expect(fieldNames).toContain('Roll 17-20')
+    // The entries within a column are listed (1-20), not just linked out.
+    const firstColumn = e.fields.find((f) => f.name === 'Roll 1-4')!
+    expect(firstColumn.value).toContain('1.')
   })
 })
