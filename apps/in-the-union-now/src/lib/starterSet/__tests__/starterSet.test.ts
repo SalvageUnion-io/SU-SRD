@@ -17,6 +17,15 @@
 import { beforeAll, describe, expect, test } from 'bun:test'
 import { SalvageUnionReference, nameToSlug } from 'salvageunion-reference'
 
+import {
+  crawlerMaxSP,
+  findChassisByRef,
+  mechMaxEP,
+  mechMaxHeat,
+  mechMaxSP,
+  pilotMaxAP,
+  pilotMaxHP,
+} from '../../rules/derivedStats'
 import { resolveChassisRef, resolveModuleRef, resolveSystemRef } from '../../rules/resolveRefs'
 import { resolveCrawlerBay, resolveCrawlerType } from '../../crawlerRefs'
 import { CrawlerSchema } from '../../schemas/crawler'
@@ -109,6 +118,43 @@ describe('Starter Set seed — reference refs resolve (drift guard)', () => {
       for (const bay of c.crawlerBays ?? []) {
         expect(resolveCrawlerBay(bay.bayRef)).not.toBeNull()
       }
+    }
+  })
+})
+
+describe('Starter Set seed — derived stats match the Starter Set sheet', () => {
+  // Structure Points / Energy Points / Heat Capacity as printed on the
+  // *Reclamation of the Wastes* mech sheets, keyed by seeded mech id.
+  const SHEET_MECH_STATS: Record<string, { sp: number; ep: number; heat: number }> = {
+    'starter-mech-scrapper': { sp: 9, ep: 9, heat: 8 },
+    'starter-mech-spectrum': { sp: 17, ep: 11, heat: 3 },
+    'starter-mech-mule': { sp: 12, ep: 4, heat: 6 },
+    'starter-mech-bobcat': { sp: 10, ep: 10, heat: 6 },
+    'starter-mech-mazona': { sp: 5, ep: 10, heat: 6 },
+    'starter-mech-thresher': { sp: 15, ep: 6, heat: 10 },
+  }
+
+  test('every mech derives the sheet SP / EP / Heat', () => {
+    for (const m of STARTER_MECHS) {
+      const expected = SHEET_MECH_STATS[m.id]
+      expect(expected).toBeDefined()
+      const chassis = findChassisByRef(m.chassisRef)
+      expect(mechMaxSP(m, chassis)).toBe(expected.sp)
+      expect(mechMaxEP(m, chassis)).toBe(expected.ep)
+      expect(mechMaxHeat(m, chassis)).toBe(expected.heat)
+    }
+  })
+
+  test('every pilot derives 10 HP / 5 AP', () => {
+    for (const p of STARTER_PILOTS) {
+      expect(pilotMaxHP(p)).toBe(10)
+      expect(pilotMaxAP(p)).toBe(5)
+    }
+  })
+
+  test('Crawler #430 derives 20 SP (Tech Level 1)', () => {
+    for (const c of STARTER_CRAWLERS) {
+      expect(crawlerMaxSP(c)).toBe(20)
     }
   })
 })
