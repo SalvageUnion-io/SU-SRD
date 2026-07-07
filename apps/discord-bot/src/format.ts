@@ -10,6 +10,13 @@ import type { SURefEntity } from 'salvageunion-reference'
 
 const SUREF_WEB_BASE_URL = 'https://salvageunion.io'
 
+/**
+ * Author name stamped on every embed (paired with the bot's own avatar as the
+ * icon, resolved at runtime). Consistent branding so replies read as one
+ * official app rather than ad-hoc bot output.
+ */
+export const BRAND_NAME = 'Salvage Union'
+
 /** Neutral SU rust tone for embeds without pass/fail semantics. */
 const NEUTRAL_EMBED_COLOR = 0xb7410e
 
