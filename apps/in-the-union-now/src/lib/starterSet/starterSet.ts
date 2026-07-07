@@ -274,6 +274,109 @@ export const STARTER_MECHS: readonly Mech[] = CREW.map((c) => c.mech)
 
 const STARTER_CRAWLER_ID = 'starter-crawler-tenacity'
 
+/**
+ * Each base bay's crew NPC (rules C11). The name is structured live-play state
+ * (`crawlerBays[].npcName`); the Keepsake/Motto are freeform choice selections
+ * persisted in `bayChoices`, keyed by the bay ref then the NPC's Keepsake/Motto
+ * choice id (from the reference bay's `npc.choices`). The seed test asserts each
+ * id pair still matches the reference NPC's Keepsake/Motto choices.
+ */
+type BayCrew = {
+  ref: string
+  npcName: string
+  keepsakeId: string
+  keepsake: string
+  mottoId: string
+  motto: string
+}
+
+const BAY_CREW: readonly BayCrew[] = [
+  {
+    ref: BAY.command,
+    npcName: "Cara 'Blaze' Voss",
+    keepsakeId: 'f99d2c89-3bd5-4573-a7d0-1b608f93467b',
+    keepsake: 'Harmonica',
+    mottoId: 'f64fd72a-ae30-4712-b36b-3c690c98ccb0',
+    motto: 'An ounce of prevention is worth a pound of cure.',
+  },
+  {
+    ref: BAY.mech,
+    npcName: "Yuri 'Tinker' Petrov",
+    keepsakeId: 'f94dcbf5-5fa4-4a77-9fe1-1c96ff4a4a32',
+    keepsake: 'Dog Tags',
+    mottoId: 'aced717b-0856-4c79-adea-fd3f071c9e3c',
+    motto: 'Salvagers know nothing is truly lost.',
+  },
+  {
+    ref: BAY.armament,
+    npcName: "Sergio 'Grip' Cruz",
+    keepsakeId: '937d3b47-62ce-4325-8ec8-6c17d87214d6',
+    keepsake: 'Cloth Patch',
+    mottoId: '8c492816-24f1-4f92-b7ed-43005d4356cf',
+    motto: 'Everything is impossible until it is done.',
+  },
+  {
+    ref: BAY.crafting,
+    npcName: "Danika 'Artificer' Gujar",
+    keepsakeId: '1c5d1210-e24e-4a59-8fd9-959ead68ecfc',
+    keepsake: 'Polaroid Picture',
+    mottoId: '6ef37fd2-b0f4-4fc8-852a-ff6cf4b9d41f',
+    motto: 'Failure is the mother of success.',
+  },
+  {
+    ref: BAY.trading,
+    npcName: "Olivia 'Tout' Ortega",
+    keepsakeId: 'b2c50eed-15b2-461a-8bbe-0e88a8064a30',
+    keepsake: 'Butterfly Earrings',
+    mottoId: '915e31d0-b796-4686-9550-b6d1d0b20a68',
+    motto: 'Live and let live.',
+  },
+  {
+    ref: BAY.med,
+    npcName: "Maya 'Hale' Turner",
+    keepsakeId: '996ccad4-076e-4fba-948d-012fa1e3ae12',
+    keepsake: 'Leather Journal',
+    mottoId: 'df6503ae-9e91-4caf-9d2b-af3d3a91f65f',
+    motto: 'The grass is greener where you water it.',
+  },
+  {
+    ref: BAY.pilot,
+    npcName: "Shariq 'Hawk' Rahimi",
+    keepsakeId: '4f0b6a75-252e-474a-a253-8f06b0e48c19',
+    keepsake: 'Silver Pendant',
+    mottoId: 'cb86391d-6013-4263-a46c-1a47434b36dd',
+    motto: 'Carpe diem!',
+  },
+  {
+    ref: BAY.armoury,
+    npcName: "Paloma 'Hammer' Fane",
+    keepsakeId: '9781ac99-9355-4bf8-b4f7-31180175518b',
+    keepsake: 'M2 Racing Mug',
+    mottoId: 'ff881e9b-344e-4cd4-83aa-48defd4132a5',
+    motto: 'No job too big!',
+  },
+  {
+    ref: BAY.cantina,
+    npcName: "Jaxon 'Blazemaxer' Todd",
+    keepsakeId: 'f20e995b-a503-4689-b64c-49c26f5bbadd',
+    keepsake: 'Walkman',
+    mottoId: '71d45c7a-2865-40c9-8ff0-cff86665c300',
+    motto: 'Be kind, for everyone you meet is fighting a hard battle.',
+  },
+  {
+    ref: BAY.storage,
+    npcName: "Sofia 'Stormcrow' Costa",
+    keepsakeId: '0d51ae6a-e98d-4696-bb17-52b220e4459b',
+    keepsake: 'Peach Lipstick',
+    mottoId: '4f73538b-dbad-474a-8303-f0c4cb1d80d2',
+    motto: 'Keep it secret, keep it safe.',
+  },
+]
+
+/** The Exploratory type's Wasteland Explorer NPC — Keepsake/Motto choice ids. */
+const WASTELAND_KEEPSAKE_ID = '235a2a03-b2f2-4fb3-8afb-a1e87155b4c6'
+const WASTELAND_MOTTO_ID = 'f0aa1340-f2a2-41a3-96b1-865afd27f25a'
+
 const STARTER_CRAWLER: Crawler = {
   id: STARTER_CRAWLER_ID,
   schemaVersion: 1,
@@ -282,19 +385,22 @@ const STARTER_CRAWLER: Crawler = {
   type: EXPLORATORY_TYPE_ID,
   // The Exploratory type's special NPC — the Wasteland Explorer.
   typeNpc: { npcName: "Hannah 'Trek' Lane", npcCurrentHP: 4 },
-  systems: [],
-  crawlerBays: [
-    { bayRef: BAY.command, npcName: "Cara 'Blaze' Voss", npcCurrentHP: 4 },
-    { bayRef: BAY.mech, npcName: "Yuri 'Tinker' Petrov", npcCurrentHP: 4 },
-    { bayRef: BAY.armament, npcName: "Sergio 'Grip' Cruz", npcCurrentHP: 4 },
-    { bayRef: BAY.crafting, npcName: "Danika 'Artificer' Gujar", npcCurrentHP: 4 },
-    { bayRef: BAY.trading, npcName: "Olivia 'Tout' Ortega", npcCurrentHP: 4 },
-    { bayRef: BAY.med, npcName: "Maya 'Hale' Turner", npcCurrentHP: 4 },
-    { bayRef: BAY.pilot, npcName: "Shariq 'Hawk' Rahimi", npcCurrentHP: 4 },
-    { bayRef: BAY.armoury, npcName: "Paloma 'Hammer' Fane", npcCurrentHP: 4 },
-    { bayRef: BAY.cantina, npcName: "Jaxon 'Blazemaxer' Todd", npcCurrentHP: 4 },
-    { bayRef: BAY.storage, npcName: "Sofia 'Stormcrow' Costa", npcCurrentHP: 4 },
-  ],
+  // The Armament Bay's mounted weapon: weapon systems live in the crawler's
+  // systems[] and are surfaced as Armament-Bay weapons by the crawler wizard
+  // (capped at one for a non-Battle crawler). Mini Mortar is Tenacity's mount.
+  systems: ['mini-mortar'],
+  crawlerBays: BAY_CREW.map((c) => ({ bayRef: c.ref, npcName: c.npcName, npcCurrentHP: 4 })),
+  // Keepsake/Motto for each bay NPC (keyed by bay ref) plus the Wasteland
+  // Explorer (keyed by the crawler-type ref) — freeform choice selections.
+  bayChoices: {
+    ...Object.fromEntries(
+      BAY_CREW.map((c) => [c.ref, { [c.keepsakeId]: [c.keepsake], [c.mottoId]: [c.motto] }])
+    ),
+    [EXPLORATORY_TYPE_ID]: {
+      [WASTELAND_KEEPSAKE_ID]: ['Snowglobe'],
+      [WASTELAND_MOTTO_ID]: ['The early bird gets the worm.'],
+    },
+  },
   workspaceId: STARTER_WORKSPACE_ID,
   createdAt: SEED_TS,
   updatedAt: SEED_TS,

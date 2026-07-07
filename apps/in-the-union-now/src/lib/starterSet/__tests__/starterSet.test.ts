@@ -27,7 +27,7 @@ import {
   pilotMaxHP,
 } from '../../rules/derivedStats'
 import { resolveChassisRef, resolveModuleRef, resolveSystemRef } from '../../rules/resolveRefs'
-import { resolveCrawlerBay, resolveCrawlerType } from '../../crawlerRefs'
+import { findNpcChoiceByName, resolveCrawlerBay, resolveCrawlerType } from '../../crawlerRefs'
 import { CrawlerSchema } from '../../schemas/crawler'
 import { MechSchema } from '../../schemas/mech'
 import { PilotSchema } from '../../schemas/pilot'
@@ -112,11 +112,43 @@ describe('Starter Set seed — reference refs resolve (drift guard)', () => {
     }
   })
 
-  test('crawler type and every bay ref resolve', () => {
+  test('crawler type, every bay ref, and every crawler system resolve', () => {
     for (const c of STARTER_CRAWLERS) {
       if (c.type) expect(resolveCrawlerType(c.type)).not.toBeNull()
       for (const bay of c.crawlerBays ?? []) {
         expect(resolveCrawlerBay(bay.bayRef)).not.toBeNull()
+      }
+      for (const s of c.systems) expect(resolveSystemRef(s)).toBeTruthy()
+    }
+  })
+
+  test('every stored Keepsake/Motto choice id matches its NPC in the reference data', () => {
+    for (const c of STARTER_CRAWLERS) {
+      const bayChoices = c.bayChoices ?? {}
+
+      // Each bay's stored choice ids are exactly that bay NPC's Keepsake + Motto.
+      for (const bay of c.crawlerBays ?? []) {
+        const stored = Object.keys(bayChoices[bay.bayRef] ?? {})
+        if (stored.length === 0) continue
+        const npc = resolveCrawlerBay(bay.bayRef)?.npc
+        const keepsakeId = findNpcChoiceByName(npc, 'Keepsake')?.id
+        const mottoId = findNpcChoiceByName(npc, 'Motto')?.id
+        expect(keepsakeId).toBeTruthy()
+        expect(mottoId).toBeTruthy()
+        expect([...stored].sort()).toEqual([keepsakeId!, mottoId!].sort())
+      }
+
+      // The crawler-type NPC's stored choice ids are its Keepsake + Motto.
+      if (c.type) {
+        const stored = Object.keys(bayChoices[c.type] ?? {})
+        if (stored.length > 0) {
+          const npc = resolveCrawlerType(c.type)?.npc
+          const keepsakeId = findNpcChoiceByName(npc, 'Keepsake')?.id
+          const mottoId = findNpcChoiceByName(npc, 'Motto')?.id
+          expect(keepsakeId).toBeTruthy()
+          expect(mottoId).toBeTruthy()
+          expect([...stored].sort()).toEqual([keepsakeId!, mottoId!].sort())
+        }
       }
     }
   })
