@@ -20,6 +20,8 @@ function mockChatInput(dice: string | null) {
     options: {
       getString: (name: string) => (name === 'dice' ? dice : null),
     },
+    // execute reads client.user for embed branding; no avatar in tests.
+    client: { user: null },
     reply: (arg: ReplyArg) => {
       replies.push(arg)
       return Promise.resolve()
@@ -66,6 +68,23 @@ describe('buildCheckMessage', () => {
   test('supports the full RANDSUM grammar (drop-lowest)', () => {
     const message = buildCheckMessage('4d6L')
     expect('error' in message).toBe(false)
+  })
+
+  test('stamps the Salvage Union author when given the bot avatar URL', () => {
+    const message = buildCheckMessage('2d6+3', 'https://cdn.example/avatar.png')
+    if ('error' in message) throw new Error('expected a roll, got an error')
+    const json = message.embeds[0]!.toJSON() as {
+      author?: { name?: string; icon_url?: string }
+    }
+    expect(json.author?.name).toBe('Salvage Union')
+    expect(json.author?.icon_url).toBe('https://cdn.example/avatar.png')
+  })
+
+  test('omits the author when no avatar URL is available', () => {
+    const message = buildCheckMessage('2d6+3')
+    if ('error' in message) throw new Error('expected a roll, got an error')
+    const json = message.embeds[0]!.toJSON() as { author?: unknown }
+    expect(json.author).toBeUndefined()
   })
 })
 

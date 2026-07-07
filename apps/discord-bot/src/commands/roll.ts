@@ -10,8 +10,8 @@ import {
 import { roll as rollDie } from '@randsum/roller'
 import { SalvageUnionReference, rollOnTable } from 'salvageunion-reference'
 
-import { rollAgainRow } from '../customId.js'
-import { ROLL_EMBED_FOOTER, buildRollEmbedData } from '../format.js'
+import { rollResultRow } from '../customId.js'
+import { BRAND_NAME, ROLL_EMBED_FOOTER, buildRollEmbedData } from '../format.js'
 
 // Roll tables load lazily once SalvageUnionReference.preload() has run at startup.
 // Accessing them at module load would throw before preload completes, so defer to first use.
@@ -39,7 +39,7 @@ export type RollMessage =
  * `/su roll` handler and the "Roll again" button router so both produce an
  * identical embed carrying its own re-roll button.
  */
-export function buildRollMessage(tableName: string): RollMessage {
+export function buildRollMessage(tableName: string, iconURL?: string): RollMessage {
   const table = getRollTables().find((t) => t.name.toLowerCase() === tableName.toLowerCase())
   if (!table) {
     return {
@@ -64,8 +64,9 @@ export function buildRollMessage(tableName: string): RollMessage {
   if (data.description) {
     embed.setDescription(data.description)
   }
+  if (iconURL) embed.setAuthor({ name: BRAND_NAME, iconURL })
 
-  const row = rollAgainRow('roll', table.name, 'Roll again')
+  const row = rollResultRow(table.name)
   return { embeds: [embed], components: row ? [row] : [] }
 }
 
@@ -97,7 +98,7 @@ export const rollCommand = {
 
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     const tableName = interaction.options.getString('table') ?? 'Core Mechanic'
-    const message = buildRollMessage(tableName)
+    const message = buildRollMessage(tableName, interaction.client.user?.displayAvatarURL())
     if ('error' in message) {
       await interaction.reply({ content: message.error, flags: MessageFlags.Ephemeral })
       return
