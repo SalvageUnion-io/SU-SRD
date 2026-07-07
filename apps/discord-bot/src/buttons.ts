@@ -27,12 +27,15 @@ export async function handleButtonInteraction(interaction: ButtonInteraction): P
     return
   }
 
+  // Brand re-rolled / looked-up embeds with the bot's own avatar, same as the
+  // slash-command replies.
+  const iconURL = interaction.client.user?.displayAvatarURL()
   const message =
     parsed.action === 'roll'
-      ? buildRollMessage(parsed.payload)
+      ? buildRollMessage(parsed.payload, iconURL)
       : parsed.action === 'check'
-        ? buildCheckMessage(parsed.payload)
-        : buildTableLookupMessage(parsed.payload)
+        ? buildCheckMessage(parsed.payload, iconURL)
+        : buildTableLookupMessage(parsed.payload, iconURL)
 
   if ('error' in message) {
     await interaction.reply({ content: message.error, flags: MessageFlags.Ephemeral })

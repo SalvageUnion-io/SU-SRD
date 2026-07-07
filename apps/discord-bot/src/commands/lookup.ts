@@ -11,6 +11,7 @@ import { search, getEntitySlug, findEntityBySlug, nameToSlug } from 'salvageunio
 import type { SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
 
 import { rollAgainRow } from '../customId.js'
+import { BRAND_NAME } from '../format.js'
 import { buildLookupEmbed } from '../lookupEmbed.js'
 
 type Hit = {
@@ -29,7 +30,8 @@ export type LookupMessage =
  */
 export function buildLookupMessage(
   entity: SURefEntity & { schemaName: SURefEnumSchemaName },
-  schemaName: SURefEnumSchemaName
+  schemaName: SURefEnumSchemaName,
+  iconURL?: string
 ): { embeds: EmbedBuilder[]; components: ActionRowBuilder<ButtonBuilder>[] } {
   const data = buildLookupEmbed(entity, schemaName)
   const embed = new EmbedBuilder()
@@ -40,6 +42,7 @@ export function buildLookupMessage(
   if (data.fields.length) embed.addFields(data.fields)
   if (data.url) embed.setURL(data.url)
   if (data.description) embed.setDescription(data.description)
+  if (iconURL) embed.setAuthor({ name: BRAND_NAME, iconURL })
 
   // A roll-table entity IS a rollable table — offer a one-click roll instead of
   // making the user retype `/su roll table: <name>`. Reuses the same stateless
@@ -57,7 +60,7 @@ export function buildLookupMessage(
  * table" button on a `/su roll` result invokes. Resolves the table via its slug
  * (the button carries the exact table name); returns an error if it's gone.
  */
-export function buildTableLookupMessage(tableName: string): LookupMessage {
+export function buildTableLookupMessage(tableName: string, iconURL?: string): LookupMessage {
   const slug = nameToSlug(tableName)
   const entity = slug ? findEntityBySlug('roll-tables', slug) : null
   if (!entity) {
@@ -65,7 +68,8 @@ export function buildTableLookupMessage(tableName: string): LookupMessage {
   }
   return buildLookupMessage(
     { ...entity, schemaName: 'roll-tables' } as SURefEntity & { schemaName: SURefEnumSchemaName },
-    'roll-tables'
+    'roll-tables',
+    iconURL
   )
 }
 
@@ -142,6 +146,8 @@ export const lookupCommand = {
       return
     }
 
-    await interaction.reply(buildLookupMessage(hit.entity, hit.schemaName))
+    await interaction.reply(
+      buildLookupMessage(hit.entity, hit.schemaName, interaction.client.user?.displayAvatarURL())
+    )
   },
 }

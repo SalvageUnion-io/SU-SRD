@@ -22,7 +22,7 @@ import { roll } from '@randsum/roller'
 import type { DiceNotation, RollerRollResult } from '@randsum/roller'
 
 import { rollAgainRow } from '../customId.js'
-import { ROLL_EMBED_FOOTER, buildCheckEmbedData } from '../format.js'
+import { BRAND_NAME, ROLL_EMBED_FOOTER, buildCheckEmbedData } from '../format.js'
 
 /** A message payload ready for `interaction.reply`, or a user-facing error. */
 export type CheckMessage =
@@ -33,7 +33,7 @@ export type CheckMessage =
  * Shared by the slash `/su check` handler and the "Roll again" button router.
  * Randsum owns validity — a throw becomes a clean, user-facing error string.
  */
-export function buildCheckMessage(notation: string): CheckMessage {
+export function buildCheckMessage(notation: string, iconURL?: string): CheckMessage {
   let result: RollerRollResult<unknown>
   try {
     // Randsum's parameter type is the DiceNotation template literal, but the
@@ -58,6 +58,7 @@ export function buildCheckMessage(notation: string): CheckMessage {
   if (data.description) {
     embed.setDescription(data.description)
   }
+  if (iconURL) embed.setAuthor({ name: BRAND_NAME, iconURL })
 
   const row = rollAgainRow('check', notation, 'Roll again')
   return { embeds: [embed], components: row ? [row] : [] }
@@ -81,7 +82,7 @@ export const checkCommand = {
 
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     const notation = interaction.options.getString('dice', true)
-    const message = buildCheckMessage(notation)
+    const message = buildCheckMessage(notation, interaction.client.user?.displayAvatarURL())
     if ('error' in message) {
       await interaction.reply({ content: message.error, flags: MessageFlags.Ephemeral })
       return

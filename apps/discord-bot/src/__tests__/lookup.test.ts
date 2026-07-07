@@ -28,6 +28,8 @@ function mockChatInput(entity: string) {
       // lookup.execute reads getString('entity', true).
       getString: (name: string) => (name === 'entity' ? entity : null),
     },
+    // execute reads client.user for embed branding; no avatar in tests.
+    client: { user: null },
     reply: (arg: ReplyArg) => {
       replies.push(arg)
       return Promise.resolve()
