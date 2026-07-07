@@ -200,10 +200,12 @@ export function CrawlerSheet({
         </div>
       )}
 
-      {/* Crawler Systems — proper entity cards [gap 20] */}
+      {/* Armament Bay weapons — crawler weapon systems mount here (Core Book
+          p. 213). Labeled explicitly so it is clear these are the Armament
+          Bay's mounts, distinct from the Armament Bay crew card above. */}
       {crawler.systems.length > 0 && (
         <div>
-          <Slab label="Crawler Systems" count={`${crawler.systems.length}`} />
+          <Slab label="Armament Bay Weapons" count={`${crawler.systems.length}`} />
           <Ecflow>
             {crawler.systems.map((slug) => {
               const system = resolveCrawlerSystem(slug)
