@@ -137,7 +137,7 @@ describe('Starter Set seed — derived stats match the Starter Set sheet', () =>
   test('every mech derives the sheet SP / EP / Heat', () => {
     for (const m of STARTER_MECHS) {
       const expected = SHEET_MECH_STATS[m.id]
-      expect(expected).toBeDefined()
+      if (!expected) throw new Error(`no sheet stats declared for ${m.id}`)
       const chassis = findChassisByRef(m.chassisRef)
       expect(mechMaxSP(m, chassis)).toBe(expected.sp)
       expect(mechMaxEP(m, chassis)).toBe(expected.ep)
