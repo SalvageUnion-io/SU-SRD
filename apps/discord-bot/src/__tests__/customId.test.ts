@@ -45,7 +45,8 @@ describe('rollAgainRow', () => {
     const json = row!.toJSON() as { components: { custom_id?: string; label?: string }[] }
     expect(json.components).toHaveLength(1)
     expect(json.components[0]!.custom_id).toBe('su:roll:Core Mechanic')
-    expect(json.components[0]!.label).toBe('Roll again')
+    // Label is prefixed with the ↻ repeat symbol (a typographic glyph, not an emoji).
+    expect(json.components[0]!.label).toBe('↻ Roll again')
   })
 })
 

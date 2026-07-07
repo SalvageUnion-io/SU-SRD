@@ -77,6 +77,27 @@ function entityLink(schema: SURefEnumSchemaName, name: string): string {
   return resolved ? `[${label}](${BASE}/schema/${schema}/item/${slug})` : label
 }
 
+/**
+ * Inline trait references in body text, in the two bracket forms the data uses
+ * (mirrors suref-react's parseTraitReferences):
+ *   [[Trait Name]]              → link to the trait's page
+ *   [[[Trait Name] (param)]]    → link + the parameter (e.g. "[[[Melee] (2)]]")
+ * Every ref resolves against the `traits` schema, exactly as the web does; an
+ * unresolved name degrades to its bare text (matching TraitKeywordDisplayView,
+ * which renders plain text on a miss rather than falling back to keywords).
+ */
+const TRAIT_REF = /\[\[\[([^\]]+)\]\s*\(([^)]+)\)\]\]|\[\[([^\]]+)\]\]/g
+function linkifyTraitRefs(text: string): string {
+  return text.replace(TRAIT_REF, (_match, paramName, paramValue, simpleName) => {
+    if (paramName !== undefined) {
+      const link = entityLink('traits', String(paramName).trim())
+      const value = String(paramValue).trim()
+      return value ? `${link} ${value}` : link
+    }
+    return entityLink('traits', String(simpleName).trim())
+  })
+}
+
 type ContentBlock = {
   type?: string
   value?: unknown
@@ -107,10 +128,12 @@ function flattenContent(blocks: ContentBlock[] | undefined, chassisName?: string
       if (dv) sections.push(dv)
       continue
     }
-    const text = replaceChassisPlaceholder(
-      typeof block.value === 'string' ? block.value : '',
-      chassisName
-    ).trim()
+    const text = linkifyTraitRefs(
+      replaceChassisPlaceholder(
+        typeof block.value === 'string' ? block.value : '',
+        chassisName
+      ).trim()
+    )
     let line = ''
     if (text) {
       switch (type) {
@@ -144,7 +167,7 @@ function flattenContent(blocks: ContentBlock[] | undefined, chassisName?: string
             ).trim()
           )
           .filter(Boolean)
-          .map((v) => `• ${v}`)
+          .map((v) => `• ${linkifyTraitRefs(v)}`)
       : []
     const combined = [line, ...items].filter(Boolean).join('\n')
     if (combined) sections.push(combined)
@@ -316,6 +339,62 @@ function enforce(embed: LookupEmbed): LookupEmbed {
   return embed
 }
 
+type TableEntry = { label?: string; value?: string }
+
+/** The first number in a roll key ("11-19" → 11, "20" → 20). */
+function rollKeyStart(key: string): number {
+  const n = Number.parseInt(key.split('-')[0]?.trim() ?? '', 10)
+  return Number.isNaN(n) ? 0 : n
+}
+
+/** A table's roll keys (excluding the `type` discriminant), high roll first to
+ *  match the web's RollTable ordering. */
+function tableRollKeys(table: AnyRecord): string[] {
+  return Object.keys(table)
+    .filter((key) => key !== 'type')
+    .sort((a, b) => rollKeyStart(b) - rollKeyStart(a))
+}
+
+/** One row of a d20 table: `` `key` **label** — value ``, trait refs linked. */
+function renderTableRow(key: string, entry: TableEntry): string {
+  const label = entry.label ? `**${escapeLabel(entry.label)}** — ` : ''
+  return `\`${key}\` ${label}${linkifyTraitRefs(entry.value ?? '')}`.trimEnd()
+}
+
+/**
+ * Render a roll-table's full contents into the embed. Flat-family tables go
+ * into the description (which enforce() sheds to fit the 6000-char budget,
+ * appending a link-out on the largest tables). A `columns` table is
+ * two-dimensional — roll a column, then a 1-20 entry within it — so each column
+ * bucket becomes its own field.
+ */
+function rollTableSections(
+  table: AnyRecord,
+  name: string,
+  sections: string[],
+  fields: LookupEmbed['fields']
+): void {
+  const hint = `Roll it with \`/su roll table: ${name}\`.`
+  if (table['type'] === 'columns') {
+    sections.push(`${hint} Two rolls: first the column, then the entry (1-20).`)
+    for (const columnKey of Object.keys(table).filter((key) => key !== 'type')) {
+      const column = table[columnKey] as AnyRecord
+      const entries = Object.keys(column)
+        .sort((a, b) => rollKeyStart(a) - rollKeyStart(b))
+        .map((entryKey) => {
+          const entry = column[entryKey] as TableEntry
+          return `${entryKey}. ${linkifyTraitRefs(entry?.value ?? '')}`
+        })
+      fields.push({ name: `Roll ${columnKey}`, value: entries.join('\n') || '—', inline: true })
+    }
+    return
+  }
+  // Lead with the roll hint so it survives description-shedding on huge tables.
+  sections.push(hint)
+  const rows = tableRollKeys(table).map((key) => renderTableRow(key, table[key] as TableEntry))
+  if (rows.length) sections.push(rows.join('\n'))
+}
+
 /**
  * Build the full lookup embed for any entity. `entity` must carry its
  * `schemaName` (the lookup command attaches it).
@@ -333,7 +412,7 @@ export function buildLookupEmbed(
 
   // Lead description: an entity's own `description`, then its content blocks.
   if (typeof e['description'] === 'string' && e['description']) {
-    sections.push(e['description'] as string)
+    sections.push(linkifyTraitRefs(e['description'] as string))
   }
   // Chassis ability/flavor text carries [(CHASSIS)] placeholders — replace
   // with the chassis name, as the web does. Non-chassis entities have no
@@ -354,8 +433,10 @@ export function buildLookupEmbed(
     }
     if (patterns) sections.push(patterns)
   } else if (schemaName === 'roll-tables') {
-    // Don't inline table rows — that duplicates /su roll and blows budget.
-    sections.push(`Roll on this table with \`/su roll table: ${name}\`.`)
+    const table = e['table']
+    if (table && typeof table === 'object') {
+      rollTableSections(table as AnyRecord, name, sections, fields)
+    }
   } else {
     fields.push(...statFields(e))
     for (const action of extractVisibleActions(entity) ?? []) {
