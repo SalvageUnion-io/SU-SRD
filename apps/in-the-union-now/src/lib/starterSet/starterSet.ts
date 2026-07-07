@@ -99,8 +99,7 @@ function pilot(
 
 /** Build a mech record with the shared, always-present defaults. */
 function mech(
-  fields: Pick<Mech, 'id' | 'name' | 'chassisRef' | 'patternName' | 'systems' | 'modules'> &
-    Partial<Pick<Mech, 'maxSpModifier' | 'maxEpModifier' | 'maxHeatModifier'>>
+  fields: Pick<Mech, 'id' | 'name' | 'chassisRef' | 'patternName' | 'systems' | 'modules'>
 ): Mech {
   return {
     schemaVersion: 1,
@@ -215,13 +214,11 @@ const CREW: readonly CrewMember[] = [
         'mining-rig',
       ],
       modules: ['comms-module', 'survey-scanner'],
-      // The Starter Set tunes the Bobcat differently from the core Workshop
-      // Manual chassis the reference dataset carries (ref: SP 11 / EP 8 / Heat 8;
-      // Starter Set sheet: SP 10 / EP 10 / Heat 6). Reconcile the derived maxima
-      // to the sheet via these deltas so the seeded mech matches the kit.
-      maxSpModifier: -1,
-      maxEpModifier: 2,
-      maxHeatModifier: -2,
+      // Derives naturally to its chassis stats (SP 11 / EP 8 / Heat 8), which
+      // match the Starter Set Parts Catalogue (p.10) and the reference dataset.
+      // The Reclamation-of-the-Wastes pre-gen sheet prints SP 10 / EP 10 / Heat 6
+      // for this mech, but that contradicts the catalogue (and all five other
+      // pre-gens match theirs) — a character-sheet misprint we do not follow.
     }),
   },
   {

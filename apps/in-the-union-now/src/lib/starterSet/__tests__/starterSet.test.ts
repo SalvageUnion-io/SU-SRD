@@ -122,19 +122,21 @@ describe('Starter Set seed — reference refs resolve (drift guard)', () => {
   })
 })
 
-describe('Starter Set seed — derived stats match the Starter Set sheet', () => {
-  // Structure Points / Energy Points / Heat Capacity as printed on the
-  // *Reclamation of the Wastes* mech sheets, keyed by seeded mech id.
+describe('Starter Set seed — derived stats match the canonical chassis', () => {
+  // Structure Points / Energy Points / Heat Capacity from the Starter Set Parts
+  // Catalogue (the canonical chassis stat blocks), keyed by seeded mech id.
+  // Five of the six also match the Reclamation-of-the-Wastes pre-gen sheets; the
+  // Bobcat's pre-gen sheet misprints 10/10/6, so we assert its catalogue value.
   const SHEET_MECH_STATS: Record<string, { sp: number; ep: number; heat: number }> = {
     'starter-mech-scrapper': { sp: 9, ep: 9, heat: 8 },
     'starter-mech-spectrum': { sp: 17, ep: 11, heat: 3 },
     'starter-mech-mule': { sp: 12, ep: 4, heat: 6 },
-    'starter-mech-bobcat': { sp: 10, ep: 10, heat: 6 },
+    'starter-mech-bobcat': { sp: 11, ep: 8, heat: 8 },
     'starter-mech-mazona': { sp: 5, ep: 10, heat: 6 },
     'starter-mech-thresher': { sp: 15, ep: 6, heat: 10 },
   }
 
-  test('every mech derives the sheet SP / EP / Heat', () => {
+  test('every mech derives its canonical chassis SP / EP / Heat', () => {
     for (const m of STARTER_MECHS) {
       const expected = SHEET_MECH_STATS[m.id]
       if (!expected) throw new Error(`no sheet stats declared for ${m.id}`)
