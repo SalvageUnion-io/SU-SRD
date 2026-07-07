@@ -378,6 +378,8 @@ export function MechWizard({ onComplete, onCancel, mechId, initialState }: MechW
         <MechIdentityStep
           name={form.name}
           onNameChange={(name) => updateForm({ name })}
+          description={form.description}
+          onDescriptionChange={(description) => updateForm({ description })}
           cargoLots={form.cargoLots}
           onCargoChange={(cargoLots) => updateForm({ cargoLots })}
           cargoMax={cargoMax}

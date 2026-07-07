@@ -367,6 +367,7 @@ async function seedCrawler(overrides?: { techLevel?: number; type?: string }) {
   const input = crawlerFormToCreateInput(
     {
       name: 'The Wandering Kettle',
+      description: '',
       techLevel: overrides?.techLevel ?? 1,
       type: overrides?.type ?? null,
       systems: [],
@@ -484,6 +485,7 @@ describe('CrawlerBuilder — edit mode', () => {
     const input = crawlerFormToCreateInput(
       {
         name: 'War Wagon',
+        description: '',
         techLevel: 1,
         type: battle.id,
         systems: [],
@@ -559,6 +561,7 @@ describe('CrawlerBuilder — edit mode', () => {
     const input = crawlerFormToCreateInput(
       {
         name: 'Old Hauler',
+        description: '',
         techLevel: 1,
         type: null,
         systems: [nonWeapon.id],

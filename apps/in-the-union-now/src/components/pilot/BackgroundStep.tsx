@@ -5,6 +5,9 @@ import { RollTableButton } from './RollTableButton'
 type BackgroundStepProps = {
   background: string
   onChange: (value: string) => void
+  /** Freeform bio / backstory (distinct from the short Background archetype). */
+  description: string
+  onDescriptionChange: (value: string) => void
   /** Injectable deps for testing. */
   _rollDeps?: RollTableDeps
 }
@@ -14,7 +17,13 @@ type BackgroundStepProps = {
  * stepper; the UI itself is undesigned, so it follows the Identity form
  * vocabulary).
  */
-export function BackgroundStep({ background, onChange, _rollDeps }: BackgroundStepProps) {
+export function BackgroundStep({
+  background,
+  onChange,
+  description,
+  onDescriptionChange,
+  _rollDeps,
+}: BackgroundStepProps) {
   return (
     <div className="max-w-3xl space-y-5">
       <p className="text-sm text-wk-muted">
@@ -37,6 +46,16 @@ export function BackgroundStep({ background, onChange, _rollDeps }: BackgroundSt
             className="w-full rounded-[3px] border-chrome border-ink bg-paper px-3 py-2.5 font-body text-sm text-ink placeholder:text-wk-faint focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22]"
           />
         </div>
+      </Field>
+      <Field label="Bio" htmlFor="bio-field">
+        <textarea
+          id="bio-field"
+          value={description}
+          onChange={(e) => onDescriptionChange(e.target.value)}
+          placeholder="Their story so far — history, motivations, notable deeds."
+          rows={5}
+          className="w-full rounded-[3px] border-chrome border-ink bg-paper px-3 py-2.5 font-body text-sm text-ink placeholder:text-wk-faint focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22]"
+        />
       </Field>
     </div>
   )

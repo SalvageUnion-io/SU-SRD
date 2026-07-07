@@ -44,6 +44,7 @@ import { MechItemCard } from './MechItemCard'
 import { cycleCondition, resolveModule, resolveSystem } from './mechItemRules'
 import type { MechItemEconomy } from './mechItemRules'
 import { ScrapMechControl } from './ScrapMechControl'
+import { SheetDescription } from './SheetDescription'
 import { StorageManifest } from './StorageManifest'
 import { TakeDamageControl } from './TakeDamageControl'
 import { resolveChassisRef } from '../../lib/rules/resolveRefs'
@@ -280,6 +281,9 @@ export function MechSheet({
         roll={roll}
         readOnly={readOnly}
       />
+
+      {/* Description — freeform notes (read-only; edited in the mech builder) */}
+      <SheetDescription text={mech.description} />
 
       {chassisAbilities.length > 0 && (
         <div>

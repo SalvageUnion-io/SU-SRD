@@ -28,6 +28,7 @@ export type PilotWizardFormState = {
   keepsake: string
   appearance: string
   background: string
+  description: string
 }
 
 export const EMPTY_PILOT_FORM_STATE: PilotWizardFormState = {
@@ -40,6 +41,7 @@ export const EMPTY_PILOT_FORM_STATE: PilotWizardFormState = {
   keepsake: '',
   appearance: '',
   background: '',
+  description: '',
 }
 
 /** Maps a stored pilot onto wizard initial state (edit-mode prefill). */
@@ -54,6 +56,7 @@ export function pilotToFormState(pilot: Pilot): PilotWizardFormState {
     keepsake: pilot.keepsake,
     appearance: pilot.appearance,
     background: pilot.background,
+    description: pilot.description ?? '',
   }
 }
 
@@ -69,6 +72,7 @@ type PilotWizardPatch = Pick<
   | 'keepsake'
   | 'appearance'
   | 'background'
+  | 'description'
 >
 
 export function pilotFormToUpdatePatch(form: PilotWizardFormState): PilotWizardPatch {
@@ -82,6 +86,7 @@ export function pilotFormToUpdatePatch(form: PilotWizardFormState): PilotWizardP
     keepsake: form.keepsake.trim(),
     appearance: form.appearance.trim(),
     background: form.background.trim(),
+    description: form.description.trim(),
   }
 }
 

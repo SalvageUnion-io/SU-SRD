@@ -61,6 +61,7 @@ describe('mechToFormState', () => {
       systems: ['Cargo Pod', 'Armour Plating'],
       modules: ['Comms Module'],
       cargoLots: storedMech.cargoLots,
+      description: '',
     })
   })
 
@@ -79,6 +80,7 @@ describe('mechFormToUpdatePatch', () => {
     expect(Object.keys(patch).sort()).toEqual([
       'cargoLots',
       'chassisRef',
+      'description',
       'modules',
       'name',
       'patternName',

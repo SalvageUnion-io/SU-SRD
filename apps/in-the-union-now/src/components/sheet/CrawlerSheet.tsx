@@ -32,6 +32,7 @@ import { CraftingControl } from './CraftingControl'
 import { DowntimeControl } from './DowntimeControl'
 import { Ecflow, Erow } from './Erow'
 import { SalvageControl } from './SalvageControl'
+import { SheetDescription } from './SheetDescription'
 import { StorageManifest } from './StorageManifest'
 
 import {
@@ -124,6 +125,9 @@ export function CrawlerSheet({
 
   return (
     <section aria-label={`${crawler.name} crawler sheet`} className="flex flex-col gap-7">
+      {/* Description — freeform notes (read-only; edited in the crawler builder) */}
+      <SheetDescription text={crawler.description} />
+
       {/* Crawler Type — only when a type was chosen (legacy crawlers have none) */}
       {crawler.type && (
         <div>

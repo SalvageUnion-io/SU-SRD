@@ -47,6 +47,7 @@ describe('pilotToFormState', () => {
       keepsake: 'A bent wrench',
       appearance: 'Grease-stained',
       background: 'Workshop kid.',
+      description: '',
     })
   })
 
@@ -66,6 +67,7 @@ describe('pilotFormToUpdatePatch', () => {
       'background',
       'callsign',
       'classRef',
+      'description',
       'equipment',
       'keepsake',
       'motto',

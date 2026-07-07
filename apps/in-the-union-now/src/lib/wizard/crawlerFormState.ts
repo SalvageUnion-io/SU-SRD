@@ -73,6 +73,8 @@ export const EMPTY_SCRAP_POOL: ScrapPoolForm = {
 /** Shape of form state carried through the crawler wizard. */
 export type CrawlerWizardFormState = {
   name: string
+  /** Freeform crawler description (maps to Crawler.description). */
+  description: string
   /** Numeric tech level 1–6; new crawlers fix this at 1, edit preserves stored. */
   techLevel: number | null
   /** Chosen crawler-type ref (SRD id); null until chosen. */
@@ -92,6 +94,7 @@ export type CrawlerWizardFormState = {
 
 export const EMPTY_CRAWLER_FORM_STATE: CrawlerWizardFormState = {
   name: '',
+  description: '',
   // New crawlers always start at Tech Level 1 (Hamlet); upgraded on the sheet.
   techLevel: 1,
   type: null,
@@ -126,6 +129,7 @@ export function crawlerToFormState(crawler: Crawler): CrawlerWizardFormState {
 
   return {
     name: crawler.name,
+    description: crawler.description ?? '',
     // Keep the stored tech level on edit — only create fixes it at 1.
     techLevel: parseCrawlerTechLevel(crawler.techLevel) ?? null,
     type: crawler.type ?? null,
@@ -151,7 +155,7 @@ export function toScrapPoolPatch(pool: ScrapPoolForm): ScrapPool {
 /** Wizard-owned crawler fields — the only fields an edit save may touch. */
 type CrawlerWizardPatch = Pick<
   Crawler,
-  'name' | 'techLevel' | 'type' | 'systems' | 'scrapPool' | 'upgradePool'
+  'name' | 'description' | 'techLevel' | 'type' | 'systems' | 'scrapPool' | 'upgradePool'
 >
 
 export function crawlerFormToUpdatePatch(form: CrawlerWizardFormState): CrawlerWizardPatch {
@@ -160,6 +164,7 @@ export function crawlerFormToUpdatePatch(form: CrawlerWizardFormState): CrawlerW
   }
   return {
     name: form.name.trim(),
+    description: form.description.trim() || undefined,
     techLevel: `tech-${form.techLevel}`,
     // The chosen crawler type — additive wizard-owned field. Crew/NPC edits do
     // NOT go through this patch (they route through crawlerFormCrewToPatches so

@@ -428,6 +428,7 @@ describe('MechWizard — pattern duplicates', () => {
 async function seedMuleMech() {
   const input = mechFormToCreateInput({
     name: 'Iron Fist',
+    description: '',
     chassisName: 'mule',
     patternName: '',
     systems: ['cargo-pod'],

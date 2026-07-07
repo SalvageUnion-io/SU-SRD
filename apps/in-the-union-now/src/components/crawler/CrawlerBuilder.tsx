@@ -413,6 +413,7 @@ export function CrawlerBuilder({
       {step === 'Identity' && (
         <CrawlerIdentityStep
           name={form.name}
+          description={form.description}
           scrapPool={form.scrapPool}
           upgradePool={form.upgradePool}
           onChange={updateForm}

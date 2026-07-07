@@ -39,6 +39,7 @@ import { destroyedUndoToast } from './destroyedUndoToast'
 import { Ecflow, Erow } from './Erow'
 import { InlineEditField } from './InlineEditField'
 import { PilotTakeDamageControl } from './PilotTakeDamageControl'
+import { SheetDescription } from './SheetDescription'
 import { pilotInventoryCapacity, pilotInventoryUsed, resolveEquipment } from './pilotInventory'
 import {
   GenericEntryAdder,
@@ -197,6 +198,9 @@ export function PilotSheet({
       {/* Take Damage / Critical Injury loop (R-1) — HP intake with the p.241
           conversions, prompting the Critical Injury Table roll at 0 HP. */}
       <PilotTakeDamageControl pilot={pilot} store={store} roll={roll} readOnly={readOnly} />
+
+      {/* Bio — freeform backstory (read-only; edited in the pilot builder) */}
+      <SheetDescription text={pilot.description} label="Bio" />
 
       {/* Abilities */}
       {pilot.abilities.length > 0 && (

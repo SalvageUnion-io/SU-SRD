@@ -264,8 +264,49 @@ const CREW: readonly CrewMember[] = [
   },
 ]
 
-export const STARTER_PILOTS: readonly Pilot[] = CREW.map((c) => c.pilot)
-export const STARTER_MECHS: readonly Mech[] = CREW.map((c) => c.mech)
+/** Pilot backstories (Reclamation of the Wastes sheets), keyed by pilot id. */
+const PILOT_BIOS: Record<string, string> = {
+  'starter-pilot-bonesaw':
+    "Bonesaw grew up in the slums of Osiris' home Arco in The Great Cape, always watching the Glass Pyramid where the corpos lived, casting a shadow over the town. He showed an aptitude for engineering from a young age, using his expertise to help maintain the meagre low-Tech Mechs that his community relied on to survive and scavenge.\n\nIt was during a routine repair of his trusted Scrapper Mech that one of the supports failed and his hand was crushed under the machine. He managed to cut it free with a welding tool and cauterise the wound with a homemade Med Bay, replacing it with a mechanical prosthetic. This moment made him realise he didn't want to die in the slums. He took to the road with his Mech, eventually finding his way to Crawler #430.",
+  'starter-pilot-pickle':
+    "Pickle grew to underground music fame as creator and lead of the holo-EDM band 'Drone.Trap', who play energetic hyperpop mixed with dark, vulgar images of the horrors of the wastes. In their early days, she broadcast their pirate signal across the wastes from deep within the Stefanus data centres, hacking their networks to play music across every comms module, receiver, and jukebox in every Arco, hub, and dingy holo-club that could pick it up.\n\nTheir song 'Wires in my veins' went viral, and soon Stefanus took notice. Rather than be thrown in a prison cube, she persuaded them to use her as an asset — touring the arcos and leeching information back to Stefanus. Fearing her fame (and therefore Stefanus' mercy) would wane, she swapped herself for a hologram during a concert in Neo-Nara and escaped into the wastelands, eventually reaching the last place the corpos would look: Crawler #430.",
+  'starter-pilot-judge':
+    "Judge has been everywhere: Haven, Novosrik, Phoenix, Ashfall... you name it, he's hauled to it while building up his own trading company. He earned a reputation for working with anyone — waster, corpo, or raider — and getting the job done, no questions asked, as long as he gets paid fair and square.\n\nA routine Sakura hauling job through the Central Wastes went bad when his caravan was ambushed by an Evantis patrol packing heat. Judge barely survived, crawling from the wreck of his mule while the attackers left him for dead. He later hunted down one of the merc pilots and squeezed him for information: they'd been hired by Sakura using Evantis body kits, a ploy to justify expansion into the Arid Steppes. Filled with rage, his crew dead and only a single Mule surviving, he signed up to the Union and got assigned Crawler #430 for some payback against the corpos.",
+  'starter-pilot-driftwood':
+    "Driftwood likes to keep to herself. She lives on the outskirts of waster settlements, alone in caverns, or tags along with trade caravans. She never stays anywhere too long and scavenges for what she needs. Her only companion is her Bobcat Mech 'Mr Dig', who she has been known to have entire conversations with as the sun sets on the wastes.\n\nShe's occasionally visited by those who have heard of her wide-ranging skillset and need her help, which she's happy to provide for some peace and quiet. She found her way onto Crawler #430 through one of these chance meetings with the crew, who asked her to join them in their foray into Caldera. She agreed, and is enjoying crawler life so far — probably because it's always on the move, just how she likes it.",
+  'starter-pilot-hotdog':
+    "Hotdog is a match lit at both ends: he'll dive into a nest of Artls to save your skin, then not talk to you for a week for forgetting his drink order. In his youth he fell into the street-gang life of Neo-Nara, the home Arco of Sakura, gambling his life in high-speed Mazona races across the neon strip until he caught the eye of the notorious Black Steel gang.\n\nThe boss, Takeda, took Hotdog under his wing with driving and delivery jobs — but these soon became wetwork, and Hotdog used cheap thrills to forget, until the morning he was asked to drive Sunshine, Takeda's daughter. The two fell in love, and of course it ended messily. Hotdog fled into the wastes and has been running ever since, taking whatever jobs he could until Crawler #430 needed a Pilot for a scouting job. Now he finds solace in the wilds, watching the windswept steppes to support his crew.",
+  'starter-pilot-razor':
+    "Razor and her life partner Snow were a Mech mercenary power couple for hire. They took whatever jobs the corpos offered, travelling far and wide across the Arcos of the wastes in hopes of earning enough DebtCredit to settle down and put the merc life behind them. They worked together sometimes, but were often apart for long, painful stretches.\n\nDuring one of these periods apart, Razor took a sabotage job against an Aeon agri convoy in the Verdant Crescent. Unbeknownst to her, Snow had taken the job to defend it. Under cover of night a deadly firefight of missiles and lasers was exchanged; when the dust settled, Razor approached to confirm the kill and found herself pulling Snow's body from the cockpit. She fell into a dark hole, drinking through her scrip until she hit rock bottom at a Union Cantina. After hearing her story, the crew invited Razor to stay on Crawler #430 — no questions asked, no work required — and she now has a new purpose as part of the salvaging crew.",
+}
+
+/**
+ * Mech Description / Appearance / Quirk (Reclamation of the Wastes sheets),
+ * folded into the single description field, keyed by mech id.
+ */
+const MECH_DESCRIPTIONS: Record<string, string> = {
+  'starter-mech-scrapper':
+    'Originally built by Bonesaw to support his wasteland community, this build bakes in a wide range of utility — it can salvage, repair, and even hack, all of which have proved useful to the crew of Crawler #430.\n\nAppearance: Rugged and well worn, covered in anti-corpo graffiti.\nQuirk: Multiple cockpit mods including a coffee dispenser, vibrating pilot chair, and concealed mini-fridge.',
+  'starter-mech-spectrum':
+    "Pickle's Spectrum was the real star of Drone.Trap. She would mix the entire set from the cockpit, pumping out beats alongside gouts of fire — while covertly hacking into and causing mayhem within whatever Arco she was performing in.\n\nAppearance: Glossy metallic black, with a jagged rainbow sprayed across it.\nQuirk: A series of RGB lights on the exterior that flash in time to the music played out of the loudspeaker.",
+  'starter-mech-mule':
+    'The only Mech that survived the trade-caravan ambush, and the one Judge crawled out of. It is built to withstand anything the wastes throw at it and to haul cargo wherever it needs to go.\n\nAppearance: Battle-scarred and weatherworn.\nQuirk: Bulky and oversized compared to other Mules.',
+  'starter-mech-bobcat':
+    "This build favours utility, with a mining rig that can dig holes in cave networks and create hiding places to weather long nights in the wastes. Though many assume Driftwood talking to Mr Dig means she's lost her marbles, the Mech can actually reply and has basic artificial intelligence — it's just shy, and will only speak when it's alone with Driftwood.\n\nAppearance: Patches of maroon cloth and rags cover the chassis like a makeshift suit; Driftwood has painted a yellow smiley face on the underside of the magnet.\nQuirk: Rudimentary AI personality (shy and introverted).",
+  'starter-mech-mazona':
+    'A build Hotdog favoured in Neon Strip races. Though using weapons directly against other Pilots was prohibited, the mortar — if timed right — can propel the Mazona forwards with the force of the explosion, acting as a speed bump to clear gaps and obstacles.\n\nAppearance: Sleek, monochrome, and aerodynamic.\nQuirk: Hover function fumes multicoloured smoke.',
+  'starter-mech-thresher':
+    'Razor designed this Mech to get up close and personal with its dual chainsaw and laser. The Self-Destruct was added to feed her fantasies of explosive redemption in battle — at least Judge persuaded her to include the Escape Hatch.\n\nAppearance: Mil-Tech, clean and built for purpose, with a series of jagged tally marks from its own chainsaw arm counting confirmed kills.\nQuirk: Grinding, loud gears — especially the cacophonous reverb of the chainsaw.',
+}
+
+export const STARTER_PILOTS: readonly Pilot[] = CREW.map((c) => ({
+  ...c.pilot,
+  description: PILOT_BIOS[c.pilot.id],
+}))
+export const STARTER_MECHS: readonly Mech[] = CREW.map((c) => ({
+  ...c.mech,
+  description: MECH_DESCRIPTIONS[c.mech.id],
+}))
 
 // ---------------------------------------------------------------------------
 // Crawler #430 'Tenacity' — Exploratory, Tech Level 1, with its base bays and
@@ -382,6 +423,8 @@ const STARTER_CRAWLER: Crawler = {
   id: STARTER_CRAWLER_ID,
   schemaVersion: 1,
   name: "Crawler #430 'Tenacity'",
+  description:
+    'Built by its salvager pilots, the Tenacity (Crawler #430) is a quadrupedal crawler on stilt-like legs, able to explore the most rugged of terrain.',
   techLevel: 'tech-1',
   type: EXPLORATORY_TYPE_ID,
   // The Exploratory type's special NPC — the Wasteland Explorer.

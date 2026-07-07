@@ -62,6 +62,11 @@ export const CrawlerSchema = z
     id: z.string(),
     schemaVersion: z.literal(1),
     name: z.string().min(1),
+    /**
+     * Freeform crawler description. Additive-optional (no DB migration — absent
+     * reads as undefined). Rendered on the crawler sheet, edited in the wizard.
+     */
+    description: z.string().optional(),
     /** Tech level (I–VI) expressed as a string slug, e.g. "tech-1" */
     techLevel: z.string(),
     /**
