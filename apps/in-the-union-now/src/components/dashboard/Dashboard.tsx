@@ -34,6 +34,7 @@ import type { SoftLink } from '../../lib/schemas/softLink'
 import { resolveClassName } from '../../lib/classRef'
 import { cn } from '../../lib/utils'
 import type { EntityType } from '../../stores/entityStore'
+import { STARTER_WORKSPACE_ID } from '../../lib/starterSet/starterSet'
 import { useEntityStore } from '../../stores/entityStore'
 import { ExportAllButton } from '../export/ExportAllButton'
 import { ImportButton } from '../export/ImportButton'
@@ -122,13 +123,23 @@ export function Dashboard() {
   const allCrawlers = useCrawlers()
   const softLinks: SoftLink[] = useSoftLinkList()
 
+  // The built-in Starter Set workspace is seeded into every install but must
+  // stay hidden from the default experience: it never counts toward first-run
+  // and never shows in "All Builds". It surfaces only when explicitly selected
+  // in the Workspace switcher. `isOwn` = "the user's own build, not seeded".
+  const isOwn = <T extends { workspaceId?: string }>(e: T) => e.workspaceId !== STARTER_WORKSPACE_ID
+
   /**
-   * First-run: a brand-new user with ZERO builds of any type. Measured against
-   * the UNFILTERED totals (not the workspace-filtered lists) so it means "no
-   * data at all", not "this workspace is empty". Once any entity exists, the
-   * normal 3-column dashboard renders.
+   * First-run: a brand-new user with ZERO builds of their OWN. Measured against
+   * the UNFILTERED totals minus the seeded Starter Set (not the workspace-
+   * filtered lists) so it means "no data of your own", not "this workspace is
+   * empty". Once the user makes any entity, the normal 3-column dashboard
+   * renders.
    */
-  const isFirstRun = allPilots.length === 0 && allMechs.length === 0 && allCrawlers.length === 0
+  const isFirstRun =
+    allPilots.filter(isOwn).length === 0 &&
+    allMechs.filter(isOwn).length === 0 &&
+    allCrawlers.filter(isOwn).length === 0
 
   // Name lookups for '↳ Name' cross-links — built from the UNFILTERED lists so
   // links resolve across workspace boundaries.
@@ -156,18 +167,19 @@ export function Dashboard() {
     )
   }
 
-  // Filter by active workspace. "All Builds" (null) shows all entities.
+  // Filter by active workspace. "All Builds" (null) shows every entity EXCEPT
+  // the seeded Starter Set — that workspace is reachable only by selecting it.
   const pilots =
     activeWorkspaceId === null
-      ? allPilots
+      ? allPilots.filter(isOwn)
       : allPilots.filter((p) => p.workspaceId === activeWorkspaceId)
   const mechs =
     activeWorkspaceId === null
-      ? allMechs
+      ? allMechs.filter(isOwn)
       : allMechs.filter((m) => m.workspaceId === activeWorkspaceId)
   const crawlers =
     activeWorkspaceId === null
-      ? allCrawlers
+      ? allCrawlers.filter(isOwn)
       : allCrawlers.filter((c) => c.workspaceId === activeWorkspaceId)
 
   function openDeleteDialog(type: EntityType, id: string, name: string) {
