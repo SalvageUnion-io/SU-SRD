@@ -176,8 +176,6 @@ const CREW: readonly CrewMember[] = [
       name: 'Mule',
       chassisRef: 'mule',
       patternName: 'Survivor Pattern',
-      // "Cooling Module" is absent from the reference modules dataset — omitted
-      // (see file header). All other systems/modules match the sheet.
       systems: [
         '50-cal-machine-gun',
         'armour-plating',
@@ -187,7 +185,10 @@ const CREW: readonly CrewMember[] = [
         'locomotion-system',
         'loudspeakers',
       ],
-      modules: ['comms-module'],
+      // The pre-gen sheet calls the Mule's second module "Cooling Module"; the
+      // canonical Starter Set Parts Catalogue name is "Cooling Unit" (the heat
+      // mirror of the Heating Unit) — resolved via its `cooling-unit` slug.
+      modules: ['comms-module', 'cooling-unit'],
     }),
   },
   {
