@@ -6,6 +6,13 @@ type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    date: '2026-07-06',
+    title: 'Discord bot Terms & Privacy pages',
+    items: [
+      'Added Terms of Service and Privacy Policy pages for the Salvage Union Discord bot, linked from the site footer.',
+    ],
+  },
+  {
     date: '2026-07-04',
     title: 'First-class search and shareable filtered views',
     items: [
