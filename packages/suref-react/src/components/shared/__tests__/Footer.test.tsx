@@ -45,4 +45,26 @@ describe('Footer', () => {
       expect(link.getAttribute('rel')).toContain('noopener')
     }
   })
+
+  test('omits legal links when none are provided', () => {
+    render(<Footer poweredBySalvageUrl="/test-logo.webp" />)
+    expect(screen.queryByText('Bot Terms')).toBeNull()
+  })
+
+  test('renders provided legal links as same-tab internal links', () => {
+    render(
+      <Footer
+        poweredBySalvageUrl="/test-logo.webp"
+        legalLinks={[
+          { label: 'Bot Terms', href: '/bot/terms' },
+          { label: 'Bot Privacy', href: '/bot/privacy' },
+        ]}
+      />
+    )
+    const terms = screen.getByText('Bot Terms')
+    expect(terms.getAttribute('href')).toBe('/bot/terms')
+    // Internal links must NOT open a new tab.
+    expect(terms.getAttribute('target')).toBeNull()
+    expect(screen.getByText('Bot Privacy').getAttribute('href')).toBe('/bot/privacy')
+  })
 })
