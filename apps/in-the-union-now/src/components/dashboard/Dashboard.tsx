@@ -130,13 +130,15 @@ export function Dashboard() {
   const isOwn = <T extends { workspaceId?: string }>(e: T) => e.workspaceId !== STARTER_WORKSPACE_ID
 
   /**
-   * First-run: a brand-new user with ZERO builds of their OWN. Measured against
-   * the UNFILTERED totals minus the seeded Starter Set (not the workspace-
-   * filtered lists) so it means "no data of your own", not "this workspace is
-   * empty". Once the user makes any entity, the normal 3-column dashboard
-   * renders.
+   * First-run: a brand-new user with ZERO builds of their OWN, viewing "All
+   * Builds". Measured against the UNFILTERED totals minus the seeded Starter
+   * Set so it means "no data of your own", not "this workspace is empty". The
+   * `activeWorkspaceId === null` guard is load-bearing: once the user selects a
+   * workspace (e.g. "Starter Set") the grid must render so its seeded roster
+   * shows — otherwise the welcome screen would swallow the selection.
    */
   const isFirstRun =
+    activeWorkspaceId === null &&
     allPilots.filter(isOwn).length === 0 &&
     allMechs.filter(isOwn).length === 0 &&
     allCrawlers.filter(isOwn).length === 0

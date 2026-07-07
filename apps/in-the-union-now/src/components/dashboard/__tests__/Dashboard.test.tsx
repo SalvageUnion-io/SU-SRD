@@ -18,7 +18,15 @@ import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 
 import { _clearAllStores, _resetDbSingleton } from '../../../lib/db/index'
+import {
+  STARTER_CRAWLERS,
+  STARTER_MECHS,
+  STARTER_PILOTS,
+  STARTER_WORKSPACE,
+  STARTER_WORKSPACE_ID,
+} from '../../../lib/starterSet/starterSet'
 import { useEntityStore } from '../../../stores/entityStore'
+import { useWorkspaceStore } from '../../../stores/workspaceStore'
 import { Dashboard } from '../Dashboard'
 
 // ---------------------------------------------------------------------------
@@ -226,6 +234,57 @@ describe('Dashboard — first-run welcome', () => {
 
     expect(screen.getByRole('heading', { name: 'Pilots' })).toBeTruthy()
     expect(screen.queryByRole('heading', { name: /Welcome to In the Union Now/i })).toBeFalsy()
+  })
+})
+
+describe('Dashboard — Starter Set visibility (blank by default, shown when selected)', () => {
+  // Inject the seeded Starter Set (and nothing of the user's own) directly into
+  // the stores with hydrated=true, so the mount-time hydration no-ops and keeps
+  // this state — no IndexedDB round-trip needed.
+  function injectStarterOnly(): void {
+    act(() => {
+      useEntityStore.setState({
+        pilots: [...STARTER_PILOTS],
+        mechs: [...STARTER_MECHS],
+        crawlers: [...STARTER_CRAWLERS],
+        softLinks: [],
+        hydrated: { pilots: true, mechs: true, crawlers: true, softLinks: true },
+      })
+      useWorkspaceStore.setState({ workspaces: [STARTER_WORKSPACE], hydrated: true })
+    })
+  }
+
+  afterEach(() => {
+    act(() => {
+      useWorkspaceStore.setState({ workspaces: [], hydrated: false })
+    })
+  })
+
+  test('a fresh user with only the seeded Starter Set still sees the welcome screen', async () => {
+    injectStarterOnly()
+    await renderDashboard()
+
+    expect(screen.getByRole('heading', { name: /Welcome to In the Union Now/i })).toBeTruthy()
+    // The seeded crew is NOT in the default "All Builds" view.
+    expect(screen.queryByText('Bonesaw')).toBeFalsy()
+    expect(screen.queryByText('Scrapper')).toBeFalsy()
+  })
+
+  test('selecting the Starter Set workspace renders the seeded crew', async () => {
+    injectStarterOnly()
+    await renderDashboard()
+
+    await act(async () => {
+      fireEvent.change(screen.getByLabelText('Select workspace'), {
+        target: { value: STARTER_WORKSPACE_ID },
+      })
+    })
+
+    // The grid now renders (not the welcome screen) with the seeded roster.
+    expect(screen.getByRole('heading', { name: 'Pilots' })).toBeTruthy()
+    expect(screen.getByText('Bonesaw')).toBeTruthy()
+    expect(screen.getByText('Scrapper')).toBeTruthy()
+    expect(screen.getByText("Crawler #430 'Tenacity'")).toBeTruthy()
   })
 })
 
