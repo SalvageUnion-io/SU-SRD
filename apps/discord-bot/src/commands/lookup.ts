@@ -1,11 +1,13 @@
 import {
+  ActionRowBuilder,
+  ButtonBuilder,
   EmbedBuilder,
   MessageFlags,
   type ChatInputCommandInteraction,
   type AutocompleteInteraction,
   type SlashCommandSubcommandBuilder,
 } from 'discord.js'
-import { search, getEntitySlug, findEntityBySlug } from 'salvageunion-reference'
+import { search, getEntitySlug, findEntityBySlug, nameToSlug } from 'salvageunion-reference'
 import type { SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
 
 import { rollAgainRow } from '../customId.js'
@@ -14,6 +16,57 @@ import { buildLookupEmbed } from '../lookupEmbed.js'
 type Hit = {
   schemaName: SURefEnumSchemaName
   entity: SURefEntity & { schemaName: SURefEnumSchemaName }
+}
+
+/** A `/su lookup` reply ready for `interaction.reply`, or a user-facing error. */
+export type LookupMessage =
+  { embeds: EmbedBuilder[]; components: ActionRowBuilder<ButtonBuilder>[] } | { error: string }
+
+/**
+ * Build the lookup reply for a resolved entity: the rich embed, plus a "Roll on
+ * this table" button when the entity is itself a roll-table. Shared by the
+ * `/su lookup` slash handler and the roll result's "See table" button.
+ */
+export function buildLookupMessage(
+  entity: SURefEntity & { schemaName: SURefEnumSchemaName },
+  schemaName: SURefEnumSchemaName
+): { embeds: EmbedBuilder[]; components: ActionRowBuilder<ButtonBuilder>[] } {
+  const data = buildLookupEmbed(entity, schemaName)
+  const embed = new EmbedBuilder()
+    .setTitle(data.title)
+    .setColor(data.color)
+    .setFooter({ text: data.footer })
+    .setTimestamp()
+  if (data.fields.length) embed.addFields(data.fields)
+  if (data.url) embed.setURL(data.url)
+  if (data.description) embed.setDescription(data.description)
+
+  // A roll-table entity IS a rollable table — offer a one-click roll instead of
+  // making the user retype `/su roll table: <name>`. Reuses the same stateless
+  // `su:roll:<name>` button the roll results carry.
+  const tableName = 'name' in entity && entity.name ? String(entity.name) : null
+  const row =
+    schemaName === 'roll-tables' && tableName
+      ? rollAgainRow('roll', tableName, 'Roll on this table')
+      : null
+  return { embeds: [embed], components: row ? [row] : [] }
+}
+
+/**
+ * Build the lookup reply for a roll-table addressed by name — what the "See
+ * table" button on a `/su roll` result invokes. Resolves the table via its slug
+ * (the button carries the exact table name); returns an error if it's gone.
+ */
+export function buildTableLookupMessage(tableName: string): LookupMessage {
+  const slug = nameToSlug(tableName)
+  const entity = slug ? findEntityBySlug('roll-tables', slug) : null
+  if (!entity) {
+    return { error: `Could not find table: "${tableName}".` }
+  }
+  return buildLookupMessage(
+    { ...entity, schemaName: 'roll-tables' } as SURefEntity & { schemaName: SURefEnumSchemaName },
+    'roll-tables'
+  )
 }
 
 /**
@@ -89,25 +142,6 @@ export const lookupCommand = {
       return
     }
 
-    const data = buildLookupEmbed(hit.entity, hit.schemaName)
-    const embed = new EmbedBuilder()
-      .setTitle(data.title)
-      .setColor(data.color)
-      .setFooter({ text: data.footer })
-      .setTimestamp()
-    if (data.fields.length) embed.addFields(data.fields)
-    if (data.url) embed.setURL(data.url)
-    if (data.description) embed.setDescription(data.description)
-
-    // A roll-table entity IS a rollable table — offer a one-click roll instead
-    // of making the user retype `/su roll table: <name>`. Reuses the same
-    // stateless `su:roll:<name>` button the roll results carry.
-    const tableName = 'name' in hit.entity && hit.entity.name ? String(hit.entity.name) : null
-    const row =
-      hit.schemaName === 'roll-tables' && tableName
-        ? rollAgainRow('roll', tableName, 'Roll on this table')
-        : null
-
-    await interaction.reply({ embeds: [embed], ...(row ? { components: [row] } : {}) })
+    await interaction.reply(buildLookupMessage(hit.entity, hit.schemaName))
   },
 }

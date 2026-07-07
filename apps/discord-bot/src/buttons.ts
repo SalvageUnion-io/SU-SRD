@@ -12,6 +12,7 @@
 import { MessageFlags, type ButtonInteraction } from 'discord.js'
 
 import { buildCheckMessage } from './commands/check.js'
+import { buildTableLookupMessage } from './commands/lookup.js'
 import { buildRollMessage } from './commands/roll.js'
 import { parseCustomId } from './customId.js'
 
@@ -27,7 +28,11 @@ export async function handleButtonInteraction(interaction: ButtonInteraction): P
   }
 
   const message =
-    parsed.action === 'roll' ? buildRollMessage(parsed.payload) : buildCheckMessage(parsed.payload)
+    parsed.action === 'roll'
+      ? buildRollMessage(parsed.payload)
+      : parsed.action === 'check'
+        ? buildCheckMessage(parsed.payload)
+        : buildTableLookupMessage(parsed.payload)
 
   if ('error' in message) {
     await interaction.reply({ content: message.error, flags: MessageFlags.Ephemeral })

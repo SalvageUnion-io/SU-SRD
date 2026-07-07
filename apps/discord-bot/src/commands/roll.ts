@@ -10,7 +10,7 @@ import {
 import { roll as rollDie } from '@randsum/roller'
 import { SalvageUnionReference, rollOnTable } from 'salvageunion-reference'
 
-import { rollAgainRow } from '../customId.js'
+import { rollResultRow } from '../customId.js'
 import { ROLL_EMBED_FOOTER, buildRollEmbedData } from '../format.js'
 
 // Roll tables load lazily once SalvageUnionReference.preload() has run at startup.
@@ -65,7 +65,7 @@ export function buildRollMessage(tableName: string): RollMessage {
     embed.setDescription(data.description)
   }
 
-  const row = rollAgainRow('roll', table.name, 'Roll again')
+  const row = rollResultRow(table.name)
   return { embeds: [embed], components: row ? [row] : [] }
 }
 
