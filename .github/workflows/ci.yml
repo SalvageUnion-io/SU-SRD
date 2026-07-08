@@ -33,6 +33,7 @@ jobs:
       web: ${{ steps.filter.outputs.web }}
       bot: ${{ steps.filter.outputs.bot }}
       code: ${{ steps.filter.outputs.code }}
+      srefReact: ${{ steps.filter.outputs.srefReact }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -67,6 +68,18 @@ jobs:
               - *shared
               - 'apps/**'
               - 'packages/**'
+            # Narrower than itun/web on purpose: the visual-regression PR job
+            # below only screenshots suref-react's own Ladle stories, so it
+            # only needs to re-run when suref-react itself changes (not on
+            # every reference-data or root-config touch that the broader
+            # `itun`/`web` filters above chase). One known gap: a
+            # salvageunion-reference data change CAN alter what a story
+            # renders (e.g. renaming/removing the "Auto-Turret" ability the
+            # ReferenceEntityGrants stories fixture on) without tripping this
+            # filter — deliberate trade-off for the literal "only on
+            # suref-react changes" scoping; flagged in the PR description.
+            srefReact:
+              - 'packages/suref-react/**'
 
   lint:
     # Always runs — format:check covers docs (markdown/yaml) too.
@@ -238,6 +251,54 @@ jobs:
         run: bun --filter @suref/discord-bot build
 
   # ---------------------------------------------------------------------------
+  # PR-level visual-diff (issue #30 follow-up). Additive and deliberately NOT
+  # part of the quality-checks gate below (continue-on-error, and absent from
+  # its `needs` list) — same non-blocking posture as the nightly
+  # `visual-regression` job in e2e-nightly.yml, just scoped to the PR's own
+  # diff instead of a daily run against main. Compares against the committed
+  # Linux baselines in packages/suref-react/visual/__screenshots__ (none are
+  # committed yet — see PR description — so this currently just reports "no
+  # baseline" until a maintainer runs the generate-visual-baselines workflow
+  # and commits the result).
+  # ---------------------------------------------------------------------------
+  visual-regression-pr:
+    needs: [changes]
+    if: needs.changes.outputs.srefReact == 'true'
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Bun
+        uses: ./.github/actions/setup-bun
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+
+      - name: Install Playwright browsers (Chromium)
+        run: bunx playwright install --with-deps chromium
+
+      - name: Build Ladle
+        run: bun --filter suref-react ladle:build
+
+      - name: Run visual regression
+        working-directory: packages/suref-react
+        run: bunx playwright test --config playwright.visual.config.ts
+
+      - name: Upload visual diff report on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: visual-regression-pr-report
+          path: packages/suref-react/playwright-report/
+          retention-days: 7
+
+  # ---------------------------------------------------------------------------
   # Single aggregate gate. Always runs; fails if any job actually failed (a
   # path-filtered "skipped" job is fine). Branch protection should require just
   # this one check (`quality-checks`) so the per-area gating above never leaves
@@ -261,6 +322,9 @@ jobs:
       # gate PRs — they moved to a scheduled daily run against main
       # (.github/workflows/e2e-nightly.yml). This keeps the PR gate fast and
       # free of preview/browser flakiness; regressions are caught nightly.
+      # visual-regression-pr (above) is deliberately excluded here too, for
+      # the same reason plus one more: no Linux baselines are committed yet,
+      # so it can only ever report "no baseline" today.
     runs-on: ubuntu-latest
     steps:
       - name: Verify no job failed

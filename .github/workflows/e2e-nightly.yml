@@ -97,10 +97,16 @@ jobs:
   visual-regression:
     # Visual-regression snapshots of the suref-react Ladle stories (issue #30)
     # via Playwright's toHaveScreenshot. Requires committed per-OS baselines
-    # under packages/suref-react/visual/__screenshots__ (generate with
-    # `bun --filter suref-react ladle:build && test:visual:update` on a Linux
-    # runner). Until baselines land this job reports "no baseline" — nightly is
-    # the right home for it (informational, non-blocking).
+    # under packages/suref-react/visual/__screenshots__ (generate them with the
+    # `generate-visual-baselines` workflow — Actions tab -> Run workflow — which
+    # runs on ubuntu-latest and uploads reviewable candidates as an artifact;
+    # a maintainer commits the ones they've eyeballed. Same effect locally via
+    # `bun --filter suref-react ladle:build && test:visual:update`, but MUST
+    # run on Linux to match this job). Until Linux baselines land this job
+    # reports "no baseline" — nightly is the right home for it (informational,
+    # non-blocking). A PR-scoped counterpart (`visual-regression-pr`) also
+    # exists in ci.yml, gated on packages/suref-react/** changes, same
+    # non-blocking posture.
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
