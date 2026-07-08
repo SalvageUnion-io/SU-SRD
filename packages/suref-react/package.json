@@ -14,7 +14,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "bun test",
-    "test:coverage": "bun test --coverage",
+    "test:coverage": "bun test --coverage --coverage-reporter=text --coverage-reporter=lcov --coverage-dir=coverage",
     "test:watch": "bun test --watch",
     "test:visual": "bunx playwright test --config playwright.visual.config.ts",
     "test:visual:update": "bunx playwright test --config playwright.visual.config.ts --update-snapshots",

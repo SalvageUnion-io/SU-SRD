@@ -166,6 +166,46 @@ jobs:
       - name: Validate data
         run: bun run validate:all
 
+  coverage:
+    # Coverage visibility + ratchet (previously invisible — `test:coverage`
+    # existed per-workspace but nothing in CI ran or read it).
+    #
+    # This is a SEPARATE job from `test` (deliberately re-running the suite a
+    # second time, with `--coverage` instrumentation) rather than folding
+    # coverage into the `test` job. An earlier coverage job (commit f520ffd1)
+    # was removed for doing exactly that re-run while gating nothing — pure
+    # duplicated cost. This job is the difference: tools/coverage-report.ts
+    # enforces a per-workspace ratchet (coverage-baseline.json) and fails the
+    # job on regression, so the duplicated run buys real regression coverage.
+    # Keeping it separate also means a rare coverage-instrumentation hiccup
+    # can only fail this job, never the primary `test` gate every build job
+    # depends on.
+    needs: [changes, build-package]
+    if: needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Bun
+        uses: ./.github/actions/setup-bun
+
+      - name: Test with coverage
+        run: bun run test:coverage
+
+      - name: Aggregate coverage report + ratchet
+        if: always()
+        run: bun tools/coverage-report.ts
+
+      - name: Upload coverage report artifact
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-report
+          path: coverage-report/
+          retention-days: 14
+          if-no-files-found: warn
+
   audit:
     # Dependency vulnerability scan against the resolved lockfile. Fails on
     # high/critical advisories so a vulnerable dependency blocks merge; lower
@@ -237,6 +277,85 @@ jobs:
       - name: Build discord-bot
         run: bun --filter @suref/discord-bot build
 
+  smoke-web:
+    # PR-blocking smoke tier (previously e2e/visual only ran nightly, so a
+    # broken route could merge to main and sit broken for up to a day). Runs
+    # ONLY apps/suref-web/e2e/smoke.e2e.ts — the full suite stays nightly-only
+    # (.github/workflows/e2e-nightly.yml) so the PR gate stays fast and free of
+    # the flakiness that got browser e2e demoted from PR-blocking in the first
+    # place. Uses the same hermetic `astro build` + `astro preview` pattern the
+    # nightly job already proves works — no live Netlify deploy preview.
+    needs: [changes, build-package, build-suref-web]
+    if: needs.changes.outputs.web == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Bun
+        uses: ./.github/actions/setup-bun
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+
+      - name: Install Playwright browsers (Chromium)
+        working-directory: apps/suref-web
+        run: bunx playwright install --with-deps chromium
+
+      - name: Run smoke test
+        working-directory: apps/suref-web
+        run: bunx playwright test smoke.e2e.ts
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report-smoke-web
+          path: apps/suref-web/playwright-report/
+          retention-days: 7
+
+  smoke-itun:
+    # PR-blocking smoke tier — same rationale as smoke-web. Runs ONLY
+    # apps/in-the-union-now/e2e/smoke.e2e.ts against a self-contained static
+    # build (`vite preview`, no deploy preview), mirroring e2e-nightly.yml's
+    # e2e-itun job.
+    needs: [changes, build-package, build-itun]
+    if: needs.changes.outputs.itun == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Bun
+        uses: ./.github/actions/setup-bun
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+
+      - name: Install Playwright browsers (Chromium)
+        working-directory: apps/in-the-union-now
+        run: bunx playwright install --with-deps chromium
+
+      - name: Run smoke test
+        working-directory: apps/in-the-union-now
+        run: bunx playwright test smoke.e2e.ts
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report-smoke-itun
+          path: apps/in-the-union-now/playwright-report/
+          retention-days: 7
+
   # ---------------------------------------------------------------------------
   # Single aggregate gate. Always runs; fails if any job actually failed (a
   # path-filtered "skipped" job is fine). Branch protection should require just
@@ -252,15 +371,20 @@ jobs:
       - knip
       - typecheck
       - test
+      - coverage
       - validate
       - audit
       - build-suref-web
       - build-itun
       - build-discord-bot
-      # NOTE: browser e2e (ITUN + suref-web) and visual-regression no longer
-      # gate PRs — they moved to a scheduled daily run against main
-      # (.github/workflows/e2e-nightly.yml). This keeps the PR gate fast and
-      # free of preview/browser flakiness; regressions are caught nightly.
+      - smoke-web
+      - smoke-itun
+      # NOTE: the FULL browser e2e suites (ITUN + suref-web) and visual-
+      # regression still only run nightly, not per-PR — see
+      # .github/workflows/e2e-nightly.yml. smoke-web/smoke-itun above cover
+      # only the PR-blocking smoke tier, so the PR gate stays fast and free of
+      # full-suite preview/browser flakiness; deeper regressions are still
+      # caught nightly.
     runs-on: ubuntu-latest
     steps:
       - name: Verify no job failed
