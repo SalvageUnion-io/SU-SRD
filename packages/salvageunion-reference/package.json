@@ -50,7 +50,7 @@
     "validate:all": "bun run validate:ids && bun run validate:slugs && bun run validate:references && bun run validate:actions && bun run validate:action-backrefs && bun run validate:orphans && bun run validate:traits && bun run validate:schemas",
     "typecheck": "tsc --project tsconfig.json --noEmit",
     "test": "bun test",
-    "test:coverage": "bun test --coverage",
+    "test:coverage": "bun test --coverage --coverage-reporter=text --coverage-reporter=lcov --coverage-dir=coverage",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
