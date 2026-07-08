@@ -53,21 +53,22 @@ MADR-style records of architecturally significant decisions that are **live in
 the code today**. Read the matching ADR before proposing alternatives to a
 decision made here.
 
-| ADR                                                           | Topic                                                                   |
-| ------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| [ADR-001](adrs/ADR-001-local-first-no-backend.md)             | Local-first, no backend, no auth                                        |
-| [ADR-002](adrs/ADR-002-indexeddb-idb-zod.md)                  | IndexedDB via `idb`, Zod as schema source, salvage-read resilience      |
-| [ADR-003](adrs/ADR-003-zustand-hydration.md)                  | Zustand state — lazy hydration, write-through, cross-tab invalidation   |
-| [ADR-004](adrs/ADR-004-snapshot-netlify-functions.md)         | Snapshot sharing — unauthenticated Netlify Functions + Blobs            |
-| [ADR-005](adrs/ADR-005-reference-data-orm.md)                 | Game-data ORM — Zod → generated JSON Schema, lazy data loading          |
-| [ADR-006](adrs/ADR-006-pure-rules-logic.md)                   | Rules/combat logic as pure functions                                    |
-| [ADR-007](adrs/ADR-007-automation-boundary.md)                | **Automation boundary** — consult before building rules-driven features |
-| [ADR-008](adrs/ADR-008-sequential-mutations.md)               | Sequential client-side mutations for action execution                   |
-| [ADR-009](adrs/ADR-009-condition-model-destroyed-color.md)    | Item condition model + destroyed semantic color                         |
-| [ADR-010](adrs/ADR-010-srd-choices-ephemeral-vs-persisted.md) | Choices — ephemeral in the SRD, persisted in ITUN                       |
-| [ADR-011](adrs/ADR-011-suref-react-source-no-build.md)        | `suref-react` ships as TypeScript source (no build step)                |
-| [ADR-012](adrs/ADR-012-suref-web-astro-static.md)             | `suref-web` as an Astro static site with React islands                  |
-| [ADR-013](adrs/ADR-013-csp-zod-jitless.md)                    | CSP-compliant Zod (jitless) constraint                                  |
+| ADR                                                              | Topic                                                                   |
+| ---------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| [ADR-001](adrs/ADR-001-local-first-no-backend.md)                | Local-first, no backend, no auth                                        |
+| [ADR-002](adrs/ADR-002-indexeddb-idb-zod.md)                     | IndexedDB via `idb`, Zod as schema source, salvage-read resilience      |
+| [ADR-003](adrs/ADR-003-zustand-hydration.md)                     | Zustand state — lazy hydration, write-through, cross-tab invalidation   |
+| [ADR-004](adrs/ADR-004-snapshot-netlify-functions.md)            | Snapshot sharing — unauthenticated Netlify Functions + Blobs            |
+| [ADR-005](adrs/ADR-005-reference-data-orm.md)                    | Game-data ORM — Zod → generated JSON Schema, lazy data loading          |
+| [ADR-006](adrs/ADR-006-pure-rules-logic.md)                      | Rules/combat logic as pure functions                                    |
+| [ADR-007](adrs/ADR-007-automation-boundary.md)                   | **Automation boundary** — consult before building rules-driven features |
+| [ADR-008](adrs/ADR-008-sequential-mutations.md)                  | Sequential client-side mutations for action execution                   |
+| [ADR-009](adrs/ADR-009-condition-model-destroyed-color.md)       | Item condition model + destroyed semantic color                         |
+| [ADR-010](adrs/ADR-010-srd-choices-ephemeral-vs-persisted.md)    | Choices — ephemeral in the SRD, persisted in ITUN                       |
+| [ADR-011](adrs/ADR-011-suref-react-source-no-build.md)           | `suref-react` ships as TypeScript source (no build step)                |
+| [ADR-012](adrs/ADR-012-suref-web-astro-static.md)                | `suref-web` as an Astro static site with React islands                  |
+| [ADR-013](adrs/ADR-013-csp-zod-jitless.md)                       | CSP-compliant Zod (jitless) constraint                                  |
+| [ADR-014](adrs/ADR-014-json-api-public-interface-npm-retired.md) | Dataset public interface is the JSON API; npm publishing retired        |
 
 ### Per-package CLAUDE.md
 
