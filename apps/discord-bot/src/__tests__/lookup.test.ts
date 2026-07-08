@@ -12,7 +12,7 @@ import { beforeAll, describe, expect, test } from 'bun:test'
 import { MessageFlags } from 'discord.js'
 import { SalvageUnionReference } from 'salvageunion-reference'
 
-import { lookupCommand } from '../commands/lookup.js'
+import { buildTableLookupMessage, lookupCommand } from '../commands/lookup.js'
 
 beforeAll(async () => {
   await SalvageUnionReference.preload('all')
@@ -28,6 +28,8 @@ function mockChatInput(entity: string) {
       // lookup.execute reads getString('entity', true).
       getString: (name: string) => (name === 'entity' ? entity : null),
     },
+    // execute reads client.user for embed branding; no avatar in tests.
+    client: { user: null },
     reply: (arg: ReplyArg) => {
       replies.push(arg)
       return Promise.resolve()
@@ -82,6 +84,26 @@ describe('lookupCommand.execute', () => {
     expect(replies[0]!.embeds).toBeUndefined()
     expect(replies[0]!.content).toContain('No entity found')
     expect(replies[0]!.flags).toBe(MessageFlags.Ephemeral)
+  })
+})
+
+describe('buildTableLookupMessage — the "See table" button target', () => {
+  test('resolves a roll-table by name into its full lookup embed', () => {
+    const message = buildTableLookupMessage('Core Mechanic')
+    expect('error' in message).toBe(false)
+    if ('error' in message) return
+    const embed = message.embeds[0]!.toJSON() as { title?: string; description?: string }
+    expect(embed.title).toBe('Core Mechanic')
+    // Full rows are inlined (backtick roll keys), not just a link-out.
+    expect(embed.description).toContain('`20`')
+    // A roll-table lookup offers a one-click "Roll on this table" button.
+    expect(message.components).toHaveLength(1)
+  })
+
+  test('returns an error for an unknown table name', () => {
+    const message = buildTableLookupMessage('No Such Table 9000')
+    expect('error' in message).toBe(true)
+    if ('error' in message) expect(message.error).toContain('Could not find table')
   })
 })
 

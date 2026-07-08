@@ -24,6 +24,8 @@ function mockChatInput(table: string | null) {
     options: {
       getString: (name: string) => (name === 'table' ? table : null),
     },
+    // execute reads client.user for embed branding; no avatar in tests.
+    client: { user: null },
     reply: (arg: ReplyArg) => {
       replies.push(arg)
       return Promise.resolve()

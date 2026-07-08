@@ -141,6 +141,17 @@ describe('handleInteractionCreate — button branch', () => {
     expect(replies[0]!.embeds).toHaveLength(1)
   })
 
+  test('a valid su:lookup button returns the full table embed', async () => {
+    const { interaction, replies } = mockInteraction({
+      kind: 'button',
+      customId: 'su:lookup:Core Mechanic',
+    })
+    await handleInteractionCreate(interaction as never)
+    expect(replies).toHaveLength(1)
+    expect(replies[0]!.embeds).toHaveLength(1)
+    expect(replies[0]!.flags).toBeUndefined()
+  })
+
   test('a foreign / malformed customId replies ephemerally without crashing', async () => {
     const { interaction, replies } = mockInteraction({
       kind: 'button',
