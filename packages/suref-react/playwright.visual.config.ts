@@ -20,7 +20,12 @@ import { defineConfig, devices } from '@playwright/test'
  * ever fails, a maintainer runs `bun add -d @playwright/test` here.
  */
 const PORT = 61000
-const BASE_URL = `http://127.0.0.1:${PORT}`
+// `localhost` (not a hardcoded 127.0.0.1) — `ladle preview`'s underlying Vite
+// preview server binds per-OS loopback defaults (IPv6-only `::1` on some
+// macOS/Node combinations), so a literal IPv4 address can fail to connect
+// even though the server is up. `localhost` resolves correctly wherever the
+// server actually listens.
+const BASE_URL = `http://localhost:${PORT}`
 
 export default defineConfig({
   testDir: './visual',

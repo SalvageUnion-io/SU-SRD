@@ -1,6 +1,6 @@
 import type { Story } from '@ladle/react'
 import { ReferenceEntityDisplay } from './ReferenceEntityDisplay/index'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { SalvageUnionReference, getChoices } from 'salvageunion-reference'
 
 export default {
   title: 'ReferenceEntity/ReferenceEntityDisplay',
@@ -18,6 +18,13 @@ const wwhfEntity =
   SalvageUnionReference.Systems.all().find((s) => s.source === 'We Were Here First!') ?? system
 const falseFlagEntity =
   SalvageUnionReference.Systems.all().find((s) => s.source === 'False Flag') ?? system
+
+// Fixtures for the choice-card / grants-collapse coverage below (same fixtures
+// used by the ReferenceEntityGrants / grantedEquipmentDisplay test suites).
+const grantingAbility = SalvageUnionReference.Abilities.all().find((a) => a.name === 'Auto-Turret')
+const choiceBearingEquipment = SalvageUnionReference.Equipment.all().find(
+  (e) => e.name === 'Custom Sniper Rifle'
+)
 
 export const DefaultSystem: Story = () => (
   <div className="w-[600px]">
@@ -82,6 +89,59 @@ export const DimHeader: Story = () => (
     <ReferenceEntityDisplay data={ability} dimHeader />
   </div>
 )
+
+export const CompactDamaged: Story = () => (
+  <div className="w-[400px]">
+    <ReferenceEntityDisplay data={system} compact damaged />
+  </div>
+)
+
+export const ListingDisabled: Story = () => (
+  <div className="w-[600px]">
+    <ReferenceEntityDisplay data={system} listing disabled />
+  </div>
+)
+
+/** Grants-collapse, expanded: the ability's own content/Actions are suppressed
+ * in favor of a "Grants" block with a nested, fully-expanded equipment card. */
+export const GrantingAbilityExpanded: Story = () => (
+  <div className="w-[600px]">
+    <ReferenceEntityDisplay data={grantingAbility} />
+  </div>
+)
+
+/** Grants-collapse, collapsed: in compact mode the nested granted entity
+ * itself collapses to a header-only listing card. */
+export const GrantingAbilityCompactCollapsed: Story = () => (
+  <div className="w-[420px]">
+    <ReferenceEntityDisplay data={grantingAbility} compact />
+  </div>
+)
+
+/** Choice-bearing equipment: interactive ChoiceGroups render in the card body
+ * (Not Chosen state, unresolved "Choose:" prompt in the header row). */
+export const ChoiceBearingEquipment: Story = () => (
+  <div className="w-[600px]">
+    <ReferenceEntityDisplay data={choiceBearingEquipment} compact />
+  </div>
+)
+
+/** Same choice-bearing equipment with a controlled selection pre-seeded
+ * (Chosen state), as ITUN's persistence layer would render it. */
+export const ChoiceBearingEquipmentSelected: Story = () => {
+  const weaponTypeChoice = choiceBearingEquipment
+    ? getChoices(choiceBearingEquipment)?.find((c) => c.name === 'Weapon Type')
+    : undefined
+  return (
+    <div className="w-[600px]">
+      <ReferenceEntityDisplay
+        data={choiceBearingEquipment}
+        compact
+        selections={weaponTypeChoice ? { [weaponTypeChoice.id]: ['Ballistic'] } : undefined}
+      />
+    </div>
+  )
+}
 
 export const ExpansionRainmaker: Story = () => (
   <div className="w-[600px] py-6">
