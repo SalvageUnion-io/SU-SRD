@@ -68,6 +68,13 @@ export default defineConfig({
           sourcemaps: {
             filesToDeleteAfterUpload: ['dist/**/*.map'],
           },
+          // Observability tooling that can take down a deploy is an
+          // anti-pattern: an expired token, wrong org/project, or a Sentry
+          // API blip should degrade to "no sourcemaps this deploy", not fail
+          // the Netlify build. Warn instead of the plugin's default throw.
+          errorHandler: (error) => {
+            console.warn('[sentry-vite-plugin] sourcemap upload failed (non-fatal):', error)
+          },
         })
       : false,
   ],
