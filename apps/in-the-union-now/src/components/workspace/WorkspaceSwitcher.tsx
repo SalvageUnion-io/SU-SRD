@@ -18,6 +18,7 @@ import { useState } from 'react'
 
 import { useWorkspaceActions, useWorkspaces } from '../../hooks/queries'
 import type { Workspace } from '../../lib/schemas/workspace'
+import { STARTER_WORKSPACE_ID } from '../../lib/starterSet/starterSet'
 import { WorkspaceList } from './WorkspaceList'
 import type { WorkspaceListStore } from './WorkspaceList'
 
@@ -99,6 +100,12 @@ export function WorkspaceSwitcher({ activeWorkspaceId, onSelect, store }: Worksp
                 {ws.name}
               </option>
             ))}
+            {/* The built-in Starter Set is always selectable. Until the user
+                first opens it (which spawns it into this browser) it isn't yet a
+                real workspace, so surface it here as a synthetic option. */}
+            {!activeStore.workspaces.some((ws) => ws.id === STARTER_WORKSPACE_ID) && (
+              <option value={STARTER_WORKSPACE_ID}>Starter Set</option>
+            )}
             <option value={MANAGE_VALUE}>Manage workspaces…</option>
           </select>
           <span

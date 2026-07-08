@@ -34,6 +34,7 @@ import type { SoftLink } from '../../lib/schemas/softLink'
 import { resolveClassName } from '../../lib/classRef'
 import { cn } from '../../lib/utils'
 import type { EntityType } from '../../stores/entityStore'
+import { ensureStarterSetSeeded } from '../../lib/starterSet/seedStarterSet'
 import { STARTER_WORKSPACE_ID } from '../../lib/starterSet/starterSet'
 import { useEntityStore } from '../../stores/entityStore'
 import { ExportAllButton } from '../export/ExportAllButton'
@@ -184,6 +185,16 @@ export function Dashboard() {
       ? allCrawlers.filter(isOwn)
       : allCrawlers.filter((c) => c.workspaceId === activeWorkspaceId)
 
+  /**
+   * Workspace select. Opening the built-in Starter Set spawns it into this
+   * browser on first visit (idempotent), then switches to it — the roster is
+   * never seeded until the user asks for it here.
+   */
+  async function handleSelectWorkspace(id: string | null) {
+    if (id === STARTER_WORKSPACE_ID) await ensureStarterSetSeeded()
+    setActiveWorkspaceId(id)
+  }
+
   function openDeleteDialog(type: EntityType, id: string, name: string) {
     setDeleteTarget({ type, id, name })
   }
@@ -212,7 +223,7 @@ export function Dashboard() {
           </div>
           <WorkspaceSwitcher
             activeWorkspaceId={activeWorkspaceId}
-            onSelect={setActiveWorkspaceId}
+            onSelect={(id) => void handleSelectWorkspace(id)}
           />
         </div>
         {/* Standing durability notice (not the recurring backup-nudge toast):

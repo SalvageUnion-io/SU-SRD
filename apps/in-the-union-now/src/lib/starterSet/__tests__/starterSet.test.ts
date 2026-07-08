@@ -14,7 +14,7 @@
  * preloaded in beforeAll.
  */
 
-import { beforeAll, describe, expect, test } from 'bun:test'
+import { afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
 import { SalvageUnionReference, nameToSlug } from 'salvageunion-reference'
 
 import {
@@ -33,8 +33,18 @@ import { MechSchema } from '../../schemas/mech'
 import { PilotSchema } from '../../schemas/pilot'
 import { SoftLinkSchema } from '../../schemas/softLink'
 import { WorkspaceSchema } from '../../schemas/workspace'
-import { DB_VERSION, openItunDatabase } from '../../db/index'
-import { STORE_NAMES } from '../../db/stores'
+import {
+  _clearAllStores,
+  _resetDbSingleton,
+  crawlers,
+  mechs,
+  pilots,
+  softLinks,
+  workspaces,
+} from '../../db/index'
+import { useEntityStore } from '../../../stores/entityStore'
+import { useWorkspaceStore } from '../../../stores/workspaceStore'
+import { ensureStarterSetSeeded, isStarterSetSeeded } from '../seedStarterSet'
 import {
   STARTER_CRAWLERS,
   STARTER_MECHS,
@@ -221,44 +231,49 @@ describe('Starter Set seed — soft link integrity', () => {
   })
 })
 
-describe('Starter Set seed — v7 upgrade lands the roster', () => {
-  const TEST_DB_NAME = 'itun-starter-seed-test'
-
-  async function destroyTestDatabase(): Promise<void> {
-    await new Promise<void>((resolve, reject) => {
-      const req = indexedDB.deleteDatabase(TEST_DB_NAME)
-      req.onsuccess = () => resolve()
-      req.onerror = () => reject(req.error)
-      req.onblocked = () => reject(new Error('deleteDatabase blocked — a connection is still open'))
+describe('Starter Set seed — on-demand seeding', () => {
+  beforeEach(async () => {
+    _resetDbSingleton()
+    await _clearAllStores()
+    useEntityStore.setState({
+      pilots: [],
+      mechs: [],
+      crawlers: [],
+      softLinks: [],
+      hydrated: { pilots: false, mechs: false, crawlers: false, softLinks: false },
     })
-  }
+    useWorkspaceStore.setState({ workspaces: [], hydrated: false })
+  })
 
-  test('a fresh database opens at DB_VERSION with the full Starter Set seeded and parsing', async () => {
-    await destroyTestDatabase()
-    const db = await openItunDatabase(TEST_DB_NAME)
-    try {
-      expect(db.version).toBe(DB_VERSION)
+  afterEach(async () => {
+    await _clearAllStores()
+  })
 
-      const workspace = await db.get(STORE_NAMES.workspaces, STARTER_WORKSPACE_ID)
-      expect(() => WorkspaceSchema.parse(workspace)).not.toThrow()
+  test('ensureStarterSetSeeded spawns the full roster on first call, and it parses', async () => {
+    expect(isStarterSetSeeded()).toBe(false)
+    await ensureStarterSetSeeded()
 
-      for (const p of STARTER_PILOTS) {
-        const stored = await db.get(STORE_NAMES.pilots, p.id)
-        expect(() => PilotSchema.parse(stored)).not.toThrow()
-      }
-      for (const m of STARTER_MECHS) {
-        const stored = await db.get(STORE_NAMES.mechs, m.id)
-        expect(() => MechSchema.parse(stored)).not.toThrow()
-      }
-      for (const c of STARTER_CRAWLERS) {
-        const stored = await db.get(STORE_NAMES.crawlers, c.id)
-        expect(() => CrawlerSchema.parse(stored)).not.toThrow()
-      }
-      const links = await db.getAll(STORE_NAMES.softLinks)
-      expect(links).toHaveLength(STARTER_SOFT_LINKS.length)
-    } finally {
-      db.close()
-      await destroyTestDatabase()
-    }
+    expect((await workspaces.list()).some((w) => w.id === STARTER_WORKSPACE_ID)).toBe(true)
+
+    const storedPilots = await pilots.list()
+    const storedMechs = await mechs.list()
+    const storedCrawlers = await crawlers.list()
+    expect(storedPilots).toHaveLength(STARTER_PILOTS.length)
+    expect(storedMechs).toHaveLength(STARTER_MECHS.length)
+    expect(storedCrawlers).toHaveLength(STARTER_CRAWLERS.length)
+    expect(await softLinks.list()).toHaveLength(STARTER_SOFT_LINKS.length)
+
+    for (const p of storedPilots) expect(() => PilotSchema.parse(p)).not.toThrow()
+    for (const m of storedMechs) expect(() => MechSchema.parse(m)).not.toThrow()
+    for (const c of storedCrawlers) expect(() => CrawlerSchema.parse(c)).not.toThrow()
+    expect(isStarterSetSeeded()).toBe(true)
+  })
+
+  test('is idempotent — a second call never duplicates', async () => {
+    await ensureStarterSetSeeded()
+    await ensureStarterSetSeeded()
+    expect(await workspaces.list()).toHaveLength(1)
+    expect(await pilots.list()).toHaveLength(STARTER_PILOTS.length)
+    expect(await softLinks.list()).toHaveLength(STARTER_SOFT_LINKS.length)
   })
 })
