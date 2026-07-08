@@ -60,6 +60,9 @@ const MIGRATIONS: ReadonlyArray<Migration> = [
     description: 'mech-refs-to-slugs',
     migrate: (tx) => migrate6MechRefsToSlugs(tx),
   },
+  // NOTE: the built-in Starter Set is NOT seeded by a migration. It is spawned
+  // on-demand into each browser the first time the user opens the Starter Set
+  // workspace — see lib/starterSet/seedStarterSet.ts.
 ]
 
 /**

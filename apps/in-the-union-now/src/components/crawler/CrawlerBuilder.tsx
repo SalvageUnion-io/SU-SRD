@@ -43,7 +43,9 @@ type Step = (typeof STEPS)[number]
 /** Step heading copy (design §3.2). */
 const STEP_TITLES: Record<Step, string> = {
   Crawler: 'Choose Your Crawler',
-  Systems: 'Install Systems',
+  // This step installs weapon systems into the Armament Bay (the only place a
+  // crawler mounts weapons); the title names it so the mount is unambiguous.
+  Systems: 'Arm the Armament Bay',
   Crew: 'Meet Your Crew',
   Identity: 'Name Your Crawler',
   Review: 'Review',
@@ -346,6 +348,7 @@ export function CrawlerBuilder({
       case 'Systems':
         return (
           <>
+            Mount your crawler’s Weapons Systems in the Armament Bay —{' '}
             <span data-testid="weapon-system-count">
               {crawlerCapacity.weaponSystemsUsed} /{' '}
               {crawlerCapacity.weaponSystemsMax > 0 ? crawlerCapacity.weaponSystemsMax : '—'} weapon
@@ -410,6 +413,7 @@ export function CrawlerBuilder({
       {step === 'Identity' && (
         <CrawlerIdentityStep
           name={form.name}
+          description={form.description}
           scrapPool={form.scrapPool}
           upgradePool={form.upgradePool}
           onChange={updateForm}

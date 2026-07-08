@@ -34,6 +34,8 @@ import type { SoftLink } from '../../lib/schemas/softLink'
 import { resolveClassName } from '../../lib/classRef'
 import { cn } from '../../lib/utils'
 import type { EntityType } from '../../stores/entityStore'
+import { ensureStarterSetSeeded } from '../../lib/starterSet/seedStarterSet'
+import { STARTER_WORKSPACE_ID } from '../../lib/starterSet/starterSet'
 import { useEntityStore } from '../../stores/entityStore'
 import { ExportAllButton } from '../export/ExportAllButton'
 import { ImportButton } from '../export/ImportButton'
@@ -122,13 +124,25 @@ export function Dashboard() {
   const allCrawlers = useCrawlers()
   const softLinks: SoftLink[] = useSoftLinkList()
 
+  // The built-in Starter Set workspace is seeded into every install but must
+  // stay hidden from the default experience: it never counts toward first-run
+  // and never shows in "All Builds". It surfaces only when explicitly selected
+  // in the Workspace switcher. `isOwn` = "the user's own build, not seeded".
+  const isOwn = <T extends { workspaceId?: string }>(e: T) => e.workspaceId !== STARTER_WORKSPACE_ID
+
   /**
-   * First-run: a brand-new user with ZERO builds of any type. Measured against
-   * the UNFILTERED totals (not the workspace-filtered lists) so it means "no
-   * data at all", not "this workspace is empty". Once any entity exists, the
-   * normal 3-column dashboard renders.
+   * First-run: a brand-new user with ZERO builds of their OWN, viewing "All
+   * Builds". Measured against the UNFILTERED totals minus the seeded Starter
+   * Set so it means "no data of your own", not "this workspace is empty". The
+   * `activeWorkspaceId === null` guard is load-bearing: once the user selects a
+   * workspace (e.g. "Starter Set") the grid must render so its seeded roster
+   * shows — otherwise the welcome screen would swallow the selection.
    */
-  const isFirstRun = allPilots.length === 0 && allMechs.length === 0 && allCrawlers.length === 0
+  const isFirstRun =
+    activeWorkspaceId === null &&
+    allPilots.filter(isOwn).length === 0 &&
+    allMechs.filter(isOwn).length === 0 &&
+    allCrawlers.filter(isOwn).length === 0
 
   // Name lookups for '↳ Name' cross-links — built from the UNFILTERED lists so
   // links resolve across workspace boundaries.
@@ -156,19 +170,30 @@ export function Dashboard() {
     )
   }
 
-  // Filter by active workspace. "All Builds" (null) shows all entities.
+  // Filter by active workspace. "All Builds" (null) shows every entity EXCEPT
+  // the seeded Starter Set — that workspace is reachable only by selecting it.
   const pilots =
     activeWorkspaceId === null
-      ? allPilots
+      ? allPilots.filter(isOwn)
       : allPilots.filter((p) => p.workspaceId === activeWorkspaceId)
   const mechs =
     activeWorkspaceId === null
-      ? allMechs
+      ? allMechs.filter(isOwn)
       : allMechs.filter((m) => m.workspaceId === activeWorkspaceId)
   const crawlers =
     activeWorkspaceId === null
-      ? allCrawlers
+      ? allCrawlers.filter(isOwn)
       : allCrawlers.filter((c) => c.workspaceId === activeWorkspaceId)
+
+  /**
+   * Workspace select. Opening the built-in Starter Set spawns it into this
+   * browser on first visit (idempotent), then switches to it — the roster is
+   * never seeded until the user asks for it here.
+   */
+  async function handleSelectWorkspace(id: string | null) {
+    if (id === STARTER_WORKSPACE_ID) await ensureStarterSetSeeded()
+    setActiveWorkspaceId(id)
+  }
 
   function openDeleteDialog(type: EntityType, id: string, name: string) {
     setDeleteTarget({ type, id, name })
@@ -198,7 +223,7 @@ export function Dashboard() {
           </div>
           <WorkspaceSwitcher
             activeWorkspaceId={activeWorkspaceId}
-            onSelect={setActiveWorkspaceId}
+            onSelect={(id) => void handleSelectWorkspace(id)}
           />
         </div>
         {/* Standing durability notice (not the recurring backup-nudge toast):

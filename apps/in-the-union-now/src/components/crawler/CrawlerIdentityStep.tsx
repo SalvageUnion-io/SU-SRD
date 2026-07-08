@@ -5,6 +5,7 @@ const SCRAP_BUCKETS = ['tl1', 'tl2', 'tl3', 'tl4', 'tl5', 'tl6'] as const
 
 type CrawlerIdentityStepProps = {
   name: string
+  description: string
   scrapPool: ScrapPoolForm
   upgradePool: number
   onChange: (patch: Partial<CrawlerWizardFormState>) => void
@@ -24,6 +25,7 @@ function parseCount(raw: string): number {
  */
 export function CrawlerIdentityStep({
   name,
+  description,
   scrapPool,
   upgradePool,
   onChange,
@@ -38,6 +40,17 @@ export function CrawlerIdentityStep({
           onChange={(e) => onChange({ name: e.target.value })}
           placeholder="The Wandering Throne"
           required
+        />
+      </Field>
+
+      <Field label="Description" htmlFor="crawler-description">
+        <textarea
+          id="crawler-description"
+          value={description}
+          onChange={(e) => onChange({ description: e.target.value })}
+          placeholder="What the crawler is, its build and history."
+          rows={4}
+          className="w-full rounded-[3px] border-chrome border-ink bg-paper px-3 py-2.5 font-body text-sm text-ink placeholder:text-wk-faint focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22]"
         />
       </Field>
 

@@ -18,7 +18,9 @@ import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 
 import { _clearAllStores, _resetDbSingleton } from '../../../lib/db/index'
+import { STARTER_WORKSPACE_ID } from '../../../lib/starterSet/starterSet'
 import { useEntityStore } from '../../../stores/entityStore'
+import { useWorkspaceStore } from '../../../stores/workspaceStore'
 import { Dashboard } from '../Dashboard'
 
 // ---------------------------------------------------------------------------
@@ -226,6 +228,47 @@ describe('Dashboard — first-run welcome', () => {
 
     expect(screen.getByRole('heading', { name: 'Pilots' })).toBeTruthy()
     expect(screen.queryByRole('heading', { name: /Welcome to In the Union Now/i })).toBeFalsy()
+  })
+})
+
+describe('Dashboard — Starter Set (spawned on first visit)', () => {
+  // The Starter Set is NOT pre-seeded — selecting it in the switcher spawns it
+  // into the shared fake-indexeddb via ensureStarterSetSeeded. The shared
+  // beforeEach clears the db + entityStore; reset the workspace store too so
+  // each test starts with nothing seeded.
+  beforeEach(() => {
+    act(() => useWorkspaceStore.setState({ workspaces: [], hydrated: false }))
+  })
+  afterEach(() => {
+    act(() => useWorkspaceStore.setState({ workspaces: [], hydrated: false }))
+  })
+
+  test('a fresh user sees the welcome screen and a Starter Set option, nothing seeded yet', async () => {
+    await renderDashboard()
+
+    expect(screen.getByRole('heading', { name: /Welcome to In the Union Now/i })).toBeTruthy()
+    // The switcher offers Starter Set even before it exists as a workspace.
+    const switcher = screen.getByLabelText('Select workspace') as HTMLSelectElement
+    expect([...switcher.options].some((o) => o.textContent === 'Starter Set')).toBe(true)
+    // Nothing spawned yet — no crew rendered.
+    expect(screen.queryByText('Bonesaw')).toBeFalsy()
+  })
+
+  test('selecting Starter Set spawns it into the browser and renders the crew', async () => {
+    await renderDashboard()
+
+    await act(async () => {
+      fireEvent.change(screen.getByLabelText('Select workspace'), {
+        target: { value: STARTER_WORKSPACE_ID },
+      })
+    })
+    // Seeding is async (IndexedDB write + rehydrate) — settle until the crew shows.
+    await settle(() => screen.queryByText('Bonesaw') !== null)
+
+    expect(screen.getByRole('heading', { name: 'Pilots' })).toBeTruthy()
+    expect(screen.getByText('Bonesaw')).toBeTruthy()
+    expect(screen.getByText('Scrapper')).toBeTruthy()
+    expect(screen.getByText("Crawler #430 'Tenacity'")).toBeTruthy()
   })
 })
 

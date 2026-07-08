@@ -117,6 +117,12 @@ export const MechSchema = z
     /** Optional: name of the paint/visual pattern applied */
     patternName: z.string().optional(),
     /**
+     * Freeform description / appearance / quirk notes. Additive-optional (no DB
+     * migration — absent reads as undefined). Rendered on the mech sheet, edited
+     * in the wizard.
+     */
+    description: z.string().optional(),
+    /**
      * Active condition labels — the single unified conditions vocabulary for
      * the mech (Vulnerable, Prone, Immobile, Burn, Ion-locked, …). The
      * automation-written `shutdown`/`vulnerable`/`destroyed` boolean flags

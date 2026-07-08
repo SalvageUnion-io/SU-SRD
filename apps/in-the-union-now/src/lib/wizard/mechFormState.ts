@@ -35,6 +35,8 @@ export type MechWizardFormState = {
   /** Installed module slug refs. */
   modules: string[]
   cargoLots: CargoLot[]
+  /** Freeform description / appearance / quirk notes (maps to Mech.description). */
+  description: string
 }
 
 export const EMPTY_MECH_FORM_STATE: MechWizardFormState = {
@@ -44,6 +46,7 @@ export const EMPTY_MECH_FORM_STATE: MechWizardFormState = {
   systems: [],
   modules: [],
   cargoLots: [],
+  description: '',
 }
 
 /** Maps a stored mech onto wizard initial state (edit-mode prefill). */
@@ -55,13 +58,14 @@ export function mechToFormState(mech: Mech): MechWizardFormState {
     systems: [...mech.systems],
     modules: [...mech.modules],
     cargoLots: mech.cargoLots.map((lot) => ({ ...lot })),
+    description: mech.description ?? '',
   }
 }
 
 /** Wizard-owned mech fields — the only fields an edit save may touch. */
 type MechWizardPatch = Pick<
   Mech,
-  'name' | 'chassisRef' | 'patternName' | 'systems' | 'modules' | 'cargoLots'
+  'name' | 'chassisRef' | 'patternName' | 'systems' | 'modules' | 'cargoLots' | 'description'
 >
 
 export function mechFormToUpdatePatch(form: MechWizardFormState): MechWizardPatch {
@@ -72,6 +76,7 @@ export function mechFormToUpdatePatch(form: MechWizardFormState): MechWizardPatc
     systems: form.systems,
     modules: form.modules,
     cargoLots: form.cargoLots,
+    description: form.description.trim() || undefined,
   }
 }
 

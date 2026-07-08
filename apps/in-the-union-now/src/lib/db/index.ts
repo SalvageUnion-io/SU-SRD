@@ -39,8 +39,12 @@ import { makeStore } from './crud'
 import { runMigrations } from './migrations/index'
 import { STORE_NAMES } from './stores'
 
-/** Current IndexedDB schema version. Bump together with a migrations/ entry. */
-export const DB_VERSION = 6
+/**
+ * Current IndexedDB schema version. Bump together with a migrations/ entry.
+ * (v7 is a version-only bump — it once carried an eager Starter Set seed, now
+ * replaced by on-demand seeding in lib/starterSet/seedStarterSet.ts.)
+ */
+export const DB_VERSION = 7
 
 const DB_NAME = 'itun-v1'
 

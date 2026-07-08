@@ -60,6 +60,7 @@ describe('crawlerToFormState', () => {
     const form = crawlerToFormState(storedCrawler)
     expect(form).toEqual({
       name: 'The Wandering Kettle',
+      description: '',
       techLevel: 3,
       type: null,
       systems: ['system-drill'],
@@ -109,6 +110,7 @@ describe('crawlerFormToUpdatePatch', () => {
     const patch = crawlerFormToUpdatePatch(crawlerToFormState(storedCrawler))
     // No type chosen on this fixture → patch omits `type`.
     expect(Object.keys(patch).sort()).toEqual([
+      'description',
       'name',
       'scrapPool',
       'systems',
@@ -128,6 +130,7 @@ describe('crawlerFormToUpdatePatch', () => {
       crew: { 'some-bay': { name: 'Vex', keepsake: 'A cog' } },
     })
     expect(Object.keys(patch).sort()).toEqual([
+      'description',
       'name',
       'scrapPool',
       'systems',

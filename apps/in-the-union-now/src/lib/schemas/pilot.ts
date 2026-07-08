@@ -108,6 +108,12 @@ export const PilotSchema = z
     keepsake: z.string(),
     appearance: z.string(),
     background: z.string().default(''),
+    /**
+     * Freeform bio / backstory. Additive-optional (no DB migration — absent
+     * reads as undefined); distinct from `background` (the short Background
+     * archetype). Rendered on the pilot sheet, edited in the wizard.
+     */
+    description: z.string().optional(),
     /** Active condition slugs */
     conditions: z.array(z.string()),
     /** Optional: links this pilot to a workspace */

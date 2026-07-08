@@ -11027,6 +11027,19 @@
     "actionSource": "modules"
   },
   {
+    "id": "f10034e6-029d-499f-899e-80b0797d1fbb",
+    "actionType": "Free",
+    "activationCost": 1,
+    "name": "Cooling Unit",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "This simple Opus-designed cooling unit keeps a Pilot cool in their cockpit. When activated, it prevents any negative effects from extreme heat. This effect lasts for 1 hour."
+      }
+    ],
+    "actionSource": "modules"
+  },
+  {
     "id": "b15b6e0d-68c7-41ba-94cb-3247e6518075",
     "actionType": "Turn",
     "activationCost": "X",

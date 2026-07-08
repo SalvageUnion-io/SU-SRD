@@ -896,6 +896,16 @@
     "actions": ["Heating Unit"]
   },
   {
+    "id": "0db9224d-bf66-40dc-8d9f-5ff1fad6c638",
+    "source": "False Flag",
+    "name": "Cooling Unit",
+    "techLevel": 1,
+    "slotsRequired": 1,
+    "salvageValue": 1,
+    "page": 69,
+    "actions": ["Cooling Unit"]
+  },
+  {
     "id": "11d5e4fd-7df8-4a96-aa09-45feeb595819",
     "source": "False Flag",
     "name": "Pop Goes The Weasel",

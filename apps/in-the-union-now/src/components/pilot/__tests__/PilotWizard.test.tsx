@@ -264,6 +264,7 @@ async function seedEngineerPilot() {
   const classId = idOf('Engineer', SalvageUnionReference.Classes)
   const input = pilotFormToCreateInput({
     name: 'Mira Voss',
+    description: '',
     classId,
     abilities: [
       idOf('Engineering Expertise', SalvageUnionReference.Abilities),

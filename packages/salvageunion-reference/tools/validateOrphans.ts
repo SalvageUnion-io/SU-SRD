@@ -123,6 +123,13 @@ const INTENTIONAL_ORPHANS: AllowlistEntry[] = [
   { file: 'modules.json', name: 'EM Counterpulse' },
   { file: 'modules.json', name: 'Adaptive Chassis Linkage' },
   { file: 'modules.json', name: "Mozart's Ghost" },
+
+  // Cooling Unit — the heat mirror of the Heating Unit (environmental
+  // temperature protection, 1-hour). A freely-installable catalog module: it is
+  // used by the ITUN Starter Set Mule loadout but is not part of any reference
+  // chassis pattern (the Starter Set pre-gen "Survivor Pattern" is app-side, not
+  // a reference pattern), so it is correctly unreferenced here.
+  { file: 'modules.json', name: 'Cooling Unit' },
 ]
 
 console.log('Root entities (intentionally unreferenced):')

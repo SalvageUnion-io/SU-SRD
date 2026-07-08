@@ -32,6 +32,7 @@ import { CraftingControl } from './CraftingControl'
 import { DowntimeControl } from './DowntimeControl'
 import { Ecflow, Erow } from './Erow'
 import { SalvageControl } from './SalvageControl'
+import { SheetDescription } from './SheetDescription'
 import { StorageManifest } from './StorageManifest'
 
 import {
@@ -124,6 +125,9 @@ export function CrawlerSheet({
 
   return (
     <section aria-label={`${crawler.name} crawler sheet`} className="flex flex-col gap-7">
+      {/* Description — freeform notes (read-only; edited in the crawler builder) */}
+      <SheetDescription text={crawler.description} />
+
       {/* Crawler Type — only when a type was chosen (legacy crawlers have none) */}
       {crawler.type && (
         <div>
@@ -200,10 +204,12 @@ export function CrawlerSheet({
         </div>
       )}
 
-      {/* Crawler Systems — proper entity cards [gap 20] */}
+      {/* Armament Bay weapons — crawler weapon systems mount here (Core Book
+          p. 213). Labeled explicitly so it is clear these are the Armament
+          Bay's mounts, distinct from the Armament Bay crew card above. */}
       {crawler.systems.length > 0 && (
         <div>
-          <Slab label="Crawler Systems" count={`${crawler.systems.length}`} />
+          <Slab label="Armament Bay Weapons" count={`${crawler.systems.length}`} />
           <Ecflow>
             {crawler.systems.map((slug) => {
               const system = resolveCrawlerSystem(slug)

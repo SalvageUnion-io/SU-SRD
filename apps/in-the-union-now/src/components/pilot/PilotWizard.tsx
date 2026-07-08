@@ -355,6 +355,8 @@ export function PilotWizard({
         <BackgroundStep
           background={form.background}
           onChange={(v) => updateForm({ background: v })}
+          description={form.description}
+          onDescriptionChange={(v) => updateForm({ description: v })}
           _rollDeps={_rollDeps}
         />
       )}

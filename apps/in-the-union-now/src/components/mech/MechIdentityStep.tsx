@@ -7,6 +7,9 @@ import { CargoLotEditor } from './CargoLotEditor'
 type MechIdentityStepProps = {
   name: string
   onNameChange: (name: string) => void
+  /** Freeform description / appearance / quirk notes. */
+  description: string
+  onDescriptionChange: (value: string) => void
   cargoLots: CargoLot[]
   onCargoChange: (lots: CargoLot[]) => void
   /** Cargo capacity from the chassis — soft cap, shown but never enforced. */
@@ -21,6 +24,8 @@ type MechIdentityStepProps = {
 export function MechIdentityStep({
   name,
   onNameChange,
+  description,
+  onDescriptionChange,
   cargoLots,
   onCargoChange,
   cargoMax,
@@ -38,6 +43,17 @@ export function MechIdentityStep({
           onChange={(e) => onNameChange(e.target.value)}
           placeholder="e.g. Iron Fist"
           required
+        />
+      </Field>
+
+      <Field label="Description" htmlFor="mech-description">
+        <textarea
+          id="mech-description"
+          value={description}
+          onChange={(e) => onDescriptionChange(e.target.value)}
+          placeholder="What it does, how it looks, any quirks."
+          rows={4}
+          className="w-full rounded-[3px] border-chrome border-ink bg-paper px-3 py-2.5 font-body text-sm text-ink placeholder:text-wk-faint focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22]"
         />
       </Field>
 
