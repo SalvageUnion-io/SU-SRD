@@ -19,3 +19,10 @@ services:
       # Sentry error tracking — set the value in the Render dashboard.
       - key: SENTRY_DSN
         sync: false
+      # NOT declared here on purpose: RENDER_GIT_COMMIT (the deployed commit
+      # SHA) is a Render "reserved" env var Render injects automatically into
+      # every service's environment — it can't be set via envVars and needs no
+      # provisioning. apps/discord-bot/src/observability.ts reads it to tag
+      # Sentry events with a release. Verify the exact var name in the Render
+      # dashboard's "Environment" tab for this service if release tags don't
+      # show up — Render's reserved-var set has changed name before.

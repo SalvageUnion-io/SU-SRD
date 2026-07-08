@@ -24,6 +24,8 @@ core
 # Coverage output (bun test --coverage lcov reporter / CI capture file)
 **/coverage/
 coverage-output.txt
+# Aggregated coverage report artifact (tools/coverage-report.ts), CI-only
+/coverage-report/
 
 # Vite
 .vite

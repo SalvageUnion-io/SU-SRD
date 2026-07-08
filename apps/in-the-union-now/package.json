@@ -12,7 +12,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "bun test",
-    "test:coverage": "bun test --coverage",
+    "test:coverage": "bun test --coverage --coverage-reporter=text --coverage-reporter=lcov --coverage-dir=coverage",
     "test:watch": "bun test --watch",
     "clean": "rm -rf dist .vite node_modules/.vite"
   },
@@ -39,6 +39,7 @@
   },
   "devDependencies": {
     "@playwright/test": "1.61.1",
+    "@sentry/vite-plugin": "5.3.0",
     "@types/qrcode": "1.5.6",
     "@vitejs/plugin-react": "^6.0.3",
     "eslint-plugin-react-refresh": "^0.5.3",

@@ -1,12 +1,23 @@
 /**
  * ready handler test — on login the bot sets a steady presence so it reads as a
  * live, first-class app ("Playing Salvage Union") rather than an idle script.
+ *
+ * ready.ts now imports observability.ts, which transitively imports config.ts
+ * (which throws when DISCORD_TOKEN is unset), so we set the env and import it
+ * dynamically after — same pattern as interactionCreate.test.ts.
  */
-import { describe, expect, test } from 'bun:test'
+import { beforeAll, describe, expect, test } from 'bun:test'
 import { ActivityType } from 'discord.js'
 import type { Client } from 'discord.js'
 
-import { handleReady } from '../events/ready.js'
+process.env.DISCORD_TOKEN ??= 'test-token'
+process.env.DISCORD_CLIENT_ID ??= 'test-client-id'
+
+let handleReady: typeof import('../events/ready.js').handleReady
+
+beforeAll(async () => {
+  ;({ handleReady } = await import('../events/ready.js'))
+})
 
 type PresenceArg = { status?: string; activities?: { name: string; type: number }[] }
 

@@ -8,7 +8,10 @@
   # exact browser build its imported `playwright-core` expects (`bunx` resolves
   # a registry copy, which installed a mismatched build). If the Netlify image
   # ever lacks chromium's shared libs, add `--with-deps` to that script.
-  command = "bun install --frozen-lockfile && bun --filter suref-web og:install-browser && bun --filter suref-web build"
+  # PUBLIC_COMMIT_REF is exported from Netlify's own build-shell COMMIT_REF so
+  # the client bundle can tag Sentry events with a release (see
+  # src/lib/observability.ts and src/env.d.ts).
+  command = "bun install --frozen-lockfile && bun --filter suref-web og:install-browser && PUBLIC_COMMIT_REF=\"$COMMIT_REF\" bun --filter suref-web build"
   publish = "apps/suref-web/dist"
   # Skip the build when nothing affecting suref-web changed since the last
   # published deploy. `git diff --quiet` exits 0 (→ Netlify cancels the build)

@@ -24,13 +24,6 @@
   "sideEffects": [
     "./lib/zod.ts"
   ],
-  "files": [
-    "lib",
-    "data",
-    "schemas",
-    "README.md",
-    "LICENCE"
-  ],
   "scripts": {
     "build": "bun run generate:json-schemas",
     "build:full": "bun run build && bun run format && bun run lint",
@@ -50,43 +43,15 @@
     "validate:all": "bun run validate:ids && bun run validate:slugs && bun run validate:references && bun run validate:actions && bun run validate:action-backrefs && bun run validate:orphans && bun run validate:traits && bun run validate:schemas",
     "typecheck": "tsc --project tsconfig.json --noEmit",
     "test": "bun test",
-    "test:coverage": "bun test --coverage",
+    "test:coverage": "bun test --coverage --coverage-reporter=text --coverage-reporter=lcov --coverage-dir=coverage",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "clean": "rm -rf dist *.tsbuildinfo"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/SalvageUnion-io/SU-SRD.git"
-  },
-  "keywords": [
-    "salvage-union",
-    "tabletop-rpg",
-    "ttrpg",
-    "game-data",
-    "json-schema",
-    "leyline-press",
-    "orm",
-    "typescript",
-    "mech",
-    "post-apocalyptic",
-    "reference-data",
-    "game-mechanics",
-    "schema-validation",
-    "type-safe"
-  ],
-  "author": "Alex Jarvis",
   "license": "SEE LICENSE IN LICENCE",
-  "bugs": {
-    "url": "https://github.com/SalvageUnion-io/SU-SRD/issues"
-  },
-  "homepage": "https://github.com/SalvageUnion-io/SU-SRD#readme",
   "dependencies": {
     "zod": "^4.4.3"
   },
-  "devDependencies": {},
-  "engines": {
-    "node": ">=18.0.0"
-  }
+  "devDependencies": {}
 }

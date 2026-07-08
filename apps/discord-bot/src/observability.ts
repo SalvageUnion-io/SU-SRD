@@ -28,6 +28,10 @@ export function initObservability(): void {
   Sentry.init({
     dsn: config.sentryDsn,
     environment: config.nodeEnv ?? 'production',
+    // Tags events with the deployed commit SHA (Render's RENDER_GIT_COMMIT)
+    // so a Sentry error maps back to the exact deploy that produced it.
+    // Undefined when unset (e.g. local dev) — Sentry simply omits the tag.
+    release: config.releaseSha,
   })
   enabled = true
   console.log('[observability] Sentry error tracking enabled')
@@ -55,5 +59,18 @@ export async function flushObservability(timeoutMs = 2000): Promise<void> {
 export function captureException(error: unknown, context?: Record<string, unknown>): void {
   if (enabled) {
     Sentry.captureException(error, context ? { extra: context } : undefined)
+  }
+}
+
+/**
+ * Reports an informational message to Sentry when enabled; otherwise a no-op.
+ * Used as the worker's liveness signal (see `handleReady`): a Render worker
+ * has no HTTP port to health-probe, so a breadcrumb on every successful login
+ * is the cheapest "the process is alive and connected" alert path — a gap in
+ * the expected daily cadence of these events is itself the signal.
+ */
+export function captureMessage(message: string, context?: Record<string, unknown>): void {
+  if (enabled) {
+    Sentry.captureMessage(message, context ? { extra: context } : undefined)
   }
 }

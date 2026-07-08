@@ -19,7 +19,19 @@ export function initObservability(): void {
   initialized = true
   const dsn = process.env.SENTRY_DSN
   if (!dsn) return
-  Sentry.init({ dsn, environment: process.env.NODE_ENV ?? 'production' })
+  Sentry.init({
+    dsn,
+    environment: process.env.NODE_ENV ?? 'production',
+    // Tags events with the deployed commit so an error maps back to a
+    // specific deploy. COMMIT_REF is a Netlify-provided deploy-metadata var —
+    // confirmed present in the *build* shell (netlify.toml's ignore scripts
+    // read it directly); whether it also reaches the Function's *runtime*
+    // environment is unconfirmed. If release tags don't show up on function
+    // errors in Sentry, that's the reason — the fallback is to bake the
+    // commit SHA into the bundle at build time (e.g. via an esbuild define)
+    // instead of reading it from process.env at runtime.
+    release: process.env.COMMIT_REF,
+  })
   enabled = true
 }
 
