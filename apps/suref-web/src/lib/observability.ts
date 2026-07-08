@@ -38,6 +38,12 @@ export async function initBrowserObservability(): Promise<void> {
   Sentry.init({
     dsn,
     environment: import.meta.env.MODE,
+    // Tags events with the deployed commit so an error maps back to a
+    // specific deploy. PUBLIC_COMMIT_REF is set by netlify.toml's build
+    // command (`PUBLIC_COMMIT_REF="$COMMIT_REF" bun ... build`), mirroring
+    // Netlify's own COMMIT_REF; unset locally, so dev builds simply omit the
+    // tag.
+    release: import.meta.env.PUBLIC_COMMIT_REF || undefined,
     // Errors only — no performance tracing or session replay. Keeps network
     // chatter minimal and avoids additional CSP surface.
     tracesSampleRate: 0,
