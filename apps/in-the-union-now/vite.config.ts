@@ -3,6 +3,14 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
 import { VitePWA } from 'vite-plugin-pwa'
+import { sentryVitePlugin } from '@sentry/vite-plugin'
+
+// Sourcemap upload is entirely env-gated on SENTRY_AUTH_TOKEN, mirroring the
+// discipline of src/lib/observability.ts: absent locally and in CI (no token
+// provisioned there), so the plugin is inert and no sourcemaps are generated
+// or shipped. Provisioned only on the Netlify production build via site env
+// vars (SENTRY_AUTH_TOKEN, SENTRY_ORG, SENTRY_PROJECT — not committed).
+const sentryAuthToken = process.env.SENTRY_AUTH_TOKEN
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -44,7 +52,38 @@ export default defineConfig({
         ],
       },
     }),
+    // Must run last in the plugins array (Sentry's own requirement — it needs
+    // to see the final Rollup output to attach + upload sourcemaps). Inert
+    // (returns nothing) unless sentryAuthToken is set.
+    sentryAuthToken
+      ? sentryVitePlugin({
+          org: process.env.SENTRY_ORG,
+          project: process.env.SENTRY_PROJECT,
+          authToken: sentryAuthToken,
+          // Explicit release name pinned to the same VITE_COMMIT_REF the
+          // client tags itself with at runtime (src/lib/observability.ts) —
+          // auto-detecting from git would use Netlify's shallow clone and
+          // could silently mismatch, which breaks sourcemap resolution.
+          release: { name: process.env.VITE_COMMIT_REF, inject: false },
+          sourcemaps: {
+            filesToDeleteAfterUpload: ['dist/**/*.map'],
+          },
+          // Observability tooling that can take down a deploy is an
+          // anti-pattern: an expired token, wrong org/project, or a Sentry
+          // API blip should degrade to "no sourcemaps this deploy", not fail
+          // the Netlify build. Warn instead of the plugin's default throw.
+          errorHandler: (error) => {
+            console.warn('[sentry-vite-plugin] sourcemap upload failed (non-fatal):', error)
+          },
+        })
+      : false,
   ],
+  build: {
+    // Only emit sourcemaps when actually uploading them (see sentryAuthToken
+    // above) — the upload step deletes them from dist/ afterward, so default
+    // builds (local, CI, unconfigured deploys) never generate or ship maps.
+    sourcemap: !!sentryAuthToken,
+  },
   // Pre-bundle the game-data package so esbuild inlines its dynamic
   // `import('../data/*.json', { with: { type: 'json' } })` (+ schema) imports.
   // Without this, vite dev serves those JSON modules as `text/javascript`, which

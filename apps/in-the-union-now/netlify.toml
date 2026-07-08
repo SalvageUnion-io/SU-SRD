@@ -8,7 +8,12 @@
 # See docs/adrs/ADR-004-snapshot-netlify-functions.md.
 
 [build]
-  command = "bun install --frozen-lockfile && bun --filter in-the-union-now build"
+  # VITE_COMMIT_REF is exported from Netlify's own build-shell COMMIT_REF so
+  # the client bundle can tag Sentry events with a release (see
+  # src/lib/observability.ts and src/vite-env.d.ts). SENTRY_AUTH_TOKEN /
+  # SENTRY_ORG / SENTRY_PROJECT (set as Netlify site env vars, not here) turn
+  # on sourcemap upload for that same release in vite.config.ts.
+  command = "bun install --frozen-lockfile && VITE_COMMIT_REF=\"$COMMIT_REF\" bun --filter in-the-union-now build"
   publish = "apps/in-the-union-now/dist"
   functions = "apps/in-the-union-now/netlify/functions"
   # Skip the build when nothing affecting ITUN changed since the last published

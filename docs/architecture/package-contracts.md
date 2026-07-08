@@ -5,7 +5,7 @@ This document defines what each package exposes, what it consumes, and the rules
 ## Dependency Graph
 
 ```
-salvageunion-reference (game data ORM, built)
+salvageunion-reference (game data ORM, no build step)
   |
   +---> suref-react (shared UI components, no build step)
   |       |
@@ -23,23 +23,36 @@ All workspace dependencies use `workspace:*` protocol. React 19.2.0+ is aligned 
 ## salvageunion-reference
 
 **Location:** `packages/salvageunion-reference/`
-**Build required:** Yes (`bun run build:package`)
+**Build required:** No (ships TS source; `bun run build:package` only regenerates `schemas/*.schema.json` from Zod)
+
+### Public Interface
+
+**This package is private and workspace-internal — it is not published to npm.**
+It has no npm distribution and is consumed only within this monorepo via the
+`workspace:*` protocol. The dataset's actual public interface is the
+CORS-enabled JSON API served by `suref-web`
+(`apps/suref-web/src/pages/schema/[schemaId].json.ts`,
+`schema/[schemaId].schema.json.ts`, `schema/[schemaId]/item/[itemId].json.ts`,
+documented at `apps/suref-web/src/pages/api.astro`). External consumers should
+use that API, not `npm install salvageunion-reference`. See
+[ADR-014](../adrs/ADR-014-json-api-public-interface-npm-retired.md) for the
+full rationale.
 
 ### Entry Points
 
 ```json
 {
   ".": {
-    "types": "./dist/index.d.ts",
-    "development": "./lib/index.ts",
-    "import": "./dist/index.js"
+    "types": "./lib/index.ts",
+    "default": "./lib/index.ts"
   },
   "./data/*": { "import": "./data/*.json" },
   "./schemas/*": { "import": "./schemas/*.json" }
 }
 ```
 
-In development, consuming apps resolve `lib/index.ts` directly (via the `development` condition). In production builds, they use `dist/index.js`.
+Consuming apps resolve `lib/index.ts` directly — there is no `dist/` build and
+no `development`/`import` condition split.
 
 ### Public API
 
@@ -69,12 +82,11 @@ All entity types (`SURef*`), enum types (`SURefEnum*`), common types (`SURefComm
 
 ### Dependencies
 
-- **Runtime:** `zod` (^4.3.6)
+- **Runtime:** `zod` (^4.4.3)
 - **Dev only:** none (`devDependencies` is empty — validation tooling runs on Bun + the runtime deps)
 
 ### Generated Files (do not edit)
 
-- `dist/` — Compiled JS + type declarations
 - `schemas/*.schema.json` — Generated from Zod schemas
 
 To change output: edit Zod schemas in `lib/schemas/`, then `bun run build:package`.

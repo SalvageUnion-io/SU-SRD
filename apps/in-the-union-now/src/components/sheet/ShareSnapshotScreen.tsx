@@ -42,6 +42,7 @@ import {
   pilotMaxHP,
 } from '../../lib/rules/derivedStats'
 import { useEntity } from '../../hooks/queries'
+import { captureMessage } from '../../lib/observability'
 import { deleteSnapshot, probeSnapshotService, publishSnapshot } from '../../lib/snapshot/client'
 import type { PublishResult, SnapshotPayload } from '../../lib/snapshot/client'
 import {
@@ -117,12 +118,21 @@ export function ShareSnapshotScreen({
   useEffect(() => {
     let cancelled = false
     void probeFn().then((available) => {
-      if (!cancelled) setService(available ? 'available' : 'unavailable')
+      if (!cancelled) {
+        setService(available ? 'available' : 'unavailable')
+        // Surface the outage this feature-detect already silently absorbs
+        // (no-op unless VITE_SENTRY_DSN is set): on a production deploy the
+        // snapshot Functions are always present, so "unavailable" here means
+        // the backend is actually down, not a feature that was never built.
+        if (!available) {
+          captureMessage('snapshot service unavailable', { kind, id })
+        }
+      }
     })
     return () => {
       cancelled = true
     }
-  }, [probeFn])
+  }, [probeFn, kind, id])
 
   const entity = entityStore ? entityStore.get(kind, id) : liveEntity
 
