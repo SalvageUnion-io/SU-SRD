@@ -56,7 +56,6 @@
         "salvageunion-reference": "workspace:*",
         "suref-react": "workspace:*",
         "tailwind-merge": "^3.6.0",
-        "zod": "^4.4.3",
         "zustand": "^5.0.14",
       },
       "devDependencies": {

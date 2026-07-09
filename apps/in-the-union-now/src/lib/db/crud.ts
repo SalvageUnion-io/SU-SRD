@@ -1,5 +1,5 @@
 import type { IDBPDatabase } from 'idb'
-import type { ZodSchema } from 'zod'
+import type { z } from 'salvageunion-reference/zod'
 
 /**
  * Minimal shape every entity managed by the CRUD wrapper must have.
@@ -48,7 +48,7 @@ type MakeStoreOptions<T extends EntityBase> = {
    * console warning instead of bricking the whole store hydration.
    * Writes always validate against the strict `schema`.
    */
-  salvageSchema?: ZodSchema<T>
+  salvageSchema?: z.ZodType<T>
 }
 
 /**
@@ -69,7 +69,7 @@ type MakeStoreOptions<T extends EntityBase> = {
  */
 export function makeStore<T extends EntityBase>(
   getDb: () => Promise<IDBPDatabase>,
-  schema: ZodSchema<T>,
+  schema: z.ZodType<T>,
   storeName: string,
   options: MakeStoreOptions<T> = {}
 ): EntityStore<T> {

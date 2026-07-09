@@ -97,6 +97,18 @@
         "noRestrictedImports": {
           "level": "error",
           "options": {
+            "paths": {
+              // ADR-013 (CSP-compliant Zod / jitless parsing): all Zod usage
+              // must flow through packages/salvageunion-reference/lib/zod.ts,
+              // which calls z.config({ jitless: true }) before any schema is
+              // constructed. A direct `import { z } from 'zod'` bypasses that
+              // config and can reintroduce a `new Function`-based CSP
+              // violation in the browser. Re-stated (not inherited) in the
+              // per-package overrides below wherever those need additional
+              // paths — Biome overrides replace a rule's options for matched
+              // files rather than merging into the root config.
+              "zod": "Import `z` from 'salvageunion-reference/zod' instead of importing 'zod' directly (ADR-013: the shared module runs z.config({ jitless: true }) before any schema is constructed, which a direct zod import bypasses)."
+            },
             "patterns": [
               {
                 "group": ["@/*"],
@@ -234,6 +246,122 @@
         "rules": {
           "style": {
             "useComponentExportOnlyModules": "off"
+          }
+        }
+      }
+    },
+    // -------------------------------------------------------------------
+    // Architecture invariants (previously prose-only): the 3 of the 4 rules
+    // that map onto Biome's existing configurable rules. See the PR
+    // description for the full writeup, including why the 4th rule (no
+    // module-scope SalvageUnionReference accessor calls,
+    // docs/architecture/package-contracts.md's "Module-Scope ORM Call Risk")
+    // is enforced by tools/check-architecture.ts instead — Biome's GritQL
+    // plugin system couldn't be made to match the required two-level member
+    // chain or reliably scope-exclude function-nested matches in this
+    // version (2.5.3).
+    // -------------------------------------------------------------------
+    {
+      // ADR-013: no app/package outside the canonical module may import zod
+      // directly. salvageunion-reference gets an extra restriction on top:
+      // it must never import from apps/* (one-way dependency rule, see
+      // docs/architecture/package-contracts.md, "One-Way Dependency:
+      // Reference Package → Apps"). Restates the root `zod` path + `@/*`
+      // pattern because overrides replace (not merge into) a rule's options
+      // for matched files.
+      "includes": ["packages/salvageunion-reference/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "paths": {
+                  "zod": "Import `z` from './zod.js' instead of importing 'zod' directly (ADR-013: the shared module runs z.config({ jitless: true }) before any schema is constructed, which a direct zod import bypasses)."
+                },
+                "patterns": [
+                  {
+                    "group": ["@/*"],
+                    "message": "Use relative imports instead of @/ path aliases."
+                  },
+                  {
+                    "group": ["**/apps/**"],
+                    "message": "salvageunion-reference must never import from apps/* — the dependency flows one way (docs/architecture/package-contracts.md, \"One-Way Dependency: Reference Package → Apps\")."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      // The one file allowed to import zod directly — it's the canonical
+      // module ADR-013 requires everything else to route through. Listed
+      // after the package-wide override above so this narrower, later match
+      // wins for this one file (Biome overrides apply in order; a later
+      // override replaces an earlier one's config for the same rule on
+      // files both match).
+      "includes": ["packages/salvageunion-reference/lib/zod.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": "off"
+          }
+        }
+      }
+    },
+    {
+      // ADR-010 ("the shared library never persists"): suref-react must stay
+      // free of storage-layer imports. `idb` is ITUN's IndexedDB wrapper (see
+      // docs/architecture/package-contracts.md's in-the-union-now "Consumes"
+      // list) — it doesn't belong in the shared component library. Zustand is
+      // deliberately NOT blocked here: it's a state-management library, not
+      // itself a storage layer (ADR-010's literal contract is "never
+      // persists"), and suref-react doesn't use it today — blocking it would
+      // be scope creep past what ADR-010 actually requires.
+      // Restates the root `zod` path + `@/*` pattern (see note above).
+      "includes": ["packages/suref-react/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "paths": {
+                  "zod": "Import `z` from 'salvageunion-reference/zod' instead of importing 'zod' directly (ADR-013: the shared module runs z.config({ jitless: true }) before any schema is constructed, which a direct zod import bypasses).",
+                  "idb": "packages/suref-react must stay persistence-agnostic (ADR-010: \"the shared library never persists\") — persistence belongs in the consuming app (ITUN), passed down via props."
+                },
+                "patterns": [
+                  {
+                    "group": ["@/*"],
+                    "message": "Use relative imports instead of @/ path aliases."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      // Same ADR-010 contract, for direct global storage API usage rather
+      // than an import (e.g. `localStorage.setItem(...)` with no import
+      // statement to catch).
+      "includes": ["packages/suref-react/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedGlobals": {
+              "level": "error",
+              "options": {
+                "deniedGlobals": {
+                  "localStorage": "packages/suref-react must stay persistence-agnostic (ADR-010: \"the shared library never persists\") — persistence belongs in the consuming app.",
+                  "sessionStorage": "packages/suref-react must stay persistence-agnostic (ADR-010: \"the shared library never persists\") — persistence belongs in the consuming app.",
+                  "indexedDB": "packages/suref-react must stay persistence-agnostic (ADR-010: \"the shared library never persists\") — persistence belongs in the consuming app."
+                }
+              }
+            }
           }
         }
       }

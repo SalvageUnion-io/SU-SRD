@@ -24,7 +24,7 @@
  * ids, fresh timestamps, and seeding live stats (currentHeat 0, full SP/EP).
  */
 
-import { z } from 'zod'
+import { z } from 'salvageunion-reference/zod'
 
 import { CargoLotSchema } from './cargoLot'
 
