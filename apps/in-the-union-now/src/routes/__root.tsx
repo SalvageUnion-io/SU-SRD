@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { createRootRoute, Outlet, useRouterState } from '@tanstack/react-router'
+import { createRootRoute, Outlet } from '@tanstack/react-router'
 import type { ErrorComponentProps } from '@tanstack/react-router'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { Btn, EntityHrefProvider, Toaster } from 'suref-react'
@@ -54,34 +54,25 @@ function RootErrorComponent({ error }: ErrorComponentProps) {
   )
 }
 
-/**
- * Brand chrome is suppressed on the edge-to-edge play surfaces: live sheets
- * (/sheet/*) carry their own sticky bar (a global header would double-stack),
- * and shared snapshots (/s/*) are the same read-only sheet surface, kept
- * chrome-light for recipients.
- */
-function useShowAppHeader(): boolean {
-  const pathname = useRouterState({ select: (s) => s.location.pathname })
-  return !pathname.startsWith('/sheet/') && !pathname.startsWith('/s/')
-}
-
 function RootComponent() {
-  const showAppHeader = useShowAppHeader()
   const [searchOpen, setSearchOpen] = useState(false)
 
   return (
     <QueryClientProvider client={queryClient}>
       <EntityHrefProvider value={itunEntityHref}>
-        {/* AppHeader renders ONE level above the game-data gate (a sibling of
-            GameDataReady, not a child of it) — see GameDataReady.tsx's doc
-            comment for why: brand chrome touches no reference data, so it
-            paints immediately instead of sitting behind the full preload. */}
-        {showAppHeader && <AppHeader onSearchClick={() => setSearchOpen(true)} />}
+        {/* The shared brand header renders on EVERY route — including the live
+            sheet (/sheet/*) and snapshot (/s/*) play surfaces, which sit below
+            it and keep their own sticky control bar. It renders ONE level above
+            the game-data gate (a sibling of GameDataReady, not a child) — see
+            GameDataReady.tsx's doc comment: brand chrome touches no reference
+            data, so it paints immediately instead of sitting behind the full
+            preload. */}
+        <AppHeader onSearchClick={() => setSearchOpen(true)} />
         <GameDataReady>
           <Outlet />
           {/* Mounted on every route (inside the game-data gate, so search()
-              is always safe) — the Cmd/Ctrl+K shortcut works on live sheets
-              and snapshots too, where the AppHeader trigger is suppressed. */}
+              is always safe) so the Cmd/Ctrl+K shortcut works everywhere,
+              alongside the always-present AppHeader search trigger. */}
           <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} />
         </GameDataReady>
         <Toaster />

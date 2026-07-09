@@ -182,8 +182,8 @@ export function LiveSheet({
             aria-label={`Back to ${back.label.toLowerCase()}`}
             className="flex shrink-0 items-center gap-2 font-cond text-caption font-semibold uppercase tracking-caps-tight text-ink no-underline hover:text-rust"
           >
-            {/* Small SU mark keeps the brand chrome present on sheets — the
-                global AppHeader is suppressed on /sheet/* (play surface). */}
+            {/* Small SU mark anchors the sheet's own back affordance; the
+                global AppHeader (brand chrome) sits above this sticky bar. */}
             <img
               src="/logos/su-cargo-dark.svg"
               alt=""
