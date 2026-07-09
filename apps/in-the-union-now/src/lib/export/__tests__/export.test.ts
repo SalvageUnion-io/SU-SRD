@@ -101,6 +101,7 @@ describe('parseImportBundle', () => {
       workspaces: [],
       softLinks: [],
       mechPatterns: [],
+      encounterNpcs: [],
     }
     const result = parseImportBundle(JSON.stringify(bundle))
     expect(result.schemaVersion).toBe(1)
@@ -119,6 +120,7 @@ describe('parseImportBundle', () => {
       workspaces: [],
       softLinks: [],
       mechPatterns: [],
+      encounterNpcs: [],
     }
     expect(() => parseImportBundle(JSON.stringify(badBundle))).toThrow('unsupported schemaVersion')
   })
@@ -413,6 +415,7 @@ describe('mergeImport — round-trip', () => {
       workspaces: [],
       softLinks: [],
       mechPatterns: [],
+      encounterNpcs: [],
     }
 
     const summary = await mergeImport(bundle, entityStore, workspaceStore)
