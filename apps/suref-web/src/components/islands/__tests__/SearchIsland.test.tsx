@@ -1,11 +1,32 @@
-import { describe, test, expect, afterEach, mock, spyOn } from 'bun:test'
+import { describe, test, expect, afterEach, beforeEach, mock, spyOn, type Mock } from 'bun:test'
 import { render, screen, cleanup, fireEvent, act } from '@testing-library/react'
-import { SalvageUnionReference } from 'salvageunion-reference'
 import { SearchIsland } from '../SearchIsland'
-import { resetPreloadForTests } from '../../../lib/useGameData'
+import { buildSearchIndexEntries } from '../../../lib/searchIndexBuild'
+import { resetSearchIndexForTests } from '../../../lib/useSearchIndex'
+
+// SearchIsland now fetches the build-time compact index (`/search-index.json`)
+// instead of preloading the ORM — mock `fetch` to serve the real index (built
+// from the already-preloaded test data, see test/preload-reference.ts) so
+// these stay real integration tests against real search behavior.
+const index = buildSearchIndexEntries()
 
 describe('SearchIsland', () => {
-  afterEach(cleanup)
+  let fetchSpy: Mock<typeof fetch> | undefined
+
+  beforeEach(() => {
+    resetSearchIndexForTests()
+    const mockFetch = (async () =>
+      new Response(JSON.stringify(index), {
+        headers: { 'Content-Type': 'application/json' },
+      })) as unknown as typeof fetch
+    fetchSpy = spyOn(globalThis, 'fetch').mockImplementation(mockFetch)
+  })
+
+  afterEach(() => {
+    cleanup()
+    fetchSpy?.mockRestore()
+    resetSearchIndexForTests()
+  })
 
   test('renders an sr-only aria-live region', () => {
     const { container } = render(<SearchIsland />)
@@ -20,7 +41,7 @@ describe('SearchIsland', () => {
 
     await act(async () => {
       fireEvent.change(input, { target: { value: 'chassis' } })
-      // Wait for debounce (150ms)
+      // Wait for debounce (150ms) + the mocked fetch's microtask
       await new Promise((r) => setTimeout(r, 200))
     })
 
@@ -117,7 +138,7 @@ describe('SearchIsland', () => {
   })
 
   test('deferred loading: search works after focusing the input and typing', async () => {
-    // SearchIsland defers the game-data preload to first intent (focus/typing).
+    // SearchIsland defers the index fetch to first intent (focus/typing).
     // Behavioral check: focus then type — results must still appear.
     render(<SearchIsland />)
     const input = screen.getByRole('combobox')
@@ -135,41 +156,41 @@ describe('SearchIsland', () => {
   })
 
   test('typing before data is ready shows the loading row, then real hits once ready', async () => {
-    // Force the deferred pre-ready state: isLoaded() false at mount and a
-    // preload promise we resolve by hand. This exercises the stale-debounce
-    // re-run in SearchIsland's useEffect([ready]) that the other deferred test
-    // (which mounts with data already loaded) never reaches.
-    resetPreloadForTests()
-    const isLoadedSpy = spyOn(SalvageUnionReference, 'isLoaded').mockReturnValue(false)
-    let resolvePreload!: () => void
-    const preloadSpy = spyOn(SalvageUnionReference, 'preload').mockImplementation(
-      () => new Promise<void>((res) => (resolvePreload = res))
-    )
+    // Force the deferred pre-ready state: the fetch never resolves until we
+    // resolve it by hand. This exercises the stale-debounce re-run in
+    // SearchIsland's useEffect([ready]) that the other deferred test (which
+    // mounts with data already loaded) never reaches.
+    resetSearchIndexForTests()
+    let resolveFetch!: (res: Response) => void
+    fetchSpy?.mockRestore()
+    const pendingFetch = (() =>
+      new Promise<Response>((res) => (resolveFetch = res))) as unknown as typeof fetch
+    fetchSpy = spyOn(globalThis, 'fetch').mockImplementation(pendingFetch)
 
     try {
       render(<SearchIsland />)
       const input = screen.getByRole('combobox')
 
-      // Type while the preload is still pending — the debounce fires against the
+      // Type while the fetch is still pending — the debounce fires against the
       // pre-ready closure, so the dropdown shows the loading row and no options.
       await act(async () => {
         fireEvent.focus(input)
         fireEvent.change(input, { target: { value: 'chassis' } })
         await new Promise((r) => setTimeout(r, 200))
       })
-      expect(screen.getByRole('listbox').textContent).toContain('Loading game data')
+      expect(screen.getByRole('listbox').textContent).toContain('Loading search index')
       expect(screen.queryAllByRole('option').length).toBe(0)
 
       // Data lands → the [ready] effect re-runs the pending query with real data.
       await act(async () => {
-        resolvePreload()
+        resolveFetch(
+          new Response(JSON.stringify(index), { headers: { 'Content-Type': 'application/json' } })
+        )
         await new Promise((r) => setTimeout(r, 0))
       })
       expect(screen.getAllByRole('option').length).toBeGreaterThan(0)
     } finally {
-      isLoadedSpy.mockRestore()
-      preloadSpy.mockRestore()
-      resetPreloadForTests()
+      resetSearchIndexForTests()
     }
   })
 

@@ -6,6 +6,14 @@ type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    date: '2026-07-09',
+    title: 'Faster page loads',
+    items: [
+      'Entity and category pages now download only the reference data they actually need, instead of the entire dataset — item and listing pages load noticeably faster, especially on slower connections.',
+      'Search now runs against a small pre-built index instead of downloading the full dataset, so search starts working faster the first time you use it.',
+    ],
+  },
+  {
     date: '2026-07-06',
     title: 'Discord bot Terms & Privacy pages',
     items: [

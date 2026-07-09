@@ -9,7 +9,7 @@ import {
   EntityHrefProvider,
   EntityDetailLinkProvider,
 } from 'suref-react'
-import { GameDataGate, useGameData } from '../../lib/useGameData'
+import { GameDataGate, useGameData, type SchemaList } from '../../lib/useGameData'
 import { srdEntityHref } from '../../lib/entityHref'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 
@@ -17,17 +17,21 @@ type ReferenceEntityIslandProps = {
   item: SURefEntity
   compact?: boolean
   titleAs?: 'span' | 'h1'
+  /** Which schemas to preload — defaults to `'all'`. Pass the per-route list
+   *  from `../../lib/schemaPreloadDeps.ts` to load only what this item needs. */
+  preloadSchemas?: SchemaList
 }
 
 export function ReferenceEntityIsland({
   item,
   compact = false,
   titleAs,
+  preloadSchemas,
 }: ReferenceEntityIslandProps) {
   const classSelections = useMemo(() => getClassSelections(item), [item])
   const classEntity = classSelections.selectedClass || classSelections.selectedAdvancedClass
 
-  const { ready } = useGameData()
+  const { ready } = useGameData({ schemas: preloadSchemas })
 
   // The static SEO/no-JS fallback stays in the served HTML (crawlers and no-JS
   // users keep the content, including the page's only <h1>). For JS users it
@@ -50,6 +54,7 @@ export function ReferenceEntityIsland({
   return (
     <IslandErrorBoundary>
       <GameDataGate
+        schemas={preloadSchemas}
         fallback={
           <div className="mx-auto w-full max-w-6xl p-4">
             <ReferenceEntityCardSkeleton compact={compact} />
