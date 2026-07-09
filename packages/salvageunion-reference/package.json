@@ -15,6 +15,10 @@
       "types": "./lib/rules/index.ts",
       "default": "./lib/rules/index.ts"
     },
+    "./zod": {
+      "types": "./lib/zod.ts",
+      "default": "./lib/zod.ts"
+    },
     "./data/*": {
       "import": "./data/*.json",
       "default": "./data/*.json"

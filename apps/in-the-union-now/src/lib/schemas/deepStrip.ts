@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from 'salvageunion-reference/zod'
 
 /**
  * deepStrip — recursively relax `.strict()` object schemas to `.strip()`

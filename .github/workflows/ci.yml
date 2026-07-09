@@ -68,6 +68,16 @@ jobs:
               - *shared
               - 'apps/**'
               - 'packages/**'
+              # tools/check-architecture.ts and tools/check-doc-drift.ts (run
+              # via `validate:all`, gated on this filter) need to run on the
+              # very PRs that touch their own script or the docs they guard —
+              # otherwise a docs-only or tools-only PR would skip `validate`
+              # entirely and the doc-drift check would never catch drift in
+              # the doc it was added to prevent drifting. Scoped to `code`
+              # (not `shared`) so it doesn't also trigger the itun/web/bot
+              # app builds — those still gate on their own dir changes.
+              - 'tools/**'
+              - 'docs/**'
             # Narrower than itun/web on purpose: the visual-regression PR job
             # below only screenshots suref-react's own Ladle stories, so it
             # only needs to re-run when suref-react itself changes (not on

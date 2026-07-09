@@ -46,13 +46,37 @@ full rationale.
     "types": "./lib/index.ts",
     "default": "./lib/index.ts"
   },
-  "./data/*": { "import": "./data/*.json" },
-  "./schemas/*": { "import": "./schemas/*.json" }
+  "./rules": {
+    "types": "./lib/rules/index.ts",
+    "default": "./lib/rules/index.ts"
+  },
+  "./zod": {
+    "types": "./lib/zod.ts",
+    "default": "./lib/zod.ts"
+  },
+  "./data/*": {
+    "import": "./data/*.json",
+    "default": "./data/*.json"
+  },
+  "./schemas/*": {
+    "import": "./schemas/*.json",
+    "default": "./schemas/*.json"
+  },
+  "./package.json": "./package.json"
 }
 ```
 
 Consuming apps resolve `lib/index.ts` directly — there is no `dist/` build and
-no `development`/`import` condition split.
+no `development`/`import` condition split. `./rules` is the pure-math rules
+entry point ([ADR-006](../adrs/ADR-006-pure-rules-logic.md)). `./zod` is the
+canonical Zod re-export ([ADR-013](../adrs/ADR-013-csp-zod-jitless.md)) — every
+other package/app must import `z` from here, never from `zod` directly
+(enforced by `noRestrictedImports` in the root `biome.jsonc`).
+
+`tools/check-doc-drift.ts` (`bun run validate:all`) fails CI if this block
+ever falls out of sync with `packages/salvageunion-reference/package.json`'s
+actual `exports` map again — the exact class of drift a prior campaign PR had
+to fix by hand.
 
 ### Public API
 

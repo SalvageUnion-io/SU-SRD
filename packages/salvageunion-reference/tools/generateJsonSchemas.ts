@@ -7,7 +7,7 @@
 import { writeFileSync, mkdirSync } from 'fs'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
-import { z } from 'zod'
+import { z } from '../lib/zod.js'
 import * as prettier from 'prettier'
 
 // The canonical schema-id -> Zod map lives in ModelFactory (one registry,

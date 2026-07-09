@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from 'salvageunion-reference/zod'
 
 /**
  * EncounterNpc — one tracked NPC instance on the GM encounter tray

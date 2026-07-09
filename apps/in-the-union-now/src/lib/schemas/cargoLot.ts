@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from 'salvageunion-reference/zod'
 
 /**
  * CargoLot — the unified cargo model shared by mechs, mech patterns, and

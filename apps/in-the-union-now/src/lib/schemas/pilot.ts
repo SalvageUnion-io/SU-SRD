@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from 'salvageunion-reference/zod'
 import { ItemConditionMapSchema } from './mech'
 
 /**
