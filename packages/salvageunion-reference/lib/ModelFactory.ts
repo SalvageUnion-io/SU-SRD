@@ -3,177 +3,24 @@
  * Uses lazy (dynamic) imports for JSON data files so consumers
  * can code-split the ~1.1 MB data corpus via SalvageUnionReference.preload().
  *
- * Zod schemas remain statically imported because they are code (types + validation),
- * not data, and must be available at compilation time.
+ * The four registries below (dataLoaders, jsonSchemaLoaders, zodSchemaMap,
+ * schemaDisplayNames) are generated from lib/schemas/registry.ts by
+ * tools/generateRegistry.ts into lib/generated/modelFactoryRegistry.generated.ts
+ * — run `bun run build:package` to regenerate after editing the manifest.
  */
 import { BaseModel } from './BaseModel.js'
 import schemaIndex from '../schemas/index.json' with { type: 'json' }
 import { z } from './zod.js'
+import { toPascalCase } from './naming.js'
 import {
-  AbilitySchema,
-  AbilityTreeRequirementSchema,
-  MetaActionSchema,
-  BioTitanSchema,
-  ChassisSchema,
-  ClassSchema,
-  CrawlerBaySchema,
-  CrawlerTechLevelSchema,
-  CrawlerSchema,
-  CreatureSchema,
-  DistanceSchema,
-  DroneSchema,
-  EquipmentSchema,
-  FactionSchema,
-  KeywordSchema,
-  MeldSchema,
-  ModuleSchema,
-  NPCSchema,
-  RollTableSchema,
-  SquadSchema,
-  SystemSchema,
-  TraitEntitySchema,
-  VehicleSchema,
-  GuideSchema,
-  SourceEntitySchema,
-  TechLevelEntitySchema,
-  CatalogCategorySchema,
-} from './schemas/index.js'
+  dataLoaders,
+  jsonSchemaLoaders,
+  zodSchemaMap,
+  schemaDisplayNames,
+} from './generated/modelFactoryRegistry.generated.js'
 
-// ---------------------------------------------------------------------------
-// Lazy loader registries — no JSON is imported at module scope
-// ---------------------------------------------------------------------------
-
-const dataLoaders: Record<string, () => Promise<unknown[]>> = {
-  abilities: () => import('../data/abilities.json').then((m) => m.default as unknown[]),
-  'ability-tree-requirements': () =>
-    import('../data/ability-tree-requirements.json').then((m) => m.default as unknown[]),
-  actions: () => import('../data/actions.json').then((m) => m.default as unknown[]),
-  chassis: () => import('../data/chassis.json').then((m) => m.default as unknown[]),
-  classes: () => import('../data/classes.json').then((m) => m.default as unknown[]),
-  'crawler-bays': () => import('../data/crawler-bays.json').then((m) => m.default as unknown[]),
-  'crawler-tech-levels': () =>
-    import('../data/crawler-tech-levels.json').then((m) => m.default as unknown[]),
-  crawlers: () => import('../data/crawlers.json').then((m) => m.default as unknown[]),
-  creatures: () => import('../data/creatures.json').then((m) => m.default as unknown[]),
-  distances: () => import('../data/distances.json').then((m) => m.default as unknown[]),
-  drones: () => import('../data/drones.json').then((m) => m.default as unknown[]),
-  equipment: () => import('../data/equipment.json').then((m) => m.default as unknown[]),
-  guides: () => import('../data/guides.json').then((m) => m.default as unknown[]),
-  keywords: () => import('../data/keywords.json').then((m) => m.default as unknown[]),
-  factions: () => import('../data/factions.json').then((m) => m.default as unknown[]),
-  meld: () => import('../data/meld.json').then((m) => m.default as unknown[]),
-  modules: () => import('../data/modules.json').then((m) => m.default as unknown[]),
-  npcs: () => import('../data/npcs.json').then((m) => m.default as unknown[]),
-  'roll-tables': () => import('../data/roll-tables.json').then((m) => m.default as unknown[]),
-  squads: () => import('../data/squads.json').then((m) => m.default as unknown[]),
-  systems: () => import('../data/systems.json').then((m) => m.default as unknown[]),
-  'bio-titans': () => import('../data/bio-titans.json').then((m) => m.default as unknown[]),
-  traits: () => import('../data/traits.json').then((m) => m.default as unknown[]),
-  vehicles: () => import('../data/vehicles.json').then((m) => m.default as unknown[]),
-  sources: () => import('../data/sources.json').then((m) => m.default as unknown[]),
-  'tech-levels': () => import('../data/tech-levels.json').then((m) => m.default as unknown[]),
-  'catalog-categories': () =>
-    import('../data/catalog-categories.json').then((m) => m.default as unknown[]),
-}
-
-const jsonSchemaLoaders: Record<string, () => Promise<Record<string, unknown>>> = {
-  abilities: () =>
-    import('../schemas/abilities.schema.json').then((m) => m.default as Record<string, unknown>),
-  'ability-tree-requirements': () =>
-    import('../schemas/ability-tree-requirements.schema.json').then(
-      (m) => m.default as Record<string, unknown>
-    ),
-  actions: () =>
-    import('../schemas/actions.schema.json').then((m) => m.default as Record<string, unknown>),
-  chassis: () =>
-    import('../schemas/chassis.schema.json').then((m) => m.default as Record<string, unknown>),
-  classes: () =>
-    import('../schemas/classes.schema.json').then((m) => m.default as Record<string, unknown>),
-  'crawler-bays': () =>
-    import('../schemas/crawler-bays.schema.json').then((m) => m.default as Record<string, unknown>),
-  'crawler-tech-levels': () =>
-    import('../schemas/crawler-tech-levels.schema.json').then(
-      (m) => m.default as Record<string, unknown>
-    ),
-  crawlers: () =>
-    import('../schemas/crawlers.schema.json').then((m) => m.default as Record<string, unknown>),
-  creatures: () =>
-    import('../schemas/creatures.schema.json').then((m) => m.default as Record<string, unknown>),
-  distances: () =>
-    import('../schemas/distances.schema.json').then((m) => m.default as Record<string, unknown>),
-  drones: () =>
-    import('../schemas/drones.schema.json').then((m) => m.default as Record<string, unknown>),
-  equipment: () =>
-    import('../schemas/equipment.schema.json').then((m) => m.default as Record<string, unknown>),
-  guides: () =>
-    import('../schemas/guides.schema.json').then((m) => m.default as Record<string, unknown>),
-  keywords: () =>
-    import('../schemas/keywords.schema.json').then((m) => m.default as Record<string, unknown>),
-  factions: () =>
-    import('../schemas/factions.schema.json').then((m) => m.default as Record<string, unknown>),
-  meld: () =>
-    import('../schemas/meld.schema.json').then((m) => m.default as Record<string, unknown>),
-  modules: () =>
-    import('../schemas/modules.schema.json').then((m) => m.default as Record<string, unknown>),
-  npcs: () =>
-    import('../schemas/npcs.schema.json').then((m) => m.default as Record<string, unknown>),
-  'roll-tables': () =>
-    import('../schemas/roll-tables.schema.json').then((m) => m.default as Record<string, unknown>),
-  squads: () =>
-    import('../schemas/squads.schema.json').then((m) => m.default as Record<string, unknown>),
-  systems: () =>
-    import('../schemas/systems.schema.json').then((m) => m.default as Record<string, unknown>),
-  'bio-titans': () =>
-    import('../schemas/bio-titans.schema.json').then((m) => m.default as Record<string, unknown>),
-  traits: () =>
-    import('../schemas/traits.schema.json').then((m) => m.default as Record<string, unknown>),
-  vehicles: () =>
-    import('../schemas/vehicles.schema.json').then((m) => m.default as Record<string, unknown>),
-  sources: () =>
-    import('../schemas/sources.schema.json').then((m) => m.default as Record<string, unknown>),
-  'tech-levels': () =>
-    import('../schemas/tech-levels.schema.json').then((m) => m.default as Record<string, unknown>),
-  'catalog-categories': () =>
-    import('../schemas/catalog-categories.schema.json').then(
-      (m) => m.default as Record<string, unknown>
-    ),
-}
-
-/**
- * Zod schema map — statically available, these are code not data.
- * Exported so the `validate:schemas` tool validates data against the exact
- * same schemas runtime uses, rather than maintaining a parallel literal that
- * could silently drift.
- */
-export const zodSchemaMap: Record<string, z.ZodType<unknown>> = {
-  abilities: AbilitySchema,
-  'ability-tree-requirements': AbilityTreeRequirementSchema,
-  actions: MetaActionSchema,
-  chassis: ChassisSchema,
-  classes: ClassSchema,
-  'crawler-bays': CrawlerBaySchema,
-  'crawler-tech-levels': CrawlerTechLevelSchema,
-  crawlers: CrawlerSchema,
-  creatures: CreatureSchema,
-  distances: DistanceSchema,
-  drones: DroneSchema,
-  equipment: EquipmentSchema,
-  factions: FactionSchema,
-  guides: GuideSchema,
-  keywords: KeywordSchema,
-  meld: MeldSchema,
-  modules: ModuleSchema,
-  npcs: NPCSchema,
-  'roll-tables': RollTableSchema,
-  squads: SquadSchema,
-  systems: SystemSchema,
-  'bio-titans': BioTitanSchema,
-  traits: TraitEntitySchema,
-  vehicles: VehicleSchema,
-  sources: SourceEntitySchema,
-  'tech-levels': TechLevelEntitySchema,
-  'catalog-categories': CatalogCategorySchema,
-}
+export { toPascalCase }
+export { zodSchemaMap, schemaDisplayNames }
 
 // ---------------------------------------------------------------------------
 // Load state
@@ -309,24 +156,6 @@ export function getDataMaps(): {
 // ---------------------------------------------------------------------------
 
 /**
- * Convert schema ID to PascalCase property name
- * Examples:
- *   abilities -> Abilities
- *   ability-tree-requirements -> AbilityTreeRequirements
- *   classes -> Classes
- *
- * Exposed for client use
- */
-export function toPascalCase(id: string): string {
-  if (id === 'classes') return 'Classes'
-  if (id === 'npcs') return 'NPCs'
-  return id
-    .split(/[-.]/)
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join('')
-}
-
-/**
  * Registry key sets, exported for the consistency test ONLY — the loader
  * maps themselves stay private (they must remain static-literal for
  * bundler-analyzable dynamic imports). Every map here must cover exactly
@@ -358,45 +187,6 @@ function validateAndParseData<T>(
     }
     throw error
   }
-}
-
-/**
- * Schema display name mappings
- */
-export const schemaDisplayNames: Record<string, { singular: string; plural: string }> = {
-  abilities: { singular: 'Ability', plural: 'Abilities' },
-  actions: { singular: 'Action', plural: 'Actions' },
-  'ability-tree-requirements': {
-    singular: 'Ability Tree Requirement',
-    plural: 'Ability Tree Requirements',
-  },
-  chassis: { singular: 'Chassis', plural: 'Chassis' },
-  classes: { singular: 'Class', plural: 'Classes' },
-  'crawler-bays': { singular: 'Crawler Bay', plural: 'Crawler Bays' },
-  'crawler-tech-levels': {
-    singular: 'Crawler Tech Level',
-    plural: 'Crawler Tech Levels',
-  },
-  crawlers: { singular: 'Crawler', plural: 'Crawlers' },
-  creatures: { singular: 'Creature', plural: 'Creatures' },
-  distances: { singular: 'Distance', plural: 'Distances' },
-  drones: { singular: 'Drone', plural: 'Drones' },
-  equipment: { singular: 'Equipment', plural: 'Equipment' },
-  guides: { singular: 'Guide', plural: 'Guides' },
-  keywords: { singular: 'Keyword', plural: 'Keywords' },
-  factions: { singular: 'Faction', plural: 'Factions' },
-  meld: { singular: 'Meld', plural: 'Meld' },
-  modules: { singular: 'Module', plural: 'Modules' },
-  npcs: { singular: 'NPC', plural: 'NPCs' },
-  'roll-tables': { singular: 'Roll Table', plural: 'Roll Tables' },
-  squads: { singular: 'Squad', plural: 'Squads' },
-  systems: { singular: 'System', plural: 'Systems' },
-  'bio-titans': { singular: 'Bio-Titan', plural: 'Bio-Titans' },
-  traits: { singular: 'Trait', plural: 'Traits' },
-  vehicles: { singular: 'Vehicle', plural: 'Vehicles' },
-  sources: { singular: 'Source', plural: 'Sources' },
-  'tech-levels': { singular: 'Tech Level', plural: 'Tech Levels' },
-  'catalog-categories': { singular: 'Catalog Category', plural: 'Catalog Categories' },
 }
 
 /**

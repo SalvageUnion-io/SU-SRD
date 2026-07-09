@@ -5,3 +5,4 @@ node_modules
 core
 **/database-generated.types.ts
 **/routeTree.gen.ts
+packages/salvageunion-reference/lib/generated/**

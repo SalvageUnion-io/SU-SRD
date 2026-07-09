@@ -25,7 +25,7 @@
     "./lib/zod.ts"
   ],
   "scripts": {
-    "build": "bun run generate:json-schemas",
+    "build": "bun run generate:registry && bun run generate:json-schemas",
     "build:full": "bun run build && bun run format && bun run lint",
     "validate:ids": "bun tools/checkUniqueIds.ts",
     "validate:slugs": "bun tools/validateSlugs.ts",
@@ -33,6 +33,7 @@
     "scaffold:entity": "bun tools/scaffold-entity.ts",
     "docs": "bun tools/generateDocs.ts",
     "docs:schemas": "bun tools/generateSchemaDocs.ts",
+    "generate:registry": "bun tools/generateRegistry.ts",
     "generate:json-schemas": "bun tools/generateJsonSchemas.ts",
     "validate:references": "bun tools/validateReferences.ts",
     "validate:actions": "bun tools/validateActionReferences.ts",

@@ -62,11 +62,20 @@ const allWeapons = SalvageUnionReference.Equipment.all()
 
 ## Adding a New Entity **Type** (schema)
 
-Adding a whole new schema (not just rows in an existing file) touches ~7
-hand-maintained sites kept in lockstep by `lib/registryConsistency.test.ts`.
-Run the scaffold generator to print an exact, ordered checklist (with
-ready-to-paste snippets) derived from the live registry — it does not edit
-files, it tells you precisely what to add and where:
+Adding a whole new schema (not just rows in an existing file) needs three
+hand-authored pieces — the Zod schema itself, the SURefEntity/SURefMetaEntity
+type-union edits, and the `schemas/index.json` catalog entry — plus **one**
+manifest entry in `lib/schemas/registry.ts`. Everything else (ModelFactory's
+`dataLoaders` / `jsonSchemaLoaders` / `zodSchemaMap` / `schemaDisplayNames`,
+`index.ts`'s `LazyModel` instances / `lazyModelMap` / `SchemaToEntityMap` /
+`SCHEMA_REGISTRY`, and the `SalvageUnionReference` static accessors) is
+generated from that manifest by `tools/generateRegistry.ts` — run via
+`bun run build:package` (it runs before `generate:json-schemas`, since that
+tool transitively imports the generated `zodSchemaMap`).
+
+Run the scaffold generator to print an exact, ready-to-paste checklist for
+the 3 manual steps plus the manifest entry, derived from the live registry —
+it does not edit files, it tells you precisely what to add and where:
 
 ```bash
 bun run scaffold:entity <schema-id> [Singular] [Plural] [--non-entity]
@@ -74,6 +83,20 @@ bun run scaffold:entity <schema-id> [Singular] [Plural] [--non-entity]
 ```
 
 See the header of `tools/scaffold-entity.ts` for full usage.
+
+The generated files (`lib/generated/*.generated.ts`, and the marker-injected
+static-accessor block inside `lib/index.ts` between the
+`// GENERATED:BEGIN` / `// GENERATED:END` comments) are committed,
+human-reviewable, and covered by the same `bun run build:package` drift check
+as `schemas/*.schema.json` — never hand-edit them. `LazyModel` is generated
+into the class body (not a runtime base class / mixin) specifically so every
+static property stays a true _own_ property of `SalvageUnionReference`, which
+`lib/index.test.ts` depends on via `Object.getOwnPropertyNames`.
+
+`lib/registryConsistency.test.ts` independently re-verifies that every
+generated registry still covers the same schema-id key set — it isn't
+weakened by this generator, it's a second, structurally-different check on
+the generator's output.
 
 ## Validation
 

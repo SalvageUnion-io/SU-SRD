@@ -109,17 +109,19 @@ jobs:
         uses: ./.github/actions/setup-bun
 
       # The package ships TypeScript source (no dist; audit item 16) — this
-      # job only guards the one remaining generated artifact: the committed
-      # JSON schemas. If they drift from the Zod generator output, fail so
-      # stale schemas never ship (as a stale crawler-bays.schema.json once
-      # did on main).
-      - name: Regenerate JSON schemas
+      # job guards the committed generated artifacts: the JSON schemas, the
+      # registry-mechanism codegen (lib/generated/*.generated.ts, produced by
+      # tools/generateRegistry.ts from lib/schemas/registry.ts), and the
+      # marker-injected static-accessor block inside lib/index.ts. If any of
+      # them drift from the generator output, fail so stale generated code
+      # never ships (as a stale crawler-bays.schema.json once did on main).
+      - name: Regenerate JSON schemas + registry codegen
         run: bun run build:package
 
-      - name: Verify generated schemas are up to date
+      - name: Verify generated files are up to date
         run: |
-          if ! git diff --exit-code -- packages/salvageunion-reference/schemas; then
-            echo "::error::Committed JSON schemas are stale. Run 'bun run build:package' and commit packages/salvageunion-reference/schemas/." >&2
+          if ! git diff --exit-code -- packages/salvageunion-reference/schemas packages/salvageunion-reference/lib/generated packages/salvageunion-reference/lib/index.ts; then
+            echo "::error::Committed generated files are stale. Run 'bun run build:package' and commit packages/salvageunion-reference/schemas/, packages/salvageunion-reference/lib/generated/, and packages/salvageunion-reference/lib/index.ts." >&2
             exit 1
           fi
 

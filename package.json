@@ -84,7 +84,7 @@
     "validate:all": "bun --filter salvageunion-reference validate:all && bun tools/check-bun-version.ts",
     "clean": "bun --filter \"*\" clean || true",
     "knip": "knip",
-    "check:schemas": "bun run build:package && git diff --exit-code -- packages/salvageunion-reference/schemas",
+    "check:schemas": "bun run build:package && git diff --exit-code -- packages/salvageunion-reference/schemas packages/salvageunion-reference/lib/generated packages/salvageunion-reference/lib/index.ts",
     "check:audit": "bun audit --audit-level=high",
     "check:all": "bun run check:schemas && concurrently -g 'bun run lint' 'bun run format:check' && bun run typecheck && concurrently -g 'bun run test' 'bun run validate:all' 'bun run knip' 'bun run check:audit'",
     "fix:all": "bun run lint -- --fix && bun run format",
