@@ -1,8 +1,0 @@
-dist
-node_modules
-.git
-*.tsbuildinfo
-core
-**/database-generated.types.ts
-**/routeTree.gen.ts
-packages/salvageunion-reference/lib/generated/**

@@ -9,6 +9,7 @@ allowed-tools: Bash
 Run the automated accessibility scanner against a local dev server.
 
 Steps:
+
 1. Determine the base URL and pages to scan:
    - If arguments are provided, use them as: `<base-url> <page1> <page2> ...`
    - If no arguments, default to: `http://localhost:4321 /` (suref-web dev server)

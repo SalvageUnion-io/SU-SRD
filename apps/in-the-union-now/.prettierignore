@@ -1,9 +1,0 @@
-dist
-node_modules
-.git
-*.tsbuildinfo
-src/routeTree.gen.ts
-
-# Playwright artifacts
-playwright-report
-test-results

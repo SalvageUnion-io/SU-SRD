@@ -5,8 +5,8 @@
  * Models are loaded lazily via SalvageUnionReference.preload().
  */
 
-import { BaseModel, type ModelWithMetadata } from './BaseModel.js'
-import { LazyModel } from './LazyModel.js'
+import type { BaseModel, ModelWithMetadata } from './BaseModel.js'
+import type { LazyModel } from './LazyModel.js'
 import {
   getLoadedModel,
   isSchemaLoaded,
@@ -294,7 +294,7 @@ export class SalvageUnionReference {
    * Check if an entity exists by schema name and ID
    */
   public static exists<T extends keyof SchemaToEntityMap>(schemaName: T, id: string): boolean {
-    return this.get(schemaName, id) !== undefined
+    return SalvageUnionReference.get(schemaName, id) !== undefined
   }
 
   /**
@@ -306,7 +306,7 @@ export class SalvageUnionReference {
       })
     | undefined
   )[] {
-    return requests.map((req) => this.get(req.schemaName, req.id))
+    return requests.map((req) => SalvageUnionReference.get(req.schemaName, req.id))
   }
 
   /**
@@ -336,10 +336,10 @@ export class SalvageUnionReference {
         schemaName: keyof SchemaToEntityMap
       })
     | undefined {
-    const parsed = this.parseRef(ref)
+    const parsed = SalvageUnionReference.parseRef(ref)
     if (!parsed) return undefined
     if (parsed.schemaName in SchemaToModelMap) {
-      return this.get(parsed.schemaName as keyof SchemaToEntityMap, parsed.id)
+      return SalvageUnionReference.get(parsed.schemaName as keyof SchemaToEntityMap, parsed.id)
     }
     return undefined
   }

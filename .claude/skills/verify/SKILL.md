@@ -1,5 +1,7 @@
 # Verify
+
 Run the full verification suite in order:
+
 1. `bun run typecheck` (TypeScript check all packages)
 2. `bun run lint` (lint all packages)
 3. `bun run format` (format check all packages)

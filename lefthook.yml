@@ -4,17 +4,24 @@
 pre-commit:
   parallel: true
   commands:
-    lint-fix:
-      # Staged files only — the old `bun run lint -- --fix` linted the whole
-      # monorepo (~60s) on every commit; pre-push/CI still run the full lint.
-      glob: '*.{ts,tsx,js,jsx}'
-      run: bunx eslint --fix {staged_files}
+    biome-check:
+      # Staged files only — linting the whole monorepo on every commit was
+      # too slow (~60s); pre-push/CI still run the full check. Biome combines
+      # lint + format in one pass (`check --write`), applying only SAFE
+      # fixes. biome.jsonc's `files.includes` scopes this to apps/**,
+      # packages/**, tools/** and excludes .astro/.md/.yml/.yaml/data/** —
+      # staged files outside that scope (e.g. root docs/*.md) are silently
+      # skipped by Biome, not errored on, so this glob can stay broad.
+      glob: '*.{ts,tsx,js,jsx,json,css}'
+      run: bunx biome check --write {staged_files}
       stage_fixed: true
 
-    format:
-      # No astro in the glob: the repo has no prettier-plugin-astro, and
-      # prettier hard-errors when handed an explicit file it cannot parse.
-      glob: '*.{ts,tsx,js,jsx,json,md,css,yml,yaml}'
+    format-prose:
+      # Biome doesn't parse Markdown/YAML/Astro yet (see biome.jsonc's
+      # top-of-file note) — narrow Prettier fallback for those. No astro in
+      # the glob: the repo has no prettier-plugin-astro, and prettier
+      # hard-errors when handed an explicit file it cannot parse.
+      glob: '*.{md,yml,yaml}'
       run: bunx prettier --write --ignore-unknown {staged_files}
       stage_fixed: true
 

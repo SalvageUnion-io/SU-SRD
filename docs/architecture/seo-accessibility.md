@@ -1,6 +1,6 @@
 # SEO Strategy & WCAG Compliance
 
-SEO applies to `suref-web` (the static reference site). Accessibility patterns are shared across both apps via `suref-react` components and ESLint rules.
+SEO applies to `suref-web` (the static reference site). Accessibility patterns are shared across both apps via `suref-react` components and Biome's a11y lint rules.
 
 ## SEO (suref-web)
 
@@ -25,6 +25,7 @@ type Props = {
 ```
 
 **Renders:**
+
 - `<title>`, `<meta name="description">`, `<link rel="canonical">`
 - Open Graph: `og:title`, `og:description`, `og:url`, `og:type`, `og:site_name`, `og:image` + `og:image:width`/`height`/`alt` — **all OG images are 1200×630** (the default banner and the per-entity screenshots below)
 - Twitter Cards: `twitter:card` (`summary_large_image`), `twitter:title`, `twitter:description`, `twitter:image`
@@ -59,12 +60,12 @@ regen; `OG_SCREENSHOTS_SKIP=1` skips the pass entirely.
 
 Three Schema.org types, rendered as `<script type="application/ld+json">`:
 
-| Type | Page | Key properties |
-|------|------|----------------|
-| `WebSite` | Homepage (`index.astro`) | name, url |
-| `CollectionPage` | Schema pages (`[schemaId]/index.astro`) | description, item count, creator (Organization), keywords |
-| `ItemPage` | Entity pages (`[schemaId]/item/[itemId].astro`) | name, tech level (PropertyValue), source (Book), parent CollectionPage |
-| `BreadcrumbList` | All pages with breadcrumbs (`TopNavigation.astro`) | Positional list items with URLs |
+| Type             | Page                                               | Key properties                                                         |
+| ---------------- | -------------------------------------------------- | ---------------------------------------------------------------------- |
+| `WebSite`        | Homepage (`index.astro`)                           | name, url                                                              |
+| `CollectionPage` | Schema pages (`[schemaId]/index.astro`)            | description, item count, creator (Organization), keywords              |
+| `ItemPage`       | Entity pages (`[schemaId]/item/[itemId].astro`)    | name, tech level (PropertyValue), source (Book), parent CollectionPage |
+| `BreadcrumbList` | All pages with breadcrumbs (`TopNavigation.astro`) | Positional list items with URLs                                        |
 
 Entity page meta descriptions are derived from the first static content paragraph, truncated to 155 characters.
 
@@ -73,12 +74,14 @@ Entity page meta descriptions are derived from the first static content paragrap
 Entity pages use progressive enhancement so crawlers see full text content even without JavaScript:
 
 **1. Server-side extraction** (`extractStaticEntitySummary` in salvageunion-reference):
+
 - Extracts text paragraphs from content blocks
 - Collects numeric stats (SP, EP, HC, slots, cargo, HP, tech level)
 - Gathers trait names
 - Returns `StaticEntitySummary`
 
 **2. Static HTML** (`StaticEntityContent.astro`):
+
 ```html
 <div data-static-fallback>
   <p class="italic">{description}</p>
@@ -100,6 +103,7 @@ On React hydration, removes `[data-static-fallback]` element and replaces with t
 ### Static Build Paths
 
 `staticPaths.ts` pre-computes all routes at build time:
+
 - `getSchemaStaticPaths()` — Routes for all schemas
 - `getItemStaticPaths()` — Routes for all items within schemas
 - **Meta schemas are excluded from BOTH** (`!s.meta`): entity types like
@@ -117,14 +121,10 @@ On React hydration, removes `[data-static-fallback]` element and replaces with t
 
 ### Tooling
 
-**ESLint** (`eslint-plugin-jsx-a11y` v6.10.2):
-Both React apps enable recommended rules:
-```javascript
-plugins: { 'jsx-a11y': jsxA11y }
-rules: { ...jsxA11y.flatConfigs.recommended.rules }
-```
+**Biome** (`biome.jsonc`'s `linter.rules.a11y` group, part of Biome's `recommended` preset):
+Both React apps get the built-in a11y rule group automatically — no separate plugin to enable. Some rules that have no ESLint/jsx-a11y precedent (e.g. `useButtonType`, `useSemanticElements`) are deliberately set to `"warn"` rather than Biome's default `"error"`, so this migration stays a tooling swap rather than a lint-cleanup pass; see `biome.jsonc`'s inline comments and the tooling-migration PR description for the full rationale.
 
-Enforces: `img-alt-text`, `anchor-is-valid`, `label-has-associated-control`, `interactive-supports-focus`, `click-events-have-key-events`, and more.
+Enforces: `noSvgWithoutTitle`, `useAriaPropsForRole`, `noAutofocus`, `useKeyWithClickEvents`, `noStaticElementInteractions`, and more.
 
 **Automated scanning** (`tools/a11y-scan.ts`):
 Puppeteer + axe-core WCAG 2.1 AA scanner. Usage:
@@ -137,12 +137,12 @@ Reports violations with impact level (critical/serious/moderate/minor), node exa
 
 ### Landmark Structure
 
-| Element | Location | ARIA |
-|---------|----------|------|
-| `<nav>` | `TopNavigation.astro` | `aria-label="Main navigation"` |
-| `<nav>` | `TopNavigation.astro` (breadcrumbs) | `aria-label="Breadcrumb"` |
-| `<main>` | `BaseLayout.astro` | Wraps all page content |
-| `<footer>` | `Footer.tsx` | Implicit landmark |
+| Element    | Location                            | ARIA                           |
+| ---------- | ----------------------------------- | ------------------------------ |
+| `<nav>`    | `TopNavigation.astro`               | `aria-label="Main navigation"` |
+| `<nav>`    | `TopNavigation.astro` (breadcrumbs) | `aria-label="Breadcrumb"`      |
+| `<main>`   | `BaseLayout.astro`                  | Wraps all page content         |
+| `<footer>` | `Footer.tsx`                        | Implicit landmark              |
 
 ### Heading Structure
 
@@ -154,18 +154,20 @@ Reports violations with impact level (critical/serious/moderate/minor), node exa
 ### Component Accessibility Patterns
 
 **Clickable cards** (`DisplayCard.tsx`):
+
 ```tsx
 <div
   role={resolvedCardClick ? 'button' : undefined}
   tabIndex={resolvedCardClick ? 0 : undefined}
   onClick={resolvedCardClick}
-  onKeyDown={handleCardKeyDown}  // Enter + Space
+  onKeyDown={handleCardKeyDown} // Enter + Space
 />
 ```
 
 In `SchemaViewerIsland.tsx`, entity cards are wrapped in `<a>` tags for semantic HTML navigation with `aria-label={item.name}`.
 
 **Tab panels** (`DisplayCard.tsx`):
+
 ```tsx
 <div role="tablist">
   <button role="tab" aria-selected={isActive} />
@@ -173,6 +175,7 @@ In `SchemaViewerIsland.tsx`, entity cards are wrapped in `<a>` tags for semantic
 ```
 
 **Combobox search** (`SearchIsland.tsx`):
+
 ```tsx
 <input
   role="combobox"
@@ -189,11 +192,13 @@ In `SchemaViewerIsland.tsx`, entity cards are wrapped in `<a>` tags for semantic
 Keyboard: ArrowDown/ArrowUp navigate, Enter opens, Escape closes, Cmd+K/Ctrl+K focuses.
 
 **Breadcrumbs** (`TopNavigation.astro`):
+
 - Separators: `aria-hidden="true"`
 - Current page: `aria-current="page"`
 - Dual representation: HTML + JSON-LD `BreadcrumbList`
 
 **Filter chips** (`FilterChip.tsx`):
+
 ```tsx
 <button type="button" onClick={onClick} aria-pressed={active}>
   {label}
@@ -206,15 +211,16 @@ Keyboard: ArrowDown/ArrowUp navigate, Enter opens, Escape closes, Cmd+K/Ctrl+K f
 
 SU brand colors are designed for WCAG 2.1 AA compliance:
 
-| Token | Value | Usage |
-|-------|-------|-------|
-| `--color-su-orange-dark` | `rgb(168, 82, 34)` | Text accent (5.5:1 vs white) |
-| `--color-su-green-dark` | `rgb(92, 121, 108)` | Mech header backgrounds |
-| `--color-su-pink` | `rgb(206, 88, 152)` | Crawler accent |
-| `--color-su-black` | `rgb(40, 32, 25)` | Primary text |
-| `--color-su-grey-dark` | `rgb(80, 80, 80)` | Secondary/muted text |
+| Token                    | Value               | Usage                        |
+| ------------------------ | ------------------- | ---------------------------- |
+| `--color-su-orange-dark` | `rgb(168, 82, 34)`  | Text accent (5.5:1 vs white) |
+| `--color-su-green-dark`  | `rgb(92, 121, 108)` | Mech header backgrounds      |
+| `--color-su-pink`        | `rgb(206, 88, 152)` | Crawler accent               |
+| `--color-su-black`       | `rgb(40, 32, 25)`   | Primary text                 |
+| `--color-su-grey-dark`   | `rgb(80, 80, 80)`   | Secondary/muted text         |
 
 **Key principle**: Brand colors (green, pink, orange) are used as background accents or on large header text, never as small body text on white. Recent fixes (commit `5a87011`) addressed:
+
 - Darkened `su-orange-dark` for 5.5:1 contrast ratio
 - FilterChip inactive state: replaced `opacity-30` with explicit `text-su-grey-dark`
 - Added proper landmark structure across all pages
@@ -222,9 +228,14 @@ SU brand colors are designed for WCAG 2.1 AA compliance:
 ### Mobile Accessibility
 
 Touch targets enforced via CSS media query:
+
 ```css
 @media (pointer: coarse) {
-  button, [role='button'], input, select, textarea {
+  button,
+  [role='button'],
+  input,
+  select,
+  textarea {
     min-height: 44px;
     min-width: 44px;
   }
@@ -245,4 +256,4 @@ bun run dev &
 bun tools/a11y-scan.ts http://localhost:4321 / /schema/chassis/ /schema/chassis/item/iron-mongrel/ /about/
 ```
 
-ESLint catches static violations on every commit (pre-commit hook). The scanner catches runtime violations (color contrast, missing landmarks, focus management).
+Biome catches static violations on every commit (pre-commit hook). The scanner catches runtime violations (color contrast, missing landmarks, focus management).

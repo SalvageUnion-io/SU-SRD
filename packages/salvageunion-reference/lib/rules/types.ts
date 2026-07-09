@@ -275,7 +275,11 @@ export type Roll = (sides: number) => number
  *   20    → safe
  */
 export type ReactorOverloadOutcome =
-  'meltdown' | 'system-destroyed' | 'module-destroyed' | 'overheat' | 'safe'
+  | 'meltdown'
+  | 'system-destroyed'
+  | 'module-destroyed'
+  | 'overheat'
+  | 'safe'
 
 /**
  * Recorded result of a Heat Check (and any subsequent Reactor Overload roll).
@@ -357,7 +361,11 @@ export type CriticalDamageResult = {
  *   20    → miraculous-survival
  */
 export type CriticalInjuryOutcome =
-  'fatal' | 'major-injury' | 'minor-injury' | 'unconscious' | 'miraculous-survival'
+  | 'fatal'
+  | 'major-injury'
+  | 'minor-injury'
+  | 'unconscious'
+  | 'miraculous-survival'
 
 /** Recorded result of a Critical Injury Table roll. */
 export type CriticalInjuryResult = {

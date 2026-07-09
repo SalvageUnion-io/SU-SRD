@@ -1,7 +1,7 @@
 ---
 paths:
-  - "**/*.ts"
-  - "**/*.tsx"
+  - '**/*.ts'
+  - '**/*.tsx'
 ---
 
 # TypeScript Style
@@ -42,5 +42,5 @@ Use meaningful generic names with constraints when needed:
 
 ## Formatting and Linting
 
-- Use Prettier for formatting (run `bun run format` before committing)
-- Use ESLint (run `bun run lint` to check)
+- Use Biome for formatting and linting TS/TSX/JS/JSX/JSON/CSS (run `bun run format` before committing, `bun run lint` to check). Config: root `biome.jsonc`.
+- Markdown and YAML still go through a narrow Prettier fallback (Biome doesn't parse those yet) — covered by the same `bun run format`/`format:check` scripts.

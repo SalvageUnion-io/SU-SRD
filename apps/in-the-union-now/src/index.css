@@ -2,7 +2,7 @@
 @import 'suref-react/styles/theme.css';
 @import './styles/print.css';
 
-@source "../../../packages/suref-react/src";
+@source '../../../packages/suref-react/src';
 
 /*
  * ShadCN runtime tokens — map to SU brand colors so generic ShadCN

@@ -13,7 +13,7 @@ import type { CardFootMeta, ChoiceSelections } from 'suref-react'
 import { scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
 import { findNpcChoiceByName, resolveCrawlerBay, resolveCrawlerType } from '../../lib/crawlerRefs'
 import type { Crawler, ScrapPool } from '../../lib/schemas/crawler'
-import { useEntityStore } from '../../stores/entityStore'
+import type { useEntityStore } from '../../stores/entityStore'
 import { useEntityChoices } from '../shared/useEntityChoices'
 import { NpcInset } from './NpcInset'
 

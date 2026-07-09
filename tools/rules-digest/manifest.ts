@@ -66,7 +66,12 @@ export const manifest: DocSpec[] = [
     extractPages: [2, 235, 236, 237, 238],
     brief:
       'The action-scene turn loop: group initiative, the Move + one Turn Action budget (there is no action-point pool), the action types and timings (Reaction/Free/Turn/Short/Long/Downtime) as a table, and the four range bands (Close/Medium/Long/Far) as a table.',
-    crossLinks: ['01-core-mechanic.md', '03-heat-and-pushing.md', 'data/actions.json', 'data/distances.json'],
+    crossLinks: [
+      '01-core-mechanic.md',
+      '03-heat-and-pushing.md',
+      'data/actions.json',
+      'data/distances.json',
+    ],
   },
   {
     slug: '03-heat-and-pushing',
@@ -86,7 +91,12 @@ export const manifest: DocSpec[] = [
     extractPages: [2, 239, 240, 241, 242, 243],
     brief:
       'Attack resolution tied to the d20 bands, SP (mech) vs HP (pilot) and the conversion (mech HP-dmg = SP/2; pilot SP-dmg = 2× HP), 0 SP → Critical Damage and 0 HP → Critical Injury, and the Intact→Damaged→Destroyed condition ladder with repair rules. Tables for the conversions and ladder.',
-    crossLinks: ['01-core-mechanic.md', '05-salvaging.md', 'combatUtils.ts', 'data/roll-tables.json'],
+    crossLinks: [
+      '01-core-mechanic.md',
+      '05-salvaging.md',
+      'combatUtils.ts',
+      'data/roll-tables.json',
+    ],
   },
   {
     slug: '05-salvaging',
@@ -96,7 +106,13 @@ export const manifest: DocSpec[] = [
     extractPages: [2, 244, 245, 246, 247, 248, 249, 250, 251],
     brief:
       'Salvage types & condition, Area Salvaging (cost, attempts = Supply, roll table), salvaging a Mech/Vehicle, Cargo Capacity, the scrap/cargo/tech-level math (1 scrap = 1 cargo; scrap value = tech level; 2×T6 = 12×T1), and salvaging abilities at a high level.',
-    crossLinks: ['04-attacks-and-damage.md', '08-crawlers.md', 'data/roll-tables.json', 'data/tech-levels.json', 'data/abilities.json'],
+    crossLinks: [
+      '04-attacks-and-damage.md',
+      '08-crawlers.md',
+      'data/roll-tables.json',
+      'data/tech-levels.json',
+      'data/abilities.json',
+    ],
   },
   {
     slug: '06-pilots',
@@ -106,7 +122,16 @@ export const manifest: DocSpec[] = [
     extractPages: [18, 19, 20, 21, 22, 23],
     brief:
       'Pilot creation steps and sheet structure (not a catalogue): pilot stats (HP/AP/Inventory), how Classes and ability trees work (tiers, ordering, caps), TP/training costs and prerequisites, equipment & inventory at a system level. Describe the system; point to data for the lists.',
-    crossLinks: ['07-mechs.md', '02-actions-and-scenes.md', '04-attacks-and-damage.md', 'data/classes.json', 'data/abilities.json', 'data/ability-tree-requirements.json', 'data/equipment.json', 'data/roll-tables.json'],
+    crossLinks: [
+      '07-mechs.md',
+      '02-actions-and-scenes.md',
+      '04-attacks-and-damage.md',
+      'data/classes.json',
+      'data/abilities.json',
+      'data/ability-tree-requirements.json',
+      'data/equipment.json',
+      'data/roll-tables.json',
+    ],
   },
   {
     slug: '07-mechs',
@@ -116,27 +141,62 @@ export const manifest: DocSpec[] = [
     extractPages: [2, 94, 95, 96, 97, 98, 99],
     brief:
       'Mech build/assembly rules and sheet structure (not a catalogue): choosing a Chassis and fitting Systems/Modules, and a stat table defining SP, EP, Heat/Heat Cap, System Slots, Module Slots, Cargo Capacity, Tech Level, Salvage Value with meaning + constraint each. Distinguish build-time vs operating constraints.',
-    crossLinks: ['03-heat-and-pushing.md', '04-attacks-and-damage.md', '05-salvaging.md', '08-crawlers.md', 'data/chassis.json', 'data/systems.json', 'data/modules.json', 'data/tech-levels.json'],
+    crossLinks: [
+      '03-heat-and-pushing.md',
+      '04-attacks-and-damage.md',
+      '05-salvaging.md',
+      '08-crawlers.md',
+      'data/chassis.json',
+      'data/systems.json',
+      'data/modules.json',
+      'data/tech-levels.json',
+    ],
   },
   {
     slug: '08-crawlers',
     title: 'Union Crawler',
     sourceLabel: 'Core Rulebook pp. 212–231',
     verifyPages: '212-231',
-    extractPages: [212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 231],
+    extractPages: [
+      212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223, 224, 225, 226, 227, 228, 229, 230,
+      231,
+    ],
     brief:
       'The Union Crawler base: creation, sheet, Types, Upkeep & Upgrade (costs), Deterioration & Damage tables, Bays at a system level, Tech Level progression, and the Downtime Procedure (repair mechs/pilots, craft, upgrade). Tight summary of a large page range; point to data for bay/type lists.',
-    crossLinks: ['05-salvaging.md', '06-pilots.md', '07-mechs.md', 'data/crawlers.json', 'data/crawler-bays.json', 'data/crawler-tech-levels.json', 'data/npcs.json', 'data/squads.json'],
+    crossLinks: [
+      '05-salvaging.md',
+      '06-pilots.md',
+      '07-mechs.md',
+      'data/crawlers.json',
+      'data/crawler-bays.json',
+      'data/crawler-tech-levels.json',
+      'data/npcs.json',
+      'data/squads.json',
+    ],
   },
   {
     slug: '09-mediator-guide',
     title: "Mediator's Guide",
     sourceLabel: 'Core Rulebook pp. 12–13, 252–269',
     verifyPages: '12-13,252-269',
-    extractPages: [12, 13, 252, 253, 254, 255, 256, 257, 258, 259, 260, 261, 262, 263, 264, 265, 266, 267, 268, 269],
+    extractPages: [
+      12, 13, 252, 253, 254, 255, 256, 257, 258, 259, 260, 261, 262, 263, 264, 265, 266, 267, 268,
+      269,
+    ],
     brief:
       'Running the game: Safety Protocols (the safety tools), adjudicating Setbacks & Tough Choices, controlling NPCs, balancing combat, campaign design, scrap progression & placement, exploration, and the NPC Action/Reaction/Morale/Retreat tables (concrete mechanics — note the encounter-roll bands differ). Bestiary at system level only; reference, never transcribe.',
-    crossLinks: ['00-overview.md', '01-core-mechanic.md', 'data/guides.json', 'data/roll-tables.json', 'data/npcs.json', 'data/bio-titans.json', 'data/meld.json', 'data/creatures.json', 'data/drones.json', 'data/vehicles.json'],
+    crossLinks: [
+      '00-overview.md',
+      '01-core-mechanic.md',
+      'data/guides.json',
+      'data/roll-tables.json',
+      'data/npcs.json',
+      'data/bio-titans.json',
+      'data/meld.json',
+      'data/creatures.json',
+      'data/drones.json',
+      'data/vehicles.json',
+    ],
   },
 
   // --- Expansions (adventure modules). Digest covers NEW rules subsystems
@@ -144,7 +204,8 @@ export const manifest: DocSpec[] = [
   {
     slug: 'expansions/false-flag',
     title: 'False Flag',
-    sourceLabel: 'False Flag (expansion) — Meld Salvaging & Crafting p. 66; module guidance pp. 8–11',
+    sourceLabel:
+      'False Flag (expansion) — Meld Salvaging & Crafting p. 66; module guidance pp. 8–11',
     sourcePdf: 'False Flag Digital Edition 1.1',
     verifyPages: '8-11,66',
     extractPages: [8, 9, 10, 11, 66],
@@ -161,7 +222,12 @@ export const manifest: DocSpec[] = [
     extractPages: [8, 9, 10, 11, 12, 58, 59],
     brief:
       'Short module overview (adventure by Diogo Nogueira), then the new subsystems: Chimerium (harvesting, the Exposure mechanic/table, Mutation, and the opt-in Chimerium Mutant ability tree) and meteor encounters (the Chimerid Meteor shower as a ~10–20 week campaign clock). Link the source-tagged WWHF roll tables; exclude scenario/region narrative.',
-    crossLinks: ['../05-salvaging.md', '../06-pilots.md', '../09-mediator-guide.md', 'data/roll-tables.json'],
+    crossLinks: [
+      '../05-salvaging.md',
+      '../06-pilots.md',
+      '../09-mediator-guide.md',
+      'data/roll-tables.json',
+    ],
   },
   {
     slug: 'expansions/rainmaker',

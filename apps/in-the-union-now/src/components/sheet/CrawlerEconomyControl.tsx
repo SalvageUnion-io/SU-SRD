@@ -45,7 +45,7 @@ import { crawlerMaxSP } from '../../lib/rules/derivedStats'
 import { defaultRoll } from '../../lib/rules/heatCheck'
 import type { Roll } from '../../lib/rules/heatCheck'
 import type { Crawler } from '../../lib/schemas/crawler'
-import { useEntityStore } from '../../stores/entityStore'
+import type { useEntityStore } from '../../stores/entityStore'
 import { ConfirmDialog } from '../shared/ConfirmDialog'
 import { AdvisoryText, freshEntity } from './controlPrimitives'
 

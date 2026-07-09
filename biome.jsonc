@@ -1,0 +1,242 @@
+// Biome replaces ESLint + Prettier for JS/TS/TSX/JSON/CSS (see PR description
+// for full migration notes). Two carve-outs stay on Prettier, both because
+// Biome (as of 2.5.3) genuinely doesn't parse the language yet, not by
+// preference — see https://biomejs.dev/internals/language-support/:
+//   - Markdown & YAML: parsing/formatting "in development", not shipped.
+//     Prettier still runs on **/*.md and **/*.{yml,yaml} (root scripts +
+//     lefthook's format-prose command).
+//   - Astro (apps/suref-web/src/**/*.astro): support landed in v2.3.0 but
+//     is still explicitly "experimental" upstream. The OLD toolchain never
+//     covered .astro either (no prettier-plugin-astro was installed, and
+//     ESLint's suref-web config ignored *.astro outright) — so excluding it
+//     here preserves the status quo (zero coverage) rather than opting into
+//     an experimental linter/formatter for the first time in this PR.
+{
+  "$schema": "https://biomejs.dev/schemas/2.5.3/schema.json",
+  "root": true,
+  "files": {
+    "ignoreUnknown": true,
+    "includes": [
+      "apps/**",
+      "packages/**",
+      "tools/**",
+      "!**/node_modules",
+      "!**/dist",
+      "!**/build",
+      "!**/build-ladle",
+      "!**/.netlify",
+      "!**/.vite",
+      "!**/.astro",
+      "!**/.ladle",
+      "!**/coverage",
+      "!**/playwright-report",
+      "!**/test-results",
+      "!**/*.tsbuildinfo",
+      "!**/routeTree.gen.ts",
+      "!packages/salvageunion-reference/lib/generated",
+      // Game-data JSON is crawler-sourced; CLAUDE.md's "Data Conventions"
+      // section forbids automated formatters reformatting these arrays
+      // (`json.dump`-style tools reflow crawler-authored line breaks). Biome's
+      // JSON formatter collapses some multi-line arrays that Prettier left
+      // alone (verified: packages/salvageunion-reference/data/actions.json),
+      // so keep this directory out of scope entirely, same as before.
+      "!packages/salvageunion-reference/data",
+      "!apps/suref-web/package.json",
+      "!**/*.astro",
+      "!**/*.md",
+      "!**/*.mdx",
+      "!**/*.yml",
+      "!**/*.yaml"
+    ]
+  },
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "off"
+      }
+    }
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 100,
+    "lineEnding": "lf"
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "single",
+      "semicolons": "asNeeded",
+      "trailingCommas": "es5",
+      "arrowParentheses": "always"
+    }
+  },
+  "css": {
+    // Tailwind v4 CSS (@theme, @utility, @source, @plugin, @custom-variant)
+    // used in apps/in-the-union-now, apps/suref-web, packages/suref-react.
+    "parser": {
+      "tailwindDirectives": true
+    },
+    "formatter": {
+      // Prettier's global singleQuote:true applied to CSS too; match it
+      // (Biome's CSS default is double quotes).
+      "quoteStyle": "single"
+    }
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "preset": "recommended",
+      "suspicious": {
+        "noExplicitAny": "error",
+        "noArrayIndexKey": "warn",
+        "useIterableCallbackReturn": "warn",
+        "noAssignInExpressions": "warn"
+      },
+      "style": {
+        "noRestrictedImports": {
+          "level": "error",
+          "options": {
+            "patterns": [
+              {
+                "group": ["@/*"],
+                "message": "Use relative imports instead of @/ path aliases."
+              }
+            ]
+          }
+        }
+      },
+      //
+      // --- Rules recommended-by-default in Biome that ESLint's ruleset never
+      // covered (no eslint-plugin-react or matching jsx-a11y rule existed for
+      // them) — downgraded from Biome's default "error" to "warn" so this
+      // migration stays a tooling swap, not a lint-cleanup pass (see PR
+      // description for the full rationale + per-rule finding counts). Each
+      // stays visible (not "off") as a deliberate follow-up list, not silenced.
+      //
+      "a11y": {
+        "useButtonType": "warn",
+        "useSemanticElements": "warn",
+        "useAriaPropsSupportedByRole": "warn",
+        "noStaticElementInteractions": "warn",
+        "noSvgWithoutTitle": "warn",
+        "noAriaHiddenOnFocusable": "warn",
+        "noAutofocus": "warn",
+        "useFocusableInteractive": "warn",
+        "useAriaPropsForRole": "warn",
+        "useKeyWithClickEvents": "warn"
+      },
+      "correctness": {
+        "useExhaustiveDependencies": "warn",
+        "useJsxKeyInIterable": "warn",
+        "noUnsafeOptionalChaining": "warn"
+      },
+      "security": {
+        "noDangerouslySetInnerHtml": "warn"
+      }
+    },
+    "domains": {
+      "react": "recommended"
+    }
+  },
+  "overrides": [
+    {
+      // `noExplicitAny` stays "error" for real source, but ESLint's per-line
+      // `// eslint-disable-next-line @typescript-eslint/no-explicit-any`
+      // comments (~120, almost all in test-mock casts like `as any`) don't
+      // translate to Biome's ignore syntax automatically. Rather than hand-
+      // converting every comment, this consolidates the same intent (tests
+      // may use `any` for mocking) into one pattern-level override.
+      "includes": ["**/*.test.ts", "**/*.test.tsx", "**/__tests__/**"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noExplicitAny": "warn"
+          }
+        }
+      }
+    },
+    {
+      // ESLint never covered these (see packages/salvageunion-reference/eslint.config.js
+      // ignores: lib/*.template.ts, tools/**, examples/**), but Prettier did — that
+      // package's .prettierignore only excludes dist/node_modules/.git/*.tsbuildinfo/
+      // lib/generated. Keep formatting on, linting off, to match.
+      "includes": [
+        "packages/salvageunion-reference/lib/*.template.ts",
+        "packages/salvageunion-reference/tools/**",
+        "packages/salvageunion-reference/examples/**"
+      ],
+      "linter": {
+        "enabled": false
+      }
+    },
+    {
+      // *.d.ts was ESLint-ignored repo-wide (root + salvageunion-reference configs
+      // both list '**/*.d.ts') but never Prettier-ignored.
+      "includes": ["**/*.d.ts"],
+      "linter": {
+        "enabled": false
+      }
+    },
+    {
+      // These live outside the app tsconfig project (own TS pipeline at
+      // `playwright test` time), so ESLint skipped them; Prettier still
+      // formatted them (only lib/generated + build-output dirs are
+      // Prettier-ignored). Keep formatting on, linting off, to match.
+      "includes": [
+        "apps/in-the-union-now/playwright.config.ts",
+        "apps/in-the-union-now/e2e/**",
+        "apps/suref-web/playwright.config.ts",
+        "apps/suref-web/e2e/**",
+        "packages/suref-react/playwright.visual.config.ts",
+        "packages/suref-react/vite.config.ts"
+      ],
+      "linter": {
+        "enabled": false
+      }
+    },
+    {
+      "includes": ["apps/in-the-union-now/**", "packages/suref-react/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useComponentExportOnlyModules": "warn"
+          },
+          "suspicious": {
+            "noConsole": {
+              "level": "warn",
+              "options": {
+                "allow": ["warn", "error"]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["apps/suref-web/**"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noConsole": {
+              "level": "warn",
+              "options": {
+                "allow": ["warn", "error"]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["apps/in-the-union-now/src/routes/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useComponentExportOnlyModules": "off"
+          }
+        }
+      }
+    }
+  ]
+}

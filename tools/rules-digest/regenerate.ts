@@ -32,8 +32,7 @@ const briefsDir = join(rulesDir, 'extracted', 'briefs')
 const digestDir = 'docs/rules'
 const cmd = process.argv[2] ?? 'all'
 
-const extractFileFor = (pdf: string) =>
-  join(rulesDir, 'extracted', `${pdf}.txt`)
+const extractFileFor = (pdf: string) => join(rulesDir, 'extracted', `${pdf}.txt`)
 
 const pageMapCache = new Map<string, Map<number, string>>()
 function pageMap(pdf: string): Map<number, string> {
@@ -51,8 +50,7 @@ function pageMap(pdf: string): Map<number, string> {
 
 function renderLink(l: string): string {
   if (l.startsWith('data/')) return `\`packages/salvageunion-reference/${l}\``
-  if (l === 'combatUtils.ts')
-    return '`packages/salvageunion-reference/lib/combatUtils.ts`'
+  if (l === 'combatUtils.ts') return '`packages/salvageunion-reference/lib/combatUtils.ts`'
   return `\`${l}\`` // sibling docs, incl. ../ relative paths
 }
 
@@ -61,10 +59,7 @@ function renderBrief(spec: DocSpec): string {
   const pages = pageMap(pdf)
   const links = spec.crossLinks.map(renderLink).join(', ')
   const source = spec.extractPages
-    .map(
-      (p) =>
-        `<!-- page ${p} -->\n${pages.get(p) ?? '(page not found in extract)'}`,
-    )
+    .map((p) => `<!-- page ${p} -->\n${pages.get(p) ?? '(page not found in extract)'}`)
     .join('\n\n')
 
   return `# Regeneration brief — docs/rules/${spec.slug}.md
@@ -196,7 +191,7 @@ async function main() {
       `\n${manifest.length} briefs written to ${briefsDir}/ (gitignored).\n` +
         `Dispatch one authoring agent per brief: each reads its brief, verifies\n` +
         `against the cited PDF pages, and writes docs/rules/<slug>.md (gitignored).\n` +
-        `The index docs/rules/README.md is generated from the manifest.`,
+        `The index docs/rules/README.md is generated from the manifest.`
     )
   }
   if (!['extract', 'briefs', 'all'].includes(cmd)) {
