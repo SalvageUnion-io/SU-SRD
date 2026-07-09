@@ -26,15 +26,36 @@ type UseHydrateEntitiesOptions = {
  * first render only, matching the entity variant's once-on-mount semantics.
  */
 export function useHydrateOnMount(hydrate: () => Promise<unknown>): boolean {
-  const [hydrated, setHydrated] = useState(false)
+  const [state, setState] = useState<{ hydrated: boolean; error: unknown }>({
+    hydrated: false,
+    error: null,
+  })
 
   useEffect(() => {
-    void hydrate().then(() => setHydrated(true))
+    let cancelled = false
+    hydrate().then(
+      () => {
+        if (!cancelled) setState({ hydrated: true, error: null })
+      },
+      (err: unknown) => {
+        if (!cancelled) setState({ hydrated: false, error: err })
+      }
+    )
+    return () => {
+      cancelled = true
+    }
     // Only run once on mount; hydrators close over stable Zustand singletons.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  return hydrated
+  // A rejected hydration (e.g. a blocked or otherwise failed IndexedDB open)
+  // must surface as the root error boundary's recovery screen — NEVER an
+  // infinite loading skeleton. Re-throwing during render hands the error to the
+  // nearest router errorComponent (RootErrorComponent). See lib/db/index.ts's
+  // BlockedUpgradeError for the canonical case this guards against.
+  if (state.error !== null) throw state.error
+
+  return state.hydrated
 }
 
 export function useHydrateEntities(
