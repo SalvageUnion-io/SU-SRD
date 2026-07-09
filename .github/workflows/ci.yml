@@ -49,7 +49,7 @@ jobs:
               - 'knip.json'
               - 'tsconfig*.json'
               - '.bun-version'
-              - 'eslint.config.*'
+              - 'biome.jsonc'
               - 'lefthook.yml'
               - '.github/workflows/**'
               - '.github/actions/**'

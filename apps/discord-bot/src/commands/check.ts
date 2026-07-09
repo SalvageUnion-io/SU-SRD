@@ -11,8 +11,8 @@
  */
 
 import {
-  ActionRowBuilder,
-  ButtonBuilder,
+  type ActionRowBuilder,
+  type ButtonBuilder,
   EmbedBuilder,
   MessageFlags,
   type ChatInputCommandInteraction,
@@ -26,7 +26,8 @@ import { BRAND_NAME, ROLL_EMBED_FOOTER, buildCheckEmbedData } from '../format.js
 
 /** A message payload ready for `interaction.reply`, or a user-facing error. */
 export type CheckMessage =
-  { embeds: EmbedBuilder[]; components: ActionRowBuilder<ButtonBuilder>[] } | { error: string }
+  | { embeds: EmbedBuilder[]; components: ActionRowBuilder<ButtonBuilder>[] }
+  | { error: string }
 
 /**
  * Parse + roll a free-form notation string and shape the result into a reply.

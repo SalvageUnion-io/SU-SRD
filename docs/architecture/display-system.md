@@ -12,11 +12,11 @@ DisplayCard is the low-level card UI component used by both apps. It handles lay
 
 Two independent boolean props control display density:
 
-| Prop | Purpose | Effect |
-|------|---------|--------|
-| (default) | Standard card with all sections | Header + Body + Footer, full spacing |
-| `compact` | Reduced spacing for grids/inline use | Header + Body + Footer, smaller text and tighter gaps |
-| `listing` | Header-only rendering for entity lists | Body, footer, and tabs hidden |
+| Prop      | Purpose                                | Effect                                                |
+| --------- | -------------------------------------- | ----------------------------------------------------- |
+| (default) | Standard card with all sections        | Header + Body + Footer, full spacing                  |
+| `compact` | Reduced spacing for grids/inline use   | Header + Body + Footer, smaller text and tighter gaps |
+| `listing` | Header-only rendering for entity lists | Body, footer, and tabs hidden                         |
 
 `compact` and `listing` are orthogonal — a listing card can be compact (tight header) or full-size (spacious header).
 
@@ -36,9 +36,9 @@ type ReferenceEntityControl = {
   icon: (props: { className?: string }) => ReactNode
   onClick: () => void
   ariaLabel: string
-  variant?: 'primary' | 'danger' | 'ghost'    // Visual style
-  hidden?: boolean       // Not rendered, but participates in card click
-  cardClick?: boolean    // Makes entire card clickable (hover enlarge effect)
+  variant?: 'primary' | 'danger' | 'ghost' // Visual style
+  hidden?: boolean // Not rendered, but participates in card click
+  cardClick?: boolean // Makes entire card clickable (hover enlarge effect)
   hoverContent?: ReactNode
   label?: string
   className?: string
@@ -47,12 +47,12 @@ type ReferenceEntityControl = {
 
 **Preset factories** (`referenceEntityControls.ts`):
 
-| Factory | Icon | Variant | Behavior |
-|---------|------|---------|----------|
-| `addControl(onClick)` | Plus | primary | `hidden: true`, `cardClick: true` |
-| `selectControl(onClick, selected?)` | Circle/CheckCircle | ghost | Visible toggle button |
-| `deleteControl(onClick)` | Trash | danger | Visible delete button |
-| `navigateControl(onClick)` | DetailIcon | ghost | `hidden: true`, `cardClick: true` |
+| Factory                             | Icon               | Variant | Behavior                          |
+| ----------------------------------- | ------------------ | ------- | --------------------------------- |
+| `addControl(onClick)`               | Plus               | primary | `hidden: true`, `cardClick: true` |
+| `selectControl(onClick, selected?)` | Circle/CheckCircle | ghost   | Visible toggle button             |
+| `deleteControl(onClick)`            | Trash              | danger  | Visible delete button             |
+| `navigateControl(onClick)`          | DetailIcon         | ghost   | `hidden: true`, `cardClick: true` |
 
 Hidden controls with `cardClick: true` make the whole card a click target without showing a visible button.
 
@@ -65,14 +65,19 @@ type StatItem = {
   key: string
   label: string
   value: number | string | undefined
-  outOfMax?: number           // Renders as "value / max"
+  outOfMax?: number // Renders as "value / max"
   bottomLabel?: string
   // Visual
-  inverse?: boolean; bg?: string; valueColor?: string; borderColor?: string
-  isOverMax?: boolean; flash?: boolean; disabled?: boolean
+  inverse?: boolean
+  bg?: string
+  valueColor?: string
+  borderColor?: string
+  isOverMax?: boolean
+  flash?: boolean
+  disabled?: boolean
   // Interactivity
-  onChange?: (newValue: number) => void   // Renders +/- buttons (StatControl)
-  onClick?: () => void                     // Makes stat box itself a button
+  onChange?: (newValue: number) => void // Renders +/- buttons (StatControl)
+  onClick?: () => void // Makes stat box itself a button
 }
 ```
 
@@ -85,7 +90,7 @@ type DisplayCardTab = {
   key: string
   label: string
   content: ReactNode
-  activeColor?: string   // CSS color override for active tab background
+  activeColor?: string // CSS color override for active tab background
 }
 ```
 
@@ -129,22 +134,22 @@ type ReferenceEntityDisplayStateInput = {
   dimHeader?: boolean
 
   // Slot overrides (no schema-specific knowledge)
-  titleOverride?: string              // Overrides computed title
-  subtitleExtra?: ReactNode           // Appended after standard subtitle
-  statsOverride?: { value: number; bottomLabel: string }  // Overrides SV stat
-  primaryStatsOnly?: boolean          // Show only primary stat (SV)
-  abilitiesSection?: ReactNode        // Replaces built-in chassis abilities
-  afterExtraContent?: ReactNode       // After patterns/damagedEffect, before grants/choices
-  afterChoicesContent?: ReactNode     // After choices, before footer
-  footerOverride?: ReactNode          // Replaces computed footer
-  titleSlot?: ReactNode               // Replaces computed title node entirely
-  titleAs?: 'span' | 'h1'            // HTML element for title
+  titleOverride?: string // Overrides computed title
+  subtitleExtra?: ReactNode // Appended after standard subtitle
+  statsOverride?: { value: number; bottomLabel: string } // Overrides SV stat
+  primaryStatsOnly?: boolean // Show only primary stat (SV)
+  abilitiesSection?: ReactNode // Replaces built-in chassis abilities
+  afterExtraContent?: ReactNode // After patterns/damagedEffect, before grants/choices
+  afterChoicesContent?: ReactNode // After choices, before footer
+  footerOverride?: ReactNode // Replaces computed footer
+  titleSlot?: ReactNode // Replaces computed title node entirely
+  titleAs?: 'span' | 'h1' // HTML element for title
 
   // Visibility toggles
   hide?: ReferenceEntityHideConfig
-  label?: string                      // Pseudoheader label above card
-  headerColor?: string                // Override header background (Tailwind class)
-  headerBgColor?: string              // Override header background (raw CSS color)
+  label?: string // Pseudoheader label above card
+  headerColor?: string // Override header background (Tailwind class)
+  headerBgColor?: string // Override header background (raw CSS color)
 }
 ```
 
@@ -219,11 +224,11 @@ This layer sits between ReferenceEntityDisplay (the card frame) and the consumer
 
 Three exported variants, all sharing a coloured-header + white-inset-body visual language matching entity cards:
 
-| Component | Purpose |
-|-----------|---------|
-| `ChoiceCard` | Selectable option (`aria-pressed`, toggles chosen/not-chosen status stamp) |
-| `FreeTextChoiceCard` | Editable free-text field (Name / Appearance / A.I. Personality) — always renders as "chosen" |
-| `StaticChoiceCard` | Display-only list items (NPC motivations, bullet options); borrowed choice-card chrome, no interactivity |
+| Component            | Purpose                                                                                                  |
+| -------------------- | -------------------------------------------------------------------------------------------------------- |
+| `ChoiceCard`         | Selectable option (`aria-pressed`, toggles chosen/not-chosen status stamp)                               |
+| `FreeTextChoiceCard` | Editable free-text field (Name / Appearance / A.I. Personality) — always renders as "chosen"             |
+| `StaticChoiceCard`   | Display-only list items (NPC motivations, bullet options); borrowed choice-card chrome, no interactivity |
 
 `BlockContentRendererView` renders `list-item` content blocks as `StaticChoiceCard` (the bordered frame replaces plain bullets).
 
@@ -242,15 +247,15 @@ Three exported variants, all sharing a coloured-header + white-inset-body visual
 
 Pure helpers (no React), all exported from `suref-react`:
 
-| Export | Purpose |
-|--------|---------|
-| `ChoiceSelections` | Type: `Record<string, string[]>` — selections keyed by choice id |
-| `ChoiceCardOption` | Distilled option shape (value, label, description, optional schema link) |
-| `getChoiceCardOptions(choice)` | Distils `choiceOptions` or `schemaEntities` into a flat `ChoiceCardOption[]` |
-| `isFreeTextChoice(choice)` | Returns true for `choiceType: 'freeform'` or choices with no option source |
-| `isMultiSelectChoice(choice)` | Returns true when `choice.multiSelect === true` |
-| `resolveMultiSelectCap(choice, parent)` | Resolves `constraints.max` or `constraints.scalesWithField` to a numeric cap |
-| `toggleSelection(current, value, multiSelect, cap?)` | Pure selection-set reducer; enforces exclusive/multi-select rules |
+| Export                                               | Purpose                                                                      |
+| ---------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `ChoiceSelections`                                   | Type: `Record<string, string[]>` — selections keyed by choice id             |
+| `ChoiceCardOption`                                   | Distilled option shape (value, label, description, optional schema link)     |
+| `getChoiceCardOptions(choice)`                       | Distils `choiceOptions` or `schemaEntities` into a flat `ChoiceCardOption[]` |
+| `isFreeTextChoice(choice)`                           | Returns true for `choiceType: 'freeform'` or choices with no option source   |
+| `isMultiSelectChoice(choice)`                        | Returns true when `choice.multiSelect === true`                              |
+| `resolveMultiSelectCap(choice, parent)`              | Resolves `constraints.max` or `constraints.scalesWithField` to a numeric cap |
+| `toggleSelection(current, value, multiSelect, cap?)` | Pure selection-set reducer; enforces exclusive/multi-select rules            |
 
 ### ReferenceEntityResolvedChoices
 
@@ -274,9 +279,9 @@ Pure, deterministic resolver (no I/O). Given an entity and `ChoiceSelections`, r
 
 ```typescript
 type ResolvedChoiceView = {
-  datavalues: SURefObjectDataValue[]   // base row + applied effects
-  traits:     SURefObjectTrait[]       // base traits + addTrait effects
-  prompts:    ChoicePrompt[]           // unresolved required choices
+  datavalues: SURefObjectDataValue[] // base row + applied effects
+  traits: SURefObjectTrait[] // base traits + addTrait effects
+  prompts: ChoicePrompt[] // unresolved required choices
 }
 ```
 
@@ -360,13 +365,13 @@ Uses DisplayCard directly (not ReferenceEntityDisplay) because pilots aren't ref
 
 ## When to Use Which Layer
 
-| Scenario | Layer |
-|----------|-------|
-| Rendering game data entities (chassis, abilities, equipment, etc.) | ReferenceEntityDisplay |
-| Rendering player-created entities (pilots) that aren't in reference data | DisplayCard directly |
-| Customizing how a reference entity renders (pattern overrides, interactive stats) | Slot props on ReferenceEntityDisplay |
-| Building a reusable entity selection UI | ReferenceEntityPickerModal (listing mode + addControl) |
-| Adding new entity-type-specific display logic | Create a hook returning slot props, spread onto ReferenceEntityDisplay |
+| Scenario                                                                          | Layer                                                                  |
+| --------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| Rendering game data entities (chassis, abilities, equipment, etc.)                | ReferenceEntityDisplay                                                 |
+| Rendering player-created entities (pilots) that aren't in reference data          | DisplayCard directly                                                   |
+| Customizing how a reference entity renders (pattern overrides, interactive stats) | Slot props on ReferenceEntityDisplay                                   |
+| Building a reusable entity selection UI                                           | ReferenceEntityPickerModal (listing mode + addControl)                 |
+| Adding new entity-type-specific display logic                                     | Create a hook returning slot props, spread onto ReferenceEntityDisplay |
 
 ---
 

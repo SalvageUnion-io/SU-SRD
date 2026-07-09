@@ -1,6 +1,6 @@
 import {
-  ActionRowBuilder,
-  ButtonBuilder,
+  type ActionRowBuilder,
+  type ButtonBuilder,
   EmbedBuilder,
   MessageFlags,
   type ChatInputCommandInteraction,
@@ -21,7 +21,8 @@ type Hit = {
 
 /** A `/su lookup` reply ready for `interaction.reply`, or a user-facing error. */
 export type LookupMessage =
-  { embeds: EmbedBuilder[]; components: ActionRowBuilder<ButtonBuilder>[] } | { error: string }
+  | { embeds: EmbedBuilder[]; components: ActionRowBuilder<ButtonBuilder>[] }
+  | { error: string }
 
 /**
  * Build the lookup reply for a resolved entity: the rich embed, plus a "Roll on

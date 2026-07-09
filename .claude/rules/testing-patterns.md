@@ -1,7 +1,7 @@
 ---
 paths:
-  - "**/*.test.ts"
-  - "**/*.test.tsx"
+  - '**/*.test.ts'
+  - '**/*.test.tsx'
 ---
 
 # Testing Patterns

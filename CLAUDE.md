@@ -68,8 +68,8 @@ bun --filter suref-web test                # Test reference site only
 bun --filter in-the-union-now test         # Test ITUN app only
 
 # Code quality
-bun run lint             # Lint all packages
-bun run format           # Format all packages with Prettier
+bun run lint             # Lint all packages (Biome)
+bun run format           # Format all packages (Biome; Prettier still handles Markdown/YAML)
 bun run typecheck        # TypeScript check all packages
 bun run check:all        # Full CI check (lint, format, typecheck, test, validate, knip)
 
@@ -129,7 +129,7 @@ Detailed cross-cutting architecture docs live in `docs/architecture/`:
 - **Use `import type`** syntax for type-only imports
 - **Named exports** everywhere except route components (which may use default exports for TanStack Router)
 - **Bun** for all package management (not npm/yarn)
-- **Prettier + ESLint** for formatting/linting (pre-commit hooks via Lefthook)
+- **Biome** for formatting/linting (Markdown/YAML still via a narrow Prettier fallback — see `biome.jsonc`); pre-commit hooks via Lefthook
 
 ### salvageunion-reference Package
 

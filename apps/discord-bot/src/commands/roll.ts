@@ -1,6 +1,6 @@
 import {
-  ActionRowBuilder,
-  ButtonBuilder,
+  type ActionRowBuilder,
+  type ButtonBuilder,
   EmbedBuilder,
   MessageFlags,
   type ChatInputCommandInteraction,
@@ -32,7 +32,8 @@ function rollD20(): number {
 
 /** A message payload ready for `interaction.reply`, or a user-facing error. */
 export type RollMessage =
-  { embeds: EmbedBuilder[]; components: ActionRowBuilder<ButtonBuilder>[] } | { error: string }
+  | { embeds: EmbedBuilder[]; components: ActionRowBuilder<ButtonBuilder>[] }
+  | { error: string }
 
 /**
  * Roll on a named table and shape the result into a reply. Shared by the slash

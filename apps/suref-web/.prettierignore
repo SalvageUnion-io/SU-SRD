@@ -1,7 +1,0 @@
-# Build outputs
-dist/
-node_modules/
-.astro/
-
-# Package files
-package.json

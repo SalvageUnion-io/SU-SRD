@@ -40,6 +40,7 @@ Visibility toggles: `hide?: { actions, patterns, damagedEffect, choices, stats, 
 ## Controls
 
 Use preset factories from `referenceEntityControls.ts`:
+
 - `addControl(onClick)` — hidden + cardClick (whole card clickable)
 - `navigateControl(onClick)` — hidden + cardClick
 - `selectControl(onClick, selected?)` — visible toggle

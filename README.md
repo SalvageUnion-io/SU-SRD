@@ -37,9 +37,8 @@ Other dev servers: `bun run dev:itun` (character builder), `bun run dev:bot`
 │   └── suref-react/            # Shared React component library (no build step)
 ├── docs/                       # Architecture docs + ADRs (see docs/README.md)
 ├── package.json                # Root workspace configuration
-├── .prettierrc.json            # Shared Prettier config
-├── eslint.config.base.js       # Shared ESLint base config
-└── tsconfig.base.json          # Shared TypeScript base config
+├── biome.jsonc                 # Shared Biome (lint + format) config
+└── tsconfig.json               # Shared TypeScript base config
 ```
 
 **Dependency graph:** `salvageunion-reference → suref-react → {suref-web,

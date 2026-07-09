@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'bun:test'
-import { SalvageUnionReference, SURefEntity, EntitySchemaNames, SchemaToModelMap } from './index.js'
+import {
+  SalvageUnionReference,
+  type SURefEntity,
+  EntitySchemaNames,
+  SchemaToModelMap,
+} from './index.js'
 import { BaseModel } from './BaseModel.js'
 import {
   isAbility,

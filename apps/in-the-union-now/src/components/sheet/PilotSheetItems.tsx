@@ -14,7 +14,7 @@ import type { CardFootMeta, ChoiceSelections, EntityStatus } from 'suref-react'
 import type { ItemCondition } from '../../lib/schemas/mech'
 import type { GenericInventoryEntry, Injury } from '../../lib/schemas/pilot'
 import { resolveAbilityApCost } from '../../lib/abilityCost'
-import { useEntityStore } from '../../stores/entityStore'
+import type { useEntityStore } from '../../stores/entityStore'
 import { useEntityChoices } from '../shared/useEntityChoices'
 import {
   equipmentMaxUses,

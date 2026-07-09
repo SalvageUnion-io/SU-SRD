@@ -26,7 +26,7 @@ import { CrawlerSchema } from '../../lib/schemas/crawler'
 import { MechSchema } from '../../lib/schemas/mech'
 import { PilotSchema, normalizeLegacyPilotRecord } from '../../lib/schemas/pilot'
 import { normalizeLegacyCargoRecord } from '../../lib/schemas/cargoLot'
-import { useEntityStore } from '../../stores/entityStore'
+import type { useEntityStore } from '../../stores/entityStore'
 import type { EntityType } from '../../stores/entityStore'
 import { AppLink } from '../shared/AppLink'
 

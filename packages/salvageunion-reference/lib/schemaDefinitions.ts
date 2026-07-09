@@ -1,11 +1,17 @@
 import abilitiesSchema from '../schemas/abilities.schema.json' with { type: 'json' }
-import abilityTreeRequirementsSchema from '../schemas/ability-tree-requirements.schema.json' with { type: 'json' }
+import abilityTreeRequirementsSchema from '../schemas/ability-tree-requirements.schema.json' with {
+  type: 'json',
+}
 import actionsSchema from '../schemas/actions.schema.json' with { type: 'json' }
-import catalogCategoriesSchema from '../schemas/catalog-categories.schema.json' with { type: 'json' }
+import catalogCategoriesSchema from '../schemas/catalog-categories.schema.json' with {
+  type: 'json',
+}
 import chassisSchema from '../schemas/chassis.schema.json' with { type: 'json' }
 import classesSchema from '../schemas/classes.schema.json' with { type: 'json' }
 import crawlerBaysSchema from '../schemas/crawler-bays.schema.json' with { type: 'json' }
-import crawlerTechLevelsSchema from '../schemas/crawler-tech-levels.schema.json' with { type: 'json' }
+import crawlerTechLevelsSchema from '../schemas/crawler-tech-levels.schema.json' with {
+  type: 'json',
+}
 import crawlersSchema from '../schemas/crawlers.schema.json' with { type: 'json' }
 import creaturesSchema from '../schemas/creatures.schema.json' with { type: 'json' }
 import distancesSchema from '../schemas/distances.schema.json' with { type: 'json' }

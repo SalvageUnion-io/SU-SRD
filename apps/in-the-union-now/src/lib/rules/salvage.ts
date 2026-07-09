@@ -179,7 +179,11 @@ export function claimExhausted(claim: SalvageClaim): boolean {
 // ---------------------------------------------------------------------------
 
 export type MechSalvageBand =
-  'unsalvageable' | 'scrap' | 'system-or-module' | 'chassis-or-item' | 'full-strip'
+  | 'unsalvageable'
+  | 'scrap'
+  | 'system-or-module'
+  | 'chassis-or-item'
+  | 'full-strip'
 
 /** Maps a Mech Salvage d20 roll to its band. */
 export function mechSalvageBand(roll: number): MechSalvageBand {

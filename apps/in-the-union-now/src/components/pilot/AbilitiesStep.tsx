@@ -83,7 +83,8 @@ export function AbilitiesStep({
   const surClasses = _sur?.Classes ?? SalvageUnionReference.Classes
   const surAbilities = _sur?.Abilities ?? SalvageUnionReference.Abilities
   const cls = surClasses.find((c: unknown) => (c as SURefClass).id === classId) as
-    ClassLike | undefined
+    | ClassLike
+    | undefined
 
   if (!cls) {
     return <p className="text-sm text-rust">Class not found. Go back and select a class.</p>
