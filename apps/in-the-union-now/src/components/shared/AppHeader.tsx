@@ -16,6 +16,7 @@ import { Search } from 'lucide-react'
 import { HeaderShell } from 'suref-react'
 
 import { AppLink } from './AppLink'
+import { AppHeaderMobileMenu } from './AppHeaderMobileMenu'
 
 // SRD `.nav-link` treatment (apps/suref-web/src/styles/global.css), replicated
 // as utilities so ITUN's links read identically to the reference site.
@@ -49,16 +50,18 @@ export function AppHeader({ onSearchClick }: AppHeaderProps) {
     >
       {/* Right side: encounter link + outbound SRD cross-link (left of search) +
           search trigger + buy-the-game — mirroring the SRD header's right cluster.
-          Secondary items collapse on narrow screens so the row never overflows. */}
+          Below `lg` the nav links collapse into a hamburger drawer
+          (AppHeaderMobileMenu) so the row never overflows on a phone; search
+          stays inline as its own icon button. */}
       <div className="ml-auto flex shrink-0 items-center gap-3 sm:gap-4 lg:gap-[26px]">
-        <AppLink href="/encounter" className={NAV_LINK}>
+        <AppLink href="/encounter" className={`${NAV_LINK} hidden lg:inline-flex`}>
           Encounter
         </AppLink>
         <a
           href="https://salvageunion.io"
           target="_blank"
           rel="noopener noreferrer"
-          className={`${NAV_LINK} hidden sm:inline-flex`}
+          className={`${NAV_LINK} hidden lg:inline-flex`}
         >
           SRD&nbsp;&#8599;
         </a>
@@ -82,6 +85,9 @@ export function AppHeader({ onSearchClick }: AppHeaderProps) {
         >
           Buy the game
         </a>
+        <div className="lg:hidden">
+          <AppHeaderMobileMenu />
+        </div>
       </div>
     </HeaderShell>
   )
