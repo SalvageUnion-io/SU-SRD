@@ -1,4 +1,5 @@
 import * as db from '../db/index'
+import type { EncounterNpc } from '../schemas/encounterNpc'
 import type { ExportBundle } from '../schemas/exportBundle'
 import type { MechPattern } from '../schemas/pattern'
 import type { EntityType } from '../../stores/types'
@@ -31,6 +32,16 @@ type MergePatternStore = {
   create: (input: Omit<MechPattern, 'id' | 'createdAt'>) => Promise<MechPattern>
 }
 
+/**
+ * Minimal encounter-NPC store for import. Like patterns, encounterNpcs are
+ * not in entityStore — they default to the db layer; tests may pass a
+ * double.
+ */
+type MergeEncounterNpcStore = {
+  list: () => Promise<EncounterNpc[]>
+  create: (input: Omit<EncounterNpc, 'id' | 'createdAt' | 'updatedAt'>) => Promise<EncounterNpc>
+}
+
 export type MergeSummary = {
   created: {
     pilots: number
@@ -39,6 +50,7 @@ export type MergeSummary = {
     workspaces: number
     softLinks: number
     mechPatterns: number
+    encounterNpcs: number
   }
   remappedLinks: number
   skippedDuplicates: number
@@ -53,7 +65,7 @@ export type MergeSummary = {
  *   3. Build an old-id → new-id map.
  *   4. Remap:
  *        - softLink.from.id / softLink.to.id through the map.
- *        - pilot/mech/crawler.workspaceId through the map.
+ *        - pilot/mech/crawler/encounterNpc.workspaceId through the map.
  *   5. Create each remapped entity via store.create() (NEVER overwrite).
  *
  * Entities whose old id already exists in the store are skipped (counted in
@@ -67,7 +79,8 @@ export async function mergeImport(
   bundle: ExportBundle,
   entityStore: MergeEntityStore,
   workspaceStore: MergeWorkspaceStore,
-  patternStore: MergePatternStore = db.mechPatterns
+  patternStore: MergePatternStore = db.mechPatterns,
+  encounterNpcStore: MergeEncounterNpcStore = db.encounterNpcs
 ): Promise<MergeSummary> {
   // Hydrate so we can check for existing ids.
   await Promise.all([
@@ -95,6 +108,7 @@ export async function mergeImport(
       workspaces: 0,
       softLinks: 0,
       mechPatterns: 0,
+      encounterNpcs: 0,
     },
     remappedLinks: 0,
     skippedDuplicates: 0,
@@ -225,6 +239,30 @@ export async function mergeImport(
     const { id: _id, createdAt: _ca, ...rest } = pattern
     await patternStore.create(rest)
     summary.created.mechPatterns++
+  }
+
+  // -------------------------------------------------------------------------
+  // 7. Encounter NPCs — fresh UUIDs, exact-id dedupe (same policy as
+  //    entities). workspaceId is remapped through idMap the same way
+  //    pilot/mech/crawler are (dropped if the referenced workspace was not
+  //    part of this bundle / not in the map).
+  // -------------------------------------------------------------------------
+  const existingEncounterNpcIds = new Set((await encounterNpcStore.list()).map((n) => n.id))
+  for (const npc of bundle.encounterNpcs) {
+    if (existingEncounterNpcIds.has(npc.id)) {
+      summary.skippedDuplicates++
+      continue
+    }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { id: _id, createdAt: _ca, updatedAt: _ua, workspaceId, ...rest } = npc
+    const remappedWorkspaceId =
+      workspaceId !== undefined ? (idMap.get(workspaceId) ?? undefined) : undefined
+
+    await encounterNpcStore.create({
+      ...rest,
+      ...(remappedWorkspaceId !== undefined ? { workspaceId: remappedWorkspaceId } : {}),
+    })
+    summary.created.encounterNpcs++
   }
 
   return summary
