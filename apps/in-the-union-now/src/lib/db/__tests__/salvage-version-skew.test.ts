@@ -15,22 +15,21 @@
  *      — round-trips exactly. A field silently vanishing that ISN'T the
  *      injected unknown one would be drift beyond the documented contract.
  *
- *   2. Surfaces a boundary ADR-002 does not spell out: `schema.strip()` only
- *      relaxes unknown-key checking at the TOP level. Every nested `.strict()`
- *      sub-schema (CargoLotSchema, InjurySchema, EntityRefSchema,
- *      CrawlerNpcStateSchema, MediatorRollResultSchema, ...) stays strict, so
- *      an unknown key introduced by a NEWER build inside a nested object
- *      fails BOTH the strict parse and the salvage parse — the salvage path
- *      cannot rescue it, and the whole record is skipped (silently, with only
- *      a console.warn) rather than the offending nested field alone.
+ *   2. Covers a boundary ADR-002 does not spell out: a plain `schema.strip()`
+ *      only relaxes unknown-key checking at the TOP level. Every nested
+ *      `.strict()` sub-schema (CargoLotSchema, InjurySchema, EntityRefSchema,
+ *      CrawlerNpcStateSchema, MediatorRollResultSchema, ...) would otherwise
+ *      stay strict, so an unknown key introduced by a NEWER build inside a
+ *      nested object would fail BOTH the strict parse and a shallow salvage
+ *      parse — dropping the whole record instead of just the offending
+ *      nested field.
  *
- *      This is a genuine gap relative to the "nothing beyond the unknown
- *      field is dropped" expectation: an entire pilot/mech/crawler/etc. can
- *      vanish from list()/get() until a NEWER build writes to it again. There
- *      is no migration or code change proposed here for this — see the
- *      finding note in the PR description; it is flagged as a TODO for a
- *      follow-up (e.g. teaching `salvageRead` to fall back further, or
- *      loosening nested schemas to `.strip()` too) rather than guessed at.
+ *      Fixed by `deepStrip()` (src/lib/schemas/deepStrip.ts): the salvage
+ *      schemas wired in db/index.ts now recursively relax every `.strict()`
+ *      object at every nesting depth, not just the outermost one. The tests
+ *      below assert the FIXED behavior — a nested unknown key is stripped
+ *      and the record survives with every other field intact, exactly like
+ *      the top-level case in section 1.
  *
  * Isolation: uses the SHARED app db (no version games, no deletes beyond
  * `_clearAllStores()`), matching migrations.test.ts's "salvage read path"
@@ -223,13 +222,15 @@ describe('salvage read: top-level unknown field strips only that field', () => {
 })
 
 // ---------------------------------------------------------------------------
-// 2. FINDING: an unknown key nested inside a `.strict()` sub-schema is NOT
-//    rescued by the top-level salvage `.strip()` — the whole record is
-//    skipped (silently dropped from list()/get(), with only a console.warn).
+// 2. FIXED: an unknown key nested inside a `.strict()` sub-schema is now
+//    rescued by deepStrip() — only the drifted nested field is dropped; the
+//    record survives with every other field (including its siblings in the
+//    same nested object/array) intact, matching the top-level contract in
+//    section 1.
 // ---------------------------------------------------------------------------
 
-describe('salvage read: unknown key in a NESTED strict sub-schema drops the whole record', () => {
-  test('mech — unknown key inside cargoLots[0] makes the record unreadable', async () => {
+describe('salvage read: unknown key in a NESTED strict sub-schema drops only that field', () => {
+  test('mech — unknown key inside cargoLots[0] strips just that key; the mech survives', async () => {
     const created = await mechs.create({
       schemaVersion: 1,
       name: 'Test Mech',
@@ -250,22 +251,27 @@ describe('salvage read: unknown key in a NESTED strict sub-schema drops the whol
 
     const { warnings, restore } = captureWarnings()
     try {
-      // get(): the record cannot even be salvaged — it reads as null, not a
-      // partially-healed record. This is the gap: the whole mech (name,
-      // systems, conditions, everything) is invisible, not just the drifted
-      // cargo lot.
+      // get(): the mech is salvaged, not dropped — the drifted key inside
+      // cargoLots[0] is stripped and every other field (name, systems,
+      // conditions, the rest of the cargo lot) round-trips exactly.
       const record = await mechs.get(created.id)
-      expect(record).toBeNull()
-      // list() likewise omits it rather than surfacing a partial record.
+      expect(record).not.toBeNull()
+      expect(
+        'fieldFromTheFuture' in
+          ((record as unknown as { cargoLots: Record<string, unknown>[] }).cargoLots[0] ?? {})
+      ).toBe(false)
+      expect(record).toEqual(created)
+      // list() surfaces it too, not just get().
       const all = await mechs.list()
-      expect(all.some((m) => m.id === created.id)).toBe(false)
-      expect(warnings.some((w) => w.includes('Skipping unreadable record'))).toBe(true)
+      expect(all.some((m) => m.id === created.id)).toBe(true)
+      expect(warnings.some((w) => w.includes('salvage path'))).toBe(true)
+      expect(warnings.some((w) => w.includes('Skipping unreadable record'))).toBe(false)
     } finally {
       restore()
     }
   })
 
-  test('pilot — unknown key inside injuries[0] makes the record unreadable', async () => {
+  test('pilot — unknown key inside injuries[0] strips just that key; the pilot survives', async () => {
     const created = await pilots.create({
       schemaVersion: 1,
       name: 'Test Pilot',
@@ -290,16 +296,22 @@ describe('salvage read: unknown key in a NESTED strict sub-schema drops the whol
     const { warnings, restore } = captureWarnings()
     try {
       const record = await pilots.get(created.id)
-      expect(record).toBeNull()
+      expect(record).not.toBeNull()
+      expect(
+        'newSeverityMeta' in
+          ((record as unknown as { injuries: Record<string, unknown>[] }).injuries[0] ?? {})
+      ).toBe(false)
+      expect(record).toEqual(created)
       const all = await pilots.list()
-      expect(all.some((p) => p.id === created.id)).toBe(false)
-      expect(warnings.some((w) => w.includes('Skipping unreadable record'))).toBe(true)
+      expect(all.some((p) => p.id === created.id)).toBe(true)
+      expect(warnings.some((w) => w.includes('salvage path'))).toBe(true)
+      expect(warnings.some((w) => w.includes('Skipping unreadable record'))).toBe(false)
     } finally {
       restore()
     }
   })
 
-  test('softLink — unknown key inside the `from` ref makes the record unreadable', async () => {
+  test('softLink — unknown key inside the `from` ref strips just that key; the link survives', async () => {
     const created = await softLinks.create({
       from: { type: 'mech', id: 'mech-1' },
       to: { type: 'pilot', id: 'pilot-1' },
@@ -312,10 +324,48 @@ describe('salvage read: unknown key in a NESTED strict sub-schema drops the whol
     const { warnings, restore } = captureWarnings()
     try {
       const record = await softLinks.get(created.id)
-      expect(record).toBeNull()
+      expect(record).not.toBeNull()
+      expect(
+        'endpointVersion' in ((record as unknown as { from: Record<string, unknown> }).from ?? {})
+      ).toBe(false)
+      expect(record).toEqual(created)
       const all = await softLinks.list()
-      expect(all.some((l) => l.id === created.id)).toBe(false)
-      expect(warnings.some((w) => w.includes('Skipping unreadable record'))).toBe(true)
+      expect(all.some((l) => l.id === created.id)).toBe(true)
+      expect(warnings.some((w) => w.includes('salvage path'))).toBe(true)
+      expect(warnings.some((w) => w.includes('Skipping unreadable record'))).toBe(false)
+    } finally {
+      restore()
+    }
+  })
+
+  test('crawler — unknown key inside crawlerBays[0] (an .extend()-ed strict sub-schema) strips just that key; the crawler survives', async () => {
+    const created = await crawlers.create({
+      schemaVersion: 1,
+      name: 'Test Crawler',
+      techLevel: 'tech-2',
+      systems: [],
+      crawlerBays: [{ bayRef: 'command-bay', npcName: 'Lira', npcCurrentHP: 4 }],
+    })
+
+    const drifted = {
+      ...created,
+      crawlerBays: [{ ...created.crawlerBays?.[0], npcMorale: 'high' }],
+    }
+    await putRaw(STORE_NAMES.crawlers, drifted)
+
+    const { warnings, restore } = captureWarnings()
+    try {
+      const record = await crawlers.get(created.id)
+      expect(record).not.toBeNull()
+      expect(
+        'npcMorale' in
+          ((record as unknown as { crawlerBays: Record<string, unknown>[] }).crawlerBays[0] ?? {})
+      ).toBe(false)
+      expect(record).toEqual(created)
+      const all = await crawlers.list()
+      expect(all.some((c) => c.id === created.id)).toBe(true)
+      expect(warnings.some((w) => w.includes('salvage path'))).toBe(true)
+      expect(warnings.some((w) => w.includes('Skipping unreadable record'))).toBe(false)
     } finally {
       restore()
     }
