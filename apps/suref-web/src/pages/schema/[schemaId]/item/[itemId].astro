@@ -3,6 +3,7 @@ import BaseLayout from '../../../../layouts/BaseLayout.astro'
 import { getItemStaticPaths } from '../../../../lib/staticPaths'
 import { ReferenceEntityIsland } from '../../../../components/islands/ReferenceEntityIsland'
 import { getReferenceEntityData, extractStaticEntitySummary } from '../../../../lib/gameData'
+import { getSchemaPreloadList } from '../../../../lib/schemaPreloadDeps'
 import StaticEntityContent from '../../../../components/StaticEntityContent.astro'
 import { SITE_URL } from '../../../../lib/constants'
 
@@ -106,7 +107,12 @@ const ogImage = `/schema/${schemaId}/item/${itemId}.og.png`
   ]}
 >
   <article class="flex min-h-full flex-1 flex-col items-center justify-center p-4">
-    <ReferenceEntityIsland client:visible item={item} titleAs="h1" />
+    <ReferenceEntityIsland
+      client:visible
+      item={item}
+      titleAs="h1"
+      preloadSchemas={getSchemaPreloadList(schemaId!)}
+    />
     {/* SEO / no-JS fallback only. The `.js` class BaseLayout sets pre-paint
         hides this for JS users via global.css before first paint (no text
         flash); the island removes it once game data is ready. No-JS users and

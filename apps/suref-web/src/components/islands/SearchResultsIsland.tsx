@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
-import { getEntitySlug, search } from 'salvageunion-reference'
+import { getEntitySlug } from 'salvageunion-reference'
 import type { SearchResult } from 'salvageunion-reference'
 import { FilterChip, FilterRow } from 'suref-react'
-import { GameDataGate } from '../../lib/useGameData'
+import { useSearchIndex } from '../../lib/useSearchIndex'
+import { searchCompactIndex } from '../../lib/searchCompactIndex'
+import type { CompactSearchEntry } from '../../lib/searchIndexTypes'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 
 const PARAM_QUERY = 'q'
@@ -31,6 +33,7 @@ function resultUrl(result: SearchResult): string {
  */
 export function SearchResultsIsland() {
   const [query, setQuery] = useState(() => readQueryParam())
+  const { ready, index } = useSearchIndex()
 
   // Keep the URL in sync with the editable input so the page stays shareable
   // (replaceState — don't spam history on each keystroke).
@@ -82,20 +85,25 @@ export function SearchResultsIsland() {
           </div>
         </form>
 
-        <GameDataGate fallback={<p className="text-sm text-su-grey-dark">Loading game data…</p>}>
-          <SearchResults query={query} />
-        </GameDataGate>
+        {ready ? (
+          <SearchResults query={query} index={index} />
+        ) : (
+          <p className="text-sm text-su-grey-dark">Loading search index…</p>
+        )}
       </div>
     </IslandErrorBoundary>
   )
 }
 
-function SearchResults({ query }: { query: string }) {
+function SearchResults({ query, index }: { query: string; index: CompactSearchEntry[] }) {
   const trimmed = query.trim()
   const [schemaFacet, setSchemaFacet] = useState<string | null>(null)
 
   // Uncapped: no `limit`, so the full result set comes back.
-  const results = useMemo(() => (trimmed ? search({ query: trimmed }) : []), [trimmed])
+  const results = useMemo(
+    () => (trimmed ? searchCompactIndex(index, { query: trimmed }) : []),
+    [trimmed, index]
+  )
 
   // Facet options: distinct schemas present in the current result set, with counts.
   const facets = useMemo(() => {

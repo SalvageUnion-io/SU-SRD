@@ -338,6 +338,49 @@ jobs:
           path: apps/suref-web/playwright-report/
           retention-days: 7
 
+  bundle-budget-web:
+    # PR-blocking bundle-size regression guard for suref-web's per-route data
+    # loading (src/lib/schemaPreloadDeps.ts, src/lib/searchIndexBuild.ts —
+    # see those files' doc comments and the accompanying ADR/audit notes).
+    # Runs ONLY apps/suref-web/e2e/bundle-budget.e2e.ts against the same
+    # hermetic `astro build` + `astro preview` target as smoke-web, asserting
+    # (a) large schema-specific data chunks never load on pages that don't
+    # need them and (b) total per-route JS stays under a byte budget. Kept as
+    # its own job (not folded into smoke-web) so a budget regression reads as
+    # its own clearly-named failure rather than an ambiguous smoke failure.
+    needs: [changes, build-package, build-suref-web]
+    if: needs.changes.outputs.web == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Bun
+        uses: ./.github/actions/setup-bun
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+
+      - name: Install Playwright browsers (Chromium)
+        working-directory: apps/suref-web
+        run: bunx playwright install --with-deps chromium
+
+      - name: Run bundle-budget test
+        working-directory: apps/suref-web
+        run: bunx playwright test bundle-budget.e2e.ts
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report-bundle-budget-web
+          path: apps/suref-web/playwright-report/
+          retention-days: 7
+
   smoke-itun:
     # PR-blocking smoke tier — same rationale as smoke-web. Runs ONLY
     # apps/in-the-union-now/e2e/smoke.e2e.ts against a self-contained static
@@ -446,6 +489,7 @@ jobs:
       - build-itun
       - build-discord-bot
       - smoke-web
+      - bundle-budget-web
       - smoke-itun
       # NOTE: the FULL browser e2e suites (ITUN + suref-web) still only run
       # nightly, not per-PR — see .github/workflows/e2e-nightly.yml.

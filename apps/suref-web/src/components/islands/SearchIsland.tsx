@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { getEntitySlug } from 'salvageunion-reference'
 import { useSearchCombobox } from 'suref-react'
 import type { SearchComboboxResult } from 'suref-react'
-import { useGameData } from '../../lib/useGameData'
+import { useSearchIndex } from '../../lib/useSearchIndex'
+import { searchCompactIndex } from '../../lib/searchCompactIndex'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 
 type SearchIslandProps = {
@@ -18,9 +19,15 @@ function resultUrl(result: SearchComboboxResult): string {
 }
 
 export function SearchIsland({ navigate }: SearchIslandProps = {}) {
-  // Deferred: the game-data chunks don't download until first user intent
-  // (focusing the input or typing) — keeps them off every page's critical path.
-  const { ready, load } = useGameData({ defer: true })
+  // Deferred: the compact search index doesn't download until first user
+  // intent (focusing the input or typing) — keeps it off every page's
+  // critical path. Unlike the reference-entity islands, search never
+  // preloads the ORM at all — it matches against a small build-time index.
+  const { ready, index, load } = useSearchIndex({ defer: true })
+  const searchFn = useMemo(
+    () => (options: Parameters<typeof searchCompactIndex>[1]) => searchCompactIndex(index, options),
+    [index]
+  )
   // Dropdown-open is DERIVED: open while a search has run, unless the user
   // dismissed THIS results set (Escape/outside click). A new search run
   // produces a fresh results reference, which re-opens automatically —
@@ -54,6 +61,7 @@ export function SearchIsland({ navigate }: SearchIslandProps = {}) {
   } = useSearchCombobox({
     ready,
     onSubmit: (result) => doNavigate(resultUrl(result)),
+    searchFn,
   })
 
   const onInput = useCallback(
@@ -166,7 +174,7 @@ export function SearchIsland({ navigate }: SearchIslandProps = {}) {
             className="absolute right-0 top-full z-50 mt-1 max-h-96 w-80 overflow-y-auto rounded-md border border-su-grey-light bg-su-white shadow-lg"
           >
             {!ready ? (
-              <div className="px-4 py-3 text-sm text-su-grey-dark">Loading game data…</div>
+              <div className="px-4 py-3 text-sm text-su-grey-dark">Loading search index…</div>
             ) : results.length > 0 ? (
               results.map((result, index) => (
                 <a

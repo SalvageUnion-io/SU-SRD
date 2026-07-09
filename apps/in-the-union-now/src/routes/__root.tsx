@@ -63,8 +63,12 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <EntityHrefProvider value={itunEntityHref}>
+        {/* AppHeader renders ONE level above the game-data gate (a sibling of
+            GameDataReady, not a child of it) — see GameDataReady.tsx's doc
+            comment for why: brand chrome touches no reference data, so it
+            paints immediately instead of sitting behind the full preload. */}
+        {showAppHeader && <AppHeader onSearchClick={() => setSearchOpen(true)} />}
         <GameDataReady>
-          {showAppHeader && <AppHeader onSearchClick={() => setSearchOpen(true)} />}
           <Outlet />
           {/* Mounted on every route (inside the game-data gate, so search()
               is always safe) — the Cmd/Ctrl+K shortcut works on live sheets

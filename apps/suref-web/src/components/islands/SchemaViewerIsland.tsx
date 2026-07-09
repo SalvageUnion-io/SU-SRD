@@ -12,7 +12,7 @@ import {
   EntityHrefProvider,
   EntityDetailLinkProvider,
 } from 'suref-react'
-import { GameDataGate } from '../../lib/useGameData'
+import { GameDataGate, type SchemaList } from '../../lib/useGameData'
 import { srdEntityHref } from '../../lib/entityHref'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 
@@ -48,6 +48,9 @@ type SchemaViewerIslandProps = {
   schemaId: string
   techLevels: (number | 'B' | 'N')[]
   sources: string[]
+  /** Which schemas to preload — defaults to `'all'`. Pass the per-route list
+   *  from `../../lib/schemaPreloadDeps.ts` to load only what this listing needs. */
+  preloadSchemas?: SchemaList
 }
 
 export function SchemaViewerIsland({
@@ -55,6 +58,7 @@ export function SchemaViewerIsland({
   schemaId,
   techLevels,
   sources,
+  preloadSchemas,
 }: SchemaViewerIslandProps) {
   // Filter state initializes from the URL on mount so a shared/bookmarked link
   // restores the exact filtered view. Lazy initializers run once; the reads are
@@ -157,6 +161,7 @@ export function SchemaViewerIsland({
   return (
     <IslandErrorBoundary>
       <GameDataGate
+        schemas={preloadSchemas}
         fallback={
           <div className={containerClass}>
             <div className="w-full min-w-0 px-2 pb-6 md:px-6">

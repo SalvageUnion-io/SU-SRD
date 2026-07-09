@@ -54,6 +54,14 @@ export type UseSearchComboboxOptions = {
   /** Invoked on Enter (highlighted row, else first row) — and by row clicks
    *  when the caller wires them through submit(). */
   onSubmit: (result: SearchComboboxResult) => void
+  /**
+   * Override the entity-search implementation. Defaults to the ORM-backed
+   * `search()` from `salvageunion-reference`. Pass a different implementation
+   * to decouple entity search from the full ORM/dataset — e.g. suref-web's
+   * SearchIsland runs a build-time-generated compact index instead of
+   * preloading the ~1.3 MB corpus just to power search.
+   */
+  searchFn?: (options: Parameters<typeof search>[0]) => SearchResult[]
 }
 
 function matchSchemas(query: string, slots: number): SearchComboboxResult[] {
@@ -94,6 +102,7 @@ export function useSearchCombobox({
   limit = 10,
   schemaSlots = 3,
   onSubmit,
+  searchFn = search,
 }: UseSearchComboboxOptions) {
   const [query, setQuery] = useState('')
   const [rawResults, setRawResults] = useState<SearchComboboxResult[]>([])
@@ -118,12 +127,14 @@ export function useSearchCombobox({
         return
       }
       const schemaResults = matchSchemas(searchQuery, schemaSlots)
-      const hits = ready ? search({ query: searchQuery, limit: limit - schemaResults.length }) : []
+      const hits = ready
+        ? searchFn({ query: searchQuery, limit: limit - schemaResults.length })
+        : []
       setRawResults([...schemaResults, ...hits.map(toEntityResult)])
       setHasSearched(true)
       setSelectedIndex(-1)
     },
-    [ready, limit, schemaSlots]
+    [ready, limit, schemaSlots, searchFn]
   )
 
   const handleInput = useCallback(
