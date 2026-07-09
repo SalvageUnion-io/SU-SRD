@@ -427,3 +427,10 @@ export function resetAllForTesting(): void {
     lazyModel._reset()
   }
 }
+
+// ---------------------------------------------------------------------------
+// Rules — pure game-rules logic (ADR-006). Consumers (ITUN, Discord bot)
+// import these from the package barrel instead of reimplementing them.
+// ---------------------------------------------------------------------------
+
+export * from './rules/index.js'
