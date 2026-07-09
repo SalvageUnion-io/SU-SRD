@@ -2,10 +2,11 @@
  * Unit tests for AppHeader (brand chrome, report item P-1).
  *
  * Tests that:
- * - Renders the ITUN wordmark with the Beta pill
+ * - Renders the "IN THE UNION NOW" wordmark with the Beta pill
  * - Brand block links home ("/")
  * - Renders the SU mark image
  * - Renders an outbound SRD link (new tab, safe rel)
+ * - Renders the outbound "Buy the game" link (new tab, safe rel)
  * - Renders the search trigger only when onSearchClick is provided (P-2)
  */
 
@@ -16,12 +17,13 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { AppHeader } from '../AppHeader'
 
 describe('AppHeader', () => {
-  test('renders the ITUN wordmark with the Beta pill, linked home', () => {
+  test('renders the "IN THE UNION NOW" wordmark with the Beta pill, linked home', () => {
     render(<AppHeader />)
-    const brand = screen.getByRole('link', { name: /ITUN/i }) as HTMLAnchorElement
+    const brand = screen.getByRole('link', { name: /IN THE UNION NOW/i }) as HTMLAnchorElement
     expect(brand.getAttribute('href')).toBe('/')
-    expect(brand.textContent).toContain('ITUN')
+    expect(brand.textContent).toContain('IN THE UNION NOW')
     expect(brand.textContent).toContain('Beta')
+    expect(brand.textContent).toContain('A Salvage Union Character Manager')
   })
 
   test('renders the SU mark', () => {
@@ -36,6 +38,14 @@ describe('AppHeader', () => {
     expect(srdLink.getAttribute('href')).toBe('https://salvageunion.io')
     expect(srdLink.getAttribute('target')).toBe('_blank')
     expect(srdLink.getAttribute('rel')).toBe('noopener noreferrer')
+  })
+
+  test('links out to buy the game in a new tab', () => {
+    render(<AppHeader />)
+    const buyLink = screen.getByRole('link', { name: /buy the game/i }) as HTMLAnchorElement
+    expect(buyLink.getAttribute('href')).toBe('https://leyline.press/collections/salvage-union')
+    expect(buyLink.getAttribute('target')).toBe('_blank')
+    expect(buyLink.getAttribute('rel')).toBe('noopener noreferrer')
   })
 
   test('renders the search trigger when onSearchClick is provided and fires it', () => {

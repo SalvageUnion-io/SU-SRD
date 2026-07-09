@@ -37,6 +37,13 @@ type HeaderShellProps = {
   logoAlt?: string
   /** Link component for the brand. Defaults to a plain anchor; ITUN passes AppLink. */
   HomeLink?: ElementType
+  /**
+   * Allow the brand lockup to shrink so a long wordmark/eyebrow wraps instead
+   * of forcing horizontal overflow (ITUN's "IN THE UNION NOW" +
+   * "A Salvage Union Character Manager"). Defaults to false — the brand stays
+   * `shrink-0`, preserving the SRD's single-line lockup exactly.
+   */
+  brandShrink?: boolean
   /** Right-side actions — unique per app (nav links, search, outbound cross-link). */
   children?: ReactNode
   /** Extra classes merged onto the container. */
@@ -59,6 +66,7 @@ export function HeaderShell({
   logoSrc = '/logos/su-cargo-dark.svg',
   logoAlt = 'Salvage Union',
   HomeLink = 'a',
+  brandShrink = false,
   children,
   className,
   viewTransitionName,
@@ -68,8 +76,17 @@ export function HeaderShell({
       className={cn(CONTAINER_CLASS, className)}
       style={viewTransitionName ? { viewTransitionName } : undefined}
     >
-      {/* Brand: SU cargo mark + wordmark (+ optional accent/badge) + eyebrow */}
-      <HomeLink href={homeHref} className="flex shrink-0 items-center gap-[14px] no-underline">
+      {/* Brand: SU cargo mark + wordmark (+ optional accent/badge) + eyebrow.
+          With `brandShrink`, the lockup may shrink (min-w-0) so a long
+          wordmark/eyebrow wraps instead of forcing horizontal overflow; the
+          default keeps it `shrink-0`, preserving the SRD's single-line lockup. */}
+      <HomeLink
+        href={homeHref}
+        className={cn(
+          'flex items-center gap-[14px] no-underline',
+          brandShrink ? 'min-w-0' : 'shrink-0'
+        )}
+      >
         <img
           src={logoSrc}
           alt={logoAlt}
@@ -87,7 +104,14 @@ export function HeaderShell({
               </span>
             )}
           </span>
-          <span className="mt-[7px] whitespace-nowrap font-cond text-[13px] font-semibold uppercase leading-none tracking-[0.22em] text-su-orange sm:mt-[9px]">
+          <span
+            className={cn(
+              'mt-[7px] font-cond text-[13px] font-semibold uppercase tracking-[0.22em] text-su-orange sm:mt-[9px]',
+              // When the brand can shrink, let a long eyebrow wrap (with room
+              // between lines); otherwise keep the SRD's single-line eyebrow.
+              brandShrink ? 'leading-tight' : 'whitespace-nowrap leading-none'
+            )}
+          >
             {eyebrow}
           </span>
         </span>
