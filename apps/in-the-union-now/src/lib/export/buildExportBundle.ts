@@ -1,5 +1,6 @@
 import { recordExport } from '../backupNudge'
 import * as db from '../db/index'
+import type { EncounterNpc } from '../schemas/encounterNpc'
 import type { ExportBundle } from '../schemas/exportBundle'
 import type { MechPattern } from '../schemas/pattern'
 import type { EntityType } from '../../stores/types'
@@ -30,6 +31,15 @@ type ExportPatternStore = {
 }
 
 /**
+ * Minimal encounter-NPC source for export. Like patterns, encounterNpcs are
+ * not in entityStore — they live in their own Zustand store/db object store;
+ * tests may pass a double.
+ */
+type ExportEncounterNpcStore = {
+  list: () => Promise<EncounterNpc[]>
+}
+
+/**
  * buildExportBundle — full backup of all entities, workspaces, and softLinks.
  *
  * Hydrates every store type first so the caller does not need to pre-hydrate.
@@ -38,10 +48,12 @@ type ExportPatternStore = {
 export async function buildExportBundle(
   entityStore: ExportStore,
   workspaceStore: ExportWorkspaceStore,
-  patternStore: ExportPatternStore = db.mechPatterns
+  patternStore: ExportPatternStore = db.mechPatterns,
+  encounterNpcStore: ExportEncounterNpcStore = db.encounterNpcs
 ): Promise<ExportBundle> {
-  const [mechPatterns] = await Promise.all([
+  const [mechPatterns, encounterNpcs] = await Promise.all([
     patternStore.list(),
+    encounterNpcStore.list(),
     entityStore.hydrate('pilot'),
     entityStore.hydrate('mech'),
     entityStore.hydrate('crawler'),
@@ -60,6 +72,7 @@ export async function buildExportBundle(
     workspaces: workspaceStore.list(),
     softLinks: entityStore.list('softLink'),
     mechPatterns,
+    encounterNpcs,
   }
   // A full backup resets the backup-nudge clock (plan 2.6).
   recordExport()
@@ -101,6 +114,7 @@ export async function buildEntityExport(
         workspaces: [],
         softLinks: attachedLinks,
         mechPatterns: [],
+        encounterNpcs: [],
       }
     }
     case 'mech': {
@@ -112,6 +126,7 @@ export async function buildEntityExport(
         workspaces: [],
         softLinks: attachedLinks,
         mechPatterns: [],
+        encounterNpcs: [],
       }
     }
     case 'crawler': {
@@ -123,6 +138,7 @@ export async function buildEntityExport(
         workspaces: [],
         softLinks: attachedLinks,
         mechPatterns: [],
+        encounterNpcs: [],
       }
     }
   }

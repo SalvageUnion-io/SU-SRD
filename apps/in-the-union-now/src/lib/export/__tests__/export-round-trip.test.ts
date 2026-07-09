@@ -18,15 +18,15 @@
  * (checked package.json first, per the harness brief) — this is deliberately
  * thorough table-driven coverage instead of generative testing.
  *
- * Known gap (not fixed here — out of scope, flagged for follow-up): the
- * `encounterNpcs` store has NO representation in ExportBundleSchema at all.
- * A full backup silently omits GM encounter-tray state. Not addressed in
- * this PR (would be a schema/feature change, not a test-harness fix) — see
- * the PR description.
+ * Formerly a known gap, now fixed: the `encounterNpcs` store previously had
+ * NO representation in ExportBundleSchema at all, so a full backup silently
+ * omitted GM encounter-tray state. `encounterNpcs` is now part of the bundle
+ * (additive `.default([])` field, no schemaVersion bump — see
+ * `exportBundle.ts`) and is covered below the same way mechPatterns is.
  */
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 
-import { _clearAllStores, _resetDbSingleton, mechPatterns } from '../../db/index'
+import { _clearAllStores, _resetDbSingleton, encounterNpcs, mechPatterns } from '../../db/index'
 import { useEntityStore } from '../../../stores/entityStore'
 import { useWorkspaceStore } from '../../../stores/workspaceStore'
 import { buildExportBundle } from '../buildExportBundle'
@@ -235,6 +235,25 @@ const richPatternInput = {
   ],
 }
 
+const richEncounterNpcInput = {
+  schemaVersion: 1 as const,
+  refSchema: 'npcs' as const,
+  refSlug: 'wasteland-raider',
+  refName: 'Wasteland Raider',
+  name: 'Raider 2',
+  currentHp: 3,
+  maxHp: 6,
+  statKind: 'hp' as const,
+  conditions: ['bleeding'],
+  lastMediatorRoll: {
+    table: 'morale' as const,
+    roll: 14,
+    label: 'Steady',
+    value: 'Holds the line.',
+    rolledAt: '2026-01-01T00:00:00.000Z',
+  },
+}
+
 // ---------------------------------------------------------------------------
 // Per-entity round-trip fidelity
 // ---------------------------------------------------------------------------
@@ -339,6 +358,41 @@ describe('export round-trip — field fidelity', () => {
       stable(created as unknown as Record<string, unknown>)
     )
   })
+
+  test('encounterNpc: conditions + lastMediatorRoll survive, workspaceId remaps to new workspace', async () => {
+    const entityStore = useEntityStore.getState()
+    const workspaceStore = useWorkspaceStore.getState()
+
+    await workspaceStore.hydrate()
+    const ws = await workspaceStore.create({ name: 'Campaign Alpha' })
+
+    const created = await encounterNpcs.create({ ...richEncounterNpcInput, workspaceId: ws.id })
+
+    const bundle = await buildExportBundle(entityStore, workspaceStore)
+    expect(bundle.encounterNpcs).toHaveLength(1)
+    const parsed = await roundTrip(bundle)
+
+    _resetDbSingleton()
+    resetStores()
+    const verifyWorkspaceStore = useWorkspaceStore.getState()
+    await verifyWorkspaceStore.hydrate()
+    const importedWs = verifyWorkspaceStore.list()[0]
+    const imported = (await encounterNpcs.list())[0]
+    expect(imported).toBeDefined()
+    expect(importedWs).toBeDefined()
+
+    // Every field except id/createdAt/updatedAt/workspaceId is preserved exactly.
+    expect(stable(imported as unknown as Record<string, unknown>)).toEqual(
+      stable(created as unknown as Record<string, unknown>)
+    )
+    // workspaceId is intentionally remapped — to the NEW workspace's id.
+    expect((imported as { workspaceId?: string }).workspaceId).toBe(importedWs!.id)
+    expect((imported as { workspaceId?: string }).workspaceId).not.toBe(ws.id)
+
+    // Sanity: the exported bundle actually carried the rich fields.
+    expect(parsed.encounterNpcs[0]?.conditions).toEqual(['bleeding'])
+    expect(parsed.encounterNpcs[0]?.lastMediatorRoll?.table).toBe('morale')
+  })
 })
 
 // ---------------------------------------------------------------------------
@@ -376,6 +430,7 @@ describe('export round-trip — cross-entity full backup', () => {
     })
 
     await mechPatterns.create(richPatternInput)
+    await encounterNpcs.create({ ...richEncounterNpcInput, workspaceId: ws.id })
 
     const bundle = await buildExportBundle(entityStore, workspaceStore)
     expect(bundle.entities.pilots).toHaveLength(1)
@@ -384,6 +439,7 @@ describe('export round-trip — cross-entity full backup', () => {
     expect(bundle.softLinks).toHaveLength(2)
     expect(bundle.workspaces).toHaveLength(1)
     expect(bundle.mechPatterns).toHaveLength(1)
+    expect(bundle.encounterNpcs).toHaveLength(1)
 
     await roundTrip(bundle)
 
@@ -403,6 +459,7 @@ describe('export round-trip — cross-entity full backup', () => {
     const importedLinks = verifyEntityStore.list('softLink')
     const importedWs = verifyWorkspaceStore.list()[0]!
     const importedPatterns = await mechPatterns.list()
+    const importedEncounterNpcs = await encounterNpcs.list()
 
     // All three entities re-point at the SAME new workspace id.
     expect((importedPilot as { workspaceId?: string }).workspaceId).toBe(importedWs.id)
@@ -421,6 +478,11 @@ describe('export round-trip — cross-entity full backup', () => {
     // Pattern store survives the same full-backup round trip.
     expect(importedPatterns).toHaveLength(1)
     expect(importedPatterns[0]?.chassisRef).toBe('mule-chassis')
+
+    // Encounter NPC survives too, workspaceId re-pointed at the same new workspace.
+    expect(importedEncounterNpcs).toHaveLength(1)
+    expect(importedEncounterNpcs[0]?.refSlug).toBe('wasteland-raider')
+    expect((importedEncounterNpcs[0] as { workspaceId?: string }).workspaceId).toBe(importedWs.id)
 
     // Deep field fidelity, same as the per-entity tests above.
     expect(stable(importedPilot as unknown as Record<string, unknown>)).toEqual(

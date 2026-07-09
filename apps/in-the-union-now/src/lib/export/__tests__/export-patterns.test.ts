@@ -108,7 +108,7 @@ describe('mergeImport — mech patterns', () => {
 })
 
 describe('parseImportBundle — legacy compatibility', () => {
-  test('a pre-rename bundle (mech cargo: string[], no mechPatterns) still imports', () => {
+  test('a pre-rename bundle (mech cargo: string[], no mechPatterns/encounterNpcs) still imports', () => {
     const legacyBundle = {
       schemaVersion: 1,
       exportedAt: '2026-01-01T00:00:00.000Z',
@@ -136,6 +136,7 @@ describe('parseImportBundle — legacy compatibility', () => {
 
     const parsed = parseImportBundle(JSON.stringify(legacyBundle))
     expect(parsed.mechPatterns).toEqual([]) // schema default fills
+    expect(parsed.encounterNpcs).toEqual([]) // schema default fills (added later than mechPatterns, same pattern)
     const mech = parsed.entities.mechs[0]
     expect(mech?.cargoLots).toHaveLength(1)
     expect(mech?.cargoLots[0]?.name).toBe('Salvaged plating')

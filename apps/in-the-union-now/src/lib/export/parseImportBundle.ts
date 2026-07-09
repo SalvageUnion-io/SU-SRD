@@ -56,7 +56,9 @@ function normalizeLegacyBundle(raw: unknown): unknown {
  * Legacy compatibility: mechs/patterns carrying the pre-rename
  * `cargo: string[]` field are normalized to `cargoLots` and pilots carrying
  * the removed `rollResults` field have it dropped before validation;
- * bundles without `mechPatterns` get an empty array (schema default).
+ * bundles without `mechPatterns` or `encounterNpcs` get an empty array
+ * (schema default) — both fields were added additively, no schemaVersion
+ * bump required.
  *
  * On success returns the validated ExportBundle.
  */
