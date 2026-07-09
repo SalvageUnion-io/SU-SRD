@@ -41,7 +41,9 @@
     "validate:orphans": "bun tools/validateOrphans.ts",
     "validate:traits": "bun tools/validateTraits.ts",
     "validate:schemas": "bun tools/validateSchemas.ts",
-    "validate:all": "bun run validate:ids && bun run validate:slugs && bun run validate:references && bun run validate:actions && bun run validate:action-backrefs && bun run validate:orphans && bun run validate:traits && bun run validate:schemas",
+    "validate:all": "bun tools/validate.ts",
+    "validate:fix": "bun tools/validate.ts --fix",
+    "edit-data": "bun tools/edit-data.ts",
     "typecheck": "tsc --project tsconfig.json --noEmit",
     "test": "bun test",
     "test:coverage": "bun test --coverage --coverage-reporter=text --coverage-reporter=lcov --coverage-dir=coverage",
@@ -52,6 +54,7 @@
   },
   "license": "SEE LICENSE IN LICENCE",
   "dependencies": {
+    "jsonc-parser": "^3.3.1",
     "zod": "^4.4.3"
   },
   "devDependencies": {}

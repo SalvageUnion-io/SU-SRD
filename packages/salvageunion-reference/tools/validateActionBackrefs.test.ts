@@ -1,9 +1,10 @@
 import { describe, it, expect } from 'bun:test'
-import { readFileSync } from 'fs'
+import { readFileSync, readdirSync } from 'fs'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 import {
   findMissingActionBackrefs,
+  runActionBackrefCheck,
   type ActionLike,
   type EntityLike,
 } from './validateActionBackrefsLogic.js'
@@ -99,5 +100,21 @@ describe('real dataset invariant', () => {
     const entitiesBySource: Record<string, EntityLike[]> = {}
     for (const s of SOURCES) entitiesBySource[s] = load(s) as EntityLike[]
     expect(findMissingActionBackrefs(actions, entitiesBySource)).toEqual([])
+  })
+
+  // Same invariant, but through runActionBackrefCheck — the exact orchestration
+  // function tools/validateActionBackrefs.ts (the CLI) and tools/validate.ts
+  // (the unified runner) both call, over a filesByName bag keyed the way
+  // tools/loadData.ts produces it (e.g. "actions.json", not "actions"). This
+  // catches a regression in the orchestration wiring itself, not just the pure
+  // detection function above.
+  it('runActionBackrefCheck finds no violations over the real data bag', () => {
+    const filesByName: Record<string, unknown[]> = {}
+    for (const filename of readdirSync(dataDir)) {
+      if (!filename.endsWith('.json')) continue
+      const parsed = JSON.parse(readFileSync(join(dataDir, filename), 'utf-8')) as unknown
+      if (Array.isArray(parsed)) filesByName[filename] = parsed
+    }
+    expect(runActionBackrefCheck(filesByName)).toEqual([])
   })
 })

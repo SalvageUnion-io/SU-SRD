@@ -1,0 +1,126 @@
+{
+  // $schema wiring for packages/salvageunion-reference/data/*.json.
+  //
+  // Every data file's root is a JSON *array* (`[ {...}, {...} ]`), so an
+  // inline `"$schema"` property (which only works on object roots) can't be
+  // used — see packages/salvageunion-reference/tools/editDataLogic.ts's
+  // header and the "$schema wiring" note in the reference package's
+  // validation tooling for the full rationale. VSCode's `json.schemas`
+  // mapping works for array roots, so it's used here instead.
+  //
+  // One entry per schema id in packages/salvageunion-reference/lib/schemas/registry.ts
+  // (27 as of this writing) — this file is generated from that registry and
+  // committed statically. If a new schema is added to the registry, add the
+  // matching { fileMatch, url } pair here too (not automated / not wired into
+  // the drift-checked `bun run build:package` codegen).
+  "json.schemas": [
+    {
+      "fileMatch": ["/packages/salvageunion-reference/data/abilities.json"],
+      "url": "./packages/salvageunion-reference/schemas/abilities.schema.json"
+    },
+    {
+      "fileMatch": ["/packages/salvageunion-reference/data/ability-tree-requirements.json"],
+      "url": "./packages/salvageunion-reference/schemas/ability-tree-requirements.schema.json"
+    },
+    {
+      "fileMatch": ["/packages/salvageunion-reference/data/actions.json"],
+      "url": "./packages/salvageunion-reference/schemas/actions.schema.json"
+    },
+    {
+      "fileMatch": ["/packages/salvageunion-reference/data/chassis.json"],
+      "url": "./packages/salvageunion-reference/schemas/chassis.schema.json"
+    },
+    {
+      "fileMatch": ["/packages/salvageunion-reference/data/classes.json"],
+      "url": "./packages/salvageunion-reference/schemas/classes.schema.json"
+    },
+    {
+      "fileMatch": ["/packages/salvageunion-reference/data/crawler-bays.json"],
+      "url": "./packages/salvageunion-reference/schemas/crawler-bays.schema.json"
+    },
+    {
+      "fileMatch": ["/packages/salvageunion-reference/data/crawler-tech-levels.json"],
+      "url": "./packages/salvageunion-reference/schemas/crawler-tech-levels.schema.json"
+    },
+    {
+      "fileMatch": ["/packages/salvageunion-reference/data/crawlers.json"],
+      "url": "./packages/salvageunion-reference/schemas/crawlers.schema.json"
+    },
+    {
+      "fileMatch": ["/packages/salvageunion-reference/data/creatures.json"],
+      "url": "./packages/salvageunion-reference/schemas/creatures.schema.json"
+    },
+    {
+      "fileMatch": ["/packages/salvageunion-reference/data/distances.json"],
+      "url": "./packages/salvageunion-reference/schemas/distances.schema.json"
+    },
+    {
+      "fileMatch": ["/packages/salvageunion-reference/data/drones.json"],
+      "url": "./packages/salvageunion-reference/schemas/drones.schema.json"
+    },
+    {
+      "fileMatch": ["/packages/salvageunion-reference/data/equipment.json"],
+      "url": "./packages/salvageunion-reference/schemas/equipment.schema.json"
+    },
+    {
+      "fileMatch": ["/packages/salvageunion-reference/data/factions.json"],
+      "url": "./packages/salvageunion-reference/schemas/factions.schema.json"
+    },
+    {
+      "fileMatch": ["/packages/salvageunion-reference/data/guides.json"],
+      "url": "./packages/salvageunion-reference/schemas/guides.schema.json"
+    },
+    {
+      "fileMatch": ["/packages/salvageunion-reference/data/keywords.json"],
+      "url": "./packages/salvageunion-reference/schemas/keywords.schema.json"
+    },
+    {
+      "fileMatch": ["/packages/salvageunion-reference/data/meld.json"],
+      "url": "./packages/salvageunion-reference/schemas/meld.schema.json"
+    },
+    {
+      "fileMatch": ["/packages/salvageunion-reference/data/modules.json"],
+      "url": "./packages/salvageunion-reference/schemas/modules.schema.json"
+    },
+    {
+      "fileMatch": ["/packages/salvageunion-reference/data/npcs.json"],
+      "url": "./packages/salvageunion-reference/schemas/npcs.schema.json"
+    },
+    {
+      "fileMatch": ["/packages/salvageunion-reference/data/roll-tables.json"],
+      "url": "./packages/salvageunion-reference/schemas/roll-tables.schema.json"
+    },
+    {
+      "fileMatch": ["/packages/salvageunion-reference/data/squads.json"],
+      "url": "./packages/salvageunion-reference/schemas/squads.schema.json"
+    },
+    {
+      "fileMatch": ["/packages/salvageunion-reference/data/systems.json"],
+      "url": "./packages/salvageunion-reference/schemas/systems.schema.json"
+    },
+    {
+      "fileMatch": ["/packages/salvageunion-reference/data/bio-titans.json"],
+      "url": "./packages/salvageunion-reference/schemas/bio-titans.schema.json"
+    },
+    {
+      "fileMatch": ["/packages/salvageunion-reference/data/traits.json"],
+      "url": "./packages/salvageunion-reference/schemas/traits.schema.json"
+    },
+    {
+      "fileMatch": ["/packages/salvageunion-reference/data/vehicles.json"],
+      "url": "./packages/salvageunion-reference/schemas/vehicles.schema.json"
+    },
+    {
+      "fileMatch": ["/packages/salvageunion-reference/data/sources.json"],
+      "url": "./packages/salvageunion-reference/schemas/sources.schema.json"
+    },
+    {
+      "fileMatch": ["/packages/salvageunion-reference/data/tech-levels.json"],
+      "url": "./packages/salvageunion-reference/schemas/tech-levels.schema.json"
+    },
+    {
+      "fileMatch": ["/packages/salvageunion-reference/data/catalog-categories.json"],
+      "url": "./packages/salvageunion-reference/schemas/catalog-categories.schema.json"
+    }
+  ]
+}
