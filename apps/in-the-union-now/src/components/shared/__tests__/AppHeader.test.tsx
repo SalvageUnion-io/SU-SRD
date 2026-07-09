@@ -12,7 +12,7 @@
 
 import '@testing-library/jest-dom'
 import { describe, expect, mock, test } from 'bun:test'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 
 import { AppHeader } from '../AppHeader'
 
@@ -59,5 +59,23 @@ describe('AppHeader', () => {
   test('omits the search trigger when onSearchClick is not provided', () => {
     render(<AppHeader />)
     expect(screen.queryByRole('button', { name: 'Search the SRD' })).toBeFalsy()
+  })
+
+  test('renders a hamburger trigger for the mobile nav drawer, closed by default', () => {
+    render(<AppHeader />)
+    expect(screen.getByRole('button', { name: 'Open menu' })).toBeTruthy()
+    expect(screen.queryByRole('dialog')).toBeFalsy()
+  })
+
+  test('opening the hamburger reveals the collapsed nav links in the drawer', () => {
+    render(<AppHeader />)
+    fireEvent.click(screen.getByRole('button', { name: 'Open menu' }))
+    const drawer = screen.getByRole('dialog')
+    expect(within(drawer).getByRole('link', { name: /encounter/i })).toBeTruthy()
+    expect(within(drawer).getByRole('link', { name: /SRD/i })).toBeTruthy()
+    const buy = within(drawer).getByRole('link', {
+      name: /buy the game/i,
+    }) as HTMLAnchorElement
+    expect(buy.getAttribute('href')).toBe('https://leyline.press/collections/salvage-union')
   })
 })

@@ -17,6 +17,7 @@
     "clean": "rm -rf dist .vite node_modules/.vite"
   },
   "dependencies": {
+    "@base-ui/react": "1.6.0",
     "@fontsource/barlow": "5.2.8",
     "@fontsource/barlow-semi-condensed": "5.2.7",
     "@netlify/blobs": "^10.7.9",
