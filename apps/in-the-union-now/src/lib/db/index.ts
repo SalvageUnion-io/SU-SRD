@@ -29,6 +29,7 @@ import { openDB } from 'idb'
 import type { IDBPDatabase } from 'idb'
 
 import { CrawlerSchema } from '../schemas/crawler'
+import { deepStrip } from '../schemas/deepStrip'
 import { EncounterNpcSchema } from '../schemas/encounterNpc'
 import { MechSchema } from '../schemas/mech'
 import { MechPatternSchema } from '../schemas/pattern'
@@ -271,31 +272,35 @@ export async function deleteEntityWithSoftLinks(
 // hasUpdatedAt=true for Pilot, Mech, Crawler (their schemas include updatedAt)
 // hasUpdatedAt=false (default) for Workspace (createdAt only), SoftLink (createdAt only),
 // and MechPattern (createdAt only — patterns are immutable after creation).
-// salvageSchema = the same object shape with `.strip()` — reads tolerate
-// drifted records (unknown fields stripped) instead of bricking hydration.
+// salvageSchema = deepStrip(XSchema) — the same shape with EVERY object
+// (top-level and nested, e.g. CargoLotSchema/InjurySchema/EntityRefSchema
+// inside cargoLots/injuries/from/to) relaxed to `.strip()` instead of
+// `.strict()`. A plain `XSchema.strip()` only relaxes the outermost object;
+// an unknown key introduced at any nested depth by a newer build would still
+// fail the salvage parse and drop the whole record. See deepStrip.ts.
 
 export const pilots = makeStore(getDb, PilotSchema, STORE_NAMES.pilots, {
   hasUpdatedAt: true,
-  salvageSchema: PilotSchema.strip(),
+  salvageSchema: deepStrip(PilotSchema),
 })
 export const mechs = makeStore(getDb, MechSchema, STORE_NAMES.mechs, {
   hasUpdatedAt: true,
-  salvageSchema: MechSchema.strip(),
+  salvageSchema: deepStrip(MechSchema),
 })
 export const crawlers = makeStore(getDb, CrawlerSchema, STORE_NAMES.crawlers, {
   hasUpdatedAt: true,
-  salvageSchema: CrawlerSchema.strip(),
+  salvageSchema: deepStrip(CrawlerSchema),
 })
 export const workspaces = makeStore(getDb, WorkspaceSchema, STORE_NAMES.workspaces, {
-  salvageSchema: WorkspaceSchema.strip(),
+  salvageSchema: deepStrip(WorkspaceSchema),
 })
 export const softLinks = makeStore(getDb, SoftLinkSchema, STORE_NAMES.softLinks, {
-  salvageSchema: SoftLinkSchema.strip(),
+  salvageSchema: deepStrip(SoftLinkSchema),
 })
 export const mechPatterns = makeStore(getDb, MechPatternSchema, STORE_NAMES.mechPatterns, {
-  salvageSchema: MechPatternSchema.strip(),
+  salvageSchema: deepStrip(MechPatternSchema),
 })
 export const encounterNpcs = makeStore(getDb, EncounterNpcSchema, STORE_NAMES.encounterNpcs, {
   hasUpdatedAt: true,
-  salvageSchema: EncounterNpcSchema.strip(),
+  salvageSchema: deepStrip(EncounterNpcSchema),
 })
