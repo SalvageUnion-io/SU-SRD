@@ -25,17 +25,26 @@ type UseHydrateEntitiesOptions = {
  * on mount and flip to true when it resolves. The hydrator is captured on
  * first render only, matching the entity variant's once-on-mount semantics.
  */
+/**
+ * "No error yet" sentinel. A plain `null`/`undefined` can't be used: a hydrator
+ * that rejected with `null` or `undefined` would then be indistinguishable from
+ * the initial state and NOT re-thrown — silently reproducing the stuck-skeleton
+ * bug this hook exists to prevent. A unique symbol can never collide with a
+ * real rejection reason.
+ */
+const NO_ERROR = Symbol('useHydrateOnMount.noError')
+
 export function useHydrateOnMount(hydrate: () => Promise<unknown>): boolean {
   const [state, setState] = useState<{ hydrated: boolean; error: unknown }>({
     hydrated: false,
-    error: null,
+    error: NO_ERROR,
   })
 
   useEffect(() => {
     let cancelled = false
     hydrate().then(
       () => {
-        if (!cancelled) setState({ hydrated: true, error: null })
+        if (!cancelled) setState({ hydrated: true, error: NO_ERROR })
       },
       (err: unknown) => {
         if (!cancelled) setState({ hydrated: false, error: err })
@@ -53,7 +62,7 @@ export function useHydrateOnMount(hydrate: () => Promise<unknown>): boolean {
   // infinite loading skeleton. Re-throwing during render hands the error to the
   // nearest router errorComponent (RootErrorComponent). See lib/db/index.ts's
   // BlockedUpgradeError for the canonical case this guards against.
-  if (state.error !== null) throw state.error
+  if (state.error !== NO_ERROR) throw state.error
 
   return state.hydrated
 }

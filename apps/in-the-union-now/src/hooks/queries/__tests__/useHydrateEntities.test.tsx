@@ -14,14 +14,17 @@ import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import { useHydrateOnMount } from '../useHydrateEntities'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: local test-only error boundary, no fast-refresh boundary here
-class Boundary extends Component<{ children: ReactNode }, { error: unknown }> {
-  state: { error: unknown } = { error: null }
+class Boundary extends Component<{ children: ReactNode }, { caught: boolean; error: unknown }> {
+  // Track "caught" separately from the value: a thrown `null`/`undefined` must
+  // still show the fallback (mirrors why the hook uses a symbol sentinel).
+  state: { caught: boolean; error: unknown } = { caught: false, error: null }
   static getDerivedStateFromError(error: unknown) {
-    return { error }
+    return { caught: true, error }
   }
   render() {
-    if (this.state.error) {
-      return <div role="alert">caught: {(this.state.error as Error).message}</div>
+    if (this.state.caught) {
+      const message = this.state.error instanceof Error ? this.state.error.message : 'non-error'
+      return <div role="alert">caught: {message}</div>
     }
     return this.props.children
   }
@@ -57,6 +60,21 @@ describe('useHydrateOnMount', () => {
       )
       await waitFor(() => expect(screen.getByRole('alert')).toBeTruthy())
       expect(screen.getByText(/db open failed/)).toBeTruthy()
+    } finally {
+      console.error = originalError
+    }
+  })
+
+  test('even a null rejection surfaces (sentinel guard), never a silent skeleton', async () => {
+    const originalError = console.error
+    console.error = () => {}
+    try {
+      render(
+        <Boundary>
+          <Probe hydrate={() => Promise.reject(null)} />
+        </Boundary>
+      )
+      await waitFor(() => expect(screen.getByRole('alert')).toBeTruthy())
     } finally {
       console.error = originalError
     }
