@@ -7,8 +7,8 @@
  * is caught here rather than silently mis-capping crawlers.
  */
 import { beforeAll, describe, expect, it } from 'bun:test'
-import { SalvageUnionReference } from 'salvageunion-reference'
-import { isWeaponSystem } from '../crawlerSystems'
+import { SalvageUnionReference } from '../index.js'
+import { isWeaponSystem } from './crawlerSystems.js'
 
 beforeAll(async () => {
   await SalvageUnionReference.preload(['systems', 'actions'])

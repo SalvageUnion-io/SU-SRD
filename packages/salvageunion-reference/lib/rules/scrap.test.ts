@@ -5,9 +5,9 @@
  * costs, and hand-crafted fixtures for item-level tests.
  */
 import { beforeAll, describe, expect, it } from 'bun:test'
-import { SalvageUnionReference } from 'salvageunion-reference'
-import { salvageValueFor, scrapCostFor, tierUpgradeCost } from '../scrap'
-import type { ScrapableItem } from '../types'
+import { SalvageUnionReference } from '../index.js'
+import { salvageValueFor, scrapCostFor, tierUpgradeCost } from './scrap.js'
+import type { ScrapableItem } from './types.js'
 
 beforeAll(async () => {
   await SalvageUnionReference.preload(['crawler-tech-levels', 'systems'])

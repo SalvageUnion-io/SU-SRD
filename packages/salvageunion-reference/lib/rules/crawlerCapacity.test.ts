@@ -11,9 +11,9 @@
  * These caps are soft — violations are warnings, not hard blocks.
  */
 import { beforeAll, describe, expect, it } from 'bun:test'
-import { SalvageUnionReference } from 'salvageunion-reference'
-import { computeCrawlerCapacity } from '../crawlerCapacity'
-import type { CrawlerCapacityInput } from '../crawlerCapacity'
+import { SalvageUnionReference } from '../index.js'
+import { computeCrawlerCapacity } from './crawlerCapacity.js'
+import type { CrawlerCapacityInput } from './crawlerCapacity.js'
 
 beforeAll(async () => {
   await SalvageUnionReference.preload(['crawler-tech-levels'])

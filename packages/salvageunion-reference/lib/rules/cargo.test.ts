@@ -5,9 +5,9 @@
  * hand-crafted fixtures (for custom items and edge cases).
  */
 import { beforeAll, describe, expect, it } from 'bun:test'
-import { SalvageUnionReference } from 'salvageunion-reference'
-import { computeCargoCapacity } from '../cargo'
-import type { CargoItem, CargoParent } from '../types'
+import { SalvageUnionReference } from '../index.js'
+import { computeCargoCapacity } from './cargo.js'
+import type { CargoItem, CargoParent } from './types.js'
 
 beforeAll(async () => {
   await SalvageUnionReference.preload(['equipment', 'systems', 'modules'])

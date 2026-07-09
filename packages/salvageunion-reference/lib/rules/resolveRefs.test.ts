@@ -3,14 +3,14 @@
  * Uses real reference data: preloaded via the shared test preload.
  */
 import { beforeAll, describe, expect, test } from 'bun:test'
-import { SalvageUnionReference, getEntitySlug } from 'salvageunion-reference'
+import { SalvageUnionReference, getEntitySlug } from '../index.js'
 
 import {
   matchesRef,
   resolveChassisRef,
   resolveInstalledRef,
   resolveSystemRef,
-} from '../resolveRefs'
+} from './resolveRefs.js'
 
 const anyChassis = () => {
   const chassis = SalvageUnionReference.Chassis.all()[0]

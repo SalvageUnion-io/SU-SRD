@@ -13,14 +13,14 @@ import {
   evaluateMechWarnings,
   PILOT_ABILITY_CAP,
   SALVAGER_ABILITY_CAP,
-} from '../softWarnings'
+} from './softWarnings.js'
 import type {
   AbilityInput,
   EditSnapshot,
   MechSnapshot,
   PilotSnapshot,
   SoftWarningContext,
-} from '../types'
+} from './types.js'
 
 // ---------------------------------------------------------------------------
 // Fixtures

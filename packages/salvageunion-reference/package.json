@@ -11,6 +11,10 @@
       "types": "./lib/index.ts",
       "default": "./lib/index.ts"
     },
+    "./rules": {
+      "types": "./lib/rules/index.ts",
+      "default": "./lib/rules/index.ts"
+    },
     "./data/*": {
       "import": "./data/*.json",
       "default": "./data/*.json"

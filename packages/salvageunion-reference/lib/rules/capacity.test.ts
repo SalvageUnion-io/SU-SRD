@@ -5,9 +5,9 @@
  * is computed against actual chassis caps and system slotsRequired values.
  */
 import { beforeAll, describe, expect, it } from 'bun:test'
-import { SalvageUnionReference } from 'salvageunion-reference'
-import { computeMechCapacity } from '../capacity'
-import type { MechInput } from '../types'
+import { SalvageUnionReference } from '../index.js'
+import { computeMechCapacity } from './capacity.js'
+import type { MechInput } from './types.js'
 
 beforeAll(async () => {
   await SalvageUnionReference.preload(['chassis', 'systems', 'modules'])

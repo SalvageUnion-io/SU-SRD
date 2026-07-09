@@ -6,10 +6,10 @@
  * capacity math and weapon-system detection run against the actual dataset.
  */
 import { beforeAll, describe, expect, it } from 'bun:test'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { SalvageUnionReference } from '../index.js'
 
-import { crawlerDetailWarnings, mechDetailWarnings, pilotDetailWarnings } from '../detailWarnings'
-import { isWeaponSystem } from '../crawlerSystems'
+import { crawlerDetailWarnings, mechDetailWarnings, pilotDetailWarnings } from './detailWarnings.js'
+import { isWeaponSystem } from './crawlerSystems.js'
 
 beforeAll(async () => {
   await SalvageUnionReference.preload('all')
