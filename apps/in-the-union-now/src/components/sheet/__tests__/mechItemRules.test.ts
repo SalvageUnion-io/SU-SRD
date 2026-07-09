@@ -17,6 +17,7 @@ import {
   mechConditionsPatch,
   repairPoolTl,
   repairScrapCost,
+  resolveModule,
   resolveSystem,
 } from '../mechItemRules'
 
@@ -51,6 +52,27 @@ describe('itemEconomy', () => {
     const economy = itemEconomy(entity!)
     expect(economy.epCost).toBe(0)
     expect(economy.heat).toBe(2)
+  })
+})
+
+describe('resolveSystem / resolveModule ref forms', () => {
+  // Installed loadout refs are stored as slugs (e.g. Starter Set mechs), so
+  // slug resolution is the load-bearing case — id/name are legacy-tolerated.
+  test('resolveSystem matches a slug ref', () => {
+    const bySlug = resolveSystem('mini-mortar')
+    expect(bySlug).toBeTruthy()
+    expect(bySlug!.name).toBe('Mini Mortar')
+    expect(resolveSystem('Mini Mortar')?.id).toBe(bySlug!.id)
+  })
+
+  test('resolveModule matches a slug ref', () => {
+    const bySlug = resolveModule('comms-module')
+    expect(bySlug).toBeTruthy()
+    expect(bySlug!.name).toBe('Comms Module')
+  })
+
+  test('unresolvable ref returns null (no throw)', () => {
+    expect(resolveSystem('not-a-real-system')).toBeNull()
   })
 })
 
