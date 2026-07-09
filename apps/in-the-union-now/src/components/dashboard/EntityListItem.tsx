@@ -1,15 +1,24 @@
 /**
- * EntityListItem — single SavedRow in a dashboard entity column (design-spec
- * §3.1 / §2.10 `.row`): name + muted meta caption (cross-links encoded as
- * '↳ Name' sheet links) + trailing View / Sheet / Delete actions.
+ * EntityListItem — single saved-build row in a dashboard entity column.
+ *
+ * Styled as a compact translation of the shared entity card (suref-react
+ * `DisplayCard`): a colour-coded left accent rail in the entity's deep sheet
+ * tone, a faint type wash behind the row, a black pseudoheader name (the card's
+ * signature condensed-uppercase title), and a hover-lift card frame — so a
+ * dashboard row reads as a sibling of the reference cards rather than a plain
+ * list item. Type colour: pilot → orange, mech → green, crawler → pink,
+ * matching the `--color-sheet-*` theme tokens.
+ *
+ * Name + muted meta caption (cross-links encoded as '↳ Name' sheet links) +
+ * trailing View / Sheet / Delete actions.
  *
  * Links render through AppLink (TanStack <Link> with a plain-anchor fallback)
  * so the component works in tests without a RouterProvider.
  */
 
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { Trash2 } from 'lucide-react'
-import { Btn, btnVariants, Row } from 'suref-react'
+import { Btn, btnVariants } from 'suref-react'
 
 import { cn } from '../../lib/utils'
 import { AppLink } from '../shared/AppLink'
@@ -19,14 +28,12 @@ type EntityType = 'pilot' | 'mech' | 'crawler'
 type EntityListItemProps = {
   id: string
   name: string
-  href: string
   sheetHref: string
   onDeleteClick: (id: string, name: string) => void
   /**
-   * Optional entity type used purely for the pill badge colour.
-   * pilot → su-orange, mech → su-green, crawler → su-pink.
-   * Omit (the dashboard default — the column already encodes the type) to
-   * render the row without a pill.
+   * Entity type driving the row's colour coding (accent rail + type wash).
+   * pilot → su-orange, mech → su-green, crawler → su-pink. Omit to render a
+   * neutral (uncoloured) row.
    */
   entityType?: EntityType
   /**
@@ -37,57 +44,68 @@ type EntityListItemProps = {
   meta?: ReactNode
 }
 
-/** Pill badge colours matching the design: pilot=orange, mech=green, crawler=pink */
-const PILL_STYLES: Record<EntityType, string> = {
-  pilot: 'bg-[var(--color-su-orange)] text-ink border-ink',
-  mech: 'bg-[var(--color-su-green)] text-ink border-ink',
-  crawler: 'bg-[var(--color-su-pink)] text-su-white border-ink',
-}
-
-const PILL_LABELS: Record<EntityType, string> = {
-  pilot: 'Pilot',
-  mech: 'Mech',
-  crawler: 'Crawler',
+/**
+ * Per-type sheet tones (see `--color-sheet-*` in suref-react theme.css).
+ * `deep` drives the accent rail; `wash` is a faint tint of the base tone mixed
+ * into paper so the whole row is legibly coloured by type without fighting the
+ * ink text / pseudoheader name.
+ */
+const SHEET_TONE: Record<EntityType, { rail: string; wash: string }> = {
+  pilot: {
+    rail: 'var(--color-sheet-pilot-deep)',
+    wash: 'color-mix(in srgb, var(--color-sheet-pilot) 10%, var(--color-su-paper))',
+  },
+  mech: {
+    rail: 'var(--color-sheet-mech-deep)',
+    wash: 'color-mix(in srgb, var(--color-sheet-mech) 12%, var(--color-su-paper))',
+  },
+  crawler: {
+    rail: 'var(--color-sheet-crawler-deep)',
+    wash: 'color-mix(in srgb, var(--color-sheet-crawler) 11%, var(--color-su-paper))',
+  },
 }
 
 export function EntityListItem({
   id,
   name,
-  href,
   sheetHref,
   onDeleteClick,
   entityType,
   meta,
 }: EntityListItemProps) {
+  const tone = entityType ? SHEET_TONE[entityType] : null
+  const frameStyle: CSSProperties = tone ? { background: tone.wash } : {}
+
   return (
     <li className="list-none">
-      <Row
-        name={
-          entityType ? (
-            <span className="flex items-center gap-2">
-              <span className="truncate">{name}</span>
-              <span
-                className={cn(
-                  'font-cond shrink-0 rounded-[2px] border-2 px-2 py-0.5 text-badge font-semibold uppercase leading-tight tracking-wider',
-                  PILL_STYLES[entityType]
-                )}
-              >
-                {PILL_LABELS[entityType]}
-              </span>
+      <div
+        className={cn(
+          'group relative flex items-stretch overflow-hidden rounded-[3px] border-2 border-ink',
+          'shadow-[0_1px_0_rgba(40,32,25,0.05)] transition-all duration-200',
+          'md:hover:-translate-y-0.5 md:hover:shadow-[0_7px_18px_rgba(40,32,25,0.16)]',
+          !tone && 'bg-paper'
+        )}
+        style={frameStyle}
+      >
+        {/* Deep-tone accent rail — the entity card's left body accent, in row form */}
+        {tone && (
+          <span
+            aria-hidden="true"
+            className="w-[6px] shrink-0 self-stretch"
+            style={{ background: tone.rail }}
+          />
+        )}
+
+        <div className="flex min-w-0 flex-1 items-center gap-3 px-3 py-2.5">
+          <div className="min-w-0 flex-1">
+            {/* Black pseudoheader name — mirrors the reference card's title box */}
+            <span className="inline-block max-w-full truncate align-middle rounded-[1px] bg-su-black px-1.5 py-0.5 font-cond text-[15px] font-bold uppercase leading-tight tracking-[0.02em] text-su-white">
+              {name}
             </span>
-          ) : (
-            name
-          )
-        }
-        meta={meta}
-        actions={
-          <>
-            <AppLink
-              href={href}
-              className={cn(btnVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
-            >
-              View
-            </AppLink>
+            {meta && <div className="mt-1.5 truncate font-body text-xs text-wk-muted">{meta}</div>}
+          </div>
+
+          <div className="flex shrink-0 items-center gap-1.5">
             <AppLink
               href={sheetHref}
               className={cn(btnVariants({ variant: 'default', size: 'sm' }), 'no-underline')}
@@ -103,9 +121,9 @@ export function EntityListItem({
             >
               <Trash2 aria-hidden="true" />
             </Btn>
-          </>
-        }
-      />
+          </div>
+        </div>
+      </div>
     </li>
   )
 }
