@@ -39,6 +39,8 @@
       "name": "in-the-union-now",
       "version": "0.0.0",
       "dependencies": {
+        "@fontsource/barlow": "5.2.8",
+        "@fontsource/barlow-semi-condensed": "5.2.7",
         "@netlify/blobs": "^10.7.9",
         "@randsum/roller": "^2.0.0",
         "@sentry/browser": "10.63.0",

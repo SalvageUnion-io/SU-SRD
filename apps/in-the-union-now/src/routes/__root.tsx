@@ -9,6 +9,15 @@ import { AppHeader } from '../components/shared/AppHeader'
 import { GameDataReady } from '../components/shared/GameDataReady'
 import { GlobalSearch } from '../components/shared/GlobalSearch'
 import { BackupNudgeToast } from '../components/shared/BackupNudgeToast'
+// Self-hosted Barlow superfamily (mirrors suref-web) — keeps fonts on-origin so
+// the CSP needs no external font/style host and the offline PWA renders correctly.
+import '@fontsource/barlow/400.css'
+import '@fontsource/barlow/500.css'
+import '@fontsource/barlow/600.css'
+import '@fontsource/barlow/700.css'
+import '@fontsource/barlow-semi-condensed/500.css'
+import '@fontsource/barlow-semi-condensed/600.css'
+import '@fontsource/barlow-semi-condensed/700.css'
 import '../index.css'
 
 export const Route = createRootRoute({
