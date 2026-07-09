@@ -65,6 +65,14 @@ export function AppHeader({ onSearchClick }: AppHeaderProps) {
         >
           SRD&nbsp;&#8599;
         </a>
+        <a
+          href="https://salvageunion.io/discord/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`${NAV_LINK} hidden lg:inline-flex`}
+        >
+          Discord&nbsp;&#8599;
+        </a>
         {onSearchClick && (
           <button
             type="button"

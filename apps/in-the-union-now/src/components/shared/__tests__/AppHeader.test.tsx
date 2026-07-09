@@ -40,6 +40,14 @@ describe('AppHeader', () => {
     expect(srdLink.getAttribute('rel')).toBe('noopener noreferrer')
   })
 
+  test('links out to the SRD Discord page in a new tab', () => {
+    render(<AppHeader />)
+    const discordLink = screen.getByRole('link', { name: /discord/i }) as HTMLAnchorElement
+    expect(discordLink.getAttribute('href')).toBe('https://salvageunion.io/discord/')
+    expect(discordLink.getAttribute('target')).toBe('_blank')
+    expect(discordLink.getAttribute('rel')).toBe('noopener noreferrer')
+  })
+
   test('links out to buy the game in a new tab', () => {
     render(<AppHeader />)
     const buyLink = screen.getByRole('link', { name: /buy the game/i }) as HTMLAnchorElement
@@ -73,6 +81,10 @@ describe('AppHeader', () => {
     const drawer = screen.getByRole('dialog')
     expect(within(drawer).getByRole('link', { name: /encounter/i })).toBeTruthy()
     expect(within(drawer).getByRole('link', { name: /SRD/i })).toBeTruthy()
+    const drawerDiscord = within(drawer).getByRole('link', {
+      name: /discord/i,
+    }) as HTMLAnchorElement
+    expect(drawerDiscord.getAttribute('href')).toBe('https://salvageunion.io/discord/')
     const buy = within(drawer).getByRole('link', {
       name: /buy the game/i,
     }) as HTMLAnchorElement

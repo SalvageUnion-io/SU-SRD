@@ -80,6 +80,14 @@ export function AppHeaderMobileMenu() {
             >
               SalvageUnion.io SRD&nbsp;&#8599;
             </a>
+            <a
+              href="https://salvageunion.io/discord/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={DRAWER_LINK}
+            >
+              Discord&nbsp;&#8599;
+            </a>
 
             <a
               href="https://leyline.press/collections/salvage-union"
