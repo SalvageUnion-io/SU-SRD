@@ -14,9 +14,8 @@
  * - ITUN's whole tree renders behind GameDataReady (root layout), so
  *   search() is always safe here (ready defaults to true).
  *
- * Mounted once from the root layout so the shortcut works on every surface —
- * including live sheets and snapshots, where AppHeader (the visible trigger)
- * is suppressed.
+ * Mounted once from the root layout so the Cmd/Ctrl+K shortcut works on every
+ * surface, alongside the AppHeader search trigger (now present on every route).
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react'

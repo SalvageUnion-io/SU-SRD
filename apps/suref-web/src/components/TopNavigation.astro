@@ -1,10 +1,12 @@
 ---
+import { HeaderShell } from 'suref-react'
 import { getSchemaCatalog, SalvageUnionReference, getReferenceEntityData } from '../lib/gameData'
 import { MobileNavIsland } from './islands/MobileNavIsland'
 import { MobileSearchIsland } from './islands/MobileSearchIsland'
 import { SearchIsland } from './islands/SearchIsland'
 import { getCatalogBg, getCatalogLabel } from '../lib/catalogColors'
 import { buildCatalogCategories } from '../lib/catalogHelpers'
+import { ITUN_URL } from '../lib/constants'
 
 type BreadcrumbItem = {
   name: string
@@ -39,32 +41,17 @@ function isActive(path: string) {
 }
 ---
 
-<!-- Cargo brand header: SU mark + SalvageUnion.io wordmark on the left, existing
-     nav links pushed to the right. Dark su-ink ground, 3px rust bottom border. -->
-<nav aria-label="Main navigation" class="flex items-center gap-[14px] bg-su-ink-dark px-5 py-3 z-50 border-b-[3px] border-su-orange-dark sm:px-[34px] sm:py-[14px]" transition:name="nav" transition:animate="none">
-  <!-- Brand: solid-orange SU mark + wordmark + sub-tag -->
-  <a href="/" class="flex shrink-0 items-center gap-[14px] no-underline">
-    <img
-      src="/logos/su-cargo-dark.svg"
-      alt="Salvage Union"
-      width="64"
-      height="64"
-      class="block size-12 shrink-0 rounded-xl sm:size-16"
-    />
-    <!-- Optical tuning: wordmark 26->34px responsive, tightened leading/tracking;
-         sub-tag 13px eyebrow at 0.22em tracking. -->
-    <span class="flex min-w-0 flex-col">
-      <span class="font-cond text-[26px] font-bold leading-[0.98] tracking-[0.005em] text-su-paper sm:text-[34px]">
-        SalvageUnion<span class="text-su-orange-dark">.io</span>
-      </span>
-      <span class="mt-[7px] whitespace-nowrap font-cond text-[13px] font-semibold uppercase leading-none tracking-[0.22em] text-su-orange sm:mt-[9px]">
-        The Salvage Union SRD
-      </span>
-    </span>
-  </a>
-
-  <!-- Existing nav links + search + buy — moved to the right (margin-left:auto) -->
-  <div class="ml-auto hidden items-center gap-[26px] lg:flex">
+<!-- Cargo brand header via the shared HeaderShell (also used by the ITUN builder):
+     SU mark + SalvageUnion.io wordmark on the left, SRD-specific nav pushed right. -->
+<HeaderShell
+  homeHref="/"
+  wordmark="SalvageUnion"
+  wordmarkAccent=".io"
+  eyebrow="The Salvage Union SRD"
+  viewTransitionName="nav"
+>
+  <!-- Existing nav links + BUILDER cross-link + search + buy — pushed right -->
+  <nav aria-label="Main navigation" class="ml-auto hidden items-center gap-[26px] lg:flex">
     <a href="/" class:list={['nav-link', isActive('/schema') || currentPath === '/' ? 'nav-link-active' : '']} aria-current={isActive('/schema') || currentPath === '/' ? 'page' : undefined}>
       SRD
     </a>
@@ -85,11 +72,16 @@ function isActive(path: string) {
       API
     </a>
 
+    <!-- Cross-link out to the ITUN character builder (external) -->
+    <a href={ITUN_URL} target="_blank" rel="noopener noreferrer" class="nav-link">
+      BUILDER&nbsp;&#8599;
+    </a>
+
     <SearchIsland client:idle />
     <a href="https://leyline.press/collections/salvage-union" target="_blank" rel="noopener noreferrer" class="btn btn-active shrink-0 font-cond text-[13px] uppercase tracking-[0.06em]">
       BUY THE GAME
     </a>
-  </div>
+  </nav>
 
   <!-- Mobile: persistent search trigger + hamburger -->
   <div class="flex lg:hidden items-center gap-1 ml-auto">
@@ -100,7 +92,7 @@ function isActive(path: string) {
       currentPath={currentPath}
     />
   </div>
-</nav>
+</HeaderShell>
 
 {breadcrumbs && breadcrumbs.length > 0 && (
   <>

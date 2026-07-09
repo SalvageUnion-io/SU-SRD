@@ -57,6 +57,7 @@ export type {
   UseSearchComboboxOptions,
 } from './components/shared/useSearchCombobox'
 export { Footer } from './components/shared/Footer'
+export { HeaderShell } from './components/shared/HeaderShell'
 export { ValueDisplay } from './components/shared/ValueDisplay'
 export { StatDisplay } from './components/shared/StatDisplay'
 export { StatControl } from './components/shared/StatControl'
