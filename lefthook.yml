@@ -10,10 +10,15 @@ pre-commit:
       # lint + format in one pass (`check --write`), applying only SAFE
       # fixes. biome.jsonc's `files.includes` scopes this to apps/**,
       # packages/**, tools/** and excludes .astro/.md/.yml/.yaml/data/** —
-      # staged files outside that scope (e.g. root docs/*.md) are silently
-      # skipped by Biome, not errored on, so this glob can stay broad.
+      # staged files outside that scope (e.g. root docs/*.md, or a root-level
+      # config like package.json/knip.json/.prettierrc.json) are silently
+      # skipped when mixed with in-scope files, so this glob can stay broad.
+      # --no-errors-on-unmatched is required, not cosmetic: Biome hard-errors
+      # (exit 1) rather than silently skipping when EVERY staged file in the
+      # glob is out of scope (verified — a commit touching only
+      # .prettierrc.json failed pre-commit without this flag).
       glob: '*.{ts,tsx,js,jsx,json,css}'
-      run: bunx biome check --write {staged_files}
+      run: bunx biome check --write --no-errors-on-unmatched {staged_files}
       stage_fixed: true
 
     format-prose:
