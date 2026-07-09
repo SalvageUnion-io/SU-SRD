@@ -49,6 +49,32 @@ export const DB_VERSION = 7
 
 const DB_NAME = 'itun-v1'
 
+/**
+ * How long to wait after a `blocked` event before giving up on the upgrade.
+ * A blocked upgrade (another live connection holds the previous version open,
+ * e.g. this site in another tab on an older build) leaves the open pending
+ * INDEFINITELY. We give the blocking connection a brief window to close, then
+ * reject so the UI can recover instead of hanging on the loading skeleton.
+ */
+const BLOCKED_UPGRADE_GRACE_MS = 3000
+
+/**
+ * Thrown when opening the database needs a version upgrade but another live
+ * connection blocks it (typically this site open in another tab on an older
+ * build). IndexedDB leaves such an open pending forever; surfacing it as a
+ * typed error lets the root error boundary show a "close other tabs and reload"
+ * recovery screen rather than an endless loading state.
+ */
+export class BlockedUpgradeError extends Error {
+  constructor() {
+    super(
+      'IndexedDB upgrade is blocked by another open connection. Close other ' +
+        'tabs running In the Union Now, then reload.'
+    )
+    this.name = 'BlockedUpgradeError'
+  }
+}
+
 /** Singleton promise — openDB is called once per page load. */
 let dbPromise: Promise<IDBPDatabase> | null = null
 
@@ -65,65 +91,108 @@ let dbPromise: Promise<IDBPDatabase> | null = null
  */
 export function openItunDatabase(
   name: string = DB_NAME,
-  runMigrationsFn: typeof runMigrations = runMigrations
+  runMigrationsFn: typeof runMigrations = runMigrations,
+  blockedGraceMs: number = BLOCKED_UPGRADE_GRACE_MS
 ): Promise<IDBPDatabase> {
-  return openDB(name, DB_VERSION, {
-    async upgrade(db, oldVersion, _newVersion, transaction) {
-      // v1: create all core object stores with keyPath = 'id'
-      if (oldVersion < 1) {
-        for (const storeName of [
-          STORE_NAMES.pilots,
-          STORE_NAMES.mechs,
-          STORE_NAMES.crawlers,
-          STORE_NAMES.workspaces,
-          STORE_NAMES.softLinks,
-        ]) {
-          if (!db.objectStoreNames.contains(storeName)) {
-            db.createObjectStore(storeName, { keyPath: 'id' })
+  return new Promise<IDBPDatabase>((resolve, reject) => {
+    let settled = false
+    let blockedTimer: ReturnType<typeof setTimeout> | undefined
+
+    const finish = (run: () => void): void => {
+      if (settled) return
+      settled = true
+      if (blockedTimer !== undefined) clearTimeout(blockedTimer)
+      run()
+    }
+
+    const open = openDB(name, DB_VERSION, {
+      async upgrade(db, oldVersion, _newVersion, transaction) {
+        // v1: create all core object stores with keyPath = 'id'
+        if (oldVersion < 1) {
+          for (const storeName of [
+            STORE_NAMES.pilots,
+            STORE_NAMES.mechs,
+            STORE_NAMES.crawlers,
+            STORE_NAMES.workspaces,
+            STORE_NAMES.softLinks,
+          ]) {
+            if (!db.objectStoreNames.contains(storeName)) {
+              db.createObjectStore(storeName, { keyPath: 'id' })
+            }
           }
         }
-      }
-      // v2 (Wave 4, cycle-1): add mechPatterns object store.
-      // See ADR in src/lib/schemas/pattern.ts.
-      if (oldVersion < 2) {
-        if (!db.objectStoreNames.contains(STORE_NAMES.mechPatterns)) {
-          db.createObjectStore(STORE_NAMES.mechPatterns, { keyPath: 'id' })
+        // v2 (Wave 4, cycle-1): add mechPatterns object store.
+        // See ADR in src/lib/schemas/pattern.ts.
+        if (oldVersion < 2) {
+          if (!db.objectStoreNames.contains(STORE_NAMES.mechPatterns)) {
+            db.createObjectStore(STORE_NAMES.mechPatterns, { keyPath: 'id' })
+          }
         }
-      }
-      // v5 (design-review R-5): add encounterNpcs object store (GM encounter
-      // tray). Store creation only — no record rewrites.
-      if (oldVersion < 5) {
-        if (!db.objectStoreNames.contains(STORE_NAMES.encounterNpcs)) {
-          db.createObjectStore(STORE_NAMES.encounterNpcs, { keyPath: 'id' })
+        // v5 (design-review R-5): add encounterNpcs object store (GM encounter
+        // tray). Store creation only — no record rewrites.
+        if (oldVersion < 5) {
+          if (!db.objectStoreNames.contains(STORE_NAMES.encounterNpcs)) {
+            db.createObjectStore(STORE_NAMES.encounterNpcs, { keyPath: 'id' })
+          }
         }
-      }
-      // v3+: record rewrites live in migrations/ — one file per version.
-      // runMigrations only awaits IDB operations on `transaction`, so the
-      // versionchange transaction stays open until every rewrite lands.
-      // On failure we abort the transaction: that rolls back the version bump
-      // AND surfaces as an error on the open request, so openItunDatabase()
-      // rejects rather than handing back a half-migrated database. We do NOT
-      // rethrow — idb does not await the upgrade callback's promise, so a
-      // rejected upgrade would become an unhandled rejection; abort() alone
-      // already fails the open with the failure logged below.
-      try {
-        await runMigrationsFn(db, transaction, oldVersion)
-      } catch (err) {
-        console.error('[itun-db] Migration failed — aborting upgrade transaction.', err)
-        // Guard against a transaction that already settled (e.g. auto-committed
-        // if a migration ever awaited a non-IDB promise) so abort() throwing
-        // cannot itself become an unhandled rejection.
+        // v3+: record rewrites live in migrations/ — one file per version.
+        // runMigrations only awaits IDB operations on `transaction`, so the
+        // versionchange transaction stays open until every rewrite lands.
+        // On failure we abort the transaction: that rolls back the version bump
+        // AND surfaces as an error on the open request, so openItunDatabase()
+        // rejects rather than handing back a half-migrated database. We do NOT
+        // rethrow — idb does not await the upgrade callback's promise, so a
+        // rejected upgrade would become an unhandled rejection; abort() alone
+        // already fails the open with the failure logged below.
         try {
-          // idb eagerly wires `transaction.done`; aborting rejects it. Nothing
-          // on the upgrade path awaits .done, so mark that rejection handled to
-          // keep it from surfacing as an unhandled rejection.
-          void transaction.done.catch(() => {})
-          transaction.abort()
-        } catch {
-          // already aborted/committed — nothing more to do
+          await runMigrationsFn(db, transaction, oldVersion)
+        } catch (err) {
+          console.error('[itun-db] Migration failed — aborting upgrade transaction.', err)
+          // Guard against a transaction that already settled (e.g. auto-committed
+          // if a migration ever awaited a non-IDB promise) so abort() throwing
+          // cannot itself become an unhandled rejection.
+          try {
+            // idb eagerly wires `transaction.done`; aborting rejects it. Nothing
+            // on the upgrade path awaits .done, so mark that rejection handled to
+            // keep it from surfacing as an unhandled rejection.
+            void transaction.done.catch(() => {})
+            transaction.abort()
+          } catch {
+            // already aborted/committed — nothing more to do
+          }
         }
-      }
-    },
+      },
+      blocked() {
+        console.warn(
+          '[itun-db] Upgrade blocked by another open connection — waiting for it to close.'
+        )
+        if (blockedTimer !== undefined) clearTimeout(blockedTimer)
+        blockedTimer = setTimeout(() => {
+          finish(() => reject(new BlockedUpgradeError()))
+        }, blockedGraceMs)
+      },
+      blocking() {
+        // This (older) connection is blocking a newer tab's upgrade. We only
+        // log: the active tab keeps working and the blocked tab surfaces its own
+        // recovery prompt. Auto-closing here would brick this tab's cached
+        // connection mid-session.
+        console.warn('[itun-db] This connection is blocking an upgrade in another tab.')
+      },
+    })
+
+    open.then(
+      (db) => {
+        // If we already rejected on the blocked-grace timeout, the upgrade
+        // eventually went through once the other tab closed — close the orphaned
+        // connection so it does not itself block a future upgrade.
+        if (settled) {
+          void db.close()
+          return
+        }
+        finish(() => resolve(db))
+      },
+      (err: unknown) => finish(() => reject(err))
+    )
   })
 }
 
@@ -153,7 +222,16 @@ export async function requestPersistentStorage(): Promise<void> {
 /** Lazy singleton accessor for the app database — module-private. */
 function getDb(): Promise<IDBPDatabase> {
   if (dbPromise === null) {
-    dbPromise = openItunDatabase()
+    const opening = openItunDatabase()
+    dbPromise = opening
+    // Do NOT cache a rejected open for the page's lifetime. A blocked upgrade
+    // (BlockedUpgradeError) resolves the moment the user closes the other tab —
+    // dropping the cached rejection lets the next getDb() retry cleanly instead
+    // of replaying the same failure. Only clear if we still own this promise
+    // (a concurrent reset/success must not be clobbered).
+    opening.catch(() => {
+      if (dbPromise === opening) dbPromise = null
+    })
     // Fire-and-forget on first open: ask the UA to make this origin's storage
     // eviction-resistant. Never awaited, never rejects (see helper).
     void requestPersistentStorage()

@@ -6,6 +6,7 @@ import { Btn, EntityHrefProvider, Toaster } from 'suref-react'
 import { queryClient } from '../lib/queryClient'
 import { itunEntityHref } from '../lib/entityHref'
 import { AppHeader } from '../components/shared/AppHeader'
+import { BlockedUpgradeError } from '../lib/db/index'
 import { GameDataReady } from '../components/shared/GameDataReady'
 import { GlobalSearch } from '../components/shared/GlobalSearch'
 import { BackupNudgeToast } from '../components/shared/BackupNudgeToast'
@@ -32,14 +33,24 @@ export const Route = createRootRoute({
  * offers a recovery affordance. Mirrors suref-web's IslandErrorBoundary UX.
  */
 function RootErrorComponent({ error }: ErrorComponentProps) {
+  // A blocked IndexedDB upgrade (this site open in another tab on an older
+  // build) is a distinct, self-serviceable failure — give it its own copy and
+  // CTA instead of the generic "something went wrong". Match on name too, so a
+  // structured clone or re-wrapped error across the router boundary still hits.
+  const isBlockedUpgrade =
+    error instanceof BlockedUpgradeError ||
+    (error as { name?: string } | null)?.name === 'BlockedUpgradeError'
+
   return (
     <main role="alert" className="flex min-h-dvh items-center justify-center bg-wk-bg p-6">
       <div className="flex w-full max-w-xl flex-col items-center gap-4 rounded-[6px] border-chrome border-ink bg-paper p-6 text-center sm:p-8">
         <h1 className="font-cond text-xl font-bold uppercase tracking-caps-tight text-ink">
-          Something went wrong
+          {isBlockedUpgrade ? 'Close the other tab' : 'Something went wrong'}
         </h1>
         <p className="font-body text-sm text-wk-muted">
-          The app hit an unexpected error. Your saved data is stored locally and is not affected.
+          {isBlockedUpgrade
+            ? 'In the Union Now is open in another browser tab running an older version, which is blocking this one from loading. Close every other In the Union Now tab, then reload. Your saved data is safe.'
+            : 'The app hit an unexpected error. Your saved data is stored locally and is not affected.'}
         </p>
         {import.meta.env.DEV && (
           <pre className="max-w-full overflow-auto rounded-[3px] border-chrome border-ink/20 bg-wk-bg p-3 text-left text-xs text-ink">
@@ -47,7 +58,7 @@ function RootErrorComponent({ error }: ErrorComponentProps) {
           </pre>
         )}
         <Btn variant="primary" onClick={() => window.location.reload()}>
-          Reload app
+          {isBlockedUpgrade ? 'Reload' : 'Reload app'}
         </Btn>
       </div>
     </main>
