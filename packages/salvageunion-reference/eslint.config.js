@@ -11,6 +11,7 @@ export default [
       'node_modules/**',
       '**/*.d.ts',
       'lib/*.template.ts',
+      'lib/generated/**',
       'tools/**',
       'examples/**',
     ],
