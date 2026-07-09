@@ -54,6 +54,9 @@ apps/suref-web/.vite
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
+# $schema wiring for packages/salvageunion-reference/data/*.json — see that
+# file's header comment.
+!.vscode/settings.json
 .idea
 .DS_Store
 *.suo

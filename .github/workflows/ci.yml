@@ -168,6 +168,11 @@ jobs:
         run: bun run test
 
   validate:
+    # `validate:all` now runs packages/salvageunion-reference/tools/validate.ts,
+    # a unified runner that loads data/*.json once and runs all 8 checks
+    # (ids/slugs/references/actions/action-backrefs/orphans/traits/schemas)
+    # against that single in-memory pass, instead of chaining 8 separate
+    # process invocations that each re-read and re-parse the data corpus.
     needs: [changes]
     if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest

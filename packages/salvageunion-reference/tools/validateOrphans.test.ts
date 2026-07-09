@@ -1,4 +1,7 @@
 import { describe, expect, it } from 'bun:test'
+import { readFileSync, readdirSync } from 'fs'
+import { join, dirname } from 'path'
+import { fileURLToPath } from 'url'
 import {
   collectReferencedActionNames,
   collectReferencedSystemNames,
@@ -8,6 +11,8 @@ import {
   findOrphanedModules,
   findStaleRootFiles,
   partitionOrphansByAllowlist,
+  runOrphanCheck,
+  ROOT_FILES,
   type AllowlistEntry,
   type OrphanResult,
 } from './validateOrphansLogic.js'
@@ -419,5 +424,37 @@ describe('partitionOrphansByAllowlist', () => {
     expect(unexpected).toEqual(ORPHANS)
     expect(allowlisted).toEqual([])
     expect(staleAllowlist).toEqual([])
+  })
+})
+
+// ─── runOrphanCheck (orchestration) ─────────────────────────────────────────
+// The same "real dataset invariant" guarantee as validateActionBackrefs.test.ts:
+// this exercises the exact orchestration function tools/validateOrphans.ts (the
+// CLI) and tools/validate.ts (the unified runner) both call, over the real
+// committed data/*.json — so a regression in the wiring (not just the pure
+// detection functions above) fails `bun test` too.
+describe('runOrphanCheck (real dataset invariant)', () => {
+  const dataDir = join(dirname(fileURLToPath(import.meta.url)), '..', 'data')
+
+  function loadRealData(): Record<string, unknown[]> {
+    const filesByName: Record<string, unknown[]> = {}
+    for (const filename of readdirSync(dataDir)) {
+      if (!filename.endsWith('.json')) continue
+      const parsed = JSON.parse(readFileSync(join(dataDir, filename), 'utf-8')) as unknown
+      if (Array.isArray(parsed)) filesByName[filename] = parsed
+    }
+    return filesByName
+  }
+
+  it('finds no unexpected orphans, no stale allowlist entries, and no stale root files', () => {
+    const result = runOrphanCheck(loadRealData())
+    expect(result.staleRootFiles).toEqual([])
+    expect(result.unexpected).toEqual([])
+    expect(result.staleAllowlist).toEqual([])
+  })
+
+  it('every ROOT_FILES entry corresponds to a real data file', () => {
+    const existing = new Set(readdirSync(dataDir).filter((f) => f.endsWith('.json')))
+    expect(findStaleRootFiles(ROOT_FILES, existing)).toEqual([])
   })
 })

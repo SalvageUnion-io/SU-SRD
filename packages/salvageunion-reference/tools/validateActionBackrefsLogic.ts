@@ -27,6 +27,24 @@ export type BackrefViolation = {
   actionType?: string
 }
 
+// Every `actionSource` value maps 1:1 to a data file of the same basename. Any
+// source with no same-named entity is simply a no-op for this check.
+export const ACTION_SOURCE_FILES = [
+  'abilities',
+  'systems',
+  'modules',
+  'equipment',
+  'chassis',
+  'bio-titans',
+  'crawlers',
+  'creatures',
+  'meld',
+  'npcs',
+  'squads',
+  'vehicles',
+  'drones',
+] as const
+
 export type ActionLike = {
   name?: string
   displayName?: string
@@ -92,4 +110,21 @@ export function findMissingActionBackrefs(
     violations.push({ source, actionName: name, actionType: action.actionType })
   }
   return violations
+}
+
+/**
+ * Orchestration entry point: given the full data bag (filename -> parsed
+ * array), build the `actions` / `entitiesBySource` inputs from
+ * ACTION_SOURCE_FILES and run findMissingActionBackrefs. Both the standalone
+ * CLI (tools/validateActionBackrefs.ts) and the unified runner
+ * (tools/validate.ts) call this so they can never diverge on which files feed
+ * the check.
+ */
+export function runActionBackrefCheck(filesByName: Record<string, unknown[]>): BackrefViolation[] {
+  const actions = (filesByName['actions.json'] ?? []) as ActionLike[]
+  const entitiesBySource: Record<string, EntityLike[]> = {}
+  for (const source of ACTION_SOURCE_FILES) {
+    entitiesBySource[source] = (filesByName[`${source}.json`] ?? []) as EntityLike[]
+  }
+  return findMissingActionBackrefs(actions, entitiesBySource)
 }

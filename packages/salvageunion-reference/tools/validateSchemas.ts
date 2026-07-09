@@ -8,73 +8,23 @@
  * Each data file is validated entry-by-entry (safeParse) so failures are
  * reported with file name, array index, entity name, and flattened Zod errors.
  *
+ * Thin CLI wrapper: all detection logic lives in validateSchemasLogic.ts so
+ * this and the unified runner (tools/validate.ts) can never diverge.
+ *
  * Exits non-zero if any file fails validation.
  */
 
-import { readFileSync, readdirSync } from 'node:fs'
-import { join, dirname } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { loadAllDataFiles } from './loadData.js'
 import { zodSchemaMap } from '../lib/ModelFactory.js'
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
-const dataDir = join(__dirname, '..', 'data')
-
-type FailureEntry = {
-  index: number
-  name: string
-  errors: string[]
-}
-
-type FileReport =
-  | { file: string; status: 'ok'; count: number }
-  | { file: string; status: 'fail'; count: number; failures: FailureEntry[] }
-  | { file: string; status: 'no-schema' }
-
-function validateFile(filename: string): FileReport {
-  const schemaId = filename.replace(/\.json$/, '')
-  const schema = zodSchemaMap[schemaId]
-
-  if (!schema) {
-    return { file: filename, status: 'no-schema' }
-  }
-
-  const filePath = join(dataDir, filename)
-  const raw = JSON.parse(readFileSync(filePath, 'utf-8')) as unknown[]
-  const failures: FailureEntry[] = []
-
-  raw.forEach((entry, index) => {
-    const result = schema.safeParse(entry)
-    if (!result.success) {
-      const name =
-        typeof entry === 'object' &&
-        entry !== null &&
-        'name' in entry &&
-        typeof (entry as Record<string, unknown>).name === 'string'
-          ? ((entry as Record<string, unknown>).name as string)
-          : `<unnamed>`
-      const errors = result.error.issues.map(
-        (i) => `${i.path.length > 0 ? i.path.join('.') : '(root)'}: ${i.message}`
-      )
-      failures.push({ index, name, errors })
-    }
-  })
-
-  if (failures.length > 0) {
-    return { file: filename, status: 'fail', count: raw.length, failures }
-  }
-  return { file: filename, status: 'ok', count: raw.length }
-}
+import { validateAllFilesAgainstSchemas } from './validateSchemasLogic.js'
 
 function main(): void {
-  const dataFiles = readdirSync(dataDir)
-    .filter((f) => f.endsWith('.json'))
-    .sort()
+  const filesByName = loadAllDataFiles()
 
   console.log('Validating all data files against Zod schemas...\n')
   console.log('='.repeat(72))
 
-  const reports: FileReport[] = dataFiles.map(validateFile)
+  const reports = validateAllFilesAgainstSchemas(filesByName, zodSchemaMap)
 
   let hasFailures = false
   const noSchema: string[] = []
