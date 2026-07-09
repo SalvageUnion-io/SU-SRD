@@ -36,3 +36,64 @@ package (`packages/salvageunion-reference/lib/combatUtils.ts` and siblings):
 - The automation boundary ([ADR-007](ADR-007-automation-boundary.md)) governs
   _which_ of these results the app applies automatically versus surfacing for
   player confirmation; this ADR only governs _where the math lives_.
+
+## Status update (2026-07): ITUN rules-module migration
+
+For a long stretch after this ADR was accepted, only `combatUtils.ts` and
+`rollOnTable.ts` actually lived in the package — the bulk of the rules engine
+(21 modules) had grown up locally in
+`apps/in-the-union-now/src/lib/rules/` instead, so the "shared by ITUN and the
+Discord bot" promise wasn't yet true beyond those two files. A migration
+project moved the fully-portable modules into
+`packages/salvageunion-reference/lib/rules/`, executed in dependency-ordered
+tiers:
+
+**Tier 1 — moved (zero ITUN-schema coupling):** `capacity.ts`, `cargo.ts`,
+`crawlerCapacity.ts`, `scrap.ts`, `resolveRefs.ts`, `pilotSnapshot.ts`,
+`crawlerSystems.ts`, `softWarnings.ts`, `detailWarnings.ts`, and the
+structural-type module `types.ts` (its own header comment had anticipated
+exactly this move — "this module is file-disjoint from schemas... Zod schemas
+will satisfy these structural shapes automatically").
+
+**Tier 2 — moved (small outcome-shape types generalized structurally):**
+`takeDamage.ts`, `coreMechanic.ts`, `derivedStats.ts`, `mediatorTables.ts`, and
+the pure half of `heatCheck.ts` (`clampHeat`, `reactorOverloadOutcome`,
+`performHeatCheck`, `performPush`). Several of these modules turned out to
+import outcome/result types (`HeatCheckResult`, `ReactorOverloadOutcome`,
+`CriticalDamageResult`/`Outcome`, `CriticalInjuryResult`/`Outcome`,
+`MediatorRollResult`, `MediatorTableId`) directly from ITUN's Zod schemas — a
+tighter coupling than a pre-migration survey had assumed for some of them.
+These were generalized into small structural types in the package's
+`types.ts` (the same "outcome/result record shape, not a full persisted
+record" treatment already used for `derivedStats.ts`'s `Pick<Mech/Pilot/
+Crawler, ...>` parameters); ITUN's Zod-inferred types satisfy them
+structurally with no behavior change. `heatCheck.ts`'s `@randsum/roller`
+binding (`defaultRoll`) and `Partial<Mech>` patch assembly (`heatCheckPatch`)
+stayed in ITUN, per the automation-boundary split
+([ADR-007](ADR-007-automation-boundary.md)) — the package only owns the
+deterministic math, not the RNG binding or the write-through shape.
+
+Every migrated ITUN module became a thin re-export shim at its original path
+(re-exporting the same public API from `salvageunion-reference`) rather than
+being deleted, because ~40 ITUN call sites import these by submodule path
+(e.g. `../../lib/rules/capacity`), not through the `lib/rules` barrel — the
+shim pattern kept every call site unchanged while the implementation now
+lives in the package.
+
+**Tier 3 — deferred, not yet migrated:** `crawlerEconomy.ts`, `salvage.ts`,
+`crafting.ts`, `scrapMech.ts`, and `downtime.ts` remain app-local in
+`apps/in-the-union-now/src/lib/rules/`. These modules are deeply coupled to
+full persisted records and to `CargoLot` construction via ITUN's
+`makeUnitLot()` (which calls `crypto.randomUUID()` — app/runtime machinery,
+not pure rules math), so the extraction boundary is less mechanical than
+Tiers 1–2 and was left for a follow-up: `crawlerEconomy.ts`'s pure math
+(once `ScrapPool` becomes a package structural type) is the next entry point,
+with its `DOWNTIME_UPKEEP_SCRAP` constant flipping ownership to the package
+(`downtime.ts` would then import it back, not the reverse); `salvage.ts`,
+`crafting.ts`, `scrapMech.ts`, and `downtime.ts` would keep their
+`CargoLot`-building code in ITUN as thin wrappers around pure math moved out
+into the package.
+
+The Discord bot was intentionally left untouched by this migration — wiring
+the newly-portable rules into the bot is a follow-up consequence of this ADR,
+not part of the migration itself.
