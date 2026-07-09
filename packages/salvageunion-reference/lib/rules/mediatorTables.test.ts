@@ -6,8 +6,12 @@
 
 import { describe, expect, test } from 'bun:test'
 
-import { MEDIATOR_TABLE_NAMES, describeMediatorRoll, performMediatorRoll } from '../mediatorTables'
-import type { FindRollTable } from '../mediatorTables'
+import {
+  MEDIATOR_TABLE_NAMES,
+  describeMediatorRoll,
+  performMediatorRoll,
+} from './mediatorTables.js'
+import type { FindRollTable } from './mediatorTables.js'
 
 /** Band shape mirroring the real Workshop Manual p.268 tables. */
 const FAKE_TABLES: Record<string, { table: Record<string, unknown> }> = {

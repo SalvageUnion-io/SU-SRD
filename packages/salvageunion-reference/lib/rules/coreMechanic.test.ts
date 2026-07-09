@@ -13,9 +13,9 @@ import {
   coreRollBand,
   describePushOutcome,
   performCoreRoll,
-} from '../coreMechanic'
-import { performHeatCheck, performPush } from '../heatCheck'
-import type { Roll } from '../heatCheck'
+} from './coreMechanic.js'
+import { performHeatCheck, performPush } from './heatCheck.js'
+import type { Roll } from './types.js'
 
 /** Returns a Roll that yields the given values in order, ignoring `sides`. */
 function seqRoll(...values: number[]): Roll {

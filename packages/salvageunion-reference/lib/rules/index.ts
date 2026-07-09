@@ -36,6 +36,61 @@ export {
   refDisplayName,
 } from './resolveRefs.js'
 export { pilotDetailWarnings, mechDetailWarnings, crawlerDetailWarnings } from './detailWarnings.js'
+export { clampHeat, reactorOverloadOutcome, performHeatCheck, performPush } from './heatCheck.js'
+export {
+  CORE_ROLL_BANDS,
+  coreRollBand,
+  performCoreRoll,
+  describePushOutcome,
+} from './coreMechanic.js'
+export type { CoreRollBand, CoreRollBandInfo, CoreRollResult } from './coreMechanic.js'
+export {
+  mechEffectiveDamage,
+  applyMechDamage,
+  criticalDamageOutcome,
+  performCriticalDamage,
+  pilotEffectiveDamage,
+  applyPilotDamage,
+  criticalInjuryOutcome,
+  performCriticalInjury,
+} from './takeDamage.js'
+export type {
+  DamageKind,
+  MechDamageInput,
+  MechDamageEffect,
+  PilotDamageInput,
+  PilotDamageEffect,
+  CriticalDamageEffect,
+  CriticalInjuryEffect,
+} from './takeDamage.js'
+export {
+  PILOT_BASE_HP,
+  PILOT_BASE_AP,
+  PILOT_BASE_INVENTORY_SLOTS,
+  injuryMaxHpPenalty,
+  pilotMaxHP,
+  pilotMaxAP,
+  isPilotDead,
+  clampPilotCurrentStats,
+  findChassisByRef,
+  installedStatBonus,
+  mechMaxSP,
+  mechMaxEP,
+  mechMaxHeat,
+  mechMaxCargo,
+  clampMechCurrentStats,
+  unifiedMechConditions,
+  crawlerMaxSP,
+  clampCrawlerCurrentStats,
+} from './derivedStats.js'
+export type { ChassisStats } from './derivedStats.js'
+export {
+  MEDIATOR_TABLE_NAMES,
+  MEDIATOR_TABLE_LABEL,
+  performMediatorRoll,
+  describeMediatorRoll,
+} from './mediatorTables.js'
+export type { FindRollTable } from './mediatorTables.js'
 
 export type {
   // Shared primitives

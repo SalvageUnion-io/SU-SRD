@@ -8,7 +8,7 @@
  * crawler-tech-levels data from salvageunion-reference.
  */
 import { beforeAll, describe, expect, it } from 'bun:test'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { SalvageUnionReference } from '../index.js'
 
 import {
   PILOT_BASE_AP,
@@ -27,8 +27,8 @@ import {
   pilotMaxAP,
   pilotMaxHP,
   unifiedMechConditions,
-} from '../derivedStats'
-import type { ChassisStats } from '../derivedStats'
+} from './derivedStats.js'
+import type { ChassisStats } from './derivedStats.js'
 
 beforeAll(async () => {
   await SalvageUnionReference.preload(['crawler-tech-levels', 'chassis', 'systems', 'modules'])
