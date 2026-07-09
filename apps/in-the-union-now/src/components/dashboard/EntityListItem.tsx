@@ -28,7 +28,6 @@ type EntityType = 'pilot' | 'mech' | 'crawler'
 type EntityListItemProps = {
   id: string
   name: string
-  href: string
   sheetHref: string
   onDeleteClick: (id: string, name: string) => void
   /**
@@ -69,7 +68,6 @@ const SHEET_TONE: Record<EntityType, { rail: string; wash: string }> = {
 export function EntityListItem({
   id,
   name,
-  href,
   sheetHref,
   onDeleteClick,
   entityType,
@@ -108,12 +106,6 @@ export function EntityListItem({
           </div>
 
           <div className="flex shrink-0 items-center gap-1.5">
-            <AppLink
-              href={href}
-              className={cn(btnVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
-            >
-              View
-            </AppLink>
             <AppLink
               href={sheetHref}
               className={cn(btnVariants({ variant: 'default', size: 'sm' }), 'no-underline')}

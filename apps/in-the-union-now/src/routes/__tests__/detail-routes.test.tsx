@@ -1,6 +1,6 @@
 /**
  * Tests for /mechs/$id, /pilots/$id, /crawlers/$id detail route components
- * and the EntityListItem View/Sheet button additions.
+ * and the EntityListItem Sheet button.
  *
  * These tests render the page components in isolation (no RouterProvider needed
  * because we stub Route.useParams). Uses the real entityStore with fake-indexeddb.
@@ -80,31 +80,15 @@ afterEach(async () => {
 })
 
 // ---------------------------------------------------------------------------
-// EntityListItem — View / Sheet buttons
+// EntityListItem — Sheet button
 // ---------------------------------------------------------------------------
 
-describe('EntityListItem — View and Sheet buttons', () => {
-  test('renders View link with correct href', () => {
-    render(
-      <EntityListItem
-        id="mech-1"
-        name="Iron Jaw"
-        href="/mechs/mech-1"
-        sheetHref="/sheet/mech/mech-1"
-        onDeleteClick={() => {}}
-      />
-    )
-    const viewLink = screen.getByRole('link', { name: 'View' })
-    expect(viewLink).toBeTruthy()
-    expect((viewLink as HTMLAnchorElement).href).toContain('/mechs/mech-1')
-  })
-
+describe('EntityListItem — Sheet button', () => {
   test('renders Sheet link with correct href', () => {
     render(
       <EntityListItem
         id="mech-1"
         name="Iron Jaw"
-        href="/mechs/mech-1"
         sheetHref="/sheet/mech/mech-1"
         onDeleteClick={() => {}}
       />
@@ -114,17 +98,15 @@ describe('EntityListItem — View and Sheet buttons', () => {
     expect((sheetLink as HTMLAnchorElement).href).toContain('/sheet/mech/mech-1')
   })
 
-  test('renders Delete button alongside View and Sheet', () => {
+  test('renders Delete button alongside Sheet', () => {
     render(
       <EntityListItem
         id="pilot-1"
         name="Zara Heln"
-        href="/pilots/pilot-1"
         sheetHref="/sheet/pilot/pilot-1"
         onDeleteClick={() => {}}
       />
     )
-    expect(screen.getByRole('link', { name: 'View' })).toBeTruthy()
     expect(screen.getByRole('link', { name: 'Sheet' })).toBeTruthy()
     expect(screen.getByRole('button', { name: /Delete Zara Heln/i })).toBeTruthy()
   })

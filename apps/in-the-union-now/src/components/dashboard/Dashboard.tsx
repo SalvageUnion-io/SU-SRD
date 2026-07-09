@@ -282,7 +282,6 @@ export function Dashboard() {
                       id={p.id}
                       name={p.name}
                       entityType="pilot"
-                      href={`/pilots/${p.id}`}
                       sheetHref={`/sheet/pilot/${p.id}`}
                       onDeleteClick={(id, name) => openDeleteDialog('pilot', id, name)}
                       meta={joinMeta([
@@ -331,7 +330,6 @@ export function Dashboard() {
                       id={m.id}
                       name={m.name}
                       entityType="mech"
-                      href={`/mechs/${m.id}`}
                       sheetHref={`/sheet/mech/${m.id}`}
                       onDeleteClick={(id, name) => openDeleteDialog('mech', id, name)}
                       meta={joinMeta([
@@ -366,7 +364,6 @@ export function Dashboard() {
                       id={c.id}
                       name={c.name}
                       entityType="crawler"
-                      href={`/crawlers/${c.id}`}
                       sheetHref={`/sheet/crawler/${c.id}`}
                       onDeleteClick={(id, name) => openDeleteDialog('crawler', id, name)}
                       meta={joinMeta([
