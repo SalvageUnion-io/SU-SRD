@@ -115,7 +115,6 @@
       "devDependencies": {
         "@base-ui/react": "1.6.0",
         "@ladle/react": "^5.1.1",
-        "@playwright/test": "1.61.1",
         "@randsum/roller": "^2.0.0",
         "@vitejs/plugin-react": "^6.0.3",
         "class-variance-authority": "^0.7.1",

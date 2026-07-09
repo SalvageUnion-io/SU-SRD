@@ -80,14 +80,3 @@ docs/rules/
 apps/in-the-union-now/playwright-report
 apps/in-the-union-now/test-results
 .design-bundle/
-
-# Visual-regression baselines (packages/suref-react/visual/__screenshots__) are
-# OS-specific — Playwright's toHaveScreenshot suffixes each file with the
-# rendering platform (font/AA differences make macOS/Windows renders diff
-# against Linux pixel-for-pixel), and CI always runs on Linux. Only
-# `-linux.png` baselines are ever valid there, so non-Linux renders are
-# ignored here to stop a contributor's local `test:visual:update` run from
-# accidentally committing a baseline CI can never match against. Generate the
-# real ones via the `generate-visual-baselines` workflow (Linux runner).
-packages/suref-react/visual/__screenshots__/**/*-darwin.png
-packages/suref-react/visual/__screenshots__/**/*-win32.png

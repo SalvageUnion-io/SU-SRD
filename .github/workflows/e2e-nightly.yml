@@ -98,68 +98,15 @@ jobs:
           path: apps/suref-web/playwright-report/
           retention-days: 7
 
-  visual-regression:
-    # Visual-regression snapshots of the suref-react Ladle stories (issue #30)
-    # via Playwright's toHaveScreenshot. Requires committed per-OS baselines
-    # under packages/suref-react/visual/__screenshots__ (generate them with the
-    # `generate-visual-baselines` workflow — Actions tab -> Run workflow — which
-    # runs on ubuntu-latest and uploads reviewable candidates as an artifact;
-    # a maintainer commits the ones they've eyeballed. Same effect locally via
-    # `bun --filter suref-react ladle:build && test:visual:update`, but MUST
-    # run on Linux to match this job). Until Linux baselines land this job
-    # reports "no baseline" — nightly is the right home for it (informational,
-    # non-blocking). A PR-scoped counterpart (`visual-regression-pr`) also
-    # exists in ci.yml, gated on packages/suref-react/** changes, same
-    # non-blocking posture.
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-
-      - name: Setup Bun
-        uses: ./.github/actions/setup-bun
-
-      - name: Cache Playwright browsers
-        uses: actions/cache@v6
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
-
-      - name: Install Playwright browsers (Chromium)
-        run: bunx playwright install --with-deps chromium
-
-      - name: Build Ladle
-        run: bun --filter suref-react ladle:build
-
-      - name: Run visual regression
-        working-directory: packages/suref-react
-        run: bunx playwright test --config playwright.visual.config.ts
-
-      - name: Upload visual diff report on failure
-        if: failure()
-        uses: actions/upload-artifact@v7
-        with:
-          name: visual-regression-report
-          path: packages/suref-react/playwright-report/
-          retention-days: 7
-
   # ---------------------------------------------------------------------------
   # Notification — GitHub-native, no external service or webhook secret. On
   # any suite failure, open (or comment on) a single tracking issue labeled
   # `nightly-e2e-failure`; on the next all-green run, comment + close it. Uses
   # the default GITHUB_TOKEN (issues: write, scoped to just these two jobs) —
   # nothing to provision.
-  #
-  # NOTE: visual-regression currently has no committed Playwright baselines
-  # (see that job's comment above), and Playwright fails a toHaveScreenshot
-  # assertion the first time a baseline is missing rather than passing. Until
-  # baselines are generated and committed, this job fails every night and
-  # notify-failure will re-fire every night — expected noise, not a bug in the
-  # notification wiring. Generate baselines to quiet it.
   # ---------------------------------------------------------------------------
   notify-failure:
-    needs: [e2e-itun, e2e-suref-web, visual-regression]
+    needs: [e2e-itun, e2e-suref-web]
     if: failure()
     runs-on: ubuntu-latest
     permissions:
@@ -202,7 +149,7 @@ jobs:
             }
 
   notify-recovery:
-    needs: [e2e-itun, e2e-suref-web, visual-regression]
+    needs: [e2e-itun, e2e-suref-web]
     if: success()
     runs-on: ubuntu-latest
     permissions:
