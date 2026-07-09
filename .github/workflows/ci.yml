@@ -5,6 +5,10 @@ on:
     branches: ['main']
   pull_request:
     branches: ['main']
+  # Run on the merge queue's temporary branches so the required `quality-checks`
+  # gate reports on queued PRs; without this the merge queue hangs forever
+  # waiting for a check that never fires.
+  merge_group:
 
 permissions:
   contents: read
@@ -29,16 +33,25 @@ jobs:
   changes:
     runs-on: ubuntu-latest
     outputs:
-      itun: ${{ steps.filter.outputs.itun }}
-      web: ${{ steps.filter.outputs.web }}
-      bot: ${{ steps.filter.outputs.bot }}
-      code: ${{ steps.filter.outputs.code }}
+      itun: ${{ steps.filter.outputs.itun || steps.all.outputs.all }}
+      web: ${{ steps.filter.outputs.web || steps.all.outputs.all }}
+      bot: ${{ steps.filter.outputs.bot || steps.all.outputs.all }}
+      code: ${{ steps.filter.outputs.code || steps.all.outputs.all }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
 
+      # merge_group events have no diff base for path filtering, and the queue
+      # is the final gate before main — so force every area on and run the full
+      # suite. (`'false' || ''` → 'false' keeps normal PR/push filtering intact.)
+      - name: Force-all on merge queue
+        id: all
+        if: github.event_name == 'merge_group'
+        run: echo "all=true" >> "$GITHUB_OUTPUT"
+
       - uses: dorny/paths-filter@v4
         id: filter
+        if: github.event_name != 'merge_group'
         with:
           filters: |
             shared: &shared
