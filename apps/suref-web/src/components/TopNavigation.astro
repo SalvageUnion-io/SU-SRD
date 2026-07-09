@@ -51,7 +51,7 @@ function isActive(path: string) {
   viewTransitionName="nav"
 >
   <!-- Existing nav links + BUILDER cross-link + search + buy — pushed right -->
-  <div class="ml-auto hidden items-center gap-[26px] lg:flex">
+  <nav aria-label="Main navigation" class="ml-auto hidden items-center gap-[26px] lg:flex">
     <a href="/" class:list={['nav-link', isActive('/schema') || currentPath === '/' ? 'nav-link-active' : '']} aria-current={isActive('/schema') || currentPath === '/' ? 'page' : undefined}>
       SRD
     </a>
@@ -81,7 +81,7 @@ function isActive(path: string) {
     <a href="https://leyline.press/collections/salvage-union" target="_blank" rel="noopener noreferrer" class="btn btn-active shrink-0 font-cond text-[13px] uppercase tracking-[0.06em]">
       BUY THE GAME
     </a>
-  </div>
+  </nav>
 
   <!-- Mobile: persistent search trigger + hamburger -->
   <div class="flex lg:hidden items-center gap-1 ml-auto">
