@@ -16,8 +16,6 @@
     "test": "bun test",
     "test:coverage": "bun test --coverage --coverage-reporter=text --coverage-reporter=lcov --coverage-dir=coverage",
     "test:watch": "bun test --watch",
-    "test:visual": "bunx playwright test --config playwright.visual.config.ts",
-    "test:visual:update": "bunx playwright test --config playwright.visual.config.ts --update-snapshots",
     "ladle": "ladle serve",
     "ladle:build": "ladle build"
   },
@@ -36,7 +34,6 @@
   "devDependencies": {
     "@base-ui/react": "1.6.0",
     "@ladle/react": "^5.1.1",
-    "@playwright/test": "1.61.1",
     "@randsum/roller": "^2.0.0",
     "@vitejs/plugin-react": "^6.0.3",
     "class-variance-authority": "^0.7.1",
