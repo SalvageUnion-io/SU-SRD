@@ -5,4 +5,4 @@
  * Thin re-export shim — see that module for the implementation.
  */
 
-export { computeMechCapacity } from 'salvageunion-reference'
+export { computeMechCapacity } from 'salvageunion-reference/rules'

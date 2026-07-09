@@ -9,4 +9,4 @@ export {
   pilotDetailWarnings,
   mechDetailWarnings,
   crawlerDetailWarnings,
-} from 'salvageunion-reference'
+} from 'salvageunion-reference/rules'

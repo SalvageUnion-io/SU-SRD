@@ -24,5 +24,5 @@ export {
   unifiedMechConditions,
   crawlerMaxSP,
   clampCrawlerCurrentStats,
-} from 'salvageunion-reference'
-export type { ChassisStats } from 'salvageunion-reference'
+} from 'salvageunion-reference/rules'
+export type { ChassisStats } from 'salvageunion-reference/rules'

@@ -12,4 +12,4 @@ export {
   resolveModuleRef,
   resolveInstalledRef,
   refDisplayName,
-} from 'salvageunion-reference'
+} from 'salvageunion-reference/rules'

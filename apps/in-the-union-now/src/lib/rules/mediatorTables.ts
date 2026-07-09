@@ -10,5 +10,5 @@ export {
   MEDIATOR_TABLE_LABEL,
   performMediatorRoll,
   describeMediatorRoll,
-} from 'salvageunion-reference'
-export type { FindRollTable } from 'salvageunion-reference'
+} from 'salvageunion-reference/rules'
+export type { FindRollTable } from 'salvageunion-reference/rules'

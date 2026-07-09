@@ -11,4 +11,4 @@ export {
   evaluateMechWarnings,
   PILOT_ABILITY_CAP,
   SALVAGER_ABILITY_CAP,
-} from 'salvageunion-reference'
+} from 'salvageunion-reference/rules'

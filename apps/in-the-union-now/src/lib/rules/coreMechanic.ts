@@ -10,5 +10,5 @@ export {
   coreRollBand,
   performCoreRoll,
   describePushOutcome,
-} from 'salvageunion-reference'
-export type { CoreRollBand, CoreRollBandInfo, CoreRollResult } from 'salvageunion-reference'
+} from 'salvageunion-reference/rules'
+export type { CoreRollBand, CoreRollBandInfo, CoreRollResult } from 'salvageunion-reference/rules'

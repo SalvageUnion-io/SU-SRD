@@ -429,8 +429,13 @@ export function resetAllForTesting(): void {
 }
 
 // ---------------------------------------------------------------------------
-// Rules — pure game-rules logic (ADR-006). Consumers (ITUN, Discord bot)
-// import these from the package barrel instead of reimplementing them.
+// Rules — pure game-rules logic (ADR-006) lives in ./rules/, exposed via the
+// 'salvageunion-reference/rules' subpath export (package.json), NOT re-exported
+// from this main barrel. Re-exporting `export * from './rules/index.js'` here
+// would make every consumer of the main package entrypoint (including ones
+// that never touch rules, like the Discord bot's lookup/roll commands)
+// transitively load all rules modules via ESM's eager re-export semantics —
+// inflating their bundle and diluting their test-coverage denominator with
+// code they never exercise. Import rules explicitly:
+//   import { computeMechCapacity } from 'salvageunion-reference/rules'
 // ---------------------------------------------------------------------------
-
-export * from './rules/index.js'

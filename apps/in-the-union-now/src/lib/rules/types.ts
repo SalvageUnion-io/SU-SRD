@@ -31,4 +31,4 @@ export type {
   MechSnapshot,
   SoftWarningContext,
   EditSnapshot,
-} from 'salvageunion-reference'
+} from 'salvageunion-reference/rules'

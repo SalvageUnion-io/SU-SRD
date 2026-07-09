@@ -5,4 +5,4 @@
  * Thin re-export shim — see that module for the implementation.
  */
 
-export { salvageValueFor, scrapCostFor, tierUpgradeCost } from 'salvageunion-reference'
+export { salvageValueFor, scrapCostFor, tierUpgradeCost } from 'salvageunion-reference/rules'

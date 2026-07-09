@@ -21,10 +21,10 @@ export {
   reactorOverloadOutcome,
   performHeatCheck,
   performPush,
-} from 'salvageunion-reference'
-export type { Roll, HeatCheckEffect, PushResult } from 'salvageunion-reference'
+} from 'salvageunion-reference/rules'
+export type { Roll, HeatCheckEffect, PushResult } from 'salvageunion-reference/rules'
 
-import type { HeatCheckEffect, Roll } from 'salvageunion-reference'
+import type { HeatCheckEffect, Roll } from 'salvageunion-reference/rules'
 
 /** Default roller — a uniform d-sides via randsum. Injectable for deterministic tests. */
 export const defaultRoll: Roll = (sides: number) => roll(`1d${sides}`).total

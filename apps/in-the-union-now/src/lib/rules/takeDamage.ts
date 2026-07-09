@@ -14,7 +14,7 @@ export {
   applyPilotDamage,
   criticalInjuryOutcome,
   performCriticalInjury,
-} from 'salvageunion-reference'
+} from 'salvageunion-reference/rules'
 export type {
   DamageKind,
   MechDamageInput,
@@ -23,4 +23,4 @@ export type {
   PilotDamageEffect,
   CriticalDamageEffect,
   CriticalInjuryEffect,
-} from 'salvageunion-reference'
+} from 'salvageunion-reference/rules'

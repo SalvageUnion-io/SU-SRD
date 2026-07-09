@@ -5,4 +5,4 @@
  * (ADR-006). Thin re-export shim — see that module for the implementation.
  */
 
-export { enrichPilotSnapshot } from 'salvageunion-reference'
+export { enrichPilotSnapshot } from 'salvageunion-reference/rules'
