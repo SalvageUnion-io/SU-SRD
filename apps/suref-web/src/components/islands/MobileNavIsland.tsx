@@ -154,6 +154,15 @@ export function MobileNavIsland({ categories, currentPath }: MobileNavIslandProp
                 DISCORD
               </Button>
               <a
+                href="https://in-the-union-now.netlify.app"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-inactive block text-center text-sm"
+                onClick={() => setOpen(false)}
+              >
+                BUILDER ↗
+              </a>
+              <a
                 href="https://leyline.press/collections/salvage-union"
                 target="_blank"
                 rel="noopener noreferrer"

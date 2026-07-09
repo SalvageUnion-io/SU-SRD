@@ -7,6 +7,13 @@ type ChangelogEntry = {
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: '2026-07-09',
+    title: 'Link to the character builder',
+    items: [
+      'The top bar now has a BUILDER link out to In The Union Now — the no-account character builder & game manager — so you can jump straight from the reference to building pilots, mechs, and crawlers.',
+    ],
+  },
+  {
+    date: '2026-07-09',
     title: 'Faster page loads',
     items: [
       'Entity and category pages now download only the reference data they actually need, instead of the entire dataset — item and listing pages load noticeably faster, especially on slower connections.',

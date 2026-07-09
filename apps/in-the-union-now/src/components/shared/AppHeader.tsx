@@ -1,8 +1,8 @@
 /**
- * AppHeader — ITUN's brand chrome, mirroring the SRD site's signature header
- * (apps/suref-web/src/components/TopNavigation.astro): su-ink-dark ground,
- * 3px su-orange-dark bottom border, SU mark, font-cond wordmark with a
- * tracked eyebrow, and a right-side link out to the SRD site.
+ * AppHeader — ITUN's brand chrome. It fills the shared HeaderShell
+ * (packages/suref-react/.../HeaderShell.tsx) — the same container + brand
+ * lockup the SRD reference site uses — with ITUN's own right-side actions:
+ * the encounter tray, the SRD search trigger, and an outbound link to the SRD.
  *
  * Rendered from the root layout on every route EXCEPT the live-sheet and
  * snapshot surfaces (/sheet/*, /s/*) — those are edge-to-edge play surfaces
@@ -10,6 +10,7 @@
  */
 
 import { Search } from 'lucide-react'
+import { HeaderShell } from 'suref-react'
 
 import { AppLink } from './AppLink'
 
@@ -30,29 +31,13 @@ type AppHeaderProps = {
 
 export function AppHeader({ onSearchClick }: AppHeaderProps) {
   return (
-    <header className="flex items-center gap-3 border-b-entity border-su-orange-dark bg-su-ink-dark px-4 py-2.5 sm:px-8 sm:py-3">
-      {/* Brand: SU mark + ITUN wordmark (with the Beta pill) + eyebrow */}
-      <AppLink href="/" className="flex min-w-0 shrink-0 items-center gap-3 no-underline">
-        <img
-          src="/logos/su-cargo-dark.svg"
-          alt="Salvage Union"
-          width={44}
-          height={44}
-          className="block size-10 shrink-0 rounded-md sm:size-11"
-        />
-        <span className="flex min-w-0 flex-col">
-          <span className="font-cond text-xl font-bold leading-none tracking-[0.005em] text-su-paper sm:text-2xl">
-            ITUN
-            <span className="ml-1.5 inline-block rounded bg-rust px-1.5 py-0.5 align-[0.3em] font-cond text-label font-bold uppercase leading-none tracking-caps-wide text-su-paper">
-              Beta
-            </span>
-          </span>
-          <span className="mt-1.5 whitespace-nowrap font-cond text-xs font-semibold uppercase leading-none tracking-eyebrow text-su-orange">
-            In The Union Now
-          </span>
-        </span>
-      </AppLink>
-
+    <HeaderShell
+      homeHref="/"
+      wordmark="ITUN"
+      badge="Beta"
+      eyebrow="In The Union Now"
+      HomeLink={AppLink}
+    >
       {/* Right side: encounter tray + search trigger + outbound SRD link */}
       <div className="ml-auto flex shrink-0 items-center gap-3 sm:gap-4">
         <AppLink
@@ -85,9 +70,9 @@ export function AppHeader({ onSearchClick }: AppHeaderProps) {
           rel="noopener noreferrer"
           className="shrink-0 font-cond text-sm font-semibold uppercase tracking-caps-snug text-su-paper no-underline transition-colors hover:text-su-orange"
         >
-          <span className="hidden sm:inline">SalvageUnion.io&nbsp;</span>SRD&nbsp;&#8599;
+          SRD&nbsp;&#8599;
         </a>
       </div>
-    </header>
+    </HeaderShell>
   )
 }
