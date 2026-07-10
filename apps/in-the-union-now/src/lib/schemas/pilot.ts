@@ -42,7 +42,6 @@ export const CriticalInjuryOutcomeSchema = z.enum([
   'unconscious',
   'miraculous-survival',
 ])
-export type CriticalInjuryOutcome = z.infer<typeof CriticalInjuryOutcomeSchema>
 
 /**
  * Recorded result of a Critical Injury Table roll (rolled when the pilot

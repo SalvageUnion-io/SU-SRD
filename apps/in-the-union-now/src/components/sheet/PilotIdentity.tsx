@@ -1,19 +1,22 @@
 /**
- * PilotIdentityPanel — the pilot hero's IDENTITY block (redesign Task B):
- * the poster's labeled fields — Name / Callsign / Class / Appearance (left)
- * and Motto / Keepsake / Background with their once-per-Downtime USED toggles
- * (rules A8–A10) on the right — rendered via the shared IdentityField
- * primitive.
+ * PilotIdentityPanel — the pilot poster's IDENTITY card body (redesign Phase
+ * 2): the poster's labeled fields — Name / Callsign / Class / Appearance
+ * (left) and Motto / Keepsake / Background with their once-per-Downtime USED
+ * toggles (rules A8–A10) on the right, plus a folded-in Bio field (#409 — the
+ * dropped live-play Bio section's data still needs a home) — rendered via the
+ * shared IdentityField primitive.
  *
- * FIELD-section archetype (unified edit language): the panel owns its OWN
- * Edit button; fields render read-only by default and flip to inline
- * click-to-edit only while this section is editing. Class is picker-backed —
- * its edit affordance opens the ONE shared picker modal with the wizard's
- * master-detail class list (changing class KEEPS abilities, matching the old
- * edit-mode semantics).
+ * FIELD-section archetype (unified edit language), but the section's own
+ * Edit/Done button now lives in the parent `SheetSectionCard`'s header (Phase
+ * 2 lifts the chead row into the card chrome) — this panel is CONTROLLED via
+ * the `editing` prop rather than owning its own toggle state. Class is
+ * picker-backed — its edit affordance opens the ONE shared picker modal with
+ * the wizard's master-detail class list (changing class KEEPS abilities,
+ * matching the old edit-mode semantics).
  *
  * readOnly (no onToggleUsed / no patch): used chips render as static 'USED'
- * stamps only when set, and no Edit button renders.
+ * stamps only when set, and `editing` has no effect (no patch means no edit
+ * affordance renders regardless).
  */
 
 import { useState } from 'react'
@@ -26,7 +29,7 @@ import { cn } from '../../lib/utils'
 import { ClassDetail, ClassOptionList } from '../pilot/ClassStep'
 import { selectableClasses } from '../pilot/classOptions'
 import { IdentityField } from './IdentityField'
-import { SectionChead, SectionEditButton, SheetPickerModal } from './SheetSection'
+import { SheetPickerModal } from './SheetSection'
 import type { SheetPatch } from './sheetViewProps'
 
 export type UsedToggleKey = 'background' | 'motto' | 'keepsake'
@@ -76,21 +79,25 @@ function UsedChip({
 
 type PilotIdentityPanelProps = {
   pilot: Pilot
+  /**
+   * Section-level edit flag, owned by the parent `SheetSectionCard`'s header
+   * Edit/Done button (Phase 2: the chead row lives in the card, not here).
+   */
+  editing?: boolean
   /** Persist a used-flag change; omit on read-only sheets (static stamps). */
   onToggleUsed?: (key: UsedToggleKey, next: boolean) => void
-  /** Partial merge on this pilot; omit on read-only sheets (no Edit button). */
+  /** Partial merge on this pilot; omit on read-only sheets (no edit affordance). */
   patch?: SheetPatch
   className?: string
 }
 
 export function PilotIdentityPanel({
   pilot,
+  editing = false,
   onToggleUsed,
   patch,
   className,
 }: PilotIdentityPanelProps) {
-  // Per-section edit flag — flips ONLY this panel's fields to inline-edit.
-  const [editing, setEditing] = useState(false)
   const [classPickerOpen, setClassPickerOpen] = useState(false)
   // Class picker holds a pending selection until confirmed (destructive-ish:
   // it re-homes the pilot's class; abilities are intentionally kept).
@@ -138,22 +145,7 @@ export function PilotIdentityPanel({
   )
 
   return (
-    <section aria-label="Pilot identity" className={cn('min-w-0', className)}>
-      {/* Section header (chead) — owns the panel's OWN Edit button (no global
-          mode). Phase 2 lifts this row into SheetSectionCard's header. */}
-      <SectionChead
-        title="Identity"
-        actions={
-          canEdit ? (
-            <SectionEditButton
-              section="Identity"
-              editing={isEditing}
-              onToggle={() => setEditing((v) => !v)}
-            />
-          ) : undefined
-        }
-      />
-
+    <div className={cn('min-w-0', className)}>
       {/* Poster field grid — left / right columns; single column on mobile in
           the poster's reading order. */}
       <div className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2">
@@ -214,6 +206,20 @@ export function PilotIdentityPanel({
         </div>
       </div>
 
+      {/* Bio — folded in from the dropped live-play Bio section (#409): the
+          freeform backstory previously rendered via SheetDescription now
+          lives as an extra full-width identity field. */}
+      <div className="mt-3">
+        <IdentityField
+          label="Bio"
+          value={pilot.description ?? ''}
+          editing={isEditing}
+          multiline
+          onSave={saveText('description')}
+          placeholder="No bio written yet."
+        />
+      </div>
+
       {/* Class — single-select master-detail in the ONE shared picker modal. */}
       <SheetPickerModal
         open={classPickerOpen}
@@ -240,6 +246,6 @@ export function PilotIdentityPanel({
           <ClassDetail selectedClass={selectedClass} />
         </div>
       </SheetPickerModal>
-    </section>
+    </div>
   )
 }
