@@ -6,13 +6,17 @@
  *   { variant, name, strip, back, wired, rail, condense, cardActions,
  *     renderHero, renderBody, syncStats }
  *
+ * App bar (poster `.appbar`, design source clean-pilot.html): back + overflow
+ * are bordered 38px icon buttons either side of the SU cargo mark; the name
+ * stamp + kind pill sit in the RESTING bar, always visible (not gated behind
+ * scroll) — only the live MiniStat strip is scroll-driven.
+ *
  * Condense (S11 — binding): the top bar is sticky; when the hero scrolls out
  * of view (IntersectionObserver simple threshold — NOT the prototype's
  * clamp01 scroll interpolation, which is a post-beta fast-follow) the bar
- * fades in the entity name + pill + MiniStat strip via a CSS transition.
- * While hidden the strip is aria-hidden and pointer-events:none. Reducing
- * this below "strip + fade + aria gating" needs explicit design sign-off
- * (risk R4).
+ * fades in the live MiniStat strip via a CSS transition. While hidden the
+ * strip is aria-hidden and pointer-events:none. Reducing this below
+ * "strip + fade + aria gating" needs explicit design sign-off (risk R4).
  *
  * Stats are store-backed (the real ITUN replacement for the prototype's
  * single useState): the caller derives `strip` values from the same entity
@@ -23,11 +27,14 @@
 
 import { useEffect, useRef, useState } from 'react'
 import type { ReactNode, RefObject } from 'react'
+import { ArrowLeft } from 'lucide-react'
 import { MiniStat, Pill, WiredToggle } from 'suref-react'
 import type { MiniStatTone, PillTone } from 'suref-react'
 
 import { cn } from '../../lib/utils'
 import { AppLink } from '../shared/AppLink'
+
+import { SHEET_ICONBTN_CLASS } from './sheetChrome'
 
 export type SheetVariant = 'pilot' | 'mech' | 'crawler'
 
@@ -71,7 +78,7 @@ type LiveSheetProps = {
   /** Condensed-bar MiniStat readouts (values live, from the entity record). */
   strip?: LiveSheetStripItem[]
   back?: { href: string; label: string }
-  /** Kind/status pill shown next to the name in the condensed bar. */
+  /** Kind/status pill shown next to the name stamp in the resting app bar. */
   pill?: { label: string; tone?: PillTone }
   /** Wired/offline indicator; omit to hide the toggle. */
   wired?: boolean
@@ -136,6 +143,10 @@ function useCondensed(target: RefObject<HTMLElement | null>, enabled: boolean): 
 const SEGMENT_BTN_CLASS =
   'inline-flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-[3px] border-chrome px-[11px] py-[6px] font-body text-xs font-medium tracking-[0.01em] no-underline transition-colors duration-[120ms]'
 
+/** App-bar name stamp (poster `.barname .stamp`): black-on-ink, ~15px. */
+const BARNAME_STAMP_CLASS =
+  'block max-w-full truncate bg-ink px-2 pb-[3px] pt-[2px] font-cond text-[15px] font-bold uppercase leading-[1.5] tracking-[0.045em] text-su-white'
+
 export function LiveSheet({
   variant,
   name,
@@ -177,27 +188,44 @@ export function LiveSheet({
         style={{ background: 'var(--ground-2)' }}
       >
         {back && (
-          <AppLink
-            href={back.href}
-            aria-label={`Back to ${back.label.toLowerCase()}`}
-            className="flex shrink-0 items-center gap-2 font-cond text-caption font-semibold uppercase tracking-caps-tight text-ink no-underline hover:text-rust"
-          >
-            {/* Small SU mark anchors the sheet's own back affordance; the
-                global AppHeader (brand chrome) sits above this sticky bar. */}
+          <>
+            {/* Back — a bordered 38px icon button (poster `.iconbtn`), icon
+                only; the accessible name carries the destination. */}
+            <AppLink
+              href={back.href}
+              aria-label={`Back to ${back.label.toLowerCase()}`}
+              className={cn(SHEET_ICONBTN_CLASS, 'no-underline')}
+            >
+              <ArrowLeft className="size-[18px]" aria-hidden="true" />
+            </AppLink>
+            {/* SU cargo mark anchors the sheet's own chrome; the global
+                AppHeader (brand chrome) sits above this sticky bar. */}
             <img
               src="/logos/su-cargo-dark.svg"
               alt=""
               width={28}
               height={28}
-              className="block size-7 shrink-0 rounded-md"
+              className="block size-7 shrink-0 rounded-[2px]"
             />
-            <span>&larr; {back.label}</span>
-          </AppLink>
+          </>
         )}
 
-        {/* Condensed identity + live MiniStat strip. Resting state shows
-            nothing here — identity lives once, in the hero (§4.1). */}
-        {condense && (
+        {/* Resting-bar identity (poster `.barname` + `.kindpill`): the name
+            stamp + kind pill are always visible, not gated behind condense —
+            only the live MiniStat strip below fades in on scroll (S11). */}
+        <div className="flex min-w-0 shrink items-center gap-2">
+          <span className={BARNAME_STAMP_CLASS}>{name}</span>
+          {pill && (
+            <Pill tone={pill.tone} rounded>
+              {pill.label}
+            </Pill>
+          )}
+        </div>
+
+        {/* Condensed live MiniStat strip. Resting state shows nothing here —
+            stat trackers live once, in the hero (§4.1); the bar only surfaces
+            them once the hero scrolls out of view. */}
+        {condense && stripItems.length > 0 && (
           <div
             aria-hidden={!condensed}
             className={cn(
@@ -207,10 +235,6 @@ export function LiveSheet({
                 : 'pointer-events-none translate-y-[5px] opacity-0'
             )}
           >
-            <span className="truncate font-cond text-lg font-bold uppercase leading-none text-ink">
-              {name}
-            </span>
-            {pill && <Pill tone={pill.tone}>{pill.label}</Pill>}
             {stripItems.map((item) => (
               <MiniStat
                 key={item.key}

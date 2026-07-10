@@ -106,7 +106,10 @@ export function Sheet({
 
   const wired = composition.mode === 'wired'
   const back = { href: '/', label: 'Dashboard' }
-  // Top-bar trailing actions: Share (publish), Print, then the "⋯" overflow.
+  // Top-bar trailing actions (app-bar right group, design source
+  // clean-pilot.html `.bar-actions`): Share (publish) stays inline; Print,
+  // Export and Workspace tuck into the "⋯" overflow at every width — the app
+  // bar's priority row is just Share + overflow.
   // NO sheet has a global Edit toggle any more — editing is section-based
   // (unified edit language: per-section Edit buttons, always-available
   // collection add/remove, always-live StatBlock dots).
@@ -124,10 +127,8 @@ export function Sheet({
     </button>
   )
   // Entity-level admin affordances relocated from the (removed) detail page:
-  // single-entity JSON export + workspace assignment. They live in the "⋯"
-  // overflow rather than the priority row (design: Edit/Share/Print stay
-  // inline; Export/Workspace tuck away). Unassigning a linked entity lives on
-  // the rail chip, not here — it's contextual to the link.
+  // single-entity JSON export + workspace assignment. Unassigning a linked
+  // entity lives on the rail chip, not here — it's contextual to the link.
   const exportButton = <ExportEntityButton type={kind} id={id} name={entity.name} />
   const workspaceControl = (
     <AssignToWorkspaceButton
@@ -137,22 +138,14 @@ export function Sheet({
     />
   )
   const actions = !readOnly ? (
-    <>
-      <div className="hidden items-center gap-2.5 sm:flex">
+    <div className="flex items-center gap-2.5">
+      <PublishButton entityKind={kind} entityId={id} entityStore={entityStore} />
+      <SheetActionsMenu>
         {printButton}
-        <PublishButton entityKind={kind} entityId={id} entityStore={entityStore} />
-        <SheetActionsMenu>
-          {exportButton}
-          {workspaceControl}
-        </SheetActionsMenu>
-      </div>
-      <SheetActionsMenu className="sm:hidden">
-        {printButton}
-        <PublishButton entityKind={kind} entityId={id} entityStore={entityStore} />
         {exportButton}
         {workspaceControl}
       </SheetActionsMenu>
-    </>
+    </div>
   ) : undefined
 
   // Mobile segmented Pilot/Mech/Crawler switch (design §3.7) — wired sheets

@@ -16,6 +16,7 @@ import { Ellipsis } from 'lucide-react'
 
 import { cn } from '../../lib/utils'
 import { useDismiss } from '../shared/useDismiss'
+import { SHEET_ICONBTN_CLASS } from './sheetChrome'
 
 type SheetActionsMenuProps = {
   /** Menu items — typically the same Edit link + PublishButton as inline. */
@@ -39,9 +40,9 @@ export function SheetActionsMenu({ children, className }: SheetActionsMenuProps)
         aria-label="More actions"
         aria-expanded={open}
         onClick={() => setOpen((prev) => !prev)}
-        className="flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-[3px] border-chrome border-ink bg-paper text-ink transition-colors duration-[120ms] hover:bg-wk-bg-2 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rust/25"
+        className={cn(SHEET_ICONBTN_CLASS, 'cursor-pointer')}
       >
-        <Ellipsis className="size-5" aria-hidden="true" />
+        <Ellipsis className="size-[18px]" aria-hidden="true" />
       </button>
 
       {open && (
