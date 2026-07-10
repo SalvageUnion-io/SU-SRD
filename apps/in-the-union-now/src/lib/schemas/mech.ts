@@ -29,7 +29,10 @@ export const ReactorOverloadOutcomeSchema = z.enum([
   'overheat',
   'safe',
 ])
-export type ReactorOverloadOutcome = z.infer<typeof ReactorOverloadOutcomeSchema>
+// No `z.infer` type alias here: the only consumer (HeatCheckControl) was
+// dropped by the poster redesign's D6 live-play-panel cut (#407) — the
+// schema itself (used inline below, and the `lastHeatCheck` field) stays for
+// backward-tolerant reads of previously-saved mechs.
 
 /**
  * Recorded result of a Heat Check (and any subsequent Reactor Overload roll).
@@ -48,7 +51,6 @@ export const HeatCheckResultSchema = z
     rolledAt: z.string().datetime(),
   })
   .strict()
-export type HeatCheckResult = z.infer<typeof HeatCheckResultSchema>
 
 /**
  * Critical Damage Table outcome bands (Core Book p.239-240; mirrors the
@@ -71,7 +73,9 @@ export const CriticalDamageOutcomeSchema = z.enum([
   'core-damage',
   'miraculous-survival',
 ])
-export type CriticalDamageOutcome = z.infer<typeof CriticalDamageOutcomeSchema>
+// No `z.infer` type alias here: the only consumer (TakeDamageControl) was
+// dropped by the poster redesign's D6 live-play-panel cut (#406) — the
+// schema stays (used inline below) for backward-tolerant reads.
 
 /**
  * Recorded result of a Critical Damage Table roll (rolled when the mech

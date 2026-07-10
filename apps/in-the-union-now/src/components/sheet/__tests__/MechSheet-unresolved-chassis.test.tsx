@@ -1,10 +1,10 @@
 /**
- * MechSheet — unresolved chassis tests (#243, plan 4.5)
+ * MechSheet — unresolved chassis tests (#243, plan 4.5; Phase 2 poster regions)
  *
  * When chassis cannot be resolved (null), the body must still render — the
- * accessible alert names the bogus chassisRef, the Heat Check loop and the
- * hold stay functional with zero-derived maxima, and installed item slugs
- * keep their cards/fallbacks. (Stat trackers live in the Sheet hero now.)
+ * accessible alert names the bogus chassisRef, the Identity/Vitals poster
+ * regions and the hold stay functional with zero-derived maxima, and
+ * installed item slugs keep their cards/fallbacks.
  */
 
 import { afterEach, beforeAll, describe, expect, mock, test } from 'bun:test'
@@ -65,11 +65,12 @@ describe('MechSheet — unresolved chassis (chassis=null)', () => {
     expect(screen.getByRole('alert').textContent).toContain('nonexistent-chassis-xyz')
   })
 
-  test('the body still renders: heat loop, item fallback, hold', () => {
+  test('the body still renders: Identity/Vitals regions, item fallback, hold', () => {
     render(<MechSheet mech={fakeMech} chassis={null} store={makeStubStore(fakeMech)} />)
 
-    // Heat Check loop stays available (heat cap derives to 0, never crashes).
-    expect(screen.getByRole('button', { name: /heat check/i })).toBeTruthy()
+    // Identity/Vitals poster regions stay available (maxima derive to 0, never crash).
+    expect(screen.getByText('Identity')).toBeTruthy()
+    expect(screen.getByText('Vitals')).toBeTruthy()
     // The unresolvable system slug falls back to plain text.
     expect(screen.getByText('mystery-system')).toBeTruthy()
     // The Hold renders against a zero cargo cap.

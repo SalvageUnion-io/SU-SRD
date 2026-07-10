@@ -1,17 +1,17 @@
 /**
  * SheetMech — the mech branch of the live sheet (extracted from
- * Sheet.tsx, audit item 19; redesigned to the poster layout, phase 2).
- * Hero top region = IDENTITY block (pattern name prominent, chassis + Tech
- * Level as labeled secondary meta, with the section's own Edit button) plus
- * the full chassis-stats strip as real StatBlocks, vs the VITALS cluster
- * (SP/EP/Heat current-max gauges + conditions) on the right; rail = assigned
- * pilot + home crawler; body = MechSheet; FAB carries Push (R-6/U-3).
+ * Sheet.tsx, audit item 19; redesigned to the poster layout, Phase 2).
+ *
+ * The hero now carries ONLY the name row + meta (poster region grid, D7):
+ * Identity, Vitals and the linked-unit rail all moved into the body's R1/R4
+ * poster regions (see `MechSheet`) — SheetHero no longer receives
+ * `identityBlock`/`trackers`/`inset`/`rail`, mirroring SheetPilot. This
+ * component's remaining job is the condensed top-bar strip, the Push FAB, and
+ * composing the assigned-pilot/home-crawler rail content handed to
+ * `MechSheet` as `linkedUnits`.
  */
 
-import { VitalGauge, heatDangerFrom } from 'suref-react'
-
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
-import { computeMechCapacity } from '../../lib/rules/capacity'
 import { describePushOutcome } from '../../lib/rules/coreMechanic'
 import { mechMaxCargo, mechMaxEP, mechMaxHeat, mechMaxSP } from '../../lib/rules/derivedStats'
 import { defaultRoll, heatCheckPatch, performPush } from '../../lib/rules/heatCheck'
@@ -21,12 +21,9 @@ import type { Mech } from '../../lib/schemas/mech'
 import { AssignPilotToMech } from '../wiring/AssignPilotToMech'
 import { LiveSheet } from './LiveSheet'
 import type { LiveSheetStripItem } from './LiveSheet'
-import { MechConditionsEditor } from './MechConditionsEditor'
-import { MechIdentityPanel } from './MechIdentity'
 import { MechSheet } from './MechSheet'
 import { QuickRollFab } from './QuickRollFab'
-import { ChassisStats, SheetHero } from './SheetHero'
-import type { ChassisStatItem } from './SheetHero'
+import { SheetHero } from './SheetHero'
 import { RailChip, RailEmpty } from './SheetRail'
 import { CrawlerRailStats, PilotRailStats, RailCta, mechStatusPill } from './SheetRailParts'
 import type { SheetViewCommonProps } from './sheetViewProps'
@@ -45,7 +42,6 @@ export function SheetMech({
   store,
   storeState,
   lookup,
-  patch,
 }: SheetMechProps) {
   const chassis = resolveChassisRef(mech.chassisRef)
   const maxSP = mechMaxSP(mech, chassis)
@@ -56,43 +52,6 @@ export function SheetMech({
   const sp = Math.min(mech.currentSP ?? maxSP, maxSP)
   const ep = Math.min(mech.currentEP ?? maxEP, maxEP)
   const heat = Math.min(mech.currentHeat ?? maxHeat, maxHeat)
-
-  const capacity = computeMechCapacity({
-    chassisRef: mech.chassisRef,
-    systems: mech.systems.map((ref) => ({ ref })),
-    modules: mech.modules.map((ref) => ({ ref })),
-  })
-
-  // Poster chassis-stats strip — the capacities the live VITALS gauges do NOT
-  // already surface (slot/salvage/cargo). SP/EP/Heat maxima live on the
-  // right-column current-max gauges, and Tech Level is the labeled identity
-  // meta in MechIdentityPanel, so neither is repeated here.
-  const specs: ChassisStatItem[] = [
-    {
-      code: 'SYS',
-      name: 'Slots',
-      value: capacity.systemSlotsUsed,
-      max: capacity.systemSlotsMax,
-      pips: capacity.systemSlotsMax <= 12,
-    },
-    {
-      code: 'MOD',
-      name: 'Slots',
-      value: capacity.moduleSlotsUsed,
-      max: capacity.moduleSlotsMax,
-      pips: capacity.moduleSlotsMax <= 12,
-    },
-    {
-      code: 'CARGO',
-      name: 'Cap',
-      value: cargoUsed,
-      max: maxCargo,
-      pips: maxCargo > 0 && maxCargo <= 12,
-    },
-    ...(typeof chassis?.salvageValue === 'number'
-      ? [{ code: 'SV', name: 'Salvage', value: chassis.salvageValue }]
-      : []),
-  ]
 
   // U-5: on phones the condensed bar leads with Heat + SP; EP/Hold fold
   // until the sm breakpoint.
@@ -119,10 +78,10 @@ export function SheetMech({
 
   /**
    * Push (design review R-6/U-3): +2 Heat then an immediate Heat Check,
-   * written through the store exactly like HeatCheckControl (ADR-007 —
-   * deterministic bookkeeping auto-applies; marking a destroyed System or
-   * Module stays a player call via its status badge). Reads the freshest
-   * mech so rapid sequential actions don't stomp each other.
+   * written through the store (ADR-007 — deterministic bookkeeping
+   * auto-applies; marking a destroyed System or Module stays a player call
+   * via its status badge). Reads the freshest mech so rapid sequential
+   * actions don't stomp each other.
    */
   async function pushMech(): Promise<string> {
     const fresh = lookup.get('mech', mech.id) ?? mech
@@ -147,6 +106,9 @@ export function SheetMech({
   const unassignPilot =
     editable && pilotLinkId ? () => void storeState.delete('softLink', pilotLinkId) : undefined
 
+  // Linked Units rail content (poster R4, span 5) — built here because it
+  // needs `composition` (resolved pilot/crawler), which MechSheet does not
+  // receive; handed down as `linkedUnits`.
   const rail = (
     <>
       {composition.pilot ? (
@@ -202,72 +164,19 @@ export function SheetMech({
       back={back}
       pill={mechStatusPill(mech)}
       wired={wired}
-      rail={rail}
       segments={segments}
       syncStats={{ cargo: cargoUsed }}
       actions={actions}
       fab={editable ? <QuickRollFab onPush={pushMech} pushLocked={pushLocked} /> : undefined}
-      renderHero={({ heroRef, rail: heroRail }) => (
-        <SheetHero
-          heroRef={heroRef}
-          cat="Mech"
-          name={mech.name}
-          identityBlock={
-            // Poster region 1 (left): identity fields first, then the full
-            // chassis-stats strip beneath them (real sm StatBlocks).
-            <div className="flex min-w-0 flex-col gap-3">
-              <MechIdentityPanel
-                mech={mech}
-                chassisName={chassis?.name ?? mech.chassisRef}
-                techLevel={typeof chassis?.techLevel === 'number' ? chassis.techLevel : undefined}
-                patch={editable ? patch : undefined}
-              />
-              <div>
-                <ChassisStats items={specs} />
-              </div>
-            </div>
-          }
-          trackers={
-            <>
-              <VitalGauge
-                label="SP"
-                subLabel="Structure"
-                value={sp}
-                max={maxSP}
-                onChange={editable ? (v) => patch({ currentSP: v }) : undefined}
-                readOnly={!editable}
-              />
-              <VitalGauge
-                label="EP"
-                subLabel="Energy"
-                value={ep}
-                max={maxEP}
-                onChange={editable ? (v) => patch({ currentEP: v }) : undefined}
-                readOnly={!editable}
-              />
-              <VitalGauge
-                label="Heat"
-                value={heat}
-                max={maxHeat}
-                danger={maxHeat > 0 ? heatDangerFrom(maxHeat) : undefined}
-                onChange={editable ? (v) => patch({ currentHeat: v }) : undefined}
-                readOnly={!editable}
-              />
-            </>
-          }
-          inset={
-            <div className="flex w-full max-w-[360px] flex-col items-stretch gap-1">
-              <span className="font-cond text-label font-bold uppercase tracking-caps text-ink">
-                Conditions
-              </span>
-              <MechConditionsEditor mech={mech} store={store} readOnly={readOnly} />
-            </div>
-          }
-          rail={heroRail}
-        />
-      )}
+      renderHero={({ heroRef }) => <SheetHero heroRef={heroRef} cat="Mech" name={mech.name} />}
       renderBody={() => (
-        <MechSheet mech={mech} store={store} readOnly={readOnly} crawler={composition.crawler} />
+        <MechSheet
+          mech={mech}
+          store={store}
+          readOnly={readOnly}
+          crawler={composition.crawler}
+          linkedUnits={rail}
+        />
       )}
     />
   )

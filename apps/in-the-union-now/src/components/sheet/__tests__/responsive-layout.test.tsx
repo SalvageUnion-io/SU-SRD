@@ -139,14 +139,17 @@ describe('Sheet responsive layout — wired composition (LiveSheet shell)', () =
     expect(container.querySelector('[data-variant="mech"]')).toBeTruthy()
   })
 
-  test('Sheet wired rail stacks on mobile and rows at sm+ (sm:flex-row)', () => {
-    const link = makeMechToPilotLink('mech-resp-1', 'pilot-resp-1')
+  test('Sheet crawler hero rail stacks on mobile and rows at sm+ (sm:flex-row)', () => {
+    // Pilot and Mech (Phase 2) moved the linked-unit rail OUT of the hero
+    // into the body's Linked Units section — only Crawler (not yet
+    // redesigned, phase 3) still stitches the rail strip inside the hero
+    // frame, so it's the remaining vehicle for this hero-rail-chrome check.
     const { container } = render(
       <Sheet
-        kind="mech"
-        id="mech-resp-1"
-        entityStore={makeEntityStore([fakeMech, fakePilot])}
-        softLinkStore={makeSoftLinkStore([link])}
+        kind="crawler"
+        id="crawler-resp-1"
+        entityStore={makeEntityStore([fakeCrawler])}
+        softLinkStore={makeSoftLinkStore([])}
       />
     )
     // The hero rail strip is a column on mobile, a row at sm+.
