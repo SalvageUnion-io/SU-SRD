@@ -39,6 +39,8 @@ export type UsedToggleKey = 'background' | 'motto' | 'keepsake'
 // always available while editable (not gated behind the section edit).
 // ---------------------------------------------------------------------------
 
+/** Round `.used` pill toggle (poster design-spec): hollow leading dot, ON =
+ * ink fill + white text + accent-filled dot. */
 function UsedChip({
   label,
   used,
@@ -49,10 +51,25 @@ function UsedChip({
   onToggle?: (next: boolean) => void
 }) {
   const base =
-    'inline-flex items-center rounded-[2px] px-[7px] pb-[1px] pt-[2px] font-cond text-label font-semibold uppercase leading-tight tracking-caps-snug'
+    'inline-flex min-h-[28px] items-center gap-1.5 rounded-full border-2 py-[4px] pl-[6px] pr-[10px] font-cond text-[9.5px] font-bold uppercase leading-none tracking-caps-wide'
+  const dot = (
+    <span
+      aria-hidden="true"
+      className={cn(
+        'h-3 w-3 shrink-0 rounded-full border-2 border-current',
+        used &&
+          'border-[color:var(--tone,var(--color-su-orange))] bg-[var(--tone,var(--color-su-orange))]'
+      )}
+    />
+  )
   if (!onToggle) {
     if (!used) return null
-    return <span className={cn(base, 'bg-ink text-paper')}>Used</span>
+    return (
+      <span className={cn(base, 'border-ink bg-ink text-paper')}>
+        {dot}
+        Used
+      </span>
+    )
   }
   return (
     <button
@@ -64,10 +81,11 @@ function UsedChip({
         base,
         'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rust/40',
         used
-          ? 'bg-ink text-paper'
-          : 'border border-dashed border-ink/50 bg-transparent text-ink/70 hover:border-ink hover:text-ink'
+          ? 'border-ink bg-ink text-paper'
+          : 'border-ink/55 bg-paper text-ink/55 hover:border-ink hover:text-ink'
       )}
     >
+      {dot}
       Used
     </button>
   )

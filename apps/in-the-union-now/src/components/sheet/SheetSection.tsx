@@ -188,6 +188,11 @@ type SectionCheadProps = {
  * group (ink stamp title + optional count tag) and a right group pinned
  * `ml-auto` holding the section's HBtn. Phase 2 lifts this row verbatim into
  * SheetSectionCard's header, so field sections adopt it now.
+ *
+ * Also matches the poster's bare `.sect` region divider (clean-pilot.html
+ * :215-218 — Inventory / Linked Units headers with no card frame): a SOLID
+ * ink-35 rule fills the remaining width after the stamp/count, ahead of any
+ * right-group actions.
  */
 export function SectionChead({ title, count, actions, className }: SectionCheadProps) {
   return (
@@ -198,6 +203,7 @@ export function SectionChead({ title, count, actions, className }: SectionCheadP
         </span>
         {count}
       </div>
+      <span aria-hidden="true" className="h-0 min-w-3 flex-1 border-t-[1.5px] border-ink/35" />
       {actions && <div className="ml-auto flex items-center gap-2">{actions}</div>}
     </div>
   )

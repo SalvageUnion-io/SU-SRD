@@ -45,8 +45,37 @@ type IdentityFieldProps = {
   className?: string
 }
 
-const VALUE_BOX_CLASS =
-  'flex min-h-[38px] items-center rounded-[6px] border-[1.5px] bg-paper px-3 py-1.5 font-body text-sm text-ink'
+const READ_VALUE_BOX_CLASS =
+  'flex min-h-[44px] items-center rounded-[8px] border-2 bg-paper px-3 py-2 font-body text-sm text-ink'
+
+/**
+ * Editing state (`.ifield`, clean-edit.html:429-450): solid 2px tone-deep
+ * border, WHITE (not paper) background, room on the right for the pinned pen
+ * icon.
+ */
+const EDIT_VALUE_BOX_CLASS =
+  'relative flex min-h-[44px] items-center rounded-[8px] border-2 border-[color:var(--tone-deep,var(--color-ink))] bg-white px-3 py-2 pr-9 font-body text-sm text-ink'
+
+/** Pen icon pinned right inside an editing `.ifield` box (design-spec `.ifield .pen`). */
+function PenIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="m16.5 3.5 4 4L7 21H3v-4z" />
+    </svg>
+  )
+}
+
+const PEN_CLASS =
+  'pointer-events-none absolute right-[10px] top-1/2 h-[15px] w-[15px] -translate-y-1/2 text-ink/55'
 
 export function IdentityField({
   label,
@@ -73,20 +102,18 @@ export function IdentityField({
         aria-label={`Change ${fieldLabel.toLowerCase()}`}
         onClick={onEditClick}
         className={cn(
-          VALUE_BOX_CLASS,
+          EDIT_VALUE_BOX_CLASS,
           EDIT_CUE_CLASS,
-          'w-full cursor-pointer justify-between gap-2 border-ink text-left hover:bg-wk-bg-2'
+          'w-full cursor-pointer text-left hover:bg-wk-bg-2'
         )}
       >
         <span className="min-w-0 flex-1 truncate">{value || placeholder}</span>
-        <span aria-hidden="true" className="shrink-0 font-cond text-label uppercase text-wk-muted">
-          Change
-        </span>
+        <PenIcon className={PEN_CLASS} />
       </button>
     )
   } else if (isEditable && onSave) {
     valueNode = (
-      <span className={cn(VALUE_BOX_CLASS, EDIT_CUE_CLASS, 'border-ink')}>
+      <span className={cn(EDIT_VALUE_BOX_CLASS, EDIT_CUE_CLASS)}>
         {multiline ? (
           <span className="w-full min-w-0">
             <InlineEditTextArea
@@ -105,12 +132,13 @@ export function IdentityField({
             onSave={(next) => onSave(String(next))}
           />
         )}
+        <PenIcon className={PEN_CLASS} />
       </span>
     )
   } else {
     valueNode = (
       <span
-        className={cn(VALUE_BOX_CLASS, !value && 'text-wk-muted')}
+        className={cn(READ_VALUE_BOX_CLASS, !value && 'text-wk-muted')}
         style={{
           borderColor: 'color-mix(in oklch, var(--tone-deep, var(--color-ink)) 50%, transparent)',
         }}

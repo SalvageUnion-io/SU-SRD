@@ -447,7 +447,11 @@ function TradeDialog({ crawler, store, roll, onClose }: DialogProps & { roll: Ro
         {gate.operational && (
           <>
             <div>
-              <Slab label="Trade Scrap" count="fixed equal-value rates · no bartering" />
+              <Slab
+                variant="solid"
+                label="Trade Scrap"
+                count="fixed equal-value rates · no bartering"
+              />
               <div className="flex flex-wrap items-end gap-3">
                 <label className="flex flex-col gap-1 font-cond text-label font-bold uppercase tracking-caps text-ink">
                   From
@@ -529,6 +533,7 @@ function TradeDialog({ crawler, store, roll, onClose }: DialogProps & { roll: Ro
 
             <div>
               <Slab
+                variant="solid"
                 label="Source Wares"
                 count={`once per Downtime · wares are Tech ${tradingSourceTl(tl)}`}
               />

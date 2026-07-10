@@ -33,17 +33,25 @@ type ConditionsEditorProps = {
 
 /**
  * Conditions that carry a warn/severity tone in the design (amber "Exposed").
- * Compared case-insensitively. Anything not listed gets the neutral chip.
+ * Compared case-insensitively. Anything not listed gets the neutral ink-fill
+ * chip (poster `.cond.on`).
  */
 const WARN_CONDITIONS = new Set(['exposed'])
 
+/** Fill/border/text classes for a PRESENT (`.cond.on`) condition chip. */
 function chipToneClasses(condition: string): string {
   if (WARN_CONDITIONS.has(condition.trim().toLowerCase())) {
-    return 'bg-su-sickly-yellow text-ink'
+    return 'border-su-sickly-yellow bg-su-sickly-yellow text-ink'
   }
-  // text-su-ink-soft (not wk-muted) on blue-pale: wk-muted is ~3.96:1 here,
-  // below WCAG AA 4.5:1 for this 11px chip text; su-ink-soft is ~9.2:1.
-  return 'bg-su-blue-pale text-su-ink-soft'
+  return 'border-ink bg-ink text-su-white'
+}
+
+/** The chip's leading dot (poster `.cond .dot` — accent-filled when ON). */
+function chipDotClasses(condition: string): string {
+  if (WARN_CONDITIONS.has(condition.trim().toLowerCase())) {
+    return 'border-ink bg-ink'
+  }
+  return 'border-[color:var(--tone,var(--color-su-orange))] bg-[var(--tone,var(--color-su-orange))]'
 }
 
 // ---------------------------------------------------------------------------
@@ -90,8 +98,12 @@ export function ConditionsEditor({
     await onChange(conditions.filter((_, i) => i !== index))
   }
 
+  // Poster `.cond` chip shape: 2px border, rounded-[2px], min-h-8, a leading
+  // dot, cond-caps text. Present conditions always render the `.cond.on`
+  // fill (ink or warn-tone) + accent/ink dot; the "+ Add" affordance below
+  // uses the unset shape (solid ink-35 border, no dashed rule).
   const chipBase =
-    'inline-flex items-center gap-1 rounded-[2px] px-2 py-0.5 font-cond text-badge font-semibold uppercase tracking-wider'
+    'inline-flex min-h-8 items-center gap-1.5 rounded-[2px] border-2 px-2.5 py-1.5 font-cond text-[10.5px] font-bold uppercase leading-none tracking-caps'
 
   return (
     <div className="flex min-h-12 flex-wrap items-center gap-1.5 rounded border-chrome border-ink bg-su-paper p-2.5">
@@ -103,11 +115,25 @@ export function ConditionsEditor({
         readOnly ? (
           // biome-ignore lint/suspicious/noArrayIndexKey: conditions are free-form strings that may repeat; value+index is the most stable key available and chips hold no state
           <span key={`${condition}-${index}`} className={cn(chipBase, chipToneClasses(condition))}>
+            <span
+              aria-hidden="true"
+              className={cn(
+                'h-[9px] w-[9px] shrink-0 rounded-full border-2',
+                chipDotClasses(condition)
+              )}
+            />
             {condition}
           </span>
         ) : (
           // biome-ignore lint/suspicious/noArrayIndexKey: conditions are free-form strings that may repeat; value+index is the most stable key available and chips hold no state
           <span key={`${condition}-${index}`} className={cn(chipBase, chipToneClasses(condition))}>
+            <span
+              aria-hidden="true"
+              className={cn(
+                'h-[9px] w-[9px] shrink-0 rounded-full border-2',
+                chipDotClasses(condition)
+              )}
+            />
             {condition}
             <button
               type="button"
@@ -115,7 +141,7 @@ export function ConditionsEditor({
               onClick={() => {
                 void removeAt(index)
               }}
-              className="inline-flex h-3.5 w-3.5 items-center justify-center rounded-[1px] leading-none hover:bg-ink/10"
+              className="inline-flex h-3.5 w-3.5 items-center justify-center rounded-[1px] leading-none hover:bg-white/20"
             >
               <span aria-hidden className="text-[12px]">
                 ×
@@ -154,7 +180,7 @@ export function ConditionsEditor({
             onClick={startAdd}
             className={cn(
               chipBase,
-              'border border-dashed border-ink/40 bg-transparent text-wk-muted hover:border-ink hover:text-ink'
+              'border-ink/35 bg-paper text-ink/55 hover:border-ink hover:text-ink'
             )}
           >
             + Add

@@ -496,8 +496,11 @@ export function MechSheet({
                 readOnly={readOnly}
               />
             </div>
-            <div className="mt-[14px] flex w-full flex-col gap-1 border-t border-dashed border-[color-mix(in_srgb,var(--tone-deep)_40%,transparent)] pt-[14px]">
-              <span className="font-cond text-label font-bold uppercase tracking-caps text-ink">
+            <div className="mt-[14px] flex w-full flex-col gap-2 border-t border-dashed border-[color-mix(in_srgb,var(--tone-deep)_40%,transparent)] pt-[14px]">
+              <span
+                className="font-cond text-label font-bold uppercase tracking-caps"
+                style={{ color: 'var(--tone-deep, var(--color-ink))' }}
+              >
                 Conditions
               </span>
               <MechConditionsEditor mech={mech} store={store} readOnly={readOnly} />

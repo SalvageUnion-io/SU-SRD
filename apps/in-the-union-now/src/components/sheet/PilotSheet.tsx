@@ -34,7 +34,7 @@
 
 import { useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
-import { Panel, StatBlock, ValueDisplay, VitalGauge } from 'suref-react'
+import { Panel, StepBtn, ValueDisplay, VitalGauge } from 'suref-react'
 
 import type { ItemCondition } from '../../lib/schemas/mech'
 import type { GenericInventoryEntry, Pilot } from '../../lib/schemas/pilot'
@@ -60,6 +60,54 @@ import {
   PilotEquipmentItem,
   resolveAbility,
 } from './PilotSheetItems'
+
+// ---------------------------------------------------------------------------
+// TpBlock — pilot Training Points as the poster's bordered `.tpblock` (G9:
+// stamp / 30px numeral / caption), in the Vitals card's dashed-topped `.vrow`
+// beside Conditions. Keeps the StatBlock unbounded-counter accessible
+// contract it replaces — role="group" aria-label "TP {value}" and
+// Increase/Decrease TP steppers — so existing tests keep passing.
+// ---------------------------------------------------------------------------
+
+function TpBlock({
+  value,
+  onChange,
+  editable,
+}: {
+  value: number
+  onChange?: (next: number) => void
+  editable: boolean
+}) {
+  return (
+    <div
+      role="group"
+      aria-label={`TP ${value}`}
+      className="flex shrink-0 flex-col items-center gap-1 rounded-[3px] border-2 border-ink bg-paper px-3.5 py-2 text-center"
+    >
+      <span className="box-decoration-clone inline bg-ink px-[0.5em] pb-[0.16em] pt-[0.1em] font-cond text-[11px] font-bold uppercase leading-[1.5] tracking-[0.1em] text-su-white">
+        TP
+      </span>
+      <span className="flex items-center gap-1.5">
+        {editable && (
+          <StepBtn aria-label="Decrease TP" onClick={() => onChange?.(Math.max(0, value - 1))}>
+            &ndash;
+          </StepBtn>
+        )}
+        <span className="min-w-[1.4em] font-body text-[30px] font-bold leading-[1.05] tabular-nums text-ink">
+          {value}
+        </span>
+        {editable && (
+          <StepBtn aria-label="Increase TP" onClick={() => onChange?.(value + 1)}>
+            +
+          </StepBtn>
+        )}
+      </span>
+      <span className="font-cond text-[8px] font-semibold uppercase leading-none tracking-[0.16em] text-ink/55">
+        Training Points
+      </span>
+    </div>
+  )
+}
 
 // ---------------------------------------------------------------------------
 // PilotSheet
@@ -296,16 +344,16 @@ export function PilotSheet({
               />
             </div>
             <div className="mt-[14px] flex flex-wrap gap-4 border-t border-dashed border-[color-mix(in_srgb,var(--tone-deep)_40%,transparent)] pt-[14px]">
-              <StatBlock
-                code="TP"
-                name="Training"
-                unit="Points"
+              <TpBlock
                 value={tp}
                 onChange={readOnly ? undefined : (v) => patchPilot({ trainingPoints: v })}
                 editable={!readOnly}
               />
-              <div className="w-full min-w-0 flex-1 sm:max-w-[360px]">
-                <span className="mb-1 block font-cond text-label font-bold uppercase leading-none tracking-caps text-ink">
+              <div className="w-full min-w-0 flex-1">
+                <span
+                  className="mb-2 block font-cond text-label font-bold uppercase leading-none tracking-caps"
+                  style={{ color: 'var(--tone-deep, var(--color-ink))' }}
+                >
                   Conditions
                 </span>
                 <ConditionsEditor
