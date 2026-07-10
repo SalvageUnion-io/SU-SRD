@@ -39,7 +39,6 @@ type SheetCrawlerProps = SheetViewCommonProps & { crawler: Crawler }
 export function SheetCrawler({
   crawler,
   composition,
-  wired,
   back,
   actions,
   segments,
@@ -212,7 +211,6 @@ export function SheetCrawler({
         strip={strip}
         back={back}
         pill={{ label: 'Crawler', tone: 'crawler' }}
-        wired={wired}
         segments={segments}
         actions={actions}
         fab={editable ? <QuickRollFab /> : undefined}

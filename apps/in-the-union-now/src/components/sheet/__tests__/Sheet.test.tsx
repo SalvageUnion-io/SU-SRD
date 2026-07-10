@@ -150,18 +150,6 @@ describe('Sheet — pilot-only (no links)', () => {
     expect(screen.getAllByText(/Yara Voss/).length).toBeGreaterThan(0)
   })
 
-  test('wired toggle reads Offline (no links)', () => {
-    render(
-      <Sheet
-        kind="pilot"
-        id="pilot-1"
-        entityStore={makeEntityStore([fakePilot])}
-        softLinkStore={makeSoftLinkStore([])}
-      />
-    )
-    expect(screen.getByRole('switch', { name: /offline/i })).toBeTruthy()
-  })
-
   test('no stand-in rendered (pilot-only)', () => {
     render(
       <Sheet
@@ -193,18 +181,6 @@ describe('Sheet — mech-only (no links)', () => {
     expect(screen.getAllByText('Iron Fist').length).toBeGreaterThan(0)
   })
 
-  test('wired toggle reads Offline (no links)', () => {
-    render(
-      <Sheet
-        kind="mech"
-        id="mech-1"
-        entityStore={makeEntityStore([fakeMech])}
-        softLinkStore={makeSoftLinkStore([])}
-      />
-    )
-    expect(screen.getByRole('switch', { name: /offline/i })).toBeTruthy()
-  })
-
   test('pilot RailEmpty appears in the "assigned pilot" slot', () => {
     render(
       <Sheet
@@ -234,18 +210,6 @@ describe('Sheet — crawler-only (no links)', () => {
     )
     // Name appears in the hero chip and condensed strip — use getAllByText
     expect(screen.getAllByText('Iron Tortoise').length).toBeGreaterThan(0)
-  })
-
-  test('wired toggle reads Offline (no links)', () => {
-    render(
-      <Sheet
-        kind="crawler"
-        id="crawler-1"
-        entityStore={makeEntityStore([fakeCrawler])}
-        softLinkStore={makeSoftLinkStore([])}
-      />
-    )
-    expect(screen.getByRole('switch', { name: /offline/i })).toBeTruthy()
   })
 
   test('lead-pilot RailEmpty appears when no pilots wired', () => {
@@ -281,18 +245,6 @@ describe('Sheet — wired (mech WITH pilot link)', () => {
     expect(screen.getAllByText(/Yara Voss/).length).toBeGreaterThan(0)
     // Mech name — in the hero chip and condensed strip
     expect(screen.getAllByText('Iron Fist').length).toBeGreaterThan(0)
-  })
-
-  test('wired toggle reads Wired', () => {
-    render(
-      <Sheet
-        kind="mech"
-        id="mech-1"
-        entityStore={makeEntityStore([fakeMech, fakePilot])}
-        softLinkStore={makeSoftLinkStore([mechToPilotLink])}
-      />
-    )
-    expect(screen.getByRole('switch', { name: /wired/i })).toBeTruthy()
   })
 
   test('pilot RailEmpty NOT rendered when pilot is wired', () => {

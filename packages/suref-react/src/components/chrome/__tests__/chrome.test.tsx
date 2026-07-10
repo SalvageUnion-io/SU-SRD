@@ -6,7 +6,6 @@ import { Panel, Row, Empty } from '../Panel'
 import { Slab } from '../Slab'
 import { MChip, Spec } from '../MChip'
 import { Conditions, ConditionChip } from '../Conditions'
-import { WiredToggle } from '../WiredToggle'
 import { StepBtn, MiniBtn } from '../SmallButtons'
 import { TreeSep } from '../TreeSep'
 import { StatusBadge } from '../StatusBadge'
@@ -127,23 +126,6 @@ describe('Conditions', () => {
     cleanup()
     const { container: active } = render(<ConditionChip label="Burning" />)
     expect(active.firstElementChild?.className).toContain('bg-status-warn')
-  })
-})
-
-describe('WiredToggle', () => {
-  test('is a switch reflecting wired state and toggling', () => {
-    const onToggle = mock((w: boolean) => w)
-    render(<WiredToggle wired onToggle={onToggle} />)
-    const sw = screen.getByRole('switch')
-    expect(sw.getAttribute('aria-checked')).toBe('true')
-    expect(screen.getByText('Wired')).toBeTruthy()
-    fireEvent.click(sw)
-    expect(onToggle).toHaveBeenLastCalledWith(false)
-  })
-
-  test('offline state reads OFFLINE', () => {
-    render(<WiredToggle wired={false} />)
-    expect(screen.getByText('Offline')).toBeTruthy()
   })
 })
 

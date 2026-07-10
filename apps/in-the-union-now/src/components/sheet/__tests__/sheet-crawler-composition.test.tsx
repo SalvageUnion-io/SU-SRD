@@ -173,18 +173,6 @@ describe('Sheet — pilot+crawler wired composition (no mech)', () => {
     expect(screen.getAllByText(/The Hive/).length).toBeGreaterThan(0)
   })
 
-  test('wired toggle reads Wired', () => {
-    render(
-      <Sheet
-        kind="pilot"
-        id="pilot-comp-1"
-        entityStore={makeEntityStore([fakePilot, fakeCrawler])}
-        softLinkStore={makeSoftLinkStore([pilotToCrawlerLink])}
-      />
-    )
-    expect(screen.getByRole('switch', { name: /wired/i })).toBeTruthy()
-  })
-
   test('mech RailEmpty renders (no mech is wired)', () => {
     render(
       <Sheet
@@ -255,18 +243,6 @@ describe('Sheet — full wired (mech+pilot+crawler)', () => {
       />
     )
     expect(screen.getAllByText(/The Hive/).length).toBeGreaterThan(0)
-  })
-
-  test('wired toggle reads Wired', () => {
-    render(
-      <Sheet
-        kind="pilot"
-        id="pilot-comp-1"
-        entityStore={makeEntityStore([fakePilot, fakeMech, fakeCrawler])}
-        softLinkStore={makeSoftLinkStore([mechToPilotLink, pilotToCrawlerLink])}
-      />
-    )
-    expect(screen.getByRole('switch', { name: /wired/i })).toBeTruthy()
   })
 
   test('no stand-ins rendered (all three entities are wired)', () => {
@@ -340,18 +316,6 @@ describe('Sheet — crawler+pilots wired composition', () => {
       />
     )
     expect(screen.queryByText(/Hann Vex/)).toBeNull()
-  })
-
-  test('wired toggle reads Wired', () => {
-    render(
-      <Sheet
-        kind="crawler"
-        id="crawler-comp-1"
-        entityStore={makeEntityStore([fakeCrawler, fakePilot, fakePilot2])}
-        softLinkStore={makeSoftLinkStore([pilot1ToCrawlerLink, pilot2ToCrawlerLink])}
-      />
-    )
-    expect(screen.getByRole('switch', { name: /wired/i })).toBeTruthy()
   })
 
   test('lead-pilot RailEmpty not rendered when pilots are wired', () => {

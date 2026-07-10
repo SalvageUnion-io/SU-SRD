@@ -13,7 +13,7 @@
  */
 
 import { afterEach, beforeAll, describe, expect, test } from 'bun:test'
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, render } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 
 import { Sheet } from '../Sheet'
@@ -292,20 +292,5 @@ describe('Print markup — stat pip rows', () => {
     )
     const pips = container.querySelectorAll('[data-pip]')
     expect(pips.length).toBeGreaterThan(0)
-  })
-})
-
-describe('Print markup — wired toggle', () => {
-  test('wired/offline toggle renders as a switch (replaces the mode badge)', () => {
-    render(
-      <Sheet
-        kind="mech"
-        id="print-mech-1"
-        entityStore={makeEntityStore([fakeMech])}
-        softLinkStore={makeEmptySoftLinkStore()}
-      />
-    )
-    const toggle = screen.getByRole('switch', { name: /offline/i })
-    expect(toggle).toBeTruthy()
   })
 })

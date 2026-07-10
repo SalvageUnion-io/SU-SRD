@@ -14,9 +14,8 @@ import {
  *
  * Builds pilot + mech + crawler through the WizShell wizards, wires them via
  * the rail's Assign dialogs (mech-to-pilot, pilot-to-crawler), verifies the
- * wired shell (Wired toggle, RailChip navigation, top-bar Edit link), then
- * publishes a snapshot and opens the resulting share URL in the same
- * browser context.
+ * wired shell (RailChip navigation, top-bar Edit link), then publishes a
+ * snapshot and opens the resulting share URL in the same browser context.
  *
  * Notes:
  *  - The snapshot backend lives in Netlify Functions; in plain `vite dev`
@@ -33,12 +32,14 @@ test('wire pilot + mech + crawler on the live sheets and share a snapshot', asyn
 
   // --- Wire the pilot from the mech sheet's rail ---
   await openSheetFor(page, 'Iron Fist')
-  await expect(page.getByRole('switch', { name: /offline/i })).toBeVisible()
+  // Unwired mech sheet is loaded — the poster hero shows the mech name.
+  await expect(page.getByRole('heading', { name: 'Iron Fist' }).first()).toBeVisible()
   await assignPilotOnMechSheet(page, 'Mira Voss')
 
-  // Wiring flips the composition mode: the toggle now reads Wired and the
-  // mobile segment switch data exists (asserted at 390 in the segment spec).
-  await expect(page.getByRole('switch', { name: /^wired$/i })).toBeVisible()
+  // Wiring flips the composition mode: the assigned-pilot rail chip now links
+  // to the wired pilot's sheet (the mobile segment switch is asserted at 390
+  // in the segment spec).
+  await expect(page.getByRole('link', { name: /Assigned Pilot: Mira Voss/i })).toBeVisible()
 
   // --- RailChip navigates (TanStack Link, client-side) to the pilot sheet ---
   await page.getByRole('link', { name: /Assigned Pilot: Mira Voss/i }).click()
