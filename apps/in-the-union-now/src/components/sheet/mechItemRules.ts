@@ -16,19 +16,25 @@ import type {
 } from 'salvageunion-reference'
 
 import { scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
+import { resolveModuleRef, resolveSystemRef } from '../../lib/rules/resolveRefs'
 import type { ScrapPool } from '../../lib/schemas/crawler'
 import type { ItemCondition, Mech } from '../../lib/schemas/mech'
 
 export type MechItem = SURefSystem | SURefModule
 
+/**
+ * Installed system/module refs are stored as SLUGS (`escape-hatch`), so these
+ * delegate to the canonical slug-aware resolvers (ADR-006) rather than the old
+ * id/name-only match — which never matched a slug and rendered every installed
+ * item as "(unknown reference)" (notably every Starter Set mech). The canonical
+ * resolvers still tolerate legacy name/id refs.
+ */
 export function resolveSystem(slug: string): SURefSystem | null {
-  const all = SalvageUnionReference.Systems.all() as ReadonlyArray<SURefSystem>
-  return all.find((s) => s.id === slug || s.name === slug) ?? null
+  return resolveSystemRef(slug)
 }
 
 export function resolveModule(slug: string): SURefModule | null {
-  const all = SalvageUnionReference.Modules.all() as ReadonlyArray<SURefModule>
-  return all.find((m) => m.id === slug || m.name === slug) ?? null
+  return resolveModuleRef(slug)
 }
 
 /**
