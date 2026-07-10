@@ -33,6 +33,11 @@ const SEARCH_BOX =
 const BUY_BUTTON =
   'inline-flex shrink-0 items-center rounded-md border border-su-orange-dark bg-su-orange-dark px-4 py-1.5 font-cond text-[13px] font-medium uppercase tracking-[0.06em] text-su-white no-underline transition-colors'
 
+// Small "Alpha" pill — same rust treatment as HeaderShell's "Beta" badge,
+// sized down to sit inline beside the Encounter nav link.
+const ALPHA_TAG =
+  'ml-1.5 inline-block rounded bg-rust px-1 py-0.5 font-cond text-[10px] font-bold uppercase leading-none tracking-[0.08em] text-su-paper'
+
 type AppHeaderProps = {
   /** Opens the global reference search dialog (also bound to Cmd/Ctrl+K). */
   onSearchClick?: () => void
@@ -56,15 +61,8 @@ export function AppHeader({ onSearchClick }: AppHeaderProps) {
       <div className="ml-auto flex shrink-0 items-center gap-3 sm:gap-4 lg:gap-[26px]">
         <AppLink href="/encounter" className={`${NAV_LINK} hidden lg:inline-flex`}>
           Encounter
+          <span className={ALPHA_TAG}>Alpha</span>
         </AppLink>
-        <a
-          href="https://salvageunion.io"
-          target="_blank"
-          rel="noopener noreferrer"
-          className={`${NAV_LINK} hidden lg:inline-flex`}
-        >
-          SRD&nbsp;&#8599;
-        </a>
         <a
           href="https://salvageunion.io/discord/"
           target="_blank"
@@ -72,6 +70,14 @@ export function AppHeader({ onSearchClick }: AppHeaderProps) {
           className={`${NAV_LINK} hidden lg:inline-flex`}
         >
           Discord&nbsp;&#8599;
+        </a>
+        <a
+          href="https://salvageunion.io"
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`${NAV_LINK} hidden lg:inline-flex`}
+        >
+          SRD&nbsp;&#8599;
         </a>
         {onSearchClick && (
           <button
