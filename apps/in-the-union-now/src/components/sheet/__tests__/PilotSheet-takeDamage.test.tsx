@@ -18,6 +18,7 @@ import { PilotSheet } from '../PilotSheet'
 import type { Roll } from '../../../lib/rules/heatCheck'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import type { useEntityStore } from '../../../stores/entityStore'
+import { must } from '../../__tests__/must'
 
 beforeAll(async () => {
   await SalvageUnionReference.preload('all')
@@ -71,14 +72,9 @@ function makeStore(pilot: Pilot, captured: CapturedUpdate[]): typeof useEntitySt
     hydrated: { pilots: true, mechs: false, crawlers: false, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [current]),
-    get: mock(
-      (_type: string, id: string) => (id === current.id ? current : null)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ) as any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    create: mock(async () => pilot) as any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    update: updateMock as any,
+    get: mock((_type: string, id: string) => (id === current.id ? current : null)),
+    create: mock(async () => pilot),
+    update: updateMock,
     delete: mock(async () => {}),
   }
   return (() => storeState) as unknown as typeof useEntityStore
@@ -106,7 +102,7 @@ describe('PilotSheet — Take Damage intake', () => {
     await enterAndApply('2')
 
     expect(captured.length).toBe(1)
-    expect(captured[0]!.patch).toEqual({ currentHP: 8 })
+    expect(must(captured[0]).patch).toEqual({ currentHP: 8 })
   })
 
   test('SP-listed damage is doubled vs the pilot', async () => {
@@ -118,7 +114,7 @@ describe('PilotSheet — Take Damage intake', () => {
     await enterAndApply('3')
 
     // 3 × 2 = 6 → 10 - 6 = 4
-    expect(captured[0]!.patch).toEqual({ currentHP: 4 })
+    expect(must(captured[0]).patch).toEqual({ currentHP: 4 })
   })
 
   test('Vulnerable ×2 defaults on from the conditions list and clamps at 0', async () => {
@@ -132,7 +128,7 @@ describe('PilotSheet — Take Damage intake', () => {
     await enterAndApply('7')
 
     // 7 × 2 = 14 → clamps to 0
-    expect(captured[0]!.patch).toEqual({ currentHP: 0 })
+    expect(must(captured[0]).patch).toEqual({ currentHP: 0 })
   })
 })
 
@@ -149,7 +145,7 @@ describe('PilotSheet — Take Damage friction reducers (audit item 25)', () => {
     })
 
     expect(captured.length).toBe(1)
-    expect(captured[0]!.patch).toEqual({ currentHP: 8 })
+    expect(must(captured[0]).patch).toEqual({ currentHP: 8 })
   })
 
   test('applying damage offers an Undo toast that reverts the HP write', async () => {
@@ -163,7 +159,7 @@ describe('PilotSheet — Take Damage friction reducers (audit item 25)', () => {
     )
 
     await enterAndApply('2')
-    expect(captured[0]!.patch).toEqual({ currentHP: 8 })
+    expect(must(captured[0]).patch).toEqual({ currentHP: 8 })
 
     const undoBtn = await screen.findByRole('button', { name: /undo/i })
     await act(async () => {
@@ -171,7 +167,7 @@ describe('PilotSheet — Take Damage friction reducers (audit item 25)', () => {
     })
 
     expect(captured.length).toBe(2)
-    expect(captured[1]!.patch).toEqual({ currentHP: 10 })
+    expect(must(captured[1]).patch).toEqual({ currentHP: 10 })
   })
 })
 
@@ -185,7 +181,7 @@ describe('PilotSheet — Critical Injury roll (0 HP)', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Roll Critical Injury' }))
     })
 
-    const patch = captured[0]!.patch
+    const patch = must(captured[0]).patch
     expect(patch.lastCriticalInjury?.outcome).toBe('miraculous-survival')
     expect(patch.currentHP).toBe(1)
     expect(patch.conditions).toBeUndefined()
@@ -200,7 +196,7 @@ describe('PilotSheet — Critical Injury roll (0 HP)', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Roll Critical Injury' }))
     })
 
-    const patch = captured[0]!.patch
+    const patch = must(captured[0]).patch
     expect(patch.lastCriticalInjury?.outcome).toBe('unconscious')
     expect(patch.conditions).toEqual(['Unconscious'])
     expect(patch.currentHP).toBeUndefined()
@@ -217,14 +213,14 @@ describe('PilotSheet — Critical Injury roll (0 HP)', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Roll Critical Injury' }))
     })
 
-    expect(captured[0]!.patch.lastCriticalInjury?.outcome).toBe('minor-injury')
-    expect(captured[0]!.patch.conditions).toEqual(['Unconscious'])
+    expect(must(captured[0]).patch.lastCriticalInjury?.outcome).toBe('minor-injury')
+    expect(must(captured[0]).patch.conditions).toEqual(['Unconscious'])
 
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Accept minor injury' }))
     })
 
-    expect(captured[1]!.patch.injuries).toEqual([
+    expect(must(captured[1]).patch.injuries).toEqual([
       { severity: 'minor', note: 'Critical Injury (rolled 7)' },
     ])
   })
@@ -238,7 +234,7 @@ describe('PilotSheet — Critical Injury roll (0 HP)', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Roll Critical Injury' }))
     })
 
-    expect(captured[0]!.patch.lastCriticalInjury?.outcome).toBe('major-injury')
+    expect(must(captured[0]).patch.lastCriticalInjury?.outcome).toBe('major-injury')
     expect(screen.getByRole('button', { name: 'Accept major injury' })).toBeTruthy()
 
     await act(async () => {
@@ -259,7 +255,7 @@ describe('PilotSheet — Critical Injury roll (0 HP)', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Roll Critical Injury' }))
     })
 
-    const patch = captured[0]!.patch
+    const patch = must(captured[0]).patch
     expect(patch.lastCriticalInjury?.outcome).toBe('fatal')
     expect(patch.currentHP).toBeUndefined()
     expect(patch.conditions).toBeUndefined()

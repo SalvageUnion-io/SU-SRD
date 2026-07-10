@@ -59,8 +59,7 @@ export function deriveContentBlocks<T extends ContentBlock>(options: {
   if (
     !hideContent &&
     !entityHasChoices &&
-    matchingAction &&
-    matchingAction.content &&
+    matchingAction?.content &&
     matchingAction.content.length > 0
   ) {
     contentBlocks = matchingAction.content as T[]

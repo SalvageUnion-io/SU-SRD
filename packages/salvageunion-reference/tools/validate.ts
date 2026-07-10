@@ -209,7 +209,7 @@ const CHECKS: CheckDefinition[] = [
 ]
 
 function printReport(diagnostics: Diagnostic[]): void {
-  console.log('\n' + '='.repeat(80))
+  console.log(`\n${'='.repeat(80)}`)
 
   if (diagnostics.length === 0) {
     console.log('✅ All validations passed!')

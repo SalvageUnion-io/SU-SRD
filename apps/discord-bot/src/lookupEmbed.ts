@@ -193,20 +193,19 @@ function renderTraits(traits: unknown): string {
 /** One-line stat summary for an action (range / damage / cost / type). */
 function actionStatLine(action: AnyRecord): string {
   const parts: string[] = []
-  if (Array.isArray(action['range']) && action['range'].length) {
-    parts.push(`**Range:** ${(action['range'] as string[]).join('/')}`)
+  if (Array.isArray(action.range) && action.range.length) {
+    parts.push(`**Range:** ${(action.range as string[]).join('/')}`)
   }
-  const dmg = action['damage'] as Damage | undefined
+  const dmg = action.damage as Damage | undefined
   if (dmg && typeof dmg.amount === 'number') {
     parts.push(`**Damage:** ${dmg.amount}${dmg.damageType ? ` ${dmg.damageType}` : ''}`)
   }
-  if (typeof action['activationCost'] === 'number') {
-    const cur =
-      typeof action['activationCurrency'] === 'string' ? ` ${action['activationCurrency']}` : ''
-    parts.push(`**Cost:** ${action['activationCost']}${cur}`)
+  if (typeof action.activationCost === 'number') {
+    const cur = typeof action.activationCurrency === 'string' ? ` ${action.activationCurrency}` : ''
+    parts.push(`**Cost:** ${action.activationCost}${cur}`)
   }
-  if (typeof action['actionType'] === 'string' && action['actionType'] !== 'Passive') {
-    parts.push(`**${action['actionType']}**`)
+  if (typeof action.actionType === 'string' && action.actionType !== 'Passive') {
+    parts.push(`**${action.actionType}**`)
   }
   return parts.join(' • ')
 }
@@ -215,33 +214,33 @@ function actionStatLine(action: AnyRecord): string {
  *  redundant title when the action shares the entity's name. */
 function renderAction(action: SURefMetaAction, ownName: string, chassisName?: string): string {
   const a = action as unknown as AnyRecord
-  const title = (a['displayName'] as string) || (a['name'] as string) || ''
+  const title = (a.displayName as string) || (a.name as string) || ''
   const lines: string[] = []
   if (title && title !== ownName) lines.push(`__${escapeLabel(title)}__`)
 
   const stat = actionStatLine(a)
   if (stat) lines.push(stat)
 
-  const body = flattenContent(a['content'] as ContentBlock[] | undefined, chassisName)
+  const body = flattenContent(a.content as ContentBlock[] | undefined, chassisName)
   if (body) lines.push(body)
 
-  const traits = renderTraits(a['traits'])
+  const traits = renderTraits(a.traits)
   if (traits) lines.push(`**Traits:** ${traits}`)
 
-  if (typeof a['tableName'] === 'string' && a['tableName']) {
-    lines.push(`**Rolls on:** ${entityLink('roll-tables', a['tableName'] as string)}`)
+  if (typeof a.tableName === 'string' && a.tableName) {
+    lines.push(`**Rolls on:** ${entityLink('roll-tables', a.tableName as string)}`)
   }
-  if (typeof a['drone'] === 'string' && a['drone']) {
-    lines.push(`**Deploys:** ${entityLink('drones', a['drone'] as string)}`)
+  if (typeof a.drone === 'string' && a.drone) {
+    lines.push(`**Deploys:** ${entityLink('drones', a.drone as string)}`)
   }
-  const choices = a['choices']
+  const choices = a.choices
   if (Array.isArray(choices)) {
     for (const c of choices as AnyRecord[]) {
-      const cname = typeof c['name'] === 'string' ? c['name'] : 'Choice'
-      const cbody = flattenContent(c['content'] as ContentBlock[] | undefined, chassisName)
+      const cname = typeof c.name === 'string' ? c.name : 'Choice'
+      const cbody = flattenContent(c.content as ContentBlock[] | undefined, chassisName)
       const table =
-        typeof c['rollTable'] === 'string' && c['rollTable']
-          ? ` (${entityLink('roll-tables', c['rollTable'] as string)})`
+        typeof c.rollTable === 'string' && c.rollTable
+          ? ` (${entityLink('roll-tables', c.rollTable as string)})`
           : ''
       lines.push(`**Choice — ${escapeLabel(cname)}:**${table}${cbody ? ` ${cbody}` : ''}`)
     }
@@ -269,20 +268,20 @@ function chassisSections(entity: AnyRecord): { fields: LookupEmbed['fields']; pa
   const push = (name: string, value: unknown) => {
     if (typeof value === 'number') fields.push({ name, value: String(value), inline: true })
   }
-  push('Structure', entity['structurePoints'])
-  push('Energy', entity['energyPoints'])
-  push('Heat Cap', entity['heatCapacity'])
-  push('Cargo Cap', entity['cargoCapacity'])
-  push('System Slots', entity['systemSlots'])
-  push('Module Slots', entity['moduleSlots'])
+  push('Structure', entity.structurePoints)
+  push('Energy', entity.energyPoints)
+  push('Heat Cap', entity.heatCapacity)
+  push('Cargo Cap', entity.cargoCapacity)
+  push('System Slots', entity.systemSlots)
+  push('Module Slots', entity.moduleSlots)
 
   let patterns = ''
-  if (Array.isArray(entity['patterns']) && entity['patterns'].length) {
-    const rows = (entity['patterns'] as AnyRecord[]).map((p) => {
-      const name = typeof p['name'] === 'string' ? escapeLabel(p['name']) : 'Pattern'
-      const systems = Array.isArray(p['systems']) ? (p['systems'] as AnyRecord[]).length : 0
-      const modules = Array.isArray(p['modules']) ? (p['modules'] as AnyRecord[]).length : 0
-      const legal = p['legalStarting'] ? ' ✅' : ''
+  if (Array.isArray(entity.patterns) && entity.patterns.length) {
+    const rows = (entity.patterns as AnyRecord[]).map((p) => {
+      const name = typeof p.name === 'string' ? escapeLabel(p.name) : 'Pattern'
+      const systems = Array.isArray(p.systems) ? (p.systems as AnyRecord[]).length : 0
+      const modules = Array.isArray(p.modules) ? (p.modules as AnyRecord[]).length : 0
+      const legal = p.legalStarting ? ' ✅' : ''
       return `• **${name}**${legal} — ${systems} systems, ${modules} modules`
     })
     patterns = `**Patterns**\n${rows.join('\n')}`
@@ -292,7 +291,7 @@ function chassisSections(entity: AnyRecord): { fields: LookupEmbed['fields']; pa
 
 function footerFor(entity: AnyRecord): string {
   const parts: string[] = []
-  if (typeof entity['source'] === 'string') parts.push(entity['source'])
+  if (typeof entity.source === 'string') parts.push(entity.source)
   const page = getPageReference(entity as unknown as SURefEntity)
   if (typeof page === 'number') parts.push(`p.${page}`)
   parts.push('Salvage Union Reference')
@@ -375,7 +374,7 @@ function rollTableSections(
   fields: LookupEmbed['fields']
 ): void {
   const hint = `Roll it with \`/su roll table: ${name}\`.`
-  if (table['type'] === 'columns') {
+  if (table.type === 'columns') {
     sections.push(`${hint} Two rolls: first the column, then the entry (1-20).`)
     for (const columnKey of Object.keys(table).filter((key) => key !== 'type')) {
       const column = table[columnKey] as AnyRecord
@@ -404,21 +403,21 @@ export function buildLookupEmbed(
   schemaName: SURefEnumSchemaName
 ): LookupEmbed {
   const e = entity as unknown as AnyRecord
-  const name = typeof e['name'] === 'string' ? (e['name'] as string) : entity.id
+  const name = typeof e.name === 'string' ? (e.name as string) : entity.id
   const displayType = (SchemaToDisplayName as Record<string, string>)[schemaName] ?? schemaName
 
   const fields: LookupEmbed['fields'] = [{ name: 'Type', value: displayType, inline: true }]
   const sections: string[] = []
 
   // Lead description: an entity's own `description`, then its content blocks.
-  if (typeof e['description'] === 'string' && e['description']) {
-    sections.push(linkifyTraitRefs(e['description'] as string))
+  if (typeof e.description === 'string' && e.description) {
+    sections.push(linkifyTraitRefs(e.description as string))
   }
   // Chassis ability/flavor text carries [(CHASSIS)] placeholders — replace
   // with the chassis name, as the web does. Non-chassis entities have no
   // chassis context, so the token is left as-is (also matching the web).
   const chassisName = schemaName === 'chassis' ? name : undefined
-  const ownContent = flattenContent(e['content'] as ContentBlock[] | undefined, chassisName)
+  const ownContent = flattenContent(e.content as ContentBlock[] | undefined, chassisName)
   if (ownContent) sections.push(ownContent)
 
   if (schemaName === 'chassis') {
@@ -433,7 +432,7 @@ export function buildLookupEmbed(
     }
     if (patterns) sections.push(patterns)
   } else if (schemaName === 'roll-tables') {
-    const table = e['table']
+    const table = e.table
     if (table && typeof table === 'object') {
       rollTableSections(table as AnyRecord, name, sections, fields)
     }

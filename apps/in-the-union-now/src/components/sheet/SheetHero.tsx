@@ -30,10 +30,21 @@ type SheetHeroProps = {
   identity?: HeroIdentityLine[]
   /** ChassisStats spec strip (sm StatBlocks for static capacities). */
   specs?: ReactNode
-  /** lg StatBlock tracker cluster (right column). */
+  /** lg StatBlock tracker cluster (rendered inside the VITALS region). */
   trackers?: ReactNode
   /** Extra inset under the trackers (e.g. Conditions). */
   inset?: ReactNode
+  /**
+   * Poster TOP REGION, left: the sheet's labeled IDENTITY block (IdentityField
+   * grid with its own per-section Edit button). Slot-based — each sheet
+   * supplies its own fields (redesign Task A.1).
+   */
+  identityBlock?: ReactNode
+  /**
+   * Poster TOP REGION, right: extra VITALS content beyond `trackers`
+   * (e.g. a labeled gauge cluster). Rendered between trackers and inset.
+   */
+  vitals?: ReactNode
   /** Linked-entity rail strip — rendered inside the frame, under the band. */
   rail?: ReactNode
   /** Forwarded to the hero root for the shell's condense observer. */
@@ -49,11 +60,15 @@ export function SheetHero({
   specs,
   trackers,
   inset,
+  identityBlock,
+  vitals,
   rail,
   heroRef,
   className,
 }: SheetHeroProps) {
   const identityLines = identity.filter((line) => line.value.trim().length > 0)
+  const hasIdentityRegion = Boolean(specs || identityLines.length > 0 || identityBlock)
+  const hasVitalsRegion = Boolean(trackers || vitals || inset)
 
   return (
     <section
@@ -67,37 +82,57 @@ export function SheetHero({
         {cat}
       </span>
 
-      {/* Band: identity column vs tracker cluster */}
-      <div className="flex flex-wrap gap-x-[22px] gap-y-[18px] px-4 pb-[15px] pt-6 sm:px-5">
-        <div className="min-w-0 flex-[1_1_300px]">
+      {/* Band — poster top region: name row, then IDENTITY (left) vs VITALS
+          (right). Collapses to a single-column stack on mobile in the poster's
+          reading order (identity → vitals). */}
+      <div className="flex flex-col gap-[18px] px-4 pb-[15px] pt-6 sm:px-5">
+        <div className="min-w-0">
           <h1 className="m-0 inline bg-ink box-decoration-clone px-2 font-cond text-[26px] font-bold uppercase leading-[1.28] text-su-white sm:text-[31px]">
             {name}
           </h1>
           {meta && <div className="mt-2.5 flex flex-wrap items-center gap-1.5">{meta}</div>}
-          {specs && <div className="mt-3 flex flex-wrap items-center gap-2">{specs}</div>}
-          {identityLines.length > 0 && (
-            <dl className="mt-3 space-y-1">
-              {identityLines.map((line) => (
-                <div key={line.label} className="flex items-baseline gap-1.5">
-                  <dt className="shrink-0 font-cond text-label font-bold uppercase leading-none tracking-caps text-ink">
-                    {line.label}
-                  </dt>
-                  <dd
-                    className="m-0 min-w-0 font-body text-xs leading-snug"
-                    style={{ color: 'var(--tone-deep)' }}
-                  >
-                    {line.value}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-          )}
         </div>
 
-        {(trackers || inset) && (
-          <div className="flex flex-col items-end gap-2.5 sm:ml-auto">
-            {trackers && <div className="flex flex-wrap justify-end gap-2">{trackers}</div>}
-            {inset}
+        {(hasIdentityRegion || hasVitalsRegion) && (
+          <div
+            className={cn(
+              'grid grid-cols-1 gap-[18px]',
+              hasIdentityRegion &&
+                hasVitalsRegion &&
+                'lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:gap-[22px]'
+            )}
+          >
+            {hasIdentityRegion && (
+              <div className="flex min-w-0 flex-col gap-3">
+                {specs && <div className="flex flex-wrap items-center gap-2">{specs}</div>}
+                {identityLines.length > 0 && (
+                  <dl className="m-0 space-y-1">
+                    {identityLines.map((line) => (
+                      <div key={line.label} className="flex items-baseline gap-1.5">
+                        <dt className="shrink-0 font-cond text-label font-bold uppercase leading-none tracking-caps text-ink">
+                          {line.label}
+                        </dt>
+                        <dd
+                          className="m-0 min-w-0 font-body text-xs leading-snug"
+                          style={{ color: 'var(--tone-deep)' }}
+                        >
+                          {line.value}
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+                )}
+                {identityBlock}
+              </div>
+            )}
+
+            {hasVitalsRegion && (
+              <div className="flex min-w-0 flex-col gap-2.5 lg:items-end">
+                {trackers && <div className="flex flex-wrap gap-2 lg:justify-end">{trackers}</div>}
+                {vitals}
+                {inset}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -152,6 +187,7 @@ export function ChassisStats({ items, className }: ChassisStatsProps) {
       {items.map((item) => {
         const block = (
           <StatBlock
+            key={item.code}
             code={item.code}
             name={item.name}
             unit={item.unit}

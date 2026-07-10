@@ -129,6 +129,7 @@ export function StatBlock({
     : []
 
   return (
+    // biome-ignore lint/a11y/useSemanticElements: a <fieldset> would break the inline-flex stat-block chrome; role="group" carries the same semantics
     <div
       role="group"
       aria-label={
@@ -215,10 +216,12 @@ export function StatBlock({
         <div className="flex flex-col items-center gap-1 px-2.5 pb-2">
           {statBlockRowStarts(states.length).map(({ count, start }, r) => {
             return (
+              // biome-ignore lint/suspicious/noArrayIndexKey: pip rows are positional — the row index IS their identity
               <div key={r} className="flex justify-center gap-1">
                 {Array.from({ length: count }).map((_, c) => {
                   const i = start + c
-                  const state = states[i]!
+                  const state = states[i]
+                  if (!state) return null
                   const title = `Bay ${i + 1} · ${state}`
                   const pipClass = cn(pipBox, 'cursor-default', TALLY_SWATCH[state])
                   return onBay ? (
@@ -245,8 +248,9 @@ export function StatBlock({
             role="img"
             aria-label={`${value} of ${max}${isOver ? ' — over capacity' : ''}`}
           >
-            {statBlockRowStarts(Math.max(max!, value)).map(({ count, start }, r) => {
+            {statBlockRowStarts(Math.max(max ?? 0, value)).map(({ count, start }, r) => {
               return (
+                // biome-ignore lint/suspicious/noArrayIndexKey: pip rows are positional — the row index IS their identity
                 <div key={r} className="flex justify-center gap-1">
                   {Array.from({ length: count }).map((_, c) => {
                     const i = start + c
@@ -254,7 +258,7 @@ export function StatBlock({
                     // Lit pips past the cap (over-capacity) or past the ~70%
                     // heat danger line (U-1) escalate to status-bad red.
                     const fill =
-                      on && (i >= max! || i >= heatDanger)
+                      on && (i >= (max ?? Infinity) || i >= heatDanger)
                         ? 'border-status-bad bg-status-bad'
                         : pipFill
                     const pipClass = cn(pipBox, on ? fill : 'border-ink bg-transparent')

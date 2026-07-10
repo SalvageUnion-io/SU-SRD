@@ -351,7 +351,7 @@ describe('salvage read path', () => {
 
       const raw = await db.get(STORE_NAMES.pilots, 'pilot-heal')
       expect('fieldFromTheFuture' in (raw as Record<string, unknown>)).toBe(false)
-      expect((raw as Record<string, unknown>)['motto']).toBe('Healed.')
+      expect((raw as Record<string, unknown>).motto).toBe('Healed.')
     } finally {
       db.close()
     }

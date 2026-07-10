@@ -388,7 +388,9 @@ body {
 @media print {
   body,
   main {
+    /* biome-ignore lint/complexity/noImportantStyles: print override must beat theme utilities and inline backgrounds regardless of specificity/layer */
     background: #fff !important;
+    /* biome-ignore lint/complexity/noImportantStyles: print override must beat theme utilities and inline colors regardless of specificity/layer */
     color: #000 !important;
   }
   /* Page chrome — TopNavigation renders two <nav> elements; Footer renders <footer>.
@@ -397,6 +399,7 @@ body {
   nav,
   footer,
   [data-print-hide] {
+    /* biome-ignore lint/complexity/noImportantStyles: page chrome must stay hidden in print even against display utilities */
     display: none !important;
   }
   main a {
@@ -406,6 +409,7 @@ body {
   /* Browsers strip backgrounds when printing, so light-on-dark labels
      (pseudoheaders, NPC name spans) would print white-on-white. Force dark. */
   main .text-su-white {
+    /* biome-ignore lint/complexity/noImportantStyles: must out-rank the Tailwind utility it deliberately inverts for print */
     color: #000 !important;
   }
 }

@@ -12,6 +12,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { AddNpcControl } from '../AddNpcControl'
 import { statTrackFor } from '../referenceNpcs'
 import type { EncounterCandidate } from '../referenceNpcs'
+import { must } from '../../__tests__/must'
 
 afterEach(() => {
   cleanup()
@@ -36,21 +37,22 @@ async function patchReference(empty = false): Promise<() => void> {
     SalvageUnionReference.Meld,
   ]
   const originals = models.map((m) => m.all.bind(m))
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  SalvageUnionReference.NPCs.all = mock(() => (empty ? [] : MOCK_NPCS) as any)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  SalvageUnionReference.BioTitans.all = mock(() => (empty ? [] : MOCK_BIO_TITANS) as any)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  SalvageUnionReference.Squads.all = mock(() => [] as any)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  SalvageUnionReference.Creatures.all = mock(() => [] as any)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  SalvageUnionReference.Vehicles.all = mock(() => [] as any)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  SalvageUnionReference.Meld.all = mock(() => [] as any)
+  SalvageUnionReference.NPCs.all = mock(
+    () => (empty ? [] : MOCK_NPCS) as unknown as ReturnType<typeof SalvageUnionReference.NPCs.all>
+  )
+  SalvageUnionReference.BioTitans.all = mock(
+    () =>
+      (empty ? [] : MOCK_BIO_TITANS) as unknown as ReturnType<
+        typeof SalvageUnionReference.BioTitans.all
+      >
+  )
+  SalvageUnionReference.Squads.all = mock(() => [])
+  SalvageUnionReference.Creatures.all = mock(() => [])
+  SalvageUnionReference.Vehicles.all = mock(() => [])
+  SalvageUnionReference.Meld.all = mock(() => [])
   return () => {
     models.forEach((m, i) => {
-      m.all = originals[i]!
+      m.all = must(originals[i])
     })
   }
 }
@@ -71,11 +73,11 @@ describe('AddNpcControl', () => {
       fireEvent.click(screen.getByLabelText('Add Raider to the tray'))
 
       expect(added.length).toBe(1)
-      expect(added[0]!.name).toBe('Raider')
-      expect(added[0]!.schema).toBe('npcs')
-      expect(added[0]!.slug).toBe('raider')
-      expect(added[0]!.maxHp).toBe(3)
-      expect(added[0]!.statKind).toBe('hp')
+      expect(must(added[0]).name).toBe('Raider')
+      expect(must(added[0]).schema).toBe('npcs')
+      expect(must(added[0]).slug).toBe('raider')
+      expect(must(added[0]).maxHp).toBe(3)
+      expect(must(added[0]).statKind).toBe('hp')
     } finally {
       restore()
     }
@@ -111,8 +113,8 @@ describe('AddNpcControl', () => {
 
       fireEvent.click(screen.getByLabelText('Add Scylla to the tray'))
 
-      expect(added[0]!.statKind).toBe('sp')
-      expect(added[0]!.maxHp).toBe(39)
+      expect(must(added[0]).statKind).toBe('sp')
+      expect(must(added[0]).maxHp).toBe(39)
     } finally {
       restore()
     }

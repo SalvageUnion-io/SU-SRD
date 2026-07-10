@@ -242,6 +242,7 @@ h6 {
     --color-paper: #ffffff;
   }
   body {
+    /* biome-ignore lint/complexity/noImportantStyles: print override must beat the app's themed background utilities */
     background: #ffffff !important;
   }
   /* App chrome and interactive-only surfaces have no meaning on paper. */
@@ -251,9 +252,11 @@ h6 {
   [role='dialog'],
   [data-sonner-toaster],
   .su-print-hidden {
+    /* biome-ignore lint/complexity/noImportantStyles: must beat Tailwind display utilities (flex/grid) on chrome elements */
     display: none !important;
   }
   main {
+    /* biome-ignore lint/complexity/noImportantStyles: must beat Tailwind padding utilities on the main container */
     padding: 0 !important;
   }
   /* Keep pip fills and status colors — the whole point of a sheet printout

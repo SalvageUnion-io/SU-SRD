@@ -1,6 +1,7 @@
 import type { Story } from '@ladle/react'
 import { Tooltip } from './tooltip'
 
+// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'UI/Tooltip',
 }
@@ -8,7 +9,9 @@ export default {
 export const Basic: Story = () => (
   <div style={{ display: 'flex', gap: '1rem', padding: '2rem' }}>
     <Tooltip content="This is a tooltip">
-      <button className="rounded bg-su-black px-4 py-2 text-su-white">Hover me</button>
+      <button type="button" className="rounded bg-su-black px-4 py-2 text-su-white">
+        Hover me
+      </button>
     </Tooltip>
   </div>
 )
@@ -16,16 +19,24 @@ export const Basic: Story = () => (
 export const Positions: Story = () => (
   <div style={{ display: 'flex', gap: '1rem', padding: '4rem' }}>
     <Tooltip content="Top tooltip" side="top">
-      <button className="rounded bg-su-orange px-4 py-2 text-su-white">Top</button>
+      <button type="button" className="rounded bg-su-orange px-4 py-2 text-su-white">
+        Top
+      </button>
     </Tooltip>
     <Tooltip content="Right tooltip" side="right">
-      <button className="rounded bg-su-green px-4 py-2 text-su-white">Right</button>
+      <button type="button" className="rounded bg-su-green px-4 py-2 text-su-white">
+        Right
+      </button>
     </Tooltip>
     <Tooltip content="Bottom tooltip" side="bottom">
-      <button className="rounded bg-su-blue px-4 py-2 text-su-white">Bottom</button>
+      <button type="button" className="rounded bg-su-blue px-4 py-2 text-su-white">
+        Bottom
+      </button>
     </Tooltip>
     <Tooltip content="Left tooltip" side="left">
-      <button className="rounded bg-su-pink px-4 py-2 text-su-white">Left</button>
+      <button type="button" className="rounded bg-su-pink px-4 py-2 text-su-white">
+        Left
+      </button>
     </Tooltip>
   </div>
 )
@@ -40,7 +51,9 @@ export const RichContent: Story = () => (
         </div>
       }
     >
-      <button className="rounded bg-tl-2 px-4 py-2 text-su-white">Rich Content</button>
+      <button type="button" className="rounded bg-tl-2 px-4 py-2 text-su-white">
+        Rich Content
+      </button>
     </Tooltip>
   </div>
 )
@@ -48,10 +61,14 @@ export const RichContent: Story = () => (
 export const CustomDelay: Story = () => (
   <div style={{ display: 'flex', gap: '1rem', padding: '2rem' }}>
     <Tooltip content="Instant tooltip" delayDuration={0}>
-      <button className="rounded bg-su-brick px-4 py-2 text-su-white">No Delay</button>
+      <button type="button" className="rounded bg-su-brick px-4 py-2 text-su-white">
+        No Delay
+      </button>
     </Tooltip>
     <Tooltip content="Slow tooltip" delayDuration={1000}>
-      <button className="rounded bg-su-grey-dark px-4 py-2 text-su-white">1s Delay</button>
+      <button type="button" className="rounded bg-su-grey-dark px-4 py-2 text-su-white">
+        1s Delay
+      </button>
     </Tooltip>
   </div>
 )

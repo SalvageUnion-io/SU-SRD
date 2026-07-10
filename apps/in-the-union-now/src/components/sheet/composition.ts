@@ -100,8 +100,8 @@ export function resolveSheetComposition({ kind, id, links, store }: ResolveArgs)
     .filter((l) => l.type === 'pilot-to-crawler' && l.to.id === id)
     .map((l) => store.get('pilot', l.from.id))
     .filter((p): p is Pilot => p !== null)
-  if (crawlerPilots.length === 0) return { ...empty, crawler }
-  const lead = crawlerPilots[0]!
+  const lead = crawlerPilots[0]
+  if (!lead) return { ...empty, crawler }
   return {
     mode: 'wired',
     pilot: lead,

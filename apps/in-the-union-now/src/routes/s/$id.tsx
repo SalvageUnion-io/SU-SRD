@@ -2,7 +2,7 @@
  * /s/$id — Read-only snapshot route.
  *
  * Fetches a snapshot by ID via the snapshot backend and renders it using
- * SnapshotView (a frozen, read-only rendering that does not depend on
+ * SnapshotSheet (a frozen, read-only rendering that does not depend on
  * entityStore or SoftLinks).
  *
  * 404: renders a not-found state with a link back to the dashboard.
@@ -20,7 +20,7 @@ import { retrieveSnapshot, SnapshotNotFoundError } from '../../lib/snapshot/clie
 import type { SnapshotPayload } from '../../lib/snapshot/client'
 import { AppLink } from '../../components/shared/AppLink'
 import { SheetSkeleton } from '../../components/sheet/SheetSkeleton'
-import { SnapshotView } from '../../components/sheet/SnapshotView'
+import { SnapshotSheet } from '../../components/sheet/SnapshotSheet'
 import { btnVariants } from 'suref-react'
 import { cn } from '../../lib/utils'
 
@@ -94,7 +94,7 @@ export function SnapshotPageInner({ snapshot, notFound, error }: SnapshotPageInn
     return null
   }
 
-  return <SnapshotView snapshot={snapshot as Record<string, unknown>} />
+  return <SnapshotSheet snapshot={snapshot as Record<string, unknown>} />
 }
 
 function SnapshotPage() {

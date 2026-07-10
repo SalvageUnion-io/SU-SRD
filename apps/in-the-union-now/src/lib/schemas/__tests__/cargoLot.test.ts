@@ -102,8 +102,8 @@ describe('legacy cargo conversion', () => {
       name: 'Mech',
     })
     expect('cargo' in out).toBe(false)
-    expect(Array.isArray(out['cargoLots'])).toBe(true)
-    expect((out['cargoLots'] as { name: string }[])[0]?.name).toBe('x')
+    expect(Array.isArray(out.cargoLots)).toBe(true)
+    expect((out.cargoLots as { name: string }[])[0]?.name).toBe('x')
   })
 
   test('normalizeLegacyCargoRecord passes through records without legacy cargo', () => {

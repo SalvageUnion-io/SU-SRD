@@ -8,6 +8,14 @@
 import { describe, it, expect } from 'bun:test'
 import type { SalvageUnionReference as SURefType } from './index.js'
 
+/** Narrow away null/undefined; throws (failing the test) when the value is missing. */
+function defined<T>(value: T | null | undefined): T {
+  if (value === null || value === undefined) {
+    throw new Error('Expected value to be defined')
+  }
+  return value
+}
+
 let SalvageUnionReference: typeof SURefType
 
 function getReference() {
@@ -42,16 +50,20 @@ describe('Bio-Titan / Iron Lady redistribution', () => {
   it('places the Iron Lady in Drones with her actions and modules', () => {
     const ironLady = getReference().Drones.find((d) => d.name === 'The Iron Lady')
     expect(ironLady).toBeDefined()
-    expect(ironLady!.structurePoints).toBe(87)
-    expect(ironLady!.salvageValue).toBe(87)
-    expect(ironLady!.actions).toBeDefined()
-    expect(ironLady!.modules).toEqual(['Comms Module', 'IR Night Vision Optics', 'Firewall'])
+    expect(defined(ironLady).structurePoints).toBe(87)
+    expect(defined(ironLady).salvageValue).toBe(87)
+    expect(defined(ironLady).actions).toBeDefined()
+    expect(defined(ironLady).modules).toEqual([
+      'Comms Module',
+      'IR Night Vision Optics',
+      'Firewall',
+    ])
   })
 
   it('resolves the Iron Lady actions (including Titanic Actions) from her drone home', () => {
-    const ironLady = getReference().Drones.find((d) => d.name === 'The Iron Lady')!
+    const ironLady = defined(getReference().Drones.find((d) => d.name === 'The Iron Lady'))
     const actions = getReference().resolveActions(ironLady)
     expect(Array.isArray(actions)).toBe(true)
-    expect(actions!.some((a) => a.displayName === 'Titanic Actions')).toBe(true)
+    expect(defined(actions).some((a) => a.displayName === 'Titanic Actions')).toBe(true)
   })
 })

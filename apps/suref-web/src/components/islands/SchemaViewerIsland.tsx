@@ -167,6 +167,7 @@ export function SchemaViewerIsland({
             <div className="w-full min-w-0 px-2 pb-6 md:px-6">
               <MasonryColumns>
                 {Array.from({ length: 9 }, (_, i) => (
+                  // biome-ignore lint/suspicious/noArrayIndexKey: static 9-item skeleton placeholder list, never reordered — index is stable
                   <ReferenceEntityCardSkeleton key={i} compact />
                 ))}
               </MasonryColumns>

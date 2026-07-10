@@ -20,7 +20,7 @@
  * every edit affordance (published snapshots).
  */
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Btn, Panel, Slab } from 'suref-react'
 
 import type { ItemCondition } from '../../lib/schemas/mech'
@@ -34,11 +34,14 @@ import {
 } from '../../lib/rules/derivedStats'
 import type { Roll } from '../../lib/rules/heatCheck'
 import { useEntityStore } from '../../stores/entityStore'
+import { AbilitiesStep } from '../pilot/AbilitiesStep'
+import { EquipmentStep } from '../pilot/EquipmentStep'
 import { useSoftLinks } from '../wiring/useSoftLinks'
 import { destroyedUndoToast } from './destroyedUndoToast'
 import { Ecflow, Erow } from './Erow'
 import { InlineEditField } from './InlineEditField'
 import { PilotTakeDamageControl } from './PilotTakeDamageControl'
+import { SectionAddButton, SheetPickerModal } from './SheetSection'
 import { SheetDescription } from './SheetDescription'
 import { pilotInventoryCapacity, pilotInventoryUsed, resolveEquipment } from './pilotInventory'
 import {
@@ -77,6 +80,9 @@ export function PilotSheet({
   roll,
 }: PilotSheetProps) {
   const storeState = store()
+  // Which collection's shared picker modal is open ('+ Add' — unified edit
+  // language archetype B; always available, never rule-gated for now).
+  const [picker, setPicker] = useState<'abilities' | 'equipment' | null>(null)
 
   // Resolve the pilot's crawler (if any) via the pilot-to-crawler SoftLink,
   // then compute the EFFECTIVE crawler Tech Level used to scale choice caps
@@ -113,6 +119,30 @@ export function PilotSheet({
   /** Freshest pilot record from the store, falling back to the render prop. */
   function freshPilot(): Pilot {
     return storeState.get('pilot', pilot.id) ?? pilot
+  }
+
+  // Collection add/remove (unified edit language archetype B) — always
+  // available, writes through on toggle (ITUN auto-saves; no Save button).
+  // Reads the FRESHEST record so rapid toggles in the picker grid don't race
+  // the async store write.
+  // TODO(redesign): rule-gate add/remove (TP budget / maxAbilities / slot
+  // caps) — deferred; users self-manage for now.
+  function toggleAbility(abilityId: string) {
+    const abilities = freshPilot().abilities
+    void storeState.update('pilot', pilot.id, {
+      abilities: abilities.includes(abilityId)
+        ? abilities.filter((a) => a !== abilityId)
+        : [...abilities, abilityId],
+    })
+  }
+
+  function toggleEquipment(equipmentId: string) {
+    const equipment = freshPilot().equipment
+    void storeState.update('pilot', pilot.id, {
+      equipment: equipment.includes(equipmentId)
+        ? equipment.filter((e) => e !== equipmentId)
+        : [...equipment, equipmentId],
+    })
   }
 
   async function handleEquipmentConditionChange(slug: string, next: ItemCondition) {
@@ -199,13 +229,31 @@ export function PilotSheet({
           conversions, prompting the Critical Injury Table roll at 0 HP. */}
       <PilotTakeDamageControl pilot={pilot} store={store} roll={roll} readOnly={readOnly} />
 
-      {/* Bio — freeform backstory (read-only; edited in the pilot builder) */}
-      <SheetDescription text={pilot.description} label="Bio" />
+      {/* Bio — freeform backstory; its own per-section Edit (FIELD archetype) */}
+      <SheetDescription
+        text={pilot.description}
+        label="Bio"
+        onSave={
+          readOnly
+            ? undefined
+            : (next) => storeState.update('pilot', pilot.id, { description: next.trim() })
+        }
+      />
 
-      {/* Abilities */}
-      {pilot.abilities.length > 0 && (
-        <div>
-          <Slab label="Abilities" count={pilot.abilities.length} />
+      {/* Abilities — collection section: '+ Add' always available (archetype B) */}
+      <div>
+        <Slab
+          label="Abilities"
+          count={pilot.abilities.length}
+          actions={
+            readOnly ? undefined : (
+              <SectionAddButton label="ability" onClick={() => setPicker('abilities')} />
+            )
+          }
+        />
+        {pilot.abilities.length === 0 ? (
+          <p className="font-body text-caption text-wk-muted">No abilities learned yet.</p>
+        ) : (
           <Ecflow>
             {pilot.abilities.map((slug) => {
               const ability = resolveAbility(slug)
@@ -228,16 +276,23 @@ export function PilotSheet({
                     onToggleUsed={(next) => {
                       void handleAbilityUsedChange(slug, next)
                     }}
+                    onRemove={
+                      readOnly
+                        ? undefined
+                        : () => {
+                            toggleAbility(slug)
+                          }
+                    }
                     readOnly={readOnly}
                   />
                 </Erow>
               )
             })}
           </Ecflow>
-        </div>
-      )}
+        )}
+      </div>
 
-      {/* Inventory — truthful slot math (rules A13) */}
+      {/* Inventory — truthful slot math (rules A13); '+ Add' always available */}
       <div>
         <Slab
           label="Inventory"
@@ -245,6 +300,11 @@ export function PilotSheet({
             <span className={overCapacity ? 'text-status-bad' : undefined}>
               {slotsUsed} / {slotsCap} slots
             </span>
+          }
+          actions={
+            readOnly ? undefined : (
+              <SectionAddButton label="equipment" onClick={() => setPicker('equipment')} />
+            )
           }
         />
         {pilot.equipment.length === 0 && genericInventory.length === 0 ? (
@@ -265,6 +325,13 @@ export function PilotSheet({
                   onUsesChange={(itemSlug, next) => {
                     void handleUsesChange(itemSlug, next)
                   }}
+                  onRemove={
+                    readOnly
+                      ? undefined
+                      : () => {
+                          toggleEquipment(slug)
+                        }
+                  }
                   readOnly={readOnly}
                   scalingParent={scalingParent}
                   store={store}
@@ -309,6 +376,7 @@ export function PilotSheet({
           <div className="flex flex-col gap-2">
             {injuries.map((injury, index) => (
               <InjuryRow
+                // biome-ignore lint/suspicious/noArrayIndexKey: injuries are free-form entries with no id and may repeat; rows are edited positionally (onChange/index below)
                 key={index}
                 injury={injury}
                 index={index}
@@ -389,6 +457,28 @@ export function PilotSheet({
           </div>
         )}
       </div>
+
+      {/* The ONE shared picker modal — abilities & equipment '+ Add' both open
+          it (multi-select grids write through on toggle; no Save button). */}
+      <SheetPickerModal
+        open={picker === 'abilities'}
+        onClose={() => setPicker(null)}
+        title="Add Abilities"
+      >
+        <AbilitiesStep
+          classId={pilot.classRef}
+          selectedAbilities={pilot.abilities}
+          onToggle={toggleAbility}
+          allLevels
+        />
+      </SheetPickerModal>
+      <SheetPickerModal
+        open={picker === 'equipment'}
+        onClose={() => setPicker(null)}
+        title="Add Equipment"
+      >
+        <EquipmentStep selectedEquipment={pilot.equipment} onToggle={toggleEquipment} />
+      </SheetPickerModal>
     </section>
   )
 }

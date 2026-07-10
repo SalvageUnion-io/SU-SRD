@@ -2,6 +2,7 @@ import type { Story } from '@ladle/react'
 import { useState } from 'react'
 import { ChoiceCard, FreeTextChoiceCard, StaticChoiceCard } from './ChoiceCard'
 
+// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'ReferenceEntity/ChoiceCard',
 }

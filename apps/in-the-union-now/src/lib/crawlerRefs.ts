@@ -24,7 +24,13 @@ export type ResolvedNpc = {
 }
 
 /** A resolved crawler type or bay entity. */
-type ResolvedCrawlerEntity = { id: string; name: string; npc?: ResolvedNpc }
+type ResolvedCrawlerEntity = {
+  id: string
+  name: string
+  npc?: ResolvedNpc
+  /** Special-ability action refs (crawler types only; ids or names). */
+  actions?: ReadonlyArray<string>
+}
 
 /** Resolve a stored crawler-type ref (id or name) to its SRD entity. */
 export function resolveCrawlerType(ref: string): ResolvedCrawlerEntity | null {

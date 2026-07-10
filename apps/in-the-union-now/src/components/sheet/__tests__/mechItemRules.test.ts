@@ -20,6 +20,7 @@ import {
   resolveModule,
   resolveSystem,
 } from '../mechItemRules'
+import { must } from '../../__tests__/must'
 
 beforeAll(async () => {
   await SalvageUnionReference.preload(['systems', 'modules', 'actions'])
@@ -29,19 +30,19 @@ describe('itemEconomy', () => {
   test('Smoke Machine: EP cost 2, no heat, no uses', () => {
     const entity = resolveSystem('Smoke Machine')
     expect(entity).toBeTruthy()
-    expect(itemEconomy(entity!)).toEqual({ epCost: 2, heat: 0, maxUses: 0 })
+    expect(itemEconomy(must(entity))).toEqual({ epCost: 2, heat: 0, maxUses: 0 })
   })
 
   test('AFF Coolant Foam: EP cost 1 with Uses 5', () => {
     const entity = resolveSystem('AFF Coolant Foam')
     expect(entity).toBeTruthy()
-    expect(itemEconomy(entity!)).toEqual({ epCost: 1, heat: 0, maxUses: 5 })
+    expect(itemEconomy(must(entity))).toEqual({ epCost: 1, heat: 0, maxUses: 5 })
   })
 
   test('Mini Mortar: no EP cost, Uses 5', () => {
     const entity = resolveSystem('Mini Mortar')
     expect(entity).toBeTruthy()
-    const economy = itemEconomy(entity!)
+    const economy = itemEconomy(must(entity))
     expect(economy.epCost).toBe(0)
     expect(economy.maxUses).toBe(5)
   })
@@ -49,7 +50,7 @@ describe('itemEconomy', () => {
   test('Green Laser: Hot weapon — no EP cost, +2 heat per use', () => {
     const entity = resolveSystem('Green Laser')
     expect(entity).toBeTruthy()
-    const economy = itemEconomy(entity!)
+    const economy = itemEconomy(must(entity))
     expect(economy.epCost).toBe(0)
     expect(economy.heat).toBe(2)
   })
@@ -61,14 +62,14 @@ describe('resolveSystem / resolveModule ref forms', () => {
   test('resolveSystem matches a slug ref', () => {
     const bySlug = resolveSystem('mini-mortar')
     expect(bySlug).toBeTruthy()
-    expect(bySlug!.name).toBe('Mini Mortar')
-    expect(resolveSystem('Mini Mortar')?.id).toBe(bySlug!.id)
+    expect(bySlug?.name).toBe('Mini Mortar')
+    expect(resolveSystem('Mini Mortar')?.id).toBe(bySlug?.id)
   })
 
   test('resolveModule matches a slug ref', () => {
     const bySlug = resolveModule('comms-module')
     expect(bySlug).toBeTruthy()
-    expect(bySlug!.name).toBe('Comms Module')
+    expect(bySlug?.name).toBe('Comms Module')
   })
 
   test('unresolvable ref returns null (no throw)', () => {

@@ -128,13 +128,13 @@ export function CrawlerRailStats({ crawler }: { crawler: Crawler }) {
 }
 
 /** Bay conditions as StatBlock pip states (Intact/Damaged only, rules C8). */
-// eslint-disable-next-line react-refresh/only-export-components -- shared control helpers, colocated by design (audit items 24/19)
+// biome-ignore lint/style/useComponentExportOnlyModules: shared control helpers, colocated by design (audit items 24/19)
 export function bayStates(crawler: Crawler): StatBlockState[] {
   return (crawler.crawlerBays ?? []).map((bay) => bay.condition ?? 'intact')
 }
 
 /** Destroyed > Damaged > Intact status pill for a mech. */
-// eslint-disable-next-line react-refresh/only-export-components -- shared control helpers, colocated by design (audit items 24/19)
+// biome-ignore lint/style/useComponentExportOnlyModules: shared control helpers, colocated by design (audit items 24/19)
 export function mechStatusPill(mech: Mech): { label: string; tone: PillTone } {
   if (mech.destroyed) return { label: 'Destroyed', tone: 'bad' }
   const anyDamaged = [

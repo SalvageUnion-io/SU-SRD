@@ -18,6 +18,14 @@ import {
   getPageReference,
 } from './utilities.js'
 
+/** Narrow away null/undefined; throws (failing the test) when the value is missing. */
+function defined<T>(value: T | null | undefined): T {
+  if (value === null || value === undefined) {
+    throw new Error('Expected value to be defined')
+  }
+  return value
+}
+
 describe('SalvageUnionReference static properties', () => {
   it('should have all model properties defined and returning data', () => {
     // Get all static properties from the class
@@ -190,7 +198,7 @@ describe('SalvageUnionReference.Guides', () => {
 
   it('should be accessible via get by ID', () => {
     const guides = SalvageUnionReference.Guides.all()
-    const firstGuide = guides[0]!
+    const firstGuide = defined(guides[0])
     const fetched = SalvageUnionReference.get('guides', firstGuide.id)
     expect(fetched).toBeDefined()
     expect(fetched?.id).toBe(firstGuide.id)
@@ -202,18 +210,18 @@ describe('SalvageUnionReference.Guides', () => {
   })
 
   it('should support paperOnly on guide steps', () => {
-    const guide = SalvageUnionReference.Guides.find((g) => g.name === 'Create a Pilot')!
+    const guide = defined(SalvageUnionReference.Guides.find((g) => g.name === 'Create a Pilot'))
     expect(guide).toBeDefined()
-    const paperOnlySteps = guide.steps!.filter((s) => s.paperOnly)
+    const paperOnlySteps = guide.steps.filter((s) => s.paperOnly)
     expect(paperOnlySteps.length).toBeGreaterThan(0)
-    expect(paperOnlySteps[0]!.paperOnly).toBe(true)
+    expect(defined(paperOnlySteps[0]).paperOnly).toBe(true)
   })
 
   it('should default paperOnly to undefined when not set', () => {
-    const guide = SalvageUnionReference.Guides.find((g) => g.name === 'Create a Pilot')!
-    const nonPaperStep = guide.steps!.find((s) => !s.paperOnly)
+    const guide = defined(SalvageUnionReference.Guides.find((g) => g.name === 'Create a Pilot'))
+    const nonPaperStep = guide.steps.find((s) => !s.paperOnly)
     expect(nonPaperStep).toBeDefined()
-    expect(nonPaperStep!.paperOnly).toBeUndefined()
+    expect(defined(nonPaperStep).paperOnly).toBeUndefined()
   })
 })
 
@@ -298,7 +306,7 @@ describe('SalvageUnionReference.get', () => {
   it('should get an entity by schema name and ID', () => {
     // First, find an ability to get its ID
     const allAbilities = SalvageUnionReference.Abilities.all()
-    const firstAbility = allAbilities[0]!
+    const firstAbility = defined(allAbilities[0])
 
     // Now use get() to retrieve it
     const ability = SalvageUnionReference.get('abilities', firstAbility.id)
@@ -314,7 +322,7 @@ describe('SalvageUnionReference.get', () => {
 
   it('should work with different schema types', () => {
     const allSystems = SalvageUnionReference.Systems.all()
-    const firstSystem = allSystems[0]!
+    const firstSystem = defined(allSystems[0])
 
     const system = SalvageUnionReference.get('systems', firstSystem.id)
     expect(system).toBeDefined()
@@ -323,7 +331,7 @@ describe('SalvageUnionReference.get', () => {
 
   it('should use caching for repeated lookups', () => {
     const allAbilities = SalvageUnionReference.Abilities.all()
-    const firstAbility = allAbilities[0]!
+    const firstAbility = defined(allAbilities[0])
 
     // First lookup
     const ability1 = SalvageUnionReference.get('abilities', firstAbility.id)
@@ -337,7 +345,7 @@ describe('SalvageUnionReference.get', () => {
 describe('SalvageUnionReference.exists', () => {
   it('should return true for existing entity', () => {
     const allAbilities = SalvageUnionReference.Abilities.all()
-    const firstAbility = allAbilities[0]!
+    const firstAbility = defined(allAbilities[0])
 
     const exists = SalvageUnionReference.exists('abilities', firstAbility.id)
     expect(exists).toBe(true)
@@ -355,15 +363,15 @@ describe('SalvageUnionReference.getMany', () => {
     const allSystems = SalvageUnionReference.Systems.all()
 
     const entities = SalvageUnionReference.getMany([
-      { schemaName: 'abilities', id: allAbilities[0]!.id },
-      { schemaName: 'systems', id: allSystems[0]!.id },
+      { schemaName: 'abilities', id: defined(allAbilities[0]).id },
+      { schemaName: 'systems', id: defined(allSystems[0]).id },
     ])
 
     expect(entities.length).toBe(2)
     expect(entities[0]).toBeDefined()
     expect(entities[1]).toBeDefined()
-    expect(entities[0]?.id).toBe(allAbilities[0]!.id)
-    expect(entities[1]?.id).toBe(allSystems[0]!.id)
+    expect(entities[0]?.id).toBe(defined(allAbilities[0]).id)
+    expect(entities[1]?.id).toBe(defined(allSystems[0]).id)
   })
 
   it('should return undefined for non-existent entities', () => {
@@ -400,7 +408,7 @@ describe('SalvageUnionReference.parseRef', () => {
 describe('SalvageUnionReference.getByRef', () => {
   it('should get an entity by reference string', () => {
     const allAbilities = SalvageUnionReference.Abilities.all()
-    const firstAbility = allAbilities[0]!
+    const firstAbility = defined(allAbilities[0])
 
     const ref = `abilities::${firstAbility.id}`
     const entity = SalvageUnionReference.getByRef(ref)
@@ -417,25 +425,25 @@ describe('SalvageUnionReference.getByRef', () => {
 
 describe('Type Guards', () => {
   it('should correctly identify abilities', () => {
-    const ability = SalvageUnionReference.Abilities.all()[0]!
+    const ability = defined(SalvageUnionReference.Abilities.all()[0])
     expect(isAbility(ability)).toBe(true)
     expect(isSystem(ability)).toBe(false)
   })
 
   it('should correctly identify systems', () => {
-    const system = SalvageUnionReference.Systems.all()[0]!
+    const system = defined(SalvageUnionReference.Systems.all()[0])
     expect(isSystem(system)).toBe(true)
     expect(isAbility(system)).toBe(false)
   })
 
   it('should correctly identify modules', () => {
-    const module = SalvageUnionReference.Modules.all()[0]!
+    const module = defined(SalvageUnionReference.Modules.all()[0])
     expect(isModule(module)).toBe(true)
     expect(isAbility(module)).toBe(false)
   })
 
   it('should correctly identify chassis', () => {
-    const chassis = SalvageUnionReference.Chassis.all()[0]!
+    const chassis = defined(SalvageUnionReference.Chassis.all()[0])
     expect(isChassis(chassis)).toBe(true)
     expect(isAbility(chassis)).toBe(false)
   })
@@ -448,7 +456,7 @@ describe('Type Guards', () => {
 
 describe('Property Extractors', () => {
   it('should extract techLevel from systems', () => {
-    const system = SalvageUnionReference.Systems.all()[0]!
+    const system = defined(SalvageUnionReference.Systems.all()[0])
     const techLevel = getTechLevel(system)
     expect(techLevel).toBeDefined()
     // Should return actual value (number, 'B', or 'N')
@@ -458,7 +466,7 @@ describe('Property Extractors', () => {
   })
 
   it('should extract techLevel from modules', () => {
-    const module = SalvageUnionReference.Modules.all()[0]!
+    const module = defined(SalvageUnionReference.Modules.all()[0])
     const techLevel = getTechLevel(module)
     expect(techLevel).toBeDefined()
     // Should return actual value (number, 'B', or 'N')
@@ -468,21 +476,21 @@ describe('Property Extractors', () => {
   })
 
   it('should return undefined for entities without techLevel', () => {
-    const ability = SalvageUnionReference.Abilities.all()[0]!
+    const ability = defined(SalvageUnionReference.Abilities.all()[0])
     const techLevel = getTechLevel(ability)
     expect(techLevel).toBeUndefined()
   })
 
   it('should extract salvageValue from systems', () => {
-    const system = SalvageUnionReference.Systems.all()[0]!
+    const system = defined(SalvageUnionReference.Systems.all()[0])
     const salvageValue = getSalvageValue(system)
     expect(salvageValue).toBeDefined()
     expect(typeof salvageValue).toBe('number')
   })
 
   it('should extract page reference from all entities', () => {
-    const ability = SalvageUnionReference.Abilities.all()[0]!
-    const system = SalvageUnionReference.Systems.all()[0]!
+    const ability = defined(SalvageUnionReference.Abilities.all()[0])
+    const system = defined(SalvageUnionReference.Systems.all()[0])
 
     const abilityPage = getPageReference(ability)
     const systemPage = getPageReference(system)
@@ -496,7 +504,7 @@ describe('Property Extractors', () => {
 
 describe('getTechLevel', () => {
   it('should get tech level from systems', () => {
-    const system = SalvageUnionReference.Systems.all()[0]!
+    const system = defined(SalvageUnionReference.Systems.all()[0])
     const techLevel = getTechLevel(system)
 
     expect(techLevel).toBeDefined()
@@ -507,7 +515,7 @@ describe('getTechLevel', () => {
   })
 
   it('should get tech level from chassis (in stats)', () => {
-    const chassis = SalvageUnionReference.Chassis.all()[0]!
+    const chassis = defined(SalvageUnionReference.Chassis.all()[0])
     const techLevel = getTechLevel(chassis)
 
     expect(techLevel).toBeDefined()
@@ -518,7 +526,7 @@ describe('getTechLevel', () => {
   })
 
   it('should return undefined for entities without tech level', () => {
-    const ability = SalvageUnionReference.Abilities.all()[0]!
+    const ability = defined(SalvageUnionReference.Abilities.all()[0])
     const techLevel = getTechLevel(ability)
 
     expect(techLevel).toBeUndefined()
@@ -527,7 +535,7 @@ describe('getTechLevel', () => {
 
 describe('getTechLevelNumber', () => {
   it('should get tech level as number from systems', () => {
-    const system = SalvageUnionReference.Systems.all()[0]!
+    const system = defined(SalvageUnionReference.Systems.all()[0])
     const techLevel = getTechLevelNumber(system)
 
     expect(techLevel).toBeDefined()
@@ -538,7 +546,7 @@ describe('getTechLevelNumber', () => {
   })
 
   it('should get tech level as number from chassis (in stats)', () => {
-    const chassis = SalvageUnionReference.Chassis.all()[0]!
+    const chassis = defined(SalvageUnionReference.Chassis.all()[0])
     const techLevel = getTechLevelNumber(chassis)
 
     expect(techLevel).toBeDefined()
@@ -549,7 +557,7 @@ describe('getTechLevelNumber', () => {
   })
 
   it('should return undefined for entities without tech level', () => {
-    const ability = SalvageUnionReference.Abilities.all()[0]!
+    const ability = defined(SalvageUnionReference.Abilities.all()[0])
     const techLevel = getTechLevelNumber(ability)
 
     expect(techLevel).toBeUndefined()
@@ -558,7 +566,7 @@ describe('getTechLevelNumber', () => {
 
 describe('getSalvageValue', () => {
   it('should get salvage value from systems', () => {
-    const system = SalvageUnionReference.Systems.all()[0]!
+    const system = defined(SalvageUnionReference.Systems.all()[0])
     const salvageValue = getSalvageValue(system)
 
     expect(salvageValue).toBeDefined()
@@ -567,7 +575,7 @@ describe('getSalvageValue', () => {
   })
 
   it('should get salvage value from chassis (in stats)', () => {
-    const chassis = SalvageUnionReference.Chassis.all()[0]!
+    const chassis = defined(SalvageUnionReference.Chassis.all()[0])
     const salvageValue = getSalvageValue(chassis)
 
     expect(salvageValue).toBeDefined()
@@ -576,7 +584,7 @@ describe('getSalvageValue', () => {
   })
 
   it('should return undefined for entities without salvage value', () => {
-    const ability = SalvageUnionReference.Abilities.all()[0]!
+    const ability = defined(SalvageUnionReference.Abilities.all()[0])
     const salvageValue = getSalvageValue(ability)
 
     expect(salvageValue).toBeUndefined()
@@ -651,7 +659,7 @@ describe('SalvageUnionReference public API surface', () => {
 
 describe('getSlotsRequired', () => {
   it('should get slots required from systems', () => {
-    const system = SalvageUnionReference.Systems.all()[0]!
+    const system = defined(SalvageUnionReference.Systems.all()[0])
     const slots = getSlotsRequired(system)
 
     expect(slots).toBeDefined()
@@ -660,7 +668,7 @@ describe('getSlotsRequired', () => {
   })
 
   it('should return undefined for entities without slots required', () => {
-    const ability = SalvageUnionReference.Abilities.all()[0]!
+    const ability = defined(SalvageUnionReference.Abilities.all()[0])
     const slots = getSlotsRequired(ability)
 
     expect(slots).toBeUndefined()

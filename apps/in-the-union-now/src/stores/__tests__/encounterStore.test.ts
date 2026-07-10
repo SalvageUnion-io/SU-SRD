@@ -49,7 +49,7 @@ describe('encounterStore — create', () => {
 
     const list = useEncounterStore.getState().list()
     expect(list.length).toBe(1)
-    expect(list[0]!.id).toBe(npc.id)
+    expect(list[0]?.id).toBe(npc.id)
   })
 
   test('allows multiple instances of the same reference NPC', async () => {
@@ -110,7 +110,7 @@ describe('encounterStore — hydration persistence', () => {
     await useEncounterStore.getState().hydrate()
     const list = useEncounterStore.getState().list()
     expect(list.length).toBe(1)
-    expect(list[0]!.refSlug).toBe('raider')
+    expect(list[0]?.refSlug).toBe('raider')
   })
 })
 

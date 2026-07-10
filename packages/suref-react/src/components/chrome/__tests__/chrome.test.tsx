@@ -49,21 +49,27 @@ describe('Pill / Chip', () => {
   test('chip renders quiet label + bold value', () => {
     const { container } = render(<Chip value={3}>Uses</Chip>)
     expect(screen.getByText('Uses')).toBeTruthy()
-    expect(container.querySelector('b')!.textContent).toBe('3')
+    expect(container.querySelector('b')?.textContent).toBe('3')
   })
 })
 
 describe('Panel / Row / Empty', () => {
   test('panel defaults to ink border, soft swaps to faint', () => {
     const { container } = render(<Panel>content</Panel>)
-    expect(container.firstElementChild!.className).toContain('border-ink')
+    expect(container.firstElementChild?.className).toContain('border-ink')
     cleanup()
     const { container: soft } = render(<Panel soft>content</Panel>)
-    expect(soft.firstElementChild!.className).toContain('border-wk-faint')
+    expect(soft.firstElementChild?.className).toContain('border-wk-faint')
   })
 
   test('row renders name, meta and trailing actions', () => {
-    render(<Row name="Mara Vex" meta='"Wrench" · Engineer' actions={<button>Sheet</button>} />)
+    render(
+      <Row
+        name="Mara Vex"
+        meta='"Wrench" · Engineer'
+        actions={<button type="button">Sheet</button>}
+      />
+    )
     expect(screen.getByText('Mara Vex')).toBeTruthy()
     expect(screen.getByText('"Wrench" · Engineer')).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Sheet' })).toBeTruthy()
@@ -72,10 +78,10 @@ describe('Panel / Row / Empty', () => {
   test('empty renders a dashed frame with message and CTA', () => {
     const { container } = render(
       <Empty message="No pilots yet">
-        <button>Create</button>
+        <button type="button">Create</button>
       </Empty>
     )
-    expect(container.firstElementChild!.className).toContain('border-dashed')
+    expect(container.firstElementChild?.className).toContain('border-dashed')
     expect(screen.getByText('No pilots yet')).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Create' })).toBeTruthy()
   })
@@ -99,7 +105,7 @@ describe('Slab / MChip / Spec', () => {
     expect(screen.getByText('/20')).toBeTruthy()
     cleanup()
     const { container } = render(<Spec label="CARGO" value={4} cargo />)
-    expect(container.firstElementChild!.className).toContain('border-cargo-deep')
+    expect(container.firstElementChild?.className).toContain('border-cargo-deep')
   })
 })
 
@@ -117,10 +123,10 @@ describe('Conditions', () => {
 
   test('inactive condition chip is paper, active is warn', () => {
     const { container } = render(<ConditionChip label="Burning" active={false} />)
-    expect(container.firstElementChild!.className).toContain('bg-paper')
+    expect(container.firstElementChild?.className).toContain('bg-paper')
     cleanup()
     const { container: active } = render(<ConditionChip label="Burning" />)
-    expect(active.firstElementChild!.className).toContain('bg-status-warn')
+    expect(active.firstElementChild?.className).toContain('bg-status-warn')
   })
 })
 
@@ -168,7 +174,7 @@ describe('StatusBadge', () => {
   test('renders the status label with the matching fill', () => {
     const { container } = render(<StatusBadge status="damaged" />)
     expect(screen.getByText('Damaged')).toBeTruthy()
-    expect(container.firstElementChild!.className).toContain('bg-status-warn')
+    expect(container.firstElementChild?.className).toContain('bg-status-warn')
   })
 
   test('becomes a button when a cycle handler is provided', () => {

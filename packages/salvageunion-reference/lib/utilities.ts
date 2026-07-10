@@ -45,7 +45,7 @@ let _actionMap: Map<string, SURefMetaAction> | null = null
 function getActionMap(): Map<string, SURefMetaAction> {
   if (_actionMap) return _actionMap
   const { dataMap } = getDataMaps()
-  const actionsData = dataMap['actions'] as SURefMetaAction[] | undefined
+  const actionsData = dataMap.actions as SURefMetaAction[] | undefined
   if (!actionsData) return new Map()
   _actionMap = new Map(actionsData.map((a) => [a.name, a]))
   return _actionMap
@@ -1015,7 +1015,7 @@ export function getTable(entity: SURefMetaEntity): SURefObjectTable | undefined 
       const rollTable = rollTablesModel.find(
         (rt) => 'name' in rt && rt.name === entity.tableName
       ) as SURefRollTable | undefined
-      if (rollTable && rollTable.table) {
+      if (rollTable?.table) {
         return rollTable.table
       }
     }
@@ -1047,7 +1047,7 @@ export function getTable(entity: SURefMetaEntity): SURefObjectTable | undefined 
       const rollTable = rollTablesModel.find(
         (rt) => 'name' in rt && rt.name === matchingAction.tableName
       ) as SURefRollTable | undefined
-      if (rollTable && rollTable.table) {
+      if (rollTable?.table) {
         return rollTable.table
       }
     }
@@ -1222,8 +1222,8 @@ export function parseTraitReferences(text: string): ParsedTraitReference[] {
   const simplePattern = /\[\[([A-Z][A-Za-z-]+(?:\s+[A-Z][A-Za-z-]+)*)\]\]/g
 
   // Find all parameterized trait references first
-  let match: RegExpExecArray | null
-  while ((match = paramPattern.exec(text)) !== null) {
+  let match = paramPattern.exec(text)
+  while (match !== null) {
     const traitName = match[1]
     const parameter = match[2]
     if (traitName && parameter) {
@@ -1235,26 +1235,30 @@ export function parseTraitReferences(text: string): ParsedTraitReference[] {
         endIndex: match.index + match[0].length,
       })
     }
+    match = paramPattern.exec(text)
   }
 
   // Find all simple trait references
-  while ((match = simplePattern.exec(text)) !== null) {
+  match = simplePattern.exec(text)
+  while (match !== null) {
+    const current = match
     // Skip if this position is already covered by a parameterized match
     const isAlreadyMatched = references.some(
-      (ref) => match!.index >= ref.startIndex && match!.index < ref.endIndex
+      (ref) => current.index >= ref.startIndex && current.index < ref.endIndex
     )
 
     if (!isAlreadyMatched) {
-      const traitName = match[1]
+      const traitName = current[1]
       if (traitName) {
         references.push({
-          fullMatch: match[0],
+          fullMatch: current[0],
           traitName,
-          startIndex: match.index,
-          endIndex: match.index + match[0].length,
+          startIndex: current.index,
+          endIndex: current.index + current[0].length,
         })
       }
     }
+    match = simplePattern.exec(text)
   }
 
   // Sort by start index

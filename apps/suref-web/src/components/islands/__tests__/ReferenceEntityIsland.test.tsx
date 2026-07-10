@@ -11,7 +11,8 @@ for (const schema of entitySchemas) {
   if (!model) continue
 
   const entities = model.all()
-  if (entities.length === 0) continue
+  const firstEntity = entities[0]
+  if (!firstEntity) continue
 
   describe(`${schema.displayName} (${schema.id})`, () => {
     for (const entity of entities) {
@@ -24,7 +25,6 @@ for (const schema of entitySchemas) {
     }
 
     it(`renders first entity in compact mode`, () => {
-      const firstEntity = entities[0]!
       const { container } = render(<ReferenceEntityIsland item={firstEntity} compact />)
       const entityName = getName(firstEntity) ?? firstEntity.id
       expect(container.textContent).toContain(entityName)
@@ -57,7 +57,9 @@ describe('static fallback stripping', () => {
     isLoadedSpy?.mockRestore()
     preloadSpy?.mockRestore()
     resetPreloadForTests()
-    document.querySelectorAll('[data-static-fallback]').forEach((el) => el.remove())
+    document.querySelectorAll('[data-static-fallback]').forEach((el) => {
+      el.remove()
+    })
   })
 
   it('removes [data-static-fallback] elements once data is ready', async () => {

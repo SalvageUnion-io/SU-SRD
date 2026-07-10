@@ -29,9 +29,9 @@
  * which now lives in the generated file this script produces).
  */
 
-import { writeFileSync, readFileSync, mkdirSync } from 'fs'
-import { join, dirname } from 'path'
-import { fileURLToPath } from 'url'
+import { writeFileSync, readFileSync, mkdirSync } from 'node:fs'
+import { join, dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import * as prettier from 'prettier'
 
 import { registry, type RegistryEntry } from '../lib/schemas/registry.js'
@@ -216,10 +216,14 @@ const BEGIN_MARKER = '  // GENERATED:BEGIN — see tools/generateRegistry.ts'
 const END_MARKER = '  // GENERATED:END'
 
 function generateStaticAccessorsBlock(entries: RegistryEntry[]): string {
-  const lines = entries.map(
-    (e) =>
-      `  static ${toPascalCase(e.id)}: ModelWithMetadata<SchemaToEntityMap['${e.id}']> = lazyModelMap['${e.id}']`
-  )
+  const lines = entries.map((e) => {
+    // Dot access when the schema id is a valid identifier (Biome's
+    // lint/complexity/useLiteralKeys); bracket access for hyphenated ids.
+    const access = /^[A-Za-z_$][\w$]*$/.test(e.id)
+      ? `lazyModelMap.${e.id}`
+      : `lazyModelMap['${e.id}']`
+    return `  static ${toPascalCase(e.id)}: ModelWithMetadata<SchemaToEntityMap['${e.id}']> = ${access}`
+  })
   return [BEGIN_MARKER, ...lines, END_MARKER].join('\n')
 }
 

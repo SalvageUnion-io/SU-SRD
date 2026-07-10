@@ -16,6 +16,7 @@ import type { SURefCrawler } from 'salvageunion-reference'
 
 import { CrawlerCrewStep } from '../CrawlerCrewStep'
 import type { CrewNpcForm } from '../../../lib/wizard/crawlerFormState'
+import { must } from '../../__tests__/must'
 
 beforeAll(async () => {
   await SalvageUnionReference.preload('all')
@@ -57,7 +58,7 @@ describe('CrawlerCrewStep', () => {
 
   it('renders Name/Description/Keepsake/Motto for a standard bay NPC', () => {
     const bays = crewedBays()
-    const command = bays.find((b) => b.name === 'Command Bay')!
+    const command = must(bays.find((b) => b.name === 'Command Bay'))
     const { container } = render(
       <CrawlerCrewStep bays={bays} selectedType={undefined} crew={{}} onChange={() => {}} />
     )
@@ -68,7 +69,7 @@ describe('CrawlerCrewStep', () => {
   })
 
   it('includes the selected type’s special NPC with its full field set', () => {
-    const battle = SalvageUnionReference.Crawlers.find((c) => c.name === 'Battle')!
+    const battle = must(SalvageUnionReference.Crawlers.find((c) => c.name === 'Battle'))
     const { container } = render(
       <CrawlerCrewStep bays={crewedBays()} selectedType={battle} crew={{}} onChange={() => {}} />
     )
@@ -78,7 +79,7 @@ describe('CrawlerCrewStep', () => {
   })
 
   it('Augmented edge: A.I. NPC shows Name/Description only (no Keepsake/Motto)', () => {
-    const augmented = SalvageUnionReference.Crawlers.find((c) => c.name === 'Augmented')!
+    const augmented = must(SalvageUnionReference.Crawlers.find((c) => c.name === 'Augmented'))
     const { container } = render(
       <CrawlerCrewStep bays={crewedBays()} selectedType={augmented} crew={{}} onChange={() => {}} />
     )
@@ -90,7 +91,7 @@ describe('CrawlerCrewStep', () => {
 
   it('edits a bay NPC field through onChange (merging crew state)', () => {
     const bays = crewedBays()
-    const command = bays.find((b) => b.name === 'Command Bay')!
+    const command = must(bays.find((b) => b.name === 'Command Bay'))
     const onChange = mock((patch: { crew?: Record<string, CrewNpcForm> }) => patch)
     const { container } = render(
       <CrawlerCrewStep bays={bays} selectedType={undefined} crew={{}} onChange={onChange} />
@@ -105,7 +106,7 @@ describe('CrawlerCrewStep', () => {
 
   it('renders existing crew values', () => {
     const bays = crewedBays()
-    const command = bays.find((b) => b.name === 'Command Bay')!
+    const command = must(bays.find((b) => b.name === 'Command Bay'))
     const crew: Record<string, CrewNpcForm> = {
       [command.id]: { name: 'Maddox', motto: 'Hold the line' },
     }

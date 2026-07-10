@@ -2,8 +2,18 @@ import { describe, it, expect } from 'bun:test'
 import { SalvageUnionReference } from './index.js'
 import { getCrawlerMutations, getWeaponSlotCount, getMaxSpBonus } from './helpers.js'
 
-const battleCrawler = SalvageUnionReference.Crawlers.find((c) => c.name === 'Battle')!
-const engineeringCrawler = SalvageUnionReference.Crawlers.find((c) => c.name === 'Engineering')!
+/** Narrow away null/undefined; throws (failing the test) when the value is missing. */
+function defined<T>(value: T | null | undefined): T {
+  if (value === null || value === undefined) {
+    throw new Error('Expected value to be defined')
+  }
+  return value
+}
+
+const battleCrawler = defined(SalvageUnionReference.Crawlers.find((c) => c.name === 'Battle'))
+const engineeringCrawler = defined(
+  SalvageUnionReference.Crawlers.find((c) => c.name === 'Engineering')
+)
 
 describe('getCrawlerMutations', () => {
   it('returns mutations for Battle crawler', () => {

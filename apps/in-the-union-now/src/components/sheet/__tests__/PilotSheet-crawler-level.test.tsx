@@ -32,10 +32,7 @@ let SNIPER_ID = ''
 
 beforeAll(async () => {
   await SalvageUnionReference.preload('all')
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const sniper = (SalvageUnionReference.Equipment.all() as any[]).find(
-    (e) => e.name === SNIPER_NAME
-  )
+  const sniper = SalvageUnionReference.Equipment.all().find((e) => e.name === SNIPER_NAME)
   if (!sniper) throw new Error(`Fixture setup: equipment "${SNIPER_NAME}" not found in reference`)
   SNIPER_ID = sniper.id
 })
@@ -114,12 +111,9 @@ function makeStore(opts: {
       if (type === 'pilot') return id === pilot.id ? pilot : null
       if (type === 'crawler') return crawler && id === crawler.id ? crawler : null
       return null
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    }) as any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    create: mock(async () => pilot) as any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    update: updateMock as any,
+    }),
+    create: mock(async () => pilot),
+    update: updateMock,
     delete: mock(async () => {}),
   }
   const store = (() => storeState) as unknown as typeof useEntityStore

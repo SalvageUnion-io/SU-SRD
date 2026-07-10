@@ -2,6 +2,14 @@ import { describe, it, expect } from 'bun:test'
 import { parseTree } from 'jsonc-parser'
 import { addEntity, setField } from './editDataLogic.js'
 
+/** Narrow away null/undefined; throws (failing the test) when the value is missing. */
+function defined<T>(value: T | null | undefined): T {
+  if (value === null || value === undefined) {
+    throw new Error('Expected value to be defined')
+  }
+  return value
+}
+
 /**
  * In-memory fixture (NOT a committed .json file). This is deliberate: the
  * whole point of editDataLogic.ts is producing output the repo's prettier
@@ -55,15 +63,16 @@ describe('addEntity', () => {
     expect(resultSpans[1]).toBe(originalSpans[1])
     expect(resultSpans[2]).toBe(originalSpans[2])
 
-    expect(JSON.parse(resultSpans[3]!)).toEqual(newEntity)
+    expect(JSON.parse(defined(resultSpans[3]))).toEqual(newEntity)
     expect(JSON.parse(result)).toEqual([...JSON.parse(FIXTURE), newEntity])
   })
 
   it('leaves everything up to and including the last original entity byte-identical', () => {
     const result = addEntity(FIXTURE, { id: 'dddd-4444', name: 'Delta' })
 
-    const tree = parseTree(FIXTURE)!
-    const lastOriginalChild = tree.children![tree.children!.length - 1]!
+    const tree = defined(parseTree(FIXTURE))
+    const children = defined(tree.children)
+    const lastOriginalChild = defined(children[children.length - 1])
     const prefixEnd = lastOriginalChild.offset + lastOriginalChild.length
 
     expect(result.slice(0, prefixEnd)).toBe(FIXTURE.slice(0, prefixEnd))
@@ -104,8 +113,8 @@ describe('setField', () => {
   it('leaves all text before and after the edited entity byte-identical', () => {
     const result = setField(FIXTURE, { id: 'bbbb-2222' }, 'name', 'Bravo Two')
 
-    const tree = parseTree(FIXTURE)!
-    const target = tree.children![1]!
+    const tree = defined(parseTree(FIXTURE))
+    const target = defined(tree.children?.[1])
     const beforeOffset = target.offset
     const afterOffset = target.offset + target.length
 

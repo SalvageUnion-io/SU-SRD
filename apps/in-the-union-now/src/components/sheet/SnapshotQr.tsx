@@ -50,6 +50,7 @@ export function SnapshotQr({ url }: SnapshotQrProps) {
       className="h-[84px] w-[84px] shrink-0 rounded-[3px] border-chrome border-ink bg-white p-1 [&>svg]:h-full [&>svg]:w-full"
       // Trusted markup: generated locally by the qrcode encoder from module
       // geometry — the URL is encoded as QR modules, never interpolated as HTML.
+      // biome-ignore lint/security/noDangerouslySetInnerHtml: SVG string is produced locally by the qrcode encoder from module geometry; no user-controlled HTML can reach it
       dangerouslySetInnerHTML={{ __html: svg }}
     />
   )

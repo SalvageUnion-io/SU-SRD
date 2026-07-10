@@ -3,6 +3,12 @@ import { render, screen, fireEvent, cleanup } from '@testing-library/react'
 import { CardHeader } from '../CardHeader'
 import type { ReferenceEntityControl } from '../../referenceEntity/ReferenceEntityDisplay/referenceEntityControlTypes'
 
+/** Narrow a possibly-null query result, failing the test loudly if absent. */
+function must<T>(value: T | null | undefined): T {
+  if (value == null) throw new Error('Expected element to be present')
+  return value
+}
+
 function makeControl(overrides: Partial<ReferenceEntityControl> = {}): ReferenceEntityControl {
   return {
     key: 'test',
@@ -66,7 +72,7 @@ describe('CardHeader', () => {
     const left = screen.getByTestId('left')
     const title = screen.getByText('Title')
     // Both should be in the same parent flex container
-    expect(left.parentElement).toBe(title.parentElement!.parentElement)
+    expect(left.parentElement).toBe(must(title.parentElement).parentElement)
   })
 
   test('rightContent renders before controls', () => {

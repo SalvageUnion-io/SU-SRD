@@ -7,9 +7,12 @@ import { CargoLotEditor } from './CargoLotEditor'
 type MechIdentityStepProps = {
   name: string
   onNameChange: (name: string) => void
-  /** Freeform description / appearance / quirk notes. */
-  description: string
-  onDescriptionChange: (value: string) => void
+  /** Short freeform quirk note. */
+  quirk: string
+  onQuirkChange: (value: string) => void
+  /** Freeform appearance note. */
+  appearance: string
+  onAppearanceChange: (value: string) => void
   cargoLots: CargoLot[]
   onCargoChange: (lots: CargoLot[]) => void
   /** Cargo capacity from the chassis — soft cap, shown but never enforced. */
@@ -24,8 +27,10 @@ type MechIdentityStepProps = {
 export function MechIdentityStep({
   name,
   onNameChange,
-  description,
-  onDescriptionChange,
+  quirk,
+  onQuirkChange,
+  appearance,
+  onAppearanceChange,
   cargoLots,
   onCargoChange,
   cargoMax,
@@ -46,12 +51,22 @@ export function MechIdentityStep({
         />
       </Field>
 
-      <Field label="Description" htmlFor="mech-description">
+      <Field label="Quirk" htmlFor="mech-quirk">
+        <Input
+          id="mech-quirk"
+          type="text"
+          value={quirk}
+          onChange={(e) => onQuirkChange(e.target.value)}
+          placeholder="e.g. Rattletrap — sounds like it's dying even when it's fine."
+        />
+      </Field>
+
+      <Field label="Appearance" htmlFor="mech-appearance">
         <textarea
-          id="mech-description"
-          value={description}
-          onChange={(e) => onDescriptionChange(e.target.value)}
-          placeholder="What it does, how it looks, any quirks."
+          id="mech-appearance"
+          value={appearance}
+          onChange={(e) => onAppearanceChange(e.target.value)}
+          placeholder="How it looks — plating, paint, silhouette."
           rows={4}
           className="w-full rounded-[3px] border-chrome border-ink bg-paper px-3 py-2.5 font-body text-sm text-ink placeholder:text-wk-faint focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22]"
         />

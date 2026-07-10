@@ -148,6 +148,7 @@ export function useSearchCombobox({
 
   // Re-run the pending query when data finishes loading, cancelling any
   // stale debounce timer that fired with the pre-ready closure.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentionally keyed to `ready` only — re-running on every query/performSearch change would bypass the debounce
   useEffect(() => {
     if (ready && query.trim()) {
       if (debounceRef.current) clearTimeout(debounceRef.current)

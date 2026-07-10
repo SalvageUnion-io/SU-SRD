@@ -22,7 +22,7 @@ type ActionCardErowProps = {
 
 export function ActionCardErow({ ability, footMeta, actions }: ActionCardErowProps) {
   return (
-    <Erow mode="rail" grow={1.35} footMeta={footMeta} actions={actions}>
+    <Erow mode="rail" footMeta={footMeta} actions={actions}>
       <ActionCard data={ability} parentHeaderBgColor="var(--color-sheet-mech-deep)" />
     </Erow>
   )

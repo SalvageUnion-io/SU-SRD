@@ -8,7 +8,6 @@
  */
 
 export {
-  useCrawler,
   useCrawlers,
   useEntity,
   useMech,

@@ -14,6 +14,12 @@ const equipment = SalvageUnionReference.Equipment.find((e) => e.name === 'Rifle'
 
 afterEach(cleanup)
 
+/** Narrow a possibly-null query result, failing the test loudly if absent. */
+function must<T>(value: T | null | undefined): T {
+  if (value == null) throw new Error('Expected element to be present')
+  return value
+}
+
 describe('fixtures', () => {
   test('resolve', () => {
     expect(system).toBeDefined()
@@ -24,7 +30,7 @@ describe('fixtures', () => {
 describe('mode sugar', () => {
   test("mode='head' renders header-only (no body content)", () => {
     const { container } = render(<ReferenceEntityDisplay data={system} mode="head" />)
-    expect(screen.getByText(system!.name)).toBeTruthy()
+    expect(screen.getByText(must(system).name)).toBeTruthy()
     // listing mode renders no white body box
     expect(container.querySelector('.bg-su-white.mx-3')).toBeNull()
   })
@@ -32,7 +38,7 @@ describe('mode sugar', () => {
   test('explicit booleans still win over mode', () => {
     render(<ReferenceEntityDisplay data={system} mode="head" listing={false} />)
     // body renders because listing=false overrides head
-    expect(screen.getByText(system!.name)).toBeTruthy()
+    expect(screen.getByText(must(system).name)).toBeTruthy()
   })
 })
 
@@ -105,7 +111,7 @@ describe('footActions / footMeta', () => {
     render(
       <ReferenceEntityDisplay
         data={equipment}
-        footActions={<button>Spend AP</button>}
+        footActions={<button type="button">Spend AP</button>}
         footMeta={[{ label: 'AP Cost', value: 1 }]}
       />
     )
@@ -118,7 +124,7 @@ describe('footActions / footMeta', () => {
       <ReferenceEntityDisplay
         data={equipment}
         hide={{ footer: true }}
-        footActions={<button>Use</button>}
+        footActions={<button type="button">Use</button>}
       />
     )
     expect(screen.getByRole('button', { name: 'Use' })).toBeTruthy()

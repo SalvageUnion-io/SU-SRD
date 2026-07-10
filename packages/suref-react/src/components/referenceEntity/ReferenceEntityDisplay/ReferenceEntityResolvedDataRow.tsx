@@ -54,7 +54,9 @@ function toResolvable(data: SURefEntity): SURefEntity | { content: SURefObjectCo
   }
   const range = getRange(data)
   if (range) {
-    range.forEach((r) => datavalues.push({ label: 'Range', type: 'keyword', value: r }))
+    for (const r of range) {
+      datavalues.push({ label: 'Range', type: 'keyword', value: r })
+    }
   }
   const block: SURefObjectContentBlock = { type: 'datavalues', value: datavalues }
   return { content: [block], traits: getTraits(data) ?? [] }
@@ -103,12 +105,14 @@ export function ReferenceEntityResolvedDataRow({
         if (unit && item.value !== undefined) {
           return (
             <DataValueDisplayView
+              // biome-ignore lint/suspicious/noArrayIndexKey: row items are re-resolved per render from static data + selections; never reordered
               key={`dv-${index}`}
               item={{ label: item.label, value: `${item.value}||${unit}`, type: 'segmented' }}
               compact={compact}
             />
           )
         }
+        // biome-ignore lint/suspicious/noArrayIndexKey: row items are re-resolved per render from static data + selections; never reordered
         return <DataValueDisplayView key={`dv-${index}`} item={item} compact={compact} />
       })}
       {view.prompts.map((prompt) => {

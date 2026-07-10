@@ -47,6 +47,7 @@ export function CardImage({ url, alt, compact, editable, width, height }: CardIm
   // a microtask so it lands after the hydration commit instead of mutating state
   // during it, which would desync the server-rendered markup and force a tree
   // regeneration (React #418).
+  // biome-ignore lint/correctness/useExhaustiveDependencies: displayUrl is an intentional extra dep — the cached-load check must re-run whenever the image URL swaps
   useEffect(() => {
     const node = imgRef.current
     if (node?.complete && node.naturalWidth > 0) {
@@ -115,6 +116,7 @@ export function CardImage({ url, alt, compact, editable, width, height }: CardIm
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
+              aria-hidden="true"
             >
               <line x1="2" x2="22" y1="2" y2="22" />
               <path d="M10.41 10.41a2 2 0 1 1-2.83-2.83" />

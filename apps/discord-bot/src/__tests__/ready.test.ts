@@ -41,8 +41,8 @@ describe('handleReady', () => {
     const { client, presences } = mockClient()
     handleReady(client)
     expect(presences).toHaveLength(1)
-    expect(presences[0]!.status).toBe('online')
-    expect(presences[0]!.activities?.[0]).toEqual({
+    expect(presences[0]?.status).toBe('online')
+    expect(presences[0]?.activities?.[0]).toEqual({
       name: 'Salvage Union',
       type: ActivityType.Playing,
     })

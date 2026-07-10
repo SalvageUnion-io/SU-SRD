@@ -4,9 +4,9 @@
  * Creates comprehensive docs with field descriptions, required/optional fields, and examples
  */
 
-import { readFileSync, writeFileSync, mkdirSync } from 'fs'
-import { join, dirname } from 'path'
-import { fileURLToPath } from 'url'
+import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
+import { join, dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -89,7 +89,7 @@ function generateExampleJson(_schema: Record<string, unknown>, data: unknown[]):
 
   // Get first item as example
   const example = data[0]
-  return '```json\n' + JSON.stringify(example, null, 2) + '\n```'
+  return `\`\`\`json\n${JSON.stringify(example, null, 2)}\n\`\`\``
 }
 
 function generateSchemaDoc(schemaInfo: SchemaInfo): string {

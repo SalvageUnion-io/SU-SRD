@@ -124,7 +124,7 @@ describe('DisplayCard footActions / footMeta', () => {
       <DisplayCard
         headerContent={<span>H</span>}
         footerContent={<span>Source</span>}
-        footActions={<button>Repair</button>}
+        footActions={<button type="button">Repair</button>}
         footMeta={[{ label: 'AP Cost', value: 1 }]}
       >
         <span>Body</span>
@@ -138,7 +138,7 @@ describe('DisplayCard footActions / footMeta', () => {
 
   test('force the foot band even without footerContent', () => {
     render(
-      <DisplayCard headerContent={<span>H</span>} footActions={<button>Use</button>}>
+      <DisplayCard headerContent={<span>H</span>} footActions={<button type="button">Use</button>}>
         <span>Body</span>
       </DisplayCard>
     )

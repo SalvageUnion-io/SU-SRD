@@ -32,5 +32,22 @@ export type SheetViewCommonProps = {
   /** Cross-type read used by mech Push (freshest record). */
   lookup: EntityLookup
   /** Persist a partial patch on the sheet's own entity (fire-and-forget). */
-  patch: (fields: Partial<Pilot> & Partial<Mech> & Partial<Crawler>) => void
+  patch: SheetPatch
 }
+
+/** Fields a sheet patch may set on its own entity. */
+export type SheetPatchFields = Partial<Pilot> & Partial<Mech> & Partial<Crawler>
+
+/**
+ * Persist a partial patch on the sheet's own entity (fire-and-forget).
+ *
+ * Accepts either a plain fields object, or an updater `(current) => fields`
+ * that receives the FRESHEST store record. Array edits (loadout, abilities,
+ * weapons) MUST use the updater form: `store.update` awaits an IndexedDB write
+ * before it re-renders, so computing `[...prop.array, x]` from the render-time
+ * prop races on rapid clicks and silently drops a selection. The updater reads
+ * live in-memory state instead (same guard as SheetPilot's `toggleUsed`).
+ */
+export type SheetPatch = (
+  input: SheetPatchFields | ((current: Pilot | Mech | Crawler) => SheetPatchFields)
+) => void

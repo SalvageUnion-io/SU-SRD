@@ -106,12 +106,12 @@ describe('entityStore — create', () => {
     // In-memory list reflects the new record
     const pilots = useEntityStore.getState().list('pilot')
     expect(pilots.length).toBe(1)
-    expect(pilots[0]!.id).toBe(created.id)
+    expect(pilots[0]?.id).toBe(created.id)
 
     // db also has it
     const fromDb = await dbPilots.get(created.id)
     expect(fromDb).not.toBeNull()
-    expect(fromDb!.name).toBe('Yara Voss')
+    expect(fromDb?.name).toBe('Yara Voss')
   })
 })
 
@@ -167,7 +167,7 @@ describe('entityStore — Zod error propagation', () => {
     await useEntityStore.getState().hydrate('pilot')
 
     const badInput = { ...basePilotInput } as Record<string, unknown>
-    delete badInput['classRef'] // required field
+    delete badInput.classRef // required field
 
     await expect(
       useEntityStore.getState().create('pilot', badInput as Parameters<typeof dbPilots.create>[0])

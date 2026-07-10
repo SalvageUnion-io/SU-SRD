@@ -68,7 +68,6 @@ export function NestedActionDisplay({
   // Match ReferenceEntityDisplay fontSize.sm: compact ? 'xs' : 'sm'
   const fontSize = compact ? 'text-xs' : 'text-sm'
   const verticalSpacing = compact ? 'py-1 gap-1' : 'py-2 gap-2'
-  const hasContent = data.content && data.content.length > 0
   // Resolve table: direct property first, then look up roll table by action name
   const resolvedTable: SURefObjectTable | undefined = (() => {
     if (data.table !== undefined && data.table !== null) return data.table
@@ -77,7 +76,9 @@ export function NestedActionDisplay({
   })()
   const hasTable = resolvedTable !== undefined
 
-  const hasContentToRender = hasContent && !hideContent
+  const contentBlocks =
+    !hideContent && data.content && data.content.length > 0 ? data.content : undefined
+  const hasContentToRender = contentBlocks !== undefined
   const requiredTraits = getRequiredTraits(data)
 
   const displayName = getReferenceEntityName(data) || data.name
@@ -106,6 +107,7 @@ export function NestedActionDisplay({
               )}
             >
               {details.map((item, index) => (
+                // biome-ignore lint/suspicious/noArrayIndexKey: details are re-extracted per render from static reference data and never reordered
                 <DataValueDisplayView key={index} item={item} compact={compact} />
               ))}
             </div>
@@ -121,7 +123,7 @@ export function NestedActionDisplay({
             </p>
           )}
 
-          {hasContentToRender && (
+          {contentBlocks && (
             <div
               className={cn(
                 'flex flex-col items-stretch',
@@ -131,7 +133,7 @@ export function NestedActionDisplay({
               )}
             >
               <BlockContentRendererView
-                content={data.content!}
+                content={contentBlocks}
                 fontSize={fontSize}
                 compact={compact}
               />
@@ -141,11 +143,11 @@ export function NestedActionDisplay({
       )}
 
       {/* Roll table: outside the border */}
-      {hasTable && (
+      {resolvedTable && (
         <div className="relative z-10 rounded-md">
           <RollTable
             disabled={false}
-            table={resolvedTable!}
+            table={resolvedTable}
             showCommand
             compact
             tableName={displayName}

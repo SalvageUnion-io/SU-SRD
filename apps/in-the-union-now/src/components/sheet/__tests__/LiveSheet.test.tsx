@@ -11,6 +11,7 @@ import { act, cleanup, render, screen } from '@testing-library/react'
 
 import { LiveSheet } from '../LiveSheet'
 import { Ecflow, Erow } from '../Erow'
+import { must } from '../../__tests__/must'
 
 afterEach(() => {
   cleanup()
@@ -36,8 +37,8 @@ class MockIntersectionObserver {
 
 beforeEach(() => {
   observerCallbacks = []
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ;(globalThis as any).IntersectionObserver = MockIntersectionObserver
+  globalThis.IntersectionObserver =
+    MockIntersectionObserver as unknown as typeof IntersectionObserver
 })
 
 function renderShell(props: Partial<Parameters<typeof LiveSheet>[0]> = {}) {
@@ -83,7 +84,7 @@ describe('LiveSheet — condense strip gating (S11)', () => {
     expect(observerCallbacks.length).toBe(1)
 
     act(() => {
-      observerCallbacks[0]!([{ isIntersecting: false }])
+      must(observerCallbacks[0])([{ isIntersecting: false }])
     })
 
     const wrapper = stripWrapper()
@@ -98,10 +99,10 @@ describe('LiveSheet — condense strip gating (S11)', () => {
   test('hero back in view: strip hides again', () => {
     renderShell()
     act(() => {
-      observerCallbacks[0]!([{ isIntersecting: false }])
+      must(observerCallbacks[0])([{ isIntersecting: false }])
     })
     act(() => {
-      observerCallbacks[0]!([{ isIntersecting: true }])
+      must(observerCallbacks[0])([{ isIntersecting: true }])
     })
     expect(stripWrapper().getAttribute('aria-hidden')).toBe('true')
   })
@@ -122,7 +123,7 @@ describe('LiveSheet — strip values and syncStats', () => {
   test('syncStats overlays derived values onto matching strip keys', () => {
     renderShell({ syncStats: { cargo: 4 } })
     act(() => {
-      observerCallbacks[0]!([{ isIntersecting: false }])
+      must(observerCallbacks[0])([{ isIntersecting: false }])
     })
     expect(screen.getByLabelText('Hold 4 of 6')).toBeTruthy()
     // Non-overlaid keys keep their own value
@@ -147,7 +148,7 @@ describe('LiveSheet — strip values and syncStats', () => {
       ],
     })
     act(() => {
-      observerCallbacks[0]!([{ isIntersecting: false }])
+      must(observerCallbacks[0])([{ isIntersecting: false }])
     })
     // Priority readout always visible; non-priority carries the fold classes.
     expect(screen.getByLabelText('SP 5 of 8').className).not.toContain('hidden')
@@ -171,6 +172,7 @@ type StubCardProps = {
   footMeta?: Array<{ label: string; value: React.ReactNode }>
 }
 
+// biome-ignore lint/style/useComponentExportOnlyModules: test-local stub component; Fast Refresh does not apply to test files
 function StubCard({ footActions, footMeta }: StubCardProps) {
   return (
     <div>
@@ -201,14 +203,18 @@ describe('Erow — mode card (shipped default)', () => {
     expect(screen.getByText('AP Cost: 1')).toBeTruthy()
   })
 
-  test('grow weights the flex basis', () => {
+  test('Ecflow caps the entity-card grid at 2 columns on desktop, 1 on mobile', () => {
+    // Redesign rule: max 2 columns for any entity-card grid.
     const { container } = render(
-      <Erow grow={1.35}>
-        <StubCard />
-      </Erow>
+      <Ecflow>
+        <Erow>
+          <StubCard />
+        </Erow>
+      </Ecflow>
     )
-    const item = container.firstElementChild as HTMLElement
-    expect(item.style.flex).toContain('1.35')
+    const grid = container.firstElementChild as HTMLElement
+    expect(grid.className).toContain('grid-cols-1')
+    expect(grid.className).toContain('md:grid-cols-2')
   })
 })
 

@@ -84,9 +84,9 @@ export function EntityBodyTopMatter({
 
   const prose = (
     <>
-      {showContent && (
+      {showContent && contentBlocks && (
         <BlockContentRendererView
-          content={contentBlocks!}
+          content={contentBlocks}
           fontSize={fontSize.sm}
           compact={compact}
           headerBg={headerBg}

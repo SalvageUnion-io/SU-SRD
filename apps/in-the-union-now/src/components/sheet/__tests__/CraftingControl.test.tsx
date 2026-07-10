@@ -47,12 +47,15 @@ function patchReference(): () => void {
     SalvageUnionReference.Systems.all.bind(SalvageUnionReference.Systems),
     SalvageUnionReference.Modules.all.bind(SalvageUnionReference.Modules),
   ] as const
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  SalvageUnionReference.Chassis.all = mock(() => MOCK_CHASSIS as any)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  SalvageUnionReference.Systems.all = mock(() => MOCK_SYSTEMS as any)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  SalvageUnionReference.Modules.all = mock(() => MOCK_MODULES as any)
+  SalvageUnionReference.Chassis.all = mock(
+    () => MOCK_CHASSIS as unknown as ReturnType<typeof SalvageUnionReference.Chassis.all>
+  )
+  SalvageUnionReference.Systems.all = mock(
+    () => MOCK_SYSTEMS as unknown as ReturnType<typeof SalvageUnionReference.Systems.all>
+  )
+  SalvageUnionReference.Modules.all = mock(
+    () => MOCK_MODULES as unknown as ReturnType<typeof SalvageUnionReference.Modules.all>
+  )
   return () => {
     SalvageUnionReference.Chassis.all = originals[0]
     SalvageUnionReference.Systems.all = originals[1]

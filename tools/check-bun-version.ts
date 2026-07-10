@@ -10,9 +10,9 @@
  * check:all whenever any surface disagrees with .bun-version.
  */
 
-import { readFileSync } from 'fs'
-import { dirname, join } from 'path'
-import { fileURLToPath } from 'url'
+import { readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const expected = readFileSync(join(root, '.bun-version'), 'utf-8').trim()

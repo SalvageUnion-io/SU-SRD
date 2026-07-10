@@ -34,7 +34,7 @@ function main(): void {
   const { staleRootFiles, unexpected, allowlisted, staleAllowlist } = runOrphanCheck(filesByName)
 
   if (staleRootFiles.length > 0) {
-    console.error('\n' + '='.repeat(80))
+    console.error(`\n${'='.repeat(80)}`)
     console.error(`Stale allowlist entries: ${staleRootFiles.length} root file(s) no longer exist.`)
     for (const file of staleRootFiles) {
       console.error(`  - ${file} (listed in ROOT_FILES but missing from data/)`)
@@ -46,7 +46,7 @@ function main(): void {
     process.exit(1)
   }
 
-  console.log('\n' + '='.repeat(80))
+  console.log(`\n${'='.repeat(80)}`)
 
   if (allowlisted.length > 0) {
     console.log(
@@ -77,10 +77,12 @@ function main(): void {
 
     const orphansByFile = new Map<string, typeof unexpected>()
     for (const orphan of unexpected) {
-      if (!orphansByFile.has(orphan.file)) {
-        orphansByFile.set(orphan.file, [])
+      let fileOrphans = orphansByFile.get(orphan.file)
+      if (!fileOrphans) {
+        fileOrphans = []
+        orphansByFile.set(orphan.file, fileOrphans)
       }
-      orphansByFile.get(orphan.file)!.push(orphan)
+      fileOrphans.push(orphan)
     }
 
     for (const [file, fileOrphans] of orphansByFile.entries()) {

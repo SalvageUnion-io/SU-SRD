@@ -9,6 +9,12 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 
 import { useSearchCombobox } from '../useSearchCombobox'
 
+/** Narrow a possibly-null query result, failing the test loudly if absent. */
+function must<T>(value: T | null | undefined): T {
+  if (value == null) throw new Error('Expected element to be present')
+  return value
+}
+
 beforeAll(async () => {
   await SalvageUnionReference.preload('all')
 })
@@ -60,7 +66,7 @@ describe('useSearchCombobox', () => {
     act(() => {
       result.current.handleKeyDown({ key: 'Enter', preventDefault })
     })
-    expect(picked).toEqual([result.current.results[0]!.id])
+    expect(picked).toEqual([must(result.current.results[0]).id])
 
     act(() => {
       result.current.handleKeyDown({ key: 'ArrowUp', preventDefault })

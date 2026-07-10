@@ -20,7 +20,7 @@ import { runActionBackrefCheck } from './validateActionBackrefsLogic.js'
 function main(): void {
   const violations = runActionBackrefCheck(loadAllDataFiles())
 
-  console.log('\n' + '='.repeat(80))
+  console.log(`\n${'='.repeat(80)}`)
   if (violations.length === 0) {
     console.log('✅ Every namesake action is referenced by its source entity.')
     process.exit(0)

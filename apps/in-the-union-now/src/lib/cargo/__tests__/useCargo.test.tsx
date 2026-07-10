@@ -116,9 +116,9 @@ describe('useCargo — persistence', () => {
       id: 'mech-1',
       patch: { cargoLots: [] },
     })
-    expect(captured[1]!.type).toBe('crawler')
-    expect(captured[1]!.patch['cargoLots']).toEqual([unitLot])
-    expect(captured[1]!.patch['scrapPool']).toEqual({})
+    expect(captured[1]?.type).toBe('crawler')
+    expect(captured[1]?.patch.cargoLots).toEqual([unitLot])
+    expect(captured[1]?.patch.scrapPool).toEqual({})
   })
 
   test('scrap stow round-trips through the crawler TL bucket', async () => {
@@ -134,8 +134,8 @@ describe('useCargo — persistence', () => {
 
     const outcome = await result.current.stow(scrap.id)
     expect(outcome.ok).toBe(true)
-    expect(captured[1]!.patch['scrapPool']).toEqual({ tl3: 3 })
-    expect(captured[1]!.patch['cargoLots']).toEqual([])
+    expect(captured[1]?.patch.scrapPool).toEqual({ tl3: 3 })
+    expect(captured[1]?.patch.cargoLots).toEqual([])
   })
 
   test('withdrawScrap mints the lot on the mech and decrements the pool', async () => {
@@ -150,14 +150,14 @@ describe('useCargo — persistence', () => {
 
     const outcome = await result.current.withdrawScrap(2, 3)
     expect(outcome.ok).toBe(true)
-    const mechPatch = captured[0]!.patch['cargoLots'] as CargoLot[]
+    const mechPatch = captured[0]?.patch.cargoLots as CargoLot[]
     expect(mechPatch[0]).toMatchObject({
       cat: 'SCRAP',
       tl: 2,
       qty: 3,
       units: 3,
     })
-    expect(captured[1]!.patch['scrapPool']).toEqual({ tl2: 2 })
+    expect(captured[1]?.patch.scrapPool).toEqual({ tl2: 2 })
   })
 
   test('a refused transfer persists nothing', async () => {

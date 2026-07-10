@@ -18,6 +18,7 @@ import { renderHook, act } from '@testing-library/react'
 import { useSoftLinks, resolveLinkType } from '../useSoftLinks'
 import type { SoftLinkStore } from '../useSoftLinks'
 import type { SoftLink } from '../../../lib/schemas/softLink'
+import { must } from '../../__tests__/must'
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -98,7 +99,7 @@ describe('useSoftLinks — outgoing / incoming filtering', () => {
     )
 
     expect(result.current.outgoing).toHaveLength(1)
-    expect(result.current.outgoing[0]!.id).toBe('link-1')
+    expect(must(result.current.outgoing[0]).id).toBe('link-1')
   })
 
   test('incoming: returns links where to matches entity', () => {
@@ -110,7 +111,7 @@ describe('useSoftLinks — outgoing / incoming filtering', () => {
     )
 
     expect(result.current.incoming).toHaveLength(1)
-    expect(result.current.incoming[0]!.id).toBe('link-1')
+    expect(must(result.current.incoming[0]).id).toBe('link-1')
   })
 
   test('no match: outgoing and incoming are empty', () => {
@@ -145,9 +146,9 @@ describe('useSoftLinks — assign', () => {
 
     expect(store.create).toHaveBeenCalledTimes(1)
     expect(created).toBeDefined()
-    expect(created!.from).toEqual({ type: 'mech', id: 'mech-1' })
-    expect(created!.to).toEqual({ type: 'pilot', id: 'pilot-42' })
-    expect(created!.type).toBe('mech-to-pilot')
+    expect(must(created).from).toEqual({ type: 'mech', id: 'mech-1' })
+    expect(must(created).to).toEqual({ type: 'pilot', id: 'pilot-42' })
+    expect(must(created).type).toBe('mech-to-pilot')
   })
 
   test('assign() pilot→crawler uses pilot-to-crawler type', async () => {
@@ -162,9 +163,9 @@ describe('useSoftLinks — assign', () => {
       created = await result.current.assign({ type: 'crawler', id: 'crawler-7' })
     })
 
-    expect(created!.type).toBe('pilot-to-crawler')
-    expect(created!.from).toEqual({ type: 'pilot', id: 'pilot-1' })
-    expect(created!.to).toEqual({ type: 'crawler', id: 'crawler-7' })
+    expect(must(created).type).toBe('pilot-to-crawler')
+    expect(must(created).from).toEqual({ type: 'pilot', id: 'pilot-1' })
+    expect(must(created).to).toEqual({ type: 'crawler', id: 'crawler-7' })
   })
 })
 
@@ -214,6 +215,6 @@ describe('useSoftLinks — orphan semantics', () => {
     // the SoftLink remains in our fake store.
     // (In production, entityStore.delete('pilot', 'pilot-1') does not touch softLinks.)
     expect(store._links).toHaveLength(1)
-    expect(store._links[0]!.to.id).toBe('pilot-1')
+    expect(must(store._links[0]).to.id).toBe('pilot-1')
   })
 })

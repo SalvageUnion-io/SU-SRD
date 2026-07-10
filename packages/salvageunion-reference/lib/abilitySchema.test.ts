@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'bun:test'
 import { SalvageUnionReference } from './index.js'
 
+/** Narrow away null/undefined; throws (failing the test) when the value is missing. */
+function defined<T>(value: T | null | undefined): T {
+  if (value === null || value === undefined) {
+    throw new Error('Expected value to be defined')
+  }
+  return value
+}
+
 describe('AbilitySchema optionality audit', () => {
   it('all abilities have an actions array (required field)', () => {
     const abilities = SalvageUnionReference.Abilities.all()
@@ -72,8 +80,8 @@ describe('AbilitySchema optionality audit', () => {
     expect(withActivationCurrency.length).toBe(1)
 
     // Verify the ability that has it
-    expect(withActivationCurrency[0]!.name).toBe('Area Salvage')
-    expect(withActivationCurrency[0]!.activationCurrency).toBe('Variable')
+    expect(defined(withActivationCurrency[0]).name).toBe('Area Salvage')
+    expect(defined(withActivationCurrency[0]).activationCurrency).toBe('Variable')
   })
 
   it('description is present on 100 out of 103 abilities', () => {

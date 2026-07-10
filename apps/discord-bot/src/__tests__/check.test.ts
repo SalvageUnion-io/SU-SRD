@@ -34,9 +34,11 @@ function embedData(reply: ReplyArg): {
   title?: string
   fields?: { name: string; value: string }[]
 } {
-  return (
-    reply.embeds![0] as { data: { title?: string; fields?: { name: string; value: string }[] } }
-  ).data
+  const embed = reply.embeds?.[0] as
+    | { data: { title?: string; fields?: { name: string; value: string }[] } }
+    | undefined
+  if (!embed) throw new Error('expected an embed on the reply')
+  return embed.data
 }
 
 describe('buildCheckMessage', () => {
@@ -52,8 +54,8 @@ describe('buildCheckMessage', () => {
     const total = data.fields?.find((f) => f.name === 'Total')
     expect(total).toBeDefined()
     // 2d6+3 ranges 5..15 — a real sum, always present.
-    expect(Number(total!.value)).toBeGreaterThanOrEqual(5)
-    expect(Number(total!.value)).toBeLessThanOrEqual(15)
+    expect(Number(total?.value)).toBeGreaterThanOrEqual(5)
+    expect(Number(total?.value)).toBeLessThanOrEqual(15)
     // A "Roll again" button rides along.
     expect(message.components).toHaveLength(1)
   })
@@ -73,7 +75,7 @@ describe('buildCheckMessage', () => {
   test('stamps the Salvage Union author when given the bot avatar URL', () => {
     const message = buildCheckMessage('2d6+3', 'https://cdn.example/avatar.png')
     if ('error' in message) throw new Error('expected a roll, got an error')
-    const json = message.embeds[0]!.toJSON() as {
+    const json = message.embeds[0]?.toJSON() as {
       author?: { name?: string; icon_url?: string }
     }
     expect(json.author?.name).toBe('Salvage Union')
@@ -83,7 +85,7 @@ describe('buildCheckMessage', () => {
   test('omits the author when no avatar URL is available', () => {
     const message = buildCheckMessage('2d6+3')
     if ('error' in message) throw new Error('expected a roll, got an error')
-    const json = message.embeds[0]!.toJSON() as { author?: unknown }
+    const json = message.embeds[0]?.toJSON() as { author?: unknown }
     expect(json.author).toBeUndefined()
   })
 })
@@ -93,17 +95,21 @@ describe('checkCommand.execute', () => {
     const { interaction, replies } = mockChatInput('1d20+5')
     await checkCommand.execute(interaction)
     expect(replies).toHaveLength(1)
-    expect(replies[0]!.embeds).toHaveLength(1)
-    expect(replies[0]!.flags).toBeUndefined()
-    expect(embedData(replies[0]!).title).toContain('1d20+5')
+    const reply = replies[0]
+    if (!reply) throw new Error('expected a reply')
+    expect(reply.embeds).toHaveLength(1)
+    expect(reply.flags).toBeUndefined()
+    expect(embedData(reply).title).toContain('1d20+5')
   })
 
   test('invalid notation replies with an ephemeral error, not an embed', async () => {
     const { interaction, replies } = mockChatInput('garbage')
     await checkCommand.execute(interaction)
     expect(replies).toHaveLength(1)
-    expect(replies[0]!.embeds).toBeUndefined()
-    expect(replies[0]!.content).toContain('garbage')
-    expect(replies[0]!.flags).toBe(MessageFlags.Ephemeral)
+    const reply = replies[0]
+    if (!reply) throw new Error('expected a reply')
+    expect(reply.embeds).toBeUndefined()
+    expect(reply.content).toContain('garbage')
+    expect(reply.flags).toBe(MessageFlags.Ephemeral)
   })
 })

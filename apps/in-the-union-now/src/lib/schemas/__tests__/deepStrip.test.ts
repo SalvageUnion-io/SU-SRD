@@ -134,7 +134,7 @@ describe('deepStrip', () => {
     })
     expect(result.success).toBe(true)
     if (result.success) {
-      expect(result.data.innerMap['slot1']).toEqual({ id: 'm', kind: 'a' })
+      expect(result.data.innerMap.slot1).toEqual({ id: 'm', kind: 'a' })
     }
   })
 

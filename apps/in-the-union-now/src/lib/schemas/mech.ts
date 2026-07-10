@@ -116,10 +116,19 @@ export const MechSchema = z
     cargoLots: z.array(CargoLotSchema),
     /** Optional: name of the paint/visual pattern applied */
     patternName: z.string().optional(),
+    /** Short freeform quirk note (the poster's "Quirk"). Additive-optional. */
+    quirk: z.string().optional(),
     /**
-     * Freeform description / appearance / quirk notes. Additive-optional (no DB
-     * migration — absent reads as undefined). Rendered on the mech sheet, edited
-     * in the wizard.
+     * Freeform appearance note (the poster's "Appearance"). Additive-optional.
+     * Supersedes `description` (below), which is kept only as a read-fallback for
+     * records written before the Quirk/Appearance split and heals into
+     * `appearance` on the next save.
+     */
+    appearance: z.string().optional(),
+    /**
+     * @deprecated Superseded by `quirk` + `appearance`. Kept optional for
+     * back-compat / read-fallback (absent reads as undefined); cleared on the
+     * next wizard/sheet save. Do not write new values.
      */
     description: z.string().optional(),
     /**

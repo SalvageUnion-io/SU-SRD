@@ -3,6 +3,7 @@ import { NestedChassisAbility } from './NestedChassisAbility'
 import { SalvageUnionReference, getChassisAbilities } from 'salvageunion-reference'
 import type { SURefMetaAction } from 'salvageunion-reference'
 
+// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'ReferenceEntity/NestedChassisAbility',
 }
@@ -61,8 +62,8 @@ export const MultipleAbilities: Story = () => {
   const name = chassis && 'name' in chassis ? String(chassis.name) : 'Salvager'
   return (
     <div className="flex flex-col gap-2 w-[500px]">
-      {(abilities ?? []).slice(0, 3).map((ability, i) => (
-        <NestedChassisAbility key={i} data={ability} chassisName={name} />
+      {(abilities ?? []).slice(0, 3).map((ability) => (
+        <NestedChassisAbility key={ability.id} data={ability} chassisName={name} />
       ))}
     </div>
   )

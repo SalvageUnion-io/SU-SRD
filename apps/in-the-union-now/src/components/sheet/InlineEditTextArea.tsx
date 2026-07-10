@@ -57,6 +57,8 @@ export function InlineEditTextArea({
   if (!editing) {
     const hasValue = value.trim().length > 0
     return (
+      // biome-ignore lint/a11y/noStaticElementInteractions: role/tabIndex/handlers are all applied together in edit mode (readOnly strips them as a set), which the rule can't see through the conditionals
+      // biome-ignore lint/a11y/useAriaPropsSupportedByRole: in readOnly mode the span is a plain value readout whose aria-label callers (and tests) rely on
       <span
         role={readOnly ? undefined : 'button'}
         tabIndex={readOnly ? undefined : 0}

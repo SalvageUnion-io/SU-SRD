@@ -4,6 +4,12 @@ import { StatBlock } from '../StatBlock'
 
 afterEach(cleanup)
 
+/** Narrow a possibly-null query result, failing the test loudly if absent. */
+function must<T>(value: T | null | undefined): T {
+  if (value == null) throw new Error('Expected element to be present')
+  return value
+}
+
 describe('StatBlock — numeric mode', () => {
   test('renders code, value/max and the unit bar', () => {
     render(<StatBlock code="HP" unit="Points" value={7} max={10} />)
@@ -60,7 +66,7 @@ describe('StatBlock — numeric mode', () => {
     expect(pips.length).toBe(13)
     expect(container.querySelectorAll('[data-pip="on"]').length).toBe(8)
     // 13 → 4/4/5 rows
-    const rows = container.querySelectorAll('[data-pip]')[0]!.parentElement!.parentElement!
+    const rows = must(container.querySelectorAll('[data-pip]')[0]?.parentElement?.parentElement)
     const rowCounts = Array.from(rows.children).map((row) => row.children.length)
     expect(rowCounts).toEqual([4, 4, 5])
   })
@@ -74,15 +80,15 @@ describe('StatBlock — numeric mode', () => {
     const onChange = mock((v: number) => v)
     const { container } = render(<StatBlock code="HP" value={5} max={10} onChange={onChange} />)
     const pips = container.querySelectorAll('[data-pip]')
-    fireEvent.click(pips[2]!) // lit (index 2 < 5) → 2
+    fireEvent.click(must(pips[2])) // lit (index 2 < 5) → 2
     expect(onChange).toHaveBeenLastCalledWith(2)
-    fireEvent.click(pips[8]!) // unlit → 9
+    fireEvent.click(must(pips[8])) // unlit → 9
     expect(onChange).toHaveBeenLastCalledWith(9)
   })
 
   test('read-only pips are not buttons', () => {
     const { container } = render(<StatBlock code="CARGO" value={2} max={6} />)
-    const pip = container.querySelector('[data-pip]')!
+    const pip = must(container.querySelector('[data-pip]'))
     expect(pip.tagName).not.toBe('BUTTON')
   })
 })
@@ -103,9 +109,9 @@ describe('StatBlock — heat escalation (U-1)', () => {
     const danger = pips.filter((p) => p.className.includes('bg-status-bad'))
     // pips 7 and 8 (indices 6,7) are lit and past the 70% line
     expect(danger.length).toBe(2)
-    expect(pips.indexOf(danger[0]!)).toBe(6)
+    expect(pips.indexOf(must(danger[0]))).toBe(6)
     // pips below the line keep the warn fill
-    expect(pips[0]!.className).toContain('bg-status-warn')
+    expect(pips[0]?.className).toContain('bg-status-warn')
   })
 
   test('at cap the block gets the red border + pulse', () => {

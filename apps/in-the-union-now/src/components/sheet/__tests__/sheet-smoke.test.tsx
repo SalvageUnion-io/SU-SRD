@@ -38,6 +38,7 @@ import type { Crawler } from '../../../lib/schemas/crawler'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { PublishButton } from '../PublishButton'
 import { SnapshotPageInner } from '../../../routes/s/$id'
+import { must } from '../../__tests__/must'
 
 // ---------------------------------------------------------------------------
 // Preload salvageunion-reference once — MechSheet resolves chassis refs
@@ -105,14 +106,13 @@ type AnyEntity = Pilot | Mech | Crawler
 
 function makeEntityStore(entities: AnyEntity[]): EntityLookup {
   return {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    get: (_type, id) => (entities.find((e) => e.id === id) ?? null) as any,
+    get: ((_type: unknown, id: string) =>
+      entities.find((e) => e.id === id) ?? null) as unknown as EntityLookup['get'],
   }
 }
 
 function makeSoftLinkStore(links: SoftLink[]): SoftLinkStore {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const createMock = mock(async () => links[0]) as any
+  const createMock = mock(async () => links[0]) as unknown as SoftLinkStore['create']
   return {
     softLinks: links,
     create: createMock,
@@ -152,12 +152,9 @@ function makeZustandLikeStore(
     hydrated: { pilots: false, mechs: true, crawlers: false, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => mechs),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    get: mock((_type: string, id: string) => mechs.find((e) => e.id === id) ?? null) as any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    create: mock(async () => mechs[0]) as any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    update: updateMock as any,
+    get: mock((_type: string, id: string) => mechs.find((e) => e.id === id) ?? null),
+    create: mock(async () => mechs[0]),
+    update: updateMock,
     delete: mock(async () => {}),
   }
 
@@ -329,7 +326,7 @@ describe('Smoke — mech stand-in (no pilot link)', () => {
 // ---------------------------------------------------------------------------
 
 describe('Smoke — stat-edit round-trip (Sheet hero trackers)', () => {
-  test('clicking the Structure stepper calls store.update with currentSP', async () => {
+  test('clicking the SP stepper calls store.update with currentSP', async () => {
     const statMech: Mech = {
       ...fakeMech,
       id: 'mech-smoke-stat',
@@ -351,12 +348,12 @@ describe('Smoke — stat-edit round-trip (Sheet hero trackers)', () => {
     )
 
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Decrease Structure' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Decrease SP' }))
     })
 
     expect(captured.length).toBe(1)
-    expect(captured[0]!.id).toBe('mech-smoke-stat')
-    expect(captured[0]!.patch).toMatchObject({ currentSP: 4 })
+    expect(must(captured[0]).id).toBe('mech-smoke-stat')
+    expect(must(captured[0]).patch).toMatchObject({ currentSP: 4 })
   })
 })
 

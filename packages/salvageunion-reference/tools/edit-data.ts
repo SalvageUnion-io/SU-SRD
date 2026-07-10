@@ -24,8 +24,8 @@
  * `validate:all` automatically — run it after editing.
  */
 
-import { readFileSync, writeFileSync } from 'fs'
-import { join } from 'path'
+import { readFileSync, writeFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { dataDir } from './loadData.js'
 import { addEntity, setField, type EntityMatcher } from './editDataLogic.js'
 
@@ -33,7 +33,8 @@ function parseArgs(argv: string[]): { flags: Record<string, string>; positional:
   const flags: Record<string, string> = {}
   const positional: string[] = []
   for (let i = 0; i < argv.length; i++) {
-    const arg = argv[i]!
+    const arg = argv[i]
+    if (arg === undefined) continue
     if (arg.startsWith('--')) {
       const key = arg.slice(2)
       const value = argv[i + 1]
@@ -102,7 +103,11 @@ function main(): void {
       usageAndExit(`--value is not valid JSON: ${(error as Error).message}`)
     }
 
-    const matcher: EntityMatcher = flags.id ? { id: flags.id } : { name: flags.name! }
+    const matcher: EntityMatcher = flags.id
+      ? { id: flags.id }
+      : flags.name
+        ? { name: flags.name }
+        : usageAndExit('set requires --id <id> or --name <name>')
     result = setField(source, matcher, flags.field, value)
     const desc = flags.id ? `id "${flags.id}"` : `name "${flags.name}"`
     console.log(`Set "${flags.field}" on entity (${desc}) in ${file}`)

@@ -23,7 +23,7 @@ describe('srdEntityExternalLink', () => {
     const node = srdEntityExternalLink(chassis as unknown as SURefEntity)
     expect(node).toBeTruthy()
 
-    const { container } = render(<>{node}</>)
+    const { container } = render(node)
     const link = container.querySelector('a')
     expect(link?.href).toBe('https://salvageunion.io/schema/chassis/item/mule')
     expect(link?.target).toBe('_blank')

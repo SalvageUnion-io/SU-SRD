@@ -32,6 +32,7 @@ export function ReferenceEntityIntegratedSystems({
         // Index-suffixed: an entity may legitimately integrate the same system
         // more than once (e.g. the Power Loader's two Rigging Arms), so the id
         // alone is not a unique key.
+        // biome-ignore lint/suspicious/noArrayIndexKey: static integrated-systems list; index disambiguates duplicate ids
         <IntegratedSystemListing key={`${system.id}-${idx}`} entity={system} />
       ))}
     </div>

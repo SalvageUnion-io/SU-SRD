@@ -38,8 +38,8 @@ function BudgetTrack({ label, value, max, tone = 'default' }: BudgetTrackProps) 
           role="img"
           aria-label={`${label} ${value} of ${max}`}
         >
-          {statBlockRowStarts(total).map(({ count, start }, r) => (
-            <div key={r} className="flex gap-1">
+          {statBlockRowStarts(total).map(({ count, start }) => (
+            <div key={start} className="flex gap-1">
               {Array.from({ length: count }).map((_, c) => {
                 const i = start + c
                 const on = i < value

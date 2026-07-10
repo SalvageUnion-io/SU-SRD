@@ -156,6 +156,7 @@ export function computeCrawlerCapacity(crawler: CrawlerCapacityInput): CrawlerCa
     }
   }
 
+  // biome-ignore lint/style/noNonNullAssertion: the isValidTL early return above guarantees techLevel is a key of BAYS_BY_TL; a `?? 0` fallback would silently mask a table/validation mismatch
   const baysMax = BAYS_BY_TL[crawler.techLevel]!
   const baysUsed = crawler.bays.length
 

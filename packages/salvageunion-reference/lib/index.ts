@@ -150,6 +150,7 @@ export const SchemaToDisplayName = Object.fromEntries(
  * Data is loaded lazily. Call `SalvageUnionReference.preload('all')` (or a
  * specific array of schema IDs) before accessing any model.
  */
+// biome-ignore lint/complexity/noStaticOnlyClass: `SalvageUnionReference.{Model}` static accessors are the package's public API (consumed across all apps); the generator injects statics into this class body, and lib/index.test.ts asserts they are own properties of the class.
 export class SalvageUnionReference {
   // Static model properties — these are LazyModel instances that throw until
   // preload() is called. Each is exposed under its public ModelWithMetadata
@@ -163,36 +164,36 @@ export class SalvageUnionReference {
   // every property below stays a true *own* property of this class — see
   // lib/index.test.ts's `Object.getOwnPropertyNames(SalvageUnionReference)`.
   // GENERATED:BEGIN — see tools/generateRegistry.ts
-  static Abilities: ModelWithMetadata<SchemaToEntityMap['abilities']> = lazyModelMap['abilities']
+  static Abilities: ModelWithMetadata<SchemaToEntityMap['abilities']> = lazyModelMap.abilities
   static AbilityTreeRequirements: ModelWithMetadata<
     SchemaToEntityMap['ability-tree-requirements']
   > = lazyModelMap['ability-tree-requirements']
-  static Actions: ModelWithMetadata<SchemaToEntityMap['actions']> = lazyModelMap['actions']
-  static Chassis: ModelWithMetadata<SchemaToEntityMap['chassis']> = lazyModelMap['chassis']
-  static Classes: ModelWithMetadata<SchemaToEntityMap['classes']> = lazyModelMap['classes']
+  static Actions: ModelWithMetadata<SchemaToEntityMap['actions']> = lazyModelMap.actions
+  static Chassis: ModelWithMetadata<SchemaToEntityMap['chassis']> = lazyModelMap.chassis
+  static Classes: ModelWithMetadata<SchemaToEntityMap['classes']> = lazyModelMap.classes
   static CrawlerBays: ModelWithMetadata<SchemaToEntityMap['crawler-bays']> =
     lazyModelMap['crawler-bays']
   static CrawlerTechLevels: ModelWithMetadata<SchemaToEntityMap['crawler-tech-levels']> =
     lazyModelMap['crawler-tech-levels']
-  static Crawlers: ModelWithMetadata<SchemaToEntityMap['crawlers']> = lazyModelMap['crawlers']
-  static Creatures: ModelWithMetadata<SchemaToEntityMap['creatures']> = lazyModelMap['creatures']
-  static Distances: ModelWithMetadata<SchemaToEntityMap['distances']> = lazyModelMap['distances']
-  static Drones: ModelWithMetadata<SchemaToEntityMap['drones']> = lazyModelMap['drones']
-  static Equipment: ModelWithMetadata<SchemaToEntityMap['equipment']> = lazyModelMap['equipment']
-  static Factions: ModelWithMetadata<SchemaToEntityMap['factions']> = lazyModelMap['factions']
-  static Guides: ModelWithMetadata<SchemaToEntityMap['guides']> = lazyModelMap['guides']
-  static Keywords: ModelWithMetadata<SchemaToEntityMap['keywords']> = lazyModelMap['keywords']
-  static Meld: ModelWithMetadata<SchemaToEntityMap['meld']> = lazyModelMap['meld']
-  static Modules: ModelWithMetadata<SchemaToEntityMap['modules']> = lazyModelMap['modules']
-  static NPCs: ModelWithMetadata<SchemaToEntityMap['npcs']> = lazyModelMap['npcs']
+  static Crawlers: ModelWithMetadata<SchemaToEntityMap['crawlers']> = lazyModelMap.crawlers
+  static Creatures: ModelWithMetadata<SchemaToEntityMap['creatures']> = lazyModelMap.creatures
+  static Distances: ModelWithMetadata<SchemaToEntityMap['distances']> = lazyModelMap.distances
+  static Drones: ModelWithMetadata<SchemaToEntityMap['drones']> = lazyModelMap.drones
+  static Equipment: ModelWithMetadata<SchemaToEntityMap['equipment']> = lazyModelMap.equipment
+  static Factions: ModelWithMetadata<SchemaToEntityMap['factions']> = lazyModelMap.factions
+  static Guides: ModelWithMetadata<SchemaToEntityMap['guides']> = lazyModelMap.guides
+  static Keywords: ModelWithMetadata<SchemaToEntityMap['keywords']> = lazyModelMap.keywords
+  static Meld: ModelWithMetadata<SchemaToEntityMap['meld']> = lazyModelMap.meld
+  static Modules: ModelWithMetadata<SchemaToEntityMap['modules']> = lazyModelMap.modules
+  static NPCs: ModelWithMetadata<SchemaToEntityMap['npcs']> = lazyModelMap.npcs
   static RollTables: ModelWithMetadata<SchemaToEntityMap['roll-tables']> =
     lazyModelMap['roll-tables']
-  static Squads: ModelWithMetadata<SchemaToEntityMap['squads']> = lazyModelMap['squads']
-  static Systems: ModelWithMetadata<SchemaToEntityMap['systems']> = lazyModelMap['systems']
+  static Squads: ModelWithMetadata<SchemaToEntityMap['squads']> = lazyModelMap.squads
+  static Systems: ModelWithMetadata<SchemaToEntityMap['systems']> = lazyModelMap.systems
   static BioTitans: ModelWithMetadata<SchemaToEntityMap['bio-titans']> = lazyModelMap['bio-titans']
-  static Traits: ModelWithMetadata<SchemaToEntityMap['traits']> = lazyModelMap['traits']
-  static Vehicles: ModelWithMetadata<SchemaToEntityMap['vehicles']> = lazyModelMap['vehicles']
-  static Sources: ModelWithMetadata<SchemaToEntityMap['sources']> = lazyModelMap['sources']
+  static Traits: ModelWithMetadata<SchemaToEntityMap['traits']> = lazyModelMap.traits
+  static Vehicles: ModelWithMetadata<SchemaToEntityMap['vehicles']> = lazyModelMap.vehicles
+  static Sources: ModelWithMetadata<SchemaToEntityMap['sources']> = lazyModelMap.sources
   static TechLevels: ModelWithMetadata<SchemaToEntityMap['tech-levels']> =
     lazyModelMap['tech-levels']
   static CatalogCategories: ModelWithMetadata<SchemaToEntityMap['catalog-categories']> =

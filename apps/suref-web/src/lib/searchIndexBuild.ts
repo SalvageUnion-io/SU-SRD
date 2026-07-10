@@ -28,8 +28,8 @@ function extractContentText(content: unknown): string {
   if (typeof content === 'object' && content !== null) {
     const block = content as Record<string, unknown>
     let text = ''
-    if ('value' in block && typeof block.value === 'string') text += block.value + ' '
-    if ('label' in block && typeof block.label === 'string') text += block.label + ' '
+    if ('value' in block && typeof block.value === 'string') text += `${block.value} `
+    if ('label' in block && typeof block.label === 'string') text += `${block.label} `
     if ('items' in block && Array.isArray(block.items)) text += extractContentText(block.items)
     return text
   }

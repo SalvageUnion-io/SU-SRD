@@ -68,7 +68,8 @@ export function BlockContentRendererView({
   } = { startsSection: false, blocks: [] }
 
   for (let i = 0; i < content.length; i++) {
-    const block = content[i]!
+    const block = content[i]
+    if (!block) continue
     if (block.type && sectionStarters.has(block.type) && groupSections) {
       // Push current section if it has blocks
       if (current.blocks.length > 0) {
@@ -86,7 +87,7 @@ export function BlockContentRendererView({
 
   return (
     <div>
-      {sections.map((section, sIdx) => {
+      {sections.map((section) => {
         if (!section.startsSection) {
           return section.blocks.map(({ block, originalIndex }) => (
             <ContentBlock
@@ -113,7 +114,7 @@ export function BlockContentRendererView({
         const contentBlocks = isLeadingHeading ? section.blocks.slice(1) : section.blocks
 
         return (
-          <div key={`section-${sIdx}`} className="mt-2">
+          <div key={`section-${firstBlock?.originalIndex ?? -1}`} className="mt-2">
             {headingBlock && (
               <ContentBlock
                 block={headingBlock.block}
@@ -182,6 +183,7 @@ function ContentBlock({
     return (
       <div className="flex flex-row flex-wrap items-center gap-1">
         {blockValue.map((item, index) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: datavalues come from static reference content blocks and never reorder
           <DataValueDisplayView key={index} item={item} compact={compact} />
         ))}
       </div>

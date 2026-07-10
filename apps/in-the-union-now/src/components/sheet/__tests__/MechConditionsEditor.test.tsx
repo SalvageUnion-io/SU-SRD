@@ -13,6 +13,7 @@ import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { MechConditionsEditor } from '../MechConditionsEditor'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { useEntityStore } from '../../../stores/entityStore'
+import { must } from '../../__tests__/must'
 
 afterEach(() => {
   cleanup()
@@ -46,17 +47,12 @@ function makeStore(mech: Mech, captured: CapturedUpdate[]): typeof useEntityStor
     hydrate: mock(async () => {}),
     list: mock(() => [mech]),
 
-    get: mock(
-      (_type: string, id: string) => (id === mech.id ? mech : null)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ) as any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    create: mock(async () => mech) as any,
+    get: mock((_type: string, id: string) => (id === mech.id ? mech : null)),
+    create: mock(async () => mech),
     update: mock(async (_type: string, _id: string, patch: Partial<Mech>) => {
       captured.push({ patch })
       return mech
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    }) as any,
+    }),
     delete: mock(async () => {}),
   }
   return (() => storeState) as unknown as typeof useEntityStore
@@ -85,7 +81,7 @@ describe('MechConditionsEditor', () => {
       fireEvent.click(screen.getByRole('button', { name: /remove condition shutdown/i }))
     })
 
-    expect(captured[0]!.patch).toEqual({
+    expect(must(captured[0]).patch).toEqual({
       shutdown: false,
       conditions: ['Prone'],
     })
@@ -105,7 +101,7 @@ describe('MechConditionsEditor', () => {
       fireEvent.keyDown(input, { key: 'Enter' })
     })
 
-    expect(captured[0]!.patch).toEqual({ conditions: ['Burn 2'] })
+    expect(must(captured[0]).patch).toEqual({ conditions: ['Burn 2'] })
   })
 
   test('readOnly renders plain chips — no remove, no add', () => {

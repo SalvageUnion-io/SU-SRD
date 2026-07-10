@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'bun:test'
-import { readFileSync, readdirSync } from 'fs'
-import { join, dirname } from 'path'
-import { fileURLToPath } from 'url'
+import { readFileSync, readdirSync } from 'node:fs'
+import { join, dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import {
   findMissingActionBackrefs,
   runActionBackrefCheck,

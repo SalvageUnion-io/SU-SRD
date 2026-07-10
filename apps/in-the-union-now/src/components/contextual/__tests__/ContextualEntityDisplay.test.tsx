@@ -16,6 +16,7 @@ import { beforeAll, describe, expect, it, mock } from 'bun:test'
 import { render } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { ContextualEntityDisplay } from '../ContextualEntityDisplay'
+import { must } from '../../__tests__/must'
 
 // ---------------------------------------------------------------------------
 // Mock ReferenceEntityDisplayTooltip to avoid rendering the full card
@@ -52,7 +53,7 @@ beforeAll(async () => {
 describe('ContextualEntityDisplay — byId', () => {
   it('passes schemaName and entityId to ReferenceEntityDisplayTooltip', () => {
     const allClasses = SalvageUnionReference.Classes.all()
-    const cls = allClasses[0]!
+    const cls = must(allClasses[0])
 
     const { container } = render(
       <ContextualEntityDisplay schemaName="classes" entityId={cls.id}>
@@ -68,7 +69,7 @@ describe('ContextualEntityDisplay — byId', () => {
 
   it('renders children inside the tooltip wrapper', () => {
     const allClasses = SalvageUnionReference.Classes.all()
-    const cls = allClasses[0]!
+    const cls = must(allClasses[0])
 
     const { container } = render(
       <ContextualEntityDisplay schemaName="classes" entityId={cls.id}>
@@ -84,7 +85,7 @@ describe('ContextualEntityDisplay — byId', () => {
 describe('ContextualEntityDisplay — byName (chassis)', () => {
   it('resolves chassis name to id and passes it to tooltip', () => {
     const allChassis = SalvageUnionReference.Chassis.all()
-    const chassis = allChassis[0]!
+    const chassis = must(allChassis[0])
 
     const { container } = render(
       <ContextualEntityDisplay schemaName="chassis" entityName={chassis.name}>
@@ -100,11 +101,11 @@ describe('ContextualEntityDisplay — byName (chassis)', () => {
 
   it('resolves system name to id', () => {
     const allSystems = SalvageUnionReference.Systems.all()
-    const system = allSystems[0]!
+    const system = must(allSystems[0])
 
     const { container } = render(
       <ContextualEntityDisplay schemaName="systems" entityName={system.name}>
-        <button>system button</button>
+        <button type="button">system button</button>
       </ContextualEntityDisplay>
     )
 

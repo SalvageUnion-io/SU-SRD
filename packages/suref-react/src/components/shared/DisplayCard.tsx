@@ -168,11 +168,7 @@ export function DisplayCard({
       cardClickControls.map((c) => c.key)
     )
   }
-  const resolvedCardClick =
-    onCardClick ??
-    (cardClickControls.length > 0
-      ? cardClickControls[cardClickControls.length - 1]!.onClick
-      : undefined)
+  const resolvedCardClick = onCardClick ?? cardClickControls.at(-1)?.onClick
 
   // Hover effect when card is clickable (via handler or boolean flag)
   const isCardHoverable = !!resolvedCardClick || cardClickable
@@ -214,6 +210,7 @@ export function DisplayCard({
     : undefined
 
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: role="button" + tabIndex + keyboard handler are applied whenever resolvedCardClick makes the card interactive
     <div
       ref={stickyWrapperRef}
       role={resolvedCardClick ? 'button' : undefined}
@@ -457,6 +454,7 @@ export function DisplayCard({
             {(footActions || (footMeta && footMeta.length > 0)) && (
               <div className="ml-auto flex flex-wrap items-center justify-end gap-1.5">
                 {footMeta?.map(({ label: metaLabel, value }, i) => (
+                  // biome-ignore lint/suspicious/noArrayIndexKey: footMeta is a static per-render list; index disambiguates repeated labels
                   <span key={`${metaLabel}-${i}`} className="mr-1 inline-flex items-baseline gap-1">
                     <span className="font-cond text-[10.5px] font-bold uppercase leading-none opacity-75">
                       {metaLabel}

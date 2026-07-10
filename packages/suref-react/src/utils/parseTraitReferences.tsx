@@ -35,9 +35,9 @@ export function useParseTraitReferences(text: string | undefined): ReactNode {
     // Combined regex: trait references (both forms) and paragraph breaks
     const combinedRegex = /\[\[\[([^\]]+)\]\s*\(([^)]+)\)\]\]|\[\[([^\]]+)\]\]|\n\n/g
 
-    let match: RegExpExecArray | null
+    let match: RegExpExecArray | null = combinedRegex.exec(text)
 
-    while ((match = combinedRegex.exec(text)) !== null) {
+    while (match !== null) {
       if (match.index > currentIndex) {
         nodes.push(text.substring(currentIndex, match.index))
       }
@@ -72,6 +72,7 @@ export function useParseTraitReferences(text: string | undefined): ReactNode {
       }
 
       currentIndex = match.index + match[0].length
+      match = combinedRegex.exec(text)
     }
 
     if (currentIndex < text.length) {

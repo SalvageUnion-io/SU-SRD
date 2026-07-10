@@ -21,6 +21,7 @@ import { makeScrapLot, makeUnitLot } from '../../../lib/schemas/cargoLot'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { useEntityStore } from '../../../stores/entityStore'
+import { must } from '../../__tests__/must'
 
 beforeAll(async () => {
   await SalvageUnionReference.preload('all')
@@ -80,25 +81,19 @@ function makeStore(mech: Mech, captured: CapturedUpdate[], crawler?: Crawler) {
       if (type === 'mech' && id === mech.id) return mech
       if (type === 'crawler' && crawler && id === crawler.id) return crawler
       return null
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    }) as any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    create: mock(async () => mech) as any,
-    update: mock(
-      async (type: string, id: string, patch: Record<string, unknown>) => {
-        captured.push({ type, id, patch })
-        return mech
-      }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ) as any,
+    }),
+    create: mock(async () => mech),
+    update: mock(async (type: string, id: string, patch: Record<string, unknown>) => {
+      captured.push({ type, id, patch })
+      return mech
+    }),
     // Cargo stow/load commits through transfer(); capture its updates the
     // same way so assertions on `captured` keep working.
     transfer: mock(
       async (ops: { updates?: { type: string; id: string; patch: Record<string, unknown> }[] }) => {
         for (const u of ops.updates ?? []) captured.push({ type: u.type, id: u.id, patch: u.patch })
       }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ) as any,
+    ),
     delete: mock(async () => {}),
   }
   return (() => storeState) as unknown as typeof useEntityStore
@@ -122,8 +117,8 @@ describe('MechSheet — The Hold (Stow →)', () => {
       id: mech.id,
       patch: { cargoLots: [] },
     })
-    expect(captured[1]!.type).toBe('crawler')
-    expect(captured[1]!.patch.cargoLots).toEqual([lot])
+    expect(must(captured[1]).type).toBe('crawler')
+    expect(must(captured[1]).patch.cargoLots).toEqual([lot])
   })
 
   test('stowing a SCRAP lot deposits the matching TL pool bucket', async () => {
@@ -138,8 +133,8 @@ describe('MechSheet — The Hold (Stow →)', () => {
     })
 
     expect(captured.length).toBe(2)
-    expect(captured[0]!.patch).toEqual({ cargoLots: [] })
-    const crawlerPatch = captured[1]!.patch as {
+    expect(must(captured[0]).patch).toEqual({ cargoLots: [] })
+    const crawlerPatch = must(captured[1]).patch as {
       cargoLots: unknown[]
       scrapPool: object
     }

@@ -1,7 +1,7 @@
 /**
  * MechSheet — readOnly prop tests (#242, plan 4.5)
  *
- * When readOnly is true (e.g. in SnapshotView), the body suppresses every
+ * When readOnly is true (e.g. in SnapshotSheet), the body suppresses every
  * edit affordance: no Heat Check / Push rolls, no flag clears, no Use /
  * Repair / uses steppers, no status-badge cycling (badges render as plain
  * spans), no Stow buttons on the hold — and the store is never written.
@@ -79,12 +79,9 @@ function makeStubStore(mech: Mech, updateSpy?: ReturnType<typeof mock>): typeof 
       if (type === 'mech' && id === mech.id) return mech
       if (type === 'crawler' && id === fakeCrawler.id) return fakeCrawler
       return null
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    }) as any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    create: mock(async () => mech) as any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    update: updateMock as any,
+    }),
+    create: mock(async () => mech),
+    update: updateMock,
     delete: mock(async () => {}),
   }
   return (() => storeState) as unknown as typeof useEntityStore

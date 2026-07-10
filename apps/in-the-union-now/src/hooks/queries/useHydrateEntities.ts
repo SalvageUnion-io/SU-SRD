@@ -40,6 +40,7 @@ export function useHydrateOnMount(hydrate: () => Promise<unknown>): boolean {
     error: NO_ERROR,
   })
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentionally once-on-mount — callers pass inline closures over stable Zustand singletons, so depending on `hydrate` would re-run the effect every render
   useEffect(() => {
     let cancelled = false
     hydrate().then(

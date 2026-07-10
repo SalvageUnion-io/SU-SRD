@@ -283,13 +283,14 @@ describe('export round-trip — field fidelity', () => {
     const importedWs = verifyWorkspaceStore.list()[0]
     expect(importedPilot).toBeDefined()
     expect(importedWs).toBeDefined()
+    if (!importedWs) throw new Error('expected imported workspace')
 
     // Every field except id/createdAt/updatedAt/workspaceId is preserved exactly.
     expect(stable(importedPilot as unknown as Record<string, unknown>)).toEqual(
       stable(created as unknown as Record<string, unknown>)
     )
     // workspaceId is intentionally remapped — to the NEW workspace's id.
-    expect((importedPilot as { workspaceId?: string }).workspaceId).toBe(importedWs!.id)
+    expect((importedPilot as { workspaceId?: string }).workspaceId).toBe(importedWs.id)
     expect((importedPilot as { workspaceId?: string }).workspaceId).not.toBe(ws.id)
 
     // Sanity: the exported bundle actually carried the rich fields (i.e. the
@@ -380,13 +381,14 @@ describe('export round-trip — field fidelity', () => {
     const imported = (await encounterNpcs.list())[0]
     expect(imported).toBeDefined()
     expect(importedWs).toBeDefined()
+    if (!importedWs) throw new Error('expected imported workspace')
 
     // Every field except id/createdAt/updatedAt/workspaceId is preserved exactly.
     expect(stable(imported as unknown as Record<string, unknown>)).toEqual(
       stable(created as unknown as Record<string, unknown>)
     )
     // workspaceId is intentionally remapped — to the NEW workspace's id.
-    expect((imported as { workspaceId?: string }).workspaceId).toBe(importedWs!.id)
+    expect((imported as { workspaceId?: string }).workspaceId).toBe(importedWs.id)
     expect((imported as { workspaceId?: string }).workspaceId).not.toBe(ws.id)
 
     // Sanity: the exported bundle actually carried the rich fields.
@@ -453,13 +455,16 @@ describe('export round-trip — cross-entity full backup', () => {
     await verifyEntityStore.hydrate('softLink')
     await verifyWorkspaceStore.hydrate()
 
-    const importedPilot = verifyEntityStore.list('pilot')[0]!
-    const importedMech = verifyEntityStore.list('mech')[0]!
-    const importedCrawler = verifyEntityStore.list('crawler')[0]!
+    const importedPilot = verifyEntityStore.list('pilot')[0]
+    const importedMech = verifyEntityStore.list('mech')[0]
+    const importedCrawler = verifyEntityStore.list('crawler')[0]
     const importedLinks = verifyEntityStore.list('softLink')
-    const importedWs = verifyWorkspaceStore.list()[0]!
+    const importedWs = verifyWorkspaceStore.list()[0]
     const importedPatterns = await mechPatterns.list()
     const importedEncounterNpcs = await encounterNpcs.list()
+    if (!importedPilot || !importedMech || !importedCrawler || !importedWs) {
+      throw new Error('expected imported pilot, mech, crawler and workspace')
+    }
 
     // All three entities re-point at the SAME new workspace id.
     expect((importedPilot as { workspaceId?: string }).workspaceId).toBe(importedWs.id)
@@ -468,8 +473,9 @@ describe('export round-trip — cross-entity full backup', () => {
 
     // Both softLinks remapped to the fresh entity ids — no dangling refs.
     expect(importedLinks).toHaveLength(2)
-    const mechToPilot = importedLinks.find((l) => l.type === 'mech-to-pilot')!
-    const pilotToCrawler = importedLinks.find((l) => l.type === 'pilot-to-crawler')!
+    const mechToPilot = importedLinks.find((l) => l.type === 'mech-to-pilot')
+    const pilotToCrawler = importedLinks.find((l) => l.type === 'pilot-to-crawler')
+    if (!mechToPilot || !pilotToCrawler) throw new Error('expected both imported soft links')
     expect(mechToPilot.from.id).toBe(importedMech.id)
     expect(mechToPilot.to.id).toBe(importedPilot.id)
     expect(pilotToCrawler.from.id).toBe(importedPilot.id)

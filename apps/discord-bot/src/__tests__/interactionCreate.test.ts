@@ -127,8 +127,10 @@ describe('handleInteractionCreate — button branch', () => {
     })
     await handleInteractionCreate(interaction as never)
     expect(replies).toHaveLength(1)
-    expect(replies[0]!.embeds).toHaveLength(1)
-    expect(replies[0]!.flags).toBeUndefined()
+    const reply = replies[0]
+    if (!reply) throw new Error('expected a reply')
+    expect(reply.embeds).toHaveLength(1)
+    expect(reply.flags).toBeUndefined()
   })
 
   test('a valid su:check button re-rolls the notation', async () => {
@@ -138,7 +140,7 @@ describe('handleInteractionCreate — button branch', () => {
     })
     await handleInteractionCreate(interaction as never)
     expect(replies).toHaveLength(1)
-    expect(replies[0]!.embeds).toHaveLength(1)
+    expect(replies[0]?.embeds).toHaveLength(1)
   })
 
   test('a valid su:lookup button returns the full table embed', async () => {
@@ -148,8 +150,10 @@ describe('handleInteractionCreate — button branch', () => {
     })
     await handleInteractionCreate(interaction as never)
     expect(replies).toHaveLength(1)
-    expect(replies[0]!.embeds).toHaveLength(1)
-    expect(replies[0]!.flags).toBeUndefined()
+    const reply = replies[0]
+    if (!reply) throw new Error('expected a reply')
+    expect(reply.embeds).toHaveLength(1)
+    expect(reply.flags).toBeUndefined()
   })
 
   test('a foreign / malformed customId replies ephemerally without crashing', async () => {
@@ -159,8 +163,10 @@ describe('handleInteractionCreate — button branch', () => {
     })
     await handleInteractionCreate(interaction as never)
     expect(replies).toHaveLength(1)
-    expect(replies[0]!.embeds).toBeUndefined()
-    expect(replies[0]!.flags).toBe(MessageFlags.Ephemeral)
+    const reply = replies[0]
+    if (!reply) throw new Error('expected a reply')
+    expect(reply.embeds).toBeUndefined()
+    expect(reply.flags).toBe(MessageFlags.Ephemeral)
   })
 })
 
@@ -183,8 +189,8 @@ describe('handleInteractionCreate — error branches', () => {
     await handleInteractionCreate(interaction as never)
     expect(replies).toHaveLength(1)
     expect(followUps).toHaveLength(0)
-    expect(replies[0]!.content).toContain('error')
-    expect(replies[0]!.flags).toBe(MessageFlags.Ephemeral)
+    expect(replies[0]?.content).toContain('error')
+    expect(replies[0]?.flags).toBe(MessageFlags.Ephemeral)
   })
 
   test('an already-acknowledged interaction (replied) uses followUp', async () => {
@@ -196,7 +202,7 @@ describe('handleInteractionCreate — error branches', () => {
     await handleInteractionCreate(interaction as never)
     expect(followUps).toHaveLength(1)
     expect(replies).toHaveLength(0)
-    expect(followUps[0]!.content).toContain('error')
+    expect(followUps[0]?.content).toContain('error')
   })
 
   test('a deferred interaction also uses followUp', async () => {

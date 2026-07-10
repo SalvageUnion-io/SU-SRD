@@ -49,6 +49,7 @@ export function MiniStat({ label, value, max, stat = 'default', className }: Min
     stat === 'heat' && max !== undefined && max > 0 ? heatDangerFrom(max) : Infinity
 
   return (
+    // biome-ignore lint/a11y/useSemanticElements: a <fieldset> cannot render as an inline stat chip; role="group" carries the same semantics
     <span
       role="group"
       aria-label={`${label} ${clamped}${max !== undefined ? ` of ${max}` : ''}${
@@ -68,12 +69,13 @@ export function MiniStat({ label, value, max, stat = 'default', className }: Min
         <span className="flex items-center gap-[3px]" aria-hidden="true">
           {Array.from({ length: total }).map((_, i) => (
             <span
+              // biome-ignore lint/suspicious/noArrayIndexKey: pips are positional — the index IS their identity
               key={i}
               data-pip={i < clamped ? 'on' : 'off'}
               className={cn(
                 'h-[7px] w-[7px] rounded-[1px] border-[1.25px]',
                 i < clamped
-                  ? i >= max! || i >= heatDanger
+                  ? i >= (max ?? Infinity) || i >= heatDanger
                     ? 'border-status-bad bg-status-bad'
                     : MPIP_FILL[stat]
                   : 'border-ink bg-transparent'

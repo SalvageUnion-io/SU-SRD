@@ -24,6 +24,12 @@ beforeAll(async () => {
   await SalvageUnionReference.preload(['chassis', 'systems', 'modules'])
 })
 
+/** Narrow an SRD lookup that the preloaded data guarantees exists. */
+function defined<T>(value: T | null | undefined, label: string): T {
+  if (value == null) throw new Error(`Expected ${label} to be defined`)
+  return value
+}
+
 const component = (over: Partial<ScrapMechComponent>): ScrapMechComponent => ({
   kind: 'system',
   name: 'Test Item',
@@ -118,11 +124,14 @@ describe('handOffCargo (stow semantics before the mech record is deleted)', () =
 
 describe('mechScrapComponents (real reference data)', () => {
   it('resolves the chassis by name and installed items by slug, carrying conditions', () => {
-    const chassis = SalvageUnionReference.Chassis.all()[0]!
-    const system = SalvageUnionReference.Systems.all().find(
-      (s) => typeof s.techLevel === 'number' && typeof s.salvageValue === 'number'
-    )!
-    const module = SalvageUnionReference.Modules.all()[0]!
+    const chassis = defined(SalvageUnionReference.Chassis.all()[0], 'first chassis')
+    const system = defined(
+      SalvageUnionReference.Systems.all().find(
+        (s) => typeof s.techLevel === 'number' && typeof s.salvageValue === 'number'
+      ),
+      'system with numeric TL/SV'
+    )
+    const module = defined(SalvageUnionReference.Modules.all()[0], 'first module')
 
     const components = mechScrapComponents({
       chassisRef: chassis.name,
@@ -153,22 +162,25 @@ describe('mechScrapComponents (real reference data)', () => {
   })
 
   it('marks the chassis destroyed when the mech itself is destroyed', () => {
-    const chassis = SalvageUnionReference.Chassis.all()[0]!
+    const chassis = defined(SalvageUnionReference.Chassis.all()[0], 'first chassis')
     const components = mechScrapComponents({
       chassisRef: chassis.name,
       systems: [],
       modules: [],
       destroyed: true,
     })
-    expect(components[0]!.condition).toBe('destroyed')
+    expect(components[0]?.condition).toBe('destroyed')
   })
 
   it('marks EVERY mounted item destroyed when the mech is destroyed (p.234/p.240 total loss)', () => {
-    const chassis = SalvageUnionReference.Chassis.all()[0]!
-    const system = SalvageUnionReference.Systems.all().find(
-      (s) => typeof s.techLevel === 'number' && typeof s.salvageValue === 'number'
-    )!
-    const module = SalvageUnionReference.Modules.all()[0]!
+    const chassis = defined(SalvageUnionReference.Chassis.all()[0], 'first chassis')
+    const system = defined(
+      SalvageUnionReference.Systems.all().find(
+        (s) => typeof s.techLevel === 'number' && typeof s.salvageValue === 'number'
+      ),
+      'system with numeric TL/SV'
+    )
+    const module = defined(SalvageUnionReference.Modules.all()[0], 'first module')
 
     const components = mechScrapComponents({
       chassisRef: chassis.name,

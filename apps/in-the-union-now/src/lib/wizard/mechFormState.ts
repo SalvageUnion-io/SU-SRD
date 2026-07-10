@@ -35,8 +35,10 @@ export type MechWizardFormState = {
   /** Installed module slug refs. */
   modules: string[]
   cargoLots: CargoLot[]
-  /** Freeform description / appearance / quirk notes (maps to Mech.description). */
-  description: string
+  /** Short freeform quirk note (maps to Mech.quirk). */
+  quirk: string
+  /** Freeform appearance note (maps to Mech.appearance). */
+  appearance: string
 }
 
 export const EMPTY_MECH_FORM_STATE: MechWizardFormState = {
@@ -46,7 +48,8 @@ export const EMPTY_MECH_FORM_STATE: MechWizardFormState = {
   systems: [],
   modules: [],
   cargoLots: [],
-  description: '',
+  quirk: '',
+  appearance: '',
 }
 
 /** Maps a stored mech onto wizard initial state (edit-mode prefill). */
@@ -58,14 +61,25 @@ export function mechToFormState(mech: Mech): MechWizardFormState {
     systems: [...mech.systems],
     modules: [...mech.modules],
     cargoLots: mech.cargoLots.map((lot) => ({ ...lot })),
-    description: mech.description ?? '',
+    quirk: mech.quirk ?? '',
+    // Read-fallback: pre-split mechs carry their notes in the deprecated
+    // `description`; surface them under Appearance (heals on next save).
+    appearance: mech.appearance ?? mech.description ?? '',
   }
 }
 
 /** Wizard-owned mech fields — the only fields an edit save may touch. */
 type MechWizardPatch = Pick<
   Mech,
-  'name' | 'chassisRef' | 'patternName' | 'systems' | 'modules' | 'cargoLots' | 'description'
+  | 'name'
+  | 'chassisRef'
+  | 'patternName'
+  | 'systems'
+  | 'modules'
+  | 'cargoLots'
+  | 'quirk'
+  | 'appearance'
+  | 'description'
 >
 
 export function mechFormToUpdatePatch(form: MechWizardFormState): MechWizardPatch {
@@ -76,7 +90,10 @@ export function mechFormToUpdatePatch(form: MechWizardFormState): MechWizardPatc
     systems: form.systems,
     modules: form.modules,
     cargoLots: form.cargoLots,
-    description: form.description.trim() || undefined,
+    quirk: form.quirk.trim() || undefined,
+    appearance: form.appearance.trim() || undefined,
+    // Clear the deprecated field on save (its content moved to `appearance`).
+    description: undefined,
   }
 }
 

@@ -196,6 +196,7 @@ export function StorageManifest({
               >
                 {Array.from({ length: Math.max(cap, used) }, (_, i) => (
                   <span
+                    // biome-ignore lint/suspicious/noArrayIndexKey: capacity pips are purely positional — the index IS the pip's identity
                     key={i}
                     data-cpip={i < used ? (i >= cap ? 'over' : 'on') : 'off'}
                     className="h-[13px] w-[13px] rounded-[2px] border-chrome border-ink"

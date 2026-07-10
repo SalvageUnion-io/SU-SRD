@@ -16,6 +16,6 @@ describe('CardImage', () => {
     const { container } = render(<CardImage url="https://example.com/image.png" alt="" />)
     const img = container.querySelector('img')
     expect(img).toBeTruthy()
-    expect(img!.getAttribute('alt')).toBe('')
+    expect(img?.getAttribute('alt')).toBe('')
   })
 })

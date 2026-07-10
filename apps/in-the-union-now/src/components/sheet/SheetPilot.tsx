@@ -1,12 +1,14 @@
 /**
- * SheetPilotView — the pilot branch of the live sheet (extracted from
- * Sheet.tsx, audit item 19). Hero = identity + HP/AP/TP trackers +
- * conditions; rail = assigned mech + home crawler; body = PilotSheet.
+ * SheetPilot — the pilot branch of the live sheet (extracted from
+ * Sheet.tsx, audit item 19; redesigned to the poster layout, Task B).
+ * Hero top region = IDENTITY block (labeled fields with the section's own
+ * Edit button) on the left vs the VITALS cluster (HP/AP current-max gauges +
+ * TP + conditions) on the right; rail = assigned mech + home crawler;
+ * body = PilotSheet.
  */
 
-import { MChip, Pill, StatBlock } from 'suref-react'
+import { Pill, StatBlock } from 'suref-react'
 
-import { resolveClassName } from '../../lib/classRef'
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
 import { isPilotDead, pilotMaxAP, pilotMaxHP } from '../../lib/rules/derivedStats'
 import type { Pilot } from '../../lib/schemas/pilot'
@@ -14,7 +16,7 @@ import { AssignCrawlerToPilot } from '../wiring/AssignCrawlerToPilot'
 import { ConditionsEditor } from './ConditionsEditor'
 import { LiveSheet } from './LiveSheet'
 import type { LiveSheetStripItem } from './LiveSheet'
-import { PilotIdentityLines } from './PilotIdentity'
+import { PilotIdentityPanel } from './PilotIdentity'
 import type { UsedToggleKey } from './PilotIdentity'
 import { PilotSheet } from './PilotSheet'
 import { QuickRollFab } from './QuickRollFab'
@@ -23,9 +25,9 @@ import { RailChip, RailEmpty } from './SheetRail'
 import { CrawlerRailStats, MechRailStats, RailCta, mechStatusPill } from './SheetRailParts'
 import type { SheetViewCommonProps } from './sheetViewProps'
 
-type SheetPilotViewProps = SheetViewCommonProps & { pilot: Pilot }
+type SheetPilotProps = SheetViewCommonProps & { pilot: Pilot }
 
-export function SheetPilotView({
+export function SheetPilot({
   pilot,
   composition,
   wired,
@@ -37,7 +39,19 @@ export function SheetPilotView({
   store,
   storeState,
   patch,
-}: SheetPilotViewProps) {
+}: SheetPilotProps) {
+  // Softlink ids for the rail's Unassign control (relocated from the removed
+  // detail page). Derived from the live link set — composition only exposes
+  // resolved entities, not the link records. Per the unified edit language,
+  // link add/remove is always available on editable sheets (no edit mode).
+  const mechLinkId = storeState.softLinks.find(
+    (l) => l.type === 'mech-to-pilot' && l.to.id === pilot.id
+  )?.id
+  const crawlerLinkId = storeState.softLinks.find(
+    (l) => l.type === 'pilot-to-crawler' && l.from.id === pilot.id
+  )?.id
+  const unassign = (linkId: string | undefined) =>
+    editable && linkId ? () => void storeState.delete('softLink', linkId) : undefined
   const maxHP = Math.max(0, pilotMaxHP(pilot))
   const maxAP = Math.max(0, pilotMaxAP(pilot))
   const hp = Math.min(pilot.currentHP ?? maxHP, maxHP)
@@ -77,6 +91,7 @@ export function SheetPilotView({
           href={`/sheet/mech/${composition.mech.id}`}
           status={mechStatusPill(composition.mech)}
           stats={<MechRailStats mech={composition.mech} />}
+          onUnassign={unassign(mechLinkId)}
         />
       ) : (
         <RailEmpty
@@ -94,6 +109,7 @@ export function SheetPilotView({
           href={`/sheet/crawler/${composition.crawler.id}`}
           tl={parseCrawlerTechLevel(composition.crawler.techLevel)}
           stats={<CrawlerRailStats crawler={composition.crawler} />}
+          onUnassign={unassign(crawlerLinkId)}
         />
       ) : (
         <RailEmpty
@@ -141,15 +157,13 @@ export function SheetPilotView({
           heroRef={heroRef}
           cat="Pilot"
           name={pilot.name}
-          meta={
-            <>
-              <MChip label="Callsign" value={`“${pilot.callsign}”`} variant="call" />
-              <MChip label="Class" value={resolveClassName(pilot.classRef)} variant="class" />
-              {dead && <Pill tone="bad">Dead</Pill>}
-            </>
-          }
-          specs={
-            <PilotIdentityLines pilot={pilot} onToggleUsed={editable ? toggleUsed : undefined} />
+          meta={dead ? <Pill tone="bad">Dead</Pill> : undefined}
+          identityBlock={
+            <PilotIdentityPanel
+              pilot={pilot}
+              onToggleUsed={editable ? toggleUsed : undefined}
+              patch={editable ? patch : undefined}
+            />
           }
           trackers={
             <>
@@ -185,7 +199,7 @@ export function SheetPilotView({
           }
           inset={
             <div className="w-full sm:max-w-[360px]">
-              <span className="mb-1 block text-right font-cond text-label font-bold uppercase leading-none tracking-caps text-ink">
+              <span className="mb-1 block font-cond text-label font-bold uppercase leading-none tracking-caps text-ink lg:text-right">
                 Conditions
               </span>
               <ConditionsEditor

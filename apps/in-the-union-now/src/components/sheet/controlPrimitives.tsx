@@ -22,7 +22,7 @@ const CONTROL_INPUT_CLASS =
   'w-16 rounded-[3px] border-chrome border-ink bg-paper px-2 py-1.5 font-body text-sm text-ink focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22]'
 
 /** Full-width select/input chrome (SalvageControl pickers). */
-// eslint-disable-next-line react-refresh/only-export-components -- shared control helpers, colocated by design (audit items 24/19)
+// biome-ignore lint/style/useComponentExportOnlyModules: shared control helpers, colocated by design (audit items 24/19)
 export const CONTROL_SELECT_CLASS =
   'w-full rounded-[3px] border-chrome border-ink bg-paper px-2 py-1.5 font-body text-sm text-ink focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22]'
 
@@ -35,7 +35,7 @@ type FreshEntityLookup = {
   get: <T extends EntityType>(type: T, id: string) => EntityForType<T> | null
 }
 
-// eslint-disable-next-line react-refresh/only-export-components -- shared control helpers, colocated by design (audit items 24/19)
+// biome-ignore lint/style/useComponentExportOnlyModules: shared control helpers, colocated by design (audit items 24/19)
 export function freshEntity<T extends EntityType>(
   storeState: FreshEntityLookup,
   type: T,
@@ -45,7 +45,7 @@ export function freshEntity<T extends EntityType>(
 }
 
 /** Damage-amount input state: text, parsed value, and validity. */
-// eslint-disable-next-line react-refresh/only-export-components -- shared control helpers, colocated by design (audit items 24/19)
+// biome-ignore lint/style/useComponentExportOnlyModules: shared control helpers, colocated by design (audit items 24/19)
 export function useDamageAmount() {
   const [amountText, setAmountText] = useState('')
   const amount = Number.parseInt(amountText, 10)
@@ -68,7 +68,7 @@ function readStickyKind(storageKey: string, fallback: DamageKind): DamageKind {
  * The rules-correct kind is usually the same hit after hit, so defaulting to
  * it removes a tap without hiding the toggle. Dies with the tab.
  */
-// eslint-disable-next-line react-refresh/only-export-components -- shared control helpers, colocated by design (audit items 24/19)
+// biome-ignore lint/style/useComponentExportOnlyModules: shared control helpers, colocated by design (audit items 24/19)
 export function useStickyDamageKind(
   type: 'mech' | 'pilot',
   fallback: DamageKind
@@ -176,6 +176,7 @@ export function DamageIntakeRow({
         }}
         className={CONTROL_INPUT_CLASS}
       />
+      {/* biome-ignore lint/a11y/useSemanticElements: a fieldset would need a legend and carries min-content sizing quirks in this inline-flex segment; role="group" + aria-label conveys the same semantics */}
       <span role="group" aria-label="Weapon damage type" className="inline-flex gap-1">
         {kindOptions.map((option) => (
           <Btn

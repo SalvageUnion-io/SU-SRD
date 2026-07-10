@@ -77,6 +77,7 @@ export function ImportButton() {
         accept=".json,application/json"
         className="sr-only"
         aria-hidden="true"
+        tabIndex={-1}
         onChange={(e) => void handleFileChange(e)}
       />
       {error && <p className="font-body text-xs text-danger">{error}</p>}

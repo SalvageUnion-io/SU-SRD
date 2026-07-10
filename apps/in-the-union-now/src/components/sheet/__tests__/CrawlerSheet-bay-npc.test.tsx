@@ -24,6 +24,7 @@ import { CrawlerSheet } from '../CrawlerSheet'
 import { CrawlerSchema } from '../../../lib/schemas/crawler'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { useEntityStore } from '../../../stores/entityStore'
+import { must } from '../../__tests__/must'
 
 afterEach(() => {
   cleanup()
@@ -62,8 +63,9 @@ const MOCK_BAYS = [
 async function patchCrawlerBays(): Promise<() => void> {
   const { SalvageUnionReference } = await import('salvageunion-reference')
   const original = SalvageUnionReference.CrawlerBays.all.bind(SalvageUnionReference.CrawlerBays)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  SalvageUnionReference.CrawlerBays.all = mock(() => MOCK_BAYS as any)
+  SalvageUnionReference.CrawlerBays.all = mock(
+    () => MOCK_BAYS as unknown as ReturnType<typeof SalvageUnionReference.CrawlerBays.all>
+  )
   return () => {
     SalvageUnionReference.CrawlerBays.all = original
   }
@@ -223,7 +225,7 @@ describe('CrawlerSheet — crew HP editing (NpcInset)', () => {
     expect(pips.length).toBe(4)
     // Clicking lit pip index 1 (value 4) sets HP to 1 (§4.5 click-to-set).
     await act(async () => {
-      fireEvent.click(pips[1]!)
+      fireEvent.click(must(pips[1]))
     })
 
     expect(updateCrawlerBay).toHaveBeenCalledWith(

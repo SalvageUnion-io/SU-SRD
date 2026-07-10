@@ -23,10 +23,10 @@
  * to invent new fix logic.
  */
 
-import { readFileSync, writeFileSync } from 'fs'
-import { join, dirname } from 'path'
-import { fileURLToPath } from 'url'
-import { randomUUID } from 'crypto'
+import { readFileSync, writeFileSync } from 'node:fs'
+import { join, dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { randomUUID } from 'node:crypto'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 // Resolved relative to this file's location (not process.cwd()) so callers
@@ -105,7 +105,7 @@ function processFile(
   let data: DataItem[]
   try {
     data = JSON.parse(readFileSync(filePath, 'utf-8')) as DataItem[]
-  } catch (error) {
+  } catch {
     // File doesn't exist, return empty result
     return {
       file: filename,
@@ -264,7 +264,7 @@ function processFile(
 
   // Write back to file if changes were made
   if (result.totalChanges > 0) {
-    writeFileSync(filePath, JSON.stringify(data, null, 2) + '\n')
+    writeFileSync(filePath, `${JSON.stringify(data, null, 2)}\n`)
   }
 
   return result
@@ -382,7 +382,7 @@ export function fixMissingIds(): FixMissingIdsSummary {
       const filePath = join(packageDataDir, filename)
       const data = JSON.parse(readFileSync(filePath, 'utf-8')) as DataItem[]
       collectIds(filename, data, globalIdMap, globalIdSet)
-    } catch (error) {
+    } catch {
       // File might not exist, skip
     }
   }
@@ -397,7 +397,8 @@ export function fixMissingIds(): FixMissingIdsSummary {
   if (duplicateIds.size > 0) {
     console.log(`⚠️  Found ${duplicateIds.size} duplicate ID(s):`)
     for (const id of duplicateIds) {
-      const locations = globalIdMap.get(id)!
+      const locations = globalIdMap.get(id)
+      if (!locations) continue
       console.log(`   - "${id}" appears in:`)
       locations.forEach(({ file, context }) => {
         console.log(`     • ${file}:${context}`)

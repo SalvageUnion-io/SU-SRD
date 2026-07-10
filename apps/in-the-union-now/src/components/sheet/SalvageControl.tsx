@@ -387,6 +387,7 @@ export function SalvageControl({
           <span id={areaTlId} className="font-cond text-xs font-bold uppercase text-ink">
             Area Tech Level
           </span>
+          {/* biome-ignore lint/a11y/useSemanticElements: a fieldset would need a legend and carries min-content sizing quirks in this inline-flex segment; role="group" + aria-labelledby conveys the same semantics */}
           <div
             role="group"
             aria-labelledby={areaTlId}
@@ -420,6 +421,7 @@ export function SalvageControl({
           >
             &ndash;
           </StepBtn>
+          {/* biome-ignore lint/a11y/useAriaPropsSupportedByRole: static value readout between the stepper buttons; a live-region role would change SR announcement behavior, and tests query this label */}
           <span
             className="min-w-6 text-center font-body text-sm font-bold text-ink"
             aria-label={`Supply remaining: ${supply}`}

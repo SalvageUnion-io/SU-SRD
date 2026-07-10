@@ -96,7 +96,7 @@ describe('stow', () => {
     const result = cargoTransfer(s, { type: 'stow', lotId: 'lot-bulk' })
     if (!result.ok) throw new Error(result.reason)
     expect(result.state.crawlerLots).toHaveLength(1)
-    expect(result.state.crawlerLots[0]!.qty).toBe(5)
+    expect(result.state.crawlerLots[0]?.qty).toBe(5)
   })
 
   test('refuses an unknown lot id', () => {
@@ -170,13 +170,15 @@ describe('load — bulk lots split', () => {
     if (!result.ok) throw new Error(result.reason)
 
     expect(result.moved).toBe(3)
-    const minted = result.state.mechLots[0]!
+    const minted = result.state.mechLots[0]
+    if (!minted) throw new Error('expected a minted mech lot')
     expect(minted.id).not.toBe('lot-bulk')
     expect(minted.qty).toBe(3)
     expect(minted.units).toBe(3)
     expect(minted.name).toBe('Sealed Crates')
 
-    const source = result.state.crawlerLots[0]!
+    const source = result.state.crawlerLots[0]
+    if (!source) throw new Error('expected the source crawler lot')
     expect(source.id).toBe('lot-bulk')
     expect(source.qty).toBe(2)
     expect(source.units).toBe(2)
@@ -194,8 +196,8 @@ describe('load — bulk lots split', () => {
     })
     if (!result.ok) throw new Error(result.reason)
     expect(result.moved).toBe(2)
-    expect(result.state.mechLots[0]!.qty).toBe(2)
-    expect(result.state.crawlerLots[0]!.qty).toBe(3)
+    expect(result.state.mechLots[0]?.qty).toBe(2)
+    expect(result.state.crawlerLots[0]?.qty).toBe(3)
   })
 
   test('moving the entire quantity removes the source lot', () => {
@@ -220,8 +222,8 @@ describe('load — bulk lots split', () => {
     const result = cargoTransfer(s, { type: 'load', lotId: 'heavy' })
     if (!result.ok) throw new Error(result.reason)
     expect(result.moved).toBe(1)
-    expect(result.state.mechLots[0]!.units).toBe(2)
-    expect(result.state.crawlerLots[0]!).toMatchObject({ qty: 2, units: 4 })
+    expect(result.state.mechLots[0]?.units).toBe(2)
+    expect(result.state.crawlerLots[0]).toMatchObject({ qty: 2, units: 4 })
   })
 
   test('refuses when not even one bulk unit fits', () => {
@@ -301,7 +303,7 @@ describe('SCRAP boundary — deposit on stow', () => {
     const result = cargoTransfer(s, { type: 'load', lotId: stray.id })
     if (!result.ok) throw new Error(result.reason)
     expect(result.state.scrapPool.tl2).toBe(7)
-    expect(result.state.mechLots[0]!.cat).toBe('SCRAP')
+    expect(result.state.mechLots[0]?.cat).toBe('SCRAP')
   })
 })
 
@@ -313,7 +315,7 @@ describe('SCRAP boundary — withdraw from the pool', () => {
 
     expect(result.moved).toBe(3)
     expect(result.state.scrapPool.tl4).toBe(3)
-    const lot = result.state.mechLots[0]!
+    const lot = result.state.mechLots[0]
     expect(lot).toMatchObject({
       kind: 'bulk',
       cat: 'SCRAP',
@@ -330,7 +332,7 @@ describe('SCRAP boundary — withdraw from the pool', () => {
     if (!result.ok) throw new Error(result.reason)
 
     expect(result.state.mechLots).toHaveLength(1)
-    expect(result.state.mechLots[0]!).toMatchObject({
+    expect(result.state.mechLots[0]).toMatchObject({
       id: existing.id,
       qty: 4,
       units: 4,
@@ -409,7 +411,7 @@ describe('SCRAP TL bucket round-trip', () => {
 
     expect(withdrawn.state.scrapPool.tl5).toBe(2)
     expect(withdrawn.state.mechLots).toHaveLength(1)
-    expect(withdrawn.state.mechLots[0]!).toMatchObject({
+    expect(withdrawn.state.mechLots[0]).toMatchObject({
       kind: 'bulk',
       cat: 'SCRAP',
       tl: 5,

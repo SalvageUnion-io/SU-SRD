@@ -13,7 +13,7 @@ describe('StatDisplay', () => {
     // which gives 16:1 contrast ratio — well above WCAG AAA (7:1).
     const box = group.querySelector('.bg-su-white')
     expect(box).toBeTruthy()
-    expect(box!.querySelector('.text-su-black')).toBeTruthy()
+    expect(box?.querySelector('.text-su-black')).toBeTruthy()
   })
 
   test('disabled interactive stat shows visible disabled cue while keeping AA contrast', () => {

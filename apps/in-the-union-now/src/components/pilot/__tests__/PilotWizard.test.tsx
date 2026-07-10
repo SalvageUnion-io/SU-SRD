@@ -17,6 +17,7 @@ import { useEntityStore } from '../../../stores/entityStore'
 import { _clearAllStores, _resetDbSingleton } from '../../../lib/db/index'
 import { pilotFormToCreateInput, pilotToFormState } from '../../../lib/wizard/pilotFormState'
 import { PilotWizard } from '../PilotWizard'
+import { must } from '../../__tests__/must'
 
 // ---------------------------------------------------------------------------
 // Pre-load reference data
@@ -158,7 +159,7 @@ describe('PilotWizard — happy path', () => {
     await waitFor(() => {
       const pilots = useEntityStore.getState().list('pilot')
       expect(pilots.length).toBe(1)
-      const p = pilots[0]!
+      const p = must(pilots[0])
       expect(p.name).toBe('Mira Voss')
       expect(p.callsign).toBe('Sparks')
       expect(p.classRef).toBeTruthy()
@@ -223,7 +224,7 @@ describe('PilotWizard — background field round-trips', () => {
     await waitFor(() => {
       const pilots = useEntityStore.getState().list('pilot')
       expect(pilots.length).toBe(1)
-      const p = pilots[0]!
+      const p = must(pilots[0])
       expect((p as { background?: string }).background).toBe('Grew up scavenging in the Rust Belt.')
     })
   }, 30000)
@@ -316,7 +317,7 @@ describe('PilotWizard — edit mode', () => {
       const pilots = useEntityStore.getState().list('pilot')
       // Upsert branch: same record updated — never a duplicate create.
       expect(pilots.length).toBe(1)
-      const p = pilots[0]!
+      const p = must(pilots[0])
       expect(p.id).toBe(pilot.id)
       expect(p.abilities.length).toBe(4)
       expect(p.abilities).toContain(idOf('Talk Shop', SalvageUnionReference.Abilities))
