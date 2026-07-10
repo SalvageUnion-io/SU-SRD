@@ -99,6 +99,14 @@ type JsonSchemaObject = {
   oneOf?: JsonSchemaObject[]
 }
 
+/** Narrow away null/undefined; throws (failing the test) when the value is missing. */
+function defined<T>(value: T | null | undefined): T {
+  if (value === null || value === undefined) {
+    throw new Error('Expected value to be defined')
+  }
+  return value
+}
+
 /**
  * Convert a Zod schema to JSON Schema and extract description info.
  */
@@ -302,7 +310,7 @@ describe('Schema descriptions', () => {
         const jsonSchema = toJsonSchema(schema)
         expect(jsonSchema.description).toBeTruthy()
         expect(typeof jsonSchema.description).toBe('string')
-        expect(jsonSchema.description!.length).toBeGreaterThan(5)
+        expect(defined(jsonSchema.description).length).toBeGreaterThan(5)
       })
     }
   })
@@ -313,7 +321,7 @@ describe('Schema descriptions', () => {
         const jsonSchema = toJsonSchema(schema)
         expect(jsonSchema.description).toBeTruthy()
         expect(typeof jsonSchema.description).toBe('string')
-        expect(jsonSchema.description!.length).toBeGreaterThan(5)
+        expect(defined(jsonSchema.description).length).toBeGreaterThan(5)
       })
     }
   })

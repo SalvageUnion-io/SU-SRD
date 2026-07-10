@@ -83,6 +83,7 @@ export function InstallStep({
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
       {/* Left — TL filter chips + 2-col compact Sel grid */}
       <div className="min-w-0">
+        {/* biome-ignore lint/a11y/useSemanticElements: a fieldset would need a legend and carries min-content sizing quirks in this flex chip row; role="group" + aria-label conveys the same semantics */}
         <div className="flex flex-wrap gap-2" role="group" aria-label="Filter by tech level">
           {ALL_TLS.map((tl) => (
             <FilterChip

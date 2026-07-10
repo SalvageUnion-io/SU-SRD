@@ -99,6 +99,7 @@ function distPngPath(entity: Entity): string {
 type Entity = { schemaId: string; itemId: string; hash: string }
 
 function log(msg: string) {
+  // biome-ignore lint/suspicious/noConsole: build-time CLI script — progress logging to stdout is the point
   console.log(`[og-screenshots] ${msg}`)
 }
 
@@ -261,8 +262,9 @@ async function main() {
         try {
           for (;;) {
             const index = cursor++
-            if (index >= entities.length) break
-            const entity = entities[index]!
+            const entity = entities[index]
+            // Dense array: undefined here means the queue is exhausted.
+            if (!entity) break
             try {
               await captureInPage(page, entity)
               generated++

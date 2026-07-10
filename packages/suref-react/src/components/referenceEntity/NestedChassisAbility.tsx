@@ -123,6 +123,7 @@ export function NestedChassisAbility({
           )}
         >
           {details.map((item, index) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: details are re-extracted per render from static reference data and never reordered
             <DataValueDisplayView key={index} item={item} compact={compact} />
           ))}
         </div>
@@ -141,7 +142,7 @@ export function NestedChassisAbility({
       )}
 
       {/* Table */}
-      {hasTable && (
+      {resolvedTable && (
         <div
           className={cn(
             'relative z-10 rounded-md',
@@ -156,7 +157,7 @@ export function NestedChassisAbility({
         >
           <RollTable
             disabled={false}
-            table={resolvedTable!}
+            table={resolvedTable}
             showCommand
             compact
             tableName={data.name}

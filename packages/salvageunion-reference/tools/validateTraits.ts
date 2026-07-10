@@ -36,8 +36,12 @@ function main(): void {
 
   const byFile = new Map<string, TraitIssue[]>()
   for (const issue of issues) {
-    if (!byFile.has(issue.file)) byFile.set(issue.file, [])
-    byFile.get(issue.file)!.push(issue)
+    let fileIssues = byFile.get(issue.file)
+    if (!fileIssues) {
+      fileIssues = []
+      byFile.set(issue.file, fileIssues)
+    }
+    fileIssues.push(issue)
   }
 
   for (const [file, fileIssues] of byFile.entries()) {

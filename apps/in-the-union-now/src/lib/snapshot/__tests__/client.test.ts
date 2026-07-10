@@ -103,10 +103,13 @@ describe('publishSnapshot — success', () => {
     await publishSnapshot(payload)
 
     expect(calls.length).toBe(1)
-    const [url, options] = calls[0]!
+    const call = calls[0]
+    if (!call) throw new Error('expected one fetch call')
+    const [url, options] = call
     expect(url).toBe('/api/snapshots')
     expect(options?.method).toBe('POST')
-    expect((options?.headers as Record<string, string>)['content-type']).toBe('application/json')
+    const headers = options?.headers as Record<string, string> | undefined
+    expect(headers?.['content-type']).toBe('application/json')
     expect(JSON.parse(options?.body as string)).toMatchObject({ kind: 'mech' })
   })
 })
@@ -154,8 +157,7 @@ describe('retrieveSnapshot — success', () => {
     await retrieveSnapshot('my-snap-id')
 
     expect(calls.length).toBe(1)
-    const [url] = calls[0]!
-    expect(url).toBe('/api/snapshots/my-snap-id')
+    expect(calls[0]?.[0]).toBe('/api/snapshots/my-snap-id')
   })
 })
 
@@ -246,7 +248,9 @@ describe('deleteSnapshot', () => {
     await deleteSnapshot('abc123')
 
     expect(calls.length).toBe(1)
-    const [url, options] = calls[0]!
+    const call = calls[0]
+    if (!call) throw new Error('expected one fetch call')
+    const [url, options] = call
     expect(url).toBe('/api/snapshots/abc123')
     expect(options?.method).toBe('DELETE')
   })
@@ -282,8 +286,8 @@ describe('probeSnapshotService', () => {
     await probeSnapshotService()
 
     expect(calls.length).toBe(1)
-    expect(calls[0]![0]).toBe('/api/snapshots')
-    expect(calls[0]![1]?.method).toBe('HEAD')
+    expect(calls[0]?.[0]).toBe('/api/snapshots')
+    expect(calls[0]?.[1]?.method).toBe('HEAD')
   })
 
   test('resolves true on 405 (the publish function answers non-POST with 405)', async () => {

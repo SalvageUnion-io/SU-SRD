@@ -4,6 +4,12 @@ import { MiniStat } from '../MiniStat'
 
 afterEach(cleanup)
 
+/** Narrow a possibly-null query result, failing the test loudly if absent. */
+function must<T>(value: T | null | undefined): T {
+  if (value == null) throw new Error('Expected element to be present')
+  return value
+}
+
 describe('MiniStat', () => {
   test('renders label and value/max with pips when max ≤ 12', () => {
     const { container } = render(<MiniStat label="HP" value={7} max={10} stat="hp" />)
@@ -62,7 +68,7 @@ describe('MiniStat — heat escalation (U-1)', () => {
     const pips = Array.from(container.querySelectorAll('[data-pip]'))
     const danger = pips.filter((p) => p.className.includes('bg-status-bad'))
     expect(danger.length).toBe(2)
-    expect(pips.indexOf(danger[0]!)).toBe(6)
+    expect(pips.indexOf(must(danger[0]))).toBe(6)
     expect(screen.getByText('8').className).toContain('text-status-bad')
     // border only escalates at cap
     expect(root.className).toContain('border-ink')

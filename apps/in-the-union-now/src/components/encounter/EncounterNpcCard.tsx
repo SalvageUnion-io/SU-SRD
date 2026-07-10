@@ -145,6 +145,7 @@ export function EncounterNpcCard({ npc, store, roll, findTable }: EncounterNpcCa
             <div className="mt-1 flex flex-wrap items-center gap-1.5">
               {npc.conditions.map((condition, index) => (
                 <span
+                  // biome-ignore lint/suspicious/noArrayIndexKey: conditions are free-form strings that may repeat; value+index is the most stable key available and chips hold no state
                   key={`${condition}-${index}`}
                   className="inline-flex items-center gap-1 rounded-[2px] border-chrome border-status-warn bg-paper px-1.5 py-0.5 font-cond text-xs font-semibold uppercase text-rust"
                 >

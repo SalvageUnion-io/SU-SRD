@@ -1,5 +1,5 @@
-import fs from 'fs'
-import path from 'path'
+import fs from 'node:fs'
+import path from 'node:path'
 
 interface SchemaInfo {
   id: string
@@ -221,7 +221,7 @@ function generateSchemaIndex(schemas: SchemaInfo[]): void {
     }
   }
 
-  fs.writeFileSync(outputPath, JSON.stringify(newIndex, null, 2) + '\n')
+  fs.writeFileSync(outputPath, `${JSON.stringify(newIndex, null, 2)}\n`)
   console.log(`✅ Generated schemas/index.json (${schemas.length} schemas)`)
 }
 
@@ -242,7 +242,7 @@ function generateVSCodeSettings(schemas: SchemaInfo[]): void {
 
   const outputPath = path.join(process.cwd(), '.vscode', 'settings.json')
   fs.mkdirSync(path.dirname(outputPath), { recursive: true })
-  fs.writeFileSync(outputPath, JSON.stringify(settings, null, 2) + '\n')
+  fs.writeFileSync(outputPath, `${JSON.stringify(settings, null, 2)}\n`)
   console.log(`✅ Generated .vscode/settings.json (${schemas.length} mappings)`)
 }
 

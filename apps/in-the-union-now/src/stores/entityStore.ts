@@ -134,7 +134,7 @@ export type TransferUpdate = {
 type StoreKey = 'pilots' | 'mechs' | 'crawlers' | 'softLinks'
 
 function storeKeyFor(type: EntityType): StoreKey {
-  return (type + 's') as StoreKey
+  return `${type}s` as StoreKey
 }
 
 /**

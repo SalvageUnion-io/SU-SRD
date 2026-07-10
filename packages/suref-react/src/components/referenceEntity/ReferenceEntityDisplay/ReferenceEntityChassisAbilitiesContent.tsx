@@ -72,6 +72,7 @@ export function ReferenceEntityChassisAbilitiesContent({
                 <div className={spacing.smallSpaceYClass}>
                   <SectionSeparator label="Systems" fontSize="text-xs" />
                   {resolvedSystems.map((entity, idx) => (
+                    // biome-ignore lint/suspicious/noArrayIndexKey: static pattern list; index disambiguates duplicate system ids
                     <PatternEquipmentItem key={`drone-sys-${entity.id}-${idx}`} data={entity} />
                   ))}
                 </div>
@@ -80,6 +81,7 @@ export function ReferenceEntityChassisAbilitiesContent({
                 <div className={spacing.smallSpaceYClass}>
                   <SectionSeparator label="Modules" fontSize="text-xs" />
                   {resolvedModules.map((entity, idx) => (
+                    // biome-ignore lint/suspicious/noArrayIndexKey: static pattern list; index disambiguates duplicate module ids
                     <PatternEquipmentItem key={`drone-mod-${entity.id}-${idx}`} data={entity} />
                   ))}
                 </div>

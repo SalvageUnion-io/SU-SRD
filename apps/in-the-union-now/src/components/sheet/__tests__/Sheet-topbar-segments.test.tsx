@@ -1,8 +1,9 @@
 /**
- * Plan 4.8 integration surface — top-bar Edit action + mobile segment switch.
+ * Plan 4.8 integration surface — top-bar actions + mobile segment switch.
  *
- *   - Edit renders as a trailing link to the entity's edit wizard route,
- *     hidden when readOnly (snapshots).
+ *   - NO sheet has a global top-bar Edit toggle (redesign: unified edit
+ *     language — editing is per-section; each Identity panel owns its own
+ *     Edit button).
  *   - The segmented Pilot/Mech/Crawler switch (design §3.7) renders only on
  *     wired compositions: one segment per present counterpart, the viewed
  *     kind marked active (aria-current, rust fill), the others linking to
@@ -13,7 +14,7 @@
  */
 
 import { afterEach, beforeAll, describe, expect, mock, test } from 'bun:test'
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 
 import { Sheet } from '../Sheet'
@@ -76,18 +77,15 @@ type AnyEntity = Pilot | Mech | Crawler
 
 function makeEntityStore(entities: AnyEntity[]): EntityLookup {
   return {
-    get: (_type, id) => {
-      // EntityLookup's conditional return type can't be satisfied without a cast
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return (entities.find((e) => e.id === id) ?? null) as any
-    },
+    // EntityLookup's conditional return type can't be satisfied without a cast
+    get: ((_type: unknown, id: string) =>
+      entities.find((e) => e.id === id) ?? null) as unknown as EntityLookup['get'],
   }
 }
 
 function makeSoftLinkStore(links: SoftLink[]): SoftLinkStore {
   // The create mock is unused here; cast is safe — these tests never assign()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const createMock = mock(async () => links[0]) as any
+  const createMock = mock(async () => links[0]) as unknown as SoftLinkStore['create']
   return {
     softLinks: links,
     create: createMock,
@@ -127,7 +125,7 @@ const pilotToCrawler = makeLink(
 // ---------------------------------------------------------------------------
 
 describe('Sheet — top-bar Edit action', () => {
-  test('pilot sheet links Edit to /pilots/$id/edit', () => {
+  test('pilot sheet has NO global Edit toggle — editing is per-section', () => {
     render(
       <Sheet
         kind="pilot"
@@ -136,12 +134,38 @@ describe('Sheet — top-bar Edit action', () => {
         softLinkStore={makeSoftLinkStore([])}
       />
     )
-    const edit = screen.getByRole('link', { name: /edit this pilot/i })
-    expect((edit as HTMLAnchorElement).getAttribute('href')).toBe('/pilots/pilot-1/edit')
+    // Unified edit language: no global build-edit mode on the pilot sheet.
+    expect(screen.queryByRole('button', { name: /edit this pilot/i })).toBeNull()
+    // The Identity FIELD section owns its own Edit button instead.
+    const sectionEdit = screen.getByRole('button', { name: /edit identity/i })
+    expect(sectionEdit.getAttribute('aria-pressed')).toBe('false')
   })
 
-  test('mech and crawler sheets link their own edit routes', () => {
-    const { unmount } = render(
+  test('Identity section Edit flips only that section into inline-edit', () => {
+    render(
+      <Sheet
+        kind="pilot"
+        id="pilot-1"
+        entityStore={makeEntityStore([fakePilot])}
+        softLinkStore={makeSoftLinkStore([])}
+      />
+    )
+    // Read-only by default: no inline click-to-edit fields are exposed.
+    expect(screen.queryByRole('button', { name: /edit callsign/i })).toBeNull()
+
+    fireEvent.click(screen.getByRole('button', { name: /edit identity/i }))
+
+    // Toggling on relabels the control and reveals the section's inline fields.
+    const on = screen.getByRole('button', { name: /done editing identity/i })
+    expect(on.getAttribute('aria-pressed')).toBe('true')
+    expect(screen.getByRole('button', { name: /edit callsign/i })).toBeTruthy()
+    // Class is picker-backed: its affordance opens the shared picker modal, so
+    // its accessible name matches the visible 'Change' word (WCAG 2.5.3).
+    expect(screen.getByRole('button', { name: /change class/i })).toBeTruthy()
+  })
+
+  test('mech sheet has NO global Edit toggle — editing is per-section (phase 2)', () => {
+    render(
       <Sheet
         kind="mech"
         id="mech-1"
@@ -149,11 +173,13 @@ describe('Sheet — top-bar Edit action', () => {
         softLinkStore={makeSoftLinkStore([])}
       />
     )
-    expect(screen.getByRole('link', { name: /edit this mech/i }).getAttribute('href')).toBe(
-      '/mechs/mech-1/edit'
-    )
-    unmount()
+    expect(screen.queryByRole('button', { name: /edit this mech/i })).toBeNull()
+    // The mech Identity FIELD section owns its own Edit button instead.
+    const sectionEdit = screen.getByRole('button', { name: /edit identity/i })
+    expect(sectionEdit.getAttribute('aria-pressed')).toBe('false')
+  })
 
+  test('crawler sheet has NO global Edit toggle — editing is per-section (phase 3)', () => {
     render(
       <Sheet
         kind="crawler"
@@ -162,9 +188,10 @@ describe('Sheet — top-bar Edit action', () => {
         softLinkStore={makeSoftLinkStore([])}
       />
     )
-    expect(screen.getByRole('link', { name: /edit this crawler/i }).getAttribute('href')).toBe(
-      '/crawlers/crawler-1/edit'
-    )
+    expect(screen.queryByRole('button', { name: /edit this crawler/i })).toBeNull()
+    // The crawler Identity FIELD section owns its own Edit button instead.
+    const sectionEdit = screen.getByRole('button', { name: /edit identity/i })
+    expect(sectionEdit.getAttribute('aria-pressed')).toBe('false')
   })
 
   test('readOnly hides Edit (and Share)', () => {
@@ -177,7 +204,8 @@ describe('Sheet — top-bar Edit action', () => {
         readOnly
       />
     )
-    expect(screen.queryByRole('link', { name: /edit this pilot/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /edit this pilot/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /edit identity/i })).toBeNull()
     expect(screen.queryByRole('button', { name: /share/i })).toBeNull()
   })
 })

@@ -21,6 +21,7 @@ import { MechSheet } from '../MechSheet'
 import type { Roll } from '../../../lib/rules/heatCheck'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { useEntityStore } from '../../../stores/entityStore'
+import { must } from '../../__tests__/must'
 
 beforeAll(async () => {
   await SalvageUnionReference.preload('all')
@@ -77,14 +78,9 @@ function makeStore(mech: Mech, captured: CapturedUpdate[]): typeof useEntityStor
     hydrated: { pilots: false, mechs: true, crawlers: false, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [current]),
-    get: mock(
-      (_type: string, id: string) => (id === current.id ? current : null)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ) as any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    create: mock(async () => mech) as any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    update: updateMock as any,
+    get: mock((_type: string, id: string) => (id === current.id ? current : null)),
+    create: mock(async () => mech),
+    update: updateMock,
     delete: mock(async () => {}),
   }
   return (() => storeState) as unknown as typeof useEntityStore
@@ -113,7 +109,7 @@ describe('MechSheet — Take Damage intake', () => {
     await enterAndApply('3')
 
     expect(captured.length).toBe(1)
-    expect(captured[0]!.patch).toEqual({ currentSP: 7 })
+    expect(must(captured[0]).patch).toEqual({ currentSP: 7 })
   })
 
   test('HP-listed damage is halved vs the mech', async () => {
@@ -126,7 +122,7 @@ describe('MechSheet — Take Damage intake', () => {
     await enterAndApply('5')
 
     // floor(5/2) = 2 → 10 - 2 = 8
-    expect(captured[0]!.patch).toEqual({ currentSP: 8 })
+    expect(must(captured[0]).patch).toEqual({ currentSP: 8 })
   })
 
   test('Vulnerable ×2 defaults on from the mech flag', async () => {
@@ -142,7 +138,7 @@ describe('MechSheet — Take Damage intake', () => {
     await enterAndApply('3')
 
     // 3 × 2 = 6 → 10 - 6 = 4
-    expect(captured[0]!.patch).toEqual({ currentSP: 4 })
+    expect(must(captured[0]).patch).toEqual({ currentSP: 4 })
   })
 
   test('damage clamps SP at 0 (never negative)', async () => {
@@ -153,7 +149,7 @@ describe('MechSheet — Take Damage intake', () => {
 
     await enterAndApply('99')
 
-    expect(captured[0]!.patch).toEqual({ currentSP: 0 })
+    expect(must(captured[0]).patch).toEqual({ currentSP: 0 })
   })
 })
 
@@ -171,7 +167,7 @@ describe('MechSheet — Take Damage friction reducers (audit item 25)', () => {
     })
 
     expect(captured.length).toBe(1)
-    expect(captured[0]!.patch).toEqual({ currentSP: 7 })
+    expect(must(captured[0]).patch).toEqual({ currentSP: 7 })
   })
 
   test('applying damage offers an Undo toast that reverts the SP write', async () => {
@@ -184,7 +180,7 @@ describe('MechSheet — Take Damage friction reducers (audit item 25)', () => {
     )
 
     await enterAndApply('3')
-    expect(captured[0]!.patch).toEqual({ currentSP: 7 })
+    expect(must(captured[0]).patch).toEqual({ currentSP: 7 })
 
     const undoBtn = await screen.findByRole('button', { name: /undo/i })
     await act(async () => {
@@ -192,7 +188,7 @@ describe('MechSheet — Take Damage friction reducers (audit item 25)', () => {
     })
 
     expect(captured.length).toBe(2)
-    expect(captured[1]!.patch).toEqual({ currentSP: 10 })
+    expect(must(captured[1]).patch).toEqual({ currentSP: 10 })
   })
 
   test('remembers the last-used damage kind across remounts (session)', async () => {
@@ -232,7 +228,7 @@ describe('MechSheet — Critical Damage roll (0 SP)', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Roll Critical Damage' }))
     })
 
-    const patch = captured[0]!.patch
+    const patch = must(captured[0]).patch
     expect(patch.lastCriticalDamage?.roll).toBe(20)
     expect(patch.lastCriticalDamage?.outcome).toBe('miraculous-survival')
     expect(patch.currentSP).toBe(1)
@@ -255,7 +251,7 @@ describe('MechSheet — Critical Damage roll (0 SP)', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Roll Critical Damage' }))
     })
 
-    const patch = captured[0]!.patch
+    const patch = must(captured[0]).patch
     expect(patch.lastCriticalDamage?.outcome).toBe('system-destruction')
     expect(patch.conditions).toEqual(['Chassis Damaged'])
     expect(patch.destroyed).toBeUndefined()
@@ -277,7 +273,7 @@ describe('MechSheet — Critical Damage roll (0 SP)', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Roll Critical Damage' }))
     })
 
-    const patch = captured[0]!.patch
+    const patch = must(captured[0]).patch
     expect(patch.lastCriticalDamage?.outcome).toBe('core-damage')
     expect(patch.conditions).toEqual(['Chassis Damaged'])
     expect(screen.queryByText(/Mark one/i)).toBeNull()
@@ -298,7 +294,7 @@ describe('MechSheet — Critical Damage roll (0 SP)', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Roll Critical Damage' }))
     })
 
-    const patch = captured[0]!.patch
+    const patch = must(captured[0]).patch
     expect(patch.lastCriticalDamage?.outcome).toBe('catastrophic')
     expect(patch.destroyed).toBe(true)
   })
@@ -319,7 +315,7 @@ describe('MechSheet — Critical Damage roll (0 SP)', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Roll Critical Damage' }))
     })
 
-    expect(captured[0]!.patch.conditions).toBeUndefined()
+    expect(must(captured[0]).patch.conditions).toBeUndefined()
   })
 
   test('no prompt above 0 SP or on a destroyed mech', () => {

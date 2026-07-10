@@ -1,5 +1,5 @@
 /**
- * SnapshotView — renders a published snapshot payload as a read-only sheet
+ * SnapshotSheet — renders a published snapshot payload as a read-only sheet
  * on the rebuilt Header C shell (plan 4.8).
  *
  * Store-free: the frozen snapshot entity is wrapped in a private read-only
@@ -32,7 +32,7 @@ import { AppLink } from '../shared/AppLink'
 
 import { Sheet } from './Sheet'
 
-type SnapshotViewProps = {
+type SnapshotSheetProps = {
   /** The raw payload returned by retrieveSnapshot — not yet validated. */
   snapshot: Record<string, unknown>
 }
@@ -44,8 +44,8 @@ type ParseResult =
   | { ok: false; reason: string }
 
 function parseSnapshot(snapshot: Record<string, unknown>): ParseResult {
-  const kind = snapshot['kind']
-  const entity = snapshot['entity']
+  const kind = snapshot.kind
+  const entity = snapshot.entity
 
   if (entity === null || typeof entity !== 'object' || Array.isArray(entity)) {
     return { ok: false, reason: 'Snapshot entity is missing or invalid.' }
@@ -132,7 +132,7 @@ function makeSnapshotStore(parsed: Extract<ParseResult, { ok: true }>): typeof u
   return create<EntityState>(() => state)
 }
 
-export function SnapshotView({ snapshot }: SnapshotViewProps) {
+export function SnapshotSheet({ snapshot }: SnapshotSheetProps) {
   const result = useMemo(() => parseSnapshot(snapshot), [snapshot])
   const store = useMemo(() => (result.ok ? makeSnapshotStore(result) : null), [result])
 

@@ -165,12 +165,14 @@ export function PilotWizard({
       void handleSubmit()
       return
     }
-    setStep(STEPS[currentIndex + 1]!)
+    const next = STEPS[currentIndex + 1]
+    if (next) setStep(next)
   }
 
   function goBack() {
-    if (currentIndex > 0) {
-      setStep(STEPS[currentIndex - 1]!)
+    const prev = STEPS[currentIndex - 1]
+    if (currentIndex > 0 && prev) {
+      setStep(prev)
     }
   }
 
@@ -281,7 +283,10 @@ export function PilotWizard({
       eyebrow={isEdit ? 'Edit Pilot' : 'New Pilot'}
       steps={STEPS}
       active={currentIndex}
-      onStepClick={(i) => setStep(STEPS[i]!)}
+      onStepClick={(i) => {
+        const s = STEPS[i]
+        if (s) setStep(s)
+      }}
       title={STEP_TITLES[step]}
       subtitle={subtitle}
       optionPane={

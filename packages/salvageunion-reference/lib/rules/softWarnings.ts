@@ -98,10 +98,10 @@ function checkTreeOrder(after: PilotSnapshot): SoftWarning[] {
  */
 function checkAdvancedGate(after: PilotSnapshot): SoftWarning[] {
   const advanced = after.abilities.filter((a) => a.tier === 'advanced')
-  if (advanced.length === 0) return []
+  const first = advanced[0]
+  if (!first) return []
   const coreCount = tierCount(after.abilities, 'core')
   if (coreCount >= 6 && hasCompleteCoreTree(after.abilities)) return []
-  const first = advanced[0]!
   return [
     warn(
       'ADVANCED_ABILITY_PREREQUISITE',
@@ -114,7 +114,8 @@ function checkAdvancedGate(after: PilotSnapshot): SoftWarning[] {
 /** Legendary abilities require 6 Core + 3 Advanced/Hybrid abilities. */
 function checkLegendaryGate(after: PilotSnapshot): SoftWarning[] {
   const legendary = after.abilities.filter((a) => a.tier === 'legendary')
-  if (legendary.length === 0) return []
+  const firstLegendary = legendary[0]
+  if (!firstLegendary) return []
   const warnings: SoftWarning[] = []
   const coreCount = tierCount(after.abilities, 'core')
   const advancedCount = tierCount(after.abilities, 'advanced')
@@ -122,7 +123,7 @@ function checkLegendaryGate(after: PilotSnapshot): SoftWarning[] {
     warnings.push(
       warn(
         'LEGENDARY_ABILITY_PREREQUISITE',
-        `"${abilityLabel(legendary[0]!)}" is a Legendary ability — it normally requires ` +
+        `"${abilityLabel(firstLegendary)}" is a Legendary ability — it normally requires ` +
           `6 Core and 3 Advanced/Hybrid abilities (this pilot has ${coreCount} core, ` +
           `${advancedCount} advanced).`
       )

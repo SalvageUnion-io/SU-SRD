@@ -162,7 +162,10 @@ describe('Custom Sniper Rifle granting ability display', () => {
 })
 
 describe('controlled choice selections (ITUN persistence path)', () => {
-  const weaponTypeId = getChoices(rifleEquipment!)!.find((c) => c.name === 'Weapon Type')!.id
+  const weaponTypeId =
+    (rifleEquipment
+      ? getChoices(rifleEquipment)?.find((c) => c.name === 'Weapon Type')?.id
+      : undefined) ?? ''
 
   test('seeded controlled selections render: Ballistic resolves, the prompt is gone', () => {
     // ITUN seeds persisted selections via the `selections` prop — the resolved row
@@ -193,7 +196,7 @@ describe('controlled choice selections (ITUN persistence path)', () => {
     )
     fireEvent.click(screen.getByRole('button', { name: /Ballistic/ }))
     expect(next).toBeDefined()
-    expect(next![weaponTypeId]).toEqual(['Ballistic'])
+    expect(next?.[weaponTypeId]).toEqual(['Ballistic'])
   })
 
   test('controlled with no onSelectionChange is read-only: toggle no-ops, no crash', () => {

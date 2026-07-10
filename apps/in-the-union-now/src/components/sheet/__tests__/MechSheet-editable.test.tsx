@@ -25,6 +25,7 @@ import { MechSheet } from '../MechSheet'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { useEntityStore } from '../../../stores/entityStore'
+import { must } from '../../__tests__/must'
 
 beforeAll(async () => {
   await SalvageUnionReference.preload('all')
@@ -96,18 +97,13 @@ function makeStore(mech: Mech, captured: CapturedUpdate[], crawler?: Crawler) {
       if (type === 'mech' && id === currentMech.id) return currentMech
       if (type === 'crawler' && crawler && id === crawler.id) return crawler
       return null
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    }) as any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    create: mock(async () => mech) as any,
-    update: mock(
-      async (type: string, id: string, patch: Record<string, unknown>) => {
-        captured.push({ type, id, patch })
-        if (type === 'mech') currentMech = { ...currentMech, ...patch }
-        return currentMech
-      }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ) as any,
+    }),
+    create: mock(async () => mech),
+    update: mock(async (type: string, id: string, patch: Record<string, unknown>) => {
+      captured.push({ type, id, patch })
+      if (type === 'mech') currentMech = { ...currentMech, ...patch }
+      return currentMech
+    }),
     delete: mock(async () => {}),
   }
   return (() => storeState) as unknown as typeof useEntityStore
@@ -129,7 +125,7 @@ describe('MechSheet — Use action economy', () => {
     })
 
     expect(captured.length).toBe(1)
-    expect(captured[0]!.patch).toEqual({ currentEP: 3 })
+    expect(must(captured[0]).patch).toEqual({ currentEP: 3 })
   })
 
   test('Use ticks the uses counter down alongside the EP spend', async () => {
@@ -145,7 +141,7 @@ describe('MechSheet — Use action economy', () => {
       clickButton(/^use aff coolant foam$/i)
     })
 
-    expect(captured[0]!.patch).toEqual({
+    expect(must(captured[0]).patch).toEqual({
       currentEP: 3,
       itemUses: { 'AFF Coolant Foam': 2 },
     })
@@ -201,8 +197,8 @@ describe('MechSheet — Damaged disables function, promotes Repair (S12)', () =>
     })
 
     expect(captured.length).toBe(1)
-    expect(captured[0]!.type).toBe('mech')
-    expect(captured[0]!.patch).toEqual({
+    expect(must(captured[0]).type).toBe('mech')
+    expect(must(captured[0]).patch).toEqual({
       systemConditions: { 'Smoke Machine': 'intact' },
     })
   })
@@ -231,11 +227,11 @@ describe('MechSheet — Damaged disables function, promotes Repair (S12)', () =>
     })
 
     expect(captured.length).toBe(2)
-    expect(captured[0]!.patch).toEqual({
+    expect(must(captured[0]).patch).toEqual({
       systemConditions: { 'Smoke Machine': 'intact' },
     })
-    expect(captured[1]!.type).toBe('crawler')
-    expect(captured[1]!.patch).toEqual({ scrapPool: { tl2: 4 } })
+    expect(must(captured[1]).type).toBe('crawler')
+    expect(must(captured[1]).patch).toEqual({ scrapPool: { tl2: 4 } })
   })
 })
 
@@ -253,7 +249,7 @@ describe('MechSheet — per-item uses counters (rules B13)', () => {
       clickButton(/decrease aff coolant foam uses/i)
     })
 
-    expect(captured[0]!.patch).toEqual({ itemUses: { 'AFF Coolant Foam': 2 } })
+    expect(must(captured[0]).patch).toEqual({ itemUses: { 'AFF Coolant Foam': 2 } })
   })
 
   test('the stepper increments back up (downtime recharge by hand)', async () => {
@@ -268,7 +264,7 @@ describe('MechSheet — per-item uses counters (rules B13)', () => {
       clickButton(/increase aff coolant foam uses/i)
     })
 
-    expect(captured[0]!.patch).toEqual({ itemUses: { 'AFF Coolant Foam': 4 } })
+    expect(must(captured[0]).patch).toEqual({ itemUses: { 'AFF Coolant Foam': 4 } })
   })
 })
 
@@ -283,7 +279,7 @@ describe('MechSheet — chassis ability slab', () => {
       clickButton(/^use data scanner$/i)
     })
 
-    expect(captured[0]!.patch).toEqual({ currentEP: 3 })
+    expect(must(captured[0]).patch).toEqual({ currentEP: 3 })
   })
 
   test('Use is blocked while the mech is shut down', () => {

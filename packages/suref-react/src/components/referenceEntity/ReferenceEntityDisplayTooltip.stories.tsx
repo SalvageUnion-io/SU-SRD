@@ -4,6 +4,7 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import { Text } from '../base/Text'
 import { ValueDisplay } from '../shared/ValueDisplay'
 
+// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'ReferenceEntity/ReferenceEntityDisplayTooltip',
 }

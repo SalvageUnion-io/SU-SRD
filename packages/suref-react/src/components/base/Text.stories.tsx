@@ -1,6 +1,7 @@
 import type { Story } from '@ladle/react'
 import { Text } from './Text'
 
+// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Base/Text',
 }

@@ -127,7 +127,7 @@ export function makeStore<T extends EntityBase>(
       createdAt: now,
     }
     if (hasUpdatedAt) {
-      candidate['updatedAt'] = now
+      candidate.updatedAt = now
     }
     // parse() throws ZodError on bad input — let it bubble to caller
     const record = schema.parse(candidate)
@@ -157,7 +157,7 @@ export function makeStore<T extends EntityBase>(
       id, // id is immutable
     }
     if (hasUpdatedAt) {
-      candidate['updatedAt'] = now
+      candidate.updatedAt = now
     }
     return schema.parse(candidate)
   }

@@ -151,7 +151,8 @@ describe('Starter Set seed — reference refs resolve (drift guard)', () => {
         const mottoId = findNpcChoiceByName(npc, 'Motto')?.id
         expect(keepsakeId).toBeTruthy()
         expect(mottoId).toBeTruthy()
-        expect([...stored].sort()).toEqual([keepsakeId!, mottoId!].sort())
+        if (!keepsakeId || !mottoId) throw new Error('missing Keepsake/Motto choice ids')
+        expect([...stored].sort()).toEqual([keepsakeId, mottoId].sort())
       }
 
       // The crawler-type NPC's stored choice ids are its Keepsake + Motto.
@@ -163,7 +164,8 @@ describe('Starter Set seed — reference refs resolve (drift guard)', () => {
           const mottoId = findNpcChoiceByName(npc, 'Motto')?.id
           expect(keepsakeId).toBeTruthy()
           expect(mottoId).toBeTruthy()
-          expect([...stored].sort()).toEqual([keepsakeId!, mottoId!].sort())
+          if (!keepsakeId || !mottoId) throw new Error('missing Keepsake/Motto choice ids')
+          expect([...stored].sort()).toEqual([keepsakeId, mottoId].sort())
         }
       }
     }

@@ -54,6 +54,7 @@ export function SearchResultsIsland() {
   return (
     <IslandErrorBoundary>
       <div className="mx-auto flex w-full max-w-[900px] flex-col gap-6">
+        {/* biome-ignore lint/a11y/useSemanticElements: role="search" on <form> is the established search-landmark pattern; the <search> element is not a form, so swapping would change Enter-key submit semantics */}
         <form role="search" onSubmit={(e) => e.preventDefault()}>
           <div className="flex items-center gap-2 rounded border border-su-black bg-su-white px-3 py-2 font-mono text-sm text-su-grey-dark focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-su-orange">
             <svg
@@ -78,7 +79,7 @@ export function SearchResultsIsland() {
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search the SRD…"
               aria-label="Search the SRD"
-              // eslint-disable-next-line jsx-a11y/no-autofocus -- search is the page's sole purpose
+              // biome-ignore lint/a11y/noAutofocus: search is the page's sole purpose — focusing the input on load is the expected UX
               autoFocus
               className="w-full bg-transparent text-su-black placeholder:text-su-grey-dark focus:outline-none"
             />

@@ -48,8 +48,11 @@ function subscribeReady(key: string, onChange: () => void): () => void {
     readyListeners.set(key, listeners)
   }
   listeners.add(onChange)
+  // Capture the narrowed Set in a const — TS can't keep the `let` narrowed
+  // inside the cleanup closure.
+  const subscribed = listeners
   return () => {
-    listeners!.delete(onChange)
+    subscribed.delete(onChange)
   }
 }
 
@@ -91,14 +94,16 @@ function ensurePreloaded(key: string, schemas: SchemaList): Promise<void> {
     state = { promise: null, done: false }
     preloadStates.set(key, state)
   }
-  if (!state.promise) {
+  let promise = state.promise
+  if (!promise) {
     const pending = state
-    pending.promise = SalvageUnionReference.preload(schemas).then(() => {
+    promise = SalvageUnionReference.preload(schemas).then(() => {
       pending.done = true
       emitReady(key)
     })
+    pending.promise = promise
   }
-  return state.promise!
+  return promise
 }
 
 /**
@@ -137,6 +142,7 @@ export function useGameData(options?: { defer?: boolean; schemas?: SchemaList })
   const [wanted, setWanted] = useState(!options?.defer)
   const [error, setError] = useState<Error | null>(null)
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: `key` is the stable, order-independent identity of `schemas` — depending on the (often fresh-per-render) array itself would re-run the effect every render
   useEffect(() => {
     // After a failure, `error` blocks re-fetching until load() clears it —
     // clearing it re-runs this effect, which retries the (reset) preload.
@@ -151,7 +157,6 @@ export function useGameData(options?: { defer?: boolean; schemas?: SchemaList })
     return () => {
       cancelled = true
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- `key` is the stable, order-independent identity of `schemas`
   }, [ready, wanted, error, key])
 
   // Stable identity: consumers (e.g. SearchIsland) put `load` in callback

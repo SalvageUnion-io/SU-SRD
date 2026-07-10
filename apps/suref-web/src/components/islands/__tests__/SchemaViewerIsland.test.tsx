@@ -11,6 +11,12 @@ import { SchemaViewerIsland } from '../SchemaViewerIsland'
 
 const entitySchemas = getEntitySchemas()
 
+/** Narrowing guard for fixture lookups — fails the test loudly instead of `!`. */
+function required<T>(value: T | null | undefined, label: string): T {
+  if (value == null) throw new Error(`Expected ${label} to exist`)
+  return value
+}
+
 describe('SchemaViewerIsland', () => {
   // The island now reads/writes filter state to the URL. Reset the location
   // between tests so a leaked ?q=/?tl= doesn't silently filter later renders.
@@ -24,8 +30,8 @@ describe('SchemaViewerIsland', () => {
   it('renders FilterRow labels as visible text for filter sections', () => {
     // FilterRow renders a visible <span> label — old code used aria-label (not visible text)
     // Verifies FilterRow is used rather than the old manual div+role="group" pattern
-    const firstSchema = entitySchemas[0]!
-    const model = getModel(firstSchema.id)!
+    const firstSchema = required(entitySchemas[0], 'first entity schema')
+    const model = required(getModel(firstSchema.id), `model for ${firstSchema.id}`)
     const entities = model.all()
 
     const { container } = render(
@@ -40,7 +46,7 @@ describe('SchemaViewerIsland', () => {
     // FilterRow renders the label as visible text in a <span>. Scope to the
     // filter rail — entity cards (e.g. granted equipment) also surface a
     // "Tech Level" badge in the grid.
-    const filterRail = container.querySelector('aside')!
+    const filterRail = required(container.querySelector('aside'), 'the <aside> filter rail')
     expect(within(filterRail).getByText('Tech Level')).toBeTruthy()
     expect(within(filterRail).getByText('Source')).toBeTruthy()
   })
@@ -68,8 +74,8 @@ describe('SchemaViewerIsland', () => {
   }
 
   it('renders filter buttons when multiple tech levels exist', () => {
-    const firstSchema = entitySchemas[0]!
-    const model = getModel(firstSchema.id)!
+    const firstSchema = required(entitySchemas[0], 'first entity schema')
+    const model = required(getModel(firstSchema.id), `model for ${firstSchema.id}`)
     const entities = model.all()
 
     const { container } = render(
@@ -86,7 +92,7 @@ describe('SchemaViewerIsland', () => {
   })
 
   it('name filter: typing a nonsense string shows the empty state', () => {
-    const systemsModel = getModel('systems')!
+    const systemsModel = required(getModel('systems'), 'systems model')
     const entities = systemsModel.all()
 
     render(
@@ -108,7 +114,7 @@ describe('SchemaViewerIsland', () => {
   })
 
   it('name filter: Clear-filters button clears name input and restores cards', () => {
-    const systemsModel = getModel('systems')!
+    const systemsModel = required(getModel('systems'), 'systems model')
     const entities = systemsModel.all()
 
     render(
@@ -136,7 +142,7 @@ describe('SchemaViewerIsland', () => {
   })
 
   it('name filter: typing a known entity name shows only matching cards', () => {
-    const systemsModel = getModel('systems')!
+    const systemsModel = required(getModel('systems'), 'systems model')
     const entities = systemsModel.all()
     // ".50 Cal Machine Gun" is a known system — use a substring that is unique
     const knownName = '.50 Cal Machine Gun'
@@ -163,8 +169,8 @@ describe('SchemaViewerIsland', () => {
   })
 
   it('shows an empty state with a clear-filters action when filters match nothing', () => {
-    const firstSchema = entitySchemas[0]!
-    const model = getModel(firstSchema.id)!
+    const firstSchema = required(entitySchemas[0], 'first entity schema')
+    const model = required(getModel(firstSchema.id), `model for ${firstSchema.id}`)
     const entities = model.all()
 
     render(
@@ -192,7 +198,7 @@ describe('SchemaViewerIsland', () => {
   })
 
   it('URL sync: initializes the name filter from ?q= on mount', () => {
-    const systemsModel = getModel('systems')!
+    const systemsModel = required(getModel('systems'), 'systems model')
     const entities = systemsModel.all()
     const knownName = '.50 Cal Machine Gun'
     window.location.href = `http://localhost/schema/systems/?q=${encodeURIComponent(knownName)}`
@@ -217,14 +223,17 @@ describe('SchemaViewerIsland', () => {
   })
 
   it('URL sync: initializes the tech-level filter from ?tl= on mount', () => {
-    const systemsModel = getModel('systems')!
+    const systemsModel = required(getModel('systems'), 'systems model')
     const entities = systemsModel.all()
     const techLevels = getUniqueTechLevels(entities)
     // Pick a numeric tech level that partitions the dataset (some in, some out).
-    const level = techLevels.find(
-      (tl) =>
-        typeof tl === 'number' && entities.some((e) => getTechLevel(e)?.toString() === String(tl))
-    )!
+    const level = required(
+      techLevels.find(
+        (tl) =>
+          typeof tl === 'number' && entities.some((e) => getTechLevel(e)?.toString() === String(tl))
+      ),
+      'a numeric tech level present in the dataset'
+    )
     window.location.href = `http://localhost/schema/systems/?tl=${level}`
 
     render(
@@ -244,7 +253,7 @@ describe('SchemaViewerIsland', () => {
   })
 
   it('URL sync: writes the name filter to the URL on change (replaceState)', () => {
-    const systemsModel = getModel('systems')!
+    const systemsModel = required(getModel('systems'), 'systems model')
     const entities = systemsModel.all()
     window.location.href = 'http://localhost/schema/systems/'
     // Spy after mount so the initial (idempotent) sync doesn't count; assert the

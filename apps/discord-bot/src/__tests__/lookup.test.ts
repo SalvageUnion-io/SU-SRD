@@ -52,7 +52,7 @@ function mockAutocomplete(focused: string) {
 }
 
 function embedOf(reply: ReplyArg): { data: { title?: string; url?: string } } {
-  return reply.embeds![0] as { data: { title?: string; url?: string } }
+  return reply.embeds?.[0] as { data: { title?: string; url?: string } }
 }
 
 describe('lookupCommand.execute', () => {
@@ -60,30 +60,36 @@ describe('lookupCommand.execute', () => {
     const { interaction, replies } = mockChatInput('systems::50-cal-machine-gun')
     await lookupCommand.execute(interaction)
     expect(replies).toHaveLength(1)
-    expect(replies[0]!.embeds).toHaveLength(1)
-    const embed = embedOf(replies[0]!)
+    const reply = replies[0]
+    if (!reply) throw new Error('expected a reply')
+    expect(reply.embeds).toHaveLength(1)
+    const embed = embedOf(reply)
     expect(embed.data.title).toBe('.50 Cal Machine Gun')
     expect(embed.data.url).toBe('https://salvageunion.io/schema/systems/item/50-cal-machine-gun')
-    expect(replies[0]!.flags).toBeUndefined()
+    expect(reply.flags).toBeUndefined()
   })
 
   test('free-typed text falls back to the top search hit', async () => {
     const { interaction, replies } = mockChatInput('cover')
     await lookupCommand.execute(interaction)
     expect(replies).toHaveLength(1)
-    expect(replies[0]!.embeds).toHaveLength(1)
-    expect(embedOf(replies[0]!).data.title).toBeTruthy()
+    const reply = replies[0]
+    if (!reply) throw new Error('expected a reply')
+    expect(reply.embeds).toHaveLength(1)
+    expect(embedOf(reply).data.title).toBeTruthy()
     // A real hit deep-links out; the not-found path would carry no embed.
-    expect(replies[0]!.content).toBeUndefined()
+    expect(reply.content).toBeUndefined()
   })
 
   test('a no-match query replies with an ephemeral "not found"', async () => {
     const { interaction, replies } = mockChatInput('zzzqqqxyzzy123')
     await lookupCommand.execute(interaction)
     expect(replies).toHaveLength(1)
-    expect(replies[0]!.embeds).toBeUndefined()
-    expect(replies[0]!.content).toContain('No entity found')
-    expect(replies[0]!.flags).toBe(MessageFlags.Ephemeral)
+    const reply = replies[0]
+    if (!reply) throw new Error('expected a reply')
+    expect(reply.embeds).toBeUndefined()
+    expect(reply.content).toContain('No entity found')
+    expect(reply.flags).toBe(MessageFlags.Ephemeral)
   })
 })
 
@@ -92,7 +98,7 @@ describe('buildTableLookupMessage — the "See table" button target', () => {
     const message = buildTableLookupMessage('Core Mechanic')
     expect('error' in message).toBe(false)
     if ('error' in message) return
-    const embed = message.embeds[0]!.toJSON() as { title?: string; description?: string }
+    const embed = message.embeds[0]?.toJSON() as { title?: string; description?: string }
     expect(embed.title).toBe('Core Mechanic')
     // Full rows are inlined (backtick roll keys), not just a link-out.
     expect(embed.description).toContain('`20`')
@@ -120,7 +126,8 @@ describe('lookupCommand.autocomplete', () => {
     const { interaction, responses } = mockAutocomplete('machine gun')
     await lookupCommand.autocomplete(interaction)
     expect(responses).toHaveLength(1)
-    const choices = responses[0]!
+    const choices = responses[0]
+    if (!choices) throw new Error('expected a response')
     expect(choices.length).toBeGreaterThan(0)
     expect(choices.length).toBeLessThanOrEqual(25)
     for (const c of choices) {

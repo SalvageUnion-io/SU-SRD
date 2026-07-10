@@ -27,6 +27,12 @@ type InlineEditFieldProps = {
   max?: number
   ariaLabel?: string
   className?: string
+  /**
+   * Extra classes for the edit <input> — merged after the defaults. The input
+   * is sized for numeric stats (w-16, centered) by default; text consumers
+   * (name/callsign) pass e.g. "w-full text-left" to widen it.
+   */
+  inputClassName?: string
   readOnly?: boolean
 }
 
@@ -42,6 +48,7 @@ export function InlineEditField({
   max,
   ariaLabel,
   className,
+  inputClassName,
   readOnly = false,
 }: InlineEditFieldProps) {
   const [editing, setEditing] = useState(false)
@@ -98,6 +105,8 @@ export function InlineEditField({
 
   if (!editing) {
     return (
+      // biome-ignore lint/a11y/noStaticElementInteractions: role/tabIndex/handlers are all applied together in edit mode (readOnly strips them as a set), which the rule can't see through the conditionals
+      // biome-ignore lint/a11y/useAriaPropsSupportedByRole: in readOnly mode the span is a plain value readout whose aria-label callers (and tests) rely on
       <span
         role={readOnly ? undefined : 'button'}
         tabIndex={readOnly ? undefined : 0}
@@ -155,7 +164,8 @@ export function InlineEditField({
         }}
         className={cn(
           'w-16 rounded border-chrome bg-su-paper px-1 py-0.5 text-center font-mono text-lg font-bold text-ink focus:outline-none focus:ring-2 focus:ring-su-orange',
-          error ? 'border-danger focus:ring-danger' : 'border-ink'
+          error ? 'border-danger focus:ring-danger' : 'border-ink',
+          inputClassName
         )}
       />
       {error && (

@@ -72,6 +72,7 @@ export function NpcFactsEditor({
       {facts.map((fact, index) =>
         readOnly ? (
           <span
+            // biome-ignore lint/suspicious/noArrayIndexKey: facts are free-form strings that may repeat; value+index is the most stable key available and chips hold no state
             key={`${fact}-${index}`}
             className={cn(chipBase, 'bg-su-blue-pale text-su-ink-soft')}
           >
@@ -79,6 +80,7 @@ export function NpcFactsEditor({
           </span>
         ) : (
           <span
+            // biome-ignore lint/suspicious/noArrayIndexKey: facts are free-form strings that may repeat; value+index is the most stable key available and chips hold no state
             key={`${fact}-${index}`}
             className={cn(chipBase, 'bg-su-blue-pale text-su-ink-soft')}
           >

@@ -1,14 +1,16 @@
 /**
- * CrawlerSheet — Crawler Type slab + special NPC tests.
+ * Crawler type card + special NPC tests (redesign phase 3: the type card
+ * lives in the hero's CrawlerIdentityPanel now, not a body slab).
  *
- * When `crawler.type` is set, the sheet renders a "Crawler Type" slab: the
- * type's entity card (description + special action) with its special NPC as an
- * NpcInset in the expand slot. Keepsake/Motto persist through the type NPC's
- * SRD freeform choices into bayChoices keyed by the type ref; structured
- * name/HP/description persist into the `typeNpc` field.
+ * When `crawler.type` is set, the identity panel renders the type's special
+ * ability and the type itself as compact entity cards, with the special NPC
+ * as an NpcInset in the type card's expand slot. Keepsake/Motto persist
+ * through the type NPC's SRD freeform choices into bayChoices keyed by the
+ * type ref; structured name/HP/description persist into the `typeNpc` field.
  *
- * Covers: type slab presence, the special NPC, the Augmented edge
- * (hitPoints:0 → no HP block), and untyped legacy crawlers (no slab, no crash).
+ * Covers: type + ability card presence, the special NPC, the Augmented edge
+ * (hitPoints:0 → no HP block), and untyped legacy crawlers (no cards, no
+ * crash).
  *
  * Uses a patched Crawlers.all + the store-injection seam. NO mock.module().
  */
@@ -16,6 +18,7 @@
 import { afterEach, describe, expect, mock, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 
+import { CrawlerIdentityPanel } from '../CrawlerIdentity'
 import { CrawlerSheet } from '../CrawlerSheet'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { useEntityStore } from '../../../stores/entityStore'
@@ -71,8 +74,9 @@ const MOCK_TYPES = [
 async function patchCrawlers(): Promise<() => void> {
   const { SalvageUnionReference } = await import('salvageunion-reference')
   const original = SalvageUnionReference.Crawlers.all.bind(SalvageUnionReference.Crawlers)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  SalvageUnionReference.Crawlers.all = mock(() => MOCK_TYPES as any)
+  SalvageUnionReference.Crawlers.all = mock(
+    () => MOCK_TYPES as unknown as ReturnType<typeof SalvageUnionReference.Crawlers.all>
+  )
   return () => {
     SalvageUnionReference.Crawlers.all = original
   }
@@ -120,18 +124,25 @@ function makeCrawler(overrides?: Partial<Crawler>): Crawler {
 // Tests
 // ---------------------------------------------------------------------------
 
-describe('CrawlerSheet — Crawler Type slab', () => {
+/** Render the identity panel the way SheetCrawler does (store + storeState). */
+function renderIdentity(crawler: Crawler, store: typeof useEntityStore) {
+  return render(
+    <CrawlerIdentityPanel crawler={crawler} store={store} storeState={store()} readOnly={false} />
+  )
+}
+
+describe('CrawlerIdentityPanel — type + ability cards', () => {
   let restore: () => void
   afterEach(() => {
     restore?.()
   })
 
-  test('renders the type card (description + special action) and its special NPC', async () => {
+  test('renders the special-ability card, the type card and its special NPC', async () => {
     restore = await patchCrawlers()
     const crawler = makeCrawler({ type: BATTLE_REF, typeNpc: { npcName: 'Vex', npcCurrentHP: 8 } })
-    render(<CrawlerSheet crawler={crawler} store={makeStubStore(crawler)} />)
+    renderIdentity(crawler, makeStubStore(crawler))
 
-    expect(screen.getByText('Crawler Type')).toBeTruthy()
+    // The type's special ability renders as its own compact entity card.
     expect(screen.getByText('Improved Armour and Armaments')).toBeTruthy()
 
     const inset = screen.getByLabelText('Battle crew lead')
@@ -148,7 +159,7 @@ describe('CrawlerSheet — Crawler Type slab', () => {
         [BATTLE_REF]: { [BATTLE_KEEPSAKE_ID]: ['A dog tag'], [BATTLE_MOTTO_ID]: ['No retreat'] },
       },
     })
-    render(<CrawlerSheet crawler={crawler} store={makeStubStore(crawler)} />)
+    renderIdentity(crawler, makeStubStore(crawler))
 
     const inset = screen.getByLabelText('Battle crew lead')
     expect(within(inset).getByText('A dog tag')).toBeTruthy()
@@ -159,7 +170,7 @@ describe('CrawlerSheet — Crawler Type slab', () => {
     restore = await patchCrawlers()
     const update = mock(async () => makeCrawler())
     const crawler = makeCrawler({ type: BATTLE_REF, typeNpc: { npcName: 'Vex' } })
-    render(<CrawlerSheet crawler={crawler} store={makeStubStore(crawler, update)} />)
+    renderIdentity(crawler, makeStubStore(crawler, update))
 
     const field = screen.getByLabelText('Edit Battle crew motto')
     await act(async () => {
@@ -179,7 +190,7 @@ describe('CrawlerSheet — Crawler Type slab', () => {
   test('Augmented edge: hitPoints:0 NPC renders no HP block', async () => {
     restore = await patchCrawlers()
     const crawler = makeCrawler({ type: AUGMENTED_REF, typeNpc: { npcName: 'Oracle' } })
-    render(<CrawlerSheet crawler={crawler} store={makeStubStore(crawler)} />)
+    renderIdentity(crawler, makeStubStore(crawler))
 
     const inset = screen.getByLabelText('Augmented crew lead')
     expect(within(inset).getByText('Oracle')).toBeTruthy()
@@ -190,12 +201,15 @@ describe('CrawlerSheet — Crawler Type slab', () => {
     expect(screen.queryByLabelText('Edit Augmented crew motto')).toBeNull()
   })
 
-  test('untyped legacy crawler: no Crawler Type slab, no crash', async () => {
+  test('untyped legacy crawler: no type/ability cards, no crash', async () => {
     restore = await patchCrawlers()
     const crawler = makeCrawler() // no `type`
-    render(<CrawlerSheet crawler={crawler} store={makeStubStore(crawler)} />)
+    renderIdentity(crawler, makeStubStore(crawler))
 
-    expect(screen.queryByText('Crawler Type')).toBeNull()
+    expect(screen.queryByText('Improved Armour and Armaments')).toBeNull()
+    expect(screen.queryByLabelText('Battle crew lead')).toBeNull()
+    // The identity fields still render (Type shows its empty placeholder).
+    expect(screen.getByText('War Wagon')).toBeTruthy()
   })
 })
 

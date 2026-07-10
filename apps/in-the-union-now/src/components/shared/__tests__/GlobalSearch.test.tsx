@@ -15,6 +15,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-libra
 import { SalvageUnionReference } from 'salvageunion-reference'
 
 import { GlobalSearch } from '../GlobalSearch'
+import { must } from '../../__tests__/must'
 
 beforeAll(async () => {
   await SalvageUnionReference.preload('all')
@@ -25,6 +26,7 @@ afterEach(() => {
 })
 
 /** Stateful harness so onOpenChange actually closes/opens the dialog. */
+// biome-ignore lint/style/useComponentExportOnlyModules: test-local harness component; Fast Refresh does not apply to test files
 function Harness({ initialOpen = true }: { initialOpen?: boolean }) {
   const [open, setOpen] = useState(initialOpen)
   return <GlobalSearch open={open} onOpenChange={setOpen} />
@@ -125,7 +127,7 @@ describe('GlobalSearch', () => {
         .getAllByRole('option')
         .find((option) => option.textContent?.includes('Category'))
       expect(categoryOption).toBeTruthy()
-      fireEvent.click(categoryOption!)
+      fireEvent.click(must(categoryOption))
 
       expect(openSpy).toHaveBeenCalledWith(
         'https://salvageunion.io/schema/chassis',

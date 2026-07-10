@@ -2,6 +2,7 @@ import type { Story } from '@ladle/react'
 import { DataValueDisplayView } from './DataValueDisplayView'
 import type { DataValue } from '../../types/common'
 
+// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'ReferenceEntity/DataValueDisplayView',
 }

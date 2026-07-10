@@ -101,10 +101,12 @@ export function ConditionsEditor({
 
       {conditions.map((condition, index) =>
         readOnly ? (
+          // biome-ignore lint/suspicious/noArrayIndexKey: conditions are free-form strings that may repeat; value+index is the most stable key available and chips hold no state
           <span key={`${condition}-${index}`} className={cn(chipBase, chipToneClasses(condition))}>
             {condition}
           </span>
         ) : (
+          // biome-ignore lint/suspicious/noArrayIndexKey: conditions are free-form strings that may repeat; value+index is the most stable key available and chips hold no state
           <span key={`${condition}-${index}`} className={cn(chipBase, chipToneClasses(condition))}>
             {condition}
             <button

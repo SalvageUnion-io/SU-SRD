@@ -76,6 +76,7 @@ export function StatDisplay({
     }
   }, [])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: label/bottomLabel/compact are intentional extra deps — label scaling must re-measure whenever the rendered text or size changes
   useEffect(() => {
     scaleLabels()
   }, [label, bottomLabel, compact, scaleLabels])
@@ -90,6 +91,7 @@ export function StatDisplay({
   const disabledClass = disabled ? 'opacity-60' : ''
 
   const content = (
+    // biome-ignore lint/a11y/useSemanticElements: a <fieldset> would break the flex stat-box layout; role="group" carries the same semantics
     <div
       role="group"
       className={cn(
@@ -114,6 +116,7 @@ export function StatDisplay({
       {onClick ? (
         <button
           ref={boxRef as React.Ref<HTMLButtonElement>}
+          type="button"
           onClick={onClick}
           disabled={disabled}
           aria-disabled={disabled || undefined}

@@ -54,9 +54,9 @@
  *     wholesale since that directory only ever contains bootstrap code.
  */
 
-import { readFileSync } from 'fs'
-import { dirname, join, relative } from 'path'
-import { fileURLToPath } from 'url'
+import { readFileSync } from 'node:fs'
+import { dirname, join, relative } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import ts from 'typescript'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')

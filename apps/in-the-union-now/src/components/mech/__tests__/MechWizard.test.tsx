@@ -17,6 +17,7 @@ import { _clearAllStores, _resetDbSingleton } from '../../../lib/db/index'
 import { mechFormToCreateInput, mechToFormState } from '../../../lib/wizard/mechFormState'
 import { MechWizard } from '../MechWizard'
 import { patternsForChassis } from '../patternData'
+import { must } from '../../__tests__/must'
 
 // ---------------------------------------------------------------------------
 // Pre-load reference data
@@ -111,7 +112,7 @@ async function addInstall(name: string): Promise<void> {
 async function removeInstall(name: string): Promise<void> {
   const buttons = screen.getAllByRole('button', { name: `Remove ${name}` })
   await act(async () => {
-    fireEvent.click(buttons[0]!)
+    fireEvent.click(must(buttons[0]))
   })
 }
 
@@ -175,7 +176,7 @@ describe('MechWizard — custom pattern happy path', () => {
     await waitFor(() => {
       const mechs = useEntityStore.getState().list('mech')
       expect(mechs.length).toBe(1)
-      const m = mechs[0]!
+      const m = must(mechs[0])
       expect(m.name).toBe('Iron Fist')
       expect(m.chassisRef).toBe('mule')
       expect(m.patternName).toBe('Field Rig')
@@ -205,7 +206,7 @@ describe('MechWizard — canonical pattern', () => {
     await clickNext()
 
     // Pick a ready-made pattern, then Next jumps straight to Identity.
-    await pick(pattern!.name)
+    await pick(must(pattern).name)
     await clickNext()
 
     // Loadout was skipped — its slot-count subtitle is absent; the Identity
@@ -219,10 +220,10 @@ describe('MechWizard — canonical pattern', () => {
     })
 
     await waitFor(() => {
-      const m = useEntityStore.getState().list('mech')[0]!
-      expect(m.patternName).toBe(pattern!.name)
-      expect(m.systems).toEqual((pattern!.systems ?? []).map((s) => nameToSlug(s.name)))
-      expect(m.modules).toEqual((pattern!.modules ?? []).map((mod) => nameToSlug(mod.name)))
+      const m = must(useEntityStore.getState().list('mech')[0])
+      expect(m.patternName).toBe(must(pattern).name)
+      expect(m.systems).toEqual((must(pattern).systems ?? []).map((s) => nameToSlug(s.name)))
+      expect(m.modules).toEqual((must(pattern).modules ?? []).map((mod) => nameToSlug(mod.name)))
     })
   }, 30000)
 })
@@ -312,7 +313,7 @@ describe('MechWizard — duplicate installs', () => {
     })
 
     await waitFor(() => {
-      const m = useEntityStore.getState().list('mech')[0]!
+      const m = must(useEntityStore.getState().list('mech')[0])
       expect(m.systems).toEqual(['cargo-pod', 'cargo-pod'])
     })
   }, 30000)
@@ -344,7 +345,7 @@ describe('MechWizard — duplicate installs', () => {
     })
 
     await waitFor(() => {
-      const m = useEntityStore.getState().list('mech')[0]!
+      const m = must(useEntityStore.getState().list('mech')[0])
       expect(m.systems).toEqual(['cargo-pod'])
     })
   }, 30000)
@@ -389,7 +390,7 @@ describe('MechWizard — pattern duplicates', () => {
       target,
       'expected a canonical pattern shipping duplicate equipment (fixture drift?)'
     ).toBeDefined()
-    const { chassisName, pattern, dupName, dupCount } = target!
+    const { chassisName, pattern, dupName, dupCount } = must(target)
 
     render(<MechWizard onComplete={() => {}} onCancel={() => {}} />)
     await pick(chassisName)
@@ -413,7 +414,7 @@ describe('MechWizard — pattern duplicates', () => {
     })
 
     await waitFor(() => {
-      const m = useEntityStore.getState().list('mech')[0]!
+      const m = must(useEntityStore.getState().list('mech')[0])
       // Duplicates from the canonical pattern survive the copy + persistence.
       expect(m.systems).toEqual((pattern.systems ?? []).map((s) => nameToSlug(s.name)))
       expect(m.modules).toEqual((pattern.modules ?? []).map((mod) => nameToSlug(mod.name)))
@@ -428,7 +429,8 @@ describe('MechWizard — pattern duplicates', () => {
 async function seedMuleMech() {
   const input = mechFormToCreateInput({
     name: 'Iron Fist',
-    description: '',
+    quirk: '',
+    appearance: '',
     chassisName: 'mule',
     patternName: '',
     systems: ['cargo-pod'],
@@ -483,7 +485,7 @@ describe('MechWizard — edit mode', () => {
       const mechs = useEntityStore.getState().list('mech')
       // Upsert branch: same record updated — never a duplicate create.
       expect(mechs.length).toBe(1)
-      const m = mechs[0]!
+      const m = must(mechs[0])
       expect(m.id).toBe(mech.id)
       expect(m.systems.sort()).toEqual(['armour-plating', 'cargo-pod'])
       expect(m.modules).toEqual(['comms-module'])
@@ -531,7 +533,7 @@ describe('MechWizard — cargo lots', () => {
 
     await pick('Mule')
     await clickNext() // Pattern
-    await pick(pattern!.name) // canonical pattern — skips the Loadout step
+    await pick(must(pattern).name) // canonical pattern — skips the Loadout step
     await clickNext() // Identity
 
     await typeInto(/Mech name/i, 'Iron Fist')
@@ -560,7 +562,7 @@ describe('MechWizard — cargo lots', () => {
     await waitFor(() => {
       const mechs = useEntityStore.getState().list('mech')
       expect(mechs.length).toBe(1)
-      const lot = mechs[0]!.cargoLots[0]!
+      const lot = must(must(mechs[0]).cargoLots[0])
       expect(lot.cat).toBe('SCRAP')
       expect(lot.tl).toBe(2)
       expect(lot.kind).toBe('bulk')

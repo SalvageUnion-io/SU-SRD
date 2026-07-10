@@ -24,6 +24,12 @@ beforeAll(async () => {
   await SalvageUnionReference.preload('all')
 })
 
+/** Narrow an SRD lookup that the fixtures guarantee exists. */
+function defined<T>(value: T | null | undefined, label: string): T {
+  if (value == null) throw new Error(`Expected ${label} to be defined`)
+  return value
+}
+
 // Real Battle crawler type + its special NPC's freeform choice ids.
 const BATTLE_TYPE_ID = '3d1d9f79-9c56-43fa-a4c9-6dfe10b9aac9'
 const BATTLE_KEEPSAKE_ID = '94e8204d-652c-47f4-93ca-271cebb16459'
@@ -197,8 +203,14 @@ describe('crawlerFormToCreateInput', () => {
   })
 
   it('folds the crew + type NPC into bays, bayChoices and typeNpc', () => {
-    const commandBay = SalvageUnionReference.CrawlerBays.find((b) => b.name === 'Command Bay')!
-    const battle = SalvageUnionReference.Crawlers.find((c) => c.id === BATTLE_TYPE_ID)!
+    const commandBay = defined(
+      SalvageUnionReference.CrawlerBays.find((b) => b.name === 'Command Bay'),
+      'Command Bay'
+    )
+    const battle = defined(
+      SalvageUnionReference.Crawlers.find((c) => c.id === BATTLE_TYPE_ID),
+      'Battle crawler type'
+    )
     const input = crawlerFormToCreateInput(
       {
         ...EMPTY_CRAWLER_FORM_STATE,
@@ -217,12 +229,15 @@ describe('crawlerFormToCreateInput', () => {
     const seededCommand = input.crawlerBays.find((e) => e.bayRef === commandBay.id)
     expect(seededCommand?.npcName).toBe('Maddox')
     expect(seededCommand?.npcDescription).toBe('Stern')
-    const commandKeepsakeId = commandBay.npc!.choices!.find((c) => c.name === 'Keepsake')!.id
+    const commandKeepsakeId = defined(
+      commandBay.npc?.choices?.find((c) => c.name === 'Keepsake'),
+      'Command Bay Keepsake choice'
+    ).id
     expect(input.bayChoices?.[commandBay.id]?.[commandKeepsakeId]).toEqual(['A medal'])
 
     // Type NPC: structured name + HP from the SRD npc, Keepsake/Motto in bayChoices.
     expect(input.typeNpc?.npcName).toBe('Vex')
-    expect(input.typeNpc?.npcCurrentHP).toBe(battle.npc!.hitPoints)
+    expect(input.typeNpc?.npcCurrentHP).toBe(defined(battle.npc, 'battle npc').hitPoints)
     expect(input.bayChoices?.[BATTLE_TYPE_ID]?.[BATTLE_KEEPSAKE_ID]).toEqual(['A dog tag'])
     expect(input.bayChoices?.[BATTLE_TYPE_ID]?.[BATTLE_MOTTO_ID]).toEqual(['No retreat'])
 
@@ -238,8 +253,14 @@ describe('crawlerFormToCreateInput', () => {
 
 describe('crawlerToFormState — type + crew hydration (edit mode)', () => {
   it('hydrates type, crew name/desc and Keepsake/Motto from storage', () => {
-    const commandBay = SalvageUnionReference.CrawlerBays.find((b) => b.name === 'Command Bay')!
-    const commandKeepsakeId = commandBay.npc!.choices!.find((c) => c.name === 'Keepsake')!.id
+    const commandBay = defined(
+      SalvageUnionReference.CrawlerBays.find((b) => b.name === 'Command Bay'),
+      'Command Bay'
+    )
+    const commandKeepsakeId = defined(
+      commandBay.npc?.choices?.find((c) => c.name === 'Keepsake'),
+      'Command Bay Keepsake choice'
+    ).id
     const crawler: Crawler = {
       id: 'c-edit',
       schemaVersion: 1,
@@ -279,8 +300,14 @@ describe('crawlerToFormState — type + crew hydration (edit mode)', () => {
 
 describe('crawlerFormCrewToPatches', () => {
   it('splits crew into bay patches, bayChoices and a typeNpc patch', () => {
-    const commandBay = SalvageUnionReference.CrawlerBays.find((b) => b.name === 'Command Bay')!
-    const commandKeepsakeId = commandBay.npc!.choices!.find((c) => c.name === 'Keepsake')!.id
+    const commandBay = defined(
+      SalvageUnionReference.CrawlerBays.find((b) => b.name === 'Command Bay'),
+      'Command Bay'
+    )
+    const commandKeepsakeId = defined(
+      commandBay.npc?.choices?.find((c) => c.name === 'Keepsake'),
+      'Command Bay Keepsake choice'
+    ).id
     const patches = crawlerFormCrewToPatches({
       ...EMPTY_CRAWLER_FORM_STATE,
       name: 'War Wagon',

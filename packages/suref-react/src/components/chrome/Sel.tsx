@@ -20,6 +20,8 @@ type SelProps = {
 export function Sel({ selected, onToggle, children, className, ariaLabel }: SelProps) {
   const interactive = !!onToggle
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: role="button" + tabIndex + keyboard handler are applied whenever onToggle makes the ring interactive
+    // biome-ignore lint/a11y/useAriaPropsSupportedByRole: aria-pressed is only set on the interactive branch, where role="button" supports it
     <div
       role={interactive ? 'button' : undefined}
       tabIndex={interactive ? 0 : undefined}

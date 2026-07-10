@@ -386,7 +386,8 @@ describe('mergeImport — round-trip', () => {
     const mechIds = new Set(mechs.map((m) => m.id))
 
     expect(links).toHaveLength(1)
-    const link = links[0]!
+    const link = links[0]
+    if (!link) throw new Error('expected an imported soft link')
     // from must be a known mech id
     expect(mechIds.has(link.from.id)).toBe(true)
     // to must be a known pilot id

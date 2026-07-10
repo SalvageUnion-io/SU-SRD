@@ -232,6 +232,6 @@ export function normalizeLegacyPilotRecord(
 ): Record<string, unknown> {
   if (!('rollResults' in record)) return record
   const rest = { ...record }
-  delete rest['rollResults']
+  delete rest.rollResults
   return rest
 }

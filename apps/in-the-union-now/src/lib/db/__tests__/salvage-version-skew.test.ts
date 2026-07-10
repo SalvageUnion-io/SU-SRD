@@ -403,7 +403,7 @@ describe('salvage read: heal on next write', () => {
     try {
       const raw = await db.get(STORE_NAMES.mechs, created.id)
       expect('fieldFromTheFuture' in (raw as Record<string, unknown>)).toBe(false)
-      expect((raw as Record<string, unknown>)['name']).toBe('Healed Mech')
+      expect((raw as Record<string, unknown>).name).toBe('Healed Mech')
     } finally {
       db.close()
     }

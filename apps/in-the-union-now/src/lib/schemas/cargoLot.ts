@@ -114,13 +114,11 @@ export function cargoLotsFromLegacyCargo(cargo: ReadonlyArray<string>): CargoLot
 export function normalizeLegacyCargoRecord(
   record: Record<string, unknown>
 ): Record<string, unknown> {
-  if (!Array.isArray(record['cargo'])) return record
+  if (!Array.isArray(record.cargo)) return record
   const { cargo, ...rest } = record
   const legacy = (cargo as unknown[]).map((entry) => String(entry))
   return {
     ...rest,
-    cargoLots: Array.isArray(rest['cargoLots'])
-      ? rest['cargoLots']
-      : cargoLotsFromLegacyCargo(legacy),
+    cargoLots: Array.isArray(rest.cargoLots) ? rest.cargoLots : cargoLotsFromLegacyCargo(legacy),
   }
 }

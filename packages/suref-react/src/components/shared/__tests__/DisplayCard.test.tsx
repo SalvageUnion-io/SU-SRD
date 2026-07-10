@@ -421,7 +421,7 @@ describe('DisplayCard', () => {
     )
     const liveRegion = container.querySelector('[aria-live="polite"]')
     expect(liveRegion).toBeTruthy()
-    expect(liveRegion!.textContent).toContain('Default body')
+    expect(liveRegion?.textContent).toContain('Default body')
   })
 
   // --- Tab tests ---
@@ -450,9 +450,9 @@ describe('DisplayCard', () => {
     expect(tablist).toBeTruthy()
     const tabButtons = screen.getAllByRole('tab')
     expect(tabButtons.length).toBe(3) // Info + Alpha + Beta
-    expect(tabButtons[0]!.textContent).toBe('Info')
-    expect(tabButtons[1]!.textContent).toBe('Alpha')
-    expect(tabButtons[2]!.textContent).toBe('Beta')
+    expect(tabButtons[0]?.textContent).toBe('Info')
+    expect(tabButtons[1]?.textContent).toBe('Alpha')
+    expect(tabButtons[2]?.textContent).toBe('Beta')
   })
 
   test('default tab shows children content', () => {
@@ -583,6 +583,6 @@ describe('DisplayCard', () => {
     // Footer should have the override class, not the default headerBg
     const footerEl = container.querySelector('.bg-su-orange')
     expect(footerEl).toBeTruthy()
-    expect(footerEl!.textContent).toBe('Footer')
+    expect(footerEl?.textContent).toBe('Footer')
   })
 })

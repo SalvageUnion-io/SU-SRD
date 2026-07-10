@@ -52,31 +52,28 @@ export class LazyModel<T> extends BaseModel<T> {
     this.schema = {}
   }
 
-  private _assertLoaded(): void {
+  private _loadedBacking(): BaseModel<T> {
     if (!this._backing) {
       throw new Error(
         `Schema "${this._schemaIdForLazy}" not loaded. Call SalvageUnionReference.preload(['${this._schemaIdForLazy}']) or SalvageUnionReference.preload('all') first.`
       )
     }
+    return this._backing
   }
 
   all(): (T & { schemaName: string })[] {
-    this._assertLoaded()
-    return this._backing!.all()
+    return this._loadedBacking().all()
   }
 
   find(predicate: (item: T) => boolean): (T & { schemaName: string }) | undefined {
-    this._assertLoaded()
-    return this._backing!.find(predicate)
+    return this._loadedBacking().find(predicate)
   }
 
   findAll(predicate: (item: T) => boolean): (T & { schemaName: string })[] {
-    this._assertLoaded()
-    return this._backing!.findAll(predicate)
+    return this._loadedBacking().findAll(predicate)
   }
 
   getById(id: string): (T & { schemaName: string }) | undefined {
-    this._assertLoaded()
-    return this._backing!.getById(id)
+    return this._loadedBacking().getById(id)
   }
 }

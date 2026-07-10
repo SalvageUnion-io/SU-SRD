@@ -138,7 +138,7 @@ line('   These need human judgment (which unions a schema belongs in), so the')
 line('   generator deliberately does not touch them.')
 line()
 
-line('2. Data file — create ' + dataFile)
+line(`2. Data file — create ${dataFile}`)
 line('     []   (start with an empty JSON array, then add entries)')
 line('   And a catalog entry in schemas/index.json under "schemas" (also')
 line('   hand-authored — prose description, required fields):')

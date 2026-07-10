@@ -1,6 +1,6 @@
 /**
- * MechItemCard — ONE installed system/module as an Erow'd full entity card
- * (design §4.3, plan 4.5).
+ * MechItemCard — ONE installed system/module as an Erow'd COMPACT entity card
+ * (design §4.3, plan 4.5; redesign phase 2: compact listing cards, max 2-up).
  *
  * Action economy lives in the card foot (Erow mode 'card' semantics — the
  * footActions/footMeta props are native to ReferenceEntityDisplay):
@@ -12,6 +12,8 @@
  *     no-deduction path is always available — advisory, never blocks (S12),
  *     but never a silent free flip either: the cost is on the button.
  *   - Uses stepper: manual ± counter for systems AND modules (rules B13).
+ *   - Remove (✕): per-card uninstall — always available on editable sheets
+ *     (unified edit language archetype B, never gated behind a mode).
  *
  * The status badge cycles Intact → Damaged → Destroyed by hand (manual
  * edits stay possible alongside the automation). An unresolvable slug falls
@@ -30,6 +32,7 @@ import type { ScrapPool } from '../../lib/schemas/crawler'
 import type { ItemCondition } from '../../lib/schemas/mech'
 import { itemEconomy, repairPoolTl, repairScrapCost } from './mechItemRules'
 import type { MechItem, MechItemEconomy } from './mechItemRules'
+import { CardRemoveButton } from './SheetSection'
 
 /** Stable hide literal — keeps ReferenceEntityDisplay's memo effective. */
 const HIDE_CHOICES = { choices: true } as const
@@ -55,6 +58,11 @@ type MechItemCardProps = {
   onUsesChange: (next: number) => void
   /** Repair to Intact; deductTl = pool bucket to decrement, null = none. */
   onRepair: (deductTl: number | null, cost: number) => void
+  /**
+   * Per-card remove (✕) — uninstall this item. Always available on editable
+   * sheets (unified edit language archetype B). Omit on read-only sheets.
+   */
+  onRemove?: () => void
 }
 
 export function MechItemCard({
@@ -69,6 +77,7 @@ export function MechItemCard({
   onUse,
   onUsesChange,
   onRepair,
+  onRemove,
 }: MechItemCardProps) {
   const [confirmingRepair, setConfirmingRepair] = useState(false)
 
@@ -78,7 +87,10 @@ export function MechItemCard({
     return (
       <div className="flex h-full items-center justify-between gap-2 rounded-[3px] border-chrome border-ink bg-paper px-3 py-2">
         <span className="font-body text-sm text-ink">{slug}</span>
-        <StatusBadge status={condition} onClick={readOnly ? undefined : onStatusCycle} />
+        <span className="flex shrink-0 items-center gap-1.5">
+          <StatusBadge status={condition} onClick={readOnly ? undefined : onStatusCycle} />
+          {!readOnly && onRemove && <CardRemoveButton name={slug} onRemove={onRemove} />}
+        </span>
       </div>
     )
   }
@@ -197,12 +209,14 @@ export function MechItemCard({
           )}
         </span>
       )}
+      {onRemove && <CardRemoveButton name={entity.name} onRemove={onRemove} />}
     </>
   )
 
   return (
     <ReferenceEntityDisplay
       data={entity as unknown as SURefEntity}
+      compact
       hide={HIDE_CHOICES}
       status={condition}
       onStatusClick={readOnly ? undefined : onStatusCycle}

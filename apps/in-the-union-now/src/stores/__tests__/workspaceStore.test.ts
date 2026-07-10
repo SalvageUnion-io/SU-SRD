@@ -72,7 +72,7 @@ describe('workspaceStore — create', () => {
 
     const list = useWorkspaceStore.getState().list()
     expect(list.length).toBe(1)
-    expect(list[0]!.id).toBe(ws.id)
+    expect(list[0]?.id).toBe(ws.id)
   })
 })
 
@@ -153,8 +153,8 @@ describe('workspaceStore — assign', () => {
 
     const forWorkspace = useWorkspaceStore.getState().listForWorkspace(ws.id, 'pilot')
     expect(forWorkspace.length).toBe(1)
-    expect(forWorkspace[0]!.id).toBe(pilot.id)
-    expect(forWorkspace[0]!.workspaceId).toBe(ws.id)
+    expect(forWorkspace[0]?.id).toBe(pilot.id)
+    expect(forWorkspace[0]?.workspaceId).toBe(ws.id)
   })
 })
 
@@ -174,8 +174,8 @@ describe('workspaceStore — unassign', () => {
     // Now in unassigned pool
     const unassigned = useWorkspaceStore.getState().listUnassigned('pilot')
     expect(unassigned.length).toBe(1)
-    expect(unassigned[0]!.id).toBe(pilot.id)
-    expect(unassigned[0]!.workspaceId).toBeUndefined()
+    expect(unassigned[0]?.id).toBe(pilot.id)
+    expect(unassigned[0]?.workspaceId).toBeUndefined()
   })
 })
 
@@ -199,14 +199,14 @@ describe('workspaceStore — listForWorkspace', () => {
 
     const ws1Pilots = useWorkspaceStore.getState().listForWorkspace(ws1.id, 'pilot')
     expect(ws1Pilots.length).toBe(1)
-    expect(ws1Pilots[0]!.id).toBe(p1.id)
+    expect(ws1Pilots[0]?.id).toBe(p1.id)
 
     const ws2Pilots = useWorkspaceStore.getState().listForWorkspace(ws2.id, 'pilot')
     expect(ws2Pilots.length).toBe(1)
-    expect(ws2Pilots[0]!.id).toBe(p2.id)
+    expect(ws2Pilots[0]?.id).toBe(p2.id)
 
     const unassigned = useWorkspaceStore.getState().listUnassigned('pilot')
     expect(unassigned.length).toBe(1)
-    expect(unassigned[0]!.id).toBe(p3.id)
+    expect(unassigned[0]?.id).toBe(p3.id)
   })
 })

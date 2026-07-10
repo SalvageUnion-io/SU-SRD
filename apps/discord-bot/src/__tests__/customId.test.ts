@@ -17,18 +17,21 @@ describe('makeCustomId / parseCustomId', () => {
   test('roundtrips a namespaced action + payload', () => {
     const id = makeCustomId('roll', 'Core Mechanic')
     expect(id).toBe('su:roll:Core Mechanic')
-    expect(parseCustomId(id!)).toEqual({ action: 'roll', payload: 'Core Mechanic' })
+    if (!id) throw new Error('expected a customId')
+    expect(parseCustomId(id)).toEqual({ action: 'roll', payload: 'Core Mechanic' })
   })
 
   test('preserves a payload that itself contains colons', () => {
     const id = makeCustomId('check', '2d6:weird')
-    expect(parseCustomId(id!)).toEqual({ action: 'check', payload: '2d6:weird' })
+    if (!id) throw new Error('expected a customId')
+    expect(parseCustomId(id)).toEqual({ action: 'check', payload: '2d6:weird' })
   })
 
   test('roundtrips the lookup action (the "See table" button)', () => {
     const id = makeCustomId('lookup', 'Core Mechanic')
     expect(id).toBe('su:lookup:Core Mechanic')
-    expect(parseCustomId(id!)).toEqual({ action: 'lookup', payload: 'Core Mechanic' })
+    if (!id) throw new Error('expected a customId')
+    expect(parseCustomId(id)).toEqual({ action: 'lookup', payload: 'Core Mechanic' })
   })
 
   test('rejects foreign and malformed ids', () => {
@@ -48,11 +51,12 @@ describe('rollAgainRow', () => {
   test('builds a single-button action row for a normal payload', () => {
     const row = rollAgainRow('roll', 'Core Mechanic', 'Roll again')
     expect(row).not.toBeNull()
-    const json = row!.toJSON() as { components: { custom_id?: string; label?: string }[] }
+    if (!row) throw new Error('expected an action row')
+    const json = row.toJSON() as { components: { custom_id?: string; label?: string }[] }
     expect(json.components).toHaveLength(1)
-    expect(json.components[0]!.custom_id).toBe('su:roll:Core Mechanic')
+    expect(json.components[0]?.custom_id).toBe('su:roll:Core Mechanic')
     // Label is prefixed with the ↻ repeat symbol (a typographic glyph, not an emoji).
-    expect(json.components[0]!.label).toBe('↻ Roll again')
+    expect(json.components[0]?.label).toBe('↻ Roll again')
   })
 })
 
@@ -60,12 +64,13 @@ describe('rollResultRow', () => {
   test('pairs a re-roll button with a "See table" lookup button', () => {
     const row = rollResultRow('Core Mechanic')
     expect(row).not.toBeNull()
-    const json = row!.toJSON() as { components: { custom_id?: string; label?: string }[] }
+    if (!row) throw new Error('expected an action row')
+    const json = row.toJSON() as { components: { custom_id?: string; label?: string }[] }
     expect(json.components).toHaveLength(2)
-    expect(json.components[0]!.custom_id).toBe('su:roll:Core Mechanic')
-    expect(json.components[0]!.label).toBe('↻ Roll again')
-    expect(json.components[1]!.custom_id).toBe('su:lookup:Core Mechanic')
-    expect(json.components[1]!.label).toBe('See table')
+    expect(json.components[0]?.custom_id).toBe('su:roll:Core Mechanic')
+    expect(json.components[0]?.label).toBe('↻ Roll again')
+    expect(json.components[1]?.custom_id).toBe('su:lookup:Core Mechanic')
+    expect(json.components[1]?.label).toBe('See table')
   })
 
   test('drops both buttons when the table name overflows the customId cap', () => {

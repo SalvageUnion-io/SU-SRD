@@ -18,7 +18,7 @@ console.log(
 
 const errors = findReferenceErrors(filesByName)
 
-console.log('\n' + '='.repeat(80))
+console.log(`\n${'='.repeat(80)}`)
 if (errors.length === 0) {
   console.log('✅ All cross-references are valid!')
   process.exit(0)

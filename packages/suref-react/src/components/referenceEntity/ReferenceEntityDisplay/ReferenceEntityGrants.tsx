@@ -41,6 +41,7 @@ export function ReferenceEntityGrants({
           // id + index: stable, and unique even for an intentional double-grant
           // (e.g. Mecha Packmaster grants two Mecha Companions).
           <GrantedEntityListing
+            // biome-ignore lint/suspicious/noArrayIndexKey: static grant list; index disambiguates duplicate granted ids
             key={`${entity.id}-${idx}`}
             entity={entity}
             parentCompact={!!compact}

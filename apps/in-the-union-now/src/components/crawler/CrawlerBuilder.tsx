@@ -15,13 +15,12 @@ import { computeCrawlerCapacity } from '../../lib/rules/crawlerCapacity'
 import { isWeaponSystem } from '../../lib/rules/crawlerSystems'
 import {
   EMPTY_CRAWLER_FORM_STATE,
-  crawlerFormCrewToPatches,
   crawlerFormToCreateInput,
   crawlerFormToUpdatePatch,
-  defaultTypeNpcState,
   seedDefaultCrawlerBays,
 } from '../../lib/wizard/crawlerFormState'
 import type { CrawlerWizardFormState } from '../../lib/wizard/crawlerFormState'
+import { applyCrawlerCrewAndTypeEdit } from '../../lib/wizard/applyCrawlerEdit'
 import type { SoftWarning } from '../../lib/rules/types'
 import { SoftWarningBanner } from '../shared/SoftWarningBanner'
 import { WizShell } from '../wizard/WizShell'
@@ -182,11 +181,13 @@ export function CrawlerBuilder({
       void handleSubmit()
       return
     }
-    setStep(STEPS[currentIndex + 1]!)
+    const next = STEPS[currentIndex + 1]
+    if (next) setStep(next)
   }
 
   function goBack() {
-    if (currentIndex > 0) setStep(STEPS[currentIndex - 1]!)
+    const prev = STEPS[currentIndex - 1]
+    if (currentIndex > 0 && prev) setStep(prev)
   }
 
   async function handleSubmit() {
@@ -203,46 +204,13 @@ export function CrawlerBuilder({
         // type (the patch overwrites `type`).
         const stored = store.get('crawler', crawlerId)
         const oldType = stored?.type ?? null
-        const typeChanged = oldType !== form.type
 
         await store.update('crawler', crawlerId, crawlerFormToUpdatePatch(form))
 
-        // Crew/NPC edits route through targeted updateCrawlerBay calls + a
-        // single bayChoices merge + a typeNpc patch (mirroring how the sheet
-        // writes), so live HP/condition on bays + the type NPC survive an edit.
-        const crewPatches = crawlerFormCrewToPatches(form)
-        for (const [bayRef, patch] of Object.entries(crewPatches.bayPatches)) {
-          if (Object.keys(patch).length === 0) continue
-          await store.updateCrawlerBay(crawlerId, bayRef, patch)
-        }
-
-        // Merge the crew's Keepsake/Motto selections. When the type changed,
-        // also drop the orphaned old type's bayChoices key so a stale NPC's
-        // selections don't bleed onto the new type.
-        if (typeChanged || Object.keys(crewPatches.bayChoices).length > 0) {
-          const fresh = store.get('crawler', crawlerId)
-          const nextBayChoices = { ...(fresh?.bayChoices ?? {}) }
-          if (typeChanged && oldType !== null) delete nextBayChoices[oldType]
-          Object.assign(nextBayChoices, crewPatches.bayChoices)
-          await store.update('crawler', crawlerId, { bayChoices: nextBayChoices })
-        }
-
-        // The type NPC. When the type changed, RESET it to the new type's
-        // default (HP from the new type's npc.hitPoints, if any) plus the
-        // wizard's edits — never merge onto the old type's NPC. When the type
-        // is unchanged, merge so live HP/condition survive an edit pass.
-        if (typeChanged) {
-          const baseNpc = form.type ? defaultTypeNpcState(types, form.type) : undefined
-          const nextTypeNpc = { ...(baseNpc ?? {}), ...(crewPatches.typeNpc ?? {}) }
-          await store.update('crawler', crawlerId, {
-            typeNpc: Object.keys(nextTypeNpc).length > 0 ? nextTypeNpc : undefined,
-          })
-        } else if (crewPatches.typeNpc) {
-          const fresh = store.get('crawler', crawlerId)
-          await store.update('crawler', crawlerId, {
-            typeNpc: { ...(fresh?.typeNpc ?? {}), ...crewPatches.typeNpc },
-          })
-        }
+        // Crew/NPC edits + the type-NPC reset / orphan cleanup route through the
+        // shared multi-write helper (also used by the live sheet's inline build
+        // editor), so live HP/condition on bays + the type NPC survive an edit.
+        await applyCrawlerCrewAndTypeEdit(store, crawlerId, form, oldType, types)
 
         toast.success(`Saved ${form.name.trim() || 'crawler'}.`)
         clearWizardDraft(draftKey)
@@ -372,7 +340,10 @@ export function CrawlerBuilder({
       eyebrow={isEdit ? 'Edit Crawler' : 'New Crawler'}
       steps={STEPS}
       active={currentIndex}
-      onStepClick={(i) => setStep(STEPS[i]!)}
+      onStepClick={(i) => {
+        const s = STEPS[i]
+        if (s) setStep(s)
+      }}
       title={STEP_TITLES[step]}
       subtitle={subtitle}
       optionPane={

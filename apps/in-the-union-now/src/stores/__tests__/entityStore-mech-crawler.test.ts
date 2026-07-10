@@ -108,11 +108,11 @@ describe('entityStore — mech create', () => {
 
     const inMemory = useEntityStore.getState().list('mech')
     expect(inMemory.length).toBe(1)
-    expect(inMemory[0]!.id).toBe(created.id)
+    expect(inMemory[0]?.id).toBe(created.id)
 
     const fromDb = await dbMechs.get(created.id)
     expect(fromDb).not.toBeNull()
-    expect(fromDb!.name).toBe('Store Test Mech')
+    expect(fromDb?.name).toBe('Store Test Mech')
   })
 })
 
@@ -211,11 +211,11 @@ describe('entityStore — crawler create', () => {
 
     const inMemory = useEntityStore.getState().list('crawler')
     expect(inMemory.length).toBe(1)
-    expect(inMemory[0]!.id).toBe(created.id)
+    expect(inMemory[0]?.id).toBe(created.id)
 
     const fromDb = await dbCrawlers.get(created.id)
     expect(fromDb).not.toBeNull()
-    expect(fromDb!.name).toBe('Store Test Crawler')
+    expect(fromDb?.name).toBe('Store Test Crawler')
   })
 })
 

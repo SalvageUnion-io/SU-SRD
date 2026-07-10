@@ -93,9 +93,9 @@ export function ReferenceEntityListDisplay({
 
     return (
       <div style={{ marginTop: `${spacing.contentPadding + 1}rem` }} className="space-y-4">
-        {visibleOptions.map((option, idx) => (
+        {visibleOptions.map((option) => (
           <div
-            key={idx}
+            key={option.value}
             className="w-full rounded-md bg-su-white"
             style={spacing.contentPaddingStyle}
           >
@@ -135,6 +135,7 @@ export function ReferenceEntityListDisplay({
           const visibleActions = resolvedActions?.filter((a) => !a.hidden)
           const firstAction = visibleActions?.[0]
           if (firstAction) {
+            // biome-ignore lint/suspicious/noArrayIndexKey: static choice-entity list; system modules here carry no unique id
             return <NestedActionDisplay key={idx} data={firstAction} compact />
           }
           return null
@@ -147,6 +148,7 @@ export function ReferenceEntityListDisplay({
         }
         return (
           <ReferenceEntityDisplay
+            // biome-ignore lint/suspicious/noArrayIndexKey: static choice-entity list; duplicates of the same entity id are legitimate
             key={idx}
             hide={{ actions: true }}
             data={entity as SURefEntity}

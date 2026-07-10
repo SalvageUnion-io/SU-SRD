@@ -24,6 +24,7 @@ import type { Mech } from '../../../lib/schemas/mech'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import type { SoftLink } from '../../../lib/schemas/softLink'
 import type { useEntityStore } from '../../../stores/entityStore'
+import { must } from '../../__tests__/must'
 
 beforeAll(async () => {
   await SalvageUnionReference.preload([
@@ -211,7 +212,7 @@ describe('DowntimeControl (p.227-228)', () => {
 
     // Only the pilot writes — the mech's restore was gated off.
     expect(update).toHaveBeenCalledTimes(1)
-    expect(update.mock.calls[0]![0]).toBe('pilot')
+    expect(must(update.mock.calls[0])[0]).toBe('pilot')
   })
 
   test('an unlinked crawler explains the empty scope instead of offering Apply', async () => {

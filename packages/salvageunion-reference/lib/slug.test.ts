@@ -85,7 +85,7 @@ describe('nameToSlug', () => {
     // end-to-end output for a pathological input (the capped prefix collapses
     // to a single hyphen run, trimmed to the leading 'a').
     const n = 100_000
-    const input = 'a' + '-'.repeat(n) + 'a'
+    const input = `a${'-'.repeat(n)}a`
     expect(nameToSlug(input)).toBe('a')
   })
 
@@ -100,7 +100,7 @@ describe('nameToSlug', () => {
     // Keep this pattern literal in sync with the trim step in `nameToSlug`.
     const trimPattern = /^-|-$/g
     const n = 2_000_000
-    const input = 'a' + '-'.repeat(n) + 'a'
+    const input = `a${'-'.repeat(n)}a`
 
     const start = performance.now()
     const result = input.replace(trimPattern, '')

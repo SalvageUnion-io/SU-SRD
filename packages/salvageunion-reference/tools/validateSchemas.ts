@@ -47,7 +47,7 @@ function main(): void {
     }
   }
 
-  console.log('\n' + '='.repeat(72))
+  console.log(`\n${'='.repeat(72)}`)
   console.log(`Files validated: ${reports.length}`)
   console.log(`Files with schema: ${reports.length - noSchema.length}`)
   if (noSchema.length > 0) {

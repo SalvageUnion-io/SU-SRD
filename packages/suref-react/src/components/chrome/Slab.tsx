@@ -6,6 +6,12 @@ type SlabProps = {
   label: ReactNode
   /** Muted count suffix, e.g. '2' or '3 lots · 5/6 slots' */
   count?: ReactNode
+  /**
+   * Trailing section controls after the leader rule (e.g. a per-section Edit
+   * toggle or an always-available '+ Add'). Optional and additive — existing
+   * consumers render unchanged.
+   */
+  actions?: ReactNode
   className?: string
 }
 
@@ -13,7 +19,7 @@ type SlabProps = {
  * Live-sheet section header (design-spec §2.10 `.slab`): uppercase cond label
  * in the sheet's `--tone-deep` (ink fallback) with a dashed leader rule.
  */
-export function Slab({ label, count, className }: SlabProps) {
+export function Slab({ label, count, actions, className }: SlabProps) {
   return (
     <div
       className={cn(
@@ -36,6 +42,7 @@ export function Slab({ label, count, className }: SlabProps) {
             'repeating-linear-gradient(90deg, var(--tone-deep, var(--color-ink)) 0 6px, transparent 6px 11px)',
         }}
       />
+      {actions && <span className="flex shrink-0 items-center gap-1.5">{actions}</span>}
     </div>
   )
 }

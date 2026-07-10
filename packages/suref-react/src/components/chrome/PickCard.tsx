@@ -31,6 +31,8 @@ export function PickCard({
 }: PickCardProps) {
   const interactive = !!onSelect
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: role="button" + tabIndex + keyboard handler are applied whenever onSelect makes the card interactive
+    // biome-ignore lint/a11y/useAriaPropsSupportedByRole: aria-pressed is only set on the interactive branch, where role="button" supports it
     <div
       role={interactive ? 'button' : undefined}
       tabIndex={interactive ? 0 : undefined}

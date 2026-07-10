@@ -76,6 +76,7 @@ export function ReferenceEntityFooter({
       {(footActions || (footMeta && footMeta.length > 0)) && (
         <div className="ml-auto flex flex-wrap items-center justify-end gap-1.5">
           {footMeta?.map(({ label, value }, i) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: footMeta is a static per-render list; index disambiguates repeated labels
             <span key={`${label}-${i}`} className="mr-1 inline-flex items-baseline gap-1">
               <span className="font-cond text-[10.5px] font-bold uppercase leading-none opacity-75">
                 {label}

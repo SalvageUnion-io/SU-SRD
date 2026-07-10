@@ -16,6 +16,7 @@ import type { GenericInventoryEntry, Injury } from '../../lib/schemas/pilot'
 import { resolveAbilityApCost } from '../../lib/abilityCost'
 import type { useEntityStore } from '../../stores/entityStore'
 import { useEntityChoices } from '../shared/useEntityChoices'
+import { CardRemoveButton } from './SheetSection'
 import {
   equipmentMaxUses,
   equipmentSlotCost,
@@ -32,7 +33,7 @@ const CONDITION_CYCLE: Record<ItemCondition, ItemCondition> = {
   destroyed: 'intact',
 }
 
-// eslint-disable-next-line react-refresh/only-export-components -- shared control helpers, colocated by design (audit items 24/19)
+// biome-ignore lint/style/useComponentExportOnlyModules: shared control helpers, colocated by design (audit items 24/19)
 export function resolveAbility(slug: string): SURefAbility | null {
   const all = SalvageUnionReference.Abilities.all() as ReadonlyArray<SURefAbility>
   return all.find((a) => a.id === slug || a.name === slug) ?? null
@@ -51,6 +52,11 @@ type PilotAbilityItemProps = {
   /** Spend this ability's fixed AP cost. Only invoked for fixed numeric costs. */
   onSpend: (cost: number) => void
   onToggleUsed: (next: boolean) => void
+  /**
+   * Per-card remove (✕) — always available on editable sheets (unified edit
+   * language archetype B). Omit on read-only sheets.
+   */
+  onRemove?: () => void
   readOnly: boolean
 }
 
@@ -65,6 +71,7 @@ export function PilotAbilityItem({
   used,
   onSpend,
   onToggleUsed,
+  onRemove,
   readOnly,
 }: PilotAbilityItemProps) {
   const apCost = resolveAbilityApCost(ability)
@@ -100,6 +107,7 @@ export function PilotAbilityItem({
       >
         {used ? 'Recharge' : 'Mark Used'}
       </Btn>
+      {onRemove && <CardRemoveButton name={ability.name} onRemove={onRemove} />}
     </>
   )
 
@@ -134,6 +142,11 @@ type PilotEquipmentItemProps = {
   usesLeft: number | undefined
   onConditionChange: (slug: string, next: ItemCondition) => void
   onUsesChange: (slug: string, next: number) => void
+  /**
+   * Per-card remove (✕) — always available on editable sheets (unified edit
+   * language archetype B). Omit on read-only sheets.
+   */
+  onRemove?: () => void
   readOnly: boolean
   /**
    * Scaling parent for `scalesWithField` choice caps (e.g. the Modification
@@ -158,6 +171,7 @@ export function PilotEquipmentItem({
   usesLeft,
   onConditionChange,
   onUsesChange,
+  onRemove,
   readOnly,
   scalingParent,
   store,
@@ -188,6 +202,7 @@ export function PilotEquipmentItem({
                 }
           }
         />
+        {!readOnly && onRemove && <CardRemoveButton name={slug} onRemove={onRemove} />}
       </Panel>
     )
   }
@@ -200,7 +215,7 @@ export function PilotEquipmentItem({
     { label: 'Slots', value: slotCost },
     ...(maxUses !== null ? [{ label: 'Uses', value: `${uses}/${maxUses}` }] : []),
   ]
-  const footActions =
+  const useActions =
     !readOnly && maxUses !== null && uses !== null ? (
       <>
         <Btn
@@ -224,6 +239,15 @@ export function PilotEquipmentItem({
         >
           Restock
         </Btn>
+      </>
+    ) : null
+  const removeAction =
+    !readOnly && onRemove ? <CardRemoveButton name={equipment.name} onRemove={onRemove} /> : null
+  const footActions =
+    useActions || removeAction ? (
+      <>
+        {useActions}
+        {removeAction}
       </>
     ) : undefined
 

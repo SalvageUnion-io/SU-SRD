@@ -31,6 +31,7 @@ export function ReferenceEntityFormation({
           return Array.from({ length: count }, (_, copyIdx) => {
             if (!resolved) {
               return (
+                // biome-ignore lint/suspicious/noArrayIndexKey: formation copies of the same mech have no identity beyond their position; list is static
                 <div key={`${mechIdx}-${copyIdx}`} className="rounded border p-2 text-sm">
                   {mech.chassis}
                   {mech.pattern && <> &mdash; {mech.pattern}</>} (p.{mech.page})
@@ -46,6 +47,7 @@ export function ReferenceEntityFormation({
               : undefined
             return (
               <FormationMechListing
+                // biome-ignore lint/suspicious/noArrayIndexKey: formation copies of the same mech have no identity beyond their position; list is static
                 key={`${resolved.entity.id}-${mechIdx}-${copyIdx}`}
                 entity={resolved.entity}
                 patternOverride={patternOverride}

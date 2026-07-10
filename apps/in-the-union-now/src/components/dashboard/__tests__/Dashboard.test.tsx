@@ -295,7 +295,7 @@ describe('Dashboard — entity listing', () => {
 
     await renderDashboard()
 
-    const sheetLinks = screen.getAllByRole('link', { name: 'Sheet' })
+    const sheetLinks = screen.getAllByRole('link', { name: 'View' })
     expect(sheetLinks.length).toBe(1)
     expect((sheetLinks[0] as HTMLAnchorElement).href).toContain(`/sheet/pilot/${pilot.id}`)
   })

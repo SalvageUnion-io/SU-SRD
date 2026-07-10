@@ -2,7 +2,7 @@
  * Sheet — root live-sheet component on the Header C LiveSheet shell (plan
  * 4.1–4.3). Resolves the entity + its SoftLink composition (the ported
  * resolver in composition.ts), then dispatches to ONE per-kind view
- * (SheetPilotView / SheetMechView / SheetCrawlerView — audit item 19):
+ * (SheetPilot / SheetMech / SheetCrawler — audit item 19):
  * hero = entity-card-writ-large with live trackers, linked entities as rail
  * chips (live mini stats, whole-chip navigation), variant sheet as the body.
  *
@@ -25,17 +25,20 @@ import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
 import { cn } from '../../lib/utils'
 import { useEntityStore } from '../../stores/entityStore'
+import { ExportEntityButton } from '../export/ExportEntityButton'
 import { AppLink } from '../shared/AppLink'
 import type { SoftLinkStore } from '../wiring/useSoftLinks'
+import { AssignToWorkspaceButton } from '../workspace/AssignToWorkspaceButton'
 
 import { resolveSheetComposition } from './composition'
 import type { EntityLookup } from './composition'
 import type { LiveSheetSegment } from './LiveSheet'
 import { PublishButton } from './PublishButton'
 import { SheetActionsMenu } from './SheetActionsMenu'
-import { SheetCrawlerView } from './SheetCrawlerView'
-import { SheetMechView } from './SheetMechView'
-import { SheetPilotView } from './SheetPilotView'
+import { SheetCrawler } from './SheetCrawler'
+import { SheetMech } from './SheetMech'
+import { SheetPilot } from './SheetPilot'
+import type { SheetPatch } from './sheetViewProps'
 
 // Re-exported so existing consumers (PublishButton, tests) keep their import.
 export type { EntityLookup } from './composition'
@@ -103,20 +106,10 @@ export function Sheet({
 
   const wired = composition.mode === 'wired'
   const back = { href: '/', label: 'Dashboard' }
-  // Top-bar trailing actions (§1.3): Edit as a sm ghost btn linking the
-  // entity's edit wizard route, then Share (publish). Below the sm endpoint
-  // both fold into a "⋯" overflow menu (design review U-5) so the condensed
-  // bar keeps its width for the priority MiniStats; the menu items mount only
-  // while open, so the inline copies stay the unique Edit/Share in the DOM.
-  const editLink = (
-    <AppLink
-      href={`/${kind}s/${id}/edit`}
-      aria-label={`Edit this ${kind}`}
-      className={cn(btnVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
-    >
-      Edit
-    </AppLink>
-  )
+  // Top-bar trailing actions: Share (publish), Print, then the "⋯" overflow.
+  // NO sheet has a global Edit toggle any more — editing is section-based
+  // (unified edit language: per-section Edit buttons, always-available
+  // collection add/remove, always-live StatBlock dots).
   // Print/PDF export (#82/#258): the print stylesheet (index.css @media
   // print) turns the live sheet into a clean paper layout; "Save as PDF"
   // in the browser dialog covers the PDF ask without a rendering dep.
@@ -130,17 +123,34 @@ export function Sheet({
       Print
     </button>
   )
+  // Entity-level admin affordances relocated from the (removed) detail page:
+  // single-entity JSON export + workspace assignment. They live in the "⋯"
+  // overflow rather than the priority row (design: Edit/Share/Print stay
+  // inline; Export/Workspace tuck away). Unassigning a linked entity lives on
+  // the rail chip, not here — it's contextual to the link.
+  const exportButton = <ExportEntityButton type={kind} id={id} name={entity.name} />
+  const workspaceControl = (
+    <AssignToWorkspaceButton
+      entityType={kind}
+      entityId={id}
+      currentWorkspaceId={entity.workspaceId}
+    />
+  )
   const actions = !readOnly ? (
     <>
       <div className="hidden items-center gap-2.5 sm:flex">
-        {editLink}
         {printButton}
         <PublishButton entityKind={kind} entityId={id} entityStore={entityStore} />
+        <SheetActionsMenu>
+          {exportButton}
+          {workspaceControl}
+        </SheetActionsMenu>
       </div>
       <SheetActionsMenu className="sm:hidden">
-        {editLink}
         {printButton}
         <PublishButton entityKind={kind} entityId={id} entityStore={entityStore} />
+        {exportButton}
+        {workspaceControl}
       </SheetActionsMenu>
     </>
   ) : undefined
@@ -176,8 +186,16 @@ export function Sheet({
     }
   }
 
-  /** Persist a partial patch on the sheet's own entity (fire-and-forget). */
-  function patch(fields: Partial<Pilot> & Partial<Mech> & Partial<Crawler>) {
+  /**
+   * Persist a partial patch on the sheet's own entity (fire-and-forget).
+   * The updater form receives the FRESHEST store record so array edits don't
+   * race the async store.update round-trip (see SheetPatch docs).
+   */
+  const patch: SheetPatch = (input) => {
+    const fields =
+      typeof input === 'function'
+        ? input((storeState.get(kind, id) ?? entity) as Pilot | Mech | Crawler)
+        : input
     void storeState.update(kind, id, fields)
   }
 
@@ -196,10 +214,10 @@ export function Sheet({
   }
 
   if (kind === 'pilot') {
-    return <SheetPilotView pilot={entity as Pilot} {...common} />
+    return <SheetPilot pilot={entity as Pilot} {...common} />
   }
   if (kind === 'mech') {
-    return <SheetMechView mech={entity as Mech} {...common} />
+    return <SheetMech mech={entity as Mech} {...common} />
   }
-  return <SheetCrawlerView crawler={entity as Crawler} {...common} />
+  return <SheetCrawler crawler={entity as Crawler} {...common} />
 }

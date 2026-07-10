@@ -3,6 +3,7 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
 import { ReferenceEntityGrants } from './ReferenceEntityGrants'
 
+// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'ReferenceEntity/ReferenceEntityGrants',
 }

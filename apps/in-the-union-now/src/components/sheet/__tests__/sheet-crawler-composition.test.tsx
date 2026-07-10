@@ -103,14 +103,13 @@ type AnyEntity = Pilot | Mech | Crawler
 
 function makeEntityStore(entities: AnyEntity[]): EntityLookup {
   return {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    get: (_type, id) => (entities.find((e) => e.id === id) ?? null) as any,
+    get: ((_type: unknown, id: string) =>
+      entities.find((e) => e.id === id) ?? null) as unknown as EntityLookup['get'],
   }
 }
 
 function makeSoftLinkStore(links: SoftLink[]): SoftLinkStore {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const createMock = mock(async () => links[0]) as any
+  const createMock = mock(async () => links[0]) as unknown as SoftLinkStore['create']
   return {
     softLinks: links,
     create: createMock,

@@ -10,7 +10,7 @@
  * matching the `--color-sheet-*` theme tokens.
  *
  * Name + muted meta caption (cross-links encoded as '↳ Name' sheet links) +
- * trailing View / Sheet / Delete actions.
+ * trailing View / Delete actions.
  *
  * Links render through AppLink (TanStack <Link> with a plain-anchor fallback)
  * so the component works in tests without a RouterProvider.
@@ -110,7 +110,7 @@ export function EntityListItem({
               href={sheetHref}
               className={cn(btnVariants({ variant: 'default', size: 'sm' }), 'no-underline')}
             >
-              Sheet
+              View
             </AppLink>
             <Btn
               variant="ghost"

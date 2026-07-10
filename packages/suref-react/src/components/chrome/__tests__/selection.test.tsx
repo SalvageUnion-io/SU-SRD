@@ -7,6 +7,12 @@ import { Stepper } from '../Stepper'
 
 afterEach(cleanup)
 
+/** Narrow a possibly-null query result, failing the test loudly if absent. */
+function must<T>(value: T | null | undefined): T {
+  if (value == null) throw new Error('Expected element to be present')
+  return value
+}
+
 describe('PickCard', () => {
   test('renders name, body and foot', () => {
     render(
@@ -22,7 +28,7 @@ describe('PickCard', () => {
   test('selected shows the rust ring and Selected chip', () => {
     const { container } = render(<PickCard name="Engineer" selected onSelect={() => {}} />)
     expect(screen.getByText('Selected')).toBeTruthy()
-    expect(container.firstElementChild!.className).toContain('shadow-[0_0_0_3px_var(--color-rust)]')
+    expect(container.firstElementChild?.className).toContain('shadow-[0_0_0_3px_var(--color-rust)]')
   })
 
   test('onSelect makes the card an accessible pressed button', () => {
@@ -44,13 +50,13 @@ describe('Sel', () => {
         <div>card</div>
       </Sel>
     )
-    expect(container.firstElementChild!.className).not.toContain('shadow-[0_0_0_3px')
+    expect(container.firstElementChild?.className).not.toContain('shadow-[0_0_0_3px')
     rerender(
       <Sel selected>
         <div>card</div>
       </Sel>
     )
-    expect(container.firstElementChild!.className).toContain('shadow-[0_0_0_3px')
+    expect(container.firstElementChild?.className).toContain('shadow-[0_0_0_3px')
   })
 
   test('onToggle makes the wrapper keyboard-operable', () => {
@@ -90,7 +96,7 @@ describe('Stepper', () => {
 
   test('marks the active step with aria-current and zero-pads numbers', () => {
     render(<Stepper steps={steps} active={1} />)
-    const active = screen.getByText('Abilities').closest('button')!
+    const active = must(screen.getByText('Abilities').closest('button'))
     expect(active.getAttribute('aria-current')).toBe('step')
     expect(screen.getByText('01')).toBeTruthy()
     expect(screen.getByText('02')).toBeTruthy()
@@ -99,9 +105,9 @@ describe('Stepper', () => {
   test('done steps are clickable when onStepClick provided; future steps are not', () => {
     const onStepClick = mock((i: number) => i)
     render(<Stepper steps={steps} active={2} onStepClick={onStepClick} />)
-    fireEvent.click(screen.getByText('Class').closest('button')!)
+    fireEvent.click(must(screen.getByText('Class').closest('button')))
     expect(onStepClick).toHaveBeenLastCalledWith(0)
-    const future = screen.getByText('Review').closest('button')!
+    const future = must(screen.getByText('Review').closest('button'))
     expect(future.hasAttribute('disabled')).toBe(true)
   })
 })

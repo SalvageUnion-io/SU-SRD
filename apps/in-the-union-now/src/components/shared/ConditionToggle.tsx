@@ -74,6 +74,7 @@ export function ConditionToggle({
 
   if (readOnly) {
     return (
+      // biome-ignore lint/a11y/useAriaPropsSupportedByRole: the label adds the "<item> condition:" context to the visible text; tests and SRs rely on it and the badge is purely presentational otherwise
       <span aria-label={label} className={badgeClass}>
         {LABELS[value]}
       </span>
@@ -81,6 +82,7 @@ export function ConditionToggle({
   }
 
   return (
+    // biome-ignore lint/a11y/useSemanticElements: the toggle renders inside card headers that can themselves be interactive — a native <button> would nest interactive elements; role="button" + tabIndex + keyboard handling below keeps it operable
     <span
       role="button"
       tabIndex={0}

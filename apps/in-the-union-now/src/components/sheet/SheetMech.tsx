@@ -1,11 +1,14 @@
 /**
- * SheetMechView — the mech branch of the live sheet (extracted from
- * Sheet.tsx, audit item 19). Hero = chassis identity + SP/EP/Heat/Cargo
- * trackers + conditions; rail = assigned pilot + home crawler; body =
- * MechSheet; FAB carries Push (R-6/U-3).
+ * SheetMech — the mech branch of the live sheet (extracted from
+ * Sheet.tsx, audit item 19; redesigned to the poster layout, phase 2).
+ * Hero top region = IDENTITY block (pattern name prominent, chassis + Tech
+ * Level as labeled secondary meta, with the section's own Edit button) plus
+ * the full chassis-stats strip as real StatBlocks, vs the VITALS cluster
+ * (SP/EP/Heat current-max gauges + conditions) on the right; rail = assigned
+ * pilot + home crawler; body = MechSheet; FAB carries Push (R-6/U-3).
  */
 
-import { MChip, StatBlock } from 'suref-react'
+import { StatBlock } from 'suref-react'
 
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
 import { computeMechCapacity } from '../../lib/rules/capacity'
@@ -19,6 +22,7 @@ import { AssignPilotToMech } from '../wiring/AssignPilotToMech'
 import { LiveSheet } from './LiveSheet'
 import type { LiveSheetStripItem } from './LiveSheet'
 import { MechConditionsEditor } from './MechConditionsEditor'
+import { MechIdentityPanel } from './MechIdentity'
 import { MechSheet } from './MechSheet'
 import { QuickRollFab } from './QuickRollFab'
 import { ChassisStats, SheetHero } from './SheetHero'
@@ -27,9 +31,9 @@ import { RailChip, RailEmpty } from './SheetRail'
 import { CrawlerRailStats, PilotRailStats, RailCta, mechStatusPill } from './SheetRailParts'
 import type { SheetViewCommonProps } from './sheetViewProps'
 
-type SheetMechViewProps = SheetViewCommonProps & { mech: Mech }
+type SheetMechProps = SheetViewCommonProps & { mech: Mech }
 
-export function SheetMechView({
+export function SheetMech({
   mech,
   composition,
   wired,
@@ -42,7 +46,7 @@ export function SheetMechView({
   storeState,
   lookup,
   patch,
-}: SheetMechViewProps) {
+}: SheetMechProps) {
   const chassis = resolveChassisRef(mech.chassisRef)
   const maxSP = mechMaxSP(mech, chassis)
   const maxEP = mechMaxEP(mech, chassis)
@@ -59,6 +63,10 @@ export function SheetMechView({
     modules: mech.modules.map((ref) => ({ ref })),
   })
 
+  // Poster chassis-stats strip — the capacities the live VITALS gauges do NOT
+  // already surface (slot/salvage/cargo). SP/EP/Heat maxima live on the
+  // right-column current-max gauges, and Tech Level is the labeled identity
+  // meta in MechIdentityPanel, so neither is repeated here.
   const specs: ChassisStatItem[] = [
     {
       code: 'SYS',
@@ -73,6 +81,13 @@ export function SheetMechView({
       value: capacity.moduleSlotsUsed,
       max: capacity.moduleSlotsMax,
       pips: capacity.moduleSlotsMax <= 12,
+    },
+    {
+      code: 'CARGO',
+      name: 'Cap',
+      value: cargoUsed,
+      max: maxCargo,
+      pips: maxCargo > 0 && maxCargo <= 12,
     },
     ...(typeof chassis?.salvageValue === 'number'
       ? [{ code: 'SV', name: 'Salvage', value: chassis.salvageValue }]
@@ -123,6 +138,15 @@ export function SheetMechView({
     return describePushOutcome(nextHeat, effect)
   }
 
+  // Unassign for the mech's own direct link (mech-to-pilot) — always
+  // available on editable sheets per the unified edit language (no edit
+  // mode). The crawler chip is transitive (the pilot's crawler), nav-only.
+  const pilotLinkId = storeState.softLinks.find(
+    (l) => l.type === 'mech-to-pilot' && l.from.id === mech.id
+  )?.id
+  const unassignPilot =
+    editable && pilotLinkId ? () => void storeState.delete('softLink', pilotLinkId) : undefined
+
   const rail = (
     <>
       {composition.pilot ? (
@@ -133,6 +157,7 @@ export function SheetMechView({
           href={`/sheet/pilot/${composition.pilot.id}`}
           status={{ label: 'Active', tone: 'pilot' }}
           stats={<PilotRailStats pilot={composition.pilot} />}
+          onUnassign={unassignPilot}
         />
       ) : (
         <RailEmpty
@@ -187,21 +212,26 @@ export function SheetMechView({
           heroRef={heroRef}
           cat="Mech"
           name={mech.name}
-          meta={
-            <>
-              <MChip label="Chassis" value={chassis?.name ?? mech.chassisRef} variant="class" />
-              {chassis && typeof chassis.techLevel === 'number' && (
-                <MChip label="Tech LV" value={chassis.techLevel} />
-              )}
-            </>
+          identityBlock={
+            // Poster region 1 (left): identity fields first, then the full
+            // chassis-stats strip beneath them (real sm StatBlocks).
+            <div className="flex min-w-0 flex-col gap-3">
+              <MechIdentityPanel
+                mech={mech}
+                chassisName={chassis?.name ?? mech.chassisRef}
+                techLevel={typeof chassis?.techLevel === 'number' ? chassis.techLevel : undefined}
+                patch={editable ? patch : undefined}
+              />
+              <div>
+                <ChassisStats items={specs} />
+              </div>
+            </div>
           }
-          identity={mech.patternName ? [{ label: 'Pattern', value: mech.patternName }] : []}
-          specs={<ChassisStats items={specs} />}
           trackers={
             <>
               <StatBlock
-                code="Structure"
-                name="Points"
+                code="SP"
+                name="Structure"
                 unit="Points"
                 stat="sp"
                 max={maxSP}
@@ -210,8 +240,8 @@ export function SheetMechView({
                 editable={editable}
               />
               <StatBlock
-                code="Energy"
-                name="Points"
+                code="EP"
+                name="Energy"
                 unit="Points"
                 stat="ep"
                 max={maxEP}
@@ -228,16 +258,6 @@ export function SheetMechView({
                 value={heat}
                 onChange={editable ? (v) => patch({ currentHeat: v }) : undefined}
                 editable={editable}
-              />
-              {/* Cargo derives from hold usage (syncStats) — never editable. */}
-              <StatBlock
-                code="Cargo"
-                name="Slots"
-                unit="Slots"
-                stat="cargo"
-                max={maxCargo}
-                value={cargoUsed}
-                editable={false}
               />
             </>
           }

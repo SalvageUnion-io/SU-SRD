@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'bun:test'
-import { readFileSync, readdirSync } from 'fs'
-import { join, dirname } from 'path'
-import { fileURLToPath } from 'url'
+import { readFileSync, readdirSync } from 'node:fs'
+import { join, dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import {
   collectReferencedActionNames,
   collectReferencedSystemNames,
@@ -16,6 +16,14 @@ import {
   type AllowlistEntry,
   type OrphanResult,
 } from './validateOrphansLogic.js'
+
+/** Narrow away null/undefined; throws (failing the test) when the value is missing. */
+function defined<T>(value: T | null | undefined): T {
+  if (value === null || value === undefined) {
+    throw new Error('Expected value to be defined')
+  }
+  return value
+}
 
 // ─── Fixtures ───────────────────────────────────────────────────────────────
 
@@ -309,8 +317,8 @@ describe('findOrphanedSystems', () => {
     expect(orphans).toHaveLength(1)
     const orphan = orphans[0]
     expect(orphan).toBeDefined()
-    expect(orphan!.name).toBe('Orphan System')
-    expect(orphan!.file).toBe('systems.json')
+    expect(defined(orphan).name).toBe('Orphan System')
+    expect(defined(orphan).file).toBe('systems.json')
   })
 })
 
@@ -329,8 +337,8 @@ describe('findOrphanedModules', () => {
     expect(orphans).toHaveLength(1)
     const orphan = orphans[0]
     expect(orphan).toBeDefined()
-    expect(orphan!.name).toBe('Orphan Module')
-    expect(orphan!.file).toBe('modules.json')
+    expect(defined(orphan).name).toBe('Orphan Module')
+    expect(defined(orphan).file).toBe('modules.json')
   })
 })
 

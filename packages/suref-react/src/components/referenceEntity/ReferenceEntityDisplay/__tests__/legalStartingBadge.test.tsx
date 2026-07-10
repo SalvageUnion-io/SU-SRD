@@ -33,7 +33,7 @@ describe('useChassisPatternConfig legal starting badge', () => {
     const { result } = renderHook(() =>
       useChassisPatternConfig(chassis, override(patternName), false)
     )
-    render(<>{result.current?.subtitleExtra}</>)
+    render(<div>{result.current?.subtitleExtra}</div>)
     return screen.queryByText('Legal Starting Pattern') !== null
   }
 

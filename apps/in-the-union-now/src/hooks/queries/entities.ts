@@ -119,10 +119,6 @@ export function useCrawlers(): Crawler[] {
   return useEntityList('crawler')
 }
 
-export function useCrawler(id: string | undefined): Crawler | null {
-  return useEntity('crawler', id)
-}
-
 /**
  * Reactive list of ALL SoftLink records. Named `useSoftLinkList` (not
  * `useSoftLinks`) to avoid colliding with the domain-level

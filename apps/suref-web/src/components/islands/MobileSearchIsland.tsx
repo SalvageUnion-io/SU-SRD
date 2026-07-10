@@ -19,6 +19,7 @@ export function MobileSearchIsland() {
         render={
           // size-11 = 44px — meets the WCAG 2.5.5 minimum touch-target size.
           <button
+            type="button"
             className="flex size-11 items-center justify-center rounded-md text-su-white"
             aria-label="Search the SRD"
           >
@@ -50,6 +51,7 @@ export function MobileSearchIsland() {
             <Dialog.Close
               render={
                 <button
+                  type="button"
                   className="flex size-11 items-center justify-center rounded-md text-su-black"
                   aria-label="Close search"
                 >

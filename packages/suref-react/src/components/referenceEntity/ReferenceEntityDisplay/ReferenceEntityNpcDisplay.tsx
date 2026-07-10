@@ -70,7 +70,8 @@ export function ReferenceEntityNpcDisplay({
   const npc = getNpc(data)
   if (!npc) return null
 
-  const hasContent = !hideContent && npc.content && npc.content.length > 0
+  const npcContent = !hideContent && npc.content && npc.content.length > 0 ? npc.content : undefined
+  const hasContent = npcContent !== undefined
   // Static when explicitly readOnly OR when no interactive slots are provided
   const isStatic = readOnly || (!npcChildren && !hpSlot)
   // showSeparator: explicit true/false overrides, undefined defaults to isStatic
@@ -116,13 +117,13 @@ export function ReferenceEntityNpcDisplay({
         )}
 
         {/* Content with left border (static/readOnly only) */}
-        {isStatic && hasContent && (
+        {isStatic && npcContent && (
           <div
             className={cn('mt-1', compact ? 'pl-2' : 'pl-3')}
             style={borderColor ? { borderLeft: `3px solid ${borderColor}` } : undefined}
           >
             <BlockContentRendererView
-              content={npc.content!}
+              content={npcContent}
               fontSize={fontSize.sm}
               compact={compact}
             />
@@ -170,9 +171,9 @@ export function ReferenceEntityNpcDisplay({
     >
       {(hasContent || npcChildren) && (
         <div className="flex w-full flex-col gap-2" style={spacing.contentPaddingStyle}>
-          {hasContent && (
+          {npcContent && (
             <BlockContentRendererView
-              content={npc.content!}
+              content={npcContent}
               fontSize={fontSize.sm}
               compact={compact}
             />

@@ -38,9 +38,9 @@ export function ReferenceEntityIsland({
   // is hidden as soon as the island hydrates (avoids a duplicate-<h1> flash
   // next to the skeleton)…
   useEffect(() => {
-    document
-      .querySelectorAll('[data-static-fallback]')
-      .forEach((el) => el.setAttribute('hidden', ''))
+    document.querySelectorAll('[data-static-fallback]').forEach((el) => {
+      el.setAttribute('hidden', '')
+    })
   }, [])
 
   // …and only removed once game data is ready, so a failed preload leaves the
@@ -48,7 +48,9 @@ export function ReferenceEntityIsland({
   // in fresh HTML and remount the island, so both effects re-run per page.
   useEffect(() => {
     if (!ready) return
-    document.querySelectorAll('[data-static-fallback]').forEach((el) => el.remove())
+    document.querySelectorAll('[data-static-fallback]').forEach((el) => {
+      el.remove()
+    })
   }, [ready])
 
   return (

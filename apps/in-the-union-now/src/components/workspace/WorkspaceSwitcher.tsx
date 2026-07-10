@@ -34,7 +34,7 @@ export type WorkspaceSwitcherStore = WorkspaceListStore & {
 // Constants
 // ---------------------------------------------------------------------------
 
-// eslint-disable-next-line react-refresh/only-export-components
+// biome-ignore lint/style/useComponentExportOnlyModules: sentinel option value consumers must compare against, colocated with the switcher by design
 export const ALL_BUILDS_VALUE = '__all__'
 const MANAGE_VALUE = '__manage__'
 

@@ -45,6 +45,7 @@ export function SheetActionsMenu({ children, className }: SheetActionsMenuProps)
       </button>
 
       {open && (
+        // biome-ignore lint/a11y/useSemanticElements: this popover groups arbitrary action buttons — role="menu" would impose menuitem semantics the children don't have, and a fieldset needs a legend; role="group" + aria-label is the right fit
         <div
           role="group"
           aria-label="Sheet actions"

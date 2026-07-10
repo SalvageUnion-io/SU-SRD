@@ -14,6 +14,7 @@
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { MechPatternSchema } from '../../../../lib/schemas/pattern'
 import { mechPatterns, mechs, _clearAllStores, _resetDbSingleton } from '../../../../lib/db/index'
+import { must } from '../../../__tests__/must'
 
 // ---------------------------------------------------------------------------
 // DB reset between tests
@@ -78,7 +79,7 @@ describe('MechPatternSchema — valid input', () => {
 describe('MechPatternSchema — invalid input', () => {
   test('rejects missing name', () => {
     const withoutName: Record<string, unknown> = { ...validPatternBase }
-    delete withoutName['name']
+    delete withoutName.name
     const result = MechPatternSchema.safeParse({
       id: 'p',
       createdAt: new Date().toISOString(),
@@ -99,7 +100,7 @@ describe('MechPatternSchema — invalid input', () => {
 
   test('rejects missing chassisRef', () => {
     const withoutChassisRef: Record<string, unknown> = { ...validPatternBase }
-    delete withoutChassisRef['chassisRef']
+    delete withoutChassisRef.chassisRef
     const result = MechPatternSchema.safeParse({
       id: 'p',
       createdAt: new Date().toISOString(),
@@ -159,9 +160,9 @@ describe('db.mechPatterns — create + get round-trip', () => {
     const fetched = await mechPatterns.get(created.id)
 
     expect(fetched).not.toBeNull()
-    expect(fetched!.id).toBe(created.id)
-    expect(fetched!.name).toBe(created.name)
-    expect(fetched!.createdAt).toBe(created.createdAt)
+    expect(must(fetched).id).toBe(created.id)
+    expect(must(fetched).name).toBe(created.name)
+    expect(must(fetched).createdAt).toBe(created.createdAt)
   })
 
   test('get returns null for a non-existent id', async () => {
@@ -178,8 +179,8 @@ describe('db.mechPatterns — list', () => {
 
     const all = await mechPatterns.list()
     expect(all.length).toBe(2)
-    expect(all[0]!.id).toBe(p2.id) // newest first
-    expect(all[1]!.id).toBe(p1.id)
+    expect(must(all[0]).id).toBe(p2.id) // newest first
+    expect(must(all[1]).id).toBe(p1.id)
   })
 
   test('list returns empty array when no patterns exist', async () => {
@@ -269,6 +270,6 @@ describe('instantiate from pattern — fresh mech with pattern fields', () => {
     // Pattern itself is unmodified
     const refetched = await mechPatterns.get(pattern.id)
     expect(refetched).not.toBeNull()
-    expect(refetched!.id).toBe(pattern.id)
+    expect(must(refetched).id).toBe(pattern.id)
   })
 })

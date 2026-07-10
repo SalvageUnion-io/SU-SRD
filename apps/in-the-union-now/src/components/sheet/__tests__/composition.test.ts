@@ -58,9 +58,9 @@ const crawler: Crawler = {
 
 function lookup(entities: Array<Pilot | Mech | Crawler>): EntityLookup {
   return {
-    get: (_type, id) =>
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (entities.find((e) => e.id === id) ?? null) as any,
+    // EntityLookup's conditional return type can't be satisfied without a cast
+    get: ((_type: unknown, id: string) =>
+      entities.find((e) => e.id === id) ?? null) as unknown as EntityLookup['get'],
   }
 }
 

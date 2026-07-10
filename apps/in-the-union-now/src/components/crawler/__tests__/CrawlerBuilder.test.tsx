@@ -25,6 +25,7 @@ import {
 } from '../../../lib/wizard/crawlerFormState'
 import { CrawlerBuilder } from '../CrawlerBuilder'
 import { isWeaponSystem } from '../../../lib/rules/crawlerSystems'
+import { must } from '../../__tests__/must'
 
 // ---------------------------------------------------------------------------
 // Pre-load reference data
@@ -206,23 +207,23 @@ describe('CrawlerBuilder — create mode', () => {
 
     // Both weapons are selectable before anything is installed.
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: first!.name })).toBeTruthy()
+      expect(screen.getByRole('button', { name: must(first).name })).toBeTruthy()
     })
-    expect(screen.getByRole('button', { name: second!.name })).toBeTruthy()
+    expect(screen.getByRole('button', { name: must(second).name })).toBeTruthy()
 
     // Install one — the count hits the cap and the other cards disable
     // (a disabled card drops its role=button, so it is no longer pickable).
-    await pick(first!.name)
+    await pick(must(first).name)
     expect(screen.getByTestId('weapon-system-count').textContent).toContain('1 / 1')
-    expect(screen.queryByRole('button', { name: second!.name })).toBeNull()
+    expect(screen.queryByRole('button', { name: must(second).name })).toBeNull()
     // The installed card stays interactive so it can be swapped out.
-    expect(screen.getByRole('button', { name: first!.name })).toBeTruthy()
+    expect(screen.getByRole('button', { name: must(first).name })).toBeTruthy()
 
     // Removing it frees the slot — the other weapon becomes selectable again.
-    await pick(first!.name)
+    await pick(must(first).name)
     expect(screen.getByTestId('weapon-system-count').textContent).toContain('0 / 1')
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: second!.name })).toBeTruthy()
+      expect(screen.getByRole('button', { name: must(second).name })).toBeTruthy()
     })
   }, 30000)
 
@@ -230,8 +231,8 @@ describe('CrawlerBuilder — create mode', () => {
     const onComplete = mock(() => {})
     render(<CrawlerBuilder onComplete={onComplete} onCancel={() => {}} />)
 
-    const battle = SalvageUnionReference.Crawlers.find((c) => c.name === 'Battle')!
-    const commandBay = SalvageUnionReference.CrawlerBays.find((b) => b.name === 'Command Bay')!
+    const battle = must(SalvageUnionReference.Crawlers.find((c) => c.name === 'Battle'))
+    const commandBay = must(SalvageUnionReference.CrawlerBays.find((b) => b.name === 'Command Bay'))
 
     // --- Step 1: Crawler — pick a TYPE ---
     await waitFor(() => getPickByName('Battle'))
@@ -286,7 +287,7 @@ describe('CrawlerBuilder — create mode', () => {
     await waitFor(() => {
       const crawlers = useEntityStore.getState().list('crawler')
       expect(crawlers.length).toBe(1)
-      const c = crawlers[0]!
+      const c = must(crawlers[0])
       expect(c.name).toBe('Bay Wagon')
       expect(c.techLevel).toBe('tech-1')
       expect(c.type).toBe(battle.id)
@@ -310,14 +311,16 @@ describe('CrawlerBuilder — create mode', () => {
       expect(seeded?.npcName).toBe('Maddox')
 
       // Crew Keepsake routed to bayChoices; type NPC persisted to typeNpc.
-      const keepsakeId = commandBay.npc!.choices!.find((ch) => ch.name === 'Keepsake')!.id
+      const keepsakeId = must(
+        must(must(commandBay.npc).choices).find((ch) => ch.name === 'Keepsake')
+      ).id
       expect(c.bayChoices?.[commandBay.id]?.[keepsakeId]).toEqual(['A medal'])
       expect(c.typeNpc?.npcName).toBe('Vex')
-      const mottoId = battle.npc!.choices!.find((ch) => ch.name === 'Motto')!.id
+      const mottoId = must(must(must(battle.npc).choices).find((ch) => ch.name === 'Motto')).id
       expect(c.bayChoices?.[battle.id]?.[mottoId]).toEqual(['No retreat'])
 
       // Fresh crawlers start at full SP for Tech Level 1.
-      const tl = SalvageUnionReference.CrawlerTechLevels.find((t) => t.techLevel === 1)!
+      const tl = must(SalvageUnionReference.CrawlerTechLevels.find((t) => t.techLevel === 1))
       expect(c.currentSP).toBe(tl.structurePoints)
     })
     expect(onComplete).toHaveBeenCalledTimes(1)
@@ -384,14 +387,14 @@ describe('CrawlerBuilder — edit mode', () => {
   it('prefills from the crawler and updates without duplicating or touching live state', async () => {
     const crawler = await seedCrawler()
     // Simulate play: SP knocked down + a bay NPC wounded.
-    const playedBayRef = crawler.crawlerBays![0]!.bayRef
+    const playedBayRef = must(must(crawler.crawlerBays)[0]).bayRef
     await useEntityStore.getState().update('crawler', crawler.id, { currentSP: 5 })
     await useEntityStore.getState().updateCrawlerBay(crawler.id, playedBayRef, {
       npcCurrentHP: 1,
       condition: 'damaged',
     })
 
-    const played = useEntityStore.getState().get('crawler', crawler.id)!
+    const played = must(useEntityStore.getState().get('crawler', crawler.id))
     const onComplete = mock(() => {})
     render(
       <CrawlerBuilder
@@ -427,7 +430,7 @@ describe('CrawlerBuilder — edit mode', () => {
       const crawlers = useEntityStore.getState().list('crawler')
       // Upsert branch: same record updated — never a duplicate create.
       expect(crawlers.length).toBe(1)
-      const c = crawlers[0]!
+      const c = must(crawlers[0])
       expect(c.id).toBe(crawler.id)
       expect(c.name).toBe('The Wandering Kettle')
       expect(c.systems).toEqual([tl1.id])
@@ -436,7 +439,7 @@ describe('CrawlerBuilder — edit mode', () => {
       const bay = c.crawlerBays?.find((e) => e.bayRef === playedBayRef)
       expect(bay?.npcCurrentHP).toBe(1)
       expect(bay?.condition).toBe('damaged')
-      expect(c.crawlerBays?.length).toBe(crawler.crawlerBays!.length)
+      expect(c.crawlerBays?.length).toBe(must(crawler.crawlerBays).length)
     })
     expect(onComplete).toHaveBeenCalledWith(crawler.id)
   }, 30000)
@@ -445,7 +448,7 @@ describe('CrawlerBuilder — edit mode', () => {
     // A pre-feature crawler at Tech 3 with no chosen type.
     const crawler = await seedCrawler({ techLevel: 3 })
     expect(crawler.techLevel).toBe('tech-3')
-    const played = useEntityStore.getState().get('crawler', crawler.id)!
+    const played = must(useEntityStore.getState().get('crawler', crawler.id))
 
     render(
       <CrawlerBuilder
@@ -471,14 +474,14 @@ describe('CrawlerBuilder — edit mode', () => {
     })
 
     await waitFor(() => {
-      const c = useEntityStore.getState().get('crawler', crawler.id)!
+      const c = must(useEntityStore.getState().get('crawler', crawler.id))
       expect(c.techLevel).toBe('tech-3')
     })
   }, 30000)
 
   it('changing the crawler TYPE on edit drops the old type NPC + bayChoices (no phantom bay)', async () => {
-    const battle = SalvageUnionReference.Crawlers.find((c) => c.name === 'Battle')!
-    const engineering = SalvageUnionReference.Crawlers.find((c) => c.name === 'Engineering')!
+    const battle = must(SalvageUnionReference.Crawlers.find((c) => c.name === 'Battle'))
+    const engineering = must(SalvageUnionReference.Crawlers.find((c) => c.name === 'Engineering'))
 
     // Seed a Battle crawler with a named Grizzled Veteran (type NPC) and a
     // Keepsake persisted in bayChoices keyed by the Battle type id.
@@ -500,10 +503,10 @@ describe('CrawlerBuilder — edit mode', () => {
     expect(crawler.bayChoices?.[battle.id]).toBeTruthy()
 
     // Wound a real bay's NPC so we can prove live HP is preserved on save.
-    const playedBayRef = crawler.crawlerBays![0]!.bayRef
+    const playedBayRef = must(must(crawler.crawlerBays)[0]).bayRef
     await useEntityStore.getState().updateCrawlerBay(crawler.id, playedBayRef, { npcCurrentHP: 1 })
 
-    const played = useEntityStore.getState().get('crawler', crawler.id)!
+    const played = must(useEntityStore.getState().get('crawler', crawler.id))
     render(
       <CrawlerBuilder
         crawlerId={crawler.id}
@@ -527,7 +530,7 @@ describe('CrawlerBuilder — edit mode', () => {
     })
 
     await waitFor(() => {
-      const c = useEntityStore.getState().get('crawler', crawler.id)!
+      const c = must(useEntityStore.getState().get('crawler', crawler.id))
       expect(c.type).toBe(engineering.id)
 
       // No phantom bay keyed by a type id (neither old nor new type).
@@ -572,7 +575,7 @@ describe('CrawlerBuilder — edit mode', () => {
       { maxSP: 20, crawlerBays: seedDefaultCrawlerBays() }
     )
     const crawler = await useEntityStore.getState().create('crawler', input)
-    const played = useEntityStore.getState().get('crawler', crawler.id)!
+    const played = must(useEntityStore.getState().get('crawler', crawler.id))
 
     render(
       <CrawlerBuilder
@@ -610,7 +613,7 @@ describe('CrawlerBuilder — edit mode', () => {
       fireEvent.click(save)
     })
     await waitFor(() => {
-      const c = useEntityStore.getState().get('crawler', crawler.id)!
+      const c = must(useEntityStore.getState().get('crawler', crawler.id))
       expect(c.systems).toContain(nonWeapon.id)
       expect(c.systems).toContain(weapon.id)
     })

@@ -28,9 +28,9 @@ import {
   writeFileSync,
   copyFileSync,
   appendFileSync,
-} from 'fs'
-import { dirname, join } from 'path'
-import { fileURLToPath } from 'url'
+} from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 
@@ -152,10 +152,12 @@ if (regressions.length > 0) {
   for (const r of regressions) {
     if (r.status === 'missing') {
       lines.push(
+        // biome-ignore lint/style/noNonNullAssertion: 'missing' rows are only pushed when baselinePct !== undefined (see rows construction above)
         `- \`${r.workspace}\`: no coverage output was produced (baseline ${r.baselinePct!.toFixed(2)}%). A workspace with a recorded baseline must keep producing \`coverage/lcov.info\`.`
       )
     } else {
       lines.push(
+        // biome-ignore lint/style/noNonNullAssertion: 'regressed' rows come from the results loop where pct is a number and baselinePct passed the undefined check
         `- \`${r.workspace}\`: ${r.pct!.toFixed(2)}% is below baseline ${r.baselinePct!.toFixed(2)}% (tolerance ${TOLERANCE_PP}pp). Add tests to recover, or if the drop is intentional, lower the baseline in \`coverage-baseline.json\` deliberately.`
       )
     }
@@ -169,7 +171,7 @@ if (improved.length > 0) {
   )
 }
 
-const summary = lines.join('\n') + '\n'
+const summary = `${lines.join('\n')}\n`
 console.log(summary)
 writeFileSync(join(reportDir, 'summary.md'), summary)
 

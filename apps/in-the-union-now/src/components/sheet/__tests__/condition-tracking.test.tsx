@@ -21,6 +21,7 @@ import { PilotSheet } from '../PilotSheet'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import type { useEntityStore } from '../../../stores/entityStore'
+import { must } from '../../__tests__/must'
 
 // PilotSheet resolves equipment/ability slugs; MechSheet resolves
 // system/module slugs, chassis stats and cargo caps at render — load all.
@@ -46,12 +47,9 @@ function makeMechStubStore(mech: Mech, updateSpy?: ReturnType<typeof mock>): typ
     hydrated: { pilots: false, mechs: true, crawlers: false, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [mech]),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    get: mock((_type: string, id: string) => (id === mech.id ? mech : null)) as any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    create: mock(async () => mech) as any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    update: updateMock as any,
+    get: mock((_type: string, id: string) => (id === mech.id ? mech : null)),
+    create: mock(async () => mech),
+    update: updateMock,
     delete: mock(async () => {}),
   }
   return (() => storeState) as unknown as typeof useEntityStore
@@ -70,12 +68,9 @@ function makePilotStubStore(
     hydrated: { pilots: true, mechs: false, crawlers: false, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [pilot]),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    get: mock((_type: string, id: string) => (id === pilot.id ? pilot : null)) as any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    create: mock(async () => pilot) as any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    update: updateMock as any,
+    get: mock((_type: string, id: string) => (id === pilot.id ? pilot : null)),
+    create: mock(async () => pilot),
+    update: updateMock,
     delete: mock(async () => {}),
   }
   return (() => storeState) as unknown as typeof useEntityStore
@@ -291,21 +286,20 @@ describe('MechSheet — condition merge reads live store, not stale prop (#240 r
       hydrate: mock(async () => {}),
       list: mock(() => [freshMech]),
       // get returns the FRESH mech (with the prior condition), unlike the prop
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      get: mock((_type: string, id: string) => (id === fakeMech.id ? freshMech : null)) as any,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      create: mock(async () => fakeMech) as any,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      update: updateSpy as any,
+      get: mock((_type: string, id: string) => (id === fakeMech.id ? freshMech : null)),
+      create: mock(async () => fakeMech),
+      update: updateSpy,
       delete: mock(async () => {}),
     }
     const store = (() => storeState) as unknown as typeof useEntityStore
 
     render(<MechSheet mech={propMech} chassis={fakeChassis} store={store} />)
 
-    const badge = screen.getAllByRole('button', {
-      name: /status: intact/i,
-    })[0]!
+    const badge = must(
+      screen.getAllByRole('button', {
+        name: /status: intact/i,
+      })[0]
+    )
     await act(async () => {
       fireEvent.click(badge)
     })

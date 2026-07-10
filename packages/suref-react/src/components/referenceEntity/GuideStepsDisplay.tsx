@@ -144,15 +144,10 @@ function computeEntityInteractionState(
     !isSelected &&
     ((step.stepType === 'select-one' && hasSelection) ||
       (step.stepType === 'select-many' && isAtMax))
-  const entityControls =
-    !entityDisabled && interactive?.onEntityToggle
-      ? [
-          selectControl(
-            () => interactive.onEntityToggle!(step.id, entityId, schemaName),
-            isSelected
-          ),
-        ]
-      : undefined
+  const onEntityToggle = entityDisabled ? undefined : interactive?.onEntityToggle
+  const entityControls = onEntityToggle
+    ? [selectControl(() => onEntityToggle(step.id, entityId, schemaName), isSelected)]
+    : undefined
   return { isGreyedOut, entityControls }
 }
 
@@ -240,6 +235,7 @@ function SidebarArrow() {
         viewBox="0 0 20 24"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
       >
         <path
           d="M10 2v16m0 0l-5-5m5 5l5-5"
@@ -298,6 +294,7 @@ export function GuideStepsDisplay({
           hasEntityListings && step.content
             ? step.content.filter((block) => block.type !== 'hint')
             : step.content
+        const onStepClick = interactive?.onStepClick
         return (
           <div
             key={step.id}
@@ -319,19 +316,18 @@ export function GuideStepsDisplay({
 
             {/* Step header */}
             {!isSidebarLayout && (
+              // biome-ignore lint/a11y/noStaticElementInteractions: role="button" + tabIndex + keyboard handler are applied whenever onStepClick makes the header interactive
               <div
                 className={cn(compact ? 'mb-2' : 'mb-4', interactive && 'cursor-pointer')}
-                role={interactive?.onStepClick ? 'button' : undefined}
-                tabIndex={interactive?.onStepClick ? 0 : undefined}
-                onClick={
-                  interactive?.onStepClick ? () => interactive.onStepClick!(step, index) : undefined
-                }
+                role={onStepClick ? 'button' : undefined}
+                tabIndex={onStepClick ? 0 : undefined}
+                onClick={onStepClick ? () => onStepClick(step, index) : undefined}
                 onKeyDown={
-                  interactive?.onStepClick
+                  onStepClick
                     ? (e: React.KeyboardEvent) => {
                         if (e.key === 'Enter' || e.key === ' ') {
                           e.preventDefault()
-                          interactive.onStepClick!(step, index)
+                          onStepClick(step, index)
                         }
                       }
                     : undefined
@@ -369,7 +365,7 @@ export function GuideStepsDisplay({
                         )
                         return (
                           <div key={entityId} className="w-full">
-                            {renderEntityListing!(
+                            {renderEntityListing?.(
                               data,
                               schemaName,
                               `${step.id}-${schemaName}-${entityId}`,

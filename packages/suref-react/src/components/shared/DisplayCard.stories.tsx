@@ -3,6 +3,7 @@ import { DisplayCard } from './DisplayCard'
 import type { DisplayCardTab } from './DisplayCard'
 import { Text } from '../base/Text'
 
+// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Shared/DisplayCard',
 }
@@ -132,6 +133,7 @@ export const WithStickyHeader: Story = () => (
     <DisplayCard headerBg="bg-su-blue" headerContent={headerContent} stickyHeader>
       <div className="flex flex-col gap-3 p-3">
         {Array.from({ length: 8 }).map((_, i) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: static demo lines generated from their index
           <Text as="p" className="text-sm" key={i}>
             Scrollable body line {i + 1}.
           </Text>

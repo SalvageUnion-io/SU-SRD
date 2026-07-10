@@ -88,6 +88,7 @@ export function ReferenceEntityDisplayTooltip({
           delay={openDelay}
           closeDelay={closeDelay}
           render={
+            // biome-ignore lint/a11y/useSemanticElements: a native <button> cannot wrap the arbitrary block-level trigger content; span+role keeps the layout intact
             <span
               role="button"
               tabIndex={0}

@@ -85,6 +85,7 @@ export function DataValueDisplayView({
           {item.label}
         </Text>
         {trees.map((tree, i) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: static segments parsed from a fixed label string; never reordered
           <span key={i} className="contents">
             <Text
               variant="pseudoheader"
@@ -135,6 +136,7 @@ export function DataValueDisplayView({
         </Text>
         {segments.map((seg, i) => (
           <Text
+            // biome-ignore lint/suspicious/noArrayIndexKey: static segments parsed from a fixed value string; alternating style is index-driven
             key={i}
             variant={i % 2 === 0 ? 'pseudoheaderInverse' : 'pseudoheader'}
             as="span"

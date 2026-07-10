@@ -188,7 +188,8 @@ export function buildReferenceEntityStats(
   const items: StatItem[] = []
 
   for (let i = 0; i < ENTITY_STATS_CONFIG.length; i++) {
-    const config = ENTITY_STATS_CONFIG[i]!
+    const config = ENTITY_STATS_CONFIG[i]
+    if (!config) continue
     if (primaryOnly && !config.primary) continue
     const isSalvageValue = config.getter === getSalvageValue
 

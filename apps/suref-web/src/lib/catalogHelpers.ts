@@ -34,9 +34,9 @@ export const catalogNameOverrides: Record<string, string> = {
 export const invariantNouns = new Set(['Chassis', 'Equipment', 'Meld'])
 
 export function pluralizeWord(word: string): string {
-  if (/[^aeiou]y$/i.test(word)) return word.slice(0, -1) + 'ies'
-  if (/(?:s|sh|ch|x|z)$/i.test(word)) return word + 'es'
-  return word + 's'
+  if (/[^aeiou]y$/i.test(word)) return `${word.slice(0, -1)}ies`
+  if (/(?:s|sh|ch|x|z)$/i.test(word)) return `${word}es`
+  return `${word}s`
 }
 
 export function pluralize(name: string, count: number): string {
@@ -75,6 +75,7 @@ export function buildCatalogCategories({
 }: BuildCatalogCategoriesOptions): CatalogSection[] {
   return catalogCategories.map((cat) => {
     if (cat.flat) {
+      // biome-ignore lint/style/noNonNullAssertion: flat catalog categories are static config that always lists exactly one schema
       const schemaName = cat.schemas[0]! as SURefEnumSchemaName
       const items = findAllIn(schemaName, () => true)
       return {

@@ -2,6 +2,7 @@ import type { Story } from '@ladle/react'
 import { BlockContentRendererView } from './BlockContentRendererView'
 import type { SURefObjectContentBlock } from 'salvageunion-reference'
 
+// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'ReferenceEntity/BlockContentRendererView',
 }

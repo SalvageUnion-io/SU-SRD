@@ -15,6 +15,7 @@ import { Toaster, toast } from 'suref-react'
 import { MechSheet } from '../MechSheet'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { useEntityStore } from '../../../stores/entityStore'
+import { must } from '../../__tests__/must'
 
 beforeAll(async () => {
   await SalvageUnionReference.preload('all')
@@ -73,14 +74,9 @@ function makeStore(mech: Mech, captured: CapturedUpdate[]): typeof useEntityStor
     hydrated: { pilots: false, mechs: true, crawlers: false, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [current]),
-    get: mock(
-      (_type: string, id: string) => (id === current.id ? current : null)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ) as any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    create: mock(async () => mech) as any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    update: updateMock as any,
+    get: mock((_type: string, id: string) => (id === current.id ? current : null)),
+    create: mock(async () => mech),
+    update: updateMock,
     delete: mock(async () => {}),
   }
   return (() => storeState) as unknown as typeof useEntityStore
@@ -104,7 +100,7 @@ describe('MechSheet — destroyed-undo toast (U-6)', () => {
 
     // The destructive write went through immediately (player-driven).
     expect(captured.length).toBe(1)
-    expect(captured[0]!.patch.systemConditions?.[SYSTEM_SLUG]).toBe('destroyed')
+    expect(must(captured[0]).patch.systemConditions?.[SYSTEM_SLUG]).toBe('destroyed')
 
     // Toast with an Undo action fired — scope the Undo lookup to THIS toast
     // (sonner state is global; other toasts must never satisfy the assertion).
@@ -117,7 +113,7 @@ describe('MechSheet — destroyed-undo toast (U-6)', () => {
     })
 
     expect(captured.length).toBe(2)
-    expect(captured[1]!.patch.systemConditions?.[SYSTEM_SLUG]).toBe('damaged')
+    expect(must(captured[1]).patch.systemConditions?.[SYSTEM_SLUG]).toBe('damaged')
   })
 
   test('cycling onto damaged fires no toast', async () => {
@@ -139,7 +135,7 @@ describe('MechSheet — destroyed-undo toast (U-6)', () => {
       fireEvent.click(badge)
     })
 
-    expect(captured[0]!.patch.systemConditions?.[SYSTEM_SLUG]).toBe('damaged')
+    expect(must(captured[0]).patch.systemConditions?.[SYSTEM_SLUG]).toBe('damaged')
     expect(screen.queryByText(/marked Destroyed/i)).toBeNull()
   })
 })

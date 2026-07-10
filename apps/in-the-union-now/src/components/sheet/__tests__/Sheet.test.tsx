@@ -99,18 +99,15 @@ type AnyEntity = Pilot | Mech | Crawler
 
 function makeEntityStore(entities: AnyEntity[]): EntityLookup {
   return {
-    get: (_type, id) => {
-      // EntityLookup's conditional return type can't be satisfied without a cast
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return (entities.find((e) => e.id === id) ?? null) as any
-    },
+    // EntityLookup's conditional return type can't be satisfied without a cast
+    get: ((_type: unknown, id: string) =>
+      entities.find((e) => e.id === id) ?? null) as unknown as EntityLookup['get'],
   }
 }
 
 function makeSoftLinkStore(links: SoftLink[]): SoftLinkStore {
   // The create mock is unused in Sheet tests; cast is safe — Sheet never calls assign()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const createMock = mock(async () => links[0]) as any
+  const createMock = mock(async () => links[0]) as unknown as SoftLinkStore['create']
   return {
     softLinks: links,
     create: createMock,

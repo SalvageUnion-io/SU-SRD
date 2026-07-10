@@ -39,7 +39,7 @@ describe('publishedSnapshots', () => {
     recordPublishedSnapshot(entry())
     const all = listPublishedSnapshots()
     expect(all.length).toBe(1)
-    expect(all[0]!.id).toBe('SNAP0001')
+    expect(all[0]?.id).toBe('SNAP0001')
   })
 
   test('lists newest first', () => {
@@ -54,7 +54,7 @@ describe('publishedSnapshots', () => {
     recordPublishedSnapshot(entry({ name: 'Second' }))
     const all = listPublishedSnapshots()
     expect(all.length).toBe(1)
-    expect(all[0]!.name).toBe('Second')
+    expect(all[0]?.name).toBe('Second')
   })
 
   test('listPublishedSnapshotsFor filters by entity kind + id', () => {

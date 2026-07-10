@@ -63,7 +63,7 @@ export function useReferenceEntityDisplayState({
     : !('name' in data)
       ? ''
       : schemaName === 'ability-tree-requirements'
-        ? data.name + ' Tree Requirements'
+        ? `${data.name} Tree Requirements`
         : (data.name ?? '')
   const techLevel = getTechLevel(data)
   const techLevelNumeric = getTechLevelNumber(data)

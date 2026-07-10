@@ -49,14 +49,9 @@ function makeStubStore(mech: Mech): typeof useEntityStore {
     hydrate: mock(async () => {}),
     list: mock(() => [mech]),
 
-    get: mock(
-      (_type: string, id: string) => (id === mech.id ? mech : null)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ) as any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    create: mock(async () => mech) as any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    update: mock(async () => mech) as any,
+    get: mock((_type: string, id: string) => (id === mech.id ? mech : null)),
+    create: mock(async () => mech),
+    update: mock(async () => mech),
     delete: mock(async () => {}),
   }
   return (() => storeState) as unknown as typeof useEntityStore

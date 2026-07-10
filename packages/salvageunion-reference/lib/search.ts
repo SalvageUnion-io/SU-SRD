@@ -86,7 +86,7 @@ function buildSearchIndex(): SearchIndexEntry[] {
         : ''
 
       const nameText = entity.name.toLowerCase()
-      entries.push({
+      const entry: SearchIndexEntry = {
         schemaName: schemaId,
         schemaTitle: schema.title,
         entity: entityWithSchema,
@@ -118,8 +118,8 @@ function buildSearchIndex(): SearchIndexEntry[] {
         actionsText,
         fields: [],
         nameWords: nameText.split(/[^a-z0-9]+/).filter(Boolean),
-      })
-      const entry = entries[entries.length - 1]!
+      }
+      entries.push(entry)
       const fieldPairs: Array<readonly [string, string]> = [['name', entry.nameText]]
       if (entry.descriptionText) fieldPairs.push(['description', entry.descriptionText])
       if (entry.effectText) fieldPairs.push(['effect', entry.effectText])
@@ -196,12 +196,12 @@ function extractContentText(content: unknown): string {
 
     // Extract value field
     if ('value' in block && typeof block.value === 'string') {
-      text += block.value + ' '
+      text += `${block.value} `
     }
 
     // Extract label field
     if ('label' in block && typeof block.label === 'string') {
-      text += block.label + ' '
+      text += `${block.label} `
     }
 
     // Recursively extract from nested items

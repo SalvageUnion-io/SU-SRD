@@ -14,28 +14,28 @@ function normalizeLegacyBundle(raw: unknown): unknown {
   if (typeof raw !== 'object' || raw === null) return raw
   const bundle = { ...(raw as Record<string, unknown>) }
 
-  const entities = bundle['entities']
+  const entities = bundle.entities
   if (typeof entities === 'object' && entities !== null) {
     const entitiesCopy = { ...(entities as Record<string, unknown>) }
-    if (Array.isArray(entitiesCopy['mechs'])) {
-      entitiesCopy['mechs'] = (entitiesCopy['mechs'] as unknown[]).map((m) =>
+    if (Array.isArray(entitiesCopy.mechs)) {
+      entitiesCopy.mechs = (entitiesCopy.mechs as unknown[]).map((m) =>
         typeof m === 'object' && m !== null
           ? normalizeLegacyCargoRecord(m as Record<string, unknown>)
           : m
       )
     }
-    if (Array.isArray(entitiesCopy['pilots'])) {
-      entitiesCopy['pilots'] = (entitiesCopy['pilots'] as unknown[]).map((p) =>
+    if (Array.isArray(entitiesCopy.pilots)) {
+      entitiesCopy.pilots = (entitiesCopy.pilots as unknown[]).map((p) =>
         typeof p === 'object' && p !== null
           ? normalizeLegacyPilotRecord(p as Record<string, unknown>)
           : p
       )
     }
-    bundle['entities'] = entitiesCopy
+    bundle.entities = entitiesCopy
   }
 
-  if (Array.isArray(bundle['mechPatterns'])) {
-    bundle['mechPatterns'] = (bundle['mechPatterns'] as unknown[]).map((p) =>
+  if (Array.isArray(bundle.mechPatterns)) {
+    bundle.mechPatterns = (bundle.mechPatterns as unknown[]).map((p) =>
       typeof p === 'object' && p !== null
         ? normalizeLegacyCargoRecord(p as Record<string, unknown>)
         : p

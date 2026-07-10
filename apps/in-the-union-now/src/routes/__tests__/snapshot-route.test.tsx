@@ -1,6 +1,6 @@
 /**
  * Tests for /s/$id snapshot route — exercises SnapshotPageInner directly
- * (no router provider needed) and SnapshotView for payload rendering.
+ * (no router provider needed) and SnapshotSheet for payload rendering.
  *
  * Conventions:
  *   - toBeTruthy() / toBeFalsy() — not toBeInTheDocument()
@@ -13,7 +13,7 @@ import { cleanup, render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 
 import { SnapshotPageInner } from '../s/$id'
-import { SnapshotView } from '../../components/sheet/SnapshotView'
+import { SnapshotSheet } from '../../components/sheet/SnapshotSheet'
 import type { SnapshotPayload } from '../../lib/snapshot/client'
 
 // Preload chassis data so MechSheet can resolve chassis without throwing
@@ -99,13 +99,13 @@ describe('SnapshotPageInner — error state', () => {
 })
 
 // ---------------------------------------------------------------------------
-// SnapshotPageInner — success path delegates to SnapshotView
+// SnapshotPageInner — success path delegates to SnapshotSheet
 // ---------------------------------------------------------------------------
 
 describe('SnapshotPageInner — success path', () => {
-  test('renders SnapshotView content for a pilot snapshot', () => {
+  test('renders SnapshotSheet content for a pilot snapshot', () => {
     render(<SnapshotPageInner snapshot={pilotSnapshot} notFound={false} error={null} />)
-    // SnapshotView shows the entity name via the LiveSheet hero
+    // SnapshotSheet shows the entity name via the LiveSheet hero
     expect(screen.getAllByText(/Zara Heln/).length).toBeGreaterThan(0)
   })
 
@@ -116,18 +116,18 @@ describe('SnapshotPageInner — success path', () => {
 })
 
 // ---------------------------------------------------------------------------
-// SnapshotView — rendering different entity kinds
+// SnapshotSheet — rendering different entity kinds
 // ---------------------------------------------------------------------------
 
-describe('SnapshotView — pilot payload', () => {
+describe('SnapshotSheet — pilot payload', () => {
   test('renders pilot name from snapshot', () => {
-    render(<SnapshotView snapshot={pilotSnapshot as Record<string, unknown>} />)
+    render(<SnapshotSheet snapshot={pilotSnapshot as Record<string, unknown>} />)
     expect(screen.getAllByText(/Zara Heln/).length).toBeGreaterThan(0)
   })
 
   test('renders the pilot variant shell, read-only (no Edit / no Share)', () => {
     const { container } = render(
-      <SnapshotView snapshot={pilotSnapshot as Record<string, unknown>} />
+      <SnapshotSheet snapshot={pilotSnapshot as Record<string, unknown>} />
     )
     expect(container.querySelector('.sheet--pilot')).toBeTruthy()
     expect(screen.queryByRole('link', { name: /edit this pilot/i })).toBeNull()
@@ -135,15 +135,15 @@ describe('SnapshotView — pilot payload', () => {
   })
 })
 
-describe('SnapshotView — mech payload', () => {
+describe('SnapshotSheet — mech payload', () => {
   test('renders mech name from snapshot', () => {
-    render(<SnapshotView snapshot={mechSnapshot as Record<string, unknown>} />)
+    render(<SnapshotSheet snapshot={mechSnapshot as Record<string, unknown>} />)
     expect(screen.getAllByText(/Iron Jaw/).length).toBeGreaterThan(0)
   })
 
   test('renders the mech variant shell', () => {
     const { container } = render(
-      <SnapshotView snapshot={mechSnapshot as Record<string, unknown>} />
+      <SnapshotSheet snapshot={mechSnapshot as Record<string, unknown>} />
     )
     expect(container.querySelector('.sheet--mech')).toBeTruthy()
   })
@@ -153,31 +153,31 @@ describe('SnapshotView — mech payload', () => {
       ...(mechSnapshot.entity as Record<string, unknown>),
       cargo: ['Salvaged plating'],
     }
-    delete legacyEntity['cargoLots']
+    delete legacyEntity.cargoLots
     const legacySnapshot = { kind: 'mech', entity: legacyEntity }
-    render(<SnapshotView snapshot={legacySnapshot as Record<string, unknown>} />)
+    render(<SnapshotSheet snapshot={legacySnapshot as Record<string, unknown>} />)
     expect(screen.getAllByText(/Iron Jaw/).length).toBeGreaterThan(0)
     expect(screen.getByText(/Salvaged plating/)).toBeTruthy()
   })
 })
 
-describe('SnapshotView — invalid payload', () => {
+describe('SnapshotSheet — invalid payload', () => {
   test('renders graceful error for unknown kind', () => {
     const badSnapshot = { kind: 'dragon', entity: {} }
-    render(<SnapshotView snapshot={badSnapshot as Record<string, unknown>} />)
+    render(<SnapshotSheet snapshot={badSnapshot as Record<string, unknown>} />)
     expect(screen.getByText(/could not render snapshot/i)).toBeTruthy()
   })
 
   test('renders graceful error when entity is missing', () => {
     const badSnapshot = { kind: 'pilot', entity: null }
-    render(<SnapshotView snapshot={badSnapshot as Record<string, unknown>} />)
+    render(<SnapshotSheet snapshot={badSnapshot as Record<string, unknown>} />)
     expect(screen.getByText(/could not render snapshot/i)).toBeTruthy()
   })
 
   test('renders a STYLED error (heading + reason + escape hatch) on schema mismatch', () => {
     // A recognized kind whose entity fails Zod validation (plan 5.2)
     const badSnapshot = { kind: 'pilot', entity: { id: 42, name: null } }
-    render(<SnapshotView snapshot={badSnapshot as Record<string, unknown>} />)
+    render(<SnapshotSheet snapshot={badSnapshot as Record<string, unknown>} />)
     expect(screen.getByRole('heading', { name: /could not render snapshot/i })).toBeTruthy()
     expect(screen.getByText(/invalid pilot data/i)).toBeTruthy()
     expect(screen.getByRole('link', { name: /back to dashboard/i })).toBeTruthy()

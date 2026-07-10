@@ -20,7 +20,8 @@ export function ReferenceEntityRequirementDisplay({
     <div className="flex">
       <SheetDisplay compact={compact} label="Requirements" labelColor="text-brand-srd">
         {requirement.map((req, index) => (
-          <Fragment key={req + '-' + index}>
+          // biome-ignore lint/suspicious/noArrayIndexKey: static requirement list from reference data; index disambiguates repeated tree names
+          <Fragment key={`${req}-${index}`}>
             <Text as="span">
               <Text as="span" className="font-bold">
                 {req}

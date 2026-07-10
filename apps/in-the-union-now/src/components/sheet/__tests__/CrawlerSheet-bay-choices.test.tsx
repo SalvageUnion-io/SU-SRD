@@ -66,8 +66,9 @@ const MOCK_BAYS = [
 async function patchCrawlerBays(): Promise<() => void> {
   const { SalvageUnionReference } = await import('salvageunion-reference')
   const original = SalvageUnionReference.CrawlerBays.all.bind(SalvageUnionReference.CrawlerBays)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  SalvageUnionReference.CrawlerBays.all = mock(() => MOCK_BAYS as any)
+  SalvageUnionReference.CrawlerBays.all = mock(
+    () => MOCK_BAYS as unknown as ReturnType<typeof SalvageUnionReference.CrawlerBays.all>
+  )
   return () => {
     SalvageUnionReference.CrawlerBays.all = original
   }
@@ -94,12 +95,9 @@ function makeCrawlerStubStore(initial: Crawler, updateSpy?: ReturnType<typeof mo
     hydrated: { pilots: false, mechs: false, crawlers: true, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [current]),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    get: mock((_type: string, id: string) => (id === current.id ? current : null)) as any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    create: mock(async () => current) as any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    update: updateMock as any,
+    get: mock((_type: string, id: string) => (id === current.id ? current : null)),
+    create: mock(async () => current),
+    update: updateMock,
     delete: mock(async () => {}),
   }
   const store = (() => storeState) as unknown as typeof useEntityStore
@@ -121,12 +119,9 @@ function makeEmptyStore() {
     hydrated: { pilots: false, mechs: false, crawlers: true, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => []),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    get: mock(() => null) as any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    create: mock(async () => null) as any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    update: updateMock as any,
+    get: mock(() => null),
+    create: mock(async () => null),
+    update: updateMock,
     delete: mock(async () => {}),
   }
   const store = (() => storeState) as unknown as typeof useEntityStore

@@ -1,34 +1,42 @@
 /**
  * MechSheet — the mech variant BODY for the LiveSheet shell (design §4.3,
- * plan 4.5).
+ * plan 4.5; redesigned to the poster layout, phase 2).
  *
- * The hero (trackers, ChassisStats, strip, rail) lives in Sheet.tsx on the
- * shared shell; this component renders the body slabs:
+ * The hero (identity block, chassis-stats strip, SP/EP/Heat gauges, rail)
+ * lives in SheetMech.tsx on the shared shell; this component renders the
+ * body slabs in the poster's reading order:
  *
  *   Heat Check panel  — the preserved Heat Check / Push / Reactor Overload
  *                       automation (lib/rules/heatCheck), wired to the same
  *                       derived maxima the hero trackers edit, plus manual
  *                       Clear affordances for the shutdown / vulnerable /
  *                       destroyed flags (gap 8).
+ *   Take Damage       — SP intake with the p.240 conversions (R-1).
  *   Chassis Ability   — the chassis's ability actions as Erow'd cards with a
  *                       Use action (spends EP; blocked while shut down).
- *   Systems / Modules — Erow'd full entity cards (MechItemCard): status
- *                       badge cycle, Use (disabled while Damaged), Repair
- *                       promoted to primary with half-SV cost + optional
- *                       crawler scrap-pool deduction (S12), per-item uses
- *                       counters (rules B13).
+ *   Quirk / Appearance — the poster's two identity FIELD sections, each with
+ *                       its own per-section Edit (archetype A). Appearance
+ *                       read-falls-back to the deprecated `description` for
+ *                       pre-split mechs and heals into `appearance` on save.
+ *   Systems / Modules — compact entity cards (MechItemCard, max 2 columns)
+ *                       with Intact/Damaged status, Use / Repair / uses
+ *                       economy, per-card remove, and an always-available
+ *                       '+ Add' opening the shared picker modal (archetype B).
  *   The Hold          — StorageManifest side='mech' over the useCargo
  *                       boundary (Stow →; SCRAP deposits the TL pool).
+ *   Retire            — the scrap-a-mech helper (live-play only).
  *
  * Dep-injectable for tests: `chassis` (stats override), `store` (Zustand
  * stub), `roll` (deterministic d20), `crawler` (linked home crawler — null
  * means no pool/stow target). readOnly suppresses every edit affordance.
  */
 
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { useState } from 'react'
+import { SalvageUnionReference, nameToSlug } from 'salvageunion-reference'
 import { Btn, Slab } from 'suref-react'
 
 import { useCargo } from '../../lib/cargo/useCargo'
+import { computeMechCapacity } from '../../lib/rules/capacity'
 import { mechMaxEP, mechMaxHeat, mechMaxSP } from '../../lib/rules/derivedStats'
 import { clampHeat } from '../../lib/rules/heatCheck'
 import type { Roll } from '../../lib/rules/heatCheck'
@@ -36,6 +44,7 @@ import { addToScrapPool } from '../../lib/cargo/cargoTransfer'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { ItemCondition, Mech } from '../../lib/schemas/mech'
 import { useEntityStore } from '../../stores/entityStore'
+import { InstallStep } from '../mech/InstallStep'
 import { ActionCardErow } from './ActionCardErow'
 import { destroyedUndoToast } from './destroyedUndoToast'
 import { Ecflow, Erow } from './Erow'
@@ -44,6 +53,7 @@ import { MechItemCard } from './MechItemCard'
 import { cycleCondition, resolveModule, resolveSystem } from './mechItemRules'
 import type { MechItemEconomy } from './mechItemRules'
 import { ScrapMechControl } from './ScrapMechControl'
+import { SectionAddButton, SheetPickerModal } from './SheetSection'
 import { SheetDescription } from './SheetDescription'
 import { StorageManifest } from './StorageManifest'
 import { TakeDamageControl } from './TakeDamageControl'
@@ -105,6 +115,9 @@ export function MechSheet({
   const chassis = resolveChassis(mech, chassisOverride)
   const storeState = store()
   const cargo = useCargo({ mech, crawler, store, readOnly })
+  // Which collection's shared picker modal is open ('+ Add' — unified edit
+  // language archetype B; always available, never rule-gated for now).
+  const [picker, setPicker] = useState<ItemKind | null>(null)
 
   // Derived maxima (plan 2.5): chassis stat + hand-edited modifiers.
   const maxEP = mechMaxEP(mech, chassis)
@@ -112,6 +125,13 @@ export function MechSheet({
   const currentSP = mech.currentSP ?? mechMaxSP(mech, chassis)
   const currentEP = mech.currentEP ?? maxEP
   const currentHeat = mech.currentHeat ?? heatCap
+
+  // Slot budgets for the picker's loadout panel (soft — never blocks).
+  const capacity = computeMechCapacity({
+    chassisRef: mech.chassisRef,
+    systems: mech.systems.map((ref) => ({ ref })),
+    modules: mech.modules.map((ref) => ({ ref })),
+  })
 
   // Chassis abilities come from the FULL reference chassis (the injectable
   // override only carries stats). Unresolved chassis → no ability slab.
@@ -125,6 +145,37 @@ export function MechSheet({
   /** Freshest mech from the store — rapid actions must not stomp each other. */
   function freshMech(): Mech {
     return freshEntity(storeState, 'mech', mech)
+  }
+
+  // Collection add/remove (unified edit language archetype B) — always
+  // available, writes through immediately (ITUN auto-saves; no Save button).
+  // Reads the FRESHEST record so rapid picker clicks don't race the async
+  // store write. Duplicates are rules-legal; capacity stays soft.
+  // Unlike the old build editor, hand-editing the loadout no longer clears
+  // patternName — the pattern name IS the mech's identity now (redesign).
+  // TODO(redesign): rule-gate add/remove (slot budgets / scrap economy) —
+  // deferred; users self-manage for now.
+  function addItem(kind: ItemKind, name: string) {
+    const fresh = freshMech()
+    const slug = nameToSlug(name)
+    void storeState.update(
+      'mech',
+      mech.id,
+      kind === 'system'
+        ? { systems: [...fresh.systems, slug] }
+        : { modules: [...fresh.modules, slug] }
+    )
+  }
+
+  function removeItem(kind: ItemKind, index: number) {
+    const fresh = freshMech()
+    void storeState.update(
+      'mech',
+      mech.id,
+      kind === 'system'
+        ? { systems: fresh.systems.filter((_, i) => i !== index) }
+        : { modules: fresh.modules.filter((_, i) => i !== index) }
+    )
   }
 
   /** Write one item's condition (used by the cycle and the toast Undo). */
@@ -216,10 +267,18 @@ export function MechSheet({
 
   function renderItems(kind: ItemKind, slugs: string[]) {
     const conditions = (kind === 'system' ? mech.systemConditions : mech.moduleConditions) ?? {}
+    if (slugs.length === 0) {
+      return (
+        <p className="font-body text-caption text-wk-muted">
+          {kind === 'system' ? 'No systems installed.' : 'No modules installed.'}
+        </p>
+      )
+    }
     return (
       <Ecflow>
         {slugs.map((slug, index) => (
-          <Erow key={`${slug}-${index}`} grow={1.2}>
+          // biome-ignore lint/suspicious/noArrayIndexKey: the same system/module slug may be installed more than once, so the slug alone is not unique; install order is stable
+          <Erow key={`${slug}-${index}`}>
             <MechItemCard
               slug={slug}
               entity={kind === 'system' ? resolveSystem(slug) : resolveModule(slug)}
@@ -240,6 +299,13 @@ export function MechSheet({
               onRepair={(deductTl, cost) => {
                 void repairItem(kind, slug, deductTl, cost)
               }}
+              onRemove={
+                readOnly
+                  ? undefined
+                  : () => {
+                      removeItem(kind, index)
+                    }
+              }
             />
           </Erow>
         ))}
@@ -282,9 +348,6 @@ export function MechSheet({
         readOnly={readOnly}
       />
 
-      {/* Description — freeform notes (read-only; edited in the mech builder) */}
-      <SheetDescription text={mech.description} />
-
       {chassisAbilities.length > 0 && (
         <div>
           <Slab label="Chassis Ability" count={chassisAbilities.length} />
@@ -326,19 +389,68 @@ export function MechSheet({
         </div>
       )}
 
-      {mech.systems.length > 0 && (
-        <div>
-          <Slab label="Systems" count={mech.systems.length} />
-          {renderItems('system', mech.systems)}
-        </div>
-      )}
+      {/* Quirk + Appearance — the poster's two identity FIELD sections, each
+          with its own per-section Edit (unified edit language archetype A).
+          Appearance read-falls-back to the deprecated `description` for
+          pre-split mechs and heals into `appearance` on save. */}
+      <SheetDescription
+        label="Quirk"
+        text={mech.quirk}
+        onSave={
+          readOnly
+            ? undefined
+            : (next) => storeState.update('mech', mech.id, { quirk: next.trim() || undefined })
+        }
+      />
+      <SheetDescription
+        label="Appearance"
+        text={mech.appearance ?? mech.description}
+        onSave={
+          readOnly
+            ? undefined
+            : (next) =>
+                storeState.update('mech', mech.id, {
+                  appearance: next.trim() || undefined,
+                  description: undefined,
+                })
+        }
+      />
 
-      {mech.modules.length > 0 && (
-        <div>
-          <Slab label="Modules" count={mech.modules.length} />
-          {renderItems('module', mech.modules)}
-        </div>
-      )}
+      {/* Systems / Modules — collection sections: compact cards (max 2-up via
+          Ecflow) with an always-available '+ Add' (archetype B). */}
+      <div>
+        <Slab
+          label="Systems"
+          count={
+            <span className="tabular-nums">
+              {capacity.systemSlotsUsed}/{capacity.systemSlotsMax} slots
+            </span>
+          }
+          actions={
+            readOnly ? undefined : (
+              <SectionAddButton label="system" onClick={() => setPicker('system')} />
+            )
+          }
+        />
+        {renderItems('system', mech.systems)}
+      </div>
+
+      <div>
+        <Slab
+          label="Modules"
+          count={
+            <span className="tabular-nums">
+              {capacity.moduleSlotsUsed}/{capacity.moduleSlotsMax} slots
+            </span>
+          }
+          actions={
+            readOnly ? undefined : (
+              <SectionAddButton label="module" onClick={() => setPicker('module')} />
+            )
+          }
+        />
+        {renderItems('module', mech.modules)}
+      </div>
 
       <div>
         <Slab
@@ -367,6 +479,45 @@ export function MechSheet({
           <ScrapMechControl mech={mech} crawler={crawler} store={store} />
         </div>
       )}
+
+      {/* The ONE shared picker modal — Systems & Modules '+ Add' both open it
+          (the wizard's install grid writes through on click; no Save button). */}
+      <SheetPickerModal
+        open={picker === 'system'}
+        onClose={() => setPicker(null)}
+        title="Add Systems"
+        maxWidth="max-w-5xl"
+      >
+        <InstallStep
+          kind="systems"
+          selected={mech.systems}
+          onAdd={(name) => addItem('system', name)}
+          onRemove={(index) => removeItem('system', index)}
+          loadoutName={mech.name || chassis?.name || mech.chassisRef || 'Mech'}
+          slotsUsed={capacity.systemSlotsUsed}
+          slotsMax={capacity.systemSlotsMax}
+          energyValue={currentEP}
+          energyMax={maxEP}
+        />
+      </SheetPickerModal>
+      <SheetPickerModal
+        open={picker === 'module'}
+        onClose={() => setPicker(null)}
+        title="Add Modules"
+        maxWidth="max-w-5xl"
+      >
+        <InstallStep
+          kind="modules"
+          selected={mech.modules}
+          onAdd={(name) => addItem('module', name)}
+          onRemove={(index) => removeItem('module', index)}
+          loadoutName={mech.name || chassis?.name || mech.chassisRef || 'Mech'}
+          slotsUsed={capacity.moduleSlotsUsed}
+          slotsMax={capacity.moduleSlotsMax}
+          energyValue={currentEP}
+          energyMax={maxEP}
+        />
+      </SheetPickerModal>
     </section>
   )
 }

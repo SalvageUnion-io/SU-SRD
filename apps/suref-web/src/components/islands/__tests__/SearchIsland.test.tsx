@@ -32,7 +32,7 @@ describe('SearchIsland', () => {
     const { container } = render(<SearchIsland />)
     const liveRegion = container.querySelector('[aria-live="polite"]')
     expect(liveRegion).toBeTruthy()
-    expect(liveRegion!.className).toContain('sr-only')
+    expect(liveRegion?.className).toContain('sr-only')
   })
 
   test('aria-live region announces result count after search', async () => {
@@ -47,7 +47,7 @@ describe('SearchIsland', () => {
 
     const liveRegion = container.querySelector('[aria-live="polite"]')
     expect(liveRegion).toBeTruthy()
-    const text = liveRegion!.textContent ?? ''
+    const text = liveRegion?.textContent ?? ''
     // Should announce either result count or "No results found"
     expect(text.includes('found')).toBe(true)
   })
@@ -62,7 +62,7 @@ describe('SearchIsland', () => {
     })
 
     const liveRegion = container.querySelector('[aria-live="polite"]')
-    expect(liveRegion!.textContent).toBe('No results found')
+    expect(liveRegion?.textContent).toBe('No results found')
   })
 
   test('dropdown shows "No results found" message for zero matches', async () => {

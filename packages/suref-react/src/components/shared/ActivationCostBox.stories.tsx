@@ -2,6 +2,7 @@ import type { Story } from '@ladle/react'
 import { ActivationCostBox } from './ActivationCostBox'
 import { Text } from '../base/Text'
 
+// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Shared/ActivationCostBox',
 }

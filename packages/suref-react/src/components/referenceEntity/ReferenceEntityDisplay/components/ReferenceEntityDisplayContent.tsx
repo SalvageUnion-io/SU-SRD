@@ -641,6 +641,7 @@ export function ReferenceEntityDisplayContent({
               />
               {effects?.map((effect, index) => (
                 <ConditionalSheetInfo
+                  // biome-ignore lint/suspicious/noArrayIndexKey: effects come from static reference data and never reorder
                   key={index}
                   propertyName="effects"
                   label={effect.label}

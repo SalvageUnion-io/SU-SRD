@@ -52,36 +52,42 @@ describe('rollCommand.execute', () => {
     const { interaction, replies } = mockChatInput('Core Mechanic')
     await rollCommand.execute(interaction)
     expect(replies).toHaveLength(1)
-    expect(replies[0]!.embeds).toBeDefined()
-    expect(replies[0]!.embeds).toHaveLength(1)
-    const embed = replies[0]!.embeds![0] as { data: { title?: string } }
+    const reply = replies[0]
+    if (!reply) throw new Error('expected a reply')
+    expect(reply.embeds).toBeDefined()
+    expect(reply.embeds).toHaveLength(1)
+    const embed = reply.embeds?.[0] as { data: { title?: string } }
     // The roll embed titles itself with an outcome tier, so just assert an
     // embed (not an error string) came back and no ephemeral flag was set.
     expect(embed.data.title).toBeTruthy()
-    expect(replies[0]!.flags).toBeUndefined()
+    expect(reply.flags).toBeUndefined()
   })
 
   test('defaults to Core Mechanic when no table is given', async () => {
     const { interaction, replies } = mockChatInput(null)
     await rollCommand.execute(interaction)
     expect(replies).toHaveLength(1)
-    expect(replies[0]!.embeds).toHaveLength(1)
-    expect(replies[0]!.content).toBeUndefined()
+    const reply = replies[0]
+    if (!reply) throw new Error('expected a reply')
+    expect(reply.embeds).toHaveLength(1)
+    expect(reply.content).toBeUndefined()
   })
 
   test('table lookup is case-insensitive', async () => {
     const { interaction, replies } = mockChatInput('core mechanic')
     await rollCommand.execute(interaction)
-    expect(replies[0]!.embeds).toHaveLength(1)
+    expect(replies[0]?.embeds).toHaveLength(1)
   })
 
   test('an unknown table replies with an ephemeral error, not an embed', async () => {
     const { interaction, replies } = mockChatInput('Not A Real Table')
     await rollCommand.execute(interaction)
     expect(replies).toHaveLength(1)
-    expect(replies[0]!.embeds).toBeUndefined()
-    expect(replies[0]!.content).toContain('Could not find table')
-    expect(replies[0]!.flags).toBe(MessageFlags.Ephemeral)
+    const reply = replies[0]
+    if (!reply) throw new Error('expected a reply')
+    expect(reply.embeds).toBeUndefined()
+    expect(reply.content).toContain('Could not find table')
+    expect(reply.flags).toBe(MessageFlags.Ephemeral)
   })
 })
 
@@ -90,7 +96,8 @@ describe('rollCommand.autocomplete', () => {
     const { interaction, responses } = mockAutocomplete('core')
     await rollCommand.autocomplete(interaction)
     expect(responses).toHaveLength(1)
-    const choices = responses[0]!
+    const choices = responses[0]
+    if (!choices) throw new Error('expected a response')
     expect(choices.length).toBeGreaterThan(0)
     // Every choice must actually contain the query, and name === value.
     for (const c of choices) {
@@ -103,8 +110,8 @@ describe('rollCommand.autocomplete', () => {
   test('an empty focused value returns every table, capped at 25', async () => {
     const { interaction, responses } = mockAutocomplete('')
     await rollCommand.autocomplete(interaction)
-    expect(responses[0]!.length).toBeLessThanOrEqual(25)
-    expect(responses[0]!.length).toBeGreaterThan(0)
+    expect(responses[0]?.length).toBeLessThanOrEqual(25)
+    expect(responses[0]?.length).toBeGreaterThan(0)
   })
 
   test('a no-match query responds with an empty choice list', async () => {

@@ -56,7 +56,7 @@ export async function extractAll(rulesDir = 'rules'): Promise<string[]> {
   const written: string[] = []
   for (const pdf of pdfs) {
     const src = join(rulesDir, pdf)
-    const dest = join(outDir, basename(pdf, '.pdf') + '.txt')
+    const dest = join(outDir, `${basename(pdf, '.pdf')}.txt`)
     process.stdout.write(`Extracting ${pdf} … `)
     const raw = await extractPdf(src)
     writeFileSync(dest, withPageMarkers(raw))

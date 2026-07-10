@@ -67,6 +67,7 @@ export function MasonryColumns({ children, gap = 'gap-4' }: MasonryColumnsProps)
   return (
     <div className={`flex items-start ${gap} print:block`}>
       {columns.map((col, i) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: columns are positional buckets — the index IS their identity
         <div key={i} className={`flex min-w-0 flex-1 flex-col print:w-full ${gap}`}>
           {col}
         </div>

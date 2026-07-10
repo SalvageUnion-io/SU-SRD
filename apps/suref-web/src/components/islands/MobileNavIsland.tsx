@@ -31,7 +31,7 @@ export function MobileNavIsland({ categories, currentPath }: MobileNavIslandProp
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Trigger
         render={
-          <button className="rounded-md p-2 text-su-white" aria-label="Open menu">
+          <button type="button" className="rounded-md p-2 text-su-white" aria-label="Open menu">
             <svg
               width="24"
               height="24"
@@ -66,7 +66,7 @@ export function MobileNavIsland({ categories, currentPath }: MobileNavIslandProp
             </a>
             <Dialog.Close
               render={
-                <button className="rounded-md p-1" aria-label="Close menu">
+                <button type="button" className="rounded-md p-1" aria-label="Close menu">
                   <svg
                     width="24"
                     height="24"

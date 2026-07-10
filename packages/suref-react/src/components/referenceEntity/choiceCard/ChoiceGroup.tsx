@@ -85,6 +85,7 @@ export function ChoiceGroup({
           (@container queries). `break-inside-avoid` keeps each card whole. The
           `pt-3` / `mb-4` leave room for each card's Chosen/Not callout stamp,
           which straddles ~half its height above the card's top edge. */}
+      {/* biome-ignore lint/a11y/useSemanticElements: a <fieldset> would break the @container masonry column layout; role="group" carries the same semantics */}
       <div className="@container" role="group" aria-label={choice.name}>
         <div className="columns-1 gap-2 pt-3 @md:columns-2 @4xl:columns-3">
           {options.map((option) => (

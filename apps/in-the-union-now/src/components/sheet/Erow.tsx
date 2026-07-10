@@ -1,15 +1,15 @@
 /**
- * Erow + Ecflow — live-sheet body card layout (design §4.1, plan 4.1).
+ * Erow + Ecflow — live-sheet body card layout (design §4.1, plan 4.1;
+ * redesign: poster grid).
  *
- * Ecflow: justified card rows — flex wrap, equal-height items.
+ * Ecflow: the entity-card grid — capped at TWO columns on desktop and ONE on
+ * mobile (redesign rule: max 2 columns for any entity-card grid), equal-height
+ * items.
  * Erow: wraps one entity card with its action economy. Mode 'card' (the
  * shipped default) injects `footActions`/`footMeta` into the card's own foot
  * — ReferenceEntityDisplay/DisplayCard accept both natively (Phase 1.2), so
  * the clone is a prop pass-through, not markup surgery. Mode 'rail' puts a
  * 152px right callout beside the card instead.
- *
- * The `grow` weight (1 / 1.2 / 1.35 / 1.45) lets meatier rules read wider
- * within a row.
  */
 
 import { cloneElement } from 'react'
@@ -24,9 +24,13 @@ type EcflowProps = {
   className?: string
 }
 
-/** Justified card row container (design `.ecflow`). */
+/** Entity-card grid (design `.ecflow`) — 1 column on mobile, max 2 on desktop. */
 export function Ecflow({ children, className }: EcflowProps) {
-  return <div className={cn('flex flex-wrap items-stretch gap-4', className)}>{children}</div>
+  return (
+    <div className={cn('grid grid-cols-1 items-stretch gap-4 md:grid-cols-2', className)}>
+      {children}
+    </div>
+  )
 }
 
 /** The card props Erow may inject (ReferenceEntityDisplay accepts these). */
@@ -36,8 +40,6 @@ type ErowCardProps = {
 }
 
 type ErowProps = {
-  /** Row-weight: meatier rules read wider (design: 1 / 1.2 / 1.35 / 1.45). */
-  grow?: number
   /** 'card' (default, shipped decision) folds actions into the card foot. */
   mode?: 'card' | 'rail'
   /** Action buttons for this card's economy (Use / Repair / …). */
@@ -48,16 +50,7 @@ type ErowProps = {
   className?: string
 }
 
-export function Erow({
-  grow = 1,
-  mode = 'card',
-  actions,
-  footMeta,
-  children,
-  className,
-}: ErowProps) {
-  const style = { flex: `${grow} 1 380px` }
-
+export function Erow({ mode = 'card', actions, footMeta, children, className }: ErowProps) {
   if (mode === 'card') {
     const card =
       actions || footMeta
@@ -66,19 +59,12 @@ export function Erow({
             ...(footMeta ? { footMeta } : {}),
           })
         : children
-    return (
-      <div className={cn(LAYOUT.cardMin, className)} style={style}>
-        {card}
-      </div>
-    )
+    return <div className={cn('min-w-0', className)}>{card}</div>
   }
 
   // mode 'rail': 152px right callout — meta k/v header + full-width actions.
   return (
-    <div
-      className={cn('grid grid-cols-1 gap-2', LAYOUT.cardMin, LAYOUT.erowGrid, className)}
-      style={style}
-    >
+    <div className={cn('grid min-w-0 grid-cols-1 gap-2', LAYOUT.erowGrid, className)}>
       {children}
       <div
         className="flex flex-col gap-2 rounded-[3px] border-chrome border-wk-faint p-2.5"

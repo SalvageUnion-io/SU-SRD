@@ -20,6 +20,7 @@ import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { CrawlerSheet } from '../CrawlerSheet'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { useEntityStore } from '../../../stores/entityStore'
+import { must } from '../../__tests__/must'
 
 afterEach(() => {
   cleanup()
@@ -47,8 +48,9 @@ const MOCK_BAYS = [
 async function patchCrawlerBays(): Promise<() => void> {
   const { SalvageUnionReference } = await import('salvageunion-reference')
   const original = SalvageUnionReference.CrawlerBays.all.bind(SalvageUnionReference.CrawlerBays)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  SalvageUnionReference.CrawlerBays.all = mock(() => MOCK_BAYS as any)
+  SalvageUnionReference.CrawlerBays.all = mock(
+    () => MOCK_BAYS as unknown as ReturnType<typeof SalvageUnionReference.CrawlerBays.all>
+  )
   return () => {
     SalvageUnionReference.CrawlerBays.all = original
   }
@@ -150,7 +152,7 @@ describe('CrawlerSheet — bay function/Repair actions (design §4.4, S12)', () 
       .find((b) => !(b as HTMLButtonElement).disabled)
     expect(repair).toBeTruthy()
     await act(async () => {
-      fireEvent.click(repair!)
+      fireEvent.click(must(repair))
     })
 
     // tech-2 crawler: 3 from tl2, then 2 from tl3 (TL+ scrap allowed).
@@ -179,7 +181,7 @@ describe('CrawlerSheet — bay function/Repair actions (design §4.4, S12)', () 
       .find((b) => !(b as HTMLButtonElement).disabled)
     expect(repair).toBeTruthy()
     await act(async () => {
-      fireEvent.click(repair!)
+      fireEvent.click(must(repair))
     })
 
     expect(update).toHaveBeenCalledWith('crawler', broke.id, {

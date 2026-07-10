@@ -60,6 +60,12 @@ type RailChipProps = {
   stats?: ReactNode
   /** Renders the '⇄ Swap' minibtn when provided (stops navigation). */
   onSwap?: () => void
+  /**
+   * Renders the '✕ Unassign' minibtn when provided (stops navigation).
+   * Relocated from the removed detail page: the views wire this only while
+   * the sheet is in build-edit mode so it can't be hit accidentally in play.
+   */
+  onUnassign?: () => void
   className?: string
 }
 
@@ -72,12 +78,19 @@ export function RailChip({
   status,
   stats,
   onSwap,
+  onUnassign,
   className,
 }: RailChipProps) {
   function handleSwap(event: MouseEvent<HTMLButtonElement>) {
     event.preventDefault()
     event.stopPropagation()
     onSwap?.()
+  }
+
+  function handleUnassign(event: MouseEvent<HTMLButtonElement>) {
+    event.preventDefault()
+    event.stopPropagation()
+    onUnassign?.()
   }
 
   return (
@@ -120,7 +133,10 @@ export function RailChip({
         <span className="bg-ink px-2 py-1 font-cond text-label-lg font-bold uppercase leading-none tracking-caps-snug text-su-white">
           Open sheet &rarr;
         </span>
-        {onSwap && <MiniBtn onClick={handleSwap}>&#8644; Swap</MiniBtn>}
+        <span className="flex items-center gap-1.5">
+          {onSwap && <MiniBtn onClick={handleSwap}>&#8644; Swap</MiniBtn>}
+          {onUnassign && <MiniBtn onClick={handleUnassign}>&#10005; Unassign</MiniBtn>}
+        </span>
       </span>
     </AppLink>
   )

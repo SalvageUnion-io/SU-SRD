@@ -1,36 +1,40 @@
 /**
- * PilotIdentityLines — the pilot hero's identity-lines block (design §4.2)
- * with the three once-per-Downtime 'Used' toggles (rules A8–A10) rendered as
- * Tag/chip toggles on the Background / Motto / Keepsake lines.
+ * PilotIdentityPanel — the pilot hero's IDENTITY block (redesign Task B):
+ * the poster's labeled fields — Name / Callsign / Class / Appearance (left)
+ * and Motto / Keepsake / Background with their once-per-Downtime USED toggles
+ * (rules A8–A10) on the right — rendered via the shared IdentityField
+ * primitive.
  *
- * Markup mirrors SheetHero's identity dl (the shell stays untouched — this
- * slots into the hero's spec strip; see needsSharedChange for the proposed
- * per-line chip slot on SheetHero). Empty-value lines are skipped, matching
- * the shell's behavior.
+ * FIELD-section archetype (unified edit language): the panel owns its OWN
+ * Edit button; fields render read-only by default and flip to inline
+ * click-to-edit only while this section is editing. Class is picker-backed —
+ * its edit affordance opens the ONE shared picker modal with the wizard's
+ * master-detail class list (changing class KEEPS abilities, matching the old
+ * edit-mode semantics).
  *
- * readOnly (no onToggleUsed): chips render as static 'USED' stamps, and only
- * when the flag is set.
+ * readOnly (no onToggleUsed / no patch): used chips render as static 'USED'
+ * stamps only when set, and no Edit button renders.
  */
 
-import { cn } from '../../lib/utils'
+import { useState } from 'react'
+import type { SURefClass } from 'salvageunion-reference'
+import { Btn } from 'suref-react'
+
+import { resolveClassName } from '../../lib/classRef'
 import type { Pilot } from '../../lib/schemas/pilot'
+import { cn } from '../../lib/utils'
+import { ClassDetail, ClassOptionList } from '../pilot/ClassStep'
+import { selectableClasses } from '../pilot/classOptions'
+import { IdentityField } from './IdentityField'
+import { SectionEditButton, SheetPickerModal } from './SheetSection'
+import type { SheetPatch } from './sheetViewProps'
 
 export type UsedToggleKey = 'background' | 'motto' | 'keepsake'
 
-type IdentityLine = {
-  key: string
-  label: string
-  value: string
-  /** Present only on the three once-per-Downtime lines. */
-  toggle?: UsedToggleKey
-}
-
-type PilotIdentityLinesProps = {
-  pilot: Pilot
-  /** Persist a used-flag change; omit to render read-only. */
-  onToggleUsed?: (key: UsedToggleKey, next: boolean) => void
-  className?: string
-}
+// ---------------------------------------------------------------------------
+// Used chip (once-per-Downtime toggles, rules A8–A10) — live-play control,
+// always available while editable (not gated behind the section edit).
+// ---------------------------------------------------------------------------
 
 function UsedChip({
   label,
@@ -66,55 +70,175 @@ function UsedChip({
   )
 }
 
-export function PilotIdentityLines({ pilot, onToggleUsed, className }: PilotIdentityLinesProps) {
-  const allLines: IdentityLine[] = [
-    {
-      key: 'background',
-      label: 'Background',
-      value: pilot.background,
-      toggle: 'background',
-    },
-    { key: 'motto', label: 'Motto', value: pilot.motto, toggle: 'motto' },
-    {
-      key: 'keepsake',
-      label: 'Keepsake',
-      value: pilot.keepsake,
-      toggle: 'keepsake',
-    },
-    { key: 'appearance', label: 'Appearance', value: pilot.appearance },
-  ]
-  const lines = allLines.filter((line) => line.value.trim().length > 0)
+// ---------------------------------------------------------------------------
+// Identity panel
+// ---------------------------------------------------------------------------
 
-  if (lines.length === 0) return null
+type PilotIdentityPanelProps = {
+  pilot: Pilot
+  /** Persist a used-flag change; omit on read-only sheets (static stamps). */
+  onToggleUsed?: (key: UsedToggleKey, next: boolean) => void
+  /** Partial merge on this pilot; omit on read-only sheets (no Edit button). */
+  patch?: SheetPatch
+  className?: string
+}
+
+export function PilotIdentityPanel({
+  pilot,
+  onToggleUsed,
+  patch,
+  className,
+}: PilotIdentityPanelProps) {
+  // Per-section edit flag — flips ONLY this panel's fields to inline-edit.
+  const [editing, setEditing] = useState(false)
+  const [classPickerOpen, setClassPickerOpen] = useState(false)
+  // Class picker holds a pending selection until confirmed (destructive-ish:
+  // it re-homes the pilot's class; abilities are intentionally kept).
+  const [pendingClass, setPendingClass] = useState<string>(pilot.classRef)
+
+  // Resolved lazily — only once the picker opens — so read-only/snapshot
+  // renders never touch the (possibly unloaded) reference class catalog.
+  const { base, specialisations } = classPickerOpen
+    ? selectableClasses(undefined, true)
+    : { base: [], specialisations: [] }
+  const allClasses = [...base, ...specialisations]
+  const selectedClass = allClasses.find((c) => c.id === pendingClass) as SURefClass | undefined
+
+  const canEdit = patch !== undefined
+  const isEditing = editing && canEdit
+
+  /** Persist a trimmed freeform field (empty allowed). */
+  const saveText = (field: keyof Pilot) => (next: string) => {
+    patch?.({ [field]: next.trim() })
+  }
+  /** Persist a required (z.string().min(1)) field — never write empty. */
+  const saveRequired = (field: keyof Pilot) => (next: string) => {
+    const trimmed = next.trim()
+    if (trimmed) patch?.({ [field]: trimmed })
+  }
+
+  function openClassPicker() {
+    setPendingClass(pilot.classRef)
+    setClassPickerOpen(true)
+  }
+
+  function confirmClass() {
+    if (pendingClass && pendingClass !== pilot.classRef) {
+      patch?.({ classRef: pendingClass })
+    }
+    setClassPickerOpen(false)
+  }
+
+  const usedChip = (key: UsedToggleKey, label: string) => (
+    <UsedChip
+      label={label}
+      used={pilot.usedToggles?.[key] ?? false}
+      onToggle={onToggleUsed ? (next) => onToggleUsed(key, next) : undefined}
+    />
+  )
 
   return (
-    <dl className={cn('w-full space-y-1', className)}>
-      {lines.map((line) => (
-        <div key={line.key} className="flex items-baseline gap-1.5">
-          <dt className="shrink-0 font-cond text-label font-bold uppercase leading-none tracking-caps text-ink">
-            {line.label}
-          </dt>
-          <dd
-            className="m-0 min-w-0 font-body text-xs leading-snug"
-            style={{ color: 'var(--tone-deep)' }}
-          >
-            {line.value}
-          </dd>
-          {line.toggle && (
-            <UsedChip
-              label={line.label.toLowerCase()}
-              used={pilot.usedToggles?.[line.toggle] ?? false}
-              onToggle={
-                onToggleUsed
-                  ? (next) => {
-                      onToggleUsed(line.toggle as UsedToggleKey, next)
-                    }
-                  : undefined
-              }
-            />
-          )}
+    <section aria-label="Pilot identity" className={cn('min-w-0', className)}>
+      {/* Section header — owns the panel's OWN Edit button (no global mode). */}
+      <div className="mb-2 flex min-h-7 items-center justify-between gap-2">
+        <span className="bg-ink px-2 pb-px pt-[2px] font-cond text-xs font-bold uppercase leading-relaxed tracking-caps text-su-white">
+          Identity
+        </span>
+        {canEdit && (
+          <SectionEditButton
+            section="Identity"
+            editing={isEditing}
+            onToggle={() => setEditing((v) => !v)}
+          />
+        )}
+      </div>
+
+      {/* Poster field grid — left / right columns; single column on mobile in
+          the poster's reading order. */}
+      <div className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2">
+        <div className="flex min-w-0 flex-col gap-3">
+          {/* Name lives here too: with the global Edit toggle gone, this is
+              the pilot's name edit surface (the hero title mirrors it). */}
+          <IdentityField
+            label="Name"
+            value={pilot.name}
+            editing={isEditing}
+            onSave={saveRequired('name')}
+          />
+          <IdentityField
+            label="Callsign"
+            value={pilot.callsign}
+            editing={isEditing}
+            onSave={saveRequired('callsign')}
+          />
+          <IdentityField
+            label="Class"
+            value={resolveClassName(pilot.classRef)}
+            editing={isEditing}
+            onEditClick={openClassPicker}
+          />
+          <IdentityField
+            label="Appearance"
+            value={pilot.appearance}
+            editing={isEditing}
+            multiline
+            onSave={saveText('appearance')}
+          />
         </div>
-      ))}
-    </dl>
+        <div className="flex min-w-0 flex-col gap-3">
+          <IdentityField
+            label="Motto"
+            value={pilot.motto}
+            editing={isEditing}
+            multiline
+            onSave={saveText('motto')}
+            labelAction={usedChip('motto', 'motto')}
+          />
+          <IdentityField
+            label="Keepsake"
+            value={pilot.keepsake}
+            editing={isEditing}
+            multiline
+            onSave={saveText('keepsake')}
+            labelAction={usedChip('keepsake', 'keepsake')}
+          />
+          <IdentityField
+            label="Background"
+            value={pilot.background}
+            editing={isEditing}
+            multiline
+            onSave={saveText('background')}
+            labelAction={usedChip('background', 'background')}
+          />
+        </div>
+      </div>
+
+      {/* Class — single-select master-detail in the ONE shared picker modal. */}
+      <SheetPickerModal
+        open={classPickerOpen}
+        onClose={() => setClassPickerOpen(false)}
+        title="Change Class"
+        footer={
+          <>
+            <Btn variant="ghost" size="sm" onClick={() => setClassPickerOpen(false)}>
+              Cancel
+            </Btn>
+            <Btn variant="primary" size="sm" onClick={confirmClass}>
+              Change Class
+            </Btn>
+          </>
+        }
+      >
+        <div className="grid gap-4 sm:grid-cols-[minmax(0,320px)_1fr]">
+          <ClassOptionList
+            base={base}
+            specialisations={specialisations}
+            selectedClassId={pendingClass}
+            onSelect={setPendingClass}
+          />
+          <ClassDetail selectedClass={selectedClass} />
+        </div>
+      </SheetPickerModal>
+    </section>
   )
 }

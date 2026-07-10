@@ -228,12 +228,14 @@ export function MechWizard({ onComplete, onCancel, mechId, initialState }: MechW
       void handleSubmit()
       return
     }
-    setStep(steps[currentIndex + 1]!)
+    const next = steps[currentIndex + 1]
+    if (next) setStep(next)
   }
 
   function goBack() {
-    if (currentIndex > 0) {
-      setStep(steps[currentIndex - 1]!)
+    const prev = steps[currentIndex - 1]
+    if (currentIndex > 0 && prev) {
+      setStep(prev)
     }
   }
 
@@ -317,7 +319,10 @@ export function MechWizard({ onComplete, onCancel, mechId, initialState }: MechW
       eyebrow={isEdit ? 'Edit Mech' : 'New Mech'}
       steps={steps}
       active={currentIndex}
-      onStepClick={(i) => setStep(steps[i]!)}
+      onStepClick={(i) => {
+        const s = steps[i]
+        if (s) setStep(s)
+      }}
       title={STEP_TITLES[step]}
       subtitle={subtitle}
       optionPane={
@@ -378,8 +383,10 @@ export function MechWizard({ onComplete, onCancel, mechId, initialState }: MechW
         <MechIdentityStep
           name={form.name}
           onNameChange={(name) => updateForm({ name })}
-          description={form.description}
-          onDescriptionChange={(description) => updateForm({ description })}
+          quirk={form.quirk}
+          onQuirkChange={(quirk) => updateForm({ quirk })}
+          appearance={form.appearance}
+          onAppearanceChange={(appearance) => updateForm({ appearance })}
           cargoLots={form.cargoLots}
           onCargoChange={(cargoLots) => updateForm({ cargoLots })}
           cargoMax={cargoMax}

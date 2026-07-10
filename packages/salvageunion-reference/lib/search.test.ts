@@ -2,6 +2,14 @@ import { describe, expect, test } from 'bun:test'
 import { search, searchIn, getSuggestions, invalidateSearchIndex } from './search.js'
 import { SalvageUnionReference, resetAllForTesting } from './index.js'
 
+/** Narrow away null/undefined; throws (failing the test) when the value is missing. */
+function defined<T>(value: T | null | undefined): T {
+  if (value === null || value === undefined) {
+    throw new Error('Expected value to be defined')
+  }
+  return value
+}
+
 describe('Search API', () => {
   describe('search()', () => {
     test('should find entities by exact name match', () => {
@@ -79,8 +87,8 @@ describe('Search API', () => {
 
       // Scores should be in descending order
       for (let i = 1; i < results.length; i++) {
-        const prev = results[i - 1]!
-        const curr = results[i]!
+        const prev = defined(results[i - 1])
+        const curr = defined(results[i])
         expect(prev.matchScore).toBeGreaterThanOrEqual(curr.matchScore)
       }
     })
@@ -89,7 +97,7 @@ describe('Search API', () => {
       const results = search({ query: 'Railgun' })
 
       // Exact match should be first
-      const firstResult = results[0]!
+      const firstResult = defined(results[0])
       expect(firstResult.entityName).toBe('Railgun')
       expect(firstResult.matchScore).toBeGreaterThan(50) // High score for exact match
     })
@@ -134,7 +142,7 @@ describe('Search API', () => {
       const typoTop = typo.find((r) => r.entityName === 'Railgun')
       expect(literalTop).toBeDefined()
       expect(typoTop).toBeDefined()
-      expect(typoTop!.matchScore).toBeLessThan(literalTop!.matchScore)
+      expect(defined(typoTop).matchScore).toBeLessThan(defined(literalTop).matchScore)
     })
 
     test('should include matched fields in results', () => {
@@ -142,7 +150,7 @@ describe('Search API', () => {
 
       expect(results.length).toBeGreaterThan(0)
       // Should have matchedFields array
-      const firstResult = results[0]!
+      const firstResult = defined(results[0])
       expect(firstResult.matchedFields).toBeDefined()
       expect(Array.isArray(firstResult.matchedFields)).toBe(true)
       expect(firstResult.matchedFields.length).toBeGreaterThan(0)
@@ -152,7 +160,7 @@ describe('Search API', () => {
       const results = search({ query: 'laser' })
 
       expect(results.length).toBeGreaterThan(0)
-      const firstResult = results[0]!
+      const firstResult = defined(results[0])
       expect(firstResult.schemaName).toBeDefined()
       expect(firstResult.schemaTitle).toBeDefined()
       expect(typeof firstResult.schemaTitle).toBe('string')
@@ -306,7 +314,7 @@ describe('Search API', () => {
       // rather than returning the cached empty result.
       const afterLoad = search({ query: 'laser', schemas: ['systems'] })
       expect(afterLoad.length).toBeGreaterThan(0)
-      expect(afterLoad[0]!.schemaName).toBe('systems')
+      expect(defined(afterLoad[0]).schemaName).toBe('systems')
     })
 
     test('clears result cache so a post-invalidation search is never served stale data', async () => {
@@ -325,8 +333,8 @@ describe('Search API', () => {
       const fresh = search({ query: 'railgun' })
       expect(fresh.length).toBeGreaterThan(0)
       // Verify the rebuilt result is correct, not a cache artifact
-      expect(fresh[0]!.entityName).toBe(cached[0]!.entityName)
-      expect(fresh[0]!.entityId).toBe(cached[0]!.entityId)
+      expect(defined(fresh[0]).entityName).toBe(defined(cached[0]).entityName)
+      expect(defined(fresh[0]).entityId).toBe(defined(cached[0]).entityId)
     })
   })
 })

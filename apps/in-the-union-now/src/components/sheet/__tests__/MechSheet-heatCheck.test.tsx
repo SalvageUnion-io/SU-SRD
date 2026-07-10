@@ -17,6 +17,7 @@ import { MechSheet } from '../MechSheet'
 import type { Roll } from '../../../lib/rules/heatCheck'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { useEntityStore } from '../../../stores/entityStore'
+import { must } from '../../__tests__/must'
 
 // The body resolves chassis/cargo caps against the reference ORM at render.
 beforeAll(async () => {
@@ -71,14 +72,9 @@ function makeStore(mech: Mech, captured: CapturedUpdate[]): typeof useEntityStor
     hydrate: mock(async () => {}),
     list: mock(() => [current]),
 
-    get: mock(
-      (_type: string, id: string) => (id === current.id ? current : null)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ) as any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    create: mock(async () => mech) as any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    update: updateMock as any,
+    get: mock((_type: string, id: string) => (id === current.id ? current : null)),
+    create: mock(async () => mech),
+    update: updateMock,
     delete: mock(async () => {}),
   }
   return (() => storeState) as unknown as typeof useEntityStore
@@ -116,7 +112,7 @@ describe('MechSheet — Heat Check UI', () => {
     })
 
     expect(captured.length).toBe(1)
-    const patch = captured[0]!.patch
+    const patch = must(captured[0]).patch
     expect(patch.lastHeatCheck?.overloaded).toBe(false)
     expect(patch.lastHeatCheck?.heatCheckRoll).toBe(12)
     expect(patch.currentSP).toBeUndefined()
@@ -139,7 +135,7 @@ describe('MechSheet — Heat Check UI', () => {
       fireEvent.click(clickButtonByText('Heat Check'))
     })
 
-    const patch = captured[0]!.patch
+    const patch = must(captured[0]).patch
     expect(patch.lastHeatCheck?.outcome).toBe('overheat')
     expect(patch.currentSP).toBe(4) // 10 - 6
     expect(patch.shutdown).toBe(true)
@@ -162,7 +158,7 @@ describe('MechSheet — Heat Check UI', () => {
       fireEvent.click(clickButtonByText('Heat Check'))
     })
 
-    const patch = captured[0]!.patch
+    const patch = must(captured[0]).patch
     expect(patch.lastHeatCheck?.outcome).toBe('system-destroyed')
     expect(patch.currentSP).toBeUndefined()
     expect(patch.shutdown).toBeUndefined()
@@ -186,7 +182,7 @@ describe('MechSheet — Heat Check UI', () => {
       fireEvent.click(clickButtonByText('Push'))
     })
 
-    const patch = captured[0]!.patch
+    const patch = must(captured[0]).patch
     expect(patch.currentHeat).toBe(8)
     expect(patch.lastHeatCheck?.heatAtCheck).toBe(8)
     expect(patch.lastHeatCheck?.overloaded).toBe(false)
@@ -231,12 +227,12 @@ describe('MechSheet — manual flag clears (gap 8)', () => {
     })
 
     expect(captured.length).toBe(1)
-    expect(captured[0]!.patch).toEqual({ shutdown: false })
+    expect(must(captured[0]).patch).toEqual({ shutdown: false })
 
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: /clear vulnerable/i }))
     })
-    expect(captured[1]!.patch).toEqual({ vulnerable: false })
+    expect(must(captured[1]).patch).toEqual({ vulnerable: false })
   })
 
   test('Clear destroyed un-bricks the mech', async () => {
@@ -251,6 +247,6 @@ describe('MechSheet — manual flag clears (gap 8)', () => {
       fireEvent.click(screen.getByRole('button', { name: /clear destroyed/i }))
     })
 
-    expect(captured[0]!.patch).toEqual({ destroyed: false })
+    expect(must(captured[0]).patch).toEqual({ destroyed: false })
   })
 })

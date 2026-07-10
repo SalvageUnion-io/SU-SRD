@@ -20,7 +20,7 @@ import { NpcInset } from './NpcInset'
 export type CrawlerBayEntry = NonNullable<Crawler['crawlerBays']>[number]
 
 /** Resolve a stored crawler-system ref (id or name) to its SRD entity [gap 20]. */
-// eslint-disable-next-line react-refresh/only-export-components -- shared control helpers, colocated by design (audit items 24/19)
+// biome-ignore lint/style/useComponentExportOnlyModules: shared control helpers, colocated by design (audit items 24/19)
 export function resolveCrawlerSystem(ref: string): SURefEntity | null {
   try {
     const all = SalvageUnionReference.Systems.all() as ReadonlyArray<{
@@ -34,7 +34,7 @@ export function resolveCrawlerSystem(ref: string): SURefEntity | null {
 }
 
 /** Bay repair cost: 5 Scrap of crawler TL or higher (rules C8, S12). */
-// eslint-disable-next-line react-refresh/only-export-components -- shared control helpers, colocated by design (audit items 24/19)
+// biome-ignore lint/style/useComponentExportOnlyModules: shared control helpers, colocated by design (audit items 24/19)
 export const BAY_REPAIR_COST = 5
 
 /** Each bay's function-action verb (design §4.4 — Dock/Craft/Heal/Mount…). */
@@ -73,6 +73,11 @@ type CrawlerBayCardProps = {
   seedSelections: ChoiceSelections | undefined
   store: typeof useEntityStore
   readOnly: boolean
+  /**
+   * Docked-mech one-liner (poster: "Docks <mech>") — set on the Mech Bay when
+   * the composition has a docked mech; renders above the crew inset.
+   */
+  dockedMechName?: string
 }
 
 /**
@@ -92,6 +97,7 @@ export function CrawlerBayCard({
   seedSelections,
   store,
   readOnly,
+  dockedMechName,
 }: CrawlerBayCardProps) {
   const storeState = store()
   const { selections, setSelections } = useEntityChoices(
@@ -153,24 +159,31 @@ export function CrawlerBayCard({
   }
 
   const crew = (
-    <NpcInset
-      bayName={bay.name}
-      title={npc?.position}
-      name={entry.npcName ?? ''}
-      hp={entry.npcCurrentHP ?? maxHP}
-      maxHp={maxHP}
-      keepsake={keepsake}
-      motto={motto}
-      detail={entry.npcDescription ?? ''}
-      facts={entry.npcFacts ?? []}
-      onNameChange={readOnly ? undefined : (next) => patchEntry({ npcName: next })}
-      onHpChange={readOnly ? undefined : (next) => patchEntry({ npcCurrentHP: next })}
-      onKeepsakeChange={readOnly || !keepsakeChoice ? undefined : setKeepsake}
-      onMottoChange={readOnly || !mottoChoice ? undefined : setMotto}
-      onDetailChange={readOnly ? undefined : (next) => patchEntry({ npcDescription: next })}
-      onFactsChange={readOnly ? undefined : (next) => patchEntry({ npcFacts: next })}
-      readOnly={readOnly}
-    />
+    <>
+      {dockedMechName && (
+        <p className="m-0 mb-1.5 truncate font-body text-caption text-ink">
+          Docks <span className="font-bold">{dockedMechName}</span>
+        </p>
+      )}
+      <NpcInset
+        bayName={bay.name}
+        title={npc?.position}
+        name={entry.npcName ?? ''}
+        hp={entry.npcCurrentHP ?? maxHP}
+        maxHp={maxHP}
+        keepsake={keepsake}
+        motto={motto}
+        detail={entry.npcDescription ?? ''}
+        facts={entry.npcFacts ?? []}
+        onNameChange={readOnly ? undefined : (next) => patchEntry({ npcName: next })}
+        onHpChange={readOnly ? undefined : (next) => patchEntry({ npcCurrentHP: next })}
+        onKeepsakeChange={readOnly || !keepsakeChoice ? undefined : setKeepsake}
+        onMottoChange={readOnly || !mottoChoice ? undefined : setMotto}
+        onDetailChange={readOnly ? undefined : (next) => patchEntry({ npcDescription: next })}
+        onFactsChange={readOnly ? undefined : (next) => patchEntry({ npcFacts: next })}
+        readOnly={readOnly}
+      />
+    </>
   )
 
   const functionLabel = BAY_FUNCTIONS[bay.name] ?? 'Use'
@@ -250,6 +263,13 @@ type CrawlerTypeCardProps = {
   seedSelections: ChoiceSelections | undefined
   store: typeof useEntityStore
   readOnly: boolean
+  /**
+   * Compact identity-band placement (redesign phase 3): renders the card
+   * compact and strips the type's `actions` — the special ability renders as
+   * its own sibling entity card in the identity band, so the type card must
+   * not double-render it.
+   */
+  compact?: boolean
 }
 
 /**
@@ -267,6 +287,7 @@ export function CrawlerTypeCard({
   seedSelections,
   store,
   readOnly,
+  compact = false,
 }: CrawlerTypeCardProps) {
   const storeState = store()
   const { selections, setSelections } = useEntityChoices(
@@ -330,12 +351,18 @@ export function CrawlerTypeCard({
     />
   ) : undefined
 
-  // Card renders WITHOUT the SRD npc block — the special NPC lives in the inset.
-  const cardData = { ...type, npc: undefined } as unknown as SURefEntity
+  // Card renders WITHOUT the SRD npc block — the special NPC lives in the
+  // inset. Compact placement also strips `actions` (see the prop doc).
+  const cardData = {
+    ...type,
+    npc: undefined,
+    ...(compact ? { actions: undefined } : {}),
+  } as unknown as SURefEntity
 
   return (
     <ReferenceEntityDisplay
       data={cardData}
+      compact={compact}
       selections={selections}
       onSelectionChange={readOnly ? undefined : setSelections}
       expand={crew}
@@ -350,7 +377,7 @@ type ScrapPoolSlabProps = {
   readOnly: boolean
 }
 
-// eslint-disable-next-line react-refresh/only-export-components -- shared tech-level constant, colocated with the scrap-pool UI by design
+// biome-ignore lint/style/useComponentExportOnlyModules: shared tech-level constant, colocated with the scrap-pool UI by design
 export const SCRAP_TLS = [1, 2, 3, 4, 5, 6] as const
 
 /**
@@ -364,6 +391,7 @@ export function ScrapPoolSlab({ pool, onAdjust, readOnly }: ScrapPoolSlabProps) 
       {SCRAP_TLS.map((tl) => {
         const value = scrapPoolBucket(pool, tl)
         return (
+          // biome-ignore lint/a11y/useSemanticElements: a fieldset would need a legend and carries min-content sizing quirks in this inline-flex lozenge; role="group" + aria-label conveys the same semantics
           <span
             key={tl}
             role="group"

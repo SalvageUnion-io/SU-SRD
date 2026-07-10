@@ -42,12 +42,13 @@ describe('truncate', () => {
 describe('buildRollEmbedData', () => {
   test('flat table: title from label, three inline fields', () => {
     const core = SalvageUnionReference.RollTables.find((t) => t.name === 'Core Mechanic')
-    const outcome = rollOnTable(core!.table, fixedRoller(20))
+    if (!core) throw new Error('Core Mechanic table missing from reference data')
+    const outcome = rollOnTable(core.table, fixedRoller(20))
     const data = buildRollEmbedData('Core Mechanic', outcome)
     expect(data.color).toBe(0x00ff00)
     expect(data.fields.map((f) => f.name)).toEqual(['Table', 'Roll', 'Range'])
-    expect(data.fields[1]!.value).toBe('20')
-    expect(data.description!.length).toBeGreaterThan(0)
+    expect(data.fields[1]?.value).toBe('20')
+    expect(data.description?.length).toBeGreaterThan(0)
   })
 
   test('columns table: column + entry roll fields', () => {
@@ -56,10 +57,11 @@ describe('buildRollEmbedData', () => {
       return probe.success && probe.kind === 'columns'
     })
     expect(columns).toBeDefined()
-    const outcome = rollOnTable(columns!.table, fixedRoller(3, 17))
-    const data = buildRollEmbedData(columns!.name, outcome)
+    if (!columns) throw new Error('expected a columns-type roll table')
+    const outcome = rollOnTable(columns.table, fixedRoller(3, 17))
+    const data = buildRollEmbedData(columns.name, outcome)
     expect(data.fields.map((f) => f.name)).toEqual(['Table', 'Column Roll', 'Entry Roll'])
-    expect(data.fields[1]!.value).toContain('3 (1-4)')
+    expect(data.fields[1]?.value).toContain('3 (1-4)')
   })
 
   test('failure outcome renders an error embed instead of throwing', () => {
@@ -71,7 +73,8 @@ describe('buildRollEmbedData', () => {
 
 describe('entityUrl', () => {
   test('matches the schema/item route shape', () => {
-    const chassis = SalvageUnionReference.Chassis.all()[0]!
+    const chassis = SalvageUnionReference.Chassis.all()[0]
+    if (!chassis) throw new Error('expected at least one chassis in reference data')
     expect(entityUrl('chassis', chassis)).toMatch(
       /^https:\/\/salvageunion\.io\/schema\/chassis\/item\/[a-z0-9-]+$/
     )

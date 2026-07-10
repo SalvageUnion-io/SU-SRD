@@ -66,12 +66,9 @@ function makeStore(initial: Pilot) {
     hydrated: { pilots: true, mechs: false, crawlers: false, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [current]),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    get: mock((_type: string, id: string) => (id === current.id ? current : null)) as any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    create: mock(async () => current) as any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    update: updateFn as any,
+    get: mock((_type: string, id: string) => (id === current.id ? current : null)),
+    create: mock(async () => current),
+    update: updateFn,
     delete: mock(async () => {}),
   }
 

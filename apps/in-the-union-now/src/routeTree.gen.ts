@@ -20,9 +20,6 @@ import { Route as CrawlersNewRouteImport } from './routes/crawlers/new'
 import { Route as CrawlersIdRouteImport } from './routes/crawlers/$id'
 import { Route as MechsPatternsIndexRouteImport } from './routes/mechs/patterns/index'
 import { Route as SheetKindIdRouteImport } from './routes/sheet/$kind/$id'
-import { Route as PilotsIdEditRouteImport } from './routes/pilots/$id_.edit'
-import { Route as MechsIdEditRouteImport } from './routes/mechs/$id_.edit'
-import { Route as CrawlersIdEditRouteImport } from './routes/crawlers/$id_.edit'
 import { Route as SheetKindIdShareRouteImport } from './routes/sheet/$kind/$id_.share'
 
 const EncounterRoute = EncounterRouteImport.update({
@@ -80,21 +77,6 @@ const SheetKindIdRoute = SheetKindIdRouteImport.update({
   path: '/sheet/$kind/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PilotsIdEditRoute = PilotsIdEditRouteImport.update({
-  id: '/pilots/$id_/edit',
-  path: '/pilots/$id/edit',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MechsIdEditRoute = MechsIdEditRouteImport.update({
-  id: '/mechs/$id_/edit',
-  path: '/mechs/$id/edit',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CrawlersIdEditRoute = CrawlersIdEditRouteImport.update({
-  id: '/crawlers/$id_/edit',
-  path: '/crawlers/$id/edit',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const SheetKindIdShareRoute = SheetKindIdShareRouteImport.update({
   id: '/sheet/$kind/$id_/share',
   path: '/sheet/$kind/$id/share',
@@ -111,9 +93,6 @@ export interface FileRoutesByFullPath {
   '/pilots/$id': typeof PilotsIdRoute
   '/pilots/new': typeof PilotsNewRoute
   '/s/$id': typeof SIdRoute
-  '/crawlers/$id/edit': typeof CrawlersIdEditRoute
-  '/mechs/$id/edit': typeof MechsIdEditRoute
-  '/pilots/$id/edit': typeof PilotsIdEditRoute
   '/sheet/$kind/$id': typeof SheetKindIdRoute
   '/mechs/patterns/': typeof MechsPatternsIndexRoute
   '/sheet/$kind/$id/share': typeof SheetKindIdShareRoute
@@ -128,9 +107,6 @@ export interface FileRoutesByTo {
   '/pilots/$id': typeof PilotsIdRoute
   '/pilots/new': typeof PilotsNewRoute
   '/s/$id': typeof SIdRoute
-  '/crawlers/$id/edit': typeof CrawlersIdEditRoute
-  '/mechs/$id/edit': typeof MechsIdEditRoute
-  '/pilots/$id/edit': typeof PilotsIdEditRoute
   '/sheet/$kind/$id': typeof SheetKindIdRoute
   '/mechs/patterns': typeof MechsPatternsIndexRoute
   '/sheet/$kind/$id/share': typeof SheetKindIdShareRoute
@@ -146,9 +122,6 @@ export interface FileRoutesById {
   '/pilots/$id': typeof PilotsIdRoute
   '/pilots/new': typeof PilotsNewRoute
   '/s/$id': typeof SIdRoute
-  '/crawlers/$id_/edit': typeof CrawlersIdEditRoute
-  '/mechs/$id_/edit': typeof MechsIdEditRoute
-  '/pilots/$id_/edit': typeof PilotsIdEditRoute
   '/sheet/$kind/$id': typeof SheetKindIdRoute
   '/mechs/patterns/': typeof MechsPatternsIndexRoute
   '/sheet/$kind/$id_/share': typeof SheetKindIdShareRoute
@@ -165,9 +138,6 @@ export interface FileRouteTypes {
     | '/pilots/$id'
     | '/pilots/new'
     | '/s/$id'
-    | '/crawlers/$id/edit'
-    | '/mechs/$id/edit'
-    | '/pilots/$id/edit'
     | '/sheet/$kind/$id'
     | '/mechs/patterns/'
     | '/sheet/$kind/$id/share'
@@ -182,9 +152,6 @@ export interface FileRouteTypes {
     | '/pilots/$id'
     | '/pilots/new'
     | '/s/$id'
-    | '/crawlers/$id/edit'
-    | '/mechs/$id/edit'
-    | '/pilots/$id/edit'
     | '/sheet/$kind/$id'
     | '/mechs/patterns'
     | '/sheet/$kind/$id/share'
@@ -199,9 +166,6 @@ export interface FileRouteTypes {
     | '/pilots/$id'
     | '/pilots/new'
     | '/s/$id'
-    | '/crawlers/$id_/edit'
-    | '/mechs/$id_/edit'
-    | '/pilots/$id_/edit'
     | '/sheet/$kind/$id'
     | '/mechs/patterns/'
     | '/sheet/$kind/$id_/share'
@@ -217,9 +181,6 @@ export interface RootRouteChildren {
   PilotsIdRoute: typeof PilotsIdRoute
   PilotsNewRoute: typeof PilotsNewRoute
   SIdRoute: typeof SIdRoute
-  CrawlersIdEditRoute: typeof CrawlersIdEditRoute
-  MechsIdEditRoute: typeof MechsIdEditRoute
-  PilotsIdEditRoute: typeof PilotsIdEditRoute
   SheetKindIdRoute: typeof SheetKindIdRoute
   MechsPatternsIndexRoute: typeof MechsPatternsIndexRoute
   SheetKindIdShareRoute: typeof SheetKindIdShareRoute
@@ -304,27 +265,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SheetKindIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/pilots/$id_/edit': {
-      id: '/pilots/$id_/edit'
-      path: '/pilots/$id/edit'
-      fullPath: '/pilots/$id/edit'
-      preLoaderRoute: typeof PilotsIdEditRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/mechs/$id_/edit': {
-      id: '/mechs/$id_/edit'
-      path: '/mechs/$id/edit'
-      fullPath: '/mechs/$id/edit'
-      preLoaderRoute: typeof MechsIdEditRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/crawlers/$id_/edit': {
-      id: '/crawlers/$id_/edit'
-      path: '/crawlers/$id/edit'
-      fullPath: '/crawlers/$id/edit'
-      preLoaderRoute: typeof CrawlersIdEditRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/sheet/$kind/$id_/share': {
       id: '/sheet/$kind/$id_/share'
       path: '/sheet/$kind/$id/share'
@@ -345,9 +285,6 @@ const rootRouteChildren: RootRouteChildren = {
   PilotsIdRoute: PilotsIdRoute,
   PilotsNewRoute: PilotsNewRoute,
   SIdRoute: SIdRoute,
-  CrawlersIdEditRoute: CrawlersIdEditRoute,
-  MechsIdEditRoute: MechsIdEditRoute,
-  PilotsIdEditRoute: PilotsIdEditRoute,
   SheetKindIdRoute: SheetKindIdRoute,
   MechsPatternsIndexRoute: MechsPatternsIndexRoute,
   SheetKindIdShareRoute: SheetKindIdShareRoute,

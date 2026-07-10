@@ -6,7 +6,7 @@ describe('getJsonSchemaDefinition', () => {
     const schema = getJsonSchemaDefinition('chassis')
     expect(schema).toBeDefined()
     expect(typeof schema).toBe('object')
-    expect(schema?.['$schema']).toBeDefined()
+    expect(schema?.$schema).toBeDefined()
   })
 
   it('returns undefined for an unknown schema ID', () => {
@@ -19,8 +19,8 @@ describe('getAllJsonSchemaDefinitions', () => {
   it('returns a map with all 27 schema IDs as keys', () => {
     const all = getAllJsonSchemaDefinitions()
     expect(Object.keys(all).length).toBe(27)
-    expect(all['chassis']).toBeDefined()
-    expect(all['abilities']).toBeDefined()
+    expect(all.chassis).toBeDefined()
+    expect(all.abilities).toBeDefined()
     expect(all['roll-tables']).toBeDefined()
     expect(all['bio-titans']).toBeDefined()
   })

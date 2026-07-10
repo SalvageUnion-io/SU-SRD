@@ -10,7 +10,7 @@
  *  1. Sheet — LiveSheet shell carries the variant tone class + sticky header;
  *     the hero rail rows at sm+ (sm:flex-row)
  *  2. Sheet — missing entity still renders without crash (guard path)
- *  3. SnapshotView — uses max-w-7xl container
+ *  3. SnapshotSheet — uses max-w-7xl container
  *  4. Dashboard — sections wrapper uses flex flex-col (mobile) and the
  *     section container element is rendered (grid classes are on the same el)
  *  5. CrawlerSheet — stats dl uses grid-cols-1 (not grid-cols-2 with empty cell)
@@ -29,7 +29,7 @@ import { Sheet } from '../Sheet'
 import type { EntityLookup } from '../Sheet'
 import type { SoftLinkStore } from '../../wiring/useSoftLinks'
 import { CrawlerSheet } from '../CrawlerSheet'
-import { SnapshotView } from '../SnapshotView'
+import { SnapshotSheet } from '../SnapshotSheet'
 import { Dashboard } from '../../dashboard/Dashboard'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import type { Mech } from '../../../lib/schemas/mech'
@@ -96,16 +96,16 @@ type AnyEntity = Pilot | Mech | Crawler
 
 function makeEntityStore(entities: AnyEntity[]): EntityLookup {
   return {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    get: (_type, id) => (entities.find((e) => e.id === id) ?? null) as any,
+    get: ((_type: unknown, id: string) =>
+      entities.find((e) => e.id === id) ?? null) as unknown as EntityLookup['get'],
   }
 }
 
 function makeSoftLinkStore(links: SoftLink[]): SoftLinkStore {
   return {
     softLinks: links,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    create: async () => links[0] as any,
+    // The create mock is unused in these tests; cast is safe — they never assign()
+    create: (async () => links[0]) as unknown as SoftLinkStore['create'],
     delete: async () => undefined,
   }
 }
@@ -192,13 +192,13 @@ describe('Sheet responsive layout — single entity', () => {
 })
 
 // ---------------------------------------------------------------------------
-// 3. SnapshotView — renders the LiveSheet shell (plan 4.8 port)
+// 3. SnapshotSheet — renders the LiveSheet shell (plan 4.8 port)
 // ---------------------------------------------------------------------------
 
-describe('SnapshotView responsive layout', () => {
-  test('SnapshotView pilot snapshot renders the variant shell + banner', () => {
+describe('SnapshotSheet responsive layout', () => {
+  test('SnapshotSheet pilot snapshot renders the variant shell + banner', () => {
     const snapshot = { kind: 'pilot', entity: { ...fakePilot } }
-    const { container } = render(<SnapshotView snapshot={snapshot as Record<string, unknown>} />)
+    const { container } = render(<SnapshotSheet snapshot={snapshot as Record<string, unknown>} />)
     expect(container.querySelector('.sheet--pilot')).toBeTruthy()
     expect(container.querySelector('[aria-label="Read-only snapshot"]')).toBeTruthy()
   })

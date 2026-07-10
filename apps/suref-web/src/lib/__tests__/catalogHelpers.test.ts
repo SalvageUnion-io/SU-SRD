@@ -8,6 +8,12 @@ import {
 } from '../catalogHelpers'
 import type { CatalogCategory } from '../catalogHelpers'
 
+/** Narrowing guard for fixture lookups — fails the test loudly instead of `!`. */
+function required<T>(value: T | null | undefined, label: string): T {
+  if (value == null) throw new Error(`Expected ${label} to exist`)
+  return value
+}
+
 describe('pluralizeWord', () => {
   it('adds s to regular words', () => {
     expect(pluralizeWord('Drone')).toBe('Drones')
@@ -95,8 +101,8 @@ describe('buildCatalogCategories', () => {
     })
 
     expect(result).toHaveLength(1)
-    expect(result[0]!.label).toBe('COMBAT')
-    expect(result[0]!.schemas).toHaveLength(1)
+    expect(result[0]?.label).toBe('COMBAT')
+    expect(result[0]?.schemas).toHaveLength(1)
   })
 
   it('builds correct schema entry for non-flat category', () => {
@@ -131,7 +137,8 @@ describe('buildCatalogCategories', () => {
       getCatalogLabel: () => undefined,
     })
 
-    const schema = result[0]!.schemas[0]!
+    const schema = required(result[0], 'first catalog section').schemas[0]
+    if (!schema) throw new Error('Expected a first schema entry')
     expect(schema.id).toBe('chassis')
     expect(schema.href).toBe('/schema/chassis/')
     expect(schema.catalogBg).toBe('bg-chassis')
@@ -172,7 +179,8 @@ describe('buildCatalogCategories', () => {
       getCatalogLabel: () => undefined,
     })
 
-    const schema = result[0]!.schemas[0]!
+    const schema = required(result[0], 'first catalog section').schemas[0]
+    if (!schema) throw new Error('Expected a first schema entry')
     expect(schema.label).toBe('Drones')
     expect(schema.displayName).toBe('Drone')
   })
@@ -209,7 +217,7 @@ describe('buildCatalogCategories', () => {
       getCatalogLabel: () => undefined,
     })
 
-    expect(result[0]!.schemas).toHaveLength(1)
+    expect(result[0]?.schemas).toHaveLength(1)
   })
 
   it('handles flat categories by listing individual items', () => {
@@ -236,17 +244,18 @@ describe('buildCatalogCategories', () => {
       getCatalogLabel: () => undefined,
     })
 
-    expect(result[0]!.label).toBe('GUIDES')
-    expect(result[0]!.schemas).toHaveLength(2)
+    const section = required(result[0], 'first catalog section')
+    expect(section.label).toBe('GUIDES')
+    expect(section.schemas).toHaveLength(2)
 
-    const first = result[0]!.schemas[0]!
+    const first = required(section.schemas[0], 'first schema entry')
     expect(first.id).toBe('guide-1')
     expect(first.href).toBe('/schema/guides/item/slug-guide-1/')
     expect(first.displayName).toBe('Combat Guide')
     expect(first.label).toBe('Combat Guide')
 
     // catalogNameOverrides should apply
-    const second = result[0]!.schemas[1]!
+    const second = required(section.schemas[1], 'second schema entry')
     expect(second.label).toBe('Operating a Mech')
   })
 
@@ -282,6 +291,6 @@ describe('buildCatalogCategories', () => {
       getCatalogLabel: () => 'label-color',
     })
 
-    expect(result[0]!.schemas[0]!.catalogLabel).toBe('label-color')
+    expect(result[0]?.schemas[0]?.catalogLabel).toBe('label-color')
   })
 })

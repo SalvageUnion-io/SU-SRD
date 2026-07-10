@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'bun:test'
-import { readFileSync } from 'fs'
-import { join, dirname } from 'path'
-import { fileURLToPath } from 'url'
+import { readFileSync } from 'node:fs'
+import { join, dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 // Get the project root directory
 const __filename = fileURLToPath(import.meta.url)

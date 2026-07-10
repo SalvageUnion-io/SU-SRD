@@ -61,16 +61,19 @@ describe('mechToFormState', () => {
       systems: ['Cargo Pod', 'Armour Plating'],
       modules: ['Comms Module'],
       cargoLots: storedMech.cargoLots,
-      description: '',
+      quirk: '',
+      appearance: '',
     })
   })
 
   it('copies arrays and lots — mutating the form never mutates the entity', () => {
     const form = mechToFormState(storedMech)
     form.systems.push('Floodlights')
-    form.cargoLots[0]!.units = 99
+    const firstLot = form.cargoLots[0]
+    if (!firstLot) throw new Error('expected a cargo lot on the form')
+    firstLot.units = 99
     expect(storedMech.systems).toEqual(['Cargo Pod', 'Armour Plating'])
-    expect(storedMech.cargoLots[0]!.units).toBe(3)
+    expect(storedMech.cargoLots[0]?.units).toBe(3)
   })
 })
 
@@ -78,12 +81,14 @@ describe('mechFormToUpdatePatch', () => {
   it('contains exactly the wizard-owned fields (no live-play state)', () => {
     const patch = mechFormToUpdatePatch(mechToFormState(storedMech))
     expect(Object.keys(patch).sort()).toEqual([
+      'appearance',
       'cargoLots',
       'chassisRef',
       'description',
       'modules',
       'name',
       'patternName',
+      'quirk',
       'systems',
     ])
   })
@@ -116,6 +121,7 @@ describe('mechFormToCreateInput', () => {
   it('seeds a fresh mech at full chassis SP/EP with Heat 0', () => {
     const mule = SalvageUnionReference.Chassis.find((c) => c.name === 'Mule')
     expect(mule).toBeDefined()
+    if (!mule) throw new Error('expected the Mule chassis in reference data')
 
     const input = mechFormToCreateInput({
       ...EMPTY_MECH_FORM_STATE,
@@ -124,8 +130,8 @@ describe('mechFormToCreateInput', () => {
     })
     expect(input.schemaVersion).toBe(1)
     expect(input.chassisRef).toBe('Mule')
-    expect(input.currentSP).toBe(mule!.structurePoints)
-    expect(input.currentEP).toBe(mule!.energyPoints)
+    expect(input.currentSP).toBe(mule.structurePoints)
+    expect(input.currentEP).toBe(mule.energyPoints)
     expect(input.currentHeat).toBe(0)
     expect(input.conditions).toEqual([])
   })

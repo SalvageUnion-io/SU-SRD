@@ -23,7 +23,7 @@ export async function migrate(tx: UpgradeTransaction): Promise<void> {
       if (
         typeof raw === 'object' &&
         raw !== null &&
-        Array.isArray((raw as Record<string, unknown>)['cargo'])
+        Array.isArray((raw as Record<string, unknown>).cargo)
       ) {
         await cursor.update(normalizeLegacyCargoRecord(raw as Record<string, unknown>))
       }

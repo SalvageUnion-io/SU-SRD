@@ -14,6 +14,7 @@ import type { FindRollTable } from '../../../lib/rules/mediatorTables'
 import type { EncounterNpc } from '../../../lib/schemas/encounterNpc'
 import { useEncounterStore } from '../../../stores/encounterStore'
 import { EncounterNpcCard } from '../EncounterNpcCard'
+import { must } from '../../__tests__/must'
 
 const FAKE_TABLES: Record<string, { table: Record<string, unknown> }> = {
   Morale: {
@@ -47,7 +48,7 @@ afterEach(async () => {
 })
 
 async function seedNpc(overrides: Partial<EncounterNpc> = {}): Promise<EncounterNpc> {
-  let npc: EncounterNpc
+  let npc: EncounterNpc | undefined
   await act(async () => {
     npc = await useEncounterStore.getState().create({
       schemaVersion: 1,
@@ -62,7 +63,7 @@ async function seedNpc(overrides: Partial<EncounterNpc> = {}): Promise<Encounter
       ...overrides,
     })
   })
-  return npc!
+  return must(npc)
 }
 
 describe('EncounterNpcCard — rendering', () => {

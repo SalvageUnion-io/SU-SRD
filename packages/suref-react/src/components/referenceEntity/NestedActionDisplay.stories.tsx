@@ -3,6 +3,7 @@ import { NestedActionDisplay } from './NestedActionDisplay'
 import { SalvageUnionReference, extractVisibleActions } from 'salvageunion-reference'
 import type { SURefMetaAction } from 'salvageunion-reference'
 
+// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'ReferenceEntity/NestedActionDisplay',
 }

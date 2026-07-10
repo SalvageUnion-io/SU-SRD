@@ -78,6 +78,7 @@ function joinMeta(parts: Array<ReactNode | null | undefined>): ReactNode | undef
   const kept = parts.filter((part) => part != null && part !== '')
   if (kept.length === 0) return undefined
   return kept.map((part, i) => (
+    // biome-ignore lint/suspicious/noArrayIndexKey: meta parts are positional ReactNodes with no stable identity; the joined caption never reorders
     <Fragment key={i}>
       {i > 0 && ' · '}
       {part}

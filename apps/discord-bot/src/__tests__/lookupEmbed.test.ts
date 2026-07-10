@@ -77,8 +77,9 @@ describe('buildLookupEmbed — content depth', () => {
   test('a weapon system renders its action text, stats, and linked traits', () => {
     const gun = SalvageUnionReference.Systems.find((s) => s.name === '.50 Cal Machine Gun')
     expect(gun).toBeDefined()
+    if (!gun) throw new Error('expected the .50 Cal Machine Gun system')
     const e = buildLookupEmbed(
-      { ...gun!, schemaName: 'systems' } as unknown as SURefEntity & {
+      { ...gun, schemaName: 'systems' } as unknown as SURefEntity & {
         schemaName: SURefEnumSchemaName
       },
       'systems'
@@ -92,22 +93,24 @@ describe('buildLookupEmbed — content depth', () => {
     // Traits link out to their glossary pages (nested-entity linking).
     expect(e.description).toContain('/schema/traits/item/')
     // Flavor content from the action is inlined.
-    expect(e.description!.toLowerCase()).toContain('ballistic')
+    expect(e.description?.toLowerCase()).toContain('ballistic')
   })
 
   test('a keyword renders its glossary definition', () => {
     const [hit] = search({ query: 'cover', schemas: ['keywords'], limit: 1 })
     expect(hit).toBeDefined()
-    const e = buildLookupEmbed(hit!.entity, 'keywords')
-    expect(e.description && e.description.length).toBeGreaterThan(0)
+    if (!hit) throw new Error('expected a keyword search hit')
+    const e = buildLookupEmbed(hit.entity, 'keywords')
+    expect(e.description?.length).toBeGreaterThan(0)
     expect(e.fields[0]).toMatchObject({ name: 'Type', value: 'Keyword' })
   })
 
   test('a chassis renders its stat grid and links patterns without inlining them', () => {
     const goliath = SalvageUnionReference.Chassis.find((c) => c.name === 'Goliath')
     expect(goliath).toBeDefined()
+    if (!goliath) throw new Error('expected the Goliath chassis')
     const e = buildLookupEmbed(
-      { ...goliath!, schemaName: 'chassis' } as unknown as SURefEntity & {
+      { ...goliath, schemaName: 'chassis' } as unknown as SURefEntity & {
         schemaName: SURefEnumSchemaName
       },
       'chassis'
@@ -123,7 +126,7 @@ describe('buildLookupEmbed — content depth', () => {
   test('chassis ability text resolves [(CHASSIS)] to the chassis name', () => {
     // Every chassis with a [(CHASSIS)] placeholder in its ability text must
     // render the name, never the literal token (regression: PR #336 review).
-    const chassis = (getDataMaps().dataMap['chassis'] as { name: string }[]) ?? []
+    const chassis = (getDataMaps().dataMap.chassis as { name: string }[]) ?? []
     for (const c of chassis) {
       const e = buildLookupEmbed(
         { ...c, schemaName: 'chassis' } as unknown as SURefEntity & {
@@ -138,8 +141,9 @@ describe('buildLookupEmbed — content depth', () => {
   test('[[Trait]] references in body text become links, never literal brackets', () => {
     const overpower = SalvageUnionReference.Abilities.find((a) => a.name === 'Overpower')
     expect(overpower).toBeDefined()
+    if (!overpower) throw new Error('expected the Overpower ability')
     const e = buildLookupEmbed(
-      { ...overpower!, schemaName: 'abilities' } as unknown as SURefEntity & {
+      { ...overpower, schemaName: 'abilities' } as unknown as SURefEntity & {
         schemaName: SURefEnumSchemaName
       },
       'abilities'
@@ -152,7 +156,8 @@ describe('buildLookupEmbed — content depth', () => {
   })
 
   test('a standard roll-table inlines its full rows and keeps a roll hint', () => {
-    const table = SalvageUnionReference.RollTables.all().find((t) => t.table.type === 'standard')!
+    const table = SalvageUnionReference.RollTables.all().find((t) => t.table.type === 'standard')
+    if (!table) throw new Error('expected a standard roll-table')
     const e = buildLookupEmbed(
       { ...table, schemaName: 'roll-tables' } as unknown as SURefEntity & {
         schemaName: SURefEnumSchemaName
@@ -167,7 +172,8 @@ describe('buildLookupEmbed — content depth', () => {
   })
 
   test('a columns roll-table inlines each column bucket as a field', () => {
-    const table = SalvageUnionReference.RollTables.all().find((t) => t.table.type === 'columns')!
+    const table = SalvageUnionReference.RollTables.all().find((t) => t.table.type === 'columns')
+    if (!table) throw new Error('expected a columns roll-table')
     const e = buildLookupEmbed(
       { ...table, schemaName: 'roll-tables' } as unknown as SURefEntity & {
         schemaName: SURefEnumSchemaName
@@ -178,7 +184,7 @@ describe('buildLookupEmbed — content depth', () => {
     expect(fieldNames).toContain('Roll 1-4')
     expect(fieldNames).toContain('Roll 17-20')
     // The entries within a column are listed (1-20), not just linked out.
-    const firstColumn = e.fields.find((f) => f.name === 'Roll 1-4')!
-    expect(firstColumn.value).toContain('1.')
+    const firstColumn = e.fields.find((f) => f.name === 'Roll 1-4')
+    expect(firstColumn?.value).toContain('1.')
   })
 })

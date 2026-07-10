@@ -24,9 +24,9 @@
  *      the docs following).
  */
 
-import { existsSync, readFileSync } from 'fs'
-import { dirname, join, relative } from 'path'
-import { fileURLToPath } from 'url'
+import { existsSync, readFileSync } from 'node:fs'
+import { dirname, join, relative } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const pkgDir = join(root, 'packages/salvageunion-reference')
@@ -62,6 +62,7 @@ function checkExportsMap(): void {
 
   let documentedExports: unknown
   try {
+    // biome-ignore lint/style/noNonNullAssertion: the regex has a single unconditional capture group — a successful match always defines [1]
     documentedExports = JSON.parse(sectionMatch[1]!)
   } catch (err) {
     fail(

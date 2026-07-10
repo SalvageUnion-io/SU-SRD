@@ -27,7 +27,7 @@ for (const filename of ACTION_REFERENCING_FILES) {
   }
 }
 
-console.log('\n' + '='.repeat(80))
+console.log(`\n${'='.repeat(80)}`)
 if (errors.length === 0) {
   console.log('✅ All action references are valid!')
   process.exit(0)
@@ -36,10 +36,12 @@ if (errors.length === 0) {
 
   const errorsByFile = new Map<string, typeof errors>()
   for (const error of errors) {
-    if (!errorsByFile.has(error.file)) {
-      errorsByFile.set(error.file, [])
+    let fileErrors = errorsByFile.get(error.file)
+    if (!fileErrors) {
+      fileErrors = []
+      errorsByFile.set(error.file, fileErrors)
     }
-    errorsByFile.get(error.file)!.push(error)
+    fileErrors.push(error)
   }
 
   for (const [file, fileErrors] of errorsByFile.entries()) {

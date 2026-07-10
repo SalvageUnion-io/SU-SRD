@@ -12,7 +12,7 @@
  *   - AppLink degrades to <a href> without a router
  */
 
-import { afterEach, beforeAll, describe, expect, mock, test } from 'bun:test'
+import { afterEach, beforeAll, describe, expect, mock, type Mock, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 
@@ -71,8 +71,8 @@ const fakeMech: Mech = {
 
 function makeEntityStore(entities: Array<Pilot | Mech>): EntityLookup {
   return {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    get: (_type, id) => (entities.find((e) => e.id === id) ?? null) as any,
+    get: ((_type: unknown, id: string) =>
+      entities.find((e) => e.id === id) ?? null) as unknown as EntityLookup['get'],
   }
 }
 
@@ -81,8 +81,8 @@ const probeDown = () => Promise.resolve(false)
 
 function makePublishFn(
   result: PublishResult
-): (payload: SnapshotPayload) => Promise<PublishResult> {
-  return mock(async () => result)
+): Mock<(payload: SnapshotPayload) => Promise<PublishResult>> {
+  return mock(async (_payload: SnapshotPayload) => result)
 }
 
 // ---------------------------------------------------------------------------
@@ -195,10 +195,11 @@ describe('ShareSnapshotScreen — publish flow', () => {
     })
 
     expect(publishFn).toHaveBeenCalledTimes(1)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const payload = (publishFn as any).mock.calls[0][0] as SnapshotPayload
-    expect(payload['kind']).toBe('pilot')
-    expect((payload['entity'] as Pilot).id).toBe('pilot-1')
+    const firstCall = publishFn.mock.calls[0]
+    if (!firstCall) throw new Error('publishFn was not called')
+    const [payload] = firstCall
+    expect(payload.kind).toBe('pilot')
+    expect((payload.entity as Pilot).id).toBe('pilot-1')
 
     await waitFor(() => {
       const input = screen.getByLabelText('Share URL') as HTMLInputElement
@@ -315,7 +316,7 @@ describe('ShareSnapshotScreen — revoke / un-publish', () => {
   })
 
   test('Remove calls the delete fn and drops the link from the panel', async () => {
-    const deleteFn = mock(async () => {})
+    const deleteFn = mock(async (_id: string) => {})
     const publishFn = makePublishFn({ id: 'REV00002', url: '/api/snapshots/REV00002' })
     render(
       <ShareSnapshotScreen
@@ -345,8 +346,7 @@ describe('ShareSnapshotScreen — revoke / un-publish', () => {
     })
 
     expect(deleteFn).toHaveBeenCalledTimes(1)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect((deleteFn as any).mock.calls[0][0]).toBe('REV00002')
+    expect(deleteFn.mock.calls[0]?.[0]).toBe('REV00002')
     await waitFor(() => {
       expect(screen.queryByRole('button', { name: /remove shared link REV00002/i })).toBeNull()
     })

@@ -277,7 +277,7 @@ export function extractReferenceEntityDetails(
   // Extract range
   const ranges = extractRangeDetail(data)
   if (ranges) {
-    ranges.forEach((r) => details.push(r))
+    details.push(...ranges)
   }
 
   // Extract damage

@@ -43,7 +43,7 @@ function digestRollTable(table: RollTableType): DigestedRollTable[] {
     const firstPart = key.split('-')[0]?.trim()
     if (!firstPart) return 0
     const num = parseInt(firstPart, 10)
-    return isNaN(num) ? 0 : num
+    return Number.isNaN(num) ? 0 : num
   }
 
   const sorted = Object.keys(table)
@@ -157,6 +157,7 @@ function ResultActionBar({
       )}
     >
       <button
+        type="button"
         onClick={handleCopy}
         className={cn(
           'flex cursor-pointer items-center gap-1 border border-su-black bg-su-grey-light font-bold text-su-black hover:bg-su-grey-light/80',
@@ -169,6 +170,7 @@ function ResultActionBar({
       </button>
       {!hideReroll && (
         <button
+          type="button"
           onClick={handleReroll}
           className={cn(
             'flex cursor-pointer items-center gap-1 bg-su-black font-bold text-su-white hover:bg-brand-srd',
@@ -265,6 +267,7 @@ function ColumnsRollTable({
           </Text>
           {tableName && !disabled && (
             <button
+              type="button"
               onClick={handleRoll}
               disabled={singleRoll && hasRolled}
               className={cn(
@@ -316,6 +319,7 @@ function ColumnsRollTable({
                       result?.columnKey === colKey && result?.entryKey === entryNum
 
                     return (
+                      // biome-ignore lint/a11y/useAriaPropsSupportedByRole: aria-selected marks the rolled result cell; restructuring the table to a grid role would change its announced semantics
                       <td
                         key={colKey + entryNum}
                         ref={isHighlighted ? highlightedRef : null}
@@ -433,6 +437,7 @@ function StandardRollTable({
             </Text>
             {tableName && !disabled && (
               <button
+                type="button"
                 onClick={handleRoll}
                 disabled={singleRoll && hasRolled}
                 className={cn(
@@ -467,7 +472,7 @@ function StandardRollTable({
               return (
                 <tr
                   ref={isHighlighted ? highlightedRowRef : null}
-                  key={key + label + index}
+                  key={key}
                   aria-selected={isHighlighted || undefined}
                   tabIndex={isHighlighted ? 0 : undefined}
                   className={cn(

@@ -61,11 +61,12 @@ describe('mechs CRUD — create/get round-trip', () => {
 
     const fetched = await mechs.get(created.id)
     expect(fetched).not.toBeNull()
-    expect(fetched!.id).toBe(created.id)
-    expect(fetched!.name).toBe(created.name)
-    expect(fetched!.chassisRef).toBe(created.chassisRef)
-    expect(fetched!.createdAt).toBe(created.createdAt)
-    expect(fetched!.updatedAt).toBe(created.updatedAt)
+    if (!fetched) throw new Error('expected fetched mech')
+    expect(fetched.id).toBe(created.id)
+    expect(fetched.name).toBe(created.name)
+    expect(fetched.chassisRef).toBe(created.chassisRef)
+    expect(fetched.createdAt).toBe(created.createdAt)
+    expect(fetched.updatedAt).toBe(created.updatedAt)
   })
 })
 
@@ -78,10 +79,7 @@ describe('mechs CRUD — list ordering', () => {
     const m3 = await mechs.create({ ...baseMechInput, name: 'Gamma' })
 
     const all = await mechs.list()
-    expect(all.length).toBe(3)
-    expect(all[0]!.id).toBe(m3.id)
-    expect(all[1]!.id).toBe(m2.id)
-    expect(all[2]!.id).toBe(m1.id)
+    expect(all.map((m) => m.id)).toEqual([m3.id, m2.id, m1.id])
   })
 })
 
@@ -119,7 +117,8 @@ describe('mechs CRUD — currentHP stat write-through', () => {
     expect(updated.currentHP).toBe(7)
 
     const fetched = await mechs.get(created.id)
-    expect(fetched!.currentHP).toBe(7)
+    if (!fetched) throw new Error('expected fetched mech')
+    expect(fetched.currentHP).toBe(7)
   })
 
   test('update with multiple stat fields persists all', async () => {
@@ -135,12 +134,13 @@ describe('mechs CRUD — currentHP stat write-through', () => {
     })
 
     const fetched = await mechs.get(created.id)
-    expect(fetched!.currentHP).toBe(10)
-    expect(fetched!.currentAP).toBe(3)
-    expect(fetched!.currentTP).toBe(2)
-    expect(fetched!.currentSP).toBe(8)
-    expect(fetched!.currentEP).toBe(5)
-    expect(fetched!.currentHeat).toBe(4)
+    if (!fetched) throw new Error('expected fetched mech')
+    expect(fetched.currentHP).toBe(10)
+    expect(fetched.currentAP).toBe(3)
+    expect(fetched.currentTP).toBe(2)
+    expect(fetched.currentSP).toBe(8)
+    expect(fetched.currentEP).toBe(5)
+    expect(fetched.currentHeat).toBe(4)
   })
 })
 
@@ -161,7 +161,7 @@ describe('mechs CRUD — delete', () => {
 describe('mechs CRUD — Zod rejection', () => {
   test('create rejects invalid input: missing required chassisRef', async () => {
     const bad = { ...baseMechInput } as Record<string, unknown>
-    delete bad['chassisRef']
+    delete bad.chassisRef
     await expect(mechs.create(bad as Parameters<typeof mechs.create>[0])).rejects.toThrow()
   })
 })
@@ -182,11 +182,12 @@ describe('crawlers CRUD — create/get round-trip', () => {
 
     const fetched = await crawlers.get(created.id)
     expect(fetched).not.toBeNull()
-    expect(fetched!.id).toBe(created.id)
-    expect(fetched!.name).toBe(created.name)
-    expect(fetched!.techLevel).toBe(created.techLevel)
-    expect(fetched!.createdAt).toBe(created.createdAt)
-    expect(fetched!.updatedAt).toBe(created.updatedAt)
+    if (!fetched) throw new Error('expected fetched crawler')
+    expect(fetched.id).toBe(created.id)
+    expect(fetched.name).toBe(created.name)
+    expect(fetched.techLevel).toBe(created.techLevel)
+    expect(fetched.createdAt).toBe(created.createdAt)
+    expect(fetched.updatedAt).toBe(created.updatedAt)
   })
 })
 
@@ -199,10 +200,7 @@ describe('crawlers CRUD — list ordering', () => {
     const c3 = await crawlers.create({ ...baseCrawlerInput, name: 'Gamma' })
 
     const all = await crawlers.list()
-    expect(all.length).toBe(3)
-    expect(all[0]!.id).toBe(c3.id)
-    expect(all[1]!.id).toBe(c2.id)
-    expect(all[2]!.id).toBe(c1.id)
+    expect(all.map((c) => c.id)).toEqual([c3.id, c2.id, c1.id])
   })
 })
 
@@ -240,7 +238,8 @@ describe('crawlers CRUD — currentSP stat write-through', () => {
     expect(updated.currentSP).toBe(25)
 
     const fetched = await crawlers.get(created.id)
-    expect(fetched!.currentSP).toBe(25)
+    if (!fetched) throw new Error('expected fetched crawler')
+    expect(fetched.currentSP).toBe(25)
   })
 })
 
@@ -261,7 +260,7 @@ describe('crawlers CRUD — delete', () => {
 describe('crawlers CRUD — Zod rejection', () => {
   test('create rejects invalid input: missing required techLevel', async () => {
     const bad = { ...baseCrawlerInput } as Record<string, unknown>
-    delete bad['techLevel']
+    delete bad.techLevel
     await expect(crawlers.create(bad as Parameters<typeof crawlers.create>[0])).rejects.toThrow()
   })
 })

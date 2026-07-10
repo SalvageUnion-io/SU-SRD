@@ -16,8 +16,6 @@ export const LAYOUT = {
   optionPane: 'lg:w-[320px]',
   /** Erow rail mode — content column + fixed 152px stat rail at `sm+`. */
   erowGrid: 'sm:grid-cols-[1fr_152px]',
-  /** Minimum entity-card width before wrapping (Erow card + rail modes). */
-  cardMin: 'min-w-[min(340px,100%)]',
   /** Wizard review-step label rail (pilot / mech / crawler review tables). */
   reviewLabelRail: 'w-[120px]',
 } as const

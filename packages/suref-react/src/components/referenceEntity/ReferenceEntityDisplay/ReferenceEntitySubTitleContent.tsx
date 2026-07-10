@@ -63,6 +63,7 @@ export function ReferenceEntitySubTitleElement({
       )}
     >
       {values.map((item, index) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: subtitle values are re-extracted per render from static reference data and never reordered
         <DataValueDisplayView key={index} item={item} compact={compact} />
       ))}
       {subtitleExtra}

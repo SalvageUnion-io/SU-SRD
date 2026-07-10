@@ -49,7 +49,8 @@ describe('ControlButtons', () => {
     const handleClick = mock(() => {})
 
     render(
-      // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
+      // biome-ignore lint/a11y/noStaticElementInteractions: bare div is the propagation probe this test needs
+      // biome-ignore lint/a11y/useKeyWithClickEvents: click-only probe — keyboard interaction is not under test
       <div onClick={() => (parentClicked = true)}>
         <ControlButtons controls={[makeControl({ onClick: handleClick })]} />
       </div>

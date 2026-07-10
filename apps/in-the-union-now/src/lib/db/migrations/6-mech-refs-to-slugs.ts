@@ -50,10 +50,10 @@ export function normalizeRefsRecord(raw: Record<string, unknown>): Record<string
   const next: Record<string, unknown> = { ...raw }
   let changed = false
 
-  if (typeof raw['chassisRef'] === 'string') {
-    const slug = slugifyRef(raw['chassisRef'])
-    if (slug !== raw['chassisRef']) {
-      next['chassisRef'] = slug
+  if (typeof raw.chassisRef === 'string') {
+    const slug = slugifyRef(raw.chassisRef)
+    if (slug !== raw.chassisRef) {
+      next.chassisRef = slug
       changed = true
     }
   }

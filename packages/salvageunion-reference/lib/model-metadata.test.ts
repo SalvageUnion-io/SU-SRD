@@ -92,7 +92,7 @@ describe('Model Metadata', () => {
     })
 
     it('should have correct mapping for classes', () => {
-      expect(SchemaToDisplayName['classes']).toBe('Class')
+      expect(SchemaToDisplayName.classes).toBe('Class')
     })
 
     it('should have correct mapping for ability-tree-requirements', () => {

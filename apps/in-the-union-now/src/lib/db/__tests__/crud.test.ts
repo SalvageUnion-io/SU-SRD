@@ -42,11 +42,12 @@ describe('pilots CRUD — round-trip', () => {
 
     const fetched = await pilots.get(created.id)
     expect(fetched).not.toBeNull()
-    expect(fetched!.id).toBe(created.id)
-    expect(fetched!.name).toBe(created.name)
-    expect(fetched!.callsign).toBe(created.callsign)
-    expect(fetched!.createdAt).toBe(created.createdAt)
-    expect(fetched!.updatedAt).toBe(created.updatedAt)
+    if (!fetched) throw new Error('expected fetched pilot')
+    expect(fetched.id).toBe(created.id)
+    expect(fetched.name).toBe(created.name)
+    expect(fetched.callsign).toBe(created.callsign)
+    expect(fetched.createdAt).toBe(created.createdAt)
+    expect(fetched.updatedAt).toBe(created.updatedAt)
   })
 })
 
@@ -60,11 +61,8 @@ describe('pilots CRUD — list ordering', () => {
     const p3 = await pilots.create({ ...basePilotInput, name: 'Gamma' })
 
     const all = await pilots.list()
-    expect(all.length).toBe(3)
     // Newest first
-    expect(all[0]!.id).toBe(p3.id)
-    expect(all[1]!.id).toBe(p2.id)
-    expect(all[2]!.id).toBe(p1.id)
+    expect(all.map((p) => p.id)).toEqual([p3.id, p2.id, p1.id])
   })
 })
 
@@ -112,7 +110,7 @@ describe('pilots CRUD — delete', () => {
 describe('pilots CRUD — Zod rejection', () => {
   test('create rejects invalid input: missing required classRef', async () => {
     const bad = { ...basePilotInput } as Record<string, unknown>
-    delete bad['classRef']
+    delete bad.classRef
     await expect(pilots.create(bad as Parameters<typeof pilots.create>[0])).rejects.toThrow()
   })
 

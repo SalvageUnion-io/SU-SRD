@@ -101,21 +101,20 @@ export function ActionCard({
   let headerReminderContent: ReactNode = null
   let bodyContentBlocks = data.content ?? []
 
-  if (titanicMode && hasContent && data.content!.length > 0) {
-    const firstBlock = data.content![0]!
-    if (firstBlock.type === 'paragraph') {
-      const reminderText = parseContentBlockString(firstBlock)
-      headerReminderContent = reminderText ? (
-        <Text
-          as="span"
-          className={cn('text-right font-medium italic leading-snug', fontSize)}
-          style={{ color: cardAccentText ?? 'white', maxWidth: '75%' }}
-        >
-          {reminderText}
-        </Text>
-      ) : null
-      bodyContentBlocks = data.content!.slice(1)
-    }
+  const titanicContent = titanicMode ? data.content : undefined
+  const firstBlock = titanicContent?.[0]
+  if (titanicContent && firstBlock && firstBlock.type === 'paragraph') {
+    const reminderText = parseContentBlockString(firstBlock)
+    headerReminderContent = reminderText ? (
+      <Text
+        as="span"
+        className={cn('text-right font-medium italic leading-snug', fontSize)}
+        style={{ color: cardAccentText ?? 'white', maxWidth: '75%' }}
+      >
+        {reminderText}
+      </Text>
+    ) : null
+    bodyContentBlocks = titanicContent.slice(1)
   }
 
   const hasBodyContent =
@@ -127,6 +126,7 @@ export function ActionCard({
     details.length > 0 ? (
       <div className={cn('flex flex-row flex-wrap items-center', compact ? 'gap-0.5' : 'gap-1')}>
         {details.map((item, index) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: details are re-extracted per render from static reference data and never reordered
           <DataValueDisplayView key={index} item={item} compact={compact} />
         ))}
       </div>
@@ -191,11 +191,11 @@ export function ActionCard({
         </div>
       )}
 
-      {hasTable && (
+      {resolvedTable && (
         <div className="relative z-10 mx-3 mb-2 rounded-md">
           <RollTable
             disabled={false}
-            table={resolvedTable!}
+            table={resolvedTable}
             showCommand
             compact
             tableName={displayName}
