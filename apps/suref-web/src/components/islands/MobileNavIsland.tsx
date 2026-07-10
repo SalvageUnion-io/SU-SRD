@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react'
 import { Dialog } from '@base-ui/react/dialog'
 import { SearchIsland } from './SearchIsland'
 import { Button } from '../Button'
+import { ITUN_URL } from '../../lib/constants'
 
 type SchemaLink = {
   id: string
@@ -154,7 +155,7 @@ export function MobileNavIsland({ categories, currentPath }: MobileNavIslandProp
                 DISCORD
               </Button>
               <a
-                href="https://in-the-union-now.netlify.app"
+                href={ITUN_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn btn-inactive block text-center text-sm"
