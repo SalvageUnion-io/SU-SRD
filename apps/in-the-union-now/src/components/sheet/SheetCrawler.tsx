@@ -1,17 +1,20 @@
 /**
  * SheetCrawler — the crawler branch of the live sheet (extracted from
- * Sheet.tsx, audit item 19; redesigned to the poster layout, phase 3).
- * Hero top region = IDENTITY block (Name/Type fields + ability/type entity
- * cards + description, with the section's own Edit button — see
- * CrawlerIdentity.tsx) vs the ECONOMY rail (SP/Bays trackers + the
- * UPKEEP/UPGRADE/TRADE lozenges, the R-4 action entry points) on the right;
- * rail = docked mech + lead pilot; body = CrawlerSheet. Owns the
- * economy-dialog state (it was hoisted to Sheet only because the branch
- * wasn't a component).
+ * Sheet.tsx, audit item 19; redesigned to the poster layout, Phase 2).
+ *
+ * The hero now carries ONLY the name row + meta (poster region grid, D7):
+ * Identity, the economy readouts and the linked-unit rail all moved into the
+ * body's poster regions (see `CrawlerSheet`) — SheetHero no longer receives
+ * `identityBlock`/`trackers`/`vitals`/`rail`, mirroring SheetPilot/SheetMech.
+ * This component's remaining job is composing the economy band (SP
+ * `VitalGauge` + Tech-LVL/Upkeep/Upgrade lozenges, the R-4 action entry
+ * points) and the docked-mech/lead-pilot rail content, and handing both to
+ * `CrawlerSheet` as `economy` / `linkedUnits`. Owns the economy-dialog state
+ * (it was hoisted to Sheet only because the branch wasn't a component).
  */
 
 import { useState } from 'react'
-import { MChip, StatBlock, VitalGauge } from 'suref-react'
+import { MChip, VitalGauge } from 'suref-react'
 
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
 import { bayGate, tradingSourceTl } from '../../lib/rules/crawlerEconomy'
@@ -19,7 +22,6 @@ import { crawlerMaxSP } from '../../lib/rules/derivedStats'
 import type { Crawler } from '../../lib/schemas/crawler'
 import { CrawlerEconomyControl } from './CrawlerEconomyControl'
 import type { CrawlerEconomyDialog } from './CrawlerEconomyControl'
-import { CrawlerIdentityPanel } from './CrawlerIdentity'
 import { CrawlerSheet } from './CrawlerSheet'
 import { LiveSheet } from './LiveSheet'
 import type { LiveSheetStripItem } from './LiveSheet'
@@ -116,14 +118,6 @@ export function SheetCrawler({
       : []),
   ]
 
-  /** Bays are Intact/Damaged ONLY (rules C8) — clicking a pip toggles. */
-  function toggleBay(index: number) {
-    const bay = (crawler.crawlerBays ?? [])[index]
-    if (!bay || typeof storeState.updateCrawlerBay !== 'function') return
-    const next = (bay.condition ?? 'intact') === 'intact' ? 'damaged' : 'intact'
-    void storeState.updateCrawlerBay(crawler.id, bay.bayRef, { condition: next }, index)
-  }
-
   // Unassign for the lead pilot's direct link (pilot-to-crawler) — always
   // available on editable sheets per the unified edit language (no edit
   // mode). The docked-mech chip is transitive (the lead pilot's mech) so
@@ -177,6 +171,24 @@ export function SheetCrawler({
     </>
   )
 
+  // Economy band (poster R1 right: SP `VitalGauge` + the Tech-LVL/Upkeep/
+  // Upgrade/Trade/Crew lozenges) — built here because it needs `patch` +
+  // the econDialog state, which CrawlerSheet does not own; handed down as
+  // `economy` and rendered inside the body's Identity card.
+  const economy = (
+    <div className="flex min-w-0 flex-col gap-3">
+      <VitalGauge
+        label="SP"
+        subLabel="Structure"
+        value={sp}
+        max={maxSP}
+        onChange={editable ? (v) => patch({ currentSP: v }) : undefined}
+        readOnly={!editable}
+      />
+      {crawlerSpecs.length > 0 && <ChassisStats items={crawlerSpecs} />}
+    </div>
+  )
+
   return (
     <>
       <LiveSheet
@@ -186,55 +198,15 @@ export function SheetCrawler({
         back={back}
         pill={{ label: 'Crawler', tone: 'crawler' }}
         wired={wired}
-        rail={rail}
         segments={segments}
         actions={actions}
         fab={editable ? <QuickRollFab /> : undefined}
-        renderHero={({ heroRef, rail: heroRail }) => (
+        renderHero={({ heroRef }) => (
           <SheetHero
             heroRef={heroRef}
             cat="Crawler"
             name={crawler.name}
             meta={tl !== undefined ? <MChip label="Tech LV" value={tl} /> : undefined}
-            identityBlock={
-              // Poster region 1 (left): Name/Type fields, ability + type
-              // entity cards, and the description panel (FIELD section with
-              // its own Edit button).
-              <CrawlerIdentityPanel
-                crawler={crawler}
-                store={store}
-                storeState={storeState}
-                patch={editable ? patch : undefined}
-                readOnly={readOnly}
-              />
-            }
-            trackers={
-              <>
-                <VitalGauge
-                  label="SP"
-                  value={sp}
-                  max={maxSP}
-                  caption={['Structure', 'Max']}
-                  onChange={editable ? (v) => patch({ currentSP: v }) : undefined}
-                  readOnly={!editable}
-                />
-                {states.length > 0 && (
-                  <StatBlock
-                    code="Bays"
-                    name="Condition"
-                    unit="Bays"
-                    states={states}
-                    onBay={editable ? toggleBay : undefined}
-                  />
-                )}
-              </>
-            }
-            vitals={
-              // Poster region 2 (right, under the SP gauge): the economy
-              // lozenges — the R-4 crawler-economy action entry points.
-              crawlerSpecs.length > 0 ? <ChassisStats items={crawlerSpecs} /> : undefined
-            }
-            rail={heroRail}
           />
         )}
         renderBody={() => (
@@ -243,6 +215,8 @@ export function SheetCrawler({
             mech={composition.mech}
             store={store}
             readOnly={readOnly}
+            economy={economy}
+            linkedUnits={rail}
           />
         )}
       />

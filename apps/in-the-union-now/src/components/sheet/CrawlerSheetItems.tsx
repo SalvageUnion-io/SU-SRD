@@ -1,18 +1,16 @@
 /**
  * CrawlerSheetItems — the crawler sheet's building blocks (bay cards, the
- * crawler-type NPC card, the scrap-pool slab), extracted from
- * CrawlerSheet.tsx (audit item 19). Presentational + callback-driven —
- * CrawlerSheet owns all persistence.
+ * crawler-type NPC card), extracted from CrawlerSheet.tsx (audit item 19).
+ * Presentational + callback-driven — CrawlerSheet owns all persistence.
  */
 
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
-import { Btn, ReferenceEntityDisplay, StepBtn, useDetailModal } from 'suref-react'
+import { Btn, ReferenceEntityDisplay, useDetailModal } from 'suref-react'
 import type { CardFootMeta, ChoiceSelections } from 'suref-react'
 
-import { scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
 import { findNpcChoiceByName, resolveCrawlerBay, resolveCrawlerType } from '../../lib/crawlerRefs'
-import type { Crawler, ScrapPool } from '../../lib/schemas/crawler'
+import type { Crawler } from '../../lib/schemas/crawler'
 import type { useEntityStore } from '../../stores/entityStore'
 import { useEntityChoices } from '../shared/useEntityChoices'
 import { NpcInset } from './NpcInset'
@@ -370,57 +368,5 @@ export function CrawlerTypeCard({
   )
 }
 
-type ScrapPoolSlabProps = {
-  pool: ScrapPool
-  /** Adjust one TL bucket by ±1 (reads the freshest pool at call time). */
-  onAdjust?: (tl: number, delta: number) => void
-  readOnly: boolean
-}
-
-// biome-ignore lint/style/useComponentExportOnlyModules: shared tech-level constant, colocated with the scrap-pool UI by design
+// biome-ignore lint/style/useComponentExportOnlyModules: shared tech-level constant, used by the crawler sheet's bay-repair pool math
 export const SCRAP_TLS = [1, 2, 3, 4, 5, 6] as const
-
-/**
- * ScrapPoolSlab — the shared party scrap pool as six editable TL-bucket
- * lozenges with `--cargo` semantics (design-review item, rules C5).
- */
-export function ScrapPoolSlab({ pool, onAdjust, readOnly }: ScrapPoolSlabProps) {
-  const editable = !readOnly && onAdjust !== undefined
-  return (
-    <div className="flex flex-wrap items-center gap-2.5">
-      {SCRAP_TLS.map((tl) => {
-        const value = scrapPoolBucket(pool, tl)
-        return (
-          // biome-ignore lint/a11y/useSemanticElements: a fieldset would need a legend and carries min-content sizing quirks in this inline-flex lozenge; role="group" + aria-label conveys the same semantics
-          <span
-            key={tl}
-            role="group"
-            aria-label={`Tech ${tl} scrap: ${value}`}
-            className="inline-flex items-stretch overflow-hidden rounded-[2px] border-chrome border-cargo-deep bg-paper"
-          >
-            <span className="flex items-center bg-cargo-deep px-1.5 font-cond text-micro font-bold uppercase leading-none text-su-white">
-              T{tl}
-            </span>
-            <span className="flex min-w-7 items-center justify-center px-1.5 font-body text-sm font-bold leading-none text-cargo-deep">
-              {value}
-            </span>
-            {editable && (
-              <span className="flex items-center gap-1 border-l-chrome border-cargo-deep px-1 py-0.5">
-                <StepBtn
-                  aria-label={`Decrease Tech ${tl} scrap`}
-                  disabled={value <= 0}
-                  onClick={() => onAdjust(tl, -1)}
-                >
-                  &ndash;
-                </StepBtn>
-                <StepBtn aria-label={`Increase Tech ${tl} scrap`} onClick={() => onAdjust(tl, 1)}>
-                  +
-                </StepBtn>
-              </span>
-            )}
-          </span>
-        )
-      })}
-    </div>
-  )
-}

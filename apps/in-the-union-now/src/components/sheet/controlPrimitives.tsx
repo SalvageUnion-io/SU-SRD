@@ -12,11 +12,6 @@ import type { ReactNode } from 'react'
 import { cn } from '../../lib/utils'
 import type { EntityForType, EntityType } from '../../stores/types'
 
-/** Full-width select/input chrome (SalvageControl pickers). */
-// biome-ignore lint/style/useComponentExportOnlyModules: shared control helpers, colocated by design (audit items 24/19)
-export const CONTROL_SELECT_CLASS =
-  'w-full rounded-[3px] border-chrome border-ink bg-paper px-2 py-1.5 font-body text-sm text-ink focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22]'
-
 /**
  * The freshest record for a control action: rapid actions (or another tab's
  * write landing between renders) must not stomp each other, so handlers

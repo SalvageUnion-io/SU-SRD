@@ -19,7 +19,6 @@ import { afterEach, describe, expect, mock, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 
 import { CrawlerIdentityPanel } from '../CrawlerIdentity'
-import { CrawlerSheet } from '../CrawlerSheet'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { useEntityStore } from '../../../stores/entityStore'
 
@@ -210,33 +209,6 @@ describe('CrawlerIdentityPanel — type + ability cards', () => {
     expect(screen.queryByLabelText('Battle crew lead')).toBeNull()
     // The identity fields still render (Type shows its empty placeholder).
     expect(screen.getByText('War Wagon')).toBeTruthy()
-  })
-})
-
-// ---------------------------------------------------------------------------
-// Editable tech level
-// ---------------------------------------------------------------------------
-
-describe('CrawlerSheet — editable tech level', () => {
-  test('clicking a tech-level button writes techLevel via store.update', async () => {
-    const update = mock(async () => makeCrawler())
-    const crawler = makeCrawler({ techLevel: 'tech-2' })
-    render(<CrawlerSheet crawler={crawler} store={makeStubStore(crawler, update)} />)
-
-    await act(async () => {
-      fireEvent.click(screen.getByLabelText('Set tech level 4'))
-    })
-    expect(update).toHaveBeenCalledWith('crawler', crawler.id, { techLevel: 'tech-4' })
-  })
-
-  test('readOnly renders static tech-level text, no buttons', async () => {
-    const update = mock(async () => makeCrawler())
-    const crawler = makeCrawler({ techLevel: 'tech-3' })
-    render(<CrawlerSheet crawler={crawler} store={makeStubStore(crawler, update)} readOnly />)
-
-    expect(screen.getByText('Tech Level 3')).toBeTruthy()
-    expect(screen.queryByLabelText('Set tech level 4')).toBeNull()
-    expect(update).not.toHaveBeenCalled()
   })
 })
 

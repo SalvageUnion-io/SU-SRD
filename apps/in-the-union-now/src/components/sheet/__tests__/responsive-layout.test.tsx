@@ -8,7 +8,8 @@
  *
  * Coverage:
  *  1. Sheet — LiveSheet shell carries the variant tone class + sticky header;
- *     the hero rail rows at sm+ (sm:flex-row)
+ *     the crawler body's 2-col macro grid (content ∥ Storage rail) splits at
+ *     its container breakpoint
  *  2. Sheet — missing entity still renders without crash (guard path)
  *  3. SnapshotSheet — uses max-w-7xl container
  *  4. Dashboard — sections wrapper uses flex flex-col (mobile) and the
@@ -139,11 +140,11 @@ describe('Sheet responsive layout — wired composition (LiveSheet shell)', () =
     expect(container.querySelector('[data-variant="mech"]')).toBeTruthy()
   })
 
-  test('Sheet crawler hero rail stacks on mobile and rows at sm+ (sm:flex-row)', () => {
-    // Pilot and Mech (Phase 2) moved the linked-unit rail OUT of the hero
-    // into the body's Linked Units section — only Crawler (not yet
-    // redesigned, phase 3) still stitches the rail strip inside the hero
-    // frame, so it's the remaining vehicle for this hero-rail-chrome check.
+  test('Sheet crawler body macro-grid stacks on mobile and splits content ∥ Storage rail at its container breakpoint', () => {
+    // Pilot, Mech and (Phase 2) Crawler all moved identity/vitals/rail
+    // content OUT of the hero into the body's poster regions — the crawler
+    // body additionally carries a 2-col macro grid (content column ∥
+    // full-height Storage rail) that stacks to one column on mobile.
     const { container } = render(
       <Sheet
         kind="crawler"
@@ -152,9 +153,9 @@ describe('Sheet responsive layout — wired composition (LiveSheet shell)', () =
         softLinkStore={makeSoftLinkStore([])}
       />
     )
-    // The hero rail strip is a column on mobile, a row at sm+.
-    const rail = container.querySelector('[class*="sm:flex-row"]')
-    expect(rail).toBeTruthy()
+    const macroGrid = container.querySelector('[class*="54fr"]')
+    expect(macroGrid).toBeTruthy()
+    expect((macroGrid as HTMLElement).className).toContain('grid-cols-1')
   })
 })
 

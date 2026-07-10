@@ -1,38 +1,70 @@
 /**
- * CrawlerSheet — the crawler variant body on the LiveSheet shell (design
- * §4.4, plan 4.6; redesigned to the poster layout, phase 3). The hero owns
- * identity (Name/Type fields + ability/type cards + description — see
- * CrawlerIdentity.tsx), the SP/Bays trackers and the economy lozenges; this
- * renders the body slabs:
+ * CrawlerSheet — the crawler variant BODY for the LiveSheet shell (design
+ * §4.4, plan 4.6; redesigned to the poster layout, Phase 2).
  *
- *   - Tech Level — editable stepper (rules: upgraded on the live sheet).
- *   - Bays — ONE unified grid of ALL installed bays (no crew/functional
- *     split — redesign refinement) as compact entity cards (max 2 columns),
- *     each with Intact/Damaged status (rules C8), its crew lead as an
- *     NpcInset, a "Docks <mech>" one-liner on the Mech Bay, and a
- *     function/Repair action pair. Repair decrements 5 Scrap from the
- *     crawler-TL pool bucket, spilling into higher buckets — a short pool is
- *     advisory, never a block (S12).
- *     // TODO(redesign): the poster groups homebrew/custom bays in a separate
- *     // "Custom Bays" grid underneath — the data model has no custom-bay
- *     // distinction yet, so all bays render in the one standard grid.
- *   - Armament Bay Weapons — collection section (unified edit language
- *     archetype B): always-available '+ Add' opening the existing weapons
- *     picker (CrawlerSystemsEditModal), per-card remove (✕).
- *   - Scrap Pool — 6 editable TL buckets as cargo-toned spec lozenges
- *     (rules C5: the party economy).
- *   - Downtime / Salvaging / Crafting — live-play controls (R-2/R-3/R-7).
- *   - Storage Bay (The Hold) — the unlimited StorageManifest
- *     (side='crawler'), full-width BENEATH the bays grid (poster layout);
- *     ← Load is cap-checked against the docked mech.
+ * Identity/Economy moved OUT of the hero (SheetCrawler.tsx now carries only
+ * the name row + meta) and into this body's poster region grid — a 2-col
+ * macro grid mirroring `clean-crawler.html`'s `.layout` (54fr content column
+ * ∥ 46fr full-height Storage rail, split at the poster's 880px container
+ * breakpoint), inside the same `@container` shape PilotSheet/MechSheet use:
+ *
+ *   Content column (54fr): Identity + Economy (one card) → Bays → Armament
+ *     Bay Weapons → Linked Units (bare section, no card frame, matching
+ *     PilotSheet/MechSheet).
+ *   Storage rail (46fr): Storage Bay, one `SheetSectionCard` that stretches
+ *     to match the content column's full height via the grid row's default
+ *     stretch (the poster's "full-height Storage right rail").
+ *
+ * Economy (SP `VitalGauge` + Tech-LVL/Upkeep/Upgrade lozenges) is built by
+ * `SheetCrawler` (it owns the economy-dialog state + `patch`) and handed
+ * down as the `economy` slot, rendered inside the Identity card below the
+ * identity fields. Full `.econ` magenta-frame + Pay/Fund action-lozenge
+ * fidelity is Phase 3/4 — this slice only moves the region out of the hero
+ * and into the body.
+ *
+ * Bays stay ONE unified grid (no crew/functional split — redesign
+ * refinement; the poster's homebrew/custom-bay split is blocked on a
+ * data-model flag, #403 — leave unified) as compact entity cards (max 2
+ * columns), each with Intact/Damaged status (rules C8), its crew lead as an
+ * NpcInset, a "Docks <mech>" one-liner on the Mech Bay, and a
+ * function/Repair action pair. Repair decrements 5 Scrap from the
+ * crawler-TL pool bucket, spilling into higher buckets — a short pool is
+ * advisory, never a block (S12).
+ *
+ * Armament Bay Weapons — collection section (unified edit language
+ * archetype B): always-available '+ Add' opening the existing weapons
+ * picker (CrawlerSystemsEditModal), per-card remove (✕). The poster has no
+ * region for this (it's live mounted loadout, not a play-control panel, so
+ * it's not part of the D6 drop list below) — it gets its own content-column
+ * card.
+ *
+ * Storage Bay (The Hold) — the unlimited StorageManifest (side='crawler'),
+ * in the full-height right rail; ← Load is cap-checked against the docked
+ * mech. Keeps the Stow/Load transfer feature.
+ *
+ * Dropped (redesign D6 — no poster counterpart; tracking issues filed for
+ * re-homing as an off-sheet action surface):
+ *   - the Tech Level stepper slab (#412) — Tech Level itself still reads
+ *     live via the economy band's TL lozenge (built by SheetCrawler); only
+ *     the hand-edit stepper UI drops.
+ *   - the Scrap Pool slab + `ScrapPoolSlab` (#413) — the scrapPool DATA/
+ *     logic (`scrapPoolBucket` / `addToScrapPool`) is KEPT: bay Repair below
+ *     still spends from it, and the same helpers feed mech repair/retire
+ *     from the mech sheet.
+ *   - the Downtime/Salvaging/Crafting slabs + `DowntimeControl` /
+ *     `SalvageControl` / `CraftingControl` (#414) — deleted outright, no
+ *     other consumer.
+ * The always-live Vitals (SP `VitalGauge`, via `economy`) and per-card
+ * activation (the bays' status/repair controls) are KEPT — only the
+ * play-control PANELS drop.
  *
  * readOnly suppresses every edit affordance (snapshot contexts).
  */
 
 import { useState } from 'react'
-import { ReferenceEntityDisplay, Slab } from 'suref-react'
+import type { ReactNode } from 'react'
+import { ReferenceEntityDisplay } from 'suref-react'
 
-import { cn } from '../../lib/utils'
 import { addToScrapPool, scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
 import { useCargo } from '../../lib/cargo/useCargo'
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
@@ -41,23 +73,23 @@ import type { Crawler, ScrapPool } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
 import { useEntityStore } from '../../stores/entityStore'
 import { CrawlerSystemsEditModal } from '../crawler/CrawlerSystemsEditModal'
-import { CraftingControl } from './CraftingControl'
-import { DowntimeControl } from './DowntimeControl'
+import { CrawlerIdentityPanel } from './CrawlerIdentity'
 import { Ecflow, Erow } from './Erow'
-import { SalvageControl } from './SalvageControl'
 import {
   CardRemoveButton,
   REMOVABLE_CARD_STYLE,
   SectionAddButton,
+  SectionChead,
+  SectionEditButton,
   cardRemoveControls,
 } from './SheetSection'
+import { SheetSectionCard } from './SheetSectionCard'
 import { StorageManifest } from './StorageManifest'
 
 import {
   BAY_REPAIR_COST,
   CrawlerBayCard,
   SCRAP_TLS,
-  ScrapPoolSlab,
   resolveCrawlerSystem,
 } from './CrawlerSheetItems'
 import type { CrawlerBayEntry } from './CrawlerSheetItems'
@@ -76,6 +108,20 @@ type CrawlerSheetProps = {
   store?: typeof useEntityStore
   /** Suppresses every edit affordance (published snapshots). */
   readOnly?: boolean
+  /**
+   * The economy band content (SP `VitalGauge` + Tech-LVL/Upkeep/Upgrade
+   * lozenges) — built by `SheetCrawler` (it owns the economy-dialog state
+   * and `patch`), rendered inside the Identity card. Undefined renders
+   * nothing extra (e.g. a bare test render with no economy slot wired).
+   */
+  economy?: ReactNode
+  /**
+   * The Linked Units rail content (docked mech + lead pilot RailChip/
+   * RailEmpty), built by SheetCrawler from `composition` — CrawlerSheet has
+   * no composition access of its own, so this is passed straight through
+   * into the content column's bottom section.
+   */
+  linkedUnits?: ReactNode
 }
 
 export function CrawlerSheet({
@@ -83,6 +129,8 @@ export function CrawlerSheet({
   mech = null,
   store = useEntityStore,
   readOnly = false,
+  economy,
+  linkedUnits,
 }: CrawlerSheetProps) {
   const storeState = store()
   const cargo = useCargo({ mech, crawler, store, readOnly })
@@ -92,6 +140,9 @@ export function CrawlerSheet({
   // TODO(redesign): rule-gate add/remove (scrap economy) — deferred; users
   // self-manage for now.
   const [systemsModalOpen, setSystemsModalOpen] = useState(false)
+  // Identity is a FIELD section (unified edit language archetype A): its own
+  // Edit/Done toggle, rendered in the SheetSectionCard header (Phase 2).
+  const [identityEditing, setIdentityEditing] = useState(false)
 
   /**
    * Persist a partial patch on this crawler (fire-and-forget write). The
@@ -109,7 +160,6 @@ export function CrawlerSheet({
   const bays = crawler.crawlerBays ?? []
   const intactBays = bays.filter((b) => (b.condition ?? 'intact') === 'intact').length
   const pool = crawler.scrapPool ?? {}
-  const totalScrap = SCRAP_TLS.reduce((sum, t) => sum + scrapPoolBucket(pool, t), 0)
   const lots = crawler.cargoLots ?? []
 
   // Repair affordability is advisory only — TL+ buckets count (S12).
@@ -141,203 +191,176 @@ export function CrawlerSheet({
     void storeState.updateCrawlerBay(crawler.id, entry.bayRef, { condition: 'intact' }, index)
   }
 
-  /** Hand-edit one scrap bucket (±1), reading the freshest pool at call time. */
-  function adjustScrapBucket(bucketTl: number, delta: number) {
-    if (readOnly) return
-    const fresh = storeState.get('crawler', crawler.id) ?? crawler
-    void storeState.update('crawler', crawler.id, {
-      scrapPool: addToScrapPool(fresh.scrapPool ?? {}, bucketTl, delta),
-    })
-  }
-
-  /** Set the crawler's tech level (1–6), recomputing SP/capacity downstream. */
-  function setTechLevel(next: number) {
-    if (readOnly) return
-    if (next < 1 || next > 6 || next === tl) return
-    void storeState.update('crawler', crawler.id, { techLevel: `tech-${next}` })
-  }
-
   /** Remove one mounted weapon (per-card ✕ — archetype B). */
   function removeWeapon(slug: string) {
     patchCrawler((current) => ({ systems: current.systems.filter((s) => s !== slug) }))
   }
 
-  const TECH_LEVELS = [1, 2, 3, 4, 5, 6] as const
-
   return (
-    <section aria-label={`${crawler.name} crawler sheet`} className="flex flex-col gap-7">
-      {/* Tech Level — editable stepper (rules: upgraded on the live sheet) */}
-      <div>
-        <Slab label="Tech Level" count={`Tech ${tl} crawler`} />
-        {readOnly ? (
-          <p className="font-body text-sm text-ink">Tech Level {tl}</p>
-        ) : (
-          // biome-ignore lint/a11y/useSemanticElements: a fieldset would need a legend and carries min-content sizing quirks inside this inline-flex chrome; role="group" + aria-label conveys the same semantics
-          <div
-            role="group"
-            aria-label="Crawler tech level"
-            className="inline-flex items-stretch overflow-hidden rounded-[2px] border-chrome border-ink bg-paper"
-          >
-            {TECH_LEVELS.map((n) => (
-              <button
-                key={n}
-                type="button"
-                aria-label={`Set tech level ${n}`}
-                aria-pressed={n === tl}
-                onClick={() => setTechLevel(n)}
-                className={cn(
-                  'min-w-9 px-2 py-1 font-cond text-sm font-bold leading-none',
-                  n === tl ? 'bg-ink text-su-white' : 'text-ink hover:bg-su-paper'
-                )}
-              >
-                {n}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Bays — ONE unified grid, all bays together (no crew/functional split).
-          // TODO(redesign): render homebrew/custom bays in a separate "Custom
-          // Bays" group underneath once the data distinguishes them. */}
-      {bays.length > 0 && (
-        <div>
-          <Slab
-            label="Bays"
-            count={`${intactBays} of ${bays.length} intact · each run by its own crew`}
-          />
-          <Ecflow>
-            {bays.map((entry, i) => {
-              const isMechBay =
-                entry.bayRef === 'mech-bay' || resolveCrawlerBay(entry.bayRef)?.name === 'Mech Bay'
-              return (
-                // biome-ignore lint/suspicious/noArrayIndexKey: a crawler may install the same bay type more than once, so bayRef alone is not unique; bays are addressed positionally throughout the sheet
-                <Erow key={`${entry.bayRef}-${i}`}>
-                  <CrawlerBayCard
-                    crawlerId={crawler.id}
-                    entry={entry}
-                    index={i}
-                    crawlerTl={tl}
-                    repairShortfall={repairShortfall}
-                    onRepair={repairBay}
-                    seedSelections={crawler.bayChoices?.[entry.bayRef]}
-                    store={store}
-                    readOnly={readOnly}
-                    dockedMechName={isMechBay && mech ? mech.name : undefined}
-                  />
-                </Erow>
-              )
-            })}
-          </Ecflow>
-        </div>
-      )}
-
-      {/* Armament Bay weapons — crawler weapon systems mount here (Core Book
-          p. 213). Collection section: '+ Add' is always available and opens
-          the existing weapons picker; each card carries a remove (✕). */}
-      {(crawler.systems.length > 0 || !readOnly) && (
-        <div>
-          <Slab
-            label="Armament Bay Weapons"
-            count={`${crawler.systems.length}`}
-            actions={
-              readOnly ? undefined : (
-                <SectionAddButton
-                  label="weapons system"
-                  onClick={() => setSystemsModalOpen(true)}
+    <section
+      aria-label={`${crawler.name} crawler sheet`}
+      // `.sheet-section` is a print-stylesheet target (page-break rules);
+      // `@container` scopes the poster region grid below to the SHEET's own
+      // width (redesign D7), not the viewport.
+      className="sheet-section @container flex flex-col gap-6"
+    >
+      {/* ===== 2-col macro grid: content column ∥ full-height Storage rail
+          (poster `.layout`, split at its 880px container breakpoint) ===== */}
+      <div className="grid grid-cols-1 items-stretch gap-6 @[880px]:grid-cols-[minmax(0,54fr)_minmax(0,46fr)] @[880px]:gap-7">
+        {/* ----- Content column ----- */}
+        <div className="flex min-w-0 flex-col gap-6">
+          {/* Identity + Economy */}
+          <SheetSectionCard
+            title="Identity"
+            controls={
+              !readOnly ? (
+                <SectionEditButton
+                  section="Identity"
+                  editing={identityEditing}
+                  onToggle={() => setIdentityEditing((v) => !v)}
                 />
-              )
+              ) : undefined
             }
-          />
-          {crawler.systems.length === 0 ? (
-            <p className="font-body text-caption text-wk-muted">No weapons mounted.</p>
-          ) : (
-            <Ecflow>
-              {crawler.systems.map((slug) => {
-                const system = resolveCrawlerSystem(slug)
-                return (
-                  <Erow key={slug}>
-                    {system ? (
-                      <ReferenceEntityDisplay
-                        data={system}
-                        compact
-                        controls={
-                          readOnly
-                            ? undefined
-                            : cardRemoveControls({
-                                name: system.name,
-                                onRemove: () => removeWeapon(slug),
-                              })
-                        }
-                        cardStyle={readOnly ? undefined : REMOVABLE_CARD_STYLE}
+          >
+            <div className="flex min-w-0 flex-col gap-4">
+              <CrawlerIdentityPanel
+                crawler={crawler}
+                store={store}
+                storeState={storeState}
+                patch={readOnly ? undefined : patchCrawler}
+                editing={identityEditing}
+                readOnly={readOnly}
+              />
+              {economy && (
+                <div className="border-t border-dashed border-[color-mix(in_srgb,var(--tone-deep)_40%,transparent)] pt-4">
+                  {economy}
+                </div>
+              )}
+            </div>
+          </SheetSectionCard>
+
+          {/* Bays — ONE unified grid, all bays together (no crew/functional
+              split). // TODO(redesign): render homebrew/custom bays in a
+              separate "Custom Bays" group underneath once the data
+              distinguishes them (#403). */}
+          {bays.length > 0 && (
+            <SheetSectionCard
+              title="Bays"
+              count={
+                <span className="tabular-nums">
+                  {intactBays}/{bays.length} intact
+                </span>
+              }
+            >
+              <Ecflow>
+                {bays.map((entry, i) => {
+                  const isMechBay =
+                    entry.bayRef === 'mech-bay' ||
+                    resolveCrawlerBay(entry.bayRef)?.name === 'Mech Bay'
+                  return (
+                    // biome-ignore lint/suspicious/noArrayIndexKey: a crawler may install the same bay type more than once, so bayRef alone is not unique; bays are addressed positionally throughout the sheet
+                    <Erow key={`${entry.bayRef}-${i}`}>
+                      <CrawlerBayCard
+                        crawlerId={crawler.id}
+                        entry={entry}
+                        index={i}
+                        crawlerTl={tl}
+                        repairShortfall={repairShortfall}
+                        onRepair={repairBay}
+                        seedSelections={crawler.bayChoices?.[entry.bayRef]}
+                        store={store}
+                        readOnly={readOnly}
+                        dockedMechName={isMechBay && mech ? mech.name : undefined}
                       />
-                    ) : (
-                      <div className="flex items-center justify-between gap-2 rounded border border-ink px-2 py-1 text-sm text-wk-muted">
-                        <span className="min-w-0 truncate">{slug}</span>
-                        {!readOnly && (
-                          <CardRemoveButton name={slug} onRemove={() => removeWeapon(slug)} />
-                        )}
-                      </div>
-                    )}
-                  </Erow>
-                )
-              })}
-            </Ecflow>
+                    </Erow>
+                  )
+                })}
+              </Ecflow>
+            </SheetSectionCard>
           )}
+
+          {/* Armament Bay weapons — crawler weapon systems mount here (Core
+              Book p.213). Collection section: '+ Add' is always available
+              and opens the existing weapons picker; each card carries a
+              remove (✕). */}
+          {(crawler.systems.length > 0 || !readOnly) && (
+            <SheetSectionCard
+              title="Armament Bay Weapons"
+              count={<span className="tabular-nums">{crawler.systems.length}</span>}
+              controls={
+                readOnly ? undefined : (
+                  <SectionAddButton
+                    label="weapons system"
+                    onClick={() => setSystemsModalOpen(true)}
+                  />
+                )
+              }
+            >
+              {crawler.systems.length === 0 ? (
+                <p className="font-body text-caption text-wk-muted">No weapons mounted.</p>
+              ) : (
+                <Ecflow>
+                  {crawler.systems.map((slug) => {
+                    const system = resolveCrawlerSystem(slug)
+                    return (
+                      <Erow key={slug}>
+                        {system ? (
+                          <ReferenceEntityDisplay
+                            data={system}
+                            compact
+                            controls={
+                              readOnly
+                                ? undefined
+                                : cardRemoveControls({
+                                    name: system.name,
+                                    onRemove: () => removeWeapon(slug),
+                                  })
+                            }
+                            cardStyle={readOnly ? undefined : REMOVABLE_CARD_STYLE}
+                          />
+                        ) : (
+                          <div className="flex items-center justify-between gap-2 rounded border border-ink px-2 py-1 text-sm text-wk-muted">
+                            <span className="min-w-0 truncate">{slug}</span>
+                            {!readOnly && (
+                              <CardRemoveButton name={slug} onRemove={() => removeWeapon(slug)} />
+                            )}
+                          </div>
+                        )}
+                      </Erow>
+                    )
+                  })}
+                </Ecflow>
+              )}
+            </SheetSectionCard>
+          )}
+
+          {/* Linked Units — poster renders this as a bare section header +
+              rail stack (no `.dcard` frame), matching PilotSheet/MechSheet. */}
+          <div>
+            <SectionChead title="Linked Units" />
+            <div className="flex flex-col gap-4">{linkedUnits}</div>
+          </div>
         </div>
-      )}
 
-      {/* Scrap Pool — the shared party economy (rules C5) */}
-      <div>
-        <Slab label="Scrap Pool" count={`${totalScrap} scrap · Tech ${tl} crawler`} />
-        <ScrapPoolSlab
-          pool={pool}
-          onAdjust={readOnly ? undefined : adjustScrapBucket}
-          readOnly={readOnly}
-        />
-      </div>
-
-      {/* Downtime — the one-click p.227-228 checklist runner for the crew
-          (design-review R-2). Live-play only: pure bookkeeping writes. */}
-      {!readOnly && (
-        <div>
-          <Slab label="Downtime" count="restore · repair · heal · train · recharge · Upkeep" />
-          <DowntimeControl crawler={crawler} store={store} />
-        </div>
-      )}
-
-      {/* Salvaging — Area + Mech Salvage rollers (design-review R-3, pp.244-248).
-          Live-play only: rolls are ephemeral, so snapshots have nothing to show. */}
-      {!readOnly && (
-        <div>
-          <Slab label="Salvaging" count="Area & Mech Salvage · deposits to the pool and hold" />
-          <SalvageControl crawler={crawler} store={store} />
-        </div>
-      )}
-
-      {/* Crafting — the Crafting Bay flow (design-review R-7, p.222/p.244).
-          Live-play only: crafting writes only pool/hold bookkeeping. */}
-      {!readOnly && (
-        <div>
-          <Slab label="Crafting" count="salvage-value cost · deducts the pool, fills the hold" />
-          <CraftingControl crawler={crawler} store={store} />
-        </div>
-      )}
-
-      {/* Storage Bay (The Hold) — unlimited crawler storage (rules C6);
-          full-width, stacked beneath the bays grid (poster layout). */}
-      <div>
-        <Slab
-          label="Storage Bay"
-          count={`${lots.length} ${lots.length === 1 ? 'lot' : 'lots'} · unlimited`}
-        />
-        <StorageManifest
-          side="crawler"
-          cargo={cargo}
-          mechName={mech?.name ?? null}
-          crawlerName={crawler.name}
-          readOnly={readOnly}
-        />
+        {/* ----- Storage rail (full-height via the grid row's default
+            stretch) ----- */}
+        <SheetSectionCard
+          title="Storage Bay"
+          count={
+            <span className="tabular-nums">
+              {lots.length} {lots.length === 1 ? 'lot' : 'lots'} · unlimited
+            </span>
+          }
+          className="min-w-0"
+        >
+          <StorageManifest
+            side="crawler"
+            cargo={cargo}
+            mechName={mech?.name ?? null}
+            crawlerName={crawler.name}
+            readOnly={readOnly}
+          />
+        </SheetSectionCard>
       </div>
 
       {/* The weapons picker — the existing master-detail modal, mounted
