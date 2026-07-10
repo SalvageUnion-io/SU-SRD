@@ -8,7 +8,7 @@
  * pilot + home crawler; body = MechSheet; FAB carries Push (R-6/U-3).
  */
 
-import { StatBlock } from 'suref-react'
+import { VitalGauge, heatDangerFrom } from 'suref-react'
 
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
 import { computeMechCapacity } from '../../lib/rules/capacity'
@@ -229,35 +229,29 @@ export function SheetMech({
           }
           trackers={
             <>
-              <StatBlock
-                code="SP"
-                name="Structure"
-                unit="Points"
-                stat="sp"
-                max={maxSP}
+              <VitalGauge
+                label="SP"
+                subLabel="Structure"
                 value={sp}
+                max={maxSP}
                 onChange={editable ? (v) => patch({ currentSP: v }) : undefined}
-                editable={editable}
+                readOnly={!editable}
               />
-              <StatBlock
-                code="EP"
-                name="Energy"
-                unit="Points"
-                stat="ep"
-                max={maxEP}
+              <VitalGauge
+                label="EP"
+                subLabel="Energy"
                 value={ep}
+                max={maxEP}
                 onChange={editable ? (v) => patch({ currentEP: v }) : undefined}
-                editable={editable}
+                readOnly={!editable}
               />
-              <StatBlock
-                code="Heat"
-                name="Capacity"
-                unit="Heat"
-                stat="heat"
-                max={maxHeat}
+              <VitalGauge
+                label="Heat"
                 value={heat}
+                max={maxHeat}
+                danger={maxHeat > 0 ? heatDangerFrom(maxHeat) : undefined}
                 onChange={editable ? (v) => patch({ currentHeat: v }) : undefined}
-                editable={editable}
+                readOnly={!editable}
               />
             </>
           }

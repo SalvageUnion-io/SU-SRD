@@ -115,25 +115,28 @@ describe('Pilot hero — HP/AP trackers', () => {
     expect(screen.getByRole('group', { name: 'HP 7 of 10' })).toBeTruthy()
   })
 
-  test('decreasing HP persists currentHP', async () => {
+  test('clicking the top-lit HP segment persists the decremented currentHP', async () => {
+    // HP/AP are now VitalGauges (poster §gauge): clicking the top-lit segment
+    // (index 6 = "Set HP to 7") steps HP 7 → 6 (pipClickValue click-to-set).
     const pilot = makePilot({ currentHP: 7 })
     const updateSpy = mock(async () => pilot)
     renderHero(pilot, updateSpy)
 
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Decrease HP' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Set HP to 7' }))
     })
 
     expect(updateSpy).toHaveBeenCalledWith('pilot', pilot.id, { currentHP: 6 })
   })
 
-  test('increasing AP persists currentAP (clamped to derived max 5)', async () => {
+  test('clicking the top AP segment persists currentAP (clamped to derived max 5)', async () => {
     const pilot = makePilot({ currentAP: 4 })
     const updateSpy = mock(async () => pilot)
     renderHero(pilot, updateSpy)
 
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Increase AP' }))
+      // "Set AP to 5" fills the last segment → currentAP 5 (max).
+      fireEvent.click(screen.getByRole('button', { name: 'Set AP to 5' }))
     })
 
     expect(updateSpy).toHaveBeenCalledWith('pilot', pilot.id, { currentAP: 5 })

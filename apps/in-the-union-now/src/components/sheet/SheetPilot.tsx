@@ -7,7 +7,7 @@
  * body = PilotSheet.
  */
 
-import { Pill, StatBlock } from 'suref-react'
+import { Pill, StatBlock, VitalGauge } from 'suref-react'
 
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
 import { isPilotDead, pilotMaxAP, pilotMaxHP } from '../../lib/rules/derivedStats'
@@ -167,26 +167,21 @@ export function SheetPilot({
           }
           trackers={
             <>
-              <StatBlock
-                code="HP"
-                name="Hit Points"
-                unit="Points"
-                stat="hp"
-                max={maxHP}
+              <VitalGauge
+                label="HP"
                 value={hp}
+                max={maxHP}
                 onChange={editable ? (v) => patch({ currentHP: v }) : undefined}
-                editable={editable}
+                readOnly={!editable}
               />
-              <StatBlock
-                code="AP"
-                name="Ability Points"
-                unit="Points"
-                stat="ap"
-                max={maxAP}
+              <VitalGauge
+                label="AP"
                 value={ap}
+                max={maxAP}
                 onChange={editable ? (v) => patch({ currentAP: v }) : undefined}
-                editable={editable}
+                readOnly={!editable}
               />
+              {/* TP has no max — it stays a StatBlock counter (Phase 3 tpblock). */}
               <StatBlock
                 code="TP"
                 name="Training"

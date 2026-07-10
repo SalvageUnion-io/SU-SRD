@@ -26,7 +26,7 @@ import { cn } from '../../lib/utils'
 import { ClassDetail, ClassOptionList } from '../pilot/ClassStep'
 import { selectableClasses } from '../pilot/classOptions'
 import { IdentityField } from './IdentityField'
-import { SectionEditButton, SheetPickerModal } from './SheetSection'
+import { SectionChead, SectionEditButton, SheetPickerModal } from './SheetSection'
 import type { SheetPatch } from './sheetViewProps'
 
 export type UsedToggleKey = 'background' | 'motto' | 'keepsake'
@@ -139,19 +139,20 @@ export function PilotIdentityPanel({
 
   return (
     <section aria-label="Pilot identity" className={cn('min-w-0', className)}>
-      {/* Section header — owns the panel's OWN Edit button (no global mode). */}
-      <div className="mb-2 flex min-h-7 items-center justify-between gap-2">
-        <span className="bg-ink px-2 pb-px pt-[2px] font-cond text-xs font-bold uppercase leading-relaxed tracking-caps text-su-white">
-          Identity
-        </span>
-        {canEdit && (
-          <SectionEditButton
-            section="Identity"
-            editing={isEditing}
-            onToggle={() => setEditing((v) => !v)}
-          />
-        )}
-      </div>
+      {/* Section header (chead) — owns the panel's OWN Edit button (no global
+          mode). Phase 2 lifts this row into SheetSectionCard's header. */}
+      <SectionChead
+        title="Identity"
+        actions={
+          canEdit ? (
+            <SectionEditButton
+              section="Identity"
+              editing={isEditing}
+              onToggle={() => setEditing((v) => !v)}
+            />
+          ) : undefined
+        }
+      />
 
       {/* Poster field grid — left / right columns; single column on mobile in
           the poster's reading order. */}

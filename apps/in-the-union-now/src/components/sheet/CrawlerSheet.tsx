@@ -45,7 +45,12 @@ import { CraftingControl } from './CraftingControl'
 import { DowntimeControl } from './DowntimeControl'
 import { Ecflow, Erow } from './Erow'
 import { SalvageControl } from './SalvageControl'
-import { CardRemoveButton, SectionAddButton } from './SheetSection'
+import {
+  CardRemoveButton,
+  REMOVABLE_CARD_STYLE,
+  SectionAddButton,
+  cardRemoveControls,
+} from './SheetSection'
 import { StorageManifest } from './StorageManifest'
 
 import {
@@ -251,16 +256,21 @@ export function CrawlerSheet({
               {crawler.systems.map((slug) => {
                 const system = resolveCrawlerSystem(slug)
                 return (
-                  <Erow
-                    key={slug}
-                    actions={
-                      system && !readOnly ? (
-                        <CardRemoveButton name={system.name} onRemove={() => removeWeapon(slug)} />
-                      ) : undefined
-                    }
-                  >
+                  <Erow key={slug}>
                     {system ? (
-                      <ReferenceEntityDisplay data={system} compact />
+                      <ReferenceEntityDisplay
+                        data={system}
+                        compact
+                        controls={
+                          readOnly
+                            ? undefined
+                            : cardRemoveControls({
+                                name: system.name,
+                                onRemove: () => removeWeapon(slug),
+                              })
+                        }
+                        cardStyle={readOnly ? undefined : REMOVABLE_CARD_STYLE}
+                      />
                     ) : (
                       <div className="flex items-center justify-between gap-2 rounded border border-ink px-2 py-1 text-sm text-wk-muted">
                         <span className="min-w-0 truncate">{slug}</span>

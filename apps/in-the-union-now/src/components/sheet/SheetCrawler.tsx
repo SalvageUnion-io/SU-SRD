@@ -11,7 +11,7 @@
  */
 
 import { useState } from 'react'
-import { MChip, StatBlock } from 'suref-react'
+import { MChip, StatBlock, VitalGauge } from 'suref-react'
 
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
 import { bayGate, tradingSourceTl } from '../../lib/rules/crawlerEconomy'
@@ -210,15 +210,13 @@ export function SheetCrawler({
             }
             trackers={
               <>
-                <StatBlock
-                  code="Structure"
-                  name="Points"
-                  unit="Points"
-                  stat="sp"
-                  max={maxSP}
+                <VitalGauge
+                  label="SP"
                   value={sp}
+                  max={maxSP}
+                  caption={['Structure', 'Max']}
                   onChange={editable ? (v) => patch({ currentSP: v }) : undefined}
-                  editable={editable}
+                  readOnly={!editable}
                 />
                 {states.length > 0 && (
                   <StatBlock

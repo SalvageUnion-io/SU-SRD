@@ -1,9 +1,8 @@
 import { useState } from 'react'
-import { Slab } from 'suref-react'
 
 import { cn } from '../../lib/utils'
 import { InlineEditTextArea } from './InlineEditTextArea'
-import { EDIT_CUE_CLASS, SectionEditButton } from './SheetSection'
+import { EDIT_CUE_CLASS, SectionChead, SectionEditButton } from './SheetSection'
 
 type SheetDescriptionProps = {
   /** Freeform text to render; without `onSave` the section hides when empty. */
@@ -34,8 +33,8 @@ export function SheetDescription({ text, label = 'Description', onSave }: SheetD
 
   return (
     <div>
-      <Slab
-        label={label}
+      <SectionChead
+        title={label}
         actions={
           onSave ? (
             <SectionEditButton

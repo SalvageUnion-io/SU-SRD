@@ -127,8 +127,14 @@ export function SheetHero({
             )}
 
             {hasVitalsRegion && (
-              <div className="flex min-w-0 flex-col gap-2.5 lg:items-end">
-                {trackers && <div className="flex flex-wrap gap-2 lg:justify-end">{trackers}</div>}
+              <div className="flex min-w-0 flex-col gap-2.5">
+                {trackers && (
+                  // Full-width vertical gauge stack (poster `.gauge` column): each
+                  // gauge owns its row, dashed deep-40 separators between them.
+                  <div className="flex w-full flex-col [&>*+*]:mt-[14px] [&>*+*]:border-t [&>*+*]:border-dashed [&>*+*]:border-[color-mix(in_srgb,var(--tone-deep)_40%,transparent)] [&>*+*]:pt-[14px]">
+                    {trackers}
+                  </div>
+                )}
                 {vitals}
                 {inset}
               </div>

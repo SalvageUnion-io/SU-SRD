@@ -149,4 +149,69 @@ describe('ControlButtons', () => {
     expect(button).toBeTruthy()
     expect(button.tagName).toBe('BUTTON')
   })
+
+  // Icon-only controls (design `.ctl`): an `icon` with no `label`/`segmentText`
+  // renders a square icon button (the live-sheet per-card remove/swap cluster).
+  const RemoveGlyph = ({ className }: { className?: string }) => (
+    <svg className={className} data-testid="remove-glyph" aria-hidden="true" />
+  )
+
+  test('icon + no label renders an icon-only square button', () => {
+    render(
+      <ControlButtons
+        controls={[
+          makeControl({ label: undefined, ariaLabel: 'Remove Charge', icon: RemoveGlyph }),
+        ]}
+      />
+    )
+    const button = screen.getByLabelText('Remove Charge')
+    // The accessible name comes from ariaLabel, not visible text.
+    expect(button.textContent).toBe('')
+    // Square chrome (not the segmented label pill).
+    expect(button.className).toContain('h-8')
+    expect(button.className).toContain('w-8')
+    // The provided icon renders inside.
+    expect(screen.getByTestId('remove-glyph')).toBeTruthy()
+  })
+
+  test('icon-only control keeps the 44px coarse-pointer tap floor', () => {
+    render(
+      <ControlButtons
+        controls={[makeControl({ label: undefined, ariaLabel: 'Remove', icon: RemoveGlyph })]}
+      />
+    )
+    const button = screen.getByLabelText('Remove')
+    expect(button.className).toContain('min-h-11')
+    expect(button.className).toContain('sm:min-h-0')
+  })
+
+  test('icon-only control fires onClick', () => {
+    const handleClick = mock(() => {})
+    render(
+      <ControlButtons
+        controls={[
+          makeControl({
+            label: undefined,
+            ariaLabel: 'Remove',
+            icon: RemoveGlyph,
+            onClick: handleClick,
+          }),
+        ]}
+      />
+    )
+    fireEvent.click(screen.getByLabelText('Remove'))
+    expect(handleClick).toHaveBeenCalledTimes(1)
+  })
+
+  test('icon WITH a label keeps the segmented text button', () => {
+    render(
+      <ControlButtons
+        controls={[makeControl({ label: 'Buy', ariaLabel: 'Buy', icon: RemoveGlyph })]}
+      />
+    )
+    // Label present → not the icon-only path; the text still renders.
+    expect(screen.getByText('Buy')).toBeTruthy()
+    const button = screen.getByRole('button')
+    expect(button.className).not.toContain('h-8')
+  })
 })

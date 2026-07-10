@@ -29,7 +29,7 @@ import type { useEntityStore } from '../../stores/entityStore'
 import { CrawlerTypeEditModal } from '../crawler/CrawlerTypeEditModal'
 import { CrawlerTypeCard } from './CrawlerSheetItems'
 import { IdentityField } from './IdentityField'
-import { SectionEditButton } from './SheetSection'
+import { SectionChead, SectionEditButton } from './SheetSection'
 import type { SheetPatch, SheetStoreState } from './sheetViewProps'
 
 /** The standalone ability card never re-renders the action's choice UI. */
@@ -100,19 +100,20 @@ export function CrawlerIdentityPanel({
 
   return (
     <section aria-label="Crawler identity" className={cn('min-w-0', className)}>
-      {/* Section header — owns the panel's OWN Edit button (no global mode). */}
-      <div className="mb-2 flex min-h-7 items-center justify-between gap-2">
-        <span className="bg-ink px-2 pb-px pt-[2px] font-cond text-xs font-bold uppercase leading-relaxed tracking-caps text-su-white">
-          Identity
-        </span>
-        {canEdit && (
-          <SectionEditButton
-            section="Identity"
-            editing={isEditing}
-            onToggle={() => setEditing((v) => !v)}
-          />
-        )}
-      </div>
+      {/* Section header (chead) — owns the panel's OWN Edit button (no global
+          mode). Phase 2 lifts this row into SheetSectionCard's header. */}
+      <SectionChead
+        title="Identity"
+        actions={
+          canEdit ? (
+            <SectionEditButton
+              section="Identity"
+              editing={isEditing}
+              onToggle={() => setEditing((v) => !v)}
+            />
+          ) : undefined
+        }
+      />
 
       <div className="flex min-w-0 flex-col gap-3">
         {/* Poster field row: Name (prominent) + Type (picker-backed). */}

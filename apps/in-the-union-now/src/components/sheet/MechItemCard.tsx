@@ -32,7 +32,7 @@ import type { ScrapPool } from '../../lib/schemas/crawler'
 import type { ItemCondition } from '../../lib/schemas/mech'
 import { itemEconomy, repairPoolTl, repairScrapCost } from './mechItemRules'
 import type { MechItem, MechItemEconomy } from './mechItemRules'
-import { CardRemoveButton } from './SheetSection'
+import { CardRemoveButton, REMOVABLE_CARD_STYLE, cardRemoveControls } from './SheetSection'
 
 /** Stable hide literal — keeps ReferenceEntityDisplay's memo effective. */
 const HIDE_CHOICES = { choices: true } as const
@@ -209,9 +209,13 @@ export function MechItemCard({
           )}
         </span>
       )}
-      {onRemove && <CardRemoveButton name={entity.name} onRemove={onRemove} />}
     </>
   )
+
+  // Per-card remove (✕) moves to the card HEADER (G4), beside the status badge;
+  // the editing cue moves onto the CARD when removable.
+  const controls =
+    !readOnly && onRemove ? cardRemoveControls({ name: entity.name, onRemove }) : undefined
 
   return (
     <ReferenceEntityDisplay
@@ -222,6 +226,8 @@ export function MechItemCard({
       onStatusClick={readOnly ? undefined : onStatusCycle}
       footActions={footActions}
       footMeta={footMeta}
+      controls={controls}
+      cardStyle={controls ? REMOVABLE_CARD_STYLE : undefined}
     />
   )
 }

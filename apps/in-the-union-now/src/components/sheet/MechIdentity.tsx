@@ -24,7 +24,7 @@ import type { Mech } from '../../lib/schemas/mech'
 import { cn } from '../../lib/utils'
 import { MechChassisPickerModal } from '../mech/MechChassisPickerModal'
 import { IdentityField } from './IdentityField'
-import { SectionEditButton } from './SheetSection'
+import { SectionChead, SectionEditButton } from './SheetSection'
 import type { SheetPatch } from './sheetViewProps'
 
 type MechIdentityPanelProps = {
@@ -70,19 +70,20 @@ export function MechIdentityPanel({
 
   return (
     <section aria-label="Mech identity" className={cn('min-w-0', className)}>
-      {/* Section header — owns the panel's OWN Edit button (no global mode). */}
-      <div className="mb-2 flex min-h-7 items-center justify-between gap-2">
-        <span className="bg-ink px-2 pb-px pt-[2px] font-cond text-xs font-bold uppercase leading-relaxed tracking-caps text-su-white">
-          Identity
-        </span>
-        {canEdit && (
-          <SectionEditButton
-            section="Identity"
-            editing={isEditing}
-            onToggle={() => setEditing((v) => !v)}
-          />
-        )}
-      </div>
+      {/* Section header (chead) — owns the panel's OWN Edit button (no global
+          mode). Phase 2 lifts this row into SheetSectionCard's header. */}
+      <SectionChead
+        title="Identity"
+        actions={
+          canEdit ? (
+            <SectionEditButton
+              section="Identity"
+              editing={isEditing}
+              onToggle={() => setEditing((v) => !v)}
+            />
+          ) : undefined
+        }
+      />
 
       <div className="flex min-w-0 flex-col gap-3">
         {/* The prominent identity: pattern name (== the mech's name). */}

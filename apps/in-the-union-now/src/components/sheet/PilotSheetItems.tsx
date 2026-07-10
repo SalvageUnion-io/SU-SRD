@@ -16,7 +16,7 @@ import type { GenericInventoryEntry, Injury } from '../../lib/schemas/pilot'
 import { resolveAbilityApCost } from '../../lib/abilityCost'
 import type { useEntityStore } from '../../stores/entityStore'
 import { useEntityChoices } from '../shared/useEntityChoices'
-import { CardRemoveButton } from './SheetSection'
+import { CardRemoveButton, REMOVABLE_CARD_STYLE, cardRemoveControls } from './SheetSection'
 import {
   equipmentMaxUses,
   equipmentSlotCost,
@@ -107,9 +107,12 @@ export function PilotAbilityItem({
       >
         {used ? 'Recharge' : 'Mark Used'}
       </Btn>
-      {onRemove && <CardRemoveButton name={ability.name} onRemove={onRemove} />}
     </>
   )
+
+  // Per-card remove (✕) moves to the card HEADER (G4); the editing cue moves
+  // onto the CARD when removable.
+  const controls = onRemove ? cardRemoveControls({ name: ability.name, onRemove }) : undefined
 
   return (
     <ReferenceEntityDisplay
@@ -119,6 +122,8 @@ export function PilotAbilityItem({
       hide={HIDE_CHOICES}
       footMeta={footMeta}
       footActions={footActions}
+      controls={controls}
+      cardStyle={controls ? REMOVABLE_CARD_STYLE : undefined}
     />
   )
 }
@@ -241,15 +246,11 @@ export function PilotEquipmentItem({
         </Btn>
       </>
     ) : null
-  const removeAction =
-    !readOnly && onRemove ? <CardRemoveButton name={equipment.name} onRemove={onRemove} /> : null
-  const footActions =
-    useActions || removeAction ? (
-      <>
-        {useActions}
-        {removeAction}
-      </>
-    ) : undefined
+  const footActions = useActions ?? undefined
+  // Per-card remove (✕) moves to the card HEADER (G4), beside the status badge;
+  // the editing cue moves onto the CARD when removable.
+  const controls =
+    !readOnly && onRemove ? cardRemoveControls({ name: equipment.name, onRemove }) : undefined
 
   return (
     <ReferenceEntityDisplay
@@ -268,6 +269,8 @@ export function PilotEquipmentItem({
       }
       footMeta={footMeta}
       footActions={footActions}
+      controls={controls}
+      cardStyle={controls ? REMOVABLE_CARD_STYLE : undefined}
     />
   )
 }
