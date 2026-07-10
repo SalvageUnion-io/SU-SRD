@@ -16,7 +16,6 @@
  *   7.  Top-bar Share entry: PublishButton links to /sheet/:kind/:id/share
  *   8.  SnapshotPageInner 404 path: notFound=true → "Snapshot not found" heading
  *   9.  Read-only mode: Sheet readOnly=true → Share link NOT rendered
- *   10. Composition badge per scenario: wired mode shows "Wired" badge
  *
  * Conventions:
  *   - toBeTruthy() not toBeInTheDocument() (happy-dom workaround)
@@ -426,60 +425,5 @@ describe('Smoke — readOnly mode', () => {
       />
     )
     expect(screen.getByRole('link', { name: /share this pilot/i })).toBeTruthy()
-  })
-})
-
-// ---------------------------------------------------------------------------
-// Scenario 10 — Wired/Offline toggle per scenario
-// ---------------------------------------------------------------------------
-
-describe('Smoke — wired toggle states', () => {
-  test('pilot-only → wired toggle reads Offline', () => {
-    render(
-      <Sheet
-        kind="pilot"
-        id="pilot-smoke-1"
-        entityStore={makeEntityStore([fakePilot])}
-        softLinkStore={makeSoftLinkStore([])}
-      />
-    )
-    expect(screen.getByRole('switch', { name: /offline/i })).toBeTruthy()
-  })
-
-  test('mech-only → wired toggle reads Offline', () => {
-    render(
-      <Sheet
-        kind="mech"
-        id="mech-smoke-1"
-        entityStore={makeEntityStore([fakeMech])}
-        softLinkStore={makeSoftLinkStore([])}
-      />
-    )
-    expect(screen.getByRole('switch', { name: /offline/i })).toBeTruthy()
-  })
-
-  test('crawler-only → wired toggle reads Offline', () => {
-    render(
-      <Sheet
-        kind="crawler"
-        id="crawler-smoke-1"
-        entityStore={makeEntityStore([fakeCrawler])}
-        softLinkStore={makeSoftLinkStore([])}
-      />
-    )
-    expect(screen.getByRole('switch', { name: /offline/i })).toBeTruthy()
-  })
-
-  test('wired (mech+pilot) → wired toggle reads Wired', () => {
-    const link = makeMechToPilotLink('mech-smoke-1', 'pilot-smoke-1')
-    render(
-      <Sheet
-        kind="mech"
-        id="mech-smoke-1"
-        entityStore={makeEntityStore([fakeMech, fakePilot])}
-        softLinkStore={makeSoftLinkStore([link])}
-      />
-    )
-    expect(screen.getByRole('switch', { name: /wired/i })).toBeTruthy()
   })
 })

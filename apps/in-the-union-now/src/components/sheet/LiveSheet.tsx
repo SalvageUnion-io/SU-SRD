@@ -3,20 +3,22 @@
  * One shell, three variants, "so the three screens cannot drift apart".
  *
  * Render-prop contract (binding, plan 4.1):
- *   { variant, name, strip, back, wired, rail, condense, cardActions,
+ *   { variant, name, strip, back, rail, condense, cardActions,
  *     renderHero, renderBody, syncStats }
  *
  * App bar (poster `.appbar`, design source clean-pilot.html): back + overflow
- * are bordered 38px icon buttons either side of the SU cargo mark; the name
- * stamp + kind pill sit in the RESTING bar, always visible (not gated behind
- * scroll) — only the live MiniStat strip is scroll-driven.
+ * are bordered 38px icon buttons either side of the SU cargo mark. At rest the
+ * bar is a slim interactive strip (back + actions only); the entity name lives
+ * once, in the poster hero below.
  *
  * Condense (S11 — binding): the top bar is sticky; when the hero scrolls out
  * of view (IntersectionObserver simple threshold — NOT the prototype's
  * clamp01 scroll interpolation, which is a post-beta fast-follow) the bar
- * fades in the live MiniStat strip via a CSS transition. While hidden the
- * strip is aria-hidden and pointer-events:none. Reducing this below
- * "strip + fade + aria gating" needs explicit design sign-off (risk R4).
+ * fades in the entity name stamp + kind pill + live MiniStat strip via a CSS
+ * transition, so the anchored bar keeps name + at-a-glance readouts in view
+ * once the poster scrolls away. While hidden this block is aria-hidden and
+ * pointer-events:none. Reducing this below "strip + fade + aria gating" needs
+ * explicit design sign-off (risk R4).
  *
  * Stats are store-backed (the real ITUN replacement for the prototype's
  * single useState): the caller derives `strip` values from the same entity
@@ -28,7 +30,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ReactNode, RefObject } from 'react'
 import { ArrowLeft } from 'lucide-react'
-import { MiniStat, Pill, WiredToggle } from 'suref-react'
+import { MiniStat, Pill } from 'suref-react'
 import type { MiniStatTone, PillTone } from 'suref-react'
 
 import { cn } from '../../lib/utils'
@@ -78,10 +80,8 @@ type LiveSheetProps = {
   /** Condensed-bar MiniStat readouts (values live, from the entity record). */
   strip?: LiveSheetStripItem[]
   back?: { href: string; label: string }
-  /** Kind/status pill shown next to the name stamp in the resting app bar. */
+  /** Kind/status pill shown next to the name stamp in the condensed bar. */
   pill?: { label: string; tone?: PillTone }
-  /** Wired/offline indicator; omit to hide the toggle. */
-  wired?: boolean
   /** Linked-entity rail content (RailChip / RailEmpty row) — slotted into the hero by the caller. */
   rail?: ReactNode
   /**
@@ -153,7 +153,6 @@ export function LiveSheet({
   strip = [],
   back,
   pill,
-  wired,
   rail,
   segments,
   condense = true,
@@ -210,22 +209,12 @@ export function LiveSheet({
           </>
         )}
 
-        {/* Resting-bar identity (poster `.barname` + `.kindpill`): the name
-            stamp + kind pill are always visible, not gated behind condense —
-            only the live MiniStat strip below fades in on scroll (S11). */}
-        <div className="flex min-w-0 shrink items-center gap-2">
-          <span className={BARNAME_STAMP_CLASS}>{name}</span>
-          {pill && (
-            <Pill tone={pill.tone} rounded>
-              {pill.label}
-            </Pill>
-          )}
-        </div>
-
-        {/* Condensed live MiniStat strip. Resting state shows nothing here —
-            stat trackers live once, in the hero (§4.1); the bar only surfaces
-            them once the hero scrolls out of view. */}
-        {condense && stripItems.length > 0 && (
+        {/* Condensed identity + live MiniStat strip. At rest this is hidden —
+            the entity name lives once, in the poster hero below (§4.1, Option
+            A). Once the hero scrolls out of view it fades in the name stamp +
+            kind pill + at-a-glance readouts (poster `.barname` + `.kindpill`)
+            so the anchored bar keeps them in view (S11). */}
+        {condense && (
           <div
             aria-hidden={!condensed}
             className={cn(
@@ -235,6 +224,12 @@ export function LiveSheet({
                 : 'pointer-events-none translate-y-[5px] opacity-0'
             )}
           >
+            <span className={BARNAME_STAMP_CLASS}>{name}</span>
+            {pill && (
+              <Pill tone={pill.tone} rounded>
+                {pill.label}
+              </Pill>
+            )}
             {stripItems.map((item) => (
               <MiniStat
                 key={item.key}
@@ -250,10 +245,7 @@ export function LiveSheet({
           </div>
         )}
 
-        <div className="ml-auto flex shrink-0 items-center gap-2.5">
-          {wired !== undefined && <WiredToggle wired={wired} />}
-          {actions}
-        </div>
+        <div className="ml-auto flex shrink-0 items-center gap-2.5">{actions}</div>
 
         {/* Mobile segmented Pilot/Mech/Crawler switch (design §3.7) — full-width
             second row inside the sticky bar so it stays thumb-reachable. The

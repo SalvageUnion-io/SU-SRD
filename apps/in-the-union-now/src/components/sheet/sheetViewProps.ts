@@ -19,7 +19,6 @@ export type SheetStoreState = EntityState
 
 export type SheetViewCommonProps = {
   composition: SheetComposition
-  wired: boolean
   back: { href: string; label: string }
   /** Top-bar trailing actions; undefined on read-only sheets. */
   actions: ReactNode

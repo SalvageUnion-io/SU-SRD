@@ -33,7 +33,6 @@ type SheetMechProps = SheetViewCommonProps & { mech: Mech }
 export function SheetMech({
   mech,
   composition,
-  wired,
   back,
   actions,
   segments,
@@ -163,7 +162,6 @@ export function SheetMech({
       strip={strip}
       back={back}
       pill={mechStatusPill(mech)}
-      wired={wired}
       segments={segments}
       syncStats={{ cargo: cargoUsed }}
       actions={actions}

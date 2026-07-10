@@ -30,7 +30,6 @@ type SheetPilotProps = SheetViewCommonProps & { pilot: Pilot }
 export function SheetPilot({
   pilot,
   composition,
-  wired,
   back,
   actions,
   segments,
@@ -133,7 +132,6 @@ export function SheetPilot({
       strip={strip}
       back={back}
       pill={dead ? { label: 'Dead', tone: 'bad' } : { label: 'Pilot', tone: 'pilot' }}
-      wired={wired}
       segments={segments}
       actions={actions}
       fab={editable ? <QuickRollFab /> : undefined}

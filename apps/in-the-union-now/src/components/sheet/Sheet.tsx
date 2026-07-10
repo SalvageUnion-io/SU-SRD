@@ -194,7 +194,6 @@ export function Sheet({
 
   const common = {
     composition,
-    wired,
     back,
     actions,
     segments,

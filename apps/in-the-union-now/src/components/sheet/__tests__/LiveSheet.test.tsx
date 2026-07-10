@@ -52,7 +52,6 @@ function renderShell(props: Partial<Parameters<typeof LiveSheet>[0]> = {}) {
       ]}
       back={{ href: '/', label: 'Dashboard' }}
       pill={{ label: 'Pilot', tone: 'pilot' }}
-      wired={false}
       renderHero={({ heroRef }) => (
         <section ref={heroRef} aria-label="hero">
           Hero
@@ -65,26 +64,38 @@ function renderShell(props: Partial<Parameters<typeof LiveSheet>[0]> = {}) {
 }
 
 function stripWrapper(): HTMLElement {
-  // The condensed block wraps the live MiniStat readouts (name + pill moved
-  // to the always-visible resting bar — see the describe block below).
+  // The condensed block wraps the name stamp, kind pill, and live MiniStat
+  // readouts — all hidden at rest, fading in together once the hero scrolls
+  // out of view (Option A: the resting bar is slim, back + actions only).
   const stat = screen.getByLabelText('HP 7 of 10')
   return stat.parentElement as HTMLElement
 }
 
-describe('LiveSheet — resting-bar identity (name stamp + kind pill)', () => {
-  test('name and kind pill are visible at rest, not gated behind condense', () => {
+describe('LiveSheet — condensed identity (name stamp + kind pill)', () => {
+  test('name and kind pill are hidden at rest — they live in the poster below', () => {
     renderShell()
-    expect(screen.getByText('Mara Vex')).toBeTruthy()
+    // Both sit inside the condense block, aria-hidden until the hero scrolls
+    // out of view, so the resting bar stays slim (only back + actions show).
+    expect(screen.getByText('Mara Vex').closest('[aria-hidden="true"]')).not.toBeNull()
     const pill = screen.getByText('Pilot')
-    expect(pill.closest('[aria-hidden]')).toBeNull()
+    expect(pill.closest('[aria-hidden="true"]')).not.toBeNull()
     // Poster `.kindpill` shape (design source clean-pilot.html): radius 999.
     expect(pill.className).toContain('rounded-full')
   })
 
-  test('name and kind pill stay visible even with condense disabled', () => {
-    renderShell({ condense: false })
-    expect(screen.getByText('Mara Vex')).toBeTruthy()
+  test('name and kind pill fade in once the hero scrolls out of view', () => {
+    renderShell()
+    act(() => {
+      must(observerCallbacks[0])([{ isIntersecting: false }])
+    })
+    expect(screen.getByText('Mara Vex').closest('[aria-hidden="false"]')).not.toBeNull()
     expect(screen.getByText('Pilot')).toBeTruthy()
+  })
+
+  test('name and kind pill are not rendered when condense is disabled', () => {
+    renderShell({ condense: false })
+    expect(screen.queryByText('Mara Vex')).toBeNull()
+    expect(screen.queryByText('Pilot')).toBeNull()
   })
 })
 
@@ -125,11 +136,10 @@ describe('LiveSheet — condense strip gating (S11)', () => {
     expect(stripWrapper().getAttribute('aria-hidden')).toBe('true')
   })
 
-  test('condense=false renders no strip and observes nothing', () => {
+  test('condense=false renders no condensed block and observes nothing', () => {
     renderShell({ condense: false })
-    // Resting-bar identity still renders (it's no longer part of the gated
-    // condense block); only the live MiniStat strip is suppressed.
-    expect(screen.getByText('Mara Vex')).toBeTruthy()
+    // The whole condensed block (name + pill + strip) is gated on condense.
+    expect(screen.queryByText('Mara Vex')).toBeNull()
     expect(screen.queryByLabelText('HP 7 of 10')).toBeNull()
     expect(observerCallbacks.length).toBe(0)
   })
@@ -149,11 +159,6 @@ describe('LiveSheet — strip values and syncStats', () => {
     expect(screen.getByLabelText('Hold 4 of 6')).toBeTruthy()
     // Non-overlaid keys keep their own value
     expect(screen.getByLabelText('HP 7 of 10')).toBeTruthy()
-  })
-
-  test('wired toggle reflects the wired prop', () => {
-    renderShell({ wired: true })
-    expect(screen.getByRole('switch', { name: /wired/i })).toBeTruthy()
   })
 
   test('variant sets the sheet tone class on the root', () => {
