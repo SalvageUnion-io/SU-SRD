@@ -198,7 +198,7 @@ export function SectionChead({ title, count, actions, className }: SectionCheadP
   return (
     <div className={cn('mb-2 flex min-h-8 flex-wrap items-center gap-x-2.5 gap-y-2', className)}>
       <div className="flex min-w-0 items-center gap-2">
-        <span className="bg-ink px-2 pb-px pt-[2px] font-cond text-xs font-bold uppercase leading-relaxed tracking-caps text-su-white">
+        <span className="bg-ink px-2 pb-px pt-[2px] font-cond text-sm font-bold uppercase leading-relaxed tracking-caps text-su-white">
           {title}
         </span>
         {count}

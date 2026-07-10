@@ -302,7 +302,7 @@ export function PilotSheet({
       )}
 
       {/* ===== R1: Identity ∥ Vitals (poster top band) ===== */}
-      <div className="grid grid-cols-1 gap-6 @5xl:grid-cols-12">
+      <div className="grid grid-cols-1 gap-[22px] @5xl:grid-cols-12 @5xl:gap-6">
         <div className="@5xl:col-span-7">
           <SheetSectionCard
             title="Identity"
@@ -343,7 +343,7 @@ export function PilotSheet({
                 readOnly={readOnly}
               />
             </div>
-            <div className="mt-[14px] flex flex-wrap gap-4 border-t border-dashed border-[color-mix(in_srgb,var(--tone-deep)_40%,transparent)] pt-[14px]">
+            <div className="mt-4 flex flex-wrap gap-4 border-t border-dashed border-[color-mix(in_srgb,var(--tone-deep)_40%,transparent)] pt-[14px]">
               <TpBlock
                 value={tp}
                 onChange={readOnly ? undefined : (v) => patchPilot({ trainingPoints: v })}
@@ -419,7 +419,7 @@ export function PilotSheet({
       </SheetSectionCard>
 
       {/* ===== R3: Inventory ∥ Linked Units ===== */}
-      <div className="grid grid-cols-1 gap-6 @5xl:grid-cols-12">
+      <div className="grid grid-cols-1 gap-[22px] @5xl:grid-cols-12 @5xl:gap-6">
         <div className="@5xl:col-span-7">
           <SheetSectionCard
             title="Inventory"

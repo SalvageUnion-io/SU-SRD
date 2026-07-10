@@ -441,7 +441,7 @@ export function MechSheet({
       )}
 
       {/* ===== R1: Identity ∥ Vitals (poster top band) ===== */}
-      <div className="grid grid-cols-1 gap-6 @5xl:grid-cols-12">
+      <div className="grid grid-cols-1 gap-[22px] @5xl:grid-cols-12 @5xl:gap-6">
         <div className="@5xl:col-span-7">
           <SheetSectionCard
             title="Identity"
@@ -496,7 +496,7 @@ export function MechSheet({
                 readOnly={readOnly}
               />
             </div>
-            <div className="mt-[14px] flex w-full flex-col gap-2 border-t border-dashed border-[color-mix(in_srgb,var(--tone-deep)_40%,transparent)] pt-[14px]">
+            <div className="mt-4 flex w-full flex-col gap-2 border-t border-dashed border-[color-mix(in_srgb,var(--tone-deep)_40%,transparent)] pt-[14px]">
               <span
                 className="font-cond text-label font-bold uppercase tracking-caps"
                 style={{ color: 'var(--tone-deep, var(--color-ink))' }}
@@ -510,7 +510,7 @@ export function MechSheet({
       </div>
 
       {/* ===== R2: Chassis Ability ∥ Quirk & Appearance ===== */}
-      <div className="grid grid-cols-1 gap-6 @5xl:grid-cols-12">
+      <div className="grid grid-cols-1 gap-[22px] @5xl:grid-cols-12 @5xl:gap-6">
         {chassisAbilities.length > 0 && (
           <div className="@5xl:col-span-7">
             <SheetSectionCard
@@ -613,16 +613,16 @@ export function MechSheet({
         {renderItems('module', mech.modules)}
       </SheetSectionCard>
 
-      {/* ===== R4: Linked Units ∥ The Hold ===== */}
-      <div className="grid grid-cols-1 gap-6 @5xl:grid-cols-12">
-        <div className="@5xl:col-span-5">
-          {/* Linked Units — poster renders this as a bare section header + rail
-              stack (no `.dcard` frame), matching PilotSheet. */}
-          <SectionChead title="Linked Units" />
-          <div className="flex flex-col gap-4">{linkedUnits}</div>
-        </div>
-
-        <div className="@5xl:col-span-7">
+      {/* ===== R4: Linked Units ∥ The Hold =====
+          DOM order is Hold THEN Linked Units — the poster's own mobile stack
+          puts `.bcargo` (Hold) before `.blinks` (Linked Units) even though
+          both share `grid-row:1` at the desktop breakpoint (`.bcargo{grid-
+          column:6/13}` / `.blinks{grid-column:1/6}`, clean-mech.html:547-548)
+          — Linked Units reads LAST on mobile. `@5xl:order-*` restores the
+          desktop visual (Linked Units left/span5, Hold right/span7) without
+          reordering the DOM. */}
+      <div className="grid grid-cols-1 gap-[22px] @5xl:grid-cols-12 @5xl:gap-6">
+        <div className="@5xl:order-2 @5xl:col-span-7">
           <SheetSectionCard
             title="The Hold"
             count={
@@ -640,6 +640,13 @@ export function MechSheet({
               readOnly={readOnly}
             />
           </SheetSectionCard>
+        </div>
+
+        <div className="@5xl:order-1 @5xl:col-span-5">
+          {/* Linked Units — poster renders this as a bare section header + rail
+              stack (no `.dcard` frame), matching PilotSheet. */}
+          <SectionChead title="Linked Units" />
+          <div className="flex flex-col gap-4">{linkedUnits}</div>
         </div>
       </div>
 

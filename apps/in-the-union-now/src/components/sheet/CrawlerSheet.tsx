@@ -205,10 +205,17 @@ export function CrawlerSheet({
       className="sheet-section @container flex flex-col gap-6"
     >
       {/* ===== 2-col macro grid: content column ∥ full-height Storage rail
-          (poster `.layout`, split at its 880px container breakpoint) ===== */}
-      <div className="grid grid-cols-1 items-stretch gap-6 @[880px]:grid-cols-[minmax(0,54fr)_minmax(0,46fr)] @[880px]:gap-7">
-        {/* ----- Content column ----- */}
-        <div className="flex min-w-0 flex-col gap-6">
+          (poster `.layout`, split at its 880px container breakpoint) =====
+          DOM order is content-column, Storage, THEN Linked Units — the
+          poster's own `grid-template-areas` stacks mobile rows as "id" "bays"
+          "storage" "links" (clean-crawler.html:215-222), so Storage reads
+          BEFORE Linked Units on a single column even though Storage is a
+          separate full-height rail at the desktop breakpoint. Explicit
+          `@[880px]:col-start-*`/`row-start-*` restores that desktop layout
+          (Storage spans both rows on the right) without reordering the DOM. */}
+      <div className="grid grid-cols-1 items-stretch gap-8 @[880px]:grid-cols-[minmax(0,54fr)_minmax(0,46fr)] @[880px]:gap-x-7">
+        {/* ----- Content column (Identity/Economy, Bays, Weapons) ----- */}
+        <div className="flex min-w-0 flex-col gap-6 @[880px]:col-start-1 @[880px]:row-start-1">
           {/* Identity + Economy */}
           <SheetSectionCard
             title="Identity"
@@ -333,17 +340,10 @@ export function CrawlerSheet({
               )}
             </SheetSectionCard>
           )}
-
-          {/* Linked Units — poster renders this as a bare section header +
-              rail stack (no `.dcard` frame), matching PilotSheet/MechSheet. */}
-          <div>
-            <SectionChead title="Linked Units" />
-            <div className="flex flex-col gap-4">{linkedUnits}</div>
-          </div>
         </div>
 
-        {/* ----- Storage rail (full-height via the grid row's default
-            stretch) ----- */}
+        {/* ----- Storage rail (full-height, spans both content-column rows
+            at the desktop breakpoint) ----- */}
         <SheetSectionCard
           title="Storage Bay"
           count={
@@ -351,7 +351,7 @@ export function CrawlerSheet({
               {lots.length} {lots.length === 1 ? 'lot' : 'lots'} · unlimited
             </span>
           }
-          className="min-w-0"
+          className="min-w-0 @[880px]:col-start-2 @[880px]:row-start-1 @[880px]:row-span-2"
         >
           <StorageManifest
             side="crawler"
@@ -361,6 +361,13 @@ export function CrawlerSheet({
             readOnly={readOnly}
           />
         </SheetSectionCard>
+
+        {/* Linked Units — poster renders this as a bare section header +
+            rail stack (no `.dcard` frame), matching PilotSheet/MechSheet. */}
+        <div className="@[880px]:col-start-1 @[880px]:row-start-2">
+          <SectionChead title="Linked Units" />
+          <div className="flex flex-col gap-4">{linkedUnits}</div>
+        </div>
       </div>
 
       {/* The weapons picker — the existing master-detail modal, mounted

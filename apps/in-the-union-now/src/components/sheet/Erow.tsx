@@ -24,10 +24,19 @@ type EcflowProps = {
   className?: string
 }
 
-/** Entity-card grid (design `.ecflow`) — 1 column on mobile, max 2 on desktop. */
+/**
+ * Entity-card grid (design `.abgrid`/`.ecflow`) — 1 column on mobile, max 2 on
+ * desktop. Gap rhythm matches the poster's `.abgrid{gap:26px 18px}`
+ * (clean-pilot.html:441-444) — 26px between rows, 18px between columns.
+ */
 export function Ecflow({ children, className }: EcflowProps) {
   return (
-    <div className={cn('grid grid-cols-1 items-stretch gap-4 md:grid-cols-2', className)}>
+    <div
+      className={cn(
+        'grid grid-cols-1 items-stretch gap-x-[18px] gap-y-[26px] md:grid-cols-2',
+        className
+      )}
+    >
       {children}
     </div>
   )
