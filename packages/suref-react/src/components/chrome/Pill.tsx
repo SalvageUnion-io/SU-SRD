@@ -18,6 +18,12 @@ type PillProps = {
   children: ReactNode
   /** Entity-kind or status fill; default is ink-on-paper outline */
   tone?: PillTone
+  /**
+   * Full pill shape (radius 999) — the poster app-bar "kindpill" (design
+   * source clean-pilot.html `.kindpill`). Default false keeps the existing
+   * 2px-radius badge shape used everywhere else.
+   */
+  rounded?: boolean
   className?: string
 }
 
@@ -25,11 +31,12 @@ type PillProps = {
  * Pill badge (design-spec §2.6 `.pill`): 2px border, 2px radius, uppercase
  * cond 11px. Kind fills pilot/mech/crawler; status fills ok/warn/bad.
  */
-export function Pill({ children, tone, className }: PillProps) {
+export function Pill({ children, tone, rounded, className }: PillProps) {
   return (
     <span
       className={cn(
-        'inline-flex items-center rounded-[2px] border-2 px-[9px] py-[3px] font-cond text-[11px] font-semibold uppercase leading-none tracking-[0.05em]',
+        'inline-flex items-center border-2 px-[9px] py-[3px] font-cond text-[11px] font-semibold uppercase leading-none tracking-[0.05em]',
+        rounded ? 'rounded-full' : 'rounded-[2px]',
         tone ? PILL_TONES[tone] : 'border-ink bg-paper text-ink',
         className
       )}

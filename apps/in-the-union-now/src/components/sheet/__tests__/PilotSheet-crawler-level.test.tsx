@@ -1,15 +1,19 @@
 /**
  * PilotSheet — Crawler Level (Slice E) tests.
  *
+ * The "Crawler Level" slab UI (manual-fallback editor + linked-crawler
+ * readout) was dropped from the pilot sheet body in the redesign poster
+ * conformance pass (D6, #410) — it has no poster counterpart. What survives
+ * is the underlying SCALING SOURCE: `resolveEffectiveCrawlerLevel` still
+ * feeds choice caps (e.g. the Modification choice) regardless of whether a
+ * crawler-level control renders anywhere.
+ *
  * Asserts that:
- *   1. With NO associated crawler, an editable "Crawler Level" control renders
- *      (manual fallback) and persists to pilot.crawlerLevel.
- *   2. With an associated crawler (pilot-to-crawler SoftLink), the crawler's
- *      techLevel is shown read-only — no manual edit field, and it wins over any
- *      manual crawlerLevel.
- *   3. The effective level feeds the Modification choice cap: the `n/max` counter
- *      resolves to the effective level.
- *   4. With neither a crawler nor a manual level, the Modification cap is
+ *   1. The dropped manual-fallback editor and linked-crawler readout no
+ *      longer render on the pilot sheet body (#410).
+ *   2. The effective level still feeds the Modification choice cap: the
+ *      `n/max` counter resolves to the effective level from a linked crawler.
+ *   3. With neither a crawler nor a manual level, the Modification cap is
  *      unbounded (no counter) — unchanged SRD-style behaviour.
  *
  * Uses the store-injection seam (no mock.module()). The injected store snapshot
@@ -18,7 +22,7 @@
  */
 
 import { afterEach, beforeAll, describe, expect, mock, test } from 'bun:test'
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 
 import { PilotSheet } from '../PilotSheet'
@@ -134,29 +138,17 @@ function pilotToCrawlerLink(pilotId: string, crawlerId: string): SoftLink {
 // Tests
 // ---------------------------------------------------------------------------
 
-describe('PilotSheet — Crawler Level (Slice E)', () => {
-  test('unlinked pilot: shows an editable Crawler Level field that persists', async () => {
+describe('PilotSheet — Crawler Level slab dropped (redesign D6, #410)', () => {
+  test('no manual-fallback editor renders, linked or not', () => {
     const pilot = makePilot({ crawlerLevel: 2 })
-    const { store, updateMock } = makeStore({ pilot })
+    const { store } = makeStore({ pilot })
     render(<PilotSheet pilot={pilot} store={store} />)
 
-    const field = screen.getByLabelText('Edit Crawler Level')
-    expect(field).toBeTruthy()
-
-    // Click to edit, type a new value, commit with Enter.
-    await act(async () => {
-      fireEvent.click(field)
-    })
-    const input = screen.getByLabelText('Edit Crawler Level') as HTMLInputElement
-    await act(async () => {
-      fireEvent.change(input, { target: { value: '4' } })
-      fireEvent.keyDown(input, { key: 'Enter' })
-    })
-
-    expect(updateMock).toHaveBeenCalledWith('pilot', pilot.id, { crawlerLevel: 4 })
+    expect(screen.queryByLabelText('Edit Crawler Level')).toBeNull()
+    expect(screen.queryByText('Crawler Level')).toBeNull()
   })
 
-  test('linked crawler: shows the crawler techLevel read-only (no manual edit field)', () => {
+  test('no linked-crawler readout renders on the sheet body', () => {
     const pilot = makePilot({ crawlerLevel: 2 })
     const crawler = makeCrawler({ techLevel: 'tech-5' })
     const { store } = makeStore({
@@ -166,12 +158,8 @@ describe('PilotSheet — Crawler Level (Slice E)', () => {
     })
     render(<PilotSheet pilot={pilot} store={store} />)
 
-    // No manual edit affordance when a crawler is associated.
     expect(screen.queryByLabelText('Edit Crawler Level')).toBeNull()
-    // Effective level comes from the crawler (5), not the manual fallback (2),
-    // and the source note references the crawler.
-    expect(screen.getByText('5')).toBeTruthy()
-    expect(screen.getByText(/from associated crawler/i)).toBeTruthy()
+    expect(screen.queryByText(/from associated crawler/i)).toBeNull()
   })
 
   test('Modification cap resolves to the effective level (counter appears)', () => {

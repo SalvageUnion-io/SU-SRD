@@ -65,10 +65,28 @@ function renderShell(props: Partial<Parameters<typeof LiveSheet>[0]> = {}) {
 }
 
 function stripWrapper(): HTMLElement {
-  // The condensed block wraps the sheet name shown in the strip.
-  const name = screen.getByText('Mara Vex')
-  return name.parentElement as HTMLElement
+  // The condensed block wraps the live MiniStat readouts (name + pill moved
+  // to the always-visible resting bar — see the describe block below).
+  const stat = screen.getByLabelText('HP 7 of 10')
+  return stat.parentElement as HTMLElement
 }
+
+describe('LiveSheet — resting-bar identity (name stamp + kind pill)', () => {
+  test('name and kind pill are visible at rest, not gated behind condense', () => {
+    renderShell()
+    expect(screen.getByText('Mara Vex')).toBeTruthy()
+    const pill = screen.getByText('Pilot')
+    expect(pill.closest('[aria-hidden]')).toBeNull()
+    // Poster `.kindpill` shape (design source clean-pilot.html): radius 999.
+    expect(pill.className).toContain('rounded-full')
+  })
+
+  test('name and kind pill stay visible even with condense disabled', () => {
+    renderShell({ condense: false })
+    expect(screen.getByText('Mara Vex')).toBeTruthy()
+    expect(screen.getByText('Pilot')).toBeTruthy()
+  })
+})
 
 describe('LiveSheet — condense strip gating (S11)', () => {
   test('resting state: strip is aria-hidden with pointer-events disabled', () => {
@@ -109,7 +127,10 @@ describe('LiveSheet — condense strip gating (S11)', () => {
 
   test('condense=false renders no strip and observes nothing', () => {
     renderShell({ condense: false })
-    expect(screen.queryByText('Mara Vex')).toBeNull()
+    // Resting-bar identity still renders (it's no longer part of the gated
+    // condense block); only the live MiniStat strip is suppressed.
+    expect(screen.getByText('Mara Vex')).toBeTruthy()
+    expect(screen.queryByLabelText('HP 7 of 10')).toBeNull()
     expect(observerCallbacks.length).toBe(0)
   })
 

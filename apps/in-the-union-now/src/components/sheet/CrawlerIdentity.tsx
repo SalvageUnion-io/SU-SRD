@@ -1,14 +1,17 @@
 /**
- * CrawlerIdentityPanel — the crawler hero's IDENTITY block (redesign phase 3,
- * sibling of PilotIdentityPanel / MechIdentityPanel). Poster top region:
- * Name + Type as labeled identity fields, then the crawler type's special
- * ability and the type itself as compact ReferenceEntityDisplay entity cards
- * (max 2 columns), then the Description panel.
+ * CrawlerIdentityPanel — the crawler poster's IDENTITY card body (redesign
+ * Phase 2, the crawler sibling of PilotIdentityPanel / MechIdentityPanel).
+ * Poster identity band: Name + Type as labeled identity fields, then the
+ * crawler type's special ability and the type itself as compact
+ * ReferenceEntityDisplay entity cards (max 2 columns), then the Description
+ * panel.
  *
- * FIELD-section archetype (unified edit language): the panel owns its OWN
- * Edit button; fields render read-only by default and flip to inline
- * click-to-edit only while this section is editing. Type is picker-backed —
- * its edit affordance opens the existing CrawlerTypeEditModal (destructive:
+ * FIELD-section archetype (unified edit language), but the section's own
+ * Edit/Done button now lives in the parent `SheetSectionCard`'s header (Phase
+ * 2 lifts the chead row into the card chrome) — this panel is CONTROLLED via
+ * the `editing` prop rather than owning its own toggle state, mirroring
+ * `PilotIdentityPanel` / `MechIdentityPanel`. Type is picker-backed — its
+ * edit affordance opens the existing CrawlerTypeEditModal (destructive:
  * resets the special NPC, with its own confirm step).
  *
  * The type card keeps its live surface (special-NPC inset, Keepsake/Motto
@@ -29,7 +32,6 @@ import type { useEntityStore } from '../../stores/entityStore'
 import { CrawlerTypeEditModal } from '../crawler/CrawlerTypeEditModal'
 import { CrawlerTypeCard } from './CrawlerSheetItems'
 import { IdentityField } from './IdentityField'
-import { SectionEditButton } from './SheetSection'
 import type { SheetPatch, SheetStoreState } from './sheetViewProps'
 
 /** The standalone ability card never re-renders the action's choice UI. */
@@ -63,8 +65,15 @@ type CrawlerIdentityPanelProps = {
   store: typeof useEntityStore
   /** Live write surface for the type modal's multi-write. */
   storeState: SheetStoreState
-  /** Partial merge on this crawler; omit on read-only sheets (no Edit button). */
+  /** Partial merge on this crawler; omit on read-only sheets (no edit affordance). */
   patch?: SheetPatch
+  /**
+   * Section-level edit flag, owned by the parent `SheetSectionCard`'s header
+   * Edit/Done button (Phase 2: the chead row lives in the card, not here).
+   */
+  editing?: boolean
+  /** CrawlerTypeCard's NPC inset needs an explicit flag — it writes through
+   * the store directly (typeNpc), independent of `patch`. */
   readOnly?: boolean
   className?: string
 }
@@ -74,11 +83,10 @@ export function CrawlerIdentityPanel({
   store,
   storeState,
   patch,
+  editing = false,
   readOnly = false,
   className,
 }: CrawlerIdentityPanelProps) {
-  // Per-section edit flag — flips ONLY this panel's fields to inline-edit.
-  const [editing, setEditing] = useState(false)
   const [typePickerOpen, setTypePickerOpen] = useState(false)
 
   const canEdit = patch !== undefined && !readOnly
@@ -100,20 +108,6 @@ export function CrawlerIdentityPanel({
 
   return (
     <section aria-label="Crawler identity" className={cn('min-w-0', className)}>
-      {/* Section header — owns the panel's OWN Edit button (no global mode). */}
-      <div className="mb-2 flex min-h-7 items-center justify-between gap-2">
-        <span className="bg-ink px-2 pb-px pt-[2px] font-cond text-xs font-bold uppercase leading-relaxed tracking-caps text-su-white">
-          Identity
-        </span>
-        {canEdit && (
-          <SectionEditButton
-            section="Identity"
-            editing={isEditing}
-            onToggle={() => setEditing((v) => !v)}
-          />
-        )}
-      </div>
-
       <div className="flex min-w-0 flex-col gap-3">
         {/* Poster field row: Name (prominent) + Type (picker-backed). */}
         <div className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2">

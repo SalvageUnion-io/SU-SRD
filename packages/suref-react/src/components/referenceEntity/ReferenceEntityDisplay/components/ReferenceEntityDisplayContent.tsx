@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import {
   getDisplayName,
   getGoals,
@@ -88,6 +88,12 @@ export type ReferenceEntityDisplayContentProps = ReferenceEntityDisplayStateInpu
   onCardClick?: () => void
   /** Enable hover enlarge effect without a click handler (e.g., when wrapped in an <a>) */
   cardClickable?: boolean
+  /**
+   * Override the card wrapper className/style (passed straight to
+   * DisplayCard.cardStyle). Replaces the default `shadow-lg`, so include it if
+   * you still want the shadow (e.g. `cn('shadow-lg', EDIT_CUE_CLASS)`).
+   */
+  cardStyle?: { className?: string; style?: CSSProperties }
   /** Override stats in the card header (passed to DisplayCard.stats) */
   stats?: StatItem[]
   /**
@@ -163,6 +169,7 @@ export function ReferenceEntityDisplayContent({
   lightweight = false,
   onCardClick,
   cardClickable,
+  cardStyle,
   stats: statsProp,
   hideLeadContent = false,
   selections: controlledSelections,
@@ -551,6 +558,7 @@ export function ReferenceEntityDisplayContent({
       stats={resolvedStats}
       onCardClick={onCardClick}
       cardClickable={cardClickable}
+      cardStyle={cardStyle}
       status={status}
       onStatusClick={onStatusClick}
       statusSubject={typeof data.name === 'string' ? data.name : undefined}

@@ -3,11 +3,15 @@
  * 4.2). The hero is an entity-card frame at sheet scale: black category tab
  * overhanging a 3px ink border on the sheet tone, a black name chip, identity
  * mchips + quiet identity lines on the left vs the lg StatBlock tracker
- * cluster on the right, an optional ChassisStats spec strip, and the linked-
- * entity rail strip stitched inside the frame's bottom edge.
+ * cluster on the right, and an optional ChassisStats spec strip.
  *
  * Pure layout — all content arrives via slots so the three variant sheets
- * compose it without forking the frame.
+ * compose it without forking the frame. Identity/vitals/linked-unit-rail
+ * content lives in each sheet's BODY poster regions now (Phase 2 — pilot,
+ * mech, crawler all migrated); the hero itself carries only the name row +
+ * meta on every variant. The `rail` slot (linked-entity rail stitched inside
+ * the frame's bottom edge) was the last hero-hosted region — crawler's
+ * migration retired it, so it no longer exists here.
  */
 
 import type { ReactNode, Ref } from 'react'
@@ -45,8 +49,6 @@ type SheetHeroProps = {
    * (e.g. a labeled gauge cluster). Rendered between trackers and inset.
    */
   vitals?: ReactNode
-  /** Linked-entity rail strip — rendered inside the frame, under the band. */
-  rail?: ReactNode
   /** Forwarded to the hero root for the shell's condense observer. */
   heroRef?: Ref<HTMLElement>
   className?: string
@@ -62,7 +64,6 @@ export function SheetHero({
   inset,
   identityBlock,
   vitals,
-  rail,
   heroRef,
   className,
 }: SheetHeroProps) {
@@ -127,8 +128,14 @@ export function SheetHero({
             )}
 
             {hasVitalsRegion && (
-              <div className="flex min-w-0 flex-col gap-2.5 lg:items-end">
-                {trackers && <div className="flex flex-wrap gap-2 lg:justify-end">{trackers}</div>}
+              <div className="flex min-w-0 flex-col gap-2.5">
+                {trackers && (
+                  // Full-width vertical gauge stack (poster `.gauge` column): each
+                  // gauge owns its row, dashed deep-40 separators between them.
+                  <div className="flex w-full flex-col [&>*+*]:mt-[14px] [&>*+*]:border-t [&>*+*]:border-dashed [&>*+*]:border-[color-mix(in_srgb,var(--tone-deep)_40%,transparent)] [&>*+*]:pt-[14px]">
+                    {trackers}
+                  </div>
+                )}
                 {vitals}
                 {inset}
               </div>
@@ -136,16 +143,6 @@ export function SheetHero({
           </div>
         )}
       </div>
-
-      {/* Rail strip — inside the frame, stitched under the band */}
-      {rail && (
-        <div
-          className="flex flex-col gap-3 border-t-2 border-ink px-3 py-3 sm:flex-row sm:px-4"
-          style={{ background: 'var(--ground-2)' }}
-        >
-          {rail}
-        </div>
-      )}
     </section>
   )
 }

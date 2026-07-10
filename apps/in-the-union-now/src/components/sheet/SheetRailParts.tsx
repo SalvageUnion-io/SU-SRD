@@ -3,9 +3,12 @@
  * shared by the three sheet views (extracted from Sheet.tsx, audit item 19).
  * Pure presentational: live mini stats read the passed record, never the
  * store.
+ *
+ * Rail stats render as INLINE NUMERIC TEXT (poster `.rail-body`, e.g.
+ * "SP 9/13 · EP 6/11 · Heat 4/12") — never `VitalGauge`/`StatBlock` pips
+ * (redesign gap G10).
  */
 
-import { StatBlock } from 'suref-react'
 import type { PillTone, StatBlockState } from 'suref-react'
 
 import {
@@ -47,82 +50,74 @@ export function RailCta({
   )
 }
 
-/** Live mini stats for a linked mech (rail chip body). */
+/** Live mini stats for a linked mech (rail chip body): "SP 9/13 · EP 6/11 · Heat 4/12". */
 export function MechRailStats({ mech }: { mech: Mech }) {
   const maxSP = mechMaxSP(mech)
   const maxEP = mechMaxEP(mech)
   const maxHeat = mechMaxHeat(mech)
+  const sp = mech.currentSP ?? maxSP
+  const ep = mech.currentEP ?? maxEP
+  const heat = mech.currentHeat ?? maxHeat
   return (
     <>
-      <StatBlock
-        code="SP"
-        size="sm"
-        stat="sp"
-        value={mech.currentSP ?? maxSP}
-        max={maxSP}
-        editable={false}
-      />
-      <StatBlock
-        code="EP"
-        size="sm"
-        stat="ep"
-        value={mech.currentEP ?? maxEP}
-        max={maxEP}
-        editable={false}
-      />
-      <StatBlock
-        code="HEAT"
-        size="sm"
-        stat="heat"
-        value={mech.currentHeat ?? maxHeat}
-        max={maxHeat}
-        editable={false}
-      />
+      SP{' '}
+      <b>
+        {sp}/{maxSP}
+      </b>{' '}
+      &middot; EP{' '}
+      <b>
+        {ep}/{maxEP}
+      </b>{' '}
+      &middot; Heat{' '}
+      <b>
+        {heat}/{maxHeat}
+      </b>
     </>
   )
 }
 
-/** Live mini stats for a linked pilot (rail chip body). */
+/** Live mini stats for a linked pilot (rail chip body): "HP 7/10 · AP 4/6". */
 export function PilotRailStats({ pilot }: { pilot: Pilot }) {
   const maxHP = Math.max(0, pilotMaxHP(pilot))
   const maxAP = Math.max(0, pilotMaxAP(pilot))
+  const hp = pilot.currentHP ?? maxHP
+  const ap = pilot.currentAP ?? maxAP
   return (
     <>
-      <StatBlock
-        code="HP"
-        size="sm"
-        stat="hp"
-        value={pilot.currentHP ?? maxHP}
-        max={maxHP}
-        editable={false}
-      />
-      <StatBlock
-        code="AP"
-        size="sm"
-        stat="ap"
-        value={pilot.currentAP ?? maxAP}
-        max={maxAP}
-        editable={false}
-      />
+      HP{' '}
+      <b>
+        {hp}/{maxHP}
+      </b>{' '}
+      &middot; AP{' '}
+      <b>
+        {ap}/{maxAP}
+      </b>
     </>
   )
 }
 
-/** Live mini stats for a linked crawler (rail chip body). */
+/** Live mini stats for a linked crawler (rail chip body): "SP 9/13 · Bays 4/5 Intact". */
 export function CrawlerRailStats({ crawler }: { crawler: Crawler }) {
   const maxSP = crawlerMaxSP(crawler)
+  const sp = crawler.currentSP ?? maxSP
   const states = bayStates(crawler)
+  const intact = states.filter((s) => s === 'intact').length
   return (
     <>
-      <StatBlock
-        code="SP"
-        size="sm"
-        stat="sp"
-        value={crawler.currentSP ?? maxSP}
-        max={maxSP}
-        editable={false}
-      />
-      {states.length > 0 && <StatBlock code="BAYS" size="sm" states={states} />}
+      SP{' '}
+      <b>
+        {sp}/{maxSP}
+      </b>
+      {states.length > 0 && (
+        <>
+          {' '}
+          &middot; Bays{' '}
+          <b>
+            {intact}/{states.length}
+          </b>{' '}
+          Intact
+        </>
+      )}
     </>
   )
 }

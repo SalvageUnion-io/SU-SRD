@@ -13,35 +13,55 @@ type SlabProps = {
    */
   actions?: ReactNode
   className?: string
+  /**
+   * 'dashed' (default, unchanged) — tone-deep colored text label + dashed
+   * leader rule, the original live-play control-panel shape. 'solid' — the
+   * poster `.sect` shape (clean-pilot.html :215-218): black-stamp label
+   * (white-on-ink) + a SOLID ink-35 leader rule. Additive opt-in so existing
+   * consumers (and any future suref-web use) keep the default unless they
+   * ask for the poster shape.
+   */
+  variant?: 'dashed' | 'solid'
 }
 
 /**
  * Live-sheet section header (design-spec §2.10 `.slab`): uppercase cond label
- * in the sheet's `--tone-deep` (ink fallback) with a dashed leader rule.
+ * with a leader rule. Default ('dashed') keeps the original tone-deep text +
+ * dashed rule; 'solid' matches the poster `.sect` region-divider shape.
  */
-export function Slab({ label, count, actions, className }: SlabProps) {
+export function Slab({ label, count, actions, className, variant = 'dashed' }: SlabProps) {
+  const isSolid = variant === 'solid'
   return (
-    <div
-      className={cn(
-        'mb-3.5 flex items-center gap-3 font-cond text-sm font-bold uppercase tracking-[0.12em]',
-        className
+    <div className={cn('mb-3.5 flex items-center gap-3', className)}>
+      {isSolid ? (
+        <span className="box-decoration-clone inline shrink-0 bg-ink px-2 pb-[3px] pt-[2px] font-cond text-sm font-bold uppercase leading-relaxed tracking-[0.09em] text-su-white">
+          {label}
+        </span>
+      ) : (
+        <span
+          className="shrink-0 font-cond text-sm font-bold uppercase tracking-[0.12em]"
+          style={{ color: 'var(--tone-deep, var(--color-ink))' }}
+        >
+          {label}
+        </span>
       )}
-      style={{ color: 'var(--tone-deep, var(--color-ink))' }}
-    >
-      <span className="shrink-0">{label}</span>
       {count != null && (
         <span className="shrink-0 font-body text-xs font-bold normal-case tracking-normal text-wk-muted">
           {count}
         </span>
       )}
-      <span
-        aria-hidden="true"
-        className="h-0.5 flex-1 opacity-40"
-        style={{
-          background:
-            'repeating-linear-gradient(90deg, var(--tone-deep, var(--color-ink)) 0 6px, transparent 6px 11px)',
-        }}
-      />
+      {isSolid ? (
+        <span aria-hidden="true" className="h-0 min-w-3 flex-1 border-t-[1.5px] border-ink/35" />
+      ) : (
+        <span
+          aria-hidden="true"
+          className="h-0.5 flex-1 opacity-40"
+          style={{
+            background:
+              'repeating-linear-gradient(90deg, var(--tone-deep, var(--color-ink)) 0 6px, transparent 6px 11px)',
+          }}
+        />
+      )}
       {actions && <span className="flex shrink-0 items-center gap-1.5">{actions}</span>}
     </div>
   )

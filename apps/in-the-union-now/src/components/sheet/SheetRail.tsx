@@ -1,10 +1,15 @@
 /**
- * SheetRail — linked-entity rail chips (design §2.11, plan 4.3).
+ * SheetRail — linked-entity rail chips (design §2.11, plan 4.3; restyled to
+ * the poster `.rail` / `.rail-head` / `.rail-body` (redesign gap G10)).
  *
- * RailChip: an anchor mini entity-card in the linked entity's own color with
- * live sm-StatBlock readouts (resolved by the composition resolver — names
- * and stats, never raw IDs [gap 10]). The whole card navigates; the optional
- * '⇄ Swap' minibtn intercepts.
+ * RailChip: an anchor mini entity-card in the linked entity's own tone (a
+ * 2.5px tone border/fill, matching `clean-pilot.html` `.rail.teal` /
+ * `.rail.magenta`) with a tone HEAD band (role+TL `.tag`, name `.stamp`, an
+ * open chevron) and a paper BODY block with an ink left rule carrying
+ * INLINE NUMERIC TEXT stats (e.g. "SP 9/13 · EP 6/11 · Heat 4/12") — never
+ * VitalGauges or StatBlocks (resolved by the composition resolver — names
+ * and stats, never raw IDs [gap 10]). The whole card navigates ("Open sheet
+ * →" foot); the optional '⇄ Swap' minibtn intercepts.
  *
  * RailEmpty: the same frame, dashed, with a pale tinted fill, a helper
  * message, create/link CTAs, and an optional mock control (e.g. the
@@ -12,7 +17,7 @@
  */
 
 import type { MouseEvent, ReactNode } from 'react'
-import { Bot, UserRound, Warehouse } from 'lucide-react'
+import { Bot, ChevronRight, UserRound, Warehouse } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { MiniBtn, Pill } from 'suref-react'
 import type { PillTone } from 'suref-react'
@@ -98,33 +103,36 @@ export function RailChip({
       href={href}
       aria-label={`${roleLabel}: ${name} — open sheet`}
       className={cn(
-        'relative flex min-w-0 flex-[1_1_0%] flex-col overflow-hidden rounded-[3px] border-rail border-ink no-underline transition-transform duration-[120ms] hover:-translate-y-px hover:shadow-[0_12px_26px_-14px_rgba(40,32,25,0.55)]',
+        'relative flex min-w-0 flex-[1_1_0%] flex-col overflow-hidden rounded-[3px] border-rail no-underline transition-transform duration-[120ms] hover:-translate-y-px hover:shadow-[0_12px_26px_-14px_rgba(40,32,25,0.55)]',
         className
       )}
-      style={{ background: RAIL_BG[tone] }}
+      style={{ background: RAIL_BG[tone], borderColor: RAIL_BG[tone] }}
     >
-      <span className="self-start bg-ink px-2 pb-0.5 pt-[3px] font-cond text-label-lg font-bold uppercase leading-none tracking-caps-wide text-su-white">
-        {roleLabel}
+      {/* tone HEAD band (poster `.rail-head`): role+TL `.tag` + name `.stamp` on
+          the left, live status + the open chevron on the right. */}
+      <span className="flex items-start justify-between gap-2.5 px-3 pt-2.5 pb-2">
+        <span className="flex min-w-0 flex-col items-start gap-1.5">
+          <span className="inline-flex items-stretch self-start overflow-hidden rounded-[2px] border-chrome border-ink font-cond text-label-lg font-bold uppercase leading-none tracking-caps-wide">
+            <span className="bg-ink px-2 py-1 text-su-white">{roleLabel}</span>
+            {tl !== undefined && <span className="bg-paper px-2 py-1 text-ink">{`TL${tl}`}</span>}
+          </span>
+          <span className="min-w-0 truncate bg-ink px-1.5 py-0.5 font-cond text-base font-bold uppercase leading-tight text-su-white">
+            {name}
+          </span>
+        </span>
+        <span className="flex shrink-0 items-center gap-1.5 pt-0.5">
+          {status && <Pill tone={status.tone}>{status.label}</Pill>}
+          <ChevronRight aria-hidden="true" className="size-4 text-ink/80" />
+        </span>
       </span>
-      {status && (
-        <span className="absolute right-2 top-[7px]">
-          <Pill tone={status.tone}>{status.label}</Pill>
+
+      {/* paper BODY (poster `.rail-body`): an ink left rule + inline numeric
+          text stats — never VitalGauges or StatBlocks here. */}
+      {stats && (
+        <span className="mx-2.5 mb-2.5 border-l-[3px] border-ink bg-paper px-2.5 py-2 font-cond text-[12px] font-semibold uppercase leading-snug tracking-caps text-ink/70 [&_b]:font-bold [&_b]:text-ink">
+          {stats}
         </span>
       )}
-
-      <span className="flex items-center gap-2 px-2.5 pt-2">
-        {tl !== undefined && (
-          <span className="flex h-[26px] w-[26px] shrink-0 flex-col items-center justify-center bg-ink leading-none text-su-white">
-            <span className="font-body text-xs font-bold">{tl}</span>
-            <span className="font-cond text-nano opacity-85">TL</span>
-          </span>
-        )}
-        <span className="min-w-0 truncate bg-ink px-1.5 py-0.5 font-cond text-base font-bold uppercase leading-tight text-su-white">
-          {name}
-        </span>
-      </span>
-
-      {stats && <span className="flex flex-wrap items-start gap-1.5 px-2.5 py-2">{stats}</span>}
 
       <span
         className="mt-auto flex items-center justify-between gap-2 border-t-2 border-ink px-2.5 py-1.5"

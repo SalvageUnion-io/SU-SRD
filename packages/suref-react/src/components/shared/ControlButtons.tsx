@@ -57,6 +57,37 @@ function ControlButton({
     compact ? 'text-[10px]' : 'text-xs'
   )
 
+  // Icon-only control (design-spec `.ctl`): a square 28/32px button with a
+  // centred icon and no text — used by the live-sheet per-card remove/swap
+  // cluster. Neutral ink chrome (paper fill, ink border, hover inverts) so it
+  // reads consistently beside the absolute status badge. `min-h-11`/`min-w-11`
+  // holds the 44px coarse-pointer tap target without changing desktop size.
+  const Icon = control.icon
+  const isIconOnly = !!Icon && !control.label && !control.segmentText
+  if (Icon && isIconOnly) {
+    return (
+      <button
+        key={control.key}
+        type="button"
+        className={cn(
+          'inline-flex shrink-0 items-center justify-center rounded-[3px] border-2 transition-colors',
+          'min-h-11 min-w-11 sm:min-h-0 sm:min-w-0',
+          compact ? 'h-7 w-7' : 'h-8 w-8',
+          isDisabled
+            ? 'cursor-not-allowed border-su-grey-medium text-su-grey-dark'
+            : 'cursor-pointer border-su-black bg-su-white text-su-black hover:bg-su-black hover:text-su-white',
+          control.className
+        )}
+        title={control.ariaLabel}
+        aria-label={control.ariaLabel}
+        aria-disabled={isDisabled || undefined}
+        onClick={isDisabled ? undefined : (e) => onClickWithStop(e, control.onClick)}
+      >
+        <Icon className={compact ? 'h-3.5 w-3.5' : 'h-4 w-4'} />
+      </button>
+    )
+  }
+
   return (
     <button
       key={control.key}

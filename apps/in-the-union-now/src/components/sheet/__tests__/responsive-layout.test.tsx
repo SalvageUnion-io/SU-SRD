@@ -8,7 +8,8 @@
  *
  * Coverage:
  *  1. Sheet — LiveSheet shell carries the variant tone class + sticky header;
- *     the hero rail rows at sm+ (sm:flex-row)
+ *     the crawler body's 2-col macro grid (content ∥ Storage rail) splits at
+ *     its container breakpoint
  *  2. Sheet — missing entity still renders without crash (guard path)
  *  3. SnapshotSheet — uses max-w-7xl container
  *  4. Dashboard — sections wrapper uses flex flex-col (mobile) and the
@@ -139,19 +140,22 @@ describe('Sheet responsive layout — wired composition (LiveSheet shell)', () =
     expect(container.querySelector('[data-variant="mech"]')).toBeTruthy()
   })
 
-  test('Sheet wired rail stacks on mobile and rows at sm+ (sm:flex-row)', () => {
-    const link = makeMechToPilotLink('mech-resp-1', 'pilot-resp-1')
+  test('Sheet crawler body macro-grid stacks on mobile and splits content ∥ Storage rail at its container breakpoint', () => {
+    // Pilot, Mech and (Phase 2) Crawler all moved identity/vitals/rail
+    // content OUT of the hero into the body's poster regions — the crawler
+    // body additionally carries a 2-col macro grid (content column ∥
+    // full-height Storage rail) that stacks to one column on mobile.
     const { container } = render(
       <Sheet
-        kind="mech"
-        id="mech-resp-1"
-        entityStore={makeEntityStore([fakeMech, fakePilot])}
-        softLinkStore={makeSoftLinkStore([link])}
+        kind="crawler"
+        id="crawler-resp-1"
+        entityStore={makeEntityStore([fakeCrawler])}
+        softLinkStore={makeSoftLinkStore([])}
       />
     )
-    // The hero rail strip is a column on mobile, a row at sm+.
-    const rail = container.querySelector('[class*="sm:flex-row"]')
-    expect(rail).toBeTruthy()
+    const macroGrid = container.querySelector('[class*="54fr"]')
+    expect(macroGrid).toBeTruthy()
+    expect((macroGrid as HTMLElement).className).toContain('grid-cols-1')
   })
 })
 

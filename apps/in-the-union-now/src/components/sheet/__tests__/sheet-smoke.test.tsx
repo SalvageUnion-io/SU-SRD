@@ -320,13 +320,13 @@ describe('Smoke — mech stand-in (no pilot link)', () => {
 // ---------------------------------------------------------------------------
 // Scenario 6 — Stat-edit round-trip via the Sheet hero trackers
 //
-// Stat editing lives in the hero StatBlocks now (Sheet.tsx): the '–'/'+'
-// steppers patch current* fields through the injected store. This exercises
-// the Sheet → SheetHero → StatBlock → store.update pipeline.
+// Stat editing lives in the hero VitalGauges now (Sheet.tsx): clicking a
+// track segment patches current* fields through the injected store. This
+// exercises the Sheet → SheetHero → VitalGauge → store.update pipeline.
 // ---------------------------------------------------------------------------
 
 describe('Smoke — stat-edit round-trip (Sheet hero trackers)', () => {
-  test('clicking the SP stepper calls store.update with currentSP', async () => {
+  test('clicking the top SP gauge segment calls store.update with currentSP', async () => {
     const statMech: Mech = {
       ...fakeMech,
       id: 'mech-smoke-stat',
@@ -348,7 +348,9 @@ describe('Smoke — stat-edit round-trip (Sheet hero trackers)', () => {
     )
 
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Decrease SP' }))
+      // SP is a VitalGauge now: clicking the top-lit segment (index 4 =
+      // "Set SP to 5") steps SP 5 → 4 (pipClickValue click-to-set).
+      fireEvent.click(screen.getByRole('button', { name: 'Set SP to 5' }))
     })
 
     expect(captured.length).toBe(1)

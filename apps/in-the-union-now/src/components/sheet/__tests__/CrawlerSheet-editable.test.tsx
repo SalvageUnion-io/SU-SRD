@@ -1,15 +1,16 @@
 /**
- * CrawlerSheet — bay action economy + scrap pool tests (plan 4.6).
+ * CrawlerSheet — bay action economy tests (plan 4.6; Phase 2 poster layout).
  *
- * The SP/Bays trackers moved to the hero (Sheet.tsx, plan 4.1/4.2); this file
- * now covers the body's interactive surface:
+ * The SP/Bays trackers moved into the body's economy band (SheetCrawler,
+ * Phase 2); this file covers the Bays section's interactive surface:
  *   1. Bay status: Intact bays lead with their function action; a Damaged bay
  *      disables the function and promotes Repair (design §4.4 / pattern 8).
  *   2. Repair decrements 5 Scrap from the crawler-TL pool bucket, spilling
- *      into higher buckets, and flips the bay Intact (S12).
+ *      into higher buckets, and flips the bay Intact (S12) — the scrapPool
+ *      DATA/logic is kept (#413) even though the hand-edit Scrap Pool slab
+ *      UI was dropped (D6).
  *   3. A short pool is advisory — Repair still proceeds, never blocks (S12).
- *   4. The scrap-pool slab's TL buckets hand-edit via ±1 steppers (rules C5).
- *   5. readOnly suppresses every edit affordance.
+ *   4. readOnly suppresses every edit affordance.
  *
  * Uses the store-injection seam + a patched CrawlerBays.all. NO mock.module().
  */
@@ -236,59 +237,6 @@ describe('CrawlerSheet — bay function/Repair actions (design §4.4, S12)', () 
 })
 
 // ---------------------------------------------------------------------------
-// Scrap pool slab
-// ---------------------------------------------------------------------------
-
-describe('CrawlerSheet — scrap pool slab (rules C5)', () => {
-  let restore: () => void
-  afterEach(() => {
-    restore?.()
-  })
-
-  test('renders all six TL buckets with their values', async () => {
-    restore = await patchCrawlerBays()
-    render(<CrawlerSheet crawler={fakeCrawler} store={makeStubStore(fakeCrawler)} />)
-
-    expect(screen.getByRole('group', { name: 'Tech 2 scrap: 3' })).toBeTruthy()
-    expect(screen.getByRole('group', { name: 'Tech 3 scrap: 4' })).toBeTruthy()
-    expect(screen.getByRole('group', { name: 'Tech 6 scrap: 0' })).toBeTruthy()
-  })
-
-  test('incrementing a bucket persists scrapPool via store.update', async () => {
-    restore = await patchCrawlerBays()
-    const update = mock(async () => fakeCrawler)
-    render(<CrawlerSheet crawler={fakeCrawler} store={makeStubStore(fakeCrawler, { update })} />)
-
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Increase Tech 4 scrap' }))
-    })
-    expect(update).toHaveBeenCalledWith('crawler', fakeCrawler.id, {
-      scrapPool: { tl2: 3, tl3: 4, tl4: 1 },
-    })
-  })
-
-  test('decrementing a bucket persists scrapPool via store.update', async () => {
-    restore = await patchCrawlerBays()
-    const update = mock(async () => fakeCrawler)
-    render(<CrawlerSheet crawler={fakeCrawler} store={makeStubStore(fakeCrawler, { update })} />)
-
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Decrease Tech 3 scrap' }))
-    })
-    expect(update).toHaveBeenCalledWith('crawler', fakeCrawler.id, {
-      scrapPool: { tl2: 3, tl3: 3 },
-    })
-  })
-
-  test('an empty bucket cannot go below zero (decrease disabled)', async () => {
-    restore = await patchCrawlerBays()
-    render(<CrawlerSheet crawler={fakeCrawler} store={makeStubStore(fakeCrawler)} />)
-    const dec = screen.getByRole('button', { name: 'Decrease Tech 6 scrap' })
-    expect((dec as HTMLButtonElement).disabled).toBe(true)
-  })
-})
-
-// ---------------------------------------------------------------------------
 // readOnly
 // ---------------------------------------------------------------------------
 
@@ -298,7 +246,7 @@ describe('CrawlerSheet — readOnly suppresses edits', () => {
     restore?.()
   })
 
-  test('no scrap steppers, no Repair, no status toggle; stores never called', async () => {
+  test('no Repair, no status toggle; stores never called', async () => {
     restore = await patchCrawlerBays()
     const update = mock(async () => fakeCrawler)
     const updateCrawlerBay = mock(async () => fakeCrawler)
@@ -310,7 +258,6 @@ describe('CrawlerSheet — readOnly suppresses edits', () => {
       />
     )
 
-    expect(screen.queryByRole('button', { name: 'Increase Tech 4 scrap' })).toBeNull()
     expect(screen.queryByRole('button', { name: /Status:/ })).toBeNull()
     const enabledRepairs = screen
       .getAllByRole('button', { name: 'Repair' })

@@ -1,10 +1,11 @@
 /**
- * MechSheet — readOnly prop tests (#242, plan 4.5)
+ * MechSheet — readOnly prop tests (#242, plan 4.5; Phase 2 poster regions)
  *
  * When readOnly is true (e.g. in SnapshotSheet), the body suppresses every
- * edit affordance: no Heat Check / Push rolls, no flag clears, no Use /
- * Repair / uses steppers, no status-badge cycling (badges render as plain
- * spans), no Stow buttons on the hold — and the store is never written.
+ * edit affordance: no Identity/Quirk-Appearance Edit buttons, no Vitals gauge
+ * segments, no Use / Repair / uses steppers, no status-badge cycling (badges
+ * render as plain spans), no Stow buttons on the hold — and the store is
+ * never written.
  */
 
 import { afterEach, beforeAll, describe, expect, mock, test } from 'bun:test'
@@ -88,7 +89,7 @@ function makeStubStore(mech: Mech, updateSpy?: ReturnType<typeof mock>): typeof 
 }
 
 describe('MechSheet — readOnly', () => {
-  test('no edit affordances render: rolls, clears, Use/Repair, steppers, stow', () => {
+  test('no edit affordances render: Identity/Quirk edit, Use/Repair, steppers, stow', () => {
     render(
       <MechSheet
         mech={fakeMech}
@@ -99,9 +100,8 @@ describe('MechSheet — readOnly', () => {
       />
     )
 
-    expect(screen.queryByRole('button', { name: /heat check/i })).toBeNull()
-    expect(screen.queryByRole('button', { name: /push/i })).toBeNull()
-    expect(screen.queryByRole('button', { name: /clear shutdown/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /^edit identity$/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /^edit quirk & appearance$/i })).toBeNull()
     expect(screen.queryByRole('button', { name: /^use /i })).toBeNull()
     expect(screen.queryByRole('button', { name: /repair/i })).toBeNull()
     expect(screen.queryByRole('button', { name: /uses/i })).toBeNull()
@@ -111,7 +111,7 @@ describe('MechSheet — readOnly', () => {
     expect(screen.getAllByText(/damaged/i).length).toBeGreaterThan(0)
   })
 
-  test('content still renders: system card, hold lot, shutdown notice', () => {
+  test('content still renders: system card, hold lot, unified shutdown condition chip', () => {
     render(
       <MechSheet
         mech={fakeMech}
@@ -124,7 +124,9 @@ describe('MechSheet — readOnly', () => {
 
     expect(screen.getAllByText('Smoke Machine').length).toBeGreaterThan(0)
     expect(screen.getAllByText(/scrap/i).length).toBeGreaterThan(0) // the SCRAP lot chit
-    expect(screen.getByText(/shut down/i)).toBeTruthy()
+    // The `shutdown` flag surfaces as a unified Conditions chip (Vitals card)
+    // now that the standalone Heat Check panel is dropped (redesign D6).
+    expect(screen.getByText('Shutdown')).toBeTruthy()
   })
 
   test('store.update is never called from a readOnly body', async () => {

@@ -21,7 +21,18 @@
  */
 
 import { useEffect, useState } from 'react'
-import { Btn, Input, MChip, Panel, Pill, Row, StatBlock, toast } from 'suref-react'
+import {
+  Btn,
+  Input,
+  MChip,
+  Panel,
+  Pill,
+  Row,
+  StatBlock,
+  VitalGauge,
+  heatDangerFrom,
+  toast,
+} from 'suref-react'
 import type { PillTone } from 'suref-react'
 
 import { resolveClassName } from '../../lib/classRef'
@@ -435,23 +446,17 @@ function SnapshotPreviewCard({ kind, entity }: SnapshotPreviewCardProps) {
         ]}
         trackers={
           <>
-            <StatBlock
-              code="HP"
-              name="Hit Points"
-              unit="Points"
-              stat="hp"
+            <VitalGauge
+              label="HP"
               max={maxHP}
               value={Math.min(pilot.currentHP ?? maxHP, maxHP)}
-              editable={false}
+              readOnly
             />
-            <StatBlock
-              code="AP"
-              name="Ability Points"
-              unit="Points"
-              stat="ap"
+            <VitalGauge
+              label="AP"
               max={maxAP}
               value={Math.min(pilot.currentAP ?? maxAP, maxAP)}
-              editable={false}
+              readOnly
             />
             <StatBlock
               code="TP"
@@ -513,41 +518,33 @@ function SnapshotPreviewCard({ kind, entity }: SnapshotPreviewCardProps) {
         specs={<ChassisStats items={specs} />}
         trackers={
           <>
-            <StatBlock
-              code="Structure"
-              name="Points"
-              unit="Points"
-              stat="sp"
+            <VitalGauge
+              label="SP"
+              subLabel="Structure"
               max={maxSP}
               value={Math.min(mech.currentSP ?? maxSP, maxSP)}
-              editable={false}
+              readOnly
             />
-            <StatBlock
-              code="Energy"
-              name="Points"
-              unit="Points"
-              stat="ep"
+            <VitalGauge
+              label="EP"
+              subLabel="Energy"
               max={maxEP}
               value={Math.min(mech.currentEP ?? maxEP, maxEP)}
-              editable={false}
+              readOnly
             />
-            <StatBlock
-              code="Heat"
-              name="Capacity"
-              unit="Heat"
-              stat="heat"
+            <VitalGauge
+              label="Heat"
               max={maxHeat}
               value={Math.min(mech.currentHeat ?? maxHeat, maxHeat)}
-              editable={false}
+              danger={maxHeat > 0 ? heatDangerFrom(maxHeat) : undefined}
+              readOnly
             />
-            <StatBlock
-              code="Cargo"
-              name="Slots"
-              unit="Slots"
-              stat="cargo"
+            <VitalGauge
+              label="Cargo"
               max={maxCargo}
               value={totalLotUnits(mech.cargoLots)}
-              editable={false}
+              caption={['Used', 'Cap']}
+              readOnly
             />
           </>
         }
@@ -566,14 +563,12 @@ function SnapshotPreviewCard({ kind, entity }: SnapshotPreviewCardProps) {
       meta={tl !== undefined ? <MChip label="Tech LV" value={tl} /> : undefined}
       trackers={
         <>
-          <StatBlock
-            code="Structure"
-            name="Points"
-            unit="Points"
-            stat="sp"
+          <VitalGauge
+            label="SP"
             max={maxSP}
             value={Math.min(crawler.currentSP ?? maxSP, maxSP)}
-            editable={false}
+            caption={['Structure', 'Max']}
+            readOnly
           />
           {states.length > 0 && (
             <StatBlock code="Bays" name="Condition" unit="Bays" states={states} />

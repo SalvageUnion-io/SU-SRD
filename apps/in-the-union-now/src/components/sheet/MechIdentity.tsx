@@ -1,16 +1,18 @@
 /**
- * MechIdentityPanel — the mech hero's IDENTITY block (redesign phase 2, the
- * mech sibling of PilotIdentityPanel). Poster top region: the PATTERN NAME is
- * the prominent identity field — a mech's name and its pattern name are the
- * same field (redesign refinement), so the field displays the canonical
- * `mech.name` and saving writes `name` and `patternName` in lockstep. The
- * chassis and Tech Level render as labeled secondary meta.
+ * MechIdentityPanel — the mech poster's IDENTITY card body (redesign Phase 2,
+ * the mech sibling of PilotIdentityPanel). The PATTERN NAME is the prominent
+ * identity field — a mech's name and its pattern name are the same field
+ * (redesign refinement), so the field displays the canonical `mech.name` and
+ * saving writes `name` and `patternName` in lockstep. The chassis and Tech
+ * Level render as labeled secondary meta.
  *
- * FIELD-section archetype (unified edit language): the panel owns its OWN
- * Edit button; fields render read-only by default and flip to inline
- * click-to-edit only while this section is editing. Chassis is picker-backed —
- * its edit affordance opens the existing MechChassisPickerModal (destructive:
- * swapping chassis clears the loadout, with its own confirm step).
+ * FIELD-section archetype (unified edit language), but the section's own
+ * Edit/Done button now lives in the parent `SheetSectionCard`'s header (Phase
+ * 2 lifts the chead row into the card chrome) — this panel is CONTROLLED via
+ * the `editing` prop rather than owning its own toggle state, mirroring
+ * `PilotIdentityPanel`. Chassis is picker-backed — its edit affordance opens
+ * the existing MechChassisPickerModal (destructive: swapping chassis clears
+ * the loadout, with its own confirm step).
  *
  * // TODO(redesign): the mockup also shows a "Source pattern" meta line (the
  * // published pattern this mech was templated from) and a "Save as pattern"
@@ -24,7 +26,6 @@ import type { Mech } from '../../lib/schemas/mech'
 import { cn } from '../../lib/utils'
 import { MechChassisPickerModal } from '../mech/MechChassisPickerModal'
 import { IdentityField } from './IdentityField'
-import { SectionEditButton } from './SheetSection'
 import type { SheetPatch } from './sheetViewProps'
 
 type MechIdentityPanelProps = {
@@ -33,7 +34,12 @@ type MechIdentityPanelProps = {
   chassisName: string
   /** Chassis tech level; undefined renders as an em-dash. */
   techLevel?: number
-  /** Partial merge on this mech; omit on read-only sheets (no Edit button). */
+  /**
+   * Section-level edit flag, owned by the parent `SheetSectionCard`'s header
+   * Edit/Done button (Phase 2: the chead row lives in the card, not here).
+   */
+  editing?: boolean
+  /** Partial merge on this mech; omit on read-only sheets (no edit affordance). */
   patch?: SheetPatch
   className?: string
 }
@@ -42,11 +48,10 @@ export function MechIdentityPanel({
   mech,
   chassisName,
   techLevel,
+  editing = false,
   patch,
   className,
 }: MechIdentityPanelProps) {
-  // Per-section edit flag — flips ONLY this panel's fields to inline-edit.
-  const [editing, setEditing] = useState(false)
   const [chassisPickerOpen, setChassisPickerOpen] = useState(false)
 
   const canEdit = patch !== undefined
@@ -70,20 +75,6 @@ export function MechIdentityPanel({
 
   return (
     <section aria-label="Mech identity" className={cn('min-w-0', className)}>
-      {/* Section header — owns the panel's OWN Edit button (no global mode). */}
-      <div className="mb-2 flex min-h-7 items-center justify-between gap-2">
-        <span className="bg-ink px-2 pb-px pt-[2px] font-cond text-xs font-bold uppercase leading-relaxed tracking-caps text-su-white">
-          Identity
-        </span>
-        {canEdit && (
-          <SectionEditButton
-            section="Identity"
-            editing={isEditing}
-            onToggle={() => setEditing((v) => !v)}
-          />
-        )}
-      </div>
-
       <div className="flex min-w-0 flex-col gap-3">
         {/* The prominent identity: pattern name (== the mech's name). */}
         <IdentityField

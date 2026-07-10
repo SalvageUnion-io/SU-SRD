@@ -12,11 +12,11 @@ import { Btn, Panel, ReferenceEntityDisplay, Spec, StatusBadge, Tag } from 'sure
 import type { CardFootMeta, ChoiceSelections, EntityStatus } from 'suref-react'
 
 import type { ItemCondition } from '../../lib/schemas/mech'
-import type { GenericInventoryEntry, Injury } from '../../lib/schemas/pilot'
+import type { GenericInventoryEntry } from '../../lib/schemas/pilot'
 import { resolveAbilityApCost } from '../../lib/abilityCost'
 import type { useEntityStore } from '../../stores/entityStore'
 import { useEntityChoices } from '../shared/useEntityChoices'
-import { CardRemoveButton } from './SheetSection'
+import { CardRemoveButton, REMOVABLE_CARD_STYLE, cardRemoveControls } from './SheetSection'
 import {
   equipmentMaxUses,
   equipmentSlotCost,
@@ -107,9 +107,12 @@ export function PilotAbilityItem({
       >
         {used ? 'Recharge' : 'Mark Used'}
       </Btn>
-      {onRemove && <CardRemoveButton name={ability.name} onRemove={onRemove} />}
     </>
   )
+
+  // Per-card remove (✕) moves to the card HEADER (G4); the editing cue moves
+  // onto the CARD when removable.
+  const controls = onRemove ? cardRemoveControls({ name: ability.name, onRemove }) : undefined
 
   return (
     <ReferenceEntityDisplay
@@ -119,6 +122,8 @@ export function PilotAbilityItem({
       hide={HIDE_CHOICES}
       footMeta={footMeta}
       footActions={footActions}
+      controls={controls}
+      cardStyle={controls ? REMOVABLE_CARD_STYLE : undefined}
     />
   )
 }
@@ -241,15 +246,11 @@ export function PilotEquipmentItem({
         </Btn>
       </>
     ) : null
-  const removeAction =
-    !readOnly && onRemove ? <CardRemoveButton name={equipment.name} onRemove={onRemove} /> : null
-  const footActions =
-    useActions || removeAction ? (
-      <>
-        {useActions}
-        {removeAction}
-      </>
-    ) : undefined
+  const footActions = useActions ?? undefined
+  // Per-card remove (✕) moves to the card HEADER (G4), beside the status badge;
+  // the editing cue moves onto the CARD when removable.
+  const controls =
+    !readOnly && onRemove ? cardRemoveControls({ name: equipment.name, onRemove }) : undefined
 
   return (
     <ReferenceEntityDisplay
@@ -268,6 +269,8 @@ export function PilotEquipmentItem({
       }
       footMeta={footMeta}
       footActions={footActions}
+      controls={controls}
+      cardStyle={controls ? REMOVABLE_CARD_STYLE : undefined}
     />
   )
 }
@@ -381,59 +384,7 @@ export function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
   )
 }
 
-// ---------------------------------------------------------------------------
-// Injuries
-// ---------------------------------------------------------------------------
-
-type InjuryRowProps = {
-  injury: Injury
-  index: number
-  onChange?: (next: Injury) => void
-  onRemove?: () => void
-}
-
-export function InjuryRow({ injury, index, onChange, onRemove }: InjuryRowProps) {
-  const penalty = injury.severity === 'major' ? 2 : 1
-  if (!onChange || !onRemove) {
-    return (
-      <Panel className="flex items-center gap-3 px-3 py-2">
-        <Tag label={injury.severity} value={`−${penalty} HP`} />
-        <span className="min-w-0 flex-1 truncate font-body text-sm text-ink">
-          {injury.note || '—'}
-        </span>
-      </Panel>
-    )
-  }
-  return (
-    <Panel className="flex flex-wrap items-center gap-3 px-3 py-2">
-      <select
-        value={injury.severity}
-        aria-label={`Injury ${index + 1} severity`}
-        onChange={(e) => {
-          onChange({
-            ...injury,
-            severity: e.target.value === 'major' ? 'major' : 'minor',
-          })
-        }}
-        className="rounded-[3px] border-chrome border-ink bg-paper px-2 py-1.5 font-cond text-xs font-semibold uppercase text-ink focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22]"
-      >
-        <option value="minor">Minor (−1 max HP)</option>
-        <option value="major">Major (−2 max HP)</option>
-      </select>
-      <input
-        type="text"
-        defaultValue={injury.note}
-        aria-label={`Injury ${index + 1} note`}
-        placeholder="What happened?"
-        onBlur={(e) => {
-          const next = e.target.value
-          if (next !== injury.note) onChange({ ...injury, note: next })
-        }}
-        className="w-40 min-w-0 flex-1 rounded-[3px] border-chrome border-ink bg-paper px-2 py-1.5 font-body text-xs text-ink focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22]"
-      />
-      <Btn size="sm" variant="ghost" aria-label={`Remove injury ${index + 1}`} onClick={onRemove}>
-        Remove
-      </Btn>
-    </Panel>
-  )
-}
+// Injuries — the "Injuries" slab + `InjuryRow` (redesign D6: no poster
+// counterpart) were dropped from the pilot sheet body; tracked for a future
+// off-sheet re-home as #408. `Injury`/`injuries` and the max-HP derivation
+// that reads them stay live in lib/rules/derivedStats.ts.

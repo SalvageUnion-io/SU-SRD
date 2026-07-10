@@ -1,10 +1,13 @@
 /**
  * SheetPilot — the pilot branch of the live sheet (extracted from
- * Sheet.tsx, audit item 19; redesigned to the poster layout, Task B).
- * Hero top region = IDENTITY block (labeled fields with the section's own
- * Edit button) on the left vs the VITALS cluster (HP/AP current-max gauges +
- * TP + conditions) on the right; rail = assigned mech + home crawler;
- * body = PilotSheet.
+ * Sheet.tsx, audit item 19; redesigned to the poster layout, Phase 2).
+ *
+ * The hero now carries ONLY the name row + meta (poster region grid, D7):
+ * Identity, Vitals and the linked-unit rail all moved into the body's R1/R3
+ * poster regions (see `PilotSheet`) — SheetHero no longer receives
+ * `identityBlock`/`trackers`/`inset`/`rail`. This component's remaining job
+ * is composing the assigned-mech/home-crawler rail content and handing it to
+ * `PilotSheet` as `linkedUnits`.
  */
 
 import { Pill, StatBlock } from 'suref-react'
@@ -13,11 +16,8 @@ import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
 import { isPilotDead, pilotMaxAP, pilotMaxHP } from '../../lib/rules/derivedStats'
 import type { Pilot } from '../../lib/schemas/pilot'
 import { AssignCrawlerToPilot } from '../wiring/AssignCrawlerToPilot'
-import { ConditionsEditor } from './ConditionsEditor'
 import { LiveSheet } from './LiveSheet'
 import type { LiveSheetStripItem } from './LiveSheet'
-import { PilotIdentityPanel } from './PilotIdentity'
-import type { UsedToggleKey } from './PilotIdentity'
 import { PilotSheet } from './PilotSheet'
 import { QuickRollFab } from './QuickRollFab'
 import { SheetHero } from './SheetHero'
@@ -56,7 +56,6 @@ export function SheetPilot({
   const maxAP = Math.max(0, pilotMaxAP(pilot))
   const hp = Math.min(pilot.currentHP ?? maxHP, maxHP)
   const ap = Math.min(pilot.currentAP ?? maxAP, maxAP)
-  const tp = pilot.trainingPoints ?? 0
 
   const strip: LiveSheetStripItem[] = [
     { key: 'hp', label: 'HP', stat: 'hp', value: hp, max: maxHP },
@@ -65,22 +64,9 @@ export function SheetPilot({
 
   const dead = isPilotDead(pilot)
 
-  /** Toggle one of the once-per-Downtime used flags (rules A8–A10). */
-  function toggleUsed(key: UsedToggleKey, next: boolean) {
-    // Read the freshest flags from the store (not the render-time prop) so
-    // rapid toggles on sibling lines don't stomp each other.
-    const fresh = storeState.get('pilot', pilot.id)
-    const prev = fresh?.usedToggles ?? pilot.usedToggles ?? {}
-    void storeState.update('pilot', pilot.id, {
-      usedToggles: { ...prev, [key]: next },
-    })
-  }
-
-  /** Persist the full conditions list (flat string set, no partial merge). */
-  function handleConditionsChange(next: string[]) {
-    void storeState.update('pilot', pilot.id, { conditions: next })
-  }
-
+  // Linked Units rail content (poster R3, span 5) — built here because it
+  // needs `composition` (resolved mech/crawler), which PilotSheet does not
+  // receive; handed down as `linkedUnits`.
   const rail = (
     <>
       {composition.mech ? (
@@ -148,71 +134,20 @@ export function SheetPilot({
       back={back}
       pill={dead ? { label: 'Dead', tone: 'bad' } : { label: 'Pilot', tone: 'pilot' }}
       wired={wired}
-      rail={rail}
       segments={segments}
       actions={actions}
       fab={editable ? <QuickRollFab /> : undefined}
-      renderHero={({ heroRef, rail: heroRail }) => (
+      renderHero={({ heroRef }) => (
         <SheetHero
           heroRef={heroRef}
           cat="Pilot"
           name={pilot.name}
           meta={dead ? <Pill tone="bad">Dead</Pill> : undefined}
-          identityBlock={
-            <PilotIdentityPanel
-              pilot={pilot}
-              onToggleUsed={editable ? toggleUsed : undefined}
-              patch={editable ? patch : undefined}
-            />
-          }
-          trackers={
-            <>
-              <StatBlock
-                code="HP"
-                name="Hit Points"
-                unit="Points"
-                stat="hp"
-                max={maxHP}
-                value={hp}
-                onChange={editable ? (v) => patch({ currentHP: v }) : undefined}
-                editable={editable}
-              />
-              <StatBlock
-                code="AP"
-                name="Ability Points"
-                unit="Points"
-                stat="ap"
-                max={maxAP}
-                value={ap}
-                onChange={editable ? (v) => patch({ currentAP: v }) : undefined}
-                editable={editable}
-              />
-              <StatBlock
-                code="TP"
-                name="Training"
-                unit="Points"
-                value={tp}
-                onChange={editable ? (v) => patch({ trainingPoints: v }) : undefined}
-                editable={editable}
-              />
-            </>
-          }
-          inset={
-            <div className="w-full sm:max-w-[360px]">
-              <span className="mb-1 block font-cond text-label font-bold uppercase leading-none tracking-caps text-ink lg:text-right">
-                Conditions
-              </span>
-              <ConditionsEditor
-                conditions={pilot.conditions}
-                onChange={handleConditionsChange}
-                readOnly={readOnly}
-              />
-            </div>
-          }
-          rail={heroRail}
         />
       )}
-      renderBody={() => <PilotSheet pilot={pilot} store={store} readOnly={readOnly} />}
+      renderBody={() => (
+        <PilotSheet pilot={pilot} store={store} readOnly={readOnly} linkedUnits={rail} />
+      )}
     />
   )
 }
