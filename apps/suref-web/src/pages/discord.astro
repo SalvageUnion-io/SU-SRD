@@ -1,6 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro'
-import { SITE_URL } from '../lib/constants'
+import { SITE_URL, ITUN_URL } from '../lib/constants'
 
 // The client id is public by design — it appears in every Discord invite
 // URL. The bot itself authenticates with its token, never this id.
@@ -156,7 +156,7 @@ const breadcrumbs = [
         <p class="rounded-md border-l-4 border-su-orange-dark bg-su-blue-pale px-4 py-3">
           <strong>Running a campaign?</strong> Pair the bot with{' '}
           <a
-            href="https://in-the-union-now.netlify.app"
+            href={ITUN_URL}
             target="_blank"
             rel="noopener noreferrer"
             class="font-bold text-su-orange-dark hover:underline">In The Union Now</a
