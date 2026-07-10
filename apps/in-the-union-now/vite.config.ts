@@ -90,8 +90,27 @@ export default defineConfig({
   // strict browsers reject under import-attribute enforcement ("Failed to fetch
   // dynamically imported module"), breaking all reference-data loading in dev.
   // Mirrors the suref-web astro.config optimizeDeps fix (#260).
+  //
+  // List EVERY imported entry point of salvageunion-reference (main + each
+  // subpath), not just '.'. The package's stateful ORM singletons — the
+  // per-schema LazyModel instances that preload('all') installs data into —
+  // live in lib/index.ts. If only '.' is pre-bundled, esbuild bakes one copy
+  // of lib/index.ts into deps/salvageunion-reference.js, while the './rules'
+  // and './zod' subpaths (served as raw source) pull a SECOND copy of
+  // lib/index.ts with its own, never-preloaded LazyModel singletons. Rules
+  // helpers (mechMaxSP/crawlerMaxSP via 'salvageunion-reference/rules') then
+  // read that un-preloaded copy and throw `Schema "chassis" not loaded` even
+  // though GameDataReady already preloaded the main-entry copy. Listing the
+  // subpaths here makes esbuild bundle them in one pass and dedupe lib/index.ts
+  // to a single shared instance. (ADR-006 moved the rules modules into the
+  // package behind the './rules' subpath, which is what first split the
+  // instance.)
   optimizeDeps: {
-    include: ['salvageunion-reference'],
+    include: [
+      'salvageunion-reference',
+      'salvageunion-reference/rules',
+      'salvageunion-reference/zod',
+    ],
     entries: ['index.html', 'src/**/*.{ts,tsx}'],
   },
   server: {
