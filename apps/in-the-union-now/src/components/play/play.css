@@ -25,6 +25,8 @@
   --pc-pilot-deep: #a85222;
   --pc-crawler: #ce5898;
   --pc-crawler-deep: #7e2a5b;
+  --pc-bad: #c0563f;
+  --pc-seg-empty: rgba(216, 201, 164, 0.12);
   color: var(--pc-text);
   font-family: 'Barlow', system-ui, sans-serif;
 }
@@ -150,6 +152,141 @@
 }
 .pc-railbtn:hover {
   border-color: var(--pc-muted);
+}
+
+/* ---- Active Item band: responsibility bays (gauge + button grid) ---- */
+.pc-band {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  height: 100%;
+}
+.pc-band-id {
+  flex: 0 0 auto;
+}
+.pc-bays {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  align-items: stretch;
+}
+.pc-bay {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+  padding: 2px 13px;
+}
+.pc-bay + .pc-bay {
+  border-left: 1.5px solid var(--pc-line);
+}
+.pc-bay-lab {
+  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.11em;
+  font-size: 9px;
+  line-height: 1;
+  color: var(--pc-muted);
+}
+.pc-bay-gauges {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.pc-btn-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  margin-top: auto;
+  grid-auto-rows: 27px;
+  align-content: end;
+}
+.pc-btn-wide {
+  grid-column: 1 / -1;
+}
+.pc-btn {
+  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 11px;
+  padding: 0 8px;
+  border: 1.5px solid var(--pc-line);
+  border-radius: 2px;
+  background: color-mix(in oklab, var(--pc-panel) 50%, #000);
+  color: var(--pc-text);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+}
+.pc-btn:hover:not(:disabled) {
+  border-color: var(--pc-muted);
+  background: color-mix(in oklab, var(--pc-panel) 64%, #000);
+}
+.pc-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.pc-btn-go {
+  border-color: var(--pc-pilot);
+  color: #fff;
+  background: var(--pc-pilot-deep);
+}
+.pc-btn-danger {
+  border-color: color-mix(in oklab, var(--pc-bad) 70%, #000);
+  color: #e0917f;
+}
+
+/* ---- CockpitGauge: bespoke dark segmented instrument bar ---- */
+.pc-gauge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+.pc-gauge-lab {
+  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 10px;
+  min-width: 40px;
+  color: var(--pc-text);
+}
+.pc-gauge-track {
+  display: flex;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
+}
+.pc-seg {
+  flex: 1 1 0;
+  height: 14px;
+  border: 1.5px solid var(--pc-line);
+  border-radius: 2px;
+  background: var(--pc-seg-empty);
+}
+.pc-seg.on {
+  background: var(--pc-gtone, var(--pc-mech));
+  border-color: var(--pc-gtone-deep, var(--pc-mech-deep));
+}
+.pc-seg.danger {
+  background: var(--pc-bad);
+  border-color: var(--pc-bad);
+}
+.pc-gauge-num {
+  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  font-size: 15px;
+  min-width: 46px;
+  text-align: right;
+  color: var(--pc-text);
 }
 
 /* Below the scale floor (phones / heavy zoom) the fixed canvas is abandoned. */

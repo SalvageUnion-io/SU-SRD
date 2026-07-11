@@ -12,14 +12,17 @@
 
 import { useEntityStore } from '../../stores/entityStore'
 import { usePlayStateStore } from '../../stores/playStateStore'
+import { resolveSheetComposition } from '../sheet/composition'
+import type { EntityLookup } from '../sheet/composition'
+import { ActiveItemBand } from './ActiveItemBand'
 import { CockpitCanvas } from './CockpitCanvas'
 import { RailBar } from './RailBar'
 
 export function PlayCockpit({ id }: { id: string }) {
-  const mech = useEntityStore((s) => s.get('mech', id))
+  const storeState = useEntityStore()
   // The active-row entity drives the whole-canvas tint (proposed ADR-018).
-  // Phase 1 defaults to the boarded mech; the mount transitions land in Phase 2.
   const mount = usePlayStateStore((s) => s.mount)
+  const mech = storeState.get('mech', id)
 
   if (!mech) {
     return (
@@ -42,12 +45,27 @@ export function PlayCockpit({ id }: { id: string }) {
     )
   }
 
+  // Cast mirrors Sheet.tsx: the store's generic get is compatible with the
+  // EntityLookup shape but TS can't align the conditional return types.
+  const lookup: EntityLookup = {
+    get: (type, entityId) => storeState.get(type, entityId),
+  } as EntityLookup
+  const composition = resolveSheetComposition({
+    kind: 'mech',
+    id,
+    links: storeState.softLinks,
+    store: lookup,
+  })
+  const pilot = composition.pilot
+  const onFoot = mount === 'pilot' && pilot !== null
+  const railTitle = onFoot && pilot ? `Pilot · ${pilot.name}` : `Mech · ${mech.name}`
+
   return (
     <CockpitCanvas>
       <div className="pc-grid" data-mount={mount}>
-        <RailBar title={`Mech · ${mech.name}`} />
+        <RailBar title={railTitle} fam={onFoot ? 'pilot' : 'mech'} />
         <div className="pc-primary">
-          <div className="pc-placeholder">Active Item — instrument bays (Phase 2)</div>
+          <ActiveItemBand mech={mech} pilot={pilot} />
         </div>
         <div className="pc-display">
           <div className="pc-fill">Main display — SRD reference &amp; actions (Phase 4)</div>
