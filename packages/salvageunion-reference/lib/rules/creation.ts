@@ -13,35 +13,33 @@
  */
 
 /**
- * The class shape creation legality reads: only true base classes expose a
- * non-empty `coreTrees` (Engineer, Hacker, Hauler, Salvager, Scout, Soldier).
- * Advanced/Hybrid specialisation classes do not, which structurally excludes
- * them from creation. The index signature admits the full class union —
- * the specialisation branch has no `coreTrees` property at all, which TS's
- * weak-type check would otherwise reject.
+ * The ability shape creation legality reads (level 1–3 | 'L' | 'G' + tree).
  */
-export type CreationClassInput = {
-  coreTrees?: readonly string[] | undefined
-  [key: string]: unknown
-}
-
-/** The ability shape creation legality reads (level 1–3 | 'L' | 'G' + tree). */
 export type CreationAbilityInput = { level: number | string; tree: string }
 
 /** The equipment shape creation legality reads. */
 export type CreationEquipmentInput = { techLevel?: number | string }
 
 /**
+ * The neutral input for class legality: a class's core ability trees, or
+ * `undefined` for a class that has none. Predicates take THIS array — the
+ * value they actually read — rather than a class object, so a consumer's
+ * (unioned) class record is narrowed to `coreTrees` at the call site and no
+ * weak-type/union ambiguity ever reaches this module.
+ */
+export type CreationCoreTrees = readonly string[] | undefined
+
+/**
  * A legal creation class is one of the six CORE classes — the classes with a
  * non-empty `coreTrees` field ("There are six core Pilot classes", p.18).
- * Advanced/Hybrid specialisations never qualify.
+ * Advanced/Hybrid specialisations expose no core trees, so they never qualify.
  */
-export function isLegalCreationClass(cls: CreationClassInput | null | undefined): boolean {
-  return Array.isArray(cls?.coreTrees) && cls.coreTrees.length > 0
+export function isLegalCreationClass(coreTrees: CreationCoreTrees): boolean {
+  return Array.isArray(coreTrees) && coreTrees.length > 0
 }
 
 /**
- * A legal first ability is `level === 1` AND `tree ∈ class.coreTrees`
+ * A legal first ability is `level === 1` AND `tree ∈ coreTrees`
  * ("Your Pilot starts with 1 Ability of your choice", p.18). The core-tree
  * bound structurally excludes Generic ('G') and Legendary ('L') abilities and
  * the Level-1 entries of advanced/hybrid trees — those trees appear in no
@@ -49,10 +47,10 @@ export function isLegalCreationClass(cls: CreationClassInput | null | undefined)
  */
 export function isLegalCreationAbility(
   ability: CreationAbilityInput,
-  cls: CreationClassInput | null | undefined
+  coreTrees: CreationCoreTrees
 ): boolean {
-  if (!isLegalCreationClass(cls)) return false
-  return ability.level === 1 && (cls?.coreTrees ?? []).includes(ability.tree)
+  if (!isLegalCreationClass(coreTrees)) return false
+  return ability.level === 1 && (coreTrees ?? []).includes(ability.tree)
 }
 
 /**
@@ -63,9 +61,9 @@ export function isLegalCreationAbility(
  */
 export function legalCreationAbilities<T extends CreationAbilityInput>(
   abilities: readonly T[],
-  cls: CreationClassInput | null | undefined
+  coreTrees: CreationCoreTrees
 ): T[] {
-  return abilities.filter((ability) => isLegalCreationAbility(ability, cls))
+  return abilities.filter((ability) => isLegalCreationAbility(ability, coreTrees))
 }
 
 /**

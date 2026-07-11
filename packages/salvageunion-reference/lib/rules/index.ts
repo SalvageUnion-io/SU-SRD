@@ -28,7 +28,7 @@ export {
   isPilotEquipmentPickComplete,
 } from './creation.js'
 export type {
-  CreationClassInput,
+  CreationCoreTrees,
   CreationAbilityInput,
   CreationEquipmentInput,
 } from './creation.js'

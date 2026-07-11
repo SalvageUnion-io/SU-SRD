@@ -89,7 +89,7 @@ export function ClassAbilityStep({
   const classes = selectableClasses(surClasses, isEdit)
   const legalClasses = isEdit
     ? classes.base
-    : classes.base.filter((c) => isLegalCreationClass(c as ClassLike))
+    : classes.base.filter((c) => isLegalCreationClass((c as ClassLike).coreTrees))
   const selectedClass = [...classes.base, ...classes.specialisations].find(
     (c) => c.id === classId
   ) as ClassLike | undefined
@@ -118,7 +118,7 @@ export function ClassAbilityStep({
   )
 
   // Create mode: the class's legal Level-1 pool, flat, tree label on the card.
-  const legalPool = legalCreationAbilities(allAbilities, selectedClass).sort((a, b) =>
+  const legalPool = legalCreationAbilities(allAbilities, selectedClass?.coreTrees).sort((a, b) =>
     a.tree.localeCompare(b.tree)
   )
 

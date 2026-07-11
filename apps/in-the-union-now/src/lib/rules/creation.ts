@@ -47,6 +47,16 @@ function findClass(classId: string): SURefClass | undefined {
   return SalvageUnionReference.Classes.find((c) => c.id === classId)
 }
 
+/**
+ * The neutral input the package predicates read: a class's core ability trees,
+ * or `undefined`. Narrowing the `SURefClass` union to `coreTrees` HERE (the
+ * specialisation branch has no such property) keeps the package predicates
+ * free of the union entirely.
+ */
+function coreTreesOf(cls: SURefClass | undefined): readonly string[] | undefined {
+  return cls && 'coreTrees' in cls ? cls.coreTrees : undefined
+}
+
 function findAbility(abilityId: string): SURefAbility | undefined {
   return SalvageUnionReference.Abilities.find((a) => a.id === abilityId)
 }
@@ -56,8 +66,8 @@ function findEquipment(equipmentId: string): SURefEquipment | undefined {
 }
 
 function classAbilityGate(form: PilotWizardFormState): StepGateResult {
-  const cls = findClass(form.classId)
-  if (!cls || !isLegalCreationClass(cls)) {
+  const coreTrees = coreTreesOf(findClass(form.classId))
+  if (!isLegalCreationClass(coreTrees)) {
     return { ok: false, reason: 'Choose your class to continue' }
   }
   if (!isPilotAbilityPickComplete(form.abilities.length)) {
@@ -65,7 +75,7 @@ function classAbilityGate(form: PilotWizardFormState): StepGateResult {
   }
   const abilityId = form.abilities[0]
   const ability = abilityId === undefined ? undefined : findAbility(abilityId)
-  if (!ability || !isLegalCreationAbility(ability, cls)) {
+  if (!ability || !isLegalCreationAbility(ability, coreTrees)) {
     return { ok: false, reason: 'Choose your first Ability to continue' }
   }
   return OK
@@ -170,7 +180,8 @@ export function clampPilotCreationDraft(form: PilotWizardFormState): PilotDraftC
 
   if (classId !== '') {
     const cls = findClass(classId)
-    if (!cls || !isLegalCreationClass(cls)) {
+    const coreTrees = coreTreesOf(cls)
+    if (!isLegalCreationClass(coreTrees)) {
       removed.push(cls?.name ?? 'class pick')
       removed.push(...abilities.map(abilityName))
       classId = ''
@@ -178,7 +189,7 @@ export function clampPilotCreationDraft(form: PilotWizardFormState): PilotDraftC
     } else {
       const legal = abilities.filter((id) => {
         const ability = findAbility(id)
-        return ability !== undefined && isLegalCreationAbility(ability, cls)
+        return ability !== undefined && isLegalCreationAbility(ability, coreTrees)
       })
       removed.push(...abilities.filter((id) => !legal.includes(id)).map(abilityName))
       abilities = legal

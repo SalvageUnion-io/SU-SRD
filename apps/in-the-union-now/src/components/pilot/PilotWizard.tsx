@@ -243,11 +243,12 @@ export function PilotWizard({
     const cls = sur.Classes.find((c) => (c as { id: string }).id === classId) as
       | { coreTrees?: string[] }
       | undefined
+    const coreTrees = cls?.coreTrees
     const kept = form.abilities.filter((id) => {
       const ability = sur.Abilities.findAll((a) => (a as { id: string }).id === id)[0] as
         | { level: number | string; tree: string }
         | undefined
-      return ability !== undefined && isLegalCreationAbility(ability, cls)
+      return ability !== undefined && isLegalCreationAbility(ability, coreTrees)
     })
     const dropped = form.abilities.filter((id) => !kept.includes(id))
     if (dropped.length > 0) {

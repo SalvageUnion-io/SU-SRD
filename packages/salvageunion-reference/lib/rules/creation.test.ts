@@ -35,11 +35,13 @@ function classByName(name: string): SURefClass {
   return cls
 }
 
-/** Narrows to the base-class branch of the class union (has coreTrees). */
-function coreClassByName(name: string): SURefClass & { coreTrees: readonly string[] } {
+/**
+ * The neutral input the predicates take: a class's core trees, or `undefined`
+ * for a specialisation class that has none (narrowed off the class union).
+ */
+function coreTreesOf(name: string): readonly string[] | undefined {
   const cls = classByName(name)
-  if (!('coreTrees' in cls)) throw new Error(`class "${name}" has no coreTrees`)
-  return cls as SURefClass & { coreTrees: readonly string[] }
+  return 'coreTrees' in cls ? cls.coreTrees : undefined
 }
 
 function allAbilities(): SURefAbility[] {
@@ -48,35 +50,36 @@ function allAbilities(): SURefAbility[] {
 
 describe('isLegalCreationClass', () => {
   it('accepts exactly the six core classes', () => {
-    const legal = SalvageUnionReference.Classes.all().filter((c) => isLegalCreationClass(c))
+    const legal = SalvageUnionReference.Classes.all().filter((c) =>
+      isLegalCreationClass('coreTrees' in c ? c.coreTrees : undefined)
+    )
     expect(legal.map((c) => c.name).sort()).toEqual([...CORE_CLASS_NAMES].sort())
   })
 
   it('rejects Advanced/Hybrid specialisation classes (no coreTrees)', () => {
     for (const name of ['Fabricator', 'Cyborg', 'Union Rep', 'Smuggler', 'Ranger']) {
-      expect(isLegalCreationClass(classByName(name))).toBe(false)
+      expect(isLegalCreationClass(coreTreesOf(name))).toBe(false)
     }
   })
 
-  it('rejects null/undefined and empty coreTrees', () => {
-    expect(isLegalCreationClass(null)).toBe(false)
+  it('rejects undefined and empty coreTrees', () => {
     expect(isLegalCreationClass(undefined)).toBe(false)
-    expect(isLegalCreationClass({ coreTrees: [] })).toBe(false)
+    expect(isLegalCreationClass([])).toBe(false)
   })
 })
 
 describe('legalCreationAbilities', () => {
   it("Salvager's legal pool is EXACTLY the 15 core-tree Level-1 abilities", () => {
-    const salvager = coreClassByName('Salvager')
-    expect(salvager.coreTrees.length).toBe(15)
+    const salvagerTrees = coreTreesOf('Salvager')
+    expect(salvagerTrees?.length).toBe(15)
 
-    const pool = legalCreationAbilities(allAbilities(), salvager)
+    const pool = legalCreationAbilities(allAbilities(), salvagerTrees)
     expect(pool.length).toBe(15)
 
     // Every entry is Level 1 in one of the Salvager's 15 core trees…
     for (const ability of pool) {
       expect(ability.level).toBe(1)
-      expect(salvager.coreTrees).toContain(ability.tree)
+      expect(salvagerTrees).toContain(ability.tree)
     }
     // …one per core tree (the 15 trees each contribute exactly one Level-1)…
     expect(new Set(pool.map((a) => a.tree)).size).toBe(15)
@@ -89,8 +92,7 @@ describe('legalCreationAbilities', () => {
   })
 
   it('a 3-tree core class gets exactly its 3 Level-1 abilities', () => {
-    const soldier = classByName('Soldier')
-    const pool = legalCreationAbilities(allAbilities(), soldier)
+    const pool = legalCreationAbilities(allAbilities(), coreTreesOf('Soldier'))
     expect(pool.length).toBe(3)
     expect(pool.map((a) => String(a.tree)).sort()).toEqual(
       ['Gladiatorial Combat', 'Survivalist', 'Tactical Warfare'].sort()
@@ -99,26 +101,25 @@ describe('legalCreationAbilities', () => {
   })
 
   it('a specialisation class has an EMPTY legal creation pool', () => {
-    const cyborg = classByName('Cyborg')
-    expect(legalCreationAbilities(allAbilities(), cyborg)).toEqual([])
+    expect(legalCreationAbilities(allAbilities(), coreTreesOf('Cyborg'))).toEqual([])
   })
 
   it('excludes higher-level abilities of a legal core tree', () => {
-    const engineer = classByName('Engineer')
+    const engineerTrees = coreTreesOf('Engineer')
     const level2 = allAbilities().find(
       (a) => a.tree === 'Mechanical Knowledge' && a.level === 2
     ) as SURefAbility
     expect(level2).toBeDefined()
-    expect(isLegalCreationAbility(level2, engineer)).toBe(false)
+    expect(isLegalCreationAbility(level2, engineerTrees)).toBe(false)
   })
 
   it("excludes another core class's tree Level-1s", () => {
-    const engineer = classByName('Engineer')
+    const engineerTrees = coreTreesOf('Engineer')
     const soldierL1 = allAbilities().find(
       (a) => a.tree === 'Gladiatorial Combat' && a.level === 1
     ) as SURefAbility
     expect(soldierL1).toBeDefined()
-    expect(isLegalCreationAbility(soldierL1, engineer)).toBe(false)
+    expect(isLegalCreationAbility(soldierL1, engineerTrees)).toBe(false)
   })
 })
 
