@@ -149,6 +149,10 @@
   --tone-deep: var(--color-sheet-pilot-deep);
   --ground: oklch(from var(--tone) 0.955 0.03 h);
   --ground-2: oklch(from var(--tone) 0.985 0.012 h);
+  /* Wizard step-card fill (wizard-refresh mockup): the sky-blue step cards of
+     the printed Pilot Bay spread, pp.18–19 (#6BB8D6). Opt-in via WizShell's
+     tintedStepCard — only book-order wizards render it. */
+  --tone-card: rgb(107, 184, 214);
 }
 
 .sheet--mech {
@@ -156,6 +160,9 @@
   --tone-deep: var(--color-sheet-mech-deep);
   --ground: oklch(from var(--tone) 0.955 0.022 h);
   --ground-2: oklch(from var(--tone) 0.985 0.01 h);
+  /* Mech Workshop step-card rust, pp.94–95 (#B0553A) — unused until the mech
+     wizard's book-order phase opts in. */
+  --tone-card: rgb(176, 85, 58);
 }
 
 .sheet--crawler {
@@ -163,6 +170,9 @@
   --tone-deep: var(--color-sheet-crawler-deep);
   --ground: oklch(from var(--tone) 0.955 0.03 h);
   --ground-2: oklch(from var(--tone) 0.985 0.012 h);
+  /* Union Crawler step-card peach, pp.212–213 (#EC9C67) — unused until the
+     crawler wizard's book-order phase opts in. */
+  --tone-card: rgb(236, 156, 103);
 }
 
 /* Mobile-first touch targets */
