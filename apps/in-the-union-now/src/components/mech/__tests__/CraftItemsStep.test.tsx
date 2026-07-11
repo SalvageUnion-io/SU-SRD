@@ -36,29 +36,42 @@ describe('CraftItemsStep — Tech-1 filter', () => {
     )
     const higher = SalvageUnionReference.Systems.find((s) => s.techLevel === 2)
     expect(higher).toBeDefined()
-    expect(screen.queryByRole('spinbutton', { name: `${must(higher).name} count` })).toBeNull()
+    expect(screen.queryByRole('button', { name: `Add one ${must(higher).name}` })).toBeNull()
     const legal = tl1System(() => true)
-    expect(screen.getByRole('spinbutton', { name: `${legal.name} count` })).toBeTruthy()
+    expect(screen.getByRole('button', { name: `Add one ${legal.name}` })).toBeTruthy()
   })
 })
 
 describe('CraftItemsStep — budget clamps (single source of truth)', () => {
-  test('+ disables when one more copy would overspend the scrap pool', () => {
+  test('+ enabled at 0 with one affordable copy, disabled once it is taken', () => {
     const item = tl1System((s) => s.salvageValue === 2)
-    render(
+    // scrapRemaining 3 fits ONE sv-2 copy (maxCount = count + 1), not two.
+    const { rerender } = render(
       <CraftItemsStep
         kind="systems"
         selected={[]}
         onCountChange={() => {}}
-        scrapRemaining={3} // fits ONE sv-2 copy, not two
+        scrapRemaining={3}
         slotsRemaining={20}
       />
     )
-    const counter = screen.getByRole('spinbutton', { name: `${item.name} count` })
-    expect(counter.getAttribute('aria-valuemax')).toBe('1')
     expect(
       (screen.getByRole('button', { name: `Add one ${item.name}` }) as HTMLButtonElement).disabled
     ).toBe(false)
+
+    // With the one copy taken (scrap now 1, sv 2), a second overspends → + off.
+    rerender(
+      <CraftItemsStep
+        kind="systems"
+        selected={[item.id]}
+        onCountChange={() => {}}
+        scrapRemaining={1}
+        slotsRemaining={18}
+      />
+    )
+    expect(
+      (screen.getByRole('button', { name: `Add one ${item.name}` }) as HTMLButtonElement).disabled
+    ).toBe(true)
   })
 
   test('an unaffordable-first-copy card dims with the SCRAP reason chip', () => {

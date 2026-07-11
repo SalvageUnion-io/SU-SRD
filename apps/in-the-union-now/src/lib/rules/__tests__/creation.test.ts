@@ -333,6 +333,26 @@ describe('clampMechCreationDraft (knapsack, not truncation)', () => {
     expect(mechCreationStepGate('review', result.form).ok).toBe(true)
   })
 
+  it('a SYSTEM-slots-only violation drops systems, never the legal modules', () => {
+    // Mazona: SV 4, 7 system slots, 3 module slots. 8 Cargo Pods (8 slots)
+    // breach the system slots; scrap is fine (4 + 8 + 2 = 14 ≤ 20) and the
+    // 2 Comms Modules fit the 3 module slots. Only the SYSTEM-slot pool is
+    // violated — the walk must pop a system, never uselessly discard the
+    // legal modules (the pre-fix bug: modules-first popped both comms).
+    const pod = slugOf('Cargo Pod', SalvageUnionReference.Systems)
+    const comms = slugOf('Comms Module', SalvageUnionReference.Modules)
+    const result = clampMechCreationDraft({
+      ...legalMechForm(),
+      chassisName: slugOf('Mazona', SalvageUnionReference.Chassis),
+      systems: new Array<string>(8).fill(pod),
+      modules: new Array<string>(2).fill(comms),
+    })
+    expect(result.form.systems.length).toBe(7) // one pod dropped to fit 7 slots
+    expect(result.form.modules.length).toBe(2) // both legal modules preserved
+    expect(result.removed).toEqual(['Cargo Pod'])
+    expect(mechCreationStepGate('review', result.form).ok).toBe(true)
+  })
+
   it('drops non-Tech-1 installs and itemizes them by name', () => {
     const higherTlSystem = SalvageUnionReference.Systems.find((s) => s.techLevel === 2)
     if (!higherTlSystem) throw new Error('no Tech 2 system loaded')

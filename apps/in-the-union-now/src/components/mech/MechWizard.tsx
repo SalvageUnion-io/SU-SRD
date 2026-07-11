@@ -10,7 +10,12 @@ import {
 } from '../../lib/rules/creation'
 import type { MechWizardStepId, StepGateResult } from '../../lib/rules/creation'
 import { mechMaxEP } from '../../lib/rules/derivedStats'
-import { resolveChassisRef } from '../../lib/rules/resolveRefs'
+import {
+  matchesRef,
+  resolveChassisRef,
+  resolveModuleRef,
+  resolveSystemRef,
+} from '../../lib/rules/resolveRefs'
 import { evaluateMechWarnings } from '../../lib/rules/softWarnings'
 import type { SoftWarning } from '../../lib/rules/types'
 import { MechSchema } from '../../lib/schemas/mech'
@@ -259,9 +264,14 @@ export function MechWizard({ onComplete, onCancel, mechId, initialState }: MechW
    */
   function setInstallCount(kind: 'systems' | 'modules', itemName: string, next: number) {
     const slug = nameToSlug(itemName)
+    // Resolve the reference item so the count/match uses matchesRef (slug OR
+    // legacy name OR id), matching CraftItemsStep's counting — otherwise a
+    // legacy-name draft copy shows in the count but the `−` can't remove it.
+    const item = kind === 'systems' ? resolveSystemRef(slug) : resolveModuleRef(slug)
+    const isThis = (ref: string) => (item ? matchesRef(item, ref) : ref === slug)
     setForm((prev) => {
       const list = prev[kind]
-      const current = list.filter((ref) => ref === slug).length
+      const current = list.filter(isThis).length
       const target = Math.max(0, next)
       if (target === current) return prev
       if (target > current) {
@@ -274,7 +284,7 @@ export function MechWizard({ onComplete, onCancel, mechId, initialState }: MechW
       const kept: string[] = []
       for (let i = list.length - 1; i >= 0; i--) {
         const ref = list[i] as string
-        if (ref === slug && toRemove > 0) {
+        if (isThis(ref) && toRemove > 0) {
           toRemove--
           continue
         }

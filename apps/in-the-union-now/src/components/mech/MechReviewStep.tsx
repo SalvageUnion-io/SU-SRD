@@ -120,7 +120,7 @@ export function MechReviewStep({ form, isEdit, submitError, bankedScrap }: MechR
           />
         ))}
         {chosenSystems.length === 0 && chosenModules.length === 0 && (
-          <p className="text-sm text-wk-muted">No systems or modules installed.</p>
+          <p className="text-sm text-current">No systems or modules installed.</p>
         )}
       </div>
     </div>

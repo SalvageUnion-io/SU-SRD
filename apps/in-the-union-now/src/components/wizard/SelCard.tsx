@@ -89,18 +89,21 @@ export function SelCard({
       >
         −
       </StepBtn>
+      {/* Plain readout, not role="spinbutton" — a spinbutton must be
+          focusable + arrow-operable, which a static span is not. The value
+          is announced via the sr-only live region below; the ± buttons stay
+          the operable controls (they carry their own accessible names). */}
       <span
-        role="spinbutton"
-        aria-valuenow={count}
-        aria-valuemin={0}
-        aria-valuemax={maxCount}
-        aria-label={`${name} count`}
+        aria-hidden="true"
         className={cn(
           'grid w-8 place-items-center bg-paper font-cond text-[13px] font-bold text-ink',
           count === 0 && 'opacity-55'
         )}
       >
         {count}
+      </span>
+      <span role="status" aria-live="polite" className="sr-only">
+        {name} count: {count}
       </span>
       <StepBtn
         aria-label={`Add one ${name}`}
@@ -132,7 +135,13 @@ export function SelCard({
           hide={{ actions: true, choices: true }}
           label={label}
           {...entityProps}
-          footMeta={disabledReason ? [{ label: disabledReason, value: '' }] : entityProps?.footMeta}
+          footMeta={
+            disabledReason
+              ? // Append the reason UNDER the existing COSTS/SV line (mockup
+                // Screen 02) — don't replace it; the player still sees the price.
+                [...(entityProps?.footMeta ?? []), { label: disabledReason, value: '' }]
+              : entityProps?.footMeta
+          }
           footActions={counter ?? entityProps?.footActions}
         />
       </Sel>

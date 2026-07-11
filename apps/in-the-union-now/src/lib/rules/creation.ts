@@ -369,16 +369,24 @@ function installedName(ref: string): string {
   return (resolveSystemRef(ref) ?? resolveModuleRef(ref))?.name ?? ref
 }
 
-function fitsAllBudgets(form: MechWizardFormState): boolean {
-  if (mechCreationBudgetFor(form).remaining < 0) return false
+/** Which creation budgets a draft loadout currently violates. */
+type BudgetViolations = {
+  scrap: boolean
+  systemSlots: boolean
+  moduleSlots: boolean
+}
+
+function budgetViolationsOf(form: MechWizardFormState): BudgetViolations {
   const capacity = computeMechCapacity({
     chassisRef: form.chassisName,
     systems: form.systems.map((ref) => ({ ref })),
     modules: form.modules.map((ref) => ({ ref })),
   })
-  return !capacity.violations.some(
-    (v) => v.kind === 'system-over-slots' || v.kind === 'module-over-slots'
-  )
+  return {
+    scrap: mechCreationBudgetFor(form).remaining < 0,
+    systemSlots: capacity.violations.some((v) => v.kind === 'system-over-slots'),
+    moduleSlots: capacity.violations.some((v) => v.kind === 'module-over-slots'),
+  }
 }
 
 /**
@@ -389,9 +397,13 @@ function fitsAllBudgets(form: MechWizardFormState): boolean {
  *     the pattern and the whole loadout (nothing can be costed without it),
  *   - otherwise chassis + pattern are ALWAYS preserved,
  *   - non-Tech-1 / unresolvable systems and modules are dropped,
- *   - then the loadout is walked decrementing per-item copies NEWEST-first
- *     (modules — the later step — before systems) until the 20-Scrap cap
- *     AND both slot budgets fit,
+ *   - then the loadout is walked decrementing per-item copies NEWEST-first,
+ *     each iteration popping from a pool that can ACTUALLY RELIEVE the
+ *     violated budget: modules when module-slots overflow, systems when
+ *     system-slots overflow (Mazona reaches this — 7 system slots), else
+ *     (pure scrap overspend) modules-newest-first then systems. So a
+ *     system-slots-only violation never uselessly discards legal modules,
+ *     and the toast attributes exactly what it removed,
  *   - starting cargo is cleared (the rules grant a new mech no cargo; the
  *     input left guided create in Phase 4).
  * The caller shows one toast itemizing `removed`.
@@ -434,10 +446,23 @@ export function clampMechCreationDraft(form: MechWizardFormState): MechDraftClam
   removed.push(...modules.filter((ref) => !legalModules.includes(ref)).map(installedName))
   modules = legalModules
 
-  // Knapsack walk: drop the NEWEST copy (modules first — the later step)
-  // until every budget fits. Chassis + pattern are never touched here.
-  while (!fitsAllBudgets({ ...form, chassisName, systems, modules, cargoLots: [] })) {
-    const dropped = modules.length > 0 ? modules.pop() : systems.pop()
+  // Knapsack walk: each iteration drops the NEWEST copy from a pool that can
+  // relieve the specific violated budget — never a pool that can't help.
+  // Chassis + pattern are never touched here.
+  for (;;) {
+    const violations = budgetViolationsOf({ ...form, chassisName, systems, modules, cargoLots: [] })
+    if (!violations.scrap && !violations.systemSlots && !violations.moduleSlots) break
+
+    let dropped: string | undefined
+    if (violations.moduleSlots && modules.length > 0) {
+      dropped = modules.pop()
+    } else if (violations.systemSlots && systems.length > 0) {
+      dropped = systems.pop()
+    } else {
+      // Pure scrap overspend (or a slot pool that is already empty): drop the
+      // newest copy overall — modules (the later step) before systems.
+      dropped = modules.length > 0 ? modules.pop() : systems.pop()
+    }
     if (dropped === undefined) break // nothing left to drop; chassis alone fits by data
     removed.push(installedName(dropped))
   }

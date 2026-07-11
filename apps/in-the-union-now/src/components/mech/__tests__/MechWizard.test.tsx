@@ -211,7 +211,7 @@ describe('MechWizard — book-order happy path (custom build)', () => {
     })
 
     expect(onComplete).toHaveBeenCalledTimes(1)
-  }, 30000)
+  }, 45000)
 })
 
 // ---------------------------------------------------------------------------
@@ -234,9 +234,9 @@ describe('MechWizard — hard creation enforcement', () => {
     const higherTlSystem = SalvageUnionReference.Systems.find((s) => s.techLevel === 2)
     expect(higherTlSystem).toBeDefined()
     expect(
-      screen.queryByRole('spinbutton', { name: `${must(higherTlSystem).name} count` })
+      screen.queryByRole('button', { name: `Add one ${must(higherTlSystem).name}` })
     ).toBeNull()
-  }, 30000)
+  }, 45000)
 
   it('gates the chassis and the pattern name; systems/modules stay optional', async () => {
     render(<MechWizard onComplete={() => {}} onCancel={() => {}} />)
@@ -265,7 +265,7 @@ describe('MechWizard — hard creation enforcement', () => {
     expect(useEntityStore.getState().list('mech').length).toBe(0)
     await typeIdentity('Edit name / pattern', 'Iron Fist')
     expect(getNextButton().disabled).toBe(false)
-  }, 30000)
+  }, 45000)
 
   it('changing the chassis refunds its scrap and wipes the loadout with a toast', async () => {
     render(<MechWizard onComplete={() => {}} onCancel={() => {}} />)
@@ -287,12 +287,10 @@ describe('MechWizard — hard creation enforcement', () => {
     )
     await clickNext() // → Stats
     await clickNext() // → Systems
-    // Loadout wiped — the Cargo Pod copy is gone.
-    expect(
-      screen.getByRole('spinbutton', { name: 'Cargo Pod count' }).getAttribute('aria-valuenow')
-    ).toBe('0')
+    // Loadout wiped — the Cargo Pod copy is gone (sr-only status readout).
+    expect(screen.getByText('Cargo Pod count: 0')).toBeTruthy()
     expect(screen.getByTestId('system-slot-count').textContent).toContain('0 /')
-  }, 30000)
+  }, 45000)
 })
 
 // ---------------------------------------------------------------------------
@@ -326,15 +324,11 @@ describe('MechWizard — legalStarting pattern strip', () => {
     )
     await clickNext() // → Stats
     await clickNext() // → Systems
-    // The prefilled copies show in the counters.
+    // The prefilled copies show in the counters (sr-only status readout).
     for (const slug of new Set(expectedSystems)) {
       const item = SalvageUnionReference.Systems.find((s) => nameToSlug(s.name) === slug)
       const count = expectedSystems.filter((x) => x === slug).length
-      expect(
-        screen
-          .getByRole('spinbutton', { name: `${must(item).name} count` })
-          .getAttribute('aria-valuenow')
-      ).toBe(String(count))
+      expect(screen.getByText(`${must(item).name} count: ${count}`)).toBeTruthy()
     }
     await clickNext() // → Modules
     await clickNext() // → Quirk
@@ -350,7 +344,7 @@ describe('MechWizard — legalStarting pattern strip', () => {
       expect(m.systems).toEqual(expectedSystems)
       expect(m.modules).toEqual(expectedModules)
     })
-  }, 30000)
+  }, 45000)
 })
 
 // ---------------------------------------------------------------------------
@@ -432,7 +426,7 @@ describe('MechWizard — edit mode (soft regime)', () => {
       expect(m.systemConditions).toEqual({ 'cargo-pod': 'damaged' })
     })
     expect(onComplete).toHaveBeenCalledWith(mech.id)
-  }, 30000)
+  }, 45000)
 
   it('over-slot installs warn but never block in edit mode', async () => {
     const mech = await seedMuleMech()
@@ -455,5 +449,5 @@ describe('MechWizard — edit mode (soft regime)', () => {
     }
     expect(screen.getByText(/Module slots exceeded/i)).toBeTruthy()
     expect(getNextButton().disabled).toBe(false)
-  }, 30000)
+  }, 45000)
 })

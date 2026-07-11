@@ -55,7 +55,7 @@ export function MechFlavorStep({
           </Btn>
         }
       />
-      {note && <p className="m-0 font-body text-caption text-current opacity-80">{note}</p>}
+      {note && <p className="m-0 font-body text-caption text-current">{note}</p>}
     </div>
   )
 }

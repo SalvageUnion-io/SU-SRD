@@ -2,7 +2,10 @@
  * SelCard `disabledReason` tests (wizard-refresh Phase 2): the reason renders
  * as a cond-caps footMeta chip and dims the card. Phase 3 adds the
  * count-stepper trio (`count`/`onCountChange`/`maxCount`, mockup `.ctr`) —
- * a [− n +] control through the entity card's footActions band.
+ * a [− n +] control through the entity card's footActions band. Phase 4
+ * makes the count an sr-only `role="status"` live readout (the earlier
+ * static-span `role="spinbutton"` was invalid — a spinbutton must be
+ * focusable/arrow-operable); the ± buttons remain the operable controls.
  */
 
 import { afterEach, beforeAll, describe, expect, test } from 'bun:test'
@@ -45,6 +48,24 @@ describe('SelCard disabledReason', () => {
     expect(wrapper?.className).toContain('saturate-50')
   })
 
+  test('the reason APPENDS to the existing footMeta (COSTS stays visible)', () => {
+    const entity = firstEquipment()
+    render(
+      <SelCard
+        entity={entity}
+        name={entity.name}
+        selected={false}
+        onToggle={() => {}}
+        disabledReason="Needs 6 Scrap · 2 Left"
+        entityProps={{ footMeta: [{ label: 'Costs', value: '6 scrap' }] }}
+      />
+    )
+    // Both the price line and the reason render (mockup Screen 02) — the
+    // reason does not replace the COSTS chip.
+    expect(screen.getByText('Costs')).toBeTruthy()
+    expect(screen.getByText('Needs 6 Scrap · 2 Left')).toBeTruthy()
+  })
+
   test('without a reason the card stays interactive and shows no chip', () => {
     const entity = firstEquipment()
     let toggled = false
@@ -81,9 +102,8 @@ describe('SelCard count-stepper', () => {
         onCountChange={(next) => changes.push(next)}
       />
     )
-    const value = screen.getByRole('spinbutton', { name: `${entity.name} count` })
-    expect(value.getAttribute('aria-valuenow')).toBe('1')
-    expect(value.getAttribute('aria-valuemax')).toBe('2')
+    // The count is announced via an sr-only status region, not a spinbutton.
+    expect(screen.getByRole('status').textContent).toBe(`${entity.name} count: 1`)
     fireEvent.click(screen.getByRole('button', { name: `Add one ${entity.name}` }))
     fireEvent.click(screen.getByRole('button', { name: `Remove one ${entity.name}` }))
     expect(changes).toEqual([2, 0])
@@ -150,9 +170,10 @@ describe('SelCard count-stepper', () => {
     expect(toggled).toBe(0)
   })
 
-  test('without the counter props no spinbutton renders (toggle mode unchanged)', () => {
+  test('without the counter props no stepper renders (toggle mode unchanged)', () => {
     const entity = firstEquipment()
     render(<SelCard entity={entity} name={entity.name} selected={false} onToggle={() => {}} />)
-    expect(screen.queryByRole('spinbutton')).toBeNull()
+    expect(screen.queryByRole('button', { name: `Add one ${entity.name}` })).toBeNull()
+    expect(screen.queryByRole('status')).toBeNull()
   })
 })
