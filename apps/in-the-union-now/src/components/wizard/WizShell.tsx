@@ -45,6 +45,14 @@ type WizShellProps = {
    * selected (3 / 3)'.
    */
   footerNote?: ReactNode
+  /**
+   * OPT-IN blown-up tinted step card (mockup Screen 01 `.stepcard`): the main
+   * pane renders the heading + content inside a `var(--tone-card)` card with
+   * a flush ink number tab. Only book-order wizards should opt in (pilot as
+   * of Phase 3); the still-multi-section Mech/Crawler wizards stay untinted
+   * until their phases.
+   */
+  tintedStepCard?: boolean
   onBack?: () => void
   onCancel: () => void
   /**
@@ -159,6 +167,7 @@ export function WizShell({
   notice,
   trackers,
   footerNote,
+  tintedStepCard = false,
   onBack,
   onCancel,
   onNext,
@@ -260,8 +269,40 @@ export function WizShell({
 
         {/* (c) flex-1 main pane — always owns the step heading */}
         <main className="flex min-w-0 flex-1 flex-col px-5 py-5 lg:px-10 lg:py-[30px]">
-          {heading}
-          <div className="mt-5 min-h-0 flex-1 pb-24">{children}</div>
+          {tintedStepCard ? (
+            /* Blown-up tinted step card (mockup `.stepcard`): tone-card fill,
+               flush ink number tab, white condensed step head. */
+            <div className="min-h-0 flex-1 pb-24 sm:pl-5">
+              <article
+                className="relative rounded-xl px-5 pb-6 pt-5 shadow-[0_14px_26px_-14px_rgba(0,0,0,0.4),inset_0_0_46px_rgba(0,0,0,0.08)] sm:pl-8"
+                style={{ background: 'var(--tone-card, var(--tone))' }}
+              >
+                <span
+                  aria-hidden="true"
+                  className="absolute -left-5 top-6 hidden h-16 w-14 place-items-center rounded-[2px] bg-ink font-cond text-[38px] font-extrabold leading-none text-su-white shadow-[0_8px_14px_-8px_rgba(0,0,0,0.55)] sm:grid"
+                >
+                  {active + 1}
+                </span>
+                <header>
+                  <h1 className="m-0 font-cond text-[25px] font-bold uppercase leading-[1.05] text-su-white [text-shadow:0_1px_0_rgba(0,0,0,0.38)]">
+                    <span className="sr-only">
+                      Step {active + 1} of {steps.length} ·{' '}
+                    </span>
+                    {title}
+                  </h1>
+                  {subtitle && (
+                    <div className="mt-2 font-body text-caption text-ink-2">{subtitle}</div>
+                  )}
+                </header>
+                <div className="mt-4">{children}</div>
+              </article>
+            </div>
+          ) : (
+            <>
+              {heading}
+              <div className="mt-5 min-h-0 flex-1 pb-24">{children}</div>
+            </>
+          )}
 
           {notice && <div className="mt-6">{notice}</div>}
 
@@ -322,10 +363,17 @@ export function WizShell({
                   Your unsaved changes will be lost.
                 </ConfirmDialog>
               </div>
+              {/* Locked CTA (mockup `.next.locked`): hollow, dashed, dimmed
+                  weight — the blocking reason lives in the footerNote text. */}
               <Btn
                 variant="primary"
                 size="lg"
-                className="w-full rounded-full sm:w-auto"
+                className={cn(
+                  'w-full rounded-full sm:w-auto',
+                  nextDisabled &&
+                    !busy &&
+                    'border-2 border-dashed border-su-white/55 bg-transparent font-normal text-su-white/60 shadow-none disabled:opacity-100'
+                )}
                 onClick={onNext}
                 disabled={nextDisabled || busy}
               >

@@ -15,6 +15,23 @@
  */
 
 export { computeMechCapacity } from './capacity.js'
+export {
+  PILOT_CREATION_ABILITY_PICKS,
+  PILOT_CREATION_EQUIPMENT_PICKS,
+  isLegalCreationClass,
+  isLegalCreationAbility,
+  legalCreationAbilities,
+  isLegalCreationEquipment,
+  pilotAbilityPicksRemaining,
+  pilotEquipmentPicksRemaining,
+  isPilotAbilityPickComplete,
+  isPilotEquipmentPickComplete,
+} from './creation.js'
+export type {
+  CreationCoreTrees,
+  CreationAbilityInput,
+  CreationEquipmentInput,
+} from './creation.js'
 export { enrichPilotSnapshot } from './pilotSnapshot.js'
 export { computeCrawlerCapacity } from './crawlerCapacity.js'
 export { salvageValueFor, scrapCostFor, tierUpgradeCost } from './scrap.js'

@@ -102,9 +102,11 @@ export function ReviewStep({ form, trainingPoints, submitError, _sur }: ReviewSt
             hide={{ actions: true, choices: true }}
           />
         ))}
-        {chosenEquipment.map((item) => (
+        {chosenEquipment.map((item, i) => (
           <ReferenceEntityDisplay
-            key={item.id}
+            // Duplicates are legal picks (2× the same Tech 1 item), so the id
+            // alone cannot key the list.
+            key={`${item.id}-${i}`}
             data={item as unknown as SURefEntity}
             compact
             status="intact"

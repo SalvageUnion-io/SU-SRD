@@ -1,5 +1,5 @@
 import type { SURefEntity } from 'salvageunion-reference'
-import { ReferenceEntityDisplay, Sel } from 'suref-react'
+import { ReferenceEntityDisplay, Sel, StepBtn } from 'suref-react'
 import { cn } from '../../lib/utils'
 
 type SelCardProps = {
@@ -14,12 +14,22 @@ type SelCardProps = {
   /**
    * Why this card is unavailable (mockup `.sel.off` + `.chip.warn`), e.g.
    * 'Needs 6 Slots · 2 Left' — rendered as a cond-caps footMeta chip and dims
-   * the card. Inert chrome this phase: nothing drives it until the Phase 3–5
-   * rules engines land.
+   * the card.
    */
   disabledReason?: string
   /** Optional pseudo-header label on the card frame (e.g. tree name). */
   label?: string
+  /**
+   * Count-stepper mode (plan §3.1, mockup `.ctr`): when `count` and
+   * `onCountChange` are both set, a `[− n +]` pair renders through the entity
+   * card's existing footActions band. Duplicates allowed — the caller owns
+   * the shared budget and passes `maxCount` (the highest value THIS card may
+   * reach right now); at the budget every `+` disables.
+   */
+  count?: number
+  onCountChange?: (next: number) => void
+  /** Ceiling for `count` given the shared budget; `+` disables at it. */
+  maxCount?: number
 }
 
 /**
@@ -31,6 +41,8 @@ type SelCardProps = {
  * Disabled cells desaturate, grey out, and drop pointer events; the budget
  * notice renders ONCE in the WizShell footer beside the buttons, never
  * per-card — but a per-card `disabledReason` chip names the specific gate.
+ * Count-stepper mode attaches a `[− n +]` control via footActions (the seam
+ * Erow already proves) — never bespoke chrome outside the card.
  */
 export function SelCard({
   entity,
@@ -40,8 +52,54 @@ export function SelCard({
   disabled = false,
   disabledReason,
   label,
+  count,
+  onCountChange,
+  maxCount,
 }: SelCardProps) {
   const isOff = disabled || disabledReason !== undefined
+  const hasCounter = count !== undefined && onCountChange !== undefined
+  const atMax = maxCount !== undefined && count !== undefined && count >= maxCount
+
+  const counter = hasCounter ? (
+    <span className="inline-flex items-stretch overflow-hidden rounded-[5px] border-2 border-ink leading-none">
+      <StepBtn
+        aria-label={`Remove one ${name}`}
+        disabled={count === 0}
+        onClick={(e) => {
+          e.stopPropagation()
+          onCountChange(count - 1)
+        }}
+        className="rounded-none border-0 bg-ink text-su-white hover:bg-ink-2"
+      >
+        −
+      </StepBtn>
+      <span
+        role="spinbutton"
+        aria-valuenow={count}
+        aria-valuemin={0}
+        aria-valuemax={maxCount}
+        aria-label={`${name} count`}
+        className={cn(
+          'grid w-8 place-items-center bg-paper font-cond text-[13px] font-bold text-ink',
+          count === 0 && 'opacity-55'
+        )}
+      >
+        {count}
+      </span>
+      <StepBtn
+        aria-label={`Add one ${name}`}
+        disabled={atMax}
+        onClick={(e) => {
+          e.stopPropagation()
+          onCountChange(count + 1)
+        }}
+        className="rounded-none border-0 bg-ink text-su-white hover:bg-ink-2"
+      >
+        +
+      </StepBtn>
+    </span>
+  ) : undefined
+
   return (
     <div className={cn(isOff && 'pointer-events-none opacity-50 saturate-50')}>
       <Sel
@@ -57,6 +115,7 @@ export function SelCard({
           hide={{ actions: true, choices: true }}
           label={label}
           footMeta={disabledReason ? [{ label: disabledReason, value: '' }] : undefined}
+          footActions={counter}
         />
       </Sel>
     </div>
