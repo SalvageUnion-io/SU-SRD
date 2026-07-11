@@ -19,6 +19,8 @@ export {
   PILOT_CREATION_ABILITY_PICKS,
   PILOT_CREATION_EQUIPMENT_PICKS,
   MECH_CREATION_SCRAP_CAP,
+  CRAWLER_CREATION_TECH_LEVEL,
+  CRAWLER_CREATION_MIN_WEAPONS,
   isLegalCreationClass,
   isLegalCreationAbility,
   legalCreationAbilities,
@@ -26,9 +28,13 @@ export {
   isLegalCreationChassis,
   isLegalCreationSystem,
   isLegalCreationModule,
+  isLegalCreationCrawlerWeapon,
   isLegalStartingPattern,
   legalStartingPatterns,
   mechCreationBudget,
+  crawlerWeaponSlots,
+  crawlerMaxSpBonus,
+  isCrawlerWeaponPickComplete,
   pilotAbilityPicksRemaining,
   pilotEquipmentPicksRemaining,
   isPilotAbilityPickComplete,
@@ -39,6 +45,7 @@ export type {
   CreationAbilityInput,
   CreationEquipmentInput,
   CreationPatternInput,
+  CrawlerMutationInput,
   MechCreationBudget,
   MechCreationBudgetInput,
   MechCreationLoadoutEntry,
@@ -109,9 +116,10 @@ export {
   clampMechCurrentStats,
   unifiedMechConditions,
   crawlerMaxSP,
+  crawlerMaxSPParts,
   clampCrawlerCurrentStats,
 } from './derivedStats.js'
-export type { ChassisStats } from './derivedStats.js'
+export type { ChassisStats, CrawlerMaxSPParts } from './derivedStats.js'
 export {
   MEDIATOR_TABLE_NAMES,
   MEDIATOR_TABLE_LABEL,

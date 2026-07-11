@@ -1,15 +1,17 @@
 /**
  * Integration tests for CrawlerBuilder (create + edit on the WizShell
- * skeleton).
+ * skeleton), restructured to the Union Crawler's book order (wizard-refresh
+ * Phase 5, pp.212–213):
  *
- * Exercises Crawler (master-detail TYPE pick with feature preview) →
- * Systems (TL-filtered Sel grid) → Crew (NPC details) → Identity (name +
- * starting resources) → Review → submit using the real wizard, real
- * SalvageUnionReference data, real Zod validation, and a fake-indexeddb-backed
- * entityStore.
+ *   Choose a Crawler Type (radio entity cards) → Note your Crawler
+ *   Statistics (display-only, create) → Arm the Armament Bay (Tech-1
+ *   weapons, min 1, mutations-derived cap) → Name your Crew (roster rows →
+ *   IdentityFields) → Name your Crawler (name + scrap pool) → Review →
+ *   submit.
  *
- * fake-indexeddb/auto is preloaded via bunfig.toml.
- * SalvageUnionReference is preloaded in beforeAll.
+ * Uses the real wizard, real SalvageUnionReference data, real Zod validation,
+ * and a fake-indexeddb-backed entityStore (fake-indexeddb/auto preloaded via
+ * bunfig.toml; SalvageUnionReference preloaded in beforeAll).
  */
 
 import { afterEach, beforeAll, beforeEach, describe, expect, it, mock } from 'bun:test'
@@ -55,6 +57,7 @@ function resetEntityStore(): void {
 }
 
 beforeEach(async () => {
+  sessionStorage.clear()
   _resetDbSingleton()
   await _clearAllStores()
   resetEntityStore()
@@ -65,6 +68,7 @@ afterEach(async () => {
   await act(async () => {
     cleanup()
   })
+  sessionStorage.clear()
   await _clearAllStores()
   resetEntityStore()
 })
@@ -73,18 +77,19 @@ afterEach(async () => {
 // Helpers (WizShell skeleton)
 // ---------------------------------------------------------------------------
 
-/**
- * Tech-level rows are OptRow <button>s whose accessible text starts with the
- * level name; system cards are Sel wrappers — div[role="button"] with
- * aria-label set to the entity name. Both report role=button.
- */
+/** Crawler-type cells are radio SelCards (exactly-one semantics). */
+async function pickType(name: string): Promise<void> {
+  await act(async () => {
+    fireEvent.click(screen.getByRole('radio', { name }))
+  })
+}
+
+/** Weapon cards are Sel wrappers — div[role="button"] with aria-label. */
 function getPickByName(name: string): HTMLElement {
   const candidates = screen.getAllByRole('button')
   const exact = candidates.find((b) => b.getAttribute('aria-label') === name)
-  if (exact) return exact
-  const row = candidates.find((b) => (b.textContent ?? '').includes(name))
-  if (!row) throw new Error(`No role=button pick for "${name}"`)
-  return row
+  if (!exact) throw new Error(`No role=button pick for "${name}"`)
+  return exact
 }
 
 async function pick(name: string): Promise<void> {
@@ -104,10 +109,32 @@ async function clickNext(): Promise<void> {
   })
 }
 
+/** Expand a crew roster row by clicking its entity card (cardClick → button). */
+async function expandRow(name: string): Promise<void> {
+  const card = screen
+    .getAllByRole('button')
+    .find((b) => (b.textContent ?? '').includes(name) && b.getAttribute('aria-label') === null)
+  if (!card) throw new Error(`No clickable roster card for "${name}"`)
+  await act(async () => {
+    fireEvent.click(card)
+  })
+}
+
+/** Fill a click-to-edit IdentityField (open → type → blur commits). */
+async function fillField(editLabel: string, value: string): Promise<void> {
+  await act(async () => {
+    fireEvent.click(screen.getByRole('button', { name: editLabel }))
+  })
+  const input = screen.getByRole('textbox', { name: editLabel }) as HTMLInputElement
+  await act(async () => {
+    fireEvent.change(input, { target: { value } })
+    fireEvent.blur(input, { target: { value } })
+  })
+}
+
 /**
- * First WEAPONS (damage-dealing) system at a tech level. The crawler subtitle
- * counts only weapons systems toward the Armament-Bay cap, so count assertions
- * must install a weapon, not just any system.
+ * First WEAPONS (damage-dealing) system at a tech level. The Armament-Bay cap
+ * counts only weapons systems, so count assertions must install a weapon.
  */
 function weaponSystemAtTL(tl: number): { id: string; name: string } {
   const found = SalvageUnionReference.Systems.findAll(
@@ -117,7 +144,7 @@ function weaponSystemAtTL(tl: number): { id: string; name: string } {
   return found as { id: string; name: string }
 }
 
-/** All WEAPONS systems at or below a tech level (the Systems-step catalog). */
+/** All WEAPONS systems at or below a tech level. */
 function weaponSystemsUpToTL(tl: number): Array<{ id: string; name: string }> {
   return SalvageUnionReference.Systems.findAll(
     (s) => typeof s.techLevel === 'number' && s.techLevel <= tl && isWeaponSystem(s)
@@ -138,74 +165,102 @@ function nonWeaponSystemAtTL(tl: number): { id: string; name: string } {
 // ---------------------------------------------------------------------------
 
 describe('CrawlerBuilder — create mode', () => {
-  it('renders the master-detail Crawler step with TYPE rows and a feature preview', async () => {
+  it('step 1 renders the five types as radio entity cards with a mutations badge + detail', async () => {
     render(<CrawlerBuilder onComplete={() => {}} onCancel={() => {}} />)
 
-    expect(screen.getByText('Choose Your Crawler')).toBeTruthy()
+    expect(screen.getAllByText('Choose a Crawler Type').length).toBeGreaterThan(0)
     await waitFor(() => {
-      expect(getPickByName('Battle')).toBeTruthy()
+      expect(screen.getByRole('radio', { name: 'Battle' })).toBeTruthy()
     })
+    for (const name of ['Augmented', 'Engineering', 'Exploratory', 'Trade Caravan']) {
+      expect(screen.getByRole('radio', { name })).toBeTruthy()
+    }
 
-    // No selection yet — Next is disabled, detail pane shows the empty hint.
+    // No selection yet — Next is gated with a reason.
     expect(getNextButton().disabled).toBe(true)
-    expect(screen.getByText(/Select a crawler type to preview/i)).toBeTruthy()
+    expect(screen.getByText(/Choose your Crawler type/i)).toBeTruthy()
 
-    // Selecting a type shows its feature card (special action + NPC), NOT a bay grid.
-    await pick('Battle')
+    // Selecting Battle shows its full detail card: the unique Ability + NPC.
+    await pickType('Battle')
     await waitFor(() => {
-      // The special action is unique to the detail card.
-      expect(screen.getByText('Improved Armour and Armaments')).toBeTruthy()
-      // The special NPC's position surfaces (also in the OptRow desc → multiple).
+      expect(screen.getAllByText('Improved Armour and Armaments').length).toBeGreaterThan(0)
       expect(screen.getAllByText('Grizzled Veteran').length).toBeGreaterThan(0)
     })
     expect(getNextButton().disabled).toBe(false)
   }, 30000)
 
-  it('TL-filters the Systems step to Tech Level 1 (fixed for new crawlers)', async () => {
+  it('the Augmented type surfaces the +1 Training Point callout (text only)', async () => {
+    render(<CrawlerBuilder onComplete={() => {}} onCancel={() => {}} />)
+    await waitFor(() => screen.getByRole('radio', { name: 'Augmented' }))
+    await pickType('Augmented')
+    await waitFor(() => {
+      expect(screen.getByText(/\+1 Training Point/)).toBeTruthy()
+      expect(screen.getByText(/Augment ability tree only/)).toBeTruthy()
+    })
+  }, 30000)
+
+  it('step 2 displays fixed TL1 statistics with the derived SP breakdown (Battle 20 + 5 = 25)', async () => {
+    render(<CrawlerBuilder onComplete={() => {}} onCancel={() => {}} />)
+    await waitFor(() => screen.getByRole('radio', { name: 'Battle' }))
+    await pickType('Battle')
+    await clickNext() // -> Statistics
+
+    const breakdown = screen.getByTestId('sp-breakdown')
+    expect(breakdown.textContent).toContain('20 + 5 type bonus')
+    expect(breakdown.textContent).toContain('25')
+    // Display-only: no Tech Level input exists, Next is never gated here.
+    expect(screen.queryByLabelText(/Tech Level/i)).toBeNull()
+    expect(getNextButton().disabled).toBe(false)
+  }, 30000)
+
+  it('TL-filters the Armament step to Tech 1 weapons only (non-weapons excluded)', async () => {
     render(<CrawlerBuilder onComplete={() => {}} onCancel={() => {}} />)
 
-    await waitFor(() => getPickByName('Battle'))
-    await pick('Battle')
-    await clickNext()
+    await waitFor(() => screen.getByRole('radio', { name: 'Battle' }))
+    await pickType('Battle')
+    await clickNext() // Statistics
+    await clickNext() // -> Armament Bay
 
-    // The catalog is weapons-only, so isolate the TL behaviour with weapons.
     const tl1 = weaponSystemAtTL(1)
     const tl2 = weaponSystemAtTL(2)
+    const nonWeapon = nonWeaponSystemAtTL(1)
     await waitFor(() => {
       expect(screen.getByRole('button', { name: tl1.name })).toBeTruthy()
     })
+    // Higher-TL weapons are FILTERED OUT (never rendered), as are non-weapons.
     expect(screen.queryByRole('button', { name: tl2.name })).toBeNull()
-  }, 30000)
-
-  it('lists only WEAPONS systems — non-weapon systems never appear', async () => {
-    render(<CrawlerBuilder onComplete={() => {}} onCancel={() => {}} />)
-
-    await waitFor(() => getPickByName('Battle'))
-    await pick('Battle')
-    await clickNext() // -> Systems
-
-    const weapon = weaponSystemAtTL(1)
-    const nonWeapon = nonWeaponSystemAtTL(1)
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: weapon.name })).toBeTruthy()
-    })
-    // A non-weapon system at the same TL is filtered out of the catalog.
     expect(screen.queryByRole('button', { name: nonWeapon.name })).toBeNull()
   }, 30000)
 
-  it('hard-caps installs at the crawler-type allowance (Engineering = 1)', async () => {
+  it('gates the Armament step on the minimum-1 weapon mount', async () => {
     render(<CrawlerBuilder onComplete={() => {}} onCancel={() => {}} />)
 
-    // Engineering is a non-Battle type: one Weapons System (Core Book p. 213).
-    await waitFor(() => getPickByName('Engineering'))
-    await pick('Engineering')
-    await clickNext() // -> Systems
+    await waitFor(() => screen.getByRole('radio', { name: 'Engineering' }))
+    await pickType('Engineering')
+    await clickNext() // Statistics
+    await clickNext() // -> Armament Bay
+
+    // Nothing mounted — Next is locked with the reason in the footer.
+    expect(getNextButton().disabled).toBe(true)
+    expect(screen.getByText(/Mount at least one Weapons System/i)).toBeTruthy()
+
+    const weapon = weaponSystemAtTL(1)
+    await pick(weapon.name)
+    expect(getNextButton().disabled).toBe(false)
+  }, 30000)
+
+  it('hard-caps installs at the mutations-derived type allowance (Engineering = 1)', async () => {
+    render(<CrawlerBuilder onComplete={() => {}} onCancel={() => {}} />)
+
+    await waitFor(() => screen.getByRole('radio', { name: 'Engineering' }))
+    await pickType('Engineering')
+    await clickNext() // Statistics
+    await clickNext() // -> Armament Bay
 
     const weapons = weaponSystemsUpToTL(1)
     expect(weapons.length).toBeGreaterThanOrEqual(2)
     const [first, second] = weapons
 
-    // Both weapons are selectable before anything is installed.
     await waitFor(() => {
       expect(screen.getByRole('button', { name: must(first).name })).toBeTruthy()
     })
@@ -227,58 +282,70 @@ describe('CrawlerBuilder — create mode', () => {
     })
   }, 30000)
 
-  it('walks through every step and creates a TL1 typed crawler with seeded bays, crew + resources', async () => {
+  it('a Battle Crawler mounts two — and a type change re-clamps with a toast', async () => {
+    render(<CrawlerBuilder onComplete={() => {}} onCancel={() => {}} />)
+
+    await waitFor(() => screen.getByRole('radio', { name: 'Battle' }))
+    await pickType('Battle')
+    await clickNext() // Statistics
+    await clickNext() // -> Armament Bay
+
+    const weapons = weaponSystemsUpToTL(1)
+    const [first, second] = weapons
+    await waitFor(() => screen.getByRole('button', { name: must(first).name }))
+    await pick(must(first).name)
+    await pick(must(second).name)
+    expect(screen.getByTestId('weapon-system-count').textContent).toContain('2 / 2')
+
+    // Back to step 1: switching Battle → Engineering re-clamps to 1 slot,
+    // dropping the NEWEST mount.
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /Crawler Type/i }))
+    })
+    await pickType('Engineering')
+    await clickNext() // Statistics
+    await clickNext() // -> Armament Bay
+    expect(screen.getByTestId('weapon-system-count').textContent).toContain('1 / 1')
+  }, 30000)
+
+  it('walks every book step and creates a TL1 Battle crawler seeded at the DERIVED full SP', async () => {
     const onComplete = mock(() => {})
     render(<CrawlerBuilder onComplete={onComplete} onCancel={() => {}} />)
 
     const battle = must(SalvageUnionReference.Crawlers.find((c) => c.name === 'Battle'))
     const commandBay = must(SalvageUnionReference.CrawlerBays.find((b) => b.name === 'Command Bay'))
 
-    // --- Step 1: Crawler — pick a TYPE ---
-    await waitFor(() => getPickByName('Battle'))
-    await pick('Battle')
+    // --- Step 1: Choose a Crawler Type ---
+    await waitFor(() => screen.getByRole('radio', { name: 'Battle' }))
+    await pickType('Battle')
     await clickNext()
 
-    // --- Step 2: Systems — live weapon-system count in subtitle ---
+    // --- Step 2: Note your Crawler Statistics (display-only) ---
+    expect(screen.getByTestId('sp-breakdown')).toBeTruthy()
+    await clickNext()
+
+    // --- Step 3: Arm the Armament Bay (min 1, Tech 1 weapons) ---
     const tl1 = weaponSystemAtTL(1)
     await pick(tl1.name)
     expect(screen.getByTestId('weapon-system-count').textContent).toContain('1 /')
     await clickNext()
 
-    // --- Step 3: Crew — fill the Command Bay lead + the type NPC ---
-    const byId = (id: string): HTMLElement => {
-      const el = document.getElementById(id)
-      if (!el) throw new Error(`No element #${id}`)
-      return el
-    }
-    await waitFor(() => byId(`crew-${commandBay.id}-name`))
-    fireEvent.change(byId(`crew-${commandBay.id}-name`), {
-      target: { value: 'Maddox' },
-    })
-    fireEvent.change(byId(`crew-${commandBay.id}-keepsake`), {
-      target: { value: 'A medal' },
-    })
-    fireEvent.change(byId(`crew-${battle.id}-name`), {
-      target: { value: 'Vex' },
-    })
-    fireEvent.change(byId(`crew-${battle.id}-motto`), {
-      target: { value: 'No retreat' },
-    })
+    // --- Step 4: Name your Crew (roster rows → IdentityFields) ---
+    await expandRow('Battle')
+    await fillField('Edit grizzled veteran name', 'Vex')
+    await fillField('Edit grizzled veteran motto', 'No retreat')
+    await expandRow('Command Bay')
+    await fillField('Edit princeps name', 'Maddox')
+    await fillField('Edit princeps keepsake', 'A medal')
     await clickNext()
 
-    // --- Step 4: Identity — name + starting resources ---
-    fireEvent.change(screen.getByLabelText(/Crawler Name/i), {
-      target: { value: 'Bay Wagon' },
-    })
-    fireEvent.change(screen.getByLabelText(/Scrap T2/i), {
-      target: { value: '3' },
-    })
-    fireEvent.change(screen.getByLabelText(/Upgrade Pool/i), {
-      target: { value: '12' },
-    })
+    // --- Step 5: Name your Crawler (+ scrap pool; NO upgrade pool input) ---
+    expect(screen.queryByLabelText(/Upgrade Pool/i)).toBeNull()
+    await fillField('Edit crawler name', 'Bay Wagon')
+    fireEvent.change(screen.getByLabelText(/Scrap T2/i), { target: { value: '3' } })
     await clickNext()
 
-    // --- Step 5: Review → submit ('Create Crawler ✦') ---
+    // --- Review → submit ('Create Crawler ✦') ---
     const submit = screen.getByRole('button', { name: /Create Crawler/i })
     await act(async () => {
       fireEvent.click(submit)
@@ -294,13 +361,17 @@ describe('CrawlerBuilder — create mode', () => {
       expect(c.schemaVersion).toBe(1)
       expect(c.systems).toEqual([tl1.id])
       expect(c.scrapPool).toEqual({ tl2: 3 })
-      expect(c.upgradePool).toBe(12)
+      // upgradePool is FIXED at 0 at creation (input removed).
+      expect(c.upgradePool).toBe(0)
+      // The record stores NO SP maximum and NO type bonus — max SP derives at
+      // read. currentSP seeds at the DERIVED full (20 base + 5 Battle) = 25.
+      expect(c.maxSpModifier).toBeUndefined()
+      expect(c.currentSP).toBe(25)
 
       // Base bay set seeded (expansion bays excluded), NPCs at max HP (4)
       // where the bay has one.
       const baseBays = SalvageUnionReference.CrawlerBays.all().filter((b) => !b.expansion)
       expect(c.crawlerBays?.length).toBe(baseBays.length)
-      // No expansion bay is ever auto-installed on a fresh crawler.
       const expansionBays = SalvageUnionReference.CrawlerBays.all().filter((b) => b.expansion)
       expect(expansionBays.length).toBeGreaterThan(0)
       for (const exp of expansionBays) {
@@ -316,12 +387,9 @@ describe('CrawlerBuilder — create mode', () => {
       ).id
       expect(c.bayChoices?.[commandBay.id]?.[keepsakeId]).toEqual(['A medal'])
       expect(c.typeNpc?.npcName).toBe('Vex')
+      expect(c.typeNpc?.npcCurrentHP).toBe(10) // the Grizzled Veteran's fixed HP
       const mottoId = must(must(must(battle.npc).choices).find((ch) => ch.name === 'Motto')).id
       expect(c.bayChoices?.[battle.id]?.[mottoId]).toEqual(['No retreat'])
-
-      // Fresh crawlers start at full SP for Tech Level 1.
-      const tl = must(SalvageUnionReference.CrawlerTechLevels.find((t) => t.techLevel === 1))
-      expect(c.currentSP).toBe(tl.structurePoints)
     })
     expect(onComplete).toHaveBeenCalledTimes(1)
   }, 30000)
@@ -329,14 +397,17 @@ describe('CrawlerBuilder — create mode', () => {
   it('name gate: cannot reach Create with an empty name', async () => {
     render(<CrawlerBuilder onComplete={() => {}} onCancel={() => {}} />)
 
-    await waitFor(() => getPickByName('Battle'))
-    await pick('Battle')
-    await clickNext() // Systems
+    await waitFor(() => screen.getByRole('radio', { name: 'Battle' }))
+    await pickType('Battle')
+    await clickNext() // Statistics
+    await clickNext() // Armament Bay
+    await pick(weaponSystemAtTL(1).name) // satisfy the min-1 mount
     await clickNext() // Crew
-    await clickNext() // Identity
+    await clickNext() // Name
 
     // Name left empty — Next stays disabled, Review/Create is unreachable.
     expect(getNextButton().disabled).toBe(true)
+    expect(screen.getByText(/Name your Crawler to continue/i)).toBeTruthy()
     expect(useEntityStore.getState().list('crawler').length).toBe(0)
   }, 30000)
 
@@ -350,20 +421,19 @@ describe('CrawlerBuilder — create mode', () => {
     expect(onCancel).toHaveBeenCalledTimes(1)
   })
 
-  it('offers no bay catalog in the Crawler step — bays are seeded, not chosen', async () => {
+  it('offers no bay catalog anywhere — bays are seeded, not chosen', async () => {
     render(<CrawlerBuilder onComplete={() => {}} onCancel={() => {}} />)
 
-    await waitFor(() => getPickByName('Battle'))
-    await pick('Battle')
+    await waitFor(() => screen.getByRole('radio', { name: 'Battle' }))
+    await pickType('Battle')
 
-    // The type detail card shows features, not a 2-col bay head grid.
     expect(screen.queryByLabelText('Bay entity slug')).toBeNull()
     expect(screen.queryByRole('button', { name: /Add Bay/i })).toBeNull()
   }, 30000)
 })
 
 // ---------------------------------------------------------------------------
-// Edit mode: upsert branch — live-play state never clobbered
+// Edit mode: upsert branch — soft regime, live-play state never clobbered
 // ---------------------------------------------------------------------------
 
 async function seedCrawler(overrides?: { techLevel?: number; type?: string }) {
@@ -384,7 +454,7 @@ async function seedCrawler(overrides?: { techLevel?: number; type?: string }) {
 }
 
 describe('CrawlerBuilder — edit mode', () => {
-  it('prefills from the crawler and updates without duplicating or touching live state', async () => {
+  it('hides the Statistics step and prefills; updates without duplicating or touching live state', async () => {
     const crawler = await seedCrawler()
     // Simulate play: SP knocked down + a bay NPC wounded.
     const playedBayRef = must(must(crawler.crawlerBays)[0]).bayRef
@@ -405,19 +475,23 @@ describe('CrawlerBuilder — edit mode', () => {
       />
     )
 
-    // Eyebrow flips to edit mode; TL is prefilled so Next is enabled.
+    // Eyebrow flips to edit mode; the display-only Statistics step is hidden.
     expect(screen.getByText('Edit Crawler')).toBeTruthy()
+    const rail = document.querySelector('nav[aria-label="Steps"]')
+    expect(rail?.textContent).not.toContain('Statistics')
+
+    // Legacy (untyped) crawler advances without a type — presence checks only.
     await waitFor(() => {
       expect(getNextButton().disabled).toBe(false)
     })
-    await clickNext() // Systems
+    await clickNext() // -> Armament Bay
 
     // Add a weapons system in edit mode (the catalog is weapons-only).
     const tl1 = weaponSystemAtTL(1)
     await waitFor(() => screen.getByRole('button', { name: tl1.name }))
     await pick(tl1.name)
     await clickNext() // Crew (all optional)
-    await clickNext() // Identity (name prefilled)
+    await clickNext() // Name (prefilled)
     await clickNext() // Review
 
     // Review → 'Save Crawler' (never 'Create')
@@ -444,6 +518,41 @@ describe('CrawlerBuilder — edit mode', () => {
     expect(onComplete).toHaveBeenCalledWith(crawler.id)
   }, 30000)
 
+  it('edit lifts the Tech-1 filter (all-TL weapons offered) and the hard cap', async () => {
+    const crawler = await seedCrawler()
+    const played = must(useEntityStore.getState().get('crawler', crawler.id))
+    render(
+      <CrawlerBuilder
+        crawlerId={crawler.id}
+        initialState={crawlerToFormState(played)}
+        onComplete={() => {}}
+        onCancel={() => {}}
+      />
+    )
+
+    await waitFor(() => {
+      expect(getNextButton().disabled).toBe(false)
+    })
+    await clickNext() // -> Armament Bay
+
+    // A TL2 weapon renders in edit mode (guided create filters it out).
+    const tl2 = weaponSystemAtTL(2)
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: tl2.name })).toBeTruthy()
+    })
+
+    // No hard cap: a second weapon stays selectable; the over-cap advisory
+    // SoftWarningBanner appears instead (soft regime, §5.2).
+    const tl1 = weaponSystemAtTL(1)
+    await pick(tl1.name)
+    await pick(tl2.name)
+    await waitFor(() => {
+      expect(screen.getByText(/Over capacity/i)).toBeTruthy()
+    })
+    // Still saveable — Next is not blocked by the overage.
+    expect(getNextButton().disabled).toBe(false)
+  }, 30000)
+
   it('preserves a higher stored tech level on save (only create fixes TL1)', async () => {
     // A pre-feature crawler at Tech 3 with no chosen type.
     const crawler = await seedCrawler({ techLevel: 3 })
@@ -459,13 +568,12 @@ describe('CrawlerBuilder — edit mode', () => {
       />
     )
 
-    // Type-unselected (legacy crawler), but TL is preserved so Next gates on name.
     await waitFor(() => {
       expect(getNextButton().disabled).toBe(false)
     })
-    await clickNext() // Systems
+    await clickNext() // Armament Bay
     await clickNext() // Crew
-    await clickNext() // Identity
+    await clickNext() // Name
     await clickNext() // Review
 
     const save = screen.getByRole('button', { name: /Save Crawler/i })
@@ -496,7 +604,7 @@ describe('CrawlerBuilder — edit mode', () => {
         scrapPool: { ...EMPTY_SCRAP_POOL },
         upgradePool: 0,
       },
-      { maxSP: 20, crawlerBays: seedDefaultCrawlerBays() }
+      { maxSP: 25, crawlerBays: seedDefaultCrawlerBays() }
     )
     const crawler = await useEntityStore.getState().create('crawler', input)
     expect(crawler.typeNpc?.npcName).toBe('Old Vex')
@@ -516,12 +624,12 @@ describe('CrawlerBuilder — edit mode', () => {
       />
     )
 
-    // Switch the type: Battle → Engineering on the Crawler step.
-    await waitFor(() => getPickByName('Engineering'))
-    await pick('Engineering')
-    await clickNext() // Systems
+    // Switch the type: Battle → Engineering on the type step.
+    await waitFor(() => screen.getByRole('radio', { name: 'Engineering' }))
+    await pickType('Engineering')
+    await clickNext() // Armament Bay
     await clickNext() // Crew
-    await clickNext() // Identity
+    await clickNext() // Name
     await clickNext() // Review
 
     const save = screen.getByRole('button', { name: /Save Crawler/i })
@@ -554,12 +662,11 @@ describe('CrawlerBuilder — edit mode', () => {
   }, 30000)
 
   it('a legacy crawler carrying a non-weapon system does not lock the weapons picker', async () => {
-    // Regression: the Armament-Bay cap counts WEAPONS only. A legacy crawler
-    // that carries a non-weapon system (Cargo Pod, Armour Plating, …) — which
-    // the old wizard allowed and which never appears in the weapons-only
-    // catalog — must NOT count toward the cap. Counting all selected slugs
-    // would lock the picker (can't add the allowed weapon, can't remove the
-    // stranded system → permanent dead-end).
+    // Regression: the Armament-Bay accounting counts WEAPONS only. A legacy
+    // crawler that carries a non-weapon system (Cargo Pod, Armour Plating, …)
+    // — which the old wizard allowed and which never appears in the
+    // weapons-only catalog — must NOT count toward the cap math, and must be
+    // preserved alongside a newly-mounted weapon on save.
     const nonWeapon = nonWeaponSystemAtTL(1)
     const input = crawlerFormToCreateInput(
       {
@@ -589,24 +696,19 @@ describe('CrawlerBuilder — edit mode', () => {
     await waitFor(() => {
       expect(getNextButton().disabled).toBe(false)
     })
-    await clickNext() // -> Systems
+    await clickNext() // -> Armament Bay
 
-    // The stranded non-weapon system does NOT count toward the weapons cap.
+    // The stranded non-weapon system triggers no over-capacity warning …
+    expect(screen.queryByText(/Over capacity/i)).toBeNull()
+    // … and the allowed weapon is still selectable — the picker is not locked.
     const weapon = weaponSystemAtTL(1)
     await waitFor(() => {
-      expect(screen.getByTestId('weapon-system-count').textContent).toContain('0 / 1')
+      expect(screen.getByRole('button', { name: weapon.name })).toBeTruthy()
     })
-    // The allowed weapon is still selectable — the picker is not locked.
-    const weaponBtn = screen.getByRole('button', { name: weapon.name })
-    expect(weaponBtn).toBeTruthy()
-
-    // Installing it ticks the weapon count to the cap; the non-weapon system
-    // is preserved alongside it on save (never silently dropped).
     await pick(weapon.name)
-    expect(screen.getByTestId('weapon-system-count').textContent).toContain('1 / 1')
 
     await clickNext() // Crew
-    await clickNext() // Identity
+    await clickNext() // Name
     await clickNext() // Review
     const save = screen.getByRole('button', { name: /Save Crawler/i })
     await act(async () => {

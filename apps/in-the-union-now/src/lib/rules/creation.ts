@@ -1,6 +1,6 @@
 /**
- * Pilot + mech creation step gates (wizard-refresh Phases 3–4, plan §5.1
- * app half).
+ * Pilot + mech + crawler creation step gates (wizard-refresh Phases 3–5,
+ * plan §5.1 app half).
  *
  * THIN ADAPTER only: destructures wizard form state into neutral inputs
  * (resolved reference records narrowed to primitives + counts) and calls the
@@ -14,17 +14,21 @@
  */
 
 import { SalvageUnionReference } from 'salvageunion-reference'
-import type { SURefAbility, SURefClass, SURefEquipment } from 'salvageunion-reference'
+import type { SURefAbility, SURefClass, SURefEquipment, SURefSystem } from 'salvageunion-reference'
 import {
   computeMechCapacity,
+  crawlerWeaponSlots,
+  isCrawlerWeaponPickComplete,
   isLegalCreationAbility,
   isLegalCreationChassis,
   isLegalCreationClass,
+  isLegalCreationCrawlerWeapon,
   isLegalCreationEquipment,
   isLegalCreationModule,
   isLegalCreationSystem,
   isPilotAbilityPickComplete,
   isPilotEquipmentPickComplete,
+  isWeaponSystem,
   mechCreationBudget,
   PILOT_CREATION_ABILITY_PICKS,
   PILOT_CREATION_EQUIPMENT_PICKS,
@@ -33,7 +37,8 @@ import {
   resolveModuleRef,
   resolveSystemRef,
 } from 'salvageunion-reference/rules'
-import type { MechCreationBudget } from 'salvageunion-reference/rules'
+import type { CrawlerMutationInput, MechCreationBudget } from 'salvageunion-reference/rules'
+import type { CrawlerWizardFormState } from '../wizard/crawlerFormState'
 import type { MechWizardFormState } from '../wizard/mechFormState'
 import type { PilotWizardFormState } from '../wizard/pilotFormState'
 
@@ -474,4 +479,163 @@ export function clampMechCreationDraft(form: MechWizardFormState): MechDraftClam
 
   if (removed.length === 0) return { form, removed }
   return { form: { ...form, chassisName, patternName, systems, modules, cargoLots }, removed }
+}
+
+// ---------------------------------------------------------------------------
+// Union Crawler (pp.212–213 — wizard-refresh Phase 5)
+// ---------------------------------------------------------------------------
+
+/** Book-order crawler wizard step ids (Union Crawler pp.212–213 + Review). */
+export type CrawlerWizardStepId = 'type' | 'stats' | 'weapons' | 'crew' | 'identity' | 'review'
+
+/**
+ * Narrow a stored crawler-type ref (SRD id OR name, the bay-ref tolerance) to
+ * the neutral `mutations` rows the package calculators read. Null/unknown
+ * refs narrow to `undefined` — no mutations, the base rules.
+ */
+function crawlerTypeMutationsOf(
+  typeRef: string | null
+): readonly CrawlerMutationInput[] | undefined {
+  if (typeRef === null || typeRef === '') return undefined
+  const type = SalvageUnionReference.Crawlers.find((c) => c.id === typeRef || c.name === typeRef)
+  return type?.mutations
+}
+
+/**
+ * Armament-Bay weapon slots for the chosen type — read from the type's STORED
+ * `mutations` field via the package calculator (Battle = 2), never an
+ * action-name string match. The same number drives the SelCard cap, the
+ * WEAPONS tracker, the re-clamp on a type change, and the Review gate.
+ */
+export function crawlerWeaponSlotsFor(typeRef: string | null): number {
+  return crawlerWeaponSlots(crawlerTypeMutationsOf(typeRef))
+}
+
+function findCrawlerWeapon(ref: string): SURefSystem | null {
+  return resolveSystemRef(ref)
+}
+
+/** A creation-legal Armament-Bay mount: a resolvable Tech 1 WEAPONS system. */
+function isLegalCrawlerWeaponRef(ref: string): boolean {
+  const system = findCrawlerWeapon(ref)
+  return system !== null && isWeaponSystem(system) && isLegalCreationCrawlerWeapon(system.techLevel)
+}
+
+/** Resolve a stored crawler-type ref (id or name) against the SRD catalog. */
+function crawlerTypeResolves(typeRef: string | null): boolean {
+  if (typeRef === null || typeRef === '') return false
+  return (
+    SalvageUnionReference.Crawlers.find((c) => c.id === typeRef || c.name === typeRef) !== undefined
+  )
+}
+
+function crawlerTypeGate(form: CrawlerWizardFormState): StepGateResult {
+  if (!crawlerTypeResolves(form.type)) {
+    return { ok: false, reason: 'Choose your Crawler type to continue' }
+  }
+  return OK
+}
+
+function crawlerWeaponsGate(form: CrawlerWizardFormState): StepGateResult {
+  if (!isCrawlerWeaponPickComplete(form.systems.length)) {
+    return { ok: false, reason: 'Mount at least one Weapons System to continue' }
+  }
+  if (!form.systems.every(isLegalCrawlerWeaponRef)) {
+    return { ok: false, reason: 'Only Tech 1 Weapons Systems are legal at creation' }
+  }
+  const slots = crawlerWeaponSlotsFor(form.type)
+  if (form.systems.length > slots) {
+    const excess = form.systems.length - slots
+    return {
+      ok: false,
+      reason: `Remove ${excess} Weapons System${excess === 1 ? '' : 's'} — this type mounts ${slots}`,
+    }
+  }
+  return OK
+}
+
+function crawlerNameGate(form: CrawlerWizardFormState): StepGateResult {
+  if (form.name.trim() === '') {
+    return { ok: false, reason: 'Name your Crawler to continue' }
+  }
+  return OK
+}
+
+/**
+ * Next-gating for the crawler CREATE flow (guided mode is HARD — plan §5.3).
+ * The Statistics briefing and the optional Crew step never block; the type
+ * pick, the minimum-1 Tech-1 weapon mount (capped at the type's slots), and
+ * the name are required; Review re-checks everything.
+ */
+export function crawlerCreationStepGate(
+  step: CrawlerWizardStepId,
+  form: CrawlerWizardFormState
+): StepGateResult {
+  switch (step) {
+    case 'stats':
+    case 'crew':
+      return OK // display-only / optional flavor — Next always enabled
+    case 'type':
+      return crawlerTypeGate(form)
+    case 'weapons':
+      return crawlerWeaponsGate(form)
+    case 'identity':
+      return crawlerNameGate(form)
+    case 'review': {
+      for (const gate of [crawlerTypeGate, crawlerWeaponsGate, crawlerNameGate]) {
+        const result = gate(form)
+        if (!result.ok) return result
+      }
+      return OK
+    }
+  }
+}
+
+/** Result of the deterministic crawler draft clamp (plan §5.3). */
+export type CrawlerDraftClampResult = {
+  form: CrawlerWizardFormState
+  /** Human-readable names of everything removed (for the restore toast). */
+  removed: string[]
+}
+
+function crawlerWeaponName(ref: string): string {
+  return findCrawlerWeapon(ref)?.name ?? ref
+}
+
+/**
+ * Deterministic clamp for a restored crawler create-mode draft (plan §5.3):
+ * a draft written before the hard-enforcement regime may violate the creation
+ * rules. Resolution order —
+ *   - an unresolvable type ref is cleared (its crew entry with it),
+ *   - non-weapon / non-Tech-1 / unresolvable systems are dropped,
+ *   - then the weapons are clamped NEWEST-first down to the type's
+ *     Armament-Bay slots (mutations-derived; 1, Battle 2).
+ * The caller shows one toast itemizing `removed`.
+ */
+export function clampCrawlerCreationDraft(form: CrawlerWizardFormState): CrawlerDraftClampResult {
+  const removed: string[] = []
+  let type = form.type
+  let crew = form.crew
+  let systems = [...form.systems]
+
+  if (type !== null && !crawlerTypeResolves(type)) {
+    removed.push(`type pick (${type})`)
+    crew = { ...crew }
+    delete crew[type]
+    type = null
+  }
+
+  const legal = systems.filter(isLegalCrawlerWeaponRef)
+  removed.push(...systems.filter((ref) => !legal.includes(ref)).map(crawlerWeaponName))
+  systems = legal
+
+  const slots = crawlerWeaponSlotsFor(type)
+  while (systems.length > slots) {
+    const dropped = systems.pop()
+    if (dropped === undefined) break
+    removed.push(crawlerWeaponName(dropped))
+  }
+
+  if (removed.length === 0) return { form, removed }
+  return { form: { ...form, type, crew, systems }, removed }
 }

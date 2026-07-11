@@ -1,18 +1,21 @@
 /**
- * Unit tests for CrawlerCrewStep — the wizard's crew/NPC details step.
+ * Unit tests for CrawlerCrewStep — the wizard's crew/NPC roster step
+ * (wizard-refresh Phase 5: entity-card rows expanding to IdentityFields).
  *
  * Renders the 10 crewed base bays (the 4 expansion bays carry no NPC →
- * excluded) plus the selected crawler type's special NPC. Each NPC exposes the
- * SRD freeform set Name/Description/Keepsake/Motto, guarded off the NPC's own
- * choices: the Augmented type's A.I. has only Name/Description.
+ * excluded) plus the selected crawler type's special NPC HEADING the list.
+ * Each row is the SRD entity card, header-only until expanded; the expanded
+ * row exposes the freeform set Name/Background/Keepsake/Motto through
+ * click-to-edit IdentityFields, guarded off the NPC's own choices: the
+ * Augmented type's A.I. has only Name/Background.
  *
  * Uses real SalvageUnionReference data. NO mock.module().
  */
 
 import { afterEach, beforeAll, describe, expect, it, mock } from 'bun:test'
-import { cleanup, fireEvent, render } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import type { SURefCrawler } from 'salvageunion-reference'
+import type { SURefCrawler, SURefEntity } from 'salvageunion-reference'
 
 import { CrawlerCrewStep } from '../CrawlerCrewStep'
 import type { CrewNpcForm } from '../../../lib/wizard/crawlerFormState'
@@ -26,100 +29,121 @@ afterEach(() => {
   cleanup()
 })
 
-function crewedBays() {
-  return (
-    SalvageUnionReference.CrawlerBays.all() as Array<{ id: string; name: string; npc?: unknown }>
-  ).filter((b) => b.npc != null) as Array<{
-    id: string
-    name: string
-    npc?: { position?: string; choices?: ReadonlyArray<{ id: string; name: string }> }
-  }>
+function crewedBays(): SURefEntity[] {
+  return (SalvageUnionReference.CrawlerBays.all() as unknown as SURefEntity[]).filter(
+    (b) => (b as { npc?: unknown }).npc != null
+  )
 }
 
-function byId(container: HTMLElement, id: string): HTMLElement {
-  const el = container.querySelector(`#${id}`)
-  if (!el) throw new Error(`No element #${id}`)
-  return el as HTMLElement
+function bayByName(name: string): SURefEntity {
+  return must(crewedBays().find((b) => (b as { name?: string }).name === name))
+}
+
+/** Expand a roster row by clicking its entity card (cardClick → role=button). */
+function expandRow(name: string): void {
+  const card = screen
+    .getAllByRole('button')
+    .find((b) => (b.textContent ?? '').includes(name) && b.getAttribute('aria-label') === null)
+  if (!card) throw new Error(`No clickable roster card for "${name}"`)
+  fireEvent.click(card)
+}
+
+/** Open a click-to-edit IdentityField and return its input. */
+function openField(editLabel: string): HTMLInputElement {
+  fireEvent.click(screen.getByRole('button', { name: editLabel }))
+  return screen.getByRole('textbox', { name: editLabel }) as HTMLInputElement
 }
 
 describe('CrawlerCrewStep', () => {
-  it('renders exactly the 10 crewed base bays (expansion bays excluded)', () => {
+  it('renders exactly the 10 crewed base bays as roster rows (expansion bays excluded)', () => {
     const bays = crewedBays()
     expect(bays.length).toBe(10)
     const { container } = render(
       <CrawlerCrewStep bays={bays} selectedType={undefined} crew={{}} onChange={() => {}} />
     )
     for (const bay of bays) {
-      expect(byId(container, `crew-${bay.id}-name`)).toBeTruthy()
+      expect(container.textContent).toContain((bay as { name: string }).name)
     }
-    // No expansion bay (e.g. VR Tubes) has a crew section.
+    // No expansion bay (e.g. VR Tubes) has a crew row.
     expect(container.textContent).not.toContain('VR Tubes')
   })
 
-  it('renders Name/Description/Keepsake/Motto for a standard bay NPC', () => {
-    const bays = crewedBays()
-    const command = must(bays.find((b) => b.name === 'Command Bay'))
-    const { container } = render(
-      <CrawlerCrewStep bays={bays} selectedType={undefined} crew={{}} onChange={() => {}} />
+  it('an expanded standard bay exposes Name/Background/Keepsake/Motto IdentityFields', () => {
+    render(
+      <CrawlerCrewStep
+        bays={[bayByName('Command Bay')]}
+        selectedType={undefined}
+        crew={{}}
+        onChange={() => {}}
+      />
     )
-    expect(byId(container, `crew-${command.id}-name`)).toBeTruthy()
-    expect(byId(container, `crew-${command.id}-description`)).toBeTruthy()
-    expect(byId(container, `crew-${command.id}-keepsake`)).toBeTruthy()
-    expect(byId(container, `crew-${command.id}-motto`)).toBeTruthy()
+    // Collapsed: no fields yet.
+    expect(screen.queryByRole('button', { name: /keepsake/i })).toBeNull()
+
+    expandRow('Command Bay')
+    expect(screen.getByRole('button', { name: /name$/i })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /background/i })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /keepsake/i })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /motto/i })).toBeTruthy()
   })
 
-  it('includes the selected type’s special NPC with its full field set', () => {
+  it('the selected type’s special NPC HEADS the roster with its full field set', () => {
     const battle = must(SalvageUnionReference.Crawlers.find((c) => c.name === 'Battle'))
     const { container } = render(
       <CrawlerCrewStep bays={crewedBays()} selectedType={battle} crew={{}} onChange={() => {}} />
     )
-    expect(byId(container, `crew-${battle.id}-name`)).toBeTruthy()
-    expect(byId(container, `crew-${battle.id}-keepsake`)).toBeTruthy()
-    expect(byId(container, `crew-${battle.id}-motto`)).toBeTruthy()
+    const text = container.textContent ?? ''
+    // The type row renders before the first bay row.
+    expect(text.indexOf('Battle')).toBeLessThan(text.indexOf('Command Bay'))
+
+    expandRow('Battle')
+    expect(screen.getByRole('button', { name: /grizzled veteran keepsake/i })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /grizzled veteran motto/i })).toBeTruthy()
   })
 
-  it('Augmented edge: A.I. NPC shows Name/Description only (no Keepsake/Motto)', () => {
+  it('Augmented edge: A.I. NPC shows Name/Background only (no Keepsake/Motto)', () => {
     const augmented = must(SalvageUnionReference.Crawlers.find((c) => c.name === 'Augmented'))
-    const { container } = render(
-      <CrawlerCrewStep bays={crewedBays()} selectedType={augmented} crew={{}} onChange={() => {}} />
-    )
-    expect(byId(container, `crew-${augmented.id}-name`)).toBeTruthy()
-    expect(byId(container, `crew-${augmented.id}-description`)).toBeTruthy()
-    expect(container.querySelector(`#crew-${augmented.id}-keepsake`)).toBeNull()
-    expect(container.querySelector(`#crew-${augmented.id}-motto`)).toBeNull()
+    render(<CrawlerCrewStep bays={[]} selectedType={augmented} crew={{}} onChange={() => {}} />)
+    expandRow('Augmented')
+    expect(screen.getByRole('button', { name: /union crawler a\.i\. name/i })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /union crawler a\.i\. background/i })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: /keepsake/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /motto/i })).toBeNull()
   })
 
   it('edits a bay NPC field through onChange (merging crew state)', () => {
-    const bays = crewedBays()
-    const command = must(bays.find((b) => b.name === 'Command Bay'))
     const onChange = mock((patch: { crew?: Record<string, CrewNpcForm> }) => patch)
-    const { container } = render(
-      <CrawlerCrewStep bays={bays} selectedType={undefined} crew={{}} onChange={onChange} />
+    const command = bayByName('Command Bay')
+    render(
+      <CrawlerCrewStep bays={[command]} selectedType={undefined} crew={{}} onChange={onChange} />
     )
-    fireEvent.change(byId(container, `crew-${command.id}-name`), {
-      target: { value: 'Maddox' },
-    })
+    expandRow('Command Bay')
+    const input = openField('Edit princeps name')
+    fireEvent.change(input, { target: { value: 'Maddox' } })
+    fireEvent.blur(input, { target: { value: 'Maddox' } })
     expect(onChange).toHaveBeenCalledWith({
-      crew: { [command.id]: { name: 'Maddox' } },
+      crew: { [(command as { id: string }).id]: { name: 'Maddox' } },
     })
   })
 
-  it('renders existing crew values', () => {
-    const bays = crewedBays()
-    const command = must(bays.find((b) => b.name === 'Command Bay'))
+  it('renders existing crew values in the expanded row', () => {
+    const command = bayByName('Command Bay')
     const crew: Record<string, CrewNpcForm> = {
-      [command.id]: { name: 'Maddox', motto: 'Hold the line' },
+      [(command as { id: string }).id]: { name: 'Maddox', motto: 'Hold the line' },
     }
-    const { container } = render(
+    render(
       <CrawlerCrewStep
-        bays={bays}
+        bays={[command]}
         selectedType={undefined as unknown as SURefCrawler | undefined}
         crew={crew}
         onChange={() => {}}
       />
     )
-    expect((byId(container, `crew-${command.id}-name`) as HTMLInputElement).value).toBe('Maddox')
-    expect((byId(container, `crew-${command.id}-motto`) as HTMLInputElement).value).toBe(
+    expandRow('Command Bay')
+    expect(screen.getByRole('button', { name: 'Edit princeps name' }).textContent).toContain(
+      'Maddox'
+    )
+    expect(screen.getByRole('button', { name: 'Edit princeps motto' }).textContent).toContain(
       'Hold the line'
     )
   })

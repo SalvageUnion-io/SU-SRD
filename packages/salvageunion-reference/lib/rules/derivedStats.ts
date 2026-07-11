@@ -9,8 +9,9 @@
  *   Pilot:   maxHP = 10 + maxHpModifier − Σ(minor injury: 1, major: 2)
  *            maxAP = 5 + maxApModifier
  *   Mech:    max{SP,EP,Heat,Cargo} = chassis stat + max*Modifier
- *   Crawler: maxSP = tech-level structurePoints (ORM) + maxSpModifier
- *            (Battle Crawler +5 is hand-set into maxSpModifier)
+ *   Crawler: maxSP = tech-level structurePoints (ORM) + the chosen TYPE's
+ *            `max_sp_bonus` mutations (Battle +5, applied at read —
+ *            wizard-refresh Phase 5) + maxSpModifier (a pure hand-edit)
  *
  * All functions are pure — no side effects, no async, no React. Parameter
  * types are small structural shapes (not full persisted records) — a
@@ -19,6 +20,7 @@
  */
 
 import { SalvageUnionReference } from '../index.js'
+import { crawlerMaxSpBonus } from './creation.js'
 import { resolveChassisRef, resolveInstalledRef } from './resolveRefs.js'
 
 // ---------------------------------------------------------------------------
@@ -249,7 +251,17 @@ export function unifiedMechConditions(mech: {
 // Crawler
 // ---------------------------------------------------------------------------
 
-type CrawlerDerivationInput = { techLevel: string; maxSpModifier?: number }
+type CrawlerDerivationInput = {
+  techLevel: string
+  /**
+   * Chosen crawler-type ref (SRD id OR name) — the type's stored
+   * `max_sp_bonus` mutations (Battle +5) apply AT READ, so the record keeps
+   * the BARE tech-level value and type swaps re-derive in both directions
+   * (wizard-refresh Phase 5). Absent/unresolvable = no type bonus.
+   */
+  type?: string
+  maxSpModifier?: number
+}
 
 /**
  * Parse a crawler techLevel slug (e.g. "tech-3") to its numeric level (3).
@@ -271,20 +283,57 @@ function parseCrawlerTechLevel(techLevel: string): number | undefined {
 }
 
 /**
- * Derived crawler max SP: the tech level's structurePoints from the reference
- * ORM (20/25/30/35/40/50 for TL 1–6) plus the hand-edited maxSpModifier
- * (Battle Crawler +5). Returns the modifier alone (≥0) when the techLevel
- * slug cannot be resolved — and the caller should surface that as a data
- * problem rather than rendering a silent 0-pip track.
+ * The type's stored `max_sp_bonus` mutations, resolved by id-or-name (the
+ * same tolerance as bay refs). Salvage-tolerant: a missing `crawlers` catalog
+ * (not yet preloaded) or an unresolvable ref contributes 0 rather than
+ * throwing.
  */
-export function crawlerMaxSP(crawler: CrawlerDerivationInput): number {
+function crawlerTypeMaxSpBonus(typeRef: string | undefined): number {
+  if (!typeRef) return 0
+  try {
+    const type = SalvageUnionReference.Crawlers.find((c) => c.id === typeRef || c.name === typeRef)
+    return crawlerMaxSpBonus(type?.mutations)
+  } catch {
+    return 0
+  }
+}
+
+/** The additive parts of a crawler's derived max SP (and their total). */
+export type CrawlerMaxSPParts = {
+  /** The tech level's structurePoints (20/25/30/35/40/50 for TL 1–6). */
+  base: number
+  /** The chosen type's `max_sp_bonus` mutations, applied at read (Battle +5). */
+  typeBonus: number
+  /** The hand-edited maxSpModifier (a pure player-edit field). */
+  modifier: number
+  /** base + typeBonus + modifier, floored at 0. */
+  total: number
+}
+
+/**
+ * Derived crawler max SP, decomposed: the tech level's structurePoints from
+ * the reference ORM, plus the chosen TYPE's stored `max_sp_bonus` mutations
+ * applied AT READ (Battle Crawler +5 — the record stores the BARE tech-level
+ * value, so type swaps re-derive correctly both ways), plus the hand-edited
+ * maxSpModifier. Base resolves to 0 when the techLevel slug cannot be parsed
+ * — the caller should surface that as a data problem rather than rendering a
+ * silent 0-pip track.
+ */
+export function crawlerMaxSPParts(crawler: CrawlerDerivationInput): CrawlerMaxSPParts {
   const tl = parseCrawlerTechLevel(crawler.techLevel)
   const base =
     tl === undefined
       ? 0
       : (SalvageUnionReference.CrawlerTechLevels.find((t) => t.techLevel === tl)?.structurePoints ??
         0)
-  return Math.max(0, base + (crawler.maxSpModifier ?? 0))
+  const typeBonus = crawlerTypeMaxSpBonus(crawler.type)
+  const modifier = crawler.maxSpModifier ?? 0
+  return { base, typeBonus, modifier, total: Math.max(0, base + typeBonus + modifier) }
+}
+
+/** Derived crawler max SP — `crawlerMaxSPParts(crawler).total`. */
+export function crawlerMaxSP(crawler: CrawlerDerivationInput): number {
+  return crawlerMaxSPParts(crawler).total
 }
 
 /**

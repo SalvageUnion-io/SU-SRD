@@ -25,6 +25,8 @@ beforeAll(async () => {
     'crawler-tech-levels',
     'systems',
     'crawler-bays',
+    'actions',
+    'roll-tables',
   ])
 })
 
@@ -42,11 +44,11 @@ describe('CrawlerBuilder — responsive wizard layout', () => {
     expect(shell).toBeTruthy()
   })
 
-  test('renders a stepper navigation rail with all five steps', async () => {
+  test('renders a stepper navigation rail with all six book-order steps', async () => {
     const { container } = await renderBuilder()
     const stepper = container.querySelector('nav[aria-label="Steps"]')
     expect(stepper).toBeTruthy()
-    for (const label of ['Crawler', 'Systems', 'Crew', 'Identity', 'Review']) {
+    for (const label of ['Crawler Type', 'Statistics', 'Armament Bay', 'Crew', 'Name', 'Review']) {
       expect(stepper?.textContent).toContain(label)
     }
   })
