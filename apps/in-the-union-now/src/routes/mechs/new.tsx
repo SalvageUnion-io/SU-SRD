@@ -11,8 +11,18 @@ export const Route = createFileRoute('/mechs/new')({
     mode: parseCreateMode(search.mode),
   }),
   loader: async () => {
-    // Preload game data needed by the wizard before rendering
-    await SalvageUnionReference.preload(['chassis', 'systems', 'modules', 'drones', 'traits'])
+    // Preload game data needed by the wizard before rendering: actions for
+    // the Statistics step's Chassis Ability card, roll-tables for the
+    // quirk/appearance/pattern-name d20 assists (pp.94–95 flow, Phase 4).
+    await SalvageUnionReference.preload([
+      'chassis',
+      'systems',
+      'modules',
+      'drones',
+      'traits',
+      'actions',
+      'roll-tables',
+    ])
     return null
   },
   component: NewMechRoute,

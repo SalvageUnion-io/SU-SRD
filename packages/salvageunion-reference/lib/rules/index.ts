@@ -18,10 +18,17 @@ export { computeMechCapacity } from './capacity.js'
 export {
   PILOT_CREATION_ABILITY_PICKS,
   PILOT_CREATION_EQUIPMENT_PICKS,
+  MECH_CREATION_SCRAP_CAP,
   isLegalCreationClass,
   isLegalCreationAbility,
   legalCreationAbilities,
   isLegalCreationEquipment,
+  isLegalCreationChassis,
+  isLegalCreationSystem,
+  isLegalCreationModule,
+  isLegalStartingPattern,
+  legalStartingPatterns,
+  mechCreationBudget,
   pilotAbilityPicksRemaining,
   pilotEquipmentPicksRemaining,
   isPilotAbilityPickComplete,
@@ -31,6 +38,10 @@ export type {
   CreationCoreTrees,
   CreationAbilityInput,
   CreationEquipmentInput,
+  CreationPatternInput,
+  MechCreationBudget,
+  MechCreationBudgetInput,
+  MechCreationLoadoutEntry,
 } from './creation.js'
 export { enrichPilotSnapshot } from './pilotSnapshot.js'
 export { computeCrawlerCapacity } from './crawlerCapacity.js'

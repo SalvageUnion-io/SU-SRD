@@ -13,6 +13,7 @@
  * route boundary.
  */
 
+import { Pill } from 'suref-react'
 import { usePatternStore } from '../../../stores/patternStore'
 import { InstantiateFromPattern } from './InstantiateFromPattern'
 
@@ -62,7 +63,7 @@ export function PatternList({ onInstantiated }: PatternListProps) {
           className="rounded-[3px] border-chrome border-ink p-4 flex items-start justify-between gap-4"
           data-testid="pattern-list-item"
         >
-          <div className="flex flex-col gap-0.5 min-w-0">
+          <div className="flex flex-col gap-1 min-w-0">
             <span className="truncate font-cond text-sm font-bold uppercase text-ink">
               {pattern.name}
             </span>
@@ -71,6 +72,11 @@ export function PatternList({ onInstantiated }: PatternListProps) {
               {pattern.systems.length !== 1 ? 's' : ''}, {pattern.modules.length} module
               {pattern.modules.length !== 1 ? 's' : ''}, {pattern.cargoLots.length} cargo
             </span>
+            {/* Saved patterns carry no stored `legalStarting` data tag (and
+                the flag is NEVER computed — project data convention), so the
+                Blank-family caveat badges every card. Presentation only
+                (wizard-refresh plan §5.2 / Phase 4 D). */}
+            <Pill className="w-fit">Not a legal starting mech</Pill>
           </div>
           <InstantiateFromPattern pattern={pattern} onSuccess={handleInstantiated} />
         </li>
