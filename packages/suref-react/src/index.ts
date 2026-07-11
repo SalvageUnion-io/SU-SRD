@@ -32,6 +32,7 @@ export type {
   EntityExternalLinkBuilder,
 } from './components/referenceEntity/ReferenceEntityDisplay/entityHrefContext'
 export { ReferenceEntityChassisAbilitiesContent } from './components/referenceEntity/ReferenceEntityDisplay/ReferenceEntityChassisAbilitiesContent'
+export { NestedChassisAbility } from './components/referenceEntity/NestedChassisAbility'
 export { ClassAbilityTreeDisplay } from './components/referenceEntity/ClassAbilityTreeDisplay'
 export { NestedActionDisplay } from './components/referenceEntity/NestedActionDisplay'
 export { ActionCard } from './components/referenceEntity/ActionCard'

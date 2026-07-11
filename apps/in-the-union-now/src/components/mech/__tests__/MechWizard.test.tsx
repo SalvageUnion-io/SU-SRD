@@ -1,9 +1,12 @@
 /**
- * Integration tests for MechWizard (create + edit on the WizShell skeleton).
+ * Integration tests for MechWizard (wizard-refresh Phase 4): the Mech
+ * Workshop's 8 book steps + Review (pp.94–95) with HARD 20-Scrap + slot
+ * enforcement in create mode, and the soft edit regime.
  *
- * Exercises the flow Chassis → Pattern → (Loadout, custom only) → Identity →
- * Review → submit using the real wizard, real SalvageUnionReference data, real
- * Zod validation, and a fake-indexeddb-backed entityStore.
+ * Exercises the flow Gain Scrap → Chassis → Statistics → Systems → Modules →
+ * Quirk → Appearance → Pattern Name → Review → submit using the real wizard,
+ * real SalvageUnionReference data, real Zod validation, and a
+ * fake-indexeddb-backed entityStore.
  *
  * fake-indexeddb/auto is preloaded via bunfig.toml.
  * SalvageUnionReference is preloaded in beforeAll.
@@ -12,11 +15,11 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it, mock } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { SalvageUnionReference, nameToSlug } from 'salvageunion-reference'
+import { legalStartingPatterns, MECH_CREATION_SCRAP_CAP } from 'salvageunion-reference/rules'
 import { useEntityStore } from '../../../stores/entityStore'
 import { _clearAllStores, _resetDbSingleton } from '../../../lib/db/index'
 import { mechFormToCreateInput, mechToFormState } from '../../../lib/wizard/mechFormState'
 import { MechWizard } from '../MechWizard'
-import { patternsForChassis } from '../patternData'
 import { must } from '../../__tests__/must'
 
 // ---------------------------------------------------------------------------
@@ -25,7 +28,7 @@ import { must } from '../../__tests__/must'
 
 beforeAll(async () => {
   // ReferenceEntityDisplay renders trait keywords/drones inline, so preload
-  // everything even though the wizard directly queries only three schemas.
+  // everything even though the wizard directly queries only a few schemas.
   await SalvageUnionReference.preload('all')
 })
 
@@ -49,6 +52,7 @@ function resetEntityStore(): void {
 }
 
 beforeEach(async () => {
+  sessionStorage.clear()
   _resetDbSingleton()
   await _clearAllStores()
   resetEntityStore()
@@ -59,67 +63,60 @@ afterEach(async () => {
   await act(async () => {
     cleanup()
   })
+  sessionStorage.clear()
   await _clearAllStores()
   resetEntityStore()
 })
 
 // ---------------------------------------------------------------------------
-// Helpers (WizShell skeleton)
+// Fixture lookups (real catalog)
 // ---------------------------------------------------------------------------
 
-/**
- * Chassis/pattern rows are OptRow <button>s whose accessible text contains the
- * name; system/module cards are Sel wrappers — div[role="button"] with
- * aria-label set to the entity name.
- */
-function getPickByName(name: string): HTMLElement {
-  const candidates = screen.getAllByRole('button')
-  const exact = candidates.find((b) => b.getAttribute('aria-label') === name)
-  if (exact) return exact
-  const row = candidates.find((b) => (b.textContent ?? '').includes(name))
-  if (!row) throw new Error(`No role=button pick for "${name}"`)
-  return row
+function mule() {
+  const chassis = SalvageUnionReference.Chassis.find((c) => c.name === 'Mule')
+  if (!chassis) throw new Error('Mule chassis not found')
+  return chassis
 }
 
-async function pick(name: string): Promise<void> {
+function systemByName(name: string) {
+  const system = SalvageUnionReference.Systems.find((s) => s.name === name)
+  if (!system) throw new Error(`system "${name}" not found`)
+  return system
+}
+
+function moduleByName(name: string) {
+  const module = SalvageUnionReference.Modules.find((m) => m.name === name)
+  if (!module) throw new Error(`module "${name}" not found`)
+  return module
+}
+
+// ---------------------------------------------------------------------------
+// Interaction helpers (WizShell skeleton, Phase-4 layout)
+// ---------------------------------------------------------------------------
+
+/** Chassis / pattern picks are radio Sel rings named by the entity. */
+async function pickRadio(name: string): Promise<void> {
   await act(async () => {
-    fireEvent.click(getPickByName(name))
+    fireEvent.click(screen.getByRole('radio', { name }))
   })
 }
 
-/** Loadout Systems/Modules tab buttons are role="tab". */
-async function clickTab(name: 'Systems' | 'Modules'): Promise<void> {
+/** Craft-step count-stepper: one click of a card's `+`. */
+async function addOne(name: string): Promise<void> {
   await act(async () => {
-    fireEvent.click(screen.getByRole('tab', { name }))
+    fireEvent.click(screen.getByRole('button', { name: `Add one ${name}` }))
   })
 }
 
-/**
- * Loadout install cards expose a per-entity "Add" button (aria-label
- * "Add {name}"). Each click appends one copy — duplicates are rules-legal.
- */
-async function addInstall(name: string): Promise<void> {
+/** IdentityField click-to-edit write (quirk / pattern-name steps). */
+async function typeIdentity(editLabel: string, value: string): Promise<void> {
   await act(async () => {
-    fireEvent.click(screen.getByRole('button', { name: `Add ${name}` }))
+    fireEvent.click(screen.getByRole('button', { name: editLabel }))
   })
-}
-
-/**
- * Each chosen loadout entry in the right-hand panel has a "Remove {name}"
- * button that drops a single copy (remove-by-index). When duplicates exist
- * there are multiple matching buttons; click the first.
- */
-async function removeInstall(name: string): Promise<void> {
-  const buttons = screen.getAllByRole('button', { name: `Remove ${name}` })
-  await act(async () => {
-    fireEvent.click(must(buttons[0]))
-  })
-}
-
-async function typeInto(label: RegExp, value: string): Promise<void> {
-  const input = screen.getByLabelText(label) as HTMLInputElement
+  const input = screen.getByRole('textbox', { name: editLabel }) as HTMLInputElement
   await act(async () => {
     fireEvent.change(input, { target: { value } })
+    fireEvent.blur(input, { target: { value } })
   })
 }
 
@@ -134,55 +131,81 @@ async function clickNext(): Promise<void> {
   })
 }
 
+async function submit(label: RegExp): Promise<void> {
+  await act(async () => {
+    fireEvent.click(screen.getByRole('button', { name: label }))
+  })
+}
+
 // ---------------------------------------------------------------------------
-// Happy path: custom-pattern mech creation
+// Happy path: book-order custom build under the 20-Scrap economy
 // ---------------------------------------------------------------------------
 
-describe('MechWizard — custom pattern happy path', () => {
-  it('walks Chassis → Pattern(custom) → Loadout → Identity → Review and creates a mech', async () => {
+describe('MechWizard — book-order happy path (custom build)', () => {
+  it('walks Scrap → Chassis → Stats → Systems → Modules → Quirk → Appearance → Name → Review and creates a legal mech', async () => {
     const onComplete = mock(() => {})
     render(<MechWizard onComplete={onComplete} onCancel={() => {}} />)
 
-    // --- Step 1: Chassis (master-detail OptRow list) ---
-    await pick('Mule')
-    await clickNext()
-
-    // --- Step 2: Pattern — Custom requires a name before advancing ---
-    expect(getNextButton().disabled).toBe(true)
-    await pick('Custom Pattern')
-    expect(getNextButton().disabled).toBe(true)
-    await typeInto(/Pattern name/i, 'Field Rig')
+    // --- Step 1: Gain Scrap (briefing — Next always enabled; tracker debuts) ---
+    expect(screen.getByTestId('scrap-remaining').textContent).toContain(
+      `${MECH_CREATION_SCRAP_CAP} / ${MECH_CREATION_SCRAP_CAP}`
+    )
     expect(getNextButton().disabled).toBe(false)
     await clickNext()
 
-    // --- Step 3: Loadout — combined Systems / Modules tabs ---
-    expect(screen.getByTestId('system-slot-count').textContent).toContain('0 /')
-    await addInstall('Cargo Pod')
+    // --- Step 2: Chassis (radio; SV debits the budget) ---
+    await pickRadio('Mule')
+    const afterChassis = MECH_CREATION_SCRAP_CAP - mule().salvageValue
+    expect(screen.getByTestId('scrap-remaining').textContent).toContain(`${afterChassis} /`)
+    await clickNext()
+
+    // --- Step 3: Statistics (display only) ---
+    expect(getNextButton().disabled).toBe(false)
+    await clickNext()
+
+    // --- Step 4: Systems (count-stepper; shared scrap pool + system slots) ---
+    const cargoPod = systemByName('Cargo Pod')
+    await addOne('Cargo Pod')
+    expect(screen.getByTestId('scrap-remaining').textContent).toContain(
+      `${afterChassis - cargoPod.salvageValue} /`
+    )
     expect(screen.getByTestId('system-slot-count').textContent).toContain('1 /')
-    await clickTab('Modules')
-    await addInstall('Comms Module')
+    await clickNext()
+
+    // --- Step 5: Modules (optional; module slots) ---
+    await addOne('Comms Module')
     expect(screen.getByTestId('module-slot-count').textContent).toContain('1 /')
     await clickNext()
 
-    // --- Step 4: Identity (name required) ---
-    await typeInto(/Mech name/i, 'Iron Fist')
+    // --- Steps 6–7: Quirk + Appearance (flavor — never gate) ---
+    await typeIdentity('Edit quirk', 'Rattles at speed')
+    await clickNext()
+    expect(getNextButton().disabled).toBe(false)
     await clickNext()
 
-    // --- Step 5: Review → submit ('Create Mech ✦') ---
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /Create Mech/i }))
-    })
+    // --- Step 8: Pattern Name (required; name IS pattern) ---
+    expect(getNextButton().disabled).toBe(true)
+    await typeIdentity('Edit name / pattern', 'Iron Fist')
+    expect(getNextButton().disabled).toBe(false)
+    await clickNext()
+
+    // --- Review: text-only banking callout, then create ---
+    expect(screen.getByTestId('banking-callout').textContent).toContain(
+      `${afterChassis - cargoPod.salvageValue - moduleByName('Comms Module').salvageValue} Tech 1 Scrap banks`
+    )
+    await submit(/Create Mech/i)
 
     await waitFor(() => {
       const mechs = useEntityStore.getState().list('mech')
       expect(mechs.length).toBe(1)
       const m = must(mechs[0])
       expect(m.name).toBe('Iron Fist')
+      expect(m.patternName).toBe('Iron Fist') // lockstep — a mech's name IS its pattern
       expect(m.chassisRef).toBe('mule')
-      expect(m.patternName).toBe('Field Rig')
       expect(m.systems).toEqual(['cargo-pod'])
       expect(m.modules).toEqual(['comms-module'])
-      expect(m.cargoLots).toEqual([])
+      expect(m.cargoLots).toEqual([]) // guided create grants no starting cargo
+      expect(m.quirk).toBe('Rattles at speed')
       expect(m.currentHeat).toBe(0)
       expect(m.schemaVersion).toBe(1)
     })
@@ -192,238 +215,146 @@ describe('MechWizard — custom pattern happy path', () => {
 })
 
 // ---------------------------------------------------------------------------
-// Canonical pattern: fills the loadout and skips the Loadout step
+// Hard enforcement: filters, gates, and the chassis-change refund
 // ---------------------------------------------------------------------------
 
-describe('MechWizard — canonical pattern', () => {
-  it('fills systems/modules from the chosen pattern and skips the Loadout step', async () => {
-    const pattern = patternsForChassis('Mule')[0]
-    expect(pattern).toBeDefined()
-
+describe('MechWizard — hard creation enforcement', () => {
+  it('offers only Tech 1 chassis and only Tech 1 systems', async () => {
     render(<MechWizard onComplete={() => {}} onCancel={() => {}} />)
+    await clickNext() // → Chassis
 
-    await pick('Mule')
-    await clickNext()
+    const higherTlChassis = SalvageUnionReference.Chassis.find((c) => c.techLevel === 2)
+    expect(higherTlChassis).toBeDefined()
+    expect(screen.queryByRole('radio', { name: must(higherTlChassis).name })).toBeNull()
 
-    // Pick a ready-made pattern, then Next jumps straight to Identity.
-    await pick(must(pattern).name)
-    await clickNext()
+    await pickRadio('Mule')
+    await clickNext() // → Stats
+    await clickNext() // → Systems
 
-    // Loadout was skipped — its slot-count subtitle is absent; the Identity
-    // name field is present.
-    expect(screen.queryByTestId('system-slot-count')).toBeNull()
-    await typeInto(/Mech name/i, 'Workhorse')
-    await clickNext()
-
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /Create Mech/i }))
-    })
-
-    await waitFor(() => {
-      const m = must(useEntityStore.getState().list('mech')[0])
-      expect(m.patternName).toBe(must(pattern).name)
-      expect(m.systems).toEqual((must(pattern).systems ?? []).map((s) => nameToSlug(s.name)))
-      expect(m.modules).toEqual((must(pattern).modules ?? []).map((mod) => nameToSlug(mod.name)))
-    })
+    const higherTlSystem = SalvageUnionReference.Systems.find((s) => s.techLevel === 2)
+    expect(higherTlSystem).toBeDefined()
+    expect(
+      screen.queryByRole('spinbutton', { name: `${must(higherTlSystem).name} count` })
+    ).toBeNull()
   }, 30000)
-})
 
-// ---------------------------------------------------------------------------
-// Gating: chassis, pattern, and name are required; capacity never blocks
-// ---------------------------------------------------------------------------
-
-describe('MechWizard — gates', () => {
-  it('gates chassis, pattern (custom needs a name), and the mech name', async () => {
+  it('gates the chassis and the pattern name; systems/modules stay optional', async () => {
     render(<MechWizard onComplete={() => {}} onCancel={() => {}} />)
+    await clickNext() // → Chassis
 
     // Chassis required.
     expect(getNextButton().disabled).toBe(true)
-    await pick('Mule')
+    expect(screen.getByText('Craft your Chassis to continue')).toBeTruthy()
+    await pickRadio('Mule')
     expect(getNextButton().disabled).toBe(false)
-    await clickNext()
+    await clickNext() // → Stats
+    await clickNext() // → Systems
 
-    // Pattern required — Custom blocks until a name is typed.
-    expect(getNextButton().disabled).toBe(true)
-    await pick('Custom Pattern')
-    expect(getNextButton().disabled).toBe(true)
-    await typeInto(/Pattern name/i, 'Rig')
+    // ZERO systems does not block (plan Q11) — the footer says so.
     expect(getNextButton().disabled).toBe(false)
-    await clickNext() // Loadout
-    await clickNext() // Identity (loadout optional)
+    expect(screen.getByText(/Systems are optional/i)).toBeTruthy()
+    await clickNext() // → Modules
+    expect(getNextButton().disabled).toBe(false)
+    await clickNext() // → Quirk
+    await clickNext() // → Appearance
+    await clickNext() // → Pattern Name
 
-    // Identity — Next disabled with the name empty; no mech persisted.
+    // Name required — nothing persisted while blocked.
     expect(getNextButton().disabled).toBe(true)
+    expect(screen.getByText('Name your Pattern to continue')).toBeTruthy()
     expect(useEntityStore.getState().list('mech').length).toBe(0)
-    await typeInto(/Mech name/i, 'Iron Fist')
+    await typeIdentity('Edit name / pattern', 'Iron Fist')
     expect(getNextButton().disabled).toBe(false)
   }, 30000)
 
-  it('over-slot module selection warns but never blocks navigation', async () => {
+  it('changing the chassis refunds its scrap and wipes the loadout with a toast', async () => {
     render(<MechWizard onComplete={() => {}} onCancel={() => {}} />)
-
-    await pick('Mule')
-    await clickNext() // Pattern
-    await pick('Custom Pattern')
-    await typeInto(/Pattern name/i, 'Rig')
-    await clickNext() // Loadout
-
-    // Mule has 2 module slots — install three 1-slot modules to breach it.
-    await clickTab('Modules')
-    await addInstall('Comms Module')
-    await addInstall('Equipment Locker')
-    await addInstall('Firewall')
-
-    // Soft warning banner appears…
-    expect(screen.getByTestId('module-slot-count').textContent).toContain('3 /')
-    expect(screen.getByText(/Module slots exceeded/i)).toBeTruthy()
-    // …and Next stays enabled (capacity is soft — warn, never block).
-    expect(getNextButton().disabled).toBe(false)
-  }, 30000)
-})
-
-// ---------------------------------------------------------------------------
-// Duplicate installs: per-entity "Add" appends copies; remove drops ONE
-// ---------------------------------------------------------------------------
-
-describe('MechWizard — duplicate installs', () => {
-  it('adds multiple copies of the same system and persists every copy', async () => {
-    render(<MechWizard onComplete={() => {}} onCancel={() => {}} />)
-
-    await pick('Mule')
-    await clickNext() // Pattern
-    await pick('Custom Pattern')
-    await typeInto(/Pattern name/i, 'Twin Rig')
-    await clickNext() // Loadout
-
-    // First click installs one; the card flips to an "Add another" affordance
-    // and an "N Installed" count.
-    await addInstall('Cargo Pod')
-    expect(screen.getByTestId('install-count-Cargo Pod').textContent).toContain('1 Installed')
-    await addInstall('Cargo Pod') // "Add another"
-    expect(screen.getByTestId('install-count-Cargo Pod').textContent).toContain('2 Installed')
-    expect(screen.getByTestId('system-slot-count').textContent).toContain('2 /')
-    // The Loadout panel lists each copy as its own removable entry.
-    expect(screen.getAllByTestId('loadout-entry').length).toBe(2)
-
-    await clickNext() // Identity
-    await typeInto(/Mech name/i, 'Iron Fist')
-    await clickNext() // Review
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /Create Mech/i }))
-    })
-
-    await waitFor(() => {
-      const m = must(useEntityStore.getState().list('mech')[0])
-      expect(m.systems).toEqual(['cargo-pod', 'cargo-pod'])
-    })
-  }, 30000)
-
-  it('removes a single copy (by index) leaving the other duplicate intact', async () => {
-    render(<MechWizard onComplete={() => {}} onCancel={() => {}} />)
-
-    await pick('Mule')
-    await clickNext() // Pattern
-    await pick('Custom Pattern')
-    await typeInto(/Pattern name/i, 'Twin Rig')
-    await clickNext() // Loadout
-
-    await addInstall('Cargo Pod')
-    await addInstall('Cargo Pod')
-    expect(screen.getAllByTestId('loadout-entry').length).toBe(2)
-
-    // Remove ONE copy — the count drops to 1, one entry remains.
-    await removeInstall('Cargo Pod')
-    expect(screen.getAllByTestId('loadout-entry').length).toBe(1)
-    expect(screen.getByTestId('install-count-Cargo Pod').textContent).toContain('1 Installed')
+    await clickNext() // → Chassis
+    await pickRadio('Mule')
+    await clickNext() // → Stats
+    await clickNext() // → Systems
+    await addOne('Cargo Pod')
     expect(screen.getByTestId('system-slot-count').textContent).toContain('1 /')
 
-    await clickNext() // Identity
-    await typeInto(/Mech name/i, 'Iron Fist')
-    await clickNext() // Review
+    // Back to the chassis step, swap to another Tech 1 chassis.
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /Create Mech/i }))
+      fireEvent.click(screen.getByRole('button', { name: /Craft your Chassis/i }))
     })
-
-    await waitFor(() => {
-      const m = must(useEntityStore.getState().list('mech')[0])
-      expect(m.systems).toEqual(['cargo-pod'])
-    })
+    await pickRadio('Scrapper')
+    const scrapper = SalvageUnionReference.Chassis.find((c) => c.name === 'Scrapper')
+    expect(screen.getByTestId('scrap-remaining').textContent).toContain(
+      `${MECH_CREATION_SCRAP_CAP - must(scrapper).salvageValue} /`
+    )
+    await clickNext() // → Stats
+    await clickNext() // → Systems
+    // Loadout wiped — the Cargo Pod copy is gone.
+    expect(
+      screen.getByRole('spinbutton', { name: 'Cargo Pod count' }).getAttribute('aria-valuenow')
+    ).toBe('0')
+    expect(screen.getByTestId('system-slot-count').textContent).toContain('0 /')
   }, 30000)
 })
 
 // ---------------------------------------------------------------------------
-// Canonical patterns: duplicate equipment in a pre-made pattern survives copy
+// Starting-pattern strip: stored-flag filter + prefill arithmetic
 // ---------------------------------------------------------------------------
 
-describe('MechWizard — pattern duplicates', () => {
-  it('renders one preview card per copy and preserves duplicates when copying a canonical pattern', async () => {
-    // Find a chassis whose pattern data contains a repeated system or module,
-    // and capture the repeated name + its copy count.
-    const allChassis = SalvageUnionReference.Chassis.all()
-    let target:
-      | {
-          chassisName: string
-          pattern: ReturnType<typeof patternsForChassis>[number]
-          dupName: string
-          dupCount: number
-        }
-      | undefined
-    for (const c of allChassis) {
-      for (const p of patternsForChassis(c.name)) {
-        const names = [...(p.systems ?? []), ...(p.modules ?? [])].map((e) => e.name)
-        const counts = new Map<string, number>()
-        for (const n of names) counts.set(n, (counts.get(n) ?? 0) + 1)
-        const dup = [...counts.entries()].find(([, count]) => count > 1)
-        if (dup) {
-          target = { chassisName: c.name, pattern: p, dupName: dup[0], dupCount: dup[1] }
-          break
-        }
-      }
-      if (target) break
-    }
-
-    // Fail loudly rather than silently no-op: a canonical pattern with
-    // duplicate equipment is required fixture data (today: Trooper / DronTek,
-    // with Articulated Rigging Arm ×2). If this ever returns undefined the
-    // fixture has drifted and the test must be updated, not silently skipped.
-    expect(
-      target,
-      'expected a canonical pattern shipping duplicate equipment (fixture drift?)'
-    ).toBeDefined()
-    const { chassisName, pattern, dupName, dupCount } = must(target)
+describe('MechWizard — legalStarting pattern strip', () => {
+  it('offers ONLY legalStarting patterns and prefills the loadout + name from the pick', async () => {
+    const chassis = mule()
+    const legal = legalStartingPatterns(chassis.patterns)
+    expect(legal.length).toBeGreaterThan(0)
+    const pattern = must(legal[0]) // 'Hauler Pattern'
+    const unflagged = chassis.patterns.find((p) => p.legalStarting !== true)
+    expect(unflagged).toBeDefined()
 
     render(<MechWizard onComplete={() => {}} onCancel={() => {}} />)
-    await pick(chassisName)
-    await clickNext() // Pattern
+    await clickNext() // → Chassis
+    await pickRadio('Mule')
 
-    // Select the canonical pattern — its Loadout preview renders below.
-    await pick(pattern.name)
+    // Strip: the flagged pattern renders as a radio card; unflagged never does.
+    expect(screen.getByRole('radio', { name: `${pattern.name} pattern` })).toBeTruthy()
+    expect(screen.queryByRole('radio', { name: `${must(unflagged).name} pattern` })).toBeNull()
 
-    // The preview renders one head card per copy: the repeated entity's name
-    // appears `dupCount` times (the per-index keys keep both copies mounted
-    // instead of collapsing the repeat onto a single name-keyed card).
-    await waitFor(() => {
-      expect(screen.getAllByText(dupName).length).toBe(dupCount)
-    })
-
-    await clickNext() // Identity (canonical pattern skips Loadout)
-    await typeInto(/Mech name/i, 'Pattern Build')
-    await clickNext() // Review
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /Create Mech/i }))
-    })
+    await pickRadio(`${pattern.name} pattern`)
+    // Prefill debits the budget: remaining drops below the bare-chassis value.
+    const expectedSystems = pattern.systems.flatMap((s) =>
+      new Array<string>(s.count ?? 1).fill(nameToSlug(s.name))
+    )
+    const expectedModules = pattern.modules.flatMap((m) =>
+      new Array<string>(m.count ?? 1).fill(nameToSlug(m.name))
+    )
+    await clickNext() // → Stats
+    await clickNext() // → Systems
+    // The prefilled copies show in the counters.
+    for (const slug of new Set(expectedSystems)) {
+      const item = SalvageUnionReference.Systems.find((s) => nameToSlug(s.name) === slug)
+      const count = expectedSystems.filter((x) => x === slug).length
+      expect(
+        screen
+          .getByRole('spinbutton', { name: `${must(item).name} count` })
+          .getAttribute('aria-valuenow')
+      ).toBe(String(count))
+    }
+    await clickNext() // → Modules
+    await clickNext() // → Quirk
+    await clickNext() // → Appearance
+    await clickNext() // → Pattern Name (prefilled from the pattern pick)
+    expect(getNextButton().disabled).toBe(false)
+    await clickNext() // → Review
+    await submit(/Create Mech/i)
 
     await waitFor(() => {
       const m = must(useEntityStore.getState().list('mech')[0])
-      // Duplicates from the canonical pattern survive the copy + persistence.
-      expect(m.systems).toEqual((pattern.systems ?? []).map((s) => nameToSlug(s.name)))
-      expect(m.modules).toEqual((pattern.modules ?? []).map((mod) => nameToSlug(mod.name)))
+      expect(m.name).toBe(pattern.name)
+      expect(m.systems).toEqual(expectedSystems)
+      expect(m.modules).toEqual(expectedModules)
     })
   }, 30000)
 })
 
 // ---------------------------------------------------------------------------
-// Edit mode: upsert branch — loadout edits without duplicating
+// Edit mode: soft regime — steps 2,4,5,6,7,8,Review; filters lifted
 // ---------------------------------------------------------------------------
 
 async function seedMuleMech() {
@@ -432,7 +363,7 @@ async function seedMuleMech() {
     quirk: '',
     appearance: '',
     chassisName: 'mule',
-    patternName: '',
+    patternName: 'Iron Fist',
     systems: ['cargo-pod'],
     modules: [],
     cargoLots: [],
@@ -440,8 +371,8 @@ async function seedMuleMech() {
   return useEntityStore.getState().create('mech', input)
 }
 
-describe('MechWizard — edit mode', () => {
-  it('prefills from the mech, edits the loadout, and updates without duplicating', async () => {
+describe('MechWizard — edit mode (soft regime)', () => {
+  it('hides the briefing steps, lifts the filters, and updates without duplicating', async () => {
     const mech = await seedMuleMech()
     // Live-play state that the wizard patch must never clobber.
     await useEntityStore.getState().update('mech', mech.id, {
@@ -460,26 +391,32 @@ describe('MechWizard — edit mode', () => {
       />
     )
 
-    // Eyebrow flips to edit mode; chassis is prefilled so Next is enabled.
+    // Edit chrome: no Gain Scrap / Statistics steps, no scrap tracker.
     expect(screen.getByText('Edit Mech')).toBeTruthy()
-    expect(getNextButton().disabled).toBe(false)
-    await clickNext() // Pattern (edit lands on the custom path; name optional)
-    expect(getNextButton().disabled).toBe(false)
-    await clickNext() // Loadout
+    expect(screen.queryByRole('button', { name: /Gain Scrap/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /Mech Statistics/i })).toBeNull()
+    expect(screen.queryByTestId('scrap-remaining')).toBeNull()
 
-    // Loadout panel shows the prefilled install (no empty-state message).
-    expect(screen.queryByText(/Nothing installed yet/i)).toBeNull()
-    await addInstall('Armour Plating') // add a second system
-    await clickTab('Modules')
-    await addInstall('Comms Module')
-    await clickNext() // Identity (name prefilled)
-    await clickNext() // Review
+    // Chassis step: filters lifted — a Tech 2 chassis is offered.
+    const higherTl = SalvageUnionReference.Chassis.find((c) => c.techLevel === 2)
+    expect(screen.getByRole('radio', { name: must(higherTl).name })).toBeTruthy()
+    expect(getNextButton().disabled).toBe(false)
+    await clickNext() // → Systems (soft InstallStep — TL chips, add beyond caps)
 
-    // Review → 'Save Mech' (never 'Create')
-    const save = screen.getByRole('button', { name: /Save Mech/i })
+    expect(screen.getByRole('group', { name: /Filter by tech level/i })).toBeTruthy()
     await act(async () => {
-      fireEvent.click(save)
+      fireEvent.click(screen.getByRole('button', { name: 'Add Armour Plating' }))
     })
+    await clickNext() // → Modules
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Add Comms Module' }))
+    })
+    await clickNext() // → Quirk
+    await clickNext() // → Appearance
+    await clickNext() // → Pattern Name (prefilled)
+    await clickNext() // → Review
+
+    await submit(/Save Mech/i)
 
     await waitFor(() => {
       const mechs = useEntityStore.getState().list('mech')
@@ -487,7 +424,7 @@ describe('MechWizard — edit mode', () => {
       expect(mechs.length).toBe(1)
       const m = must(mechs[0])
       expect(m.id).toBe(mech.id)
-      expect(m.systems.sort()).toEqual(['armour-plating', 'cargo-pod'])
+      expect([...m.systems].sort()).toEqual(['armour-plating', 'cargo-pod'])
       expect(m.modules).toEqual(['comms-module'])
       // Live-play state untouched by the wizard patch.
       expect(m.currentSP).toBe(5)
@@ -497,7 +434,7 @@ describe('MechWizard — edit mode', () => {
     expect(onComplete).toHaveBeenCalledWith(mech.id)
   }, 30000)
 
-  it('warns pre-save when a depended-on system is removed but never blocks', async () => {
+  it('over-slot installs warn but never block in edit mode', async () => {
     const mech = await seedMuleMech()
     render(
       <MechWizard
@@ -508,65 +445,15 @@ describe('MechWizard — edit mode', () => {
       />
     )
 
-    await clickNext() // Pattern
-    await clickNext() // Loadout
-    await removeInstall('Cargo Pod') // remove the only system via the Loadout panel
-    await clickNext() // Identity
-    await clickNext() // Review
-
-    // The save CTA is enabled regardless of any advisory warnings.
-    const save = screen.getByRole('button', {
-      name: /Save Mech/i,
-    }) as HTMLButtonElement
-    expect(save.disabled).toBe(false)
-  }, 30000)
-})
-
-// ---------------------------------------------------------------------------
-// Cargo lots: Identity-step editor writes schema-valid lots
-// ---------------------------------------------------------------------------
-
-describe('MechWizard — cargo lots', () => {
-  it('adds a SCRAP lot with a tech level and persists it on create', async () => {
-    const pattern = patternsForChassis('Mule')[0]
-    render(<MechWizard onComplete={() => {}} onCancel={() => {}} />)
-
-    await pick('Mule')
-    await clickNext() // Pattern
-    await pick(must(pattern).name) // canonical pattern — skips the Loadout step
-    await clickNext() // Identity
-
-    await typeInto(/Mech name/i, 'Iron Fist')
-
-    // Switch the lot category to SCRAP (TL select appears), add 3 scrap at TL2.
-    const catSelect = screen.getByLabelText(/Category/i) as HTMLSelectElement
-    await act(async () => {
-      fireEvent.change(catSelect, { target: { value: 'SCRAP' } })
-    })
-    const tlSelect = screen.getByLabelText(/Tech level/i) as HTMLSelectElement
-    const unitsInput = screen.getByLabelText(/Scrap \(units\)/i) as HTMLInputElement
-    await act(async () => {
-      fireEvent.change(tlSelect, { target: { value: '2' } })
-      fireEvent.change(unitsInput, { target: { value: '3' } })
-    })
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /Add cargo lot/i }))
-    })
-    expect(screen.getAllByTestId('cargo-lot').length).toBe(1)
-
-    await clickNext() // Review
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /Create Mech/i }))
-    })
-
-    await waitFor(() => {
-      const mechs = useEntityStore.getState().list('mech')
-      expect(mechs.length).toBe(1)
-      const lot = must(must(mechs[0]).cargoLots[0])
-      expect(lot.cat).toBe('SCRAP')
-      expect(lot.tl).toBe(2)
-      expect(lot.kind).toBe('bulk')
-      expect(lot.units).toBe(3)
-    })
+    await clickNext() // → Systems
+    await clickNext() // → Modules
+    // Mule has 2 module slots — install three 1-slot modules to breach it.
+    for (const name of ['Comms Module', 'Equipment Locker', 'Firewall']) {
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: `Add ${name}` }))
+      })
+    }
+    expect(screen.getByText(/Module slots exceeded/i)).toBeTruthy()
+    expect(getNextButton().disabled).toBe(false)
   }, 30000)
 })

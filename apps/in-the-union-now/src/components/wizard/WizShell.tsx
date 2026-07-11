@@ -275,7 +275,13 @@ export function WizShell({
             <div className="min-h-0 flex-1 pb-24 sm:pl-5">
               <article
                 className="relative rounded-xl px-5 pb-6 pt-5 shadow-[0_14px_26px_-14px_rgba(0,0,0,0.4),inset_0_0_46px_rgba(0,0,0,0.08)] sm:pl-8"
-                style={{ background: 'var(--tone-card, var(--tone))' }}
+                style={{
+                  background: 'var(--tone-card, var(--tone))',
+                  // Card ink: rust (mech) needs WHITE body ink for legible
+                  // contrast; sky blue / peach keep dark ink. Content that
+                  // sits directly on the card inherits via `text-current`.
+                  color: 'var(--tone-card-ink, var(--color-ink))',
+                }}
               >
                 <span
                   aria-hidden="true"

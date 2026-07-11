@@ -1,28 +1,40 @@
 /**
- * Pilot creation step gates (wizard-refresh Phase 3, plan §5.1 app half).
+ * Pilot + mech creation step gates (wizard-refresh Phases 3–4, plan §5.1
+ * app half).
  *
  * THIN ADAPTER only: destructures wizard form state into neutral inputs
- * (resolved reference records + counts) and calls the package predicates in
- * `salvageunion-reference/rules` — rule logic is never duplicated here, so
- * a SelCard's filter, the trackers' numbers, and the Next gate can never
- * drift apart.
+ * (resolved reference records narrowed to primitives + counts) and calls the
+ * package predicates in `salvageunion-reference/rules` — rule logic is never
+ * duplicated here, so a SelCard's filter, the trackers' numbers, and the
+ * Next gate can never drift apart.
  *
  * Pure TypeScript — no React. Requires `classes`/`abilities`/`equipment`
- * preloaded (the wizard route loader already does).
+ * (pilot) and `chassis`/`systems`/`modules` (mech) preloaded (the wizard
+ * route loaders already do).
  */
 
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefAbility, SURefClass, SURefEquipment } from 'salvageunion-reference'
 import {
+  computeMechCapacity,
   isLegalCreationAbility,
+  isLegalCreationChassis,
   isLegalCreationClass,
   isLegalCreationEquipment,
+  isLegalCreationModule,
+  isLegalCreationSystem,
   isPilotAbilityPickComplete,
   isPilotEquipmentPickComplete,
+  mechCreationBudget,
   PILOT_CREATION_ABILITY_PICKS,
   PILOT_CREATION_EQUIPMENT_PICKS,
   pilotEquipmentPicksRemaining,
+  resolveChassisRef,
+  resolveModuleRef,
+  resolveSystemRef,
 } from 'salvageunion-reference/rules'
+import type { MechCreationBudget } from 'salvageunion-reference/rules'
+import type { MechWizardFormState } from '../wizard/mechFormState'
 import type { PilotWizardFormState } from '../wizard/pilotFormState'
 
 /** Book-order pilot wizard step ids (Pilot Bay pp.18–19 + Review). */
@@ -221,4 +233,220 @@ export function clampPilotCreationDraft(form: PilotWizardFormState): PilotDraftC
 
   if (removed.length === 0) return { form, removed }
   return { form: { ...form, classId, abilities, equipment }, removed }
+}
+
+// ---------------------------------------------------------------------------
+// Mech Workshop (pp.94–95 — wizard-refresh Phase 4)
+// ---------------------------------------------------------------------------
+
+/** Book-order mech wizard step ids (Mech Workshop pp.94–95 + Review). */
+export type MechWizardStepId =
+  | 'scrap'
+  | 'chassis'
+  | 'stats'
+  | 'systems'
+  | 'modules'
+  | 'quirk'
+  | 'appearance'
+  | 'pattern'
+  | 'review'
+
+function chassisSVOf(chassisRef: string): number {
+  if (!chassisRef) return 0
+  return resolveChassisRef(chassisRef)?.salvageValue ?? 0
+}
+
+/**
+ * The 20-Scrap creation budget for the live form (plan §4.2 step 1): the
+ * chassis + every installed copy resolved to their Salvage Values (the
+ * primitives the package calculator reads). Unresolvable refs price at 0 —
+ * they can't be costed, and the TL-legality gates catch them separately.
+ */
+export function mechCreationBudgetFor(form: MechWizardFormState): MechCreationBudget {
+  const counts = new Map<string, number>()
+  for (const ref of [...form.systems, ...form.modules]) {
+    counts.set(ref, (counts.get(ref) ?? 0) + 1)
+  }
+  const loadout = [...counts.entries()].map(([ref, count]) => {
+    const item = resolveSystemRef(ref) ?? resolveModuleRef(ref)
+    return { sv: item?.salvageValue ?? 0, count }
+  })
+  return mechCreationBudget({ chassisSV: chassisSVOf(form.chassisName), loadout })
+}
+
+function mechChassisGate(form: MechWizardFormState): StepGateResult {
+  const chassis = form.chassisName ? resolveChassisRef(form.chassisName) : null
+  if (!chassis || !isLegalCreationChassis(chassis.techLevel)) {
+    return { ok: false, reason: 'Craft your Chassis to continue' }
+  }
+  return OK
+}
+
+function mechNameGate(form: MechWizardFormState): StepGateResult {
+  if (form.name.trim() === '') {
+    return { ok: false, reason: 'Name your Pattern to continue' }
+  }
+  return OK
+}
+
+/** Every installed item must be a resolvable Tech 1 system/module. */
+function mechLoadoutLegalityGate(form: MechWizardFormState): StepGateResult {
+  const systemsLegal = form.systems.every((ref) => {
+    const item = resolveSystemRef(ref)
+    return item !== null && isLegalCreationSystem(item.techLevel)
+  })
+  const modulesLegal = form.modules.every((ref) => {
+    const item = resolveModuleRef(ref)
+    return item !== null && isLegalCreationModule(item.techLevel)
+  })
+  if (!systemsLegal || !modulesLegal) {
+    return { ok: false, reason: 'Only Tech 1 Systems and Modules are legal at creation' }
+  }
+  return OK
+}
+
+/** The 20-Scrap cap and both slot budgets must hold (belt for the Review). */
+function mechBudgetGate(form: MechWizardFormState): StepGateResult {
+  if (mechCreationBudgetFor(form).remaining < 0) {
+    return { ok: false, reason: 'Over the 20 Tech 1 Scrap budget — remove items' }
+  }
+  const capacity = computeMechCapacity({
+    chassisRef: form.chassisName,
+    systems: form.systems.map((ref) => ({ ref })),
+    modules: form.modules.map((ref) => ({ ref })),
+  })
+  if (capacity.violations.some((v) => v.kind === 'system-over-slots')) {
+    return { ok: false, reason: 'Over System Slot capacity — remove Systems' }
+  }
+  if (capacity.violations.some((v) => v.kind === 'module-over-slots')) {
+    return { ok: false, reason: 'Over Module Slot capacity — remove Modules' }
+  }
+  return OK
+}
+
+/**
+ * Next-gating for the mech CREATE flow (guided mode is HARD — plan §5.3).
+ * Briefing/derived steps (scrap, stats) and the optional crafting + flavor
+ * steps never block; the chassis and the pattern name are required; Review
+ * re-checks everything including the 20-Scrap and slot invariants (which are
+ * satisfied by construction in the guided UI — this is the backstop that
+ * makes the invariant a guarantee, not a hope).
+ */
+export function mechCreationStepGate(
+  step: MechWizardStepId,
+  form: MechWizardFormState
+): StepGateResult {
+  switch (step) {
+    case 'scrap':
+    case 'stats':
+    case 'systems':
+    case 'modules':
+    case 'quirk':
+    case 'appearance':
+      return OK // briefing / display-only / optional — Next always enabled
+    case 'chassis':
+      return mechChassisGate(form)
+    case 'pattern':
+      return mechNameGate(form)
+    case 'review': {
+      for (const gate of [mechChassisGate, mechNameGate, mechLoadoutLegalityGate, mechBudgetGate]) {
+        const result = gate(form)
+        if (!result.ok) return result
+      }
+      return OK
+    }
+  }
+}
+
+/** Result of the deterministic mech draft clamp (plan §5.3). */
+export type MechDraftClampResult = {
+  form: MechWizardFormState
+  /** Human-readable names of everything removed (for the restore toast). */
+  removed: string[]
+}
+
+function installedName(ref: string): string {
+  return (resolveSystemRef(ref) ?? resolveModuleRef(ref))?.name ?? ref
+}
+
+function fitsAllBudgets(form: MechWizardFormState): boolean {
+  if (mechCreationBudgetFor(form).remaining < 0) return false
+  const capacity = computeMechCapacity({
+    chassisRef: form.chassisName,
+    systems: form.systems.map((ref) => ({ ref })),
+    modules: form.modules.map((ref) => ({ ref })),
+  })
+  return !capacity.violations.some(
+    (v) => v.kind === 'system-over-slots' || v.kind === 'module-over-slots'
+  )
+}
+
+/**
+ * Deterministic clamp for a restored mech create-mode draft (plan §5.3 —
+ * KNAPSACK, not truncation): a draft written before the hard-enforcement
+ * regime may violate the creation rules. Resolution order:
+ *   - an illegal chassis (non-Tech-1 / unresolvable) is cleared along with
+ *     the pattern and the whole loadout (nothing can be costed without it),
+ *   - otherwise chassis + pattern are ALWAYS preserved,
+ *   - non-Tech-1 / unresolvable systems and modules are dropped,
+ *   - then the loadout is walked decrementing per-item copies NEWEST-first
+ *     (modules — the later step — before systems) until the 20-Scrap cap
+ *     AND both slot budgets fit,
+ *   - starting cargo is cleared (the rules grant a new mech no cargo; the
+ *     input left guided create in Phase 4).
+ * The caller shows one toast itemizing `removed`.
+ */
+export function clampMechCreationDraft(form: MechWizardFormState): MechDraftClampResult {
+  const removed: string[] = []
+  let chassisName = form.chassisName
+  let patternName = form.patternName
+  let systems = [...form.systems]
+  let modules = [...form.modules]
+  let cargoLots = form.cargoLots
+
+  if (chassisName !== '') {
+    const chassis = resolveChassisRef(chassisName)
+    if (!chassis || !isLegalCreationChassis(chassis.techLevel)) {
+      removed.push(chassis?.name ?? chassisName)
+      removed.push(...systems.map(installedName), ...modules.map(installedName))
+      chassisName = ''
+      patternName = ''
+      systems = []
+      modules = []
+    }
+  } else if (systems.length > 0 || modules.length > 0) {
+    removed.push(...systems.map(installedName), ...modules.map(installedName))
+    systems = []
+    modules = []
+  }
+
+  const legalSystems = systems.filter((ref) => {
+    const item = resolveSystemRef(ref)
+    return item !== null && isLegalCreationSystem(item.techLevel)
+  })
+  removed.push(...systems.filter((ref) => !legalSystems.includes(ref)).map(installedName))
+  systems = legalSystems
+
+  const legalModules = modules.filter((ref) => {
+    const item = resolveModuleRef(ref)
+    return item !== null && isLegalCreationModule(item.techLevel)
+  })
+  removed.push(...modules.filter((ref) => !legalModules.includes(ref)).map(installedName))
+  modules = legalModules
+
+  // Knapsack walk: drop the NEWEST copy (modules first — the later step)
+  // until every budget fits. Chassis + pattern are never touched here.
+  while (!fitsAllBudgets({ ...form, chassisName, systems, modules, cargoLots: [] })) {
+    const dropped = modules.length > 0 ? modules.pop() : systems.pop()
+    if (dropped === undefined) break // nothing left to drop; chassis alone fits by data
+    removed.push(installedName(dropped))
+  }
+
+  if (cargoLots.length > 0) {
+    removed.push('starting cargo')
+    cargoLots = []
+  }
+
+  if (removed.length === 0) return { form, removed }
+  return { form: { ...form, chassisName, patternName, systems, modules, cargoLots }, removed }
 }

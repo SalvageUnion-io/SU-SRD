@@ -12,6 +12,13 @@ type MechReviewStepProps = {
   /** True when editing an existing mech (suppresses the fresh 'Intact' badge). */
   isEdit: boolean
   submitError: string | null
+  /**
+   * Unspent Tech 1 Scrap (create mode) — rendered as the banking callout
+   * "N Tech 1 Scrap banks to your Union Crawler". TEXT ONLY, deliberately:
+   * no cross-entity write (ADR-007 automation boundary) — the crawler's
+   * Scrap Pool field is the manual landing spot.
+   */
+  bankedScrap?: number
 }
 
 function KvRow({ label, value }: { label: string; value: string | null }) {
@@ -38,7 +45,7 @@ function KvRow({ label, value }: { label: string; value: string | null }) {
  * below it), the chosen system + module cards stacked on the right (fresh
  * installs carry an 'Intact' status badge in create mode).
  */
-export function MechReviewStep({ form, isEdit, submitError }: MechReviewStepProps) {
+export function MechReviewStep({ form, isEdit, submitError, bankedScrap }: MechReviewStepProps) {
   const chosenSystems = form.systems.flatMap((ref) => {
     const found = resolveSystemRef(ref)
     return found ? [found as unknown as SURefEntity] : []
@@ -54,13 +61,15 @@ export function MechReviewStep({ form, isEdit, submitError }: MechReviewStepProp
     ['Pattern', form.patternName.trim() || 'none'],
     ['Systems', form.systems.length > 0 ? form.systems.join(', ') : 'none'],
     ['Modules', form.modules.length > 0 ? form.modules.join(', ') : 'none'],
-    [
-      'Cargo',
-      form.cargoLots.length > 0
-        ? `${form.cargoLots.length} lot${form.cargoLots.length === 1 ? '' : 's'} · ${totalLotUnits(form.cargoLots)} units`
-        : 'empty',
-    ],
   ]
+  // Guided create grants no starting cargo (the input left the wizard in
+  // Phase 4) — the row only appears when an edited mech actually holds some.
+  if (form.cargoLots.length > 0) {
+    rows.push([
+      'Cargo',
+      `${form.cargoLots.length} lot${form.cargoLots.length === 1 ? '' : 's'} · ${totalLotUnits(form.cargoLots)} units`,
+    ])
+  }
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.1fr_1fr]">
@@ -76,6 +85,15 @@ export function MechReviewStep({ form, isEdit, submitError }: MechReviewStepProp
             </p>
           )}
         </div>
+        {bankedScrap !== undefined && (
+          <p
+            data-testid="banking-callout"
+            className="mt-3 rounded-[3px] border-chrome border-ink bg-paper px-4 py-3 font-cond text-sm font-bold uppercase tracking-caps text-ink"
+          >
+            {bankedScrap} Tech 1 Scrap banks to your Union Crawler — note it in the Crawler&rsquo;s
+            Scrap Pool.
+          </p>
+        )}
         {form.chassisName && (
           <div className="mt-3">
             <SavePatternButton

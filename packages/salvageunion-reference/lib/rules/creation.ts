@@ -1,16 +1,20 @@
 /**
- * Creation-legality predicates and pick budgets (Pilot Bay, Core Book
- * pp.18–19 — wizard-refresh plan §5.1).
+ * Creation-legality predicates and pick budgets (Pilot Bay pp.18–19 +
+ * Mech Workshop pp.94–95 — wizard-refresh plan §5.1).
  *
- * Pure predicates over NEUTRAL structural inputs only — entity records,
- * counts — in the style of capacity.ts (ADR-006). No React, no IndexedDB,
- * no app imports; a consumer's resolved reference records satisfy these
- * structural shapes automatically.
+ * Pure predicates over NEUTRAL structural inputs only — the exact primitive
+ * values a rule reads (numbers, arrays, strings) with REQUIRED fields — in
+ * the style of capacity.ts (ADR-006). No React, no IndexedDB, no app
+ * imports; a consumer narrows its resolved reference records to these
+ * primitives at the call site, so no entity-union/weak-type ambiguity ever
+ * reaches this module.
  *
  * Source scope note (plan Q12): predicates are Tech-Level/tree based and
  * deliberately allow all sources (core + expansions) — "Tech 1" and
  * "core tree" are the rules' own boundaries, source is not.
  */
+
+import { scrapCostFor } from './scrap.js'
 
 /**
  * The ability shape creation legality reads (level 1–3 | 'L' | 'G' + tree).
@@ -98,4 +102,106 @@ export function isPilotAbilityPickComplete(selectedCount: number): boolean {
 /** Exactly the budgeted equipment picks — over-budget is NOT complete. */
 export function isPilotEquipmentPickComplete(selectedCount: number): boolean {
   return selectedCount === PILOT_CREATION_EQUIPMENT_PICKS
+}
+
+// ---------------------------------------------------------------------------
+// Mech Workshop (Core Book pp.94–95 — wizard-refresh Phase 4)
+// ---------------------------------------------------------------------------
+
+/**
+ * A legal creation chassis is Tech 1 ("Craft a Tech 1 Mech Chassis of your
+ * choice from the Mech Chassis Blueprints list", p.94). Takes the primitive
+ * the rule reads — a chassis record's `techLevel` (numeric tiers, or the
+ * 'B'/'N' expansion tiers, which are never 1).
+ */
+export function isLegalCreationChassis(techLevel: number | string): boolean {
+  return techLevel === 1
+}
+
+/**
+ * A legal creation system is Tech 1 ("You now craft Tech 1 Systems from the
+ * System Blueprints list", p.95).
+ */
+export function isLegalCreationSystem(techLevel: number | string): boolean {
+  return techLevel === 1
+}
+
+/**
+ * A legal creation module is Tech 1 ("you may craft Tech 1 Modules from the
+ * Module Blueprints list", p.95).
+ */
+export function isLegalCreationModule(techLevel: number | string): boolean {
+  return techLevel === 1
+}
+
+/**
+ * The pattern shape starting legality reads: the STORED `legalStarting` data
+ * tag (optional on the reference pattern records — absent means unflagged).
+ * Used only as a generic constraint; the predicate itself takes the primitive.
+ */
+export type CreationPatternInput = { legalStarting?: boolean }
+
+/**
+ * A legal STARTING pattern carries the stored `legalStarting` data flag —
+ * an explicit tag set only where the source book calls it out. NEVER
+ * computed from tech level or salvage value (project data convention;
+ * PR #292). Takes the primitive the rule reads — the record's
+ * `legalStarting` value (undefined = unflagged = not legal starting).
+ */
+export function isLegalStartingPattern(legalStarting: boolean | undefined): boolean {
+  return legalStarting === true
+}
+
+/** Filters a chassis's patterns down to the stored-`legalStarting` set. */
+export function legalStartingPatterns<T extends CreationPatternInput>(patterns: readonly T[]): T[] {
+  return patterns.filter((pattern) => isLegalStartingPattern(pattern.legalStarting))
+}
+
+/**
+ * The whole starting budget: 20 Tech 1 Scrap for chassis + Systems + Modules
+ * ("You start with 20 Tech 1 Scrap. You will use this Scrap to craft your
+ * first Mech", p.94).
+ */
+export const MECH_CREATION_SCRAP_CAP = 20
+
+/** One loadout line: an item's Salvage Value + how many copies are crafted. */
+export type MechCreationLoadoutEntry = { sv: number; count: number }
+
+export type MechCreationBudgetInput = {
+  /** The chosen chassis's Salvage Value; 0 while no chassis is chosen. */
+  chassisSV: number
+  /** Installed systems + modules as (sv, count) lines. */
+  loadout: readonly MechCreationLoadoutEntry[]
+}
+
+export type MechCreationBudget = {
+  /** The 20-Scrap starting cap. */
+  cap: number
+  /** Tech 1 Scrap spent: chassis cost + Σ(item cost × count). */
+  spent: number
+  /** Scrap left (negative when an out-of-regime draft overspends). */
+  remaining: number
+  /** Whether one more copy of an item with this SV fits the remaining scrap. */
+  perItemAffordable: (sv: number) => boolean
+}
+
+/**
+ * The 20-Scrap creation economy (p.94), built on the canonical crafting cost
+ * (`scrapCostFor` — cost equals Salvage Value): chassis + every installed
+ * copy debit one shared pool; whatever remains banks to the Union Crawler.
+ */
+export function mechCreationBudget(input: MechCreationBudgetInput): MechCreationBudget {
+  const spent =
+    scrapCostFor({ salvageValue: input.chassisSV, techLevel: 1 }) +
+    input.loadout.reduce(
+      (sum, entry) => sum + scrapCostFor({ salvageValue: entry.sv, techLevel: 1 }) * entry.count,
+      0
+    )
+  const remaining = MECH_CREATION_SCRAP_CAP - spent
+  return {
+    cap: MECH_CREATION_SCRAP_CAP,
+    spent,
+    remaining,
+    perItemAffordable: (sv: number) => sv <= remaining,
+  }
 }

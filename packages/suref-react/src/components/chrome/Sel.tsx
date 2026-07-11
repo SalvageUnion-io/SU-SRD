@@ -10,6 +10,13 @@ type SelProps = {
   className?: string
   /** Accessible name for the toggle (e.g. the wrapped card's title) */
   ariaLabel?: string
+  /**
+   * Radio semantics for exactly-one pickers (wizard-refresh Phase 4): the
+   * wrapper announces `role="radio"` + `aria-checked` instead of the default
+   * button + `aria-pressed`. Pair with a `role="radiogroup"` container (see
+   * SelMasonry's radio props in ITUN).
+   */
+  radio?: boolean
 }
 
 /**
@@ -17,15 +24,23 @@ type SelProps = {
  * a non-layout-shifting 3px rust box-shadow ring around the card. The card
  * itself stays selection-agnostic.
  */
-export function Sel({ selected, onToggle, children, className, ariaLabel }: SelProps) {
+export function Sel({
+  selected,
+  onToggle,
+  children,
+  className,
+  ariaLabel,
+  radio = false,
+}: SelProps) {
   const interactive = !!onToggle
   return (
-    // biome-ignore lint/a11y/noStaticElementInteractions: role="button" + tabIndex + keyboard handler are applied whenever onToggle makes the ring interactive
-    // biome-ignore lint/a11y/useAriaPropsSupportedByRole: aria-pressed is only set on the interactive branch, where role="button" supports it
+    // biome-ignore lint/a11y/noStaticElementInteractions: role + tabIndex + keyboard handler are applied whenever onToggle makes the ring interactive
+    // biome-ignore lint/a11y/useAriaPropsSupportedByRole: aria-pressed/aria-checked are only set on the interactive branch, where role="button"/"radio" supports them
     <div
-      role={interactive ? 'button' : undefined}
+      role={interactive ? (radio ? 'radio' : 'button') : undefined}
       tabIndex={interactive ? 0 : undefined}
-      aria-pressed={interactive ? selected : undefined}
+      aria-pressed={interactive && !radio ? selected : undefined}
+      aria-checked={interactive && radio ? selected : undefined}
       aria-label={interactive ? ariaLabel : undefined}
       onClick={onToggle}
       onKeyDown={

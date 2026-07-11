@@ -9,22 +9,36 @@
  */
 import { beforeAll, describe, expect, it } from 'bun:test'
 import { SalvageUnionReference } from '../index.js'
-import type { SURefAbility, SURefClass, SURefEquipment } from '../schemas/index.js'
+import type { SURefAbility, SURefChassis, SURefClass, SURefEquipment } from '../schemas/index.js'
 import {
+  MECH_CREATION_SCRAP_CAP,
   PILOT_CREATION_ABILITY_PICKS,
   PILOT_CREATION_EQUIPMENT_PICKS,
   isLegalCreationAbility,
+  isLegalCreationChassis,
   isLegalCreationClass,
   isLegalCreationEquipment,
+  isLegalCreationModule,
+  isLegalCreationSystem,
+  isLegalStartingPattern,
   isPilotAbilityPickComplete,
   isPilotEquipmentPickComplete,
   legalCreationAbilities,
+  legalStartingPatterns,
+  mechCreationBudget,
   pilotAbilityPicksRemaining,
   pilotEquipmentPicksRemaining,
 } from './creation.js'
 
 beforeAll(async () => {
-  await SalvageUnionReference.preload(['classes', 'abilities', 'equipment'])
+  await SalvageUnionReference.preload([
+    'classes',
+    'abilities',
+    'equipment',
+    'chassis',
+    'systems',
+    'modules',
+  ])
 })
 
 const CORE_CLASS_NAMES = ['Engineer', 'Hacker', 'Hauler', 'Salvager', 'Scout', 'Soldier'] as const
@@ -157,5 +171,101 @@ describe('pilot pick budgets (1 ability / 2 equipment)', () => {
     expect(isPilotEquipmentPickComplete(1)).toBe(false)
     expect(isPilotEquipmentPickComplete(2)).toBe(true)
     expect(isPilotEquipmentPickComplete(3)).toBe(false)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Mech Workshop (pp.94–95 — Phase 4)
+// ---------------------------------------------------------------------------
+
+describe('isLegalCreationChassis / System / Module (Tech 1 only)', () => {
+  it('accepts exactly the Tech 1 chassis in the real catalog', () => {
+    const chassis = SalvageUnionReference.Chassis.all() as SURefChassis[]
+    const legal = chassis.filter((c) => isLegalCreationChassis(c.techLevel))
+    expect(legal.length).toBeGreaterThan(0)
+    for (const c of legal) expect(c.techLevel).toBe(1)
+    for (const c of chassis.filter((x) => !isLegalCreationChassis(x.techLevel))) {
+      expect(c.techLevel === 1).toBe(false)
+    }
+    // The book's own example chassis is legal.
+    const mule = chassis.find((c) => c.name === 'Mule')
+    expect(mule).toBeDefined()
+    expect(isLegalCreationChassis((mule as SURefChassis).techLevel)).toBe(true)
+  })
+
+  it('accepts Tech 1 systems/modules and rejects every higher/expansion tier', () => {
+    for (const [accessor, predicate] of [
+      [SalvageUnionReference.Systems, isLegalCreationSystem],
+      [SalvageUnionReference.Modules, isLegalCreationModule],
+    ] as const) {
+      const items = accessor.all() as { techLevel: number | string }[]
+      const legal = items.filter((i) => predicate(i.techLevel))
+      expect(legal.length).toBeGreaterThan(0)
+      for (const item of legal) expect(item.techLevel).toBe(1)
+      // Bio ('B') / Nanite ('N') expansion tiers are never Tech 1.
+      for (const item of items.filter((i) => typeof i.techLevel === 'string')) {
+        expect(predicate(item.techLevel)).toBe(false)
+      }
+    }
+  })
+})
+
+describe('legalStartingPatterns (stored data tag — never computed)', () => {
+  it('filters by the stored legalStarting flag only', () => {
+    const flagged = { legalStarting: true, name: 'A' }
+    const unflagged = { legalStarting: undefined, name: 'B' }
+    const explicitFalse = { legalStarting: false, name: 'C' }
+    expect(legalStartingPatterns([flagged, unflagged, explicitFalse])).toEqual([flagged])
+    expect(isLegalStartingPattern(flagged.legalStarting)).toBe(true)
+    expect(isLegalStartingPattern(unflagged.legalStarting)).toBe(false)
+    expect(isLegalStartingPattern(explicitFalse.legalStarting)).toBe(false)
+  })
+
+  it('every filtered pattern in the real catalog carries the stored flag', () => {
+    const chassis = SalvageUnionReference.Chassis.all() as SURefChassis[]
+    const allPatterns = chassis.flatMap((c) => c.patterns)
+    const legal = legalStartingPatterns(allPatterns)
+    expect(legal.length).toBeGreaterThan(0)
+    // The tag is a strict subset — some patterns are NOT legal starting.
+    expect(legal.length).toBeLessThan(allPatterns.length)
+    for (const pattern of legal) expect(pattern.legalStarting).toBe(true)
+  })
+})
+
+describe('mechCreationBudget (20 Tech 1 Scrap, on scrapCostFor)', () => {
+  it('caps at 20 and debits chassis + Σ(sv × count)', () => {
+    expect(MECH_CREATION_SCRAP_CAP).toBe(20)
+    // The book's own worked example: Mule (SV 7) + Locomotion System (SV 2).
+    const budget = mechCreationBudget({
+      chassisSV: 7,
+      loadout: [
+        { sv: 2, count: 1 },
+        { sv: 1, count: 3 },
+      ],
+    })
+    expect(budget.cap).toBe(20)
+    expect(budget.spent).toBe(12)
+    expect(budget.remaining).toBe(8)
+  })
+
+  it('an empty budget spends nothing and leaves the full cap', () => {
+    const budget = mechCreationBudget({ chassisSV: 0, loadout: [] })
+    expect(budget.spent).toBe(0)
+    expect(budget.remaining).toBe(20)
+  })
+
+  it('perItemAffordable is an exact boundary on the remaining scrap', () => {
+    const budget = mechCreationBudget({ chassisSV: 7, loadout: [{ sv: 5, count: 2 }] })
+    expect(budget.remaining).toBe(3)
+    expect(budget.perItemAffordable(3)).toBe(true)
+    expect(budget.perItemAffordable(4)).toBe(false)
+    expect(budget.perItemAffordable(0)).toBe(true)
+  })
+
+  it('an overspent (out-of-regime) loadout reads honestly negative', () => {
+    const budget = mechCreationBudget({ chassisSV: 7, loadout: [{ sv: 6, count: 3 }] })
+    expect(budget.spent).toBe(25)
+    expect(budget.remaining).toBe(-5)
+    expect(budget.perItemAffordable(1)).toBe(false)
   })
 })

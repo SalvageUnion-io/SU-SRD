@@ -1,3 +1,4 @@
+import type { ComponentProps } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { ReferenceEntityDisplay, Sel, StepBtn } from 'suref-react'
 import { cn } from '../../lib/utils'
@@ -19,6 +20,19 @@ type SelCardProps = {
   disabledReason?: string
   /** Optional pseudo-header label on the card frame (e.g. tree name). */
   label?: string
+  /**
+   * Radio semantics for exactly-one pickers (mockup Screen 01 `.selgrid`
+   * radiogroup): the Sel ring announces `role="radio"` + `aria-checked`.
+   * Pair with `<SelMasonry radio ariaLabel=…>`.
+   */
+  radio?: boolean
+  /**
+   * Extra props spread onto the inner ReferenceEntityDisplay — the seam for
+   * schema-specific slot overrides (e.g. `useChassisPatternConfig` output for
+   * pattern cards, a `subtitleExtra` Pill). Explicit SelCard affordances
+   * (footMeta reason chip, footActions counter) win over entries here.
+   */
+  entityProps?: Partial<ComponentProps<typeof ReferenceEntityDisplay>>
   /**
    * Count-stepper mode (plan §3.1, mockup `.ctr`): when `count` and
    * `onCountChange` are both set, a `[− n +]` pair renders through the entity
@@ -52,6 +66,8 @@ export function SelCard({
   disabled = false,
   disabledReason,
   label,
+  radio = false,
+  entityProps,
   count,
   onCountChange,
   maxCount,
@@ -106,6 +122,7 @@ export function SelCard({
         selected={selected}
         onToggle={isOff ? undefined : onToggle}
         ariaLabel={name}
+        radio={radio}
         className={cn(selected && 'shadow-[0_0_0_3px_var(--ground),0_0_0_6px_var(--color-ink)]')}
       >
         <ReferenceEntityDisplay
@@ -114,8 +131,9 @@ export function SelCard({
           disabled={isOff}
           hide={{ actions: true, choices: true }}
           label={label}
-          footMeta={disabledReason ? [{ label: disabledReason, value: '' }] : undefined}
-          footActions={counter}
+          {...entityProps}
+          footMeta={disabledReason ? [{ label: disabledReason, value: '' }] : entityProps?.footMeta}
+          footActions={counter ?? entityProps?.footActions}
         />
       </Sel>
     </div>

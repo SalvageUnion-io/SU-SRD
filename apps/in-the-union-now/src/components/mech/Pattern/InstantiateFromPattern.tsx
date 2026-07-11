@@ -7,6 +7,13 @@
  * fresh timestamps from the db layer, and is seeded with live stats exactly
  * like the MechWizard path (plan 2.3, gap 7): full SP/EP from the chassis
  * and currentHeat 0 — never Heat-at-capacity.
+ *
+ * Enforcement regime: NONE, deliberately (wizard-refresh plan §5.2) —
+ * instantiate is a Blank-family shortcut and its write path is untouched.
+ * Phase 4 adds PRESENTATION only: saved MechPatterns carry no stored
+ * `legalStarting` data tag (the flag is never computed — project data
+ * convention), so the confirm dialog names the freeform nature before
+ * stamping the mech.
  */
 
 import { useState } from 'react'
@@ -14,6 +21,7 @@ import { findChassisByRef } from '../../../lib/rules/derivedStats'
 import { useEntityStore } from '../../../stores/entityStore'
 import type { MechPattern } from '../../../lib/schemas/pattern'
 import { Btn } from 'suref-react'
+import { ConfirmDialog } from '../../shared/ConfirmDialog'
 
 type InstantiateFromPatternProps = {
   pattern: MechPattern
@@ -22,6 +30,7 @@ type InstantiateFromPatternProps = {
 }
 
 export function InstantiateFromPattern({ pattern, onSuccess }: InstantiateFromPatternProps) {
+  const [confirming, setConfirming] = useState(false)
   const [isInstantiating, setIsInstantiating] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -56,12 +65,26 @@ export function InstantiateFromPattern({ pattern, onSuccess }: InstantiateFromPa
       <Btn
         type="button"
         size="sm"
-        onClick={() => void handleInstantiate()}
+        onClick={() => setConfirming(true)}
         disabled={isInstantiating}
         aria-label={`Instantiate mech from pattern ${pattern.name}`}
       >
         {isInstantiating ? 'Creating…' : 'Instantiate'}
       </Btn>
+      <ConfirmDialog
+        open={confirming}
+        title={`Instantiate ${pattern.name}?`}
+        confirmLabel="Instantiate"
+        cancelLabel="Cancel"
+        onConfirm={() => {
+          setConfirming(false)
+          void handleInstantiate()
+        }}
+        onCancel={() => setConfirming(false)}
+      >
+        This may exceed the starting rules — a freeform build, like Blank. It stamps the mech
+        exactly as saved; edit freely on its live sheet.
+      </ConfirmDialog>
       {error && (
         <p className="text-xs text-danger" role="alert">
           {error}
