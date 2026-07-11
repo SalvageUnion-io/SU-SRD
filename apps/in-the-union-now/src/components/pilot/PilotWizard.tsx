@@ -15,7 +15,9 @@ import type { PilotWizardFormState } from '../../lib/wizard/pilotFormState'
 import { enrichPilotSnapshot } from '../../lib/rules/pilotSnapshot'
 import { evaluatePilotWarnings } from '../../lib/rules/softWarnings'
 import { SoftWarningBanner } from '../shared/SoftWarningBanner'
-import { WizShell } from '../wizard/WizShell'
+import { RuleBrief } from '../wizard/RuleBrief'
+import type { StepRule } from '../wizard/RuleBrief'
+import { WizShell, WizTracker } from '../wizard/WizShell'
 import { AbilitiesStep } from './AbilitiesStep'
 import { BackgroundStep } from './BackgroundStep'
 import { selectableClasses } from './classOptions'
@@ -238,48 +240,91 @@ export function PilotWizard({
   const abilityBudget = isEdit ? undefined : STARTING_ABILITY_BUDGET
   const equipmentBudget = isEdit ? undefined : STARTING_EQUIPMENT_BUDGET
 
-  const subtitle = (() => {
+  // Per-step RuleBrief copy (wizard-refresh Phase 2): exact Core Book text
+  // where the mockup provides it; otherwise the step's existing description
+  // (exact per-step rule copy is filled in by Phases 3–5).
+  const stepRule: StepRule = (() => {
     switch (step) {
       case 'Class':
-        return 'Choose your pilot class. This determines your ability trees.'
+        return isEdit
+          ? {
+              rule: 'Choose your pilot class. This determines your ability trees — specialisation prerequisites warn, never block.',
+              cite: 'Core Book · pp.18–19',
+            }
+          : {
+              rule: 'There are six core Pilot classes; Engineer, Hacker, Hauler, Salvager, Scout, and Soldier. Each is differentiated by the different Ability trees they can pick from.',
+              cite: 'Core Book · pp.26–77',
+            }
       case 'Abilities':
-        return isEdit ? (
-          <>
-            {form.abilities.length} selected · TP available: {existingPilot?.trainingPoints ?? 0} ·
-            rule caps warn, never block
-          </>
-        ) : (
-          <>
-            Up to {abilityBudget} from your class trees.{' '}
-            <span data-testid="ability-count">
-              {form.abilities.length} / {abilityBudget} selected
-            </span>
-            .
-          </>
+        return isEdit
+          ? {
+              rule: `Choose Abilities from any tree, at any level — TP available: ${existingPilot?.trainingPoints ?? 0}. Rule caps warn, never block.`,
+              cite: 'Core Book · pp.18–19',
+            }
+          : {
+              rule: `Choose up to ${abilityBudget} Abilities from your class's trees.`,
+              cite: 'Core Book · pp.18–19',
+            }
+      case 'Equipment':
+        return isEdit
+          ? { rule: 'Choose Tech Level 1 Pilot Equipment.', cite: 'Core Book · pp.18–19' }
+          : {
+              rule: `Choose up to ${equipmentBudget} items of Tech Level 1 Pilot Equipment.`,
+              cite: 'Core Book · pp.18–19',
+            }
+      case 'Identity':
+        return {
+          rule: 'Give your Pilot a name and a callsign — roll for random results or type your own.',
+          cite: 'Core Book · pp.18–19',
+        }
+      case 'Background':
+        return {
+          rule: 'Optional — where your Pilot came from.',
+          cite: 'Core Book · pp.18–19',
+        }
+      case 'Review':
+        return {
+          rule: isEdit ? 'Check the changes, then save.' : 'Check the build, then create.',
+        }
+    }
+  })()
+
+  // Tracker tabs (Phase 2 chrome): reflect today's selection counts in the
+  // action pill — no new budget math.
+  const trackers = (() => {
+    switch (step) {
+      case 'Abilities':
+        return (
+          <WizTracker
+            label="Abilities"
+            value={
+              <span data-testid="ability-count">
+                {form.abilities.length}
+                {abilityBudget !== undefined ? ` / ${abilityBudget}` : ''}
+              </span>
+            }
+          />
         )
       case 'Equipment':
-        return isEdit ? (
-          <>{form.equipment.length} selected · Tech Level 1 gear</>
-        ) : (
-          <>
-            Up to {equipmentBudget} items at Tech Level 1.{' '}
-            <span data-testid="equipment-count">
-              {form.equipment.length} / {equipmentBudget} selected
-            </span>
-            .
-          </>
+        return (
+          <WizTracker
+            label="Equipment"
+            value={
+              <span data-testid="equipment-count">
+                {form.equipment.length}
+                {equipmentBudget !== undefined ? ` / ${equipmentBudget}` : ''}
+              </span>
+            }
+          />
         )
-      case 'Identity':
-        return 'Roll for random results or type your own.'
-      case 'Background':
-        return 'Optional — where your pilot came from.'
-      case 'Review':
-        return isEdit ? 'Check the changes, then save.' : 'Check the build, then create.'
+      default:
+        return undefined
     }
   })()
 
   return (
     <WizShell
+      kind="pilot"
       eyebrow={isEdit ? 'Edit Pilot' : 'New Pilot'}
       steps={STEPS}
       active={currentIndex}
@@ -288,7 +333,6 @@ export function PilotWizard({
         if (s) setStep(s)
       }}
       title={STEP_TITLES[step]}
-      subtitle={subtitle}
       optionPane={
         step === 'Class' ? (
           <ClassOptionList
@@ -305,6 +349,7 @@ export function PilotWizard({
         ) : undefined
       }
       notice={step === 'Review' ? <SoftWarningBanner warnings={softWarnings} /> : undefined}
+      trackers={trackers}
       footerNote={
         step === 'Abilities' &&
         abilityBudget !== undefined &&
@@ -327,6 +372,7 @@ export function PilotWizard({
       busy={isSubmitting}
       submitLabel={isEdit ? 'Save Pilot' : 'Create Pilot ✦'}
     >
+      <RuleBrief rule={stepRule.rule} cite={stepRule.cite} className="mb-5" />
       {step === 'Class' && <ClassDetail selectedClass={selectedClass} />}
       {step === 'Abilities' && (
         <AbilitiesStep

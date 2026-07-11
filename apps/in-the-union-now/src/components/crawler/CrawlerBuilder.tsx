@@ -23,7 +23,9 @@ import type { CrawlerWizardFormState } from '../../lib/wizard/crawlerFormState'
 import { applyCrawlerCrewAndTypeEdit } from '../../lib/wizard/applyCrawlerEdit'
 import type { SoftWarning } from '../../lib/rules/types'
 import { SoftWarningBanner } from '../shared/SoftWarningBanner'
-import { WizShell } from '../wizard/WizShell'
+import { RuleBrief } from '../wizard/RuleBrief'
+import type { StepRule } from '../wizard/RuleBrief'
+import { WizShell, WizTracker } from '../wizard/WizShell'
 import { CrawlerCrewStep } from './CrawlerCrewStep'
 import { CrawlerIdentityStep } from './CrawlerIdentityStep'
 import { CrawlerReviewStep } from './CrawlerReviewStep'
@@ -309,34 +311,56 @@ export function CrawlerBuilder({
       <SoftWarningBanner warnings={capacityWarnings} />
     ) : undefined
 
-  const subtitle = (() => {
+  // Per-step RuleBrief copy (wizard-refresh Phase 2): the step's existing
+  // description on the poster callout (exact per-step rule copy is filled in
+  // by Phases 3–5).
+  const stepRule: StepRule = (() => {
     switch (step) {
       case 'Crawler':
-        return 'Pick a crawler type. It grants a special action and a special NPC — every crawler ships with the full bay set and starts at Tech Level 1.'
+        return {
+          rule: 'Pick a crawler type. It grants a special action and a special NPC — every crawler ships with the full bay set and starts at Tech Level 1.',
+          cite: 'Core Book · pp.212–213',
+        }
       case 'Systems':
-        return (
-          <>
-            Mount your crawler’s Weapons Systems in the Armament Bay —{' '}
-            <span data-testid="weapon-system-count">
-              {crawlerCapacity.weaponSystemsUsed} /{' '}
-              {crawlerCapacity.weaponSystemsMax > 0 ? crawlerCapacity.weaponSystemsMax : '—'} weapon
-              systems
-            </span>{' '}
-            · Tech Level {form.techLevel ?? '—'} and below. The Armament-Bay cap is enforced — one
-            Weapons System per crawler (two for a Battle Crawler).
-          </>
-        )
+        return {
+          rule: `Mount your crawler’s Weapons Systems in the Armament Bay — Tech Level ${form.techLevel ?? '—'} and below. The Armament-Bay cap is enforced — one Weapons System per crawler (two for a Battle Crawler).`,
+          cite: 'Core Book · pp.212–213',
+        }
       case 'Crew':
-        return 'Name and detail each bay’s crew lead and your crawler type’s special NPC. All optional.'
+        return {
+          rule: 'Name and detail each bay’s crew lead and your crawler type’s special NPC. All optional.',
+          cite: 'Core Book · pp.212–213',
+        }
       case 'Identity':
-        return 'Name your crawler and set its starting resources.'
+        return {
+          rule: 'Name your crawler and set its starting resources.',
+          cite: 'Core Book · pp.212–213',
+        }
       case 'Review':
-        return isEdit ? 'Check the changes, then save.' : 'Check the build, then create.'
+        return {
+          rule: isEdit ? 'Check the changes, then save.' : 'Check the build, then create.',
+        }
     }
   })()
 
+  // Tracker tabs (Phase 2 chrome): reflect today's Armament-Bay usage in the
+  // action pill — no new budget math.
+  const trackers =
+    step === 'Systems' ? (
+      <WizTracker
+        label="Weapons"
+        value={
+          <span data-testid="weapon-system-count">
+            {crawlerCapacity.weaponSystemsUsed} /{' '}
+            {crawlerCapacity.weaponSystemsMax > 0 ? crawlerCapacity.weaponSystemsMax : '—'}
+          </span>
+        }
+      />
+    ) : undefined
+
   return (
     <WizShell
+      kind="crawler"
       eyebrow={isEdit ? 'Edit Crawler' : 'New Crawler'}
       steps={STEPS}
       active={currentIndex}
@@ -345,7 +369,7 @@ export function CrawlerBuilder({
         if (s) setStep(s)
       }}
       title={STEP_TITLES[step]}
-      subtitle={subtitle}
+      trackers={trackers}
       optionPane={
         step === 'Crawler' ? (
           <CrawlerTypeOptionList types={types} selectedType={form.type} onSelect={selectType} />
@@ -363,6 +387,7 @@ export function CrawlerBuilder({
       busy={isSubmitting}
       submitLabel={isEdit ? 'Save Crawler' : 'Create Crawler ✦'}
     >
+      <RuleBrief rule={stepRule.rule} cite={stepRule.cite} className="mb-5" />
       {step === 'Crawler' && <CrawlerTypeDetail selected={selectedType} />}
       {step === 'Systems' && (
         <SystemsList

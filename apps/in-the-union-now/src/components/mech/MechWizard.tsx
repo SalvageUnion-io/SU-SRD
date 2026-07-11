@@ -17,7 +17,9 @@ import type { MechWizardFormState } from '../../lib/wizard/mechFormState'
 import { useMech } from '../../hooks/queries'
 import { useEntityStore } from '../../stores/entityStore'
 import { SoftWarningBanner } from '../shared/SoftWarningBanner'
-import { WizShell } from '../wizard/WizShell'
+import { RuleBrief } from '../wizard/RuleBrief'
+import type { StepRule } from '../wizard/RuleBrief'
+import { WizShell, WizTracker } from '../wizard/WizShell'
 import { ChassisDetail, ChassisOptionList } from './ChassisStep'
 import { LoadoutStep } from './LoadoutStep'
 import { MechIdentityStep } from './MechIdentityStep'
@@ -288,34 +290,65 @@ export function MechWizard({ onComplete, onCancel, mechId, initialState }: MechW
     form.name.trim() || resolveChassisRef(form.chassisName)?.name || form.chassisName || 'Mech'
   const selectedPatternName = isCustomPattern ? null : form.patternName || null
 
-  const subtitle = (() => {
+  // Per-step RuleBrief copy (wizard-refresh Phase 2): exact Core Book text
+  // where the mockup provides it; otherwise the step's existing description
+  // (exact per-step rule copy is filled in by Phases 3–5).
+  const stepRule: StepRule = (() => {
     switch (step) {
       case 'Chassis':
-        return 'Choose your chassis. This sets slots, stats, and cargo capacity.'
+        return {
+          rule: 'Choose your chassis. This sets slots, stats, and cargo capacity.',
+          cite: 'Core Book · pp.94–95',
+        }
       case 'Pattern':
-        return 'Pick a ready-made pattern, or build a custom loadout.'
+        return {
+          rule: 'Pick a ready-made pattern, or build a custom loadout.',
+          cite: 'Core Book · pp.94–95',
+        }
       case 'Loadout':
-        return (
-          <span>
-            <span data-testid="system-slot-count">
-              {capacity.systemSlotsUsed} / {capacity.systemSlotsMax} system
-            </span>{' '}
-            ·{' '}
-            <span data-testid="module-slot-count">
-              {capacity.moduleSlotsUsed} / {capacity.moduleSlotsMax} module
-            </span>{' '}
-            slots used · over-capacity warns, never blocks
-          </span>
-        )
+        return {
+          rule: 'Craft Systems and Modules to install on your Mech. A Mech can only install as many Systems and Modules as it has slots — over-capacity warns, never blocks.',
+          cite: 'Core Book · p.162',
+        }
       case 'Identity':
-        return 'Name your mech and stow any starting cargo.'
+        return {
+          rule: 'Name your mech and stow any starting cargo.',
+          cite: 'Core Book · pp.94–95',
+        }
       case 'Review':
-        return isEdit ? 'Check the changes, then save.' : 'Check the loadout, then create.'
+        return {
+          rule: isEdit ? 'Check the changes, then save.' : 'Check the loadout, then create.',
+        }
     }
   })()
 
+  // Tracker tabs (Phase 2 chrome): reflect today's slot usage in the action
+  // pill — no new budget math.
+  const trackers =
+    step === 'Loadout' ? (
+      <>
+        <WizTracker
+          label="System Slots"
+          value={
+            <span data-testid="system-slot-count">
+              {capacity.systemSlotsUsed} / {capacity.systemSlotsMax}
+            </span>
+          }
+        />
+        <WizTracker
+          label="Module Slots"
+          value={
+            <span data-testid="module-slot-count">
+              {capacity.moduleSlotsUsed} / {capacity.moduleSlotsMax}
+            </span>
+          }
+        />
+      </>
+    ) : undefined
+
   return (
     <WizShell
+      kind="mech"
       eyebrow={isEdit ? 'Edit Mech' : 'New Mech'}
       steps={steps}
       active={currentIndex}
@@ -324,7 +357,7 @@ export function MechWizard({ onComplete, onCancel, mechId, initialState }: MechW
         if (s) setStep(s)
       }}
       title={STEP_TITLES[step]}
-      subtitle={subtitle}
+      trackers={trackers}
       optionPane={
         step === 'Chassis' ? (
           <ChassisOptionList selectedChassis={form.chassisName} onSelect={selectChassis} />
@@ -352,6 +385,7 @@ export function MechWizard({ onComplete, onCancel, mechId, initialState }: MechW
       busy={isSubmitting}
       submitLabel={isEdit ? 'Save Mech' : 'Create Mech ✦'}
     >
+      <RuleBrief rule={stepRule.rule} cite={stepRule.cite} className="mb-5" />
       {step === 'Chassis' && <ChassisDetail chassisName={form.chassisName} />}
       {step === 'Pattern' && (
         <PatternDetail
