@@ -131,3 +131,8 @@ a rule is enforced on which surface_:
   vision gated on revisiting [ADR-001](ADR-001-local-first-no-backend.md); ownership
   scopes _who_ may edit and does not change _what_ each mode enforces, so it does
   not alter this taxonomy.
+- **Also long-tail:** the **Adjudicate** mode eventually moves off the Encounter
+  surface into a dedicated **Mediator layer** (the GM-facing home for encounters,
+  Mediator tables, and NPCs) — the Guided Play → Cockpit move applied to the GM
+  side. Not a priority yet; the mode already exists in this taxonomy, so the move
+  needs no reclassification.

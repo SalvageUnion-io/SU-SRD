@@ -28,13 +28,13 @@ the table can patch reality.
 
 ## The enforcement modes
 
-| Mode                | Surface(s)                        | Ethos                                                                                           |
-| ------------------- | --------------------------------- | ----------------------------------------------------------------------------------------------- |
-| **Guided Creation** | Wizard (`/*/new`)                 | A "how-to guide" for _making_ a legal entity. Enforces creation rules.                          |
-| **Free Edit**       | Live Sheet (`/sheet/:kind/:id`)   | The manual-override console. Edits _state_, never runs _transactions_.                          |
-| **Guided Play**     | Cockpit (in the Sheet today)      | Every asset in-hand + enforced play. Interactive rules-layers that _teach as they enforce_.     |
-| **Frozen**          | Share / View (`/share`, `/s/:id`) | Read-only published snapshot.                                                                   |
-| **Adjudicate**      | Encounter (`/encounter`)          | GM tray — Mediator tables + NPCs. Surfaces rules as tooling; enforces nothing on player sheets. |
+| Mode                | Surface(s)                                           | Ethos                                                                                           |
+| ------------------- | ---------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| **Guided Creation** | Wizard (`/*/new`)                                    | A "how-to guide" for _making_ a legal entity. Enforces creation rules.                          |
+| **Free Edit**       | Live Sheet (`/sheet/:kind/:id`)                      | The manual-override console. Edits _state_, never runs _transactions_.                          |
+| **Guided Play**     | Cockpit (in the Sheet today)                         | Every asset in-hand + enforced play. Interactive rules-layers that _teach as they enforce_.     |
+| **Frozen**          | Share / View (`/share`, `/s/:id`)                    | Read-only published snapshot.                                                                   |
+| **Adjudicate**      | Encounter (`/encounter`) → future **Mediator** layer | GM tray — Mediator tables + NPCs. Surfaces rules as tooling; enforces nothing on player sheets. |
 
 A **surface hosts a mode.** The distinction matters because one page can carry
 more than one: the live sheet is a **Free Edit** surface today, but it still holds
@@ -47,7 +47,11 @@ read-only view of that same entity. Those four are the columns of the matrix
 below. **Adjudicate** (Encounter) is the odd one out on purpose: it operates on
 _NPC instances and Mediator tables_, not the player's pilot/mech/crawler, so it
 enforces nothing on a player sheet and sits **outside** the player-entity matrix
-entirely (its concern is procedural adjudication — see that rule class).
+entirely (its concern is procedural adjudication — see that rule class). Just as
+Guided Play is destined to leave the Sheet for a Cockpit, the **Adjudicate** mode
+is destined to leave the Encounter surface for a dedicated **Mediator layer** —
+the eventual GM-facing home for encounters, Mediator tables, and NPCs. A future
+direction, not a priority yet (see [Long-tail vision](#long-tail-vision-not-in-scope)).
 
 Two ethos pairings are load-bearing:
 
@@ -233,6 +237,11 @@ Recorded so it isn't lost, explicitly **not** something we build toward now:
   is a long-tail vision gated on revisiting ADR-001, not a roadmap item. The mode
   model above still holds under it (ownership scopes _who_ may edit; it does not
   change _what_ each mode enforces).
+- **A dedicated Mediator layer.** The **Adjudicate** mode eventually moves off the
+  Encounter surface into a purpose-built **Mediator layer** — the GM-facing home
+  for encounters, Mediator tables, and NPC control. Same mode, better surface (the
+  Guided Play → Cockpit move, applied to the GM side). Not a priority yet; the
+  taxonomy already accounts for it, so no reclassification is needed when it lands.
 
 ---
 
