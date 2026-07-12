@@ -32,6 +32,7 @@ import { publishStoreChange, subscribeStoreChanges } from '../lib/db/broadcast'
 import * as db from '../lib/db/index'
 import { STORE_NAMES } from '../lib/db/stores'
 import type { StoreName } from '../lib/db/stores'
+import type { ChangeLogKind } from '../lib/schemas/changeLog'
 import type { Crawler } from '../lib/schemas/crawler'
 import type { Mech } from '../lib/schemas/mech'
 import type { Pilot } from '../lib/schemas/pilot'
@@ -81,11 +82,18 @@ export type EntityState = {
   /** Persists to db then updates in-memory state. Zod errors propagate. */
   create: <T extends EntityType>(type: T, input: CreateInput<T>) => Promise<EntityForType<T>>
 
-  /** Merges patch, persists to db, updates in-memory state. */
+  /**
+   * Merges patch, persists to db, updates in-memory state, then appends a
+   * Change Log entry per changed field (provenance, ADR-022). `meta` tags those
+   * entries — pass `{ kind: 'override', source: 'live-sheet' }` for a Free-Edit
+   * cap override, `{ kind: 'transaction', source: 'dashboard' }` for an enforced
+   * play transaction; the default is a `manual` edit from an unknown surface.
+   */
   update: <T extends EntityType>(
     type: T,
     id: string,
-    patch: Partial<EntityForType<T>>
+    patch: Partial<EntityForType<T>>,
+    meta?: ChangeMeta
   ) => Promise<EntityForType<T>>
 
   /**
@@ -129,6 +137,82 @@ export type EntityState = {
 export type TransferUpdate = {
   [T in EntityType]: { type: T; id: string; patch: Partial<EntityForType<T>> }
 }[EntityType]
+
+/**
+ * Provenance tags for a Change Log entry (ADR-022). Both fields are optional;
+ * an untagged update logs as a `manual` edit from an `unknown` source.
+ */
+export type ChangeMeta = {
+  kind?: ChangeLogKind
+  source?: string
+}
+
+const CHANGE_LOG_DEFAULT_KIND: ChangeLogKind = 'manual'
+const CHANGE_LOG_DEFAULT_SOURCE = 'unknown'
+
+/** Structural equality via JSON — entity fields are Zod-parsed, so key order is stable. */
+function jsonEqual(a: unknown, b: unknown): boolean {
+  if (a === b) return true
+  return JSON.stringify(a) === JSON.stringify(b)
+}
+
+/**
+ * The fields a patch actually changed: for each key in `patch`, compare the
+ * before-image against the persisted result and keep only the ones that moved.
+ * `before` is null when the entity was not in memory at write time (the entry's
+ * `before` is then undefined — best-effort provenance, see ADR-022).
+ */
+function changedFields<T extends EntityType>(
+  patch: Partial<EntityForType<T>>,
+  before: EntityForType<T> | null,
+  after: EntityForType<T>
+): Array<{ field: string; before: unknown; after: unknown }> {
+  const beforeRec = (before ?? {}) as Record<string, unknown>
+  const afterRec = after as Record<string, unknown>
+  const changes: Array<{ field: string; before: unknown; after: unknown }> = []
+  for (const field of Object.keys(patch)) {
+    const prev = before === null ? undefined : beforeRec[field]
+    const next = afterRec[field]
+    if (!jsonEqual(prev, next)) changes.push({ field, before: prev, after: next })
+  }
+  return changes
+}
+
+/**
+ * The single Change Log chokepoint (ADR-022): every entityStore.update appends
+ * one entry per changed field here. Failure to log never fails the write — the
+ * entity is already persisted, so a lost log line is warned, not thrown.
+ */
+async function emitChangeLog<T extends EntityType>(
+  type: T,
+  id: string,
+  patch: Partial<EntityForType<T>>,
+  before: EntityForType<T> | null,
+  after: EntityForType<T>,
+  meta: ChangeMeta | undefined
+): Promise<void> {
+  try {
+    const changes = changedFields(patch, before, after)
+    if (changes.length === 0) return
+    const ts = Date.now()
+    const kind = meta?.kind ?? CHANGE_LOG_DEFAULT_KIND
+    const source = meta?.source ?? CHANGE_LOG_DEFAULT_SOURCE
+    await db.changeLog.append(
+      changes.map((c) => ({
+        entityType: type,
+        entityId: id,
+        ts,
+        kind,
+        field: c.field,
+        before: c.before,
+        after: c.after,
+        source,
+      }))
+    )
+  } catch (err) {
+    console.warn('[itun-store] change-log append failed', err)
+  }
+}
 
 /** Maps EntityType discriminant to its db accessor and Zustand state key. */
 type StoreKey = 'pilots' | 'mechs' | 'crawlers' | 'softLinks'
@@ -244,14 +328,19 @@ export const useEntityStore = create<EntityState>((set, get) => ({
   async update<T extends EntityType>(
     type: T,
     id: string,
-    patch: Partial<EntityForType<T>>
+    patch: Partial<EntityForType<T>>,
+    meta?: ChangeMeta
   ): Promise<EntityForType<T>> {
     const key = storeKeyFor(type)
+    // Capture the before-image BEFORE the write so the Change Log can diff it.
+    const before = get().get(type, id)
     const updated = await dbStoreFor(type).update(id, patch)
     set((state) => ({
       [key]: (state[key] as EntityForType<T>[]).map((e) => (e.id === id ? updated : e)),
     }))
     afterWrite(type)
+    // Provenance (ADR-022): one entry per changed field, at this one chokepoint.
+    await emitChangeLog(type, id, patch, before, updated, meta)
     return updated
   },
 
