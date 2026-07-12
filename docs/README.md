@@ -53,10 +53,11 @@ generator is in git. Produce the digest locally with `bun run rules:regen`
 ### [`adrs/`](adrs/) — Architecture Decision Records
 
 MADR-style records of architecturally significant decisions. ADR-001–014 are
-**live in the code today**. ADR-015–020 are **Proposed** (the Dashboard play
-surface, not yet built). ADR-021 is the **governing** surface/mode taxonomy and
-ADR-022 its provenance companion — a target the code is still moving toward. Each
-says so in its Status. Read the matching ADR before proposing alternatives.
+**live in the code today**. ADR-015–020 are **Accepted** — the Dashboard play
+surface, **built** as the Play Cockpit (`components/play/`, routed at `/play/$id`).
+ADR-021 is the **governing** surface/mode taxonomy and ADR-022 its Change Log
+companion — a target the code is still moving toward. Each says so in its Status.
+Read the matching ADR before proposing alternatives.
 
 | ADR                                                                  | Topic                                                                                                           |
 | -------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
@@ -74,12 +75,12 @@ says so in its Status. Read the matching ADR before proposing alternatives.
 | [ADR-012](adrs/ADR-012-suref-web-astro-static.md)                    | `suref-web` as an Astro static site with React islands                                                          |
 | [ADR-013](adrs/ADR-013-csp-zod-jitless.md)                           | CSP-compliant Zod (jitless) constraint                                                                          |
 | [ADR-014](adrs/ADR-014-json-api-public-interface-npm-retired.md)     | Dataset public interface is the JSON API; npm publishing retired                                                |
-| [ADR-015](adrs/ADR-015-dashboard-distinct-play-surface.md)           | Dashboard is a distinct actual-play surface, separate from live sheets (proposed)                               |
-| [ADR-016](adrs/ADR-016-dashboard-rotary-dial-instrument-split.md)    | Dashboard rotary Dial selector + instrument/reference split (proposed)                                          |
-| [ADR-017](adrs/ADR-017-dashboard-reuse-faithful-srd-display.md)      | Reuse the faithful light SRD display; instruments are bespoke (proposed)                                        |
-| [ADR-018](adrs/ADR-018-dashboard-instrument-viewfinder-aesthetic.md) | Instrument/viewfinder aesthetic — flat & inset (proposed)                                                       |
-| [ADR-019](adrs/ADR-019-dashboard-play-state-ephemeral.md)            | Dashboard play-state & prefs ephemeral/local-first, under the ADR-007 boundary (proposed)                       |
-| [ADR-020](adrs/ADR-020-dashboard-fixed-canvas-scale-to-fit.md)       | Fixed 1280×800 scale-to-fit canvas with a phone-reflow floor (proposed)                                         |
+| [ADR-015](adrs/ADR-015-dashboard-distinct-play-surface.md)           | Dashboard is a distinct actual-play surface, separate from live sheets (built)                                  |
+| [ADR-016](adrs/ADR-016-dashboard-rotary-dial-instrument-split.md)    | Dashboard rotary Dial selector + instrument/reference split (built)                                             |
+| [ADR-017](adrs/ADR-017-dashboard-reuse-faithful-srd-display.md)      | Reuse the faithful light SRD display; instruments are bespoke (built)                                           |
+| [ADR-018](adrs/ADR-018-dashboard-instrument-viewfinder-aesthetic.md) | Instrument/viewfinder aesthetic — flat & inset (built)                                                          |
+| [ADR-019](adrs/ADR-019-dashboard-play-state-ephemeral.md)            | Dashboard play-state & prefs ephemeral/local-first, under the ADR-007 boundary (built)                          |
+| [ADR-020](adrs/ADR-020-dashboard-fixed-canvas-scale-to-fit.md)       | Fixed 1280×800 scale-to-fit canvas with a phone-reflow floor (built)                                            |
 | [ADR-021](adrs/ADR-021-itun-surface-taxonomy.md)                     | **Governing** — surface/mode taxonomy; rule enforcement is per-mode (Guided Creation / Free Edit / Guided Play) |
 | [ADR-022](adrs/ADR-022-provenance-log-and-overrides.md)              | Per-entity **Change Log** (provenance, behind a menu) + non-destructive stat overrides (target)                 |
 
