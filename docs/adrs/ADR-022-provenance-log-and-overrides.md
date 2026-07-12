@@ -1,14 +1,14 @@
-# ADR-016: Per-Entity Provenance Log & Stat Overrides
+# ADR-022: Per-Entity Provenance Log & Stat Overrides
 
 ## Status
 
 Accepted (decision recorded ahead of implementation). Subordinate to
-[ADR-015](ADR-015-itun-surface-taxonomy.md), which establishes the surface/mode
+[ADR-021](ADR-021-itun-surface-taxonomy.md), which establishes the surface/mode
 model this ADR serves.
 
 ## Context
 
-[ADR-015](ADR-015-itun-surface-taxonomy.md) makes the **Live Sheet** a Free-Edit
+[ADR-021](ADR-021-itun-surface-taxonomy.md) makes the **Live Sheet** a Free-Edit
 surface: players may override caps, bypass lifecycle costs, and hand-edit state to
 patch reality at the table. Two capabilities fall out of that decision and need
 their own record:
@@ -18,7 +18,7 @@ their own record:
    override, not a derivation — and ideally let them revert.
 2. **Manual edits need provenance.** The whole point of Free Edit is off-rules
    change. Six months later, "why does this mech have 4 extra cargo?" must be
-   answerable. Enforced Cockpit transactions deserve the same trail. Without a log,
+   answerable. Enforced Dashboard transactions deserve the same trail. Without a log,
    the free surface becomes an un-auditable one.
 
 Both touch the IndexedDB persistence layer
@@ -69,7 +69,7 @@ resumes tracking its derivation.
 
 - The override marker is a small, visible graphical callout on the affected stat —
   enough to tell an overridden value from a derived one at a glance.
-- Overrides apply to quantitative caps and maxima (per ADR-015). Structural
+- Overrides apply to quantitative caps and maxima (per ADR-021). Structural
   coherence is never overridable; free state needs no override concept (it is
   already free).
 
