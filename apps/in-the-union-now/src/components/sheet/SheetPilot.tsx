@@ -19,7 +19,6 @@ import { AssignCrawlerToPilot } from '../wiring/AssignCrawlerToPilot'
 import { LiveSheet } from './LiveSheet'
 import type { LiveSheetStripItem } from './LiveSheet'
 import { PilotSheet } from './PilotSheet'
-import { QuickRollFab } from './QuickRollFab'
 import { SheetHero } from './SheetHero'
 import { RailChip, RailEmpty } from './SheetRail'
 import { CrawlerRailStats, MechRailStats, RailCta, mechStatusPill } from './SheetRailParts'
@@ -134,7 +133,6 @@ export function SheetPilot({
       pill={dead ? { label: 'Dead', tone: 'bad' } : { label: 'Pilot', tone: 'pilot' }}
       segments={segments}
       actions={actions}
-      fab={editable ? <QuickRollFab /> : undefined}
       renderHero={({ heroRef }) => (
         <SheetHero
           heroRef={heroRef}

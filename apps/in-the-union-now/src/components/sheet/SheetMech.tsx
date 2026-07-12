@@ -6,15 +6,14 @@
  * Identity, Vitals and the linked-unit rail all moved into the body's R1/R4
  * poster regions (see `MechSheet`) — SheetHero no longer receives
  * `identityBlock`/`trackers`/`inset`/`rail`, mirroring SheetPilot. This
- * component's remaining job is the condensed top-bar strip, the Push FAB, and
- * composing the assigned-pilot/home-crawler rail content handed to
- * `MechSheet` as `linkedUnits`.
+ * component's remaining job is the condensed top-bar strip and composing the
+ * assigned-pilot/home-crawler rail content handed to `MechSheet` as
+ * `linkedUnits`. Push / Heat Check are Guided-Play transactions that live on
+ * the Dashboard, not the Free-Edit Live Sheet (ADR-021).
  */
 
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
-import { describePushOutcome } from '../../lib/rules/coreMechanic'
 import { mechMaxCargo, mechMaxEP, mechMaxHeat, mechMaxSP } from '../../lib/rules/derivedStats'
-import { defaultRoll, heatCheckPatch, performPush } from '../../lib/rules/heatCheck'
 import { resolveChassisRef } from '../../lib/rules/resolveRefs'
 import { totalLotUnits } from '../../lib/schemas/cargoLot'
 import type { Mech } from '../../lib/schemas/mech'
@@ -22,7 +21,6 @@ import { AssignPilotToMech } from '../wiring/AssignPilotToMech'
 import { LiveSheet } from './LiveSheet'
 import type { LiveSheetStripItem } from './LiveSheet'
 import { MechSheet } from './MechSheet'
-import { QuickRollFab } from './QuickRollFab'
 import { SheetHero } from './SheetHero'
 import { RailChip, RailEmpty } from './SheetRail'
 import { CrawlerRailStats, PilotRailStats, RailCta, mechStatusPill } from './SheetRailParts'
@@ -40,7 +38,6 @@ export function SheetMech({
   readOnly,
   store,
   storeState,
-  lookup,
 }: SheetMechProps) {
   const chassis = resolveChassisRef(mech.chassisRef)
   const maxSP = mechMaxSP(mech, chassis)
@@ -67,34 +64,6 @@ export function SheetMech({
       mobilePriority: false,
     },
   ]
-
-  // Quick Ref p.233: "Can't Push if it'd take you over your Heat Cap" —
-  // the FAB's Push is disabled (never clamped) when +2 Heat would exceed it.
-  const pushLocked =
-    heat + 2 > maxHeat
-      ? `Can't Push at Heat ${heat}/${maxHeat} — +2 Heat would take the mech over its Heat Cap (p.233).`
-      : undefined
-
-  /**
-   * Push (design review R-6/U-3): +2 Heat then an immediate Heat Check,
-   * written through the store (ADR-007 — deterministic bookkeeping
-   * auto-applies; marking a destroyed System or Module stays a player call
-   * via its status badge). Reads the freshest mech so rapid sequential
-   * actions don't stomp each other.
-   */
-  async function pushMech(): Promise<string> {
-    const fresh = lookup.get('mech', mech.id) ?? mech
-    const cap = mechMaxHeat(fresh, chassis)
-    const freshMaxSP = mechMaxSP(fresh, chassis)
-    const { nextHeat, effect } = performPush({
-      heat: Math.min(fresh.currentHeat ?? cap, cap),
-      heatCap: cap,
-      currentSP: Math.min(fresh.currentSP ?? freshMaxSP, freshMaxSP),
-      roll: defaultRoll,
-    })
-    await storeState.update('mech', mech.id, heatCheckPatch(effect, nextHeat))
-    return describePushOutcome(nextHeat, effect)
-  }
 
   // Unassign for the mech's own direct link (mech-to-pilot) — always
   // available on editable sheets per the unified edit language (no edit
@@ -165,7 +134,6 @@ export function SheetMech({
       segments={segments}
       syncStats={{ cargo: cargoUsed }}
       actions={actions}
-      fab={editable ? <QuickRollFab onPush={pushMech} pushLocked={pushLocked} /> : undefined}
       renderHero={({ heroRef }) => <SheetHero heroRef={heroRef} cat="Mech" name={mech.name} />}
       renderBody={() => (
         <MechSheet

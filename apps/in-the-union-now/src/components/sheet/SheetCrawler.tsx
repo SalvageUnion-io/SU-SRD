@@ -28,7 +28,6 @@ import type { CrawlerEconomyDialog } from './CrawlerEconomyControl'
 import { CrawlerSheet } from './CrawlerSheet'
 import { LiveSheet } from './LiveSheet'
 import type { LiveSheetStripItem } from './LiveSheet'
-import { QuickRollFab } from './QuickRollFab'
 import { SheetHero } from './SheetHero'
 import { RailChip, RailEmpty } from './SheetRail'
 import { MechRailStats, PilotRailStats, RailCta, bayStates, mechStatusPill } from './SheetRailParts'
@@ -213,7 +212,6 @@ export function SheetCrawler({
         pill={{ label: 'Crawler', tone: 'crawler' }}
         segments={segments}
         actions={actions}
-        fab={editable ? <QuickRollFab /> : undefined}
         renderHero={({ heroRef }) => (
           <SheetHero
             heroRef={heroRef}

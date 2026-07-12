@@ -182,11 +182,6 @@ describe('LiveSheet — strip values and syncStats', () => {
     expect(folded.className).toContain('hidden')
     expect(folded.className).toContain('sm:inline-flex')
   })
-
-  test('fab slot renders the floating node', () => {
-    renderShell({ fab: <button type="button">Roll d20</button> })
-    expect(screen.getByRole('button', { name: 'Roll d20' })).toBeTruthy()
-  })
 })
 
 // ---------------------------------------------------------------------------
