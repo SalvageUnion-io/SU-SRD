@@ -76,7 +76,7 @@ export function PlayCockpit({ id }: { id: string }) {
       <div className="pc-grid" data-mount={mount}>
         <RailBar title={railTitle} fam={onFoot ? 'pilot' : 'mech'} />
         <div className="pc-primary">
-          <ActiveItemBand mech={mech} pilot={pilot} />
+          <ActiveItemBand mech={mech} pilot={pilot} store={storeState} />
         </div>
         <div className="pc-display pc-display-light">
           <DisplayView focus={focus} mech={mech} pilot={pilot} crawler={crawler} />

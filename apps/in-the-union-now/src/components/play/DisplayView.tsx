@@ -5,9 +5,9 @@
  * ReferenceEntityDisplay / ReferenceEntityActions / RollTable verbatim — the
  * same components the live sheet and reference site show (proposed ADR-017).
  *
- * Phase 4 scope: render real reference content per focus (entity card + its
- * actions, or a roll table, or the SRD/Actions landing). Read-only — activating
- * actions, rolling into state, and the resolve flow are Phase 5.
+ * Phase 5 scope: the Dial's "actions" focus now drives the interactive
+ * ActionsDeck (activate / roll / push) instead of a placeholder note; the rest
+ * of the display stays the read-only reference document from Phase 4.
  */
 
 import { SalvageUnionReference } from 'salvageunion-reference'
@@ -18,6 +18,7 @@ import { resolveChassisRef } from '../../lib/rules/resolveRefs'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
+import { ActionsDeck } from './ActionsDeck'
 import type { DialItem } from './dialItems'
 
 const HIDE_CHOICES = { choices: true } as const
@@ -53,11 +54,13 @@ export function DisplayView({ focus, mech, pilot, crawler }: DisplayViewProps) {
         </div>
       )
     }
-    // Actions deck (Phase 5) and the SRD explorer (later) land here.
-    const label = focus.key === 'actions' ? 'Actions deck' : 'SRD explorer'
+    if (focus.key === 'actions') {
+      return <ActionsDeck mech={mech} />
+    }
+    // The SRD explorer lands in a later phase.
     return (
       <div className="pc-display-note">
-        {label} — {focus.sublabel}. (Interactive content lands in a later phase.)
+        SRD explorer — {focus.sublabel}. (Interactive content lands in a later phase.)
       </div>
     )
   }

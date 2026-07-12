@@ -74,10 +74,13 @@ describe('DisplayView', () => {
     expect(container.querySelector('.pc-display-note')).toBeNull()
   })
 
-  test('Actions focus → a placeholder note (Phase 5)', () => {
+  test('Actions focus → the interactive ActionsDeck (Phase 5)', () => {
     const focus: DialItem = { key: 'actions', statless: true, label: 'Actions', sublabel: 'deck' }
     const { container } = renderDV(focus)
-    expect(container.querySelector('.pc-display-note')?.textContent).toContain('Actions deck')
+    // The deck renders (list or empty state), never the generic placeholder note.
+    expect(container.querySelector('.pc-display-scroll')).toBeTruthy()
+    expect(container.querySelector('.pc-deck, .pc-deck-empty')).toBeTruthy()
+    expect(container.querySelector('.pc-display-note')).toBeNull()
   })
 
   test('no focus → graceful empty note', () => {
