@@ -121,6 +121,9 @@ describe('MechSheet — no Use transaction on the Free-Edit sheet (ADR-021)', ()
     const mech = makeMech({ systems: ['Smoke Machine'], currentEP: 5 })
     render(<MechSheet mech={mech} chassis={fakeChassis} store={makeStore(mech, [])} />)
 
+    // The system card IS rendered (so the absent-Use assertion is meaningful)…
+    expect(screen.getAllByText(/Smoke Machine/i).length).toBeGreaterThan(0)
+    // …but it offers no Use button — activation is a Dashboard act.
     expect(screen.queryByRole('button', { name: /^use smoke machine$/i })).toBeNull()
   })
 })
