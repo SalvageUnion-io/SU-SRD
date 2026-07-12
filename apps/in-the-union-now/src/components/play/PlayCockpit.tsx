@@ -18,6 +18,7 @@ import { ActiveItemBand } from './ActiveItemBand'
 import { CockpitCanvas } from './CockpitCanvas'
 import { Dial } from './Dial'
 import { dialItems } from './dialItems'
+import { DisplayView } from './DisplayView'
 import { RailBar } from './RailBar'
 
 export function PlayCockpit({ id }: { id: string }) {
@@ -77,12 +78,8 @@ export function PlayCockpit({ id }: { id: string }) {
         <div className="pc-primary">
           <ActiveItemBand mech={mech} pilot={pilot} />
         </div>
-        <div className="pc-display">
-          <div className="pc-fill">
-            Showing · {focus?.label ?? '—'}
-            <br />
-            Main display — SRD reference &amp; actions (Phase 4)
-          </div>
+        <div className="pc-display pc-display-light">
+          <DisplayView focus={focus} mech={mech} pilot={pilot} crawler={crawler} />
         </div>
         <div className="pc-wheel">
           <Dial items={items} />
