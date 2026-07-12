@@ -1,11 +1,14 @@
-# Play Cockpit Architecture
+# Dashboard Architecture
 
 > **Status:** Planning / design record. This document is the implementation plan
-> for the **Play Cockpit** (a.k.a. "Pit HUD") — a new actual-play HUD surface for
-> `apps/in-the-union-now` (ITUN). No feature code exists yet. The design was
-> explored turn-by-turn (v18→v62) and the **layout locked at v52**; subsequent
-> passes (v53→v60) refined intra-component density only. The realized reference
-> is a self-contained HTML prototype (design reference only, not shipping code).
+> for the **Dashboard** — the live actual-play surface for
+> `apps/in-the-union-now` (ITUN), composing a player's **Pilot + Mech + Crawler**
+> into one screen. (Named the "Play Cockpit" / "Pit HUD" in earlier design passes;
+> renamed to **Dashboard** — the former build-list home is now the **Roster**.)
+> **Built and shipped** — realized in `src/components/play/` (16 components + tests)
+> and routed at `/play/$id`. The design was explored turn-by-turn (v18→v62), the
+> **layout locked at v52**, prototyped as self-contained HTML, then implemented
+> across Phases 1–7. This document is the design record for that shipped surface.
 >
 > Read alongside: [combat-loop.md](combat-loop.md) (the authoritative live-play
 > state model this HUD drives), [display-system.md](display-system.md),
@@ -19,31 +22,33 @@
 
 ## 1. Purpose & positioning
 
-ITUN has three surfaces once the Play Cockpit lands. They are **different tools
-for different moments**, and the split is deliberate — see the memory note
-_ITUN Play Cockpit direction_ ("live sheets = character **editing**; Cockpit =
-actual **play**").
+ITUN has three player-facing surfaces once the Dashboard lands. They are
+**different tools for different moments**, and the split is deliberate: live sheets
+= character **editing** (the _Free Edit_ mode); the Dashboard = actual **play**
+(the _Guided Play_ mode). This is the surface taxonomy in
+[ADR-021](../adrs/ADR-021-itun-surface-taxonomy.md); the Dashboard-is-a-distinct-surface
+decision is [ADR-015](../adrs/ADR-015-dashboard-distinct-play-surface.md).
 
-| Surface          | Route                                          | Job                                               | Interaction grammar                             |
-| ---------------- | ---------------------------------------------- | ------------------------------------------------- | ----------------------------------------------- |
-| **Dashboard**    | `/` (`src/components/dashboard/Dashboard.tsx`) | Pick / manage saved builds                        | Cards → open                                    |
-| **Live sheets**  | `/sheet/$kind/$id` (`src/components/sheet/*`)  | Build & edit a pilot / mech / crawler             | Poster layout, inline edit, scrollable          |
-| **Play Cockpit** | `/play/$id` (**new**)                          | Run a mech at the table, one screen, no scrolling | Instrument panel: every game action is a button |
+| Surface         | Route                                          | Job                                                                    | Interaction grammar                             |
+| --------------- | ---------------------------------------------- | ---------------------------------------------------------------------- | ----------------------------------------------- |
+| **Roster**      | `/` (`src/components/dashboard/Dashboard.tsx`) | Pick / manage saved builds                                             | Cards → open                                    |
+| **Live sheets** | `/sheet/$kind/$id` (`src/components/sheet/*`)  | Build & edit a pilot / mech / crawler                                  | Poster layout, inline edit, scrollable          |
+| **Dashboard**   | `/dashboard/$id` (**new**)                     | Run your Pilot + Mech + Crawler at the table, one screen, no scrolling | Instrument panel: every game action is a button |
 
-The Play Cockpit is a **screen-wide, video-game-style HUD** that fits one screen
-with no page scroll and turns every game action (Push, Vent, activate a system,
+The Dashboard is a **screen-wide, video-game-style HUD** that fits one screen
+with no page scroll and turns every game action (Push, Vent, use a system,
 take damage, roll a table) into a button. It is **not** a second editor. It reads
 and mutates the _same_ persisted entities as the live sheets (`Mech`, `Pilot`,
 `Crawler` — see §5), through the _same_ rules engine and store, but it never
 opens the inline-edit affordances of the sheet. Where the sheet asks "what does
-this pilot _have_", the cockpit asks "what can this pilot _do right now_".
+this pilot _have_", the Dashboard asks "what can this pilot _do right now_".
 
 The two surfaces coexist by sharing state, not chrome: a change made in the
-cockpit (spend EP, take SP damage) is immediately visible on the live sheet in
+Dashboard (spend EP, take SP damage) is immediately visible on the live sheet in
 another tab (the multi-tab broadcast in `src/lib/db/broadcast.ts`), and vice
-versa. **There is one source of truth; the cockpit is a second lens on it.**
+versa. **There is one source of truth; the Dashboard is a second lens on it.**
 
-Local-first is preserved end to end ([ADR-001], [ADR-003]): the cockpit adds no
+Local-first is preserved end to end ([ADR-001], [ADR-003]): the Dashboard adds no
 backend, no auth, no RPC. It is a client of `entityStore`/`workspaceStore` and
 the pure rules functions, exactly like the sheet.
 
@@ -57,7 +62,7 @@ follows is the spec engineers build against.
 
 ### 2.1 The fixed canvas & scale-to-fit
 
-- The cockpit is a **fixed 1280×800 design canvas**. It never reflows within
+- The Dashboard is a **fixed 1280×800 design canvas**. It never reflows within
   that box and never scrolls the page.
 - It is placed inside a viewport and scaled with a single
   `transform: scale(min(vw/1280, vh/800))`, letterboxed, **clamped** to roughly
@@ -93,7 +98,7 @@ Reference: `buildCanvas()` sets `grid-template-columns: 1fr 260px`,
 
 **A. Top rail** (`railBar()`) — a 40px horizontal bar with a **solid 2.5px
 border** (the one hard-bordered frame besides the display). Holds: `◄ Return to
-Workspace` (exit), a context stamp, and `⚙ Settings` (Rules & Sources, Cockpit
+Workspace` (exit), a context stamp, and `⚙ Settings` (Rules & Sources, Dashboard
 settings, Downtime entry). In Downtime it swaps to `◄ Leave Downtime` + a
 "Downtime" stamp.
 
@@ -165,7 +170,7 @@ viewfinder. No drop shadows — nothing floats. Viewfinder frames read _recessed
 
 The display renders the **faithful LIGHT SRD entity card** (white body, colored
 header, black ink — `srdCard()`/`srdActionCard()`) — a piece of "workshop
-paperwork" inset in the dark cockpit. This is the deliberate contrast: the
+paperwork" inset in the dark Dashboard. This is the deliberate contrast: the
 instruments are dark and dense; the reference document is light and canonical.
 
 ### 2.4 Color ontology (locked color laws)
@@ -224,15 +229,15 @@ idx 0). The active family drives the whole-screen background tint
 
 ---
 
-## 3. Reuse contract — `suref-react` vs new cockpit components
+## 3. Reuse contract — `suref-react` vs new Dashboard components
 
 The governing rule (design record v53, user's explicit ask): **the display
 reuses the faithful entity-display system; the instruments are new.** Do not fork
-the display system for the cockpit.
+the display system for the Dashboard.
 
 ### 3.1 Reused verbatim from `suref-react`
 
-| Component (barrel export)                   | Path                                                                      | Role in cockpit                                                                                                |
+| Component (barrel export)                   | Path                                                                      | Role in Dashboard                                                                                              |
 | ------------------------------------------- | ------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
 | `ReferenceEntityDisplay`                    | `components/referenceEntity/ReferenceEntityDisplay/index.tsx`             | The display's entity view — full SRD card for the focused mech/pilot/drone/crawler/ally                        |
 | `DisplayCard`                               | `components/shared/DisplayCard.tsx`                                       | The card primitive under it; `footActions`/`footMeta` are the economy injection points (§3.3)                  |
@@ -242,7 +247,7 @@ the display system for the cockpit.
 | `RollTable`                                 | `components/shared/RollTable.tsx`                                         | SRD roll-table rendering (Core Mechanic, Reactor Overload, Critical, Trading, Deterioration, Salvage, Cantina) |
 | `StatBlock`, `VitalGauge`, `MiniStat`       | `components/stat/*`                                                       | HUD-flavored stat primitives — candidates for the bay gauges (see §3.4)                                        |
 | `StatsBar` / `StatDisplay` / `ValueDisplay` | `components/shared/*`                                                     | Stat readouts inside entity cards                                                                              |
-| `ActivationCostBox`                         | `components/shared/ActivationCostBox.tsx` (internal, not barrel-exported) | The AP/EP cost pennant on actions — the cockpit's `costPennant()` in the mockup                                |
+| `ActivationCostBox`                         | `components/shared/ActivationCostBox.tsx` (internal, not barrel-exported) | The AP/EP cost pennant on actions — the Dashboard's `costPennant()` in the mockup                              |
 
 The mockup's `srdCard()`, `srdActionCard()`, `actionsSection()`, `srdBox()`,
 `srdPill()`, `costPennant()`, `srdRollTable()` are **hand-rolled facsimiles** of
@@ -252,24 +257,24 @@ byte-for-byte the same reference document the rest of the app renders. The
 facsimiles exist only because the mockup is a standalone artifact with no access
 to the package.
 
-### 3.2 New cockpit-specific components
+### 3.2 New Dashboard-specific components
 
 Everything that is _instrument_, not _document_, is new and lives under
-`apps/in-the-union-now/src/components/cockpit/`:
+`apps/in-the-union-now/src/components/Dashboard/`:
 
-- `CockpitCanvas`, `RailBar`, `ActiveItemBand`, `InstrumentBay`, `VitalGauge`
-  (cockpit variant / or reuse), `InstrumentButtonGrid`, `Dial`, `DialCell`
+- `DashboardCanvas`, `RailBar`, `ActiveItemBand`, `InstrumentBay`, `VitalGauge`
+  (Dashboard variant / or reuse), `InstrumentButtonGrid`, `Dial`, `DialCell`
   (statful/statless), `DialConfig`, and the overlays (`StorageOverlay`,
   `TablePickerOverlay`, `DowntimeWizard`). Full tree in §6.
 - The segmented "instrument gauge" (`vbar`/`segGauge`/`gcells` in the mockup) is
-  a cockpit primitive. **Decision point:** evaluate `suref-react`'s `VitalGauge`
+  a Dashboard primitive. **Decision point:** evaluate `suref-react`'s `VitalGauge`
   first — if it can express the segmented-pip + redline + projection needle
   (Push +2) look, reuse/extend it rather than adding a parallel gauge. The
   mockup's gauge and `VitalGauge.tsx` are close cousins; do not ship two.
 
 ### 3.3 The action-economy injection point (the "foot-meta / rail" pattern)
 
-ITUN already has the exact mechanism the cockpit extends. There is **no
+ITUN already has the exact mechanism the Dashboard extends. There is **no
 render-prop** for action economy; instead:
 
 - `DisplayCard` exposes `footActions?: ReactNode` and
@@ -285,10 +290,10 @@ ReactNode }`). `ReferenceEntityDisplay` forwards them. These render the
   in `Erow mode='rail'` **because `ActionCard` does not accept
   `footActions`/`footMeta`** (it is not an entity card).
 
-**Cockpit contract:** the display's grouped actions section renders each action
-as `ActionCard` and injects the cockpit's `Use ▸` / `Repair` buttons + economy
+**Dashboard contract:** the display's grouped actions section renders each action
+as `ActionCard` and injects the Dashboard's `Use ▸` / `Repair` buttons + economy
 `footMeta` (`EP Cost`, `Heat`, `Uses`) via the **same `ActionCardErow`
-mechanism** (or a cockpit sibling of it). Entity-level buttons (Load Into Mech,
+mechanism** (or a Dashboard sibling of it). Entity-level buttons (Load Into Mech,
 Enter Downtime, Hand re-roll) go through `DisplayCard.footActions` on the entity
 card. We reuse the vocabulary (`CardFootMeta` + `footActions`), never a new
 schema-specific renderer.
@@ -298,16 +303,16 @@ schema-specific renderer.
 `ReferenceEntityDisplay` uses **generic slot props**, computed by
 `useReferenceEntityDisplayState` and consumer hooks like `useChassisPatternConfig`
 (the task's "`classAbilitiesRenderer`" is actually the `abilitiesSection?:
-ReactNode` slot prop; there is no prop literally so named). Cockpit injection
+ReactNode` slot prop; there is no prop literally so named). Dashboard injection
 points:
 
-- `abilitiesSection` — inject the cockpit's action-economy-wrapped actions list
+- `abilitiesSection` — inject the Dashboard's action-economy-wrapped actions list
   (each action `ActionCardErow`-wrapped with `Use`/`Repair`).
 - `statsOverride` — feed live-play values (`currentHP`, `currentSP`, …) so the
   card header reflects table state, not base stats.
-- `footerOverride` / `afterExtraContent` — entity-level cockpit buttons.
+- `footerOverride` / `afterExtraContent` — entity-level Dashboard buttons.
 - `EntityHrefProvider` (`entityHrefContext.ts`) — route-agnostic links; the
-  cockpit provides an href builder that drills `[[links]]` into the in-display
+  Dashboard provides an href builder that drills `[[links]]` into the in-display
   entity view rather than navigating away.
 - Display-state context (`displayStateContext.ts`) — set `compact`/spacing so
   the reference card fits the display area.
@@ -316,7 +321,7 @@ points:
 
 ## 4. Data & state model
 
-### 4.1 Ephemeral cockpit state vs persisted entity state
+### 4.1 Ephemeral Dashboard state vs persisted entity state
 
 The mockup's `S` object conflates two very different kinds of state. The build
 must split them:
@@ -327,16 +332,16 @@ must split them:
 | `heatCap`, `spMax`, `epMax`, `hpMax`, `apMax`, `cargoMax`                                                                          | Derived (`derivedStats.ts`: `mechMaxHeat`, `mechMaxSP`, `mechMaxEP`, `pilotMaxHP`, `pilotMaxAP`, `mechMaxCargo`) | **Derived**                        |
 | `shutdown`, `vulnerable`, item `cond`                                                                                              | `Mech.shutdown`, `Mech.vulnerable`, `Mech.systemConditions`/`moduleConditions`, `Pilot.equipmentConditions`      | **Persisted**                      |
 | item uses                                                                                                                          | `Mech.itemUses` (`Record<string,number>`)                                                                        | **Persisted**                      |
-| `state` (pilot/mech/downtime), `range`, `moveUsed`, `actionUsed`                                                                   | **Cockpit play-state** — NOT on the mech/pilot schema                                                            | **Ephemeral**                      |
+| `state` (pilot/mech/downtime), `range`, `moveUsed`, `actionUsed`                                                                   | **Dashboard play-state** — NOT on the mech/pilot schema                                                          | **Ephemeral**                      |
 | `sel`, `wheel`, `wheelDir`, `meta`, `overlay`, `menu`, `deckFilter`, `srcFilter`, `grouping`, `costChoice`, `hotX`, `confirmEject` | Pure UI / view state                                                                                             | **Transient** (component state)    |
-| `dialHidden`, `dialOrder`                                                                                                          | **Per-cockpit prefs**                                                                                            | **Persisted (prefs)**              |
+| `dialHidden`, `dialOrder`                                                                                                          | **Per-Dashboard prefs**                                                                                          | **Persisted (prefs)**              |
 | `dtStep`, `dtDone`                                                                                                                 | Downtime progress                                                                                                | **Ephemeral or per-run prefs**     |
 
 **Critical boundary (from the design record):** the mount state machine
-(pilot↔mech↔downtime, range band, move/action-used) is **cockpit-only play-state
+(pilot↔mech↔downtime, range band, move/action-used) is **Dashboard-only play-state
 and must not leak into the mech/pilot schema or snapshots.** There is no hard
 "pilot in mech" field in the data model — the pilot↔mech link is a
-`mech-to-pilot` SoftLink. So mount state is _derived at cockpit boot_ (default:
+`mech-to-pilot` SoftLink. So mount state is _derived at Dashboard boot_ (default:
 on foot) and held in a **small dedicated `playStateStore`** (Zustand,
 non-persisted or session-scoped), never written to `entityStore`.
 
@@ -345,24 +350,24 @@ non-persisted or session-scoped), never written to `entityStore`.
 - **Live-play mutations** go through `entityStore.update('mechs'|'pilots'|
 'crawlers', id, patch)` → `crud.ts` (Zod validate-on-write) → IndexedDB → in-
   memory `set()` → broadcast. Exactly the sheet's path (see data-flow.md's HP-edit
-  trace). The cockpit never introduces a second write path.
+  trace). The Dashboard never introduces a second write path.
 - **Reference data** resolves by slug through `SalvageUnionReference` after
   `preload()`. **Hazard:** never call ORM accessors at module scope (before
   preload) — wrap in `useMemo`/functions (package-contracts.md).
-- **Per-cockpit prefs** (`dialHidden`, `dialOrder`, chosen table, grouping) are
+- **Per-Dashboard prefs** (`dialHidden`, `dialOrder`, chosen table, grouping) are
   **local-first** ([ADR-010] boundary: the shared library never persists —
   ownership lives in ITUN). Store them on the `workspace` record (Rules & Sources
   already live at workspace level per the design record) or a dedicated prefs
   store; do **not** round-trip them through Netlify ([ADR-004]: snapshots are the
-  _only_ server surface, immutable, read-only — cockpit prefs are not snapshot
+  _only_ server surface, immutable, read-only — Dashboard prefs are not snapshot
   data).
-- **Snapshots** ([ADR-004]) are unaffected: the cockpit shares the _same_ entity
+- **Snapshots** ([ADR-004]) are unaffected: the Dashboard shares the _same_ entity
   records the sheet publishes; mount/dial/view state is excluded by construction
   (it isn't on the schema).
 
 ### 4.3 The ADR-007 automation boundary on every control
 
-Every cockpit control must be classified. **Auto-apply non-destructive
+Every Dashboard control must be classified. **Auto-apply non-destructive
 bookkeeping; require explicit player confirmation for destructive/irreversible
 change** ([ADR-007]):
 
@@ -378,7 +383,7 @@ change** ([ADR-007]):
 | **Eject**                                               | **Player-confirm** | Click-twice confirm (`S.confirmEject`)                                                                                                                |
 | **Meltdown**                                            | **Player-confirm** | Sets mech `destroyed`; the most destructive outcome, always explicit                                                                                  |
 
-The rules functions **return** outcomes; the cockpit decides what crosses into
+The rules functions **return** outcomes; the Dashboard decides what crosses into
 durable destructive state. Reversible destructive writes get a visible reversal
 (inline Clear strip or Undo toast), matching the sheet.
 
@@ -386,7 +391,7 @@ durable destructive state. Reversible destructive writes get a visible reversal
 
 ## 5. Rules interactions
 
-The cockpit is a thin driver over the existing pure rules engine. **It calls
+The Dashboard is a thin driver over the existing pure rules engine. **It calls
 these functions; it never reimplements the math.**
 
 ### 5.1 Heat / Push / Overload (the signature drama)
@@ -401,7 +406,7 @@ these functions; it never reimplements the math.**
 - **Reactor Overload** (`reactorOverloadOutcome(roll)`): bands a **d20** —
   `1` meltdown, `2–5` system-destroyed, `6–10` module-destroyed, `11–19`
   overheat, `20` safe. **⚠ Caveat (combat-loop.md):** low roll = worse, the
-  _opposite_ of the core 2d6 mechanic. The cockpit UI must present this
+  _opposite_ of the core 2d6 mechanic. The Dashboard UI must present this
   unambiguously (it's a d20-vs-Heat check, not "roll high") — see open questions.
 - **Overheat** effect: mech shuts down (`shutdown`), gains `vulnerable`,
   re-activates next turn, takes SP = current Heat (auto-applied SP damage).
@@ -417,12 +422,12 @@ string[]`), resolved by `SalvageUnionReference.resolveActions(entity)` →
 - **Currency:** `resolveActivationCurrency(schemaName, variable)` → `'AP' | 'EP'
 | 'XP'` (chassis/systems/modules → EP; else AP; variable → XP). The action's
   own `activationCurrency` data field is the enum `'EP or AP' | 'SP or HP' |
-'Variable'` — when it's `'EP or AP'` the cockpit offers the EP/AP choice
+'Variable'` — when it's `'EP or AP'` the Dashboard offers the EP/AP choice
   (mockup `S.costChoice`), matching the pilot-ability-through-mech case.
 - **Hot** and **Uses** are **traits**, not costs: `Hot (X)` → heat gained on
   activation, `Uses (X)` → `maxUses`. ITUN's `itemEconomy()`
   (`src/components/sheet/mechItemRules.ts`) computes `{ epCost, heat, maxUses }`
-  from the primary action; the cockpit uses the same helper.
+  from the primary action; the Dashboard uses the same helper.
 - Activation flow in the display: **Activate** (pay cost + Hot heat, decrement
   Uses, mark action used) → if the action deals damage / is contested, **Roll**
   (Core Mechanic) → optional **Push** reroll → **Apply**. Pure-effect actions
@@ -477,11 +482,11 @@ string[]`), resolved by `SalvageUnionReference.resolveActions(entity)` →
 
 ## 6. Component architecture
 
-New tree under `apps/in-the-union-now/src/components/cockpit/`. Naming follows
+New tree under `apps/in-the-union-now/src/components/Dashboard/`. Naming follows
 the mockup's function names so the two can be cross-referenced.
 
 ```
-CockpitCanvas                      ← fixed 1280×800 grid; scale-to-fit + reflow decision
+DashboardCanvas                      ← fixed 1280×800 grid; scale-to-fit + reflow decision
 ├── RailBar                        ← rail: exit · context stamp · Settings menu
 ├── ActiveItemBand                 ← 2/3 viewfinder; per-state (mech/pilot/crawler)
 │   └── InstrumentBay  (× N)       ← responsibility cluster: label + gauges + button grid
@@ -507,13 +512,13 @@ CockpitCanvas                      ← fixed 1280×800 grid; scale-to-fit + refl
 └── (state) playStateStore         ← mount state, range, dial focus (ephemeral)
 ```
 
-**Data resolution:** a `useCockpitComposition(id)` hook wraps the existing
+**Data resolution:** a `useDashboardComposition(id)` hook wraps the existing
 `resolveSheetComposition()` (`src/components/sheet/composition.ts`) → `{ pilot,
 mech, crawler }`, plus SoftLinks (drones/allies). This is the same data spine the
-live sheet uses; the cockpit does not introduce a new loader.
+live sheet uses; the Dashboard does not introduce a new loader.
 
 **Render strategy / performance:** the mockup rebuilds the entire canvas on every
-interaction (`mountCanvas()`). In React that becomes a single `<CockpitCanvas>`
+interaction (`mountCanvas()`). In React that becomes a single `<DashboardCanvas>`
 subscribing to `entityStore`/`playStateStore` selectors, with **memoized
 sub-trees** per surface so a dial step doesn't re-render the display's SRD card
 and a Heat change doesn't rebuild the dial. Do not port the full-rebuild pattern
@@ -521,7 +526,7 @@ and a Heat change doesn't rebuild the dial. Do not port the full-rebuild pattern
 
 **Scale-to-fit:** a `useScaleToFit(1280, 800)` hook measures the viewport,
 computes `scale`, decides `reflow` below the floor. The scaler wraps the fixed
-canvas in `transform: scale()`; below floor it renders `<CockpitPhone>` instead.
+canvas in `transform: scale()`; below floor it renders `<DashboardPhone>` instead.
 
 ---
 
@@ -529,7 +534,7 @@ canvas in `transform: scale()`; below floor it renders `<CockpitPhone>` instead.
 
 - No-scroll is a **landscape-desktop contract**. Below ~0.62× scale the fixed
   canvas is abandoned for a **native stacked, scrolling phone layout**
-  (`CockpitPhone`): rail → active item bays (stacked) → dial as a horizontal
+  (`DashboardPhone`): rail → active item bays (stacked) → dial as a horizontal
   strip or a bottom sheet → display. Scrolling _is_ allowed there.
 - The phone layout reuses the same instrument components in a single column; the
   dial degrades to a horizontal chip strip. This keeps one component set, two
@@ -542,7 +547,7 @@ canvas in `transform: scale()`; below floor it renders `<CockpitPhone>` instead.
 Deferred per the design record ("one new view for the NEXT iteration"), but the
 plan is:
 
-1. **Workspace "Launch Cockpit" entry** — a button on the dashboard / workspace
+1. **Workspace "Launch Dashboard" entry** — a button on the Roster / workspace
    (`workspaceStore`).
 2. **Chooser** (a small wizard):
    - **Pick a pilot** (from `entityStore` pilots).
@@ -552,9 +557,9 @@ plan is:
    - **Pick a crawler** — a saved crawler, or a **default base crawler of a chosen
      Tech Level** (built from `crawler-tech-levels` reference data).
 3. **Boot** — resolve composition, seed `playStateStore` (default on foot), route
-   to `/play/$id`.
+   to `/dashboard/$id`.
 
-The route (`/play/$id`) is modeled on `/encounter` (full-screen, no sheet chrome)
+The route (`/dashboard/$id`) is modeled on `/encounter` (full-screen, no sheet chrome)
 and reuses the `/sheet/$kind/$id` loader + `resolveSheetComposition()`. The stand-
 in/default-crawler instantiation must **not** silently persist new records — a
 session stand-in is ephemeral unless the player saves it (mirrors "loadout savable
@@ -566,7 +571,7 @@ as a new pattern", memory note _su-mech-name-is-pattern_).
 
 Each phase is independently shippable and testable.
 
-1. **Read-only shell.** `/play/$id` route, `CockpitCanvas` grid, scale-to-fit +
+1. **Read-only shell.** `/dashboard/$id` route, `DashboardCanvas` grid, scale-to-fit +
    reflow, rail, static bays/dial/display reading live values via composition.
    No mutations. Ships as a "play view" of a mech.
 2. **Gauges + state wiring.** Bind gauges to `currentHP/SP/EP/Heat` + derived
@@ -594,7 +599,7 @@ Each phase is independently shippable and testable.
 - Bun test per workspace — **never raw `bun test` at root** (skips workspace
   bunfig preloads). Use `bun --filter in-the-union-now test`.
 - **Rules functions are already unit-tested** in `salvageunion-reference` and
-  `src/lib/rules/__tests__`; the cockpit adds no rules math to test, only the
+  `src/lib/rules/__tests__`; the Dashboard adds no rules math to test, only the
   wiring. Test the **classification boundary** (ADR-007): assert destructive
   outcomes surface a confirm/undo and never auto-write a condition.
 - Test the ephemeral/persisted split: mount state changes must **not** write to
@@ -624,7 +629,7 @@ Each phase is independently shippable and testable.
   `packages/salvageunion-reference/lib/zod.ts`, **never** from `zod` directly
   (enforced by `noRestrictedImports`).
 - Fonts are inlined via `@fontsource` (Barlow / Barlow Semi Condensed) — no CDN.
-- No inline `eval`/`new Function` in any cockpit code.
+- No inline `eval`/`new Function` in any Dashboard code.
 
 ### 10.4 Scale-to-fit vs accessibility zoom (open tension)
 
@@ -648,8 +653,8 @@ desktop? Leaning yes — treat "needs bigger text" as a reflow trigger, not just
 - **Full re-render performance.** The mockup rebuilds everything per interaction;
   React must not. Memoize per-surface; verify a Heat tick doesn't re-render the
   SRD card. Measure before shipping phase 5.
-- **`VitalGauge` reuse vs new gauge.** Decide in phase 2 whether the cockpit gauge
-  is `suref-react`'s `VitalGauge` extended or a cockpit primitive — do not ship
+- **`VitalGauge` reuse vs new gauge.** Decide in phase 2 whether the Dashboard gauge
+  is `suref-react`'s `VitalGauge` extended or a Dashboard primitive — do not ship
   two gauge systems.
 - **Stand-in mech / default crawler persistence.** Session stand-ins must be
   ephemeral unless saved; define the boundary in phase 8.
@@ -665,22 +670,23 @@ desktop? Leaning yes — treat "needs bigger text" as a reflow trigger, not just
 
 ---
 
-## 11. Architecture Decision Records to author
+## 11. Architecture Decision Records
 
-Building the cockpit commits us to several architectural decisions worth pinning
-as ADRs, following the `docs/adrs/` convention (existing records run ADR-001 …
-ADR-014; the cockpit claims **ADR-015 onward**). These are **proposed** here —
-the plan enumerates them so they can be authored as standalone files during
-build (each in the repo's `Status / Context / Decision / Rationale / Alternatives
-rejected` format, "Proposed" until the phase that realizes it ships). They are
-listed in the order they become load-bearing.
+Building the Dashboard commits us to several architectural decisions, now
+**materialized as ADR files** ([ADR-015](../adrs/ADR-015-dashboard-distinct-play-surface.md)
+… [ADR-020](../adrs/ADR-020-dashboard-fixed-canvas-scale-to-fit.md), Status:
+Proposed until the phase that realizes each ships). They sit under the governing
+surface taxonomy ([ADR-021](../adrs/ADR-021-itun-surface-taxonomy.md)) and its
+provenance companion ([ADR-022](../adrs/ADR-022-provenance-log-and-overrides.md)).
+The summaries below are the design rationale for each, in the order they become
+load-bearing; the ADR files are the authoritative records.
 
-### ADR-015: Play Cockpit is a distinct actual-play HUD, separate from live sheets
+### ADR-015: Dashboard is a distinct actual-play HUD, separate from live sheets
 
-- **Decision.** The Play Cockpit is a **new surface** at `/play/$id`, not a mode
-  of the live sheet. Sheets edit a character; the cockpit runs it at the table.
+- **Decision.** The Dashboard is a **new surface** at `/dashboard/$id`, not a mode
+  of the live sheet. Sheets edit a character; the Dashboard runs it at the table.
   Both read and mutate the **same** persisted entities through the **same** store
-  and rules engine ([ADR-006], [ADR-003]) — the cockpit is a second lens, not a
+  and rules engine ([ADR-006], [ADR-003]) — the Dashboard is a second lens, not a
   second source of truth.
 - **Rationale.** The two moments have opposite interaction grammars (inline edit +
   scroll vs. one-screen no-scroll instrument buttons). Forcing both into one
@@ -695,7 +701,7 @@ listed in the order they become load-bearing.
 - **Decision.** Entity/view selection is a **rotary Dial** (a 260px right-edge
   sidebar): the **Active Dial Item overhangs to ~1/3 of the row and dominates the
   main display**, while the display holds all interactivity and the dial holds
-  readable stats only. The cockpit is thereby split into **bespoke instruments**
+  readable stats only. The Dashboard is thereby split into **bespoke instruments**
   (rail, bays, dial) and **the reference document** (the display).
 - **Rationale.** A detented dial gives a game-console "select your loadout" feel,
   keeps one selector for all entities/views, and the overhang/viewfinder framing
@@ -715,19 +721,19 @@ listed in the order they become load-bearing.
   rest of the app shows. Action economy is injected through the existing
   `Erow` / `ActionCardErow` + `DisplayCard.footActions`/`footMeta` pattern, **not**
   a new schema-specific renderer. Only the _instruments_ (gauges, bays, dial,
-  buttons) are new cockpit components.
+  buttons) are new Dashboard components.
 - **Rationale.** One display system, one place to fix reference rendering, and the
-  cockpit's reference view stays byte-for-byte identical to the sheet's. The
+  Dashboard's reference view stays byte-for-byte identical to the sheet's. The
   foot-meta vocabulary already carries action economy in the sheet; extending it
   avoids forking the display ([ADR-011]).
-- **Alternatives rejected.** A cockpit-specific "action chip" display (forking the
+- **Alternatives rejected.** A Dashboard-specific "action chip" display (forking the
   entity display) — rejected per the design record's explicit "reuse the display
   system" call. A render-prop on `ActionCard` for economy — unnecessary; `Erow`
   already solves it.
 
 ### ADR-018: Instrument/viewfinder aesthetic — flat & inset, only the display reads forward
 
-- **Decision.** The cockpit is **flat and inset, not 3D**. Instrument surfaces
+- **Decision.** The Dashboard is **flat and inset, not 3D**. Instrument surfaces
   (rail excepted) read _recessed_ (mild inset shadow, soft entity-tinted borders);
   buttons are flat recessed keys; **the main display is the single element that
   reads "forward"** (solid hard 2.5px border, no inset). Hue encodes ontology,
@@ -740,27 +746,27 @@ listed in the order they become load-bearing.
   and rejected as "too cute". Per-source color chips that let hue mean identity
   were rejected in favor of hue = ontology + non-color state cues.
 
-### ADR-019: Cockpit play-state & prefs are ephemeral/local-first, under the ADR-007 boundary
+### ADR-019: Dashboard play-state & prefs are ephemeral/local-first, under the ADR-007 boundary
 
 - **Decision.** The **mount state machine** (pilot/mech/downtime, range band,
-  turn flags) and dial focus are **ephemeral cockpit play-state** held in a
+  turn flags) and dial focus are **ephemeral Dashboard play-state** held in a
   dedicated non-persisted `playStateStore` — **never** written to the mech/pilot
   schema and **never** in a snapshot. **Dial config** (show/hide, order) and view
   prefs are **local-first** on the workspace record (IndexedDB), never the backend
-  ([ADR-004] leaves snapshots the only server surface). Every cockpit control obeys
+  ([ADR-004] leaves snapshots the only server surface). Every Dashboard control obeys
   the [ADR-007] boundary: auto-apply non-destructive bookkeeping (EP/Heat/uses/SP),
   player-confirm destructive change (destroy item, Eject, meltdown).
 - **Rationale.** There is no hard "pilot in mech" field (the link is a SoftLink),
   so mount state is genuinely a play-session concern, not character data. Keeping
   it out of the schema prevents it leaking into sheets and shared snapshots.
 - **Alternatives rejected.** Storing mount/range on the mech record — rejected:
-  pollutes the schema and snapshots. Syncing cockpit prefs via the snapshot
+  pollutes the schema and snapshots. Syncing Dashboard prefs via the snapshot
   backend — rejected: violates the single-server-surface and immutability rules of
   [ADR-004].
 
 ### ADR-020: Fixed 1280×800 scale-to-fit canvas with a phone-reflow floor
 
-- **Decision.** The cockpit is a **fixed 1280×800 design canvas** scaled with a
+- **Decision.** The Dashboard is a **fixed 1280×800 design canvas** scaled with a
   single `transform: scale(min(vw/1280, vh/800))`, letterboxed, clamped to
   ~`[0.62, 1.3]`. No-scroll is a **landscape-desktop contract**; below the clamp
   floor (and, tentatively, under large accessibility zoom) the canvas is abandoned
@@ -786,8 +792,19 @@ listed in the order they become load-bearing.
 | `DOWNTIME`                                             | `src/lib/rules/downtime.ts` (`allDowntimeSteps` + scope/gating)                          |
 | `srdCard()`/`srdActionCard()`/`actionsSection()`       | `ReferenceEntityDisplay` + `ActionCard`/`NestedActionDisplay` + `ReferenceEntityActions` |
 | `srdRollTable()`/`tablesRollerView()`                  | `RollTable` (`suref-react`)                                                              |
-| `vbar()`/`segGauge()`/`gcells()`                       | cockpit `VitalGauge` (evaluate reusing `suref-react` `VitalGauge`)                       |
+| `vbar()`/`segGauge()`/`gcells()`                       | Dashboard `VitalGauge` (evaluate reusing `suref-react` `VitalGauge`)                     |
 | `metaButtons()`/`metaAct()` (Activate/Roll/Push/Apply) | `ActionResolver` calling `heatCheck.ts`/`takeDamage.ts`/`itemEconomy()`                  |
 | `performPush`/`Heat Check`/`Reactor Overload`          | `performPush`, `performHeatCheck`, `reactorOverloadOutcome` (`heatCheck.ts`)             |
 | foot-meta economy                                      | `Erow`/`ActionCardErow` + `DisplayCard.footActions`/`footMeta`                           |
 | `resolveSheetComposition` (mockup ref)                 | `resolveSheetComposition()` (`src/components/sheet/composition.ts`)                      |
+
+<!-- Link reference definitions for the [ADR-xxx] shorthands used above. -->
+
+[adr-001]: ../adrs/ADR-001-local-first-no-backend.md
+[adr-003]: ../adrs/ADR-003-zustand-hydration.md
+[adr-004]: ../adrs/ADR-004-snapshot-netlify-functions.md
+[adr-006]: ../adrs/ADR-006-pure-rules-logic.md
+[adr-007]: ../adrs/ADR-007-automation-boundary.md
+[adr-010]: ../adrs/ADR-010-srd-choices-ephemeral-vs-persisted.md
+[adr-011]: ../adrs/ADR-011-suref-react-source-no-build.md
+[adr-013]: ../adrs/ADR-013-csp-zod-jitless.md
