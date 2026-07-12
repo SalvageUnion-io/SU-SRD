@@ -20,7 +20,7 @@ import type { Mech } from '../../lib/schemas/mech'
 import { AssignPilotToMech } from '../wiring/AssignPilotToMech'
 import { LiveSheet } from './LiveSheet'
 import type { LiveSheetStripItem } from './LiveSheet'
-import { CockpitChooser } from '../play/CockpitChooser'
+import { DashboardChooser } from '../dashboard/DashboardChooser'
 import { MechSheet } from './MechSheet'
 import { SheetHero } from './SheetHero'
 import { RailChip, RailEmpty } from './SheetRail'
@@ -137,7 +137,7 @@ export function SheetMech({
       actions={
         editable ? (
           <>
-            <CockpitChooser initialMechId={mech.id} />
+            <DashboardChooser initialMechId={mech.id} />
             {actions}
           </>
         ) : (

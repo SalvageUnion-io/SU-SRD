@@ -1,5 +1,5 @@
 /**
- * CockpitChooser tests (Play Cockpit Phase 8, plan §8).
+ * DashboardChooser tests (Dashboard Phase 8, plan §8).
  *
  * fake-indexeddb/auto is preloaded via bunfig.toml; the real entityStore is
  * exercised so link-writes go through the true write-through path. The ORM is
@@ -14,8 +14,8 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 
 import { _clearAllStores, _resetDbSingleton } from '../../../lib/db/index'
 import { useEntityStore } from '../../../stores/entityStore'
-import { CockpitChooser } from '../CockpitChooser'
-import { ensureCockpitLinks } from '../cockpitLinks'
+import { DashboardChooser } from '../DashboardChooser'
+import { ensureDashboardLinks } from '../dashboardLinks'
 
 const basePilotInput = {
   schemaVersion: 1 as const,
@@ -98,12 +98,12 @@ afterEach(async () => {
   })
 })
 
-describe('ensureCockpitLinks', () => {
+describe('ensureDashboardLinks', () => {
   test('creates the mech-to-pilot and pilot-to-crawler links', async () => {
     const { pilot, mech, crawler } = await seedCrew()
     const store = useEntityStore.getState()
 
-    await ensureCockpitLinks({
+    await ensureDashboardLinks({
       store,
       links: store.softLinks,
       pilotId: pilot.id,
@@ -124,7 +124,12 @@ describe('ensureCockpitLinks', () => {
     const { pilot, mech } = await seedCrew()
     const store = useEntityStore.getState()
 
-    await ensureCockpitLinks({ store, links: store.softLinks, pilotId: pilot.id, mechId: mech.id })
+    await ensureDashboardLinks({
+      store,
+      links: store.softLinks,
+      pilotId: pilot.id,
+      mechId: mech.id,
+    })
 
     const links = useEntityStore.getState().softLinks
     expect(links.filter((l) => l.type === 'mech-to-pilot').length).toBe(1)
@@ -141,7 +146,7 @@ describe('ensureCockpitLinks', () => {
       type: 'mech-to-pilot',
     })
 
-    await ensureCockpitLinks({
+    await ensureDashboardLinks({
       store,
       links: useEntityStore.getState().softLinks,
       pilotId: pilot.id,
@@ -156,13 +161,13 @@ describe('ensureCockpitLinks', () => {
   })
 })
 
-describe('CockpitChooser — wizard', () => {
+describe('DashboardChooser — wizard', () => {
   test('lists pilots then mechs across the wizard steps', async () => {
     await seedCrew()
     resetEntityStore()
 
     await act(async () => {
-      render(<CockpitChooser />)
+      render(<DashboardChooser />)
     })
 
     // Open the chooser.
@@ -189,7 +194,7 @@ describe('CockpitChooser — wizard', () => {
     const result: { id: string | null } = { id: null }
     await act(async () => {
       render(
-        <CockpitChooser
+        <DashboardChooser
           onLaunch={(id) => {
             result.id = id
           }}

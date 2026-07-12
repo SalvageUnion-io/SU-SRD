@@ -1,11 +1,11 @@
 /**
- * CockpitChooser — the launch chooser wizard for the Play Cockpit (plan §8, §9.8).
+ * DashboardChooser — the launch chooser wizard for the Dashboard (plan §8, §9.8).
  *
  * A small three-step wizard (pilot → mech → crawler) rendered in a ModalShell.
- * On confirm it ensures the SoftLinks the cockpit composition needs exist —
+ * On confirm it ensures the SoftLinks the Dashboard composition needs exist —
  * `mech-to-pilot` (chosen mech → chosen pilot) and, when a crawler is picked,
  * `pilot-to-crawler` (chosen pilot → chosen crawler) — then launches
- * `/play/$id` for the chosen mech.
+ * `/dashboard/$id` for the chosen mech.
  *
  * SoftLink writes go through the Zustand entityStore (write-through to
  * IndexedDB), reusing the same `softLink` create/delete the wiring components
@@ -38,8 +38,8 @@ import type { SoftLink } from '../../lib/schemas/softLink'
 import { useEntityStore } from '../../stores/entityStore'
 import { usePatternStore } from '../../stores/patternStore'
 import { cn } from '../../lib/utils'
-import type { LinkWriteStore } from './cockpitLinks'
-import { ensureCockpitLinks } from './cockpitLinks'
+import type { LinkWriteStore } from './dashboardLinks'
+import { ensureDashboardLinks } from './dashboardLinks'
 import {
   createBaseCrawler,
   DEFAULT_CRAWLER_TLS,
@@ -48,9 +48,9 @@ import {
   patternToken,
   tlCrawlerToken,
   type LaunchStore,
-} from './cockpitLaunch'
+} from './dashboardLaunch'
 
-type CockpitChooserProps = {
+type DashboardChooserProps = {
   /** Inject to avoid the Zustand global in tests. Needs SoftLink writes (links)
    *  plus mech/crawler create (stand-in mech / default crawler). */
   store?: LinkWriteStore & LaunchStore
@@ -86,14 +86,14 @@ function chassisMeta(chassisRef: string): string | undefined {
   }
 }
 
-export function CockpitChooser({
+export function DashboardChooser({
   store,
   onLaunch,
   initialPilotId,
   initialMechId,
   label = 'Launch Dashboard',
   className,
-}: CockpitChooserProps) {
+}: DashboardChooserProps) {
   const [open, setOpen] = useState(false)
   const [step, setStep] = useState<Step>('pilot')
   const [pilotId, setPilotId] = useState('')
@@ -186,7 +186,7 @@ export function CockpitChooser({
             : crawlerSel.value
       }
 
-      await ensureCockpitLinks({
+      await ensureDashboardLinks({
         store: writeStore,
         links,
         pilotId,
@@ -197,9 +197,9 @@ export function CockpitChooser({
       if (onLaunch) {
         onLaunch(launchMechId)
       } else if (router) {
-        void router.navigate({ to: '/play/$id', params: { id: launchMechId } })
+        void router.navigate({ to: '/dashboard/$id', params: { id: launchMechId } })
       } else {
-        window.location.assign(`/play/${launchMechId}`)
+        window.location.assign(`/dashboard/${launchMechId}`)
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to launch the Dashboard.')
@@ -236,7 +236,7 @@ export function CockpitChooser({
         <div className="flex flex-col gap-4 bg-paper p-5">
           {step === 'pilot' && (
             <ChooserList
-              name="cockpit-pilot"
+              name="dashboard-pilot"
               emptyMessage="No pilots yet. Create a pilot first."
               selectedId={pilotId}
               onSelect={setPilotId}
@@ -250,7 +250,7 @@ export function CockpitChooser({
 
           {step === 'mech' && (
             <ChooserList
-              name="cockpit-mech"
+              name="dashboard-mech"
               emptyMessage="No mechs or patterns yet. Create a mech or save a pattern first."
               selectedId={mechId}
               onSelect={setMechId}
@@ -275,7 +275,7 @@ export function CockpitChooser({
                 Optional — launch on foot / in the mech without a crawler, or anchor to one.
               </p>
               <ChooserList
-                name="cockpit-crawler"
+                name="dashboard-crawler"
                 emptyMessage="No crawlers yet — pick a default base crawler or launch without one."
                 selectedId={crawlerId}
                 onSelect={setCrawlerId}

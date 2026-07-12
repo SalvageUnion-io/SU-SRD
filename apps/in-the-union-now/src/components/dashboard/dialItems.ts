@@ -23,7 +23,7 @@ import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
 import type { MountState } from '../../stores/playStateStore'
-import type { GaugeTone } from './CockpitGauge'
+import type { GaugeTone } from './DashboardGauge'
 
 export type DialGauge = {
   label: string
@@ -154,7 +154,7 @@ export function dialItems(args: {
 }
 
 /**
- * The dial kinds a cockpit CAN show given the linked entities, in default order
+ * The dial kinds a Dashboard CAN show given the linked entities, in default order
  * — the config overlay's universe (independent of the current mount, which
  * only decides which of these ride the dial vs. sit in the active row).
  */
@@ -190,7 +190,7 @@ export function orderKinds(kinds: DialKind[], prefs?: CockpitPrefs): DialKind[] 
  * Apply persisted dial prefs to a freshly-built item list: drop hidden kinds
  * (never `actions`), then reorder by the stored kind order (unlisted kinds keep
  * their default relative order, after the ordered ones). Pure — the Dial reads
- * the result; PlayCockpit owns fetching prefs from the workspace.
+ * the result; Dashboard owns fetching prefs from the workspace.
  */
 export function applyDialPrefs(items: DialItem[], prefs?: CockpitPrefs): DialItem[] {
   if (!prefs) return items

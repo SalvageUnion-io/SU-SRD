@@ -1,7 +1,7 @@
 /**
- * Play Cockpit route — /play/:id
+ * Dashboard route — /dashboard/:id
  *
- * id: a mech entity id in entityStore. The cockpit runs a mech at the table
+ * id: a mech entity id in entityStore. The Dashboard runs a mech at the table
  * (see docs/architecture/play-cockpit.md). The loader hydrates all entity
  * kinds + SoftLinks so linked entities (pilot, crawler) resolve synchronously,
  * mirroring the sheet route.
@@ -12,12 +12,12 @@
 import { createFileRoute } from '@tanstack/react-router'
 
 import { useEntityStore } from '../../stores/entityStore'
-import { PlayCockpit } from '../../components/play/PlayCockpit'
-// Cockpit stylesheet is loaded at the route (like __root loads index.css), so
+import { Dashboard } from '../../components/dashboard/Dashboard'
+// Dashboard stylesheet is loaded at the route (like __root loads index.css), so
 // leaf components stay CSS-import-free and unit-testable under the bun runner.
-import '../../components/play/play.css'
+import '../../components/dashboard/dashboard.css'
 
-export const Route = createFileRoute('/play/$id')({
+export const Route = createFileRoute('/dashboard/$id')({
   loader: async () => {
     const store = useEntityStore.getState()
     await Promise.all([
@@ -27,10 +27,10 @@ export const Route = createFileRoute('/play/$id')({
       store.hydrate('softLink'),
     ])
   },
-  component: PlayPage,
+  component: DashboardPage,
 })
 
-function PlayPage() {
+function DashboardPage() {
   const { id } = Route.useParams()
-  return <PlayCockpit id={id} />
+  return <Dashboard id={id} />
 }

@@ -1,5 +1,5 @@
 /**
- * Tests for DisplayView — the cockpit's main display. Verifies each dial-focus
+ * Tests for DisplayView — the Dashboard's main display. Verifies each dial-focus
  * kind renders without throwing and reuses the real reference components:
  * a resolvable chassis → a ReferenceEntityDisplay card; Tables → a RollTable;
  * unresolvable slugs → a graceful note (never a crash).

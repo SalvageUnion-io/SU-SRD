@@ -1,5 +1,5 @@
 /**
- * DashboardSkeleton — shimmer placeholder for the Pilots/Mechs/Crawlers grid
+ * RosterSkeleton — shimmer placeholder for the Pilots/Mechs/Crawlers grid
  * while entityStore hydration is in flight (design review U-2).
  *
  * Mirrors the hydrated layout (same `mt-5 grid … md:grid-cols-3` shell and
@@ -37,7 +37,7 @@ function SkeletonColumn({ hiddenOnMobile = false }: { hiddenOnMobile?: boolean }
   )
 }
 
-export function DashboardSkeleton() {
+export function RosterSkeleton() {
   return (
     <div role="status" aria-label="Loading saved builds" className="animate-pulse">
       <div className="mt-5 grid grid-cols-1 gap-8 md:mt-6 md:grid-cols-3">

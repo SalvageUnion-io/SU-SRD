@@ -1,7 +1,7 @@
 /**
- * cockpitLinks — SoftLink helpers for the Play Cockpit launch chooser (plan §8).
+ * dashboardLinks — SoftLink helpers for the Dashboard launch chooser (plan §8).
  *
- * Split out of CockpitChooser.tsx so the component module exports only a
+ * Split out of DashboardChooser.tsx so the component module exports only a
  * component (Biome's useComponentExportOnlyModules / Fast Refresh rule).
  */
 
@@ -21,7 +21,7 @@ export type LinkWriteStore = {
  * Reversible bookkeeping — safe to auto-apply (ADR-007). Writes go through the
  * same `softLink` create/delete the wiring components (useSoftLinks) use.
  */
-export async function ensureCockpitLinks(args: {
+export async function ensureDashboardLinks(args: {
   store: LinkWriteStore
   links: SoftLink[]
   pilotId: string

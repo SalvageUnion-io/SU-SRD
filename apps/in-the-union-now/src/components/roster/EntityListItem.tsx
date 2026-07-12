@@ -1,11 +1,11 @@
 /**
- * EntityListItem — single saved-build row in a dashboard entity column.
+ * EntityListItem — single saved-build row in a roster entity column.
  *
  * Styled as a compact translation of the shared entity card (suref-react
  * `DisplayCard`): a colour-coded left accent rail in the entity's deep sheet
  * tone, a faint type wash behind the row, a black pseudoheader name (the card's
  * signature condensed-uppercase title), and a hover-lift card frame — so a
- * dashboard row reads as a sibling of the reference cards rather than a plain
+ * roster row reads as a sibling of the reference cards rather than a plain
  * list item. Type colour: pilot → orange, mech → green, crawler → pink,
  * matching the `--color-sheet-*` theme tokens.
  *

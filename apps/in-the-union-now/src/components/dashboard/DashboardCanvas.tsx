@@ -1,5 +1,5 @@
 /**
- * CockpitCanvas — the fixed 1280×800 design canvas, scaled to fit its host with
+ * DashboardCanvas — the fixed 1280×800 design canvas, scaled to fit its host with
  * a single `transform: scale(...)`, letterboxed, never scrolling (proposed
  * ADR-020). Below the clamp floor the fixed canvas is abandoned for a stacked
  * fallback (Phase 1 renders a placeholder message there; the real phone reflow
@@ -13,7 +13,7 @@ const CANVAS_H = 800
 const MIN_SCALE = 0.62
 const MAX_SCALE = 1.3
 
-export function CockpitCanvas({ children }: { children: ReactNode }) {
+export function DashboardCanvas({ children }: { children: ReactNode }) {
   const hostRef = useRef<HTMLDivElement>(null)
   const [scale, setScale] = useState(1)
   const [reflow, setReflow] = useState(false)

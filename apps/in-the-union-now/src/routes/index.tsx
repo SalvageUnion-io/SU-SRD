@@ -1,11 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router'
 
-import { Dashboard } from '../components/dashboard/Dashboard'
+import { Roster } from '../components/roster/Roster'
 
 export const Route = createFileRoute('/')({
   component: IndexPage,
 })
 
 function IndexPage() {
-  return <Dashboard />
+  return <Roster />
 }

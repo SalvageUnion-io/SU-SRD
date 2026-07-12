@@ -1,5 +1,5 @@
 /**
- * DisplayView — the cockpit's main display: the ONE surface that reads
+ * DisplayView — the Dashboard's main display: the ONE surface that reads
  * "forward". It renders the faithful light SRD reference document for whatever
  * the Dial is focused on (focus→display sync), reusing suref-react's
  * ReferenceEntityDisplay / ReferenceEntityActions / RollTable verbatim — the

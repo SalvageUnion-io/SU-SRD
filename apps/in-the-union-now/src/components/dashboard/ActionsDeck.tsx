@@ -12,7 +12,7 @@
  *
  * Only Activate and Push mutate, and both are explicit clicks. The selected
  * action's reference card reuses suref-react's `ActionCard` verbatim — the deck
- * layers cockpit controls around it, never replaces it.
+ * layers Dashboard controls around it, never replaces it.
  */
 
 import { useState } from 'react'
@@ -26,8 +26,8 @@ import { resolveChassisRef } from '../../lib/rules/resolveRefs'
 import type { Mech } from '../../lib/schemas/mech'
 import { useEntityStore } from '../../stores/entityStore'
 import type { PlayStore } from './ActiveItemBand'
-import { activationPatch, buildMechActions, pushPatch } from './playRules'
-import type { PlayAction } from './playRules'
+import { activationPatch, buildMechActions, pushPatch } from './dashboardRules'
+import type { PlayAction } from './dashboardRules'
 
 type ActionsDeckProps = {
   mech: Mech

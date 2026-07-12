@@ -3,7 +3,7 @@
  * every `update(...)` so we can assert the exact patch each handler writes
  * (deterministic controls only: Vent, Shutdown toggle, and self-declared SP/HP
  * damage; the d20-driven Push / Heat Check / Critical rolls are exercised in
- * playRules.test.ts against an injected roller).
+ * dashboardRules.test.ts against an injected roller).
  */
 
 import { beforeAll, beforeEach, describe, expect, test } from 'bun:test'

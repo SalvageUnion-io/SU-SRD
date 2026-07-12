@@ -5,7 +5,7 @@
  * pilot on foot.
  *
  * Phase 5 scope: the reactor / damage / egress buttons are LIVE, driven through
- * the pure rules engine (`playRules.ts` → `lib/rules/*`) and written through the
+ * the pure rules engine (`dashboardRules.ts` → `lib/rules/*`) and written through the
  * entity store (`update`), under the ADR-007 automation boundary:
  *   - Auto-apply (single click): Push, Heat Check, Vent, Shutdown toggle, the
  *     SP/HP value of a self-declared hit.
@@ -39,7 +39,7 @@ import type { Pilot } from '../../lib/schemas/pilot'
 import { useEntityStore } from '../../stores/entityStore'
 import type { EntityState } from '../../stores/entityStore'
 import { usePlayStateStore } from '../../stores/playStateStore'
-import { CockpitGauge } from './CockpitGauge'
+import { DashboardGauge } from './DashboardGauge'
 import {
   VENT_PATCH,
   critDamagePatch,
@@ -52,7 +52,7 @@ import {
   pilotDamagePatch,
   pushPatch,
   shutdownTogglePatch,
-} from './playRules'
+} from './dashboardRules'
 
 /** The store surface the band needs — injectable so tests can assert patches. */
 export type PlayStore = Pick<EntityState, 'get' | 'update'>
@@ -108,7 +108,7 @@ function CrawlerBand({ crawler, onLeave }: { crawler: Crawler; onLeave: () => vo
         <div className="pc-bay">
           <span className="pc-bay-lab">Crawler</span>
           <div className="pc-bay-gauges">
-            <CockpitGauge label="SP" value={sp} max={maxSP} tone="crawler" />
+            <DashboardGauge label="SP" value={sp} max={maxSP} tone="crawler" />
           </div>
         </div>
         <div className="pc-bay">
@@ -354,14 +354,14 @@ function MechBand({
         <div className="pc-bay">
           <span className="pc-bay-lab">Reactor</span>
           <div className="pc-bay-gauges">
-            <CockpitGauge
+            <DashboardGauge
               label="Heat"
               value={heat}
               max={maxHeat}
               tone="mech"
               danger={Math.max(0, maxHeat - 2)}
             />
-            <CockpitGauge label="EP" value={ep} max={maxEP} tone="mech" />
+            <DashboardGauge label="EP" value={ep} max={maxEP} tone="mech" />
           </div>
           <div className="pc-btn-grid">
             <button
@@ -401,8 +401,8 @@ function MechBand({
         <div className="pc-bay">
           <span className="pc-bay-lab">Chassis</span>
           <div className="pc-bay-gauges">
-            <CockpitGauge label="SP" value={sp} max={maxSP} tone="mech" />
-            <CockpitGauge label="Cargo" value={cargo} max={maxCargo} tone="mech" />
+            <DashboardGauge label="SP" value={sp} max={maxSP} tone="mech" />
+            <DashboardGauge label="Cargo" value={cargo} max={maxCargo} tone="mech" />
           </div>
           <div className="pc-btn-grid">
             <button
@@ -585,8 +585,8 @@ function PilotBand({
         <div className="pc-bay">
           <span className="pc-bay-lab">Vitals</span>
           <div className="pc-bay-gauges">
-            <CockpitGauge label="HP" value={hp} max={maxHP} tone="pilot" />
-            <CockpitGauge label="AP" value={ap} max={maxAP} tone="pilot" />
+            <DashboardGauge label="HP" value={hp} max={maxHP} tone="pilot" />
+            <DashboardGauge label="AP" value={ap} max={maxAP} tone="pilot" />
           </div>
           <div className="pc-btn-grid">
             <button

@@ -1,7 +1,7 @@
 /**
- * DialConfig — the ⚙ overlay that configures the rotary Dial (Play Cockpit
+ * DialConfig — the ⚙ overlay that configures the rotary Dial (Dashboard
  * Phase 7, plan §9.7). Show/hide and reorder the dial kinds; "Actions" is
- * locked visible. Emits a new CockpitPrefs on every change — PlayCockpit
+ * locked visible. Emits a new CockpitPrefs on every change — Dashboard
  * persists it to the owning Workspace record (local-first), so the layout
  * survives reloads.
  *
@@ -13,11 +13,11 @@ import type { CockpitPrefs, DialKind } from '../../lib/schemas/cockpitPrefs'
 import { DIAL_KIND_LABELS, LOCKED_DIAL_KIND, orderKinds } from './dialItems'
 
 type DialConfigProps = {
-  /** The dial kinds this cockpit can show, in default order. */
+  /** The dial kinds this Dashboard can show, in default order. */
   kinds: DialKind[]
   /** Current persisted prefs (undefined → defaults: all visible, default order). */
   prefs?: CockpitPrefs
-  /** Emit updated prefs (PlayCockpit persists to the workspace). */
+  /** Emit updated prefs (Dashboard persists to the workspace). */
   onChange: (next: CockpitPrefs) => void
   onClose: () => void
 }

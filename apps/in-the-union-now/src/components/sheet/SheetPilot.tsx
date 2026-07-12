@@ -18,7 +18,7 @@ import type { Pilot } from '../../lib/schemas/pilot'
 import { AssignCrawlerToPilot } from '../wiring/AssignCrawlerToPilot'
 import { LiveSheet } from './LiveSheet'
 import type { LiveSheetStripItem } from './LiveSheet'
-import { CockpitChooser } from '../play/CockpitChooser'
+import { DashboardChooser } from '../dashboard/DashboardChooser'
 import { PilotSheet } from './PilotSheet'
 import { SheetHero } from './SheetHero'
 import { RailChip, RailEmpty } from './SheetRail'
@@ -136,7 +136,7 @@ export function SheetPilot({
       actions={
         editable ? (
           <>
-            <CockpitChooser initialPilotId={pilot.id} />
+            <DashboardChooser initialPilotId={pilot.id} />
             {actions}
           </>
         ) : (

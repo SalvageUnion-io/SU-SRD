@@ -1,6 +1,6 @@
 /**
  * DowntimeWizard — the guided Union Crawler Downtime loop, shown on the ONE
- * light display surface while the cockpit is in the `'downtime'` mount state
+ * light display surface while the Dashboard is in the `'downtime'` mount state
  * (plan §5.5, §9.6). Crawler-dominant: pink chrome, the crawler is the Active
  * Item, and this wizard walks the 10-step Post-/Pre-Session procedure.
  *

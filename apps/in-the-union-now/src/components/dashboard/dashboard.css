@@ -1,7 +1,7 @@
 /*
- * Play Cockpit ("Pit HUD") styling foundation.
+ * Dashboard ("Pit HUD") styling foundation.
  *
- * The cockpit is a self-contained DARK instrument world (the SU brand-header
+ * The Dashboard is a self-contained DARK instrument world (the SU brand-header
  * palette), distinct from the light workspace chrome. Colour is scoped to
  * `.pc-root` so it never bleeds into the rest of the app. Hue encodes ONTOLOGY
  * (mech green / pilot orange / crawler pink), never identity; the single hard
@@ -31,7 +31,7 @@
   font-family: 'Barlow', system-ui, sans-serif;
 }
 
-/* Fixed design canvas — scaled to fit by CockpitCanvas. Never scrolls. */
+/* Fixed design canvas — scaled to fit by DashboardCanvas. Never scrolls. */
 .pc-canvas {
   width: 1280px;
   height: 800px;
@@ -89,7 +89,7 @@
 }
 
 /* The display is the ONE surface that reads "forward": a light SRD "paper"
-   document inset in the dark cockpit (the reused ReferenceEntityDisplay /
+   document inset in the dark Dashboard (the reused ReferenceEntityDisplay /
    RollTable are light-themed). Its own scroll — the canvas never scrolls. */
 .pc-display-light {
   background: #f3ede2;
@@ -601,7 +601,7 @@
   background: var(--pc-mech-deep);
 }
 
-/* ---- CockpitGauge: bespoke dark segmented instrument bar ---- */
+/* ---- DashboardGauge: bespoke dark segmented instrument bar ---- */
 .pc-gauge {
   display: flex;
   align-items: center;

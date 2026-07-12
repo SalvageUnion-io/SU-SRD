@@ -1,5 +1,5 @@
 /**
- * RailBar — the cockpit's top rail: return-to-workspace, the active entity
+ * RailBar — the Dashboard's top rail: return-to-workspace, the active entity
  * stamp, and (later) settings / rules-source affordances. Bordered (a "forward"
  * surface). Phase 1 wires Return to Workspace; Settings is a placeholder.
  */

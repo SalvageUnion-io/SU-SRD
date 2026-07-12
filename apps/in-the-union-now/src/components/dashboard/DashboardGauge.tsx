@@ -1,11 +1,11 @@
 /**
- * CockpitGauge — the bespoke DARK instrument readout for the Active Item and
+ * DashboardGauge — the bespoke DARK instrument readout for the Active Item and
  * (later) the dial. A horizontal segmented bar: label stamp, one flex row of
  * segments (filled up to `value` in the tone colour, empty recessed), and the
  * value/max numeral.
  *
  * Deliberately NOT `suref-react`'s VitalGauge: that gauge is light-themed
- * (ink text, paper segments) for the sheet/display. The cockpit instruments are
+ * (ink text, paper segments) for the sheet/display. The Dashboard instruments are
  * bespoke and dark (proposed ADR-017/018); VitalGauge is reused in the light
  * display surface instead (Phase 4). Read-only here — Phase 2 is read-mostly.
  */
@@ -20,7 +20,7 @@ const TONES: Record<GaugeTone, [string, string]> = {
   crawler: ['var(--pc-crawler)', 'var(--pc-crawler-deep)'],
 }
 
-type CockpitGaugeProps = {
+type DashboardGaugeProps = {
   label: string
   value: number
   max: number
@@ -29,7 +29,7 @@ type CockpitGaugeProps = {
   danger?: number
 }
 
-export function CockpitGauge({ label, value, max, tone = 'mech', danger }: CockpitGaugeProps) {
+export function DashboardGauge({ label, value, max, tone = 'mech', danger }: DashboardGaugeProps) {
   const total = Math.max(max, value, 0)
   const [t, td] = TONES[tone]
   const segs = []

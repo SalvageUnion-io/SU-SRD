@@ -1,6 +1,6 @@
 /**
- * cockpitLaunch — the Play Cockpit launch chooser's entity-creation helpers
- * (plan §8, §10.5). Split out of CockpitChooser.tsx to keep that module
+ * dashboardLaunch — the Dashboard launch chooser's entity-creation helpers
+ * (plan §8, §10.5). Split out of DashboardChooser.tsx to keep that module
  * component-only (Biome Fast-Refresh rule) and to make the create paths
  * unit-testable behind an injectable store.
  *

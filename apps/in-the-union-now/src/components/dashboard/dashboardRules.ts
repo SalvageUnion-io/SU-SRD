@@ -1,5 +1,5 @@
 /**
- * playRules — the cockpit's thin, PURE driver over the existing rules engine
+ * dashboardRules — the Dashboard's thin, PURE driver over the existing rules engine
  * (plan §5). Nothing here touches React or the store: every function takes the
  * live numbers (+ an injectable `Roll`) and returns the `Partial<Mech>` /
  * `Partial<Pilot>` write-through patch the caller hands to
@@ -46,7 +46,7 @@ import type { MechItem, MechItemEconomy } from '../sheet/mechItemRules'
 /**
  * Strip the destructive `destroyed` flag out of a shared `heatCheckPatch`
  * result. In the sheet, `heatCheckPatch` auto-sets `destroyed` on a Meltdown
- * (overload roll = 1); the cockpit holds a STRICTER ADR-007 line — a Meltdown's
+ * (overload roll = 1); the Dashboard holds a STRICTER ADR-007 line — a Meltdown's
  * mech-destruction is a player-confirmed step (like Critical Damage), never
  * silent bookkeeping. All the non-destructive fields (Heat, shutdown,
  * vulnerable, SP) still auto-apply; `meltdown` tells the caller to offer the
@@ -91,7 +91,7 @@ export function heatCheckOncePatch(args: { heat: number; currentSP: number; roll
  * Emergency Vent: dump Heat to 0 and become Vulnerable (plan §5.1 — Vent and
  * Shutdown are distinct Reactor-bay controls: Vent sets Heat→0 + `vulnerable`,
  * Shutdown toggles the flag). NB the tabletop rule folds a full shutdown into
- * venting; the cockpit keeps them separate per the plan — hit Shutdown too for
+ * venting; the Dashboard keeps them separate per the plan — hit Shutdown too for
  * the strict-SRD sequence.
  */
 export const VENT_PATCH: Partial<Mech> = {
@@ -307,7 +307,7 @@ export function buildMechActions(mech: Mech): PlayActionGroup[] {
 /**
  * The write-through patch for one activation — spend EP, add Hot Heat (clamped
  * to cap), tick the Uses counter down. Byte-for-byte the shape
- * `MechSheet.activateItem` writes, so the cockpit and the sheet can't drift.
+ * `MechSheet.activateItem` writes, so the Dashboard and the sheet can't drift.
  */
 export function activationPatch(args: {
   slug: string

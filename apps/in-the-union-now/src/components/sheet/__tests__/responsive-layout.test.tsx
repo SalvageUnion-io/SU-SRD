@@ -12,7 +12,7 @@
  *     its container breakpoint
  *  2. Sheet — missing entity still renders without crash (guard path)
  *  3. SnapshotSheet — uses max-w-7xl container
- *  4. Dashboard — sections wrapper uses flex flex-col (mobile) and the
+ *  4. Roster — sections wrapper uses flex flex-col (mobile) and the
  *     section container element is rendered (grid classes are on the same el)
  *  5. CrawlerSheet — stats dl uses grid-cols-1 (not grid-cols-2 with empty cell)
  *
@@ -31,7 +31,7 @@ import type { EntityLookup } from '../Sheet'
 import type { SoftLinkStore } from '../../wiring/useSoftLinks'
 import { CrawlerSheet } from '../CrawlerSheet'
 import { SnapshotSheet } from '../SnapshotSheet'
-import { Dashboard } from '../../dashboard/Dashboard'
+import { Roster } from '../../roster/Roster'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { Crawler } from '../../../lib/schemas/crawler'
@@ -222,12 +222,12 @@ describe('CrawlerSheet responsive layout — body section', () => {
 })
 
 // ---------------------------------------------------------------------------
-// 5. Dashboard — renders sections (structural check)
+// 5. Roster — renders sections (structural check)
 // ---------------------------------------------------------------------------
 
-describe('Dashboard responsive layout — sections render', () => {
-  test('Dashboard renders with its max-w outer container', async () => {
-    const { container } = render(<Dashboard />)
+describe('Roster responsive layout — sections render', () => {
+  test('Roster renders with its max-w outer container', async () => {
+    const { container } = render(<Roster />)
     const main = container.querySelector('main')
     expect(main).toBeTruthy()
   })

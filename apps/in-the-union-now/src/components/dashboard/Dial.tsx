@@ -8,14 +8,14 @@
  * (Actions / Tables / SRD) show a big centered title — no stats.
  *
  * Phase 3: selection + focus. The store's `wheel` index is the single source of
- * truth; PlayCockpit reads it to drive the display (focus→display sync).
+ * truth; Dashboard reads it to drive the display (focus→display sync).
  */
 
 import { useRef, useState, type PointerEvent } from 'react'
 
 import type { CockpitPrefs, DialKind } from '../../lib/schemas/cockpitPrefs'
 import { usePlayStateStore } from '../../stores/playStateStore'
-import { CockpitGauge } from './CockpitGauge'
+import { DashboardGauge } from './DashboardGauge'
 import { DialConfig } from './DialConfig'
 import type { DialItem } from './dialItems'
 
@@ -41,7 +41,7 @@ function DialCell({
       <span className={`pc-cell-lab ${item.tone}`}>{item.label}</span>
       <div className="pc-cell-gauges">
         {item.gauges.map((g) => (
-          <CockpitGauge
+          <DashboardGauge
             key={g.label}
             label={g.label}
             value={g.value}
@@ -65,7 +65,7 @@ function DialCell({
 
 type DialProps = {
   items: DialItem[]
-  /** Dial-config universe (kinds this cockpit can show); omit to hide the ⚙. */
+  /** Dial-config universe (kinds this Dashboard can show); omit to hide the ⚙. */
   configKinds?: DialKind[]
   /** Current persisted dial prefs. */
   prefs?: CockpitPrefs

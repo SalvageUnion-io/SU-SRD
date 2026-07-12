@@ -1,5 +1,5 @@
 /**
- * Tests for playRules — the cockpit's pure patch builders. Each function is
+ * Tests for dashboardRules — the Dashboard's pure patch builders. Each function is
  * driven with an injected deterministic `Roll` and asserted on the exact
  * `Partial<Mech>` / `Partial<Pilot>` it produces, so the Phase-5 button/action
  * handlers can't drift from the rules engine (ADR-006/ADR-007).
@@ -23,7 +23,7 @@ import {
   pilotDamagePatch,
   pushPatch,
   shutdownTogglePatch,
-} from '../playRules'
+} from '../dashboardRules'
 
 /** A deterministic roller that returns the queued values, then 20. */
 function seqRoll(values: number[]): Roll {
@@ -73,7 +73,7 @@ describe('reactor patches', () => {
       roll: seqRoll([1, 1]),
     })
     expect(meltdown).toBe(true)
-    // The destructive flag must NOT auto-apply — the cockpit gates it (ADR-007).
+    // The destructive flag must NOT auto-apply — the Dashboard gates it (ADR-007).
     expect(patch.destroyed).toBeUndefined()
   })
 

@@ -1,5 +1,5 @@
 /**
- * cockpitLaunch tests (Play Cockpit Phase 9 follow-ups, plan §8/§10.5).
+ * dashboardLaunch tests (Dashboard Phase 9 follow-ups, plan §8/§10.5).
  *
  * Exercises the two previously-deferred chooser create paths against the real
  * entityStore (fake-indexeddb via bunfig): a stand-in mech from a pattern, and
@@ -19,7 +19,7 @@ import {
   patternToken,
   tlCrawlerToken,
   type LaunchStore,
-} from '../cockpitLaunch'
+} from '../dashboardLaunch'
 
 const pattern = {
   id: 'pat-1',
