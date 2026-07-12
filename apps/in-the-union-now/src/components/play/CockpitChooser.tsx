@@ -32,17 +32,29 @@ import { Btn, ModalShell } from 'suref-react'
 import { useCrawlers, useMechs, usePilots, useSoftLinkList } from '../../hooks/queries'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
+import type { MechPattern } from '../../lib/schemas/pattern'
 import type { Pilot } from '../../lib/schemas/pilot'
 import type { SoftLink } from '../../lib/schemas/softLink'
 import { useEntityStore } from '../../stores/entityStore'
+import { usePatternStore } from '../../stores/patternStore'
 import { cn } from '../../lib/utils'
 import type { LinkWriteStore } from './cockpitLinks'
 import { ensureCockpitLinks } from './cockpitLinks'
+import {
+  createBaseCrawler,
+  DEFAULT_CRAWLER_TLS,
+  instantiateMechFromPattern,
+  parseSelToken,
+  patternToken,
+  tlCrawlerToken,
+  type LaunchStore,
+} from './cockpitLaunch'
 
 type CockpitChooserProps = {
-  /** Inject to avoid the Zustand global in tests. */
-  store?: LinkWriteStore
-  /** Inject to avoid the router in tests; receives the chosen mech id. */
+  /** Inject to avoid the Zustand global in tests. Needs SoftLink writes (links)
+   *  plus mech/crawler create (stand-in mech / default crawler). */
+  store?: LinkWriteStore & LaunchStore
+  /** Inject to avoid the router in tests; receives the (possibly new) mech id. */
   onLaunch?: (mechId: string) => void
   className?: string
 }
@@ -78,6 +90,9 @@ export function CockpitChooser({ store, onLaunch, className }: CockpitChooserPro
   const mechs: Mech[] = useMechs()
   const crawlers: Crawler[] = useCrawlers()
   const links: SoftLink[] = useSoftLinkList()
+  // Saved patterns → stand-in mechs (list() lazily hydrates, mirroring PatternList).
+  const patterns: MechPattern[] = usePatternStore((s) => s.mechPatterns)
+  usePatternStore.getState().list()
   // useRouter can be probed without a mounted router (warn:false) so tests that
   // omit onLaunch don't throw; production always has the router.
   const router = useRouter({ warn: false })
@@ -126,21 +141,46 @@ export function CockpitChooser({ store, onLaunch, className }: CockpitChooserPro
     setPending(true)
     setError(null)
     try {
-      const writeStore: LinkWriteStore = store ?? useEntityStore.getState()
+      // Cast mirrors Sheet.tsx's EntityLookup: the store's generic create/delete
+      // satisfy this narrowed surface at runtime; TS can't align the generics.
+      const writeStore: LinkWriteStore & LaunchStore =
+        store ?? (useEntityStore.getState() as unknown as LinkWriteStore & LaunchStore)
+
+      // Resolve the mech choice: a pattern token instantiates a stand-in mech
+      // first; a plain id is an existing mech.
+      const mechSel = parseSelToken(mechId)
+      let launchMechId = mechSel.value
+      if (mechSel.kind === 'pattern') {
+        const pattern = patterns.find((p) => p.id === mechSel.value)
+        if (!pattern) throw new Error('That pattern is no longer available.')
+        launchMechId = await instantiateMechFromPattern(writeStore, pattern)
+      }
+
+      // Resolve the crawler choice: a "tl:" token creates a default base crawler;
+      // a plain id is an existing crawler; empty = none.
+      const crawlerSel = crawlerId ? parseSelToken(crawlerId) : null
+      let launchCrawlerId: string | undefined
+      if (crawlerSel) {
+        launchCrawlerId =
+          crawlerSel.kind === 'tl'
+            ? await createBaseCrawler(writeStore, Number(crawlerSel.value))
+            : crawlerSel.value
+      }
+
       await ensureCockpitLinks({
         store: writeStore,
         links,
         pilotId,
-        mechId,
-        crawlerId: crawlerId || undefined,
+        mechId: launchMechId,
+        crawlerId: launchCrawlerId,
       })
       setOpen(false)
       if (onLaunch) {
-        onLaunch(mechId)
+        onLaunch(launchMechId)
       } else if (router) {
-        void router.navigate({ to: '/play/$id', params: { id: mechId } })
+        void router.navigate({ to: '/play/$id', params: { id: launchMechId } })
       } else {
-        window.location.assign(`/play/${mechId}`)
+        window.location.assign(`/play/${launchMechId}`)
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to launch the cockpit.')
@@ -192,14 +232,21 @@ export function CockpitChooser({ store, onLaunch, className }: CockpitChooserPro
           {step === 'mech' && (
             <ChooserList
               name="cockpit-mech"
-              emptyMessage="No mechs yet. Create a mech first."
+              emptyMessage="No mechs or patterns yet. Create a mech or save a pattern first."
               selectedId={mechId}
               onSelect={setMechId}
-              options={mechs.map((m) => ({
-                id: m.id,
-                label: m.name,
-                sublabel: chassisMeta(m.chassisRef),
-              }))}
+              options={[
+                ...mechs.map((m) => ({
+                  id: m.id,
+                  label: m.name,
+                  sublabel: chassisMeta(m.chassisRef),
+                })),
+                ...patterns.map((p) => ({
+                  id: patternToken(p.id),
+                  label: p.name,
+                  sublabel: `Pattern · stand-in${p.chassisRef ? ` · ${chassisMeta(p.chassisRef) ?? ''}` : ''}`,
+                })),
+              ]}
             />
           )}
 
@@ -210,15 +257,22 @@ export function CockpitChooser({ store, onLaunch, className }: CockpitChooserPro
               </p>
               <ChooserList
                 name="cockpit-crawler"
-                emptyMessage="No crawlers yet — you can still launch without one."
+                emptyMessage="No crawlers yet — pick a default base crawler or launch without one."
                 selectedId={crawlerId}
                 onSelect={setCrawlerId}
                 includeNone
-                options={crawlers.map((c) => ({
-                  id: c.id,
-                  label: c.name,
-                  sublabel: c.techLevel ? `TL ${c.techLevel.replace(/[^0-9]/g, '')}` : undefined,
-                }))}
+                options={[
+                  ...crawlers.map((c) => ({
+                    id: c.id,
+                    label: c.name,
+                    sublabel: c.techLevel ? `TL ${c.techLevel.replace(/[^0-9]/g, '')}` : undefined,
+                  })),
+                  ...DEFAULT_CRAWLER_TLS.map((tl) => ({
+                    id: tlCrawlerToken(tl),
+                    label: `Default base crawler`,
+                    sublabel: `New · TL ${tl}`,
+                  })),
+                ]}
               />
             </>
           )}
