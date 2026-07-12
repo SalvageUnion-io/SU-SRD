@@ -10,7 +10,7 @@
 >
 > **Status: target model.** Parts of this describe where we are going, not only
 > where the code is today. The gap is tracked explicitly in
-> [Implementation status](#implementation-status-target-vs-current).
+> [Implementation status](#implementation-status--target-vs-current).
 
 ITUN is a shared living character sheet, not a game engine. But "the app" is not
 one actor — it is a set of surfaces the player moves through, and each surface is
@@ -26,7 +26,7 @@ the table can patch reality.
 
 ---
 
-## The three modes (plus two)
+## The enforcement modes
 
 | Mode                | Surface(s)                        | Ethos                                                                                           |
 | ------------------- | --------------------------------- | ----------------------------------------------------------------------------------------------- |
@@ -41,6 +41,14 @@ more than one: the live sheet is a **Free Edit** surface today, but it still hol
 leftover **Guided Play** controls (Push, activation) that belong in a Cockpit. The
 mode names the stance; the surface is just where it currently lives.
 
+**Which modes the rest of this document is about.** _Guided Creation_, _Free
+Edit_, and _Guided Play_ act on a player's **own** entity; _Frozen_ is the
+read-only view of that same entity. Those four are the columns of the matrix
+below. **Adjudicate** (Encounter) is the odd one out on purpose: it operates on
+_NPC instances and Mediator tables_, not the player's pilot/mech/crawler, so it
+enforces nothing on a player sheet and sits **outside** the player-entity matrix
+entirely (its concern is procedural adjudication — see that rule class).
+
 Two ethos pairings are load-bearing:
 
 1. **Enforcement and pedagogy travel together.** The Wizard teaches creation _by_
@@ -52,6 +60,12 @@ Two ethos pairings are load-bearing:
    installed) and skips the transaction. The _same_ change done as a transaction
    (pay the scrap, follow the swap procedure) is a **Cockpit** act. Same
    destination, different door — only the guided door charges admission.
+
+A consequence worth stating up front: because Guided Creation hard-enforces,
+building a deliberately **homebrew or off-rules** entity is itself a **Free Edit**
+act — create the nearest legal entity in the Wizard, then break it on the Live
+Sheet. The guided door stays honest; the free door absorbs the exceptions. (There
+is no "illegal build" path _inside_ the Wizard; that is the point of the split.)
 
 The root of all of it is [ADR-001](../adrs/ADR-001-local-first-no-backend.md):
 local-first, no server game state, so no turn enforcement and an honor system.
@@ -69,19 +83,24 @@ _lifecycle transaction with a confirmed destructive consequence_.)
 
 1. **Lifecycle transaction** — a state change the rules gate behind a **cost or
    procedure**. Activate a system (spend EP/heat, decrement uses); Push (spend
-   heat); Heat Check; craft / salvage / repair / upgrade / trade (spend scrap,
-   tech-level gated); downtime steps; Restore (`_used` resets); advancement (spend
-   earned TP for an ability). **Owned by the guided modes; bypassed in Free Edit.**
+   heat); the Heat Check **trigger** (its Reactor-Overload _consequence_ is
+   handled separately as a confirmed-destructive case —
+   see [below](#confirmed-destructive-consequences-the-old-hybrid)); craft /
+   salvage / repair / upgrade / trade (spend scrap, tech-level gated); downtime
+   steps; Restore (`_used` resets); advancement (spend earned TP for an ability).
+   **Owned by the guided modes; bypassed in Free Edit.**
 
 2. **Structural coherence** — references must resolve; type/containment must hold
-   (a system cannot occupy a module slot; a slug must point at a real entity).
-   **Hard in every mode, Free Edit included.** You may house-rule an object; you
-   may not make an incoherent one.
+   (a system cannot occupy a **module slot type**; a slug must point at a real
+   entity). **Hard in every mode, Free Edit included.** You may house-rule an
+   object; you may not make an incoherent one. Note the word "slot" cuts two ways:
+   slot **type** is coherence and is hard everywhere; slot **count** is a
+   quantitative cap (next class) and is overridable. Same word, opposite fidelity.
 
-3. **Quantitative cap** — slot counts and derived maxima (max HP / SP / EP / Heat
-   / Cargo). Derived in the guided modes. **Overridable in Free Edit**, with a
-   visible callout and a retained derived baseline (see
-   [ADR-016](../adrs/ADR-016-provenance-log-and-overrides.md)).
+3. **Quantitative cap** — slot **counts** (how many, not what type) and derived
+   maxima (max HP / SP / EP / Heat / Cargo). Derived in the guided modes.
+   **Overridable in Free Edit**, with a visible callout and a retained derived
+   baseline (see [ADR-016](../adrs/ADR-016-provenance-log-and-overrides.md)).
 
 4. **Free state** — current pools (HP / SP / heat / EP / scrap), conditions, and
    remaining-uses counts. **Freely editable in Free Edit.** In Guided Play these
@@ -89,23 +108,30 @@ _lifecycle transaction with a confirmed destructive consequence_.)
 
 5. **Procedural adjudication** — turn order, initiative, range bands, narrative
    consequences, Death Blow declarations, exploration supply. **Surfaced, never
-   enforced** (unchanged). Lives on the Encounter surface (and the Cockpit) as
-   tooling.
+   enforced** (unchanged). This is the rule class the **Adjudicate** mode
+   (Encounter) is built for, and the Cockpit surfaces it as tooling too.
 
 ---
 
 ## The matrix — rule class × mode
 
 The utility payload: where any feature lands, and how it behaves. This is the
-authoritative placement table; resolve gray zones _here_.
+authoritative placement table for a player's own entity (pilot / mech / crawler);
+resolve gray zones _here_.
 
 | Rule class                                         | Guided Creation (Wizard)  | Free Edit (Live Sheet)                     | Guided Play (Cockpit)                                          | Frozen (Share) |
 | -------------------------------------------------- | ------------------------- | ------------------------------------------ | -------------------------------------------------------------- | -------------- |
 | **Lifecycle transaction**                          | Enforced (creation costs) | **Bypassed** — edit end-state, no cost     | **Enforced + interactive** (EP/heat/scrap/TP; Downtime layers) | frozen         |
-| **Structural coherence**                           | Enforced                  | **Hard** — can't break refs/containment    | Enforced                                                       | frozen         |
-| **Quantitative cap** (slots, maxes)                | Derived / enforced        | **Override w/ callout** (retains baseline) | Derived / enforced                                             | frozen         |
+| **Structural coherence** (refs, slot _type_)       | Enforced                  | **Hard** — refs resolve, slot-type holds   | Enforced                                                       | frozen         |
+| **Quantitative cap** (slot _counts_, maxes)        | Derived / enforced        | **Override w/ callout** (retains baseline) | Derived / enforced                                             | frozen         |
 | **Free state** (HP, heat, scrap, uses, conditions) | Set by creation           | **Freely editable**                        | Changed _via_ enforced actions                                 | frozen         |
 | **Procedural adjudication**                        | —                         | Manual (player edits by hand)              | Surfaced as tooling                                            | frozen         |
+
+Two notes on the columns. The **Frozen** column is uniform by definition — a
+published snapshot evaluates nothing. **Adjudicate / Encounter has no column
+here** on purpose: it acts on NPC instances, not the player's own entities (see
+"[The enforcement modes](#the-enforcement-modes)"); procedural adjudication is its
+whole job and it enforces nothing on a player sheet.
 
 Reading examples:
 
@@ -153,10 +179,18 @@ never enforced.
 Every surface writes to a per-entity, append-only **provenance log** — enforced
 Cockpit transactions _and_ free Live-Sheet edits alike, each tagged with its
 provenance (`spent 3 scrap to install X` vs. `manual override: heat → 0`). The
-free edits are exactly where provenance matters most. The log is designed to be
-**replayable** (event-shaped, ordered) though a replay/time-travel surface is not
-built yet, and it **stays local** — a published snapshot remains a frozen
-point-in-time entity with no history. Full decision in
+free edits are exactly where provenance matters most.
+
+To make "every mutation is logged" a **structural guarantee** rather than a
+per-call-site discipline, the log entry is emitted at the **single write-through
+chokepoint** every surface already routes through — `entityStore.update`
+([ADR-003](../adrs/ADR-003-zustand-hydration.md)) — not scattered across
+components. A surface that bypasses the store to mutate an entity is then the
+visible anti-pattern, not a silent gap.
+
+The log is designed to be **replayable** (event-shaped, ordered) though a
+replay/time-travel surface is not built yet, and it **stays local** — a published
+snapshot remains a frozen point-in-time entity with no history. Full decision in
 [ADR-016](../adrs/ADR-016-provenance-log-and-overrides.md).
 
 ---
@@ -206,14 +240,17 @@ Recorded so it isn't lost, explicitly **not** something we build toward now:
 
 When a feature touches a game rule, place it **twice** before writing code:
 
-1. **Which mode?** Guided (enforce + teach) vs. Free Edit (bypass, override) vs.
-   Frozen. → sets the enforcement stance.
+1. **Which mode?** Guided Creation / Guided Play (enforce + teach) vs. Free Edit
+   (bypass, override) vs. Frozen (read-only) vs. Adjudicate (GM tooling on NPC
+   instances, not player entities). → sets the enforcement stance.
 2. **Which rule class?** Lifecycle transaction / structural coherence /
    quantitative cap / free state / procedural. → sets what the stance does.
 
-The cell where they meet in the matrix above _is_ the behavior. If a mechanic's
-mode or class is ambiguous, resolve it in this document — with rationale — before
-implementation. Decisions live here, not in code comments.
+The cell where they meet in the matrix above _is_ the behavior (for procedural
+adjudication and anything NPC-facing, the answer is the Adjudicate mode, which is
+tooling, not enforcement). If a mechanic's mode or class is ambiguous, resolve it
+in this document — with rationale — before implementation. Decisions live here,
+not in code comments.
 
 ---
 
@@ -221,6 +258,8 @@ implementation. Decisions live here, not in code comments.
 
 - [ADR-001](../adrs/ADR-001-local-first-no-backend.md) — local-first; the honor
   system that makes Free Edit legitimate.
+- [ADR-003](../adrs/ADR-003-zustand-hydration.md) — the `entityStore` write-through
+  path the provenance log hooks into.
 - [ADR-006](../adrs/ADR-006-pure-rules-logic.md) — rules as pure functions; the
   shared math every mode consumes.
 - [ADR-007](../adrs/ADR-007-automation-boundary.md) — confirm-before-destructive
@@ -232,5 +271,6 @@ implementation. Decisions live here, not in code comments.
 - [ADR-015](../adrs/ADR-015-itun-surface-taxonomy.md) — surface/mode taxonomy.
 - [ADR-016](../adrs/ADR-016-provenance-log-and-overrides.md) — provenance log &
   stat overrides.
-- [combat-loop.md](combat-loop.md) — implementation of the Guided-Play resource loop.
+- [combat-loop.md](combat-loop.md) — the current (Sheet-hosted) resource loop;
+  migrates to Guided Play under this model.
 - [data-flow.md](data-flow.md) — how state is stored and hydrated.

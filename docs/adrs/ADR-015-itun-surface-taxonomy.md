@@ -6,6 +6,13 @@
 game rules. **Where it conflicts with any prior ADR, this ADR wins** (scope and
 the specific overrides are listed under [Supersession](#supersession--precedence)).
 
+"Accepted" records the **decision**; the code is mid-transition and closing the
+gap is the **next work** (the Wizard still soft-warns; the Cockpit is not yet its
+own surface). The living, authoritative placement table is the matrix in
+[`rules-engine-boundary.md`](../architecture/rules-engine-boundary.md) — keep
+placements in sync **there**, not by re-editing the summary below. This ADR
+records _why_ the taxonomy exists; the arch doc records _what goes where_.
+
 ## Context
 
 ITUN grew a set of distinct surfaces — a roster, build wizards, the live sheet, an

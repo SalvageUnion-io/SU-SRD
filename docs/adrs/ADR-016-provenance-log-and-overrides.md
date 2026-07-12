@@ -44,6 +44,11 @@ Properties:
 
 - **Append-only and ordered** — entries are never mutated or deleted in place; the
   log is the entity's history, not a cache.
+- **Emitted at one chokepoint** — the entry is written where all persistence
+  already funnels: the `entityStore.update` write-through
+  ([ADR-003](ADR-003-zustand-hydration.md)). "Every mutation is logged" then holds
+  by construction, not by remembering to log at each call site; a surface that
+  mutates an entity outside the store is the visible anti-pattern, not a silent gap.
 - **Replay-shaped, replay-deferred** — entries carry enough structure
   (target field, before/after, provenance kind, source surface) to _reconstruct_
   state by replay. A player-facing replay / time-travel surface is **explicitly out
@@ -75,9 +80,10 @@ resumes tracking its derivation.
 - Overrides are safe to make: nothing is lost, the derived baseline is always
   recoverable, and the sheet never silently hides that a number was pinned by hand.
 - New cost: schema + migration work in `src/lib/db/` (an append-only log store and
-  an override representation on entity records), and a discipline that _all_
-  mutation paths write a log entry. This is the natural home for that requirement;
-  scattering it across call sites is the anti-pattern to avoid.
+  an override representation on entity records). Routing the log entry through the
+  `entityStore.update` chokepoint ([ADR-003](ADR-003-zustand-hydration.md)) keeps
+  "every mutation is logged" structural rather than a per-call-site discipline —
+  the requirement lives in one place instead of scattered across components.
 - Replay is preserved as a future option at low present cost — the log is designed
   for it even though no replay surface ships now.
 - Snapshot payloads and their privacy surface are unchanged: history stays local.
