@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { KeyboardEvent } from 'react'
 
 import { cn } from '../../utils/cn'
@@ -14,6 +15,20 @@ export type VitalGaugeProps = {
   max: number
   /** Editable when supplied (and not readOnly) — click a segment / arrow keys. */
   onChange?: (v: number) => void
+  /**
+   * Cap override (ADR-022, Free Edit): when supplied (and not readOnly) the Max
+   * numeral becomes click-to-edit — pinning a new maximum. Omit to keep the max
+   * a plain read-out (the Frozen snapshot never passes it).
+   */
+  onMaxChange?: (nextMax: number) => void
+  /**
+   * The derived baseline this cap would compute to without a hand override.
+   * When supplied, the max is flagged as overridden (a marker + "from N") and,
+   * with `onRevertOverride`, a one-click revert-to-derived is offered.
+   */
+  overriddenFrom?: number
+  /** Revert the cap override back to its derived baseline. */
+  onRevertOverride?: () => void
   /** Caption pair, right-aligned under the track. Defaults to Current / Max. */
   caption?: [string, string]
   /** Dense sizing (h-18, gap-3). Auto-on at max ≥ 12 when unset. */
@@ -46,6 +61,9 @@ export function VitalGauge({
   value,
   max,
   onChange,
+  onMaxChange,
+  overriddenFrom,
+  onRevertOverride,
   caption,
   dense,
   readOnly,
@@ -53,6 +71,25 @@ export function VitalGauge({
   className,
 }: VitalGaugeProps) {
   const editable = !readOnly && onChange !== undefined
+  const editableMax = !readOnly && onMaxChange !== undefined
+  const isOverridden = overriddenFrom !== undefined && overriddenFrom !== max
+  const [editingMax, setEditingMax] = useState(false)
+  const [maxDraft, setMaxDraft] = useState('')
+
+  const commitMax = () => {
+    setEditingMax(false)
+    const next = Number.parseInt(maxDraft, 10)
+    if (Number.isFinite(next) && next >= 0 && next !== max) onMaxChange?.(next)
+  }
+  const onMaxKeyDown = (event: KeyboardEvent) => {
+    if (event.key === 'Enter') {
+      event.preventDefault()
+      commitMax()
+    } else if (event.key === 'Escape') {
+      event.preventDefault()
+      setEditingMax(false)
+    }
+  }
   const clamp = (v: number) => Math.min(Math.max(v, 0), max)
   // Read-only over-capacity is shown honestly (extra red segments); an editable
   // gauge is a bounded resource and always clamps 0..max.
@@ -98,7 +135,7 @@ export function VitalGauge({
     // biome-ignore lint/a11y/noStaticElementInteractions: role=group is a keyboard widget (arrow keys adjust the value); the segment buttons carry the click semantics
     // biome-ignore lint/a11y/useAriaPropsSupportedByRole: the role is dynamically group|img — both support aria-label — but biome can't resolve the ternary
     <div
-      role={editable ? 'group' : 'img'}
+      role={editable || editableMax ? 'group' : 'img'}
       aria-label={summary}
       onKeyDown={editable ? onKeyDown : undefined}
       className={cn('w-full py-1', className)}
@@ -128,7 +165,61 @@ export function VitalGauge({
           >
             /
           </i>
-          <span className={cn('text-ink/70', isDense ? 'text-[16px]' : 'text-[17px]')}>{max}</span>
+          {editingMax ? (
+            <input
+              // Focus on mount without the autoFocus attribute (a11y-lint safe).
+              ref={(el) => el?.focus()}
+              type="number"
+              value={maxDraft}
+              onChange={(event) => setMaxDraft(event.target.value)}
+              onKeyDown={onMaxKeyDown}
+              onBlur={commitMax}
+              aria-label={`Set ${label} max`}
+              className={cn(
+                'w-14 rounded-[3px] border border-ink/40 bg-paper px-1 text-center tabular-nums text-ink',
+                isDense ? 'text-[16px]' : 'text-[17px]'
+              )}
+            />
+          ) : editableMax ? (
+            <button
+              type="button"
+              onClick={() => {
+                setMaxDraft(String(max))
+                setEditingMax(true)
+              }}
+              aria-label={`Override ${label} max (currently ${max})`}
+              className={cn(
+                'cursor-pointer rounded-[2px] px-0.5 underline decoration-dotted underline-offset-2',
+                isOverridden ? 'text-[var(--tone-deep)]' : 'text-ink/70',
+                isDense ? 'text-[16px]' : 'text-[17px]'
+              )}
+            >
+              {max}
+            </button>
+          ) : (
+            <span className={cn('text-ink/70', isDense ? 'text-[16px]' : 'text-[17px]')}>
+              {max}
+            </span>
+          )}
+          {isOverridden && (
+            <sup
+              title={`Overridden from ${overriddenFrom}`}
+              className="ml-0.5 text-[10px] font-bold text-[var(--tone-deep)]"
+            >
+              *
+            </sup>
+          )}
+          {isOverridden && onRevertOverride && (
+            <button
+              type="button"
+              onClick={onRevertOverride}
+              aria-label={`Revert ${label} max to derived ${overriddenFrom}`}
+              title={`Revert to derived (${overriddenFrom})`}
+              className="ml-1 cursor-pointer align-middle text-[13px] leading-none text-wk-muted hover:text-ink"
+            >
+              ↺
+            </button>
+          )}
         </span>
       </div>
 
@@ -171,8 +262,13 @@ export function VitalGauge({
         })}
       </div>
 
-      {/* Caption — right-aligned Current / Max */}
-      <div className="mt-1.5 flex justify-end gap-1 font-cond text-[8.5px] font-semibold uppercase leading-none tracking-[0.22em] text-ink/55">
+      {/* Caption — right-aligned Current / Max; an override note sits left. */}
+      <div className="mt-1.5 flex items-center justify-end gap-1 font-cond text-[8.5px] font-semibold uppercase leading-none tracking-[0.22em] text-ink/55">
+        {isOverridden && (
+          <span className="mr-auto tracking-[0.06em] text-[var(--tone-deep)]">
+            overridden from {overriddenFrom}
+          </span>
+        )}
         <span>{capLeft}</span>
         <span>/</span>
         <span>{capRight}</span>

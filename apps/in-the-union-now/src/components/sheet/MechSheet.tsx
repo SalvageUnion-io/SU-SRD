@@ -215,6 +215,20 @@ export function MechSheet({
     void storeState.update('mech', mech.id, fields)
   }
 
+  // Cap overrides (ADR-022, Free Edit): a derived maximum is pinned by storing
+  // a signed max*Modifier delta; the gauge shows "overridden from N" + a revert
+  // that clears the delta. Tagged `override` so the Change Log records it as one.
+  const derivedMaxSP = maxSP - (mech.maxSpModifier ?? 0)
+  const derivedMaxEP = maxEP - (mech.maxEpModifier ?? 0)
+  const derivedHeatCap = heatCap - (mech.maxHeatModifier ?? 0)
+  const overrideMechMax = (fields: Partial<Mech>) => {
+    void storeState.update('mech', mech.id, fields, { kind: 'override' })
+  }
+  const modOrUndef = (next: number, derived: number): number | undefined => {
+    const mod = next - derived
+    return mod === 0 ? undefined : mod
+  }
+
   // Collection add/remove (unified edit language archetype B) — always
   // available, writes through immediately (ITUN auto-saves; no Save button).
   // Reads the FRESHEST record so rapid picker clicks don't race the async
@@ -477,6 +491,15 @@ export function MechSheet({
                 value={currentSP}
                 max={maxSP}
                 onChange={readOnly ? undefined : (v) => patchMech({ currentSP: v })}
+                onMaxChange={
+                  readOnly
+                    ? undefined
+                    : (next) => overrideMechMax({ maxSpModifier: modOrUndef(next, derivedMaxSP) })
+                }
+                overriddenFrom={readOnly ? undefined : derivedMaxSP}
+                onRevertOverride={
+                  readOnly ? undefined : () => overrideMechMax({ maxSpModifier: undefined })
+                }
                 readOnly={readOnly}
               />
               <VitalGauge
@@ -485,6 +508,15 @@ export function MechSheet({
                 value={currentEP}
                 max={maxEP}
                 onChange={readOnly ? undefined : (v) => patchMech({ currentEP: v })}
+                onMaxChange={
+                  readOnly
+                    ? undefined
+                    : (next) => overrideMechMax({ maxEpModifier: modOrUndef(next, derivedMaxEP) })
+                }
+                overriddenFrom={readOnly ? undefined : derivedMaxEP}
+                onRevertOverride={
+                  readOnly ? undefined : () => overrideMechMax({ maxEpModifier: undefined })
+                }
                 readOnly={readOnly}
               />
               <VitalGauge
@@ -493,6 +525,16 @@ export function MechSheet({
                 max={heatCap}
                 danger={heatCap > 0 ? heatDangerFrom(heatCap) : undefined}
                 onChange={readOnly ? undefined : (v) => patchMech({ currentHeat: v })}
+                onMaxChange={
+                  readOnly
+                    ? undefined
+                    : (next) =>
+                        overrideMechMax({ maxHeatModifier: modOrUndef(next, derivedHeatCap) })
+                }
+                overriddenFrom={readOnly ? undefined : derivedHeatCap}
+                onRevertOverride={
+                  readOnly ? undefined : () => overrideMechMax({ maxHeatModifier: undefined })
+                }
                 readOnly={readOnly}
               />
             </div>
