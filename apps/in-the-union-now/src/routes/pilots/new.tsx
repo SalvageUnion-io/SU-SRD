@@ -36,7 +36,13 @@ function NewPilotRoute() {
       <NewEntityScreen
         kind="pilot"
         mode={mode}
-        wizard={<PilotWizard onComplete={handleComplete} onCancel={handleCancel} />}
+        wizard={
+          <PilotWizard
+            onComplete={handleComplete}
+            onCancel={handleCancel}
+            onOffRules={() => void navigate({ to: '/pilots/new', search: { mode: 'blank' } })}
+          />
+        }
         onModeChange={(next) => void navigate({ to: '/pilots/new', search: { mode: next } })}
         onCreated={(id) => void navigate({ to: '/sheet/$kind/$id', params: { kind: 'pilot', id } })}
       />

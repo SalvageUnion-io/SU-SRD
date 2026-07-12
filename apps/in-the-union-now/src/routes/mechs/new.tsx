@@ -45,7 +45,13 @@ function NewMechRoute() {
       <NewEntityScreen
         kind="mech"
         mode={mode}
-        wizard={<MechWizard onComplete={handleComplete} onCancel={handleCancel} />}
+        wizard={
+          <MechWizard
+            onComplete={handleComplete}
+            onCancel={handleCancel}
+            onOffRules={() => void navigate({ to: '/mechs/new', search: { mode: 'blank' } })}
+          />
+        }
         onModeChange={(next) => void navigate({ to: '/mechs/new', search: { mode: next } })}
         onCreated={(id) => void navigate({ to: '/sheet/$kind/$id', params: { kind: 'mech', id } })}
       />

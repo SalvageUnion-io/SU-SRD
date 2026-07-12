@@ -49,7 +49,13 @@ function CrawlersNewPage() {
       <NewEntityScreen
         kind="crawler"
         mode={mode}
-        wizard={<CrawlerBuilder onComplete={handleComplete} onCancel={handleCancel} />}
+        wizard={
+          <CrawlerBuilder
+            onComplete={handleComplete}
+            onCancel={handleCancel}
+            onOffRules={() => void navigate({ to: '/crawlers/new', search: { mode: 'blank' } })}
+          />
+        }
         onModeChange={(next) => void navigate({ to: '/crawlers/new', search: { mode: next } })}
         onCreated={(id) =>
           void navigate({ to: '/sheet/$kind/$id', params: { kind: 'crawler', id } })
