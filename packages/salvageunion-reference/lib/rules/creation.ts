@@ -1,6 +1,7 @@
 /**
  * Creation-legality predicates and pick budgets (Pilot Bay pp.18–19 +
- * Mech Workshop pp.94–95 — wizard-refresh plan §5.1).
+ * Mech Workshop pp.94–95 + Union Crawler pp.212–213 — wizard-refresh
+ * plan §5.1).
  *
  * Pure predicates over NEUTRAL structural inputs only — the exact primitive
  * values a rule reads (numbers, arrays, strings) with REQUIRED fields — in
@@ -204,4 +205,73 @@ export function mechCreationBudget(input: MechCreationBudgetInput): MechCreation
     remaining,
     perItemAffordable: (sv: number) => sv <= remaining,
   }
+}
+
+// ---------------------------------------------------------------------------
+// Union Crawler (Core Book pp.212–213 — wizard-refresh Phase 5)
+// ---------------------------------------------------------------------------
+
+/**
+ * A new Union Crawler's Tech Level is fixed ("A Tech 1 starting Union Crawler
+ * is about the size of a small village", p.213 — creation always starts at
+ * Tech Level 1, a Hamlet Crawler).
+ */
+export const CRAWLER_CREATION_TECH_LEVEL = 1
+
+/**
+ * A legal creation crawler weapon is a Tech 1 Weapons System ("To start, this
+ * can be any Tech 1 Weapons System of the players' choice", p.213 — creation
+ * is stricter than the in-play `TL ≤ crawler TL` rule). Takes the primitive
+ * the rule reads — the system record's `techLevel` (numeric tiers, or the
+ * 'B'/'N' expansion tiers, which are never 1). The caller separately filters
+ * to WEAPONS systems (`isWeaponSystem`) — the Armament Bay holds nothing else.
+ */
+export function isLegalCreationCrawlerWeapon(techLevel: number | string): boolean {
+  return techLevel === CRAWLER_CREATION_TECH_LEVEL
+}
+
+/**
+ * The neutral mutation line a crawler type's stored `mutations` rows carry —
+ * the exact values these rules read (a discriminator string + a number), NOT
+ * the whole SURef crawler record. A consumer narrows its resolved type record
+ * to `mutations` at the call site.
+ */
+export type CrawlerMutationInput = { type: string; value: number }
+
+/**
+ * Armament-Bay weapon slots for a crawler type: base 1 ("A Union Crawler can
+ * mount a single Weapons System in its Armament Bay", p.213) plus any
+ * `weapon_slots` mutations — the STORED data flag on the type record (the
+ * Battle Crawler's "Improved Armour and Armaments" grants +1, p.216). Never
+ * derived from action-name string matching.
+ */
+export function crawlerWeaponSlots(mutations: readonly CrawlerMutationInput[] | undefined): number {
+  const bonus = (mutations ?? [])
+    .filter((m) => m.type === 'weapon_slots')
+    .reduce((sum, m) => sum + m.value, 0)
+  return 1 + bonus
+}
+
+/**
+ * Max-SP bonus for a crawler type: the sum of its stored `max_sp_bonus`
+ * mutations (the Battle Crawler's +5 Max SP, p.216). Applied AT READ by
+ * `crawlerMaxSP` — the stored crawler record keeps the BARE tech-level value,
+ * so type swaps re-derive correctly in both directions.
+ */
+export function crawlerMaxSpBonus(mutations: readonly CrawlerMutationInput[] | undefined): number {
+  return (mutations ?? [])
+    .filter((m) => m.type === 'max_sp_bonus')
+    .reduce((sum, m) => sum + m.value, 0)
+}
+
+/**
+ * Minimum Armament-Bay weapons at creation: the book's step 3 mounts one
+ * ("Choose your Weapons System … A Union Crawler can mount a single Weapons
+ * System in its Armament Bay", p.213) — a guided crawler never ships unarmed.
+ */
+export const CRAWLER_CREATION_MIN_WEAPONS = 1
+
+/** Whether the creation weapon pick satisfies the minimum-1 mount (p.213). */
+export function isCrawlerWeaponPickComplete(selectedCount: number): boolean {
+  return selectedCount >= CRAWLER_CREATION_MIN_WEAPONS
 }

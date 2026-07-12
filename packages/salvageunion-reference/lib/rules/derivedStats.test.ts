@@ -17,6 +17,7 @@ import {
   clampMechCurrentStats,
   clampPilotCurrentStats,
   crawlerMaxSP,
+  crawlerMaxSPParts,
   injuryMaxHpPenalty,
   installedStatBonus,
   isPilotDead,
@@ -31,7 +32,13 @@ import {
 import type { ChassisStats } from './derivedStats.js'
 
 beforeAll(async () => {
-  await SalvageUnionReference.preload(['crawler-tech-levels', 'chassis', 'systems', 'modules'])
+  await SalvageUnionReference.preload([
+    'crawler-tech-levels',
+    'crawlers',
+    'chassis',
+    'systems',
+    'modules',
+  ])
 })
 
 // ---------------------------------------------------------------------------
@@ -249,9 +256,38 @@ describe('crawler derivation', () => {
     expect(crawlerMaxSP({ techLevel: 'tech-3' })).toBe(tl3?.structurePoints ?? -1)
   })
 
-  it('Battle Crawler +5 lives in maxSpModifier', () => {
+  it('maxSpModifier is a pure hand-edit bonus on top of the base', () => {
     const base = crawlerMaxSP({ techLevel: 'tech-1' })
     expect(crawlerMaxSP({ techLevel: 'tech-1', maxSpModifier: 5 })).toBe(base + 5)
+  })
+
+  it('the Battle type’s +5 applies AT READ from its stored max_sp_bonus mutation', () => {
+    const battle = SalvageUnionReference.Crawlers.find((c) => c.name === 'Battle')
+    expect(battle).toBeDefined()
+    const base = crawlerMaxSP({ techLevel: 'tech-1' })
+    // By id AND by name (stored type refs resolve id-or-name, like bay refs).
+    expect(crawlerMaxSP({ techLevel: 'tech-1', type: battle?.id })).toBe(base + 5)
+    expect(crawlerMaxSP({ techLevel: 'tech-1', type: 'Battle' })).toBe(base + 5)
+    // A type swap re-derives in BOTH directions — no stored residue.
+    expect(crawlerMaxSP({ techLevel: 'tech-1', type: 'Engineering' })).toBe(base)
+  })
+
+  it('type bonus stacks with the hand-edit modifier, decomposed by crawlerMaxSPParts', () => {
+    const battle = SalvageUnionReference.Crawlers.find((c) => c.name === 'Battle')
+    const parts = crawlerMaxSPParts({
+      techLevel: 'tech-1',
+      type: battle?.id,
+      maxSpModifier: 2,
+    })
+    expect(parts.base).toBe(20)
+    expect(parts.typeBonus).toBe(5)
+    expect(parts.modifier).toBe(2)
+    expect(parts.total).toBe(27)
+  })
+
+  it('an unresolvable type ref contributes no bonus', () => {
+    const base = crawlerMaxSP({ techLevel: 'tech-1' })
+    expect(crawlerMaxSP({ techLevel: 'tech-1', type: 'no-such-type' })).toBe(base)
   })
 
   it('unresolvable techLevel slug yields the modifier alone (≥ 0)', () => {

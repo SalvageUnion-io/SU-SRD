@@ -11,12 +11,18 @@ import { beforeAll, describe, expect, it } from 'bun:test'
 import { SalvageUnionReference } from '../index.js'
 import type { SURefAbility, SURefChassis, SURefClass, SURefEquipment } from '../schemas/index.js'
 import {
+  CRAWLER_CREATION_MIN_WEAPONS,
+  CRAWLER_CREATION_TECH_LEVEL,
   MECH_CREATION_SCRAP_CAP,
   PILOT_CREATION_ABILITY_PICKS,
   PILOT_CREATION_EQUIPMENT_PICKS,
+  crawlerMaxSpBonus,
+  crawlerWeaponSlots,
+  isCrawlerWeaponPickComplete,
   isLegalCreationAbility,
   isLegalCreationChassis,
   isLegalCreationClass,
+  isLegalCreationCrawlerWeapon,
   isLegalCreationEquipment,
   isLegalCreationModule,
   isLegalCreationSystem,
@@ -267,5 +273,63 @@ describe('mechCreationBudget (20 Tech 1 Scrap, on scrapCostFor)', () => {
     expect(budget.spent).toBe(25)
     expect(budget.remaining).toBe(-5)
     expect(budget.perItemAffordable(1)).toBe(false)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Union Crawler (Core Book pp.212–213 — wizard-refresh Phase 5)
+// ---------------------------------------------------------------------------
+
+describe('isLegalCreationCrawlerWeapon (Tech 1 only, p.213)', () => {
+  it('creation is fixed at Tech Level 1', () => {
+    expect(CRAWLER_CREATION_TECH_LEVEL).toBe(1)
+    expect(isLegalCreationCrawlerWeapon(1)).toBe(true)
+    for (const tl of [2, 3, 4, 5, 6]) expect(isLegalCreationCrawlerWeapon(tl)).toBe(false)
+  })
+
+  it("the 'B'/'N' expansion tiers are never legal", () => {
+    expect(isLegalCreationCrawlerWeapon('B')).toBe(false)
+    expect(isLegalCreationCrawlerWeapon('N')).toBe(false)
+  })
+})
+
+describe('crawlerWeaponSlots / crawlerMaxSpBonus (stored mutations, never string-matched)', () => {
+  it('base is 1 Armament-Bay slot with no mutations', () => {
+    expect(crawlerWeaponSlots(undefined)).toBe(1)
+    expect(crawlerWeaponSlots([])).toBe(1)
+  })
+
+  it('the REAL Battle type mutations yield 2 slots and +5 max SP', () => {
+    const battle = SalvageUnionReference.Crawlers.find((c) => c.name === 'Battle')
+    expect(battle?.mutations).toBeDefined()
+    expect(crawlerWeaponSlots(battle?.mutations)).toBe(2)
+    expect(crawlerMaxSpBonus(battle?.mutations)).toBe(5)
+  })
+
+  it('every non-Battle type has no mutations — 1 slot, +0 SP', () => {
+    const others = SalvageUnionReference.Crawlers.all().filter((c) => c.name !== 'Battle')
+    expect(others.length).toBeGreaterThan(0)
+    for (const type of others) {
+      expect(crawlerWeaponSlots(type.mutations)).toBe(1)
+      expect(crawlerMaxSpBonus(type.mutations)).toBe(0)
+    }
+  })
+
+  it('unrelated mutation rows contribute nothing to either total', () => {
+    const rows = [
+      { type: 'weapon_slots', value: 1 },
+      { type: 'max_sp_bonus', value: 5 },
+    ]
+    expect(crawlerWeaponSlots(rows.filter((m) => m.type !== 'weapon_slots'))).toBe(1)
+    expect(crawlerMaxSpBonus(rows.filter((m) => m.type !== 'max_sp_bonus'))).toBe(0)
+  })
+})
+
+describe('crawler weapon pick minimum (minimum 1 to advance, p.213)', () => {
+  it('zero weapons is incomplete; 1+ satisfies', () => {
+    expect(CRAWLER_CREATION_MIN_WEAPONS).toBe(1)
+    expect(isCrawlerWeaponPickComplete(0)).toBe(false)
+    expect(isCrawlerWeaponPickComplete(1)).toBe(true)
+    expect(isCrawlerWeaponPickComplete(2)).toBe(true)
   })
 })

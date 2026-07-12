@@ -1,48 +1,77 @@
-import type { SURefCrawler } from 'salvageunion-reference'
-import { Field, Input } from 'suref-react'
+import { useState } from 'react'
+import type { SURefCrawler, SURefEntity } from 'salvageunion-reference'
+import { ReferenceEntityDisplay, navigateControl } from 'suref-react'
 
 import { findNpcChoiceByName } from '../../lib/crawlerRefs'
 import type { ResolvedNpc } from '../../lib/crawlerRefs'
 import type { CrawlerWizardFormState, CrewNpcForm } from '../../lib/wizard/crawlerFormState'
+import { IdentityField } from '../sheet/IdentityField'
 
 type NpcSource = {
   /** Stable key — the bay ref or the type ref. */
   ref: string
-  /** Heading label (bay name or 'Crawler Type'). */
-  label: string
+  /** The SRD entity (bay or crawler type) — rendered as its entity card. */
+  entity: SURefEntity
   npc: ResolvedNpc
 }
 
 type CrawlerCrewStepProps = {
-  /** Base bays that carry an NPC (the 10 crewed bays). */
-  bays: ReadonlyArray<{ id: string; name: string; npc?: ResolvedNpc }>
-  /** The selected crawler type (its special NPC joins the crew), if any. */
+  /** Base bays that carry an NPC (the 10 crewed bays), as SRD entities. */
+  bays: ReadonlyArray<SURefEntity>
+  /** The selected crawler type (its special NPC heads the crew), if any. */
   selectedType: SURefCrawler | undefined
   /** Crew form state keyed by bay/type ref. */
   crew: Record<string, CrewNpcForm>
   onChange: (patch: Partial<CrawlerWizardFormState>) => void
 }
 
+/** Read the embedded NPC off a bay/type entity (data-shape check). */
+function npcOf(entity: SURefEntity): ResolvedNpc | undefined {
+  return 'npc' in entity && entity.npc != null ? (entity.npc as ResolvedNpc) : undefined
+}
+
 /**
- * Crew step (plan §3): name and detail each base bay's crew lead plus the
- * crawler-type's special NPC. Every field is optional — the step always
- * advances. Augmented's A.I. NPC only carries Name/Description (no
- * Keepsake/Motto), so those fields are guarded off the NPC's own choice set.
+ * Step 4 · Name your Crew (Union Crawler p.213) — the bay roster, restyled to
+ * the poster idiom (wizard-refresh Phase 5): the 10 base bays auto-seed (not
+ * choosable, not removable; expansion bays never appear) and each renders as
+ * its SRD entity card (the universal entity-card rule), header-only until its
+ * row expands into the sheets' IdentityFields for the NPC's four crew facts
+ * (Name, Background, Keepsake, Motto — guarded off the NPC's own choice set:
+ * Augmented's A.I. carries neither Keepsake nor Motto). NPC HP is fixed by
+ * the data (4; Grizzled Veteran 10; the A.I. none) — nothing to input. The
+ * type's special NPC heads the list. Every field is optional — the step
+ * always advances.
  */
 export function CrawlerCrewStep({ bays, selectedType, crew, onChange }: CrawlerCrewStepProps) {
+  const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set())
+
   const sources: NpcSource[] = []
 
-  if (selectedType?.npc) {
+  const typeNpc = selectedType ? npcOf(selectedType as unknown as SURefEntity) : undefined
+  if (selectedType && typeNpc) {
     sources.push({
       ref: selectedType.id,
-      label: `${selectedType.name} Crawler`,
-      npc: selectedType.npc as ResolvedNpc,
+      entity: selectedType as unknown as SURefEntity,
+      npc: typeNpc,
     })
   }
 
   for (const bay of bays) {
-    if (!bay.npc) continue
-    sources.push({ ref: bay.id, label: bay.name, npc: bay.npc })
+    const npc = npcOf(bay)
+    if (!npc) continue
+    sources.push({ ref: (bay as { id: string }).id, entity: bay, npc })
+  }
+
+  function toggle(ref: string) {
+    setExpanded((prev) => {
+      const next = new Set(prev)
+      if (next.has(ref)) {
+        next.delete(ref)
+      } else {
+        next.add(ref)
+      }
+      return next
+    })
   }
 
   function updateNpc(ref: string, patch: Partial<CrewNpcForm>) {
@@ -50,73 +79,64 @@ export function CrawlerCrewStep({ bays, selectedType, crew, onChange }: CrawlerC
   }
 
   return (
-    <div className="max-w-3xl space-y-5">
-      <p className="font-body text-xs text-wk-muted">
-        Each crewed bay is run by its own lead, and your crawler type brings a special NPC. Name and
-        detail them now, or leave them blank and fill them in during play.
+    <div className="max-w-3xl space-y-3">
+      <p className="m-0 font-body text-sm text-current">
+        Each crewed Bay is run by its own lead, and your Crawler type brings a special NPC. Open a
+        row to name and detail them now, or leave them blank and fill them in during play.
       </p>
 
       {sources.map((source) => {
         const value = crew[source.ref] ?? {}
+        const isOpen = expanded.has(source.ref)
         const showKeepsake = findNpcChoiceByName(source.npc, 'Keepsake') !== undefined
         const showMotto = findNpcChoiceByName(source.npc, 'Motto') !== undefined
-        const idBase = `crew-${source.ref}`
         return (
-          <section
-            key={source.ref}
-            className="space-y-3 rounded-[3px] border-chrome border-wk-faint p-4"
-          >
-            <header>
-              <h3 className="font-cond text-sm font-bold uppercase tracking-widest text-ink">
-                {source.label}
-              </h3>
-              {source.npc.position && (
-                <p className="mt-0.5 font-body text-xs text-wk-muted">{source.npc.position}</p>
-              )}
-            </header>
-
-            <Field label="Name" htmlFor={`${idBase}-name`}>
-              <Input
-                id={`${idBase}-name`}
-                type="text"
-                value={value.name ?? ''}
-                onChange={(e) => updateNpc(source.ref, { name: e.target.value })}
-                placeholder="Name this crew lead"
-              />
-            </Field>
-
-            <Field label="Description" htmlFor={`${idBase}-description`}>
-              <Input
-                id={`${idBase}-description`}
-                type="text"
-                value={value.description ?? ''}
-                onChange={(e) => updateNpc(source.ref, { description: e.target.value })}
-                placeholder="Appearance and personality"
-              />
-            </Field>
-
-            {showKeepsake && (
-              <Field label="Keepsake" htmlFor={`${idBase}-keepsake`}>
-                <Input
-                  id={`${idBase}-keepsake`}
-                  type="text"
-                  value={value.keepsake ?? ''}
-                  onChange={(e) => updateNpc(source.ref, { keepsake: e.target.value })}
-                  placeholder="A personal item"
+          <section key={source.ref} className="space-y-3">
+            <ReferenceEntityDisplay
+              data={source.entity}
+              mode={isOpen ? 'compact' : 'head'}
+              hide={{ actions: true, choices: true }}
+              controls={[navigateControl(() => toggle(source.ref))]}
+            />
+            {isOpen && (
+              <div className="grid grid-cols-1 gap-3 pb-2 pl-3 sm:grid-cols-2">
+                <IdentityField
+                  label="Name"
+                  value={value.name ?? ''}
+                  editing
+                  onSave={(next) => updateNpc(source.ref, { name: next })}
+                  placeholder="Name this crew lead"
+                  ariaLabel={`${source.npc.position ?? 'crew'} name`}
                 />
-              </Field>
-            )}
-
-            {showMotto && (
-              <Field label="Motto" htmlFor={`${idBase}-motto`}>
-                <Input
-                  id={`${idBase}-motto`}
-                  type="text"
-                  value={value.motto ?? ''}
-                  onChange={(e) => updateNpc(source.ref, { motto: e.target.value })}
-                  placeholder="A personal saying"
+                <IdentityField
+                  label="Background"
+                  value={value.description ?? ''}
+                  editing
+                  onSave={(next) => updateNpc(source.ref, { description: next })}
+                  placeholder="Appearance and personality"
+                  ariaLabel={`${source.npc.position ?? 'crew'} background`}
                 />
-              </Field>
+                {showKeepsake && (
+                  <IdentityField
+                    label="Keepsake"
+                    value={value.keepsake ?? ''}
+                    editing
+                    onSave={(next) => updateNpc(source.ref, { keepsake: next })}
+                    placeholder="A personal item"
+                    ariaLabel={`${source.npc.position ?? 'crew'} keepsake`}
+                  />
+                )}
+                {showMotto && (
+                  <IdentityField
+                    label="Motto"
+                    value={value.motto ?? ''}
+                    editing
+                    onSave={(next) => updateNpc(source.ref, { motto: next })}
+                    placeholder="A personal saying"
+                    ariaLabel={`${source.npc.position ?? 'crew'} motto`}
+                  />
+                )}
+              </div>
             )}
           </section>
         )
