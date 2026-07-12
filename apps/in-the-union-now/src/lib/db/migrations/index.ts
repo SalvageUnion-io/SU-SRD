@@ -22,6 +22,7 @@ import type { IDBPDatabase, IDBPTransaction, StoreNames } from 'idb'
 import { migrate as migrate3CargoToCargoLots } from './3-cargo-to-cargo-lots'
 import { migrate as migrate4RemovePilotRollResults } from './4-remove-pilot-roll-results'
 import { migrate as migrate6MechRefsToSlugs } from './6-mech-refs-to-slugs'
+import { migrate as migrate8CrawlerBattleSpToDerived } from './8-crawler-battle-sp-to-derived'
 
 /** The untyped versionchange transaction handed to the idb upgrade callback. */
 export type UpgradeTransaction = IDBPTransaction<
@@ -59,6 +60,12 @@ const MIGRATIONS: ReadonlyArray<Migration> = [
     toVersion: 6,
     description: 'mech-refs-to-slugs',
     migrate: (tx) => migrate6MechRefsToSlugs(tx),
+  },
+  // v7 was a version-only bump (see ../index.ts) — no record rewrite.
+  {
+    toVersion: 8,
+    description: 'crawler-battle-sp-to-derived',
+    migrate: (tx) => migrate8CrawlerBattleSpToDerived(tx),
   },
   // NOTE: the built-in Starter Set is NOT seeded by a migration. It is spawned
   // on-demand into each browser the first time the user opens the Starter Set
