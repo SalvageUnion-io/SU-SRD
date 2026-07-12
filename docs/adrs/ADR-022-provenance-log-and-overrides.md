@@ -1,4 +1,4 @@
-# ADR-022: Per-Entity Provenance Log & Stat Overrides
+# ADR-022: Per-Entity Change Log (Provenance) & Stat Overrides
 
 ## Status
 
@@ -28,11 +28,13 @@ are a distinct decision from the surface taxonomy.
 
 ## Decision
 
-### Provenance log
+### Change Log (the provenance log)
+
+The player-facing name for the provenance log is the **Change Log**.
 
 **Every mutation to a player entity, on every surface, appends to a per-entity,
-append-only provenance log.** Both classes of change are recorded, each tagged
-with its provenance:
+append-only Change Log** — _all_ changes, not just overrides. Both classes are
+recorded, each tagged with its provenance:
 
 - **Transaction** entries — enforced lifecycle events from Guided Creation / Guided
   Play (`spent 3 scrap to install Coilgun`, `Push: +2 heat, Heat Check → 14`).
@@ -58,6 +60,10 @@ Properties:
   ([ADR-004](ADR-004-snapshot-netlify-functions.md),
   [ADR-010](ADR-010-srd-choices-ephemeral-vs-persisted.md)). Provenance is a
   local-first, owner-only concern; it is not part of the share contract.
+- **Viewed behind a menu, never inline** — the Change Log is reached from a menu
+  (a "Change Log" drawer / item), **not rendered in the Live Sheet body**. The
+  sheet shows current state; the full history lives one tap away. This keeps the
+  free surface clean while still auditable.
 
 ### Stat overrides
 
@@ -67,8 +73,14 @@ both the pinned value and the value it would derive to, so the UI can render an
 therefore **non-destructive and reversible**: reverting drops the pin and the stat
 resumes tracking its derivation.
 
-- The override marker is a small, visible graphical callout on the affected stat —
-  enough to tell an overridden value from a derived one at a glance.
+- The override marker is a small, visible graphical indicator on the affected stat
+  — enough to tell an overridden value from a derived one at a glance. It appears
+  **on the Live Sheet only**; a published snapshot renders the value plainly (a
+  frozen view has no revert —
+  [ADR-010](ADR-010-srd-choices-ephemeral-vs-persisted.md)). This inline indicator
+  is distinct from the Change Log above: the indicator flags a _currently_
+  overridden stat on the sheet; the Change Log (behind a menu) records _all_
+  changes over time.
 - Overrides apply to quantitative caps and maxima (per ADR-021). Structural
   coherence is never overridable; free state needs no override concept (it is
   already free).

@@ -204,12 +204,16 @@ never enforced.
 
 ---
 
-## Provenance
+## Provenance — the Change Log
 
-Every surface writes to a per-entity, append-only **provenance log** — enforced
-Dashboard transactions _and_ free Live-Sheet edits alike, each tagged with its
-provenance (`spent 3 Scrap to install X` vs. `manual override: Heat → 0`). The
-free edits are exactly where provenance matters most.
+Every surface writes to a per-entity, append-only **Change Log** (the provenance
+log) — enforced Dashboard transactions _and_ free Live-Sheet edits alike, each
+tagged with its provenance (`spent 3 Scrap to install X` vs.
+`manual override: Heat → 0`). It records **all** changes, not just overrides, and
+the free edits are exactly where it matters most. The Change Log is **viewed
+behind a menu, never inline on a sheet** — the sheet shows current state, the
+history lives one tap away. Distinct from it is the **overridden-stat indicator**:
+a small marker on a currently-pinned stat, shown **on the Live Sheet only**.
 
 To make "every mutation is logged" a **structural guarantee** rather than a
 per-call-site discipline, the log entry is emitted at the **single write-through

@@ -81,7 +81,7 @@ says so in its Status. Read the matching ADR before proposing alternatives.
 | [ADR-019](adrs/ADR-019-dashboard-play-state-ephemeral.md)            | Dashboard play-state & prefs ephemeral/local-first, under the ADR-007 boundary (proposed)                       |
 | [ADR-020](adrs/ADR-020-dashboard-fixed-canvas-scale-to-fit.md)       | Fixed 1280×800 scale-to-fit canvas with a phone-reflow floor (proposed)                                         |
 | [ADR-021](adrs/ADR-021-itun-surface-taxonomy.md)                     | **Governing** — surface/mode taxonomy; rule enforcement is per-mode (Guided Creation / Free Edit / Guided Play) |
-| [ADR-022](adrs/ADR-022-provenance-log-and-overrides.md)              | Per-entity provenance log + non-destructive stat overrides (target; not yet built)                              |
+| [ADR-022](adrs/ADR-022-provenance-log-and-overrides.md)              | Per-entity **Change Log** (provenance, behind a menu) + non-destructive stat overrides (target)                 |
 
 > ADR-021 is the governing decision for rules enforcement and takes precedence
 > over prior ADRs where they conflict on _how hard a rule is enforced on which
