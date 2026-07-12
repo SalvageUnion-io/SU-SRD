@@ -34,6 +34,7 @@ conventions, then the relevant architecture doc below.
 | [rules-engine-boundary.md](architecture/rules-engine-boundary.md) | What the app enforces vs what the Mediator/player decides                  |
 | [combat-loop.md](architecture/combat-loop.md)                     | Action activation, heat checks, conditions — current local-first flow      |
 | [seo-accessibility.md](architecture/seo-accessibility.md)         | SEO strategy (suref-web) + WCAG 2.1 AA patterns                            |
+| [play-cockpit.md](architecture/play-cockpit.md)                   | Play Cockpit ("Pit HUD") implementation plan + proposed ADR-015–020        |
 
 ### `docs/rules/` — Agent-readable rules digest (generated, gitignored)
 
