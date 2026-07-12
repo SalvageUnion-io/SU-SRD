@@ -40,6 +40,7 @@ describe('DisplayView', () => {
   test('mech focus → a resolvable chassis renders a reference card', () => {
     const focus: DialItem = {
       key: 'mech:m1',
+      kind: 'mech',
       statless: false,
       label: 'Mech · Rig',
       tone: 'mech',
@@ -54,6 +55,7 @@ describe('DisplayView', () => {
   test('mech focus → an unresolvable chassis falls back to a note, no throw', () => {
     const focus: DialItem = {
       key: 'mech:m1',
+      kind: 'mech',
       statless: false,
       label: 'Mech · Rig',
       tone: 'mech',
@@ -66,7 +68,13 @@ describe('DisplayView', () => {
   })
 
   test('Tables focus → a RollTable renders', () => {
-    const focus: DialItem = { key: 'tables', statless: true, label: 'Tables', sublabel: 'roll' }
+    const focus: DialItem = {
+      key: 'tables',
+      kind: 'tables',
+      statless: true,
+      label: 'Tables',
+      sublabel: 'roll',
+    }
     const { container } = renderDV(focus)
     expect(container.querySelector('.pc-display-scroll')).toBeTruthy()
     // The reused RollTable renders a real table (not the fallback note).
@@ -75,7 +83,13 @@ describe('DisplayView', () => {
   })
 
   test('Actions focus → the interactive ActionsDeck (Phase 5)', () => {
-    const focus: DialItem = { key: 'actions', statless: true, label: 'Actions', sublabel: 'deck' }
+    const focus: DialItem = {
+      key: 'actions',
+      kind: 'actions',
+      statless: true,
+      label: 'Actions',
+      sublabel: 'deck',
+    }
     const { container } = renderDV(focus)
     // The deck renders (list or empty state), never the generic placeholder note.
     expect(container.querySelector('.pc-display-scroll')).toBeTruthy()

@@ -13,8 +13,10 @@
 
 import { useRef, useState, type PointerEvent } from 'react'
 
+import type { CockpitPrefs, DialKind } from '../../lib/schemas/cockpitPrefs'
 import { usePlayStateStore } from '../../stores/playStateStore'
 import { CockpitGauge } from './CockpitGauge'
+import { DialConfig } from './DialConfig'
 import type { DialItem } from './dialItems'
 
 const DRAG_STEP = 30
@@ -61,10 +63,21 @@ function DialCell({
   return <div className={cls}>{inner}</div>
 }
 
-export function Dial({ items }: { items: DialItem[] }) {
+type DialProps = {
+  items: DialItem[]
+  /** Dial-config universe (kinds this cockpit can show); omit to hide the ⚙. */
+  configKinds?: DialKind[]
+  /** Current persisted dial prefs. */
+  prefs?: CockpitPrefs
+  /** Persist updated prefs; when omitted the ⚙ config control is not shown. */
+  onPrefsChange?: (next: CockpitPrefs) => void
+}
+
+export function Dial({ items, configKinds, prefs, onPrefsChange }: DialProps) {
   const wheel = usePlayStateStore((s) => s.wheel)
   const setWheel = usePlayStateStore((s) => s.setWheel)
   const [anim, setAnim] = useState<{ dir: 'fwd' | 'back'; key: number }>({ dir: 'fwd', key: 0 })
+  const [configOpen, setConfigOpen] = useState(false)
 
   const n = items.length
   const active = n > 0 ? ((wheel % n) + n) % n : 0
@@ -116,6 +129,8 @@ export function Dial({ items }: { items: DialItem[] }) {
   const trackIdx: number[] = []
   for (let k = 1; k < n; k++) trackIdx.push((active + k) % n)
 
+  const canConfigure = onPrefsChange !== undefined && configKinds !== undefined
+
   return (
     <div
       className="pc-wheel-col"
@@ -152,7 +167,27 @@ export function Dial({ items }: { items: DialItem[] }) {
         >
           ▼
         </button>
+        {canConfigure && (
+          <button
+            type="button"
+            className="pc-wheel-btn pc-wheel-cfg"
+            onClick={() => setConfigOpen((o) => !o)}
+            aria-label="Configure dial"
+            aria-expanded={configOpen}
+            title="Show / hide and reorder dial items"
+          >
+            ⚙
+          </button>
+        )}
       </div>
+      {canConfigure && configOpen && (
+        <DialConfig
+          kinds={configKinds}
+          prefs={prefs}
+          onChange={onPrefsChange}
+          onClose={() => setConfigOpen(false)}
+        />
+      )}
     </div>
   )
 }
