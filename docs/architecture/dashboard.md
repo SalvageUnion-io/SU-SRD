@@ -36,7 +36,7 @@ decision is [ADR-015](../adrs/ADR-015-dashboard-distinct-play-surface.md).
 | **Dashboard**   | `/dashboard/$id` (**new**)                     | Run your Pilot + Mech + Crawler at the table, one screen, no scrolling | Instrument panel: every game action is a button |
 
 The Dashboard is a **screen-wide, video-game-style HUD** that fits one screen
-with no page scroll and turns every game action (Push, Vent, activate a system,
+with no page scroll and turns every game action (Push, Vent, use a system,
 take damage, roll a table) into a button. It is **not** a second editor. It reads
 and mutates the _same_ persisted entities as the live sheets (`Mech`, `Pilot`,
 `Crawler` — see §5), through the _same_ rules engine and store, but it never
@@ -797,3 +797,14 @@ load-bearing; the ADR files are the authoritative records.
 | `performPush`/`Heat Check`/`Reactor Overload`          | `performPush`, `performHeatCheck`, `reactorOverloadOutcome` (`heatCheck.ts`)             |
 | foot-meta economy                                      | `Erow`/`ActionCardErow` + `DisplayCard.footActions`/`footMeta`                           |
 | `resolveSheetComposition` (mockup ref)                 | `resolveSheetComposition()` (`src/components/sheet/composition.ts`)                      |
+
+<!-- Link reference definitions for the [ADR-xxx] shorthands used above. -->
+
+[adr-001]: ../adrs/ADR-001-local-first-no-backend.md
+[adr-003]: ../adrs/ADR-003-zustand-hydration.md
+[adr-004]: ../adrs/ADR-004-snapshot-netlify-functions.md
+[adr-006]: ../adrs/ADR-006-pure-rules-logic.md
+[adr-007]: ../adrs/ADR-007-automation-boundary.md
+[adr-010]: ../adrs/ADR-010-srd-choices-ephemeral-vs-persisted.md
+[adr-011]: ../adrs/ADR-011-suref-react-source-no-build.md
+[adr-013]: ../adrs/ADR-013-csp-zod-jitless.md
