@@ -2,8 +2,7 @@
 
 ## Status
 
-Proposed (materialized from the [Dashboard design doc](../architecture/dashboard.md);
-"Proposed" until realized). Sub-decision of
+Accepted — the Play Cockpit is **built** (realized in `apps/in-the-union-now/src/components/play/`, Phases 1–7, routed at `/play/:id`; design in the [Dashboard design doc](../architecture/dashboard.md)). Sub-decision of
 [ADR-015](ADR-015-dashboard-distinct-play-surface.md).
 
 ## Context

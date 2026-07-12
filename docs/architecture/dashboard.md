@@ -5,10 +5,10 @@
 > `apps/in-the-union-now` (ITUN), composing a player's **Pilot + Mech + Crawler**
 > into one screen. (Named the "Play Cockpit" / "Pit HUD" in earlier design passes;
 > renamed to **Dashboard** — the former build-list home is now the **Roster**.)
-> No feature code exists yet. The design was
-> explored turn-by-turn (v18→v62) and the **layout locked at v52**; subsequent
-> passes (v53→v60) refined intra-component density only. The realized reference
-> is a self-contained HTML prototype (design reference only, not shipping code).
+> **Built and shipped** — realized in `src/components/play/` (16 components + tests)
+> and routed at `/play/$id`. The design was explored turn-by-turn (v18→v62), the
+> **layout locked at v52**, prototyped as self-contained HTML, then implemented
+> across Phases 1–7. This document is the design record for that shipped surface.
 >
 > Read alongside: [combat-loop.md](combat-loop.md) (the authoritative live-play
 > state model this HUD drives), [display-system.md](display-system.md),

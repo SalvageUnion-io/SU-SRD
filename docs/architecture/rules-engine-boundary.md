@@ -232,15 +232,15 @@ This doc is the target. Where the code differs today:
 - **Wizard** currently _soft-guides_ (advisory `SoftWarningBanner`, never blocks —
   `PilotWizard.tsx:96–97`). The target is enforced Guided Creation. This is a
   planned move from soft → hard.
-- **Dashboard** does not exist as its own surface (design:
-  [dashboard.md](dashboard.md); decision:
-  [ADR-015](../adrs/ADR-015-dashboard-distinct-play-surface.md)). Guided-Play
-  controls (Push / Heat Check via `SheetMech.tsx`, using a system via `activateItem` /
-  [ADR-008](../adrs/ADR-008-sequential-mutations.md)) currently live **inside the
-  Live Sheet**, one entity at a time. The target is a separate Dashboard surface
-  composing Pilot + Mech + Crawler, into which every lifecycle transaction — using
-  a system, Push, crafting, salvage, Downtime, advancement — moves as interactive
-  rules-layers, leaving the Live Sheet as pure Free Edit.
+- **Dashboard** is **built** — the Play Cockpit ships at `/play/$id`
+  (`src/components/play/`, Phases 1–7; design: [dashboard.md](dashboard.md),
+  decision: [ADR-015](../adrs/ADR-015-dashboard-distinct-play-surface.md)),
+  composing Pilot + Mech + Crawler with its lifecycle-transaction layers (use a
+  system, Push, Downtime, take damage). Remaining: adopt the **Dashboard** surface
+  name (the code is still `play/`), and confirm the Live Sheet's leftover play
+  control (`QuickRollFab` via `SheetMech.tsx` / `activateItem`,
+  [ADR-008](../adrs/ADR-008-sequential-mutations.md)) is fully superseded so the
+  sheet becomes pure Free Edit.
 - **Live Sheet** today mixes free editing with those leftover enforced controls.
   The target strips the transactions out and adds cap **overrides** (with the
   derived-baseline callout), which are not yet built.

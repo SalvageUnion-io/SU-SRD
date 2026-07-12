@@ -84,12 +84,12 @@ procedure.
 enforcement stance) _and_ a rule class (→ what the stance does); the matrix cell is
 the behavior.
 
-**The Dashboard is a separate, multi-entity surface, not yet built.** It composes a
+**The Dashboard is a separate, multi-entity surface — built.** It composes a
 player's Pilot + Mech + Crawler into one live play surface (distinct from the
-single-entity Live Sheet). Today the enforced play controls (Push, using a system)
-live in the Live Sheet; they move out under this decision. Until the Dashboard
-exists, treat Sheet and Play as two modes on one surface. Implementation gap
-tracked in the architecture doc.
+single-entity Live Sheet), shipped as the Play Cockpit at `/play/$id`
+(`src/components/play/`). "Dashboard" is its surface name; the code rename and the
+final removal of the Live Sheet's leftover play control (`QuickRollFab`) are the
+remaining work. Detail in the architecture doc.
 
 ## Supersession / precedence
 
