@@ -1,6 +1,6 @@
 {
   "$schema": "https://unpkg.com/knip@latest/schema.json",
-  "ignoreBinaries": ["lefthook", "netlify"],
+  "ignoreBinaries": ["netlify"],
   "ignoreDependencies": ["tailwindcss"],
   "ignoreExportsUsedInFile": true,
   "workspaces": {
@@ -9,7 +9,7 @@
       "project": ["tools/**/*.ts"]
     },
     "packages/salvageunion-reference": {
-      "entry": ["lib/index.ts", "tools/**/*.ts"],
+      "entry": ["tools/**/*.ts"],
       "project": ["lib/**/*.ts", "tools/**/*.ts"]
     },
     "packages/suref-react": {
@@ -17,8 +17,7 @@
     },
     "apps/suref-web": {
       "entry": ["src/pages/**/*.{astro,ts,tsx}"],
-      "project": ["src/**/*.{ts,tsx,astro}"],
-      "ignoreDependencies": ["sharp"]
+      "project": ["src/**/*.{ts,tsx,astro}"]
     },
     "apps/in-the-union-now": {
       "entry": [
