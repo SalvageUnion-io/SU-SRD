@@ -17,6 +17,7 @@
  * live — and hands the views resolved data via props.
  */
 
+import { useState } from 'react'
 import { btnVariants } from 'suref-react'
 
 import type { Crawler } from '../../lib/schemas/crawler'
@@ -30,6 +31,7 @@ import { AppLink } from '../shared/AppLink'
 import type { SoftLinkStore } from '../wiring/useSoftLinks'
 import { AssignToWorkspaceButton } from '../workspace/AssignToWorkspaceButton'
 
+import { ChangeLogDrawer } from './ChangeLogDrawer'
 import { resolveSheetComposition } from './composition'
 import type { EntityLookup } from './composition'
 import type { LiveSheetSegment } from './LiveSheet'
@@ -65,6 +67,7 @@ export function Sheet({
   readOnly = false,
 }: SheetProps) {
   const storeState = store()
+  const [changeLogOpen, setChangeLogOpen] = useState(false)
 
   const lookup: EntityLookup =
     entityStore ??
@@ -137,6 +140,19 @@ export function Sheet({
       currentWorkspaceId={entity.workspaceId}
     />
   )
+  // The per-entity Change Log (provenance) opens from the overflow menu, never
+  // inline on the sheet body (ADR-022). Its open-state lives here, on the
+  // always-mounted Sheet, because the menu unmounts its children when closed.
+  const changeLogButton = (
+    <button
+      type="button"
+      aria-label={`View the change log for this ${kind}`}
+      onClick={() => setChangeLogOpen(true)}
+      className={cn(btnVariants({ variant: 'ghost', size: 'sm' }), 'cursor-pointer')}
+    >
+      Change Log
+    </button>
+  )
   const actions = !readOnly ? (
     <div className="flex items-center gap-2.5">
       <PublishButton entityKind={kind} entityId={id} entityStore={entityStore} />
@@ -144,6 +160,7 @@ export function Sheet({
         {printButton}
         {exportButton}
         {workspaceControl}
+        {changeLogButton}
       </SheetActionsMenu>
     </div>
   ) : undefined
@@ -205,11 +222,27 @@ export function Sheet({
     patch,
   }
 
-  if (kind === 'pilot') {
-    return <SheetPilot pilot={entity as Pilot} {...common} />
-  }
-  if (kind === 'mech') {
-    return <SheetMech mech={entity as Mech} {...common} />
-  }
-  return <SheetCrawler crawler={entity as Crawler} {...common} />
+  const sheetView =
+    kind === 'pilot' ? (
+      <SheetPilot pilot={entity as Pilot} {...common} />
+    ) : kind === 'mech' ? (
+      <SheetMech mech={entity as Mech} {...common} />
+    ) : (
+      <SheetCrawler crawler={entity as Crawler} {...common} />
+    )
+
+  return (
+    <>
+      {sheetView}
+      {!readOnly && (
+        <ChangeLogDrawer
+          entityType={kind}
+          entityId={id}
+          entityName={entity.name}
+          open={changeLogOpen}
+          onOpenChange={setChangeLogOpen}
+        />
+      )}
+    </>
+  )
 }
