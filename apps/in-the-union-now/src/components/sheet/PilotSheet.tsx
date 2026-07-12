@@ -418,89 +418,86 @@ export function PilotSheet({
         )}
       </SheetSectionCard>
 
-      {/* ===== R3: Inventory ∥ Linked Units ===== */}
-      <div className="grid grid-cols-1 gap-[22px] @5xl:grid-cols-12 @5xl:gap-6">
-        <div className="@5xl:col-span-7">
-          <SheetSectionCard
-            title="Inventory"
-            count={
-              <span className={overCapacity ? 'text-status-bad' : undefined}>
-                {slotsUsed} / {slotsCap} slots
-              </span>
-            }
-            controls={
-              readOnly ? undefined : (
-                <SectionAddButton label="equipment" onClick={() => setPicker('equipment')} />
-              )
-            }
-          >
-            {pilot.equipment.length === 0 && genericInventory.length === 0 ? (
-              <p className="font-body text-caption text-wk-muted">Nothing carried.</p>
-            ) : (
-              <Ecflow>
-                {pilot.equipment.map((slug) => (
-                  <Erow key={slug}>
-                    <PilotEquipmentItem
-                      slug={slug}
-                      pilotId={pilot.id}
-                      seedSelections={pilot.equipmentChoices?.[slug]}
-                      condition={pilot.equipmentConditions?.[slug] ?? 'intact'}
-                      usesLeft={pilot.equipmentUses?.[slug]}
-                      onConditionChange={(itemSlug, next) => {
-                        void handleEquipmentConditionChange(itemSlug, next)
-                      }}
-                      onUsesChange={(itemSlug, next) => {
-                        void handleUsesChange(itemSlug, next)
-                      }}
-                      onRemove={
-                        readOnly
-                          ? undefined
-                          : () => {
-                              toggleEquipment(slug)
-                            }
-                      }
-                      readOnly={readOnly}
-                      scalingParent={scalingParent}
-                      store={store}
-                    />
-                  </Erow>
-                ))}
-                {genericInventory.map((entry, index) => (
-                  <Erow key={entry.id}>
-                    <GenericEntryCard
-                      entry={entry}
-                      onRemove={
-                        readOnly
-                          ? undefined
-                          : () => {
-                              void handleGenericInventoryChange(
-                                genericInventory.filter((_, i) => i !== index)
-                              )
-                            }
-                      }
-                    />
-                  </Erow>
-                ))}
-              </Ecflow>
-            )}
-            {!readOnly && (
-              <div className="mt-3">
-                <GenericEntryAdder
-                  onAdd={(entry) => {
-                    void handleGenericInventoryChange([...genericInventory, entry])
+      {/* ===== R3: Inventory (full width) ===== */}
+      <SheetSectionCard
+        title="Inventory"
+        count={
+          <span className={overCapacity ? 'text-status-bad' : undefined}>
+            {slotsUsed} / {slotsCap} slots
+          </span>
+        }
+        controls={
+          readOnly ? undefined : (
+            <SectionAddButton label="equipment" onClick={() => setPicker('equipment')} />
+          )
+        }
+      >
+        {pilot.equipment.length === 0 && genericInventory.length === 0 ? (
+          <p className="font-body text-caption text-wk-muted">Nothing carried.</p>
+        ) : (
+          <Ecflow>
+            {pilot.equipment.map((slug) => (
+              <Erow key={slug}>
+                <PilotEquipmentItem
+                  slug={slug}
+                  pilotId={pilot.id}
+                  seedSelections={pilot.equipmentChoices?.[slug]}
+                  condition={pilot.equipmentConditions?.[slug] ?? 'intact'}
+                  usesLeft={pilot.equipmentUses?.[slug]}
+                  onConditionChange={(itemSlug, next) => {
+                    void handleEquipmentConditionChange(itemSlug, next)
                   }}
+                  onUsesChange={(itemSlug, next) => {
+                    void handleUsesChange(itemSlug, next)
+                  }}
+                  onRemove={
+                    readOnly
+                      ? undefined
+                      : () => {
+                          toggleEquipment(slug)
+                        }
+                  }
+                  readOnly={readOnly}
+                  scalingParent={scalingParent}
+                  store={store}
                 />
-              </div>
-            )}
-          </SheetSectionCard>
-        </div>
+              </Erow>
+            ))}
+            {genericInventory.map((entry, index) => (
+              <Erow key={entry.id}>
+                <GenericEntryCard
+                  entry={entry}
+                  onRemove={
+                    readOnly
+                      ? undefined
+                      : () => {
+                          void handleGenericInventoryChange(
+                            genericInventory.filter((_, i) => i !== index)
+                          )
+                        }
+                  }
+                />
+              </Erow>
+            ))}
+          </Ecflow>
+        )}
+        {!readOnly && (
+          <div className="mt-3">
+            <GenericEntryAdder
+              onAdd={(entry) => {
+                void handleGenericInventoryChange([...genericInventory, entry])
+              }}
+            />
+          </div>
+        )}
+      </SheetSectionCard>
 
-        <div className="@5xl:col-span-5">
-          {/* Linked Units — poster renders this as a bare section header + rail
-              stack (no `.dcard` frame), unlike Identity/Vitals/Abilities/Inventory. */}
-          <SectionChead title="Linked Units" />
-          <div className="flex flex-col gap-4">{linkedUnits}</div>
-        </div>
+      {/* ===== R4: Linked Units (full width, stacked beneath all other sections) ===== */}
+      <div>
+        {/* Linked Units — poster renders this as a bare section header + rail
+            stack (no `.dcard` frame), unlike Identity/Vitals/Abilities/Inventory. */}
+        <SectionChead title="Linked Units" />
+        <div className="flex flex-col gap-4">{linkedUnits}</div>
       </div>
 
       {/* The ONE shared picker modal — abilities & equipment '+ Add' both open
