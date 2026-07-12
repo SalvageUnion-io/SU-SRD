@@ -192,6 +192,19 @@ export function PilotSheet({
     void storeState.update('pilot', pilot.id, fields)
   }
 
+  // Cap overrides (ADR-022, Free Edit): pin HP/AP maxima via a signed
+  // max*Modifier delta; the gauge shows "overridden from N" + a revert. Tagged
+  // `override` for the Change Log.
+  const derivedMaxHP = maxHP - (pilot.maxHpModifier ?? 0)
+  const derivedMaxAP = maxAP - (pilot.maxApModifier ?? 0)
+  const overridePilotMax = (fields: Partial<Pilot>) => {
+    void storeState.update('pilot', pilot.id, fields, { kind: 'override' })
+  }
+  const modOrUndef = (next: number, derived: number): number | undefined => {
+    const mod = next - derived
+    return mod === 0 ? undefined : mod
+  }
+
   /** Toggle one of the once-per-Downtime used flags (rules A8–A10). */
   function toggleUsed(key: UsedToggleKey, next: boolean) {
     const fresh = freshPilot()
@@ -333,6 +346,15 @@ export function PilotSheet({
                 value={hp}
                 max={maxHP}
                 onChange={readOnly ? undefined : (v) => patchPilot({ currentHP: v })}
+                onMaxChange={
+                  readOnly
+                    ? undefined
+                    : (next) => overridePilotMax({ maxHpModifier: modOrUndef(next, derivedMaxHP) })
+                }
+                overriddenFrom={readOnly ? undefined : derivedMaxHP}
+                onRevertOverride={
+                  readOnly ? undefined : () => overridePilotMax({ maxHpModifier: undefined })
+                }
                 readOnly={readOnly}
               />
               <VitalGauge
@@ -340,6 +362,15 @@ export function PilotSheet({
                 value={ap}
                 max={maxAP}
                 onChange={readOnly ? undefined : (v) => patchPilot({ currentAP: v })}
+                onMaxChange={
+                  readOnly
+                    ? undefined
+                    : (next) => overridePilotMax({ maxApModifier: modOrUndef(next, derivedMaxAP) })
+                }
+                overriddenFrom={readOnly ? undefined : derivedMaxAP}
+                onRevertOverride={
+                  readOnly ? undefined : () => overridePilotMax({ maxApModifier: undefined })
+                }
                 readOnly={readOnly}
               />
             </div>

@@ -114,60 +114,27 @@ function clickButton(name: RegExp) {
   fireEvent.click(btn)
 }
 
-describe('MechSheet — Use action economy', () => {
-  test('Use spends the EP cost through the store', async () => {
-    const captured: CapturedUpdate[] = []
+describe('MechSheet — no Use transaction on the Free-Edit sheet (ADR-021)', () => {
+  test('a system offers no Use button — using a system is a Dashboard act', () => {
+    // Push / Heat Check / "use a system" are Guided-Play transactions that live
+    // on the Dashboard (see play/ActionsDeck), never on the Free-Edit Live Sheet.
     const mech = makeMech({ systems: ['Smoke Machine'], currentEP: 5 })
-    render(<MechSheet mech={mech} chassis={fakeChassis} store={makeStore(mech, captured)} />)
-
-    await act(async () => {
-      clickButton(/^use smoke machine$/i)
-    })
-
-    expect(captured.length).toBe(1)
-    expect(must(captured[0]).patch).toEqual({ currentEP: 3 })
-  })
-
-  test('Use ticks the uses counter down alongside the EP spend', async () => {
-    const captured: CapturedUpdate[] = []
-    const mech = makeMech({
-      systems: ['AFF Coolant Foam'],
-      currentEP: 4,
-      itemUses: { 'AFF Coolant Foam': 3 },
-    })
-    render(<MechSheet mech={mech} chassis={fakeChassis} store={makeStore(mech, captured)} />)
-
-    await act(async () => {
-      clickButton(/^use aff coolant foam$/i)
-    })
-
-    expect(must(captured[0]).patch).toEqual({
-      currentEP: 3,
-      itemUses: { 'AFF Coolant Foam': 2 },
-    })
-  })
-
-  test('Use is disabled when EP cannot cover the cost', () => {
-    const mech = makeMech({ systems: ['Smoke Machine'], currentEP: 1 })
     render(<MechSheet mech={mech} chassis={fakeChassis} store={makeStore(mech, [])} />)
 
-    const btn = screen.getByRole('button', { name: /^use smoke machine$/i })
-    expect((btn as HTMLButtonElement).disabled).toBe(true)
-    expect(btn.getAttribute('title')).toMatch(/not enough ep/i)
+    // The system card IS rendered (so the absent-Use assertion is meaningful)…
+    expect(screen.getAllByText(/Smoke Machine/i).length).toBeGreaterThan(0)
+    // …but it offers no Use button — activation is a Dashboard act.
+    expect(screen.queryByRole('button', { name: /^use smoke machine$/i })).toBeNull()
   })
 })
 
-describe('MechSheet — Damaged disables function, promotes Repair (S12)', () => {
-  test('Damaged: Use disabled, Repair primary with half-SV cost', () => {
+describe('MechSheet — Damaged promotes Repair (S12)', () => {
+  test('Damaged: Repair primary with half-SV cost', () => {
     const mech = makeMech({
       systems: ['Smoke Machine'],
       systemConditions: { 'Smoke Machine': 'damaged' },
     })
     render(<MechSheet mech={mech} chassis={fakeChassis} store={makeStore(mech, [])} />)
-
-    const use = screen.getByRole('button', { name: /^use smoke machine$/i })
-    expect((use as HTMLButtonElement).disabled).toBe(true)
-    expect(use.getAttribute('title')).toMatch(/damaged/i)
 
     // Smoke Machine SV 2 → half SV = 1 Scrap, shown on the button.
     const repair = screen.getByRole('button', {
@@ -268,30 +235,16 @@ describe('MechSheet — per-item uses counters (rules B13)', () => {
   })
 })
 
-describe('MechSheet — chassis ability slab', () => {
-  test('Use spends the ability EP cost', async () => {
-    const captured: CapturedUpdate[] = []
+describe('MechSheet — chassis ability slab (no activation on the sheet, ADR-021)', () => {
+  test('the ability + its EP cost show, but there is no Use button', () => {
     // Spectrum's Data Scanner costs 2 EP. Real chassis → real ability slab.
+    // Activating an ability is a Dashboard transaction, not a Free-Edit act.
     const mech = makeMech({ chassisRef: 'Spectrum', currentEP: 5 })
-    render(<MechSheet mech={mech} store={makeStore(mech, captured)} />)
-
-    await act(async () => {
-      clickButton(/^use data scanner$/i)
-    })
-
-    expect(must(captured[0]).patch).toEqual({ currentEP: 3 })
-  })
-
-  test('Use is blocked while the mech is shut down', () => {
-    const mech = makeMech({
-      chassisRef: 'Spectrum',
-      currentEP: 5,
-      shutdown: true,
-    })
     render(<MechSheet mech={mech} store={makeStore(mech, [])} />)
 
-    const btn = screen.getByRole('button', { name: /^use data scanner$/i })
-    expect((btn as HTMLButtonElement).disabled).toBe(true)
-    expect(btn.getAttribute('title')).toMatch(/shut down/i)
+    // The ability card + EP-cost readout are present…
+    expect(screen.getByText(/Data Scanner/i)).toBeTruthy()
+    // …but the sheet offers no Use button to spend the EP.
+    expect(screen.queryByRole('button', { name: /^use data scanner$/i })).toBeNull()
   })
 })

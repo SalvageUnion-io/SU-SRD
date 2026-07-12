@@ -111,6 +111,93 @@ describe('VitalGauge — read-only', () => {
   })
 })
 
+describe('VitalGauge — cap override (ADR-022)', () => {
+  test('without onMaxChange the max is a plain read-out (no override control)', () => {
+    render(<VitalGauge label="HP" value={7} max={10} onChange={() => {}} />)
+    expect(screen.queryByRole('button', { name: /override hp max/i })).toBeNull()
+  })
+
+  test('clicking the max opens an input; Enter commits the new max', () => {
+    const onMaxChange = mock(() => {})
+    render(
+      <VitalGauge label="SP" value={9} max={13} onChange={() => {}} onMaxChange={onMaxChange} />
+    )
+    fireEvent.click(screen.getByRole('button', { name: /override sp max/i }))
+    const input = must(screen.getByLabelText('Set SP max')) as HTMLInputElement
+    fireEvent.change(input, { target: { value: '16' } })
+    fireEvent.keyDown(input, { key: 'Enter' })
+    // A trailing blur (fired when the input unmounts on Enter) must NOT commit
+    // a second time — that would double the override write + change-log entry.
+    fireEvent.blur(input)
+    expect(onMaxChange).toHaveBeenCalledWith(16)
+    expect(onMaxChange).toHaveBeenCalledTimes(1)
+  })
+
+  test('the revert control is hidden while the max is being edited', () => {
+    render(
+      <VitalGauge
+        label="SP"
+        value={9}
+        max={16}
+        onChange={() => {}}
+        onMaxChange={() => {}}
+        overriddenFrom={13}
+        onRevertOverride={() => {}}
+      />
+    )
+    expect(screen.getByRole('button', { name: /revert sp max to derived 13/i })).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: /override sp max/i }))
+    // Editing the max: the revert affordance is gone (no conflicting write).
+    expect(screen.queryByRole('button', { name: /revert sp max/i })).toBeNull()
+  })
+
+  test('Escape cancels without committing', () => {
+    const onMaxChange = mock(() => {})
+    render(
+      <VitalGauge label="SP" value={9} max={13} onChange={() => {}} onMaxChange={onMaxChange} />
+    )
+    fireEvent.click(screen.getByRole('button', { name: /override sp max/i }))
+    const input = must(screen.getByLabelText('Set SP max')) as HTMLInputElement
+    fireEvent.change(input, { target: { value: '99' } })
+    fireEvent.keyDown(input, { key: 'Escape' })
+    expect(onMaxChange).not.toHaveBeenCalled()
+  })
+
+  test('an overridden cap shows "overridden from N" and a one-click revert', () => {
+    const onRevertOverride = mock(() => {})
+    render(
+      <VitalGauge
+        label="SP"
+        value={9}
+        max={16}
+        onChange={() => {}}
+        onMaxChange={() => {}}
+        overriddenFrom={13}
+        onRevertOverride={onRevertOverride}
+      />
+    )
+    expect(screen.getByText(/overridden from 13/i)).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: /revert sp max to derived 13/i }))
+    expect(onRevertOverride).toHaveBeenCalledTimes(1)
+  })
+
+  test('a cap equal to its derived baseline is not flagged as overridden', () => {
+    render(
+      <VitalGauge
+        label="SP"
+        value={9}
+        max={13}
+        onChange={() => {}}
+        onMaxChange={() => {}}
+        overriddenFrom={13}
+        onRevertOverride={() => {}}
+      />
+    )
+    expect(screen.queryByText(/overridden from/i)).toBeNull()
+    expect(screen.queryByRole('button', { name: /revert sp max/i })).toBeNull()
+  })
+})
+
 describe('VitalGauge — danger', () => {
   test('lit segments at or past the danger index read status-bad', () => {
     render(<VitalGauge label="Heat" value={9} max={10} danger={7} onChange={() => {}} />)

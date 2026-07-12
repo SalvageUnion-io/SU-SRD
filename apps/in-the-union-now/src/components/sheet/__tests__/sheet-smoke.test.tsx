@@ -393,7 +393,7 @@ describe('Smoke — SnapshotPageInner 404', () => {
 
   test('notFound=true renders a back-to-dashboard link', () => {
     render(<SnapshotPageInner snapshot={null} notFound={true} error={null} />)
-    expect(screen.getByRole('link', { name: /back to dashboard/i })).toBeTruthy()
+    expect(screen.getByRole('link', { name: /back to roster/i })).toBeTruthy()
   })
 })
 

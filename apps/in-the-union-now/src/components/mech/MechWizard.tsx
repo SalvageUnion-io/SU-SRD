@@ -28,6 +28,7 @@ import type { MechWizardFormState } from '../../lib/wizard/mechFormState'
 import { useMech } from '../../hooks/queries'
 import { useEntityStore } from '../../stores/entityStore'
 import { SoftWarningBanner } from '../shared/SoftWarningBanner'
+import { OffRulesEscape } from '../wizard/OffRulesEscape'
 import { RuleBrief } from '../wizard/RuleBrief'
 import type { StepRule } from '../wizard/RuleBrief'
 import { WizShell, WizTracker } from '../wizard/WizShell'
@@ -97,6 +98,8 @@ type MechWizardProps = {
   onComplete: (mechId: string) => void
   /** Called when the user cancels. */
   onCancel: () => void
+  /** Leaves the guided flow for the blank Free-Edit path (P3.3). Create only. */
+  onOffRules?: () => void
   /**
    * Id of an existing mech being edited. When provided, handleSubmit takes
    * the update branch (never duplicates), the hard creation gates relax to
@@ -160,7 +163,13 @@ function slotPips(used: number, max: number): string {
  * chassisSV + Σ(itemSV × count) ≤ 20 ∧ both slot budgets respected — every
  * guided mech is a legal starting mech by construction.
  */
-export function MechWizard({ onComplete, onCancel, mechId, initialState }: MechWizardProps) {
+export function MechWizard({
+  onComplete,
+  onCancel,
+  onOffRules,
+  mechId,
+  initialState,
+}: MechWizardProps) {
   const isEdit = mechId !== undefined
   const existingMech = useMech(mechId)
   const steps = isEdit ? EDIT_STEPS : CREATE_STEPS
@@ -563,6 +572,9 @@ export function MechWizard({ onComplete, onCancel, mechId, initialState }: MechW
       }
       trackers={trackers}
       footerNote={footerNote}
+      escapeAction={
+        !isEdit && !gate.ok && onOffRules ? <OffRulesEscape onEscape={onOffRules} /> : undefined
+      }
       onBack={currentIndex > 0 ? goBack : undefined}
       onCancel={() => {
         clearWizardDraft(draftKey)

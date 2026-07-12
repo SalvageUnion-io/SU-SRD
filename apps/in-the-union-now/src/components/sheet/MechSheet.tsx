@@ -45,12 +45,11 @@
 import { useState } from 'react'
 import type { ReactNode } from 'react'
 import { SalvageUnionReference, nameToSlug } from 'salvageunion-reference'
-import { Btn, ValueDisplay, VitalGauge, heatDangerFrom } from 'suref-react'
+import { ValueDisplay, VitalGauge, heatDangerFrom } from 'suref-react'
 
 import { useCargo } from '../../lib/cargo/useCargo'
 import { computeMechCapacity } from '../../lib/rules/capacity'
 import { mechMaxEP, mechMaxHeat, mechMaxSP } from '../../lib/rules/derivedStats'
-import { clampHeat } from '../../lib/rules/heatCheck'
 import { addToScrapPool } from '../../lib/cargo/cargoTransfer'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { ItemCondition, Mech } from '../../lib/schemas/mech'
@@ -64,7 +63,6 @@ import { MechConditionsEditor } from './MechConditionsEditor'
 import { MechIdentityPanel } from './MechIdentity'
 import { MechItemCard } from './MechItemCard'
 import { cycleCondition, resolveModule, resolveSystem } from './mechItemRules'
-import type { MechItemEconomy } from './mechItemRules'
 import { SectionAddButton, SectionChead, SectionEditButton, SheetPickerModal } from './SheetSection'
 import { SheetSectionCard } from './SheetSectionCard'
 import type { ChassisStatItem } from './SheetHero'
@@ -215,6 +213,20 @@ export function MechSheet({
     void storeState.update('mech', mech.id, fields)
   }
 
+  // Cap overrides (ADR-022, Free Edit): a derived maximum is pinned by storing
+  // a signed max*Modifier delta; the gauge shows "overridden from N" + a revert
+  // that clears the delta. Tagged `override` so the Change Log records it as one.
+  const derivedMaxSP = maxSP - (mech.maxSpModifier ?? 0)
+  const derivedMaxEP = maxEP - (mech.maxEpModifier ?? 0)
+  const derivedHeatCap = heatCap - (mech.maxHeatModifier ?? 0)
+  const overrideMechMax = (fields: Partial<Mech>) => {
+    void storeState.update('mech', mech.id, fields, { kind: 'override' })
+  }
+  const modOrUndef = (next: number, derived: number): number | undefined => {
+    const mod = next - derived
+    return mod === 0 ? undefined : mod
+  }
+
   // Collection add/remove (unified edit language archetype B) — always
   // available, writes through immediately (ITUN auto-saves; no Save button).
   // Reads the FRESHEST record so rapid picker clicks don't race the async
@@ -273,26 +285,6 @@ export function MechSheet({
     }
   }
 
-  /** One activation: spend EP, take Hot heat, tick the uses counter down. */
-  async function activateItem(slug: string, economy: MechItemEconomy) {
-    const fresh = freshMech()
-    const patch: Partial<Mech> = {}
-    if (economy.epCost > 0) {
-      patch.currentEP = Math.max(0, (fresh.currentEP ?? maxEP) - economy.epCost)
-    }
-    if (economy.heat > 0) {
-      patch.currentHeat = clampHeat((fresh.currentHeat ?? heatCap) + economy.heat, heatCap)
-    }
-    if (economy.maxUses > 0) {
-      const prevUses = fresh.itemUses ?? {}
-      const remaining = Math.min(prevUses[slug] ?? economy.maxUses, economy.maxUses)
-      patch.itemUses = { ...prevUses, [slug]: Math.max(0, remaining - 1) }
-    }
-    if (Object.keys(patch).length > 0) {
-      await storeState.update('mech', mech.id, patch)
-    }
-  }
-
   async function setItemUses(slug: string, next: number) {
     const fresh = freshMech()
     const prevUses = fresh.itemUses ?? {}
@@ -324,13 +316,6 @@ export function MechSheet({
         scrapPool: addToScrapPool(freshCrawler.scrapPool ?? {}, deductTl, -cost),
       })
     }
-  }
-
-  async function activateChassisAbility(epCost: number) {
-    const fresh = freshMech()
-    await storeState.update('mech', mech.id, {
-      currentEP: Math.max(0, (fresh.currentEP ?? maxEP) - epCost),
-    })
   }
 
   /** Quirk / Appearance field save — mirrors the old SheetDescription saves. */
@@ -392,14 +377,10 @@ export function MechSheet({
               entity={kind === 'system' ? resolveSystem(slug) : resolveModule(slug)}
               condition={conditions[slug] ?? 'intact'}
               usesRemaining={mech.itemUses?.[slug]}
-              currentEP={currentEP}
               scrapPool={scrapPool}
               readOnly={readOnly}
               onStatusCycle={() => {
                 void cycleItemCondition(kind, slug)
-              }}
-              onUse={(economy) => {
-                void activateItem(slug, economy)
               }}
               onUsesChange={(next) => {
                 void setItemUses(slug, next)
@@ -477,6 +458,15 @@ export function MechSheet({
                 value={currentSP}
                 max={maxSP}
                 onChange={readOnly ? undefined : (v) => patchMech({ currentSP: v })}
+                onMaxChange={
+                  readOnly
+                    ? undefined
+                    : (next) => overrideMechMax({ maxSpModifier: modOrUndef(next, derivedMaxSP) })
+                }
+                overriddenFrom={readOnly ? undefined : derivedMaxSP}
+                onRevertOverride={
+                  readOnly ? undefined : () => overrideMechMax({ maxSpModifier: undefined })
+                }
                 readOnly={readOnly}
               />
               <VitalGauge
@@ -485,6 +475,15 @@ export function MechSheet({
                 value={currentEP}
                 max={maxEP}
                 onChange={readOnly ? undefined : (v) => patchMech({ currentEP: v })}
+                onMaxChange={
+                  readOnly
+                    ? undefined
+                    : (next) => overrideMechMax({ maxEpModifier: modOrUndef(next, derivedMaxEP) })
+                }
+                overriddenFrom={readOnly ? undefined : derivedMaxEP}
+                onRevertOverride={
+                  readOnly ? undefined : () => overrideMechMax({ maxEpModifier: undefined })
+                }
                 readOnly={readOnly}
               />
               <VitalGauge
@@ -493,6 +492,16 @@ export function MechSheet({
                 max={heatCap}
                 danger={heatCap > 0 ? heatDangerFrom(heatCap) : undefined}
                 onChange={readOnly ? undefined : (v) => patchMech({ currentHeat: v })}
+                onMaxChange={
+                  readOnly
+                    ? undefined
+                    : (next) =>
+                        overrideMechMax({ maxHeatModifier: modOrUndef(next, derivedHeatCap) })
+                }
+                overriddenFrom={readOnly ? undefined : derivedHeatCap}
+                onRevertOverride={
+                  readOnly ? undefined : () => overrideMechMax({ maxHeatModifier: undefined })
+                }
                 readOnly={readOnly}
               />
             </div>
@@ -519,36 +528,17 @@ export function MechSheet({
             >
               <Ecflow>
                 {chassisAbilities.map((ability) => {
+                  // Activating an ability (spending its EP) is a Guided-Play
+                  // transaction — it lives on the Dashboard, not the Free-Edit
+                  // Live Sheet (ADR-021). The sheet shows the ability + its EP
+                  // cost; EP is spent by hand-editing the EP gauge (free state).
                   const epCost =
                     typeof ability.activationCost === 'number' ? ability.activationCost : 0
-                  const reason = mech.destroyed
-                    ? 'Mech destroyed'
-                    : mech.shutdown
-                      ? 'Shut down — clear shutdown first'
-                      : epCost > currentEP
-                        ? `Not enough EP (needs ${epCost})`
-                        : null
                   return (
                     <ActionCardErow
                       key={ability.id}
                       ability={ability}
                       footMeta={epCost > 0 ? [{ label: 'EP Cost', value: epCost }] : undefined}
-                      actions={
-                        !readOnly && epCost > 0 ? (
-                          <Btn
-                            size="sm"
-                            variant="primary"
-                            disabled={reason !== null}
-                            title={reason ?? undefined}
-                            aria-label={`Use ${ability.name}`}
-                            onClick={() => {
-                              void activateChassisAbility(epCost)
-                            }}
-                          >
-                            Use
-                          </Btn>
-                        ) : undefined
-                      }
                     />
                   )
                 })}

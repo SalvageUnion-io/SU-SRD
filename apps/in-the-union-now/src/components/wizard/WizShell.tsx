@@ -46,6 +46,12 @@ type WizShellProps = {
    */
   footerNote?: ReactNode
   /**
+   * Escape hatch shown inside the action pill: a link/button to abandon the
+   * guided guardrails and finish the build off-rules on the Free-Edit Live
+   * Sheet (ADR-021). Rendered subordinate to the CTA; omit to hide.
+   */
+  escapeAction?: ReactNode
+  /**
    * OPT-IN blown-up tinted step card (mockup Screen 01 `.stepcard`): the main
    * pane renders the heading + content inside a `var(--tone-card)` card with
    * a flush ink number tab. Only book-order wizards should opt in (pilot as
@@ -167,6 +173,7 @@ export function WizShell({
   notice,
   trackers,
   footerNote,
+  escapeAction,
   tintedStepCard = false,
   onBack,
   onCancel,
@@ -333,6 +340,9 @@ export function WizShell({
                 >
                   {footerNote}
                 </p>
+              )}
+              {escapeAction && (
+                <div className="flex justify-center px-2 sm:justify-start">{escapeAction}</div>
               )}
               {/* Ghost nav row on phones; dissolves into the pill row ≥ sm. */}
               <div className="flex items-center justify-end gap-2 sm:contents">

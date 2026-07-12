@@ -36,6 +36,7 @@ import { MechPatternSchema } from '../schemas/pattern'
 import { PilotSchema } from '../schemas/pilot'
 import { SoftLinkSchema } from '../schemas/softLink'
 import { WorkspaceSchema } from '../schemas/workspace'
+import { CHANGE_LOG_ENTITY_INDEX, makeChangeLogStore } from './changeLog'
 import { makeStore } from './crud'
 import { runMigrations } from './migrations/index'
 import { STORE_NAMES } from './stores'
@@ -45,9 +46,10 @@ import { STORE_NAMES } from './stores'
  * (v7 is a version-only bump — it once carried an eager Starter Set seed, now
  * replaced by on-demand seeding in lib/starterSet/seedStarterSet.ts. v8 heals
  * Battle crawlers whose maxSpModifier hand-carried the type's +5 — the bonus
- * is now derived at read from the type's mutations.)
+ * is now derived at read from the type's mutations. v9 creates the append-only
+ * `changeLog` (provenance) store — creation only, no record rewrite; ADR-022.)
  */
-export const DB_VERSION = 8
+export const DB_VERSION = 9
 
 const DB_NAME = 'itun-v1'
 
@@ -135,6 +137,18 @@ export function openItunDatabase(
         if (oldVersion < 5) {
           if (!db.objectStoreNames.contains(STORE_NAMES.encounterNpcs)) {
             db.createObjectStore(STORE_NAMES.encounterNpcs, { keyPath: 'id' })
+          }
+        }
+        // v9 (ADR-022): append-only Change Log (provenance) store. autoIncrement
+        // `seq` primary key (total order) + a `by-entity` index for per-entity
+        // history reads. Store creation only — no record rewrite.
+        if (oldVersion < 9) {
+          if (!db.objectStoreNames.contains(STORE_NAMES.changeLog)) {
+            const changeLogStore = db.createObjectStore(STORE_NAMES.changeLog, {
+              keyPath: 'seq',
+              autoIncrement: true,
+            })
+            changeLogStore.createIndex(CHANGE_LOG_ENTITY_INDEX, 'entityId')
           }
         }
         // v3+: record rewrites live in migrations/ — one file per version.
@@ -384,3 +398,7 @@ export const encounterNpcs = makeStore(getDb, EncounterNpcSchema, STORE_NAMES.en
   hasUpdatedAt: true,
   salvageSchema: deepStrip(EncounterNpcSchema),
 })
+
+// ADR-022: append-only per-entity Change Log (provenance). Not an entity
+// store — no makeStore CRUD; see ./changeLog.ts for its append/list surface.
+export const changeLog = makeChangeLogStore(getDb)

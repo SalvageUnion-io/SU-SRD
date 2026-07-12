@@ -101,12 +101,6 @@ type LiveSheetProps = {
   syncStats?: Record<string, number>
   /** Trailing top-bar actions (Share/Publish). */
   actions?: ReactNode
-  /**
-   * Floating thumb-zone affordance (the d20 QuickRollFab, design review
-   * R-6/U-3) — rendered outside the body flow so it never fights the sticky
-   * bar; the node positions itself (fixed, safe-area aware).
-   */
-  fab?: ReactNode
   className?: string
 }
 
@@ -161,7 +155,6 @@ export function LiveSheet({
   renderBody,
   syncStats,
   actions,
-  fab,
   className,
 }: LiveSheetProps) {
   const heroRef = useRef<HTMLElement | null>(null)
@@ -288,14 +281,9 @@ export function LiveSheet({
 
       {/* Body slabs — extra phone bottom padding when the FAB floats so the
           last card's controls stay reachable behind the thumb zone. */}
-      <div
-        className={cn('px-4 pb-[34px] pt-[18px] sm:px-[30px] sm:pb-[60px] sm:pt-6', fab && 'pb-24')}
-      >
+      <div className={cn('px-4 pb-[34px] pt-[18px] sm:px-[30px] sm:pb-[60px] sm:pt-6')}>
         {renderBody({ cardActions })}
       </div>
-
-      {/* Floating thumb-zone affordance (d20 quick-roll FAB) — self-positioned. */}
-      {fab}
     </div>
   )
 }

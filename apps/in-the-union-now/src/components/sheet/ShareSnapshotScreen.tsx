@@ -155,7 +155,7 @@ export function ShareSnapshotScreen({
           This {kind} no longer exists, so there is nothing to publish.
         </p>
         <AppLink href="/" className="text-sm underline">
-          &larr; Back to dashboard
+          &larr; Back to Roster
         </AppLink>
       </main>
     )

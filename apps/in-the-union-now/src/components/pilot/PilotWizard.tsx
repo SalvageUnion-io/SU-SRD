@@ -23,6 +23,7 @@ import { enrichPilotSnapshot } from '../../lib/rules/pilotSnapshot'
 import { evaluatePilotWarnings } from '../../lib/rules/softWarnings'
 import { pilotInventoryCapacity, pilotInventoryUsed } from '../sheet/pilotInventory'
 import { SoftWarningBanner } from '../shared/SoftWarningBanner'
+import { OffRulesEscape } from '../wizard/OffRulesEscape'
 import { RuleBrief } from '../wizard/RuleBrief'
 import type { StepRule } from '../wizard/RuleBrief'
 import { WizShell, WizTracker } from '../wizard/WizShell'
@@ -102,6 +103,8 @@ type PilotWizardProps = {
   onComplete: (pilotId: string) => void
   /** Called when the user cancels. */
   onCancel: () => void
+  /** Leaves the guided flow for the blank Free-Edit path (P3.3). Create only. */
+  onOffRules?: () => void
   /**
    * Id of an existing pilot being edited. When provided, handleSubmit takes
    * the update branch (never duplicates), the hard creation gates relax to
@@ -165,6 +168,7 @@ function pilotEditStepGate(step: PilotWizardStepId, form: PilotWizardFormState):
 export function PilotWizard({
   onComplete,
   onCancel,
+  onOffRules,
   pilotId,
   initialState,
   _rollDeps,
@@ -516,6 +520,9 @@ export function PilotWizard({
       }
       trackers={trackers}
       footerNote={gate.ok ? undefined : gate.reason}
+      escapeAction={
+        !isEdit && !gate.ok && onOffRules ? <OffRulesEscape onEscape={onOffRules} /> : undefined
+      }
       onBack={currentIndex > 0 ? goBack : undefined}
       onCancel={() => {
         clearWizardDraft(draftKey)

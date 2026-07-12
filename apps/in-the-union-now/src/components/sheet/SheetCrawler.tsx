@@ -28,7 +28,6 @@ import type { CrawlerEconomyDialog } from './CrawlerEconomyControl'
 import { CrawlerSheet } from './CrawlerSheet'
 import { LiveSheet } from './LiveSheet'
 import type { LiveSheetStripItem } from './LiveSheet'
-import { QuickRollFab } from './QuickRollFab'
 import { SheetHero } from './SheetHero'
 import { RailChip, RailEmpty } from './SheetRail'
 import { MechRailStats, PilotRailStats, RailCta, bayStates, mechStatusPill } from './SheetRailParts'
@@ -53,6 +52,16 @@ export function SheetCrawler({
 
   const maxSP = crawlerMaxSP(crawler)
   const sp = Math.min(crawler.currentSP ?? maxSP, maxSP)
+  // Cap override (ADR-022, Free Edit): pin Max SP via a signed maxSpModifier
+  // delta; the gauge shows "overridden from N" + a revert. Tagged `override`.
+  const derivedMaxSP = maxSP - (crawler.maxSpModifier ?? 0)
+  const overrideCrawlerMax = (fields: Partial<Crawler>) => {
+    void storeState.update('crawler', crawler.id, fields, { kind: 'override' })
+  }
+  const modOrUndef = (next: number, derived: number): number | undefined => {
+    const mod = next - derived
+    return mod === 0 ? undefined : mod
+  }
   const states = bayStates(crawler)
   const intactBays = states.filter((s) => s === 'intact').length
   const tl = parseCrawlerTechLevel(crawler.techLevel)
@@ -196,6 +205,15 @@ export function SheetCrawler({
           value={sp}
           max={maxSP}
           onChange={editable ? (v) => patch({ currentSP: v }) : undefined}
+          onMaxChange={
+            editable
+              ? (next) => overrideCrawlerMax({ maxSpModifier: modOrUndef(next, derivedMaxSP) })
+              : undefined
+          }
+          overriddenFrom={editable ? derivedMaxSP : undefined}
+          onRevertOverride={
+            editable ? () => overrideCrawlerMax({ maxSpModifier: undefined }) : undefined
+          }
           readOnly={!editable}
         />
       }
@@ -213,7 +231,6 @@ export function SheetCrawler({
         pill={{ label: 'Crawler', tone: 'crawler' }}
         segments={segments}
         actions={actions}
-        fab={editable ? <QuickRollFab /> : undefined}
         renderHero={({ heroRef }) => (
           <SheetHero
             heroRef={heroRef}

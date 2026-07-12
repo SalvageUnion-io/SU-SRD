@@ -151,7 +151,7 @@ export function SnapshotSheet({ snapshot }: SnapshotSheetProps) {
           <p className="text-wk-muted mb-4 break-words font-mono text-xs">{result.reason}</p>
         )}
         <AppLink href="/" className="text-sm underline">
-          &larr; Back to dashboard
+          &larr; Back to Roster
         </AppLink>
       </main>
     )

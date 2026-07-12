@@ -38,6 +38,7 @@ import {
 } from '../../lib/wizard/wizardDraft'
 import { useEntityStore } from '../../stores/entityStore'
 import { SoftWarningBanner } from '../shared/SoftWarningBanner'
+import { OffRulesEscape } from '../wizard/OffRulesEscape'
 import { RuleBrief } from '../wizard/RuleBrief'
 import type { StepRule } from '../wizard/RuleBrief'
 import { WizShell, WizTracker } from '../wizard/WizShell'
@@ -88,6 +89,8 @@ type CrawlerBuilderProps = {
   onComplete: (crawlerId: string) => void
   /** Called when the user cancels. */
   onCancel: () => void
+  /** Leaves the guided flow for the blank Free-Edit path (P3.3). Create only. */
+  onOffRules?: () => void
   /**
    * Id of an existing crawler being edited. When provided, handleSubmit takes
    * the update branch (never duplicates), the hard creation gates relax to
@@ -152,6 +155,7 @@ function slotPips(used: number, max: number): string {
 export function CrawlerBuilder({
   onComplete,
   onCancel,
+  onOffRules,
   crawlerId,
   initialState,
 }: CrawlerBuilderProps) {
@@ -507,6 +511,9 @@ export function CrawlerBuilder({
       notice={capacityNotice}
       trackers={trackers}
       footerNote={footerNote}
+      escapeAction={
+        !isEdit && !gate.ok && onOffRules ? <OffRulesEscape onEscape={onOffRules} /> : undefined
+      }
       onBack={currentIndex > 0 ? goBack : undefined}
       onCancel={() => {
         clearWizardDraft(draftKey)

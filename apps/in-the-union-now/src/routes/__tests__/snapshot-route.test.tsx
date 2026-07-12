@@ -75,9 +75,9 @@ describe('SnapshotPageInner — not found', () => {
     expect(screen.getByRole('heading', { name: /snapshot not found/i })).toBeTruthy()
   })
 
-  test('renders back to dashboard link on not-found', () => {
+  test('renders back to Roster link on not-found', () => {
     render(<SnapshotPageInner snapshot={null} notFound={true} error={null} />)
-    const link = screen.getByRole('link', { name: /back to dashboard/i })
+    const link = screen.getByRole('link', { name: /back to roster/i })
     expect(link).toBeTruthy()
   })
 })
@@ -180,6 +180,6 @@ describe('SnapshotSheet — invalid payload', () => {
     render(<SnapshotSheet snapshot={badSnapshot as Record<string, unknown>} />)
     expect(screen.getByRole('heading', { name: /could not render snapshot/i })).toBeTruthy()
     expect(screen.getByText(/invalid pilot data/i)).toBeTruthy()
-    expect(screen.getByRole('link', { name: /back to dashboard/i })).toBeTruthy()
+    expect(screen.getByRole('link', { name: /back to roster/i })).toBeTruthy()
   })
 })

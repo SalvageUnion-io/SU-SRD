@@ -6,7 +6,7 @@
  *      its wired counterparts (`/sheet/<kind>/<id>`). Anchors are asserted
  *      directly (no RouterProvider → AppLink degrades to plain `<a href>`).
  *   2. Entity-not-found — an id absent from the store renders the styled
- *      "{kind} not found" surface with a "Back to dashboard" exit link.
+ *      "{kind} not found" surface with a "Back to Roster" exit link.
  *   3. Rail Unassign availability — per the unified edit language the rail
  *      chip's ✕ Unassign control is always available on editable sheets and
  *      never rendered on read-only (snapshot) sheets.
@@ -192,7 +192,7 @@ describe('Sheet — rail cross-links', () => {
 // ---------------------------------------------------------------------------
 
 describe('Sheet — entity not found', () => {
-  test('unknown id renders the not-found heading + back-to-dashboard link', () => {
+  test('unknown id renders the not-found heading + back-to-Roster link', () => {
     render(
       <Sheet
         kind="pilot"
@@ -203,7 +203,7 @@ describe('Sheet — entity not found', () => {
     )
     expect(screen.getByRole('heading', { name: /pilot not found/i })).toBeTruthy()
 
-    const back = screen.getByRole('link', { name: /back to dashboard/i })
+    const back = screen.getByRole('link', { name: /back to roster/i })
     expect(back.getAttribute('href')).toBe('/')
   })
 
