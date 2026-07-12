@@ -39,6 +39,7 @@ import { STARTER_WORKSPACE_ID } from '../../lib/starterSet/starterSet'
 import { useEntityStore } from '../../stores/entityStore'
 import { ExportAllButton } from '../export/ExportAllButton'
 import { ImportButton } from '../export/ImportButton'
+import { CockpitChooser } from '../play/CockpitChooser'
 import { AppLink } from '../shared/AppLink'
 import { WorkspaceSwitcher } from '../workspace/WorkspaceSwitcher'
 import { DashboardSkeleton } from './DashboardSkeleton'
@@ -221,6 +222,9 @@ export function Dashboard() {
           <div className="flex flex-wrap items-start gap-2.5">
             <ExportAllButton />
             <ImportButton />
+            {/* Launch the Play Cockpit for a chosen pilot/mech/crawler crew
+                (design-spec §8). Shown once at least one mech exists to run. */}
+            {allMechs.length > 0 && <CockpitChooser />}
           </div>
           <WorkspaceSwitcher
             activeWorkspaceId={activeWorkspaceId}
