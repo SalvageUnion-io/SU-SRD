@@ -157,7 +157,7 @@ describe('Print markup — PilotSheet', () => {
         softLinkStore={makeEmptySoftLinkStore()}
       />
     )
-    const backLink = container.querySelector('header a[aria-label="Back to dashboard"]')
+    const backLink = container.querySelector('header a[aria-label="Back to roster"]')
     expect(backLink).toBeTruthy()
   })
 })

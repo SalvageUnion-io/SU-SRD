@@ -40,7 +40,7 @@ function SheetKindNotFound() {
           href="/"
           className={cn(btnVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
         >
-          &larr; Back to dashboard
+          &larr; Back to Roster
         </AppLink>
       </div>
     </main>

@@ -167,7 +167,7 @@ describe('CockpitChooser — wizard', () => {
 
     // Open the chooser.
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Launch the Play Cockpit' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Launch the Dashboard' }))
     })
     await settle(() => screen.queryByRole('radio', { name: /Yara Voss/ }) !== null)
     expect(screen.getByRole('radio', { name: /Yara Voss/ })).toBeTruthy()
@@ -198,7 +198,7 @@ describe('CockpitChooser — wizard', () => {
     })
 
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Launch the Play Cockpit' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Launch the Dashboard' }))
     })
     await settle(() => screen.queryByRole('radio', { name: /Yara Voss/ }) !== null)
 
@@ -222,7 +222,7 @@ describe('CockpitChooser — wizard', () => {
     })
     await act(async () => {
       fireEvent.click(
-        screen.getByRole('button', { name: 'Launch the cockpit for the chosen crew' })
+        screen.getByRole('button', { name: 'Launch the Dashboard for the chosen crew' })
       )
     })
     await settle(() => result.id !== null)

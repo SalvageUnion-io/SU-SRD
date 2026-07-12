@@ -97,7 +97,7 @@ export function Sheet({
             href="/"
             className={cn(btnVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
           >
-            &larr; Back to dashboard
+            &larr; Back to Roster
           </AppLink>
         </div>
       </main>
@@ -105,7 +105,7 @@ export function Sheet({
   }
 
   const wired = composition.mode === 'wired'
-  const back = { href: '/', label: 'Dashboard' }
+  const back = { href: '/', label: 'Roster' }
   // Top-bar trailing actions (app-bar right group, design source
   // clean-pilot.html `.bar-actions`): Share (publish) stays inline; Print,
   // Export and Workspace tuck into the "⋯" overflow at every width — the app

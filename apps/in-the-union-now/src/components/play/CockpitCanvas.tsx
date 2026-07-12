@@ -50,9 +50,8 @@ export function CockpitCanvas({ children }: { children: ReactNode }) {
       {reflow ? (
         <div className="pc-reflow">
           <p>
-            The Play Cockpit is a landscape, single-screen HUD. This viewport is below its size
-            floor — rotate to landscape or use a larger screen. (A dedicated phone layout is
-            planned.)
+            The Dashboard is a landscape, single-screen HUD. This viewport is below its size floor —
+            rotate to landscape or use a larger screen. (A dedicated phone layout is planned.)
           </p>
         </div>
       ) : (

@@ -50,7 +50,7 @@ function renderShell(props: Partial<Parameters<typeof LiveSheet>[0]> = {}) {
         { key: 'hp', label: 'HP', stat: 'hp', value: 7, max: 10 },
         { key: 'cargo', label: 'Hold', stat: 'cargo', value: 0, max: 6 },
       ]}
-      back={{ href: '/', label: 'Dashboard' }}
+      back={{ href: '/', label: 'Roster' }}
       pill={{ label: 'Pilot', tone: 'pilot' }}
       renderHero={({ heroRef }) => (
         <section ref={heroRef} aria-label="hero">

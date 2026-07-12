@@ -183,7 +183,7 @@ export function CockpitChooser({ store, onLaunch, className }: CockpitChooserPro
         window.location.assign(`/play/${launchMechId}`)
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to launch the cockpit.')
+      setError(err instanceof Error ? err.message : 'Failed to launch the Dashboard.')
     } finally {
       setPending(false)
     }
@@ -198,9 +198,9 @@ export function CockpitChooser({ store, onLaunch, className }: CockpitChooserPro
         size="sm"
         onClick={openDialog}
         className={cn(className)}
-        aria-label="Launch the Play Cockpit"
+        aria-label="Launch the Dashboard"
       >
-        Launch Cockpit
+        Launch Dashboard
       </Btn>
 
       <ModalShell
@@ -208,7 +208,7 @@ export function CockpitChooser({ store, onLaunch, className }: CockpitChooserPro
         onOpenChange={(next) => {
           if (!next) closeDialog()
         }}
-        title="Launch Cockpit"
+        title="Launch Dashboard"
         subtitle={`Step ${stepIndex + 1} of 3 · ${stepTitle}`}
         headerBg="bg-su-orange"
         maxWidth="max-w-md"
@@ -298,7 +298,7 @@ export function CockpitChooser({ store, onLaunch, className }: CockpitChooserPro
                 size="sm"
                 onClick={() => void handleLaunch()}
                 disabled={pending}
-                aria-label="Launch the cockpit for the chosen crew"
+                aria-label="Launch the Dashboard for the chosen crew"
               >
                 {pending ? 'Launching…' : 'Launch'}
               </Btn>
