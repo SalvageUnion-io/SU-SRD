@@ -16,12 +16,15 @@ import { resolveSheetComposition } from '../sheet/composition'
 import type { EntityLookup } from '../sheet/composition'
 import { ActiveItemBand } from './ActiveItemBand'
 import { CockpitCanvas } from './CockpitCanvas'
+import { Dial } from './Dial'
+import { dialItems } from './dialItems'
 import { RailBar } from './RailBar'
 
 export function PlayCockpit({ id }: { id: string }) {
   const storeState = useEntityStore()
   // The active-row entity drives the whole-canvas tint (proposed ADR-018).
   const mount = usePlayStateStore((s) => s.mount)
+  const wheel = usePlayStateStore((s) => s.wheel)
   const mech = storeState.get('mech', id)
 
   if (!mech) {
@@ -57,8 +60,15 @@ export function PlayCockpit({ id }: { id: string }) {
     store: lookup,
   })
   const pilot = composition.pilot
+  const crawler = composition.crawler
   const onFoot = mount === 'pilot' && pilot !== null
   const railTitle = onFoot && pilot ? `Pilot · ${pilot.name}` : `Mech · ${mech.name}`
+
+  // The Dial holds the non-active entities + statless views; the item in the
+  // active slot is the display's focus (focus→display sync; content is Phase 4).
+  const items = dialItems({ mount: onFoot ? 'pilot' : 'mech', mech, pilot, crawler })
+  const focus =
+    items.length > 0 ? items[((wheel % items.length) + items.length) % items.length] : undefined
 
   return (
     <CockpitCanvas>
@@ -68,10 +78,14 @@ export function PlayCockpit({ id }: { id: string }) {
           <ActiveItemBand mech={mech} pilot={pilot} />
         </div>
         <div className="pc-display">
-          <div className="pc-fill">Main display — SRD reference &amp; actions (Phase 4)</div>
+          <div className="pc-fill">
+            Showing · {focus?.label ?? '—'}
+            <br />
+            Main display — SRD reference &amp; actions (Phase 4)
+          </div>
         </div>
         <div className="pc-wheel">
-          <div className="pc-placeholder">Dial (Phase 3)</div>
+          <Dial items={items} />
         </div>
       </div>
     </CockpitCanvas>
