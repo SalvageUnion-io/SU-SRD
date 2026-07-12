@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { KeyboardEvent } from 'react'
 
 import { cn } from '../../utils/cn'
@@ -75,8 +75,24 @@ export function VitalGauge({
   const isOverridden = overriddenFrom !== undefined && overriddenFrom !== max
   const [editingMax, setEditingMax] = useState(false)
   const [maxDraft, setMaxDraft] = useState('')
+  const maxInputRef = useRef<HTMLInputElement>(null)
+  // Guards commitMax against a double-fire: pressing Enter commits AND unmounts
+  // the focused input, whose blur would otherwise commit a second time.
+  const committedRef = useRef(false)
 
+  // Focus the max input once, on entering edit mode (not on every render).
+  useEffect(() => {
+    if (editingMax) maxInputRef.current?.focus()
+  }, [editingMax])
+
+  const beginEditMax = () => {
+    committedRef.current = false
+    setMaxDraft(String(max))
+    setEditingMax(true)
+  }
   const commitMax = () => {
+    if (committedRef.current) return
+    committedRef.current = true
     setEditingMax(false)
     const next = Number.parseInt(maxDraft, 10)
     if (Number.isFinite(next) && next >= 0 && next !== max) onMaxChange?.(next)
@@ -87,6 +103,7 @@ export function VitalGauge({
       commitMax()
     } else if (event.key === 'Escape') {
       event.preventDefault()
+      committedRef.current = true
       setEditingMax(false)
     }
   }
@@ -167,8 +184,7 @@ export function VitalGauge({
           </i>
           {editingMax ? (
             <input
-              // Focus on mount without the autoFocus attribute (a11y-lint safe).
-              ref={(el) => el?.focus()}
+              ref={maxInputRef}
               type="number"
               value={maxDraft}
               onChange={(event) => setMaxDraft(event.target.value)}
@@ -183,10 +199,7 @@ export function VitalGauge({
           ) : editableMax ? (
             <button
               type="button"
-              onClick={() => {
-                setMaxDraft(String(max))
-                setEditingMax(true)
-              }}
+              onClick={beginEditMax}
               aria-label={`Override ${label} max (currently ${max})`}
               className={cn(
                 'cursor-pointer rounded-[2px] px-0.5 underline decoration-dotted underline-offset-2',
@@ -209,7 +222,7 @@ export function VitalGauge({
               *
             </sup>
           )}
-          {isOverridden && onRevertOverride && (
+          {isOverridden && onRevertOverride && !editingMax && (
             <button
               type="button"
               onClick={onRevertOverride}

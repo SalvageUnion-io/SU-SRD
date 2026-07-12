@@ -126,7 +126,29 @@ describe('VitalGauge — cap override (ADR-022)', () => {
     const input = must(screen.getByLabelText('Set SP max')) as HTMLInputElement
     fireEvent.change(input, { target: { value: '16' } })
     fireEvent.keyDown(input, { key: 'Enter' })
+    // A trailing blur (fired when the input unmounts on Enter) must NOT commit
+    // a second time — that would double the override write + change-log entry.
+    fireEvent.blur(input)
     expect(onMaxChange).toHaveBeenCalledWith(16)
+    expect(onMaxChange).toHaveBeenCalledTimes(1)
+  })
+
+  test('the revert control is hidden while the max is being edited', () => {
+    render(
+      <VitalGauge
+        label="SP"
+        value={9}
+        max={16}
+        onChange={() => {}}
+        onMaxChange={() => {}}
+        overriddenFrom={13}
+        onRevertOverride={() => {}}
+      />
+    )
+    expect(screen.getByRole('button', { name: /revert sp max to derived 13/i })).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: /override sp max/i }))
+    // Editing the max: the revert affordance is gone (no conflicting write).
+    expect(screen.queryByRole('button', { name: /revert sp max/i })).toBeNull()
   })
 
   test('Escape cancels without committing', () => {

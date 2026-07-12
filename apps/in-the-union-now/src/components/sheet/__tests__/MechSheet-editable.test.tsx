@@ -232,30 +232,16 @@ describe('MechSheet — per-item uses counters (rules B13)', () => {
   })
 })
 
-describe('MechSheet — chassis ability slab', () => {
-  test('Use spends the ability EP cost', async () => {
-    const captured: CapturedUpdate[] = []
+describe('MechSheet — chassis ability slab (no activation on the sheet, ADR-021)', () => {
+  test('the ability + its EP cost show, but there is no Use button', () => {
     // Spectrum's Data Scanner costs 2 EP. Real chassis → real ability slab.
+    // Activating an ability is a Dashboard transaction, not a Free-Edit act.
     const mech = makeMech({ chassisRef: 'Spectrum', currentEP: 5 })
-    render(<MechSheet mech={mech} store={makeStore(mech, captured)} />)
-
-    await act(async () => {
-      clickButton(/^use data scanner$/i)
-    })
-
-    expect(must(captured[0]).patch).toEqual({ currentEP: 3 })
-  })
-
-  test('Use is blocked while the mech is shut down', () => {
-    const mech = makeMech({
-      chassisRef: 'Spectrum',
-      currentEP: 5,
-      shutdown: true,
-    })
     render(<MechSheet mech={mech} store={makeStore(mech, [])} />)
 
-    const btn = screen.getByRole('button', { name: /^use data scanner$/i })
-    expect((btn as HTMLButtonElement).disabled).toBe(true)
-    expect(btn.getAttribute('title')).toMatch(/shut down/i)
+    // The ability card + EP-cost readout are present…
+    expect(screen.getByText(/Data Scanner/i)).toBeTruthy()
+    // …but the sheet offers no Use button to spend the EP.
+    expect(screen.queryByRole('button', { name: /^use data scanner$/i })).toBeNull()
   })
 })

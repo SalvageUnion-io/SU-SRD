@@ -45,7 +45,7 @@
 import { useState } from 'react'
 import type { ReactNode } from 'react'
 import { SalvageUnionReference, nameToSlug } from 'salvageunion-reference'
-import { Btn, ValueDisplay, VitalGauge, heatDangerFrom } from 'suref-react'
+import { ValueDisplay, VitalGauge, heatDangerFrom } from 'suref-react'
 
 import { useCargo } from '../../lib/cargo/useCargo'
 import { computeMechCapacity } from '../../lib/rules/capacity'
@@ -318,13 +318,6 @@ export function MechSheet({
     }
   }
 
-  async function activateChassisAbility(epCost: number) {
-    const fresh = freshMech()
-    await storeState.update('mech', mech.id, {
-      currentEP: Math.max(0, (fresh.currentEP ?? maxEP) - epCost),
-    })
-  }
-
   /** Quirk / Appearance field save — mirrors the old SheetDescription saves. */
   function saveQuirk(next: string) {
     void storeState.update('mech', mech.id, { quirk: next.trim() || undefined })
@@ -535,36 +528,17 @@ export function MechSheet({
             >
               <Ecflow>
                 {chassisAbilities.map((ability) => {
+                  // Activating an ability (spending its EP) is a Guided-Play
+                  // transaction — it lives on the Dashboard, not the Free-Edit
+                  // Live Sheet (ADR-021). The sheet shows the ability + its EP
+                  // cost; EP is spent by hand-editing the EP gauge (free state).
                   const epCost =
                     typeof ability.activationCost === 'number' ? ability.activationCost : 0
-                  const reason = mech.destroyed
-                    ? 'Mech destroyed'
-                    : mech.shutdown
-                      ? 'Shut down — clear shutdown first'
-                      : epCost > currentEP
-                        ? `Not enough EP (needs ${epCost})`
-                        : null
                   return (
                     <ActionCardErow
                       key={ability.id}
                       ability={ability}
                       footMeta={epCost > 0 ? [{ label: 'EP Cost', value: epCost }] : undefined}
-                      actions={
-                        !readOnly && epCost > 0 ? (
-                          <Btn
-                            size="sm"
-                            variant="primary"
-                            disabled={reason !== null}
-                            title={reason ?? undefined}
-                            aria-label={`Use ${ability.name}`}
-                            onClick={() => {
-                              void activateChassisAbility(epCost)
-                            }}
-                          >
-                            Use
-                          </Btn>
-                        ) : undefined
-                      }
                     />
                   )
                 })}

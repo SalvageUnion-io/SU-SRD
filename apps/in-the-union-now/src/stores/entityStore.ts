@@ -340,6 +340,10 @@ export const useEntityStore = create<EntityState>((set, get) => ({
     }))
     afterWrite(type)
     // Provenance (ADR-022): one entry per changed field, at this one chokepoint.
+    // Deliberately awaited (not fire-and-forget): the ~1ms IDB append is
+    // negligible for a local-first app, and awaiting guarantees the log is
+    // consistent the moment update() resolves — a reader that opens the Change
+    // Log right after an edit sees the entry, and tests stay deterministic.
     await emitChangeLog(type, id, patch, before, updated, meta)
     return updated
   },
