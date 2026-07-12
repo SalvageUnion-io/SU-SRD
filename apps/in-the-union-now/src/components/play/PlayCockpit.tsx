@@ -10,14 +10,19 @@
  * See docs/architecture/play-cockpit.md for the full plan.
  */
 
+import { useCallback, useState } from 'react'
+
+import { useWorkspace } from '../../hooks/queries/workspaces'
+import type { CockpitPrefs } from '../../lib/schemas/cockpitPrefs'
 import { useEntityStore } from '../../stores/entityStore'
 import { usePlayStateStore } from '../../stores/playStateStore'
+import { useWorkspaceStore } from '../../stores/workspaceStore'
 import { resolveSheetComposition } from '../sheet/composition'
 import type { EntityLookup } from '../sheet/composition'
 import { ActiveItemBand } from './ActiveItemBand'
 import { CockpitCanvas } from './CockpitCanvas'
 import { Dial } from './Dial'
-import { dialItems } from './dialItems'
+import { applyDialPrefs, configurableKinds, dialItems } from './dialItems'
 import { DisplayView } from './DisplayView'
 import { DowntimeWizard } from './DowntimeWizard'
 import { RailBar } from './RailBar'
@@ -29,6 +34,24 @@ export function PlayCockpit({ id }: { id: string }) {
   const wheel = usePlayStateStore((s) => s.wheel)
   const leaveDowntime = usePlayStateStore((s) => s.leaveDowntime)
   const mech = storeState.get('mech', id)
+
+  // Persisted dial prefs live on the owning workspace (local-first, Phase 7).
+  // Hooks run unconditionally (before the no-mech early return); when the mech
+  // has no workspace, prefs fall back to session-only React state.
+  const workspaceId = mech?.workspaceId ?? null
+  const workspace = useWorkspace(workspaceId)
+  const [sessionPrefs, setSessionPrefs] = useState<CockpitPrefs | undefined>(undefined)
+  const prefs = workspace?.cockpitPrefs ?? sessionPrefs
+  const setPrefs = useCallback(
+    (next: CockpitPrefs) => {
+      if (workspaceId) {
+        void useWorkspaceStore.getState().update(workspaceId, { cockpitPrefs: next })
+      } else {
+        setSessionPrefs(next)
+      }
+    },
+    [workspaceId]
+  )
 
   if (!mech) {
     return (
@@ -79,7 +102,9 @@ export function PlayCockpit({ id }: { id: string }) {
 
   // The Dial holds the non-active entities + statless views; the item in the
   // active slot is the display's focus (focus→display sync; content is Phase 4).
-  const items = dialItems({ mount, mech, pilot, crawler })
+  // Persisted prefs (show/hide + order) are applied on top of the base list.
+  const items = applyDialPrefs(dialItems({ mount, mech, pilot, crawler }), prefs)
+  const cfgKinds = configurableKinds({ pilot, crawler })
   const focus =
     items.length > 0 ? items[((wheel % items.length) + items.length) % items.length] : undefined
 
@@ -102,7 +127,7 @@ export function PlayCockpit({ id }: { id: string }) {
           )}
         </div>
         <div className="pc-wheel">
-          <Dial items={items} />
+          <Dial items={items} configKinds={cfgKinds} prefs={prefs} onPrefsChange={setPrefs} />
         </div>
       </div>
     </CockpitCanvas>

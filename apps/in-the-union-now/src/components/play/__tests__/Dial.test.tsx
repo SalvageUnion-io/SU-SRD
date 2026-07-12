@@ -11,15 +11,16 @@ import { Dial } from '../Dial'
 import type { DialItem } from '../dialItems'
 
 const items: DialItem[] = [
-  { key: 'actions', statless: true, label: 'Actions', sublabel: 'deck' },
+  { key: 'actions', kind: 'actions', statless: true, label: 'Actions', sublabel: 'deck' },
   {
     key: 'pilot',
+    kind: 'pilot',
     statless: false,
     label: 'Pilot · Vesh',
     tone: 'pilot',
     gauges: [{ label: 'HP', value: 8, max: 10, tone: 'pilot' }],
   },
-  { key: 'tables', statless: true, label: 'Tables', sublabel: 'roll' },
+  { key: 'tables', kind: 'tables', statless: true, label: 'Tables', sublabel: 'roll' },
 ]
 
 describe('Dial', () => {

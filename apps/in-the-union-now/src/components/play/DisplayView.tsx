@@ -10,6 +10,8 @@
  * of the display stays the read-only reference document from Phase 4.
  */
 
+import { useState } from 'react'
+
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
 import { ReferenceEntityDisplay, RollTable } from 'suref-react'
@@ -39,17 +41,40 @@ function EntityCard({ data, note }: { data: SURefEntity | null; note: string }) 
 
 export function DisplayView({ focus, mech, pilot, crawler }: DisplayViewProps) {
   const enterDowntime = usePlayStateStore((s) => s.enterDowntime)
+  // Which roll table the Tables focus shows (ephemeral; defaults to Core Mechanic).
+  const [tableId, setTableId] = useState<string | null>(null)
   if (!focus) return <div className="pc-display-note">Nothing selected.</div>
 
   if (focus.statless) {
     if (focus.key === 'tables') {
-      const table = SalvageUnionReference.RollTables.find((t) => t.name === 'Core Mechanic') as
-        | Parameters<typeof RollTable>[0]['table']
-        | undefined
+      const tables = SalvageUnionReference.RollTables.all() as Array<{ id: string; name: string }>
+      const sorted = [...tables].sort((a, b) => a.name.localeCompare(b.name))
+      const selected =
+        (tableId ? tables.find((t) => t.id === tableId) : undefined) ??
+        tables.find((t) => t.name === 'Core Mechanic') ??
+        sorted[0]
       return (
         <div className="pc-display-scroll">
-          {table ? (
-            <RollTable table={table} tableName="Core Mechanic" />
+          <label className="pc-table-picker">
+            <span className="pc-table-picker-lab">Roll table</span>
+            <select
+              className="pc-table-picker-sel"
+              value={selected?.id ?? ''}
+              onChange={(e) => setTableId(e.target.value)}
+              aria-label="Choose a roll table"
+            >
+              {sorted.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          {selected ? (
+            <RollTable
+              table={selected as unknown as Parameters<typeof RollTable>[0]['table']}
+              tableName={selected.name}
+            />
           ) : (
             <div className="pc-display-note">Roll tables load here.</div>
           )}

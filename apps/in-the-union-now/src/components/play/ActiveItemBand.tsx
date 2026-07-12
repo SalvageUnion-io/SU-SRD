@@ -32,6 +32,7 @@ import { describePushOutcome } from '../../lib/rules/coreMechanic'
 import { resolveChassisRef } from '../../lib/rules/resolveRefs'
 import type { CriticalDamageEffect, CriticalInjuryEffect } from '../../lib/rules/takeDamage'
 import type { Crawler } from '../../lib/schemas/crawler'
+import type { CargoLot } from '../../lib/schemas/cargoLot'
 import { totalLotUnits } from '../../lib/schemas/cargoLot'
 import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
@@ -52,8 +53,6 @@ import {
   pushPatch,
   shutdownTogglePatch,
 } from './playRules'
-
-const PHASE7 = 'Cargo hold overlay lands in a later phase'
 
 /** The store surface the band needs — injectable so tests can assert patches. */
 export type PlayStore = Pick<EntityState, 'get' | 'update'>
@@ -190,7 +189,58 @@ type MechPrompt =
   | { kind: 'dmg' }
   | { kind: 'crit'; effect: CriticalDamageEffect | null; log: string }
   | { kind: 'eject' }
+  | { kind: 'storage' }
   | null
+
+// ---------------------------------------------------------------------------
+// Cargo-hold overlay (Phase 7) — lists the mech's cargo lots with a Jettison
+// affordance. Jettison is irreversible (the cargo is discarded), so per ADR-007
+// it is a player-confirmed explicit button, never silent auto-bookkeeping.
+// ---------------------------------------------------------------------------
+
+function StorageBay({
+  lots,
+  used,
+  cap,
+  onJettison,
+}: {
+  lots: CargoLot[]
+  used: number
+  cap: number
+  onJettison: (lotId: string) => void
+}) {
+  return (
+    <div className="pc-cargo">
+      <p className="pc-cargo-usage">
+        Hold {used}/{cap}
+      </p>
+      {lots.length === 0 ? (
+        <p className="pc-resolve-log">Cargo hold is empty.</p>
+      ) : (
+        <ul className="pc-cargo-list">
+          {lots.map((lot) => (
+            <li key={lot.id} className="pc-cargo-row">
+              <span className="pc-cargo-name">
+                <span className="pc-cargo-code">{lot.code}</span>
+                {lot.name}
+                {lot.kind === 'bulk' && lot.qty !== undefined ? ` ×${lot.qty}` : ''}
+                <span className="pc-cargo-units">{lot.units}u</span>
+              </span>
+              <button
+                type="button"
+                className="pc-btn pc-btn-danger"
+                onClick={() => onJettison(lot.id)}
+                aria-label={`Jettison ${lot.name}`}
+              >
+                Jettison
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
 
 function MechBand({
   mech,
@@ -285,6 +335,13 @@ function MechBand({
     setPrompt(null)
   }
 
+  function jettison(lotId: string) {
+    const m = fresh()
+    void store.update('mech', mech.id, {
+      cargoLots: m.cargoLots.filter((lot) => lot.id !== lotId),
+    })
+  }
+
   return (
     <div className="pc-band" data-fam="mech">
       <div className="pc-band-id">
@@ -356,7 +413,12 @@ function MechBand({
             >
               Take Dmg
             </button>
-            <button type="button" className="pc-btn" disabled title={PHASE7}>
+            <button
+              type="button"
+              className="pc-btn"
+              onClick={() => setPrompt({ kind: 'storage' })}
+              title="Open the cargo hold"
+            >
               Storage
             </button>
           </div>
@@ -419,6 +481,16 @@ function MechBand({
               </div>
             )
           )}
+        </ResolveOverlay>
+      )}
+      {prompt?.kind === 'storage' && (
+        <ResolveOverlay title="Cargo Hold" onClose={() => setPrompt(null)}>
+          <StorageBay
+            lots={fresh().cargoLots}
+            used={totalLotUnits(fresh().cargoLots)}
+            cap={maxCargo}
+            onJettison={jettison}
+          />
         </ResolveOverlay>
       )}
       {prompt?.kind === 'eject' && (

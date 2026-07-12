@@ -650,6 +650,7 @@
 
 /* ---- Rotary Dial ---- */
 .pc-wheel-col {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -821,4 +822,175 @@
   font-family: 'Barlow', sans-serif;
   font-size: 13px;
   line-height: 1.5;
+}
+
+/* --------------------------------------------------------------------------
+ * Phase 7 — dial config (⚙), cargo-hold overlay, table picker.
+ * ------------------------------------------------------------------------ */
+
+/* The ⚙ gear sits alongside ▲▼ but is intrinsically sized, not stretched. */
+.pc-wheel-btn.pc-wheel-cfg {
+  flex: 0 0 auto;
+  width: 30px;
+}
+
+/* Dial-config overlay — covers the dial column like the resolve overlay. */
+.pc-dialcfg {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 12px 10px;
+  background: color-mix(in oklab, var(--pc-ground) 92%, #000);
+  border: 1.5px solid var(--pc-line-hard);
+  border-radius: 5px;
+  z-index: 3;
+}
+.pc-dialcfg-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.pc-dialcfg-title {
+  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 11px;
+  color: var(--pc-muted);
+}
+.pc-dialcfg-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+}
+.pc-dialcfg-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 8px;
+  border: 1.5px solid var(--pc-line);
+  border-radius: 4px;
+  background: color-mix(in oklab, var(--pc-panel) 70%, #000);
+}
+.pc-dialcfg-show {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  min-width: 0;
+}
+.pc-dialcfg-lab {
+  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-size: 12px;
+  color: var(--pc-text);
+}
+.pc-dialcfg-lab.hidden {
+  color: var(--pc-muted);
+  text-decoration: line-through;
+}
+.pc-dialcfg-move {
+  display: flex;
+  gap: 4px;
+  flex: 0 0 auto;
+}
+.pc-dialcfg-move .pc-wheel-btn {
+  width: 30px;
+  flex: 0 0 auto;
+}
+
+/* Cargo-hold overlay body (inside the mech-band resolve overlay). */
+.pc-cargo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  min-height: 0;
+}
+.pc-cargo-usage {
+  margin: 0;
+  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 11px;
+  color: var(--pc-muted);
+  text-align: center;
+}
+.pc-cargo-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+}
+.pc-cargo-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 8px;
+  border: 1.5px solid var(--pc-line);
+  border-radius: 4px;
+  background: color-mix(in oklab, var(--pc-panel) 70%, #000);
+}
+.pc-cargo-name {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+  font-family: 'Barlow', sans-serif;
+  font-size: 13px;
+  color: var(--pc-text);
+}
+.pc-cargo-code {
+  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--pc-muted);
+}
+.pc-cargo-units {
+  font-size: 11px;
+  color: var(--pc-muted);
+}
+.pc-cargo-row .pc-btn {
+  width: auto;
+  flex: 0 0 auto;
+  padding: 5px 10px;
+}
+
+/* Roll-table picker above the RollTable in the light display. */
+.pc-table-picker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.pc-table-picker-lab {
+  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 11px;
+}
+.pc-table-picker-sel {
+  flex: 1;
+  min-width: 0;
+  padding: 5px 8px;
+  border-radius: 4px;
+  font-family: 'Barlow', sans-serif;
+  font-size: 13px;
 }
