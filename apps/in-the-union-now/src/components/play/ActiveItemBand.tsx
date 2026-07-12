@@ -185,7 +185,7 @@ function DamageStepper({ amount, setAmount }: { amount: number; setAmount: (n: n
 // ---------------------------------------------------------------------------
 
 type MechPrompt =
-  | { kind: 'reactor'; log: string }
+  | { kind: 'reactor'; log: string; meltdown?: boolean }
   | { kind: 'dmg' }
   | { kind: 'crit'; effect: CriticalDamageEffect | null; log: string }
   | { kind: 'eject' }
@@ -275,32 +275,35 @@ function MechBand({
     const m = fresh()
     const cap = mechMaxHeat(m, chassis)
     const spMax = mechMaxSP(m, chassis)
-    const { patch, effect, nextHeat } = pushPatch({
+    const { patch, effect, nextHeat, meltdown } = pushPatch({
       heat: Math.min(m.currentHeat ?? cap, cap),
       heatCap: cap,
       currentSP: Math.min(m.currentSP ?? spMax, spMax),
       roll: defaultRoll,
     })
     void store.update('mech', mech.id, patch)
-    setPrompt({ kind: 'reactor', log: describePushOutcome(nextHeat, effect) })
+    setPrompt({ kind: 'reactor', log: describePushOutcome(nextHeat, effect), meltdown })
   }
 
   function doHeatCheck() {
     const m = fresh()
     const cap = mechMaxHeat(m, chassis)
     const spMax = mechMaxSP(m, chassis)
-    const { patch, effect } = heatCheckOncePatch({
+    const { patch, effect, meltdown } = heatCheckOncePatch({
       heat: Math.min(m.currentHeat ?? cap, cap),
       currentSP: Math.min(m.currentSP ?? spMax, spMax),
       roll: defaultRoll,
     })
     void store.update('mech', mech.id, patch)
-    setPrompt({ kind: 'reactor', log: describeHeatCheck(effect) })
+    setPrompt({ kind: 'reactor', log: describeHeatCheck(effect), meltdown })
   }
 
   function doVent() {
     void store.update('mech', mech.id, VENT_PATCH)
-    setPrompt({ kind: 'reactor', log: 'Vented — Heat 0, reactor shut down, Vulnerable.' })
+    setPrompt({
+      kind: 'reactor',
+      log: 'Vented — Heat 0, Vulnerable. (Shut down separately if needed.)',
+    })
   }
 
   function doShutdown() {
@@ -451,6 +454,13 @@ function MechBand({
       {prompt?.kind === 'reactor' && (
         <ResolveOverlay title="Reactor" onClose={() => setPrompt(null)}>
           <p className="pc-resolve-log">{prompt.log}</p>
+          {prompt.meltdown && (
+            <div className="pc-resolve-actions">
+              <button type="button" className="pc-btn pc-btn-danger" onClick={confirmDestroyed}>
+                Confirm Meltdown — Mark Mech Destroyed
+              </button>
+            </div>
+          )}
         </ResolveOverlay>
       )}
       {prompt?.kind === 'dmg' && (

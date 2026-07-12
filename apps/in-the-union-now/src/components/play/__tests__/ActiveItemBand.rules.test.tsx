@@ -58,12 +58,12 @@ describe('ActiveItemBand rules buttons', () => {
     usePlayStateStore.setState({ mount: 'mech', wheel: 0 })
   })
 
-  test('Vent writes Heat 0 + shutdown + Vulnerable', () => {
+  test('Vent writes Heat 0 + Vulnerable (no auto-shutdown; Vent ≠ Shutdown, plan §5.1)', () => {
     const { store, calls } = stubStore([mech])
     render(<ActiveItemBand mech={mech} pilot={null} store={store} />)
     fireEvent.click(screen.getByText('Vent'))
     expect(calls).toHaveLength(1)
-    expect(calls[0]?.patch).toEqual({ currentHeat: 0, shutdown: true, vulnerable: true })
+    expect(calls[0]?.patch).toEqual({ currentHeat: 0, vulnerable: true })
   })
 
   test('Shutdn toggles the shutdown flag', () => {

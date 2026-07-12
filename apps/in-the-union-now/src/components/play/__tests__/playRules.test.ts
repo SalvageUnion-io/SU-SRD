@@ -64,14 +64,31 @@ describe('reactor patches', () => {
     expect(patch.currentSP).toBe(0) // 10 − 20, clamped
   })
 
-  test('heatCheckOncePatch: no +2, persists current Heat', () => {
-    const { patch } = heatCheckOncePatch({ heat: 6, currentSP: 5, roll: seqRoll([20]) })
-    expect(patch.currentHeat).toBe(6)
-    expect(patch.shutdown).toBeUndefined()
+  test('pushPatch: Meltdown (overload roll 1) is player-confirmed, NOT auto-destroyed', () => {
+    // Heat Check d20 = 1 (overload), overload roll = 1 (meltdown).
+    const { patch, meltdown } = pushPatch({
+      heat: 18,
+      heatCap: 20,
+      currentSP: 10,
+      roll: seqRoll([1, 1]),
+    })
+    expect(meltdown).toBe(true)
+    // The destructive flag must NOT auto-apply — the cockpit gates it (ADR-007).
+    expect(patch.destroyed).toBeUndefined()
   })
 
-  test('VENT_PATCH dumps Heat to 0 and shuts down', () => {
-    expect(VENT_PATCH).toEqual({ currentHeat: 0, shutdown: true, vulnerable: true })
+  test('heatCheckOncePatch: no +2, persists current Heat; meltdown gated', () => {
+    const passed = heatCheckOncePatch({ heat: 6, currentSP: 5, roll: seqRoll([20]) })
+    expect(passed.patch.currentHeat).toBe(6)
+    expect(passed.patch.shutdown).toBeUndefined()
+    expect(passed.meltdown).toBe(false)
+    const melt = heatCheckOncePatch({ heat: 20, currentSP: 5, roll: seqRoll([1, 1]) })
+    expect(melt.meltdown).toBe(true)
+    expect(melt.patch.destroyed).toBeUndefined()
+  })
+
+  test('VENT_PATCH dumps Heat to 0 + Vulnerable, no auto-shutdown (Vent ≠ Shutdown, plan §5.1)', () => {
+    expect(VENT_PATCH).toEqual({ currentHeat: 0, vulnerable: true })
   })
 
   test('shutdownTogglePatch flips the flag', () => {

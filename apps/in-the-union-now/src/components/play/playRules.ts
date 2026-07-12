@@ -44,33 +44,58 @@ import type { MechItem, MechItemEconomy } from '../sheet/mechItemRules'
 // ---------------------------------------------------------------------------
 
 /**
- * Push: +2 Heat then an immediate Heat Check, assembled into one write-through
- * patch via the shared `heatCheckPatch` (the exact path `SheetMech.pushMech`
- * uses). Deterministic bookkeeping auto-applies; a destroyed System/Module
- * (`requiresPlayerChoice` bands) is left for the player to mark on the sheet.
+ * Strip the destructive `destroyed` flag out of a shared `heatCheckPatch`
+ * result. In the sheet, `heatCheckPatch` auto-sets `destroyed` on a Meltdown
+ * (overload roll = 1); the cockpit holds a STRICTER ADR-007 line — a Meltdown's
+ * mech-destruction is a player-confirmed step (like Critical Damage), never
+ * silent bookkeeping. All the non-destructive fields (Heat, shutdown,
+ * vulnerable, SP) still auto-apply; `meltdown` tells the caller to offer the
+ * confirm. The shared `heatCheckPatch` (SheetMech's path) is left untouched.
+ */
+function autoApplyPatch(patch: Partial<Mech>): { patch: Partial<Mech>; meltdown: boolean } {
+  if (!patch.destroyed) return { patch, meltdown: false }
+  const rest = { ...patch }
+  delete rest.destroyed
+  return { patch: rest, meltdown: true }
+}
+
+/**
+ * Push: +2 Heat then an immediate Heat Check. Non-destructive bookkeeping
+ * auto-applies via the shared `heatCheckPatch`; a Meltdown's `destroyed` is
+ * held back (`meltdown: true`) for the caller's player-confirm (ADR-007).
+ * Destroyed System/Module bands are likewise left for the player to mark.
  */
 export function pushPatch(args: { heat: number; heatCap: number; currentSP: number; roll: Roll }): {
   patch: Partial<Mech>
   effect: HeatCheckEffect
   nextHeat: number
+  meltdown: boolean
 } {
   const { nextHeat, effect } = performPush(args)
-  return { patch: heatCheckPatch(effect, nextHeat), effect, nextHeat }
+  const { patch, meltdown } = autoApplyPatch(heatCheckPatch(effect, nextHeat))
+  return { patch, effect, nextHeat, meltdown }
 }
 
-/** A standalone Heat Check at current Heat (no +2). */
+/** A standalone Heat Check at current Heat (no +2). Meltdown is player-confirmed. */
 export function heatCheckOncePatch(args: { heat: number; currentSP: number; roll: Roll }): {
   patch: Partial<Mech>
   effect: HeatCheckEffect
+  meltdown: boolean
 } {
   const effect = performHeatCheck(args)
-  return { patch: heatCheckPatch(effect, args.heat), effect }
+  const { patch, meltdown } = autoApplyPatch(heatCheckPatch(effect, args.heat))
+  return { patch, effect, meltdown }
 }
 
-/** Emergency Vent: dump Heat to 0, mech shuts down and is Vulnerable. */
+/**
+ * Emergency Vent: dump Heat to 0 and become Vulnerable (plan §5.1 — Vent and
+ * Shutdown are distinct Reactor-bay controls: Vent sets Heat→0 + `vulnerable`,
+ * Shutdown toggles the flag). NB the tabletop rule folds a full shutdown into
+ * venting; the cockpit keeps them separate per the plan — hit Shutdown too for
+ * the strict-SRD sequence.
+ */
 export const VENT_PATCH: Partial<Mech> = {
   currentHeat: 0,
-  shutdown: true,
   vulnerable: true,
 }
 
