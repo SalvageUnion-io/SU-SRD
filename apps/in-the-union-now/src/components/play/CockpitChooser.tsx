@@ -56,6 +56,15 @@ type CockpitChooserProps = {
   store?: LinkWriteStore & LaunchStore
   /** Inject to avoid the router in tests; receives the (possibly new) mech id. */
   onLaunch?: (mechId: string) => void
+  /**
+   * Pre-seed the crew picker from a launching pilot/mech sheet (P4.4): the
+   * seeded entity is pre-selected and the picker opens on the first still-empty
+   * step. Omit on the Roster chooser (start empty at the pilot step).
+   */
+  initialPilotId?: string
+  initialMechId?: string
+  /** Button label — defaults to "Launch Dashboard". */
+  label?: string
   className?: string
 }
 
@@ -77,7 +86,14 @@ function chassisMeta(chassisRef: string): string | undefined {
   }
 }
 
-export function CockpitChooser({ store, onLaunch, className }: CockpitChooserProps) {
+export function CockpitChooser({
+  store,
+  onLaunch,
+  initialPilotId,
+  initialMechId,
+  label = 'Launch Dashboard',
+  className,
+}: CockpitChooserProps) {
   const [open, setOpen] = useState(false)
   const [step, setStep] = useState<Step>('pilot')
   const [pilotId, setPilotId] = useState('')
@@ -98,10 +114,13 @@ export function CockpitChooser({ store, onLaunch, className }: CockpitChooserPro
   const router = useRouter({ warn: false })
 
   function openDialog() {
-    setStep('pilot')
-    setPilotId('')
-    setMechId('')
+    // Pre-seed from a launching sheet (P4.4); open on the first empty step.
+    const seedPilot = initialPilotId ?? ''
+    const seedMech = initialMechId ?? ''
+    setPilotId(seedPilot)
+    setMechId(seedMech)
     setCrawlerId('')
+    setStep(seedPilot === '' ? 'pilot' : seedMech === '' ? 'mech' : 'crawler')
     setError(null)
     setOpen(true)
   }
@@ -200,7 +219,7 @@ export function CockpitChooser({ store, onLaunch, className }: CockpitChooserPro
         className={cn(className)}
         aria-label="Launch the Dashboard"
       >
-        Launch Dashboard
+        {label}
       </Btn>
 
       <ModalShell

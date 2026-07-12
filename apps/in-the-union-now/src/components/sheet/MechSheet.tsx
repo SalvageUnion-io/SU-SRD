@@ -50,7 +50,6 @@ import { Btn, ValueDisplay, VitalGauge, heatDangerFrom } from 'suref-react'
 import { useCargo } from '../../lib/cargo/useCargo'
 import { computeMechCapacity } from '../../lib/rules/capacity'
 import { mechMaxEP, mechMaxHeat, mechMaxSP } from '../../lib/rules/derivedStats'
-import { clampHeat } from '../../lib/rules/heatCheck'
 import { addToScrapPool } from '../../lib/cargo/cargoTransfer'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { ItemCondition, Mech } from '../../lib/schemas/mech'
@@ -64,7 +63,6 @@ import { MechConditionsEditor } from './MechConditionsEditor'
 import { MechIdentityPanel } from './MechIdentity'
 import { MechItemCard } from './MechItemCard'
 import { cycleCondition, resolveModule, resolveSystem } from './mechItemRules'
-import type { MechItemEconomy } from './mechItemRules'
 import { SectionAddButton, SectionChead, SectionEditButton, SheetPickerModal } from './SheetSection'
 import { SheetSectionCard } from './SheetSectionCard'
 import type { ChassisStatItem } from './SheetHero'
@@ -287,26 +285,6 @@ export function MechSheet({
     }
   }
 
-  /** One activation: spend EP, take Hot heat, tick the uses counter down. */
-  async function activateItem(slug: string, economy: MechItemEconomy) {
-    const fresh = freshMech()
-    const patch: Partial<Mech> = {}
-    if (economy.epCost > 0) {
-      patch.currentEP = Math.max(0, (fresh.currentEP ?? maxEP) - economy.epCost)
-    }
-    if (economy.heat > 0) {
-      patch.currentHeat = clampHeat((fresh.currentHeat ?? heatCap) + economy.heat, heatCap)
-    }
-    if (economy.maxUses > 0) {
-      const prevUses = fresh.itemUses ?? {}
-      const remaining = Math.min(prevUses[slug] ?? economy.maxUses, economy.maxUses)
-      patch.itemUses = { ...prevUses, [slug]: Math.max(0, remaining - 1) }
-    }
-    if (Object.keys(patch).length > 0) {
-      await storeState.update('mech', mech.id, patch)
-    }
-  }
-
   async function setItemUses(slug: string, next: number) {
     const fresh = freshMech()
     const prevUses = fresh.itemUses ?? {}
@@ -406,14 +384,10 @@ export function MechSheet({
               entity={kind === 'system' ? resolveSystem(slug) : resolveModule(slug)}
               condition={conditions[slug] ?? 'intact'}
               usesRemaining={mech.itemUses?.[slug]}
-              currentEP={currentEP}
               scrapPool={scrapPool}
               readOnly={readOnly}
               onStatusCycle={() => {
                 void cycleItemCondition(kind, slug)
-              }}
-              onUse={(economy) => {
-                void activateItem(slug, economy)
               }}
               onUsesChange={(next) => {
                 void setItemUses(slug, next)

@@ -18,6 +18,7 @@ import type { Pilot } from '../../lib/schemas/pilot'
 import { AssignCrawlerToPilot } from '../wiring/AssignCrawlerToPilot'
 import { LiveSheet } from './LiveSheet'
 import type { LiveSheetStripItem } from './LiveSheet'
+import { CockpitChooser } from '../play/CockpitChooser'
 import { PilotSheet } from './PilotSheet'
 import { SheetHero } from './SheetHero'
 import { RailChip, RailEmpty } from './SheetRail'
@@ -132,7 +133,16 @@ export function SheetPilot({
       back={back}
       pill={dead ? { label: 'Dead', tone: 'bad' } : { label: 'Pilot', tone: 'pilot' }}
       segments={segments}
-      actions={actions}
+      actions={
+        editable ? (
+          <>
+            <CockpitChooser initialPilotId={pilot.id} />
+            {actions}
+          </>
+        ) : (
+          actions
+        )
+      }
       renderHero={({ heroRef }) => (
         <SheetHero
           heroRef={heroRef}

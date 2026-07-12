@@ -20,6 +20,7 @@ import type { Mech } from '../../lib/schemas/mech'
 import { AssignPilotToMech } from '../wiring/AssignPilotToMech'
 import { LiveSheet } from './LiveSheet'
 import type { LiveSheetStripItem } from './LiveSheet'
+import { CockpitChooser } from '../play/CockpitChooser'
 import { MechSheet } from './MechSheet'
 import { SheetHero } from './SheetHero'
 import { RailChip, RailEmpty } from './SheetRail'
@@ -133,7 +134,16 @@ export function SheetMech({
       pill={mechStatusPill(mech)}
       segments={segments}
       syncStats={{ cargo: cargoUsed }}
-      actions={actions}
+      actions={
+        editable ? (
+          <>
+            <CockpitChooser initialMechId={mech.id} />
+            {actions}
+          </>
+        ) : (
+          actions
+        )
+      }
       renderHero={({ heroRef }) => <SheetHero heroRef={heroRef} cat="Mech" name={mech.name} />}
       renderBody={() => (
         <MechSheet

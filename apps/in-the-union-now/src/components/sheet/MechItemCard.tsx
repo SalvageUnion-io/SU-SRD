@@ -45,15 +45,19 @@ type MechItemCardProps = {
   condition: ItemCondition
   /** Uses remaining (mech.itemUses). Absent = full. */
   usesRemaining?: number
-  /** Current EP — gates the Use button honestly. */
-  currentEP: number
+  /** Current EP — gates the Use button honestly. Omit when Use is not offered. */
+  currentEP?: number
   /** Linked crawler's scrap pool; null when no crawler is wired. */
   scrapPool: ScrapPool | null
   readOnly: boolean
   /** Cycle this item's condition (Intact → Damaged → Destroyed). */
   onStatusCycle: () => void
-  /** Spend one activation (EP / heat / a use). */
-  onUse: (economy: MechItemEconomy) => void
+  /**
+   * Spend one activation (EP / heat / a use). "Using a system" is a Guided-Play
+   * transaction that belongs to the Dashboard (ADR-021); omit `onUse` on the
+   * Free-Edit Live Sheet — the uses counter stays hand-editable via onUsesChange.
+   */
+  onUse?: (economy: MechItemEconomy) => void
   /** Set the uses counter (already clamped 0..max by the card). */
   onUsesChange: (next: number) => void
   /** Repair to Intact; deductTl = pool bucket to decrement, null = none. */
@@ -110,10 +114,12 @@ export function MechItemCard({
         ? 'Damaged — repair before use'
         : maxUses > 0 && remaining <= 0
           ? 'No uses remaining'
-          : epCost > currentEP
+          : epCost > (currentEP ?? Number.POSITIVE_INFINITY)
             ? `Not enough EP (needs ${epCost})`
             : null
-  const showUse = epCost > 0 || heat > 0 || maxUses > 0
+  // "Use" (the EP/heat-spending activation) is offered only when a handler is
+  // wired — the Dashboard passes one; the Free-Edit Live Sheet does not (ADR-021).
+  const showUse = onUse !== undefined && (epCost > 0 || heat > 0 || maxUses > 0)
 
   const footMeta: CardFootMeta[] = [
     ...(epCost > 0 ? [{ label: 'EP Cost', value: epCost }] : []),
@@ -137,7 +143,7 @@ export function MechItemCard({
           disabled={useDisabledReason !== null}
           title={useDisabledReason ?? undefined}
           aria-label={`Use ${entity.name}`}
-          onClick={() => onUse(economy)}
+          onClick={() => onUse?.(economy)}
         >
           Use
         </Btn>
