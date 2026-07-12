@@ -16,7 +16,14 @@ const STAMP_BG: Record<RailFam, string> = {
   crawler: 'var(--pc-crawler-deep)',
 }
 
-export function RailBar({ title, fam = 'mech' }: { title: string; fam?: RailFam }) {
+type RailBarProps = {
+  title: string
+  fam?: RailFam
+  /** When set, the rail's right action becomes "Leave Downtime" (Phase 6). */
+  onLeaveDowntime?: () => void
+}
+
+export function RailBar({ title, fam = 'mech', onLeaveDowntime }: RailBarProps) {
   return (
     <div className="pc-rail">
       <AppLink href="/" className="pc-railbtn">
@@ -26,9 +33,20 @@ export function RailBar({ title, fam = 'mech' }: { title: string; fam?: RailFam 
         {title}
       </span>
       <span className="flex-1" />
-      <button type="button" className="pc-railbtn" title="Rules & sources — planned" disabled>
-        ⚙ Settings
-      </button>
+      {onLeaveDowntime ? (
+        <button
+          type="button"
+          className="pc-railbtn"
+          title="Return to the previous mount"
+          onClick={onLeaveDowntime}
+        >
+          ◄ Leave Downtime
+        </button>
+      ) : (
+        <button type="button" className="pc-railbtn" title="Rules & sources — planned" disabled>
+          ⚙ Settings
+        </button>
+      )}
     </div>
   )
 }

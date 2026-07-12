@@ -19,6 +19,7 @@ import { CockpitCanvas } from './CockpitCanvas'
 import { Dial } from './Dial'
 import { dialItems } from './dialItems'
 import { DisplayView } from './DisplayView'
+import { DowntimeWizard } from './DowntimeWizard'
 import { RailBar } from './RailBar'
 
 export function PlayCockpit({ id }: { id: string }) {
@@ -26,6 +27,7 @@ export function PlayCockpit({ id }: { id: string }) {
   // The active-row entity drives the whole-canvas tint (proposed ADR-018).
   const mount = usePlayStateStore((s) => s.mount)
   const wheel = usePlayStateStore((s) => s.wheel)
+  const leaveDowntime = usePlayStateStore((s) => s.leaveDowntime)
   const mech = storeState.get('mech', id)
 
   if (!mech) {
@@ -62,24 +64,42 @@ export function PlayCockpit({ id }: { id: string }) {
   })
   const pilot = composition.pilot
   const crawler = composition.crawler
+  const isDowntime = mount === 'downtime'
   const onFoot = mount === 'pilot' && pilot !== null
-  const railTitle = onFoot && pilot ? `Pilot · ${pilot.name}` : `Mech · ${mech.name}`
+  // Downtime is crawler-dominant: rail, stamp, and Active Item all follow the
+  // crawler ontology (pink); otherwise the boarded mech / pilot on foot.
+  const fam = isDowntime ? 'crawler' : onFoot ? 'pilot' : 'mech'
+  const railTitle = isDowntime
+    ? crawler
+      ? `Downtime · ${crawler.name}`
+      : 'Downtime'
+    : onFoot && pilot
+      ? `Pilot · ${pilot.name}`
+      : `Mech · ${mech.name}`
 
   // The Dial holds the non-active entities + statless views; the item in the
   // active slot is the display's focus (focus→display sync; content is Phase 4).
-  const items = dialItems({ mount: onFoot ? 'pilot' : 'mech', mech, pilot, crawler })
+  const items = dialItems({ mount, mech, pilot, crawler })
   const focus =
     items.length > 0 ? items[((wheel % items.length) + items.length) % items.length] : undefined
 
   return (
     <CockpitCanvas>
       <div className="pc-grid" data-mount={mount}>
-        <RailBar title={railTitle} fam={onFoot ? 'pilot' : 'mech'} />
+        <RailBar
+          title={railTitle}
+          fam={fam}
+          onLeaveDowntime={isDowntime ? leaveDowntime : undefined}
+        />
         <div className="pc-primary">
-          <ActiveItemBand mech={mech} pilot={pilot} store={storeState} />
+          <ActiveItemBand mech={mech} pilot={pilot} crawler={crawler} store={storeState} />
         </div>
         <div className="pc-display pc-display-light">
-          <DisplayView focus={focus} mech={mech} pilot={pilot} crawler={crawler} />
+          {isDowntime ? (
+            <DowntimeWizard crawler={crawler} />
+          ) : (
+            <DisplayView focus={focus} mech={mech} pilot={pilot} crawler={crawler} />
+          )}
         </div>
         <div className="pc-wheel">
           <Dial items={items} />

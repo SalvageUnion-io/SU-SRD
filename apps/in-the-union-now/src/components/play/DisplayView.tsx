@@ -18,6 +18,7 @@ import { resolveChassisRef } from '../../lib/rules/resolveRefs'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
+import { usePlayStateStore } from '../../stores/playStateStore'
 import { ActionsDeck } from './ActionsDeck'
 import type { DialItem } from './dialItems'
 
@@ -37,6 +38,7 @@ function EntityCard({ data, note }: { data: SURefEntity | null; note: string }) 
 }
 
 export function DisplayView({ focus, mech, pilot, crawler }: DisplayViewProps) {
+  const enterDowntime = usePlayStateStore((s) => s.enterDowntime)
   if (!focus) return <div className="pc-display-note">Nothing selected.</div>
 
   if (focus.statless) {
@@ -88,8 +90,16 @@ export function DisplayView({ focus, mech, pilot, crawler }: DisplayViewProps) {
   }
   if (focus.key.startsWith('crawler:') && crawler) {
     return (
-      <div className="pc-display-note">
-        Crawler · {crawler.name} — bay reference lands in a later phase.
+      <div className="pc-display-scroll">
+        <div className="pc-crawler-focus">
+          <p className="pc-crawler-focus-name">Crawler · {crawler.name}</p>
+          <p className="pc-crawler-focus-note">
+            Back at the Union Crawler — run the post-/pre-session Downtime loop.
+          </p>
+          <button type="button" className="pc-deck-btn" onClick={enterDowntime}>
+            Enter Downtime ▶
+          </button>
+        </div>
       </div>
     )
   }

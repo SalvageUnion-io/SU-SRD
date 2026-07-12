@@ -101,10 +101,11 @@ export function dialItems(args: {
   const items: DialItem[] = [
     { key: 'actions', statless: true, label: 'Actions', sublabel: 'full action deck' },
   ]
-  // The counterpart entity — the one NOT in the active row.
+  // The counterpart entities — everything NOT in the active row. In Downtime
+  // the crawler is active, so the dial carries the mech + pilot instead.
   if (mount !== 'mech') items.push(mechItem(mech))
-  if (mount === 'mech' && pilot) items.push(pilotItem(pilot))
-  if (crawler) items.push(crawlerItem(crawler))
+  if (mount !== 'pilot' && pilot) items.push(pilotItem(pilot))
+  if (mount !== 'downtime' && crawler) items.push(crawlerItem(crawler))
   items.push({ key: 'tables', statless: true, label: 'Tables', sublabel: 'roll on any table' })
   items.push({ key: 'srd', statless: true, label: 'SRD Explorer', sublabel: 'reference browser' })
   return items

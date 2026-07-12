@@ -19,6 +19,7 @@ import { useState } from 'react'
 import type { ReactNode } from 'react'
 
 import {
+  crawlerMaxSP,
   mechMaxCargo,
   mechMaxEP,
   mechMaxHeat,
@@ -30,6 +31,7 @@ import { defaultRoll } from '../../lib/rules/heatCheck'
 import { describePushOutcome } from '../../lib/rules/coreMechanic'
 import { resolveChassisRef } from '../../lib/rules/resolveRefs'
 import type { CriticalDamageEffect, CriticalInjuryEffect } from '../../lib/rules/takeDamage'
+import type { Crawler } from '../../lib/schemas/crawler'
 import { totalLotUnits } from '../../lib/schemas/cargoLot'
 import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
@@ -59,17 +61,23 @@ export type PlayStore = Pick<EntityState, 'get' | 'update'>
 type ActiveItemBandProps = {
   mech: Mech
   pilot: Pilot | null
+  /** The linked crawler — the Active Item while in Downtime (Phase 6). */
+  crawler?: Crawler | null
   /** Injectable store (defaults to the live entity store). */
   store?: PlayStore
 }
 
-export function ActiveItemBand({ mech, pilot, store }: ActiveItemBandProps) {
+export function ActiveItemBand({ mech, pilot, crawler, store }: ActiveItemBandProps) {
   const mount = usePlayStateStore((s) => s.mount)
   const setMount = usePlayStateStore((s) => s.setMount)
+  const leaveDowntime = usePlayStateStore((s) => s.leaveDowntime)
   // Unconditional hook; the prop wins when a stub is injected (tests / harness).
   const liveStore = useEntityStore()
   const s: PlayStore = store ?? liveStore
 
+  if (mount === 'downtime' && crawler) {
+    return <CrawlerBand crawler={crawler} onLeave={leaveDowntime} />
+  }
   if (mount === 'pilot' && pilot) {
     return <PilotBand pilot={pilot} store={s} onBoard={() => setMount('mech')} />
   }
@@ -80,6 +88,45 @@ export function ActiveItemBand({ mech, pilot, store }: ActiveItemBandProps) {
       hasPilot={pilot !== null}
       onDismount={() => setMount('pilot')}
     />
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Crawler band (Downtime — read-only: the crawler's Structure + Leave control)
+// ---------------------------------------------------------------------------
+
+function CrawlerBand({ crawler, onLeave }: { crawler: Crawler; onLeave: () => void }) {
+  const maxSP = crawlerMaxSP(crawler)
+  const sp = Math.min(crawler.currentSP ?? maxSP, maxSP)
+  return (
+    <div className="pc-band" data-fam="crawler">
+      <div className="pc-band-id">
+        <span className="pc-stamp" style={{ background: 'var(--pc-crawler-deep)' }}>
+          Downtime · {crawler.name}
+        </span>
+      </div>
+      <div className="pc-bays">
+        <div className="pc-bay">
+          <span className="pc-bay-lab">Crawler</span>
+          <div className="pc-bay-gauges">
+            <CockpitGauge label="SP" value={sp} max={maxSP} tone="crawler" />
+          </div>
+        </div>
+        <div className="pc-bay">
+          <span className="pc-bay-lab">Downtime</span>
+          <div className="pc-btn-grid">
+            <button
+              type="button"
+              className="pc-btn pc-btn-wide"
+              onClick={onLeave}
+              title="Return to the previous mount"
+            >
+              ◄ Leave Downtime
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   )
 }
 
