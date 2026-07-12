@@ -1,148 +1,236 @@
-# Rules Engine Boundary
+# Rules & the ITUN Surfaces
 
-ITUN is a shared living character sheet, not a game engine. The line between what the app enforces and what it leaves to the Mediator is drawn at one boundary: **economic constraints** vs. **procedural adjudication**.
+> **This document supersedes and absorbs the former "Rules Engine Boundary" doc.**
+> The old economic / procedural / hybrid classification is retained below (as the
+> _rule-class_ axis) but reorganized under a **mode** axis: a rule's enforcement
+> is a function of the **mode** a surface is in, not of the rule alone. The
+> filename is unchanged so existing cross-links keep resolving. Formalized in
+> [ADR-015](../adrs/ADR-015-itun-surface-taxonomy.md) (surface/mode taxonomy) and
+> [ADR-016](../adrs/ADR-016-provenance-log-and-overrides.md) (provenance & overrides).
+>
+> **Status: target model.** Parts of this describe where we are going, not only
+> where the code is today. The gap is tracked explicitly in
+> [Implementation status](#implementation-status-target-vs-current).
 
-This document codifies that boundary, places every identified gray-zone mechanic explicitly on one side, and establishes a classification rule for future development.
+ITUN is a shared living character sheet, not a game engine. But "the app" is not
+one actor — it is a set of surfaces the player moves through, and each surface is
+in one of a few **enforcement modes**. How hard the app holds you to a rule
+depends on **which mode you are in**, not only on **which rule it is**.
 
----
-
-## The Boundary Statement
-
-**ITUN enforces economic constraints.** These are deterministic, player-facing limits on resources, progression, and equipment state that can be computed unambiguously from structured data. Violation is blocked by the UI.
-
-**ITUN does not enforce procedural adjudication.** These are table-governance concerns — who acts when, what consequences a roll implies, how narrative outcomes unfold — that depend on Mediator judgment and social coordination. The app may surface relevant rules text or prompt for input, but it never blocks or controls the outcome.
-
-This boundary maps onto a deeper principle already present in the codebase: the honor system that follows from [ADR-001](../adrs/ADR-001-local-first-no-backend.md) (Local-First, No Backend) — with no server-side game state there is no turn enforcement or cross-player writes. The app trusts players to act in turn and trusts the Mediator to govern the table. What the app does own is the math: costs, caps, conditions, prerequisites.
-
----
-
-## Economic Constraints (ITUN Enforces)
-
-The following constraints are validated in code. The UI blocks or warns when they would be violated.
-
-### Tech Level Gates
-
-Crafting, trading, and repair actions check the crawler's tech level against the item's tech level requirement. A Tech 2 crawler cannot craft a Tech 4 system. This is enforced at the point of action, not advisory.
-
-### Scrap Costs
-
-Crafting and repair actions consume scrap at the appropriate tech level. The mutation verifies the crawler has sufficient scrap before writing. Insufficient scrap blocks the action.
-
-### Training Point Costs and Ability Prerequisites
-
-Spending TP to unlock an ability checks both that the pilot has enough TP and that any named prerequisite abilities are already unlocked. The `ability-tree-requirements.json` data encodes these prerequisite chains. The validation function must consume this data rather than using a numeric approximation.
-
-### Slot Capacities
-
-System slots, module slots, and cargo slots each have a defined capacity. Adding an item to a full slot is blocked. The `ReferenceEntityPickerModal` renders over-capacity items as greyed with a red outline so players understand what they cannot select and why — rejection is visible, not hidden.
-
-### Equipment Condition Tracking
-
-Item condition transitions (`intact` -> `damaged` -> `destroyed`) are tracked on the player record in IndexedDB and driven by the `ConditionToggle` component. ITUN surfaces condition state on every entity card and prevents use of destroyed items. Condition writes always require explicit player confirmation (see [ADR-007](../adrs/ADR-007-automation-boundary.md) and [ADR-009](../adrs/ADR-009-condition-model-destroyed-color.md)).
-
-### Heat Capacity Limits
-
-An action whose heat cost would cause current heat to exceed the heat cap is blocked before execution. `canActivateAction(currentHeat, heatCost, heatCap)` in `combatUtils.ts` is the authoritative check. This is a hard block, not a warning — the action button is disabled.
+The organizing idea is a border, and the border is **lifecycle transactions** —
+the rules _events_ that gate a change behind a cost or a procedure (spend EP/heat,
+spend scrap/TP, activate a system, Push, craft, salvage, repair, upgrade, run
+downtime, advance). Two modes **own and enforce** those transactions and teach
+their rules while doing so; one mode deliberately **bypasses** them so a human at
+the table can patch reality.
 
 ---
 
-## Procedural Adjudication (Left to Mediator)
+## The three modes (plus two)
 
-The following are deliberately outside the app's enforcement scope. The Mediator governs them at the table.
+| Mode                | Surface(s)                        | Ethos                                                                                           |
+| ------------------- | --------------------------------- | ----------------------------------------------------------------------------------------------- |
+| **Guided Creation** | Wizard (`/*/new`)                 | A "how-to guide" for _making_ a legal entity. Enforces creation rules.                          |
+| **Free Edit**       | Live Sheet (`/sheet/:kind/:id`)   | The manual-override console. Edits _state_, never runs _transactions_.                          |
+| **Guided Play**     | Cockpit (in the Sheet today)      | Every asset in-hand + enforced play. Interactive rules-layers that _teach as they enforce_.     |
+| **Frozen**          | Share / View (`/share`, `/s/:id`) | Read-only published snapshot.                                                                   |
+| **Adjudicate**      | Encounter (`/encounter`)          | GM tray — Mediator tables + NPCs. Surfaces rules as tooling; enforces nothing on player sheets. |
 
-### Action Economy
+A **surface hosts a mode.** The distinction matters because one page can carry
+more than one: the live sheet is a **Free Edit** surface today, but it still holds
+leftover **Guided Play** controls (Push, activation) that belong in a Cockpit. The
+mode names the stance; the surface is just where it currently lives.
 
-Turn actions, reactions, and free actions per round are not tracked or enforced. All players can always activate actions from their sheet. This is by design (ADR-001): Salvage Union does not have formal turn enforcement, and adding it would add complexity without matching how the game is played.
+Two ethos pairings are load-bearing:
 
-### Initiative and Turn Order
+1. **Enforcement and pedagogy travel together.** The Wizard teaches creation _by_
+   enforcing it; the Cockpit's interactive layers teach play/downtime _by_
+   enforcing them ("each layer exposes its rules in the display"). Free Edit does
+   neither — it is raw manual control, on purpose.
+2. **Free Edit edits _state_; the guided modes run _events_.** "Add a system
+   without spending scrap" on the Live Sheet writes the end-state (the system is
+   installed) and skips the transaction. The _same_ change done as a transaction
+   (pay the scrap, follow the swap procedure) is a **Cockpit** act. Same
+   destination, different door — only the guided door charges admission.
 
-The app does not track who goes next. Initiative is handled socially. The Mediator declares open rounds; players act. No server-side sequencing is implemented or planned.
-
-### Movement and Range Band Enforcement
-
-Range bands (Close, Near, Far, Distant) are contextual terrain descriptions, not computable distances. The app does not enforce them. Action descriptions may reference range, but the Mediator adjudicates whether a target is in range.
-
-### Narrative Consequences of Die Rolls
-
-Tough choices, setbacks, and other narrative outcomes from rolls are communicated verbally at the table. The app may display a roll result, but the Mediator interprets consequence and the player applies it using existing tools (Take Damage, condition changes, etc.).
-
-### Death Blow Declarations
-
-Whether a target is destroyed by an attack is a Mediator call. The app tracks HP and SP, but the transition from "0 SP" to "mech destroyed" is not automated — the Mediator declares it, and players apply consequences manually.
-
-### Exploration and Area Salvage Supply Tracking
-
-The number of salvage rolls remaining in a zone is Mediator bookkeeping. ITUN does not track exploration supply totals. If this becomes a recurring need, it is a future Mediator-facing feature, not an economic constraint on players.
-
----
-
-## Gray Zone Mechanics
-
-Several mechanics have characteristics of both categories. This section places each one explicitly, with rationale.
-
-### Heat Check Modal — Economic
-
-The Heat Check triggers whenever heat is gained (`shouldTriggerHeatCheck` in `combatUtils.ts`). The trigger condition is deterministic: heat was gained, therefore a check is required. No Mediator judgment is involved in whether to trigger. The modal fires automatically.
-
-What happens after the roll (the Reactor Overload Table) is hybrid — see below. But the trigger itself is economic: a computable threshold crossed.
-
-**Placement: economic (trigger), hybrid (consequence). Trigger is enforced. Consequences are partially automated per [ADR-007](../adrs/ADR-007-automation-boundary.md).**
-
-### Keepsake / Background / Motto Re-roll — Economic
-
-Each pilot's special re-roll (keepsake, background, motto) has a binary used/unused state tracked in the database (`_used` booleans). Once used, it is unavailable until restored during the Downtime Restore step. This is pure resource tracking — no Mediator judgment determines whether the re-roll was validly spent.
-
-**Placement: economic. ITUN enforces availability and tracks state. Restore step must reset these flags.**
-
-### Critical Damage Table (Mech 0 SP) — Hybrid
-
-When a mech reaches 0 SP, the Critical Damage Table applies. The trigger is economic: an HP/SP threshold reached. But the consequence (which system or module is destroyed, or whether the player chooses vs. rolls randomly) involves Mediator input for some outcomes.
-
-**Placement: hybrid. The trigger should fire automatically when SP reaches 0. Consequence selection (random target picker or Mediator-directed choice) requires player confirmation before any write. No condition change is applied without the player seeing and confirming the outcome ([ADR-007](../adrs/ADR-007-automation-boundary.md)).**
-
-### Push Mechanic — Hybrid
-
-The decision to Push is the pilot's voluntary choice, not a deterministic threshold. No app logic can determine when pushing is appropriate — that is a player judgment call. However, the heat cost of a Push (2 heat) is a hard economic constraint once the player elects to push.
-
-**Placement: hybrid. The Push decision is procedural (player-initiated). The heat cost application is economic (enforced on confirmation). `canPush()` in `combatUtils.ts` is the gate check. ITUN should surface a Push button within the action activation flow but not prompt unprompted.**
-
-### Reactor Overload — Hybrid
-
-The Reactor Overload Table fires after a failed Heat Check. The trigger is economic (deterministic dice threshold). Consequence execution varies by result:
-
-- Roll 20: informational only.
-- Roll 11–19: SP damage equal to current heat — economic, auto-applied.
-- Roll 6–10 or 2–5: module or system destroyed — requires target selection and confirmation.
-- Roll 1: catastrophic meltdown — Mediator handles manually.
-
-**Placement: hybrid per outcome. See [ADR-007](../adrs/ADR-007-automation-boundary.md) for the full decision. The pattern is: non-destructive math is auto-applied; destructive outcomes require confirmation; narrative extremes are left to the Mediator.**
+The root of all of it is [ADR-001](../adrs/ADR-001-local-first-no-backend.md):
+local-first, no server game state, so no turn enforcement and an honor system.
+The app owns the math; the table owns adjudication.
 
 ---
 
-## Implications for Future Development
+## The rule classes (the WHAT axis)
 
-**Classify before implementing.** When a new feature involves a game rule, place it in one of three categories before writing any code:
+The former economic / procedural / hybrid boundary is retained, but split into
+sharper classes so each can be placed against the modes. (Mapping for continuity:
+old **economic** → _lifecycle transactions_ + _quantitative caps_ + _structural
+coherence_; old **procedural** → _procedural adjudication_; old **hybrid** → a
+_lifecycle transaction with a confirmed destructive consequence_.)
 
-| Category   | Definition                                                               | App behavior                                                                                |
-| ---------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------- |
-| Economic   | Deterministic constraint computable from structured data                 | Enforce in code. Block violations.                                                          |
-| Procedural | Requires Mediator judgment or table-social coordination                  | Surface relevant rules text, prompt for inputs, but do not enforce.                         |
-| Hybrid     | Has an economic trigger and a procedural or player-confirmed consequence | Trigger automatically. Present outcomes for Mediator or player confirmation before writing. |
+1. **Lifecycle transaction** — a state change the rules gate behind a **cost or
+   procedure**. Activate a system (spend EP/heat, decrement uses); Push (spend
+   heat); Heat Check; craft / salvage / repair / upgrade / trade (spend scrap,
+   tech-level gated); downtime steps; Restore (`_used` resets); advancement (spend
+   earned TP for an ability). **Owned by the guided modes; bypassed in Free Edit.**
 
-**Economic constraints should be enforced in code.** If a rule can be expressed as a comparison against a value in the database or the reference data, ITUN should enforce it. Advisory warnings for checkable constraints are a weaker substitute.
+2. **Structural coherence** — references must resolve; type/containment must hold
+   (a system cannot occupy a module slot; a slug must point at a real entity).
+   **Hard in every mode, Free Edit included.** You may house-rule an object; you
+   may not make an incoherent one.
 
-**Procedural mechanics should be surfaced, not enforced.** For mechanics the app cannot resolve without Mediator input, display the relevant rules text, show a prompt with the relevant roll or decision context, and let the player or Mediator apply the outcome using existing tools.
+3. **Quantitative cap** — slot counts and derived maxima (max HP / SP / EP / Heat
+   / Cargo). Derived in the guided modes. **Overridable in Free Edit**, with a
+   visible callout and a retained derived baseline (see
+   [ADR-016](../adrs/ADR-016-provenance-log-and-overrides.md)).
 
-**Hybrid mechanics should trigger automatically and present outcomes for confirmation.** The trigger condition (threshold crossed, resource spent) fires without user initiation. The consequence write requires the player to see and confirm the result before it is persisted. This is the automation boundary from [ADR-007](../adrs/ADR-007-automation-boundary.md): smart bookkeeping, hands-off on permanent consequences.
+4. **Free state** — current pools (HP / SP / heat / EP / scrap), conditions, and
+   remaining-uses counts. **Freely editable in Free Edit.** In Guided Play these
+   move only _through_ enforced transactions (activation spends EP/heat/uses).
 
-**Gray zones should be resolved here, not in code comments.** If a new mechanic is ambiguous, update this document with the explicit placement and rationale before implementation begins. That record prevents inconsistent design decisions across stories.
+5. **Procedural adjudication** — turn order, initiative, range bands, narrative
+   consequences, Death Blow declarations, exploration supply. **Surfaced, never
+   enforced** (unchanged). Lives on the Encounter surface (and the Cockpit) as
+   tooling.
 
 ---
 
-## Cross-References
+## The matrix — rule class × mode
 
-- [ADR-001](../adrs/ADR-001-local-first-no-backend.md) — Local-first; honor system, no turn enforcement
-- [ADR-007](../adrs/ADR-007-automation-boundary.md) — Smart bookkeeping, confirmation required for destructive outcomes
-- [ADR-009](../adrs/ADR-009-condition-model-destroyed-color.md) — Item condition model
-- [combat-loop.md](combat-loop.md) — Implementation details for the combat resource loop
-- [data-flow.md](data-flow.md) — How economic constraints are stored and hydrated
+The utility payload: where any feature lands, and how it behaves. This is the
+authoritative placement table; resolve gray zones _here_.
+
+| Rule class                                         | Guided Creation (Wizard)  | Free Edit (Live Sheet)                     | Guided Play (Cockpit)                                          | Frozen (Share) |
+| -------------------------------------------------- | ------------------------- | ------------------------------------------ | -------------------------------------------------------------- | -------------- |
+| **Lifecycle transaction**                          | Enforced (creation costs) | **Bypassed** — edit end-state, no cost     | **Enforced + interactive** (EP/heat/scrap/TP; Downtime layers) | frozen         |
+| **Structural coherence**                           | Enforced                  | **Hard** — can't break refs/containment    | Enforced                                                       | frozen         |
+| **Quantitative cap** (slots, maxes)                | Derived / enforced        | **Override w/ callout** (retains baseline) | Derived / enforced                                             | frozen         |
+| **Free state** (HP, heat, scrap, uses, conditions) | Set by creation           | **Freely editable**                        | Changed _via_ enforced actions                                 | frozen         |
+| **Procedural adjudication**                        | —                         | Manual (player edits by hand)              | Surfaced as tooling                                            | frozen         |
+
+Reading examples:
+
+- **Activate a system** (spend EP/heat, decrement uses) → _lifecycle transaction_
+  → **Cockpit only.** The Live Sheet has no Activate button; it can still
+  hand-edit the item's remaining-uses count (that is _free state_, a number you
+  set — not an activation).
+- **Push / Heat Check** → _lifecycle transaction_ → **Cockpit.** They leave the
+  Live Sheet; the heat-cap hard-block belongs to Guided Play.
+- **Set current heat to 0, add a Condition, add 50 scrap** → _free state_ →
+  **Free Edit**, no questions asked.
+- **Raise max SP above its derived value** → _quantitative cap_ → **Free Edit
+  override**, shown with an "overridden from N" callout and revertible.
+- **Install a Tech 4 system on a Tech 2 crawler** → as a _transaction_ it is
+  tech-level-gated in the **Cockpit**; as a _free edit_ you may just place it
+  (bypassing the cost) — but the system must still be a real, correctly-typed
+  entity (structural coherence holds).
+- **Spend earned TP for a new ability** → the legit, enforced path is a **Cockpit**
+  downtime/advancement layer; "add the ability without spending TP" on the Live
+  Sheet is that transaction's Free-Edit override.
+
+---
+
+## Confirmed destructive consequences (the old "hybrid")
+
+Within Guided Play, a lifecycle transaction whose consequence is _destructive and
+irreversible_ still splits per [ADR-007](../adrs/ADR-007-automation-boundary.md):
+the trigger auto-fires (deterministic threshold), the non-destructive bookkeeping
+auto-applies, and any condition change or equipment destruction requires explicit
+player **confirmation** before it is written. Reactor Overload, the Critical Damage
+table at 0 SP, and catastrophic meltdown are the canonical cases. On the **Free
+Edit** surface these same states are reached by hand (the player simply sets a
+Condition) — which ADR-007 permits, because it forbids _automatic_ mutation, not
+deliberate player editing.
+
+Procedural adjudication is unchanged from the prior boundary and remains
+Mediator-owned: action economy, initiative, range bands, narrative consequences,
+Death Blow, and exploration supply are surfaced (Encounter/Cockpit tooling) but
+never enforced.
+
+---
+
+## Provenance
+
+Every surface writes to a per-entity, append-only **provenance log** — enforced
+Cockpit transactions _and_ free Live-Sheet edits alike, each tagged with its
+provenance (`spent 3 scrap to install X` vs. `manual override: heat → 0`). The
+free edits are exactly where provenance matters most. The log is designed to be
+**replayable** (event-shaped, ordered) though a replay/time-travel surface is not
+built yet, and it **stays local** — a published snapshot remains a frozen
+point-in-time entity with no history. Full decision in
+[ADR-016](../adrs/ADR-016-provenance-log-and-overrides.md).
+
+---
+
+## Implementation status — target vs. current
+
+This doc is the target. Where the code differs today:
+
+- **Wizard** currently _soft-guides_ (advisory `SoftWarningBanner`, never blocks —
+  `PilotWizard.tsx:96–97`). The target is enforced Guided Creation. This is a
+  planned move from soft → hard.
+- **Cockpit** does not exist as its own surface. Guided-Play controls (Push /
+  Heat Check via `SheetMech.tsx`, activation via `activateItem` /
+  [ADR-008](../adrs/ADR-008-sequential-mutations.md)) currently live **inside the
+  Live Sheet**. The target moves every lifecycle transaction — activation, Push,
+  crafting, salvage, downtime, advancement — into the Cockpit as interactive
+  rules-layers, and leaves the Live Sheet as pure Free Edit.
+- **Live Sheet** today mixes free editing with those leftover enforced controls.
+  The target strips the transactions out and adds cap **overrides** (with the
+  derived-baseline callout), which are not yet built.
+- **Provenance log** is not yet implemented; ADR-016 records the decision ahead of
+  the build. Several rules primitives (`salvage`, `crafting`, `downtime`,
+  `scrapMech`, `takeDamage`) are built and tested in `lib/rules` but unwired —
+  they are the raw material for the Cockpit's layers.
+
+When any of these lands, update the corresponding bullet (and, if a border moves,
+the matrix above) rather than leaving the gap undocumented.
+
+---
+
+## Long-tail vision (not in scope)
+
+Recorded so it isn't lost, explicitly **not** something we build toward now:
+
+- **Workspaces → "Game spaces."** Today's local-only `workspaces` become shared
+  Game spaces where entities are **owned by you vs. owned by others** (cross-user
+  pilots, mechs, crawlers). This is the multi-user direction deferred by the
+  local-first stance — it needs auth and a backend that
+  [ADR-001](../adrs/ADR-001-local-first-no-backend.md) currently rules out, so it
+  is a long-tail vision gated on revisiting ADR-001, not a roadmap item. The mode
+  model above still holds under it (ownership scopes _who_ may edit; it does not
+  change _what_ each mode enforces).
+
+---
+
+## Implications for future development
+
+When a feature touches a game rule, place it **twice** before writing code:
+
+1. **Which mode?** Guided (enforce + teach) vs. Free Edit (bypass, override) vs.
+   Frozen. → sets the enforcement stance.
+2. **Which rule class?** Lifecycle transaction / structural coherence /
+   quantitative cap / free state / procedural. → sets what the stance does.
+
+The cell where they meet in the matrix above _is_ the behavior. If a mechanic's
+mode or class is ambiguous, resolve it in this document — with rationale — before
+implementation. Decisions live here, not in code comments.
+
+---
+
+## Cross-references
+
+- [ADR-001](../adrs/ADR-001-local-first-no-backend.md) — local-first; the honor
+  system that makes Free Edit legitimate.
+- [ADR-006](../adrs/ADR-006-pure-rules-logic.md) — rules as pure functions; the
+  shared math every mode consumes.
+- [ADR-007](../adrs/ADR-007-automation-boundary.md) — confirm-before-destructive
+  within Guided Play; permits deliberate player edits in Free Edit.
+- [ADR-008](../adrs/ADR-008-sequential-mutations.md) — the write-through
+  mechanism behind a lifecycle transaction (its home moves to the Cockpit).
+- [ADR-010](../adrs/ADR-010-srd-choices-ephemeral-vs-persisted.md) — the
+  persistence-agnostic display contract (Frozen is its read-only end).
+- [ADR-015](../adrs/ADR-015-itun-surface-taxonomy.md) — surface/mode taxonomy.
+- [ADR-016](../adrs/ADR-016-provenance-log-and-overrides.md) — provenance log &
+  stat overrides.
+- [combat-loop.md](combat-loop.md) — implementation of the Guided-Play resource loop.
+- [data-flow.md](data-flow.md) — how state is stored and hydrated.
