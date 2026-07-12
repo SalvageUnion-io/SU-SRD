@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as EncounterRouteImport } from './routes/encounter'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SIdRouteImport } from './routes/s/$id'
+import { Route as PlayIdRouteImport } from './routes/play/$id'
 import { Route as PilotsNewRouteImport } from './routes/pilots/new'
 import { Route as PilotsIdRouteImport } from './routes/pilots/$id'
 import { Route as MechsNewRouteImport } from './routes/mechs/new'
@@ -35,6 +36,11 @@ const IndexRoute = IndexRouteImport.update({
 const SIdRoute = SIdRouteImport.update({
   id: '/s/$id',
   path: '/s/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlayIdRoute = PlayIdRouteImport.update({
+  id: '/play/$id',
+  path: '/play/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PilotsNewRoute = PilotsNewRouteImport.update({
@@ -92,6 +98,7 @@ export interface FileRoutesByFullPath {
   '/mechs/new': typeof MechsNewRoute
   '/pilots/$id': typeof PilotsIdRoute
   '/pilots/new': typeof PilotsNewRoute
+  '/play/$id': typeof PlayIdRoute
   '/s/$id': typeof SIdRoute
   '/sheet/$kind/$id': typeof SheetKindIdRoute
   '/mechs/patterns/': typeof MechsPatternsIndexRoute
@@ -106,6 +113,7 @@ export interface FileRoutesByTo {
   '/mechs/new': typeof MechsNewRoute
   '/pilots/$id': typeof PilotsIdRoute
   '/pilots/new': typeof PilotsNewRoute
+  '/play/$id': typeof PlayIdRoute
   '/s/$id': typeof SIdRoute
   '/sheet/$kind/$id': typeof SheetKindIdRoute
   '/mechs/patterns': typeof MechsPatternsIndexRoute
@@ -121,6 +129,7 @@ export interface FileRoutesById {
   '/mechs/new': typeof MechsNewRoute
   '/pilots/$id': typeof PilotsIdRoute
   '/pilots/new': typeof PilotsNewRoute
+  '/play/$id': typeof PlayIdRoute
   '/s/$id': typeof SIdRoute
   '/sheet/$kind/$id': typeof SheetKindIdRoute
   '/mechs/patterns/': typeof MechsPatternsIndexRoute
@@ -137,6 +146,7 @@ export interface FileRouteTypes {
     | '/mechs/new'
     | '/pilots/$id'
     | '/pilots/new'
+    | '/play/$id'
     | '/s/$id'
     | '/sheet/$kind/$id'
     | '/mechs/patterns/'
@@ -151,6 +161,7 @@ export interface FileRouteTypes {
     | '/mechs/new'
     | '/pilots/$id'
     | '/pilots/new'
+    | '/play/$id'
     | '/s/$id'
     | '/sheet/$kind/$id'
     | '/mechs/patterns'
@@ -165,6 +176,7 @@ export interface FileRouteTypes {
     | '/mechs/new'
     | '/pilots/$id'
     | '/pilots/new'
+    | '/play/$id'
     | '/s/$id'
     | '/sheet/$kind/$id'
     | '/mechs/patterns/'
@@ -180,6 +192,7 @@ export interface RootRouteChildren {
   MechsNewRoute: typeof MechsNewRoute
   PilotsIdRoute: typeof PilotsIdRoute
   PilotsNewRoute: typeof PilotsNewRoute
+  PlayIdRoute: typeof PlayIdRoute
   SIdRoute: typeof SIdRoute
   SheetKindIdRoute: typeof SheetKindIdRoute
   MechsPatternsIndexRoute: typeof MechsPatternsIndexRoute
@@ -207,6 +220,13 @@ declare module '@tanstack/react-router' {
       path: '/s/$id'
       fullPath: '/s/$id'
       preLoaderRoute: typeof SIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/play/$id': {
+      id: '/play/$id'
+      path: '/play/$id'
+      fullPath: '/play/$id'
+      preLoaderRoute: typeof PlayIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pilots/new': {
@@ -284,6 +304,7 @@ const rootRouteChildren: RootRouteChildren = {
   MechsNewRoute: MechsNewRoute,
   PilotsIdRoute: PilotsIdRoute,
   PilotsNewRoute: PilotsNewRoute,
+  PlayIdRoute: PlayIdRoute,
   SIdRoute: SIdRoute,
   SheetKindIdRoute: SheetKindIdRoute,
   MechsPatternsIndexRoute: MechsPatternsIndexRoute,
