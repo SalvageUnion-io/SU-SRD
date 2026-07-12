@@ -494,6 +494,113 @@
   color: #6c6153;
 }
 
+/* ---- Crawler focus → Enter Downtime (light display, Phase 6) ---- */
+.pc-crawler-focus {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 100%;
+  text-align: center;
+  padding: 24px 16px;
+}
+.pc-crawler-focus-name {
+  margin: 0;
+  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 18px;
+  color: #282019;
+}
+.pc-crawler-focus-note {
+  margin: 0;
+  font-family: 'Barlow', sans-serif;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #6c6153;
+  max-width: 40ch;
+}
+.pc-crawler-focus .pc-deck-btn {
+  flex: 0 0 auto;
+  min-width: 200px;
+  background: var(--pc-crawler-deep);
+}
+
+/* ---- Downtime wizard (light display, Phase 6) ---- */
+.pc-dt {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.pc-dt-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.pc-dt-phase {
+  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 12px;
+  color: #fff;
+  padding: 4px 9px 5px;
+  border-radius: 2px;
+}
+.pc-dt-count {
+  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+  color: #6c6153;
+}
+.pc-dt-step-name {
+  margin: 0;
+  padding: 0 0 4px;
+  border-bottom: 2.5px solid #7e2a5b;
+  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  font-size: 20px;
+  line-height: 1.1;
+  color: #282019;
+}
+.pc-dt-gate {
+  margin: 0;
+  padding: 10px 12px 10px 28px;
+  border: 1.5px solid rgba(40, 32, 25, 0.18);
+  border-radius: 4px;
+  background: #fff;
+  font-family: 'Barlow', sans-serif;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #282019;
+}
+.pc-dt-gate li + li {
+  margin-top: 4px;
+}
+.pc-dt-table {
+  margin-top: 2px;
+}
+.pc-dt-note {
+  margin: 0;
+  font-family: 'Barlow', sans-serif;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #6c6153;
+}
+.pc-dt-controls {
+  display: flex;
+  gap: 8px;
+}
+.pc-dt-btn-done {
+  background: var(--pc-mech-deep);
+}
+
 /* ---- CockpitGauge: bespoke dark segmented instrument bar ---- */
 .pc-gauge {
   display: flex;

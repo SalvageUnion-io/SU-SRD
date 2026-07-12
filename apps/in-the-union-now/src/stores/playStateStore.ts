@@ -10,6 +10,12 @@
  *
  * Phase 1 (read-only shell) tracks only the mount state and dial index; later
  * phases extend it (range band, push-armed, overlays, dial config, etc.).
+ *
+ * Phase 6 (Downtime) adds the crawler-dominant `'downtime'` mode: entering it
+ * remembers the prior mount (`priorMount`) so Leave restores it, and it carries
+ * the guided Downtime wizard's ephemeral progress (`dtStep` + the per-step
+ * `dtDone` "Mark Complete" toggles). None of this is persisted — Downtime
+ * *effects* land on the entity sheets, but the wizard's cursor is play-state.
  */
 
 import { create } from 'zustand'
@@ -22,13 +28,37 @@ type PlayState = {
   mount: MountState
   /** Selected index on the rotary Dial. */
   wheel: number
+  /** The mount to restore when leaving Downtime (null when not in Downtime). */
+  priorMount: MountState | null
+  /** Current step index in the Downtime wizard (0-based). */
+  dtStep: number
+  /** Per-step "Mark Complete" toggles, keyed by step index (ephemeral). */
+  dtDone: Record<number, boolean>
   setMount: (mount: MountState) => void
   setWheel: (wheel: number) => void
+  /** Enter Downtime, remembering the current mount to restore on Leave. */
+  enterDowntime: () => void
+  /** Leave Downtime, restoring the mount active when it was entered. */
+  leaveDowntime: () => void
+  /** Move the Downtime wizard to a step index. */
+  setDtStep: (step: number) => void
+  /** Toggle the "Mark Complete" flag for a Downtime step index. */
+  toggleDtDone: (step: number) => void
 }
 
 export const usePlayStateStore = create<PlayState>((set) => ({
   mount: 'mech',
   wheel: 0,
+  priorMount: null,
+  dtStep: 0,
+  dtDone: {},
   setMount: (mount) => set({ mount }),
   setWheel: (wheel) => set({ wheel }),
+  enterDowntime: () =>
+    set((s) =>
+      s.mount === 'downtime' ? s : { mount: 'downtime', priorMount: s.mount, dtStep: 0, dtDone: {} }
+    ),
+  leaveDowntime: () => set((s) => ({ mount: s.priorMount ?? 'mech', priorMount: null })),
+  setDtStep: (step) => set({ dtStep: step }),
+  toggleDtDone: (step) => set((s) => ({ dtDone: { ...s.dtDone, [step]: !s.dtDone[step] } })),
 }))
