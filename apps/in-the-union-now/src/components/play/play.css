@@ -271,6 +271,229 @@
   color: #e0917f;
 }
 
+/* ---- Resolve overlay: roll readouts + player-confirmed steps (Phase 5) ---- */
+.pc-band {
+  position: relative;
+}
+.pc-resolve {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 12px 10px;
+  background: color-mix(in oklab, var(--pc-ground) 92%, #000);
+  border: 1.5px solid var(--pc-line-hard);
+  border-radius: 5px;
+  z-index: 2;
+}
+.pc-resolve-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.pc-resolve-title {
+  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 11px;
+  color: var(--pc-muted);
+}
+.pc-resolve-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+  min-height: 0;
+  justify-content: center;
+}
+.pc-resolve-log {
+  margin: 0;
+  font-family: 'Barlow', sans-serif;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--pc-text);
+  text-align: center;
+}
+.pc-resolve-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+.pc-resolve-actions .pc-btn {
+  width: auto;
+  min-width: 140px;
+  padding: 8px 14px;
+}
+.pc-step {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+.pc-step .pc-btn {
+  width: 34px;
+  padding: 6px 0;
+}
+.pc-step-num {
+  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  font-size: 24px;
+  min-width: 44px;
+  text-align: center;
+  color: var(--pc-text);
+}
+
+/* ---- Actions deck (light display surface, Phase 5) ---- */
+.pc-deck {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.pc-deck-empty {
+  padding: 12px;
+  font-family: 'Barlow', sans-serif;
+  font-size: 13px;
+  color: #6c6153;
+  text-align: center;
+}
+.pc-deck-group-lab {
+  margin: 0 0 6px;
+  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 11px;
+  color: #6c6153;
+}
+.pc-deck-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.pc-deck-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 12px;
+  border: 1.5px solid rgba(40, 32, 25, 0.18);
+  border-radius: 4px;
+  background: #fff;
+  color: #282019;
+  cursor: pointer;
+  text-align: left;
+  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+}
+.pc-deck-item:hover {
+  border-color: rgba(40, 32, 25, 0.45);
+}
+.pc-deck-item-cost {
+  font-size: 12px;
+  color: #6c6153;
+  white-space: nowrap;
+}
+.pc-deck-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.pc-deck-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.pc-deck-back {
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 12px;
+  color: #6c6153;
+}
+.pc-deck-cost {
+  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  color: #6c6153;
+}
+.pc-deck-controls {
+  display: flex;
+  gap: 8px;
+}
+.pc-deck-btn {
+  flex: 1;
+  padding: 9px 12px;
+  border: 1.5px solid rgba(40, 32, 25, 0.3);
+  border-radius: 4px;
+  background: #282019;
+  color: #f3ede2;
+  cursor: pointer;
+  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 13px;
+}
+.pc-deck-btn:hover:not(:disabled) {
+  background: #3a2f24;
+}
+.pc-deck-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.pc-deck-btn-danger {
+  background: var(--pc-crawler-deep);
+}
+.pc-deck-roll {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1.5px solid rgba(40, 32, 25, 0.18);
+  border-radius: 4px;
+  background: #fff;
+}
+.pc-deck-d20 {
+  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  font-size: 34px;
+  line-height: 1;
+  min-width: 48px;
+  text-align: center;
+  color: #282019;
+}
+.pc-deck-band {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-family: 'Barlow', sans-serif;
+  font-size: 13px;
+  color: #282019;
+}
+.pc-deck-pushlog {
+  margin: 0;
+  font-family: 'Barlow', sans-serif;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #6c6153;
+}
+
 /* ---- CockpitGauge: bespoke dark segmented instrument bar ---- */
 .pc-gauge {
   display: flex;
