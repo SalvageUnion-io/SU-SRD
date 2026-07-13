@@ -42,7 +42,7 @@ import { resolveEffectiveCrawlerLevel } from '../../lib/crawlerLevel'
 import { isPilotDead, pilotMaxAP, pilotMaxHP } from '../../lib/rules/derivedStats'
 import { useEntityStore } from '../../stores/entityStore'
 import { AbilitiesStep } from '../pilot/AbilitiesStep'
-import { EquipmentStep } from '../pilot/EquipmentStep'
+import { EntitySearcher } from '../shared/EntitySearcher'
 import { useSoftLinks } from '../wiring/useSoftLinks'
 import { ConditionsEditor } from './ConditionsEditor'
 import { destroyedUndoToast } from './destroyedUndoToast'
@@ -549,8 +549,18 @@ export function PilotSheet({
         open={picker === 'equipment'}
         onClose={() => setPicker(null)}
         title="Add Equipment"
+        maxWidth="max-w-5xl"
       >
-        <EquipmentStep selectedEquipment={pilot.equipment} onToggle={toggleEquipment} />
+        <EntitySearcher
+          schema="equipment"
+          selected={pilot.equipment}
+          onToggle={toggleEquipment}
+          idOf={(item) => item.id}
+          railName={pilot.name}
+          chosenLabel="Equipped"
+          emptyMessage="No equipment matches those filters."
+          budget={{ label: 'Inventory slots', used: slotsUsed, max: slotsCap }}
+        />
       </SheetPickerModal>
     </section>
   )
