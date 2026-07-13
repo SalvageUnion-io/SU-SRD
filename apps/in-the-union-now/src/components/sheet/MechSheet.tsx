@@ -54,7 +54,7 @@ import { addToScrapPool } from '../../lib/cargo/cargoTransfer'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { ItemCondition, Mech } from '../../lib/schemas/mech'
 import { useEntityStore } from '../../stores/entityStore'
-import { InstallStep } from '../mech/InstallStep'
+import { EntitySearcher } from '../shared/EntitySearcher'
 import { ActionCardErow } from './ActionCardErow'
 import { destroyedUndoToast } from './destroyedUndoToast'
 import { Ecflow, Erow } from './Erow'
@@ -648,16 +648,19 @@ export function MechSheet({
         title="Add Systems"
         maxWidth="max-w-5xl"
       >
-        <InstallStep
-          kind="systems"
+        <EntitySearcher
+          schema="systems"
+          mode="count"
           selected={mech.systems}
           onAdd={(name) => addItem('system', name)}
           onRemove={(index) => removeItem('system', index)}
-          loadoutName={mech.name || chassis?.name || mech.chassisRef || 'Mech'}
-          slotsUsed={capacity.systemSlotsUsed}
-          slotsMax={capacity.systemSlotsMax}
-          energyValue={currentEP}
-          energyMax={maxEP}
+          railName={mech.name || chassis?.name || mech.chassisRef || 'Mech'}
+          chosenLabel="Installed"
+          emptyMessage="No systems match those filters."
+          budget={[
+            { label: 'System Slots', used: capacity.systemSlotsUsed, max: capacity.systemSlotsMax },
+            { label: 'Energy', used: currentEP, max: maxEP, tone: 'ap' },
+          ]}
         />
       </SheetPickerModal>
       <SheetPickerModal
@@ -666,16 +669,19 @@ export function MechSheet({
         title="Add Modules"
         maxWidth="max-w-5xl"
       >
-        <InstallStep
-          kind="modules"
+        <EntitySearcher
+          schema="modules"
+          mode="count"
           selected={mech.modules}
           onAdd={(name) => addItem('module', name)}
           onRemove={(index) => removeItem('module', index)}
-          loadoutName={mech.name || chassis?.name || mech.chassisRef || 'Mech'}
-          slotsUsed={capacity.moduleSlotsUsed}
-          slotsMax={capacity.moduleSlotsMax}
-          energyValue={currentEP}
-          energyMax={maxEP}
+          railName={mech.name || chassis?.name || mech.chassisRef || 'Mech'}
+          chosenLabel="Installed"
+          emptyMessage="No modules match those filters."
+          budget={[
+            { label: 'Module Slots', used: capacity.moduleSlotsUsed, max: capacity.moduleSlotsMax },
+            { label: 'Energy', used: currentEP, max: maxEP, tone: 'ap' },
+          ]}
         />
       </SheetPickerModal>
     </section>

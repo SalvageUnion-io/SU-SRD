@@ -54,7 +54,13 @@ type FacetConfig = {
   category?: { label: string; of: (item: EntityLike) => string | undefined }
 }
 
-type BudgetConfig = { label: string; used: number; max: number }
+type BudgetConfig = {
+  label: string
+  used: number
+  max: number
+  /** 'ap' renders rust pips (e.g. Energy); default ink. */
+  tone?: 'default' | 'ap'
+}
 
 type EntitySearcherProps = {
   /** Which reference collection to search. */
@@ -78,8 +84,8 @@ type EntitySearcherProps = {
   /** Narrow the pool (e.g. only weapons). Default: the whole collection. */
   filter?: (item: EntityLike) => boolean
   facets?: FacetConfig
-  /** Optional soft budget track shown in the rail (never blocks selection). */
-  budget?: BudgetConfig
+  /** Optional soft budget track(s) shown in the rail (never blocks selection). */
+  budget?: BudgetConfig | BudgetConfig[]
   /** Rail header name, e.g. the pilot or mech name. */
   railName?: string
   /** Rail header noun for the chosen list, e.g. 'Equipped', 'Installed'. */
@@ -457,12 +463,13 @@ function SelectionRail({
   count: number
   schema: EntitySchemaName
   selected: string[]
-  budget?: BudgetConfig
+  budget?: BudgetConfig | BudgetConfig[]
   mode: 'toggle' | 'count'
   onToggle?: (ref: string) => void
   onRemove?: (index: number) => void
   className?: string
 }) {
+  const budgets = budget ? (Array.isArray(budget) ? budget : [budget]) : []
   const entries = useMemo(() => {
     const all = SalvageUnionReference.findAllIn(schema, () => true) as unknown as EntityLike[]
     const totals = new Map<string, number>()
@@ -491,9 +498,11 @@ function SelectionRail({
         )}
       </h2>
 
-      {budget && (
-        <div className="mt-3">
-          <BudgetTrack label={budget.label} value={budget.used} max={budget.max} />
+      {budgets.length > 0 && (
+        <div className="mt-3 space-y-3">
+          {budgets.map((b) => (
+            <BudgetTrack key={b.label} label={b.label} value={b.used} max={b.max} tone={b.tone} />
+          ))}
         </div>
       )}
 
@@ -535,9 +544,20 @@ function SelectionRail({
 // Budget track — honest over-capacity pips (soft, never blocks; mirrors mech)
 // ---------------------------------------------------------------------------
 
-function BudgetTrack({ label, value, max }: { label: string; value: number; max: number }) {
+function BudgetTrack({
+  label,
+  value,
+  max,
+  tone = 'default',
+}: {
+  label: string
+  value: number
+  max: number
+  tone?: 'default' | 'ap'
+}) {
   const total = Math.max(max, value)
   const isOver = value > max
+  const fill = tone === 'ap' ? 'border-rust bg-rust' : 'border-ink bg-ink'
   return (
     <div>
       <p className="font-cond text-badge font-bold uppercase tracking-widest text-ink">
@@ -567,7 +587,7 @@ function BudgetTrack({ label, value, max }: { label: string; value: number; max:
                       on
                         ? over
                           ? 'border-status-bad bg-status-bad'
-                          : 'border-ink bg-ink'
+                          : fill
                         : 'border-ink bg-transparent'
                     )}
                   />
