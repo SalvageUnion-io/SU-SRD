@@ -37,6 +37,7 @@ import type { Pilot } from '../../lib/schemas/pilot'
 import type { SoftLink } from '../../lib/schemas/softLink'
 import { useEntityStore } from '../../stores/entityStore'
 import { usePatternStore } from '../../stores/patternStore'
+import { STARTER_WORKSPACE_ID } from '../../lib/starterSet/starterSet'
 import { cn } from '../../lib/utils'
 import type { LinkWriteStore } from './dashboardLinks'
 import { ensureDashboardLinks } from './dashboardLinks'
@@ -63,6 +64,15 @@ type DashboardChooserProps = {
    */
   initialPilotId?: string
   initialMechId?: string
+  /**
+   * Scope the pilot/mech/crawler pickers to the Roster's currently-chosen
+   * workspace, mirroring `Roster.tsx`'s own filter: `null` = "All Builds" shows
+   * every owned entity except the seeded Starter Set; a workspace id shows only
+   * that workspace's entities. Unset = unscoped (all saved entities). Stand-in
+   * mech patterns and default-TL crawler tokens carry no workspace, so they are
+   * always offered.
+   */
+  activeWorkspaceId?: string | null
   /** Button label — defaults to "Launch Dashboard". */
   label?: string
   className?: string
@@ -91,6 +101,7 @@ export function DashboardChooser({
   onLaunch,
   initialPilotId,
   initialMechId,
+  activeWorkspaceId,
   label = 'Launch Dashboard',
   className,
 }: DashboardChooserProps) {
@@ -102,10 +113,24 @@ export function DashboardChooser({
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const pilots: Pilot[] = usePilots()
-  const mechs: Mech[] = useMechs()
-  const crawlers: Crawler[] = useCrawlers()
+  const allPilots: Pilot[] = usePilots()
+  const allMechs: Mech[] = useMechs()
+  const allCrawlers: Crawler[] = useCrawlers()
   const links: SoftLink[] = useSoftLinkList()
+
+  // Scope the pickers to the Roster's chosen workspace, mirroring Roster.tsx's
+  // own filter so the chooser can only launch entities the roster is showing.
+  // Unset activeWorkspaceId (prop omitted) = unscoped; `null` = "All Builds"
+  // (everything except the seeded Starter Set); an id = that workspace only.
+  const inScope = <T extends { workspaceId?: string }>(list: T[]): T[] => {
+    if (activeWorkspaceId === undefined) return list
+    if (activeWorkspaceId === null)
+      return list.filter((e) => e.workspaceId !== STARTER_WORKSPACE_ID)
+    return list.filter((e) => e.workspaceId === activeWorkspaceId)
+  }
+  const pilots = inScope(allPilots)
+  const mechs = inScope(allMechs)
+  const crawlers = inScope(allCrawlers)
   // Saved patterns → stand-in mechs (list() lazily hydrates, mirroring PatternList).
   const patterns: MechPattern[] = usePatternStore((s) => s.mechPatterns)
   usePatternStore.getState().list()

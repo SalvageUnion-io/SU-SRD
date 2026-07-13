@@ -137,7 +137,10 @@ export function SheetMech({
       actions={
         editable ? (
           <>
-            <DashboardChooser initialMechId={mech.id} />
+            <DashboardChooser
+              initialMechId={mech.id}
+              activeWorkspaceId={mech.workspaceId ?? null}
+            />
             {actions}
           </>
         ) : (

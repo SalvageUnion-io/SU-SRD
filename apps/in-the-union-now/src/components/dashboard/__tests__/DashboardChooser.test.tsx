@@ -187,6 +187,26 @@ describe('DashboardChooser — wizard', () => {
     expect(screen.getByRole('radio', { name: /Iron Jaw/ })).toBeTruthy()
   })
 
+  test('scopes the pilot list to the active workspace', async () => {
+    const store = useEntityStore.getState()
+    await Promise.all([store.hydrate('pilot'), store.hydrate('mech'), store.hydrate('crawler')])
+    // Two pilots in two different workspaces; the chooser is scoped to ws-a.
+    await store.create('pilot', { ...basePilotInput, name: 'Alpha Pilot', workspaceId: 'ws-a' })
+    await store.create('pilot', { ...basePilotInput, name: 'Bravo Pilot', workspaceId: 'ws-b' })
+
+    await act(async () => {
+      render(<DashboardChooser activeWorkspaceId="ws-a" />)
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Launch the Dashboard' }))
+    })
+    await settle(() => screen.queryByRole('radio', { name: /Alpha Pilot/ }) !== null)
+
+    // Only the ws-a pilot is offered; the ws-b pilot is filtered out.
+    expect(screen.getByRole('radio', { name: /Alpha Pilot/ })).toBeTruthy()
+    expect(screen.queryByRole('radio', { name: /Bravo Pilot/ })).toBeNull()
+  })
+
   test('launching calls onLaunch with the chosen mech and links the crew', async () => {
     const { pilot, mech, crawler } = await seedCrew()
     resetEntityStore()
