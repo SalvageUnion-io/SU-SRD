@@ -113,7 +113,7 @@ jobs:
       issues: write
     steps:
       - name: Open or update the nightly-e2e-failure tracking issue
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const label = 'nightly-e2e-failure'
@@ -156,7 +156,7 @@ jobs:
       issues: write
     steps:
       - name: Close any open nightly-e2e-failure tracking issue
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const label = 'nightly-e2e-failure'
