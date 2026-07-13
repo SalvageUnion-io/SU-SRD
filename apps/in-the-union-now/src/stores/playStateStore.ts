@@ -24,7 +24,8 @@ import { create } from 'zustand'
 export type MountState = 'mech' | 'pilot' | 'downtime'
 
 type PlayState = {
-  /** Active-row entity. Defaults to the boarded mech. */
+  /** Active-row entity. Defaults to the on-foot pilot (a fresh dashboard opens
+   *  in pilot mode, not boarded). */
   mount: MountState
   /** Selected index on the rotary Dial. */
   wheel: number
@@ -47,7 +48,7 @@ type PlayState = {
 }
 
 export const usePlayStateStore = create<PlayState>((set) => ({
-  mount: 'mech',
+  mount: 'pilot',
   wheel: 0,
   priorMount: null,
   dtStep: 0,
