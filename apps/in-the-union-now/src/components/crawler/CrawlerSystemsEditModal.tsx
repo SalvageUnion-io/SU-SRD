@@ -1,9 +1,11 @@
 /**
  * CrawlerSystemsEditModal — the live sheet's inline weapons-systems editor
- * (build-edit mode). Reuses the wizard's SystemsList (the weapons picker) inside
- * a ModalShell, with the SAME hard cap the wizard enforces: one Weapons System
- * per crawler, two for a Battle Crawler (Core Book p. 213 / p. 216). Selections
- * write through immediately via the sheet's `patch({ systems })`.
+ * (build-edit mode). Drives the shared EntitySearcher, scoped to WEAPON systems
+ * at the crawler's tech level and below. Per ADR-021 the live sheet is the
+ * free/override surface, so the one/two-per-crawler cap (Core Book p. 213 /
+ * p. 216) shows as a SOFT budget track (honest over-capacity), not a hard block —
+ * matching how mech System/Module slots already behave. Selections write through
+ * immediately via the sheet's `patch({ systems })`.
  */
 
 import { useEffect, useMemo, useState } from 'react'
@@ -16,7 +18,7 @@ import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
 import { computeCrawlerCapacity } from '../../lib/rules/crawlerCapacity'
 import { isWeaponSystem } from '../../lib/rules/crawlerSystems'
 import type { Crawler } from '../../lib/schemas/crawler'
-import { SystemsList } from './SystemsList'
+import { EntitySearcher } from '../shared/EntitySearcher'
 
 type CrawlerSystemsEditModalProps = {
   open: boolean
@@ -27,19 +29,6 @@ type CrawlerSystemsEditModalProps = {
    * form `(current) => fields` so rapid weapon toggles don't race the write.
    */
   patch: (input: Partial<Crawler> | ((current: Crawler) => Partial<Crawler>)) => void
-}
-
-/**
- * WEAPONS systems whose numeric techLevel <= the crawler's TL (mirrors the
- * wizard's Armament-Bay filter — weapons only, numeric TL only).
- */
-function filterSystemsByTL(allSystems: SURefSystem[], tl: number | null): SURefSystem[] {
-  if (tl === null) return []
-  return allSystems.filter((s) => {
-    if (typeof s.techLevel !== 'number') return false
-    if (s.techLevel > tl) return false
-    return isWeaponSystem(s)
-  })
 }
 
 export function CrawlerSystemsEditModal({
@@ -64,16 +53,6 @@ export function CrawlerSystemsEditModal({
   // Armaments", Core Book p. 216) — gate off the action name, not the label.
   const isBattleCrawler = selectedType?.actions?.includes('Improved Armour and Armaments') ?? false
 
-  // TL-eligible weapons, PLUS any weapon already installed above the current TL
-  // (e.g. after a TL drop) so it stays visible and removable — otherwise it
-  // counts toward the cap but has no card to deselect, stranding the picker.
-  const isInstalled = (s: SURefSystem) => crawler.systems.some((id) => id === s.id || id === s.name)
-  const filteredSystems = filterSystemsByTL(allSystems, tl)
-  const installedOverTl = allSystems.filter(
-    (s) => isInstalled(s) && isWeaponSystem(s) && !filteredSystems.some((f) => f.id === s.id)
-  )
-  const displaySystems = [...filteredSystems, ...installedOverTl]
-
   const capacity = useMemo(() => {
     const weaponSystems = crawler.systems.filter((id) => {
       const system = allSystems.find((s) => s.id === id || s.name === id)
@@ -94,29 +73,42 @@ export function CrawlerSystemsEditModal({
         if (!next) onClose()
       }}
       title="Edit Weapons Systems"
-      subtitle={`${capacity.weaponSystemsUsed} / ${
-        capacity.weaponSystemsMax > 0 ? capacity.weaponSystemsMax : '—'
-      } · Tech ${tl ?? '—'} and below`}
+      subtitle={`Tech ${tl ?? '—'} and below`}
+      maxWidth="max-w-5xl"
     >
       <div className="p-4">
-        <SystemsList
-          systems={displaySystems}
-          selectedSystemSlugs={crawler.systems}
-          maxSelectable={capacity.weaponSystemsMax}
-          installedWeaponCount={capacity.weaponSystemsUsed}
-          onChange={(next) =>
-            // Apply the user's delta (vs the displayed selection) onto the
-            // FRESHEST systems array so a rapid second toggle can't overwrite
-            // the first. Weapons are unique, so set-style add/remove is safe.
-            patch((current) => {
-              const added = next.filter((s) => !crawler.systems.includes(s))
-              const removed = crawler.systems.filter((s) => !next.includes(s))
-              const systems = current.systems.filter((s) => !removed.includes(s))
-              for (const a of added) if (!systems.includes(a)) systems.push(a)
-              return { systems }
-            })
-          }
-        />
+        {allSystems.length > 0 && (
+          <EntitySearcher
+            schema="systems"
+            selected={crawler.systems}
+            filter={(item) => {
+              const s = item as unknown as SURefSystem
+              const installed = crawler.systems.some((id) => id === s.id || id === s.name)
+              // Keep installed weapons visible/removable even above the current TL.
+              if (installed) return isWeaponSystem(s)
+              if (typeof s.techLevel !== 'number' || tl === null || s.techLevel > tl) return false
+              return isWeaponSystem(s)
+            }}
+            idOf={(item) => (item as unknown as SURefSystem).id}
+            onToggle={(ref) =>
+              // Toggle exactly one weapon on the FRESHEST systems array so a rapid
+              // second toggle can't overwrite the first. Weapons are unique.
+              patch((current) => ({
+                systems: current.systems.includes(ref)
+                  ? current.systems.filter((s) => s !== ref)
+                  : [...current.systems, ref],
+              }))
+            }
+            railName={crawler.name}
+            chosenLabel="Armed"
+            emptyMessage="No weapons systems at this crawler's tech level."
+            budget={{
+              label: 'Weapons Systems',
+              used: capacity.weaponSystemsUsed,
+              max: capacity.weaponSystemsMax,
+            }}
+          />
+        )}
       </div>
     </ModalShell>
   )

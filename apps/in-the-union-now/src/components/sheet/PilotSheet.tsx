@@ -34,6 +34,8 @@
 
 import { useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
+import { SalvageUnionReference } from 'salvageunion-reference'
+import type { SURefAbility } from 'salvageunion-reference'
 import { Panel, StepBtn, ValueDisplay, VitalGauge } from 'suref-react'
 
 import type { ItemCondition } from '../../lib/schemas/mech'
@@ -41,8 +43,8 @@ import type { GenericInventoryEntry, Pilot } from '../../lib/schemas/pilot'
 import { resolveEffectiveCrawlerLevel } from '../../lib/crawlerLevel'
 import { isPilotDead, pilotMaxAP, pilotMaxHP } from '../../lib/rules/derivedStats'
 import { useEntityStore } from '../../stores/entityStore'
-import { AbilitiesStep } from '../pilot/AbilitiesStep'
-import { EquipmentStep } from '../pilot/EquipmentStep'
+import { type ClassLike, treesFor } from '../pilot/abilityTrees'
+import { EntitySearcher } from '../shared/EntitySearcher'
 import { useSoftLinks } from '../wiring/useSoftLinks'
 import { ConditionsEditor } from './ConditionsEditor'
 import { destroyedUndoToast } from './destroyedUndoToast'
@@ -174,6 +176,23 @@ export function PilotSheet({
   const slotsCap = pilotInventoryCapacity(pilot)
   const overCapacity = slotsUsed > slotsCap
   const genericInventory = pilot.genericInventory ?? []
+
+  // Abilities offered on the live sheet are scoped to the pilot's class trees
+  // (core + advanced + legendary + any tree they've already learned) — the same
+  // edit-mode logic AbilitiesStep used, now feeding the shared searcher's filter.
+  // Computed only while the Abilities picker is open: it reads the reference ORM,
+  // which read-only snapshot renders never preload (the picker never opens there).
+  const abilityTrees = useMemo(() => {
+    if (picker !== 'abilities') return null
+    const cls = SalvageUnionReference.Classes.find(
+      (c) => (c as { id: string }).id === pilot.classRef
+    ) as ClassLike | undefined
+    if (!cls) return null
+    const selectedTrees = (SalvageUnionReference.Abilities.all() as ReadonlyArray<SURefAbility>)
+      .filter((a) => pilot.abilities.includes(a.id))
+      .map((a) => a.tree)
+    return new Set(treesFor(cls, true, selectedTrees))
+  }, [picker, pilot.classRef, pilot.abilities])
 
   const maxHP = Math.max(0, pilotMaxHP(pilot))
   const maxAP = Math.max(0, pilotMaxAP(pilot))
@@ -537,20 +556,42 @@ export function PilotSheet({
         open={picker === 'abilities'}
         onClose={() => setPicker(null)}
         title="Add Abilities"
+        maxWidth="max-w-5xl"
       >
-        <AbilitiesStep
-          classId={pilot.classRef}
-          selectedAbilities={pilot.abilities}
+        <EntitySearcher
+          schema="abilities"
+          selected={pilot.abilities}
           onToggle={toggleAbility}
-          allLevels
+          idOf={(item) => item.id}
+          filter={
+            abilityTrees
+              ? (item) => abilityTrees.has((item as unknown as SURefAbility).tree)
+              : undefined
+          }
+          facets={{
+            category: { label: 'Tree', of: (item) => (item as unknown as SURefAbility).tree },
+          }}
+          railName={pilot.name}
+          chosenLabel="Learned"
+          emptyMessage="No abilities match those filters."
         />
       </SheetPickerModal>
       <SheetPickerModal
         open={picker === 'equipment'}
         onClose={() => setPicker(null)}
         title="Add Equipment"
+        maxWidth="max-w-5xl"
       >
-        <EquipmentStep selectedEquipment={pilot.equipment} onToggle={toggleEquipment} />
+        <EntitySearcher
+          schema="equipment"
+          selected={pilot.equipment}
+          onToggle={toggleEquipment}
+          idOf={(item) => item.id}
+          railName={pilot.name}
+          chosenLabel="Equipped"
+          emptyMessage="No equipment matches those filters."
+          budget={{ label: 'Inventory slots', used: slotsUsed, max: slotsCap }}
+        />
       </SheetPickerModal>
     </section>
   )
