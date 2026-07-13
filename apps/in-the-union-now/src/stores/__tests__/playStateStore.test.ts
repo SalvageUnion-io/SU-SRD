@@ -12,7 +12,7 @@ import { usePlayStateStore } from '../playStateStore'
 describe('playStateStore', () => {
   beforeEach(() => {
     usePlayStateStore.setState({
-      mount: 'mech',
+      mount: 'pilot',
       wheel: 0,
       priorMount: null,
       dtStep: 0,
@@ -20,9 +20,9 @@ describe('playStateStore', () => {
     })
   })
 
-  test('defaults to the boarded mech, dial at 0', () => {
+  test('defaults to the on-foot pilot, dial at 0', () => {
     const s = usePlayStateStore.getState()
-    expect(s.mount).toBe('mech')
+    expect(s.mount).toBe('pilot')
     expect(s.wheel).toBe(0)
     expect(s.priorMount).toBeNull()
   })
