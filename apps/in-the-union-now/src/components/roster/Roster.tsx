@@ -224,7 +224,7 @@ export function Roster() {
             <ImportButton />
             {/* Launch the Dashboard for a chosen pilot/mech/crawler crew
                 (design-spec §8). Shown once at least one mech exists to run. */}
-            {allMechs.length > 0 && <DashboardChooser />}
+            {allMechs.length > 0 && <DashboardChooser activeWorkspaceId={activeWorkspaceId} />}
           </div>
           <WorkspaceSwitcher
             activeWorkspaceId={activeWorkspaceId}

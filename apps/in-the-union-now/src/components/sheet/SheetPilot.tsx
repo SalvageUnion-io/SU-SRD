@@ -136,7 +136,10 @@ export function SheetPilot({
       actions={
         editable ? (
           <>
-            <DashboardChooser initialPilotId={pilot.id} />
+            <DashboardChooser
+              initialPilotId={pilot.id}
+              activeWorkspaceId={pilot.workspaceId ?? null}
+            />
             {actions}
           </>
         ) : (
