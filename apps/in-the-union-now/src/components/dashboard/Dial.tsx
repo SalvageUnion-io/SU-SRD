@@ -1,17 +1,21 @@
 /**
- * Dial — the rotary selector column. The active item sits in a wide slot (it
- * overhangs the column and, in Phase 4, drives the main display); the rest ride
- * a track below, right-aligned and smaller. Advance with ▲▼, click a track item
- * to jump, or drag the column; each step plays a short directional roll.
+ * Dial — the rotary selector column on the right of the Dashboard. It behaves
+ * like a physical wheel: a single continuous scroll position (`pos`, in item
+ * units) drives everything. Drag the column and it tracks your pointer 1:1;
+ * release and it coasts with mild inertia, then snaps to the nearest item. ▲▼
+ * ease it one step; clicking a cell eases it to that cell.
+ *
+ * The item nearest the viewfinder (the fixed active slot at the top, the
+ * intersection with the primary row) is the largest and drives the display; as
+ * a cell scrolls away it shrinks and fades, wrapping seamlessly around the loop.
+ * The store's `wheel` index is kept in sync with the nearest item so Dashboard's
+ * focus→display stays live and the selection survives remounts.
  *
  * Statful cells (entities) show a stamp + compact gauges; statless cells
- * (Actions / Tables / SRD) show a big centered title — no stats.
- *
- * Phase 3: selection + focus. The store's `wheel` index is the single source of
- * truth; Dashboard reads it to drive the display (focus→display sync).
+ * (Actions / Tables / SRD) show a centered title — no stats.
  */
 
-import { useRef, useState, type PointerEvent } from 'react'
+import { useCallback, useEffect, useRef, useState, type PointerEvent } from 'react'
 
 import type { CockpitPrefs, DialKind } from '../../lib/schemas/cockpitPrefs'
 import { usePlayStateStore } from '../../stores/playStateStore'
@@ -19,7 +23,31 @@ import { DashboardGauge } from './DashboardGauge'
 import { DialConfig } from './DialConfig'
 import type { DialItem } from './dialItems'
 
-const DRAG_STEP = 30
+/** Active card size in the viewfinder. Height matches the Active row (168px
+ * primary grid row) so labels line up; width is wider than the track cards. */
+const ACTIVE_H = 168
+const ACTIVE_W = 380
+/** Size a card shrinks to away from the viewfinder — tall enough for a stamp +
+ * two gauges (the mech's SP/Heat) without clipping; 2/3 the active width. */
+const TRACK_H = 98
+const TRACK_W = Math.round((ACTIVE_W * 2) / 3)
+/** Gap between adjacent cards, px. */
+const GAP = 8
+/** Top of the active slot within the stage (0 = aligned with the primary row). */
+const VIEW_TOP = 0
+/** Pixels of drag that advance the wheel by one item. */
+const DRAG_UNIT = 74
+/** Constant deceleration for the inertia coast (items/ms²) — a linear slow-down,
+ * not a springy exponential one. */
+const DECEL = 0.00018
+/** Below this speed (items/ms) a release snaps instead of coasting. */
+const MIN_VEL = 0.0012
+/** Cap the launch velocity so a hard flick can't spin forever. */
+const MAX_VEL = 0.03
+/** Duration of the linear ease for a step / jump / snap, ms. */
+const EASE_MS = 200
+/** Pointer travel (px) past which a press is a drag, not a click. */
+const DRAG_SLOP = 5
 
 function DialCell({
   item,
@@ -76,85 +104,253 @@ type DialProps = {
 export function Dial({ items, configKinds, prefs, onPrefsChange }: DialProps) {
   const wheel = usePlayStateStore((s) => s.wheel)
   const setWheel = usePlayStateStore((s) => s.setWheel)
-  const [anim, setAnim] = useState<{ dir: 'fwd' | 'back'; key: number }>({ dir: 'fwd', key: 0 })
   const [configOpen, setConfigOpen] = useState(false)
 
   const n = items.length
   const active = n > 0 ? ((wheel % n) + n) % n : 0
 
-  const go = (next: number, dir: 'fwd' | 'back') => {
-    setWheel(next)
-    setAnim((a) => ({ dir, key: a.key + 1 }))
-  }
-  const step = (d: number) => {
+  // Continuous scroll position (item units, same space as `wheel`). `pos` state
+  // mirrors `posRef` so the render follows every animation frame.
+  const [pos, setPos] = useState(wheel)
+  const posRef = useRef(wheel)
+  const velRef = useRef(0)
+  const rafRef = useRef<number | null>(null)
+  const interactingRef = useRef(false)
+  const drag = useRef<{ y: number; t: number; moved: number; id: number; active: boolean } | null>(
+    null
+  )
+  // True for the click that immediately follows a drag, so it doesn't also jump.
+  const clickGuard = useRef(false)
+
+  const commit = useCallback((p: number) => {
+    posRef.current = p
+    setPos(p)
+  }, [])
+  const cancelRaf = useCallback(() => {
+    if (rafRef.current !== null) cancelAnimationFrame(rafRef.current)
+    rafRef.current = null
+  }, [])
+  // Keep the store's logical index on the item nearest the viewfinder.
+  const syncWheel = useCallback(
+    (p: number) => {
+      const idx = Math.round(p)
+      if (idx !== usePlayStateStore.getState().wheel) setWheel(idx)
+    },
+    [setWheel]
+  )
+
+  // Ease `pos` to a target over ~260ms (the visual catch-up to `wheel`, and the
+  // snap that ends a gesture). Purely visual — it never writes `wheel`.
+  const easeTo = useCallback(
+    (target: number) => {
+      cancelRaf()
+      const from = posRef.current
+      const dist = target - from
+      if (Math.abs(dist) < 0.001) {
+        commit(target)
+        interactingRef.current = false
+        return
+      }
+      interactingRef.current = true
+      let start: number | null = null
+      const tick = (ts: number) => {
+        if (start === null) start = ts
+        const t = Math.min(1, (ts - start) / EASE_MS)
+        commit(from + dist * t) // linear — no springy ease
+        if (t < 1) {
+          rafRef.current = requestAnimationFrame(tick)
+        } else {
+          rafRef.current = null
+          commit(target)
+          interactingRef.current = false
+        }
+      }
+      rafRef.current = requestAnimationFrame(tick)
+    },
+    [cancelRaf, commit]
+  )
+
+  // Coast with the release velocity under CONSTANT deceleration (a linear
+  // slow-down, not a springy exponential decay); when it reaches rest, snap to
+  // the nearest item with a short linear ease.
+  const coast = useCallback(() => {
+    cancelRaf()
+    interactingRef.current = true
+    let prev: number | null = null
+    const tick = (ts: number) => {
+      const dt = prev === null ? 16 : Math.min(48, ts - prev)
+      prev = ts
+      const v = velRef.current
+      const drop = DECEL * dt
+      velRef.current = Math.abs(v) <= drop ? 0 : v - Math.sign(v) * drop
+      const p = posRef.current + velRef.current * dt
+      commit(p)
+      syncWheel(Math.round(p))
+      if (velRef.current === 0) {
+        rafRef.current = null
+        syncWheel(Math.round(p))
+        easeTo(Math.round(p))
+      } else {
+        rafRef.current = requestAnimationFrame(tick)
+      }
+    }
+    rafRef.current = requestAnimationFrame(tick)
+  }, [cancelRaf, commit, syncWheel, easeTo])
+
+  // Buttons / click-to-jump move the LOGICAL selection immediately (off the
+  // store's `wheel`, so it's synchronous); the effect eases `pos` to catch up.
+  const stepBy = (d: number) => {
     if (n === 0) return
-    // Read the live wheel so multiple steps within one drag event accumulate.
-    go(usePlayStateStore.getState().wheel + d, d > 0 ? 'fwd' : 'back')
+    setWheel(usePlayStateStore.getState().wheel + d)
   }
-  const jump = (idx: number) => {
-    if (idx === active || n === 0) return
-    const forward = (((idx - active) % n) + n) % n
-    go(idx, forward <= n / 2 ? 'fwd' : 'back')
+  const jumpTo = (idx: number) => {
+    if (n === 0) return
+    const w = usePlayStateStore.getState().wheel
+    const cur = ((w % n) + n) % n
+    // Shortest signed path so the wheel rolls the natural way.
+    let delta = (((idx - cur) % n) + n) % n
+    if (delta > n / 2) delta -= n
+    if (delta === 0) return
+    setWheel(w + delta)
   }
 
-  const drag = useRef<{ last: number; acc: number } | null>(null)
   const onPointerDown = (e: PointerEvent) => {
-    drag.current = { last: e.clientY, acc: 0 }
-    e.currentTarget.setPointerCapture(e.pointerId)
+    cancelRaf()
+    velRef.current = 0
+    clickGuard.current = false
+    // Don't capture or claim the gesture yet — a press that never moves must
+    // stay a plain click so the cell's onClick can jump the wheel to it.
+    drag.current = { y: e.clientY, t: e.timeStamp, moved: 0, id: e.pointerId, active: false }
   }
   const onPointerMove = (e: PointerEvent) => {
     const d = drag.current
     if (!d) return
-    d.acc += e.clientY - d.last
-    d.last = e.clientY
-    while (d.acc >= DRAG_STEP) {
-      d.acc -= DRAG_STEP
-      step(-1)
+    const dy = e.clientY - d.y
+    const dt = Math.max(1, e.timeStamp - d.t)
+    d.y = e.clientY
+    d.t = e.timeStamp
+    d.moved += Math.abs(dy)
+    if (!d.active) {
+      if (d.moved <= DRAG_SLOP) return
+      // Promote to a drag: now capture the pointer and own the animation.
+      d.active = true
+      interactingRef.current = true
+      e.currentTarget.setPointerCapture(d.id)
     }
-    while (d.acc <= -DRAG_STEP) {
-      d.acc += DRAG_STEP
-      step(1)
-    }
+    // Drag up (dy<0) advances the wheel (pos increases).
+    const dPos = -dy / DRAG_UNIT
+    commit(posRef.current + dPos)
+    syncWheel(Math.round(posRef.current))
+    velRef.current = Math.max(-MAX_VEL, Math.min(MAX_VEL, dPos / dt))
   }
   const endDrag = (e: PointerEvent) => {
+    const d = drag.current
     drag.current = null
-    if (e.currentTarget.hasPointerCapture?.(e.pointerId)) {
-      e.currentTarget.releasePointerCapture(e.pointerId)
+    if (!d) return
+    if (!d.active) return // a tap — the cell's onClick handles the jump
+    clickGuard.current = true
+    if (e.currentTarget.hasPointerCapture?.(d.id)) {
+      e.currentTarget.releasePointerCapture(d.id)
+    }
+    if (Math.abs(velRef.current) > MIN_VEL) {
+      coast()
+    } else {
+      const target = Math.round(posRef.current)
+      syncWheel(target)
+      easeTo(target)
     }
   }
+  // Clicking a cell jumps to it — unless the click is the tail of a drag.
+  const guardedJump = (idx: number) => {
+    if (clickGuard.current) {
+      clickGuard.current = false
+      return
+    }
+    jumpTo(idx)
+  }
+
+  // Follow external `wheel` changes (e.g. store reset) when not mid-gesture.
+  useEffect(() => {
+    if (interactingRef.current) return
+    if (Math.abs(posRef.current - wheel) > 0.001) easeTo(wheel)
+  }, [wheel, easeTo])
+  // Cancel any in-flight animation on unmount.
+  useEffect(() => cancelRaf, [cancelRaf])
 
   const activeItem = items[active]
   if (!activeItem) return <div className="pc-wheel-col" />
 
-  const trackIdx: number[] = []
-  for (let k = 1; k < n; k++) trackIdx.push((active + k) % n)
-
   const canConfigure = onPrefsChange !== undefined && configKinds !== undefined
 
+  // Lay the cards out at REAL heights (no scale, so labels keep their size): the
+  // card at the viewfinder is ACTIVE_H tall, shrinking to TRACK_H away from it.
+  // `base`/`frac` split `pos`; cards are placed by walking out from the front
+  // card and accumulating real heights so they tile without gaps as pos scrolls.
+  const base = Math.floor(pos)
+  const frac = pos - base
+  // Linear grow/shrink: only the card(s) within one step of the viewfinder
+  // transition; every card at |phase| >= 1 stays the uniform track size.
+  const lerpIn = (phase: number) => Math.max(0, 1 - Math.abs(phase))
+  const heightAt = (phase: number) => TRACK_H + (ACTIVE_H - TRACK_H) * lerpIn(phase)
+  const widthAt = (phase: number) => TRACK_W + (ACTIVE_W - TRACK_W) * lerpIn(phase)
+
+  // Offsets 0..n-1: the active card sits at the top and every other card stacks
+  // BENEATH it, in dial order. The card leaving the top on a scroll wraps to the
+  // bottom (hidden above the stage's top clip during the hand-off).
+  const seats = items.map((it, i) => {
+    let o = ((i - base) % n) + (i - base < 0 ? n : 0)
+    o %= n
+    const phase = o - frac
+    return { it, i, o, phase, h: heightAt(phase), w: widthAt(phase) }
+  })
+  const hByO = new Map(seats.map((s) => [s.o, s.h]))
+  const topByO = new Map<number, number>([[0, VIEW_TOP - frac * (TRACK_H + GAP)]])
+  const maxO = Math.max(...seats.map((s) => s.o))
+  const minO = Math.min(...seats.map((s) => s.o))
+  for (let o = 1, t = topByO.get(0) as number; o <= maxO; o++) {
+    t += (hByO.get(o - 1) as number) + GAP
+    topByO.set(o, t)
+  }
+  for (let o = -1, t = topByO.get(0) as number; o >= minO; o--) {
+    t -= (hByO.get(o) as number) + GAP
+    topByO.set(o, t)
+  }
+
   return (
-    <div
-      className="pc-wheel-col"
-      role="listbox"
-      aria-label="Dial"
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={endDrag}
-      onPointerCancel={endDrag}
-    >
-      <div className={`pc-wheel-slot anim-${anim.dir}`} key={anim.key}>
-        <DialCell item={activeItem} active />
-      </div>
-      <div className="pc-wheel-track">
-        {trackIdx.map((idx) => {
-          const it = items[idx]
-          return it ? <DialCell key={it.key} item={it} onClick={() => jump(idx)} /> : null
+    <div className="pc-wheel-col" role="listbox" aria-label="Dial">
+      <div
+        className="pc-wheel-stage"
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={endDrag}
+        onPointerCancel={endDrag}
+      >
+        {seats.map(({ it, i, o, phase, h, w }) => {
+          const isActive = i === active
+          // No dimming — every card is fully visible. The active card sits on top
+          // (higher z) so its overhang reads over the cards stacked beneath it.
+          const style = {
+            top: `${topByO.get(o)}px`,
+            height: `${h}px`,
+            width: `${w}px`,
+            zIndex: Math.round(100 - Math.abs(phase) * 10),
+          }
+          return (
+            <div key={it.key} className="pc-wheel-seat" style={style}>
+              <DialCell
+                item={it}
+                active={isActive}
+                onClick={isActive ? undefined : () => guardedJump(i)}
+              />
+            </div>
+          )
         })}
       </div>
       <div className="pc-wheel-ctl">
         <button
           type="button"
           className="pc-wheel-btn"
-          onClick={() => step(-1)}
+          onClick={() => stepBy(-1)}
           aria-label="Dial up"
         >
           ▲
@@ -162,7 +358,7 @@ export function Dial({ items, configKinds, prefs, onPrefsChange }: DialProps) {
         <button
           type="button"
           className="pc-wheel-btn"
-          onClick={() => step(1)}
+          onClick={() => stepBy(1)}
           aria-label="Dial down"
         >
           ▼
