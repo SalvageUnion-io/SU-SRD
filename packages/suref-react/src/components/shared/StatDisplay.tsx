@@ -191,42 +191,49 @@ function InlineChip({ label, value, max, tone = 'default', className }: StatDisp
         isOver ? ' — over capacity' : ''
       }`}
       data-heat={level !== 'normal' ? level : undefined}
-      className={cn(
-        'inline-flex items-center gap-1.5 rounded-[2px] border-chrome bg-paper px-2 py-[3px]',
-        level === 'critical' ? 'border-status-bad motion-safe:animate-heat-pulse' : 'border-ink',
-        className
-      )}
+      className={cn('inline-flex flex-col items-center', className)}
     >
-      <span className="font-cond text-[10px] font-bold uppercase leading-none text-wk-muted">
+      {/* Ink stamp label riding the chip's top border (StampSeam), like the box. */}
+      <span className="z-[1] -mb-2 bg-ink px-1.5 py-0.5 font-cond text-[10px] font-bold uppercase leading-none tracking-caps-tight text-su-white">
         {label}
       </span>
-      {showPips && (
-        <span className="flex items-center gap-[3px]" aria-hidden="true">
-          {Array.from({ length: total }).map((_, i) => (
-            <span
-              // biome-ignore lint/suspicious/noArrayIndexKey: pips are positional — the index IS their identity
-              key={i}
-              data-pip={i < clamped ? 'on' : 'off'}
-              className={cn(
-                'h-[7px] w-[7px] rounded-[1px] border-[1.25px]',
-                i < clamped
-                  ? i >= (max ?? Infinity) || i >= heatDanger
-                    ? 'border-status-bad bg-status-bad'
-                    : PIP_FILL[tone]
-                  : 'border-ink bg-transparent'
-              )}
-            />
-          ))}
-        </span>
-      )}
+      {/* Bordered value chip: pips + value. */}
       <span
         className={cn(
-          'font-body text-sm font-bold leading-none',
-          level !== 'normal' || isOver ? 'text-status-bad' : 'text-ink'
+          'flex items-center gap-1.5 rounded-[2px] border-chrome bg-paper px-2 pb-1 pt-2.5',
+          level === 'critical' ? 'border-status-bad motion-safe:animate-heat-pulse' : 'border-ink'
         )}
       >
-        {clamped}
-        {max !== undefined && <small className="text-[10px] font-bold text-wk-muted">/{max}</small>}
+        {showPips && (
+          <span className="flex items-center gap-[3px]" aria-hidden="true">
+            {Array.from({ length: total }).map((_, i) => (
+              <span
+                // biome-ignore lint/suspicious/noArrayIndexKey: pips are positional — the index IS their identity
+                key={i}
+                data-pip={i < clamped ? 'on' : 'off'}
+                className={cn(
+                  'h-[7px] w-[7px] rounded-[1px] border-[1.25px]',
+                  i < clamped
+                    ? i >= (max ?? Infinity) || i >= heatDanger
+                      ? 'border-status-bad bg-status-bad'
+                      : PIP_FILL[tone]
+                    : 'border-ink bg-transparent'
+                )}
+              />
+            ))}
+          </span>
+        )}
+        <span
+          className={cn(
+            'font-body text-sm font-bold leading-none',
+            level !== 'normal' || isOver ? 'text-status-bad' : 'text-ink'
+          )}
+        >
+          {clamped}
+          {max !== undefined && (
+            <small className="text-[10px] font-bold text-wk-muted">/{max}</small>
+          )}
+        </span>
       </span>
     </span>
   )

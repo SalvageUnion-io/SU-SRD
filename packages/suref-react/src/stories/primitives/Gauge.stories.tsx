@@ -1,4 +1,5 @@
 import type { Story } from '@ladle/react'
+import { SalvageUnionReference } from 'salvageunion-reference'
 
 import { VitalGauge } from '../../components/stat/VitalGauge'
 
@@ -9,14 +10,23 @@ export default {
 
 const noop = () => {}
 
+// Real chassis stats drive every gauge below (reference data is preloaded by
+// .ladle/components.tsx before this chunk imports).
+const chassis = SalvageUnionReference.Chassis.all()[0]
+const chassisName = chassis?.name ?? 'Chassis'
+const sp = chassis?.structurePoints ?? 12
+const ep = chassis?.energyPoints ?? 4
+const heat = chassis?.heatCapacity ?? 6
+const cargo = chassis?.cargoCapacity ?? 16
+
 /** Read-only static gauge — non-interactive read-out (role="img"). */
 export const ReadOnly: Story = () => (
   <div className="bg-paper p-4">
     <div className="mb-1 font-cond text-[10px] uppercase tracking-caps text-wk-muted">
-      read-only static
+      read-only static · {chassisName}
     </div>
     <div className="sheet--pilot max-w-sm">
-      <VitalGauge label="HP" value={7} max={10} readOnly />
+      <VitalGauge label="EP" value={Math.ceil(ep / 2)} max={ep} readOnly />
     </div>
   </div>
 )
@@ -25,10 +35,10 @@ export const ReadOnly: Story = () => (
 export const Editable: Story = () => (
   <div className="bg-paper p-4">
     <div className="mb-1 font-cond text-[10px] uppercase tracking-caps text-wk-muted">
-      editable (onChange no-op)
+      editable (onChange no-op) · {chassisName}
     </div>
     <div className="sheet--mech max-w-sm">
-      <VitalGauge label="SP" value={4} max={8} onChange={noop} />
+      <VitalGauge label="Heat" value={Math.ceil(heat / 2)} max={heat} onChange={noop} />
     </div>
   </div>
 )
@@ -37,10 +47,10 @@ export const Editable: Story = () => (
 export const Dense: Story = () => (
   <div className="bg-paper p-4">
     <div className="mb-1 font-cond text-[10px] uppercase tracking-caps text-wk-muted">
-      dense (max ≥ 12)
+      dense (max ≥ 12) · {chassisName}
     </div>
     <div className="sheet--crawler max-w-md">
-      <VitalGauge label="EP" value={11} max={16} onChange={noop} />
+      <VitalGauge label="Cargo" value={Math.ceil(cargo * 0.7)} max={cargo} onChange={noop} />
     </div>
   </div>
 )
@@ -49,10 +59,16 @@ export const Dense: Story = () => (
 export const Danger: Story = () => (
   <div className="bg-paper p-4">
     <div className="mb-1 font-cond text-[10px] uppercase tracking-caps text-wk-muted">
-      with danger redline
+      with danger redline · {chassisName}
     </div>
     <div className="sheet--mech max-w-sm">
-      <VitalGauge label="Heat" value={5} max={6} danger={4} onChange={noop} />
+      <VitalGauge
+        label="Heat"
+        value={heat - 1}
+        max={heat}
+        danger={Math.max(1, heat - 2)}
+        onChange={noop}
+      />
     </div>
   </div>
 )
@@ -61,10 +77,16 @@ export const Danger: Story = () => (
 export const WithCaption: Story = () => (
   <div className="bg-paper p-4">
     <div className="mb-1 font-cond text-[10px] uppercase tracking-caps text-wk-muted">
-      with a caption pair
+      with a caption pair · {chassisName}
     </div>
     <div className="sheet--crawler max-w-sm">
-      <VitalGauge label="Cargo" value={3} max={5} caption={['Stowed', 'Bays']} onChange={noop} />
+      <VitalGauge
+        label="Cargo"
+        value={Math.ceil(cargo * 0.6)}
+        max={cargo}
+        caption={['Stowed', 'Bays']}
+        onChange={noop}
+      />
     </div>
   </div>
 )
@@ -73,10 +95,16 @@ export const WithCaption: Story = () => (
 export const WithSubLabel: Story = () => (
   <div className="bg-paper p-4">
     <div className="mb-1 font-cond text-[10px] uppercase tracking-caps text-wk-muted">
-      with subLabel
+      with subLabel · {chassisName}
     </div>
     <div className="sheet--mech max-w-sm">
-      <VitalGauge label="HP" subLabel="Structure" value={9} max={12} onChange={noop} />
+      <VitalGauge
+        label="SP"
+        subLabel="Structure"
+        value={Math.ceil(sp * 0.75)}
+        max={sp}
+        onChange={noop}
+      />
     </div>
   </div>
 )
@@ -85,16 +113,16 @@ export const WithSubLabel: Story = () => (
 export const OverriddenMax: Story = () => (
   <div className="bg-paper p-4">
     <div className="mb-1 font-cond text-[10px] uppercase tracking-caps text-wk-muted">
-      overridden max (from derived)
+      overridden max (from derived) · {chassisName}
     </div>
     <div className="sheet--pilot max-w-sm">
       <VitalGauge
-        label="HP"
-        value={8}
-        max={14}
+        label="SP"
+        value={Math.ceil(sp * 0.7)}
+        max={sp + 2}
         onChange={noop}
         onMaxChange={noop}
-        overriddenFrom={10}
+        overriddenFrom={sp}
         onRevertOverride={noop}
       />
     </div>

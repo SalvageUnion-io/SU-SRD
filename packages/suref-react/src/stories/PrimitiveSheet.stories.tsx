@@ -1,5 +1,6 @@
 import type { Story } from '@ladle/react'
 import type { ReactNode } from 'react'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import { Text } from '../components/base/Text'
 import { Btn } from '../components/chrome/Btn'
 import { Conditions } from '../components/chrome/Conditions'
@@ -38,8 +39,33 @@ function Group({ title, children }: { title: string; children: ReactNode }) {
 
 const noop = () => {}
 
-/** Static demo roll table (mirrors the RollTable story's fallback fixture). */
-const demoTable = {
+/* ── real SRD content (reference data preloaded by .ladle/components.tsx) ── */
+
+const chassis = SalvageUnionReference.Chassis.all()[0]
+const chassisName = chassis?.name ?? 'Chassis'
+const sp = chassis?.structurePoints ?? 12
+const ep = chassis?.energyPoints ?? 4
+const heat = chassis?.heatCapacity ?? 6
+const systemSlots = chassis?.systemSlots ?? 16
+const tl = chassis?.techLevel ?? 1
+const sv = chassis?.salvageValue ?? 7
+
+const weaponAction = SalvageUnionReference.Actions.all()[0]
+const rangeLabel = weaponAction?.range?.[0] ?? 'Close'
+
+const systemName = SalvageUnionReference.Systems.all()[0]?.name ?? 'System'
+const className = SalvageUnionReference.Classes.all()[0]?.name ?? 'Engineer'
+const traitName = SalvageUnionReference.Traits.all()[0]?.name ?? 'armour'
+
+// Real condition-style keywords for the Conditions strip.
+const knownKeywords = new Set(SalvageUnionReference.Keywords.all().map((k) => k.name))
+const conditions = ['prone', 'blind'].filter((c) => knownKeywords.has(c))
+const conditionsForDisplay = conditions.length > 0 ? conditions : ['prone', 'blind']
+
+// Real roll table (same access pattern as RollTable.stories), with a fallback.
+const rollTableEntity = SalvageUnionReference.RollTables.all()[0]
+const realTable = rollTableEntity && 'table' in rollTableEntity ? rollTableEntity.table : undefined
+const fallbackTable = {
   type: 'standard' as const,
   '20': 'Critical Success: double effect',
   '11-19': 'Hit: standard effect',
@@ -56,39 +82,46 @@ export const Sheet: Story = () => (
       {/* 1. Type & Stamp */}
       <Group title="Type & Stamp">
         <Text as="span" variant="pseudoheader">
-          Ink Stamp
+          {chassisName}
         </Text>
         <span className="inline-block bg-ink p-2">
           <Text as="span" variant="pseudoheaderInverse">
-            Inverse Stamp
+            {className}
           </Text>
         </span>
       </Group>
 
       {/* 2. Stats */}
       <Group title="Stats">
-        <StatDisplay label="SP" value={8} />
-        <StatDisplay label="HP" value={4} max={6} dots tone="hp" />
-        <StatDisplay label="RANGE" value="Close" orientation="horizontal" />
-        <StatDisplay label="HEAT" value={3} max={6} dots tone="heat" orientation="horizontal" />
-        <StatDisplay label="EP" value={3} max={6} mode="edit" onChange={noop} />
+        <StatDisplay label="SP" value={sp} />
+        <StatDisplay label="EP" value={Math.ceil(ep * 0.75)} max={ep} dots tone="hp" />
+        <StatDisplay label="RANGE" value={rangeLabel} orientation="horizontal" />
+        <StatDisplay
+          label="HEAT"
+          value={Math.ceil(heat / 2)}
+          max={heat}
+          dots
+          tone="heat"
+          orientation="horizontal"
+        />
+        <StatDisplay label="SP" value={Math.ceil(sp * 0.5)} max={sp} mode="edit" onChange={noop} />
         <div className="sheet--pilot w-full max-w-[220px]">
-          <VitalGauge label="HP" value={4} max={6} readOnly />
+          <VitalGauge label="SP" value={Math.ceil(sp * 0.6)} max={sp} readOnly />
         </div>
       </Group>
 
       {/* 3. Badges */}
       <Group title="Badges">
-        <Pill>Tech 3</Pill>
+        <Pill>Tech {tl}</Pill>
         <Pill tone="pilot">pilot</Pill>
         <Pill tone="mech" rounded>
           mech
         </Pill>
-        <Chip value={12}>HP</Chip>
-        <Tag label="Passive" />
+        <Chip value={sp}>SP</Chip>
+        <Tag label={traitName} />
         <StatusBadge status="damaged" />
-        <StatDisplay orientation="horizontal" label="Class" value="Roughneck" />
-        <StatDisplay orientation="horizontal" label="SV" value={4} />
+        <StatDisplay orientation="horizontal" label="Class" value={className} />
+        <StatDisplay orientation="horizontal" label="SV" value={sv} />
       </Group>
 
       {/* 4. Buttons */}
@@ -97,12 +130,12 @@ export const Sheet: Story = () => (
         <Btn variant="default">Secondary</Btn>
         <Btn variant="ghost">Ghost</Btn>
         <Btn variant="danger">Danger</Btn>
-        <Sel selected onToggle={noop} ariaLabel="Selected">
+        <Sel selected onToggle={noop} ariaLabel={systemName}>
           <span className="block w-44 rounded-[4px] border-chrome border-ink bg-paper px-3 py-2 font-body text-[13px]">
-            Selected item
+            {systemName}
           </span>
         </Sel>
-        <FilterChip label="Facet" active onClick={noop} />
+        <FilterChip label={traitName} active onClick={noop} />
         <div className="flex items-center gap-2">
           <StepBtn aria-label="Decrease">–</StepBtn>
           <StepBtn aria-label="Increase">+</StepBtn>
@@ -113,17 +146,17 @@ export const Sheet: Story = () => (
       {/* 5. Chrome */}
       <Group title="Chrome">
         <div className="w-full">
-          <Slab label="Systems" count="2" />
+          <Slab label="Systems" count={String(systemSlots)} />
         </div>
         <Panel className="w-full p-2">
           <div className="flex flex-col gap-2">
-            <Row name="Iron Mongrel" meta="Chassis · TL3 · SV 8" />
+            <Row name={chassisName} meta={`Chassis · TL${tl} · SV ${sv}`} />
             <Empty message="No systems installed yet." />
           </div>
         </Panel>
-        <Conditions conditions={['Overheated', 'Prone']} onRemove={noop} onAdd={noop} />
-        <Field label="Callsign" htmlFor="ps-callsign">
-          <Input id="ps-callsign" defaultValue="Wrench" />
+        <Conditions conditions={conditionsForDisplay} onRemove={noop} onAdd={noop} />
+        <Field label="Chassis" htmlFor="ps-chassis">
+          <Input id="ps-chassis" defaultValue={chassisName} />
         </Field>
       </Group>
 
@@ -135,7 +168,7 @@ export const Sheet: Story = () => (
             headerBg="bg-su-green"
             headerContent={
               <Text as="span" variant="pseudoheader">
-                Sample Card
+                {systemName}
               </Text>
             }
           >
@@ -143,7 +176,11 @@ export const Sheet: Story = () => (
           </DisplayCard>
         </div>
         <div className="w-full">
-          <RollTable table={demoTable} compact />
+          <RollTable
+            table={realTable ?? fallbackTable}
+            compact
+            tableName={rollTableEntity?.name ?? 'Core Mechanic'}
+          />
         </div>
         <div className="w-full rounded-[3px] border-chrome border-dashed border-ink/40 p-2 font-mono text-[11px] text-ink-2">
           Tooltip · Modal · Toaster — portal/interaction primitives; verify live (not statically
