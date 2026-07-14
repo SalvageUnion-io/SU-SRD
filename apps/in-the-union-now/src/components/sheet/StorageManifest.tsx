@@ -20,7 +20,7 @@
  * buttons entirely.
  */
 
-import { MChip } from 'suref-react'
+import { StatDisplay } from 'suref-react'
 
 import type { UseCargoResult } from '../../lib/cargo/useCargo'
 import type { CargoLot } from '../../lib/schemas/cargoLot'
@@ -208,7 +208,13 @@ function CargoTile({ lot, cargo, linked, readOnly }: CargoTileProps) {
         <span className="box-decoration-clone min-w-0 flex-1 break-words bg-ink px-1.5 py-0.5 font-cond text-[11px] font-bold uppercase leading-[1.4] text-su-white">
           {lot.name}
         </span>
-        <MChip label={tag.label} value={tag.value} className="shrink-0" />
+        <StatDisplay
+          orientation="horizontal"
+          variant="framed"
+          label={tag.label}
+          value={tag.value}
+          className="shrink-0"
+        />
       </div>
       {!readOnly && (
         <button
